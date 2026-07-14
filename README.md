@@ -6,7 +6,7 @@ Aplikasi mobile (Flutter, satu APK) untuk kalibrasi alat ukur & sertifikat digit
 - **Framework**: Flutter 3.41 (Dart 3.11)
 - **State management**: Riverpod (`flutter_riverpod`) — lihat [Keputusan Teknis](#keputusan-teknis)
 - **OCR**: Google ML Kit Text Recognition (menyusul, minggu 5)
-- **Backend**: Laravel, repo terpisah `asmo-api`
+- **Backend**: Laravel, repo terpisah [`sidik-calibration-api`](https://github.com/ZainulArkaanAlinsi/sidik-calibration-api) (PIC: @raihannazhiif)
 
 ## Setup Lokal
 
