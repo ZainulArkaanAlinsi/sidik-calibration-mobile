@@ -68,6 +68,13 @@ class AuthController extends AsyncNotifier<User?> {
     await _auth.register(data);
   }
 
+  /// Minta link reset password. Sama kayak register: nggak nyentuh `state`
+  /// auth, karena user tetap belum login. Layar Reset Password yang nanganin
+  /// loading/sukses/error-nya sendiri.
+  Future<void> requestPasswordReset(String email) async {
+    await _auth.requestPasswordReset(email);
+  }
+
   Future<void> logout() async {
     final token = await _storage.read();
     state = const AsyncValue.loading();

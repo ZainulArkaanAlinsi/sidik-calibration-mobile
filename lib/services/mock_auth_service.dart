@@ -128,6 +128,20 @@ class MockAuthService implements AuthService {
   }
 
   @override
+  Future<void> requestPasswordReset(String email) async {
+    await Future<void>.delayed(_jeda);
+
+    final terdaftar = _akun.any(
+      (u) =>
+          (u['email'] as String).toLowerCase() == email.trim().toLowerCase(),
+    );
+
+    if (!terdaftar) {
+      throw const AuthException('Email ini nggak terdaftar.');
+    }
+  }
+
+  @override
   Future<User> me(String token) async {
     await Future<void>.delayed(_jeda);
 

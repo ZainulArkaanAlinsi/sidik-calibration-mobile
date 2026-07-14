@@ -51,6 +51,17 @@ abstract class AuthService {
   /// `pending` sampai admin nyetujuin & ngasih role.
   Future<void> register(RegisterData data);
 
+  /// Minta link reset password dikirim ke email.
+  ///
+  /// Lempar [AuthException] kalau emailnya nggak terdaftar — ini permintaan
+  /// eksplisit di catatan harian (state "error email nggak terdaftar").
+  ///
+  /// Catatan keamanan yang perlu diomongin sama backend: bilang "email nggak
+  /// terdaftar" itu ngebocorin email mana yang punya akun (user enumeration).
+  /// Praktik yang lebih aman: selalu jawab "kalau emailnya terdaftar, link
+  /// udah dikirim". Sementara ini ngikutin catatan harian dulu.
+  Future<void> requestPasswordReset(String email);
+
   /// Validasi token yang tersimpan waktu app dibuka (splash).
   Future<User> me(String token);
 
