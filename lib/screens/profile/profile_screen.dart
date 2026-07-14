@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
 import '../../providers/app_config_provider.dart';
+import '../design_system/design_system_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -18,6 +19,20 @@ class ProfileScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         children: [
           const _ProfileHeaderPlaceholder(),
+          const SizedBox(height: 24),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.palette_outlined),
+              title: const Text('Design System'),
+              subtitle: const Text('Katalog warna, tipografi & komponen'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const DesignSystemScreen(),
+                ),
+              ),
+            ),
+          ),
           const SizedBox(height: 24),
           Text('Info Aplikasi', style: theme.textTheme.titleSmall),
           const SizedBox(height: 8),
