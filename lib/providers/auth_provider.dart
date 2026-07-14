@@ -1,15 +1,25 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/config/app_config.dart';
 import '../models/user.dart';
+import '../services/api_auth_service.dart';
+import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import '../services/mock_auth_service.dart';
 import '../services/token_storage.dart';
 import 'navigation_provider.dart';
 
-/// GANTI SATU BARIS INI begitu `POST /api/login` dari backend siap:
-/// `MockAuthService()` → `ApiAuthService(ref.watch(apiClientProvider))`.
-/// Layar Login & provider di bawah nggak perlu disentuh.
-final authServiceProvider = Provider<AuthService>((ref) => MockAuthService());
+final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
+
+/// Sekarang **nembak API asli** (endpoint auth-nya udah live sejak 14 Jul).
+///
+/// Mock-nya masih ada buat jaring pengaman: kalau backend lagi mati atau lagi
+/// ngoding UI tanpa server, jalanin dengan
+/// `flutter run --dart-define=USE_MOCK=true`.
+final authServiceProvider = Provider<AuthService>((ref) {
+  if (AppConfig.useMock) return MockAuthService();
+  return ApiAuthService(ref.watch(apiClientProvider));
+});
 
 final tokenStorageProvider = Provider<TokenStorage>(
   (ref) => SecureTokenStorage(),

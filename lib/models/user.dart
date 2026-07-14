@@ -64,7 +64,12 @@ class User {
 
   final UserRole role;
   final UserStatus status;
-  final int organizationId;
+
+  /// **Bisa null.** Backend bilang (14 Jul) tabel `organizations` belum ada,
+  /// jadi akun hasil register organisasinya masih kosong. Kalau ini dipaksa
+  /// non-null, app-nya crash waktu parsing — bukan sekadar nampilin strip.
+  final int? organizationId;
+
   final String? department;
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -77,7 +82,7 @@ class User {
       // Backend lama yang belum ngirim `status` dianggap aktif — biar app
       // nggak ngunci semua orang gara-gara satu field belum ada.
       status: UserStatus.fromApi(json['status'] as String? ?? 'aktif'),
-      organizationId: json['organization_id'] as int,
+      organizationId: json['organization_id'] as int?,
       department: json['department'] as String?,
     );
   }

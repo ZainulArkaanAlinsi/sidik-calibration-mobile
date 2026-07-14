@@ -5,11 +5,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:asmo_mobile/app.dart';
 import 'package:asmo_mobile/models/user.dart';
 import 'package:asmo_mobile/providers/auth_provider.dart';
+import 'package:asmo_mobile/services/mock_auth_service.dart';
 import 'package:asmo_mobile/services/token_storage.dart';
 
-/// Storage in-memory, biar test nggak nyentuh Keystore HP.
+/// Test alur UI pakai `MockAuthService` — nggak nembak jaringan.
+/// Sambungan ke API asli diuji terpisah di `api_auth_service_test.dart`
+/// pakai HTTP tiruan.
 ProviderScope _app(TokenStorage storage) => ProviderScope(
-  overrides: [tokenStorageProvider.overrideWithValue(storage)],
+  overrides: [
+    tokenStorageProvider.overrideWithValue(storage),
+    authServiceProvider.overrideWithValue(MockAuthService()),
+  ],
   child: const AsmoApp(),
 );
 
