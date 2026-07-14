@@ -1,33 +1,42 @@
 import 'package:flutter/material.dart';
 
-/// Palet warna ASMO.
+/// Palet "Titanium" — diambil dari desain di
+/// `Project-PT-ASMO/gambar/` (DESIGN.md + screenshot login & register).
 ///
-/// Diambil dari warna yang udah dipakai di diagram alur project (vault
-/// Obsidian) — teal + navy + aksen kuning — biar app, dokumen, dan diagram
-/// kelihatan satu keluarga.
+/// Karakternya: monokrom high-contrast (navy nyaris hitam di atas putih),
+/// teal dipakai **irit** cuma buat sinyal fungsional (sukses, data
+/// tervalidasi, link). Bukan warna hiasan.
 ///
-/// Kalau nanti PT ASMO ngasih warna brand resmi, cukup ganti nilai di file
-/// ini. Nggak boleh ada `Color(0x...)` yang ditulis langsung di widget.
+/// Kalau PT ASMO ngasih warna brand resmi, cukup ganti di file ini —
+/// nggak boleh ada `Color(0x...)` yang ditulis langsung di widget.
 class AppColors {
   const AppColors._();
 
-  // Brand
-  static const Color primary = Color(0xFF0E5C68); // teal — warna utama
-  static const Color primaryDark = Color(0xFF0A4650);
-  static const Color secondary = Color(0xFF1B7A8A); // teal muda
-  static const Color navy = Color(0xFF0E2A33); // teks & permukaan gelap
-  static const Color accent = Color(0xFFE9C46A); // kuning — aksen & warning
+  // Brand — Titanium
+  static const Color navy = Color(0xFF0F172A); // primary, teks, tombol utama
+  static const Color navyDeep = Color(0xFF0B1C30);
+  static const Color teal = Color(0xFF006B5F); // aksen fungsional, dipakai irit
+  static const Color tealBright = Color(0xFF14B8A6); // aksen di tema gelap
+
+  // Netral (light)
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color surfaceLight = Color(0xFFF8F9FA);
+  static const Color surfaceMuted = Color(0xFFF1F5F9);
+  static const Color titanium = Color(0xFFE2E8F0); // garis rambut & border
+  static const Color textMuted = Color(0xFF45464D);
+  static const Color outline = Color(0xFF76777D);
+
+  // Netral (dark) — dari screenshot login
+  static const Color darkBase = Color(0xFF0B1E26);
+  static const Color darkSurface = Color(0xFF0E2A33);
+  static const Color darkElevated = Color(0xFF13333D);
+  static const Color darkOutline = Color(0xFF34505A);
+  static const Color darkTextMuted = Color(0xFFB6C9D4);
 
   // Semantik — status hasil kalibrasi & alat.
-  // PASS/FAIL sengaja nggak cuma dibedain warna: komponen status selalu
-  // bawa ikon + teks, biar tetap kebaca sama yang buta warna.
-  static const Color success = Color(0xFF2E7D5B); // PASS / disetujui
-  static const Color danger = Color(0xFFC1443A); // FAIL / ditolak
+  // Selalu dipasangkan sama ikon + teks, nggak pernah warna doang.
+  static const Color success = Color(0xFF006B5F); // PASS / disetujui
+  static const Color danger = Color(0xFFBA1A1A); // FAIL / ditolak
   static const Color warning = Color(0xFFB47C1E); // overdue / perlu revisi
-  static const Color info = Color(0xFF1B7A8A); // menunggu approval / draft
-
-  // Netral
-  static const Color surfaceLight = Color(0xFFF7F9FA);
-  static const Color surfaceDark = Color(0xFF0E2A33);
-  static const Color outline = Color(0xFF9BAAB0);
+  static const Color info = Color(0xFF3F465C); // menunggu approval / draft
 }

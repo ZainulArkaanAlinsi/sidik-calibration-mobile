@@ -62,10 +62,15 @@ Bikin ini duluan, hari ini juga kalau bisa. Kecil, tapi begitu ada, mobile bisa 
 ## 2. Auth (dibutuhin Minggu 2)
 
 ### `POST /api/login`
+
+**Login nerima ID pegawai ATAU email** di satu field `identifier` — teknisi di lapangan hafal nomor pegawainya (`ASM-0001`), bukan emailnya. Backend yang nebak: kalau ada `@` anggap email, kalau nggak anggap `employee_id`.
+
 Request:
 ```json
-{ "email": "admin@asmo.test", "password": "rahasia123" }
+{ "identifier": "ASM-0001", "password": "rahasia123" }
 ```
+(atau `{ "identifier": "admin@asmo.test", "password": "..." }` — dua-duanya harus jalan)
+
 Response `200`:
 ```json
 {
@@ -75,21 +80,64 @@ Response `200`:
       "id": 1,
       "nama": "Budi Santoso",
       "email": "admin@asmo.test",
+      "employee_id": "ASM-0001",
       "role": "admin",
+      "status": "aktif",
+      "department": "Quality Control",
       "organization_id": 1
     }
   }
 }
 ```
-Kredensial salah → `401` dengan `{ "message": "Email atau password salah." }`
+Kredensial salah → `401` `{ "message": "ID pegawai / email atau password salah." }`
 
-> **`role` wajib salah satu dari: `admin` / `teknisi` / `viewer`** — persis string itu, huruf kecil. Mobile pakai ini buat nentuin menu mana yang dirender. Kalau nanti ada role baru, kabarin dulu.
+> **`role` wajib: `admin` / `teknisi` / `viewer`** — persis, huruf kecil. Mobile pakai ini buat nentuin menu mana yang dirender.
+> **`status` wajib: `aktif` / `pending` / `nonaktif`.**
+> **`employee_id` wajib unik** (dipakai buat login).
+
+**PENTING — akun `pending` WAJIB ditolak login di backend** dengan `403`:
+```json
+{ "message": "Akun kamu belum disetujui admin. Tunggu konfirmasi dulu ya." }
+```
+Mobile juga nolak di sisi UI, **tapi itu nggak cukup** — orang bisa nembak API langsung pakai curl, jadi backend harus jadi benteng aslinya.
+
+### `POST /api/register`
+
+Daftar mandiri buat teknisi. **Akun yang dibuat NGGAK boleh langsung aktif.**
+
+Request:
+```json
+{
+  "nama": "Eko Prasetyo",
+  "employee_id": "ASM-0099",
+  "department": "Kalibrasi",
+  "email": "eko@ptasmo.com",
+  "password": "rahasia123"
+}
+```
+Response `201`:
+```json
+{ "message": "Pendaftaran terkirim. Akun menunggu persetujuan admin." }
+```
+
+Aturan yang wajib dipegang backend:
+- Akun baru **selalu** `status: "pending"` dan `role: "teknisi"` (default)
+- **User NGGAK boleh milih role sendiri** waktu daftar — kalau field `role` dikirim dari client, **abaikan**. Kalau nggak, siapa pun bisa daftar jadi `admin` dan langsung bisa approve dirinya sendiri
+- `email` & `employee_id` dobel → `422` dengan pesan jelas ("Email ini sudah terdaftar." / "ID pegawai ini sudah terdaftar.")
+- Password minimal 8 karakter
 
 ### `GET /api/me`
-Buat validasi token yang tersimpan waktu app dibuka (splash screen). Response: objek `user` yang sama kayak di atas.
+Buat validasi token yang tersimpan waktu app dibuka (splash). Response: objek `user` yang sama kayak di atas.
 
 ### `POST /api/logout`
 Response `200`: `{ "message": "Berhasil logout." }`
+
+### Approval akun (admin-only) — dibutuhin biar register-nya ada gunanya
+- **`GET /api/users?status=pending`** — daftar akun yang nunggu disetujui
+- **`POST /api/users/{id}/approve`** — body `{ "role": "teknisi" }`. Admin yang nentuin role-nya di sini, bukan si pendaftar. Setelah ini `status` jadi `aktif` dan orangnya baru bisa login
+- **`POST /api/users/{id}/reject`** — tolak pendaftaran
+
+Kalau endpoint approve belum ada, **register jadi jebakan**: orang daftar, terus nggak pernah bisa masuk selamanya, dan nggak ada yang tahu. Jadi dua-duanya harus jalan bareng.
 
 ---
 
@@ -274,6 +322,9 @@ Isinya beda tergantung role — teknisi dapat ringkasan miliknya, admin dapat li
 ## Yang paling penting buat disepakati sekarang
 
 1. **`GET /api/health`** — bikin duluan, biar sambungan mobile ↔ API bisa dites minggu ini.
-2. **Nama field**: dokumen ini pakai **bahasa Indonesia** (`nama_alat`, `tanggal_jatuh_tempo`). Kalau kamu lebih milih Inggris (`name`, `due_date`), **nggak masalah — tapi putusin sekarang**, jangan setengah jalan. Yang mahal itu ganti nama field pas dua sisi udah kadung dikoding.
-3. **Nilai enum** (`role`, `status`, `keputusan`, `kategori`) harus persis kayak di atas, termasuk besar-kecil hurufnya. Ini yang paling sering bikin bug diam-diam.
-4. **CORS**: nggak perlu diapa-apain buat mobile (bukan browser), jadi jangan buang waktu di situ.
+2. **`POST /api/login` pakai `identifier`** (ID pegawai **atau** email), bukan `email` doang. Ini keputusan yang udah diambil — desain layar login-nya minta ID pegawai, dan mobile udah dikoding gitu.
+3. **Akun `pending` wajib ditolak login di backend** (403). Mobile udah nolak di UI, tapi UI bukan benteng — orang bisa nembak API pakai curl.
+4. **User nggak boleh milih role sendiri waktu daftar.** Kalau client ngirim `role`, abaikan. Kalau nggak, orang bisa daftar jadi admin dan approve dirinya sendiri.
+5. **Nama field**: dokumen ini pakai **bahasa Indonesia** (`nama_alat`, `tanggal_jatuh_tempo`). Kalau kamu lebih milih Inggris, **nggak masalah — tapi putusin sekarang**, jangan setengah jalan. Yang mahal itu ganti nama field pas dua sisi udah kadung dikoding.
+6. **Nilai enum** (`role`, `status`, `keputusan`, `kategori`) harus persis kayak di atas, termasuk besar-kecil hurufnya. Ini yang paling sering bikin bug diam-diam.
+7. **CORS**: nggak perlu diapa-apain buat mobile (bukan browser), jadi jangan buang waktu di situ.

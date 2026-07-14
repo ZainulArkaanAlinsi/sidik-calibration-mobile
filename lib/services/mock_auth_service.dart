@@ -1,37 +1,58 @@
 import '../models/user.dart';
 import 'auth_service.dart';
 
-/// Auth palsu buat kerja duluan sebelum endpoint `/api/login` dari backend
-/// jadi. Response-nya sengaja dibikin **persis sama bentuknya** dengan yang
-/// dijanjiin di `docs/kontrak-api.md`, termasuk lewat `User.fromJson` —
+/// Auth palsu buat kerja duluan sebelum endpoint auth dari backend jadi.
+/// Response-nya sengaja dibikin **persis sama bentuknya** dengan yang
+/// dijanjiin di `docs/kontrak-api.md` dan diparse lewat `User.fromJson` —
 /// jadi kalau kontraknya ditepati, ganti ke API asli nggak bakal ngagetin.
 ///
 /// HAPUS file ini begitu `ApiAuthService` jalan.
 class MockAuthService implements AuthService {
   /// Akun tes. Password semuanya `password123`.
-  static const _akun = <String, Map<String, dynamic>>{
-    'admin@asmo.test': {
+  static final List<Map<String, dynamic>> _akun = [
+    {
       'id': 1,
       'nama': 'Budi Santoso',
       'email': 'admin@asmo.test',
+      'employee_id': 'ASM-0001',
       'role': 'admin',
+      'status': 'aktif',
+      'department': 'Quality Control',
       'organization_id': 1,
     },
-    'teknisi@asmo.test': {
+    {
       'id': 2,
       'nama': 'Andi Pratama',
       'email': 'teknisi@asmo.test',
+      'employee_id': 'ASM-0002',
       'role': 'teknisi',
+      'status': 'aktif',
+      'department': 'Kalibrasi',
       'organization_id': 1,
     },
-    'viewer@asmo.test': {
+    {
       'id': 3,
       'nama': 'Citra Dewi',
       'email': 'viewer@asmo.test',
+      'employee_id': 'ASM-0003',
       'role': 'viewer',
+      'status': 'aktif',
+      'department': 'Manajemen',
       'organization_id': 1,
     },
-  };
+    // Akun yang udah daftar tapi belum di-approve admin — buat nguji bahwa
+    // akun pending beneran ditolak masuk.
+    {
+      'id': 4,
+      'nama': 'Dewi Lestari',
+      'email': 'pending@asmo.test',
+      'employee_id': 'ASM-0004',
+      'role': 'teknisi',
+      'status': 'pending',
+      'department': 'Kalibrasi',
+      'organization_id': 1,
+    },
+  ];
 
   static const _password = 'password123';
 
@@ -40,27 +61,77 @@ class MockAuthService implements AuthService {
 
   @override
   Future<AuthSession> login({
-    required String email,
+    required String identifier,
     required String password,
   }) async {
     await Future<void>.delayed(_jeda);
 
-    final json = _akun[email.trim().toLowerCase()];
+    final key = identifier.trim().toLowerCase();
+    final json = _akun.where((u) {
+      return (u['email'] as String).toLowerCase() == key ||
+          (u['employee_id'] as String).toLowerCase() == key;
+    }).firstOrNull;
+
     if (json == null || password != _password) {
-      throw const AuthException('Email atau password salah.');
+      throw const AuthException('ID pegawai / email atau password salah.');
     }
 
-    return AuthSession(
-      token: 'mock-token-${json['id']}',
-      user: User.fromJson(json),
+    final user = User.fromJson(json);
+
+    // Akun pending ditolak di sini. Kalau ini cuma disembunyiin di UI,
+    // orang masih bisa nembak API langsung — makanya backend WAJIB nolak juga.
+    if (user.status == UserStatus.pending) {
+      throw const AuthException(
+        'Akun kamu belum disetujui admin. Tunggu konfirmasi dulu ya.',
+      );
+    }
+    if (user.status == UserStatus.nonaktif) {
+      throw const AuthException('Akun kamu dinonaktifkan. Hubungi admin.');
+    }
+
+    return AuthSession(token: 'mock-token-${json['id']}', user: user);
+  }
+
+  @override
+  Future<void> register(RegisterData data) async {
+    await Future<void>.delayed(_jeda);
+
+    final emailKepakai = _akun.any(
+      (u) =>
+          (u['email'] as String).toLowerCase() == data.email.trim().toLowerCase(),
     );
+    if (emailKepakai) {
+      throw const AuthException('Email ini sudah terdaftar.');
+    }
+
+    final idKepakai = _akun.any(
+      (u) =>
+          (u['employee_id'] as String).toLowerCase() ==
+          data.employeeId.trim().toLowerCase(),
+    );
+    if (idKepakai) {
+      throw const AuthException('ID pegawai ini sudah terdaftar.');
+    }
+
+    // Akun baru selalu `pending` + role default `teknisi`. Role sebenarnya
+    // ditentukan admin waktu nyetujuin — user nggak bisa milih role sendiri.
+    _akun.add({
+      'id': _akun.length + 1,
+      'nama': data.nama.trim(),
+      'email': data.email.trim(),
+      'employee_id': data.employeeId.trim(),
+      'role': 'teknisi',
+      'status': 'pending',
+      'department': data.department,
+      'organization_id': 1,
+    });
   }
 
   @override
   Future<User> me(String token) async {
     await Future<void>.delayed(_jeda);
 
-    final json = _akun.values.firstWhere(
+    final json = _akun.firstWhere(
       (u) => token == 'mock-token-${u['id']}',
       orElse: () => throw const AuthException('Sesi kamu sudah berakhir.'),
     );
