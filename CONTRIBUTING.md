@@ -7,15 +7,18 @@ Repo ini dikerjakan berdua (@ZainulArkaanAlinsi & @raihannazhiif). Tulisan ini b
 ```bash
 git clone https://github.com/ZainulArkaanAlinsi/asmo-mobile.git
 cd asmo-mobile
+git config core.hooksPath .githooks   # WAJIB — aktifin pengaman branch main
 flutter pub get
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000/api
 ```
+
+> **Jangan skip baris `core.hooksPath`.** Itu yang bikin git nolak kalau kamu nggak sengaja push ke `main`. Cukup sekali per laptop.
 
 ## Branch
 
 | Branch | Isinya |
 | --- | --- |
-| `main` | Versi stabil. **Jangan pernah push langsung ke sini.** Cuma keisi dari `develop` pas mau demo/rilis. |
+| `main` | Versi stabil. **Jangan pernah push langsung ke sini.** Cuma keisi dari `develop` pas mau demo/rilis. Dijaga hook `.githooks/pre-push` — push langsung bakal ditolak. |
 | `develop` | Branch integrasi. Kerjaan yang udah kelar dimerge ke sini. |
 | `feature/<nama>` | Tempat ngoding. Satu fitur satu branch, mis. `feature/bottom-nav`, `feature/login`. |
 
