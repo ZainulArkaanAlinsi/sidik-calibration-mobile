@@ -23,6 +23,19 @@ Future<void> _isiForm(
   await tester.tap(find.text('Masuk'));
 }
 
+/// Niru Keystore yang rusak — `flutter_secure_storage` bisa lempar
+/// PlatformException, bukan AuthException.
+class _BrokenTokenStorage implements TokenStorage {
+  @override
+  Future<String?> read() async => throw Exception('keystore rusak');
+
+  @override
+  Future<void> write(String token) async {}
+
+  @override
+  Future<void> clear() async {}
+}
+
 void main() {
   group('alur login (pakai MockAuthService)', () {
     testWidgets('belum ada token → mendarat di layar Login', (tester) async {
@@ -73,6 +86,44 @@ void main() {
         isNull,
         reason: 'login gagal nggak boleh nyimpen token',
       );
+    });
+
+    testWidgets('login gagal → email yang udah diketik NGGAK ilang', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_app(InMemoryTokenStorage()));
+      await tester.pumpAndSettle();
+
+      await _isiForm(tester, email: 'admin@asmo.test', password: 'ngasal');
+      await tester.pumpAndSettle();
+
+      // User harus bisa langsung benerin password-nya doang, bukan ngetik
+      // ulang email dari nol.
+      expect(find.text('admin@asmo.test'), findsOneWidget);
+    });
+
+    testWidgets('lagi login → tetap di layar Login (nggak loncat ke splash)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_app(InMemoryTokenStorage()));
+      await tester.pumpAndSettle();
+
+      await _isiForm(
+        tester,
+        email: 'admin@asmo.test',
+        password: 'password123',
+      );
+      await tester.pump(); // lagi loading
+
+      // Tombol "Masuk" ilang = layar Login ke-unmount = form ke-reset.
+      expect(
+        find.byType(TextField),
+        findsWidgets,
+        reason: 'form harus tetap ada selama proses login',
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.byType(NavigationBar), findsOneWidget);
     });
 
     testWidgets('field kosong → divalidasi lokal, nggak nembak server', (
@@ -126,6 +177,39 @@ void main() {
       expect(find.text('Masuk'), findsOneWidget);
       expect(await storage.read(), isNull);
     });
+  });
+
+  testWidgets('logout dari tab Profil → login lagi mendarat di Dashboard', (
+    tester,
+  ) async {
+    final storage = InMemoryTokenStorage('mock-token-1');
+    await tester.pumpWidget(_app(storage));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Profil'));
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(find.text('Keluar'), 200);
+    await tester.tap(find.text('Keluar'));
+    await tester.pumpAndSettle();
+
+    await _isiForm(tester, email: 'teknisi@asmo.test', password: 'password123');
+    await tester.pumpAndSettle();
+
+    // User baru harus mulai dari Dashboard, bukan nyangkut di tab Profil
+    // punya sesi sebelumnya.
+    expect(find.widgetWithText(AppBar, 'Dashboard'), findsOneWidget);
+  });
+
+  testWidgets('secure storage error → app tetap kebuka di Login, bukan crash', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_app(_BrokenTokenStorage()));
+    await tester.pumpAndSettle();
+
+    // Keystore bisa rusak (mis. habis install ulang app). Kalau ini bikin
+    // app crash pas dibuka, user nggak punya jalan keluar sama sekali.
+    expect(find.text('Masuk'), findsOneWidget);
   });
 
   group('role', () {
