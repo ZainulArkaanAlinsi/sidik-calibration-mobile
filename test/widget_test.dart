@@ -1,30 +1,36 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:asmo_mobile/main.dart';
+import 'package:asmo_mobile/app.dart';
+import 'package:asmo_mobile/core/config/app_config.dart';
+import 'package:asmo_mobile/providers/app_config_provider.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('app ke-build dan nampilin identitas ASMO', (tester) async {
+    await tester.pumpWidget(const ProviderScope(child: AsmoApp()));
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('ASMO Mobile'), findsOneWidget);
+    expect(find.text('Kalibrasi alat ukur & sertifikat digital'), findsOneWidget);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  testWidgets('Riverpod ke-wire: provider config kebaca dari widget', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          apiBaseUrlProvider.overrideWithValue('http://localhost:9000/api'),
+        ],
+        child: const AsmoApp(),
+      ),
+    );
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('http://localhost:9000/api'), findsOneWidget);
+  });
+
+  test('AppConfig default ke environment dev', () {
+    expect(AppConfig.env, AppEnv.dev);
+    expect(AppConfig.envLabel, 'DEV');
+    expect(AppConfig.isProd, isFalse);
   });
 }

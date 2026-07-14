@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+# Nolak push langsung ke `main`. Branch `main` cuma boleh keisi lewat PR
+# yang udah direview partner (lihat CONTRIBUTING.md).
+#
+# Aktifin sekali per laptop:
+#   git config core.hooksPath .githooks
+#
+# Kalau beneran darurat dan harus nembus hook ini:
+#   git push --no-verify
+
+protected="refs/heads/main"
+
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  if [ "$remote_ref" = "$protected" ]; then
+    echo ""
+    echo "  ✋ DITOLAK: jangan push langsung ke 'main'."
+    echo ""
+    echo "  'main' itu versi stabil, cuma boleh keisi lewat PR yang udah direview."
+    echo "  Yang bener:"
+    echo ""
+    echo "    git checkout -b feature/nama-fitur"
+    echo "    git push -u origin feature/nama-fitur"
+    echo "    gh pr create --base develop --fill"
+    echo ""
+    exit 1
+  fi
+done
+
+exit 0
