@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,16 +7,43 @@ import 'package:asmo_mobile/core/config/app_config.dart';
 import 'package:asmo_mobile/providers/app_config_provider.dart';
 
 void main() {
-  testWidgets('app ke-build dan nampilin identitas ASMO', (tester) async {
-    await tester.pumpWidget(const ProviderScope(child: AsmoApp()));
+  group('bottom navigation', () {
+    testWidgets('nampilin 5 tab dan mulai dari Dashboard', (tester) async {
+      await tester.pumpWidget(const ProviderScope(child: AsmoApp()));
 
-    expect(find.text('ASMO Mobile'), findsOneWidget);
-    expect(find.text('Kalibrasi alat ukur & sertifikat digital'), findsOneWidget);
+      expect(find.byType(NavigationBar), findsOneWidget);
+      for (final label in [
+        'Dashboard',
+        'Alat',
+        'Riwayat',
+        'Notifikasi',
+        'Profil',
+      ]) {
+        expect(find.text(label), findsWidgets, reason: 'tab $label harus ada');
+      }
+
+      // Tab awal = Dashboard, jadi AppBar-nya Dashboard yang kelihatan.
+      expect(
+        find.widgetWithText(AppBar, 'Dashboard'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('pindah tab beneran ganti layar', (tester) async {
+      await tester.pumpWidget(const ProviderScope(child: AsmoApp()));
+
+      await tester.tap(find.text('Alat'));
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(AppBar, 'Alat'), findsOneWidget);
+      expect(find.text('Daftar Alat'), findsOneWidget);
+
+      await tester.tap(find.text('Profil'));
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(AppBar, 'Profil'), findsOneWidget);
+    });
   });
 
-  testWidgets('Riverpod ke-wire: provider config kebaca dari widget', (
-    tester,
-  ) async {
+  testWidgets('tab Profil nampilin API base URL dari provider', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -24,6 +52,9 @@ void main() {
         child: const AsmoApp(),
       ),
     );
+
+    await tester.tap(find.text('Profil'));
+    await tester.pumpAndSettle();
 
     expect(find.text('http://localhost:9000/api'), findsOneWidget);
   });
