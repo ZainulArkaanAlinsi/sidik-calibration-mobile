@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/config/app_config.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
@@ -165,7 +166,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: AppSpacing.lg),
                   const AuthPoweredBy(),
                   const SizedBox(height: AppSpacing.md),
-                  const _MockHint(),
+                  const _DevHint(),
                 ],
               ),
             ),
@@ -214,13 +215,17 @@ class _ErrorBanner extends StatelessWidget {
   }
 }
 
-/// Petunjuk akun tes. HAPUS bareng `MockAuthService` begitu API asli nyambung.
-class _MockHint extends StatelessWidget {
-  const _MockHint();
+/// Petunjuk akun tes — **cuma muncul di build non-produksi**. Di APK yang
+/// dikasih ke perusahaan, kotak ini nggak dirender sama sekali.
+class _DevHint extends StatelessWidget {
+  const _DevHint();
 
   @override
   Widget build(BuildContext context) {
+    if (AppConfig.isProd) return const SizedBox.shrink();
+
     final theme = Theme.of(context);
+    final mock = AppConfig.useMock;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -232,14 +237,18 @@ class _MockHint extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'MODE MOCK — API BELUM NYAMBUNG',
+            mock ? 'MODE MOCK — TANPA SERVER' : 'MODE DEV — NEMBAK API ASLI',
             style: theme.textTheme.labelSmall,
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'ASM-0001 (admin) · ASM-0002 (teknisi) · ASM-0003 (viewer)\n'
-            'Bisa juga pakai email: admin@asmo.test, dst.\n'
-            'Password semua: password123',
+            mock
+                ? 'ASM-0001 (admin) · ASM-0002 (teknisi) · ASM-0003 (viewer)\n'
+                      'Password: password123'
+                : 'ASM-0001 (admin) · ASM-0002 (teknisi) · ASM-0003 (viewer)\n'
+                      'ASM-0099 (pending, buat nyoba akun ditolak)\n'
+                      'Password: rahasia123\n'
+                      'Server: ${AppConfig.apiBaseUrl}',
             style: theme.textTheme.bodySmall,
           ),
         ],

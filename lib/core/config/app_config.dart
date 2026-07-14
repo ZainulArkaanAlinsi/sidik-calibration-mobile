@@ -26,6 +26,16 @@ class AppConfig {
     defaultValue: 'http://10.0.2.2:8000/api',
   );
 
+  /// Saklar mock. Default **false** — app nembak API asli.
+  ///
+  /// Nyalain kalau backend lagi mati / kamu lagi ngoding UI tanpa server:
+  /// `flutter run --dart-define=USE_MOCK=true`
+  ///
+  /// Sengaja `const bool.fromEnvironment`, bukan variabel biasa: di build
+  /// release nilainya ke-hardcode waktu compile, jadi mock **nggak mungkin**
+  /// kebawa nyala diam-diam ke APK produksi.
+  static const bool useMock = bool.fromEnvironment('USE_MOCK');
+
   static AppEnv get env => switch (_rawEnv) {
     'prod' => AppEnv.prod,
     'staging' => AppEnv.staging,

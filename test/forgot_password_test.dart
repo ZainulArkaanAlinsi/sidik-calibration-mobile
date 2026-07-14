@@ -4,10 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:asmo_mobile/app.dart';
 import 'package:asmo_mobile/providers/auth_provider.dart';
+import 'package:asmo_mobile/services/mock_auth_service.dart';
 import 'package:asmo_mobile/services/token_storage.dart';
 
 ProviderScope _app() => ProviderScope(
-  overrides: [tokenStorageProvider.overrideWithValue(InMemoryTokenStorage())],
+  overrides: [
+    tokenStorageProvider.overrideWithValue(InMemoryTokenStorage()),
+    authServiceProvider.overrideWithValue(MockAuthService()),
+  ],
   child: const AsmoApp(),
 );
 

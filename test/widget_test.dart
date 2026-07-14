@@ -6,6 +6,7 @@ import 'package:asmo_mobile/app.dart';
 import 'package:asmo_mobile/core/config/app_config.dart';
 import 'package:asmo_mobile/providers/app_config_provider.dart';
 import 'package:asmo_mobile/providers/auth_provider.dart';
+import 'package:asmo_mobile/services/mock_auth_service.dart';
 import 'package:asmo_mobile/services/token_storage.dart';
 
 /// App dalam kondisi udah login (token admin) — soalnya sekarang app mendarat
@@ -16,6 +17,7 @@ Widget _appLoggedIn({String? apiBaseUrl}) => ProviderScope(
     tokenStorageProvider.overrideWithValue(
       InMemoryTokenStorage('mock-token-1'),
     ),
+    authServiceProvider.overrideWithValue(MockAuthService()),
     if (apiBaseUrl != null) apiBaseUrlProvider.overrideWithValue(apiBaseUrl),
   ],
   child: const AsmoApp(),
