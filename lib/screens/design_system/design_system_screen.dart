@@ -28,10 +28,10 @@ class DesignSystemScreen extends StatelessWidget {
               spacing: AppSpacing.sm,
               runSpacing: AppSpacing.sm,
               children: const [
-                _Swatch(color: AppColors.primary, name: 'Primary'),
-                _Swatch(color: AppColors.secondary, name: 'Secondary'),
                 _Swatch(color: AppColors.navy, name: 'Navy'),
-                _Swatch(color: AppColors.accent, name: 'Accent'),
+                _Swatch(color: AppColors.teal, name: 'Teal'),
+                _Swatch(color: AppColors.titanium, name: 'Titanium'),
+                _Swatch(color: AppColors.surfaceMuted, name: 'Surface'),
                 _Swatch(color: AppColors.success, name: 'Success'),
                 _Swatch(color: AppColors.danger, name: 'Danger'),
                 _Swatch(color: AppColors.warning, name: 'Warning'),

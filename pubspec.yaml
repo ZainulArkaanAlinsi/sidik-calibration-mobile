@@ -59,6 +59,22 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  # Inter — font di desain Titanium (Project-PT-ASMO/gambar/titanium_light).
+  # Sengaja dibundel di APK, bukan pakai `google_fonts` yang ngunduh waktu
+  # runtime: teknisi di lapangan sinyalnya nggak nentu, font nggak boleh
+  # gagal muncul. Lisensi SIL OFL (assets/fonts/LICENSE-Inter.txt).
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700
+
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

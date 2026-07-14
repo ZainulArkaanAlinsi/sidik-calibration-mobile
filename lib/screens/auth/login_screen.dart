@@ -6,6 +6,8 @@ import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
+import 'register_screen.dart';
+import 'widgets/auth_brand_header.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -15,27 +17,29 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _email = TextEditingController();
+  final _identifier = TextEditingController();
   final _password = TextEditingController();
 
-  String? _emailError;
+  String? _identifierError;
   String? _passwordError;
 
   @override
   void dispose() {
-    _email.dispose();
+    _identifier.dispose();
     _password.dispose();
     super.dispose();
   }
 
-  /// Validasi lokal dulu — nggak usah bolak-balik ke server cuma buat tahu
+  /// Divalidasi lokal dulu — nggak usah bolak-balik ke server cuma buat tahu
   /// field-nya kosong.
   bool _validasi() {
     setState(() {
-      _emailError = _email.text.trim().isEmpty ? 'Email wajib diisi.' : null;
+      _identifierError = _identifier.text.trim().isEmpty
+          ? 'ID pegawai atau email wajib diisi.'
+          : null;
       _passwordError = _password.text.isEmpty ? 'Password wajib diisi.' : null;
     });
-    return _emailError == null && _passwordError == null;
+    return _identifierError == null && _passwordError == null;
   }
 
   Future<void> _submit() async {
@@ -43,7 +47,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     await ref
         .read(authProvider.notifier)
-        .login(email: _email.text, password: _password.text);
+        .login(identifier: _identifier.text, password: _password.text);
   }
 
   @override
@@ -51,9 +55,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final theme = Theme.of(context);
     final auth = ref.watch(authProvider);
 
-    // Pesan error kredensial dari service. Exception teknis (timeout, dst)
-    // nggak ditampilin mentah-mentah ke user.
-    final errorKredensial = switch (auth) {
+    // Cuma pesan dari AuthException yang ditampilin apa adanya. Exception
+    // teknis (timeout, parsing) disembunyiin — user nggak perlu lihat itu.
+    final errorLogin = switch (auth) {
       AsyncError(:final AuthException error) => error.message,
       AsyncError() => 'Nggak bisa nyambung ke server. Coba lagi.',
       _ => null,
@@ -63,66 +67,113 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: const EdgeInsets.all(AppSpacing.md),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
+              constraints: const BoxConstraints(maxWidth: 440),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(
-                    Icons.straighten,
-                    size: 56,
-                    color: theme.colorScheme.primary,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  Text(
-                    'ASMO Mobile',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    'Kalibrasi alat ukur & sertifikat digital',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-
-                  if (errorKredensial != null) ...[
-                    _ErrorBanner(message: errorKredensial),
-                    const SizedBox(height: AppSpacing.md),
-                  ],
-
-                  AppTextField(
-                    label: 'Email',
-                    controller: _email,
-                    hint: 'nama@perusahaan.com',
-                    errorText: _emailError,
-                    enabled: !auth.isLoading,
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  AppTextField(
-                    label: 'Password',
-                    controller: _password,
-                    obscureText: true,
-                    errorText: _passwordError,
-                    enabled: !auth.isLoading,
+                  const SizedBox(height: AppSpacing.lg),
+                  const AuthBrandHeader(
+                    title: 'SIDIK',
+                    subtitle: 'Manajemen Kalibrasi Presisi',
                   ),
                   const SizedBox(height: AppSpacing.lg),
 
-                  AppButton(
-                    label: 'Masuk',
-                    isLoading: auth.isLoading,
-                    onPressed: _submit,
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (errorLogin != null) ...[
+                            _ErrorBanner(message: errorLogin),
+                            const SizedBox(height: AppSpacing.md),
+                          ],
+
+                          AppTextField(
+                            label: 'ID Pegawai / Email',
+                            controller: _identifier,
+                            hint: 'ASM-0001 atau nama@ptasmo.com',
+                            prefixIcon: Icons.badge_outlined,
+                            errorText: _identifierError,
+                            enabled: !auth.isLoading,
+                            textInputAction: TextInputAction.next,
+                            autofillHints: const [AutofillHints.username],
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+
+                          AppTextField(
+                            label: 'Password',
+                            controller: _password,
+                            hint: '••••••••',
+                            prefixIcon: Icons.lock_outline,
+                            isPassword: true,
+                            errorText: _passwordError,
+                            enabled: !auth.isLoading,
+                            textInputAction: TextInputAction.done,
+                            autofillHints: const [AutofillHints.password],
+                            // Enter di keyboard langsung submit — teknisi
+                            // nggak perlu mindahin tangan ke tombol.
+                            onSubmitted: (_) => _submit(),
+                            trailing: TextButton(
+                              onPressed: auth.isLoading
+                                  ? null
+                                  : () => _belumTersedia(context),
+                              child: const Text('Lupa Password?'),
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+
+                          AppButton(
+                            label: 'MASUK',
+                            isLoading: auth.isLoading,
+                            onPressed: _submit,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Belum punya akun?',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                      TextButton(
+                        onPressed: auth.isLoading
+                            ? null
+                            : () => Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => const RegisterScreen(),
+                                ),
+                              ),
+                        child: const Text('Daftar'),
+                      ),
+                    ],
                   ),
 
                   const SizedBox(height: AppSpacing.lg),
+                  const AuthPoweredBy(),
+                  const SizedBox(height: AppSpacing.md),
                   const _MockHint(),
                 ],
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  void _belumTersedia(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Reset password nyusul — endpoint-nya lagi digarap backend.',
         ),
       ),
     );
@@ -141,25 +192,22 @@ class _ErrorBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: theme.colorScheme.error.withValues(alpha: 0.1),
+        color: theme.colorScheme.errorContainer,
         borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-        border: Border.all(
-          color: theme.colorScheme.error.withValues(alpha: 0.4),
-        ),
       ),
       child: Row(
         children: [
           Icon(
             Icons.error_outline,
             size: 20,
-            color: theme.colorScheme.error,
+            color: theme.colorScheme.onErrorContainer,
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               message,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.error,
+                color: theme.colorScheme.onErrorContainer,
               ),
             ),
           ),
@@ -186,11 +234,15 @@ class _MockHint extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Mode mock — API belum nyambung', style: theme.textTheme.labelSmall),
+          Text(
+            'MODE MOCK — API BELUM NYAMBUNG',
+            style: theme.textTheme.labelSmall,
+          ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'admin@asmo.test · teknisi@asmo.test · viewer@asmo.test\n'
-            'Password: password123',
+            'ASM-0001 (admin) · ASM-0002 (teknisi) · ASM-0003 (viewer)\n'
+            'Bisa juga pakai email: admin@asmo.test, dst.\n'
+            'Password semua: password123',
             style: theme.textTheme.bodySmall,
           ),
         ],

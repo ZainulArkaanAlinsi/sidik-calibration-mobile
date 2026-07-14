@@ -44,14 +44,28 @@ class AuthController extends AsyncNotifier<User?> {
     }
   }
 
-  Future<void> login({required String email, required String password}) async {
+  /// [identifier] = Employee ID (mis. `ASM-0001`) atau email.
+  Future<void> login({
+    required String identifier,
+    required String password,
+  }) async {
     state = const AsyncValue.loading();
 
     state = await AsyncValue.guard(() async {
-      final session = await _auth.login(email: email, password: password);
+      final session = await _auth.login(
+        identifier: identifier,
+        password: password,
+      );
       await _storage.write(session.token);
       return session.user;
     });
+  }
+
+  /// Daftar akun baru. Sengaja **nggak** ngubah `state` jadi logged-in:
+  /// akunnya masih `pending` nunggu approval admin, jadi user tetap di luar.
+  /// Lempar [AuthException] kalau gagal — layar Register yang nampilin.
+  Future<void> register(RegisterData data) async {
+    await _auth.register(data);
   }
 
   Future<void> logout() async {
