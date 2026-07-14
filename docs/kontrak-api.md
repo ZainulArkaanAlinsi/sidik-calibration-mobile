@@ -353,6 +353,27 @@ Response: status jadi `perlu_revisi` + `catatan_revisi` keisi. Mobile bakal namp
 
 ### `GET /api/verify/{qr_token}` — **tanpa auth** (dipakai orang luar yang scan QR).
 
+> ✅ **Live sejak 14 Jul — dan ADA DUA VERSINYA, ini penting buat nentuin isi QR-nya.**
+>
+> **1. `GET /verify/{qr_token}` (halaman web, bukan `/api`).** Ini yang harus ditaruh di QR sertifikat. Alasannya: yang scan itu orang luar (auditor, pelanggan) pakai **kamera HP biasa** — yang kebuka **browser**, bukan app kita. Kalau QR-nya diisi URL `/api/...`, yang muncul di layar mereka JSON mentah. Halaman webnya nampilin nomor sertifikat, alat, pemilik, tanggal, dan hasil PASS/FAIL dengan rapi + kop lab & nomor akreditasi. QR ngawur → halaman "Sertifikat tidak ditemukan" (404), bukan error mentah.
+>
+> **2. `GET /api/verify/{qr_token}` (JSON).** Ini buat kalau **mobile** mau nampilin hasil scan di dalam app (misal teknisi scan sertifikat lama pakai fitur scan di app):
+> ```json
+> { "data": {
+>     "nomor": "CAL/2026/07/0001", "status": "terbit", "keputusan": "PASS",
+>     "diterbitkan_pada": "2026-06-15T00:00:00Z", "berlaku_sampai": "2027-06-14T00:00:00Z",
+>     "kadaluarsa": false,
+>     "alat": { "nama_alat": "Jangka Sorong Mitutoyo", "serial_number": "MT-500-196-30", "pemilik": "PT Maju Jaya" },
+>     "tanggal_kalibrasi": "2026-06-14T00:00:00Z",
+>     "diterbitkan_oleh": { "nama": "PT Sistem Dirgantara Inovasi Teknologi (PT Sidik)", "no_akreditasi": "LK-285-IDN" }
+> } }
+> ```
+> QR nggak ketemu → `404 { "message": "Sertifikat dengan kode QR ini tidak terdaftar." }`
+>
+> Dua-duanya **cuma nampilin sertifikat yang statusnya `terbit`** — yang masih `menunggu_generate` dianggap nggak ada. Isinya sengaja dibatesin (nggak ada data mentah pengukuran, nggak ada nama/email teknisi), karena ini halaman publik.
+>
+> **Sertifikat contoh buat nyoba**: token `DEMOQR123` → `http://10.0.2.2:8000/verify/DEMOQR123` (udah ada di seeder).
+
 ---
 
 ## 6. Notifikasi (dibutuhin Minggu 9)
@@ -437,8 +458,19 @@ Datanya juga udah keisi: **5 alat** (2 di antaranya sengaja `overdue`), 2 pelang
 6. ✅ **Nilai enum persis** — diikutin, termasuk `PASS`/`FAIL` huruf besar. **Kecuali satu**: kode kategori nggak sesingkat contoh di dokumen ini (`suhu-dan-kelembapan`, bukan `suhu`) — ambil dari `GET /api/categories`, jangan di-hardcode.
 7. ✅ **CORS** — nggak disentuh, sesuai saran kamu.
 
-### Yang masih perlu diputusin (backend nunggu jawaban mobile)
+### Tiga lubang yang sempat kebuka — semuanya udah ditutup 14 Jul
 
-1. **Token Sanctum nggak kadaluarsa.** Jadi nggak ada `/refresh`, dan app nggak perlu logic auto-refresh. Tapi konsekuensinya: kalau HP teknisi ilang, satu-satunya cara nyabut sesinya sekarang cuma nge-`reject` akunnya (yang efeknya kelewat keras). Kalau kamu mau token yang bisa kadaluarsa / fitur "logout semua perangkat", bilang sekarang mumpung belum kejauhan.
-2. **`organization_id` akun hasil register masih `null`** — dia diisi waktu admin nge-approve. Kalau mobile nampilin nama PT di layar profil, siapin buat nilai `null` di akun yang belum di-approve.
-3. **Reset password lewat email**, sementara login pakai ID pegawai. Teknisi yang emailnya salah ketik waktu daftar bakal nggak bisa reset password selamanya. Perlu nggak admin dikasih tombol "reset password user ini"?
+**1. `POST /api/logout-all`** — auth, semua role.
+```json
+{ "message": "Berhasil keluar dari semua perangkat.", "data": { "sesi_dicabut": 2 } }
+```
+Token Sanctum nggak kadaluarsa sendiri, jadi tanpa ini sesi di HP yang ilang bakal hidup **selamanya**. Mobile: taruh tombol "Keluar dari semua perangkat" di layar Profil. Sesudah manggil ini, token yang lagi dipakai ikut mati juga — jadi langsung lempar ke layar login.
+
+**2. `organization_id` pendaftar baru sekarang langsung keisi**, nggak nunggu approve. Satu instalasi = satu PT, jadi nggak ada yang perlu dipilih. Layar profil aman, nggak bakal dapat PT kosong.
+
+**3. Admin bisa benerin akun & nyetel ulang password** — ini penting: reset password jalannya lewat **email**, tapi login pakai **ID pegawai**. Orang yang salah ketik emailnya waktu daftar (`eko@gmial.com`) bakal kekunci selamanya kalau nggak ada yang bisa benerin.
+
+- **`PUT /api/users/{id}`** — admin-only. Body (semua opsional): `nama`, `email`, `employee_id`, `department`, `role`, `status`. Nyetel `status: "nonaktif"` langsung mutusin sesi orangnya.
+- **`POST /api/users/{id}/reset-password`** — admin-only. Body: `{ "password": "passwordbaru123" }` (min 8). Semua sesi lama user itu dicabut. Password barunya admin kasih tahu langsung ke orangnya.
+
+Teknisi/viewer yang nembak dua endpoint itu dapat `403` — udah dites, termasuk skenario teknisi nyoba nyetel ulang password admin.
