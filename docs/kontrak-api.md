@@ -10,11 +10,13 @@ Dokumen ini buat @raihannazhiif (backend, [`sidik-calibration-api`](https://gith
 
 **Base URL**: `/api` — mobile nembak ke `http://10.0.2.2:8000/api` waktu dev (itu cara emulator Android manggil `localhost` laptop).
 
-**Auth**: JWT lewat header. Semua endpoint butuh ini kecuali `/health`, `/login`, dan `/verify/{qr_token}`.
+**Auth**: token Bearer lewat header. Semua endpoint butuh ini kecuali `/health`, `/login`, dan `/verify/{qr_token}`.
 ```
 Authorization: Bearer <token>
 Accept: application/json
 ```
+
+> **Update 14 Jul — bukan JWT, tapi Laravel Sanctum.** Buat mobile caranya sama persis (tetap `Authorization: Bearer <token>`, tinggal simpan stringnya), cuma bentuk tokennya beda: `1|JpQDXLhSEz...`, bukan `eyJhbGci...`. Konsekuensinya: **token Sanctum nggak punya masa berlaku, jadi nggak ada endpoint `/refresh`** dan nggak perlu logic auto-refresh di app. Token cuma mati kalau dipanggil `/logout` atau dicabut admin.
 
 **Tanggal**: selalu format ISO 8601 (`2026-07-14T09:30:00Z`), jangan `14/07/2026` — biar Dart bisa `DateTime.parse()` langsung tanpa nebak format.
 
@@ -125,6 +127,21 @@ Aturan yang wajib dipegang backend:
 - **User NGGAK boleh milih role sendiri** waktu daftar — kalau field `role` dikirim dari client, **abaikan**. Kalau nggak, siapa pun bisa daftar jadi `admin` dan langsung bisa approve dirinya sendiri
 - `email` & `employee_id` dobel → `422` dengan pesan jelas ("Email ini sudah terdaftar." / "ID pegawai ini sudah terdaftar.")
 - Password minimal 8 karakter
+
+### `POST /api/forgot-password`
+Request: `{ "email": "admin@asmo.test" }`
+Response `200`: `{ "message": "Link reset password udah dikirim ke email kamu." }`
+Email nggak terdaftar → `404` `{ "message": "Email ini nggak terdaftar." }`
+
+> **Reset lewat email, bukan lewat `employee_id`** — biar yang bisa ganti password cuma orang yang megang emailnya. Kalau reset bisa pakai ID pegawai doang, siapa pun yang tahu nomor pegawai orang lain bisa reset password dia.
+>
+> ⚠️ **Catatan keamanan yang perlu kita omongin.** Balikin `404 "Email ini nggak terdaftar"` itu **ngebocorin email mana yang punya akun** (namanya *user enumeration*) — orang bisa nebak-nebak email buat tahu siapa aja karyawan yang punya akun. Praktik yang lebih aman: **selalu** jawab `200 "Kalau emailnya terdaftar, link udah dikirim"`, tanpa ngasih tahu ada atau nggak.
+>
+> Buat sekarang mobile ngikutin catatan harian (yang minta state "error email nggak terdaftar"), tapi kalau kamu setuju, kita ganti dua-duanya ke pola yang aman. **Ini keputusan yang perlu diambil bareng, bukan diam-diam.**
+
+### `POST /api/reset-password`
+Dipakai dari link di email (buka di browser atau deep link ke app).
+Request: `{ "token": "...", "password": "passwordbaru123" }`
 
 ### `GET /api/me`
 Buat validasi token yang tersimpan waktu app dibuka (splash). Response: objek `user` yang sama kayak di atas.
