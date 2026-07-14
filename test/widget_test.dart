@@ -6,6 +6,8 @@ import 'package:asmo_mobile/app.dart';
 import 'package:asmo_mobile/core/config/app_config.dart';
 import 'package:asmo_mobile/providers/app_config_provider.dart';
 import 'package:asmo_mobile/providers/auth_provider.dart';
+import 'package:asmo_mobile/providers/dashboard_provider.dart';
+import 'package:asmo_mobile/services/dashboard_service.dart';
 import 'package:asmo_mobile/services/mock_auth_service.dart';
 import 'package:asmo_mobile/services/token_storage.dart';
 
@@ -18,6 +20,9 @@ Widget _appLoggedIn({String? apiBaseUrl}) => ProviderScope(
       InMemoryTokenStorage('mock-token-1'),
     ),
     authServiceProvider.overrideWithValue(MockAuthService()),
+    dashboardServiceProvider.overrideWithValue(
+      MockDashboardService(jeda: Duration.zero),
+    ),
     if (apiBaseUrl != null) apiBaseUrlProvider.overrideWithValue(apiBaseUrl),
   ],
   child: const AsmoApp(),

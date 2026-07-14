@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:asmo_mobile/app.dart';
 import 'package:asmo_mobile/models/user.dart';
 import 'package:asmo_mobile/providers/auth_provider.dart';
+import 'package:asmo_mobile/providers/dashboard_provider.dart';
+import 'package:asmo_mobile/services/dashboard_service.dart';
 import 'package:asmo_mobile/services/mock_auth_service.dart';
 import 'package:asmo_mobile/services/token_storage.dart';
 
@@ -15,6 +17,11 @@ ProviderScope _app(TokenStorage storage) => ProviderScope(
   overrides: [
     tokenStorageProvider.overrideWithValue(storage),
     authServiceProvider.overrideWithValue(MockAuthService()),
+    // Dashboard ikut kebuka begitu login sukses. Tanpa jeda, biar nggak ada
+    // timer nyangkut waktu test kelar (Flutter nganggep itu error).
+    dashboardServiceProvider.overrideWithValue(
+      MockDashboardService(jeda: Duration.zero),
+    ),
   ],
   child: const AsmoApp(),
 );

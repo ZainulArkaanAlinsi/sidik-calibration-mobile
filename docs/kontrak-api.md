@@ -149,9 +149,29 @@ Email nggak terdaftar → `404` `{ "message": "Email ini nggak terdaftar." }`
 >
 > Buat sekarang mobile ngikutin catatan harian (yang minta state "error email nggak terdaftar"), tapi kalau kamu setuju, kita ganti dua-duanya ke pola yang aman. **Ini keputusan yang perlu diambil bareng, bukan diam-diam.**
 
+> ### ✅ Keputusan (backend, 14 Jul): **pakai pola yang aman.**
+> Kamu bener, jadi backend ngikutin usulan kamu. `POST /api/forgot-password` **selalu** balikin `200` dengan pesan yang sama, mau emailnya terdaftar atau nggak — **nggak ada `404`**:
+> ```json
+> { "message": "Kalau email itu terdaftar, link reset password udah dikirim ke sana." }
+> ```
+> **Efeknya buat mobile: layar Reset Password cuma butuh 2 state, bukan 3.** State "error email nggak terdaftar" nggak bisa dibikin (backend emang nggak ngasih tahu), jadi ganti aja jadi layar "cek email kamu". Catatan harian [[2026-07-20]] udah dikoreksi.
+>
+> Rate limit: **5 percobaan/menit per IP**, jatahnya sendiri — nggak nyampur sama jatah login.
+
 ### `POST /api/reset-password`
-Dipakai dari link di email (buka di browser atau deep link ke app).
-Request: `{ "token": "...", "password": "passwordbaru123" }`
+Dipakai dari link di email (deep link ke app).
+
+Request — **`email` ikut dikirim**, ya:
+```json
+{ "token": "...", "email": "teknisi@asmo.test", "password": "passwordbaru123" }
+```
+
+> ✅ **Live sejak 14 Jul.** Tiga catatan:
+> - **`email` wajib ada.** Token reset itu nempel ke email, jadi backend butuh dua-duanya buat nyocokin. Mobile udah punya nilainya: link di email bentuknya `asmo://reset-password?token=...&email=...` — tinggal dibaca dari deep link-nya.
+> - **Deep link `asmo://`** — tolong daftarin scheme itu di Android manifest. Waktu dev backend pakai `MAIL_MAILER=log`, jadi link-nya nongol di `storage/logs/laravel.log` (bisa di-copy manual buat tes).
+> - **`password_confirmation` opsional.** Kalau dikirim, dicek harus sama; kalau nggak, ya udah — konfirmasinya kamu cek di UI.
+> - Sukses → `200 { "message": "Password berhasil diubah. Silakan login lagi." }`. Token ngawur/kadaluarsa → `422`.
+> - **Semua token login lama otomatis dicabut** sesudah reset berhasil. Jadi kalau HP lama masih megang sesi, sesinya mati — justru itu alasan orang me-reset password.
 
 ### `GET /api/me`
 Buat validasi token yang tersimpan waktu app dibuka (splash). Response: objek `user` yang sama kayak di atas.
@@ -195,6 +215,22 @@ Query params yang mobile pakai: `?search=kaliper&category=panjang&status=overdue
 > **`status` wajib salah satu dari: `aktif` / `overdue` / `nonaktif`.**
 > **`kategori`** ngikutin kelompok pengukuran di `data-kemampuan-kalibrasi.json` (panjang, massa, suhu, tekanan, volume, dst) — pakai **string huruf kecil** yang konsisten, jangan campur "Panjang" dan "panjang".
 
+> ## ✅ Live sejak 14 Jul — tapi BACA INI DULU sebelum ngoding
+>
+> **1. Kode kategorinya bukan `"suhu"`.** Kelompok pengukuran di lampiran akreditasi ada 10, dan kodenya slug dari nama aslinya — jadi ada yang panjang. **Jangan di-hardcode dari ingatan**, ambil dari `GET /api/categories`. Daftar lengkapnya:
+>
+> `panjang` · `massa` · `volume` · `tekanan` · `gaya` · `aliran` · `densitas` · `instrumen-analitik` · **`suhu-dan-kelembapan`** · **`waktu-dan-frekuensi`**
+>
+> **2. Nulis alat pakai `pelanggan_id`, bukan objek `pelanggan`.** Responsnya tetap objek (`"pelanggan": {"id":3,"nama":"..."}`), tapi buat `POST`/`PUT` kirim `"pelanggan_id": 3`.
+>
+> **3. `status: "overdue"` NGGAK bisa dikirim.** Dia dihitung backend dari `tanggal_jatuh_tempo` — kalau dikirim di body, ditolak `422`. Yang bisa diset cuma `aktif`/`nonaktif`. Sebabnya: kalau `overdue` disimpen, nilainya basi tiap ganti hari.
+>
+> **4. Hak akses**: baca = semua role (termasuk viewer). Nulis (`POST`/`PUT`/`DELETE`) = **admin & teknisi**; viewer ditolak `403`. Sesuai permintaan kamu.
+>
+> **5. Field bonus di response** (di luar kontrak, aman diabaikan): `model`, `no_identifikasi`, `range_min`, `range_max`, `satuan`, `resolusi`, `toleransi`, `lokasi`. Ini dibutuhin nanti pas layar kalibrasi.
+>
+> **6. `meta` paginasinya lebih gemuk dari yang kamu tulis** — Laravel ikut ngirim `from`, `to`, `path`, `links`. Superset, jadi aman; abaikan aja yang nggak kepakai.
+
 ### `GET /api/equipments/{id}` — 1 objek, bentuk sama.
 ### `POST /api/equipments` · `PUT /api/equipments/{id}` · `DELETE /api/equipments/{id}`
 Body sama seperti field di atas (tanpa `id`). Teknisi & admin boleh; **viewer harus ditolak `403`.**
@@ -214,6 +250,20 @@ Mobile butuh ini buat isi dropdown kategori + nyiapin worksheet dinamis (kolom t
   ]
 }
 ```
+
+> ✅ **Live sejak 14 Jul**, isinya 10 kategori dari lampiran akreditasi (151 rentang kemampuan).
+>
+> ⚠️ **`rentang_ukur` / `ketidakpastian_terbaik` / `satuan` di sini cuma RINGKASAN, jangan dipakai buat validasi.** Satu kelompok pengukuran bisa punya banyak satuan sekaligus — "Panjang" isinya µm **dan** mm, "Instrumen Analitik" isinya pH, NTU, cP, µS. Angka yang ditampilin itu diambil dari satuan yang paling sering muncul di kelompok itu, jadi cocoknya buat dipajang sekilas doang.
+>
+> Buat validasi rentang & nyiapin worksheet, pakai **`GET /api/categories/{kode}`** — balikin semua rentang kemampuan (CMC) kategori itu satu per satu:
+> ```json
+> { "data": { "kode": "panjang", "nama": "Panjang", "kemampuan": [
+>     { "nama_alat": "Micrometer", "parameter": null, "range_min": 0, "range_max": 25,
+>       "range_note": null, "satuan": "mm", "ketidakpastian_terbaik": 0.00083,
+>       "satuan_ketidakpastian": "mm", "faktor_cakupan": 2, "metode": "SIDIK-IK-CAL-0515_Rev.3" }
+> ] } }
+> ```
+> **`range_min` bisa `null`** — 59 dari 151 kemampuan emang nggak punya batas bawah numerik: ada yang titik tunggal (buret "25 mL"), ada yang batasnya kata-kata (oven "ambient ~ 300 °C" → teks aslinya ada di `range_note`). Jangan diparse jadi `double` mentah-mentah, nanti crash.
 
 ---
 
@@ -344,14 +394,51 @@ Isinya beda tergantung role — teknisi dapat ringkasan miliknya, admin dapat li
 }
 ```
 
+> ✅ **Live sejak 14 Jul**, persis bentuk ini. Role diambil dari token (teknisi cuma ngitung kalibrasi miliknya sendiri; admin & viewer lintas-teknisi) — mobile nggak usah ngirim apa-apa.
+>
+> `kalibrasi_draft`, `menunggu_approval` & `sertifikat_bulan_ini` sekarang **selalu 0** — wajar, fitur kalibrasinya belum ada (Minggu 4). `total_alat` & `alat_overdue` udah keisi data beneran dari seeder.
+
+---
+
+## 8. Master Data PT & Pelanggan — **admin doang** (live 14 Jul)
+
+Belum ada di kontrak versi kamu, tapi udah jalan di backend. Dibutuhin buat layar Pengaturan (admin).
+
+- **`GET /api/organization`** · **`PUT /api/organization`** — data PT: `nama`, `alamat`, `telepon`, `email`, `no_akreditasi`. Ini yang bakal dicetak di kop sertifikat. *Nggak ada create/delete* — satu instalasi = satu PT.
+- **`GET /api/customers?search=&page=`** · **`POST`** · **`GET/PUT/DELETE /api/customers/{id}`** — CRUD pelanggan. Field: `nama`, `alamat`, `contact_person`, `telepon`, `email` (+ `jumlah_alat` di response).
+- **Pelanggan yang masih punya alat nggak bisa dihapus** → `422`. Kalau dipaksa, alat & riwayat kalibrasinya jadi yatim. Mobile: tampilin pesannya apa adanya.
+
+Teknisi & viewer yang nembak endpoint ini dapat `403`.
+
+---
+
+## Akun buat nyoba (seeder)
+
+| ID pegawai | Email | Role | Status |
+|---|---|---|---|
+| `ASM-0001` | admin@asmo.test | admin | aktif |
+| `ASM-0002` | teknisi@asmo.test | teknisi | aktif |
+| `ASM-0003` | viewer@asmo.test | viewer | aktif |
+| `ASM-0099` | eko@asmo.test | teknisi | **pending** (buat nyoba layar "belum disetujui") |
+
+Password semua `rahasia123`. Login boleh pakai ID pegawai **atau** email.
+
+Datanya juga udah keisi: **5 alat** (2 di antaranya sengaja `overdue`), 2 pelanggan, 10 kategori, 151 rentang kemampuan kalibrasi. Jadi layar Dashboard & Daftar Alat bisa langsung nampilin data asli — nggak usah pakai dummy.
+
 ---
 
 ## Yang paling penting buat disepakati sekarang
 
-1. **`GET /api/health`** — bikin duluan, biar sambungan mobile ↔ API bisa dites minggu ini.
-2. **`POST /api/login` pakai `identifier`** (ID pegawai **atau** email), bukan `email` doang. Ini keputusan yang udah diambil — desain layar login-nya minta ID pegawai, dan mobile udah dikoding gitu.
-3. **Akun `pending` wajib ditolak login di backend** (403). Mobile udah nolak di UI, tapi UI bukan benteng — orang bisa nembak API pakai curl.
-4. **User nggak boleh milih role sendiri waktu daftar.** Kalau client ngirim `role`, abaikan. Kalau nggak, orang bisa daftar jadi admin dan approve dirinya sendiri.
-5. **Nama field**: dokumen ini pakai **bahasa Indonesia** (`nama_alat`, `tanggal_jatuh_tempo`). Kalau kamu lebih milih Inggris, **nggak masalah — tapi putusin sekarang**, jangan setengah jalan. Yang mahal itu ganti nama field pas dua sisi udah kadung dikoding.
-6. **Nilai enum** (`role`, `status`, `keputusan`, `kategori`) harus persis kayak di atas, termasuk besar-kecil hurufnya. Ini yang paling sering bikin bug diam-diam.
-7. **CORS**: nggak perlu diapa-apain buat mobile (bukan browser), jadi jangan buang waktu di situ.
+1. ✅ **`GET /api/health`** — udah ada sejak 14 Jul.
+2. ✅ **`POST /api/login` pakai `identifier`** (ID pegawai **atau** email) — udah jalan, dua-duanya.
+3. ✅ **Akun `pending` ditolak login di backend** (403) — udah, dan diuji pakai curl langsung (bukan cuma lewat app).
+4. ✅ **User nggak bisa milih role sendiri waktu daftar** — `role` dari client diabaikan; ada test yang khusus nyoba nyelipin `"role":"admin"` waktu register, hasilnya tetap `teknisi` + `pending`.
+5. ✅ **Nama field: bahasa Indonesia** — diikutin, `nama` bukan `name`. Dikunci pakai test, jadi kalau ada yang ngubah diam-diam, testnya merah duluan sebelum app-nya rusak.
+6. ✅ **Nilai enum persis** — diikutin, termasuk `PASS`/`FAIL` huruf besar. **Kecuali satu**: kode kategori nggak sesingkat contoh di dokumen ini (`suhu-dan-kelembapan`, bukan `suhu`) — ambil dari `GET /api/categories`, jangan di-hardcode.
+7. ✅ **CORS** — nggak disentuh, sesuai saran kamu.
+
+### Yang masih perlu diputusin (backend nunggu jawaban mobile)
+
+1. **Token Sanctum nggak kadaluarsa.** Jadi nggak ada `/refresh`, dan app nggak perlu logic auto-refresh. Tapi konsekuensinya: kalau HP teknisi ilang, satu-satunya cara nyabut sesinya sekarang cuma nge-`reject` akunnya (yang efeknya kelewat keras). Kalau kamu mau token yang bisa kadaluarsa / fitur "logout semua perangkat", bilang sekarang mumpung belum kejauhan.
+2. **`organization_id` akun hasil register masih `null`** — dia diisi waktu admin nge-approve. Kalau mobile nampilin nama PT di layar profil, siapin buat nilai `null` di akun yang belum di-approve.
+3. **Reset password lewat email**, sementara login pakai ID pegawai. Teknisi yang emailnya salah ketik waktu daftar bakal nggak bisa reset password selamanya. Perlu nggak admin dikasih tombol "reset password user ini"?
