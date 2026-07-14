@@ -19,6 +19,7 @@ class AppTextField extends StatelessWidget {
     this.keyboardType,
     this.inputFormatters,
     this.enabled = true,
+    this.obscureText = false,
     this.onChanged,
   });
 
@@ -60,6 +61,7 @@ class AppTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
   final bool enabled;
+  final bool obscureText;
   final ValueChanged<String>? onChanged;
 
   @override
@@ -74,6 +76,7 @@ class AppTextField extends StatelessWidget {
         TextField(
           controller: controller,
           enabled: enabled,
+          obscureText: obscureText,
           keyboardType: keyboardType,
           inputFormatters: inputFormatters,
           onChanged: onChanged,
