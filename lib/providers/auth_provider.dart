@@ -4,6 +4,7 @@ import '../models/user.dart';
 import '../services/auth_service.dart';
 import '../services/mock_auth_service.dart';
 import '../services/token_storage.dart';
+import 'navigation_provider.dart';
 
 /// GANTI SATU BARIS INI begitu `POST /api/login` dari backend siap:
 /// `MockAuthService()` → `ApiAuthService(ref.watch(apiClientProvider))`.
@@ -67,6 +68,15 @@ class AuthController extends AsyncNotifier<User?> {
     }
 
     await _storage.clear();
+
+    // Buang state yang nempel ke sesi lama. Tanpa ini, user berikutnya yang
+    // login bakal mendarat di tab terakhir punya user sebelumnya (mis. logout
+    // dari Profil → login → langsung di Profil, bukan Dashboard).
+    // Nanti pas ada data alat/kalibrasi yang di-cache, provider-nya juga
+    // WAJIB di-invalidate di sini — biar data user lama nggak kelihatan sama
+    // user baru.
+    ref.invalidate(selectedTabProvider);
+
     state = const AsyncValue.data(null);
   }
 }
