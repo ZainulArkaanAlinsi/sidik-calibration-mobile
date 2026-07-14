@@ -1,12 +1,19 @@
 # Cara Kerja Bareng — ASMO Mobile
 
-Repo ini dikerjakan berdua (@ZainulArkaanAlinsi & @raihannazhiif). Tulisan ini biar kita nggak nabrak-nabrakan kerjaan.
+Project ini dikerjakan berdua (@ZainulArkaanAlinsi & @raihannazhiif) di **dua repo**:
+
+| Repo | Isi | PIC |
+| --- | --- | --- |
+| [`sidik-calibration-mobile`](https://github.com/ZainulArkaanAlinsi/sidik-calibration-mobile) | Flutter (repo ini) | @ZainulArkaanAlinsi |
+| [`sidik-calibration-api`](https://github.com/ZainulArkaanAlinsi/sidik-calibration-api) | Laravel REST API | @raihannazhiif |
+
+Dua-duanya punya akses write di dua repo — PIC cuma soal siapa yang mimpin, bukan pembatas. Yang di luar bagiannya tetap boleh review PR & kasih komentar. Tulisan ini biar kita nggak nabrak-nabrakan kerjaan.
 
 ## Setup Pertama Kali
 
 ```bash
-git clone https://github.com/ZainulArkaanAlinsi/asmo-mobile.git
-cd asmo-mobile
+git clone https://github.com/ZainulArkaanAlinsi/sidik-calibration-mobile.git
+cd sidik-calibration-mobile
 git config core.hooksPath .githooks   # WAJIB — aktifin pengaman branch main
 flutter pub get
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000/api
@@ -59,7 +66,8 @@ Atau lewat web — GitHub bakal nawarin tombol "Compare & pull request".
 
 ## Cara Lihat Perubahan Partner
 
-- **Notifikasi otomatis**: tiap ada PR/commit baru, muncul di tab [Pull requests](https://github.com/ZainulArkaanAlinsi/asmo-mobile/pulls) dan email GitHub.
+- **Notifikasi otomatis**: tiap ada PR/commit baru, muncul di tab [Pull requests](https://github.com/ZainulArkaanAlinsi/sidik-calibration-mobile/pulls) dan email GitHub.
+- **Mau ngintip kerjaan API-nya Raihan**: `gh pr list --repo ZainulArkaanAlinsi/sidik-calibration-api` — atau pantau repo-nya lewat tombol **Watch** di GitHub biar dapat notif tiap dia push.
 - **Baca perubahannya baris per baris**: buka PR → tab **Files changed**. Di situ bisa komentar langsung di baris tertentu.
 - **Dari terminal**:
   ```bash
