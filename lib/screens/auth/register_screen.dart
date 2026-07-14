@@ -221,7 +221,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           AppTextField(
                             label: 'Email',
                             controller: _email,
-                            hint: 'nama@ptasmo.com',
+                            hint: 'nama@pt-sidik.com',
                             prefixIcon: Icons.mail_outline,
                             errorText: _emailError,
                             enabled: !_loading,

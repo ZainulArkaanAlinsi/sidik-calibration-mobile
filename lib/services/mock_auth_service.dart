@@ -157,4 +157,22 @@ class MockAuthService implements AuthService {
   Future<void> logout(String token) async {
     await Future<void>.delayed(_jeda);
   }
+
+  /// Pura-puranya user ini lagi login di 3 perangkat (HP lama, HP baru, tablet
+  /// lab) — biar angka "sesi dicabut" di UI ada yang diuji, bukan cuma 0.
+  @override
+  Future<int> logoutAll(String token) async {
+    await Future<void>.delayed(_jeda);
+
+    if (gagalLogoutAll) {
+      throw const AuthException('Server nggak nyaut. Coba lagi sebentar.');
+    }
+
+    return 3;
+  }
+
+  /// Dipakai test buat nguji yang paling penting: **kalau nyabut sesi gagal,
+  /// user nggak boleh dikeluarin diam-diam** — dia bakal ngira HP-nya yang
+  /// ilang udah aman padahal belum.
+  bool gagalLogoutAll = false;
 }

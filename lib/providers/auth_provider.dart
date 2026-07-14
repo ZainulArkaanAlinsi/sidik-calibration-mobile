@@ -110,4 +110,33 @@ class AuthController extends AsyncNotifier<User?> {
 
     state = const AsyncValue.data(null);
   }
+
+  /// Cabut semua sesi di semua perangkat. Balikin jumlah sesi yang kecabut.
+  ///
+  /// **Gagalnya ditangani beda dari [logout], dan itu disengaja.** Kalau
+  /// `logout` gagal di server, token lokal tetap dibuang — user beneran keluar
+  /// dari HP ini, dan itu emang yang dia minta.
+  ///
+  /// `logoutAll` beda: yang dia minta itu "matiin sesi di HP saya yang ilang".
+  /// Kalau panggilan ke server gagal, sesi di HP itu **masih hidup**. Ngeluarin
+  /// dia dari HP ini doang malah bahaya — layarnya balik ke login, dia ngira
+  /// beres, padahal HP yang ilang itu masih bisa dipakai orang. Jadi kalau
+  /// gagal: error dilempar, user tetap login di sini, dan dia bisa nyoba lagi.
+  Future<int> logoutAll() async {
+    final token = await _storage.read();
+    if (token == null) {
+      throw const AuthException('Sesi kamu udah nggak ada. Login ulang ya.');
+    }
+
+    // Sengaja nggak di-`guard`: kalau gagal, biarin exception-nya naik ke layar
+    // Profil, dan `state` nggak disentuh sama sekali (user tetap login).
+    final dicabut = await _auth.logoutAll(token);
+
+    // Token yang lagi dipakai ikut mati juga di server, jadi buang di sini.
+    await _storage.clear();
+    ref.invalidate(selectedTabProvider);
+    state = const AsyncValue.data(null);
+
+    return dicabut;
+  }
 }

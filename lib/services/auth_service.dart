@@ -66,4 +66,13 @@ abstract class AuthService {
   Future<User> me(String token);
 
   Future<void> logout(String token);
+
+  /// Cabut **semua** sesi user ini di semua perangkat — termasuk yang lagi
+  /// dipakai sekarang. Balikin jumlah sesi yang kecabut (`sesi_dicabut`).
+  ///
+  /// Kenapa ini perlu ada: token Sanctum **nggak kadaluarsa sendiri**. Jadi
+  /// kalau HP teknisi ilang atau dicuri, sesinya di HP itu hidup selamanya —
+  /// dan nggak ada cara nyabutnya selain nonaktifin akunnya (kelewat keras,
+  /// orangnya jadi nggak bisa kerja). Ini jalan keluarnya.
+  Future<int> logoutAll(String token);
 }
