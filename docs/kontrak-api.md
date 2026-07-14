@@ -59,9 +59,19 @@ Bikin ini duluan, hari ini juga kalau bisa. Kecil, tapi begitu ada, mobile bisa 
 { "status": "ok", "app": "sidik-calibration-api", "time": "2026-07-14T09:30:00Z" }
 ```
 
+> ✅ **Live sejak 14 Jul.** Satu bedanya: `app` isinya ambil dari `APP_NAME` backend, sekarang nilainya `"ASMO API"` (bukan `"sidik-calibration-api"`). Kalau mobile nggak nge-assert field itu, aman.
+
 ---
 
 ## 2. Auth (dibutuhin Minggu 2)
+
+> ✅ **Semua endpoint di bagian ini udah live sejak 14 Jul** — login (ID pegawai & email dua-duanya jalan), register, `/me`, `/logout`, plus approval admin (`GET /api/users?status=pending`, `approve`, `reject`). Dites end-to-end, termasuk skenario daftar-sambil-ngaku-admin: role dari client diabaikan, akunnya tetap `teknisi` + `pending`.
+>
+> Yang belum ada di dokumen ini, tolong dicatat mobile:
+> - **`429 Too Many Requests`** bisa muncul: login dibatesin **10 percobaan/menit per IP**, register **5/menit**. Siapin pesan "coba lagi sebentar" di UI.
+> - Akun **`nonaktif`** ditolak `403` juga, pesannya `"Akun ini nonaktif. Hubungi admin."` (beda dari pesan `pending`).
+> - **`organization_id` masih `null`** buat akun hasil register — tabel `organizations` belum ada (baru dirancang di ERD hari ini). Jangan dianggap wajib int dulu di sisi Dart, biar nggak crash pas parsing.
+> - Akun dev buat nyoba: `ASM-0001` (admin) · `ASM-0002` (teknisi) · `ASM-0003` (viewer) · `ASM-0099` (sengaja `pending`, buat nyobain layar "belum disetujui"). Password semua `rahasia123`.
 
 ### `POST /api/login`
 
