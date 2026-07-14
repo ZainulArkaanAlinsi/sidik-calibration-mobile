@@ -9,7 +9,7 @@ class AsmoApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'ASMO Mobile',
+      title: 'SIDIK Kalibrasi',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
