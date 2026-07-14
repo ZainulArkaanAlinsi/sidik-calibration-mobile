@@ -46,3 +46,8 @@ app.*.map.json
 
 # Vault Obsidian (rencana & catatan harian project) — bukan bagian dari kode app
 /Project-PT-ASMO/
+
+# Diff bikinan golden test waktu screenshot nggak cocok. Ke-regenerate sendiri
+# tiap test gagal — ini hasil debug, bukan kode. Yang di-commit cuma golden-nya
+# (`test/screenshots/`).
+/test/failures/

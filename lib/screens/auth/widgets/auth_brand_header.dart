@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/config/lab_profile.dart';
 import '../../../core/theme/app_spacing.dart';
 
 /// Kepala layar auth: logo mark + judul + subjudul.
@@ -21,7 +22,7 @@ class AuthBrandHeader extends StatelessWidget {
 
     return Column(
       children: [
-        // Logo mark sementara. Ganti pakai logo resmi PT ASMO begitu asetnya
+        // Logo mark sementara. Ganti pakai logo resmi PT Sidik begitu asetnya
         // dikasih — cukup ubah di sini, dua layar ikut.
         Container(
           height: 64,
@@ -55,21 +56,36 @@ class AuthBrandHeader extends StatelessWidget {
   }
 }
 
-/// Footer "POWERED BY PT ASMO" — ada di dua desain.
+/// Footer identitas lab.
+///
+/// Nyebut **lab yang terakreditasi KAN** (PT Sidik, LK-285-IDN) — bukan nama
+/// lain. Ini yang bakal muncul juga di sertifikat: sertifikat kalibrasi wajib
+/// atas nama lab yang beneran punya akreditasi.
 class AuthPoweredBy extends StatelessWidget {
   const AuthPoweredBy({super.key});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final gaya = theme.textTheme.labelSmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+    );
 
-    return Text(
-      'POWERED BY PT ASMO',
-      textAlign: TextAlign.center,
-      style: theme.textTheme.labelSmall?.copyWith(
-        letterSpacing: 2,
-        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-      ),
+    return Column(
+      children: [
+        Text(
+          LabProfile.namaSingkat.toUpperCase(),
+          textAlign: TextAlign.center,
+          style: gaya?.copyWith(letterSpacing: 2),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          'Terakreditasi KAN ${LabProfile.nomorAkreditasi} · '
+          '${LabProfile.standar}',
+          textAlign: TextAlign.center,
+          style: gaya,
+        ),
+      ],
     );
   }
 }

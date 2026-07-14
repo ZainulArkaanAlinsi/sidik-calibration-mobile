@@ -128,7 +128,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 AppTextField(
                   label: 'Email',
                   controller: _email,
-                  hint: 'nama@ptasmo.com',
+                  hint: 'nama@pt-sidik.com',
                   prefixIcon: Icons.mail_outline,
                   errorText: _emailError,
                   enabled: !_loading,

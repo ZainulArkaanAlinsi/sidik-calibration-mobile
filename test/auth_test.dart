@@ -5,16 +5,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:asmo_mobile/app.dart';
 import 'package:asmo_mobile/models/user.dart';
 import 'package:asmo_mobile/providers/auth_provider.dart';
+import 'package:asmo_mobile/providers/dashboard_provider.dart';
+import 'package:asmo_mobile/services/dashboard_service.dart';
 import 'package:asmo_mobile/services/mock_auth_service.dart';
 import 'package:asmo_mobile/services/token_storage.dart';
 
 /// Test alur UI pakai `MockAuthService` — nggak nembak jaringan.
 /// Sambungan ke API asli diuji terpisah di `api_auth_service_test.dart`
 /// pakai HTTP tiruan.
-ProviderScope _app(TokenStorage storage) => ProviderScope(
+ProviderScope _app(TokenStorage storage, {MockAuthService? auth}) =>
+    ProviderScope(
   overrides: [
     tokenStorageProvider.overrideWithValue(storage),
-    authServiceProvider.overrideWithValue(MockAuthService()),
+    authServiceProvider.overrideWithValue(auth ?? MockAuthService()),
+    // Dashboard ikut kebuka begitu login sukses. Tanpa jeda, biar nggak ada
+    // timer nyangkut waktu test kelar (Flutter nganggep itu error).
+    dashboardServiceProvider.overrideWithValue(
+      MockDashboardService(jeda: Duration.zero),
+    ),
   ],
   child: const AsmoApp(),
 );
@@ -370,6 +378,76 @@ void main() {
       expect(UserStatus.fromApi('pending'), UserStatus.pending);
       expect(UserStatus.fromApi('aktif'), UserStatus.aktif);
       expect(UserStatus.fromApi('entah'), UserStatus.nonaktif);
+    });
+  });
+
+  group('keluar dari semua perangkat', () {
+    /// Buka tab Profil terus pencet menunya (belum dikonfirmasi).
+    Future<void> bukaDialog(WidgetTester tester) async {
+      await tester.tap(find.text('Profil'));
+      await tester.pumpAndSettle();
+
+      final menu = find.text('Keluar dari semua perangkat');
+      await tester.scrollUntilVisible(menu, 200);
+      await tester.tap(menu);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('minta konfirmasi dulu — nggak langsung nyabut', (tester) async {
+      final storage = InMemoryTokenStorage('mock-token-1');
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      await bukaDialog(tester);
+
+      expect(find.text('Keluar dari semua perangkat?'), findsOneWidget);
+
+      await tester.tap(find.text('Batal'));
+      await tester.pumpAndSettle();
+
+      // Batal = beneran nggak ngapa-ngapain: masih login, token masih ada.
+      expect(find.widgetWithText(AppBar, 'Profil'), findsOneWidget);
+      expect(await storage.read(), 'mock-token-1');
+    });
+
+    testWidgets('dikonfirmasi → sesi dicabut, token dibuang, balik ke Login', (
+      tester,
+    ) async {
+      final storage = InMemoryTokenStorage('mock-token-1');
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+
+      await bukaDialog(tester);
+      await tester.tap(find.text('Cabut semua sesi'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('MASUK'), findsOneWidget, reason: 'harus balik ke Login');
+      expect(await storage.read(), isNull);
+      // Jumlahnya dilaporin, biar user tahu ada berapa perangkat yang kecabut.
+      expect(find.textContaining('3 sesi dicabut'), findsOneWidget);
+    });
+
+    testWidgets('server gagal → user TETAP login, nggak dikeluarin diam-diam', (
+      tester,
+    ) async {
+      final auth = MockAuthService()..gagalLogoutAll = true;
+      final storage = InMemoryTokenStorage('mock-token-1');
+
+      await tester.pumpWidget(_app(storage, auth: auth));
+      await tester.pumpAndSettle();
+
+      await bukaDialog(tester);
+      await tester.tap(find.text('Cabut semua sesi'));
+      await tester.pumpAndSettle();
+
+      // Ini inti tesnya. Kalau nyabut sesi gagal, sesi di HP yang ilang MASIH
+      // HIDUP. Ngeluarin user dari HP ini doang bikin dia ngira udah aman —
+      // padahal belum. Jadi: tetap di Profil, token nggak dibuang, dan
+      // gagalnya dibilangin apa adanya biar dia bisa nyoba lagi.
+      expect(find.widgetWithText(AppBar, 'Profil'), findsOneWidget);
+      expect(find.text('MASUK'), findsNothing);
+      expect(await storage.read(), 'mock-token-1');
+      expect(find.textContaining('Gagal nyabut sesi'), findsOneWidget);
     });
   });
 }

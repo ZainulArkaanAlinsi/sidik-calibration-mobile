@@ -96,7 +96,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           AppTextField(
                             label: 'ID Pegawai / Email',
                             controller: _identifier,
-                            hint: 'ASM-0001 atau nama@ptasmo.com',
+                            hint: 'ASM-0001 atau nama@pt-sidik.com',
                             prefixIcon: Icons.badge_outlined,
                             errorText: _identifierError,
                             enabled: !auth.isLoading,

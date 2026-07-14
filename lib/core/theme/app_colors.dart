@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 /// teal dipakai **irit** cuma buat sinyal fungsional (sukses, data
 /// tervalidasi, link). Bukan warna hiasan.
 ///
-/// Kalau PT ASMO ngasih warna brand resmi, cukup ganti di file ini —
+/// Kalau PT Sidik ngasih warna brand resmi, cukup ganti di file ini —
 /// nggak boleh ada `Color(0x...)` yang ditulis langsung di widget.
 class AppColors {
   const AppColors._();
