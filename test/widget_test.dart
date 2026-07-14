@@ -5,11 +5,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:asmo_mobile/app.dart';
 import 'package:asmo_mobile/core/config/app_config.dart';
 import 'package:asmo_mobile/providers/app_config_provider.dart';
+import 'package:asmo_mobile/providers/auth_provider.dart';
+import 'package:asmo_mobile/services/token_storage.dart';
+
+/// App dalam kondisi udah login (token admin) — soalnya sekarang app mendarat
+/// di layar Login dulu kalau nggak ada token tersimpan. Alur login-nya sendiri
+/// diuji terpisah di `auth_test.dart`.
+Widget _appLoggedIn({String? apiBaseUrl}) => ProviderScope(
+  overrides: [
+    tokenStorageProvider.overrideWithValue(
+      InMemoryTokenStorage('mock-token-1'),
+    ),
+    if (apiBaseUrl != null) apiBaseUrlProvider.overrideWithValue(apiBaseUrl),
+  ],
+  child: const AsmoApp(),
+);
 
 void main() {
   group('bottom navigation', () {
     testWidgets('nampilin 5 tab dan mulai dari Dashboard', (tester) async {
-      await tester.pumpWidget(const ProviderScope(child: AsmoApp()));
+      await tester.pumpWidget(_appLoggedIn());
+      await tester.pumpAndSettle();
 
       expect(find.byType(NavigationBar), findsOneWidget);
       for (final label in [
@@ -22,15 +38,12 @@ void main() {
         expect(find.text(label), findsWidgets, reason: 'tab $label harus ada');
       }
 
-      // Tab awal = Dashboard, jadi AppBar-nya Dashboard yang kelihatan.
-      expect(
-        find.widgetWithText(AppBar, 'Dashboard'),
-        findsOneWidget,
-      );
+      expect(find.widgetWithText(AppBar, 'Dashboard'), findsOneWidget);
     });
 
     testWidgets('pindah tab beneran ganti layar', (tester) async {
-      await tester.pumpWidget(const ProviderScope(child: AsmoApp()));
+      await tester.pumpWidget(_appLoggedIn());
+      await tester.pumpAndSettle();
 
       await tester.tap(find.text('Alat'));
       await tester.pumpAndSettle();
@@ -45,13 +58,9 @@ void main() {
 
   testWidgets('tab Profil nampilin API base URL dari provider', (tester) async {
     await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          apiBaseUrlProvider.overrideWithValue('http://localhost:9000/api'),
-        ],
-        child: const AsmoApp(),
-      ),
+      _appLoggedIn(apiBaseUrl: 'http://localhost:9000/api'),
     );
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('Profil'));
     await tester.pumpAndSettle();

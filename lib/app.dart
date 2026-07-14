@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'core/theme/app_theme.dart';
-import 'screens/shell/main_shell.dart';
+import 'screens/auth/auth_gate.dart';
 
 class AsmoApp extends StatelessWidget {
   const AsmoApp({super.key});
@@ -16,7 +16,7 @@ class AsmoApp extends StatelessWidget {
       // Ikut setelan HP. Teknisi yang kerja di area gelap (gudang, lab)
       // biasanya udah nyalain dark mode di HP-nya.
       themeMode: ThemeMode.system,
-      home: const MainShell(),
+      home: const AuthGate(),
     );
   }
 }
