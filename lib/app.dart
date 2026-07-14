@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'core/theme/app_theme.dart';
 import 'screens/shell/main_shell.dart';
 
 class AsmoApp extends StatelessWidget {
@@ -10,11 +11,11 @@ class AsmoApp extends StatelessWidget {
     return MaterialApp(
       title: 'ASMO Mobile',
       debugShowCheckedModeBanner: false,
-      // Tema sementara. Design system (palet, tipografi, komponen dasar)
-      // dikerjakan Rabu 15 Jul dan bakal menggantikan ThemeData di bawah ini.
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1565C0)),
-      ),
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      // Ikut setelan HP. Teknisi yang kerja di area gelap (gudang, lab)
+      // biasanya udah nyalain dark mode di HP-nya.
+      themeMode: ThemeMode.system,
       home: const MainShell(),
     );
   }
