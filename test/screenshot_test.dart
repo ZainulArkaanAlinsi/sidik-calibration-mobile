@@ -24,15 +24,35 @@ import 'package:asmo_mobile/services/token_storage.dart';
 ///
 /// Gunanya: lihat tampilan app **tanpa perlu emulator/HP**. Kalau ragu
 /// "desainnya udah kepasang belum?", buka PNG-nya.
-Future<void> _muatFontInter() async {
+Future<void> _muatFont() async {
   // Di widget test, font custom nggak ke-load otomatis — teks bakal kerender
   // jadi kotak-kotak hitam. Jadi Inter-nya dimuat manual dari disk.
-  final loader = FontLoader('Inter');
+  final inter = FontLoader('Inter');
   for (final b in ['Regular', 'Medium', 'SemiBold', 'Bold']) {
     final bytes = File('assets/fonts/Inter-$b.ttf').readAsBytesSync();
-    loader.addFont(Future.value(bytes.buffer.asByteData()));
+    inter.addFont(Future.value(bytes.buffer.asByteData()));
   }
-  await loader.load();
+  await inter.load();
+
+  // Font ikon Material juga nggak ke-load sendiri — tanpa ini semua ikon
+  // kerender jadi kotak kosong. Itu bikin screenshot-nya nyaris nggak ada
+  // gunanya: separuh bahasa desain kita ikon, dan aturan "status nggak boleh
+  // dibedain lewat warna doang" nggak bisa dicek kalau ikonnya kotak semua.
+  //
+  // Font-nya ikut SDK, bukan repo. Kalau nggak ketemu (versi Flutter beda),
+  // screenshot-nya tetap kebikin — cuma ikonnya balik jadi kotak. Nggak worth
+  // bikin test-nya merah cuma gara-gara ini.
+  final root = Platform.environment['FLUTTER_ROOT'];
+  if (root == null) return;
+
+  final file = File(
+    '$root/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
+  );
+  if (!file.existsSync()) return;
+
+  final ikon = FontLoader('MaterialIcons')
+    ..addFont(Future.value(file.readAsBytesSync().buffer.asByteData()));
+  await ikon.load();
 }
 
 Widget _bungkus(Widget layar, {required Brightness mode}) {
@@ -55,7 +75,7 @@ Widget _bungkus(Widget layar, {required Brightness mode}) {
 }
 
 void main() {
-  setUpAll(_muatFontInter);
+  setUpAll(_muatFont);
 
   /// Ukuran HP beneran (bukan 800x600 bawaan test), biar layoutnya wajar —
   /// dan biar overflow yang cuma muncul di lebar HP ketahuan di sini.

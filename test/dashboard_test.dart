@@ -93,8 +93,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('RINGKASAN ORGANISASI'), findsOneWidget);
-      expect(find.text('Menunggu approval'), findsOneWidget);
-      expect(find.text('Draft kalibrasi'), findsNothing);
+      expect(find.text('MENUNGGU APPROVAL'), findsOneWidget);
+      expect(find.text('DRAFT KALIBRASI'), findsNothing);
     });
 
     testWidgets('teknisi → judul "RINGKASAN KAMU" + draft miliknya', (
@@ -104,8 +104,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('RINGKASAN KAMU'), findsOneWidget);
-      expect(find.text('Draft kalibrasi'), findsOneWidget);
-      expect(find.text('Menunggu approval'), findsNothing);
+      expect(find.text('DRAFT KALIBRASI'), findsOneWidget);
+      expect(find.text('MENUNGGU APPROVAL'), findsNothing);
     });
 
     testWidgets('viewer → tombol aksi NGGAK dirender sama sekali', (
@@ -149,7 +149,7 @@ void main() {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Total alat'));
+    await tester.tap(find.text('TOTAL ALAT'));
     await tester.pumpAndSettle();
 
     expect(find.widgetWithText(AppBar, 'Alat'), findsOneWidget);

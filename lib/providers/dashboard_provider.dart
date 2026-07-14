@@ -5,11 +5,12 @@ import '../services/dashboard_service.dart';
 
 import 'auth_provider.dart';
 
-/// GANTI KE `ApiDashboardService(ref.watch(apiClientProvider))` di task 23 Jul
-/// ("connect Dashboard & Daftar Alat ke API asli"), begitu `GET /api/dashboard`
-/// dari backend ada. Layar Dashboard nggak perlu disentuh.
+/// Nyambung ke `GET /api/dashboard` beneran (live 14 Jul).
+///
+/// `MockDashboardService` sengaja **nggak dihapus** — dia yang dipakai test
+/// buat maksa 4 state (loading/empty/normal/error) tanpa perlu server nyala.
 final dashboardServiceProvider = Provider<DashboardService>(
-  (ref) => MockDashboardService(),
+  (ref) => ApiDashboardService(ref.watch(apiClientProvider)),
 );
 
 /// Ringkasan dashboard. `AsyncValue` yang ngasih 3 state ke layar:

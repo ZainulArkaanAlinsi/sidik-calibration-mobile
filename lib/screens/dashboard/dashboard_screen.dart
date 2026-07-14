@@ -70,7 +70,6 @@ class _Isi extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final admin = user?.role.isAdmin ?? false;
 
     return ListView(
@@ -79,55 +78,46 @@ class _Isi extends ConsumerWidget {
         if (user != null) _Sapaan(user: user!),
         const SizedBox(height: AppSpacing.lg),
 
-        Text(
-          admin ? 'RINGKASAN ORGANISASI' : 'RINGKASAN KAMU',
-          style: theme.textTheme.labelLarge,
-        ),
+        _JudulSeksi(admin ? 'Ringkasan organisasi' : 'Ringkasan kamu'),
         const SizedBox(height: AppSpacing.sm),
 
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: AppSpacing.sm,
-          crossAxisSpacing: AppSpacing.sm,
-          childAspectRatio: 1.0, // jangan dinaikin: kartu overflow di lebar HP kalau lebih dari ini
-          children: [
-            StatCard(
-              label: 'Total alat',
-              nilai: data.totalAlat,
-              icon: Icons.straighten_outlined,
-              // Tap kotak → lompat ke tab Alat. Ini alasan tab aktif disimpan
-              // di provider, bukan di dalam shell.
-              onTap: () => ref.read(selectedTabProvider.notifier).select(1),
-            ),
-            StatCard(
-              label: 'Jatuh tempo',
-              nilai: data.alatOverdue,
-              icon: Icons.schedule,
-              warna: data.alatOverdue > 0 ? AppColors.warning : null,
-              onTap: () => ref.read(selectedTabProvider.notifier).select(1),
-            ),
-            if (admin)
-              StatCard(
-                label: 'Menunggu approval',
-                nilai: data.menungguApproval,
-                icon: Icons.hourglass_empty,
-                warna: data.menungguApproval > 0 ? AppColors.info : null,
-              )
-            else
-              StatCard(
-                label: 'Draft kalibrasi',
-                nilai: data.kalibrasiDraft,
-                icon: Icons.edit_note,
-              ),
-            StatCard(
-              label: 'Sertifikat bulan ini',
-              nilai: data.sertifikatBulanIni,
-              icon: Icons.workspace_premium_outlined,
-              warna: AppColors.success,
-            ),
-          ],
+        StatCardRow(
+          kiri: StatCard(
+            label: 'Total alat',
+            nilai: data.totalAlat,
+            icon: Icons.straighten_outlined,
+            // Tap kotak → lompat ke tab Alat. Ini alasan tab aktif disimpan
+            // di provider, bukan di dalam shell.
+            onTap: () => ref.read(selectedTabProvider.notifier).select(1),
+          ),
+          kanan: StatCard(
+            label: 'Jatuh tempo',
+            nilai: data.alatOverdue,
+            icon: Icons.schedule,
+            warna: data.alatOverdue > 0 ? AppColors.warning : null,
+            onTap: () => ref.read(selectedTabProvider.notifier).select(1),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        StatCardRow(
+          kiri: admin
+              ? StatCard(
+                  label: 'Menunggu approval',
+                  nilai: data.menungguApproval,
+                  icon: Icons.hourglass_empty,
+                  warna: data.menungguApproval > 0 ? AppColors.info : null,
+                )
+              : StatCard(
+                  label: 'Draft kalibrasi',
+                  nilai: data.kalibrasiDraft,
+                  icon: Icons.edit_note,
+                ),
+          kanan: StatCard(
+            label: 'Sertifikat bulan ini',
+            nilai: data.sertifikatBulanIni,
+            icon: Icons.workspace_premium_outlined,
+            warna: AppColors.success,
+          ),
         ),
 
         if (data.alatOverdue > 0) ...[
@@ -138,7 +128,7 @@ class _Isi extends ConsumerWidget {
         // Viewer read-only: tombol aksi nggak dirender sama sekali.
         if (user?.role.bisaInput ?? false) ...[
           const SizedBox(height: AppSpacing.lg),
-          Text('AKSI CEPAT', style: theme.textTheme.labelLarge),
+          const _JudulSeksi('Aksi cepat'),
           const SizedBox(height: AppSpacing.sm),
           AppButton(
             label: 'MULAI KALIBRASI',
@@ -161,6 +151,26 @@ class _Isi extends ConsumerWidget {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text('$fitur digarap $kapan.')));
+  }
+}
+
+/// Judul seksi — huruf besar, spasi lebar, warna kalem. Dia penunjuk arah,
+/// bukan isi, jadi sengaja nggak ikut nyolok kayak angka di kartu.
+class _JudulSeksi extends StatelessWidget {
+  const _JudulSeksi(this.teks);
+
+  final String teks;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Text(
+      teks.toUpperCase(),
+      style: theme.textTheme.labelLarge?.copyWith(
+        color: theme.colorScheme.onSurfaceVariant,
+      ),
+    );
   }
 }
 
@@ -324,20 +334,9 @@ class _Skeleton extends StatelessWidget {
         const SizedBox(height: AppSpacing.lg),
         const SkeletonBox(height: 12, width: 140),
         const SizedBox(height: AppSpacing.sm),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: AppSpacing.sm,
-          crossAxisSpacing: AppSpacing.sm,
-          childAspectRatio: 1.0, // jangan dinaikin: kartu overflow di lebar HP kalau lebih dari ini
-          children: const [
-            StatCardSkeleton(),
-            StatCardSkeleton(),
-            StatCardSkeleton(),
-            StatCardSkeleton(),
-          ],
-        ),
+        const StatCardRow(kiri: StatCardSkeleton(), kanan: StatCardSkeleton()),
+        const SizedBox(height: AppSpacing.sm),
+        const StatCardRow(kiri: StatCardSkeleton(), kanan: StatCardSkeleton()),
       ],
     );
   }

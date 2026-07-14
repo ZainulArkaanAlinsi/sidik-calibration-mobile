@@ -5,9 +5,15 @@ abstract class DashboardService {
   Future<DashboardSummary> ambilRingkasan(String token);
 }
 
-/// Nembak `GET /api/dashboard`. **Belum dipakai** — endpoint-nya belum ada di
-/// backend. Ditulis sekarang biar hari Kamis (23 Jul, "connect ke API asli")
-/// tinggal ganti satu baris di `dashboardServiceProvider`.
+/// Nembak `GET /api/dashboard` (live 14 Jul).
+///
+/// Isi responsnya beda per role, tapi **mobile nggak ngirim role** — backend
+/// yang mutusin dari token: teknisi cuma diitungin kalibrasi miliknya sendiri,
+/// admin & viewer lintas-teknisi.
+///
+/// Catatan dari backend: `kalibrasi_draft`, `menunggu_approval` &
+/// `sertifikat_bulan_ini` sekarang **selalu 0** — wajar, fitur kalibrasinya
+/// baru digarap minggu 4. Jadi kartu-kartu itu nol bukan berarti bug.
 class ApiDashboardService implements DashboardService {
   ApiDashboardService(this._api);
 
@@ -22,8 +28,8 @@ class ApiDashboardService implements DashboardService {
   }
 }
 
-/// Data tiruan buat ngerjain layar duluan — sesuai task 21 Jul yang emang
-/// minta "belum connect data asli".
+/// Data tiruan. Sekarang cuma dipakai **test** — buat maksa tiap state
+/// dashboard (kosong, gagal, normal) tanpa perlu `php artisan serve` nyala.
 class MockDashboardService implements DashboardService {
   MockDashboardService({
     this.kosong = false,
