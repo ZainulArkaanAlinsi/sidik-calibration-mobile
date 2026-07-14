@@ -269,6 +269,41 @@ Mobile butuh ini buat isi dropdown kategori + nyiapin worksheet dinamis (kolom t
 
 ## 4. Kalibrasi (dibutuhin Minggu 4, jalur kamera Minggu 5)
 
+> ## ✅ Live sejak 14 Jul — tapi ADA 2 PERUBAHAN KONTRAK, baca dulu sebelum ngoding
+>
+> Bentuk `hasil` & nilai enum-nya persis kayak yang kamu tulis. Yang berubah cuma dua, dan dua-duanya nggak bisa dihindarin:
+>
+> **1. `standard_id` sekarang WAJIB di `POST`/`PUT` — ini field baru, belum ada di dokumen versi kamu.**
+>
+> Ketidakpastian standar acuan itu **komponen Type B terbesar** di perhitungan GUM. Tanpa dia, `ketidakpastian_diperluas` (U) yang kita hitung jadi lebih kecil dari yang sebenernya — dan alat yang harusnya FAIL malah lolos jadi PASS. Buat lab terakreditasi itu temuan serius, jadi backend nolak `422` kalau `standard_id` nggak dikirim.
+>
+> **Yang mobile perlu siapin**: dropdown "Standar Acuan" di layar kalibrasi. Belum ada endpoint `GET /api/standards` — **bilang kalau butuh, langsung tak bikinin.** Sementara buat nyoba, standar hasil seeder id-nya `1` (Gauge Block Set Grade 0).
+>
+> **2. Keputusan PASS/FAIL pakai *guarded acceptance* (ILAC-G8), bukan `|error| ≤ toleransi`.**
+>
+> Alat lulus cuma kalau **`|error| + U ≤ toleransi`** — ketidakpastian pengukurannya ikut diperhitungkan. Efeknya: alat yang errornya mepet batas sekarang **FAIL**, padahal aturan sederhana bakal bilang PASS.
+> ```
+> toleransi ±0.05 · error 0.047 · U 0.0062
+>   |error| ≤ toleransi        → 0.047  ≤ 0.05  → PASS   ❌ nggak dipakai
+>   |error| + U ≤ toleransi    → 0.0532 > 0.05  → FAIL   ✅ ini yang dipakai
+> ```
+> Mobile nggak perlu ngitung apa pun — cukup tahu kenapa ada alat yang kelihatannya "masih masuk toleransi" tapi hasilnya FAIL, biar nggak dikira bug.
+>
+> ### Aturan lain yang bikin `422` (siapin pesannya di UI)
+> - **Tiap titik ukur minimal 2 pembacaan.** Type A itu standar deviasi antar-pengulangan — dari satu angka nggak ada sebaran yang bisa dihitung. (Aturan "minimal 3" yang kamu tulis di contoh reject itu **nggak** dipaksain backend — biar tetap jadi penilaian admin.)
+> - **Alat yang `toleransi`-nya masih kosong ditolak.** Tanpa batas, PASS/FAIL nggak ada artinya. Isi dulu lewat `PUT /api/equipments/{id}`.
+> - **Standar yang sertifikatnya kadaluarsa ditolak.** Ketertelusurannya putus.
+> - `tanggal_kalibrasi` nggak boleh di masa depan.
+>
+> ### Tambahan di luar kontrak
+> - **`status: "draft"` boleh dikirim di `POST`** — buat "simpan dulu, lanjut nanti". Kalau nggak dikirim, sesi langsung masuk antrean approval (`menunggu_approval`), sesuai contoh kamu.
+> - **`PUT /api/calibrations/{id}`** — teknisi ngerjain ulang sesi yang ditolak admin (`perlu_revisi`) atau nerusin draft. Body-nya sama kayak `POST`. Tanpa ini, tombol "reject" jadi jalan buntu: teknisi dikasih catatan revisi tapi nggak bisa ngapa-ngapain. Sesi yang udah `disetujui` **nggak bisa** diubah (`422`) — angka di sertifikat yang udah dipegang pelanggan nggak boleh berubah diam-diam.
+> - **Field bonus di response** (superset, aman diabaikan): `nomor_sesi` (`KAL/2026/07/0001`), `standar_acuan`, `suhu_ruang`, `kelembaban`, `lokasi`, dan **`titik`** — rincian tiap titik ukur (error, koreksi, Type A, Type B beserta rincian komponennya, U, keputusan per titik). `titik` ini yang kamu butuhin buat nampilin worksheet & tabel ketidakpastian.
+> - **`hasil` itu ringkasan dari titik PENENTU**, bukan titik pertama. Sesi bisa punya banyak titik ukur tapi sertifikat cuma nampilin satu keputusan — yang dipajang adalah titik yang paling mepet ke batas (|error| + U terbesar). **Satu titik FAIL bikin seluruh sesi FAIL.**
+>
+> ### Soal `?mine=true`
+> Teknisi **selalu** cuma dapat sesi miliknya sendiri — nggak peduli query param-nya diisi apa. `mine=false` bukan pintu belakang. Param `mine=true` cuma berfungsi buat **admin & viewer** yang mau nyaring punya sendiri. Ada testnya.
+
 ### `POST /api/calibrations`
 Bikin sesi kalibrasi + kirim data mentah sekaligus. **Data dari input manual dan dari hasil scan kamera masuk ke endpoint yang sama persis** — nggak usah bikin endpoint terpisah buat OCR. Bedanya cuma di field `input_method` (buat statistik, bukan buat logic beda).
 

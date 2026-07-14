@@ -65,4 +65,15 @@ class ApiAuthService implements AuthService {
   Future<void> logout(String token) async {
     await _api.post('/logout', token: token);
   }
+
+  @override
+  Future<int> logoutAll(String token) async {
+    final json = await _api.post('/logout-all', token: token);
+
+    final data = json['data'] as Map<String, dynamic>?;
+
+    // Jumlahnya cuma buat dilaporin ke user ("3 sesi dicabut"). Kalau backend
+    // nggak ngirim, jangan bikin gagal — sesinya udah kecabut, itu yang penting.
+    return (data?['sesi_dicabut'] as num?)?.toInt() ?? 0;
+  }
 }

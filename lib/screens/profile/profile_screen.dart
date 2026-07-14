@@ -6,15 +6,27 @@ import '../../core/theme/app_spacing.dart';
 import '../../models/user.dart';
 import '../../providers/app_config_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/auth_service.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/status_badge.dart';
 import '../design_system/design_system_screen.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  /// Loading-nya disimpan lokal, bukan numpang `authProvider.isLoading`.
+  /// Soalnya kalau nyabut sesi gagal, `authProvider` sengaja nggak disentuh
+  /// sama sekali (user tetap login) — jadi dia nggak bisa dipakai nandain
+  /// tombol ini lagi jalan apa nggak.
+  bool _sedangCabutSemua = false;
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final apiBaseUrl = ref.watch(apiBaseUrlProvider);
     final user = ref.watch(authProvider).value;
@@ -96,6 +108,31 @@ class ProfileScreen extends ConsumerWidget {
               ],
             ),
           ),
+          const SizedBox(height: AppSpacing.lg),
+
+          Text('Keamanan', style: theme.textTheme.titleSmall),
+          const SizedBox(height: AppSpacing.sm),
+          Card(
+            child: ListTile(
+              leading: Icon(
+                Icons.phonelink_erase_outlined,
+                color: theme.colorScheme.error,
+              ),
+              title: const Text('Keluar dari semua perangkat'),
+              subtitle: const Text(
+                'Buat kalau HP kamu ilang. Semua sesi dicabut — HP lain, '
+                'tablet, termasuk yang ini.',
+              ),
+              trailing: _sedangCabutSemua
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.chevron_right),
+              onTap: _sedangCabutSemua ? null : _cabutSemuaSesi,
+            ),
+          ),
           const SizedBox(height: AppSpacing.xl),
 
           AppButton(
@@ -108,6 +145,65 @@ class ProfileScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _cabutSemuaSesi() async {
+    // Nggak bisa dibatalin, dan efeknya kena ke perangkat lain — jadi wajib
+    // dikonfirmasi dulu.
+    final yakin = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Keluar dari semua perangkat?'),
+        content: const Text(
+          'Semua sesi kamu bakal dicabut, termasuk di HP ini — kamu bakal '
+          'diminta login lagi.\n\nPakai ini kalau HP kamu ilang atau dicuri.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Cabut semua sesi'),
+          ),
+        ],
+      ),
+    );
+
+    if (yakin != true || !mounted) return;
+
+    // Diambil sebelum `await`: begitu sesinya kecabut, layar ini langsung
+    // dilepas dan `context`-nya nggak kepakai lagi. `ScaffoldMessenger`-nya
+    // sendiri nempel di `MaterialApp`, jadi snackbar-nya tetap kelihatan pas
+    // user udah mendarat di layar Login.
+    final messenger = ScaffoldMessenger.of(context);
+
+    setState(() => _sedangCabutSemua = true);
+
+    try {
+      final dicabut = await ref.read(authProvider.notifier).logoutAll();
+
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            dicabut > 0
+                ? '$dicabut sesi dicabut. Login lagi ya.'
+                : 'Semua sesi dicabut. Login lagi ya.',
+          ),
+        ),
+      );
+    } on AuthException catch (e) {
+      // Gagal = sesi di HP yang ilang MASIH HIDUP. Jangan diem-diem ngeluarin
+      // user dari HP ini — dia bakal ngira udah aman. Bilang apa adanya, biar
+      // dia nyoba lagi.
+      if (!mounted) return;
+
+      setState(() => _sedangCabutSemua = false);
+      messenger.showSnackBar(
+        SnackBar(content: Text('Gagal nyabut sesi: ${e.message}')),
+      );
+    }
   }
 }
 
