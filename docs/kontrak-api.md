@@ -277,7 +277,7 @@ Mobile butuh ini buat isi dropdown kategori + nyiapin worksheet dinamis (kolom t
 >
 > Ketidakpastian standar acuan itu **komponen Type B terbesar** di perhitungan GUM. Tanpa dia, `ketidakpastian_diperluas` (U) yang kita hitung jadi lebih kecil dari yang sebenernya — dan alat yang harusnya FAIL malah lolos jadi PASS. Buat lab terakreditasi itu temuan serius, jadi backend nolak `422` kalau `standard_id` nggak dikirim.
 >
-> **Yang mobile perlu siapin**: dropdown "Standar Acuan" di layar kalibrasi. Belum ada endpoint `GET /api/standards` — **bilang kalau butuh, langsung tak bikinin.** Sementara buat nyoba, standar hasil seeder id-nya `1` (Gauge Block Set Grade 0).
+> **Yang mobile perlu siapin**: dropdown "Standar Acuan" di layar kalibrasi. Endpoint-nya **udah ada** — lihat `GET /api/standards` di bawah. Standar hasil seeder id-nya `1` (Gauge Block Set Grade 0).
 >
 > **2. Keputusan PASS/FAIL pakai *guarded acceptance* (ILAC-G8), bukan `|error| ≤ toleransi`.**
 >
@@ -303,6 +303,42 @@ Mobile butuh ini buat isi dropdown kategori + nyiapin worksheet dinamis (kolom t
 >
 > ### Soal `?mine=true`
 > Teknisi **selalu** cuma dapat sesi miliknya sendiri — nggak peduli query param-nya diisi apa. `mine=false` bukan pintu belakang. Param `mine=true` cuma berfungsi buat **admin & viewer** yang mau nyaring punya sendiri. Ada testnya.
+
+### `GET /api/standards` — isi dropdown "Standar Acuan"
+
+✅ **Live sejak 14 Jul.** Baca: semua role (termasuk viewer). Nggak pakai paginasi — daftar standar lab itu pendek, jadi langsung kekirim semua (sama kayak `/categories`).
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "nama": "Gauge Block Set Grade 0",
+      "merk": "Mitutoyo",
+      "model": "516-905",
+      "serial_number": "GB-STD-001",
+      "no_sertifikat": "SNSU/2025/P-0142",
+      "tertelusur_ke": "SNSU-BSN",
+      "berlaku_sampai": "2027-07-13T17:00:00Z",
+      "masih_berlaku": true,
+      "ketidakpastian": 0.0004,
+      "satuan_ketidakpastian": "mm",
+      "faktor_cakupan": 2,
+      "drift": null
+    }
+  ]
+}
+```
+
+> **Pakai `masih_berlaku`, jangan banding-bandingin `berlaku_sampai` sendiri** — gampang salah zona waktu. Standar yang `masih_berlaku: false` **ditolak `422`** kalau dipakai kalibrasi (ketertelusurannya putus), jadi jangan dibikin bisa dipilih di dropdown.
+>
+> Standar kadaluarsa **tetap ikut kekirim**, sengaja — kalau disembunyiin, teknisi yang nyari standar yang biasa dia pakai bakal ngira datanya kehapus, padahal cuma perlu dikalibrasi ulang. Kalau mau yang bersih aja: **`GET /api/standards?berlaku_saja=true`**.
+>
+> `ketidakpastian` itu nilai **diperluas** (udah dikali `faktor_cakupan`), persis kayak yang tertulis di sertifikat standarnya. Backend yang bagi balik waktu ngitung Type B — **mobile cukup nampilin apa adanya, jangan diutak-atik.**
+>
+> Ada juga **`GET /api/standards/{id}`** kalau butuh satu objek.
+>
+> ⚠️ **Belum ada `POST`/`PUT`/`DELETE`** — standar masih diisi lewat seeder. Begitu lab mau daftarin standar keduanya, ini bakal jadi kebutuhan. Kabarin kalau layar Pengaturan butuh CRUD-nya.
 
 ### `POST /api/calibrations`
 Bikin sesi kalibrasi + kirim data mentah sekaligus. **Data dari input manual dan dari hasil scan kamera masuk ke endpoint yang sama persis** — nggak usah bikin endpoint terpisah buat OCR. Bedanya cuma di field `input_method` (buat statistik, bukan buat logic beda).

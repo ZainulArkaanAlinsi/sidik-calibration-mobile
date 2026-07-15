@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/theme/app_spacing.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/app_button.dart';
-import '../../widgets/app_text_field.dart';
 import 'widgets/auth_brand_header.dart';
+import 'widgets/neu.dart';
 
-/// Daftar akun teknisi.
+/// Daftar akun teknisi — gaya soft UI / neumorphism (lihat `widgets/neu.dart`).
 ///
-/// Penting: daftar **nggak langsung bisa masuk**. Akunnya berstatus `pending`
-/// sampai admin nyetujuin & ngasih role. Kalau siapa pun yang daftar langsung
-/// aktif, orang luar bisa bikin akun terus ngintip data kalibrasi pelanggan.
+/// Penting & nggak berubah: daftar **nggak langsung bisa masuk**. Akunnya
+/// `pending` sampai admin nyetujuin & ngasih role. Kalau siapa pun yang daftar
+/// langsung aktif, orang luar bisa bikin akun terus ngintip data pelanggan.
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
@@ -156,120 +155,148 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final c = NeuColors.of(context);
 
     return Scaffold(
-      appBar: AppBar(),
+      backgroundColor: c.base,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.md),
+            padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
+              constraints: const BoxConstraints(maxWidth: 420),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const AuthBrandHeader(
-                    title: 'Daftar Akun',
-                    subtitle: 'Buat profil teknisi kamu',
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: _NeuBackButton(
+                      onTap: _loading ? null : () => Navigator.of(context).pop(),
+                    ),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          if (_errorKirim != null) ...[
-                            _ErrorBanner(message: _errorKirim!),
-                            const SizedBox(height: AppSpacing.md),
-                          ],
-
-                          AppTextField(
-                            label: 'Nama Lengkap',
-                            controller: _nama,
-                            hint: 'mis. Andi Pratama',
-                            prefixIcon: Icons.person_outline,
-                            errorText: _namaError,
-                            enabled: !_loading,
-                            textInputAction: TextInputAction.next,
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-
-                          AppTextField(
-                            label: 'ID Pegawai',
-                            controller: _employeeId,
-                            hint: 'ASM-0000',
-                            prefixIcon: Icons.badge_outlined,
-                            errorText: _employeeIdError,
-                            enabled: !_loading,
-                            textInputAction: TextInputAction.next,
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-
-                          _DepartemenField(
-                            value: _departemenTerpilih,
-                            options: _departemen,
-                            errorText: _departemenError,
-                            enabled: !_loading,
-                            onChanged: (v) =>
-                                setState(() => _departemenTerpilih = v),
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-
-                          AppTextField(
-                            label: 'Email',
-                            controller: _email,
-                            hint: 'nama@pt-sidik.com',
-                            prefixIcon: Icons.mail_outline,
-                            errorText: _emailError,
-                            enabled: !_loading,
-                            keyboardType: TextInputType.emailAddress,
-                            textInputAction: TextInputAction.next,
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-
-                          AppTextField(
-                            label: 'Password',
-                            controller: _password,
-                            hint: '••••••••',
-                            prefixIcon: Icons.lock_outline,
-                            isPassword: true,
-                            errorText: _passwordError,
-                            helperText: 'Minimal 8 karakter',
-                            enabled: !_loading,
-                            textInputAction: TextInputAction.done,
-                            onSubmitted: (_) => _submit(),
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-
-                          AppButton(
-                            label: 'DAFTAR',
-                            isLoading: _loading,
-                            onPressed: _submit,
-                          ),
-                        ],
+                  const SizedBox(height: 8),
+                  const Center(child: NeuBrandBadge(icon: Icons.badge_outlined)),
+                  const SizedBox(height: 18),
+                  Center(
+                    child: Text(
+                      'Daftar Akun',
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w800,
+                        color: c.text,
                       ),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: 4),
+                  Center(
+                    child: Text(
+                      'Buat profil teknisi kamu',
+                      style: TextStyle(fontSize: 14, color: c.textMuted),
+                    ),
+                  ),
+                  const SizedBox(height: 28),
 
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('Sudah punya akun?', style: theme.textTheme.bodySmall),
-                      TextButton(
-                        onPressed: _loading
-                            ? null
-                            : () => Navigator.of(context).pop(),
-                        child: const Text('Masuk'),
-                      ),
-                    ],
+                  NeuRaised(
+                    radius: 30,
+                    distance: 8,
+                    blur: 20,
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (_errorKirim != null) ...[
+                          _NeuErrorBanner(message: _errorKirim!),
+                          const SizedBox(height: 18),
+                        ],
+
+                        NeuTextField(
+                          icon: Icons.person_outline,
+                          controller: _nama,
+                          hint: 'Nama lengkap',
+                          errorText: _namaError,
+                          enabled: !_loading,
+                          textInputAction: TextInputAction.next,
+                        ),
+                        const SizedBox(height: 16),
+
+                        NeuTextField(
+                          icon: Icons.badge_outlined,
+                          controller: _employeeId,
+                          hint: 'ID Pegawai (mis. ASM-0000)',
+                          errorText: _employeeIdError,
+                          enabled: !_loading,
+                          textInputAction: TextInputAction.next,
+                        ),
+                        const SizedBox(height: 16),
+
+                        _NeuDepartemen(
+                          value: _departemenTerpilih,
+                          options: _departemen,
+                          errorText: _departemenError,
+                          enabled: !_loading,
+                          onChanged: (v) =>
+                              setState(() => _departemenTerpilih = v),
+                        ),
+                        const SizedBox(height: 16),
+
+                        NeuTextField(
+                          icon: Icons.mail_outline,
+                          controller: _email,
+                          hint: 'Email (nama@pt-sidik.com)',
+                          errorText: _emailError,
+                          enabled: !_loading,
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                        ),
+                        const SizedBox(height: 16),
+
+                        NeuTextField(
+                          icon: Icons.lock_outline,
+                          controller: _password,
+                          hint: 'Password',
+                          obscure: true,
+                          errorText: _passwordError,
+                          helperText: 'Minimal 8 karakter',
+                          enabled: !_loading,
+                          textInputAction: TextInputAction.done,
+                          onSubmitted: (_) => _submit(),
+                        ),
+                        const SizedBox(height: 26),
+
+                        NeuButton(
+                          label: 'DAFTAR',
+                          loading: _loading,
+                          onPressed: _submit,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Sudah punya akun?',
+                          style: TextStyle(fontSize: 13, color: c.textMuted),
+                        ),
+                        const SizedBox(width: 4),
+                        NeuTextLink(
+                          label: 'Masuk',
+                          strong: true,
+                          onTap: _loading
+                              ? null
+                              : () => Navigator.of(context).pop(),
+                        ),
+                      ],
+                    ),
                   ),
 
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: 24),
                   const AuthPoweredBy(),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
@@ -280,8 +307,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 }
 
-class _DepartemenField extends StatelessWidget {
-  const _DepartemenField({
+/// Dropdown departemen bergaya soft. Tetap membungkus
+/// `DropdownButtonFormField<String>` supaya test register nggak pecah.
+class _NeuDepartemen extends StatelessWidget {
+  const _NeuDepartemen({
     required this.value,
     required this.options,
     required this.onChanged,
@@ -297,61 +326,126 @@ class _DepartemenField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final c = NeuColors.of(context);
+    // Ambil dari textTheme biar bawa fontFamily Inter. `DropdownButtonFormField`
+    // GANTI font-nya kalau `style`-nya nggak punya family — di HP jadi font
+    // sistem (bukan Inter), di test malah jadi kotak-kotak.
+    final txt = Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 16);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('DEPARTEMEN', style: theme.textTheme.labelLarge),
-        const SizedBox(height: AppSpacing.sm),
-        DropdownButtonFormField<String>(
-          initialValue: value,
-          isExpanded: true,
-          onChanged: enabled ? onChanged : null,
-          decoration: InputDecoration(
-            errorText: errorText,
-            prefixIcon: const Icon(Icons.apartment_outlined, size: 20),
+        Opacity(
+          opacity: enabled ? 1 : 0.55,
+          child: NeuInset(
+            radius: 16,
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            child: Row(
+              children: [
+                Icon(Icons.apartment_outlined, size: 20, color: c.textMuted),
+                const SizedBox(width: 14),
+                Expanded(
+                  // Bungkus Theme lokal: nolin fill, border, DAN highlight
+                  // fokus/hover dari tema global (Titanium). Tanpa ini,
+                  // InkWell dropdown-nya ninggalin balok abu di dalam kolom.
+                  child: Theme(
+                    data: Theme.of(context).copyWith(
+                      focusColor: Colors.transparent,
+                      hoverColor: Colors.transparent,
+                      canvasColor: c.base,
+                      inputDecorationTheme: const InputDecorationTheme(
+                        filled: false,
+                        fillColor: Colors.transparent,
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        isCollapsed: true,
+                        contentPadding: EdgeInsets.symmetric(vertical: 16),
+                      ),
+                    ),
+                    child: DropdownButtonFormField<String>(
+                      initialValue: value,
+                      isExpanded: true,
+                      onChanged: enabled ? onChanged : null,
+                      icon: Icon(Icons.arrow_drop_down, color: c.textMuted),
+                      dropdownColor: c.base,
+                      style: txt?.copyWith(color: c.text),
+                      decoration: const InputDecoration(),
+                      hint: Text(
+                        'Pilih departemen',
+                        style: txt?.copyWith(color: c.textMuted),
+                      ),
+                      items: [
+                        for (final o in options)
+                          DropdownMenuItem(
+                            value: o,
+                            child: Text(o, style: txt?.copyWith(color: c.text)),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          hint: Text('Pilih departemen', style: theme.textTheme.bodyMedium),
-          items: [
-            for (final o in options)
-              DropdownMenuItem(value: o, child: Text(o)),
-          ],
         ),
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 18, top: 6),
+            child: Text(
+              errorText!,
+              style: TextStyle(fontSize: 12, color: c.danger),
+            ),
+          ),
       ],
     );
   }
 }
 
-class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner({required this.message});
+class _NeuBackButton extends StatelessWidget {
+  const _NeuBackButton({required this.onTap});
+
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = NeuColors.of(context);
+
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: NeuRaised(
+        circle: true,
+        distance: 4,
+        blur: 8,
+        padding: const EdgeInsets.all(11),
+        child: Icon(Icons.arrow_back, size: 20, color: c.text),
+      ),
+    );
+  }
+}
+
+/// Banner error kirim — versi soft (cekung, teks merah lembut).
+class _NeuErrorBanner extends StatelessWidget {
+  const _NeuErrorBanner({required this.message});
 
   final String message;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final c = NeuColors.of(context);
 
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.errorContainer,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-      ),
+    return NeuInset(
+      radius: 14,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         children: [
-          Icon(
-            Icons.error_outline,
-            size: 20,
-            color: theme.colorScheme.onErrorContainer,
-          ),
-          const SizedBox(width: AppSpacing.sm),
+          Icon(Icons.error_outline, size: 20, color: c.danger),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               message,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onErrorContainer,
-              ),
+              style: TextStyle(fontSize: 13, color: c.danger),
             ),
           ),
         ],
