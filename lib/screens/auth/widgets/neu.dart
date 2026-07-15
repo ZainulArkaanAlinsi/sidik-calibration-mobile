@@ -111,9 +111,11 @@ class NeuRaised extends StatelessWidget {
   }
 }
 
-/// Permukaan yang **tenggelam** (kolom input) — bayangan digambar di sisi
-/// DALAM. Flutter nggak punya inner-shadow bawaan, jadi dipaint manual lewat
-/// selisih path.
+/// Permukaan yang **tenggelam** (kolom input). Dulu bayangan dalam dipaint
+/// manual lewat `CustomPaint` + `MaskFilter.blur` + `Path.combine` — mahal,
+/// di-rasterize ulang tiap frame dan bikin lag di HP kentang. Sekarang cukup
+/// gradient diagonal (gelap kiri-atas → terang kanan-bawah) plus border tipis
+/// senada; kesannya tetap cekung tapi cuma decoration paint biasa.
 class NeuInset extends StatelessWidget {
   const NeuInset({
     super.key,
@@ -130,68 +132,26 @@ class NeuInset extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = NeuColors.of(context);
 
-    return CustomPaint(
-      foregroundPainter: _InsetPainter(
-        light: c.lightShadow,
-        dark: c.darkShadow,
-        radius: radius,
-      ),
-      child: Container(
-        padding: padding,
-        decoration: BoxDecoration(
-          color: c.base,
-          borderRadius: BorderRadius.circular(radius),
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(radius),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color.lerp(c.base, c.darkShadow, 0.35)!,
+            Color.lerp(c.base, c.lightShadow, 0.35)!,
+          ],
         ),
-        child: child,
+        // Border satu warna doang — BoxDecoration nggak izinin borderRadius
+        // dipasangin Border yang beda warna tiap sisi (assertion error pas
+        // paint). Kesan "cekung"-nya cukup dari gradient di atas.
+        border: Border.all(color: c.darkShadow.withValues(alpha: 0.4)),
       ),
+      child: child,
     );
   }
-}
-
-class _InsetPainter extends CustomPainter {
-  _InsetPainter({
-    required this.light,
-    required this.dark,
-    required this.radius,
-  });
-
-  final Color light;
-  final Color dark;
-  final double radius;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rrect = RRect.fromRectAndRadius(
-      Offset.zero & size,
-      Radius.circular(radius),
-    );
-    canvas.save();
-    canvas.clipRRect(rrect);
-    // Gelap masuk dari kiri-atas, terang dari kanan-bawah — kebalikan arah
-    // permukaan timbul, jadi kolomnya kebaca "cekung".
-    _inner(canvas, size, rrect, dark, const Offset(3, 3));
-    _inner(canvas, size, rrect, light, const Offset(-3, -3));
-    canvas.restore();
-  }
-
-  void _inner(Canvas canvas, Size size, RRect rrect, Color color, Offset o) {
-    final paint = Paint()
-      ..color = color
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-    final outer = Path()
-      ..addRect(
-        Rect.fromLTRB(-size.width, -size.height, size.width * 2, size.height * 2),
-      );
-    final inner = Path()..addRRect(rrect.shift(o));
-    canvas.drawPath(
-      Path.combine(PathOperation.difference, outer, inner),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _InsetPainter old) =>
-      old.light != light || old.dark != dark || old.radius != radius;
 }
 
 /// Kolom input soft: pill cekung, ikon di kiri, placeholder di dalam (bukan
