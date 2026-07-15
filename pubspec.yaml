@@ -1,5 +1,5 @@
 name: asmo_mobile
-description: "Aplikasi kalibrasi alat ukur & sertifikat digital PT ASMO (teknisi & admin, satu APK)."
+description: "Aplikasi kalibrasi alat ukur & sertifikat digital PT Sidik (teknisi & admin, satu APK)."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -38,6 +38,15 @@ dependencies:
   flutter_secure_storage: ^10.3.1
   http: ^1.6.0
 
+  # i18n (dwibahasa ID/EN). `intl` versinya di-pin oleh flutter_localizations,
+  # jadi pakai `any` biar `flutter pub get` yang nyocokin.
+  flutter_localizations:
+    sdk: flutter
+  intl: any
+
+  # Nyimpen pilihan bahasa biar nggak balik ke default tiap app dibuka.
+  shared_preferences: ^2.3.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -54,6 +63,10 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+
+  # Aktifkan generator localization (baca l10n.yaml + lib/l10n/*.arb →
+  # AppLocalizations). Wajib buat dwibahasa.
+  generate: true
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

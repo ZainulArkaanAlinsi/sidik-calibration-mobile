@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/theme/app_spacing.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/app_text_field.dart';
 import 'widgets/auth_brand_header.dart';
-import 'widgets/neu.dart';
 
-/// Daftar akun teknisi — gaya soft UI / neumorphism (lihat `widgets/neu.dart`).
+/// Daftar akun teknisi.
 ///
-/// Penting & nggak berubah: daftar **nggak langsung bisa masuk**. Akunnya
-/// `pending` sampai admin nyetujuin & ngasih role. Kalau siapa pun yang daftar
-/// langsung aktif, orang luar bisa bikin akun terus ngintip data pelanggan.
+/// Penting: daftar **nggak langsung bisa masuk**. Akunnya berstatus `pending`
+/// sampai admin nyetujuin & ngasih role. Kalau siapa pun yang daftar langsung
+/// aktif, orang luar bisa bikin akun terus ngintip data kalibrasi pelanggan.
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
@@ -20,6 +22,8 @@ class RegisterScreen extends ConsumerStatefulWidget {
 }
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
+  // Nilai departemen = data yang dikirim ke backend, jadi sengaja TIDAK
+  // di-i18n (harus konsisten lintas bahasa & sesuai kontrak API).
   static const _departemen = [
     'Kalibrasi',
     'Quality Control',
@@ -53,27 +57,27 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     super.dispose();
   }
 
-  bool _validasi() {
+  bool _validasi(AppLocalizations l10n) {
     final email = _email.text.trim();
 
     setState(() {
-      _namaError = _nama.text.trim().isEmpty ? 'Nama wajib diisi.' : null;
+      _namaError = _nama.text.trim().isEmpty ? l10n.nameRequired : null;
       _employeeIdError = _employeeId.text.trim().isEmpty
-          ? 'ID pegawai wajib diisi.'
+          ? l10n.employeeIdRequired
           : null;
       _departemenError = _departemenTerpilih == null
-          ? 'Pilih departemen dulu.'
+          ? l10n.departmentRequired
           : null;
       _emailError = switch (email) {
-        '' => 'Email wajib diisi.',
+        '' => l10n.emailRequired,
         // Cukup cek bentuk dasarnya — validasi beneran tetap di backend.
         _ when !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email) =>
-          'Format email nggak valid.',
+          l10n.emailInvalid,
         _ => null,
       };
       _passwordError = switch (_password.text) {
-        '' => 'Password wajib diisi.',
-        final p when p.length < 8 => 'Password minimal 8 karakter.',
+        '' => l10n.passwordRequired,
+        final p when p.length < 8 => l10n.passwordTooShort,
         _ => null,
       };
     });
@@ -86,7 +90,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   Future<void> _submit() async {
-    if (!_validasi()) return;
+    final l10n = AppLocalizations.of(context);
+    if (!_validasi(l10n)) return;
 
     setState(() {
       _loading = true;
@@ -110,7 +115,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       if (mounted) setState(() => _errorKirim = e.message);
     } catch (_) {
       if (mounted) {
-        setState(() => _errorKirim = 'Nggak bisa nyambung ke server. Coba lagi.');
+        setState(() => _errorKirim = l10n.errorNoConnection);
       }
     }
 
@@ -126,6 +131,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   /// Sukses daftar bukan berarti bisa masuk — jelasin itu terang-terangan,
   /// jangan bikin orang nunggu sambil bingung kenapa login-nya ditolak.
   Future<void> _tampilkanSukses() async {
+    final l10n = AppLocalizations.of(context);
+
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -135,15 +142,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           size: 40,
           color: Theme.of(dialogContext).colorScheme.secondary,
         ),
-        title: const Text('Pendaftaran terkirim'),
-        content: const Text(
-          'Akun kamu masih menunggu persetujuan admin. Kamu belum bisa masuk '
-          'sampai admin nyetujuin dan nentuin role kamu.\n\n'
-          'Hubungi admin kalau kelamaan nggak ada kabar.',
-        ),
+        title: Text(l10n.registerSuccessTitle),
+        content: Text(l10n.registerSuccessBody),
         actions: [
           AppButton(
-            label: 'MENGERTI',
+            label: l10n.registerSuccessDismiss,
             onPressed: () => Navigator.of(dialogContext).pop(),
           ),
         ],
@@ -155,123 +158,107 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final c = NeuColors.of(context);
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      backgroundColor: c.base,
+      appBar: AppBar(),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppSpacing.md),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
+              constraints: const BoxConstraints(maxWidth: 440),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: NeuBackButton(
-                      onTap: _loading ? null : () => Navigator.of(context).pop(),
-                    ),
+                  AuthBrandHeader(
+                    title: l10n.registerTitle,
+                    subtitle: l10n.registerSubtitle,
                   ),
-                  const SizedBox(height: 8),
-                  const Center(child: NeuBrandBadge(icon: Icons.badge_outlined)),
-                  const SizedBox(height: 18),
-                  Center(
-                    child: Text(
-                      'Daftar Akun',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w800,
-                        color: c.text,
+                  const SizedBox(height: AppSpacing.lg),
+
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (_errorKirim != null) ...[
+                            _ErrorBanner(message: _errorKirim!),
+                            const SizedBox(height: AppSpacing.md),
+                          ],
+
+                          AppTextField(
+                            label: l10n.nameLabel,
+                            controller: _nama,
+                            hint: l10n.nameHint,
+                            prefixIcon: Icons.person_outline,
+                            errorText: _namaError,
+                            enabled: !_loading,
+                            textInputAction: TextInputAction.next,
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+
+                          AppTextField(
+                            label: l10n.employeeIdLabel,
+                            controller: _employeeId,
+                            hint: 'ASM-0000',
+                            prefixIcon: Icons.badge_outlined,
+                            errorText: _employeeIdError,
+                            enabled: !_loading,
+                            textInputAction: TextInputAction.next,
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+
+                          _DepartemenField(
+                            label: l10n.departmentLabel,
+                            hint: l10n.departmentHint,
+                            value: _departemenTerpilih,
+                            options: _departemen,
+                            errorText: _departemenError,
+                            enabled: !_loading,
+                            onChanged: (v) =>
+                                setState(() => _departemenTerpilih = v),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+
+                          AppTextField(
+                            label: l10n.emailLabel,
+                            controller: _email,
+                            hint: l10n.emailHint,
+                            prefixIcon: Icons.mail_outline,
+                            errorText: _emailError,
+                            enabled: !_loading,
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+
+                          AppTextField(
+                            label: l10n.passwordLabel,
+                            controller: _password,
+                            hint: '••••••••',
+                            prefixIcon: Icons.lock_outline,
+                            isPassword: true,
+                            errorText: _passwordError,
+                            helperText: l10n.passwordHelper,
+                            enabled: !_loading,
+                            textInputAction: TextInputAction.done,
+                            onSubmitted: (_) => _submit(),
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+
+                          AppButton(
+                            label: l10n.registerSubmit,
+                            isLoading: _loading,
+                            onPressed: _submit,
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Center(
-                    child: Text(
-                      'Buat profil teknisi kamu',
-                      style: TextStyle(fontSize: 14, color: c.textMuted),
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-
-                  NeuRaised(
-                    radius: 30,
-                    distance: 8,
-                    blur: 20,
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (_errorKirim != null) ...[
-                          NeuErrorBanner(message: _errorKirim!),
-                          const SizedBox(height: 18),
-                        ],
-
-                        NeuTextField(
-                          icon: Icons.person_outline,
-                          controller: _nama,
-                          hint: 'Nama lengkap',
-                          errorText: _namaError,
-                          enabled: !_loading,
-                          textInputAction: TextInputAction.next,
-                        ),
-                        const SizedBox(height: 16),
-
-                        NeuTextField(
-                          icon: Icons.badge_outlined,
-                          controller: _employeeId,
-                          hint: 'ID Pegawai (mis. ASM-0000)',
-                          errorText: _employeeIdError,
-                          enabled: !_loading,
-                          textInputAction: TextInputAction.next,
-                        ),
-                        const SizedBox(height: 16),
-
-                        _NeuDepartemen(
-                          value: _departemenTerpilih,
-                          options: _departemen,
-                          errorText: _departemenError,
-                          enabled: !_loading,
-                          onChanged: (v) =>
-                              setState(() => _departemenTerpilih = v),
-                        ),
-                        const SizedBox(height: 16),
-
-                        NeuTextField(
-                          icon: Icons.mail_outline,
-                          controller: _email,
-                          hint: 'Email (nama@pt-sidik.com)',
-                          errorText: _emailError,
-                          enabled: !_loading,
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.next,
-                        ),
-                        const SizedBox(height: 16),
-
-                        NeuTextField(
-                          icon: Icons.lock_outline,
-                          controller: _password,
-                          hint: 'Password',
-                          obscure: true,
-                          errorText: _passwordError,
-                          helperText: 'Minimal 8 karakter',
-                          enabled: !_loading,
-                          textInputAction: TextInputAction.done,
-                          onSubmitted: (_) => _submit(),
-                        ),
-                        const SizedBox(height: 26),
-
-                        NeuButton(
-                          label: 'DAFTAR',
-                          loading: _loading,
-                          onPressed: _submit,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: AppSpacing.md),
 
                   FittedBox(
                     fit: BoxFit.scaleDown,
@@ -279,24 +266,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Sudah punya akun?',
-                          style: TextStyle(fontSize: 13, color: c.textMuted),
+                          l10n.registerHaveAccount,
+                          style: theme.textTheme.bodySmall,
                         ),
-                        const SizedBox(width: 4),
-                        NeuTextLink(
-                          label: 'Masuk',
-                          strong: true,
-                          onTap: _loading
+                        TextButton(
+                          onPressed: _loading
                               ? null
                               : () => Navigator.of(context).pop(),
+                          child: Text(l10n.registerLoginLink),
                         ),
                       ],
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.lg),
                   const AuthPoweredBy(),
-                  const SizedBox(height: 8),
                 ],
               ),
             ),
@@ -307,10 +291,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 }
 
-/// Dropdown departemen bergaya soft. Tetap membungkus
-/// `DropdownButtonFormField<String>` supaya test register nggak pecah.
-class _NeuDepartemen extends StatelessWidget {
-  const _NeuDepartemen({
+class _DepartemenField extends StatelessWidget {
+  const _DepartemenField({
+    required this.label,
+    required this.hint,
     required this.value,
     required this.options,
     required this.onChanged,
@@ -318,6 +302,8 @@ class _NeuDepartemen extends StatelessWidget {
     this.errorText,
   });
 
+  final String label;
+  final String hint;
   final String? value;
   final List<String> options;
   final ValueChanged<String?> onChanged;
@@ -326,79 +312,65 @@ class _NeuDepartemen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = NeuColors.of(context);
-    // Ambil dari textTheme biar bawa fontFamily Inter. `DropdownButtonFormField`
-    // GANTI font-nya kalau `style`-nya nggak punya family — di HP jadi font
-    // sistem (bukan Inter), di test malah jadi kotak-kotak.
-    final txt = Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 16);
+    final theme = Theme.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Opacity(
-          opacity: enabled ? 1 : 0.55,
-          child: NeuInset(
-            radius: 16,
-            padding: const EdgeInsets.symmetric(horizontal: 18),
-            child: Row(
-              children: [
-                Icon(Icons.apartment_outlined, size: 20, color: c.textMuted),
-                const SizedBox(width: 14),
-                Expanded(
-                  // Bungkus Theme lokal: nolin fill, border, DAN highlight
-                  // fokus/hover dari tema global (Titanium). Tanpa ini,
-                  // InkWell dropdown-nya ninggalin balok abu di dalam kolom.
-                  child: Theme(
-                    data: Theme.of(context).copyWith(
-                      focusColor: Colors.transparent,
-                      hoverColor: Colors.transparent,
-                      canvasColor: c.base,
-                      inputDecorationTheme: const InputDecorationTheme(
-                        filled: false,
-                        fillColor: Colors.transparent,
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        isCollapsed: true,
-                        contentPadding: EdgeInsets.symmetric(vertical: 16),
-                      ),
-                    ),
-                    child: DropdownButtonFormField<String>(
-                      initialValue: value,
-                      isExpanded: true,
-                      onChanged: enabled ? onChanged : null,
-                      icon: Icon(Icons.arrow_drop_down, color: c.textMuted),
-                      dropdownColor: c.base,
-                      style: txt?.copyWith(color: c.text),
-                      decoration: const InputDecoration(),
-                      hint: Text(
-                        'Pilih departemen',
-                        style: txt?.copyWith(color: c.textMuted),
-                      ),
-                      items: [
-                        for (final o in options)
-                          DropdownMenuItem(
-                            value: o,
-                            child: Text(o, style: txt?.copyWith(color: c.text)),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+        Text(label.toUpperCase(), style: theme.textTheme.labelLarge),
+        const SizedBox(height: AppSpacing.sm),
+        DropdownButtonFormField<String>(
+          initialValue: value,
+          isExpanded: true,
+          onChanged: enabled ? onChanged : null,
+          decoration: InputDecoration(
+            errorText: errorText,
+            prefixIcon: const Icon(Icons.apartment_outlined, size: 20),
           ),
+          hint: Text(hint, style: theme.textTheme.bodyMedium),
+          items: [
+            for (final o in options)
+              DropdownMenuItem(value: o, child: Text(o)),
+          ],
         ),
-        if (errorText != null)
-          Padding(
-            padding: const EdgeInsets.only(left: 18, top: 6),
-            child: Text(
-              errorText!,
-              style: TextStyle(fontSize: 12, color: c.danger),
-            ),
-          ),
       ],
     );
   }
 }
 
+class _ErrorBanner extends StatelessWidget {
+  const _ErrorBanner({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 20,
+            color: theme.colorScheme.onErrorContainer,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              message,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onErrorContainer,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

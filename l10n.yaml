@@ -1,0 +1,8 @@
+# Konfigurasi generator localization Flutter.
+# String ada di lib/l10n/*.arb; template (sumber key + metadata) = app_en.arb.
+# Hasil generate: AppLocalizations (dipakai lewat AppLocalizations.of(context)).
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+nullable-getter: false

@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:asmo_mobile/core/theme/app_theme.dart';
+import 'package:asmo_mobile/l10n/app_localizations.dart';
 import 'package:asmo_mobile/providers/auth_provider.dart';
 import 'package:asmo_mobile/providers/dashboard_provider.dart';
 import 'package:asmo_mobile/screens/auth/login_screen.dart';
@@ -69,6 +70,11 @@ Widget _bungkus(Widget layar, {required Brightness mode}) {
     child: MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: mode == Brightness.light ? AppTheme.light : AppTheme.dark,
+      // Locale dikunci ke ID biar golden deterministik (nggak ketarik locale
+      // mesin CI/dev yang beda-beda).
+      locale: const Locale('id'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: layar,
     ),
   );
