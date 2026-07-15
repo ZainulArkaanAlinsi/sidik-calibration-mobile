@@ -119,7 +119,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         if (errorLogin != null) ...[
-                          _NeuErrorBanner(message: errorLogin),
+                          NeuErrorBanner(message: errorLogin),
                           const SizedBox(height: 18),
                         ],
 
@@ -192,35 +192,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// Banner error login — versi soft (cekung, teks merah lembut).
-class _NeuErrorBanner extends StatelessWidget {
-  const _NeuErrorBanner({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = NeuColors.of(context);
-
-    return NeuInset(
-      radius: 14,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Row(
-        children: [
-          Icon(Icons.error_outline, size: 20, color: c.danger),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              message,
-              style: TextStyle(fontSize: 13, color: c.danger),
-            ),
-          ),
-        ],
       ),
     );
   }

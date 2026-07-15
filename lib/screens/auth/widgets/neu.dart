@@ -118,11 +118,9 @@ class NeuRaised extends StatelessWidget {
   }
 }
 
-/// Permukaan yang **tenggelam** (kolom input). Dulu bayangan dalam dipaint
-/// manual lewat `CustomPaint` + `MaskFilter.blur` + `Path.combine` — mahal,
-/// di-rasterize ulang tiap frame dan bikin lag di HP kentang. Sekarang cukup
-/// gradient diagonal (gelap kiri-atas → terang kanan-bawah) plus border tipis
-/// senada; kesannya tetap cekung tapi cuma decoration paint biasa.
+/// Permukaan yang **tenggelam** (kolom input) — bayangan digambar di sisi
+/// DALAM. Flutter nggak punya inner-shadow bawaan, jadi dipaint manual lewat
+/// selisih path.
 class NeuInset extends StatelessWidget {
   const NeuInset({
     super.key,
@@ -139,26 +137,73 @@ class NeuInset extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = NeuColors.of(context);
 
-    return Container(
-      padding: padding,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(radius),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color.lerp(c.base, c.darkShadow, 0.35)!,
-            Color.lerp(c.base, c.lightShadow, 0.35)!,
-          ],
-        ),
-        // Border satu warna doang — BoxDecoration nggak izinin borderRadius
-        // dipasangin Border yang beda warna tiap sisi (assertion error pas
-        // paint). Kesan "cekung"-nya cukup dari gradient di atas.
-        border: Border.all(color: c.darkShadow.withValues(alpha: 0.4)),
+    return CustomPaint(
+      foregroundPainter: _InsetPainter(
+        light: c.lightShadow,
+        dark: c.darkShadow,
+        radius: radius,
       ),
-      child: child,
+      child: Container(
+        padding: padding,
+        decoration: BoxDecoration(
+          color: c.base,
+          borderRadius: BorderRadius.circular(radius),
+        ),
+        child: child,
+      ),
     );
   }
+}
+
+class _InsetPainter extends CustomPainter {
+  _InsetPainter({
+    required this.light,
+    required this.dark,
+    required this.radius,
+  });
+
+  final Color light;
+  final Color dark;
+  final double radius;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rrect = RRect.fromRectAndRadius(
+      Offset.zero & size,
+      Radius.circular(radius),
+    );
+    canvas.save();
+    canvas.clipRRect(rrect);
+    // Gelap masuk dari kiri-atas, terang dari kanan-bawah — kebalikan arah
+    // permukaan timbul, jadi kolomnya kebaca "cekung".
+    _inner(canvas, size, rrect, dark, const Offset(3, 3));
+    _inner(canvas, size, rrect, light, const Offset(-3, -3));
+    canvas.restore();
+  }
+
+  void _inner(Canvas canvas, Size size, RRect rrect, Color color, Offset o) {
+    final paint = Paint()
+      ..color = color
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    final outer = Path()
+      ..addRect(
+        Rect.fromLTRB(
+          -size.width,
+          -size.height,
+          size.width * 2,
+          size.height * 2,
+        ),
+      );
+    final inner = Path()..addRRect(rrect.shift(o));
+    canvas.drawPath(
+      Path.combine(PathOperation.difference, outer, inner),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _InsetPainter old) =>
+      old.light != light || old.dark != dark || old.radius != radius;
 }
 
 /// Kolom input soft: pill cekung, ikon di kiri, placeholder di dalam (bukan
@@ -229,10 +274,18 @@ class _NeuTextFieldState extends State<NeuTextField> {
                     onSubmitted: widget.onSubmitted,
                     cursorColor: c.accent,
                     style: TextStyle(color: c.text, fontSize: 16),
-                    decoration: InputDecoration.collapsed(
-                      hintText: widget.hint,
-                      hintStyle: TextStyle(color: c.textMuted, fontSize: 16),
-                    ).copyWith(contentPadding: const EdgeInsets.symmetric(vertical: 16)),
+                    decoration:
+                        InputDecoration.collapsed(
+                          hintText: widget.hint,
+                          hintStyle: TextStyle(
+                            color: c.textMuted,
+                            fontSize: 16,
+                          ),
+                        ).copyWith(
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
+                        ),
                   ),
                 ),
                 if (widget.obscure)
@@ -353,6 +406,60 @@ class NeuTextLink extends StatelessWidget {
             color: strong ? c.accent : c.textMuted,
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Banner error soft — kolom cekung, teks merah lembut. Dipakai Login,
+/// Register, & Forgot Password.
+class NeuErrorBanner extends StatelessWidget {
+  const NeuErrorBanner({super.key, required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = NeuColors.of(context);
+
+    return NeuInset(
+      radius: 14,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline, size: 20, color: c.danger),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(fontSize: 13, color: c.danger),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Tombol back bulat timbul.
+class NeuBackButton extends StatelessWidget {
+  const NeuBackButton({super.key, required this.onTap});
+
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = NeuColors.of(context);
+
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: NeuRaised(
+        circle: true,
+        distance: 4,
+        blur: 8,
+        padding: const EdgeInsets.all(11),
+        child: Icon(Icons.arrow_back, size: 20, color: c.text),
       ),
     );
   }
