@@ -170,7 +170,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 children: [
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: _NeuBackButton(
+                    child: NeuBackButton(
                       onTap: _loading ? null : () => Navigator.of(context).pop(),
                     ),
                   ),
@@ -205,7 +205,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         if (_errorKirim != null) ...[
-                          _NeuErrorBanner(message: _errorKirim!),
+                          NeuErrorBanner(message: _errorKirim!),
                           const SizedBox(height: 18),
                         ],
 
@@ -402,54 +402,3 @@ class _NeuDepartemen extends StatelessWidget {
   }
 }
 
-class _NeuBackButton extends StatelessWidget {
-  const _NeuBackButton({required this.onTap});
-
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = NeuColors.of(context);
-
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: NeuRaised(
-        circle: true,
-        distance: 4,
-        blur: 8,
-        padding: const EdgeInsets.all(11),
-        child: Icon(Icons.arrow_back, size: 20, color: c.text),
-      ),
-    );
-  }
-}
-
-/// Banner error kirim — versi soft (cekung, teks merah lembut).
-class _NeuErrorBanner extends StatelessWidget {
-  const _NeuErrorBanner({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = NeuColors.of(context);
-
-    return NeuInset(
-      radius: 14,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Row(
-        children: [
-          Icon(Icons.error_outline, size: 20, color: c.danger),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              message,
-              style: TextStyle(fontSize: 13, color: c.danger),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
