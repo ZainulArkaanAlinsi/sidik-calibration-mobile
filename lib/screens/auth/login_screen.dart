@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
-import '../../core/theme/app_spacing.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
-import '../../widgets/app_button.dart';
-import '../../widgets/app_text_field.dart';
 import 'forgot_password_screen.dart';
 import 'register_screen.dart';
 import 'widgets/auth_brand_header.dart';
+import 'widgets/neu.dart';
 
+/// Layar Login — gaya soft UI / neumorphism (lihat `widgets/neu.dart`).
+/// Isinya sama persis kayak sebelumnya: login pakai ID pegawai **atau** email,
+/// validasi lokal dulu, error dari server ditampilin apa adanya, plus panel
+/// bantuan buat mode dev/mock. Cuma kulitnya yang berubah.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -52,10 +54,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         .login(identifier: _identifier.text, password: _password.text);
   }
 
+  void _bukaLupaPassword() => Navigator.of(context).push(
+    MaterialPageRoute<void>(builder: (_) => const ForgotPasswordScreen()),
+  );
+
+  void _bukaRegister() => Navigator.of(context).push(
+    MaterialPageRoute<void>(builder: (_) => const RegisterScreen()),
+  );
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final c = NeuColors.of(context);
     final auth = ref.watch(authProvider);
+    final loading = auth.isLoading;
 
     // Cuma pesan dari AuthException yang ditampilin apa adanya. Exception
     // teknis (timeout, parsing) disembunyiin — user nggak perlu lihat itu.
@@ -66,107 +77,116 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     };
 
     return Scaffold(
+      backgroundColor: c.base,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.md),
+            padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
+              constraints: const BoxConstraints(maxWidth: 420),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: AppSpacing.lg),
-                  const AuthBrandHeader(
-                    title: 'SIDIK',
-                    subtitle: 'Manajemen Kalibrasi Presisi',
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          if (errorLogin != null) ...[
-                            _ErrorBanner(message: errorLogin),
-                            const SizedBox(height: AppSpacing.md),
-                          ],
-
-                          AppTextField(
-                            label: 'ID Pegawai / Email',
-                            controller: _identifier,
-                            hint: 'ASM-0001 atau nama@pt-sidik.com',
-                            prefixIcon: Icons.badge_outlined,
-                            errorText: _identifierError,
-                            enabled: !auth.isLoading,
-                            textInputAction: TextInputAction.next,
-                            autofillHints: const [AutofillHints.username],
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-
-                          AppTextField(
-                            label: 'Password',
-                            controller: _password,
-                            hint: '••••••••',
-                            prefixIcon: Icons.lock_outline,
-                            isPassword: true,
-                            errorText: _passwordError,
-                            enabled: !auth.isLoading,
-                            textInputAction: TextInputAction.done,
-                            autofillHints: const [AutofillHints.password],
-                            // Enter di keyboard langsung submit — teknisi
-                            // nggak perlu mindahin tangan ke tombol.
-                            onSubmitted: (_) => _submit(),
-                            trailing: TextButton(
-                              onPressed: auth.isLoading
-                                  ? null
-                                  : () => Navigator.of(context).push(
-                                      MaterialPageRoute<void>(
-                                        builder: (_) =>
-                                            const ForgotPasswordScreen(),
-                                      ),
-                                    ),
-                              child: const Text('Lupa Password?'),
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-
-                          AppButton(
-                            label: 'MASUK',
-                            isLoading: auth.isLoading,
-                            onPressed: _submit,
-                          ),
-                        ],
+                  const SizedBox(height: 16),
+                  const Center(child: NeuBrandBadge()),
+                  const SizedBox(height: 18),
+                  Center(
+                    child: Text(
+                      'SIDIK',
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1,
+                        color: c.text,
                       ),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: 4),
+                  Center(
+                    child: Text(
+                      'Manajemen Kalibrasi Presisi',
+                      style: TextStyle(fontSize: 14, color: c.textMuted),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
 
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Belum punya akun?',
-                        style: theme.textTheme.bodySmall,
-                      ),
-                      TextButton(
-                        onPressed: auth.isLoading
-                            ? null
-                            : () => Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => const RegisterScreen(),
+                  NeuRaised(
+                    radius: 30,
+                    distance: 8,
+                    blur: 20,
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (errorLogin != null) ...[
+                          _NeuErrorBanner(message: errorLogin),
+                          const SizedBox(height: 18),
+                        ],
+
+                        NeuTextField(
+                          icon: Icons.person_outline,
+                          controller: _identifier,
+                          hint: 'ID Pegawai / Email',
+                          errorText: _identifierError,
+                          enabled: !loading,
+                          textInputAction: TextInputAction.next,
+                          autofillHints: const [AutofillHints.username],
+                        ),
+                        const SizedBox(height: 16),
+
+                        NeuTextField(
+                          icon: Icons.lock_outline,
+                          controller: _password,
+                          hint: 'Password',
+                          obscure: true,
+                          errorText: _passwordError,
+                          enabled: !loading,
+                          textInputAction: TextInputAction.done,
+                          autofillHints: const [AutofillHints.password],
+                          onSubmitted: (_) => _submit(),
+                        ),
+                        const SizedBox(height: 26),
+
+                        NeuButton(
+                          label: 'MASUK',
+                          loading: loading,
+                          onPressed: _submit,
+                        ),
+                        const SizedBox(height: 18),
+
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              NeuTextLink(
+                                label: 'Lupa Password?',
+                                onTap: loading ? null : _bukaLupaPassword,
+                              ),
+                              Text(
+                                '  atau  ',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: c.textMuted,
                                 ),
                               ),
-                        child: const Text('Daftar'),
-                      ),
-                    ],
+                              NeuTextLink(
+                                label: 'Daftar',
+                                strong: true,
+                                onTap: loading ? null : _bukaRegister,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
 
-                  const SizedBox(height: AppSpacing.lg),
-                  const AuthPoweredBy(),
-                  const SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: 22),
                   const _DevHint(),
+                  const SizedBox(height: 26),
+                  const AuthPoweredBy(),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
@@ -175,38 +195,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
     );
   }
-
 }
 
-class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner({required this.message});
+/// Banner error login — versi soft (cekung, teks merah lembut).
+class _NeuErrorBanner extends StatelessWidget {
+  const _NeuErrorBanner({required this.message});
 
   final String message;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final c = NeuColors.of(context);
 
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.errorContainer,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-      ),
+    return NeuInset(
+      radius: 14,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         children: [
-          Icon(
-            Icons.error_outline,
-            size: 20,
-            color: theme.colorScheme.onErrorContainer,
-          ),
-          const SizedBox(width: AppSpacing.sm),
+          Icon(Icons.error_outline, size: 20, color: c.danger),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               message,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onErrorContainer,
-              ),
+              style: TextStyle(fontSize: 13, color: c.danger),
             ),
           ),
         ],
@@ -215,8 +226,8 @@ class _ErrorBanner extends StatelessWidget {
   }
 }
 
-/// Petunjuk akun tes — **cuma muncul di build non-produksi**. Di APK yang
-/// dikasih ke perusahaan, kotak ini nggak dirender sama sekali.
+/// Panel bantuan dev/mock — dipendem di prod. Isinya sama kayak sebelumnya,
+/// cuma dikasih kulit soft.
 class _DevHint extends StatelessWidget {
   const _DevHint();
 
@@ -224,23 +235,25 @@ class _DevHint extends StatelessWidget {
   Widget build(BuildContext context) {
     if (AppConfig.isProd) return const SizedBox.shrink();
 
-    final theme = Theme.of(context);
+    final c = NeuColors.of(context);
     final mock = AppConfig.useMock;
 
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-      ),
+    return NeuInset(
+      radius: 16,
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             mock ? 'MODE MOCK — TANPA SERVER' : 'MODE DEV — NEMBAK API ASLI',
-            style: theme.textTheme.labelSmall,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+              color: c.textMuted,
+            ),
           ),
-          const SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: 6),
           Text(
             mock
                 ? 'ASM-0001 (admin) · ASM-0002 (teknisi) · ASM-0003 (viewer)\n'
@@ -249,7 +262,7 @@ class _DevHint extends StatelessWidget {
                       'ASM-0099 (pending, buat nyoba akun ditolak)\n'
                       'Password: rahasia123\n'
                       'Server: ${AppConfig.apiBaseUrl}',
-            style: theme.textTheme.bodySmall,
+            style: TextStyle(fontSize: 13, height: 1.4, color: c.text),
           ),
         ],
       ),
