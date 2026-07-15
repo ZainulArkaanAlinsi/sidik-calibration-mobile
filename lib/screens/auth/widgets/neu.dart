@@ -87,26 +87,33 @@ class NeuRaised extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = NeuColors.of(context);
 
-    return Container(
-      padding: padding,
-      decoration: BoxDecoration(
-        color: color ?? c.base,
-        shape: circle ? BoxShape.circle : BoxShape.rectangle,
-        borderRadius: circle ? null : BorderRadius.circular(radius),
-        boxShadow: [
-          BoxShadow(
-            color: c.darkShadow,
-            offset: Offset(distance, distance),
-            blurRadius: blur,
-          ),
-          BoxShadow(
-            color: c.lightShadow,
-            offset: Offset(-distance, -distance),
-            blurRadius: blur,
-          ),
-        ],
+    // RepaintBoundary: dua BoxShadow blur di sini masih mahal buat di-rasterize,
+    // dan tanpa ini widget-nya kena render ulang tiap frame pas scroll (dia
+    // duduk di dalam SingleChildScrollView di login/register) — kerasa berat
+    // di HP kentang meski nggak lagi ada CustomPaint. Dengan boundary, hasil
+    // paint-nya di-cache jadi satu layer dan pas discroll tinggal digeser.
+    return RepaintBoundary(
+      child: Container(
+        padding: padding,
+        decoration: BoxDecoration(
+          color: color ?? c.base,
+          shape: circle ? BoxShape.circle : BoxShape.rectangle,
+          borderRadius: circle ? null : BorderRadius.circular(radius),
+          boxShadow: [
+            BoxShadow(
+              color: c.darkShadow,
+              offset: Offset(distance, distance),
+              blurRadius: blur,
+            ),
+            BoxShadow(
+              color: c.lightShadow,
+              offset: Offset(-distance, -distance),
+              blurRadius: blur,
+            ),
+          ],
+        ),
+        child: child,
       ),
-      child: child,
     );
   }
 }
