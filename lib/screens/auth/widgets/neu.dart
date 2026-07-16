@@ -69,8 +69,8 @@ class NeuRaised extends StatelessWidget {
     required this.child,
     this.radius = 22,
     this.padding,
-    this.distance = 6,
-    this.blur = 14,
+    this.distance = 5,
+    this.blur = 10,
     this.circle = false,
     this.color,
   });
@@ -120,9 +120,14 @@ class NeuRaised extends StatelessWidget {
   }
 }
 
-/// Permukaan yang **tenggelam** (kolom input) — bayangan digambar di sisi
-/// DALAM. Flutter nggak punya inner-shadow bawaan, jadi dipaint manual lewat
-/// selisih path.
+/// Permukaan yang **tenggelam** (kolom input, banner error).
+///
+/// Dulu inner-shadow-nya dipaint manual pakai `CustomPaint` + `MaskFilter.blur`
+/// — cantik tapi BERAT: tiap field maksa `saveLayer` + blur raster tiap kali
+/// re-paint (fokus/ngetik), bikin nge-lag di HP low-end. Sekarang kesan
+/// "cekung" ditiru murni pakai **gradasi + garis tipis** (tanpa blur, tanpa
+/// saveLayer): sisi atas sedikit gelap (bayangan jatuh ke dalam), sisi bawah
+/// sedikit terang (cahaya nyangkut di bibir bawah).
 class NeuInset extends StatelessWidget {
   const NeuInset({
     super.key,
@@ -139,73 +144,26 @@ class NeuInset extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = NeuColors.of(context);
 
-    return CustomPaint(
-      foregroundPainter: _InsetPainter(
-        light: c.lightShadow,
-        dark: c.darkShadow,
-        radius: radius,
-      ),
-      child: Container(
-        padding: padding,
-        decoration: BoxDecoration(
-          color: c.base,
-          borderRadius: BorderRadius.circular(radius),
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(radius),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color.lerp(c.base, c.darkShadow, 0.32)!,
+            Color.lerp(c.base, c.lightShadow, 0.16)!,
+          ],
         ),
-        child: child,
-      ),
-    );
-  }
-}
-
-class _InsetPainter extends CustomPainter {
-  _InsetPainter({
-    required this.light,
-    required this.dark,
-    required this.radius,
-  });
-
-  final Color light;
-  final Color dark;
-  final double radius;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rrect = RRect.fromRectAndRadius(
-      Offset.zero & size,
-      Radius.circular(radius),
-    );
-    canvas.save();
-    canvas.clipRRect(rrect);
-    // Gelap masuk dari kiri-atas, terang dari kanan-bawah — kebalikan arah
-    // permukaan timbul, jadi kolomnya kebaca "cekung".
-    _inner(canvas, size, rrect, dark, const Offset(3, 3));
-    _inner(canvas, size, rrect, light, const Offset(-3, -3));
-    canvas.restore();
-  }
-
-  void _inner(Canvas canvas, Size size, RRect rrect, Color color, Offset o) {
-    final paint = Paint()
-      ..color = color
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-    final outer = Path()
-      ..addRect(
-        Rect.fromLTRB(
-          -size.width,
-          -size.height,
-          size.width * 2,
-          size.height * 2,
+        border: Border.all(
+          color: c.darkShadow.withValues(alpha: 0.55),
+          width: 1,
         ),
-      );
-    final inner = Path()..addRRect(rrect.shift(o));
-    canvas.drawPath(
-      Path.combine(PathOperation.difference, outer, inner),
-      paint,
+      ),
+      child: child,
     );
   }
-
-  @override
-  bool shouldRepaint(covariant _InsetPainter old) =>
-      old.light != light || old.dark != dark || old.radius != radius;
 }
 
 /// Label kecil di atas kolom input (mis. "ID Pegawai / Email", "Password").
@@ -299,18 +257,24 @@ class _NeuTextFieldState extends State<NeuTextField> {
                     onSubmitted: widget.onSubmitted,
                     cursorColor: c.accent,
                     style: TextStyle(color: c.text, fontSize: 16),
-                    decoration:
-                        InputDecoration.collapsed(
-                          hintText: widget.hint,
-                          hintStyle: TextStyle(
-                            color: c.textMuted,
-                            fontSize: 16,
-                          ),
-                        ).copyWith(
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 16,
-                          ),
-                        ),
+                    // Semua border DIPAKSA none di tiap state. Kalau cuma pakai
+                    // InputDecoration.collapsed, `focusedBorder` dari tema
+                    // Titanium (garis gelap) bocor pas field difokus — itu
+                    // "border hitam" yang muncul waktu dipencet. Kolom neu
+                    // udah punya bentuk sendiri (NeuInset), jadi nggak perlu.
+                    decoration: InputDecoration(
+                      isCollapsed: true,
+                      filled: false,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      disabledBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      focusedErrorBorder: InputBorder.none,
+                      hintText: widget.hint,
+                      hintStyle: TextStyle(color: c.textMuted, fontSize: 16),
+                    ),
                   ),
                 ),
                 if (widget.obscure)
@@ -525,9 +489,16 @@ class NeuPoweredBy extends StatelessWidget {
 /// (decode gambar di test di-pause; harus di-precache manual biar nggak kosong).
 const String kLogoPtSidik = 'assets/images/logo_pt_sidik.png';
 
-/// Medali brand bulat — cakram timbul (neumorphic) berisi **logo resmi PT
-/// Sidik**. Kalau [icon] diisi, dia nampilin ikon monokrom itu, bukan logo —
-/// dipakai buat state kontekstual (mis. cakram "email terkirim").
+/// Biru brand PT Sidik (disampel dari logo). Dipakai buat aksen halus di badge.
+const Color kBrandBlue = Color(0xFF003C9C);
+
+/// Badge brand — "app-icon" berisi **logo resmi PT Sidik**.
+///
+/// Logo variant: kotak-bulat (squircle) putih dengan gradasi tipis + bingkai
+/// biru brand, dibingkai cincin neu yang timbul — berasa lencana resmi, lebih
+/// hidup daripada sekadar gambar di lingkaran polos. Kalau [icon] diisi, dia
+/// nampilin ikon monokrom bulat (state kontekstual, mis. cakram "email
+/// terkirim").
 class NeuBrandBadge extends StatelessWidget {
   const NeuBrandBadge({super.key, this.icon});
 
@@ -538,48 +509,61 @@ class NeuBrandBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = NeuColors.of(context);
 
-    final Widget isi = icon == null
-        // Logo berwarna butuh latar terang biar kebaca — cakram putih di dalam
-        // cincin neu yang timbul, jadi berasa "medali" resmi.
-        ? Container(
-            height: 84,
-            width: 84,
-            clipBehavior: Clip.antiAlias,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
+    if (icon != null) {
+      return NeuRaised(
+        circle: true,
+        distance: 6,
+        blur: 12,
+        padding: const EdgeInsets.all(16),
+        child: Container(
+          height: 76,
+          width: 76,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                c.darkShadow,
+                Color.lerp(c.darkShadow, Colors.black, 0.4)!,
+              ],
             ),
-            padding: const EdgeInsets.all(9),
-            child: Image.asset(
-              kLogoPtSidik,
-              fit: BoxFit.contain,
-              filterQuality: FilterQuality.medium,
-            ),
-          )
-        : Container(
-            height: 76,
-            width: 76,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  c.darkShadow,
-                  Color.lerp(c.darkShadow, Colors.black, 0.4)!,
-                ],
-              ),
-              border: Border.all(color: c.lightShadow, width: 1.5),
-            ),
-            child: Icon(icon, size: 36, color: c.text),
-          );
+            border: Border.all(color: c.lightShadow, width: 1.5),
+          ),
+          child: Icon(icon, size: 36, color: c.text),
+        ),
+      );
+    }
 
     return NeuRaised(
-      circle: true,
-      distance: 7,
-      blur: 16,
-      padding: EdgeInsets.all(icon == null ? 12 : 16),
-      child: isi,
+      radius: 26,
+      distance: 6,
+      blur: 12,
+      padding: const EdgeInsets.all(10),
+      child: Container(
+        height: 88,
+        width: 88,
+        clipBehavior: Clip.antiAlias,
+        padding: const EdgeInsets.all(9),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          // Putih → biru sangat muda: kasih "napas" tanpa ganggu keterbacaan.
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.white, Color(0xFFEAF1FC)],
+          ),
+          border: Border.all(
+            color: kBrandBlue.withValues(alpha: 0.30),
+            width: 1.5,
+          ),
+        ),
+        child: Image.asset(
+          kLogoPtSidik,
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.medium,
+        ),
+      ),
     );
   }
 }
