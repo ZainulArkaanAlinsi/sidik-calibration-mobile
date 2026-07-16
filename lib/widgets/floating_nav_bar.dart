@@ -15,7 +15,7 @@ class FloatingNavItem {
 
 /// Bottom nav "melayang" (floating pill) dengan lingkaran aktif yang **naik**
 /// di atas bar dan **geser beranimasi** ke tab terpilih — ikon di dalamnya ikut
-/// berganti mulus. Ngikutin gambar acuan.
+/// berganti mulus.
 class FloatingNavBar extends StatelessWidget {
   const FloatingNavBar({
     super.key,
@@ -28,10 +28,12 @@ class FloatingNavBar extends StatelessWidget {
   final ValueChanged<int> onSelected;
   final List<FloatingNavItem> items;
 
-  static const _barHeight = 64.0;
-  static const _circle = 54.0;
+  static const _barHeight = 62.0;
+  static const _circle = 52.0;
   static const _hMargin = 16.0;
-  static const _bottom = 10.0;
+  static const _bottom = 12.0;
+  // Headroom di atas lingkaran buat bayangannya, biar nggak kepotong / overflow.
+  static const _topPad = 10.0;
 
   @override
   Widget build(BuildContext context) {
@@ -40,13 +42,13 @@ class FloatingNavBar extends StatelessWidget {
     return SafeArea(
       top: false,
       child: SizedBox(
-        // Tinggi total = bar + tonjolan lingkaran di atasnya + jarak bawah.
-        height: _barHeight + _circle / 2 + _bottom + 8,
+        // Tinggi total = jarak bawah + bar + separuh lingkaran yang nongol +
+        // headroom bayangan. Dihitung pas biar nggak ada 2px overflow.
+        height: _bottom + _barHeight + _circle / 2 + _topPad,
         child: LayoutBuilder(
           builder: (context, constraints) {
             final barWidth = constraints.maxWidth - _hMargin * 2;
             final itemWidth = barWidth / items.length;
-            // Posisi kiri lingkaran = tengah item terpilih.
             final circleLeft =
                 _hMargin + itemWidth * (selectedIndex + 0.5) - _circle / 2;
 
@@ -62,11 +64,11 @@ class FloatingNavBar extends StatelessWidget {
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       color: scheme.surface,
-                      borderRadius: BorderRadius.circular(28),
+                      borderRadius: BorderRadius.circular(26),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.14),
-                          blurRadius: 24,
+                          blurRadius: 22,
                           offset: const Offset(0, 8),
                         ),
                       ],
@@ -98,11 +100,12 @@ class FloatingNavBar extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: scheme.primary,
+                      border: Border.all(color: scheme.surface, width: 3),
                       boxShadow: [
                         BoxShadow(
                           color: scheme.primary.withValues(alpha: 0.35),
-                          blurRadius: 14,
-                          offset: const Offset(0, 6),
+                          blurRadius: 12,
+                          offset: const Offset(0, 5),
                         ),
                       ],
                     ),
@@ -116,7 +119,7 @@ class FloatingNavBar extends StatelessWidget {
                         items[selectedIndex].activeIcon,
                         key: ValueKey(selectedIndex),
                         color: scheme.onPrimary,
-                        size: 24,
+                        size: 23,
                       ),
                     ),
                   ),
@@ -144,28 +147,40 @@ class _Item extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Ikon: disembunyiin waktu aktif — dia "naik" ke lingkaran di atas.
-          SizedBox(
-            height: 26,
-            child: AnimatedOpacity(
-              opacity: active ? 0 : 1,
-              duration: const Duration(milliseconds: 200),
-              child: Icon(item.icon, size: 24, color: scheme.onSurfaceVariant),
+      borderRadius: BorderRadius.circular(18),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 6),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Ikon disembunyiin waktu aktif — dia "naik" ke lingkaran di atas.
+            SizedBox(
+              height: 24,
+              child: AnimatedOpacity(
+                opacity: active ? 0 : 1,
+                duration: const Duration(milliseconds: 180),
+                child: Icon(item.icon, size: 23, color: scheme.onSurfaceVariant),
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            item.label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: active ? scheme.onSurface : scheme.onSurfaceVariant,
-              fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+            const SizedBox(height: 2),
+            // FittedBox scaleDown: label panjang ("Notification") otomatis
+            // ngecil biar muat, nggak kepotong / bikin overflow horizontal.
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                item.label,
+                maxLines: 1,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  fontSize: 10.5,
+                  height: 1.0,
+                  color: active ? scheme.onSurface : scheme.onSurfaceVariant,
+                  fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -25,10 +25,6 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
-  /// Loading-nya disimpan lokal, bukan numpang `authProvider.isLoading`.
-  /// Soalnya kalau nyabut sesi gagal, `authProvider` sengaja nggak disentuh
-  /// sama sekali (user tetap login) — jadi dia nggak bisa dipakai nandain
-  /// tombol ini lagi jalan apa nggak.
   bool _sedangCabutSemua = false;
 
   @override
@@ -42,7 +38,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.navProfile), centerTitle: true),
       body: ListView(
-        padding: const EdgeInsets.only(bottom: AppSpacing.xl),
+        // Padding bawah lega biar item terakhir nggak ketutup bottom-nav
+        // yang mengambang.
+        padding: const EdgeInsets.only(bottom: 40),
         children: [
           if (user != null) ...[
             _Header(user: user, onEditFoto: _pilihFoto),
@@ -53,92 +51,82 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             const SizedBox(height: AppSpacing.lg),
           ],
 
-          // Menu khusus admin. Dirender cuma kalau role-nya admin —
-          // bukan di-disable, tapi memang nggak ada sama sekali buat yang lain
-          // (lihat README, Prinsip Desain).
           if (user != null && user.role.isAdmin) ...[
             _JudulSeksi(l10n.profAdminMenu),
-            Card(
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.group_outlined),
-                    title: Text(l10n.profUserManagement),
-                    subtitle: Text(l10n.profUserManagementSub),
-                    trailing: const Icon(Icons.chevron_right),
-                    enabled: false,
-                    onTap: () {},
-                  ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.apartment_outlined),
-                    title: Text(l10n.profMasterData),
-                    subtitle: Text(l10n.profMasterDataSub),
-                    trailing: const Icon(Icons.chevron_right),
-                    enabled: false,
-                    onTap: () {},
-                  ),
-                ],
-              ),
+            _KartuMenu(
+              children: [
+                _BarisMenu(
+                  icon: Icons.group_outlined,
+                  title: l10n.profUserManagement,
+                  subtitle: l10n.profUserManagementSub,
+                  enabled: false,
+                ),
+                const _GarisPemisah(),
+                _BarisMenu(
+                  icon: Icons.apartment_outlined,
+                  title: l10n.profMasterData,
+                  subtitle: l10n.profMasterDataSub,
+                  enabled: false,
+                ),
+              ],
             ),
             const SizedBox(height: AppSpacing.lg),
           ],
 
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.palette_outlined),
-              title: Text(l10n.profDesignSystem),
-              subtitle: Text(l10n.profDesignSystemSub),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const DesignSystemScreen(),
+          _KartuMenu(
+            children: [
+              _BarisMenu(
+                icon: Icons.palette_outlined,
+                title: l10n.profDesignSystem,
+                subtitle: l10n.profDesignSystemSub,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const DesignSystemScreen(),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
           const SizedBox(height: AppSpacing.lg),
 
           _JudulSeksi(l10n.profAppInfo),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.layers_outlined),
-                  title: Text(l10n.profEnvironment),
-                  subtitle: Text(AppConfig.envLabel),
-                  dense: true,
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.cloud_outlined),
-                  title: Text(l10n.profApiBaseUrl),
-                  subtitle: Text(apiBaseUrl),
-                  dense: true,
-                ),
-              ],
-            ),
+          _KartuMenu(
+            children: [
+              _BarisMenu(
+                icon: Icons.layers_outlined,
+                title: l10n.profEnvironment,
+                subtitle: AppConfig.envLabel,
+                showChevron: false,
+              ),
+              const _GarisPemisah(),
+              _BarisMenu(
+                icon: Icons.cloud_outlined,
+                title: l10n.profApiBaseUrl,
+                subtitle: apiBaseUrl,
+                showChevron: false,
+              ),
+            ],
           ),
           const SizedBox(height: AppSpacing.lg),
 
           _JudulSeksi(l10n.profSecurity),
-          Card(
-            child: ListTile(
-              leading: Icon(
-                Icons.phonelink_erase_outlined,
-                color: theme.colorScheme.error,
+          _KartuMenu(
+            children: [
+              _BarisMenu(
+                icon: Icons.phonelink_erase_outlined,
+                iconColor: theme.colorScheme.error,
+                title: l10n.profLogoutAll,
+                subtitle: l10n.profLogoutAllSub,
+                trailing: _sedangCabutSemua
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : null,
+                onTap: _sedangCabutSemua ? null : _cabutSemuaSesi,
               ),
-              title: Text(l10n.profLogoutAll),
-              subtitle: Text(l10n.profLogoutAllSub),
-              trailing: _sedangCabutSemua
-                  ? const SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.chevron_right),
-              onTap: _sedangCabutSemua ? null : _cabutSemuaSesi,
-            ),
+            ],
           ),
           const SizedBox(height: AppSpacing.xl),
 
@@ -157,7 +145,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  /// Sheet pilih sumber foto: galeri / kamera / hapus.
   void _pilihFoto() {
     final l10n = AppLocalizations.of(context);
     final adaFoto = ref.read(avatarPathProvider) != null;
@@ -219,7 +206,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         maxWidth: 800,
         imageQuality: 85,
       );
-      if (file == null) return; // user batal milih
+      if (file == null) return;
       await ref.read(avatarPathProvider.notifier).setPath(file.path);
       messenger.showSnackBar(SnackBar(content: Text(l10n.profPhotoUpdated)));
     } catch (_) {
@@ -237,8 +224,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Future<void> _cabutSemuaSesi() async {
     final l10n = AppLocalizations.of(context);
 
-    // Nggak bisa dibatalin, dan efeknya kena ke perangkat lain — jadi wajib
-    // dikonfirmasi dulu.
     final yakin = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -259,17 +244,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     if (yakin != true || !mounted) return;
 
-    // Diambil sebelum `await`: begitu sesinya kecabut, layar ini langsung
-    // dilepas dan `context`-nya nggak kepakai lagi. `ScaffoldMessenger`-nya
-    // sendiri nempel di `MaterialApp`, jadi snackbar-nya tetap kelihatan pas
-    // user udah mendarat di layar Login.
     final messenger = ScaffoldMessenger.of(context);
-
     setState(() => _sedangCabutSemua = true);
 
     try {
       final dicabut = await ref.read(authProvider.notifier).logoutAll();
-
       messenger.showSnackBar(
         SnackBar(
           content: Text(
@@ -280,11 +259,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
       );
     } on AuthException catch (e) {
-      // Gagal = sesi di HP yang ilang MASIH HIDUP. Jangan diem-diem ngeluarin
-      // user dari HP ini — dia bakal ngira udah aman. Bilang apa adanya, biar
-      // dia nyoba lagi.
       if (!mounted) return;
-
       setState(() => _sedangCabutSemua = false);
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.profRevokeFailed(e.message))),
@@ -304,27 +279,32 @@ class _JudulSeksi extends StatelessWidget {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-        AppSpacing.md,
+        AppSpacing.lg,
         0,
-        AppSpacing.md,
+        AppSpacing.lg,
         AppSpacing.sm,
       ),
       child: Text(
         teks.toUpperCase(),
         style: theme.textTheme.labelMedium?.copyWith(
           color: theme.colorScheme.onSurfaceVariant,
-          letterSpacing: 0.6,
+          letterSpacing: 0.8,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
   }
 }
 
-/// Header profil: banner brand + avatar (foto dari HP / inisial) yang nongol
-/// di atas banner, terus nama + email + badge role. Acuan gambar #2 (banner) &
-/// #3 (avatar + info di bawahnya).
+/// Header profil ala gambar acuan #2: banner besar (foto HP / gradasi brand)
+/// dengan avatar bulat yang **nongol** di atasnya, terus nama + email + role.
+/// Tinggi dihitung pas (banner + separuh avatar) supaya nggak pernah overflow.
 class _Header extends ConsumerWidget {
   const _Header({required this.user, required this.onEditFoto});
+
+  static const _bannerH = 168.0;
+  static const _avatar = 104.0;
+  static const _overlap = 52.0; // separuh avatar nongol di bawah banner
 
   final User user;
   final VoidCallback onEditFoto;
@@ -336,60 +316,65 @@ class _Header extends ConsumerWidget {
 
     return Column(
       children: [
-        Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.center,
-          children: [
-            // Banner: foto (kalau ada) atau gradasi brand.
-            Container(
-              height: 150,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.vertical(
-                  bottom: Radius.circular(28),
+        SizedBox(
+          height: _bannerH + _overlap,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.topCenter,
+            children: [
+              // Banner.
+              Container(
+                height: _bannerH,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(30),
+                  ),
+                  gradient: fotoPath == null
+                      ? const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [AppColors.navy, AppColors.teal],
+                        )
+                      : null,
+                  image: fotoPath != null
+                      ? DecorationImage(
+                          image: FileImage(File(fotoPath)),
+                          fit: BoxFit.cover,
+                          colorFilter: ColorFilter.mode(
+                            Colors.black.withValues(alpha: 0.30),
+                            BlendMode.darken,
+                          ),
+                        )
+                      : null,
                 ),
-                gradient: fotoPath == null
-                    ? const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [AppColors.navy, AppColors.teal],
-                      )
-                    : null,
-                image: fotoPath != null
-                    ? DecorationImage(
-                        image: FileImage(File(fotoPath)),
-                        fit: BoxFit.cover,
-                        colorFilter: ColorFilter.mode(
-                          Colors.black.withValues(alpha: 0.35),
-                          BlendMode.darken,
-                        ),
-                      )
-                    : null,
               ),
-            ),
-            // Avatar nongol di bibir bawah banner.
-            Positioned(
-              bottom: -46,
-              child: _Avatar(
-                fotoPath: fotoPath,
-                inisial: user.nama.characters.first,
-                onTap: onEditFoto,
+              // Avatar nongol pas di bibir bawah banner.
+              Positioned(
+                top: _bannerH - _overlap,
+                child: _Avatar(
+                  size: _avatar,
+                  fotoPath: fotoPath,
+                  inisial: user.nama.characters.first,
+                  onTap: onEditFoto,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        const SizedBox(height: 46 + AppSpacing.md),
+        const SizedBox(height: AppSpacing.md),
         Text(
           user.nama,
           textAlign: TextAlign.center,
           style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 3),
         Text(
           user.email,
           textAlign: TextAlign.center,
-          style: theme.textTheme.bodySmall?.copyWith(
+          style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
@@ -406,11 +391,13 @@ class _Header extends ConsumerWidget {
 
 class _Avatar extends StatelessWidget {
   const _Avatar({
+    required this.size,
     required this.fotoPath,
     required this.inisial,
     required this.onTap,
   });
 
+  final double size;
   final String? fotoPath;
   final String inisial;
   final VoidCallback onTap;
@@ -418,63 +405,74 @@ class _Avatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final ring = theme.scaffoldBackgroundColor;
 
     return GestureDetector(
       onTap: onTap,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Cincin putih biar avatar kepisah dari banner.
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: theme.scaffoldBackgroundColor,
-            ),
-            child: CircleAvatar(
-              radius: 44,
-              backgroundColor: theme.colorScheme.primaryContainer,
-              backgroundImage: fotoPath != null
-                  ? FileImage(File(fotoPath!))
-                  : null,
-              child: fotoPath == null
-                  ? Text(
-                      inisial,
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        color: theme.colorScheme.onPrimaryContainer,
-                      ),
-                    )
-                  : null,
-            ),
-          ),
-          // Badge kamera.
-          Positioned(
-            right: 0,
-            bottom: 0,
-            child: Container(
-              padding: const EdgeInsets.all(7),
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // Cincin buat misahin avatar dari banner.
+            Container(
+              width: size,
+              height: size,
+              padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.navy,
-                border: Border.all(
-                  color: theme.scaffoldBackgroundColor,
-                  width: 2,
-                ),
+                color: ring,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              child: const Icon(
-                Icons.photo_camera_outlined,
-                size: 15,
-                color: Colors.white,
+              child: CircleAvatar(
+                backgroundColor: theme.colorScheme.primaryContainer,
+                backgroundImage: fotoPath != null
+                    ? FileImage(File(fotoPath!))
+                    : null,
+                child: fotoPath == null
+                    ? Text(
+                        inisial,
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          color: theme.colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      )
+                    : null,
               ),
             ),
-          ),
-        ],
+            // Badge kamera.
+            Positioned(
+              right: 2,
+              bottom: 2,
+              child: Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.navy,
+                  border: Border.all(color: ring, width: 2.5),
+                ),
+                child: const Icon(
+                  Icons.photo_camera_outlined,
+                  size: 15,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-/// Kartu info akun bergaya "label kecil di atas, nilai di bawah" (acuan #3).
+/// Kartu "Info Akun" — baris ikon + label kecil di atas nilai (acuan #3).
 class _KartuInfoAkun extends StatelessWidget {
   const _KartuInfoAkun({required this.user});
 
@@ -484,37 +482,112 @@ class _KartuInfoAkun extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
-    return Card(
+    return _Kartu(
+      child: Column(
+        children: [
+          _BarisInfo(
+            icon: Icons.badge_outlined,
+            label: l10n.employeeIdLabel,
+            nilai: user.employeeId,
+          ),
+          const _GarisPemisah(),
+          _BarisInfo(
+            icon: Icons.apartment_outlined,
+            label: l10n.departmentLabel,
+            nilai: user.department ?? '—',
+          ),
+          const _GarisPemisah(),
+          _BarisInfo(
+            icon: Icons.mail_outline,
+            label: l10n.emailLabel,
+            nilai: user.email,
+          ),
+          const _GarisPemisah(),
+          _BarisInfo(
+            icon: Icons.verified_user_outlined,
+            label: l10n.profRoleLabel,
+            nilai: user.role.label,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Kartu putih membulat dengan bayangan halus — wadah semua baris.
+class _Kartu extends StatelessWidget {
+  const _Kartu({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-        child: Column(
-          children: [
-            _BarisInfo(
-              icon: Icons.badge_outlined,
-              label: l10n.employeeIdLabel,
-              nilai: user.employeeId,
-            ),
-            const Divider(height: 1, indent: 64),
-            _BarisInfo(
-              icon: Icons.apartment_outlined,
-              label: l10n.departmentLabel,
-              nilai: user.department ?? '—',
-            ),
-            const Divider(height: 1, indent: 64),
-            _BarisInfo(
-              icon: Icons.mail_outline,
-              label: l10n.emailLabel,
-              nilai: user.email,
-            ),
-            const Divider(height: 1, indent: 64),
-            _BarisInfo(
-              icon: Icons.verified_user_outlined,
-              label: l10n.profRoleLabel,
-              nilai: user.role.label,
-            ),
-          ],
-        ),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+class _KartuMenu extends StatelessWidget {
+  const _KartuMenu({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Kartu(child: Column(children: children));
+  }
+}
+
+class _GarisPemisah extends StatelessWidget {
+  const _GarisPemisah();
+
+  @override
+  Widget build(BuildContext context) {
+    return Divider(
+      height: 1,
+      thickness: 1,
+      indent: 68,
+      color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
+    );
+  }
+}
+
+/// Petak ikon lembut di kiri tiap baris.
+class _IkonPetak extends StatelessWidget {
+  const _IkonPetak({required this.icon, this.color});
+
+  final IconData icon;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      height: 42,
+      width: 42,
+      decoration: BoxDecoration(
+        color: (color ?? theme.colorScheme.primary).withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(13),
+      ),
+      child: Icon(
+        icon,
+        size: 21,
+        color: color ?? theme.colorScheme.onSurfaceVariant,
       ),
     );
   }
@@ -534,23 +607,14 @@ class _BarisInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
+        vertical: 13,
       ),
       child: Row(
         children: [
-          Container(
-            height: 40,
-            width: 40,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, size: 20, color: theme.colorScheme.onSurfaceVariant),
-          ),
+          _IkonPetak(icon: icon),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
@@ -565,12 +629,92 @@ class _BarisInfo extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   nilai,
-                  style: theme.textTheme.bodyLarge,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Baris menu (dengan chevron / trailing + aksi tap) ala list Image #3.
+class _BarisMenu extends StatelessWidget {
+  const _BarisMenu({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    this.onTap,
+    this.enabled = true,
+    this.showChevron = true,
+    this.trailing,
+    this.iconColor,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback? onTap;
+  final bool enabled;
+  final bool showChevron;
+  final Widget? trailing;
+  final Color? iconColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final redup = !enabled;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: enabled ? onTap : null,
+        child: Opacity(
+          opacity: redup ? 0.55 : 1,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: 12,
+            ),
+            child: Row(
+              children: [
+                _IkonPetak(icon: icon, color: iconColor),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (trailing != null)
+                  trailing!
+                else if (showChevron)
+                  Icon(
+                    Icons.chevron_right,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
