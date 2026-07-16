@@ -14,6 +14,7 @@ import 'package:asmo_mobile/providers/auth_provider.dart';
 import 'package:asmo_mobile/providers/dashboard_provider.dart';
 import 'package:asmo_mobile/screens/auth/login_screen.dart';
 import 'package:asmo_mobile/screens/auth/register_screen.dart';
+import 'package:asmo_mobile/screens/auth/splash_screen.dart';
 import 'package:asmo_mobile/screens/auth/widgets/neu.dart';
 import 'package:asmo_mobile/screens/profile/profile_screen.dart';
 import 'package:asmo_mobile/screens/shell/main_shell.dart';
@@ -163,6 +164,28 @@ void main() {
     await expectLater(
       find.byType(ProfileScreen),
       matchesGoldenFile('screenshots/profil.png'),
+    );
+  });
+
+  testWidgets('splash', (tester) async {
+    pasangUkuranHp(tester);
+    await tester.pumpWidget(
+      _bungkus(const SplashScreen(), mode: Brightness.dark),
+    );
+    await tester.runAsync(() async {
+      await precacheImage(
+        const AssetImage(kLogoPtSidik),
+        tester.element(find.byType(MaterialApp)),
+      );
+    });
+    // Bukan pumpAndSettle: splash punya spinner yang muter terus. Pump durasi
+    // tetap biar frame golden-nya deterministik.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    await expectLater(
+      find.byType(SplashScreen),
+      matchesGoldenFile('screenshots/splash.png'),
     );
   });
 }
