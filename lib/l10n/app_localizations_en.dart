@@ -112,29 +112,245 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forgotTitle => 'Forgot Password';
 
   @override
-  String get forgotSubtitle => 'We\'ll send a reset link to your email';
+  String get forgotSubtitle => 'Verify your email, then set a new password';
 
   @override
   String get forgotBody =>
-      'Enter the email you used to register. Password reset goes through email, not employee ID — so only whoever holds the email can change the password.';
+      'Enter the email you used to register. If it matches, you can create a new password right here.';
 
   @override
-  String get forgotSubmit => 'SEND RESET LINK';
+  String get forgotSubmit => 'CONTINUE';
 
   @override
   String get backToLogin => 'Back to Login';
 
   @override
-  String get forgotSuccessTitle => 'Reset link sent';
+  String get resetNewPassTitle => 'Set New Password';
 
   @override
-  String forgotSuccessBody(String email) {
-    return 'We\'ve sent a password reset link to $email.\n\nCheck your spam folder if you can\'t find it. The link is valid for a limited time, so don\'t wait too long.';
+  String resetNewPassSubtitle(String email) {
+    return 'Create a new password for $email';
   }
+
+  @override
+  String get newPasswordLabel => 'New Password';
+
+  @override
+  String get confirmPasswordLabel => 'Confirm New Password';
+
+  @override
+  String get passwordMismatch => 'Passwords don\'t match.';
+
+  @override
+  String get resetSubmit => 'SAVE NEW PASSWORD';
+
+  @override
+  String get resetDoneTitle => 'Password changed';
+
+  @override
+  String get resetDoneBody =>
+      'Your password has been updated. Sign in with your new password now.';
 
   @override
   String get backToLoginCaps => 'BACK TO LOGIN';
 
   @override
   String get languageLabel => 'Language';
+
+  @override
+  String get navDashboard => 'Dashboard';
+
+  @override
+  String get navEquipment => 'Equipment';
+
+  @override
+  String get navHistory => 'History';
+
+  @override
+  String get navNotifications => 'Notifications';
+
+  @override
+  String get navProfile => 'Profile';
+
+  @override
+  String get dashGreeting => 'Hello,';
+
+  @override
+  String get dashSummaryOrg => 'Organization summary';
+
+  @override
+  String get dashSummaryYours => 'Your summary';
+
+  @override
+  String get dashTotalDevices => 'Total devices';
+
+  @override
+  String get dashOverdue => 'Overdue';
+
+  @override
+  String get dashPendingApproval => 'Pending approval';
+
+  @override
+  String get dashCalibrationDraft => 'Calibration drafts';
+
+  @override
+  String get dashCertsThisMonth => 'Certificates this month';
+
+  @override
+  String get dashQuickActions => 'Quick actions';
+
+  @override
+  String get dashStartCalibration => 'START CALIBRATION';
+
+  @override
+  String get dashAddDevice => 'ADD DEVICE';
+
+  @override
+  String get dashRetry => 'TRY AGAIN';
+
+  @override
+  String get dashSessionExpired =>
+      'Your session has expired. Please sign in again.';
+
+  @override
+  String get dashLoadFailed => 'Failed to load the dashboard.';
+
+  @override
+  String dashOverdueWarning(int count) {
+    return '$count device(s) past their calibration due date. Measurements from overdue devices can\'t be relied upon.';
+  }
+
+  @override
+  String get dashEmptyTitle => 'No data yet';
+
+  @override
+  String get dashEmptyBodyInput =>
+      'No devices registered yet. Start by adding your first measuring device.';
+
+  @override
+  String get dashEmptyBodyReadonly => 'There\'s nothing to show yet.';
+
+  @override
+  String get snackCalibInputSoon => 'Calibration input is planned for week 4.';
+
+  @override
+  String get snackAddDeviceSoon => 'Adding devices is planned for week 3.';
+
+  @override
+  String get profAccountInfo => 'Account Info';
+
+  @override
+  String get profRoleLabel => 'Role';
+
+  @override
+  String get profChangePhotoSheet => 'Profile Photo';
+
+  @override
+  String get profChooseGallery => 'Choose from gallery';
+
+  @override
+  String get profTakePhoto => 'Take a photo';
+
+  @override
+  String get profRemovePhoto => 'Remove photo';
+
+  @override
+  String get profPhotoUpdated => 'Profile photo updated.';
+
+  @override
+  String get profPhotoRemoved => 'Profile photo removed.';
+
+  @override
+  String get profPhotoFailed => 'Couldn\'t pick the photo. Try again.';
+
+  @override
+  String get profAdminMenu => 'Admin Menu';
+
+  @override
+  String get profUserManagement => 'User Management';
+
+  @override
+  String get profUserManagementSub => 'Planned for phase 3';
+
+  @override
+  String get profMasterData => 'Company & Customer Master Data';
+
+  @override
+  String get profMasterDataSub => 'Planned for week 2';
+
+  @override
+  String get profDesignSystem => 'Design System';
+
+  @override
+  String get profDesignSystemSub => 'Color, typography & component catalog';
+
+  @override
+  String get profAppInfo => 'App Info';
+
+  @override
+  String get profEnvironment => 'Environment';
+
+  @override
+  String get profApiBaseUrl => 'API base URL';
+
+  @override
+  String get profSecurity => 'Security';
+
+  @override
+  String get profLogoutAll => 'Sign out of all devices';
+
+  @override
+  String get profLogoutAllSub =>
+      'For when your phone is lost. Every session is revoked — other phones, tablets, including this one.';
+
+  @override
+  String get profLogout => 'Sign out';
+
+  @override
+  String get profLogoutAllConfirmTitle => 'Sign out of all devices?';
+
+  @override
+  String get profLogoutAllConfirmBody =>
+      'All your sessions will be revoked, including on this phone — you\'ll be asked to sign in again.\n\nUse this if your phone is lost or stolen.';
+
+  @override
+  String get profCancel => 'Cancel';
+
+  @override
+  String get profRevokeAll => 'Revoke all sessions';
+
+  @override
+  String profSessionsRevoked(int count) {
+    return '$count session(s) revoked. Please sign in again.';
+  }
+
+  @override
+  String get profAllSessionsRevoked =>
+      'All sessions revoked. Please sign in again.';
+
+  @override
+  String profRevokeFailed(String message) {
+    return 'Couldn\'t revoke sessions: $message';
+  }
+
+  @override
+  String get equipmentPlaceholderTitle => 'Device List';
+
+  @override
+  String get equipmentPlaceholderBody =>
+      'Measuring devices by category, plus an add/edit device form. Planned for week 3.';
+
+  @override
+  String get historyPlaceholderTitle => 'Calibration History';
+
+  @override
+  String get historyPlaceholderBody =>
+      'History of calibration sessions & issued certificates. Planned for week 9.';
+
+  @override
+  String get notificationPlaceholderTitle => 'Notifications';
+
+  @override
+  String get notificationPlaceholderBody =>
+      'Reminders for devices approaching their calibration due date. Planned for week 9.';
 }

@@ -112,29 +112,244 @@ class AppLocalizationsId extends AppLocalizations {
   String get forgotTitle => 'Lupa Password';
 
   @override
-  String get forgotSubtitle => 'Kami kirim link reset ke email kamu';
+  String get forgotSubtitle =>
+      'Verifikasi email dulu, terus atur password baru';
 
   @override
   String get forgotBody =>
-      'Masukin email yang kamu pakai waktu daftar. Reset password lewat email, bukan lewat ID pegawai — biar yang bisa ganti password cuma orang yang megang emailnya.';
+      'Masukin email yang kamu pakai waktu daftar. Kalau cocok, kamu langsung bisa bikin password baru di sini.';
 
   @override
-  String get forgotSubmit => 'KIRIM LINK RESET';
+  String get forgotSubmit => 'LANJUT';
 
   @override
   String get backToLogin => 'Balik ke Login';
 
   @override
-  String get forgotSuccessTitle => 'Link reset terkirim';
+  String get resetNewPassTitle => 'Atur Password Baru';
 
   @override
-  String forgotSuccessBody(String email) {
-    return 'Kami udah kirim link reset password ke $email.\n\nCek juga folder spam kalau nggak nemu. Link-nya berlaku terbatas, jadi jangan kelamaan.';
+  String resetNewPassSubtitle(String email) {
+    return 'Bikin password baru buat $email';
   }
+
+  @override
+  String get newPasswordLabel => 'Password Baru';
+
+  @override
+  String get confirmPasswordLabel => 'Ulangi Password Baru';
+
+  @override
+  String get passwordMismatch => 'Password nggak sama.';
+
+  @override
+  String get resetSubmit => 'SIMPAN PASSWORD BARU';
+
+  @override
+  String get resetDoneTitle => 'Password berhasil diubah';
+
+  @override
+  String get resetDoneBody =>
+      'Password kamu udah diperbarui. Sekarang masuk pakai password baru ya.';
 
   @override
   String get backToLoginCaps => 'BALIK KE LOGIN';
 
   @override
   String get languageLabel => 'Bahasa';
+
+  @override
+  String get navDashboard => 'Dashboard';
+
+  @override
+  String get navEquipment => 'Alat';
+
+  @override
+  String get navHistory => 'Riwayat';
+
+  @override
+  String get navNotifications => 'Notifikasi';
+
+  @override
+  String get navProfile => 'Profil';
+
+  @override
+  String get dashGreeting => 'Halo,';
+
+  @override
+  String get dashSummaryOrg => 'Ringkasan organisasi';
+
+  @override
+  String get dashSummaryYours => 'Ringkasan kamu';
+
+  @override
+  String get dashTotalDevices => 'Total alat';
+
+  @override
+  String get dashOverdue => 'Jatuh tempo';
+
+  @override
+  String get dashPendingApproval => 'Menunggu approval';
+
+  @override
+  String get dashCalibrationDraft => 'Draft kalibrasi';
+
+  @override
+  String get dashCertsThisMonth => 'Sertifikat bulan ini';
+
+  @override
+  String get dashQuickActions => 'Aksi cepat';
+
+  @override
+  String get dashStartCalibration => 'MULAI KALIBRASI';
+
+  @override
+  String get dashAddDevice => 'TAMBAH ALAT';
+
+  @override
+  String get dashRetry => 'COBA LAGI';
+
+  @override
+  String get dashSessionExpired => 'Sesi kamu habis. Login ulang ya.';
+
+  @override
+  String get dashLoadFailed => 'Gagal memuat dashboard.';
+
+  @override
+  String dashOverdueWarning(int count) {
+    return '$count alat lewat jatuh tempo kalibrasi. Alat yang telat kalibrasi hasil ukurnya nggak bisa dipertanggungjawabkan.';
+  }
+
+  @override
+  String get dashEmptyTitle => 'Belum ada data';
+
+  @override
+  String get dashEmptyBodyInput =>
+      'Belum ada alat yang terdaftar. Mulai dengan nambahin alat ukur pertama.';
+
+  @override
+  String get dashEmptyBodyReadonly => 'Belum ada data yang bisa ditampilkan.';
+
+  @override
+  String get snackCalibInputSoon => 'Input kalibrasi digarap minggu 4.';
+
+  @override
+  String get snackAddDeviceSoon => 'Tambah alat digarap minggu 3.';
+
+  @override
+  String get profAccountInfo => 'Info Akun';
+
+  @override
+  String get profRoleLabel => 'Role';
+
+  @override
+  String get profChangePhotoSheet => 'Foto Profil';
+
+  @override
+  String get profChooseGallery => 'Pilih dari galeri';
+
+  @override
+  String get profTakePhoto => 'Ambil dari kamera';
+
+  @override
+  String get profRemovePhoto => 'Hapus foto';
+
+  @override
+  String get profPhotoUpdated => 'Foto profil diperbarui.';
+
+  @override
+  String get profPhotoRemoved => 'Foto profil dihapus.';
+
+  @override
+  String get profPhotoFailed => 'Gagal ambil foto. Coba lagi.';
+
+  @override
+  String get profAdminMenu => 'Menu Admin';
+
+  @override
+  String get profUserManagement => 'Manajemen Pengguna';
+
+  @override
+  String get profUserManagementSub => 'Digarap fase 3';
+
+  @override
+  String get profMasterData => 'Master Data PT & Pelanggan';
+
+  @override
+  String get profMasterDataSub => 'Digarap minggu 2';
+
+  @override
+  String get profDesignSystem => 'Design System';
+
+  @override
+  String get profDesignSystemSub => 'Katalog warna, tipografi & komponen';
+
+  @override
+  String get profAppInfo => 'Info Aplikasi';
+
+  @override
+  String get profEnvironment => 'Environment';
+
+  @override
+  String get profApiBaseUrl => 'API base URL';
+
+  @override
+  String get profSecurity => 'Keamanan';
+
+  @override
+  String get profLogoutAll => 'Keluar dari semua perangkat';
+
+  @override
+  String get profLogoutAllSub =>
+      'Buat kalau HP kamu ilang. Semua sesi dicabut — HP lain, tablet, termasuk yang ini.';
+
+  @override
+  String get profLogout => 'Keluar';
+
+  @override
+  String get profLogoutAllConfirmTitle => 'Keluar dari semua perangkat?';
+
+  @override
+  String get profLogoutAllConfirmBody =>
+      'Semua sesi kamu bakal dicabut, termasuk di HP ini — kamu bakal diminta login lagi.\n\nPakai ini kalau HP kamu ilang atau dicuri.';
+
+  @override
+  String get profCancel => 'Batal';
+
+  @override
+  String get profRevokeAll => 'Cabut semua sesi';
+
+  @override
+  String profSessionsRevoked(int count) {
+    return '$count sesi dicabut. Login lagi ya.';
+  }
+
+  @override
+  String get profAllSessionsRevoked => 'Semua sesi dicabut. Login lagi ya.';
+
+  @override
+  String profRevokeFailed(String message) {
+    return 'Gagal nyabut sesi: $message';
+  }
+
+  @override
+  String get equipmentPlaceholderTitle => 'Daftar Alat';
+
+  @override
+  String get equipmentPlaceholderBody =>
+      'Daftar alat ukur per kategori, plus form tambah/edit alat. Digarap minggu 3.';
+
+  @override
+  String get historyPlaceholderTitle => 'Riwayat Kalibrasi';
+
+  @override
+  String get historyPlaceholderBody =>
+      'Riwayat sesi kalibrasi & sertifikat yang udah terbit. Digarap minggu 9.';
+
+  @override
+  String get notificationPlaceholderTitle => 'Notifikasi';
+
+  @override
+  String get notificationPlaceholderBody =>
+      'Pengingat alat yang mau jatuh tempo kalibrasi. Digarap minggu 9.';
 }

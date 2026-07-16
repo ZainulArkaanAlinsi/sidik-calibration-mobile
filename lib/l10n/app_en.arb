@@ -38,18 +38,104 @@
   "registerSuccessDismiss": "GOT IT",
 
   "forgotTitle": "Forgot Password",
-  "forgotSubtitle": "We'll send a reset link to your email",
-  "forgotBody": "Enter the email you used to register. Password reset goes through email, not employee ID — so only whoever holds the email can change the password.",
-  "forgotSubmit": "SEND RESET LINK",
+  "forgotSubtitle": "Verify your email, then set a new password",
+  "forgotBody": "Enter the email you used to register. If it matches, you can create a new password right here.",
+  "forgotSubmit": "CONTINUE",
   "backToLogin": "Back to Login",
-  "forgotSuccessTitle": "Reset link sent",
-  "forgotSuccessBody": "We've sent a password reset link to {email}.\n\nCheck your spam folder if you can't find it. The link is valid for a limited time, so don't wait too long.",
-  "@forgotSuccessBody": {
+  "resetNewPassTitle": "Set New Password",
+  "resetNewPassSubtitle": "Create a new password for {email}",
+  "@resetNewPassSubtitle": {
     "placeholders": {
       "email": { "type": "String" }
     }
   },
+  "newPasswordLabel": "New Password",
+  "confirmPasswordLabel": "Confirm New Password",
+  "passwordMismatch": "Passwords don't match.",
+  "resetSubmit": "SAVE NEW PASSWORD",
+  "resetDoneTitle": "Password changed",
+  "resetDoneBody": "Your password has been updated. Sign in with your new password now.",
   "backToLoginCaps": "BACK TO LOGIN",
 
-  "languageLabel": "Language"
+  "languageLabel": "Language",
+
+  "navDashboard": "Dashboard",
+  "navEquipment": "Equipment",
+  "navHistory": "History",
+  "navNotifications": "Notifications",
+  "navProfile": "Profile",
+
+  "dashGreeting": "Hello,",
+  "dashSummaryOrg": "Organization summary",
+  "dashSummaryYours": "Your summary",
+  "dashTotalDevices": "Total devices",
+  "dashOverdue": "Overdue",
+  "dashPendingApproval": "Pending approval",
+  "dashCalibrationDraft": "Calibration drafts",
+  "dashCertsThisMonth": "Certificates this month",
+  "dashQuickActions": "Quick actions",
+  "dashStartCalibration": "START CALIBRATION",
+  "dashAddDevice": "ADD DEVICE",
+  "dashRetry": "TRY AGAIN",
+  "dashSessionExpired": "Your session has expired. Please sign in again.",
+  "dashLoadFailed": "Failed to load the dashboard.",
+  "dashOverdueWarning": "{count} device(s) past their calibration due date. Measurements from overdue devices can't be relied upon.",
+  "@dashOverdueWarning": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dashEmptyTitle": "No data yet",
+  "dashEmptyBodyInput": "No devices registered yet. Start by adding your first measuring device.",
+  "dashEmptyBodyReadonly": "There's nothing to show yet.",
+  "snackCalibInputSoon": "Calibration input is planned for week 4.",
+  "snackAddDeviceSoon": "Adding devices is planned for week 3.",
+
+  "profAccountInfo": "Account Info",
+  "profRoleLabel": "Role",
+  "profChangePhotoSheet": "Profile Photo",
+  "profChooseGallery": "Choose from gallery",
+  "profTakePhoto": "Take a photo",
+  "profRemovePhoto": "Remove photo",
+  "profPhotoUpdated": "Profile photo updated.",
+  "profPhotoRemoved": "Profile photo removed.",
+  "profPhotoFailed": "Couldn't pick the photo. Try again.",
+  "profAdminMenu": "Admin Menu",
+  "profUserManagement": "User Management",
+  "profUserManagementSub": "Planned for phase 3",
+  "profMasterData": "Company & Customer Master Data",
+  "profMasterDataSub": "Planned for week 2",
+  "profDesignSystem": "Design System",
+  "profDesignSystemSub": "Color, typography & component catalog",
+  "profAppInfo": "App Info",
+  "profEnvironment": "Environment",
+  "profApiBaseUrl": "API base URL",
+  "profSecurity": "Security",
+  "profLogoutAll": "Sign out of all devices",
+  "profLogoutAllSub": "For when your phone is lost. Every session is revoked — other phones, tablets, including this one.",
+  "profLogout": "Sign out",
+  "profLogoutAllConfirmTitle": "Sign out of all devices?",
+  "profLogoutAllConfirmBody": "All your sessions will be revoked, including on this phone — you'll be asked to sign in again.\n\nUse this if your phone is lost or stolen.",
+  "profCancel": "Cancel",
+  "profRevokeAll": "Revoke all sessions",
+  "profSessionsRevoked": "{count} session(s) revoked. Please sign in again.",
+  "@profSessionsRevoked": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "profAllSessionsRevoked": "All sessions revoked. Please sign in again.",
+  "profRevokeFailed": "Couldn't revoke sessions: {message}",
+  "@profRevokeFailed": {
+    "placeholders": {
+      "message": { "type": "String" }
+    }
+  },
+
+  "equipmentPlaceholderTitle": "Device List",
+  "equipmentPlaceholderBody": "Measuring devices by category, plus an add/edit device form. Planned for week 3.",
+  "historyPlaceholderTitle": "Calibration History",
+  "historyPlaceholderBody": "History of calibration sessions & issued certificates. Planned for week 9.",
+  "notificationPlaceholderTitle": "Notifications",
+  "notificationPlaceholderBody": "Reminders for devices approaching their calibration due date. Planned for week 9."
 }

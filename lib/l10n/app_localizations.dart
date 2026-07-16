@@ -305,19 +305,19 @@ abstract class AppLocalizations {
   /// No description provided for @forgotSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'We\'ll send a reset link to your email'**
+  /// **'Verify your email, then set a new password'**
   String get forgotSubtitle;
 
   /// No description provided for @forgotBody.
   ///
   /// In en, this message translates to:
-  /// **'Enter the email you used to register. Password reset goes through email, not employee ID — so only whoever holds the email can change the password.'**
+  /// **'Enter the email you used to register. If it matches, you can create a new password right here.'**
   String get forgotBody;
 
   /// No description provided for @forgotSubmit.
   ///
   /// In en, this message translates to:
-  /// **'SEND RESET LINK'**
+  /// **'CONTINUE'**
   String get forgotSubmit;
 
   /// No description provided for @backToLogin.
@@ -326,17 +326,53 @@ abstract class AppLocalizations {
   /// **'Back to Login'**
   String get backToLogin;
 
-  /// No description provided for @forgotSuccessTitle.
+  /// No description provided for @resetNewPassTitle.
   ///
   /// In en, this message translates to:
-  /// **'Reset link sent'**
-  String get forgotSuccessTitle;
+  /// **'Set New Password'**
+  String get resetNewPassTitle;
 
-  /// No description provided for @forgotSuccessBody.
+  /// No description provided for @resetNewPassSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'We\'ve sent a password reset link to {email}.\n\nCheck your spam folder if you can\'t find it. The link is valid for a limited time, so don\'t wait too long.'**
-  String forgotSuccessBody(String email);
+  /// **'Create a new password for {email}'**
+  String resetNewPassSubtitle(String email);
+
+  /// No description provided for @newPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'New Password'**
+  String get newPasswordLabel;
+
+  /// No description provided for @confirmPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm New Password'**
+  String get confirmPasswordLabel;
+
+  /// No description provided for @passwordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords don\'t match.'**
+  String get passwordMismatch;
+
+  /// No description provided for @resetSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE NEW PASSWORD'**
+  String get resetSubmit;
+
+  /// No description provided for @resetDoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Password changed'**
+  String get resetDoneTitle;
+
+  /// No description provided for @resetDoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your password has been updated. Sign in with your new password now.'**
+  String get resetDoneBody;
 
   /// No description provided for @backToLoginCaps.
   ///
@@ -349,6 +385,372 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Language'**
   String get languageLabel;
+
+  /// No description provided for @navDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get navDashboard;
+
+  /// No description provided for @navEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get navEquipment;
+
+  /// No description provided for @navHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get navHistory;
+
+  /// No description provided for @navNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get navNotifications;
+
+  /// No description provided for @navProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get navProfile;
+
+  /// No description provided for @dashGreeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello,'**
+  String get dashGreeting;
+
+  /// No description provided for @dashSummaryOrg.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization summary'**
+  String get dashSummaryOrg;
+
+  /// No description provided for @dashSummaryYours.
+  ///
+  /// In en, this message translates to:
+  /// **'Your summary'**
+  String get dashSummaryYours;
+
+  /// No description provided for @dashTotalDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Total devices'**
+  String get dashTotalDevices;
+
+  /// No description provided for @dashOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get dashOverdue;
+
+  /// No description provided for @dashPendingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending approval'**
+  String get dashPendingApproval;
+
+  /// No description provided for @dashCalibrationDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration drafts'**
+  String get dashCalibrationDraft;
+
+  /// No description provided for @dashCertsThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificates this month'**
+  String get dashCertsThisMonth;
+
+  /// No description provided for @dashQuickActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick actions'**
+  String get dashQuickActions;
+
+  /// No description provided for @dashStartCalibration.
+  ///
+  /// In en, this message translates to:
+  /// **'START CALIBRATION'**
+  String get dashStartCalibration;
+
+  /// No description provided for @dashAddDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'ADD DEVICE'**
+  String get dashAddDevice;
+
+  /// No description provided for @dashRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'TRY AGAIN'**
+  String get dashRetry;
+
+  /// No description provided for @dashSessionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has expired. Please sign in again.'**
+  String get dashSessionExpired;
+
+  /// No description provided for @dashLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load the dashboard.'**
+  String get dashLoadFailed;
+
+  /// No description provided for @dashOverdueWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} device(s) past their calibration due date. Measurements from overdue devices can\'t be relied upon.'**
+  String dashOverdueWarning(int count);
+
+  /// No description provided for @dashEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No data yet'**
+  String get dashEmptyTitle;
+
+  /// No description provided for @dashEmptyBodyInput.
+  ///
+  /// In en, this message translates to:
+  /// **'No devices registered yet. Start by adding your first measuring device.'**
+  String get dashEmptyBodyInput;
+
+  /// No description provided for @dashEmptyBodyReadonly.
+  ///
+  /// In en, this message translates to:
+  /// **'There\'s nothing to show yet.'**
+  String get dashEmptyBodyReadonly;
+
+  /// No description provided for @snackCalibInputSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration input is planned for week 4.'**
+  String get snackCalibInputSoon;
+
+  /// No description provided for @snackAddDeviceSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding devices is planned for week 3.'**
+  String get snackAddDeviceSoon;
+
+  /// No description provided for @profAccountInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Info'**
+  String get profAccountInfo;
+
+  /// No description provided for @profRoleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get profRoleLabel;
+
+  /// No description provided for @profChangePhotoSheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile Photo'**
+  String get profChangePhotoSheet;
+
+  /// No description provided for @profChooseGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from gallery'**
+  String get profChooseGallery;
+
+  /// No description provided for @profTakePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get profTakePhoto;
+
+  /// No description provided for @profRemovePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get profRemovePhoto;
+
+  /// No description provided for @profPhotoUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile photo updated.'**
+  String get profPhotoUpdated;
+
+  /// No description provided for @profPhotoRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile photo removed.'**
+  String get profPhotoRemoved;
+
+  /// No description provided for @profPhotoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t pick the photo. Try again.'**
+  String get profPhotoFailed;
+
+  /// No description provided for @profAdminMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Menu'**
+  String get profAdminMenu;
+
+  /// No description provided for @profUserManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'User Management'**
+  String get profUserManagement;
+
+  /// No description provided for @profUserManagementSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned for phase 3'**
+  String get profUserManagementSub;
+
+  /// No description provided for @profMasterData.
+  ///
+  /// In en, this message translates to:
+  /// **'Company & Customer Master Data'**
+  String get profMasterData;
+
+  /// No description provided for @profMasterDataSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned for week 2'**
+  String get profMasterDataSub;
+
+  /// No description provided for @profDesignSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Design System'**
+  String get profDesignSystem;
+
+  /// No description provided for @profDesignSystemSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Color, typography & component catalog'**
+  String get profDesignSystemSub;
+
+  /// No description provided for @profAppInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'App Info'**
+  String get profAppInfo;
+
+  /// No description provided for @profEnvironment.
+  ///
+  /// In en, this message translates to:
+  /// **'Environment'**
+  String get profEnvironment;
+
+  /// No description provided for @profApiBaseUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'API base URL'**
+  String get profApiBaseUrl;
+
+  /// No description provided for @profSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get profSecurity;
+
+  /// No description provided for @profLogoutAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out of all devices'**
+  String get profLogoutAll;
+
+  /// No description provided for @profLogoutAllSub.
+  ///
+  /// In en, this message translates to:
+  /// **'For when your phone is lost. Every session is revoked — other phones, tablets, including this one.'**
+  String get profLogoutAllSub;
+
+  /// No description provided for @profLogout.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get profLogout;
+
+  /// No description provided for @profLogoutAllConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out of all devices?'**
+  String get profLogoutAllConfirmTitle;
+
+  /// No description provided for @profLogoutAllConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'All your sessions will be revoked, including on this phone — you\'ll be asked to sign in again.\n\nUse this if your phone is lost or stolen.'**
+  String get profLogoutAllConfirmBody;
+
+  /// No description provided for @profCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get profCancel;
+
+  /// No description provided for @profRevokeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke all sessions'**
+  String get profRevokeAll;
+
+  /// No description provided for @profSessionsRevoked.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} session(s) revoked. Please sign in again.'**
+  String profSessionsRevoked(int count);
+
+  /// No description provided for @profAllSessionsRevoked.
+  ///
+  /// In en, this message translates to:
+  /// **'All sessions revoked. Please sign in again.'**
+  String get profAllSessionsRevoked;
+
+  /// No description provided for @profRevokeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t revoke sessions: {message}'**
+  String profRevokeFailed(String message);
+
+  /// No description provided for @equipmentPlaceholderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Device List'**
+  String get equipmentPlaceholderTitle;
+
+  /// No description provided for @equipmentPlaceholderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Measuring devices by category, plus an add/edit device form. Planned for week 3.'**
+  String get equipmentPlaceholderBody;
+
+  /// No description provided for @historyPlaceholderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration History'**
+  String get historyPlaceholderTitle;
+
+  /// No description provided for @historyPlaceholderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'History of calibration sessions & issued certificates. Planned for week 9.'**
+  String get historyPlaceholderBody;
+
+  /// No description provided for @notificationPlaceholderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notificationPlaceholderTitle;
+
+  /// No description provided for @notificationPlaceholderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders for devices approaching their calibration due date. Planned for week 9.'**
+  String get notificationPlaceholderBody;
 }
 
 class _AppLocalizationsDelegate

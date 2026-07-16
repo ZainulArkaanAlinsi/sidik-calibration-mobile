@@ -85,6 +85,15 @@ class AuthController extends AsyncNotifier<User?> {
     await _auth.requestPasswordReset(email);
   }
 
+  /// Set password baru (langkah kedua reset). Nggak nyentuh `state` — user
+  /// tetap belum login; abis ini dia login pakai password barunya.
+  Future<void> resetPassword({
+    required String email,
+    required String newPassword,
+  }) async {
+    await _auth.resetPassword(email: email, newPassword: newPassword);
+  }
+
   Future<void> logout() async {
     final token = await _storage.read();
     state = const AsyncValue.loading();
