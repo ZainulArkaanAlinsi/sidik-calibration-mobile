@@ -521,38 +521,65 @@ class NeuPoweredBy extends StatelessWidget {
   }
 }
 
-/// Medali brand bulat — avatar timbul dengan lingkaran aksen di dalamnya.
-/// Ganti [icon] jadi logo resmi PT Sidik begitu asetnya ada.
-class NeuBrandBadge extends StatelessWidget {
-  const NeuBrandBadge({super.key, this.icon = Icons.precision_manufacturing});
+/// Path aset logo resmi PT Sidik. Dipublik biar bisa di-precache di golden test
+/// (decode gambar di test di-pause; harus di-precache manual biar nggak kosong).
+const String kLogoPtSidik = 'assets/images/logo_pt_sidik.png';
 
-  final IconData icon;
+/// Medali brand bulat — cakram timbul (neumorphic) berisi **logo resmi PT
+/// Sidik**. Kalau [icon] diisi, dia nampilin ikon monokrom itu, bukan logo —
+/// dipakai buat state kontekstual (mis. cakram "email terkirim").
+class NeuBrandBadge extends StatelessWidget {
+  const NeuBrandBadge({super.key, this.icon});
+
+  /// null → logo PT Sidik. Diisi → ikon monokrom (state kontekstual).
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
     final c = NeuColors.of(context);
 
+    final Widget isi = icon == null
+        // Logo berwarna butuh latar terang biar kebaca — cakram putih di dalam
+        // cincin neu yang timbul, jadi berasa "medali" resmi.
+        ? Container(
+            height: 84,
+            width: 84,
+            clipBehavior: Clip.antiAlias,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+            ),
+            padding: const EdgeInsets.all(9),
+            child: Image.asset(
+              kLogoPtSidik,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.medium,
+            ),
+          )
+        : Container(
+            height: 76,
+            width: 76,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  c.darkShadow,
+                  Color.lerp(c.darkShadow, Colors.black, 0.4)!,
+                ],
+              ),
+              border: Border.all(color: c.lightShadow, width: 1.5),
+            ),
+            child: Icon(icon, size: 36, color: c.text),
+          );
+
     return NeuRaised(
       circle: true,
       distance: 7,
       blur: 16,
-      padding: const EdgeInsets.all(16),
-      child: Container(
-        height: 76,
-        width: 76,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          // Monokrom: lingkaran gelap dengan sedikit gradasi biar tetap kebaca
-          // "cekung", ikon terang di tengah. Ngikutin logo bulat di gambar acuan.
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [c.darkShadow, Color.lerp(c.darkShadow, Colors.black, 0.4)!],
-          ),
-          border: Border.all(color: c.lightShadow, width: 1.5),
-        ),
-        child: Icon(icon, size: 36, color: c.text),
-      ),
+      padding: EdgeInsets.all(icon == null ? 12 : 16),
+      child: isi,
     );
   }
 }

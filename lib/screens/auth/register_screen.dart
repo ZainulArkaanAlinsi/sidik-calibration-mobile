@@ -174,9 +174,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Center(
-                    child: NeuBrandBadge(icon: Icons.badge_outlined),
-                  ),
+                  const Center(child: NeuBrandBadge()),
                   const SizedBox(height: 18),
                   Center(
                     child: Text(

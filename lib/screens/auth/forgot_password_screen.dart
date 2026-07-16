@@ -105,7 +105,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        const Center(child: NeuBrandBadge(icon: Icons.lock_reset_outlined)),
+        const Center(child: NeuBrandBadge()),
         const SizedBox(height: 18),
         Center(
           child: Text(
