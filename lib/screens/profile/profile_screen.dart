@@ -1,11 +1,17 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/user.dart';
 import '../../providers/app_config_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/avatar_provider.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/status_badge.dart';
@@ -28,31 +34,37 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final apiBaseUrl = ref.watch(apiBaseUrlProvider);
     final user = ref.watch(authProvider).value;
     final sedangLogout = ref.watch(authProvider).isLoading;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profil')),
+      appBar: AppBar(title: Text(l10n.navProfile), centerTitle: true),
       body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: const EdgeInsets.only(bottom: AppSpacing.xl),
         children: [
-          if (user != null) _ProfileHeader(user: user),
-          const SizedBox(height: AppSpacing.lg),
+          if (user != null) ...[
+            _Header(user: user, onEditFoto: _pilihFoto),
+            const SizedBox(height: AppSpacing.lg),
+
+            _JudulSeksi(l10n.profAccountInfo),
+            _KartuInfoAkun(user: user),
+            const SizedBox(height: AppSpacing.lg),
+          ],
 
           // Menu khusus admin. Dirender cuma kalau role-nya admin —
           // bukan di-disable, tapi memang nggak ada sama sekali buat yang lain
           // (lihat README, Prinsip Desain).
           if (user != null && user.role.isAdmin) ...[
-            Text('Menu Admin', style: theme.textTheme.titleSmall),
-            const SizedBox(height: AppSpacing.sm),
+            _JudulSeksi(l10n.profAdminMenu),
             Card(
               child: Column(
                 children: [
                   ListTile(
                     leading: const Icon(Icons.group_outlined),
-                    title: const Text('Manajemen Pengguna'),
-                    subtitle: const Text('Digarap fase 3'),
+                    title: Text(l10n.profUserManagement),
+                    subtitle: Text(l10n.profUserManagementSub),
                     trailing: const Icon(Icons.chevron_right),
                     enabled: false,
                     onTap: () {},
@@ -60,8 +72,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.apartment_outlined),
-                    title: const Text('Master Data PT & Pelanggan'),
-                    subtitle: const Text('Digarap minggu 2'),
+                    title: Text(l10n.profMasterData),
+                    subtitle: Text(l10n.profMasterDataSub),
                     trailing: const Icon(Icons.chevron_right),
                     enabled: false,
                     onTap: () {},
@@ -75,8 +87,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.palette_outlined),
-              title: const Text('Design System'),
-              subtitle: const Text('Katalog warna, tipografi & komponen'),
+              title: Text(l10n.profDesignSystem),
+              subtitle: Text(l10n.profDesignSystemSub),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
@@ -87,21 +99,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
           const SizedBox(height: AppSpacing.lg),
 
-          Text('Info Aplikasi', style: theme.textTheme.titleSmall),
-          const SizedBox(height: AppSpacing.sm),
+          _JudulSeksi(l10n.profAppInfo),
           Card(
             child: Column(
               children: [
                 ListTile(
                   leading: const Icon(Icons.layers_outlined),
-                  title: const Text('Environment'),
+                  title: Text(l10n.profEnvironment),
                   subtitle: Text(AppConfig.envLabel),
                   dense: true,
                 ),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.cloud_outlined),
-                  title: const Text('API base URL'),
+                  title: Text(l10n.profApiBaseUrl),
                   subtitle: Text(apiBaseUrl),
                   dense: true,
                 ),
@@ -110,19 +121,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
           const SizedBox(height: AppSpacing.lg),
 
-          Text('Keamanan', style: theme.textTheme.titleSmall),
-          const SizedBox(height: AppSpacing.sm),
+          _JudulSeksi(l10n.profSecurity),
           Card(
             child: ListTile(
               leading: Icon(
                 Icons.phonelink_erase_outlined,
                 color: theme.colorScheme.error,
               ),
-              title: const Text('Keluar dari semua perangkat'),
-              subtitle: const Text(
-                'Buat kalau HP kamu ilang. Semua sesi dicabut — HP lain, '
-                'tablet, termasuk yang ini.',
-              ),
+              title: Text(l10n.profLogoutAll),
+              subtitle: Text(l10n.profLogoutAllSub),
               trailing: _sedangCabutSemua
                   ? const SizedBox(
                       height: 18,
@@ -135,37 +142,116 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
           const SizedBox(height: AppSpacing.xl),
 
-          AppButton(
-            label: 'Keluar',
-            icon: Icons.logout,
-            variant: AppButtonVariant.secondary,
-            isLoading: sedangLogout,
-            onPressed: () => ref.read(authProvider.notifier).logout(),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+            child: AppButton(
+              label: l10n.profLogout,
+              icon: Icons.logout,
+              variant: AppButtonVariant.secondary,
+              isLoading: sedangLogout,
+              onPressed: () => ref.read(authProvider.notifier).logout(),
+            ),
           ),
         ],
       ),
     );
   }
 
+  /// Sheet pilih sumber foto: galeri / kamera / hapus.
+  void _pilihFoto() {
+    final l10n = AppLocalizations.of(context);
+    final adaFoto = ref.read(avatarPathProvider) != null;
+
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                l10n.profChangePhotoSheet,
+                style: Theme.of(sheetContext).textTheme.titleMedium,
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: Text(l10n.profChooseGallery),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                _ambilFoto(ImageSource.gallery);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: Text(l10n.profTakePhoto),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                _ambilFoto(ImageSource.camera);
+              },
+            ),
+            if (adaFoto)
+              ListTile(
+                leading: Icon(
+                  Icons.delete_outline,
+                  color: Theme.of(sheetContext).colorScheme.error,
+                ),
+                title: Text(l10n.profRemovePhoto),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  _hapusFoto();
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _ambilFoto(ImageSource sumber) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final file = await ImagePicker().pickImage(
+        source: sumber,
+        maxWidth: 800,
+        imageQuality: 85,
+      );
+      if (file == null) return; // user batal milih
+      await ref.read(avatarPathProvider.notifier).setPath(file.path);
+      messenger.showSnackBar(SnackBar(content: Text(l10n.profPhotoUpdated)));
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.profPhotoFailed)));
+    }
+  }
+
+  Future<void> _hapusFoto() async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    await ref.read(avatarPathProvider.notifier).setPath(null);
+    messenger.showSnackBar(SnackBar(content: Text(l10n.profPhotoRemoved)));
+  }
+
   Future<void> _cabutSemuaSesi() async {
+    final l10n = AppLocalizations.of(context);
+
     // Nggak bisa dibatalin, dan efeknya kena ke perangkat lain — jadi wajib
     // dikonfirmasi dulu.
     final yakin = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Keluar dari semua perangkat?'),
-        content: const Text(
-          'Semua sesi kamu bakal dicabut, termasuk di HP ini — kamu bakal '
-          'diminta login lagi.\n\nPakai ini kalau HP kamu ilang atau dicuri.',
-        ),
+        title: Text(l10n.profLogoutAllConfirmTitle),
+        content: Text(l10n.profLogoutAllConfirmBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Batal'),
+            child: Text(l10n.profCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Cabut semua sesi'),
+            child: Text(l10n.profRevokeAll),
           ),
         ],
       ),
@@ -188,8 +274,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         SnackBar(
           content: Text(
             dicabut > 0
-                ? '$dicabut sesi dicabut. Login lagi ya.'
-                : 'Semua sesi dicabut. Login lagi ya.',
+                ? l10n.profSessionsRevoked(dicabut)
+                : l10n.profAllSessionsRevoked,
           ),
         ),
       );
@@ -201,50 +287,291 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
       setState(() => _sedangCabutSemua = false);
       messenger.showSnackBar(
-        SnackBar(content: Text('Gagal nyabut sesi: ${e.message}')),
+        SnackBar(content: Text(l10n.profRevokeFailed(e.message))),
       );
     }
   }
 }
 
-class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader({required this.user});
+/// Judul kecil di atas tiap seksi.
+class _JudulSeksi extends StatelessWidget {
+  const _JudulSeksi(this.teks);
+
+  final String teks;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        0,
+        AppSpacing.md,
+        AppSpacing.sm,
+      ),
+      child: Text(
+        teks.toUpperCase(),
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+          letterSpacing: 0.6,
+        ),
+      ),
+    );
+  }
+}
+
+/// Header profil: banner brand + avatar (foto dari HP / inisial) yang nongol
+/// di atas banner, terus nama + email + badge role. Acuan gambar #2 (banner) &
+/// #3 (avatar + info di bawahnya).
+class _Header extends ConsumerWidget {
+  const _Header({required this.user, required this.onEditFoto});
 
   final User user;
+  final VoidCallback onEditFoto;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final fotoPath = ref.watch(avatarPathProvider);
+
+    return Column(
+      children: [
+        Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            // Banner: foto (kalau ada) atau gradasi brand.
+            Container(
+              height: 150,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.vertical(
+                  bottom: Radius.circular(28),
+                ),
+                gradient: fotoPath == null
+                    ? const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [AppColors.navy, AppColors.teal],
+                      )
+                    : null,
+                image: fotoPath != null
+                    ? DecorationImage(
+                        image: FileImage(File(fotoPath)),
+                        fit: BoxFit.cover,
+                        colorFilter: ColorFilter.mode(
+                          Colors.black.withValues(alpha: 0.35),
+                          BlendMode.darken,
+                        ),
+                      )
+                    : null,
+              ),
+            ),
+            // Avatar nongol di bibir bawah banner.
+            Positioned(
+              bottom: -46,
+              child: _Avatar(
+                fotoPath: fotoPath,
+                inisial: user.nama.characters.first,
+                onTap: onEditFoto,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 46 + AppSpacing.md),
+        Text(
+          user.nama,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          user.email,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        StatusBadge(
+          label: user.role.label,
+          tone: user.role.isAdmin ? BadgeTone.info : BadgeTone.neutral,
+          icon: Icons.badge_outlined,
+        ),
+      ],
+    );
+  }
+}
+
+class _Avatar extends StatelessWidget {
+  const _Avatar({
+    required this.fotoPath,
+    required this.inisial,
+    required this.onTap,
+  });
+
+  final String? fotoPath;
+  final String inisial;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Row(
-      children: [
-        CircleAvatar(
-          radius: 28,
-          backgroundColor: theme.colorScheme.primaryContainer,
-          child: Text(
-            user.nama.characters.first,
-            style: theme.textTheme.titleLarge?.copyWith(
-              color: theme.colorScheme.onPrimaryContainer,
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Cincin putih biar avatar kepisah dari banner.
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: theme.scaffoldBackgroundColor,
+            ),
+            child: CircleAvatar(
+              radius: 44,
+              backgroundColor: theme.colorScheme.primaryContainer,
+              backgroundImage: fotoPath != null
+                  ? FileImage(File(fotoPath!))
+                  : null,
+              child: fotoPath == null
+                  ? Text(
+                      inisial,
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: theme.colorScheme.onPrimaryContainer,
+                      ),
+                    )
+                  : null,
             ),
           ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(user.nama, style: theme.textTheme.titleMedium),
-              Text(user.email, style: theme.textTheme.bodySmall),
-              const SizedBox(height: AppSpacing.xs),
-              StatusBadge(
-                label: user.role.label,
-                tone: user.role.isAdmin ? BadgeTone.info : BadgeTone.neutral,
-                icon: Icons.badge_outlined,
+          // Badge kamera.
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.navy,
+                border: Border.all(
+                  color: theme.scaffoldBackgroundColor,
+                  width: 2,
+                ),
               ),
-            ],
+              child: const Icon(
+                Icons.photo_camera_outlined,
+                size: 15,
+                color: Colors.white,
+              ),
+            ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Kartu info akun bergaya "label kecil di atas, nilai di bawah" (acuan #3).
+class _KartuInfoAkun extends StatelessWidget {
+  const _KartuInfoAkun({required this.user});
+
+  final User user;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+        child: Column(
+          children: [
+            _BarisInfo(
+              icon: Icons.badge_outlined,
+              label: l10n.employeeIdLabel,
+              nilai: user.employeeId,
+            ),
+            const Divider(height: 1, indent: 64),
+            _BarisInfo(
+              icon: Icons.apartment_outlined,
+              label: l10n.departmentLabel,
+              nilai: user.department ?? '—',
+            ),
+            const Divider(height: 1, indent: 64),
+            _BarisInfo(
+              icon: Icons.mail_outline,
+              label: l10n.emailLabel,
+              nilai: user.email,
+            ),
+            const Divider(height: 1, indent: 64),
+            _BarisInfo(
+              icon: Icons.verified_user_outlined,
+              label: l10n.profRoleLabel,
+              nilai: user.role.label,
+            ),
+          ],
         ),
-      ],
+      ),
+    );
+  }
+}
+
+class _BarisInfo extends StatelessWidget {
+  const _BarisInfo({
+    required this.icon,
+    required this.label,
+    required this.nilai,
+  });
+
+  final IconData icon;
+  final String label;
+  final String nilai;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      child: Row(
+        children: [
+          Container(
+            height: 40,
+            width: 40,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 20, color: theme.colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  nilai,
+                  style: theme.textTheme.bodyLarge,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

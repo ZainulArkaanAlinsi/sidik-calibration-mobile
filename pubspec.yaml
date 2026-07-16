@@ -47,6 +47,9 @@ dependencies:
   # Nyimpen pilihan bahasa biar nggak balik ke default tiap app dibuka.
   shared_preferences: ^2.3.2
 
+  # Ambil foto profil dari galeri/kamera HP masing-masing.
+  image_picker: ^1.1.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

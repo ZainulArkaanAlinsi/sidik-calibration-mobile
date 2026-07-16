@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../widgets/empty_placeholder.dart';
 
 class HistoryScreen extends StatelessWidget {
@@ -7,14 +8,13 @@ class HistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Riwayat')),
-      body: const EmptyPlaceholder(
+      appBar: AppBar(title: Text(l10n.navHistory)),
+      body: EmptyPlaceholder(
         icon: Icons.history_outlined,
-        title: 'Riwayat Kalibrasi',
-        message:
-            'Riwayat sesi kalibrasi & sertifikat yang udah terbit. '
-            'Digarap minggu 9.',
+        title: l10n.historyPlaceholderTitle,
+        message: l10n.historyPlaceholderBody,
       ),
     );
   }

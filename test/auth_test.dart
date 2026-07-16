@@ -58,7 +58,7 @@ Future<void> _tapTeks(WidgetTester tester, String teks) async {
 /// Karena `IndexedStack` bikin banyak `Scrollable` hidup barengan, kita
 /// tunjuk `Scrollable`-nya ProfileScreen secara eksplisit, lalu `ensureVisible`
 /// biar item beneran kelihatan sebelum di-tap.
-Future<void> _tapDiProfil(WidgetTester tester, Finder finder) async {
+Future<void> _scrollProfilKe(WidgetTester tester, Finder finder) async {
   await tester.scrollUntilVisible(
     finder,
     120,
@@ -69,6 +69,10 @@ Future<void> _tapDiProfil(WidgetTester tester, Finder finder) async {
   );
   await tester.ensureVisible(finder);
   await tester.pumpAndSettle();
+}
+
+Future<void> _tapDiProfil(WidgetTester tester, Finder finder) async {
+  await _scrollProfilKe(tester, finder);
   await tester.tap(finder);
   await tester.pumpAndSettle();
 }
@@ -353,7 +357,12 @@ void main() {
       await tester.tap(find.text('Profil'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Menu Admin'), findsOneWidget);
+      // Header profil sekarang lebih tinggi (banner + avatar), jadi menu admin
+      // ada di bawah lipatan — di-scroll dulu biar ke-build. Judul seksi
+      // dirender HURUF BESAR (konsisten sama dashboard).
+      await _scrollProfilKe(tester, find.text('MENU ADMIN'));
+
+      expect(find.text('MENU ADMIN'), findsOneWidget);
       expect(find.text('Manajemen Pengguna'), findsOneWidget);
     });
 
@@ -366,7 +375,7 @@ void main() {
       await tester.tap(find.text('Profil'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Menu Admin'), findsNothing);
+      expect(find.text('MENU ADMIN'), findsNothing);
       expect(find.text('Manajemen Pengguna'), findsNothing);
     });
 

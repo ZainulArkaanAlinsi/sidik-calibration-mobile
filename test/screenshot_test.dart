@@ -15,6 +15,7 @@ import 'package:asmo_mobile/providers/dashboard_provider.dart';
 import 'package:asmo_mobile/screens/auth/login_screen.dart';
 import 'package:asmo_mobile/screens/auth/register_screen.dart';
 import 'package:asmo_mobile/screens/auth/widgets/neu.dart';
+import 'package:asmo_mobile/screens/profile/profile_screen.dart';
 import 'package:asmo_mobile/screens/shell/main_shell.dart';
 import 'package:asmo_mobile/services/dashboard_service.dart';
 import 'package:asmo_mobile/services/mock_auth_service.dart';
@@ -149,6 +150,19 @@ void main() {
     await expectLater(
       find.byType(MainShell),
       matchesGoldenFile('screenshots/dashboard.png'),
+    );
+  });
+
+  testWidgets('profil', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayar(
+      tester,
+      _bungkus(const ProfileScreen(), mode: Brightness.light),
+    );
+
+    await expectLater(
+      find.byType(ProfileScreen),
+      matchesGoldenFile('screenshots/profil.png'),
     );
   });
 }
