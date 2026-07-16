@@ -13,7 +13,7 @@ class MockAuthService implements AuthService {
     {
       'id': 1,
       'nama': 'Budi Santoso',
-      'email': 'admin@asmo.test',
+      'email': 'admin@pt-sidik.com',
       'employee_id': 'ASM-0001',
       'role': 'admin',
       'status': 'aktif',
@@ -23,7 +23,7 @@ class MockAuthService implements AuthService {
     {
       'id': 2,
       'nama': 'Andi Pratama',
-      'email': 'teknisi@asmo.test',
+      'email': 'teknisi@pt-sidik.com',
       'employee_id': 'ASM-0002',
       'role': 'teknisi',
       'status': 'aktif',
@@ -33,7 +33,7 @@ class MockAuthService implements AuthService {
     {
       'id': 3,
       'nama': 'Citra Dewi',
-      'email': 'viewer@asmo.test',
+      'email': 'viewer@pt-sidik.com',
       'employee_id': 'ASM-0003',
       'role': 'viewer',
       'status': 'aktif',
@@ -45,7 +45,7 @@ class MockAuthService implements AuthService {
     {
       'id': 4,
       'nama': 'Dewi Lestari',
-      'email': 'pending@asmo.test',
+      'email': 'pending@pt-sidik.com',
       'employee_id': 'ASM-0004',
       'role': 'teknisi',
       'status': 'pending',

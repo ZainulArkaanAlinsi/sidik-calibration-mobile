@@ -30,7 +30,7 @@ http.Response _json(Object body, int status) => http.Response(
 final _userAdmin = {
   'id': 1,
   'nama': 'Budi Santoso',
-  'email': 'admin@asmo.test',
+  'email': 'admin@pt-sidik.com',
   'employee_id': 'ASM-0001',
   'role': 'admin',
   'status': 'aktif',
@@ -151,7 +151,7 @@ void main() {
           nama: 'Eko Prasetyo',
           employeeId: 'ASM-0099',
           department: 'Kalibrasi',
-          email: 'eko@ptasmo.com',
+          email: 'eko@pt-sidik.com',
           password: 'rahasia123',
         ),
       );

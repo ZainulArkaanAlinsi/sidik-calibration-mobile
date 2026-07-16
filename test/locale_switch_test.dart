@@ -22,7 +22,7 @@ void main() {
             MockDashboardService(jeda: Duration.zero),
           ),
         ],
-        child: const AsmoApp(),
+        child: const SidikApp(),
       ),
     );
     await tester.pumpAndSettle();
@@ -30,16 +30,20 @@ void main() {
     // Default = Indonesia.
     expect(find.text('MASUK'), findsOneWidget);
     expect(find.text('Belum punya akun?'), findsOneWidget);
-    expect(find.text('ID'), findsOneWidget, reason: 'toggle nampilin bahasa aktif');
+    expect(
+      find.text('Indonesia'),
+      findsOneWidget,
+      reason: 'toggle nampilin bahasa aktif',
+    );
 
     // Ganti bahasa.
-    await tester.tap(find.text('ID'));
+    await tester.tap(find.text('Indonesia'));
     await tester.pumpAndSettle();
 
     // Sekarang Inggris — teks auth ikut ganti.
     expect(find.text('SIGN IN'), findsOneWidget);
     expect(find.text('MASUK'), findsNothing);
     expect(find.text("Don't have an account?"), findsOneWidget);
-    expect(find.text('EN'), findsOneWidget);
+    expect(find.text('English'), findsOneWidget);
   });
 }

@@ -12,7 +12,7 @@ ProviderScope _app() => ProviderScope(
     tokenStorageProvider.overrideWithValue(InMemoryTokenStorage()),
     authServiceProvider.overrideWithValue(MockAuthService()),
   ],
-  child: const AsmoApp(),
+  child: const SidikApp(),
 );
 
 Future<void> _tapTeks(WidgetTester tester, String teks) async {
@@ -52,11 +52,11 @@ void main() {
       tester,
     ) async {
       await _bukaLupaPassword(tester);
-      await _kirim(tester, 'admin@asmo.test');
+      await _kirim(tester, 'admin@pt-sidik.com');
 
       expect(find.text('Link reset terkirim'), findsOneWidget);
       // Emailnya disebut ulang, biar user sadar kalau salah ketik.
-      expect(find.textContaining('admin@asmo.test'), findsOneWidget);
+      expect(find.textContaining('admin@pt-sidik.com'), findsOneWidget);
       // Form-nya udah nggak ada — nggak bisa kirim dua kali nggak sengaja.
       expect(find.text('KIRIM LINK RESET'), findsNothing);
     });
@@ -65,7 +65,7 @@ void main() {
       tester,
     ) async {
       await _bukaLupaPassword(tester);
-      await _kirim(tester, 'bukan.siapa2@ptasmo.com');
+      await _kirim(tester, 'bukan.siapa2@pt-sidik.com');
 
       expect(find.text('Email ini nggak terdaftar.'), findsOneWidget);
       expect(find.text('Link reset terkirim'), findsNothing);
@@ -93,7 +93,7 @@ void main() {
 
   testWidgets('dari panel sukses → balik ke Login', (tester) async {
     await _bukaLupaPassword(tester);
-    await _kirim(tester, 'teknisi@asmo.test');
+    await _kirim(tester, 'teknisi@pt-sidik.com');
 
     await _tapTeks(tester, 'BALIK KE LOGIN');
     await tester.pumpAndSettle();

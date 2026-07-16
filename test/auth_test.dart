@@ -24,7 +24,7 @@ ProviderScope _app(TokenStorage storage, {MockAuthService? auth}) =>
       MockDashboardService(jeda: Duration.zero),
     ),
   ],
-  child: const AsmoApp(),
+  child: const SidikApp(),
 );
 
 /// Niru Keystore yang rusak — `flutter_secure_storage` bisa lempar
@@ -76,7 +76,7 @@ void main() {
 
       await _isiLogin(
         tester,
-        identifier: 'admin@asmo.test',
+        identifier: 'admin@pt-sidik.com',
         password: 'password123',
       );
       await tester.pumpAndSettle();
@@ -247,7 +247,7 @@ void main() {
         tester,
         nama: 'Eko Prasetyo',
         employeeId: 'ASM-0099',
-        email: 'eko@ptasmo.com',
+        email: 'eko@pt-sidik.com',
         password: 'password123',
       );
       await tester.pumpAndSettle();
@@ -270,7 +270,7 @@ void main() {
         tester,
         nama: 'Eko Prasetyo',
         employeeId: 'ASM-0098',
-        email: 'eko2@ptasmo.com',
+        email: 'eko2@pt-sidik.com',
         password: 'password123',
       );
       await tester.pumpAndSettle();
@@ -290,7 +290,7 @@ void main() {
         tester,
         nama: 'Budi Kembar',
         employeeId: 'ASM-0097',
-        email: 'admin@asmo.test', // udah ada
+        email: 'admin@pt-sidik.com', // udah ada
         password: 'password123',
       );
       await tester.pumpAndSettle();

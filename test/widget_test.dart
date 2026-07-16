@@ -25,7 +25,7 @@ Widget _appLoggedIn({String? apiBaseUrl}) => ProviderScope(
     ),
     if (apiBaseUrl != null) apiBaseUrlProvider.overrideWithValue(apiBaseUrl),
   ],
-  child: const AsmoApp(),
+  child: const SidikApp(),
 );
 
 void main() {
