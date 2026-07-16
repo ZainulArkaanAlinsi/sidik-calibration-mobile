@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:asmo_mobile/app.dart';
+import 'package:asmo_mobile/widgets/floating_nav_bar.dart';
+import 'package:asmo_mobile/screens/profile/profile_screen.dart';
 import 'package:asmo_mobile/core/config/app_config.dart';
 import 'package:asmo_mobile/providers/app_config_provider.dart';
 import 'package:asmo_mobile/providers/auth_provider.dart';
@@ -34,7 +36,7 @@ void main() {
       await tester.pumpWidget(_appLoggedIn());
       await tester.pumpAndSettle();
 
-      expect(find.byType(NavigationBar), findsOneWidget);
+      expect(find.byType(FloatingNavBar), findsOneWidget);
       for (final label in [
         'Dashboard',
         'Alat',
@@ -72,7 +74,19 @@ void main() {
     await tester.tap(find.text('Profil'));
     await tester.pumpAndSettle();
 
-    expect(find.text('http://localhost:9000/api'), findsOneWidget);
+    // Item ini ada di bawah ListView Profil — di-scroll dulu biar ke-build,
+    // soalnya bottom-nav mengambang bikin viewport lebih pendek.
+    final url = find.text('http://localhost:9000/api');
+    await tester.scrollUntilVisible(
+      url,
+      120,
+      scrollable: find.descendant(
+        of: find.byType(ProfileScreen),
+        matching: find.byType(Scrollable),
+      ),
+    );
+
+    expect(url, findsOneWidget);
   });
 
   test('AppConfig default ke environment dev', () {

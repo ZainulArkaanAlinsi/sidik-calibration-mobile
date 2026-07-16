@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/navigation_provider.dart';
+import '../../widgets/floating_nav_bar.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../equipment/equipment_list_screen.dart';
 import '../history/history_screen.dart';
@@ -21,30 +22,30 @@ class MainShell extends ConsumerWidget {
     ProfileScreen(),
   ];
 
-  static const _destinations = <NavigationDestination>[
-    NavigationDestination(
-      icon: Icon(Icons.space_dashboard_outlined),
-      selectedIcon: Icon(Icons.space_dashboard),
+  static const _items = <FloatingNavItem>[
+    FloatingNavItem(
+      icon: Icons.space_dashboard_outlined,
+      activeIcon: Icons.space_dashboard,
       label: 'Dashboard',
     ),
-    NavigationDestination(
-      icon: Icon(Icons.straighten_outlined),
-      selectedIcon: Icon(Icons.straighten),
+    FloatingNavItem(
+      icon: Icons.straighten_outlined,
+      activeIcon: Icons.straighten,
       label: 'Alat',
     ),
-    NavigationDestination(
-      icon: Icon(Icons.history_outlined),
-      selectedIcon: Icon(Icons.history),
+    FloatingNavItem(
+      icon: Icons.history_outlined,
+      activeIcon: Icons.history,
       label: 'Riwayat',
     ),
-    NavigationDestination(
-      icon: Icon(Icons.notifications_none),
-      selectedIcon: Icon(Icons.notifications),
+    FloatingNavItem(
+      icon: Icons.notifications_none,
+      activeIcon: Icons.notifications,
       label: 'Notifikasi',
     ),
-    NavigationDestination(
-      icon: Icon(Icons.person_outline),
-      selectedIcon: Icon(Icons.person),
+    FloatingNavItem(
+      icon: Icons.person_outline,
+      activeIcon: Icons.person,
       label: 'Profil',
     ),
   ];
@@ -57,10 +58,10 @@ class MainShell extends ConsumerWidget {
       // IndexedStack, bukan ganti-ganti widget: state tiap tab (posisi scroll,
       // isian form) nggak ilang waktu pindah tab.
       body: IndexedStack(index: selected, children: _tabs),
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: FloatingNavBar(
         selectedIndex: selected,
-        onDestinationSelected: ref.read(selectedTabProvider.notifier).select,
-        destinations: _destinations,
+        onSelected: ref.read(selectedTabProvider.notifier).select,
+        items: _items,
       ),
     );
   }
