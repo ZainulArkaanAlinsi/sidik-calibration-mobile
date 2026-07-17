@@ -7,7 +7,7 @@
          picker sistem, nggak butuh permission apa-apa. -->
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
     <application
-        android:label="asmo_mobile"
+        android:label="PT Sidik Calibration"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

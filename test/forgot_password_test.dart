@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:asmo_mobile/app.dart';
-import 'package:asmo_mobile/providers/auth_provider.dart';
-import 'package:asmo_mobile/services/mock_auth_service.dart';
-import 'package:asmo_mobile/services/token_storage.dart';
+import 'package:sidik_calibration/app.dart';
+import 'package:sidik_calibration/providers/auth_provider.dart';
+import 'package:sidik_calibration/services/mock_auth_service.dart';
+import 'package:sidik_calibration/services/token_storage.dart';
 
 ProviderScope _app() => ProviderScope(
   overrides: [

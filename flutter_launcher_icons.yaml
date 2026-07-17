@@ -1,0 +1,10 @@
+# Ikon app dari logo resmi PT Sidik (Lab Calibration).
+# Sumbernya dipadding ke kanvas persegi putih dulu (bukan foto asli
+# 308x430 langsung) — biar nggak kepotong/kegencet di ikon yang persegi.
+# Regenerate: dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  min_sdk_android: 21
+  remove_alpha_ios: true

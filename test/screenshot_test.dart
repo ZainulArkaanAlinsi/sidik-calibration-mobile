@@ -8,19 +8,19 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:asmo_mobile/core/theme/app_theme.dart';
-import 'package:asmo_mobile/l10n/app_localizations.dart';
-import 'package:asmo_mobile/providers/auth_provider.dart';
-import 'package:asmo_mobile/providers/dashboard_provider.dart';
-import 'package:asmo_mobile/screens/auth/login_screen.dart';
-import 'package:asmo_mobile/screens/auth/register_screen.dart';
-import 'package:asmo_mobile/screens/auth/splash_screen.dart';
-import 'package:asmo_mobile/screens/auth/widgets/neu.dart';
-import 'package:asmo_mobile/screens/profile/profile_screen.dart';
-import 'package:asmo_mobile/screens/shell/main_shell.dart';
-import 'package:asmo_mobile/services/dashboard_service.dart';
-import 'package:asmo_mobile/services/mock_auth_service.dart';
-import 'package:asmo_mobile/services/token_storage.dart';
+import 'package:sidik_calibration/core/theme/app_theme.dart';
+import 'package:sidik_calibration/l10n/app_localizations.dart';
+import 'package:sidik_calibration/providers/auth_provider.dart';
+import 'package:sidik_calibration/providers/dashboard_provider.dart';
+import 'package:sidik_calibration/screens/auth/login_screen.dart';
+import 'package:sidik_calibration/screens/auth/register_screen.dart';
+import 'package:sidik_calibration/screens/auth/splash_screen.dart';
+import 'package:sidik_calibration/screens/auth/widgets/neu.dart';
+import 'package:sidik_calibration/screens/profile/profile_screen.dart';
+import 'package:sidik_calibration/screens/shell/main_shell.dart';
+import 'package:sidik_calibration/services/dashboard_service.dart';
+import 'package:sidik_calibration/services/mock_auth_service.dart';
+import 'package:sidik_calibration/services/token_storage.dart';
 
 /// Bikin screenshot layar-layar utama ke `test/screenshots/*.png`.
 ///

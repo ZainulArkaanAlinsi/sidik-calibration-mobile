@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:asmo_mobile/app.dart';
-import 'package:asmo_mobile/models/user.dart';
-import 'package:asmo_mobile/widgets/floating_nav_bar.dart';
-import 'package:asmo_mobile/providers/auth_provider.dart';
-import 'package:asmo_mobile/providers/dashboard_provider.dart';
-import 'package:asmo_mobile/services/dashboard_service.dart';
-import 'package:asmo_mobile/services/mock_auth_service.dart';
-import 'package:asmo_mobile/services/token_storage.dart';
-import 'package:asmo_mobile/screens/profile/profile_screen.dart';
+import 'package:sidik_calibration/app.dart';
+import 'package:sidik_calibration/models/user.dart';
+import 'package:sidik_calibration/widgets/floating_nav_bar.dart';
+import 'package:sidik_calibration/providers/auth_provider.dart';
+import 'package:sidik_calibration/providers/dashboard_provider.dart';
+import 'package:sidik_calibration/services/dashboard_service.dart';
+import 'package:sidik_calibration/services/mock_auth_service.dart';
+import 'package:sidik_calibration/services/token_storage.dart';
+import 'package:sidik_calibration/screens/profile/profile_screen.dart';
 
 /// Test alur UI pakai `MockAuthService` — nggak nembak jaringan.
 /// Sambungan ke API asli diuji terpisah di `api_auth_service_test.dart`
