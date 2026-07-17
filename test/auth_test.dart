@@ -432,7 +432,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Batal = beneran nggak ngapa-ngapain: masih login, token masih ada.
-      expect(find.widgetWithText(AppBar, 'Profil'), findsOneWidget);
+      // Header profil sekarang nggak punya judul di AppBar (foto full-bleed
+      // sampai tepi layar), jadi cek tetap di Profil lewat widget-nya.
+      expect(find.byType(ProfileScreen), findsOneWidget);
       expect(await storage.read(), 'mock-token-1');
     });
 
@@ -470,7 +472,9 @@ void main() {
       // HIDUP. Ngeluarin user dari HP ini doang bikin dia ngira udah aman —
       // padahal belum. Jadi: tetap di Profil, token nggak dibuang, dan
       // gagalnya dibilangin apa adanya biar dia bisa nyoba lagi.
-      expect(find.widgetWithText(AppBar, 'Profil'), findsOneWidget);
+      // Header profil sekarang nggak punya judul di AppBar (foto full-bleed
+      // sampai tepi layar), jadi cek tetap di Profil lewat widget-nya.
+      expect(find.byType(ProfileScreen), findsOneWidget);
       expect(find.text('MASUK'), findsNothing);
       expect(await storage.read(), 'mock-token-1');
       expect(find.textContaining('Gagal nyabut sesi'), findsOneWidget);

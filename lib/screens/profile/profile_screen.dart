@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -36,18 +37,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final sedangLogout = ref.watch(authProvider).isLoading;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.navProfile), centerTitle: true),
+      // Foto hero header harus nyampe ke tepi paling atas layar (nggak ada
+      // judul "Profil" mengambang di atasnya — acuan desainnya juga gitu).
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        systemOverlayStyle: SystemUiOverlayStyle.light,
+      ),
       body: ListView(
         // Padding bawah lega biar item terakhir nggak ketutup bottom-nav
-        // yang mengambang.
+        // yang mengambang. Top sengaja 0 — header foto harus full-bleed.
         padding: const EdgeInsets.only(bottom: 40),
         children: [
           if (user != null) ...[
             _Header(user: user, onEditFoto: _pilihFoto),
-            const SizedBox(height: AppSpacing.lg),
-
-            _JudulSeksi(l10n.profAccountInfo),
-            _KartuInfoAkun(user: user),
             const SizedBox(height: AppSpacing.lg),
           ],
 
@@ -296,15 +301,15 @@ class _JudulSeksi extends StatelessWidget {
   }
 }
 
-/// Header profil ala gambar acuan #2: banner besar (foto HP / gradasi brand)
-/// dengan avatar bulat yang **nongol** di atasnya, terus nama + email + role.
-/// Tinggi dihitung pas (banner + separuh avatar) supaya nggak pernah overflow.
+/// Header profil ala kartu acuan "Tom Chen": foto hero *full-bleed*, avatar
+/// rata kiri numpuk di sambungan foto↔panel putih, nama+email rata kiri,
+/// terus baris statistik 3 kolom (ID Pegawai / Departemen / Role).
 class _Header extends ConsumerWidget {
   const _Header({required this.user, required this.onEditFoto});
 
-  static const _bannerH = 168.0;
-  static const _avatar = 104.0;
-  static const _overlap = 52.0; // separuh avatar nongol di bawah banner
+  static const _fotoH = 260.0;
+  static const _avatar = 96.0;
+  static const _overlap = _avatar / 2; // separuh nongol di foto, separuh di panel
 
   final User user;
   final VoidCallback onEditFoto;
@@ -312,79 +317,196 @@ class _Header extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final fotoPath = ref.watch(avatarPathProvider);
 
-    return Column(
+    return Stack(
+      clipBehavior: Clip.none,
       children: [
-        SizedBox(
-          height: _bannerH + _overlap,
-          child: Stack(
-            clipBehavior: Clip.none,
-            alignment: Alignment.topCenter,
-            children: [
-              // Banner.
-              Container(
-                height: _bannerH,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(30),
-                  ),
-                  gradient: fotoPath == null
-                      ? const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [AppColors.navy, AppColors.teal],
-                        )
-                      : null,
-                  image: fotoPath != null
-                      ? DecorationImage(
-                          image: FileImage(File(fotoPath)),
-                          fit: BoxFit.cover,
-                          colorFilter: ColorFilter.mode(
-                            Colors.black.withValues(alpha: 0.30),
-                            BlendMode.darken,
+        Column(
+          children: [
+            // Foto hero — nyampe tepi layar, disambung `extendBodyBehindAppBar`
+            // di Scaffold biar nembus sampai di bawah status bar.
+            Container(
+              height: _fotoH,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: fotoPath == null
+                    ? const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [AppColors.navy, AppColors.teal],
+                      )
+                    : null,
+                image: fotoPath != null
+                    ? DecorationImage(
+                        image: FileImage(File(fotoPath)),
+                        fit: BoxFit.cover,
+                        colorFilter: ColorFilter.mode(
+                          Colors.black.withValues(alpha: 0.30),
+                          BlendMode.darken,
+                        ),
+                      )
+                    : null,
+              ),
+            ),
+            // Panel putih nutupin bagian bawah foto, sudut atas membulat —
+            // kesan "sheet" yang numpuk di atas foto.
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                _overlap + AppSpacing.md,
+                AppSpacing.lg,
+                AppSpacing.lg,
+              ),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          user.nama,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w800,
                           ),
-                        )
-                      : null,
-                ),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      StatusBadge(
+                        label: user.status.label,
+                        tone: switch (user.status) {
+                          UserStatus.aktif => BadgeTone.success,
+                          UserStatus.pending => BadgeTone.warning,
+                          UserStatus.nonaktif => BadgeTone.neutral,
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    user.email,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  _BarisStatistik(
+                    employeeId: user.employeeId,
+                    department: user.department ?? '—',
+                    roleLabel: user.role.label,
+                    l10n: l10n,
+                  ),
+                ],
               ),
-              // Avatar nongol pas di bibir bawah banner.
-              Positioned(
-                top: _bannerH - _overlap,
-                child: _Avatar(
-                  size: _avatar,
-                  fotoPath: fotoPath,
-                  inisial: user.nama.characters.first,
-                  onTap: onEditFoto,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-        const SizedBox(height: AppSpacing.md),
-        Text(
-          user.nama,
-          textAlign: TextAlign.center,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
+        // Avatar numpuk pas di sambungan foto <-> panel, rata kiri.
+        Positioned(
+          top: _fotoH - _overlap,
+          left: AppSpacing.lg,
+          child: _Avatar(
+            size: _avatar,
+            fotoPath: fotoPath,
+            inisial: user.nama.characters.first,
+            onTap: onEditFoto,
           ),
-        ),
-        const SizedBox(height: 3),
-        Text(
-          user.email,
-          textAlign: TextAlign.center,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        StatusBadge(
-          label: user.role.label,
-          tone: user.role.isAdmin ? BadgeTone.info : BadgeTone.neutral,
-          icon: Icons.badge_outlined,
         ),
       ],
+    );
+  }
+}
+
+/// Baris statistik 3 kolom ala acuan (Article/Views/Followers) — di sini
+/// diisi data asli yang app punya, bukan angka karangan.
+class _BarisStatistik extends StatelessWidget {
+  const _BarisStatistik({
+    required this.employeeId,
+    required this.department,
+    required this.roleLabel,
+    required this.l10n,
+  });
+
+  final String employeeId;
+  final String department;
+  final String roleLabel;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _Statistik(label: l10n.employeeIdLabel, nilai: employeeId),
+        ),
+        const _PemisahVertikal(),
+        Expanded(
+          child: _Statistik(label: l10n.departmentLabel, nilai: department),
+        ),
+        const _PemisahVertikal(),
+        Expanded(
+          child: _Statistik(label: l10n.profRoleLabel, nilai: roleLabel),
+        ),
+      ],
+    );
+  }
+}
+
+class _Statistik extends StatelessWidget {
+  const _Statistik({required this.label, required this.nilai});
+
+  final String label;
+  final String nilai;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Text(
+          nilai,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label.toUpperCase(),
+          textAlign: TextAlign.center,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            letterSpacing: 0.4,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PemisahVertikal extends StatelessWidget {
+  const _PemisahVertikal();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 32,
+      child: VerticalDivider(
+        width: AppSpacing.md,
+        thickness: 1,
+        color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
+      ),
     );
   }
 }
@@ -472,48 +594,6 @@ class _Avatar extends StatelessWidget {
   }
 }
 
-/// Kartu "Info Akun" — baris ikon + label kecil di atas nilai (acuan #3).
-class _KartuInfoAkun extends StatelessWidget {
-  const _KartuInfoAkun({required this.user});
-
-  final User user;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
-    return _Kartu(
-      child: Column(
-        children: [
-          _BarisInfo(
-            icon: Icons.badge_outlined,
-            label: l10n.employeeIdLabel,
-            nilai: user.employeeId,
-          ),
-          const _GarisPemisah(),
-          _BarisInfo(
-            icon: Icons.apartment_outlined,
-            label: l10n.departmentLabel,
-            nilai: user.department ?? '—',
-          ),
-          const _GarisPemisah(),
-          _BarisInfo(
-            icon: Icons.mail_outline,
-            label: l10n.emailLabel,
-            nilai: user.email,
-          ),
-          const _GarisPemisah(),
-          _BarisInfo(
-            icon: Icons.verified_user_outlined,
-            label: l10n.profRoleLabel,
-            nilai: user.role.label,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 /// Kartu putih membulat dengan bayangan halus — wadah semua baris.
 class _Kartu extends StatelessWidget {
   const _Kartu({required this.child});
@@ -588,55 +668,6 @@ class _IkonPetak extends StatelessWidget {
         icon,
         size: 21,
         color: color ?? theme.colorScheme.onSurfaceVariant,
-      ),
-    );
-  }
-}
-
-class _BarisInfo extends StatelessWidget {
-  const _BarisInfo({
-    required this.icon,
-    required this.label,
-    required this.nilai,
-  });
-
-  final IconData icon;
-  final String label;
-  final String nilai;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: 13,
-      ),
-      child: Row(
-        children: [
-          _IkonPetak(icon: icon),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  nilai,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

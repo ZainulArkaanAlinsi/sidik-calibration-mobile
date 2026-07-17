@@ -61,7 +61,9 @@ void main() {
 
       await tester.tap(find.text('Profil'));
       await tester.pumpAndSettle();
-      expect(find.widgetWithText(AppBar, 'Profil'), findsOneWidget);
+      // Profil nggak punya judul AppBar (header foto full-bleed sampai tepi
+      // layar) — cek gantinya lewat widget layarnya.
+      expect(find.byType(ProfileScreen), findsOneWidget);
     });
   });
 
