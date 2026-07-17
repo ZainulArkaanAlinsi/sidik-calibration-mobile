@@ -52,6 +52,16 @@ class MockStandardService implements StandardService {
         satuanKetidakpastian: 'g',
         faktorCakupan: 2,
       ),
+      Standard(
+        id: 3,
+        nama: 'pH Buffer Solution 7',
+        merk: 'Supelco/Merck',
+        serialNumber: 'HC46341939',
+        masihBerlaku: true,
+        ketidakpastian: 0.02,
+        satuanKetidakpastian: 'pH',
+        faktorCakupan: 2,
+      ),
     ];
   }
 }

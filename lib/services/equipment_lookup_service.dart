@@ -67,6 +67,13 @@ class MockEquipmentLookupService implements EquipmentLookupService {
         kategori: 'massa',
         status: 'overdue',
       ),
+      EquipmentLookup(
+        id: 14,
+        namaAlat: 'pH Meter Mettler Toledo',
+        serialNumber: 'B628755900',
+        kategori: 'instrumen-analitik',
+        status: 'aktif',
+      ),
     ];
 
     return semua.where((e) {

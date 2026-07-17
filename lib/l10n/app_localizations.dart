@@ -1304,6 +1304,108 @@ abstract class AppLocalizations {
   /// **'RETRY'**
   String get calibRetry;
 
+  /// No description provided for @phCalibTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'pH Meter Calibration'**
+  String get phCalibTitle;
+
+  /// No description provided for @phCalibThermohygro.
+  ///
+  /// In en, this message translates to:
+  /// **'Thermohygrometer used'**
+  String get phCalibThermohygro;
+
+  /// No description provided for @phCalibThermohygroHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. TH-3'**
+  String get phCalibThermohygroHint;
+
+  /// No description provided for @phCalibKondisiLingkungan.
+  ///
+  /// In en, this message translates to:
+  /// **'Environmental Conditions'**
+  String get phCalibKondisiLingkungan;
+
+  /// No description provided for @phCalibSuhuAwal.
+  ///
+  /// In en, this message translates to:
+  /// **'Start temperature (°C)'**
+  String get phCalibSuhuAwal;
+
+  /// No description provided for @phCalibSuhuAkhir.
+  ///
+  /// In en, this message translates to:
+  /// **'End temperature (°C)'**
+  String get phCalibSuhuAkhir;
+
+  /// No description provided for @phCalibKelembabanAwal.
+  ///
+  /// In en, this message translates to:
+  /// **'Start humidity (%)'**
+  String get phCalibKelembabanAwal;
+
+  /// No description provided for @phCalibKelembabanAkhir.
+  ///
+  /// In en, this message translates to:
+  /// **'End humidity (%)'**
+  String get phCalibKelembabanAkhir;
+
+  /// No description provided for @phCalibTitikBuffer.
+  ///
+  /// In en, this message translates to:
+  /// **'pH {label} buffer'**
+  String phCalibTitikBuffer(String label);
+
+  /// No description provided for @phCalibNilaiStandar.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard value (certificate)'**
+  String get phCalibNilaiStandar;
+
+  /// No description provided for @phCalibSebelumAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Before adjustment (as found)'**
+  String get phCalibSebelumAdjustment;
+
+  /// No description provided for @phCalibSesudahAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'After adjustment (as left)'**
+  String get phCalibSesudahAdjustment;
+
+  /// No description provided for @phCalibPembacaanKe.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading {index}'**
+  String phCalibPembacaanKe(int index);
+
+  /// No description provided for @phCalibSuhu.
+  ///
+  /// In en, this message translates to:
+  /// **'Temp.'**
+  String get phCalibSuhu;
+
+  /// No description provided for @phCalibValidasiLingkungan.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in the environmental conditions (temperature & humidity) first.'**
+  String get phCalibValidasiLingkungan;
+
+  /// No description provided for @phCalibValidasiPembacaan.
+  ///
+  /// In en, this message translates to:
+  /// **'Each buffer point needs 5 valid after-adjustment readings.'**
+  String get phCalibValidasiPembacaan;
+
+  /// No description provided for @dashStartPhCalibration.
+  ///
+  /// In en, this message translates to:
+  /// **'PH METER CALIBRATION'**
+  String get dashStartPhCalibration;
+
   /// No description provided for @notifEmptyTitle.
   ///
   /// In en, this message translates to:

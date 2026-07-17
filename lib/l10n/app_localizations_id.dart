@@ -658,6 +658,63 @@ class AppLocalizationsId extends AppLocalizations {
   String get calibRetry => 'COBA LAGI';
 
   @override
+  String get phCalibTitle => 'Kalibrasi pH Meter';
+
+  @override
+  String get phCalibThermohygro => 'Thermohygro dipakai';
+
+  @override
+  String get phCalibThermohygroHint => 'mis. TH-3';
+
+  @override
+  String get phCalibKondisiLingkungan => 'Kondisi Lingkungan';
+
+  @override
+  String get phCalibSuhuAwal => 'Suhu awal (°C)';
+
+  @override
+  String get phCalibSuhuAkhir => 'Suhu akhir (°C)';
+
+  @override
+  String get phCalibKelembabanAwal => 'Kelembaban awal (%)';
+
+  @override
+  String get phCalibKelembabanAkhir => 'Kelembaban akhir (%)';
+
+  @override
+  String phCalibTitikBuffer(String label) {
+    return 'Buffer pH $label';
+  }
+
+  @override
+  String get phCalibNilaiStandar => 'Nilai standar (sertifikat)';
+
+  @override
+  String get phCalibSebelumAdjustment => 'Sebelum adjustment (as found)';
+
+  @override
+  String get phCalibSesudahAdjustment => 'Sesudah adjustment (as left)';
+
+  @override
+  String phCalibPembacaanKe(int index) {
+    return 'Bacaan $index';
+  }
+
+  @override
+  String get phCalibSuhu => 'Suhu';
+
+  @override
+  String get phCalibValidasiLingkungan =>
+      'Isi kondisi lingkungan (suhu & kelembaban) dulu.';
+
+  @override
+  String get phCalibValidasiPembacaan =>
+      'Tiap titik buffer wajib 5 pembacaan sesudah adjustment yang valid.';
+
+  @override
+  String get dashStartPhCalibration => 'KALIBRASI pH METER';
+
+  @override
   String get notifEmptyTitle => 'Belum ada notifikasi';
 
   @override

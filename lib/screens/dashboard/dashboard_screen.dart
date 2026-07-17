@@ -14,6 +14,7 @@ import '../../widgets/skeleton.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/status_badge.dart';
 import '../calibration/calibration_input_screen.dart';
+import '../calibration/ph_calibration_input_screen.dart';
 
 /// Dashboard — 4 state sesuai task 21 Jul:
 /// `loading` (skeleton) · `empty` (belum ada apa-apa) · `normal` (angka) ·
@@ -145,6 +146,22 @@ class _Isi extends ConsumerWidget {
                     onPressed: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (_) => const CalibrationInputScreen(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  // Prioritas atasan: pH Meter digarap duluan, jadi punya
+                  // pintu masuk sendiri (bukan lewat dropdown kategori di
+                  // form generik) — form-nya juga jauh lebih spesifik
+                  // (kondisi lingkungan awal/akhir, 3 titik buffer x 5
+                  // pembacaan before/after adjustment).
+                  AppButton(
+                    label: l10n.dashStartPhCalibration,
+                    icon: Icons.science_outlined,
+                    variant: AppButtonVariant.secondary,
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const PhCalibrationInputScreen(),
                       ),
                     ),
                   ),

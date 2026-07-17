@@ -662,6 +662,63 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calibRetry => 'RETRY';
 
   @override
+  String get phCalibTitle => 'pH Meter Calibration';
+
+  @override
+  String get phCalibThermohygro => 'Thermohygrometer used';
+
+  @override
+  String get phCalibThermohygroHint => 'e.g. TH-3';
+
+  @override
+  String get phCalibKondisiLingkungan => 'Environmental Conditions';
+
+  @override
+  String get phCalibSuhuAwal => 'Start temperature (°C)';
+
+  @override
+  String get phCalibSuhuAkhir => 'End temperature (°C)';
+
+  @override
+  String get phCalibKelembabanAwal => 'Start humidity (%)';
+
+  @override
+  String get phCalibKelembabanAkhir => 'End humidity (%)';
+
+  @override
+  String phCalibTitikBuffer(String label) {
+    return 'pH $label buffer';
+  }
+
+  @override
+  String get phCalibNilaiStandar => 'Standard value (certificate)';
+
+  @override
+  String get phCalibSebelumAdjustment => 'Before adjustment (as found)';
+
+  @override
+  String get phCalibSesudahAdjustment => 'After adjustment (as left)';
+
+  @override
+  String phCalibPembacaanKe(int index) {
+    return 'Reading $index';
+  }
+
+  @override
+  String get phCalibSuhu => 'Temp.';
+
+  @override
+  String get phCalibValidasiLingkungan =>
+      'Fill in the environmental conditions (temperature & humidity) first.';
+
+  @override
+  String get phCalibValidasiPembacaan =>
+      'Each buffer point needs 5 valid after-adjustment readings.';
+
+  @override
+  String get dashStartPhCalibration => 'PH METER CALIBRATION';
+
+  @override
   String get notifEmptyTitle => 'No notifications yet';
 
   @override

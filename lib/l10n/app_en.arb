@@ -300,6 +300,34 @@
   "calibLoadPilihanGagal": "Couldn't load category/standard options.",
   "calibRetry": "RETRY",
 
+  "phCalibTitle": "pH Meter Calibration",
+  "phCalibThermohygro": "Thermohygrometer used",
+  "phCalibThermohygroHint": "e.g. TH-3",
+  "phCalibKondisiLingkungan": "Environmental Conditions",
+  "phCalibSuhuAwal": "Start temperature (°C)",
+  "phCalibSuhuAkhir": "End temperature (°C)",
+  "phCalibKelembabanAwal": "Start humidity (%)",
+  "phCalibKelembabanAkhir": "End humidity (%)",
+  "phCalibTitikBuffer": "pH {label} buffer",
+  "@phCalibTitikBuffer": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "phCalibNilaiStandar": "Standard value (certificate)",
+  "phCalibSebelumAdjustment": "Before adjustment (as found)",
+  "phCalibSesudahAdjustment": "After adjustment (as left)",
+  "phCalibPembacaanKe": "Reading {index}",
+  "@phCalibPembacaanKe": {
+    "placeholders": {
+      "index": { "type": "int" }
+    }
+  },
+  "phCalibSuhu": "Temp.",
+  "phCalibValidasiLingkungan": "Fill in the environmental conditions (temperature & humidity) first.",
+  "phCalibValidasiPembacaan": "Each buffer point needs 5 valid after-adjustment readings.",
+  "dashStartPhCalibration": "PH METER CALIBRATION",
+
   "notifEmptyTitle": "No notifications yet",
   "notifEmptyBody": "Due-date reminders & approval updates will show up here.",
   "notifLoadFailed": "Couldn't load notifications.",
