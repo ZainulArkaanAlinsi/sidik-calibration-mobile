@@ -132,8 +132,60 @@
     }
   },
 
-  "equipmentPlaceholderTitle": "Device List",
-  "equipmentPlaceholderBody": "Measuring devices by category, plus an add/edit device form. Planned for week 3.",
+  "equipmentSearchHint": "Search device name or serial number",
+  "equipmentCategoryAll": "All Categories",
+  "equipmentStatusAll": "All Statuses",
+  "equipmentLoadFailed": "Couldn't load the device list.",
+  "equipmentNoResultsTitle": "No matches",
+  "equipmentNoResultsBody": "Try a different keyword or filter.",
+  "equipmentDueDatePrefix": "Due",
+
+  "equipmentFormTitleAdd": "Add Device",
+  "equipmentFormTitleEdit": "Edit Device",
+  "equipmentSectionIdentity": "Device Identity",
+  "equipmentSectionAdditional": "Additional Details (Optional)",
+  "equipmentNameLabel": "Device Name",
+  "equipmentNameHint": "e.g. Mitutoyo Caliper",
+  "equipmentNameRequired": "Device name is required.",
+  "equipmentSerialLabel": "Serial Number",
+  "equipmentSerialHint": "e.g. MT-500-196-30",
+  "equipmentSerialRequired": "Serial number is required.",
+  "equipmentBrandLabel": "Brand",
+  "equipmentBrandHint": "e.g. Mitutoyo",
+  "equipmentBrandRequired": "Brand is required.",
+  "equipmentCategoryLabel": "Category",
+  "equipmentCategoryRequired": "Pick a category first.",
+  "equipmentStatusLabel": "Status",
+  "equipmentStatusActive": "Active",
+  "equipmentStatusInactive": "Inactive",
+  "equipmentToleranceLabel": "Tolerance",
+  "equipmentToleranceHint": "optional",
+  "equipmentCustomerLabel": "Customer",
+  "equipmentCustomerHint": "Search customer",
+  "equipmentCustomerIdLabel": "Customer ID (optional)",
+  "equipmentCustomerIdHelper": "Only admins can search customers by name. Fill in the ID if you know it, or leave it blank for now.",
+  "equipmentCustomerNone": "No customer yet",
+  "equipmentSubmitAdd": "SAVE DEVICE",
+  "equipmentSubmitEdit": "SAVE CHANGES",
+  "equipmentDelete": "Delete Device",
+  "equipmentDeleteConfirmTitle": "Delete this device?",
+  "equipmentDeleteConfirmBody": "The device and its calibration history can't be recovered.",
+  "equipmentDeleteConfirmAction": "DELETE",
+  "equipmentSaved": "Device saved successfully.",
+  "equipmentDeleted": "Device deleted successfully.",
+  "equipmentSaveFailed": "Couldn't save: {message}",
+  "@equipmentSaveFailed": {
+    "placeholders": {
+      "message": { "type": "String" }
+    }
+  },
+  "equipmentDeleteFailed": "Couldn't delete: {message}",
+  "@equipmentDeleteFailed": {
+    "placeholders": {
+      "message": { "type": "String" }
+    }
+  },
+
   "historyPlaceholderTitle": "Calibration History",
   "historyPlaceholderBody": "History of calibration sessions & issued certificates. Planned for week 9.",
   "notificationPlaceholderTitle": "Notifications",

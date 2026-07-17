@@ -333,11 +333,136 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get equipmentPlaceholderTitle => 'Daftar Alat';
+  String get equipmentSearchHint => 'Cari nama alat atau nomor seri';
 
   @override
-  String get equipmentPlaceholderBody =>
-      'Daftar alat ukur per kategori, plus form tambah/edit alat. Digarap minggu 3.';
+  String get equipmentCategoryAll => 'Semua Kategori';
+
+  @override
+  String get equipmentStatusAll => 'Semua Status';
+
+  @override
+  String get equipmentLoadFailed => 'Gagal memuat daftar alat.';
+
+  @override
+  String get equipmentNoResultsTitle => 'Nggak ketemu';
+
+  @override
+  String get equipmentNoResultsBody => 'Coba kata kunci atau filter lain.';
+
+  @override
+  String get equipmentDueDatePrefix => 'Jatuh tempo';
+
+  @override
+  String get equipmentFormTitleAdd => 'Tambah Alat';
+
+  @override
+  String get equipmentFormTitleEdit => 'Ubah Alat';
+
+  @override
+  String get equipmentSectionIdentity => 'Identitas Alat';
+
+  @override
+  String get equipmentSectionAdditional => 'Detail Tambahan (Opsional)';
+
+  @override
+  String get equipmentNameLabel => 'Nama Alat';
+
+  @override
+  String get equipmentNameHint => 'mis. Jangka Sorong Mitutoyo';
+
+  @override
+  String get equipmentNameRequired => 'Nama alat wajib diisi.';
+
+  @override
+  String get equipmentSerialLabel => 'Nomor Seri';
+
+  @override
+  String get equipmentSerialHint => 'mis. MT-500-196-30';
+
+  @override
+  String get equipmentSerialRequired => 'Nomor seri wajib diisi.';
+
+  @override
+  String get equipmentBrandLabel => 'Merk';
+
+  @override
+  String get equipmentBrandHint => 'mis. Mitutoyo';
+
+  @override
+  String get equipmentBrandRequired => 'Merk wajib diisi.';
+
+  @override
+  String get equipmentCategoryLabel => 'Kategori';
+
+  @override
+  String get equipmentCategoryRequired => 'Pilih kategori dulu.';
+
+  @override
+  String get equipmentStatusLabel => 'Status';
+
+  @override
+  String get equipmentStatusActive => 'Aktif';
+
+  @override
+  String get equipmentStatusInactive => 'Nonaktif';
+
+  @override
+  String get equipmentToleranceLabel => 'Toleransi';
+
+  @override
+  String get equipmentToleranceHint => 'opsional';
+
+  @override
+  String get equipmentCustomerLabel => 'Pelanggan';
+
+  @override
+  String get equipmentCustomerHint => 'Cari pelanggan';
+
+  @override
+  String get equipmentCustomerIdLabel => 'ID Pelanggan (opsional)';
+
+  @override
+  String get equipmentCustomerIdHelper =>
+      'Cuma admin yang bisa cari nama pelanggan. Isi ID kalau tahu, atau biarin kosong dulu.';
+
+  @override
+  String get equipmentCustomerNone => 'Belum ada pelanggan';
+
+  @override
+  String get equipmentSubmitAdd => 'SIMPAN ALAT';
+
+  @override
+  String get equipmentSubmitEdit => 'SIMPAN PERUBAHAN';
+
+  @override
+  String get equipmentDelete => 'Hapus Alat';
+
+  @override
+  String get equipmentDeleteConfirmTitle => 'Hapus alat ini?';
+
+  @override
+  String get equipmentDeleteConfirmBody =>
+      'Alat dan riwayat kalibrasinya nggak bisa dikembalikan lagi.';
+
+  @override
+  String get equipmentDeleteConfirmAction => 'HAPUS';
+
+  @override
+  String get equipmentSaved => 'Alat berhasil disimpan.';
+
+  @override
+  String get equipmentDeleted => 'Alat berhasil dihapus.';
+
+  @override
+  String equipmentSaveFailed(String message) {
+    return 'Gagal nyimpen: $message';
+  }
+
+  @override
+  String equipmentDeleteFailed(String message) {
+    return 'Gagal menghapus: $message';
+  }
 
   @override
   String get historyPlaceholderTitle => 'Riwayat Kalibrasi';
