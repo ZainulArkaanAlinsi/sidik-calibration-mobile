@@ -9,7 +9,11 @@ import 'package:asmo_mobile/core/config/app_config.dart';
 import 'package:asmo_mobile/providers/app_config_provider.dart';
 import 'package:asmo_mobile/providers/auth_provider.dart';
 import 'package:asmo_mobile/providers/dashboard_provider.dart';
+import 'package:asmo_mobile/providers/equipment_provider.dart';
+import 'package:asmo_mobile/services/category_service.dart';
+import 'package:asmo_mobile/services/customer_service.dart';
 import 'package:asmo_mobile/services/dashboard_service.dart';
+import 'package:asmo_mobile/services/equipment_service.dart';
 import 'package:asmo_mobile/services/mock_auth_service.dart';
 import 'package:asmo_mobile/services/token_storage.dart';
 
@@ -25,6 +29,11 @@ Widget _appLoggedIn({String? apiBaseUrl}) => ProviderScope(
     dashboardServiceProvider.overrideWithValue(
       MockDashboardService(jeda: Duration.zero),
     ),
+    equipmentServiceProvider.overrideWithValue(
+      MockEquipmentService(jeda: Duration.zero),
+    ),
+    categoryServiceProvider.overrideWithValue(const MockCategoryService()),
+    customerServiceProvider.overrideWithValue(const MockCustomerService()),
     if (apiBaseUrl != null) apiBaseUrlProvider.overrideWithValue(apiBaseUrl),
   ],
   child: const SidikApp(),
@@ -57,7 +66,9 @@ void main() {
       await tester.tap(find.text('Alat'));
       await tester.pumpAndSettle();
       expect(find.widgetWithText(AppBar, 'Alat'), findsOneWidget);
-      expect(find.text('Daftar Alat'), findsOneWidget);
+      // Placeholder lama diganti layar Alat beneran — cek lewat salah satu
+      // alat ke-seed, bukan teks placeholder yang udah nggak ada.
+      expect(find.text('Jangka Sorong Mitutoyo'), findsOneWidget);
 
       await tester.tap(find.text('Profil'));
       await tester.pumpAndSettle();

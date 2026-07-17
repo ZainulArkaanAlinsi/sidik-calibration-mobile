@@ -307,7 +307,7 @@ class _JudulSeksi extends StatelessWidget {
 class _Header extends ConsumerWidget {
   const _Header({required this.user, required this.onEditFoto});
 
-  static const _fotoH = 260.0;
+  static const _fotoH = 256.0; // kelipatan 8 (8-point grid).
   static const _avatar = 96.0;
   static const _overlap = _avatar / 2; // separuh nongol di foto, separuh di panel
 

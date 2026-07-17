@@ -334,11 +334,136 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get equipmentPlaceholderTitle => 'Device List';
+  String get equipmentSearchHint => 'Search device name or serial number';
 
   @override
-  String get equipmentPlaceholderBody =>
-      'Measuring devices by category, plus an add/edit device form. Planned for week 3.';
+  String get equipmentCategoryAll => 'All Categories';
+
+  @override
+  String get equipmentStatusAll => 'All Statuses';
+
+  @override
+  String get equipmentLoadFailed => 'Couldn\'t load the device list.';
+
+  @override
+  String get equipmentNoResultsTitle => 'No matches';
+
+  @override
+  String get equipmentNoResultsBody => 'Try a different keyword or filter.';
+
+  @override
+  String get equipmentDueDatePrefix => 'Due';
+
+  @override
+  String get equipmentFormTitleAdd => 'Add Device';
+
+  @override
+  String get equipmentFormTitleEdit => 'Edit Device';
+
+  @override
+  String get equipmentSectionIdentity => 'Device Identity';
+
+  @override
+  String get equipmentSectionAdditional => 'Additional Details (Optional)';
+
+  @override
+  String get equipmentNameLabel => 'Device Name';
+
+  @override
+  String get equipmentNameHint => 'e.g. Mitutoyo Caliper';
+
+  @override
+  String get equipmentNameRequired => 'Device name is required.';
+
+  @override
+  String get equipmentSerialLabel => 'Serial Number';
+
+  @override
+  String get equipmentSerialHint => 'e.g. MT-500-196-30';
+
+  @override
+  String get equipmentSerialRequired => 'Serial number is required.';
+
+  @override
+  String get equipmentBrandLabel => 'Brand';
+
+  @override
+  String get equipmentBrandHint => 'e.g. Mitutoyo';
+
+  @override
+  String get equipmentBrandRequired => 'Brand is required.';
+
+  @override
+  String get equipmentCategoryLabel => 'Category';
+
+  @override
+  String get equipmentCategoryRequired => 'Pick a category first.';
+
+  @override
+  String get equipmentStatusLabel => 'Status';
+
+  @override
+  String get equipmentStatusActive => 'Active';
+
+  @override
+  String get equipmentStatusInactive => 'Inactive';
+
+  @override
+  String get equipmentToleranceLabel => 'Tolerance';
+
+  @override
+  String get equipmentToleranceHint => 'optional';
+
+  @override
+  String get equipmentCustomerLabel => 'Customer';
+
+  @override
+  String get equipmentCustomerHint => 'Search customer';
+
+  @override
+  String get equipmentCustomerIdLabel => 'Customer ID (optional)';
+
+  @override
+  String get equipmentCustomerIdHelper =>
+      'Only admins can search customers by name. Fill in the ID if you know it, or leave it blank for now.';
+
+  @override
+  String get equipmentCustomerNone => 'No customer yet';
+
+  @override
+  String get equipmentSubmitAdd => 'SAVE DEVICE';
+
+  @override
+  String get equipmentSubmitEdit => 'SAVE CHANGES';
+
+  @override
+  String get equipmentDelete => 'Delete Device';
+
+  @override
+  String get equipmentDeleteConfirmTitle => 'Delete this device?';
+
+  @override
+  String get equipmentDeleteConfirmBody =>
+      'The device and its calibration history can\'t be recovered.';
+
+  @override
+  String get equipmentDeleteConfirmAction => 'DELETE';
+
+  @override
+  String get equipmentSaved => 'Device saved successfully.';
+
+  @override
+  String get equipmentDeleted => 'Device deleted successfully.';
+
+  @override
+  String equipmentSaveFailed(String message) {
+    return 'Couldn\'t save: $message';
+  }
+
+  @override
+  String equipmentDeleteFailed(String message) {
+    return 'Couldn\'t delete: $message';
+  }
 
   @override
   String get historyPlaceholderTitle => 'Calibration History';

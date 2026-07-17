@@ -716,17 +716,257 @@ abstract class AppLocalizations {
   /// **'Couldn\'t revoke sessions: {message}'**
   String profRevokeFailed(String message);
 
-  /// No description provided for @equipmentPlaceholderTitle.
+  /// No description provided for @equipmentSearchHint.
   ///
   /// In en, this message translates to:
-  /// **'Device List'**
-  String get equipmentPlaceholderTitle;
+  /// **'Search device name or serial number'**
+  String get equipmentSearchHint;
 
-  /// No description provided for @equipmentPlaceholderBody.
+  /// No description provided for @equipmentCategoryAll.
   ///
   /// In en, this message translates to:
-  /// **'Measuring devices by category, plus an add/edit device form. Planned for week 3.'**
-  String get equipmentPlaceholderBody;
+  /// **'All Categories'**
+  String get equipmentCategoryAll;
+
+  /// No description provided for @equipmentStatusAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All Statuses'**
+  String get equipmentStatusAll;
+
+  /// No description provided for @equipmentLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the device list.'**
+  String get equipmentLoadFailed;
+
+  /// No description provided for @equipmentNoResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches'**
+  String get equipmentNoResultsTitle;
+
+  /// No description provided for @equipmentNoResultsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different keyword or filter.'**
+  String get equipmentNoResultsBody;
+
+  /// No description provided for @equipmentDueDatePrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Due'**
+  String get equipmentDueDatePrefix;
+
+  /// No description provided for @equipmentFormTitleAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Device'**
+  String get equipmentFormTitleAdd;
+
+  /// No description provided for @equipmentFormTitleEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Device'**
+  String get equipmentFormTitleEdit;
+
+  /// No description provided for @equipmentSectionIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Device Identity'**
+  String get equipmentSectionIdentity;
+
+  /// No description provided for @equipmentSectionAdditional.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional Details (Optional)'**
+  String get equipmentSectionAdditional;
+
+  /// No description provided for @equipmentNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Device Name'**
+  String get equipmentNameLabel;
+
+  /// No description provided for @equipmentNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Mitutoyo Caliper'**
+  String get equipmentNameHint;
+
+  /// No description provided for @equipmentNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Device name is required.'**
+  String get equipmentNameRequired;
+
+  /// No description provided for @equipmentSerialLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial Number'**
+  String get equipmentSerialLabel;
+
+  /// No description provided for @equipmentSerialHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. MT-500-196-30'**
+  String get equipmentSerialHint;
+
+  /// No description provided for @equipmentSerialRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number is required.'**
+  String get equipmentSerialRequired;
+
+  /// No description provided for @equipmentBrandLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand'**
+  String get equipmentBrandLabel;
+
+  /// No description provided for @equipmentBrandHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Mitutoyo'**
+  String get equipmentBrandHint;
+
+  /// No description provided for @equipmentBrandRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand is required.'**
+  String get equipmentBrandRequired;
+
+  /// No description provided for @equipmentCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get equipmentCategoryLabel;
+
+  /// No description provided for @equipmentCategoryRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a category first.'**
+  String get equipmentCategoryRequired;
+
+  /// No description provided for @equipmentStatusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get equipmentStatusLabel;
+
+  /// No description provided for @equipmentStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get equipmentStatusActive;
+
+  /// No description provided for @equipmentStatusInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get equipmentStatusInactive;
+
+  /// No description provided for @equipmentToleranceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tolerance'**
+  String get equipmentToleranceLabel;
+
+  /// No description provided for @equipmentToleranceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'optional'**
+  String get equipmentToleranceHint;
+
+  /// No description provided for @equipmentCustomerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get equipmentCustomerLabel;
+
+  /// No description provided for @equipmentCustomerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search customer'**
+  String get equipmentCustomerHint;
+
+  /// No description provided for @equipmentCustomerIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer ID (optional)'**
+  String get equipmentCustomerIdLabel;
+
+  /// No description provided for @equipmentCustomerIdHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Only admins can search customers by name. Fill in the ID if you know it, or leave it blank for now.'**
+  String get equipmentCustomerIdHelper;
+
+  /// No description provided for @equipmentCustomerNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No customer yet'**
+  String get equipmentCustomerNone;
+
+  /// No description provided for @equipmentSubmitAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE DEVICE'**
+  String get equipmentSubmitAdd;
+
+  /// No description provided for @equipmentSubmitEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE CHANGES'**
+  String get equipmentSubmitEdit;
+
+  /// No description provided for @equipmentDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Device'**
+  String get equipmentDelete;
+
+  /// No description provided for @equipmentDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this device?'**
+  String get equipmentDeleteConfirmTitle;
+
+  /// No description provided for @equipmentDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The device and its calibration history can\'t be recovered.'**
+  String get equipmentDeleteConfirmBody;
+
+  /// No description provided for @equipmentDeleteConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'DELETE'**
+  String get equipmentDeleteConfirmAction;
+
+  /// No description provided for @equipmentSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Device saved successfully.'**
+  String get equipmentSaved;
+
+  /// No description provided for @equipmentDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Device deleted successfully.'**
+  String get equipmentDeleted;
+
+  /// No description provided for @equipmentSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save: {message}'**
+  String equipmentSaveFailed(String message);
+
+  /// No description provided for @equipmentDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t delete: {message}'**
+  String equipmentDeleteFailed(String message);
 
   /// No description provided for @historyPlaceholderTitle.
   ///
