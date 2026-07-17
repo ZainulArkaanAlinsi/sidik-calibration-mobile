@@ -273,10 +273,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profUserManagementSub => 'Planned for phase 3';
 
   @override
-  String get profMasterData => 'Company & Customer Master Data';
+  String get profOrgData => 'Organization Data';
 
   @override
-  String get profMasterDataSub => 'Planned for week 2';
+  String get profOrgDataSub =>
+      'Name, address & accreditation no. printed on certificates';
+
+  @override
+  String get profCustomers => 'Customers';
+
+  @override
+  String get profCustomersSub => 'Manage the lab\'s customer list';
 
   @override
   String get profDesignSystem => 'Design System';
@@ -376,6 +383,283 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get historyStatusPerluRevisi => 'Needs revision';
+
+  @override
+  String get historyApprove => 'APPROVE';
+
+  @override
+  String get historyReject => 'REJECT';
+
+  @override
+  String historyApproveFailed(String pesan) {
+    return 'Couldn\'t approve: $pesan';
+  }
+
+  @override
+  String get historyRejectDialogTitle => 'Reject this calibration session?';
+
+  @override
+  String get historyRejectDialogHint =>
+      'Rejection reason (required, the technician will see this)';
+
+  @override
+  String get historyRejectDialogSubmit => 'REJECT SESSION';
+
+  @override
+  String get historyRejectDialogCancel => 'Cancel';
+
+  @override
+  String get historyRejectDialogEmpty => 'Rejection reason is required.';
+
+  @override
+  String historyRejectFailed(String pesan) {
+    return 'Couldn\'t reject: $pesan';
+  }
+
+  @override
+  String historyCatatanRevisi(String catatan) {
+    return 'Revision note: $catatan';
+  }
+
+  @override
+  String get historyViewCertificate => 'View certificate';
+
+  @override
+  String get certTitle => 'Certificate';
+
+  @override
+  String get certLoadFailed => 'Couldn\'t load certificate.';
+
+  @override
+  String get certStatusMenungguGenerate => 'Still generating, hang on';
+
+  @override
+  String get certStatusGagal => 'Generation failed';
+
+  @override
+  String get certRetry => 'RETRY GENERATE';
+
+  @override
+  String get certOpenPdf => 'COPY PDF LINK';
+
+  @override
+  String get certPdfUrlCopied => 'PDF link copied to clipboard.';
+
+  @override
+  String certQrToken(String token) {
+    return 'QR token: $token';
+  }
+
+  @override
+  String get orgTitle => 'Organization Data';
+
+  @override
+  String get orgNama => 'Company name';
+
+  @override
+  String get orgAlamat => 'Address';
+
+  @override
+  String get orgTelepon => 'Phone';
+
+  @override
+  String get orgEmail => 'Email';
+
+  @override
+  String get orgNoAkreditasi => 'Accreditation no.';
+
+  @override
+  String get orgSave => 'SAVE';
+
+  @override
+  String get orgSaved => 'Organization data saved.';
+
+  @override
+  String orgSaveFailed(String pesan) {
+    return 'Couldn\'t save: $pesan';
+  }
+
+  @override
+  String get orgLoadFailed => 'Couldn\'t load organization data.';
+
+  @override
+  String get orgRetry => 'RETRY';
+
+  @override
+  String get custTitle => 'Customers';
+
+  @override
+  String get custSearchHint => 'Search customer name';
+
+  @override
+  String get custEmptyTitle => 'No customers yet';
+
+  @override
+  String get custEmptyBody => 'Add your first customer using the button below.';
+
+  @override
+  String get custLoadFailed => 'Couldn\'t load customers.';
+
+  @override
+  String get custRetry => 'RETRY';
+
+  @override
+  String get custAdd => 'ADD CUSTOMER';
+
+  @override
+  String get custEdit => 'Edit customer';
+
+  @override
+  String get custNama => 'Customer name';
+
+  @override
+  String get custAlamat => 'Address';
+
+  @override
+  String get custContactPerson => 'Contact person';
+
+  @override
+  String get custTelepon => 'Phone';
+
+  @override
+  String get custEmail => 'Email';
+
+  @override
+  String get custSave => 'SAVE';
+
+  @override
+  String get custCancel => 'Cancel';
+
+  @override
+  String get custDelete => 'Delete';
+
+  @override
+  String get custDeleteConfirmTitle => 'Delete customer?';
+
+  @override
+  String custDeleteConfirmBody(String nama) {
+    return '\"$nama\" will be permanently deleted.';
+  }
+
+  @override
+  String custDeleteFailed(String pesan) {
+    return 'Couldn\'t delete: $pesan';
+  }
+
+  @override
+  String custSaveFailed(String pesan) {
+    return 'Couldn\'t save: $pesan';
+  }
+
+  @override
+  String custEquipmentCount(int jumlah) {
+    return '$jumlah devices';
+  }
+
+  @override
+  String get custFieldRequired => 'Required.';
+
+  @override
+  String get calibTitle => 'Calibration Input';
+
+  @override
+  String get calibKategori => 'Category';
+
+  @override
+  String get calibKategoriHint => 'Choose a device category';
+
+  @override
+  String get calibAlat => 'Device';
+
+  @override
+  String get calibAlatHint => 'Choose a device';
+
+  @override
+  String get calibAlatKosong => 'No devices in this category.';
+
+  @override
+  String get calibStandar => 'Reference Standard';
+
+  @override
+  String get calibStandarHint => 'Choose a reference standard';
+
+  @override
+  String get calibStandarKadaluarsa => 'expired';
+
+  @override
+  String get calibTanggal => 'Calibration date';
+
+  @override
+  String get calibSuhuRuang => 'Room temperature (°C)';
+
+  @override
+  String get calibKelembaban => 'Humidity (%)';
+
+  @override
+  String calibTitikUkur(int index) {
+    return 'Measurement point $index';
+  }
+
+  @override
+  String get calibNilaiTarget => 'Target value';
+
+  @override
+  String get calibSatuan => 'Unit';
+
+  @override
+  String calibPembacaan(int index) {
+    return 'Reading $index';
+  }
+
+  @override
+  String get calibTambahTitik => 'ADD MEASUREMENT POINT';
+
+  @override
+  String get calibHapusTitik => 'Remove measurement point';
+
+  @override
+  String get calibTambahPembacaan => '+ Add reading';
+
+  @override
+  String get calibValidasiKategori => 'Choose a category first.';
+
+  @override
+  String get calibValidasiAlat => 'Choose a device first.';
+
+  @override
+  String get calibValidasiStandar => 'Choose a reference standard first.';
+
+  @override
+  String get calibValidasiAngka => 'Enter a valid number.';
+
+  @override
+  String get calibValidasiPembacaan =>
+      'Each measurement point needs at least 2 numeric readings.';
+
+  @override
+  String get calibSimpanDraft => 'SAVE DRAFT';
+
+  @override
+  String get calibKirimApproval => 'SUBMIT FOR APPROVAL';
+
+  @override
+  String get calibBerhasilDraft => 'Calibration draft saved.';
+
+  @override
+  String get calibBerhasilApproval =>
+      'Calibration session submitted for approval.';
+
+  @override
+  String calibGagal(String pesan) {
+    return 'Couldn\'t save: $pesan';
+  }
+
+  @override
+  String get calibLoadPilihanGagal =>
+      'Couldn\'t load category/standard options.';
+
+  @override
+  String get calibRetry => 'RETRY';
 
   @override
   String get notifEmptyTitle => 'No notifications yet';

@@ -13,6 +13,7 @@ import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/status_badge.dart';
+import '../calibration/calibration_input_screen.dart';
 
 /// Dashboard — 4 state sesuai task 21 Jul:
 /// `loading` (skeleton) · `empty` (belum ada apa-apa) · `normal` (angka) ·
@@ -141,8 +142,11 @@ class _Isi extends ConsumerWidget {
                   AppButton(
                     label: l10n.dashStartCalibration,
                     icon: Icons.add_task,
-                    onPressed: () =>
-                        _snack(context, l10n.snackCalibInputSoon),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const CalibrationInputScreen(),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   AppButton(

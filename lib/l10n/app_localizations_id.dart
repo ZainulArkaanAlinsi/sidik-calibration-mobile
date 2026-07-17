@@ -273,10 +273,17 @@ class AppLocalizationsId extends AppLocalizations {
   String get profUserManagementSub => 'Digarap fase 3';
 
   @override
-  String get profMasterData => 'Master Data PT & Pelanggan';
+  String get profOrgData => 'Data Organisasi';
 
   @override
-  String get profMasterDataSub => 'Digarap minggu 2';
+  String get profOrgDataSub =>
+      'Nama, alamat & no. akreditasi buat kop sertifikat';
+
+  @override
+  String get profCustomers => 'Pelanggan';
+
+  @override
+  String get profCustomersSub => 'Kelola daftar pelanggan lab';
 
   @override
   String get profDesignSystem => 'Design System';
@@ -374,6 +381,281 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get historyStatusPerluRevisi => 'Perlu revisi';
+
+  @override
+  String get historyApprove => 'SETUJUI';
+
+  @override
+  String get historyReject => 'TOLAK';
+
+  @override
+  String historyApproveFailed(String pesan) {
+    return 'Gagal nyetujui: $pesan';
+  }
+
+  @override
+  String get historyRejectDialogTitle => 'Tolak sesi kalibrasi?';
+
+  @override
+  String get historyRejectDialogHint =>
+      'Alasan penolakan (wajib diisi, teknisi bakal lihat ini)';
+
+  @override
+  String get historyRejectDialogSubmit => 'TOLAK SESI';
+
+  @override
+  String get historyRejectDialogCancel => 'Batal';
+
+  @override
+  String get historyRejectDialogEmpty => 'Alasan penolakan wajib diisi.';
+
+  @override
+  String historyRejectFailed(String pesan) {
+    return 'Gagal nolak: $pesan';
+  }
+
+  @override
+  String historyCatatanRevisi(String catatan) {
+    return 'Catatan revisi: $catatan';
+  }
+
+  @override
+  String get historyViewCertificate => 'Lihat sertifikat';
+
+  @override
+  String get certTitle => 'Sertifikat';
+
+  @override
+  String get certLoadFailed => 'Gagal memuat sertifikat.';
+
+  @override
+  String get certStatusMenungguGenerate => 'Lagi digenerate, tunggu sebentar';
+
+  @override
+  String get certStatusGagal => 'Gagal digenerate';
+
+  @override
+  String get certRetry => 'COBA GENERATE LAGI';
+
+  @override
+  String get certOpenPdf => 'SALIN LINK PDF';
+
+  @override
+  String get certPdfUrlCopied => 'Link PDF disalin ke clipboard.';
+
+  @override
+  String certQrToken(String token) {
+    return 'Token QR: $token';
+  }
+
+  @override
+  String get orgTitle => 'Data Organisasi';
+
+  @override
+  String get orgNama => 'Nama PT';
+
+  @override
+  String get orgAlamat => 'Alamat';
+
+  @override
+  String get orgTelepon => 'Telepon';
+
+  @override
+  String get orgEmail => 'Email';
+
+  @override
+  String get orgNoAkreditasi => 'No. akreditasi';
+
+  @override
+  String get orgSave => 'SIMPAN';
+
+  @override
+  String get orgSaved => 'Data organisasi disimpan.';
+
+  @override
+  String orgSaveFailed(String pesan) {
+    return 'Gagal menyimpan: $pesan';
+  }
+
+  @override
+  String get orgLoadFailed => 'Gagal memuat data organisasi.';
+
+  @override
+  String get orgRetry => 'COBA LAGI';
+
+  @override
+  String get custTitle => 'Pelanggan';
+
+  @override
+  String get custSearchHint => 'Cari nama pelanggan';
+
+  @override
+  String get custEmptyTitle => 'Belum ada pelanggan';
+
+  @override
+  String get custEmptyBody => 'Tambah pelanggan pertama lewat tombol di bawah.';
+
+  @override
+  String get custLoadFailed => 'Gagal memuat pelanggan.';
+
+  @override
+  String get custRetry => 'COBA LAGI';
+
+  @override
+  String get custAdd => 'TAMBAH PELANGGAN';
+
+  @override
+  String get custEdit => 'Edit pelanggan';
+
+  @override
+  String get custNama => 'Nama pelanggan';
+
+  @override
+  String get custAlamat => 'Alamat';
+
+  @override
+  String get custContactPerson => 'Contact person';
+
+  @override
+  String get custTelepon => 'Telepon';
+
+  @override
+  String get custEmail => 'Email';
+
+  @override
+  String get custSave => 'SIMPAN';
+
+  @override
+  String get custCancel => 'Batal';
+
+  @override
+  String get custDelete => 'Hapus';
+
+  @override
+  String get custDeleteConfirmTitle => 'Hapus pelanggan?';
+
+  @override
+  String custDeleteConfirmBody(String nama) {
+    return '\"$nama\" bakal dihapus permanen.';
+  }
+
+  @override
+  String custDeleteFailed(String pesan) {
+    return 'Gagal menghapus: $pesan';
+  }
+
+  @override
+  String custSaveFailed(String pesan) {
+    return 'Gagal menyimpan: $pesan';
+  }
+
+  @override
+  String custEquipmentCount(int jumlah) {
+    return '$jumlah alat';
+  }
+
+  @override
+  String get custFieldRequired => 'Wajib diisi.';
+
+  @override
+  String get calibTitle => 'Input Kalibrasi';
+
+  @override
+  String get calibKategori => 'Kategori';
+
+  @override
+  String get calibKategoriHint => 'Pilih kategori alat';
+
+  @override
+  String get calibAlat => 'Alat';
+
+  @override
+  String get calibAlatHint => 'Pilih alat';
+
+  @override
+  String get calibAlatKosong => 'Nggak ada alat di kategori ini.';
+
+  @override
+  String get calibStandar => 'Standar Acuan';
+
+  @override
+  String get calibStandarHint => 'Pilih standar acuan';
+
+  @override
+  String get calibStandarKadaluarsa => 'kadaluarsa';
+
+  @override
+  String get calibTanggal => 'Tanggal kalibrasi';
+
+  @override
+  String get calibSuhuRuang => 'Suhu ruang (°C)';
+
+  @override
+  String get calibKelembaban => 'Kelembaban (%)';
+
+  @override
+  String calibTitikUkur(int index) {
+    return 'Titik ukur $index';
+  }
+
+  @override
+  String get calibNilaiTarget => 'Nilai target';
+
+  @override
+  String get calibSatuan => 'Satuan';
+
+  @override
+  String calibPembacaan(int index) {
+    return 'Pembacaan $index';
+  }
+
+  @override
+  String get calibTambahTitik => 'TAMBAH TITIK UKUR';
+
+  @override
+  String get calibHapusTitik => 'Hapus titik ukur';
+
+  @override
+  String get calibTambahPembacaan => '+ Tambah pembacaan';
+
+  @override
+  String get calibValidasiKategori => 'Pilih kategori dulu.';
+
+  @override
+  String get calibValidasiAlat => 'Pilih alat dulu.';
+
+  @override
+  String get calibValidasiStandar => 'Pilih standar acuan dulu.';
+
+  @override
+  String get calibValidasiAngka => 'Isi angka yang valid.';
+
+  @override
+  String get calibValidasiPembacaan =>
+      'Tiap titik ukur minimal 2 pembacaan angka.';
+
+  @override
+  String get calibSimpanDraft => 'SIMPAN DRAFT';
+
+  @override
+  String get calibKirimApproval => 'KIRIM UNTUK APPROVAL';
+
+  @override
+  String get calibBerhasilDraft => 'Draft kalibrasi disimpan.';
+
+  @override
+  String get calibBerhasilApproval => 'Sesi kalibrasi dikirim untuk approval.';
+
+  @override
+  String calibGagal(String pesan) {
+    return 'Gagal menyimpan: $pesan';
+  }
+
+  @override
+  String get calibLoadPilihanGagal => 'Gagal memuat pilihan kategori/standar.';
+
+  @override
+  String get calibRetry => 'COBA LAGI';
 
   @override
   String get notifEmptyTitle => 'Belum ada notifikasi';

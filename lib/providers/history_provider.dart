@@ -1,16 +1,23 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/calibration_history_item.dart';
+import '../models/certificate.dart';
+import '../services/approval_service.dart';
 import '../services/history_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
 
-/// `GET /api/calibrations` sendiri belum live di backend (fitur kalibrasi
-/// minggu 4) — jadi provider ini masih nunjuk ke [MockHistoryService].
-/// Ganti ke `ApiHistoryService(ref.watch(apiClientProvider))` begitu
-/// endpoint-nya jalan (sama kayak riwayat commit dashboardServiceProvider).
+/// `GET /api/calibrations` live sejak 14 Jul (`docs/kontrak-api.md` §4) —
+/// beda sama Notifikasi, ini nembak API asli.
 final historyServiceProvider = Provider<HistoryService>(
-  (ref) => MockHistoryService(),
+  (ref) => ApiHistoryService(ref.watch(apiClientProvider)),
+);
+
+/// Approve/reject/sertifikat (§5) belum ditandai live di kontrak — masih
+/// [MockApprovalService] sampai dikonfirmasi. Ganti ke
+/// `ApiApprovalService(ref.watch(apiClientProvider))` begitu jalan.
+final approvalServiceProvider = Provider<ApprovalService>(
+  (ref) => MockApprovalService(),
 );
 
 final historyProvider =
@@ -36,4 +43,82 @@ class HistoryController extends AsyncNotifier<List<CalibrationHistoryItem>> {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() => build());
   }
+
+  /// Approve satu sesi. Optimistic: status berubah duluan di UI, baru
+  /// nembak server — kalau gagal dibalikin ke semula.
+  Future<void> approve(int id) async {
+    final sebelum = state.value;
+    if (sebelum == null) return;
+
+    state = AsyncValue.data([
+      for (final item in sebelum)
+        if (item.id == id)
+          item.copyWith(status: CalibrationStatus.disetujui)
+        else
+          item,
+    ]);
+
+    final token = await ref.read(tokenStorageProvider).read();
+    if (token == null) return;
+
+    try {
+      final certificateId = await ref
+          .read(approvalServiceProvider)
+          .approve(token, id);
+      final terkini = state.value;
+      if (terkini == null) return;
+      state = AsyncValue.data([
+        for (final item in terkini)
+          if (item.id == id)
+            item.copyWith(certificateId: certificateId)
+          else
+            item,
+      ]);
+    } catch (_) {
+      state = AsyncValue.data(sebelum);
+      rethrow;
+    }
+  }
+
+  /// Reject satu sesi dengan catatan revisi. Nunggu server (bukan
+  /// optimistic) — beda sama approve, penolakan butuh alasan yang harus
+  /// tervalidasi (nggak boleh kosong) sebelum status berubah di UI.
+  Future<void> reject(int id, String catatanRevisi) async {
+    final token = await ref.read(tokenStorageProvider).read();
+    if (token == null) return;
+
+    await ref
+        .read(approvalServiceProvider)
+        .reject(token, id, catatanRevisi);
+
+    final sebelum = state.value;
+    if (sebelum == null) return;
+
+    state = AsyncValue.data([
+      for (final item in sebelum)
+        if (item.id == id)
+          item.copyWith(
+            status: CalibrationStatus.perluRevisi,
+            catatanRevisi: catatanRevisi,
+          )
+        else
+          item,
+    ]);
+  }
 }
+
+/// Detail sertifikat — dibuka dari kartu Riwayat yang udah `disetujui`.
+///
+/// `retry: null` — sama alasannya kayak `dashboardProvider`: tanpa ini,
+/// provider yang gagal dicoba ulang otomatis di belakang layar dan state-nya
+/// nyangkut di `loading` selamanya, skeleton nggak pernah ganti jadi pesan
+/// error + tombol coba lagi.
+final certificateProvider = FutureProvider.family<Certificate, int>((
+  ref,
+  certificateId,
+) async {
+  final token = await ref.read(tokenStorageProvider).read();
+  if (token == null) throw const TokenHilangException();
+
+  return ref.read(approvalServiceProvider).ambilSertifikat(token, certificateId);
+}, retry: (retryCount, error) => null);

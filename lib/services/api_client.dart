@@ -48,6 +48,24 @@ class ApiClient {
     );
   }
 
+  Future<Map<String, dynamic>> put(
+    String path, {
+    Map<String, dynamic>? body,
+    String? token,
+  }) async {
+    return _kirim(
+      () => _client.put(
+        _uri(path),
+        headers: _headers(token),
+        body: jsonEncode(body ?? {}),
+      ),
+    );
+  }
+
+  Future<Map<String, dynamic>> delete(String path, {String? token}) async {
+    return _kirim(() => _client.delete(_uri(path), headers: _headers(token)));
+  }
+
   Future<Map<String, dynamic>> _kirim(
     Future<http.Response> Function() request,
   ) async {

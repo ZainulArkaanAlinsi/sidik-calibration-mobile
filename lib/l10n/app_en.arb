@@ -103,8 +103,10 @@
   "profAdminMenu": "Admin Menu",
   "profUserManagement": "User Management",
   "profUserManagementSub": "Planned for phase 3",
-  "profMasterData": "Company & Customer Master Data",
-  "profMasterDataSub": "Planned for week 2",
+  "profOrgData": "Organization Data",
+  "profOrgDataSub": "Name, address & accreditation no. printed on certificates",
+  "profCustomers": "Customers",
+  "profCustomersSub": "Manage the lab's customer list",
   "profDesignSystem": "Design System",
   "profDesignSystemSub": "Color, typography & component catalog",
   "profAppInfo": "App Info",
@@ -151,6 +153,152 @@
   "historyStatusDraft": "Draft",
   "historyStatusMenungguApproval": "Pending approval",
   "historyStatusPerluRevisi": "Needs revision",
+  "historyApprove": "APPROVE",
+  "historyReject": "REJECT",
+  "historyApproveFailed": "Couldn't approve: {pesan}",
+  "@historyApproveFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "historyRejectDialogTitle": "Reject this calibration session?",
+  "historyRejectDialogHint": "Rejection reason (required, the technician will see this)",
+  "historyRejectDialogSubmit": "REJECT SESSION",
+  "historyRejectDialogCancel": "Cancel",
+  "historyRejectDialogEmpty": "Rejection reason is required.",
+  "historyRejectFailed": "Couldn't reject: {pesan}",
+  "@historyRejectFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "historyCatatanRevisi": "Revision note: {catatan}",
+  "@historyCatatanRevisi": {
+    "placeholders": {
+      "catatan": { "type": "String" }
+    }
+  },
+  "historyViewCertificate": "View certificate",
+  "certTitle": "Certificate",
+  "certLoadFailed": "Couldn't load certificate.",
+  "certStatusMenungguGenerate": "Still generating, hang on",
+  "certStatusGagal": "Generation failed",
+  "certRetry": "RETRY GENERATE",
+  "certOpenPdf": "COPY PDF LINK",
+  "certPdfUrlCopied": "PDF link copied to clipboard.",
+  "certQrToken": "QR token: {token}",
+  "@certQrToken": {
+    "placeholders": {
+      "token": { "type": "String" }
+    }
+  },
+
+  "orgTitle": "Organization Data",
+  "orgNama": "Company name",
+  "orgAlamat": "Address",
+  "orgTelepon": "Phone",
+  "orgEmail": "Email",
+  "orgNoAkreditasi": "Accreditation no.",
+  "orgSave": "SAVE",
+  "orgSaved": "Organization data saved.",
+  "orgSaveFailed": "Couldn't save: {pesan}",
+  "@orgSaveFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "orgLoadFailed": "Couldn't load organization data.",
+  "orgRetry": "RETRY",
+
+  "custTitle": "Customers",
+  "custSearchHint": "Search customer name",
+  "custEmptyTitle": "No customers yet",
+  "custEmptyBody": "Add your first customer using the button below.",
+  "custLoadFailed": "Couldn't load customers.",
+  "custRetry": "RETRY",
+  "custAdd": "ADD CUSTOMER",
+  "custEdit": "Edit customer",
+  "custNama": "Customer name",
+  "custAlamat": "Address",
+  "custContactPerson": "Contact person",
+  "custTelepon": "Phone",
+  "custEmail": "Email",
+  "custSave": "SAVE",
+  "custCancel": "Cancel",
+  "custDelete": "Delete",
+  "custDeleteConfirmTitle": "Delete customer?",
+  "custDeleteConfirmBody": "\"{nama}\" will be permanently deleted.",
+  "@custDeleteConfirmBody": {
+    "placeholders": {
+      "nama": { "type": "String" }
+    }
+  },
+  "custDeleteFailed": "Couldn't delete: {pesan}",
+  "@custDeleteFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "custSaveFailed": "Couldn't save: {pesan}",
+  "@custSaveFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "custEquipmentCount": "{jumlah} devices",
+  "@custEquipmentCount": {
+    "placeholders": {
+      "jumlah": { "type": "int" }
+    }
+  },
+  "custFieldRequired": "Required.",
+
+  "calibTitle": "Calibration Input",
+  "calibKategori": "Category",
+  "calibKategoriHint": "Choose a device category",
+  "calibAlat": "Device",
+  "calibAlatHint": "Choose a device",
+  "calibAlatKosong": "No devices in this category.",
+  "calibStandar": "Reference Standard",
+  "calibStandarHint": "Choose a reference standard",
+  "calibStandarKadaluarsa": "expired",
+  "calibTanggal": "Calibration date",
+  "calibSuhuRuang": "Room temperature (°C)",
+  "calibKelembaban": "Humidity (%)",
+  "calibTitikUkur": "Measurement point {index}",
+  "@calibTitikUkur": {
+    "placeholders": {
+      "index": { "type": "int" }
+    }
+  },
+  "calibNilaiTarget": "Target value",
+  "calibSatuan": "Unit",
+  "calibPembacaan": "Reading {index}",
+  "@calibPembacaan": {
+    "placeholders": {
+      "index": { "type": "int" }
+    }
+  },
+  "calibTambahTitik": "ADD MEASUREMENT POINT",
+  "calibHapusTitik": "Remove measurement point",
+  "calibTambahPembacaan": "+ Add reading",
+  "calibValidasiKategori": "Choose a category first.",
+  "calibValidasiAlat": "Choose a device first.",
+  "calibValidasiStandar": "Choose a reference standard first.",
+  "calibValidasiAngka": "Enter a valid number.",
+  "calibValidasiPembacaan": "Each measurement point needs at least 2 numeric readings.",
+  "calibSimpanDraft": "SAVE DRAFT",
+  "calibKirimApproval": "SUBMIT FOR APPROVAL",
+  "calibBerhasilDraft": "Calibration draft saved.",
+  "calibBerhasilApproval": "Calibration session submitted for approval.",
+  "calibGagal": "Couldn't save: {pesan}",
+  "@calibGagal": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "calibLoadPilihanGagal": "Couldn't load category/standard options.",
+  "calibRetry": "RETRY",
 
   "notifEmptyTitle": "No notifications yet",
   "notifEmptyBody": "Due-date reminders & approval updates will show up here.",

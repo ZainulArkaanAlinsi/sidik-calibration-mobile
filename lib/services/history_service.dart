@@ -5,13 +5,11 @@ abstract class HistoryService {
   Future<List<CalibrationHistoryItem>> ambilRiwayat(String token);
 }
 
-/// Nembak `GET /api/calibrations?mine=true` (`docs/kontrak-api.md` §4).
+/// Nembak `GET /api/calibrations?mine=true` (live sejak 14 Jul,
+/// `docs/kontrak-api.md` §4).
 ///
 /// `mine=true` cuma efektif buat admin & viewer yang mau nyaring punya
 /// sendiri — teknisi **selalu** dapat sesi miliknya doang, apa pun query-nya.
-/// Belum dipakai di [historyProvider]: endpoint kalibrasinya sendiri belum
-/// live di backend (minggu 4), jadi provider masih nunjuk ke
-/// [MockHistoryService] sampai itu jalan.
 class ApiHistoryService implements HistoryService {
   ApiHistoryService(this._api);
 
@@ -29,16 +27,12 @@ class ApiHistoryService implements HistoryService {
   }
 }
 
-/// Data tiruan buat layar Riwayat & test — dipakai sampai
-/// `GET /api/calibrations` beneran live.
+/// Data tiruan — sekarang cuma dipakai **test**, sama kayak
+/// `MockDashboardService` (`GET /api/calibrations` udah live).
 class MockHistoryService implements HistoryService {
   MockHistoryService({
     this.kosong = false,
     this.gagal = false,
-    // Nol secara default: ini yang dipasang [historyServiceProvider] buat
-    // app beneran (belum ada backend), jadi nggak boleh nunda apa-apa waktu
-    // MainShell nge-build 5 tab sekaligus lewat IndexedStack. Test yang mau
-    // ngetes state loading eksplisit ngasih durasi sendiri.
     this.jeda = Duration.zero,
   });
 

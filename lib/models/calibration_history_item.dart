@@ -30,6 +30,8 @@ class CalibrationHistoryItem {
     required this.status,
     this.keputusan,
     this.nomorSertifikat,
+    this.catatanRevisi,
+    this.certificateId,
   });
 
   final int id;
@@ -43,6 +45,30 @@ class CalibrationHistoryItem {
 
   /// Cuma keisi kalau sertifikatnya udah terbit.
   final String? nomorSertifikat;
+
+  /// Catatan dari admin waktu nolak sesi (`status == perluRevisi`).
+  final String? catatanRevisi;
+
+  /// `null` sesaat setelah `approve` — sertifikatnya lagi digenerate di
+  /// queue backend (`docs/kontrak-api.md` §5).
+  final int? certificateId;
+
+  CalibrationHistoryItem copyWith({
+    CalibrationStatus? status,
+    Keputusan? keputusan,
+    String? catatanRevisi,
+    int? certificateId,
+  }) => CalibrationHistoryItem(
+    id: id,
+    namaAlat: namaAlat,
+    namaTeknisi: namaTeknisi,
+    tanggalKalibrasi: tanggalKalibrasi,
+    status: status ?? this.status,
+    keputusan: keputusan ?? this.keputusan,
+    nomorSertifikat: nomorSertifikat,
+    catatanRevisi: catatanRevisi ?? this.catatanRevisi,
+    certificateId: certificateId ?? this.certificateId,
+  );
 
   factory CalibrationHistoryItem.fromJson(Map<String, dynamic> json) {
     final hasil = json['hasil'] as Map<String, dynamic>?;
@@ -61,6 +87,8 @@ class CalibrationHistoryItem {
         _ => null,
       },
       nomorSertifikat: json['nomor_sertifikat'] as String?,
+      catatanRevisi: json['catatan_revisi'] as String?,
+      certificateId: (json['certificate_id'] as num?)?.toInt(),
     );
   }
 }
