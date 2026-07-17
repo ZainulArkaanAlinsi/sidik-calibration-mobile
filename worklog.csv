@@ -1,0 +1,14 @@
+Date,Commit,Type,Category,Task,Files Changed,Insertions,Deletions,Status
+2026-07-16,0755fb9,feat,Design/Auth,"Pivot arah desain auth ke neumorphism gelap (revert Titanium) + fondasi i18n & dark-mode toggle",18,1124,505,Done
+2026-07-16,e90ad18,feat,Navigation,"Bottom nav jadi floating pill + tombol bulat geser beranimasi (ganti Material NavigationBar)",5,242,38,Done
+2026-07-16,6766e1b,feat,Branding,"Pakai logo resmi PT Sidik di badge brand layar auth (crop dari foto HP)",9,75,43,Done
+2026-07-16,b60cad3,perf,Performance/UI,"Ringankan neumorphism (buang MaskFilter.blur) + hilangkan border hitam fokus field + logo badge app-icon",4,106,122,Done
+2026-07-16,afc8407,feat,Auth,"Reset password fungsional 3 langkah (mock per-akun: password lama ditolak, baru sukses)",11,1323,99,Done
+2026-07-16,60c619a,feat,i18n/Profile,"i18n dwibahasa ke layar non-auth (dashboard/navbar/placeholder) + redesign Profile + avatar dari galeri/kamera HP",18,718,140,Done
+2026-07-16,87ba6a4,fix,Navigation/Profile,"Fix navbar overflow 2px + label kepotong (FittedBox) + redesign Profile lebih setia acuan (hero + kartu info)",4,412,253,Done
+2026-07-16,0e54a92,feat,UI,"Splash screen neumorphism senada layar Login (ganti splash Material polos)",4,95,27,Done
+2026-07-16,7ff4d93,chore,Config,"Izin foto profil image_picker: iOS Info.plist (camera+photo) + Android camera feature opsional",2,11,0,Done
+2026-07-16,-,test,QA,"Validasi menyeluruh: flutter analyze bersih, 67 test hijau (incl. golden), build APK debug sukses",0,0,0,Done
+2026-07-16,-,docs,Docs,"Update PR #17 (judul+body) + memory notes + worklog.csv",0,0,0,Done
+2026-07-16,TOTAL,-,-,"9 commit (feat x6, perf x1, fix x1, chore x1) — semua ke-push ke PR #17",50,3747,868,Done
+2026-07-16,-,docs,Docs,"Buat DAILY_REPORT.md (ringkasan pekerjaan harian) + tambah baris worklog.csv",1,0,0,Done
