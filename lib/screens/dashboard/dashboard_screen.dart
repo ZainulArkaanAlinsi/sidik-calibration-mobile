@@ -133,17 +133,27 @@ class _Isi extends ConsumerWidget {
           const SizedBox(height: AppSpacing.lg),
           _JudulSeksi(l10n.dashQuickActions),
           const SizedBox(height: AppSpacing.sm),
-          AppButton(
-            label: l10n.dashStartCalibration,
-            icon: Icons.add_task,
-            onPressed: () => _snack(context, l10n.snackCalibInputSoon),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          AppButton(
-            label: l10n.dashAddDevice,
-            icon: Icons.add,
-            variant: AppButtonVariant.secondary,
-            onPressed: () => _snack(context, l10n.snackAddDeviceSoon),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                children: [
+                  AppButton(
+                    label: l10n.dashStartCalibration,
+                    icon: Icons.add_task,
+                    onPressed: () =>
+                        _snack(context, l10n.snackCalibInputSoon),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  AppButton(
+                    label: l10n.dashAddDevice,
+                    icon: Icons.add,
+                    variant: AppButtonVariant.secondary,
+                    onPressed: () => _snack(context, l10n.snackAddDeviceSoon),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ],
@@ -172,6 +182,8 @@ class _JudulSeksi extends StatelessWidget {
       teks.toUpperCase(),
       style: theme.textTheme.labelLarge?.copyWith(
         color: theme.colorScheme.onSurfaceVariant,
+        letterSpacing: 0.8,
+        fontWeight: FontWeight.w600,
       ),
     );
   }

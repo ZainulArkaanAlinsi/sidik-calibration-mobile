@@ -134,8 +134,31 @@
 
   "equipmentPlaceholderTitle": "Device List",
   "equipmentPlaceholderBody": "Measuring devices by category, plus an add/edit device form. Planned for week 3.",
-  "historyPlaceholderTitle": "Calibration History",
-  "historyPlaceholderBody": "History of calibration sessions & issued certificates. Planned for week 9.",
-  "notificationPlaceholderTitle": "Notifications",
-  "notificationPlaceholderBody": "Reminders for devices approaching their calibration due date. Planned for week 9."
+
+  "historyEmptyTitle": "No history yet",
+  "historyEmptyBody": "Completed calibration sessions will show up here.",
+  "historyLoadFailed": "Couldn't load history.",
+  "historySessionExpired": "Your session expired. Please sign in again.",
+  "historyRetry": "RETRY",
+  "historyCertNumber": "Certificate no. {nomor}",
+  "@historyCertNumber": {
+    "placeholders": {
+      "nomor": { "type": "String" }
+    }
+  },
+  "historyStatusPass": "PASS",
+  "historyStatusFail": "FAIL",
+  "historyStatusDraft": "Draft",
+  "historyStatusMenungguApproval": "Pending approval",
+  "historyStatusPerluRevisi": "Needs revision",
+
+  "notifEmptyTitle": "No notifications yet",
+  "notifEmptyBody": "Due-date reminders & approval updates will show up here.",
+  "notifLoadFailed": "Couldn't load notifications.",
+  "notifSessionExpired": "Your session expired. Please sign in again.",
+  "notifRetry": "RETRY",
+  "notifMarkedRead": "Marked as read.",
+  "notifTypeDueDate": "Due date",
+  "notifTypeApproval": "Approval",
+  "notifTypeRevision": "Revision"
 }

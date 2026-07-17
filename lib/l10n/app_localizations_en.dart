@@ -341,16 +341,68 @@ class AppLocalizationsEn extends AppLocalizations {
       'Measuring devices by category, plus an add/edit device form. Planned for week 3.';
 
   @override
-  String get historyPlaceholderTitle => 'Calibration History';
+  String get historyEmptyTitle => 'No history yet';
 
   @override
-  String get historyPlaceholderBody =>
-      'History of calibration sessions & issued certificates. Planned for week 9.';
+  String get historyEmptyBody =>
+      'Completed calibration sessions will show up here.';
 
   @override
-  String get notificationPlaceholderTitle => 'Notifications';
+  String get historyLoadFailed => 'Couldn\'t load history.';
 
   @override
-  String get notificationPlaceholderBody =>
-      'Reminders for devices approaching their calibration due date. Planned for week 9.';
+  String get historySessionExpired =>
+      'Your session expired. Please sign in again.';
+
+  @override
+  String get historyRetry => 'RETRY';
+
+  @override
+  String historyCertNumber(String nomor) {
+    return 'Certificate no. $nomor';
+  }
+
+  @override
+  String get historyStatusPass => 'PASS';
+
+  @override
+  String get historyStatusFail => 'FAIL';
+
+  @override
+  String get historyStatusDraft => 'Draft';
+
+  @override
+  String get historyStatusMenungguApproval => 'Pending approval';
+
+  @override
+  String get historyStatusPerluRevisi => 'Needs revision';
+
+  @override
+  String get notifEmptyTitle => 'No notifications yet';
+
+  @override
+  String get notifEmptyBody =>
+      'Due-date reminders & approval updates will show up here.';
+
+  @override
+  String get notifLoadFailed => 'Couldn\'t load notifications.';
+
+  @override
+  String get notifSessionExpired =>
+      'Your session expired. Please sign in again.';
+
+  @override
+  String get notifRetry => 'RETRY';
+
+  @override
+  String get notifMarkedRead => 'Marked as read.';
+
+  @override
+  String get notifTypeDueDate => 'Due date';
+
+  @override
+  String get notifTypeApproval => 'Approval';
+
+  @override
+  String get notifTypeRevision => 'Revision';
 }

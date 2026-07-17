@@ -728,29 +728,125 @@ abstract class AppLocalizations {
   /// **'Measuring devices by category, plus an add/edit device form. Planned for week 3.'**
   String get equipmentPlaceholderBody;
 
-  /// No description provided for @historyPlaceholderTitle.
+  /// No description provided for @historyEmptyTitle.
   ///
   /// In en, this message translates to:
-  /// **'Calibration History'**
-  String get historyPlaceholderTitle;
+  /// **'No history yet'**
+  String get historyEmptyTitle;
 
-  /// No description provided for @historyPlaceholderBody.
+  /// No description provided for @historyEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'History of calibration sessions & issued certificates. Planned for week 9.'**
-  String get historyPlaceholderBody;
+  /// **'Completed calibration sessions will show up here.'**
+  String get historyEmptyBody;
 
-  /// No description provided for @notificationPlaceholderTitle.
+  /// No description provided for @historyLoadFailed.
   ///
   /// In en, this message translates to:
-  /// **'Notifications'**
-  String get notificationPlaceholderTitle;
+  /// **'Couldn\'t load history.'**
+  String get historyLoadFailed;
 
-  /// No description provided for @notificationPlaceholderBody.
+  /// No description provided for @historySessionExpired.
   ///
   /// In en, this message translates to:
-  /// **'Reminders for devices approaching their calibration due date. Planned for week 9.'**
-  String get notificationPlaceholderBody;
+  /// **'Your session expired. Please sign in again.'**
+  String get historySessionExpired;
+
+  /// No description provided for @historyRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'RETRY'**
+  String get historyRetry;
+
+  /// No description provided for @historyCertNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate no. {nomor}'**
+  String historyCertNumber(String nomor);
+
+  /// No description provided for @historyStatusPass.
+  ///
+  /// In en, this message translates to:
+  /// **'PASS'**
+  String get historyStatusPass;
+
+  /// No description provided for @historyStatusFail.
+  ///
+  /// In en, this message translates to:
+  /// **'FAIL'**
+  String get historyStatusFail;
+
+  /// No description provided for @historyStatusDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get historyStatusDraft;
+
+  /// No description provided for @historyStatusMenungguApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending approval'**
+  String get historyStatusMenungguApproval;
+
+  /// No description provided for @historyStatusPerluRevisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs revision'**
+  String get historyStatusPerluRevisi;
+
+  /// No description provided for @notifEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications yet'**
+  String get notifEmptyTitle;
+
+  /// No description provided for @notifEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Due-date reminders & approval updates will show up here.'**
+  String get notifEmptyBody;
+
+  /// No description provided for @notifLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load notifications.'**
+  String get notifLoadFailed;
+
+  /// No description provided for @notifSessionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session expired. Please sign in again.'**
+  String get notifSessionExpired;
+
+  /// No description provided for @notifRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'RETRY'**
+  String get notifRetry;
+
+  /// No description provided for @notifMarkedRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked as read.'**
+  String get notifMarkedRead;
+
+  /// No description provided for @notifTypeDueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date'**
+  String get notifTypeDueDate;
+
+  /// No description provided for @notifTypeApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Approval'**
+  String get notifTypeApproval;
+
+  /// No description provided for @notifTypeRevision.
+  ///
+  /// In en, this message translates to:
+  /// **'Revision'**
+  String get notifTypeRevision;
 }
 
 class _AppLocalizationsDelegate

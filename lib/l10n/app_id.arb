@@ -114,8 +114,26 @@
 
   "equipmentPlaceholderTitle": "Daftar Alat",
   "equipmentPlaceholderBody": "Daftar alat ukur per kategori, plus form tambah/edit alat. Digarap minggu 3.",
-  "historyPlaceholderTitle": "Riwayat Kalibrasi",
-  "historyPlaceholderBody": "Riwayat sesi kalibrasi & sertifikat yang udah terbit. Digarap minggu 9.",
-  "notificationPlaceholderTitle": "Notifikasi",
-  "notificationPlaceholderBody": "Pengingat alat yang mau jatuh tempo kalibrasi. Digarap minggu 9."
+
+  "historyEmptyTitle": "Belum ada riwayat",
+  "historyEmptyBody": "Sesi kalibrasi yang udah kelar bakal muncul di sini.",
+  "historyLoadFailed": "Gagal memuat riwayat.",
+  "historySessionExpired": "Sesi kamu habis. Login ulang ya.",
+  "historyRetry": "COBA LAGI",
+  "historyCertNumber": "No. sertifikat {nomor}",
+  "historyStatusPass": "PASS",
+  "historyStatusFail": "FAIL",
+  "historyStatusDraft": "Draft",
+  "historyStatusMenungguApproval": "Menunggu approval",
+  "historyStatusPerluRevisi": "Perlu revisi",
+
+  "notifEmptyTitle": "Belum ada notifikasi",
+  "notifEmptyBody": "Pengingat jatuh tempo & update approval bakal muncul di sini.",
+  "notifLoadFailed": "Gagal memuat notifikasi.",
+  "notifSessionExpired": "Sesi kamu habis. Login ulang ya.",
+  "notifRetry": "COBA LAGI",
+  "notifMarkedRead": "Ditandai udah dibaca.",
+  "notifTypeDueDate": "Jatuh tempo",
+  "notifTypeApproval": "Approval",
+  "notifTypeRevision": "Revisi"
 }

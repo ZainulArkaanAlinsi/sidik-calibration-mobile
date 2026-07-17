@@ -340,16 +340,66 @@ class AppLocalizationsId extends AppLocalizations {
       'Daftar alat ukur per kategori, plus form tambah/edit alat. Digarap minggu 3.';
 
   @override
-  String get historyPlaceholderTitle => 'Riwayat Kalibrasi';
+  String get historyEmptyTitle => 'Belum ada riwayat';
 
   @override
-  String get historyPlaceholderBody =>
-      'Riwayat sesi kalibrasi & sertifikat yang udah terbit. Digarap minggu 9.';
+  String get historyEmptyBody =>
+      'Sesi kalibrasi yang udah kelar bakal muncul di sini.';
 
   @override
-  String get notificationPlaceholderTitle => 'Notifikasi';
+  String get historyLoadFailed => 'Gagal memuat riwayat.';
 
   @override
-  String get notificationPlaceholderBody =>
-      'Pengingat alat yang mau jatuh tempo kalibrasi. Digarap minggu 9.';
+  String get historySessionExpired => 'Sesi kamu habis. Login ulang ya.';
+
+  @override
+  String get historyRetry => 'COBA LAGI';
+
+  @override
+  String historyCertNumber(String nomor) {
+    return 'No. sertifikat $nomor';
+  }
+
+  @override
+  String get historyStatusPass => 'PASS';
+
+  @override
+  String get historyStatusFail => 'FAIL';
+
+  @override
+  String get historyStatusDraft => 'Draft';
+
+  @override
+  String get historyStatusMenungguApproval => 'Menunggu approval';
+
+  @override
+  String get historyStatusPerluRevisi => 'Perlu revisi';
+
+  @override
+  String get notifEmptyTitle => 'Belum ada notifikasi';
+
+  @override
+  String get notifEmptyBody =>
+      'Pengingat jatuh tempo & update approval bakal muncul di sini.';
+
+  @override
+  String get notifLoadFailed => 'Gagal memuat notifikasi.';
+
+  @override
+  String get notifSessionExpired => 'Sesi kamu habis. Login ulang ya.';
+
+  @override
+  String get notifRetry => 'COBA LAGI';
+
+  @override
+  String get notifMarkedRead => 'Ditandai udah dibaca.';
+
+  @override
+  String get notifTypeDueDate => 'Jatuh tempo';
+
+  @override
+  String get notifTypeApproval => 'Approval';
+
+  @override
+  String get notifTypeRevision => 'Revisi';
 }
