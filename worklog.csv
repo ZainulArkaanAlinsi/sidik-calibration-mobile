@@ -12,3 +12,10 @@ Date,Commit,Type,Category,Task,Files Changed,Insertions,Deletions,Status
 2026-07-16,-,docs,Docs,"Update PR #17 (judul+body) + memory notes + worklog.csv",0,0,0,Done
 2026-07-16,TOTAL,-,-,"9 commit (feat x6, perf x1, fix x1, chore x1) — semua ke-push ke PR #17",50,3747,868,Done
 2026-07-16,-,docs,Docs,"Buat DAILY_REPORT.md (ringkasan pekerjaan harian) + tambah baris worklog.csv",1,0,0,Done
+2026-07-17,f92d572,chore,Branding,"Rename identitas native asmo_mobile -> PT Sidik Calibration (Android/iOS/macOS bundle id, ikon, package Dart)",52,175,212,Done
+2026-07-17,515a8af,feat,History/Notification,"Garap layar History & Notification (4-state) + polish Dashboard sistem Titanium",17,1430,57,Done
+2026-07-17,0dec80d,feat,Calibration,"Input kalibrasi generik + approval sesi (setujui/tolak) + master data PT & pelanggan",39,4493,74,Done
+2026-07-17,5f517da,feat,Calibration,"Layar Input Kalibrasi pH Meter sesuai master worksheet asli (env awal/akhir, 3 titik buffer x 5 pembacaan before/after adjustment)",12,1082,0,Done
+2026-07-17,-,test,QA,"Validasi menyeluruh tiap commit: flutter analyze bersih, 97 test hijau (incl. 6 golden)",0,0,0,Done
+2026-07-17,-,docs,Docs,"Baca folder referensi Project-PT-Sidik (ERD, Aturan Bisnis Inti, rumus GUM) + bikin folder daily-reports/ + laporan hari ini",1,0,0,Done
+2026-07-17,TOTAL,-,-,"4 commit (feat x3, chore x1) - semua ke-push ke PR #21",99,7123,286,Done
