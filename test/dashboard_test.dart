@@ -26,7 +26,7 @@ Widget _app({
         MockDashboardService(kosong: kosong, gagal: gagal, jeda: jeda),
       ),
     ],
-    child: const AsmoApp(),
+    child: const SidikApp(),
   );
 }
 

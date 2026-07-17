@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../widgets/empty_placeholder.dart';
 
 class NotificationScreen extends StatelessWidget {
@@ -7,13 +8,13 @@ class NotificationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Notifikasi')),
-      body: const EmptyPlaceholder(
+      appBar: AppBar(title: Text(l10n.navNotifications)),
+      body: EmptyPlaceholder(
         icon: Icons.notifications_none,
-        title: 'Notifikasi',
-        message:
-            'Pengingat alat yang mau jatuh tempo kalibrasi. Digarap minggu 9.',
+        title: l10n.notificationPlaceholderTitle,
+        message: l10n.notificationPlaceholderBody,
       ),
     );
   }

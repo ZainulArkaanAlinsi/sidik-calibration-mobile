@@ -9,10 +9,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:asmo_mobile/core/theme/app_theme.dart';
+import 'package:asmo_mobile/l10n/app_localizations.dart';
 import 'package:asmo_mobile/providers/auth_provider.dart';
 import 'package:asmo_mobile/providers/dashboard_provider.dart';
 import 'package:asmo_mobile/screens/auth/login_screen.dart';
 import 'package:asmo_mobile/screens/auth/register_screen.dart';
+import 'package:asmo_mobile/screens/auth/splash_screen.dart';
+import 'package:asmo_mobile/screens/auth/widgets/neu.dart';
+import 'package:asmo_mobile/screens/profile/profile_screen.dart';
 import 'package:asmo_mobile/screens/shell/main_shell.dart';
 import 'package:asmo_mobile/services/dashboard_service.dart';
 import 'package:asmo_mobile/services/mock_auth_service.dart';
@@ -55,6 +59,22 @@ Future<void> _muatFont() async {
   await ikon.load();
 }
 
+/// Pump layar + precache logo + settle.
+///
+/// Logo PT Sidik = `Image.asset`. Di golden test, decode gambar jalan di async
+/// queue yang di-pause, jadi kalau nggak di-precache manual di dalam `runAsync`
+/// logonya kerender kosong. Precache dulu → `pumpAndSettle` → logo muncul.
+Future<void> _pumpLayar(WidgetTester tester, Widget layar) async {
+  await tester.pumpWidget(layar);
+  await tester.runAsync(() async {
+    await precacheImage(
+      const AssetImage(kLogoPtSidik),
+      tester.element(find.byType(MaterialApp)),
+    );
+  });
+  await tester.pumpAndSettle();
+}
+
 Widget _bungkus(Widget layar, {required Brightness mode}) {
   return ProviderScope(
     overrides: [
@@ -69,6 +89,11 @@ Widget _bungkus(Widget layar, {required Brightness mode}) {
     child: MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: mode == Brightness.light ? AppTheme.light : AppTheme.dark,
+      // Locale dikunci ke ID biar golden deterministik (nggak ketarik locale
+      // mesin CI/dev yang beda-beda).
+      locale: const Locale('id'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: layar,
     ),
   );
@@ -88,10 +113,7 @@ void main() {
 
   testWidgets('login — terang', (tester) async {
     pasangUkuranHp(tester);
-    await tester.pumpWidget(
-      _bungkus(const LoginScreen(), mode: Brightness.light),
-    );
-    await tester.pumpAndSettle();
+    await _pumpLayar(tester, _bungkus(const LoginScreen(), mode: Brightness.light));
 
     await expectLater(
       find.byType(LoginScreen),
@@ -101,10 +123,7 @@ void main() {
 
   testWidgets('login — gelap', (tester) async {
     pasangUkuranHp(tester);
-    await tester.pumpWidget(
-      _bungkus(const LoginScreen(), mode: Brightness.dark),
-    );
-    await tester.pumpAndSettle();
+    await _pumpLayar(tester, _bungkus(const LoginScreen(), mode: Brightness.dark));
 
     await expectLater(
       find.byType(LoginScreen),
@@ -114,10 +133,10 @@ void main() {
 
   testWidgets('register', (tester) async {
     pasangUkuranHp(tester);
-    await tester.pumpWidget(
+    await _pumpLayar(
+      tester,
       _bungkus(const RegisterScreen(), mode: Brightness.light),
     );
-    await tester.pumpAndSettle();
 
     await expectLater(
       find.byType(RegisterScreen),
@@ -127,14 +146,46 @@ void main() {
 
   testWidgets('dashboard', (tester) async {
     pasangUkuranHp(tester);
-    await tester.pumpWidget(
-      _bungkus(const MainShell(), mode: Brightness.light),
-    );
-    await tester.pumpAndSettle();
+    await _pumpLayar(tester, _bungkus(const MainShell(), mode: Brightness.light));
 
     await expectLater(
       find.byType(MainShell),
       matchesGoldenFile('screenshots/dashboard.png'),
+    );
+  });
+
+  testWidgets('profil', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayar(
+      tester,
+      _bungkus(const ProfileScreen(), mode: Brightness.light),
+    );
+
+    await expectLater(
+      find.byType(ProfileScreen),
+      matchesGoldenFile('screenshots/profil.png'),
+    );
+  });
+
+  testWidgets('splash', (tester) async {
+    pasangUkuranHp(tester);
+    await tester.pumpWidget(
+      _bungkus(const SplashScreen(), mode: Brightness.dark),
+    );
+    await tester.runAsync(() async {
+      await precacheImage(
+        const AssetImage(kLogoPtSidik),
+        tester.element(find.byType(MaterialApp)),
+      );
+    });
+    // Bukan pumpAndSettle: splash punya spinner yang muter terus. Pump durasi
+    // tetap biar frame golden-nya deterministik.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    await expectLater(
+      find.byType(SplashScreen),
+      matchesGoldenFile('screenshots/splash.png'),
     );
   });
 }

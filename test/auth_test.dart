@@ -4,11 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:asmo_mobile/app.dart';
 import 'package:asmo_mobile/models/user.dart';
+import 'package:asmo_mobile/widgets/floating_nav_bar.dart';
 import 'package:asmo_mobile/providers/auth_provider.dart';
 import 'package:asmo_mobile/providers/dashboard_provider.dart';
 import 'package:asmo_mobile/services/dashboard_service.dart';
 import 'package:asmo_mobile/services/mock_auth_service.dart';
 import 'package:asmo_mobile/services/token_storage.dart';
+import 'package:asmo_mobile/screens/profile/profile_screen.dart';
 
 /// Test alur UI pakai `MockAuthService` — nggak nembak jaringan.
 /// Sambungan ke API asli diuji terpisah di `api_auth_service_test.dart`
@@ -24,7 +26,7 @@ ProviderScope _app(TokenStorage storage, {MockAuthService? auth}) =>
       MockDashboardService(jeda: Duration.zero),
     ),
   ],
-  child: const AsmoApp(),
+  child: const SidikApp(),
 );
 
 /// Niru Keystore yang rusak — `flutter_secure_storage` bisa lempar
@@ -49,6 +51,32 @@ Future<void> _tapTeks(WidgetTester tester, String teks) async {
   await tester.tap(finder);
 }
 
+/// Tab Profil isinya `ListView` panjang, dan bottom-nav yang mengambang
+/// bikin viewport-nya lebih pendek. Dua jebakan: (1) item di bawah belum
+/// ke-build sama sekali, (2) `scrollUntilVisible` berhenti begitu item
+/// ke-build — padahal masih di luar layar, jadi `tap()` meleset diam-diam.
+/// Karena `IndexedStack` bikin banyak `Scrollable` hidup barengan, kita
+/// tunjuk `Scrollable`-nya ProfileScreen secara eksplisit, lalu `ensureVisible`
+/// biar item beneran kelihatan sebelum di-tap.
+Future<void> _scrollProfilKe(WidgetTester tester, Finder finder) async {
+  await tester.scrollUntilVisible(
+    finder,
+    120,
+    scrollable: find.descendant(
+      of: find.byType(ProfileScreen),
+      matching: find.byType(Scrollable),
+    ),
+  );
+  await tester.ensureVisible(finder);
+  await tester.pumpAndSettle();
+}
+
+Future<void> _tapDiProfil(WidgetTester tester, Finder finder) async {
+  await _scrollProfilKe(tester, finder);
+  await tester.tap(finder);
+  await tester.pumpAndSettle();
+}
+
 Future<void> _isiLogin(
   WidgetTester tester, {
   required String identifier,
@@ -66,7 +94,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('MASUK'), findsOneWidget);
-      expect(find.byType(NavigationBar), findsNothing);
+      expect(find.byType(FloatingNavBar), findsNothing);
     });
 
     testWidgets('login pakai EMAIL → masuk & token tersimpan', (tester) async {
@@ -76,12 +104,12 @@ void main() {
 
       await _isiLogin(
         tester,
-        identifier: 'admin@asmo.test',
+        identifier: 'admin@pt-sidik.com',
         password: 'password123',
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(NavigationBar), findsOneWidget);
+      expect(find.byType(FloatingNavBar), findsOneWidget);
       expect(await storage.read(), isNotNull, reason: 'token wajib disimpan');
     });
 
@@ -94,7 +122,7 @@ void main() {
       await _isiLogin(tester, identifier: 'ASM-0002', password: 'password123');
       await tester.pumpAndSettle();
 
-      expect(find.byType(NavigationBar), findsOneWidget);
+      expect(find.byType(FloatingNavBar), findsOneWidget);
       expect(await storage.read(), isNotNull);
     });
 
@@ -111,7 +139,7 @@ void main() {
         findsOneWidget,
         reason: 'akun yang belum di-approve nggak boleh bisa masuk',
       );
-      expect(find.byType(NavigationBar), findsNothing);
+      expect(find.byType(FloatingNavBar), findsNothing);
       expect(await storage.read(), isNull);
     });
 
@@ -126,7 +154,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.textContaining('atau password salah'), findsOneWidget);
-      expect(find.byType(NavigationBar), findsNothing);
+      expect(find.byType(FloatingNavBar), findsNothing);
       expect(await storage.read(), isNull);
     });
 
@@ -160,7 +188,7 @@ void main() {
       await tester.pumpWidget(_app(InMemoryTokenStorage('mock-token-1')));
       await tester.pumpAndSettle();
 
-      expect(find.byType(NavigationBar), findsOneWidget);
+      expect(find.byType(FloatingNavBar), findsOneWidget);
       expect(find.text('MASUK'), findsNothing);
     });
 
@@ -192,9 +220,7 @@ void main() {
       await tester.tap(find.text('Profil'));
       await tester.pumpAndSettle();
 
-      await tester.scrollUntilVisible(find.text('Keluar'), 200);
-      await tester.tap(find.text('Keluar'));
-      await tester.pumpAndSettle();
+      await _tapDiProfil(tester, find.text('Keluar'));
 
       expect(find.text('MASUK'), findsOneWidget);
       expect(await storage.read(), isNull);
@@ -247,7 +273,7 @@ void main() {
         tester,
         nama: 'Eko Prasetyo',
         employeeId: 'ASM-0099',
-        email: 'eko@ptasmo.com',
+        email: 'eko@pt-sidik.com',
         password: 'password123',
       );
       await tester.pumpAndSettle();
@@ -258,7 +284,7 @@ void main() {
         find.textContaining('menunggu persetujuan admin'),
         findsOneWidget,
       );
-      expect(find.byType(NavigationBar), findsNothing);
+      expect(find.byType(FloatingNavBar), findsNothing);
     });
 
     testWidgets('setelah tutup dialog sukses → balik ke layar Login', (
@@ -270,7 +296,7 @@ void main() {
         tester,
         nama: 'Eko Prasetyo',
         employeeId: 'ASM-0098',
-        email: 'eko2@ptasmo.com',
+        email: 'eko2@pt-sidik.com',
         password: 'password123',
       );
       await tester.pumpAndSettle();
@@ -290,7 +316,7 @@ void main() {
         tester,
         nama: 'Budi Kembar',
         employeeId: 'ASM-0097',
-        email: 'admin@asmo.test', // udah ada
+        email: 'admin@pt-sidik.com', // udah ada
         password: 'password123',
       );
       await tester.pumpAndSettle();
@@ -331,7 +357,12 @@ void main() {
       await tester.tap(find.text('Profil'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Menu Admin'), findsOneWidget);
+      // Header profil sekarang lebih tinggi (banner + avatar), jadi menu admin
+      // ada di bawah lipatan — di-scroll dulu biar ke-build. Judul seksi
+      // dirender HURUF BESAR (konsisten sama dashboard).
+      await _scrollProfilKe(tester, find.text('MENU ADMIN'));
+
+      expect(find.text('MENU ADMIN'), findsOneWidget);
       expect(find.text('Manajemen Pengguna'), findsOneWidget);
     });
 
@@ -344,7 +375,7 @@ void main() {
       await tester.tap(find.text('Profil'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Menu Admin'), findsNothing);
+      expect(find.text('MENU ADMIN'), findsNothing);
       expect(find.text('Manajemen Pengguna'), findsNothing);
     });
 
@@ -357,9 +388,7 @@ void main() {
       await tester.tap(find.text('Profil'));
       await tester.pumpAndSettle();
 
-      await tester.scrollUntilVisible(find.text('Keluar'), 200);
-      await tester.tap(find.text('Keluar'));
-      await tester.pumpAndSettle();
+      await _tapDiProfil(tester, find.text('Keluar'));
 
       await _isiLogin(tester, identifier: 'ASM-0002', password: 'password123');
       await tester.pumpAndSettle();
@@ -387,10 +416,7 @@ void main() {
       await tester.tap(find.text('Profil'));
       await tester.pumpAndSettle();
 
-      final menu = find.text('Keluar dari semua perangkat');
-      await tester.scrollUntilVisible(menu, 200);
-      await tester.tap(menu);
-      await tester.pumpAndSettle();
+      await _tapDiProfil(tester, find.text('Keluar dari semua perangkat'));
     }
 
     testWidgets('minta konfirmasi dulu — nggak langsung nyabut', (tester) async {
@@ -406,7 +432,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Batal = beneran nggak ngapa-ngapain: masih login, token masih ada.
-      expect(find.widgetWithText(AppBar, 'Profil'), findsOneWidget);
+      // Header profil sekarang nggak punya judul di AppBar (foto full-bleed
+      // sampai tepi layar), jadi cek tetap di Profil lewat widget-nya.
+      expect(find.byType(ProfileScreen), findsOneWidget);
       expect(await storage.read(), 'mock-token-1');
     });
 
@@ -444,7 +472,9 @@ void main() {
       // HIDUP. Ngeluarin user dari HP ini doang bikin dia ngira udah aman —
       // padahal belum. Jadi: tetap di Profil, token nggak dibuang, dan
       // gagalnya dibilangin apa adanya biar dia bisa nyoba lagi.
-      expect(find.widgetWithText(AppBar, 'Profil'), findsOneWidget);
+      // Header profil sekarang nggak punya judul di AppBar (foto full-bleed
+      // sampai tepi layar), jadi cek tetap di Profil lewat widget-nya.
+      expect(find.byType(ProfileScreen), findsOneWidget);
       expect(find.text('MASUK'), findsNothing);
       expect(await storage.read(), 'mock-token-1');
       expect(find.textContaining('Gagal nyabut sesi'), findsOneWidget);

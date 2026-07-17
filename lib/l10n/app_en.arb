@@ -1,0 +1,141 @@
+{
+  "@@locale": "en",
+
+  "appTagline": "Precision Calibration Management",
+
+  "loginIdentifierLabel": "Employee ID / Email",
+  "loginIdentifierHint": "ASM-0001 or name@pt-sidik.com",
+  "passwordLabel": "Password",
+  "forgotPasswordLink": "Forgot Password?",
+  "loginSubmit": "SIGN IN",
+  "loginNoAccount": "Don't have an account?",
+  "loginRegisterLink": "Register",
+  "loginIdentifierRequired": "Employee ID or email is required.",
+  "passwordRequired": "Password is required.",
+  "errorNoConnection": "Can't reach the server. Please try again.",
+
+  "registerTitle": "Register Account",
+  "registerSubtitle": "Create your technician profile",
+  "nameLabel": "Full Name",
+  "nameHint": "e.g. Andi Pratama",
+  "employeeIdLabel": "Employee ID",
+  "departmentLabel": "Department",
+  "departmentHint": "Select department",
+  "emailLabel": "Email",
+  "emailHint": "name@pt-sidik.com",
+  "passwordHelper": "At least 8 characters",
+  "registerSubmit": "REGISTER",
+  "registerHaveAccount": "Already have an account?",
+  "registerLoginLink": "Log in",
+  "nameRequired": "Name is required.",
+  "employeeIdRequired": "Employee ID is required.",
+  "departmentRequired": "Please select a department.",
+  "emailRequired": "Email is required.",
+  "emailInvalid": "Invalid email format.",
+  "passwordTooShort": "Password must be at least 8 characters.",
+  "registerSuccessTitle": "Registration submitted",
+  "registerSuccessBody": "Your account is still awaiting admin approval. You can't sign in until an admin approves it and assigns your role.\n\nContact an admin if you don't hear back for a while.",
+  "registerSuccessDismiss": "GOT IT",
+
+  "forgotTitle": "Forgot Password",
+  "forgotSubtitle": "Verify your email, then set a new password",
+  "forgotBody": "Enter the email you used to register. If it matches, you can create a new password right here.",
+  "forgotSubmit": "CONTINUE",
+  "backToLogin": "Back to Login",
+  "resetNewPassTitle": "Set New Password",
+  "resetNewPassSubtitle": "Create a new password for {email}",
+  "@resetNewPassSubtitle": {
+    "placeholders": {
+      "email": { "type": "String" }
+    }
+  },
+  "newPasswordLabel": "New Password",
+  "confirmPasswordLabel": "Confirm New Password",
+  "passwordMismatch": "Passwords don't match.",
+  "resetSubmit": "SAVE NEW PASSWORD",
+  "resetDoneTitle": "Password changed",
+  "resetDoneBody": "Your password has been updated. Sign in with your new password now.",
+  "backToLoginCaps": "BACK TO LOGIN",
+
+  "languageLabel": "Language",
+
+  "navDashboard": "Dashboard",
+  "navEquipment": "Equipment",
+  "navHistory": "History",
+  "navNotifications": "Notifications",
+  "navProfile": "Profile",
+
+  "dashGreeting": "Hello,",
+  "dashSummaryOrg": "Organization summary",
+  "dashSummaryYours": "Your summary",
+  "dashTotalDevices": "Total devices",
+  "dashOverdue": "Overdue",
+  "dashPendingApproval": "Pending approval",
+  "dashCalibrationDraft": "Calibration drafts",
+  "dashCertsThisMonth": "Certificates this month",
+  "dashQuickActions": "Quick actions",
+  "dashStartCalibration": "START CALIBRATION",
+  "dashAddDevice": "ADD DEVICE",
+  "dashRetry": "TRY AGAIN",
+  "dashSessionExpired": "Your session has expired. Please sign in again.",
+  "dashLoadFailed": "Failed to load the dashboard.",
+  "dashOverdueWarning": "{count} device(s) past their calibration due date. Measurements from overdue devices can't be relied upon.",
+  "@dashOverdueWarning": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dashEmptyTitle": "No data yet",
+  "dashEmptyBodyInput": "No devices registered yet. Start by adding your first measuring device.",
+  "dashEmptyBodyReadonly": "There's nothing to show yet.",
+  "snackCalibInputSoon": "Calibration input is planned for week 4.",
+  "snackAddDeviceSoon": "Adding devices is planned for week 3.",
+
+  "profAccountInfo": "Account Info",
+  "profRoleLabel": "Role",
+  "profChangePhotoSheet": "Profile Photo",
+  "profChooseGallery": "Choose from gallery",
+  "profTakePhoto": "Take a photo",
+  "profRemovePhoto": "Remove photo",
+  "profPhotoUpdated": "Profile photo updated.",
+  "profPhotoRemoved": "Profile photo removed.",
+  "profPhotoFailed": "Couldn't pick the photo. Try again.",
+  "profAdminMenu": "Admin Menu",
+  "profUserManagement": "User Management",
+  "profUserManagementSub": "Planned for phase 3",
+  "profMasterData": "Company & Customer Master Data",
+  "profMasterDataSub": "Planned for week 2",
+  "profDesignSystem": "Design System",
+  "profDesignSystemSub": "Color, typography & component catalog",
+  "profAppInfo": "App Info",
+  "profEnvironment": "Environment",
+  "profApiBaseUrl": "API base URL",
+  "profSecurity": "Security",
+  "profLogoutAll": "Sign out of all devices",
+  "profLogoutAllSub": "For when your phone is lost. Every session is revoked — other phones, tablets, including this one.",
+  "profLogout": "Sign out",
+  "profLogoutAllConfirmTitle": "Sign out of all devices?",
+  "profLogoutAllConfirmBody": "All your sessions will be revoked, including on this phone — you'll be asked to sign in again.\n\nUse this if your phone is lost or stolen.",
+  "profCancel": "Cancel",
+  "profRevokeAll": "Revoke all sessions",
+  "profSessionsRevoked": "{count} session(s) revoked. Please sign in again.",
+  "@profSessionsRevoked": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "profAllSessionsRevoked": "All sessions revoked. Please sign in again.",
+  "profRevokeFailed": "Couldn't revoke sessions: {message}",
+  "@profRevokeFailed": {
+    "placeholders": {
+      "message": { "type": "String" }
+    }
+  },
+
+  "equipmentPlaceholderTitle": "Device List",
+  "equipmentPlaceholderBody": "Measuring devices by category, plus an add/edit device form. Planned for week 3.",
+  "historyPlaceholderTitle": "Calibration History",
+  "historyPlaceholderBody": "History of calibration sessions & issued certificates. Planned for week 9.",
+  "notificationPlaceholderTitle": "Notifications",
+  "notificationPlaceholderBody": "Reminders for devices approaching their calibration due date. Planned for week 9."
+}

@@ -62,6 +62,18 @@ abstract class AuthService {
   /// udah dikirim". Sementara ini ngikutin catatan harian dulu.
   Future<void> requestPasswordReset(String email);
 
+  /// Set password baru buat akun [email].
+  ///
+  /// Di alur produksi, kepemilikan email diverifikasi lewat token yang dikirim
+  /// ke email, dan halaman "atur password baru" dibuka dari link di email itu.
+  /// Di mock (nggak ada infra email) langkah verifikasi di-skip — ini
+  /// nyimulasiin halaman tersebut biar reset-nya beneran kepakai, bukan cuma
+  /// numpuk di layar "link terkirim".
+  Future<void> resetPassword({
+    required String email,
+    required String newPassword,
+  });
+
   /// Validasi token yang tersimpan waktu app dibuka (splash).
   Future<User> me(String token);
 
