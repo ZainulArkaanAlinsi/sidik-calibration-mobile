@@ -182,6 +182,7 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
           const SizedBox(height: AppSpacing.sm),
           DropdownButtonFormField<String>(
             initialValue: _kategori,
+            isExpanded: true,
             hint: Text(l10n.equipKategoriHint),
             items: kategoriList
                 .map((k) => DropdownMenuItem(value: k.kode, child: Text(k.nama)))
@@ -200,6 +201,7 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
           const SizedBox(height: AppSpacing.sm),
           DropdownButtonFormField<int>(
             initialValue: _pelangganId,
+            isExpanded: true,
             hint: Text(l10n.equipPelangganHint),
             items: pelangganList
                 .map((c) => DropdownMenuItem(value: c.id, child: Text(c.nama)))
@@ -298,6 +300,7 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
           const SizedBox(height: AppSpacing.sm),
           DropdownButtonFormField<EquipmentStatus>(
             initialValue: _status,
+            isExpanded: true,
             items: [
               DropdownMenuItem(
                 value: EquipmentStatus.aktif,

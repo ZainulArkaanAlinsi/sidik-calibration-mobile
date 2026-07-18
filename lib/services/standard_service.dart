@@ -62,6 +62,36 @@ class MockStandardService implements StandardService {
         satuanKetidakpastian: 'pH',
         faktorCakupan: 2,
       ),
+      Standard(
+        id: 4,
+        nama: 'pH Buffer Solution 4',
+        merk: 'Supelco/Merck',
+        serialNumber: 'HC32513535',
+        masihBerlaku: true,
+        ketidakpastian: 0.02,
+        satuanKetidakpastian: 'pH',
+        faktorCakupan: 2,
+      ),
+      Standard(
+        id: 5,
+        nama: 'pH Buffer Solution 10',
+        merk: 'Supelco/Merck',
+        serialNumber: 'HC45400338',
+        masihBerlaku: true,
+        ketidakpastian: 0.024,
+        satuanKetidakpastian: 'pH',
+        faktorCakupan: 2,
+      ),
+      Standard(
+        id: 6,
+        nama: 'Termometer & Sensor Std.',
+        merk: 'Yokogawa/CA 150 Handy Cal',
+        serialNumber: '23P1005',
+        masihBerlaku: true,
+        ketidakpastian: 0.06,
+        satuanKetidakpastian: 'oC',
+        faktorCakupan: 2,
+      ),
     ];
   }
 }

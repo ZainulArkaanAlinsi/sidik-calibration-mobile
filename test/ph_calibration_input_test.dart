@@ -68,24 +68,40 @@ Future<void> _bukaLayar(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
-/// Isi form sampai siap submit: alat + standar + kondisi lingkungan + 3
-/// titik buffer (masing-masing 5 pembacaan sesudah adjustment).
+/// Isi form sampai siap submit: alat + standar sesi (Termometer & Sensor) +
+/// kondisi lingkungan + 3 titik buffer, masing-masing dengan standar buffer
+/// sendiri (`docs/kontrak-api.md` §4: `measurements[].standard_id`) + 5
+/// pembacaan sesudah adjustment.
 ///
 /// Thermohygro sekarang dropdown preset (default `TH-3`, nggak perlu
-/// diisi manual) — bukan `TextField` lagi. Urutan `TextField` di layar:
-/// suhu awal[0], suhu akhir[1], kelembaban awal[2], kelembaban akhir[3],
-/// lalu 3 kartu titik buffer @21 field (nilai standar + 5x2 sebelum +
-/// 5x2 sesudah).
+/// diisi manual) — bukan `TextField` lagi. Dropdown standar (sesi + 3
+/// buffer) juga bukan `TextField`, jadi nggak masuk hitungan index di
+/// bawah. Urutan `TextField` di layar: suhu awal[0], suhu akhir[1],
+/// kelembaban awal[2], kelembaban akhir[3], lalu 3 kartu titik buffer @21
+/// field (nilai standar + 5x2 sebelum + 5x2 sesudah).
 Future<void> _isiFormLengkap(WidgetTester tester) async {
   await tester.tap(find.text('Pilih alat'), warnIfMissed: false);
   await tester.pumpAndSettle();
   await tester.tap(find.textContaining('pH Meter Mettler Toledo').last);
   await tester.pumpAndSettle();
 
-  await tester.tap(find.text('Pilih standar acuan'), warnIfMissed: false);
+  await tester.tap(
+    find.text('Dipakai buat kondisi lingkungan (suhu/kelembaban)'),
+    warnIfMissed: false,
+  );
   await tester.pumpAndSettle();
-  await tester.tap(find.text('pH Buffer Solution 7').last);
+  await tester.tap(find.text('Termometer & Sensor Std.').last);
   await tester.pumpAndSettle();
+
+  // Satu dropdown "Pilih larutan buffer" per kartu titik (4/7/10) — ketiganya
+  // masih kosong bareng di awal, jadi `.at(0)` selalu nunjuk yang PALING ATAS
+  // yang belum dipilih (begitu satu dipilih, hint-nya ilang dari list).
+  for (final buffer in ['pH Buffer Solution 4', 'pH Buffer Solution 7', 'pH Buffer Solution 10']) {
+    await tester.tap(find.text('Pilih larutan buffer').at(0), warnIfMissed: false);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(buffer).last);
+    await tester.pumpAndSettle();
+  }
 
   await tester.enterText(find.byType(TextField).at(0), '21.3');
   await tester.enterText(find.byType(TextField).at(1), '21.5');
@@ -116,7 +132,10 @@ void main() {
     await _bukaLayar(tester);
 
     expect(find.text('Pilih alat'), findsOneWidget);
-    expect(find.text('Pilih standar acuan'), findsOneWidget);
+    expect(
+      find.text('Dipakai buat kondisi lingkungan (suhu/kelembaban)'),
+      findsOneWidget,
+    );
     expect(find.text('Buffer pH 4'), findsOneWidget);
     expect(find.text('Buffer pH 7'), findsOneWidget);
     expect(find.text('Buffer pH 10'), findsOneWidget);

@@ -59,6 +59,17 @@ Future<void> _bukaLayar(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
+/// Sejak field "Lokasi Kalibrasi" ditambah, form makin panjang dan
+/// `_isiFormLengkap` (pakai `find.byType(TextField).at(n)` langsung tanpa
+/// scroll) butuh viewport gede biar `ListView` nge-build semua field-nya
+/// sekaligus — sama kasusnya kayak `ph_calibration_input_test.dart`.
+void _perbesarViewport(WidgetTester tester) {
+  tester.view.physicalSize = const Size(800, 1600);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+}
+
 /// Form-nya lebih panjang dari viewport test — tombol submit di paling
 /// bawah perlu di-scroll dulu biar ke-build sebelum di-tap.
 Future<void> _scrollKe(WidgetTester tester, Finder target) async {
@@ -144,6 +155,7 @@ void main() {
   testWidgets('isi form lengkap → kirim approval sukses & layar ketutup', (
     tester,
   ) async {
+    _perbesarViewport(tester);
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
     await _bukaLayar(tester);
@@ -161,6 +173,7 @@ void main() {
   testWidgets('submit gagal di server → pesan error, layar tetap kebuka', (
     tester,
   ) async {
+    _perbesarViewport(tester);
     await tester.pumpWidget(_app(submitGagal: true));
     await tester.pumpAndSettle();
     await _bukaLayar(tester);

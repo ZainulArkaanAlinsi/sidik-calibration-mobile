@@ -1538,6 +1538,24 @@ abstract class AppLocalizations {
   /// **'Calibration date'**
   String get calibTanggal;
 
+  /// No description provided for @calibLokasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration location'**
+  String get calibLokasi;
+
+  /// No description provided for @calibLokasiLab.
+  ///
+  /// In en, this message translates to:
+  /// **'At the lab'**
+  String get calibLokasiLab;
+
+  /// No description provided for @calibLokasiOnsite.
+  ///
+  /// In en, this message translates to:
+  /// **'At customer site (onsite)'**
+  String get calibLokasiOnsite;
+
   /// No description provided for @calibSuhuRuang.
   ///
   /// In en, this message translates to:
@@ -1687,6 +1705,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Other (enter manually)'**
   String get phCalibThermohygroCustom;
+
+  /// No description provided for @phCalibStandarSesi.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference Standard (Thermometer & Sensor)'**
+  String get phCalibStandarSesi;
+
+  /// No description provided for @phCalibStandarSesiHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Used for environmental conditions (temp/humidity)'**
+  String get phCalibStandarSesiHint;
+
+  /// No description provided for @phCalibStandarBuffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Buffer standard for this point'**
+  String get phCalibStandarBuffer;
+
+  /// No description provided for @phCalibStandarBufferHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a buffer solution'**
+  String get phCalibStandarBufferHint;
+
+  /// No description provided for @phCalibValidasiStandarBuffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a buffer standard for every point (4, 7, 10) first.'**
+  String get phCalibValidasiStandarBuffer;
 
   /// No description provided for @phCalibKondisiLingkungan.
   ///

@@ -778,6 +778,15 @@ class AppLocalizationsId extends AppLocalizations {
   String get calibTanggal => 'Tanggal kalibrasi';
 
   @override
+  String get calibLokasi => 'Lokasi kalibrasi';
+
+  @override
+  String get calibLokasiLab => 'Di laboratorium';
+
+  @override
+  String get calibLokasiOnsite => 'Di lokasi pelanggan (onsite)';
+
+  @override
   String get calibSuhuRuang => 'Suhu ruang (°C)';
 
   @override
@@ -858,6 +867,23 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get phCalibThermohygroCustom => 'Lainnya (isi manual)';
+
+  @override
+  String get phCalibStandarSesi => 'Standar Acuan (Termometer & Sensor)';
+
+  @override
+  String get phCalibStandarSesiHint =>
+      'Dipakai buat kondisi lingkungan (suhu/kelembaban)';
+
+  @override
+  String get phCalibStandarBuffer => 'Standar buffer titik ini';
+
+  @override
+  String get phCalibStandarBufferHint => 'Pilih larutan buffer';
+
+  @override
+  String get phCalibValidasiStandarBuffer =>
+      'Pilih standar buffer buat tiap titik (4, 7, 10) dulu.';
 
   @override
   String get phCalibKondisiLingkungan => 'Kondisi Lingkungan';

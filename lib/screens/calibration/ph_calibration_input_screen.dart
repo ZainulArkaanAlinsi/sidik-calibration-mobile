@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../core/utils/uuid.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/calibration_draft.dart' show LokasiKalibrasi;
 import '../../models/equipment_lookup.dart';
 import '../../models/ph_calibration_draft.dart';
 import '../../models/standard.dart';
@@ -83,7 +85,8 @@ class _Gagal extends StatelessWidget {
 }
 
 /// Controller teks buat satu titik buffer — 1 nilai standar + 5×2 pembacaan
-/// (pH + suhu) untuk tiap state (sebelum/sesudah adjustment).
+/// (pH + suhu) untuk tiap state (sebelum/sesudah adjustment), plus standar
+/// buffer yang dipakai KHUSUS titik ini (`PhBufferPoint.standardId`).
 class _TitikControllers {
   _TitikControllers(String nilaiDefault)
     : nilaiStandar = TextEditingController(text: nilaiDefault),
@@ -97,6 +100,10 @@ class _TitikControllers {
   final List<TextEditingController> sebelumSuhu;
   final List<TextEditingController> sesudahPh;
   final List<TextEditingController> sesudahSuhu;
+
+  /// Mis. "pH Buffer Solution 4" — beda dari standar sesi (Termometer &
+  /// Sensor Std.), lihat komentar di [PhBufferPoint.standardId].
+  Standard? standarBuffer;
 
   void dispose() {
     nilaiStandar.dispose();
@@ -125,8 +132,15 @@ class _FormState extends ConsumerState<_Form> {
   EquipmentLookup? _alat;
   Standard? _standar;
   DateTime _tanggal = DateTime.now();
+  LokasiKalibrasi _lokasi = LokasiKalibrasi.lab;
   String _thermohygroPreset = 'TH-3';
   final _thermohygro = TextEditingController(text: 'TH-3');
+
+  /// Di-generate SEKALI waktu layar dibuka (bukan tiap tap tombol) — kalau
+  /// teknisi tap "Kirim" berkali-kali (mis. sinyal lemot, nungguin respons),
+  /// backend ngenalin ini submission yang sama lewat `client_request_id`,
+  /// bukan bikin sesi dobel (`docs/kontrak-api.md` §4).
+  final _clientRequestId = generateUuidV4();
   final _suhuAwal = TextEditingController();
   final _suhuAkhir = TextEditingController();
   final _kelembabanAwal = TextEditingController();
@@ -156,9 +170,13 @@ class _FormState extends ConsumerState<_Form> {
 
   PhBufferPoint? _bacaTitik(_TitikControllers c, String label, AppLocalizations l10n) {
     final nilaiStandar = _parse(c.nilaiStandar.text);
-    if (nilaiStandar == null) return null;
+    if (nilaiStandar == null || c.standarBuffer == null) return null;
 
-    final titik = PhBufferPoint(label: label, nilaiStandar: nilaiStandar);
+    final titik = PhBufferPoint(
+      label: label,
+      nilaiStandar: nilaiStandar,
+      standardId: c.standarBuffer!.id,
+    );
 
     for (var i = 0; i < 5; i++) {
       final phSebelum = _parse(c.sebelumPh[i].text);
@@ -204,6 +222,15 @@ class _FormState extends ConsumerState<_Form> {
       return;
     }
 
+    if (_titik4.standarBuffer == null ||
+        _titik7.standarBuffer == null ||
+        _titik10.standarBuffer == null) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.phCalibValidasiStandarBuffer)),
+      );
+      return;
+    }
+
     final titikList = [
       _bacaTitik(_titik4, '4', l10n),
       _bacaTitik(_titik7, '7', l10n),
@@ -239,9 +266,13 @@ class _FormState extends ConsumerState<_Form> {
 
     setState(() => _mengirim = true);
 
-    final hasil = await ref
-        .read(calibrationSubmitProvider.notifier)
-        .submit(draftPh.toGenericDraft(simpanSebagaiDraft: draft));
+    final hasil = await ref.read(calibrationSubmitProvider.notifier).submit(
+      draftPh.toGenericDraft(
+        clientRequestId: _clientRequestId,
+        lokasi: _lokasi,
+        simpanSebagaiDraft: draft,
+      ),
+    );
 
     if (!mounted) return;
     setState(() => _mengirim = false);
@@ -284,6 +315,7 @@ class _FormState extends ConsumerState<_Form> {
           error: (_, _) => Text(l10n.calibAlatKosong),
           data: (list) => DropdownButtonFormField<EquipmentLookup>(
             initialValue: _alat,
+            isExpanded: true,
             hint: Text(list.isEmpty ? l10n.calibAlatKosong : l10n.calibAlatHint),
             items: list
                 .map(
@@ -298,11 +330,12 @@ class _FormState extends ConsumerState<_Form> {
         ),
         const SizedBox(height: AppSpacing.md),
 
-        Text(l10n.calibStandar.toUpperCase(), style: theme.textTheme.labelLarge),
+        Text(l10n.phCalibStandarSesi.toUpperCase(), style: theme.textTheme.labelLarge),
         const SizedBox(height: AppSpacing.sm),
         DropdownButtonFormField<Standard>(
           initialValue: _standar,
-          hint: Text(l10n.calibStandarHint),
+          isExpanded: true,
+          hint: Text(l10n.phCalibStandarSesiHint),
           items: widget.standarList
               .map(
                 (s) => DropdownMenuItem(
@@ -318,6 +351,22 @@ class _FormState extends ConsumerState<_Form> {
               )
               .toList(),
           onChanged: (value) => setState(() => _standar = value),
+        ),
+        const SizedBox(height: AppSpacing.md),
+
+        Text(l10n.calibLokasi.toUpperCase(), style: theme.textTheme.labelLarge),
+        const SizedBox(height: AppSpacing.sm),
+        DropdownButtonFormField<LokasiKalibrasi>(
+          initialValue: _lokasi,
+          isExpanded: true,
+          items: [
+            DropdownMenuItem(value: LokasiKalibrasi.lab, child: Text(l10n.calibLokasiLab)),
+            DropdownMenuItem(
+              value: LokasiKalibrasi.onsite,
+              child: Text(l10n.calibLokasiOnsite),
+            ),
+          ],
+          onChanged: (value) => setState(() => _lokasi = value!),
         ),
         const SizedBox(height: AppSpacing.md),
 
@@ -344,6 +393,7 @@ class _FormState extends ConsumerState<_Form> {
         const SizedBox(height: AppSpacing.sm),
         DropdownButtonFormField<String>(
           initialValue: _thermohygroPreset,
+          isExpanded: true,
           items: [
             for (final th in _thermohygroPresets)
               DropdownMenuItem(value: th, child: Text(th)),
@@ -409,11 +459,26 @@ class _FormState extends ConsumerState<_Form> {
         ),
         const SizedBox(height: AppSpacing.xl),
 
-        _BufferPointCard(label: '4', controllers: _titik4),
+        _BufferPointCard(
+          label: '4',
+          controllers: _titik4,
+          standarList: widget.standarList,
+          onStandarChanged: (v) => setState(() => _titik4.standarBuffer = v),
+        ),
         const SizedBox(height: AppSpacing.md),
-        _BufferPointCard(label: '7', controllers: _titik7),
+        _BufferPointCard(
+          label: '7',
+          controllers: _titik7,
+          standarList: widget.standarList,
+          onStandarChanged: (v) => setState(() => _titik7.standarBuffer = v),
+        ),
         const SizedBox(height: AppSpacing.md),
-        _BufferPointCard(label: '10', controllers: _titik10),
+        _BufferPointCard(
+          label: '10',
+          controllers: _titik10,
+          standarList: widget.standarList,
+          onStandarChanged: (v) => setState(() => _titik10.standarBuffer = v),
+        ),
         const SizedBox(height: AppSpacing.xl),
 
         AppButton(
@@ -434,10 +499,17 @@ class _FormState extends ConsumerState<_Form> {
 }
 
 class _BufferPointCard extends StatelessWidget {
-  const _BufferPointCard({required this.label, required this.controllers});
+  const _BufferPointCard({
+    required this.label,
+    required this.controllers,
+    required this.standarList,
+    required this.onStandarChanged,
+  });
 
   final String label;
   final _TitikControllers controllers;
+  final List<Standard> standarList;
+  final ValueChanged<Standard?> onStandarChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -461,6 +533,34 @@ class _BufferPointCard extends StatelessWidget {
               label: l10n.phCalibNilaiStandar,
               controller: controllers.nilaiStandar,
               satuan: 'pH',
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.phCalibStandarBuffer.toUpperCase(),
+              style: theme.textTheme.labelLarge,
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            DropdownButtonFormField<Standard>(
+              initialValue: controllers.standarBuffer,
+              isExpanded: true,
+              hint: Text(l10n.phCalibStandarBufferHint),
+              items: standarList
+                  .map(
+                    (s) => DropdownMenuItem(
+                      value: s,
+                      enabled: s.masihBerlaku,
+                      child: Text(
+                        s.masihBerlaku
+                            ? s.nama
+                            : '${s.nama} (${l10n.calibStandarKadaluarsa})',
+                        style: s.masihBerlaku
+                            ? null
+                            : TextStyle(color: theme.colorScheme.error),
+                      ),
+                    ),
+                  )
+                  .toList(),
+              onChanged: onStandarChanged,
             ),
             const SizedBox(height: AppSpacing.md),
             _ReadingSection(

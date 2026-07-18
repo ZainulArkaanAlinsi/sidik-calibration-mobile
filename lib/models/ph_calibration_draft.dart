@@ -24,6 +24,7 @@ class PhBufferPoint {
   PhBufferPoint({
     required this.label,
     required this.nilaiStandar,
+    this.standardId,
   }) : sebelumAdjustment = List.generate(5, (_) => null),
        sesudahAdjustment = List.generate(5, (_) => null);
 
@@ -34,6 +35,13 @@ class PhBufferPoint {
   /// Nilai pasti dari sertifikat buffer yang dipakai (mis. 3.99, bukan 4
   /// bulat) — ini yang jadi `titik_ukur` waktu dikirim ke API.
   final double nilaiStandar;
+
+  /// Standar buffer yang dipakai KHUSUS titik ini (mis. "pH Buffer Solution
+  /// 4"). Beda dari `standardId` sesi (yang dipakai buat Termometer &
+  /// Sensor Std. — kondisi lingkungan) — buffer 4/7/10 masing-masing punya
+  /// sertifikat sendiri (lihat `SERTIFIKAT.csv` di master worksheet: 3
+  /// larutan buffer beda serial number). `null` sampai teknisi milih.
+  int? standardId;
 
   final List<PhReading?> sebelumAdjustment;
   final List<PhReading?> sesudahAdjustment;
@@ -59,6 +67,10 @@ class PhCalibrationDraft {
        ];
 
   final int equipmentId;
+
+  /// Standar acuan sesi — Termometer & Sensor Std., dipakai buat Type B
+  /// kondisi lingkungan (suhu ruang/kelembaban). **Bukan** standar buffer,
+  /// itu per titik lewat [PhBufferPoint.standardId].
   final int standardId;
   final DateTime tanggalKalibrasi;
   final String thermohygroId;
@@ -77,8 +89,13 @@ class PhCalibrationDraft {
   /// Terjemahin ke [CalibrationDraft] generik buat dikirim ke
   /// `POST /api/calibrations` yang udah live. Suhu/kelembaban dirata-rata
   /// dari awal-akhir (sama kayak kolom "Average" di master worksheet);
-  /// tiap titik buffer kirim 5 pembacaan *sesudah* adjustment.
-  CalibrationDraft toGenericDraft({bool simpanSebagaiDraft = false}) {
+  /// tiap titik buffer kirim 5 pembacaan *sesudah* adjustment plus standar
+  /// buffernya sendiri-sendiri.
+  CalibrationDraft toGenericDraft({
+    required String clientRequestId,
+    LokasiKalibrasi lokasi = LokasiKalibrasi.lab,
+    bool simpanSebagaiDraft = false,
+  }) {
     final suhuRuang = ((suhuAwal ?? 0) + (suhuAkhir ?? 0)) / 2;
     final kelembaban = ((kelembabanAwal ?? 0) + (kelembabanAkhir ?? 0)) / 2;
 
@@ -89,12 +106,15 @@ class PhCalibrationDraft {
       tanggalKalibrasi: tanggalKalibrasi,
       suhuRuang: suhuRuang,
       kelembaban: kelembaban,
+      lokasi: lokasi,
+      clientRequestId: clientRequestId,
       simpanSebagaiDraft: simpanSebagaiDraft,
       measurements: [
         for (final titik in points)
           MeasurementPoint(
             titikUkur: titik.nilaiStandar,
             satuan: 'pH',
+            standardId: titik.standardId,
             pembacaan: titik.sesudahAdjustment
                 .whereType<PhReading>()
                 .map((r) => r.ph)

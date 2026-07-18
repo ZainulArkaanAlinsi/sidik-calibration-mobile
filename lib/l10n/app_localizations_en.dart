@@ -780,6 +780,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calibTanggal => 'Calibration date';
 
   @override
+  String get calibLokasi => 'Calibration location';
+
+  @override
+  String get calibLokasiLab => 'At the lab';
+
+  @override
+  String get calibLokasiOnsite => 'At customer site (onsite)';
+
+  @override
   String get calibSuhuRuang => 'Room temperature (°C)';
 
   @override
@@ -862,6 +871,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get phCalibThermohygroCustom => 'Other (enter manually)';
+
+  @override
+  String get phCalibStandarSesi => 'Reference Standard (Thermometer & Sensor)';
+
+  @override
+  String get phCalibStandarSesiHint =>
+      'Used for environmental conditions (temp/humidity)';
+
+  @override
+  String get phCalibStandarBuffer => 'Buffer standard for this point';
+
+  @override
+  String get phCalibStandarBufferHint => 'Choose a buffer solution';
+
+  @override
+  String get phCalibValidasiStandarBuffer =>
+      'Choose a buffer standard for every point (4, 7, 10) first.';
 
   @override
   String get phCalibKondisiLingkungan => 'Environmental Conditions';

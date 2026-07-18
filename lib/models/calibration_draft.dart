@@ -1,3 +1,15 @@
+/// Lokasi pengerjaan kalibrasi (`docs/kontrak-api.md` §4) — `lab` (default
+/// backend kalau nggak dikirim) atau `onsite` (di tempat pelanggan).
+enum LokasiKalibrasi {
+  lab,
+  onsite;
+
+  String toApi() => switch (this) {
+    LokasiKalibrasi.lab => 'lab',
+    LokasiKalibrasi.onsite => 'onsite',
+  };
+}
+
 /// Satu titik ukur — target (`titikUkur`) + pembacaan berulang (min. 2, Type
 /// A itu standar deviasi antar-pengulangan, satu angka nggak ada sebaran
 /// yang bisa dihitung — `docs/kontrak-api.md` §4).
@@ -6,16 +18,23 @@ class MeasurementPoint {
     required this.titikUkur,
     required this.satuan,
     required this.pembacaan,
+    this.standardId,
   });
 
   final double titikUkur;
   final String satuan;
   final List<double> pembacaan;
 
+  /// Override standar acuan khusus titik ini — sebagian kategori alat (mis.
+  /// pH: buffer 4/7/10) butuh standar BEDA per titik, bukan satu standar
+  /// buat seluruh sesi. `null` berarti titik ini ikut `standard_id` sesi.
+  final int? standardId;
+
   Map<String, dynamic> toJson() => {
     'titik_ukur': titikUkur,
     'satuan': satuan,
     'pembacaan': pembacaan,
+    if (standardId != null) 'standard_id': standardId,
   };
 }
 
@@ -31,6 +50,8 @@ class CalibrationDraft {
     required this.suhuRuang,
     required this.kelembaban,
     required this.measurements,
+    required this.clientRequestId,
+    this.lokasi = LokasiKalibrasi.lab,
     this.simpanSebagaiDraft = false,
   });
 
@@ -41,6 +62,12 @@ class CalibrationDraft {
   final double suhuRuang;
   final double kelembaban;
   final List<MeasurementPoint> measurements;
+  final LokasiKalibrasi lokasi;
+
+  /// UUID yang di-generate SEKALI per sesi form (bukan per tap tombol) —
+  /// kalau submit di-retry (mis. sinyal putus pas nunggu respons) dengan key
+  /// yang sama, backend balikin sesi yang udah ada, bukan bikin dobel.
+  final String clientRequestId;
 
   /// `true` → kirim `status: "draft"` ("simpan dulu, lanjut nanti").
   /// `false` → nggak dikirim sama sekali, sesi langsung masuk antrean
@@ -55,6 +82,8 @@ class CalibrationDraft {
     'tanggal_kalibrasi': tanggalKalibrasi.toUtc().toIso8601String(),
     'suhu_ruang': suhuRuang,
     'kelembaban': kelembaban,
+    'lokasi': lokasi.toApi(),
+    'client_request_id': clientRequestId,
     'measurements': measurements.map((m) => m.toJson()).toList(),
     if (simpanSebagaiDraft) 'status': 'draft',
   };

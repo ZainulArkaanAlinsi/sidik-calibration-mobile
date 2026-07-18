@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../core/utils/uuid.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_draft.dart';
 import '../../models/category.dart';
@@ -120,9 +121,14 @@ class _FormState extends ConsumerState<_Form> {
   EquipmentLookup? _alat;
   Standard? _standar;
   DateTime _tanggal = DateTime.now();
+  LokasiKalibrasi _lokasi = LokasiKalibrasi.lab;
   final _suhuRuang = TextEditingController(text: '23.5');
   final _kelembaban = TextEditingController(text: '55');
   final List<_Titik> _titikList = [_Titik()];
+
+  /// Di-generate SEKALI waktu layar dibuka — lihat komentar yang sama di
+  /// `ph_calibration_input_screen.dart`.
+  final _clientRequestId = generateUuidV4();
 
   bool _mengirim = false;
 
@@ -211,6 +217,8 @@ class _FormState extends ConsumerState<_Form> {
         tanggalKalibrasi: _tanggal,
         suhuRuang: suhu,
         kelembaban: lembab,
+        lokasi: _lokasi,
+        clientRequestId: _clientRequestId,
         measurements: measurements,
         simpanSebagaiDraft: draft,
       ),
@@ -247,6 +255,7 @@ class _FormState extends ConsumerState<_Form> {
         const SizedBox(height: AppSpacing.sm),
         DropdownButtonFormField<String>(
           initialValue: _kategori,
+          isExpanded: true,
           hint: Text(l10n.calibKategoriHint),
           items: widget.kategoriList
               .map((k) => DropdownMenuItem(value: k.kode, child: Text(k.nama)))
@@ -266,6 +275,7 @@ class _FormState extends ConsumerState<_Form> {
           error: (_, _) => Text(l10n.calibAlatKosong),
           data: (list) => DropdownButtonFormField<EquipmentLookup>(
             initialValue: _alat,
+            isExpanded: true,
             hint: Text(list.isEmpty ? l10n.calibAlatKosong : l10n.calibAlatHint),
             items: list
                 .map(
@@ -284,6 +294,7 @@ class _FormState extends ConsumerState<_Form> {
         const SizedBox(height: AppSpacing.sm),
         DropdownButtonFormField<Standard>(
           initialValue: _standar,
+          isExpanded: true,
           hint: Text(l10n.calibStandarHint),
           items: widget.standarList
               .map(
@@ -322,6 +333,22 @@ class _FormState extends ConsumerState<_Form> {
               '${_tanggal.day}/${_tanggal.month}/${_tanggal.year}',
             ),
           ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+
+        Text(l10n.calibLokasi.toUpperCase(), style: theme.textTheme.labelLarge),
+        const SizedBox(height: AppSpacing.sm),
+        DropdownButtonFormField<LokasiKalibrasi>(
+          initialValue: _lokasi,
+          isExpanded: true,
+          items: [
+            DropdownMenuItem(value: LokasiKalibrasi.lab, child: Text(l10n.calibLokasiLab)),
+            DropdownMenuItem(
+              value: LokasiKalibrasi.onsite,
+              child: Text(l10n.calibLokasiOnsite),
+            ),
+          ],
+          onChanged: (value) => setState(() => _lokasi = value!),
         ),
         const SizedBox(height: AppSpacing.md),
 
