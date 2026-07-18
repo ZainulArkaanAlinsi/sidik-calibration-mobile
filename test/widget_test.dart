@@ -57,7 +57,9 @@ void main() {
       await tester.tap(find.text('Alat'));
       await tester.pumpAndSettle();
       expect(find.widgetWithText(AppBar, 'Alat'), findsOneWidget);
-      expect(find.text('Daftar Alat'), findsOneWidget);
+      // Search bar-nya selalu kerender lepas dari state async list alat
+      // (loading/error/data) — nggak kayak "Daftar Alat" placeholder lama.
+      expect(find.text('Cari nama alat'), findsOneWidget);
 
       await tester.tap(find.text('Profil'));
       await tester.pumpAndSettle();

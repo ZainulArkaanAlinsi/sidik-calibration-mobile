@@ -211,7 +211,7 @@ class _Ringkasan extends ConsumerWidget {
                 if (data.standarAcuan != null)
                   _RingkasanRow(
                     label: l10n.detailStandarAcuan,
-                    value: data.standarAcuan!,
+                    value: data.standarAcuan!.nama,
                   ),
                 if (data.suhuRuang != null && data.kelembaban != null)
                   _RingkasanRow(

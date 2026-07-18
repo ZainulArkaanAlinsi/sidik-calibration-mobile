@@ -106,61 +106,102 @@ class MockHistoryService implements HistoryService {
 
   /// Titik contoh angkanya diambil dari `PERHITUNGAN.csv` master worksheet
   /// pH (`Project-PT-Sidik/Master Olah Data_pH for trial_CSV`) — biar layar
-  /// detail bisa dites pakai angka yang realistis, bukan asal-asalan.
+  /// detail bisa dites pakai angka yang realistis, bukan asal-asalan. Bentuk
+  /// field-nya dikunci ke `CalibrationResource::toArray()` backend
+  /// (`sidik-calibration-api`, commit `06af54e`).
   static const _titikContoh = [
     MeasurementResult(
+      titikKe: 1,
       titikUkur: 4.009244572,
-      satuan: 'pH',
-      pembacaan: [4, 4, 4, 4, 4],
       rataRata: 4,
       error: -0.009244572,
       koreksi: 0.009244572,
+      standarDeviasi: 0,
+      jumlahPengulangan: 5,
       typeA: 0,
       typeB: 0.01171610510631313,
-      typeBKomponen: [
-        UncertaintyComponent(nama: 'Standar buffer pH 4', nilai: 0.01),
-        UncertaintyComponent(nama: 'Resolusi alat', nilai: 0.005),
+      typeBComponents: [
+        UncertaintyComponent(
+          sumber: 'ketidakpastian_standar',
+          keterangan: 'Sertifikat standar pH Buffer Solution 4 (U=0.02 pH, k=2)',
+          distribusi: 'normal',
+          nilai: 0.01,
+        ),
+        UncertaintyComponent(
+          sumber: 'resolusi_alat',
+          keterangan: 'Resolusi alat 0.01 pH',
+          distribusi: 'persegi',
+          nilai: 0.005,
+        ),
       ],
       ketidakpastianGabungan: 0.01171610510631313,
       faktorCakupanK: 1.9706589608358136,
       ketidakpastianDiperluas: 0.02343221021262627,
+      toleransi: 0.05,
       keputusan: Keputusan.pass,
+      standarAcuan: StandardRef(id: 2, nama: 'pH Buffer Solution 4', noSertifikat: 'HC32513535'),
     ),
     MeasurementResult(
+      titikKe: 2,
       titikUkur: 6.9889072,
-      satuan: 'pH',
-      pembacaan: [7.01, 7.01, 7, 7, 7],
       rataRata: 7.004,
       error: 0.0150928,
       koreksi: -0.0150928,
+      standarDeviasi: 0.005477225575051544,
+      jumlahPengulangan: 5,
       typeA: 0.005477225575051544,
       typeB: 0.01047,
-      typeBKomponen: [
-        UncertaintyComponent(nama: 'Standar buffer pH 7', nilai: 0.01),
-        UncertaintyComponent(nama: 'Resolusi alat', nilai: 0.005),
+      typeBComponents: [
+        UncertaintyComponent(
+          sumber: 'ketidakpastian_standar',
+          keterangan: 'Sertifikat standar pH Buffer Solution 7 (U=0.02 pH, k=2)',
+          distribusi: 'normal',
+          nilai: 0.01,
+        ),
+        UncertaintyComponent(
+          sumber: 'resolusi_alat',
+          keterangan: 'Resolusi alat 0.01 pH',
+          distribusi: 'persegi',
+          nilai: 0.005,
+        ),
       ],
       ketidakpastianGabungan: 0.010714869473539,
       faktorCakupanK: 1.9706589608358136,
       ketidakpastianDiperluas: 0.02110894987572546,
+      toleransi: 0.05,
       keputusan: Keputusan.pass,
+      standarAcuan: StandardRef(id: 3, nama: 'pH Buffer Solution 7', noSertifikat: 'HC46341939'),
     ),
     MeasurementResult(
+      titikKe: 3,
       titikUkur: 9.9788769,
-      satuan: 'pH',
-      pembacaan: [10.11, 10.11, 10.11, 10.11, 10.11],
       rataRata: 10.11,
       error: 0.1311231,
       koreksi: -0.1311231,
+      standarDeviasi: 0,
+      jumlahPengulangan: 5,
       typeA: 0,
       typeB: 0.0157,
-      typeBKomponen: [
-        UncertaintyComponent(nama: 'Standar buffer pH 10', nilai: 0.012),
-        UncertaintyComponent(nama: 'Resolusi alat', nilai: 0.005),
+      typeBComponents: [
+        UncertaintyComponent(
+          sumber: 'ketidakpastian_standar',
+          keterangan: 'Sertifikat standar pH Buffer Solution 10 (U=0.024 pH, k=2)',
+          distribusi: 'normal',
+          nilai: 0.012,
+        ),
+        UncertaintyComponent(
+          sumber: 'resolusi_alat',
+          keterangan: 'Resolusi alat 0.01 pH',
+          distribusi: 'persegi',
+          nilai: 0.005,
+        ),
       ],
       ketidakpastianGabungan: 0.0157,
       faktorCakupanK: 1.9706589608358136,
       ketidakpastianDiperluas: 0.031,
+      toleransi: 0.05,
       keputusan: Keputusan.fail,
+      standarAcuan: StandardRef(id: 4, nama: 'pH Buffer Solution 10', noSertifikat: 'HC45400338'),
     ),
   ];
 
@@ -188,12 +229,11 @@ class MockHistoryService implements HistoryService {
       keputusan: item.keputusan,
       certificateId: item.certificateId,
       catatanRevisi: item.catatanRevisi,
-      nomorSesi:
-          'KAL/2026/07/${item.id.toString().padLeft(4, '0')}',
-      standarAcuan: 'Gauge Block Set Grade 0',
+      nomorSesi: 'KAL/2026/07/${item.id.toString().padLeft(4, '0')}',
+      standarAcuan: const StandardRef(id: 1, nama: 'Gauge Block Set Grade 0'),
       suhuRuang: 21.4,
       kelembaban: 54.5,
-      lokasi: 'Lab. Uji A',
+      lokasi: 'lab',
       titik: sudahDihitung ? _titikContoh : const [],
     );
   }

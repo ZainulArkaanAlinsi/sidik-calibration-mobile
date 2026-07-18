@@ -298,32 +298,41 @@ Mobile butuh ini buat isi dropdown kategori + nyiapin worksheet dinamis (kolom t
 > ### Tambahan di luar kontrak
 > - **`status: "draft"` boleh dikirim di `POST`** — buat "simpan dulu, lanjut nanti". Kalau nggak dikirim, sesi langsung masuk antrean approval (`menunggu_approval`), sesuai contoh kamu.
 > - **`PUT /api/calibrations/{id}`** — teknisi ngerjain ulang sesi yang ditolak admin (`perlu_revisi`) atau nerusin draft. Body-nya sama kayak `POST`. Tanpa ini, tombol "reject" jadi jalan buntu: teknisi dikasih catatan revisi tapi nggak bisa ngapa-ngapain. Sesi yang udah `disetujui` **nggak bisa** diubah (`422`) — angka di sertifikat yang udah dipegang pelanggan nggak boleh berubah diam-diam.
-> - **Field bonus di response** (superset, aman diabaikan): `nomor_sesi` (`KAL/2026/07/0001`), `standar_acuan`, `suhu_ruang`, `kelembaban`, `lokasi`, dan **`titik`** — rincian tiap titik ukur (error, koreksi, Type A, Type B beserta rincian komponennya, U, keputusan per titik). `titik` ini yang kamu butuhin buat nampilin worksheet & tabel ketidakpastian.
+> - **Field bonus di response** (superset, aman diabaikan): `nomor_sesi` (`KAL/2026/07/0001`), `standar_acuan`, `suhu_ruang`, `kelembaban`, `lokasi`, `sertifikat`, dan **`titik`** — rincian tiap titik ukur. Mobile udah nampilin ini di layar Detail Hasil Kalibrasi (`lib/screens/history/calibration_detail_screen.dart`), sinkron sama `CalibrationResource::toArray()`.
 >
-> **📌 Proposal bentuk `titik` (belum dikonfirmasi backend)** — mobile baru mulai nampilin layar detail hasil kalibrasi (breakdown per titik, dipakai duluan buat pH Meter yang punya 3 titik buffer), jadi butuh tahu bentuk pastinya. Ini yang mobile asumsikan sementara, tolong dikonfirmasi/dikoreksi:
+> **✅ Bentuk `titik` — dikonfirmasi dari `CalibrationResource.php` (commit `06af54e`, 18 Jul):**
 > ```json
 > "titik": [
 >   {
->     "titik_ukur": 7.0,
->     "satuan": "pH",
->     "pembacaan": [7.01, 7.01, 7.00, 7.00, 7.00],
+>     "titik_ke": 2,
+>     "titik_ukur": 6.9889072,
 >     "rata_rata": 7.004,
 >     "error": 0.0150928,
 >     "koreksi": -0.0150928,
+>     "standar_deviasi": 0.0054772256,
+>     "jumlah_pengulangan": 5,
 >     "type_a": 0.0054772256,
 >     "type_b": 0.01047,
->     "type_b_komponen": [
->       { "nama": "Standar buffer pH 7", "nilai": 0.01 },
->       { "nama": "Resolusi alat", "nilai": 0.005 }
+>     "type_b_components": [
+>       { "sumber": "ketidakpastian_standar", "keterangan": "Sertifikat standar pH Buffer Solution 7 (U=0.02 pH, k=2)", "distribusi": "normal", "nilai": 0.01 },
+>       { "sumber": "resolusi_alat", "keterangan": "Resolusi alat 0.01 pH", "distribusi": "persegi", "nilai": 0.005 }
 >     ],
 >     "ketidakpastian_gabungan": 0.010714869,
 >     "faktor_cakupan_k": 1.9706589608,
 >     "ketidakpastian_diperluas": 0.0211089499,
->     "keputusan": "PASS"
+>     "toleransi": 0.05,
+>     "keputusan": "PASS",
+>     "standar_acuan": { "id": 3, "nama": "pH Buffer Solution 7", "no_sertifikat": "HC46341939" }
 >   }
 > ]
 > ```
-> Kalau `titik` cuma keisi setelah sesi lewat kalkulasi (`disetujui` / `menunggu_approval` yang udah diproses), mobile nganggep array kosong `[]` buat `draft` — dan nampilin pesan "belum dihitung" bukan tabel kosong.
+> Catatan buat mobile: **nggak ada `satuan` atau `pembacaan` di dalam tiap `titik`** — beda dari yang mobile kira sebelumnya. Pembacaan mentahnya ada di field terpisah `pembacaan_mentah` (array top-level, cuma ikut di `GET /api/calibrations/{id}` — bukan di daftar), isinya `{id, titik_ke, pembacaan_ke, pembacaan, input_source, is_verified, photo_path, ocr_confidence, ocr_raw_text}`, dikelompokkan lewat `titik_ke` yang sama. `type_b_komponen` yang mobile tulis sebelumnya salah nama field — yang bener `type_b_components` (komponennya `sumber`/`keterangan`/`distribusi`/`nilai`, dan `keterangan` udah diformat siap-tampil, jangan disusun ulang jadi kalimat sendiri).
+>
+> **`titik` cuma keisi setelah sesi lewat kalkulasi** (`disetujui` / `menunggu_approval` yang udah diproses) — mobile nganggep array kosong `[]` buat `draft`, dan nampilin pesan "belum dihitung" bukan tabel kosong.
+> - **`sertifikat`** (bukan `certificate_id` doang) — objek `{id, nomor, status, pdf_url}` embed langsung di detail sesi, `pdf_url` cuma keisi kalau `status: "terbit"`. Mobile masih manggil `GET /api/certificates/{id}` terpisah lewat `approval_service.dart` (belum dipindah ke sini) — dua-duanya jalan, tapi kalau mau lebih hemat 1 request, tinggal pakai field ini.
+> - **`measurements[].standard_id`** (per titik, opsional) — buat kategori yang butuh standar BEDA per titik ukur, kayak pH (buffer 4/7/10 masing-masing sertifikatnya sendiri, lihat `SERTIFIKAT.csv` di worksheet asli). **Mobile belum ngirim ini** — `ph_calibration_input_screen.dart` sekarang cuma punya satu dropdown "Standar Acuan" buat seluruh sesi. Ini gap yang perlu dibenerin biar akurat: titik 4/7/10 harusnya masing-masing punya standar sendiri, bukan sama-sama makai satu standar sesi.
+> - **`client_request_id`** (opsional, UUID) — idempotency key buat retry submit yang aman kalau koneksi putus pas nunggu respons. Mobile juga belum ngirim ini.
+> - **`lokasi`** sekarang enum `lab` / `onsite` (default `lab`), bukan teks bebas — mobile belum ada field buat pilih ini di form input, submit-nya jalan tanpa masalah (opsional, `sometimes`), tapi kalau mau dicatat teknisi kerja di lab atau di tempat pelanggan, perlu ditambahin ke form.
 > - **`hasil` itu ringkasan dari titik PENENTU**, bukan titik pertama. Sesi bisa punya banyak titik ukur tapi sertifikat cuma nampilin satu keputusan — yang dipajang adalah titik yang paling mepet ke batas (|error| + U terbesar). **Satu titik FAIL bikin seluruh sesi FAIL.**
 >
 > ### Soal `?mine=true`

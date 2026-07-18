@@ -134,8 +134,56 @@
     }
   },
 
-  "equipmentPlaceholderTitle": "Device List",
-  "equipmentPlaceholderBody": "Measuring devices by category, plus an add/edit device form. Planned for week 3.",
+  "equipLoadFailed": "Couldn't load the device list.",
+  "equipSearchHint": "Search device name",
+  "equipFilterKategoriHint": "Category",
+  "equipFilterStatusHint": "Status",
+  "equipFilterSemua": "All",
+  "equipStatusAktif": "Active",
+  "equipStatusOverdue": "Overdue",
+  "equipStatusNonaktif": "Inactive",
+  "equipEmptyTitle": "No devices yet",
+  "equipEmptyBody": "Add your first device using the button below.",
+  "equipRetry": "RETRY",
+  "equipAdd": "ADD DEVICE",
+  "equipEdit": "Edit device",
+  "equipMuatLebihBanyak": "LOAD MORE",
+  "equipDeleteConfirmTitle": "Delete device?",
+  "equipDeleteConfirmBody": "\"{nama}\" will be permanently deleted.",
+  "@equipDeleteConfirmBody": {
+    "placeholders": {
+      "nama": { "type": "String" }
+    }
+  },
+  "equipDeleteFailed": "Couldn't delete: {pesan}",
+  "@equipDeleteFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "equipNamaAlat": "Device name",
+  "equipSerialNumber": "Serial number",
+  "equipKategori": "Category",
+  "equipKategoriHint": "Choose a device category",
+  "equipPelanggan": "Customer",
+  "equipPelangganHint": "Choose a customer",
+  "equipMerk": "Brand",
+  "equipModel": "Model/Type",
+  "equipNoIdentifikasi": "Identification no.",
+  "equipRangeMin": "Range min.",
+  "equipRangeMax": "Range max.",
+  "equipSatuan": "Unit",
+  "equipResolusi": "Resolution",
+  "equipToleransi": "Tolerance",
+  "equipLokasi": "Location",
+  "equipStatus": "Status",
+  "equipSave": "SAVE",
+  "equipSaveFailed": "Couldn't save: {pesan}",
+  "@equipSaveFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
 
   "historyEmptyTitle": "No history yet",
   "historyEmptyBody": "Completed calibration sessions will show up here.",
@@ -208,23 +256,26 @@
   "detailSuhuRuang": "Room temperature",
   "detailKelembaban": "Humidity",
   "detailLokasi": "Calibration location",
+  "detailLokasiLab": "At the lab",
+  "detailLokasiOnsite": "At customer site (onsite)",
   "detailTitikUkurTitle": "Measurement Points",
   "detailBelumDihitung": "This session hasn't been calculated by the server yet — results will show up once it's processed.",
   "detailLihatSertifikat": "VIEW CERTIFICATE",
-  "detailTitikLabel": "Point {index} · {nilai} {satuan}",
+  "detailTitikLabel": "Point {index} · {nilai}",
   "@detailTitikLabel": {
     "placeholders": {
       "index": { "type": "int" },
-      "nilai": { "type": "String" },
-      "satuan": { "type": "String" }
+      "nilai": { "type": "String" }
     }
   },
   "detailRataRata": "Average",
   "detailError": "Error",
   "detailKoreksi": "Correction",
+  "detailStandarDeviasi": "Standard deviation",
   "detailTypeA": "Type A",
   "detailTypeB": "Type B",
   "detailKomponenTypeB": "Type B component breakdown",
+  "detailToleransi": "Tolerance",
   "detailKetidakpastianGabungan": "Combined uncertainty (uc)",
   "detailFaktorCakupan": "Coverage factor (k)",
   "detailU95": "Expanded uncertainty (U95%)",

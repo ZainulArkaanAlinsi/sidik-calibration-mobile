@@ -728,17 +728,215 @@ abstract class AppLocalizations {
   /// **'Couldn\'t revoke sessions: {message}'**
   String profRevokeFailed(String message);
 
-  /// No description provided for @equipmentPlaceholderTitle.
+  /// No description provided for @equipLoadFailed.
   ///
   /// In en, this message translates to:
-  /// **'Device List'**
-  String get equipmentPlaceholderTitle;
+  /// **'Couldn\'t load the device list.'**
+  String get equipLoadFailed;
 
-  /// No description provided for @equipmentPlaceholderBody.
+  /// No description provided for @equipSearchHint.
   ///
   /// In en, this message translates to:
-  /// **'Measuring devices by category, plus an add/edit device form. Planned for week 3.'**
-  String get equipmentPlaceholderBody;
+  /// **'Search device name'**
+  String get equipSearchHint;
+
+  /// No description provided for @equipFilterKategoriHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get equipFilterKategoriHint;
+
+  /// No description provided for @equipFilterStatusHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get equipFilterStatusHint;
+
+  /// No description provided for @equipFilterSemua.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get equipFilterSemua;
+
+  /// No description provided for @equipStatusAktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get equipStatusAktif;
+
+  /// No description provided for @equipStatusOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get equipStatusOverdue;
+
+  /// No description provided for @equipStatusNonaktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get equipStatusNonaktif;
+
+  /// No description provided for @equipEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No devices yet'**
+  String get equipEmptyTitle;
+
+  /// No description provided for @equipEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first device using the button below.'**
+  String get equipEmptyBody;
+
+  /// No description provided for @equipRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'RETRY'**
+  String get equipRetry;
+
+  /// No description provided for @equipAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'ADD DEVICE'**
+  String get equipAdd;
+
+  /// No description provided for @equipEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit device'**
+  String get equipEdit;
+
+  /// No description provided for @equipMuatLebihBanyak.
+  ///
+  /// In en, this message translates to:
+  /// **'LOAD MORE'**
+  String get equipMuatLebihBanyak;
+
+  /// No description provided for @equipDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete device?'**
+  String get equipDeleteConfirmTitle;
+
+  /// No description provided for @equipDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{nama}\" will be permanently deleted.'**
+  String equipDeleteConfirmBody(String nama);
+
+  /// No description provided for @equipDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t delete: {pesan}'**
+  String equipDeleteFailed(String pesan);
+
+  /// No description provided for @equipNamaAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Device name'**
+  String get equipNamaAlat;
+
+  /// No description provided for @equipSerialNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number'**
+  String get equipSerialNumber;
+
+  /// No description provided for @equipKategori.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get equipKategori;
+
+  /// No description provided for @equipKategoriHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a device category'**
+  String get equipKategoriHint;
+
+  /// No description provided for @equipPelanggan.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get equipPelanggan;
+
+  /// No description provided for @equipPelangganHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a customer'**
+  String get equipPelangganHint;
+
+  /// No description provided for @equipMerk.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand'**
+  String get equipMerk;
+
+  /// No description provided for @equipModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model/Type'**
+  String get equipModel;
+
+  /// No description provided for @equipNoIdentifikasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Identification no.'**
+  String get equipNoIdentifikasi;
+
+  /// No description provided for @equipRangeMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Range min.'**
+  String get equipRangeMin;
+
+  /// No description provided for @equipRangeMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Range max.'**
+  String get equipRangeMax;
+
+  /// No description provided for @equipSatuan.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get equipSatuan;
+
+  /// No description provided for @equipResolusi.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolution'**
+  String get equipResolusi;
+
+  /// No description provided for @equipToleransi.
+  ///
+  /// In en, this message translates to:
+  /// **'Tolerance'**
+  String get equipToleransi;
+
+  /// No description provided for @equipLokasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get equipLokasi;
+
+  /// No description provided for @equipStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get equipStatus;
+
+  /// No description provided for @equipSave.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE'**
+  String get equipSave;
+
+  /// No description provided for @equipSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save: {pesan}'**
+  String equipSaveFailed(String pesan);
 
   /// No description provided for @historyEmptyTitle.
   ///
@@ -980,6 +1178,18 @@ abstract class AppLocalizations {
   /// **'Calibration location'**
   String get detailLokasi;
 
+  /// No description provided for @detailLokasiLab.
+  ///
+  /// In en, this message translates to:
+  /// **'At the lab'**
+  String get detailLokasiLab;
+
+  /// No description provided for @detailLokasiOnsite.
+  ///
+  /// In en, this message translates to:
+  /// **'At customer site (onsite)'**
+  String get detailLokasiOnsite;
+
   /// No description provided for @detailTitikUkurTitle.
   ///
   /// In en, this message translates to:
@@ -1001,8 +1211,8 @@ abstract class AppLocalizations {
   /// No description provided for @detailTitikLabel.
   ///
   /// In en, this message translates to:
-  /// **'Point {index} · {nilai} {satuan}'**
-  String detailTitikLabel(int index, String nilai, String satuan);
+  /// **'Point {index} · {nilai}'**
+  String detailTitikLabel(int index, String nilai);
 
   /// No description provided for @detailRataRata.
   ///
@@ -1022,6 +1232,12 @@ abstract class AppLocalizations {
   /// **'Correction'**
   String get detailKoreksi;
 
+  /// No description provided for @detailStandarDeviasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard deviation'**
+  String get detailStandarDeviasi;
+
   /// No description provided for @detailTypeA.
   ///
   /// In en, this message translates to:
@@ -1039,6 +1255,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Type B component breakdown'**
   String get detailKomponenTypeB;
+
+  /// No description provided for @detailToleransi.
+  ///
+  /// In en, this message translates to:
+  /// **'Tolerance'**
+  String get detailToleransi;
 
   /// No description provided for @detailKetidakpastianGabungan.
   ///

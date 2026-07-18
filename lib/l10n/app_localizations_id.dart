@@ -340,11 +340,115 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get equipmentPlaceholderTitle => 'Daftar Alat';
+  String get equipLoadFailed => 'Gagal memuat daftar alat.';
 
   @override
-  String get equipmentPlaceholderBody =>
-      'Daftar alat ukur per kategori, plus form tambah/edit alat. Digarap minggu 3.';
+  String get equipSearchHint => 'Cari nama alat';
+
+  @override
+  String get equipFilterKategoriHint => 'Kategori';
+
+  @override
+  String get equipFilterStatusHint => 'Status';
+
+  @override
+  String get equipFilterSemua => 'Semua';
+
+  @override
+  String get equipStatusAktif => 'Aktif';
+
+  @override
+  String get equipStatusOverdue => 'Jatuh tempo';
+
+  @override
+  String get equipStatusNonaktif => 'Nonaktif';
+
+  @override
+  String get equipEmptyTitle => 'Belum ada alat';
+
+  @override
+  String get equipEmptyBody => 'Tambah alat pertama lewat tombol di bawah.';
+
+  @override
+  String get equipRetry => 'COBA LAGI';
+
+  @override
+  String get equipAdd => 'TAMBAH ALAT';
+
+  @override
+  String get equipEdit => 'Edit alat';
+
+  @override
+  String get equipMuatLebihBanyak => 'MUAT LEBIH BANYAK';
+
+  @override
+  String get equipDeleteConfirmTitle => 'Hapus alat?';
+
+  @override
+  String equipDeleteConfirmBody(String nama) {
+    return '\"$nama\" bakal dihapus permanen.';
+  }
+
+  @override
+  String equipDeleteFailed(String pesan) {
+    return 'Gagal menghapus: $pesan';
+  }
+
+  @override
+  String get equipNamaAlat => 'Nama alat';
+
+  @override
+  String get equipSerialNumber => 'Nomor seri';
+
+  @override
+  String get equipKategori => 'Kategori';
+
+  @override
+  String get equipKategoriHint => 'Pilih kategori alat';
+
+  @override
+  String get equipPelanggan => 'Pelanggan';
+
+  @override
+  String get equipPelangganHint => 'Pilih pelanggan';
+
+  @override
+  String get equipMerk => 'Merk';
+
+  @override
+  String get equipModel => 'Model/Type';
+
+  @override
+  String get equipNoIdentifikasi => 'No. identifikasi';
+
+  @override
+  String get equipRangeMin => 'Rentang min.';
+
+  @override
+  String get equipRangeMax => 'Rentang maks.';
+
+  @override
+  String get equipSatuan => 'Satuan';
+
+  @override
+  String get equipResolusi => 'Resolusi';
+
+  @override
+  String get equipToleransi => 'Toleransi';
+
+  @override
+  String get equipLokasi => 'Lokasi';
+
+  @override
+  String get equipStatus => 'Status';
+
+  @override
+  String get equipSave => 'SIMPAN';
+
+  @override
+  String equipSaveFailed(String pesan) {
+    return 'Gagal menyimpan: $pesan';
+  }
 
   @override
   String get historyEmptyTitle => 'Belum ada riwayat';
@@ -481,6 +585,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get detailLokasi => 'Lokasi kalibrasi';
 
   @override
+  String get detailLokasiLab => 'Di laboratorium';
+
+  @override
+  String get detailLokasiOnsite => 'Di lokasi pelanggan (onsite)';
+
+  @override
   String get detailTitikUkurTitle => 'Titik Ukur';
 
   @override
@@ -491,8 +601,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get detailLihatSertifikat => 'LIHAT SERTIFIKAT';
 
   @override
-  String detailTitikLabel(int index, String nilai, String satuan) {
-    return 'Titik $index · $nilai $satuan';
+  String detailTitikLabel(int index, String nilai) {
+    return 'Titik $index · $nilai';
   }
 
   @override
@@ -505,6 +615,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get detailKoreksi => 'Koreksi';
 
   @override
+  String get detailStandarDeviasi => 'Standar deviasi';
+
+  @override
   String get detailTypeA => 'Type A';
 
   @override
@@ -512,6 +625,9 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get detailKomponenTypeB => 'Rincian komponen Type B';
+
+  @override
+  String get detailToleransi => 'Toleransi';
 
   @override
   String get detailKetidakpastianGabungan => 'Ketidakpastian gabungan (uc)';

@@ -177,7 +177,7 @@ class _Isi extends StatelessWidget {
                 if (detail.standarAcuan != null)
                   _InfoRow(
                     label: l10n.detailStandarAcuan,
-                    value: detail.standarAcuan!,
+                    value: detail.standarAcuan!.nama,
                   ),
                 if (detail.suhuRuang != null)
                   _InfoRow(
@@ -190,7 +190,12 @@ class _Isi extends StatelessWidget {
                     value: '${_fmt(detail.kelembaban, decimals: 1)} %RH',
                   ),
                 if (detail.lokasi != null)
-                  _InfoRow(label: l10n.detailLokasi, value: detail.lokasi!),
+                  _InfoRow(
+                    label: l10n.detailLokasi,
+                    value: detail.lokasi == 'onsite'
+                        ? l10n.detailLokasiOnsite
+                        : l10n.detailLokasiLab,
+                  ),
               ],
             ),
           ),
@@ -222,8 +227,13 @@ class _Isi extends StatelessWidget {
             ),
           )
         else
-          for (var i = 0; i < detail.titik.length; i++) ...[
-            _TitikResultCard(index: i, titik: detail.titik[i]),
+          for (final titik in detail.titik) ...[
+            _TitikResultCard(
+              titik: titik,
+              pembacaan: detail.pembacaanMentah
+                  .where((p) => p.titikKe == titik.titikKe)
+                  .toList(),
+            ),
             const SizedBox(height: AppSpacing.sm),
           ],
 
@@ -280,15 +290,16 @@ class _InfoRow extends StatelessWidget {
 }
 
 class _TitikResultCard extends StatelessWidget {
-  const _TitikResultCard({required this.index, required this.titik});
+  const _TitikResultCard({required this.titik, this.pembacaan = const []});
 
-  final int index;
   final MeasurementResult titik;
+  final List<RawMeasurement> pembacaan;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final pass = titik.keputusan == Keputusan.pass;
 
     return Card(
       child: Padding(
@@ -301,45 +312,54 @@ class _TitikResultCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     l10n.detailTitikLabel(
-                      index + 1,
+                      titik.titikKe,
                       _fmt(titik.titikUkur, decimals: 2),
-                      titik.satuan,
                     ),
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
-                if (titik.keputusan != null)
-                  StatusBadge(
-                    label: titik.keputusan == Keputusan.pass
-                        ? l10n.historyStatusPass
-                        : l10n.historyStatusFail,
-                    tone: titik.keputusan == Keputusan.pass
-                        ? BadgeTone.success
-                        : BadgeTone.danger,
-                    icon: titik.keputusan == Keputusan.pass
-                        ? Icons.check_circle_outline
-                        : Icons.cancel_outlined,
-                  ),
+                StatusBadge(
+                  label: pass ? l10n.historyStatusPass : l10n.historyStatusFail,
+                  tone: pass ? BadgeTone.success : BadgeTone.danger,
+                  icon: pass ? Icons.check_circle_outline : Icons.cancel_outlined,
+                ),
               ],
             ),
+            if (titik.standarAcuan != null) ...[
+              const SizedBox(height: 2),
+              Text(
+                titik.standarAcuan!.nama,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+            if (pembacaan.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                pembacaan.map((p) => _fmt(p.pembacaan, decimals: 3)).join(' · '),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
             const SizedBox(height: AppSpacing.sm),
             _InfoRow(
               label: l10n.detailRataRata,
-              value: '${_fmt(titik.rataRata, decimals: 3)} ${titik.satuan}',
+              value: _fmt(titik.rataRata, decimals: 3),
             ),
+            _InfoRow(label: l10n.detailError, value: _fmt(titik.error)),
+            _InfoRow(label: l10n.detailKoreksi, value: _fmt(titik.koreksi)),
             _InfoRow(
-              label: l10n.detailError,
-              value: '${_fmt(titik.error, decimals: 4)} ${titik.satuan}',
-            ),
-            _InfoRow(
-              label: l10n.detailKoreksi,
-              value: '${_fmt(titik.koreksi, decimals: 4)} ${titik.satuan}',
+              label: l10n.detailStandarDeviasi,
+              value:
+                  '${_fmt(titik.standarDeviasi)} (n=${titik.jumlahPengulangan})',
             ),
             _InfoRow(label: l10n.detailTypeA, value: _fmt(titik.typeA)),
             _InfoRow(label: l10n.detailTypeB, value: _fmt(titik.typeB)),
-            if (titik.typeBKomponen.isNotEmpty) ...[
+            if (titik.typeBComponents.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.xs),
               Padding(
                 padding: const EdgeInsets.only(left: AppSpacing.sm),
@@ -352,22 +372,12 @@ class _TitikResultCard extends StatelessWidget {
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    for (final komponen in titik.typeBKomponen)
+                    for (final komponen in titik.typeBComponents)
                       Padding(
                         padding: const EdgeInsets.only(top: 2),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                '• ${komponen.nama}',
-                                style: theme.textTheme.bodySmall,
-                              ),
-                            ),
-                            Text(
-                              _fmt(komponen.nilai),
-                              style: theme.textTheme.bodySmall,
-                            ),
-                          ],
+                        child: Text(
+                          '• ${komponen.keterangan}',
+                          style: theme.textTheme.bodySmall,
                         ),
                       ),
                   ],
@@ -375,6 +385,10 @@ class _TitikResultCard extends StatelessWidget {
               ),
             ],
             const Divider(height: AppSpacing.lg),
+            _InfoRow(
+              label: l10n.detailToleransi,
+              value: '± ${_fmt(titik.toleransi)}',
+            ),
             _InfoRow(
               label: l10n.detailKetidakpastianGabungan,
               value: _fmt(titik.ketidakpastianGabungan),
@@ -385,7 +399,7 @@ class _TitikResultCard extends StatelessWidget {
             ),
             _InfoRow(
               label: l10n.detailU95,
-              value: '± ${_fmt(titik.ketidakpastianDiperluas)} ${titik.satuan}',
+              value: '± ${_fmt(titik.ketidakpastianDiperluas)}',
             ),
           ],
         ),
