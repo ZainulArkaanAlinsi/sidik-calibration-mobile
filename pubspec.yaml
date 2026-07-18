@@ -49,6 +49,8 @@ dependencies:
 
   # Ambil foto profil dari galeri/kamera HP masing-masing.
   image_picker: ^1.1.2
+  path_provider: ^2.1.6
+  open_filex: ^4.7.0
 
 dev_dependencies:
   flutter_test:

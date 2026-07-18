@@ -244,8 +244,7 @@ class _Isi extends StatelessWidget {
             icon: Icons.workspace_premium_outlined,
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
-                builder: (_) =>
-                    CertificateScreen(certificateId: detail.certificateId!),
+                builder: (_) => CertificateScreen(calibrationId: detail.id),
               ),
             ),
           ),

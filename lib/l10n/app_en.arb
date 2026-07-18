@@ -232,8 +232,14 @@
   "certStatusMenungguGenerate": "Still generating, hang on",
   "certStatusGagal": "Generation failed",
   "certRetry": "RETRY GENERATE",
-  "certOpenPdf": "COPY PDF LINK",
-  "certPdfUrlCopied": "PDF link copied to clipboard.",
+  "certOpenPdf": "VIEW PDF",
+  "certOpenFailed": "No app found to open the PDF: {message}",
+  "@certOpenFailed": {
+    "placeholders": {
+      "message": { "type": "String" }
+    }
+  },
+  "certBelumTerbit": "Certificate not issued yet",
   "certQrToken": "QR token: {token}",
   "@certQrToken": {
     "placeholders": {

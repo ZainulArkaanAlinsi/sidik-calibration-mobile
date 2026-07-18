@@ -1103,14 +1103,20 @@ abstract class AppLocalizations {
   /// No description provided for @certOpenPdf.
   ///
   /// In en, this message translates to:
-  /// **'COPY PDF LINK'**
+  /// **'VIEW PDF'**
   String get certOpenPdf;
 
-  /// No description provided for @certPdfUrlCopied.
+  /// No description provided for @certOpenFailed.
   ///
   /// In en, this message translates to:
-  /// **'PDF link copied to clipboard.'**
-  String get certPdfUrlCopied;
+  /// **'No app found to open the PDF: {message}'**
+  String certOpenFailed(String message);
+
+  /// No description provided for @certBelumTerbit.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate not issued yet'**
+  String get certBelumTerbit;
 
   /// No description provided for @certQrToken.
   ///

@@ -70,6 +70,7 @@ class MockHistoryService implements HistoryService {
         status: CalibrationStatus.disetujui,
         keputusan: Keputusan.pass,
         nomorSertifikat: 'CAL/2026/07/0001',
+        certificateId: 901,
       ),
       CalibrationHistoryItem(
         id: 2,
@@ -79,6 +80,7 @@ class MockHistoryService implements HistoryService {
         status: CalibrationStatus.disetujui,
         keputusan: Keputusan.fail,
         nomorSertifikat: 'CAL/2026/07/0004',
+        certificateId: 902,
       ),
       CalibrationHistoryItem(
         id: 3,
@@ -234,6 +236,14 @@ class MockHistoryService implements HistoryService {
       suhuRuang: 21.4,
       kelembaban: 54.5,
       lokasi: 'lab',
+      sertifikat: item.certificateId == null
+          ? null
+          : CertificateRef(
+              id: item.certificateId!,
+              nomor: item.nomorSertifikat ?? 'CAL/2026/07/0000',
+              status: 'terbit',
+              pdfUrl: 'https://contoh.sidik.co.id/certificates/${item.certificateId}/download',
+            ),
       titik: sudahDihitung ? _titikContoh : const [],
     );
   }

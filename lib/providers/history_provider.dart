@@ -2,9 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/calibration_detail.dart';
 import '../models/calibration_history_item.dart';
-import '../models/certificate.dart';
 import '../services/approval_service.dart';
 import '../services/history_service.dart';
+import '../services/pdf_downloader.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
 
@@ -14,12 +14,14 @@ final historyServiceProvider = Provider<HistoryService>(
   (ref) => ApiHistoryService(ref.watch(apiClientProvider)),
 );
 
-/// Approve/reject/sertifikat (§5) belum ditandai live di kontrak — masih
-/// [MockApprovalService] sampai dikonfirmasi. Ganti ke
-/// `ApiApprovalService(ref.watch(apiClientProvider))` begitu jalan.
+/// Live — dicek langsung ke `CalibrationController`/`CertificateController`
+/// di repo `sidik-calibration-api` (18 Jul). `approve`/`reject`/`retry`
+/// cocok persis sama yang mobile tulis di sini.
 final approvalServiceProvider = Provider<ApprovalService>(
-  (ref) => MockApprovalService(),
+  (ref) => ApiApprovalService(ref.watch(apiClientProvider)),
 );
+
+final pdfDownloaderProvider = Provider<PdfDownloader>((ref) => HttpPdfDownloader());
 
 final historyProvider =
     AsyncNotifierProvider<HistoryController, List<CalibrationHistoryItem>>(
@@ -107,22 +109,6 @@ class HistoryController extends AsyncNotifier<List<CalibrationHistoryItem>> {
     ]);
   }
 }
-
-/// Detail sertifikat — dibuka dari kartu Riwayat yang udah `disetujui`.
-///
-/// `retry: null` — sama alasannya kayak `dashboardProvider`: tanpa ini,
-/// provider yang gagal dicoba ulang otomatis di belakang layar dan state-nya
-/// nyangkut di `loading` selamanya, skeleton nggak pernah ganti jadi pesan
-/// error + tombol coba lagi.
-final certificateProvider = FutureProvider.family<Certificate, int>((
-  ref,
-  certificateId,
-) async {
-  final token = await ref.read(tokenStorageProvider).read();
-  if (token == null) throw const TokenHilangException();
-
-  return ref.read(approvalServiceProvider).ambilSertifikat(token, certificateId);
-}, retry: (retryCount, error) => null);
 
 /// Detail satu sesi kalibrasi — dibuka dari kartu Riwayat (mana pun
 /// statusnya), nampilin breakdown per titik ukur kalau udah dihitung backend.

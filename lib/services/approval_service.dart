@@ -1,4 +1,3 @@
-import '../models/certificate.dart';
 import 'api_client.dart';
 
 /// Dilempar `reject()` kalau catatan revisinya kosong — validasi lokal,
@@ -7,6 +6,12 @@ class CatatanKosongException implements Exception {
   const CatatanKosongException();
 }
 
+/// **Nggak ada `ambilSertifikat(id)` di sini** — sengaja. Backend nggak
+/// punya `GET /api/certificates/{id}` (cuma `GET /certificates` buat daftar
+/// + `GET /certificates/{id}/download` yang nge-stream file PDF-nya
+/// langsung). Data ringkas sertifikat (nomor/status/pdf_url) udah nempel di
+/// `CalibrationDetail.sertifikat` lewat `GET /api/calibrations/{id}` —
+/// itu yang dipakai `CertificateScreen`, bukan endpoint ini.
 abstract class ApprovalService {
   /// Admin doang — `docs/kontrak-api.md` §5. Balikin `certificate_id` (bisa
   /// `null` sesaat, generate-nya jalan di queue).
@@ -14,14 +19,11 @@ abstract class ApprovalService {
 
   Future<void> reject(String token, int calibrationId, String catatanRevisi);
 
-  Future<Certificate> ambilSertifikat(String token, int certificateId);
-
   Future<void> retryGenerate(String token, int certificateId);
 }
 
-/// Nembak §5. Belum ditandai "Live" di kontrak (beda sama §1-4/7/8 yang udah
-/// dikonfirmasi 14 Jul) — jadi [approvalServiceProvider] masih nunjuk ke
-/// [MockApprovalService] sampai ada konfirmasi endpoint ini beneran jalan.
+/// Nembak §5 — live, dicek langsung ke `CalibrationController.php` &
+/// `CertificateController.php` di repo `sidik-calibration-api` (18 Jul).
 class ApiApprovalService implements ApprovalService {
   ApiApprovalService(this._api);
 
@@ -51,20 +53,12 @@ class ApiApprovalService implements ApprovalService {
   }
 
   @override
-  Future<Certificate> ambilSertifikat(String token, int certificateId) async {
-    final json = await _api.get('/certificates/$certificateId', token: token);
-    final data = (json['data'] ?? json) as Map<String, dynamic>;
-    return Certificate.fromJson(data);
-  }
-
-  @override
   Future<void> retryGenerate(String token, int certificateId) async {
     await _api.post('/certificates/$certificateId/retry', token: token);
   }
 }
 
-/// Data tiruan buat layar Approval & test — dipakai sampai §5 dikonfirmasi
-/// live.
+/// Data tiruan buat test.
 class MockApprovalService implements ApprovalService {
   MockApprovalService({this.gagal = false, this.jeda = Duration.zero});
 
@@ -90,19 +84,6 @@ class MockApprovalService implements ApprovalService {
   ) async {
     if (catatanRevisi.trim().isEmpty) throw const CatatanKosongException();
     await _tunda();
-  }
-
-  @override
-  Future<Certificate> ambilSertifikat(String token, int certificateId) async {
-    await _tunda();
-    return Certificate(
-      id: certificateId,
-      nomor: 'CAL/2026/07/${certificateId.toString().padLeft(4, '0')}',
-      calibrationId: certificateId - 900,
-      status: CertificateStatus.terbit,
-      pdfUrl: 'https://contoh.sidik.co.id/certificates/CAL-2026-07-0001.pdf',
-      qrToken: 'demo$certificateId',
-    );
   }
 
   @override

@@ -544,10 +544,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certRetry => 'RETRY GENERATE';
 
   @override
-  String get certOpenPdf => 'COPY PDF LINK';
+  String get certOpenPdf => 'VIEW PDF';
 
   @override
-  String get certPdfUrlCopied => 'PDF link copied to clipboard.';
+  String certOpenFailed(String message) {
+    return 'No app found to open the PDF: $message';
+  }
+
+  @override
+  String get certBelumTerbit => 'Certificate not issued yet';
 
   @override
   String certQrToken(String token) {

@@ -542,10 +542,15 @@ class AppLocalizationsId extends AppLocalizations {
   String get certRetry => 'COBA GENERATE LAGI';
 
   @override
-  String get certOpenPdf => 'SALIN LINK PDF';
+  String get certOpenPdf => 'LIHAT PDF';
 
   @override
-  String get certPdfUrlCopied => 'Link PDF disalin ke clipboard.';
+  String certOpenFailed(String message) {
+    return 'Nggak nemu aplikasi buat buka PDF: $message';
+  }
+
+  @override
+  String get certBelumTerbit => 'Sertifikat belum terbit';
 
   @override
   String certQrToken(String token) {

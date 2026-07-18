@@ -1,43 +1,48 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:open_filex/open_filex.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/calibration_detail.dart';
 import '../../models/calibration_history_item.dart';
-import '../../models/certificate.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/history_provider.dart';
+import '../../services/pdf_downloader.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/status_badge.dart';
-import 'calibration_detail_screen.dart';
 
-/// Detail sertifikat — dibuka dari kartu Riwayat yang statusnya `disetujui`.
-/// Nggak nampilin `pdf_url` di `WebView`: cukup tombol yang buka link-nya di
-/// browser HP, biar nggak nambah dependency baru buat satu layar ini.
+/// Detail sertifikat — dibuka dari tombol "Lihat Sertifikat" di
+/// [CalibrationDetailScreen]. Ambil datanya lewat [calibrationDetailProvider]
+/// (bukan endpoint sertifikat sendiri): backend nggak punya
+/// `GET /api/certificates/{id}` JSON — yang ada cuma `GET /certificates`
+/// (daftar) & `GET /certificates/{id}/download` (stream file PDF). Ringkasan
+/// nomor/status/pdf_url udah nempel di `sertifikat` pada respons
+/// `GET /api/calibrations/{id}`, jadi satu provider ini cukup buat
+/// nampilin semuanya — nggak ada request kedua.
 class CertificateScreen extends ConsumerWidget {
-  const CertificateScreen({super.key, required this.certificateId});
+  const CertificateScreen({super.key, required this.calibrationId});
 
-  final int certificateId;
+  final int calibrationId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final sertifikat = ref.watch(certificateProvider(certificateId));
+    final detail = ref.watch(calibrationDetailProvider(calibrationId));
     final l10n = AppLocalizations.of(context);
 
     // Data dulu, baru error, baru loading — sama urutannya kayak
     // dashboard_screen.dart, biar retry otomatis Riverpod yang jalan di
     // belakang layar nggak nyangkutin skeleton selamanya.
-    final data = sertifikat.value;
+    final data = detail.value;
 
     final Widget isi;
     if (data != null) {
-      isi = _Isi(sertifikat: data);
-    } else if (sertifikat.hasError) {
+      isi = _Isi(detail: data);
+    } else if (detail.hasError) {
       isi = _Gagal(
-        onCobaLagi: () => ref.invalidate(certificateProvider(certificateId)),
+        onCobaLagi: () => ref.invalidate(calibrationDetailProvider(calibrationId)),
       );
     } else {
       isi = const _Skeleton();
@@ -50,28 +55,71 @@ class CertificateScreen extends ConsumerWidget {
   }
 }
 
-class _Isi extends ConsumerWidget {
-  const _Isi({required this.sertifikat});
+class _Isi extends ConsumerStatefulWidget {
+  const _Isi({required this.detail});
 
-  final Certificate sertifikat;
+  final CalibrationDetail detail;
 
-  Future<void> _retry(BuildContext context, WidgetRef ref) async {
+  @override
+  ConsumerState<_Isi> createState() => _IsiState();
+}
+
+class _IsiState extends ConsumerState<_Isi> {
+  bool _busy = false;
+
+  Future<void> _retryGenerate() async {
+    final sertifikat = widget.detail.sertifikat;
+    if (sertifikat == null) return;
+
     final token = await ref.read(tokenStorageProvider).read();
-    if (token == null || !context.mounted) return;
+    if (token == null || !mounted) return;
 
+    setState(() => _busy = true);
     try {
-      await ref
-          .read(approvalServiceProvider)
-          .retryGenerate(token, sertifikat.id);
+      await ref.read(approvalServiceProvider).retryGenerate(token, sertifikat.id);
     } finally {
-      ref.invalidate(certificateProvider(sertifikat.id));
+      if (mounted) setState(() => _busy = false);
+      ref.invalidate(calibrationDetailProvider(widget.detail.id));
+    }
+  }
+
+  Future<void> _lihatPdf() async {
+    final l10n = AppLocalizations.of(context);
+    final sertifikat = widget.detail.sertifikat;
+    final pdfUrl = sertifikat?.pdfUrl;
+    if (sertifikat == null || pdfUrl == null) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    final token = await ref.read(tokenStorageProvider).read();
+    if (token == null || !mounted) return;
+
+    setState(() => _busy = true);
+    try {
+      final path = await ref
+          .read(pdfDownloaderProvider)
+          .unduh(token, pdfUrl, namaFile: '${sertifikat.nomor}.pdf');
+
+      final hasil = await OpenFilex.open(path);
+      if (hasil.type != ResultType.done && mounted) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.certOpenFailed(hasil.message))),
+        );
+      }
+    } on PdfDownloadException catch (e) {
+      if (mounted) {
+        messenger.showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
+    final detail = widget.detail;
+    final sertifikat = detail.sertifikat;
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -85,23 +133,29 @@ class _Isi extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         Text(
-          sertifikat.nomor,
+          sertifikat?.nomor ?? l10n.certBelumTerbit,
           textAlign: TextAlign.center,
           style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.w800,
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
-        _Ringkasan(calibrationId: sertifikat.calibrationId),
+        _Ringkasan(detail: detail),
         const SizedBox(height: AppSpacing.lg),
 
-        if (sertifikat.status == CertificateStatus.menungguGenerate) ...[
+        if (sertifikat == null) ...[
           _StatusBanner(
             icon: Icons.hourglass_empty,
             warna: AppColors.info,
             pesan: l10n.certStatusMenungguGenerate,
           ),
-        ] else if (sertifikat.status == CertificateStatus.gagal) ...[
+        ] else if (sertifikat.status == 'menunggu_generate') ...[
+          _StatusBanner(
+            icon: Icons.hourglass_empty,
+            warna: AppColors.info,
+            pesan: l10n.certStatusMenungguGenerate,
+          ),
+        ] else if (sertifikat.status == 'gagal') ...[
           _StatusBanner(
             icon: Icons.error_outline,
             warna: theme.colorScheme.error,
@@ -112,30 +166,15 @@ class _Isi extends ConsumerWidget {
             label: l10n.certRetry,
             icon: Icons.refresh,
             variant: AppButtonVariant.secondary,
-            onPressed: () => _retry(context, ref),
+            isLoading: _busy,
+            onPressed: _busy ? null : _retryGenerate,
           ),
         ] else if (sertifikat.pdfUrl != null) ...[
           AppButton(
             label: l10n.certOpenPdf,
-            icon: Icons.copy_outlined,
-            onPressed: () async {
-              await Clipboard.setData(ClipboardData(text: sertifikat.pdfUrl!));
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(l10n.certPdfUrlCopied)));
-            },
-          ),
-        ],
-
-        if (sertifikat.qrToken != null) ...[
-          const SizedBox(height: AppSpacing.lg),
-          Text(
-            l10n.certQrToken(sertifikat.qrToken!),
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+            icon: Icons.picture_as_pdf_outlined,
+            isLoading: _busy,
+            onPressed: _busy ? null : _lihatPdf,
           ),
         ],
       ],
@@ -143,33 +182,15 @@ class _Isi extends ConsumerWidget {
   }
 }
 
-/// Ringkasan hasil (alat, standar dipakai, kondisi lingkungan, keputusan)
-/// diambil dari `GET /api/calibrations/{id}` — sertifikat sendiri
-/// (`docs/kontrak-api.md` §5) cuma punya nomor & link PDF, nggak bawa data
-/// ini. Supplementer doang: kalau gagal dimuat, disembunyikan aja daripada
-/// nge-block layar sertifikat yang sebenernya sukses.
-class _Ringkasan extends ConsumerWidget {
-  const _Ringkasan({required this.calibrationId});
+/// Ringkasan hasil (alat, standar dipakai, kondisi lingkungan, keputusan) —
+/// dari objek `detail` yang sama, bukan request kedua.
+class _Ringkasan extends StatelessWidget {
+  const _Ringkasan({required this.detail});
 
-  final int calibrationId;
+  final CalibrationDetail detail;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final detail = ref.watch(calibrationDetailProvider(calibrationId));
-    final data = detail.value;
-
-    if (detail.isLoading && data == null) {
-      return const Column(
-        children: [
-          SkeletonBox(height: 16, width: 180),
-          SizedBox(height: AppSpacing.xs),
-          SkeletonBox(height: 90, width: double.infinity),
-        ],
-      );
-    }
-
-    if (data == null) return const SizedBox.shrink();
-
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
@@ -188,50 +209,39 @@ class _Ringkasan extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        data.namaAlat,
+                        detail.namaAlat,
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
                     StatusBadge(
-                      label: data.keputusan == Keputusan.fail
+                      label: detail.keputusan == Keputusan.fail
                           ? l10n.historyStatusFail
                           : l10n.historyStatusPass,
-                      tone: data.keputusan == Keputusan.fail
+                      tone: detail.keputusan == Keputusan.fail
                           ? BadgeTone.danger
                           : BadgeTone.success,
-                      icon: data.keputusan == Keputusan.fail
+                      icon: detail.keputusan == Keputusan.fail
                           ? Icons.cancel_outlined
                           : Icons.check_circle_outline,
                     ),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                if (data.standarAcuan != null)
+                if (detail.standarAcuan != null)
                   _RingkasanRow(
                     label: l10n.detailStandarAcuan,
-                    value: data.standarAcuan!.nama,
+                    value: detail.standarAcuan!.nama,
                   ),
-                if (data.suhuRuang != null && data.kelembaban != null)
+                if (detail.suhuRuang != null && detail.kelembaban != null)
                   _RingkasanRow(
                     label: l10n.detailKondisiLingkungan,
                     value:
-                        '${data.suhuRuang!.toStringAsFixed(1)} °C · '
-                        '${data.kelembaban!.toStringAsFixed(1)} %RH',
+                        '${detail.suhuRuang!.toStringAsFixed(1)} °C · '
+                        '${detail.kelembaban!.toStringAsFixed(1)} %RH',
                   ),
               ],
-            ),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        AppButton(
-          label: l10n.certLihatDetail,
-          icon: Icons.list_alt_outlined,
-          variant: AppButtonVariant.secondary,
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => CalibrationDetailScreen(calibrationId: calibrationId),
             ),
           ),
         ),
