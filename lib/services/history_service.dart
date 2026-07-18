@@ -1,8 +1,13 @@
+import '../models/calibration_detail.dart';
 import '../models/calibration_history_item.dart';
 import 'api_client.dart';
 
 abstract class HistoryService {
   Future<List<CalibrationHistoryItem>> ambilRiwayat(String token);
+
+  /// `GET /api/calibrations/{id}` — versi lengkap satu sesi, termasuk
+  /// breakdown per titik ukur (`docs/kontrak-api.md` §4).
+  Future<CalibrationDetail> ambilDetail(String token, int id);
 }
 
 /// Nembak `GET /api/calibrations?mine=true` (live sejak 14 Jul,
@@ -24,6 +29,13 @@ class ApiHistoryService implements HistoryService {
         .cast<Map<String, dynamic>>()
         .map(CalibrationHistoryItem.fromJson)
         .toList();
+  }
+
+  @override
+  Future<CalibrationDetail> ambilDetail(String token, int id) async {
+    final json = await _api.get('/calibrations/$id', token: token);
+    final data = (json['data'] ?? json) as Map<String, dynamic>;
+    return CalibrationDetail.fromJson(data);
   }
 }
 
@@ -90,5 +102,99 @@ class MockHistoryService implements HistoryService {
         status: CalibrationStatus.draft,
       ),
     ];
+  }
+
+  /// Titik contoh angkanya diambil dari `PERHITUNGAN.csv` master worksheet
+  /// pH (`Project-PT-Sidik/Master Olah Data_pH for trial_CSV`) — biar layar
+  /// detail bisa dites pakai angka yang realistis, bukan asal-asalan.
+  static const _titikContoh = [
+    MeasurementResult(
+      titikUkur: 4.009244572,
+      satuan: 'pH',
+      pembacaan: [4, 4, 4, 4, 4],
+      rataRata: 4,
+      error: -0.009244572,
+      koreksi: 0.009244572,
+      typeA: 0,
+      typeB: 0.01171610510631313,
+      typeBKomponen: [
+        UncertaintyComponent(nama: 'Standar buffer pH 4', nilai: 0.01),
+        UncertaintyComponent(nama: 'Resolusi alat', nilai: 0.005),
+      ],
+      ketidakpastianGabungan: 0.01171610510631313,
+      faktorCakupanK: 1.9706589608358136,
+      ketidakpastianDiperluas: 0.02343221021262627,
+      keputusan: Keputusan.pass,
+    ),
+    MeasurementResult(
+      titikUkur: 6.9889072,
+      satuan: 'pH',
+      pembacaan: [7.01, 7.01, 7, 7, 7],
+      rataRata: 7.004,
+      error: 0.0150928,
+      koreksi: -0.0150928,
+      typeA: 0.005477225575051544,
+      typeB: 0.01047,
+      typeBKomponen: [
+        UncertaintyComponent(nama: 'Standar buffer pH 7', nilai: 0.01),
+        UncertaintyComponent(nama: 'Resolusi alat', nilai: 0.005),
+      ],
+      ketidakpastianGabungan: 0.010714869473539,
+      faktorCakupanK: 1.9706589608358136,
+      ketidakpastianDiperluas: 0.02110894987572546,
+      keputusan: Keputusan.pass,
+    ),
+    MeasurementResult(
+      titikUkur: 9.9788769,
+      satuan: 'pH',
+      pembacaan: [10.11, 10.11, 10.11, 10.11, 10.11],
+      rataRata: 10.11,
+      error: 0.1311231,
+      koreksi: -0.1311231,
+      typeA: 0,
+      typeB: 0.0157,
+      typeBKomponen: [
+        UncertaintyComponent(nama: 'Standar buffer pH 10', nilai: 0.012),
+        UncertaintyComponent(nama: 'Resolusi alat', nilai: 0.005),
+      ],
+      ketidakpastianGabungan: 0.0157,
+      faktorCakupanK: 1.9706589608358136,
+      ketidakpastianDiperluas: 0.031,
+      keputusan: Keputusan.fail,
+    ),
+  ];
+
+  @override
+  Future<CalibrationDetail> ambilDetail(String token, int id) async {
+    if (jeda > Duration.zero) await Future<void>.delayed(jeda);
+    if (gagal) throw Exception('server nggak nyaut');
+
+    final riwayat = await ambilRiwayat(token);
+    final item = riwayat.firstWhere(
+      (e) => e.id == id,
+      orElse: () => throw Exception('Sesi kalibrasi nggak ketemu.'),
+    );
+
+    final sudahDihitung =
+        item.status == CalibrationStatus.disetujui ||
+        item.status == CalibrationStatus.menungguApproval;
+
+    return CalibrationDetail(
+      id: item.id,
+      namaAlat: item.namaAlat,
+      namaTeknisi: item.namaTeknisi,
+      tanggalKalibrasi: item.tanggalKalibrasi,
+      status: item.status,
+      keputusan: item.keputusan,
+      certificateId: item.certificateId,
+      catatanRevisi: item.catatanRevisi,
+      nomorSesi:
+          'KAL/2026/07/${item.id.toString().padLeft(4, '0')}',
+      standarAcuan: 'Gauge Block Set Grade 0',
+      suhuRuang: 21.4,
+      kelembaban: 54.5,
+      lokasi: 'Lab. Uji A',
+      titik: sudahDihitung ? _titikContoh : const [],
+    );
   }
 }

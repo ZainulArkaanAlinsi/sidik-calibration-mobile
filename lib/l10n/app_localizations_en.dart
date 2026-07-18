@@ -451,6 +451,80 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get certRingkasanTitle => 'Result Summary';
+
+  @override
+  String get certLihatDetail => 'VIEW CALCULATION DETAIL';
+
+  @override
+  String get detailTitle => 'Calibration Result Detail';
+
+  @override
+  String get detailLoadFailed => 'Couldn\'t load calibration detail.';
+
+  @override
+  String detailNomorSesi(String nomor) {
+    return 'Session no. $nomor';
+  }
+
+  @override
+  String get detailKondisiLingkungan => 'Environmental Condition & Standard';
+
+  @override
+  String get detailStandarAcuan => 'Reference standard';
+
+  @override
+  String get detailSuhuRuang => 'Room temperature';
+
+  @override
+  String get detailKelembaban => 'Humidity';
+
+  @override
+  String get detailLokasi => 'Calibration location';
+
+  @override
+  String get detailTitikUkurTitle => 'Measurement Points';
+
+  @override
+  String get detailBelumDihitung =>
+      'This session hasn\'t been calculated by the server yet — results will show up once it\'s processed.';
+
+  @override
+  String get detailLihatSertifikat => 'VIEW CERTIFICATE';
+
+  @override
+  String detailTitikLabel(int index, String nilai, String satuan) {
+    return 'Point $index · $nilai $satuan';
+  }
+
+  @override
+  String get detailRataRata => 'Average';
+
+  @override
+  String get detailError => 'Error';
+
+  @override
+  String get detailKoreksi => 'Correction';
+
+  @override
+  String get detailTypeA => 'Type A';
+
+  @override
+  String get detailTypeB => 'Type B';
+
+  @override
+  String get detailKomponenTypeB => 'Type B component breakdown';
+
+  @override
+  String get detailKetidakpastianGabungan => 'Combined uncertainty (uc)';
+
+  @override
+  String get detailFaktorCakupan => 'Coverage factor (k)';
+
+  @override
+  String get detailU95 => 'Expanded uncertainty (U95%)';
+
+  @override
   String get orgTitle => 'Organization Data';
 
   @override
@@ -669,6 +743,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get phCalibThermohygroHint => 'e.g. TH-3';
+
+  @override
+  String get phCalibThermohygroCustom => 'Other (enter manually)';
 
   @override
   String get phCalibKondisiLingkungan => 'Environmental Conditions';

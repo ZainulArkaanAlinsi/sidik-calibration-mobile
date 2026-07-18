@@ -115,10 +115,17 @@ class _Form extends ConsumerStatefulWidget {
   ConsumerState<_Form> createState() => _FormState();
 }
 
+/// Thermohygro yang aktif di lab (`FORM VALIDASI.csv`: "adding TH-3 s/d 7").
+/// Sentinel di luar rentang biar nggak pernah ketuker sama ID alat asli
+/// kalau lab nambah unit baru.
+const _thermohygroCustom = '__custom__';
+const _thermohygroPresets = ['TH-1', 'TH-2', 'TH-3', 'TH-4', 'TH-5', 'TH-6', 'TH-7'];
+
 class _FormState extends ConsumerState<_Form> {
   EquipmentLookup? _alat;
   Standard? _standar;
   DateTime _tanggal = DateTime.now();
+  String _thermohygroPreset = 'TH-3';
   final _thermohygro = TextEditingController(text: 'TH-3');
   final _suhuAwal = TextEditingController();
   final _suhuAkhir = TextEditingController();
@@ -333,11 +340,31 @@ class _FormState extends ConsumerState<_Form> {
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        AppTextField(
-          label: l10n.phCalibThermohygro,
-          controller: _thermohygro,
-          hint: l10n.phCalibThermohygroHint,
+        Text(l10n.phCalibThermohygro.toUpperCase(), style: theme.textTheme.labelLarge),
+        const SizedBox(height: AppSpacing.sm),
+        DropdownButtonFormField<String>(
+          initialValue: _thermohygroPreset,
+          items: [
+            for (final th in _thermohygroPresets)
+              DropdownMenuItem(value: th, child: Text(th)),
+            DropdownMenuItem(
+              value: _thermohygroCustom,
+              child: Text(l10n.phCalibThermohygroCustom),
+            ),
+          ],
+          onChanged: (value) => setState(() {
+            _thermohygroPreset = value!;
+            if (value != _thermohygroCustom) _thermohygro.text = value;
+          }),
         ),
+        if (_thermohygroPreset == _thermohygroCustom) ...[
+          const SizedBox(height: AppSpacing.sm),
+          AppTextField(
+            label: l10n.phCalibThermohygro,
+            controller: _thermohygro,
+            hint: l10n.phCalibThermohygroHint,
+          ),
+        ],
         const SizedBox(height: AppSpacing.lg),
 
         Text(

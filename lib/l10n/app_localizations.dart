@@ -920,6 +920,144 @@ abstract class AppLocalizations {
   /// **'QR token: {token}'**
   String certQrToken(String token);
 
+  /// No description provided for @certRingkasanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Result Summary'**
+  String get certRingkasanTitle;
+
+  /// No description provided for @certLihatDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'VIEW CALCULATION DETAIL'**
+  String get certLihatDetail;
+
+  /// No description provided for @detailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration Result Detail'**
+  String get detailTitle;
+
+  /// No description provided for @detailLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load calibration detail.'**
+  String get detailLoadFailed;
+
+  /// No description provided for @detailNomorSesi.
+  ///
+  /// In en, this message translates to:
+  /// **'Session no. {nomor}'**
+  String detailNomorSesi(String nomor);
+
+  /// No description provided for @detailKondisiLingkungan.
+  ///
+  /// In en, this message translates to:
+  /// **'Environmental Condition & Standard'**
+  String get detailKondisiLingkungan;
+
+  /// No description provided for @detailStandarAcuan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference standard'**
+  String get detailStandarAcuan;
+
+  /// No description provided for @detailSuhuRuang.
+  ///
+  /// In en, this message translates to:
+  /// **'Room temperature'**
+  String get detailSuhuRuang;
+
+  /// No description provided for @detailKelembaban.
+  ///
+  /// In en, this message translates to:
+  /// **'Humidity'**
+  String get detailKelembaban;
+
+  /// No description provided for @detailLokasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration location'**
+  String get detailLokasi;
+
+  /// No description provided for @detailTitikUkurTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement Points'**
+  String get detailTitikUkurTitle;
+
+  /// No description provided for @detailBelumDihitung.
+  ///
+  /// In en, this message translates to:
+  /// **'This session hasn\'t been calculated by the server yet — results will show up once it\'s processed.'**
+  String get detailBelumDihitung;
+
+  /// No description provided for @detailLihatSertifikat.
+  ///
+  /// In en, this message translates to:
+  /// **'VIEW CERTIFICATE'**
+  String get detailLihatSertifikat;
+
+  /// No description provided for @detailTitikLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Point {index} · {nilai} {satuan}'**
+  String detailTitikLabel(int index, String nilai, String satuan);
+
+  /// No description provided for @detailRataRata.
+  ///
+  /// In en, this message translates to:
+  /// **'Average'**
+  String get detailRataRata;
+
+  /// No description provided for @detailError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get detailError;
+
+  /// No description provided for @detailKoreksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction'**
+  String get detailKoreksi;
+
+  /// No description provided for @detailTypeA.
+  ///
+  /// In en, this message translates to:
+  /// **'Type A'**
+  String get detailTypeA;
+
+  /// No description provided for @detailTypeB.
+  ///
+  /// In en, this message translates to:
+  /// **'Type B'**
+  String get detailTypeB;
+
+  /// No description provided for @detailKomponenTypeB.
+  ///
+  /// In en, this message translates to:
+  /// **'Type B component breakdown'**
+  String get detailKomponenTypeB;
+
+  /// No description provided for @detailKetidakpastianGabungan.
+  ///
+  /// In en, this message translates to:
+  /// **'Combined uncertainty (uc)'**
+  String get detailKetidakpastianGabungan;
+
+  /// No description provided for @detailFaktorCakupan.
+  ///
+  /// In en, this message translates to:
+  /// **'Coverage factor (k)'**
+  String get detailFaktorCakupan;
+
+  /// No description provided for @detailU95.
+  ///
+  /// In en, this message translates to:
+  /// **'Expanded uncertainty (U95%)'**
+  String get detailU95;
+
   /// No description provided for @orgTitle.
   ///
   /// In en, this message translates to:
@@ -1321,6 +1459,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'e.g. TH-3'**
   String get phCalibThermohygroHint;
+
+  /// No description provided for @phCalibThermohygroCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Other (enter manually)'**
+  String get phCalibThermohygroCustom;
 
   /// No description provided for @phCalibKondisiLingkungan.
   ///

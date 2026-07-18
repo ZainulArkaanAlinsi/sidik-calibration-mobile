@@ -5,11 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/calibration_history_item.dart';
 import '../../models/certificate.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
+import '../../widgets/status_badge.dart';
+import 'calibration_detail_screen.dart';
 
 /// Detail sertifikat — dibuka dari kartu Riwayat yang statusnya `disetujui`.
 /// Nggak nampilin `pdf_url` di `WebView`: cukup tombol yang buka link-nya di
@@ -88,7 +91,9 @@ class _Isi extends ConsumerWidget {
             fontWeight: FontWeight.w800,
           ),
         ),
-        const SizedBox(height: AppSpacing.xl),
+        const SizedBox(height: AppSpacing.lg),
+        _Ringkasan(calibrationId: sertifikat.calibrationId),
+        const SizedBox(height: AppSpacing.lg),
 
         if (sertifikat.status == CertificateStatus.menungguGenerate) ...[
           _StatusBanner(
@@ -134,6 +139,132 @@ class _Isi extends ConsumerWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+/// Ringkasan hasil (alat, standar dipakai, kondisi lingkungan, keputusan)
+/// diambil dari `GET /api/calibrations/{id}` — sertifikat sendiri
+/// (`docs/kontrak-api.md` §5) cuma punya nomor & link PDF, nggak bawa data
+/// ini. Supplementer doang: kalau gagal dimuat, disembunyikan aja daripada
+/// nge-block layar sertifikat yang sebenernya sukses.
+class _Ringkasan extends ConsumerWidget {
+  const _Ringkasan({required this.calibrationId});
+
+  final int calibrationId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final detail = ref.watch(calibrationDetailProvider(calibrationId));
+    final data = detail.value;
+
+    if (detail.isLoading && data == null) {
+      return const Column(
+        children: [
+          SkeletonBox(height: 16, width: 180),
+          SizedBox(height: AppSpacing.xs),
+          SkeletonBox(height: 90, width: double.infinity),
+        ],
+      );
+    }
+
+    if (data == null) return const SizedBox.shrink();
+
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.certRingkasanTitle.toUpperCase(), style: theme.textTheme.labelLarge),
+        const SizedBox(height: AppSpacing.sm),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        data.namaAlat,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    StatusBadge(
+                      label: data.keputusan == Keputusan.fail
+                          ? l10n.historyStatusFail
+                          : l10n.historyStatusPass,
+                      tone: data.keputusan == Keputusan.fail
+                          ? BadgeTone.danger
+                          : BadgeTone.success,
+                      icon: data.keputusan == Keputusan.fail
+                          ? Icons.cancel_outlined
+                          : Icons.check_circle_outline,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                if (data.standarAcuan != null)
+                  _RingkasanRow(
+                    label: l10n.detailStandarAcuan,
+                    value: data.standarAcuan!,
+                  ),
+                if (data.suhuRuang != null && data.kelembaban != null)
+                  _RingkasanRow(
+                    label: l10n.detailKondisiLingkungan,
+                    value:
+                        '${data.suhuRuang!.toStringAsFixed(1)} °C · '
+                        '${data.kelembaban!.toStringAsFixed(1)} %RH',
+                  ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        AppButton(
+          label: l10n.certLihatDetail,
+          icon: Icons.list_alt_outlined,
+          variant: AppButtonVariant.secondary,
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => CalibrationDetailScreen(calibrationId: calibrationId),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RingkasanRow extends StatelessWidget {
+  const _RingkasanRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Text(value, style: theme.textTheme.bodySmall),
+        ],
+      ),
     );
   }
 }

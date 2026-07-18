@@ -71,9 +71,11 @@ Future<void> _bukaLayar(WidgetTester tester) async {
 /// Isi form sampai siap submit: alat + standar + kondisi lingkungan + 3
 /// titik buffer (masing-masing 5 pembacaan sesudah adjustment).
 ///
-/// Urutan TextField di layar: thermohygro[0], suhu awal[1], suhu akhir[2],
-/// kelembaban awal[3], kelembaban akhir[4], lalu 3 kartu titik buffer @21
-/// field (nilai standar + 5x2 sebelum + 5x2 sesudah).
+/// Thermohygro sekarang dropdown preset (default `TH-3`, nggak perlu
+/// diisi manual) — bukan `TextField` lagi. Urutan `TextField` di layar:
+/// suhu awal[0], suhu akhir[1], kelembaban awal[2], kelembaban akhir[3],
+/// lalu 3 kartu titik buffer @21 field (nilai standar + 5x2 sebelum +
+/// 5x2 sesudah).
 Future<void> _isiFormLengkap(WidgetTester tester) async {
   await tester.tap(find.text('Pilih alat'), warnIfMissed: false);
   await tester.pumpAndSettle();
@@ -85,12 +87,12 @@ Future<void> _isiFormLengkap(WidgetTester tester) async {
   await tester.tap(find.text('pH Buffer Solution 7').last);
   await tester.pumpAndSettle();
 
-  await tester.enterText(find.byType(TextField).at(1), '21.3');
-  await tester.enterText(find.byType(TextField).at(2), '21.5');
-  await tester.enterText(find.byType(TextField).at(3), '53');
-  await tester.enterText(find.byType(TextField).at(4), '56');
+  await tester.enterText(find.byType(TextField).at(0), '21.3');
+  await tester.enterText(find.byType(TextField).at(1), '21.5');
+  await tester.enterText(find.byType(TextField).at(2), '53');
+  await tester.enterText(find.byType(TextField).at(3), '56');
 
-  var index = 5;
+  var index = 4;
   for (var titik = 0; titik < 3; titik++) {
     index++; // nilai standar kartu ini — biarin default
     index += 10; // 5x(pH+suhu) "sebelum adjustment" — biarin kosong

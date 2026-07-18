@@ -449,6 +449,80 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String get certRingkasanTitle => 'Ringkasan Hasil';
+
+  @override
+  String get certLihatDetail => 'LIHAT DETAIL PERHITUNGAN';
+
+  @override
+  String get detailTitle => 'Detail Hasil Kalibrasi';
+
+  @override
+  String get detailLoadFailed => 'Gagal memuat detail kalibrasi.';
+
+  @override
+  String detailNomorSesi(String nomor) {
+    return 'No. sesi $nomor';
+  }
+
+  @override
+  String get detailKondisiLingkungan => 'Kondisi Lingkungan & Standar';
+
+  @override
+  String get detailStandarAcuan => 'Standar acuan';
+
+  @override
+  String get detailSuhuRuang => 'Suhu ruang';
+
+  @override
+  String get detailKelembaban => 'Kelembaban';
+
+  @override
+  String get detailLokasi => 'Lokasi kalibrasi';
+
+  @override
+  String get detailTitikUkurTitle => 'Titik Ukur';
+
+  @override
+  String get detailBelumDihitung =>
+      'Sesi ini belum dihitung server — hasil bakal muncul begitu sesi diproses.';
+
+  @override
+  String get detailLihatSertifikat => 'LIHAT SERTIFIKAT';
+
+  @override
+  String detailTitikLabel(int index, String nilai, String satuan) {
+    return 'Titik $index · $nilai $satuan';
+  }
+
+  @override
+  String get detailRataRata => 'Rata-rata';
+
+  @override
+  String get detailError => 'Error';
+
+  @override
+  String get detailKoreksi => 'Koreksi';
+
+  @override
+  String get detailTypeA => 'Type A';
+
+  @override
+  String get detailTypeB => 'Type B';
+
+  @override
+  String get detailKomponenTypeB => 'Rincian komponen Type B';
+
+  @override
+  String get detailKetidakpastianGabungan => 'Ketidakpastian gabungan (uc)';
+
+  @override
+  String get detailFaktorCakupan => 'Faktor cakupan (k)';
+
+  @override
+  String get detailU95 => 'Ketidakpastian diperluas (U95%)';
+
+  @override
   String get orgTitle => 'Data Organisasi';
 
   @override
@@ -665,6 +739,9 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get phCalibThermohygroHint => 'mis. TH-3';
+
+  @override
+  String get phCalibThermohygroCustom => 'Lainnya (isi manual)';
 
   @override
   String get phCalibKondisiLingkungan => 'Kondisi Lingkungan';

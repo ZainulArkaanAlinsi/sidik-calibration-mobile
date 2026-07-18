@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../models/calibration_detail.dart';
 import '../models/calibration_history_item.dart';
 import '../models/certificate.dart';
 import '../services/approval_service.dart';
@@ -122,3 +123,13 @@ final certificateProvider = FutureProvider.family<Certificate, int>((
 
   return ref.read(approvalServiceProvider).ambilSertifikat(token, certificateId);
 }, retry: (retryCount, error) => null);
+
+/// Detail satu sesi kalibrasi — dibuka dari kartu Riwayat (mana pun
+/// statusnya), nampilin breakdown per titik ukur kalau udah dihitung backend.
+final calibrationDetailProvider =
+    FutureProvider.family<CalibrationDetail, int>((ref, id) async {
+      final token = await ref.read(tokenStorageProvider).read();
+      if (token == null) throw const TokenHilangException();
+
+      return ref.read(historyServiceProvider).ambilDetail(token, id);
+    }, retry: (retryCount, error) => null);

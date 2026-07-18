@@ -192,6 +192,42 @@
       "token": { "type": "String" }
     }
   },
+  "certRingkasanTitle": "Result Summary",
+  "certLihatDetail": "VIEW CALCULATION DETAIL",
+
+  "detailTitle": "Calibration Result Detail",
+  "detailLoadFailed": "Couldn't load calibration detail.",
+  "detailNomorSesi": "Session no. {nomor}",
+  "@detailNomorSesi": {
+    "placeholders": {
+      "nomor": { "type": "String" }
+    }
+  },
+  "detailKondisiLingkungan": "Environmental Condition & Standard",
+  "detailStandarAcuan": "Reference standard",
+  "detailSuhuRuang": "Room temperature",
+  "detailKelembaban": "Humidity",
+  "detailLokasi": "Calibration location",
+  "detailTitikUkurTitle": "Measurement Points",
+  "detailBelumDihitung": "This session hasn't been calculated by the server yet — results will show up once it's processed.",
+  "detailLihatSertifikat": "VIEW CERTIFICATE",
+  "detailTitikLabel": "Point {index} · {nilai} {satuan}",
+  "@detailTitikLabel": {
+    "placeholders": {
+      "index": { "type": "int" },
+      "nilai": { "type": "String" },
+      "satuan": { "type": "String" }
+    }
+  },
+  "detailRataRata": "Average",
+  "detailError": "Error",
+  "detailKoreksi": "Correction",
+  "detailTypeA": "Type A",
+  "detailTypeB": "Type B",
+  "detailKomponenTypeB": "Type B component breakdown",
+  "detailKetidakpastianGabungan": "Combined uncertainty (uc)",
+  "detailFaktorCakupan": "Coverage factor (k)",
+  "detailU95": "Expanded uncertainty (U95%)",
 
   "orgTitle": "Organization Data",
   "orgNama": "Company name",
@@ -303,6 +339,7 @@
   "phCalibTitle": "pH Meter Calibration",
   "phCalibThermohygro": "Thermohygrometer used",
   "phCalibThermohygroHint": "e.g. TH-3",
+  "phCalibThermohygroCustom": "Other (enter manually)",
   "phCalibKondisiLingkungan": "Environmental Conditions",
   "phCalibSuhuAwal": "Start temperature (°C)",
   "phCalibSuhuAkhir": "End temperature (°C)",

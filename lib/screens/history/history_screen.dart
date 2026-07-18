@@ -12,7 +12,7 @@ import '../../providers/history_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/status_badge.dart';
-import 'certificate_screen.dart';
+import 'calibration_detail_screen.dart';
 
 /// Riwayat kalibrasi — sama pola 4-state-nya kayak Dashboard
 /// (`loading` skeleton · `empty` · `normal` daftar sesi · `error` + coba
@@ -127,9 +127,6 @@ class _HistoryCard extends StatelessWidget {
     };
   }
 
-  bool get _bisaLihatSertifikat =>
-      item.status == CalibrationStatus.disetujui && item.certificateId != null;
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -141,14 +138,11 @@ class _HistoryCard extends StatelessWidget {
 
     return Card(
       child: InkWell(
-        onTap: _bisaLihatSertifikat
-            ? () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) =>
-                      CertificateScreen(certificateId: item.certificateId!),
-                ),
-              )
-            : null,
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => CalibrationDetailScreen(calibrationId: item.id),
+          ),
+        ),
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),

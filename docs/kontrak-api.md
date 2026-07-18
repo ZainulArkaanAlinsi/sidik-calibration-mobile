@@ -299,6 +299,31 @@ Mobile butuh ini buat isi dropdown kategori + nyiapin worksheet dinamis (kolom t
 > - **`status: "draft"` boleh dikirim di `POST`** — buat "simpan dulu, lanjut nanti". Kalau nggak dikirim, sesi langsung masuk antrean approval (`menunggu_approval`), sesuai contoh kamu.
 > - **`PUT /api/calibrations/{id}`** — teknisi ngerjain ulang sesi yang ditolak admin (`perlu_revisi`) atau nerusin draft. Body-nya sama kayak `POST`. Tanpa ini, tombol "reject" jadi jalan buntu: teknisi dikasih catatan revisi tapi nggak bisa ngapa-ngapain. Sesi yang udah `disetujui` **nggak bisa** diubah (`422`) — angka di sertifikat yang udah dipegang pelanggan nggak boleh berubah diam-diam.
 > - **Field bonus di response** (superset, aman diabaikan): `nomor_sesi` (`KAL/2026/07/0001`), `standar_acuan`, `suhu_ruang`, `kelembaban`, `lokasi`, dan **`titik`** — rincian tiap titik ukur (error, koreksi, Type A, Type B beserta rincian komponennya, U, keputusan per titik). `titik` ini yang kamu butuhin buat nampilin worksheet & tabel ketidakpastian.
+>
+> **📌 Proposal bentuk `titik` (belum dikonfirmasi backend)** — mobile baru mulai nampilin layar detail hasil kalibrasi (breakdown per titik, dipakai duluan buat pH Meter yang punya 3 titik buffer), jadi butuh tahu bentuk pastinya. Ini yang mobile asumsikan sementara, tolong dikonfirmasi/dikoreksi:
+> ```json
+> "titik": [
+>   {
+>     "titik_ukur": 7.0,
+>     "satuan": "pH",
+>     "pembacaan": [7.01, 7.01, 7.00, 7.00, 7.00],
+>     "rata_rata": 7.004,
+>     "error": 0.0150928,
+>     "koreksi": -0.0150928,
+>     "type_a": 0.0054772256,
+>     "type_b": 0.01047,
+>     "type_b_komponen": [
+>       { "nama": "Standar buffer pH 7", "nilai": 0.01 },
+>       { "nama": "Resolusi alat", "nilai": 0.005 }
+>     ],
+>     "ketidakpastian_gabungan": 0.010714869,
+>     "faktor_cakupan_k": 1.9706589608,
+>     "ketidakpastian_diperluas": 0.0211089499,
+>     "keputusan": "PASS"
+>   }
+> ]
+> ```
+> Kalau `titik` cuma keisi setelah sesi lewat kalkulasi (`disetujui` / `menunggu_approval` yang udah diproses), mobile nganggep array kosong `[]` buat `draft` — dan nampilin pesan "belum dihitung" bukan tabel kosong.
 > - **`hasil` itu ringkasan dari titik PENENTU**, bukan titik pertama. Sesi bisa punya banyak titik ukur tapi sertifikat cuma nampilin satu keputusan — yang dipajang adalah titik yang paling mepet ke batas (|error| + U terbesar). **Satu titik FAIL bikin seluruh sesi FAIL.**
 >
 > ### Soal `?mine=true`
