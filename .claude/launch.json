@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "flutter-web-mock",
+      "runtimeExecutable": "flutter",
+      "runtimeArgs": ["run", "-d", "web-server", "--web-port=5000", "--dart-define=USE_MOCK=true"],
+      "port": 5000
+    },
+    {
+      "name": "flutter-web-api-localhost",
+      "runtimeExecutable": "flutter",
+      "runtimeArgs": ["run", "-d", "web-server", "--web-port=5001", "--dart-define=API_BASE_URL=http://localhost:8000/api"],
+      "port": 5001
+    },
+    {
+      "name": "flutter-web-api-lan",
+      "runtimeExecutable": "flutter",
+      "runtimeArgs": ["run", "-d", "web-server", "--web-port=5002", "--dart-define=API_BASE_URL=http://192.168.1.18:8000/api"],
+      "port": 5002
+    }
+  ]
+}
