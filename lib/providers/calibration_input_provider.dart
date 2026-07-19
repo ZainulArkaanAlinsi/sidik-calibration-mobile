@@ -39,10 +39,66 @@ final categoryListProvider = FutureProvider<List<Category>>((ref) async {
   return ref.read(categoryServiceProvider).daftar(token);
 }, retry: (retryCount, error) => null);
 
+/// Family-nya keyed by kode kategori — dipakai buat dropdown "Jenis Alat
+/// (Kemampuan Kalibrasi)" di form Alat, ganti kategori = kueri baru.
+final categoryDetailProvider = FutureProvider.family<CategoryDetail, String>((
+  ref,
+  kode,
+) async {
+  final token = await _token(ref);
+  return ref.read(categoryServiceProvider).detail(token, kode);
+}, retry: (retryCount, error) => null);
+
 final standardListProvider = FutureProvider<List<Standard>>((ref) async {
   final token = await _token(ref);
   return ref.read(standardServiceProvider).daftar(token);
 }, retry: (retryCount, error) => null);
+
+/// Beda sama [standardListProvider] (read-only, dipakai dropdown di layar
+/// kalibrasi): ini yang dipakai layar kelola Standar Acuan (admin) —
+/// `AsyncNotifier` biar bisa `tambah`/`ubah`/`hapus` terus refresh sendiri.
+final standardCrudProvider =
+    AsyncNotifierProvider<StandardCrudController, List<Standard>>(
+      StandardCrudController.new,
+      retry: (retryCount, error) => null,
+    );
+
+class StandardCrudController extends AsyncNotifier<List<Standard>> {
+  @override
+  Future<List<Standard>> build() async {
+    final token = await _token(ref);
+    return ref.read(standardServiceProvider).daftar(token);
+  }
+
+  Future<void> muatUlang() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => build());
+  }
+
+  Future<void> tambah(Standard data) async {
+    final token = await ref.read(tokenStorageProvider).read();
+    if (token == null) return;
+
+    await ref.read(standardServiceProvider).simpan(token, data);
+    await muatUlang();
+  }
+
+  Future<void> ubah(Standard data) async {
+    final token = await ref.read(tokenStorageProvider).read();
+    if (token == null) return;
+
+    await ref.read(standardServiceProvider).ubah(token, data);
+    await muatUlang();
+  }
+
+  Future<void> hapus(int id) async {
+    final token = await ref.read(tokenStorageProvider).read();
+    if (token == null) return;
+
+    await ref.read(standardServiceProvider).hapus(token, id);
+    await muatUlang();
+  }
+}
 
 /// Family-nya keyed by kategori (nullable) — ganti kategori = kueri equipment
 /// baru, biar picker cuma nampilin alat yang relevan.

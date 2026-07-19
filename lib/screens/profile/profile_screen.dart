@@ -19,6 +19,7 @@ import '../../widgets/status_badge.dart';
 import '../design_system/design_system_screen.dart';
 import '../settings/customer_list_screen.dart';
 import '../settings/organization_screen.dart';
+import '../settings/standard_list_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -87,6 +88,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
                       builder: (_) => const CustomerListScreen(),
+                    ),
+                  ),
+                ),
+                const _GarisPemisah(),
+                _BarisMenu(
+                  icon: Icons.straighten_outlined,
+                  title: l10n.profStandards,
+                  subtitle: l10n.profStandardsSub,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const StandardListScreen(),
                     ),
                   ),
                 ),

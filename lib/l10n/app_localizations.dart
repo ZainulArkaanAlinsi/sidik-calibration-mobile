@@ -632,6 +632,18 @@ abstract class AppLocalizations {
   /// **'Manage the lab\'s customer list'**
   String get profCustomersSub;
 
+  /// No description provided for @profStandards.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference Standards'**
+  String get profStandards;
+
+  /// No description provided for @profStandardsSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage the lab\'s reference/standard equipment'**
+  String get profStandardsSub;
+
   /// No description provided for @profDesignSystem.
   ///
   /// In en, this message translates to:
@@ -865,6 +877,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose a customer'**
   String get equipPelangganHint;
+
+  /// No description provided for @equipNamaAlatKemampuan.
+  ///
+  /// In en, this message translates to:
+  /// **'Device Type (Calibration Capability)'**
+  String get equipNamaAlatKemampuan;
+
+  /// No description provided for @equipNamaAlatKemampuanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose device type (optional, for accurate CMC)'**
+  String get equipNamaAlatKemampuanHint;
+
+  /// No description provided for @equipNamaAlatKemampuanKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'This category has no calibration capabilities yet'**
+  String get equipNamaAlatKemampuanKosong;
+
+  /// No description provided for @equipNamaAlatKemampuanGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load calibration capabilities.'**
+  String get equipNamaAlatKemampuanGagal;
+
+  /// No description provided for @equipCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get equipCatatan;
 
   /// No description provided for @equipMerk.
   ///
@@ -1322,6 +1364,54 @@ abstract class AppLocalizations {
   /// **'Accreditation no.'**
   String get orgNoAkreditasi;
 
+  /// No description provided for @orgAkreditasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Accreditation Status'**
+  String get orgAkreditasi;
+
+  /// No description provided for @orgAkreditasiBerlaku.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid'**
+  String get orgAkreditasiBerlaku;
+
+  /// No description provided for @orgAkreditasiKadaluarsa.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get orgAkreditasiKadaluarsa;
+
+  /// No description provided for @orgStandarAkreditasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Accreditation standard'**
+  String get orgStandarAkreditasi;
+
+  /// No description provided for @orgStandarAkreditasiHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. ISO/IEC 17025:2017'**
+  String get orgStandarAkreditasiHint;
+
+  /// No description provided for @orgAkreditasiMulai.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid from'**
+  String get orgAkreditasiMulai;
+
+  /// No description provided for @orgAkreditasiBerakhir.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid until'**
+  String get orgAkreditasiBerakhir;
+
+  /// No description provided for @orgPilihTanggal.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a date'**
+  String get orgPilihTanggal;
+
   /// No description provided for @orgSave.
   ///
   /// In en, this message translates to:
@@ -1351,6 +1441,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'RETRY'**
   String get orgRetry;
+
+  /// No description provided for @standarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference Standards'**
+  String get standarTitle;
+
+  /// No description provided for @standarLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load reference standards.'**
+  String get standarLoadFailed;
+
+  /// No description provided for @standarAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'ADD STANDARD'**
+  String get standarAdd;
+
+  /// No description provided for @standarEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit standard'**
+  String get standarEdit;
+
+  /// No description provided for @standarEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No reference standards yet'**
+  String get standarEmptyTitle;
+
+  /// No description provided for @standarEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first standard using the button below.'**
+  String get standarEmptyBody;
+
+  /// No description provided for @standarRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'RETRY'**
+  String get standarRetry;
+
+  /// No description provided for @standarBerlaku.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid'**
+  String get standarBerlaku;
+
+  /// No description provided for @standarKadaluarsa.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get standarKadaluarsa;
+
+  /// No description provided for @standarDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete reference standard?'**
+  String get standarDeleteConfirmTitle;
+
+  /// No description provided for @standarDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{nama}\" will be permanently deleted.'**
+  String standarDeleteConfirmBody(String nama);
+
+  /// No description provided for @standarDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t delete: {pesan}'**
+  String standarDeleteFailed(String pesan);
+
+  /// No description provided for @standarSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save: {pesan}'**
+  String standarSaveFailed(String pesan);
+
+  /// No description provided for @standarFaktorCakupanInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Coverage factor (k) must be at least 1 — usually 2.'**
+  String get standarFaktorCakupanInvalid;
+
+  /// No description provided for @standarNama.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard name'**
+  String get standarNama;
+
+  /// No description provided for @standarMerk.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand'**
+  String get standarMerk;
+
+  /// No description provided for @standarModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model/Type'**
+  String get standarModel;
+
+  /// No description provided for @standarSerialNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number'**
+  String get standarSerialNumber;
+
+  /// No description provided for @standarNoSertifikat.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate no.'**
+  String get standarNoSertifikat;
+
+  /// No description provided for @standarTertelusurKe.
+  ///
+  /// In en, this message translates to:
+  /// **'Traceable to'**
+  String get standarTertelusurKe;
+
+  /// No description provided for @standarTertelusurKeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. SNSU-BSN'**
+  String get standarTertelusurKeHint;
+
+  /// No description provided for @standarBerlakuSampai.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid until'**
+  String get standarBerlakuSampai;
+
+  /// No description provided for @standarKetidakpastianTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncertainty (from the standard\'s certificate)'**
+  String get standarKetidakpastianTitle;
+
+  /// No description provided for @standarKetidakpastian.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncertainty (expanded)'**
+  String get standarKetidakpastian;
+
+  /// No description provided for @standarSatuanKetidakpastian.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get standarSatuanKetidakpastian;
+
+  /// No description provided for @standarFaktorCakupan.
+  ///
+  /// In en, this message translates to:
+  /// **'Coverage factor (k)'**
+  String get standarFaktorCakupan;
+
+  /// No description provided for @standarDrift.
+  ///
+  /// In en, this message translates to:
+  /// **'Annual drift'**
+  String get standarDrift;
+
+  /// No description provided for @standarSave.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE'**
+  String get standarSave;
 
   /// No description provided for @custTitle.
   ///

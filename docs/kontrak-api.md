@@ -227,9 +227,11 @@ Query params yang mobile pakai: `?search=kaliper&category=panjang&status=overdue
 >
 > **4. Hak akses**: baca = semua role (termasuk viewer). Nulis (`POST`/`PUT`/`DELETE`) = **admin & teknisi**; viewer ditolak `403`. Sesuai permintaan kamu.
 >
-> **5. Field bonus di response** (di luar kontrak, aman diabaikan): `model`, `no_identifikasi`, `range_min`, `range_max`, `satuan`, `resolusi`, `toleransi`, `lokasi`. Ini dibutuhin nanti pas layar kalibrasi.
+> **5. Field bonus di response** (di luar kontrak, aman diabaikan): `model`, `no_identifikasi`, `range_min`, `range_max`, `satuan`, `resolusi`, `toleransi`, `lokasi`, dan **`nama_alat_kemampuan`**. Ini dibutuhin nanti pas layar kalibrasi.
 >
 > **6. `meta` paginasinya lebih gemuk dari yang kamu tulis** — Laravel ikut ngirim `from`, `to`, `path`, `links`. Superset, jadi aman; abaikan aja yang nggak kepakai.
+>
+> **✅ 18 Jul — audit ulang, `nama_alat_kemampuan` sekarang beneran dipakai mobile.** Sebelumnya field ini kekirim di response tapi nggak pernah diisi lewat form Alat — efeknya SEMUA alat yang didaftarin lewat app selama ini kemungkinan kalibrasinya jatuh ke jalur ketidakpastian generik (standar+resolusi), bukan CMC resmi hasil akreditasi (`GumCalculator::kemampuanUntukTitik()` di backend cocokin lewat field ini + rentang, bukan cuma `equipment_category_id`). Form Alat sekarang punya dropdown "Jenis Alat (Kemampuan Kalibrasi)" yang isinya dari `GET /api/categories/{kode}` → `kemampuan[].nama_alat`, opsional tapi direkomendasiin diisi. Field `catatan` juga sekarang kepakai (ada di `EquipmentRequest` tapi belum pernah dikirim mobile).
 
 ### `GET /api/equipments/{id}` — 1 objek, bentuk sama.
 ### `POST /api/equipments` · `PUT /api/equipments/{id}` · `DELETE /api/equipments/{id}`
@@ -372,7 +374,7 @@ Mobile butuh ini buat isi dropdown kategori + nyiapin worksheet dinamis (kolom t
 >
 > Ada juga **`GET /api/standards/{id}`** kalau butuh satu objek.
 >
-> ⚠️ **Belum ada `POST`/`PUT`/`DELETE`** — standar masih diisi lewat seeder. Begitu lab mau daftarin standar keduanya, ini bakal jadi kebutuhan. Kabarin kalau layar Pengaturan butuh CRUD-nya.
+> **✅ 18 Jul — `POST`/`PUT`/`DELETE /api/standards` ternyata udah ada** (admin doang, dijaga `role:admin`) — dokumen ini ketinggalan, mobile baru sadar pas ngecek `StandardController.php` langsung. Layar kelola Standar Acuan (list + form CRUD) sekarang ada di app (Profil → Standar Acuan admin), dan field `model` yang sebelumnya kelewat di model mobile sekarang ikut ditangkep.
 
 ### `POST /api/calibrations`
 Bikin sesi kalibrasi + kirim data mentah sekaligus. **Data dari input manual dan dari hasil scan kamera masuk ke endpoint yang sama persis** — nggak usah bikin endpoint terpisah buat OCR. Bedanya cuma di field `input_method` (buat statistik, bukan buat logic beda).
@@ -531,6 +533,7 @@ Isinya beda tergantung role — teknisi dapat ringkasan miliknya, admin dapat li
 Belum ada di kontrak versi kamu, tapi udah jalan di backend. Dibutuhin buat layar Pengaturan (admin).
 
 - **`GET /api/organization`** · **`PUT /api/organization`** — data PT: `nama`, `alamat`, `telepon`, `email`, `no_akreditasi`. Ini yang bakal dicetak di kop sertifikat. *Nggak ada create/delete* — satu instalasi = satu PT.
+  > **✅ 18 Jul — response-nya lebih gemuk dari yang didokumentasiin, mobile baru nyusul makainya**: `standar_akreditasi`, `akreditasi_mulai`, `akreditasi_berakhir`, dan `akreditasi_masih_berlaku` (dihitung backend, read-only — jangan dikirim balik waktu `PUT`). Ini yang nentuin akreditasi lab (LK-285-IDN) masih sah apa nggak; sebelumnya nggak ada di layar mana pun. `settings` (array) juga ada di response tapi mobile sengaja belum kasih UI buat itu — bentuknya belum didokumentasiin.
 - **`GET /api/customers?search=&page=`** · **`POST`** · **`GET/PUT/DELETE /api/customers/{id}`** — CRUD pelanggan. Field: `nama`, `alamat`, `contact_person`, `telepon`, `email` (+ `jumlah_alat` di response).
 - **Pelanggan yang masih punya alat nggak bisa dihapus** → `422`. Kalau dipaksa, alat & riwayat kalibrasinya jadi yatim. Mobile: tampilin pesannya apa adanya.
 

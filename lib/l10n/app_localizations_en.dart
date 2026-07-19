@@ -286,6 +286,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profCustomersSub => 'Manage the lab\'s customer list';
 
   @override
+  String get profStandards => 'Reference Standards';
+
+  @override
+  String get profStandardsSub =>
+      'Manage the lab\'s reference/standard equipment';
+
+  @override
   String get profDesignSystem => 'Design System';
 
   @override
@@ -412,6 +419,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipPelangganHint => 'Choose a customer';
+
+  @override
+  String get equipNamaAlatKemampuan => 'Device Type (Calibration Capability)';
+
+  @override
+  String get equipNamaAlatKemampuanHint =>
+      'Choose device type (optional, for accurate CMC)';
+
+  @override
+  String get equipNamaAlatKemampuanKosong =>
+      'This category has no calibration capabilities yet';
+
+  @override
+  String get equipNamaAlatKemampuanGagal =>
+      'Couldn\'t load calibration capabilities.';
+
+  @override
+  String get equipCatatan => 'Notes';
 
   @override
   String get equipMerk => 'Brand';
@@ -664,6 +689,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get orgNoAkreditasi => 'Accreditation no.';
 
   @override
+  String get orgAkreditasi => 'Accreditation Status';
+
+  @override
+  String get orgAkreditasiBerlaku => 'Valid';
+
+  @override
+  String get orgAkreditasiKadaluarsa => 'Expired';
+
+  @override
+  String get orgStandarAkreditasi => 'Accreditation standard';
+
+  @override
+  String get orgStandarAkreditasiHint => 'e.g. ISO/IEC 17025:2017';
+
+  @override
+  String get orgAkreditasiMulai => 'Valid from';
+
+  @override
+  String get orgAkreditasiBerakhir => 'Valid until';
+
+  @override
+  String get orgPilihTanggal => 'Choose a date';
+
+  @override
   String get orgSave => 'SAVE';
 
   @override
@@ -679,6 +728,99 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get orgRetry => 'RETRY';
+
+  @override
+  String get standarTitle => 'Reference Standards';
+
+  @override
+  String get standarLoadFailed => 'Couldn\'t load reference standards.';
+
+  @override
+  String get standarAdd => 'ADD STANDARD';
+
+  @override
+  String get standarEdit => 'Edit standard';
+
+  @override
+  String get standarEmptyTitle => 'No reference standards yet';
+
+  @override
+  String get standarEmptyBody =>
+      'Add your first standard using the button below.';
+
+  @override
+  String get standarRetry => 'RETRY';
+
+  @override
+  String get standarBerlaku => 'Valid';
+
+  @override
+  String get standarKadaluarsa => 'Expired';
+
+  @override
+  String get standarDeleteConfirmTitle => 'Delete reference standard?';
+
+  @override
+  String standarDeleteConfirmBody(String nama) {
+    return '\"$nama\" will be permanently deleted.';
+  }
+
+  @override
+  String standarDeleteFailed(String pesan) {
+    return 'Couldn\'t delete: $pesan';
+  }
+
+  @override
+  String standarSaveFailed(String pesan) {
+    return 'Couldn\'t save: $pesan';
+  }
+
+  @override
+  String get standarFaktorCakupanInvalid =>
+      'Coverage factor (k) must be at least 1 — usually 2.';
+
+  @override
+  String get standarNama => 'Standard name';
+
+  @override
+  String get standarMerk => 'Brand';
+
+  @override
+  String get standarModel => 'Model/Type';
+
+  @override
+  String get standarSerialNumber => 'Serial number';
+
+  @override
+  String get standarNoSertifikat => 'Certificate no.';
+
+  @override
+  String get standarTertelusurKe => 'Traceable to';
+
+  @override
+  String get standarTertelusurKeHint => 'e.g. SNSU-BSN';
+
+  @override
+  String get standarBerlakuSampai => 'Valid until';
+
+  @override
+  String get standarKetidakpastianTitle =>
+      'Uncertainty (from the standard\'s certificate)';
+
+  @override
+  String get standarKetidakpastian => 'Uncertainty (expanded)';
+
+  @override
+  String get standarSatuanKetidakpastian => 'Unit';
+
+  @override
+  String get standarFaktorCakupan => 'Coverage factor (k)';
+
+  @override
+  String get standarDrift => 'Annual drift';
+
+  @override
+  String get standarSave => 'SAVE';
 
   @override
   String get custTitle => 'Customers';

@@ -134,6 +134,35 @@ void main() {
     expect(find.text('Termometer Digital Baru'), findsOneWidget);
   });
 
+  testWidgets(
+    'pilih kategori "Panjang" → dropdown Jenis Alat (Kemampuan Kalibrasi) muncul',
+    (tester) async {
+      _perbesarViewport(tester);
+      await _bukaTabAlat(tester);
+
+      await tester.tap(find.text('TAMBAH ALAT'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Pilih kategori alat'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Panjang').last);
+      await tester.pumpAndSettle();
+
+      // MockCategoryService.detail('panjang') balikin 2 kemampuan — dropdown-nya
+      // muncul begitu kategori dipilih, bukan cuma field kosong nggak berguna.
+      expect(find.text('Pilih jenis alat (opsional, buat CMC akurat)'), findsOneWidget);
+      await tester.tap(
+        find.text('Pilih jenis alat (opsional, buat CMC akurat)'),
+        warnIfMissed: false,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Jangka Sorong').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Jangka Sorong'), findsWidgets);
+    },
+  );
+
   testWidgets('hapus alat → dikonfirmasi dulu, baru ilang dari list', (
     tester,
   ) async {

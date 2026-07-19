@@ -30,8 +30,20 @@ Widget _app({bool gagal = false}) {
   );
 }
 
+/// Form-nya lebih panjang dari viewport test standar (800x600) sejak field
+/// akreditasi ditambah — `ListView` cuma nge-build item yang deket viewport,
+/// jadi tombol SIMPAN di paling bawah nggak ke-tap kalau viewport-nya kecil
+/// (sama kasusnya kayak `ph_calibration_input_test.dart`).
+void _perbesarViewport(WidgetTester tester) {
+  tester.view.physicalSize = const Size(800, 1400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+}
+
 void main() {
   testWidgets('nampilin data organisasi & bisa disimpan', (tester) async {
+    _perbesarViewport(tester);
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 

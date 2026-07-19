@@ -6,7 +6,8 @@ import '../../l10n/app_localizations.dart';
 import '../../models/customer.dart';
 import '../../models/equipment.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/calibration_input_provider.dart' show categoryListProvider;
+import '../../providers/calibration_input_provider.dart'
+    show categoryDetailProvider, categoryListProvider;
 import '../../providers/equipment_provider.dart';
 import '../../providers/master_data_provider.dart' show customerProvider;
 import '../../widgets/app_button.dart';
@@ -52,9 +53,11 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
     text: widget.existing?.toleransi?.toString(),
   );
   late final _lokasi = TextEditingController(text: widget.existing?.lokasi);
+  late final _catatan = TextEditingController(text: widget.existing?.catatan);
 
   String? _kategori;
   int? _pelangganId;
+  String? _namaAlatKemampuan;
   EquipmentStatus _status = EquipmentStatus.aktif;
 
   bool _menyimpan = false;
@@ -68,6 +71,7 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
     super.initState();
     _kategori = widget.existing?.kategori;
     _pelangganId = widget.existing?.pelangganId;
+    _namaAlatKemampuan = widget.existing?.namaAlatKemampuan;
     _status = widget.existing?.status ?? EquipmentStatus.aktif;
   }
 
@@ -84,6 +88,7 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
     _resolusi.dispose();
     _toleransi.dispose();
     _lokasi.dispose();
+    _catatan.dispose();
     super.dispose();
   }
 
@@ -122,12 +127,14 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
       model: _model.text.trim(),
       noIdentifikasi: _noIdentifikasi.text.trim(),
       pelangganId: _pelangganId,
+      namaAlatKemampuan: _namaAlatKemampuan,
       rangeMin: _parse(_rangeMin.text),
       rangeMax: _parse(_rangeMax.text),
       satuan: _satuan.text.trim(),
       resolusi: _parse(_resolusi.text),
       toleransi: _parse(_toleransi.text),
       lokasi: _lokasi.text.trim(),
+      catatan: _catatan.text.trim(),
     );
 
     final navigator = Navigator.of(context);
@@ -191,11 +198,29 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
                 ? (value) => setState(() {
                     _kategori = value;
                     _errorKategori = null;
+                    // Kemampuan (CMC) terikat ke kategori — ganti kategori,
+                    // pilihan lama nggak tentu masih valid buat kategori baru.
+                    _namaAlatKemampuan = null;
                   })
                 : null,
             decoration: InputDecoration(errorText: _errorKategori),
           ),
           const SizedBox(height: AppSpacing.md),
+
+          if (_kategori != null) ...[
+            Text(
+              l10n.equipNamaAlatKemampuan.toUpperCase(),
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _KemampuanDropdown(
+              kategori: _kategori!,
+              value: _namaAlatKemampuan,
+              enabled: bisaInput,
+              onChanged: (value) => setState(() => _namaAlatKemampuan = value),
+            ),
+            const SizedBox(height: AppSpacing.md),
+          ],
 
           Text(l10n.equipPelanggan.toUpperCase(), style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: AppSpacing.sm),
@@ -295,6 +320,12 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
             enabled: bisaInput,
           ),
           const SizedBox(height: AppSpacing.md),
+          AppTextField(
+            label: l10n.equipCatatan,
+            controller: _catatan,
+            enabled: bisaInput,
+          ),
+          const SizedBox(height: AppSpacing.md),
 
           Text(l10n.equipStatus.toUpperCase(), style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: AppSpacing.sm),
@@ -326,6 +357,56 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
           ],
         ],
       ),
+    );
+  }
+}
+
+/// Dropdown "Jenis Alat (Kemampuan Kalibrasi)" — nunjuk ke `nama_alat` di
+/// `GET /api/categories/{kode}`. Field ini OPSIONAL, tapi begitu di-set,
+/// sesi kalibrasi alat ini bakal kepasang CMC akreditasi resmi lab
+/// (`GumCalculator::kemampuanUntukTitik()`), bukan jalur generik.
+class _KemampuanDropdown extends ConsumerWidget {
+  const _KemampuanDropdown({
+    required this.kategori,
+    required this.value,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  final String kategori;
+  final String? value;
+  final bool enabled;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final detail = ref.watch(categoryDetailProvider(kategori));
+
+    return detail.when(
+      skipLoadingOnReload: true,
+      loading: () => const LinearProgressIndicator(),
+      error: (_, _) => Text(l10n.equipNamaAlatKemampuanGagal),
+      data: (data) {
+        // Nama alat kemampuan bisa dobel per rentang beda (mis. "Jangka
+        // Sorong" 0-150mm & 150-300mm) — dropdown-nya per NAMA, bukan per
+        // rentang, jadi disaring biar nggak ada entri kembar.
+        final namaUnik = data.kemampuan.map((k) => k.namaAlat).toSet().toList()..sort();
+
+        return DropdownButtonFormField<String>(
+          initialValue: namaUnik.contains(value) ? value : null,
+          isExpanded: true,
+          hint: Text(
+            namaUnik.isEmpty
+                ? l10n.equipNamaAlatKemampuanKosong
+                : l10n.equipNamaAlatKemampuanHint,
+          ),
+          items: namaUnik
+              .map((nama) => DropdownMenuItem(value: nama, child: Text(nama)))
+              .toList(),
+          onChanged: enabled && namaUnik.isNotEmpty ? onChanged : null,
+        );
+      },
     );
   }
 }

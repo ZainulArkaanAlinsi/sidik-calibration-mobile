@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
@@ -9,6 +10,7 @@ import '../../providers/master_data_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/skeleton.dart';
+import '../../widgets/status_badge.dart';
 
 /// Data PT yang dicetak di kop sertifikat — satu baris doang, jadi cukup
 /// satu form (bukan list+detail kayak Pelanggan).
@@ -57,6 +59,12 @@ class _FormState extends ConsumerState<_Form> {
   late final _noAkreditasi = TextEditingController(
     text: widget.data.noAkreditasi,
   );
+  late final _standarAkreditasi = TextEditingController(
+    text: widget.data.standarAkreditasi,
+  );
+
+  late DateTime? _akreditasiMulai = widget.data.akreditasiMulai;
+  late DateTime? _akreditasiBerakhir = widget.data.akreditasiBerakhir;
 
   bool _menyimpan = false;
 
@@ -67,7 +75,26 @@ class _FormState extends ConsumerState<_Form> {
     _telepon.dispose();
     _email.dispose();
     _noAkreditasi.dispose();
+    _standarAkreditasi.dispose();
     super.dispose();
+  }
+
+  Future<void> _pilihTanggal({required bool mulai}) async {
+    final awal = (mulai ? _akreditasiMulai : _akreditasiBerakhir) ?? DateTime.now();
+    final dipilih = await showDatePicker(
+      context: context,
+      initialDate: awal,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (dipilih == null) return;
+    setState(() {
+      if (mulai) {
+        _akreditasiMulai = dipilih;
+      } else {
+        _akreditasiBerakhir = dipilih;
+      }
+    });
   }
 
   Future<void> _simpan() async {
@@ -85,6 +112,9 @@ class _FormState extends ConsumerState<_Form> {
               telepon: _telepon.text.trim(),
               email: _email.text.trim(),
               noAkreditasi: _noAkreditasi.text.trim(),
+              standarAkreditasi: _standarAkreditasi.text.trim(),
+              akreditasiMulai: _akreditasiMulai,
+              akreditasiBerakhir: _akreditasiBerakhir,
             ),
           );
       if (!mounted) return;
@@ -102,6 +132,12 @@ class _FormState extends ConsumerState<_Form> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final locale = Localizations.localeOf(context).languageCode;
+
+    String fmt(DateTime? d) => d == null
+        ? l10n.orgPilihTanggal
+        : DateFormat('d MMM yyyy', locale).format(d);
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -121,9 +157,69 @@ class _FormState extends ConsumerState<_Form> {
           controller: _email,
           keyboardType: TextInputType.emailAddress,
         ),
-        const SizedBox(height: AppSpacing.md),
-        AppTextField(label: l10n.orgNoAkreditasi, controller: _noAkreditasi),
         const SizedBox(height: AppSpacing.lg),
+
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.orgAkreditasi.toUpperCase(),
+                style: theme.textTheme.labelLarge,
+              ),
+            ),
+            StatusBadge(
+              label: widget.data.akreditasiMasihBerlaku
+                  ? l10n.orgAkreditasiBerlaku
+                  : l10n.orgAkreditasiKadaluarsa,
+              tone: widget.data.akreditasiMasihBerlaku
+                  ? BadgeTone.success
+                  : BadgeTone.danger,
+              icon: widget.data.akreditasiMasihBerlaku
+                  ? Icons.check_circle_outline
+                  : Icons.warning_amber_outlined,
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        AppTextField(label: l10n.orgNoAkreditasi, controller: _noAkreditasi),
+        const SizedBox(height: AppSpacing.md),
+        AppTextField(
+          label: l10n.orgStandarAkreditasi,
+          controller: _standarAkreditasi,
+          hint: l10n.orgStandarAkreditasiHint,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          children: [
+            Expanded(
+              child: InkWell(
+                onTap: () => _pilihTanggal(mulai: true),
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: l10n.orgAkreditasiMulai.toUpperCase(),
+                    prefixIcon: const Icon(Icons.calendar_today_outlined, size: 20),
+                  ),
+                  child: Text(fmt(_akreditasiMulai)),
+                ),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: InkWell(
+                onTap: () => _pilihTanggal(mulai: false),
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: l10n.orgAkreditasiBerakhir.toUpperCase(),
+                    prefixIcon: const Icon(Icons.event_busy_outlined, size: 20),
+                  ),
+                  child: Text(fmt(_akreditasiBerakhir)),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.lg),
+
         AppButton(
           label: l10n.orgSave,
           isLoading: _menyimpan,

@@ -286,6 +286,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get profCustomersSub => 'Kelola daftar pelanggan lab';
 
   @override
+  String get profStandards => 'Standar Acuan';
+
+  @override
+  String get profStandardsSub => 'Kelola alat standar/acuan lab';
+
+  @override
   String get profDesignSystem => 'Design System';
 
   @override
@@ -411,6 +417,24 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get equipPelangganHint => 'Pilih pelanggan';
+
+  @override
+  String get equipNamaAlatKemampuan => 'Jenis Alat (Kemampuan Kalibrasi)';
+
+  @override
+  String get equipNamaAlatKemampuanHint =>
+      'Pilih jenis alat (opsional, buat CMC akurat)';
+
+  @override
+  String get equipNamaAlatKemampuanKosong =>
+      'Kategori ini belum ada kemampuan kalibrasinya';
+
+  @override
+  String get equipNamaAlatKemampuanGagal =>
+      'Gagal memuat daftar kemampuan kalibrasi.';
+
+  @override
+  String get equipCatatan => 'Catatan';
 
   @override
   String get equipMerk => 'Merk';
@@ -662,6 +686,30 @@ class AppLocalizationsId extends AppLocalizations {
   String get orgNoAkreditasi => 'No. akreditasi';
 
   @override
+  String get orgAkreditasi => 'Status Akreditasi';
+
+  @override
+  String get orgAkreditasiBerlaku => 'Berlaku';
+
+  @override
+  String get orgAkreditasiKadaluarsa => 'Kadaluarsa';
+
+  @override
+  String get orgStandarAkreditasi => 'Standar akreditasi';
+
+  @override
+  String get orgStandarAkreditasiHint => 'mis. ISO/IEC 17025:2017';
+
+  @override
+  String get orgAkreditasiMulai => 'Berlaku mulai';
+
+  @override
+  String get orgAkreditasiBerakhir => 'Berlaku sampai';
+
+  @override
+  String get orgPilihTanggal => 'Pilih tanggal';
+
+  @override
   String get orgSave => 'SIMPAN';
 
   @override
@@ -677,6 +725,99 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get orgRetry => 'COBA LAGI';
+
+  @override
+  String get standarTitle => 'Standar Acuan';
+
+  @override
+  String get standarLoadFailed => 'Gagal memuat standar acuan.';
+
+  @override
+  String get standarAdd => 'TAMBAH STANDAR';
+
+  @override
+  String get standarEdit => 'Edit standar';
+
+  @override
+  String get standarEmptyTitle => 'Belum ada standar acuan';
+
+  @override
+  String get standarEmptyBody =>
+      'Tambah standar pertama lewat tombol di bawah.';
+
+  @override
+  String get standarRetry => 'COBA LAGI';
+
+  @override
+  String get standarBerlaku => 'Berlaku';
+
+  @override
+  String get standarKadaluarsa => 'Kadaluarsa';
+
+  @override
+  String get standarDeleteConfirmTitle => 'Hapus standar acuan?';
+
+  @override
+  String standarDeleteConfirmBody(String nama) {
+    return '\"$nama\" bakal dihapus permanen.';
+  }
+
+  @override
+  String standarDeleteFailed(String pesan) {
+    return 'Gagal menghapus: $pesan';
+  }
+
+  @override
+  String standarSaveFailed(String pesan) {
+    return 'Gagal menyimpan: $pesan';
+  }
+
+  @override
+  String get standarFaktorCakupanInvalid =>
+      'Faktor cakupan (k) minimal 1 — biasanya 2.';
+
+  @override
+  String get standarNama => 'Nama standar';
+
+  @override
+  String get standarMerk => 'Merk';
+
+  @override
+  String get standarModel => 'Model/Type';
+
+  @override
+  String get standarSerialNumber => 'Nomor seri';
+
+  @override
+  String get standarNoSertifikat => 'No. sertifikat';
+
+  @override
+  String get standarTertelusurKe => 'Tertelusur ke';
+
+  @override
+  String get standarTertelusurKeHint => 'mis. SNSU-BSN';
+
+  @override
+  String get standarBerlakuSampai => 'Berlaku sampai';
+
+  @override
+  String get standarKetidakpastianTitle =>
+      'Ketidakpastian (dari sertifikat standar)';
+
+  @override
+  String get standarKetidakpastian => 'Ketidakpastian (diperluas)';
+
+  @override
+  String get standarSatuanKetidakpastian => 'Satuan';
+
+  @override
+  String get standarFaktorCakupan => 'Faktor cakupan (k)';
+
+  @override
+  String get standarDrift => 'Drift per tahun';
+
+  @override
+  String get standarSave => 'SIMPAN';
 
   @override
   String get custTitle => 'Pelanggan';

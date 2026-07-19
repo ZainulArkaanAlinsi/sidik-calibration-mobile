@@ -107,6 +107,8 @@
   "profOrgDataSub": "Name, address & accreditation no. printed on certificates",
   "profCustomers": "Customers",
   "profCustomersSub": "Manage the lab's customer list",
+  "profStandards": "Reference Standards",
+  "profStandardsSub": "Manage the lab's reference/standard equipment",
   "profDesignSystem": "Design System",
   "profDesignSystemSub": "Color, typography & component catalog",
   "profAppInfo": "App Info",
@@ -167,6 +169,11 @@
   "equipKategoriHint": "Choose a device category",
   "equipPelanggan": "Customer",
   "equipPelangganHint": "Choose a customer",
+  "equipNamaAlatKemampuan": "Device Type (Calibration Capability)",
+  "equipNamaAlatKemampuanHint": "Choose device type (optional, for accurate CMC)",
+  "equipNamaAlatKemampuanKosong": "This category has no calibration capabilities yet",
+  "equipNamaAlatKemampuanGagal": "Couldn't load calibration capabilities.",
+  "equipCatatan": "Notes",
   "equipMerk": "Brand",
   "equipModel": "Model/Type",
   "equipNoIdentifikasi": "Identification no.",
@@ -292,6 +299,14 @@
   "orgTelepon": "Phone",
   "orgEmail": "Email",
   "orgNoAkreditasi": "Accreditation no.",
+  "orgAkreditasi": "Accreditation Status",
+  "orgAkreditasiBerlaku": "Valid",
+  "orgAkreditasiKadaluarsa": "Expired",
+  "orgStandarAkreditasi": "Accreditation standard",
+  "orgStandarAkreditasiHint": "e.g. ISO/IEC 17025:2017",
+  "orgAkreditasiMulai": "Valid from",
+  "orgAkreditasiBerakhir": "Valid until",
+  "orgPilihTanggal": "Choose a date",
   "orgSave": "SAVE",
   "orgSaved": "Organization data saved.",
   "orgSaveFailed": "Couldn't save: {pesan}",
@@ -302,6 +317,50 @@
   },
   "orgLoadFailed": "Couldn't load organization data.",
   "orgRetry": "RETRY",
+
+  "standarTitle": "Reference Standards",
+  "standarLoadFailed": "Couldn't load reference standards.",
+  "standarAdd": "ADD STANDARD",
+  "standarEdit": "Edit standard",
+  "standarEmptyTitle": "No reference standards yet",
+  "standarEmptyBody": "Add your first standard using the button below.",
+  "standarRetry": "RETRY",
+  "standarBerlaku": "Valid",
+  "standarKadaluarsa": "Expired",
+  "standarDeleteConfirmTitle": "Delete reference standard?",
+  "standarDeleteConfirmBody": "\"{nama}\" will be permanently deleted.",
+  "@standarDeleteConfirmBody": {
+    "placeholders": {
+      "nama": { "type": "String" }
+    }
+  },
+  "standarDeleteFailed": "Couldn't delete: {pesan}",
+  "@standarDeleteFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "standarSaveFailed": "Couldn't save: {pesan}",
+  "@standarSaveFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "standarFaktorCakupanInvalid": "Coverage factor (k) must be at least 1 — usually 2.",
+  "standarNama": "Standard name",
+  "standarMerk": "Brand",
+  "standarModel": "Model/Type",
+  "standarSerialNumber": "Serial number",
+  "standarNoSertifikat": "Certificate no.",
+  "standarTertelusurKe": "Traceable to",
+  "standarTertelusurKeHint": "e.g. SNSU-BSN",
+  "standarBerlakuSampai": "Valid until",
+  "standarKetidakpastianTitle": "Uncertainty (from the standard's certificate)",
+  "standarKetidakpastian": "Uncertainty (expanded)",
+  "standarSatuanKetidakpastian": "Unit",
+  "standarFaktorCakupan": "Coverage factor (k)",
+  "standarDrift": "Annual drift",
+  "standarSave": "SAVE",
 
   "custTitle": "Customers",
   "custSearchHint": "Search customer name",

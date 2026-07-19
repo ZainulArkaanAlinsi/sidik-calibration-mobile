@@ -47,6 +47,8 @@ class Equipment {
     this.resolusi,
     this.toleransi,
     this.lokasi = '',
+    this.namaAlatKemampuan,
+    this.catatan = '',
   });
 
   final int id;
@@ -61,6 +63,14 @@ class Equipment {
   final String merk;
   final String model;
   final String noIdentifikasi;
+
+  /// Nunjuk ke `CalibrationCapability.namaAlat` (`GET /api/categories/{kode}`)
+  /// — biar backend tau CMC mana yang beneran cocok sama jenis alat ini, bukan
+  /// cuma kategorinya doang. **Tanpa ini, ketidakpastian sesi kalibrasi alat
+  /// ini dihitung pakai jalur generik (standar + resolusi), bukan angka CMC
+  /// resmi hasil akreditasi lab** (`GumCalculator::kemampuanUntukTitik()`).
+  /// `null` = belum di-link, alat tetap bisa dikalibrasi lewat jalur generik.
+  final String? namaAlatKemampuan;
 
   /// Dipakai buat nulis (`pelanggan_id` di body). Response-nya objek
   /// nested (`pelanggan: {id, nama}`) — [pelangganNama] itu buat tampilan.
@@ -79,6 +89,7 @@ class Equipment {
   final double? resolusi;
   final double? toleransi;
   final String lokasi;
+  final String catatan;
 
   Equipment copyWith({
     String? namaAlat,
@@ -96,6 +107,8 @@ class Equipment {
     double? resolusi,
     double? toleransi,
     String? lokasi,
+    String? namaAlatKemampuan,
+    String? catatan,
   }) => Equipment(
     id: id,
     namaAlat: namaAlat ?? this.namaAlat,
@@ -115,6 +128,8 @@ class Equipment {
     resolusi: resolusi ?? this.resolusi,
     toleransi: toleransi ?? this.toleransi,
     lokasi: lokasi ?? this.lokasi,
+    namaAlatKemampuan: namaAlatKemampuan ?? this.namaAlatKemampuan,
+    catatan: catatan ?? this.catatan,
   );
 
   /// Body `POST`/`PUT` — `pelanggan_id`, bukan objek `pelanggan`
@@ -128,12 +143,14 @@ class Equipment {
     if (model.isNotEmpty) 'model': model,
     if (noIdentifikasi.isNotEmpty) 'no_identifikasi': noIdentifikasi,
     if (pelangganId != null) 'pelanggan_id': pelangganId,
+    if (namaAlatKemampuan != null) 'nama_alat_kemampuan': namaAlatKemampuan,
     if (rangeMin != null) 'range_min': rangeMin,
     if (rangeMax != null) 'range_max': rangeMax,
     if (satuan.isNotEmpty) 'satuan': satuan,
     if (resolusi != null) 'resolusi': resolusi,
     if (toleransi != null) 'toleransi': toleransi,
     if (lokasi.isNotEmpty) 'lokasi': lokasi,
+    if (catatan.isNotEmpty) 'catatan': catatan,
   };
 
   factory Equipment.fromJson(Map<String, dynamic> json) {
@@ -151,6 +168,7 @@ class Equipment {
       noIdentifikasi: teks('no_identifikasi'),
       pelangganId: (pelanggan?['id'] as num?)?.toInt(),
       pelangganNama: pelanggan?['nama'] as String?,
+      namaAlatKemampuan: json['nama_alat_kemampuan'] as String?,
       tanggalKalibrasiTerakhir: switch (json['tanggal_kalibrasi_terakhir']) {
         String s => DateTime.tryParse(s),
         _ => null,
@@ -165,6 +183,7 @@ class Equipment {
       resolusi: (json['resolusi'] as num?)?.toDouble(),
       toleransi: (json['toleransi'] as num?)?.toDouble(),
       lokasi: teks('lokasi'),
+      catatan: teks('catatan'),
     );
   }
 }
