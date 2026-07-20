@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/theme/app_spacing.dart';
 import '../core/theme/app_typography.dart';
+import 'glass_surface.dart';
 import 'skeleton.dart';
 
 /// Kartu angka di Dashboard.
@@ -40,50 +41,46 @@ class StatCard extends StatelessWidget {
     // ditangkap mata duluan itu angkanya.
     final warnaIkon = warna ?? theme.colorScheme.onSurfaceVariant;
 
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+    return SoftRaised(
+      onTap: onTap,
+      radius: AppSpacing.radiusLg,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      '$nilai',
-                      // Lebar digit tetap — biar angka antar kartu lurus dan
-                      // nggak goyang tiap nilainya berubah.
-                      style: AppTypography.measurement.copyWith(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w700,
-                        height: 40 / 32,
-                        letterSpacing: -0.32,
-                        color: warnaAngka,
-                      ),
-                    ),
+              Expanded(
+                child: Text(
+                  '$nilai',
+                  // Lebar digit tetap — biar angka antar kartu lurus dan
+                  // nggak goyang tiap nilainya berubah.
+                  style: AppTypography.measurement.copyWith(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w700,
+                    height: 40 / 32,
+                    letterSpacing: -0.32,
+                    color: warnaAngka,
                   ),
-                  Icon(icon, size: 18, color: warnaIkon),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              // Label = metadata, jadi huruf besar + spasi lebar (DESIGN.md),
-              // biar kebedain dari angkanya.
-              Text(
-                label.toUpperCase(),
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
+              Icon(icon, size: 18, color: warnaIkon),
             ],
           ),
-        ),
+          const SizedBox(height: AppSpacing.xs),
+          // Label = metadata, jadi huruf besar + spasi lebar (DESIGN.md),
+          // biar kebedain dari angkanya.
+          Text(
+            label.toUpperCase(),
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }

@@ -1195,7 +1195,26 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get teknisiPasswordDireset =>
-      'Password direset. Password baru dikirim ke pemilik akun.';
+      'Password direset. Kasih tahu password barunya ke orangnya langsung.';
+
+  @override
+  String get teknisiResetPasswordJudul => 'Reset password akun';
+
+  @override
+  String teknisiResetPasswordIsi(String nama) {
+    return 'Tentukan password baru buat $nama. Sesi dia di semua perangkat bakal dicabut.';
+  }
+
+  @override
+  String get teknisiResetPasswordLabel => 'Password baru';
+
+  @override
+  String get teknisiResetPasswordHelper =>
+      'Minimal 8 karakter. Backend nggak ngirim email — kasih tahu orangnya langsung.';
+
+  @override
+  String get teknisiResetPasswordTerlaluPendek =>
+      'Password minimal 8 karakter.';
 
   @override
   String get teknisiGagal => 'Aksi gagal. Coba lagi.';

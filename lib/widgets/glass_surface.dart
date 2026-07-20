@@ -123,10 +123,20 @@ class SoftRaised extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: (gelap ? Colors.black : AppColors.navy).withValues(
-              alpha: gelap ? 0.42 : 0.10,
+              alpha: gelap ? 0.48 : 0.16,
             ),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
+            blurRadius: 30,
+            offset: const Offset(0, 14),
+          ),
+          // Bayangan kedua yang lebih rapat & gelap, persis di bawah kartu.
+          // Yang lebar bikin kesan ngambang tinggi; yang rapat ini yang bikin
+          // tepi bawahnya "napak", jadi bentuknya kebaca padat, bukan kabur.
+          BoxShadow(
+            color: (gelap ? Colors.black : AppColors.navy).withValues(
+              alpha: gelap ? 0.30 : 0.07,
+            ),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
           BoxShadow(
             color: (gelap ? AppColors.white : AppColors.white).withValues(

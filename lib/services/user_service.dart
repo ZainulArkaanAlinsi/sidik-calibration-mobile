@@ -4,11 +4,13 @@ import 'api_client.dart';
 /// Kelola akun (Data Teknisi) — admin doang.
 ///
 /// Beda dari CRUD master data lain: **nggak ada `simpan()` dan `hapus()`.**
-/// Backend sengaja nggak nyediain `POST /users` maupun `DELETE /users/{id}` —
-/// akun lahir dari orang yang daftar sendiri lewat `POST /register` dengan
-/// status `pending`, lalu admin nyetujui sambil nentuin role-nya. Nonaktifin
-/// akun lewat [tolak], bukan dihapus, biar sesi kalibrasi lama tetap punya
-/// jejak siapa tekniknya.
+/// `/users` sengaja nggak nyediain `POST` maupun `DELETE` — akun lahir dari
+/// orang yang daftar sendiri lewat `POST /register` dengan status `pending`,
+/// lalu admin nyetujui sambil nentuin role-nya. Nonaktifin akun lewat [tolak],
+/// bukan dihapus, biar sesi kalibrasi lama tetap punya jejak siapa tekniknya.
+///
+/// Sejak 20 Jul backend punya `/api/technicians` yang **memang** ada create &
+/// delete-nya, khusus akun role `teknisi`. Service ini belum makai itu.
 abstract class UserService {
   /// [status] opsional: `pending` / `aktif` / `nonaktif`.
   Future<List<User>> daftar(String token, {String? status});
@@ -20,7 +22,10 @@ abstract class UserService {
   /// Menonaktifkan akun dan mencabut token yang mungkin masih dipegang.
   Future<User> tolak(String token, int id);
 
-  Future<void> resetPassword(String token, int id);
+  /// [passwordBaru] wajib diisi & minimal 8 karakter — backend nolak `422`
+  /// kalau kosong. Backend **nggak ngirim email apa pun**: password barunya
+  /// dikasih tahu admin ke orangnya langsung.
+  Future<void> resetPassword(String token, int id, String passwordBaru);
 }
 
 /// Nembak `GET /api/users`, `POST /api/users/{id}/approve|reject|reset-password`.
@@ -59,7 +64,13 @@ class ApiUserService implements UserService {
   }
 
   @override
-  Future<void> resetPassword(String token, int id) async {
-    await _api.post('/users/$id/reset-password', token: token, body: {});
+  Future<void> resetPassword(String token, int id, String passwordBaru) async {
+    // Body-nya sempat dikirim kosong — backend mewajibkan `password`, jadi
+    // aksi ini SELALU gagal 422 dan nggak pernah ada yang kereset.
+    await _api.post(
+      '/users/$id/reset-password',
+      token: token,
+      body: {'password': passwordBaru},
+    );
   }
 }

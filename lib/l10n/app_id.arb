@@ -386,7 +386,15 @@
   "teknisiPilihRoleBatal": "Batal",
   "teknisiDisetujui": "Akun disetujui.",
   "teknisiDitolak": "Akun dinonaktifkan.",
-  "teknisiPasswordDireset": "Password direset. Password baru dikirim ke pemilik akun.",
+  "teknisiPasswordDireset": "Password direset. Kasih tahu password barunya ke orangnya langsung.",
+  "teknisiResetPasswordJudul": "Reset password akun",
+  "teknisiResetPasswordIsi": "Tentukan password baru buat {nama}. Sesi dia di semua perangkat bakal dicabut.",
+  "@teknisiResetPasswordIsi": {
+    "placeholders": { "nama": { "type": "String" } }
+  },
+  "teknisiResetPasswordLabel": "Password baru",
+  "teknisiResetPasswordHelper": "Minimal 8 karakter. Backend nggak ngirim email — kasih tahu orangnya langsung.",
+  "teknisiResetPasswordTerlaluPendek": "Password minimal 8 karakter.",
   "teknisiGagal": "Aksi gagal. Coba lagi.",
   "teknisiKonfirmTolakJudul": "Nonaktifkan akun ini?",
   "teknisiKonfirmTolakIsi": "Dia bakal dikeluarkan dari semua perangkat dan nggak bisa login lagi. Riwayat kalibrasi yang lama tetap utuh.",

@@ -7,16 +7,21 @@ import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/master_data_provider.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/app_text_field.dart';
 import '../../widgets/status_badge.dart';
 
 /// Data Teknisi — kelola akun (setujui pendaftar, tetapkan role, nonaktifkan,
 /// reset password).
 ///
-/// **Nggak ada tombol Tambah maupun Hapus**, dan itu disengaja: backend cuma
-/// nyediain `GET /users` + approve/reject/reset-password. Akun lahir dari orang
+/// **Nggak ada tombol Tambah maupun Hapus**, dan itu disengaja: layar ini jalan
+/// di atas `GET /users` + approve/reject/reset-password. Akun lahir dari orang
 /// yang daftar sendiri lewat layar Register (status `pending`), lalu admin
 /// nyetujui di sini sambil nentuin rolenya. Akun dinonaktifkan, bukan dihapus,
 /// biar sesi kalibrasi lama tetap punya jejak siapa tekniknya.
+///
+/// Sejak 20 Jul backend punya `/api/technicians` yang ada create & delete-nya
+/// khusus role `teknisi`. Layar ini belum pindah ke situ — kalau nanti pindah,
+/// tombol Tambah & Hapus baru masuk akal ada di sini.
 class TechnicianListScreen extends ConsumerWidget {
   const TechnicianListScreen({super.key});
 
@@ -352,13 +357,102 @@ class _KartuAkun extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
 
+    // Password barunya diketik admin di sini. Backend mewajibkan field
+    // `password` — sebelumnya body-nya dikirim kosong, jadi aksi ini selalu
+    // gagal 422 tanpa ada yang sadar.
+    final passwordBaru = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => _ResetPasswordDialog(nama: akun.nama),
+    );
+
+    if (passwordBaru == null) return;
+
     try {
-      await ref.read(userListProvider.notifier).resetPassword(akun.id);
+      await ref.read(userListProvider.notifier).resetPassword(
+        akun.id,
+        passwordBaru,
+      );
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.teknisiPasswordDireset)),
       );
     } catch (_) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.teknisiGagal)));
     }
+  }
+}
+
+/// Dialog isi password baru buat akun orang lain.
+///
+/// Divalidasi di sini juga (bukan cuma ngandelin `422` backend) supaya admin
+/// nggak perlu nunggu jalan bolak-balik ke server cuma buat tahu passwordnya
+/// kependekan.
+class _ResetPasswordDialog extends StatefulWidget {
+  const _ResetPasswordDialog({required this.nama});
+
+  final String nama;
+
+  @override
+  State<_ResetPasswordDialog> createState() => _ResetPasswordDialogState();
+}
+
+class _ResetPasswordDialogState extends State<_ResetPasswordDialog> {
+  /// Samain sama aturan backend (`min:8`). Kalau salah satu digeser, yang lain
+  /// ikut — kalau nggak, admin ketolak server padahal layarnya bilang oke.
+  static const _panjangMinimal = 8;
+
+  final _controller = TextEditingController();
+  String? _error;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _simpan() {
+    final l10n = AppLocalizations.of(context);
+    final password = _controller.text;
+
+    if (password.length < _panjangMinimal) {
+      setState(() => _error = l10n.teknisiResetPasswordTerlaluPendek);
+      return;
+    }
+
+    Navigator.of(context).pop(password);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    return AlertDialog(
+      title: Text(l10n.teknisiResetPasswordJudul),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.teknisiResetPasswordIsi(widget.nama)),
+          const SizedBox(height: AppSpacing.md),
+          AppTextField(
+            label: l10n.teknisiResetPasswordLabel,
+            controller: _controller,
+            isPassword: true,
+            errorText: _error,
+            helperText: l10n.teknisiResetPasswordHelper,
+            onSubmitted: (_) => _simpan(),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.teknisiPilihRoleBatal),
+        ),
+        TextButton(
+          onPressed: _simpan,
+          child: Text(l10n.teknisiResetPassword),
+        ),
+      ],
+    );
   }
 }

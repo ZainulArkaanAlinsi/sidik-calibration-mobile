@@ -532,7 +532,15 @@
   "teknisiPilihRoleBatal": "Cancel",
   "teknisiDisetujui": "Account approved.",
   "teknisiDitolak": "Account deactivated.",
-  "teknisiPasswordDireset": "Password reset. New password sent to the account owner.",
+  "teknisiPasswordDireset": "Password reset. Tell the new password to the account owner directly.",
+  "teknisiResetPasswordJudul": "Reset account password",
+  "teknisiResetPasswordIsi": "Set a new password for {nama}. Their sessions on every device will be revoked.",
+  "@teknisiResetPasswordIsi": {
+    "placeholders": { "nama": { "type": "String" } }
+  },
+  "teknisiResetPasswordLabel": "New password",
+  "teknisiResetPasswordHelper": "At least 8 characters. The backend sends no email — tell them directly.",
+  "teknisiResetPasswordTerlaluPendek": "Password must be at least 8 characters.",
   "teknisiGagal": "Action failed. Please try again.",
   "teknisiKonfirmTolakJudul": "Deactivate this account?",
   "teknisiKonfirmTolakIsi": "They will be signed out of every device and can no longer sign in. Past calibration records stay intact.",

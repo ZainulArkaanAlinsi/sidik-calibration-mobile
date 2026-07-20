@@ -10,6 +10,7 @@ import '../../providers/auth_provider.dart';
 import '../shell/main_shell.dart' show bukaMenuUtama;
 import '../../providers/dashboard_provider.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/glass_surface.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/status_badge.dart';
@@ -69,9 +70,15 @@ class DashboardScreen extends ConsumerWidget {
           onPressed: bukaMenuUtama,
         ),
       ),
-      body: RefreshIndicator(
-        onRefresh: () => ref.read(dashboardProvider.notifier).muatUlang(),
-        child: isi,
+      // Latar bergradasi, bukan warna rata: kartu SoftRaised butuh bidang yang
+      // ada arah cahayanya biar bayangannya kebaca sebagai kedalaman. Di atas
+      // warna rata, bayangan lembut cuma kelihatan kayak kotor.
+      body: Container(
+        decoration: BoxDecoration(gradient: AppColors.gradasiLatar(context)),
+        child: RefreshIndicator(
+          onRefresh: () => ref.read(dashboardProvider.notifier).muatUlang(),
+          child: isi,
+        ),
       ),
     );
   }
@@ -104,7 +111,8 @@ class _Isi extends ConsumerWidget {
             icon: Icons.straighten_outlined,
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
-                builder: (_) => DeviceOverviewScreen(title: l10n.dashTotalDevices),
+                builder: (_) =>
+                    DeviceOverviewScreen(title: l10n.dashTotalDevices),
               ),
             ),
           ),
@@ -162,50 +170,52 @@ class _Isi extends ConsumerWidget {
           const SizedBox(height: AppSpacing.lg),
           _JudulSeksi(l10n.dashQuickActions),
           const SizedBox(height: AppSpacing.sm),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Column(
-                children: [
-                  AppButton(
-                    label: l10n.dashStartCalibration,
-                    icon: Icons.add_task,
-                    // Nggak langsung ke form generik lagi — sekarang lewat
-                    // 2 langkah pilihan (kategori besar → jenis alat
-                    // spesifik) biar teknisi nggak dihadapin dropdown datar
-                    // isinya 10+ kategori sekaligus.
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const CategoryPickerScreen(),
-                      ),
+          // .rata, bukan kaca ber-blur: panel ini ikut ke-scroll bareng
+          // seluruh dashboard. BackdropFilter di sini bakal nge-blur ulang
+          // latarnya tiap frame selama jari user gerak.
+          GlassSurface.rata(
+            radius: AppSpacing.radiusLg,
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              children: [
+                AppButton(
+                  label: l10n.dashStartCalibration,
+                  icon: Icons.add_task,
+                  // Nggak langsung ke form generik lagi — sekarang lewat
+                  // 2 langkah pilihan (kategori besar → jenis alat
+                  // spesifik) biar teknisi nggak dihadapin dropdown datar
+                  // isinya 10+ kategori sekaligus.
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const CategoryPickerScreen(),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.sm),
-                  // Shortcut cepat: pH Meter juga bisa dicapai lewat alur
-                  // Kategori → Instrumen Analitik → pH Meter di atas, tapi
-                  // tombol ini dipertahankan sebagai jalan pintas karena itu
-                  // prioritas atasan & paling sering dipakai — form-nya juga
-                  // jauh lebih spesifik (kondisi lingkungan awal/akhir,
-                  // 3 titik buffer x 5 pembacaan before/after adjustment).
-                  AppButton(
-                    label: l10n.dashStartPhCalibration,
-                    icon: Icons.science_outlined,
-                    variant: AppButtonVariant.secondary,
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const PhCalibrationInputScreen(),
-                      ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                // Shortcut cepat: pH Meter juga bisa dicapai lewat alur
+                // Kategori → Instrumen Analitik → pH Meter di atas, tapi
+                // tombol ini dipertahankan sebagai jalan pintas karena itu
+                // prioritas atasan & paling sering dipakai — form-nya juga
+                // jauh lebih spesifik (kondisi lingkungan awal/akhir,
+                // 3 titik buffer x 5 pembacaan before/after adjustment).
+                AppButton(
+                  label: l10n.dashStartPhCalibration,
+                  icon: Icons.science_outlined,
+                  variant: AppButtonVariant.secondary,
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const PhCalibrationInputScreen(),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.sm),
-                  AppButton(
-                    label: l10n.dashAddDevice,
-                    icon: Icons.add,
-                    variant: AppButtonVariant.secondary,
-                    onPressed: () => _snack(context, l10n.snackAddDeviceSoon),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                AppButton(
+                  label: l10n.dashAddDevice,
+                  icon: Icons.add,
+                  variant: AppButtonVariant.secondary,
+                  onPressed: () => _snack(context, l10n.snackAddDeviceSoon),
+                ),
+              ],
             ),
           ),
         ],
@@ -214,9 +224,7 @@ class _Isi extends ConsumerWidget {
   }
 
   void _snack(BuildContext context, String pesan) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(pesan)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(pesan)));
   }
 }
 
@@ -341,9 +349,9 @@ class _Kosong extends StatelessWidget {
           AppButton(
             label: l10n.dashAddDevice,
             icon: Icons.add,
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(l10n.snackAddDeviceSoon)),
-            ),
+            onPressed: () => ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(l10n.snackAddDeviceSoon))),
           ),
         ],
       ],

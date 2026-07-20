@@ -160,10 +160,10 @@ class UserListController extends AsyncNotifier<List<User>> {
 
   /// Sengaja nggak `muatUlang()` — reset password nggak ngubah isi daftar,
   /// jadi nggak perlu bikin layar kedip-kedip.
-  Future<void> resetPassword(int id) async {
+  Future<void> resetPassword(int id, String passwordBaru) async {
     final token = await ref.read(tokenStorageProvider).read();
     if (token == null) return;
 
-    await ref.read(userServiceProvider).resetPassword(token, id);
+    await ref.read(userServiceProvider).resetPassword(token, id, passwordBaru);
   }
 }

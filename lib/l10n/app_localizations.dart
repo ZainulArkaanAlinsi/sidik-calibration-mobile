@@ -2303,8 +2303,38 @@ abstract class AppLocalizations {
   /// No description provided for @teknisiPasswordDireset.
   ///
   /// In en, this message translates to:
-  /// **'Password reset. New password sent to the account owner.'**
+  /// **'Password reset. Tell the new password to the account owner directly.'**
   String get teknisiPasswordDireset;
+
+  /// No description provided for @teknisiResetPasswordJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset account password'**
+  String get teknisiResetPasswordJudul;
+
+  /// No description provided for @teknisiResetPasswordIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a new password for {nama}. Their sessions on every device will be revoked.'**
+  String teknisiResetPasswordIsi(String nama);
+
+  /// No description provided for @teknisiResetPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get teknisiResetPasswordLabel;
+
+  /// No description provided for @teknisiResetPasswordHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 8 characters. The backend sends no email — tell them directly.'**
+  String get teknisiResetPasswordHelper;
+
+  /// No description provided for @teknisiResetPasswordTerlaluPendek.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 8 characters.'**
+  String get teknisiResetPasswordTerlaluPendek;
 
   /// No description provided for @teknisiGagal.
   ///
