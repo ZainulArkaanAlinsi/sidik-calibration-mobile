@@ -132,7 +132,9 @@ class _FormState extends ConsumerState<_Form> {
   EquipmentLookup? _alat;
   Standard? _standar;
   DateTime _tanggal = DateTime.now();
+  DateTime? _tanggalTerima;
   LokasiKalibrasi _lokasi = LokasiKalibrasi.lab;
+  final _nomorOrder = TextEditingController();
   String _thermohygroPreset = 'TH-3';
   final _thermohygro = TextEditingController(text: 'TH-3');
 
@@ -154,6 +156,7 @@ class _FormState extends ConsumerState<_Form> {
 
   @override
   void dispose() {
+    _nomorOrder.dispose();
     _thermohygro.dispose();
     _suhuAwal.dispose();
     _suhuAkhir.dispose();
@@ -257,7 +260,9 @@ class _FormState extends ConsumerState<_Form> {
       ..suhuAwal = suhuAwal
       ..suhuAkhir = suhuAkhir
       ..kelembabanAwal = kelembabanAwal
-      ..kelembabanAkhir = kelembabanAkhir;
+      ..kelembabanAkhir = kelembabanAkhir
+      ..nomorOrder = _nomorOrder.text.trim()
+      ..tanggalTerima = _tanggalTerima;
 
     draftPh.points
       ..[0] = titikList[0]!
@@ -367,6 +372,37 @@ class _FormState extends ConsumerState<_Form> {
             ),
           ],
           onChanged: (value) => setState(() => _lokasi = value!),
+        ),
+        const SizedBox(height: AppSpacing.md),
+
+        AppTextField(
+          label: l10n.calibNomorOrder,
+          controller: _nomorOrder,
+          hint: l10n.calibNomorOrderHint,
+        ),
+        const SizedBox(height: AppSpacing.md),
+
+        InkWell(
+          onTap: () async {
+            final dipilih = await showDatePicker(
+              context: context,
+              initialDate: _tanggalTerima ?? _tanggal,
+              firstDate: DateTime(2020),
+              lastDate: DateTime.now(),
+            );
+            if (dipilih != null) setState(() => _tanggalTerima = dipilih);
+          },
+          child: InputDecorator(
+            decoration: InputDecoration(
+              labelText: l10n.calibTanggalTerima.toUpperCase(),
+              prefixIcon: const Icon(Icons.calendar_today_outlined, size: 20),
+            ),
+            child: Text(
+              _tanggalTerima == null
+                  ? '—'
+                  : '${_tanggalTerima!.day}/${_tanggalTerima!.month}/${_tanggalTerima!.year}',
+            ),
+          ),
         ),
         const SizedBox(height: AppSpacing.md),
 

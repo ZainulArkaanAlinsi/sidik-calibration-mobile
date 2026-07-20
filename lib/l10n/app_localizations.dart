@@ -1802,6 +1802,24 @@ abstract class AppLocalizations {
   /// **'Calibration date'**
   String get calibTanggal;
 
+  /// No description provided for @calibNomorOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Order number'**
+  String get calibNomorOrder;
+
+  /// No description provided for @calibNomorOrderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 2405.13.A (optional)'**
+  String get calibNomorOrderHint;
+
+  /// No description provided for @calibTanggalTerima.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment received date'**
+  String get calibTanggalTerima;
+
   /// No description provided for @calibLokasi.
   ///
   /// In en, this message translates to:
@@ -1945,6 +1963,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'RETRY'**
   String get calibRetry;
+
+  /// No description provided for @calibPilihKategoriTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Equipment Category'**
+  String get calibPilihKategoriTitle;
+
+  /// No description provided for @calibPilihKategoriSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the measurement group first, then the specific instrument type.'**
+  String get calibPilihKategoriSubtitle;
+
+  /// No description provided for @calibKategoriKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No categories yet.'**
+  String get calibKategoriKosong;
+
+  /// No description provided for @calibJumlahAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} instrument type{jumlah, plural, =1{} other{s}}'**
+  String calibJumlahAlat(int jumlah);
+
+  /// No description provided for @calibPilihInstrumenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Instrument Type'**
+  String get calibPilihInstrumenTitle;
+
+  /// No description provided for @calibInstrumenKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'This category doesn\'t have any calibration capability data yet.'**
+  String get calibInstrumenKosong;
+
+  /// No description provided for @calibInstrumenMetodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Method'**
+  String get calibInstrumenMetodeLabel;
+
+  /// No description provided for @calibCariInstrumenHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search instrument type...'**
+  String get calibCariInstrumenHint;
+
+  /// No description provided for @calibInstrumenTidakDitemukan.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching instrument type.'**
+  String get calibInstrumenTidakDitemukan;
 
   /// No description provided for @phCalibTitle.
   ///

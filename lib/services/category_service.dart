@@ -48,6 +48,7 @@ class MockCategoryService implements CategoryService {
       Category(kode: 'massa', nama: 'Massa', satuan: 'g'),
       Category(kode: 'suhu-dan-kelembapan', nama: 'Suhu & Kelembapan', satuan: '°C'),
       Category(kode: 'tekanan', nama: 'Tekanan', satuan: 'bar'),
+      Category(kode: 'instrumen-analitik', nama: 'Instrumen Analitik', satuan: 'pH'),
     ];
   }
 
@@ -78,11 +79,63 @@ class MockCategoryService implements CategoryService {
       ),
     ];
 
+    // 3 baris pH (titik 4/7/10) + 1 alat lain — persis kasus nyata di
+    // `instrumen-analitik`, dipakai buat mastiin `InstrumentPickerScreen`
+    // nge-dedupe 3 baris pH itu jadi 1 kartu "pH Meter".
+    const kemampuanInstrumenAnalitik = [
+      CalibrationCapability(
+        namaAlat: 'pH Meter',
+        rangeMin: 4,
+        rangeMax: 4,
+        satuan: 'pH',
+        ketidakpastianTerbaik: 0.02343221,
+        satuanKetidakpastian: 'pH',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0506_Rev.6',
+      ),
+      CalibrationCapability(
+        namaAlat: 'pH Meter',
+        rangeMin: 7,
+        rangeMax: 7,
+        satuan: 'pH',
+        ketidakpastianTerbaik: 0.02110895,
+        satuanKetidakpastian: 'pH',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0506_Rev.6',
+      ),
+      CalibrationCapability(
+        namaAlat: 'pH Meter',
+        rangeMin: 10,
+        rangeMax: 10,
+        satuan: 'pH',
+        ketidakpastianTerbaik: 0.03032720,
+        satuanKetidakpastian: 'pH',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0506_Rev.6',
+      ),
+      CalibrationCapability(
+        
+        namaAlat: 'Conductivity Meter',
+        rangeMin: 0,
+        rangeMax: 1000,
+        satuan: 'µS/cm',
+        ketidakpastianTerbaik: 1.5,
+        satuanKetidakpastian: 'µS/cm',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0507_Rev.6',
+      ),
+    ];
+
     return switch (kode) {
       'panjang' => const CategoryDetail(
         kode: 'panjang',
         nama: 'Panjang',
         kemampuan: kemampuanPanjang,
+      ),
+      'instrumen-analitik' => const CategoryDetail(
+        kode: 'instrumen-analitik',
+        nama: 'Instrumen Analitik',
+        kemampuan: kemampuanInstrumenAnalitik,
       ),
       _ => CategoryDetail(kode: kode, nama: kode, kemampuan: const []),
     };

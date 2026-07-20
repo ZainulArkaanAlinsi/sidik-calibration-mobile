@@ -18,7 +18,13 @@ import '../../widgets/app_text_field.dart';
 /// **backend yang ngitung GUM & keputusan PASS/FAIL** — sesuai
 /// `docs/kontrak-api.md` §4.
 class CalibrationInputScreen extends ConsumerWidget {
-  const CalibrationInputScreen({super.key});
+  const CalibrationInputScreen({super.key, this.kategoriAwal});
+
+  /// Kode kategori yang udah dipilih dari [CategoryPickerScreen] /
+  /// [InstrumentPickerScreen] — kalau ada, dropdown Kategori di bawah
+  /// langsung ke-pre-fill (teknisi nggak milih ulang apa yang udah dia
+  /// pilih di layar sebelumnya). Null kalau dibuka langsung (jalur lama).
+  final String? kategoriAwal;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,7 +37,7 @@ class CalibrationInputScreen extends ConsumerWidget {
 
     final Widget isi;
     if (kategori != null && standar != null) {
-      isi = _Form(kategoriList: kategori, standarList: standar);
+      isi = _Form(kategoriList: kategori, standarList: standar, kategoriAwal: kategoriAwal);
     } else if (kategoriAsync.hasError || standarAsync.hasError) {
       isi = _Gagal(
         onCobaLagi: () {
@@ -107,10 +113,11 @@ class _Titik {
 }
 
 class _Form extends ConsumerStatefulWidget {
-  const _Form({required this.kategoriList, required this.standarList});
+  const _Form({required this.kategoriList, required this.standarList, this.kategoriAwal});
 
   final List<Category> kategoriList;
   final List<Standard> standarList;
+  final String? kategoriAwal;
 
   @override
   ConsumerState<_Form> createState() => _FormState();
@@ -125,6 +132,12 @@ class _FormState extends ConsumerState<_Form> {
   final _suhuRuang = TextEditingController(text: '23.5');
   final _kelembaban = TextEditingController(text: '55');
   final List<_Titik> _titikList = [_Titik()];
+
+  @override
+  void initState() {
+    super.initState();
+    _kategori = widget.kategoriAwal;
+  }
 
   /// Di-generate SEKALI waktu layar dibuka — lihat komentar yang sama di
   /// `ph_calibration_input_screen.dart`.

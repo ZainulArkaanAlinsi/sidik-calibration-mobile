@@ -927,6 +927,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calibTanggal => 'Calibration date';
 
   @override
+  String get calibNomorOrder => 'Order number';
+
+  @override
+  String get calibNomorOrderHint => 'e.g. 2405.13.A (optional)';
+
+  @override
+  String get calibTanggalTerima => 'Equipment received date';
+
+  @override
   String get calibLokasi => 'Calibration location';
 
   @override
@@ -1006,6 +1015,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get calibRetry => 'RETRY';
+
+  @override
+  String get calibPilihKategoriTitle => 'Choose Equipment Category';
+
+  @override
+  String get calibPilihKategoriSubtitle =>
+      'Pick the measurement group first, then the specific instrument type.';
+
+  @override
+  String get calibKategoriKosong => 'No categories yet.';
+
+  @override
+  String calibJumlahAlat(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: 's',
+      one: '',
+    );
+    return '$jumlah instrument type$_temp0';
+  }
+
+  @override
+  String get calibPilihInstrumenTitle => 'Choose Instrument Type';
+
+  @override
+  String get calibInstrumenKosong =>
+      'This category doesn\'t have any calibration capability data yet.';
+
+  @override
+  String get calibInstrumenMetodeLabel => 'Method';
+
+  @override
+  String get calibCariInstrumenHint => 'Search instrument type...';
+
+  @override
+  String get calibInstrumenTidakDitemukan => 'No matching instrument type.';
 
   @override
   String get phCalibTitle => 'pH Meter Calibration';
