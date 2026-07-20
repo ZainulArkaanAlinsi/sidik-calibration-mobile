@@ -51,14 +51,14 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(SkeletonBox), findsNothing);
-      expect(find.byType(StatCard), findsNWidgets(4));
+      expect(find.byType(StatCard), findsNWidgets(5));
     });
 
     testWidgets('NORMAL: angka-angkanya kerender', (tester) async {
       await tester.pumpWidget(_app());
       await tester.pumpAndSettle();
 
-      expect(find.byType(StatCard), findsNWidgets(4));
+      expect(find.byType(StatCard), findsNWidgets(5));
       expect(find.text('42'), findsOneWidget); // total alat
       expect(find.text('3'), findsOneWidget); // jatuh tempo
       expect(find.text('12'), findsOneWidget); // sertifikat bulan ini
@@ -86,7 +86,11 @@ void main() {
   });
 
   group('beda per role', () {
-    testWidgets('admin → judul "RINGKASAN ORGANISASI" + antrean approval', (
+    // Draft & menunggu-approval dulu ditampilin gantian tergantung role, jadi
+    // tiap role cuma lihat separuh gambaran. Sekarang dua-duanya selalu
+    // dirender — yang tetap beda per role cuma JUDUL seksinya, karena
+    // backend yang nge-scope angkanya (teknisi dapat sesinya sendiri).
+    testWidgets('admin → judul "RINGKASAN ORGANISASI", dua kartu antrean ada', (
       tester,
     ) async {
       await tester.pumpWidget(_app());
@@ -94,10 +98,10 @@ void main() {
 
       expect(find.text('RINGKASAN ORGANISASI'), findsOneWidget);
       expect(find.text('MENUNGGU APPROVAL'), findsOneWidget);
-      expect(find.text('DRAFT KALIBRASI'), findsNothing);
+      expect(find.text('DRAFT KALIBRASI'), findsOneWidget);
     });
 
-    testWidgets('teknisi → judul "RINGKASAN KAMU" + draft miliknya', (
+    testWidgets('teknisi → judul "RINGKASAN KAMU", dua kartu antrean ada', (
       tester,
     ) async {
       await tester.pumpWidget(_app(token: 'mock-token-2'));
@@ -105,7 +109,7 @@ void main() {
 
       expect(find.text('RINGKASAN KAMU'), findsOneWidget);
       expect(find.text('DRAFT KALIBRASI'), findsOneWidget);
-      expect(find.text('MENUNGGU APPROVAL'), findsNothing);
+      expect(find.text('MENUNGGU APPROVAL'), findsOneWidget);
     });
 
     testWidgets('viewer → tombol aksi NGGAK dirender sama sekali', (
@@ -119,7 +123,7 @@ void main() {
       expect(find.text('MULAI KALIBRASI'), findsNothing);
       expect(find.text('TAMBAH ALAT'), findsNothing);
       // Tapi tetap bisa lihat angkanya.
-      expect(find.byType(StatCard), findsNWidgets(4));
+      expect(find.byType(StatCard), findsNWidgets(5));
     });
   });
 

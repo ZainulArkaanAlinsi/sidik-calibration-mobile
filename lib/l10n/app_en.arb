@@ -515,5 +515,31 @@
   "notifMarkedRead": "Marked as read.",
   "notifTypeDueDate": "Due date",
   "notifTypeApproval": "Approval",
-  "notifTypeRevision": "Revision"
+  "notifTypeRevision": "Revision",
+
+  "teknisiTitle": "Technicians",
+  "teknisiFilterSemua": "All",
+  "teknisiFilterPending": "Pending",
+  "teknisiFilterAktif": "Active",
+  "teknisiFilterNonaktif": "Inactive",
+  "teknisiKosong": "No accounts in this filter yet.",
+  "teknisiLoadGagal": "Could not load accounts.",
+  "teknisiRetry": "Try again",
+  "teknisiSetujui": "Approve",
+  "teknisiTolak": "Deactivate",
+  "teknisiResetPassword": "Reset password",
+  "teknisiPilihRole": "Choose a role for this account",
+  "teknisiPilihRoleBatal": "Cancel",
+  "teknisiDisetujui": "Account approved.",
+  "teknisiDitolak": "Account deactivated.",
+  "teknisiPasswordDireset": "Password reset. New password sent to the account owner.",
+  "teknisiGagal": "Action failed. Please try again.",
+  "teknisiKonfirmTolakJudul": "Deactivate this account?",
+  "teknisiKonfirmTolakIsi": "They will be signed out of every device and can no longer sign in. Past calibration records stay intact.",
+  "teknisiTanpaEmployeeId": "No employee ID",
+  "teknisiHanyaAdmin": "Only admins can manage accounts.",
+
+  "menuUtama": "Main menu",
+  "menuMasterData": "Master Data",
+  "menuPengaturan": "Settings"
 }
