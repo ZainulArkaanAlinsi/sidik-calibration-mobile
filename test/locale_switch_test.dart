@@ -4,13 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:asmo_mobile/app.dart';
-import 'package:asmo_mobile/providers/auth_provider.dart';
-import 'package:asmo_mobile/providers/dashboard_provider.dart';
-import 'package:asmo_mobile/providers/locale_provider.dart';
-import 'package:asmo_mobile/services/dashboard_service.dart';
-import 'package:asmo_mobile/services/mock_auth_service.dart';
-import 'package:asmo_mobile/services/token_storage.dart';
+import 'package:sidik_calibration/app.dart';
+import 'package:sidik_calibration/providers/auth_provider.dart';
+import 'package:sidik_calibration/providers/dashboard_provider.dart';
+import 'package:sidik_calibration/providers/locale_provider.dart';
+import 'package:sidik_calibration/services/dashboard_service.dart';
+import 'package:sidik_calibration/services/mock_auth_service.dart';
+import 'package:sidik_calibration/services/token_storage.dart';
 
 /// Nguji dwibahasa: default ID, dan toggle bener-bener ganti teks ke EN.
 void main() {

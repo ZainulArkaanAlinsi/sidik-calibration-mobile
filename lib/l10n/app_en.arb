@@ -103,8 +103,12 @@
   "profAdminMenu": "Admin Menu",
   "profUserManagement": "User Management",
   "profUserManagementSub": "Planned for phase 3",
-  "profMasterData": "Company & Customer Master Data",
-  "profMasterDataSub": "Planned for week 2",
+  "profOrgData": "Organization Data",
+  "profOrgDataSub": "Name, address & accreditation no. printed on certificates",
+  "profCustomers": "Customers",
+  "profCustomersSub": "Manage the lab's customer list",
+  "profStandards": "Reference Standards",
+  "profStandardsSub": "Manage the lab's reference/standard equipment",
   "profDesignSystem": "Design System",
   "profDesignSystemSub": "Color, typography & component catalog",
   "profAppInfo": "App Info",
@@ -132,10 +136,366 @@
     }
   },
 
-  "equipmentPlaceholderTitle": "Device List",
-  "equipmentPlaceholderBody": "Measuring devices by category, plus an add/edit device form. Planned for week 3.",
-  "historyPlaceholderTitle": "Calibration History",
-  "historyPlaceholderBody": "History of calibration sessions & issued certificates. Planned for week 9.",
-  "notificationPlaceholderTitle": "Notifications",
-  "notificationPlaceholderBody": "Reminders for devices approaching their calibration due date. Planned for week 9."
+  "equipLoadFailed": "Couldn't load the device list.",
+  "equipSearchHint": "Search device name",
+  "equipFilterKategoriHint": "Category",
+  "equipFilterStatusHint": "Status",
+  "equipFilterSemua": "All",
+  "equipStatusAktif": "Active",
+  "equipStatusOverdue": "Overdue",
+  "equipStatusNonaktif": "Inactive",
+  "equipEmptyTitle": "No devices yet",
+  "equipEmptyBody": "Add your first device using the button below.",
+  "equipRetry": "RETRY",
+  "equipAdd": "ADD DEVICE",
+  "equipEdit": "Edit device",
+  "equipMuatLebihBanyak": "LOAD MORE",
+  "equipDeleteConfirmTitle": "Delete device?",
+  "equipDeleteConfirmBody": "\"{nama}\" will be permanently deleted.",
+  "@equipDeleteConfirmBody": {
+    "placeholders": {
+      "nama": { "type": "String" }
+    }
+  },
+  "equipDeleteFailed": "Couldn't delete: {pesan}",
+  "@equipDeleteFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "equipNamaAlat": "Device name",
+  "equipSerialNumber": "Serial number",
+  "equipKategori": "Category",
+  "equipKategoriHint": "Choose a device category",
+  "equipPelanggan": "Customer",
+  "equipPelangganHint": "Choose a customer",
+  "equipNamaAlatKemampuan": "Device Type (Calibration Capability)",
+  "equipNamaAlatKemampuanHint": "Choose device type (optional, for accurate CMC)",
+  "equipNamaAlatKemampuanKosong": "This category has no calibration capabilities yet",
+  "equipNamaAlatKemampuanGagal": "Couldn't load calibration capabilities.",
+  "equipCatatan": "Notes",
+  "equipMerk": "Brand",
+  "equipModel": "Model/Type",
+  "equipNoIdentifikasi": "Identification no.",
+  "equipRangeMin": "Range min.",
+  "equipRangeMax": "Range max.",
+  "equipSatuan": "Unit",
+  "equipResolusi": "Resolution",
+  "equipToleransi": "Tolerance",
+  "equipLokasi": "Location",
+  "equipStatus": "Status",
+  "equipSave": "SAVE",
+  "equipSaveFailed": "Couldn't save: {pesan}",
+  "@equipSaveFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+
+  "historyEmptyTitle": "No history yet",
+  "historyEmptyBody": "Completed calibration sessions will show up here.",
+  "historyLoadFailed": "Couldn't load history.",
+  "historySessionExpired": "Your session expired. Please sign in again.",
+  "historyRetry": "RETRY",
+  "historyCertNumber": "Certificate no. {nomor}",
+  "@historyCertNumber": {
+    "placeholders": {
+      "nomor": { "type": "String" }
+    }
+  },
+  "historyStatusPass": "PASS",
+  "historyStatusFail": "FAIL",
+  "historyStatusDraft": "Draft",
+  "historyStatusMenungguApproval": "Pending approval",
+  "historyStatusPerluRevisi": "Needs revision",
+  "historyApprove": "APPROVE",
+  "historyReject": "REJECT",
+  "historyApproveFailed": "Couldn't approve: {pesan}",
+  "@historyApproveFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "historyRejectDialogTitle": "Reject this calibration session?",
+  "historyRejectDialogHint": "Rejection reason (required, the technician will see this)",
+  "historyRejectDialogSubmit": "REJECT SESSION",
+  "historyRejectDialogCancel": "Cancel",
+  "historyRejectDialogEmpty": "Rejection reason is required.",
+  "historyRejectFailed": "Couldn't reject: {pesan}",
+  "@historyRejectFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "historyCatatanRevisi": "Revision note: {catatan}",
+  "@historyCatatanRevisi": {
+    "placeholders": {
+      "catatan": { "type": "String" }
+    }
+  },
+  "historyViewCertificate": "View certificate",
+  "certTitle": "Certificate",
+  "certLoadFailed": "Couldn't load certificate.",
+  "certStatusMenungguGenerate": "Still generating, hang on",
+  "certStatusGagal": "Generation failed",
+  "certRetry": "RETRY GENERATE",
+  "certOpenPdf": "VIEW PDF",
+  "certOpenFailed": "No app found to open the PDF: {message}",
+  "@certOpenFailed": {
+    "placeholders": {
+      "message": { "type": "String" }
+    }
+  },
+  "certBelumTerbit": "Certificate not issued yet",
+  "certQrToken": "QR token: {token}",
+  "@certQrToken": {
+    "placeholders": {
+      "token": { "type": "String" }
+    }
+  },
+  "certRingkasanTitle": "Result Summary",
+  "certLihatDetail": "VIEW CALCULATION DETAIL",
+
+  "detailTitle": "Calibration Result Detail",
+  "detailLoadFailed": "Couldn't load calibration detail.",
+  "detailNomorSesi": "Session no. {nomor}",
+  "@detailNomorSesi": {
+    "placeholders": {
+      "nomor": { "type": "String" }
+    }
+  },
+  "detailKondisiLingkungan": "Environmental Condition & Standard",
+  "detailStandarAcuan": "Reference standard",
+  "detailSuhuRuang": "Room temperature",
+  "detailKelembaban": "Humidity",
+  "detailLokasi": "Calibration location",
+  "detailLokasiLab": "At the lab",
+  "detailLokasiOnsite": "At customer site (onsite)",
+  "detailTitikUkurTitle": "Measurement Points",
+  "detailBelumDihitung": "This session hasn't been calculated by the server yet — results will show up once it's processed.",
+  "detailLihatSertifikat": "VIEW CERTIFICATE",
+  "detailTitikLabel": "Point {index} · {nilai}",
+  "@detailTitikLabel": {
+    "placeholders": {
+      "index": { "type": "int" },
+      "nilai": { "type": "String" }
+    }
+  },
+  "detailRataRata": "Average",
+  "detailError": "Error",
+  "detailKoreksi": "Correction",
+  "detailStandarDeviasi": "Standard deviation",
+  "detailTypeA": "Type A",
+  "detailTypeB": "Type B",
+  "detailKomponenTypeB": "Type B component breakdown",
+  "detailToleransi": "Tolerance",
+  "detailKetidakpastianGabungan": "Combined uncertainty (uc)",
+  "detailFaktorCakupan": "Coverage factor (k)",
+  "detailU95": "Expanded uncertainty (U95%)",
+
+  "orgTitle": "Organization Data",
+  "orgNama": "Company name",
+  "orgAlamat": "Address",
+  "orgTelepon": "Phone",
+  "orgEmail": "Email",
+  "orgNoAkreditasi": "Accreditation no.",
+  "orgAkreditasi": "Accreditation Status",
+  "orgAkreditasiBerlaku": "Valid",
+  "orgAkreditasiKadaluarsa": "Expired",
+  "orgStandarAkreditasi": "Accreditation standard",
+  "orgStandarAkreditasiHint": "e.g. ISO/IEC 17025:2017",
+  "orgAkreditasiMulai": "Valid from",
+  "orgAkreditasiBerakhir": "Valid until",
+  "orgPilihTanggal": "Choose a date",
+  "orgSave": "SAVE",
+  "orgSaved": "Organization data saved.",
+  "orgSaveFailed": "Couldn't save: {pesan}",
+  "@orgSaveFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "orgLoadFailed": "Couldn't load organization data.",
+  "orgRetry": "RETRY",
+
+  "standarTitle": "Reference Standards",
+  "standarLoadFailed": "Couldn't load reference standards.",
+  "standarAdd": "ADD STANDARD",
+  "standarEdit": "Edit standard",
+  "standarEmptyTitle": "No reference standards yet",
+  "standarEmptyBody": "Add your first standard using the button below.",
+  "standarRetry": "RETRY",
+  "standarBerlaku": "Valid",
+  "standarKadaluarsa": "Expired",
+  "standarDeleteConfirmTitle": "Delete reference standard?",
+  "standarDeleteConfirmBody": "\"{nama}\" will be permanently deleted.",
+  "@standarDeleteConfirmBody": {
+    "placeholders": {
+      "nama": { "type": "String" }
+    }
+  },
+  "standarDeleteFailed": "Couldn't delete: {pesan}",
+  "@standarDeleteFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "standarSaveFailed": "Couldn't save: {pesan}",
+  "@standarSaveFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "standarFaktorCakupanInvalid": "Coverage factor (k) must be at least 1 — usually 2.",
+  "standarNama": "Standard name",
+  "standarMerk": "Brand",
+  "standarModel": "Model/Type",
+  "standarSerialNumber": "Serial number",
+  "standarNoSertifikat": "Certificate no.",
+  "standarTertelusurKe": "Traceable to",
+  "standarTertelusurKeHint": "e.g. SNSU-BSN",
+  "standarBerlakuSampai": "Valid until",
+  "standarKetidakpastianTitle": "Uncertainty (from the standard's certificate)",
+  "standarKetidakpastian": "Uncertainty (expanded)",
+  "standarSatuanKetidakpastian": "Unit",
+  "standarFaktorCakupan": "Coverage factor (k)",
+  "standarDrift": "Annual drift",
+  "standarSave": "SAVE",
+
+  "custTitle": "Customers",
+  "custSearchHint": "Search customer name",
+  "custEmptyTitle": "No customers yet",
+  "custEmptyBody": "Add your first customer using the button below.",
+  "custLoadFailed": "Couldn't load customers.",
+  "custRetry": "RETRY",
+  "custAdd": "ADD CUSTOMER",
+  "custEdit": "Edit customer",
+  "custNama": "Customer name",
+  "custAlamat": "Address",
+  "custContactPerson": "Contact person",
+  "custTelepon": "Phone",
+  "custEmail": "Email",
+  "custSave": "SAVE",
+  "custCancel": "Cancel",
+  "custDelete": "Delete",
+  "custDeleteConfirmTitle": "Delete customer?",
+  "custDeleteConfirmBody": "\"{nama}\" will be permanently deleted.",
+  "@custDeleteConfirmBody": {
+    "placeholders": {
+      "nama": { "type": "String" }
+    }
+  },
+  "custDeleteFailed": "Couldn't delete: {pesan}",
+  "@custDeleteFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "custSaveFailed": "Couldn't save: {pesan}",
+  "@custSaveFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "custEquipmentCount": "{jumlah} devices",
+  "@custEquipmentCount": {
+    "placeholders": {
+      "jumlah": { "type": "int" }
+    }
+  },
+  "custFieldRequired": "Required.",
+
+  "calibTitle": "Calibration Input",
+  "calibKategori": "Category",
+  "calibKategoriHint": "Choose a device category",
+  "calibAlat": "Device",
+  "calibAlatHint": "Choose a device",
+  "calibAlatKosong": "No devices in this category.",
+  "calibStandar": "Reference Standard",
+  "calibStandarHint": "Choose a reference standard",
+  "calibStandarKadaluarsa": "expired",
+  "calibTanggal": "Calibration date",
+  "calibLokasi": "Calibration location",
+  "calibLokasiLab": "At the lab",
+  "calibLokasiOnsite": "At customer site (onsite)",
+  "calibSuhuRuang": "Room temperature (°C)",
+  "calibKelembaban": "Humidity (%)",
+  "calibTitikUkur": "Measurement point {index}",
+  "@calibTitikUkur": {
+    "placeholders": {
+      "index": { "type": "int" }
+    }
+  },
+  "calibNilaiTarget": "Target value",
+  "calibSatuan": "Unit",
+  "calibPembacaan": "Reading {index}",
+  "@calibPembacaan": {
+    "placeholders": {
+      "index": { "type": "int" }
+    }
+  },
+  "calibTambahTitik": "ADD MEASUREMENT POINT",
+  "calibHapusTitik": "Remove measurement point",
+  "calibTambahPembacaan": "+ Add reading",
+  "calibValidasiKategori": "Choose a category first.",
+  "calibValidasiAlat": "Choose a device first.",
+  "calibValidasiStandar": "Choose a reference standard first.",
+  "calibValidasiAngka": "Enter a valid number.",
+  "calibValidasiPembacaan": "Each measurement point needs at least 2 numeric readings.",
+  "calibSimpanDraft": "SAVE DRAFT",
+  "calibKirimApproval": "SUBMIT FOR APPROVAL",
+  "calibBerhasilDraft": "Calibration draft saved.",
+  "calibBerhasilApproval": "Calibration session submitted for approval.",
+  "calibGagal": "Couldn't save: {pesan}",
+  "@calibGagal": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "calibLoadPilihanGagal": "Couldn't load category/standard options.",
+  "calibRetry": "RETRY",
+
+  "phCalibTitle": "pH Meter Calibration",
+  "phCalibThermohygro": "Thermohygrometer used",
+  "phCalibThermohygroHint": "e.g. TH-3",
+  "phCalibThermohygroCustom": "Other (enter manually)",
+  "phCalibStandarSesi": "Reference Standard (Thermometer & Sensor)",
+  "phCalibStandarSesiHint": "Used for environmental conditions (temp/humidity)",
+  "phCalibStandarBuffer": "Buffer standard for this point",
+  "phCalibStandarBufferHint": "Choose a buffer solution",
+  "phCalibValidasiStandarBuffer": "Choose a buffer standard for every point (4, 7, 10) first.",
+  "phCalibKondisiLingkungan": "Environmental Conditions",
+  "phCalibSuhuAwal": "Start temperature (°C)",
+  "phCalibSuhuAkhir": "End temperature (°C)",
+  "phCalibKelembabanAwal": "Start humidity (%)",
+  "phCalibKelembabanAkhir": "End humidity (%)",
+  "phCalibTitikBuffer": "pH {label} buffer",
+  "@phCalibTitikBuffer": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "phCalibNilaiStandar": "Standard value (certificate)",
+  "phCalibSebelumAdjustment": "Before adjustment (as found)",
+  "phCalibSesudahAdjustment": "After adjustment (as left)",
+  "phCalibPembacaanKe": "Reading {index}",
+  "@phCalibPembacaanKe": {
+    "placeholders": {
+      "index": { "type": "int" }
+    }
+  },
+  "phCalibSuhu": "Temp.",
+  "phCalibValidasiLingkungan": "Fill in the environmental conditions (temperature & humidity) first.",
+  "phCalibValidasiPembacaan": "Each buffer point needs 5 valid after-adjustment readings.",
+  "dashStartPhCalibration": "PH METER CALIBRATION",
+
+  "notifEmptyTitle": "No notifications yet",
+  "notifEmptyBody": "Due-date reminders & approval updates will show up here.",
+  "notifLoadFailed": "Couldn't load notifications.",
+  "notifSessionExpired": "Your session expired. Please sign in again.",
+  "notifRetry": "RETRY",
+  "notifMarkedRead": "Marked as read.",
+  "notifTypeDueDate": "Due date",
+  "notifTypeApproval": "Approval",
+  "notifTypeRevision": "Revision"
 }

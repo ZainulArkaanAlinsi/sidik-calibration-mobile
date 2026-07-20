@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:asmo_mobile/app.dart';
-import 'package:asmo_mobile/providers/auth_provider.dart';
-import 'package:asmo_mobile/providers/dashboard_provider.dart';
-import 'package:asmo_mobile/services/dashboard_service.dart';
-import 'package:asmo_mobile/services/mock_auth_service.dart';
-import 'package:asmo_mobile/services/token_storage.dart';
-import 'package:asmo_mobile/widgets/skeleton.dart';
-import 'package:asmo_mobile/widgets/stat_card.dart';
+import 'package:sidik_calibration/app.dart';
+import 'package:sidik_calibration/providers/auth_provider.dart';
+import 'package:sidik_calibration/providers/dashboard_provider.dart';
+import 'package:sidik_calibration/services/dashboard_service.dart';
+import 'package:sidik_calibration/services/mock_auth_service.dart';
+import 'package:sidik_calibration/services/token_storage.dart';
+import 'package:sidik_calibration/widgets/skeleton.dart';
+import 'package:sidik_calibration/widgets/stat_card.dart';
 
 /// `mock-token-1` = admin · `mock-token-2` = teknisi · `mock-token-3` = viewer.
 Widget _app({

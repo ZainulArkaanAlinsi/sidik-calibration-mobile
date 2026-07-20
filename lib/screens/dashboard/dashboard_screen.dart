@@ -13,6 +13,8 @@ import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/status_badge.dart';
+import '../calibration/calibration_input_screen.dart';
+import '../calibration/ph_calibration_input_screen.dart';
 
 /// Dashboard — 4 state sesuai task 21 Jul:
 /// `loading` (skeleton) · `empty` (belum ada apa-apa) · `normal` (angka) ·
@@ -133,17 +135,46 @@ class _Isi extends ConsumerWidget {
           const SizedBox(height: AppSpacing.lg),
           _JudulSeksi(l10n.dashQuickActions),
           const SizedBox(height: AppSpacing.sm),
-          AppButton(
-            label: l10n.dashStartCalibration,
-            icon: Icons.add_task,
-            onPressed: () => _snack(context, l10n.snackCalibInputSoon),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          AppButton(
-            label: l10n.dashAddDevice,
-            icon: Icons.add,
-            variant: AppButtonVariant.secondary,
-            onPressed: () => _snack(context, l10n.snackAddDeviceSoon),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                children: [
+                  AppButton(
+                    label: l10n.dashStartCalibration,
+                    icon: Icons.add_task,
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const CalibrationInputScreen(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  // Prioritas atasan: pH Meter digarap duluan, jadi punya
+                  // pintu masuk sendiri (bukan lewat dropdown kategori di
+                  // form generik) — form-nya juga jauh lebih spesifik
+                  // (kondisi lingkungan awal/akhir, 3 titik buffer x 5
+                  // pembacaan before/after adjustment).
+                  AppButton(
+                    label: l10n.dashStartPhCalibration,
+                    icon: Icons.science_outlined,
+                    variant: AppButtonVariant.secondary,
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const PhCalibrationInputScreen(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  AppButton(
+                    label: l10n.dashAddDevice,
+                    icon: Icons.add,
+                    variant: AppButtonVariant.secondary,
+                    onPressed: () => _snack(context, l10n.snackAddDeviceSoon),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ],
@@ -172,6 +203,8 @@ class _JudulSeksi extends StatelessWidget {
       teks.toUpperCase(),
       style: theme.textTheme.labelLarge?.copyWith(
         color: theme.colorScheme.onSurfaceVariant,
+        letterSpacing: 0.8,
+        fontWeight: FontWeight.w600,
       ),
     );
   }

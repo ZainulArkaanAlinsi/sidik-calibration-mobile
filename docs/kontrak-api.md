@@ -227,9 +227,11 @@ Query params yang mobile pakai: `?search=kaliper&category=panjang&status=overdue
 >
 > **4. Hak akses**: baca = semua role (termasuk viewer). Nulis (`POST`/`PUT`/`DELETE`) = **admin & teknisi**; viewer ditolak `403`. Sesuai permintaan kamu.
 >
-> **5. Field bonus di response** (di luar kontrak, aman diabaikan): `model`, `no_identifikasi`, `range_min`, `range_max`, `satuan`, `resolusi`, `toleransi`, `lokasi`. Ini dibutuhin nanti pas layar kalibrasi.
+> **5. Field bonus di response** (di luar kontrak, aman diabaikan): `model`, `no_identifikasi`, `range_min`, `range_max`, `satuan`, `resolusi`, `toleransi`, `lokasi`, dan **`nama_alat_kemampuan`**. Ini dibutuhin nanti pas layar kalibrasi.
 >
 > **6. `meta` paginasinya lebih gemuk dari yang kamu tulis** — Laravel ikut ngirim `from`, `to`, `path`, `links`. Superset, jadi aman; abaikan aja yang nggak kepakai.
+>
+> **✅ 18 Jul — audit ulang, `nama_alat_kemampuan` sekarang beneran dipakai mobile.** Sebelumnya field ini kekirim di response tapi nggak pernah diisi lewat form Alat — efeknya SEMUA alat yang didaftarin lewat app selama ini kemungkinan kalibrasinya jatuh ke jalur ketidakpastian generik (standar+resolusi), bukan CMC resmi hasil akreditasi (`GumCalculator::kemampuanUntukTitik()` di backend cocokin lewat field ini + rentang, bukan cuma `equipment_category_id`). Form Alat sekarang punya dropdown "Jenis Alat (Kemampuan Kalibrasi)" yang isinya dari `GET /api/categories/{kode}` → `kemampuan[].nama_alat`, opsional tapi direkomendasiin diisi. Field `catatan` juga sekarang kepakai (ada di `EquipmentRequest` tapi belum pernah dikirim mobile).
 
 ### `GET /api/equipments/{id}` — 1 objek, bentuk sama.
 ### `POST /api/equipments` · `PUT /api/equipments/{id}` · `DELETE /api/equipments/{id}`
@@ -298,7 +300,41 @@ Mobile butuh ini buat isi dropdown kategori + nyiapin worksheet dinamis (kolom t
 > ### Tambahan di luar kontrak
 > - **`status: "draft"` boleh dikirim di `POST`** — buat "simpan dulu, lanjut nanti". Kalau nggak dikirim, sesi langsung masuk antrean approval (`menunggu_approval`), sesuai contoh kamu.
 > - **`PUT /api/calibrations/{id}`** — teknisi ngerjain ulang sesi yang ditolak admin (`perlu_revisi`) atau nerusin draft. Body-nya sama kayak `POST`. Tanpa ini, tombol "reject" jadi jalan buntu: teknisi dikasih catatan revisi tapi nggak bisa ngapa-ngapain. Sesi yang udah `disetujui` **nggak bisa** diubah (`422`) — angka di sertifikat yang udah dipegang pelanggan nggak boleh berubah diam-diam.
-> - **Field bonus di response** (superset, aman diabaikan): `nomor_sesi` (`KAL/2026/07/0001`), `standar_acuan`, `suhu_ruang`, `kelembaban`, `lokasi`, dan **`titik`** — rincian tiap titik ukur (error, koreksi, Type A, Type B beserta rincian komponennya, U, keputusan per titik). `titik` ini yang kamu butuhin buat nampilin worksheet & tabel ketidakpastian.
+> - **Field bonus di response** (superset, aman diabaikan): `nomor_sesi` (`KAL/2026/07/0001`), `standar_acuan`, `suhu_ruang`, `kelembaban`, `lokasi`, `sertifikat`, dan **`titik`** — rincian tiap titik ukur. Mobile udah nampilin ini di layar Detail Hasil Kalibrasi (`lib/screens/history/calibration_detail_screen.dart`), sinkron sama `CalibrationResource::toArray()`.
+>
+> **✅ Bentuk `titik` — dikonfirmasi dari `CalibrationResource.php` (commit `06af54e`, 18 Jul):**
+> ```json
+> "titik": [
+>   {
+>     "titik_ke": 2,
+>     "titik_ukur": 6.9889072,
+>     "rata_rata": 7.004,
+>     "error": 0.0150928,
+>     "koreksi": -0.0150928,
+>     "standar_deviasi": 0.0054772256,
+>     "jumlah_pengulangan": 5,
+>     "type_a": 0.0054772256,
+>     "type_b": 0.01047,
+>     "type_b_components": [
+>       { "sumber": "ketidakpastian_standar", "keterangan": "Sertifikat standar pH Buffer Solution 7 (U=0.02 pH, k=2)", "distribusi": "normal", "nilai": 0.01 },
+>       { "sumber": "resolusi_alat", "keterangan": "Resolusi alat 0.01 pH", "distribusi": "persegi", "nilai": 0.005 }
+>     ],
+>     "ketidakpastian_gabungan": 0.010714869,
+>     "faktor_cakupan_k": 1.9706589608,
+>     "ketidakpastian_diperluas": 0.0211089499,
+>     "toleransi": 0.05,
+>     "keputusan": "PASS",
+>     "standar_acuan": { "id": 3, "nama": "pH Buffer Solution 7", "no_sertifikat": "HC46341939" }
+>   }
+> ]
+> ```
+> Catatan buat mobile: **nggak ada `satuan` atau `pembacaan` di dalam tiap `titik`** — beda dari yang mobile kira sebelumnya. Pembacaan mentahnya ada di field terpisah `pembacaan_mentah` (array top-level, cuma ikut di `GET /api/calibrations/{id}` — bukan di daftar), isinya `{id, titik_ke, pembacaan_ke, pembacaan, input_source, is_verified, photo_path, ocr_confidence, ocr_raw_text}`, dikelompokkan lewat `titik_ke` yang sama. `type_b_komponen` yang mobile tulis sebelumnya salah nama field — yang bener `type_b_components` (komponennya `sumber`/`keterangan`/`distribusi`/`nilai`, dan `keterangan` udah diformat siap-tampil, jangan disusun ulang jadi kalimat sendiri).
+>
+> **`titik` cuma keisi setelah sesi lewat kalkulasi** (`disetujui` / `menunggu_approval` yang udah diproses) — mobile nganggep array kosong `[]` buat `draft`, dan nampilin pesan "belum dihitung" bukan tabel kosong.
+> - **`sertifikat`** (bukan `certificate_id` doang) — objek `{id, nomor, status, pdf_url}` embed langsung di detail sesi, `pdf_url` cuma keisi kalau `status: "terbit"`. Mobile masih manggil `GET /api/certificates/{id}` terpisah lewat `approval_service.dart` (belum dipindah ke sini) — dua-duanya jalan, tapi kalau mau lebih hemat 1 request, tinggal pakai field ini.
+> - **`measurements[].standard_id`** (per titik, opsional) — buat kategori yang butuh standar BEDA per titik ukur, kayak pH (buffer 4/7/10 masing-masing sertifikatnya sendiri, lihat `SERTIFIKAT.csv` di worksheet asli). ✅ **Mobile sekarang ngirim ini** — `ph_calibration_input_screen.dart` punya dropdown "Standar Acuan (Termometer & Sensor)" buat sesi (kondisi lingkungan) + dropdown standar buffer terpisah di tiap kartu titik (4/7/10), masing-masing kekirim sebagai `measurements[i].standard_id`.
+> - **`client_request_id`** (opsional, UUID) — idempotency key buat retry submit yang aman kalau koneksi putus pas nunggu respons. ✅ **Mobile sekarang ngirim ini** — di-generate sekali (`generateUuidV4()`, `lib/core/utils/uuid.dart`) waktu layar input dibuka, dipakai ulang tiap tap tombol kirim/simpan draft di sesi form yang sama.
+> - **`lokasi`** sekarang enum `lab` / `onsite` (default `lab`), bukan teks bebas. ✅ **Mobile sekarang punya field-nya** — dropdown "Lokasi Kalibrasi" (Lab / Onsite) di kedua layar input (generik & pH).
 > - **`hasil` itu ringkasan dari titik PENENTU**, bukan titik pertama. Sesi bisa punya banyak titik ukur tapi sertifikat cuma nampilin satu keputusan — yang dipajang adalah titik yang paling mepet ke batas (|error| + U terbesar). **Satu titik FAIL bikin seluruh sesi FAIL.**
 >
 > ### Soal `?mine=true`
@@ -338,7 +374,7 @@ Mobile butuh ini buat isi dropdown kategori + nyiapin worksheet dinamis (kolom t
 >
 > Ada juga **`GET /api/standards/{id}`** kalau butuh satu objek.
 >
-> ⚠️ **Belum ada `POST`/`PUT`/`DELETE`** — standar masih diisi lewat seeder. Begitu lab mau daftarin standar keduanya, ini bakal jadi kebutuhan. Kabarin kalau layar Pengaturan butuh CRUD-nya.
+> **✅ 18 Jul — `POST`/`PUT`/`DELETE /api/standards` ternyata udah ada** (admin doang, dijaga `role:admin`) — dokumen ini ketinggalan, mobile baru sadar pas ngecek `StandardController.php` langsung. Layar kelola Standar Acuan (list + form CRUD) sekarang ada di app (Profil → Standar Acuan admin), dan field `model` yang sebelumnya kelewat di model mobile sekarang ikut ditangkep.
 
 ### `POST /api/calibrations`
 Bikin sesi kalibrasi + kirim data mentah sekaligus. **Data dari input manual dan dari hasil scan kamera masuk ke endpoint yang sama persis** — nggak usah bikin endpoint terpisah buat OCR. Bedanya cuma di field `input_method` (buat statistik, bukan buat logic beda).
@@ -497,6 +533,7 @@ Isinya beda tergantung role — teknisi dapat ringkasan miliknya, admin dapat li
 Belum ada di kontrak versi kamu, tapi udah jalan di backend. Dibutuhin buat layar Pengaturan (admin).
 
 - **`GET /api/organization`** · **`PUT /api/organization`** — data PT: `nama`, `alamat`, `telepon`, `email`, `no_akreditasi`. Ini yang bakal dicetak di kop sertifikat. *Nggak ada create/delete* — satu instalasi = satu PT.
+  > **✅ 18 Jul — response-nya lebih gemuk dari yang didokumentasiin, mobile baru nyusul makainya**: `standar_akreditasi`, `akreditasi_mulai`, `akreditasi_berakhir`, dan `akreditasi_masih_berlaku` (dihitung backend, read-only — jangan dikirim balik waktu `PUT`). Ini yang nentuin akreditasi lab (LK-285-IDN) masih sah apa nggak; sebelumnya nggak ada di layar mana pun. `settings` (array) juga ada di response tapi mobile sengaja belum kasih UI buat itu — bentuknya belum didokumentasiin.
 - **`GET /api/customers?search=&page=`** · **`POST`** · **`GET/PUT/DELETE /api/customers/{id}`** — CRUD pelanggan. Field: `nama`, `alamat`, `contact_person`, `telepon`, `email` (+ `jumlah_alat` di response).
 - **Pelanggan yang masih punya alat nggak bisa dihapus** → `422`. Kalau dipaksa, alat & riwayat kalibrasinya jadi yatim. Mobile: tampilin pesannya apa adanya.
 

@@ -4,10 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
-import 'package:asmo_mobile/models/user.dart';
-import 'package:asmo_mobile/services/api_auth_service.dart';
-import 'package:asmo_mobile/services/api_client.dart';
-import 'package:asmo_mobile/services/auth_service.dart';
+import 'package:sidik_calibration/models/user.dart';
+import 'package:sidik_calibration/services/api_auth_service.dart';
+import 'package:sidik_calibration/services/api_client.dart';
+import 'package:sidik_calibration/services/auth_service.dart';
 
 const _baseUrl = 'http://10.0.2.2:8000/api';
 

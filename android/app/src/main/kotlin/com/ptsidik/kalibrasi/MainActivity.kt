@@ -1,4 +1,4 @@
-package com.example.asmo_mobile
+package com.ptsidik.kalibrasi
 
 import io.flutter.embedding.android.FlutterActivity
 
