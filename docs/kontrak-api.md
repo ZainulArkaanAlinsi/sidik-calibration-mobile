@@ -186,6 +186,12 @@ Response `200`: `{ "message": "Berhasil logout." }`
 
 Kalau endpoint approve belum ada, **register jadi jebakan**: orang daftar, terus nggak pernah bisa masuk selamanya, dan nggak ada yang tahu. Jadi dua-duanya harus jalan bareng.
 
+> ⚠️ **20 Jul — perubahan perilaku, tolong dicek di sisi mobile.** `GET /api/users` sebelumnya balikin user dari **semua PT**, bukan cuma PT-nya admin yang login — itu bug, bukan fitur. Sekarang udah dikunci per organisasi.
+>
+> Efeknya buat mobile: **jumlah baris di layar approval bisa berkurang** kalau selama ini ada data lintas-PT yang keikut. Dan `{id}` milik PT lain sekarang balik **`404`** di `approve`/`reject`/`update`/`reset-password`, yang tadinya `200`. Kalau ada layar yang nyimpen ID hasil listing lama, itu yang perlu diperiksa.
+>
+> Catatan yang sama berlaku buat `GET /api/technicians` (Bagian 9) — dari awal emang udah dikunci per PT.
+
 ---
 
 ## 3. Data Alat (dibutuhin Minggu 3)
@@ -518,14 +524,31 @@ Isinya beda tergantung role — teknisi dapat ringkasan miliknya, admin dapat li
     "alat_overdue": 3,
     "kalibrasi_draft": 2,
     "menunggu_approval": 5,
-    "sertifikat_bulan_ini": 12
+    "kalibrasi_selesai": 27,
+    "menunggu_proses": 8,
+    "sertifikat_bulan_ini": 12,
+    "grafik_pekerjaan": [
+      { "bulan": "2026-02", "label": "Feb 2026", "masuk": 4, "selesai": 3 },
+      { "bulan": "2026-03", "label": "Mar 2026", "masuk": 0, "selesai": 0 },
+      { "bulan": "2026-04", "label": "Apr 2026", "masuk": 7, "selesai": 6 },
+      { "bulan": "2026-05", "label": "May 2026", "masuk": 5, "selesai": 5 },
+      { "bulan": "2026-06", "label": "Jun 2026", "masuk": 9, "selesai": 8 },
+      { "bulan": "2026-07", "label": "Jul 2026", "masuk": 3, "selesai": 1 }
+    ]
   }
 }
 ```
 
 > ✅ **Live sejak 14 Jul**, persis bentuk ini. Role diambil dari token (teknisi cuma ngitung kalibrasi miliknya sendiri; admin & viewer lintas-teknisi) — mobile nggak usah ngirim apa-apa.
 >
-> `kalibrasi_draft`, `menunggu_approval` & `sertifikat_bulan_ini` sekarang **selalu 0** — wajar, fitur kalibrasinya belum ada (Minggu 4). `total_alat` & `alat_overdue` udah keisi data beneran dari seeder.
+> **✅ 20 Jul — tiga field baru, key lama semuanya dipertahanin** jadi layar yang sekarang nggak pecah:
+>
+> - **`kalibrasi_selesai`** — jumlah sesi berstatus `disetujui`. Sengaja **bukan** "sertifikat terbit": generate PDF jalan di queue, jadi sesi yang baru di-approve bakal kehitung "belum selesai" kalau worker lagi ngantre, padahal kerjaan teknisinya udah kelar.
+> - **`menunggu_proses`** — semua sesi yang **bukan** `disetujui`, jadi `draft` + `menunggu_approval` + `perlu_revisi` nyatu di satu angka. Ini yang dimaksud kartu "Menunggu proses" di spec; `kalibrasi_draft` & `menunggu_approval` tetap ada kalau mobile mau mecah lagi rinciannya.
+>   > ⚠️ Ini **numpuk** sama `kalibrasi_draft` + `menunggu_approval`, bukan angka terpisah. Jangan dijumlahin bareng ketiganya di satu baris total — nanti kehitung dobel.
+> - **`grafik_pekerjaan`** — 6 bulan terakhir termasuk bulan berjalan, urutannya **lama → baru**, jadi bisa langsung digambar tanpa nyortir. `masuk` = sesi yang tanggal kalibrasinya jatuh di bulan itu; `selesai` = yang di-approve di bulan itu. **Bulan tanpa kerjaan tetap keluar dengan nilai `0`, nggak dilewat** — jadi sumbu X-nya selalu 6 titik dan jaraknya rata.
+>     - `bulan` (`"2026-07"`) buat key/sorting, `label` (`"Jul 2026"`) udah siap tempel ke sumbu X — mobile nggak usah nerjemahin nama bulan sendiri.
+>     - Grafiknya ikut kesaring per role, sama kayak kartu angkanya: teknisi cuma lihat kerjaannya sendiri.
 
 ---
 
@@ -539,6 +562,76 @@ Belum ada di kontrak versi kamu, tapi udah jalan di backend. Dibutuhin buat laya
 - **Pelanggan yang masih punya alat nggak bisa dihapus** → `422`. Kalau dipaksa, alat & riwayat kalibrasinya jadi yatim. Mobile: tampilin pesannya apa adanya.
 
 Teknisi & viewer yang nembak endpoint ini dapat `403`.
+
+---
+
+## 9. Master Data Ruangan & Teknisi (live 20 Jul)
+
+Dua master data terakhir dari spec yang sebelumnya belum ada backend-nya sama sekali.
+
+### `GET /api/rooms` — ruangan lab
+
+Beda sama `lokasi` di sesi kalibrasi. Field itu enum `lab`/`onsite`, cuma misahin "dikerjain di lab" vs "di tempat pelanggan". Yang ini jawab pertanyaan lain: ruangan **mana** di dalam lab, dan syarat suhu/kelembabannya berapa.
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "kode": "R-01",
+      "nama": "Ruang Kalibrasi Massa",
+      "lokasi": "Lantai 2",
+      "suhu_min": 18.0,
+      "suhu_max": 25.0,
+      "kelembaban_min": 40.0,
+      "kelembaban_max": 60.0,
+      "keterangan": null,
+      "aktif": true
+    }
+  ],
+  "meta": { "current_page": 1, "last_page": 1, "per_page": 15, "total": 1 }
+}
+```
+
+- **`GET /api/rooms?search=&hanya_aktif=&page=`** · **`GET /api/rooms/{id}`** — **semua role boleh baca**, beda sama master data lain. Teknisi butuh ini buat isi dropdown "Ruangan" waktu ngisi sesi.
+- **`POST`** · **`PUT /api/rooms/{id}`** · **`DELETE /api/rooms/{id}`** — **admin doang**, teknisi/viewer → `403`.
+- **`?hanya_aktif=1`** buat dropdown — ruangan lama dinonaktifin (`aktif: false`), bukan dihapus, biar sesi tahun lalu yang nunjuk ke situ tetap kebaca pas audit. Layar master data jangan pakai filter ini, biar yang nonaktif tetap kelihatan & bisa diaktifin lagi.
+- **`search`** nyari di `nama` **atau** `kode` — orang lab hafalnya "R-01", yang kebaca di layar "Ruang Kalibrasi Massa".
+- `kode` unik **per PT**, bukan global. Dobel → `422` di field `kode`.
+- Rentang kebalik (`suhu_max` < `suhu_min`, atau kelembabannya) ditolak `422`, **termasuk kalau `PUT`-nya cuma ngirim satu sisi** — batas satunya diambil dari data tersimpan. Kalau lolos, tiap sesi di ruangan itu ketulis melanggar syarat selamanya.
+- `kelembaban_min`/`max` itu persen, dibatasi 0–100.
+- Semua angka dikirim sebagai **number**, bukan string — nullable semua (nggak semua ruangan punya syarat terkendali).
+
+> ⚠️ **Belum nyambung ke sesi kalibrasi.** Ini masih master data berdiri sendiri — `POST /api/calibrations` **belum** nerima `room_id`. Nambahin itu ngubah bentuk sesi, jadi ditahan dulu sampai disepakati. Kalau mobile mau layar sesi bisa milih ruangan, bilang dulu biar dibarengin.
+
+### `GET /api/technicians` — data teknisi (**admin doang**)
+
+```json
+{
+  "data": [
+    {
+      "id": 4,
+      "nama": "Budi Santoso",
+      "employee_id": "ASM-2001",
+      "email": "budi@sidik.test",
+      "department": "Kalibrasi",
+      "status": "aktif",
+      "jumlah_kalibrasi": 12
+    }
+  ],
+  "meta": { "current_page": 1, "last_page": 1, "per_page": 15, "total": 1 }
+}
+```
+
+- **`GET /api/technicians?search=&status=&page=`** · **`POST`** · **`GET/PUT/DELETE /api/technicians/{id}`** — semuanya admin, teknisi/viewer → `403`.
+- **Teknisi itu `users` yang role-nya `teknisi`, bukan tabel terpisah.** Jadi `id` di sini **sama** dengan `teknisi_id` yang muncul di sesi kalibrasi & sertifikat — aman dipakai buat nyambungin layar. Dibikin tabel sendiri, orang yang sama bakal punya dua identitas: satu buat login, satu buat ditulis di sertifikat.
+- **`POST`** butuh `nama`, `employee_id`, `email`, `password` (min 8), `department` opsional. Akun langsung `aktif` & role `teknisi` — nggak nyangkut di antrean approval, karena itu gunanya nyaring pendaftar mandiri, bukan akun yang dibikinin admin.
+- **`role` nggak bisa dikirim** — diabaikan, selalu dipaksa `teknisi`. Kalau bisa, layar "tambah teknisi" berubah jadi jalan pintas bikin akun admin.
+- **`password` nggak bisa dikirim waktu `PUT`** → `422`. Ganti password lewat `POST /api/users/{id}/reset-password`, biar aksi sensitif itu nggak nempel diam-diam di form edit biasa.
+- **`PUT` dengan `status: "nonaktif"` langsung nyabut semua token orangnya** — dia ketendang dari app saat itu juga.
+- **Teknisi yang punya riwayat kalibrasi nggak bisa dihapus** → `422`. Namanya nempel di sertifikat yang udah terbit; hapus dia = putus ketertelusuran yang justru dicari asesor waktu audit. `jumlah_kalibrasi` di response ada persis buat ini — pakai buat nge-disable tombol hapus + jelasin kenapa. Jalan keluarnya: `PUT` jadi `nonaktif`.
+- `search` nyari di `nama` atau `employee_id`. `status` isinya `aktif`/`nonaktif`.
+- ID yang bukan teknisi (admin/viewer) balik **`404`**, bukan `403` — endpoint ini nggak boleh jadi jalan pintas ngintip atau ngehapus akun admin lewat URL yang kedengarannya nggak berbahaya.
 
 ---
 
