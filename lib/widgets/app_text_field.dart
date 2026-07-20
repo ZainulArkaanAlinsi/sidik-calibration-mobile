@@ -131,10 +131,18 @@ class _AppTextFieldState extends State<AppTextField> {
             hintText: widget.hint,
             errorText: widget.errorText,
             helperText: widget.helperText,
-            suffixText: widget.suffix,
             prefixIcon: widget.prefixIcon == null
                 ? null
                 : Icon(widget.prefixIcon, size: 20),
+            // Satuan sengaja dipasang lewat suffixIcon, BUKAN suffixText:
+            // suffixText cuma dirender pas field difokus atau udah ada isinya,
+            // jadi kotak kosong kelihatan tanpa satuan sama sekali. Di app
+            // kalibrasi itu rawan — teknisi nggak bisa bedain kolom pH sama
+            // kolom °C sebelum ngetik. suffixIcon selalu kerender.
+            suffixIconConstraints: const BoxConstraints(
+              minWidth: 0,
+              minHeight: 0,
+            ),
             suffixIcon: widget.isPassword
                 ? IconButton(
                     tooltip: _tersembunyi
@@ -149,7 +157,20 @@ class _AppTextFieldState extends State<AppTextField> {
                     onPressed: () =>
                         setState(() => _tersembunyi = !_tersembunyi),
                   )
-                : null,
+                : widget.suffix == null
+                ? null
+                : Padding(
+                    padding: const EdgeInsets.only(
+                      left: AppSpacing.sm,
+                      right: AppSpacing.md,
+                    ),
+                    child: Text(
+                      widget.suffix!,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
           ),
         ),
       ],
