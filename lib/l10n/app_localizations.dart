@@ -2353,6 +2353,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings'**
   String get menuPengaturan;
+
+  /// No description provided for @sheetTutup.
+  ///
+  /// In en, this message translates to:
+  /// **'CLOSE'**
+  String get sheetTutup;
+
+  /// No description provided for @sheetCobaLagi.
+  ///
+  /// In en, this message translates to:
+  /// **'TRY AGAIN'**
+  String get sheetCobaLagi;
+
+  /// No description provided for @sheetKirimBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent!'**
+  String get sheetKirimBerhasil;
+
+  /// No description provided for @sheetKirimBerhasilPesan.
+  ///
+  /// In en, this message translates to:
+  /// **'The session is now in the admin approval queue.'**
+  String get sheetKirimBerhasilPesan;
+
+  /// No description provided for @sheetKirimGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'There is a problem'**
+  String get sheetKirimGagal;
+
+  /// No description provided for @sheetDraftBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft saved'**
+  String get sheetDraftBerhasil;
+
+  /// No description provided for @sheetDraftBerhasilPesan.
+  ///
+  /// In en, this message translates to:
+  /// **'You can pick it up again anytime from history.'**
+  String get sheetDraftBerhasilPesan;
 }
 
 class _AppLocalizationsDelegate

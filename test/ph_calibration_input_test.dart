@@ -169,10 +169,16 @@ void main() {
     await tester.tap(find.text('KIRIM UNTUK APPROVAL'));
     await tester.pumpAndSettle();
 
-    expect(
-      find.text('Sesi kalibrasi dikirim untuk approval.'),
-      findsOneWidget,
-    );
+    // Hasilnya nongol sebagai sheet, bukan SnackBar — dan layarnya sengaja
+    // BELUM ketutup: teknisi baru aja ngisi 60 angka, jadi dia yang mutusin
+    // kapan konfirmasinya udah kebaca, bukan timer 3 detik.
+    expect(find.text('Kekirim!'), findsOneWidget);
+    expect(find.byType(PhCalibrationInputScreen), findsOneWidget);
+
+    await tester.tap(find.text('TUTUP'));
+    await tester.pumpAndSettle();
+
+    // Baru sesudah sheet-nya ditutup, form-nya ikut ketutup.
     expect(find.byType(PhCalibrationInputScreen), findsNothing);
   });
 

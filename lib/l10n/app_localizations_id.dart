@@ -1221,4 +1221,27 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get menuPengaturan => 'Pengaturan';
+
+  @override
+  String get sheetTutup => 'TUTUP';
+
+  @override
+  String get sheetCobaLagi => 'COBA LAGI';
+
+  @override
+  String get sheetKirimBerhasil => 'Kekirim!';
+
+  @override
+  String get sheetKirimBerhasilPesan =>
+      'Sesi kalibrasi udah masuk antrean approval admin.';
+
+  @override
+  String get sheetKirimGagal => 'Ada masalah';
+
+  @override
+  String get sheetDraftBerhasil => 'Draft tersimpan';
+
+  @override
+  String get sheetDraftBerhasilPesan =>
+      'Bisa dilanjut kapan aja dari daftar riwayat.';
 }

@@ -11,6 +11,7 @@ import '../../models/standard.dart';
 import '../../providers/calibration_input_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
+import '../../widgets/result_sheet.dart';
 
 /// Input kalibrasi pH Meter — struktur lengkap ngikutin master worksheet asli
 /// PT Sidik (kondisi lingkungan awal/akhir, 3 titik buffer standar × 5
@@ -282,19 +283,32 @@ class _FormState extends ConsumerState<_Form> {
     if (!mounted) return;
     setState(() => _mengirim = false);
 
+    // Hasil kirim ditampilin sebagai sheet, bukan SnackBar: teknisi baru aja
+    // ngisi 60 angka, dan SnackBar yang nongol 3 detik lalu ilang sendiri
+    // nggak cukup buat mastiin datanya kekirim atau nggak.
     if (hasil != null) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            draft ? l10n.calibBerhasilDraft : l10n.calibBerhasilApproval,
-          ),
-        ),
+      await ResultSheet.tampilkan(
+        context,
+        status: HasilKirim.berhasil,
+        judul: draft ? l10n.sheetDraftBerhasil : l10n.sheetKirimBerhasil,
+        pesan: draft
+            ? l10n.sheetDraftBerhasilPesan
+            : l10n.sheetKirimBerhasilPesan,
       );
+
+      if (!mounted) return;
       Navigator.of(context).pop();
     } else {
       final error = ref.read(calibrationSubmitProvider).error;
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.calibGagal(error.toString()))),
+      await ResultSheet.tampilkan(
+        context,
+        status: HasilKirim.gagal,
+        judul: l10n.sheetKirimGagal,
+        pesan: l10n.calibGagal(error.toString()),
+        // Layar sengaja nggak ditutup pas gagal — isian formnya masih utuh,
+        // jadi teknisi tinggal nekan kirim lagi tanpa ngetik ulang.
+        labelAksi: l10n.sheetCobaLagi,
+        onAksi: () => _submit(draft: draft),
       );
     }
   }
