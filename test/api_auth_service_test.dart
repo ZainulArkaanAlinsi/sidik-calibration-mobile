@@ -4,10 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
-import 'package:asmo_mobile/models/user.dart';
-import 'package:asmo_mobile/services/api_auth_service.dart';
-import 'package:asmo_mobile/services/api_client.dart';
-import 'package:asmo_mobile/services/auth_service.dart';
+import 'package:sidik_calibration/models/user.dart';
+import 'package:sidik_calibration/services/api_auth_service.dart';
+import 'package:sidik_calibration/services/api_client.dart';
+import 'package:sidik_calibration/services/auth_service.dart';
 
 const _baseUrl = 'http://10.0.2.2:8000/api';
 
@@ -30,7 +30,7 @@ http.Response _json(Object body, int status) => http.Response(
 final _userAdmin = {
   'id': 1,
   'nama': 'Budi Santoso',
-  'email': 'admin@asmo.test',
+  'email': 'admin@pt-sidik.com',
   'employee_id': 'ASM-0001',
   'role': 'admin',
   'status': 'aktif',
@@ -151,7 +151,7 @@ void main() {
           nama: 'Eko Prasetyo',
           employeeId: 'ASM-0099',
           department: 'Kalibrasi',
-          email: 'eko@ptasmo.com',
+          email: 'eko@pt-sidik.com',
           password: 'rahasia123',
         ),
       );

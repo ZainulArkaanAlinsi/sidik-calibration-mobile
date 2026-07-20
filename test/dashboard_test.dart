@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:asmo_mobile/app.dart';
-import 'package:asmo_mobile/providers/auth_provider.dart';
-import 'package:asmo_mobile/providers/dashboard_provider.dart';
-import 'package:asmo_mobile/services/dashboard_service.dart';
-import 'package:asmo_mobile/services/mock_auth_service.dart';
-import 'package:asmo_mobile/services/token_storage.dart';
-import 'package:asmo_mobile/widgets/skeleton.dart';
-import 'package:asmo_mobile/widgets/stat_card.dart';
+import 'package:sidik_calibration/app.dart';
+import 'package:sidik_calibration/providers/auth_provider.dart';
+import 'package:sidik_calibration/providers/dashboard_provider.dart';
+import 'package:sidik_calibration/services/dashboard_service.dart';
+import 'package:sidik_calibration/services/mock_auth_service.dart';
+import 'package:sidik_calibration/services/token_storage.dart';
+import 'package:sidik_calibration/widgets/skeleton.dart';
+import 'package:sidik_calibration/widgets/stat_card.dart';
 
 /// `mock-token-1` = admin · `mock-token-2` = teknisi · `mock-token-3` = viewer.
 Widget _app({
@@ -26,7 +26,7 @@ Widget _app({
         MockDashboardService(kosong: kosong, gagal: gagal, jeda: jeda),
       ),
     ],
-    child: const AsmoApp(),
+    child: const SidikApp(),
   );
 }
 
@@ -145,13 +145,20 @@ void main() {
     );
   });
 
-  testWidgets('tap "Total alat" → lompat ke tab Alat', (tester) async {
-    await tester.pumpWidget(_app());
-    await tester.pumpAndSettle();
+  testWidgets(
+    'tap "Total alat" → push layar ringkasan (bukan lompat tab navbar)',
+    (tester) async {
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('TOTAL ALAT'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('TOTAL ALAT'));
+      await tester.pumpAndSettle();
 
-    expect(find.widgetWithText(AppBar, 'Alat'), findsOneWidget);
-  });
+      // Layar baru ke-push (AppBar "Total alat" + tombol back) — bukan
+      // switch ke tab "Alat" di bottom nav (itu behavior lama yang
+      // sengaja diganti karena kerasa kayak "double UI").
+      expect(find.widgetWithText(AppBar, 'Total alat'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
+    },
+  );
 }

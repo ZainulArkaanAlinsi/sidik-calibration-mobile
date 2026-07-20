@@ -41,6 +41,12 @@ enum UserStatus {
     'pending' => UserStatus.pending,
     _ => UserStatus.nonaktif,
   };
+
+  String get label => switch (this) {
+    UserStatus.aktif => 'Aktif',
+    UserStatus.pending => 'Pending',
+    UserStatus.nonaktif => 'Nonaktif',
+  };
 }
 
 class User {

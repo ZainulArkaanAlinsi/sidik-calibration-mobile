@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:asmo_mobile/app.dart';
-import 'package:asmo_mobile/core/config/app_config.dart';
-import 'package:asmo_mobile/providers/app_config_provider.dart';
-import 'package:asmo_mobile/providers/auth_provider.dart';
-import 'package:asmo_mobile/providers/dashboard_provider.dart';
-import 'package:asmo_mobile/services/dashboard_service.dart';
-import 'package:asmo_mobile/services/mock_auth_service.dart';
-import 'package:asmo_mobile/services/token_storage.dart';
+import 'package:sidik_calibration/app.dart';
+import 'package:sidik_calibration/widgets/floating_nav_bar.dart';
+import 'package:sidik_calibration/screens/profile/profile_screen.dart';
+import 'package:sidik_calibration/core/config/app_config.dart';
+import 'package:sidik_calibration/providers/app_config_provider.dart';
+import 'package:sidik_calibration/providers/auth_provider.dart';
+import 'package:sidik_calibration/providers/dashboard_provider.dart';
+import 'package:sidik_calibration/services/dashboard_service.dart';
+import 'package:sidik_calibration/services/mock_auth_service.dart';
+import 'package:sidik_calibration/services/token_storage.dart';
 
 /// App dalam kondisi udah login (token admin) — soalnya sekarang app mendarat
 /// di layar Login dulu kalau nggak ada token tersimpan. Alur login-nya sendiri
@@ -25,7 +27,7 @@ Widget _appLoggedIn({String? apiBaseUrl}) => ProviderScope(
     ),
     if (apiBaseUrl != null) apiBaseUrlProvider.overrideWithValue(apiBaseUrl),
   ],
-  child: const AsmoApp(),
+  child: const SidikApp(),
 );
 
 void main() {
@@ -34,7 +36,7 @@ void main() {
       await tester.pumpWidget(_appLoggedIn());
       await tester.pumpAndSettle();
 
-      expect(find.byType(NavigationBar), findsOneWidget);
+      expect(find.byType(FloatingNavBar), findsOneWidget);
       for (final label in [
         'Dashboard',
         'Alat',
@@ -55,11 +57,15 @@ void main() {
       await tester.tap(find.text('Alat'));
       await tester.pumpAndSettle();
       expect(find.widgetWithText(AppBar, 'Alat'), findsOneWidget);
-      expect(find.text('Daftar Alat'), findsOneWidget);
+      // Search bar-nya selalu kerender lepas dari state async list alat
+      // (loading/error/data) — nggak kayak "Daftar Alat" placeholder lama.
+      expect(find.text('Cari nama alat'), findsOneWidget);
 
       await tester.tap(find.text('Profil'));
       await tester.pumpAndSettle();
-      expect(find.widgetWithText(AppBar, 'Profil'), findsOneWidget);
+      // Profil nggak punya judul AppBar (header foto full-bleed sampai tepi
+      // layar) — cek gantinya lewat widget layarnya.
+      expect(find.byType(ProfileScreen), findsOneWidget);
     });
   });
 
@@ -72,7 +78,19 @@ void main() {
     await tester.tap(find.text('Profil'));
     await tester.pumpAndSettle();
 
-    expect(find.text('http://localhost:9000/api'), findsOneWidget);
+    // Item ini ada di bawah ListView Profil — di-scroll dulu biar ke-build,
+    // soalnya bottom-nav mengambang bikin viewport lebih pendek.
+    final url = find.text('http://localhost:9000/api');
+    await tester.scrollUntilVisible(
+      url,
+      120,
+      scrollable: find.descendant(
+        of: find.byType(ProfileScreen),
+        matching: find.byType(Scrollable),
+      ),
+    );
+
+    expect(url, findsOneWidget);
   });
 
   test('AppConfig default ke environment dev', () {

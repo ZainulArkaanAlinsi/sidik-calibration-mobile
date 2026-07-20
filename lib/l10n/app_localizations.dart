@@ -1,0 +1,2246 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart' as intl;
+
+import 'app_localizations_en.dart';
+import 'app_localizations_id.dart';
+
+// ignore_for_file: type=lint
+
+/// Callers can lookup localized strings with an instance of AppLocalizations
+/// returned by `AppLocalizations.of(context)`.
+///
+/// Applications need to include `AppLocalizations.delegate()` in their app's
+/// `localizationDelegates` list, and the locales they support in the app's
+/// `supportedLocales` list. For example:
+///
+/// ```dart
+/// import 'l10n/app_localizations.dart';
+///
+/// return MaterialApp(
+///   localizationsDelegates: AppLocalizations.localizationsDelegates,
+///   supportedLocales: AppLocalizations.supportedLocales,
+///   home: MyApplicationHome(),
+/// );
+/// ```
+///
+/// ## Update pubspec.yaml
+///
+/// Please make sure to update your pubspec.yaml to include the following
+/// packages:
+///
+/// ```yaml
+/// dependencies:
+///   # Internationalization support.
+///   flutter_localizations:
+///     sdk: flutter
+///   intl: any # Use the pinned version from flutter_localizations
+///
+///   # Rest of dependencies
+/// ```
+///
+/// ## iOS Applications
+///
+/// iOS applications define key application metadata, including supported
+/// locales, in an Info.plist file that is built into the application bundle.
+/// To configure the locales supported by your app, you’ll need to edit this
+/// file.
+///
+/// First, open your project’s ios/Runner.xcworkspace Xcode workspace file.
+/// Then, in the Project Navigator, open the Info.plist file under the Runner
+/// project’s Runner folder.
+///
+/// Next, select the Information Property List item, select Add Item from the
+/// Editor menu, then select Localizations from the pop-up menu.
+///
+/// Select and expand the newly-created Localizations item then, for each
+/// locale your application supports, add a new item and select the locale
+/// you wish to add from the pop-up menu in the Value field. This list should
+/// be consistent with the languages listed in the AppLocalizations.supportedLocales
+/// property.
+abstract class AppLocalizations {
+  AppLocalizations(String locale)
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+
+  final String localeName;
+
+  static AppLocalizations of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
+  }
+
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
+
+  /// A list of this localizations delegate along with the default localizations
+  /// delegates.
+  ///
+  /// Returns a list of localizations delegates containing this delegate along with
+  /// GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate,
+  /// and GlobalWidgetsLocalizations.delegate.
+  ///
+  /// Additional delegates can be added by appending to this list in
+  /// MaterialApp. This list does not have to be used at all if a custom list
+  /// of delegates is preferred or required.
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
+
+  /// A list of this localizations delegate's supported locales.
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('en'),
+    Locale('id'),
+  ];
+
+  /// No description provided for @appTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Precision Calibration Management'**
+  String get appTagline;
+
+  /// No description provided for @loginIdentifierLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee ID / Email'**
+  String get loginIdentifierLabel;
+
+  /// No description provided for @loginIdentifierHint.
+  ///
+  /// In en, this message translates to:
+  /// **'ASM-0001 or name@pt-sidik.com'**
+  String get loginIdentifierHint;
+
+  /// No description provided for @passwordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get passwordLabel;
+
+  /// No description provided for @forgotPasswordLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot Password?'**
+  String get forgotPasswordLink;
+
+  /// No description provided for @loginSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'SIGN IN'**
+  String get loginSubmit;
+
+  /// No description provided for @loginNoAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account?'**
+  String get loginNoAccount;
+
+  /// No description provided for @loginRegisterLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get loginRegisterLink;
+
+  /// No description provided for @loginIdentifierRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee ID or email is required.'**
+  String get loginIdentifierRequired;
+
+  /// No description provided for @passwordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required.'**
+  String get passwordRequired;
+
+  /// No description provided for @errorNoConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t reach the server. Please try again.'**
+  String get errorNoConnection;
+
+  /// No description provided for @registerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Register Account'**
+  String get registerTitle;
+
+  /// No description provided for @registerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your technician profile'**
+  String get registerSubtitle;
+
+  /// No description provided for @nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get nameLabel;
+
+  /// No description provided for @nameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Andi Pratama'**
+  String get nameHint;
+
+  /// No description provided for @employeeIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee ID'**
+  String get employeeIdLabel;
+
+  /// No description provided for @departmentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Department'**
+  String get departmentLabel;
+
+  /// No description provided for @departmentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select department'**
+  String get departmentHint;
+
+  /// No description provided for @emailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get emailLabel;
+
+  /// No description provided for @emailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'name@pt-sidik.com'**
+  String get emailHint;
+
+  /// No description provided for @passwordHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 8 characters'**
+  String get passwordHelper;
+
+  /// No description provided for @registerSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'REGISTER'**
+  String get registerSubmit;
+
+  /// No description provided for @registerHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get registerHaveAccount;
+
+  /// No description provided for @registerLoginLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in'**
+  String get registerLoginLink;
+
+  /// No description provided for @nameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Name is required.'**
+  String get nameRequired;
+
+  /// No description provided for @employeeIdRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee ID is required.'**
+  String get employeeIdRequired;
+
+  /// No description provided for @departmentRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a department.'**
+  String get departmentRequired;
+
+  /// No description provided for @emailRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Email is required.'**
+  String get emailRequired;
+
+  /// No description provided for @emailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid email format.'**
+  String get emailInvalid;
+
+  /// No description provided for @passwordTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 8 characters.'**
+  String get passwordTooShort;
+
+  /// No description provided for @registerSuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration submitted'**
+  String get registerSuccessTitle;
+
+  /// No description provided for @registerSuccessBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is still awaiting admin approval. You can\'t sign in until an admin approves it and assigns your role.\n\nContact an admin if you don\'t hear back for a while.'**
+  String get registerSuccessBody;
+
+  /// No description provided for @registerSuccessDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'GOT IT'**
+  String get registerSuccessDismiss;
+
+  /// No description provided for @forgotTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot Password'**
+  String get forgotTitle;
+
+  /// No description provided for @forgotSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email, then set a new password'**
+  String get forgotSubtitle;
+
+  /// No description provided for @forgotBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the email you used to register. If it matches, you can create a new password right here.'**
+  String get forgotBody;
+
+  /// No description provided for @forgotSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTINUE'**
+  String get forgotSubmit;
+
+  /// No description provided for @backToLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Login'**
+  String get backToLogin;
+
+  /// No description provided for @resetNewPassTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set New Password'**
+  String get resetNewPassTitle;
+
+  /// No description provided for @resetNewPassSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a new password for {email}'**
+  String resetNewPassSubtitle(String email);
+
+  /// No description provided for @newPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'New Password'**
+  String get newPasswordLabel;
+
+  /// No description provided for @confirmPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm New Password'**
+  String get confirmPasswordLabel;
+
+  /// No description provided for @passwordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords don\'t match.'**
+  String get passwordMismatch;
+
+  /// No description provided for @resetSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE NEW PASSWORD'**
+  String get resetSubmit;
+
+  /// No description provided for @resetDoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Password changed'**
+  String get resetDoneTitle;
+
+  /// No description provided for @resetDoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your password has been updated. Sign in with your new password now.'**
+  String get resetDoneBody;
+
+  /// No description provided for @backToLoginCaps.
+  ///
+  /// In en, this message translates to:
+  /// **'BACK TO LOGIN'**
+  String get backToLoginCaps;
+
+  /// No description provided for @languageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get languageLabel;
+
+  /// No description provided for @navDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get navDashboard;
+
+  /// No description provided for @navEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get navEquipment;
+
+  /// No description provided for @navHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get navHistory;
+
+  /// No description provided for @navNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get navNotifications;
+
+  /// No description provided for @navProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get navProfile;
+
+  /// No description provided for @dashGreeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello,'**
+  String get dashGreeting;
+
+  /// No description provided for @dashSummaryOrg.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization summary'**
+  String get dashSummaryOrg;
+
+  /// No description provided for @dashSummaryYours.
+  ///
+  /// In en, this message translates to:
+  /// **'Your summary'**
+  String get dashSummaryYours;
+
+  /// No description provided for @dashTotalDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Total devices'**
+  String get dashTotalDevices;
+
+  /// No description provided for @dashOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get dashOverdue;
+
+  /// No description provided for @dashPendingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending approval'**
+  String get dashPendingApproval;
+
+  /// No description provided for @dashCalibrationDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration drafts'**
+  String get dashCalibrationDraft;
+
+  /// No description provided for @dashCertsThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificates this month'**
+  String get dashCertsThisMonth;
+
+  /// No description provided for @dashQuickActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick actions'**
+  String get dashQuickActions;
+
+  /// No description provided for @dashStartCalibration.
+  ///
+  /// In en, this message translates to:
+  /// **'START CALIBRATION'**
+  String get dashStartCalibration;
+
+  /// No description provided for @dashAddDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'ADD DEVICE'**
+  String get dashAddDevice;
+
+  /// No description provided for @dashRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'TRY AGAIN'**
+  String get dashRetry;
+
+  /// No description provided for @dashSessionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has expired. Please sign in again.'**
+  String get dashSessionExpired;
+
+  /// No description provided for @dashLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load the dashboard.'**
+  String get dashLoadFailed;
+
+  /// No description provided for @dashOverdueWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} device(s) past their calibration due date. Measurements from overdue devices can\'t be relied upon.'**
+  String dashOverdueWarning(int count);
+
+  /// No description provided for @dashEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No data yet'**
+  String get dashEmptyTitle;
+
+  /// No description provided for @dashEmptyBodyInput.
+  ///
+  /// In en, this message translates to:
+  /// **'No devices registered yet. Start by adding your first measuring device.'**
+  String get dashEmptyBodyInput;
+
+  /// No description provided for @dashEmptyBodyReadonly.
+  ///
+  /// In en, this message translates to:
+  /// **'There\'s nothing to show yet.'**
+  String get dashEmptyBodyReadonly;
+
+  /// No description provided for @snackCalibInputSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration input is planned for week 4.'**
+  String get snackCalibInputSoon;
+
+  /// No description provided for @snackAddDeviceSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding devices is planned for week 3.'**
+  String get snackAddDeviceSoon;
+
+  /// No description provided for @profAccountInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Info'**
+  String get profAccountInfo;
+
+  /// No description provided for @profRoleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get profRoleLabel;
+
+  /// No description provided for @profChangePhotoSheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile Photo'**
+  String get profChangePhotoSheet;
+
+  /// No description provided for @profChooseGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from gallery'**
+  String get profChooseGallery;
+
+  /// No description provided for @profTakePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get profTakePhoto;
+
+  /// No description provided for @profRemovePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get profRemovePhoto;
+
+  /// No description provided for @profPhotoUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile photo updated.'**
+  String get profPhotoUpdated;
+
+  /// No description provided for @profPhotoRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile photo removed.'**
+  String get profPhotoRemoved;
+
+  /// No description provided for @profPhotoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t pick the photo. Try again.'**
+  String get profPhotoFailed;
+
+  /// No description provided for @profAdminMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Menu'**
+  String get profAdminMenu;
+
+  /// No description provided for @profUserManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'User Management'**
+  String get profUserManagement;
+
+  /// No description provided for @profUserManagementSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned for phase 3'**
+  String get profUserManagementSub;
+
+  /// No description provided for @profOrgData.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization Data'**
+  String get profOrgData;
+
+  /// No description provided for @profOrgDataSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Name, address & accreditation no. printed on certificates'**
+  String get profOrgDataSub;
+
+  /// No description provided for @profCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers'**
+  String get profCustomers;
+
+  /// No description provided for @profCustomersSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage the lab\'s customer list'**
+  String get profCustomersSub;
+
+  /// No description provided for @profStandards.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference Standards'**
+  String get profStandards;
+
+  /// No description provided for @profStandardsSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage the lab\'s reference/standard equipment'**
+  String get profStandardsSub;
+
+  /// No description provided for @profDesignSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Design System'**
+  String get profDesignSystem;
+
+  /// No description provided for @profDesignSystemSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Color, typography & component catalog'**
+  String get profDesignSystemSub;
+
+  /// No description provided for @profAppInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'App Info'**
+  String get profAppInfo;
+
+  /// No description provided for @profEnvironment.
+  ///
+  /// In en, this message translates to:
+  /// **'Environment'**
+  String get profEnvironment;
+
+  /// No description provided for @profApiBaseUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'API base URL'**
+  String get profApiBaseUrl;
+
+  /// No description provided for @profSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get profSecurity;
+
+  /// No description provided for @profLogoutAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out of all devices'**
+  String get profLogoutAll;
+
+  /// No description provided for @profLogoutAllSub.
+  ///
+  /// In en, this message translates to:
+  /// **'For when your phone is lost. Every session is revoked — other phones, tablets, including this one.'**
+  String get profLogoutAllSub;
+
+  /// No description provided for @profLogout.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get profLogout;
+
+  /// No description provided for @profLogoutAllConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out of all devices?'**
+  String get profLogoutAllConfirmTitle;
+
+  /// No description provided for @profLogoutAllConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'All your sessions will be revoked, including on this phone — you\'ll be asked to sign in again.\n\nUse this if your phone is lost or stolen.'**
+  String get profLogoutAllConfirmBody;
+
+  /// No description provided for @profCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get profCancel;
+
+  /// No description provided for @profRevokeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke all sessions'**
+  String get profRevokeAll;
+
+  /// No description provided for @profSessionsRevoked.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} session(s) revoked. Please sign in again.'**
+  String profSessionsRevoked(int count);
+
+  /// No description provided for @profAllSessionsRevoked.
+  ///
+  /// In en, this message translates to:
+  /// **'All sessions revoked. Please sign in again.'**
+  String get profAllSessionsRevoked;
+
+  /// No description provided for @profRevokeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t revoke sessions: {message}'**
+  String profRevokeFailed(String message);
+
+  /// No description provided for @equipLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the device list.'**
+  String get equipLoadFailed;
+
+  /// No description provided for @equipSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search device name'**
+  String get equipSearchHint;
+
+  /// No description provided for @equipFilterKategoriHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get equipFilterKategoriHint;
+
+  /// No description provided for @equipFilterStatusHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get equipFilterStatusHint;
+
+  /// No description provided for @equipFilterSemua.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get equipFilterSemua;
+
+  /// No description provided for @equipStatusAktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get equipStatusAktif;
+
+  /// No description provided for @equipStatusOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get equipStatusOverdue;
+
+  /// No description provided for @equipStatusNonaktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get equipStatusNonaktif;
+
+  /// No description provided for @equipEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No devices yet'**
+  String get equipEmptyTitle;
+
+  /// No description provided for @equipEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first device using the button below.'**
+  String get equipEmptyBody;
+
+  /// No description provided for @equipRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'RETRY'**
+  String get equipRetry;
+
+  /// No description provided for @equipAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'ADD DEVICE'**
+  String get equipAdd;
+
+  /// No description provided for @equipEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit device'**
+  String get equipEdit;
+
+  /// No description provided for @equipMuatLebihBanyak.
+  ///
+  /// In en, this message translates to:
+  /// **'LOAD MORE'**
+  String get equipMuatLebihBanyak;
+
+  /// No description provided for @equipDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete device?'**
+  String get equipDeleteConfirmTitle;
+
+  /// No description provided for @equipDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{nama}\" will be permanently deleted.'**
+  String equipDeleteConfirmBody(String nama);
+
+  /// No description provided for @equipDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t delete: {pesan}'**
+  String equipDeleteFailed(String pesan);
+
+  /// No description provided for @equipNamaAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Device name'**
+  String get equipNamaAlat;
+
+  /// No description provided for @equipSerialNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number'**
+  String get equipSerialNumber;
+
+  /// No description provided for @equipKategori.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get equipKategori;
+
+  /// No description provided for @equipKategoriHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a device category'**
+  String get equipKategoriHint;
+
+  /// No description provided for @equipPelanggan.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get equipPelanggan;
+
+  /// No description provided for @equipPelangganHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a customer'**
+  String get equipPelangganHint;
+
+  /// No description provided for @equipNamaAlatKemampuan.
+  ///
+  /// In en, this message translates to:
+  /// **'Device Type (Calibration Capability)'**
+  String get equipNamaAlatKemampuan;
+
+  /// No description provided for @equipNamaAlatKemampuanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose device type (optional, for accurate CMC)'**
+  String get equipNamaAlatKemampuanHint;
+
+  /// No description provided for @equipNamaAlatKemampuanKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'This category has no calibration capabilities yet'**
+  String get equipNamaAlatKemampuanKosong;
+
+  /// No description provided for @equipNamaAlatKemampuanGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load calibration capabilities.'**
+  String get equipNamaAlatKemampuanGagal;
+
+  /// No description provided for @equipCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get equipCatatan;
+
+  /// No description provided for @equipMerk.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand'**
+  String get equipMerk;
+
+  /// No description provided for @equipModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model/Type'**
+  String get equipModel;
+
+  /// No description provided for @equipNoIdentifikasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Identification no.'**
+  String get equipNoIdentifikasi;
+
+  /// No description provided for @equipRangeMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Range min.'**
+  String get equipRangeMin;
+
+  /// No description provided for @equipRangeMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Range max.'**
+  String get equipRangeMax;
+
+  /// No description provided for @equipSatuan.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get equipSatuan;
+
+  /// No description provided for @equipResolusi.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolution'**
+  String get equipResolusi;
+
+  /// No description provided for @equipToleransi.
+  ///
+  /// In en, this message translates to:
+  /// **'Tolerance'**
+  String get equipToleransi;
+
+  /// No description provided for @equipLokasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get equipLokasi;
+
+  /// No description provided for @equipStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get equipStatus;
+
+  /// No description provided for @equipSave.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE'**
+  String get equipSave;
+
+  /// No description provided for @equipSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save: {pesan}'**
+  String equipSaveFailed(String pesan);
+
+  /// No description provided for @historyEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No history yet'**
+  String get historyEmptyTitle;
+
+  /// No description provided for @historyEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed calibration sessions will show up here.'**
+  String get historyEmptyBody;
+
+  /// No description provided for @historyLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load history.'**
+  String get historyLoadFailed;
+
+  /// No description provided for @historySessionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session expired. Please sign in again.'**
+  String get historySessionExpired;
+
+  /// No description provided for @historyRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'RETRY'**
+  String get historyRetry;
+
+  /// No description provided for @historyCertNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate no. {nomor}'**
+  String historyCertNumber(String nomor);
+
+  /// No description provided for @historyStatusPass.
+  ///
+  /// In en, this message translates to:
+  /// **'PASS'**
+  String get historyStatusPass;
+
+  /// No description provided for @historyStatusFail.
+  ///
+  /// In en, this message translates to:
+  /// **'FAIL'**
+  String get historyStatusFail;
+
+  /// No description provided for @historyStatusDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get historyStatusDraft;
+
+  /// No description provided for @historyStatusMenungguApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending approval'**
+  String get historyStatusMenungguApproval;
+
+  /// No description provided for @historyStatusPerluRevisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs revision'**
+  String get historyStatusPerluRevisi;
+
+  /// No description provided for @historyApprove.
+  ///
+  /// In en, this message translates to:
+  /// **'APPROVE'**
+  String get historyApprove;
+
+  /// No description provided for @historyReject.
+  ///
+  /// In en, this message translates to:
+  /// **'REJECT'**
+  String get historyReject;
+
+  /// No description provided for @historyApproveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t approve: {pesan}'**
+  String historyApproveFailed(String pesan);
+
+  /// No description provided for @historyRejectDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject this calibration session?'**
+  String get historyRejectDialogTitle;
+
+  /// No description provided for @historyRejectDialogHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejection reason (required, the technician will see this)'**
+  String get historyRejectDialogHint;
+
+  /// No description provided for @historyRejectDialogSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'REJECT SESSION'**
+  String get historyRejectDialogSubmit;
+
+  /// No description provided for @historyRejectDialogCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get historyRejectDialogCancel;
+
+  /// No description provided for @historyRejectDialogEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejection reason is required.'**
+  String get historyRejectDialogEmpty;
+
+  /// No description provided for @historyRejectFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reject: {pesan}'**
+  String historyRejectFailed(String pesan);
+
+  /// No description provided for @historyCatatanRevisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Revision note: {catatan}'**
+  String historyCatatanRevisi(String catatan);
+
+  /// No description provided for @historyViewCertificate.
+  ///
+  /// In en, this message translates to:
+  /// **'View certificate'**
+  String get historyViewCertificate;
+
+  /// No description provided for @certTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate'**
+  String get certTitle;
+
+  /// No description provided for @certLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load certificate.'**
+  String get certLoadFailed;
+
+  /// No description provided for @certStatusMenungguGenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Still generating, hang on'**
+  String get certStatusMenungguGenerate;
+
+  /// No description provided for @certStatusGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Generation failed'**
+  String get certStatusGagal;
+
+  /// No description provided for @certRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'RETRY GENERATE'**
+  String get certRetry;
+
+  /// No description provided for @certOpenPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'VIEW PDF'**
+  String get certOpenPdf;
+
+  /// No description provided for @certOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'No app found to open the PDF: {message}'**
+  String certOpenFailed(String message);
+
+  /// No description provided for @certBelumTerbit.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate not issued yet'**
+  String get certBelumTerbit;
+
+  /// No description provided for @certQrToken.
+  ///
+  /// In en, this message translates to:
+  /// **'QR token: {token}'**
+  String certQrToken(String token);
+
+  /// No description provided for @certRingkasanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Result Summary'**
+  String get certRingkasanTitle;
+
+  /// No description provided for @certLihatDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'VIEW CALCULATION DETAIL'**
+  String get certLihatDetail;
+
+  /// No description provided for @detailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration Result Detail'**
+  String get detailTitle;
+
+  /// No description provided for @detailLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load calibration detail.'**
+  String get detailLoadFailed;
+
+  /// No description provided for @detailNomorSesi.
+  ///
+  /// In en, this message translates to:
+  /// **'Session no. {nomor}'**
+  String detailNomorSesi(String nomor);
+
+  /// No description provided for @detailKondisiLingkungan.
+  ///
+  /// In en, this message translates to:
+  /// **'Environmental Condition & Standard'**
+  String get detailKondisiLingkungan;
+
+  /// No description provided for @detailStandarAcuan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference standard'**
+  String get detailStandarAcuan;
+
+  /// No description provided for @detailSuhuRuang.
+  ///
+  /// In en, this message translates to:
+  /// **'Room temperature'**
+  String get detailSuhuRuang;
+
+  /// No description provided for @detailKelembaban.
+  ///
+  /// In en, this message translates to:
+  /// **'Humidity'**
+  String get detailKelembaban;
+
+  /// No description provided for @detailLokasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration location'**
+  String get detailLokasi;
+
+  /// No description provided for @detailLokasiLab.
+  ///
+  /// In en, this message translates to:
+  /// **'At the lab'**
+  String get detailLokasiLab;
+
+  /// No description provided for @detailLokasiOnsite.
+  ///
+  /// In en, this message translates to:
+  /// **'At customer site (onsite)'**
+  String get detailLokasiOnsite;
+
+  /// No description provided for @detailTitikUkurTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement Points'**
+  String get detailTitikUkurTitle;
+
+  /// No description provided for @detailBelumDihitung.
+  ///
+  /// In en, this message translates to:
+  /// **'This session hasn\'t been calculated by the server yet — results will show up once it\'s processed.'**
+  String get detailBelumDihitung;
+
+  /// No description provided for @detailLihatSertifikat.
+  ///
+  /// In en, this message translates to:
+  /// **'VIEW CERTIFICATE'**
+  String get detailLihatSertifikat;
+
+  /// No description provided for @detailTitikLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Point {index} · {nilai}'**
+  String detailTitikLabel(int index, String nilai);
+
+  /// No description provided for @detailRataRata.
+  ///
+  /// In en, this message translates to:
+  /// **'Average'**
+  String get detailRataRata;
+
+  /// No description provided for @detailError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get detailError;
+
+  /// No description provided for @detailKoreksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction'**
+  String get detailKoreksi;
+
+  /// No description provided for @detailStandarDeviasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard deviation'**
+  String get detailStandarDeviasi;
+
+  /// No description provided for @detailTypeA.
+  ///
+  /// In en, this message translates to:
+  /// **'Type A'**
+  String get detailTypeA;
+
+  /// No description provided for @detailTypeB.
+  ///
+  /// In en, this message translates to:
+  /// **'Type B'**
+  String get detailTypeB;
+
+  /// No description provided for @detailKomponenTypeB.
+  ///
+  /// In en, this message translates to:
+  /// **'Type B component breakdown'**
+  String get detailKomponenTypeB;
+
+  /// No description provided for @detailToleransi.
+  ///
+  /// In en, this message translates to:
+  /// **'Tolerance'**
+  String get detailToleransi;
+
+  /// No description provided for @detailKetidakpastianGabungan.
+  ///
+  /// In en, this message translates to:
+  /// **'Combined uncertainty (uc)'**
+  String get detailKetidakpastianGabungan;
+
+  /// No description provided for @detailFaktorCakupan.
+  ///
+  /// In en, this message translates to:
+  /// **'Coverage factor (k)'**
+  String get detailFaktorCakupan;
+
+  /// No description provided for @detailU95.
+  ///
+  /// In en, this message translates to:
+  /// **'Expanded uncertainty (U95%)'**
+  String get detailU95;
+
+  /// No description provided for @orgTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization Data'**
+  String get orgTitle;
+
+  /// No description provided for @orgNama.
+  ///
+  /// In en, this message translates to:
+  /// **'Company name'**
+  String get orgNama;
+
+  /// No description provided for @orgAlamat.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get orgAlamat;
+
+  /// No description provided for @orgTelepon.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get orgTelepon;
+
+  /// No description provided for @orgEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get orgEmail;
+
+  /// No description provided for @orgNoAkreditasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Accreditation no.'**
+  String get orgNoAkreditasi;
+
+  /// No description provided for @orgAkreditasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Accreditation Status'**
+  String get orgAkreditasi;
+
+  /// No description provided for @orgAkreditasiBerlaku.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid'**
+  String get orgAkreditasiBerlaku;
+
+  /// No description provided for @orgAkreditasiKadaluarsa.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get orgAkreditasiKadaluarsa;
+
+  /// No description provided for @orgStandarAkreditasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Accreditation standard'**
+  String get orgStandarAkreditasi;
+
+  /// No description provided for @orgStandarAkreditasiHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. ISO/IEC 17025:2017'**
+  String get orgStandarAkreditasiHint;
+
+  /// No description provided for @orgAkreditasiMulai.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid from'**
+  String get orgAkreditasiMulai;
+
+  /// No description provided for @orgAkreditasiBerakhir.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid until'**
+  String get orgAkreditasiBerakhir;
+
+  /// No description provided for @orgPilihTanggal.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a date'**
+  String get orgPilihTanggal;
+
+  /// No description provided for @orgSave.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE'**
+  String get orgSave;
+
+  /// No description provided for @orgSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization data saved.'**
+  String get orgSaved;
+
+  /// No description provided for @orgSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save: {pesan}'**
+  String orgSaveFailed(String pesan);
+
+  /// No description provided for @orgLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load organization data.'**
+  String get orgLoadFailed;
+
+  /// No description provided for @orgRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'RETRY'**
+  String get orgRetry;
+
+  /// No description provided for @standarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference Standards'**
+  String get standarTitle;
+
+  /// No description provided for @standarLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load reference standards.'**
+  String get standarLoadFailed;
+
+  /// No description provided for @standarAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'ADD STANDARD'**
+  String get standarAdd;
+
+  /// No description provided for @standarEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit standard'**
+  String get standarEdit;
+
+  /// No description provided for @standarEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No reference standards yet'**
+  String get standarEmptyTitle;
+
+  /// No description provided for @standarEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first standard using the button below.'**
+  String get standarEmptyBody;
+
+  /// No description provided for @standarRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'RETRY'**
+  String get standarRetry;
+
+  /// No description provided for @standarBerlaku.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid'**
+  String get standarBerlaku;
+
+  /// No description provided for @standarKadaluarsa.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get standarKadaluarsa;
+
+  /// No description provided for @standarDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete reference standard?'**
+  String get standarDeleteConfirmTitle;
+
+  /// No description provided for @standarDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{nama}\" will be permanently deleted.'**
+  String standarDeleteConfirmBody(String nama);
+
+  /// No description provided for @standarDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t delete: {pesan}'**
+  String standarDeleteFailed(String pesan);
+
+  /// No description provided for @standarSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save: {pesan}'**
+  String standarSaveFailed(String pesan);
+
+  /// No description provided for @standarFaktorCakupanInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Coverage factor (k) must be at least 1 — usually 2.'**
+  String get standarFaktorCakupanInvalid;
+
+  /// No description provided for @standarNama.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard name'**
+  String get standarNama;
+
+  /// No description provided for @standarMerk.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand'**
+  String get standarMerk;
+
+  /// No description provided for @standarModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model/Type'**
+  String get standarModel;
+
+  /// No description provided for @standarSerialNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number'**
+  String get standarSerialNumber;
+
+  /// No description provided for @standarNoSertifikat.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate no.'**
+  String get standarNoSertifikat;
+
+  /// No description provided for @standarTertelusurKe.
+  ///
+  /// In en, this message translates to:
+  /// **'Traceable to'**
+  String get standarTertelusurKe;
+
+  /// No description provided for @standarTertelusurKeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. SNSU-BSN'**
+  String get standarTertelusurKeHint;
+
+  /// No description provided for @standarBerlakuSampai.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid until'**
+  String get standarBerlakuSampai;
+
+  /// No description provided for @standarKetidakpastianTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncertainty (from the standard\'s certificate)'**
+  String get standarKetidakpastianTitle;
+
+  /// No description provided for @standarKetidakpastian.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncertainty (expanded)'**
+  String get standarKetidakpastian;
+
+  /// No description provided for @standarSatuanKetidakpastian.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get standarSatuanKetidakpastian;
+
+  /// No description provided for @standarFaktorCakupan.
+  ///
+  /// In en, this message translates to:
+  /// **'Coverage factor (k)'**
+  String get standarFaktorCakupan;
+
+  /// No description provided for @standarDrift.
+  ///
+  /// In en, this message translates to:
+  /// **'Annual drift'**
+  String get standarDrift;
+
+  /// No description provided for @standarSave.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE'**
+  String get standarSave;
+
+  /// No description provided for @custTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers'**
+  String get custTitle;
+
+  /// No description provided for @custSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search customer name'**
+  String get custSearchHint;
+
+  /// No description provided for @custEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No customers yet'**
+  String get custEmptyTitle;
+
+  /// No description provided for @custEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first customer using the button below.'**
+  String get custEmptyBody;
+
+  /// No description provided for @custLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load customers.'**
+  String get custLoadFailed;
+
+  /// No description provided for @custRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'RETRY'**
+  String get custRetry;
+
+  /// No description provided for @custAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'ADD CUSTOMER'**
+  String get custAdd;
+
+  /// No description provided for @custEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit customer'**
+  String get custEdit;
+
+  /// No description provided for @custNama.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer name'**
+  String get custNama;
+
+  /// No description provided for @custAlamat.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get custAlamat;
+
+  /// No description provided for @custContactPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact person'**
+  String get custContactPerson;
+
+  /// No description provided for @custTelepon.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get custTelepon;
+
+  /// No description provided for @custEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get custEmail;
+
+  /// No description provided for @custSave.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE'**
+  String get custSave;
+
+  /// No description provided for @custCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get custCancel;
+
+  /// No description provided for @custDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get custDelete;
+
+  /// No description provided for @custDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete customer?'**
+  String get custDeleteConfirmTitle;
+
+  /// No description provided for @custDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{nama}\" will be permanently deleted.'**
+  String custDeleteConfirmBody(String nama);
+
+  /// No description provided for @custDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t delete: {pesan}'**
+  String custDeleteFailed(String pesan);
+
+  /// No description provided for @custSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save: {pesan}'**
+  String custSaveFailed(String pesan);
+
+  /// No description provided for @custEquipmentCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} devices'**
+  String custEquipmentCount(int jumlah);
+
+  /// No description provided for @custFieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required.'**
+  String get custFieldRequired;
+
+  /// No description provided for @calibTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration Input'**
+  String get calibTitle;
+
+  /// No description provided for @calibKategori.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get calibKategori;
+
+  /// No description provided for @calibKategoriHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a device category'**
+  String get calibKategoriHint;
+
+  /// No description provided for @calibAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Device'**
+  String get calibAlat;
+
+  /// No description provided for @calibAlatHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a device'**
+  String get calibAlatHint;
+
+  /// No description provided for @calibAlatKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No devices in this category.'**
+  String get calibAlatKosong;
+
+  /// No description provided for @calibStandar.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference Standard'**
+  String get calibStandar;
+
+  /// No description provided for @calibStandarHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a reference standard'**
+  String get calibStandarHint;
+
+  /// No description provided for @calibStandarKadaluarsa.
+  ///
+  /// In en, this message translates to:
+  /// **'expired'**
+  String get calibStandarKadaluarsa;
+
+  /// No description provided for @calibTanggal.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration date'**
+  String get calibTanggal;
+
+  /// No description provided for @calibNomorOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Order number'**
+  String get calibNomorOrder;
+
+  /// No description provided for @calibNomorOrderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 2405.13.A (optional)'**
+  String get calibNomorOrderHint;
+
+  /// No description provided for @calibTanggalTerima.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment received date'**
+  String get calibTanggalTerima;
+
+  /// No description provided for @calibLokasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration location'**
+  String get calibLokasi;
+
+  /// No description provided for @calibLokasiLab.
+  ///
+  /// In en, this message translates to:
+  /// **'At the lab'**
+  String get calibLokasiLab;
+
+  /// No description provided for @calibLokasiOnsite.
+  ///
+  /// In en, this message translates to:
+  /// **'At customer site (onsite)'**
+  String get calibLokasiOnsite;
+
+  /// No description provided for @calibSuhuRuang.
+  ///
+  /// In en, this message translates to:
+  /// **'Room temperature (°C)'**
+  String get calibSuhuRuang;
+
+  /// No description provided for @calibKelembaban.
+  ///
+  /// In en, this message translates to:
+  /// **'Humidity (%)'**
+  String get calibKelembaban;
+
+  /// No description provided for @calibTitikUkur.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement point {index}'**
+  String calibTitikUkur(int index);
+
+  /// No description provided for @calibNilaiTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target value'**
+  String get calibNilaiTarget;
+
+  /// No description provided for @calibSatuan.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get calibSatuan;
+
+  /// No description provided for @calibPembacaan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading {index}'**
+  String calibPembacaan(int index);
+
+  /// No description provided for @calibTambahTitik.
+  ///
+  /// In en, this message translates to:
+  /// **'ADD MEASUREMENT POINT'**
+  String get calibTambahTitik;
+
+  /// No description provided for @calibHapusTitik.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove measurement point'**
+  String get calibHapusTitik;
+
+  /// No description provided for @calibTambahPembacaan.
+  ///
+  /// In en, this message translates to:
+  /// **'+ Add reading'**
+  String get calibTambahPembacaan;
+
+  /// No description provided for @calibValidasiKategori.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a category first.'**
+  String get calibValidasiKategori;
+
+  /// No description provided for @calibValidasiAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a device first.'**
+  String get calibValidasiAlat;
+
+  /// No description provided for @calibValidasiStandar.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a reference standard first.'**
+  String get calibValidasiStandar;
+
+  /// No description provided for @calibValidasiAngka.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid number.'**
+  String get calibValidasiAngka;
+
+  /// No description provided for @calibValidasiPembacaan.
+  ///
+  /// In en, this message translates to:
+  /// **'Each measurement point needs at least 2 numeric readings.'**
+  String get calibValidasiPembacaan;
+
+  /// No description provided for @calibSimpanDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE DRAFT'**
+  String get calibSimpanDraft;
+
+  /// No description provided for @calibKirimApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'SUBMIT FOR APPROVAL'**
+  String get calibKirimApproval;
+
+  /// No description provided for @calibBerhasilDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration draft saved.'**
+  String get calibBerhasilDraft;
+
+  /// No description provided for @calibBerhasilApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration session submitted for approval.'**
+  String get calibBerhasilApproval;
+
+  /// No description provided for @calibGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save: {pesan}'**
+  String calibGagal(String pesan);
+
+  /// No description provided for @calibLoadPilihanGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load category/standard options.'**
+  String get calibLoadPilihanGagal;
+
+  /// No description provided for @calibRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'RETRY'**
+  String get calibRetry;
+
+  /// No description provided for @calibPilihKategoriTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Equipment Category'**
+  String get calibPilihKategoriTitle;
+
+  /// No description provided for @calibPilihKategoriSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the measurement group first, then the specific instrument type.'**
+  String get calibPilihKategoriSubtitle;
+
+  /// No description provided for @calibKategoriKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No categories yet.'**
+  String get calibKategoriKosong;
+
+  /// No description provided for @calibJumlahAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} instrument type{jumlah, plural, =1{} other{s}}'**
+  String calibJumlahAlat(int jumlah);
+
+  /// No description provided for @calibPilihInstrumenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Instrument Type'**
+  String get calibPilihInstrumenTitle;
+
+  /// No description provided for @calibInstrumenKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'This category doesn\'t have any calibration capability data yet.'**
+  String get calibInstrumenKosong;
+
+  /// No description provided for @calibInstrumenMetodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Method'**
+  String get calibInstrumenMetodeLabel;
+
+  /// No description provided for @calibCariInstrumenHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search instrument type...'**
+  String get calibCariInstrumenHint;
+
+  /// No description provided for @calibInstrumenTidakDitemukan.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching instrument type.'**
+  String get calibInstrumenTidakDitemukan;
+
+  /// No description provided for @phCalibTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'pH Meter Calibration'**
+  String get phCalibTitle;
+
+  /// No description provided for @phCalibThermohygro.
+  ///
+  /// In en, this message translates to:
+  /// **'Thermohygrometer used'**
+  String get phCalibThermohygro;
+
+  /// No description provided for @phCalibThermohygroHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. TH-3'**
+  String get phCalibThermohygroHint;
+
+  /// No description provided for @phCalibThermohygroCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Other (enter manually)'**
+  String get phCalibThermohygroCustom;
+
+  /// No description provided for @phCalibStandarSesi.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference Standard (Thermometer & Sensor)'**
+  String get phCalibStandarSesi;
+
+  /// No description provided for @phCalibStandarSesiHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Used for environmental conditions (temp/humidity)'**
+  String get phCalibStandarSesiHint;
+
+  /// No description provided for @phCalibStandarBuffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Buffer standard for this point'**
+  String get phCalibStandarBuffer;
+
+  /// No description provided for @phCalibStandarBufferHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a buffer solution'**
+  String get phCalibStandarBufferHint;
+
+  /// No description provided for @phCalibValidasiStandarBuffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a buffer standard for every point (4, 7, 10) first.'**
+  String get phCalibValidasiStandarBuffer;
+
+  /// No description provided for @phCalibKondisiLingkungan.
+  ///
+  /// In en, this message translates to:
+  /// **'Environmental Conditions'**
+  String get phCalibKondisiLingkungan;
+
+  /// No description provided for @phCalibSuhuAwal.
+  ///
+  /// In en, this message translates to:
+  /// **'Start temperature (°C)'**
+  String get phCalibSuhuAwal;
+
+  /// No description provided for @phCalibSuhuAkhir.
+  ///
+  /// In en, this message translates to:
+  /// **'End temperature (°C)'**
+  String get phCalibSuhuAkhir;
+
+  /// No description provided for @phCalibKelembabanAwal.
+  ///
+  /// In en, this message translates to:
+  /// **'Start humidity (%)'**
+  String get phCalibKelembabanAwal;
+
+  /// No description provided for @phCalibKelembabanAkhir.
+  ///
+  /// In en, this message translates to:
+  /// **'End humidity (%)'**
+  String get phCalibKelembabanAkhir;
+
+  /// No description provided for @phCalibTitikBuffer.
+  ///
+  /// In en, this message translates to:
+  /// **'pH {label} buffer'**
+  String phCalibTitikBuffer(String label);
+
+  /// No description provided for @phCalibNilaiStandar.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard value (certificate)'**
+  String get phCalibNilaiStandar;
+
+  /// No description provided for @phCalibSebelumAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Before adjustment (as found)'**
+  String get phCalibSebelumAdjustment;
+
+  /// No description provided for @phCalibSesudahAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'After adjustment (as left)'**
+  String get phCalibSesudahAdjustment;
+
+  /// No description provided for @phCalibPembacaanKe.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading {index}'**
+  String phCalibPembacaanKe(int index);
+
+  /// No description provided for @phCalibSuhu.
+  ///
+  /// In en, this message translates to:
+  /// **'Temp.'**
+  String get phCalibSuhu;
+
+  /// No description provided for @phCalibValidasiLingkungan.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in the environmental conditions (temperature & humidity) first.'**
+  String get phCalibValidasiLingkungan;
+
+  /// No description provided for @phCalibValidasiPembacaan.
+  ///
+  /// In en, this message translates to:
+  /// **'Each buffer point needs 5 valid after-adjustment readings.'**
+  String get phCalibValidasiPembacaan;
+
+  /// No description provided for @dashStartPhCalibration.
+  ///
+  /// In en, this message translates to:
+  /// **'PH METER CALIBRATION'**
+  String get dashStartPhCalibration;
+
+  /// No description provided for @notifEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications yet'**
+  String get notifEmptyTitle;
+
+  /// No description provided for @notifEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Due-date reminders & approval updates will show up here.'**
+  String get notifEmptyBody;
+
+  /// No description provided for @notifLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load notifications.'**
+  String get notifLoadFailed;
+
+  /// No description provided for @notifSessionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session expired. Please sign in again.'**
+  String get notifSessionExpired;
+
+  /// No description provided for @notifRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'RETRY'**
+  String get notifRetry;
+
+  /// No description provided for @notifMarkedRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked as read.'**
+  String get notifMarkedRead;
+
+  /// No description provided for @notifTypeDueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date'**
+  String get notifTypeDueDate;
+
+  /// No description provided for @notifTypeApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Approval'**
+  String get notifTypeApproval;
+
+  /// No description provided for @notifTypeRevision.
+  ///
+  /// In en, this message translates to:
+  /// **'Revision'**
+  String get notifTypeRevision;
+}
+
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
+  const _AppLocalizationsDelegate();
+
+  @override
+  Future<AppLocalizations> load(Locale locale) {
+    return SynchronousFuture<AppLocalizations>(lookupAppLocalizations(locale));
+  }
+
+  @override
+  bool isSupported(Locale locale) =>
+      <String>['en', 'id'].contains(locale.languageCode);
+
+  @override
+  bool shouldReload(_AppLocalizationsDelegate old) => false;
+}
+
+AppLocalizations lookupAppLocalizations(Locale locale) {
+  // Lookup logic when only language code is specified.
+  switch (locale.languageCode) {
+    case 'en':
+      return AppLocalizationsEn();
+    case 'id':
+      return AppLocalizationsId();
+  }
+
+  throw FlutterError(
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
+}
