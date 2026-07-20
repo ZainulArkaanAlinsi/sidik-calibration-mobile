@@ -100,9 +100,17 @@ class _AppTextFieldState extends State<AppTextField> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              widget.label.toUpperCase(),
-              style: theme.textTheme.labelLarge,
+            // Flexible biar label panjang bisa turun baris, bukan overflow.
+            // Kepakai waktu field disempitin (2 field sebardampingan dalam Row,
+            // misal SUHU AWAL/AKHIR di form pH): label uppercase nggak muat di
+            // lebar segitu. Sengaja dibiarin wrap, bukan di-ellipsis — label
+            // kayak "KELEMBABAN AWAL" vs "KELEMBABAN AKHIR" beda cuma di kata
+            // terakhir, jadi kalau dipotong malah nggak kebedain.
+            Flexible(
+              child: Text(
+                widget.label.toUpperCase(),
+                style: theme.textTheme.labelLarge,
+              ),
             ),
             if (widget.trailing != null) widget.trailing!,
           ],
