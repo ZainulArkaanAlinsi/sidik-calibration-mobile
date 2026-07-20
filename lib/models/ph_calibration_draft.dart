@@ -15,11 +15,10 @@ class PhReading {
 /// 5 pengulangan. Ini pola standar metrologi pH Meter: alat dikalibrasi
 /// ulang di tempat pakai larutan buffer, jadi ada dua state yang dicatat.
 ///
-/// **Cuma `sesudahAdjustment` yang dikirim ke API** sebagai hasil kalibrasi
-/// final (`docs/kontrak-api.md` §4 belum punya field buat state "as found" —
-/// ini salah satu gap yang perlu dibahas sama tim backend). `sebelumAdjustment`
-/// tetap ditangkep di form biar nggak ada data yang ilang dari alur kerja
-/// teknisi di lapangan, cuma belum ada tempatnya di kontrak API sekarang.
+/// Dua-duanya dikirim ke API (`docs/kontrak-api.md` §4,
+/// `measurements[].pembacaan_sebelum`) — tapi cuma `sesudahAdjustment` yang
+/// ikut dihitung GumCalculator di backend. `sebelumAdjustment` murni
+/// dokumentasi kondisi alat, disimpan buat audit trail.
 class PhBufferPoint {
   PhBufferPoint({
     required this.label,
@@ -79,6 +78,8 @@ class PhCalibrationDraft {
   double? suhuAkhir;
   double? kelembabanAwal;
   double? kelembabanAkhir;
+  String? nomorOrder;
+  DateTime? tanggalTerima;
 
   final List<PhBufferPoint> points;
 
@@ -109,6 +110,8 @@ class PhCalibrationDraft {
       lokasi: lokasi,
       clientRequestId: clientRequestId,
       simpanSebagaiDraft: simpanSebagaiDraft,
+      nomorOrder: nomorOrder,
+      tanggalTerima: tanggalTerima,
       measurements: [
         for (final titik in points)
           MeasurementPoint(
@@ -116,6 +119,10 @@ class PhCalibrationDraft {
             satuan: 'pH',
             standardId: titik.standardId,
             pembacaan: titik.sesudahAdjustment
+                .whereType<PhReading>()
+                .map((r) => r.ph)
+                .toList(),
+            pembacaanSebelum: titik.sebelumAdjustment
                 .whereType<PhReading>()
                 .map((r) => r.ph)
                 .toList(),

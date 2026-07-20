@@ -8,13 +8,13 @@ import '../../models/dashboard_summary.dart';
 import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
-import '../../providers/navigation_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/status_badge.dart';
-import '../calibration/calibration_input_screen.dart';
+import '../calibration/category_picker_screen.dart';
 import '../calibration/ph_calibration_input_screen.dart';
+import 'device_overview_screen.dart';
 
 /// Dashboard — 4 state sesuai task 21 Jul:
 /// `loading` (skeleton) · `empty` (belum ada apa-apa) · `normal` (angka) ·
@@ -91,16 +91,25 @@ class _Isi extends ConsumerWidget {
             label: l10n.dashTotalDevices,
             nilai: data.totalAlat,
             icon: Icons.straighten_outlined,
-            // Tap kotak → lompat ke tab Alat. Ini alasan tab aktif disimpan
-            // di provider, bukan di dalam shell.
-            onTap: () => ref.read(selectedTabProvider.notifier).select(1),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => DeviceOverviewScreen(title: l10n.dashTotalDevices),
+              ),
+            ),
           ),
           kanan: StatCard(
             label: l10n.dashOverdue,
             nilai: data.alatOverdue,
             icon: Icons.schedule,
             warna: data.alatOverdue > 0 ? AppColors.warning : null,
-            onTap: () => ref.read(selectedTabProvider.notifier).select(1),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => DeviceOverviewScreen(
+                  title: l10n.dashOverdue,
+                  statusFilter: 'overdue',
+                ),
+              ),
+            ),
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -143,18 +152,23 @@ class _Isi extends ConsumerWidget {
                   AppButton(
                     label: l10n.dashStartCalibration,
                     icon: Icons.add_task,
+                    // Nggak langsung ke form generik lagi — sekarang lewat
+                    // 2 langkah pilihan (kategori besar → jenis alat
+                    // spesifik) biar teknisi nggak dihadapin dropdown datar
+                    // isinya 10+ kategori sekaligus.
                     onPressed: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
-                        builder: (_) => const CalibrationInputScreen(),
+                        builder: (_) => const CategoryPickerScreen(),
                       ),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  // Prioritas atasan: pH Meter digarap duluan, jadi punya
-                  // pintu masuk sendiri (bukan lewat dropdown kategori di
-                  // form generik) — form-nya juga jauh lebih spesifik
-                  // (kondisi lingkungan awal/akhir, 3 titik buffer x 5
-                  // pembacaan before/after adjustment).
+                  // Shortcut cepat: pH Meter juga bisa dicapai lewat alur
+                  // Kategori → Instrumen Analitik → pH Meter di atas, tapi
+                  // tombol ini dipertahankan sebagai jalan pintas karena itu
+                  // prioritas atasan & paling sering dipakai — form-nya juga
+                  // jauh lebih spesifik (kondisi lingkungan awal/akhir,
+                  // 3 titik buffer x 5 pembacaan before/after adjustment).
                   AppButton(
                     label: l10n.dashStartPhCalibration,
                     icon: Icons.science_outlined,

@@ -415,6 +415,9 @@
   "calibStandarHint": "Choose a reference standard",
   "calibStandarKadaluarsa": "expired",
   "calibTanggal": "Calibration date",
+  "calibNomorOrder": "Order number",
+  "calibNomorOrderHint": "e.g. 2405.13.A (optional)",
+  "calibTanggalTerima": "Equipment received date",
   "calibLokasi": "Calibration location",
   "calibLokasiLab": "At the lab",
   "calibLokasiOnsite": "At customer site (onsite)",
@@ -454,6 +457,21 @@
   },
   "calibLoadPilihanGagal": "Couldn't load category/standard options.",
   "calibRetry": "RETRY",
+
+  "calibPilihKategoriTitle": "Choose Equipment Category",
+  "calibPilihKategoriSubtitle": "Pick the measurement group first, then the specific instrument type.",
+  "calibKategoriKosong": "No categories yet.",
+  "calibJumlahAlat": "{jumlah} instrument type{jumlah, plural, =1{} other{s}}",
+  "@calibJumlahAlat": {
+    "placeholders": {
+      "jumlah": { "type": "int" }
+    }
+  },
+  "calibPilihInstrumenTitle": "Choose Instrument Type",
+  "calibInstrumenKosong": "This category doesn't have any calibration capability data yet.",
+  "calibInstrumenMetodeLabel": "Method",
+  "calibCariInstrumenHint": "Search instrument type...",
+  "calibInstrumenTidakDitemukan": "No matching instrument type.",
 
   "phCalibTitle": "pH Meter Calibration",
   "phCalibThermohygro": "Thermohygrometer used",

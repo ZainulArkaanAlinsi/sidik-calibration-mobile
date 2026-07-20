@@ -924,6 +924,15 @@ class AppLocalizationsId extends AppLocalizations {
   String get calibTanggal => 'Tanggal kalibrasi';
 
   @override
+  String get calibNomorOrder => 'Nomor order';
+
+  @override
+  String get calibNomorOrderHint => 'mis. 2405.13.A (opsional)';
+
+  @override
+  String get calibTanggalTerima => 'Tanggal terima alat';
+
+  @override
   String get calibLokasi => 'Lokasi kalibrasi';
 
   @override
@@ -1001,6 +1010,38 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get calibRetry => 'COBA LAGI';
+
+  @override
+  String get calibPilihKategoriTitle => 'Pilih Kategori Alat';
+
+  @override
+  String get calibPilihKategoriSubtitle =>
+      'Pilih kelompok pengukuran dulu, baru jenis alat spesifiknya.';
+
+  @override
+  String get calibKategoriKosong => 'Belum ada kategori.';
+
+  @override
+  String calibJumlahAlat(int jumlah) {
+    return '$jumlah jenis alat';
+  }
+
+  @override
+  String get calibPilihInstrumenTitle => 'Pilih Jenis Alat';
+
+  @override
+  String get calibInstrumenKosong =>
+      'Kategori ini belum punya data kemampuan kalibrasi.';
+
+  @override
+  String get calibInstrumenMetodeLabel => 'Metode';
+
+  @override
+  String get calibCariInstrumenHint => 'Cari jenis alat...';
+
+  @override
+  String get calibInstrumenTidakDitemukan =>
+      'Nggak ketemu jenis alat yang cocok.';
 
   @override
   String get phCalibTitle => 'Kalibrasi pH Meter';
