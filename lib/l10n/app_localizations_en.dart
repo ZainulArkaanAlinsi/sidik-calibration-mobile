@@ -1277,4 +1277,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get phCalibTitikLengkap => 'This point is complete';
+
+  @override
+  String get dashCalibrationDone => 'Calibrations done';
+
+  @override
+  String get dashWorkChart => 'Workload trend';
 }

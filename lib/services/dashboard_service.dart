@@ -59,8 +59,12 @@ class MockDashboardService implements DashboardService {
         totalAlat: 0,
         alatOverdue: 0,
         kalibrasiDraft: 0,
+        kalibrasiSelesai: 0,
         menungguApproval: 0,
         sertifikatBulanIni: 0,
+        // Kosong, bukan deret nol: state "belum ada apa-apa" nggak boleh
+        // nampilin grafik sama sekali.
+        grafikPekerjaan: [],
       );
     }
 
@@ -68,8 +72,17 @@ class MockDashboardService implements DashboardService {
       totalAlat: 42,
       alatOverdue: 3,
       kalibrasiDraft: 2,
+      kalibrasiSelesai: 18,
       menungguApproval: 5,
       sertifikatBulanIni: 12,
+      grafikPekerjaan: [
+        TitikTren(periode: '2026-02', masuk: 8, selesai: 7),
+        TitikTren(periode: '2026-03', masuk: 12, selesai: 11),
+        TitikTren(periode: '2026-04', masuk: 6, selesai: 6),
+        TitikTren(periode: '2026-05', masuk: 14, selesai: 10),
+        TitikTren(periode: '2026-06', masuk: 9, selesai: 9),
+        TitikTren(periode: '2026-07', masuk: 5, selesai: 2),
+      ],
     );
   }
 }

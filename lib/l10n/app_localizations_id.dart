@@ -1266,4 +1266,10 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get phCalibTitikLengkap => 'Titik ini udah lengkap';
+
+  @override
+  String get dashCalibrationDone => 'Kalibrasi selesai';
+
+  @override
+  String get dashWorkChart => 'Grafik pekerjaan';
 }

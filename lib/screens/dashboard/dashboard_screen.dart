@@ -13,6 +13,7 @@ import '../../widgets/app_button.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/stat_card.dart';
+import '../../widgets/work_chart.dart';
 import '../../widgets/status_badge.dart';
 import '../calibration/category_picker_screen.dart';
 import '../calibration/ph_calibration_input_screen.dart';
@@ -151,15 +152,33 @@ class _Isi extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        // Melebar penuh, bukan setengah dengan slot kosong di sebelahnya.
-        // Sekalian jadi penutup deret — bentuknya beda, jadi mata tahu
-        // angkanya habis di situ.
-        StatCardWide(
-          label: l10n.dashCertsThisMonth,
-          nilai: data.sertifikatBulanIni,
-          icon: Icons.workspace_premium_outlined,
-          warna: AppColors.success,
+        StatCardRow(
+          kiri: StatCard(
+            label: l10n.dashCalibrationDone,
+            nilai: data.kalibrasiSelesai,
+            icon: Icons.task_alt,
+            warna: AppColors.success,
+          ),
+          kanan: StatCard(
+            label: l10n.dashCertsThisMonth,
+            nilai: data.sertifikatBulanIni,
+            icon: Icons.workspace_premium_outlined,
+          ),
         ),
+
+        // Grafik cuma dirender kalau backend beneran ngirim datanya. Backend
+        // versi lama nggak punya `grafik_pekerjaan`, dan seksi kosong berjudul
+        // "Grafik pekerjaan" lebih bikin bingung daripada nggak ada sama sekali.
+        if (data.grafikPekerjaan.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.lg),
+          _JudulSeksi(l10n.dashWorkChart),
+          const SizedBox(height: AppSpacing.sm),
+          GlassSurface.rata(
+            radius: AppSpacing.radiusLg,
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: WorkChart(titik: data.grafikPekerjaan),
+          ),
+        ],
 
         if (data.alatOverdue > 0) ...[
           const SizedBox(height: AppSpacing.md),

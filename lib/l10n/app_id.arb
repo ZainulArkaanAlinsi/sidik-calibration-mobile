@@ -412,5 +412,7 @@
   "sheetKirimGagal": "Ada masalah",
   "sheetDraftBerhasil": "Draft tersimpan",
   "sheetDraftBerhasilPesan": "Bisa dilanjut kapan aja dari daftar riwayat.",
-  "phCalibTitikLengkap": "Titik ini udah lengkap"
+  "phCalibTitikLengkap": "Titik ini udah lengkap",
+  "dashCalibrationDone": "Kalibrasi selesai",
+  "dashWorkChart": "Grafik pekerjaan"
 }

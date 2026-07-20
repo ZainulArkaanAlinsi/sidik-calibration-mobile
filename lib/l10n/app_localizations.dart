@@ -2431,6 +2431,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This point is complete'**
   String get phCalibTitikLengkap;
+
+  /// No description provided for @dashCalibrationDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibrations done'**
+  String get dashCalibrationDone;
+
+  /// No description provided for @dashWorkChart.
+  ///
+  /// In en, this message translates to:
+  /// **'Workload trend'**
+  String get dashWorkChart;
 }
 
 class _AppLocalizationsDelegate
