@@ -1158,4 +1158,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifTypeRevision => 'Revision';
+
+  @override
+  String get sheetTutup => 'CLOSE';
+
+  @override
+  String get sheetCobaLagi => 'TRY AGAIN';
+
+  @override
+  String get sheetKirimBerhasil => 'Sent!';
+
+  @override
+  String get sheetKirimBerhasilPesan =>
+      'The session is now in the admin approval queue.';
+
+  @override
+  String get sheetKirimGagal => 'There is a problem';
+
+  @override
+  String get sheetDraftBerhasil => 'Draft saved';
+
+  @override
+  String get sheetDraftBerhasilPesan =>
+      'You can pick it up again anytime from history.';
 }

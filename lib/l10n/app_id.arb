@@ -369,5 +369,13 @@
   "notifMarkedRead": "Ditandai udah dibaca.",
   "notifTypeDueDate": "Jatuh tempo",
   "notifTypeApproval": "Approval",
-  "notifTypeRevision": "Revisi"
+  "notifTypeRevision": "Revisi",
+
+  "sheetTutup": "TUTUP",
+  "sheetCobaLagi": "COBA LAGI",
+  "sheetKirimBerhasil": "Kekirim!",
+  "sheetKirimBerhasilPesan": "Sesi kalibrasi udah masuk antrean approval admin.",
+  "sheetKirimGagal": "Ada masalah",
+  "sheetDraftBerhasil": "Draft tersimpan",
+  "sheetDraftBerhasilPesan": "Bisa dilanjut kapan aja dari daftar riwayat."
 }
