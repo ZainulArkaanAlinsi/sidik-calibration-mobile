@@ -145,13 +145,20 @@ void main() {
     );
   });
 
-  testWidgets('tap "Total alat" → lompat ke tab Alat', (tester) async {
-    await tester.pumpWidget(_app());
-    await tester.pumpAndSettle();
+  testWidgets(
+    'tap "Total alat" → push layar ringkasan (bukan lompat tab navbar)',
+    (tester) async {
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('TOTAL ALAT'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('TOTAL ALAT'));
+      await tester.pumpAndSettle();
 
-    expect(find.widgetWithText(AppBar, 'Alat'), findsOneWidget);
-  });
+      // Layar baru ke-push (AppBar "Total alat" + tombol back) — bukan
+      // switch ke tab "Alat" di bottom nav (itu behavior lama yang
+      // sengaja diganti karena kerasa kayak "double UI").
+      expect(find.widgetWithText(AppBar, 'Total alat'), findsOneWidget);
+      expect(find.byType(BackButton), findsOneWidget);
+    },
+  );
 }

@@ -21,6 +21,23 @@ final equipmentProvider =
       retry: (retryCount, error) => null,
     );
 
+/// Fetch mandiri buat ringkasan di Dashboard (kartu "Total Alat" /
+/// "Jatuh Tempo") — sengaja BUKAN [equipmentProvider]: itu state punya tab
+/// "Alat" di bottom nav, kalau dipakai bareng, filter dari kartu Dashboard
+/// bakal ikut ngubah apa yang keliatan di tab (bug halus yang sempet
+/// kejadian). Family di-key sama `status` biar tiap filter independen.
+final deviceOverviewProvider = FutureProvider.family<List<Equipment>, String?>(
+  (ref, status) async {
+    final token = await ref.read(tokenStorageProvider).read();
+    if (token == null) throw const TokenHilangException();
+
+    final hasil = await ref
+        .read(equipmentServiceProvider)
+        .daftar(token, status: status, page: 1);
+    return hasil.items;
+  },
+);
+
 class EquipmentController extends AsyncNotifier<List<Equipment>> {
   String _search = '';
   String? _kategori;

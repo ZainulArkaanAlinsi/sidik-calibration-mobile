@@ -338,6 +338,10 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
                 child: Text(l10n.equipStatusAktif),
               ),
               DropdownMenuItem(
+                value: EquipmentStatus.overdue,
+                child: Text(l10n.equipStatusOverdue),
+              ),
+              DropdownMenuItem(
                 value: EquipmentStatus.nonaktif,
                 child: Text(l10n.equipStatusNonaktif),
               ),

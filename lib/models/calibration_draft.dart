@@ -19,6 +19,7 @@ class MeasurementPoint {
     required this.satuan,
     required this.pembacaan,
     this.standardId,
+    this.pembacaanSebelum = const [],
   });
 
   final double titikUkur;
@@ -30,11 +31,16 @@ class MeasurementPoint {
   /// buat seluruh sesi. `null` berarti titik ini ikut `standard_id` sesi.
   final int? standardId;
 
+  /// Pembacaan "as found" (sebelum alat di-adjustment) — dokumentasi kondisi
+  /// alat doang, TIDAK ikut hitungan GUM backend. Kosong = tidak dicatat.
+  final List<double> pembacaanSebelum;
+
   Map<String, dynamic> toJson() => {
     'titik_ukur': titikUkur,
     'satuan': satuan,
     'pembacaan': pembacaan,
     if (standardId != null) 'standard_id': standardId,
+    if (pembacaanSebelum.isNotEmpty) 'pembacaan_sebelum': pembacaanSebelum,
   };
 }
 
@@ -53,6 +59,8 @@ class CalibrationDraft {
     required this.clientRequestId,
     this.lokasi = LokasiKalibrasi.lab,
     this.simpanSebagaiDraft = false,
+    this.nomorOrder,
+    this.tanggalTerima,
   });
 
   final int equipmentId;
@@ -63,6 +71,12 @@ class CalibrationDraft {
   final double kelembaban;
   final List<MeasurementPoint> measurements;
   final LokasiKalibrasi lokasi;
+
+  /// Nomor order dari customer (mis. "2405.13.A") — opsional, murni catatan.
+  final String? nomorOrder;
+
+  /// Tanggal alat DITERIMA dari customer — beda dari [tanggalKalibrasi].
+  final DateTime? tanggalTerima;
 
   /// UUID yang di-generate SEKALI per sesi form (bukan per tap tombol) —
   /// kalau submit di-retry (mis. sinyal putus pas nunggu respons) dengan key
@@ -86,5 +100,7 @@ class CalibrationDraft {
     'client_request_id': clientRequestId,
     'measurements': measurements.map((m) => m.toJson()).toList(),
     if (simpanSebagaiDraft) 'status': 'draft',
+    if (nomorOrder != null && nomorOrder!.trim().isNotEmpty) 'nomor_order': nomorOrder!.trim(),
+    if (tanggalTerima != null) 'tanggal_terima': tanggalTerima!.toUtc().toIso8601String(),
   };
 }
