@@ -81,6 +81,14 @@ Future<void> _bukaLayar(WidgetTester tester) async {
 /// lalu 3 kartu titik buffer @21 field (nilai standar + 5x2 sebelum +
 /// 5x2 sesudah).
 Future<void> _isiFormLengkap(WidgetTester tester) async {
+  // Kartu titik buffer sekarang bisa dilipat, dan cuma titik pertama yang
+  // kebuka pas layar dibuka. Titik 7 & 10 harus dibuka dulu — kalau nggak,
+  // kolomnya belum kerender dan `enterText` nggak nemu apa-apa.
+  for (final titik in ['7', '10']) {
+    await tester.tap(find.text('Buffer pH $titik'), warnIfMissed: false);
+    await tester.pumpAndSettle();
+  }
+
   await tester.tap(find.text('Pilih alat'), warnIfMissed: false);
   await tester.pumpAndSettle();
   await tester.tap(find.textContaining('pH Meter Mettler Toledo').last);

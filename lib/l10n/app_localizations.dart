@@ -2425,6 +2425,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You can pick it up again anytime from history.'**
   String get sheetDraftBerhasilPesan;
+
+  /// No description provided for @phCalibTitikLengkap.
+  ///
+  /// In en, this message translates to:
+  /// **'This point is complete'**
+  String get phCalibTitikLengkap;
 }
 
 class _AppLocalizationsDelegate

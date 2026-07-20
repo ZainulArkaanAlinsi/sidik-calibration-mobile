@@ -1263,4 +1263,7 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get sheetDraftBerhasilPesan =>
       'Bisa dilanjut kapan aja dari daftar riwayat.';
+
+  @override
+  String get phCalibTitikLengkap => 'Titik ini udah lengkap';
 }

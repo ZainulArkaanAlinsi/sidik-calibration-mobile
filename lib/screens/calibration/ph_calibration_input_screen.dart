@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/uuid.dart';
 import '../../l10n/app_localizations.dart';
@@ -108,7 +109,12 @@ class _TitikControllers {
 
   void dispose() {
     nilaiStandar.dispose();
-    for (final c in [...sebelumPh, ...sebelumSuhu, ...sesudahPh, ...sesudahSuhu]) {
+    for (final c in [
+      ...sebelumPh,
+      ...sebelumSuhu,
+      ...sesudahPh,
+      ...sesudahSuhu,
+    ]) {
       c.dispose();
     }
   }
@@ -127,7 +133,15 @@ class _Form extends ConsumerStatefulWidget {
 /// Sentinel di luar rentang biar nggak pernah ketuker sama ID alat asli
 /// kalau lab nambah unit baru.
 const _thermohygroCustom = '__custom__';
-const _thermohygroPresets = ['TH-1', 'TH-2', 'TH-3', 'TH-4', 'TH-5', 'TH-6', 'TH-7'];
+const _thermohygroPresets = [
+  'TH-1',
+  'TH-2',
+  'TH-3',
+  'TH-4',
+  'TH-5',
+  'TH-6',
+  'TH-7',
+];
 
 class _FormState extends ConsumerState<_Form> {
   EquipmentLookup? _alat;
@@ -172,7 +186,11 @@ class _FormState extends ConsumerState<_Form> {
   double? _parse(String text) =>
       double.tryParse(text.trim().replaceAll(',', '.'));
 
-  PhBufferPoint? _bacaTitik(_TitikControllers c, String label, AppLocalizations l10n) {
+  PhBufferPoint? _bacaTitik(
+    _TitikControllers c,
+    String label,
+    AppLocalizations l10n,
+  ) {
     final nilaiStandar = _parse(c.nilaiStandar.text);
     if (nilaiStandar == null || c.standarBuffer == null) return null;
 
@@ -186,13 +204,19 @@ class _FormState extends ConsumerState<_Form> {
       final phSebelum = _parse(c.sebelumPh[i].text);
       final suhuSebelum = _parse(c.sebelumSuhu[i].text);
       if (phSebelum != null && suhuSebelum != null) {
-        titik.sebelumAdjustment[i] = PhReading(ph: phSebelum, suhu: suhuSebelum);
+        titik.sebelumAdjustment[i] = PhReading(
+          ph: phSebelum,
+          suhu: suhuSebelum,
+        );
       }
 
       final phSesudah = _parse(c.sesudahPh[i].text);
       final suhuSesudah = _parse(c.sesudahSuhu[i].text);
       if (phSesudah != null && suhuSesudah != null) {
-        titik.sesudahAdjustment[i] = PhReading(ph: phSesudah, suhu: suhuSesudah);
+        titik.sesudahAdjustment[i] = PhReading(
+          ph: phSesudah,
+          suhu: suhuSesudah,
+        );
       }
     }
 
@@ -208,7 +232,9 @@ class _FormState extends ConsumerState<_Form> {
       return;
     }
     if (_standar == null) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.calibValidasiStandar)));
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.calibValidasiStandar)),
+      );
       return;
     }
 
@@ -243,7 +269,8 @@ class _FormState extends ConsumerState<_Form> {
 
     for (final titik in titikList) {
       final cukup =
-          titik != null && titik.sesudahAdjustment.whereType<PhReading>().length >= 5;
+          titik != null &&
+          titik.sesudahAdjustment.whereType<PhReading>().length >= 5;
       if (!cukup) {
         messenger.showSnackBar(
           SnackBar(content: Text(l10n.phCalibValidasiPembacaan)),
@@ -252,18 +279,19 @@ class _FormState extends ConsumerState<_Form> {
       }
     }
 
-    final draftPh = PhCalibrationDraft(
-      equipmentId: _alat!.id,
-      standardId: _standar!.id,
-      tanggalKalibrasi: _tanggal,
-      thermohygroId: _thermohygro.text.trim(),
-    )
-      ..suhuAwal = suhuAwal
-      ..suhuAkhir = suhuAkhir
-      ..kelembabanAwal = kelembabanAwal
-      ..kelembabanAkhir = kelembabanAkhir
-      ..nomorOrder = _nomorOrder.text.trim()
-      ..tanggalTerima = _tanggalTerima;
+    final draftPh =
+        PhCalibrationDraft(
+            equipmentId: _alat!.id,
+            standardId: _standar!.id,
+            tanggalKalibrasi: _tanggal,
+            thermohygroId: _thermohygro.text.trim(),
+          )
+          ..suhuAwal = suhuAwal
+          ..suhuAkhir = suhuAkhir
+          ..kelembabanAwal = kelembabanAwal
+          ..kelembabanAkhir = kelembabanAkhir
+          ..nomorOrder = _nomorOrder.text.trim()
+          ..tanggalTerima = _tanggalTerima;
 
     draftPh.points
       ..[0] = titikList[0]!
@@ -272,13 +300,15 @@ class _FormState extends ConsumerState<_Form> {
 
     setState(() => _mengirim = true);
 
-    final hasil = await ref.read(calibrationSubmitProvider.notifier).submit(
-      draftPh.toGenericDraft(
-        clientRequestId: _clientRequestId,
-        lokasi: _lokasi,
-        simpanSebagaiDraft: draft,
-      ),
-    );
+    final hasil = await ref
+        .read(calibrationSubmitProvider.notifier)
+        .submit(
+          draftPh.toGenericDraft(
+            clientRequestId: _clientRequestId,
+            lokasi: _lokasi,
+            simpanSebagaiDraft: draft,
+          ),
+        );
 
     if (!mounted) return;
     setState(() => _mengirim = false);
@@ -335,7 +365,9 @@ class _FormState extends ConsumerState<_Form> {
           data: (list) => DropdownButtonFormField<EquipmentLookup>(
             initialValue: _alat,
             isExpanded: true,
-            hint: Text(list.isEmpty ? l10n.calibAlatKosong : l10n.calibAlatHint),
+            hint: Text(
+              list.isEmpty ? l10n.calibAlatKosong : l10n.calibAlatHint,
+            ),
             items: list
                 .map(
                   (e) => DropdownMenuItem(
@@ -344,12 +376,17 @@ class _FormState extends ConsumerState<_Form> {
                   ),
                 )
                 .toList(),
-            onChanged: list.isEmpty ? null : (value) => setState(() => _alat = value),
+            onChanged: list.isEmpty
+                ? null
+                : (value) => setState(() => _alat = value),
           ),
         ),
         const SizedBox(height: AppSpacing.md),
 
-        Text(l10n.phCalibStandarSesi.toUpperCase(), style: theme.textTheme.labelLarge),
+        Text(
+          l10n.phCalibStandarSesi.toUpperCase(),
+          style: theme.textTheme.labelLarge,
+        ),
         const SizedBox(height: AppSpacing.sm),
         DropdownButtonFormField<Standard>(
           initialValue: _standar,
@@ -361,7 +398,9 @@ class _FormState extends ConsumerState<_Form> {
                   value: s,
                   enabled: s.masihBerlaku,
                   child: Text(
-                    s.masihBerlaku ? s.nama : '${s.nama} (${l10n.calibStandarKadaluarsa})',
+                    s.masihBerlaku
+                        ? s.nama
+                        : '${s.nama} (${l10n.calibStandarKadaluarsa})',
                     style: s.masihBerlaku
                         ? null
                         : TextStyle(color: theme.colorScheme.error),
@@ -379,7 +418,10 @@ class _FormState extends ConsumerState<_Form> {
           initialValue: _lokasi,
           isExpanded: true,
           items: [
-            DropdownMenuItem(value: LokasiKalibrasi.lab, child: Text(l10n.calibLokasiLab)),
+            DropdownMenuItem(
+              value: LokasiKalibrasi.lab,
+              child: Text(l10n.calibLokasiLab),
+            ),
             DropdownMenuItem(
               value: LokasiKalibrasi.onsite,
               child: Text(l10n.calibLokasiOnsite),
@@ -439,7 +481,10 @@ class _FormState extends ConsumerState<_Form> {
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        Text(l10n.phCalibThermohygro.toUpperCase(), style: theme.textTheme.labelLarge),
+        Text(
+          l10n.phCalibThermohygro.toUpperCase(),
+          style: theme.textTheme.labelLarge,
+        ),
         const SizedBox(height: AppSpacing.sm),
         DropdownButtonFormField<String>(
           initialValue: _thermohygroPreset,
@@ -513,10 +558,14 @@ class _FormState extends ConsumerState<_Form> {
         ),
         const SizedBox(height: AppSpacing.xl),
 
+        // Titik pertama kebuka duluan biar teknisi langsung bisa ngetik pas
+        // layar dibuka — sisanya nutup, jadi bentuk formnya kebaca dulu
+        // sebelum keburu ketakutan lihat 60 kolom sekaligus.
         _BufferPointCard(
           label: '4',
           controllers: _titik4,
           standarList: widget.standarList,
+          terbukaAwal: true,
           onStandarChanged: (v) => setState(() => _titik4.standarBuffer = v),
         ),
         const SizedBox(height: AppSpacing.md),
@@ -552,84 +601,248 @@ class _FormState extends ConsumerState<_Form> {
   }
 }
 
-class _BufferPointCard extends StatelessWidget {
+/// Satu titik buffer — bisa dilipat, dan judulnya bawa penunjuk progres.
+///
+/// Form pH punya **60+ kolom** kalau semua titik dibuka barengan. Digulung
+/// lurus begitu, teknisi gampang kehilangan jejak: nggak kelihatan titik mana
+/// yang udah kelar, dan satu kolom kelewat baru ketahuan pas submit ditolak
+/// validasi — setelah scroll jauh ke bawah.
+///
+/// Jadi tiap titik dilipat sendiri, dan judulnya nunjukin berapa kolom yang
+/// udah keisi. Yang lagi digarap kebuka, sisanya nutup — layarnya jadi sependek
+/// satu titik, bukan tiga.
+class _BufferPointCard extends StatefulWidget {
   const _BufferPointCard({
     required this.label,
     required this.controllers,
     required this.standarList,
     required this.onStandarChanged,
+    this.terbukaAwal = false,
   });
 
   final String label;
   final _TitikControllers controllers;
   final List<Standard> standarList;
   final ValueChanged<Standard?> onStandarChanged;
+  final bool terbukaAwal;
+
+  @override
+  State<_BufferPointCard> createState() => _BufferPointCardState();
+}
+
+class _BufferPointCardState extends State<_BufferPointCard> {
+  late bool _terbuka = widget.terbukaAwal;
+
+  List<TextEditingController> get _semuaKolom => [
+    widget.controllers.nilaiStandar,
+    ...widget.controllers.sebelumPh,
+    ...widget.controllers.sebelumSuhu,
+    ...widget.controllers.sesudahPh,
+    ...widget.controllers.sesudahSuhu,
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Didengerin biar angka progres di judul ikut gerak waktu teknisi ngetik,
+    // bukan cuma pas kartunya dibuka-tutup.
+    for (final c in _semuaKolom) {
+      c.addListener(_perbarui);
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final c in _semuaKolom) {
+      c.removeListener(_perbarui);
+    }
+    super.dispose();
+  }
+
+  void _perbarui() {
+    if (mounted) setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
+    final total = _semuaKolom.length + 1; // +1 buat dropdown standar buffer
+    final terisi =
+        _semuaKolom.where((c) => c.text.trim().isNotEmpty).length +
+        (widget.controllers.standarBuffer == null ? 0 : 1);
+    final lengkap = terisi == total;
+
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.phCalibTitikBuffer(label),
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            AppTextField.measurement(
-              label: l10n.phCalibNilaiStandar,
-              controller: controllers.nilaiStandar,
-              satuan: 'pH',
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              l10n.phCalibStandarBuffer.toUpperCase(),
-              style: theme.textTheme.labelLarge,
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            DropdownButtonFormField<Standard>(
-              initialValue: controllers.standarBuffer,
-              isExpanded: true,
-              hint: Text(l10n.phCalibStandarBufferHint),
-              items: standarList
-                  .map(
-                    (s) => DropdownMenuItem(
-                      value: s,
-                      enabled: s.masihBerlaku,
-                      child: Text(
-                        s.masihBerlaku
-                            ? s.nama
-                            : '${s.nama} (${l10n.calibStandarKadaluarsa})',
-                        style: s.masihBerlaku
-                            ? null
-                            : TextStyle(color: theme.colorScheme.error),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InkWell(
+            onTap: () => setState(() => _terbuka = !_terbuka),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      l10n.phCalibTitikBuffer(widget.label),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  )
-                  .toList(),
-              onChanged: onStandarChanged,
+                  ),
+                  // Pecahan, bukan kalimat: "8/22" kebaca sama di bahasa apa
+                  // pun dan muat di judul tanpa mendorong apa-apa.
+                  _LencanaProgres(terisi: terisi, total: total),
+                  const SizedBox(width: AppSpacing.xs),
+                  Icon(
+                    _terbuka ? Icons.expand_less : Icons.expand_more,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: AppSpacing.md),
-            _ReadingSection(
-              judul: l10n.phCalibSebelumAdjustment,
-              phControllers: controllers.sebelumPh,
-              suhuControllers: controllers.sebelumSuhu,
+          ),
+
+          if (!_terbuka && lengkap)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                0,
+                AppSpacing.md,
+                AppSpacing.md,
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.check_circle_outline,
+                    size: 16,
+                    color: AppColors.success,
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                    l10n.phCalibTitikLengkap,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.success,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: AppSpacing.md),
-            _ReadingSection(
-              judul: l10n.phCalibSesudahAdjustment,
-              phControllers: controllers.sesudahPh,
-              suhuControllers: controllers.sesudahSuhu,
-            ),
-          ],
+
+          if (_terbuka) _IsiTitik(state: this),
+        ],
+      ),
+    );
+  }
+}
+
+/// Lencana pecahan "8/22" di judul titik. Warnanya cuma dua keadaan: netral
+/// selama belum lengkap, hijau begitu penuh — bukan gradasi bertahap, biar
+/// "kelar" kebaca tegas, bukan kira-kira.
+class _LencanaProgres extends StatelessWidget {
+  const _LencanaProgres({required this.terisi, required this.total});
+
+  final int terisi;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final lengkap = terisi == total;
+    final warna = lengkap
+        ? AppColors.success
+        : theme.colorScheme.onSurfaceVariant;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: warna.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        '$terisi/$total',
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: warna,
+          fontWeight: FontWeight.w700,
+          fontFeatures: const [FontFeature.tabularFigures()],
         ),
+      ),
+    );
+  }
+}
+
+class _IsiTitik extends StatelessWidget {
+  const _IsiTitik({required this.state});
+
+  final _BufferPointCardState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final controllers = state.widget.controllers;
+    final standarList = state.widget.standarList;
+    final onStandarChanged = state.widget.onStandarChanged;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        0,
+        AppSpacing.md,
+        AppSpacing.md,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppTextField.measurement(
+            label: l10n.phCalibNilaiStandar,
+            controller: controllers.nilaiStandar,
+            satuan: 'pH',
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            l10n.phCalibStandarBuffer.toUpperCase(),
+            style: theme.textTheme.labelLarge,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          DropdownButtonFormField<Standard>(
+            initialValue: controllers.standarBuffer,
+            isExpanded: true,
+            hint: Text(l10n.phCalibStandarBufferHint),
+            items: standarList
+                .map(
+                  (s) => DropdownMenuItem(
+                    value: s,
+                    enabled: s.masihBerlaku,
+                    child: Text(
+                      s.masihBerlaku
+                          ? s.nama
+                          : '${s.nama} (${l10n.calibStandarKadaluarsa})',
+                      style: s.masihBerlaku
+                          ? null
+                          : TextStyle(color: theme.colorScheme.error),
+                    ),
+                  ),
+                )
+                .toList(),
+            onChanged: onStandarChanged,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          _ReadingSection(
+            judul: l10n.phCalibSebelumAdjustment,
+            phControllers: controllers.sebelumPh,
+            suhuControllers: controllers.sebelumSuhu,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          _ReadingSection(
+            judul: l10n.phCalibSesudahAdjustment,
+            phControllers: controllers.sesudahPh,
+            suhuControllers: controllers.sesudahSuhu,
+          ),
+        ],
       ),
     );
   }

@@ -1274,4 +1274,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get sheetDraftBerhasilPesan =>
       'You can pick it up again anytime from history.';
+
+  @override
+  String get phCalibTitikLengkap => 'This point is complete';
 }

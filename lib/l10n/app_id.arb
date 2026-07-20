@@ -411,5 +411,6 @@
   "sheetKirimBerhasilPesan": "Sesi kalibrasi udah masuk antrean approval admin.",
   "sheetKirimGagal": "Ada masalah",
   "sheetDraftBerhasil": "Draft tersimpan",
-  "sheetDraftBerhasilPesan": "Bisa dilanjut kapan aja dari daftar riwayat."
+  "sheetDraftBerhasilPesan": "Bisa dilanjut kapan aja dari daftar riwayat.",
+  "phCalibTitikLengkap": "Titik ini udah lengkap"
 }

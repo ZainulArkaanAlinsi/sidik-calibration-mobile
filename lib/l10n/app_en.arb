@@ -557,5 +557,6 @@
   "sheetKirimBerhasilPesan": "The session is now in the admin approval queue.",
   "sheetKirimGagal": "There is a problem",
   "sheetDraftBerhasil": "Draft saved",
-  "sheetDraftBerhasilPesan": "You can pick it up again anytime from history."
+  "sheetDraftBerhasilPesan": "You can pick it up again anytime from history.",
+  "phCalibTitikLengkap": "This point is complete"
 }
