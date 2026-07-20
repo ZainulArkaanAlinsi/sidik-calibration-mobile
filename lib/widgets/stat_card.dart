@@ -97,10 +97,14 @@ class StatCard extends StatelessWidget {
 /// tingginya ngikut isi, jadi overflow-nya nggak bisa kejadian lagi — sekalian
 /// ilangin ruang kosong yang nganggur di bawah tiap kartu.
 class StatCardRow extends StatelessWidget {
-  const StatCardRow({super.key, required this.kiri, required this.kanan});
+  const StatCardRow({super.key, required this.kiri, this.kanan});
 
   final Widget kiri;
-  final Widget kanan;
+
+  /// Boleh kosong kalau jumlah kartunya ganjil. Slot kanannya tetap dipesan
+  /// (bukan bikin kartu kiri melar selebar layar), biar lebar kartu konsisten
+  /// dengan baris-baris di atasnya.
+  final Widget? kanan;
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +114,7 @@ class StatCardRow extends StatelessWidget {
         children: [
           Expanded(child: kiri),
           const SizedBox(width: AppSpacing.sm),
-          Expanded(child: kanan),
+          Expanded(child: kanan ?? const SizedBox.shrink()),
         ],
       ),
     );
