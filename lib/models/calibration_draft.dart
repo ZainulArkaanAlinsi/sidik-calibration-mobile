@@ -15,16 +15,37 @@ enum LokasiKalibrasi {
 /// yang bisa dihitung — `docs/kontrak-api.md` §4).
 class MeasurementPoint {
   const MeasurementPoint({
-    required this.titikUkur,
     required this.satuan,
     required this.pembacaan,
+    this.titikUkur,
+    this.suhuLarutan = const [],
     this.standardId,
     this.pembacaanSebelum = const [],
-  });
+  }) : assert(
+         titikUkur != null || suhuLarutan.length > 0,
+         'Kirim salah satu: titikUkur (alat biasa) atau suhuLarutan (pH). '
+         'Tanpa dua-duanya backend nggak punya acuan buat ngitung error.',
+       );
 
-  final double titikUkur;
+  /// Nilai acuan titik ini. **Null buat pH** — di sana nilai acuannya nggak
+  /// tetap, dia geser ikut suhu larutan, jadi backend yang nurunin dari kurva
+  /// sertifikat lewat [suhuLarutan].
+  final double? titikUkur;
+
   final String satuan;
   final List<double> pembacaan;
+
+  /// Suhu larutan **per baris pembacaan** — khusus pH.
+  ///
+  /// Bukan suhu ruang. Di sesi asli 012-CAL-524 ruangannya 21,4 °C tapi
+  /// larutannya 22,1–22,2 °C dan beda tiap titik. Bedanya penting: nilai
+  /// buffer pH geser ikut suhu — pH 10 bergeser 0,1 dari 20 °C ke 30 °C,
+  /// separuh toleransi alatnya. Salah pakai suhu ruang di sini bikin
+  /// nilai acuannya meleset.
+  ///
+  /// Panjangnya **wajib sama** dengan [pembacaan] — kalau nggak, backend
+  /// nolak 422.
+  final List<double> suhuLarutan;
 
   /// Override standar acuan khusus titik ini — sebagian kategori alat (mis.
   /// pH: buffer 4/7/10) butuh standar BEDA per titik, bukan satu standar
@@ -36,7 +57,12 @@ class MeasurementPoint {
   final List<double> pembacaanSebelum;
 
   Map<String, dynamic> toJson() => {
-    'titik_ukur': titikUkur,
+    // Dikirim salah satu, nggak pernah dua-duanya:
+    //   alat biasa -> titik_ukur (jalur lama, nggak berubah)
+    //   pH         -> suhu_larutan, backend yang nurunin titik_ukur-nya
+    //                 dari kurva sertifikat buffer
+    if (titikUkur != null) 'titik_ukur': titikUkur,
+    if (suhuLarutan.isNotEmpty) 'suhu_larutan': suhuLarutan,
     'satuan': satuan,
     'pembacaan': pembacaan,
     if (standardId != null) 'standard_id': standardId,

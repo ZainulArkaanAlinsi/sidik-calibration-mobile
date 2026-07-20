@@ -114,19 +114,29 @@ class PhCalibrationDraft {
       tanggalTerima: tanggalTerima,
       measurements: [
         for (final titik in points)
-          MeasurementPoint(
-            titikUkur: titik.nilaiStandar,
-            satuan: 'pH',
-            standardId: titik.standardId,
-            pembacaan: titik.sesudahAdjustment
+          () {
+            // Ambil dari baris yang LENGKAP aja (pH + suhu dua-duanya keisi),
+            // biar `pembacaan` dan `suhu_larutan` dijamin sama panjang —
+            // backend nolak 422 kalau beda.
+            final lengkap = titik.sesudahAdjustment
                 .whereType<PhReading>()
-                .map((r) => r.ph)
-                .toList(),
-            pembacaanSebelum: titik.sebelumAdjustment
-                .whereType<PhReading>()
-                .map((r) => r.ph)
-                .toList(),
-          ),
+                .toList();
+
+            return MeasurementPoint(
+              satuan: 'pH',
+              standardId: titik.standardId,
+              // titik_ukur SENGAJA nggak dikirim buat pH. Nilai acuan buffer
+              // geser ikut suhu (pH 10 bergeser 0,1 dari 20 °C ke 30 °C —
+              // separuh toleransi alat), jadi backend yang nurunin dari kurva
+              // sertifikat Merck pakai suhu larutan di bawah.
+              pembacaan: lengkap.map((r) => r.ph).toList(),
+              suhuLarutan: lengkap.map((r) => r.suhu).toList(),
+              pembacaanSebelum: titik.sebelumAdjustment
+                  .whereType<PhReading>()
+                  .map((r) => r.ph)
+                  .toList(),
+            );
+          }(),
       ],
     );
   }
