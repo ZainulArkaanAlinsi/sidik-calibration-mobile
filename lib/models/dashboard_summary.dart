@@ -66,12 +66,17 @@ class DashboardSummary {
       alatOverdue: angka('alat_overdue'),
       kalibrasiDraft: angka('kalibrasi_draft'),
       kalibrasiSelesai: angka('kalibrasi_selesai'),
-      // Backend ngirim dua-duanya; `menunggu_proses` nama barunya, tapi yang
-      // lama tetap dibaca sebagai cadangan biar app nggak pecah kalau nembak
-      // backend versi lama.
-      menungguApproval: json['menunggu_proses'] == null
-          ? angka('menunggu_approval')
-          : angka('menunggu_proses'),
+      // JANGAN diganti `menunggu_proses`. Dua-duanya dikirim backend tapi
+      // artinya beda dan **saling tumpang tindih**:
+      //
+      //   menunggu_approval = status == menunggu_approval
+      //   menunggu_proses   = SEMUA sesi yang statusnya != disetujui
+      //                       (draft + menunggu_approval + perlu_revisi)
+      //
+      // Kartu "Draft" dan "Menunggu approval" dirender bersebelahan, jadi
+      // kalau yang kanan diisi `menunggu_proses`, sesi draft kehitung dua
+      // kali — sekali di kartu kiri, sekali lagi di kanan.
+      menungguApproval: angka('menunggu_approval'),
       sertifikatBulanIni: angka('sertifikat_bulan_ini'),
       grafikPekerjaan:
           (json['grafik_pekerjaan'] as List<dynamic>? ?? const [])

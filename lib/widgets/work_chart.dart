@@ -158,15 +158,29 @@ class _ChartPainter extends CustomPainter {
       batang(t.masuk, warnaMasuk, -(lebarBatang / 2 + jarak / 2));
       batang(t.selesai, warnaSelesai, lebarBatang / 2 + jarak / 2);
 
-      // Label periode: ambil ekornya aja ("2026-07" -> "07"). Label penuh
-      // nggak muat di slot selebar ini dan bakal tumpang tindih.
-      final label = t.periode.split('-').last;
+      final label = _label(t.periode);
       final tp = TextPainter(
         text: TextSpan(text: label, style: gayaLabel),
         textDirection: TextDirection.ltr,
       )..layout(maxWidth: lebarSlot);
       tp.paint(canvas, Offset(tengah - tp.width / 2, tinggiPlot + 4));
     }
+  }
+
+  /// Label sumbu dari `periode` kiriman backend.
+  ///
+  /// Bentuknya beda tergantung satuan, dan **mingguan itu jebakan**: backend
+  /// ngirim tanggal Senin (`2026-05-04`), bukan `2026-W18`. Jadi kalau
+  /// ekornya main diambil, "04" kebaca sebagai bulan April padahal itu
+  /// tanggal. Buat harian & mingguan dipakai `DD/MM` biar nggak ketuker.
+  ///
+  ///   `2026-07`      (bulanan) -> `07`
+  ///   `2026-05-04`   (harian/mingguan) -> `04/05`
+  static String _label(String periode) {
+    final bagian = periode.split('-');
+    if (bagian.length >= 3) return '${bagian[2]}/${bagian[1]}';
+    if (bagian.length == 2) return bagian[1];
+    return periode;
   }
 
   @override
