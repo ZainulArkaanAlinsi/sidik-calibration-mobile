@@ -86,6 +86,84 @@ class StatCard extends StatelessWidget {
   }
 }
 
+/// Kartu angka yang melebar penuh — buat angka penutup yang nggak punya
+/// pasangan.
+///
+/// Dulu kartu ganjil dipaksa masuk [StatCardRow] dan nyisain slot kosong di
+/// sebelahnya. Itu kebaca kayak layout patah, bukan disengaja. Versi melebar
+/// ini bikin ganjilnya jadi keputusan: susunannya horizontal (angka kiri,
+/// label kanan) supaya bidang lebarnya kepakai, bukan cuma kartu biasa yang
+/// ditarik melar.
+///
+/// Dipakai juga sebagai penutup daftar angka — bentuknya beda, jadi mata tahu
+/// deretnya udah habis di situ.
+class StatCardWide extends StatelessWidget {
+  const StatCardWide({
+    super.key,
+    required this.label,
+    required this.nilai,
+    required this.icon,
+    this.warna,
+    this.onTap,
+  });
+
+  final String label;
+  final int nilai;
+  final IconData icon;
+  final Color? warna;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final aksen = warna ?? theme.colorScheme.onSurface;
+
+    return SoftRaised(
+      onTap: onTap,
+      radius: AppSpacing.radiusLg,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Row(
+        children: [
+          // Ikonnya dikasih alas lingkaran berwarna tipis — di kartu selebar
+          // ini, ikon telanjang kelihatan ngambang sendirian di ujung.
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: aksen.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 22, color: aksen),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Text(
+            '$nilai',
+            style: AppTypography.measurement.copyWith(
+              fontSize: 32,
+              fontWeight: FontWeight.w700,
+              height: 40 / 32,
+              letterSpacing: -0.32,
+              color: aksen,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Text(
+              label.toUpperCase(),
+              textAlign: TextAlign.end,
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Dua kartu sebaris, tingginya disamain **ngikut isi** — bukan rasio tetap.
 ///
 /// Ini yang dulu bikin kartu overflow 7,5px: `GridView.count` maksa tiap kartu

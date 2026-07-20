@@ -151,13 +151,14 @@ class _Isi extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        StatCardRow(
-          kiri: StatCard(
-            label: l10n.dashCertsThisMonth,
-            nilai: data.sertifikatBulanIni,
-            icon: Icons.workspace_premium_outlined,
-            warna: AppColors.success,
-          ),
+        // Melebar penuh, bukan setengah dengan slot kosong di sebelahnya.
+        // Sekalian jadi penutup deret — bentuknya beda, jadi mata tahu
+        // angkanya habis di situ.
+        StatCardWide(
+          label: l10n.dashCertsThisMonth,
+          nilai: data.sertifikatBulanIni,
+          icon: Icons.workspace_premium_outlined,
+          warna: AppColors.success,
         ),
 
         if (data.alatOverdue > 0) ...[

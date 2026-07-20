@@ -51,14 +51,20 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(SkeletonBox), findsNothing);
-      expect(find.byType(StatCard), findsNWidgets(5));
+      expect(find.byType(StatCard), findsNWidgets(4));
+      // Kartu ke-5 (sertifikat) melebar penuh, bukan setengah dengan slot
+      // kosong di sebelahnya — tipenya beda, jadi dihitung terpisah.
+      expect(find.byType(StatCardWide), findsOneWidget);
     });
 
     testWidgets('NORMAL: angka-angkanya kerender', (tester) async {
       await tester.pumpWidget(_app());
       await tester.pumpAndSettle();
 
-      expect(find.byType(StatCard), findsNWidgets(5));
+      expect(find.byType(StatCard), findsNWidgets(4));
+      // Kartu ke-5 (sertifikat) melebar penuh, bukan setengah dengan slot
+      // kosong di sebelahnya — tipenya beda, jadi dihitung terpisah.
+      expect(find.byType(StatCardWide), findsOneWidget);
       expect(find.text('42'), findsOneWidget); // total alat
       expect(find.text('3'), findsOneWidget); // jatuh tempo
       expect(find.text('12'), findsOneWidget); // sertifikat bulan ini
@@ -123,7 +129,10 @@ void main() {
       expect(find.text('MULAI KALIBRASI'), findsNothing);
       expect(find.text('TAMBAH ALAT'), findsNothing);
       // Tapi tetap bisa lihat angkanya.
-      expect(find.byType(StatCard), findsNWidgets(5));
+      expect(find.byType(StatCard), findsNWidgets(4));
+      // Kartu ke-5 (sertifikat) melebar penuh, bukan setengah dengan slot
+      // kosong di sebelahnya — tipenya beda, jadi dihitung terpisah.
+      expect(find.byType(StatCardWide), findsOneWidget);
     });
   });
 
