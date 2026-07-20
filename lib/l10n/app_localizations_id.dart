@@ -1272,4 +1272,33 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get dashWorkChart => 'Grafik pekerjaan';
+
+  @override
+  String get tugasTitle => 'Tugas Saya';
+
+  @override
+  String get tugasKosong => 'Belum ada alat yang ditugaskan ke kamu.';
+
+  @override
+  String get tugasLoadGagal => 'Gagal memuat antrean tugas.';
+
+  @override
+  String get tugasRetry => 'COBA LAGI';
+
+  @override
+  String tugasJumlahAlat(int jumlah) {
+    return '$jumlah alat';
+  }
+
+  @override
+  String get tugasTelat => 'Lewat janji selesai';
+
+  @override
+  String get tugasMasuk => 'Masuk';
+
+  @override
+  String get tugasJanji => 'Janji selesai';
+
+  @override
+  String get tugasBelumDitugaskan => 'Belum dibagi';
 }

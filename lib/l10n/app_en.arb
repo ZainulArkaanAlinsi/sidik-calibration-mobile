@@ -560,5 +560,15 @@
   "sheetDraftBerhasilPesan": "You can pick it up again anytime from history.",
   "phCalibTitikLengkap": "This point is complete",
   "dashCalibrationDone": "Calibrations done",
-  "dashWorkChart": "Workload trend"
+  "dashWorkChart": "Workload trend",
+  "tugasTitle": "My Tasks",
+  "tugasKosong": "No equipment assigned to you yet.",
+  "tugasLoadGagal": "Could not load your task queue.",
+  "tugasRetry": "TRY AGAIN",
+  "tugasJumlahAlat": "{jumlah} items",
+  "@tugasJumlahAlat": { "placeholders": { "jumlah": { "type": "int" } } },
+  "tugasTelat": "Past due date",
+  "tugasMasuk": "Received",
+  "tugasJanji": "Due",
+  "tugasBelumDitugaskan": "Unassigned"
 }

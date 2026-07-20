@@ -1,9 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/customer.dart';
+import '../models/order.dart';
 import '../models/organization.dart';
 import '../models/user.dart';
 import '../services/customer_service.dart';
+import '../services/order_service.dart';
 import '../services/organization_service.dart';
 import '../services/user_service.dart';
 import 'auth_provider.dart';
@@ -108,6 +110,52 @@ class CustomerController extends AsyncNotifier<List<Customer>> {
 final userServiceProvider = Provider<UserService>(
   (ref) => ApiUserService(ref.watch(apiClientProvider)),
 );
+
+final orderServiceProvider = Provider<OrderService>(
+  (ref) => ApiOrderService(ref.watch(apiClientProvider)),
+);
+
+/// Antrean order. `teknisiId: 'saya'` dipakai layar Tugas Saya; null buat
+/// daftar penuh (admin).
+final orderListProvider =
+    AsyncNotifierProvider<OrderListController, List<OrderKalibrasi>>(
+      OrderListController.new,
+      retry: (retryCount, error) => null,
+    );
+
+class OrderListController extends AsyncNotifier<List<OrderKalibrasi>> {
+  String? _teknisiId;
+  String _search = '';
+
+  String? get filterTeknisi => _teknisiId;
+
+  @override
+  Future<List<OrderKalibrasi>> build() async {
+    final token = await ref.read(tokenStorageProvider).read();
+    if (token == null) throw const TokenHilangException();
+
+    return ref
+        .read(orderServiceProvider)
+        .daftar(token, teknisiId: _teknisiId, search: _search);
+  }
+
+  Future<void> saring({String? teknisiId}) async {
+    _teknisiId = teknisiId;
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => build());
+  }
+
+  Future<void> cari(String query) async {
+    _search = query;
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => build());
+  }
+
+  Future<void> muatUlang() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => build());
+  }
+}
 
 /// Daftar akun buat layar Data Teknisi. Filter status disimpen di sini biar
 /// `muatUlang()` sesudah setujui/tolak balik ke filter yang lagi dipakai —

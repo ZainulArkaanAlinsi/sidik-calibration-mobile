@@ -11,6 +11,7 @@ import '../equipment/equipment_list_screen.dart';
 import '../history/history_screen.dart';
 import '../notification/notification_screen.dart';
 import '../profile/profile_screen.dart';
+import '../order/my_tasks_screen.dart';
 import '../settings/customer_list_screen.dart';
 import '../settings/organization_screen.dart';
 import '../settings/standard_list_screen.dart';
@@ -148,6 +149,15 @@ class _MenuUtama extends ConsumerWidget {
               title: Text(l10n.navDashboard),
               onTap: () => keTab(0),
             ),
+            // Ditaruh paling atas sesudah Dashboard, bukan di kelompok Master
+            // Data: buat teknisi ini layar kerja harian, bukan pengaturan.
+            // Viewer nggak dikasih — dia nggak pernah ditugaskan apa pun.
+            if (user?.role.bisaInput ?? false)
+              ListTile(
+                leading: const Icon(Icons.assignment_outlined),
+                title: Text(l10n.tugasTitle),
+                onTap: () => keLayar(const MyTasksScreen()),
+              ),
             ListTile(
               leading: const Icon(Icons.history_outlined),
               title: Text(l10n.navHistory),

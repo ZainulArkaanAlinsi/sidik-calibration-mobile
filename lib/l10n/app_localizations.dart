@@ -2443,6 +2443,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Workload trend'**
   String get dashWorkChart;
+
+  /// No description provided for @tugasTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My Tasks'**
+  String get tugasTitle;
+
+  /// No description provided for @tugasKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No equipment assigned to you yet.'**
+  String get tugasKosong;
+
+  /// No description provided for @tugasLoadGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your task queue.'**
+  String get tugasLoadGagal;
+
+  /// No description provided for @tugasRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'TRY AGAIN'**
+  String get tugasRetry;
+
+  /// No description provided for @tugasJumlahAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} items'**
+  String tugasJumlahAlat(int jumlah);
+
+  /// No description provided for @tugasTelat.
+  ///
+  /// In en, this message translates to:
+  /// **'Past due date'**
+  String get tugasTelat;
+
+  /// No description provided for @tugasMasuk.
+  ///
+  /// In en, this message translates to:
+  /// **'Received'**
+  String get tugasMasuk;
+
+  /// No description provided for @tugasJanji.
+  ///
+  /// In en, this message translates to:
+  /// **'Due'**
+  String get tugasJanji;
+
+  /// No description provided for @tugasBelumDitugaskan.
+  ///
+  /// In en, this message translates to:
+  /// **'Unassigned'**
+  String get tugasBelumDitugaskan;
 }
 
 class _AppLocalizationsDelegate

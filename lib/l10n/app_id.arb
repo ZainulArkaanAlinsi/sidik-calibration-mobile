@@ -414,5 +414,14 @@
   "sheetDraftBerhasilPesan": "Bisa dilanjut kapan aja dari daftar riwayat.",
   "phCalibTitikLengkap": "Titik ini udah lengkap",
   "dashCalibrationDone": "Kalibrasi selesai",
-  "dashWorkChart": "Grafik pekerjaan"
+  "dashWorkChart": "Grafik pekerjaan",
+  "tugasTitle": "Tugas Saya",
+  "tugasKosong": "Belum ada alat yang ditugaskan ke kamu.",
+  "tugasLoadGagal": "Gagal memuat antrean tugas.",
+  "tugasRetry": "COBA LAGI",
+  "tugasJumlahAlat": "{jumlah} alat",
+  "tugasTelat": "Lewat janji selesai",
+  "tugasMasuk": "Masuk",
+  "tugasJanji": "Janji selesai",
+  "tugasBelumDitugaskan": "Belum dibagi"
 }

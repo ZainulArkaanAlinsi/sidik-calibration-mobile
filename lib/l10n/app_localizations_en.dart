@@ -1283,4 +1283,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashWorkChart => 'Workload trend';
+
+  @override
+  String get tugasTitle => 'My Tasks';
+
+  @override
+  String get tugasKosong => 'No equipment assigned to you yet.';
+
+  @override
+  String get tugasLoadGagal => 'Could not load your task queue.';
+
+  @override
+  String get tugasRetry => 'TRY AGAIN';
+
+  @override
+  String tugasJumlahAlat(int jumlah) {
+    return '$jumlah items';
+  }
+
+  @override
+  String get tugasTelat => 'Past due date';
+
+  @override
+  String get tugasMasuk => 'Received';
+
+  @override
+  String get tugasJanji => 'Due';
+
+  @override
+  String get tugasBelumDitugaskan => 'Unassigned';
 }
