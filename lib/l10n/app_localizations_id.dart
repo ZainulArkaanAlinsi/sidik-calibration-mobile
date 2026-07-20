@@ -1147,4 +1147,78 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get notifTypeRevision => 'Revisi';
+
+  @override
+  String get teknisiTitle => 'Data Teknisi';
+
+  @override
+  String get teknisiFilterSemua => 'Semua';
+
+  @override
+  String get teknisiFilterPending => 'Pending';
+
+  @override
+  String get teknisiFilterAktif => 'Aktif';
+
+  @override
+  String get teknisiFilterNonaktif => 'Nonaktif';
+
+  @override
+  String get teknisiKosong => 'Belum ada akun di filter ini.';
+
+  @override
+  String get teknisiLoadGagal => 'Gagal memuat daftar akun.';
+
+  @override
+  String get teknisiRetry => 'Coba lagi';
+
+  @override
+  String get teknisiSetujui => 'Setujui';
+
+  @override
+  String get teknisiTolak => 'Nonaktifkan';
+
+  @override
+  String get teknisiResetPassword => 'Reset password';
+
+  @override
+  String get teknisiPilihRole => 'Pilih role buat akun ini';
+
+  @override
+  String get teknisiPilihRoleBatal => 'Batal';
+
+  @override
+  String get teknisiDisetujui => 'Akun disetujui.';
+
+  @override
+  String get teknisiDitolak => 'Akun dinonaktifkan.';
+
+  @override
+  String get teknisiPasswordDireset =>
+      'Password direset. Password baru dikirim ke pemilik akun.';
+
+  @override
+  String get teknisiGagal => 'Aksi gagal. Coba lagi.';
+
+  @override
+  String get teknisiKonfirmTolakJudul => 'Nonaktifkan akun ini?';
+
+  @override
+  String get teknisiKonfirmTolakIsi =>
+      'Dia bakal dikeluarkan dari semua perangkat dan nggak bisa login lagi. Riwayat kalibrasi yang lama tetap utuh.';
+
+  @override
+  String get teknisiTanpaEmployeeId => 'Tanpa ID pegawai';
+
+  @override
+  String get teknisiHanyaAdmin => 'Cuma admin yang bisa kelola akun.';
+
+  @override
+  String get menuUtama => 'Menu utama';
+
+  @override
+  String get menuMasterData => 'Master Data';
+
+  @override
+  String get menuPengaturan => 'Pengaturan';
 }
