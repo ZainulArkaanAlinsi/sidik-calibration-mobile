@@ -515,5 +515,13 @@
   "notifMarkedRead": "Marked as read.",
   "notifTypeDueDate": "Due date",
   "notifTypeApproval": "Approval",
-  "notifTypeRevision": "Revision"
+  "notifTypeRevision": "Revision",
+
+  "sheetTutup": "CLOSE",
+  "sheetCobaLagi": "TRY AGAIN",
+  "sheetKirimBerhasil": "Sent!",
+  "sheetKirimBerhasilPesan": "The session is now in the admin approval queue.",
+  "sheetKirimGagal": "There is a problem",
+  "sheetDraftBerhasil": "Draft saved",
+  "sheetDraftBerhasilPesan": "You can pick it up again anytime from history."
 }
