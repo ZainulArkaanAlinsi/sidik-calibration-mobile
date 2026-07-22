@@ -1,5 +1,9 @@
 # Permintaan Backend — Fase 2 (Peran, Arsip, Sertifikat Lengkap, Laporan)
 
+> ⚠️ **Baca [`BACA-DULU-BACKEND.md`](BACA-DULU-BACKEND.md) dulu.** Sebagian isi
+> dokumen ini udah dikerjain backend duluan; halaman itu yang nandain mana yang
+> masih berlaku.
+
 Lanjutan dari [`permintaan-endpoint.md`](permintaan-endpoint.md). Dokumen itu
 nutup celah Fase 1 (Dashboard, Master Data, Order, Input Pengukuran); nomor 1–4
 di sana **udah kelar**, nomor 5 masih terbuka.
@@ -201,47 +205,38 @@ ngirim sertifikat ke siapa, kapan.
 
 ---
 
-## 4. Arsip: bikin & hapus folder/file
+## 4. ~~Arsip: bikin & hapus folder/file~~ — ✅ **UDAH DIBIKIN, JANGAN DIULANG**
 
-Permintaan Zainul: *"kita bikin folder, hapus folder atau file-nya, pokoknya
-semuanya harus bisa."*
+*Dicoret 22 Juli 2026 sore.* Waktu bagian ini ditulis (22 Juli pagi), arsip
+masih read-only. Ternyata **backend udah ngerjain ini duluan** di branch
+`feat/kalibrasi-ph-lengkap-dan-arsip` — 24 test di `tests/Feature/FolderArsipTest.php`.
 
-Sekarang arsip **read-only**: `GET /arsip/perusahaan` →
-`/arsip/perusahaan/{customer}` → `/arsip/alat/{equipment}`. Nggak ada cara
-bikin, ganti nama, atau hapus apa pun.
-
-**Yang diminta:**
+Endpoint yang udah jalan (`routes/api.php`):
 
 ```
-POST   /api/arsip/folder            { "nama": "...", "induk_id": 3 }
-PUT    /api/arsip/folder/{id}       { "nama": "..." }
-DELETE /api/arsip/folder/{id}
-POST   /api/arsip/file              (multipart: file, folder_id)
-DELETE /api/arsip/file/{id}
-GET    /api/arsip/file/{id}/download
+GET    /api/arsip/perusahaan/{customer}/folder
+GET    /api/arsip/folders/{folder}
+POST   /api/arsip/folders
+PUT    /api/arsip/folders/{folder}
+PUT    /api/arsip/folders/{folder}/pindah
+DELETE /api/arsip/folders/{folder}
+PUT    /api/arsip/berkas/{calibration}/pindah
 ```
 
-### Pertanyaan yang harus dijawab sebelum ini dibikin
+Lima pertanyaan yang dulu ditulis di sini **udah kejawab** di
+`asmo-api/HANDOFF-FOLDER-ARSIP.md`, dan jawabannya searah sama saran kami:
 
-Ini bukan CRUD biasa — arsip lab itu barang audit. Tolong diputuskan:
+| Pertanyaan | Keputusan backend |
+|---|---|
+| Siapa boleh nyusun/hapus | Admin & teknisi; viewer `403` |
+| Folder berisi boleh dihapus | **Nggak** — `422`, dan **nggak ada cascade** sama sekali |
+| Folder akar perusahaan | Nggak bisa di-rename/pindah/hapus |
+| Sertifikat kekunci ke perusahaan | Ya, disengaja — nggak bisa dipindah lintas perusahaan |
+| Lapis pengaman kedua | `calibration_sessions.folder_id` pakai `nullOnDelete` |
 
-1. **Siapa boleh hapus?** Saran kami: **admin doang**. Teknisi boleh unggah,
-   nggak boleh hapus.
-2. **Hapus itu beneran hilang, atau ditandai?** Saran kami **soft delete**.
-   Folder pelanggan bisa berisi sertifikat yang jadi bukti akreditasi KAN —
-   kalau kehapus permanen gara-gara salah pencet, nggak ada jalan balik.
-3. **Folder yang masih ada isinya boleh dihapus?** Saran kami **ditolak `422`**
-   dengan pesan jelas, sama polanya kayak "pelanggan masih punya alat nggak
-   bisa dihapus" yang udah jalan sekarang.
-4. **Sertifikat terbit boleh dihapus dari arsip?** Saran kami **tidak, sama
-   sekali**. Nomor sertifikat yang udah dipegang pelanggan harus selalu bisa
-   ditelusuri.
-5. **Batas jenis & ukuran file?** Mobile perlu tahu biar bisa nolak sebelum
-   ngunggah, bukan nunggu server nolak setelah user nunggu lama.
-
-Mobile nggak akan bikin tombol Hapus sampai poin 1–4 diputuskan. Tombol hapus
-yang perilakunya belum jelas di aplikasi lab terakreditasi itu risiko, bukan
-fitur.
+**Yang tersisa buat backend di bagian ini: nggak ada.** Sisanya pekerjaan
+mobile (layar `arsip_screen.dart` udah ada, tinggal disambungin ke endpoint
+nyusun folder).
 
 ---
 
@@ -282,7 +277,7 @@ laporan dengan angka beda itu temuan.
 | 3b | `qr_token` di objek sertifikat | **Sangat kecil** | QR verifikasi | Endpoint verify-nya udah ada |
 | 3c | Penanda tangan / Manajer Teknis | Sedang | Blok TTD | Perlu keputusan role dulu |
 | 3d | `POST /certificates/{id}/kirim-email` | Sedang | Kirim sertifikat ke pelanggan | |
-| 4 | CRUD folder & file arsip | Sedang–Besar | Bikin/hapus folder | **5 pertanyaan harus dijawab dulu** |
+| ~~4~~ | ~~CRUD folder & file arsip~~ | — | — | ✅ **UDAH ADA, jangan diulang** |
 | 5 | `GET /laporan/kalibrasi` + export | Besar | Seluruh bagian Laporan | |
 
 **Paling murah & bisa dirilis besok:** 3b (`qr_token`) dan §5 di dokumen

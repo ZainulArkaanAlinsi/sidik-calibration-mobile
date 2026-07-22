@@ -1,5 +1,9 @@
 # Permintaan Endpoint Baru — dari Mobile ke Backend
 
+> ⚠️ **Baca [`BACA-DULU-BACKEND.md`](BACA-DULU-BACKEND.md) dulu.** Sebagian isi
+> dokumen ini udah dikerjain backend duluan; halaman itu yang nandain mana yang
+> masih berlaku.
+
 Dokumen ini nutup celah antara spec fitur yang diminta atasan sama endpoint
 yang sekarang ada di `sidik-calibration-api`. Formatnya ngikutin
 [`kontrak-api.md`](kontrak-api.md).
