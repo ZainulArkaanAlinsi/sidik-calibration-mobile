@@ -314,6 +314,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Manage the lab\'s reference/standard equipment';
 
   @override
+  String get profArsip => 'Archive';
+
+  @override
+  String get profArsipSub => 'Company folders, instruments & certificate files';
+
+  @override
   String get profDesignSystem => 'Design System';
 
   @override
@@ -790,6 +796,84 @@ class AppLocalizationsEn extends AppLocalizations {
       'Some OCR readings still need confirming — this session can\'t be approved yet.';
 
   @override
+  String get arsipTitle => 'Archive';
+
+  @override
+  String get arsipCariPerusahaan => 'Search company...';
+
+  @override
+  String get arsipPerusahaanKosong => 'No companies yet.';
+
+  @override
+  String get arsipFolderKosong => 'This folder is empty.';
+
+  @override
+  String get arsipLoadGagal => 'Couldn\'t load the archive.';
+
+  @override
+  String get arsipRetry => 'RETRY';
+
+  @override
+  String arsipRingkasPerusahaan(int alat, int sertifikat) {
+    return '$alat instruments · $sertifikat certificates';
+  }
+
+  @override
+  String arsipRingkasFolder(int subfolder, int berkas) {
+    return '$subfolder folders · $berkas files';
+  }
+
+  @override
+  String get arsipFolderBaru => 'New folder';
+
+  @override
+  String get arsipNamaFolder => 'Folder name';
+
+  @override
+  String get arsipNamaFolderHint => 'e.g. 2026';
+
+  @override
+  String get arsipBuat => 'CREATE';
+
+  @override
+  String get arsipBatal => 'CANCEL';
+
+  @override
+  String get arsipSimpan => 'SAVE';
+
+  @override
+  String get arsipGantiNama => 'Rename';
+
+  @override
+  String get arsipHapus => 'Delete';
+
+  @override
+  String get arsipHapusJudul => 'Delete this folder?';
+
+  @override
+  String arsipHapusIsi(String nama) {
+    return 'Folder \"$nama\" will be removed. Only empty folders can be deleted.';
+  }
+
+  @override
+  String get arsipTakBisaHapus => 'Move or delete its contents first.';
+
+  @override
+  String get arsipFolderSistem => 'Company folder — managed automatically.';
+
+  @override
+  String get arsipBerkasTanpaSertifikat => 'No certificate yet';
+
+  @override
+  String get arsipDibuat => 'Folder created.';
+
+  @override
+  String get arsipDiubah => 'Folder renamed.';
+
+  @override
+  String get arsipDihapus => 'Folder deleted.';
+
+  @override
   String get orgTitle => 'Organization Data';
 
   @override
@@ -1238,6 +1322,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get phCalibSesudahAdjustment => 'After adjustment (as left)';
 
   @override
+  String get phCalibCaraJudul => 'How do you want to fill this in?';
+
+  @override
+  String get phCalibCaraSub =>
+      'Pick once. You can still use the camera button later on the data page.';
+
+  @override
+  String get phCalibCaraFoto => 'Photograph the worksheet';
+
+  @override
+  String get phCalibCaraFotoKeterangan =>
+      'Snap the filled-in table — the fields populate automatically';
+
+  @override
+  String get phCalibCaraManual => 'Type it in';
+
+  @override
+  String get phCalibCaraManualKeterangan => 'Fill each field yourself';
+
+  @override
+  String get phCalibCaraCatatan =>
+      'Values from a photo must still be checked before submitting. An issued certificate cannot be changed.';
+
+  @override
   String get phCalibScanTooltip => 'Photograph the pH meter display';
 
   @override
@@ -1246,6 +1354,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get phCalibScanError => 'Couldn\'t open the camera.';
+
+  @override
+  String get phCalibFotoTabel => 'PHOTO TABLE';
+
+  @override
+  String get phCalibFotoTabelSesudah => 'After adjustment';
+
+  @override
+  String get phCalibFotoTabelSebelum => 'Before adjustment';
+
+  @override
+  String get phCalibFotoTabelJudul => 'Which table are you photographing?';
+
+  @override
+  String get phCalibFotoTabelInfo =>
+      'One shot fills the whole table for all three buffers. Cells you already filled are never overwritten — reshoot as many times as you need.';
+
+  @override
+  String phCalibFotoTabelHasil(int terisi, int total) {
+    return '$terisi of $total cells filled.';
+  }
+
+  @override
+  String get phCalibFotoTabelKosong =>
+      'No numbers could be read. Get closer and shoot straight-on, or type it in manually.';
+
+  @override
+  String get phCalibFotoTabelSisa =>
+      'Empty cells: type them in or reshoot — nothing you already entered will be replaced.';
 
   @override
   String get phCalibOcrBelumDikonfirmasi => 'From camera — please check';

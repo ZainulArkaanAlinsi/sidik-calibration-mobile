@@ -129,6 +129,8 @@
   "profCustomersSub": "Manage the lab's customer list",
   "profStandards": "Reference Standards",
   "profStandardsSub": "Manage the lab's reference/standard equipment",
+  "profArsip": "Archive",
+  "profArsipSub": "Company folders, instruments & certificate files",
   "profDesignSystem": "Design System",
   "profDesignSystemSub": "Color, typography & component catalog",
   "profAppInfo": "App Info",
@@ -344,6 +346,48 @@
   "detailAsFoundCatatan": "Documents the state the instrument arrived in — not part of the certified result.",
   "detailPerluVerifikasi": "Some OCR readings still need confirming — this session can't be approved yet.",
 
+  "arsipTitle": "Archive",
+  "arsipCariPerusahaan": "Search company...",
+  "arsipPerusahaanKosong": "No companies yet.",
+  "arsipFolderKosong": "This folder is empty.",
+  "arsipLoadGagal": "Couldn't load the archive.",
+  "arsipRetry": "RETRY",
+  "arsipRingkasPerusahaan": "{alat} instruments · {sertifikat} certificates",
+  "@arsipRingkasPerusahaan": {
+    "placeholders": {
+      "alat": { "type": "int" },
+      "sertifikat": { "type": "int" }
+    }
+  },
+  "arsipRingkasFolder": "{subfolder} folders · {berkas} files",
+  "@arsipRingkasFolder": {
+    "placeholders": {
+      "subfolder": { "type": "int" },
+      "berkas": { "type": "int" }
+    }
+  },
+  "arsipFolderBaru": "New folder",
+  "arsipNamaFolder": "Folder name",
+  "arsipNamaFolderHint": "e.g. 2026",
+  "arsipBuat": "CREATE",
+  "arsipBatal": "CANCEL",
+  "arsipSimpan": "SAVE",
+  "arsipGantiNama": "Rename",
+  "arsipHapus": "Delete",
+  "arsipHapusJudul": "Delete this folder?",
+  "arsipHapusIsi": "Folder \"{nama}\" will be removed. Only empty folders can be deleted.",
+  "@arsipHapusIsi": {
+    "placeholders": {
+      "nama": { "type": "String" }
+    }
+  },
+  "arsipTakBisaHapus": "Move or delete its contents first.",
+  "arsipFolderSistem": "Company folder — managed automatically.",
+  "arsipBerkasTanpaSertifikat": "No certificate yet",
+  "arsipDibuat": "Folder created.",
+  "arsipDiubah": "Folder renamed.",
+  "arsipDihapus": "Folder deleted.",
+
   "orgTitle": "Organization Data",
   "orgNama": "Company name",
   "orgAlamat": "Address",
@@ -549,9 +593,30 @@
   "phCalibNilaiStandarSebelum": "As-found reference value",
   "phCalibSebelumAdjustment": "Before adjustment (as found)",
   "phCalibSesudahAdjustment": "After adjustment (as left)",
+  "phCalibCaraJudul": "How do you want to fill this in?",
+  "phCalibCaraSub": "Pick once. You can still use the camera button later on the data page.",
+  "phCalibCaraFoto": "Photograph the worksheet",
+  "phCalibCaraFotoKeterangan": "Snap the filled-in table — the fields populate automatically",
+  "phCalibCaraManual": "Type it in",
+  "phCalibCaraManualKeterangan": "Fill each field yourself",
+  "phCalibCaraCatatan": "Values from a photo must still be checked before submitting. An issued certificate cannot be changed.",
   "phCalibScanTooltip": "Photograph the pH meter display",
   "phCalibScanGagal": "Couldn't read the number clearly. Try a closer photo, or type it in.",
   "phCalibScanError": "Couldn't open the camera.",
+  "phCalibFotoTabel": "PHOTO TABLE",
+  "phCalibFotoTabelSesudah": "After adjustment",
+  "phCalibFotoTabelSebelum": "Before adjustment",
+  "phCalibFotoTabelJudul": "Which table are you photographing?",
+  "phCalibFotoTabelInfo": "One shot fills the whole table for all three buffers. Cells you already filled are never overwritten — reshoot as many times as you need.",
+  "phCalibFotoTabelHasil": "{terisi} of {total} cells filled.",
+  "@phCalibFotoTabelHasil": {
+    "placeholders": {
+      "terisi": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "phCalibFotoTabelKosong": "No numbers could be read. Get closer and shoot straight-on, or type it in manually.",
+  "phCalibFotoTabelSisa": "Empty cells: type them in or reshoot — nothing you already entered will be replaced.",
   "phCalibOcrBelumDikonfirmasi": "From camera — please check",
   "phCalibOcrKonfirmasi": "CONFIRM",
   "phCalibPembacaanKe": "Reading {index}",

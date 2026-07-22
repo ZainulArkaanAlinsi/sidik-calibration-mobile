@@ -674,6 +674,18 @@ abstract class AppLocalizations {
   /// **'Manage the lab\'s reference/standard equipment'**
   String get profStandardsSub;
 
+  /// No description provided for @profArsip.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get profArsip;
+
+  /// No description provided for @profArsipSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Company folders, instruments & certificate files'**
+  String get profArsipSub;
+
   /// No description provided for @profDesignSystem.
   ///
   /// In en, this message translates to:
@@ -1544,6 +1556,150 @@ abstract class AppLocalizations {
   /// **'Some OCR readings still need confirming — this session can\'t be approved yet.'**
   String get detailPerluVerifikasi;
 
+  /// No description provided for @arsipTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get arsipTitle;
+
+  /// No description provided for @arsipCariPerusahaan.
+  ///
+  /// In en, this message translates to:
+  /// **'Search company...'**
+  String get arsipCariPerusahaan;
+
+  /// No description provided for @arsipPerusahaanKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No companies yet.'**
+  String get arsipPerusahaanKosong;
+
+  /// No description provided for @arsipFolderKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'This folder is empty.'**
+  String get arsipFolderKosong;
+
+  /// No description provided for @arsipLoadGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the archive.'**
+  String get arsipLoadGagal;
+
+  /// No description provided for @arsipRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'RETRY'**
+  String get arsipRetry;
+
+  /// No description provided for @arsipRingkasPerusahaan.
+  ///
+  /// In en, this message translates to:
+  /// **'{alat} instruments · {sertifikat} certificates'**
+  String arsipRingkasPerusahaan(int alat, int sertifikat);
+
+  /// No description provided for @arsipRingkasFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'{subfolder} folders · {berkas} files'**
+  String arsipRingkasFolder(int subfolder, int berkas);
+
+  /// No description provided for @arsipFolderBaru.
+  ///
+  /// In en, this message translates to:
+  /// **'New folder'**
+  String get arsipFolderBaru;
+
+  /// No description provided for @arsipNamaFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder name'**
+  String get arsipNamaFolder;
+
+  /// No description provided for @arsipNamaFolderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 2026'**
+  String get arsipNamaFolderHint;
+
+  /// No description provided for @arsipBuat.
+  ///
+  /// In en, this message translates to:
+  /// **'CREATE'**
+  String get arsipBuat;
+
+  /// No description provided for @arsipBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'CANCEL'**
+  String get arsipBatal;
+
+  /// No description provided for @arsipSimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE'**
+  String get arsipSimpan;
+
+  /// No description provided for @arsipGantiNama.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get arsipGantiNama;
+
+  /// No description provided for @arsipHapus.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get arsipHapus;
+
+  /// No description provided for @arsipHapusJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this folder?'**
+  String get arsipHapusJudul;
+
+  /// No description provided for @arsipHapusIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder \"{nama}\" will be removed. Only empty folders can be deleted.'**
+  String arsipHapusIsi(String nama);
+
+  /// No description provided for @arsipTakBisaHapus.
+  ///
+  /// In en, this message translates to:
+  /// **'Move or delete its contents first.'**
+  String get arsipTakBisaHapus;
+
+  /// No description provided for @arsipFolderSistem.
+  ///
+  /// In en, this message translates to:
+  /// **'Company folder — managed automatically.'**
+  String get arsipFolderSistem;
+
+  /// No description provided for @arsipBerkasTanpaSertifikat.
+  ///
+  /// In en, this message translates to:
+  /// **'No certificate yet'**
+  String get arsipBerkasTanpaSertifikat;
+
+  /// No description provided for @arsipDibuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder created.'**
+  String get arsipDibuat;
+
+  /// No description provided for @arsipDiubah.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder renamed.'**
+  String get arsipDiubah;
+
+  /// No description provided for @arsipDihapus.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder deleted.'**
+  String get arsipDihapus;
+
   /// No description provided for @orgTitle.
   ///
   /// In en, this message translates to:
@@ -2354,6 +2510,48 @@ abstract class AppLocalizations {
   /// **'After adjustment (as left)'**
   String get phCalibSesudahAdjustment;
 
+  /// No description provided for @phCalibCaraJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'How do you want to fill this in?'**
+  String get phCalibCaraJudul;
+
+  /// No description provided for @phCalibCaraSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick once. You can still use the camera button later on the data page.'**
+  String get phCalibCaraSub;
+
+  /// No description provided for @phCalibCaraFoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Photograph the worksheet'**
+  String get phCalibCaraFoto;
+
+  /// No description provided for @phCalibCaraFotoKeterangan.
+  ///
+  /// In en, this message translates to:
+  /// **'Snap the filled-in table — the fields populate automatically'**
+  String get phCalibCaraFotoKeterangan;
+
+  /// No description provided for @phCalibCaraManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Type it in'**
+  String get phCalibCaraManual;
+
+  /// No description provided for @phCalibCaraManualKeterangan.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill each field yourself'**
+  String get phCalibCaraManualKeterangan;
+
+  /// No description provided for @phCalibCaraCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Values from a photo must still be checked before submitting. An issued certificate cannot be changed.'**
+  String get phCalibCaraCatatan;
+
   /// No description provided for @phCalibScanTooltip.
   ///
   /// In en, this message translates to:
@@ -2371,6 +2569,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t open the camera.'**
   String get phCalibScanError;
+
+  /// No description provided for @phCalibFotoTabel.
+  ///
+  /// In en, this message translates to:
+  /// **'PHOTO TABLE'**
+  String get phCalibFotoTabel;
+
+  /// No description provided for @phCalibFotoTabelSesudah.
+  ///
+  /// In en, this message translates to:
+  /// **'After adjustment'**
+  String get phCalibFotoTabelSesudah;
+
+  /// No description provided for @phCalibFotoTabelSebelum.
+  ///
+  /// In en, this message translates to:
+  /// **'Before adjustment'**
+  String get phCalibFotoTabelSebelum;
+
+  /// No description provided for @phCalibFotoTabelJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Which table are you photographing?'**
+  String get phCalibFotoTabelJudul;
+
+  /// No description provided for @phCalibFotoTabelInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'One shot fills the whole table for all three buffers. Cells you already filled are never overwritten — reshoot as many times as you need.'**
+  String get phCalibFotoTabelInfo;
+
+  /// No description provided for @phCalibFotoTabelHasil.
+  ///
+  /// In en, this message translates to:
+  /// **'{terisi} of {total} cells filled.'**
+  String phCalibFotoTabelHasil(int terisi, int total);
+
+  /// No description provided for @phCalibFotoTabelKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No numbers could be read. Get closer and shoot straight-on, or type it in manually.'**
+  String get phCalibFotoTabelKosong;
+
+  /// No description provided for @phCalibFotoTabelSisa.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty cells: type them in or reshoot — nothing you already entered will be replaced.'**
+  String get phCalibFotoTabelSisa;
 
   /// No description provided for @phCalibOcrBelumDikonfirmasi.
   ///
