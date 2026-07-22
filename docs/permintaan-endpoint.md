@@ -14,6 +14,10 @@ kemungkinan cuma nambah beberapa baris di controller yang udah ada.
 > dipakai mobile — nggak usah dikerjain lagi, ditahan di sini biar keputusannya
 > keingat. Yang masih terbuka cuma **nomor 5** (+ satu hal yang perlu
 > disepakati soal `room_id`). Lihat tabel di bagian 7.
+>
+> Permintaan lanjutan (peran & hak akses, notifikasi ke admin, pelengkap
+> sertifikat, CRUD arsip, Laporan) ada di dokumen terpisah:
+> [`permintaan-endpoint-fase-2.md`](permintaan-endpoint-fase-2.md).
 
 ---
 
