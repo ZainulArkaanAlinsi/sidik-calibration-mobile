@@ -1375,6 +1375,20 @@ class AppLocalizationsId extends AppLocalizations {
   String get phCalibSignedByHint => 'mis. Alex Misramto';
 
   @override
+  String get phCalibLiveJudul => 'Arahkan ke tabel';
+
+  @override
+  String get phCalibLivePetunjuk =>
+      'Arahkan kamera ke tabel worksheet. Angka yang kebaca bakal muncul mengambang di layar.';
+
+  @override
+  String get phCalibLivePakai => 'PAKAI ANGKA INI';
+
+  @override
+  String get phCalibLiveTanpaKamera =>
+      'Kamera nggak ketemu di HP ini. Kolomnya tetap bisa diketik manual.';
+
+  @override
   String get phCalibCaraJudul => 'Mau diisi bagaimana?';
 
   @override

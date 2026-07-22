@@ -2636,6 +2636,30 @@ abstract class AppLocalizations {
   /// **'e.g. Alex Misramto'**
   String get phCalibSignedByHint;
 
+  /// No description provided for @phCalibLiveJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Point at the table'**
+  String get phCalibLiveJudul;
+
+  /// No description provided for @phCalibLivePetunjuk.
+  ///
+  /// In en, this message translates to:
+  /// **'Point the camera at the worksheet table. Numbers that are recognised will float on screen.'**
+  String get phCalibLivePetunjuk;
+
+  /// No description provided for @phCalibLivePakai.
+  ///
+  /// In en, this message translates to:
+  /// **'USE THESE NUMBERS'**
+  String get phCalibLivePakai;
+
+  /// No description provided for @phCalibLiveTanpaKamera.
+  ///
+  /// In en, this message translates to:
+  /// **'No camera found on this phone. You can still type the values in.'**
+  String get phCalibLiveTanpaKamera;
+
   /// No description provided for @phCalibCaraJudul.
   ///
   /// In en, this message translates to:

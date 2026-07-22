@@ -51,6 +51,12 @@ dependencies:
   # pH meter buat scan pembacaan (lihat `ocr_service.dart`).
   image_picker: ^1.1.2
 
+  # Pratinjau kamera langsung buat scan worksheet (`live_scan_screen.dart`).
+  # Beda dari `image_picker` yang cuma sekali jepret: aliran frame bawa
+  # metadata rotasi sensor, dan itu yang bikin foto miring/terbalik tetap
+  # kebaca — masalah yang nggak bisa diselesaikan dari foto diam.
+  camera: ^0.11.0
+
   # Baca angka dari foto layar pH meter — **on-device**, nggak ada foto yang
   # dikirim ke server buat dikenali. Backend emang minta begitu: hasil scan
   # masuk lewat endpoint kalibrasi yang sama kayak input manual, cuma beda

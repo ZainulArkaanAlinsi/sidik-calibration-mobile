@@ -53,8 +53,6 @@ class _PhCalibrationInputScreenState
   /// ngisi kolom pembacaan begitu form-nya kebuka.
   HasilTabelOcr? _hasilFoto;
 
-  bool _memproses = false;
-
   /// Pilih "Foto" = **kamera langsung kebuka**, bukan cuma nyetel penanda.
   ///
   /// Versi pertama cuma nandain pilihan lalu nunggu teknisi sampai halaman 2
@@ -66,46 +64,32 @@ class _PhCalibrationInputScreenState
       return;
     }
 
-    final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
+    // Kamera LIVE, bukan sekali jepret.
+    //
+    // Dua hal yang cuma bisa didapat dari aliran frame, dan dua-duanya sebab
+    // terbesar scan gagal di lapangan:
+    //   1. Angka yang kebaca kelihatan mengambang SAMBIL ngarahin, jadi
+    //      teknisi geser sampai muncul — bukan jepret lalu kecewa.
+    //   2. Tiap frame bawa `sensorOrientation`, jadi HP yang dipegang miring
+    //      atau kebalik tetap kebaca. Foto diam nggak punya info ini, dan
+    //      itu nggak bisa dibetulin sesudahnya.
+    final hasil = await ref.read(scanLangsungProvider)(
+      context,
+      jumlahTitik: PhCalibrationDraft.labelTitik.length,
+    );
 
-    setState(() => _memproses = true);
-    try {
-      final foto = await ref.read(sumberFotoProvider).ambil(imageQuality: 100);
+    if (!mounted) return;
 
-      // Batal motret = balik ke gerbang, bukan nyelonong masuk form kosong
-      // dalam mode foto — nanti teknisi nunggu kamera yang nggak bakal muncul.
-      if (foto == null) {
-        if (mounted) setState(() => _memproses = false);
-        return;
-      }
+    // Mundur dari layar scan = balik ke gerbang, bukan nyelonong masuk form
+    // dalam mode foto — nanti teknisi nungguin kamera yang nggak bakal muncul.
+    if (hasil == null) return;
 
-      final hasil = await ref
-          .read(worksheetOcrServiceProvider)
-          .bacaTabel(foto, jumlahTitik: PhCalibrationDraft.labelTitik.length);
-
-      if (!mounted) return;
-
-      // Foto gagal dibaca tetap masuk form — teknisi udah di lapangan sama
-      // alatnya, nyuruh dia ngulang dari gerbang cuma bikin buntu. Kolomnya
-      // kosong, tinggal diketik.
-      if (hasil == null) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(l10n.phCalibFotoTabelKosong)),
-        );
-      }
-
-      setState(() {
-        _hasilFoto = hasil;
-        _cara = cara;
-        _memproses = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text(l10n.phCalibScanError)));
-      setState(() => _memproses = false);
-    }
+    setState(() {
+      _hasilFoto = hasil;
+      _cara = cara;
+    });
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -115,9 +99,7 @@ class _PhCalibrationInputScreenState
     final standar = standarAsync.value;
 
     final Widget isi;
-    if (_memproses) {
-      isi = _MembacaFoto(pesan: l10n.phCalibFotoMembaca);
-    } else if (_cara == null) {
+    if (_cara == null) {
       isi = _PilihCaraIsi(onPilih: _pilih);
     } else if (standar != null) {
       isi = _Wizard(
@@ -288,41 +270,6 @@ class _PasanganKolom extends StatelessWidget {
   }
 }
 
-/// Layar tunggu waktu foto lagi dibaca.
-///
-/// Bukan spinner telanjang: baca satu tabel penuh bisa beberapa detik di HP
-/// kelas menengah, dan layar diam tanpa keterangan bikin teknisi ngira
-/// app-nya nge-hang lalu nekan-nekan lagi.
-class _MembacaFoto extends StatelessWidget {
-  const _MembacaFoto({required this.pesan});
-
-  final String pesan;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              pesan,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 /// Gerbang depan: diketik manual, atau difoto sekali.
 ///

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,6 +22,7 @@ Widget _app({
   SumberFoto? sumberFoto,
   OcrService? ocr,
   WorksheetOcrService? worksheetOcr,
+  ScanLangsung? scanLangsung,
 }) {
   return ProviderScope(
     overrides: [
@@ -33,6 +32,8 @@ Widget _app({
       if (ocr != null) ocrServiceProvider.overrideWithValue(ocr),
       if (worksheetOcr != null)
         worksheetOcrServiceProvider.overrideWithValue(worksheetOcr),
+      if (scanLangsung != null)
+        scanLangsungProvider.overrideWithValue(scanLangsung),
       tokenStorageProvider.overrideWithValue(
         InMemoryTokenStorage('mock-token-1'),
       ),
@@ -202,19 +203,6 @@ Future<void> _isiHalaman2(WidgetTester tester) async {
   }
 }
 
-/// Sumber foto yang nyatet berapa kali kamera dipanggil.
-///
-/// Dipakai buat ngunci inti perbaikan: milih "Foto" di gerbang harus MANGGIL
-/// kamera saat itu juga, bukan cuma nyetel penanda lalu nunggu halaman 2.
-class _SumberFotoTercatat implements SumberFoto {
-  int dipanggil = 0;
-
-  @override
-  Future<File?> ambil({int? maxWidth, int? imageQuality}) async {
-    dipanggil++;
-    return File('tes-foto.png');
-  }
-}
 
 /// Tabel hasil OCR contoh — angkanya dari worksheet asli 012-CAL-524,
 /// baris "Before Adjustment" pengulangan ke-1.
@@ -261,15 +249,17 @@ void main() {
       expect(find.text('Foto worksheet'), findsNothing);
     });
 
-    testWidgets('pilih "Foto worksheet" → kamera kebuka LANGSUNG dari gerbang', (
+    testWidgets('pilih "Foto worksheet" → pemindai kebuka LANGSUNG dari gerbang', (
       tester,
     ) async {
       _perbesarViewport(tester);
-      final sumber = _SumberFotoTercatat();
+      var dipanggil = 0;
       await tester.pumpWidget(
         _app(
-          sumberFoto: sumber,
-          worksheetOcr: MockWorksheetOcrService(hasil: _tabelContoh()),
+          scanLangsung: (context, {int jumlahTitik = 3}) async {
+            dipanggil++;
+            return _tabelContoh();
+          },
         ),
       );
       await _bukaGerbang(tester);
@@ -277,23 +267,23 @@ void main() {
       await tester.tap(find.text('Foto worksheet'));
       await tester.pumpAndSettle();
 
-      // Inti perbaikannya: kamera dipanggil di gerbang, bukan nunggu teknisi
-      // ngisi halaman 1 dan nekan LANJUTKAN dulu.
+      // Inti perbaikannya: pemindai dipanggil DI GERBANG, bukan nunggu
+      // teknisi ngisi halaman 1 dan nekan LANJUTKAN dulu.
       expect(
-        sumber.dipanggil,
+        dipanggil,
         1,
-        reason: 'milih Foto artinya motret sekarang, bukan nanti',
+        reason: 'milih Foto artinya mindai sekarang, bukan nanti',
       );
     });
 
-    testWidgets('hasil foto langsung ngisi tabel & lompat ke halaman data', (
+    testWidgets('hasil pindai langsung ngisi tabel & lompat ke halaman data', (
       tester,
     ) async {
       _perbesarViewport(tester);
       await tester.pumpWidget(
         _app(
-          sumberFoto: MockSumberFoto(),
-          worksheetOcr: MockWorksheetOcrService(hasil: _tabelContoh()),
+          scanLangsung: (context, {int jumlahTitik = 3}) async =>
+              _tabelContoh(),
         ),
       );
       await _bukaGerbang(tester);
@@ -301,24 +291,20 @@ void main() {
       await tester.tap(find.text('Foto worksheet'));
       await tester.pumpAndSettle();
 
-      // Sekali jepret → kolom pembacaan buffer 4 keisi tanpa ngetik apa pun.
+      // Sekali pindai → kolom pembacaan buffer 4 keisi tanpa ngetik apa pun.
       expect(
         tester.widget<TextField>(_kolomTitik('4', 1)).controller?.text,
         '4.04',
       );
-      // Dan teknisi dibawa ke halaman datanya, bukan ditinggal di identitas.
       expect(find.text('Buffer pH 4'), findsWidgets);
     });
 
-    testWidgets('batal motret di gerbang → balik ke pilihan, bukan masuk form', (
+    testWidgets('mundur dari pemindai → balik ke pilihan, bukan masuk form', (
       tester,
     ) async {
       _perbesarViewport(tester);
       await tester.pumpWidget(
-        _app(
-          sumberFoto: MockSumberFoto(dibatalkan: true),
-          worksheetOcr: MockWorksheetOcrService(hasil: _tabelContoh()),
-        ),
+        _app(scanLangsung: (context, {int jumlahTitik = 3}) async => null),
       );
       await _bukaGerbang(tester);
 

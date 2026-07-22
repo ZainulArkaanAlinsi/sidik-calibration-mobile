@@ -1385,6 +1385,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get phCalibSignedByHint => 'e.g. Alex Misramto';
 
   @override
+  String get phCalibLiveJudul => 'Point at the table';
+
+  @override
+  String get phCalibLivePetunjuk =>
+      'Point the camera at the worksheet table. Numbers that are recognised will float on screen.';
+
+  @override
+  String get phCalibLivePakai => 'USE THESE NUMBERS';
+
+  @override
+  String get phCalibLiveTanpaKamera =>
+      'No camera found on this phone. You can still type the values in.';
+
+  @override
   String get phCalibCaraJudul => 'How do you want to fill this in?';
 
   @override
