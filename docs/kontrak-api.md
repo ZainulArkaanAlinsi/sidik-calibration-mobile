@@ -71,17 +71,17 @@ Bikin ini duluan, hari ini juga kalau bisa. Kecil, tapi begitu ada, mobile bisa 
 > - **`429 Too Many Requests`** bisa muncul: login dibatesin **10 percobaan/menit per IP**, register **5/menit**. Siapin pesan "coba lagi sebentar" di UI.
 > - Akun **`nonaktif`** ditolak `403` juga, pesannya `"Akun ini nonaktif. Hubungi admin."` (beda dari pesan `pending`).
 > - **`organization_id` masih `null`** buat akun hasil register — tabel `organizations` belum ada (baru dirancang di ERD hari ini). Jangan dianggap wajib int dulu di sisi Dart, biar nggak crash pas parsing.
-> - Akun dev buat nyoba: `ASM-0001` (admin) · `ASM-0002` (teknisi) · `ASM-0003` (viewer) · `ASM-0099` (sengaja `pending`, buat nyobain layar "belum disetujui"). Password semua `rahasia123`.
+> - Akun dev buat nyoba: `SDK-0001` (admin) · `SDK-0002` (teknisi) · `SDK-0003` (viewer) · `SDK-0099` (sengaja `pending`, buat nyobain layar "belum disetujui"). Password semua `rahasia123`.
 
 ### `POST /api/login`
 
-**Login nerima ID pegawai ATAU email** di satu field `identifier` — teknisi di lapangan hafal nomor pegawainya (`ASM-0001`), bukan emailnya. Backend yang nebak: kalau ada `@` anggap email, kalau nggak anggap `employee_id`.
+**Login nerima ID pegawai ATAU email** di satu field `identifier` — teknisi di lapangan hafal nomor pegawainya (`SDK-0001`), bukan emailnya. Backend yang nebak: kalau ada `@` anggap email, kalau nggak anggap `employee_id`.
 
 Request:
 ```json
-{ "identifier": "ASM-0001", "password": "rahasia123" }
+{ "identifier": "SDK-0001", "password": "rahasia123" }
 ```
-(atau `{ "identifier": "admin@asmo.test", "password": "..." }` — dua-duanya harus jalan)
+(atau `{ "identifier": "admin@sidik.test", "password": "..." }` — dua-duanya harus jalan)
 
 Response `200`:
 ```json
@@ -91,8 +91,8 @@ Response `200`:
     "user": {
       "id": 1,
       "nama": "Budi Santoso",
-      "email": "admin@asmo.test",
-      "employee_id": "ASM-0001",
+      "email": "admin@sidik.test",
+      "employee_id": "SDK-0001",
       "role": "admin",
       "status": "aktif",
       "department": "Quality Control",
@@ -121,7 +121,7 @@ Request:
 ```json
 {
   "nama": "Eko Prasetyo",
-  "employee_id": "ASM-0099",
+  "employee_id": "SDK-0099",
   "department": "Kalibrasi",
   "email": "eko@ptasmo.com",
   "password": "rahasia123"
@@ -139,7 +139,7 @@ Aturan yang wajib dipegang backend:
 - Password minimal 8 karakter
 
 ### `POST /api/forgot-password`
-Request: `{ "email": "admin@asmo.test" }`
+Request: `{ "email": "admin@sidik.test" }`
 Response `200`: `{ "message": "Link reset password udah dikirim ke email kamu." }`
 Email nggak terdaftar → `404` `{ "message": "Email ini nggak terdaftar." }`
 
@@ -163,12 +163,12 @@ Dipakai dari link di email (deep link ke app).
 
 Request — **`email` ikut dikirim**, ya:
 ```json
-{ "token": "...", "email": "teknisi@asmo.test", "password": "passwordbaru123" }
+{ "token": "...", "email": "teknisi@sidik.test", "password": "passwordbaru123" }
 ```
 
 > ✅ **Live sejak 14 Jul.** Tiga catatan:
-> - **`email` wajib ada.** Token reset itu nempel ke email, jadi backend butuh dua-duanya buat nyocokin. Mobile udah punya nilainya: link di email bentuknya `asmo://reset-password?token=...&email=...` — tinggal dibaca dari deep link-nya.
-> - **Deep link `asmo://`** — tolong daftarin scheme itu di Android manifest. Waktu dev backend pakai `MAIL_MAILER=log`, jadi link-nya nongol di `storage/logs/laravel.log` (bisa di-copy manual buat tes).
+> - **`email` wajib ada.** Token reset itu nempel ke email, jadi backend butuh dua-duanya buat nyocokin. Mobile udah punya nilainya: link di email bentuknya `sidik://reset-password?token=...&email=...` — tinggal dibaca dari deep link-nya.
+> - **Deep link `sidik://`** — tolong daftarin scheme itu di Android manifest. Waktu dev backend pakai `MAIL_MAILER=log`, jadi link-nya nongol di `storage/logs/laravel.log` (bisa di-copy manual buat tes).
 > - **`password_confirmation` opsional.** Kalau dikirim, dicek harus sama; kalau nggak, ya udah — konfirmasinya kamu cek di UI.
 > - Sukses → `200 { "message": "Password berhasil diubah. Silakan login lagi." }`. Token ngawur/kadaluarsa → `422`.
 > - **Semua token login lama otomatis dicabut** sesudah reset berhasil. Jadi kalau HP lama masih megang sesi, sesinya mati — justru itu alasan orang me-reset password.
@@ -633,7 +633,7 @@ Beda sama `lokasi` di sesi kalibrasi. Field itu enum `lab`/`onsite`, cuma misahi
     {
       "id": 4,
       "nama": "Budi Santoso",
-      "employee_id": "ASM-2001",
+      "employee_id": "SDK-2001",
       "email": "budi@sidik.test",
       "department": "Kalibrasi",
       "status": "aktif",
@@ -660,10 +660,10 @@ Beda sama `lokasi` di sesi kalibrasi. Field itu enum `lab`/`onsite`, cuma misahi
 
 | ID pegawai | Email | Role | Status |
 |---|---|---|---|
-| `ASM-0001` | admin@asmo.test | admin | aktif |
-| `ASM-0002` | teknisi@asmo.test | teknisi | aktif |
-| `ASM-0003` | viewer@asmo.test | viewer | aktif |
-| `ASM-0099` | eko@asmo.test | teknisi | **pending** (buat nyoba layar "belum disetujui") |
+| `SDK-0001` | admin@sidik.test | admin | aktif |
+| `SDK-0002` | teknisi@sidik.test | teknisi | aktif |
+| `SDK-0003` | viewer@sidik.test | viewer | aktif |
+| `SDK-0099` | eko@sidik.test | teknisi | **pending** (buat nyoba layar "belum disetujui") |
 
 Password semua `rahasia123`. Login boleh pakai ID pegawai **atau** email.
 

@@ -1,115 +1,94 @@
-# Buat Raihan — Baca Ini Dulu
+# Status Backend ↔ Mobile
 
-*Diperbarui 22 Juli 2026 sore, setelah ngecek langsung ke `asmo-api` branch
-`feat/kalibrasi-ph-lengkap-dan-arsip` dan `routes/api.php` — bukan dari
-dokumen lama.*
-
-Ada **empat dokumen permintaan** dari mobile, dan sebagian isinya udah basi
-karena kamu keburu ngerjain duluan. Halaman ini yang nentuin mana yang masih
-berlaku, biar nggak ada yang dikerjain dua kali.
+*Dicek ulang 22 Juli 2026 sore ke `asmo-api` (`routes/api.php`, `git log`,
+`BALASAN-FRONTEND-fase2.md`). Halaman ini nandain siapa yang lagi kena
+giliran — dulu isinya daftar permintaan ke backend, sekarang kebalik.*
 
 ---
 
-## 1. JANGAN dikerjain — udah selesai
+## Backend: SELESAI SEMUA. Nggak ada yang perlu diminta lagi.
 
-| Barang | Bukti | Dokumen yang udah basi |
+Dua belas permintaan di `permintaan-endpoint.md` §5 dan
+`permintaan-endpoint-fase-2.md` **udah dikerjain semua**, plus CRUD folder
+arsip yang duluan jadi.
+
+| # | Permintaan | Endpoint / field |
 |---|---|---|
-| **CRUD folder arsip** (bikin/rename/pindah/hapus + pindah berkas) | `FolderController`, 24 test di `FolderArsipTest.php` | `permintaan-endpoint-fase-2.md` §4 — **udah dicoret** |
-| `kalibrasi_selesai` di `/dashboard` | Kepakai di mobile | `permintaan-endpoint.md` §1 |
-| `GET /dashboard/tren` | Kepakai di mobile | `permintaan-endpoint.md` §2 |
-| CRUD `/rooms` | Kepakai — tinggal layar mobilenya | `permintaan-endpoint.md` §3 |
-| Entitas `/orders` + penugasan teknisi | Kepakai di layar Tugas Saya | `permintaan-endpoint.md` §4 |
-| `total_sertifikat` di `/dashboard` | Kepakai di kartu hero | — |
-
-**Juga jangan dikerjain** (bukan karena selesai, tapi karena diputuskan bukan
-buat HP): Import Excel, Backup Database, User Management penuh, menu sidebar.
-Alasannya di `permintaan-endpoint.md` §6.
-
----
-
-## 2. BLOKER — ini yang nahan mobile paling keras
-
-### a. `titik_ukur` nominal vs terkoreksi suhu
-
-**Belum kejawab, dan ini nahan seluruh perluasan form pH.**
-
-Worksheet Excel nampilin nominal `3,99 / 7,00 / 10,01`; handoff kamu minta
-`4.009244572` (terkoreksi suhu). Sekarang mobile ngirim yang **terkoreksi**.
-Kalau ternyata yang bener nominal, payload-nya harus dirombak — dan kalau
-mobile keburu bangun formnya duluan, bongkarnya dua kali.
-
-Detail + opsinya: **`permintaan-worksheet-ph.md` §0**.
-
-### b. Matriks peran — siapa boleh apa
-
-Sekarang aturan hak akses ditebak mobile dari `403` yang kejadian di lapangan.
-Itu udah bikin satu bug beneran: form Tambah Alat mulus waktu dites pakai
-admin, tapi **mentok total di akun teknisi** karena dropdown pelanggannya
-narik `GET /customers` yang admin-only — padahal `pelanggan_id` wajib.
-
-Nggak harus endpoint. **Satu file markdown daftar endpoint × role udah cukup.**
-Kalau mau sekalian rapi: `GET /api/me/permissions`.
-
-Detail: `permintaan-endpoint-fase-2.md` §1.
+| 1 | QR verifikasi | `qr_token` + `qr_url` di objek sertifikat |
+| 2 | Nomor order & tanggal terima | ikut di detail sesi |
+| 3 | Technician ID | `employee_id` di objek teknisi |
+| 4 | Identitas alat + pelanggan | `equipment` digemukin |
+| 5 | Standar acuan lengkap | `merk_type`, `tertelusur_ke`, `serial_number` |
+| 6 | Logo lab | `logo_url` + `POST /organization/logo` |
+| 7 | Notifikasi ke admin | `GET /notifications`, `POST /notifications/{id}/baca` |
+| 8 | Hitung sambil ngetik | `POST /calibrations/preview` |
+| 9 | Penanda tangan | atribut `department`, **bukan** role keempat |
+| 10 | Kirim sertifikat | `POST /certificates/{id}/kirim-email` |
+| 11 | Ruangan di sesi | `room_id` |
+| 12 | Laporan | `GET /laporan/kalibrasi` + `/export` (PDF & CSV) |
+| — | Matriks peran | `GET /me/permissions` + `MATRIKS-PERAN.md` |
+| — | CRUD folder arsip | `FolderController`, 24 test |
 
 ---
 
-## 3. Masih berlaku, urut dari yang paling murah
+## Dua jawaban yang mengubah cara kerja mobile
 
-| # | Permintaan | Ukuran | Dokumen |
-|---|---|---|---|
-| 1 | `qr_token` di objek `sertifikat` | **Sangat kecil** — endpoint `/verify` udah ada, tokennya aja yang nggak ikut dikirim | fase-2 §3b |
-| 2 | `nomor_order` + `tanggal_terima` di detail sesi | **Sangat kecil** — mobile udah ngirim waktu `POST`, cuma nggak pernah dibalikin | `permintaan-endpoint.md` §5a |
-| 3 | `employee_id` di objek `teknisi` | Sangat kecil — kolom *Technician ID* di sertifikat isinya `DR`, bukan nama panjang | `permintaan-endpoint.md` §5c |
-| 4 | `equipment` digemukin (+`pelanggan`) di detail sesi | Kecil — semua udah ada di tabel `equipments` | `permintaan-endpoint.md` §5b |
-| 5 | `merk_type` + `tertelusur_ke` di `standar_acuan` | Kecil | `permintaan-endpoint.md` §5d |
-| 6 | `logo_url` di organisasi | Kecil | fase-2 §3a |
-| 7 | Notifikasi kejadian yang butuh admin | Sedang — polling dulu nggak apa-apa | fase-2 §2 |
-| 8 | `POST /calibrations/preview` (hitung sambil ngetik) | Sedang | `permintaan-worksheet-ph.md` §4 |
-| 9 | Penanda tangan / Manajer Teknis | Sedang — **perlu keputusan role dulu** | fase-2 §3c |
-| 10 | `POST /certificates/{id}/kirim-email` | Sedang | fase-2 §3d |
-| 11 | `room_id` di sesi kalibrasi | Sedang — **kamu sendiri yang minta dibahas dulu** (`kontrak-api.md` §9) | fase-2 §3 |
-| 12 | `GET /laporan/kalibrasi` + export PDF/Excel | Besar | fase-2 §5 |
+### 1. `titik_ukur` — mobile SUDAH BENAR, jangan dirombak
 
-Nomor **1–5 semuanya cuma nambah field di resource yang udah ada**, dan
-mobile aman nerima respons tanpa field itu (`fromJson` nganggep `null`, barisnya
-nggak dirender). Jadi bisa dirilis satu-satu kapan aja tanpa nunggu mobile.
+Terus kirim nilai **terkoreksi suhu** (`4.009244572`), bukan nominal botol
+(`3.99`). `3.99` itu label botol pada suhu referensi; nilai pH buffer bergerak
+ikut suhu larutan.
 
----
+**Kenapa ini bahaya kalau salah:** backend nyocokin CMC pakai
+`round(titik_ukur)` toleransi 0.1 — jadi `3.99` **maupun** `4.0092` sama-sama
+lolos, nggak ada `422`, nggak ada error. Yang beda cuma **angka koreksi yang
+tercetak di sertifikat pelanggan**. Salahnya baru ketahuan waktu ada yang
+membandingkan sertifikat baru sama arsip lama.
 
-## 4. Satu hal kecil: nama seeder
+> Bloker ini dulu nahan seluruh perluasan form pH. **Sekarang terbuka.**
 
-Nama akun di seeder masih **"Teknisi ASMO"** (`DatabaseSeeder.php`), dan itu
-kebaca di layar HP sebagai sapaan: *"Halo, Teknisi ASMO"*.
+### 2. Kredensial & deep link ganti
 
-Sisi mobile udah bersih dari ASMO. Yang ini cuma bisa kamu yang ganti — jadi
-**"Teknisi Sidik"** aja biar seragam.
+| | Lama ❌ | Baru ✅ |
+|---|---|---|
+| ID pegawai | `ASM-000x` | `SDK-000x` |
+| Email | `@asmo.test` | `@sidik.test` |
+| Deep link reset | `asmo://` | `sidik://` |
+| Database | `asmo_db` | `sidik_db` |
 
-Catatan: `ASM-0001` dan `@asmo.test` **jangan diganti** kalau belum
-dikoordinasi — mobile & dokumen kontrak masih nunjuk ke situ buat login uji.
-Yang perlu diganti cuma **nama tampilannya**.
+`docs/kontrak-api.md` udah diperbarui. Ini yang bikin login uji gagal sebelum
+ketahuan — `ASM-0002` sekarang dijawab `401`.
 
 ---
 
-## 5. Peta fitur yang beredar itu udah basi
+## Sekarang giliran mobile
 
-Kalau kamu dikasih dokumen *"Peta Fitur: Spec vs Kode"* yang dibaca dari branch
-`develop` — **lima barisnya salah**. Ini yang sebenernya udah ADA di mobile:
+Semua di bawah ini **nggak nunggu siapa-siapa lagi**:
 
-- Grafik pekerjaan (`work_chart.dart`) — bukan "belum ada charting sama sekali"
-- Data Teknisi (`technician_list_screen.dart`)
-- Rentang ukur (`range_min`/`range_max` di `Equipment`)
-- `kalibrasi_selesai`
-- Order Kalibrasi (`my_tasks_screen.dart`)
+| Prioritas | Kerjaan | Endpointnya |
+|---|---|---|
+| 1 | Sambungin CRUD folder ke `arsip_screen.dart` | `POST/PUT/DELETE /arsip/folders` |
+| 2 | Lengkapi kepala worksheet pH dari data yang sekarang udah dikirim | detail sesi yang digemukin |
+| 3 | Hitung sambil ngetik di form pH | `POST /calibrations/preview` |
+| 4 | Layar Notifikasi beneran | `GET /notifications` |
+| 5 | QR di layar sertifikat | `qr_token` |
+| 6 | Layar Laporan + unduh | `GET /laporan/kalibrasi` |
+| 7 | Sembunyiin tombol sesuai peran | `GET /me/permissions` |
+| 8 | Layar Data Ruangan | `GET /rooms` (udah lama ada) |
+| 9 | Deep link `sidik://` di manifest | — |
 
 ---
 
-## Ringkasnya
+## Satu-satunya yang masih nyangkut di backend
 
-1. **Jawab dulu `titik_ukur`** (§2a) — ini nahan paling banyak.
-2. **Kirim daftar peran** (§2b), walau cuma markdown.
-3. Habis itu ambil **nomor 1–5** di §3; semuanya nambah field, bisa sekali duduk.
+**`qr_url` masih nunjuk alamat dev.** Kalau QR-nya dicetak di sertifikat
+sekarang, yang scan bakal mentok. Perlu domain produksi sebelum sertifikat
+beneran diterbitkan ke pelanggan.
 
-Kalau ada yang di sini keliatan udah kamu kerjain tapi masih ketulis "diminta",
-bilang aja — berarti dokumen kami yang ketinggalan lagi, dan lebih baik
-dibetulin daripada kamu ngerjain dua kali.
+---
+
+*Pelajaran yang bikin halaman ini ada: dua sesi menggarap repo yang sama tanpa
+saling lihat, dan dokumen jadi basi dalam hitungan jam — dua kali kami hampir
+minta backend ngerjain ulang barang yang udah jadi. **Sebelum ngirim apa pun
+ke backend, cek dulu `routes/api.php` dan `git log` mereka.** Lima menit,
+mencegat kerja ganda yang bisa berhari-hari.*
