@@ -55,3 +55,9 @@ app.*.map.json
 # tiap test gagal — ini hasil debug, bukan kode. Yang di-commit cuma golden-nya
 # (`test/screenshots/`).
 /test/failures/
+
+# Formulir & lembar kerja asli PT Sidik (SIDIK-FM-*, SIDIK-IK-*).
+# JANGAN di-commit: ini dokumen mutu internal lab terakreditasi, dan repo ini
+# publik. Dipakai cuma sebagai acuan waktu ngembangin, bukan bagian dari kode.
+SIDIK-FM-*.pdf
+SIDIK-IK-*.pdf
