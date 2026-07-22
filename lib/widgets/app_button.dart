@@ -70,7 +70,13 @@ class _Content extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (icon != null) ...[Icon(icon, size: 18), const SizedBox(width: AppSpacing.sm)],
-        Text(label),
+        // Flexible, bukan Text polos: `mainAxisSize.min` bikin Row minta lebar
+        // sesuai isinya, dan label panjang di tombol yang lebarnya dibatesin
+        // (setengah layar, atau layar HP 390px) langsung overflow — error
+        // merah, bukan teks kepotong. Udah kejadian dua kali di form pH.
+        Flexible(
+          child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+        ),
         if (trailingIcon != null) ...[
           const SizedBox(width: AppSpacing.sm),
           Icon(trailingIcon, size: 18),

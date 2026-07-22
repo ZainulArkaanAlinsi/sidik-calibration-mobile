@@ -44,6 +44,19 @@ class UncertaintyComponent {
   }
 }
 
+/// Tahap pembacaan — alat pH dibaca dua kali: waktu diterima ("as found") dan
+/// setelah diadjust ("as left"). Cuma [sesudahAdjustment] yang ikut hitungan
+/// GUM dan masuk sertifikat.
+enum TahapPembacaan {
+  sebelumAdjustment,
+  sesudahAdjustment;
+
+  static TahapPembacaan fromJson(String? value) =>
+      value == 'sebelum_adjustment'
+      ? TahapPembacaan.sebelumAdjustment
+      : TahapPembacaan.sesudahAdjustment;
+}
+
 /// Satu pembacaan mentah (`pembacaan_mentah` di response) — baris asli yang
 /// diinput teknisi, sebelum diringkas jadi rata-rata di [MeasurementResult].
 /// Cuma ikut di response detail sesi (`GET /api/calibrations/{id}`), nggak di
@@ -56,12 +69,21 @@ class RawMeasurement {
     required this.pembacaan,
     required this.inputSource,
     required this.isVerified,
+    this.tahap = TahapPembacaan.sesudahAdjustment,
+    this.suhu,
   });
 
   final int id;
   final int titikKe;
   final int pembacaanKe;
   final double pembacaan;
+
+  /// Default `sesudah_adjustment` — alat non-pH cuma punya satu tahap, dan
+  /// backend nandain barisnya sebagai tahap yang disertifikasi.
+  final TahapPembacaan tahap;
+
+  /// Suhu larutan waktu baris ini dibaca (khusus pH). Null buat alat lain.
+  final double? suhu;
 
   /// `manual` / `ocr`.
   final String inputSource;
@@ -76,8 +98,102 @@ class RawMeasurement {
       titikKe: (json['titik_ke'] as num).toInt(),
       pembacaanKe: (json['pembacaan_ke'] as num).toInt(),
       pembacaan: (json['pembacaan'] as num).toDouble(),
+      tahap: TahapPembacaan.fromJson(json['tahap'] as String?),
+      suhu: (json['suhu'] as num?)?.toDouble(),
       inputSource: json['input_source'] as String? ?? 'manual',
       isVerified: json['is_verified'] as bool? ?? true,
+    );
+  }
+}
+
+/// Ringkasan satu titik **sebelum adjustment** (`titik_sebelum`) — sengaja
+/// jauh lebih tipis dari [MeasurementResult]: nggak ada ketidakpastian,
+/// toleransi, atau keputusan PASS/FAIL, karena kondisi as-found memang nggak
+/// disertifikasi. Cuma dokumentasi "alatnya datang dalam keadaan seperti apa".
+class MeasurementBefore {
+  const MeasurementBefore({
+    required this.titikKe,
+    required this.titikUkur,
+    required this.rataRata,
+    required this.koreksi,
+    required this.standarDeviasi,
+    required this.jumlahPengulangan,
+  });
+
+  final int titikKe;
+  final double titikUkur;
+  final double rataRata;
+  final double koreksi;
+  final double standarDeviasi;
+  final int jumlahPengulangan;
+
+  factory MeasurementBefore.fromJson(Map<String, dynamic> json) {
+    return MeasurementBefore(
+      titikKe: (json['titik_ke'] as num?)?.toInt() ?? 0,
+      titikUkur: (json['titik_ukur'] as num?)?.toDouble() ?? 0,
+      rataRata: (json['rata_rata'] as num?)?.toDouble() ?? 0,
+      koreksi: (json['koreksi'] as num?)?.toDouble() ?? 0,
+      standarDeviasi: (json['standar_deviasi'] as num?)?.toDouble() ?? 0,
+      jumlahPengulangan: (json['jumlah_pengulangan'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+/// Satu besaran lingkungan (suhu ATAU kelembaban) — dibaca awal & akhir sesi,
+/// dikoreksi pakai sertifikat thermohygro, plus U95% yang diturunkan backend
+/// dari `2·√((U_TH/2)² + (|awal−akhir|/2)²)`.
+class BesaranLingkungan {
+  const BesaranLingkungan({
+    required this.awal,
+    required this.akhir,
+    required this.rataRata,
+    required this.satuan,
+    this.koreksi,
+    this.nilaiTerkoreksi,
+    this.u95,
+  });
+
+  final double awal;
+  final double akhir;
+  final double rataRata;
+  final String satuan;
+  final double? koreksi;
+  final double? nilaiTerkoreksi;
+  final double? u95;
+
+  factory BesaranLingkungan.fromJson(Map<String, dynamic> json) {
+    return BesaranLingkungan(
+      awal: (json['awal'] as num?)?.toDouble() ?? 0,
+      akhir: (json['akhir'] as num?)?.toDouble() ?? 0,
+      rataRata: (json['rata_rata'] as num?)?.toDouble() ?? 0,
+      satuan: json['satuan'] as String? ?? '',
+      koreksi: (json['koreksi'] as num?)?.toDouble(),
+      nilaiTerkoreksi: (json['nilai_terkoreksi'] as num?)?.toDouble(),
+      u95: (json['u95'] as num?)?.toDouble(),
+    );
+  }
+}
+
+/// Blok `kondisi_lingkungan` di response detail. Cuma keisi buat sesi yang
+/// ngirim kondisi lingkungan lengkap (awal/akhir) — sesi lama yang cuma kirim
+/// satu angka tetap balik lewat `suhu_ruang`/`kelembaban` di level atas.
+class KondisiLingkungan {
+  const KondisiLingkungan({this.suhu, this.kelembaban, this.thermohygro});
+
+  final BesaranLingkungan? suhu;
+  final BesaranLingkungan? kelembaban;
+  final String? thermohygro;
+
+  factory KondisiLingkungan.fromJson(Map<String, dynamic> json) {
+    final suhu = json['suhu'] as Map<String, dynamic>?;
+    final kelembaban = json['kelembaban'] as Map<String, dynamic>?;
+
+    return KondisiLingkungan(
+      suhu: suhu == null ? null : BesaranLingkungan.fromJson(suhu),
+      kelembaban: kelembaban == null
+          ? null
+          : BesaranLingkungan.fromJson(kelembaban),
+      thermohygro: json['thermohygro'] as String?,
     );
   }
 }
@@ -106,6 +222,7 @@ class MeasurementResult {
     required this.toleransi,
     required this.keputusan,
     this.standarAcuan,
+    this.metode,
   });
 
   final int titikKe;
@@ -130,6 +247,10 @@ class MeasurementResult {
   /// Cuma keisi kalau titik ini pakai standar BEDA dari standar default sesi
   /// (mis. pH: buffer 4/7/10 masing-masing sertifikatnya sendiri).
   final StandardRef? standarAcuan;
+
+  /// Instruksi kerja yang dipakai (mis. "SIDIK-IK-CAL-0506") — dicetak di
+  /// sertifikat, jadi ditampilin apa adanya.
+  final String? metode;
 
   factory MeasurementResult.fromJson(Map<String, dynamic> json) {
     final komponen = json['type_b_components'] as List<dynamic>? ?? const [];
@@ -157,6 +278,7 @@ class MeasurementResult {
       toleransi: (json['toleransi'] as num?)?.toDouble() ?? 0,
       keputusan: json['keputusan'] == 'FAIL' ? Keputusan.fail : Keputusan.pass,
       standarAcuan: standar == null ? null : StandardRef.fromJson(standar),
+      metode: json['metode'] as String?,
     );
   }
 }
@@ -208,8 +330,11 @@ class CalibrationDetail {
     this.kelembaban,
     this.lokasi,
     this.sertifikat,
+    this.kondisiLingkungan,
     this.titik = const [],
+    this.titikSebelum = const [],
     this.pembacaanMentah = const [],
+    this.perluVerifikasi = false,
   });
 
   final int id;
@@ -228,13 +353,45 @@ class CalibrationDetail {
   final String? lokasi;
   final CertificateRef? sertifikat;
 
+  /// Rincian awal/akhir + U95% lingkungan. Null buat sesi yang cuma ngirim
+  /// satu angka suhu/kelembaban — pakai [suhuRuang]/[kelembaban] buat itu.
+  final KondisiLingkungan? kondisiLingkungan;
+
   /// Kosong kalau sesi belum lewat kalkulasi backend (`draft` yang belum
   /// pernah disubmit).
   final List<MeasurementResult> titik;
 
+  /// Ringkasan as-found per titik. Kosong kalau sesi ini nggak nyatet
+  /// pembacaan sebelum adjustment (alat non-pH umumnya nggak).
+  final List<MeasurementBefore> titikSebelum;
+
   /// Baris pembacaan asli per titik — cuma ikut di respons detail (bukan
-  /// daftar). Dikelompokkan manual per `titikKe` di UI kalau dibutuhin.
+  /// daftar). Dikelompokkan manual per `titikKe` + `tahap` di UI.
   final List<RawMeasurement> pembacaanMentah;
+
+  /// Masih ada pembacaan OCR yang belum dikonfirmasi teknisi — selama `true`,
+  /// sesi ini ditolak backend waktu di-approve.
+  final bool perluVerifikasi;
+
+  /// STDEV terbesar antar titik — kolom **MAX STDEV** di worksheet asli
+  /// (`DATA HASIL KALIBRASI`), dihitung di sini karena backend nggak
+  /// ngirimnya: dia cuma turunan `max()` dari `standar_deviasi` tiap titik,
+  /// bukan besaran baru yang butuh data mentah.
+  ///
+  /// Dipisah sebelum/sesudah adjustment karena di worksheet emang dua tabel
+  /// terpisah dengan MAX STDEV masing-masing — nyampur keduanya bikin angka
+  /// as-found yang jelek (mis. 0,144) kebawa ke tabel as-left yang udah rapi
+  /// (0,005), padahal yang disertifikasi cuma yang as-left.
+  ///
+  /// `null` kalau titiknya belum dihitung backend — bukan `0`, biar layar bisa
+  /// bedain "belum ada data" dari "sebarannya nol".
+  double? get maxStdev => _maks(titik.map((t) => t.standarDeviasi));
+
+  double? get maxStdevSebelum =>
+      _maks(titikSebelum.map((t) => t.standarDeviasi));
+
+  static double? _maks(Iterable<double> nilai) =>
+      nilai.isEmpty ? null : nilai.reduce((a, b) => a > b ? a : b);
 
   factory CalibrationDetail.fromJson(Map<String, dynamic> json) {
     final hasil = json['hasil'] as Map<String, dynamic>?;
@@ -242,7 +399,9 @@ class CalibrationDetail {
     final teknisi = json['teknisi'] as Map<String, dynamic>?;
     final standar = json['standar_acuan'] as Map<String, dynamic>?;
     final sertifikat = json['sertifikat'] as Map<String, dynamic>?;
+    final lingkungan = json['kondisi_lingkungan'] as Map<String, dynamic>?;
     final titikJson = json['titik'] as List<dynamic>? ?? const [];
+    final sebelumJson = json['titik_sebelum'] as List<dynamic>? ?? const [];
     final pembacaanJson = json['pembacaan_mentah'] as List<dynamic>? ?? const [];
 
     return CalibrationDetail(
@@ -264,14 +423,22 @@ class CalibrationDetail {
       kelembaban: (json['kelembaban'] as num?)?.toDouble(),
       lokasi: json['lokasi'] as String?,
       sertifikat: sertifikat == null ? null : CertificateRef.fromJson(sertifikat),
+      kondisiLingkungan: lingkungan == null
+          ? null
+          : KondisiLingkungan.fromJson(lingkungan),
       titik: titikJson
           .cast<Map<String, dynamic>>()
           .map(MeasurementResult.fromJson)
+          .toList(),
+      titikSebelum: sebelumJson
+          .cast<Map<String, dynamic>>()
+          .map(MeasurementBefore.fromJson)
           .toList(),
       pembacaanMentah: pembacaanJson
           .cast<Map<String, dynamic>>()
           .map(RawMeasurement.fromJson)
           .toList(),
+      perluVerifikasi: json['perlu_verifikasi'] as bool? ?? false,
     );
   }
 }

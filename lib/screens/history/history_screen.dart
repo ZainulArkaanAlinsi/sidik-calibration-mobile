@@ -12,6 +12,7 @@ import '../../providers/history_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/status_badge.dart';
+import '../arsip/arsip_screen.dart';
 import 'calibration_detail_screen.dart';
 
 /// Riwayat kalibrasi — sama pola 4-state-nya kayak Dashboard
@@ -53,7 +54,21 @@ class HistoryScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.navHistory)),
+      appBar: AppBar(
+        title: Text(l10n.navHistory),
+        actions: [
+          // Arsip ditaruh di sini juga, bukan cuma di Profil: Riwayat itu
+          // daftar datar semua sesi, dan pertanyaan "mana punya PT anu"
+          // paling sering muncul justru waktu lagi di layar ini.
+          IconButton(
+            tooltip: l10n.arsipTitle,
+            icon: const Icon(Icons.folder_copy_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const ArsipScreen()),
+            ),
+          ),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: () => ref.read(historyProvider.notifier).muatUlang(),
         child: isi,

@@ -2,93 +2,148 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sidik_calibration/models/ph_calibration_draft.dart';
 
-/// Ngunci bentuk payload pH.
+/// Ngunci bentuk payload pH ke kontrak backend (handoff "Kalibrasi pH 100%").
 ///
-/// Ini gampang banget balik ke bentuk lama tanpa ketahuan: `titik_ukur` itu
-/// field yang wajar dikirim buat semua alat lain, jadi orang yang nggak tahu
-/// konteksnya bakal nambahin balik dengan niat baik. Kalau kekirim, backend
-/// bakal pakai nilai tetap itu dan **ngabaikan koreksi suhu** — hasilnya
-/// meleset diam-diam, nggak error, cuma angkanya salah.
+/// Dua hal yang gampang meleset diam-diam di sini — nggak ada error, cuma
+/// angkanya salah — jadi dua-duanya dijaga test:
+///
+/// 1. **`titik_ukur` itu nilai buffer yang UDAH dikoreksi suhu**, bukan angka
+///    bulat 4/7/10 dan bukan nilai mentah sertifikat. Kalau yang mentah
+///    kekirim, koreksi suhunya ilang dari perhitungan.
+/// 2. **`suhu` harus sejajar index sama `pembacaan`.** Deret yang bolong bikin
+///    suhu nempel ke baris yang salah — lebih buruk daripada nggak ngirim suhu
+///    sama sekali, karena angkanya kelihatan wajar.
 void main() {
-  PhCalibrationDraft draftTitikPenuh() {
-    final draft = PhCalibrationDraft(
-      equipmentId: 5,
-      standardId: 1,
-      tanggalKalibrasi: DateTime(2026, 7, 20),
-      thermohygroId: 'TH-3',
-    )
-      ..suhuAwal = 21.4
-      ..suhuAkhir = 21.5
-      ..kelembabanAwal = 53
-      ..kelembabanAkhir = 56;
+  /// Angka-angkanya diambil dari sesi asli 012-CAL-524 yang direproduksi
+  /// backend, bukan karangan — biar kalau bentuknya berubah, yang kelihatan
+  /// bareng adalah nilai yang beneran dipakai.
+  const acuan = [
+    ('4', 4.009244572, 4.0092252, 4),
+    ('7', 6.9889072, 6.9889000, 3),
+    ('10', 9.9789000, 9.9788500, 5),
+  ];
 
-    // Ketiga titik diisi, sama kayak alur asli — form nolak submit kalau ada
-    // titik yang standar buffernya belum dipilih.
-    const nominal = [('4', 3.99, 3), ('7', 6.9889, 4), ('10', 9.9789, 5)];
-    for (var t = 0; t < nominal.length; t++) {
-      final (label, nilai, standarId) = nominal[t];
+  PhCalibrationDraft draftLengkap() {
+    final points = <PhBufferPoint>[];
+    for (final (label, titikUkur, titikUkurSebelum, standarId) in acuan) {
       final titik = PhBufferPoint(
         label: label,
-        nilaiStandar: nilai,
+        titikUkur: titikUkur,
+        titikUkurSebelum: titikUkurSebelum,
         standardId: standarId,
       );
       for (var i = 0; i < 5; i++) {
         titik.sesudahAdjustment[i] = PhReading(
-          ph: nilai,
+          ph: titikUkur,
           suhu: 22.2 - (i * 0.05),
         );
-        titik.sebelumAdjustment[i] = PhReading(ph: nilai + 0.1, suhu: 22.2);
+        titik.sebelumAdjustment[i] = PhReading(ph: titikUkur + 0.1, suhu: 22.2);
       }
-      draft.points[t] = titik;
+      points.add(titik);
     }
 
-    return draft;
+    return PhCalibrationDraft(
+      equipmentId: 5,
+      standardId: 12,
+      tanggalKalibrasi: DateTime(2026, 7, 20),
+      thermohygroId: 'TH-3',
+      points: points,
+    )
+      ..suhuAwal = 21.3
+      ..suhuAkhir = 21.5
+      ..kelembabanAwal = 53
+      ..kelembabanAkhir = 56
+      ..suhuKoreksi = -0.43
+      ..kelembabanKoreksi = -2.55
+      ..suhuUStd = 1.7
+      ..kelembabanUStd = 4.8;
   }
 
-  test('pH kirim suhu_larutan, BUKAN titik_ukur', () {
-    final json = draftTitikPenuh()
-        .toGenericDraft(clientRequestId: 'uji-1')
-        .toJson();
+  Map<String, dynamic> titikPertama(PhCalibrationDraft draft) {
+    final json = draft.toGenericDraft(clientRequestId: 'uji').toJson();
+    return (json['measurements'] as List).first as Map<String, dynamic>;
+  }
 
-    final titik = (json['measurements'] as List).first as Map<String, dynamic>;
+  test('titik_ukur dikirim, dan isinya nilai TERKOREKSI SUHU', () {
+    final titik = titikPertama(draftLengkap());
 
     expect(
-      titik.containsKey('titik_ukur'),
-      isFalse,
+      titik['titik_ukur'],
+      4.009244572,
       reason:
-          'Nilai acuan buffer pH geser ikut suhu — backend yang nurunin dari '
-          'kurva sertifikat. Kalau titik_ukur kekirim, koreksi suhunya '
-          'diabaikan dan hasilnya meleset tanpa error.',
+          'Ini nilai buffer sesudah koreksi suhu. Angka bulat 4 atau nilai '
+          'mentah sertifikat 3.99 di sini bikin hasilnya meleset tanpa error.',
     );
-    expect(titik['suhu_larutan'], isA<List<dynamic>>());
+    expect(titik['titik_ukur_sebelum'], 4.0092252);
     expect(titik['satuan'], 'pH');
-    expect(titik['standard_id'], 3);
+    expect(titik['standard_id'], 4);
   });
 
-  test('jumlah suhu_larutan sama persis dengan jumlah pembacaan', () {
-    final json = draftTitikPenuh()
-        .toGenericDraft(clientRequestId: 'uji-2')
-        .toJson();
+  test('suhu per baris kekirim, sejajar index sama pembacaan', () {
+    final titik = titikPertama(draftLengkap());
 
-    final titik = (json['measurements'] as List).first as Map<String, dynamic>;
-
+    expect(titik['suhu'], isA<List<dynamic>>());
     expect(
-      (titik['suhu_larutan'] as List).length,
+      (titik['suhu'] as List).length,
       (titik['pembacaan'] as List).length,
-      reason: 'Panjangnya beda = backend nolak 422.',
+      reason: 'Panjang beda = suhu nempel ke baris yang salah.',
+    );
+    expect(
+      (titik['suhu_sebelum'] as List).length,
+      (titik['pembacaan_sebelum'] as List).length,
     );
   });
 
-  test('baris yang cuma keisi separuh nggak bikin dua deret beda panjang', () {
-    final draft = draftTitikPenuh();
-    // Teknisi baru ngisi 3 dari 5 baris — sisanya masih null.
+  test('baris kosong dibuang, bukan dikirim sebagai 0', () {
+    final draft = draftLengkap();
+    // Teknisi baru ngisi 3 dari 5 baris.
     draft.points[0].sesudahAdjustment[3] = null;
     draft.points[0].sesudahAdjustment[4] = null;
 
-    final json = draft.toGenericDraft(clientRequestId: 'uji-3').toJson();
-    final titik = (json['measurements'] as List).first as Map<String, dynamic>;
+    final titik = titikPertama(draft);
 
     expect((titik['pembacaan'] as List).length, 3);
-    expect((titik['suhu_larutan'] as List).length, 3);
+    expect((titik['suhu'] as List).length, 3);
+  });
+
+  test('satu suhu kosong → seluruh deret suhu nggak dikirim', () {
+    final draft = draftLengkap();
+    // Baris ke-3 pH-nya keisi tapi suhunya belum.
+    draft.points[0].sesudahAdjustment[2] = const PhReading(ph: 4.01);
+
+    final titik = titikPertama(draft);
+
+    expect(
+      (titik['pembacaan'] as List).length,
+      5,
+      reason: 'Pembacaan pH-nya tetap sah walau suhunya nggak dicatat.',
+    );
+    expect(
+      titik.containsKey('suhu'),
+      isFalse,
+      reason:
+          '`suhu` opsional di backend. Ngirim deret yang bolong bikin suhu '
+          'nempel ke baris yang salah — mending nggak dikirim sama sekali.',
+    );
+  });
+
+  test('kondisi lingkungan dikirim awal & akhir, rata-rata diserahkan server', () {
+    final json = draftLengkap().toGenericDraft(clientRequestId: 'uji').toJson();
+
+    expect(json['suhu_ruang_awal'], 21.3);
+    expect(json['suhu_ruang_akhir'], 21.5);
+    expect(json['kelembaban_awal'], 53);
+    expect(json['kelembaban_akhir'], 56);
+    expect(json['suhu_ruang_koreksi'], -0.43);
+    expect(json['kelembaban_koreksi'], -2.55);
+    expect(json['suhu_ruang_u_std'], 1.7);
+    expect(json['kelembaban_u_std'], 4.8);
+    expect(json['thermohygro'], 'TH-3');
+
+    // Server yang ngerata-ratain DAN nurunin U95% lingkungan dari angka di
+    // atas. Kalau mobile ikut ngirim rata-rata, ada dua sumber buat angka yang
+    // sama dan nggak ada yang tahu mana yang menang waktu keduanya beda.
+    expect(json.containsKey('suhu_ruang'), isFalse);
+    expect(json.containsKey('kelembaban'), isFalse);
   });
 }

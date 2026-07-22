@@ -60,6 +60,14 @@ class EquipmentLookup {
     return satuan.isEmpty ? '$min–$max' : '$min–$max $satuan';
   }
 
+  /// Kolom **Kapasitas Max.** — di worksheet ditulis tanpa satuan (`0-14`),
+  /// beda dari Rentang Ukur yang pakai satuan (`0-14 pH`). Dipisah biar dua
+  /// kolom sebelahan itu nggak kelihatan kembar persis.
+  String? get kapasitasTeks {
+    if (rangeMin == null || rangeMax == null) return null;
+    return '${_ringkas(rangeMin!)}–${_ringkas(rangeMax!)}';
+  }
+
   String? get resolusiTeks {
     if (resolusi == null) return null;
     return satuan.isEmpty ? _ringkas(resolusi!) : '${_ringkas(resolusi!)} $satuan';

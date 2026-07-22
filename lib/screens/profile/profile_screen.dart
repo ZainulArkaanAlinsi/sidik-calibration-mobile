@@ -16,6 +16,7 @@ import '../../providers/avatar_provider.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/status_badge.dart';
+import '../arsip/arsip_screen.dart';
 import '../design_system/design_system_screen.dart';
 import '../settings/customer_list_screen.dart';
 import '../settings/organization_screen.dart';
@@ -109,6 +110,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
           _KartuMenu(
             children: [
+              // Di luar blok admin: arsip itu baca-baca hasil kerja, dan
+              // backend ngizinin semua role (berkasnya sendiri tetap disaring
+              // per-teknisi di server).
+              _BarisMenu(
+                icon: Icons.folder_copy_outlined,
+                title: l10n.profArsip,
+                subtitle: l10n.profArsipSub,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const ArsipScreen()),
+                ),
+              ),
+              const _GarisPemisah(),
               _BarisMenu(
                 icon: Icons.palette_outlined,
                 title: l10n.profDesignSystem,

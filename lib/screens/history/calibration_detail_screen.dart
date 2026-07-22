@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_typography.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_detail.dart';
 import '../../models/calibration_history_item.dart';
@@ -162,6 +163,25 @@ class _Isi extends StatelessWidget {
           ),
         ],
 
+        if (detail.perluVerifikasi) ...[
+          const SizedBox(height: AppSpacing.md),
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.warning.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+              border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.fact_check_outlined, color: AppColors.warning),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(child: Text(l10n.detailPerluVerifikasi)),
+              ],
+            ),
+          ),
+        ],
+
         const SizedBox(height: AppSpacing.lg),
         Text(
           l10n.detailKondisiLingkungan.toUpperCase(),
@@ -179,15 +199,10 @@ class _Isi extends StatelessWidget {
                     label: l10n.detailStandarAcuan,
                     value: detail.standarAcuan!.nama,
                   ),
-                if (detail.suhuRuang != null)
+                if (detail.kondisiLingkungan?.thermohygro != null)
                   _InfoRow(
-                    label: l10n.detailSuhuRuang,
-                    value: '${_fmt(detail.suhuRuang, decimals: 1)} °C',
-                  ),
-                if (detail.kelembaban != null)
-                  _InfoRow(
-                    label: l10n.detailKelembaban,
-                    value: '${_fmt(detail.kelembaban, decimals: 1)} %RH',
+                    label: l10n.detailThermohygro,
+                    value: detail.kondisiLingkungan!.thermohygro!,
                   ),
                 if (detail.lokasi != null)
                   _InfoRow(
@@ -195,6 +210,31 @@ class _Isi extends StatelessWidget {
                     value: detail.lokasi == 'onsite'
                         ? l10n.detailLokasiOnsite
                         : l10n.detailLokasiLab,
+                  ),
+
+                // Sesi yang ngirim kondisi lengkap (awal/akhir) dapat rincian
+                // penuh; sesi lama yang cuma punya satu angka tetap kebaca
+                // lewat `suhu_ruang`/`kelembaban` di level atas.
+                if (detail.kondisiLingkungan?.suhu != null)
+                  _BesaranBlok(
+                    judul: l10n.detailSuhuRuang,
+                    besaran: detail.kondisiLingkungan!.suhu!,
+                  )
+                else if (detail.suhuRuang != null)
+                  _InfoRow(
+                    label: l10n.detailSuhuRuang,
+                    value: '${_fmt(detail.suhuRuang, decimals: 1)} °C',
+                  ),
+
+                if (detail.kondisiLingkungan?.kelembaban != null)
+                  _BesaranBlok(
+                    judul: l10n.detailKelembaban,
+                    besaran: detail.kondisiLingkungan!.kelembaban!,
+                  )
+                else if (detail.kelembaban != null)
+                  _InfoRow(
+                    label: l10n.detailKelembaban,
+                    value: '${_fmt(detail.kelembaban, decimals: 1)} %RH',
                   ),
               ],
             ),
@@ -231,11 +271,35 @@ class _Isi extends StatelessWidget {
             _TitikResultCard(
               titik: titik,
               pembacaan: detail.pembacaanMentah
-                  .where((p) => p.titikKe == titik.titikKe)
+                  .where(
+                    (p) =>
+                        p.titikKe == titik.titikKe &&
+                        p.tahap == TahapPembacaan.sesudahAdjustment,
+                  )
+                  .toList(),
+              sebelum: detail.titikSebelum
+                  .where((s) => s.titikKe == titik.titikKe)
+                  .firstOrNull,
+              pembacaanSebelum: detail.pembacaanMentah
+                  .where(
+                    (p) =>
+                        p.titikKe == titik.titikKe &&
+                        p.tahap == TahapPembacaan.sebelumAdjustment,
+                  )
                   .toList(),
             ),
             const SizedBox(height: AppSpacing.sm),
           ],
+
+        // Penutup tabel titik — sama kayak kolom MAX STDEV di worksheet asli,
+        // yang letaknya juga di ujung kanan bawah tiap tabel.
+        if (detail.maxStdev != null) ...[
+          const SizedBox(height: AppSpacing.xs),
+          _MaxStdev(
+            sesudah: detail.maxStdev!,
+            sebelum: detail.maxStdevSebelum,
+          ),
+        ],
 
         if (detail.certificateId != null) ...[
           const SizedBox(height: AppSpacing.lg),
@@ -288,11 +352,124 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
+/// Satu besaran lingkungan (suhu / kelembaban) — dibaca dua kali lalu
+/// dikoreksi, jadi angkanya ada enam. Tiga yang dibaca langsung (awal, akhir,
+/// rata-rata) ditaruh sebaris sebagai kolom biar kebandingin sekali lihat;
+/// tiga turunan (koreksi, nilai terkoreksi, U95%) turun jadi baris label-nilai
+/// karena itu yang dicetak di sertifikat dan dibaca satu-satu.
+class _BesaranBlok extends StatelessWidget {
+  const _BesaranBlok({required this.judul, required this.besaran});
+
+  final String judul;
+  final BesaranLingkungan besaran;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final satuan = besaran.satuan;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            judul.toUpperCase(),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              letterSpacing: 0.6,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              _Kolom(
+                label: l10n.detailAwal,
+                nilai: '${_fmt(besaran.awal, decimals: 1)} $satuan',
+              ),
+              _Kolom(
+                label: l10n.detailAkhir,
+                nilai: '${_fmt(besaran.akhir, decimals: 1)} $satuan',
+              ),
+              _Kolom(
+                label: l10n.detailRataRata,
+                nilai: '${_fmt(besaran.rataRata, decimals: 2)} $satuan',
+                tebal: true,
+              ),
+            ],
+          ),
+          if (besaran.koreksi != null)
+            _InfoRow(
+              label: l10n.detailKoreksi,
+              value: '${_fmt(besaran.koreksi, decimals: 2)} $satuan',
+            ),
+          if (besaran.nilaiTerkoreksi != null)
+            _InfoRow(
+              label: l10n.detailNilaiTerkoreksi,
+              value: '${_fmt(besaran.nilaiTerkoreksi, decimals: 2)} $satuan',
+            ),
+          if (besaran.u95 != null)
+            _InfoRow(
+              label: l10n.detailU95Lingkungan,
+              value: '± ${_fmt(besaran.u95, decimals: 4)} $satuan',
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Kolom extends StatelessWidget {
+  const _Kolom({required this.label, required this.nilai, this.tebal = false});
+
+  final String label;
+  final String nilai;
+  final bool tebal;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            nilai,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: tebal ? FontWeight.w700 : FontWeight.w500,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _TitikResultCard extends StatelessWidget {
-  const _TitikResultCard({required this.titik, this.pembacaan = const []});
+  const _TitikResultCard({
+    required this.titik,
+    this.pembacaan = const [],
+    this.sebelum,
+    this.pembacaanSebelum = const [],
+  });
 
   final MeasurementResult titik;
   final List<RawMeasurement> pembacaan;
+
+  /// Ringkasan as-found. Null buat alat yang nggak nyatet kondisi sebelum
+  /// adjustment (umumnya semua alat non-pH).
+  final MeasurementBefore? sebelum;
+  final List<RawMeasurement> pembacaanSebelum;
 
   @override
   Widget build(BuildContext context) {
@@ -335,13 +512,21 @@ class _TitikResultCard extends StatelessWidget {
                 ),
               ),
             ],
-            if (pembacaan.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.xs),
+            if (titik.metode != null) ...[
+              const SizedBox(height: 2),
               Text(
-                pembacaan.map((p) => _fmt(p.pembacaan, decimals: 3)).join(' · '),
+                '${l10n.detailMetode}: ${titik.metode}',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
+              ),
+            ],
+            if (pembacaan.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.sm),
+              _TahapPembacaan(
+                judul: l10n.detailSesudahAdjustment,
+                pembacaan: pembacaan,
+                tone: AppColors.success,
               ),
             ],
             const SizedBox(height: AppSpacing.sm),
@@ -400,9 +585,187 @@ class _TitikResultCard extends StatelessWidget {
               label: l10n.detailU95,
               value: '± ${_fmt(titik.ketidakpastianDiperluas)}',
             ),
+
+            // As-found ditaruh paling bawah dan sengaja lebih redup: yang
+            // disertifikasi itu angka di atas. Kalau dua-duanya sama menonjol,
+            // gampang salah kutip waktu ditanya pelanggan.
+            if (sebelum != null || pembacaanSebelum.isNotEmpty) ...[
+              const Divider(height: AppSpacing.lg),
+              _TahapPembacaan(
+                judul: l10n.detailSebelumAdjustment,
+                pembacaan: pembacaanSebelum,
+                tone: theme.colorScheme.onSurfaceVariant,
+                catatan: l10n.detailAsFoundCatatan,
+              ),
+              if (sebelum != null) ...[
+                const SizedBox(height: AppSpacing.xs),
+                _InfoRow(
+                  label: l10n.detailRataRata,
+                  value: _fmt(sebelum!.rataRata, decimals: 3),
+                ),
+                _InfoRow(
+                  label: l10n.detailKoreksi,
+                  value: _fmt(sebelum!.koreksi),
+                ),
+                _InfoRow(
+                  label: l10n.detailStandarDeviasi,
+                  value:
+                      '${_fmt(sebelum!.standarDeviasi)} (n=${sebelum!.jumlahPengulangan})',
+                ),
+              ],
+            ],
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Kotak **MAX STDEV** — sebaran terburuk di antara semua titik.
+///
+/// Gunanya buat teknisi: satu angka buat nilai "seberapa stabil sesi ini".
+/// Kalau titik lain rapi tapi satu titik sebarannya lebar, rata-rata per titik
+/// nggak nunjukin itu — yang nunjukin ya angka maksimum ini.
+///
+/// Angka as-found ditaruh di bawah & lebih redup, sama alasannya kayak di
+/// kartu titik: yang disertifikasi cuma yang as-left.
+class _MaxStdev extends StatelessWidget {
+  const _MaxStdev({required this.sesudah, this.sebelum});
+
+  final double sesudah;
+  final double? sebelum;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.detailMaxStdev.toUpperCase(),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              Text(
+                _fmt(sesudah),
+                style: AppTypography.measurement.copyWith(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+          if (sebelum != null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.detailMaxStdevSebelum,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.outline,
+                    ),
+                  ),
+                ),
+                Text(
+                  _fmt(sebelum!),
+                  style: AppTypography.measurement.copyWith(
+                    fontSize: 13,
+                    color: theme.colorScheme.outline,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Daftar pembacaan satu tahap. Suhu larutan ikut ditempel di angkanya kalau
+/// ada — di pH, satu pembacaan itu pasangan pH/°C, dan angka pH tanpa suhunya
+/// nggak cukup buat nelusuri ulang nilai acuannya.
+class _TahapPembacaan extends StatelessWidget {
+  const _TahapPembacaan({
+    required this.judul,
+    required this.pembacaan,
+    required this.tone,
+    this.catatan,
+  });
+
+  final String judul;
+  final List<RawMeasurement> pembacaan;
+  final Color tone;
+  final String? catatan;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          judul.toUpperCase(),
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: tone,
+            letterSpacing: 0.6,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        if (catatan != null) ...[
+          const SizedBox(height: 2),
+          Text(
+            catatan!,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+        if (pembacaan.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Wrap(
+            spacing: AppSpacing.xs,
+            runSpacing: AppSpacing.xs,
+            children: [
+              for (final p in pembacaan)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: tone.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                    border: Border.all(color: tone.withValues(alpha: 0.2)),
+                  ),
+                  child: Text(
+                    p.suhu == null
+                        ? _fmt(p.pembacaan, decimals: 3)
+                        : '${_fmt(p.pembacaan, decimals: 2)} · ${_fmt(p.suhu, decimals: 1)}°',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ],
     );
   }
 }

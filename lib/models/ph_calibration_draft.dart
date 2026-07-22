@@ -1,39 +1,48 @@
 import 'calibration_draft.dart';
 
-/// Satu pembacaan pH — nilai pH + suhu larutan saat itu (pengaruh suhu
-/// signifikan buat buffer pH, lihat sheet "Nilai koefisien Sensitifitas"
-/// di master worksheet aslinya).
+/// Satu pembacaan pH — nilai pH + suhu larutan saat itu. Suhunya boleh kosong:
+/// backend nganggep `suhu` opsional (dokumentasi kondisi baca), yang wajib
+/// cuma angka pH-nya.
 class PhReading {
-  const PhReading({required this.ph, required this.suhu});
+  const PhReading({required this.ph, this.suhu});
 
   final double ph;
-  final double suhu;
+  final double? suhu;
 }
 
 /// Satu titik buffer (pH 4 / 7 / 10) — verifikasi *sebelum* alat
 /// diadjust ("as found") dan *sesudah* diadjust ("as left"), masing-masing
-/// 5 pengulangan. Ini pola standar metrologi pH Meter: alat dikalibrasi
+/// sampai 5 pengulangan. Ini pola standar metrologi pH Meter: alat dikalibrasi
 /// ulang di tempat pakai larutan buffer, jadi ada dua state yang dicatat.
 ///
-/// Dua-duanya dikirim ke API (`docs/kontrak-api.md` §4,
-/// `measurements[].pembacaan_sebelum`) — tapi cuma `sesudahAdjustment` yang
-/// ikut dihitung GumCalculator di backend. `sebelumAdjustment` murni
-/// dokumentasi kondisi alat, disimpan buat audit trail.
+/// Dua-duanya dikirim ke API — tapi cuma [sesudahAdjustment] yang ikut
+/// dihitung GUM di backend dan masuk sertifikat. [sebelumAdjustment] murni
+/// dokumentasi kondisi alat waktu diterima, disimpan buat audit trail.
 class PhBufferPoint {
   PhBufferPoint({
     required this.label,
-    required this.nilaiStandar,
+    required this.titikUkur,
+    this.titikUkurSebelum,
     this.standardId,
   }) : sebelumAdjustment = List.generate(5, (_) => null),
        sesudahAdjustment = List.generate(5, (_) => null);
 
-  /// "4", "7", atau "10" — label tampilan, bukan nilai pasti (nilai pasti
-  /// sertifikat buffer beda tipis per batch, lihat [nilaiStandar]).
+  /// "4", "7", atau "10" — label tampilan, bukan nilai acuan (lihat
+  /// [titikUkur]).
   final String label;
 
-  /// Nilai pasti dari sertifikat buffer yang dipakai (mis. 3.99, bukan 4
-  /// bulat) — ini yang jadi `titik_ukur` waktu dikirim ke API.
-  final double nilaiStandar;
+  /// Nilai acuan buffer yang **udah terkoreksi suhu** (mis. 4.009244572) —
+  /// ini yang jadi `titik_ukur` waktu dikirim.
+  ///
+  /// Bukan angka bulat 4/7/10, dan bukan juga nilai mentah sertifikat buffer.
+  /// Nilai buffer geser ikut suhu larutan; koreksinya udah dihitung di
+  /// worksheet, teknisi nyalin angka jadinya.
+  final double titikUkur;
+
+  /// Nilai acuan versi "as found". Bisa beda tipis dari [titikUkur] karena
+  /// suhu larutan waktu pembacaan sebelum adjustment nggak persis sama.
+  /// `null` = nggak dicatat (pembacaan sebelum tetap kekirim tanpa acuan).
+  final double? titikUkurSebelum;
 
   /// Standar buffer yang dipakai KHUSUS titik ini (mis. "pH Buffer Solution
   /// 4"). Beda dari `standardId` sesi (yang dipakai buat Termometer &
@@ -59,11 +68,8 @@ class PhCalibrationDraft {
     required this.standardId,
     required this.tanggalKalibrasi,
     required this.thermohygroId,
-  }) : points = [
-         PhBufferPoint(label: '4', nilaiStandar: 4.0),
-         PhBufferPoint(label: '7', nilaiStandar: 7.0),
-         PhBufferPoint(label: '10', nilaiStandar: 10.0),
-       ];
+    required this.points,
+  });
 
   final int equipmentId;
 
@@ -78,6 +84,15 @@ class PhCalibrationDraft {
   double? suhuAkhir;
   double? kelembabanAwal;
   double? kelembabanAkhir;
+
+  /// Koreksi & U95% dari sertifikat thermohygro-nya sendiri — dibaca dari
+  /// worksheet, bukan dihitung mobile. Backend butuh ini buat nurunin U95%
+  /// kondisi lingkungan.
+  double? suhuKoreksi;
+  double? kelembabanKoreksi;
+  double? suhuUStd;
+  double? kelembabanUStd;
+
   String? nomorOrder;
   DateTime? tanggalTerima;
 
@@ -87,57 +102,74 @@ class PhCalibrationDraft {
   /// Analitik" (`data-kemampuan-kalibrasi.json`), bukan hasil tebakan.
   static const kategori = 'instrumen-analitik';
 
+  /// Buffer standar yang selalu dipakai satu sesi pH.
+  static const labelTitik = ['4', '7', '10'];
+
+  /// Minimum pengulangan per titik yang diterima backend buat pH.
+  static const minPengulangan = 3;
+
   /// Terjemahin ke [CalibrationDraft] generik buat dikirim ke
-  /// `POST /api/calibrations` yang udah live. Suhu/kelembaban dirata-rata
-  /// dari awal-akhir (sama kayak kolom "Average" di master worksheet);
-  /// tiap titik buffer kirim 5 pembacaan *sesudah* adjustment plus standar
-  /// buffernya sendiri-sendiri.
+  /// `POST /api/calibrations`.
   CalibrationDraft toGenericDraft({
     required String clientRequestId,
     LokasiKalibrasi lokasi = LokasiKalibrasi.lab,
     bool simpanSebagaiDraft = false,
+    bool adaScanKamera = false,
   }) {
-    final suhuRuang = ((suhuAwal ?? 0) + (suhuAkhir ?? 0)) / 2;
-    final kelembaban = ((kelembabanAwal ?? 0) + (kelembabanAkhir ?? 0)) / 2;
-
     return CalibrationDraft(
+      adaScanKamera: adaScanKamera,
       equipmentId: equipmentId,
       kategori: kategori,
       standardId: standardId,
       tanggalKalibrasi: tanggalKalibrasi,
-      suhuRuang: suhuRuang,
-      kelembaban: kelembaban,
       lokasi: lokasi,
       clientRequestId: clientRequestId,
       simpanSebagaiDraft: simpanSebagaiDraft,
       nomorOrder: nomorOrder,
       tanggalTerima: tanggalTerima,
+      lingkungan: KondisiLingkunganDraft(
+        // Kondisi lingkungan divalidasi lengkap di form sebelum sampai sini.
+        suhuAwal: suhuAwal ?? 0,
+        suhuAkhir: suhuAkhir ?? 0,
+        kelembabanAwal: kelembabanAwal ?? 0,
+        kelembabanAkhir: kelembabanAkhir ?? 0,
+        suhuKoreksi: suhuKoreksi,
+        kelembabanKoreksi: kelembabanKoreksi,
+        suhuUStd: suhuUStd,
+        kelembabanUStd: kelembabanUStd,
+        thermohygro: thermohygroId,
+      ),
       measurements: [
         for (final titik in points)
-          () {
-            // Ambil dari baris yang LENGKAP aja (pH + suhu dua-duanya keisi),
-            // biar `pembacaan` dan `suhu_larutan` dijamin sama panjang —
-            // backend nolak 422 kalau beda.
-            final lengkap = titik.sesudahAdjustment
-                .whereType<PhReading>()
-                .toList();
-
-            return MeasurementPoint(
-              satuan: 'pH',
-              standardId: titik.standardId,
-              // titik_ukur SENGAJA nggak dikirim buat pH. Nilai acuan buffer
-              // geser ikut suhu (pH 10 bergeser 0,1 dari 20 °C ke 30 °C —
-              // separuh toleransi alat), jadi backend yang nurunin dari kurva
-              // sertifikat Merck pakai suhu larutan di bawah.
-              pembacaan: lengkap.map((r) => r.ph).toList(),
-              suhuLarutan: lengkap.map((r) => r.suhu).toList(),
-              pembacaanSebelum: titik.sebelumAdjustment
-                  .whereType<PhReading>()
-                  .map((r) => r.ph)
-                  .toList(),
-            );
-          }(),
+          MeasurementPoint(
+            titikUkur: titik.titikUkur,
+            satuan: 'pH',
+            standardId: titik.standardId,
+            pembacaan: _nilai(titik.sesudahAdjustment),
+            suhu: _suhu(titik.sesudahAdjustment),
+            titikUkurSebelum: titik.titikUkurSebelum,
+            pembacaanSebelum: _nilai(titik.sebelumAdjustment),
+            suhuSebelum: _suhu(titik.sebelumAdjustment),
+          ),
       ],
     );
+  }
+
+  /// Baris yang angka pH-nya keisi. Baris kosong dibuang, bukan dikirim
+  /// sebagai `0` — nol itu pembacaan yang sah di skala pH.
+  static List<double> _nilai(List<PhReading?> baris) =>
+      baris.whereType<PhReading>().map((r) => r.ph).toList();
+
+  /// Suhu larutan sejajar index sama [_nilai].
+  ///
+  /// Kalau ada **satu aja** baris yang suhunya belum keisi, seluruh deret suhu
+  /// dibuang. `suhu` itu opsional di backend, tapi kalau dikirim dia harus
+  /// sejajar index sama `pembacaan` — deret yang bolong bikin suhu nempel ke
+  /// baris yang salah, dan itu lebih buruk daripada nggak ngirim suhu sama
+  /// sekali (angkanya kelihatan wajar, cuma ketuker).
+  static List<double> _suhu(List<PhReading?> baris) {
+    final terisi = baris.whereType<PhReading>().toList();
+    if (terisi.isEmpty || terisi.any((r) => r.suhu == null)) return const [];
+    return terisi.map((r) => r.suhu!).toList();
   }
 }

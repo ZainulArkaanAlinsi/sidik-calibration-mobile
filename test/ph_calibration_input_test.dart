@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +14,7 @@ import 'package:sidik_calibration/services/equipment_lookup_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/ocr_service.dart';
 import 'package:sidik_calibration/services/photo_source.dart';
+import 'package:sidik_calibration/services/worksheet_ocr.dart';
 import 'package:sidik_calibration/services/standard_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/widgets/app_text_field.dart';
@@ -20,6 +23,7 @@ Widget _app({
   bool submitGagal = false,
   SumberFoto? sumberFoto,
   OcrService? ocr,
+  WorksheetOcrService? worksheetOcr,
 }) {
   return ProviderScope(
     overrides: [
@@ -27,6 +31,8 @@ Widget _app({
       // pakai implementasi asli.
       if (sumberFoto != null) sumberFotoProvider.overrideWithValue(sumberFoto),
       if (ocr != null) ocrServiceProvider.overrideWithValue(ocr),
+      if (worksheetOcr != null)
+        worksheetOcrServiceProvider.overrideWithValue(worksheetOcr),
       tokenStorageProvider.overrideWithValue(
         InMemoryTokenStorage('mock-token-1'),
       ),
@@ -196,6 +202,35 @@ Future<void> _isiHalaman2(WidgetTester tester) async {
   }
 }
 
+/// Sumber foto yang nyatet berapa kali kamera dipanggil.
+///
+/// Dipakai buat ngunci inti perbaikan: milih "Foto" di gerbang harus MANGGIL
+/// kamera saat itu juga, bukan cuma nyetel penanda lalu nunggu halaman 2.
+class _SumberFotoTercatat implements SumberFoto {
+  int dipanggil = 0;
+
+  @override
+  Future<File?> ambil({int? maxWidth, int? imageQuality}) async {
+    dipanggil++;
+    return File('tes-foto.png');
+  }
+}
+
+/// Tabel hasil OCR contoh — angkanya dari worksheet asli 012-CAL-524,
+/// baris "Before Adjustment" pengulangan ke-1.
+HasilTabelOcr _tabelContoh() => const HasilTabelOcr(
+  baris: [
+    BarisTabel(ph: [4.04, 7.02, 9.61], suhu: [22.2, 22.3, 22.2]),
+    BarisTabel(ph: [4.04, 7.04, 9.94], suhu: [22.2, 22.3, 22.2]),
+    BarisTabel(ph: [4.04, 7.05, 9.66], suhu: [22.2, 22.3, 22.2]),
+    BarisTabel(ph: [4.00, 7.02, 9.61], suhu: [22.2, 22.3, 22.2]),
+    BarisTabel(ph: [4.04, 7.02, 9.61], suhu: [22.2, 22.3, 22.2]),
+  ],
+  teksMentah: '4,04 22,2 7,02 22,3 9,61 22,2 ...',
+  jumlahSelKebaca: 30,
+  jumlahSelDiharapkan: 30,
+);
+
 void main() {
   group('gerbang cara isi', () {
     testWidgets('muncul duluan — wizard belum kebuka sebelum dipilih', (
@@ -224,6 +259,76 @@ void main() {
 
       expect(find.text('Pilih alat'), findsOneWidget);
       expect(find.text('Foto worksheet'), findsNothing);
+    });
+
+    testWidgets('pilih "Foto worksheet" → kamera kebuka LANGSUNG dari gerbang', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final sumber = _SumberFotoTercatat();
+      await tester.pumpWidget(
+        _app(
+          sumberFoto: sumber,
+          worksheetOcr: MockWorksheetOcrService(hasil: _tabelContoh()),
+        ),
+      );
+      await _bukaGerbang(tester);
+
+      await tester.tap(find.text('Foto worksheet'));
+      await tester.pumpAndSettle();
+
+      // Inti perbaikannya: kamera dipanggil di gerbang, bukan nunggu teknisi
+      // ngisi halaman 1 dan nekan LANJUTKAN dulu.
+      expect(
+        sumber.dipanggil,
+        1,
+        reason: 'milih Foto artinya motret sekarang, bukan nanti',
+      );
+    });
+
+    testWidgets('hasil foto langsung ngisi tabel & lompat ke halaman data', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await tester.pumpWidget(
+        _app(
+          sumberFoto: MockSumberFoto(),
+          worksheetOcr: MockWorksheetOcrService(hasil: _tabelContoh()),
+        ),
+      );
+      await _bukaGerbang(tester);
+
+      await tester.tap(find.text('Foto worksheet'));
+      await tester.pumpAndSettle();
+
+      // Sekali jepret → kolom pembacaan buffer 4 keisi tanpa ngetik apa pun.
+      expect(
+        tester.widget<TextField>(_kolomTitik('4', 1)).controller?.text,
+        '4.04',
+      );
+      // Dan teknisi dibawa ke halaman datanya, bukan ditinggal di identitas.
+      expect(find.text('Buffer pH 4'), findsWidgets);
+    });
+
+    testWidgets('batal motret di gerbang → balik ke pilihan, bukan masuk form', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await tester.pumpWidget(
+        _app(
+          sumberFoto: MockSumberFoto(dibatalkan: true),
+          worksheetOcr: MockWorksheetOcrService(hasil: _tabelContoh()),
+        ),
+      );
+      await _bukaGerbang(tester);
+
+      await tester.tap(find.text('Foto worksheet'));
+      await tester.pumpAndSettle();
+
+      // Kalau nyelonong masuk form dalam mode foto, teknisi nungguin kamera
+      // yang nggak bakal muncul lagi.
+      expect(find.text('Foto worksheet'), findsOneWidget);
+      expect(find.text('Pilih alat'), findsNothing);
     });
 
     testWidgets('peringatan "wajib dicek" muncul sebelum motret, bukan sesudah', (

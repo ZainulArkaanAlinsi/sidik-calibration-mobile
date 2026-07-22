@@ -49,6 +49,64 @@ class _PhCalibrationInputScreenState
   /// diambil sekali di awal, sebelum tangan kotor kena larutan buffer.
   CaraIsi? _cara;
 
+  /// Hasil baca tabel dari foto di gerbang, dibawa masuk ke wizard buat
+  /// ngisi kolom pembacaan begitu form-nya kebuka.
+  HasilTabelOcr? _hasilFoto;
+
+  bool _memproses = false;
+
+  /// Pilih "Foto" = **kamera langsung kebuka**, bukan cuma nyetel penanda.
+  ///
+  /// Versi pertama cuma nandain pilihan lalu nunggu teknisi sampai halaman 2
+  /// baru nawarin kamera. Itu salah: orang yang milih "Foto" maunya motret
+  /// sekarang, bukan ngisi halaman 1 dulu.
+  Future<void> _pilih(CaraIsi cara) async {
+    if (cara == CaraIsi.manual) {
+      setState(() => _cara = cara);
+      return;
+    }
+
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    setState(() => _memproses = true);
+    try {
+      final foto = await ref.read(sumberFotoProvider).ambil(imageQuality: 100);
+
+      // Batal motret = balik ke gerbang, bukan nyelonong masuk form kosong
+      // dalam mode foto — nanti teknisi nunggu kamera yang nggak bakal muncul.
+      if (foto == null) {
+        if (mounted) setState(() => _memproses = false);
+        return;
+      }
+
+      final hasil = await ref
+          .read(worksheetOcrServiceProvider)
+          .bacaTabel(foto, jumlahTitik: PhCalibrationDraft.labelTitik.length);
+
+      if (!mounted) return;
+
+      // Foto gagal dibaca tetap masuk form — teknisi udah di lapangan sama
+      // alatnya, nyuruh dia ngulang dari gerbang cuma bikin buntu. Kolomnya
+      // kosong, tinggal diketik.
+      if (hasil == null) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.phCalibFotoTabelKosong)),
+        );
+      }
+
+      setState(() {
+        _hasilFoto = hasil;
+        _cara = cara;
+        _memproses = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text(l10n.phCalibScanError)));
+      setState(() => _memproses = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final standarAsync = ref.watch(standardListProvider);
@@ -57,10 +115,16 @@ class _PhCalibrationInputScreenState
     final standar = standarAsync.value;
 
     final Widget isi;
-    if (_cara == null) {
-      isi = _PilihCaraIsi(onPilih: (cara) => setState(() => _cara = cara));
+    if (_memproses) {
+      isi = _MembacaFoto(pesan: l10n.phCalibFotoMembaca);
+    } else if (_cara == null) {
+      isi = _PilihCaraIsi(onPilih: _pilih);
     } else if (standar != null) {
-      isi = _Wizard(standarList: standar, cara: _cara!);
+      isi = _Wizard(
+        standarList: standar,
+        cara: _cara!,
+        hasilFotoAwal: _hasilFoto,
+      );
     } else if (standarAsync.hasError) {
       isi = _Gagal(onCobaLagi: () => ref.invalidate(standardListProvider));
     } else {
@@ -177,75 +241,69 @@ class _TitikControllers {
   }
 }
 
-/// Panel Identitas Alat & Customer — **dibaca, bukan diisi**.
-///
-/// Ngikutin blok IDENTITAS ALAT / IDENTITAS CUSTOMER di worksheet asli
-/// (`SIDIK-FM-CAL-2403`). Sengaja read-only: angkanya datang dari data alat
-/// yang udah terdaftar, jadi kalau salah, yang dibenerin datanya di layar
-/// Alat — bukan diketik ulang beda-beda tiap sesi. Itu yang bikin satu alat
-/// punya tiga versi nomor seri di tiga sertifikat.
-///
-/// Baris yang datanya belum ada **nggak dirender sama sekali**, bukan diisi
-/// strip: kolom kosong berjejer bikin orang ngira sertifikatnya bakal ikut
-/// kosong, padahal PDF-nya digenerate backend yang datanya lengkap.
-class _IdentitasOtomatis extends StatelessWidget {
-  const _IdentitasOtomatis({required this.alat});
+/// Dua kolom sebaris. Dipakai buat pasangan yang di worksheet emang
+/// sebelahan (Merk/Type, Rentang/Kapasitas, Technician ID/Method).
+class _PasanganKolom extends StatelessWidget {
+  const _PasanganKolom({
+    required this.kiriLabel,
+    required this.kiriController,
+    required this.kananLabel,
+    required this.kananController,
+  });
 
-  final EquipmentLookup alat;
+  final String kiriLabel;
+  final TextEditingController kiriController;
+  final String kananLabel;
+  final TextEditingController kananController;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: AppTextField(label: kiriLabel, controller: kiriController),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: AppTextField(label: kananLabel, controller: kananController),
+        ),
+      ],
+    );
+  }
+}
+
+/// Layar tunggu waktu foto lagi dibaca.
+///
+/// Bukan spinner telanjang: baca satu tabel penuh bisa beberapa detik di HP
+/// kelas menengah, dan layar diam tanpa keterangan bikin teknisi ngira
+/// app-nya nge-hang lalu nekan-nekan lagi.
+class _MembacaFoto extends StatelessWidget {
+  const _MembacaFoto({required this.pesan});
+
+  final String pesan;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context);
 
-    final baris = <(String, String)>[
-      (l10n.phCalibIdMerk, alat.merk),
-      (l10n.phCalibIdType, alat.model),
-      (l10n.phCalibIdNoSeri, alat.serialNumber),
-      if (alat.rentangTeks != null) (l10n.phCalibIdRentang, alat.rentangTeks!),
-      if (alat.resolusiTeks != null)
-        (l10n.phCalibIdResolusi, alat.resolusiTeks!),
-      (l10n.phCalibIdCustomer, alat.pelangganNama),
-    ].where((b) => b.$2.trim().isNotEmpty).toList();
-
-    if (baris.isEmpty) return const SizedBox.shrink();
-
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (final (label, nilai) in baris)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 3),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 120,
-                    child: Text(
-                      label,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      nilai,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              pesan,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -396,11 +454,18 @@ class _KartuCara extends StatelessWidget {
 }
 
 class _Wizard extends ConsumerStatefulWidget {
-  const _Wizard({required this.standarList, this.cara = CaraIsi.manual});
+  const _Wizard({
+    required this.standarList,
+    this.cara = CaraIsi.manual,
+    this.hasilFotoAwal,
+  });
 
-  /// Dipilih di gerbang depan. [CaraIsi.foto] bikin tawaran foto tabel muncul
-  /// duluan begitu halaman 2 kebuka, bukan nunggu teknisi nyari tombolnya.
+  /// Dipilih di gerbang depan.
   final CaraIsi cara;
+
+  /// Hasil baca tabel dari foto yang diambil **di gerbang**, sebelum form
+  /// kebuka. Ditempel ke kolom pembacaan waktu wizard di-init.
+  final HasilTabelOcr? hasilFotoAwal;
 
   final List<Standard> standarList;
 
@@ -414,17 +479,66 @@ class _WizardState extends ConsumerState<_Wizard> {
   final _pageController = PageController();
   int _langkah = 0;
 
-  /// Kamera mode foto cuma ditawarin sekali. Tanpa penanda ini, tiap balik ke
-  /// halaman 2 dari halaman 1 kameranya kebuka lagi — dan kalau teknisi lagi
-  /// bolak-balik ngecek identitas alat, itu jadi jebakan.
-  bool _fotoDitawarkan = false;
-
   EquipmentLookup? _alat;
   Standard? _standar;
   DateTime _tanggal = DateTime.now();
   DateTime? _tanggalTerima;
   LokasiKalibrasi _lokasi = LokasiKalibrasi.lab;
   final _nomorOrder = TextEditingController();
+
+  // ---- Kolom kepala worksheet (SIDIK-FM-CAL-2403) -------------------------
+  //
+  // Semuanya kolom ISIAN, bukan label read-only. Sempat dibikin read-only
+  // dengan alasan "biar nomor seri nggak beda-beda tiap sesi", tapi itu salah
+  // buat pekerjaan lapangan: worksheet diisi di tempat pelanggan, dan yang
+  // tertulis di kertas kadang beda dari yang kedaftar (alat diganti, label
+  // kebaca lain, order nyusul). Yang dikirim ke sertifikat harus yang
+  // dilihat teknisi di lapangan.
+  //
+  // Kolom yang datanya udah ada di master alat tetap diisi otomatis begitu
+  // alatnya dipilih — teknisi tinggal koreksi kalau beda, bukan ngetik dari nol.
+  final _certificateNumber = TextEditingController();
+  final _namaAlat = TextEditingController();
+  final _merk = TextEditingController();
+  final _type = TextEditingController();
+  final _noSeri = TextEditingController();
+  final _rentangUkur = TextEditingController();
+  final _kapasitasMax = TextEditingController();
+  final _resolusiAlat = TextEditingController();
+  final _namaCustomer = TextEditingController();
+  final _alamatCustomer = TextEditingController();
+  final _technicianId = TextEditingController();
+  final _calibrationMethod = TextEditingController();
+
+  // ---- Kaki halaman 2 -----------------------------------------------------
+  DateTime? _issuanceDate;
+
+  /// **Inisial** (mis. `NR`) — sesuai worksheet, yang ngitung cukup inisial.
+  final _calculatedBy = TextEditingController();
+
+  /// **Nama asli** (mis. `Alex Misramto`) — ini yang tanda tangan sertifikat,
+  /// jadi nggak boleh disingkat.
+  final _signedBy = TextEditingController();
+
+  /// Isi kolom kepala dari alat yang baru dipilih.
+  ///
+  /// Cuma ngisi yang MASIH KOSONG. Kalau teknisi udah ngoreksi sesuatu (atau
+  /// hasil foto udah nempel di situ), ganti alat nggak boleh ngehapus
+  /// kerjaannya.
+  void _isiDariAlat(EquipmentLookup alat) {
+    void isi(TextEditingController c, String nilai) {
+      if (c.text.trim().isEmpty && nilai.trim().isNotEmpty) c.text = nilai;
+    }
+
+    isi(_namaAlat, alat.namaAlat);
+    isi(_merk, alat.merk);
+    isi(_type, alat.model);
+    isi(_noSeri, alat.serialNumber);
+    isi(_rentangUkur, alat.rentangTeks ?? '');
+    isi(_kapasitasMax, alat.kapasitasTeks ?? '');
+    isi(_resolusiAlat, alat.resolusiTeks ?? '');
+    isi(_namaCustomer, alat.pelangganNama);
+  }
   String _thermohygroPreset = 'TH-3';
   final _thermohygro = TextEditingController(text: 'TH-3');
 
@@ -448,6 +562,41 @@ class _WizardState extends ConsumerState<_Wizard> {
   };
 
   bool _mengirim = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Foto dari gerbang ditempel begitu form kebuka. Ditaruh di
+    // `addPostFrameCallback` karena `_terapkanTabel` manggil `setState` dan
+    // nampilin SnackBar — dua-duanya butuh frame pertama udah jadi.
+    final hasil = widget.hasilFotoAwal;
+    if (hasil == null) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      final terisi = _terapkanTabel(hasil, sebelum: false);
+      setState(() {});
+
+      final l10n = AppLocalizations.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            terisi == 0
+                ? l10n.phCalibFotoTabelKosong
+                : '${l10n.phCalibFotoTabelHasil(terisi, hasil.jumlahSelDiharapkan)} '
+                      '${terisi < hasil.jumlahSelDiharapkan ? l10n.phCalibFotoTabelSisa : ''}',
+          ),
+        ),
+      );
+
+      // Langsung dibawa ke halaman data: yang barusan difoto itu tabelnya,
+      // jadi yang mau dilihat teknisi ya hasil tempelannya — bukan halaman
+      // identitas yang belum dia sentuh.
+      if (terisi > 0) _keLangkah(1);
+    });
+  }
 
   @override
   void dispose() {
@@ -487,15 +636,6 @@ class _WizardState extends ConsumerState<_Wizard> {
       curve: Curves.easeOutCubic,
     );
 
-    // Mode foto: kameranya langsung ditawarin begitu sampai halaman data,
-    // sekali aja. Teknisi yang milih "Foto" di gerbang depan udah menyatakan
-    // niatnya — nyuruh dia nyari tombol kamera lagi cuma nambah langkah.
-    if (langkah == 1 && widget.cara == CaraIsi.foto && !_fotoDitawarkan) {
-      _fotoDitawarkan = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _fotoTabel(sebelum: false);
-      });
-    }
   }
 
   void _keluhan(String pesan, {int? diLangkah}) {
@@ -740,17 +880,63 @@ class _WizardState extends ConsumerState<_Wizard> {
                 ],
                 onChanged: list.isEmpty
                     ? null
-                    : (value) => setState(() => _alat = value),
+                    : (value) => setState(() {
+                        _alat = value;
+                        if (value != null) _isiDariAlat(value);
+                      }),
               ),
             ),
-            // Identitas alat & pemiliknya keisi sendiri dari alat yang
-            // dipilih — teknisi nggak ngetik ulang Merk/Type/No. Seri yang
-            // udah kesimpen waktu alatnya didaftarin. Nggak ada request
-            // tambahan: `GET /equipments` emang udah ngirim semuanya.
-            if (_alat != null) ...[
-              const SizedBox(height: AppSpacing.md),
-              _IdentitasOtomatis(alat: _alat!),
-            ],
+            const SizedBox(height: AppSpacing.md),
+
+            // Kolom kepala worksheet — ISIAN, bukan label. Yang udah kedaftar
+            // di master alat keisi sendiri begitu alat dipilih; sisanya
+            // diketik teknisi atau nempel dari hasil foto.
+            AppTextField(label: l10n.phCalibIdNamaAlat, controller: _namaAlat),
+            const SizedBox(height: AppSpacing.sm),
+            _PasanganKolom(
+              kiriLabel: l10n.phCalibIdMerk,
+              kiriController: _merk,
+              kananLabel: l10n.phCalibIdType,
+              kananController: _type,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            AppTextField(label: l10n.phCalibIdNoSeri, controller: _noSeri),
+            const SizedBox(height: AppSpacing.sm),
+            _PasanganKolom(
+              kiriLabel: l10n.phCalibIdRentang,
+              kiriController: _rentangUkur,
+              kananLabel: l10n.phCalibIdKapasitasMax,
+              kananController: _kapasitasMax,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            AppTextField(
+              label: l10n.phCalibIdResolusi,
+              controller: _resolusiAlat,
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+
+        _Seksi(
+          ikon: Icons.badge_outlined,
+          judul: l10n.phCalibIdentitasCustomer,
+          children: [
+            AppTextField(
+              label: l10n.phCalibIdCustomer,
+              controller: _namaCustomer,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            AppTextField(
+              label: l10n.phCalibIdAlamatCustomer,
+              controller: _alamatCustomer,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _PasanganKolom(
+              kiriLabel: l10n.phCalibIdCertificateNumber,
+              kiriController: _certificateNumber,
+              kananLabel: l10n.phCalibIdOrderNumber,
+              kananController: _nomorOrder,
+            ),
           ],
         ),
         const SizedBox(height: AppSpacing.md),
@@ -783,10 +969,14 @@ class _WizardState extends ConsumerState<_Wizard> {
               onChanged: (value) => setState(() => _lokasi = value!),
             ),
             const SizedBox(height: AppSpacing.md),
-            AppTextField(
-              label: l10n.calibNomorOrder,
-              controller: _nomorOrder,
-              hint: l10n.calibNomorOrderHint,
+            // Nomor Order pindah ke seksi Customer, ngikutin worksheet — di
+            // kertas dia sebaris sama Certificate Number, bukan di blok
+            // pengerjaan.
+            _PasanganKolom(
+              kiriLabel: l10n.phCalibIdTechnicianId,
+              kiriController: _technicianId,
+              kananLabel: l10n.phCalibIdCalibrationMethod,
+              kananController: _calibrationMethod,
             ),
             const SizedBox(height: AppSpacing.md),
             Row(
@@ -1049,6 +1239,36 @@ class _WizardState extends ConsumerState<_Wizard> {
           ),
           const SizedBox(height: AppSpacing.md),
         ],
+
+        // Kaki worksheet — Issuance Date + Calculated by / Signed by.
+        _Seksi(
+          ikon: Icons.draw_outlined,
+          judul: l10n.phCalibPengesahan,
+          children: [
+            _PilihTanggal(
+              label: l10n.phCalibIssuanceDate,
+              nilai: _issuanceDate,
+              onPilih: (v) => setState(() => _issuanceDate = v),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            // Dua kolom ini sengaja beda aturan, sesuai worksheet: yang
+            // ngitung cukup INISIAL (`NR`), yang tanda tangan wajib NAMA ASLI
+            // (`Alex Misramto`) — nama itu yang kecetak di sertifikat dan yang
+            // dipertanggungjawabkan waktu audit.
+            AppTextField(
+              label: l10n.phCalibCalculatedBy,
+              controller: _calculatedBy,
+              hint: l10n.phCalibCalculatedByHint,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            AppTextField(
+              label: l10n.phCalibSignedBy,
+              controller: _signedBy,
+              hint: l10n.phCalibSignedByHint,
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
         _CatatanHitung(pesan: l10n.phCalibDihitungServer),
       ],
     );

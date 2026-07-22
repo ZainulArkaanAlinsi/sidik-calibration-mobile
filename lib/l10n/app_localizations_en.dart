@@ -1340,6 +1340,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get phCalibIdCustomer => 'Customer name';
 
   @override
+  String get phCalibFotoMembaca => 'Reading the numbers from your photo…';
+
+  @override
+  String get phCalibIdentitasCustomer => 'Customer Details';
+
+  @override
+  String get phCalibIdNamaAlat => 'Device name';
+
+  @override
+  String get phCalibIdKapasitasMax => 'Max. capacity';
+
+  @override
+  String get phCalibIdAlamatCustomer => 'Customer address';
+
+  @override
+  String get phCalibIdCertificateNumber => 'Certificate no.';
+
+  @override
+  String get phCalibIdOrderNumber => 'Order no.';
+
+  @override
+  String get phCalibIdTechnicianId => 'Technician ID';
+
+  @override
+  String get phCalibIdCalibrationMethod => 'Calibration method';
+
+  @override
+  String get phCalibPengesahan => 'Authorisation';
+
+  @override
+  String get phCalibIssuanceDate => 'Issuance date';
+
+  @override
+  String get phCalibCalculatedBy => 'Calculated by (initials)';
+
+  @override
+  String get phCalibCalculatedByHint => 'e.g. NR';
+
+  @override
+  String get phCalibSignedBy => 'Signed by (full name)';
+
+  @override
+  String get phCalibSignedByHint => 'e.g. Alex Misramto';
+
+  @override
   String get phCalibCaraJudul => 'How do you want to fill this in?';
 
   @override

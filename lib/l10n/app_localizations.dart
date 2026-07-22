@@ -2546,6 +2546,96 @@ abstract class AppLocalizations {
   /// **'Customer name'**
   String get phCalibIdCustomer;
 
+  /// No description provided for @phCalibFotoMembaca.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading the numbers from your photo…'**
+  String get phCalibFotoMembaca;
+
+  /// No description provided for @phCalibIdentitasCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Details'**
+  String get phCalibIdentitasCustomer;
+
+  /// No description provided for @phCalibIdNamaAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Device name'**
+  String get phCalibIdNamaAlat;
+
+  /// No description provided for @phCalibIdKapasitasMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Max. capacity'**
+  String get phCalibIdKapasitasMax;
+
+  /// No description provided for @phCalibIdAlamatCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer address'**
+  String get phCalibIdAlamatCustomer;
+
+  /// No description provided for @phCalibIdCertificateNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate no.'**
+  String get phCalibIdCertificateNumber;
+
+  /// No description provided for @phCalibIdOrderNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Order no.'**
+  String get phCalibIdOrderNumber;
+
+  /// No description provided for @phCalibIdTechnicianId.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician ID'**
+  String get phCalibIdTechnicianId;
+
+  /// No description provided for @phCalibIdCalibrationMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration method'**
+  String get phCalibIdCalibrationMethod;
+
+  /// No description provided for @phCalibPengesahan.
+  ///
+  /// In en, this message translates to:
+  /// **'Authorisation'**
+  String get phCalibPengesahan;
+
+  /// No description provided for @phCalibIssuanceDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Issuance date'**
+  String get phCalibIssuanceDate;
+
+  /// No description provided for @phCalibCalculatedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculated by (initials)'**
+  String get phCalibCalculatedBy;
+
+  /// No description provided for @phCalibCalculatedByHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. NR'**
+  String get phCalibCalculatedByHint;
+
+  /// No description provided for @phCalibSignedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed by (full name)'**
+  String get phCalibSignedBy;
+
+  /// No description provided for @phCalibSignedByHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Alex Misramto'**
+  String get phCalibSignedByHint;
+
   /// No description provided for @phCalibCaraJudul.
   ///
   /// In en, this message translates to:
