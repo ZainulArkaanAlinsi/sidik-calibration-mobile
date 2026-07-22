@@ -177,6 +177,80 @@ class _TitikControllers {
   }
 }
 
+/// Panel Identitas Alat & Customer — **dibaca, bukan diisi**.
+///
+/// Ngikutin blok IDENTITAS ALAT / IDENTITAS CUSTOMER di worksheet asli
+/// (`SIDIK-FM-CAL-2403`). Sengaja read-only: angkanya datang dari data alat
+/// yang udah terdaftar, jadi kalau salah, yang dibenerin datanya di layar
+/// Alat — bukan diketik ulang beda-beda tiap sesi. Itu yang bikin satu alat
+/// punya tiga versi nomor seri di tiga sertifikat.
+///
+/// Baris yang datanya belum ada **nggak dirender sama sekali**, bukan diisi
+/// strip: kolom kosong berjejer bikin orang ngira sertifikatnya bakal ikut
+/// kosong, padahal PDF-nya digenerate backend yang datanya lengkap.
+class _IdentitasOtomatis extends StatelessWidget {
+  const _IdentitasOtomatis({required this.alat});
+
+  final EquipmentLookup alat;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    final baris = <(String, String)>[
+      (l10n.phCalibIdMerk, alat.merk),
+      (l10n.phCalibIdType, alat.model),
+      (l10n.phCalibIdNoSeri, alat.serialNumber),
+      if (alat.rentangTeks != null) (l10n.phCalibIdRentang, alat.rentangTeks!),
+      if (alat.resolusiTeks != null)
+        (l10n.phCalibIdResolusi, alat.resolusiTeks!),
+      (l10n.phCalibIdCustomer, alat.pelangganNama),
+    ].where((b) => b.$2.trim().isNotEmpty).toList();
+
+    if (baris.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final (label, nilai) in baris)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 120,
+                    child: Text(
+                      label,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      nilai,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Gerbang depan: diketik manual, atau difoto sekali.
 ///
 /// Ditaruh **sebelum** halaman 1 karena ini keputusan alur kerja, bukan
@@ -669,6 +743,14 @@ class _WizardState extends ConsumerState<_Wizard> {
                     : (value) => setState(() => _alat = value),
               ),
             ),
+            // Identitas alat & pemiliknya keisi sendiri dari alat yang
+            // dipilih — teknisi nggak ngetik ulang Merk/Type/No. Seri yang
+            // udah kesimpen waktu alatnya didaftarin. Nggak ada request
+            // tambahan: `GET /equipments` emang udah ngirim semuanya.
+            if (_alat != null) ...[
+              const SizedBox(height: AppSpacing.md),
+              _IdentitasOtomatis(alat: _alat!),
+            ],
           ],
         ),
         const SizedBox(height: AppSpacing.md),

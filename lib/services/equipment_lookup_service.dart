@@ -67,12 +67,21 @@ class MockEquipmentLookupService implements EquipmentLookupService {
         kategori: 'massa',
         status: 'overdue',
       ),
+      // Angkanya disamain sama worksheet asli 012-CAL-524 biar test bisa
+      // ngunci kolom Identitas Alat ke nilai yang beneran ada di kertas.
       EquipmentLookup(
         id: 14,
         namaAlat: 'pH Meter Mettler Toledo',
         serialNumber: 'B628755900',
         kategori: 'instrumen-analitik',
         status: 'aktif',
+        merk: 'Mettler Toledo',
+        model: 'Five Easy',
+        rangeMin: 0,
+        rangeMax: 14,
+        satuan: 'pH',
+        resolusi: 0.01,
+        pelangganNama: 'PT TIRTA GRACIA SEMESTA MANDIRI',
       ),
     ];
 

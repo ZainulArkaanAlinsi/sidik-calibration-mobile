@@ -1312,6 +1312,24 @@ class AppLocalizationsId extends AppLocalizations {
   String get phCalibSesudahAdjustment => 'Sesudah adjustment (as left)';
 
   @override
+  String get phCalibIdMerk => 'Merk';
+
+  @override
+  String get phCalibIdType => 'Type';
+
+  @override
+  String get phCalibIdNoSeri => 'No. Seri';
+
+  @override
+  String get phCalibIdRentang => 'Rentang ukur';
+
+  @override
+  String get phCalibIdResolusi => 'Resolusi alat';
+
+  @override
+  String get phCalibIdCustomer => 'Nama customer';
+
+  @override
   String get phCalibCaraJudul => 'Mau diisi bagaimana?';
 
   @override

@@ -2510,6 +2510,42 @@ abstract class AppLocalizations {
   /// **'After adjustment (as left)'**
   String get phCalibSesudahAdjustment;
 
+  /// No description provided for @phCalibIdMerk.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand'**
+  String get phCalibIdMerk;
+
+  /// No description provided for @phCalibIdType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get phCalibIdType;
+
+  /// No description provided for @phCalibIdNoSeri.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial no.'**
+  String get phCalibIdNoSeri;
+
+  /// No description provided for @phCalibIdRentang.
+  ///
+  /// In en, this message translates to:
+  /// **'Measuring range'**
+  String get phCalibIdRentang;
+
+  /// No description provided for @phCalibIdResolusi.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolution'**
+  String get phCalibIdResolusi;
+
+  /// No description provided for @phCalibIdCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer name'**
+  String get phCalibIdCustomer;
+
   /// No description provided for @phCalibCaraJudul.
   ///
   /// In en, this message translates to:

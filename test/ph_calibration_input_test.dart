@@ -239,6 +239,31 @@ void main() {
     });
   });
 
+  group('identitas alat otomatis', () {
+    testWidgets('kosong sebelum alat dipilih, keisi sesudahnya', (tester) async {
+      _perbesarViewport(tester);
+      await tester.pumpWidget(_app());
+      await _bukaLayar(tester);
+
+      // Belum milih alat → panelnya nggak ada, bukan deretan strip kosong.
+      expect(find.text('Mettler Toledo'), findsNothing);
+
+      await _pilihDropdown(tester, 'Pilih alat', 'pH Meter Mettler Toledo');
+
+      // Nilai-nilai ini datang dari `GET /equipments` yang emang udah dikirim
+      // server — dulu dibuang parser, jadi kolomnya kosong padahal datanya ada.
+      expect(find.text('Mettler Toledo'), findsOneWidget); // Merk
+      expect(find.text('Five Easy'), findsOneWidget); // Type
+      expect(find.text('B628755900'), findsOneWidget); // No. Seri
+      expect(find.text('0–14 pH'), findsOneWidget); // Rentang ukur
+      expect(find.text('0.01 pH'), findsOneWidget); // Resolusi
+      expect(
+        find.text('PT TIRTA GRACIA SEMESTA MANDIRI'),
+        findsOneWidget,
+      ); // Customer
+    });
+  });
+
   testWidgets('halaman 1 nampilin identitas & kondisi, belum titik buffer', (
     tester,
   ) async {

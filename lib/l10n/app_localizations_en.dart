@@ -1322,6 +1322,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get phCalibSesudahAdjustment => 'After adjustment (as left)';
 
   @override
+  String get phCalibIdMerk => 'Brand';
+
+  @override
+  String get phCalibIdType => 'Type';
+
+  @override
+  String get phCalibIdNoSeri => 'Serial no.';
+
+  @override
+  String get phCalibIdRentang => 'Measuring range';
+
+  @override
+  String get phCalibIdResolusi => 'Resolution';
+
+  @override
+  String get phCalibIdCustomer => 'Customer name';
+
+  @override
   String get phCalibCaraJudul => 'How do you want to fill this in?';
 
   @override
