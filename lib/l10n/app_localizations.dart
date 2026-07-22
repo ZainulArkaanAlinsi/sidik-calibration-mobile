@@ -422,18 +422,6 @@ abstract class AppLocalizations {
   /// **'Hello,'**
   String get dashGreeting;
 
-  /// No description provided for @dashSummaryOrg.
-  ///
-  /// In en, this message translates to:
-  /// **'Organization summary'**
-  String get dashSummaryOrg;
-
-  /// No description provided for @dashSummaryYours.
-  ///
-  /// In en, this message translates to:
-  /// **'Your summary'**
-  String get dashSummaryYours;
-
   /// No description provided for @dashTotalDevices.
   ///
   /// In en, this message translates to:
@@ -463,6 +451,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Certificates this month'**
   String get dashCertsThisMonth;
+
+  /// No description provided for @dashLabScope.
+  ///
+  /// In en, this message translates to:
+  /// **'Lab-wide'**
+  String get dashLabScope;
+
+  /// No description provided for @dashTotalCerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificates'**
+  String get dashTotalCerts;
+
+  /// No description provided for @dashCertsThisMonthSub.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} this month'**
+  String dashCertsThisMonthSub(int count);
+
+  /// No description provided for @dashCalibrationMine.
+  ///
+  /// In en, this message translates to:
+  /// **'My calibrations'**
+  String get dashCalibrationMine;
+
+  /// No description provided for @dashCalibrationLab.
+  ///
+  /// In en, this message translates to:
+  /// **'Lab calibrations'**
+  String get dashCalibrationLab;
+
+  /// No description provided for @dashTrendUp.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more completed than last period'**
+  String dashTrendUp(int count);
+
+  /// No description provided for @dashTrendDown.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} fewer completed than last period'**
+  String dashTrendDown(int count);
+
+  /// No description provided for @dashTrendFlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Same as last period'**
+  String get dashTrendFlat;
 
   /// No description provided for @dashQuickActions.
   ///
@@ -529,12 +565,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Calibration input is planned for week 4.'**
   String get snackCalibInputSoon;
-
-  /// No description provided for @snackAddDeviceSoon.
-  ///
-  /// In en, this message translates to:
-  /// **'Adding devices is planned for week 3.'**
-  String get snackAddDeviceSoon;
 
   /// No description provided for @profAccountInfo.
   ///
@@ -878,6 +908,24 @@ abstract class AppLocalizations {
   /// **'Choose a customer'**
   String get equipPelangganHint;
 
+  /// No description provided for @equipPelangganCariHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search company name'**
+  String get equipPelangganCariHint;
+
+  /// No description provided for @equipPelangganGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the customer list.'**
+  String get equipPelangganGagal;
+
+  /// No description provided for @equipPelangganKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No customer found.'**
+  String get equipPelangganKosong;
+
   /// No description provided for @equipNamaAlatKemampuan.
   ///
   /// In en, this message translates to:
@@ -955,6 +1003,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tolerance'**
   String get equipToleransi;
+
+  /// No description provided for @equipToleransiWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Tolerance is required.'**
+  String get equipToleransiWajib;
+
+  /// No description provided for @equipToleransiWajibHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A device without a tolerance can\'t be calibrated — there\'s no way to decide PASS/FAIL.'**
+  String get equipToleransiWajibHint;
 
   /// No description provided for @equipLokasi.
   ///
@@ -1172,6 +1232,84 @@ abstract class AppLocalizations {
   /// **'Result Summary'**
   String get certRingkasanTitle;
 
+  /// No description provided for @certIdentitasTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Session Details'**
+  String get certIdentitasTitle;
+
+  /// No description provided for @certTanggalKalibrasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration date'**
+  String get certTanggalKalibrasi;
+
+  /// No description provided for @certTeknisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician'**
+  String get certTeknisi;
+
+  /// No description provided for @certLokasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration location'**
+  String get certLokasi;
+
+  /// No description provided for @certMetode.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration method'**
+  String get certMetode;
+
+  /// No description provided for @certReportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration Report'**
+  String get certReportTitle;
+
+  /// No description provided for @certColStandard.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard Value'**
+  String get certColStandard;
+
+  /// No description provided for @certColUut.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit Under Test'**
+  String get certColUut;
+
+  /// No description provided for @certColKoreksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction'**
+  String get certColKoreksi;
+
+  /// No description provided for @certColU95.
+  ///
+  /// In en, this message translates to:
+  /// **'U95% (±)'**
+  String get certColU95;
+
+  /// No description provided for @certStandarDipakai.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard used'**
+  String get certStandarDipakai;
+
+  /// No description provided for @certBelumDihitung.
+  ///
+  /// In en, this message translates to:
+  /// **'The measurement points haven\'t been calculated by the backend yet, so the report table can\'t be shown.'**
+  String get certBelumDihitung;
+
+  /// No description provided for @certDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'— Calibration results are not to be announced and only apply to related tools —'**
+  String get certDisclaimer;
+
   /// No description provided for @certLihatDetail.
   ///
   /// In en, this message translates to:
@@ -1286,6 +1424,18 @@ abstract class AppLocalizations {
   /// **'Standard deviation'**
   String get detailStandarDeviasi;
 
+  /// No description provided for @detailMaxStdev.
+  ///
+  /// In en, this message translates to:
+  /// **'Max STDEV'**
+  String get detailMaxStdev;
+
+  /// No description provided for @detailMaxStdevSebelum.
+  ///
+  /// In en, this message translates to:
+  /// **'Before adjustment'**
+  String get detailMaxStdevSebelum;
+
   /// No description provided for @detailTypeA.
   ///
   /// In en, this message translates to:
@@ -1327,6 +1477,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Expanded uncertainty (U95%)'**
   String get detailU95;
+
+  /// No description provided for @detailAwal.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get detailAwal;
+
+  /// No description provided for @detailAkhir.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get detailAkhir;
+
+  /// No description provided for @detailNilaiTerkoreksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Corrected value'**
+  String get detailNilaiTerkoreksi;
+
+  /// No description provided for @detailU95Lingkungan.
+  ///
+  /// In en, this message translates to:
+  /// **'U95%'**
+  String get detailU95Lingkungan;
+
+  /// No description provided for @detailThermohygro.
+  ///
+  /// In en, this message translates to:
+  /// **'Thermohygrometer'**
+  String get detailThermohygro;
+
+  /// No description provided for @detailMetode.
+  ///
+  /// In en, this message translates to:
+  /// **'Method'**
+  String get detailMetode;
+
+  /// No description provided for @detailSuhuLarutan.
+  ///
+  /// In en, this message translates to:
+  /// **'Solution temp.'**
+  String get detailSuhuLarutan;
+
+  /// No description provided for @detailSebelumAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Before adjustment (as found)'**
+  String get detailSebelumAdjustment;
+
+  /// No description provided for @detailSesudahAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'After adjustment (certified)'**
+  String get detailSesudahAdjustment;
+
+  /// No description provided for @detailAsFoundCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents the state the instrument arrived in — not part of the certified result.'**
+  String get detailAsFoundCatatan;
+
+  /// No description provided for @detailPerluVerifikasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Some OCR readings still need confirming — this session can\'t be approved yet.'**
+  String get detailPerluVerifikasi;
 
   /// No description provided for @orgTitle.
   ///
@@ -2111,8 +2327,20 @@ abstract class AppLocalizations {
   /// No description provided for @phCalibNilaiStandar.
   ///
   /// In en, this message translates to:
-  /// **'Standard value (certificate)'**
+  /// **'Reference value (temp-corrected)'**
   String get phCalibNilaiStandar;
+
+  /// No description provided for @phCalibNilaiStandarHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy from the worksheet — the buffer value after temperature correction, not the round number.'**
+  String get phCalibNilaiStandarHelper;
+
+  /// No description provided for @phCalibNilaiStandarSebelum.
+  ///
+  /// In en, this message translates to:
+  /// **'As-found reference value'**
+  String get phCalibNilaiStandarSebelum;
 
   /// No description provided for @phCalibSebelumAdjustment.
   ///
@@ -2125,6 +2353,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'After adjustment (as left)'**
   String get phCalibSesudahAdjustment;
+
+  /// No description provided for @phCalibScanTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Photograph the pH meter display'**
+  String get phCalibScanTooltip;
+
+  /// No description provided for @phCalibScanGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read the number clearly. Try a closer photo, or type it in.'**
+  String get phCalibScanGagal;
+
+  /// No description provided for @phCalibScanError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the camera.'**
+  String get phCalibScanError;
+
+  /// No description provided for @phCalibOcrBelumDikonfirmasi.
+  ///
+  /// In en, this message translates to:
+  /// **'From camera — please check'**
+  String get phCalibOcrBelumDikonfirmasi;
+
+  /// No description provided for @phCalibOcrKonfirmasi.
+  ///
+  /// In en, this message translates to:
+  /// **'CONFIRM'**
+  String get phCalibOcrKonfirmasi;
 
   /// No description provided for @phCalibPembacaanKe.
   ///
@@ -2147,14 +2405,116 @@ abstract class AppLocalizations {
   /// No description provided for @phCalibValidasiPembacaan.
   ///
   /// In en, this message translates to:
-  /// **'Each buffer point needs 5 valid after-adjustment readings.'**
-  String get phCalibValidasiPembacaan;
+  /// **'Each buffer point needs at least {minimum} valid after-adjustment readings.'**
+  String phCalibValidasiPembacaan(int minimum);
 
-  /// No description provided for @dashStartPhCalibration.
+  /// No description provided for @phCalibValidasiNilaiAcuan.
   ///
   /// In en, this message translates to:
-  /// **'PH METER CALIBRATION'**
-  String get dashStartPhCalibration;
+  /// **'Fill in the temperature-corrected reference value for every buffer point.'**
+  String get phCalibValidasiNilaiAcuan;
+
+  /// No description provided for @phCalibLangkahIdentitas.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity & conditions'**
+  String get phCalibLangkahIdentitas;
+
+  /// No description provided for @phCalibLangkahHasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration results'**
+  String get phCalibLangkahHasil;
+
+  /// No description provided for @phCalibLangkahKe.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {nomor} of {total}'**
+  String phCalibLangkahKe(int nomor, int total);
+
+  /// No description provided for @phCalibIdentitasAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Instrument Identity'**
+  String get phCalibIdentitasAlat;
+
+  /// No description provided for @phCalibPengerjaan.
+  ///
+  /// In en, this message translates to:
+  /// **'Job Details'**
+  String get phCalibPengerjaan;
+
+  /// No description provided for @phCalibPelangganOtomatis.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer details follow the selected instrument — the certificate is filed under the right company automatically.'**
+  String get phCalibPelangganOtomatis;
+
+  /// No description provided for @phCalibKoreksiSuhu.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature correction (°C)'**
+  String get phCalibKoreksiSuhu;
+
+  /// No description provided for @phCalibKoreksiKelembaban.
+  ///
+  /// In en, this message translates to:
+  /// **'Humidity correction (%)'**
+  String get phCalibKoreksiKelembaban;
+
+  /// No description provided for @phCalibU95Suhu.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature U95%'**
+  String get phCalibU95Suhu;
+
+  /// No description provided for @phCalibU95Kelembaban.
+  ///
+  /// In en, this message translates to:
+  /// **'Humidity U95%'**
+  String get phCalibU95Kelembaban;
+
+  /// No description provided for @phCalibDariSertifikatTh.
+  ///
+  /// In en, this message translates to:
+  /// **'From the thermohygrometer certificate — the server derives the environmental U95% from these.'**
+  String get phCalibDariSertifikatTh;
+
+  /// No description provided for @phCalibLanjutkan.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTINUE'**
+  String get phCalibLanjutkan;
+
+  /// No description provided for @phCalibKembali.
+  ///
+  /// In en, this message translates to:
+  /// **'BACK'**
+  String get phCalibKembali;
+
+  /// No description provided for @phCalibDisertifikasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Certified'**
+  String get phCalibDisertifikasi;
+
+  /// No description provided for @phCalibDokumentasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Documentation'**
+  String get phCalibDokumentasi;
+
+  /// No description provided for @phCalibDihitungServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Averages, uncertainty budget, environmental U95% and the PASS/FAIL call are all computed by the server.'**
+  String get phCalibDihitungServer;
+
+  /// No description provided for @phCalibOpsional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get phCalibOpsional;
 
   /// No description provided for @notifEmptyTitle.
   ///

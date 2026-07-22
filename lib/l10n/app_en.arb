@@ -66,13 +66,34 @@
   "navProfile": "Profile",
 
   "dashGreeting": "Hello,",
-  "dashSummaryOrg": "Organization summary",
-  "dashSummaryYours": "Your summary",
   "dashTotalDevices": "Total devices",
   "dashOverdue": "Overdue",
   "dashPendingApproval": "Pending approval",
   "dashCalibrationDraft": "Calibration drafts",
   "dashCertsThisMonth": "Certificates this month",
+  "dashLabScope": "Lab-wide",
+  "dashTotalCerts": "Certificates",
+  "dashCertsThisMonthSub": "{count} this month",
+  "@dashCertsThisMonthSub": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dashCalibrationMine": "My calibrations",
+  "dashCalibrationLab": "Lab calibrations",
+  "dashTrendUp": "{count} more completed than last period",
+  "@dashTrendUp": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dashTrendDown": "{count} fewer completed than last period",
+  "@dashTrendDown": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dashTrendFlat": "Same as last period",
   "dashQuickActions": "Quick actions",
   "dashStartCalibration": "START CALIBRATION",
   "dashAddDevice": "ADD DEVICE",
@@ -89,7 +110,6 @@
   "dashEmptyBodyInput": "No devices registered yet. Start by adding your first measuring device.",
   "dashEmptyBodyReadonly": "There's nothing to show yet.",
   "snackCalibInputSoon": "Calibration input is planned for week 4.",
-  "snackAddDeviceSoon": "Adding devices is planned for week 3.",
 
   "profAccountInfo": "Account Info",
   "profRoleLabel": "Role",
@@ -169,6 +189,9 @@
   "equipKategoriHint": "Choose a device category",
   "equipPelanggan": "Customer",
   "equipPelangganHint": "Choose a customer",
+  "equipPelangganCariHint": "Search company name",
+  "equipPelangganGagal": "Couldn't load the customer list.",
+  "equipPelangganKosong": "No customer found.",
   "equipNamaAlatKemampuan": "Device Type (Calibration Capability)",
   "equipNamaAlatKemampuanHint": "Choose device type (optional, for accurate CMC)",
   "equipNamaAlatKemampuanKosong": "This category has no calibration capabilities yet",
@@ -182,6 +205,8 @@
   "equipSatuan": "Unit",
   "equipResolusi": "Resolution",
   "equipToleransi": "Tolerance",
+  "equipToleransiWajib": "Tolerance is required.",
+  "equipToleransiWajibHint": "A device without a tolerance can't be calibrated — there's no way to decide PASS/FAIL.",
   "equipLokasi": "Location",
   "equipStatus": "Status",
   "equipSave": "SAVE",
@@ -254,6 +279,19 @@
     }
   },
   "certRingkasanTitle": "Result Summary",
+  "certIdentitasTitle": "Session Details",
+  "certTanggalKalibrasi": "Calibration date",
+  "certTeknisi": "Technician",
+  "certLokasi": "Calibration location",
+  "certMetode": "Calibration method",
+  "certReportTitle": "Calibration Report",
+  "certColStandard": "Standard Value",
+  "certColUut": "Unit Under Test",
+  "certColKoreksi": "Correction",
+  "certColU95": "U95% (±)",
+  "certStandarDipakai": "Standard used",
+  "certBelumDihitung": "The measurement points haven't been calculated by the backend yet, so the report table can't be shown.",
+  "certDisclaimer": "— Calibration results are not to be announced and only apply to related tools —",
   "certLihatDetail": "VIEW CALCULATION DETAIL",
 
   "detailTitle": "Calibration Result Detail",
@@ -285,6 +323,8 @@
   "detailError": "Error",
   "detailKoreksi": "Correction",
   "detailStandarDeviasi": "Standard deviation",
+  "detailMaxStdev": "Max STDEV",
+  "detailMaxStdevSebelum": "Before adjustment",
   "detailTypeA": "Type A",
   "detailTypeB": "Type B",
   "detailKomponenTypeB": "Type B component breakdown",
@@ -292,6 +332,17 @@
   "detailKetidakpastianGabungan": "Combined uncertainty (uc)",
   "detailFaktorCakupan": "Coverage factor (k)",
   "detailU95": "Expanded uncertainty (U95%)",
+  "detailAwal": "Start",
+  "detailAkhir": "End",
+  "detailNilaiTerkoreksi": "Corrected value",
+  "detailU95Lingkungan": "U95%",
+  "detailThermohygro": "Thermohygrometer",
+  "detailMetode": "Method",
+  "detailSuhuLarutan": "Solution temp.",
+  "detailSebelumAdjustment": "Before adjustment (as found)",
+  "detailSesudahAdjustment": "After adjustment (certified)",
+  "detailAsFoundCatatan": "Documents the state the instrument arrived in — not part of the certified result.",
+  "detailPerluVerifikasi": "Some OCR readings still need confirming — this session can't be approved yet.",
 
   "orgTitle": "Organization Data",
   "orgNama": "Company name",
@@ -493,9 +544,16 @@
       "label": { "type": "String" }
     }
   },
-  "phCalibNilaiStandar": "Standard value (certificate)",
+  "phCalibNilaiStandar": "Reference value (temp-corrected)",
+  "phCalibNilaiStandarHelper": "Copy from the worksheet — the buffer value after temperature correction, not the round number.",
+  "phCalibNilaiStandarSebelum": "As-found reference value",
   "phCalibSebelumAdjustment": "Before adjustment (as found)",
   "phCalibSesudahAdjustment": "After adjustment (as left)",
+  "phCalibScanTooltip": "Photograph the pH meter display",
+  "phCalibScanGagal": "Couldn't read the number clearly. Try a closer photo, or type it in.",
+  "phCalibScanError": "Couldn't open the camera.",
+  "phCalibOcrBelumDikonfirmasi": "From camera — please check",
+  "phCalibOcrKonfirmasi": "CONFIRM",
   "phCalibPembacaanKe": "Reading {index}",
   "@phCalibPembacaanKe": {
     "placeholders": {
@@ -504,8 +562,36 @@
   },
   "phCalibSuhu": "Temp.",
   "phCalibValidasiLingkungan": "Fill in the environmental conditions (temperature & humidity) first.",
-  "phCalibValidasiPembacaan": "Each buffer point needs 5 valid after-adjustment readings.",
-  "dashStartPhCalibration": "PH METER CALIBRATION",
+  "phCalibValidasiPembacaan": "Each buffer point needs at least {minimum} valid after-adjustment readings.",
+  "@phCalibValidasiPembacaan": {
+    "placeholders": {
+      "minimum": { "type": "int" }
+    }
+  },
+  "phCalibValidasiNilaiAcuan": "Fill in the temperature-corrected reference value for every buffer point.",
+  "phCalibLangkahIdentitas": "Identity & conditions",
+  "phCalibLangkahHasil": "Calibration results",
+  "phCalibLangkahKe": "Step {nomor} of {total}",
+  "@phCalibLangkahKe": {
+    "placeholders": {
+      "nomor": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "phCalibIdentitasAlat": "Instrument Identity",
+  "phCalibPengerjaan": "Job Details",
+  "phCalibPelangganOtomatis": "Customer details follow the selected instrument — the certificate is filed under the right company automatically.",
+  "phCalibKoreksiSuhu": "Temperature correction (°C)",
+  "phCalibKoreksiKelembaban": "Humidity correction (%)",
+  "phCalibU95Suhu": "Temperature U95%",
+  "phCalibU95Kelembaban": "Humidity U95%",
+  "phCalibDariSertifikatTh": "From the thermohygrometer certificate — the server derives the environmental U95% from these.",
+  "phCalibLanjutkan": "CONTINUE",
+  "phCalibKembali": "BACK",
+  "phCalibDisertifikasi": "Certified",
+  "phCalibDokumentasi": "Documentation",
+  "phCalibDihitungServer": "Averages, uncertainty budget, environmental U95% and the PASS/FAIL call are all computed by the server.",
+  "phCalibOpsional": "Optional",
 
   "notifEmptyTitle": "No notifications yet",
   "notifEmptyBody": "Due-date reminders & approval updates will show up here.",

@@ -1,9 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/customer.dart';
+import '../models/customer_lookup.dart';
 import '../models/order.dart';
 import '../models/organization.dart';
 import '../models/user.dart';
+import '../services/customer_lookup_service.dart';
 import '../services/customer_service.dart';
 import '../services/order_service.dart';
 import '../services/organization_service.dart';
@@ -19,6 +21,27 @@ final organizationServiceProvider = Provider<OrganizationService>(
 final customerServiceProvider = Provider<CustomerService>(
   (ref) => ApiCustomerService(ref.watch(apiClientProvider)),
 );
+
+final customerLookupServiceProvider = Provider<CustomerLookupService>(
+  (ref) => ApiCustomerLookupService(ref.watch(apiClientProvider)),
+);
+
+/// Isi picker pelanggan di form Alat. **Jangan diganti [customerProvider]**
+/// walaupun isinya mirip: yang itu narik `GET /customers` yang admin-only,
+/// jadi daftarnya bakal kosong di akun teknisi — padahal teknisi boleh nambah
+/// alat, dan `pelanggan_id` wajib diisi. Lihat [ApiCustomerLookupService].
+///
+/// Di-key sama kata kunci pencarian, bukan sekali ambil semua: daftarnya
+/// dipaginasi 15/halaman di backend, jadi lab yang pelanggannya lebih dari itu
+/// nggak bakal nemu sebagian pelanggannya kalau nyarinya cuma di sisi mobile.
+/// Pencariannya dikerjain server lewat `?search=`.
+final customerLookupProvider =
+    FutureProvider.family<List<CustomerLookup>, String>((ref, search) async {
+      final token = await ref.read(tokenStorageProvider).read();
+      if (token == null) throw const TokenHilangException();
+
+      return ref.read(customerLookupServiceProvider).cari(token, search: search);
+    });
 
 final organizationProvider =
     AsyncNotifierProvider<OrganizationController, Organization>(

@@ -177,12 +177,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get dashGreeting => 'Halo,';
 
   @override
-  String get dashSummaryOrg => 'Ringkasan organisasi';
-
-  @override
-  String get dashSummaryYours => 'Ringkasan kamu';
-
-  @override
   String get dashTotalDevices => 'Total alat';
 
   @override
@@ -196,6 +190,36 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get dashCertsThisMonth => 'Sertifikat bulan ini';
+
+  @override
+  String get dashLabScope => 'Se-lab';
+
+  @override
+  String get dashTotalCerts => 'Sertifikat';
+
+  @override
+  String dashCertsThisMonthSub(int count) {
+    return '$count bulan ini';
+  }
+
+  @override
+  String get dashCalibrationMine => 'Kalibrasi saya';
+
+  @override
+  String get dashCalibrationLab => 'Kalibrasi lab';
+
+  @override
+  String dashTrendUp(int count) {
+    return '$count lebih banyak dari periode lalu';
+  }
+
+  @override
+  String dashTrendDown(int count) {
+    return '$count lebih sedikit dari periode lalu';
+  }
+
+  @override
+  String get dashTrendFlat => 'Sama kayak periode lalu';
 
   @override
   String get dashQuickActions => 'Aksi cepat';
@@ -232,9 +256,6 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get snackCalibInputSoon => 'Input kalibrasi digarap minggu 4.';
-
-  @override
-  String get snackAddDeviceSoon => 'Tambah alat digarap minggu 3.';
 
   @override
   String get profAccountInfo => 'Info Akun';
@@ -419,6 +440,15 @@ class AppLocalizationsId extends AppLocalizations {
   String get equipPelangganHint => 'Pilih pelanggan';
 
   @override
+  String get equipPelangganCariHint => 'Cari nama perusahaan';
+
+  @override
+  String get equipPelangganGagal => 'Gagal memuat daftar pelanggan.';
+
+  @override
+  String get equipPelangganKosong => 'Pelanggan nggak ketemu.';
+
+  @override
   String get equipNamaAlatKemampuan => 'Jenis Alat (Kemampuan Kalibrasi)';
 
   @override
@@ -459,6 +489,13 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get equipToleransi => 'Toleransi';
+
+  @override
+  String get equipToleransiWajib => 'Toleransi wajib diisi.';
+
+  @override
+  String get equipToleransiWajibHint =>
+      'Alat tanpa toleransi nggak bisa dikalibrasi — PASS/FAIL-nya nggak bisa diputusin.';
 
   @override
   String get equipLokasi => 'Lokasi';
@@ -585,6 +622,47 @@ class AppLocalizationsId extends AppLocalizations {
   String get certRingkasanTitle => 'Ringkasan Hasil';
 
   @override
+  String get certIdentitasTitle => 'Identitas Sesi';
+
+  @override
+  String get certTanggalKalibrasi => 'Tanggal kalibrasi';
+
+  @override
+  String get certTeknisi => 'Teknisi';
+
+  @override
+  String get certLokasi => 'Lokasi kalibrasi';
+
+  @override
+  String get certMetode => 'Metode kalibrasi';
+
+  @override
+  String get certReportTitle => 'Laporan Kalibrasi';
+
+  @override
+  String get certColStandard => 'Nilai Standar';
+
+  @override
+  String get certColUut => 'Pembacaan Alat';
+
+  @override
+  String get certColKoreksi => 'Koreksi';
+
+  @override
+  String get certColU95 => 'U95% (±)';
+
+  @override
+  String get certStandarDipakai => 'Standar yang Dipakai';
+
+  @override
+  String get certBelumDihitung =>
+      'Titik ukurnya belum dihitung backend, jadi tabel laporannya belum bisa ditampilkan.';
+
+  @override
+  String get certDisclaimer =>
+      '— Hasil kalibrasi tidak untuk diumumkan dan hanya berlaku untuk alat terkait —';
+
+  @override
   String get certLihatDetail => 'LIHAT DETAIL PERHITUNGAN';
 
   @override
@@ -647,6 +725,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get detailStandarDeviasi => 'Standar deviasi';
 
   @override
+  String get detailMaxStdev => 'Max STDEV';
+
+  @override
+  String get detailMaxStdevSebelum => 'Sebelum adjustment';
+
+  @override
   String get detailTypeA => 'Type A';
 
   @override
@@ -666,6 +750,41 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get detailU95 => 'Ketidakpastian diperluas (U95%)';
+
+  @override
+  String get detailAwal => 'Awal';
+
+  @override
+  String get detailAkhir => 'Akhir';
+
+  @override
+  String get detailNilaiTerkoreksi => 'Nilai terkoreksi';
+
+  @override
+  String get detailU95Lingkungan => 'U95%';
+
+  @override
+  String get detailThermohygro => 'Thermohygro';
+
+  @override
+  String get detailMetode => 'Metode';
+
+  @override
+  String get detailSuhuLarutan => 'Suhu larutan';
+
+  @override
+  String get detailSebelumAdjustment => 'Sebelum adjustment (as found)';
+
+  @override
+  String get detailSesudahAdjustment => 'Sesudah adjustment (disertifikasi)';
+
+  @override
+  String get detailAsFoundCatatan =>
+      'Dokumentasi kondisi alat waktu diterima — nggak ikut hasil yang disertifikasi.';
+
+  @override
+  String get detailPerluVerifikasi =>
+      'Masih ada pembacaan OCR yang belum dikonfirmasi — sesi ini belum bisa di-approve.';
 
   @override
   String get orgTitle => 'Data Organisasi';
@@ -1093,13 +1212,36 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get phCalibNilaiStandar => 'Nilai standar (sertifikat)';
+  String get phCalibNilaiStandar => 'Nilai acuan (terkoreksi suhu)';
+
+  @override
+  String get phCalibNilaiStandarHelper =>
+      'Salin dari worksheet — nilai buffer yang udah dikoreksi suhu, bukan angka bulatnya.';
+
+  @override
+  String get phCalibNilaiStandarSebelum => 'Nilai acuan as-found';
 
   @override
   String get phCalibSebelumAdjustment => 'Sebelum adjustment (as found)';
 
   @override
   String get phCalibSesudahAdjustment => 'Sesudah adjustment (as left)';
+
+  @override
+  String get phCalibScanTooltip => 'Foto layar pH meter';
+
+  @override
+  String get phCalibScanGagal =>
+      'Angkanya nggak kebaca jelas. Coba foto ulang lebih dekat, atau ketik manual.';
+
+  @override
+  String get phCalibScanError => 'Kamera nggak bisa dibuka.';
+
+  @override
+  String get phCalibOcrBelumDikonfirmasi => 'Dari kamera — cek dulu';
+
+  @override
+  String get phCalibOcrKonfirmasi => 'SUDAH BENAR';
 
   @override
   String phCalibPembacaanKe(int index) {
@@ -1114,11 +1256,69 @@ class AppLocalizationsId extends AppLocalizations {
       'Isi kondisi lingkungan (suhu & kelembaban) dulu.';
 
   @override
-  String get phCalibValidasiPembacaan =>
-      'Tiap titik buffer wajib 5 pembacaan sesudah adjustment yang valid.';
+  String phCalibValidasiPembacaan(int minimum) {
+    return 'Tiap titik buffer wajib minimal $minimum pembacaan sesudah adjustment.';
+  }
 
   @override
-  String get dashStartPhCalibration => 'KALIBRASI pH METER';
+  String get phCalibValidasiNilaiAcuan =>
+      'Isi nilai acuan (terkoreksi suhu) buat tiap titik buffer.';
+
+  @override
+  String get phCalibLangkahIdentitas => 'Identitas & kondisi';
+
+  @override
+  String get phCalibLangkahHasil => 'Data hasil kalibrasi';
+
+  @override
+  String phCalibLangkahKe(int nomor, int total) {
+    return 'Langkah $nomor dari $total';
+  }
+
+  @override
+  String get phCalibIdentitasAlat => 'Identitas Alat';
+
+  @override
+  String get phCalibPengerjaan => 'Pengerjaan';
+
+  @override
+  String get phCalibPelangganOtomatis =>
+      'Data pelanggan ikut alat yang dipilih — sertifikatnya otomatis masuk folder perusahaan yang benar.';
+
+  @override
+  String get phCalibKoreksiSuhu => 'Koreksi suhu (°C)';
+
+  @override
+  String get phCalibKoreksiKelembaban => 'Koreksi kelembaban (%)';
+
+  @override
+  String get phCalibU95Suhu => 'U95% suhu';
+
+  @override
+  String get phCalibU95Kelembaban => 'U95% kelembaban';
+
+  @override
+  String get phCalibDariSertifikatTh =>
+      'Dari sertifikat thermohygro — server nurunin U95% lingkungan dari angka ini.';
+
+  @override
+  String get phCalibLanjutkan => 'LANJUTKAN';
+
+  @override
+  String get phCalibKembali => 'KEMBALI';
+
+  @override
+  String get phCalibDisertifikasi => 'Disertifikasi';
+
+  @override
+  String get phCalibDokumentasi => 'Dokumentasi';
+
+  @override
+  String get phCalibDihitungServer =>
+      'Rata-rata, budget ketidakpastian, U95% lingkungan & keputusan PASS/FAIL semuanya dihitung server.';
+
+  @override
+  String get phCalibOpsional => 'Opsional';
 
   @override
   String get notifEmptyTitle => 'Belum ada notifikasi';

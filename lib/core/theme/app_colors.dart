@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Palet "Titanium" — diambil dari desain di
-/// `Project-PT-ASMO/gambar/` (DESIGN.md + screenshot login & register).
+/// `Project-PT-Sidik/gambar/` (DESIGN.md + screenshot login & register).
 ///
 /// Karakternya: monokrom high-contrast (navy nyaris hitam di atas putih),
 /// teal dipakai **irit** cuma buat sinyal fungsional (sukses, data

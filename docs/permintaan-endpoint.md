@@ -10,6 +10,11 @@ digarap mobile tanpa backend baru nggak dimasukin.
 Urutannya udah diurutin dari yang paling murah ke paling mahal — nomor 1 dan 2
 kemungkinan cuma nambah beberapa baris di controller yang udah ada.
 
+> **Baca ini dulu (22 Juli 2026):** nomor **1–4 udah kelar semua** dan udah
+> dipakai mobile — nggak usah dikerjain lagi, ditahan di sini biar keputusannya
+> keingat. Yang masih terbuka cuma **nomor 5** (+ satu hal yang perlu
+> disepakati soal `room_id`). Lihat tabel di bagian 7.
+
 ---
 
 ## 0. Kenapa ini muncul
@@ -196,7 +201,128 @@ sama kayak sertifikat (`GET /api/orders/{id}/download`, balikin PDF, bukan HTML)
 
 ---
 
-## 5. Yang **tidak** diminta, dan alasannya
+## 5. Perkaya `GET /api/calibrations/{id}` buat layar Sertifikat — **murah, sebagian datanya udah ada**
+
+*Ditambahkan 22 Juli 2026.*
+
+### Kenapa
+
+Mobile sekarang punya layar Sertifikat yang dipakai teknisi/admin buat
+**nyocokin isi sertifikat sebelum di-approve**. Ini penting karena sesi yang
+udah `disetujui` nggak bisa diubah lagi (`422`) — begitu sertifikatnya terbit
+dan dipegang pelanggan, angka yang salah nggak bisa ditarik diam-diam.
+
+Masalahnya: respons sesi cuma ngirim
+
+```json
+"equipment": { "id": 12, "nama_alat": "Jangka Sorong Mitutoyo" }
+```
+
+Padahal formulir sertifikat resmi (`SIDIK-FM-CAL-2403_Rev. 0`) punya belasan
+field lain di kepalanya. PDF-nya sendiri **udah bener** — backend yang generate
+dan backend punya semua datanya. Yang nggak punya cuma layar HP-nya.
+
+Akibatnya layar Sertifikat di mobile cuma bisa nampilin sebagian: tanggal,
+teknisi, metode, kondisi lingkungan, tabel Laporan Kalibrasi, dan Standar yang
+Dipakai. Sisanya sengaja **nggak dirender sama sekali** — bukan dikasih strip
+kosong, karena kolom kosong di layar pencocokan bikin orang ngira datanya juga
+ilang di sertifikat.
+
+### Yang diminta
+
+Tolong `GET /api/calibrations/{id}` ikut ngirim field di bawah. Urutannya dari
+yang paling murah.
+
+**(a) Dua field yang datanya UDAH ADA di baris sesi — mobile sendiri yang
+ngirim waktu `POST`, cuma nggak pernah dibalikin:**
+
+```json
+"nomor_order": "2405.13.A",
+"tanggal_terima": "2024-05-26"
+```
+
+Ini isi kolom *Order Number* & *Received Date*. Kemungkinan cuma nambah dua
+baris di `CalibrationResource`.
+
+**(b) Objek `equipment` digemukin** — semuanya udah ada di tabel `equipments`:
+
+```json
+"equipment": {
+  "id": 12,
+  "nama_alat": "pH Meter",
+  "merk": "Mettler Toledo",
+  "model": "Five Easy",
+  "serial_number": "B628755900",
+  "range_min": 0, "range_max": 14, "satuan": "pH",
+  "resolusi": 0.01,
+  "pelanggan": { "nama": "PT TIRTA GRACIA SEMESTA MANDIRI", "alamat": "Jl. Arteri Primer A-10 ..." }
+}
+```
+
+Ngisi kolom *Manufacturer*, *Model/Type*, *Serial Number*,
+*Capacity/Graduation* (`range_min`–`range_max` / `resolusi`), *Owner*, dan
+*Address*. Bentuknya sengaja disamain persis sama `GET /api/equipments` yang
+udah ada, jadi mobile bisa pakai parser yang sama.
+
+**(c) `teknisi` ikut bawa ID pegawainya:**
+
+```json
+"teknisi": { "id": 4, "nama": "Dwi Rahayu", "employee_id": "DR" }
+```
+
+Kolom *Technician ID* di sertifikat isinya `DR`, bukan nama panjang.
+`employee_id` udah ada di tabel `users` (mobile udah makai di layar Profil).
+
+**(d) `standar_acuan` di tiap titik ikut dua kolom sisanya:**
+
+```json
+"standar_acuan": {
+  "id": 3, "nama": "pH Buffer Solution 7", "no_sertifikat": "HC46341939",
+  "merk_type": "Supelco/Merck",
+  "tertelusur_ke": "Merck KGaA"
+}
+```
+
+Tabel *Standard used* di sertifikat punya 4 kolom; yang nyampe ke mobile baru
+2. Buat baris "Termometer & Sensor Std." nilai `tertelusur_ke`-nya
+`LK-285-IDN`, jadi kelihatannya ini emang kolom di tabel `standards`.
+
+**(e) `sertifikat` ikut tanggal terbit & penanda tangan:**
+
+```json
+"sertifikat": { "id": 9, "nomor": "012-CAL-524", "status": "terbit", "pdf_url": "...",
+                "tanggal_terbit": "2024-05-30",
+                "penanda_tangan": { "nama": "Alex Misramto", "jabatan": "Technical Manager" } }
+```
+
+Buat *Issuance Date* dan blok tanda tangan.
+
+### Satu yang perlu disepakati dulu, bukan sekadar nambah field
+
+Kolom **Calibration Location** di sertifikat isinya `Lab. Uji A` — itu
+**ruangan**, dan `kontrak-api.md` §9 sendiri nyatet:
+
+> ⚠️ Belum nyambung ke sesi kalibrasi. `POST /api/calibrations` **belum**
+> nerima `room_id`. […] Kalau mobile mau layar sesi bisa milih ruangan, bilang
+> dulu biar dibarengin.
+
+Ini bilangnya: **iya, mobile butuh.** Sekarang sesi cuma nyimpen `lokasi` enum
+`lab`/`onsite`, yang nggak cukup buat ngisi kolom itu. Kalau `room_id`
+ditambahin di `POST`/`PUT` + ikut dibalikin di response, mobile nambahin
+dropdown "Ruangan" di form sesi.
+
+Karena ini ngubah bentuk sesi, silakan tentuin timing-nya — mobile ngikut.
+
+### Aman dirilis bertahap
+
+Semua field di atas **tambahan**, nggak ada yang ngubah/ngilangin field lama.
+Parser mobile (`CalibrationDetail.fromJson`) nganggep field yang belum ada
+sebagai `null` dan barisnya nggak dirender — jadi (a) bisa dirilis sendirian
+minggu ini tanpa nunggu (b)–(e), dan tanpa nunggu mobile update.
+
+---
+
+## 6. Yang **tidak** diminta, dan alasannya
 
 Supaya nggak salah paham arah:
 
@@ -210,19 +336,35 @@ Supaya nggak salah paham arah:
 
 ---
 
-## 6. Ringkasan buat rapat
+## 7. Ringkasan buat rapat
 
-| # | Permintaan | Ukuran | Ngeblok |
-|---|---|---|---|
-| 1 | `kalibrasi_selesai` di `/dashboard` | Kecil | Kartu "Kalibrasi selesai" |
-| 2 | `GET /dashboard/tren` | Sedang | Semua grafik (Dashboard & Perhitungan) |
-| 3 | CRUD `/rooms` | Sedang | Master Data → Data Ruangan |
-| 4 | Entitas `/orders` + `rentang_ukur` + teknisi | Besar | Seluruh bagian Order Kalibrasi |
+| # | Permintaan | Ukuran | Ngeblok | Status |
+|---|---|---|---|---|
+| 1 | `kalibrasi_selesai` di `/dashboard` | Kecil | Kartu "Kalibrasi selesai" | ✅ udah ada |
+| 2 | `GET /dashboard/tren` | Sedang | Semua grafik | ✅ udah ada |
+| 3 | CRUD `/rooms` | Sedang | Master Data → Data Ruangan | ✅ udah ada |
+| 4 | Entitas `/orders` + `rentang_ukur` + teknisi | Besar | Seluruh bagian Order Kalibrasi | ✅ udah ada |
+| 5a | `nomor_order` + `tanggal_terima` di detail sesi | **Sangat kecil** | 2 kolom kepala sertifikat | ⬜ diminta 22 Jul |
+| 5b | `equipment` digemukin (+ `pelanggan`) | Kecil | 6 kolom kepala sertifikat | ⬜ diminta 22 Jul |
+| 5c | `employee_id` di `teknisi` | Sangat kecil | Kolom *Technician ID* | ⬜ diminta 22 Jul |
+| 5d | `merk_type` + `tertelusur_ke` di `standar_acuan` | Kecil | 2 kolom tabel *Standard used* | ⬜ diminta 22 Jul |
+| 5e | `tanggal_terbit` + penanda tangan di `sertifikat` | Kecil | *Issuance Date* + blok TTD | ⬜ diminta 22 Jul |
+| — | `room_id` di sesi kalibrasi | Sedang | Kolom *Calibration Location* | 🔸 perlu disepakati dulu |
 
-Nomor 1 bisa dirilis sendirian kapan aja — mobile udah aman nerima respons
-tanpa field itu.
+Nomor **5a** paling murah dan datanya udah kesimpen — mobile sendiri yang
+ngirim waktu `POST`, cuma nggak pernah dibalikin. Bisa dirilis sendirian.
+
+Semua permintaan nomor 5 sifatnya **nambah field**, nggak ngubah yang lama, dan
+mobile udah aman nerima respons tanpa field-field itu.
 
 ---
 
 *Disusun 20 Juli 2026 · dibaca dari `develop` setelah PR #21 & #22 di-merge,
 dicek langsung ke `routes/api.php` dan controller-nya, bukan dari dokumentasi.*
+
+*Nomor 5 ditambahkan 22 Juli 2026. Daftar kolomnya dicocokin baris per baris
+sama sertifikat asli `012-CAL-524` (formulir `SIDIK-FM-CAL-2403_Rev. 0`) yang
+dikirim Zainul, bukan dikarang dari nama field. Yang dari sisi mobile
+diverifikasi ke kode: `nomor_order` & `tanggal_terima` emang udah dikirim
+`CalibrationDraft.toJson()`, `employee_id` udah dipakai layar Profil, dan
+catatan `room_id` dikutip dari `kontrak-api.md` §9.*

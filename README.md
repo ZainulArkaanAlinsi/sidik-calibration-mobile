@@ -1,6 +1,6 @@
-# ASMO Mobile
+# PT Sidik Kalibrasi — Mobile
 
-Aplikasi mobile (Flutter, satu APK) untuk kalibrasi alat ukur & sertifikat digital — teknisi dan admin pakai app yang sama, dibedakan lewat role. Dikembangkan selama program magang di PT ASMO, dikerjakan berdua.
+Aplikasi mobile (Flutter, satu APK) untuk kalibrasi alat ukur & sertifikat digital — teknisi dan admin pakai app yang sama, dibedakan lewat role. Dikembangkan selama program magang di PT Sidik, dikerjakan berdua.
 
 ## Tech Stack
 - **Framework**: Flutter 3.41 (Dart 3.11)
@@ -41,7 +41,7 @@ flutter run       # jalanin app
 
 ```
 lib/
-├── main.dart          # entrypoint: ProviderScope + AsmoApp
+├── main.dart          # entrypoint: ProviderScope + SidikApp
 ├── app.dart           # MaterialApp (tema + halaman awal)
 ├── core/
 │   └── config/        # AppConfig (environment, base URL)
@@ -71,4 +71,4 @@ Folder `models/`, `services/`, dan `widgets/` sengaja belum dibuat — nyusul pa
 `main` / `develop` / `feature/nama-fitur`, Conventional Commits, PR wajib direview.
 
 ## Status Project
-Rencana harian & progress lengkap ada di vault Obsidian `Project-PT-ASMO/`.
+Rencana harian & progress lengkap ada di vault Obsidian `Project-PT-Sidik/`.

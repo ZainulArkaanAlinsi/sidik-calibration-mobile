@@ -526,6 +526,7 @@ Isinya beda tergantung role — teknisi dapat ringkasan miliknya, admin dapat li
     "menunggu_approval": 5,
     "kalibrasi_selesai": 27,
     "menunggu_proses": 8,
+    "total_sertifikat": 137,
     "sertifikat_bulan_ini": 12,
     "grafik_pekerjaan": [
       { "bulan": "2026-02", "label": "Feb 2026", "masuk": 4, "selesai": 3 },
@@ -548,7 +549,19 @@ Isinya beda tergantung role — teknisi dapat ringkasan miliknya, admin dapat li
 >   > ⚠️ Ini **numpuk** sama `kalibrasi_draft` + `menunggu_approval`, bukan angka terpisah. Jangan dijumlahin bareng ketiganya di satu baris total — nanti kehitung dobel.
 > - **`grafik_pekerjaan`** — 6 bulan terakhir termasuk bulan berjalan, urutannya **lama → baru**, jadi bisa langsung digambar tanpa nyortir. `masuk` = sesi yang tanggal kalibrasinya jatuh di bulan itu; `selesai` = yang di-approve di bulan itu. **Bulan tanpa kerjaan tetap keluar dengan nilai `0`, nggak dilewat** — jadi sumbu X-nya selalu 6 titik dan jaraknya rata.
 >     - `bulan` (`"2026-07"`) buat key/sorting, `label` (`"Jul 2026"`) udah siap tempel ke sumbu X — mobile nggak usah nerjemahin nama bulan sendiri.
+>       > ⚠️ Namanya `bulan`, **bukan** `periode`. Yang ngirim `periode` cuma `GET /dashboard/tren`. Mobile sempat salah baca key ini dan akibatnya sumbu X grafik Dashboard kosong melompong di HP, padahal semua test ijo — `MockDashboardService` waktu itu ngelewatin parser-nya. Sekarang mock-nya ikut lewat `fromJson`, dan ada `test/dashboard_response_test.dart` yang nguji pakai potongan respons asli.
 >     - Grafiknya ikut kesaring per role, sama kayak kartu angkanya: teknisi cuma lihat kerjaannya sendiri.
+>
+> **✅ 21 Jul — `total_sertifikat`** (sertifikat terbit sepanjang waktu).
+>
+> ⚠️ **Cakupan angkanya nggak seragam**, dan ini nentuin cara nampilinnya:
+>
+> | Kelompok | Field | Cakupan |
+> |---|---|---|
+> | Sesi | `kalibrasi_draft`, `menunggu_approval`, `kalibrasi_selesai`, `menunggu_proses`, `grafik_pekerjaan` | teknisi = **punya dia sendiri**; admin/viewer = se-lab |
+> | Alat & sertifikat | `total_alat`, `alat_overdue`, `total_sertifikat`, `sertifikat_bulan_ini` | **selalu se-lab**, termasuk buat teknisi |
+>
+> Jadi di layar teknisi wajar muncul "Kalibrasi selesai: 2" bareng "Sertifikat: 137". Dashboard misahin dua kelompok ini secara visual (kartu hero berlabel "SE-LAB" vs seksi "KALIBRASI SAYA") — jangan digabung jadi satu deret kartu tanpa keterangan, nanti kebaca kayak datanya ngaco.
 
 ---
 
@@ -562,6 +575,14 @@ Belum ada di kontrak versi kamu, tapi udah jalan di backend. Dibutuhin buat laya
 - **Pelanggan yang masih punya alat nggak bisa dihapus** → `422`. Kalau dipaksa, alat & riwayat kalibrasinya jadi yatim. Mobile: tampilin pesannya apa adanya.
 
 Teknisi & viewer yang nembak endpoint ini dapat `403`.
+
+> ⚠️ **21 Jul — jangan pakai `GET /customers` buat isi dropdown pelanggan di form Alat.**
+>
+> `POST /equipments` boleh dipakai **teknisi**, tapi `/customers` admin-only. Waktu picker pelanggan di form Alat masih narik dari sini, hasilnya: form-nya mulus waktu dites pakai akun admin, tapi di akun teknisi request-nya `403` → daftarnya kosong. Dan `pelanggan_id` itu **wajib**, jadi teknisi mentok, nggak bisa nyimpen alat sama sekali.
+>
+> Pakai **`GET /api/arsip/perusahaan?search=`** (kebuka semua role) — balikannya `data[].id` & `data[].nama`, `id`-nya yang dipakai jadi `pelanggan_id`. Di mobile ini `CustomerLookupService`, kepisah dari `CustomerService` yang buat layar CRUD Pelanggan.
+>
+> Daftarnya **dipaginasi 15/halaman**, jadi pencariannya dilempar ke server lewat `?search=` — nyaring di sisi mobile cuma nyaring halaman pertama, dan pelanggan ke-16 dst. jadi nggak kejangkau.
 
 ---
 

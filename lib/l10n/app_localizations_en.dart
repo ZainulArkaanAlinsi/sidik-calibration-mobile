@@ -176,12 +176,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashGreeting => 'Hello,';
 
   @override
-  String get dashSummaryOrg => 'Organization summary';
-
-  @override
-  String get dashSummaryYours => 'Your summary';
-
-  @override
   String get dashTotalDevices => 'Total devices';
 
   @override
@@ -195,6 +189,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashCertsThisMonth => 'Certificates this month';
+
+  @override
+  String get dashLabScope => 'Lab-wide';
+
+  @override
+  String get dashTotalCerts => 'Certificates';
+
+  @override
+  String dashCertsThisMonthSub(int count) {
+    return '$count this month';
+  }
+
+  @override
+  String get dashCalibrationMine => 'My calibrations';
+
+  @override
+  String get dashCalibrationLab => 'Lab calibrations';
+
+  @override
+  String dashTrendUp(int count) {
+    return '$count more completed than last period';
+  }
+
+  @override
+  String dashTrendDown(int count) {
+    return '$count fewer completed than last period';
+  }
+
+  @override
+  String get dashTrendFlat => 'Same as last period';
 
   @override
   String get dashQuickActions => 'Quick actions';
@@ -232,9 +256,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get snackCalibInputSoon => 'Calibration input is planned for week 4.';
-
-  @override
-  String get snackAddDeviceSoon => 'Adding devices is planned for week 3.';
 
   @override
   String get profAccountInfo => 'Account Info';
@@ -421,6 +442,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipPelangganHint => 'Choose a customer';
 
   @override
+  String get equipPelangganCariHint => 'Search company name';
+
+  @override
+  String get equipPelangganGagal => 'Couldn\'t load the customer list.';
+
+  @override
+  String get equipPelangganKosong => 'No customer found.';
+
+  @override
   String get equipNamaAlatKemampuan => 'Device Type (Calibration Capability)';
 
   @override
@@ -461,6 +491,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipToleransi => 'Tolerance';
+
+  @override
+  String get equipToleransiWajib => 'Tolerance is required.';
+
+  @override
+  String get equipToleransiWajibHint =>
+      'A device without a tolerance can\'t be calibrated — there\'s no way to decide PASS/FAIL.';
 
   @override
   String get equipLokasi => 'Location';
@@ -588,6 +625,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certRingkasanTitle => 'Result Summary';
 
   @override
+  String get certIdentitasTitle => 'Session Details';
+
+  @override
+  String get certTanggalKalibrasi => 'Calibration date';
+
+  @override
+  String get certTeknisi => 'Technician';
+
+  @override
+  String get certLokasi => 'Calibration location';
+
+  @override
+  String get certMetode => 'Calibration method';
+
+  @override
+  String get certReportTitle => 'Calibration Report';
+
+  @override
+  String get certColStandard => 'Standard Value';
+
+  @override
+  String get certColUut => 'Unit Under Test';
+
+  @override
+  String get certColKoreksi => 'Correction';
+
+  @override
+  String get certColU95 => 'U95% (±)';
+
+  @override
+  String get certStandarDipakai => 'Standard used';
+
+  @override
+  String get certBelumDihitung =>
+      'The measurement points haven\'t been calculated by the backend yet, so the report table can\'t be shown.';
+
+  @override
+  String get certDisclaimer =>
+      '— Calibration results are not to be announced and only apply to related tools —';
+
+  @override
   String get certLihatDetail => 'VIEW CALCULATION DETAIL';
 
   @override
@@ -650,6 +728,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get detailStandarDeviasi => 'Standard deviation';
 
   @override
+  String get detailMaxStdev => 'Max STDEV';
+
+  @override
+  String get detailMaxStdevSebelum => 'Before adjustment';
+
+  @override
   String get detailTypeA => 'Type A';
 
   @override
@@ -669,6 +753,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get detailU95 => 'Expanded uncertainty (U95%)';
+
+  @override
+  String get detailAwal => 'Start';
+
+  @override
+  String get detailAkhir => 'End';
+
+  @override
+  String get detailNilaiTerkoreksi => 'Corrected value';
+
+  @override
+  String get detailU95Lingkungan => 'U95%';
+
+  @override
+  String get detailThermohygro => 'Thermohygrometer';
+
+  @override
+  String get detailMetode => 'Method';
+
+  @override
+  String get detailSuhuLarutan => 'Solution temp.';
+
+  @override
+  String get detailSebelumAdjustment => 'Before adjustment (as found)';
+
+  @override
+  String get detailSesudahAdjustment => 'After adjustment (certified)';
+
+  @override
+  String get detailAsFoundCatatan =>
+      'Documents the state the instrument arrived in — not part of the certified result.';
+
+  @override
+  String get detailPerluVerifikasi =>
+      'Some OCR readings still need confirming — this session can\'t be approved yet.';
 
   @override
   String get orgTitle => 'Organization Data';
@@ -1103,13 +1222,36 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get phCalibNilaiStandar => 'Standard value (certificate)';
+  String get phCalibNilaiStandar => 'Reference value (temp-corrected)';
+
+  @override
+  String get phCalibNilaiStandarHelper =>
+      'Copy from the worksheet — the buffer value after temperature correction, not the round number.';
+
+  @override
+  String get phCalibNilaiStandarSebelum => 'As-found reference value';
 
   @override
   String get phCalibSebelumAdjustment => 'Before adjustment (as found)';
 
   @override
   String get phCalibSesudahAdjustment => 'After adjustment (as left)';
+
+  @override
+  String get phCalibScanTooltip => 'Photograph the pH meter display';
+
+  @override
+  String get phCalibScanGagal =>
+      'Couldn\'t read the number clearly. Try a closer photo, or type it in.';
+
+  @override
+  String get phCalibScanError => 'Couldn\'t open the camera.';
+
+  @override
+  String get phCalibOcrBelumDikonfirmasi => 'From camera — please check';
+
+  @override
+  String get phCalibOcrKonfirmasi => 'CONFIRM';
 
   @override
   String phCalibPembacaanKe(int index) {
@@ -1124,11 +1266,69 @@ class AppLocalizationsEn extends AppLocalizations {
       'Fill in the environmental conditions (temperature & humidity) first.';
 
   @override
-  String get phCalibValidasiPembacaan =>
-      'Each buffer point needs 5 valid after-adjustment readings.';
+  String phCalibValidasiPembacaan(int minimum) {
+    return 'Each buffer point needs at least $minimum valid after-adjustment readings.';
+  }
 
   @override
-  String get dashStartPhCalibration => 'PH METER CALIBRATION';
+  String get phCalibValidasiNilaiAcuan =>
+      'Fill in the temperature-corrected reference value for every buffer point.';
+
+  @override
+  String get phCalibLangkahIdentitas => 'Identity & conditions';
+
+  @override
+  String get phCalibLangkahHasil => 'Calibration results';
+
+  @override
+  String phCalibLangkahKe(int nomor, int total) {
+    return 'Step $nomor of $total';
+  }
+
+  @override
+  String get phCalibIdentitasAlat => 'Instrument Identity';
+
+  @override
+  String get phCalibPengerjaan => 'Job Details';
+
+  @override
+  String get phCalibPelangganOtomatis =>
+      'Customer details follow the selected instrument — the certificate is filed under the right company automatically.';
+
+  @override
+  String get phCalibKoreksiSuhu => 'Temperature correction (°C)';
+
+  @override
+  String get phCalibKoreksiKelembaban => 'Humidity correction (%)';
+
+  @override
+  String get phCalibU95Suhu => 'Temperature U95%';
+
+  @override
+  String get phCalibU95Kelembaban => 'Humidity U95%';
+
+  @override
+  String get phCalibDariSertifikatTh =>
+      'From the thermohygrometer certificate — the server derives the environmental U95% from these.';
+
+  @override
+  String get phCalibLanjutkan => 'CONTINUE';
+
+  @override
+  String get phCalibKembali => 'BACK';
+
+  @override
+  String get phCalibDisertifikasi => 'Certified';
+
+  @override
+  String get phCalibDokumentasi => 'Documentation';
+
+  @override
+  String get phCalibDihitungServer =>
+      'Averages, uncertainty budget, environmental U95% and the PASS/FAIL call are all computed by the server.';
+
+  @override
+  String get phCalibOpsional => 'Optional';
 
   @override
   String get notifEmptyTitle => 'No notifications yet';

@@ -45,7 +45,19 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('CAL/2026/07/0001'), findsOneWidget);
-    expect(find.text('LIHAT PDF'), findsOneWidget);
+
+    // Tombolnya ada di dasar layar, di bawah tabel Laporan Kalibrasi &
+    // Standar yang Dipakai — jadi di viewport test (600px) dia belum kebangun
+    // sampai di-scroll, persis kayak yang dialami user.
+    final tombol = find.text('LIHAT PDF');
+    await tester.scrollUntilVisible(
+      tombol,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    expect(tombol, findsOneWidget);
   });
 
   testWidgets('gagal muat → pesan + tombol coba lagi', (tester) async {

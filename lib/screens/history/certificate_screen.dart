@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:open_filex/open_filex.dart';
 
+import '../../core/config/lab_profile.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_typography.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_detail.dart';
 import '../../models/calibration_history_item.dart';
@@ -143,6 +146,17 @@ class _IsiState extends ConsumerState<_Isi> {
         _Ringkasan(detail: detail),
         const SizedBox(height: AppSpacing.lg),
 
+        // Isi sertifikat, disusun ngikutin urutan formulir asli
+        // (`SIDIK-FM-CAL-2403`). Gunanya buat DICOCOKIN sebelum di-approve —
+        // begitu sertifikat terbit dan dipegang pelanggan, angkanya nggak bisa
+        // diubah lagi (`docs/kontrak-api.md` §4: sesi `disetujui` ditolak 422).
+        _IdentitasSesi(detail: detail),
+        const SizedBox(height: AppSpacing.lg),
+        _TabelLaporan(titik: detail.titik),
+        const SizedBox(height: AppSpacing.lg),
+        _StandarDipakai(titik: detail.titik),
+        const SizedBox(height: AppSpacing.lg),
+
         if (sertifikat == null) ...[
           _StatusBanner(
             icon: Icons.hourglass_empty,
@@ -177,6 +191,234 @@ class _IsiState extends ConsumerState<_Isi> {
             onPressed: _busy ? null : _lihatPdf,
           ),
         ],
+      ],
+    );
+  }
+}
+
+String _angka(double? v, {int desimal = 2}) =>
+    v == null ? '—' : v.toStringAsFixed(desimal);
+
+/// "21,0 °C ± 1,7 °C". Kalau U95%-nya belum ada (sesi yang cuma ngirim satu
+/// angka suhu), bagian "±" dibuang — bukan ditulis "± —", yang kebaca kayak
+/// ketidakpastiannya nol.
+String _besaran(BesaranLingkungan b, {int desimal = 2}) {
+  final nilai = '${_angka(b.rataRata, desimal: desimal)} ${b.satuan}';
+  if (b.u95 == null) return nilai;
+
+  return '$nilai ± ${_angka(b.u95, desimal: 1)} ${b.satuan}';
+}
+
+/// Blok identitas sesi — bagian kepala sertifikat.
+///
+/// **Sengaja nggak nampilin Owner/Alamat/Merk/Model/Nomor Seri.** Bukan
+/// kelewat: `GET /api/calibrations/{id}` cuma ngirim `equipment: {id,
+/// nama_alat}` (`docs/kontrak-api.md` §4), jadi datanya emang nggak nyampe ke
+/// HP. Nampilin kolom kosong di layar yang dipakai buat nyocokin sertifikat
+/// malah bikin orang ngira datanya hilang di sertifikat juga — padahal PDF-nya
+/// digenerate backend yang punya data lengkapnya.
+class _IdentitasSesi extends StatelessWidget {
+  const _IdentitasSesi({required this.detail});
+
+  final CalibrationDetail detail;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final lingkungan = detail.kondisiLingkungan;
+
+    // Metode nempel di titik, bukan di sesi — tapi satu sesi selalu satu
+    // metode, jadi diambil dari titik pertama yang punya.
+    final metode = detail.titik
+        .map((t) => t.metode)
+        .whereType<String>()
+        .firstOrNull;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.certIdentitasTitle.toUpperCase(),
+          style: theme.textTheme.labelLarge,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              children: [
+                _RingkasanRow(
+                  label: l10n.certTanggalKalibrasi,
+                  value: DateFormat('d MMM yyyy').format(detail.tanggalKalibrasi),
+                ),
+                _RingkasanRow(
+                  label: l10n.certTeknisi,
+                  value: detail.namaTeknisi,
+                ),
+                if (detail.lokasi != null)
+                  _RingkasanRow(label: l10n.certLokasi, value: detail.lokasi!),
+                if (metode != null)
+                  _RingkasanRow(label: l10n.certMetode, value: metode),
+                // Format "21,0 °C ± 1,7 °C" — sama kayak baris Env. Condition
+                // di formulir asli. Suhu & kelembaban dicek sendiri-sendiri:
+                // sesi lama bisa punya salah satunya aja.
+                if (lingkungan?.suhu != null)
+                  _RingkasanRow(
+                    label: 'T',
+                    value: _besaran(lingkungan!.suhu!, desimal: 1),
+                  ),
+                if (lingkungan?.kelembaban != null)
+                  _RingkasanRow(
+                    label: '%RH',
+                    value: _besaran(lingkungan!.kelembaban!),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Tabel **Calibration Report** — empat kolom persis formulir asli:
+/// Standard Value · Unit Under Test · Correction · U95% (±).
+///
+/// Kolom "Correction" pakai `koreksi` (standar − pembacaan), **bukan** `error`
+/// (pembacaan − standar). Dua-duanya dikirim backend dan cuma beda tanda —
+/// yang masuk sertifikat itu `koreksi`, sesuai formulir. Ketuker berarti
+/// tanda koreksi di sertifikat pelanggan kebalik.
+class _TabelLaporan extends StatelessWidget {
+  const _TabelLaporan({required this.titik});
+
+  final List<MeasurementResult> titik;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+
+    if (titik.isEmpty) {
+      return Text(l10n.certBelumDihitung, style: theme.textTheme.bodySmall);
+    }
+
+    final gayaJudul = theme.textTheme.labelSmall?.copyWith(
+      fontWeight: FontWeight.w700,
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    final gayaAngka = AppTypography.measurement.copyWith(fontSize: 13);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.certReportTitle.toUpperCase(),
+          style: theme.textTheme.labelLarge,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.sm),
+            // Empat kolom angka nggak muat di layar HP sempit. Digeser
+            // sendiri, bukan dikecilin fontnya — angka sertifikat harus tetap
+            // kebaca jelas.
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                columnSpacing: AppSpacing.md,
+                headingRowHeight: 36,
+                dataRowMinHeight: 34,
+                dataRowMaxHeight: 40,
+                columns: [
+                  DataColumn(label: Text(l10n.certColStandard, style: gayaJudul)),
+                  DataColumn(label: Text(l10n.certColUut, style: gayaJudul)),
+                  DataColumn(label: Text(l10n.certColKoreksi, style: gayaJudul)),
+                  DataColumn(label: Text(l10n.certColU95, style: gayaJudul)),
+                ],
+                rows: [
+                  for (final t in titik)
+                    DataRow(
+                      cells: [
+                        DataCell(Text(_angka(t.titikUkur), style: gayaAngka)),
+                        DataCell(Text(_angka(t.rataRata), style: gayaAngka)),
+                        DataCell(Text(_angka(t.koreksi), style: gayaAngka)),
+                        DataCell(Text(_angka(t.ketidakpastianDiperluas), style: gayaAngka)),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        // Kalimat k=2 & tingkat kepercayaan diambil dari profil lab, bukan
+        // ditulis ulang di sini — angka ini dinyatakan di lampiran akreditasi.
+        Text(
+          LabProfile.catatanKetidakpastian,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          l10n.certDisclaimer,
+          style: theme.textTheme.bodySmall?.copyWith(
+            fontStyle: FontStyle.italic,
+            color: theme.colorScheme.outline,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Tabel **Standard used**.
+///
+/// Formulir aslinya punya empat kolom (Name · Merk/Type · Serial Number ·
+/// Traceable to SI through); yang nyampe ke HP cuma nama & nomor sertifikat —
+/// `standar_acuan` di respons titik isinya `{id, nama, no_sertifikat}` doang.
+class _StandarDipakai extends StatelessWidget {
+  const _StandarDipakai({required this.titik});
+
+  final List<MeasurementResult> titik;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    // Satu standar bisa kepakai di beberapa titik — ditampilin sekali aja,
+    // sama kayak di formulir.
+    final unik = <int, StandardRef>{};
+    for (final t in titik) {
+      final s = t.standarAcuan;
+      if (s != null) unik[s.id] = s;
+    }
+    if (unik.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.certStandarDipakai.toUpperCase(),
+          style: theme.textTheme.labelLarge,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              children: [
+                for (final s in unik.values)
+                  _RingkasanRow(
+                    label: s.nama,
+                    value: s.noSertifikat ?? '—',
+                  ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }

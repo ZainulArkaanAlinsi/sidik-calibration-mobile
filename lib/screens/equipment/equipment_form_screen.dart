@@ -1,15 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
-import '../../models/customer.dart';
+import '../../models/customer_lookup.dart';
 import '../../models/equipment.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/calibration_input_provider.dart'
     show categoryDetailProvider, categoryListProvider;
 import '../../providers/equipment_provider.dart';
-import '../../providers/master_data_provider.dart' show customerProvider;
+import '../../providers/master_data_provider.dart' show customerLookupProvider;
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
 
@@ -57,6 +59,12 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
 
   String? _kategori;
   int? _pelangganId;
+
+  /// Disimpen terpisah dari [_pelangganId] karena picker-nya nggak megang
+  /// daftar lengkap di memori — waktu buka form edit, nama pelanggannya datang
+  /// dari alat yang lagi dibuka, bukan dari hasil pencarian.
+  String? _pelangganNama;
+
   String? _namaAlatKemampuan;
   EquipmentStatus _status = EquipmentStatus.aktif;
 
@@ -65,14 +73,25 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
   String? _errorSerial;
   String? _errorKategori;
   String? _errorPelanggan;
+  String? _errorToleransi;
 
   @override
   void initState() {
     super.initState();
     _kategori = widget.existing?.kategori;
     _pelangganId = widget.existing?.pelangganId;
+    _pelangganNama = widget.existing?.pelangganNama;
     _namaAlatKemampuan = widget.existing?.namaAlatKemampuan;
-    _status = widget.existing?.status ?? EquipmentStatus.aktif;
+
+    // `GET /equipments` bisa balikin `overdue`, tapi dropdown status cuma
+    // punya `aktif`/`nonaktif` — kalau nilainya dibiarin `overdue`, Flutter
+    // langsung assert ("no matching item"). Ditampilin sebagai `aktif` karena
+    // itu emang nilai yang kesimpen di server; `overdue`-nya cuma turunan
+    // dari `tanggal_jatuh_tempo`.
+    final status = widget.existing?.status ?? EquipmentStatus.aktif;
+    _status = status == EquipmentStatus.overdue
+        ? EquipmentStatus.aktif
+        : status;
   }
 
   @override
@@ -107,11 +126,20 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
           _serialNumber.text.trim().isEmpty ? l10n.custFieldRequired : null;
       _errorKategori = _kategori == null ? l10n.custFieldRequired : null;
       _errorPelanggan = _pelangganId == null ? l10n.custFieldRequired : null;
+      // Backend masih ngebolehin `toleransi` kosong, tapi alat tanpa toleransi
+      // nggak bisa dikalibrasi sama sekali — PASS/FAIL-nya nggak bisa
+      // diputusin, jadi submit kalibrasinya ditolak 422 belakangan. Dicegat di
+      // sini biar ketahuannya sekarang, bukan pas teknisi udah kelar ngisi
+      // seluruh worksheet.
+      _errorToleransi = _parse(_toleransi.text) == null
+          ? l10n.equipToleransiWajib
+          : null;
     });
     if (_errorNama != null ||
         _errorSerial != null ||
         _errorKategori != null ||
-        _errorPelanggan != null) {
+        _errorPelanggan != null ||
+        _errorToleransi != null) {
       return;
     }
 
@@ -163,7 +191,6 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
     final mengedit = widget.existing != null;
     final bisaInput = ref.watch(authProvider).value?.role.bisaInput ?? false;
     final kategoriList = ref.watch(categoryListProvider).value ?? const [];
-    final pelangganList = ref.watch(customerProvider).value ?? const <Customer>[];
 
     return Scaffold(
       appBar: AppBar(title: Text(mengedit ? l10n.equipEdit : l10n.equipAdd)),
@@ -224,20 +251,15 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
 
           Text(l10n.equipPelanggan.toUpperCase(), style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: AppSpacing.sm),
-          DropdownButtonFormField<int>(
-            initialValue: _pelangganId,
-            isExpanded: true,
-            hint: Text(l10n.equipPelangganHint),
-            items: pelangganList
-                .map((c) => DropdownMenuItem(value: c.id, child: Text(c.nama)))
-                .toList(),
-            onChanged: bisaInput
-                ? (value) => setState(() {
-                    _pelangganId = value;
-                    _errorPelanggan = null;
-                  })
-                : null,
-            decoration: InputDecoration(errorText: _errorPelanggan),
+          _PelangganField(
+            nama: _pelangganNama,
+            errorText: _errorPelanggan,
+            enabled: bisaInput,
+            onPilih: (pilihan) => setState(() {
+              _pelangganId = pilihan.id;
+              _pelangganNama = pilihan.nama;
+              _errorPelanggan = null;
+            }),
           ),
           const SizedBox(height: AppSpacing.md),
 
@@ -311,7 +333,13 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
           AppTextField.measurement(
             label: l10n.equipToleransi,
             controller: _toleransi,
+            errorText: _errorToleransi,
             enabled: bisaInput,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            l10n.equipToleransiWajibHint,
+            style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: AppSpacing.md),
           AppTextField(
@@ -333,13 +361,15 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
             initialValue: _status,
             isExpanded: true,
             items: [
+              // `overdue` sengaja NGGAK ditawarin: itu status turunan yang
+              // dihitung backend dari `tanggal_jatuh_tempo`, bukan sesuatu yang
+              // boleh dikirim. Dulu pilihannya ada di sini, dan karena
+              // `Equipment.toApi()` diam-diam nurunin `overdue` jadi `aktif`,
+              // user yang milih "Jatuh tempo" ngeliat form-nya sukses tersimpan
+              // padahal yang kesimpen `aktif`.
               DropdownMenuItem(
                 value: EquipmentStatus.aktif,
                 child: Text(l10n.equipStatusAktif),
-              ),
-              DropdownMenuItem(
-                value: EquipmentStatus.overdue,
-                child: Text(l10n.equipStatusOverdue),
               ),
               DropdownMenuItem(
                 value: EquipmentStatus.nonaktif,
@@ -360,6 +390,158 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// Field pelanggan — bukan `DropdownButtonFormField`, tapi kolom yang dipencet
+/// buat buka pencarian.
+///
+/// Daftar pelanggan dipaginasi 15/halaman di backend, jadi dropdown biasa cuma
+/// bakal nampilin 15 pelanggan pertama tanpa ada tanda apa pun kalau sisanya
+/// kepotong — di lab yang pelanggannya banyak, alat jadi nggak bisa disimpan
+/// karena pelanggannya "nggak ada di daftar". Pencariannya dilempar ke server.
+class _PelangganField extends StatelessWidget {
+  const _PelangganField({
+    required this.nama,
+    required this.errorText,
+    required this.enabled,
+    required this.onPilih,
+  });
+
+  final String? nama;
+  final String? errorText;
+  final bool enabled;
+  final ValueChanged<CustomerLookup> onPilih;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final kosong = nama == null || nama!.isEmpty;
+
+    return InkWell(
+      onTap: enabled
+          ? () async {
+              final pilihan = await showModalBottomSheet<CustomerLookup>(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) => const _PelangganSheet(),
+              );
+              if (pilihan != null) onPilih(pilihan);
+            }
+          : null,
+      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          errorText: errorText,
+          suffixIcon: const Icon(Icons.search),
+          enabled: enabled,
+        ),
+        child: Text(
+          kosong ? l10n.equipPelangganHint : nama!,
+          style: kosong
+              ? theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                )
+              : theme.textTheme.bodyMedium,
+        ),
+      ),
+    );
+  }
+}
+
+/// Sheet pencarian pelanggan. Query-nya dikirim ke server (`?search=`), bukan
+/// nyaring daftar yang udah keburu kepotong paginasi di sisi mobile.
+class _PelangganSheet extends ConsumerStatefulWidget {
+  const _PelangganSheet();
+
+  @override
+  ConsumerState<_PelangganSheet> createState() => _PelangganSheetState();
+}
+
+class _PelangganSheetState extends ConsumerState<_PelangganSheet> {
+  final _kunci = TextEditingController();
+
+  /// Query yang beneran dikirim ke server. Sengaja dipisah dari isi
+  /// [_kunci]: tiap huruf yang diketik nggak langsung jadi satu request.
+  String _query = '';
+  Timer? _debounce;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _kunci.dispose();
+    super.dispose();
+  }
+
+  void _ketik(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 350), () {
+      if (mounted) setState(() => _query = value.trim());
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final hasil = ref.watch(customerLookupProvider(_query));
+
+    return Padding(
+      // Sheet-nya naik ngikutin keyboard — kalau nggak, kolom pencariannya
+      // ketutupan persis waktu user mau ngetik di situ.
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.equipPelanggan, style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: AppSpacing.md),
+              TextField(
+                controller: _kunci,
+                autofocus: true,
+                onChanged: _ketik,
+                decoration: InputDecoration(
+                  hintText: l10n.equipPelangganCariHint,
+                  prefixIcon: const Icon(Icons.search),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              SizedBox(
+                height: 280,
+                child: hasil.when(
+                  skipLoadingOnReload: true,
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (_, _) => Center(
+                    child: Text(
+                      l10n.equipPelangganGagal,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  data: (daftar) {
+                    if (daftar.isEmpty) {
+                      return Center(child: Text(l10n.equipPelangganKosong));
+                    }
+
+                    return ListView.builder(
+                      itemCount: daftar.length,
+                      itemBuilder: (context, i) => ListTile(
+                        title: Text(daftar[i].nama),
+                        onTap: () => Navigator.of(context).pop(daftar[i]),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

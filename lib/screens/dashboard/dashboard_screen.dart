@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_typography.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/dashboard_summary.dart';
 import '../../models/user.dart';
@@ -16,7 +17,7 @@ import '../../widgets/stat_card.dart';
 import '../../widgets/work_chart.dart';
 import '../../widgets/status_badge.dart';
 import '../calibration/category_picker_screen.dart';
-import '../calibration/ph_calibration_input_screen.dart';
+import '../equipment/equipment_form_screen.dart';
 import 'device_overview_screen.dart';
 
 /// Dashboard — 4 state sesuai task 21 Jul:
@@ -99,45 +100,32 @@ class _Isi extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
-        if (user != null) _Sapaan(user: user!),
+        // Kartu hero nampung angka yang **selalu se-lab** — jumlah alat, alat
+        // jatuh tempo, sertifikat terbit. Angka-angka ini nggak pernah
+        // disaring per user, jadi aman jadi "wajah" dashboard buat semua role.
+        _KartuHero(data: data, user: user),
+
+        // Peringatannya nempel persis di bawah angkanya, bukan di dasar layar
+        // kayak dulu — kalau ditaruh jauh, orang keburu scroll lewat.
+        if (data.alatOverdue > 0) ...[
+          const SizedBox(height: AppSpacing.sm),
+          _PeringatanOverdue(jumlah: data.alatOverdue),
+        ],
+
         const SizedBox(height: AppSpacing.lg),
-
-        _JudulSeksi(admin ? l10n.dashSummaryOrg : l10n.dashSummaryYours),
-        const SizedBox(height: AppSpacing.sm),
-
-        StatCardRow(
-          kiri: StatCard(
-            label: l10n.dashTotalDevices,
-            nilai: data.totalAlat,
-            icon: Icons.straighten_outlined,
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) =>
-                    DeviceOverviewScreen(title: l10n.dashTotalDevices),
-              ),
-            ),
-          ),
-          kanan: StatCard(
-            label: l10n.dashOverdue,
-            nilai: data.alatOverdue,
-            icon: Icons.schedule,
-            warna: data.alatOverdue > 0 ? AppColors.warning : null,
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => DeviceOverviewScreen(
-                  title: l10n.dashOverdue,
-                  statusFilter: 'overdue',
-                ),
-              ),
-            ),
-          ),
-        ),
+        // Judul seksi ini beda per role, dan itu BUKAN kosmetik.
+        //
+        // Angka sesi di bawah sini disaring backend per user: buat teknisi
+        // isinya kerjaan dia sendiri, buat admin lintas-teknisi. Sementara
+        // angka di kartu hero selalu se-lab. Tanpa judul yang misahin, layar
+        // teknisi nampilin "Selesai: 2" bareng "Sertifikat: 137" tanpa
+        // penjelasan — kebaca kayak datanya ngaco, padahal cakupannya emang
+        // beda (`docs/kontrak-api.md`, handoff backend §B).
+        _JudulSeksi(admin ? l10n.dashCalibrationLab : l10n.dashCalibrationMine),
         const SizedBox(height: AppSpacing.sm),
         // Draft & menunggu-proses dulu ditampilin gantian tergantung role, jadi
         // tiap role cuma lihat separuh gambaran. Sekarang dua-duanya dirender:
-        // backend udah ngirim keduanya (dan udah nge-scope sendiri — teknisi
-        // dapat angka sesinya sendiri, admin lintas-teknisi), jadi nggak ada
-        // request tambahan buat ini.
+        // backend udah ngirim keduanya, jadi nggak ada request tambahan.
         StatCardRow(
           kiri: StatCard(
             label: l10n.dashCalibrationDraft,
@@ -152,18 +140,11 @@ class _Isi extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        StatCardRow(
-          kiri: StatCard(
-            label: l10n.dashCalibrationDone,
-            nilai: data.kalibrasiSelesai,
-            icon: Icons.task_alt,
-            warna: AppColors.success,
-          ),
-          kanan: StatCard(
-            label: l10n.dashCertsThisMonth,
-            nilai: data.sertifikatBulanIni,
-            icon: Icons.workspace_premium_outlined,
-          ),
+        StatCardWide(
+          label: l10n.dashCalibrationDone,
+          nilai: data.kalibrasiSelesai,
+          icon: Icons.task_alt,
+          warna: AppColors.success,
         ),
 
         // Grafik cuma dirender kalau backend beneran ngirim datanya. Backend
@@ -176,13 +157,15 @@ class _Isi extends ConsumerWidget {
           GlassSurface.rata(
             radius: AppSpacing.radiusLg,
             padding: const EdgeInsets.all(AppSpacing.md),
-            child: WorkChart(titik: data.grafikPekerjaan),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _RingkasanTren(titik: data.grafikPekerjaan),
+                const SizedBox(height: AppSpacing.md),
+                WorkChart(titik: data.grafikPekerjaan),
+              ],
+            ),
           ),
-        ],
-
-        if (data.alatOverdue > 0) ...[
-          const SizedBox(height: AppSpacing.md),
-          _PeringatanOverdue(jumlah: data.alatOverdue),
         ],
 
         // Viewer read-only: tombol aksi nggak dirender sama sekali.
@@ -198,33 +181,19 @@ class _Isi extends ConsumerWidget {
             padding: const EdgeInsets.all(AppSpacing.md),
             child: Column(
               children: [
+                // Satu pintu buat semua kalibrasi, termasuk pH Meter.
+                //
+                // Dulu ada tombol pintasan "Kalibrasi pH Meter" terpisah di
+                // bawah tombol ini. Dihapus karena alurnya udah kelewat sama
+                // pintu ini (Kategori → Instrumen Analitik → pH Meter), dan
+                // dua tombol yang ujungnya ke form yang sama bikin orang mikir
+                // ada dua jenis kalibrasi yang beda.
                 AppButton(
                   label: l10n.dashStartCalibration,
                   icon: Icons.add_task,
-                  // Nggak langsung ke form generik lagi — sekarang lewat
-                  // 2 langkah pilihan (kategori besar → jenis alat
-                  // spesifik) biar teknisi nggak dihadapin dropdown datar
-                  // isinya 10+ kategori sekaligus.
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
                       builder: (_) => const CategoryPickerScreen(),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                // Shortcut cepat: pH Meter juga bisa dicapai lewat alur
-                // Kategori → Instrumen Analitik → pH Meter di atas, tapi
-                // tombol ini dipertahankan sebagai jalan pintas karena itu
-                // prioritas atasan & paling sering dipakai — form-nya juga
-                // jauh lebih spesifik (kondisi lingkungan awal/akhir,
-                // 3 titik buffer x 5 pembacaan before/after adjustment).
-                AppButton(
-                  label: l10n.dashStartPhCalibration,
-                  icon: Icons.science_outlined,
-                  variant: AppButtonVariant.secondary,
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const PhCalibrationInputScreen(),
                     ),
                   ),
                 ),
@@ -233,7 +202,7 @@ class _Isi extends ConsumerWidget {
                   label: l10n.dashAddDevice,
                   icon: Icons.add,
                   variant: AppButtonVariant.secondary,
-                  onPressed: () => _snack(context, l10n.snackAddDeviceSoon),
+                  onPressed: () => _bukaTambahAlat(context, ref),
                 ),
               ],
             ),
@@ -242,9 +211,236 @@ class _Isi extends ConsumerWidget {
       ],
     );
   }
+}
 
-  void _snack(BuildContext context, String pesan) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(pesan)));
+/// Buka form Tambah Alat, lalu **muat ulang dashboard** kalau alatnya jadi
+/// disimpan. Tanpa ini, teknisi balik ke dashboard dan lihat "Total alat" masih
+/// angka lama — kelihatan kayak alatnya gagal kesimpen, padahal cuma
+/// ringkasannya yang basi.
+Future<void> _bukaTambahAlat(BuildContext context, WidgetRef ref) async {
+  // Notifier-nya diambil SEBELUM `await`: sesudah form-nya ketutup, widget
+  // yang manggil bisa aja udah nggak ke-mount, dan `ref` yang udah dibuang
+  // ngelempar begitu dipakai.
+  final dashboard = ref.read(dashboardProvider.notifier);
+
+  await Navigator.of(context).push(
+    MaterialPageRoute<void>(builder: (_) => const EquipmentFormScreen()),
+  );
+
+  await dashboard.muatUlang();
+}
+
+/// Kartu pembuka: sapaan + angka lab yang paling sering dicari.
+///
+/// Angka di sini sengaja cuma yang cakupannya **se-lab** (`total_alat`,
+/// `alat_overdue`, `total_sertifikat`) — biar satu kartu ini punya satu arti
+/// yang konsisten buat semua role, nggak campur sama angka yang disaring
+/// per user.
+class _KartuHero extends StatelessWidget {
+  const _KartuHero({required this.data, required this.user});
+
+  final DashboardSummary data;
+  final User? user;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    return GlassSurface.rata(
+      radius: AppSpacing.radiusLg,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (user != null) ...[
+            _Sapaan(user: user!),
+            const SizedBox(height: AppSpacing.md),
+            Divider(height: 1, color: theme.colorScheme.outlineVariant),
+            const SizedBox(height: AppSpacing.md),
+          ],
+          Text(
+            l10n.dashLabScope.toUpperCase(),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              letterSpacing: 0.8,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _AngkaHero(
+                  label: l10n.dashTotalDevices,
+                  nilai: data.totalAlat,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) =>
+                          DeviceOverviewScreen(title: l10n.dashTotalDevices),
+                    ),
+                  ),
+                ),
+                _GarisPemisah(),
+                _AngkaHero(
+                  label: l10n.dashOverdue,
+                  nilai: data.alatOverdue,
+                  warna: data.alatOverdue > 0 ? AppColors.warning : null,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => DeviceOverviewScreen(
+                        title: l10n.dashOverdue,
+                        statusFilter: 'overdue',
+                      ),
+                    ),
+                  ),
+                ),
+                _GarisPemisah(),
+                _AngkaHero(
+                  label: l10n.dashTotalCerts,
+                  nilai: data.totalSertifikat,
+                  // Angka bulan berjalan nempel sebagai sub-teks, bukan kartu
+                  // sendiri: dia cuma bikin angka total di atasnya kebaca
+                  // ("dari sekian banyak, sekian terbit bulan ini").
+                  sub: l10n.dashCertsThisMonthSub(data.sertifikatBulanIni),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AngkaHero extends StatelessWidget {
+  const _AngkaHero({
+    required this.label,
+    required this.nilai,
+    this.sub,
+    this.warna,
+    this.onTap,
+  });
+
+  final String label;
+  final int nilai;
+  final String? sub;
+  final Color? warna;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '$nilai',
+                // Lebar digit tetap — biar tiga angka sebaris ini lurus dan
+                // nggak goyang tiap kali nilainya berubah.
+                style: AppTypography.measurement.copyWith(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  height: 34 / 28,
+                  letterSpacing: -0.28,
+                  color: warna ?? theme.colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                label.toUpperCase(),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  letterSpacing: 0.4,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (sub != null)
+                Text(
+                  sub!,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.outline,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GarisPemisah extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+      child: VerticalDivider(
+        width: 1,
+        color: Theme.of(context).colorScheme.outlineVariant,
+      ),
+    );
+  }
+}
+
+/// Satu baris ringkas di atas grafik: kerjaan selesai periode terakhir naik
+/// atau turun dibanding periode sebelumnya.
+///
+/// Grafik batang bagus buat ngebandingin, tapi arah gerakannya baru kebaca
+/// setelah orang neliti tiap batang. Kalimat pendek ini yang ngasih
+/// kesimpulannya duluan.
+class _RingkasanTren extends StatelessWidget {
+  const _RingkasanTren({required this.titik});
+
+  final List<TitikTren> titik;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    // Butuh dua periode buat bisa dibandingin — satu batang nggak punya
+    // "sebelumnya".
+    if (titik.length < 2) return const SizedBox.shrink();
+
+    final selisih = titik.last.selesai - titik[titik.length - 2].selesai;
+
+    final (IconData ikon, Color warna, String teks) = switch (selisih) {
+      > 0 => (Icons.trending_up, AppColors.success, l10n.dashTrendUp(selisih)),
+      < 0 => (
+        Icons.trending_down,
+        AppColors.warning,
+        l10n.dashTrendDown(-selisih),
+      ),
+      _ => (
+        Icons.trending_flat,
+        theme.colorScheme.onSurfaceVariant,
+        l10n.dashTrendFlat,
+      ),
+    };
+
+    return Row(
+      children: [
+        Icon(ikon, size: 18, color: warna),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Text(
+            teks,
+            style: theme.textTheme.bodySmall?.copyWith(color: warna),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -303,6 +499,9 @@ class _Sapaan extends StatelessWidget {
   }
 }
 
+/// Peringatan alat lewat jatuh tempo — **bisa dipencet** langsung ke daftar
+/// alatnya. Peringatan yang cuma ngasih angka tanpa jalan keluar bikin orang
+/// harus nyari sendiri alat mana yang telat.
 class _PeringatanOverdue extends StatelessWidget {
   const _PeringatanOverdue({required this.jumlah});
 
@@ -311,37 +510,54 @@ class _PeringatanOverdue extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.warning.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.warning_amber_outlined, color: AppColors.warning),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              AppLocalizations.of(context).dashOverdueWarning(jumlah),
-              style: theme.textTheme.bodySmall,
-            ),
+    return InkWell(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => DeviceOverviewScreen(
+            title: l10n.dashOverdue,
+            statusFilter: 'overdue',
           ),
-        ],
+        ),
+      ),
+      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: AppColors.warning.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.warning_amber_outlined, color: AppColors.warning),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(
+                l10n.dashOverdueWarning(jumlah),
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              size: 20,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _Kosong extends StatelessWidget {
+class _Kosong extends ConsumerWidget {
   const _Kosong({required this.user});
 
   final User? user;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final bisaInput = user?.role.bisaInput ?? false;
@@ -366,12 +582,12 @@ class _Kosong extends StatelessWidget {
         ),
         if (bisaInput) ...[
           const SizedBox(height: AppSpacing.lg),
+          // Di state kosong tombol ini satu-satunya jalan maju yang masuk akal:
+          // belum ada alat, jadi belum ada yang bisa dikalibrasi.
           AppButton(
             label: l10n.dashAddDevice,
             icon: Icons.add,
-            onPressed: () => ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(l10n.snackAddDeviceSoon))),
+            onPressed: () => _bukaTambahAlat(context, ref),
           ),
         ],
       ],

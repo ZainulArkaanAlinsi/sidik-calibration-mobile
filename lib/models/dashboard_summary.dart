@@ -10,16 +10,32 @@ class TitikTren {
     required this.periode,
     required this.masuk,
     required this.selesai,
+    this.label = '',
   });
 
-  /// Label apa adanya dari backend (mis. `2026-07`). Mobile nggak nafsirin
-  /// formatnya — granularitasnya bisa harian/mingguan/bulanan.
+  /// Kunci periode apa adanya dari backend (mis. `2026-07`). Mobile nggak
+  /// nafsirin formatnya — granularitasnya bisa harian/mingguan/bulanan.
   final String periode;
+
+  /// Label sumbu X yang **udah jadi** dari backend (mis. `Jul 2026`), jadi
+  /// mobile nggak usah nerjemahin nama bulan sendiri. Bisa kosong kalau
+  /// endpoint-nya nggak ngirim — [WorkChart] nurunin sendiri dari [periode].
+  final String label;
+
   final int masuk;
   final int selesai;
 
   factory TitikTren.fromJson(Map<String, dynamic> json) => TitikTren(
-    periode: json['periode']?.toString() ?? '',
+    // Dua endpoint, dua nama field, isi yang sama:
+    //   `GET /dashboard`      -> `bulan` (+ `label` siap pakai)
+    //   `GET /dashboard/tren` -> `periode`
+    //
+    // Dulu di sini cuma baca `periode`, jadi buat layar Dashboard nilainya
+    // selalu '' dan sumbu X grafiknya kosong melompong. Nggak ketahuan dari
+    // test karena `MockDashboardService` ngisinya pakai `periode` juga —
+    // cuma server beneran yang ngirim `bulan`.
+    periode: (json['bulan'] ?? json['periode'])?.toString() ?? '',
+    label: json['label']?.toString() ?? '',
     masuk: (json['masuk'] as num?)?.toInt() ?? 0,
     selesai: (json['selesai'] as num?)?.toInt() ?? 0,
   );
@@ -34,6 +50,7 @@ class DashboardSummary {
     required this.menungguApproval,
     required this.sertifikatBulanIni,
     required this.grafikPekerjaan,
+    this.totalSertifikat = 0,
   });
 
   final int totalAlat;
@@ -42,6 +59,16 @@ class DashboardSummary {
   final int kalibrasiSelesai;
   final int menungguApproval;
   final int sertifikatBulanIni;
+
+  /// Sertifikat terbit **sepanjang waktu**, dan **selalu se-lab** — bukan cuma
+  /// punya user yang lagi login.
+  ///
+  /// Ini beda cakupan sama angka sesi ([kalibrasiDraft], [menungguApproval],
+  /// [kalibrasiSelesai]) yang buat teknisi disaring jadi miliknya sendiri.
+  /// Jadi wajar kalau teknisi lihat "Kalibrasi selesai: 2" bareng "Total
+  /// sertifikat: 15" — itu bukan bug, makanya di layar dua kelompok angka ini
+  /// dipisah dengan judul yang beda ("Kalibrasi Saya" vs "Sertifikat Lab").
+  final int totalSertifikat;
 
   /// 6 bulan terakhir, dikunci backend. Bisa kosong kalau backend versi lama —
   /// layar nanganin itu dengan nggak nampilin grafiknya sama sekali.
@@ -55,7 +82,8 @@ class DashboardSummary {
       alatOverdue == 0 &&
       kalibrasiDraft == 0 &&
       menungguApproval == 0 &&
-      sertifikatBulanIni == 0;
+      sertifikatBulanIni == 0 &&
+      totalSertifikat == 0;
 
   factory DashboardSummary.fromJson(Map<String, dynamic> json) {
     // Field yang belum dikirim backend dianggap 0, bukan bikin app crash.
@@ -78,6 +106,7 @@ class DashboardSummary {
       // kali — sekali di kartu kiri, sekali lagi di kanan.
       menungguApproval: angka('menunggu_approval'),
       sertifikatBulanIni: angka('sertifikat_bulan_ini'),
+      totalSertifikat: angka('total_sertifikat'),
       grafikPekerjaan:
           (json['grafik_pekerjaan'] as List<dynamic>? ?? const [])
               .cast<Map<String, dynamic>>()

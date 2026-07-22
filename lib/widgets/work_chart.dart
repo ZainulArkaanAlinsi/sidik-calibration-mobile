@@ -158,13 +158,29 @@ class _ChartPainter extends CustomPainter {
       batang(t.masuk, warnaMasuk, -(lebarBatang / 2 + jarak / 2));
       batang(t.selesai, warnaSelesai, lebarBatang / 2 + jarak / 2);
 
-      final label = _label(t.periode);
+      final label = _teksSumbu(t);
       final tp = TextPainter(
         text: TextSpan(text: label, style: gayaLabel),
         textDirection: TextDirection.ltr,
       )..layout(maxWidth: lebarSlot);
       tp.paint(canvas, Offset(tengah - tp.width / 2, tinggiPlot + 4));
     }
+  }
+
+  /// Label sumbu X buat satu titik.
+  ///
+  /// Backend `GET /dashboard` udah ngirim label jadi (`"Jul 2026"`) — itu yang
+  /// dipakai, biar nama bulan nggak diterjemahin dua kali di tempat berbeda.
+  /// Tapi tahunnya dibuang: 6 batang x "Jul 2026" nggak muat di layar HP, dan
+  /// rentangnya emang cuma 6 bulan jadi tahunnya ketebak.
+  ///
+  /// Kalau label-nya kosong (mis. `GET /dashboard/tren` yang cuma ngirim
+  /// `periode`), baru diturunin sendiri lewat [_label].
+  static String _teksSumbu(TitikTren t) {
+    if (t.label.isEmpty) return _label(t.periode);
+
+    final spasi = t.label.indexOf(' ');
+    return spasi == -1 ? t.label : t.label.substring(0, spasi);
   }
 
   /// Label sumbu dari `periode` kiriman backend.

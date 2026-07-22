@@ -1,4 +1,4 @@
-# Cara Kerja Bareng — ASMO Mobile
+# Cara Kerja Bareng — PT Sidik Kalibrasi
 
 Project ini dikerjakan berdua (@ZainulArkaanAlinsi & @raihannazhiif) di **dua repo**:
 
@@ -92,4 +92,4 @@ Live Share buat **pair programming sesaat**, bukan pengganti git. Hasil akhirnya
 - **Jangan ngedit file yang sama barengan** tanpa ngobrol dulu. Bagi tugas per layar/fitur.
 - **Pull tiap pagi**, push tiap sore — jangan numpuk kerjaan 3 hari baru push, konfliknya ngeri.
 - Kalau kena **merge conflict**, jangan panik dan jangan `--force`. Kabarin partner, selesaikan berdua.
-- Rencana harian & pembagian tugas ada di vault Obsidian `Project-PT-ASMO/` (nggak ikut ke-push ke repo ini).
+- Rencana harian & pembagian tugas ada di vault Obsidian `Project-PT-Sidik/` (nggak ikut ke-push ke repo ini).

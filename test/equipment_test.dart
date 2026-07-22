@@ -9,13 +9,14 @@ import 'package:sidik_calibration/providers/calibration_input_provider.dart'
 import 'package:sidik_calibration/providers/dashboard_provider.dart';
 import 'package:sidik_calibration/providers/equipment_provider.dart';
 import 'package:sidik_calibration/providers/master_data_provider.dart'
-    show customerServiceProvider;
+    show customerLookupServiceProvider;
 import 'package:sidik_calibration/services/category_service.dart';
-import 'package:sidik_calibration/services/customer_service.dart';
+import 'package:sidik_calibration/services/customer_lookup_service.dart';
 import 'package:sidik_calibration/services/dashboard_service.dart';
 import 'package:sidik_calibration/services/equipment_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
+import 'package:sidik_calibration/widgets/app_text_field.dart';
 import 'package:sidik_calibration/widgets/floating_nav_bar.dart';
 
 /// Dibungkus `SidikApp` (bukan langsung `EquipmentListScreen`) — layar ini
@@ -35,7 +36,12 @@ Widget _app({String token = 'mock-token-1', bool gagal = false}) {
         MockEquipmentService(gagal: gagal),
       ),
       categoryServiceProvider.overrideWithValue(MockCategoryService()),
-      customerServiceProvider.overrideWithValue(MockCustomerService()),
+      // Picker pelanggan di form Alat sengaja narik dari `/arsip/perusahaan`
+      // (kebuka semua role), BUKAN `/customers` yang admin-only — lihat
+      // `ApiCustomerLookupService`.
+      customerLookupServiceProvider.overrideWithValue(
+        MockCustomerLookupService(),
+      ),
     ],
     child: const SidikApp(),
   );
@@ -72,6 +78,31 @@ Future<void> _bukaTabAlat(WidgetTester tester, {String token = 'mock-token-1'}) 
   await tester.pumpWidget(_app(token: token));
   await tester.pumpAndSettle();
   await _tapTabAlat(tester);
+}
+
+/// Pilih pelanggan lewat sheet pencarian.
+///
+/// Bukan dropdown lagi: daftar pelanggan dipaginasi 15/halaman di server, jadi
+/// field-nya buka sheet yang nyari ke server (`?search=`) supaya pelanggan
+/// ke-16 dan seterusnya tetap kejangkau.
+Future<void> _pilihPelanggan(WidgetTester tester, String nama) async {
+  await tester.tap(find.text('Pilih pelanggan'), warnIfMissed: false);
+  await tester.pumpAndSettle();
+
+  await tester.tap(find.text(nama).last);
+  await tester.pumpAndSettle();
+}
+
+/// Kolom input berdasarkan label di atasnya (label-nya dirender HURUF BESAR
+/// sebagai `Text` terpisah, bukan `labelText` bawaan `InputDecoration`).
+Finder _kolom(WidgetTester tester, String label) {
+  return find.descendant(
+    of: find.ancestor(
+      of: find.text(label),
+      matching: find.byType(AppTextField),
+    ),
+    matching: find.byType(TextField),
+  );
 }
 
 void main() {
@@ -123,15 +154,47 @@ void main() {
     await tester.tap(find.text('Massa').last);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Pilih pelanggan'), warnIfMissed: false);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('PT Maju Jaya').last);
-    await tester.pumpAndSettle();
+    await _pilihPelanggan(tester, 'PT Maju Jaya');
+
+    // Toleransi wajib — alat tanpa toleransi nggak bisa dikalibrasi sama
+    // sekali, jadi form-nya nahan di sini daripada ditolak server belakangan.
+    await tester.enterText(_kolom(tester, 'TOLERANSI'), '0.2');
 
     await tester.tap(find.text('SIMPAN'));
     await tester.pumpAndSettle();
 
     expect(find.text('Termometer Digital Baru'), findsOneWidget);
+  });
+
+  testWidgets('toleransi kosong → ditahan form, nggak dikirim ke server', (
+    tester,
+  ) async {
+    _perbesarViewport(tester);
+    await _bukaTabAlat(tester);
+
+    await tester.tap(find.text('TAMBAH ALAT'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, 'Alat Tanpa Toleransi');
+    await tester.enterText(find.byType(TextField).at(1), 'TT-001');
+
+    await tester.tap(find.text('Pilih kategori alat'), warnIfMissed: false);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Massa').last);
+    await tester.pumpAndSettle();
+
+    await _pilihPelanggan(tester, 'PT Maju Jaya');
+
+    // Toleransi sengaja dikosongin.
+    await tester.tap(find.text('SIMPAN'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Toleransi wajib diisi.'), findsOneWidget);
+    expect(
+      find.text('SIMPAN'),
+      findsOneWidget,
+      reason: 'masih nyangkut di form, bukan udah balik ke list',
+    );
   });
 
   testWidgets(
