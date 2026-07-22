@@ -1430,8 +1430,17 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String get phCalibFotoTabelTakTerbaca =>
+      'Nggak ada angka yang kebaca sama sekali. Fotonya kemungkinan gelap, buram, atau kejauhan — coba lebih dekat dan terang. Kolomnya tetap bisa diketik manual.';
+
+  @override
+  String phCalibFotoTabelPosisiKacau(int jumlah) {
+    return '$jumlah angka kebaca, tapi belum kebentuk tabel. Biasanya karena fotonya miring atau yang kefoto selembar penuh — coba foto TABEL-nya aja, tegak lurus dari atas. Kolomnya tetap bisa diketik manual.';
+  }
+
+  @override
   String get phCalibFotoTabelKosong =>
-      'Nggak ada angka yang kebaca. Coba foto lebih dekat dan lurus, atau ketik manual.';
+      'Angka di foto belum kebaca. Tips: foto TABEL-nya aja (nggak usah selembar penuh), tegak lurus dari atas, cahaya rata tanpa bayangan tangan. Atau ketik manual.';
 
   @override
   String get phCalibFotoTabelSisa =>

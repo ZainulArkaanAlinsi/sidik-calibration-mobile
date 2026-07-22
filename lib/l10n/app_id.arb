@@ -473,7 +473,14 @@
   "phCalibFotoTabelJudul": "Mau foto tabel yang mana?",
   "phCalibFotoTabelInfo": "Sekali foto ngisi satu tabel penuh buat ketiga buffer. Sel yang udah keisi nggak akan ditimpa — jadi boleh foto ulang berkali-kali.",
   "phCalibFotoTabelHasil": "{terisi} dari {total} sel keisi.",
-  "phCalibFotoTabelKosong": "Nggak ada angka yang kebaca. Coba foto lebih dekat dan lurus, atau ketik manual.",
+  "phCalibFotoTabelTakTerbaca": "Nggak ada angka yang kebaca sama sekali. Fotonya kemungkinan gelap, buram, atau kejauhan — coba lebih dekat dan terang. Kolomnya tetap bisa diketik manual.",
+  "phCalibFotoTabelPosisiKacau": "{jumlah} angka kebaca, tapi belum kebentuk tabel. Biasanya karena fotonya miring atau yang kefoto selembar penuh — coba foto TABEL-nya aja, tegak lurus dari atas. Kolomnya tetap bisa diketik manual.",
+  "@phCalibFotoTabelPosisiKacau": {
+    "placeholders": {
+      "jumlah": { "type": "int" }
+    }
+  },
+  "phCalibFotoTabelKosong": "Angka di foto belum kebaca. Tips: foto TABEL-nya aja (nggak usah selembar penuh), tegak lurus dari atas, cahaya rata tanpa bayangan tangan. Atau ketik manual.",
   "phCalibFotoTabelSisa": "Sel yang kosong: ketik manual atau foto ulang — yang udah keisi nggak bakal keganti.",
   "phCalibOcrBelumDikonfirmasi": "Dari kamera — cek dulu",
   "phCalibOcrKonfirmasi": "SUDAH BENAR",

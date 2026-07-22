@@ -1440,8 +1440,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get phCalibFotoTabelTakTerbaca =>
+      'No numbers could be read at all. The photo is probably dark, blurry, or too far away — try closer and brighter. You can still type the values in.';
+
+  @override
+  String phCalibFotoTabelPosisiKacau(int jumlah) {
+    return '$jumlah numbers were read, but they don\'t line up as a table. Usually the photo is skewed or shows the whole sheet — try photographing just the TABLE, straight from above. You can still type the values in.';
+  }
+
+  @override
   String get phCalibFotoTabelKosong =>
-      'No numbers could be read. Get closer and shoot straight-on, or type it in manually.';
+      'Couldn\'t read the numbers yet. Tips: photograph just the TABLE (not the whole sheet), straight from above, even light with no hand shadow. Or type it in.';
 
   @override
   String get phCalibFotoTabelSisa =>

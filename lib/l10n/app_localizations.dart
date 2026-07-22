@@ -2732,10 +2732,22 @@ abstract class AppLocalizations {
   /// **'{terisi} of {total} cells filled.'**
   String phCalibFotoTabelHasil(int terisi, int total);
 
+  /// No description provided for @phCalibFotoTabelTakTerbaca.
+  ///
+  /// In en, this message translates to:
+  /// **'No numbers could be read at all. The photo is probably dark, blurry, or too far away — try closer and brighter. You can still type the values in.'**
+  String get phCalibFotoTabelTakTerbaca;
+
+  /// No description provided for @phCalibFotoTabelPosisiKacau.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} numbers were read, but they don\'t line up as a table. Usually the photo is skewed or shows the whole sheet — try photographing just the TABLE, straight from above. You can still type the values in.'**
+  String phCalibFotoTabelPosisiKacau(int jumlah);
+
   /// No description provided for @phCalibFotoTabelKosong.
   ///
   /// In en, this message translates to:
-  /// **'No numbers could be read. Get closer and shoot straight-on, or type it in manually.'**
+  /// **'Couldn\'t read the numbers yet. Tips: photograph just the TABLE (not the whole sheet), straight from above, even light with no hand shadow. Or type it in.'**
   String get phCalibFotoTabelKosong;
 
   /// No description provided for @phCalibFotoTabelSisa.

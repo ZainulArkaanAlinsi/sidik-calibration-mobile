@@ -241,6 +241,21 @@ class _TitikControllers {
   }
 }
 
+/// Pesan setelah foto tabel dibaca. Bungkus tipis di atas
+/// [pesanHasilFotoTabel] — logikanya ditaruh di service biar bisa diuji tanpa
+/// widget.
+String _pesanHasilFoto(AppLocalizations l10n, HasilTabelOcr hasil, int terisi) {
+  return pesanHasilFotoTabel(
+    terisi: terisi,
+    diharapkan: hasil.jumlahSelDiharapkan,
+    terdeteksi: hasil.jumlahAngkaTerdeteksi,
+    takTerbaca: l10n.phCalibFotoTabelTakTerbaca,
+    posisiKacau: l10n.phCalibFotoTabelPosisiKacau,
+    berhasil: l10n.phCalibFotoTabelHasil,
+    sisa: l10n.phCalibFotoTabelSisa,
+  );
+}
+
 /// Dua kolom sebaris. Dipakai buat pasangan yang di worksheet emang
 /// sebelahan (Merk/Type, Rentang/Kapasitas, Technician ID/Method).
 class _PasanganKolom extends StatelessWidget {
@@ -582,12 +597,7 @@ class _WizardState extends ConsumerState<_Wizard> {
       final l10n = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            terisi == 0
-                ? l10n.phCalibFotoTabelKosong
-                : '${l10n.phCalibFotoTabelHasil(terisi, hasil.jumlahSelDiharapkan)} '
-                      '${terisi < hasil.jumlahSelDiharapkan ? l10n.phCalibFotoTabelSisa : ''}',
-          ),
+          content: Text(_pesanHasilFoto(l10n, hasil, terisi)),
         ),
       );
 
@@ -1137,12 +1147,7 @@ class _WizardState extends ConsumerState<_Wizard> {
 
       messenger.showSnackBar(
         SnackBar(
-          content: Text(
-            terisi == 0
-                ? l10n.phCalibFotoTabelKosong
-                : '${l10n.phCalibFotoTabelHasil(terisi, hasil.jumlahSelDiharapkan)} '
-                      '${terisi < hasil.jumlahSelDiharapkan ? l10n.phCalibFotoTabelSisa : ''}',
-          ),
+          content: Text(_pesanHasilFoto(l10n, hasil, terisi)),
         ),
       );
     } catch (_) {
