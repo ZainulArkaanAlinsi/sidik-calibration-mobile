@@ -13,6 +13,7 @@ import '../../providers/equipment_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/status_badge.dart';
+import '../../widgets/notification_bell.dart';
 import 'equipment_form_screen.dart';
 
 /// Layar Daftar Alat — CRUD penuh (`GET/POST/PUT/DELETE /api/equipments`,
@@ -80,7 +81,10 @@ class _EquipmentListScreenState extends ConsumerState<EquipmentListScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.navEquipment)),
+      appBar: AppBar(
+        title: Text(l10n.navEquipment),
+        actions: const [NotificationBell(), SizedBox(width: AppSpacing.sm)],
+      ),
       body: Column(
         children: [
           Padding(

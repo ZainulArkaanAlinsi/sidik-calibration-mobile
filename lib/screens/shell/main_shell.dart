@@ -8,6 +8,7 @@ import '../../providers/navigation_provider.dart';
 import '../../widgets/floating_nav_bar.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../equipment/equipment_list_screen.dart';
+import '../folder/folder_manager_screen.dart';
 import '../history/history_screen.dart';
 import '../notification/notification_screen.dart';
 import '../profile/profile_screen.dart';
@@ -25,12 +26,18 @@ final mainShellKey = GlobalKey<ScaffoldState>();
 /// Buka menu samping dari AppBar tab mana pun.
 void bukaMenuUtama() => mainShellKey.currentState?.openDrawer();
 
-/// Rangka utama app: bottom nav 5 tab yang sama buat semua role.
+/// Rangka utama app: navbar bawah 5 tab yang sama buat semua role.
 /// Yang beda antar role cuma isi tab Profil (lihat README, Prinsip Desain).
 ///
-/// Bottom nav dipertahankan buat 5 tujuan yang paling sering dipakai; menu
+/// Navbar bawah dipertahankan buat 5 tujuan yang paling sering dipakai; menu
 /// samping ([_MenuUtama]) nampung sisanya — master data & pengaturan — yang
-/// dibuka sesekali dan nggak layak makan slot bottom nav.
+/// dibuka sesekali dan nggak layak makan slot navbar.
+///
+/// **Notifikasi nggak di navbar bawah lagi** (spesifikasi poin 4 & 8). Ikonnya
+/// pindah ke atas layar dengan badge angka ([NotificationBell]) dan buka
+/// halaman sendiri; tempatnya di navbar diambil **Folder Manager** (poin 3).
+/// Alasannya: navbar bawah cuma buat menu yang beneran sering dipakai, dan
+/// notifikasi itu pemberitahuan — bukan tempat kerja.
 class MainShell extends ConsumerWidget {
   const MainShell({super.key});
 
@@ -38,7 +45,7 @@ class MainShell extends ConsumerWidget {
     DashboardScreen(),
     EquipmentListScreen(),
     HistoryScreen(),
-    NotificationScreen(),
+    FolderManagerScreen(),
     ProfileScreen(),
   ];
 
@@ -64,9 +71,9 @@ class MainShell extends ConsumerWidget {
         label: l10n.navHistory,
       ),
       FloatingNavItem(
-        icon: Icons.notifications_none,
-        activeIcon: Icons.notifications,
-        label: l10n.navNotifications,
+        icon: Icons.folder_outlined,
+        activeIcon: Icons.folder,
+        label: l10n.navFolderManager,
       ),
       FloatingNavItem(
         icon: Icons.person_outline,
@@ -164,9 +171,18 @@ class _MenuUtama extends ConsumerWidget {
               onTap: () => keTab(2),
             ),
             ListTile(
+              leading: const Icon(Icons.folder_outlined),
+              title: Text(l10n.navFolderManager),
+              onTap: () => keTab(3),
+            ),
+            // Notifikasi udah bukan tab: dia halaman sendiri yang dibuka dari
+            // lonceng di app bar (spesifikasi poin 4). Di menu samping tetap
+            // dikasih pintu, tapi lewat `keLayar` — `keTab(3)` sekarang
+            // ngarah ke Folder Manager.
+            ListTile(
               leading: const Icon(Icons.notifications_none),
               title: Text(l10n.navNotifications),
-              onTap: () => keTab(3),
+              onTap: () => keLayar(const NotificationScreen()),
             ),
 
             const Divider(),

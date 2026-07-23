@@ -8,6 +8,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/notification_item.dart';
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../providers/notification_provider.dart';
+import '../history/calibration_detail_screen.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
 
@@ -38,8 +39,30 @@ class NotificationScreen extends ConsumerWidget {
       isi = const _Skeleton();
     }
 
+    final adaBelumDibaca = data?.any((n) => !n.dibaca) ?? false;
+
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.navNotifications)),
+      // Halaman sendiri (spesifikasi poin 4), jadi tombol back-nya bawaan
+      // AppBar — poin 5.
+      appBar: AppBar(
+        title: Text(l10n.navNotifications),
+        actions: [
+          if (adaBelumDibaca)
+            IconButton(
+              tooltip: l10n.notifTandaiSemua,
+              icon: const Icon(Icons.done_all),
+              onPressed: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                await ref
+                    .read(notificationProvider.notifier)
+                    .tandaiSemuaDibaca();
+                messenger.showSnackBar(
+                  SnackBar(content: Text(l10n.notifSemuaDibaca)),
+                );
+              },
+            ),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: () => ref.read(notificationProvider.notifier).muatUlang(),
         child: isi,
@@ -61,16 +84,39 @@ class _Isi extends ConsumerWidget {
       separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
       itemBuilder: (context, index) {
         final item = items[index];
+
         return _NotificationCard(
           item: item,
-          onTap: item.dibaca
-              ? null
-              : () =>
-                    ref.read(notificationProvider.notifier).tandaiDibaca(item.id),
+          onTap: () {
+            if (!item.dibaca) {
+              ref.read(notificationProvider.notifier).tandaiDibaca(item.id);
+            }
+            bukaTautanNotifikasi(context, item.tautan);
+          },
         );
       },
     );
   }
+}
+
+/// Buka layar tujuan dari `tautan: {tipe, id}`.
+///
+/// Tujuannya ditentuin **backend**, bukan ditebak mobile dari kategori: satu
+/// kategori bisa nunjuk ke layar beda tergantung datanya. Tipe yang belum
+/// dikenal (mis. dari backend yang lebih baru) sengaja nggak ngapa-ngapain —
+/// notifikasinya tetap kebaca, cuma nggak lompat ke mana-mana. Itu jauh lebih
+/// baik daripada nebak dan mendarat di layar yang salah.
+void bukaTautanNotifikasi(BuildContext context, NotifTautan? tautan) {
+  if (tautan == null) return;
+
+  final route = switch (tautan.tipe) {
+    'calibration' => MaterialPageRoute<void>(
+      builder: (_) => CalibrationDetailScreen(calibrationId: tautan.id),
+    ),
+    _ => null,
+  };
+
+  if (route != null) Navigator.of(context).push(route);
 }
 
 class _NotificationCard extends StatelessWidget {
@@ -81,15 +127,27 @@ class _NotificationCard extends StatelessWidget {
 
   (IconData, Color) _ikon(BuildContext context) {
     final theme = Theme.of(context);
-    return switch (item.tipe) {
-      NotificationType.jatuhTempo => (Icons.schedule, AppColors.warning),
-      NotificationType.approval => (
+    return switch (item.kategori) {
+      NotifKategori.jatuhTempo => (Icons.schedule, AppColors.warning),
+      NotifKategori.sesiMenungguApproval => (
+        Icons.hourglass_empty,
+        AppColors.warning,
+      ),
+      NotifKategori.sesiDisetujui => (
         Icons.verified_outlined,
         AppColors.success,
       ),
-      NotificationType.revisi => (
+      NotifKategori.sesiPerluRevisi => (
         Icons.edit_outlined,
         theme.colorScheme.error,
+      ),
+      NotifKategori.sertifikatTerbit => (
+        Icons.workspace_premium_outlined,
+        AppColors.success,
+      ),
+      NotifKategori.umum => (
+        Icons.info_outline,
+        theme.colorScheme.onSurfaceVariant,
       ),
     };
   }
@@ -98,7 +156,7 @@ class _NotificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final locale = Localizations.localeOf(context).languageCode;
-    final waktu = DateFormat('d MMM, HH:mm', locale).format(item.createdAt);
+    final waktu = DateFormat('d MMM, HH:mm', locale).format(item.dibuatPada);
     final (icon, warna) = _ikon(context);
 
     return Card(
@@ -134,7 +192,7 @@ class _NotificationCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      item.pesan,
+                      item.isi,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),

@@ -16,6 +16,7 @@ import '../../widgets/skeleton.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/work_chart.dart';
 import '../../widgets/status_badge.dart';
+import '../../widgets/notification_bell.dart';
 import '../calibration/category_picker_screen.dart';
 import '../equipment/equipment_form_screen.dart';
 import 'device_overview_screen.dart';
@@ -71,6 +72,9 @@ class DashboardScreen extends ConsumerWidget {
           tooltip: l10n.menuUtama,
           onPressed: bukaMenuUtama,
         ),
+        // Ikon notifikasi di atas layar (spesifikasi poin 4), bukan di navbar
+        // bawah — tempatnya di navbar diambil Folder Manager.
+        actions: const [NotificationBell(), SizedBox(width: AppSpacing.sm)],
       ),
       // Latar bergradasi, bukan warna rata: kartu SoftRaised butuh bidang yang
       // ada arah cahayanya biar bayangannya kebaca sebagai kedalaman. Di atas
@@ -80,7 +84,7 @@ class DashboardScreen extends ConsumerWidget {
         child: RefreshIndicator(
           onRefresh: () => ref.read(dashboardProvider.notifier).muatUlang(),
           child: isi,
-        ),
+        )
       ),
     );
   }
