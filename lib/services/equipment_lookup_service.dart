@@ -73,6 +73,16 @@ class MockEquipmentLookupService implements EquipmentLookupService {
         serialNumber: 'B628755900',
         kategori: 'instrumen-analitik',
         status: 'aktif',
+        merk: 'Mettler Toledo',
+        model: 'Five Easy',
+        satuan: 'pH',
+        rangeMin: 0,
+        rangeMax: 14,
+        resolusi: 0.01,
+        pelangganNama: 'PT TIRTA GRACIA SEMESTA MANDIRI',
+        pelangganAlamat:
+            'Jl. Arteri Primer A-10 RT. 01 RW.12 Nyalindung Kec. Cicalengka, '
+            'Kab. Bandung, Jawa Barat',
       ),
     ];
 

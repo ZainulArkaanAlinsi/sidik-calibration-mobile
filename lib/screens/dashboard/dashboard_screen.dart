@@ -13,7 +13,7 @@ import '../../widgets/skeleton.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/status_badge.dart';
 import '../calibration/category_picker_screen.dart';
-import '../calibration/ph_calibration_input_screen.dart';
+import '../calibration/lembar_kerja_screen.dart';
 import 'device_overview_screen.dart';
 
 /// Dashboard — 4 state sesuai task 21 Jul:
@@ -175,7 +175,7 @@ class _Isi extends ConsumerWidget {
                     variant: AppButtonVariant.secondary,
                     onPressed: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
-                        builder: (_) => const PhCalibrationInputScreen(),
+                        builder: (_) => const LembarKerjaScreen(),
                       ),
                     ),
                   ),

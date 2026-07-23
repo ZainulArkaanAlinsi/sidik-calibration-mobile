@@ -1158,4 +1158,97 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifTypeRevision => 'Revision';
+
+  @override
+  String get lkTitle => 'Calibration Worksheet';
+
+  @override
+  String get lkSubtitleDraft => 'Continue draft';
+
+  @override
+  String get lkSubtitleRevisi => 'Revise — returned by admin';
+
+  @override
+  String get lkLoadGagal => 'Couldn\'t load the worksheet form.';
+
+  @override
+  String get lkRetry => 'RETRY';
+
+  @override
+  String get lkPilihAlat => 'Choose equipment';
+
+  @override
+  String get lkAlatKosong => 'No equipment available yet.';
+
+  @override
+  String get lkBelumPilihAlat =>
+      'Choose the equipment first — the identity and owner fields fill in automatically.';
+
+  @override
+  String get lkOtomatis => 'Filled automatically';
+
+  @override
+  String get lkKosong => '—';
+
+  @override
+  String get lkPilihTanggal => 'Choose date';
+
+  @override
+  String get lkHapusTanggal => 'Clear date';
+
+  @override
+  String get lkRepeat => 'Repeat';
+
+  @override
+  String get lkUsageCheckKosong => 'No reference standards in master data yet.';
+
+  @override
+  String get lkUsageCheckKeterangan => 'Notes';
+
+  @override
+  String get lkStandarPerTitik => 'Buffer standard';
+
+  @override
+  String get lkStandarKadaluarsa => 'certificate expired';
+
+  @override
+  String get lkPilih => 'Choose';
+
+  @override
+  String get lkKirim => 'SUBMIT TO ADMIN';
+
+  @override
+  String get lkSimpanDraft => 'SAVE AS DRAFT';
+
+  @override
+  String get lkBerhasilKirim => 'Worksheet submitted to admin.';
+
+  @override
+  String get lkBerhasilDraft => 'Saved as draft.';
+
+  @override
+  String lkGagalKirim(String pesan) {
+    return 'Couldn\'t save: $pesan';
+  }
+
+  @override
+  String get lkSemuaOpsional =>
+      'Any field you can\'t fill in the field may be left blank — the worksheet can still be submitted.';
+
+  @override
+  String get lkKeluarTanpaSimpan => 'Leave without saving?';
+
+  @override
+  String get lkKeluarTanpaSimpanBody => 'What you\'ve typed will be lost.';
+
+  @override
+  String get lkKeluarBatal => 'KEEP EDITING';
+
+  @override
+  String get lkKeluarLanjut => 'LEAVE';
+
+  @override
+  String lkSuhuDiLuarRentang(String min, String max) {
+    return 'Outside this room\'s range ($min–$max).';
+  }
 }

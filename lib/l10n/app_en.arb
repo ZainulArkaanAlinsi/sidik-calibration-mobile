@@ -515,5 +515,45 @@
   "notifMarkedRead": "Marked as read.",
   "notifTypeDueDate": "Due date",
   "notifTypeApproval": "Approval",
-  "notifTypeRevision": "Revision"
+  "notifTypeRevision": "Revision",
+  "lkTitle": "Calibration Worksheet",
+  "lkSubtitleDraft": "Continue draft",
+  "lkSubtitleRevisi": "Revise — returned by admin",
+  "lkLoadGagal": "Couldn't load the worksheet form.",
+  "lkRetry": "RETRY",
+  "lkPilihAlat": "Choose equipment",
+  "lkAlatKosong": "No equipment available yet.",
+  "lkBelumPilihAlat": "Choose the equipment first — the identity and owner fields fill in automatically.",
+  "lkOtomatis": "Filled automatically",
+  "lkKosong": "\u2014",
+  "lkPilihTanggal": "Choose date",
+  "lkHapusTanggal": "Clear date",
+  "lkRepeat": "Repeat",
+  "lkUsageCheckKosong": "No reference standards in master data yet.",
+  "lkUsageCheckKeterangan": "Notes",
+  "lkStandarPerTitik": "Buffer standard",
+  "lkStandarKadaluarsa": "certificate expired",
+  "lkPilih": "Choose",
+  "lkKirim": "SUBMIT TO ADMIN",
+  "lkSimpanDraft": "SAVE AS DRAFT",
+  "lkBerhasilKirim": "Worksheet submitted to admin.",
+  "lkBerhasilDraft": "Saved as draft.",
+  "lkGagalKirim": "Couldn't save: {pesan}",
+  "@lkGagalKirim": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "lkSemuaOpsional": "Any field you can't fill in the field may be left blank — the worksheet can still be submitted.",
+  "lkKeluarTanpaSimpan": "Leave without saving?",
+  "lkKeluarTanpaSimpanBody": "What you've typed will be lost.",
+  "lkKeluarBatal": "KEEP EDITING",
+  "lkKeluarLanjut": "LEAVE",
+  "lkSuhuDiLuarRentang": "Outside this room's range ({min}\u2013{max}).",
+  "@lkSuhuDiLuarRentang": {
+    "placeholders": {
+      "min": { "type": "String" },
+      "max": { "type": "String" }
+    }
+  }
 }

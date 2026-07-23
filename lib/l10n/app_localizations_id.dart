@@ -1147,4 +1147,97 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get notifTypeRevision => 'Revisi';
+
+  @override
+  String get lkTitle => 'Lembar Kerja';
+
+  @override
+  String get lkSubtitleDraft => 'Lanjut draft';
+
+  @override
+  String get lkSubtitleRevisi => 'Perbaiki — dikembalikan admin';
+
+  @override
+  String get lkLoadGagal => 'Gagal memuat bentuk lembar kerja.';
+
+  @override
+  String get lkRetry => 'COBA LAGI';
+
+  @override
+  String get lkPilihAlat => 'Pilih alat';
+
+  @override
+  String get lkAlatKosong => 'Belum ada alat.';
+
+  @override
+  String get lkBelumPilihAlat =>
+      'Pilih alatnya dulu — kolom identitas & pemilik keisi otomatis.';
+
+  @override
+  String get lkOtomatis => 'Keisi otomatis';
+
+  @override
+  String get lkKosong => '—';
+
+  @override
+  String get lkPilihTanggal => 'Pilih tanggal';
+
+  @override
+  String get lkHapusTanggal => 'Kosongkan tanggal';
+
+  @override
+  String get lkRepeat => 'Repeat';
+
+  @override
+  String get lkUsageCheckKosong => 'Belum ada standar acuan di master data.';
+
+  @override
+  String get lkUsageCheckKeterangan => 'Keterangan';
+
+  @override
+  String get lkStandarPerTitik => 'Standar buffer';
+
+  @override
+  String get lkStandarKadaluarsa => 'sertifikat kadaluarsa';
+
+  @override
+  String get lkPilih => 'Pilih';
+
+  @override
+  String get lkKirim => 'KIRIM KE ADMIN';
+
+  @override
+  String get lkSimpanDraft => 'SIMPAN SEBAGAI DRAFT';
+
+  @override
+  String get lkBerhasilKirim => 'Lembar kerja terkirim ke admin.';
+
+  @override
+  String get lkBerhasilDraft => 'Tersimpan sebagai draft.';
+
+  @override
+  String lkGagalKirim(String pesan) {
+    return 'Gagal menyimpan: $pesan';
+  }
+
+  @override
+  String get lkSemuaOpsional =>
+      'Kolom yang belum bisa diisi di lapangan boleh dikosongin — lembar kerjanya tetap bisa dikirim.';
+
+  @override
+  String get lkKeluarTanpaSimpan => 'Keluar tanpa menyimpan?';
+
+  @override
+  String get lkKeluarTanpaSimpanBody => 'Yang udah kamu ketik bakal ilang.';
+
+  @override
+  String get lkKeluarBatal => 'LANJUT ISI';
+
+  @override
+  String get lkKeluarLanjut => 'KELUAR';
+
+  @override
+  String lkSuhuDiLuarRentang(String min, String max) {
+    return 'Di luar rentang ruangan ini ($min–$max).';
+  }
 }
