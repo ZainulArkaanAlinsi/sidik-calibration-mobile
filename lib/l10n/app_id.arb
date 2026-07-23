@@ -627,5 +627,7 @@
   "notifKategoriDisetujui": "Disetujui",
   "notifKategoriPerluRevisi": "Perlu revisi",
   "notifKategoriSertifikat": "Sertifikat terbit",
-  "notifKategoriUmum": "Info"
+  "notifKategoriUmum": "Info",
+  "phCalibCaraScan": "Pindai langsung",
+  "phCalibCaraScanKeterangan": "Arahkan kamera — angkanya muncul mengambang di layar"
 }

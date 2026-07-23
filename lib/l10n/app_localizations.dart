@@ -3589,6 +3589,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Info'**
   String get notifKategoriUmum;
+
+  /// No description provided for @phCalibCaraScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Live scan'**
+  String get phCalibCaraScan;
+
+  /// No description provided for @phCalibCaraScanKeterangan.
+  ///
+  /// In en, this message translates to:
+  /// **'Point the camera — numbers float over the preview'**
+  String get phCalibCaraScanKeterangan;
 }
 
 class _AppLocalizationsDelegate

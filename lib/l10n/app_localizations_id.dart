@@ -1899,4 +1899,11 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get notifKategoriUmum => 'Info';
+
+  @override
+  String get phCalibCaraScan => 'Pindai langsung';
+
+  @override
+  String get phCalibCaraScanKeterangan =>
+      'Arahkan kamera — angkanya muncul mengambang di layar';
 }

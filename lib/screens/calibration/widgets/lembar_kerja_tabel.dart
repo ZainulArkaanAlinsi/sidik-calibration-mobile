@@ -7,6 +7,8 @@ import '../../../l10n/app_localizations.dart';
 import '../../../models/lembar_kerja.dart';
 import '../../../models/standard.dart';
 import '../../../providers/calibration_input_provider.dart';
+import '../../../providers/ocr_provider.dart';
+import '../../../services/worksheet_ocr.dart';
 import '../lembar_kerja_state.dart';
 
 /// Satu tabel hasil kalibrasi — Before atau After adjustment.
@@ -42,11 +44,18 @@ class LembarKerjaTabel extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          tabel.judul,
-          style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                tabel.judul,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            _TombolScan(tabel: tabel, isian: isian, onBerubah: onBerubah),
+          ],
         ),
         const SizedBox(height: AppSpacing.sm),
 
@@ -131,6 +140,153 @@ class LembarKerjaTabel extends StatelessWidget {
 
   static const _tinggiKepala = 44.0;
   static const _tinggiBaris = 56.0;
+}
+
+/// Foto satu tabel worksheet → seluruh kolomnya keisi sekaligus.
+///
+/// Tombolnya di level TABEL, bukan per sel: sekali foto ngisi ketiga larutan
+/// standar × lima pengulangan, dan tiap tabel (before/after) difoto sendiri
+/// karena di kertas pun dua tabel itu terpisah.
+///
+/// Dua jalur, dua-duanya lewat provider supaya alurnya tetap bisa di-widget
+/// test tanpa kamera sungguhan:
+/// - **Pindai langsung** — angka mengambang di pratinjau kamera, teknisi lihat
+///   hasilnya sebelum memutuskan.
+/// - **Foto** — buat kondisi yang pratinjaunya nggak kekejar (tangan penuh,
+///   cahaya jelek), fotonya dibaca sesudah diambil.
+class _TombolScan extends ConsumerStatefulWidget {
+  const _TombolScan({
+    required this.tabel,
+    required this.isian,
+    required this.onBerubah,
+  });
+
+  final TabelHasil tabel;
+  final LembarKerjaState isian;
+  final VoidCallback onBerubah;
+
+  @override
+  ConsumerState<_TombolScan> createState() => _TombolScanState();
+}
+
+class _TombolScanState extends ConsumerState<_TombolScan> {
+  bool _sibuk = false;
+
+  Future<void> _pindaiLangsung() async {
+    final hasil = await ref.read(scanLangsungProvider)(
+      context,
+      jumlahTitik: widget.isian.titikUrut.length,
+    );
+    if (!mounted || hasil == null) return;
+    _terapkan(hasil);
+  }
+
+  Future<void> _foto() async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    setState(() => _sibuk = true);
+    try {
+      final foto = await ref.read(sumberFotoProvider).ambil(
+        // Tabel penuh angka kecil: kompresi agresif bikin koma ilang dan
+        // `4,04` kebaca `404`.
+        imageQuality: 100,
+      );
+      if (foto == null || !mounted) return;
+
+      final hasil = await ref
+          .read(worksheetOcrServiceProvider)
+          .bacaTabel(foto, jumlahTitik: widget.isian.titikUrut.length);
+
+      if (!mounted) return;
+
+      if (hasil == null) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.phCalibFotoTabelKosong)),
+        );
+        return;
+      }
+      _terapkan(hasil);
+    } catch (_) {
+      // Izin kamera ditolak / kamera nggak ada: kasih tau, jangan diem.
+      // Kolomnya tetap bisa diketik manual — foto itu pemercepat, bukan syarat.
+      if (mounted) {
+        messenger.showSnackBar(SnackBar(content: Text(l10n.phCalibScanError)));
+      }
+    } finally {
+      if (mounted) setState(() => _sibuk = false);
+    }
+  }
+
+  void _terapkan(HasilTabelOcr hasil) {
+    final l10n = AppLocalizations.of(context);
+    final terisi = widget.isian.terapkanHasilOcr(
+      hasil,
+      tahap: widget.tabel.tahap,
+    );
+    widget.onBerubah();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          pesanHasilFotoTabel(
+            terisi: terisi,
+            diharapkan: widget.isian.selPerTabel,
+            terdeteksi: hasil.jumlahAngkaTerdeteksi,
+            takTerbaca: l10n.phCalibFotoTabelTakTerbaca,
+            posisiKacau: l10n.phCalibFotoTabelPosisiKacau,
+            berhasil: l10n.phCalibFotoTabelHasil,
+            sisa: l10n.phCalibFotoTabelSisa,
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    if (_sibuk) {
+      return const Padding(
+        padding: EdgeInsets.all(AppSpacing.sm),
+        child: SizedBox(
+          height: 18,
+          width: 18,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+
+    return PopupMenuButton<String>(
+      tooltip: l10n.phCalibFotoTabel,
+      icon: const Icon(Icons.document_scanner_outlined, size: 20),
+      onSelected: (nilai) =>
+          nilai == 'live' ? _pindaiLangsung() : _foto(),
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'live',
+          child: ListTile(
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.center_focus_strong_outlined, size: 20),
+            title: Text(l10n.phCalibCaraScan),
+            subtitle: Text(l10n.phCalibCaraScanKeterangan),
+          ),
+        ),
+        PopupMenuItem(
+          value: 'foto',
+          child: ListTile(
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.photo_camera_outlined, size: 20),
+            title: Text(l10n.phCalibCaraFoto),
+            subtitle: Text(l10n.phCalibCaraFotoKeterangan),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _KepalaPengulangan extends StatelessWidget {

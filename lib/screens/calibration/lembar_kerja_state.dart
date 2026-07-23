@@ -4,6 +4,7 @@ import '../../models/calibration_draft.dart' show LokasiKalibrasi;
 import '../../models/equipment_lookup.dart';
 import '../../models/lembar_kerja.dart';
 import '../../models/lembar_kerja_submission.dart';
+import '../../services/worksheet_ocr.dart';
 
 /// Angka di lembar kerja diketik teknisi lapangan, yang kadang pakai koma
 /// (`22,2`) karena itu yang dipakai di formulir kertasnya. Dua-duanya
@@ -219,6 +220,60 @@ class LembarKerjaState {
           .toList(),
       measurements: measurements,
     );
+  }
+
+  /// Titik diurut naik (4 / 7 / 10,01) — urutan yang sama dipakai parser OCR
+  /// waktu misahin kolom, dan urutan yang dikirim ke backend.
+  List<TitikState> get titikUrut =>
+      titik.values.toList()..sort((a, b) => a.titikUkur.compareTo(b.titikUkur));
+
+  /// Berapa sel yang bisa diisi satu tabel — buat pesan "x dari y sel".
+  /// Dua kolom per pengulangan: pH & °C.
+  int get selPerTabel =>
+      titikUrut.fold(0, (jumlah, t) => jumlah + t.jumlahPengulangan * 2);
+
+  /// Tempelin hasil baca tabel worksheet ke kolom satu tahap. Balikin jumlah
+  /// sel yang beneran keisi.
+  ///
+  /// **Cuma sel kosong yang diisi.** Ini aturan intinya: teknisi boleh foto
+  /// ulang berkali-kali buat nambal yang kurang, dan angka yang udah dia
+  /// betulin manual nggak boleh keganti sama hasil foto berikutnya. Aturan
+  /// per-selnya ada di [GabungTabel.nilaiBaru], bukan di sini — biar bisa
+  /// diuji tanpa kamera.
+  ///
+  /// Bentuk [hasil]: `baris[pengulangan].ph[titik]` — **baris itu Repeat 1..5**,
+  /// isinya satu angka per larutan standar. Gampang kebalik, makanya nama
+  /// variabelnya ditulis panjang di bawah.
+  int terapkanHasilOcr(HasilTabelOcr hasil, {required String tahap}) {
+    final urut = titikUrut;
+    var terisi = 0;
+
+    for (var pengulangan = 0; pengulangan < hasil.baris.length; pengulangan++) {
+      final baris = hasil.baris[pengulangan];
+
+      for (var t = 0; t < urut.length; t++) {
+        final state = urut[t];
+        if (pengulangan >= state.jumlahPengulangan) continue;
+
+        terisi += _isiKalauKosong(
+          state.kotak(tahap, 'pembacaan', pengulangan),
+          t < baris.ph.length ? baris.ph[t] : null,
+        );
+        terisi += _isiKalauKosong(
+          state.kotak(tahap, 'suhu', pengulangan),
+          t < baris.suhu.length ? baris.suhu[t] : null,
+        );
+      }
+    }
+
+    return terisi;
+  }
+
+  int _isiKalauKosong(TextEditingController kotak, double? hasilOcr) {
+    final baru = GabungTabel.nilaiBaru(kotak.text, hasilOcr);
+    if (baru == null) return 0;
+    kotak.text = baru;
+    return 1;
   }
 
   /// Isi kolom yang ditandai `sumber: otomatis` di formulir. Kode-nya bertitik

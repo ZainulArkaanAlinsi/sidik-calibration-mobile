@@ -846,5 +846,7 @@
   "notifKategoriDisetujui": "Approved",
   "notifKategoriPerluRevisi": "Needs revision",
   "notifKategoriSertifikat": "Certificate issued",
-  "notifKategoriUmum": "Info"
+  "notifKategoriUmum": "Info",
+  "phCalibCaraScan": "Live scan",
+  "phCalibCaraScanKeterangan": "Point the camera — numbers float over the preview"
 }

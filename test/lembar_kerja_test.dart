@@ -8,11 +8,13 @@ import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/calibration_input_provider.dart';
 import 'package:sidik_calibration/providers/lembar_kerja_provider.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_screen.dart';
+import 'package:sidik_calibration/screens/calibration/lembar_kerja_state.dart';
 import 'package:sidik_calibration/services/equipment_lookup_service.dart';
 import 'package:sidik_calibration/services/lembar_kerja_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/room_service.dart';
 import 'package:sidik_calibration/services/standard_service.dart';
+import 'package:sidik_calibration/services/worksheet_ocr.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 
 /// Lembar kerjanya panjang banget (2 tabel x 3 baris x 5 repeat x 2 kolom =
@@ -369,6 +371,84 @@ void main() {
       expect(kode(admin), contains('thermohygro_standard_id'));
       expect(admin.untukAdmin, isTrue);
       expect(teknisi.untukAdmin, isFalse);
+    });
+  });
+
+  group('OCR tabel worksheet', () {
+    /// `baris` itu **Repeat**, isinya satu angka per larutan standar. Dua sumbu
+    /// ini gampang kebalik, dan kalau kebalik angkanya nyasar ke buffer yang
+    /// salah tanpa ada yang error — makanya diuji eksplisit.
+    HasilTabelOcr contohHasil() => const HasilTabelOcr(
+      baris: [
+        BarisTabel(ph: [4.01, 7.02, 10.11], suhu: [22.2, 22.3, 22.1]),
+        BarisTabel(ph: [4.02, 7.03, 10.12], suhu: [22.2, 22.3, 22.1]),
+      ],
+      teksMentah: '',
+      jumlahSelKebaca: 12,
+      jumlahSelDiharapkan: 30,
+      jumlahAngkaTerdeteksi: 12,
+    );
+
+    LembarKerjaState buatState() => LembarKerjaState(
+      bentuk: LembarKerja.fromJson(contohBentukLembarKerja()),
+      clientRequestId: 'uuid-test',
+    );
+
+    test('angka masuk ke Repeat & larutan standar yang benar', () {
+      final isian = buatState();
+      final terisi = isian.terapkanHasilOcr(
+        contohHasil(),
+        tahap: 'sesudah_adjustment',
+      );
+
+      // 2 Repeat x 3 titik x 2 kolom (pH & suhu).
+      expect(terisi, 12);
+
+      final titik4 = isian.titik[4.00]!;
+      final titik10 = isian.titik[10.01]!;
+
+      // Repeat 1 buffer 4 -> 4.01, BUKAN 7.02 (itu buffer 7 di Repeat yang sama).
+      expect(titik4.kotak('sesudah_adjustment', 'pembacaan', 0).text, '4.01');
+      expect(titik4.kotak('sesudah_adjustment', 'pembacaan', 1).text, '4.02');
+      expect(titik10.kotak('sesudah_adjustment', 'pembacaan', 0).text, '10.11');
+      expect(titik4.kotak('sesudah_adjustment', 'suhu', 0).text, '22.2');
+    });
+
+    test('sel yang udah diketik manual NGGAK ketimpa hasil foto', () {
+      final isian = buatState();
+      final titik4 = isian.titik[4.00]!;
+
+      // Teknisi udah betulin angka ini sendiri.
+      titik4.kotak('sesudah_adjustment', 'pembacaan', 0).text = '4.00';
+
+      final terisi = isian.terapkanHasilOcr(
+        contohHasil(),
+        tahap: 'sesudah_adjustment',
+      );
+
+      // Foto boleh dipakai berkali-kali buat nambal yang kurang; yang udah
+      // dibetulin manusia harus menang.
+      expect(titik4.kotak('sesudah_adjustment', 'pembacaan', 0).text, '4.00');
+      expect(terisi, 11, reason: 'satu sel dilewat karena udah keisi');
+    });
+
+    test('foto tabel Before nggak nyentuh tabel After', () {
+      final isian = buatState();
+      isian.terapkanHasilOcr(contohHasil(), tahap: 'sebelum_adjustment');
+
+      final titik4 = isian.titik[4.00]!;
+      expect(titik4.kotak('sebelum_adjustment', 'pembacaan', 0).text, '4.01');
+      expect(titik4.kotak('sesudah_adjustment', 'pembacaan', 0).text, isEmpty);
+    });
+
+    test('hasil OCR ikut kekirim lewat payload, sel sisanya tetap null', () {
+      final isian = buatState()..alat = null;
+      isian.terapkanHasilOcr(contohHasil(), tahap: 'sesudah_adjustment');
+
+      final titik4 = isian.titik[4.00]!.toSubmission().toJson();
+
+      // Dua Repeat keisi dari foto, tiga sisanya tetap null di posisinya.
+      expect(titik4['pembacaan'], [4.01, 4.02, null, null, null]);
     });
   });
 }

@@ -1923,4 +1923,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifKategoriUmum => 'Info';
+
+  @override
+  String get phCalibCaraScan => 'Live scan';
+
+  @override
+  String get phCalibCaraScanKeterangan =>
+      'Point the camera — numbers float over the preview';
 }
