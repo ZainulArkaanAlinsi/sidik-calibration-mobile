@@ -1,4 +1,5 @@
 import '../models/calibration_detail.dart';
+import '../core/utils/parse_list.dart';
 import '../models/calibration_history_item.dart';
 import 'api_client.dart';
 
@@ -33,10 +34,7 @@ class ApiHistoryService implements HistoryService {
     final json = await _api.get('/calibrations?mine=true', token: token);
     final data = (json['data'] as List<dynamic>? ?? const []);
 
-    return data
-        .cast<Map<String, dynamic>>()
-        .map(CalibrationHistoryItem.fromJson)
-        .toList();
+    return parseListAman(data, CalibrationHistoryItem.fromJson);
   }
 
   @override
@@ -49,10 +47,7 @@ class ApiHistoryService implements HistoryService {
     );
     final data = (json['data'] as List<dynamic>? ?? const []);
 
-    return data
-        .cast<Map<String, dynamic>>()
-        .map(CalibrationHistoryItem.fromJson)
-        .toList();
+    return parseListAman(data, CalibrationHistoryItem.fromJson);
   }
 
   @override

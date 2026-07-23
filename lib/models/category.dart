@@ -2,6 +2,9 @@
 /// `rentangUkur`/`ketidakpastianTerbaik`/`satuan` di sini cuma ringkasan
 /// buat dropdown — jangan dipakai buat validasi (satu kategori bisa punya
 /// banyak satuan sekaligus, lihat `GET /api/categories/{kode}`).
+library;
+import '../core/utils/parse_list.dart';
+
 class Category {
   const Category({
     required this.kode,
@@ -98,10 +101,7 @@ class CategoryDetail {
     return CategoryDetail(
       kode: json['kode'] as String,
       nama: json['nama'] as String,
-      kemampuan: list
-          .cast<Map<String, dynamic>>()
-          .map(CalibrationCapability.fromJson)
-          .toList(),
+      kemampuan: parseListAman(list, CalibrationCapability.fromJson),
     );
   }
 }

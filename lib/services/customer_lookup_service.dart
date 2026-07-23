@@ -1,4 +1,5 @@
 import '../models/customer_lookup.dart';
+import '../core/utils/parse_list.dart';
 import 'api_client.dart';
 
 /// Daftar pelanggan buat **dropdown** — bukan layanan CRUD Pelanggan
@@ -32,10 +33,7 @@ class ApiCustomerLookupService implements CustomerLookupService {
     final json = await _api.get(path, token: token);
     final data = (json['data'] as List<dynamic>? ?? const []);
 
-    return data
-        .cast<Map<String, dynamic>>()
-        .map(CustomerLookup.fromJson)
-        .toList();
+    return parseListAman(data, CustomerLookup.fromJson);
   }
 }
 

@@ -1,4 +1,5 @@
 import '../models/category.dart';
+import '../core/utils/parse_list.dart';
 import 'api_client.dart';
 
 abstract class CategoryService {
@@ -22,7 +23,7 @@ class ApiCategoryService implements CategoryService {
     final json = await _api.get('/categories', token: token);
     final data = (json['data'] as List<dynamic>? ?? const []);
 
-    return data.cast<Map<String, dynamic>>().map(Category.fromJson).toList();
+    return parseListAman(data, Category.fromJson);
   }
 
   @override

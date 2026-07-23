@@ -5,6 +5,9 @@
 /// periode. Backend yang ngagregasi — mobile nggak pernah ngitung sendiri dari
 /// daftar sesi, karena di lab yang udah jalan setahun itu ribuan baris cuma
 /// buat gambar belasan titik.
+library;
+import '../core/utils/parse_list.dart';
+
 class TitikTren {
   const TitikTren({
     required this.periode,
@@ -108,10 +111,7 @@ class DashboardSummary {
       sertifikatBulanIni: angka('sertifikat_bulan_ini'),
       totalSertifikat: angka('total_sertifikat'),
       grafikPekerjaan:
-          (json['grafik_pekerjaan'] as List<dynamic>? ?? const [])
-              .cast<Map<String, dynamic>>()
-              .map(TitikTren.fromJson)
-              .toList(),
+          parseListAman((json['grafik_pekerjaan'] as List<dynamic>? ?? const []), TitikTren.fromJson),
     );
   }
 }

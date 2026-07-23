@@ -12,6 +12,8 @@
 library;
 
 /// Header — 16 field, urutannya ngikutin yang tercetak di sertifikat.
+import '../core/utils/parse_list.dart';
+
 class HeaderSertifikat {
   const HeaderSertifikat(this._raw);
 
@@ -176,17 +178,11 @@ class CertificateSnapshot {
       header: HeaderSertifikat(
         json['header'] as Map<String, dynamic>? ?? const {},
       ),
-      hasil: (json['hasil'] as List<dynamic>? ?? const [])
-          .cast<Map<String, dynamic>>()
-          .map(BarisHasilSertifikat.fromJson)
-          .toList(),
+      hasil: parseListAman((json['hasil'] as List<dynamic>? ?? const []), BarisHasilSertifikat.fromJson),
       catatan: (json['catatan'] as List<dynamic>? ?? const [])
           .map((e) => '$e')
           .toList(),
-      standarDigunakan: (json['standar_digunakan'] as List<dynamic>? ?? const [])
-          .cast<Map<String, dynamic>>()
-          .map(StandarDigunakan.fromJson)
-          .toList(),
+      standarDigunakan: parseListAman((json['standar_digunakan'] as List<dynamic>? ?? const []), StandarDigunakan.fromJson),
       footer: FooterSertifikat.fromJson(
         json['footer'] as Map<String, dynamic>? ?? const {},
       ),

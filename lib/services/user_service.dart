@@ -1,4 +1,5 @@
 import '../models/user.dart';
+import '../core/utils/parse_list.dart';
 import 'api_client.dart';
 
 /// Kelola akun (Data Teknisi) — admin doang.
@@ -42,7 +43,7 @@ class ApiUserService implements UserService {
     final json = await _api.get(path, token: token);
     final data = (json['data'] as List<dynamic>? ?? const []);
 
-    return data.cast<Map<String, dynamic>>().map(User.fromJson).toList();
+    return parseListAman(data, User.fromJson);
   }
 
   @override

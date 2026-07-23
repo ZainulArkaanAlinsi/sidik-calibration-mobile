@@ -1,4 +1,5 @@
 import '../models/standard.dart';
+import '../core/utils/parse_list.dart';
 import 'api_client.dart';
 
 abstract class StandardService {
@@ -24,7 +25,7 @@ class ApiStandardService implements StandardService {
     final json = await _api.get('/standards', token: token);
     final data = (json['data'] as List<dynamic>? ?? const []);
 
-    return data.cast<Map<String, dynamic>>().map(Standard.fromJson).toList();
+    return parseListAman(data, Standard.fromJson);
   }
 
   @override

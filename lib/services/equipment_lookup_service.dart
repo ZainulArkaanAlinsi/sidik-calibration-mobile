@@ -1,4 +1,5 @@
 import '../models/equipment_lookup.dart';
+import '../core/utils/parse_list.dart';
 import 'api_client.dart';
 
 /// Cuma buat picker "Alat" di layar Input Kalibrasi — bukan layanan CRUD
@@ -31,10 +32,7 @@ class ApiEquipmentLookupService implements EquipmentLookupService {
     final json = await _api.get(path, token: token);
     final data = (json['data'] as List<dynamic>? ?? const []);
 
-    return data
-        .cast<Map<String, dynamic>>()
-        .map(EquipmentLookup.fromJson)
-        .toList();
+    return parseListAman(data, EquipmentLookup.fromJson);
   }
 }
 

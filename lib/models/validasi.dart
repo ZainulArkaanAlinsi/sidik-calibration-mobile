@@ -9,6 +9,8 @@ library;
 
 /// Tiga tingkat, karena nggak semuanya sama beratnya. Tingkat asing dianggap
 /// [info] — paling aman: nggak nahan apa-apa dan tetap kelihatan.
+import '../core/utils/parse_list.dart';
+
 enum TingkatTemuan {
   /// Sertifikat NGGAK BOLEH terbit. Approve diblokir tanpa syarat.
   error,
@@ -86,10 +88,7 @@ class HasilValidasi {
     return HasilValidasi(
       valid: json['valid'] as bool? ?? false,
       bolehTerbit: json['boleh_terbit'] as bool? ?? false,
-      temuan: (json['temuan'] as List<dynamic>? ?? const [])
-          .cast<Map<String, dynamic>>()
-          .map(Temuan.fromJson)
-          .toList(),
+      temuan: parseListAman((json['temuan'] as List<dynamic>? ?? const []), Temuan.fromJson),
       ringkasan: {
         for (final t in TingkatTemuan.values)
           t: (ringkasan[t.name] as num?)?.toInt() ?? 0,

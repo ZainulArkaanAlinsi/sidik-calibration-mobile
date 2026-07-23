@@ -1,4 +1,5 @@
 import '../models/notification_item.dart';
+import '../core/utils/parse_list.dart';
 import 'api_client.dart';
 
 abstract class NotificationService {
@@ -36,10 +37,7 @@ class ApiNotificationService implements NotificationService {
     final json = await _api.get(path, token: token);
     final data = json['data'] as List<dynamic>? ?? const [];
 
-    return data
-        .cast<Map<String, dynamic>>()
-        .map(NotificationItem.fromJson)
-        .toList();
+    return parseListAman(data, NotificationItem.fromJson);
   }
 
   @override

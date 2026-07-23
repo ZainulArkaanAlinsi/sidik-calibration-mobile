@@ -1,4 +1,5 @@
 import '../models/room.dart';
+import '../core/utils/parse_list.dart';
 import 'api_client.dart';
 
 abstract class RoomService {
@@ -17,9 +18,7 @@ class ApiRoomService implements RoomService {
     final json = await _api.get('/rooms', token: token);
     final data = json['data'] as List<dynamic>? ?? const [];
 
-    return data
-        .cast<Map<String, dynamic>>()
-        .map(Room.fromJson)
+    return parseListAman(data, Room.fromJson)
         // Ruangan nonaktif nggak ditawarin buat sesi baru, tapi sengaja nggak
         // dihapus dari model — sesi lama masih nunjuk ke sana.
         .where((r) => r.aktif)

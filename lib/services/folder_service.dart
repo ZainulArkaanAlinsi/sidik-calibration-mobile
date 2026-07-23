@@ -1,4 +1,5 @@
 import '../models/folder.dart';
+import '../core/utils/parse_list.dart';
 import 'api_client.dart';
 
 abstract class FolderService {
@@ -46,7 +47,7 @@ class ApiFolderService implements FolderService {
     final json = await _api.get(path, token: token);
     final data = json['data'] as List<dynamic>? ?? const [];
 
-    return data.cast<Map<String, dynamic>>().map(Folder.fromJson).toList();
+    return parseListAman(data, Folder.fromJson);
   }
 
   @override

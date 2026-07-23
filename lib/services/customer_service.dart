@@ -1,4 +1,5 @@
 import '../models/customer.dart';
+import '../core/utils/parse_list.dart';
 import 'api_client.dart';
 import 'auth_service.dart' show AuthException;
 
@@ -30,7 +31,7 @@ class ApiCustomerService implements CustomerService {
     final json = await _api.get(path, token: token);
     final data = (json['data'] as List<dynamic>? ?? const []);
 
-    return data.cast<Map<String, dynamic>>().map(Customer.fromJson).toList();
+    return parseListAman(data, Customer.fromJson);
   }
 
   @override

@@ -8,6 +8,8 @@
 /// ada yang ngebandingin dua dokumen.
 library;
 
+import '../core/utils/parse_list.dart';
+
 class IdentitasAlat {
   const IdentitasAlat({
     this.namaAlat,
@@ -219,10 +221,7 @@ class TitikPerhitungan {
         averageSuhu: (json['average_suhu'] as num?)?.toDouble(),
         correction: (json['correction'] as num?)?.toDouble(),
         stdev: (json['stdev'] as num?)?.toDouble(),
-        pembacaan: (json['pembacaan'] as List<dynamic>? ?? const [])
-            .cast<Map<String, dynamic>>()
-            .map(PembacaanPerhitungan.fromJson)
-            .toList(),
+        pembacaan: parseListAman((json['pembacaan'] as List<dynamic>? ?? const []), PembacaanPerhitungan.fromJson),
       );
 }
 
@@ -254,10 +253,7 @@ class TabelPerhitungan {
         tahap: json['tahap'] as String? ?? '',
         judul: json['judul'] as String? ?? '',
         maxStdev: (json['max_stdev'] as num?)?.toDouble(),
-        titik: (json['titik'] as List<dynamic>? ?? const [])
-            .cast<Map<String, dynamic>>()
-            .map(TitikPerhitungan.fromJson)
-            .toList(),
+        titik: parseListAman((json['titik'] as List<dynamic>? ?? const []), TitikPerhitungan.fromJson),
       );
 }
 
@@ -287,9 +283,6 @@ class Perhitungan {
     kondisiLingkungan: KondisiLingkungan.fromJson(
       json['kondisi_lingkungan'] as Map<String, dynamic>? ?? const {},
     ),
-    hasil: (json['hasil'] as List<dynamic>? ?? const [])
-        .cast<Map<String, dynamic>>()
-        .map(TabelPerhitungan.fromJson)
-        .toList(),
+    hasil: parseListAman((json['hasil'] as List<dynamic>? ?? const []), TabelPerhitungan.fromJson),
   );
 }

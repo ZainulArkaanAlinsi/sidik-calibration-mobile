@@ -7,6 +7,8 @@
 library;
 
 /// Apa yang terjadi ke satu baris file.
+import '../core/utils/parse_list.dart';
+
 enum TindakanImport {
   dibuat,
   diperbarui,
@@ -98,10 +100,7 @@ class HasilImport {
         for (final e in ringkasan.entries)
           e.key: (e.value as num?)?.toInt() ?? 0,
       },
-      baris: (json['baris'] as List<dynamic>? ?? const [])
-          .cast<Map<String, dynamic>>()
-          .map(BarisImport.fromJson)
-          .toList(),
+      baris: parseListAman((json['baris'] as List<dynamic>? ?? const []), BarisImport.fromJson),
       kolomTerpetakan: {
         for (final e
             in (json['kolom_terpetakan'] as Map<String, dynamic>? ?? const {})

@@ -2,6 +2,9 @@
 ///
 /// Bentuknya `orders ──1:N── order_items ──0:N── calibration_sessions`:
 /// sesi kalibrasi lahir belakangan, pas teknisi mulai ngerjain.
+library;
+import '../core/utils/parse_list.dart';
+
 class OrderKalibrasi {
   const OrderKalibrasi({
     required this.id,
@@ -60,10 +63,7 @@ class OrderKalibrasi {
       tanggalMasuk: tanggal('tanggal_masuk'),
       tanggalJanjiSelesai: tanggal('tanggal_janji_selesai'),
       catatan: json['catatan']?.toString(),
-      items: (json['items'] as List<dynamic>? ?? const [])
-          .cast<Map<String, dynamic>>()
-          .map(OrderItem.fromJson)
-          .toList(),
+      items: parseListAman((json['items'] as List<dynamic>? ?? const []), OrderItem.fromJson),
     );
   }
 }

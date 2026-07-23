@@ -1,4 +1,5 @@
 import '../models/arsip.dart';
+import '../core/utils/parse_list.dart';
 import '../models/calibration_history_item.dart';
 import 'api_client.dart';
 
@@ -37,10 +38,7 @@ class ApiArsipService implements ArsipService {
     final json = await _api.get('/arsip/perusahaan$query', token: token);
     final data = json['data'] as List<dynamic>? ?? const [];
 
-    return data
-        .cast<Map<String, dynamic>>()
-        .map(ArsipPerusahaan.fromJson)
-        .toList();
+    return parseListAman(data, ArsipPerusahaan.fromJson);
   }
 
   @override

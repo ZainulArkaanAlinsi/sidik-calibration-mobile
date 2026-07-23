@@ -1,4 +1,5 @@
 import 'calibration_history_item.dart';
+import '../core/utils/parse_list.dart';
 
 /// Satu folder perusahaan di daftar akar Arsip
 /// (`GET /api/arsip/perusahaan`).
@@ -182,18 +183,9 @@ class ArsipIsiFolder {
       namaFolder: folder['nama'] as String? ?? '—',
       isRoot: folder['is_root'] as bool? ?? false,
       namaPerusahaan: perusahaan?['nama'] as String?,
-      breadcrumb: crumbs
-          .cast<Map<String, dynamic>>()
-          .map(ArsipBreadcrumb.fromJson)
-          .toList(),
-      subfolder: subfolder
-          .cast<Map<String, dynamic>>()
-          .map(ArsipFolder.fromJson)
-          .toList(),
-      berkas: berkas
-          .cast<Map<String, dynamic>>()
-          .map(ArsipBerkas.fromJson)
-          .toList(),
+      breadcrumb: parseListAman(crumbs, ArsipBreadcrumb.fromJson),
+      subfolder: parseListAman(subfolder, ArsipFolder.fromJson),
+      berkas: parseListAman(berkas, ArsipBerkas.fromJson),
     );
   }
 }

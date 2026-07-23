@@ -1,5 +1,8 @@
 /// Status alat. `overdue` **nggak bisa dikirim** waktu simpan — backend
 /// yang ngitung dari `tanggal_jatuh_tempo` (`docs/kontrak-api.md` §3).
+library;
+import '../core/utils/parse_list.dart';
+
 enum EquipmentStatus {
   aktif,
   overdue,
@@ -206,7 +209,7 @@ class EquipmentPage {
     final meta = json['meta'] as Map<String, dynamic>?;
 
     return EquipmentPage(
-      items: data.cast<Map<String, dynamic>>().map(Equipment.fromJson).toList(),
+      items: parseListAman(data, Equipment.fromJson),
       currentPage: (meta?['current_page'] as num?)?.toInt() ?? 1,
       lastPage: (meta?['last_page'] as num?)?.toInt() ?? 1,
     );

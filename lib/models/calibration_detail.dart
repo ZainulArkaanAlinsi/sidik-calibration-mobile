@@ -1,4 +1,5 @@
 import 'calibration_history_item.dart';
+import '../core/utils/parse_list.dart';
 
 /// Standar acuan ringkas — dipakai di level sesi dan bisa di-override per
 /// titik ukur (mis. pH: buffer 4/7/10 masing-masing sertifikatnya sendiri).
@@ -266,10 +267,7 @@ class MeasurementResult {
       jumlahPengulangan: (json['jumlah_pengulangan'] as num?)?.toInt() ?? 0,
       typeA: (json['type_a'] as num?)?.toDouble() ?? 0,
       typeB: (json['type_b'] as num?)?.toDouble() ?? 0,
-      typeBComponents: komponen
-          .cast<Map<String, dynamic>>()
-          .map(UncertaintyComponent.fromJson)
-          .toList(),
+      typeBComponents: parseListAman(komponen, UncertaintyComponent.fromJson),
       ketidakpastianGabungan:
           (json['ketidakpastian_gabungan'] as num?)?.toDouble() ?? 0,
       faktorCakupanK: (json['faktor_cakupan_k'] as num?)?.toDouble() ?? 0,
@@ -426,18 +424,9 @@ class CalibrationDetail {
       kondisiLingkungan: lingkungan == null
           ? null
           : KondisiLingkungan.fromJson(lingkungan),
-      titik: titikJson
-          .cast<Map<String, dynamic>>()
-          .map(MeasurementResult.fromJson)
-          .toList(),
-      titikSebelum: sebelumJson
-          .cast<Map<String, dynamic>>()
-          .map(MeasurementBefore.fromJson)
-          .toList(),
-      pembacaanMentah: pembacaanJson
-          .cast<Map<String, dynamic>>()
-          .map(RawMeasurement.fromJson)
-          .toList(),
+      titik: parseListAman(titikJson, MeasurementResult.fromJson),
+      titikSebelum: parseListAman(sebelumJson, MeasurementBefore.fromJson),
+      pembacaanMentah: parseListAman(pembacaanJson, RawMeasurement.fromJson),
       perluVerifikasi: json['perlu_verifikasi'] as bool? ?? false,
     );
   }

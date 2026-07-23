@@ -3,6 +3,9 @@
 /// Sebagian besar isinya **kebentuk sendiri**: tiap sertifikat terbit langsung
 /// masuk ke `PT / tahun` lewat `FolderOrganizer` di backend. Jadi tugas mobile
 /// cuma nampilin & menelusuri — bukan bikin strukturnya.
+library;
+import '../core/utils/parse_list.dart';
+
 class Folder {
   const Folder({
     required this.id,
@@ -56,14 +59,8 @@ class Folder {
       pelangganNama: pelanggan?['nama'] as String?,
       jumlahFolder: (json['jumlah_folder'] as num?)?.toInt(),
       jumlahFile: (json['jumlah_file'] as num?)?.toInt(),
-      subFolder: (json['sub_folder'] as List<dynamic>? ?? const [])
-          .cast<Map<String, dynamic>>()
-          .map(Folder.fromJson)
-          .toList(),
-      file: (json['file'] as List<dynamic>? ?? const [])
-          .cast<Map<String, dynamic>>()
-          .map(FolderFile.fromJson)
-          .toList(),
+      subFolder: parseListAman((json['sub_folder'] as List<dynamic>? ?? const []), Folder.fromJson),
+      file: parseListAman((json['file'] as List<dynamic>? ?? const []), FolderFile.fromJson),
     );
   }
 }
