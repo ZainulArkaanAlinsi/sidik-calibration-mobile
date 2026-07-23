@@ -12,6 +12,7 @@ import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/status_badge.dart';
+import '../../widgets/notification_bell.dart';
 import '../calibration/category_picker_screen.dart';
 import '../calibration/lembar_kerja_screen.dart';
 import 'device_overview_screen.dart';
@@ -57,7 +58,12 @@ class DashboardScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.navDashboard)),
+      appBar: AppBar(
+        title: Text(l10n.navDashboard),
+        // Ikon notifikasi di atas layar (spesifikasi poin 4), bukan di navbar
+        // bawah — tempatnya di navbar diambil Folder Manager.
+        actions: const [NotificationBell(), SizedBox(width: AppSpacing.sm)],
+      ),
       body: RefreshIndicator(
         onRefresh: () => ref.read(dashboardProvider.notifier).muatUlang(),
         child: isi,

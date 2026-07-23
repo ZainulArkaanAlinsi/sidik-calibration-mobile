@@ -12,6 +12,7 @@ import '../../providers/history_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/status_badge.dart';
+import '../../widgets/notification_bell.dart';
 import 'calibration_detail_screen.dart';
 
 /// Riwayat kalibrasi — sama pola 4-state-nya kayak Dashboard
@@ -53,7 +54,10 @@ class HistoryScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.navHistory)),
+      appBar: AppBar(
+        title: Text(l10n.navHistory),
+        actions: const [NotificationBell(), SizedBox(width: AppSpacing.sm)],
+      ),
       body: RefreshIndicator(
         onRefresh: () => ref.read(historyProvider.notifier).muatUlang(),
         child: isi,

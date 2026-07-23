@@ -6,12 +6,17 @@ import '../../providers/navigation_provider.dart';
 import '../../widgets/floating_nav_bar.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../equipment/equipment_list_screen.dart';
+import '../folder/folder_manager_screen.dart';
 import '../history/history_screen.dart';
-import '../notification/notification_screen.dart';
 import '../profile/profile_screen.dart';
 
-/// Rangka utama app: bottom nav 5 tab yang sama buat semua role.
-/// Yang beda antar role cuma isi tab Profil (lihat README, Prinsip Desain).
+/// Rangka utama app: navbar bawah + tab-nya.
+///
+/// **Notifikasi nggak di navbar bawah lagi** (spesifikasi poin 4 & 8). Ikonnya
+/// pindah ke atas layar dengan badge angka ([NotificationBell]) dan buka
+/// halaman sendiri; tempatnya di navbar diambil **Folder Manager** (poin 3).
+/// Alasannya: navbar bawah cuma buat menu yang beneran sering dipakai, dan
+/// notifikasi itu pemberitahuan — bukan tempat kerja.
 class MainShell extends ConsumerWidget {
   const MainShell({super.key});
 
@@ -19,7 +24,7 @@ class MainShell extends ConsumerWidget {
     DashboardScreen(),
     EquipmentListScreen(),
     HistoryScreen(),
-    NotificationScreen(),
+    FolderManagerScreen(),
     ProfileScreen(),
   ];
 
@@ -45,9 +50,9 @@ class MainShell extends ConsumerWidget {
         label: l10n.navHistory,
       ),
       FloatingNavItem(
-        icon: Icons.notifications_none,
-        activeIcon: Icons.notifications,
-        label: l10n.navNotifications,
+        icon: Icons.folder_outlined,
+        activeIcon: Icons.folder,
+        label: l10n.navFolderManager,
       ),
       FloatingNavItem(
         icon: Icons.person_outline,

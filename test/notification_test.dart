@@ -10,6 +10,7 @@ import 'package:sidik_calibration/services/dashboard_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/notification_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
+import 'package:sidik_calibration/widgets/notification_bell.dart';
 import 'package:sidik_calibration/widgets/skeleton.dart';
 
 Widget _app({bool kosong = false, bool gagal = false, Duration jeda = Duration.zero}) {
@@ -30,8 +31,10 @@ Widget _app({bool kosong = false, bool gagal = false, Duration jeda = Duration.z
   );
 }
 
-Future<void> _bukaTabNotifikasi(WidgetTester tester) async {
-  await tester.tap(find.text('Notifikasi'));
+/// Notifikasi udah **nggak di navbar bawah** lagi (spesifikasi poin 4):
+/// dibuka lewat ikon lonceng di app bar, dan mendarat di halaman sendiri.
+Future<void> _bukaHalamanNotifikasi(WidgetTester tester) async {
+  await tester.tap(find.byType(NotificationBell));
   await tester.pumpAndSettle();
 }
 
@@ -44,8 +47,8 @@ void main() {
       // Lewatin splash/auth dulu — MainShell (dan notificationProvider ikut
       // mulai nge-build lewat IndexedStack) baru mount di titik ini.
       await tester.pump(const Duration(milliseconds: 700));
-      await tester.tap(find.text('Notifikasi'));
-      await tester.pump(); // ganti tab aktif, jangan majuin jam dulu
+      await tester.tap(find.byType(NotificationBell));
+      await tester.pump(); // buka halamannya, jangan majuin jam dulu
 
       expect(find.byType(SkeletonBox), findsWidgets);
 
@@ -58,7 +61,7 @@ void main() {
     testWidgets('NORMAL: daftar notifikasi kerender', (tester) async {
       await tester.pumpWidget(_app());
       await tester.pumpAndSettle();
-      await _bukaTabNotifikasi(tester);
+      await _bukaHalamanNotifikasi(tester);
 
       expect(find.text('3 alat mendekati jatuh tempo'), findsOneWidget);
       expect(find.text('Sesi kalibrasi disetujui'), findsOneWidget);
@@ -68,7 +71,7 @@ void main() {
     testWidgets('EMPTY: belum ada notifikasi', (tester) async {
       await tester.pumpWidget(_app(kosong: true));
       await tester.pumpAndSettle();
-      await _bukaTabNotifikasi(tester);
+      await _bukaHalamanNotifikasi(tester);
 
       expect(find.text('Belum ada notifikasi'), findsOneWidget);
     });
@@ -78,7 +81,7 @@ void main() {
     ) async {
       await tester.pumpWidget(_app(gagal: true));
       await tester.pumpAndSettle();
-      await _bukaTabNotifikasi(tester);
+      await _bukaHalamanNotifikasi(tester);
 
       expect(find.text('Gagal memuat notifikasi.'), findsOneWidget);
       expect(find.text('COBA LAGI'), findsOneWidget);
@@ -90,7 +93,7 @@ void main() {
   ) async {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
-    await _bukaTabNotifikasi(tester);
+    await _bukaHalamanNotifikasi(tester);
 
     // Awalnya 2 notifikasi belum dibaca (lihat MockNotificationService).
     final container = ProviderScope.containerOf(
