@@ -62,6 +62,22 @@ class ApiClient {
     );
   }
 
+  /// Dipakai kolom administratif sesi (`PATCH /calibrations/{id}/admin`) —
+  /// PATCH, bukan PUT, karena yang dikirim cuma kolom yang diubah.
+  Future<Map<String, dynamic>> patch(
+    String path, {
+    Map<String, dynamic>? body,
+    String? token,
+  }) async {
+    return _kirim(
+      () => _client.patch(
+        _uri(path),
+        headers: _headers(token),
+        body: jsonEncode(body ?? {}),
+      ),
+    );
+  }
+
   Future<Map<String, dynamic>> delete(String path, {String? token}) async {
     return _kirim(() => _client.delete(_uri(path), headers: _headers(token)));
   }
@@ -87,7 +103,14 @@ class ApiClient {
 
     if (res.statusCode >= 200 && res.statusCode < 300) return json;
 
-    throw AuthException(_pesanError(res.statusCode, json));
+    // Body-nya ikut dilempar, bukan cuma pesannya: sebagian jawaban gagal
+    // isinya data yang harus ditampilin (mis. `validasi` + `butuh_konfirmasi`
+    // di approve). Lihat ApiException.
+    throw ApiException(
+      _pesanError(res.statusCode, json),
+      status: res.statusCode,
+      body: json,
+    );
   }
 
   Map<String, dynamic> _decode(http.Response res) {

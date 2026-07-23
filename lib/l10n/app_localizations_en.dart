@@ -1972,4 +1972,207 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get folderNamaKosong => 'Enter a folder name.';
+
+  @override
+  String get antreanTitle => 'Approval queue';
+
+  @override
+  String get antreanKosong => 'Nothing waiting for approval';
+
+  @override
+  String get antreanKosongBody =>
+      'Worksheets submitted by technicians show up here.';
+
+  @override
+  String get antreanGagal => 'Couldn\'t load the queue.';
+
+  @override
+  String antreanOleh(String nama) {
+    return 'by $nama';
+  }
+
+  @override
+  String get perhitTitle => 'Calculation sheet';
+
+  @override
+  String get perhitIdentitasAlat => 'EQUIPMENT IDENTITY';
+
+  @override
+  String get perhitIdentitasCustomer => 'CUSTOMER IDENTITY';
+
+  @override
+  String get perhitKondisi => 'ENVIRONMENTAL CONDITION CALCULATION';
+
+  @override
+  String get perhitHasil => 'CALIBRATION RESULT DATA';
+
+  @override
+  String get perhitNamaAlat => 'Equipment name';
+
+  @override
+  String get perhitMerk => 'Brand';
+
+  @override
+  String get perhitType => 'Type';
+
+  @override
+  String get perhitNoSeri => 'Serial no.';
+
+  @override
+  String get perhitRentang => 'Measuring range';
+
+  @override
+  String get perhitKapasitas => 'Max. capacity';
+
+  @override
+  String get perhitResolusi => 'Resolution';
+
+  @override
+  String get perhitCustNama => 'Customer name';
+
+  @override
+  String get perhitCustAlamat => 'Address';
+
+  @override
+  String get perhitTglTerima => 'Received date';
+
+  @override
+  String get perhitTglKalibrasi => 'Calibration date';
+
+  @override
+  String get perhitSuhuRuangan => 'Room temperature';
+
+  @override
+  String get perhitKelembaban => 'Humidity';
+
+  @override
+  String get perhitAwal => 'Start';
+
+  @override
+  String get perhitAkhir => 'End';
+
+  @override
+  String get perhitAverage => 'Average';
+
+  @override
+  String get perhitIndexed => 'Indexed Value';
+
+  @override
+  String get perhitCorrection => 'Correction';
+
+  @override
+  String get perhitDelta => 'Δ';
+
+  @override
+  String get perhitU95Std => 'U95% Std TH';
+
+  @override
+  String get perhitU95Sertifikat => 'U95% Certificate';
+
+  @override
+  String get perhitThermohygro => 'Thermohygro Used';
+
+  @override
+  String get perhitThermohygroKosong =>
+      'Not selected yet — correction & U95% stay empty until it is.';
+
+  @override
+  String get perhitStandard => 'Standard';
+
+  @override
+  String get perhitRepeat => 'Repeat';
+
+  @override
+  String get perhitStdev => 'STDEV';
+
+  @override
+  String get perhitMaxStdev => 'MAX STDEV';
+
+  @override
+  String get perhitCorrectionCatatan =>
+      'On this sheet Correction = Average − Standard. On the certificate the sign is reversed.';
+
+  @override
+  String get perhitStandardCatatan =>
+      'Standard is the buffer value at the solution temperature, not the nominal value.';
+
+  @override
+  String get perhitGagal => 'Couldn\'t load the calculation sheet.';
+
+  @override
+  String get perhitPeriksa => 'CHECK';
+
+  @override
+  String get perhitSetujui => 'APPROVE';
+
+  @override
+  String get perhitTolak => 'REJECT';
+
+  @override
+  String get perhitMemeriksa => 'Recalculating from the raw readings…';
+
+  @override
+  String get perhitTemuanJudul => 'Check findings';
+
+  @override
+  String get perhitTemuanBersih => 'No findings. Safe to approve.';
+
+  @override
+  String get perhitTingkatError => 'Blocks issuance';
+
+  @override
+  String get perhitTingkatPeringatan => 'Needs confirmation';
+
+  @override
+  String get perhitTingkatInfo => 'Info';
+
+  @override
+  String get perhitApproveDiblokir =>
+      'There are findings that block issuance. Approve is disabled.';
+
+  @override
+  String get perhitKonfirmasiJudul => 'Recalculation differs. Continue?';
+
+  @override
+  String get perhitKonfirmasiBody =>
+      'The recalculated numbers differ from what was saved. Approving anyway issues the certificate with the saved numbers.';
+
+  @override
+  String get perhitKonfirmasiBatal => 'CHECK AGAIN';
+
+  @override
+  String get perhitKonfirmasiLanjut => 'APPROVE ANYWAY';
+
+  @override
+  String get perhitTolakJudul => 'Send back for revision';
+
+  @override
+  String get perhitTolakLabel => 'What needs fixing?';
+
+  @override
+  String get perhitTolakKosong => 'Write what the technician has to fix.';
+
+  @override
+  String get perhitTolakKirim => 'SEND BACK';
+
+  @override
+  String get perhitDisetujui => 'Approved. The certificate is being generated.';
+
+  @override
+  String get perhitDitolak => 'Sent back to the technician.';
+
+  @override
+  String get perhitKolomAdmin => 'ADMINISTRATIVE FIELDS';
+
+  @override
+  String get perhitNomorOrder => 'Order Number';
+
+  @override
+  String get perhitPilihThermohygro => 'Thermohygro used';
+
+  @override
+  String get perhitSimpanAdmin => 'SAVE';
+
+  @override
+  String get perhitAdminTersimpan => 'Administrative fields saved.';
 }

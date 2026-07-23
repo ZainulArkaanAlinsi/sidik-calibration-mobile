@@ -10,6 +10,7 @@ import '../dashboard/dashboard_screen.dart';
 import '../equipment/equipment_list_screen.dart';
 import '../folder/folder_manager_screen.dart';
 import '../history/history_screen.dart';
+import '../admin/antrean_approval_screen.dart';
 import '../notification/notification_screen.dart';
 import '../profile/profile_screen.dart';
 import '../order/my_tasks_screen.dart';
@@ -170,6 +171,14 @@ class _MenuUtama extends ConsumerWidget {
               title: Text(l10n.navHistory),
               onTap: () => keTab(2),
             ),
+            // Antrean approval = layar kerja harian admin, sejajar sama
+            // "Tugas Saya" punya teknisi — bukan pengaturan.
+            if (admin)
+              ListTile(
+                leading: const Icon(Icons.inbox_outlined),
+                title: Text(l10n.antreanTitle),
+                onTap: () => keLayar(const AntreanApprovalScreen()),
+              ),
             ListTile(
               leading: const Icon(Icons.folder_outlined),
               title: Text(l10n.navFolderManager),

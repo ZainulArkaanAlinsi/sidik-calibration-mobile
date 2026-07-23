@@ -5,6 +5,14 @@ import 'api_client.dart';
 abstract class HistoryService {
   Future<List<CalibrationHistoryItem>> ambilRiwayat(String token);
 
+  /// Antrean approval admin: **semua kiriman dari semua teknisi**, bukan cuma
+  /// punya sendiri (`GET /api/calibrations?status=menunggu_approval`).
+  ///
+  /// Beda dari [ambilRiwayat] yang pakai `mine=true`. Teknisi yang nembak ini
+  /// tetap cuma dapat sesi miliknya — penyaringnya di controller backend,
+  /// bukan di query param dari mobile.
+  Future<List<CalibrationHistoryItem>> ambilAntreanApproval(String token);
+
   /// `GET /api/calibrations/{id}` — versi lengkap satu sesi, termasuk
   /// breakdown per titik ukur (`docs/kontrak-api.md` §4).
   Future<CalibrationDetail> ambilDetail(String token, int id);
@@ -23,6 +31,22 @@ class ApiHistoryService implements HistoryService {
   @override
   Future<List<CalibrationHistoryItem>> ambilRiwayat(String token) async {
     final json = await _api.get('/calibrations?mine=true', token: token);
+    final data = (json['data'] as List<dynamic>? ?? const []);
+
+    return data
+        .cast<Map<String, dynamic>>()
+        .map(CalibrationHistoryItem.fromJson)
+        .toList();
+  }
+
+  @override
+  Future<List<CalibrationHistoryItem>> ambilAntreanApproval(
+    String token,
+  ) async {
+    final json = await _api.get(
+      '/calibrations?status=menunggu_approval',
+      token: token,
+    );
     final data = (json['data'] as List<dynamic>? ?? const []);
 
     return data
@@ -51,6 +75,16 @@ class MockHistoryService implements HistoryService {
   final bool kosong;
   final bool gagal;
   final Duration jeda;
+
+  @override
+  Future<List<CalibrationHistoryItem>> ambilAntreanApproval(
+    String token,
+  ) async {
+    final semua = await ambilRiwayat(token);
+    return semua
+        .where((s) => s.status == CalibrationStatus.menungguApproval)
+        .toList();
+  }
 
   @override
   Future<List<CalibrationHistoryItem>> ambilRiwayat(String token) async {

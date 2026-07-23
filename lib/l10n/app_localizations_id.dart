@@ -1948,4 +1948,208 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get folderNamaKosong => 'Isi nama foldernya dulu.';
+
+  @override
+  String get antreanTitle => 'Antrean approval';
+
+  @override
+  String get antreanKosong => 'Nggak ada yang nunggu disetujui';
+
+  @override
+  String get antreanKosongBody =>
+      'Lembar kerja yang dikirim teknisi bakal muncul di sini.';
+
+  @override
+  String get antreanGagal => 'Gagal memuat antrean.';
+
+  @override
+  String antreanOleh(String nama) {
+    return 'oleh $nama';
+  }
+
+  @override
+  String get perhitTitle => 'Lembar perhitungan';
+
+  @override
+  String get perhitIdentitasAlat => 'IDENTITAS ALAT';
+
+  @override
+  String get perhitIdentitasCustomer => 'IDENTITAS CUSTOMER';
+
+  @override
+  String get perhitKondisi => 'PERHITUNGAN KONDISI LINGKUNGAN';
+
+  @override
+  String get perhitHasil => 'DATA HASIL KALIBRASI';
+
+  @override
+  String get perhitNamaAlat => 'Nama Alat';
+
+  @override
+  String get perhitMerk => 'Merk';
+
+  @override
+  String get perhitType => 'Type';
+
+  @override
+  String get perhitNoSeri => 'No. Seri';
+
+  @override
+  String get perhitRentang => 'Rentang Ukur';
+
+  @override
+  String get perhitKapasitas => 'Kapasitas Max.';
+
+  @override
+  String get perhitResolusi => 'Resolusi Alat';
+
+  @override
+  String get perhitCustNama => 'Nama Customer';
+
+  @override
+  String get perhitCustAlamat => 'Alamat Customer';
+
+  @override
+  String get perhitTglTerima => 'Tanggal Terima';
+
+  @override
+  String get perhitTglKalibrasi => 'Tanggal Kalibrasi';
+
+  @override
+  String get perhitSuhuRuangan => 'Suhu Ruangan';
+
+  @override
+  String get perhitKelembaban => 'Kelembaban';
+
+  @override
+  String get perhitAwal => 'Awal';
+
+  @override
+  String get perhitAkhir => 'Akhir';
+
+  @override
+  String get perhitAverage => 'Average';
+
+  @override
+  String get perhitIndexed => 'Indexed Value';
+
+  @override
+  String get perhitCorrection => 'Correction';
+
+  @override
+  String get perhitDelta => 'Δ';
+
+  @override
+  String get perhitU95Std => 'U95% Std TH';
+
+  @override
+  String get perhitU95Sertifikat => 'U95% Sertifikat';
+
+  @override
+  String get perhitThermohygro => 'Thermohygro Used';
+
+  @override
+  String get perhitThermohygroKosong =>
+      'Belum dipilih — koreksi & U95% bakal tetap kosong sampai diisi.';
+
+  @override
+  String get perhitStandard => 'Standard';
+
+  @override
+  String get perhitRepeat => 'Repeat';
+
+  @override
+  String get perhitStdev => 'STDEV';
+
+  @override
+  String get perhitMaxStdev => 'MAX STDEV';
+
+  @override
+  String get perhitCorrectionCatatan =>
+      'Di lembar ini Correction = Average − Standard. Di sertifikat tandanya kebalikan.';
+
+  @override
+  String get perhitStandardCatatan =>
+      'Standard itu nilai buffer pada suhu larutan, bukan nilai nominal.';
+
+  @override
+  String get perhitGagal => 'Gagal memuat lembar perhitungan.';
+
+  @override
+  String get perhitPeriksa => 'PERIKSA';
+
+  @override
+  String get perhitSetujui => 'SETUJUI';
+
+  @override
+  String get perhitTolak => 'TOLAK';
+
+  @override
+  String get perhitMemeriksa => 'Lagi ngitung ulang dari pembacaan mentah…';
+
+  @override
+  String get perhitTemuanJudul => 'Hasil pemeriksaan';
+
+  @override
+  String get perhitTemuanBersih => 'Nggak ada temuan. Aman disetujui.';
+
+  @override
+  String get perhitTingkatError => 'Nahan penerbitan';
+
+  @override
+  String get perhitTingkatPeringatan => 'Butuh konfirmasi';
+
+  @override
+  String get perhitTingkatInfo => 'Info';
+
+  @override
+  String get perhitApproveDiblokir =>
+      'Ada temuan yang nahan penerbitan. Tombol setujui dimatiin.';
+
+  @override
+  String get perhitKonfirmasiJudul => 'Hasil hitung ulang beda. Lanjut?';
+
+  @override
+  String get perhitKonfirmasiBody =>
+      'Angka hasil hitung ulang beda dari yang tersimpan. Kalau tetap disetujui, sertifikatnya terbit pakai angka yang tersimpan.';
+
+  @override
+  String get perhitKonfirmasiBatal => 'PERIKSA LAGI';
+
+  @override
+  String get perhitKonfirmasiLanjut => 'TETAP SETUJUI';
+
+  @override
+  String get perhitTolakJudul => 'Kembalikan buat direvisi';
+
+  @override
+  String get perhitTolakLabel => 'Apa yang harus dibenerin?';
+
+  @override
+  String get perhitTolakKosong =>
+      'Tulis dulu apa yang harus dibenerin teknisi.';
+
+  @override
+  String get perhitTolakKirim => 'KEMBALIKAN';
+
+  @override
+  String get perhitDisetujui => 'Disetujui. Sertifikatnya lagi dibikin.';
+
+  @override
+  String get perhitDitolak => 'Dikembalikan ke teknisi.';
+
+  @override
+  String get perhitKolomAdmin => 'KOLOM ADMINISTRATIF';
+
+  @override
+  String get perhitNomorOrder => 'Order Number';
+
+  @override
+  String get perhitPilihThermohygro => 'Thermohygro used';
+
+  @override
+  String get perhitSimpanAdmin => 'SIMPAN';
+
+  @override
+  String get perhitAdminTersimpan => 'Kolom administratif tersimpan.';
 }

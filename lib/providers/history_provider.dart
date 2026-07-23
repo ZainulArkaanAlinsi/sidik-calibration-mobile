@@ -119,3 +119,33 @@ final calibrationDetailProvider =
 
       return ref.read(historyServiceProvider).ambilDetail(token, id);
     }, retry: (retryCount, error) => null);
+
+/// Antrean approval admin — semua kiriman dari semua teknisi
+/// (`GET /api/calibrations?status=menunggu_approval`).
+///
+/// Dipisah dari [historyProvider] yang pakai `mine=true`: dua pertanyaan yang
+/// beda ("kerjaan saya" vs "apa yang nunggu saya periksa"), dan admin bolak
+/// balik antara keduanya.
+final antreanApprovalProvider =
+    AsyncNotifierProvider<AntreanApprovalController, List<CalibrationHistoryItem>>(
+      AntreanApprovalController.new,
+      retry: (retryCount, error) => null,
+    );
+
+class AntreanApprovalController
+    extends AsyncNotifier<List<CalibrationHistoryItem>> {
+  @override
+  Future<List<CalibrationHistoryItem>> build() async {
+    ref.watch(authProvider);
+
+    final token = await ref.read(tokenStorageProvider).read();
+    if (token == null) throw const TokenHilangException();
+
+    return ref.read(historyServiceProvider).ambilAntreanApproval(token);
+  }
+
+  Future<void> muatUlang() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => build());
+  }
+}

@@ -35,6 +35,31 @@ class AuthException implements Exception {
   String toString() => message;
 }
 
+/// [AuthException] yang **masih bawa isi respons servernya**.
+///
+/// Perlu karena sebagian jawaban gagal itu bukan sekadar pesan: `POST
+/// /calibrations/{id}/approve` nolak sekali dengan `422` + `butuh_konfirmasi:
+/// true` + seluruh hasil `validasi`-nya, dan admin harus lihat temuannya buat
+/// mutusin lanjut atau nggak. Kalau body-nya dibuang, satu-satunya jalan
+/// nampilin temuan itu nembak `/validasi` lagi — padahal barusan dikirim.
+///
+/// Turunan [AuthException] **dengan sengaja**: semua `catch (AuthException)`
+/// yang udah ada tetap jalan tanpa disentuh.
+class ApiException extends AuthException {
+  const ApiException(
+    super.message, {
+    required this.status,
+    this.body = const {},
+  });
+
+  final int status;
+  final Map<String, dynamic> body;
+
+  /// Server minta konfirmasi sadar sebelum lanjut (mis. approve yang hasil
+  /// hitung ulangnya beda dari yang tersimpan).
+  bool get butuhKonfirmasi => body['butuh_konfirmasi'] == true;
+}
+
 /// Kontrak auth. UI & provider ngomongnya ke sini, bukan ke implementasi —
 /// jadi ganti dari mock ke API asli cukup ganti satu baris di
 /// `authServiceProvider`.

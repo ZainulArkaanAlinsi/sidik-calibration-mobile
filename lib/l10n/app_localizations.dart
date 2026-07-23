@@ -3679,6 +3679,396 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a folder name.'**
   String get folderNamaKosong;
+
+  /// No description provided for @antreanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Approval queue'**
+  String get antreanTitle;
+
+  /// No description provided for @antreanKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing waiting for approval'**
+  String get antreanKosong;
+
+  /// No description provided for @antreanKosongBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Worksheets submitted by technicians show up here.'**
+  String get antreanKosongBody;
+
+  /// No description provided for @antreanGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the queue.'**
+  String get antreanGagal;
+
+  /// No description provided for @antreanOleh.
+  ///
+  /// In en, this message translates to:
+  /// **'by {nama}'**
+  String antreanOleh(String nama);
+
+  /// No description provided for @perhitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculation sheet'**
+  String get perhitTitle;
+
+  /// No description provided for @perhitIdentitasAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'EQUIPMENT IDENTITY'**
+  String get perhitIdentitasAlat;
+
+  /// No description provided for @perhitIdentitasCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'CUSTOMER IDENTITY'**
+  String get perhitIdentitasCustomer;
+
+  /// No description provided for @perhitKondisi.
+  ///
+  /// In en, this message translates to:
+  /// **'ENVIRONMENTAL CONDITION CALCULATION'**
+  String get perhitKondisi;
+
+  /// No description provided for @perhitHasil.
+  ///
+  /// In en, this message translates to:
+  /// **'CALIBRATION RESULT DATA'**
+  String get perhitHasil;
+
+  /// No description provided for @perhitNamaAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment name'**
+  String get perhitNamaAlat;
+
+  /// No description provided for @perhitMerk.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand'**
+  String get perhitMerk;
+
+  /// No description provided for @perhitType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get perhitType;
+
+  /// No description provided for @perhitNoSeri.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial no.'**
+  String get perhitNoSeri;
+
+  /// No description provided for @perhitRentang.
+  ///
+  /// In en, this message translates to:
+  /// **'Measuring range'**
+  String get perhitRentang;
+
+  /// No description provided for @perhitKapasitas.
+  ///
+  /// In en, this message translates to:
+  /// **'Max. capacity'**
+  String get perhitKapasitas;
+
+  /// No description provided for @perhitResolusi.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolution'**
+  String get perhitResolusi;
+
+  /// No description provided for @perhitCustNama.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer name'**
+  String get perhitCustNama;
+
+  /// No description provided for @perhitCustAlamat.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get perhitCustAlamat;
+
+  /// No description provided for @perhitTglTerima.
+  ///
+  /// In en, this message translates to:
+  /// **'Received date'**
+  String get perhitTglTerima;
+
+  /// No description provided for @perhitTglKalibrasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration date'**
+  String get perhitTglKalibrasi;
+
+  /// No description provided for @perhitSuhuRuangan.
+  ///
+  /// In en, this message translates to:
+  /// **'Room temperature'**
+  String get perhitSuhuRuangan;
+
+  /// No description provided for @perhitKelembaban.
+  ///
+  /// In en, this message translates to:
+  /// **'Humidity'**
+  String get perhitKelembaban;
+
+  /// No description provided for @perhitAwal.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get perhitAwal;
+
+  /// No description provided for @perhitAkhir.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get perhitAkhir;
+
+  /// No description provided for @perhitAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Average'**
+  String get perhitAverage;
+
+  /// No description provided for @perhitIndexed.
+  ///
+  /// In en, this message translates to:
+  /// **'Indexed Value'**
+  String get perhitIndexed;
+
+  /// No description provided for @perhitCorrection.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction'**
+  String get perhitCorrection;
+
+  /// No description provided for @perhitDelta.
+  ///
+  /// In en, this message translates to:
+  /// **'Δ'**
+  String get perhitDelta;
+
+  /// No description provided for @perhitU95Std.
+  ///
+  /// In en, this message translates to:
+  /// **'U95% Std TH'**
+  String get perhitU95Std;
+
+  /// No description provided for @perhitU95Sertifikat.
+  ///
+  /// In en, this message translates to:
+  /// **'U95% Certificate'**
+  String get perhitU95Sertifikat;
+
+  /// No description provided for @perhitThermohygro.
+  ///
+  /// In en, this message translates to:
+  /// **'Thermohygro Used'**
+  String get perhitThermohygro;
+
+  /// No description provided for @perhitThermohygroKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Not selected yet — correction & U95% stay empty until it is.'**
+  String get perhitThermohygroKosong;
+
+  /// No description provided for @perhitStandard.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get perhitStandard;
+
+  /// No description provided for @perhitRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat'**
+  String get perhitRepeat;
+
+  /// No description provided for @perhitStdev.
+  ///
+  /// In en, this message translates to:
+  /// **'STDEV'**
+  String get perhitStdev;
+
+  /// No description provided for @perhitMaxStdev.
+  ///
+  /// In en, this message translates to:
+  /// **'MAX STDEV'**
+  String get perhitMaxStdev;
+
+  /// No description provided for @perhitCorrectionCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'On this sheet Correction = Average − Standard. On the certificate the sign is reversed.'**
+  String get perhitCorrectionCatatan;
+
+  /// No description provided for @perhitStandardCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard is the buffer value at the solution temperature, not the nominal value.'**
+  String get perhitStandardCatatan;
+
+  /// No description provided for @perhitGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the calculation sheet.'**
+  String get perhitGagal;
+
+  /// No description provided for @perhitPeriksa.
+  ///
+  /// In en, this message translates to:
+  /// **'CHECK'**
+  String get perhitPeriksa;
+
+  /// No description provided for @perhitSetujui.
+  ///
+  /// In en, this message translates to:
+  /// **'APPROVE'**
+  String get perhitSetujui;
+
+  /// No description provided for @perhitTolak.
+  ///
+  /// In en, this message translates to:
+  /// **'REJECT'**
+  String get perhitTolak;
+
+  /// No description provided for @perhitMemeriksa.
+  ///
+  /// In en, this message translates to:
+  /// **'Recalculating from the raw readings…'**
+  String get perhitMemeriksa;
+
+  /// No description provided for @perhitTemuanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Check findings'**
+  String get perhitTemuanJudul;
+
+  /// No description provided for @perhitTemuanBersih.
+  ///
+  /// In en, this message translates to:
+  /// **'No findings. Safe to approve.'**
+  String get perhitTemuanBersih;
+
+  /// No description provided for @perhitTingkatError.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocks issuance'**
+  String get perhitTingkatError;
+
+  /// No description provided for @perhitTingkatPeringatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs confirmation'**
+  String get perhitTingkatPeringatan;
+
+  /// No description provided for @perhitTingkatInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Info'**
+  String get perhitTingkatInfo;
+
+  /// No description provided for @perhitApproveDiblokir.
+  ///
+  /// In en, this message translates to:
+  /// **'There are findings that block issuance. Approve is disabled.'**
+  String get perhitApproveDiblokir;
+
+  /// No description provided for @perhitKonfirmasiJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Recalculation differs. Continue?'**
+  String get perhitKonfirmasiJudul;
+
+  /// No description provided for @perhitKonfirmasiBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The recalculated numbers differ from what was saved. Approving anyway issues the certificate with the saved numbers.'**
+  String get perhitKonfirmasiBody;
+
+  /// No description provided for @perhitKonfirmasiBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'CHECK AGAIN'**
+  String get perhitKonfirmasiBatal;
+
+  /// No description provided for @perhitKonfirmasiLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'APPROVE ANYWAY'**
+  String get perhitKonfirmasiLanjut;
+
+  /// No description provided for @perhitTolakJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Send back for revision'**
+  String get perhitTolakJudul;
+
+  /// No description provided for @perhitTolakLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What needs fixing?'**
+  String get perhitTolakLabel;
+
+  /// No description provided for @perhitTolakKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Write what the technician has to fix.'**
+  String get perhitTolakKosong;
+
+  /// No description provided for @perhitTolakKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'SEND BACK'**
+  String get perhitTolakKirim;
+
+  /// No description provided for @perhitDisetujui.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved. The certificate is being generated.'**
+  String get perhitDisetujui;
+
+  /// No description provided for @perhitDitolak.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent back to the technician.'**
+  String get perhitDitolak;
+
+  /// No description provided for @perhitKolomAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'ADMINISTRATIVE FIELDS'**
+  String get perhitKolomAdmin;
+
+  /// No description provided for @perhitNomorOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Number'**
+  String get perhitNomorOrder;
+
+  /// No description provided for @perhitPilihThermohygro.
+  ///
+  /// In en, this message translates to:
+  /// **'Thermohygro used'**
+  String get perhitPilihThermohygro;
+
+  /// No description provided for @perhitSimpanAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE'**
+  String get perhitSimpanAdmin;
+
+  /// No description provided for @perhitAdminTersimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'Administrative fields saved.'**
+  String get perhitAdminTersimpan;
 }
 
 class _AppLocalizationsDelegate
