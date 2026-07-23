@@ -11,6 +11,7 @@ import '../equipment/equipment_list_screen.dart';
 import '../folder/folder_manager_screen.dart';
 import '../history/history_screen.dart';
 import '../admin/antrean_approval_screen.dart';
+import '../admin/import_excel_screen.dart';
 import '../notification/notification_screen.dart';
 import '../profile/profile_screen.dart';
 import '../order/my_tasks_screen.dart';
@@ -224,12 +225,20 @@ class _MenuUtama extends ConsumerWidget {
 
             const Divider(),
             _LabelSeksi(l10n.menuPengaturan),
-            if (admin)
+            if (admin) ...[
               ListTile(
                 leading: const Icon(Icons.apartment_outlined),
                 title: Text(l10n.orgTitle),
                 onTap: () => keLayar(const OrganizationScreen()),
               ),
+              // Import Excel = alat masa transisi, bukan kerja harian —
+              // makanya ditaruh di Pengaturan, bukan di navbar.
+              ListTile(
+                leading: const Icon(Icons.upload_file_outlined),
+                title: Text(l10n.importTitle),
+                onTap: () => keLayar(const ImportExcelScreen()),
+              ),
+            ],
             ListTile(
               leading: const Icon(Icons.person_outline),
               title: Text(l10n.navProfile),

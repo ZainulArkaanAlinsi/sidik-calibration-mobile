@@ -82,6 +82,35 @@ class ApiClient {
     return _kirim(() => _client.delete(_uri(path), headers: _headers(token)));
   }
 
+  /// Unggah file (multipart) — dipakai Import Excel & foto OCR.
+  ///
+  /// Nggak lewat [_headers]: `Content-Type` harus dibiarin `http` yang nyusun
+  /// (dia yang tau boundary multipart-nya). Kalau dipaksa
+  /// `application/json` kayak endpoint lain, server nolak sebelum baca filenya.
+  Future<Map<String, dynamic>> unggahFile(
+    String path, {
+    required String field,
+    required String filePath,
+    Map<String, String> fields = const {},
+    String? token,
+    Duration timeout = const Duration(seconds: 60),
+  }) async {
+    return _kirim(() async {
+      final request = http.MultipartRequest('POST', _uri(path))
+        ..headers.addAll({
+          'Accept': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        })
+        ..fields.addAll(fields)
+        ..files.add(await http.MultipartFile.fromPath(field, filePath));
+
+      // Timeout-nya lebih longgar dari request biasa: file 10 MB lewat sinyal
+      // lapangan nggak bakal kelar dalam 20 detik.
+      final streamed = await request.send().timeout(timeout);
+      return http.Response.fromStream(streamed);
+    });
+  }
+
   Future<Map<String, dynamic>> _kirim(
     Future<http.Response> Function() request,
   ) async {

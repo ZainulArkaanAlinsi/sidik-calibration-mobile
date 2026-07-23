@@ -2251,4 +2251,87 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get sertCorrectionCatatan =>
       'On the certificate Correction = Standard − Average — the reverse of the calculation sheet.';
+
+  @override
+  String get importTitle => 'Import Excel';
+
+  @override
+  String get importPilihTipe => 'What are you importing?';
+
+  @override
+  String get importTipeCustomers => 'Clients / companies';
+
+  @override
+  String get importTipeStandards => 'Reference standards';
+
+  @override
+  String get importTipeEquipments => 'Equipment';
+
+  @override
+  String get importUrutanCatatan =>
+      'Import order: clients → standards → equipment. Equipment needs its company to exist first.';
+
+  @override
+  String get importPilihFile => 'CHOOSE FILE';
+
+  @override
+  String importFileTerpilih(String nama) {
+    return 'File: $nama';
+  }
+
+  @override
+  String get importUjiCoba => 'DRY RUN';
+
+  @override
+  String get importTerapkan => 'APPLY NOW';
+
+  @override
+  String get importUlangi => 'CHOOSE ANOTHER FILE';
+
+  @override
+  String get importBelumAdaFile => 'Choose an .xlsx file first.';
+
+  @override
+  String get importSedangJalan => 'Reading the file…';
+
+  @override
+  String get importRingkasan => 'Summary';
+
+  @override
+  String get importDibaca => 'read';
+
+  @override
+  String get importDibuat => 'created';
+
+  @override
+  String get importDiperbarui => 'updated';
+
+  @override
+  String get importDilewati => 'skipped';
+
+  @override
+  String get importUjiCobaCatatan =>
+      'Dry run — nothing has been saved yet. Check the rows below, then apply.';
+
+  @override
+  String get importSelesai => 'Import applied.';
+
+  @override
+  String get importTanpaPerubahan => 'Nothing would change — no need to apply.';
+
+  @override
+  String get importKolomDikenal => 'Recognised columns';
+
+  @override
+  String get importKolomDiabaikan => 'Ignored columns';
+
+  @override
+  String importBarisKe(int nomor) {
+    return 'Row $nomor';
+  }
+
+  @override
+  String importGagal(String pesan) {
+    return 'Import failed: $pesan';
+  }
 }

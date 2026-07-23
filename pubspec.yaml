@@ -65,6 +65,10 @@ dependencies:
   path_provider: ^2.1.6
   open_filex: ^4.7.0
 
+  # Milih file .xlsx buat Import Excel (spesifikasi poin 12C). `image_picker`
+  # yang udah ada cuma bisa gambar, jadi nggak kepakai di sini.
+  file_picker: ^8.1.7
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

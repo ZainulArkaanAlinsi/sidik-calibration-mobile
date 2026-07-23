@@ -4213,6 +4213,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'On the certificate Correction = Standard − Average — the reverse of the calculation sheet.'**
   String get sertCorrectionCatatan;
+
+  /// No description provided for @importTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Excel'**
+  String get importTitle;
+
+  /// No description provided for @importPilihTipe.
+  ///
+  /// In en, this message translates to:
+  /// **'What are you importing?'**
+  String get importPilihTipe;
+
+  /// No description provided for @importTipeCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'Clients / companies'**
+  String get importTipeCustomers;
+
+  /// No description provided for @importTipeStandards.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference standards'**
+  String get importTipeStandards;
+
+  /// No description provided for @importTipeEquipments.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get importTipeEquipments;
+
+  /// No description provided for @importUrutanCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Import order: clients → standards → equipment. Equipment needs its company to exist first.'**
+  String get importUrutanCatatan;
+
+  /// No description provided for @importPilihFile.
+  ///
+  /// In en, this message translates to:
+  /// **'CHOOSE FILE'**
+  String get importPilihFile;
+
+  /// No description provided for @importFileTerpilih.
+  ///
+  /// In en, this message translates to:
+  /// **'File: {nama}'**
+  String importFileTerpilih(String nama);
+
+  /// No description provided for @importUjiCoba.
+  ///
+  /// In en, this message translates to:
+  /// **'DRY RUN'**
+  String get importUjiCoba;
+
+  /// No description provided for @importTerapkan.
+  ///
+  /// In en, this message translates to:
+  /// **'APPLY NOW'**
+  String get importTerapkan;
+
+  /// No description provided for @importUlangi.
+  ///
+  /// In en, this message translates to:
+  /// **'CHOOSE ANOTHER FILE'**
+  String get importUlangi;
+
+  /// No description provided for @importBelumAdaFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an .xlsx file first.'**
+  String get importBelumAdaFile;
+
+  /// No description provided for @importSedangJalan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading the file…'**
+  String get importSedangJalan;
+
+  /// No description provided for @importRingkasan.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get importRingkasan;
+
+  /// No description provided for @importDibaca.
+  ///
+  /// In en, this message translates to:
+  /// **'read'**
+  String get importDibaca;
+
+  /// No description provided for @importDibuat.
+  ///
+  /// In en, this message translates to:
+  /// **'created'**
+  String get importDibuat;
+
+  /// No description provided for @importDiperbarui.
+  ///
+  /// In en, this message translates to:
+  /// **'updated'**
+  String get importDiperbarui;
+
+  /// No description provided for @importDilewati.
+  ///
+  /// In en, this message translates to:
+  /// **'skipped'**
+  String get importDilewati;
+
+  /// No description provided for @importUjiCobaCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Dry run — nothing has been saved yet. Check the rows below, then apply.'**
+  String get importUjiCobaCatatan;
+
+  /// No description provided for @importSelesai.
+  ///
+  /// In en, this message translates to:
+  /// **'Import applied.'**
+  String get importSelesai;
+
+  /// No description provided for @importTanpaPerubahan.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing would change — no need to apply.'**
+  String get importTanpaPerubahan;
+
+  /// No description provided for @importKolomDikenal.
+  ///
+  /// In en, this message translates to:
+  /// **'Recognised columns'**
+  String get importKolomDikenal;
+
+  /// No description provided for @importKolomDiabaikan.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignored columns'**
+  String get importKolomDiabaikan;
+
+  /// No description provided for @importBarisKe.
+  ///
+  /// In en, this message translates to:
+  /// **'Row {nomor}'**
+  String importBarisKe(int nomor);
+
+  /// No description provided for @importGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Import failed: {pesan}'**
+  String importGagal(String pesan);
 }
 
 class _AppLocalizationsDelegate

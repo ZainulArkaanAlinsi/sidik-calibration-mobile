@@ -2227,4 +2227,88 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get sertCorrectionCatatan =>
       'Di sertifikat Correction = Standard − Average — kebalikan dari lembar perhitungan.';
+
+  @override
+  String get importTitle => 'Import Excel';
+
+  @override
+  String get importPilihTipe => 'Mau import apa?';
+
+  @override
+  String get importTipeCustomers => 'Pelanggan / PT';
+
+  @override
+  String get importTipeStandards => 'Standar acuan';
+
+  @override
+  String get importTipeEquipments => 'Alat';
+
+  @override
+  String get importUrutanCatatan =>
+      'Urutan import: pelanggan → standar → alat. Alat butuh PT-nya sudah ada duluan.';
+
+  @override
+  String get importPilihFile => 'PILIH FILE';
+
+  @override
+  String importFileTerpilih(String nama) {
+    return 'File: $nama';
+  }
+
+  @override
+  String get importUjiCoba => 'UJI COBA';
+
+  @override
+  String get importTerapkan => 'TERAPKAN SEKARANG';
+
+  @override
+  String get importUlangi => 'PILIH FILE LAIN';
+
+  @override
+  String get importBelumAdaFile => 'Pilih file .xlsx dulu.';
+
+  @override
+  String get importSedangJalan => 'Lagi baca filenya…';
+
+  @override
+  String get importRingkasan => 'Ringkasan';
+
+  @override
+  String get importDibaca => 'dibaca';
+
+  @override
+  String get importDibuat => 'dibuat';
+
+  @override
+  String get importDiperbarui => 'diperbarui';
+
+  @override
+  String get importDilewati => 'dilewati';
+
+  @override
+  String get importUjiCobaCatatan =>
+      'Uji coba — belum ada yang disimpan. Periksa barisnya di bawah, baru terapkan.';
+
+  @override
+  String get importSelesai => 'Import diterapkan.';
+
+  @override
+  String get importTanpaPerubahan =>
+      'Nggak ada yang berubah — nggak perlu diterapkan.';
+
+  @override
+  String get importKolomDikenal => 'Kolom yang dikenali';
+
+  @override
+  String get importKolomDiabaikan => 'Kolom yang diabaikan';
+
+  @override
+  String importBarisKe(int nomor) {
+    return 'Baris $nomor';
+  }
+
+  @override
+  String importGagal(String pesan) {
+    return 'Import gagal: $pesan';
+  }
 }
