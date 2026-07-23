@@ -753,5 +753,98 @@
   "tugasTelat": "Past due date",
   "tugasMasuk": "Received",
   "tugasJanji": "Due",
-  "tugasBelumDitugaskan": "Unassigned"
+  "tugasBelumDitugaskan": "Unassigned",
+
+  "dashSummaryOrg": "Organization summary",
+  "dashSummaryYours": "Your summary",
+  "snackAddDeviceSoon": "Adding devices is planned for week 3.",
+  "dashStartPhCalibration": "PH METER CALIBRATION",
+  "lkTitle": "Calibration Worksheet",
+  "lkSubtitleDraft": "Continue draft",
+  "lkSubtitleRevisi": "Revise — returned by admin",
+  "lkLoadGagal": "Couldn't load the worksheet form.",
+  "lkRetry": "RETRY",
+  "lkPilihAlat": "Choose equipment",
+  "lkAlatKosong": "No equipment available yet.",
+  "lkBelumPilihAlat": "Choose the equipment first — the identity and owner fields fill in automatically.",
+  "lkOtomatis": "Filled automatically",
+  "lkKosong": "—",
+  "lkPilihTanggal": "Choose date",
+  "lkHapusTanggal": "Clear date",
+  "lkRepeat": "Repeat",
+  "lkUsageCheckKosong": "No reference standards in master data yet.",
+  "lkUsageCheckKeterangan": "Notes",
+  "lkStandarPerTitik": "Buffer standard",
+  "lkStandarKadaluarsa": "certificate expired",
+  "lkPilih": "Choose",
+  "lkKirim": "SUBMIT TO ADMIN",
+  "lkSimpanDraft": "SAVE AS DRAFT",
+  "lkBerhasilKirim": "Worksheet submitted to admin.",
+  "lkBerhasilDraft": "Saved as draft.",
+  "lkGagalKirim": "Couldn't save: {pesan}",
+  "@lkGagalKirim": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
+  "lkSemuaOpsional": "Any field you can't fill in the field may be left blank — the worksheet can still be submitted.",
+  "lkKeluarTanpaSimpan": "Leave without saving?",
+  "lkKeluarTanpaSimpanBody": "What you've typed will be lost.",
+  "lkKeluarBatal": "KEEP EDITING",
+  "lkKeluarLanjut": "LEAVE",
+  "lkSuhuDiLuarRentang": "Outside this room's range ({min}–{max}).",
+  "@lkSuhuDiLuarRentang": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "navFolderManager": "Folders",
+  "folderTitle": "Folder Manager",
+  "folderEmptyTitle": "No folders yet",
+  "folderEmptyBody": "Folders are created automatically per client as certificates are issued.",
+  "folderLoadFailed": "Couldn't load folders.",
+  "folderRetry": "RETRY",
+  "folderIsiKosong": "This folder is empty.",
+  "folderJumlahFolder": "{jumlah} folder{jumlah, plural, =1{} other{s}}",
+  "@folderJumlahFolder": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "folderJumlahFile": "{jumlah} file{jumlah, plural, =1{} other{s}}",
+  "@folderJumlahFile": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "folderOtomatis": "Created automatically",
+  "folderUnduh": "Download",
+  "folderSertifikatBelumSiap": "The certificate PDF is still being generated.",
+  "folderUnduhGagal": "Couldn't download: {pesan}",
+  "@folderUnduhGagal": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
+  "notifTandaiSemua": "Mark all as read",
+  "notifSemuaDibaca": "All notifications marked as read.",
+  "notifKategoriJatuhTempo": "Due date",
+  "notifKategoriMenungguApproval": "Waiting for approval",
+  "notifKategoriDisetujui": "Approved",
+  "notifKategoriPerluRevisi": "Needs revision",
+  "notifKategoriSertifikat": "Certificate issued",
+  "notifKategoriUmum": "Info"
 }

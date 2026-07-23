@@ -1735,4 +1735,192 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tugasBelumDitugaskan => 'Unassigned';
+
+  @override
+  String get dashSummaryOrg => 'Organization summary';
+
+  @override
+  String get dashSummaryYours => 'Your summary';
+
+  @override
+  String get snackAddDeviceSoon => 'Adding devices is planned for week 3.';
+
+  @override
+  String get dashStartPhCalibration => 'PH METER CALIBRATION';
+
+  @override
+  String get lkTitle => 'Calibration Worksheet';
+
+  @override
+  String get lkSubtitleDraft => 'Continue draft';
+
+  @override
+  String get lkSubtitleRevisi => 'Revise — returned by admin';
+
+  @override
+  String get lkLoadGagal => 'Couldn\'t load the worksheet form.';
+
+  @override
+  String get lkRetry => 'RETRY';
+
+  @override
+  String get lkPilihAlat => 'Choose equipment';
+
+  @override
+  String get lkAlatKosong => 'No equipment available yet.';
+
+  @override
+  String get lkBelumPilihAlat =>
+      'Choose the equipment first — the identity and owner fields fill in automatically.';
+
+  @override
+  String get lkOtomatis => 'Filled automatically';
+
+  @override
+  String get lkKosong => '—';
+
+  @override
+  String get lkPilihTanggal => 'Choose date';
+
+  @override
+  String get lkHapusTanggal => 'Clear date';
+
+  @override
+  String get lkRepeat => 'Repeat';
+
+  @override
+  String get lkUsageCheckKosong => 'No reference standards in master data yet.';
+
+  @override
+  String get lkUsageCheckKeterangan => 'Notes';
+
+  @override
+  String get lkStandarPerTitik => 'Buffer standard';
+
+  @override
+  String get lkStandarKadaluarsa => 'certificate expired';
+
+  @override
+  String get lkPilih => 'Choose';
+
+  @override
+  String get lkKirim => 'SUBMIT TO ADMIN';
+
+  @override
+  String get lkSimpanDraft => 'SAVE AS DRAFT';
+
+  @override
+  String get lkBerhasilKirim => 'Worksheet submitted to admin.';
+
+  @override
+  String get lkBerhasilDraft => 'Saved as draft.';
+
+  @override
+  String lkGagalKirim(String pesan) {
+    return 'Couldn\'t save: $pesan';
+  }
+
+  @override
+  String get lkSemuaOpsional =>
+      'Any field you can\'t fill in the field may be left blank — the worksheet can still be submitted.';
+
+  @override
+  String get lkKeluarTanpaSimpan => 'Leave without saving?';
+
+  @override
+  String get lkKeluarTanpaSimpanBody => 'What you\'ve typed will be lost.';
+
+  @override
+  String get lkKeluarBatal => 'KEEP EDITING';
+
+  @override
+  String get lkKeluarLanjut => 'LEAVE';
+
+  @override
+  String lkSuhuDiLuarRentang(String min, String max) {
+    return 'Outside this room\'s range ($min–$max).';
+  }
+
+  @override
+  String get navFolderManager => 'Folders';
+
+  @override
+  String get folderTitle => 'Folder Manager';
+
+  @override
+  String get folderEmptyTitle => 'No folders yet';
+
+  @override
+  String get folderEmptyBody =>
+      'Folders are created automatically per client as certificates are issued.';
+
+  @override
+  String get folderLoadFailed => 'Couldn\'t load folders.';
+
+  @override
+  String get folderRetry => 'RETRY';
+
+  @override
+  String get folderIsiKosong => 'This folder is empty.';
+
+  @override
+  String folderJumlahFolder(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: 's',
+      one: '',
+    );
+    return '$jumlah folder$_temp0';
+  }
+
+  @override
+  String folderJumlahFile(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: 's',
+      one: '',
+    );
+    return '$jumlah file$_temp0';
+  }
+
+  @override
+  String get folderOtomatis => 'Created automatically';
+
+  @override
+  String get folderUnduh => 'Download';
+
+  @override
+  String get folderSertifikatBelumSiap =>
+      'The certificate PDF is still being generated.';
+
+  @override
+  String folderUnduhGagal(String pesan) {
+    return 'Couldn\'t download: $pesan';
+  }
+
+  @override
+  String get notifTandaiSemua => 'Mark all as read';
+
+  @override
+  String get notifSemuaDibaca => 'All notifications marked as read.';
+
+  @override
+  String get notifKategoriJatuhTempo => 'Due date';
+
+  @override
+  String get notifKategoriMenungguApproval => 'Waiting for approval';
+
+  @override
+  String get notifKategoriDisetujui => 'Approved';
+
+  @override
+  String get notifKategoriPerluRevisi => 'Needs revision';
+
+  @override
+  String get notifKategoriSertifikat => 'Certificate issued';
+
+  @override
+  String get notifKategoriUmum => 'Info';
 }

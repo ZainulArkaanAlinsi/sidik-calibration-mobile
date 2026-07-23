@@ -3265,6 +3265,330 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unassigned'**
   String get tugasBelumDitugaskan;
+
+  /// No description provided for @dashSummaryOrg.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization summary'**
+  String get dashSummaryOrg;
+
+  /// No description provided for @dashSummaryYours.
+  ///
+  /// In en, this message translates to:
+  /// **'Your summary'**
+  String get dashSummaryYours;
+
+  /// No description provided for @snackAddDeviceSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding devices is planned for week 3.'**
+  String get snackAddDeviceSoon;
+
+  /// No description provided for @dashStartPhCalibration.
+  ///
+  /// In en, this message translates to:
+  /// **'PH METER CALIBRATION'**
+  String get dashStartPhCalibration;
+
+  /// No description provided for @lkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration Worksheet'**
+  String get lkTitle;
+
+  /// No description provided for @lkSubtitleDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue draft'**
+  String get lkSubtitleDraft;
+
+  /// No description provided for @lkSubtitleRevisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Revise — returned by admin'**
+  String get lkSubtitleRevisi;
+
+  /// No description provided for @lkLoadGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the worksheet form.'**
+  String get lkLoadGagal;
+
+  /// No description provided for @lkRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'RETRY'**
+  String get lkRetry;
+
+  /// No description provided for @lkPilihAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose equipment'**
+  String get lkPilihAlat;
+
+  /// No description provided for @lkAlatKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No equipment available yet.'**
+  String get lkAlatKosong;
+
+  /// No description provided for @lkBelumPilihAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the equipment first — the identity and owner fields fill in automatically.'**
+  String get lkBelumPilihAlat;
+
+  /// No description provided for @lkOtomatis.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled automatically'**
+  String get lkOtomatis;
+
+  /// No description provided for @lkKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'—'**
+  String get lkKosong;
+
+  /// No description provided for @lkPilihTanggal.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose date'**
+  String get lkPilihTanggal;
+
+  /// No description provided for @lkHapusTanggal.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear date'**
+  String get lkHapusTanggal;
+
+  /// No description provided for @lkRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat'**
+  String get lkRepeat;
+
+  /// No description provided for @lkUsageCheckKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No reference standards in master data yet.'**
+  String get lkUsageCheckKosong;
+
+  /// No description provided for @lkUsageCheckKeterangan.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get lkUsageCheckKeterangan;
+
+  /// No description provided for @lkStandarPerTitik.
+  ///
+  /// In en, this message translates to:
+  /// **'Buffer standard'**
+  String get lkStandarPerTitik;
+
+  /// No description provided for @lkStandarKadaluarsa.
+  ///
+  /// In en, this message translates to:
+  /// **'certificate expired'**
+  String get lkStandarKadaluarsa;
+
+  /// No description provided for @lkPilih.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose'**
+  String get lkPilih;
+
+  /// No description provided for @lkKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'SUBMIT TO ADMIN'**
+  String get lkKirim;
+
+  /// No description provided for @lkSimpanDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE AS DRAFT'**
+  String get lkSimpanDraft;
+
+  /// No description provided for @lkBerhasilKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Worksheet submitted to admin.'**
+  String get lkBerhasilKirim;
+
+  /// No description provided for @lkBerhasilDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved as draft.'**
+  String get lkBerhasilDraft;
+
+  /// No description provided for @lkGagalKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save: {pesan}'**
+  String lkGagalKirim(String pesan);
+
+  /// No description provided for @lkSemuaOpsional.
+  ///
+  /// In en, this message translates to:
+  /// **'Any field you can\'t fill in the field may be left blank — the worksheet can still be submitted.'**
+  String get lkSemuaOpsional;
+
+  /// No description provided for @lkKeluarTanpaSimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave without saving?'**
+  String get lkKeluarTanpaSimpan;
+
+  /// No description provided for @lkKeluarTanpaSimpanBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What you\'ve typed will be lost.'**
+  String get lkKeluarTanpaSimpanBody;
+
+  /// No description provided for @lkKeluarBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'KEEP EDITING'**
+  String get lkKeluarBatal;
+
+  /// No description provided for @lkKeluarLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'LEAVE'**
+  String get lkKeluarLanjut;
+
+  /// No description provided for @lkSuhuDiLuarRentang.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside this room\'s range ({min}–{max}).'**
+  String lkSuhuDiLuarRentang(String min, String max);
+
+  /// No description provided for @navFolderManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Folders'**
+  String get navFolderManager;
+
+  /// No description provided for @folderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder Manager'**
+  String get folderTitle;
+
+  /// No description provided for @folderEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No folders yet'**
+  String get folderEmptyTitle;
+
+  /// No description provided for @folderEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Folders are created automatically per client as certificates are issued.'**
+  String get folderEmptyBody;
+
+  /// No description provided for @folderLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load folders.'**
+  String get folderLoadFailed;
+
+  /// No description provided for @folderRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'RETRY'**
+  String get folderRetry;
+
+  /// No description provided for @folderIsiKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'This folder is empty.'**
+  String get folderIsiKosong;
+
+  /// No description provided for @folderJumlahFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} folder{jumlah, plural, =1{} other{s}}'**
+  String folderJumlahFolder(int jumlah);
+
+  /// No description provided for @folderJumlahFile.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} file{jumlah, plural, =1{} other{s}}'**
+  String folderJumlahFile(int jumlah);
+
+  /// No description provided for @folderOtomatis.
+  ///
+  /// In en, this message translates to:
+  /// **'Created automatically'**
+  String get folderOtomatis;
+
+  /// No description provided for @folderUnduh.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get folderUnduh;
+
+  /// No description provided for @folderSertifikatBelumSiap.
+  ///
+  /// In en, this message translates to:
+  /// **'The certificate PDF is still being generated.'**
+  String get folderSertifikatBelumSiap;
+
+  /// No description provided for @folderUnduhGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t download: {pesan}'**
+  String folderUnduhGagal(String pesan);
+
+  /// No description provided for @notifTandaiSemua.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all as read'**
+  String get notifTandaiSemua;
+
+  /// No description provided for @notifSemuaDibaca.
+  ///
+  /// In en, this message translates to:
+  /// **'All notifications marked as read.'**
+  String get notifSemuaDibaca;
+
+  /// No description provided for @notifKategoriJatuhTempo.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date'**
+  String get notifKategoriJatuhTempo;
+
+  /// No description provided for @notifKategoriMenungguApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for approval'**
+  String get notifKategoriMenungguApproval;
+
+  /// No description provided for @notifKategoriDisetujui.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get notifKategoriDisetujui;
+
+  /// No description provided for @notifKategoriPerluRevisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs revision'**
+  String get notifKategoriPerluRevisi;
+
+  /// No description provided for @notifKategoriSertifikat.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate issued'**
+  String get notifKategoriSertifikat;
+
+  /// No description provided for @notifKategoriUmum.
+  ///
+  /// In en, this message translates to:
+  /// **'Info'**
+  String get notifKategoriUmum;
 }
 
 class _AppLocalizationsDelegate
