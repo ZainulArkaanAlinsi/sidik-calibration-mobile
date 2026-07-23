@@ -4363,6 +4363,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Import failed: {pesan}'**
   String importGagal(String pesan);
+
+  /// No description provided for @lkKirimAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'SUBMIT'**
+  String get lkKirimAdmin;
+
+  /// No description provided for @lkScanTabel.
+  ///
+  /// In en, this message translates to:
+  /// **'SCAN / PHOTO THIS TABLE'**
+  String get lkScanTabel;
 }
 
 class _AppLocalizationsDelegate

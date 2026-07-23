@@ -756,5 +756,7 @@
   "importKolomDikenal": "Kolom yang dikenali",
   "importKolomDiabaikan": "Kolom yang diabaikan",
   "importBarisKe": "Baris {nomor}",
-  "importGagal": "Import gagal: {pesan}"
+  "importGagal": "Import gagal: {pesan}",
+  "lkKirimAdmin": "KIRIM",
+  "lkScanTabel": "SCAN / FOTO TABEL INI"
 }

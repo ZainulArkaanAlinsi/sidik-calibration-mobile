@@ -254,7 +254,11 @@ class _FormState extends ConsumerState<_Form> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     AppButton(
-                      label: l10n.lkKirim,
+                      // Admin ngisi lembarnya buat dirinya sendiri — nggak ada
+                      // "ke admin"-nya. Yang nentuin bentuk formulir juga
+                      // backend (`untuk: admin`), jadi label ini ikut sumber
+                      // yang sama, bukan ngecek role sendiri.
+                      label: bentuk.untukAdmin ? l10n.lkKirimAdmin : l10n.lkKirim,
                       isLoading: _mengirim,
                       // SELALU aktif. Lihat docblock LembarKerjaScreen.
                       onPressed: () => _submit(draft: false),

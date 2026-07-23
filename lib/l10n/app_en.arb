@@ -981,5 +981,7 @@
   "importBarisKe": "Row {nomor}",
   "@importBarisKe": {"placeholders": {"nomor": {"type": "int"}}},
   "importGagal": "Import failed: {pesan}",
-  "@importGagal": {"placeholders": {"pesan": {"type": "String"}}}
+  "@importGagal": {"placeholders": {"pesan": {"type": "String"}}},
+  "lkKirimAdmin": "SUBMIT",
+  "lkScanTabel": "SCAN / PHOTO THIS TABLE"
 }

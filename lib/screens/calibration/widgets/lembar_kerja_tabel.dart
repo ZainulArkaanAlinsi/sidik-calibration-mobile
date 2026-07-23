@@ -44,18 +44,24 @@ class LembarKerjaTabel extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                tabel.judul,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-            _TombolScan(tabel: tabel, isian: isian, onBerubah: onBerubah),
-          ],
+        Text(
+          tabel.judul,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+
+        // Tombolnya sengaja LEBAR & BERLABEL, bukan ikon kecil di pojok:
+        // ini jalan pintas yang paling sering dipakai di lapangan, dan waktu
+        // cuma ikon di sebelah judul, teknisi nggak nemu sama sekali.
+        SizedBox(
+          width: double.infinity,
+          child: _TombolScan(
+            tabel: tabel,
+            isian: isian,
+            onBerubah: onBerubah,
+          ),
         ),
         const SizedBox(height: AppSpacing.sm),
 
@@ -249,43 +255,67 @@ class _TombolScanState extends ConsumerState<_TombolScan> {
 
     if (_sibuk) {
       return const Padding(
-        padding: EdgeInsets.all(AppSpacing.sm),
-        child: SizedBox(
-          height: 18,
-          width: 18,
-          child: CircularProgressIndicator(strokeWidth: 2),
+        padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
+        child: Center(
+          child: SizedBox(
+            height: 18,
+            width: 18,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
         ),
       );
     }
 
-    return PopupMenuButton<String>(
-      tooltip: l10n.phCalibFotoTabel,
-      icon: const Icon(Icons.document_scanner_outlined, size: 20),
-      onSelected: (nilai) =>
-          nilai == 'live' ? _pindaiLangsung() : _foto(),
-      itemBuilder: (context) => [
-        PopupMenuItem(
-          value: 'live',
-          child: ListTile(
-            dense: true,
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.center_focus_strong_outlined, size: 20),
-            title: Text(l10n.phCalibCaraScan),
-            subtitle: Text(l10n.phCalibCaraScanKeterangan),
-          ),
-        ),
-        PopupMenuItem(
-          value: 'foto',
-          child: ListTile(
-            dense: true,
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.photo_camera_outlined, size: 20),
-            title: Text(l10n.phCalibCaraFoto),
-            subtitle: Text(l10n.phCalibCaraFotoKeterangan),
-          ),
-        ),
-      ],
+    return OutlinedButton.icon(
+      onPressed: _pilihCara,
+      icon: const Icon(Icons.photo_camera_outlined, size: 18),
+      label: Text(l10n.lkScanTabel),
     );
+  }
+
+  /// Dua jalur scan disodorkan lewat bottom sheet, bukan menu pop-up mungil:
+  /// dua-duanya perlu penjelasan sebaris, dan di HP lapangan target tap-nya
+  /// harus besar.
+  Future<void> _pilihCara() async {
+    final l10n = AppLocalizations.of(context);
+
+    final cara = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Text(
+                l10n.phCalibFotoTabelJudul,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.center_focus_strong_outlined),
+              title: Text(l10n.phCalibCaraScan),
+              subtitle: Text(l10n.phCalibCaraScanKeterangan),
+              onTap: () => Navigator.of(context).pop('live'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: Text(l10n.phCalibCaraFoto),
+              subtitle: Text(l10n.phCalibCaraFotoKeterangan),
+              onTap: () => Navigator.of(context).pop('foto'),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+          ],
+        ),
+      ),
+    );
+
+    if (cara == null || !mounted) return;
+    if (cara == 'live') {
+      await _pindaiLangsung();
+    } else {
+      await _foto();
+    }
   }
 }
 

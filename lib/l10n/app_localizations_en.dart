@@ -2334,4 +2334,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String importGagal(String pesan) {
     return 'Import failed: $pesan';
   }
+
+  @override
+  String get lkKirimAdmin => 'SUBMIT';
+
+  @override
+  String get lkScanTabel => 'SCAN / PHOTO THIS TABLE';
 }

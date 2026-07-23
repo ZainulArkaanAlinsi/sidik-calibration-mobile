@@ -2311,4 +2311,10 @@ class AppLocalizationsId extends AppLocalizations {
   String importGagal(String pesan) {
     return 'Import gagal: $pesan';
   }
+
+  @override
+  String get lkKirimAdmin => 'KIRIM';
+
+  @override
+  String get lkScanTabel => 'SCAN / FOTO TABEL INI';
 }
