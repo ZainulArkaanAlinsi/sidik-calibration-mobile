@@ -3601,6 +3601,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Point the camera — numbers float over the preview'**
   String get phCalibCaraScanKeterangan;
+
+  /// No description provided for @folderBuat.
+  ///
+  /// In en, this message translates to:
+  /// **'New folder'**
+  String get folderBuat;
+
+  /// No description provided for @folderBuatJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'New folder'**
+  String get folderBuatJudul;
+
+  /// No description provided for @folderNamaLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder name'**
+  String get folderNamaLabel;
+
+  /// No description provided for @folderGantiNama.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get folderGantiNama;
+
+  /// No description provided for @folderGantiNamaJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename folder'**
+  String get folderGantiNamaJudul;
+
+  /// No description provided for @folderHapus.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get folderHapus;
+
+  /// No description provided for @folderHapusJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this folder?'**
+  String get folderHapusJudul;
+
+  /// No description provided for @folderHapusBody.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{nama}\" will be removed. This can\'t be undone.'**
+  String folderHapusBody(String nama);
+
+  /// No description provided for @folderBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'CANCEL'**
+  String get folderBatal;
+
+  /// No description provided for @folderSimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE'**
+  String get folderSimpan;
+
+  /// No description provided for @folderHapusLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'DELETE'**
+  String get folderHapusLanjut;
+
+  /// No description provided for @folderSistemDikunci.
+  ///
+  /// In en, this message translates to:
+  /// **'Created automatically — the name follows the client/year and can\'t be changed.'**
+  String get folderSistemDikunci;
+
+  /// No description provided for @folderNamaKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a folder name.'**
+  String get folderNamaKosong;
 }
 
 class _AppLocalizationsDelegate

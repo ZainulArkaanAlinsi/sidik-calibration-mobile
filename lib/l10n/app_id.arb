@@ -629,5 +629,18 @@
   "notifKategoriSertifikat": "Sertifikat terbit",
   "notifKategoriUmum": "Info",
   "phCalibCaraScan": "Pindai langsung",
-  "phCalibCaraScanKeterangan": "Arahkan kamera — angkanya muncul mengambang di layar"
+  "phCalibCaraScanKeterangan": "Arahkan kamera — angkanya muncul mengambang di layar",
+  "folderBuat": "Folder baru",
+  "folderBuatJudul": "Folder baru",
+  "folderNamaLabel": "Nama folder",
+  "folderGantiNama": "Ganti nama",
+  "folderGantiNamaJudul": "Ganti nama folder",
+  "folderHapus": "Hapus",
+  "folderHapusJudul": "Hapus folder ini?",
+  "folderHapusBody": "\"{nama}\" bakal dibuang. Nggak bisa dibalikin.",
+  "folderBatal": "BATAL",
+  "folderSimpan": "SIMPAN",
+  "folderHapusLanjut": "HAPUS",
+  "folderSistemDikunci": "Kebentuk otomatis — namanya ngikut PT/tahun, nggak bisa diubah.",
+  "folderNamaKosong": "Isi nama foldernya dulu."
 }

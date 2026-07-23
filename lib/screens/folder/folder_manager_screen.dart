@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/folder.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/folder_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/notification_bell.dart';
@@ -11,10 +12,13 @@ import '../../widgets/notification_bell.dart';
 /// Folder Manager (spesifikasi poin 3 & 7) — menggantikan "Notifikasi" di
 /// navbar bawah.
 ///
-/// **Cuma buat menelusuri.** Foldernya kebentuk sendiri di backend (`PT /
-/// tahun`) tiap sertifikat terbit, jadi nggak ada tombol "buat folder" di
-/// sini: nulisnya admin doang lewat panel web, dan folder `tipe: sistem`
-/// ditolak backend kalau di-rename/hapus.
+/// **Sebagian besar isinya kebentuk sendiri** di backend (`PT / tahun`) tiap
+/// sertifikat terbit — CRUD di sini buat ngerapiin sisanya: bikin folder
+/// arsip sendiri, ganti nama, hapus yang nggak kepake.
+///
+/// Tombol tulisnya cuma muncul buat **admin** (backend nolak role lain dengan
+/// 403), dan folder `tipe: sistem` nggak dikasih "Ganti nama" karena namanya
+/// dipakai backend buat nemuin folder yang udah ada.
 ///
 /// Dipakai dua cara: sebagai tab navbar ([folderId] null, tanpa tombol back)
 /// dan sebagai halaman sendiri waktu masuk ke sub-folder (ada tombol back —
@@ -31,6 +35,11 @@ class FolderManagerScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
 
+    // Nulis folder itu admin doang — backend nolak role lain dengan 403.
+    // Tombolnya disembunyiin biar teknisi nggak nyoba lalu ditolak, tapi yang
+    // beneran njagain tetap backend, bukan `if` ini.
+    final admin = ref.watch(authProvider).value?.role.isAdmin ?? false;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(judul ?? l10n.folderTitle),
@@ -40,6 +49,109 @@ class FolderManagerScreen extends ConsumerWidget {
       body: folderId == null
           ? const _Akar()
           : _IsiFolder(folderId: folderId!),
+      floatingActionButton: admin
+          ? FloatingActionButton.extended(
+              onPressed: () => _dialogNamaFolder(
+                context: context,
+                ref: ref,
+                judul: l10n.folderBuatJudul,
+                onSimpan: (nama) => ref
+                    .read(folderAksiProvider)
+                    .buat(nama: nama, parentId: folderId),
+              ),
+              icon: const Icon(Icons.create_new_folder_outlined),
+              label: Text(l10n.folderBuat),
+            )
+          : null,
+    );
+  }
+}
+
+/// Dialog satu kolom nama, dipakai bareng "Folder baru" & "Ganti nama".
+///
+/// [onSimpan] balikin pesan error dari backend, atau `null` kalau berhasil —
+/// pesannya dipakai apa adanya karena backend yang paling tau konteksnya
+/// ("sudah ada folder bernama X di lokasi ini").
+Future<void> _dialogNamaFolder({
+  required BuildContext context,
+  required WidgetRef ref,
+  required String judul,
+  required Future<String?> Function(String nama) onSimpan,
+  String namaAwal = '',
+}) async {
+  final l10n = AppLocalizations.of(context);
+
+  final nama = await showDialog<String>(
+    context: context,
+    builder: (context) => _DialogNamaFolder(judul: judul, namaAwal: namaAwal),
+  );
+
+  if (!context.mounted) return;
+
+  final messenger = ScaffoldMessenger.of(context);
+
+  if (nama == null) return;
+  if (nama.isEmpty) {
+    messenger.showSnackBar(SnackBar(content: Text(l10n.folderNamaKosong)));
+    return;
+  }
+
+  final error = await onSimpan(nama);
+  if (error != null) {
+    messenger.showSnackBar(SnackBar(content: Text(error)));
+  }
+}
+
+/// Isi dialog nama folder.
+///
+/// Punya controller-nya sendiri **dengan sengaja**: kalau controller dibikin
+/// di luar lalu di-`dispose()` begitu `showDialog` selesai, TextField-nya masih
+/// kepakai selama animasi dialog nutup — dan itu langsung assert
+/// "TextEditingController was used after being disposed". Widget yang punya,
+/// widget itu juga yang buang.
+class _DialogNamaFolder extends StatefulWidget {
+  const _DialogNamaFolder({required this.judul, required this.namaAwal});
+
+  final String judul;
+  final String namaAwal;
+
+  @override
+  State<_DialogNamaFolder> createState() => _DialogNamaFolderState();
+}
+
+class _DialogNamaFolderState extends State<_DialogNamaFolder> {
+  late final _controller = TextEditingController(text: widget.namaAwal);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _simpan() => Navigator.of(context).pop(_controller.text.trim());
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    return AlertDialog(
+      title: Text(widget.judul),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        decoration: InputDecoration(
+          labelText: l10n.folderNamaLabel,
+          border: const OutlineInputBorder(),
+        ),
+        onSubmitted: (_) => _simpan(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.folderBatal),
+        ),
+        TextButton(onPressed: _simpan, child: Text(l10n.folderSimpan)),
+      ],
     );
   }
 }
@@ -122,15 +234,16 @@ class _DaftarFolder extends StatelessWidget {
   }
 }
 
-class _KartuFolder extends StatelessWidget {
+class _KartuFolder extends ConsumerWidget {
   const _KartuFolder({required this.folder});
 
   final Folder folder;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
+    final admin = ref.watch(authProvider).value?.role.isAdmin ?? false;
 
     final rincian = [
       if (folder.jumlahFolder != null && folder.jumlahFolder! > 0)
@@ -150,9 +263,16 @@ class _KartuFolder extends StatelessWidget {
           rincian.isEmpty ? l10n.folderIsiKosong : rincian,
           style: theme.textTheme.labelSmall,
         ),
-        // Folder sistem nggak punya tombol rename/hapus — backend nolaknya,
-        // jadi jangan ditawarin. Sisanya cuma bisa diurus admin di panel web.
-        trailing: const Icon(Icons.chevron_right),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (admin)
+              _MenuFolder(folder: folder)
+            else
+              const SizedBox.shrink(),
+            const Icon(Icons.chevron_right),
+          ],
+        ),
         onTap: () {
           Navigator.of(context).push(
             MaterialPageRoute<void>(
@@ -162,6 +282,106 @@ class _KartuFolder extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+}
+
+/// Ganti nama & hapus per folder.
+///
+/// **Folder `sistem` nggak dikasih "Ganti nama".** Namanya = nama PT / tahun,
+/// dan itu yang dipakai `FolderOrganizer` buat nemuin folder yang udah ada —
+/// begitu direname, sertifikat berikutnya bikin folder baru dan arsipnya
+/// kepecah dua. Backend nolaknya (`prohibited`), jadi jangan ditawarin.
+///
+/// "Hapus" tetap dikasih: folder sistem yang udah KOSONG boleh dibuang. Yang
+/// masih ada isinya ditolak backend, dan pesannya ditampilin apa adanya —
+/// nyembunyiin tombolnya malah bikin folder sisa nggak bisa dirapiin sama
+/// sekali.
+class _MenuFolder extends ConsumerWidget {
+  const _MenuFolder({required this.folder});
+
+  final Folder folder;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert, size: 20),
+      itemBuilder: (context) => [
+        if (folder.folderSistem)
+          PopupMenuItem(
+            enabled: false,
+            child: Text(
+              l10n.folderSistemDikunci,
+              style: Theme.of(context).textTheme.labelSmall,
+            ),
+          )
+        else
+          PopupMenuItem(
+            value: 'ganti',
+            child: ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.drive_file_rename_outline, size: 20),
+              title: Text(l10n.folderGantiNama),
+            ),
+          ),
+        PopupMenuItem(
+          value: 'hapus',
+          child: ListTile(
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.delete_outline, size: 20),
+            title: Text(l10n.folderHapus),
+          ),
+        ),
+      ],
+      onSelected: (nilai) async {
+        if (nilai == 'ganti') {
+          await _dialogNamaFolder(
+            context: context,
+            ref: ref,
+            judul: l10n.folderGantiNamaJudul,
+            namaAwal: folder.nama,
+            onSimpan: (nama) => ref.read(folderAksiProvider).gantiNama(
+              id: folder.id,
+              nama: nama,
+              parentId: folder.parentId,
+            ),
+          );
+          return;
+        }
+
+        final yakin = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(l10n.folderHapusJudul),
+            content: Text(l10n.folderHapusBody(folder.nama)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text(l10n.folderBatal),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text(l10n.folderHapusLanjut),
+              ),
+            ],
+          ),
+        );
+
+        if (yakin != true || !context.mounted) return;
+
+        final messenger = ScaffoldMessenger.of(context);
+        final error = await ref
+            .read(folderAksiProvider)
+            .hapus(id: folder.id, parentId: folder.parentId);
+
+        if (error != null) {
+          messenger.showSnackBar(SnackBar(content: Text(error)));
+        }
+      },
     );
   }
 }

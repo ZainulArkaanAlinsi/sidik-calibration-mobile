@@ -848,5 +848,19 @@
   "notifKategoriSertifikat": "Certificate issued",
   "notifKategoriUmum": "Info",
   "phCalibCaraScan": "Live scan",
-  "phCalibCaraScanKeterangan": "Point the camera — numbers float over the preview"
+  "phCalibCaraScanKeterangan": "Point the camera — numbers float over the preview",
+  "folderBuat": "New folder",
+  "folderBuatJudul": "New folder",
+  "folderNamaLabel": "Folder name",
+  "folderGantiNama": "Rename",
+  "folderGantiNamaJudul": "Rename folder",
+  "folderHapus": "Delete",
+  "folderHapusJudul": "Delete this folder?",
+  "folderHapusBody": "\"{nama}\" will be removed. This can't be undone.",
+  "@folderHapusBody": {"placeholders": {"nama": {"type": "String"}}},
+  "folderBatal": "CANCEL",
+  "folderSimpan": "SAVE",
+  "folderHapusLanjut": "DELETE",
+  "folderSistemDikunci": "Created automatically — the name follows the client/year and can't be changed.",
+  "folderNamaKosong": "Enter a folder name."
 }

@@ -7,6 +7,26 @@ abstract class FolderService {
 
   /// Sub-folder + file di dalamnya.
   Future<Folder> detail(String token, int id);
+
+  /// Bikin folder baru. **Admin doang** — backend nolak role lain dengan 403.
+  ///
+  /// Hasilnya SELALU `tipe: manual`; tipe `sistem` cuma boleh lahir dari
+  /// `FolderOrganizer` di backend, biar nggak ada folder "sistem" palsu yang
+  /// nggak nyambung ke data mana pun.
+  Future<Folder> buat(String token, {required String nama, int? parentId});
+
+  /// Ganti nama / keterangan. Folder `sistem` **namanya nggak bisa diubah**
+  /// (backend nolak `prohibited`): namanya = nama PT / tahun, dan itu yang
+  /// dipakai buat nemuin folder yang udah ada. Begitu direname, sertifikat
+  /// berikutnya bikin folder baru dan arsipnya kepecah dua.
+  Future<Folder> ubah(
+    String token,
+    int id, {
+    String? nama,
+    String? keterangan,
+  });
+
+  Future<void> hapus(String token, int id);
 }
 
 /// `GET /api/folders`. Bacanya semua role — isinya udah disaring per-role di
@@ -34,6 +54,45 @@ class ApiFolderService implements FolderService {
     final json = await _api.get('/folders/$id', token: token);
     return Folder.fromJson((json['data'] ?? json) as Map<String, dynamic>);
   }
+
+  @override
+  Future<Folder> buat(
+    String token, {
+    required String nama,
+    int? parentId,
+  }) async {
+    final json = await _api.post(
+      '/folders',
+      token: token,
+      body: {'nama': nama, 'parent_id': ?parentId},
+    );
+    return Folder.fromJson((json['data'] ?? json) as Map<String, dynamic>);
+  }
+
+  @override
+  Future<Folder> ubah(
+    String token,
+    int id, {
+    String? nama,
+    String? keterangan,
+  }) async {
+    final json = await _api.put(
+      '/folders/$id',
+      token: token,
+      body: {
+        // Cuma kirim yang beneran diubah — `nama` buat folder sistem ditolak
+        // backend, jadi jangan ikut kekirim waktu yang diubah keterangannya.
+        'nama': ?nama,
+        'keterangan': ?keterangan,
+      },
+    );
+    return Folder.fromJson((json['data'] ?? json) as Map<String, dynamic>);
+  }
+
+  @override
+  Future<void> hapus(String token, int id) async {
+    await _api.delete('/folders/$id', token: token);
+  }
 }
 
 class MockFolderService implements FolderService {
@@ -41,6 +100,50 @@ class MockFolderService implements FolderService {
 
   final bool kosong;
   final bool gagal;
+
+  /// Jejak aksi tulis buat test — `('buat', nama)`, `('ubah', id)`, dst.
+  final List<(String, Object?)> aksi = [];
+
+  @override
+  Future<Folder> buat(String token, {required String nama, int? parentId}) async {
+    if (gagal) throw Exception('server nggak nyaut');
+    aksi.add(('buat', nama));
+    return Folder(
+      id: 99,
+      nama: nama,
+      // Backend selalu bikin folder tangan sebagai `manual`.
+      tipe: 'manual',
+      parentId: parentId,
+      jumlahFolder: 0,
+      jumlahFile: 0,
+    );
+  }
+
+  @override
+  Future<Folder> ubah(
+    String token,
+    int id, {
+    String? nama,
+    String? keterangan,
+  }) async {
+    if (gagal) throw Exception('server nggak nyaut');
+    aksi.add(('ubah', id));
+    return Folder(
+      id: id,
+      nama: nama ?? 'Arsip Lama',
+      tipe: 'manual',
+      parentId: null,
+      keterangan: keterangan,
+      jumlahFolder: 0,
+      jumlahFile: 1,
+    );
+  }
+
+  @override
+  Future<void> hapus(String token, int id) async {
+    if (gagal) throw Exception('server nggak nyaut');
+    aksi.add(('hapus', id));
+  }
 
   static const _akar = [
     Folder(

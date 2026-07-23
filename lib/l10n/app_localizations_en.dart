@@ -1930,4 +1930,46 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get phCalibCaraScanKeterangan =>
       'Point the camera — numbers float over the preview';
+
+  @override
+  String get folderBuat => 'New folder';
+
+  @override
+  String get folderBuatJudul => 'New folder';
+
+  @override
+  String get folderNamaLabel => 'Folder name';
+
+  @override
+  String get folderGantiNama => 'Rename';
+
+  @override
+  String get folderGantiNamaJudul => 'Rename folder';
+
+  @override
+  String get folderHapus => 'Delete';
+
+  @override
+  String get folderHapusJudul => 'Delete this folder?';
+
+  @override
+  String folderHapusBody(String nama) {
+    return '\"$nama\" will be removed. This can\'t be undone.';
+  }
+
+  @override
+  String get folderBatal => 'CANCEL';
+
+  @override
+  String get folderSimpan => 'SAVE';
+
+  @override
+  String get folderHapusLanjut => 'DELETE';
+
+  @override
+  String get folderSistemDikunci =>
+      'Created automatically — the name follows the client/year and can\'t be changed.';
+
+  @override
+  String get folderNamaKosong => 'Enter a folder name.';
 }

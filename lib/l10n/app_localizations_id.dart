@@ -1906,4 +1906,46 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get phCalibCaraScanKeterangan =>
       'Arahkan kamera — angkanya muncul mengambang di layar';
+
+  @override
+  String get folderBuat => 'Folder baru';
+
+  @override
+  String get folderBuatJudul => 'Folder baru';
+
+  @override
+  String get folderNamaLabel => 'Nama folder';
+
+  @override
+  String get folderGantiNama => 'Ganti nama';
+
+  @override
+  String get folderGantiNamaJudul => 'Ganti nama folder';
+
+  @override
+  String get folderHapus => 'Hapus';
+
+  @override
+  String get folderHapusJudul => 'Hapus folder ini?';
+
+  @override
+  String folderHapusBody(String nama) {
+    return '\"$nama\" bakal dibuang. Nggak bisa dibalikin.';
+  }
+
+  @override
+  String get folderBatal => 'BATAL';
+
+  @override
+  String get folderSimpan => 'SIMPAN';
+
+  @override
+  String get folderHapusLanjut => 'HAPUS';
+
+  @override
+  String get folderSistemDikunci =>
+      'Kebentuk otomatis — namanya ngikut PT/tahun, nggak bisa diubah.';
+
+  @override
+  String get folderNamaKosong => 'Isi nama foldernya dulu.';
 }
