@@ -41,18 +41,24 @@ Future<void> _bukaHalamanNotifikasi(WidgetTester tester) async {
 void main() {
   group('4 state notifikasi', () {
     testWidgets('LOADING: skeleton muncul duluan', (tester) async {
+      // Jeda ambil datanya dibikin jauh lebih lama dari animasi buka halaman
+      // (300 ms) — kalau nggak, datanya keburu nyampe sebelum halamannya
+      // selesai mount dan skeleton-nya nggak pernah kelihatan.
       await tester.pumpWidget(
-        _app(jeda: const Duration(milliseconds: 300)),
+        _app(jeda: const Duration(milliseconds: 2000)),
       );
-      // Lewatin splash/auth dulu — MainShell (dan notificationProvider ikut
-      // mulai nge-build lewat IndexedStack) baru mount di titik ini.
+      // Lewatin splash/auth dulu — MainShell baru mount di titik ini.
       await tester.pump(const Duration(milliseconds: 700));
+
       await tester.tap(find.byType(NotificationBell));
-      await tester.pump(); // buka halamannya, jangan majuin jam dulu
+      // Notifikasi sekarang halaman yang di-push, bukan tab: butuh animasi
+      // transisinya kelar dulu sebelum isinya kerender.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
 
       expect(find.byType(SkeletonBox), findsWidgets);
 
-      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(milliseconds: 2000));
       await tester.pumpAndSettle();
 
       expect(find.byType(SkeletonBox), findsNothing);
