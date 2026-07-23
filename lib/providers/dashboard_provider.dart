@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/config/app_config.dart';
 import '../models/dashboard_summary.dart';
 import '../services/dashboard_service.dart';
 
@@ -9,9 +10,10 @@ import 'auth_provider.dart';
 ///
 /// `MockDashboardService` sengaja **nggak dihapus** — dia yang dipakai test
 /// buat maksa 4 state (loading/empty/normal/error) tanpa perlu server nyala.
-final dashboardServiceProvider = Provider<DashboardService>(
-  (ref) => ApiDashboardService(ref.watch(apiClientProvider)),
-);
+final dashboardServiceProvider = Provider<DashboardService>((ref) {
+  if (AppConfig.useMock) return MockDashboardService();
+  return ApiDashboardService(ref.watch(apiClientProvider));
+});
 
 /// Ringkasan dashboard. `AsyncValue` yang ngasih 3 state ke layar:
 /// `loading` (skeleton) · `error` (tombol coba lagi) · `data` (empty / normal).

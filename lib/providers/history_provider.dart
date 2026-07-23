@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/config/app_config.dart';
 import '../models/calibration_detail.dart';
 import '../models/calibration_history_item.dart';
 import '../services/approval_service.dart';
@@ -10,9 +11,10 @@ import 'dashboard_provider.dart' show TokenHilangException;
 
 /// `GET /api/calibrations` live sejak 14 Jul (`docs/kontrak-api.md` §4) —
 /// beda sama Notifikasi, ini nembak API asli.
-final historyServiceProvider = Provider<HistoryService>(
-  (ref) => ApiHistoryService(ref.watch(apiClientProvider)),
-);
+final historyServiceProvider = Provider<HistoryService>((ref) {
+  if (AppConfig.useMock) return MockHistoryService();
+  return ApiHistoryService(ref.watch(apiClientProvider));
+});
 
 /// Live — dicek langsung ke `CalibrationController`/`CertificateController`
 /// di repo `sidik-calibration-api` (18 Jul). `approve`/`reject`/`retry`

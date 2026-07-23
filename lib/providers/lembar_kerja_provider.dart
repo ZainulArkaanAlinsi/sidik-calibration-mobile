@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/config/app_config.dart';
 import '../models/lembar_kerja.dart';
 import '../models/lembar_kerja_submission.dart';
 import '../models/room.dart';
@@ -8,13 +9,15 @@ import '../services/room_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
 
-final lembarKerjaServiceProvider = Provider<LembarKerjaService>(
-  (ref) => ApiLembarKerjaService(ref.watch(apiClientProvider)),
-);
+final lembarKerjaServiceProvider = Provider<LembarKerjaService>((ref) {
+  if (AppConfig.useMock) return MockLembarKerjaService();
+  return ApiLembarKerjaService(ref.watch(apiClientProvider));
+});
 
-final roomServiceProvider = Provider<RoomService>(
-  (ref) => ApiRoomService(ref.watch(apiClientProvider)),
-);
+final roomServiceProvider = Provider<RoomService>((ref) {
+  if (AppConfig.useMock) return MockRoomService();
+  return ApiRoomService(ref.watch(apiClientProvider));
+});
 
 Future<String> _token(Ref ref) async {
   final token = await ref.read(tokenStorageProvider).read();

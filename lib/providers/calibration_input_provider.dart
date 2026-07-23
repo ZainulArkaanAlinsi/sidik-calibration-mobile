@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/config/app_config.dart';
 import '../models/calibration_draft.dart';
 import '../models/category.dart';
 import '../models/equipment_lookup.dart';
@@ -12,21 +13,25 @@ import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
 
 /// Semua nembak API asli — live sejak 14 Jul (`docs/kontrak-api.md` §3/§4).
-final categoryServiceProvider = Provider<CategoryService>(
-  (ref) => ApiCategoryService(ref.watch(apiClientProvider)),
-);
+final categoryServiceProvider = Provider<CategoryService>((ref) {
+  if (AppConfig.useMock) return MockCategoryService();
+  return ApiCategoryService(ref.watch(apiClientProvider));
+});
 
-final standardServiceProvider = Provider<StandardService>(
-  (ref) => ApiStandardService(ref.watch(apiClientProvider)),
-);
+final standardServiceProvider = Provider<StandardService>((ref) {
+  if (AppConfig.useMock) return MockStandardService();
+  return ApiStandardService(ref.watch(apiClientProvider));
+});
 
-final equipmentLookupServiceProvider = Provider<EquipmentLookupService>(
-  (ref) => ApiEquipmentLookupService(ref.watch(apiClientProvider)),
-);
+final equipmentLookupServiceProvider = Provider<EquipmentLookupService>((ref) {
+  if (AppConfig.useMock) return MockEquipmentLookupService();
+  return ApiEquipmentLookupService(ref.watch(apiClientProvider));
+});
 
-final calibrationServiceProvider = Provider<CalibrationService>(
-  (ref) => ApiCalibrationService(ref.watch(apiClientProvider)),
-);
+final calibrationServiceProvider = Provider<CalibrationService>((ref) {
+  if (AppConfig.useMock) return MockCalibrationService();
+  return ApiCalibrationService(ref.watch(apiClientProvider));
+});
 
 Future<String> _token(Ref ref) async {
   final token = await ref.read(tokenStorageProvider).read();
