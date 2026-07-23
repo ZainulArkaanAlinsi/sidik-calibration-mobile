@@ -398,5 +398,27 @@
   "lkKeluarTanpaSimpanBody": "Yang udah kamu ketik bakal ilang.",
   "lkKeluarBatal": "LANJUT ISI",
   "lkKeluarLanjut": "KELUAR",
-  "lkSuhuDiLuarRentang": "Di luar rentang ruangan ini ({min}\u2013{max})."
+  "lkSuhuDiLuarRentang": "Di luar rentang ruangan ini ({min}\u2013{max}).",
+  "navFolderManager": "Folder",
+  "folderTitle": "Folder Manager",
+  "folderEmptyTitle": "Belum ada folder",
+  "folderEmptyBody": "Folder kebentuk otomatis per PT seiring sertifikat terbit.",
+  "folderLoadFailed": "Gagal memuat folder.",
+  "folderRetry": "COBA LAGI",
+  "folderIsiKosong": "Folder ini masih kosong.",
+  "folderJumlahFolder": "{jumlah} folder",
+  "folderJumlahFile": "{jumlah} file",
+  "folderOtomatis": "Kebentuk otomatis",
+  "folderUnduh": "Unduh",
+  "folderSertifikatBelumSiap": "PDF sertifikatnya masih dibikin.",
+  "folderUnduhGagal": "Gagal mengunduh: {pesan}",
+
+  "notifTandaiSemua": "Tandai semua dibaca",
+  "notifSemuaDibaca": "Semua notifikasi ditandai udah dibaca.",
+  "notifKategoriJatuhTempo": "Jatuh tempo",
+  "notifKategoriMenungguApproval": "Nunggu approval",
+  "notifKategoriDisetujui": "Disetujui",
+  "notifKategoriPerluRevisi": "Perlu revisi",
+  "notifKategoriSertifikat": "Sertifikat terbit",
+  "notifKategoriUmum": "Info"
 }

@@ -1,53 +1,92 @@
-/// Jenis notifikasi. Ngikutin `docs/kontrak-api.md` §6.
-enum NotificationType { jatuhTempo, approval, revisi }
+/// Kategori notifikasi yang dikirim backend (`NotificationResource.kategori`).
+///
+/// Kategori asing dianggap [umum] — netral, nggak ngarahin ke aksi yang salah,
+/// dan tetap kelihatan di daftar. Kategori baru dari backend nggak boleh bikin
+/// notifikasinya ilang diam-diam dari layar.
+enum NotifKategori {
+  jatuhTempo,
+  sesiMenungguApproval,
+  sesiDisetujui,
+  sesiPerluRevisi,
+  sertifikatTerbit,
+  umum;
 
-extension NotificationTypeJson on NotificationType {
-  static NotificationType fromJson(String value) => switch (value) {
-    'jatuh_tempo' => NotificationType.jatuhTempo,
-    'approval' => NotificationType.approval,
-    'revisi' => NotificationType.revisi,
-    // Tipe yang belum dikenal dianggap `jatuhTempo` — paling netral, nggak
-    // ngarahin ke aksi approval/revisi yang salah.
-    _ => NotificationType.jatuhTempo,
+  static NotifKategori fromApi(String? value) => switch (value) {
+    'jatuh_tempo' => NotifKategori.jatuhTempo,
+    'sesi_menunggu_approval' => NotifKategori.sesiMenungguApproval,
+    'sesi_disetujui' => NotifKategori.sesiDisetujui,
+    'sesi_perlu_revisi' => NotifKategori.sesiPerluRevisi,
+    'sertifikat_terbit' => NotifKategori.sertifikatTerbit,
+    _ => NotifKategori.umum,
   };
 }
 
-/// Satu notifikasi — respons `GET /api/notifications` (§6
-/// `docs/kontrak-api.md`).
+/// Layar tujuan waktu notifikasinya diketuk — `{tipe, id}` dari backend,
+/// mis. `{"tipe": "calibration", "id": 12}`.
+///
+/// Yang nentuin tujuan itu backend, bukan tebakan mobile dari kategori: satu
+/// kategori bisa nunjuk ke layar beda tergantung datanya (sertifikat terbit
+/// bisa buka sertifikatnya, atau sesinya kalau PDF-nya masih digenerate).
+class NotifTautan {
+  const NotifTautan({required this.tipe, required this.id});
+
+  /// `calibration` / `certificate` / `equipment`.
+  final String tipe;
+  final int id;
+
+  static NotifTautan? fromJson(Object? raw) {
+    if (raw is! Map) return null;
+    final tipe = raw['tipe'];
+    final id = raw['id'];
+    if (tipe is! String || id is! num) return null;
+    return NotifTautan(tipe: tipe, id: id.toInt());
+  }
+}
+
+/// Satu notifikasi — respons `GET /api/notifications`.
 class NotificationItem {
   const NotificationItem({
     required this.id,
-    required this.tipe,
+    required this.kategori,
     required this.judul,
-    required this.pesan,
+    required this.isi,
     required this.dibaca,
-    required this.createdAt,
+    required this.dibuatPada,
+    this.tautan,
   });
 
-  final int id;
-  final NotificationType tipe;
+  /// UUID, bukan int — notifikasi Laravel pakai `DatabaseNotification` yang
+  /// primary key-nya string.
+  final String id;
+
+  final NotifKategori kategori;
   final String judul;
-  final String pesan;
+  final String isi;
   final bool dibaca;
-  final DateTime createdAt;
+  final DateTime dibuatPada;
+  final NotifTautan? tautan;
 
   NotificationItem copyWith({bool? dibaca}) => NotificationItem(
     id: id,
-    tipe: tipe,
+    kategori: kategori,
     judul: judul,
-    pesan: pesan,
+    isi: isi,
     dibaca: dibaca ?? this.dibaca,
-    createdAt: createdAt,
+    dibuatPada: dibuatPada,
+    tautan: tautan,
   );
 
   factory NotificationItem.fromJson(Map<String, dynamic> json) {
     return NotificationItem(
-      id: (json['id'] as num).toInt(),
-      tipe: NotificationTypeJson.fromJson(json['tipe'] as String),
-      judul: json['judul'] as String,
-      pesan: json['pesan'] as String,
+      id: '${json['id']}',
+      kategori: NotifKategori.fromApi(json['kategori'] as String?),
+      judul: json['judul'] as String? ?? '',
+      isi: json['isi'] as String? ?? '',
       dibaca: json['dibaca'] as bool? ?? false,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      dibuatPada:
+          DateTime.tryParse(json['dibuat_pada'] as String? ?? '') ??
+          DateTime.now(),
+      tautan: NotifTautan.fromJson(json['tautan']),
     );
   }
 }

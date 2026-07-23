@@ -555,5 +555,36 @@
       "min": { "type": "String" },
       "max": { "type": "String" }
     }
-  }
+  },
+  "navFolderManager": "Folders",
+  "folderTitle": "Folder Manager",
+  "folderEmptyTitle": "No folders yet",
+  "folderEmptyBody": "Folders are created automatically per client as certificates are issued.",
+  "folderLoadFailed": "Couldn't load folders.",
+  "folderRetry": "RETRY",
+  "folderIsiKosong": "This folder is empty.",
+  "folderJumlahFolder": "{jumlah} folder{jumlah, plural, =1{} other{s}}",
+  "@folderJumlahFolder": {
+    "placeholders": { "jumlah": { "type": "int" } }
+  },
+  "folderJumlahFile": "{jumlah} file{jumlah, plural, =1{} other{s}}",
+  "@folderJumlahFile": {
+    "placeholders": { "jumlah": { "type": "int" } }
+  },
+  "folderOtomatis": "Created automatically",
+  "folderUnduh": "Download",
+  "folderSertifikatBelumSiap": "The certificate PDF is still being generated.",
+  "folderUnduhGagal": "Couldn't download: {pesan}",
+  "@folderUnduhGagal": {
+    "placeholders": { "pesan": { "type": "String" } }
+  },
+
+  "notifTandaiSemua": "Mark all as read",
+  "notifSemuaDibaca": "All notifications marked as read.",
+  "notifKategoriJatuhTempo": "Due date",
+  "notifKategoriMenungguApproval": "Waiting for approval",
+  "notifKategoriDisetujui": "Approved",
+  "notifKategoriPerluRevisi": "Needs revision",
+  "notifKategoriSertifikat": "Certificate issued",
+  "notifKategoriUmum": "Info"
 }

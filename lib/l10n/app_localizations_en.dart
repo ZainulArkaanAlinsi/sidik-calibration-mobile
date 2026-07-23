@@ -1251,4 +1251,87 @@ class AppLocalizationsEn extends AppLocalizations {
   String lkSuhuDiLuarRentang(String min, String max) {
     return 'Outside this room\'s range ($min–$max).';
   }
+
+  @override
+  String get navFolderManager => 'Folders';
+
+  @override
+  String get folderTitle => 'Folder Manager';
+
+  @override
+  String get folderEmptyTitle => 'No folders yet';
+
+  @override
+  String get folderEmptyBody =>
+      'Folders are created automatically per client as certificates are issued.';
+
+  @override
+  String get folderLoadFailed => 'Couldn\'t load folders.';
+
+  @override
+  String get folderRetry => 'RETRY';
+
+  @override
+  String get folderIsiKosong => 'This folder is empty.';
+
+  @override
+  String folderJumlahFolder(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: 's',
+      one: '',
+    );
+    return '$jumlah folder$_temp0';
+  }
+
+  @override
+  String folderJumlahFile(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: 's',
+      one: '',
+    );
+    return '$jumlah file$_temp0';
+  }
+
+  @override
+  String get folderOtomatis => 'Created automatically';
+
+  @override
+  String get folderUnduh => 'Download';
+
+  @override
+  String get folderSertifikatBelumSiap =>
+      'The certificate PDF is still being generated.';
+
+  @override
+  String folderUnduhGagal(String pesan) {
+    return 'Couldn\'t download: $pesan';
+  }
+
+  @override
+  String get notifTandaiSemua => 'Mark all as read';
+
+  @override
+  String get notifSemuaDibaca => 'All notifications marked as read.';
+
+  @override
+  String get notifKategoriJatuhTempo => 'Due date';
+
+  @override
+  String get notifKategoriMenungguApproval => 'Waiting for approval';
+
+  @override
+  String get notifKategoriDisetujui => 'Approved';
+
+  @override
+  String get notifKategoriPerluRevisi => 'Needs revision';
+
+  @override
+  String get notifKategoriSertifikat => 'Certificate issued';
+
+  @override
+  String get notifKategoriUmum => 'Info';
 }

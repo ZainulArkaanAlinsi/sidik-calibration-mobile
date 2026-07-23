@@ -1240,4 +1240,74 @@ class AppLocalizationsId extends AppLocalizations {
   String lkSuhuDiLuarRentang(String min, String max) {
     return 'Di luar rentang ruangan ini ($min–$max).';
   }
+
+  @override
+  String get navFolderManager => 'Folder';
+
+  @override
+  String get folderTitle => 'Folder Manager';
+
+  @override
+  String get folderEmptyTitle => 'Belum ada folder';
+
+  @override
+  String get folderEmptyBody =>
+      'Folder kebentuk otomatis per PT seiring sertifikat terbit.';
+
+  @override
+  String get folderLoadFailed => 'Gagal memuat folder.';
+
+  @override
+  String get folderRetry => 'COBA LAGI';
+
+  @override
+  String get folderIsiKosong => 'Folder ini masih kosong.';
+
+  @override
+  String folderJumlahFolder(int jumlah) {
+    return '$jumlah folder';
+  }
+
+  @override
+  String folderJumlahFile(int jumlah) {
+    return '$jumlah file';
+  }
+
+  @override
+  String get folderOtomatis => 'Kebentuk otomatis';
+
+  @override
+  String get folderUnduh => 'Unduh';
+
+  @override
+  String get folderSertifikatBelumSiap => 'PDF sertifikatnya masih dibikin.';
+
+  @override
+  String folderUnduhGagal(String pesan) {
+    return 'Gagal mengunduh: $pesan';
+  }
+
+  @override
+  String get notifTandaiSemua => 'Tandai semua dibaca';
+
+  @override
+  String get notifSemuaDibaca => 'Semua notifikasi ditandai udah dibaca.';
+
+  @override
+  String get notifKategoriJatuhTempo => 'Jatuh tempo';
+
+  @override
+  String get notifKategoriMenungguApproval => 'Nunggu approval';
+
+  @override
+  String get notifKategoriDisetujui => 'Disetujui';
+
+  @override
+  String get notifKategoriPerluRevisi => 'Perlu revisi';
+
+  @override
+  String get notifKategoriSertifikat => 'Sertifikat terbit';
+
+  @override
+  String get notifKategoriUmum => 'Info';
 }

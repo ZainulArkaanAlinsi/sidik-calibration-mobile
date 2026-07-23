@@ -2383,6 +2383,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Outside this room\'s range ({min}–{max}).'**
   String lkSuhuDiLuarRentang(String min, String max);
+
+  /// No description provided for @navFolderManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Folders'**
+  String get navFolderManager;
+
+  /// No description provided for @folderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder Manager'**
+  String get folderTitle;
+
+  /// No description provided for @folderEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No folders yet'**
+  String get folderEmptyTitle;
+
+  /// No description provided for @folderEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Folders are created automatically per client as certificates are issued.'**
+  String get folderEmptyBody;
+
+  /// No description provided for @folderLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load folders.'**
+  String get folderLoadFailed;
+
+  /// No description provided for @folderRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'RETRY'**
+  String get folderRetry;
+
+  /// No description provided for @folderIsiKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'This folder is empty.'**
+  String get folderIsiKosong;
+
+  /// No description provided for @folderJumlahFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} folder{jumlah, plural, =1{} other{s}}'**
+  String folderJumlahFolder(int jumlah);
+
+  /// No description provided for @folderJumlahFile.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} file{jumlah, plural, =1{} other{s}}'**
+  String folderJumlahFile(int jumlah);
+
+  /// No description provided for @folderOtomatis.
+  ///
+  /// In en, this message translates to:
+  /// **'Created automatically'**
+  String get folderOtomatis;
+
+  /// No description provided for @folderUnduh.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get folderUnduh;
+
+  /// No description provided for @folderSertifikatBelumSiap.
+  ///
+  /// In en, this message translates to:
+  /// **'The certificate PDF is still being generated.'**
+  String get folderSertifikatBelumSiap;
+
+  /// No description provided for @folderUnduhGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t download: {pesan}'**
+  String folderUnduhGagal(String pesan);
+
+  /// No description provided for @notifTandaiSemua.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all as read'**
+  String get notifTandaiSemua;
+
+  /// No description provided for @notifSemuaDibaca.
+  ///
+  /// In en, this message translates to:
+  /// **'All notifications marked as read.'**
+  String get notifSemuaDibaca;
+
+  /// No description provided for @notifKategoriJatuhTempo.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date'**
+  String get notifKategoriJatuhTempo;
+
+  /// No description provided for @notifKategoriMenungguApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for approval'**
+  String get notifKategoriMenungguApproval;
+
+  /// No description provided for @notifKategoriDisetujui.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get notifKategoriDisetujui;
+
+  /// No description provided for @notifKategoriPerluRevisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs revision'**
+  String get notifKategoriPerluRevisi;
+
+  /// No description provided for @notifKategoriSertifikat.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate issued'**
+  String get notifKategoriSertifikat;
+
+  /// No description provided for @notifKategoriUmum.
+  ///
+  /// In en, this message translates to:
+  /// **'Info'**
+  String get notifKategoriUmum;
 }
 
 class _AppLocalizationsDelegate
