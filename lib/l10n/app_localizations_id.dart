@@ -2152,4 +2152,79 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get perhitAdminTersimpan => 'Kolom administratif tersimpan.';
+
+  @override
+  String get sertPratinjau => 'Pratinjau sertifikat';
+
+  @override
+  String get sertHasilJudul => 'Tabel Hasil Kalibrasi';
+
+  @override
+  String get sertKolStandard => 'Standard Value';
+
+  @override
+  String get sertKolUut => 'Unit Under Test';
+
+  @override
+  String get sertKolCorrection => 'Correction';
+
+  @override
+  String get sertKolU95 => 'U95% (±)';
+
+  @override
+  String get sertStandarJudul => 'Standar yang Digunakan';
+
+  @override
+  String get sertKolName => 'Name';
+
+  @override
+  String get sertKolMerk => 'Merk/Type';
+
+  @override
+  String get sertKolSerial => 'Serial Number';
+
+  @override
+  String get sertKolTraceable => 'Traceable to SI through';
+
+  @override
+  String get sertFooterTerbit => 'Tanggal terbit';
+
+  @override
+  String get sertFooterTtd => 'Penandatangan';
+
+  @override
+  String get sertFooterJabatan => 'Jabatan';
+
+  @override
+  String get sertFooterKode => 'Kode dokumen';
+
+  @override
+  String get sertUnduhPdf => 'PDF';
+
+  @override
+  String get sertUnduhExcel => 'EXCEL';
+
+  @override
+  String get sertLihatQr => 'QR CODE';
+
+  @override
+  String get sertBelumTerbit => 'File sertifikatnya belum siap.';
+
+  @override
+  String get sertGagalMuat => 'Gagal memuat sertifikat.';
+
+  @override
+  String sertUnduhGagal(String pesan) {
+    return 'Gagal mengunduh: $pesan';
+  }
+
+  @override
+  String get sertQrJudul => 'QR Sertifikat';
+
+  @override
+  String get sertQrBody => 'Scan buat buka halaman verifikasi sertifikat ini.';
+
+  @override
+  String get sertCorrectionCatatan =>
+      'Di sertifikat Correction = Standard − Average — kebalikan dari lembar perhitungan.';
 }

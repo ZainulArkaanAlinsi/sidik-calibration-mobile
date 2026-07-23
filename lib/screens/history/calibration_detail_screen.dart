@@ -12,7 +12,7 @@ import '../../providers/history_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/status_badge.dart';
-import 'certificate_screen.dart';
+import '../certificate/sertifikat_screen.dart';
 
 String _fmt(double? v, {int decimals = 4}) =>
     v == null ? '—' : v.toStringAsFixed(decimals);
@@ -308,7 +308,11 @@ class _Isi extends StatelessWidget {
             icon: Icons.workspace_premium_outlined,
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
-                builder: (_) => CertificateScreen(calibrationId: detail.id),
+                // Pakai id SERTIFIKAT, bukan id sesi: pratinjaunya baca
+                // `snapshot` dari `GET /certificates/{id}` — isi yang
+                // dibekukan waktu terbit, bukan data sesi yang masih hidup.
+                builder: (_) =>
+                    SertifikatScreen(certificateId: detail.certificateId!),
               ),
             ),
           ),

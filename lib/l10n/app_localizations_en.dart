@@ -2175,4 +2175,80 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get perhitAdminTersimpan => 'Administrative fields saved.';
+
+  @override
+  String get sertPratinjau => 'Certificate preview';
+
+  @override
+  String get sertHasilJudul => 'Calibration Report';
+
+  @override
+  String get sertKolStandard => 'Standard Value';
+
+  @override
+  String get sertKolUut => 'Unit Under Test';
+
+  @override
+  String get sertKolCorrection => 'Correction';
+
+  @override
+  String get sertKolU95 => 'U95% (±)';
+
+  @override
+  String get sertStandarJudul => 'Standard Used';
+
+  @override
+  String get sertKolName => 'Name';
+
+  @override
+  String get sertKolMerk => 'Merk/Type';
+
+  @override
+  String get sertKolSerial => 'Serial Number';
+
+  @override
+  String get sertKolTraceable => 'Traceable to SI through';
+
+  @override
+  String get sertFooterTerbit => 'Issuance Date';
+
+  @override
+  String get sertFooterTtd => 'Signed by';
+
+  @override
+  String get sertFooterJabatan => 'Position';
+
+  @override
+  String get sertFooterKode => 'Document code';
+
+  @override
+  String get sertUnduhPdf => 'PDF';
+
+  @override
+  String get sertUnduhExcel => 'EXCEL';
+
+  @override
+  String get sertLihatQr => 'QR CODE';
+
+  @override
+  String get sertBelumTerbit => 'The certificate file isn\'t ready yet.';
+
+  @override
+  String get sertGagalMuat => 'Couldn\'t load the certificate.';
+
+  @override
+  String sertUnduhGagal(String pesan) {
+    return 'Couldn\'t download: $pesan';
+  }
+
+  @override
+  String get sertQrJudul => 'Certificate QR';
+
+  @override
+  String get sertQrBody =>
+      'Scan to open the verification page for this certificate.';
+
+  @override
+  String get sertCorrectionCatatan =>
+      'On the certificate Correction = Standard − Average — the reverse of the calculation sheet.';
 }

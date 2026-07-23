@@ -4069,6 +4069,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Administrative fields saved.'**
   String get perhitAdminTersimpan;
+
+  /// No description provided for @sertPratinjau.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate preview'**
+  String get sertPratinjau;
+
+  /// No description provided for @sertHasilJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration Report'**
+  String get sertHasilJudul;
+
+  /// No description provided for @sertKolStandard.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard Value'**
+  String get sertKolStandard;
+
+  /// No description provided for @sertKolUut.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit Under Test'**
+  String get sertKolUut;
+
+  /// No description provided for @sertKolCorrection.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction'**
+  String get sertKolCorrection;
+
+  /// No description provided for @sertKolU95.
+  ///
+  /// In en, this message translates to:
+  /// **'U95% (±)'**
+  String get sertKolU95;
+
+  /// No description provided for @sertStandarJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard Used'**
+  String get sertStandarJudul;
+
+  /// No description provided for @sertKolName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get sertKolName;
+
+  /// No description provided for @sertKolMerk.
+  ///
+  /// In en, this message translates to:
+  /// **'Merk/Type'**
+  String get sertKolMerk;
+
+  /// No description provided for @sertKolSerial.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial Number'**
+  String get sertKolSerial;
+
+  /// No description provided for @sertKolTraceable.
+  ///
+  /// In en, this message translates to:
+  /// **'Traceable to SI through'**
+  String get sertKolTraceable;
+
+  /// No description provided for @sertFooterTerbit.
+  ///
+  /// In en, this message translates to:
+  /// **'Issuance Date'**
+  String get sertFooterTerbit;
+
+  /// No description provided for @sertFooterTtd.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed by'**
+  String get sertFooterTtd;
+
+  /// No description provided for @sertFooterJabatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Position'**
+  String get sertFooterJabatan;
+
+  /// No description provided for @sertFooterKode.
+  ///
+  /// In en, this message translates to:
+  /// **'Document code'**
+  String get sertFooterKode;
+
+  /// No description provided for @sertUnduhPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF'**
+  String get sertUnduhPdf;
+
+  /// No description provided for @sertUnduhExcel.
+  ///
+  /// In en, this message translates to:
+  /// **'EXCEL'**
+  String get sertUnduhExcel;
+
+  /// No description provided for @sertLihatQr.
+  ///
+  /// In en, this message translates to:
+  /// **'QR CODE'**
+  String get sertLihatQr;
+
+  /// No description provided for @sertBelumTerbit.
+  ///
+  /// In en, this message translates to:
+  /// **'The certificate file isn\'t ready yet.'**
+  String get sertBelumTerbit;
+
+  /// No description provided for @sertGagalMuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the certificate.'**
+  String get sertGagalMuat;
+
+  /// No description provided for @sertUnduhGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t download: {pesan}'**
+  String sertUnduhGagal(String pesan);
+
+  /// No description provided for @sertQrJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate QR'**
+  String get sertQrJudul;
+
+  /// No description provided for @sertQrBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan to open the verification page for this certificate.'**
+  String get sertQrBody;
+
+  /// No description provided for @sertCorrectionCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'On the certificate Correction = Standard − Average — the reverse of the calculation sheet.'**
+  String get sertCorrectionCatatan;
 }
 
 class _AppLocalizationsDelegate
