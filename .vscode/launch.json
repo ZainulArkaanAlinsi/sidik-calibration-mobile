@@ -20,7 +20,7 @@
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
-      "toolArgs": ["--dart-define=API_BASE_URL=http://192.168.1.18:8000/api"]
+      "toolArgs": ["--dart-define=API_BASE_URL=http://192.168.1.32:8000/api"]
     }
   ]
 }

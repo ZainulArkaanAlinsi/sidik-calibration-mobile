@@ -68,7 +68,8 @@ class LembarKerjaScreen extends ConsumerWidget {
       ),
       body: switch (bentukAsync) {
         AsyncData(:final value) => _Form(bentuk: value, sesiId: sesiId),
-        AsyncError() => _Gagal(
+        AsyncError(:final error) => _Gagal(
+          error: error,
           onCobaLagi: () => ref.invalidate(lembarKerjaProvider),
         ),
         _ => const Center(child: CircularProgressIndicator()),
@@ -78,9 +79,15 @@ class LembarKerjaScreen extends ConsumerWidget {
 }
 
 class _Gagal extends StatelessWidget {
-  const _Gagal({required this.onCobaLagi});
+  const _Gagal({required this.onCobaLagi, this.error});
 
   final VoidCallback onCobaLagi;
+
+  /// Error mentah dari provider. Ditampilin apa adanya (kecil, di bawah) —
+  /// biar di lapangan bisa dibedain "backend nggak kejangkau" (mis. Connection
+  /// refused / SocketException) dari "bentuk data salah" (parse error), tanpa
+  /// harus colok laptop buat baca log.
+  final Object? error;
 
   @override
   Widget build(BuildContext context) {
@@ -98,6 +105,16 @@ class _Gagal extends StatelessWidget {
           textAlign: TextAlign.center,
           style: theme.textTheme.titleMedium,
         ),
+        if (error != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            '$error',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
         const SizedBox(height: AppSpacing.lg),
         AppButton(
           label: l10n.lkRetry,

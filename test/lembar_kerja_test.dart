@@ -372,6 +372,65 @@ void main() {
       expect(admin.untukAdmin, isTrue);
       expect(teknisi.untukAdmin, isFalse);
     });
+
+    test('bentuk backend cacat cuma ngilangin bagian rusak, bukan seluruh form', () {
+      // Backend nyampur bagian sehat sama yang cacat: satu bagian tanpa `kode`,
+      // satu field tanpa `kode`, satu baris tabel tanpa `titik_ukur`. Sebelum
+      // ada jaring _petakanAman, satu cast keras yang gagal ngerontokin SELURUH
+      // form jadi layar "gagal muat" — gejala "komponen hilang" di lapangan.
+      final rusak = <String, dynamic>{
+        'kode_dokumen': 'X',
+        'untuk': 'teknisi',
+        'bagian': [
+          {
+            'kode': 'sehat',
+            'judul': 'Sehat',
+            'field': [
+              {'kode': 'a', 'label': 'A', 'tipe': 'teks'},
+              {'label': 'tanpa kode'}, // field cacat → dilewat
+            ],
+          },
+          {
+            // bagian tanpa `kode` → dilewat, tapi nggak ngebunuh form
+            'judul': 'Tanpa kode',
+            'field': <Map<String, dynamic>>[],
+          },
+          {
+            'kode': 'hasil',
+            'judul': 'Hasil',
+            'tabel': [
+              {
+                'tahap': 'sebelum_adjustment',
+                'baris': [
+                  {'titik_ukur': 4.0, 'label': '4'},
+                  {'label': 'tanpa titik_ukur'}, // baris cacat → dilewat
+                ],
+                'kolom': [
+                  {'kode': 'pembacaan', 'label': 'pH'},
+                ],
+                'pengulangan': [1, 2],
+              },
+            ],
+          },
+        ],
+      };
+
+      final bentuk = LembarKerja.fromJson(rusak);
+
+      // Form tetap kebentuk, bukan lempar exception.
+      final kodeBagian = bentuk.bagian.map((b) => b.kode).toList();
+      expect(kodeBagian, contains('sehat'));
+      expect(kodeBagian, contains('hasil'));
+      expect(kodeBagian, isNot(contains('Tanpa kode'))); // bagian cacat dilewat
+
+      final sehat = bentuk.bagian.firstWhere((b) => b.kode == 'sehat');
+      expect(sehat.field.map((f) => f.kode), ['a']); // field cacat dilewat
+
+      final tabel =
+          bentuk.bagian.firstWhere((b) => b.kode == 'hasil').tabel.first;
+      expect(tabel.baris.length, 1); // baris cacat dilewat
+      expect(tabel.baris.first.titikUkur, 4.0);
+    });
   });
 
   group('OCR tabel worksheet', () {

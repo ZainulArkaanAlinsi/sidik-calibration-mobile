@@ -9,6 +9,31 @@
 /// mobile baru.
 library;
 
+/// Parse tiap item list dengan aman: item yang gagal di-parse **dilewat**,
+/// bukan bikin seluruh list — dan seluruh form — ambruk.
+///
+/// Bentuk lembar kerja datang dari backend. Kalau satu field/bagian cacat
+/// (kunci hilang, tipe salah), cast keras di `fromJson`-nya melempar. Tanpa
+/// jaring ini satu kecacatan kecil ngerontokin **seluruh** form jadi layar
+/// "gagal muat". Lebih baik kehilangan satu kolom yang cacat daripada teknisi
+/// kehilangan lembar kerjanya seutuhnya.
+List<T> _petakanAman<T>(
+  dynamic list,
+  T Function(Map<String, dynamic>) parse,
+) {
+  if (list is! List) return const [];
+  final hasil = <T>[];
+  for (final item in list) {
+    if (item is! Map) continue;
+    try {
+      hasil.add(parse(Map<String, dynamic>.from(item)));
+    } catch (_) {
+      // Item cacat dilewat; sisanya tetap tampil.
+    }
+  }
+  return hasil;
+}
+
 /// Tipe kolom yang dikenali layar input. Tipe asing dari backend dianggap
 /// [teks] — kolom baru tetap kelihatan & bisa diisi, nggak bikin layar kosong.
 enum TipeField {
@@ -107,10 +132,7 @@ class FieldLembarKerja {
       sumber: SumberField.fromApi(json['sumber'] as String?),
       wajib: json['wajib'] as bool? ?? false,
       satuan: json['satuan'] as String?,
-      pilihan: (json['pilihan'] as List<dynamic>? ?? const [])
-          .cast<Map<String, dynamic>>()
-          .map(PilihanField.fromJson)
-          .toList(),
+      pilihan: _petakanAman(json['pilihan'], PilihanField.fromJson),
     );
   }
 }
@@ -175,16 +197,11 @@ class TabelHasil {
   factory TabelHasil.fromJson(Map<String, dynamic> json) => TabelHasil(
     tahap: json['tahap'] as String,
     judul: json['judul'] as String? ?? '',
-    baris: (json['baris'] as List<dynamic>? ?? const [])
-        .cast<Map<String, dynamic>>()
-        .map(BarisTabelHasil.fromJson)
-        .toList(),
-    kolom: (json['kolom'] as List<dynamic>? ?? const [])
-        .cast<Map<String, dynamic>>()
-        .map(KolomTabelHasil.fromJson)
-        .toList(),
+    baris: _petakanAman(json['baris'], BarisTabelHasil.fromJson),
+    kolom: _petakanAman(json['kolom'], KolomTabelHasil.fromJson),
     pengulangan: (json['pengulangan'] as List<dynamic>? ?? const [])
-        .map((e) => (e as num).toInt())
+        .whereType<num>()
+        .map((e) => e.toInt())
         .toList(),
   );
 }
@@ -214,14 +231,8 @@ class BagianLembarKerja {
         kode: json['kode'] as String,
         judul: json['judul'] as String? ?? '',
         sumber: json['sumber'] as String?,
-        field: (json['field'] as List<dynamic>? ?? const [])
-            .cast<Map<String, dynamic>>()
-            .map(FieldLembarKerja.fromJson)
-            .toList(),
-        tabel: (json['tabel'] as List<dynamic>? ?? const [])
-            .cast<Map<String, dynamic>>()
-            .map(TabelHasil.fromJson)
-            .toList(),
+        field: _petakanAman(json['field'], FieldLembarKerja.fromJson),
+        tabel: _petakanAman(json['tabel'], TabelHasil.fromJson),
       );
 }
 
@@ -274,15 +285,13 @@ class LembarKerja {
     untuk: json['untuk'] as String? ?? 'teknisi',
     jumlahPengulangan: (json['jumlah_pengulangan'] as num?)?.toInt() ?? 5,
     larutanStandar: (json['larutan_standar'] as List<dynamic>? ?? const [])
-        .map((e) => (e as num).toDouble())
+        .whereType<num>()
+        .map((e) => e.toDouble())
         .toList(),
     satuan: json['satuan'] as String? ?? '',
     satuanSuhu: json['satuan_suhu'] as String? ?? '°C',
     semuaKolomOpsional: json['semua_kolom_opsional'] as bool? ?? true,
     catatanPengisian: json['catatan_pengisian'] as String? ?? '',
-    bagian: (json['bagian'] as List<dynamic>? ?? const [])
-        .cast<Map<String, dynamic>>()
-        .map(BagianLembarKerja.fromJson)
-        .toList(),
+    bagian: _petakanAman(json['bagian'], BagianLembarKerja.fromJson),
   );
 }
