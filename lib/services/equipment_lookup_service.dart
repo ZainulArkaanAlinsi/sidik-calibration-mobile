@@ -77,11 +77,14 @@ class MockEquipmentLookupService implements EquipmentLookupService {
         status: 'aktif',
         merk: 'Mettler Toledo',
         model: 'Five Easy',
+        satuan: 'pH',
         rangeMin: 0,
         rangeMax: 14,
-        satuan: 'pH',
         resolusi: 0.01,
         pelangganNama: 'PT TIRTA GRACIA SEMESTA MANDIRI',
+        pelangganAlamat:
+            'Jl. Arteri Primer A-10 RT. 01 RW.12 Nyalindung Kec. Cicalengka, '
+            'Kab. Bandung, Jawa Barat',
       ),
     ];
 

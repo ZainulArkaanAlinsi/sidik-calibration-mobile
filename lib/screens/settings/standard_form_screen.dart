@@ -38,7 +38,10 @@ class _StandardFormScreenState extends ConsumerState<StandardFormScreen> {
     text: widget.existing?.tertelusurKe,
   );
   late final _ketidakpastian = TextEditingController(
-    text: widget.existing?.ketidakpastian.toString(),
+    // `?.toString()` doang nggak cukup: `ketidakpastian` sendiri boleh null
+    // (thermohygro nggak pakai kolom ini), dan `null.toString()` di Dart
+    // ngasih string "null" yang kekunci di kotak isian.
+    text: widget.existing?.ketidakpastian?.toString(),
   );
   late final _satuanKetidakpastian = TextEditingController(
     text: widget.existing?.satuanKetidakpastian,

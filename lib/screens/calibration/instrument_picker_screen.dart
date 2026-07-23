@@ -8,7 +8,7 @@ import '../../providers/calibration_input_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
 import 'calibration_input_screen.dart';
-import 'ph_calibration_input_screen.dart';
+import 'lembar_kerja_screen.dart';
 
 /// Langkah 2: dalam satu kategori (mis. Instrumen Analitik), tampilin tiap
 /// jenis alat spesifik yang punya kemampuan kalibrasi terdaftar (`GET
@@ -16,7 +16,7 @@ import 'ph_calibration_input_screen.dart';
 /// datanya dari lampiran akreditasi LK-285-IDN, bukan dikarang.
 ///
 /// pH Meter dapet perlakuan khusus: dia satu-satunya jenis alat yang punya
-/// form kalibrasi sendiri ([PhCalibrationInputScreen]) karena strukturnya
+/// form kalibrasi sendiri ([LembarKerjaScreen]) karena strukturnya
 /// jauh lebih spesifik dari form generik (lihat komentar di layar itu).
 /// Jenis alat lain semua lanjut ke [CalibrationInputScreen] generik, dengan
 /// kategori udah ke-pre-fill biar teknisi nggak milih ulang.
@@ -194,7 +194,7 @@ class _InstrumenCard extends StatelessWidget {
   void _pilih(BuildContext context) {
     if (kemampuan.namaAlat == _phMeter) {
       Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const PhCalibrationInputScreen()),
+        MaterialPageRoute<void>(builder: (_) => const LembarKerjaScreen()),
       );
       return;
     }
