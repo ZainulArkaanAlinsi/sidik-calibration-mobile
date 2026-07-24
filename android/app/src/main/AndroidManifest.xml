@@ -1,6 +1,23 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Permission CAMERA sekarang WAJIB dideklarasiin, dan ini berubah dari
+         sebelumnya.
+
+         Dulu sengaja nggak ada: `image_picker` manggil app kamera lewat
+         intent, dan intent nggak butuh permission. Tapi scan langsung
+         (`live_scan_screen.dart`) bukan intent — dia buka kamera sendiri
+         lewat paket `camera` buat baca aliran frame. Tanpa baris ini,
+         kameranya gagal kebuka.
+
+         Plugin `camera` yang minta izinnya ke user waktu layar scan dibuka,
+         jadi nggak ada yang perlu ditangani manual. Yang nolak izin tetap
+         bisa ngetik manual — scan itu jalan pintas, bukan syarat.
+
+         Kameranya tetap OPSIONAL biar app masih keinstall di perangkat tanpa
+         kamera (mis. emulator lama). -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-feature android:name="android.hardware.camera" android:required="false"/>
     <application
-        android:label="asmo_mobile"
+        android:label="PT Sidik Calibration"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

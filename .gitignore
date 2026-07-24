@@ -44,10 +44,20 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Vault Obsidian (rencana & catatan harian project) — bukan bagian dari kode app
+# Vault Obsidian (rencana & catatan harian project) — bukan bagian dari kode app.
+# JANGAN di-commit: isinya dokumen internal PT Sidik (draft akreditasi LK-285-IDN,
+# master perhitungan pH, data kemampuan kalibrasi) dan repo ini publik.
+# Nama lama /Project-PT-ASMO/ tetap ditahan buat yang folder lokalnya belum di-rename.
 /Project-PT-ASMO/
+/Project-PT-Sidik/
 
 # Diff bikinan golden test waktu screenshot nggak cocok. Ke-regenerate sendiri
 # tiap test gagal — ini hasil debug, bukan kode. Yang di-commit cuma golden-nya
 # (`test/screenshots/`).
 /test/failures/
+
+# Formulir & lembar kerja asli PT Sidik (SIDIK-FM-*, SIDIK-IK-*).
+# JANGAN di-commit: ini dokumen mutu internal lab terakreditasi, dan repo ini
+# publik. Dipakai cuma sebagai acuan waktu ngembangin, bukan bagian dari kode.
+SIDIK-FM-*.pdf
+SIDIK-IK-*.pdf

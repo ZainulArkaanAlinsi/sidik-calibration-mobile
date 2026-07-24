@@ -1,5 +1,5 @@
-name: asmo_mobile
-description: "Aplikasi kalibrasi alat ukur & sertifikat digital PT ASMO (teknisi & admin, satu APK)."
+name: sidik_calibration
+description: "Aplikasi kalibrasi alat ukur & sertifikat digital PT Sidik (teknisi & admin, satu APK)."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -38,6 +38,32 @@ dependencies:
   flutter_secure_storage: ^10.3.1
   http: ^1.6.0
 
+  # Realtime sync (spec poin 12D): websocket protokol Pus./Reverb, pure-Dart
+  # biar lintas platform (mobile + desktop) & bisa di-widget-test tanpa native.
+  web_socket_channel: ^3.0.1
+
+  # i18n (dwibahasa ID/EN). `intl` versinya di-pin oleh flutter_localizations,
+  # jadi pakai `any` biar `flutter pub get` yang nyocokin.
+  flutter_localizations:
+    sdk: flutter
+  intl: any
+
+  # Nyimpen pilihan bahasa biar nggak balik ke default tiap app dibuka.
+  shared_preferences: ^2.3.2
+
+  # Ambil foto profil dari galeri/kamera HP masing-masing, plus foto tabel
+  # worksheet buat diekstrak AI Vision di backend (lihat `worksheet_vision.dart`
+  # + `SPEC-vision-ai-worksheet-extraction.md`). Cukup sekali jepret — nggak
+  # perlu aliran frame lagi karena AI yang paham layout & orientasi tabel.
+  image_picker: ^1.1.2
+
+  path_provider: ^2.1.6
+  open_filex: ^4.7.0
+
+  # Milih file .xlsx buat Import Excel (spesifikasi poin 12C). `image_picker`
+  # yang udah ada cuma bisa gambar, jadi nggak kepakai di sini.
+  file_picker: ^8.1.7
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -48,6 +74,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -55,12 +82,16 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
 
+  # Aktifkan generator localization (baca l10n.yaml + lib/l10n/*.arb →
+  # AppLocalizations). Wajib buat dwibahasa.
+  generate: true
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
 
-  # Inter — font di desain Titanium (Project-PT-ASMO/gambar/titanium_light).
+  # Inter — font di desain Titanium (Project-PT-Sidik/gambar/titanium_light).
   # Sengaja dibundel di APK, bukan pakai `google_fonts` yang ngunduh waktu
   # runtime: teknisi di lapangan sinyalnya nggak nentu, font nggak boleh
   # gagal muncul. Lisensi SIL OFL (assets/fonts/LICENSE-Inter.txt).
@@ -76,10 +107,9 @@ flutter:
         - asset: assets/fonts/Inter-Bold.ttf
           weight: 700
 
-  # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  # Logo resmi PT Sidik (dipakai di badge brand layar auth).
+  assets:
+    - assets/images/logo_pt_sidik.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

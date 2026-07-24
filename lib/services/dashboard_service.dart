@@ -11,9 +11,12 @@ abstract class DashboardService {
 /// yang mutusin dari token: teknisi cuma diitungin kalibrasi miliknya sendiri,
 /// admin & viewer lintas-teknisi.
 ///
-/// Catatan dari backend: `kalibrasi_draft`, `menunggu_approval` &
-/// `sertifikat_bulan_ini` sekarang **selalu 0** — wajar, fitur kalibrasinya
-/// baru digarap minggu 4. Jadi kartu-kartu itu nol bukan berarti bug.
+/// Cakupan angkanya **nggak seragam**, dan ini penting buat yang baca layarnya:
+/// angka sesi (`kalibrasi_*`, `menunggu_approval`, `grafik_pekerjaan`) buat
+/// teknisi disaring jadi miliknya sendiri, tapi angka alat & sertifikat
+/// (`total_alat`, `alat_overdue`, `total_sertifikat`, `sertifikat_bulan_ini`)
+/// **selalu se-lab**. Jadi "Kalibrasi selesai: 2" bareng "Total sertifikat: 15"
+/// itu wajar, bukan data ngaco.
 class ApiDashboardService implements DashboardService {
   ApiDashboardService(this._api);
 
@@ -59,17 +62,36 @@ class MockDashboardService implements DashboardService {
         totalAlat: 0,
         alatOverdue: 0,
         kalibrasiDraft: 0,
+        kalibrasiSelesai: 0,
         menungguApproval: 0,
         sertifikatBulanIni: 0,
+        totalSertifikat: 0,
+        // Kosong, bukan deret nol: state "belum ada apa-apa" nggak boleh
+        // nampilin grafik sama sekali.
+        grafikPekerjaan: [],
       );
     }
 
-    return const DashboardSummary(
-      totalAlat: 42,
-      alatOverdue: 3,
-      kalibrasiDraft: 2,
-      menungguApproval: 5,
-      sertifikatBulanIni: 12,
-    );
+    // Dibangun lewat `fromJson` pakai nama field yang PERSIS kayak server,
+    // bukan lewat constructor. Waktu mock-nya ngisi `TitikTren` langsung,
+    // salah nama field di parser (`periode` vs `bulan`) nggak kelihatan sama
+    // sekali dari test — mock-nya ngelewatin parser yang mau diuji.
+    return DashboardSummary.fromJson(const {
+      'total_alat': 42,
+      'alat_overdue': 3,
+      'kalibrasi_draft': 2,
+      'kalibrasi_selesai': 18,
+      'menunggu_approval': 5,
+      'sertifikat_bulan_ini': 12,
+      'total_sertifikat': 137,
+      'grafik_pekerjaan': [
+        {'bulan': '2026-02', 'label': 'Feb 2026', 'masuk': 8, 'selesai': 7},
+        {'bulan': '2026-03', 'label': 'Mar 2026', 'masuk': 12, 'selesai': 11},
+        {'bulan': '2026-04', 'label': 'Apr 2026', 'masuk': 6, 'selesai': 6},
+        {'bulan': '2026-05', 'label': 'May 2026', 'masuk': 14, 'selesai': 10},
+        {'bulan': '2026-06', 'label': 'Jun 2026', 'masuk': 9, 'selesai': 9},
+        {'bulan': '2026-07', 'label': 'Jul 2026', 'masuk': 5, 'selesai': 2},
+      ],
+    });
   }
 }

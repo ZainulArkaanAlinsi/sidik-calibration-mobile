@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/theme/app_spacing.dart';
 import '../core/theme/app_typography.dart';
+import 'glass_surface.dart';
 import 'skeleton.dart';
 
 /// Kartu angka di Dashboard.
@@ -40,50 +41,124 @@ class StatCard extends StatelessWidget {
     // ditangkap mata duluan itu angkanya.
     final warnaIkon = warna ?? theme.colorScheme.onSurfaceVariant;
 
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+    return SoftRaised(
+      onTap: onTap,
+      radius: AppSpacing.radiusLg,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      '$nilai',
-                      // Lebar digit tetap — biar angka antar kartu lurus dan
-                      // nggak goyang tiap nilainya berubah.
-                      style: AppTypography.measurement.copyWith(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w700,
-                        height: 40 / 32,
-                        letterSpacing: -0.32,
-                        color: warnaAngka,
-                      ),
-                    ),
+              Expanded(
+                child: Text(
+                  '$nilai',
+                  // Lebar digit tetap — biar angka antar kartu lurus dan
+                  // nggak goyang tiap nilainya berubah.
+                  style: AppTypography.measurement.copyWith(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w700,
+                    height: 40 / 32,
+                    letterSpacing: -0.32,
+                    color: warnaAngka,
                   ),
-                  Icon(icon, size: 18, color: warnaIkon),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              // Label = metadata, jadi huruf besar + spasi lebar (DESIGN.md),
-              // biar kebedain dari angkanya.
-              Text(
-                label.toUpperCase(),
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
+              Icon(icon, size: 18, color: warnaIkon),
             ],
           ),
-        ),
+          const SizedBox(height: AppSpacing.xs),
+          // Label = metadata, jadi huruf besar + spasi lebar (DESIGN.md),
+          // biar kebedain dari angkanya.
+          Text(
+            label.toUpperCase(),
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Kartu angka yang melebar penuh — buat angka penutup yang nggak punya
+/// pasangan.
+///
+/// Dulu kartu ganjil dipaksa masuk [StatCardRow] dan nyisain slot kosong di
+/// sebelahnya. Itu kebaca kayak layout patah, bukan disengaja. Versi melebar
+/// ini bikin ganjilnya jadi keputusan: susunannya horizontal (angka kiri,
+/// label kanan) supaya bidang lebarnya kepakai, bukan cuma kartu biasa yang
+/// ditarik melar.
+///
+/// Dipakai juga sebagai penutup daftar angka — bentuknya beda, jadi mata tahu
+/// deretnya udah habis di situ.
+class StatCardWide extends StatelessWidget {
+  const StatCardWide({
+    super.key,
+    required this.label,
+    required this.nilai,
+    required this.icon,
+    this.warna,
+    this.onTap,
+  });
+
+  final String label;
+  final int nilai;
+  final IconData icon;
+  final Color? warna;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final aksen = warna ?? theme.colorScheme.onSurface;
+
+    return SoftRaised(
+      onTap: onTap,
+      radius: AppSpacing.radiusLg,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Row(
+        children: [
+          // Ikonnya dikasih alas lingkaran berwarna tipis — di kartu selebar
+          // ini, ikon telanjang kelihatan ngambang sendirian di ujung.
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: aksen.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 22, color: aksen),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Text(
+            '$nilai',
+            style: AppTypography.measurement.copyWith(
+              fontSize: 32,
+              fontWeight: FontWeight.w700,
+              height: 40 / 32,
+              letterSpacing: -0.32,
+              color: aksen,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Text(
+              label.toUpperCase(),
+              textAlign: TextAlign.end,
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -97,10 +172,14 @@ class StatCard extends StatelessWidget {
 /// tingginya ngikut isi, jadi overflow-nya nggak bisa kejadian lagi — sekalian
 /// ilangin ruang kosong yang nganggur di bawah tiap kartu.
 class StatCardRow extends StatelessWidget {
-  const StatCardRow({super.key, required this.kiri, required this.kanan});
+  const StatCardRow({super.key, required this.kiri, this.kanan});
 
   final Widget kiri;
-  final Widget kanan;
+
+  /// Boleh kosong kalau jumlah kartunya ganjil. Slot kanannya tetap dipesan
+  /// (bukan bikin kartu kiri melar selebar layar), biar lebar kartu konsisten
+  /// dengan baris-baris di atasnya.
+  final Widget? kanan;
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +189,7 @@ class StatCardRow extends StatelessWidget {
         children: [
           Expanded(child: kiri),
           const SizedBox(width: AppSpacing.sm),
-          Expanded(child: kanan),
+          Expanded(child: kanan ?? const SizedBox.shrink()),
         ],
       ),
     );

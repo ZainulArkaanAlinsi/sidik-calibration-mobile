@@ -1,7 +1,7 @@
 /// Identitas laboratorium terakreditasi.
 ///
 /// Sumbernya **Lampiran Sertifikat Akreditasi No. LK-285-IDN** (KAN,
-/// SNI ISO/IEC 17025:2017) — lihat `Project-PT-ASMO/04 - Referensi Teknis/`.
+/// SNI ISO/IEC 17025:2017) — lihat `Project-PT-Sidik/04 - Referensi Teknis/`.
 ///
 /// Ini bukan sekadar teks branding: **nama & nomor akreditasi di sini yang
 /// muncul di sertifikat kalibrasi**. Sertifikat wajib atas nama lab yang

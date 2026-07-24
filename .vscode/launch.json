@@ -1,0 +1,26 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "asmo — MOCK (tanpa server, paling gampang)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "toolArgs": ["--dart-define=USE_MOCK=true"]
+    },
+    {
+      "name": "asmo — API asli (web/desktop, localhost)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "toolArgs": ["--dart-define=API_BASE_URL=http://localhost:8000/api"]
+    },
+    {
+      "name": "asmo — API asli (HP fisik via IP laptop)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "toolArgs": ["--dart-define=API_BASE_URL=http://192.168.1.32:8000/api"]
+    }
+  ]
+}

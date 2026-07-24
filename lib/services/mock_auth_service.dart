@@ -13,7 +13,7 @@ class MockAuthService implements AuthService {
     {
       'id': 1,
       'nama': 'Budi Santoso',
-      'email': 'admin@asmo.test',
+      'email': 'admin@pt-sidik.com',
       'employee_id': 'ASM-0001',
       'role': 'admin',
       'status': 'aktif',
@@ -23,7 +23,7 @@ class MockAuthService implements AuthService {
     {
       'id': 2,
       'nama': 'Andi Pratama',
-      'email': 'teknisi@asmo.test',
+      'email': 'teknisi@pt-sidik.com',
       'employee_id': 'ASM-0002',
       'role': 'teknisi',
       'status': 'aktif',
@@ -33,7 +33,7 @@ class MockAuthService implements AuthService {
     {
       'id': 3,
       'nama': 'Citra Dewi',
-      'email': 'viewer@asmo.test',
+      'email': 'viewer@pt-sidik.com',
       'employee_id': 'ASM-0003',
       'role': 'viewer',
       'status': 'aktif',
@@ -45,7 +45,7 @@ class MockAuthService implements AuthService {
     {
       'id': 4,
       'nama': 'Dewi Lestari',
-      'email': 'pending@asmo.test',
+      'email': 'pending@pt-sidik.com',
       'employee_id': 'ASM-0004',
       'role': 'teknisi',
       'status': 'pending',
@@ -72,7 +72,10 @@ class MockAuthService implements AuthService {
           (u['employee_id'] as String).toLowerCase() == key;
     }).firstOrNull;
 
-    if (json == null || password != _password) {
+    // Password per-akun: seed pakai default `_password`, tapi bisa diubah lewat
+    // resetPassword / dipilih sendiri waktu register.
+    final expected = (json?['password'] as String?) ?? _password;
+    if (json == null || password != expected) {
       throw const AuthException('ID pegawai / email atau password salah.');
     }
 
@@ -124,6 +127,7 @@ class MockAuthService implements AuthService {
       'status': 'pending',
       'department': data.department,
       'organization_id': 1,
+      'password': data.password,
     });
   }
 
@@ -131,14 +135,32 @@ class MockAuthService implements AuthService {
   Future<void> requestPasswordReset(String email) async {
     await Future<void>.delayed(_jeda);
 
-    final terdaftar = _akun.any(
-      (u) =>
-          (u['email'] as String).toLowerCase() == email.trim().toLowerCase(),
-    );
-
-    if (!terdaftar) {
+    if (_cariAkun(email) == null) {
       throw const AuthException('Email ini nggak terdaftar.');
     }
+  }
+
+  @override
+  Future<void> resetPassword({
+    required String email,
+    required String newPassword,
+  }) async {
+    await Future<void>.delayed(_jeda);
+
+    final akun = _cariAkun(email);
+    if (akun == null) {
+      throw const AuthException('Email ini nggak terdaftar.');
+    }
+    // Password beneran keganti — habis ini login pakai password baru bakal
+    // sukses, yang lama ditolak. Bukan sekadar layar "berhasil".
+    akun['password'] = newPassword;
+  }
+
+  Map<String, dynamic>? _cariAkun(String email) {
+    final key = email.trim().toLowerCase();
+    return _akun
+        .where((u) => (u['email'] as String).toLowerCase() == key)
+        .firstOrNull;
   }
 
   @override

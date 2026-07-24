@@ -71,17 +71,17 @@ Bikin ini duluan, hari ini juga kalau bisa. Kecil, tapi begitu ada, mobile bisa 
 > - **`429 Too Many Requests`** bisa muncul: login dibatesin **10 percobaan/menit per IP**, register **5/menit**. Siapin pesan "coba lagi sebentar" di UI.
 > - Akun **`nonaktif`** ditolak `403` juga, pesannya `"Akun ini nonaktif. Hubungi admin."` (beda dari pesan `pending`).
 > - **`organization_id` masih `null`** buat akun hasil register — tabel `organizations` belum ada (baru dirancang di ERD hari ini). Jangan dianggap wajib int dulu di sisi Dart, biar nggak crash pas parsing.
-> - Akun dev buat nyoba: `ASM-0001` (admin) · `ASM-0002` (teknisi) · `ASM-0003` (viewer) · `ASM-0099` (sengaja `pending`, buat nyobain layar "belum disetujui"). Password semua `rahasia123`.
+> - Akun dev buat nyoba: `SDK-0001` (admin) · `SDK-0002` (teknisi) · `SDK-0003` (viewer) · `SDK-0099` (sengaja `pending`, buat nyobain layar "belum disetujui"). Password semua `rahasia123`.
 
 ### `POST /api/login`
 
-**Login nerima ID pegawai ATAU email** di satu field `identifier` — teknisi di lapangan hafal nomor pegawainya (`ASM-0001`), bukan emailnya. Backend yang nebak: kalau ada `@` anggap email, kalau nggak anggap `employee_id`.
+**Login nerima ID pegawai ATAU email** di satu field `identifier` — teknisi di lapangan hafal nomor pegawainya (`SDK-0001`), bukan emailnya. Backend yang nebak: kalau ada `@` anggap email, kalau nggak anggap `employee_id`.
 
 Request:
 ```json
-{ "identifier": "ASM-0001", "password": "rahasia123" }
+{ "identifier": "SDK-0001", "password": "rahasia123" }
 ```
-(atau `{ "identifier": "admin@asmo.test", "password": "..." }` — dua-duanya harus jalan)
+(atau `{ "identifier": "admin@sidik.test", "password": "..." }` — dua-duanya harus jalan)
 
 Response `200`:
 ```json
@@ -91,8 +91,8 @@ Response `200`:
     "user": {
       "id": 1,
       "nama": "Budi Santoso",
-      "email": "admin@asmo.test",
-      "employee_id": "ASM-0001",
+      "email": "admin@sidik.test",
+      "employee_id": "SDK-0001",
       "role": "admin",
       "status": "aktif",
       "department": "Quality Control",
@@ -121,7 +121,7 @@ Request:
 ```json
 {
   "nama": "Eko Prasetyo",
-  "employee_id": "ASM-0099",
+  "employee_id": "SDK-0099",
   "department": "Kalibrasi",
   "email": "eko@ptasmo.com",
   "password": "rahasia123"
@@ -139,7 +139,7 @@ Aturan yang wajib dipegang backend:
 - Password minimal 8 karakter
 
 ### `POST /api/forgot-password`
-Request: `{ "email": "admin@asmo.test" }`
+Request: `{ "email": "admin@sidik.test" }`
 Response `200`: `{ "message": "Link reset password udah dikirim ke email kamu." }`
 Email nggak terdaftar → `404` `{ "message": "Email ini nggak terdaftar." }`
 
@@ -163,12 +163,12 @@ Dipakai dari link di email (deep link ke app).
 
 Request — **`email` ikut dikirim**, ya:
 ```json
-{ "token": "...", "email": "teknisi@asmo.test", "password": "passwordbaru123" }
+{ "token": "...", "email": "teknisi@sidik.test", "password": "passwordbaru123" }
 ```
 
 > ✅ **Live sejak 14 Jul.** Tiga catatan:
-> - **`email` wajib ada.** Token reset itu nempel ke email, jadi backend butuh dua-duanya buat nyocokin. Mobile udah punya nilainya: link di email bentuknya `asmo://reset-password?token=...&email=...` — tinggal dibaca dari deep link-nya.
-> - **Deep link `asmo://`** — tolong daftarin scheme itu di Android manifest. Waktu dev backend pakai `MAIL_MAILER=log`, jadi link-nya nongol di `storage/logs/laravel.log` (bisa di-copy manual buat tes).
+> - **`email` wajib ada.** Token reset itu nempel ke email, jadi backend butuh dua-duanya buat nyocokin. Mobile udah punya nilainya: link di email bentuknya `sidik://reset-password?token=...&email=...` — tinggal dibaca dari deep link-nya.
+> - **Deep link `sidik://`** — tolong daftarin scheme itu di Android manifest. Waktu dev backend pakai `MAIL_MAILER=log`, jadi link-nya nongol di `storage/logs/laravel.log` (bisa di-copy manual buat tes).
 > - **`password_confirmation` opsional.** Kalau dikirim, dicek harus sama; kalau nggak, ya udah — konfirmasinya kamu cek di UI.
 > - Sukses → `200 { "message": "Password berhasil diubah. Silakan login lagi." }`. Token ngawur/kadaluarsa → `422`.
 > - **Semua token login lama otomatis dicabut** sesudah reset berhasil. Jadi kalau HP lama masih megang sesi, sesinya mati — justru itu alasan orang me-reset password.
@@ -185,6 +185,12 @@ Response `200`: `{ "message": "Berhasil logout." }`
 - **`POST /api/users/{id}/reject`** — tolak pendaftaran
 
 Kalau endpoint approve belum ada, **register jadi jebakan**: orang daftar, terus nggak pernah bisa masuk selamanya, dan nggak ada yang tahu. Jadi dua-duanya harus jalan bareng.
+
+> ⚠️ **20 Jul — perubahan perilaku, tolong dicek di sisi mobile.** `GET /api/users` sebelumnya balikin user dari **semua PT**, bukan cuma PT-nya admin yang login — itu bug, bukan fitur. Sekarang udah dikunci per organisasi.
+>
+> Efeknya buat mobile: **jumlah baris di layar approval bisa berkurang** kalau selama ini ada data lintas-PT yang keikut. Dan `{id}` milik PT lain sekarang balik **`404`** di `approve`/`reject`/`update`/`reset-password`, yang tadinya `200`. Kalau ada layar yang nyimpen ID hasil listing lama, itu yang perlu diperiksa.
+>
+> Catatan yang sama berlaku buat `GET /api/technicians` (Bagian 9) — dari awal emang udah dikunci per PT.
 
 ---
 
@@ -227,9 +233,11 @@ Query params yang mobile pakai: `?search=kaliper&category=panjang&status=overdue
 >
 > **4. Hak akses**: baca = semua role (termasuk viewer). Nulis (`POST`/`PUT`/`DELETE`) = **admin & teknisi**; viewer ditolak `403`. Sesuai permintaan kamu.
 >
-> **5. Field bonus di response** (di luar kontrak, aman diabaikan): `model`, `no_identifikasi`, `range_min`, `range_max`, `satuan`, `resolusi`, `toleransi`, `lokasi`. Ini dibutuhin nanti pas layar kalibrasi.
+> **5. Field bonus di response** (di luar kontrak, aman diabaikan): `model`, `no_identifikasi`, `range_min`, `range_max`, `satuan`, `resolusi`, `toleransi`, `lokasi`, dan **`nama_alat_kemampuan`**. Ini dibutuhin nanti pas layar kalibrasi.
 >
 > **6. `meta` paginasinya lebih gemuk dari yang kamu tulis** — Laravel ikut ngirim `from`, `to`, `path`, `links`. Superset, jadi aman; abaikan aja yang nggak kepakai.
+>
+> **✅ 18 Jul — audit ulang, `nama_alat_kemampuan` sekarang beneran dipakai mobile.** Sebelumnya field ini kekirim di response tapi nggak pernah diisi lewat form Alat — efeknya SEMUA alat yang didaftarin lewat app selama ini kemungkinan kalibrasinya jatuh ke jalur ketidakpastian generik (standar+resolusi), bukan CMC resmi hasil akreditasi (`GumCalculator::kemampuanUntukTitik()` di backend cocokin lewat field ini + rentang, bukan cuma `equipment_category_id`). Form Alat sekarang punya dropdown "Jenis Alat (Kemampuan Kalibrasi)" yang isinya dari `GET /api/categories/{kode}` → `kemampuan[].nama_alat`, opsional tapi direkomendasiin diisi. Field `catatan` juga sekarang kepakai (ada di `EquipmentRequest` tapi belum pernah dikirim mobile).
 
 ### `GET /api/equipments/{id}` — 1 objek, bentuk sama.
 ### `POST /api/equipments` · `PUT /api/equipments/{id}` · `DELETE /api/equipments/{id}`
@@ -298,7 +306,42 @@ Mobile butuh ini buat isi dropdown kategori + nyiapin worksheet dinamis (kolom t
 > ### Tambahan di luar kontrak
 > - **`status: "draft"` boleh dikirim di `POST`** — buat "simpan dulu, lanjut nanti". Kalau nggak dikirim, sesi langsung masuk antrean approval (`menunggu_approval`), sesuai contoh kamu.
 > - **`PUT /api/calibrations/{id}`** — teknisi ngerjain ulang sesi yang ditolak admin (`perlu_revisi`) atau nerusin draft. Body-nya sama kayak `POST`. Tanpa ini, tombol "reject" jadi jalan buntu: teknisi dikasih catatan revisi tapi nggak bisa ngapa-ngapain. Sesi yang udah `disetujui` **nggak bisa** diubah (`422`) — angka di sertifikat yang udah dipegang pelanggan nggak boleh berubah diam-diam.
-> - **Field bonus di response** (superset, aman diabaikan): `nomor_sesi` (`KAL/2026/07/0001`), `standar_acuan`, `suhu_ruang`, `kelembaban`, `lokasi`, dan **`titik`** — rincian tiap titik ukur (error, koreksi, Type A, Type B beserta rincian komponennya, U, keputusan per titik). `titik` ini yang kamu butuhin buat nampilin worksheet & tabel ketidakpastian.
+> - **Field bonus di response** (superset, aman diabaikan): `nomor_sesi` (`KAL/2026/07/0001`), `standar_acuan`, `suhu_ruang`, `kelembaban`, `lokasi`, `sertifikat`, dan **`titik`** — rincian tiap titik ukur. Mobile udah nampilin ini di layar Detail Hasil Kalibrasi (`lib/screens/history/calibration_detail_screen.dart`), sinkron sama `CalibrationResource::toArray()`.
+>
+> **✅ Bentuk `titik` — dikonfirmasi dari `CalibrationResource.php` (commit `06af54e`, 18 Jul):**
+> ```json
+> "titik": [
+>   {
+>     "titik_ke": 2,
+>     "titik_ukur": 6.9889072,
+>     "rata_rata": 7.004,
+>     "error": 0.0150928,
+>     "koreksi": -0.0150928,
+>     "standar_deviasi": 0.0054772256,
+>     "jumlah_pengulangan": 5,
+>     "type_a": 0.0054772256,
+>     "type_b": 0.01047,
+>     "type_b_components": [
+>       { "sumber": "ketidakpastian_standar", "keterangan": "Sertifikat standar pH Buffer Solution 7 (U=0.02 pH, k=2)", "distribusi": "normal", "nilai": 0.01 },
+>       { "sumber": "resolusi_alat", "keterangan": "Resolusi alat 0.01 pH", "distribusi": "persegi", "nilai": 0.005 }
+>     ],
+>     "ketidakpastian_gabungan": 0.010714869,
+>     "faktor_cakupan_k": 1.9706589608,
+>     "ketidakpastian_diperluas": 0.0211089499,
+>     "toleransi": 0.05,
+>     "keputusan": "PASS",
+>     "standar_acuan": { "id": 3, "nama": "pH Buffer Solution 7", "no_sertifikat": "HC46341939" }
+>   }
+> ]
+> ```
+> Catatan buat mobile: **nggak ada `satuan` atau `pembacaan` di dalam tiap `titik`** — beda dari yang mobile kira sebelumnya. Pembacaan mentahnya ada di field terpisah `pembacaan_mentah` (array top-level, cuma ikut di `GET /api/calibrations/{id}` — bukan di daftar), isinya `{id, titik_ke, pembacaan_ke, pembacaan, input_source, is_verified, photo_path, ocr_confidence, ocr_raw_text}`, dikelompokkan lewat `titik_ke` yang sama. `type_b_komponen` yang mobile tulis sebelumnya salah nama field — yang bener `type_b_components` (komponennya `sumber`/`keterangan`/`distribusi`/`nilai`, dan `keterangan` udah diformat siap-tampil, jangan disusun ulang jadi kalimat sendiri).
+>
+> **`titik` cuma keisi setelah sesi lewat kalkulasi** (`disetujui` / `menunggu_approval` yang udah diproses) — mobile nganggep array kosong `[]` buat `draft`, dan nampilin pesan "belum dihitung" bukan tabel kosong.
+> - **`sertifikat`** (bukan `certificate_id` doang) — objek `{id, nomor, status, pdf_url}` embed langsung di detail sesi, `pdf_url` cuma keisi kalau `status: "terbit"`. Mobile masih manggil `GET /api/certificates/{id}` terpisah lewat `approval_service.dart` (belum dipindah ke sini) — dua-duanya jalan, tapi kalau mau lebih hemat 1 request, tinggal pakai field ini.
+> - **`measurements[].standard_id`** (per titik, opsional) — buat kategori yang butuh standar BEDA per titik ukur, kayak pH (buffer 4/7/10 masing-masing sertifikatnya sendiri, lihat `SERTIFIKAT.csv` di worksheet asli). ✅ **Mobile sekarang ngirim ini** — `ph_calibration_input_screen.dart` punya dropdown "Standar Acuan (Termometer & Sensor)" buat sesi (kondisi lingkungan) + dropdown standar buffer terpisah di tiap kartu titik (4/7/10), masing-masing kekirim sebagai `measurements[i].standard_id`.
+> - **`measurements[].pembacaan_sebelum`** (per titik, opsional, array angka) — pembacaan **as-found** (sebelum alat di-adjustment). ✅ **Live sejak 20 Jul.** Murni dokumentasi kondisi alat, **TIDAK ikut** `GumCalculator::hitungTitik()` — cuma disimpan ke `raw_measurements` dengan `tahap: sebelum_adjustment` (lawannya `sesudah_adjustment`, yang dipakai buat hitungan resmi). Nggak ada minimum jumlah pembacaan (beda dari `pembacaan` utama yang wajib ≥2). Ikut balik di `GET /api/calibrations/{id}` lewat `pembacaan_mentah[].tahap`.
+> - **`client_request_id`** (opsional, UUID) — idempotency key buat retry submit yang aman kalau koneksi putus pas nunggu respons. ✅ **Mobile sekarang ngirim ini** — di-generate sekali (`generateUuidV4()`, `lib/core/utils/uuid.dart`) waktu layar input dibuka, dipakai ulang tiap tap tombol kirim/simpan draft di sesi form yang sama.
+> - **`lokasi`** sekarang enum `lab` / `onsite` (default `lab`), bukan teks bebas. ✅ **Mobile sekarang punya field-nya** — dropdown "Lokasi Kalibrasi" (Lab / Onsite) di kedua layar input (generik & pH).
 > - **`hasil` itu ringkasan dari titik PENENTU**, bukan titik pertama. Sesi bisa punya banyak titik ukur tapi sertifikat cuma nampilin satu keputusan — yang dipajang adalah titik yang paling mepet ke batas (|error| + U terbesar). **Satu titik FAIL bikin seluruh sesi FAIL.**
 >
 > ### Soal `?mine=true`
@@ -338,7 +381,7 @@ Mobile butuh ini buat isi dropdown kategori + nyiapin worksheet dinamis (kolom t
 >
 > Ada juga **`GET /api/standards/{id}`** kalau butuh satu objek.
 >
-> ⚠️ **Belum ada `POST`/`PUT`/`DELETE`** — standar masih diisi lewat seeder. Begitu lab mau daftarin standar keduanya, ini bakal jadi kebutuhan. Kabarin kalau layar Pengaturan butuh CRUD-nya.
+> **✅ 18 Jul — `POST`/`PUT`/`DELETE /api/standards` ternyata udah ada** (admin doang, dijaga `role:admin`) — dokumen ini ketinggalan, mobile baru sadar pas ngecek `StandardController.php` langsung. Layar kelola Standar Acuan (list + form CRUD) sekarang ada di app (Profil → Standar Acuan admin), dan field `model` yang sebelumnya kelewat di model mobile sekarang ikut ditangkep.
 
 ### `POST /api/calibrations`
 Bikin sesi kalibrasi + kirim data mentah sekaligus. **Data dari input manual dan dari hasil scan kamera masuk ke endpoint yang sama persis** — nggak usah bikin endpoint terpisah buat OCR. Bedanya cuma di field `input_method` (buat statistik, bukan buat logic beda).
@@ -481,14 +524,44 @@ Isinya beda tergantung role — teknisi dapat ringkasan miliknya, admin dapat li
     "alat_overdue": 3,
     "kalibrasi_draft": 2,
     "menunggu_approval": 5,
-    "sertifikat_bulan_ini": 12
+    "kalibrasi_selesai": 27,
+    "menunggu_proses": 8,
+    "total_sertifikat": 137,
+    "sertifikat_bulan_ini": 12,
+    "grafik_pekerjaan": [
+      { "bulan": "2026-02", "label": "Feb 2026", "masuk": 4, "selesai": 3 },
+      { "bulan": "2026-03", "label": "Mar 2026", "masuk": 0, "selesai": 0 },
+      { "bulan": "2026-04", "label": "Apr 2026", "masuk": 7, "selesai": 6 },
+      { "bulan": "2026-05", "label": "May 2026", "masuk": 5, "selesai": 5 },
+      { "bulan": "2026-06", "label": "Jun 2026", "masuk": 9, "selesai": 8 },
+      { "bulan": "2026-07", "label": "Jul 2026", "masuk": 3, "selesai": 1 }
+    ]
   }
 }
 ```
 
 > ✅ **Live sejak 14 Jul**, persis bentuk ini. Role diambil dari token (teknisi cuma ngitung kalibrasi miliknya sendiri; admin & viewer lintas-teknisi) — mobile nggak usah ngirim apa-apa.
 >
-> `kalibrasi_draft`, `menunggu_approval` & `sertifikat_bulan_ini` sekarang **selalu 0** — wajar, fitur kalibrasinya belum ada (Minggu 4). `total_alat` & `alat_overdue` udah keisi data beneran dari seeder.
+> **✅ 20 Jul — tiga field baru, key lama semuanya dipertahanin** jadi layar yang sekarang nggak pecah:
+>
+> - **`kalibrasi_selesai`** — jumlah sesi berstatus `disetujui`. Sengaja **bukan** "sertifikat terbit": generate PDF jalan di queue, jadi sesi yang baru di-approve bakal kehitung "belum selesai" kalau worker lagi ngantre, padahal kerjaan teknisinya udah kelar.
+> - **`menunggu_proses`** — semua sesi yang **bukan** `disetujui`, jadi `draft` + `menunggu_approval` + `perlu_revisi` nyatu di satu angka. Ini yang dimaksud kartu "Menunggu proses" di spec; `kalibrasi_draft` & `menunggu_approval` tetap ada kalau mobile mau mecah lagi rinciannya.
+>   > ⚠️ Ini **numpuk** sama `kalibrasi_draft` + `menunggu_approval`, bukan angka terpisah. Jangan dijumlahin bareng ketiganya di satu baris total — nanti kehitung dobel.
+> - **`grafik_pekerjaan`** — 6 bulan terakhir termasuk bulan berjalan, urutannya **lama → baru**, jadi bisa langsung digambar tanpa nyortir. `masuk` = sesi yang tanggal kalibrasinya jatuh di bulan itu; `selesai` = yang di-approve di bulan itu. **Bulan tanpa kerjaan tetap keluar dengan nilai `0`, nggak dilewat** — jadi sumbu X-nya selalu 6 titik dan jaraknya rata.
+>     - `bulan` (`"2026-07"`) buat key/sorting, `label` (`"Jul 2026"`) udah siap tempel ke sumbu X — mobile nggak usah nerjemahin nama bulan sendiri.
+>       > ⚠️ Namanya `bulan`, **bukan** `periode`. Yang ngirim `periode` cuma `GET /dashboard/tren`. Mobile sempat salah baca key ini dan akibatnya sumbu X grafik Dashboard kosong melompong di HP, padahal semua test ijo — `MockDashboardService` waktu itu ngelewatin parser-nya. Sekarang mock-nya ikut lewat `fromJson`, dan ada `test/dashboard_response_test.dart` yang nguji pakai potongan respons asli.
+>     - Grafiknya ikut kesaring per role, sama kayak kartu angkanya: teknisi cuma lihat kerjaannya sendiri.
+>
+> **✅ 21 Jul — `total_sertifikat`** (sertifikat terbit sepanjang waktu).
+>
+> ⚠️ **Cakupan angkanya nggak seragam**, dan ini nentuin cara nampilinnya:
+>
+> | Kelompok | Field | Cakupan |
+> |---|---|---|
+> | Sesi | `kalibrasi_draft`, `menunggu_approval`, `kalibrasi_selesai`, `menunggu_proses`, `grafik_pekerjaan` | teknisi = **punya dia sendiri**; admin/viewer = se-lab |
+> | Alat & sertifikat | `total_alat`, `alat_overdue`, `total_sertifikat`, `sertifikat_bulan_ini` | **selalu se-lab**, termasuk buat teknisi |
+>
+> Jadi di layar teknisi wajar muncul "Kalibrasi selesai: 2" bareng "Sertifikat: 137". Dashboard misahin dua kelompok ini secara visual (kartu hero berlabel "SE-LAB" vs seksi "KALIBRASI SAYA") — jangan digabung jadi satu deret kartu tanpa keterangan, nanti kebaca kayak datanya ngaco.
 
 ---
 
@@ -497,10 +570,89 @@ Isinya beda tergantung role — teknisi dapat ringkasan miliknya, admin dapat li
 Belum ada di kontrak versi kamu, tapi udah jalan di backend. Dibutuhin buat layar Pengaturan (admin).
 
 - **`GET /api/organization`** · **`PUT /api/organization`** — data PT: `nama`, `alamat`, `telepon`, `email`, `no_akreditasi`. Ini yang bakal dicetak di kop sertifikat. *Nggak ada create/delete* — satu instalasi = satu PT.
+  > **✅ 18 Jul — response-nya lebih gemuk dari yang didokumentasiin, mobile baru nyusul makainya**: `standar_akreditasi`, `akreditasi_mulai`, `akreditasi_berakhir`, dan `akreditasi_masih_berlaku` (dihitung backend, read-only — jangan dikirim balik waktu `PUT`). Ini yang nentuin akreditasi lab (LK-285-IDN) masih sah apa nggak; sebelumnya nggak ada di layar mana pun. `settings` (array) juga ada di response tapi mobile sengaja belum kasih UI buat itu — bentuknya belum didokumentasiin.
 - **`GET /api/customers?search=&page=`** · **`POST`** · **`GET/PUT/DELETE /api/customers/{id}`** — CRUD pelanggan. Field: `nama`, `alamat`, `contact_person`, `telepon`, `email` (+ `jumlah_alat` di response).
 - **Pelanggan yang masih punya alat nggak bisa dihapus** → `422`. Kalau dipaksa, alat & riwayat kalibrasinya jadi yatim. Mobile: tampilin pesannya apa adanya.
 
 Teknisi & viewer yang nembak endpoint ini dapat `403`.
+
+> ⚠️ **21 Jul — jangan pakai `GET /customers` buat isi dropdown pelanggan di form Alat.**
+>
+> `POST /equipments` boleh dipakai **teknisi**, tapi `/customers` admin-only. Waktu picker pelanggan di form Alat masih narik dari sini, hasilnya: form-nya mulus waktu dites pakai akun admin, tapi di akun teknisi request-nya `403` → daftarnya kosong. Dan `pelanggan_id` itu **wajib**, jadi teknisi mentok, nggak bisa nyimpen alat sama sekali.
+>
+> Pakai **`GET /api/arsip/perusahaan?search=`** (kebuka semua role) — balikannya `data[].id` & `data[].nama`, `id`-nya yang dipakai jadi `pelanggan_id`. Di mobile ini `CustomerLookupService`, kepisah dari `CustomerService` yang buat layar CRUD Pelanggan.
+>
+> Daftarnya **dipaginasi 15/halaman**, jadi pencariannya dilempar ke server lewat `?search=` — nyaring di sisi mobile cuma nyaring halaman pertama, dan pelanggan ke-16 dst. jadi nggak kejangkau.
+
+---
+
+## 9. Master Data Ruangan & Teknisi (live 20 Jul)
+
+Dua master data terakhir dari spec yang sebelumnya belum ada backend-nya sama sekali.
+
+### `GET /api/rooms` — ruangan lab
+
+Beda sama `lokasi` di sesi kalibrasi. Field itu enum `lab`/`onsite`, cuma misahin "dikerjain di lab" vs "di tempat pelanggan". Yang ini jawab pertanyaan lain: ruangan **mana** di dalam lab, dan syarat suhu/kelembabannya berapa.
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "kode": "R-01",
+      "nama": "Ruang Kalibrasi Massa",
+      "lokasi": "Lantai 2",
+      "suhu_min": 18.0,
+      "suhu_max": 25.0,
+      "kelembaban_min": 40.0,
+      "kelembaban_max": 60.0,
+      "keterangan": null,
+      "aktif": true
+    }
+  ],
+  "meta": { "current_page": 1, "last_page": 1, "per_page": 15, "total": 1 }
+}
+```
+
+- **`GET /api/rooms?search=&hanya_aktif=&page=`** · **`GET /api/rooms/{id}`** — **semua role boleh baca**, beda sama master data lain. Teknisi butuh ini buat isi dropdown "Ruangan" waktu ngisi sesi.
+- **`POST`** · **`PUT /api/rooms/{id}`** · **`DELETE /api/rooms/{id}`** — **admin doang**, teknisi/viewer → `403`.
+- **`?hanya_aktif=1`** buat dropdown — ruangan lama dinonaktifin (`aktif: false`), bukan dihapus, biar sesi tahun lalu yang nunjuk ke situ tetap kebaca pas audit. Layar master data jangan pakai filter ini, biar yang nonaktif tetap kelihatan & bisa diaktifin lagi.
+- **`search`** nyari di `nama` **atau** `kode` — orang lab hafalnya "R-01", yang kebaca di layar "Ruang Kalibrasi Massa".
+- `kode` unik **per PT**, bukan global. Dobel → `422` di field `kode`.
+- Rentang kebalik (`suhu_max` < `suhu_min`, atau kelembabannya) ditolak `422`, **termasuk kalau `PUT`-nya cuma ngirim satu sisi** — batas satunya diambil dari data tersimpan. Kalau lolos, tiap sesi di ruangan itu ketulis melanggar syarat selamanya.
+- `kelembaban_min`/`max` itu persen, dibatasi 0–100.
+- Semua angka dikirim sebagai **number**, bukan string — nullable semua (nggak semua ruangan punya syarat terkendali).
+
+> ⚠️ **Belum nyambung ke sesi kalibrasi.** Ini masih master data berdiri sendiri — `POST /api/calibrations` **belum** nerima `room_id`. Nambahin itu ngubah bentuk sesi, jadi ditahan dulu sampai disepakati. Kalau mobile mau layar sesi bisa milih ruangan, bilang dulu biar dibarengin.
+
+### `GET /api/technicians` — data teknisi (**admin doang**)
+
+```json
+{
+  "data": [
+    {
+      "id": 4,
+      "nama": "Budi Santoso",
+      "employee_id": "SDK-2001",
+      "email": "budi@sidik.test",
+      "department": "Kalibrasi",
+      "status": "aktif",
+      "jumlah_kalibrasi": 12
+    }
+  ],
+  "meta": { "current_page": 1, "last_page": 1, "per_page": 15, "total": 1 }
+}
+```
+
+- **`GET /api/technicians?search=&status=&page=`** · **`POST`** · **`GET/PUT/DELETE /api/technicians/{id}`** — semuanya admin, teknisi/viewer → `403`.
+- **Teknisi itu `users` yang role-nya `teknisi`, bukan tabel terpisah.** Jadi `id` di sini **sama** dengan `teknisi_id` yang muncul di sesi kalibrasi & sertifikat — aman dipakai buat nyambungin layar. Dibikin tabel sendiri, orang yang sama bakal punya dua identitas: satu buat login, satu buat ditulis di sertifikat.
+- **`POST`** butuh `nama`, `employee_id`, `email`, `password` (min 8), `department` opsional. Akun langsung `aktif` & role `teknisi` — nggak nyangkut di antrean approval, karena itu gunanya nyaring pendaftar mandiri, bukan akun yang dibikinin admin.
+- **`role` nggak bisa dikirim** — diabaikan, selalu dipaksa `teknisi`. Kalau bisa, layar "tambah teknisi" berubah jadi jalan pintas bikin akun admin.
+- **`password` nggak bisa dikirim waktu `PUT`** → `422`. Ganti password lewat `POST /api/users/{id}/reset-password`, biar aksi sensitif itu nggak nempel diam-diam di form edit biasa.
+- **`PUT` dengan `status: "nonaktif"` langsung nyabut semua token orangnya** — dia ketendang dari app saat itu juga.
+- **Teknisi yang punya riwayat kalibrasi nggak bisa dihapus** → `422`. Namanya nempel di sertifikat yang udah terbit; hapus dia = putus ketertelusuran yang justru dicari asesor waktu audit. `jumlah_kalibrasi` di response ada persis buat ini — pakai buat nge-disable tombol hapus + jelasin kenapa. Jalan keluarnya: `PUT` jadi `nonaktif`.
+- `search` nyari di `nama` atau `employee_id`. `status` isinya `aktif`/`nonaktif`.
+- ID yang bukan teknisi (admin/viewer) balik **`404`**, bukan `403` — endpoint ini nggak boleh jadi jalan pintas ngintip atau ngehapus akun admin lewat URL yang kedengarannya nggak berbahaya.
 
 ---
 
@@ -508,10 +660,10 @@ Teknisi & viewer yang nembak endpoint ini dapat `403`.
 
 | ID pegawai | Email | Role | Status |
 |---|---|---|---|
-| `ASM-0001` | admin@asmo.test | admin | aktif |
-| `ASM-0002` | teknisi@asmo.test | teknisi | aktif |
-| `ASM-0003` | viewer@asmo.test | viewer | aktif |
-| `ASM-0099` | eko@asmo.test | teknisi | **pending** (buat nyoba layar "belum disetujui") |
+| `SDK-0001` | admin@sidik.test | admin | aktif |
+| `SDK-0002` | teknisi@sidik.test | teknisi | aktif |
+| `SDK-0003` | viewer@sidik.test | viewer | aktif |
+| `SDK-0099` | eko@sidik.test | teknisi | **pending** (buat nyoba layar "belum disetujui") |
 
 Password semua `rahasia123`. Login boleh pakai ID pegawai **atau** email.
 

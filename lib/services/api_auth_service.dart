@@ -51,6 +51,23 @@ class ApiAuthService implements AuthService {
   }
 
   @override
+  Future<void> resetPassword({
+    required String email,
+    required String newPassword,
+  }) async {
+    // Di backend asli, endpoint ini butuh token dari email + konfirmasi
+    // password. Bentuk pastinya nunggu `docs/kontrak-api.md` difinalin.
+    await _api.post(
+      '/reset-password',
+      body: {
+        'email': email.trim(),
+        'password': newPassword,
+        'password_confirmation': newPassword,
+      },
+    );
+  }
+
+  @override
   Future<User> me(String token) async {
     final json = await _api.get('/me', token: token);
 

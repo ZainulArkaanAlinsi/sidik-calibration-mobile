@@ -1,0 +1,988 @@
+{
+  "@@locale": "en",
+
+  "appTagline": "Precision Calibration Management",
+
+  "loginIdentifierLabel": "Employee ID / Email",
+  "loginIdentifierHint": "ASM-0001 or name@pt-sidik.com",
+  "passwordLabel": "Password",
+  "forgotPasswordLink": "Forgot Password?",
+  "loginSubmit": "SIGN IN",
+  "loginNoAccount": "Don't have an account?",
+  "loginRegisterLink": "Register",
+  "loginIdentifierRequired": "Employee ID or email is required.",
+  "passwordRequired": "Password is required.",
+  "errorNoConnection": "Can't reach the server. Please try again.",
+
+  "registerTitle": "Register Account",
+  "registerSubtitle": "Create your technician profile",
+  "nameLabel": "Full Name",
+  "nameHint": "e.g. Andi Pratama",
+  "employeeIdLabel": "Employee ID",
+  "departmentLabel": "Department",
+  "departmentHint": "Select department",
+  "emailLabel": "Email",
+  "emailHint": "name@pt-sidik.com",
+  "passwordHelper": "At least 8 characters",
+  "registerSubmit": "REGISTER",
+  "registerHaveAccount": "Already have an account?",
+  "registerLoginLink": "Log in",
+  "nameRequired": "Name is required.",
+  "employeeIdRequired": "Employee ID is required.",
+  "departmentRequired": "Please select a department.",
+  "emailRequired": "Email is required.",
+  "emailInvalid": "Invalid email format.",
+  "passwordTooShort": "Password must be at least 8 characters.",
+  "registerSuccessTitle": "Registration submitted",
+  "registerSuccessBody": "Your account is still awaiting admin approval. You can't sign in until an admin approves it and assigns your role.\n\nContact an admin if you don't hear back for a while.",
+  "registerSuccessDismiss": "GOT IT",
+
+  "forgotTitle": "Forgot Password",
+  "forgotSubtitle": "Verify your email, then set a new password",
+  "forgotBody": "Enter the email you used to register. If it matches, you can create a new password right here.",
+  "forgotSubmit": "CONTINUE",
+  "backToLogin": "Back to Login",
+  "resetNewPassTitle": "Set New Password",
+  "resetNewPassSubtitle": "Create a new password for {email}",
+  "@resetNewPassSubtitle": {
+    "placeholders": {
+      "email": { "type": "String" }
+    }
+  },
+  "newPasswordLabel": "New Password",
+  "confirmPasswordLabel": "Confirm New Password",
+  "passwordMismatch": "Passwords don't match.",
+  "resetSubmit": "SAVE NEW PASSWORD",
+  "resetDoneTitle": "Password changed",
+  "resetDoneBody": "Your password has been updated. Sign in with your new password now.",
+  "backToLoginCaps": "BACK TO LOGIN",
+
+  "languageLabel": "Language",
+
+  "navDashboard": "Dashboard",
+  "navEquipment": "Equipment",
+  "navHistory": "History",
+  "navNotifications": "Notifications",
+  "navProfile": "Profile",
+
+  "dashGreeting": "Hello,",
+  "dashTotalDevices": "Total devices",
+  "dashOverdue": "Overdue",
+  "dashPendingApproval": "Pending approval",
+  "dashCalibrationDraft": "Calibration drafts",
+  "dashCertsThisMonth": "Certificates this month",
+  "dashLabScope": "Lab-wide",
+  "dashTotalCerts": "Certificates",
+  "dashCertsThisMonthSub": "{count} this month",
+  "@dashCertsThisMonthSub": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dashCalibrationMine": "My calibrations",
+  "dashCalibrationLab": "Lab calibrations",
+  "dashTrendUp": "{count} more completed than last period",
+  "@dashTrendUp": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dashTrendDown": "{count} fewer completed than last period",
+  "@dashTrendDown": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dashTrendFlat": "Same as last period",
+  "dashQuickActions": "Quick actions",
+  "dashStartCalibration": "START CALIBRATION",
+  "dashAddDevice": "ADD DEVICE",
+  "dashRetry": "TRY AGAIN",
+  "dashSessionExpired": "Your session has expired. Please sign in again.",
+  "dashLoadFailed": "Failed to load the dashboard.",
+  "dashOverdueWarning": "{count} device(s) past their calibration due date. Measurements from overdue devices can't be relied upon.",
+  "@dashOverdueWarning": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dashEmptyTitle": "No data yet",
+  "dashEmptyBodyInput": "No devices registered yet. Start by adding your first measuring device.",
+  "dashEmptyBodyReadonly": "There's nothing to show yet.",
+  "snackCalibInputSoon": "Calibration input is planned for week 4.",
+
+  "profAccountInfo": "Account Info",
+  "profRoleLabel": "Role",
+  "profChangePhotoSheet": "Profile Photo",
+  "profChooseGallery": "Choose from gallery",
+  "profTakePhoto": "Take a photo",
+  "profRemovePhoto": "Remove photo",
+  "profPhotoUpdated": "Profile photo updated.",
+  "profPhotoRemoved": "Profile photo removed.",
+  "profPhotoFailed": "Couldn't pick the photo. Try again.",
+  "profAdminMenu": "Admin Menu",
+  "profUserManagement": "User Management",
+  "profUserManagementSub": "Planned for phase 3",
+  "profOrgData": "Organization Data",
+  "profOrgDataSub": "Name, address & accreditation no. printed on certificates",
+  "profCustomers": "Customers",
+  "profCustomersSub": "Manage the lab's customer list",
+  "profStandards": "Reference Standards",
+  "profStandardsSub": "Manage the lab's reference/standard equipment",
+  "profArsip": "Archive",
+  "profArsipSub": "Company folders, instruments & certificate files",
+  "profDesignSystem": "Design System",
+  "profDesignSystemSub": "Color, typography & component catalog",
+  "profAppInfo": "App Info",
+  "profEnvironment": "Environment",
+  "profApiBaseUrl": "API base URL",
+  "profSecurity": "Security",
+  "profLogoutAll": "Sign out of all devices",
+  "profLogoutAllSub": "For when your phone is lost. Every session is revoked — other phones, tablets, including this one.",
+  "profLogout": "Sign out",
+  "profLogoutAllConfirmTitle": "Sign out of all devices?",
+  "profLogoutAllConfirmBody": "All your sessions will be revoked, including on this phone — you'll be asked to sign in again.\n\nUse this if your phone is lost or stolen.",
+  "profCancel": "Cancel",
+  "profRevokeAll": "Revoke all sessions",
+  "profSessionsRevoked": "{count} session(s) revoked. Please sign in again.",
+  "@profSessionsRevoked": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "profAllSessionsRevoked": "All sessions revoked. Please sign in again.",
+  "profRevokeFailed": "Couldn't revoke sessions: {message}",
+  "@profRevokeFailed": {
+    "placeholders": {
+      "message": { "type": "String" }
+    }
+  },
+
+  "equipLoadFailed": "Couldn't load the device list.",
+  "equipSearchHint": "Search device name",
+  "equipFilterKategoriHint": "Category",
+  "equipFilterStatusHint": "Status",
+  "equipFilterSemua": "All",
+  "equipStatusAktif": "Active",
+  "equipStatusOverdue": "Overdue",
+  "equipStatusNonaktif": "Inactive",
+  "equipEmptyTitle": "No devices yet",
+  "equipEmptyBody": "Add your first device using the button below.",
+  "equipRetry": "RETRY",
+  "equipAdd": "ADD DEVICE",
+  "equipEdit": "Edit device",
+  "equipMuatLebihBanyak": "LOAD MORE",
+  "equipDeleteConfirmTitle": "Delete device?",
+  "equipDeleteConfirmBody": "\"{nama}\" will be permanently deleted.",
+  "@equipDeleteConfirmBody": {
+    "placeholders": {
+      "nama": { "type": "String" }
+    }
+  },
+  "equipDeleteFailed": "Couldn't delete: {pesan}",
+  "@equipDeleteFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "equipNamaAlat": "Device name",
+  "equipSerialNumber": "Serial number",
+  "equipKategori": "Category",
+  "equipKategoriHint": "Choose a device category",
+  "equipPelanggan": "Customer",
+  "equipPelangganHint": "Choose a customer",
+  "equipPelangganCariHint": "Search company name",
+  "equipPelangganGagal": "Couldn't load the customer list.",
+  "equipPelangganKosong": "No customer found.",
+  "equipNamaAlatKemampuan": "Device Type (Calibration Capability)",
+  "equipNamaAlatKemampuanHint": "Choose device type (optional, for accurate CMC)",
+  "equipNamaAlatKemampuanKosong": "This category has no calibration capabilities yet",
+  "equipNamaAlatKemampuanGagal": "Couldn't load calibration capabilities.",
+  "equipCatatan": "Notes",
+  "equipMerk": "Brand",
+  "equipModel": "Model/Type",
+  "equipNoIdentifikasi": "Identification no.",
+  "equipRangeMin": "Range min.",
+  "equipRangeMax": "Range max.",
+  "equipSatuan": "Unit",
+  "equipResolusi": "Resolution",
+  "equipToleransi": "Tolerance",
+  "equipToleransiWajib": "Tolerance is required.",
+  "equipToleransiWajibHint": "A device without a tolerance can't be calibrated — there's no way to decide PASS/FAIL.",
+  "equipLokasi": "Location",
+  "equipStatus": "Status",
+  "equipSave": "SAVE",
+  "equipSaveFailed": "Couldn't save: {pesan}",
+  "@equipSaveFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+
+  "historyEmptyTitle": "No history yet",
+  "historyEmptyBody": "Completed calibration sessions will show up here.",
+  "historyLoadFailed": "Couldn't load history.",
+  "historySessionExpired": "Your session expired. Please sign in again.",
+  "historyRetry": "RETRY",
+  "historyCertNumber": "Certificate no. {nomor}",
+  "@historyCertNumber": {
+    "placeholders": {
+      "nomor": { "type": "String" }
+    }
+  },
+  "historyStatusPass": "PASS",
+  "historyStatusFail": "FAIL",
+  "historyStatusDraft": "Draft",
+  "historyStatusMenungguApproval": "Pending approval",
+  "historyStatusPerluRevisi": "Needs revision",
+  "historyApprove": "APPROVE",
+  "historyReject": "REJECT",
+  "historyApproveFailed": "Couldn't approve: {pesan}",
+  "@historyApproveFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "historyRejectDialogTitle": "Reject this calibration session?",
+  "historyRejectDialogHint": "Rejection reason (required, the technician will see this)",
+  "historyRejectDialogSubmit": "REJECT SESSION",
+  "historyRejectDialogCancel": "Cancel",
+  "historyRejectDialogEmpty": "Rejection reason is required.",
+  "historyRejectFailed": "Couldn't reject: {pesan}",
+  "@historyRejectFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "historyCatatanRevisi": "Revision note: {catatan}",
+  "@historyCatatanRevisi": {
+    "placeholders": {
+      "catatan": { "type": "String" }
+    }
+  },
+  "historyViewCertificate": "View certificate",
+  "certTitle": "Certificate",
+  "certLoadFailed": "Couldn't load certificate.",
+  "certStatusMenungguGenerate": "Still generating, hang on",
+  "certStatusGagal": "Generation failed",
+  "certRetry": "RETRY GENERATE",
+  "certOpenPdf": "VIEW PDF",
+  "certOpenFailed": "No app found to open the PDF: {message}",
+  "@certOpenFailed": {
+    "placeholders": {
+      "message": { "type": "String" }
+    }
+  },
+  "certBelumTerbit": "Certificate not issued yet",
+  "certQrToken": "QR token: {token}",
+  "@certQrToken": {
+    "placeholders": {
+      "token": { "type": "String" }
+    }
+  },
+  "certRingkasanTitle": "Result Summary",
+  "certIdentitasTitle": "Session Details",
+  "certTanggalKalibrasi": "Calibration date",
+  "certTeknisi": "Technician",
+  "certLokasi": "Calibration location",
+  "certMetode": "Calibration method",
+  "certReportTitle": "Calibration Report",
+  "certColStandard": "Standard Value",
+  "certColUut": "Unit Under Test",
+  "certColKoreksi": "Correction",
+  "certColU95": "U95% (±)",
+  "certStandarDipakai": "Standard used",
+  "certBelumDihitung": "The measurement points haven't been calculated by the backend yet, so the report table can't be shown.",
+  "certDisclaimer": "— Calibration results are not to be announced and only apply to related tools —",
+  "certLihatDetail": "VIEW CALCULATION DETAIL",
+
+  "detailTitle": "Calibration Result Detail",
+  "detailLoadFailed": "Couldn't load calibration detail.",
+  "detailNomorSesi": "Session no. {nomor}",
+  "@detailNomorSesi": {
+    "placeholders": {
+      "nomor": { "type": "String" }
+    }
+  },
+  "detailKondisiLingkungan": "Environmental Condition & Standard",
+  "detailStandarAcuan": "Reference standard",
+  "detailSuhuRuang": "Room temperature",
+  "detailKelembaban": "Humidity",
+  "detailLokasi": "Calibration location",
+  "detailLokasiLab": "At the lab",
+  "detailLokasiOnsite": "At customer site (onsite)",
+  "detailTitikUkurTitle": "Measurement Points",
+  "detailBelumDihitung": "This session hasn't been calculated by the server yet — results will show up once it's processed.",
+  "detailLihatSertifikat": "VIEW CERTIFICATE",
+  "detailTitikLabel": "Point {index} · {nilai}",
+  "@detailTitikLabel": {
+    "placeholders": {
+      "index": { "type": "int" },
+      "nilai": { "type": "String" }
+    }
+  },
+  "detailRataRata": "Average",
+  "detailError": "Error",
+  "detailKoreksi": "Correction",
+  "detailStandarDeviasi": "Standard deviation",
+  "detailMaxStdev": "Max STDEV",
+  "detailMaxStdevSebelum": "Before adjustment",
+  "detailTypeA": "Type A",
+  "detailTypeB": "Type B",
+  "detailKomponenTypeB": "Type B component breakdown",
+  "detailToleransi": "Tolerance",
+  "detailKetidakpastianGabungan": "Combined uncertainty (uc)",
+  "detailFaktorCakupan": "Coverage factor (k)",
+  "detailU95": "Expanded uncertainty (U95%)",
+  "detailAwal": "Start",
+  "detailAkhir": "End",
+  "detailNilaiTerkoreksi": "Corrected value",
+  "detailU95Lingkungan": "U95%",
+  "detailThermohygro": "Thermohygrometer",
+  "detailMetode": "Method",
+  "detailSuhuLarutan": "Solution temp.",
+  "detailSebelumAdjustment": "Before adjustment (as found)",
+  "detailSesudahAdjustment": "After adjustment (certified)",
+  "detailAsFoundCatatan": "Documents the state the instrument arrived in — not part of the certified result.",
+  "detailPerluVerifikasi": "Some OCR readings still need confirming — this session can't be approved yet.",
+
+  "arsipTitle": "Archive",
+  "arsipCariPerusahaan": "Search company...",
+  "arsipPerusahaanKosong": "No companies yet.",
+  "arsipFolderKosong": "This folder is empty.",
+  "arsipLoadGagal": "Couldn't load the archive.",
+  "arsipRetry": "RETRY",
+  "arsipRingkasPerusahaan": "{alat} instruments · {sertifikat} certificates",
+  "@arsipRingkasPerusahaan": {
+    "placeholders": {
+      "alat": { "type": "int" },
+      "sertifikat": { "type": "int" }
+    }
+  },
+  "arsipRingkasFolder": "{subfolder} folders · {berkas} files",
+  "@arsipRingkasFolder": {
+    "placeholders": {
+      "subfolder": { "type": "int" },
+      "berkas": { "type": "int" }
+    }
+  },
+  "arsipFolderBaru": "New folder",
+  "arsipNamaFolder": "Folder name",
+  "arsipNamaFolderHint": "e.g. 2026",
+  "arsipBuat": "CREATE",
+  "arsipBatal": "CANCEL",
+  "arsipSimpan": "SAVE",
+  "arsipGantiNama": "Rename",
+  "arsipHapus": "Delete",
+  "arsipHapusJudul": "Delete this folder?",
+  "arsipHapusIsi": "Folder \"{nama}\" will be removed. Only empty folders can be deleted.",
+  "@arsipHapusIsi": {
+    "placeholders": {
+      "nama": { "type": "String" }
+    }
+  },
+  "arsipTakBisaHapus": "Move or delete its contents first.",
+  "arsipFolderSistem": "Company folder — managed automatically.",
+  "arsipBerkasTanpaSertifikat": "No certificate yet",
+  "arsipDibuat": "Folder created.",
+  "arsipDiubah": "Folder renamed.",
+  "arsipDihapus": "Folder deleted.",
+
+  "orgTitle": "Organization Data",
+  "orgNama": "Company name",
+  "orgAlamat": "Address",
+  "orgTelepon": "Phone",
+  "orgEmail": "Email",
+  "orgNoAkreditasi": "Accreditation no.",
+  "orgAkreditasi": "Accreditation Status",
+  "orgAkreditasiBerlaku": "Valid",
+  "orgAkreditasiKadaluarsa": "Expired",
+  "orgStandarAkreditasi": "Accreditation standard",
+  "orgStandarAkreditasiHint": "e.g. ISO/IEC 17025:2017",
+  "orgAkreditasiMulai": "Valid from",
+  "orgAkreditasiBerakhir": "Valid until",
+  "orgPilihTanggal": "Choose a date",
+  "orgSave": "SAVE",
+  "orgSaved": "Organization data saved.",
+  "orgSaveFailed": "Couldn't save: {pesan}",
+  "@orgSaveFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "orgLoadFailed": "Couldn't load organization data.",
+  "orgRetry": "RETRY",
+
+  "standarTitle": "Reference Standards",
+  "standarLoadFailed": "Couldn't load reference standards.",
+  "standarAdd": "ADD STANDARD",
+  "standarEdit": "Edit standard",
+  "standarEmptyTitle": "No reference standards yet",
+  "standarEmptyBody": "Add your first standard using the button below.",
+  "standarRetry": "RETRY",
+  "standarBerlaku": "Valid",
+  "standarKadaluarsa": "Expired",
+  "standarDeleteConfirmTitle": "Delete reference standard?",
+  "standarDeleteConfirmBody": "\"{nama}\" will be permanently deleted.",
+  "@standarDeleteConfirmBody": {
+    "placeholders": {
+      "nama": { "type": "String" }
+    }
+  },
+  "standarDeleteFailed": "Couldn't delete: {pesan}",
+  "@standarDeleteFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "standarSaveFailed": "Couldn't save: {pesan}",
+  "@standarSaveFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "standarFaktorCakupanInvalid": "Coverage factor (k) must be at least 1 — usually 2.",
+  "standarNama": "Standard name",
+  "standarMerk": "Brand",
+  "standarModel": "Model/Type",
+  "standarSerialNumber": "Serial number",
+  "standarNoSertifikat": "Certificate no.",
+  "standarTertelusurKe": "Traceable to",
+  "standarTertelusurKeHint": "e.g. SNSU-BSN",
+  "standarBerlakuSampai": "Valid until",
+  "standarKetidakpastianTitle": "Uncertainty (from the standard's certificate)",
+  "standarKetidakpastian": "Uncertainty (expanded)",
+  "standarSatuanKetidakpastian": "Unit",
+  "standarFaktorCakupan": "Coverage factor (k)",
+  "standarDrift": "Annual drift",
+  "standarSave": "SAVE",
+
+  "custTitle": "Customers",
+  "custSearchHint": "Search customer name",
+  "custEmptyTitle": "No customers yet",
+  "custEmptyBody": "Add your first customer using the button below.",
+  "custLoadFailed": "Couldn't load customers.",
+  "custRetry": "RETRY",
+  "custAdd": "ADD CUSTOMER",
+  "custEdit": "Edit customer",
+  "custNama": "Customer name",
+  "custAlamat": "Address",
+  "custContactPerson": "Contact person",
+  "custTelepon": "Phone",
+  "custEmail": "Email",
+  "custSave": "SAVE",
+  "custCancel": "Cancel",
+  "custDelete": "Delete",
+  "custDeleteConfirmTitle": "Delete customer?",
+  "custDeleteConfirmBody": "\"{nama}\" will be permanently deleted.",
+  "@custDeleteConfirmBody": {
+    "placeholders": {
+      "nama": { "type": "String" }
+    }
+  },
+  "custDeleteFailed": "Couldn't delete: {pesan}",
+  "@custDeleteFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "custSaveFailed": "Couldn't save: {pesan}",
+  "@custSaveFailed": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "custEquipmentCount": "{jumlah} devices",
+  "@custEquipmentCount": {
+    "placeholders": {
+      "jumlah": { "type": "int" }
+    }
+  },
+  "custFieldRequired": "Required.",
+
+  "calibTitle": "Calibration Input",
+  "calibKategori": "Category",
+  "calibKategoriHint": "Choose a device category",
+  "calibAlat": "Device",
+  "calibAlatHint": "Choose a device",
+  "calibAlatKosong": "No devices in this category.",
+  "calibStandar": "Reference Standard",
+  "calibStandarHint": "Choose a reference standard",
+  "calibStandarKadaluarsa": "expired",
+  "calibTanggal": "Calibration date",
+  "calibNomorOrder": "Order number",
+  "calibNomorOrderHint": "e.g. 2405.13.A (optional)",
+  "calibTanggalTerima": "Equipment received date",
+  "calibLokasi": "Calibration location",
+  "calibLokasiLab": "At the lab",
+  "calibLokasiOnsite": "At customer site (onsite)",
+  "calibSuhuRuang": "Room temperature (°C)",
+  "calibKelembaban": "Humidity (%)",
+  "calibTitikUkur": "Measurement point {index}",
+  "@calibTitikUkur": {
+    "placeholders": {
+      "index": { "type": "int" }
+    }
+  },
+  "calibNilaiTarget": "Target value",
+  "calibSatuan": "Unit",
+  "calibPembacaan": "Reading {index}",
+  "@calibPembacaan": {
+    "placeholders": {
+      "index": { "type": "int" }
+    }
+  },
+  "calibTambahTitik": "ADD MEASUREMENT POINT",
+  "calibHapusTitik": "Remove measurement point",
+  "calibTambahPembacaan": "+ Add reading",
+  "calibValidasiKategori": "Choose a category first.",
+  "calibValidasiAlat": "Choose a device first.",
+  "calibValidasiStandar": "Choose a reference standard first.",
+  "calibValidasiAngka": "Enter a valid number.",
+  "calibValidasiPembacaan": "Each measurement point needs at least 2 numeric readings.",
+  "calibSimpanDraft": "SAVE DRAFT",
+  "calibKirimApproval": "SUBMIT FOR APPROVAL",
+  "calibBerhasilDraft": "Calibration draft saved.",
+  "calibBerhasilApproval": "Calibration session submitted for approval.",
+  "calibGagal": "Couldn't save: {pesan}",
+  "@calibGagal": {
+    "placeholders": {
+      "pesan": { "type": "String" }
+    }
+  },
+  "calibLoadPilihanGagal": "Couldn't load category/standard options.",
+  "calibRetry": "RETRY",
+
+  "calibPilihKategoriTitle": "Choose Equipment Category",
+  "calibPilihKategoriSubtitle": "Pick the measurement group first, then the specific instrument type.",
+  "calibKategoriKosong": "No categories yet.",
+  "calibJumlahAlat": "{jumlah} instrument type{jumlah, plural, =1{} other{s}}",
+  "@calibJumlahAlat": {
+    "placeholders": {
+      "jumlah": { "type": "int" }
+    }
+  },
+  "calibPilihInstrumenTitle": "Choose Instrument Type",
+  "calibInstrumenKosong": "This category doesn't have any calibration capability data yet.",
+  "calibInstrumenMetodeLabel": "Method",
+  "calibCariInstrumenHint": "Search instrument type...",
+  "calibInstrumenTidakDitemukan": "No matching instrument type.",
+
+  "phCalibTitle": "pH Meter Calibration",
+  "phCalibThermohygro": "Thermohygrometer used",
+  "phCalibThermohygroHint": "e.g. TH-3",
+  "phCalibThermohygroCustom": "Other (enter manually)",
+  "phCalibStandarSesi": "Reference Standard (Thermometer & Sensor)",
+  "phCalibStandarSesiHint": "Used for environmental conditions (temp/humidity)",
+  "phCalibStandarBuffer": "Buffer standard for this point",
+  "phCalibStandarBufferHint": "Choose a buffer solution",
+  "phCalibValidasiStandarBuffer": "Choose a buffer standard for every point (4, 7, 10) first.",
+  "phCalibKondisiLingkungan": "Environmental Conditions",
+  "phCalibSuhuAwal": "Start temperature (°C)",
+  "phCalibSuhuAkhir": "End temperature (°C)",
+  "phCalibKelembabanAwal": "Start humidity (%)",
+  "phCalibKelembabanAkhir": "End humidity (%)",
+  "phCalibTitikBuffer": "pH {label} buffer",
+  "@phCalibTitikBuffer": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "phCalibNilaiStandar": "Reference value (temp-corrected)",
+  "phCalibNilaiStandarHelper": "Copy from the worksheet — the buffer value after temperature correction, not the round number.",
+  "phCalibNilaiStandarSebelum": "As-found reference value",
+  "phCalibSebelumAdjustment": "Before adjustment (as found)",
+  "phCalibSesudahAdjustment": "After adjustment (as left)",
+  "phCalibIdMerk": "Brand",
+  "phCalibIdType": "Type",
+  "phCalibIdNoSeri": "Serial no.",
+  "phCalibIdRentang": "Measuring range",
+  "phCalibIdResolusi": "Resolution",
+  "phCalibIdCustomer": "Customer name",
+  "phCalibFotoMembaca": "Reading the numbers from your photo…",
+  "phCalibIdentitasCustomer": "Customer Details",
+  "phCalibIdNamaAlat": "Device name",
+  "phCalibIdKapasitasMax": "Max. capacity",
+  "phCalibIdAlamatCustomer": "Customer address",
+  "phCalibIdCertificateNumber": "Certificate no.",
+  "phCalibIdOrderNumber": "Order no.",
+  "phCalibIdTechnicianId": "Technician ID",
+  "phCalibIdCalibrationMethod": "Calibration method",
+  "phCalibPengesahan": "Authorisation",
+  "phCalibIssuanceDate": "Issuance date",
+  "phCalibCalculatedBy": "Calculated by (initials)",
+  "phCalibCalculatedByHint": "e.g. NR",
+  "phCalibSignedBy": "Signed by (full name)",
+  "phCalibSignedByHint": "e.g. Alex Misramto",
+  "phCalibLiveJudul": "Point at the table",
+  "phCalibLivePetunjuk": "Point the camera at the worksheet table. Numbers that are recognised will float on screen.",
+  "phCalibLivePakai": "USE THESE NUMBERS",
+  "phCalibLiveTanpaKamera": "No camera found on this phone. You can still type the values in.",
+  "phCalibCaraJudul": "How do you want to fill this in?",
+  "phCalibCaraSub": "Pick once. You can still use the camera button later on the data page.",
+  "phCalibCaraFoto": "Photograph the worksheet",
+  "phCalibCaraFotoKeterangan": "Snap the filled-in table — the fields populate automatically",
+  "phCalibCaraManual": "Type it in",
+  "phCalibCaraManualKeterangan": "Fill each field yourself",
+  "phCalibCaraCatatan": "Values from a photo must still be checked before submitting. An issued certificate cannot be changed.",
+  "phCalibScanTooltip": "Photograph the pH meter display",
+  "phCalibScanGagal": "Couldn't read the number clearly. Try a closer photo, or type it in.",
+  "phCalibScanError": "Couldn't open the camera.",
+  "phCalibFotoTabel": "PHOTO TABLE",
+  "phCalibFotoTabelSesudah": "After adjustment",
+  "phCalibFotoTabelSebelum": "Before adjustment",
+  "phCalibFotoTabelJudul": "Which table are you photographing?",
+  "phCalibFotoTabelInfo": "One shot fills the whole table for all three buffers. Cells you already filled are never overwritten — reshoot as many times as you need.",
+  "phCalibFotoTabelHasil": "{terisi} of {total} cells filled.",
+  "@phCalibFotoTabelHasil": {
+    "placeholders": {
+      "terisi": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "phCalibFotoTabelTakTerbaca": "No numbers could be read at all. The photo is probably dark, blurry, or too far away — try closer and brighter. You can still type the values in.",
+  "phCalibFotoTabelPosisiKacau": "{jumlah} numbers were read, but they don't line up as a table. Usually the photo is skewed or shows the whole sheet — try photographing just the TABLE, straight from above. You can still type the values in.",
+  "@phCalibFotoTabelPosisiKacau": {
+    "placeholders": {
+      "jumlah": { "type": "int" }
+    }
+  },
+  "phCalibFotoTabelKosong": "Couldn't read the numbers yet. Tips: photograph just the TABLE (not the whole sheet), straight from above, even light with no hand shadow. Or type it in.",
+  "phCalibFotoTabelSisa": "Empty cells: type them in or reshoot — nothing you already entered will be replaced.",
+  "phCalibOcrBelumDikonfirmasi": "From camera — please check",
+  "phCalibOcrKonfirmasi": "CONFIRM",
+  "phCalibPembacaanKe": "Reading {index}",
+  "@phCalibPembacaanKe": {
+    "placeholders": {
+      "index": { "type": "int" }
+    }
+  },
+  "phCalibSuhu": "Temp.",
+  "phCalibValidasiLingkungan": "Fill in the environmental conditions (temperature & humidity) first.",
+  "phCalibValidasiPembacaan": "Each buffer point needs at least {minimum} valid after-adjustment readings.",
+  "@phCalibValidasiPembacaan": {
+    "placeholders": {
+      "minimum": { "type": "int" }
+    }
+  },
+  "phCalibValidasiNilaiAcuan": "Fill in the temperature-corrected reference value for every buffer point.",
+  "phCalibLangkahIdentitas": "Identity & conditions",
+  "phCalibLangkahHasil": "Calibration results",
+  "phCalibLangkahKe": "Step {nomor} of {total}",
+  "@phCalibLangkahKe": {
+    "placeholders": {
+      "nomor": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "phCalibIdentitasAlat": "Instrument Identity",
+  "phCalibPengerjaan": "Job Details",
+  "phCalibPelangganOtomatis": "Customer details follow the selected instrument — the certificate is filed under the right company automatically.",
+  "phCalibKoreksiSuhu": "Temperature correction (°C)",
+  "phCalibKoreksiKelembaban": "Humidity correction (%)",
+  "phCalibU95Suhu": "Temperature U95%",
+  "phCalibU95Kelembaban": "Humidity U95%",
+  "phCalibDariSertifikatTh": "From the thermohygrometer certificate — the server derives the environmental U95% from these.",
+  "phCalibLanjutkan": "CONTINUE",
+  "phCalibKembali": "BACK",
+  "phCalibDisertifikasi": "Certified",
+  "phCalibDokumentasi": "Documentation",
+  "phCalibDihitungServer": "Averages, uncertainty budget, environmental U95% and the PASS/FAIL call are all computed by the server.",
+  "phCalibOpsional": "Optional",
+
+  "notifEmptyTitle": "No notifications yet",
+  "notifEmptyBody": "Due-date reminders & approval updates will show up here.",
+  "notifLoadFailed": "Couldn't load notifications.",
+  "notifSessionExpired": "Your session expired. Please sign in again.",
+  "notifRetry": "RETRY",
+  "notifMarkedRead": "Marked as read.",
+  "notifTypeDueDate": "Due date",
+  "notifTypeApproval": "Approval",
+  "notifTypeRevision": "Revision",
+
+  "teknisiTitle": "Technicians",
+  "teknisiFilterSemua": "All",
+  "teknisiFilterPending": "Pending",
+  "teknisiFilterAktif": "Active",
+  "teknisiFilterNonaktif": "Inactive",
+  "teknisiKosong": "No accounts in this filter yet.",
+  "teknisiLoadGagal": "Could not load accounts.",
+  "teknisiRetry": "Try again",
+  "teknisiSetujui": "Approve",
+  "teknisiTolak": "Deactivate",
+  "teknisiResetPassword": "Reset password",
+  "teknisiPilihRole": "Choose a role for this account",
+  "teknisiPilihRoleBatal": "Cancel",
+  "teknisiDisetujui": "Account approved.",
+  "teknisiDitolak": "Account deactivated.",
+  "teknisiPasswordDireset": "Password reset. Tell the new password to the account owner directly.",
+  "teknisiResetPasswordJudul": "Reset account password",
+  "teknisiResetPasswordIsi": "Set a new password for {nama}. Their sessions on every device will be revoked.",
+  "@teknisiResetPasswordIsi": {
+    "placeholders": { "nama": { "type": "String" } }
+  },
+  "teknisiResetPasswordLabel": "New password",
+  "teknisiResetPasswordHelper": "At least 8 characters. The backend sends no email — tell them directly.",
+  "teknisiResetPasswordTerlaluPendek": "Password must be at least 8 characters.",
+  "teknisiGagal": "Action failed. Please try again.",
+  "teknisiKonfirmTolakJudul": "Deactivate this account?",
+  "teknisiKonfirmTolakIsi": "They will be signed out of every device and can no longer sign in. Past calibration records stay intact.",
+  "teknisiTanpaEmployeeId": "No employee ID",
+  "teknisiHanyaAdmin": "Only admins can manage accounts.",
+
+  "menuUtama": "Main menu",
+  "menuMasterData": "Master Data",
+  "menuPengaturan": "Settings",
+
+  "sheetTutup": "CLOSE",
+  "sheetCobaLagi": "TRY AGAIN",
+  "sheetKirimBerhasil": "Sent!",
+  "sheetKirimBerhasilPesan": "The session is now in the admin approval queue.",
+  "sheetKirimGagal": "There is a problem",
+  "sheetDraftBerhasil": "Draft saved",
+  "sheetDraftBerhasilPesan": "You can pick it up again anytime from history.",
+  "phCalibTitikLengkap": "This point is complete",
+  "dashCalibrationDone": "Calibrations done",
+  "dashWorkChart": "Workload trend",
+  "tugasTitle": "My Tasks",
+  "tugasKosong": "No equipment assigned to you yet.",
+  "tugasLoadGagal": "Could not load your task queue.",
+  "tugasRetry": "TRY AGAIN",
+  "tugasJumlahAlat": "{jumlah} items",
+  "@tugasJumlahAlat": { "placeholders": { "jumlah": { "type": "int" } } },
+  "tugasTelat": "Past due date",
+  "tugasMasuk": "Received",
+  "tugasJanji": "Due",
+  "tugasBelumDitugaskan": "Unassigned",
+
+  "dashSummaryOrg": "Organization summary",
+  "dashSummaryYours": "Your summary",
+  "snackAddDeviceSoon": "Adding devices is planned for week 3.",
+  "dashStartPhCalibration": "PH METER CALIBRATION",
+  "lkTitle": "Calibration Worksheet",
+  "lkSubtitleDraft": "Continue draft",
+  "lkSubtitleRevisi": "Revise — returned by admin",
+  "lkLoadGagal": "Couldn't load the worksheet form.",
+  "lkRetry": "RETRY",
+  "lkPilihAlat": "Choose equipment",
+  "lkAlatKosong": "No equipment available yet.",
+  "lkBelumPilihAlat": "Choose the equipment first — the identity and owner fields fill in automatically.",
+  "lkOtomatis": "Filled automatically",
+  "lkKosong": "—",
+  "lkPilihTanggal": "Choose date",
+  "lkHapusTanggal": "Clear date",
+  "lkRepeat": "Repeat",
+  "lkUsageCheckKosong": "No reference standards in master data yet.",
+  "lkUsageCheckKeterangan": "Notes",
+  "lkStandarPerTitik": "Buffer standard",
+  "lkStandarKadaluarsa": "certificate expired",
+  "lkPilih": "Choose",
+  "lkKirim": "SUBMIT TO ADMIN",
+  "lkSimpanDraft": "SAVE AS DRAFT",
+  "lkBerhasilKirim": "Worksheet submitted to admin.",
+  "lkBerhasilDraft": "Saved as draft.",
+  "lkGagalKirim": "Couldn't save: {pesan}",
+  "@lkGagalKirim": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
+  "lkSemuaOpsional": "Any field you can't fill in the field may be left blank — the worksheet can still be submitted.",
+  "lkKeluarTanpaSimpan": "Leave without saving?",
+  "lkKeluarTanpaSimpanBody": "What you've typed will be lost.",
+  "lkKeluarBatal": "KEEP EDITING",
+  "lkKeluarLanjut": "LEAVE",
+  "lkSuhuDiLuarRentang": "Outside this room's range ({min}–{max}).",
+  "@lkSuhuDiLuarRentang": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "navFolderManager": "Folders",
+  "folderTitle": "Folder Manager",
+  "folderEmptyTitle": "No folders yet",
+  "folderEmptyBody": "Folders are created automatically per client as certificates are issued.",
+  "folderLoadFailed": "Couldn't load folders.",
+  "folderRetry": "RETRY",
+  "folderIsiKosong": "This folder is empty.",
+  "folderJumlahFolder": "{jumlah} folder{jumlah, plural, =1{} other{s}}",
+  "@folderJumlahFolder": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "folderJumlahFile": "{jumlah} file{jumlah, plural, =1{} other{s}}",
+  "@folderJumlahFile": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "folderOtomatis": "Created automatically",
+  "folderUnduh": "Download",
+  "folderSertifikatBelumSiap": "The certificate PDF is still being generated.",
+  "folderUnduhGagal": "Couldn't download: {pesan}",
+  "@folderUnduhGagal": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
+  "notifTandaiSemua": "Mark all as read",
+  "notifSemuaDibaca": "All notifications marked as read.",
+  "notifKategoriJatuhTempo": "Due date",
+  "notifKategoriMenungguApproval": "Waiting for approval",
+  "notifKategoriDisetujui": "Approved",
+  "notifKategoriPerluRevisi": "Needs revision",
+  "notifKategoriSertifikat": "Certificate issued",
+  "notifKategoriUmum": "Info",
+  "phCalibCaraScan": "Live scan",
+  "phCalibCaraScanKeterangan": "Point the camera — numbers float over the preview",
+  "folderBuat": "New folder",
+  "folderBuatJudul": "New folder",
+  "folderNamaLabel": "Folder name",
+  "folderGantiNama": "Rename",
+  "folderGantiNamaJudul": "Rename folder",
+  "folderHapus": "Delete",
+  "folderHapusJudul": "Delete this folder?",
+  "folderHapusBody": "\"{nama}\" will be removed. This can't be undone.",
+  "@folderHapusBody": {"placeholders": {"nama": {"type": "String"}}},
+  "folderBatal": "CANCEL",
+  "folderSimpan": "SAVE",
+  "folderHapusLanjut": "DELETE",
+  "folderSistemDikunci": "Created automatically — the name follows the client/year and can't be changed.",
+  "folderNamaKosong": "Enter a folder name.",
+  "antreanTitle": "Approval queue",
+  "antreanKosong": "Nothing waiting for approval",
+  "antreanKosongBody": "Worksheets submitted by technicians show up here.",
+  "antreanGagal": "Couldn't load the queue.",
+  "antreanOleh": "by {nama}",
+  "@antreanOleh": {"placeholders": {"nama": {"type": "String"}}},
+  "perhitTitle": "Calculation sheet",
+  "perhitIdentitasAlat": "EQUIPMENT IDENTITY",
+  "perhitIdentitasCustomer": "CUSTOMER IDENTITY",
+  "perhitKondisi": "ENVIRONMENTAL CONDITION CALCULATION",
+  "perhitHasil": "CALIBRATION RESULT DATA",
+  "perhitNamaAlat": "Equipment name",
+  "perhitMerk": "Brand",
+  "perhitType": "Type",
+  "perhitNoSeri": "Serial no.",
+  "perhitRentang": "Measuring range",
+  "perhitKapasitas": "Max. capacity",
+  "perhitResolusi": "Resolution",
+  "perhitCustNama": "Customer name",
+  "perhitCustAlamat": "Address",
+  "perhitTglTerima": "Received date",
+  "perhitTglKalibrasi": "Calibration date",
+  "perhitSuhuRuangan": "Room temperature",
+  "perhitKelembaban": "Humidity",
+  "perhitAwal": "Start",
+  "perhitAkhir": "End",
+  "perhitAverage": "Average",
+  "perhitIndexed": "Indexed Value",
+  "perhitCorrection": "Correction",
+  "perhitDelta": "Δ",
+  "perhitU95Std": "U95% Std TH",
+  "perhitU95Sertifikat": "U95% Certificate",
+  "perhitThermohygro": "Thermohygro Used",
+  "perhitThermohygroKosong": "Not selected yet — correction & U95% stay empty until it is.",
+  "perhitStandard": "Standard",
+  "perhitRepeat": "Repeat",
+  "perhitStdev": "STDEV",
+  "perhitMaxStdev": "MAX STDEV",
+  "perhitCorrectionCatatan": "On this sheet Correction = Average − Standard. On the certificate the sign is reversed.",
+  "perhitStandardCatatan": "Standard is the buffer value at the solution temperature, not the nominal value.",
+  "perhitGagal": "Couldn't load the calculation sheet.",
+  "perhitPeriksa": "CHECK",
+  "perhitSetujui": "APPROVE",
+  "perhitTolak": "REJECT",
+  "perhitMemeriksa": "Recalculating from the raw readings…",
+  "perhitTemuanJudul": "Check findings",
+  "perhitTemuanBersih": "No findings. Safe to approve.",
+  "perhitTingkatError": "Blocks issuance",
+  "perhitTingkatPeringatan": "Needs confirmation",
+  "perhitTingkatInfo": "Info",
+  "perhitApproveDiblokir": "There are findings that block issuance. Approve is disabled.",
+  "perhitKonfirmasiJudul": "Recalculation differs. Continue?",
+  "perhitKonfirmasiBody": "The recalculated numbers differ from what was saved. Approving anyway issues the certificate with the saved numbers.",
+  "perhitKonfirmasiBatal": "CHECK AGAIN",
+  "perhitKonfirmasiLanjut": "APPROVE ANYWAY",
+  "perhitTolakJudul": "Send back for revision",
+  "perhitTolakLabel": "What needs fixing?",
+  "perhitTolakKosong": "Write what the technician has to fix.",
+  "perhitTolakKirim": "SEND BACK",
+  "perhitDisetujui": "Approved. The certificate is being generated.",
+  "perhitDitolak": "Sent back to the technician.",
+  "perhitKolomAdmin": "ADMINISTRATIVE FIELDS",
+  "perhitNomorOrder": "Order Number",
+  "perhitPilihThermohygro": "Thermohygro used",
+  "perhitSimpanAdmin": "SAVE",
+  "perhitAdminTersimpan": "Administrative fields saved.",
+  "sertPratinjau": "Certificate preview",
+  "sertHasilJudul": "Calibration Report",
+  "sertKolStandard": "Standard Value",
+  "sertKolUut": "Unit Under Test",
+  "sertKolCorrection": "Correction",
+  "sertKolU95": "U95% (±)",
+  "sertStandarJudul": "Standard Used",
+  "sertKolName": "Name",
+  "sertKolMerk": "Merk/Type",
+  "sertKolSerial": "Serial Number",
+  "sertKolTraceable": "Traceable to SI through",
+  "sertFooterTerbit": "Issuance Date",
+  "sertFooterTtd": "Signed by",
+  "sertFooterJabatan": "Position",
+  "sertFooterKode": "Document code",
+  "sertUnduhPdf": "PDF",
+  "sertUnduhExcel": "EXCEL",
+  "sertLihatQr": "QR CODE",
+  "sertBelumTerbit": "The certificate file isn't ready yet.",
+  "sertGagalMuat": "Couldn't load the certificate.",
+  "sertUnduhGagal": "Couldn't download: {pesan}",
+  "@sertUnduhGagal": {"placeholders": {"pesan": {"type": "String"}}},
+  "sertQrJudul": "Certificate QR",
+  "sertQrBody": "Scan to open the verification page for this certificate.",
+  "sertCorrectionCatatan": "On the certificate Correction = Standard − Average — the reverse of the calculation sheet.",
+  "importTitle": "Import Excel",
+  "importPilihTipe": "What are you importing?",
+  "importTipeCustomers": "Clients / companies",
+  "importTipeStandards": "Reference standards",
+  "importTipeEquipments": "Equipment",
+  "importUrutanCatatan": "Import order: clients → standards → equipment. Equipment needs its company to exist first.",
+  "importPilihFile": "CHOOSE FILE",
+  "importFileTerpilih": "File: {nama}",
+  "@importFileTerpilih": {"placeholders": {"nama": {"type": "String"}}},
+  "importUjiCoba": "DRY RUN",
+  "importTerapkan": "APPLY NOW",
+  "importUlangi": "CHOOSE ANOTHER FILE",
+  "importBelumAdaFile": "Choose an .xlsx file first.",
+  "importSedangJalan": "Reading the file…",
+  "importRingkasan": "Summary",
+  "importDibaca": "read",
+  "importDibuat": "created",
+  "importDiperbarui": "updated",
+  "importDilewati": "skipped",
+  "importUjiCobaCatatan": "Dry run — nothing has been saved yet. Check the rows below, then apply.",
+  "importSelesai": "Import applied.",
+  "importTanpaPerubahan": "Nothing would change — no need to apply.",
+  "importKolomDikenal": "Recognised columns",
+  "importKolomDiabaikan": "Ignored columns",
+  "importBarisKe": "Row {nomor}",
+  "@importBarisKe": {"placeholders": {"nomor": {"type": "int"}}},
+  "importGagal": "Import failed: {pesan}",
+  "@importGagal": {"placeholders": {"pesan": {"type": "String"}}},
+  "lkKirimAdmin": "SUBMIT",
+  "lkScanTabel": "PHOTO THIS TABLE — READ BY AI",
+  "lkScanMemproses": "AI is reading the table…"
+}

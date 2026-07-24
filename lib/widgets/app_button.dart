@@ -17,6 +17,7 @@ class AppButton extends StatelessWidget {
     required this.onPressed,
     this.variant = AppButtonVariant.primary,
     this.icon,
+    this.trailingIcon,
     this.isLoading = false,
   });
 
@@ -24,6 +25,9 @@ class AppButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final AppButtonVariant variant;
   final IconData? icon;
+
+  /// Ikon di kanan label — mis. panah "→" di tombol SIGN IN (desain Titanium).
+  final IconData? trailingIcon;
   final bool isLoading;
 
   @override
@@ -36,7 +40,7 @@ class AppButton extends StatelessWidget {
             width: 18,
             child: CircularProgressIndicator(strokeWidth: 2),
           )
-        : _Content(label: label, icon: icon);
+        : _Content(label: label, icon: icon, trailingIcon: trailingIcon);
 
     return switch (variant) {
       AppButtonVariant.primary => FilledButton(
@@ -52,21 +56,31 @@ class AppButton extends StatelessWidget {
 }
 
 class _Content extends StatelessWidget {
-  const _Content({required this.label, this.icon});
+  const _Content({required this.label, this.icon, this.trailingIcon});
 
   final String label;
   final IconData? icon;
+  final IconData? trailingIcon;
 
   @override
   Widget build(BuildContext context) {
-    if (icon == null) return Text(label);
+    if (icon == null && trailingIcon == null) return Text(label);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 18),
-        const SizedBox(width: AppSpacing.sm),
-        Text(label),
+        if (icon != null) ...[Icon(icon, size: 18), const SizedBox(width: AppSpacing.sm)],
+        // Flexible, bukan Text polos: `mainAxisSize.min` bikin Row minta lebar
+        // sesuai isinya, dan label panjang di tombol yang lebarnya dibatesin
+        // (setengah layar, atau layar HP 390px) langsung overflow — error
+        // merah, bukan teks kepotong. Udah kejadian dua kali di form pH.
+        Flexible(
+          child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+        ),
+        if (trailingIcon != null) ...[
+          const SizedBox(width: AppSpacing.sm),
+          Icon(trailingIcon, size: 18),
+        ],
       ],
     );
   }

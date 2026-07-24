@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Palet "Titanium" — diambil dari desain di
-/// `Project-PT-ASMO/gambar/` (DESIGN.md + screenshot login & register).
+/// `Project-PT-Sidik/gambar/` (DESIGN.md + screenshot login & register).
 ///
 /// Karakternya: monokrom high-contrast (navy nyaris hitam di atas putih),
 /// teal dipakai **irit** cuma buat sinyal fungsional (sukses, data
@@ -39,4 +39,25 @@ class AppColors {
   static const Color danger = Color(0xFFBA1A1A); // FAIL / ditolak
   static const Color warning = Color(0xFFB47C1E); // overdue / perlu revisi
   static const Color info = Color(0xFF3F465C); // menunggu approval / draft
+
+  /// Latar bergradasi buat layar yang isinya kartu timbul (`SoftRaised`).
+  ///
+  /// Bayangan lembut cuma kebaca sebagai kedalaman kalau bidang di belakangnya
+  /// punya arah cahaya. Di atas warna rata, bayangan yang sama malah kelihatan
+  /// kayak noda abu-abu.
+  ///
+  /// Condong ke biru, bukan abu-abu netral. Kartu putih di atas bidang biru
+  /// muda kebaca lebih "ngambang" — bayangannya punya warna buat dikontraskan.
+  /// Di atas abu-abu, kartu putih dan bayangannya nyaris menyatu.
+  static LinearGradient gradasiLatar(BuildContext context) {
+    final gelap = Theme.of(context).brightness == Brightness.dark;
+
+    return LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: gelap
+          ? const [Color(0xFF102C38), Color(0xFF091A21)]
+          : const [Color(0xFFDCE8F7), Color(0xFFF4F8FD)],
+    );
+  }
 }

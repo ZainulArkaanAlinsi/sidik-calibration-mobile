@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:asmo_mobile/core/theme/app_theme.dart';
-import 'package:asmo_mobile/widgets/app_button.dart';
-import 'package:asmo_mobile/widgets/status_badge.dart';
+import 'package:sidik_calibration/core/theme/app_theme.dart';
+import 'package:sidik_calibration/widgets/app_button.dart';
+import 'package:sidik_calibration/widgets/status_badge.dart';
 
 Widget _wrap(Widget child) =>
     MaterialApp(theme: AppTheme.light, home: Scaffold(body: child));

@@ -81,29 +81,44 @@ class AppTheme {
       brightness: brightness,
       colorScheme: scheme,
       fontFamily: AppTypography.family,
+      // Bidang dasar condong biru, bukan abu-abu netral. Kartu putih di atas
+      // ground kebiruan kebaca "ngambang" — bayangannya punya warna buat
+      // dikontraskan. Di atas abu-abu, kartu putih dan bayangannya nyaris
+      // menyatu dan kedalamannya ilang.
       scaffoldBackgroundColor: isLight
-          ? AppColors.surfaceLight
+          ? const Color(0xFFE9F0F9)
           : AppColors.darkBase,
       textTheme: text,
 
       appBarTheme: AppBarTheme(
-        backgroundColor: scheme.surface,
+        // Nyatu sama ground, tanpa garis pemisah — biar layar kebaca sebagai
+        // satu bidang utuh yang ditempeli kartu, bukan tumpukan kotak.
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         foregroundColor: scheme.onSurface,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
         titleTextStyle: text.titleLarge,
-        shape: Border(bottom: BorderSide(color: scheme.outlineVariant)),
       ),
 
-      // Kedalaman = garis tipis, bukan bayangan (DESIGN.md, Elevation).
+      // Arah desain berubah: dulu kedalaman digambar pakai garis rambut
+      // (DESIGN.md, Elevation). Sekarang pakai bayangan lembut — acuan visual
+      // barunya 3D lembut + liquid glass, dan garis tipis bikin semua layar
+      // kebaca rata.
+      //
+      // Bayangannya sengaja lebar & tipis, bukan pekat & sempit: yang pertama
+      // kebaca empuk, yang kedua kebaca kayak kartu ketebalan.
       cardTheme: CardThemeData(
-        elevation: 0,
-        color: scheme.surface,
+        elevation: 8,
+        shadowColor: (isLight ? AppColors.navy : Colors.black).withValues(
+          alpha: isLight ? 0.16 : 0.5,
+        ),
+        surfaceTintColor: Colors.transparent,
+        color: isLight ? AppColors.white : AppColors.darkSurface,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-          side: BorderSide(color: scheme.outlineVariant),
         ),
       ),
 
