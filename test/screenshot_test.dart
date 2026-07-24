@@ -15,7 +15,6 @@ import 'package:sidik_calibration/providers/dashboard_provider.dart';
 import 'package:sidik_calibration/screens/auth/login_screen.dart';
 import 'package:sidik_calibration/screens/auth/register_screen.dart';
 import 'package:sidik_calibration/screens/auth/splash_screen.dart';
-import 'package:sidik_calibration/screens/auth/widgets/neu.dart';
 import 'package:sidik_calibration/screens/profile/profile_screen.dart';
 import 'package:sidik_calibration/screens/shell/main_shell.dart';
 import 'package:sidik_calibration/services/dashboard_service.dart';
@@ -64,6 +63,10 @@ Future<void> _muatFont() async {
 /// Logo PT Sidik = `Image.asset`. Di golden test, decode gambar jalan di async
 /// queue yang di-pause, jadi kalau nggak di-precache manual di dalam `runAsync`
 /// logonya kerender kosong. Precache dulu → `pumpAndSettle` → logo muncul.
+/// Aset logo resmi (dulu diekspor `neu.dart`; kini auth memakai badge ikon
+/// placeholder, jadi konstanta dipindah ke test yang masih mem-precache-nya).
+const String kLogoPtSidik = 'assets/images/logo_pt_sidik.png';
+
 Future<void> _pumpLayar(WidgetTester tester, Widget layar) async {
   await tester.pumpWidget(layar);
   await tester.runAsync(() async {

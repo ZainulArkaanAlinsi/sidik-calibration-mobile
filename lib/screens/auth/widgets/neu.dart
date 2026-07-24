@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/config/lab_profile.dart';
-
 /// Kit "soft UI" / neumorphism — **khusus layar auth** (Login & Register).
 ///
 /// Sengaja dipisah dari design system Titanium yang dipakai sisa app (dashboard,
@@ -69,8 +67,8 @@ class NeuRaised extends StatelessWidget {
     required this.child,
     this.radius = 22,
     this.padding,
-    this.distance = 5,
-    this.blur = 10,
+    this.distance = 6,
+    this.blur = 14,
     this.circle = false,
     this.color,
   });
@@ -120,14 +118,9 @@ class NeuRaised extends StatelessWidget {
   }
 }
 
-/// Permukaan yang **tenggelam** (kolom input, banner error).
-///
-/// Dulu inner-shadow-nya dipaint manual pakai `CustomPaint` + `MaskFilter.blur`
-/// — cantik tapi BERAT: tiap field maksa `saveLayer` + blur raster tiap kali
-/// re-paint (fokus/ngetik), bikin nge-lag di HP low-end. Sekarang kesan
-/// "cekung" ditiru murni pakai **gradasi + garis tipis** (tanpa blur, tanpa
-/// saveLayer): sisi atas sedikit gelap (bayangan jatuh ke dalam), sisi bawah
-/// sedikit terang (cahaya nyangkut di bibir bawah).
+/// Permukaan yang **tenggelam** (kolom input) — bayangan digambar di sisi
+/// DALAM. Flutter nggak punya inner-shadow bawaan, jadi dipaint manual lewat
+/// selisih path.
 class NeuInset extends StatelessWidget {
   const NeuInset({
     super.key,
@@ -144,49 +137,73 @@ class NeuInset extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = NeuColors.of(context);
 
-    return Container(
-      padding: padding,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(radius),
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color.lerp(c.base, c.darkShadow, 0.32)!,
-            Color.lerp(c.base, c.lightShadow, 0.16)!,
-          ],
-        ),
-        border: Border.all(
-          color: c.darkShadow.withValues(alpha: 0.55),
-          width: 1,
-        ),
+    return CustomPaint(
+      foregroundPainter: _InsetPainter(
+        light: c.lightShadow,
+        dark: c.darkShadow,
+        radius: radius,
       ),
-      child: child,
+      child: Container(
+        padding: padding,
+        decoration: BoxDecoration(
+          color: c.base,
+          borderRadius: BorderRadius.circular(radius),
+        ),
+        child: child,
+      ),
     );
   }
 }
 
-/// Label kecil di atas kolom input (mis. "ID Pegawai / Email", "Password").
-class NeuFieldLabel extends StatelessWidget {
-  const NeuFieldLabel(this.text, {super.key});
+class _InsetPainter extends CustomPainter {
+  _InsetPainter({
+    required this.light,
+    required this.dark,
+    required this.radius,
+  });
 
-  final String text;
+  final Color light;
+  final Color dark;
+  final double radius;
 
   @override
-  Widget build(BuildContext context) {
-    final c = NeuColors.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(left: 6, bottom: 10),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
-          color: c.textMuted,
+  void paint(Canvas canvas, Size size) {
+    final rrect = RRect.fromRectAndRadius(
+      Offset.zero & size,
+      Radius.circular(radius),
+    );
+    canvas.save();
+    canvas.clipRRect(rrect);
+    // Gelap masuk dari kiri-atas, terang dari kanan-bawah — kebalikan arah
+    // permukaan timbul, jadi kolomnya kebaca "cekung".
+    _inner(canvas, size, rrect, dark, const Offset(3, 3));
+    _inner(canvas, size, rrect, light, const Offset(-3, -3));
+    canvas.restore();
+  }
+
+  void _inner(Canvas canvas, Size size, RRect rrect, Color color, Offset o) {
+    final paint = Paint()
+      ..color = color
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    final outer = Path()
+      ..addRect(
+        Rect.fromLTRB(
+          -size.width,
+          -size.height,
+          size.width * 2,
+          size.height * 2,
         ),
-      ),
+      );
+    final inner = Path()..addRRect(rrect.shift(o));
+    canvas.drawPath(
+      Path.combine(PathOperation.difference, outer, inner),
+      paint,
     );
   }
+
+  @override
+  bool shouldRepaint(covariant _InsetPainter old) =>
+      old.light != light || old.dark != dark || old.radius != radius;
 }
 
 /// Kolom input soft: pill cekung, ikon di kiri, placeholder di dalam (bukan
@@ -257,24 +274,18 @@ class _NeuTextFieldState extends State<NeuTextField> {
                     onSubmitted: widget.onSubmitted,
                     cursorColor: c.accent,
                     style: TextStyle(color: c.text, fontSize: 16),
-                    // Semua border DIPAKSA none di tiap state. Kalau cuma pakai
-                    // InputDecoration.collapsed, `focusedBorder` dari tema
-                    // Titanium (garis gelap) bocor pas field difokus — itu
-                    // "border hitam" yang muncul waktu dipencet. Kolom neu
-                    // udah punya bentuk sendiri (NeuInset), jadi nggak perlu.
-                    decoration: InputDecoration(
-                      isCollapsed: true,
-                      filled: false,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      disabledBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
-                      focusedErrorBorder: InputBorder.none,
-                      hintText: widget.hint,
-                      hintStyle: TextStyle(color: c.textMuted, fontSize: 16),
-                    ),
+                    decoration:
+                        InputDecoration.collapsed(
+                          hintText: widget.hint,
+                          hintStyle: TextStyle(
+                            color: c.textMuted,
+                            fontSize: 16,
+                          ),
+                        ).copyWith(
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
+                        ),
                   ),
                 ),
                 if (widget.obscure)
@@ -308,10 +319,8 @@ class _NeuTextFieldState extends State<NeuTextField> {
   }
 }
 
-/// Tombol utama soft — permukaan timbul **monokrom** (warna dasar yang sama
-/// kayak latar, kedalaman datang dari bayangan; ngikutin gambar acuan yang
-/// nggak pakai warna aksen). Waktu loading: nggak bisa dipencet + spinner,
-/// biar submit nggak dobel.
+/// Tombol utama soft — permukaan timbul warna aksen biru. Waktu loading:
+/// nggak bisa dipencet + spinner, biar submit nggak dobel.
 class NeuButton extends StatelessWidget {
   const NeuButton({
     super.key,
@@ -333,6 +342,7 @@ class NeuButton extends StatelessWidget {
       radius: 26,
       distance: 5,
       blur: 12,
+      color: c.accent,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -347,14 +357,14 @@ class NeuButton extends StatelessWidget {
                     width: 22,
                     child: CircularProgressIndicator(
                       strokeWidth: 2.4,
-                      valueColor: AlwaysStoppedAnimation(c.text),
+                      valueColor: AlwaysStoppedAnimation(c.onAccent),
                     ),
                   )
                 : Text(
                     label,
                     style: TextStyle(
-                      color: aktif ? c.text : c.textMuted,
-                      fontSize: 17,
+                      color: c.onAccent,
+                      fontSize: 16,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.8,
                     ),
@@ -393,9 +403,7 @@ class NeuTextLink extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: strong ? FontWeight.w700 : FontWeight.w500,
-            // Monokrom: link kuat = teks terang tebal (bukan biru), link biasa
-            // = abu. Sesuai gambar acuan ("Sign up" putih tebal).
-            color: strong ? c.text : c.textMuted,
+            color: strong ? c.accent : c.textMuted,
           ),
         ),
       ),
@@ -457,112 +465,34 @@ class NeuBackButton extends StatelessWidget {
   }
 }
 
-/// Footer identitas lab (PT Sidik + akreditasi KAN), bergaya neu.
-/// Nyebut lab yang terakreditasi — nama yang muncul di sertifikat.
-class NeuPoweredBy extends StatelessWidget {
-  const NeuPoweredBy({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = NeuColors.of(context);
-    final muted = TextStyle(fontSize: 11, color: c.textMuted);
-
-    return Column(
-      children: [
-        Text(
-          LabProfile.namaSingkat.toUpperCase(),
-          textAlign: TextAlign.center,
-          style: muted.copyWith(letterSpacing: 2, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Terakreditasi KAN ${LabProfile.nomorAkreditasi} · ${LabProfile.standar}',
-          textAlign: TextAlign.center,
-          style: muted,
-        ),
-      ],
-    );
-  }
-}
-
-/// Path aset logo resmi PT Sidik. Dipublik biar bisa di-precache di golden test
-/// (decode gambar di test di-pause; harus di-precache manual biar nggak kosong).
-const String kLogoPtSidik = 'assets/images/logo_pt_sidik.png';
-
-/// Biru brand PT Sidik (disampel dari logo). Dipakai buat aksen halus di badge.
-const Color kBrandBlue = Color(0xFF003C9C);
-
-/// Badge brand — "app-icon" berisi **logo resmi PT Sidik**.
-///
-/// Logo variant: kotak-bulat (squircle) putih dengan gradasi tipis + bingkai
-/// biru brand, dibingkai cincin neu yang timbul — berasa lencana resmi, lebih
-/// hidup daripada sekadar gambar di lingkaran polos. Kalau [icon] diisi, dia
-/// nampilin ikon monokrom bulat (state kontekstual, mis. cakram "email
-/// terkirim").
+/// Medali brand bulat — avatar timbul dengan lingkaran aksen di dalamnya.
+/// Ganti [icon] jadi logo resmi PT Sidik begitu asetnya ada.
 class NeuBrandBadge extends StatelessWidget {
-  const NeuBrandBadge({super.key, this.icon});
+  const NeuBrandBadge({super.key, this.icon = Icons.precision_manufacturing});
 
-  /// null → logo PT Sidik. Diisi → ikon monokrom (state kontekstual).
-  final IconData? icon;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
     final c = NeuColors.of(context);
-
-    if (icon != null) {
-      return NeuRaised(
-        circle: true,
-        distance: 6,
-        blur: 12,
-        padding: const EdgeInsets.all(16),
-        child: Container(
-          height: 76,
-          width: 76,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                c.darkShadow,
-                Color.lerp(c.darkShadow, Colors.black, 0.4)!,
-              ],
-            ),
-            border: Border.all(color: c.lightShadow, width: 1.5),
-          ),
-          child: Icon(icon, size: 36, color: c.text),
-        ),
-      );
-    }
 
     return NeuRaised(
-      radius: 26,
-      distance: 6,
-      blur: 12,
-      padding: const EdgeInsets.all(10),
+      circle: true,
+      distance: 7,
+      blur: 16,
+      padding: const EdgeInsets.all(16),
       child: Container(
-        height: 88,
-        width: 88,
-        clipBehavior: Clip.antiAlias,
-        padding: const EdgeInsets.all(9),
+        height: 76,
+        width: 76,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          // Putih → biru sangat muda: kasih "napas" tanpa ganggu keterbacaan.
-          gradient: const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.white, Color(0xFFEAF1FC)],
-          ),
-          border: Border.all(
-            color: kBrandBlue.withValues(alpha: 0.30),
-            width: 1.5,
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [c.accent, Color.lerp(c.accent, Colors.black, 0.28)!],
           ),
         ),
-        child: Image.asset(
-          kLogoPtSidik,
-          fit: BoxFit.contain,
-          filterQuality: FilterQuality.medium,
-        ),
+        child: Icon(icon, size: 38, color: Colors.white),
       ),
     );
   }

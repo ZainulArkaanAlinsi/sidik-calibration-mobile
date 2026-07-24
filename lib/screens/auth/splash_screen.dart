@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/config/lab_profile.dart';
 import '../../l10n/app_localizations.dart';
+import 'widgets/auth_brand_header.dart';
 import 'widgets/neu.dart';
 
 /// Layar pembuka saat app ngecek token tersimpan (lihat [AuthGate]).
@@ -59,7 +60,7 @@ class SplashScreen extends StatelessWidget {
                 ),
               ),
               const Spacer(flex: 4),
-              const NeuPoweredBy(),
+              const AuthPoweredBy(),
               const SizedBox(height: 8),
             ],
           ),

@@ -2,18 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
-import '../../core/config/lab_profile.dart';
-import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
 import 'forgot_password_screen.dart';
 import 'register_screen.dart';
-import 'widgets/auth_top_controls.dart';
+import 'widgets/auth_brand_header.dart';
 import 'widgets/neu.dart';
 
-/// Layar Login — gaya soft UI / neumorphism gelap (lihat `widgets/neu.dart`).
-/// Login pakai ID pegawai **atau** email, validasi lokal dulu, error dari
-/// server ditampilin apa adanya, plus panel bantuan buat mode dev/mock.
+/// Layar Login — gaya soft UI / neumorphism (lihat `widgets/neu.dart`).
+/// Isinya sama persis kayak sebelumnya: login pakai ID pegawai **atau** email,
+/// validasi lokal dulu, error dari server ditampilin apa adanya, plus panel
+/// bantuan buat mode dev/mock. Cuma kulitnya yang berubah.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -35,33 +34,45 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  bool _validasi(AppLocalizations l10n) {
+  /// Divalidasi lokal dulu — nggak usah bolak-balik ke server cuma buat tahu
+  /// field-nya kosong.
+  bool _validasi() {
     setState(() {
       _identifierError = _identifier.text.trim().isEmpty
-          ? l10n.loginIdentifierRequired
+          ? 'ID pegawai atau email wajib diisi.'
           : null;
-      _passwordError = _password.text.isEmpty ? l10n.passwordRequired : null;
+      _passwordError = _password.text.isEmpty ? 'Password wajib diisi.' : null;
     });
     return _identifierError == null && _passwordError == null;
   }
 
   Future<void> _submit() async {
-    if (!_validasi(AppLocalizations.of(context))) return;
+    if (!_validasi()) return;
+
     await ref
         .read(authProvider.notifier)
         .login(identifier: _identifier.text, password: _password.text);
   }
 
+  void _bukaLupaPassword() => Navigator.of(context).push(
+    MaterialPageRoute<void>(builder: (_) => const ForgotPasswordScreen()),
+  );
+
+  void _bukaRegister() => Navigator.of(context).push(
+    MaterialPageRoute<void>(builder: (_) => const RegisterScreen()),
+  );
+
   @override
   Widget build(BuildContext context) {
     final c = NeuColors.of(context);
-    final l10n = AppLocalizations.of(context);
     final auth = ref.watch(authProvider);
     final loading = auth.isLoading;
 
+    // Cuma pesan dari AuthException yang ditampilin apa adanya. Exception
+    // teknis (timeout, parsing) disembunyiin — user nggak perlu lihat itu.
     final errorLogin = switch (auth) {
       AsyncError(:final AuthException error) => error.message,
-      AsyncError() => l10n.errorNoConnection,
+      AsyncError() => 'Nggak bisa nyambung ke server. Coba lagi.',
       _ => null,
     };
 
@@ -70,118 +81,112 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+            padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
+              constraints: const BoxConstraints(maxWidth: 420),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const AuthTopControls(),
-                  const SizedBox(height: 20),
-
+                  const SizedBox(height: 16),
                   const Center(child: NeuBrandBadge()),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 18),
                   Center(
                     child: Text(
-                      LabProfile.namaSingkat,
+                      'SIDIK',
                       style: TextStyle(
                         fontSize: 30,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
+                        letterSpacing: 1,
                         color: c.text,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   Center(
                     child: Text(
-                      l10n.appTagline,
+                      'Manajemen Kalibrasi Presisi',
                       style: TextStyle(fontSize: 14, color: c.textMuted),
                     ),
                   ),
-                  const SizedBox(height: 34),
-
-                  if (errorLogin != null) ...[
-                    NeuErrorBanner(message: errorLogin),
-                    const SizedBox(height: 20),
-                  ],
-
-                  NeuFieldLabel(l10n.loginIdentifierLabel),
-                  NeuTextField(
-                    icon: Icons.badge_outlined,
-                    controller: _identifier,
-                    hint: l10n.loginIdentifierHint,
-                    errorText: _identifierError,
-                    enabled: !loading,
-                    textInputAction: TextInputAction.next,
-                    autofillHints: const [AutofillHints.username],
-                  ),
-                  const SizedBox(height: 18),
-
-                  NeuFieldLabel(l10n.passwordLabel),
-                  NeuTextField(
-                    icon: Icons.lock_outline,
-                    controller: _password,
-                    hint: '••••••••',
-                    obscure: true,
-                    errorText: _passwordError,
-                    enabled: !loading,
-                    textInputAction: TextInputAction.done,
-                    autofillHints: const [AutofillHints.password],
-                    onSubmitted: (_) => _submit(),
-                  ),
                   const SizedBox(height: 30),
 
-                  NeuButton(
-                    label: l10n.loginSubmit,
-                    loading: loading,
-                    onPressed: _submit,
-                  ),
-                  const SizedBox(height: 20),
-
-                  Center(
-                    child: NeuTextLink(
-                      label: l10n.forgotPasswordLink,
-                      onTap: loading
-                          ? null
-                          : () => Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                builder: (_) => const ForgotPasswordScreen(),
-                              ),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(height: 22),
-
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
+                  NeuRaised(
+                    radius: 30,
+                    distance: 8,
+                    blur: 20,
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text(
-                          l10n.loginNoAccount,
-                          style: TextStyle(fontSize: 13, color: c.textMuted),
+                        if (errorLogin != null) ...[
+                          NeuErrorBanner(message: errorLogin),
+                          const SizedBox(height: 18),
+                        ],
+
+                        NeuTextField(
+                          icon: Icons.person_outline,
+                          controller: _identifier,
+                          hint: 'ID Pegawai / Email',
+                          errorText: _identifierError,
+                          enabled: !loading,
+                          textInputAction: TextInputAction.next,
+                          autofillHints: const [AutofillHints.username],
                         ),
-                        const SizedBox(width: 6),
-                        NeuTextLink(
-                          label: l10n.loginRegisterLink,
-                          strong: true,
-                          onTap: loading
-                              ? null
-                              : () => Navigator.of(context).push(
-                                  MaterialPageRoute<void>(
-                                    builder: (_) => const RegisterScreen(),
-                                  ),
+                        const SizedBox(height: 16),
+
+                        NeuTextField(
+                          icon: Icons.lock_outline,
+                          controller: _password,
+                          hint: 'Password',
+                          obscure: true,
+                          errorText: _passwordError,
+                          enabled: !loading,
+                          textInputAction: TextInputAction.done,
+                          autofillHints: const [AutofillHints.password],
+                          onSubmitted: (_) => _submit(),
+                        ),
+                        const SizedBox(height: 26),
+
+                        NeuButton(
+                          label: 'MASUK',
+                          loading: loading,
+                          onPressed: _submit,
+                        ),
+                        const SizedBox(height: 18),
+
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              NeuTextLink(
+                                label: 'Lupa Password?',
+                                onTap: loading ? null : _bukaLupaPassword,
+                              ),
+                              Text(
+                                '  atau  ',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: c.textMuted,
                                 ),
+                              ),
+                              NeuTextLink(
+                                label: 'Daftar',
+                                strong: true,
+                                onTap: loading ? null : _bukaRegister,
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
                   ),
 
-                  const SizedBox(height: 30),
-                  const NeuPoweredBy(),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 22),
                   const _DevHint(),
+                  const SizedBox(height: 26),
+                  const AuthPoweredBy(),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
@@ -192,8 +197,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 }
 
-/// Petunjuk akun tes — **cuma muncul di build non-produksi**. Teks-nya sengaja
-/// nggak di-i18n: ini alat bantu developer, bukan UI produk.
+/// Panel bantuan dev/mock — dipendem di prod. Isinya sama kayak sebelumnya,
+/// cuma dikasih kulit soft.
 class _DevHint extends StatelessWidget {
   const _DevHint();
 
@@ -205,7 +210,7 @@ class _DevHint extends StatelessWidget {
     final mock = AppConfig.useMock;
 
     return NeuInset(
-      radius: 14,
+      radius: 16,
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
