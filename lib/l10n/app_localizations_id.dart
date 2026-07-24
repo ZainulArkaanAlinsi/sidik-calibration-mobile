@@ -2316,5 +2316,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkKirimAdmin => 'KIRIM';
 
   @override
-  String get lkScanTabel => 'SCAN / FOTO TABEL INI';
+  String get lkScanTabel => 'FOTO TABEL INI — DIBACA AI';
+
+  @override
+  String get lkScanMemproses => 'AI lagi baca tabel…';
 }

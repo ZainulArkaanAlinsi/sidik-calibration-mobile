@@ -2339,5 +2339,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkKirimAdmin => 'SUBMIT';
 
   @override
-  String get lkScanTabel => 'SCAN / PHOTO THIS TABLE';
+  String get lkScanTabel => 'PHOTO THIS TABLE — READ BY AI';
+
+  @override
+  String get lkScanMemproses => 'AI is reading the table…';
 }

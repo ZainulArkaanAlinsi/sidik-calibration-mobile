@@ -4373,8 +4373,14 @@ abstract class AppLocalizations {
   /// No description provided for @lkScanTabel.
   ///
   /// In en, this message translates to:
-  /// **'SCAN / PHOTO THIS TABLE'**
+  /// **'PHOTO THIS TABLE — READ BY AI'**
   String get lkScanTabel;
+
+  /// No description provided for @lkScanMemproses.
+  ///
+  /// In en, this message translates to:
+  /// **'AI is reading the table…'**
+  String get lkScanMemproses;
 }
 
 class _AppLocalizationsDelegate

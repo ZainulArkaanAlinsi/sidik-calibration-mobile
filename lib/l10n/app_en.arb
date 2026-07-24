@@ -983,5 +983,6 @@
   "importGagal": "Import failed: {pesan}",
   "@importGagal": {"placeholders": {"pesan": {"type": "String"}}},
   "lkKirimAdmin": "SUBMIT",
-  "lkScanTabel": "SCAN / PHOTO THIS TABLE"
+  "lkScanTabel": "PHOTO THIS TABLE — READ BY AI",
+  "lkScanMemproses": "AI is reading the table…"
 }

@@ -4,7 +4,7 @@ import '../../models/calibration_draft.dart' show LokasiKalibrasi;
 import '../../models/equipment_lookup.dart';
 import '../../models/lembar_kerja.dart';
 import '../../models/lembar_kerja_submission.dart';
-import '../../services/worksheet_ocr.dart';
+import '../../services/worksheet_vision.dart';
 
 /// Angka di lembar kerja diketik teknisi lapangan, yang kadang pakai koma
 /// (`22,2`) karena itu yang dipakai di formulir kertasnya. Dua-duanya
@@ -162,6 +162,17 @@ class LembarKerjaState {
   /// Keyed by nilai larutan standar (4.00 / 7.00 / 10.01).
   final Map<double, TitikState> titik = {};
 
+  /// Sel yang diisi AI dengan **keyakinan rendah** — ditandai di layar biar
+  /// teknisi ngecek angka itu saja, bukan seluruh tabel (spec vision §4.1).
+  /// Kuncinya [kunciSel]. Dibersihin kalau selnya diisi ulang dengan keyakinan
+  /// bagus di foto berikutnya.
+  final Set<String> selRendahKeyakinan = {};
+
+  /// Kunci satu sel tabel — sama persis dengan yang dibangun widget tabel biar
+  /// penandaan keyakinan-rendah nyambung ke kotak yang benar.
+  static String kunciSel(double titikUkur, String tahap, String kolom, int index) =>
+      '$titikUkur|$tahap|$kolom|$index';
+
   final Map<int, UsageCheckState> usageCheck = {};
 
   UsageCheckState usage(int standardId) => usageCheck.putIfAbsent(
@@ -244,7 +255,7 @@ class LembarKerjaState {
   /// Bentuk [hasil]: `baris[pengulangan].ph[titik]` — **baris itu Repeat 1..5**,
   /// isinya satu angka per larutan standar. Gampang kebalik, makanya nama
   /// variabelnya ditulis panjang di bawah.
-  int terapkanHasilOcr(HasilTabelOcr hasil, {required String tahap}) {
+  int terapkanHasilEkstraksi(HasilEkstraksiTabel hasil, {required String tahap}) {
     final urut = titikUrut;
     var terisi = 0;
 
@@ -255,13 +266,21 @@ class LembarKerjaState {
         final state = urut[t];
         if (pengulangan >= state.jumlahPengulangan) continue;
 
-        terisi += _isiKalauKosong(
-          state.kotak(tahap, 'pembacaan', pengulangan),
+        terisi += _isiSel(
+          state,
+          tahap,
+          'pembacaan',
+          pengulangan,
           t < baris.ph.length ? baris.ph[t] : null,
+          baris.keyakinanPh(t),
         );
-        terisi += _isiKalauKosong(
-          state.kotak(tahap, 'suhu', pengulangan),
+        terisi += _isiSel(
+          state,
+          tahap,
+          'suhu',
+          pengulangan,
           t < baris.suhu.length ? baris.suhu[t] : null,
+          baris.keyakinanSuhu(t),
         );
       }
     }
@@ -269,10 +288,28 @@ class LembarKerjaState {
     return terisi;
   }
 
-  int _isiKalauKosong(TextEditingController kotak, double? hasilOcr) {
-    final baru = GabungTabel.nilaiBaru(kotak.text, hasilOcr);
+  int _isiSel(
+    TitikState state,
+    String tahap,
+    String kolom,
+    int index,
+    double? nilai,
+    TingkatKeyakinan keyakinan,
+  ) {
+    final kotak = state.kotak(tahap, kolom, index);
+    final baru = GabungTabel.nilaiBaru(kotak.text, nilai);
     if (baru == null) return 0;
+
     kotak.text = baru;
+
+    // Sel yang keyakinannya rendah ditandai; kalau foto ulang mengisinya dengan
+    // keyakinan bagus, tandanya dilepas.
+    final kunci = kunciSel(state.titikUkur, tahap, kolom, index);
+    if (keyakinan.perluDicek) {
+      selRendahKeyakinan.add(kunci);
+    } else {
+      selRendahKeyakinan.remove(kunci);
+    }
     return 1;
   }
 

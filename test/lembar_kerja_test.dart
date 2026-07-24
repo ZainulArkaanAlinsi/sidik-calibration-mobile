@@ -14,7 +14,7 @@ import 'package:sidik_calibration/services/lembar_kerja_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/room_service.dart';
 import 'package:sidik_calibration/services/standard_service.dart';
-import 'package:sidik_calibration/services/worksheet_ocr.dart';
+import 'package:sidik_calibration/services/worksheet_vision.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 
 /// Lembar kerjanya panjang banget (2 tabel x 3 baris x 5 repeat x 2 kolom =
@@ -437,12 +437,11 @@ void main() {
     /// `baris` itu **Repeat**, isinya satu angka per larutan standar. Dua sumbu
     /// ini gampang kebalik, dan kalau kebalik angkanya nyasar ke buffer yang
     /// salah tanpa ada yang error — makanya diuji eksplisit.
-    HasilTabelOcr contohHasil() => const HasilTabelOcr(
+    HasilEkstraksiTabel contohHasil() => const HasilEkstraksiTabel(
       baris: [
         BarisTabel(ph: [4.01, 7.02, 10.11], suhu: [22.2, 22.3, 22.1]),
         BarisTabel(ph: [4.02, 7.03, 10.12], suhu: [22.2, 22.3, 22.1]),
       ],
-      teksMentah: '',
       jumlahSelKebaca: 12,
       jumlahSelDiharapkan: 30,
       jumlahAngkaTerdeteksi: 12,
@@ -455,7 +454,7 @@ void main() {
 
     test('angka masuk ke Repeat & larutan standar yang benar', () {
       final isian = buatState();
-      final terisi = isian.terapkanHasilOcr(
+      final terisi = isian.terapkanHasilEkstraksi(
         contohHasil(),
         tahap: 'sesudah_adjustment',
       );
@@ -480,7 +479,7 @@ void main() {
       // Teknisi udah betulin angka ini sendiri.
       titik4.kotak('sesudah_adjustment', 'pembacaan', 0).text = '4.00';
 
-      final terisi = isian.terapkanHasilOcr(
+      final terisi = isian.terapkanHasilEkstraksi(
         contohHasil(),
         tahap: 'sesudah_adjustment',
       );
@@ -493,7 +492,7 @@ void main() {
 
     test('foto tabel Before nggak nyentuh tabel After', () {
       final isian = buatState();
-      isian.terapkanHasilOcr(contohHasil(), tahap: 'sebelum_adjustment');
+      isian.terapkanHasilEkstraksi(contohHasil(), tahap: 'sebelum_adjustment');
 
       final titik4 = isian.titik[4.00]!;
       expect(titik4.kotak('sebelum_adjustment', 'pembacaan', 0).text, '4.01');
@@ -502,7 +501,7 @@ void main() {
 
     test('hasil OCR ikut kekirim lewat payload, sel sisanya tetap null', () {
       final isian = buatState()..alat = null;
-      isian.terapkanHasilOcr(contohHasil(), tahap: 'sesudah_adjustment');
+      isian.terapkanHasilEkstraksi(contohHasil(), tahap: 'sesudah_adjustment');
 
       final titik4 = isian.titik[4.00]!.toSubmission().toJson();
 

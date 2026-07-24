@@ -178,34 +178,50 @@ Semua di bawah `/api`. Butuh Bearer token (Sanctum). Bungkus data di `{"data": .
 
 ---
 
-## 4. KAMERA AI — endpoint vision untuk baca worksheet (permintaan baru)
+## 4. KAMERA AI — endpoint vision untuk baca worksheet (WAJIB, OCR sudah dibuang)
 
-Sekarang scan pakai on-device (Google ML Kit) + parser posisi. Cukup untuk angka rapi, tapi rapuh untuk tulisan tangan miring. Permintaan: **"AI di kamera yang tahu angka ini masuk ke input mana."**
+**Status mobile (2026-07-24): OCR on-device (Google ML Kit) SUDAH DIHAPUS total** —
+dependency, `live_scan_screen`, `worksheet_ocr`, `ocr_service` dibuang. Tombol scan
+sekarang: foto → **upload ke endpoint di bawah** → pra-isi sel + tandai sel keyakinan
+rendah → teknisi konfirmasi. **Backend WAJIB bikin endpoint ini biar tombol foto jalan.**
+Acuan lengkap: `Project-PT-Sidik/SPEC-vision-ai-worksheet-extraction.md`.
 
-Usul endpoint:
+Endpoint yang dipanggil mobile (`ApiWorksheetVisionService` di `lib/services/worksheet_vision.dart`):
 
 ```
-POST /api/ocr/worksheet
+POST /api/raw-measurements/extract-from-photo
 Content-Type: multipart/form-data
-  - foto: <file gambar tabel>
-  - tahap: sebelum_adjustment | sesudah_adjustment
-  - jumlah_titik: 3
-  - jumlah_pengulangan: 5
+  - foto: <file gambar tabel>            (WAJIB)
+  - jumlah_titik: 3                       (jumlah larutan standar)
+  - jumlah_pengulangan: 5                 (Repeat 1..n)
+  - calibration_session_id: <id>          (opsional; sesi baru belum punya id)
 
-→ 200 OK
+→ 200 OK  — satu entri "baris" per Repeat; tiap array sepanjang jumlah_titik,
+            urut ikut larutan standar (4 / 7 / 10). null = sel tak terbaca.
 {
-  "sel": [
-    {"titik_ukur": 4.00, "pengulangan": 1, "kolom": "pembacaan", "nilai": 4.01, "keyakinan": 0.98},
-    {"titik_ukur": 4.00, "pengulangan": 1, "kolom": "suhu",      "nilai": 25.1, "keyakinan": 0.95}
-    // ... satu objek per sel yang kebaca
-  ],
-  "tak_terbaca": [{"titik_ukur": 7.00, "pengulangan": 3, "kolom": "suhu"}]
+  "baris": [
+    {
+      "ph":            [4.01, 7.02, 10.11],
+      "suhu":          [22.2, 22.3, 22.1],
+      "ph_keyakinan":  ["high", "high", "low"],     // high | medium | low
+      "suhu_keyakinan":["high", "high", "high"]
+    }
+    // ... satu objek per Repeat
+  ]
 }
 ```
 
-Backend memanggil vision model (mis. Claude vision) dengan prompt: "petakan tiap angka ke (baris larutan standar, nomor Repeat, kolom pH/°C)". Keunggulan vs on-device: paham layout & tulisan tangan, hasil terstruktur langsung ke sel. Mobile tinggal isi sel sesuai `titik_ukur/pengulangan/kolom` — **ini yang bikin "AI tahu data masuk ke input mana."** On-device tetap dipakai sebagai fallback saat offline.
+Backend memanggil Claude vision (temperature 0, structured output) dengan prompt: "petakan
+tiap angka ke (larutan standar, Repeat, kolom pH/°C)" — lihat prompt draft di SPEC §3.3.
+Keunggulan vs OCR lama: paham layout & tulisan tangan. Mobile:
+- Isi `ph`/`suhu` ke sel yang **masih kosong** (koreksi manual teknisi tidak ketimpa).
+- Sel `*_keyakinan: "low"` → **ditandai border kuning** biar teknisi cek angka itu saja.
+- Kalau endpoint gagal / foto jelek → teknisi tetap bisa **ketik manual** (fallback, SPEC §4.2).
 
-> Butuh: API key vision di backend (jangan di mobile), rate limit, dan ukuran/kompresi gambar maksimal.
+> Butuh: API key vision **di backend** (jangan di mobile), temperature 0, structured/JSON
+> output, validasi range per tipe alat, log `worksheet_extraction_logs` (SPEC §3.4), rate limit,
+> batas ukuran gambar. Confidence dikirim sebagai `high|medium|low` (mobile juga terima
+> `tinggi|sedang|rendah`); string asing dianggap `low` supaya disuruh cek.
 
 ---
 

@@ -47,21 +47,12 @@ dependencies:
   # Nyimpen pilihan bahasa biar nggak balik ke default tiap app dibuka.
   shared_preferences: ^2.3.2
 
-  # Ambil foto profil dari galeri/kamera HP masing-masing, plus foto layar
-  # pH meter buat scan pembacaan (lihat `ocr_service.dart`).
+  # Ambil foto profil dari galeri/kamera HP masing-masing, plus foto tabel
+  # worksheet buat diekstrak AI Vision di backend (lihat `worksheet_vision.dart`
+  # + `SPEC-vision-ai-worksheet-extraction.md`). Cukup sekali jepret — nggak
+  # perlu aliran frame lagi karena AI yang paham layout & orientasi tabel.
   image_picker: ^1.1.2
 
-  # Pratinjau kamera langsung buat scan worksheet (`live_scan_screen.dart`).
-  # Beda dari `image_picker` yang cuma sekali jepret: aliran frame bawa
-  # metadata rotasi sensor, dan itu yang bikin foto miring/terbalik tetap
-  # kebaca — masalah yang nggak bisa diselesaikan dari foto diam.
-  camera: ^0.11.0
-
-  # Baca angka dari foto layar pH meter — **on-device**, nggak ada foto yang
-  # dikirim ke server buat dikenali. Backend emang minta begitu: hasil scan
-  # masuk lewat endpoint kalibrasi yang sama kayak input manual, cuma beda
-  # `input_method: ocr` (`docs/kontrak-api.md` §4).
-  google_mlkit_text_recognition: ^0.15.0
   path_provider: ^2.1.6
   open_filex: ^4.7.0
 

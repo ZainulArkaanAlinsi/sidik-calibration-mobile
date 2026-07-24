@@ -758,5 +758,6 @@
   "importBarisKe": "Baris {nomor}",
   "importGagal": "Import gagal: {pesan}",
   "lkKirimAdmin": "KIRIM",
-  "lkScanTabel": "SCAN / FOTO TABEL INI"
+  "lkScanTabel": "FOTO TABEL INI — DIBACA AI",
+  "lkScanMemproses": "AI lagi baca tabel…"
 }

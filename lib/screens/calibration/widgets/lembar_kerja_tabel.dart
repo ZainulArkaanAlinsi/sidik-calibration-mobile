@@ -7,8 +7,8 @@ import '../../../l10n/app_localizations.dart';
 import '../../../models/lembar_kerja.dart';
 import '../../../models/standard.dart';
 import '../../../providers/calibration_input_provider.dart';
-import '../../../providers/ocr_provider.dart';
-import '../../../services/worksheet_ocr.dart';
+import '../../../providers/worksheet_vision_provider.dart';
+import '../../../services/worksheet_vision.dart';
 import '../lembar_kerja_state.dart';
 
 /// Satu tabel hasil kalibrasi — Before atau After adjustment.
@@ -115,6 +115,16 @@ class LembarKerjaTabel extends StatelessWidget {
                                 controller: isian
                                     .titik[baris.titikUkur]!
                                     .kotak(tabel.tahap, kolom.kode, i),
+                                // Sel yang diisi AI dengan keyakinan rendah
+                                // ditandai supaya dicek — bukan seluruh tabel.
+                                rendah: isian.selRendahKeyakinan.contains(
+                                  LembarKerjaState.kunciSel(
+                                    baris.titikUkur,
+                                    tabel.tahap,
+                                    kolom.kode,
+                                    i,
+                                  ),
+                                ),
                               ),
                         ],
                       ),
@@ -148,18 +158,18 @@ class LembarKerjaTabel extends StatelessWidget {
   static const _tinggiBaris = 56.0;
 }
 
-/// Foto satu tabel worksheet → seluruh kolomnya keisi sekaligus.
+/// Foto satu tabel worksheet → **AI di backend** baca isinya → seluruh kolom
+/// kepra-isi sekaligus.
 ///
 /// Tombolnya di level TABEL, bukan per sel: sekali foto ngisi ketiga larutan
 /// standar × lima pengulangan, dan tiap tabel (before/after) difoto sendiri
 /// karena di kertas pun dua tabel itu terpisah.
 ///
-/// Dua jalur, dua-duanya lewat provider supaya alurnya tetap bisa di-widget
-/// test tanpa kamera sungguhan:
-/// - **Pindai langsung** — angka mengambang di pratinjau kamera, teknisi lihat
-///   hasilnya sebelum memutuskan.
-/// - **Foto** — buat kondisi yang pratinjaunya nggak kekejar (tangan penuh,
-///   cahaya jelek), fotonya dibaca sesudah diambil.
+/// **Ganti dari OCR on-device (ML Kit) ke AI Vision** (lihat
+/// `SPEC-vision-ai-worksheet-extraction.md`): foto diunggah, AI balikin angka
+/// per sel + keyakinan. Hasilnya cuma **pra-isi** yang masih bisa diedit —
+/// sel keyakinan rendah ditandai, dan kolom selalu bisa diketik manual kalau
+/// AI-nya gagal atau fotonya jelek.
 class _TombolScan extends ConsumerStatefulWidget {
   const _TombolScan({
     required this.tabel,
@@ -178,15 +188,6 @@ class _TombolScan extends ConsumerStatefulWidget {
 class _TombolScanState extends ConsumerState<_TombolScan> {
   bool _sibuk = false;
 
-  Future<void> _pindaiLangsung() async {
-    final hasil = await ref.read(scanLangsungProvider)(
-      context,
-      jumlahTitik: widget.isian.titikUrut.length,
-    );
-    if (!mounted || hasil == null) return;
-    _terapkan(hasil);
-  }
-
   Future<void> _foto() async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -200,9 +201,10 @@ class _TombolScanState extends ConsumerState<_TombolScan> {
       );
       if (foto == null || !mounted) return;
 
-      final hasil = await ref
-          .read(worksheetOcrServiceProvider)
-          .bacaTabel(foto, jumlahTitik: widget.isian.titikUrut.length);
+      final hasil = await ref.read(worksheetVisionProvider).ekstrak(
+            foto,
+            jumlahTitik: widget.isian.titikUrut.length,
+          );
 
       if (!mounted) return;
 
@@ -214,8 +216,9 @@ class _TombolScanState extends ConsumerState<_TombolScan> {
       }
       _terapkan(hasil);
     } catch (_) {
-      // Izin kamera ditolak / kamera nggak ada: kasih tau, jangan diem.
-      // Kolomnya tetap bisa diketik manual — foto itu pemercepat, bukan syarat.
+      // Izin kamera ditolak / AI-nya gagal / sinyal putus: kasih tau, jangan
+      // diem. Kolomnya tetap bisa diketik manual — foto itu pemercepat, bukan
+      // syarat (spec vision §4.2, fallback manual).
       if (mounted) {
         messenger.showSnackBar(SnackBar(content: Text(l10n.phCalibScanError)));
       }
@@ -224,9 +227,9 @@ class _TombolScanState extends ConsumerState<_TombolScan> {
     }
   }
 
-  void _terapkan(HasilTabelOcr hasil) {
+  void _terapkan(HasilEkstraksiTabel hasil) {
     final l10n = AppLocalizations.of(context);
-    final terisi = widget.isian.terapkanHasilOcr(
+    final terisi = widget.isian.terapkanHasilEkstraksi(
       hasil,
       tahap: widget.tabel.tahap,
     );
@@ -254,68 +257,32 @@ class _TombolScanState extends ConsumerState<_TombolScan> {
     final l10n = AppLocalizations.of(context);
 
     if (_sibuk) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
-        child: Center(
-          child: SizedBox(
-            height: 18,
-            width: 18,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
+      // Loading pas AI mroses (spec vision §4.1 langkah 3) — teksnya biar
+      // teknisi tau ini lagi dibaca AI, bukan app ngegantung.
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(
+              height: 18,
+              width: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Text(l10n.lkScanMemproses),
+          ],
         ),
       );
     }
 
+    // Satu jalur: foto → AI. Bottom-sheet pilihan "pindai langsung / foto"
+    // dibuang bareng OCR on-device — sekarang cuma foto, sisanya di backend.
     return OutlinedButton.icon(
-      onPressed: _pilihCara,
+      onPressed: _foto,
       icon: const Icon(Icons.photo_camera_outlined, size: 18),
       label: Text(l10n.lkScanTabel),
     );
-  }
-
-  /// Dua jalur scan disodorkan lewat bottom sheet, bukan menu pop-up mungil:
-  /// dua-duanya perlu penjelasan sebaris, dan di HP lapangan target tap-nya
-  /// harus besar.
-  Future<void> _pilihCara() async {
-    final l10n = AppLocalizations.of(context);
-
-    final cara = await showModalBottomSheet<String>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Text(
-                l10n.phCalibFotoTabelJudul,
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.center_focus_strong_outlined),
-              title: Text(l10n.phCalibCaraScan),
-              subtitle: Text(l10n.phCalibCaraScanKeterangan),
-              onTap: () => Navigator.of(context).pop('live'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_camera_outlined),
-              title: Text(l10n.phCalibCaraFoto),
-              subtitle: Text(l10n.phCalibCaraFotoKeterangan),
-              onTap: () => Navigator.of(context).pop('foto'),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-          ],
-        ),
-      ),
-    );
-
-    if (cara == null || !mounted) return;
-    if (cara == 'live') {
-      await _pindaiLangsung();
-    } else {
-      await _foto();
-    }
   }
 }
 
@@ -403,14 +370,29 @@ class _SelKepala extends StatelessWidget {
 }
 
 class _SelAngka extends StatelessWidget {
-  const _SelAngka({required this.lebar, required this.controller});
+  const _SelAngka({
+    required this.lebar,
+    required this.controller,
+    this.rendah = false,
+  });
 
   final double lebar;
   final TextEditingController controller;
 
+  /// Sel ini diisi AI dengan keyakinan rendah — dikasih border kuning biar
+  /// teknisi ngecek angkanya. Bukan ngunci apa-apa, cuma pengingat visual.
+  final bool rendah;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    const warna = Color(0xFFB8860B); // amber gelap, kebaca di light & dark
+
+    final borderTanda = rendah
+        ? const OutlineInputBorder(
+            borderSide: BorderSide(color: warna, width: 1.5),
+          )
+        : null;
 
     return SizedBox(
       width: lebar,
@@ -430,10 +412,15 @@ class _SelAngka extends StatelessWidget {
             // teknisi ngetik sesuai yang dia lihat. Dikonversi waktu parsing.
             FilteringTextInputFormatter.allow(RegExp(r'^-?\d*[.,]?\d*')),
           ],
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             isDense: true,
-            contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-            border: OutlineInputBorder(),
+            filled: rendah,
+            fillColor: rendah ? warna.withValues(alpha: 0.12) : null,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+            border: const OutlineInputBorder(),
+            enabledBorder: borderTanda,
+            focusedBorder: borderTanda,
           ),
         ),
       ),
