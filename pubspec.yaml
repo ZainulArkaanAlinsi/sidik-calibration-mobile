@@ -38,6 +38,10 @@ dependencies:
   flutter_secure_storage: ^10.3.1
   http: ^1.6.0
 
+  # Realtime sync (spec poin 12D): websocket protokol Pus./Reverb, pure-Dart
+  # biar lintas platform (mobile + desktop) & bisa di-widget-test tanpa native.
+  web_socket_channel: ^3.0.1
+
   # i18n (dwibahasa ID/EN). `intl` versinya di-pin oleh flutter_localizations,
   # jadi pakai `any` biar `flutter pub get` yang nyocokin.
   flutter_localizations:

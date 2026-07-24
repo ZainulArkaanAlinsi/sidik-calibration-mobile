@@ -5,6 +5,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/navigation_provider.dart';
+import '../../providers/realtime_provider.dart';
 import '../../widgets/floating_nav_bar.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../equipment/equipment_list_screen.dart';
@@ -55,6 +56,11 @@ class MainShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(selectedTabProvider);
     final l10n = AppLocalizations.of(context);
+
+    // Nyalain sinkron realtime selama shell (login) kebuka — lonceng & data
+    // ke-update barengan sama panel desktop (spec poin 12D). No-op kalau
+    // realtime nonaktif.
+    ref.watch(realtimeSyncProvider);
 
     final items = <FloatingNavItem>[
       FloatingNavItem(
