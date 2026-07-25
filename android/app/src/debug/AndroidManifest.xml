@@ -4,4 +4,14 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Android 9+ (API 28) nolak HTTP polos secara default, dan HP teknisi
+         udah Android 16. Waktu ngembangin, backend jalan di laptop lewat
+         `php artisan serve` yang HTTP biasa (localhost:8001 via `adb reverse`),
+         jadi tanpa ini tiap request gagal dengan CLEARTEXT_NOT_PERMITTED.
+
+         SENGAJA cuma di manifest `debug`, bukan `main`: build release tetap
+         nolak HTTP polos, jadi APK yang dipegang teknisi nggak mungkin diam-diam
+         ngirim token & data pelanggan tanpa TLS. -->
+    <application android:usesCleartextTraffic="true" />
 </manifest>
