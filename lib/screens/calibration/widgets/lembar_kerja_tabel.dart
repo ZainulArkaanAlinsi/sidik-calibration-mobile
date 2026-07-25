@@ -233,20 +233,29 @@ class _TombolScanState extends ConsumerState<_TombolScan> {
       hasil,
       tahap: widget.tabel.tahap,
     );
+
+    // Blok non-tabel (kondisi lingkungan, catatan, usage check) ikut keisi dari
+    // foto yang SAMA — teknisi motret sekali, bukan sekali per blok. Kolom
+    // identitas & tanda tangan nggak ikut; alasannya di terapkanHasilHeader.
+    final terisiHeader = widget.isian.terapkanHasilHeader(hasil.header);
     widget.onBerubah();
+
+    final pesan = pesanHasilFotoTabel(
+      terisi: terisi,
+      diharapkan: widget.isian.selPerTabel,
+      terdeteksi: hasil.jumlahAngkaTerdeteksi,
+      takTerbaca: l10n.phCalibFotoTabelTakTerbaca,
+      posisiKacau: l10n.phCalibFotoTabelPosisiKacau,
+      berhasil: l10n.phCalibFotoTabelHasil,
+      sisa: l10n.phCalibFotoTabelSisa,
+    );
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          pesanHasilFotoTabel(
-            terisi: terisi,
-            diharapkan: widget.isian.selPerTabel,
-            terdeteksi: hasil.jumlahAngkaTerdeteksi,
-            takTerbaca: l10n.phCalibFotoTabelTakTerbaca,
-            posisiKacau: l10n.phCalibFotoTabelPosisiKacau,
-            berhasil: l10n.phCalibFotoTabelHasil,
-            sisa: l10n.phCalibFotoTabelSisa,
-          ),
+          terisiHeader > 0
+              ? '$pesan ${l10n.phCalibFotoHeaderHasil(terisiHeader)}'
+              : pesan,
         ),
       ),
     );

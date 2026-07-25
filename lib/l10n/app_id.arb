@@ -486,6 +486,12 @@
   },
   "phCalibFotoTabelKosong": "Angka di foto belum kebaca. Tips: foto TABEL-nya aja (nggak usah selembar penuh), tegak lurus dari atas, cahaya rata tanpa bayangan tangan. Atau ketik manual.",
   "phCalibFotoTabelSisa": "Sel yang kosong: ketik manual atau foto ulang — yang udah keisi nggak bakal keganti.",
+  "phCalibFotoHeaderHasil": "Plus {jumlah} kolom di luar tabel (kondisi, catatan, standar dipakai) — tolong dicek.",
+  "@phCalibFotoHeaderHasil": {
+    "placeholders": {
+      "jumlah": { "type": "int" }
+    }
+  },
   "phCalibOcrBelumDikonfirmasi": "Dari kamera — cek dulu",
   "phCalibOcrKonfirmasi": "SUDAH BENAR",
   "phCalibSuhu": "Suhu",

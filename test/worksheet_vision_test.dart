@@ -103,5 +103,83 @@ void main() {
 
       expect(hasil.baris.length, 2);
     });
+
+    test('respons tanpa "header" tetap jalan — header-nya kosong', () {
+      // Backend versi lama cuma ngirim `baris`. Mobile nggak boleh ambruk atau
+      // ngarang isi; tabelnya keisi, blok non-tabel dibiarin kosong.
+      final hasil = HasilEkstraksiTabel.fromJson({
+        'baris': [
+          {
+            'ph': [4.01],
+            'suhu': [22.2],
+          },
+        ],
+      }, jumlahTitik: 1, jumlahBaris: 5);
+
+      expect(hasil.header.kosong, isTrue);
+    });
+
+    test('blok header ke-parse beserta usage check', () {
+      final hasil = HasilEkstraksiTabel.fromJson({
+        'baris': <dynamic>[],
+        'header': {
+          'field': {
+            'suhu_awal': {'nilai': 22.2, 'keyakinan': 'high'},
+            'catatan_teknisi': {'nilai': '  buffer baru  ', 'keyakinan': 'low'},
+            'kelembaban_awal': {'nilai': null, 'keyakinan': 'low'},
+          },
+          'tanggal': {
+            'tanggal_terima': {'nilai': '23/07/2026', 'keyakinan': 'medium'},
+          },
+          'usage_check': [
+            {'standard_id': 3, 'dipakai': true, 'keyakinan': 'high'},
+            {'dipakai': true}, // tanpa standard_id → dilewat
+          ],
+        },
+      }, jumlahTitik: 3, jumlahBaris: 5);
+
+      // Angka dikirim sebagai num, disimpen sebagai string.
+      expect(hasil.header.field['suhu_awal']!.nilai, '22.2');
+      // Spasi pinggir dibuang.
+      expect(hasil.header.field['catatan_teknisi']!.nilai, 'buffer baru');
+      // `null` = nggak kebaca → kolomnya nggak dibikin sama sekali, bukan
+      // diisi string kosong yang bikin kolom "kelihatan udah diisi".
+      expect(hasil.header.field.containsKey('kelembaban_awal'), isFalse);
+      expect(hasil.header.tanggal['tanggal_terima']!.nilai, '23/07/2026');
+      expect(hasil.header.usageCheck.length, 1);
+      expect(hasil.header.usageCheck.first.standardId, 3);
+    });
+  });
+
+  group('GabungTabel.nilaiBaruTeks — aturan sama kayak tabel', () {
+    test('kolom kosong keisi, kolom terisi nggak ditimpa', () {
+      expect(GabungTabel.nilaiBaruTeks('', 'buffer baru'), 'buffer baru');
+      expect(GabungTabel.nilaiBaruTeks('   ', ' 22.2 '), '22.2');
+      expect(GabungTabel.nilaiBaruTeks('catatan teknisi', 'versi AI'), isNull);
+    });
+
+    test('AI nggak baca apa-apa → kolom dibiarin', () {
+      expect(GabungTabel.nilaiBaruTeks('', null), isNull);
+      expect(GabungTabel.nilaiBaruTeks('', '   '), isNull);
+    });
+  });
+
+  group('parseTanggalAi', () {
+    test('format yang dikenali', () {
+      expect(parseTanggalAi('2026-07-23'), DateTime(2026, 7, 23));
+      // Konvensi formulir Indonesia: hari duluan.
+      expect(parseTanggalAi('23/07/2026'), DateTime(2026, 7, 23));
+      expect(parseTanggalAi('3-4-2026'), DateTime(2026, 4, 3));
+    });
+
+    test('tanggal ngawur ditolak, BUKAN digulung diam-diam', () {
+      // `DateTime(2026, 2, 31)` diam-diam jadi 3 Maret. Tanggal kalibrasi yang
+      // meleset itu lebih bahaya daripada kolom kosong yang diisi teknisi.
+      expect(parseTanggalAi('31/02/2026'), isNull);
+      expect(parseTanggalAi('23/13/2026'), isNull);
+      expect(parseTanggalAi('kemarin'), isNull);
+      expect(parseTanggalAi('23 Juli 2026'), isNull);
+      expect(parseTanggalAi(''), isNull);
+    });
   });
 }

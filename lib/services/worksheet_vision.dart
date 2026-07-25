@@ -63,18 +63,133 @@ class BarisTabel {
   bool get lengkap => !ph.contains(null) && !suhu.contains(null);
 }
 
-/// Hasil ekstraksi AI satu tabel (Before ATAU After adjustment).
+/// Satu kolom **non-tabel** hasil baca AI (env condition, lokasi, catatan).
+///
+/// [nilai] disimpen sebagai string, bukan angka: kolomnya campur — `suhu_awal`
+/// itu angka tapi `catatan_teknisi` itu kalimat. Konversi ke angka baru terjadi
+/// waktu payload disusun, lewat `parseAngka` yang sama dengan ketikan manual.
+class NilaiHeader {
+  const NilaiHeader({required this.nilai, required this.keyakinan});
+
+  final String nilai;
+  final TingkatKeyakinan keyakinan;
+
+  static NilaiHeader? fromJson(dynamic json) {
+    if (json is! Map) return null;
+    final v = json['nilai'];
+    // Angka dikirim balik apa adanya; `null` = nggak kebaca, dan itu **bukan**
+    // alasan buat nulis string kosong ke kolomnya.
+    final teks = v is num ? '$v' : (v is String ? v.trim() : '');
+    if (teks.isEmpty) return null;
+    return NilaiHeader(
+      nilai: teks,
+      keyakinan: TingkatKeyakinan.fromApi(json['keyakinan'] as String?),
+    );
+  }
+}
+
+/// Satu baris Usage Check hasil baca AI (centang standar mana yang dipakai).
+///
+/// Centang yang kebalik itu bukan salah angka — itu klaim standar mana yang
+/// dipakai, alias ketertelusuran. Makanya di layar **semua** baris hasil AI
+/// ditandai perlu dicek, bukan cuma yang keyakinannya rendah.
+class UsageCheckAi {
+  const UsageCheckAi({
+    required this.standardId,
+    required this.dipakai,
+    required this.keterangan,
+    required this.keyakinan,
+  });
+
+  final int standardId;
+  final bool? dipakai;
+  final String? keterangan;
+  final TingkatKeyakinan keyakinan;
+
+  /// Sengaja **melempar** kalau `standard_id` nggak ada, bukan balikin null:
+  /// [parseListAman] yang nangkap & ngelewat baris cacat itu, jadi satu baris
+  /// rusak nggak ngebatalin baris usage check lainnya.
+  static UsageCheckAi fromJson(Map<String, dynamic> json) {
+    final id = json['standard_id'];
+    if (id is! num) throw const FormatException('standard_id wajib');
+    final ket = json['keterangan'];
+    return UsageCheckAi(
+      standardId: id.toInt(),
+      dipakai: json['dipakai'] is bool ? json['dipakai'] as bool : null,
+      keterangan: ket is String && ket.trim().isNotEmpty ? ket.trim() : null,
+      keyakinan: TingkatKeyakinan.fromApi(json['keyakinan'] as String?),
+    );
+  }
+}
+
+/// Blok non-tabel worksheet: env condition, lokasi, catatan, tanggal, usage
+/// check.
+///
+/// **Kolom identitas sengaja nggak ada di sini** (nama alat, serial number,
+/// merk, pelanggan). Itu semua sudah ada di DB dan ketarik lewat
+/// `nilaiTurunan()`; membacanya dari foto strictly lebih buruk — serial number
+/// salah satu digit bikin kalibrasi nempel ke instrumen yang salah, dan itu
+/// cacat sertifikat, bukan sekadar bug. Kalau backend tetap ngirim kolom
+/// bertitik, [LembarKerjaState.terapkanHasilHeader] bakal mengabaikannya
+/// karena kolom turunan nggak pernah masuk map `teks`.
+class HasilEkstraksiHeader {
+  const HasilEkstraksiHeader({
+    this.field = const {},
+    this.tanggal = const {},
+    this.usageCheck = const [],
+  });
+
+  /// Kunci = `kode` kolom di formulir (mis. `suhu_awal`, `catatan_teknisi`).
+  final Map<String, NilaiHeader> field;
+
+  /// Kunci = `kode` kolom tanggal (mis. `tanggal_terima`).
+  final Map<String, NilaiHeader> tanggal;
+
+  final List<UsageCheckAi> usageCheck;
+
+  bool get kosong => field.isEmpty && tanggal.isEmpty && usageCheck.isEmpty;
+
+  factory HasilEkstraksiHeader.fromJson(Map<String, dynamic> json) {
+    Map<String, NilaiHeader> petakan(dynamic raw) {
+      if (raw is! Map) return const {};
+      final hasil = <String, NilaiHeader>{};
+      raw.forEach((k, v) {
+        if (k is! String) return;
+        final nilai = NilaiHeader.fromJson(v);
+        if (nilai != null) hasil[k] = nilai;
+      });
+      return hasil;
+    }
+
+    return HasilEkstraksiHeader(
+      field: petakan(json['field']),
+      tanggal: petakan(json['tanggal']),
+      usageCheck: parseListAman<UsageCheckAi>(
+        json['usage_check'],
+        (e) => UsageCheckAi.fromJson(e),
+      ),
+    );
+  }
+}
+
+/// Hasil ekstraksi AI dari satu foto worksheet: tabel hasil (Before ATAU After
+/// adjustment) plus blok non-tabel di [header].
 class HasilEkstraksiTabel {
   const HasilEkstraksiTabel({
     required this.baris,
     required this.jumlahSelKebaca,
     required this.jumlahSelDiharapkan,
     this.jumlahAngkaTerdeteksi = 0,
+    this.header = const HasilEkstraksiHeader(),
   });
 
   final List<BarisTabel> baris;
   final int jumlahSelKebaca;
   final int jumlahSelDiharapkan;
+
+  /// Blok non-tabel. Kosong kalau backend belum ngirim `header` — versi lama
+  /// tetap jalan, cuma tabelnya doang yang keisi.
+  final HasilEkstraksiHeader header;
 
   /// Berapa angka yang AI lihat di foto, sebelum dipetakan ke sel. Bedanya
   /// sama [jumlahSelKebaca] bikin pesan gagal berguna: terdeteksi 0 = fotonya
@@ -134,6 +249,11 @@ class HasilEkstraksiTabel {
       jumlahSelKebaca: kebaca,
       jumlahSelDiharapkan: jumlahBaris * jumlahTitik * 2,
       jumlahAngkaTerdeteksi: terdeteksi,
+      header: json['header'] is Map
+          ? HasilEkstraksiHeader.fromJson(
+              Map<String, dynamic>.from(json['header'] as Map),
+            )
+          : const HasilEkstraksiHeader(),
     );
   }
 }
@@ -230,10 +350,56 @@ class GabungTabel {
     return _rapi(hasil);
   }
 
+  /// Versi teks buat kolom non-tabel (catatan, lokasi, env condition).
+  /// Aturannya **sama persis**: kolom yang udah ada isinya nggak pernah
+  /// ditimpa, biar koreksi manual teknisi selamat dari foto berikutnya.
+  static String? nilaiBaruTeks(String sekarang, String? hasil) {
+    if (hasil == null || hasil.trim().isEmpty) return null;
+    if (sekarang.trim().isNotEmpty) return null;
+    return hasil.trim();
+  }
+
   /// Buang nol di belakang: `4.0` → `4`, `22.2` tetap `22.2`, `10.11` tetap
   /// `10.11`. Bukan dibulatkan ke desimal tetap — pH 2 desimal, suhu 1 desimal.
   static String _rapi(double nilai) =>
       nilai.toStringAsFixed(3).replaceFirst(RegExp(r'\.?0+$'), '');
+}
+
+/// Baca tanggal hasil AI. Menerima `yyyy-MM-dd`, `dd/MM/yyyy`, `dd-MM-yyyy`.
+///
+/// Sengaja **nggak** nebak format ambigu: `03/04/2026` diartikan 3 April
+/// (konvensi formulir Indonesia), dan apa pun di luar tiga pola itu dianggap
+/// gagal — tanggal kalibrasi yang meleset sebulan lebih berbahaya daripada
+/// kolom yang dibiarkan kosong buat diisi teknisi.
+DateTime? parseTanggalAi(String teks) {
+  final t = teks.trim();
+  final iso = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$').firstMatch(t);
+  if (iso != null) {
+    return _bikinTanggal(
+      int.parse(iso.group(1)!),
+      int.parse(iso.group(2)!),
+      int.parse(iso.group(3)!),
+    );
+  }
+  final lokal = RegExp(r'^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$').firstMatch(t);
+  if (lokal != null) {
+    return _bikinTanggal(
+      int.parse(lokal.group(3)!),
+      int.parse(lokal.group(2)!),
+      int.parse(lokal.group(1)!),
+    );
+  }
+  return null;
+}
+
+/// `DateTime` diam-diam menggulung tanggal nggak valid (32 Jan → 1 Feb).
+/// Di sini itu nggak boleh: kalau AI salah baca, kita mau gagal, bukan dapat
+/// tanggal ngawur yang kelihatan sah.
+DateTime? _bikinTanggal(int tahun, int bulan, int hari) {
+  if (bulan < 1 || bulan > 12 || hari < 1 || hari > 31) return null;
+  final d = DateTime(tahun, bulan, hari);
+  if (d.year != tahun || d.month != bulan || d.day != hari) return null;
+  return d;
 }
 
 /// Data tiruan buat test & jalanin app tanpa backend AI.
@@ -241,6 +407,11 @@ class GabungTabel {
 /// Default-nya pra-isi angka masuk akal biar `USE_MOCK` tetap bisa nyoba
 /// alurnya. Sengaja ada satu sel keyakinan rendah supaya penandaan low-confidence
 /// keliatan waktu demo.
+///
+/// Blok [HasilEkstraksiHeader]-nya juga diisi contoh — env condition, catatan,
+/// dan usage check buffer 4/7/10 — biar alur "sekali foto ngisi seluruh
+/// worksheet" bisa dicoba sebelum backend-nya nyusul. Sengaja **nggak** ada
+/// kolom identitas di sini: itu memang nggak boleh datang dari foto.
 class MockWorksheetVisionService implements WorksheetVisionService {
   MockWorksheetVisionService({this.hasil, this.gagal = false});
 
@@ -275,6 +446,59 @@ class MockWorksheetVisionService implements WorksheetVisionService {
       jumlahSelKebaca: jumlahTitik * 2,
       jumlahSelDiharapkan: jumlahBaris * jumlahTitik * 2,
       jumlahAngkaTerdeteksi: jumlahTitik * 2,
+      header: const HasilEkstraksiHeader(
+        field: {
+          'suhu_awal': NilaiHeader(
+            nilai: '22.4',
+            keyakinan: TingkatKeyakinan.tinggi,
+          ),
+          'kelembaban_awal': NilaiHeader(
+            nilai: '55',
+            keyakinan: TingkatKeyakinan.tinggi,
+          ),
+          'suhu_akhir': NilaiHeader(
+            nilai: '22.9',
+            keyakinan: TingkatKeyakinan.tinggi,
+          ),
+          // Tulisan tangan paling sering meleset di kelembaban akhir yang
+          // ditulis mepet garis tabel — dipakai buat nunjukin penandaan.
+          'kelembaban_akhir': NilaiHeader(
+            nilai: '54',
+            keyakinan: TingkatKeyakinan.rendah,
+          ),
+          'catatan_teknisi': NilaiHeader(
+            nilai: 'Buffer 10 baru dibuka sebelum pengukuran.',
+            keyakinan: TingkatKeyakinan.sedang,
+          ),
+        },
+        tanggal: {
+          'tanggal_terima': NilaiHeader(
+            nilai: '23/07/2026',
+            keyakinan: TingkatKeyakinan.sedang,
+          ),
+        },
+        usageCheck: [
+          // id 3/4/5 = buffer pH 7 / 4 / 10 di `standard_service.dart`.
+          UsageCheckAi(
+            standardId: 4,
+            dipakai: true,
+            keterangan: null,
+            keyakinan: TingkatKeyakinan.tinggi,
+          ),
+          UsageCheckAi(
+            standardId: 3,
+            dipakai: true,
+            keterangan: null,
+            keyakinan: TingkatKeyakinan.tinggi,
+          ),
+          UsageCheckAi(
+            standardId: 5,
+            dipakai: true,
+            keterangan: null,
+            keyakinan: TingkatKeyakinan.tinggi,
+          ),
+        ],
+      ),
     );
   }
 

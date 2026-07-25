@@ -1471,6 +1471,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Empty cells: type them in or reshoot — nothing you already entered will be replaced.';
 
   @override
+  String phCalibFotoHeaderHasil(int jumlah) {
+    return 'Plus $jumlah fields outside the table (conditions, notes, standards used) — please check them.';
+  }
+
+  @override
   String get phCalibOcrBelumDikonfirmasi => 'From camera — please check';
 
   @override
