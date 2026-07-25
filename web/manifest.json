@@ -1,11 +1,11 @@
 {
-    "name": "asmo_mobile",
-    "short_name": "asmo_mobile",
+    "name": "PT Sidik — Kalibrasi",
+    "short_name": "SIDIK Kalibrasi",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#262B33",
+    "theme_color": "#262B33",
+    "description": "Aplikasi kalibrasi alat ukur & sertifikat digital PT Sidik.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
