@@ -8,6 +8,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/folder_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/notification_bell.dart';
+import '../../widgets/readable_width.dart';
 
 /// Folder Manager (spesifikasi poin 3 & 7) — menggantikan "Notifikasi" di
 /// navbar bawah.
@@ -46,9 +47,11 @@ class FolderManagerScreen extends ConsumerWidget {
         // Ikon notifikasi di atas, bukan di navbar bawah (poin 4).
         actions: const [NotificationBell(), SizedBox(width: AppSpacing.sm)],
       ),
-      body: folderId == null
-          ? const _Akar()
-          : _IsiFolder(folderId: folderId!),
+      body: ReadableWidth(
+        child: folderId == null
+            ? const _Akar()
+            : _IsiFolder(folderId: folderId!),
+      ),
       floatingActionButton: admin
           ? FloatingActionButton.extended(
               onPressed: () => _dialogNamaFolder(
