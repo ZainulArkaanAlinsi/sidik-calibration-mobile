@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/config/lab_profile.dart';
+
 /// Kit "soft UI" / neumorphism — **khusus layar auth** (Login & Register).
 ///
 /// Sengaja dipisah dari design system Titanium yang dipakai sisa app (dashboard,
@@ -465,8 +467,55 @@ class NeuBackButton extends StatelessWidget {
   }
 }
 
-/// Medali brand bulat — avatar timbul dengan lingkaran aksen di dalamnya.
-/// Ganti [icon] jadi logo resmi PT Sidik begitu asetnya ada.
+/// Logo resmi PT Sidik di panel timbul. Dipakai di layar yang memang lagi
+/// **menyatakan identitas lab** — Splash & Login.
+///
+/// Sengaja panel membulat, BUKAN lingkaran seperti [NeuBrandBadge]: logonya
+/// potret (308x430), dan dipaksa masuk lingkaran bikin dia harus dikecilin
+/// sampai lencana KAN "LK-285-IDN" di dalamnya nggak kebaca sama sekali —
+/// padahal justru nomor akreditasi itu yang bikin logonya berarti.
+///
+/// Latarnya dipaksa putih, bukan `c.base`: logonya dirancang di atas putih dan
+/// punya bingkai biru sendiri. Ditaruh di atas permukaan neu yang gelap, bagian
+/// dalamnya yang putih bakal kelihatan kayak tambalan yang salah potong.
+class NeuBrandLogo extends StatelessWidget {
+  const NeuBrandLogo({super.key, this.tinggi = 112});
+
+  /// Tinggi logo. Lebarnya ngikut rasio aslinya (~0,72 x tinggi).
+  final double tinggi;
+
+  @override
+  Widget build(BuildContext context) {
+    return NeuRaised(
+      radius: 18,
+      distance: 7,
+      blur: 16,
+      padding: const EdgeInsets.all(10),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: ColoredBox(
+          color: Colors.white,
+          child: Image.asset(
+            LabProfile.logoAsset,
+            height: tinggi,
+            fit: BoxFit.contain,
+            // Kalau asetnya raib, JANGAN nampilin ikon "gambar rusak" ke
+            // pengguna — jatuh balik ke medali ikon yang lama. Layar auth tetap
+            // utuh; yang ilang cuma logonya.
+            errorBuilder: (context, _, _) =>
+                SizedBox(height: tinggi, child: const NeuBrandBadge()),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Medali brand bulat — avatar timbul dengan ikon di dalamnya.
+///
+/// Dipakai buat **penanda konteks**, bukan branding: gembok di layar lupa
+/// password, amplop di layar "email terkirim", kartu nama di Register. Buat
+/// identitas lab yang sebenarnya, pakai [NeuBrandLogo].
 class NeuBrandBadge extends StatelessWidget {
   const NeuBrandBadge({super.key, this.icon = Icons.precision_manufacturing});
 

@@ -27,7 +27,7 @@ class SplashScreen extends StatelessWidget {
           child: Column(
             children: [
               const Spacer(flex: 3),
-              const NeuBrandBadge(),
+              const NeuBrandLogo(),
               const SizedBox(height: 26),
               Text(
                 LabProfile.namaSingkat,

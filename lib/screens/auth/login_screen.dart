@@ -88,7 +88,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 16),
-                  const Center(child: NeuBrandBadge()),
+                  const Center(child: NeuBrandLogo(tinggi: 96)),
                   const SizedBox(height: 18),
                   Center(
                     child: Text(
