@@ -7,6 +7,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/dashboard_summary.dart';
 import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
+import '../shell/main_shell.dart' show bukaMenuUtama;
 import '../../providers/dashboard_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
@@ -57,7 +58,17 @@ class DashboardScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.navDashboard)),
+      appBar: AppBar(
+        title: Text(l10n.navDashboard),
+        // Drawer-nya nempel di Scaffold MainShell, bukan Scaffold ini, jadi
+        // tombolnya dipasang manual — Flutter cuma naruh ikon hamburger
+        // otomatis kalau Scaffold yang sama yang megang drawer-nya.
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          tooltip: l10n.menuUtama,
+          onPressed: bukaMenuUtama,
+        ),
+      ),
       body: RefreshIndicator(
         onRefresh: () => ref.read(dashboardProvider.notifier).muatUlang(),
         child: isi,
@@ -113,20 +124,27 @@ class _Isi extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
+        // Draft & menunggu-proses dulu ditampilin gantian tergantung role, jadi
+        // tiap role cuma lihat separuh gambaran. Sekarang dua-duanya dirender:
+        // backend udah ngirim keduanya (dan udah nge-scope sendiri — teknisi
+        // dapat angka sesinya sendiri, admin lintas-teknisi), jadi nggak ada
+        // request tambahan buat ini.
         StatCardRow(
-          kiri: admin
-              ? StatCard(
-                  label: l10n.dashPendingApproval,
-                  nilai: data.menungguApproval,
-                  icon: Icons.hourglass_empty,
-                  warna: data.menungguApproval > 0 ? AppColors.info : null,
-                )
-              : StatCard(
-                  label: l10n.dashCalibrationDraft,
-                  nilai: data.kalibrasiDraft,
-                  icon: Icons.edit_note,
-                ),
+          kiri: StatCard(
+            label: l10n.dashCalibrationDraft,
+            nilai: data.kalibrasiDraft,
+            icon: Icons.edit_note,
+          ),
           kanan: StatCard(
+            label: l10n.dashPendingApproval,
+            nilai: data.menungguApproval,
+            icon: Icons.hourglass_empty,
+            warna: data.menungguApproval > 0 ? AppColors.info : null,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        StatCardRow(
+          kiri: StatCard(
             label: l10n.dashCertsThisMonth,
             nilai: data.sertifikatBulanIni,
             icon: Icons.workspace_premium_outlined,

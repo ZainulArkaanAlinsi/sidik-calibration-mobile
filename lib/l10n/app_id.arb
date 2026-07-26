@@ -369,5 +369,31 @@
   "notifMarkedRead": "Ditandai udah dibaca.",
   "notifTypeDueDate": "Jatuh tempo",
   "notifTypeApproval": "Approval",
-  "notifTypeRevision": "Revisi"
+  "notifTypeRevision": "Revisi",
+
+  "teknisiTitle": "Data Teknisi",
+  "teknisiFilterSemua": "Semua",
+  "teknisiFilterPending": "Pending",
+  "teknisiFilterAktif": "Aktif",
+  "teknisiFilterNonaktif": "Nonaktif",
+  "teknisiKosong": "Belum ada akun di filter ini.",
+  "teknisiLoadGagal": "Gagal memuat daftar akun.",
+  "teknisiRetry": "Coba lagi",
+  "teknisiSetujui": "Setujui",
+  "teknisiTolak": "Nonaktifkan",
+  "teknisiResetPassword": "Reset password",
+  "teknisiPilihRole": "Pilih role buat akun ini",
+  "teknisiPilihRoleBatal": "Batal",
+  "teknisiDisetujui": "Akun disetujui.",
+  "teknisiDitolak": "Akun dinonaktifkan.",
+  "teknisiPasswordDireset": "Password direset. Password baru dikirim ke pemilik akun.",
+  "teknisiGagal": "Aksi gagal. Coba lagi.",
+  "teknisiKonfirmTolakJudul": "Nonaktifkan akun ini?",
+  "teknisiKonfirmTolakIsi": "Dia bakal dikeluarkan dari semua perangkat dan nggak bisa login lagi. Riwayat kalibrasi yang lama tetap utuh.",
+  "teknisiTanpaEmployeeId": "Tanpa ID pegawai",
+  "teknisiHanyaAdmin": "Cuma admin yang bisa kelola akun.",
+
+  "menuUtama": "Menu utama",
+  "menuMasterData": "Master Data",
+  "menuPengaturan": "Pengaturan"
 }

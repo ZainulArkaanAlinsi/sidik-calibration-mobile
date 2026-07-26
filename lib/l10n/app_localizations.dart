@@ -2209,6 +2209,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Revision'**
   String get notifTypeRevision;
+
+  /// No description provided for @teknisiTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Technicians'**
+  String get teknisiTitle;
+
+  /// No description provided for @teknisiFilterSemua.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get teknisiFilterSemua;
+
+  /// No description provided for @teknisiFilterPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get teknisiFilterPending;
+
+  /// No description provided for @teknisiFilterAktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get teknisiFilterAktif;
+
+  /// No description provided for @teknisiFilterNonaktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get teknisiFilterNonaktif;
+
+  /// No description provided for @teknisiKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts in this filter yet.'**
+  String get teknisiKosong;
+
+  /// No description provided for @teknisiLoadGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load accounts.'**
+  String get teknisiLoadGagal;
+
+  /// No description provided for @teknisiRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get teknisiRetry;
+
+  /// No description provided for @teknisiSetujui.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get teknisiSetujui;
+
+  /// No description provided for @teknisiTolak.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get teknisiTolak;
+
+  /// No description provided for @teknisiResetPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset password'**
+  String get teknisiResetPassword;
+
+  /// No description provided for @teknisiPilihRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a role for this account'**
+  String get teknisiPilihRole;
+
+  /// No description provided for @teknisiPilihRoleBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get teknisiPilihRoleBatal;
+
+  /// No description provided for @teknisiDisetujui.
+  ///
+  /// In en, this message translates to:
+  /// **'Account approved.'**
+  String get teknisiDisetujui;
+
+  /// No description provided for @teknisiDitolak.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deactivated.'**
+  String get teknisiDitolak;
+
+  /// No description provided for @teknisiPasswordDireset.
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset. New password sent to the account owner.'**
+  String get teknisiPasswordDireset;
+
+  /// No description provided for @teknisiGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Action failed. Please try again.'**
+  String get teknisiGagal;
+
+  /// No description provided for @teknisiKonfirmTolakJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate this account?'**
+  String get teknisiKonfirmTolakJudul;
+
+  /// No description provided for @teknisiKonfirmTolakIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'They will be signed out of every device and can no longer sign in. Past calibration records stay intact.'**
+  String get teknisiKonfirmTolakIsi;
+
+  /// No description provided for @teknisiTanpaEmployeeId.
+  ///
+  /// In en, this message translates to:
+  /// **'No employee ID'**
+  String get teknisiTanpaEmployeeId;
+
+  /// No description provided for @teknisiHanyaAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Only admins can manage accounts.'**
+  String get teknisiHanyaAdmin;
+
+  /// No description provided for @menuUtama.
+  ///
+  /// In en, this message translates to:
+  /// **'Main menu'**
+  String get menuUtama;
+
+  /// No description provided for @menuMasterData.
+  ///
+  /// In en, this message translates to:
+  /// **'Master Data'**
+  String get menuMasterData;
+
+  /// No description provided for @menuPengaturan.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get menuPengaturan;
 }
 
 class _AppLocalizationsDelegate

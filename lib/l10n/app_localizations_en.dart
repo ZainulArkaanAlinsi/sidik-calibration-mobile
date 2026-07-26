@@ -1158,4 +1158,78 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifTypeRevision => 'Revision';
+
+  @override
+  String get teknisiTitle => 'Technicians';
+
+  @override
+  String get teknisiFilterSemua => 'All';
+
+  @override
+  String get teknisiFilterPending => 'Pending';
+
+  @override
+  String get teknisiFilterAktif => 'Active';
+
+  @override
+  String get teknisiFilterNonaktif => 'Inactive';
+
+  @override
+  String get teknisiKosong => 'No accounts in this filter yet.';
+
+  @override
+  String get teknisiLoadGagal => 'Could not load accounts.';
+
+  @override
+  String get teknisiRetry => 'Try again';
+
+  @override
+  String get teknisiSetujui => 'Approve';
+
+  @override
+  String get teknisiTolak => 'Deactivate';
+
+  @override
+  String get teknisiResetPassword => 'Reset password';
+
+  @override
+  String get teknisiPilihRole => 'Choose a role for this account';
+
+  @override
+  String get teknisiPilihRoleBatal => 'Cancel';
+
+  @override
+  String get teknisiDisetujui => 'Account approved.';
+
+  @override
+  String get teknisiDitolak => 'Account deactivated.';
+
+  @override
+  String get teknisiPasswordDireset =>
+      'Password reset. New password sent to the account owner.';
+
+  @override
+  String get teknisiGagal => 'Action failed. Please try again.';
+
+  @override
+  String get teknisiKonfirmTolakJudul => 'Deactivate this account?';
+
+  @override
+  String get teknisiKonfirmTolakIsi =>
+      'They will be signed out of every device and can no longer sign in. Past calibration records stay intact.';
+
+  @override
+  String get teknisiTanpaEmployeeId => 'No employee ID';
+
+  @override
+  String get teknisiHanyaAdmin => 'Only admins can manage accounts.';
+
+  @override
+  String get menuUtama => 'Main menu';
+
+  @override
+  String get menuMasterData => 'Master Data';
+
+  @override
+  String get menuPengaturan => 'Settings';
 }

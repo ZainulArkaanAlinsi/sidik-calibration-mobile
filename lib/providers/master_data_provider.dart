@@ -2,8 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/customer.dart';
 import '../models/organization.dart';
+import '../models/user.dart';
 import '../services/customer_service.dart';
 import '../services/organization_service.dart';
+import '../services/user_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
 
@@ -100,5 +102,68 @@ class CustomerController extends AsyncNotifier<List<Customer>> {
 
     await ref.read(customerServiceProvider).hapus(token, id);
     await muatUlang();
+  }
+}
+
+final userServiceProvider = Provider<UserService>(
+  (ref) => ApiUserService(ref.watch(apiClientProvider)),
+);
+
+/// Daftar akun buat layar Data Teknisi. Filter status disimpen di sini biar
+/// `muatUlang()` sesudah setujui/tolak balik ke filter yang lagi dipakai —
+/// kalau nggak, admin yang lagi lihat tab "Pending" bakal kelempar ke "Semua"
+/// tiap habis nyetujui satu akun.
+final userListProvider = AsyncNotifierProvider<UserListController, List<User>>(
+  UserListController.new,
+  retry: (retryCount, error) => null,
+);
+
+class UserListController extends AsyncNotifier<List<User>> {
+  String? _status;
+
+  String? get statusAktif => _status;
+
+  @override
+  Future<List<User>> build() async {
+    final token = await ref.read(tokenStorageProvider).read();
+    if (token == null) throw const TokenHilangException();
+
+    return ref.read(userServiceProvider).daftar(token, status: _status);
+  }
+
+  Future<void> saring(String? status) async {
+    _status = status;
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => build());
+  }
+
+  Future<void> muatUlang() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => build());
+  }
+
+  Future<void> setujui(int id, UserRole role) async {
+    final token = await ref.read(tokenStorageProvider).read();
+    if (token == null) return;
+
+    await ref.read(userServiceProvider).setujui(token, id, role);
+    await muatUlang();
+  }
+
+  Future<void> tolak(int id) async {
+    final token = await ref.read(tokenStorageProvider).read();
+    if (token == null) return;
+
+    await ref.read(userServiceProvider).tolak(token, id);
+    await muatUlang();
+  }
+
+  /// Sengaja nggak `muatUlang()` — reset password nggak ngubah isi daftar,
+  /// jadi nggak perlu bikin layar kedip-kedip.
+  Future<void> resetPassword(int id) async {
+    final token = await ref.read(tokenStorageProvider).read();
+    if (token == null) return;
+
+    await ref.read(userServiceProvider).resetPassword(token, id);
   }
 }
