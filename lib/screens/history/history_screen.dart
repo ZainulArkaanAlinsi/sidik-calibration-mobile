@@ -10,6 +10,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../providers/history_provider.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/readable_width.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/notification_bell.dart';
@@ -64,7 +65,7 @@ class HistoryScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () => ref.read(historyProvider.notifier).muatUlang(),
-        child: isi,
+        child: ReadableWidth(child: isi),
       ),
     );
   }

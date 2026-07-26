@@ -27,7 +27,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   FlutterWindow window(project);
   Win32Window::Point origin(10, 10);
   Win32Window::Size size(1280, 720);
-  if (!window.Create(L"asmo_mobile", origin, size)) {
+  // \x2014 = em dash, ditulis sebagai escape BUKAN karakter langsung.
+  // File ini UTF-8 tanpa BOM; tanpa flag /utf-8, MSVC membacanya pakai
+  // codepage sistem dan judul jendela keluar jadi "PT Sidik a..." (mojibake).
+  // Escape-nya benar apa pun encoding yang dipakai compiler.
+  // Sengaja ASCII semua di blok ini, termasuk komentarnya.
+  if (!window.Create(L"PT Sidik \x2014 Kalibrasi", origin, size)) {
     return EXIT_FAILURE;
   }
   window.SetQuitOnClose(true);

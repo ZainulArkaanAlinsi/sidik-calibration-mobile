@@ -52,6 +52,20 @@ class MainShell extends ConsumerWidget {
     ProfileScreen(),
   ];
 
+  /// Di atas lebar ini navigasi pindah ke samping ([NavigationRail]). Angkanya
+  /// ikut breakpoint "expanded" Material 3 (840dp) dibulatkan ke 900 — di
+  /// bawah itu rail malah makan lebar yang dibutuhkan isi layar.
+  ///
+  /// Sengaja dipatok ke **lebar jendela, bukan ke `Platform.isWindows`**:
+  /// jendela desktop bisa dikecilin sampai seukuran HP, dan tablet Android
+  /// dilandscape-kan justru pantas dapat rail. Yang menentukan ruang, bukan
+  /// merek sistem operasinya.
+  static const _lebarRail = 900.0;
+
+  /// Di layar yang benar-benar lebar, rail dibentangkan supaya labelnya ikut
+  /// kebaca — bukan cuma ikon yang harus ditebak.
+  static const _lebarRailPanjang = 1200.0;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(selectedTabProvider);
@@ -90,17 +104,99 @@ class MainShell extends ConsumerWidget {
       ),
     ];
 
-    return Scaffold(
-      key: mainShellKey,
-      drawer: const _MenuUtama(),
-      // IndexedStack, bukan ganti-ganti widget: state tiap tab (posisi scroll,
-      // isian form) nggak ilang waktu pindah tab.
-      body: IndexedStack(index: selected, children: _tabs),
-      bottomNavigationBar: FloatingNavBar(
-        selectedIndex: selected,
-        onSelected: ref.read(selectedTabProvider.notifier).select,
-        items: items,
+    final pilihTab = ref.read(selectedTabProvider.notifier).select;
+
+    // IndexedStack, bukan ganti-ganti widget: state tiap tab (posisi scroll,
+    // isian form) nggak ilang waktu pindah tab.
+    final isi = IndexedStack(index: selected, children: _tabs);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final pakaiRail = constraints.maxWidth >= _lebarRail;
+
+        return Scaffold(
+          key: mainShellKey,
+          drawer: const _MenuUtama(),
+          body: pakaiRail
+              ? Row(
+                  children: [
+                    _RailSamping(
+                      selectedIndex: selected,
+                      onSelected: pilihTab,
+                      items: items,
+                      dibentangkan: constraints.maxWidth >= _lebarRailPanjang,
+                    ),
+                    const VerticalDivider(width: 1, thickness: 1),
+                    Expanded(child: isi),
+                  ],
+                )
+              : isi,
+          // Navbar bawah cuma buat layar sempit. Di desktop dua-duanya nongol
+          // bakal jadi dua kontrol yang isinya sama persis — bingungin, dan
+          // makan tinggi layar yang justru mahal di jendela pendek.
+          bottomNavigationBar: pakaiRail
+              ? null
+              : FloatingNavBar(
+                  selectedIndex: selected,
+                  onSelected: pilihTab,
+                  items: items,
+                ),
+        );
+      },
+    );
+  }
+}
+
+/// Navigasi samping buat layar lebar. Tujuannya **sama persis** dengan navbar
+/// bawah di HP — orang yang pindah dari HP ke desktop nggak perlu belajar peta
+/// baru, cuma bentuknya yang beda.
+///
+/// Tombol menu di atas rail dipertahankan karena master data & pengaturan
+/// tetap tinggal di Drawer; tanpa itu, di desktop nggak ada jalan masuk yang
+/// kelihatan ke sana selain hamburger di AppBar tiap tab.
+class _RailSamping extends StatelessWidget {
+  const _RailSamping({
+    required this.selectedIndex,
+    required this.onSelected,
+    required this.items,
+    required this.dibentangkan,
+  });
+
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
+  final List<FloatingNavItem> items;
+  final bool dibentangkan;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    return NavigationRail(
+      selectedIndex: selectedIndex,
+      onDestinationSelected: onSelected,
+      extended: dibentangkan,
+      // `extended` sudah nampilin label di samping ikon; maksa `labelType`
+      // selain `none` bareng `extended` itu assert-nya Flutter, bukan selera.
+      labelType: dibentangkan ? null : NavigationRailLabelType.all,
+      leading: Padding(
+        padding: const EdgeInsets.only(
+          top: AppSpacing.sm,
+          bottom: AppSpacing.xs,
+        ),
+        child: IconButton(
+          icon: const Icon(Icons.menu),
+          tooltip: l10n.menuUtama,
+          onPressed: bukaMenuUtama,
+        ),
       ),
+      destinations: [
+        for (final item in items)
+          NavigationRailDestination(
+            icon: Icon(item.icon),
+            selectedIcon: Icon(item.activeIcon),
+            label: Text(item.label),
+          ),
+      ],
     );
   }
 }

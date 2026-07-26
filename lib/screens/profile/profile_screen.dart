@@ -15,6 +15,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/avatar_provider.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/readable_width.dart';
 import '../../widgets/status_badge.dart';
 import '../arsip/arsip_screen.dart';
 import '../design_system/design_system_screen.dart';
@@ -50,144 +51,146 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         scrolledUnderElevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
-      body: ListView(
-        // Padding bawah lega biar item terakhir nggak ketutup bottom-nav
-        // yang mengambang. Top sengaja 0 — header foto harus full-bleed.
-        padding: const EdgeInsets.only(bottom: 40),
-        children: [
-          if (user != null) ...[
-            _Header(user: user, onEditFoto: _pilihFoto),
-            const SizedBox(height: AppSpacing.lg),
-          ],
+      body: ReadableWidth(
+        child: ListView(
+          // Padding bawah lega biar item terakhir nggak ketutup bottom-nav
+          // yang mengambang. Top sengaja 0 — header foto harus full-bleed.
+          padding: const EdgeInsets.only(bottom: 40),
+          children: [
+            if (user != null) ...[
+              _Header(user: user, onEditFoto: _pilihFoto),
+              const SizedBox(height: AppSpacing.lg),
+            ],
 
-          if (user != null && user.role.isAdmin) ...[
-            _JudulSeksi(l10n.profAdminMenu),
+            if (user != null && user.role.isAdmin) ...[
+              _JudulSeksi(l10n.profAdminMenu),
+              _KartuMenu(
+                children: [
+                  _BarisMenu(
+                    icon: Icons.group_outlined,
+                    title: l10n.profUserManagement,
+                    subtitle: l10n.profUserManagementSub,
+                    enabled: false,
+                  ),
+                  const _GarisPemisah(),
+                  _BarisMenu(
+                    icon: Icons.apartment_outlined,
+                    title: l10n.profOrgData,
+                    subtitle: l10n.profOrgDataSub,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const OrganizationScreen(),
+                      ),
+                    ),
+                  ),
+                  const _GarisPemisah(),
+                  _BarisMenu(
+                    icon: Icons.people_outline,
+                    title: l10n.profCustomers,
+                    subtitle: l10n.profCustomersSub,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const CustomerListScreen(),
+                      ),
+                    ),
+                  ),
+                  const _GarisPemisah(),
+                  _BarisMenu(
+                    icon: Icons.straighten_outlined,
+                    title: l10n.profStandards,
+                    subtitle: l10n.profStandardsSub,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const StandardListScreen(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+            ],
+
             _KartuMenu(
               children: [
+                // Di luar blok admin: arsip itu baca-baca hasil kerja, dan
+                // backend ngizinin semua role (berkasnya sendiri tetap disaring
+                // per-teknisi di server).
                 _BarisMenu(
-                  icon: Icons.group_outlined,
-                  title: l10n.profUserManagement,
-                  subtitle: l10n.profUserManagementSub,
-                  enabled: false,
-                ),
-                const _GarisPemisah(),
-                _BarisMenu(
-                  icon: Icons.apartment_outlined,
-                  title: l10n.profOrgData,
-                  subtitle: l10n.profOrgDataSub,
+                  icon: Icons.folder_copy_outlined,
+                  title: l10n.profArsip,
+                  subtitle: l10n.profArsipSub,
                   onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const OrganizationScreen(),
-                    ),
+                    MaterialPageRoute<void>(builder: (_) => const ArsipScreen()),
                   ),
                 ),
                 const _GarisPemisah(),
                 _BarisMenu(
-                  icon: Icons.people_outline,
-                  title: l10n.profCustomers,
-                  subtitle: l10n.profCustomersSub,
+                  icon: Icons.palette_outlined,
+                  title: l10n.profDesignSystem,
+                  subtitle: l10n.profDesignSystemSub,
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
-                      builder: (_) => const CustomerListScreen(),
-                    ),
-                  ),
-                ),
-                const _GarisPemisah(),
-                _BarisMenu(
-                  icon: Icons.straighten_outlined,
-                  title: l10n.profStandards,
-                  subtitle: l10n.profStandardsSub,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const StandardListScreen(),
+                      builder: (_) => const DesignSystemScreen(),
                     ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
-          ],
 
-          _KartuMenu(
-            children: [
-              // Di luar blok admin: arsip itu baca-baca hasil kerja, dan
-              // backend ngizinin semua role (berkasnya sendiri tetap disaring
-              // per-teknisi di server).
-              _BarisMenu(
-                icon: Icons.folder_copy_outlined,
-                title: l10n.profArsip,
-                subtitle: l10n.profArsipSub,
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(builder: (_) => const ArsipScreen()),
+            _JudulSeksi(l10n.profAppInfo),
+            _KartuMenu(
+              children: [
+                _BarisMenu(
+                  icon: Icons.layers_outlined,
+                  title: l10n.profEnvironment,
+                  subtitle: AppConfig.envLabel,
+                  showChevron: false,
                 ),
-              ),
-              const _GarisPemisah(),
-              _BarisMenu(
-                icon: Icons.palette_outlined,
-                title: l10n.profDesignSystem,
-                subtitle: l10n.profDesignSystemSub,
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const DesignSystemScreen(),
-                  ),
+                const _GarisPemisah(),
+                _BarisMenu(
+                  icon: Icons.cloud_outlined,
+                  title: l10n.profApiBaseUrl,
+                  subtitle: apiBaseUrl,
+                  showChevron: false,
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-
-          _JudulSeksi(l10n.profAppInfo),
-          _KartuMenu(
-            children: [
-              _BarisMenu(
-                icon: Icons.layers_outlined,
-                title: l10n.profEnvironment,
-                subtitle: AppConfig.envLabel,
-                showChevron: false,
-              ),
-              const _GarisPemisah(),
-              _BarisMenu(
-                icon: Icons.cloud_outlined,
-                title: l10n.profApiBaseUrl,
-                subtitle: apiBaseUrl,
-                showChevron: false,
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-
-          _JudulSeksi(l10n.profSecurity),
-          _KartuMenu(
-            children: [
-              _BarisMenu(
-                icon: Icons.phonelink_erase_outlined,
-                iconColor: theme.colorScheme.error,
-                title: l10n.profLogoutAll,
-                subtitle: l10n.profLogoutAllSub,
-                trailing: _sedangCabutSemua
-                    ? const SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : null,
-                onTap: _sedangCabutSemua ? null : _cabutSemuaSesi,
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.xl),
-
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-            child: AppButton(
-              label: l10n.profLogout,
-              icon: Icons.logout,
-              variant: AppButtonVariant.secondary,
-              isLoading: sedangLogout,
-              onPressed: () => ref.read(authProvider.notifier).logout(),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: AppSpacing.lg),
+
+            _JudulSeksi(l10n.profSecurity),
+            _KartuMenu(
+              children: [
+                _BarisMenu(
+                  icon: Icons.phonelink_erase_outlined,
+                  iconColor: theme.colorScheme.error,
+                  title: l10n.profLogoutAll,
+                  subtitle: l10n.profLogoutAllSub,
+                  trailing: _sedangCabutSemua
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : null,
+                  onTap: _sedangCabutSemua ? null : _cabutSemuaSesi,
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xl),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              child: AppButton(
+                label: l10n.profLogout,
+                icon: Icons.logout,
+                variant: AppButtonVariant.secondary,
+                isLoading: sedangLogout,
+                onPressed: () => ref.read(authProvider.notifier).logout(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

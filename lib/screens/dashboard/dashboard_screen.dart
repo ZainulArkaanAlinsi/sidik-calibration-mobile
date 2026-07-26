@@ -12,6 +12,7 @@ import '../shell/main_shell.dart' show bukaMenuUtama;
 import '../../providers/dashboard_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/glass_surface.dart';
+import '../../widgets/readable_width.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/work_chart.dart';
@@ -83,8 +84,10 @@ class DashboardScreen extends ConsumerWidget {
         decoration: BoxDecoration(gradient: AppColors.gradasiLatar(context)),
         child: RefreshIndicator(
           onRefresh: () => ref.read(dashboardProvider.notifier).muatUlang(),
-          child: isi,
-        )
+          // Di DALAM Container, biar gradasi latarnya tetap penuh selebar
+          // jendela — yang dibatasi cuma isinya.
+          child: ReadableWidth(child: isi),
+        ),
       ),
     );
   }
