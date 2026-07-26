@@ -14,6 +14,12 @@ class LabProfile {
   static const String nomorAkreditasi = 'LK-285-IDN';
   static const String standar = 'SNI ISO/IEC 17025:2017';
 
+  /// Logo resmi lab (blok biru "sidik Lab CALIBRATION" + lencana KAN
+  /// LK-285-IDN). Ditaruh di sini, bukan di widget, karena ini bagian dari
+  /// identitas akreditasi — sama kayak [nama] dan [nomorAkreditasi], bukan
+  /// sekadar aset hiasan.
+  static const String logoAsset = 'assets/images/logo_pt_sidik.png';
+
   static const String alamat =
       'Kawasan Niaga MTC/MIM Blok J No 25, Buahbatu, Kota Bandung, Jawa Barat';
   static const String telepon = '(022) 7537623';
