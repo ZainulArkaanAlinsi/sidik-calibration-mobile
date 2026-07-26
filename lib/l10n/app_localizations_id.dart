@@ -1461,6 +1461,11 @@ class AppLocalizationsId extends AppLocalizations {
       'Sel yang kosong: ketik manual atau foto ulang — yang udah keisi nggak bakal keganti.';
 
   @override
+  String phCalibFotoHeaderHasil(int jumlah) {
+    return 'Plus $jumlah kolom di luar tabel (kondisi, catatan, standar dipakai) — tolong dicek.';
+  }
+
+  @override
   String get phCalibOcrBelumDikonfirmasi => 'Dari kamera — cek dulu';
 
   @override

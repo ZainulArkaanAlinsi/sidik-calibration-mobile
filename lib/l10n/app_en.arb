@@ -649,6 +649,12 @@
   },
   "phCalibFotoTabelKosong": "Couldn't read the numbers yet. Tips: photograph just the TABLE (not the whole sheet), straight from above, even light with no hand shadow. Or type it in.",
   "phCalibFotoTabelSisa": "Empty cells: type them in or reshoot — nothing you already entered will be replaced.",
+  "phCalibFotoHeaderHasil": "Plus {jumlah} fields outside the table (conditions, notes, standards used) — please check them.",
+  "@phCalibFotoHeaderHasil": {
+    "placeholders": {
+      "jumlah": { "type": "int" }
+    }
+  },
   "phCalibOcrBelumDikonfirmasi": "From camera — please check",
   "phCalibOcrKonfirmasi": "CONFIRM",
   "phCalibPembacaanKe": "Reading {index}",

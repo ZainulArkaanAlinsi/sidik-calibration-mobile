@@ -2780,6 +2780,12 @@ abstract class AppLocalizations {
   /// **'Empty cells: type them in or reshoot — nothing you already entered will be replaced.'**
   String get phCalibFotoTabelSisa;
 
+  /// No description provided for @phCalibFotoHeaderHasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Plus {jumlah} fields outside the table (conditions, notes, standards used) — please check them.'**
+  String phCalibFotoHeaderHasil(int jumlah);
+
   /// No description provided for @phCalibOcrBelumDikonfirmasi.
   ///
   /// In en, this message translates to:

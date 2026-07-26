@@ -173,6 +173,11 @@ class LembarKerjaState {
   static String kunciSel(double titikUkur, String tahap, String kolom, int index) =>
       '$titikUkur|$tahap|$kolom|$index';
 
+  /// Kunci penanda buat kolom non-tabel & baris usage check. Prefiks-nya bikin
+  /// nggak mungkin bentrok sama [kunciSel] yang diawali angka titik ukur.
+  static String kunciField(String kode) => 'field|$kode';
+  static String kunciUsage(int standardId) => 'usage|$standardId';
+
   final Map<int, UsageCheckState> usageCheck = {};
 
   UsageCheckState usage(int standardId) => usageCheck.putIfAbsent(
@@ -288,6 +293,80 @@ class LembarKerjaState {
     return terisi;
   }
 
+  /// Tempelin blok **non-tabel** hasil foto: env condition, lokasi, catatan,
+  /// tanggal, usage check. Balikin jumlah kolom yang beneran keisi.
+  ///
+  /// Tiga aturan yang bikin ini aman dipakai di sertifikat berakreditasi:
+  ///
+  /// 1. **Kolom identitas nggak pernah keisi AI.** Map [teks] cuma dibangun
+  ///    dari kolom non-turunan (lihat konstruktor), sedangkan `equipment.*`,
+  ///    `customer.*`, `teknisi.*`, `reviewer.*` semuanya bertitik alias
+  ///    turunan. Jadi walaupun backend nekat ngirim `equipment.serial_number`
+  ///    di `header`, lookup `teks[kode]` di sini balikin null dan diskip.
+  ///    Serial number tetap dari DB, tanda tangan tetap dari alur approval.
+  /// 2. **Cuma kolom kosong yang diisi** — sama kayak tabel, biar koreksi
+  ///    manual teknisi nggak keganti jepretan berikutnya.
+  /// 3. **Usage check selalu ditandai perlu dicek**, berapa pun keyakinan AI:
+  ///    centang yang kebalik itu klaim standar mana yang dipakai, alias
+  ///    ketertelusuran — beda kelas dari salah baca satu angka.
+  int terapkanHasilHeader(HasilEkstraksiHeader hasil) {
+    var terisi = 0;
+
+    hasil.field.forEach((kode, nilai) {
+      final kotak = teks[kode];
+      if (kotak == null) return; // kolom turunan / nggak ada di formulir ini
+      final baru = GabungTabel.nilaiBaruTeks(kotak.text, nilai.nilai);
+      if (baru == null) return;
+
+      kotak.text = baru;
+      _tandai(kunciField(kode), nilai.keyakinan.perluDicek);
+      terisi++;
+    });
+
+    hasil.tanggal.forEach((kode, nilai) {
+      // Kolom tanggal yang udah ada isinya dilewat — `tanggal_kalibrasi` udah
+      // diisi hari ini di konstruktor, jadi praktisnya cuma `tanggal_terima`
+      // yang kebuka buat AI. Itu memang yang kita mau.
+      if (tanggal[kode] != null) return;
+      final hasilTanggal = parseTanggalAi(nilai.nilai);
+      if (hasilTanggal == null) return;
+
+      tanggal[kode] = hasilTanggal;
+      _tandai(kunciField(kode), nilai.keyakinan.perluDicek);
+      terisi++;
+    });
+
+    for (final u in hasil.usageCheck) {
+      final state = usage(u.standardId);
+      var berubah = false;
+
+      if (u.dipakai != null && !state.adaIsian) {
+        state.dipakai = u.dipakai!;
+        berubah = true;
+      }
+      final ket = GabungTabel.nilaiBaruTeks(state.keterangan.text, u.keterangan);
+      if (ket != null) {
+        state.keterangan.text = ket;
+        berubah = true;
+      }
+
+      if (berubah) {
+        _tandai(kunciUsage(u.standardId), true);
+        terisi++;
+      }
+    }
+
+    return terisi;
+  }
+
+  void _tandai(String kunci, bool perluDicek) {
+    if (perluDicek) {
+      selRendahKeyakinan.add(kunci);
+    } else {
+      selRendahKeyakinan.remove(kunci);
+    }
+  }
+
   int _isiSel(
     TitikState state,
     String tahap,
@@ -304,12 +383,10 @@ class LembarKerjaState {
 
     // Sel yang keyakinannya rendah ditandai; kalau foto ulang mengisinya dengan
     // keyakinan bagus, tandanya dilepas.
-    final kunci = kunciSel(state.titikUkur, tahap, kolom, index);
-    if (keyakinan.perluDicek) {
-      selRendahKeyakinan.add(kunci);
-    } else {
-      selRendahKeyakinan.remove(kunci);
-    }
+    _tandai(
+      kunciSel(state.titikUkur, tahap, kolom, index),
+      keyakinan.perluDicek,
+    );
     return 1;
   }
 

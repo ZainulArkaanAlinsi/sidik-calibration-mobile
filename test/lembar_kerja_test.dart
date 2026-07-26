@@ -490,6 +490,146 @@ void main() {
       expect(terisi, 11, reason: 'satu sel dilewat karena udah keisi');
     });
 
+    test('blok non-tabel keisi dari foto yang sama', () {
+      final isian = buatState();
+      final terisi = isian.terapkanHasilHeader(
+        const HasilEkstraksiHeader(
+          field: {
+            'suhu_awal': NilaiHeader(
+              nilai: '22.2',
+              keyakinan: TingkatKeyakinan.tinggi,
+            ),
+            'catatan_teknisi': NilaiHeader(
+              nilai: 'buffer 10 baru dibuka',
+              keyakinan: TingkatKeyakinan.rendah,
+            ),
+          },
+          tanggal: {
+            'tanggal_terima': NilaiHeader(
+              nilai: '23/07/2026',
+              keyakinan: TingkatKeyakinan.sedang,
+            ),
+          },
+        ),
+      );
+
+      expect(terisi, 3);
+      expect(isian.teks['suhu_awal']!.text, '22.2');
+      expect(isian.teks['catatan_teknisi']!.text, 'buffer 10 baru dibuka');
+      expect(isian.tanggal['tanggal_terima'], DateTime(2026, 7, 23));
+
+      // Cuma yang keyakinannya rendah yang ditandai — nyuruh cek SEMUA kolom
+      // sama aja nggak nandain apa-apa.
+      expect(
+        isian.selRendahKeyakinan.contains(
+          LembarKerjaState.kunciField('catatan_teknisi'),
+        ),
+        isTrue,
+      );
+      expect(
+        isian.selRendahKeyakinan.contains(
+          LembarKerjaState.kunciField('suhu_awal'),
+        ),
+        isFalse,
+      );
+    });
+
+    test('AI NGGAK BISA nulis serial number / tanda tangan', () {
+      // Ini pagar paling penting di seluruh alur foto. Serial number salah satu
+      // digit bikin kalibrasi nempel ke instrumen yang salah — itu cacat
+      // sertifikat berakreditasi, bukan sekadar bug. Sumbernya wajib DB.
+      // Tanda tangan "Checked by" apalagi: itu provenance, bukan data.
+      final isian = buatState();
+      final terisi = isian.terapkanHasilHeader(
+        const HasilEkstraksiHeader(
+          field: {
+            'equipment.serial_number': NilaiHeader(
+              nilai: 'B628755900',
+              keyakinan: TingkatKeyakinan.tinggi,
+            ),
+            'customer.nama': NilaiHeader(
+              nilai: 'PT Tirta Gracia',
+              keyakinan: TingkatKeyakinan.tinggi,
+            ),
+            'reviewer.nama': NilaiHeader(
+              nilai: 'Budi',
+              keyakinan: TingkatKeyakinan.tinggi,
+            ),
+          },
+        ),
+      );
+
+      // Backend boleh nekat ngirim kolom ini; mobile tetap nolak semuanya.
+      expect(terisi, 0);
+      expect(isian.teks.containsKey('equipment.serial_number'), isFalse);
+      expect(isian.teks.containsKey('customer.nama'), isFalse);
+      expect(isian.teks.containsKey('reviewer.nama'), isFalse);
+    });
+
+    test('kolom non-tabel yang udah diketik manual NGGAK ketimpa', () {
+      final isian = buatState();
+      isian.teks['suhu_awal']!.text = '23.0';
+
+      final terisi = isian.terapkanHasilHeader(
+        const HasilEkstraksiHeader(
+          field: {
+            'suhu_awal': NilaiHeader(
+              nilai: '22.2',
+              keyakinan: TingkatKeyakinan.tinggi,
+            ),
+          },
+        ),
+      );
+
+      expect(terisi, 0);
+      expect(isian.teks['suhu_awal']!.text, '23.0');
+    });
+
+    test('tanggal_kalibrasi udah keisi hari ini → AI nggak nimpa', () {
+      final isian = buatState();
+      final sebelum = isian.tanggal['tanggal_kalibrasi'];
+
+      isian.terapkanHasilHeader(
+        const HasilEkstraksiHeader(
+          tanggal: {
+            'tanggal_kalibrasi': NilaiHeader(
+              nilai: '01/01/2020',
+              keyakinan: TingkatKeyakinan.tinggi,
+            ),
+          },
+        ),
+      );
+
+      expect(isian.tanggal['tanggal_kalibrasi'], sebelum);
+    });
+
+    test('usage check dari AI SELALU ditandai perlu dicek', () {
+      // Centang yang kebalik itu klaim standar mana yang dipakai — alias
+      // ketertelusuran. Beda kelas dari salah baca satu angka, jadi keyakinan
+      // "high" pun nggak cukup buat ngelolosin tanpa mata manusia.
+      final isian = buatState();
+      final terisi = isian.terapkanHasilHeader(
+        const HasilEkstraksiHeader(
+          usageCheck: [
+            UsageCheckAi(
+              standardId: 3,
+              dipakai: true,
+              keterangan: 'buffer 4',
+              keyakinan: TingkatKeyakinan.tinggi,
+            ),
+          ],
+        ),
+      );
+
+      expect(terisi, 1);
+      expect(isian.usageCheck[3]!.dipakai, isTrue);
+      expect(isian.usageCheck[3]!.keterangan.text, 'buffer 4');
+      expect(
+        isian.selRendahKeyakinan.contains(LembarKerjaState.kunciUsage(3)),
+        isTrue,
+      );
+    });
+
     test('foto tabel Before nggak nyentuh tabel After', () {
       final isian = buatState();
       isian.terapkanHasilEkstraksi(contohHasil(), tahap: 'sebelum_adjustment');
