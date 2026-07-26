@@ -459,6 +459,9 @@ class _FormState extends ConsumerState<_Form> {
         ),
         const SizedBox(height: AppSpacing.sm),
         Row(
+          // start, bukan center: label yang turun baris bikin tinggi kedua
+          // kolom beda, dan kalau center kotak inputnya jadi miring sebelah.
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: AppTextField.measurement(
@@ -477,6 +480,7 @@ class _FormState extends ConsumerState<_Form> {
         ),
         const SizedBox(height: AppSpacing.sm),
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: AppTextField.measurement(
