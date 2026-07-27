@@ -1,108 +1,75 @@
-# Permintaan Backend — nutup alur input → approval → sertifikat → QR
+# Catatan Alur Revisi & QR — hasil cek ulang 27 Juli 2026
 
-Ditulis 27 Juli 2026 · untuk: Raihan (backend) · dari: Arkaan (frontend)
+Untuk: Raihan (backend) · dari: Arkaan (frontend)
+
+> **Versi pertama dokumen ini salah.** Isinya minta empat field yang ternyata
+> **sudah dikirim backend**. Sumber salahnya: aku baca `permintaan-endpoint-fase-2.md`
+> (daftar permintaan lama) dan model Dart kami, bukan `BACA-DULU-BACKEND.md`
+> yang lebih baru dan sudah dicek langsung ke `routes/api.php`. Ditulis ulang.
 
 Alur yang dituju:
 
 ```
-foto / manual  →  teknisi isi lembar kerja  →  admin periksa
-       ↑                                            ↓
-       └──────── perbaiki (kalau ditolak) ←─────────┘
-                                                    ↓ (disetujui)
-                                              SERTIFIKAT  →  QR yang bisa discan
+foto / manual  →  teknisi isi  →  admin periksa
+       ↑                              ↓
+       └──── perbaiki ←───────────────┘
+                                      ↓ (disetujui)
+                                SERTIFIKAT  →  PDF · QR · Excel · email
 ```
-
-Sebagian besar rantai ini **sudah jalan**. Dua sambungan putus, dan dua-duanya
-kekunci di backend — bukan sesuatu yang bisa dibereskan dari sisi mobile.
 
 ---
 
-## 1. KRITIS — respons sesi kurang field buat bisa diperbaiki
+## Yang ternyata SUDAH ada (bukan permintaan — catatan buat mobile)
 
-**Masalahnya:** admin bisa nolak sesi dengan catatan revisi, statusnya jadi
-`perlu_revisi`, dan catatannya tampil di layar teknisi. Tapi teknisi **nggak
-punya jalan buat mbenerin** — dia harus ngisi ulang dari nol sebagai sesi baru.
+| Yang sempat kukira kurang | Kenyataannya |
+|---|---|
+| `equipment_id` di detail sesi | **Ada.** `kontrak-api.md:412` — `"equipment": { "id": 12, "nama_alat": "..." }`. Yang membuang id-nya model Dart kami (`calibration_detail.dart:423` cuma ambil `nama_alat`) |
+| `qr_token` / `qr_url` | **Ada.** `BACA-DULU-BACKEND.md` #1 |
+| Kirim sertifikat lewat email | **Ada.** `POST /certificates/{id}/kirim-email`, `BACA-DULU-BACKEND.md` #10 |
+| `tanggal_terima` & `nomor_order` | **Ada** di detail sesi (`BACA-DULU-BACKEND.md` #2) |
 
-Potongannya sebenernya udah ada semua di mobile: `PUT /api/calibrations/{id}`
-udah diimplementasiin (`lembar_kerja_service.perbarui`), dan layar lembar kerja
-udah nerima `sesiId` buat mode edit.
-
-**Yang bikin nggak bisa dipasang:** buat ngisi ulang formnya, mobile perlu nilai
-yang dulu dikirim. `GET /api/calibrations/{id}` sekarang nggak ngasih itu.
-
-Yang dibutuhin form (`LembarKerjaSubmission`) lawan yang ada di respons:
-
-| Field | Wajib? | Ada di `GET /calibrations/{id}`? |
-|---|---|---|
-| `equipment_id` | **WAJIB** | ❌ — cuma ada `nama_alat` (string) |
-| `room_id` | opsional | ❌ — cuma ada `lokasi` (string) |
-| `tanggal_terima` | opsional | ❌ |
-| `catatan_teknisi` | opsional | ❌ |
-| `standard_id` | opsional | ✅ lewat `standar_acuan.id` |
-| `tanggal_kalibrasi` | opsional | ✅ |
-| suhu/kelembaban awal & akhir | opsional | ⚠️ ada `kondisi_lingkungan.suhu/kelembaban`, perlu dipastiin bentuknya cocok |
-
-`equipment_id` yang paling nyekek: itu satu-satunya field yang **wajib** di
-submission. Tanpa itu, form nggak bisa dibangun ulang sama sekali.
-
-**Yang diminta:** tambahin di respons `GET /api/calibrations/{id}`:
-
-```json
-{
-  "equipment_id": 12,
-  "room_id": 3,
-  "tanggal_terima": "2026-07-20",
-  "catatan_teknisi": "Alat datang dalam kondisi berdebu."
-}
-```
-
-Kalau `kondisi_lingkungan` udah nyimpen suhu/kelembaban **awal dan akhir**
-terpisah, tolong konfirmasi bentuknya — biar mobile bisa ngisi keempat kolomnya,
-bukan cuma nebak dari satu angka rata-rata.
-
-**Kenapa nggak diakalin di mobile:** bisa aja mobile nyari `equipment_id` lewat
-`GET /equipments` terus nyocokin `nama_alat`-nya. Tapi nama alat nggak dijamin
-unik, dan salah tebak artinya sesi revisi **nempel ke alat yang salah** — di lab
-terakreditasi itu temuan audit, bukan sekadar bug. Lebih baik nunggu.
+Semua itu pekerjaan **mobile**, bukan backend. Sudah masuk antrean kami.
 
 ---
 
-## 2. `qr_token` belum ikut di respons sertifikat
+## Satu-satunya yang masih perlu jawabanmu: `room_id`
 
-Ini **pengulangan** dari `permintaan-endpoint-fase-2.md` §3b yang belum
-kejawab, ditulis ulang karena sekarang jadi penghalang fitur yang diminta.
+Dua dokumen kita **saling bertentangan**:
 
-`kontrak-api.md` §5 udah nyebut `GET /verify/{qr_token}` (halaman web) dan
-`GET /api/verify/{qr_token}` (JSON). Tapi `qr_token`-nya sendiri **nggak pernah
-dikirim** di objek sertifikat, jadi mobile nggak tau token apa yang mau
-digambar jadi QR.
+- `BACA-DULU-BACKEND.md` #11 — "Ruangan di sesi | `room_id`" (ditandai selesai,
+  dicek 22 Juli ke `routes/api.php`)
+- `kontrak-api.md:626` — "⚠️ **Belum nyambung ke sesi kalibrasi.**
+  `POST /api/calibrations` **belum** nerima `room_id`."
 
-Mobile udah siap nerima: `Certificate.qrToken` dan
-`CertificateSnapshot.qrToken` dua-duanya udah ada dan udah mem-parse
-`json['qr_token']`. Yang ngisi baru mock.
-
-**Yang diminta:** di objek `sertifikat` (respons `GET /api/certificates/{id}`
-dan yang nempel di `GET /api/calibrations/{id}`):
-
-```json
-"qr_token": "a1b2c3d4e5f6",
-"qr_url": "https://sidik.example/verify/a1b2c3d4e5f6"
-```
-
-`qr_url` lebih disukai daripada cuma token: yang discan orang harus URL utuh,
-dan kalau domainnya ditentuin backend, mobile nggak perlu nyusun URL sendiri
-(dan nggak ikut salah kalau domainnya ganti).
-
-**Backend nggak perlu ngirim gambar QR-nya.** Mobile yang render sendiri dari
-string itu — lebih ringan, dan tetap tajam di layar resolusi berapa pun.
+Tolong konfirmasi mana yang benar sekarang. Kalau `room_id` memang sudah
+diterima di `POST`/`PUT /calibrations` dan ikut dikirim balik di detail sesi,
+mobile langsung pakai. Kalau belum, kami tahan dropdown ruangan di form.
 
 ---
 
-## Yang mobile kerjakan duluan, tanpa nunggu
+## Kenapa dokumennya bisa bentrok — ada sebab yang bisa diperbaiki
 
-Render QR-nya digarap sekarang pakai data mock, jadi begitu `qr_token` /
-`qr_url` beneran dikirim, tinggal nyambung tanpa ubah layar.
+`kontrak-api.md` di `main` belum mendokumentasikan `nomor_order` dan
+`tanggal_terima`, padahal backend sudah mengirimnya. Penyebabnya ketemu:
+commit **`1653603` `docs(kontrak-api): dokumentasi nomor_order, tanggal_terima,
+titik metode`** tidak pernah sampai `main` — nyangkut di
+`feature/lembar-kerja-teknisi` dan `feature/rename-pt-sidik`.
 
-Tombol "Perbaiki" **ditahan** sampai poin 1 kejawab — dipasang sekarang justru
-bikin teknisi lihat form kosong dan `PUT`-nya bakal ngehapus isian sesi yang
-lama.
+Commit **`f0f9dad` `fix(profile): scope foto profil per akun`** senasib, dan itu
+bug yang masih hidup di `main`: satu key `avatar_path` global, jadi di HP yang
+dipakai bergantian semua teknisi berbagi & bisa menimpa foto satu sama lain.
+
+Dua-duanya commit kamu — aku sengaja tidak cherry-pick sendiri. Tolong
+diputuskan mau diangkat ke `main` atau ditinggal.
+
+---
+
+## Permintaan tambahan: satu sumber kebenaran
+
+Audit paritas kami berbasis `kontrak-api.md`, dan dokumen itu ketinggalan —
+frontend memanggil **14 endpoint yang tidak tercantum di sana**, dan satu
+(`/calibrations/{id}/perhitungan`) tidak ada di dokumen mana pun.
+
+Boleh kirim output `php artisan route:list`? Sekali saja cukup. Dengan itu
+audit berikutnya berbasis rute asli, bukan dokumen yang sudah tercecer di
+enam berkas.
