@@ -10,6 +10,8 @@ import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../providers/history_provider.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/master_detail_pane.dart';
+import '../../widgets/readable_width.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/notification_bell.dart';
@@ -23,11 +25,40 @@ import 'calibration_detail_screen.dart';
 /// Admin dapat tambahan: tombol setujui/tolak langsung di kartu sesi yang
 /// `menunggu_approval` — nggak ada layar approval terpisah, biar admin
 /// nggak perlu loncat-loncat antara "lihat riwayat" dan "approve sesuatu".
-class HistoryScreen extends ConsumerWidget {
+/// Di jendela lebar layar ini jadi **panel ganda**: daftar sesi tetap
+/// kelihatan di kiri, detailnya kebuka di kanan. Buat admin yang memeriksa
+/// sesi satu per satu, itu ngilangin bolak-balik push–back tiap ganti sesi.
+/// Di HP perilakunya nggak berubah sama sekali: tap kartu → push layar detail.
+class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HistoryScreen> createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends ConsumerState<HistoryScreen> {
+  /// Sesi yang lagi kebuka di panel kanan. Null = belum ada yang dipilih.
+  /// Cuma dipakai waktu panel ganda aktif; di mode satu panel detailnya
+  /// di-push, bukan disimpen di sini.
+  int? _terpilih;
+
+  /// Dipanggil dari kartu. [panelGanda] dateng dari tata letak yang lagi
+  /// aktif — bukan dari `Platform`, karena jendela desktop yang disempitin
+  /// pantas dapet perilaku HP.
+  void _pilih(CalibrationHistoryItem item, {required bool panelGanda}) {
+    if (panelGanda) {
+      setState(() => _terpilih = item.id);
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => CalibrationDetailScreen(calibrationId: item.id),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final riwayat = ref.watch(historyProvider);
     final l10n = AppLocalizations.of(context);
     final isAdmin = ref.watch(authProvider).value?.role.isAdmin ?? false;
@@ -37,20 +68,30 @@ class HistoryScreen extends ConsumerWidget {
     // skeleton selamanya (lihat komentar di dashboard_screen.dart).
     final data = riwayat.value;
 
-    final Widget isi;
-    if (data != null) {
-      isi = data.isEmpty
-          ? const _Kosong()
-          : _Isi(items: data, isAdmin: isAdmin);
-    } else if (riwayat.hasError) {
-      isi = _Gagal(
-        pesan: riwayat.error is TokenHilangException
-            ? l10n.historySessionExpired
-            : l10n.historyLoadFailed,
-        onCobaLagi: () => ref.read(historyProvider.notifier).muatUlang(),
-      );
-    } else {
-      isi = const _Skeleton();
+    // Dibikin fungsi, bukan variabel, karena daftarnya perlu tau lagi mode
+    // apa — dan itu baru ketauan di dalam [MasterDetailPane].
+    Widget isi(bool panelGanda) {
+      if (data != null) {
+        return data.isEmpty
+            ? const _Kosong()
+            : _Isi(
+                items: data,
+                isAdmin: isAdmin,
+                // Sorotan cuma masuk akal kalau detailnya emang lagi kebuka di
+                // sebelahnya. Di satu panel, kartu "terpilih" nggak ada artinya.
+                terpilih: panelGanda ? _terpilih : null,
+                onPilih: (item) => _pilih(item, panelGanda: panelGanda),
+              );
+      }
+      if (riwayat.hasError) {
+        return _Gagal(
+          pesan: riwayat.error is TokenHilangException
+              ? l10n.historySessionExpired
+              : l10n.historyLoadFailed,
+          onCobaLagi: () => ref.read(historyProvider.notifier).muatUlang(),
+        );
+      }
+      return const _Skeleton();
     }
 
     return Scaffold(
@@ -62,19 +103,39 @@ class HistoryScreen extends ConsumerWidget {
         // hal yang sama cuma bikin orang ragu mana yang bener.
         actions: const [NotificationBell(), SizedBox(width: AppSpacing.sm)],
       ),
-      body: RefreshIndicator(
-        onRefresh: () => ref.read(historyProvider.notifier).muatUlang(),
-        child: isi,
+      body: MasterDetailPane(
+        master: (context, panelGanda) => RefreshIndicator(
+          onRefresh: () => ref.read(historyProvider.notifier).muatUlang(),
+          child: ReadableWidth(child: isi(panelGanda)),
+        ),
+        detail: _terpilih == null
+            ? null
+            : CalibrationDetailScreen(calibrationId: _terpilih!),
+        kosong: PanePlaceholder(
+          icon: Icons.fact_check_outlined,
+          judul: l10n.detailPaneEmptyTitle,
+          pesan: l10n.detailPaneEmptyBody,
+        ),
       ),
     );
   }
 }
 
 class _Isi extends StatelessWidget {
-  const _Isi({required this.items, required this.isAdmin});
+  const _Isi({
+    required this.items,
+    required this.isAdmin,
+    required this.terpilih,
+    required this.onPilih,
+  });
 
   final List<CalibrationHistoryItem> items;
   final bool isAdmin;
+
+  /// Id sesi yang lagi kebuka di panel kanan. Null = nggak ada yang disorot.
+  final int? terpilih;
+
+  final void Function(CalibrationHistoryItem item) onPilih;
 
   @override
   Widget build(BuildContext context) {
@@ -82,17 +143,34 @@ class _Isi extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       itemCount: items.length,
       separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-      itemBuilder: (context, index) =>
-          _HistoryCard(item: items[index], isAdmin: isAdmin),
+      itemBuilder: (context, index) {
+        final item = items[index];
+        return _HistoryCard(
+          item: item,
+          isAdmin: isAdmin,
+          disorot: item.id == terpilih,
+          onTap: () => onPilih(item),
+        );
+      },
     );
   }
 }
 
 class _HistoryCard extends StatelessWidget {
-  const _HistoryCard({required this.item, required this.isAdmin});
+  const _HistoryCard({
+    required this.item,
+    required this.isAdmin,
+    required this.disorot,
+    required this.onTap,
+  });
 
   final CalibrationHistoryItem item;
   final bool isAdmin;
+
+  /// Sesi ini yang lagi kebuka di panel kanan.
+  final bool disorot;
+
+  final VoidCallback onTap;
 
   StatusBadge _badge(AppLocalizations l10n) {
     if (item.status == CalibrationStatus.disetujui) {
@@ -145,12 +223,17 @@ class _HistoryCard extends StatelessWidget {
     );
 
     return Card(
+      // Kartu yang lagi kebuka di panel kanan dikasih garis tepi aksen, bukan
+      // warna latar beda: latar beda bakal berantem sama badge status yang
+      // udah pakai warna buat nyampein PASS/FAIL/menunggu.
+      shape: disorot
+          ? RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+              side: BorderSide(color: theme.colorScheme.primary, width: 2),
+            )
+          : null,
       child: InkWell(
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => CalibrationDetailScreen(calibrationId: item.id),
-          ),
-        ),
+        onTap: onTap,
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),

@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "asmo_mobile" "\0"
+            VALUE "CompanyName", "PT Sidik" "\0"
+            VALUE "FileDescription", "PT Sidik - Kalibrasi" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "asmo_mobile" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "asmo_mobile.exe" "\0"
-            VALUE "ProductName", "asmo_mobile" "\0"
+            VALUE "InternalName", "sidik_calibration" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 PT Sidik. All rights reserved." "\0"
+            VALUE "OriginalFilename", "sidik_calibration.exe" "\0"
+            VALUE "ProductName", "PT Sidik - Kalibrasi" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

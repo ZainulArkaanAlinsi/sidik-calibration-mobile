@@ -11,6 +11,7 @@ import '../../providers/calibration_input_provider.dart' show categoryListProvid
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../providers/equipment_provider.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/readable_width.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/notification_bell.dart';
@@ -85,94 +86,96 @@ class _EquipmentListScreenState extends ConsumerState<EquipmentListScreen> {
         title: Text(l10n.navEquipment),
         actions: const [NotificationBell(), SizedBox(width: AppSpacing.sm)],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.md,
-              AppSpacing.md,
-              AppSpacing.sm,
-            ),
-            child: TextField(
-              controller: _searchController,
-              onChanged: _onSearchChanged,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search),
-                hintText: l10n.equipSearchHint,
+      body: ReadableWidth(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.sm,
+              ),
+              child: TextField(
+                controller: _searchController,
+                onChanged: _onSearchChanged,
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search),
+                  hintText: l10n.equipSearchHint,
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _FilterDropdown<String?>(
-                    hint: l10n.equipFilterKategoriHint,
-                    value: _kategori,
-                    items: [
-                      DropdownMenuItem(value: null, child: Text(l10n.equipFilterSemua)),
-                      for (final k in kategoriList)
-                        DropdownMenuItem(value: k.kode, child: Text(k.nama)),
-                    ],
-                    onChanged: (value) =>
-                        _onFilterChanged(kategori: value, status: _status),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _FilterDropdown<String?>(
+                      hint: l10n.equipFilterKategoriHint,
+                      value: _kategori,
+                      items: [
+                        DropdownMenuItem(value: null, child: Text(l10n.equipFilterSemua)),
+                        for (final k in kategoriList)
+                          DropdownMenuItem(value: k.kode, child: Text(k.nama)),
+                      ],
+                      onChanged: (value) =>
+                          _onFilterChanged(kategori: value, status: _status),
+                    ),
                   ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: _FilterDropdown<String?>(
-                    hint: l10n.equipFilterStatusHint,
-                    value: _status,
-                    items: [
-                      DropdownMenuItem(value: null, child: Text(l10n.equipFilterSemua)),
-                      DropdownMenuItem(value: 'aktif', child: Text(l10n.equipStatusAktif)),
-                      DropdownMenuItem(
-                        value: 'overdue',
-                        child: Text(l10n.equipStatusOverdue),
-                      ),
-                      DropdownMenuItem(
-                        value: 'nonaktif',
-                        child: Text(l10n.equipStatusNonaktif),
-                      ),
-                    ],
-                    onChanged: (value) =>
-                        _onFilterChanged(kategori: _kategori, status: value),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: _FilterDropdown<String?>(
+                      hint: l10n.equipFilterStatusHint,
+                      value: _status,
+                      items: [
+                        DropdownMenuItem(value: null, child: Text(l10n.equipFilterSemua)),
+                        DropdownMenuItem(value: 'aktif', child: Text(l10n.equipStatusAktif)),
+                        DropdownMenuItem(
+                          value: 'overdue',
+                          child: Text(l10n.equipStatusOverdue),
+                        ),
+                        DropdownMenuItem(
+                          value: 'nonaktif',
+                          child: Text(l10n.equipStatusNonaktif),
+                        ),
+                      ],
+                      onChanged: (value) =>
+                          _onFilterChanged(kategori: _kategori, status: value),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: () => ref.read(equipmentProvider.notifier).muatUlang(),
-              child: isi,
+            const SizedBox(height: AppSpacing.sm),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () => ref.read(equipmentProvider.notifier).muatUlang(),
+                child: isi,
+              ),
             ),
-          ),
-          if (bisaInput)
-            SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.md,
-                  0,
-                  AppSpacing.md,
-                  AppSpacing.md,
-                ),
-                child: AppButton(
-                  label: l10n.equipAdd,
-                  icon: Icons.add,
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const EquipmentFormScreen(),
+            if (bisaInput)
+              SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    0,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                  ),
+                  child: AppButton(
+                    label: l10n.equipAdd,
+                    icon: Icons.add,
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const EquipmentFormScreen(),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

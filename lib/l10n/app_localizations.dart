@@ -1340,6 +1340,18 @@ abstract class AppLocalizations {
   /// **'Couldn\'t load calibration detail.'**
   String get detailLoadFailed;
 
+  /// Shown in the right pane of the two-pane History layout (wide windows only) when nothing is selected yet.
+  ///
+  /// In en, this message translates to:
+  /// **'No session selected'**
+  String get detailPaneEmptyTitle;
+
+  /// No description provided for @detailPaneEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a session on the left to see its measurement points here.'**
+  String get detailPaneEmptyBody;
+
   /// No description provided for @detailNomorSesi.
   ///
   /// In en, this message translates to:

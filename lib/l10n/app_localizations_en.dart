@@ -681,6 +681,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get detailLoadFailed => 'Couldn\'t load calibration detail.';
 
   @override
+  String get detailPaneEmptyTitle => 'No session selected';
+
+  @override
+  String get detailPaneEmptyBody =>
+      'Pick a session on the left to see its measurement points here.';
+
+  @override
   String detailNomorSesi(String nomor) {
     return 'Session no. $nomor';
   }
