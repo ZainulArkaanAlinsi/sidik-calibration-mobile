@@ -615,6 +615,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certOpenPdf => 'VIEW PDF';
 
   @override
+  String get certQrJudul => 'Verification QR';
+
+  @override
+  String get certQrIsi =>
+      'Scan to check this certificate against our records. Works without logging in.';
+
+  @override
+  String get certQrBelumAda =>
+      'The QR isn\'t available yet — the server hasn\'t issued a verification token for this certificate.';
+
+  @override
   String certOpenFailed(String message) {
     return 'No app found to open the PDF: $message';
   }

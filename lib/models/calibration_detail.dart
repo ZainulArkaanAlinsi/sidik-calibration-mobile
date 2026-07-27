@@ -291,6 +291,8 @@ class CertificateRef {
     required this.nomor,
     required this.status,
     this.pdfUrl,
+    this.qrToken,
+    this.qrUrl,
   });
 
   final int id;
@@ -298,12 +300,26 @@ class CertificateRef {
   final String status;
   final String? pdfUrl;
 
+  /// Token halaman verifikasi publik (`GET /verify/{qr_token}`).
+  ///
+  /// **Backend belum ngirim ini** per 27 Jul — lihat
+  /// `docs/permintaan-backend-alur-revisi-qr.md` §2. Sengaja nullable, jadi
+  /// layar tinggal nyambung begitu backend nambahin, tanpa ubah apa-apa lagi.
+  final String? qrToken;
+
+  /// URL utuh halaman verifikasi. Lebih disukai daripada nyusun sendiri dari
+  /// [qrToken] — domainnya milik backend, dan mobile nggak boleh ikut salah
+  /// kalau domainnya ganti.
+  final String? qrUrl;
+
   factory CertificateRef.fromJson(Map<String, dynamic> json) {
     return CertificateRef(
       id: (json['id'] as num).toInt(),
       nomor: json['nomor'] as String? ?? '—',
       status: json['status'] as String? ?? 'menunggu_generate',
       pdfUrl: json['pdf_url'] as String?,
+      qrToken: json['qr_token'] as String?,
+      qrUrl: json['qr_url'] as String?,
     );
   }
 }

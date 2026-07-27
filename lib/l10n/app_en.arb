@@ -267,6 +267,12 @@
   "certStatusGagal": "Generation failed",
   "certRetry": "RETRY GENERATE",
   "certOpenPdf": "VIEW PDF",
+  "certQrJudul": "Verification QR",
+  "@certQrJudul": {
+    "description": "Section on the certificate screen showing a scannable QR that resolves to the public verification page."
+  },
+  "certQrIsi": "Scan to check this certificate against our records. Works without logging in.",
+  "certQrBelumAda": "The QR isn't available yet — the server hasn't issued a verification token for this certificate.",
   "certOpenFailed": "No app found to open the PDF: {message}",
   "@certOpenFailed": {
     "placeholders": {

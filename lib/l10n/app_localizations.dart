@@ -1220,6 +1220,24 @@ abstract class AppLocalizations {
   /// **'VIEW PDF'**
   String get certOpenPdf;
 
+  /// Section on the certificate screen showing a scannable QR that resolves to the public verification page.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification QR'**
+  String get certQrJudul;
+
+  /// No description provided for @certQrIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan to check this certificate against our records. Works without logging in.'**
+  String get certQrIsi;
+
+  /// No description provided for @certQrBelumAda.
+  ///
+  /// In en, this message translates to:
+  /// **'The QR isn\'t available yet — the server hasn\'t issued a verification token for this certificate.'**
+  String get certQrBelumAda;
+
   /// No description provided for @certOpenFailed.
   ///
   /// In en, this message translates to:
