@@ -233,6 +233,8 @@
 
   "detailTitle": "Detail Hasil Kalibrasi",
   "detailLoadFailed": "Gagal memuat detail kalibrasi.",
+  "detailPaneEmptyTitle": "Belum ada sesi yang dipilih",
+  "detailPaneEmptyBody": "Pilih satu sesi di sebelah kiri buat lihat titik ukurnya di sini.",
   "detailNomorSesi": "No. sesi {nomor}",
   "detailKondisiLingkungan": "Kondisi Lingkungan & Standar",
   "detailStandarAcuan": "Standar acuan",

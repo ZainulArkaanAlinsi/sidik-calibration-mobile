@@ -298,6 +298,11 @@
 
   "detailTitle": "Calibration Result Detail",
   "detailLoadFailed": "Couldn't load calibration detail.",
+  "detailPaneEmptyTitle": "No session selected",
+  "@detailPaneEmptyTitle": {
+    "description": "Shown in the right pane of the two-pane History layout (wide windows only) when nothing is selected yet."
+  },
+  "detailPaneEmptyBody": "Pick a session on the left to see its measurement points here.",
   "detailNomorSesi": "Session no. {nomor}",
   "@detailNomorSesi": {
     "placeholders": {

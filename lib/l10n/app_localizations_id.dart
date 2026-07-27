@@ -678,6 +678,13 @@ class AppLocalizationsId extends AppLocalizations {
   String get detailLoadFailed => 'Gagal memuat detail kalibrasi.';
 
   @override
+  String get detailPaneEmptyTitle => 'Belum ada sesi yang dipilih';
+
+  @override
+  String get detailPaneEmptyBody =>
+      'Pilih satu sesi di sebelah kiri buat lihat titik ukurnya di sini.';
+
+  @override
   String detailNomorSesi(String nomor) {
     return 'No. sesi $nomor';
   }
