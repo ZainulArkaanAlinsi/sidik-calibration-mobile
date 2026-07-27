@@ -722,6 +722,25 @@
   "teknisiSetujui": "Approve",
   "teknisiTolak": "Deactivate",
   "teknisiResetPassword": "Reset password",
+  "teknisiEdit": "Edit account",
+  "@teknisiEdit": {
+    "description": "Admin-only action on the Technician Data screen. Exists because password reset goes through email while login uses the employee ID, so a typo'd email locks the person out permanently unless an admin can correct it."
+  },
+  "teknisiEditJudul": "Edit {nama}",
+  "@teknisiEditJudul": {
+    "placeholders": { "nama": { "type": "String" } }
+  },
+  "teknisiEditNama": "Full name",
+  "teknisiEditEmail": "Email",
+  "teknisiEditEmployeeId": "Employee ID",
+  "teknisiEditDepartment": "Department (optional)",
+  "teknisiEditRole": "Role",
+  "teknisiEditSimpan": "Save",
+  "teknisiEditNamaKosong": "Name can't be empty.",
+  "teknisiEditEmailKosong": "Email can't be empty.",
+  "teknisiEditEmailSalah": "That doesn't look like an email address.",
+  "teknisiEditEmployeeIdKosong": "Employee ID can't be empty — it's what they log in with.",
+  "teknisiDiubah": "Account updated.",
   "teknisiPilihRole": "Choose a role for this account",
   "teknisiPilihRoleBatal": "Cancel",
   "teknisiDisetujui": "Account approved.",

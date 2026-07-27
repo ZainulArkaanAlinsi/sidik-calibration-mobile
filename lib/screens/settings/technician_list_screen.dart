@@ -273,6 +273,16 @@ class _KartuAkun extends ConsumerWidget {
                     variant: AppButtonVariant.secondary,
                     onPressed: () => _resetPassword(context, ref),
                   ),
+                // Sengaja muncul di SEMUA status, termasuk `pending` dan
+                // `nonaktif`. Justru akun yang salah ketik emailnya sering
+                // nyangkut di pending — kalau tombolnya cuma ada waktu aktif,
+                // yang paling butuh dibetulin malah nggak bisa disentuh.
+                AppButton(
+                  label: l10n.teknisiEdit,
+                  icon: Icons.edit_outlined,
+                  variant: AppButtonVariant.secondary,
+                  onPressed: () => _edit(context, ref),
+                ),
               ],
             ),
           ],
@@ -378,6 +388,212 @@ class _KartuAkun extends ConsumerWidget {
     } catch (_) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.teknisiGagal)));
     }
+  }
+
+  Future<void> _edit(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    final hasil = await showDialog<_DataAkun>(
+      context: context,
+      builder: (_) => _EditAkunDialog(akun: akun),
+    );
+
+    if (hasil == null) return;
+
+    try {
+      await ref
+          .read(userListProvider.notifier)
+          .ubah(
+            akun.id,
+            nama: hasil.nama,
+            email: hasil.email,
+            employeeId: hasil.employeeId,
+            department: hasil.department,
+            role: hasil.role,
+          );
+      messenger.showSnackBar(SnackBar(content: Text(l10n.teknisiDiubah)));
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.teknisiGagal)));
+    }
+  }
+}
+
+/// Isi form edit akun yang dibalikin dialog ke pemanggilnya.
+class _DataAkun {
+  const _DataAkun({
+    required this.nama,
+    required this.email,
+    required this.employeeId,
+    required this.department,
+    required this.role,
+  });
+
+  final String nama;
+  final String email;
+  final String employeeId;
+
+  /// String kosong = admin sengaja ngosongin departemennya.
+  final String department;
+
+  final UserRole role;
+}
+
+/// Dialog betulin data akun (`PUT /api/users/{id}`).
+///
+/// Ada karena reset password jalannya lewat **email** sedangkan login pakai
+/// **ID pegawai**: orang yang salah ketik emailnya waktu daftar kekunci
+/// selamanya kalau nggak ada yang bisa mbenerin.
+///
+/// **Status nggak diedit di sini** walaupun backend nerima. Menonaktifkan akun
+/// udah punya jalannya sendiri (tombol Tolak), dan dua pintu ke hal yang sama
+/// cuma bikin admin ragu mana yang bener.
+class _EditAkunDialog extends StatefulWidget {
+  const _EditAkunDialog({required this.akun});
+
+  final User akun;
+
+  @override
+  State<_EditAkunDialog> createState() => _EditAkunDialogState();
+}
+
+class _EditAkunDialogState extends State<_EditAkunDialog> {
+  late final _nama = TextEditingController(text: widget.akun.nama);
+  late final _email = TextEditingController(text: widget.akun.email);
+  late final _employeeId = TextEditingController(text: widget.akun.employeeId);
+  late final _department = TextEditingController(
+    text: widget.akun.department ?? '',
+  );
+  late UserRole _role = widget.akun.role;
+
+  String? _errorNama;
+  String? _errorEmail;
+  String? _errorEmployeeId;
+
+  @override
+  void dispose() {
+    _nama.dispose();
+    _email.dispose();
+    _employeeId.dispose();
+    _department.dispose();
+    super.dispose();
+  }
+
+  /// Divalidasi di sini juga, bukan cuma ngandelin `422` backend — admin nggak
+  /// perlu nunggu bolak-balik ke server cuma buat tahu kolomnya kosong.
+  bool _valid() {
+    final nama = _nama.text.trim();
+    final email = _email.text.trim();
+    final employeeId = _employeeId.text.trim();
+    final l10n = AppLocalizations.of(context);
+
+    setState(() {
+      _errorNama = nama.isEmpty ? l10n.teknisiEditNamaKosong : null;
+      _errorEmail = switch (email) {
+        '' => l10n.teknisiEditEmailKosong,
+        // Sengaja longgar: cuma mastiin ada `@` dan titik sesudahnya. Validasi
+        // email yang ketat justru sering nolak alamat yang sah, dan yang
+        // berwenang nolak beneran tetap backend.
+        _ when !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email) =>
+          l10n.teknisiEditEmailSalah,
+        _ => null,
+      };
+      _errorEmployeeId = employeeId.isEmpty
+          ? l10n.teknisiEditEmployeeIdKosong
+          : null;
+    });
+
+    return _errorNama == null &&
+        _errorEmail == null &&
+        _errorEmployeeId == null;
+  }
+
+  void _simpan() {
+    if (!_valid()) return;
+
+    Navigator.of(context).pop(
+      _DataAkun(
+        nama: _nama.text.trim(),
+        email: _email.text.trim(),
+        employeeId: _employeeId.text.trim(),
+        department: _department.text.trim(),
+        role: _role,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    return AlertDialog(
+      title: Text(l10n.teknisiEditJudul(widget.akun.nama)),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _nama,
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText: l10n.teknisiEditNama,
+                errorText: _errorNama,
+                border: const OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
+              controller: _email,
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(
+                labelText: l10n.teknisiEditEmail,
+                errorText: _errorEmail,
+                border: const OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
+              controller: _employeeId,
+              decoration: InputDecoration(
+                labelText: l10n.teknisiEditEmployeeId,
+                errorText: _errorEmployeeId,
+                border: const OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
+              controller: _department,
+              decoration: InputDecoration(
+                labelText: l10n.teknisiEditDepartment,
+                border: const OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            DropdownButtonFormField<UserRole>(
+              initialValue: _role,
+              decoration: InputDecoration(
+                labelText: l10n.teknisiEditRole,
+                border: const OutlineInputBorder(),
+              ),
+              items: [
+                for (final r in UserRole.values)
+                  DropdownMenuItem(value: r, child: Text(r.label)),
+              ],
+              onChanged: (value) {
+                if (value != null) setState(() => _role = value);
+              },
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.teknisiPilihRoleBatal),
+        ),
+        TextButton(onPressed: _simpan, child: Text(l10n.teknisiEditSimpan)),
+      ],
+    );
   }
 }
 

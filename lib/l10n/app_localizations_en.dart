@@ -1628,6 +1628,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teknisiResetPassword => 'Reset password';
 
   @override
+  String get teknisiEdit => 'Edit account';
+
+  @override
+  String teknisiEditJudul(String nama) {
+    return 'Edit $nama';
+  }
+
+  @override
+  String get teknisiEditNama => 'Full name';
+
+  @override
+  String get teknisiEditEmail => 'Email';
+
+  @override
+  String get teknisiEditEmployeeId => 'Employee ID';
+
+  @override
+  String get teknisiEditDepartment => 'Department (optional)';
+
+  @override
+  String get teknisiEditRole => 'Role';
+
+  @override
+  String get teknisiEditSimpan => 'Save';
+
+  @override
+  String get teknisiEditNamaKosong => 'Name can\'t be empty.';
+
+  @override
+  String get teknisiEditEmailKosong => 'Email can\'t be empty.';
+
+  @override
+  String get teknisiEditEmailSalah =>
+      'That doesn\'t look like an email address.';
+
+  @override
+  String get teknisiEditEmployeeIdKosong =>
+      'Employee ID can\'t be empty — it\'s what they log in with.';
+
+  @override
+  String get teknisiDiubah => 'Account updated.';
+
+  @override
   String get teknisiPilihRole => 'Choose a role for this account';
 
   @override

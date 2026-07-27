@@ -3062,6 +3062,84 @@ abstract class AppLocalizations {
   /// **'Reset password'**
   String get teknisiResetPassword;
 
+  /// Admin-only action on the Technician Data screen. Exists because password reset goes through email while login uses the employee ID, so a typo'd email locks the person out permanently unless an admin can correct it.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit account'**
+  String get teknisiEdit;
+
+  /// No description provided for @teknisiEditJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit {nama}'**
+  String teknisiEditJudul(String nama);
+
+  /// No description provided for @teknisiEditNama.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name'**
+  String get teknisiEditNama;
+
+  /// No description provided for @teknisiEditEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get teknisiEditEmail;
+
+  /// No description provided for @teknisiEditEmployeeId.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee ID'**
+  String get teknisiEditEmployeeId;
+
+  /// No description provided for @teknisiEditDepartment.
+  ///
+  /// In en, this message translates to:
+  /// **'Department (optional)'**
+  String get teknisiEditDepartment;
+
+  /// No description provided for @teknisiEditRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get teknisiEditRole;
+
+  /// No description provided for @teknisiEditSimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get teknisiEditSimpan;
+
+  /// No description provided for @teknisiEditNamaKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Name can\'t be empty.'**
+  String get teknisiEditNamaKosong;
+
+  /// No description provided for @teknisiEditEmailKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Email can\'t be empty.'**
+  String get teknisiEditEmailKosong;
+
+  /// No description provided for @teknisiEditEmailSalah.
+  ///
+  /// In en, this message translates to:
+  /// **'That doesn\'t look like an email address.'**
+  String get teknisiEditEmailSalah;
+
+  /// No description provided for @teknisiEditEmployeeIdKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee ID can\'t be empty — it\'s what they log in with.'**
+  String get teknisiEditEmployeeIdKosong;
+
+  /// No description provided for @teknisiDiubah.
+  ///
+  /// In en, this message translates to:
+  /// **'Account updated.'**
+  String get teknisiDiubah;
+
   /// No description provided for @teknisiPilihRole.
   ///
   /// In en, this message translates to:

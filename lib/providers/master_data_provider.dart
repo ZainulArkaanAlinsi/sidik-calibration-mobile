@@ -237,4 +237,32 @@ class UserListController extends AsyncNotifier<List<User>> {
 
     await ref.read(userServiceProvider).resetPassword(token, id, passwordBaru);
   }
+
+  /// Betulin data akun. Beda dari [resetPassword], ini **memang** perlu
+  /// `muatUlang()` — nama/email/role yang berubah harus langsung kelihatan di
+  /// kartunya, bukan baru muncul sesudah admin nutup-buka layar.
+  Future<void> ubah(
+    int id, {
+    String? nama,
+    String? email,
+    String? employeeId,
+    String? department,
+    UserRole? role,
+  }) async {
+    final token = await ref.read(tokenStorageProvider).read();
+    if (token == null) return;
+
+    await ref
+        .read(userServiceProvider)
+        .ubah(
+          token,
+          id,
+          nama: nama,
+          email: email,
+          employeeId: employeeId,
+          department: department,
+          role: role,
+        );
+    await muatUlang();
+  }
 }
