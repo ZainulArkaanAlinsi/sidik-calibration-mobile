@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/config/app_config.dart';
 import '../models/equipment.dart';
 import '../services/equipment_service.dart';
 import 'auth_provider.dart';
@@ -7,9 +8,10 @@ import 'dashboard_provider.dart' show TokenHilangException;
 
 /// Live sejak 14 Jul (`docs/kontrak-api.md` §3) — sama endpoint yang dipakai
 /// [EquipmentLookupService], versi penuh buat layar CRUD Alat.
-final equipmentServiceProvider = Provider<EquipmentService>(
-  (ref) => ApiEquipmentService(ref.watch(apiClientProvider)),
-);
+final equipmentServiceProvider = Provider<EquipmentService>((ref) {
+  if (AppConfig.useMock) return MockEquipmentService();
+  return ApiEquipmentService(ref.watch(apiClientProvider));
+});
 
 /// Beda sama [CustomerController]: daftar alat bisa panjang & dipaginasi
 /// beneran di backend (bukan "kirim semua sekaligus" kayak customer/standar),
