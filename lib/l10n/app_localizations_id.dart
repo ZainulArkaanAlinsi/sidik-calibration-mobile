@@ -1632,6 +1632,75 @@ class AppLocalizationsId extends AppLocalizations {
   String get teknisiTolak => 'Nonaktifkan';
 
   @override
+  String get certKirimEmail => 'KIRIM KE PELANGGAN';
+
+  @override
+  String get emailTitle => 'Kirim Sertifikat';
+
+  @override
+  String get emailHanyaAdmin => 'Cuma admin yang bisa ngirim sertifikat.';
+
+  @override
+  String get emailKeLabel => 'Ke';
+
+  @override
+  String get emailKeHint => 'pelanggan@perusahaan.com';
+
+  @override
+  String get emailCcLabel => 'Cc (opsional)';
+
+  @override
+  String emailPisahKoma(int maks) {
+    return 'Pisahin pakai koma kalau lebih dari satu. Maks $maks masing-masing.';
+  }
+
+  @override
+  String get emailKirim => 'KIRIM SEKARANG';
+
+  @override
+  String get emailMengirim =>
+      'Lagi ngirim — ini nunggu sampai server email beneran nerima.';
+
+  @override
+  String get emailTerkirim => 'Sertifikat terkirim.';
+
+  @override
+  String get emailKeKosong => 'Isi minimal satu penerima.';
+
+  @override
+  String emailAlamatSalah(String alamat) {
+    return 'Bukan alamat email yang sah: $alamat';
+  }
+
+  @override
+  String emailKebanyakan(int maks) {
+    return 'Maks $maks alamat.';
+  }
+
+  @override
+  String get emailRiwayatJudul => 'Riwayat kirim';
+
+  @override
+  String get emailRiwayatKosong => 'Belum pernah dikirim.';
+
+  @override
+  String get emailRiwayatBerhasil => 'Terkirim';
+
+  @override
+  String get emailRiwayatGagal => 'Gagal';
+
+  @override
+  String emailRiwayatOleh(String nama) {
+    return 'oleh $nama';
+  }
+
+  @override
+  String get emailGagalMuat => 'Gagal memuat riwayat kirim.';
+
+  @override
+  String get emailRetry => 'COBA LAGI';
+
+  @override
   String get ttdTitle => 'Tanda Tangan Sertifikat';
 
   @override

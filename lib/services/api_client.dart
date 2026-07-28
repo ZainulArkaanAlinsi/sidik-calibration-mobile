@@ -35,10 +35,15 @@ class ApiClient {
     return _kirim(() => _client.get(_uri(path), headers: _headers(token)));
   }
 
+  /// [timeout] dinaikin buat endpoint yang kerjanya SINKRON — mis. kirim
+  /// email sertifikat, yang balik sesudah SMTP beneran ngirim, bukan sesudah
+  /// masuk antrean. Timeout bawaan 20 detik gampang kelewat di situ, dan
+  /// kalau kita nyerah duluan admin ngira gagal padahal servernya masih jalan.
   Future<Map<String, dynamic>> post(
     String path, {
     Map<String, dynamic>? body,
     String? token,
+    Duration? timeout,
   }) async {
     return _kirim(
       () => _client.post(
@@ -46,6 +51,7 @@ class ApiClient {
         headers: _headers(token),
         body: jsonEncode(body ?? {}),
       ),
+      timeout: timeout,
     );
   }
 
@@ -151,12 +157,13 @@ class ApiClient {
   }
 
   Future<Map<String, dynamic>> _kirim(
-    Future<http.Response> Function() request,
-  ) async {
+    Future<http.Response> Function() request, {
+    Duration? timeout,
+  }) async {
     final http.Response res;
 
     try {
-      res = await request().timeout(const Duration(seconds: 20));
+      res = await request().timeout(timeout ?? const Duration(seconds: 20));
     } on SocketException {
       // Paling sering kejadian: teknisi di lapangan sinyalnya ilang, atau
       // `php artisan serve` di laptop belum dinyalain.
