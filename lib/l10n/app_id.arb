@@ -301,6 +301,10 @@
   "arsipDibuat": "Folder dibuat.",
   "arsipDiubah": "Nama folder diubah.",
   "arsipDihapus": "Folder dihapus.",
+  "arsipPetunjukPindah": "Tahan item-nya buat mindahin.",
+  "arsipTakBisaDipindah": "Folder otomatis — tempatnya ngikut PT/tahun.",
+  "arsipFolderDipindah": "Folder dipindah ke \"{tujuan}\".",
+  "arsipBerkasDipindah": "Berkas dipindah ke \"{tujuan}\".",
 
   "orgTitle": "Data Organisasi",
   "orgNama": "Nama PT",

@@ -400,6 +400,20 @@
   "arsipDibuat": "Folder created.",
   "arsipDiubah": "Folder renamed.",
   "arsipDihapus": "Folder deleted.",
+  "arsipPetunjukPindah": "Press and hold an item to move it.",
+  "arsipTakBisaDipindah": "Auto-generated folder — its place follows the client/year.",
+  "arsipFolderDipindah": "Folder moved into \"{tujuan}\".",
+  "@arsipFolderDipindah": {
+    "placeholders": {
+      "tujuan": { "type": "String" }
+    }
+  },
+  "arsipBerkasDipindah": "File moved into \"{tujuan}\".",
+  "@arsipBerkasDipindah": {
+    "placeholders": {
+      "tujuan": { "type": "String" }
+    }
+  },
 
   "orgTitle": "Organization Data",
   "orgNama": "Company name",

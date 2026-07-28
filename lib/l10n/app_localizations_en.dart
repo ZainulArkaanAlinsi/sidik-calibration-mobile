@@ -898,6 +898,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get arsipDihapus => 'Folder deleted.';
 
   @override
+  String get arsipPetunjukPindah => 'Press and hold an item to move it.';
+
+  @override
+  String get arsipTakBisaDipindah =>
+      'Auto-generated folder — its place follows the client/year.';
+
+  @override
+  String arsipFolderDipindah(String tujuan) {
+    return 'Folder moved into \"$tujuan\".';
+  }
+
+  @override
+  String arsipBerkasDipindah(String tujuan) {
+    return 'File moved into \"$tujuan\".';
+  }
+
+  @override
   String get orgTitle => 'Organization Data';
 
   @override

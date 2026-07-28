@@ -1742,6 +1742,30 @@ abstract class AppLocalizations {
   /// **'Folder deleted.'**
   String get arsipDihapus;
 
+  /// No description provided for @arsipPetunjukPindah.
+  ///
+  /// In en, this message translates to:
+  /// **'Press and hold an item to move it.'**
+  String get arsipPetunjukPindah;
+
+  /// No description provided for @arsipTakBisaDipindah.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-generated folder — its place follows the client/year.'**
+  String get arsipTakBisaDipindah;
+
+  /// No description provided for @arsipFolderDipindah.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder moved into \"{tujuan}\".'**
+  String arsipFolderDipindah(String tujuan);
+
+  /// No description provided for @arsipBerkasDipindah.
+  ///
+  /// In en, this message translates to:
+  /// **'File moved into \"{tujuan}\".'**
+  String arsipBerkasDipindah(String tujuan);
+
   /// No description provided for @orgTitle.
   ///
   /// In en, this message translates to:

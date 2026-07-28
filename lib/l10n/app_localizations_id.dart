@@ -896,6 +896,23 @@ class AppLocalizationsId extends AppLocalizations {
   String get arsipDihapus => 'Folder dihapus.';
 
   @override
+  String get arsipPetunjukPindah => 'Tahan item-nya buat mindahin.';
+
+  @override
+  String get arsipTakBisaDipindah =>
+      'Folder otomatis — tempatnya ngikut PT/tahun.';
+
+  @override
+  String arsipFolderDipindah(String tujuan) {
+    return 'Folder dipindah ke \"$tujuan\".';
+  }
+
+  @override
+  String arsipBerkasDipindah(String tujuan) {
+    return 'Berkas dipindah ke \"$tujuan\".';
+  }
+
+  @override
   String get orgTitle => 'Data Organisasi';
 
   @override
