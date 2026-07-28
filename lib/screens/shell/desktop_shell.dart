@@ -13,6 +13,7 @@ import '../../providers/theme_mode_provider.dart';
 import '../../widgets/notification_bell.dart';
 import '../admin/antrean_approval_screen.dart';
 import '../admin/import_excel_screen.dart';
+import '../alur/alur_kerja_screen.dart';
 import '../arsip/arsip_screen.dart';
 import '../dashboard/ringkasan_screen.dart';
 import '../equipment/equipment_list_screen.dart';
@@ -142,6 +143,12 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
             ikon: Icons.space_dashboard_outlined,
             label: l10n.panelRingkasan,
             bangun: RingkasanScreen.new,
+          ),
+          _Menu(
+            id: 'alur',
+            ikon: Icons.account_tree_outlined,
+            label: l10n.alurTitle,
+            bangun: AlurKerjaScreen.new,
           ),
           if (bolehSetujui)
             _Menu(

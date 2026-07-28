@@ -898,6 +898,134 @@ class AppLocalizationsEn extends AppLocalizations {
   String get arsipDihapus => 'Folder deleted.';
 
   @override
+  String get certSuksesJudul => 'Certificate created';
+
+  @override
+  String get certSuksesNomor => 'Certificate number';
+
+  @override
+  String get certAksiPdf => 'Download PDF';
+
+  @override
+  String get certAksiExcel => 'Export Excel';
+
+  @override
+  String get certAksiQr => 'QR code';
+
+  @override
+  String get certAksiSalinTautan => 'Copy verification link';
+
+  @override
+  String get certAksiEmail => 'Send email';
+
+  @override
+  String get certAksiWhatsapp => 'Share via WhatsApp';
+
+  @override
+  String get certAksiTutup => 'Done';
+
+  @override
+  String get certQrModalJudul => 'Certificate QR';
+
+  @override
+  String get certQrScanUntukVerifikasi => 'Scan to verify';
+
+  @override
+  String get certQrSimpanPng => 'Save PNG';
+
+  @override
+  String get certTautanDisalin => 'Verification link copied.';
+
+  @override
+  String certPngDisimpan(String lokasi) {
+    return 'QR saved to $lokasi';
+  }
+
+  @override
+  String certGagalBuka(String tujuan) {
+    return 'Couldn\'t open $tujuan on this device.';
+  }
+
+  @override
+  String get certBelumAdaTautan =>
+      'The backend hasn\'t issued a verification token yet, so there\'s no link to share.';
+
+  @override
+  String certPesanBagikan(String nomor, String tautan) {
+    return 'Hello,\n\nYour calibration certificate has been generated.\n\nCertificate Number:\n$nomor\n\nVerification Link:\n$tautan\n\nScan the QR code or open the link above.\n\nThank you.';
+  }
+
+  @override
+  String certSubjekEmail(String nomor) {
+    return 'Calibration Certificate $nomor';
+  }
+
+  @override
+  String get alurTitle => 'Workflow';
+
+  @override
+  String get alurSub =>
+      'From the technician\'s entry to the certificate landing in the client\'s inbox.';
+
+  @override
+  String get alurPilihSesi =>
+      'Pick a session on the left to see where it stands.';
+
+  @override
+  String get alurCari => 'Search device or technician...';
+
+  @override
+  String get alurKosong => 'No calibration sessions yet.';
+
+  @override
+  String get alurSesiBaru => 'New calibration';
+
+  @override
+  String get alurTahapLembarKerja => 'Worksheet';
+
+  @override
+  String get alurTahapPerhitungan => 'Calculation & approval';
+
+  @override
+  String get alurTahapSertifikat => 'Certificate issued';
+
+  @override
+  String get alurTahapKirim => 'Sent to client';
+
+  @override
+  String get alurBukaLembarKerja => 'Open worksheet';
+
+  @override
+  String get alurBukaPerhitungan => 'Open calculation sheet';
+
+  @override
+  String get alurLihatSertifikat => 'View certificate';
+
+  @override
+  String get alurKirimPelanggan => 'Send to client';
+
+  @override
+  String get alurDetailSesi => 'Session details';
+
+  @override
+  String get alurStatusDisetujui => 'Approved';
+
+  @override
+  String get alurSertifikatDigenerate =>
+      'The certificate is still being generated on the server. Reload in a moment.';
+
+  @override
+  String alurCatatanRevisi(String catatan) {
+    return 'Sent back by the admin: $catatan';
+  }
+
+  @override
+  String get alurLangkahSekarang => 'You are here';
+
+  @override
+  String get alurLangkahSelesai => 'Done';
+
+  @override
   String get panelSeksiOperasional => 'Operations';
 
   @override

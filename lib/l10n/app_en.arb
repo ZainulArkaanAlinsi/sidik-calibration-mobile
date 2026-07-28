@@ -400,6 +400,72 @@
   "arsipDibuat": "Folder created.",
   "arsipDiubah": "Folder renamed.",
   "arsipDihapus": "Folder deleted.",
+  "certSuksesJudul": "Certificate created",
+  "certSuksesNomor": "Certificate number",
+  "certAksiPdf": "Download PDF",
+  "certAksiExcel": "Export Excel",
+  "certAksiQr": "QR code",
+  "certAksiSalinTautan": "Copy verification link",
+  "certAksiEmail": "Send email",
+  "certAksiWhatsapp": "Share via WhatsApp",
+  "certAksiTutup": "Done",
+  "certQrModalJudul": "Certificate QR",
+  "certQrScanUntukVerifikasi": "Scan to verify",
+  "certQrSimpanPng": "Save PNG",
+  "certTautanDisalin": "Verification link copied.",
+  "certPngDisimpan": "QR saved to {lokasi}",
+  "@certPngDisimpan": {
+    "placeholders": {
+      "lokasi": { "type": "String" }
+    }
+  },
+  "certGagalBuka": "Couldn't open {tujuan} on this device.",
+  "@certGagalBuka": {
+    "placeholders": {
+      "tujuan": { "type": "String" }
+    }
+  },
+  "certBelumAdaTautan": "The backend hasn't issued a verification token yet, so there's no link to share.",
+  "certPesanBagikan": "Hello,\n\nYour calibration certificate has been generated.\n\nCertificate Number:\n{nomor}\n\nVerification Link:\n{tautan}\n\nScan the QR code or open the link above.\n\nThank you.",
+  "@certPesanBagikan": {
+    "placeholders": {
+      "nomor": { "type": "String" },
+      "tautan": { "type": "String" }
+    }
+  },
+  "certSubjekEmail": "Calibration Certificate {nomor}",
+  "@certSubjekEmail": {
+    "placeholders": {
+      "nomor": { "type": "String" }
+    }
+  },
+
+  "alurTitle": "Workflow",
+  "alurSub": "From the technician's entry to the certificate landing in the client's inbox.",
+  "alurPilihSesi": "Pick a session on the left to see where it stands.",
+  "alurCari": "Search device or technician...",
+  "alurKosong": "No calibration sessions yet.",
+  "alurSesiBaru": "New calibration",
+  "alurTahapLembarKerja": "Worksheet",
+  "alurTahapPerhitungan": "Calculation & approval",
+  "alurTahapSertifikat": "Certificate issued",
+  "alurTahapKirim": "Sent to client",
+  "alurBukaLembarKerja": "Open worksheet",
+  "alurBukaPerhitungan": "Open calculation sheet",
+  "alurLihatSertifikat": "View certificate",
+  "alurKirimPelanggan": "Send to client",
+  "alurDetailSesi": "Session details",
+  "alurStatusDisetujui": "Approved",
+  "alurSertifikatDigenerate": "The certificate is still being generated on the server. Reload in a moment.",
+  "alurCatatanRevisi": "Sent back by the admin: {catatan}",
+  "@alurCatatanRevisi": {
+    "placeholders": {
+      "catatan": { "type": "String" }
+    }
+  },
+  "alurLangkahSekarang": "You are here",
+  "alurLangkahSelesai": "Done",
+
   "panelSeksiOperasional": "Operations",
   "panelSeksiDokumen": "Documents",
   "panelSeksiSistem": "System",

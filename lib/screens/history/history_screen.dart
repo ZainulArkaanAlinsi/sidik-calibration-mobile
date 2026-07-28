@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../certificate/sertifikat_sukses_sheet.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
@@ -321,6 +322,30 @@ class _ApprovalActionsState extends ConsumerState<_ApprovalActions> {
 
     try {
       await ref.read(historyProvider.notifier).approve(widget.item.id);
+
+      if (!mounted) return;
+
+      // Begitu disetujui, sertifikatnya langsung dikeluarin di sini —
+      // unduh/QR/tautan/kirim ada di satu lembar, nggak usah dicari lagi ke
+      // menu lain. Sheet-nya cuma dibuka kalau nomornya emang udah balik:
+      // pembuatan PDF-nya job antrean backend, dan kadang belum kelar persis
+      // waktu approve balik. Kalau belum, Alur Kerja yang nunjukin statusnya.
+      final terbaru = ref
+          .read(historyProvider)
+          .value
+          ?.where((s) => s.id == widget.item.id)
+          .firstOrNull;
+
+      final certId = terbaru?.certificateId;
+      final nomor = terbaru?.nomorSertifikat;
+
+      if (certId != null && nomor != null) {
+        await tampilkanSertifikatSukses(
+          context,
+          certificateId: certId,
+          nomor: nomor,
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(

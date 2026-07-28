@@ -896,6 +896,134 @@ class AppLocalizationsId extends AppLocalizations {
   String get arsipDihapus => 'Folder dihapus.';
 
   @override
+  String get certSuksesJudul => 'Sertifikat berhasil dibuat';
+
+  @override
+  String get certSuksesNomor => 'Nomor sertifikat';
+
+  @override
+  String get certAksiPdf => 'Unduh PDF';
+
+  @override
+  String get certAksiExcel => 'Ekspor Excel';
+
+  @override
+  String get certAksiQr => 'Kode QR';
+
+  @override
+  String get certAksiSalinTautan => 'Salin tautan verifikasi';
+
+  @override
+  String get certAksiEmail => 'Kirim email';
+
+  @override
+  String get certAksiWhatsapp => 'Bagikan lewat WhatsApp';
+
+  @override
+  String get certAksiTutup => 'Selesai';
+
+  @override
+  String get certQrModalJudul => 'QR Sertifikat';
+
+  @override
+  String get certQrScanUntukVerifikasi => 'Scan buat verifikasi';
+
+  @override
+  String get certQrSimpanPng => 'Simpan PNG';
+
+  @override
+  String get certTautanDisalin => 'Tautan verifikasi disalin.';
+
+  @override
+  String certPngDisimpan(String lokasi) {
+    return 'QR disimpan di $lokasi';
+  }
+
+  @override
+  String certGagalBuka(String tujuan) {
+    return 'Nggak bisa buka $tujuan di perangkat ini.';
+  }
+
+  @override
+  String get certBelumAdaTautan =>
+      'Backend belum nerbitin token verifikasi, jadi belum ada tautan yang bisa dibagiin.';
+
+  @override
+  String certPesanBagikan(String nomor, String tautan) {
+    return 'Halo,\n\nSertifikat kalibrasi Anda sudah terbit.\n\nNomor Sertifikat:\n$nomor\n\nTautan Verifikasi:\n$tautan\n\nSilakan scan kode QR atau buka tautan di atas.\n\nTerima kasih.';
+  }
+
+  @override
+  String certSubjekEmail(String nomor) {
+    return 'Sertifikat Kalibrasi $nomor';
+  }
+
+  @override
+  String get alurTitle => 'Alur Kerja';
+
+  @override
+  String get alurSub =>
+      'Dari isian teknisi sampai sertifikatnya nyampe ke pelanggan.';
+
+  @override
+  String get alurPilihSesi =>
+      'Pilih sesi di kiri buat lihat posisinya sekarang.';
+
+  @override
+  String get alurCari => 'Cari alat atau teknisi...';
+
+  @override
+  String get alurKosong => 'Belum ada sesi kalibrasi.';
+
+  @override
+  String get alurSesiBaru => 'Kalibrasi baru';
+
+  @override
+  String get alurTahapLembarKerja => 'Lembar kerja';
+
+  @override
+  String get alurTahapPerhitungan => 'Perhitungan & approval';
+
+  @override
+  String get alurTahapSertifikat => 'Sertifikat terbit';
+
+  @override
+  String get alurTahapKirim => 'Kekirim ke pelanggan';
+
+  @override
+  String get alurBukaLembarKerja => 'Buka lembar kerja';
+
+  @override
+  String get alurBukaPerhitungan => 'Buka lembar perhitungan';
+
+  @override
+  String get alurLihatSertifikat => 'Lihat sertifikat';
+
+  @override
+  String get alurKirimPelanggan => 'Kirim ke pelanggan';
+
+  @override
+  String get alurDetailSesi => 'Detail sesi';
+
+  @override
+  String get alurStatusDisetujui => 'Disetujui';
+
+  @override
+  String get alurSertifikatDigenerate =>
+      'Sertifikatnya masih dibikin di server. Muat ulang sebentar lagi.';
+
+  @override
+  String alurCatatanRevisi(String catatan) {
+    return 'Dibalikin admin: $catatan';
+  }
+
+  @override
+  String get alurLangkahSekarang => 'Lagi di sini';
+
+  @override
+  String get alurLangkahSelesai => 'Beres';
+
+  @override
   String get panelSeksiOperasional => 'Operasional';
 
   @override
