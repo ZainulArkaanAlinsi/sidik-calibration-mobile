@@ -650,6 +650,18 @@ abstract class AppLocalizations {
   /// **'Name, address & accreditation no. printed on certificates'**
   String get profOrgDataSub;
 
+  /// No description provided for @profTandaTangan.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate Signature'**
+  String get profTandaTangan;
+
+  /// No description provided for @profTandaTanganSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Signature printed on issued certificates'**
+  String get profTandaTanganSub;
+
   /// No description provided for @profCustomers.
   ///
   /// In en, this message translates to:
@@ -3073,6 +3085,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deactivate'**
   String get teknisiTolak;
+
+  /// No description provided for @ttdTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate Signature'**
+  String get ttdTitle;
+
+  /// No description provided for @ttdHanyaAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Only admins can manage the certificate signature.'**
+  String get ttdHanyaAdmin;
+
+  /// No description provided for @ttdBelumAda.
+  ///
+  /// In en, this message translates to:
+  /// **'No signature uploaded yet'**
+  String get ttdBelumAda;
+
+  /// No description provided for @ttdBelumAdaIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificates will print without a signature until one is uploaded.'**
+  String get ttdBelumAdaIsi;
+
+  /// No description provided for @ttdUnggah.
+  ///
+  /// In en, this message translates to:
+  /// **'UPLOAD SIGNATURE'**
+  String get ttdUnggah;
+
+  /// No description provided for @ttdGanti.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get ttdGanti;
+
+  /// No description provided for @ttdHapus.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get ttdHapus;
+
+  /// No description provided for @ttdHapusKonfirmJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the signature?'**
+  String get ttdHapusKonfirmJudul;
+
+  /// No description provided for @ttdHapusKonfirmIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'New certificates will print without a signature until you upload another one. Certificates already issued keep theirs.'**
+  String get ttdHapusKonfirmIsi;
+
+  /// No description provided for @ttdHanyaPng.
+  ///
+  /// In en, this message translates to:
+  /// **'PNG only — JPG has no transparent background, so it prints as a white box covering the signature line.'**
+  String get ttdHanyaPng;
+
+  /// No description provided for @ttdPosisiJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Print position'**
+  String get ttdPosisiJudul;
+
+  /// No description provided for @ttdPosisiIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'Applies to every certificate, not just one. Already-issued certificates keep the position they were printed with.'**
+  String get ttdPosisiIsi;
+
+  /// No description provided for @ttdGeserX.
+  ///
+  /// In en, this message translates to:
+  /// **'Horizontal ({nilai} mm)'**
+  String ttdGeserX(String nilai);
+
+  /// No description provided for @ttdGeserY.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical ({nilai} mm)'**
+  String ttdGeserY(String nilai);
+
+  /// No description provided for @ttdLebar.
+  ///
+  /// In en, this message translates to:
+  /// **'Width ({nilai} mm)'**
+  String ttdLebar(String nilai);
+
+  /// No description provided for @ttdArahX.
+  ///
+  /// In en, this message translates to:
+  /// **'negative = left'**
+  String get ttdArahX;
+
+  /// Critical: backend treats positive geser_y_mm as UP, opposite of screen coordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'positive = up'**
+  String get ttdArahY;
+
+  /// No description provided for @ttdSimpanPosisi.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE POSITION'**
+  String get ttdSimpanPosisi;
+
+  /// No description provided for @ttdPosisiTersimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'Print position saved.'**
+  String get ttdPosisiTersimpan;
+
+  /// No description provided for @ttdTerunggah.
+  ///
+  /// In en, this message translates to:
+  /// **'Signature uploaded.'**
+  String get ttdTerunggah;
+
+  /// No description provided for @ttdTerhapus.
+  ///
+  /// In en, this message translates to:
+  /// **'Signature deleted.'**
+  String get ttdTerhapus;
+
+  /// No description provided for @ttdGagalMuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the signature settings.'**
+  String get ttdGagalMuat;
+
+  /// No description provided for @ttdRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'TRY AGAIN'**
+  String get ttdRetry;
 
   /// No description provided for @teknisiResetPassword.
   ///

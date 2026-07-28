@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -109,6 +110,44 @@ class ApiClient {
       final streamed = await request.send().timeout(timeout);
       return http.Response.fromStream(streamed);
     });
+  }
+
+  /// Ambil **byte mentah**, bukan JSON — buat gambar yang dilayani di balik
+  /// auth (tanda tangan sertifikat).
+  ///
+  /// Kenapa nggak `Image.network` aja: `Image.network` nggak bawa header
+  /// `Authorization`, jadi endpoint yang butuh Bearer token bakal balikin
+  /// `401` dan gambarnya nggak pernah muncul. Byte-nya ditarik di sini, terus
+  /// dipasang lewat `Image.memory`.
+  ///
+  /// Balikin `null` kalau `404` — itu jawaban sah buat "belum ada tanda
+  /// tangan yang diunggah", bukan error yang perlu diteriakin ke user.
+  Future<Uint8List?> ambilBytes(String path, {String? token}) async {
+    final http.Response res;
+
+    try {
+      res = await _client
+          .get(_uri(path), headers: {
+            if (token != null) 'Authorization': 'Bearer $token',
+          })
+          .timeout(const Duration(seconds: 20));
+    } on SocketException {
+      throw const AuthException(
+        'Nggak bisa nyambung ke server. Cek koneksi kamu.',
+      );
+    } catch (_) {
+      throw const AuthException('Server nggak nyaut. Coba lagi sebentar.');
+    }
+
+    if (res.statusCode == 404) return null;
+
+    if (res.statusCode >= 200 && res.statusCode < 300) return res.bodyBytes;
+
+    throw ApiException(
+      _pesanError(res.statusCode, _decode(res)),
+      status: res.statusCode,
+      body: const {},
+    );
   }
 
   Future<Map<String, dynamic>> _kirim(
