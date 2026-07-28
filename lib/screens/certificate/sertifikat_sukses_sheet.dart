@@ -23,10 +23,13 @@ import '../history/kirim_email_screen.dart';
 /// atau kasih tautan verifikasi. Kalau tiap aksinya mesti dicari sendiri di
 /// menu yang beda, pekerjaan yang sebenarnya satu tarikan napas jadi kelihatan
 /// kayak enam pekerjaan.
+/// [nomor] boleh null: sesudah approve, yang balik dari backend cuma
+/// `certificate_id` — nomornya belum ikut. Kalau kosong, sheet-nya narik
+/// sendiri dari detail sertifikat daripada maksa pemanggil nunggu.
 Future<void> tampilkanSertifikatSukses(
   BuildContext context, {
   required int certificateId,
-  required String nomor,
+  String? nomor,
   String? qrToken,
   String? verifikasiUrl,
 }) {
@@ -50,7 +53,7 @@ class _SheetSukses extends ConsumerWidget {
   });
 
   final int certificateId;
-  final String nomor;
+  final String? nomor;
   final String? qrToken;
   final String? verifikasiUrl;
 
@@ -75,16 +78,20 @@ class _SheetSukses extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final layanan = ref.read(certificateServiceProvider);
 
-    // Yang manggil sheet ini seringnya cuma pegang nomor + id (mis. layar
-    // approval, yang datanya dari `GET /calibrations` dan nggak bawa
-    // `qr_token`). Tokennya ditarik sendiri di sini daripada maksa tiap
-    // pemanggil ikut ngurusin — tanpa itu tombol Salin Tautan & WhatsApp mati
-    // padahal sertifikatnya jelas-jelas udah terbit.
-    final detail = qrToken == null && verifikasiUrl == null
+    // Yang manggil sheet ini seringnya cuma pegang id. Layar approval malah
+    // cuma dapat `certificate_id` — `approve` nggak ngirim balik nomor MAUPUN
+    // `qr_token`. Jadi detailnya ditarik di sini daripada maksa tiap pemanggil
+    // ikut ngurusin: tanpa ini nomornya kosong dan tombol Salin Tautan &
+    // WhatsApp mati, padahal sertifikatnya jelas-jelas udah terbit.
+    final butuhDetail =
+        nomor == null || (qrToken == null && verifikasiUrl == null);
+    final detail = butuhDetail
         ? ref.watch(certificateDetailProvider(certificateId)).value
         : null;
 
-    final tautan = _tautan ??
+    final nomorTampil = nomor ?? detail?.nomor;
+    final tautan =
+        _tautan ??
         (detail?.qrToken == null
             ? null
             : '${AppConfig.apiBaseUrl}/verify/${detail!.qrToken}');
@@ -97,87 +104,98 @@ class _SheetSukses extends ConsumerWidget {
         color: theme.colorScheme.primary,
       ),
       title: Text(l10n.certSuksesJudul, textAlign: TextAlign.center),
+      // Digulir, bukan dipas-pasin: enam aksi + nomor itu tinggi tetap, dan di
+      // jendela pendek (atau HP dengan teks diperbesar) dialog-nya pasti lewat
+      // batas layar. Tanpa ini yang kejadian bukan cuma jelek — baris paling
+      // bawah, "Bagikan lewat WhatsApp", kepotong dan nggak bisa dipencet.
       content: SizedBox(
         width: 380,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              l10n.certSuksesNomor.toUpperCase(),
-              textAlign: TextAlign.center,
-              style: theme.textTheme.labelSmall?.copyWith(
-                letterSpacing: 1,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 2),
-            SelectableText(
-              nomor,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            const Divider(height: 1),
-
-            _Aksi(
-              ikon: Icons.picture_as_pdf_outlined,
-              label: l10n.certAksiPdf,
-              onTap: () => _buka(context, layanan.urlPdf(certificateId), 'PDF'),
-            ),
-            _Aksi(
-              ikon: Icons.table_chart_outlined,
-              label: l10n.certAksiExcel,
-              onTap: () =>
-                  _buka(context, layanan.urlExcel(certificateId), 'Excel'),
-            ),
-            _Aksi(
-              ikon: Icons.qr_code_2,
-              label: l10n.certAksiQr,
-              onTap: () => showDialog<void>(
-                context: context,
-                builder: (_) => _ModalQr(
-                  nomor: nomor,
-                  token: token,
-                  url: tautan,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l10n.certSuksesNomor.toUpperCase(),
+                textAlign: TextAlign.center,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  letterSpacing: 1,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-            ),
-            _Aksi(
-              ikon: Icons.link,
-              label: l10n.certAksiSalinTautan,
-              // Dimatiin, bukan disembunyiin: kalau tombolnya raib orang ngira
-              // app-nya rusak. Yang perlu dia tahu itu backend-nya yang belum
-              // nerbitin token — dan itu dibilangin lewat tooltip.
-              aktif: tautan != null,
-              tooltipMati: l10n.certBelumAdaTautan,
-              onTap: () => _salin(context, tautan!),
-            ),
-            _Aksi(
-              ikon: Icons.mail_outline,
-              label: l10n.certAksiEmail,
-              onTap: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => KirimEmailScreen(
-                      certificateId: certificateId,
-                      nomorSertifikat: nomor,
-                    ),
+              const SizedBox(height: 2),
+              SelectableText(
+                // Titik-titik selama detailnya jalan, bukan '—': strip kebaca
+                // sebagai "sertifikat ini nggak punya nomor", padahal cuma belum
+                // nyampe.
+                nomorTampil ?? '…',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              const Divider(height: 1),
+
+              _Aksi(
+                ikon: Icons.picture_as_pdf_outlined,
+                label: l10n.certAksiPdf,
+                onTap: () =>
+                    _buka(context, layanan.urlPdf(certificateId), 'PDF'),
+              ),
+              _Aksi(
+                ikon: Icons.table_chart_outlined,
+                label: l10n.certAksiExcel,
+                onTap: () =>
+                    _buka(context, layanan.urlExcel(certificateId), 'Excel'),
+              ),
+              _Aksi(
+                ikon: Icons.qr_code_2,
+                label: l10n.certAksiQr,
+                onTap: () => showDialog<void>(
+                  context: context,
+                  builder: (_) => _ModalQr(
+                    nomor: nomorTampil ?? '$certificateId',
+                    token: token,
+                    url: tautan,
                   ),
-                );
-              },
-            ),
-            _Aksi(
-              ikon: Icons.chat_outlined,
-              label: l10n.certAksiWhatsapp,
-              aktif: tautan != null,
-              tooltipMati: l10n.certBelumAdaTautan,
-              onTap: () => _bukaWhatsapp(context, l10n, nomor, tautan!),
-            ),
-          ],
+                ),
+              ),
+              _Aksi(
+                ikon: Icons.link,
+                label: l10n.certAksiSalinTautan,
+                // Dimatiin, bukan disembunyiin: kalau tombolnya raib orang ngira
+                // app-nya rusak. Yang perlu dia tahu itu backend-nya yang belum
+                // nerbitin token — dan itu dibilangin lewat tooltip.
+                aktif: tautan != null,
+                tooltipMati: l10n.certBelumAdaTautan,
+                onTap: () => _salin(context, tautan!),
+              ),
+              _Aksi(
+                ikon: Icons.mail_outline,
+                label: l10n.certAksiEmail,
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => KirimEmailScreen(
+                        certificateId: certificateId,
+                        nomorSertifikat: nomorTampil ?? '—',
+                      ),
+                    ),
+                  );
+                },
+              ),
+              _Aksi(
+                ikon: Icons.chat_outlined,
+                label: l10n.certAksiWhatsapp,
+                aktif: tautan != null,
+                tooltipMati: l10n.certBelumAdaTautan,
+                onTap: () =>
+                    _bukaWhatsapp(context, l10n, nomorTampil ?? '—', tautan!),
+              ),
+            ],
+          ),
         ),
       ),
       actions: [
@@ -202,9 +220,7 @@ Future<void> _buka(BuildContext context, String url, String tujuan) async {
   ).catchError((_) => false);
 
   if (!ok) {
-    messenger.showSnackBar(
-      SnackBar(content: Text(l10n.certGagalBuka(tujuan))),
-    );
+    messenger.showSnackBar(SnackBar(content: Text(l10n.certGagalBuka(tujuan))));
   }
 }
 
@@ -228,9 +244,7 @@ Future<void> _bukaWhatsapp(
 ) async {
   final messenger = ScaffoldMessenger.of(context);
   final pesan = l10n.certPesanBagikan(nomor, tautan);
-  final uri = Uri.parse(
-    'https://wa.me/?text=${Uri.encodeComponent(pesan)}',
-  );
+  final uri = Uri.parse('https://wa.me/?text=${Uri.encodeComponent(pesan)}');
 
   final ok = await launchUrl(
     uri,

@@ -336,14 +336,16 @@ class _ApprovalActionsState extends ConsumerState<_ApprovalActions> {
           ?.where((s) => s.id == widget.item.id)
           .firstOrNull;
 
+      // Syaratnya CUMA id. `approve` balikinnya `certificate_id` doang —
+      // nomornya nggak ikut, jadi nunggu nomor di sini bikin popup-nya nggak
+      // pernah muncul sama sekali. Sheet-nya yang narik nomor + token sendiri.
       final certId = terbaru?.certificateId;
-      final nomor = terbaru?.nomorSertifikat;
 
-      if (certId != null && nomor != null) {
+      if (certId != null) {
         await tampilkanSertifikatSukses(
           context,
           certificateId: certId,
-          nomor: nomor,
+          nomor: terbaru?.nomorSertifikat,
         );
       }
     } catch (e) {
