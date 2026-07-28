@@ -16,9 +16,18 @@
          kamera (mis. emulator lama). -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
+
+    <!-- WAJIB, dan ini sempat kelewat.
+         Flutter nyisipin izin ini otomatis ke manifest DEBUG, jadi selama app
+         cuma dijalanin lewat `flutter run` semuanya kelihatan normal. Di build
+         RILIS penyisipan itu nggak terjadi: APK-nya kepasang, kebuka, lalu
+         tiap request gagal tanpa penjelasan. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
         android:label="PT Sidik Calibration"
         android:name="${applicationName}"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
@@ -57,6 +66,19 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+
+        <!-- Android 11+ nyembunyiin app lain kecuali disebut di sini. Tanpa
+             dua blok ini, `url_launcher` ngira nggak ada yang bisa nangani
+             tautan — jadi "Bagikan lewat WhatsApp" & "Kirim email" di lembar
+             sertifikat diam aja waktu dipencet, tanpa error. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="mailto"/>
         </intent>
     </queries>
 </manifest>
