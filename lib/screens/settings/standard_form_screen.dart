@@ -4,8 +4,10 @@ import 'package:intl/intl.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/izin.dart';
 import '../../models/standard.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/izin_provider.dart';
 import '../../providers/calibration_input_provider.dart' show standardCrudProvider;
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
@@ -154,7 +156,10 @@ class _StandardFormScreenState extends ConsumerState<StandardFormScreen> {
     final theme = Theme.of(context);
     final locale = Localizations.localeOf(context).languageCode;
     final mengedit = widget.existing != null;
-    final isAdmin = ref.watch(authProvider).value?.role.isAdmin ?? false;
+    final isAdmin = ref.bolehkah(
+      NamaIzin.masterDataUbah,
+      cadangan: ref.watch(authProvider).value?.role.adminSaja ?? false,
+    );
 
     return Scaffold(
       appBar: AppBar(

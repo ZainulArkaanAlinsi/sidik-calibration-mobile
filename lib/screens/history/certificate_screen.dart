@@ -8,9 +8,11 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/izin.dart';
 import '../../models/calibration_detail.dart';
 import '../../models/calibration_history_item.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/izin_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../services/pdf_downloader.dart';
 import '../../widgets/app_button.dart';
@@ -199,7 +201,10 @@ class _IsiState extends ConsumerState<_Isi> {
           // daripada nggak ada QR sama sekali.
           // Cuma admin: backend nolak `403` buat role lain, jadi tombolnya
           // jangan dipajang ke teknisi biar nggak nyoba lalu ditolak.
-          if (ref.watch(authProvider).value?.role.isAdmin ?? false) ...[
+          if (ref.bolehkah(
+            NamaIzin.sertifikatKirim,
+            cadangan: ref.watch(authProvider).value?.role.adminSaja ?? false,
+          )) ...[
             const SizedBox(height: AppSpacing.sm),
             AppButton(
               label: l10n.certKirimEmail,
