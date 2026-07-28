@@ -898,6 +898,69 @@ class AppLocalizationsEn extends AppLocalizations {
   String get arsipDihapus => 'Folder deleted.';
 
   @override
+  String get panelSeksiOperasional => 'Operations';
+
+  @override
+  String get panelSeksiDokumen => 'Documents';
+
+  @override
+  String get panelSeksiSistem => 'System';
+
+  @override
+  String get panelCariMenu => 'Search menu...';
+
+  @override
+  String get panelMenuKosong => 'No menu matches that.';
+
+  @override
+  String get panelSinkronAktif => 'Live sync on';
+
+  @override
+  String get panelSinkronMati => 'Live sync off';
+
+  @override
+  String get panelTema => 'Toggle theme';
+
+  @override
+  String panelSubjudul(String akreditasi) {
+    return 'Desktop · $akreditasi';
+  }
+
+  @override
+  String get panelRingkasan => 'Overview';
+
+  @override
+  String get panelRingkasanSub => 'Where the lab stands right now.';
+
+  @override
+  String get panelBukaAntrean => 'Open approval queue';
+
+  @override
+  String get panelSebaranStatus => 'Session status spread';
+
+  @override
+  String get panelPerluTindakLanjut => 'FOLLOW UP';
+
+  @override
+  String panelSesiSelesai(int count) {
+    return '$count sessions completed';
+  }
+
+  @override
+  String panelMasihDraft(int count) {
+    return 'Plus $count still in draft';
+  }
+
+  @override
+  String panelTotalSepanjangMasa(int count) {
+    return 'All-time total $count';
+  }
+
+  @override
+  String get panelStatusBelumLengkap =>
+      '\"Needs revision\" isn\'t in the dashboard response yet — backend request pending.';
+
+  @override
   String get arsipPetunjukPindah => 'Press and hold an item to move it.';
 
   @override

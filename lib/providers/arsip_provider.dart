@@ -1,13 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/config/app_config.dart';
 import '../models/arsip.dart';
 import '../services/arsip_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
 
-final arsipServiceProvider = Provider<ArsipService>(
-  (ref) => ApiArsipService(ref.watch(apiClientProvider)),
-);
+final arsipServiceProvider = Provider<ArsipService>((ref) {
+  if (AppConfig.useMock) return MockArsipService();
+  return ApiArsipService(ref.watch(apiClientProvider));
+});
 
 Future<String> _token(Ref ref) async {
   final token = await ref.read(tokenStorageProvider).read();

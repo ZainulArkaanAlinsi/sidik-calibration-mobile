@@ -896,6 +896,69 @@ class AppLocalizationsId extends AppLocalizations {
   String get arsipDihapus => 'Folder dihapus.';
 
   @override
+  String get panelSeksiOperasional => 'Operasional';
+
+  @override
+  String get panelSeksiDokumen => 'Dokumen';
+
+  @override
+  String get panelSeksiSistem => 'Sistem';
+
+  @override
+  String get panelCariMenu => 'Cari menu...';
+
+  @override
+  String get panelMenuKosong => 'Nggak ada menu yang cocok.';
+
+  @override
+  String get panelSinkronAktif => 'Sinkron langsung aktif';
+
+  @override
+  String get panelSinkronMati => 'Sinkron langsung mati';
+
+  @override
+  String get panelTema => 'Ganti tema';
+
+  @override
+  String panelSubjudul(String akreditasi) {
+    return 'Desktop · $akreditasi';
+  }
+
+  @override
+  String get panelRingkasan => 'Ringkasan';
+
+  @override
+  String get panelRingkasanSub => 'Posisi lab saat ini.';
+
+  @override
+  String get panelBukaAntrean => 'Buka antrean approval';
+
+  @override
+  String get panelSebaranStatus => 'Sebaran status sesi';
+
+  @override
+  String get panelPerluTindakLanjut => 'TINDAK LANJUT';
+
+  @override
+  String panelSesiSelesai(int count) {
+    return '$count sesi selesai';
+  }
+
+  @override
+  String panelMasihDraft(int count) {
+    return 'Plus $count masih draft';
+  }
+
+  @override
+  String panelTotalSepanjangMasa(int count) {
+    return 'Total sepanjang masa $count';
+  }
+
+  @override
+  String get panelStatusBelumLengkap =>
+      '\"Perlu revisi\" belum ada di respons dashboard — masih nunggu backend.';
+
+  @override
   String get arsipPetunjukPindah => 'Tahan item-nya buat mindahin.';
 
   @override

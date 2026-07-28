@@ -1742,6 +1742,114 @@ abstract class AppLocalizations {
   /// **'Folder deleted.'**
   String get arsipDihapus;
 
+  /// No description provided for @panelSeksiOperasional.
+  ///
+  /// In en, this message translates to:
+  /// **'Operations'**
+  String get panelSeksiOperasional;
+
+  /// No description provided for @panelSeksiDokumen.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get panelSeksiDokumen;
+
+  /// No description provided for @panelSeksiSistem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get panelSeksiSistem;
+
+  /// No description provided for @panelCariMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Search menu...'**
+  String get panelCariMenu;
+
+  /// No description provided for @panelMenuKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No menu matches that.'**
+  String get panelMenuKosong;
+
+  /// No description provided for @panelSinkronAktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Live sync on'**
+  String get panelSinkronAktif;
+
+  /// No description provided for @panelSinkronMati.
+  ///
+  /// In en, this message translates to:
+  /// **'Live sync off'**
+  String get panelSinkronMati;
+
+  /// No description provided for @panelTema.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle theme'**
+  String get panelTema;
+
+  /// No description provided for @panelSubjudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Desktop · {akreditasi}'**
+  String panelSubjudul(String akreditasi);
+
+  /// No description provided for @panelRingkasan.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get panelRingkasan;
+
+  /// No description provided for @panelRingkasanSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Where the lab stands right now.'**
+  String get panelRingkasanSub;
+
+  /// No description provided for @panelBukaAntrean.
+  ///
+  /// In en, this message translates to:
+  /// **'Open approval queue'**
+  String get panelBukaAntrean;
+
+  /// No description provided for @panelSebaranStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Session status spread'**
+  String get panelSebaranStatus;
+
+  /// No description provided for @panelPerluTindakLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'FOLLOW UP'**
+  String get panelPerluTindakLanjut;
+
+  /// No description provided for @panelSesiSelesai.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} sessions completed'**
+  String panelSesiSelesai(int count);
+
+  /// No description provided for @panelMasihDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Plus {count} still in draft'**
+  String panelMasihDraft(int count);
+
+  /// No description provided for @panelTotalSepanjangMasa.
+  ///
+  /// In en, this message translates to:
+  /// **'All-time total {count}'**
+  String panelTotalSepanjangMasa(int count);
+
+  /// No description provided for @panelStatusBelumLengkap.
+  ///
+  /// In en, this message translates to:
+  /// **'\"Needs revision\" isn\'t in the dashboard response yet — backend request pending.'**
+  String get panelStatusBelumLengkap;
+
   /// No description provided for @arsipPetunjukPindah.
   ///
   /// In en, this message translates to:

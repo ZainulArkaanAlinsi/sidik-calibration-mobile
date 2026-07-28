@@ -400,6 +400,45 @@
   "arsipDibuat": "Folder created.",
   "arsipDiubah": "Folder renamed.",
   "arsipDihapus": "Folder deleted.",
+  "panelSeksiOperasional": "Operations",
+  "panelSeksiDokumen": "Documents",
+  "panelSeksiSistem": "System",
+  "panelCariMenu": "Search menu...",
+  "panelMenuKosong": "No menu matches that.",
+  "panelSinkronAktif": "Live sync on",
+  "panelSinkronMati": "Live sync off",
+  "panelTema": "Toggle theme",
+  "panelSubjudul": "Desktop · {akreditasi}",
+  "@panelSubjudul": {
+    "placeholders": {
+      "akreditasi": { "type": "String" }
+    }
+  },
+  "panelRingkasan": "Overview",
+  "panelRingkasanSub": "Where the lab stands right now.",
+  "panelBukaAntrean": "Open approval queue",
+  "panelSebaranStatus": "Session status spread",
+  "panelPerluTindakLanjut": "FOLLOW UP",
+  "panelSesiSelesai": "{count} sessions completed",
+  "@panelSesiSelesai": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "panelMasihDraft": "Plus {count} still in draft",
+  "@panelMasihDraft": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "panelTotalSepanjangMasa": "All-time total {count}",
+  "@panelTotalSepanjangMasa": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "panelStatusBelumLengkap": "\"Needs revision\" isn't in the dashboard response yet — backend request pending.",
+
   "arsipPetunjukPindah": "Press and hold an item to move it.",
   "arsipTakBisaDipindah": "Auto-generated folder — its place follows the client/year.",
   "arsipFolderDipindah": "Folder moved into \"{tujuan}\".",
