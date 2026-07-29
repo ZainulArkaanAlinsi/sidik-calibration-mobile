@@ -1,3 +1,5 @@
+import '../core/utils/tanggal_api.dart';
+
 /// Data PT — dicetak di kop sertifikat. Satu instalasi cuma punya satu
 /// baris (`GET`/`PUT /api/organization`, `docs/kontrak-api.md` §8), jadi
 /// nggak ada `id`/create/delete.
@@ -61,9 +63,9 @@ class Organization {
     'no_akreditasi': noAkreditasi,
     'standar_akreditasi': standarAkreditasi,
     if (akreditasiMulai != null)
-      'akreditasi_mulai': akreditasiMulai!.toUtc().toIso8601String(),
+      'akreditasi_mulai': tanggalApi(akreditasiMulai!),
     if (akreditasiBerakhir != null)
-      'akreditasi_berakhir': akreditasiBerakhir!.toUtc().toIso8601String(),
+      'akreditasi_berakhir': tanggalApi(akreditasiBerakhir!),
   };
 
   factory Organization.fromJson(Map<String, dynamic> json) {

@@ -1,3 +1,5 @@
+import '../core/utils/tanggal_api.dart';
+
 /// Standar acuan buat dropdown "Standar Acuan" di layar Input Kalibrasi
 /// (`GET/POST/PUT/DELETE /api/standards`, `docs/kontrak-api.md` §4). Wajib
 /// dikirim (`standard_id`) di `POST /api/calibrations` — ketidakpastiannya
@@ -79,7 +81,7 @@ class Standard {
     if (noSertifikat.isNotEmpty) 'no_sertifikat': noSertifikat,
     if (tertelusurKe.isNotEmpty) 'tertelusur_ke': tertelusurKe,
     if (berlakuSampai != null)
-      'berlaku_sampai': berlakuSampai!.toUtc().toIso8601String(),
+      'berlaku_sampai': tanggalApi(berlakuSampai!),
     'ketidakpastian': ketidakpastian,
     if (satuanKetidakpastian.isNotEmpty)
       'satuan_ketidakpastian': satuanKetidakpastian,

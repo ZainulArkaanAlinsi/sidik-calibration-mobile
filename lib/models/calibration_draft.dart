@@ -1,3 +1,5 @@
+import '../core/utils/tanggal_api.dart';
+
 /// Lokasi pengerjaan kalibrasi (`docs/kontrak-api.md` §4) — `lab` (default
 /// backend kalau nggak dikirim) atau `onsite` (di tempat pelanggan).
 enum LokasiKalibrasi {
@@ -198,7 +200,7 @@ class CalibrationDraft {
     'kategori': kategori,
     'input_method': adaScanKamera ? 'ocr' : 'manual',
     'standard_id': standardId,
-    'tanggal_kalibrasi': tanggalKalibrasi.toUtc().toIso8601String(),
+    'tanggal_kalibrasi': tanggalApi(tanggalKalibrasi),
     if (lingkungan != null)
       ...lingkungan!.toJson()
     else ...{
@@ -212,6 +214,6 @@ class CalibrationDraft {
     if (nomorOrder != null && nomorOrder!.trim().isNotEmpty)
       'nomor_order': nomorOrder!.trim(),
     if (tanggalTerima != null)
-      'tanggal_terima': tanggalTerima!.toUtc().toIso8601String(),
+      'tanggal_terima': tanggalApi(tanggalTerima!),
   };
 }
