@@ -11,6 +11,7 @@ import '../../models/room.dart';
 import '../../models/standard.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/calibration_input_provider.dart';
+import '../../providers/history_provider.dart';
 import '../../providers/lembar_kerja_provider.dart';
 import '../../widgets/app_button.dart';
 import 'lembar_kerja_state.dart';
@@ -98,7 +99,11 @@ class _Gagal extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.xl),
       children: [
         const SizedBox(height: AppSpacing.xl),
-        Icon(Icons.cloud_off_outlined, size: 56, color: theme.colorScheme.error),
+        Icon(
+          Icons.cloud_off_outlined,
+          size: 56,
+          color: theme.colorScheme.error,
+        ),
         const SizedBox(height: AppSpacing.md),
         Text(
           l10n.lkLoadGagal,
@@ -147,7 +152,43 @@ class _FormState extends ConsumerState<_Form> {
     clientRequestId: generateUuidV4(),
   );
 
+  /// Di atas lebar ini lembar kerjanya digambar dua kolom bersebelahan, persis
+  /// kertasnya. Angkanya dari kebutuhan isi, bukan merek perangkat: dua kolom
+  /// formulir + tabel 5 pengulangan butuh ruang segini biar kotaknya nggak
+  /// mepet. Jendela desktop yang dikecilin balik ke mode halaman.
+  static const _lebarDuaKolom = 1100.0;
+
   bool _mengirim = false;
+
+  /// Index ke [LembarKerja.halaman], bukan nomor halamannya sendiri — lembar
+  /// kerja alat lain bisa punya penomoran yang beda.
+  int _halaman = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final id = widget.sesiId;
+    if (id != null) _muatSesiLama(id);
+  }
+
+  /// Isi ulang formulir dari sesi yang dibuka lagi (lanjut draft / perbaiki
+  /// yang dikembalikan admin).
+  ///
+  /// Gagalnya sengaja didiemin: formulirnya tetap kebuka dan tetap bisa diisi
+  /// manual. Nampilin error di sini malah nutup jalan kerja teknisi cuma
+  /// gara-gara satu permintaan meleset.
+  Future<void> _muatSesiLama(int id) async {
+    try {
+      final detail = await ref.read(calibrationDetailProvider(id).future);
+      final isi = detail.isianTeknisi;
+      if (isi == null || !mounted) return;
+
+      setState(() => _isian.muatDariSesi(isi));
+    } catch (_) {
+      // Lihat docblock.
+    }
+  }
 
   @override
   void dispose() {
@@ -186,7 +227,9 @@ class _FormState extends ConsumerState<_Form> {
 
     messenger.showSnackBar(
       SnackBar(
-        content: Text(hasil.draft ? l10n.lkBerhasilDraft : l10n.lkBerhasilKirim),
+        content: Text(
+          hasil.draft ? l10n.lkBerhasilDraft : l10n.lkBerhasilKirim,
+        ),
       ),
     );
     navigator.pop(hasil.id);
@@ -234,66 +277,313 @@ class _FormState extends ConsumerState<_Form> {
         if (didPop) return;
         if (await _bolehKeluar() && mounted) navigator.pop();
       },
-      child: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              children: [
-                _KopDokumen(bentuk: bentuk),
-                const SizedBox(height: AppSpacing.md),
+      // `LayoutBuilder` membungkus ISI **dan** bilah tombol. Sempat kebalik —
+      // cuma isinya yang dibungkus — dan bilah tombolnya kebangun duluan waktu
+      // `_duaKolom` masih false, jadi tombol "halaman berikutnya" tetap nongol
+      // di layar lebar yang nggak punya halaman berikutnya.
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Di layar lebar, kertasnya digambar apa adanya: identitas & standar
+          // di kiri, hasil kalibrasi di kanan, satu layar. Di HP itu mustahil
+          // kebaca, jadi kolomnya jadi halaman.
+          final duaKolom =
+              constraints.maxWidth >= _lebarDuaKolom &&
+              bentuk.halaman.length == 2;
 
-                for (final bagian in bentuk.bagian) ...[
-                  _Bagian(
-                    bagian: bagian,
-                    isian: _isian,
-                    onBerubah: () => setState(() {}),
+          return Column(
+            children: [
+              Expanded(
+                child: duaKolom
+                    ? _LembarDuaKolom(
+                        bentuk: bentuk,
+                        isian: _isian,
+                        onBerubah: () => setState(() {}),
+                      )
+                    : _LembarSatuKolom(
+                        bentuk: bentuk,
+                        isian: _isian,
+                        halaman: _halaman,
+                        onBerubah: () => setState(() {}),
+                      ),
+              ),
+
+              // Tombolnya nempel di bawah, bukan ikut ke-scroll: lembar kerjanya
+              // panjang, dan teknisi nggak boleh perlu scroll sampai ujung cuma
+              // buat nyimpen draft di tengah kerjaan.
+              Material(
+                elevation: 8,
+                color: theme.colorScheme.surface,
+                child: SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Tombol kirim CUMA di halaman terakhir. Di halaman 1 dia
+                        // ada tapi belum kelihatan semua isinya — teknisi gampang
+                        // ngirim lembar yang tabel hasilnya masih kosong. Di mode
+                        // dua kolom seluruh lembar kelihatan sekaligus, jadi nggak
+                        // ada yang perlu ditahan.
+                        if (duaKolom || _halaman == bentuk.halaman.length - 1)
+                          AppButton(
+                            // Admin ngisi lembarnya buat dirinya sendiri — nggak ada
+                            // "ke admin"-nya. Yang nentuin bentuk formulir juga
+                            // backend (`untuk: admin`), jadi label ini ikut sumber
+                            // yang sama, bukan ngecek role sendiri.
+                            label: bentuk.untukAdmin
+                                ? l10n.lkKirimAdmin
+                                : l10n.lkKirim,
+                            isLoading: _mengirim,
+                            // SELALU aktif. Lihat docblock LembarKerjaScreen.
+                            onPressed: () => _submit(draft: false),
+                          )
+                        else
+                          AppButton(
+                            label: l10n.lkHalamanLanjut,
+                            icon: Icons.arrow_forward,
+                            onPressed: () => setState(() => _halaman++),
+                          ),
+                        const SizedBox(height: AppSpacing.sm),
+                        Row(
+                          children: [
+                            if (!duaKolom && _halaman > 0) ...[
+                              Expanded(
+                                child: AppButton(
+                                  label: l10n.lkHalamanKembali,
+                                  icon: Icons.arrow_back,
+                                  variant: AppButtonVariant.secondary,
+                                  onPressed: () => setState(() => _halaman--),
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.sm),
+                            ],
+                            Expanded(
+                              // Simpan draft ada di SETIAP halaman, bukan cuma yang
+                              // terakhir: teknisi sering kepotong di tengah kerjaan
+                              // (alat dipakai orang, dipanggil, baterai HP habis),
+                              // dan kehilangan separuh lembar kerja jauh lebih mahal
+                              // daripada tombol yang kesebar.
+                              child: AppButton(
+                                label: l10n.lkSimpanDraft,
+                                variant: AppButtonVariant.secondary,
+                                isLoading: _mengirim,
+                                onPressed: () => _submit(draft: true),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: AppSpacing.md),
-                ],
-
-                const SizedBox(height: AppSpacing.lg),
-              ],
-            ),
-          ),
-
-          // Tombolnya nempel di bawah, bukan ikut ke-scroll: lembar kerjanya
-          // panjang, dan teknisi nggak boleh perlu scroll sampai ujung cuma
-          // buat nyimpen draft di tengah kerjaan.
-          Material(
-            elevation: 8,
-            color: theme.colorScheme.surface,
-            child: SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    AppButton(
-                      // Admin ngisi lembarnya buat dirinya sendiri — nggak ada
-                      // "ke admin"-nya. Yang nentuin bentuk formulir juga
-                      // backend (`untuk: admin`), jadi label ini ikut sumber
-                      // yang sama, bukan ngecek role sendiri.
-                      label: bentuk.untukAdmin ? l10n.lkKirimAdmin : l10n.lkKirim,
-                      isLoading: _mengirim,
-                      // SELALU aktif. Lihat docblock LembarKerjaScreen.
-                      onPressed: () => _submit(draft: false),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    AppButton(
-                      label: l10n.lkSimpanDraft,
-                      variant: AppButtonVariant.secondary,
-                      isLoading: _mengirim,
-                      onPressed: () => _submit(draft: true),
-                    ),
-                  ],
                 ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Banner "lembar kerja ini dikembalikan admin".
+///
+/// Muncul cuma waktu ada kolom yang ditandai — kalau ditolak tanpa nunjuk kolom
+/// tertentu, catatan revisinya udah tampil di layar Alur Kerja dan banner di
+/// sini cuma jadi kebisingan.
+class _BannerRevisi extends StatelessWidget {
+  const _BannerRevisi({required this.jumlah});
+
+  final int jumlah;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.assignment_return_outlined,
+            color: theme.colorScheme.onErrorContainer,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              l10n.lkBannerRevisi,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onErrorContainer,
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Satu halaman lembar kerja, buat HP & jendela sempit.
+class _LembarSatuKolom extends StatelessWidget {
+  const _LembarSatuKolom({
+    required this.bentuk,
+    required this.isian,
+    required this.halaman,
+    required this.onBerubah,
+  });
+
+  final LembarKerja bentuk;
+  final LembarKerjaState isian;
+  final int halaman;
+  final VoidCallback onBerubah;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      // Scroll balik ke atas tiap ganti halaman — tanpa key, posisi scroll
+      // halaman 1 kebawa ke halaman 2 dan teknisi mendarat di tengah tabel
+      // tanpa lihat judulnya.
+      key: PageStorageKey('lk-halaman-$halaman'),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      children: [
+        if (halaman == 0) ...[
+          _KopDokumen(bentuk: bentuk),
+          const SizedBox(height: AppSpacing.md),
+          if (isian.revisiField.isNotEmpty) ...[
+            _BannerRevisi(jumlah: isian.revisiField.length),
+            const SizedBox(height: AppSpacing.md),
+          ],
+        ],
+
+        if (bentuk.halaman.length > 1) ...[
+          _PenandaHalaman(nomor: halaman + 1, dari: bentuk.halaman.length),
+          const SizedBox(height: AppSpacing.md),
+        ],
+
+        for (final bagian in bentuk.bagianDiHalaman(
+          bentuk.halaman[halaman],
+        )) ...[
+          _Bagian(bagian: bagian, isian: isian, onBerubah: onBerubah),
+          const SizedBox(height: AppSpacing.md),
+        ],
+
+        const SizedBox(height: AppSpacing.lg),
+      ],
+    );
+  }
+}
+
+/// Lembar kerja PERSIS kayak kertasnya: dua kolom bersebelahan, satu layar.
+///
+/// Kiri = identitas alat, pemilik, standar, data kalibrasi. Kanan = kondisi
+/// lingkungan + tabel Before/After adjustment. Ini bentuk yang dilihat teknisi
+/// di formulir cetaknya, jadi di layar yang cukup lebar nggak ada alasan
+/// nyusun ulang jadi dua halaman — mata mereka udah hafal peta ini.
+///
+/// Dua kolom scroll SENDIRI-SENDIRI. Kalau digabung jadi satu scroll, tabel
+/// hasil yang panjang bikin kolom kiri ikut ketarik ke bawah dan kepala
+/// dokumennya ilang dari layar.
+class _LembarDuaKolom extends StatelessWidget {
+  const _LembarDuaKolom({
+    required this.bentuk,
+    required this.isian,
+    required this.onBerubah,
+  });
+
+  final LembarKerja bentuk;
+  final LembarKerjaState isian;
+  final VoidCallback onBerubah;
+
+  List<Widget> _isiKolom(int nomorHalaman) => [
+    for (final bagian in bentuk.bagianDiHalaman(nomorHalaman)) ...[
+      _Bagian(bagian: bagian, isian: isian, onBerubah: onBerubah),
+      const SizedBox(height: AppSpacing.md),
+    ],
+    const SizedBox(height: AppSpacing.lg),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.md,
+            AppSpacing.md,
+            0,
+          ),
+          child: Column(
+            children: [
+              _KopDokumen(bentuk: bentuk),
+              if (isian.revisiField.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.md),
+                _BannerRevisi(jumlah: isian.revisiField.length),
+              ],
+            ],
+          ),
+        ),
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: ListView(
+                  key: const PageStorageKey('lk-kolom-kiri'),
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  children: _isiKolom(bentuk.halaman.first),
+                ),
+              ),
+              const VerticalDivider(width: 1, thickness: 1),
+              Expanded(
+                child: ListView(
+                  key: const PageStorageKey('lk-kolom-kanan'),
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  children: _isiKolom(bentuk.halaman.last),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// "Halaman 1 dari 2" + garis kemajuan. Lembar kerjanya panjang; tanpa penanda
+/// ini teknisi nggak punya cara tau masih ada halaman berikutnya.
+class _PenandaHalaman extends StatelessWidget {
+  const _PenandaHalaman({required this.nomor, required this.dari});
+
+  final int nomor;
+  final int dari;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.lkHalamanKe(nomor, dari),
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(value: nomor / dari, minHeight: 4),
+        ),
+      ],
     );
   }
 }
@@ -385,7 +675,7 @@ class _Bagian extends ConsumerWidget {
             const Divider(height: AppSpacing.lg),
 
             if (bagian.kode == 'usage_check')
-              _UsageCheck(isian: isian, onBerubah: onBerubah)
+              _UsageCheck(bagian: bagian, isian: isian, onBerubah: onBerubah)
             else ...[
               for (final f in bagian.field) ...[
                 _Field(field: f, isian: isian, onBerubah: onBerubah),
@@ -423,6 +713,42 @@ class _Field extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Kolom yang diminta admin dibetulin dikasih pita di kiri + label kecil.
+    // Sengaja penanda, bukan penghalang: teknisi tetap boleh ngirim tanpa
+    // nyentuh semuanya — kadang yang diminta admin ternyata udah bener dan
+    // yang salah justru hal lain.
+    if (isian.revisiField.contains(field.kode)) {
+      final theme = Theme.of(context);
+      final l10n = AppLocalizations.of(context);
+
+      return Container(
+        padding: const EdgeInsets.only(left: AppSpacing.sm),
+        decoration: BoxDecoration(
+          border: Border(
+            left: BorderSide(color: theme.colorScheme.error, width: 3),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.lkPerluDibetulin,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.error,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            _isi(context, ref),
+          ],
+        ),
+      );
+    }
+
+    return _isi(context, ref);
+  }
+
+  Widget _isi(BuildContext context, WidgetRef ref) {
     // Kolom `sumber: otomatis` — ketarik dari alat/akun, teknisi cuma lihat.
     if (field.sumber.readOnly) {
       final user = ref.watch(authProvider).value;
@@ -446,6 +772,13 @@ class _Field extends ConsumerWidget {
         onBerubah: onBerubah,
       ),
       SumberField.masterMetode => _PilihMetode(field: field, isian: isian),
+      // Pilihannya udah ikut di respons — dirender sama kayak pilihan tetap
+      // lain, cuma dikelompokkan Insitu/Inlab sesuai kertas.
+      SumberField.masterThermohygro => _PilihanTetap(
+        field: field,
+        isian: isian,
+        onBerubah: onBerubah,
+      ),
       _ => _FieldBiasa(field: field, isian: isian, onBerubah: onBerubah),
     };
   }
@@ -584,7 +917,17 @@ class _PilihanTetap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Satu-satunya kolom pilihan bernilai tetap di lembar kerja: Location.
+    if (field.kode == 'thermohygro_standard_id') {
+      return _PilihThermohygro(
+        field: field,
+        isian: isian,
+        onBerubah: onBerubah,
+      );
+    }
+
+    // Sisanya cuma Location. Kolom pilihan lain yang belum dikenali sengaja
+    // nggak dirender apa-apa daripada nampilin dropdown yang nilainya nggak
+    // nyambung ke mana-mana waktu dikirim.
     if (field.kode != 'lokasi') return const SizedBox.shrink();
 
     return DropdownButtonFormField<LokasiKalibrasi>(
@@ -608,6 +951,81 @@ class _PilihanTetap extends StatelessWidget {
         isian.lokasi = value;
         onBerubah();
       },
+    );
+  }
+}
+
+/// "6. Thermohygro used" — dikelompokkan Insitu vs Inlab persis kayak kotak
+/// centang di kertas.
+///
+/// Pilihannya datang dari backend (empat unit yang tercetak di formulir), bukan
+/// seluruh master standar: unit lain memang ada di lab, tapi secara prosedur
+/// nggak boleh dipakai buat pekerjaan ini. Pengelompokannya juga bukan hiasan —
+/// Insitu berarti unit yang dibawa ke lokasi pelanggan.
+class _PilihThermohygro extends StatelessWidget {
+  const _PilihThermohygro({
+    required this.field,
+    required this.isian,
+    required this.onBerubah,
+  });
+
+  final FieldLembarKerja field;
+  final LembarKerjaState isian;
+  final VoidCallback onBerubah;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    if (field.pilihan.isEmpty) {
+      return _Readonly(label: field.label, nilai: l10n.lkThermohygroKosong);
+    }
+
+    // Urutan grup ngikut urutan munculnya di respons — itu urutan kertasnya.
+    final grup = <String, List<PilihanField>>{};
+    for (final p in field.pilihan) {
+      grup.putIfAbsent(p.grup ?? '', () => []).add(p);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(field.label, style: theme.textTheme.bodyMedium),
+        const SizedBox(height: AppSpacing.xs),
+        for (final entri in grup.entries) ...[
+          if (entri.key.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.xs),
+              child: Text(
+                entri.key,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+          Wrap(
+            spacing: AppSpacing.sm,
+            children: [
+              for (final p in entri.value)
+                ChoiceChip(
+                  label: Text(p.label),
+                  selected: isian.thermohygroStandardId?.toString() == p.nilai,
+                  onSelected: (pilih) {
+                    // Ditekan lagi = batal pilih. Teknisi bisa salah pencet,
+                    // dan tanpa jalan keluar dia kepaksa ninggalin unit yang
+                    // salah tercatat di dokumen kalibrasi.
+                    isian.thermohygroStandardId = pilih
+                        ? int.tryParse(p.nilai)
+                        : null;
+                    onBerubah();
+                  },
+                ),
+            ],
+          ),
+        ],
+      ],
     );
   }
 }
@@ -651,6 +1069,9 @@ class _PilihAlat extends ConsumerWidget {
             ? null
             : (value) {
                 isian.alat = value;
+                // Identitas alat & pemilik keisi dari master — teknisi tinggal
+                // mbenerin yang beda sama barang fisiknya. Lihat `isiDariAlat`.
+                isian.isiDariAlat();
                 onBerubah();
               },
       ),
@@ -823,9 +1244,25 @@ class _Readonly extends StatelessWidget {
 
 /// Kolom "Standard Name / Usage Check": daftar standar dari master data lab,
 /// tiap baris ada centang "dipakai" + keterangan.
+/// Tabel "STANDARD" — barisnya TERCETAK di formulir, bukan katalog standar lab.
+///
+/// Dulu bagian ini nampilin seluruh `GET /standards`, jadi di lembar pH ikut
+/// muncul standar panjang dan tujuh unit thermohygro — nggak mirip kertasnya
+/// sama sekali. Sekarang barisnya datang dari backend (`bagian.baris`), lima
+/// baris yang sama persis dengan yang tercetak, dan teknisi cuma nyentang.
+///
+/// Master standar tetap dibaca, tapi cuma buat SATU hal: nempelin peringatan
+/// kadaluarsa ke baris yang standarnya kedaftar. Itu temuan asesor kalau
+/// kelewat, jadi peringatannya nggak boleh hilang cuma gara-gara barisnya
+/// sekarang tercetak.
 class _UsageCheck extends ConsumerWidget {
-  const _UsageCheck({required this.isian, required this.onBerubah});
+  const _UsageCheck({
+    required this.bagian,
+    required this.isian,
+    required this.onBerubah,
+  });
 
+  final BagianLembarKerja bagian;
   final LembarKerjaState isian;
   final VoidCallback onBerubah;
 
@@ -834,45 +1271,84 @@ class _UsageCheck extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final standarAsync = ref.watch(standardListProvider);
 
-    return standarAsync.when(
-      skipLoadingOnReload: true,
-      loading: () => const LinearProgressIndicator(),
-      error: (_, _) => Text(l10n.lkUsageCheckKosong),
-      data: (list) {
-        if (list.isEmpty) return Text(l10n.lkUsageCheckKosong);
-
-        return Column(
-          children: [
-            for (final s in list) ...[
-              _UsageCheckBaris(
-                standar: s,
-                state: isian.usage(s.id),
-                onBerubah: onBerubah,
+    // Backend lama nggak ngirim `baris` — jatuh balik ke daftar master biar
+    // lembar kerjanya tetap bisa diisi, bukan nampilin bagian kosong.
+    if (bagian.baris.isEmpty) {
+      return standarAsync.when(
+        skipLoadingOnReload: true,
+        loading: () => const LinearProgressIndicator(),
+        error: (_, _) => Text(l10n.lkUsageCheckKosong),
+        data: (list) => list.isEmpty
+            ? Text(l10n.lkUsageCheckKosong)
+            : Column(
+                children: [
+                  for (final s in list) ...[
+                    _UsageCheckBaris(
+                      label: s.nama,
+                      serialNumber: s.serialNumber,
+                      kadaluarsa: !s.masihBerlaku,
+                      state: isian.usage(s.id),
+                      onBerubah: onBerubah,
+                    ),
+                    const Divider(height: AppSpacing.md),
+                  ],
+                ],
               ),
-              const Divider(height: AppSpacing.md),
-            ],
-          ],
-        );
-      },
+      );
+    }
+
+    final master = {
+      for (final s in standarAsync.value ?? const <Standard>[]) s.id: s,
+    };
+
+    return Column(
+      children: [
+        for (final baris in bagian.baris) ...[
+          _UsageCheckBaris(
+            label: baris.label,
+            serialNumber:
+                baris.serialNumber ?? master[baris.standardId]?.serialNumber,
+            kadaluarsa: master[baris.standardId]?.masihBerlaku == false,
+            // Baris yang standarnya belum kedaftar di master nggak punya
+            // `standard_id`, jadi centangnya nggak bisa ditautkan ke apa pun —
+            // ditampilkan, tapi nggak bisa diisi. Menghilangkannya lebih buruk:
+            // teknisi nggak bakal sadar ada standar yang nggak kecatat.
+            state: baris.standardId == null
+                ? null
+                : isian.usage(baris.standardId!),
+            onBerubah: onBerubah,
+          ),
+          const Divider(height: AppSpacing.md),
+        ],
+      ],
     );
   }
 }
 
 class _UsageCheckBaris extends StatelessWidget {
   const _UsageCheckBaris({
-    required this.standar,
+    required this.label,
     required this.state,
     required this.onBerubah,
+    this.serialNumber,
+    this.kadaluarsa = false,
   });
 
-  final Standard standar;
-  final UsageCheckState state;
+  final String label;
+  final String? serialNumber;
+  final bool kadaluarsa;
+
+  /// Null = standarnya belum terdaftar di master, jadi barisnya cuma bisa
+  /// dilihat. Lihat catatan di `_UsageCheck`.
+  final UsageCheckState? state;
+
   final VoidCallback onBerubah;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final aktif = state != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -880,27 +1356,41 @@ class _UsageCheckBaris extends StatelessWidget {
         Row(
           children: [
             Checkbox(
-              value: state.dipakai,
-              onChanged: (v) {
-                state.dipakai = v ?? false;
-                onBerubah();
-              },
+              value: state?.dipakai ?? false,
+              onChanged: aktif
+                  ? (v) {
+                      state!.dipakai = v ?? false;
+                      onBerubah();
+                    }
+                  : null,
             ),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(standar.nama, style: theme.textTheme.bodyMedium),
-                  if (standar.serialNumber.isNotEmpty)
+                  Text(
+                    label,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: aktif ? null : theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  if (serialNumber != null && serialNumber!.isNotEmpty)
                     Text(
-                      standar.serialNumber,
+                      serialNumber!,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
-                  if (!standar.masihBerlaku)
+                  if (kadaluarsa)
                     Text(
                       l10n.lkStandarKadaluarsa,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.error,
+                      ),
+                    ),
+                  if (!aktif)
+                    Text(
+                      l10n.lkStandarBelumTerdaftar,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: theme.colorScheme.error,
                       ),
@@ -910,18 +1400,19 @@ class _UsageCheckBaris extends StatelessWidget {
             ),
           ],
         ),
-        Padding(
-          padding: const EdgeInsets.only(left: AppSpacing.xl),
-          child: TextField(
-            controller: state.keterangan,
-            style: theme.textTheme.bodySmall,
-            decoration: InputDecoration(
-              isDense: true,
-              labelText: l10n.lkUsageCheckKeterangan,
-              border: const OutlineInputBorder(),
+        if (aktif)
+          Padding(
+            padding: const EdgeInsets.only(left: AppSpacing.xl),
+            child: TextField(
+              controller: state!.keterangan,
+              style: theme.textTheme.bodySmall,
+              decoration: InputDecoration(
+                isDense: true,
+                labelText: l10n.lkUsageCheckKeterangan,
+                border: const OutlineInputBorder(),
+              ),
             ),
           ),
-        ),
       ],
     );
   }

@@ -40,7 +40,12 @@ enum SumberField {
   masterAlat,
   masterStandar,
   masterRuangan,
-  masterMetode;
+  masterMetode,
+
+  /// Unit thermohygro yang tercetak di formulir. Pilihannya ikut di respons
+  /// (`pilihan`, berkelompok Insitu/Inlab) — jadi layar nggak perlu narik
+  /// `GET /standards` lalu nyaring sendiri mana yang thermohygro.
+  masterThermohygro;
 
   static SumberField fromApi(String? value) => switch (value) {
     'otomatis' => SumberField.otomatis,
@@ -48,6 +53,7 @@ enum SumberField {
     'master_standar' => SumberField.masterStandar,
     'master_ruangan' => SumberField.masterRuangan,
     'master_metode' => SumberField.masterMetode,
+    'master_thermohygro' => SumberField.masterThermohygro,
     _ => SumberField.manual,
   };
 
@@ -58,14 +64,61 @@ enum SumberField {
 /// Satu pilihan di kolom bertipe [TipeField.pilihan] yang daftarnya udah
 /// dipatok backend (mis. Location: In lab / Insitu).
 class PilihanField {
-  const PilihanField({required this.nilai, required this.label});
+  const PilihanField({
+    required this.nilai,
+    required this.label,
+    this.grup,
+  });
 
   final String nilai;
   final String label;
 
+  /// Kepala kelompok, mis. `Insitu` / `Inlab` di "6. Thermohygro used".
+  /// Null = pilihan datar tanpa pengelompokan.
+  ///
+  /// Di kertas keempat unit thermohygro itu dipisah dua baris berlabel, dan
+  /// pemisahan itu bukan hiasan: Insitu berarti unit yang dibawa ke lokasi
+  /// pelanggan, Inlab yang tinggal di lab. Teknisi milih berdasarkan itu.
+  final String? grup;
+
   factory PilihanField.fromJson(Map<String, dynamic> json) => PilihanField(
-    nilai: json['nilai'] as String,
-    label: json['label'] as String? ?? json['nilai'] as String,
+    nilai: '${json['nilai']}',
+    label: json['label'] as String? ?? '${json['nilai']}',
+    grup: json['grup'] as String?,
+  );
+}
+
+/// Satu baris tabel "STANDARD" yang TERCETAK di lembar kerja.
+///
+/// Bukan hasil pilih dari katalog: kelima barisnya udah ada di formulirnya,
+/// teknisi cuma nyentang Usage Check. [standardId] null berarti standar itu
+/// belum kedaftar di master lab — barisnya tetap tampil (biar nggak ada
+/// standar yang diam-diam hilang dari lembar resmi), tapi centangnya nggak
+/// bisa ditautkan ke data master.
+class BarisStandar {
+  const BarisStandar({
+    required this.label,
+    required this.standardId,
+    required this.terdaftar,
+    this.serialNumber,
+    this.noSertifikat,
+    this.tertelusurKe,
+  });
+
+  final String label;
+  final int? standardId;
+  final bool terdaftar;
+  final String? serialNumber;
+  final String? noSertifikat;
+  final String? tertelusurKe;
+
+  factory BarisStandar.fromJson(Map<String, dynamic> json) => BarisStandar(
+    label: json['label'] as String? ?? '—',
+    standardId: (json['standard_id'] as num?)?.toInt(),
+    terdaftar: json['terdaftar'] as bool? ?? (json['standard_id'] != null),
+    serialNumber: json['serial_number'] as String?,
+    noSertifikat: json['no_sertifikat'] as String?,
+    tertelusurKe: json['tertelusur_ke'] as String?,
   );
 }
 
@@ -189,27 +242,43 @@ class BagianLembarKerja {
   const BagianLembarKerja({
     required this.kode,
     required this.judul,
+    required this.halaman,
     required this.field,
     required this.tabel,
+    required this.baris,
     this.sumber,
   });
 
   final String kode;
   final String judul;
+
+  /// Halaman lembar kerja tempat bagian ini dicetak: 1 atau 2.
+  ///
+  /// Ikut backend, bukan dihitung di sini — kalau formulirnya direvisi
+  /// (Rev.5, dst) susunan halamannya berubah di satu tempat.
+  final int halaman;
+
   final List<FieldLembarKerja> field;
   final List<TabelHasil> tabel;
 
-  /// Mis. `master_standar` di bagian Usage Check — daftarnya diambil dari
-  /// master data lab, bukan dipatok di formulirnya.
+  /// Baris tercetak tabel STANDARD. Kosong di bagian lain.
+  final List<BarisStandar> baris;
+
+  /// Mis. `master_standar` — daftarnya diambil dari master data lab, bukan
+  /// dipatok di formulirnya. Null di bagian yang barisnya udah tercetak.
   final String? sumber;
 
   factory BagianLembarKerja.fromJson(Map<String, dynamic> json) =>
       BagianLembarKerja(
         kode: json['kode'] as String,
         judul: json['judul'] as String? ?? '',
+        // Default 1: lembar kerja versi backend lama nggak ngirim `halaman`,
+        // dan satu halaman penuh lebih baik daripada layar kosong.
+        halaman: (json['halaman'] as num?)?.toInt() ?? 1,
         sumber: json['sumber'] as String?,
         field: parseListAman(json['field'], FieldLembarKerja.fromJson),
         tabel: parseListAman(json['tabel'], TabelHasil.fromJson),
+        baris: parseListAman(json['baris'], BarisStandar.fromJson),
       );
 }
 
@@ -255,6 +324,18 @@ class LembarKerja {
     }
     return null;
   }
+
+  /// Nomor halaman yang beneran ada, urut. Dihitung dari isi — bukan dipatok
+  /// `[1, 2]` — supaya lembar kerja alat lain yang halamannya lebih banyak
+  /// (atau cuma satu) nggak perlu nyentuh layar ini.
+  List<int> get halaman {
+    final nomor = bagian.map((b) => b.halaman).toSet().toList()..sort();
+    return nomor.isEmpty ? const [1] : nomor;
+  }
+
+  /// Bagian di satu halaman, urutannya ngikut backend.
+  List<BagianLembarKerja> bagianDiHalaman(int nomor) =>
+      bagian.where((b) => b.halaman == nomor).toList();
 
   factory LembarKerja.fromJson(Map<String, dynamic> json) => LembarKerja(
     kodeDokumen: json['kode_dokumen'] as String? ?? '',

@@ -162,6 +162,7 @@ Map<String, dynamic> contohBentukLembarKerja({bool untukAdmin = false}) {
   final bagian = <Map<String, dynamic>>[
     {
       'kode': 'identitas_alat',
+      'halaman': 1,
       'judul': 'EQUIPMENT IDENTITY AND CUSTOMER DATA',
       'field': [
         field('tanggal_terima', 'Received Date', 'tanggal'),
@@ -175,35 +176,54 @@ Map<String, dynamic> contohBentukLembarKerja({bool untukAdmin = false}) {
           sumber: 'otomatis',
           satuan: 'pH',
         ),
-        field('equipment.model', '3. Type/Model', 'teks', sumber: 'otomatis'),
+        // Tiga kolom ini DIKETIK TEKNISI dari badan alat, bukan disalin
+        // master — lihat LembarKerjaTemplate di backend.
+        field('alat_model', '3. Type/Model', 'teks'),
+        field('alat_serial_number', '4. Serial Number/LPI', 'teks'),
+        field('alat_merk', '5. Merk/Manufacture', 'teks'),
         field(
-          'equipment.serial_number',
-          '4. Serial Number/LPI',
-          'teks',
-          sumber: 'otomatis',
+          'thermohygro_standard_id',
+          '6. Thermohygro used',
+          'pilihan',
+          sumber: 'master_thermohygro',
+          pilihan: [
+            {'nilai': '7', 'label': 'TH-2', 'grup': 'Insitu'},
+            {'nilai': '11', 'label': 'TH-6', 'grup': 'Insitu'},
+            {'nilai': '12', 'label': 'TH-7', 'grup': 'Insitu'},
+            {'nilai': '9', 'label': 'TH-4', 'grup': 'Inlab'},
+          ],
         ),
-        field('equipment.merk', '5. Merk/Manufacture', 'teks', sumber: 'otomatis'),
-        if (untukAdmin)
-          field(
-            'thermohygro_standard_id',
-            '6. Thermohygro used',
-            'pilihan',
-            sumber: 'master_standar',
-            hanyaAdmin: true,
-          ),
       ],
     },
     {
       'kode': 'pemilik',
+      'halaman': 1,
       'judul': 'OWNER',
       'field': [
-        field('customer.nama', '1. Name', 'teks', sumber: 'otomatis'),
-        field('customer.alamat', '2. Address', 'teks', sumber: 'otomatis'),
+        field('pemilik_nama', '1. Name', 'teks'),
+        field('pemilik_alamat', '2. Address', 'teks_panjang'),
       ],
     },
     {
+      'kode': 'usage_check',
+      'halaman': 1,
+      'judul': 'STANDARD',
+      // Lima baris TERCETAK di formulir, bukan katalog standar lab. Baris
+      // terakhir sengaja `standard_id: null` — di lab beneran pun standar itu
+      // belum kedaftar di master, dan barisnya tetap harus kelihatan.
+      'baris': [
+        {'label': 'pH Buffer Solutions 4', 'standard_id': 2, 'terdaftar': true},
+        {'label': 'pH Buffer Solutions 7', 'standard_id': 3, 'terdaftar': true},
+        {'label': 'pH Buffer Solutions 10', 'standard_id': 4, 'terdaftar': true},
+        {'label': 'RTD Sensor/SH1/20', 'standard_id': 5, 'terdaftar': true},
+        {'label': 'Victor 14+/992613877', 'standard_id': null, 'terdaftar': false},
+      ],
+      'field': <Map<String, dynamic>>[],
+    },
+    {
       'kode': 'data_kalibrasi',
-      'judul': 'STANDARD CALIBRATION DATA',
+      'halaman': 1,
+      'judul': 'CALIBRATION DATA',
       'field': [
         field(
           'lokasi',
@@ -223,22 +243,18 @@ Map<String, dynamic> contohBentukLembarKerja({bool untukAdmin = false}) {
             sumber: 'master_metode',
             hanyaAdmin: true,
           ),
+      ],
+    },
+    {
+      'kode': 'hasil',
+      'halaman': 2,
+      'judul': 'CALIBRATION RESULT',
+      'field': [
         field('suhu_awal', 'Env. Condition — First', 'angka', satuan: '°C'),
         field('kelembaban_awal', 'Env. Condition — First', 'angka', satuan: '%RH'),
         field('suhu_akhir', 'Env. Condition — End', 'angka', satuan: '°C'),
         field('kelembaban_akhir', 'Env. Condition — End', 'angka', satuan: '%RH'),
       ],
-    },
-    {
-      'kode': 'usage_check',
-      'judul': 'Standard Name / Usage Check',
-      'sumber': 'master_standar',
-      'field': <Map<String, dynamic>>[],
-    },
-    {
-      'kode': 'hasil',
-      'judul': 'CALIBRATION RESULT',
-      'field': <Map<String, dynamic>>[],
       'tabel': [
         tabel('sebelum_adjustment', 'Before adjustment Reading'),
         tabel('sesudah_adjustment', 'After adjustment Reading'),
@@ -246,6 +262,7 @@ Map<String, dynamic> contohBentukLembarKerja({bool untukAdmin = false}) {
     },
     {
       'kode': 'penutup',
+      'halaman': 2,
       'judul': 'Catatan & Tanda Tangan',
       'field': [
         field('catatan_teknisi', 'Catatan', 'teks_panjang'),
