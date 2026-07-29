@@ -43,6 +43,7 @@ class ArsipFolder {
     required this.jumlahSubfolder,
     required this.jumlahBerkas,
     this.parentId,
+    this.tipe = 'manual',
   });
 
   final int id;
@@ -53,6 +54,11 @@ class ArsipFolder {
   /// disembunyiin buat folder ini, bukan nunggu ditolak 422 dulu.
   final bool isRoot;
 
+  /// `sistem` = kebentuk otomatis dari data (mis. `PT / tahun`), bukan dibikin
+  /// admin. **Lebih luas dari [isRoot]:** folder tahun di dalam folder PT juga
+  /// `sistem` walau bukan akar.
+  final String tipe;
+
   final int jumlahSubfolder;
   final int jumlahBerkas;
 
@@ -60,12 +66,22 @@ class ArsipFolder {
   /// Dicek di sini biar tombolnya bisa dimatiin duluan.
   bool get kosong => jumlahSubfolder == 0 && jumlahBerkas == 0;
 
+  bool get folderSistem => tipe == 'sistem' || isRoot;
+
+  /// Folder sistem **nggak bisa dipindah** — backend nolak `422`.
+  ///
+  /// Dicek di sini biar folder-nya nggak bisa di-drag SAMA SEKALI, bukan
+  /// dibiarin ditarik lalu ditolak. Drag yang keliatan jalan tapi selalu gagal
+  /// itu lebih bikin frustrasi daripada item yang jelas nggak bisa ditarik.
+  bool get bisaDipindah => !folderSistem;
+
   factory ArsipFolder.fromJson(Map<String, dynamic> json) {
     return ArsipFolder(
       id: (json['id'] as num).toInt(),
       nama: json['nama'] as String? ?? '—',
       parentId: (json['parent_id'] as num?)?.toInt(),
       isRoot: json['is_root'] as bool? ?? false,
+      tipe: json['tipe'] as String? ?? 'manual',
       jumlahSubfolder: (json['jumlah_subfolder'] as num?)?.toInt() ?? 0,
       jumlahBerkas: (json['jumlah_berkas'] as num?)?.toInt() ?? 0,
     );

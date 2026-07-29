@@ -21,6 +21,7 @@ import '../arsip/arsip_screen.dart';
 import '../design_system/design_system_screen.dart';
 import '../settings/customer_list_screen.dart';
 import '../settings/organization_screen.dart';
+import '../settings/tanda_tangan_screen.dart';
 import '../settings/standard_list_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -80,6 +81,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (_) => const OrganizationScreen(),
+                      ),
+                    ),
+                  ),
+                  const _GarisPemisah(),
+                  // Ditaruh nempel sama Data Organisasi, bukan di kelompok
+                  // lain: dua-duanya nyetel apa yang KECETAK di sertifikat,
+                  // dan admin nyarinya di tempat yang sama.
+                  _BarisMenu(
+                    icon: Icons.draw_outlined,
+                    title: l10n.profTandaTangan,
+                    subtitle: l10n.profTandaTanganSub,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const TandaTanganScreen(),
                       ),
                     ),
                   ),

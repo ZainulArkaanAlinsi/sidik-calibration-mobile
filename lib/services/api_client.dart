@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -34,10 +35,15 @@ class ApiClient {
     return _kirim(() => _client.get(_uri(path), headers: _headers(token)));
   }
 
+  /// [timeout] dinaikin buat endpoint yang kerjanya SINKRON — mis. kirim
+  /// email sertifikat, yang balik sesudah SMTP beneran ngirim, bukan sesudah
+  /// masuk antrean. Timeout bawaan 20 detik gampang kelewat di situ, dan
+  /// kalau kita nyerah duluan admin ngira gagal padahal servernya masih jalan.
   Future<Map<String, dynamic>> post(
     String path, {
     Map<String, dynamic>? body,
     String? token,
+    Duration? timeout,
   }) async {
     return _kirim(
       () => _client.post(
@@ -45,6 +51,7 @@ class ApiClient {
         headers: _headers(token),
         body: jsonEncode(body ?? {}),
       ),
+      timeout: timeout,
     );
   }
 
@@ -111,13 +118,52 @@ class ApiClient {
     });
   }
 
-  Future<Map<String, dynamic>> _kirim(
-    Future<http.Response> Function() request,
-  ) async {
+  /// Ambil **byte mentah**, bukan JSON — buat gambar yang dilayani di balik
+  /// auth (tanda tangan sertifikat).
+  ///
+  /// Kenapa nggak `Image.network` aja: `Image.network` nggak bawa header
+  /// `Authorization`, jadi endpoint yang butuh Bearer token bakal balikin
+  /// `401` dan gambarnya nggak pernah muncul. Byte-nya ditarik di sini, terus
+  /// dipasang lewat `Image.memory`.
+  ///
+  /// Balikin `null` kalau `404` — itu jawaban sah buat "belum ada tanda
+  /// tangan yang diunggah", bukan error yang perlu diteriakin ke user.
+  Future<Uint8List?> ambilBytes(String path, {String? token}) async {
     final http.Response res;
 
     try {
-      res = await request().timeout(const Duration(seconds: 20));
+      res = await _client
+          .get(_uri(path), headers: {
+            if (token != null) 'Authorization': 'Bearer $token',
+          })
+          .timeout(const Duration(seconds: 20));
+    } on SocketException {
+      throw const AuthException(
+        'Nggak bisa nyambung ke server. Cek koneksi kamu.',
+      );
+    } catch (_) {
+      throw const AuthException('Server nggak nyaut. Coba lagi sebentar.');
+    }
+
+    if (res.statusCode == 404) return null;
+
+    if (res.statusCode >= 200 && res.statusCode < 300) return res.bodyBytes;
+
+    throw ApiException(
+      _pesanError(res.statusCode, _decode(res)),
+      status: res.statusCode,
+      body: const {},
+    );
+  }
+
+  Future<Map<String, dynamic>> _kirim(
+    Future<http.Response> Function() request, {
+    Duration? timeout,
+  }) async {
+    final http.Response res;
+
+    try {
+      res = await request().timeout(timeout ?? const Duration(seconds: 20));
     } on SocketException {
       // Paling sering kejadian: teknisi di lapangan sinyalnya ilang, atau
       // `php artisan serve` di laptop belum dinyalain.

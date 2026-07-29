@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/izin.dart';
 import '../../models/folder.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/izin_provider.dart';
 import '../../providers/folder_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/notification_bell.dart';
@@ -39,7 +41,10 @@ class FolderManagerScreen extends ConsumerWidget {
     // Nulis folder itu admin doang — backend nolak role lain dengan 403.
     // Tombolnya disembunyiin biar teknisi nggak nyoba lalu ditolak, tapi yang
     // beneran njagain tetap backend, bukan `if` ini.
-    final admin = ref.watch(authProvider).value?.role.isAdmin ?? false;
+    final admin = ref.bolehkah(
+      NamaIzin.folderTulis,
+      cadangan: ref.watch(authProvider).value?.role.adminSaja ?? false,
+    );
 
     return Scaffold(
       appBar: AppBar(

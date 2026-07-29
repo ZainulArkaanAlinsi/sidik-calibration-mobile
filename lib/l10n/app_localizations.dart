@@ -650,6 +650,18 @@ abstract class AppLocalizations {
   /// **'Name, address & accreditation no. printed on certificates'**
   String get profOrgDataSub;
 
+  /// No description provided for @profTandaTangan.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate Signature'**
+  String get profTandaTangan;
+
+  /// No description provided for @profTandaTanganSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Signature printed on issued certificates'**
+  String get profTandaTanganSub;
+
   /// No description provided for @profCustomers.
   ///
   /// In en, this message translates to:
@@ -1220,6 +1232,24 @@ abstract class AppLocalizations {
   /// **'VIEW PDF'**
   String get certOpenPdf;
 
+  /// Section on the certificate screen showing a scannable QR that resolves to the public verification page.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification QR'**
+  String get certQrJudul;
+
+  /// No description provided for @certQrIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan to check this certificate against our records. Works without logging in.'**
+  String get certQrIsi;
+
+  /// No description provided for @certQrBelumAda.
+  ///
+  /// In en, this message translates to:
+  /// **'The QR isn\'t available yet — the server hasn\'t issued a verification token for this certificate.'**
+  String get certQrBelumAda;
+
   /// No description provided for @certOpenFailed.
   ///
   /// In en, this message translates to:
@@ -1711,6 +1741,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Folder deleted.'**
   String get arsipDihapus;
+
+  /// No description provided for @arsipPetunjukPindah.
+  ///
+  /// In en, this message translates to:
+  /// **'Press and hold an item to move it.'**
+  String get arsipPetunjukPindah;
+
+  /// No description provided for @arsipTakBisaDipindah.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-generated folder — its place follows the client/year.'**
+  String get arsipTakBisaDipindah;
+
+  /// No description provided for @arsipFolderDipindah.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder moved into \"{tujuan}\".'**
+  String arsipFolderDipindah(String tujuan);
+
+  /// No description provided for @arsipBerkasDipindah.
+  ///
+  /// In en, this message translates to:
+  /// **'File moved into \"{tujuan}\".'**
+  String arsipBerkasDipindah(String tujuan);
 
   /// No description provided for @orgTitle.
   ///
@@ -3056,11 +3110,347 @@ abstract class AppLocalizations {
   /// **'Deactivate'**
   String get teknisiTolak;
 
+  /// No description provided for @certKirimEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'SEND TO CUSTOMER'**
+  String get certKirimEmail;
+
+  /// No description provided for @emailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Certificate'**
+  String get emailTitle;
+
+  /// No description provided for @emailHanyaAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Only admins can send certificates.'**
+  String get emailHanyaAdmin;
+
+  /// No description provided for @emailKeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get emailKeLabel;
+
+  /// No description provided for @emailKeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'customer@company.com'**
+  String get emailKeHint;
+
+  /// No description provided for @emailCcLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cc (optional)'**
+  String get emailCcLabel;
+
+  /// No description provided for @emailPisahKoma.
+  ///
+  /// In en, this message translates to:
+  /// **'Separate multiple addresses with commas. Max {maks} each.'**
+  String emailPisahKoma(int maks);
+
+  /// No description provided for @emailKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'SEND NOW'**
+  String get emailKirim;
+
+  /// Shown while POST /certificates/{id}/kirim-email is in flight. The call is synchronous on purpose, so this can take a while.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending — this waits until the mail server actually accepts it.'**
+  String get emailMengirim;
+
+  /// No description provided for @emailTerkirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate sent.'**
+  String get emailTerkirim;
+
+  /// No description provided for @emailKeKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter at least one recipient.'**
+  String get emailKeKosong;
+
+  /// No description provided for @emailAlamatSalah.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a valid email address: {alamat}'**
+  String emailAlamatSalah(String alamat);
+
+  /// No description provided for @emailKebanyakan.
+  ///
+  /// In en, this message translates to:
+  /// **'Max {maks} addresses.'**
+  String emailKebanyakan(int maks);
+
+  /// No description provided for @emailRiwayatJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Send history'**
+  String get emailRiwayatJudul;
+
+  /// No description provided for @emailRiwayatKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Never sent yet.'**
+  String get emailRiwayatKosong;
+
+  /// No description provided for @emailRiwayatBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get emailRiwayatBerhasil;
+
+  /// No description provided for @emailRiwayatGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get emailRiwayatGagal;
+
+  /// No description provided for @emailRiwayatOleh.
+  ///
+  /// In en, this message translates to:
+  /// **'by {nama}'**
+  String emailRiwayatOleh(String nama);
+
+  /// No description provided for @emailGagalMuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the send history.'**
+  String get emailGagalMuat;
+
+  /// No description provided for @emailRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'TRY AGAIN'**
+  String get emailRetry;
+
+  /// No description provided for @ttdTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate Signature'**
+  String get ttdTitle;
+
+  /// No description provided for @ttdHanyaAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Only admins can manage the certificate signature.'**
+  String get ttdHanyaAdmin;
+
+  /// No description provided for @ttdBelumAda.
+  ///
+  /// In en, this message translates to:
+  /// **'No signature uploaded yet'**
+  String get ttdBelumAda;
+
+  /// No description provided for @ttdBelumAdaIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificates will print without a signature until one is uploaded.'**
+  String get ttdBelumAdaIsi;
+
+  /// No description provided for @ttdUnggah.
+  ///
+  /// In en, this message translates to:
+  /// **'UPLOAD SIGNATURE'**
+  String get ttdUnggah;
+
+  /// No description provided for @ttdGanti.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get ttdGanti;
+
+  /// No description provided for @ttdHapus.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get ttdHapus;
+
+  /// No description provided for @ttdHapusKonfirmJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the signature?'**
+  String get ttdHapusKonfirmJudul;
+
+  /// No description provided for @ttdHapusKonfirmIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'New certificates will print without a signature until you upload another one. Certificates already issued keep theirs.'**
+  String get ttdHapusKonfirmIsi;
+
+  /// No description provided for @ttdHanyaPng.
+  ///
+  /// In en, this message translates to:
+  /// **'PNG only — JPG has no transparent background, so it prints as a white box covering the signature line.'**
+  String get ttdHanyaPng;
+
+  /// No description provided for @ttdPosisiJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Print position'**
+  String get ttdPosisiJudul;
+
+  /// No description provided for @ttdPosisiIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'Applies to every certificate, not just one. Already-issued certificates keep the position they were printed with.'**
+  String get ttdPosisiIsi;
+
+  /// No description provided for @ttdGeserX.
+  ///
+  /// In en, this message translates to:
+  /// **'Horizontal ({nilai} mm)'**
+  String ttdGeserX(String nilai);
+
+  /// No description provided for @ttdGeserY.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical ({nilai} mm)'**
+  String ttdGeserY(String nilai);
+
+  /// No description provided for @ttdLebar.
+  ///
+  /// In en, this message translates to:
+  /// **'Width ({nilai} mm)'**
+  String ttdLebar(String nilai);
+
+  /// No description provided for @ttdArahX.
+  ///
+  /// In en, this message translates to:
+  /// **'negative = left'**
+  String get ttdArahX;
+
+  /// Critical: backend treats positive geser_y_mm as UP, opposite of screen coordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'positive = up'**
+  String get ttdArahY;
+
+  /// No description provided for @ttdSimpanPosisi.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE POSITION'**
+  String get ttdSimpanPosisi;
+
+  /// No description provided for @ttdPosisiTersimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'Print position saved.'**
+  String get ttdPosisiTersimpan;
+
+  /// No description provided for @ttdTerunggah.
+  ///
+  /// In en, this message translates to:
+  /// **'Signature uploaded.'**
+  String get ttdTerunggah;
+
+  /// No description provided for @ttdTerhapus.
+  ///
+  /// In en, this message translates to:
+  /// **'Signature deleted.'**
+  String get ttdTerhapus;
+
+  /// No description provided for @ttdGagalMuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the signature settings.'**
+  String get ttdGagalMuat;
+
+  /// No description provided for @ttdRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'TRY AGAIN'**
+  String get ttdRetry;
+
   /// No description provided for @teknisiResetPassword.
   ///
   /// In en, this message translates to:
   /// **'Reset password'**
   String get teknisiResetPassword;
+
+  /// Admin-only action on the Technician Data screen. Exists because password reset goes through email while login uses the employee ID, so a typo'd email locks the person out permanently unless an admin can correct it.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit account'**
+  String get teknisiEdit;
+
+  /// No description provided for @teknisiEditJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit {nama}'**
+  String teknisiEditJudul(String nama);
+
+  /// No description provided for @teknisiEditNama.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name'**
+  String get teknisiEditNama;
+
+  /// No description provided for @teknisiEditEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get teknisiEditEmail;
+
+  /// No description provided for @teknisiEditEmployeeId.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee ID'**
+  String get teknisiEditEmployeeId;
+
+  /// No description provided for @teknisiEditDepartment.
+  ///
+  /// In en, this message translates to:
+  /// **'Department (optional)'**
+  String get teknisiEditDepartment;
+
+  /// No description provided for @teknisiEditRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get teknisiEditRole;
+
+  /// No description provided for @teknisiEditSimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get teknisiEditSimpan;
+
+  /// No description provided for @teknisiEditNamaKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Name can\'t be empty.'**
+  String get teknisiEditNamaKosong;
+
+  /// No description provided for @teknisiEditEmailKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Email can\'t be empty.'**
+  String get teknisiEditEmailKosong;
+
+  /// No description provided for @teknisiEditEmailSalah.
+  ///
+  /// In en, this message translates to:
+  /// **'That doesn\'t look like an email address.'**
+  String get teknisiEditEmailSalah;
+
+  /// No description provided for @teknisiEditEmployeeIdKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee ID can\'t be empty — it\'s what they log in with.'**
+  String get teknisiEditEmployeeIdKosong;
+
+  /// No description provided for @teknisiDiubah.
+  ///
+  /// In en, this message translates to:
+  /// **'Account updated.'**
+  String get teknisiDiubah;
 
   /// No description provided for @teknisiPilihRole.
   ///

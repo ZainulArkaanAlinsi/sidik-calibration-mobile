@@ -108,17 +108,26 @@ class MockArsipService implements ArsipService {
       jumlahSubfolder: 1,
       jumlahBerkas: 1,
     ),
+    // Folder tahun kebentuk otomatis dari tanggal sertifikat — `sistem`, bukan
+    // bikinan admin. Bukan akar, tapi tetap nggak bisa direname/dipindah.
     2: const ArsipFolder(
       id: 2,
       nama: '2026',
       parentId: 1,
       isRoot: false,
+      tipe: 'sistem',
       jumlahSubfolder: 0,
       jumlahBerkas: 0,
     ),
   };
 
-  int _idBerikutnya = 3;
+  /// Berkas → folder tempatnya sekarang.
+  ///
+  /// Dipisah dari peta folder biar `pindahBerkas` beneran mindahin di layar,
+  /// bukan no-op yang bikin test lulus tanpa ngebuktiin apa-apa.
+  final Map<int, int> _berkasDiFolder = {3: 1};
+
+  int _idBerikutnya = 4;
 
   void _cek() {
     if (gagal) throw Exception('server nggak nyaut');
@@ -175,8 +184,9 @@ class MockArsipService implements ArsipService {
           nama: f.nama,
           parentId: f.parentId,
           isRoot: f.isRoot,
+          tipe: f.tipe,
           jumlahSubfolder: _folder.values.where((c) => c.parentId == f.id).length,
-          jumlahBerkas: 0,
+          jumlahBerkas: _berkasDiFolder.values.where((v) => v == f.id).length,
         ),
     ];
 
@@ -198,7 +208,7 @@ class MockArsipService implements ArsipService {
       namaPerusahaan: 'PT Tirta Gracia',
       breadcrumb: crumbs,
       subfolder: anak,
-      berkas: folder.isRoot
+      berkas: _berkasDiFolder[3] == folder.id
           ? [
               ArsipBerkas(
                 id: 3,
@@ -246,6 +256,7 @@ class MockArsipService implements ArsipService {
       nama: nama,
       parentId: lama.parentId,
       isRoot: lama.isRoot,
+      tipe: lama.tipe,
       jumlahSubfolder: lama.jumlahSubfolder,
       jumlahBerkas: lama.jumlahBerkas,
     );
@@ -256,14 +267,43 @@ class MockArsipService implements ArsipService {
     _cek();
 
     final lama = _folder[folderId]!;
+
+    // Dua penolakan yang sama kayak backend. Ditiru di sini biar UI yang lupa
+    // mencegahnya ketahuan pas test, bukan pas dipakai orang.
+    if (lama.folderSistem) {
+      throw Exception('Folder sistem nggak bisa dipindah.');
+    }
+    if (_keturunanDari(folderId).contains(parentId)) {
+      throw Exception('Folder nggak bisa dipindah ke dalam folder di bawahnya.');
+    }
+
     _folder[folderId] = ArsipFolder(
       id: lama.id,
       nama: lama.nama,
       parentId: parentId,
       isRoot: lama.isRoot,
+      tipe: lama.tipe,
       jumlahSubfolder: lama.jumlahSubfolder,
       jumlahBerkas: lama.jumlahBerkas,
     );
+  }
+
+  /// Folder itu sendiri + semua anak-cucunya.
+  Set<int> _keturunanDari(int folderId) {
+    final hasil = {folderId};
+    var tumbuh = true;
+
+    while (tumbuh) {
+      tumbuh = false;
+      for (final f in _folder.values) {
+        final induk = f.parentId;
+        if (induk != null && hasil.contains(induk) && hasil.add(f.id)) {
+          tumbuh = true;
+        }
+      }
+    }
+
+    return hasil;
   }
 
   @override
@@ -275,5 +315,6 @@ class MockArsipService implements ArsipService {
   @override
   Future<void> pindahBerkas(String token, {required int sesiId, required int folderId}) async {
     _cek();
+    _berkasDiFolder[sesiId] = folderId;
   }
 }

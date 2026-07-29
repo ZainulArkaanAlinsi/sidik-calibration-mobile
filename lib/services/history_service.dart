@@ -272,6 +272,13 @@ class MockHistoryService implements HistoryService {
               nomor: item.nomorSertifikat ?? 'CAL/2026/07/0000',
               status: 'terbit',
               pdfUrl: 'https://contoh.sidik.co.id/certificates/${item.certificateId}/download',
+              // Backend asli BELUM ngirim dua field ini (lihat
+              // `docs/permintaan-backend-alur-revisi-qr.md` §2). Diisi di mock
+              // biar layar QR-nya bisa digarap & diuji sekarang — begitu
+              // backend nambahin, nggak ada yang perlu diubah di layar.
+              qrToken: 'sidik-${item.certificateId}-a1b2c3d4',
+              qrUrl:
+                  'https://contoh.sidik.co.id/verify/sidik-${item.certificateId}-a1b2c3d4',
             ),
       titik: sudahDihitung ? _titikContoh : const [],
     );

@@ -44,6 +44,15 @@ void main() {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
+    // Layar ini sekarang nge-`watch` `authProvider` buat mutusin tombol
+    // "Kirim ke pelanggan" muncul apa nggak (admin-only). Watch-nya baru
+    // kejadian SESUDAH detail sesi kemuat dan isinya ke-build — jadi jeda
+    // 600 ms `MockAuthService` mulainya di sini, bukan di awal. Kalau nggak
+    // dilewatin, timernya nyangkut waktu tree dibuang dan test-nya gagal
+    // dengan "A Timer is still pending".
+    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pumpAndSettle();
+
     expect(find.text('CAL/2026/07/0001'), findsOneWidget);
 
     // Tombolnya ada di dasar layar, di bawah tabel Laporan Kalibrasi &

@@ -301,6 +301,13 @@ class AppLocalizationsId extends AppLocalizations {
       'Nama, alamat & no. akreditasi buat kop sertifikat';
 
   @override
+  String get profTandaTangan => 'Tanda Tangan Sertifikat';
+
+  @override
+  String get profTandaTanganSub =>
+      'Tanda tangan yang dicetak di sertifikat terbit';
+
+  @override
   String get profCustomers => 'Pelanggan';
 
   @override
@@ -612,6 +619,17 @@ class AppLocalizationsId extends AppLocalizations {
   String get certOpenPdf => 'LIHAT PDF';
 
   @override
+  String get certQrJudul => 'QR Verifikasi';
+
+  @override
+  String get certQrIsi =>
+      'Scan buat ngecek sertifikat ini ke catatan kami. Bisa tanpa login.';
+
+  @override
+  String get certQrBelumAda =>
+      'QR-nya belum ada — server belum nerbitin token verifikasi buat sertifikat ini.';
+
+  @override
   String certOpenFailed(String message) {
     return 'Nggak nemu aplikasi buat buka PDF: $message';
   }
@@ -876,6 +894,23 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get arsipDihapus => 'Folder dihapus.';
+
+  @override
+  String get arsipPetunjukPindah => 'Tahan item-nya buat mindahin.';
+
+  @override
+  String get arsipTakBisaDipindah =>
+      'Folder otomatis — tempatnya ngikut PT/tahun.';
+
+  @override
+  String arsipFolderDipindah(String tujuan) {
+    return 'Folder dipindah ke \"$tujuan\".';
+  }
+
+  @override
+  String arsipBerkasDipindah(String tujuan) {
+    return 'Berkas dipindah ke \"$tujuan\".';
+  }
 
   @override
   String get orgTitle => 'Data Organisasi';
@@ -1614,7 +1649,198 @@ class AppLocalizationsId extends AppLocalizations {
   String get teknisiTolak => 'Nonaktifkan';
 
   @override
+  String get certKirimEmail => 'KIRIM KE PELANGGAN';
+
+  @override
+  String get emailTitle => 'Kirim Sertifikat';
+
+  @override
+  String get emailHanyaAdmin => 'Cuma admin yang bisa ngirim sertifikat.';
+
+  @override
+  String get emailKeLabel => 'Ke';
+
+  @override
+  String get emailKeHint => 'pelanggan@perusahaan.com';
+
+  @override
+  String get emailCcLabel => 'Cc (opsional)';
+
+  @override
+  String emailPisahKoma(int maks) {
+    return 'Pisahin pakai koma kalau lebih dari satu. Maks $maks masing-masing.';
+  }
+
+  @override
+  String get emailKirim => 'KIRIM SEKARANG';
+
+  @override
+  String get emailMengirim =>
+      'Lagi ngirim — ini nunggu sampai server email beneran nerima.';
+
+  @override
+  String get emailTerkirim => 'Sertifikat terkirim.';
+
+  @override
+  String get emailKeKosong => 'Isi minimal satu penerima.';
+
+  @override
+  String emailAlamatSalah(String alamat) {
+    return 'Bukan alamat email yang sah: $alamat';
+  }
+
+  @override
+  String emailKebanyakan(int maks) {
+    return 'Maks $maks alamat.';
+  }
+
+  @override
+  String get emailRiwayatJudul => 'Riwayat kirim';
+
+  @override
+  String get emailRiwayatKosong => 'Belum pernah dikirim.';
+
+  @override
+  String get emailRiwayatBerhasil => 'Terkirim';
+
+  @override
+  String get emailRiwayatGagal => 'Gagal';
+
+  @override
+  String emailRiwayatOleh(String nama) {
+    return 'oleh $nama';
+  }
+
+  @override
+  String get emailGagalMuat => 'Gagal memuat riwayat kirim.';
+
+  @override
+  String get emailRetry => 'COBA LAGI';
+
+  @override
+  String get ttdTitle => 'Tanda Tangan Sertifikat';
+
+  @override
+  String get ttdHanyaAdmin =>
+      'Cuma admin yang bisa ngatur tanda tangan sertifikat.';
+
+  @override
+  String get ttdBelumAda => 'Belum ada tanda tangan';
+
+  @override
+  String get ttdBelumAdaIsi =>
+      'Sertifikat bakal kecetak tanpa tanda tangan sampai ada yang diunggah.';
+
+  @override
+  String get ttdUnggah => 'UNGGAH TANDA TANGAN';
+
+  @override
+  String get ttdGanti => 'Ganti';
+
+  @override
+  String get ttdHapus => 'Hapus';
+
+  @override
+  String get ttdHapusKonfirmJudul => 'Hapus tanda tangannya?';
+
+  @override
+  String get ttdHapusKonfirmIsi =>
+      'Sertifikat baru bakal kecetak tanpa tanda tangan sampai kamu unggah lagi. Sertifikat yang udah terbit tetap bawa punyanya sendiri.';
+
+  @override
+  String get ttdHanyaPng =>
+      'PNG doang — JPG nggak punya latar transparan, jadi kecetak sebagai kotak putih yang nutupin garis tanda tangan.';
+
+  @override
+  String get ttdPosisiJudul => 'Posisi cetak';
+
+  @override
+  String get ttdPosisiIsi =>
+      'Berlaku buat SEMUA sertifikat, bukan satu-satu. Sertifikat yang udah terbit tetap pakai posisi waktu dia dicetak.';
+
+  @override
+  String ttdGeserX(String nilai) {
+    return 'Mendatar ($nilai mm)';
+  }
+
+  @override
+  String ttdGeserY(String nilai) {
+    return 'Tegak ($nilai mm)';
+  }
+
+  @override
+  String ttdLebar(String nilai) {
+    return 'Lebar ($nilai mm)';
+  }
+
+  @override
+  String get ttdArahX => 'negatif = ke kiri';
+
+  @override
+  String get ttdArahY => 'positif = NAIK';
+
+  @override
+  String get ttdSimpanPosisi => 'SIMPAN POSISI';
+
+  @override
+  String get ttdPosisiTersimpan => 'Posisi cetak tersimpan.';
+
+  @override
+  String get ttdTerunggah => 'Tanda tangan terunggah.';
+
+  @override
+  String get ttdTerhapus => 'Tanda tangan dihapus.';
+
+  @override
+  String get ttdGagalMuat => 'Gagal memuat pengaturan tanda tangan.';
+
+  @override
+  String get ttdRetry => 'COBA LAGI';
+
+  @override
   String get teknisiResetPassword => 'Reset password';
+
+  @override
+  String get teknisiEdit => 'Edit akun';
+
+  @override
+  String teknisiEditJudul(String nama) {
+    return 'Edit $nama';
+  }
+
+  @override
+  String get teknisiEditNama => 'Nama lengkap';
+
+  @override
+  String get teknisiEditEmail => 'Email';
+
+  @override
+  String get teknisiEditEmployeeId => 'ID pegawai';
+
+  @override
+  String get teknisiEditDepartment => 'Departemen (opsional)';
+
+  @override
+  String get teknisiEditRole => 'Role';
+
+  @override
+  String get teknisiEditSimpan => 'Simpan';
+
+  @override
+  String get teknisiEditNamaKosong => 'Nama nggak boleh kosong.';
+
+  @override
+  String get teknisiEditEmailKosong => 'Email nggak boleh kosong.';
+
+  @override
+  String get teknisiEditEmailSalah => 'Ini kelihatannya bukan alamat email.';
+
+  @override
+  String get teknisiEditEmployeeIdKosong =>
+      'ID pegawai nggak boleh kosong — itu yang dipakai buat login.';
+
+  @override
+  String get teknisiDiubah => 'Data akun diperbarui.';
 
   @override
   String get teknisiPilihRole => 'Pilih role buat akun ini';

@@ -63,6 +63,7 @@ dependencies:
   # Milih file .xlsx buat Import Excel (spesifikasi poin 12C). `image_picker`
   # yang udah ada cuma bisa gambar, jadi nggak kepakai di sini.
   file_picker: ^8.1.7
+  qr_flutter: ^4.1.0
 
 dev_dependencies:
   flutter_test:

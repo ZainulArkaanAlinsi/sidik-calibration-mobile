@@ -301,6 +301,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Name, address & accreditation no. printed on certificates';
 
   @override
+  String get profTandaTangan => 'Certificate Signature';
+
+  @override
+  String get profTandaTanganSub => 'Signature printed on issued certificates';
+
+  @override
   String get profCustomers => 'Customers';
 
   @override
@@ -615,6 +621,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certOpenPdf => 'VIEW PDF';
 
   @override
+  String get certQrJudul => 'Verification QR';
+
+  @override
+  String get certQrIsi =>
+      'Scan to check this certificate against our records. Works without logging in.';
+
+  @override
+  String get certQrBelumAda =>
+      'The QR isn\'t available yet — the server hasn\'t issued a verification token for this certificate.';
+
+  @override
   String certOpenFailed(String message) {
     return 'No app found to open the PDF: $message';
   }
@@ -879,6 +896,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get arsipDihapus => 'Folder deleted.';
+
+  @override
+  String get arsipPetunjukPindah => 'Press and hold an item to move it.';
+
+  @override
+  String get arsipTakBisaDipindah =>
+      'Auto-generated folder — its place follows the client/year.';
+
+  @override
+  String arsipFolderDipindah(String tujuan) {
+    return 'Folder moved into \"$tujuan\".';
+  }
+
+  @override
+  String arsipBerkasDipindah(String tujuan) {
+    return 'File moved into \"$tujuan\".';
+  }
 
   @override
   String get orgTitle => 'Organization Data';
@@ -1625,7 +1659,199 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teknisiTolak => 'Deactivate';
 
   @override
+  String get certKirimEmail => 'SEND TO CUSTOMER';
+
+  @override
+  String get emailTitle => 'Send Certificate';
+
+  @override
+  String get emailHanyaAdmin => 'Only admins can send certificates.';
+
+  @override
+  String get emailKeLabel => 'To';
+
+  @override
+  String get emailKeHint => 'customer@company.com';
+
+  @override
+  String get emailCcLabel => 'Cc (optional)';
+
+  @override
+  String emailPisahKoma(int maks) {
+    return 'Separate multiple addresses with commas. Max $maks each.';
+  }
+
+  @override
+  String get emailKirim => 'SEND NOW';
+
+  @override
+  String get emailMengirim =>
+      'Sending — this waits until the mail server actually accepts it.';
+
+  @override
+  String get emailTerkirim => 'Certificate sent.';
+
+  @override
+  String get emailKeKosong => 'Enter at least one recipient.';
+
+  @override
+  String emailAlamatSalah(String alamat) {
+    return 'Not a valid email address: $alamat';
+  }
+
+  @override
+  String emailKebanyakan(int maks) {
+    return 'Max $maks addresses.';
+  }
+
+  @override
+  String get emailRiwayatJudul => 'Send history';
+
+  @override
+  String get emailRiwayatKosong => 'Never sent yet.';
+
+  @override
+  String get emailRiwayatBerhasil => 'Sent';
+
+  @override
+  String get emailRiwayatGagal => 'Failed';
+
+  @override
+  String emailRiwayatOleh(String nama) {
+    return 'by $nama';
+  }
+
+  @override
+  String get emailGagalMuat => 'Couldn\'t load the send history.';
+
+  @override
+  String get emailRetry => 'TRY AGAIN';
+
+  @override
+  String get ttdTitle => 'Certificate Signature';
+
+  @override
+  String get ttdHanyaAdmin =>
+      'Only admins can manage the certificate signature.';
+
+  @override
+  String get ttdBelumAda => 'No signature uploaded yet';
+
+  @override
+  String get ttdBelumAdaIsi =>
+      'Certificates will print without a signature until one is uploaded.';
+
+  @override
+  String get ttdUnggah => 'UPLOAD SIGNATURE';
+
+  @override
+  String get ttdGanti => 'Replace';
+
+  @override
+  String get ttdHapus => 'Delete';
+
+  @override
+  String get ttdHapusKonfirmJudul => 'Delete the signature?';
+
+  @override
+  String get ttdHapusKonfirmIsi =>
+      'New certificates will print without a signature until you upload another one. Certificates already issued keep theirs.';
+
+  @override
+  String get ttdHanyaPng =>
+      'PNG only — JPG has no transparent background, so it prints as a white box covering the signature line.';
+
+  @override
+  String get ttdPosisiJudul => 'Print position';
+
+  @override
+  String get ttdPosisiIsi =>
+      'Applies to every certificate, not just one. Already-issued certificates keep the position they were printed with.';
+
+  @override
+  String ttdGeserX(String nilai) {
+    return 'Horizontal ($nilai mm)';
+  }
+
+  @override
+  String ttdGeserY(String nilai) {
+    return 'Vertical ($nilai mm)';
+  }
+
+  @override
+  String ttdLebar(String nilai) {
+    return 'Width ($nilai mm)';
+  }
+
+  @override
+  String get ttdArahX => 'negative = left';
+
+  @override
+  String get ttdArahY => 'positive = up';
+
+  @override
+  String get ttdSimpanPosisi => 'SAVE POSITION';
+
+  @override
+  String get ttdPosisiTersimpan => 'Print position saved.';
+
+  @override
+  String get ttdTerunggah => 'Signature uploaded.';
+
+  @override
+  String get ttdTerhapus => 'Signature deleted.';
+
+  @override
+  String get ttdGagalMuat => 'Couldn\'t load the signature settings.';
+
+  @override
+  String get ttdRetry => 'TRY AGAIN';
+
+  @override
   String get teknisiResetPassword => 'Reset password';
+
+  @override
+  String get teknisiEdit => 'Edit account';
+
+  @override
+  String teknisiEditJudul(String nama) {
+    return 'Edit $nama';
+  }
+
+  @override
+  String get teknisiEditNama => 'Full name';
+
+  @override
+  String get teknisiEditEmail => 'Email';
+
+  @override
+  String get teknisiEditEmployeeId => 'Employee ID';
+
+  @override
+  String get teknisiEditDepartment => 'Department (optional)';
+
+  @override
+  String get teknisiEditRole => 'Role';
+
+  @override
+  String get teknisiEditSimpan => 'Save';
+
+  @override
+  String get teknisiEditNamaKosong => 'Name can\'t be empty.';
+
+  @override
+  String get teknisiEditEmailKosong => 'Email can\'t be empty.';
+
+  @override
+  String get teknisiEditEmailSalah =>
+      'That doesn\'t look like an email address.';
+
+  @override
+  String get teknisiEditEmployeeIdKosong =>
+      'Employee ID can\'t be empty — it\'s what they log in with.';
+
+  @override
+  String get teknisiDiubah => 'Account updated.';
 
   @override
   String get teknisiPilihRole => 'Choose a role for this account';
