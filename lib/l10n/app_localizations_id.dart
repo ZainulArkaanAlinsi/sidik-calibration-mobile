@@ -301,6 +301,13 @@ class AppLocalizationsId extends AppLocalizations {
       'Nama, alamat & no. akreditasi buat kop sertifikat';
 
   @override
+  String get profTandaTangan => 'Tanda Tangan Sertifikat';
+
+  @override
+  String get profTandaTanganSub =>
+      'Tanda tangan yang dicetak di sertifikat terbit';
+
+  @override
   String get profCustomers => 'Pelanggan';
 
   @override
@@ -1623,6 +1630,86 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get teknisiTolak => 'Nonaktifkan';
+
+  @override
+  String get ttdTitle => 'Tanda Tangan Sertifikat';
+
+  @override
+  String get ttdHanyaAdmin =>
+      'Cuma admin yang bisa ngatur tanda tangan sertifikat.';
+
+  @override
+  String get ttdBelumAda => 'Belum ada tanda tangan';
+
+  @override
+  String get ttdBelumAdaIsi =>
+      'Sertifikat bakal kecetak tanpa tanda tangan sampai ada yang diunggah.';
+
+  @override
+  String get ttdUnggah => 'UNGGAH TANDA TANGAN';
+
+  @override
+  String get ttdGanti => 'Ganti';
+
+  @override
+  String get ttdHapus => 'Hapus';
+
+  @override
+  String get ttdHapusKonfirmJudul => 'Hapus tanda tangannya?';
+
+  @override
+  String get ttdHapusKonfirmIsi =>
+      'Sertifikat baru bakal kecetak tanpa tanda tangan sampai kamu unggah lagi. Sertifikat yang udah terbit tetap bawa punyanya sendiri.';
+
+  @override
+  String get ttdHanyaPng =>
+      'PNG doang — JPG nggak punya latar transparan, jadi kecetak sebagai kotak putih yang nutupin garis tanda tangan.';
+
+  @override
+  String get ttdPosisiJudul => 'Posisi cetak';
+
+  @override
+  String get ttdPosisiIsi =>
+      'Berlaku buat SEMUA sertifikat, bukan satu-satu. Sertifikat yang udah terbit tetap pakai posisi waktu dia dicetak.';
+
+  @override
+  String ttdGeserX(String nilai) {
+    return 'Mendatar ($nilai mm)';
+  }
+
+  @override
+  String ttdGeserY(String nilai) {
+    return 'Tegak ($nilai mm)';
+  }
+
+  @override
+  String ttdLebar(String nilai) {
+    return 'Lebar ($nilai mm)';
+  }
+
+  @override
+  String get ttdArahX => 'negatif = ke kiri';
+
+  @override
+  String get ttdArahY => 'positif = NAIK';
+
+  @override
+  String get ttdSimpanPosisi => 'SIMPAN POSISI';
+
+  @override
+  String get ttdPosisiTersimpan => 'Posisi cetak tersimpan.';
+
+  @override
+  String get ttdTerunggah => 'Tanda tangan terunggah.';
+
+  @override
+  String get ttdTerhapus => 'Tanda tangan dihapus.';
+
+  @override
+  String get ttdGagalMuat => 'Gagal memuat pengaturan tanda tangan.';
+
+  @override
+  String get ttdRetry => 'COBA LAGI';
 
   @override
   String get teknisiResetPassword => 'Reset password';

@@ -301,6 +301,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Name, address & accreditation no. printed on certificates';
 
   @override
+  String get profTandaTangan => 'Certificate Signature';
+
+  @override
+  String get profTandaTanganSub => 'Signature printed on issued certificates';
+
+  @override
   String get profCustomers => 'Customers';
 
   @override
@@ -1634,6 +1640,86 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teknisiTolak => 'Deactivate';
+
+  @override
+  String get ttdTitle => 'Certificate Signature';
+
+  @override
+  String get ttdHanyaAdmin =>
+      'Only admins can manage the certificate signature.';
+
+  @override
+  String get ttdBelumAda => 'No signature uploaded yet';
+
+  @override
+  String get ttdBelumAdaIsi =>
+      'Certificates will print without a signature until one is uploaded.';
+
+  @override
+  String get ttdUnggah => 'UPLOAD SIGNATURE';
+
+  @override
+  String get ttdGanti => 'Replace';
+
+  @override
+  String get ttdHapus => 'Delete';
+
+  @override
+  String get ttdHapusKonfirmJudul => 'Delete the signature?';
+
+  @override
+  String get ttdHapusKonfirmIsi =>
+      'New certificates will print without a signature until you upload another one. Certificates already issued keep theirs.';
+
+  @override
+  String get ttdHanyaPng =>
+      'PNG only — JPG has no transparent background, so it prints as a white box covering the signature line.';
+
+  @override
+  String get ttdPosisiJudul => 'Print position';
+
+  @override
+  String get ttdPosisiIsi =>
+      'Applies to every certificate, not just one. Already-issued certificates keep the position they were printed with.';
+
+  @override
+  String ttdGeserX(String nilai) {
+    return 'Horizontal ($nilai mm)';
+  }
+
+  @override
+  String ttdGeserY(String nilai) {
+    return 'Vertical ($nilai mm)';
+  }
+
+  @override
+  String ttdLebar(String nilai) {
+    return 'Width ($nilai mm)';
+  }
+
+  @override
+  String get ttdArahX => 'negative = left';
+
+  @override
+  String get ttdArahY => 'positive = up';
+
+  @override
+  String get ttdSimpanPosisi => 'SAVE POSITION';
+
+  @override
+  String get ttdPosisiTersimpan => 'Print position saved.';
+
+  @override
+  String get ttdTerunggah => 'Signature uploaded.';
+
+  @override
+  String get ttdTerhapus => 'Signature deleted.';
+
+  @override
+  String get ttdGagalMuat => 'Couldn\'t load the signature settings.';
+
+  @override
+  String get ttdRetry => 'TRY AGAIN';
 
   @override
   String get teknisiResetPassword => 'Reset password';
