@@ -14,6 +14,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../services/pdf_downloader.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/certificate_qr.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/status_badge.dart';
 
@@ -183,13 +184,20 @@ class _IsiState extends ConsumerState<_Isi> {
             isLoading: _busy,
             onPressed: _busy ? null : _retryGenerate,
           ),
-        ] else if (sertifikat.pdfUrl != null) ...[
-          AppButton(
-            label: l10n.certOpenPdf,
-            icon: Icons.picture_as_pdf_outlined,
-            isLoading: _busy,
-            onPressed: _busy ? null : _lihatPdf,
-          ),
+        ] else ...[
+          if (sertifikat.pdfUrl != null)
+            AppButton(
+              label: l10n.certOpenPdf,
+              icon: Icons.picture_as_pdf_outlined,
+              isLoading: _busy,
+              onPressed: _busy ? null : _lihatPdf,
+            ),
+          // QR cuma dirender buat sertifikat yang BENERAN udah terbit. Sesi
+          // yang masih nunggu generate atau gagal nggak punya apa-apa buat
+          // diverifikasi — QR yang nunjuk ke halaman kosong lebih bikin ragu
+          // daripada nggak ada QR sama sekali.
+          const SizedBox(height: AppSpacing.lg),
+          CertificateQr(token: sertifikat.qrToken, url: sertifikat.qrUrl),
         ],
       ],
     );

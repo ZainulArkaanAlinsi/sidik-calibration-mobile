@@ -612,6 +612,17 @@ class AppLocalizationsId extends AppLocalizations {
   String get certOpenPdf => 'LIHAT PDF';
 
   @override
+  String get certQrJudul => 'QR Verifikasi';
+
+  @override
+  String get certQrIsi =>
+      'Scan buat ngecek sertifikat ini ke catatan kami. Bisa tanpa login.';
+
+  @override
+  String get certQrBelumAda =>
+      'QR-nya belum ada — server belum nerbitin token verifikasi buat sertifikat ini.';
+
+  @override
   String certOpenFailed(String message) {
     return 'Nggak nemu aplikasi buat buka PDF: $message';
   }
