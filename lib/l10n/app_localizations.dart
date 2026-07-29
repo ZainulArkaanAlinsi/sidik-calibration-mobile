@@ -3086,6 +3086,126 @@ abstract class AppLocalizations {
   /// **'Deactivate'**
   String get teknisiTolak;
 
+  /// No description provided for @certKirimEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'SEND TO CUSTOMER'**
+  String get certKirimEmail;
+
+  /// No description provided for @emailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Certificate'**
+  String get emailTitle;
+
+  /// No description provided for @emailHanyaAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Only admins can send certificates.'**
+  String get emailHanyaAdmin;
+
+  /// No description provided for @emailKeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get emailKeLabel;
+
+  /// No description provided for @emailKeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'customer@company.com'**
+  String get emailKeHint;
+
+  /// No description provided for @emailCcLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cc (optional)'**
+  String get emailCcLabel;
+
+  /// No description provided for @emailPisahKoma.
+  ///
+  /// In en, this message translates to:
+  /// **'Separate multiple addresses with commas. Max {maks} each.'**
+  String emailPisahKoma(int maks);
+
+  /// No description provided for @emailKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'SEND NOW'**
+  String get emailKirim;
+
+  /// Shown while POST /certificates/{id}/kirim-email is in flight. The call is synchronous on purpose, so this can take a while.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending — this waits until the mail server actually accepts it.'**
+  String get emailMengirim;
+
+  /// No description provided for @emailTerkirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate sent.'**
+  String get emailTerkirim;
+
+  /// No description provided for @emailKeKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter at least one recipient.'**
+  String get emailKeKosong;
+
+  /// No description provided for @emailAlamatSalah.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a valid email address: {alamat}'**
+  String emailAlamatSalah(String alamat);
+
+  /// No description provided for @emailKebanyakan.
+  ///
+  /// In en, this message translates to:
+  /// **'Max {maks} addresses.'**
+  String emailKebanyakan(int maks);
+
+  /// No description provided for @emailRiwayatJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Send history'**
+  String get emailRiwayatJudul;
+
+  /// No description provided for @emailRiwayatKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Never sent yet.'**
+  String get emailRiwayatKosong;
+
+  /// No description provided for @emailRiwayatBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get emailRiwayatBerhasil;
+
+  /// No description provided for @emailRiwayatGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get emailRiwayatGagal;
+
+  /// No description provided for @emailRiwayatOleh.
+  ///
+  /// In en, this message translates to:
+  /// **'by {nama}'**
+  String emailRiwayatOleh(String nama);
+
+  /// No description provided for @emailGagalMuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the send history.'**
+  String get emailGagalMuat;
+
+  /// No description provided for @emailRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'TRY AGAIN'**
+  String get emailRetry;
+
   /// No description provided for @ttdTitle.
   ///
   /// In en, this message translates to:

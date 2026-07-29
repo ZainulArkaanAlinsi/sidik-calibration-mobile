@@ -15,6 +15,7 @@ import '../../providers/history_provider.dart';
 import '../../services/pdf_downloader.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/certificate_qr.dart';
+import 'kirim_email_screen.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/status_badge.dart';
 
@@ -196,6 +197,24 @@ class _IsiState extends ConsumerState<_Isi> {
           // yang masih nunggu generate atau gagal nggak punya apa-apa buat
           // diverifikasi — QR yang nunjuk ke halaman kosong lebih bikin ragu
           // daripada nggak ada QR sama sekali.
+          // Cuma admin: backend nolak `403` buat role lain, jadi tombolnya
+          // jangan dipajang ke teknisi biar nggak nyoba lalu ditolak.
+          if (ref.watch(authProvider).value?.role.isAdmin ?? false) ...[
+            const SizedBox(height: AppSpacing.sm),
+            AppButton(
+              label: l10n.certKirimEmail,
+              icon: Icons.mail_outline,
+              variant: AppButtonVariant.secondary,
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => KirimEmailScreen(
+                    certificateId: sertifikat.id,
+                    nomorSertifikat: sertifikat.nomor,
+                  ),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: AppSpacing.lg),
           CertificateQr(token: sertifikat.qrToken, url: sertifikat.qrUrl),
         ],

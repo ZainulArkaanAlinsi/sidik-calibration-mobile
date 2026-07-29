@@ -1642,6 +1642,75 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teknisiTolak => 'Deactivate';
 
   @override
+  String get certKirimEmail => 'SEND TO CUSTOMER';
+
+  @override
+  String get emailTitle => 'Send Certificate';
+
+  @override
+  String get emailHanyaAdmin => 'Only admins can send certificates.';
+
+  @override
+  String get emailKeLabel => 'To';
+
+  @override
+  String get emailKeHint => 'customer@company.com';
+
+  @override
+  String get emailCcLabel => 'Cc (optional)';
+
+  @override
+  String emailPisahKoma(int maks) {
+    return 'Separate multiple addresses with commas. Max $maks each.';
+  }
+
+  @override
+  String get emailKirim => 'SEND NOW';
+
+  @override
+  String get emailMengirim =>
+      'Sending — this waits until the mail server actually accepts it.';
+
+  @override
+  String get emailTerkirim => 'Certificate sent.';
+
+  @override
+  String get emailKeKosong => 'Enter at least one recipient.';
+
+  @override
+  String emailAlamatSalah(String alamat) {
+    return 'Not a valid email address: $alamat';
+  }
+
+  @override
+  String emailKebanyakan(int maks) {
+    return 'Max $maks addresses.';
+  }
+
+  @override
+  String get emailRiwayatJudul => 'Send history';
+
+  @override
+  String get emailRiwayatKosong => 'Never sent yet.';
+
+  @override
+  String get emailRiwayatBerhasil => 'Sent';
+
+  @override
+  String get emailRiwayatGagal => 'Failed';
+
+  @override
+  String emailRiwayatOleh(String nama) {
+    return 'by $nama';
+  }
+
+  @override
+  String get emailGagalMuat => 'Couldn\'t load the send history.';
+
+  @override
+  String get emailRetry => 'TRY AGAIN';
+
+  @override
   String get ttdTitle => 'Certificate Signature';
 
   @override
