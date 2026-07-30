@@ -197,6 +197,31 @@ class _IsiState extends ConsumerState<_Isi> {
   /// Yang ngirim tetap aplikasi WhatsApp di HP admin, bukan server. Jadi
   /// "terkirim" di sini artinya "WhatsApp-nya kebuka dengan pesan yang benar"
   /// — bukan jaminan pelanggan udah baca.
+  /// Ganti saluran, sekalian setel format ke default saluran itu.
+  ///
+  /// Lewat WA yang kekirim SELALU tautan — WhatsApp nggak bisa dititipin
+  /// lampiran tanpa Business API. Jadi kalau formatnya ketinggalan di `pdf`,
+  /// admin mesti ganti ke `tautan` dulu tiap kali, dan kalau lupa, keterangan
+  /// di layar nyebut "tautan unduh PDF" sementara yang dia pilih PDF —
+  /// dua hal yang kelihatan bertentangan buat orang yang cuma mau ngirim.
+  ///
+  /// Email defaultnya `pdf`: bagian pengadaan pelanggan minta berkas buat
+  /// diarsip, bukan tautan.
+  ///
+  /// Cuma dipasang waktu SALURANNYA ganti. Sesudah itu formatnya bebas
+  /// diubah dan pilihan admin nggak ditimpa — ini default, bukan kunci.
+  void _gantiSaluran(Set<bool> pilihan) {
+    final wa = pilihan.first;
+    setState(() {
+      _lewatWa = wa;
+      _format = wa ? FormatKirim.tautan : FormatKirim.pdf;
+      // Kolom tujuan beda bentuk (nomor vs alamat), jadi error lama
+      // nggak relevan lagi begitu salurannya ganti.
+      _errorKe = null;
+      _errorCc = null;
+    });
+  }
+
   Future<void> _kirimWa() async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -309,9 +334,7 @@ class _IsiState extends ConsumerState<_Isi> {
             ),
           ],
           selected: {_lewatWa},
-          onSelectionChanged: _mengirim
-              ? null
-              : (pilihan) => setState(() => _lewatWa = pilihan.first),
+          onSelectionChanged: _mengirim ? null : _gantiSaluran,
         ),
         const SizedBox(height: AppSpacing.md),
 

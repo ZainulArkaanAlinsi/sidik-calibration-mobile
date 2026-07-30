@@ -239,6 +239,63 @@ void main() {
       expect(riwayat.single.format, FormatKirim.tautan);
     });
 
+    testWidgets('pilih WhatsApp → formatnya ikut pindah ke Tautan sendiri',
+        (tester) async {
+      final service = MockKirimEmailService();
+      await _pasang(tester, _app(service));
+
+      await tester.tap(find.text('WhatsApp'));
+      await tester.pumpAndSettle();
+
+      // Lewat WA yang kekirim selalu tautan. Kalau formatnya ketinggalan di
+      // PDF, keterangan di layar nyebut "tautan unduh PDF" sementara yang
+      // kepilih PDF — dua hal yang kelihatan bertentangan.
+      expect(
+        tester.widget<SegmentedButton<FormatKirim>>(
+          find.byType(SegmentedButton<FormatKirim>),
+        ).selected,
+        {FormatKirim.tautan},
+      );
+    });
+
+    testWidgets('balik ke Email → formatnya balik ke PDF', (tester) async {
+      final service = MockKirimEmailService();
+      await _pasang(tester, _app(service));
+
+      await tester.tap(find.text('WhatsApp'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Email'));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.widget<SegmentedButton<FormatKirim>>(
+          find.byType(SegmentedButton<FormatKirim>),
+        ).selected,
+        {FormatKirim.pdf},
+      );
+    });
+
+    testWidgets('default cuma bawaan — pilihan admin sesudahnya nggak ditimpa',
+        (tester) async {
+      final service = MockKirimEmailService();
+      await _pasang(tester, _app(service));
+
+      await tester.tap(find.text('WhatsApp'));
+      await tester.pumpAndSettle();
+
+      // Admin sengaja milih Excel SESUDAH pindah ke WA. Itu pilihan sadar,
+      // dan nggak boleh dibalikin ke Tautan — ini default, bukan kunci.
+      await tester.tap(find.text('Excel'));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.widget<SegmentedButton<FormatKirim>>(
+          find.byType(SegmentedButton<FormatKirim>),
+        ).selected,
+        {FormatKirim.xlsx},
+      );
+    });
+
     testWidgets('pilih Excel → yang kekirim `xlsx`', (tester) async {
       final service = MockKirimEmailService();
       await _pasang(tester, _app(service));
@@ -305,8 +362,14 @@ void main() {
       await tester.tap(find.text('WhatsApp'));
       await tester.pumpAndSettle();
 
-      // Format masih PDF (bawaan), tapi lewat WA yang kekirim tetap tautan —
-      // dan itu harus dibilang, bukan dibiarin admin ngira PDF-nya nempel.
+      // Pindah ke WA sekarang nyetel formatnya ke Tautan sendiri, jadi PDF-nya
+      // dipilih SENGAJA di sini — dan justru itu kasus yang mesti diuji:
+      // admin milih PDF selagi saluran WA, padahal lampiran nggak mungkin
+      // ikut. Yang kekirim tetap tautan, dan itu harus dibilang, bukan
+      // dibiarin admin ngira PDF-nya nempel.
+      await tester.tap(find.text('PDF'));
+      await tester.pumpAndSettle();
+
       expect(find.textContaining('tautan unduh PDF'), findsOneWidget);
     });
 
