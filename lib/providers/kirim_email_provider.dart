@@ -47,3 +47,26 @@ Future<void> kirimSertifikatLewatEmail(
     ref.invalidate(riwayatEmailProvider(certificateId));
   }
 }
+
+/// Catat pengiriman lewat WhatsApp & ambil teks siap-tempelnya.
+///
+/// Riwayatnya di-invalidate sesudahnya, sama kayak jalur email — kiriman WA
+/// muncul di daftar yang sama, jadi "sertifikat ini udah dikirim ke siapa aja"
+/// bisa dijawab dari satu tempat.
+Future<HasilCatatWhatsapp> catatKirimWhatsapp(
+  WidgetRef ref, {
+  required int certificateId,
+  required List<String> ke,
+  FormatKirim format = FormatKirim.tautan,
+}) async {
+  final token = await ref.read(tokenStorageProvider).read();
+  if (token == null) throw const TokenHilangException();
+
+  final hasil = await ref
+      .read(kirimEmailServiceProvider)
+      .catatWhatsapp(token, certificateId, ke: ke, format: format);
+
+  ref.invalidate(riwayatEmailProvider(certificateId));
+
+  return hasil;
+}

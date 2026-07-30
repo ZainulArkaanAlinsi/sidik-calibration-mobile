@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
@@ -12,6 +13,20 @@ import '../../providers/izin_provider.dart';
 import '../../providers/kirim_email_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/status_badge.dart';
+
+/// Nomor WA dinormalin ke bentuk internasional tanpa tanda baca — `wa.me`
+/// cuma nerima digit. `08...` (cara nulis lokal) jadi `628...`.
+///
+/// Di tingkat library, bukan privat di dalam State: aturan normalisasinya
+/// gampang salah dan pantas diuji sendiri, tanpa perlu merender layar.
+String? normalkanNomorWa(String mentah) {
+  var n = mentah.replaceAll(RegExp(r'[^0-9+]'), '');
+  if (n.startsWith('+')) n = n.substring(1);
+  if (n.startsWith('0')) n = '62${n.substring(1)}';
+
+  // Nomor Indonesia terpendek ~10 digit; di bawah itu pasti salah ketik.
+  return n.length < 9 ? null : n;
+}
 
 /// Kirim sertifikat ke email pelanggan + riwayat percobaannya — **admin doang**.
 class KirimEmailScreen extends ConsumerWidget {
@@ -87,6 +102,16 @@ class _IsiState extends ConsumerState<_Isi> {
   String? _errorKe;
   String? _errorCc;
 
+  /// PDF duluan — dokumen resminya, dan itu yang dipakai sebelum pilihan ini ada.
+  FormatKirim _format = FormatKirim.pdf;
+
+  /// Saluran: email (default) atau WhatsApp.
+  ///
+  /// Dipisah dari [_format] karena dua pertanyaan yang beda: "lewat apa" dan
+  /// "isinya apa". Digabung jadi satu daftar, WhatsApp kelihatan sejajar sama
+  /// PDF/Excel — padahal lewat WA yang kekirim tetap salah satu dari ketiganya.
+  bool _lewatWa = false;
+
   @override
   void dispose() {
     _ke.dispose();
@@ -139,7 +164,7 @@ class _IsiState extends ConsumerState<_Isi> {
       await kirimSertifikatLewatEmail(
         ref,
         certificateId: widget.certificateId,
-        isi: KirimEmailPermintaan(ke: ke, cc: cc),
+        isi: KirimEmailPermintaan(ke: ke, cc: cc, format: _format),
       );
       if (!mounted) return;
       messenger.showSnackBar(SnackBar(content: Text(l10n.emailTerkirim)));
@@ -149,6 +174,74 @@ class _IsiState extends ConsumerState<_Isi> {
       if (!mounted) return;
       // Pesan server apa adanya. Buat `502`, yang penting kebaca admin itu
       // "gagal TAPI tercatat" — bukan sekadar "gagal".
+      final teks = e.toString().replaceFirst('Exception: ', '').trim();
+      messenger.showSnackBar(
+        SnackBar(content: Text(teks.isEmpty ? l10n.emailGagalMuat : teks)),
+      );
+    } finally {
+      if (mounted) setState(() => _mengirim = false);
+    }
+  }
+
+  /// Kirim lewat WhatsApp.
+  ///
+  /// Dua langkah, dan urutannya penting:
+  ///
+  /// 1. **Catat dulu ke server**, dapat teks pesannya. Pesannya disusun
+  ///    backend — isinya tautan unduh yang nempel ke `qr_token` dan skema URL
+  ///    yang cuma backend yang tahu.
+  /// 2. **Baru buka WhatsApp.** Kalau kebalik, admin ngirim pesan lalu
+  ///    pencatatannya gagal — dan riwayat bilang "belum pernah dikirim"
+  ///    padahal pelanggan udah nerima.
+  ///
+  /// Yang ngirim tetap aplikasi WhatsApp di HP admin, bukan server. Jadi
+  /// "terkirim" di sini artinya "WhatsApp-nya kebuka dengan pesan yang benar"
+  /// — bukan jaminan pelanggan udah baca.
+  Future<void> _kirimWa() async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    final mentah = _pisah(_ke.text);
+    final nomor = mentah.map(normalkanNomorWa).nonNulls.toList();
+
+    setState(() {
+      _errorKe = mentah.isEmpty
+          ? l10n.waKeKosong
+          : (nomor.length != mentah.length ? l10n.waNomorSalah : null);
+      _errorCc = null;
+    });
+    if (_errorKe != null) return;
+
+    setState(() => _mengirim = true);
+    try {
+      final hasil = await catatKirimWhatsapp(
+        ref,
+        certificateId: widget.certificateId,
+        ke: nomor,
+        format: _format,
+      );
+
+      if (!mounted) return;
+
+      // Satu nomor = satu jendela WhatsApp. Nomor pertama yang dibukain;
+      // sisanya udah tercatat, admin tinggal terusin pesannya dari WhatsApp
+      // — jauh lebih cepat daripada app ini buka-tutup WhatsApp berkali-kali.
+      final url = Uri.parse(
+        'https://wa.me/${nomor.first}?text=${Uri.encodeComponent(hasil.pesan)}',
+      );
+
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else if (mounted) {
+        messenger.showSnackBar(SnackBar(content: Text(l10n.waTakBisaDibuka)));
+      }
+
+      if (mounted) {
+        _ke.clear();
+        messenger.showSnackBar(SnackBar(content: Text(l10n.waTercatat)));
+      }
+    } catch (e) {
+      if (!mounted) return;
       final teks = e.toString().replaceFirst('Exception: ', '').trim();
       messenger.showSnackBar(
         SnackBar(content: Text(teks.isEmpty ? l10n.emailGagalMuat : teks)),
@@ -172,23 +265,25 @@ class _IsiState extends ConsumerState<_Isi> {
           enabled: !_mengirim,
           keyboardType: TextInputType.emailAddress,
           decoration: InputDecoration(
-            labelText: l10n.emailKeLabel,
-            hintText: l10n.emailKeHint,
+            labelText: _lewatWa ? l10n.waKeLabel : l10n.emailKeLabel,
+            hintText: _lewatWa ? l10n.waKeHint : l10n.emailKeHint,
             errorText: _errorKe,
             border: const OutlineInputBorder(),
           ),
         ),
-        const SizedBox(height: AppSpacing.sm),
-        TextField(
-          controller: _cc,
-          enabled: !_mengirim,
-          keyboardType: TextInputType.emailAddress,
-          decoration: InputDecoration(
-            labelText: l10n.emailCcLabel,
-            errorText: _errorCc,
-            border: const OutlineInputBorder(),
+        if (!_lewatWa) ...[
+          const SizedBox(height: AppSpacing.sm),
+          TextField(
+            controller: _cc,
+            enabled: !_mengirim,
+            keyboardType: TextInputType.emailAddress,
+            decoration: InputDecoration(
+              labelText: l10n.emailCcLabel,
+              errorText: _errorCc,
+              border: const OutlineInputBorder(),
+            ),
           ),
-        ),
+        ],
         const SizedBox(height: AppSpacing.xs),
         Text(
           l10n.emailPisahKoma(KirimEmailPermintaan.maksAlamat),
@@ -198,11 +293,81 @@ class _IsiState extends ConsumerState<_Isi> {
         ),
         const SizedBox(height: AppSpacing.md),
 
+        Text(l10n.kirimLewatJudul, style: theme.textTheme.titleSmall),
+        const SizedBox(height: AppSpacing.xs),
+        SegmentedButton<bool>(
+          segments: [
+            ButtonSegment(
+              value: false,
+              label: Text(l10n.kirimLewatEmail),
+              icon: const Icon(Icons.mail_outline),
+            ),
+            ButtonSegment(
+              value: true,
+              label: Text(l10n.kirimLewatWa),
+              icon: const Icon(Icons.chat_outlined),
+            ),
+          ],
+          selected: {_lewatWa},
+          onSelectionChanged: _mengirim
+              ? null
+              : (pilihan) => setState(() => _lewatWa = pilihan.first),
+        ),
+        const SizedBox(height: AppSpacing.md),
+
+        Text(l10n.emailFormatJudul, style: theme.textTheme.titleSmall),
+        const SizedBox(height: AppSpacing.xs),
+        // Segmented, bukan dropdown: cuma tiga pilihan dan konsekuensinya beda
+        // jauh — yang mana yang kepilih harus kelihatan tanpa dibuka dulu.
+        SegmentedButton<FormatKirim>(
+          segments: [
+            ButtonSegment(
+              value: FormatKirim.pdf,
+              label: Text(l10n.emailFormatPdf),
+              icon: const Icon(Icons.picture_as_pdf_outlined),
+            ),
+            ButtonSegment(
+              value: FormatKirim.xlsx,
+              label: Text(l10n.emailFormatExcel),
+              icon: const Icon(Icons.table_chart_outlined),
+            ),
+            ButtonSegment(
+              value: FormatKirim.tautan,
+              label: Text(l10n.emailFormatTautan),
+              icon: const Icon(Icons.link),
+            ),
+          ],
+          selected: {_format},
+          onSelectionChanged: _mengirim
+              ? null
+              : (pilihan) => setState(() => _format = pilihan.first),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        // Konsekuensinya ditulis, bukan cuma namanya. "Tautan" kedengeran
+        // ringan sampai admin sadar pelanggan nggak nerima berkas apa pun.
+        Text(
+          switch ((_lewatWa, _format)) {
+            // Lewat WA yang dikirim selalu TAUTAN, apa pun formatnya —
+            // WhatsApp nggak bisa dititipin lampiran tanpa Business API.
+            // Yang beda cuma tautannya nunjuk ke apa.
+            (true, FormatKirim.pdf) => l10n.waKetPdf,
+            (true, FormatKirim.xlsx) => l10n.waKetExcel,
+            (true, _) => l10n.waKetTautan,
+            (false, FormatKirim.pdf) => l10n.emailFormatPdfKet,
+            (false, FormatKirim.xlsx) => l10n.emailFormatExcelKet,
+            (false, _) => l10n.emailFormatTautanKet,
+          },
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+
         AppButton(
-          label: l10n.emailKirim,
-          icon: Icons.send_outlined,
+          label: _lewatWa ? l10n.waKirim : l10n.emailKirim,
+          icon: _lewatWa ? Icons.chat_outlined : Icons.send_outlined,
           isLoading: _mengirim,
-          onPressed: _mengirim ? null : _kirim,
+          onPressed: _mengirim ? null : (_lewatWa ? _kirimWa : _kirim),
         ),
 
         // Kirimnya SINKRON — nunggu server email beneran nerima, bukan cuma
@@ -254,6 +419,14 @@ class _BarisRiwayat extends StatelessWidget {
 
   final PercobaanEmail percobaan;
 
+  static String _labelFormat(AppLocalizations l10n, FormatKirim format) =>
+      switch (format) {
+        FormatKirim.pdf => l10n.emailFormatPdf,
+        FormatKirim.xlsx => l10n.emailFormatExcel,
+        FormatKirim.tautan => l10n.emailFormatTautan,
+        FormatKirim.whatsapp => l10n.kirimLewatWa,
+      };
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -300,10 +473,14 @@ class _BarisRiwayat extends StatelessWidget {
               ),
             ],
             const SizedBox(height: AppSpacing.xs),
+            // Formatnya ikut, sebaris sama waktu & pengirim. Dua baris
+            // "Terkirim" bisa berarti hal beda: yang satu pelanggan pegang
+            // dokumennya, yang satu cuma dapat tautan.
             Text(
               percobaan.oleh == null
-                  ? waktu
-                  : '$waktu · ${l10n.emailRiwayatOleh(percobaan.oleh!)}',
+                  ? '$waktu · ${_labelFormat(l10n, percobaan.format)}'
+                  : '$waktu · ${l10n.emailRiwayatOleh(percobaan.oleh!)}'
+                        ' · ${_labelFormat(l10n, percobaan.format)}',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
