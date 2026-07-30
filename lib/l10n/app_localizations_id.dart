@@ -320,6 +320,24 @@ class AppLocalizationsId extends AppLocalizations {
   String get profStandardsSub => 'Kelola alat standar/acuan lab';
 
   @override
+  String get profPreferensi => 'Preferensi';
+
+  @override
+  String get profTema => 'Tema';
+
+  @override
+  String get profTemaTerang => 'Terang';
+
+  @override
+  String get profTemaGelap => 'Gelap';
+
+  @override
+  String get profTemaSistem => 'Ikut sistem';
+
+  @override
+  String get profBahasa => 'Bahasa';
+
+  @override
   String get profArsip => 'Arsip';
 
   @override

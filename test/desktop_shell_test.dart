@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sidik_calibration/app.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
+import 'package:sidik_calibration/screens/profile/profile_screen.dart';
 import 'package:sidik_calibration/providers/dashboard_provider.dart';
 import 'package:sidik_calibration/providers/equipment_provider.dart';
 import 'package:sidik_calibration/providers/izin_provider.dart';
@@ -161,5 +162,57 @@ void main() {
 
     // Paritas HP↔laptop itu intinya: menu yang sama buat peran yang sama.
     expect(find.text('Tugas Saya'), findsOneWidget);
+  });
+
+  testWidgets('Pengaturan di panel NGGAK ngulang isi sidebar', (tester) async {
+    await _jendelaDesktop(tester);
+    await _sampaiPanel(tester);
+
+    // Di panel, Profil dibuka lewat avatar inisial di bilah atas — bukan item
+    // sidebar, dan bukan teks "Profil".
+    await tester.tap(find.byType(CircleAvatar).first);
+    await tester.pumpAndSettle();
+
+    // Dipastiin layarnya beneran kebuka DULU. Tanpa ini, `findsNothing` di
+    // bawah bisa lolos cuma gara-gara layarnya nggak pernah muncul — hijau
+    // yang nggak ngebuktiin apa-apa.
+    expect(find.byType(ProfileScreen), findsOneWidget);
+
+    // Digeser sejauh yang sama kayak test HP di bawah. Tanpa ini,
+    // `findsNothing` bisa lolos cuma gara-gara bloknya kebetulan di bawah
+    // lipatan layar dan belum dibangun `ListView` — hijau yang nggak
+    // ngebuktiin bloknya beneran ilang.
+    await tester.drag(find.byType(ProfileScreen), const Offset(0, -400));
+    await tester.pumpAndSettle();
+
+    // Blok "Menu Admin" dulu nampilin Pelanggan/Standar/Organisasi/Tanda
+    // Tangan — padahal keempatnya UDAH jadi item sidebar. Admin lihat tujuan
+    // yang sama dua kali, dan Pengaturan jadi cuma salinan navigasi utama.
+    expect(find.text('MENU ADMIN'), findsNothing);
+  });
+
+  testWidgets('di HP blok master data TETAP ada — nggak ada sidebar di sana', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(400, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(_app(panelDesktop: false));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Profil').last);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ProfileScreen), findsOneWidget);
+
+    // Layar 400x800: header + statistik makan seluruh viewport, dan body-nya
+    // `ListView` yang bangun anaknya sesuai viewport. Digeser dulu biar
+    // bloknya kebikin.
+    await tester.drag(find.byType(ProfileScreen), const Offset(0, -400));
+    await tester.pumpAndSettle();
+
+    // Di HP ini SATU-SATUNYA jalan ke master data, jadi ngilangin blok ini
+    // bakal mutus aksesnya sama sekali.
+    expect(find.text('MENU ADMIN'), findsOneWidget);
   });
 }

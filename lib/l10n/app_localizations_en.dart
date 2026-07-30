@@ -320,6 +320,24 @@ class AppLocalizationsEn extends AppLocalizations {
       'Manage the lab\'s reference/standard equipment';
 
   @override
+  String get profPreferensi => 'Preferences';
+
+  @override
+  String get profTema => 'Theme';
+
+  @override
+  String get profTemaTerang => 'Light';
+
+  @override
+  String get profTemaGelap => 'Dark';
+
+  @override
+  String get profTemaSistem => 'Follow system';
+
+  @override
+  String get profBahasa => 'Language';
+
+  @override
   String get profArsip => 'Archive';
 
   @override

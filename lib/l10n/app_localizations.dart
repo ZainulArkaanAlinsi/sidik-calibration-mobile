@@ -686,6 +686,42 @@ abstract class AppLocalizations {
   /// **'Manage the lab\'s reference/standard equipment'**
   String get profStandardsSub;
 
+  /// No description provided for @profPreferensi.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get profPreferensi;
+
+  /// No description provided for @profTema.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get profTema;
+
+  /// No description provided for @profTemaTerang.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get profTemaTerang;
+
+  /// No description provided for @profTemaGelap.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get profTemaGelap;
+
+  /// No description provided for @profTemaSistem.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow system'**
+  String get profTemaSistem;
+
+  /// No description provided for @profBahasa.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get profBahasa;
+
   /// No description provided for @profArsip.
   ///
   /// In en, this message translates to:
