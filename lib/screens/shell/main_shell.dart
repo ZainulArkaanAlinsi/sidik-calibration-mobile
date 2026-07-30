@@ -12,6 +12,7 @@ import '../equipment/equipment_list_screen.dart';
 import '../folder/folder_manager_screen.dart';
 import '../history/history_screen.dart';
 import '../admin/antrean_approval_screen.dart';
+import '../alur/alur_kerja_screen.dart';
 import '../../widgets/pemantau_antrean.dart';
 import '../admin/import_excel_screen.dart';
 import '../notification/notification_screen.dart';
@@ -286,6 +287,16 @@ class _MenuUtama extends ConsumerWidget {
                 leading: const Icon(Icons.inbox_outlined),
                 title: Text(l10n.antreanTitle),
                 onTap: () => keLayar(const AntreanApprovalScreen()),
+              ),
+            // Alur Kerja tadinya cuma ada di panel Windows, jadi admin yang
+            // pegang HP nggak bisa lihat sesi yang sedang jalan sama sekali —
+            // dia cuma lihat yang udah masuk antrean approval. Padahal yang
+            // nyangkut di tengah itu justru yang perlu ditengok.
+            if (admin)
+              ListTile(
+                leading: const Icon(Icons.account_tree_outlined),
+                title: Text(l10n.alurTitle),
+                onTap: () => keLayar(const AlurKerjaScreen()),
               ),
             ListTile(
               leading: const Icon(Icons.folder_outlined),

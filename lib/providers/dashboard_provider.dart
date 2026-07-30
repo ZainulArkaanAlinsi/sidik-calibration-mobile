@@ -40,7 +40,7 @@ class DashboardController extends AsyncNotifier<DashboardSummary> {
   /// kiriman masuk selain nutup-buka app. Realtime (Reverb) belum nyala, jadi
   /// penyegaran berkala ini yang nutup celahnya.
   ///
-  /// 30 detik: cukup cepat buat kerja lab yang ritmenya menitan, cukup jarang
+  /// 30 detik: cukup cepat buat kerja lab  yang ritmenya menitan, cukup jarang
   /// biar nggak nguras baterai HP teknisi yang seharian di lapangan.
   static const Duration jedaSegar = Duration(seconds: 30);
 
