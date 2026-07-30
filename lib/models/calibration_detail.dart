@@ -328,6 +328,113 @@ class CertificateRef {
 /// termasuk field bonus (`nomor_sesi`, `standar_acuan`, `suhu_ruang`,
 /// `kelembaban`, `lokasi`, `sertifikat`, `titik`) yang dibutuhin buat
 /// nampilin worksheet & tabel ketidakpastian di layar detail.
+/// Kolom lembar kerja yang DIISI TEKNISI, dibaca balik apa adanya.
+///
+/// Kenapa dipisah dari sisa [CalibrationDetail]: yang lain itu hasil olahan
+/// backend buat ditampilin (angka GUM, status, sertifikat). Yang ini bahan
+/// mentah buat NGISI ULANG FORMULIRNYA waktu sesi dikembalikan buat revisi.
+///
+/// Tanpa ini, teknisi yang lembar kerjanya ditolak dapat formulir kosong dan
+/// harus ngetik ulang semuanya — cuma buat mbenerin satu hal yang diminta
+/// admin. Itu bikin revisi jadi hukuman, dan yang kejadian teknisi milih bikin
+/// sesi baru daripada mbenerin yang lama.
+class IsianTeknisi {
+  const IsianTeknisi({
+    this.equipmentId,
+    this.standardId,
+    this.roomId,
+    this.thermohygroStandardId,
+    this.tanggalTerima,
+    this.lokasi,
+    this.catatanTeknisi,
+    this.alatModel,
+    this.alatSerialNumber,
+    this.alatMerk,
+    this.pemilikNama,
+    this.pemilikAlamat,
+    this.suhuAwal,
+    this.suhuAkhir,
+    this.kelembabanAwal,
+    this.kelembabanAkhir,
+    this.standarDicek = const {},
+    this.revisiField = const {},
+  });
+
+  final int? equipmentId;
+  final int? standardId;
+  final int? roomId;
+  final int? thermohygroStandardId;
+  final DateTime? tanggalTerima;
+  final String? lokasi;
+  final String? catatanTeknisi;
+
+  final String? alatModel;
+  final String? alatSerialNumber;
+  final String? alatMerk;
+  final String? pemilikNama;
+  final String? pemilikAlamat;
+
+  final double? suhuAwal;
+  final double? suhuAkhir;
+  final double? kelembabanAwal;
+  final double? kelembabanAkhir;
+
+  /// `standard_id` → (dipakai, keterangan).
+  final Map<int, ({bool dipakai, String? keterangan})> standarDicek;
+
+  /// Kode kolom yang diminta admin dibetulin. Layar nyorot persis kolom ini
+  /// waktu lembar kerja dibuka lagi — teknisi nggak perlu nyisir puluhan kolom
+  /// nyari mana yang dimaksud catatan revisinya.
+  final Set<String> revisiField;
+
+  factory IsianTeknisi.fromJson(Map<String, dynamic> json) {
+    final dicek = <int, ({bool dipakai, String? keterangan})>{};
+    for (final baris in json['standar_dicek'] as List<dynamic>? ?? const []) {
+      if (baris is! Map<String, dynamic>) continue;
+      final id = (baris['standard_id'] as num?)?.toInt();
+      if (id == null) continue;
+      dicek[id] = (
+        dipakai: baris['dipakai'] as bool? ?? false,
+        keterangan: baris['keterangan'] as String?,
+      );
+    }
+
+    final tanggalTerima = json['tanggal_terima'] as String?;
+
+    return IsianTeknisi(
+      equipmentId: ((json['equipment'] as Map<String, dynamic>?)?['id'] as num?)
+          ?.toInt(),
+      standardId:
+          ((json['standar_acuan'] as Map<String, dynamic>?)?['id'] as num?)
+              ?.toInt(),
+      roomId: ((json['ruangan'] as Map<String, dynamic>?)?['id'] as num?)
+          ?.toInt(),
+      thermohygroStandardId:
+          ((json['thermohygro'] as Map<String, dynamic>?)?['id'] as num?)
+              ?.toInt(),
+      tanggalTerima: tanggalTerima == null
+          ? null
+          : DateTime.tryParse(tanggalTerima),
+      lokasi: json['lokasi'] as String?,
+      catatanTeknisi: json['catatan_teknisi'] as String?,
+      alatModel: json['alat_model'] as String?,
+      alatSerialNumber: json['alat_serial_number'] as String?,
+      alatMerk: json['alat_merk'] as String?,
+      pemilikNama: json['pemilik_nama'] as String?,
+      pemilikAlamat: json['pemilik_alamat'] as String?,
+      suhuAwal: (json['suhu_awal'] as num?)?.toDouble(),
+      suhuAkhir: (json['suhu_akhir'] as num?)?.toDouble(),
+      kelembabanAwal: (json['kelembaban_awal'] as num?)?.toDouble(),
+      kelembabanAkhir: (json['kelembaban_akhir'] as num?)?.toDouble(),
+      standarDicek: dicek,
+      revisiField: {
+        for (final k in json['revisi_field'] as List<dynamic>? ?? const [])
+          '$k',
+      },
+    );
+  }
+}
+
 class CalibrationDetail {
   const CalibrationDetail({
     required this.id,
@@ -349,6 +456,7 @@ class CalibrationDetail {
     this.titikSebelum = const [],
     this.pembacaanMentah = const [],
     this.perluVerifikasi = false,
+    this.isianTeknisi,
   });
 
   final int id;
@@ -370,6 +478,10 @@ class CalibrationDetail {
   /// Rincian awal/akhir + U95% lingkungan. Null buat sesi yang cuma ngirim
   /// satu angka suhu/kelembaban — pakai [suhuRuang]/[kelembaban] buat itu.
   final KondisiLingkungan? kondisiLingkungan;
+
+  /// Bahan buat ngisi ulang formulir waktu sesi dibuka lagi (lanjut draft /
+  /// perbaiki yang ditolak). Lihat [IsianTeknisi].
+  final IsianTeknisi? isianTeknisi;
 
   /// Kosong kalau sesi belum lewat kalkulasi backend (`draft` yang belum
   /// pernah disubmit).
@@ -436,6 +548,7 @@ class CalibrationDetail {
       suhuRuang: (json['suhu_ruang'] as num?)?.toDouble(),
       kelembaban: (json['kelembaban'] as num?)?.toDouble(),
       lokasi: json['lokasi'] as String?,
+      isianTeknisi: IsianTeknisi.fromJson(json),
       sertifikat: sertifikat == null ? null : CertificateRef.fromJson(sertifikat),
       kondisiLingkungan: lingkungan == null
           ? null

@@ -9,6 +9,7 @@ import '../../providers/history_provider.dart';
 import '../../providers/perhitungan_provider.dart';
 import '../../services/perhitungan_service.dart' show HasilApprove;
 import '../../widgets/app_button.dart';
+import 'widgets/lembar_tolak.dart';
 import 'widgets/blok_kondisi.dart';
 import 'widgets/panel_temuan.dart';
 import 'widgets/tabel_perhitungan.dart';
@@ -126,21 +127,19 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
   Future<void> _tolak() async {
     final l10n = AppLocalizations.of(context);
 
-    final catatan = await showDialog<String>(
+    // Lembar, bukan dialog kotak-kosong. Temuan pemeriksaan yang lagi tampil
+    // di layar ikut dibawa masuk supaya admin bisa nap satu-satu daripada
+    // ngetik ulang apa yang mesin udah tahu. Lihat docblock `LembarTolak`.
+    final kiriman = await showModalBottomSheet<KirimanTolak>(
       context: context,
-      builder: (context) => const _DialogTolak(),
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => LembarTolak(temuan: _validasi?.temuan ?? const []),
     );
-    if (catatan == null || !mounted) return;
-
-    if (catatan.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.perhitTolakKosong)));
-      return;
-    }
+    if (kiriman == null || !mounted) return;
 
     await _jalankan(() async {
-      await _aksi.tolak(catatan);
+      await _aksi.tolak(kiriman.catatan, field: kiriman.field);
       if (!mounted) return;
       ref.invalidate(antreanApprovalProvider);
       ScaffoldMessenger.of(
