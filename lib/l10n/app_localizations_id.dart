@@ -338,6 +338,118 @@ class AppLocalizationsId extends AppLocalizations {
   String get profBahasa => 'Bahasa';
 
   @override
+  String get rumusTitle => 'Rumus Kalibrasi';
+
+  @override
+  String get rumusKetBatasan =>
+      'Yang bisa diubah di sini parameter dan versinya — cara menghitungnya sendiri ada di program dan tidak diubah dari aplikasi. Setiap perubahan jadi versi baru supaya hasil hitung lama tetap bisa dijelaskan.';
+
+  @override
+  String get rumusKosong => 'Belum ada rumus yang tercatat.';
+
+  @override
+  String get rumusCobaLagi => 'Coba lagi';
+
+  @override
+  String rumusVersiBerlaku(int nomor) {
+    return 'Versi $nomor berlaku';
+  }
+
+  @override
+  String get rumusTanpaVersiBerlaku => 'Belum ada versi berlaku';
+
+  @override
+  String rumusJumlahVersi(int jumlah) {
+    return '$jumlah versi';
+  }
+
+  @override
+  String rumusVersiKe(int nomor) {
+    return 'Versi $nomor';
+  }
+
+  @override
+  String get rumusStatusAktif => 'Aktif';
+
+  @override
+  String get rumusStatusDraft => 'Draft';
+
+  @override
+  String get rumusStatusArsip => 'Arsip';
+
+  @override
+  String rumusBerlakuSejak(String mulai) {
+    return 'Berlaku sejak $mulai sampai sekarang';
+  }
+
+  @override
+  String rumusBerlakuRentang(String mulai, String selesai) {
+    return 'Berlaku $mulai – $selesai';
+  }
+
+  @override
+  String get rumusDibuatSistem => 'Dibuat sistem';
+
+  @override
+  String rumusDibuatOleh(String nama) {
+    return 'Diterbitkan oleh $nama';
+  }
+
+  @override
+  String get rumusTerbitkanVersi => 'Terbitkan versi baru';
+
+  @override
+  String get rumusTerbitkan => 'TERBITKAN';
+
+  @override
+  String get rumusBatal => 'Batal';
+
+  @override
+  String get rumusAktifkan => 'Aktifkan';
+
+  @override
+  String get rumusAktifkanJudul => 'Aktifkan versi ini?';
+
+  @override
+  String get rumusAktifkanKet =>
+      'Versi ini akan dipakai menghitung mulai tanggal berlakunya, dan versi sebelumnya ditutup rentangnya.';
+
+  @override
+  String get rumusFormKet =>
+      'Versi baru diterbitkan, bukan menimpa yang lama. Hasil hitung yang sudah terbit tetap menunjuk ke versi yang dipakai waktu itu.';
+
+  @override
+  String get rumusBerlakuDari => 'Berlaku dari';
+
+  @override
+  String get rumusParameter => 'Parameter';
+
+  @override
+  String get rumusCatatan => 'Catatan perubahan';
+
+  @override
+  String get rumusCatatanHint =>
+      'Kenapa aturannya berubah — ini yang dibaca waktu diaudit.';
+
+  @override
+  String get rumusLangsungAktif => 'Langsung aktifkan';
+
+  @override
+  String get rumusLangsungAktifKet =>
+      'Kalau dimatikan, versinya disimpan sebagai draft dulu — belum dipakai menghitung, jadi aman untuk dicoba.';
+
+  @override
+  String rumusVersiTerbit(int nomor) {
+    return 'Versi $nomor diterbitkan.';
+  }
+
+  @override
+  String get profRumus => 'Rumus Kalibrasi';
+
+  @override
+  String get profRumusSub => 'Parameter & riwayat versi perhitungan';
+
+  @override
   String get profArsip => 'Arsip';
 
   @override

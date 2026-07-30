@@ -338,6 +338,118 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profBahasa => 'Language';
 
   @override
+  String get rumusTitle => 'Calibration Formulas';
+
+  @override
+  String get rumusKetBatasan =>
+      'What you can change here are the parameters and versions — the calculation itself lives in the program and is not edited from the app. Every change becomes a new version so past results stay explainable.';
+
+  @override
+  String get rumusKosong => 'No formulas recorded yet.';
+
+  @override
+  String get rumusCobaLagi => 'Try again';
+
+  @override
+  String rumusVersiBerlaku(int nomor) {
+    return 'Version $nomor in effect';
+  }
+
+  @override
+  String get rumusTanpaVersiBerlaku => 'No version in effect';
+
+  @override
+  String rumusJumlahVersi(int jumlah) {
+    return '$jumlah version(s)';
+  }
+
+  @override
+  String rumusVersiKe(int nomor) {
+    return 'Version $nomor';
+  }
+
+  @override
+  String get rumusStatusAktif => 'Active';
+
+  @override
+  String get rumusStatusDraft => 'Draft';
+
+  @override
+  String get rumusStatusArsip => 'Archived';
+
+  @override
+  String rumusBerlakuSejak(String mulai) {
+    return 'In effect since $mulai';
+  }
+
+  @override
+  String rumusBerlakuRentang(String mulai, String selesai) {
+    return 'In effect $mulai – $selesai';
+  }
+
+  @override
+  String get rumusDibuatSistem => 'Created by the system';
+
+  @override
+  String rumusDibuatOleh(String nama) {
+    return 'Published by $nama';
+  }
+
+  @override
+  String get rumusTerbitkanVersi => 'Publish new version';
+
+  @override
+  String get rumusTerbitkan => 'PUBLISH';
+
+  @override
+  String get rumusBatal => 'Cancel';
+
+  @override
+  String get rumusAktifkan => 'Activate';
+
+  @override
+  String get rumusAktifkanJudul => 'Activate this version?';
+
+  @override
+  String get rumusAktifkanKet =>
+      'This version will be used for calculations from its effective date, and the previous version\'s range is closed.';
+
+  @override
+  String get rumusFormKet =>
+      'A new version is published, not overwritten. Results already issued keep pointing at the version used at the time.';
+
+  @override
+  String get rumusBerlakuDari => 'Effective from';
+
+  @override
+  String get rumusParameter => 'Parameters';
+
+  @override
+  String get rumusCatatan => 'Change note';
+
+  @override
+  String get rumusCatatanHint =>
+      'Why the rule changed — this is what gets read during an audit.';
+
+  @override
+  String get rumusLangsungAktif => 'Activate immediately';
+
+  @override
+  String get rumusLangsungAktifKet =>
+      'If off, the version is saved as a draft — not used for calculations yet, so it is safe to try.';
+
+  @override
+  String rumusVersiTerbit(int nomor) {
+    return 'Version $nomor published.';
+  }
+
+  @override
+  String get profRumus => 'Calibration Formulas';
+
+  @override
+  String get profRumusSub => 'Parameters & calculation version history';
+
+  @override
   String get profArsip => 'Archive';
 
   @override

@@ -13,6 +13,7 @@ import '../../providers/theme_mode_provider.dart';
 import '../../widgets/notification_bell.dart';
 import '../admin/antrean_approval_screen.dart';
 import '../order/my_tasks_screen.dart';
+import '../settings/rumus_list_screen.dart';
 import '../admin/import_excel_screen.dart';
 import '../alur/alur_kerja_screen.dart';
 import '../arsip/arsip_screen.dart';
@@ -228,6 +229,12 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
               ),
             ],
             if (bolehAkun)
+              _Menu(
+                id: 'rumus',
+                ikon: Icons.functions_outlined,
+                label: l10n.rumusTitle,
+                bangun: RumusListScreen.new,
+              ),
               _Menu(
                 id: 'teknisi',
                 ikon: Icons.badge_outlined,

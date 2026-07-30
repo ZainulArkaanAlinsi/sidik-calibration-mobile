@@ -722,6 +722,192 @@ abstract class AppLocalizations {
   /// **'Language'**
   String get profBahasa;
 
+  /// No description provided for @rumusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration Formulas'**
+  String get rumusTitle;
+
+  /// No description provided for @rumusKetBatasan.
+  ///
+  /// In en, this message translates to:
+  /// **'What you can change here are the parameters and versions — the calculation itself lives in the program and is not edited from the app. Every change becomes a new version so past results stay explainable.'**
+  String get rumusKetBatasan;
+
+  /// No description provided for @rumusKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No formulas recorded yet.'**
+  String get rumusKosong;
+
+  /// No description provided for @rumusCobaLagi.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get rumusCobaLagi;
+
+  /// No description provided for @rumusVersiBerlaku.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {nomor} in effect'**
+  String rumusVersiBerlaku(int nomor);
+
+  /// No description provided for @rumusTanpaVersiBerlaku.
+  ///
+  /// In en, this message translates to:
+  /// **'No version in effect'**
+  String get rumusTanpaVersiBerlaku;
+
+  /// No description provided for @rumusJumlahVersi.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} version(s)'**
+  String rumusJumlahVersi(int jumlah);
+
+  /// No description provided for @rumusVersiKe.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {nomor}'**
+  String rumusVersiKe(int nomor);
+
+  /// No description provided for @rumusStatusAktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get rumusStatusAktif;
+
+  /// No description provided for @rumusStatusDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get rumusStatusDraft;
+
+  /// No description provided for @rumusStatusArsip.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get rumusStatusArsip;
+
+  /// No description provided for @rumusBerlakuSejak.
+  ///
+  /// In en, this message translates to:
+  /// **'In effect since {mulai}'**
+  String rumusBerlakuSejak(String mulai);
+
+  /// No description provided for @rumusBerlakuRentang.
+  ///
+  /// In en, this message translates to:
+  /// **'In effect {mulai} – {selesai}'**
+  String rumusBerlakuRentang(String mulai, String selesai);
+
+  /// No description provided for @rumusDibuatSistem.
+  ///
+  /// In en, this message translates to:
+  /// **'Created by the system'**
+  String get rumusDibuatSistem;
+
+  /// No description provided for @rumusDibuatOleh.
+  ///
+  /// In en, this message translates to:
+  /// **'Published by {nama}'**
+  String rumusDibuatOleh(String nama);
+
+  /// No description provided for @rumusTerbitkanVersi.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish new version'**
+  String get rumusTerbitkanVersi;
+
+  /// No description provided for @rumusTerbitkan.
+  ///
+  /// In en, this message translates to:
+  /// **'PUBLISH'**
+  String get rumusTerbitkan;
+
+  /// No description provided for @rumusBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get rumusBatal;
+
+  /// No description provided for @rumusAktifkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate'**
+  String get rumusAktifkan;
+
+  /// No description provided for @rumusAktifkanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate this version?'**
+  String get rumusAktifkanJudul;
+
+  /// No description provided for @rumusAktifkanKet.
+  ///
+  /// In en, this message translates to:
+  /// **'This version will be used for calculations from its effective date, and the previous version\'s range is closed.'**
+  String get rumusAktifkanKet;
+
+  /// No description provided for @rumusFormKet.
+  ///
+  /// In en, this message translates to:
+  /// **'A new version is published, not overwritten. Results already issued keep pointing at the version used at the time.'**
+  String get rumusFormKet;
+
+  /// No description provided for @rumusBerlakuDari.
+  ///
+  /// In en, this message translates to:
+  /// **'Effective from'**
+  String get rumusBerlakuDari;
+
+  /// No description provided for @rumusParameter.
+  ///
+  /// In en, this message translates to:
+  /// **'Parameters'**
+  String get rumusParameter;
+
+  /// No description provided for @rumusCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Change note'**
+  String get rumusCatatan;
+
+  /// No description provided for @rumusCatatanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Why the rule changed — this is what gets read during an audit.'**
+  String get rumusCatatanHint;
+
+  /// No description provided for @rumusLangsungAktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate immediately'**
+  String get rumusLangsungAktif;
+
+  /// No description provided for @rumusLangsungAktifKet.
+  ///
+  /// In en, this message translates to:
+  /// **'If off, the version is saved as a draft — not used for calculations yet, so it is safe to try.'**
+  String get rumusLangsungAktifKet;
+
+  /// No description provided for @rumusVersiTerbit.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {nomor} published.'**
+  String rumusVersiTerbit(int nomor);
+
+  /// No description provided for @profRumus.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration Formulas'**
+  String get profRumus;
+
+  /// No description provided for @profRumusSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Parameters & calculation version history'**
+  String get profRumusSub;
+
   /// No description provided for @profArsip.
   ///
   /// In en, this message translates to:

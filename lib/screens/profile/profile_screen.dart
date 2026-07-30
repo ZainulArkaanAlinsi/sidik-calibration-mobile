@@ -25,6 +25,7 @@ import '../design_system/design_system_screen.dart';
 import '../settings/customer_list_screen.dart';
 import '../settings/organization_screen.dart';
 import '../settings/tanda_tangan_screen.dart';
+import '../settings/rumus_list_screen.dart';
 import '../settings/standard_list_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -131,6 +132,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (_) => const StandardListScreen(),
+                      ),
+                    ),
+                  ),
+                  const _GarisPemisah(),
+                  _BarisMenu(
+                    icon: Icons.functions_outlined,
+                    title: l10n.profRumus,
+                    subtitle: l10n.profRumusSub,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const RumusListScreen(),
                       ),
                     ),
                   ),
