@@ -454,6 +454,7 @@ class CalibrationDetail {
     this.keputusan,
     this.certificateId,
     this.catatanRevisi,
+    this.desimal = 4,
     this.nomorSesi,
     this.standarAcuan,
     this.suhuRuang,
@@ -476,6 +477,19 @@ class CalibrationDetail {
   final Keputusan? keputusan;
   final int? certificateId;
   final String? catatanRevisi;
+
+  /// Berapa desimal angka hasil dibulatkan.
+  ///
+  /// Dikirim backend (`data.desimal`), diturunin dari resolusi alat dan bisa
+  /// ditimpa pengaturan organisasi. **Jangan diturunin sendiri dari
+  /// `equipment.resolusi`** — itu cocok buat kasus biasa tapi meleset begitu
+  /// organisasi nyetel timpaan, dan mobile nggak punya cara tau setelan itu ada.
+  ///
+  /// Nilai di sini **hidup** (ikut pengaturan yang berlaku sekarang), beda dari
+  /// `CertificateSnapshot.desimal` yang **beku**. Itu disengaja: sesi belum
+  /// punya dokumen resmi, sertifikat yang udah terbit nggak boleh berubah
+  /// bentuk gara-gara pengaturan diubah sesudahnya.
+  final int desimal;
 
   final String? nomorSesi;
   final StandardRef? standarAcuan;
@@ -552,6 +566,7 @@ class CalibrationDetail {
       },
       certificateId: (json['certificate_id'] as num?)?.toInt(),
       catatanRevisi: json['catatan_revisi'] as String?,
+      desimal: (json['desimal'] as num?)?.toInt() ?? 4,
       nomorSesi: json['nomor_sesi'] as String?,
       standarAcuan: standar == null ? null : StandardRef.fromJson(standar),
       suhuRuang: (json['suhu_ruang'] as num?)?.toDouble(),
