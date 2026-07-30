@@ -25,6 +25,8 @@ import '../design_system/design_system_screen.dart';
 import '../settings/customer_list_screen.dart';
 import '../settings/organization_screen.dart';
 import '../settings/tanda_tangan_screen.dart';
+import '../settings/metode_list_screen.dart';
+import '../settings/ruangan_list_screen.dart';
 import '../settings/rumus_list_screen.dart';
 import '../settings/standard_list_screen.dart';
 
@@ -143,6 +145,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (_) => const RumusListScreen(),
+                      ),
+                    ),
+                  ),
+                  const _GarisPemisah(),
+                  _BarisMenu(
+                    icon: Icons.meeting_room_outlined,
+                    title: l10n.profRuangan,
+                    subtitle: l10n.profRuanganSub,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const RuanganListScreen(),
+                      ),
+                    ),
+                  ),
+                  const _GarisPemisah(),
+                  _BarisMenu(
+                    icon: Icons.menu_book_outlined,
+                    title: l10n.profMetode,
+                    subtitle: l10n.profMetodeSub,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const MetodeListScreen(),
                       ),
                     ),
                   ),

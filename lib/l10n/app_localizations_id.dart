@@ -450,6 +450,118 @@ class AppLocalizationsId extends AppLocalizations {
   String get profRumusSub => 'Parameter & riwayat versi perhitungan';
 
   @override
+  String get ruanganTitle => 'Ruangan Lab';
+
+  @override
+  String get ruanganTambah => 'Tambah ruangan';
+
+  @override
+  String get ruanganUbah => 'Ubah ruangan';
+
+  @override
+  String get ruanganKosong =>
+      'Belum ada ruangan yang tercatat. Selama kosong, sesi lab jalan tanpa ruangan — jadi tidak bisa dijawab dikerjakan di mana dan apakah kondisinya masuk syarat.';
+
+  @override
+  String get ruanganKode => 'Kode';
+
+  @override
+  String get ruanganNama => 'Nama ruangan';
+
+  @override
+  String get ruanganLokasi => 'Lokasi';
+
+  @override
+  String get ruanganSyarat => 'Syarat kondisi lingkungan';
+
+  @override
+  String get ruanganSuhuMin => 'Suhu min (°C)';
+
+  @override
+  String get ruanganSuhuMaks => 'Suhu maks (°C)';
+
+  @override
+  String get ruanganRhMin => 'RH min (%)';
+
+  @override
+  String get ruanganRhMaks => 'RH maks (%)';
+
+  @override
+  String get ruanganAktif => 'Aktif';
+
+  @override
+  String get ruanganAktifKet =>
+      'Yang nonaktif tetap tersimpan, bukan dihapus — sesi lama menunjuk ke sini.';
+
+  @override
+  String get ruanganNonaktif => 'Nonaktif';
+
+  @override
+  String get ruanganWajib => 'Kode dan nama wajib diisi.';
+
+  @override
+  String get ruanganRentangKebalik =>
+      'Nilai minimum tidak boleh lebih besar dari maksimum.';
+
+  @override
+  String get ruanganBatal => 'Batal';
+
+  @override
+  String get ruanganSimpan => 'SIMPAN';
+
+  @override
+  String get metodeTitle => 'Metode Kalibrasi';
+
+  @override
+  String get metodeTambah => 'Tambah metode';
+
+  @override
+  String get metodeUbah => 'Ubah metode';
+
+  @override
+  String get metodeKosong => 'Belum ada metode kalibrasi (IK) yang tercatat.';
+
+  @override
+  String get metodeKode => 'Kode IK';
+
+  @override
+  String get metodeRevisi => 'Revisi';
+
+  @override
+  String get metodeRevisiKet =>
+      'Yang tercetak di sertifikat adalah revisi yang berlaku saat kalibrasi dikerjakan.';
+
+  @override
+  String get metodeNama => 'Nama metode';
+
+  @override
+  String get metodeBerlaku => 'Berlaku mulai';
+
+  @override
+  String get metodeBerlakuKosong => 'Belum diisi';
+
+  @override
+  String metodeBerlakuMulai(String tanggal) {
+    return 'Berlaku mulai $tanggal';
+  }
+
+  @override
+  String get metodeAktifKet =>
+      'Yang nonaktif tetap tersimpan — sertifikat lama menyebut metode ini.';
+
+  @override
+  String get profRuangan => 'Ruangan Lab';
+
+  @override
+  String get profRuanganSub => 'Daftar ruangan & syarat kondisi lingkungan';
+
+  @override
+  String get profMetode => 'Metode Kalibrasi';
+
+  @override
+  String get profMetodeSub => 'Instruksi Kerja (IK) & revisinya';
+
+  @override
   String get profArsip => 'Arsip';
 
   @override

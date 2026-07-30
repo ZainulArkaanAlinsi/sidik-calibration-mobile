@@ -908,6 +908,216 @@ abstract class AppLocalizations {
   /// **'Parameters & calculation version history'**
   String get profRumusSub;
 
+  /// No description provided for @ruanganTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lab Rooms'**
+  String get ruanganTitle;
+
+  /// No description provided for @ruanganTambah.
+  ///
+  /// In en, this message translates to:
+  /// **'Add room'**
+  String get ruanganTambah;
+
+  /// No description provided for @ruanganUbah.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit room'**
+  String get ruanganUbah;
+
+  /// No description provided for @ruanganKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No rooms recorded yet. While this is empty, lab sessions run without a room — so there is no answer to where the work was done or whether conditions were within limits.'**
+  String get ruanganKosong;
+
+  /// No description provided for @ruanganKode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get ruanganKode;
+
+  /// No description provided for @ruanganNama.
+  ///
+  /// In en, this message translates to:
+  /// **'Room name'**
+  String get ruanganNama;
+
+  /// No description provided for @ruanganLokasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get ruanganLokasi;
+
+  /// No description provided for @ruanganSyarat.
+  ///
+  /// In en, this message translates to:
+  /// **'Environmental limits'**
+  String get ruanganSyarat;
+
+  /// No description provided for @ruanganSuhuMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Temp min (°C)'**
+  String get ruanganSuhuMin;
+
+  /// No description provided for @ruanganSuhuMaks.
+  ///
+  /// In en, this message translates to:
+  /// **'Temp max (°C)'**
+  String get ruanganSuhuMaks;
+
+  /// No description provided for @ruanganRhMin.
+  ///
+  /// In en, this message translates to:
+  /// **'RH min (%)'**
+  String get ruanganRhMin;
+
+  /// No description provided for @ruanganRhMaks.
+  ///
+  /// In en, this message translates to:
+  /// **'RH max (%)'**
+  String get ruanganRhMaks;
+
+  /// No description provided for @ruanganAktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get ruanganAktif;
+
+  /// No description provided for @ruanganAktifKet.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive ones are kept, not deleted — older sessions point here.'**
+  String get ruanganAktifKet;
+
+  /// No description provided for @ruanganNonaktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get ruanganNonaktif;
+
+  /// No description provided for @ruanganWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Code and name are required.'**
+  String get ruanganWajib;
+
+  /// No description provided for @ruanganRentangKebalik.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum cannot be greater than maximum.'**
+  String get ruanganRentangKebalik;
+
+  /// No description provided for @ruanganBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get ruanganBatal;
+
+  /// No description provided for @ruanganSimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE'**
+  String get ruanganSimpan;
+
+  /// No description provided for @metodeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration Methods'**
+  String get metodeTitle;
+
+  /// No description provided for @metodeTambah.
+  ///
+  /// In en, this message translates to:
+  /// **'Add method'**
+  String get metodeTambah;
+
+  /// No description provided for @metodeUbah.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit method'**
+  String get metodeUbah;
+
+  /// No description provided for @metodeKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No calibration methods (work instructions) recorded yet.'**
+  String get metodeKosong;
+
+  /// No description provided for @metodeKode.
+  ///
+  /// In en, this message translates to:
+  /// **'Method code'**
+  String get metodeKode;
+
+  /// No description provided for @metodeRevisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Revision'**
+  String get metodeRevisi;
+
+  /// No description provided for @metodeRevisiKet.
+  ///
+  /// In en, this message translates to:
+  /// **'The certificate prints the revision in force when the calibration was performed.'**
+  String get metodeRevisiKet;
+
+  /// No description provided for @metodeNama.
+  ///
+  /// In en, this message translates to:
+  /// **'Method name'**
+  String get metodeNama;
+
+  /// No description provided for @metodeBerlaku.
+  ///
+  /// In en, this message translates to:
+  /// **'Effective from'**
+  String get metodeBerlaku;
+
+  /// No description provided for @metodeBerlakuKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get metodeBerlakuKosong;
+
+  /// No description provided for @metodeBerlakuMulai.
+  ///
+  /// In en, this message translates to:
+  /// **'Effective from {tanggal}'**
+  String metodeBerlakuMulai(String tanggal);
+
+  /// No description provided for @metodeAktifKet.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive ones are kept — older certificates cite this method.'**
+  String get metodeAktifKet;
+
+  /// No description provided for @profRuangan.
+  ///
+  /// In en, this message translates to:
+  /// **'Lab Rooms'**
+  String get profRuangan;
+
+  /// No description provided for @profRuanganSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Rooms & their environmental limits'**
+  String get profRuanganSub;
+
+  /// No description provided for @profMetode.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration Methods'**
+  String get profMetode;
+
+  /// No description provided for @profMetodeSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Work instructions (IK) & revisions'**
+  String get profMetodeSub;
+
   /// No description provided for @profArsip.
   ///
   /// In en, this message translates to:

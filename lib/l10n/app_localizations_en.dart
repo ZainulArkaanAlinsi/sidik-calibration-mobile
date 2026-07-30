@@ -450,6 +450,118 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profRumusSub => 'Parameters & calculation version history';
 
   @override
+  String get ruanganTitle => 'Lab Rooms';
+
+  @override
+  String get ruanganTambah => 'Add room';
+
+  @override
+  String get ruanganUbah => 'Edit room';
+
+  @override
+  String get ruanganKosong =>
+      'No rooms recorded yet. While this is empty, lab sessions run without a room — so there is no answer to where the work was done or whether conditions were within limits.';
+
+  @override
+  String get ruanganKode => 'Code';
+
+  @override
+  String get ruanganNama => 'Room name';
+
+  @override
+  String get ruanganLokasi => 'Location';
+
+  @override
+  String get ruanganSyarat => 'Environmental limits';
+
+  @override
+  String get ruanganSuhuMin => 'Temp min (°C)';
+
+  @override
+  String get ruanganSuhuMaks => 'Temp max (°C)';
+
+  @override
+  String get ruanganRhMin => 'RH min (%)';
+
+  @override
+  String get ruanganRhMaks => 'RH max (%)';
+
+  @override
+  String get ruanganAktif => 'Active';
+
+  @override
+  String get ruanganAktifKet =>
+      'Inactive ones are kept, not deleted — older sessions point here.';
+
+  @override
+  String get ruanganNonaktif => 'Inactive';
+
+  @override
+  String get ruanganWajib => 'Code and name are required.';
+
+  @override
+  String get ruanganRentangKebalik => 'Minimum cannot be greater than maximum.';
+
+  @override
+  String get ruanganBatal => 'Cancel';
+
+  @override
+  String get ruanganSimpan => 'SAVE';
+
+  @override
+  String get metodeTitle => 'Calibration Methods';
+
+  @override
+  String get metodeTambah => 'Add method';
+
+  @override
+  String get metodeUbah => 'Edit method';
+
+  @override
+  String get metodeKosong =>
+      'No calibration methods (work instructions) recorded yet.';
+
+  @override
+  String get metodeKode => 'Method code';
+
+  @override
+  String get metodeRevisi => 'Revision';
+
+  @override
+  String get metodeRevisiKet =>
+      'The certificate prints the revision in force when the calibration was performed.';
+
+  @override
+  String get metodeNama => 'Method name';
+
+  @override
+  String get metodeBerlaku => 'Effective from';
+
+  @override
+  String get metodeBerlakuKosong => 'Not set';
+
+  @override
+  String metodeBerlakuMulai(String tanggal) {
+    return 'Effective from $tanggal';
+  }
+
+  @override
+  String get metodeAktifKet =>
+      'Inactive ones are kept — older certificates cite this method.';
+
+  @override
+  String get profRuangan => 'Lab Rooms';
+
+  @override
+  String get profRuanganSub => 'Rooms & their environmental limits';
+
+  @override
+  String get profMetode => 'Calibration Methods';
+
+  @override
+  String get profMetodeSub => 'Work instructions (IK) & revisions';
+
+  @override
   String get profArsip => 'Archive';
 
   @override
