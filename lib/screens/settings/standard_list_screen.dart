@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/izin.dart';
 import '../../models/standard.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/izin_provider.dart';
 import '../../providers/calibration_input_provider.dart' show standardCrudProvider;
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../widgets/app_button.dart';
@@ -22,7 +24,10 @@ class StandardListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final standar = ref.watch(standardCrudProvider);
     final l10n = AppLocalizations.of(context);
-    final isAdmin = ref.watch(authProvider).value?.role.isAdmin ?? false;
+    final isAdmin = ref.bolehkah(
+      NamaIzin.masterDataUbah,
+      cadangan: ref.watch(authProvider).value?.role.adminSaja ?? false,
+    );
 
     final data = standar.value;
 

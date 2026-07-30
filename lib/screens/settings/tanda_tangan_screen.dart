@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/izin.dart';
 import '../../models/tanda_tangan.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/izin_provider.dart';
 import '../../providers/tanda_tangan_provider.dart';
 import '../../widgets/app_button.dart';
 
@@ -21,7 +23,10 @@ class TandaTanganScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final admin = ref.watch(authProvider).value?.role.isAdmin ?? false;
+    final admin = ref.bolehkah(
+      NamaIzin.tandaTanganKelola,
+      cadangan: ref.watch(authProvider).value?.role.adminSaja ?? false,
+    );
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.ttdTitle)),
