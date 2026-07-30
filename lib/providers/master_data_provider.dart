@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/config/app_config.dart';
 import '../models/customer.dart';
 import '../models/customer_lookup.dart';
 import '../models/order.dart';
@@ -14,17 +15,20 @@ import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
 
 /// Live sejak 14 Jul (`docs/kontrak-api.md` §8) — admin doang.
-final organizationServiceProvider = Provider<OrganizationService>(
-  (ref) => ApiOrganizationService(ref.watch(apiClientProvider)),
-);
+final organizationServiceProvider = Provider<OrganizationService>((ref) {
+  if (AppConfig.useMock) return MockOrganizationService();
+  return ApiOrganizationService(ref.watch(apiClientProvider));
+});
 
-final customerServiceProvider = Provider<CustomerService>(
-  (ref) => ApiCustomerService(ref.watch(apiClientProvider)),
-);
+final customerServiceProvider = Provider<CustomerService>((ref) {
+  if (AppConfig.useMock) return MockCustomerService();
+  return ApiCustomerService(ref.watch(apiClientProvider));
+});
 
-final customerLookupServiceProvider = Provider<CustomerLookupService>(
-  (ref) => ApiCustomerLookupService(ref.watch(apiClientProvider)),
-);
+final customerLookupServiceProvider = Provider<CustomerLookupService>((ref) {
+  if (AppConfig.useMock) return MockCustomerLookupService();
+  return ApiCustomerLookupService(ref.watch(apiClientProvider));
+});
 
 /// Isi picker pelanggan di form Alat. **Jangan diganti [customerProvider]**
 /// walaupun isinya mirip: yang itu narik `GET /customers` yang admin-only,
@@ -130,9 +134,10 @@ class CustomerController extends AsyncNotifier<List<Customer>> {
   }
 }
 
-final userServiceProvider = Provider<UserService>(
-  (ref) => ApiUserService(ref.watch(apiClientProvider)),
-);
+final userServiceProvider = Provider<UserService>((ref) {
+  if (AppConfig.useMock) return MockUserService();
+  return ApiUserService(ref.watch(apiClientProvider));
+});
 
 final orderServiceProvider = Provider<OrderService>(
   (ref) => ApiOrderService(ref.watch(apiClientProvider)),

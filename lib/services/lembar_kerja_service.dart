@@ -1,3 +1,4 @@
+import 'mock_store.dart';
 import '../models/lembar_kerja.dart';
 import '../models/lembar_kerja_submission.dart';
 import 'api_client.dart';
@@ -89,8 +90,18 @@ class MockLembarKerjaService implements LembarKerjaService {
   }
 
   @override
-  Future<int> kirim(String token, LembarKerjaSubmission isian) async =>
-      _catat(isian, 999);
+  Future<int> kirim(String token, LembarKerjaSubmission isian) async {
+    // Dicatat ke ingatan bersama, bukan balikin id karangan: tanpa ini sesi
+    // yang barusan dikirim teknisi nggak pernah nongol di antrean approval,
+    // dan alur dari lembar kerja sampai sertifikat nggak bisa dicoba sama
+    // sekali tanpa backend nyala. Lihat [MockStore].
+    final id = MockStore.instance.tambahSesi(
+      namaAlat: 'pH Meter (sesi baru)',
+      namaTeknisi: 'Teknisi',
+    );
+
+    return _catat(isian, id);
+  }
 
   @override
   Future<int> perbarui(String token, int id, LembarKerjaSubmission isian) async =>

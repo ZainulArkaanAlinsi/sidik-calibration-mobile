@@ -1742,6 +1742,342 @@ abstract class AppLocalizations {
   /// **'Folder deleted.'**
   String get arsipDihapus;
 
+  /// No description provided for @certSuksesJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate created'**
+  String get certSuksesJudul;
+
+  /// No description provided for @certSuksesNomor.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate number'**
+  String get certSuksesNomor;
+
+  /// No description provided for @certAksiPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Download PDF'**
+  String get certAksiPdf;
+
+  /// No description provided for @certAksiExcel.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Excel'**
+  String get certAksiExcel;
+
+  /// No description provided for @certAksiQr.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code'**
+  String get certAksiQr;
+
+  /// No description provided for @certAksiSalinTautan.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy verification link'**
+  String get certAksiSalinTautan;
+
+  /// No description provided for @certAksiEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Send email'**
+  String get certAksiEmail;
+
+  /// No description provided for @certAksiWhatsapp.
+  ///
+  /// In en, this message translates to:
+  /// **'Share via WhatsApp'**
+  String get certAksiWhatsapp;
+
+  /// No description provided for @certAksiTutup.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get certAksiTutup;
+
+  /// No description provided for @certQrModalJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate QR'**
+  String get certQrModalJudul;
+
+  /// No description provided for @certQrScanUntukVerifikasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan to verify'**
+  String get certQrScanUntukVerifikasi;
+
+  /// No description provided for @certQrSimpanPng.
+  ///
+  /// In en, this message translates to:
+  /// **'Save PNG'**
+  String get certQrSimpanPng;
+
+  /// No description provided for @certTautanDisalin.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification link copied.'**
+  String get certTautanDisalin;
+
+  /// No description provided for @certPngDisimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'QR saved to {lokasi}'**
+  String certPngDisimpan(String lokasi);
+
+  /// No description provided for @certGagalBuka.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open {tujuan} on this device.'**
+  String certGagalBuka(String tujuan);
+
+  /// No description provided for @certBelumAdaTautan.
+  ///
+  /// In en, this message translates to:
+  /// **'The backend hasn\'t issued a verification token yet, so there\'s no link to share.'**
+  String get certBelumAdaTautan;
+
+  /// No description provided for @certPesanBagikan.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello,\n\nYour calibration certificate has been generated.\n\nCertificate Number:\n{nomor}\n\nVerification Link:\n{tautan}\n\nScan the QR code or open the link above.\n\nThank you.'**
+  String certPesanBagikan(String nomor, String tautan);
+
+  /// No description provided for @certSubjekEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration Certificate {nomor}'**
+  String certSubjekEmail(String nomor);
+
+  /// No description provided for @alurTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Workflow'**
+  String get alurTitle;
+
+  /// No description provided for @alurSub.
+  ///
+  /// In en, this message translates to:
+  /// **'From the technician\'s entry to the certificate landing in the client\'s inbox.'**
+  String get alurSub;
+
+  /// No description provided for @alurPilihSesi.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a session on the left to see where it stands.'**
+  String get alurPilihSesi;
+
+  /// No description provided for @alurCari.
+  ///
+  /// In en, this message translates to:
+  /// **'Search device or technician...'**
+  String get alurCari;
+
+  /// No description provided for @alurKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No calibration sessions yet.'**
+  String get alurKosong;
+
+  /// No description provided for @alurSesiBaru.
+  ///
+  /// In en, this message translates to:
+  /// **'New calibration'**
+  String get alurSesiBaru;
+
+  /// No description provided for @alurTahapLembarKerja.
+  ///
+  /// In en, this message translates to:
+  /// **'Worksheet'**
+  String get alurTahapLembarKerja;
+
+  /// No description provided for @alurTahapPerhitungan.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculation & approval'**
+  String get alurTahapPerhitungan;
+
+  /// No description provided for @alurTahapSertifikat.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate issued'**
+  String get alurTahapSertifikat;
+
+  /// No description provided for @alurTahapKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to client'**
+  String get alurTahapKirim;
+
+  /// No description provided for @alurBukaLembarKerja.
+  ///
+  /// In en, this message translates to:
+  /// **'Open worksheet'**
+  String get alurBukaLembarKerja;
+
+  /// No description provided for @alurBukaPerhitungan.
+  ///
+  /// In en, this message translates to:
+  /// **'Open calculation sheet'**
+  String get alurBukaPerhitungan;
+
+  /// No description provided for @alurLihatSertifikat.
+  ///
+  /// In en, this message translates to:
+  /// **'View certificate'**
+  String get alurLihatSertifikat;
+
+  /// No description provided for @alurKirimPelanggan.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to client'**
+  String get alurKirimPelanggan;
+
+  /// No description provided for @alurDetailSesi.
+  ///
+  /// In en, this message translates to:
+  /// **'Session details'**
+  String get alurDetailSesi;
+
+  /// No description provided for @alurStatusDisetujui.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get alurStatusDisetujui;
+
+  /// No description provided for @alurSertifikatDigenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'The certificate is still being generated on the server. Reload in a moment.'**
+  String get alurSertifikatDigenerate;
+
+  /// No description provided for @alurCatatanRevisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent back by the admin: {catatan}'**
+  String alurCatatanRevisi(String catatan);
+
+  /// No description provided for @alurLangkahSekarang.
+  ///
+  /// In en, this message translates to:
+  /// **'You are here'**
+  String get alurLangkahSekarang;
+
+  /// No description provided for @alurLangkahSelesai.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get alurLangkahSelesai;
+
+  /// No description provided for @panelSeksiOperasional.
+  ///
+  /// In en, this message translates to:
+  /// **'Operations'**
+  String get panelSeksiOperasional;
+
+  /// No description provided for @panelSeksiDokumen.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get panelSeksiDokumen;
+
+  /// No description provided for @panelSeksiSistem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get panelSeksiSistem;
+
+  /// No description provided for @panelCariMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Search menu...'**
+  String get panelCariMenu;
+
+  /// No description provided for @panelMenuKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No menu matches that.'**
+  String get panelMenuKosong;
+
+  /// No description provided for @panelSinkronAktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Live sync on'**
+  String get panelSinkronAktif;
+
+  /// No description provided for @panelSinkronMati.
+  ///
+  /// In en, this message translates to:
+  /// **'Live sync off'**
+  String get panelSinkronMati;
+
+  /// No description provided for @panelTema.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle theme'**
+  String get panelTema;
+
+  /// No description provided for @panelSubjudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Desktop · {akreditasi}'**
+  String panelSubjudul(String akreditasi);
+
+  /// No description provided for @panelRingkasan.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get panelRingkasan;
+
+  /// No description provided for @panelRingkasanSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Where the lab stands right now.'**
+  String get panelRingkasanSub;
+
+  /// No description provided for @panelBukaAntrean.
+  ///
+  /// In en, this message translates to:
+  /// **'Open approval queue'**
+  String get panelBukaAntrean;
+
+  /// No description provided for @panelSebaranStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Session status spread'**
+  String get panelSebaranStatus;
+
+  /// No description provided for @panelPerluTindakLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'FOLLOW UP'**
+  String get panelPerluTindakLanjut;
+
+  /// No description provided for @panelSesiSelesai.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} sessions completed'**
+  String panelSesiSelesai(int count);
+
+  /// No description provided for @panelMasihDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Plus {count} still in draft'**
+  String panelMasihDraft(int count);
+
+  /// No description provided for @panelTotalSepanjangMasa.
+  ///
+  /// In en, this message translates to:
+  /// **'All-time total {count}'**
+  String panelTotalSepanjangMasa(int count);
+
+  /// No description provided for @panelStatusBelumLengkap.
+  ///
+  /// In en, this message translates to:
+  /// **'\"Needs revision\" isn\'t in the dashboard response yet — backend request pending.'**
+  String get panelStatusBelumLengkap;
+
   /// No description provided for @arsipPetunjukPindah.
   ///
   /// In en, this message translates to:

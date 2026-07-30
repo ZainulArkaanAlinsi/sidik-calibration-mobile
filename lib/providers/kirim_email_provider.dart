@@ -1,13 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/config/app_config.dart';
 import '../models/kirim_email.dart';
 import '../services/kirim_email_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
 
-final kirimEmailServiceProvider = Provider<KirimEmailService>(
-  (ref) => ApiKirimEmailService(ref.watch(apiClientProvider)),
-);
+final kirimEmailServiceProvider = Provider<KirimEmailService>((ref) {
+  if (AppConfig.useMock) return MockKirimEmailService();
+  return ApiKirimEmailService(ref.watch(apiClientProvider));
+});
 
 /// Riwayat percobaan kirim, di-key per sertifikat.
 ///

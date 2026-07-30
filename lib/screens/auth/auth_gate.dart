@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/auth_provider.dart';
+import '../../providers/platform_provider.dart';
+import '../shell/desktop_shell.dart';
 import '../shell/main_shell.dart';
 import 'login_screen.dart';
 import 'splash_screen.dart';
@@ -22,8 +24,15 @@ class AuthGate extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authProvider);
 
+    // Desktop = meja kerja admin (panel), HP = alat lapangan (lima tab).
+    // Lihat [pakaiPanelDesktopProvider] buat alasan kenapa ini dipatok ke
+    // platform, bukan ke lebar jendela.
+    final panelDesktop = ref.watch(pakaiPanelDesktopProvider);
+
     return switch (auth) {
-      AsyncData(:final value?) => MainShell(key: ValueKey(value.id)),
+      AsyncData(:final value?) => panelDesktop
+          ? DesktopShell(key: ValueKey(value.id))
+          : MainShell(key: ValueKey(value.id)),
       AsyncLoading() when !auth.hasValue && !auth.hasError => const SplashScreen(),
       _ => const LoginScreen(),
     };

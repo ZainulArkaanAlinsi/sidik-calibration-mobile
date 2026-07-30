@@ -1,3 +1,4 @@
+import 'mock_store.dart';
 import 'api_client.dart';
 
 /// Dilempar `reject()` kalau catatan revisinya kosong — validasi lokal,
@@ -73,7 +74,11 @@ class MockApprovalService implements ApprovalService {
   @override
   Future<int?> approve(String token, int calibrationId) async {
     await _tunda();
-    return 900 + calibrationId;
+
+    // Sesi yang lahir dari lembar kerja diurus [MockStore] biar statusnya
+    // beneran pindah — kalau cuma balikin angka, sesinya balik lagi ke
+    // "menunggu approval" begitu daftarnya dimuat ulang.
+    return MockStore.instance.setujui(calibrationId) ?? 900 + calibrationId;
   }
 
   @override
@@ -84,6 +89,7 @@ class MockApprovalService implements ApprovalService {
   ) async {
     if (catatanRevisi.trim().isEmpty) throw const CatatanKosongException();
     await _tunda();
+    MockStore.instance.tolak(calibrationId, catatanRevisi);
   }
 
   @override

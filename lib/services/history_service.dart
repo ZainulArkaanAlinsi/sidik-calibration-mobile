@@ -1,3 +1,4 @@
+import 'mock_store.dart';
 import '../models/calibration_detail.dart';
 import '../core/utils/parse_list.dart';
 import '../models/calibration_history_item.dart';
@@ -91,6 +92,9 @@ class MockHistoryService implements HistoryService {
     final sekarang = DateTime.now();
 
     return [
+      // Sesi yang barusan dikirim teknisi ditaruh paling depan — itu yang
+      // dicari orang, bukan contoh bawaan. Kosong kalau belum ada yang ngirim.
+      ...MockStore.instance.sesi,
       CalibrationHistoryItem(
         id: 1,
         namaAlat: 'Jangka Sorong Mitutoyo',
