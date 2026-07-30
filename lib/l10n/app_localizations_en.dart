@@ -1919,6 +1919,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emailRetry => 'TRY AGAIN';
 
   @override
+  String get emailFormatJudul => 'What to send';
+
+  @override
+  String get emailFormatPdf => 'PDF';
+
+  @override
+  String get emailFormatExcel => 'Excel';
+
+  @override
+  String get emailFormatTautan => 'Link';
+
+  @override
+  String get emailFormatPdfKet =>
+      'The official document, attached to the email.';
+
+  @override
+  String get emailFormatExcelKet =>
+      'Spreadsheet version, attached — for customers who process the data further.';
+
+  @override
+  String get emailFormatTautanKet =>
+      'Verification link only, no attachment. The customer downloads it from that page.';
+
+  @override
   String get ttdTitle => 'Certificate Signature';
 
   @override
@@ -2228,6 +2252,134 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lkStandarKadaluarsa => 'certificate expired';
+
+  @override
+  String antreanSemuaPt(int jumlah) {
+    return 'All companies ($jumlah)';
+  }
+
+  @override
+  String get kirimLewatJudul => 'Send via';
+
+  @override
+  String get kirimLewatEmail => 'Email';
+
+  @override
+  String get kirimLewatWa => 'WhatsApp';
+
+  @override
+  String get waKeLabel => 'WhatsApp number';
+
+  @override
+  String get waKeHint => '08123456789';
+
+  @override
+  String get waKeKosong => 'Enter at least one WhatsApp number.';
+
+  @override
+  String get waNomorSalah => 'One of the numbers isn\'t in a readable format.';
+
+  @override
+  String get waKirim => 'OPEN WHATSAPP';
+
+  @override
+  String get waTercatat => 'Send recorded in the history.';
+
+  @override
+  String get waTakBisaDibuka => 'WhatsApp can\'t be opened on this device.';
+
+  @override
+  String get waKetPdf =>
+      'WhatsApp can\'t carry attachments, so a direct PDF download link is sent instead.';
+
+  @override
+  String get waKetExcel => 'A direct download link for the Excel file is sent.';
+
+  @override
+  String get waKetTautan =>
+      'The verification page link is sent — the customer views the certificate there and downloads it themselves.';
+
+  @override
+  String get tolakJudul => 'Send back to technician';
+
+  @override
+  String get tolakPetunjuk =>
+      'Pick what needs fixing. The fields you flag get highlighted on the technician\'s worksheet, so they don\'t have to hunt for them.';
+
+  @override
+  String get tolakDariPemeriksaan => 'From the validation check';
+
+  @override
+  String get tolakAlasanUmum => 'Other reasons';
+
+  @override
+  String get tolakAlasanSerial => 'Serial number doesn\'t match';
+
+  @override
+  String get tolakAlasanIdentitas => 'Equipment identity incomplete';
+
+  @override
+  String get tolakAlasanPemilik => 'Owner details wrong';
+
+  @override
+  String get tolakAlasanEnv => 'Env. Condition incomplete';
+
+  @override
+  String get tolakAlasanThermohygro => 'Thermohygro not selected';
+
+  @override
+  String get tolakAlasanPembacaan => 'Readings look wrong, redo them';
+
+  @override
+  String get tolakAlasanUsageCheck => 'Usage Check not ticked';
+
+  @override
+  String get tolakCatatanTambahan => 'Extra note (optional)';
+
+  @override
+  String get tolakCatatanHint => 'Say why, so it doesn\'t happen again.';
+
+  @override
+  String get tolakPratinjau => 'What the technician will see';
+
+  @override
+  String get tolakKirim => 'SEND BACK TO TECHNICIAN';
+
+  @override
+  String get lkPerluDibetulin => 'Admin asked you to fix this';
+
+  @override
+  String get lkBannerRevisi =>
+      'Admin sent this worksheet back. The flagged fields below are the ones to fix.';
+
+  @override
+  String get lkStandarBelumTerdaftar =>
+      'not registered in the standards master';
+
+  @override
+  String antreanMasukBaru(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah new worksheets in the approval queue',
+      one: '1 new worksheet in the approval queue',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lkThermohygroKosong => 'No thermohygro units registered yet.';
+
+  @override
+  String lkHalamanKe(int nomor, int dari) {
+    return 'Page $nomor of $dari';
+  }
+
+  @override
+  String get lkHalamanLanjut => 'NEXT PAGE';
+
+  @override
+  String get lkHalamanKembali => 'BACK';
 
   @override
   String get lkPilih => 'Choose';

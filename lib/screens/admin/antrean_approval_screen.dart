@@ -47,18 +47,102 @@ class AntreanApprovalScreen extends ConsumerWidget {
   }
 }
 
-class _Daftar extends StatelessWidget {
+/// Antrean dikelompokkan per PT.
+///
+/// Admin mikirnya per perusahaan — "beresin punya Maju Jaya dulu, sekalian
+/// sertifikatnya sekali kirim" — bukan per teknisi atau per tanggal. Daftar
+/// datar yang nyampur semua PT maksa dia nyisir tiap baris nyari yang
+/// sekumpulan, dan itu yang bikin antrean kerasa ribet.
+///
+/// Penyaringnya cuma nongol kalau ada LEBIH DARI SATU PT: satu chip buat satu
+/// pilihan itu kontrol yang nggak ngontrol apa-apa, cuma makan tempat.
+class _Daftar extends StatefulWidget {
   const _Daftar({required this.items});
 
   final List<CalibrationHistoryItem> items;
 
   @override
+  State<_Daftar> createState() => _DaftarState();
+}
+
+class _DaftarState extends State<_Daftar> {
+  /// Null = semua PT.
+  String? _pt;
+
+  static const _tanpaNama = '—';
+
+  String _namaPt(CalibrationHistoryItem i) => i.namaPelanggan ?? _tanpaNama;
+
+  @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      itemCount: items.length,
-      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-      itemBuilder: (context, i) => _Kartu(item: items[i]),
+    final l10n = AppLocalizations.of(context);
+
+    // Urut sesuai jumlah antrean, terbanyak duluan — PT yang paling numpuk
+    // biasanya yang paling ditunggu.
+    final jumlah = <String, int>{};
+    for (final i in widget.items) {
+      jumlah[_namaPt(i)] = (jumlah[_namaPt(i)] ?? 0) + 1;
+    }
+    final urutPt = jumlah.keys.toList()
+      ..sort((a, b) {
+        final selisih = jumlah[b]!.compareTo(jumlah[a]!);
+        return selisih != 0 ? selisih : a.compareTo(b);
+      });
+
+    // PT yang lagi dipilih bisa ilang dari daftar (kiriman terakhirnya barusan
+    // diproses). Jatuh balik ke "semua" daripada nampilin layar kosong yang
+    // kelihatan kayak antreannya habis.
+    final dipilih = urutPt.contains(_pt) ? _pt : null;
+
+    final tampil = dipilih == null
+        ? widget.items
+        : widget.items.where((i) => _namaPt(i) == dipilih).toList();
+
+    return Column(
+      children: [
+        if (urutPt.length > 1)
+          SizedBox(
+            height: 56,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(right: AppSpacing.sm),
+                  child: Center(
+                    child: FilterChip(
+                      label: Text(l10n.antreanSemuaPt(widget.items.length)),
+                      selected: dipilih == null,
+                      onSelected: (_) => setState(() => _pt = null),
+                    ),
+                  ),
+                ),
+                for (final pt in urutPt)
+                  Padding(
+                    padding: const EdgeInsets.only(right: AppSpacing.sm),
+                    child: Center(
+                      child: FilterChip(
+                        label: Text('$pt (${jumlah[pt]})'),
+                        selected: dipilih == pt,
+                        // Ditekan lagi = balik ke semua. Tanpa itu, sekali
+                        // nyaring admin kepaksa cari chip "Semua" buat keluar.
+                        onSelected: (pilih) =>
+                            setState(() => _pt = pilih ? pt : null),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        Expanded(
+          child: ListView.separated(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            itemCount: tampil.length,
+            separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+            itemBuilder: (context, i) => _Kartu(item: tampil[i]),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -85,11 +169,26 @@ class _Kartu extends StatelessWidget {
           ),
         ),
         title: Text(item.namaAlat, overflow: TextOverflow.ellipsis),
-        subtitle: Text(
-          '${l10n.antreanOleh(item.namaTeknisi)} · '
-          '${DateFormat('d MMM yyyy', locale).format(item.tanggalKalibrasi)}',
-          style: theme.textTheme.labelSmall,
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (item.namaPelanggan != null)
+              Text(
+                item.namaPelanggan!,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            Text(
+              '${l10n.antreanOleh(item.namaTeknisi)} · '
+              '${DateFormat('d MMM yyyy', locale).format(item.tanggalKalibrasi)}',
+              style: theme.textTheme.labelSmall,
+            ),
+          ],
         ),
+        isThreeLine: item.namaPelanggan != null,
         trailing: const Icon(Icons.chevron_right),
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute<void>(

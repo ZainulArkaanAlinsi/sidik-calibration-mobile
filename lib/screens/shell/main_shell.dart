@@ -12,6 +12,7 @@ import '../equipment/equipment_list_screen.dart';
 import '../folder/folder_manager_screen.dart';
 import '../history/history_screen.dart';
 import '../admin/antrean_approval_screen.dart';
+import '../../widgets/pemantau_antrean.dart';
 import '../admin/import_excel_screen.dart';
 import '../notification/notification_screen.dart';
 import '../profile/profile_screen.dart';
@@ -117,20 +118,24 @@ class MainShell extends ConsumerWidget {
         return Scaffold(
           key: mainShellKey,
           drawer: const _MenuUtama(),
-          body: pakaiRail
-              ? Row(
-                  children: [
-                    _RailSamping(
-                      selectedIndex: selected,
-                      onSelected: pilihTab,
-                      items: items,
-                      dibentangkan: constraints.maxWidth >= _lebarRailPanjang,
-                    ),
-                    const VerticalDivider(width: 1, thickness: 1),
-                    Expanded(child: isi),
-                  ],
-                )
-              : isi,
+          // Lihat catatan di DesktopShell: pemantau antrean dibungkus di luar
+          // isi supaya tandanya muncul di layar mana pun.
+          body: PemantauAntrean(
+            child: pakaiRail
+                ? Row(
+                    children: [
+                      _RailSamping(
+                        selectedIndex: selected,
+                        onSelected: pilihTab,
+                        items: items,
+                        dibentangkan: constraints.maxWidth >= _lebarRailPanjang,
+                      ),
+                      const VerticalDivider(width: 1, thickness: 1),
+                      Expanded(child: isi),
+                    ],
+                  )
+                : isi,
+          ),
           // Navbar bawah cuma buat layar sempit. Di desktop dua-duanya nongol
           // bakal jadi dua kontrol yang isinya sama persis — bingungin, dan
           // makan tinggi layar yang justru mahal di jendela pendek.

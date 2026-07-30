@@ -1909,6 +1909,29 @@ class AppLocalizationsId extends AppLocalizations {
   String get emailRetry => 'COBA LAGI';
 
   @override
+  String get emailFormatJudul => 'Yang dikirim';
+
+  @override
+  String get emailFormatPdf => 'PDF';
+
+  @override
+  String get emailFormatExcel => 'Excel';
+
+  @override
+  String get emailFormatTautan => 'Tautan';
+
+  @override
+  String get emailFormatPdfKet => 'Dokumen resminya, dilampirkan di email.';
+
+  @override
+  String get emailFormatExcelKet =>
+      'Versi lembar kerja, dilampirkan — buat pelanggan yang ngolah datanya lagi.';
+
+  @override
+  String get emailFormatTautanKet =>
+      'Cuma tautan verifikasi, tanpa lampiran. Pelanggan yang unduh sendiri dari halaman itu.';
+
+  @override
   String get ttdTitle => 'Tanda Tangan Sertifikat';
 
   @override
@@ -2217,6 +2240,134 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get lkStandarKadaluarsa => 'sertifikat kadaluarsa';
+
+  @override
+  String antreanSemuaPt(int jumlah) {
+    return 'Semua PT ($jumlah)';
+  }
+
+  @override
+  String get kirimLewatJudul => 'Kirim lewat';
+
+  @override
+  String get kirimLewatEmail => 'Email';
+
+  @override
+  String get kirimLewatWa => 'WhatsApp';
+
+  @override
+  String get waKeLabel => 'Nomor WhatsApp';
+
+  @override
+  String get waKeHint => '08123456789';
+
+  @override
+  String get waKeKosong => 'Isi minimal satu nomor WhatsApp.';
+
+  @override
+  String get waNomorSalah => 'Ada nomor yang formatnya nggak kebaca.';
+
+  @override
+  String get waKirim => 'BUKA WHATSAPP';
+
+  @override
+  String get waTercatat => 'Pengiriman tercatat di riwayat.';
+
+  @override
+  String get waTakBisaDibuka => 'WhatsApp nggak bisa dibuka di perangkat ini.';
+
+  @override
+  String get waKetPdf =>
+      'WhatsApp nggak bisa dititipin lampiran, jadi yang dikirim tautan unduh PDF-nya langsung.';
+
+  @override
+  String get waKetExcel =>
+      'Yang dikirim tautan unduh berkas Excel-nya langsung.';
+
+  @override
+  String get waKetTautan =>
+      'Yang dikirim tautan halaman verifikasi — pelanggan lihat sertifikatnya di situ dan bisa unduh sendiri.';
+
+  @override
+  String get tolakJudul => 'Kembalikan ke teknisi';
+
+  @override
+  String get tolakPetunjuk =>
+      'Pilih apa yang perlu dibetulin. Kolom yang kamu tandai bakal kesorot di lembar kerja teknisi, jadi dia nggak perlu nyari sendiri.';
+
+  @override
+  String get tolakDariPemeriksaan => 'Dari hasil pemeriksaan';
+
+  @override
+  String get tolakAlasanUmum => 'Alasan lain';
+
+  @override
+  String get tolakAlasanSerial => 'Serial number nggak cocok';
+
+  @override
+  String get tolakAlasanIdentitas => 'Identitas alat nggak lengkap';
+
+  @override
+  String get tolakAlasanPemilik => 'Data pemilik salah';
+
+  @override
+  String get tolakAlasanEnv => 'Env. Condition belum lengkap';
+
+  @override
+  String get tolakAlasanThermohygro => 'Thermohygro belum dipilih';
+
+  @override
+  String get tolakAlasanPembacaan => 'Pembacaan meragukan, ulangi';
+
+  @override
+  String get tolakAlasanUsageCheck => 'Usage Check belum dicentang';
+
+  @override
+  String get tolakCatatanTambahan => 'Catatan tambahan (opsional)';
+
+  @override
+  String get tolakCatatanHint => 'Jelasin kenapa, biar nggak keulang lagi.';
+
+  @override
+  String get tolakPratinjau => 'Yang bakal diterima teknisi';
+
+  @override
+  String get tolakKirim => 'KEMBALIKAN KE TEKNISI';
+
+  @override
+  String get lkPerluDibetulin => 'Diminta admin dibetulin';
+
+  @override
+  String get lkBannerRevisi =>
+      'Admin ngembaliin lembar kerja ini. Kolom yang ditandai di bawah yang perlu dibetulin.';
+
+  @override
+  String get lkStandarBelumTerdaftar => 'belum terdaftar di master standar';
+
+  @override
+  String antreanMasukBaru(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah lembar kerja baru masuk antrean approval',
+      one: '1 lembar kerja baru masuk antrean approval',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lkThermohygroKosong => 'Belum ada unit thermohygro terdaftar.';
+
+  @override
+  String lkHalamanKe(int nomor, int dari) {
+    return 'Halaman $nomor dari $dari';
+  }
+
+  @override
+  String get lkHalamanLanjut => 'LANJUT KE HALAMAN BERIKUTNYA';
+
+  @override
+  String get lkHalamanKembali => 'KEMBALI';
 
   @override
   String get lkPilih => 'Pilih';

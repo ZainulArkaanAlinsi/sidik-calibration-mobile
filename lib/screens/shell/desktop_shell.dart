@@ -16,6 +16,7 @@ import '../admin/import_excel_screen.dart';
 import '../alur/alur_kerja_screen.dart';
 import '../arsip/arsip_screen.dart';
 import '../dashboard/ringkasan_screen.dart';
+import '../../widgets/pemantau_antrean.dart';
 import '../equipment/equipment_list_screen.dart';
 import '../folder/folder_manager_screen.dart';
 import '../history/history_screen.dart';
@@ -60,7 +61,11 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
     final aktif = semua.where((m) => m.id == _dipilih).firstOrNull ?? semua.first;
 
     return Scaffold(
-      body: Row(
+      // Pemantau dibungkus di LUAR isi, bukan di dalam satu layar: kiriman
+      // teknisi bisa masuk kapan aja, dan admin jarang lagi buka dashboard
+      // waktu itu terjadi.
+      body: PemantauAntrean(
+        child: Row(
         children: [
           SizedBox(
             width: _lebarSidebar,
@@ -83,6 +88,7 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
             ),
           ),
         ],
+        ),
       ),
     );
   }

@@ -3566,6 +3566,48 @@ abstract class AppLocalizations {
   /// **'TRY AGAIN'**
   String get emailRetry;
 
+  /// No description provided for @emailFormatJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'What to send'**
+  String get emailFormatJudul;
+
+  /// No description provided for @emailFormatPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF'**
+  String get emailFormatPdf;
+
+  /// No description provided for @emailFormatExcel.
+  ///
+  /// In en, this message translates to:
+  /// **'Excel'**
+  String get emailFormatExcel;
+
+  /// No description provided for @emailFormatTautan.
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get emailFormatTautan;
+
+  /// No description provided for @emailFormatPdfKet.
+  ///
+  /// In en, this message translates to:
+  /// **'The official document, attached to the email.'**
+  String get emailFormatPdfKet;
+
+  /// No description provided for @emailFormatExcelKet.
+  ///
+  /// In en, this message translates to:
+  /// **'Spreadsheet version, attached — for customers who process the data further.'**
+  String get emailFormatExcelKet;
+
+  /// No description provided for @emailFormatTautanKet.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification link only, no attachment. The customer downloads it from that page.'**
+  String get emailFormatTautanKet;
+
   /// No description provided for @ttdTitle.
   ///
   /// In en, this message translates to:
@@ -4135,6 +4177,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'certificate expired'**
   String get lkStandarKadaluarsa;
+
+  /// No description provided for @antreanSemuaPt.
+  ///
+  /// In en, this message translates to:
+  /// **'All companies ({jumlah})'**
+  String antreanSemuaPt(int jumlah);
+
+  /// No description provided for @kirimLewatJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Send via'**
+  String get kirimLewatJudul;
+
+  /// No description provided for @kirimLewatEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get kirimLewatEmail;
+
+  /// No description provided for @kirimLewatWa.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp'**
+  String get kirimLewatWa;
+
+  /// No description provided for @waKeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp number'**
+  String get waKeLabel;
+
+  /// No description provided for @waKeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'08123456789'**
+  String get waKeHint;
+
+  /// No description provided for @waKeKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter at least one WhatsApp number.'**
+  String get waKeKosong;
+
+  /// No description provided for @waNomorSalah.
+  ///
+  /// In en, this message translates to:
+  /// **'One of the numbers isn\'t in a readable format.'**
+  String get waNomorSalah;
+
+  /// No description provided for @waKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'OPEN WHATSAPP'**
+  String get waKirim;
+
+  /// No description provided for @waTercatat.
+  ///
+  /// In en, this message translates to:
+  /// **'Send recorded in the history.'**
+  String get waTercatat;
+
+  /// No description provided for @waTakBisaDibuka.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp can\'t be opened on this device.'**
+  String get waTakBisaDibuka;
+
+  /// No description provided for @waKetPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp can\'t carry attachments, so a direct PDF download link is sent instead.'**
+  String get waKetPdf;
+
+  /// No description provided for @waKetExcel.
+  ///
+  /// In en, this message translates to:
+  /// **'A direct download link for the Excel file is sent.'**
+  String get waKetExcel;
+
+  /// No description provided for @waKetTautan.
+  ///
+  /// In en, this message translates to:
+  /// **'The verification page link is sent — the customer views the certificate there and downloads it themselves.'**
+  String get waKetTautan;
+
+  /// No description provided for @tolakJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Send back to technician'**
+  String get tolakJudul;
+
+  /// No description provided for @tolakPetunjuk.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick what needs fixing. The fields you flag get highlighted on the technician\'s worksheet, so they don\'t have to hunt for them.'**
+  String get tolakPetunjuk;
+
+  /// No description provided for @tolakDariPemeriksaan.
+  ///
+  /// In en, this message translates to:
+  /// **'From the validation check'**
+  String get tolakDariPemeriksaan;
+
+  /// No description provided for @tolakAlasanUmum.
+  ///
+  /// In en, this message translates to:
+  /// **'Other reasons'**
+  String get tolakAlasanUmum;
+
+  /// No description provided for @tolakAlasanSerial.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number doesn\'t match'**
+  String get tolakAlasanSerial;
+
+  /// No description provided for @tolakAlasanIdentitas.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment identity incomplete'**
+  String get tolakAlasanIdentitas;
+
+  /// No description provided for @tolakAlasanPemilik.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner details wrong'**
+  String get tolakAlasanPemilik;
+
+  /// No description provided for @tolakAlasanEnv.
+  ///
+  /// In en, this message translates to:
+  /// **'Env. Condition incomplete'**
+  String get tolakAlasanEnv;
+
+  /// No description provided for @tolakAlasanThermohygro.
+  ///
+  /// In en, this message translates to:
+  /// **'Thermohygro not selected'**
+  String get tolakAlasanThermohygro;
+
+  /// No description provided for @tolakAlasanPembacaan.
+  ///
+  /// In en, this message translates to:
+  /// **'Readings look wrong, redo them'**
+  String get tolakAlasanPembacaan;
+
+  /// No description provided for @tolakAlasanUsageCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Usage Check not ticked'**
+  String get tolakAlasanUsageCheck;
+
+  /// No description provided for @tolakCatatanTambahan.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra note (optional)'**
+  String get tolakCatatanTambahan;
+
+  /// No description provided for @tolakCatatanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Say why, so it doesn\'t happen again.'**
+  String get tolakCatatanHint;
+
+  /// No description provided for @tolakPratinjau.
+  ///
+  /// In en, this message translates to:
+  /// **'What the technician will see'**
+  String get tolakPratinjau;
+
+  /// No description provided for @tolakKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'SEND BACK TO TECHNICIAN'**
+  String get tolakKirim;
+
+  /// No description provided for @lkPerluDibetulin.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin asked you to fix this'**
+  String get lkPerluDibetulin;
+
+  /// No description provided for @lkBannerRevisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin sent this worksheet back. The flagged fields below are the ones to fix.'**
+  String get lkBannerRevisi;
+
+  /// No description provided for @lkStandarBelumTerdaftar.
+  ///
+  /// In en, this message translates to:
+  /// **'not registered in the standards master'**
+  String get lkStandarBelumTerdaftar;
+
+  /// No description provided for @antreanMasukBaru.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah, plural, =1{1 new worksheet in the approval queue} other{{jumlah} new worksheets in the approval queue}}'**
+  String antreanMasukBaru(int jumlah);
+
+  /// No description provided for @lkThermohygroKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No thermohygro units registered yet.'**
+  String get lkThermohygroKosong;
+
+  /// No description provided for @lkHalamanKe.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {nomor} of {dari}'**
+  String lkHalamanKe(int nomor, int dari);
+
+  /// No description provided for @lkHalamanLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'NEXT PAGE'**
+  String get lkHalamanLanjut;
+
+  /// No description provided for @lkHalamanKembali.
+  ///
+  /// In en, this message translates to:
+  /// **'BACK'**
+  String get lkHalamanKembali;
 
   /// No description provided for @lkPilih.
   ///
