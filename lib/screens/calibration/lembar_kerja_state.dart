@@ -194,6 +194,27 @@ class LembarKerjaState {
   /// bener dan yang salah hal lain.
   final Set<String> revisiField = {};
 
+  /// Catatan admin waktu ngembaliin lembar ini — alasannya, apa adanya.
+  ///
+  /// Wajib ada di layar tempat teknisi MEMBETULKAN, bukan cuma di notifikasi
+  /// & layar detail sesi. Kolom bergaris merah cuma nunjukin MANA yang salah;
+  /// yang bikin teknisi ngerti harus diapain itu alasannya. Tanpa ini dia
+  /// mesti mundur ke layar lain sambil ngingat-ngingat, atau ngira-ngira.
+  ///
+  /// Bisa null: admin boleh nolak dengan catatan tanpa nandain kolom.
+  String? catatanRevisi;
+
+  /// Lembar ini dikembalikan admin — entah lewat kolom yang ditandai, catatan,
+  /// atau dua-duanya.
+  ///
+  /// Sengaja BUKAN `revisiField.isNotEmpty`: `revisi_field` boleh null di
+  /// backend, jadi penolakan yang cuma bawa catatan bikin bannernya nggak
+  /// muncul sama sekali. Teknisi dapat lembar yang kelihatan normal padahal
+  /// admin udah ngembaliin — dan alasannya cuma ada di notifikasi yang
+  /// gampang kelewat.
+  bool get adaRevisi =>
+      revisiField.isNotEmpty || (catatanRevisi?.trim().isNotEmpty ?? false);
+
   UsageCheckState usage(int standardId) => usageCheck.putIfAbsent(
     standardId,
     () => UsageCheckState(standardId: standardId),
@@ -245,6 +266,7 @@ class LembarKerjaState {
     revisiField
       ..clear()
       ..addAll(isi.revisiField);
+    catatanRevisi = isi.catatanRevisi;
 
     isi.standarDicek.forEach((standardId, baris) {
       final state = usage(standardId);

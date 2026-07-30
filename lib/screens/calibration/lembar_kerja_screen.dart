@@ -391,37 +391,77 @@ class _FormState extends ConsumerState<_Form> {
 /// Muncul cuma waktu ada kolom yang ditandai — kalau ditolak tanpa nunjuk kolom
 /// tertentu, catatan revisinya udah tampil di layar Alur Kerja dan banner di
 /// sini cuma jadi kebisingan.
+/// Banner "lembar ini dikembalikan admin" di atas lembar kerja.
+///
+/// Yang paling penting di sini **catatan adminnya**, bukan bannernya. Kolom
+/// bergaris merah cuma jawab "mana yang salah"; alasannya yang jawab "harus
+/// diapain". Sebelumnya catatan itu cuma ada di notifikasi (dipotong 120
+/// karakter) dan layar detail sesi — bukan di layar tempat teknisi ngerjain
+/// betulannya, jadi dia mesti mundur-mundur atau ngira-ngira.
 class _BannerRevisi extends StatelessWidget {
-  const _BannerRevisi({required this.jumlah});
+  const _BannerRevisi({required this.jumlah, this.catatan});
 
+  /// Berapa kolom yang ditandai admin. 0 = admin cuma nulis catatan tanpa
+  /// nandain kolom — sah, dan tetap mesti kelihatan.
   final int jumlah;
+
+  final String? catatan;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
+    final fg = theme.colorScheme.onErrorContainer;
+    final teks = catatan?.trim();
 
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: theme.colorScheme.errorContainer,
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.assignment_return_outlined,
-            color: theme.colorScheme.onErrorContainer,
+          Row(
+            children: [
+              Icon(Icons.assignment_return_outlined, color: fg),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  // Tanpa kolom ditandai, kalimat "kolom yang ditandai di
+                  // bawah" nunjuk ke sesuatu yang nggak ada.
+                  jumlah > 0 ? l10n.lkBannerRevisi : l10n.lkBannerRevisiTanpaKolom,
+                  style: theme.textTheme.bodySmall?.copyWith(color: fg),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              l10n.lkBannerRevisi,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onErrorContainer,
+          if (teks != null && teks.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.lkCatatanAdmin,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: fg,
+                fontWeight: FontWeight.bold,
               ),
             ),
-          ),
+            const SizedBox(height: 2),
+            // Apa adanya, nggak dipotong: catatan revisi yang kepotong bikin
+            // teknisi ngerjain separuh permintaan.
+            Text(
+              teks,
+              style: theme.textTheme.bodyMedium?.copyWith(color: fg),
+            ),
+          ],
+          if (jumlah > 0) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              l10n.lkRevisiJumlahKolom(jumlah),
+              style: theme.textTheme.labelSmall?.copyWith(color: fg),
+            ),
+          ],
         ],
       ),
     );
@@ -454,8 +494,11 @@ class _LembarSatuKolom extends StatelessWidget {
         if (halaman == 0) ...[
           _KopDokumen(bentuk: bentuk),
           const SizedBox(height: AppSpacing.md),
-          if (isian.revisiField.isNotEmpty) ...[
-            _BannerRevisi(jumlah: isian.revisiField.length),
+          if (isian.adaRevisi) ...[
+            _BannerRevisi(
+              jumlah: isian.revisiField.length,
+              catatan: isian.catatanRevisi,
+            ),
             const SizedBox(height: AppSpacing.md),
           ],
         ],
@@ -522,9 +565,12 @@ class _LembarDuaKolom extends StatelessWidget {
           child: Column(
             children: [
               _KopDokumen(bentuk: bentuk),
-              if (isian.revisiField.isNotEmpty) ...[
+              if (isian.adaRevisi) ...[
                 const SizedBox(height: AppSpacing.md),
-                _BannerRevisi(jumlah: isian.revisiField.length),
+                _BannerRevisi(
+                  jumlah: isian.revisiField.length,
+                  catatan: isian.catatanRevisi,
+                ),
               ],
             ],
           ),

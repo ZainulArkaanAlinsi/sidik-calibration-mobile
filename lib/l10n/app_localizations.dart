@@ -4358,6 +4358,24 @@ abstract class AppLocalizations {
   /// **'Admin asked you to fix this'**
   String get lkPerluDibetulin;
 
+  /// No description provided for @lkBannerRevisiTanpaKolom.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin sent this worksheet back. Read the note below.'**
+  String get lkBannerRevisiTanpaKolom;
+
+  /// No description provided for @lkCatatanAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'ADMIN\'S NOTE'**
+  String get lkCatatanAdmin;
+
+  /// No description provided for @lkRevisiJumlahKolom.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} field(s) flagged for correction.'**
+  String lkRevisiJumlahKolom(int jumlah);
+
   /// No description provided for @lkBannerRevisi.
   ///
   /// In en, this message translates to:

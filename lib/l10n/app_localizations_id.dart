@@ -2338,6 +2338,18 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkPerluDibetulin => 'Diminta admin dibetulin';
 
   @override
+  String get lkBannerRevisiTanpaKolom =>
+      'Admin ngembaliin lembar kerja ini. Baca catatannya di bawah.';
+
+  @override
+  String get lkCatatanAdmin => 'CATATAN ADMIN';
+
+  @override
+  String lkRevisiJumlahKolom(int jumlah) {
+    return '$jumlah kolom ditandai perlu dibetulin.';
+  }
+
+  @override
   String get lkBannerRevisi =>
       'Admin ngembaliin lembar kerja ini. Kolom yang ditandai di bawah yang perlu dibetulin.';
 

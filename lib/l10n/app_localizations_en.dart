@@ -2349,6 +2349,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkPerluDibetulin => 'Admin asked you to fix this';
 
   @override
+  String get lkBannerRevisiTanpaKolom =>
+      'Admin sent this worksheet back. Read the note below.';
+
+  @override
+  String get lkCatatanAdmin => 'ADMIN\'S NOTE';
+
+  @override
+  String lkRevisiJumlahKolom(int jumlah) {
+    return '$jumlah field(s) flagged for correction.';
+  }
+
+  @override
   String get lkBannerRevisi =>
       'Admin sent this worksheet back. The flagged fields below are the ones to fix.';
 

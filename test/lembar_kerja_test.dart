@@ -847,6 +847,81 @@ void _testRevisi() {
       expect(state.revisiField, {'alat_serial_number'});
     });
 
+    test('catatan admin kebaca utuh, bukan cuma kode kolomnya', () {
+      final isi = IsianTeknisi.fromJson(const {
+        'revisi_field': ['suhu_awal'],
+        'catatan_revisi': 'Suhu awal 19,8 nggak masuk rentang IK (20±2). '
+            'Ulangi pembacaannya sesudah alatnya settle 15 menit.',
+      });
+
+      // Kolom bergaris merah cuma jawab MANA yang salah. Yang bikin teknisi
+      // ngerti harus ngapain itu alasannya — dan itu mesti utuh, nggak
+      // dipotong kayak di notifikasi.
+      expect(isi.catatanRevisi, contains('settle 15 menit'));
+    });
+
+    test('catatan admin dibawa ke state, kebaca di layar betulannya', () {
+      final state = LembarKerjaState(
+        bentuk: LembarKerja.fromJson(contohBentukLembarKerja()),
+        clientRequestId: 'x',
+      );
+
+      state.muatDariSesi(
+        IsianTeknisi.fromJson(const {
+          'revisi_field': ['suhu_awal'],
+          'catatan_revisi': 'Ulangi pembacaan suhu awal.',
+        }),
+      );
+
+      expect(state.catatanRevisi, 'Ulangi pembacaan suhu awal.');
+      expect(state.adaRevisi, isTrue);
+    });
+
+    test('ditolak dengan catatan TAPI tanpa nandain kolom tetap kelihatan', () {
+      final state = LembarKerjaState(
+        bentuk: LembarKerja.fromJson(contohBentukLembarKerja()),
+        clientRequestId: 'x',
+      );
+
+      // `revisi_field` boleh null di backend — admin sah nolak cuma pakai
+      // catatan. Dulu banner-nya digantung ke `revisiField.isNotEmpty`, jadi
+      // teknisi dapat lembar yang kelihatan normal padahal udah dikembaliin.
+      state.muatDariSesi(
+        IsianTeknisi.fromJson(const {
+          'catatan_revisi': 'Lembarnya ketuker sama sesi lain, kirim ulang.',
+        }),
+      );
+
+      expect(state.revisiField, isEmpty);
+      expect(state.adaRevisi, isTrue);
+    });
+
+    test('sesi normal (nggak ditolak) nggak munculin banner apa pun', () {
+      final state = LembarKerjaState(
+        bentuk: LembarKerja.fromJson(contohBentukLembarKerja()),
+        clientRequestId: 'x',
+      );
+
+      state.muatDariSesi(
+        IsianTeknisi.fromJson(const {'alat_merk': 'Hanna'}),
+      );
+
+      expect(state.adaRevisi, isFalse);
+    });
+
+    test('catatan kosong/spasi doang nggak dianggap revisi', () {
+      final state = LembarKerjaState(
+        bentuk: LembarKerja.fromJson(contohBentukLembarKerja()),
+        clientRequestId: 'x',
+      );
+
+      state.muatDariSesi(
+        IsianTeknisi.fromJson(const {'catatan_revisi': '   '}),
+      );
+
+      expect(state.adaRevisi, isFalse);
+    });
+
     test('yang udah diketik teknisi NGGAK ketimpa data lama', () {
       final state = LembarKerjaState(
         bentuk: LembarKerja.fromJson(contohBentukLembarKerja()),

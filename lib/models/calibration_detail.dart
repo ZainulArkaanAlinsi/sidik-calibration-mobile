@@ -358,6 +358,7 @@ class IsianTeknisi {
     this.kelembabanAkhir,
     this.standarDicek = const {},
     this.revisiField = const {},
+    this.catatanRevisi,
   });
 
   final int? equipmentId;
@@ -386,6 +387,13 @@ class IsianTeknisi {
   /// waktu lembar kerja dibuka lagi — teknisi nggak perlu nyisir puluhan kolom
   /// nyari mana yang dimaksud catatan revisinya.
   final Set<String> revisiField;
+
+  /// Alasan admin ngembaliin lembarnya, apa adanya (nggak dipotong).
+  ///
+  /// Notifikasi cuma bawa 120 karakter pertama — cukup buat tau ada apa, nggak
+  /// cukup buat tau harus ngapain. Yang lengkap dibawa ke sini biar kebaca di
+  /// layar tempat teknisi ngerjain betulannya.
+  final String? catatanRevisi;
 
   factory IsianTeknisi.fromJson(Map<String, dynamic> json) {
     final dicek = <int, ({bool dipakai, String? keterangan})>{};
@@ -431,6 +439,7 @@ class IsianTeknisi {
         for (final k in json['revisi_field'] as List<dynamic>? ?? const [])
           '$k',
       },
+      catatanRevisi: json['catatan_revisi'] as String?,
     );
   }
 }
