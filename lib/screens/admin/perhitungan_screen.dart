@@ -246,10 +246,37 @@ class _Isi extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.sm),
 
-        for (final tabel in perhitungan.hasil) ...[
-          TabelPerhitunganWidget(tabel: tabel),
-          const SizedBox(height: AppSpacing.lg),
-        ],
+        // Before & After dibungkus SATU kartu, bukan dua blok berjauhan.
+        //
+        // Dua-duanya satu lembar perhitungan yang sama — yang dibaca orang itu
+        // "alatnya datang segini, sesudah diadjust jadi segini". Ditaruh
+        // sebagai dua blok dengan jarak lebar, di layar sempit yang kedua
+        // jatuh di luar layar dan kelihatan kayak halaman lain; padahal
+        // membandingkan dua tabel itu justru gunanya lembar ini.
+        Card(
+          margin: EdgeInsets.zero,
+          clipBehavior: Clip.antiAlias,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.md,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final (i, tabel) in perhitungan.hasil.indexed) ...[
+                  if (i > 0) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    const Divider(height: 1),
+                    const SizedBox(height: AppSpacing.md),
+                  ],
+                  TabelPerhitunganWidget(tabel: tabel),
+                ],
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
 
         // Dua catatan yang paling gampang bikin salah baca angka. Ditulis di
         // layar, bukan cuma di komentar kode, karena yang kebalik nanti itu
