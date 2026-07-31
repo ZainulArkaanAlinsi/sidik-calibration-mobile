@@ -12,7 +12,6 @@ import '../../providers/realtime_provider.dart';
 import '../../providers/theme_mode_provider.dart';
 import '../../widgets/notification_bell.dart';
 import '../admin/antrean_approval_screen.dart';
-import '../order/my_tasks_screen.dart';
 import '../settings/metode_list_screen.dart';
 import '../settings/ruangan_list_screen.dart';
 import '../settings/rumus_list_screen.dart';
@@ -160,17 +159,6 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
             label: l10n.alurTitle,
             bangun: AlurKerjaScreen.new,
           ),
-          // "Tugas Saya" tadinya cuma ada di HP, jadi teknisi yang kerja di
-          // laptop nggak punya jalan ke tugasnya sendiri — dia mesti nyisir
-          // Alur Kerja yang isinya sesi semua orang. Sejajar sama Antrean
-          // punya admin: dua-duanya layar kerja harian, beda perannya.
-          if (peran?.bisaInput ?? false)
-            _Menu(
-              id: 'tugas',
-              ikon: Icons.assignment_outlined,
-              label: l10n.tugasTitle,
-              bangun: MyTasksScreen.new,
-            ),
           if (bolehSetujui)
             _Menu(
               id: 'antrean',

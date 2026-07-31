@@ -130,38 +130,21 @@ void main() {
     expect(find.text('SISTEM'), findsNothing);
   });
 
-  testWidgets('teknisi di laptop dapat "Tugas Saya", bukan cuma Alur Kerja', (
+  testWidgets('"Tugas Saya" NGGAK ada di mana pun — /orders dibatalin', (
     tester,
   ) async {
     await _jendelaDesktop(tester);
     await _sampaiPanel(tester, token: 'mock-token-2');
 
-    // Dulu "Tugas Saya" cuma ada di HP, jadi teknisi yang kerja di laptop
-    // nggak punya jalan ke tugasnya sendiri — dia mesti nyisir Alur Kerja
-    // yang isinya sesi semua orang.
-    expect(find.text('Tugas Saya'), findsOneWidget);
-  });
-
-  testWidgets('viewer NGGAK dikasih "Tugas Saya" — dia nggak pernah ditugaskan', (
-    tester,
-  ) async {
-    await _jendelaDesktop(tester);
-    await _sampaiPanel(tester, token: 'mock-token-3');
-
-    // Syaratnya `bisaInput` = admin ATAU teknisi, jadi admin ikut dapat —
-    // dan itu memang disengaja, sama kayak di HP. Yang nggak dapat cuma
-    // viewer, karena dia nggak bisa ngisi lembar kerja sama sekali.
+    // Backend nutup branch Order Kalibrasi & penugasan teknisi permanen
+    // (handoff 31 Jul §6) — `/orders` nol route. `MyTasksScreen` nembak
+    // `GET /orders?teknisi_id=saya`, jadi menunya pasti 404.
+    //
+    // Test ini sengaja ngunci ABSENNYA: sebelumnya gw nambahin menu ini ke
+    // sidebar karena audit paritas bilang timpang, dan itu bener PADA
+    // WAKTUNYA — tapi jadi salah begitu fiturnya dibatalin. Tanpa test ini,
+    // "paritas" gampang bikin orang masangnya balik.
     expect(find.text('Tugas Saya'), findsNothing);
-  });
-
-  testWidgets('admin ikut dapat "Tugas Saya", persis kayak di HP', (
-    tester,
-  ) async {
-    await _jendelaDesktop(tester);
-    await _sampaiPanel(tester);
-
-    // Paritas HP↔laptop itu intinya: menu yang sama buat peran yang sama.
-    expect(find.text('Tugas Saya'), findsOneWidget);
   });
 
   testWidgets('Pengaturan di panel NGGAK ngulang isi sidebar', (tester) async {
