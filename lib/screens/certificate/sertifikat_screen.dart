@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/buka_berkas.dart';
 
+import '../../core/utils/angka.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
@@ -287,7 +288,12 @@ class _TabelHasil extends StatelessWidget {
                       _sel(context, b.standardValue.toStringAsFixed(d)),
                       _sel(context, b.unitUnderTest.toStringAsFixed(d)),
                       _sel(context, b.correction.toStringAsFixed(d)),
-                      _sel(context, b.u95.toStringAsFixed(d)),
+                      // U95 pakai formatter sendiri: dia dijamin kebaca 2
+                      // angka penting, nggak dipaksa ikut desimal alat. Ikut
+                      // desimal alat, `0.0234` kecetak `0.02` dan kehilangan
+                      // setengah nilainya — dan layar ini dipakai buat
+                      // nyocokin sama PDF-nya, jadi dua-duanya harus sama.
+                      _sel(context, formatKetidakpastian(b.u95, d)),
                     ],
                   ),
               ],
