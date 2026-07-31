@@ -126,7 +126,7 @@ final calibrationDetailProvider =
 /// Antrean approval admin — semua kiriman dari semua teknisi
 /// (`GET /api/calibrations?status=menunggu_approval`).
 ///
-/// Dipisah dari [historyProvider] yang pakai `mine=true`: dua pertanyaan yang
+/// Dipisah dari [historyProvider]: dua pertanyaan yang
 /// beda ("kerjaan saya" vs "apa yang nunggu saya periksa"), dan admin bolak
 /// balik antara keduanya.
 final antreanApprovalProvider =

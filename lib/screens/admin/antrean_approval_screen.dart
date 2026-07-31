@@ -14,7 +14,7 @@ import 'perhitungan_screen.dart';
 ///
 /// **Teknisi banyak, admin satu pintu**: semua kiriman dari semua akun teknisi
 /// masuk ke sini, bukan cuma punya admin sendiri. Bedanya dari layar Riwayat
-/// itu di query — Riwayat pakai `mine=true`, ini `status=menunggu_approval`.
+/// itu di query — Riwayat nggak nyaring status, ini `status=menunggu_approval`.
 ///
 /// Tap satu baris → lembar PERHITUNGAN, tempat admin beneran mutusin.
 class AntreanApprovalScreen extends ConsumerWidget {

@@ -10,7 +10,7 @@ abstract class HistoryService {
   /// Antrean approval admin: **semua kiriman dari semua teknisi**, bukan cuma
   /// punya sendiri (`GET /api/calibrations?status=menunggu_approval`).
   ///
-  /// Beda dari [ambilRiwayat] yang pakai `mine=true`. Teknisi yang nembak ini
+  /// Beda dari [ambilRiwayat] yang nggak nyaring status. Teknisi yang nembak ini
   /// tetap cuma dapat sesi miliknya — penyaringnya di controller backend,
   /// bukan di query param dari mobile.
   Future<List<CalibrationHistoryItem>> ambilAntreanApproval(String token);
@@ -20,19 +20,31 @@ abstract class HistoryService {
   Future<CalibrationDetail> ambilDetail(String token, int id);
 }
 
-/// Nembak `GET /api/calibrations?mine=true` (live sejak 14 Jul,
+/// Nembak `GET /api/calibrations` (live sejak 14 Jul,
 /// `docs/kontrak-api.md` §4).
 ///
-/// `mine=true` cuma efektif buat admin & viewer yang mau nyaring punya
-/// sendiri — teknisi **selalu** dapat sesi miliknya doang, apa pun query-nya.
+/// Teknisi **selalu** dapat sesi miliknya doang, apa pun query-nya — yang
+/// nyaring controller backend, bukan parameter dari mobile.
 class ApiHistoryService implements HistoryService {
   ApiHistoryService(this._api);
 
   final ApiClient _api;
 
+  /// Riwayat kalibrasi.
+  ///
+  /// **`mine=true` sengaja NGGAK dikirim.** Dulu dikirim, dan itu bikin Riwayat
+  /// KOSONG buat admin: `mine=true` nyaring ke sesi milik si pemanggil, dan
+  /// admin nggak pernah bikin sesi sendiri. Dari layar kelihatannya "Riwayat
+  /// nggak bisa dibuka" — padahal kebuka, cuma isinya nol.
+  ///
+  /// Aman buat teknisi: backend NGGAK percaya parameter ini apa adanya —
+  /// `CalibrationController::index()` maksa saring `teknisi_id` buat role
+  /// teknisi apa pun isi query-nya, justru biar teknisi nggak bisa ngintip
+  /// kerjaan orang lain dengan ngirim `mine=false`. Jadi tanpa parameter ini
+  /// teknisi tetap lihat punyanya sendiri, dan admin lihat semuanya.
   @override
   Future<List<CalibrationHistoryItem>> ambilRiwayat(String token) async {
-    final json = await _api.get('/calibrations?mine=true', token: token);
+    final json = await _api.get('/calibrations', token: token);
     final data = (json['data'] as List<dynamic>? ?? const []);
 
     return parseListAman(data, CalibrationHistoryItem.fromJson);
