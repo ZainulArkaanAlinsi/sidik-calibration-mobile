@@ -13,6 +13,7 @@ import '../../providers/izin_provider.dart';
 import '../../providers/kirim_email_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/status_badge.dart';
+import '../../widgets/sidik_loader.dart';
 
 /// Nomor WA dinormalin ke bentuk internasional tanpa tanda baca — `wa.me`
 /// cuma nerima digit. `08...` (cara nulis lokal) jadi `628...`.
@@ -428,7 +429,7 @@ class _IsiState extends ConsumerState<_Isi> {
               riwayatEmailProvider(widget.certificateId),
             ),
           ),
-          _ => const Center(child: CircularProgressIndicator()),
+          _ => const Center(child: SidikLoader(size: 88)),
         },
       ],
     );

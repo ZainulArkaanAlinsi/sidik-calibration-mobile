@@ -11,6 +11,7 @@ import '../../models/standard.dart';
 import '../../providers/calibration_input_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
+import '../../widgets/sidik_loader.dart';
 
 /// Form input kalibrasi — kategori → alat → standar acuan, lalu titik ukur
 /// (target + pembacaan berulang) yang dinamis. Nggak nyoba nyaingin worksheet
@@ -46,7 +47,7 @@ class CalibrationInputScreen extends ConsumerWidget {
         },
       );
     } else {
-      isi = const Center(child: CircularProgressIndicator());
+      isi = const Center(child: SidikLoader(size: 88));
     }
 
     return Scaffold(

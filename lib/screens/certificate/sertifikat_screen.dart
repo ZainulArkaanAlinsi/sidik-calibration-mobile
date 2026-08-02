@@ -14,6 +14,7 @@ import '../../providers/certificate_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../services/pdf_downloader.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/sidik_loader.dart';
 
 /// Pratinjau sertifikat (spesifikasi poin 9), plus unduh PDF/Excel & QR
 /// (poin 10 & 13).
@@ -40,7 +41,7 @@ class SertifikatScreen extends ConsumerWidget {
           onCobaLagi: () =>
               ref.invalidate(certificateDetailProvider(certificateId)),
         ),
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => const Center(child: SidikLoader(size: 88)),
       },
       bottomNavigationBar: async.value?.siap ?? false
           ? _BilahUnduh(sertifikat: async.value!)
