@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/config/lab_profile.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/sidik_loader.dart';
 import 'widgets/auth_brand_header.dart';
 import 'widgets/neu.dart';
 
@@ -27,8 +28,10 @@ class SplashScreen extends StatelessWidget {
           child: Column(
             children: [
               const Spacer(flex: 3),
-              const NeuBrandLogo(),
-              const SizedBox(height: 26),
+              // Logo Sidik berorbit — sekaligus brand & indikator loading, jadi
+              // nggak perlu logo statis + spinner terpisah.
+              const SidikLoader(size: 140),
+              const SizedBox(height: 30),
               Text(
                 LabProfile.namaSingkat,
                 style: TextStyle(
@@ -43,21 +46,6 @@ class SplashScreen extends StatelessWidget {
                 l10n.appTagline,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14, color: c.textMuted),
-              ),
-              const SizedBox(height: 44),
-              // Indikator kalem — cincin cekung neu dengan spinner tipis di
-              // tengahnya, senada sama field & tombol di Login.
-              NeuInset(
-                radius: 22,
-                padding: const EdgeInsets.all(14),
-                child: SizedBox(
-                  height: 22,
-                  width: 22,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.4,
-                    valueColor: AlwaysStoppedAnimation(c.textMuted),
-                  ),
-                ),
               ),
               const Spacer(flex: 4),
               const AuthPoweredBy(),
