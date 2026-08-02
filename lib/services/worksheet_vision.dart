@@ -268,6 +268,9 @@ abstract class WorksheetVisionService {
     int jumlahTitik,
     int jumlahBaris,
     int? sesiId,
+    String? satuan,
+    List<double>? nominal,
+    List<int?>? desimal,
   });
 
   void dispose();
@@ -288,16 +291,35 @@ class ApiWorksheetVisionService implements WorksheetVisionService {
     int jumlahTitik = 3,
     int jumlahBaris = 5,
     int? sesiId,
+    String? satuan,
+    List<double>? nominal,
+    List<int?>? desimal,
   }) async {
+    // Petunjuk buat AI: satuan + nilai nominal tiap kolom + jumlah desimalnya.
+    // Dikirim indexed (`titik_nominal[0]`) biar keparse jadi array di Laravel.
+    // Desimal cuma dikirim kalau LENGKAP semua titiknya (backend nolak null).
+    final fields = <String, String>{
+      if (sesiId != null) 'calibration_session_id': '$sesiId',
+      'jumlah_titik': '$jumlahTitik',
+      'jumlah_pengulangan': '$jumlahBaris',
+      if (satuan != null && satuan.isNotEmpty) 'satuan': satuan,
+    };
+    if (nominal != null) {
+      for (var i = 0; i < nominal.length; i++) {
+        fields['titik_nominal[$i]'] = '${nominal[i]}';
+      }
+    }
+    if (desimal != null && desimal.every((d) => d != null)) {
+      for (var i = 0; i < desimal.length; i++) {
+        fields['desimal[$i]'] = '${desimal[i]}';
+      }
+    }
+
     final json = await _api.unggahFile(
       '/raw-measurements/extract-from-photo',
       field: 'foto',
       filePath: foto.path,
-      fields: {
-        if (sesiId != null) 'calibration_session_id': '$sesiId',
-        'jumlah_titik': '$jumlahTitik',
-        'jumlah_pengulangan': '$jumlahBaris',
-      },
+      fields: fields,
       token: await _token(),
     );
 
@@ -430,6 +452,9 @@ class MockWorksheetVisionService implements WorksheetVisionService {
     int jumlahTitik = 3,
     int jumlahBaris = 5,
     int? sesiId,
+    String? satuan,
+    List<double>? nominal,
+    List<int?>? desimal,
   }) async {
     if (gagal) throw Exception('ekstraksi AI gagal');
     if (hasil != null) return hasil;
