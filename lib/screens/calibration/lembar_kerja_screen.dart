@@ -14,6 +14,7 @@ import '../../providers/calibration_input_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../providers/lembar_kerja_provider.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/sidik_loader.dart';
 import 'lembar_kerja_state.dart';
 import 'widgets/lembar_kerja_tabel.dart';
 
@@ -84,7 +85,7 @@ class LembarKerjaScreen extends ConsumerWidget {
           error: error,
           onCobaLagi: () => ref.invalidate(lembarKerjaProvider(profil)),
         ),
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => const Center(child: SidikLoader(size: 88)),
       },
     );
   }

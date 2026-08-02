@@ -244,6 +244,10 @@ class _HistoryCard extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Ikon jenis alat — bikin kartu lebih gampang dipindai
+                  // (mata langsung ke jenis alatnya), gaya kartu referensi.
+                  _IkonAlat(nama: item.namaAlat),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -295,6 +299,47 @@ class _HistoryCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Ikon jenis alat dalam kotak membulat lembut. Ikonnya dicocokin lewat
+/// keyword nama (sumbernya teks bebas), dengan fallback ikon "ukur" generik.
+class _IkonAlat extends StatelessWidget {
+  const _IkonAlat({required this.nama});
+
+  final String nama;
+
+  IconData get _ikon {
+    final n = nama.toLowerCase();
+    return switch (n) {
+      _ when n.contains('ph meter') => Icons.science_outlined,
+      _ when n.contains('turbidi') => Icons.blur_on_outlined,
+      _ when n.contains('conductivity') => Icons.bolt_outlined,
+      _ when n.contains('thermo') || n.contains('termo') =>
+        Icons.device_thermostat_outlined,
+      _ when n.contains('timbang') => Icons.scale_outlined,
+      _ when n.contains('oven') || n.contains('furnace') =>
+        Icons.local_fire_department_outlined,
+      _ when n.contains('pipet') || n.contains('buret') => Icons.science_outlined,
+      _ when n.contains('caliper') || n.contains('micrometer') =>
+        Icons.straighten_outlined,
+      _ => Icons.straighten_outlined,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: 42,
+      height: 42,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(13),
+      ),
+      child: Icon(_ikon, size: 21, color: theme.colorScheme.onSurfaceVariant),
     );
   }
 }
