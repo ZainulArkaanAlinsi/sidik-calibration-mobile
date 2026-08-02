@@ -141,14 +141,38 @@ class _KartuPerusahaan extends StatelessWidget {
                     ),
                   ),
                 ],
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  l10n.arsipRingkasPerusahaan(
-                    perusahaan.jumlahAlat,
-                    perusahaan.jumlahSertifikat,
-                  ),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                const SizedBox(height: AppSpacing.sm),
+                // Ringkasan dipindah ke pill lembut biar kebaca sekali lihat &
+                // kartunya lebih "kece" — teksnya sengaja UTUH (dipakai test).
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.workspace_premium_outlined,
+                          size: 13,
+                          color: theme.colorScheme.primary,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          l10n.arsipRingkasPerusahaan(
+                            perusahaan.jumlahAlat,
+                            perusahaan.jumlahSertifikat,
+                          ),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -982,16 +1006,29 @@ class _Kosong extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.folder_open_outlined,
-            size: 48,
-            color: theme.colorScheme.onSurfaceVariant,
+          // Ikon di dalam lingkaran lembut — empty state yang lebih ramah,
+          // bukan ikon telanjang.
+          Container(
+            width: 88,
+            height: 88,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.07),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.folder_open_outlined,
+              size: 40,
+              color: theme.colorScheme.primary.withValues(alpha: 0.7),
+            ),
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.md),
           Text(
             pesan,
+            textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
