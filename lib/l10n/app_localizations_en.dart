@@ -2490,7 +2490,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkUsageCheckKeterangan => 'Notes';
 
   @override
-  String get lkStandarPerTitik => 'Buffer standard';
+  String get lkStandarPerTitik => 'Point standard';
 
   @override
   String get lkStandarKadaluarsa => 'certificate expired';

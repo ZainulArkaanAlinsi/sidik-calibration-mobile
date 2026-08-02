@@ -2478,7 +2478,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkUsageCheckKeterangan => 'Keterangan';
 
   @override
-  String get lkStandarPerTitik => 'Standar buffer';
+  String get lkStandarPerTitik => 'Standar titik';
 
   @override
   String get lkStandarKadaluarsa => 'sertifikat kadaluarsa';

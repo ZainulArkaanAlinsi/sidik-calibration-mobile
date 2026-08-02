@@ -1070,7 +1070,7 @@
   "lkRepeat": "Repeat",
   "lkUsageCheckKosong": "No reference standards in master data yet.",
   "lkUsageCheckKeterangan": "Notes",
-  "lkStandarPerTitik": "Buffer standard",
+  "lkStandarPerTitik": "Point standard",
   "lkStandarKadaluarsa": "certificate expired",
   "antreanSemuaPt": "All companies ({jumlah})",
   "@antreanSemuaPt": { "placeholders": { "jumlah": { "type": "int" } } },

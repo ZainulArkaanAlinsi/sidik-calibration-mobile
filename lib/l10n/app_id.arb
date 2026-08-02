@@ -812,7 +812,7 @@
   "lkRepeat": "Repeat",
   "lkUsageCheckKosong": "Belum ada standar acuan di master data.",
   "lkUsageCheckKeterangan": "Keterangan",
-  "lkStandarPerTitik": "Standar buffer",
+  "lkStandarPerTitik": "Standar titik",
   "lkStandarKadaluarsa": "sertifikat kadaluarsa",
   "antreanSemuaPt": "Semua PT ({jumlah})",
   "@antreanSemuaPt": { "placeholders": { "jumlah": { "type": "int" } } },
