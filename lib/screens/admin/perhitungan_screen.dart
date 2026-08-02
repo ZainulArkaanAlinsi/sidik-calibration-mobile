@@ -13,6 +13,7 @@ import 'widgets/lembar_tolak.dart';
 import 'widgets/blok_kondisi.dart';
 import 'widgets/panel_temuan.dart';
 import 'widgets/tabel_perhitungan.dart';
+import '../../widgets/sidik_loader.dart';
 
 /// Lembar PERHITUNGAN — **layar utama admin** (spesifikasi poin 11 & 12A).
 ///
@@ -166,7 +167,7 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
           onCobaLagi: () =>
               ref.invalidate(perhitunganProvider(widget.calibrationId)),
         ),
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => const Center(child: SidikLoader(size: 88)),
       },
       bottomNavigationBar: async.hasValue
           ? _BilahAksi(

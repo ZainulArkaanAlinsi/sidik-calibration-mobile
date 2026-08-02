@@ -11,6 +11,7 @@ import '../../providers/master_data_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/status_badge.dart';
+import '../../widgets/sidik_loader.dart';
 
 /// Data Teknisi — kelola akun (setujui pendaftar, tetapkan role, nonaktifkan,
 /// reset password).
@@ -134,7 +135,7 @@ class _Isi extends ConsumerWidget {
           onPressed: controller.muatUlang,
         ),
       ),
-      _ => const Center(child: CircularProgressIndicator()),
+      _ => const Center(child: SidikLoader(size: 88)),
     };
 
     return Column(

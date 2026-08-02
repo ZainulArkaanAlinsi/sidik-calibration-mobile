@@ -9,6 +9,7 @@ import '../../providers/history_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/notification_bell.dart';
 import 'perhitungan_screen.dart';
+import '../../widgets/sidik_loader.dart';
 
 /// Antrean approval admin (spesifikasi poin 12A, rencana §2.1).
 ///
@@ -40,7 +41,7 @@ class AntreanApprovalScreen extends ConsumerWidget {
             onCobaLagi: () =>
                 ref.read(antreanApprovalProvider.notifier).muatUlang(),
           ),
-          _ => const Center(child: CircularProgressIndicator()),
+          _ => const Center(child: SidikLoader(size: 88)),
         },
       ),
     );
