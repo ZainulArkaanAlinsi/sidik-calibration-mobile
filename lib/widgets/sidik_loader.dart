@@ -4,24 +4,26 @@ import 'package:flutter/material.dart';
 
 import '../core/theme/app_colors.dart';
 
-/// Loader khas Sidik: logo di tengah + satu satelit mengorbit di lintasan
-/// miring (gaya "planet") — bukan `CircularProgressIndicator` polos.
+/// Loader khas Sidik: **dial kalibrasi**. Cincin tick mark (kayak skala alat
+/// ukur / jangka sorong) mengelilingi logo, dan seberkas cahaya "menyapu"
+/// keliling — tick yang barusan kelewat menyala lalu meredup (ekor komet),
+/// persis alat lagi ngkalibrasi. Logo Sidik diam berdenyut halus di tengah.
 ///
-/// Kenapa custom: loading itu layar yang paling sering keliatan, jadi paling
-/// worth dibikin berkarakter. Motif orbit = alat kalibrasi yang "mengelilingi"
-/// standar — on-brand tanpa gradient (permintaan lab: no gradient).
+/// Kenapa motif ini: loading = layar paling sering keliatan, jadi worth bikin
+/// berkarakter — dan "menyapu skala ukur" itu metafora kalibrasi yang pas,
+/// bukan spinner generik. Tanpa gradient (permintaan lab).
 ///
-/// Performa: SATU `AnimationController`, dibungkus [RepaintBoundary] biar cuma
-/// area loader yang di-repaint tiap frame (bukan seluruh layar) — aman 60/120fps.
-/// Logo di-`precache` sama harness/app; di sini cukup `Image.asset` yang murah.
+/// Performa: SATU `AnimationController` + [RepaintBoundary] → cuma area loader
+/// yang di-repaint per frame. Aman 60/120fps.
 class SidikLoader extends StatefulWidget {
-  const SidikLoader({super.key, this.size = 96, this.warnaOrbit, this.warnaSatelit});
+  const SidikLoader({super.key, this.size = 96, this.warna, this.warnaSapuan});
 
   final double size;
 
-  /// Override warna (default ikut tema). Orbit = teal/tealBright, satelit = amber.
-  final Color? warnaOrbit;
-  final Color? warnaSatelit;
+  /// Override warna (default ikut tema). [warna] = tick, [warnaSapuan] = kepala
+  /// cahaya yang menyapu.
+  final Color? warna;
+  final Color? warnaSapuan;
 
   @override
   State<SidikLoader> createState() => _SidikLoaderState();
@@ -31,7 +33,7 @@ class _SidikLoaderState extends State<SidikLoader>
     with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 2600),
+    duration: const Duration(milliseconds: 1700),
   )..repeat();
 
   @override
@@ -43,8 +45,8 @@ class _SidikLoaderState extends State<SidikLoader>
   @override
   Widget build(BuildContext context) {
     final gelap = Theme.of(context).brightness == Brightness.dark;
-    final orbit = widget.warnaOrbit ?? (gelap ? AppColors.tealBright : AppColors.teal);
-    final satelit = widget.warnaSatelit ?? AppColors.warning;
+    final tick = widget.warna ?? (gelap ? AppColors.tealBright : AppColors.teal);
+    final sapuan = widget.warnaSapuan ?? AppColors.warning;
 
     return RepaintBoundary(
       child: SizedBox(
@@ -53,42 +55,33 @@ class _SidikLoaderState extends State<SidikLoader>
         child: AnimatedBuilder(
           animation: _c,
           builder: (context, child) {
-            final theta = _c.value * 2 * math.pi;
-            // Napas halus logo — skala 0,97..1,0 (bukan berdenyut norak).
-            final pulse = 1 - 0.03 * (0.5 - 0.5 * math.cos(_c.value * 4 * math.pi));
-
+            // Denyut logo sinkron sama sapuan lewat "jam 12".
+            final pulse = 1 - 0.025 * (0.5 - 0.5 * math.cos(_c.value * 2 * math.pi));
             return CustomPaint(
-              // Orbit + bayangan + satelit-saat-di-belakang.
-              painter: _OrbitPainter(theta: theta, orbit: orbit, satelit: satelit, depan: false),
-              // Satelit-saat-di-depan (nutup logo) — biar ada kedalaman.
-              foregroundPainter: _OrbitPainter(theta: theta, orbit: orbit, satelit: satelit, depan: true),
+              painter: _DialPainter(t: _c.value, tick: tick, sapuan: sapuan),
               child: Center(
-                child: Transform.scale(
-                  scale: pulse,
-                  child: child,
-                ),
+                child: Transform.scale(scale: pulse, child: child),
               ),
             );
           },
-          // Logo dibangun SEKALI (di luar builder) — nggak ikut kebuild tiap
-          // frame. Dibungkus badge bundar (kayak "planet") biar orbitnya kebaca
-          // & logonya nggak kotak di latar apa pun.
+          // Logo dibangun SEKALI di luar builder — badge bundar biar rapi di
+          // latar apa pun & jadi "pusat dial".
           child: Center(
             child: Container(
-              width: widget.size * 0.56,
-              height: widget.size * 0.56,
+              width: widget.size * 0.5,
+              height: widget.size * 0.5,
               decoration: BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.10),
-                    blurRadius: widget.size * 0.06,
-                    offset: Offset(0, widget.size * 0.02),
+                    blurRadius: widget.size * 0.05,
+                    offset: Offset(0, widget.size * 0.015),
                   ),
                 ],
               ),
-              padding: EdgeInsets.all(widget.size * 0.10),
+              padding: EdgeInsets.all(widget.size * 0.085),
               child: Image.asset(
                 'assets/images/logo_pt_sidik.png',
                 fit: BoxFit.contain,
@@ -102,93 +95,76 @@ class _SidikLoaderState extends State<SidikLoader>
   }
 }
 
-class _OrbitPainter extends CustomPainter {
-  _OrbitPainter({
-    required this.theta,
-    required this.orbit,
-    required this.satelit,
-    required this.depan,
-  });
+class _DialPainter extends CustomPainter {
+  _DialPainter({required this.t, required this.tick, required this.sapuan});
 
-  final double theta;
-  final Color orbit;
-  final Color satelit;
+  /// 0..1 progres sapuan.
+  final double t;
+  final Color tick;
+  final Color sapuan;
 
-  /// true = lapisan depan (cuma gambar satelit kalau lagi di depan logo).
-  final bool depan;
+  /// Jumlah tick keliling dial. Kelipatan 12 → tiap 4 tick = mayor (lebih
+  /// panjang), kayak angka jam / skala utama alat ukur.
+  static const int _jumlah = 48;
 
-  // Kemiringan lintasan orbit (radian) — bikin kesan 3D "planet".
-  static const double _tilt = -0.42;
-
-  Offset _posSatelit(Size size) {
-    final a = size.width * 0.46;
-    final b = size.width * 0.15;
-    final x = a * math.cos(theta);
-    final y = b * math.sin(theta);
-    final xr = x * math.cos(_tilt) - y * math.sin(_tilt);
-    final yr = x * math.sin(_tilt) + y * math.cos(_tilt);
-    return Offset(size.width / 2 + xr, size.height / 2 + yr);
-  }
-
-  /// Satelit di paruh BELAKANG orbit (jauh) waktu sin(theta) < 0.
-  bool get _diBelakang => math.sin(theta) < 0;
+  /// Panjang ekor cahaya (dalam putaran, 0..1). 0,3 = sepertiga lingkaran.
+  static const double _ekor = 0.3;
 
   @override
   void paint(Canvas canvas, Size size) {
     final pusat = Offset(size.width / 2, size.height / 2);
+    final rLuar = size.width * 0.47;
+    final tebal = size.width * 0.02;
 
-    if (!depan) {
-      // Bayangan lembut di bawah logo (kesan melayang, kayak acuan).
-      final bayangan = Paint()
-        ..color = Colors.black.withValues(alpha: 0.08)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-      canvas.drawOval(
-        Rect.fromCenter(
-          center: Offset(pusat.dx, size.height * 0.9),
-          width: size.width * 0.5,
-          height: size.height * 0.09,
-        ),
-        bayangan,
+    for (var i = 0; i < _jumlah; i++) {
+      final frac = i / _jumlah;
+      // Sudut: mulai dari atas (jam 12), searah jarum jam.
+      final sudut = -math.pi / 2 + frac * 2 * math.pi;
+      final mayor = i % 4 == 0;
+      final panjang = size.width * (mayor ? 0.10 : 0.055);
+
+      // Jarak tick INI di belakang kepala sapuan (0 = pas di kepala).
+      var delta = t - frac;
+      if (delta < 0) delta += 1;
+      // Nyala penuh di kepala, meredup sepanjang ekor.
+      final glow = delta <= _ekor ? (1 - delta / _ekor) : 0.0;
+
+      final dim = mayor ? 0.34 : 0.20;
+      final alpha = dim + (1 - dim) * glow;
+      // Kepala sapuan (glow tinggi) diwarnai amber; sisanya teal.
+      final warna = Color.lerp(
+        tick,
+        sapuan,
+        glow > 0.72 ? (glow - 0.72) / 0.28 : 0,
+      )!
+          .withValues(alpha: alpha);
+
+      final p1 = Offset(
+        pusat.dx + math.cos(sudut) * rLuar,
+        pusat.dy + math.sin(sudut) * rLuar,
+      );
+      final p2 = Offset(
+        pusat.dx + math.cos(sudut) * (rLuar - panjang),
+        pusat.dy + math.sin(sudut) * (rLuar - panjang),
       );
 
-      // Lintasan orbit (elips miring, tipis).
-      canvas.save();
-      canvas.translate(pusat.dx, pusat.dy);
-      canvas.rotate(_tilt);
-      canvas.drawOval(
-        Rect.fromCenter(center: Offset.zero, width: size.width * 0.92, height: size.width * 0.30),
+      canvas.drawLine(
+        p1,
+        p2,
         Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = size.width * 0.018
-          ..color = orbit.withValues(alpha: 0.28),
+          ..color = warna
+          ..strokeWidth = tebal * (mayor ? 1.4 : 1.0)
+          ..strokeCap = StrokeCap.round,
       );
-      canvas.restore();
     }
-
-    // Gambar satelit HANYA di lapisan yang sesuai kedalamannya.
-    final gambarSekarang = depan ? !_diBelakang : _diBelakang;
-    if (!gambarSekarang) return;
-
-    final pos = _posSatelit(size);
-    final r = size.width * 0.055;
-    // Halo lembut biar "berpendar".
-    canvas.drawCircle(pos, r * 1.9, Paint()..color = satelit.withValues(alpha: 0.18));
-    canvas.drawCircle(pos, r, Paint()..color = satelit);
-    // Kilau kecil.
-    canvas.drawCircle(
-      pos.translate(-r * 0.3, -r * 0.3),
-      r * 0.35,
-      Paint()..color = Colors.white.withValues(alpha: 0.55),
-    );
   }
 
   @override
-  bool shouldRepaint(_OrbitPainter old) =>
-      old.theta != theta || old.orbit != orbit || old.satelit != satelit;
+  bool shouldRepaint(_DialPainter old) =>
+      old.t != t || old.tick != tick || old.sapuan != sapuan;
 }
 
-/// Loader satu layar penuh — dipakai splash & initial load. Logo berorbit +
-/// label kalem, latar ikut tema.
+/// Loader satu layar penuh — dipakai splash & initial load.
 class SidikLoadingScreen extends StatelessWidget {
   const SidikLoadingScreen({super.key, this.label});
 
