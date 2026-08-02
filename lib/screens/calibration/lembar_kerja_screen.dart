@@ -17,7 +17,9 @@ import '../../widgets/app_button.dart';
 import 'lembar_kerja_state.dart';
 import 'widgets/lembar_kerja_tabel.dart';
 
-/// Lembar Kerja pH Meter (SIDIK-FM-CAL-0509_Rev.4) — layar input teknisi.
+/// Lembar Kerja (SIDIK-FM-CAL-0509_Rev.4) — layar input teknisi, dipakai buat
+/// alat yang punya bentuk lembar sendiri (pH Meter, Turbidimeter, ...). Bentuk
+/// per jenis alat ditentuin [profil] → `?profil=` di endpoint.
 ///
 /// **Kolomnya digambar dari `GET /api/calibrations/lembar-kerja`, bukan
 /// di-hardcode.** Backend yang punya definisi formulirnya, dan responsnya udah
@@ -37,7 +39,12 @@ import 'widgets/lembar_kerja_tabel.dart';
 /// semua dihitung backend. Ikut ngitung di layar cepat atau lambat bikin
 /// angkanya beda dari sertifikat.
 class LembarKerjaScreen extends ConsumerWidget {
-  const LembarKerjaScreen({super.key, this.sesiId, this.judulTambahan});
+  const LembarKerjaScreen({
+    super.key,
+    this.sesiId,
+    this.judulTambahan,
+    this.profil = 'ph_meter',
+  });
 
   /// Keisi = lanjut draft / perbaiki sesi yang dikembalikan admin (`PUT`).
   /// Null = sesi baru (`POST`).
@@ -45,10 +52,14 @@ class LembarKerjaScreen extends ConsumerWidget {
 
   final String? judulTambahan;
 
+  /// Kode jenis alat (`ph_meter` / `turbidimeter`) — nentuin bentuk lembar
+  /// kerja yang diambil dari backend.
+  final String profil;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final bentukAsync = ref.watch(lembarKerjaProvider);
+    final bentukAsync = ref.watch(lembarKerjaProvider(profil));
 
     return Scaffold(
       appBar: AppBar(
@@ -71,7 +82,7 @@ class LembarKerjaScreen extends ConsumerWidget {
         AsyncData(:final value) => _Form(bentuk: value, sesiId: sesiId),
         AsyncError(:final error) => _Gagal(
           error: error,
-          onCobaLagi: () => ref.invalidate(lembarKerjaProvider),
+          onCobaLagi: () => ref.invalidate(lembarKerjaProvider(profil)),
         ),
         _ => const Center(child: CircularProgressIndicator()),
       },

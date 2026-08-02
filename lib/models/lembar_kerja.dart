@@ -169,15 +169,29 @@ class FieldLembarKerja {
 
 /// Satu baris di tabel hasil — larutan standar yang tercetak di lembar kerja.
 class BarisTabelHasil {
-  const BarisTabelHasil({required this.titikUkur, required this.label});
+  const BarisTabelHasil({
+    required this.titikUkur,
+    required this.label,
+    this.desimal,
+    this.resolusi,
+  });
 
   final double titikUkur;
   final String label;
+
+  /// Jumlah desimal resolusi titik ini (Turbidimeter: 2/1/0 buat 1/100/1000
+  /// NTU). Dipakai [formatNilai] buat mad pembacaan ke resolusi tanpa buang nol
+  /// belakang — `4,60` tetap `4,60`. `null` = alat resolusi seragam (mis. pH),
+  /// layar jatuh ke perilaku lama.
+  final int? desimal;
+  final double? resolusi;
 
   factory BarisTabelHasil.fromJson(Map<String, dynamic> json) =>
       BarisTabelHasil(
         titikUkur: (json['titik_ukur'] as num).toDouble(),
         label: json['label'] as String? ?? '${json['titik_ukur']}',
+        desimal: (json['desimal'] as num?)?.toInt(),
+        resolusi: (json['resolusi'] as num?)?.toDouble(),
       );
 }
 

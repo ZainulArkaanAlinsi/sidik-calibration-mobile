@@ -32,12 +32,17 @@ class TitikState {
     required this.label,
     required this.jumlahPengulangan,
     required this.satuan,
+    this.desimal,
   }) : _kotak = {};
 
   final double titikUkur;
   final String label;
   final int jumlahPengulangan;
   final String satuan;
+
+  /// Jumlah desimal resolusi titik ini (Turbidimeter 2/1/0). `null` = resolusi
+  /// seragam. Dipakai buat mad pembacaan hasil kamera ke resolusi titik.
+  final int? desimal;
 
   /// Standar buffer khusus titik ini (buffer 4/7/10 beda-beda).
   int? standardId;
@@ -144,6 +149,7 @@ class LembarKerjaState {
               label: b.label,
               jumlahPengulangan: t.pengulangan.length,
               satuan: bentuk.satuan,
+              desimal: b.desimal,
             ),
           );
         }
@@ -473,7 +479,9 @@ class LembarKerjaState {
     TingkatKeyakinan keyakinan,
   ) {
     final kotak = state.kotak(tahap, kolom, index);
-    final baru = GabungTabel.nilaiBaru(kotak.text, nilai);
+    // Pembacaan dipad ke resolusi titiknya (4,60), suhu nggak.
+    final desimal = kolom == 'pembacaan' ? state.desimal : null;
+    final baru = GabungTabel.nilaiBaru(kotak.text, nilai, desimal: desimal);
     if (baru == null) return 0;
 
     kotak.text = baru;

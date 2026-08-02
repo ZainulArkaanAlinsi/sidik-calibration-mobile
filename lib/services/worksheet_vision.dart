@@ -14,6 +14,7 @@ library;
 
 import 'dart:io';
 
+import '../core/utils/angka.dart';
 import '../core/utils/parse_list.dart';
 import 'api_client.dart';
 
@@ -344,10 +345,15 @@ class GabungTabel {
 
   /// Nilai baru buat satu sel, atau `null` kalau sel itu nggak boleh diubah.
   /// Sel dianggap kosong kalau isinya spasi doang.
-  static String? nilaiBaru(String sekarang, double? hasil) {
+  ///
+  /// [desimal] = resolusi titiknya (Turbidimeter: 2/1/0). Kalau diisi,
+  /// pembacaan dipad ke situ tanpa buang nol belakang — hasil kamera `4.6` di
+  /// titik ber-resolusi 0,01 masuk sebagai `4,60`. `null` = alat resolusi
+  /// seragam, pakai perilaku lama (buang nol belakang).
+  static String? nilaiBaru(String sekarang, double? hasil, {int? desimal}) {
     if (hasil == null) return null;
     if (sekarang.trim().isNotEmpty) return null;
-    return _rapi(hasil);
+    return desimal != null ? formatNilai(hasil, desimalMin: desimal) : _rapi(hasil);
   }
 
   /// Versi teks buat kolom non-tabel (catatan, lokasi, env condition).

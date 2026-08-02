@@ -25,13 +25,18 @@ Future<String> _token(Ref ref) async {
   return token;
 }
 
-/// Bentuk formulir lembar kerja. Di-`watch` ke [authProvider] supaya ganti
-/// akun (teknisi → admin) ngambil bentuk yang beda — bukan nyisain formulir
-/// punya role sebelumnya.
-final lembarKerjaProvider = FutureProvider<LembarKerja>((ref) async {
+/// Bentuk formulir lembar kerja per JENIS ALAT (`ph_meter` / `turbidimeter`).
+/// Di-`watch` ke [authProvider] supaya ganti akun (teknisi → admin) ngambil
+/// bentuk yang beda — bukan nyisain formulir punya role sebelumnya.
+final lembarKerjaProvider = FutureProvider.family<LembarKerja, String>((
+  ref,
+  profil,
+) async {
   ref.watch(authProvider);
   final token = await _token(ref);
-  return ref.read(lembarKerjaServiceProvider).ambilBentuk(token);
+  return ref
+      .read(lembarKerjaServiceProvider)
+      .ambilBentuk(token, profil: profil);
 }, retry: (retryCount, error) => null);
 
 final roomListProvider = FutureProvider<List<Room>>((ref) async {

@@ -31,6 +31,16 @@ void main() {
       expect(GabungTabel.nilaiBaru('', 10.11), '10.11');
       expect(GabungTabel.nilaiBaru('', 100), '100');
     });
+
+    test('desimal titik diisi → dipad ke resolusi (Turbidimeter)', () {
+      // Titik 1 NTU resolusi 0,01 → 2 desimal: 4.6 masuk sebagai 4.60.
+      expect(GabungTabel.nilaiBaru('', 4.6, desimal: 2), '4.60');
+      // Titik 1000 NTU resolusi 1 → 0 desimal: 999 tetap 999.
+      expect(GabungTabel.nilaiBaru('', 999.0, desimal: 0), '999');
+      expect(GabungTabel.nilaiBaru('', 1000.0, desimal: 0), '1000');
+      // Sel yang udah keisi tetap nggak ketimpa, walau ada desimal.
+      expect(GabungTabel.nilaiBaru('4.60', 5.0, desimal: 2), isNull);
+    });
   });
 
   group('TingkatKeyakinan.fromApi', () {
