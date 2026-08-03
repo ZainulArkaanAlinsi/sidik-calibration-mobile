@@ -115,7 +115,6 @@ class MockCategoryService implements CategoryService {
         metode: 'SIDIK-IK-CAL-0506_Rev.6',
       ),
       CalibrationCapability(
-        
         namaAlat: 'Conductivity Meter',
         rangeMin: 0,
         rangeMax: 1000,
@@ -124,6 +123,40 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: 'µS/cm',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0507_Rev.6',
+      ),
+      // 3 titik Turbidimeter (CMC 0,041/3,1/22 NTU) — biar di USE_MOCK kartu
+      // "Turbidimeter" muncul & bisa dites offline, nyambung ke profil
+      // turbidimeter (larutan 1/100/1000 NTU). Tanpa ini, build mock nggak
+      // punya jalan buat nyoba worksheet turbidimeter sama sekali.
+      CalibrationCapability(
+        namaAlat: 'Turbidimeter',
+        rangeMin: 1,
+        rangeMax: 1,
+        satuan: 'NTU',
+        ketidakpastianTerbaik: 0.041,
+        satuanKetidakpastian: 'NTU',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0523_Rev.1',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Turbidimeter',
+        rangeMin: 100,
+        rangeMax: 100,
+        satuan: 'NTU',
+        ketidakpastianTerbaik: 3.1,
+        satuanKetidakpastian: 'NTU',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0523_Rev.1',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Turbidimeter',
+        rangeMin: 1000,
+        rangeMax: 1000,
+        satuan: 'NTU',
+        ketidakpastianTerbaik: 22,
+        satuanKetidakpastian: 'NTU',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0523_Rev.1',
       ),
     ];
 
