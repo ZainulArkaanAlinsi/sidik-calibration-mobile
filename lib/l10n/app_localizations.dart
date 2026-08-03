@@ -113,7 +113,7 @@ abstract class AppLocalizations {
   /// No description provided for @loginIdentifierHint.
   ///
   /// In en, this message translates to:
-  /// **'ASM-0001 or name@pt-sidik.com'**
+  /// **'SDK-0001 or name@pt-sidik.com'**
   String get loginIdentifierHint;
 
   /// No description provided for @passwordLabel.

@@ -226,18 +226,14 @@ class _DevHint extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            // Awalan ID-nya BEDA antara dua mode, dan ini bukan kelalaian:
-            // `MockAuthService` masih pakai `ASM-`, sementara database asli
-            // udah pindah ke `SDK-` (lihat `DatabaseSeeder` di
-            // sidik-calibration-api — ID lama disimpan di kolom `sebelumnya`
-            // buat migrasi, bukan buat login).
-            //
-            // Panel ini sempat nyebut `ASM-` buat DUA-DUANYA, dan akibatnya
-            // orang ngetik persis seperti yang disuruh lalu ditolak terus —
-            // nyangkanya salah password, padahal ID-nya yang udah nggak ada.
+            // Mock & API asli sekarang pakai kredensial SAMA: SDK-000x /
+            // rahasia123. Dulu mock masih `ASM-` + `password123` (sisa nama
+            // "asmo") sementara backend udah `SDK-` + `rahasia123` — beda dua
+            // set bikin orang ngetik yang diinget lalu ditolak terus. Disamain
+            // biar satu set aja yang perlu diinget.
             mock
-                ? 'ASM-0001 (admin) · ASM-0002 (teknisi) · ASM-0003 (viewer)\n'
-                      'Password: password123'
+                ? 'SDK-0001 (admin) · SDK-0002 (teknisi) · SDK-0003 (viewer)\n'
+                      'Password: rahasia123'
                 : 'SDK-0001 (admin) · SDK-0002 (teknisi) · SDK-0003 (viewer)\n'
                       'SDK-0099 (pending, buat nyoba akun ditolak)\n'
                       'Password: rahasia123\n'

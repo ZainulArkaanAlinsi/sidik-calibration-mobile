@@ -8,13 +8,13 @@ import 'auth_service.dart';
 ///
 /// HAPUS file ini begitu `ApiAuthService` jalan.
 class MockAuthService implements AuthService {
-  /// Akun tes. Password semuanya `password123`.
+  /// Akun tes. Password semuanya `rahasia123`.
   static final List<Map<String, dynamic>> _akun = [
     {
       'id': 1,
       'nama': 'Budi Santoso',
       'email': 'admin@pt-sidik.com',
-      'employee_id': 'ASM-0001',
+      'employee_id': 'SDK-0001',
       'role': 'admin',
       'status': 'aktif',
       'department': 'Quality Control',
@@ -24,7 +24,7 @@ class MockAuthService implements AuthService {
       'id': 2,
       'nama': 'Andi Pratama',
       'email': 'teknisi@pt-sidik.com',
-      'employee_id': 'ASM-0002',
+      'employee_id': 'SDK-0002',
       'role': 'teknisi',
       'status': 'aktif',
       'department': 'Kalibrasi',
@@ -34,7 +34,7 @@ class MockAuthService implements AuthService {
       'id': 3,
       'nama': 'Citra Dewi',
       'email': 'viewer@pt-sidik.com',
-      'employee_id': 'ASM-0003',
+      'employee_id': 'SDK-0003',
       'role': 'viewer',
       'status': 'aktif',
       'department': 'Manajemen',
@@ -46,7 +46,7 @@ class MockAuthService implements AuthService {
       'id': 4,
       'nama': 'Dewi Lestari',
       'email': 'pending@pt-sidik.com',
-      'employee_id': 'ASM-0004',
+      'employee_id': 'SDK-0004',
       'role': 'teknisi',
       'status': 'pending',
       'department': 'Kalibrasi',
@@ -54,7 +54,7 @@ class MockAuthService implements AuthService {
     },
   ];
 
-  static const _password = 'password123';
+  static const _password = 'rahasia123';
 
   /// Jeda palsu — biar state `loading` di UI beneran keuji, bukan cuma teori.
   static const _jeda = Duration(milliseconds: 600);

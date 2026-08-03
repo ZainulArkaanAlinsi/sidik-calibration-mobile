@@ -4,7 +4,7 @@
   "appTagline": "Precision Calibration Management",
 
   "loginIdentifierLabel": "Employee ID / Email",
-  "loginIdentifierHint": "ASM-0001 or name@pt-sidik.com",
+  "loginIdentifierHint": "SDK-0001 or name@pt-sidik.com",
   "passwordLabel": "Password",
   "forgotPasswordLink": "Forgot Password?",
   "loginSubmit": "SIGN IN",

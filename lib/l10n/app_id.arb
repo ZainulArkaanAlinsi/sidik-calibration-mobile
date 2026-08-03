@@ -4,7 +4,7 @@
   "appTagline": "Manajemen Kalibrasi Presisi",
 
   "loginIdentifierLabel": "ID Pegawai / Email",
-  "loginIdentifierHint": "ASM-0001 atau nama@pt-sidik.com",
+  "loginIdentifierHint": "SDK-0001 atau nama@pt-sidik.com",
   "passwordLabel": "Password",
   "forgotPasswordLink": "Lupa Password?",
   "loginSubmit": "MASUK",

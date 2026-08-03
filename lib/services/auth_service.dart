@@ -64,7 +64,7 @@ class ApiException extends AuthException {
 /// jadi ganti dari mock ke API asli cukup ganti satu baris di
 /// `authServiceProvider`.
 abstract class AuthService {
-  /// [identifier] bisa **Employee ID** (mis. `ASM-0001`) **atau email** —
+  /// [identifier] bisa **Employee ID** (mis. `SDK-0001`) **atau email** —
   /// teknisi di lapangan hafal nomor pegawainya, bukan emailnya. Backend yang
   /// nentuin itu ID atau email (lihat `docs/kontrak-api.md`).
   Future<AuthSession> login({

@@ -54,7 +54,7 @@ class AuthController extends AsyncNotifier<User?> {
     }
   }
 
-  /// [identifier] = Employee ID (mis. `ASM-0001`) atau email.
+  /// [identifier] = Employee ID (mis. `SDK-0001`) atau email.
   Future<void> login({
     required String identifier,
     required String password,

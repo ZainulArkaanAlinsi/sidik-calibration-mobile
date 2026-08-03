@@ -15,7 +15,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get loginIdentifierLabel => 'ID Pegawai / Email';
 
   @override
-  String get loginIdentifierHint => 'ASM-0001 atau nama@pt-sidik.com';
+  String get loginIdentifierHint => 'SDK-0001 atau nama@pt-sidik.com';
 
   @override
   String get passwordLabel => 'Password';

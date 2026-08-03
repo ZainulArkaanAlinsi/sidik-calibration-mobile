@@ -142,7 +142,7 @@ class MockUserService implements UserService {
       id: 1,
       nama: 'Budi Santoso',
       email: 'budi@pt-sidik.com',
-      employeeId: 'ASM-0001',
+      employeeId: 'SDK-0001',
       role: UserRole.admin,
       status: UserStatus.aktif,
       organizationId: 1,
@@ -155,7 +155,7 @@ class MockUserService implements UserService {
       // Orangnya nggak bisa nerima link reset password, dan login pakai ID
       // pegawai — jadi tanpa admin yang mbenerin, dia kekunci selamanya.
       email: 'eko@gmial.com',
-      employeeId: 'ASM-0002',
+      employeeId: 'SDK-0002',
       role: UserRole.teknisi,
       status: UserStatus.pending,
       organizationId: 1,
