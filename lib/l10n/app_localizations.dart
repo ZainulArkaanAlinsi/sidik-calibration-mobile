@@ -4601,7 +4601,7 @@ abstract class AppLocalizations {
   /// No description provided for @lkStandarPerTitik.
   ///
   /// In en, this message translates to:
-  /// **'Buffer standard'**
+  /// **'Point standard'**
   String get lkStandarPerTitik;
 
   /// No description provided for @lkStandarKadaluarsa.
