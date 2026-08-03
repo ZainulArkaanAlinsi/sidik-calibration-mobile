@@ -1,8 +1,50 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sidik_calibration/services/worksheet_vision.dart';
 
 void main() {
+  group('MockWorksheetVisionService — sadar alat, bukan hardcode pH', () {
+    final fotoPalsu = File('tidak-dipakai.jpg');
+
+    test('Turbidimeter (nominal NTU) balikin angka NTU, bukan buffer pH', () async {
+      final hasil = await MockWorksheetVisionService().ekstrak(
+        fotoPalsu,
+        jumlahTitik: 3,
+        satuan: 'NTU',
+        nominal: const [1, 100, 1000],
+        desimal: const [2, 1, 0],
+      );
+
+      final baca = hasil!.baris.first.ph;
+      // Tiap kolom mesti DEKAT nominalnya (bukan 4.01/7.02/10.11).
+      expect(baca[0], closeTo(1, 0.1)); // ~1 NTU
+      expect(baca[1], closeTo(100, 0.5)); // ~100 NTU
+      expect(baca[2], closeTo(1000, 2)); // ~1000 NTU
+      expect(baca, isNot(contains(7.02)));
+      // Kolom terakhir dipad ke desimal 0 → bilangan bulat.
+      expect(baca[2], baca[2]!.roundToDouble());
+      // Usage check buffer pH nggak boleh nempel di alat non-pH.
+      expect(hasil.header.usageCheck, isEmpty);
+      // Catatan "buffer" juga nggak muncul buat non-pH.
+      expect(hasil.header.field.containsKey('catatan_teknisi'), isFalse);
+    });
+
+    test('pH (satuan pH) tetap dapat usage check buffer + catatan', () async {
+      final hasil = await MockWorksheetVisionService().ekstrak(
+        fotoPalsu,
+        jumlahTitik: 3,
+        satuan: 'pH',
+        nominal: const [4, 7, 10.01],
+      );
+
+      expect(hasil!.header.usageCheck, isNotEmpty);
+      expect(hasil.header.field.containsKey('catatan_teknisi'), isTrue);
+      expect(hasil.baris.first.ph[0], closeTo(4, 0.1));
+    });
+  });
+
   group('GabungTabel — foto ulang nggak boleh nimpa', () {
     test('sel kosong keisi', () {
       expect(GabungTabel.nilaiBaru('', 4.04), '4.04');
