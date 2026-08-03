@@ -30,8 +30,8 @@ class RingkasanScreen extends ConsumerWidget {
     return switch (async) {
       AsyncData(:final value) => _Isi(ringkas: value),
       AsyncError() => _Gagal(
-          onCobaLagi: () => ref.read(dashboardProvider.notifier).muatUlang(),
-        ),
+        onCobaLagi: () => ref.read(dashboardProvider.notifier).muatUlang(),
+      ),
       _ => const _Skeleton(),
     };
   }
@@ -54,7 +54,9 @@ class _Isi extends ConsumerWidget {
     );
 
     final totalSesi =
-        ringkas.kalibrasiDraft + ringkas.menungguApproval + ringkas.kalibrasiSelesai;
+        ringkas.kalibrasiDraft +
+        ringkas.menungguApproval +
+        ringkas.kalibrasiSelesai;
 
     return RefreshIndicator(
       onRefresh: () => ref.read(dashboardProvider.notifier).muatUlang(),
@@ -119,8 +121,8 @@ class _Isi extends ConsumerWidget {
               final perBaris = constraints.maxWidth >= 1100
                   ? 4
                   : constraints.maxWidth >= 620
-                      ? 2
-                      : 1;
+                  ? 2
+                  : 1;
               const jarak = AppSpacing.md;
               final lebar =
                   (constraints.maxWidth - jarak * (perBaris - 1)) / perBaris;
@@ -134,7 +136,9 @@ class _Isi extends ConsumerWidget {
                     child: _KartuAngka(
                       label: l10n.dashTotalDevices,
                       angka: ringkas.totalAlat,
-                      keterangan: l10n.panelSesiSelesai(ringkas.kalibrasiSelesai),
+                      keterangan: l10n.panelSesiSelesai(
+                        ringkas.kalibrasiSelesai,
+                      ),
                     ),
                   ),
                   SizedBox(
@@ -166,12 +170,19 @@ class _Isi extends ConsumerWidget {
                     child: _KartuAngka(
                       label: l10n.dashCertsThisMonth,
                       angka: ringkas.sertifikatBulanIni,
-                      keterangan: l10n.panelTotalSepanjangMasa(
-                        ringkas.totalSertifikat,
-                      ),
-                      bagian: ringkas.totalSertifikat == 0
+                      // Keterangan & bilah kemajuan cuma digambar kalau
+                      // totalnya BENERAN dikirim backend. Nulis "Total
+                      // sepanjang masa 0" buat field yang nggak ada itu
+                      // ngarang angka.
+                      keterangan: ringkas.totalSertifikat == null
                           ? null
-                          : ringkas.sertifikatBulanIni / ringkas.totalSertifikat,
+                          : l10n.panelTotalSepanjangMasa(
+                              ringkas.totalSertifikat!,
+                            ),
+                      bagian: (ringkas.totalSertifikat ?? 0) == 0
+                          ? null
+                          : ringkas.sertifikatBulanIni /
+                                ringkas.totalSertifikat!,
                       warna: AppColors.success,
                     ),
                   ),
@@ -228,7 +239,7 @@ class _KartuAngka extends StatelessWidget {
   const _KartuAngka({
     required this.label,
     required this.angka,
-    required this.keterangan,
+    this.keterangan,
     this.bagian,
     this.warna,
     this.keteranganMenonjol = false,
@@ -236,7 +247,10 @@ class _KartuAngka extends StatelessWidget {
 
   final String label;
   final int angka;
-  final String keterangan;
+
+  /// `null` = belum diketahui, jadi barisnya nggak digambar sama sekali.
+  /// Beda dari string kosong: itu bikin ruang kosong yang keliatan rusak.
+  final String? keterangan;
 
   /// Porsi 0..1 buat bilah tipis di bawah angka. `null` = nggak ada pembanding
   /// yang jujur, jadi bilahnya nggak digambar sama sekali — bilah tanpa
@@ -280,17 +294,20 @@ class _KartuAngka extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          Text(
-            keterangan,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: keteranganMenonjol
-                  ? aksen
-                  : theme.colorScheme.onSurfaceVariant,
-              fontWeight: keteranganMenonjol ? FontWeight.w700 : null,
+          // `null` = belum diketahui, jadi barisnya dilewati sama sekali —
+          // bukan digambar kosong, yang cuma ninggalin ruang keliatan rusak.
+          if (keterangan != null)
+            Text(
+              keterangan!,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: keteranganMenonjol
+                    ? aksen
+                    : theme.colorScheme.onSurfaceVariant,
+                fontWeight: keteranganMenonjol ? FontWeight.w700 : null,
+              ),
             ),
-          ),
           if (bagian != null) ...[
             const SizedBox(height: AppSpacing.sm),
             ClipRRect(
@@ -378,7 +395,8 @@ class _Sebaran extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: puncak == 0 ? 0 : nilai / puncak,
                       minHeight: 6,
-                      backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                      backgroundColor:
+                          theme.colorScheme.surfaceContainerHighest,
                     ),
                   ),
                 ),
@@ -450,7 +468,11 @@ class _Gagal extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.cloud_off_outlined, size: 56, color: theme.colorScheme.error),
+          Icon(
+            Icons.cloud_off_outlined,
+            size: 56,
+            color: theme.colorScheme.error,
+          ),
           const SizedBox(height: AppSpacing.md),
           Text(l10n.dashLoadFailed, style: theme.textTheme.titleMedium),
           const SizedBox(height: AppSpacing.lg),

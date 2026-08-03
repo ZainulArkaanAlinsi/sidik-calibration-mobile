@@ -64,12 +64,29 @@ void main() {
     expect(titik.label, isEmpty);
   });
 
-  test('field yang belum dikirim backend jatuh ke 0, bukan bikin crash', () {
+  test('field yang belum dikirim backend nggak bikin crash', () {
     final data = DashboardSummary.fromJson(const {'total_alat': 2});
 
     expect(data.totalAlat, 2);
-    expect(data.totalSertifikat, 0);
     expect(data.grafikPekerjaan, isEmpty);
+
+    // `total_sertifikat` NGGAK dikirim `GET /dashboard` (dicek 31 Jul), jadi
+    // hasilnya `null` — BUKAN 0.
+    //
+    // Dulu di-default ke 0 dan layar nulis "Total sepanjang masa 0" padahal
+    // di database ada 32. Itu angka yang salah, bukan angka yang belum ada,
+    // dan yang baca nggak punya cara mbedain. Nol itu pernyataan; "belum
+    // tahu" bukan nol.
+    expect(data.totalSertifikat, isNull);
+  });
+
+  test('total_sertifikat yang BENERAN dikirim tetap kebaca', () {
+    // Biar kalau backend nanti nambahin field-nya, nggak ada yang perlu
+    // diubah di sini.
+    expect(
+      DashboardSummary.fromJson(const {'total_sertifikat': 32}).totalSertifikat,
+      32,
+    );
   });
 
   test('dashboard dianggap kosong cuma kalau semua angkanya nol', () {
