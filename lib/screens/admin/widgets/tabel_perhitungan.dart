@@ -1,24 +1,19 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/utils/angka.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/perhitungan.dart';
 
-/// Angka lembar perhitungan ditampilkan **apa adanya dari server**, cuma
-/// dipotong ekornya biar muat di layar.
+/// Angka lembar perhitungan ditampilkan **apa adanya dari server** — nggak ada
+/// pembulatan, dan nggak ada operasi aritmetika di file ini. Yang diatur cuma
+/// berapa desimal yang kelihatan biar muat di kolom sempit.
 ///
-/// Yang dipotong tampilannya doang — nilai aslinya nggak disentuh, dan nggak
-/// ada satu pun operasi aritmetika di file ini. Presisi penuhnya penting
-/// (`4.0092251999999995` vs `4.0092252`), tapi 16 digit di kolom selebar 92px
-/// cuma bikin nggak kebaca.
-String formatAngka(double n, {int maksDesimal = 4}) {
-  if (n == n.roundToDouble() && n.abs() < 1e15) return n.toInt().toString();
-
-  final teks = n.toStringAsFixed(maksDesimal);
-  return teks.contains('.')
-      ? teks.replaceFirst(RegExp(r'0+$'), '').replaceFirst(RegExp(r'\.$'), '')
-      : teks;
-}
+/// Delegasi ke [formatNilai]: `desimalMin` = resolusi titik (nol belakang di
+/// bawahnya DIPERTAHANKAN → "4,60" bukan "4,6"), `maksDesimal` = batas atas biar
+/// nilai presisi penuh (`4.0092251999999995`) nggak makan selebar layar.
+String formatAngka(double n, {int maksDesimal = 4, int desimalMin = 0}) =>
+    formatNilai(n, desimalMin: desimalMin, desimalMaks: maksDesimal);
 
 /// Satu tabel "DATA HASIL KALIBRASI" (Before / After adjustment).
 ///
@@ -69,7 +64,7 @@ class TabelPerhitunganWidget extends StatelessWidget {
                   for (final t in tabel.titik)
                     t.standard == null
                         ? '—'
-                        : formatAngka(t.standard!, maksDesimal: 7),
+                        : formatAngka(t.standard!, maksDesimal: 7, desimalMin: t.desimal ?? 0),
                 ],
               ),
               _Baris(
@@ -84,7 +79,7 @@ class TabelPerhitunganWidget extends StatelessWidget {
                   label: '${l10n.perhitRepeat} ${r + 1}',
                   sel: [
                     for (final t in tabel.titik)
-                      r < t.pembacaan.length ? _sel(t.pembacaan[r]) : '—',
+                      r < t.pembacaan.length ? _sel(t.pembacaan[r], t.desimal) : '—',
                   ],
                 ),
 
@@ -96,7 +91,7 @@ class TabelPerhitunganWidget extends StatelessWidget {
                   for (final t in tabel.titik)
                     t.average == null
                         ? '—'
-                        : '${formatAngka(t.average!)}'
+                        : '${formatAngka(t.average!, desimalMin: t.desimal ?? 0)}'
                               '${t.averageSuhu == null ? '' : '  ·  ${formatAngka(t.averageSuhu!)} °C'}',
                 ],
               ),
@@ -144,11 +139,10 @@ class TabelPerhitunganWidget extends StatelessWidget {
     );
   }
 
-  static String _sel(PembacaanPerhitungan p) {
+  static String _sel(PembacaanPerhitungan p, int? desimal) {
+    final nilai = formatAngka(p.nilai, desimalMin: desimal ?? 0);
     final suhu = p.suhu;
-    return suhu == null
-        ? formatAngka(p.nilai)
-        : '${formatAngka(p.nilai)}  ·  ${formatAngka(suhu)} °C';
+    return suhu == null ? nilai : '$nilai  ·  ${formatAngka(suhu)} °C';
   }
 }
 

@@ -11,6 +11,7 @@ import '../../providers/folder_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/notification_bell.dart';
 import '../../widgets/readable_width.dart';
+import '../../widgets/sidik_loader.dart';
 
 /// Folder Manager (spesifikasi poin 3 & 7) — menggantikan "Notifikasi" di
 /// navbar bawah.
@@ -181,7 +182,7 @@ class _Akar extends ConsumerWidget {
         AsyncError() => _Gagal(
           onCobaLagi: () => ref.invalidate(folderListProvider(null)),
         ),
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => const Center(child: SidikLoader(size: 88)),
       },
     );
   }
@@ -220,7 +221,7 @@ class _IsiFolder extends ConsumerWidget {
         AsyncError() => _Gagal(
           onCobaLagi: () => ref.invalidate(folderDetailProvider(folderId)),
         ),
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => const Center(child: SidikLoader(size: 88)),
       },
     );
   }

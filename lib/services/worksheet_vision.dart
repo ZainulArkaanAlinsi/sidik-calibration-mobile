@@ -14,6 +14,7 @@ library;
 
 import 'dart:io';
 
+import '../core/utils/angka.dart';
 import '../core/utils/parse_list.dart';
 import 'api_client.dart';
 
@@ -267,6 +268,9 @@ abstract class WorksheetVisionService {
     int jumlahTitik,
     int jumlahBaris,
     int? sesiId,
+    String? satuan,
+    List<double>? nominal,
+    List<int?>? desimal,
   });
 
   void dispose();
@@ -287,16 +291,35 @@ class ApiWorksheetVisionService implements WorksheetVisionService {
     int jumlahTitik = 3,
     int jumlahBaris = 5,
     int? sesiId,
+    String? satuan,
+    List<double>? nominal,
+    List<int?>? desimal,
   }) async {
+    // Petunjuk buat AI: satuan + nilai nominal tiap kolom + jumlah desimalnya.
+    // Dikirim indexed (`titik_nominal[0]`) biar keparse jadi array di Laravel.
+    // Desimal cuma dikirim kalau LENGKAP semua titiknya (backend nolak null).
+    final fields = <String, String>{
+      if (sesiId != null) 'calibration_session_id': '$sesiId',
+      'jumlah_titik': '$jumlahTitik',
+      'jumlah_pengulangan': '$jumlahBaris',
+      if (satuan != null && satuan.isNotEmpty) 'satuan': satuan,
+    };
+    if (nominal != null) {
+      for (var i = 0; i < nominal.length; i++) {
+        fields['titik_nominal[$i]'] = '${nominal[i]}';
+      }
+    }
+    if (desimal != null && desimal.every((d) => d != null)) {
+      for (var i = 0; i < desimal.length; i++) {
+        fields['desimal[$i]'] = '${desimal[i]}';
+      }
+    }
+
     final json = await _api.unggahFile(
       '/raw-measurements/extract-from-photo',
       field: 'foto',
       filePath: foto.path,
-      fields: {
-        if (sesiId != null) 'calibration_session_id': '$sesiId',
-        'jumlah_titik': '$jumlahTitik',
-        'jumlah_pengulangan': '$jumlahBaris',
-      },
+      fields: fields,
       token: await _token(),
     );
 
@@ -344,10 +367,15 @@ class GabungTabel {
 
   /// Nilai baru buat satu sel, atau `null` kalau sel itu nggak boleh diubah.
   /// Sel dianggap kosong kalau isinya spasi doang.
-  static String? nilaiBaru(String sekarang, double? hasil) {
+  ///
+  /// [desimal] = resolusi titiknya (Turbidimeter: 2/1/0). Kalau diisi,
+  /// pembacaan dipad ke situ tanpa buang nol belakang — hasil kamera `4.6` di
+  /// titik ber-resolusi 0,01 masuk sebagai `4,60`. `null` = alat resolusi
+  /// seragam, pakai perilaku lama (buang nol belakang).
+  static String? nilaiBaru(String sekarang, double? hasil, {int? desimal}) {
     if (hasil == null) return null;
     if (sekarang.trim().isNotEmpty) return null;
-    return _rapi(hasil);
+    return desimal != null ? formatNilai(hasil, desimalMin: desimal) : _rapi(hasil);
   }
 
   /// Versi teks buat kolom non-tabel (catatan, lokasi, env condition).
@@ -408,10 +436,18 @@ DateTime? _bikinTanggal(int tahun, int bulan, int hari) {
 /// alurnya. Sengaja ada satu sel keyakinan rendah supaya penandaan low-confidence
 /// keliatan waktu demo.
 ///
-/// Blok [HasilEkstraksiHeader]-nya juga diisi contoh — env condition, catatan,
-/// dan usage check buffer 4/7/10 — biar alur "sekali foto ngisi seluruh
-/// worksheet" bisa dicoba sebelum backend-nya nyusul. Sengaja **nggak** ada
-/// kolom identitas di sini: itu memang nggak boleh datang dari foto.
+/// **Pembacaannya diturunkan dari [nominal] tiap titik, bukan hardcode pH.**
+/// Dulu mock ini selalu balikin 4.01/7.02/10.11 (buffer pH) apa pun alatnya —
+/// jadi di `USE_MOCK`, kamera Turbidimeter ngisi angka pH ke kolom NTU dan
+/// kelihatan "nggak jalan". Sekarang tiap kolom dapat angka dekat nilai
+/// nominalnya (mis. NTU 1/100/1000 → 1,01/100,1/1001), dipad ke [desimal] titik
+/// itu (Turbidimeter 2/1/0). Alur backend asli udah bener dari dulu — ini murni
+/// bikin jalur mock ikut sadar-alat.
+///
+/// Blok [HasilEkstraksiHeader]-nya juga diisi contoh — env condition + catatan.
+/// Usage check buffer 4/7/10 (id 3/4/5) **cuma** diisi kalau alatnya pH; buat
+/// alat lain id itu nggak nyambung ke standarnya, jadi dikosongin. Sengaja
+/// **nggak** ada kolom identitas di sini: itu memang nggak boleh datang dari foto.
 class MockWorksheetVisionService implements WorksheetVisionService {
   MockWorksheetVisionService({this.hasil, this.gagal = false});
 
@@ -424,15 +460,34 @@ class MockWorksheetVisionService implements WorksheetVisionService {
     int jumlahTitik = 3,
     int jumlahBaris = 5,
     int? sesiId,
+    String? satuan,
+    List<double>? nominal,
+    List<int?>? desimal,
   }) async {
     if (gagal) throw Exception('ekstraksi AI gagal');
     if (hasil != null) return hasil;
 
-    // Data contoh: dua Repeat kebaca, satu sel ditandai keyakinan rendah.
+    // Pembacaan tiap kolom dekat nilai NOMINAL-nya (bukan hardcode pH). Kolom
+    // terakhir digeser satu langkah resolusi + ditandai low-confidence biar
+    // penandaan keliatan waktu demo. Kalau `nominal` nggak dikirim (test lama),
+    // jatuh ke deret pH 4/7/10 biar perilakunya nggak berubah.
+    double bacaan(int t) {
+      final fallback = [4.01, 7.02, 10.11][t % 3];
+      if (nominal == null || t >= nominal.length) return fallback;
+      final d = (desimal != null && t < desimal.length) ? desimal[t] : null;
+      final langkah = d != null ? _pow10(-d) : 0.01;
+      // Kolom terakhir menyimpang satu langkah (nunjukin koreksi), lainnya pas.
+      final nilai = nominal[t] + (t == jumlahTitik - 1 ? langkah : 0);
+      return d != null ? _bulatkanDesimal(nilai, d) : nilai;
+    }
+
+    final unitPh = (satuan ?? '').toLowerCase() == 'ph';
+
+    // Data contoh: satu Repeat kebaca, kolom terakhir ditandai keyakinan rendah.
     return HasilEkstraksiTabel(
       baris: [
         BarisTabel(
-          ph: List.generate(jumlahTitik, (t) => [4.01, 7.02, 10.11][t % 3]),
+          ph: List.generate(jumlahTitik, bacaan),
           suhu: List.filled(jumlahTitik, 22.2),
           phKeyakinan: List.generate(
             jumlahTitik,
@@ -446,62 +501,86 @@ class MockWorksheetVisionService implements WorksheetVisionService {
       jumlahSelKebaca: jumlahTitik * 2,
       jumlahSelDiharapkan: jumlahBaris * jumlahTitik * 2,
       jumlahAngkaTerdeteksi: jumlahTitik * 2,
-      header: const HasilEkstraksiHeader(
+      header: HasilEkstraksiHeader(
+        // Env condition itu sifat RUANGAN, sama buat alat apa pun — selalu diisi.
         field: {
-          'suhu_awal': NilaiHeader(
+          'suhu_awal': const NilaiHeader(
             nilai: '22.4',
             keyakinan: TingkatKeyakinan.tinggi,
           ),
-          'kelembaban_awal': NilaiHeader(
+          'kelembaban_awal': const NilaiHeader(
             nilai: '55',
             keyakinan: TingkatKeyakinan.tinggi,
           ),
-          'suhu_akhir': NilaiHeader(
+          'suhu_akhir': const NilaiHeader(
             nilai: '22.9',
             keyakinan: TingkatKeyakinan.tinggi,
           ),
           // Tulisan tangan paling sering meleset di kelembaban akhir yang
           // ditulis mepet garis tabel — dipakai buat nunjukin penandaan.
-          'kelembaban_akhir': NilaiHeader(
+          'kelembaban_akhir': const NilaiHeader(
             nilai: '54',
             keyakinan: TingkatKeyakinan.rendah,
           ),
-          'catatan_teknisi': NilaiHeader(
-            nilai: 'Buffer 10 baru dibuka sebelum pengukuran.',
-            keyakinan: TingkatKeyakinan.sedang,
-          ),
+          // Catatan contoh yang nyebut "buffer" cuma nyambung buat pH.
+          if (unitPh)
+            'catatan_teknisi': const NilaiHeader(
+              nilai: 'Buffer 10 baru dibuka sebelum pengukuran.',
+              keyakinan: TingkatKeyakinan.sedang,
+            ),
         },
-        tanggal: {
+        tanggal: const {
           'tanggal_terima': NilaiHeader(
             nilai: '23/07/2026',
             keyakinan: TingkatKeyakinan.sedang,
           ),
         },
-        usageCheck: [
-          // id 3/4/5 = buffer pH 7 / 4 / 10 di `standard_service.dart`.
-          UsageCheckAi(
-            standardId: 4,
-            dipakai: true,
-            keterangan: null,
-            keyakinan: TingkatKeyakinan.tinggi,
-          ),
-          UsageCheckAi(
-            standardId: 3,
-            dipakai: true,
-            keterangan: null,
-            keyakinan: TingkatKeyakinan.tinggi,
-          ),
-          UsageCheckAi(
-            standardId: 5,
-            dipakai: true,
-            keterangan: null,
-            keyakinan: TingkatKeyakinan.tinggi,
-          ),
-        ],
+        // id 3/4/5 = buffer pH 7/4/10 di `standard_service.dart` — cuma nyambung
+        // buat pH. Alat lain: dikosongin, biar usage check nggak nunjuk standar
+        // yang salah.
+        usageCheck: unitPh
+            ? const [
+                UsageCheckAi(
+                  standardId: 4,
+                  dipakai: true,
+                  keterangan: null,
+                  keyakinan: TingkatKeyakinan.tinggi,
+                ),
+                UsageCheckAi(
+                  standardId: 3,
+                  dipakai: true,
+                  keterangan: null,
+                  keyakinan: TingkatKeyakinan.tinggi,
+                ),
+                UsageCheckAi(
+                  standardId: 5,
+                  dipakai: true,
+                  keterangan: null,
+                  keyakinan: TingkatKeyakinan.tinggi,
+                ),
+              ]
+            : const [],
       ),
     );
   }
 
   @override
   void dispose() {}
+
+  /// 10 pangkat [n] buat n kecil (0..8). Dipakai nyari satu langkah resolusi
+  /// dari jumlah desimal: desimal 2 → 0.01, desimal 0 → 1.
+  static double _pow10(int n) {
+    var hasil = 1.0;
+    for (var i = 0; i < n.abs(); i++) {
+      hasil *= 10;
+    }
+    return n < 0 ? 1 / hasil : hasil;
+  }
+
+  /// Bulatkan [nilai] ke [desimal] angka di belakang koma — biar mock nggak
+  /// nyisain ekor float (1.02 tetap 1.02, bukan 1.0200000001).
+  static double _bulatkanDesimal(double nilai, int desimal) {
+    final f = _pow10(desimal);
+    return (nilai * f).roundToDouble() / f;
+  }
 }

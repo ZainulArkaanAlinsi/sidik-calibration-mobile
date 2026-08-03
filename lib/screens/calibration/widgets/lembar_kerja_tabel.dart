@@ -201,9 +201,15 @@ class _TombolScanState extends ConsumerState<_TombolScan> {
       );
       if (foto == null || !mounted) return;
 
+      final titik = widget.isian.titikUrut;
       final hasil = await ref.read(worksheetVisionProvider).ekstrak(
             foto,
-            jumlahTitik: widget.isian.titikUrut.length,
+            jumlahTitik: titik.length,
+            // Petunjuk biar AI nangkap angka lebih akurat: satuan + nilai
+            // nominal tiap kolom + jumlah desimalnya (dari bentuk lembar kerja).
+            satuan: titik.isEmpty ? null : titik.first.satuan,
+            nominal: titik.map((t) => t.titikUkur).toList(),
+            desimal: titik.map((t) => t.desimal).toList(),
           );
 
       if (!mounted) return;

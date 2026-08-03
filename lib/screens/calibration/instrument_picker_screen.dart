@@ -15,11 +15,11 @@ import 'lembar_kerja_screen.dart';
 /// /api/categories/{kode}`, `CalibrationCapability.namaAlat` + `metode`) —
 /// datanya dari lampiran akreditasi LK-285-IDN, bukan dikarang.
 ///
-/// pH Meter dapet perlakuan khusus: dia satu-satunya jenis alat yang punya
-/// form kalibrasi sendiri ([LembarKerjaScreen]) karena strukturnya
-/// jauh lebih spesifik dari form generik (lihat komentar di layar itu).
-/// Jenis alat lain semua lanjut ke [CalibrationInputScreen] generik, dengan
-/// kategori udah ke-pre-fill biar teknisi nggak milih ulang.
+/// Sebagian jenis alat punya form kalibrasi sendiri ([LembarKerjaScreen]) karena
+/// strukturnya jauh lebih spesifik dari form generik — pH Meter & Turbidimeter
+/// (lihat [_InstrumenCard._profilKhusus]). Jenis alat lain lanjut ke
+/// [CalibrationInputScreen] generik, dengan kategori udah ke-pre-fill biar
+/// teknisi nggak milih ulang.
 class InstrumentPickerScreen extends ConsumerWidget {
   const InstrumentPickerScreen({super.key, required this.kategori});
 
@@ -148,7 +148,13 @@ class _InstrumenCard extends StatelessWidget {
   final Category kategori;
   final CalibrationCapability kemampuan;
 
-  static const _phMeter = 'pH Meter';
+  /// Jenis alat yang punya lembar kerja khusus ([LembarKerjaScreen]) — nama
+  /// alat → kode profil backend. Jenis lain lanjut ke form generik. Nambah alat
+  /// ke-3..48 yang butuh lembar sendiri = tambah satu baris di sini.
+  static const _profilKhusus = {
+    'pH Meter': 'ph_meter',
+    'Turbidimeter': 'turbidimeter',
+  };
 
   /// Ikon per jenis alat — dicocokin lewat keyword nama karena
   /// `namaAlat` sumbernya teks bebas dari lampiran akreditasi (bukan enum),
@@ -192,9 +198,15 @@ class _InstrumenCard extends StatelessWidget {
   }
 
   void _pilih(BuildContext context) {
-    if (kemampuan.namaAlat == _phMeter) {
+    final profil = _profilKhusus[kemampuan.namaAlat];
+    if (profil != null) {
       Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const LembarKerjaScreen()),
+        MaterialPageRoute<void>(
+          builder: (_) => LembarKerjaScreen(
+            profil: profil,
+            judulTambahan: kemampuan.namaAlat,
+          ),
+        ),
       );
       return;
     }

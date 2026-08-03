@@ -2,14 +2,16 @@ import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/config/app_config.dart';
 import '../models/tanda_tangan.dart';
 import '../services/tanda_tangan_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
 
-final tandaTanganServiceProvider = Provider<TandaTanganService>(
-  (ref) => ApiTandaTanganService(ref.watch(apiClientProvider)),
-);
+final tandaTanganServiceProvider = Provider<TandaTanganService>((ref) {
+  if (AppConfig.useMock) return MockTandaTanganService();
+  return ApiTandaTanganService(ref.watch(apiClientProvider));
+});
 
 /// Keadaan tanda tangan + byte gambarnya, dibungkus jadi satu.
 ///

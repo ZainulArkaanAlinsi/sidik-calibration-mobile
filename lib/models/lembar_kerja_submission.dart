@@ -99,6 +99,12 @@ class LembarKerjaSubmission {
     this.kelembabanAwal,
     this.kelembabanAkhir,
     this.catatanTeknisi,
+    this.thermohygroStandardId,
+    this.alatModel,
+    this.alatSerialNumber,
+    this.alatMerk,
+    this.pemilikNama,
+    this.pemilikAlamat,
     this.standarDicek = const [],
     this.measurements = const [],
     this.sertakanMeasurements = true,
@@ -125,6 +131,23 @@ class LembarKerjaSubmission {
   final double? kelembabanAwal;
   final double? kelembabanAkhir;
   final String? catatanTeknisi;
+
+  /// "6. Thermohygro used" — unit yang dipakai nyatet kondisi ruang. Diisi
+  /// TEKNISI (dia yang tau unit mana yang kebawa ke lokasi), bukan admin.
+  final int? thermohygroStandardId;
+
+  /// Identitas alat & pemilik seperti yang DIBACA teknisi dari badan alat dan
+  /// surat jalan — poin 3-5 & OWNER 1-2 di lembar kerja.
+  ///
+  /// Sengaja dikirim terpisah dari data master alat: master diisi admin waktu
+  /// alat didaftarkan dan bisa udah nggak cocok sama unit fisik yang beneran
+  /// datang. Sertifikat mengutamakan angka-angka di sini, master cuma cadangan.
+  final String? alatModel;
+  final String? alatSerialNumber;
+  final String? alatMerk;
+  final String? pemilikNama;
+  final String? pemilikAlamat;
+
   final List<StandarDicek> standarDicek;
   final List<TitikLembarKerja> measurements;
 
@@ -161,11 +184,17 @@ class LembarKerjaSubmission {
     // kuncinya) supaya PUT bisa MENGOSONGKAN kolom yang tadinya keisi.
     'standard_id': standardId,
     'room_id': roomId,
+    'thermohygro_standard_id': thermohygroStandardId,
     'suhu_awal': suhuAwal,
     'suhu_akhir': suhuAkhir,
     'kelembaban_awal': kelembabanAwal,
     'kelembaban_akhir': kelembabanAkhir,
     'catatan_teknisi': catatanTeknisi?.trim(),
+    'alat_model': alatModel?.trim(),
+    'alat_serial_number': alatSerialNumber?.trim(),
+    'alat_merk': alatMerk?.trim(),
+    'pemilik_nama': pemilikNama?.trim(),
+    'pemilik_alamat': pemilikAlamat?.trim(),
 
     'standar_dicek': standarDicek.map((s) => s.toJson()).toList(),
 

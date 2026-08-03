@@ -2,8 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:open_filex/open_filex.dart';
+import '../../services/buka_berkas.dart';
 
+import '../../core/utils/angka.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
@@ -13,6 +14,7 @@ import '../../providers/certificate_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../services/pdf_downloader.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/sidik_loader.dart';
 
 /// Pratinjau sertifikat (spesifikasi poin 9), plus unduh PDF/Excel & QR
 /// (poin 10 & 13).
@@ -39,7 +41,7 @@ class SertifikatScreen extends ConsumerWidget {
           onCobaLagi: () =>
               ref.invalidate(certificateDetailProvider(certificateId)),
         ),
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => const Center(child: SidikLoader(size: 88)),
       },
       bottomNavigationBar: async.value?.siap ?? false
           ? _BilahUnduh(sertifikat: async.value!)
@@ -287,7 +289,12 @@ class _TabelHasil extends StatelessWidget {
                       _sel(context, b.standardValue.toStringAsFixed(d)),
                       _sel(context, b.unitUnderTest.toStringAsFixed(d)),
                       _sel(context, b.correction.toStringAsFixed(d)),
-                      _sel(context, b.u95.toStringAsFixed(d)),
+                      // U95 pakai formatter sendiri: dia dijamin kebaca 2
+                      // angka penting, nggak dipaksa ikut desimal alat. Ikut
+                      // desimal alat, `0.0234` kecetak `0.02` dan kehilangan
+                      // setengah nilainya — dan layar ini dipakai buat
+                      // nyocokin sama PDF-nya, jadi dua-duanya harus sama.
+                      _sel(context, formatKetidakpastian(b.u95, d)),
                     ],
                   ),
               ],
@@ -405,10 +412,10 @@ class _BilahUnduhState extends ConsumerState<_BilahUnduh> {
         return;
       }
 
-      final hasil = await OpenFilex.open(path);
-      if (hasil.type != ResultType.done && mounted) {
+      final gagal = await bukaBerkas(path);
+      if (gagal != null && mounted) {
         messenger.showSnackBar(
-          SnackBar(content: Text(l10n.sertUnduhGagal(hasil.message))),
+          SnackBar(content: Text(l10n.sertUnduhGagal(gagal))),
         );
       }
     } on PdfDownloadException catch (e) {

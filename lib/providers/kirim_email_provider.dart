@@ -1,13 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/config/app_config.dart';
 import '../models/kirim_email.dart';
 import '../services/kirim_email_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
 
-final kirimEmailServiceProvider = Provider<KirimEmailService>(
-  (ref) => ApiKirimEmailService(ref.watch(apiClientProvider)),
-);
+final kirimEmailServiceProvider = Provider<KirimEmailService>((ref) {
+  if (AppConfig.useMock) return MockKirimEmailService();
+  return ApiKirimEmailService(ref.watch(apiClientProvider));
+});
 
 /// Riwayat percobaan kirim, di-key per sertifikat.
 ///
@@ -44,4 +46,27 @@ Future<void> kirimSertifikatLewatEmail(
   } finally {
     ref.invalidate(riwayatEmailProvider(certificateId));
   }
+}
+
+/// Catat pengiriman lewat WhatsApp & ambil teks siap-tempelnya.
+///
+/// Riwayatnya di-invalidate sesudahnya, sama kayak jalur email — kiriman WA
+/// muncul di daftar yang sama, jadi "sertifikat ini udah dikirim ke siapa aja"
+/// bisa dijawab dari satu tempat.
+Future<HasilCatatWhatsapp> catatKirimWhatsapp(
+  WidgetRef ref, {
+  required int certificateId,
+  required List<String> ke,
+  FormatKirim format = FormatKirim.tautan,
+}) async {
+  final token = await ref.read(tokenStorageProvider).read();
+  if (token == null) throw const TokenHilangException();
+
+  final hasil = await ref
+      .read(kirimEmailServiceProvider)
+      .catatWhatsapp(token, certificateId, ke: ke, format: format);
+
+  ref.invalidate(riwayatEmailProvider(certificateId));
+
+  return hasil;
 }

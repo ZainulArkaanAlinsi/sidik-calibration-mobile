@@ -13,6 +13,9 @@ import '../../models/user.dart';
 import '../../providers/app_config_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/avatar_provider.dart';
+import '../../providers/locale_provider.dart';
+import '../../providers/platform_provider.dart';
+import '../../providers/theme_mode_provider.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/readable_width.dart';
@@ -22,6 +25,9 @@ import '../design_system/design_system_screen.dart';
 import '../settings/customer_list_screen.dart';
 import '../settings/organization_screen.dart';
 import '../settings/tanda_tangan_screen.dart';
+import '../settings/metode_list_screen.dart';
+import '../settings/ruangan_list_screen.dart';
+import '../settings/rumus_list_screen.dart';
 import '../settings/standard_list_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -41,6 +47,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final apiBaseUrl = ref.watch(apiBaseUrlProvider);
     final user = ref.watch(authProvider).value;
     final sedangLogout = ref.watch(authProvider).isLoading;
+    final panelDesktop = ref.watch(pakaiPanelDesktopProvider);
 
     return Scaffold(
       // Foto hero header harus nyampe ke tepi paling atas layar (nggak ada
@@ -63,7 +70,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               const SizedBox(height: AppSpacing.lg),
             ],
 
-            if (user != null && user.role.isAdmin) ...[
+            // Menu master data cuma muncul di HP.
+            //
+            // Di panel desktop, Pelanggan/Standar/Organisasi/Tanda Tangan/Arsip
+            // semuanya UDAH jadi item sidebar sendiri — nampilinnya lagi di
+            // sini bikin admin lihat tujuan yang sama dua kali, dan Pengaturan
+            // jadi cuma salinan navigasi utama. Yang tersisa di layar ini
+            // preferensi & diagnosa: hal-hal yang emang nggak ada di sidebar.
+            //
+            // Di HP nggak ada sidebar, jadi di situ blok ini SATU-SATUNYA jalan
+            // ke master data dan tetap dipertahankan.
+            if (user != null && user.role.isAdmin && !panelDesktop) ...[
               _JudulSeksi(l10n.profAdminMenu),
               _KartuMenu(
                 children: [
@@ -120,10 +137,50 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                     ),
                   ),
+                  const _GarisPemisah(),
+                  _BarisMenu(
+                    icon: Icons.functions_outlined,
+                    title: l10n.profRumus,
+                    subtitle: l10n.profRumusSub,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const RumusListScreen(),
+                      ),
+                    ),
+                  ),
+                  const _GarisPemisah(),
+                  _BarisMenu(
+                    icon: Icons.meeting_room_outlined,
+                    title: l10n.profRuangan,
+                    subtitle: l10n.profRuanganSub,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const RuanganListScreen(),
+                      ),
+                    ),
+                  ),
+                  const _GarisPemisah(),
+                  _BarisMenu(
+                    icon: Icons.menu_book_outlined,
+                    title: l10n.profMetode,
+                    subtitle: l10n.profMetodeSub,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const MetodeListScreen(),
+                      ),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: AppSpacing.lg),
             ],
+
+            // Preferensi: milik SATU ORANG, bukan milik lab. Tema & bahasa
+            // nggak pernah jadi item sidebar karena bukan tujuan navigasi —
+            // jadi ini isi Pengaturan yang nggak mungkin duplikat.
+            _JudulSeksi(l10n.profPreferensi),
+            const _KartuMenu(children: [_PilihTema(), _GarisPemisah(), _PilihBahasa()]),
+            const SizedBox(height: AppSpacing.lg),
 
             _KartuMenu(
               children: [
@@ -690,6 +747,82 @@ class _KartuMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _Kartu(child: Column(children: children));
+  }
+}
+
+/// Pilih tema terang/gelap/ikut sistem.
+///
+/// Ditaruh di Pengaturan, bukan cuma sakelar di bilah atas panel desktop:
+/// di HP nggak ada bilah itu sama sekali, jadi sebelumnya pengguna HP nggak
+/// punya jalan buat ngubah tema.
+class _PilihTema extends ConsumerWidget {
+  const _PilihTema();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final mode = ref.watch(themeModeProvider);
+
+    return ListTile(
+      leading: const Icon(Icons.brightness_6_outlined),
+      title: Text(l10n.profTema),
+      subtitle: Text(switch (mode) {
+        ThemeMode.light => l10n.profTemaTerang,
+        ThemeMode.dark => l10n.profTemaGelap,
+        ThemeMode.system => l10n.profTemaSistem,
+      }),
+      trailing: SegmentedButton<ThemeMode>(
+        showSelectedIcon: false,
+        segments: [
+          ButtonSegment(
+            value: ThemeMode.light,
+            icon: const Icon(Icons.light_mode_outlined),
+            tooltip: l10n.profTemaTerang,
+          ),
+          ButtonSegment(
+            value: ThemeMode.dark,
+            icon: const Icon(Icons.dark_mode_outlined),
+            tooltip: l10n.profTemaGelap,
+          ),
+          ButtonSegment(
+            value: ThemeMode.system,
+            icon: const Icon(Icons.brightness_auto_outlined),
+            tooltip: l10n.profTemaSistem,
+          ),
+        ],
+        selected: {mode},
+        onSelectionChanged: (p) =>
+            ref.read(themeModeProvider.notifier).setMode(p.first),
+      ),
+    );
+  }
+}
+
+/// Pilih bahasa. Dua-duanya disebut pakai nama bahasanya sendiri
+/// ("Indonesia" / "English"), bukan diterjemahin — orang yang lagi kesasar di
+/// bahasa yang salah tetap bisa nemu jalan pulang.
+class _PilihBahasa extends ConsumerWidget {
+  const _PilihBahasa();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final locale = ref.watch(localeProvider);
+
+    return ListTile(
+      leading: const Icon(Icons.translate_outlined),
+      title: Text(l10n.profBahasa),
+      trailing: SegmentedButton<String>(
+        showSelectedIcon: false,
+        segments: const [
+          ButtonSegment(value: 'id', label: Text('Indonesia')),
+          ButtonSegment(value: 'en', label: Text('English')),
+        ],
+        selected: {locale.languageCode},
+        onSelectionChanged: (p) =>
+            ref.read(localeProvider.notifier).setLocale(Locale(p.first)),
+      ),
+    );
   }
 }
 

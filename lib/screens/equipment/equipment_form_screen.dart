@@ -14,6 +14,7 @@ import '../../providers/equipment_provider.dart';
 import '../../providers/master_data_provider.dart' show customerLookupProvider;
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
+import '../../widgets/sidik_loader.dart';
 
 /// Form tambah/edit alat. `existing == null` → mode tambah.
 ///
@@ -517,7 +518,7 @@ class _PelangganSheetState extends ConsumerState<_PelangganSheet> {
                 height: 280,
                 child: hasil.when(
                   skipLoadingOnReload: true,
-                  loading: () => const Center(child: CircularProgressIndicator()),
+                  loading: () => const Center(child: SidikLoader(size: 88)),
                   error: (_, _) => Center(
                     child: Text(
                       l10n.equipPelangganGagal,

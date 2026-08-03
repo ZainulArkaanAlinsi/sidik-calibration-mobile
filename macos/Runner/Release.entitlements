@@ -4,5 +4,10 @@
 <dict>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
+	<!-- Wajib biar app (yang di-sandbox) bisa manggil backend lewat HTTP.
+	     Tanpa ini, build Release nggak bisa konek jaringan sama sekali —
+	     versi non-mock gagal total waktu login. -->
+	<key>com.apple.security.network.client</key>
+	<true/>
 </dict>
 </plist>

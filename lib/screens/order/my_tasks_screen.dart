@@ -9,6 +9,7 @@ import '../../providers/master_data_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/status_badge.dart';
 import '../calibration/category_picker_screen.dart';
+import '../../widgets/sidik_loader.dart';
 
 /// Tugas Saya — antrean alat yang ditugaskan ke teknisi yang lagi login.
 ///
@@ -67,7 +68,7 @@ class _MyTasksScreenState extends ConsumerState<MyTasksScreen> {
           onPressed: controller.muatUlang,
         ),
       ),
-      _ => const Center(child: CircularProgressIndicator()),
+      _ => const Center(child: SidikLoader(size: 88)),
     };
 
     return Scaffold(

@@ -32,11 +32,17 @@ class CalibrationHistoryItem {
     this.nomorSertifikat,
     this.catatanRevisi,
     this.certificateId,
+    this.namaPelanggan,
   });
 
   final int id;
   final String namaAlat;
   final String namaTeknisi;
+
+  /// PT pemilik alat. Dipakai layar antrean approval buat ngelompokkin
+  /// kiriman per perusahaan — admin mikirnya "beresin punya Maju Jaya dulu",
+  /// bukan per teknisi. Null buat respons backend lama.
+  final String? namaPelanggan;
   final DateTime tanggalKalibrasi;
   final CalibrationStatus status;
 
@@ -68,6 +74,7 @@ class CalibrationHistoryItem {
     nomorSertifikat: nomorSertifikat,
     catatanRevisi: catatanRevisi ?? this.catatanRevisi,
     certificateId: certificateId ?? this.certificateId,
+    namaPelanggan: namaPelanggan,
   );
 
   factory CalibrationHistoryItem.fromJson(Map<String, dynamic> json) {
@@ -89,6 +96,8 @@ class CalibrationHistoryItem {
       nomorSertifikat: json['nomor_sertifikat'] as String?,
       catatanRevisi: json['catatan_revisi'] as String?,
       certificateId: (json['certificate_id'] as num?)?.toInt(),
+      namaPelanggan:
+          (json['pelanggan'] as Map<String, dynamic>?)?['nama'] as String?,
     );
   }
 }

@@ -226,11 +226,16 @@ class _DevHint extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
+            // Mock & API asli sekarang pakai kredensial SAMA: SDK-000x /
+            // rahasia123. Dulu mock masih `ASM-` + `password123` (sisa nama
+            // "asmo") sementara backend udah `SDK-` + `rahasia123` — beda dua
+            // set bikin orang ngetik yang diinget lalu ditolak terus. Disamain
+            // biar satu set aja yang perlu diinget.
             mock
-                ? 'ASM-0001 (admin) · ASM-0002 (teknisi) · ASM-0003 (viewer)\n'
-                      'Password: password123'
-                : 'ASM-0001 (admin) · ASM-0002 (teknisi) · ASM-0003 (viewer)\n'
-                      'ASM-0099 (pending, buat nyoba akun ditolak)\n'
+                ? 'SDK-0001 (admin) · SDK-0002 (teknisi) · SDK-0003 (viewer)\n'
+                      'Password: rahasia123'
+                : 'SDK-0001 (admin) · SDK-0002 (teknisi) · SDK-0003 (viewer)\n'
+                      'SDK-0099 (pending, buat nyoba akun ditolak)\n'
                       'Password: rahasia123\n'
                       'Server: ${AppConfig.apiBaseUrl}',
             style: TextStyle(fontSize: 13, height: 1.4, color: c.text),

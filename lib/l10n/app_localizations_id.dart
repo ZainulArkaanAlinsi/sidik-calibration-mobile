@@ -15,7 +15,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get loginIdentifierLabel => 'ID Pegawai / Email';
 
   @override
-  String get loginIdentifierHint => 'ASM-0001 atau nama@pt-sidik.com';
+  String get loginIdentifierHint => 'SDK-0001 atau nama@pt-sidik.com';
 
   @override
   String get passwordLabel => 'Password';
@@ -318,6 +318,248 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get profStandardsSub => 'Kelola alat standar/acuan lab';
+
+  @override
+  String get profPreferensi => 'Preferensi';
+
+  @override
+  String get profTema => 'Tema';
+
+  @override
+  String get profTemaTerang => 'Terang';
+
+  @override
+  String get profTemaGelap => 'Gelap';
+
+  @override
+  String get profTemaSistem => 'Ikut sistem';
+
+  @override
+  String get profBahasa => 'Bahasa';
+
+  @override
+  String get rumusTitle => 'Rumus Kalibrasi';
+
+  @override
+  String get rumusKetBatasan =>
+      'Yang bisa diubah di sini parameter dan versinya — cara menghitungnya sendiri ada di program dan tidak diubah dari aplikasi. Setiap perubahan jadi versi baru supaya hasil hitung lama tetap bisa dijelaskan.';
+
+  @override
+  String get rumusKosong => 'Belum ada rumus yang tercatat.';
+
+  @override
+  String get rumusCobaLagi => 'Coba lagi';
+
+  @override
+  String rumusVersiBerlaku(int nomor) {
+    return 'Versi $nomor berlaku';
+  }
+
+  @override
+  String get rumusTanpaVersiBerlaku => 'Belum ada versi berlaku';
+
+  @override
+  String rumusJumlahVersi(int jumlah) {
+    return '$jumlah versi';
+  }
+
+  @override
+  String rumusVersiKe(int nomor) {
+    return 'Versi $nomor';
+  }
+
+  @override
+  String get rumusStatusAktif => 'Aktif';
+
+  @override
+  String get rumusStatusDraft => 'Draft';
+
+  @override
+  String get rumusStatusArsip => 'Arsip';
+
+  @override
+  String rumusBerlakuSejak(String mulai) {
+    return 'Berlaku sejak $mulai sampai sekarang';
+  }
+
+  @override
+  String rumusBerlakuRentang(String mulai, String selesai) {
+    return 'Berlaku $mulai – $selesai';
+  }
+
+  @override
+  String get rumusDibuatSistem => 'Dibuat sistem';
+
+  @override
+  String rumusDibuatOleh(String nama) {
+    return 'Diterbitkan oleh $nama';
+  }
+
+  @override
+  String get rumusTerbitkanVersi => 'Terbitkan versi baru';
+
+  @override
+  String get rumusTerbitkan => 'TERBITKAN';
+
+  @override
+  String get rumusBatal => 'Batal';
+
+  @override
+  String get rumusAktifkan => 'Aktifkan';
+
+  @override
+  String get rumusAktifkanJudul => 'Aktifkan versi ini?';
+
+  @override
+  String get rumusAktifkanKet =>
+      'Versi ini akan dipakai menghitung mulai tanggal berlakunya, dan versi sebelumnya ditutup rentangnya.';
+
+  @override
+  String get rumusFormKet =>
+      'Versi baru diterbitkan, bukan menimpa yang lama. Hasil hitung yang sudah terbit tetap menunjuk ke versi yang dipakai waktu itu.';
+
+  @override
+  String get rumusBerlakuDari => 'Berlaku dari';
+
+  @override
+  String get rumusParameter => 'Parameter';
+
+  @override
+  String get rumusCatatan => 'Catatan perubahan';
+
+  @override
+  String get rumusCatatanHint =>
+      'Kenapa aturannya berubah — ini yang dibaca waktu diaudit.';
+
+  @override
+  String get rumusLangsungAktif => 'Langsung aktifkan';
+
+  @override
+  String get rumusLangsungAktifKet =>
+      'Kalau dimatikan, versinya disimpan sebagai draft dulu — belum dipakai menghitung, jadi aman untuk dicoba.';
+
+  @override
+  String rumusVersiTerbit(int nomor) {
+    return 'Versi $nomor diterbitkan.';
+  }
+
+  @override
+  String get profRumus => 'Rumus Kalibrasi';
+
+  @override
+  String get profRumusSub => 'Parameter & riwayat versi perhitungan';
+
+  @override
+  String get ruanganTitle => 'Ruangan Lab';
+
+  @override
+  String get ruanganTambah => 'Tambah ruangan';
+
+  @override
+  String get ruanganUbah => 'Ubah ruangan';
+
+  @override
+  String get ruanganKosong =>
+      'Belum ada ruangan yang tercatat. Selama kosong, sesi lab jalan tanpa ruangan — jadi tidak bisa dijawab dikerjakan di mana dan apakah kondisinya masuk syarat.';
+
+  @override
+  String get ruanganKode => 'Kode';
+
+  @override
+  String get ruanganNama => 'Nama ruangan';
+
+  @override
+  String get ruanganLokasi => 'Lokasi';
+
+  @override
+  String get ruanganSyarat => 'Syarat kondisi lingkungan';
+
+  @override
+  String get ruanganSuhuMin => 'Suhu min (°C)';
+
+  @override
+  String get ruanganSuhuMaks => 'Suhu maks (°C)';
+
+  @override
+  String get ruanganRhMin => 'RH min (%)';
+
+  @override
+  String get ruanganRhMaks => 'RH maks (%)';
+
+  @override
+  String get ruanganAktif => 'Aktif';
+
+  @override
+  String get ruanganAktifKet =>
+      'Yang nonaktif tetap tersimpan, bukan dihapus — sesi lama menunjuk ke sini.';
+
+  @override
+  String get ruanganNonaktif => 'Nonaktif';
+
+  @override
+  String get ruanganWajib => 'Kode dan nama wajib diisi.';
+
+  @override
+  String get ruanganRentangKebalik =>
+      'Nilai minimum tidak boleh lebih besar dari maksimum.';
+
+  @override
+  String get ruanganBatal => 'Batal';
+
+  @override
+  String get ruanganSimpan => 'SIMPAN';
+
+  @override
+  String get metodeTitle => 'Metode Kalibrasi';
+
+  @override
+  String get metodeTambah => 'Tambah metode';
+
+  @override
+  String get metodeUbah => 'Ubah metode';
+
+  @override
+  String get metodeKosong => 'Belum ada metode kalibrasi (IK) yang tercatat.';
+
+  @override
+  String get metodeKode => 'Kode IK';
+
+  @override
+  String get metodeRevisi => 'Revisi';
+
+  @override
+  String get metodeRevisiKet =>
+      'Yang tercetak di sertifikat adalah revisi yang berlaku saat kalibrasi dikerjakan.';
+
+  @override
+  String get metodeNama => 'Nama metode';
+
+  @override
+  String get metodeBerlaku => 'Berlaku mulai';
+
+  @override
+  String get metodeBerlakuKosong => 'Belum diisi';
+
+  @override
+  String metodeBerlakuMulai(String tanggal) {
+    return 'Berlaku mulai $tanggal';
+  }
+
+  @override
+  String get metodeAktifKet =>
+      'Yang nonaktif tetap tersimpan — sertifikat lama menyebut metode ini.';
+
+  @override
+  String get profRuangan => 'Ruangan Lab';
+
+  @override
+  String get profRuanganSub => 'Daftar ruangan & syarat kondisi lingkungan';
+
+  @override
+  String get profMetode => 'Metode Kalibrasi';
+
+  @override
+  String get profMetodeSub => 'Instruksi Kerja (IK) & revisinya';
 
   @override
   String get profArsip => 'Arsip';
@@ -894,6 +1136,197 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get arsipDihapus => 'Folder dihapus.';
+
+  @override
+  String get certSuksesJudul => 'Sertifikat berhasil dibuat';
+
+  @override
+  String get certSuksesNomor => 'Nomor sertifikat';
+
+  @override
+  String get certAksiPdf => 'Unduh PDF';
+
+  @override
+  String get certAksiExcel => 'Ekspor Excel';
+
+  @override
+  String get certAksiQr => 'Kode QR';
+
+  @override
+  String get certAksiSalinTautan => 'Salin tautan verifikasi';
+
+  @override
+  String get certAksiEmail => 'Kirim email';
+
+  @override
+  String get certAksiWhatsapp => 'Bagikan lewat WhatsApp';
+
+  @override
+  String get certAksiTutup => 'Selesai';
+
+  @override
+  String get certQrModalJudul => 'QR Sertifikat';
+
+  @override
+  String get certQrScanUntukVerifikasi => 'Scan buat verifikasi';
+
+  @override
+  String get certQrSimpanPng => 'Simpan PNG';
+
+  @override
+  String get certTautanDisalin => 'Tautan verifikasi disalin.';
+
+  @override
+  String certPngDisimpan(String lokasi) {
+    return 'QR disimpan di $lokasi';
+  }
+
+  @override
+  String certGagalBuka(String tujuan) {
+    return 'Nggak bisa buka $tujuan di perangkat ini.';
+  }
+
+  @override
+  String get certBelumAdaTautan =>
+      'Backend belum nerbitin token verifikasi, jadi belum ada tautan yang bisa dibagiin.';
+
+  @override
+  String certPesanBagikan(String nomor, String tautan) {
+    return 'Halo,\n\nSertifikat kalibrasi Anda sudah terbit.\n\nNomor Sertifikat:\n$nomor\n\nTautan Verifikasi:\n$tautan\n\nSilakan scan kode QR atau buka tautan di atas.\n\nTerima kasih.';
+  }
+
+  @override
+  String certSubjekEmail(String nomor) {
+    return 'Sertifikat Kalibrasi $nomor';
+  }
+
+  @override
+  String get alurTitle => 'Alur Kerja';
+
+  @override
+  String get alurSub =>
+      'Dari isian teknisi sampai sertifikatnya nyampe ke pelanggan.';
+
+  @override
+  String get alurPilihSesi =>
+      'Pilih sesi di kiri buat lihat posisinya sekarang.';
+
+  @override
+  String get alurCari => 'Cari alat atau teknisi...';
+
+  @override
+  String get alurKosong => 'Belum ada sesi kalibrasi.';
+
+  @override
+  String get alurSesiBaru => 'Kalibrasi baru';
+
+  @override
+  String get alurTahapLembarKerja => 'Lembar kerja';
+
+  @override
+  String get alurTahapPerhitungan => 'Perhitungan & approval';
+
+  @override
+  String get alurTahapSertifikat => 'Sertifikat terbit';
+
+  @override
+  String get alurTahapKirim => 'Kekirim ke pelanggan';
+
+  @override
+  String get alurBukaLembarKerja => 'Buka lembar kerja';
+
+  @override
+  String get alurBukaPerhitungan => 'Buka lembar perhitungan';
+
+  @override
+  String get alurLihatSertifikat => 'Lihat sertifikat';
+
+  @override
+  String get alurKirimPelanggan => 'Kirim ke pelanggan';
+
+  @override
+  String get alurDetailSesi => 'Detail sesi';
+
+  @override
+  String get alurStatusDisetujui => 'Disetujui';
+
+  @override
+  String get alurSertifikatDigenerate =>
+      'Sertifikatnya masih dibikin di server. Muat ulang sebentar lagi.';
+
+  @override
+  String alurCatatanRevisi(String catatan) {
+    return 'Dibalikin admin: $catatan';
+  }
+
+  @override
+  String get alurLangkahSekarang => 'Lagi di sini';
+
+  @override
+  String get alurLangkahSelesai => 'Beres';
+
+  @override
+  String get panelSeksiOperasional => 'Operasional';
+
+  @override
+  String get panelSeksiDokumen => 'Dokumen';
+
+  @override
+  String get panelSeksiSistem => 'Sistem';
+
+  @override
+  String get panelCariMenu => 'Cari menu...';
+
+  @override
+  String get panelMenuKosong => 'Nggak ada menu yang cocok.';
+
+  @override
+  String get panelSinkronAktif => 'Sinkron langsung aktif';
+
+  @override
+  String get panelSinkronMati => 'Sinkron langsung mati';
+
+  @override
+  String get panelTema => 'Ganti tema';
+
+  @override
+  String panelSubjudul(String akreditasi) {
+    return 'Desktop · $akreditasi';
+  }
+
+  @override
+  String get panelRingkasan => 'Ringkasan';
+
+  @override
+  String get panelRingkasanSub => 'Posisi lab saat ini.';
+
+  @override
+  String get panelBukaAntrean => 'Buka antrean approval';
+
+  @override
+  String get panelSebaranStatus => 'Sebaran status sesi';
+
+  @override
+  String get panelPerluTindakLanjut => 'TINDAK LANJUT';
+
+  @override
+  String panelSesiSelesai(int count) {
+    return '$count sesi selesai';
+  }
+
+  @override
+  String panelMasihDraft(int count) {
+    return 'Plus $count masih draft';
+  }
+
+  @override
+  String panelTotalSepanjangMasa(int count) {
+    return 'Total sepanjang masa $count';
+  }
+
+  @override
+  String get panelStatusBelumLengkap =>
+      '\"Perlu revisi\" belum ada di respons dashboard — masih nunggu backend.';
 
   @override
   String get arsipPetunjukPindah => 'Tahan item-nya buat mindahin.';
@@ -1718,6 +2151,29 @@ class AppLocalizationsId extends AppLocalizations {
   String get emailRetry => 'COBA LAGI';
 
   @override
+  String get emailFormatJudul => 'Yang dikirim';
+
+  @override
+  String get emailFormatPdf => 'PDF';
+
+  @override
+  String get emailFormatExcel => 'Excel';
+
+  @override
+  String get emailFormatTautan => 'Tautan';
+
+  @override
+  String get emailFormatPdfKet => 'Dokumen resminya, dilampirkan di email.';
+
+  @override
+  String get emailFormatExcelKet =>
+      'Versi lembar kerja, dilampirkan — buat pelanggan yang ngolah datanya lagi.';
+
+  @override
+  String get emailFormatTautanKet =>
+      'Cuma tautan verifikasi, tanpa lampiran. Pelanggan yang unduh sendiri dari halaman itu.';
+
+  @override
   String get ttdTitle => 'Tanda Tangan Sertifikat';
 
   @override
@@ -2022,10 +2478,150 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkUsageCheckKeterangan => 'Keterangan';
 
   @override
-  String get lkStandarPerTitik => 'Standar buffer';
+  String get lkStandarPerTitik => 'Standar titik';
 
   @override
   String get lkStandarKadaluarsa => 'sertifikat kadaluarsa';
+
+  @override
+  String antreanSemuaPt(int jumlah) {
+    return 'Semua PT ($jumlah)';
+  }
+
+  @override
+  String get kirimLewatJudul => 'Kirim lewat';
+
+  @override
+  String get kirimLewatEmail => 'Email';
+
+  @override
+  String get kirimLewatWa => 'WhatsApp';
+
+  @override
+  String get waKeLabel => 'Nomor WhatsApp';
+
+  @override
+  String get waKeHint => '08123456789';
+
+  @override
+  String get waKeKosong => 'Isi minimal satu nomor WhatsApp.';
+
+  @override
+  String get waNomorSalah => 'Ada nomor yang formatnya nggak kebaca.';
+
+  @override
+  String get waKirim => 'BUKA WHATSAPP';
+
+  @override
+  String get waTercatat => 'Pengiriman tercatat di riwayat.';
+
+  @override
+  String get waTakBisaDibuka => 'WhatsApp nggak bisa dibuka di perangkat ini.';
+
+  @override
+  String get waKetPdf =>
+      'WhatsApp nggak bisa dititipin lampiran, jadi yang dikirim tautan unduh PDF-nya langsung.';
+
+  @override
+  String get waKetExcel =>
+      'Yang dikirim tautan unduh berkas Excel-nya langsung.';
+
+  @override
+  String get waKetTautan =>
+      'Yang dikirim tautan halaman verifikasi — pelanggan lihat sertifikatnya di situ dan bisa unduh sendiri.';
+
+  @override
+  String get tolakJudul => 'Kembalikan ke teknisi';
+
+  @override
+  String get tolakPetunjuk =>
+      'Pilih apa yang perlu dibetulin. Kolom yang kamu tandai bakal kesorot di lembar kerja teknisi, jadi dia nggak perlu nyari sendiri.';
+
+  @override
+  String get tolakDariPemeriksaan => 'Dari hasil pemeriksaan';
+
+  @override
+  String get tolakAlasanUmum => 'Alasan lain';
+
+  @override
+  String get tolakAlasanSerial => 'Serial number nggak cocok';
+
+  @override
+  String get tolakAlasanIdentitas => 'Identitas alat nggak lengkap';
+
+  @override
+  String get tolakAlasanPemilik => 'Data pemilik salah';
+
+  @override
+  String get tolakAlasanEnv => 'Env. Condition belum lengkap';
+
+  @override
+  String get tolakAlasanThermohygro => 'Thermohygro belum dipilih';
+
+  @override
+  String get tolakAlasanPembacaan => 'Pembacaan meragukan, ulangi';
+
+  @override
+  String get tolakAlasanUsageCheck => 'Usage Check belum dicentang';
+
+  @override
+  String get tolakCatatanTambahan => 'Catatan tambahan (opsional)';
+
+  @override
+  String get tolakCatatanHint => 'Jelasin kenapa, biar nggak keulang lagi.';
+
+  @override
+  String get tolakPratinjau => 'Yang bakal diterima teknisi';
+
+  @override
+  String get tolakKirim => 'KEMBALIKAN KE TEKNISI';
+
+  @override
+  String get lkPerluDibetulin => 'Diminta admin dibetulin';
+
+  @override
+  String get lkBannerRevisiTanpaKolom =>
+      'Admin ngembaliin lembar kerja ini. Baca catatannya di bawah.';
+
+  @override
+  String get lkCatatanAdmin => 'CATATAN ADMIN';
+
+  @override
+  String lkRevisiJumlahKolom(int jumlah) {
+    return '$jumlah kolom ditandai perlu dibetulin.';
+  }
+
+  @override
+  String get lkBannerRevisi =>
+      'Admin ngembaliin lembar kerja ini. Kolom yang ditandai di bawah yang perlu dibetulin.';
+
+  @override
+  String get lkStandarBelumTerdaftar => 'belum terdaftar di master standar';
+
+  @override
+  String antreanMasukBaru(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah lembar kerja baru masuk antrean approval',
+      one: '1 lembar kerja baru masuk antrean approval',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lkThermohygroKosong => 'Belum ada unit thermohygro terdaftar.';
+
+  @override
+  String lkHalamanKe(int nomor, int dari) {
+    return 'Halaman $nomor dari $dari';
+  }
+
+  @override
+  String get lkHalamanLanjut => 'LANJUT KE HALAMAN BERIKUTNYA';
+
+  @override
+  String get lkHalamanKembali => 'KEMBALI';
 
   @override
   String get lkPilih => 'Pilih';

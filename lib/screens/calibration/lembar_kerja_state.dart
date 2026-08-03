@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../models/calibration_detail.dart' show IsianTeknisi;
 import '../../models/calibration_draft.dart' show LokasiKalibrasi;
 import '../../models/equipment_lookup.dart';
 import '../../models/lembar_kerja.dart';
@@ -11,6 +12,13 @@ import '../../services/worksheet_vision.dart';
 /// diterima; yang dikirim ke backend selalu titik.
 double? parseAngka(String teks) =>
     double.tryParse(teks.trim().replaceAll(',', '.'));
+
+/// Balikin angka ke bentuk yang enak diketik ulang: `22.5`, bukan `22.500000`
+/// — dan bilangan bulat tanpa `.0` yang bikin teknisi ngira ada desimal
+/// tersembunyi.
+String formatAngka(double nilai) => nilai == nilai.roundToDouble()
+    ? nilai.toStringAsFixed(0)
+    : '$nilai';
 
 /// Isian satu baris tabel hasil: satu larutan standar, dua tahap
 /// (before & after adjustment), masing-masing n pengulangan × 2 kolom.
@@ -24,12 +32,17 @@ class TitikState {
     required this.label,
     required this.jumlahPengulangan,
     required this.satuan,
+    this.desimal,
   }) : _kotak = {};
 
   final double titikUkur;
   final String label;
   final int jumlahPengulangan;
   final String satuan;
+
+  /// Jumlah desimal resolusi titik ini (Turbidimeter 2/1/0). `null` = resolusi
+  /// seragam. Dipakai buat mad pembacaan hasil kamera ke resolusi titik.
+  final int? desimal;
 
   /// Standar buffer khusus titik ini (buffer 4/7/10 beda-beda).
   int? standardId;
@@ -136,6 +149,7 @@ class LembarKerjaState {
               label: b.label,
               jumlahPengulangan: t.pengulangan.length,
               satuan: bentuk.satuan,
+              desimal: b.desimal,
             ),
           );
         }
@@ -180,10 +194,93 @@ class LembarKerjaState {
 
   final Map<int, UsageCheckState> usageCheck = {};
 
+  /// Kode kolom yang diminta admin dibetulin (sesi `perlu_revisi`). Dipakai
+  /// layar buat nyorot kolomnya — bukan buat nahan kirim. Teknisi tetap boleh
+  /// ngirim tanpa nyentuh semuanya: kadang yang diminta admin ternyata udah
+  /// bener dan yang salah hal lain.
+  final Set<String> revisiField = {};
+
+  /// Catatan admin waktu ngembaliin lembar ini — alasannya, apa adanya.
+  ///
+  /// Wajib ada di layar tempat teknisi MEMBETULKAN, bukan cuma di notifikasi
+  /// & layar detail sesi. Kolom bergaris merah cuma nunjukin MANA yang salah;
+  /// yang bikin teknisi ngerti harus diapain itu alasannya. Tanpa ini dia
+  /// mesti mundur ke layar lain sambil ngingat-ngingat, atau ngira-ngira.
+  ///
+  /// Bisa null: admin boleh nolak dengan catatan tanpa nandain kolom.
+  String? catatanRevisi;
+
+  /// Lembar ini dikembalikan admin — entah lewat kolom yang ditandai, catatan,
+  /// atau dua-duanya.
+  ///
+  /// Sengaja BUKAN `revisiField.isNotEmpty`: `revisi_field` boleh null di
+  /// backend, jadi penolakan yang cuma bawa catatan bikin bannernya nggak
+  /// muncul sama sekali. Teknisi dapat lembar yang kelihatan normal padahal
+  /// admin udah ngembaliin — dan alasannya cuma ada di notifikasi yang
+  /// gampang kelewat.
+  bool get adaRevisi =>
+      revisiField.isNotEmpty || (catatanRevisi?.trim().isNotEmpty ?? false);
+
   UsageCheckState usage(int standardId) => usageCheck.putIfAbsent(
     standardId,
     () => UsageCheckState(standardId: standardId),
   );
+
+  /// Isi ulang formulir dari sesi yang udah ada — lanjut draft, atau perbaiki
+  /// lembar kerja yang dikembalikan admin.
+  ///
+  /// Yang DITIMPA cuma kolom yang masih kosong. Alasannya: layar ini bisa
+  /// kebuka duluan (teknisi langsung ngetik) sebelum detail sesinya nyampe dari
+  /// jaringan yang lelet. Kalau data lama nimpa apa yang barusan diketik,
+  /// koreksi teknisi ilang di depan matanya sendiri — kejadian paling bikin
+  /// nggak percaya sama app.
+  ///
+  /// Pengukurannya sendiri (tabel Before/After) nggak diisi di sini: bentuknya
+  /// beda per tahap & pengulangan, dan itu urusan `terapkanPembacaan` yang
+  /// dipanggil layar sesudah tabelnya kebentuk.
+  void muatDariSesi(IsianTeknisi isi) {
+    void isiTeks(String kode, String? nilai) {
+      final kotak = teks[kode];
+      if (kotak == null || nilai == null || nilai.trim().isEmpty) return;
+      if (kotak.text.trim().isNotEmpty) return;
+      kotak.text = nilai;
+    }
+
+    void isiAngka(String kode, double? nilai) {
+      if (nilai != null) isiTeks(kode, formatAngka(nilai));
+    }
+
+    isiTeks('alat_model', isi.alatModel);
+    isiTeks('alat_serial_number', isi.alatSerialNumber);
+    isiTeks('alat_merk', isi.alatMerk);
+    isiTeks('pemilik_nama', isi.pemilikNama);
+    isiTeks('pemilik_alamat', isi.pemilikAlamat);
+    isiTeks('catatan_teknisi', isi.catatanTeknisi);
+
+    isiAngka('suhu_awal', isi.suhuAwal);
+    isiAngka('suhu_akhir', isi.suhuAkhir);
+    isiAngka('kelembaban_awal', isi.kelembabanAwal);
+    isiAngka('kelembaban_akhir', isi.kelembabanAkhir);
+
+    standardId ??= isi.standardId;
+    roomId ??= isi.roomId;
+    thermohygroStandardId ??= isi.thermohygroStandardId;
+    tanggal['tanggal_terima'] ??= isi.tanggalTerima;
+
+    if (isi.lokasi == 'onsite') lokasi = LokasiKalibrasi.onsite;
+
+    revisiField
+      ..clear()
+      ..addAll(isi.revisiField);
+    catatanRevisi = isi.catatanRevisi;
+
+    isi.standarDicek.forEach((standardId, baris) {
+      final state = usage(standardId);
+      if (state.adaIsian) return;
+      state.dipakai = baris.dipakai;
+      if (baris.keterangan != null) state.keterangan.text = baris.keterangan!;
+    });
+  }
 
   double? angka(String kode) {
     final c = teks[kode];
@@ -230,6 +327,12 @@ class LembarKerjaState {
       kelembabanAwal: angka('kelembaban_awal'),
       kelembabanAkhir: angka('kelembaban_akhir'),
       catatanTeknisi: kalimat('catatan_teknisi'),
+      thermohygroStandardId: thermohygroStandardId,
+      alatModel: kalimat('alat_model'),
+      alatSerialNumber: kalimat('alat_serial_number'),
+      alatMerk: kalimat('alat_merk'),
+      pemilikNama: kalimat('pemilik_nama'),
+      pemilikAlamat: kalimat('pemilik_alamat'),
       standarDicek: usageCheck.values
           .where((u) => u.adaIsian)
           .map((u) => u.toSubmission())
@@ -376,7 +479,9 @@ class LembarKerjaState {
     TingkatKeyakinan keyakinan,
   ) {
     final kotak = state.kotak(tahap, kolom, index);
-    final baru = GabungTabel.nilaiBaru(kotak.text, nilai);
+    // Pembacaan dipad ke resolusi titiknya (4,60), suhu nggak.
+    final desimal = kolom == 'pembacaan' ? state.desimal : null;
+    final baru = GabungTabel.nilaiBaru(kotak.text, nilai, desimal: desimal);
     if (baru == null) return 0;
 
     kotak.text = baru;
@@ -392,6 +497,38 @@ class LembarKerjaState {
 
   /// Isi kolom yang ditandai `sumber: otomatis` di formulir. Kode-nya bertitik
   /// (`equipment.merk`), jadi nggak pernah jadi kunci payload — murni tampilan.
+  /// Alat dipilih → identitas alat & pemilik keisi sendiri dari master.
+  ///
+  /// Kompromi yang disengaja antara dua kebutuhan yang kelihatan bertabrakan:
+  ///
+  /// - Data master **udah ada** waktu pelanggannya didaftarin, jadi nyuruh
+  ///   teknisi ngetik ulang nama PT & alamatnya di lapangan itu kerja dobel
+  ///   yang bikin salah ketik.
+  /// - Tapi yang sah di dokumen kalibrasi tetap yang **dibaca teknisi dari
+  ///   badan alat & surat jalan** — master diisi admin dan sering beda sama
+  ///   unit fisik yang beneran datang.
+  ///
+  /// Jadi: keisi otomatis, TAPI tetap bisa diedit. Teknisi mulai dari data
+  /// yang benar dan cuma nyentuh yang beda — bukan ngetik dari nol, bukan juga
+  /// kekunci sama data master yang mungkin basi.
+  ///
+  /// Cuma kolom KOSONG yang diisi. Kalau teknisi udah ngetik lalu ganti alat,
+  /// yang dia ketik nggak boleh keganti diam-diam.
+  void isiDariAlat() {
+    void isi(String kode, String? nilai) {
+      final kotak = teks[kode];
+      if (kotak == null || nilai == null || nilai.trim().isEmpty) return;
+      if (kotak.text.trim().isNotEmpty) return;
+      kotak.text = nilai;
+    }
+
+    isi('alat_model', alat?.model);
+    isi('alat_serial_number', alat?.serialNumber);
+    isi('alat_merk', alat?.merk);
+    isi('pemilik_nama', alat?.pelangganNama);
+    isi('pemilik_alamat', alat?.pelangganAlamat);
+  }
+
   String nilaiTurunan(String kode, {String? namaTeknisi, String? namaReviewer}) {
     return switch (kode) {
       'equipment.nama_alat' => alat?.namaAlat ?? '',

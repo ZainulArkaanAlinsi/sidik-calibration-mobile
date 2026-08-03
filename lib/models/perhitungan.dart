@@ -183,10 +183,18 @@ class TitikPerhitungan {
     this.averageSuhu,
     this.correction,
     this.stdev,
+    this.desimal,
+    this.resolusi,
   });
 
   final int titikKe;
   final List<PembacaanPerhitungan> pembacaan;
+
+  /// Jumlah desimal resolusi titik ini (Turbidimeter 2/1/0). `null` = alat
+  /// resolusi seragam — pakai resolusi alat dari [IdentitasAlat]. Dipakai buat
+  /// mad angka tanpa buang nol belakang (4,60 tetap 4,60).
+  final int? desimal;
+  final double? resolusi;
 
   /// **Bukan nilai nominal (4,00)**, tapi nilai buffer pada suhu larutan saat
   /// itu (4,0092252 di 22,2 °C) — dihitung backend dari persamaan di
@@ -221,6 +229,8 @@ class TitikPerhitungan {
         averageSuhu: (json['average_suhu'] as num?)?.toDouble(),
         correction: (json['correction'] as num?)?.toDouble(),
         stdev: (json['stdev'] as num?)?.toDouble(),
+        desimal: (json['desimal'] as num?)?.toInt(),
+        resolusi: (json['resolusi'] as num?)?.toDouble(),
         pembacaan: parseListAman((json['pembacaan'] as List<dynamic>? ?? const []), PembacaanPerhitungan.fromJson),
       );
 }

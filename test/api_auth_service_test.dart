@@ -31,7 +31,7 @@ final _userAdmin = {
   'id': 1,
   'nama': 'Budi Santoso',
   'email': 'admin@pt-sidik.com',
-  'employee_id': 'ASM-0001',
+  'employee_id': 'SDK-0001',
   'role': 'admin',
   'status': 'aktif',
   'department': 'Quality Control',
@@ -51,7 +51,7 @@ void main() {
       });
 
       final sesi = await service.login(
-        identifier: 'ASM-0001',
+        identifier: 'SDK-0001',
         password: 'rahasia123',
       );
 
@@ -60,13 +60,13 @@ void main() {
 
       final body = jsonDecode(terkirim.body) as Map<String, dynamic>;
       // Kontraknya `identifier`, BUKAN `email` — ini yang paling gampang salah.
-      expect(body['identifier'], 'ASM-0001');
+      expect(body['identifier'], 'SDK-0001');
       expect(body['password'], 'rahasia123');
 
       // Token Sanctum bentuknya `1|xxx`, bukan JWT.
       expect(sesi.token, '1|JpQDXLhSEz');
       expect(sesi.user.role, UserRole.admin);
-      expect(sesi.user.employeeId, 'ASM-0001');
+      expect(sesi.user.employeeId, 'SDK-0001');
     });
 
     test('401 → pesan dari server dipakai apa adanya', () async {
@@ -78,7 +78,7 @@ void main() {
       );
 
       await expectLater(
-        service.login(identifier: 'ASM-0001', password: 'salah'),
+        service.login(identifier: 'SDK-0001', password: 'salah'),
         throwsA(
           isA<AuthException>().having(
             (e) => e.message,
@@ -97,7 +97,7 @@ void main() {
       );
 
       await expectLater(
-        service.login(identifier: 'ASM-0099', password: 'rahasia123'),
+        service.login(identifier: 'SDK-0099', password: 'rahasia123'),
         throwsA(
           isA<AuthException>().having(
             (e) => e.message,
@@ -114,7 +114,7 @@ void main() {
       final service = _service((_) async => http.Response('', 429));
 
       await expectLater(
-        service.login(identifier: 'ASM-0001', password: 'rahasia123'),
+        service.login(identifier: 'SDK-0001', password: 'rahasia123'),
         throwsA(
           isA<AuthException>().having(
             (e) => e.message,
@@ -131,7 +131,7 @@ void main() {
       );
 
       await expectLater(
-        service.login(identifier: 'ASM-0001', password: 'x'),
+        service.login(identifier: 'SDK-0001', password: 'x'),
         throwsA(isA<AuthException>()),
       );
     });
@@ -149,7 +149,7 @@ void main() {
       await service.register(
         const RegisterData(
           nama: 'Eko Prasetyo',
-          employeeId: 'ASM-0099',
+          employeeId: 'SDK-0099',
           department: 'Kalibrasi',
           email: 'eko@pt-sidik.com',
           password: 'rahasia123',
@@ -158,7 +158,7 @@ void main() {
 
       final body = jsonDecode(terkirim.body) as Map<String, dynamic>;
       expect(terkirim.url.toString(), '$_baseUrl/register');
-      expect(body['employee_id'], 'ASM-0099');
+      expect(body['employee_id'], 'SDK-0099');
       expect(
         body.containsKey('role'),
         isFalse,
@@ -186,7 +186,7 @@ void main() {
       final service = _service((_) async => _json(_userAdmin, 200));
 
       final user = await service.me('1|token');
-      expect(user.employeeId, 'ASM-0001');
+      expect(user.employeeId, 'SDK-0001');
     });
   });
 

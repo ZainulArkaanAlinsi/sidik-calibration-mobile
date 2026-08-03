@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:open_filex/open_filex.dart';
+import '../../services/buka_berkas.dart';
 
 import '../../core/config/lab_profile.dart';
 import '../../core/theme/app_colors.dart';
@@ -106,10 +106,10 @@ class _IsiState extends ConsumerState<_Isi> {
           .read(pdfDownloaderProvider)
           .unduh(token, pdfUrl, namaFile: '${sertifikat.nomor}.pdf');
 
-      final hasil = await OpenFilex.open(path);
-      if (hasil.type != ResultType.done && mounted) {
+      final gagal = await bukaBerkas(path);
+      if (gagal != null && mounted) {
         messenger.showSnackBar(
-          SnackBar(content: Text(l10n.certOpenFailed(hasil.message))),
+          SnackBar(content: Text(l10n.certOpenFailed(gagal))),
         );
       }
     } on PdfDownloadException catch (e) {

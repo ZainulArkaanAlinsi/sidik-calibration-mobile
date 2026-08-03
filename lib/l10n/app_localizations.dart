@@ -113,7 +113,7 @@ abstract class AppLocalizations {
   /// No description provided for @loginIdentifierHint.
   ///
   /// In en, this message translates to:
-  /// **'ASM-0001 or name@pt-sidik.com'**
+  /// **'SDK-0001 or name@pt-sidik.com'**
   String get loginIdentifierHint;
 
   /// No description provided for @passwordLabel.
@@ -685,6 +685,438 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Manage the lab\'s reference/standard equipment'**
   String get profStandardsSub;
+
+  /// No description provided for @profPreferensi.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get profPreferensi;
+
+  /// No description provided for @profTema.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get profTema;
+
+  /// No description provided for @profTemaTerang.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get profTemaTerang;
+
+  /// No description provided for @profTemaGelap.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get profTemaGelap;
+
+  /// No description provided for @profTemaSistem.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow system'**
+  String get profTemaSistem;
+
+  /// No description provided for @profBahasa.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get profBahasa;
+
+  /// No description provided for @rumusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration Formulas'**
+  String get rumusTitle;
+
+  /// No description provided for @rumusKetBatasan.
+  ///
+  /// In en, this message translates to:
+  /// **'What you can change here are the parameters and versions — the calculation itself lives in the program and is not edited from the app. Every change becomes a new version so past results stay explainable.'**
+  String get rumusKetBatasan;
+
+  /// No description provided for @rumusKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No formulas recorded yet.'**
+  String get rumusKosong;
+
+  /// No description provided for @rumusCobaLagi.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get rumusCobaLagi;
+
+  /// No description provided for @rumusVersiBerlaku.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {nomor} in effect'**
+  String rumusVersiBerlaku(int nomor);
+
+  /// No description provided for @rumusTanpaVersiBerlaku.
+  ///
+  /// In en, this message translates to:
+  /// **'No version in effect'**
+  String get rumusTanpaVersiBerlaku;
+
+  /// No description provided for @rumusJumlahVersi.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} version(s)'**
+  String rumusJumlahVersi(int jumlah);
+
+  /// No description provided for @rumusVersiKe.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {nomor}'**
+  String rumusVersiKe(int nomor);
+
+  /// No description provided for @rumusStatusAktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get rumusStatusAktif;
+
+  /// No description provided for @rumusStatusDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get rumusStatusDraft;
+
+  /// No description provided for @rumusStatusArsip.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get rumusStatusArsip;
+
+  /// No description provided for @rumusBerlakuSejak.
+  ///
+  /// In en, this message translates to:
+  /// **'In effect since {mulai}'**
+  String rumusBerlakuSejak(String mulai);
+
+  /// No description provided for @rumusBerlakuRentang.
+  ///
+  /// In en, this message translates to:
+  /// **'In effect {mulai} – {selesai}'**
+  String rumusBerlakuRentang(String mulai, String selesai);
+
+  /// No description provided for @rumusDibuatSistem.
+  ///
+  /// In en, this message translates to:
+  /// **'Created by the system'**
+  String get rumusDibuatSistem;
+
+  /// No description provided for @rumusDibuatOleh.
+  ///
+  /// In en, this message translates to:
+  /// **'Published by {nama}'**
+  String rumusDibuatOleh(String nama);
+
+  /// No description provided for @rumusTerbitkanVersi.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish new version'**
+  String get rumusTerbitkanVersi;
+
+  /// No description provided for @rumusTerbitkan.
+  ///
+  /// In en, this message translates to:
+  /// **'PUBLISH'**
+  String get rumusTerbitkan;
+
+  /// No description provided for @rumusBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get rumusBatal;
+
+  /// No description provided for @rumusAktifkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate'**
+  String get rumusAktifkan;
+
+  /// No description provided for @rumusAktifkanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate this version?'**
+  String get rumusAktifkanJudul;
+
+  /// No description provided for @rumusAktifkanKet.
+  ///
+  /// In en, this message translates to:
+  /// **'This version will be used for calculations from its effective date, and the previous version\'s range is closed.'**
+  String get rumusAktifkanKet;
+
+  /// No description provided for @rumusFormKet.
+  ///
+  /// In en, this message translates to:
+  /// **'A new version is published, not overwritten. Results already issued keep pointing at the version used at the time.'**
+  String get rumusFormKet;
+
+  /// No description provided for @rumusBerlakuDari.
+  ///
+  /// In en, this message translates to:
+  /// **'Effective from'**
+  String get rumusBerlakuDari;
+
+  /// No description provided for @rumusParameter.
+  ///
+  /// In en, this message translates to:
+  /// **'Parameters'**
+  String get rumusParameter;
+
+  /// No description provided for @rumusCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Change note'**
+  String get rumusCatatan;
+
+  /// No description provided for @rumusCatatanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Why the rule changed — this is what gets read during an audit.'**
+  String get rumusCatatanHint;
+
+  /// No description provided for @rumusLangsungAktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate immediately'**
+  String get rumusLangsungAktif;
+
+  /// No description provided for @rumusLangsungAktifKet.
+  ///
+  /// In en, this message translates to:
+  /// **'If off, the version is saved as a draft — not used for calculations yet, so it is safe to try.'**
+  String get rumusLangsungAktifKet;
+
+  /// No description provided for @rumusVersiTerbit.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {nomor} published.'**
+  String rumusVersiTerbit(int nomor);
+
+  /// No description provided for @profRumus.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration Formulas'**
+  String get profRumus;
+
+  /// No description provided for @profRumusSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Parameters & calculation version history'**
+  String get profRumusSub;
+
+  /// No description provided for @ruanganTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lab Rooms'**
+  String get ruanganTitle;
+
+  /// No description provided for @ruanganTambah.
+  ///
+  /// In en, this message translates to:
+  /// **'Add room'**
+  String get ruanganTambah;
+
+  /// No description provided for @ruanganUbah.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit room'**
+  String get ruanganUbah;
+
+  /// No description provided for @ruanganKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No rooms recorded yet. While this is empty, lab sessions run without a room — so there is no answer to where the work was done or whether conditions were within limits.'**
+  String get ruanganKosong;
+
+  /// No description provided for @ruanganKode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get ruanganKode;
+
+  /// No description provided for @ruanganNama.
+  ///
+  /// In en, this message translates to:
+  /// **'Room name'**
+  String get ruanganNama;
+
+  /// No description provided for @ruanganLokasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get ruanganLokasi;
+
+  /// No description provided for @ruanganSyarat.
+  ///
+  /// In en, this message translates to:
+  /// **'Environmental limits'**
+  String get ruanganSyarat;
+
+  /// No description provided for @ruanganSuhuMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Temp min (°C)'**
+  String get ruanganSuhuMin;
+
+  /// No description provided for @ruanganSuhuMaks.
+  ///
+  /// In en, this message translates to:
+  /// **'Temp max (°C)'**
+  String get ruanganSuhuMaks;
+
+  /// No description provided for @ruanganRhMin.
+  ///
+  /// In en, this message translates to:
+  /// **'RH min (%)'**
+  String get ruanganRhMin;
+
+  /// No description provided for @ruanganRhMaks.
+  ///
+  /// In en, this message translates to:
+  /// **'RH max (%)'**
+  String get ruanganRhMaks;
+
+  /// No description provided for @ruanganAktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get ruanganAktif;
+
+  /// No description provided for @ruanganAktifKet.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive ones are kept, not deleted — older sessions point here.'**
+  String get ruanganAktifKet;
+
+  /// No description provided for @ruanganNonaktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get ruanganNonaktif;
+
+  /// No description provided for @ruanganWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Code and name are required.'**
+  String get ruanganWajib;
+
+  /// No description provided for @ruanganRentangKebalik.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum cannot be greater than maximum.'**
+  String get ruanganRentangKebalik;
+
+  /// No description provided for @ruanganBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get ruanganBatal;
+
+  /// No description provided for @ruanganSimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE'**
+  String get ruanganSimpan;
+
+  /// No description provided for @metodeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration Methods'**
+  String get metodeTitle;
+
+  /// No description provided for @metodeTambah.
+  ///
+  /// In en, this message translates to:
+  /// **'Add method'**
+  String get metodeTambah;
+
+  /// No description provided for @metodeUbah.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit method'**
+  String get metodeUbah;
+
+  /// No description provided for @metodeKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No calibration methods (work instructions) recorded yet.'**
+  String get metodeKosong;
+
+  /// No description provided for @metodeKode.
+  ///
+  /// In en, this message translates to:
+  /// **'Method code'**
+  String get metodeKode;
+
+  /// No description provided for @metodeRevisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Revision'**
+  String get metodeRevisi;
+
+  /// No description provided for @metodeRevisiKet.
+  ///
+  /// In en, this message translates to:
+  /// **'The certificate prints the revision in force when the calibration was performed.'**
+  String get metodeRevisiKet;
+
+  /// No description provided for @metodeNama.
+  ///
+  /// In en, this message translates to:
+  /// **'Method name'**
+  String get metodeNama;
+
+  /// No description provided for @metodeBerlaku.
+  ///
+  /// In en, this message translates to:
+  /// **'Effective from'**
+  String get metodeBerlaku;
+
+  /// No description provided for @metodeBerlakuKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get metodeBerlakuKosong;
+
+  /// No description provided for @metodeBerlakuMulai.
+  ///
+  /// In en, this message translates to:
+  /// **'Effective from {tanggal}'**
+  String metodeBerlakuMulai(String tanggal);
+
+  /// No description provided for @metodeAktifKet.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive ones are kept — older certificates cite this method.'**
+  String get metodeAktifKet;
+
+  /// No description provided for @profRuangan.
+  ///
+  /// In en, this message translates to:
+  /// **'Lab Rooms'**
+  String get profRuangan;
+
+  /// No description provided for @profRuanganSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Rooms & their environmental limits'**
+  String get profRuanganSub;
+
+  /// No description provided for @profMetode.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration Methods'**
+  String get profMetode;
+
+  /// No description provided for @profMetodeSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Work instructions (IK) & revisions'**
+  String get profMetodeSub;
 
   /// No description provided for @profArsip.
   ///
@@ -1741,6 +2173,342 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Folder deleted.'**
   String get arsipDihapus;
+
+  /// No description provided for @certSuksesJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate created'**
+  String get certSuksesJudul;
+
+  /// No description provided for @certSuksesNomor.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate number'**
+  String get certSuksesNomor;
+
+  /// No description provided for @certAksiPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Download PDF'**
+  String get certAksiPdf;
+
+  /// No description provided for @certAksiExcel.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Excel'**
+  String get certAksiExcel;
+
+  /// No description provided for @certAksiQr.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code'**
+  String get certAksiQr;
+
+  /// No description provided for @certAksiSalinTautan.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy verification link'**
+  String get certAksiSalinTautan;
+
+  /// No description provided for @certAksiEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Send email'**
+  String get certAksiEmail;
+
+  /// No description provided for @certAksiWhatsapp.
+  ///
+  /// In en, this message translates to:
+  /// **'Share via WhatsApp'**
+  String get certAksiWhatsapp;
+
+  /// No description provided for @certAksiTutup.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get certAksiTutup;
+
+  /// No description provided for @certQrModalJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate QR'**
+  String get certQrModalJudul;
+
+  /// No description provided for @certQrScanUntukVerifikasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan to verify'**
+  String get certQrScanUntukVerifikasi;
+
+  /// No description provided for @certQrSimpanPng.
+  ///
+  /// In en, this message translates to:
+  /// **'Save PNG'**
+  String get certQrSimpanPng;
+
+  /// No description provided for @certTautanDisalin.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification link copied.'**
+  String get certTautanDisalin;
+
+  /// No description provided for @certPngDisimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'QR saved to {lokasi}'**
+  String certPngDisimpan(String lokasi);
+
+  /// No description provided for @certGagalBuka.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open {tujuan} on this device.'**
+  String certGagalBuka(String tujuan);
+
+  /// No description provided for @certBelumAdaTautan.
+  ///
+  /// In en, this message translates to:
+  /// **'The backend hasn\'t issued a verification token yet, so there\'s no link to share.'**
+  String get certBelumAdaTautan;
+
+  /// No description provided for @certPesanBagikan.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello,\n\nYour calibration certificate has been generated.\n\nCertificate Number:\n{nomor}\n\nVerification Link:\n{tautan}\n\nScan the QR code or open the link above.\n\nThank you.'**
+  String certPesanBagikan(String nomor, String tautan);
+
+  /// No description provided for @certSubjekEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration Certificate {nomor}'**
+  String certSubjekEmail(String nomor);
+
+  /// No description provided for @alurTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Workflow'**
+  String get alurTitle;
+
+  /// No description provided for @alurSub.
+  ///
+  /// In en, this message translates to:
+  /// **'From the technician\'s entry to the certificate landing in the client\'s inbox.'**
+  String get alurSub;
+
+  /// No description provided for @alurPilihSesi.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a session on the left to see where it stands.'**
+  String get alurPilihSesi;
+
+  /// No description provided for @alurCari.
+  ///
+  /// In en, this message translates to:
+  /// **'Search device or technician...'**
+  String get alurCari;
+
+  /// No description provided for @alurKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No calibration sessions yet.'**
+  String get alurKosong;
+
+  /// No description provided for @alurSesiBaru.
+  ///
+  /// In en, this message translates to:
+  /// **'New calibration'**
+  String get alurSesiBaru;
+
+  /// No description provided for @alurTahapLembarKerja.
+  ///
+  /// In en, this message translates to:
+  /// **'Worksheet'**
+  String get alurTahapLembarKerja;
+
+  /// No description provided for @alurTahapPerhitungan.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculation & approval'**
+  String get alurTahapPerhitungan;
+
+  /// No description provided for @alurTahapSertifikat.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate issued'**
+  String get alurTahapSertifikat;
+
+  /// No description provided for @alurTahapKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to client'**
+  String get alurTahapKirim;
+
+  /// No description provided for @alurBukaLembarKerja.
+  ///
+  /// In en, this message translates to:
+  /// **'Open worksheet'**
+  String get alurBukaLembarKerja;
+
+  /// No description provided for @alurBukaPerhitungan.
+  ///
+  /// In en, this message translates to:
+  /// **'Open calculation sheet'**
+  String get alurBukaPerhitungan;
+
+  /// No description provided for @alurLihatSertifikat.
+  ///
+  /// In en, this message translates to:
+  /// **'View certificate'**
+  String get alurLihatSertifikat;
+
+  /// No description provided for @alurKirimPelanggan.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to client'**
+  String get alurKirimPelanggan;
+
+  /// No description provided for @alurDetailSesi.
+  ///
+  /// In en, this message translates to:
+  /// **'Session details'**
+  String get alurDetailSesi;
+
+  /// No description provided for @alurStatusDisetujui.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get alurStatusDisetujui;
+
+  /// No description provided for @alurSertifikatDigenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'The certificate is still being generated on the server. Reload in a moment.'**
+  String get alurSertifikatDigenerate;
+
+  /// No description provided for @alurCatatanRevisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent back by the admin: {catatan}'**
+  String alurCatatanRevisi(String catatan);
+
+  /// No description provided for @alurLangkahSekarang.
+  ///
+  /// In en, this message translates to:
+  /// **'You are here'**
+  String get alurLangkahSekarang;
+
+  /// No description provided for @alurLangkahSelesai.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get alurLangkahSelesai;
+
+  /// No description provided for @panelSeksiOperasional.
+  ///
+  /// In en, this message translates to:
+  /// **'Operations'**
+  String get panelSeksiOperasional;
+
+  /// No description provided for @panelSeksiDokumen.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get panelSeksiDokumen;
+
+  /// No description provided for @panelSeksiSistem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get panelSeksiSistem;
+
+  /// No description provided for @panelCariMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Search menu...'**
+  String get panelCariMenu;
+
+  /// No description provided for @panelMenuKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No menu matches that.'**
+  String get panelMenuKosong;
+
+  /// No description provided for @panelSinkronAktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Live sync on'**
+  String get panelSinkronAktif;
+
+  /// No description provided for @panelSinkronMati.
+  ///
+  /// In en, this message translates to:
+  /// **'Live sync off'**
+  String get panelSinkronMati;
+
+  /// No description provided for @panelTema.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle theme'**
+  String get panelTema;
+
+  /// No description provided for @panelSubjudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Desktop · {akreditasi}'**
+  String panelSubjudul(String akreditasi);
+
+  /// No description provided for @panelRingkasan.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get panelRingkasan;
+
+  /// No description provided for @panelRingkasanSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Where the lab stands right now.'**
+  String get panelRingkasanSub;
+
+  /// No description provided for @panelBukaAntrean.
+  ///
+  /// In en, this message translates to:
+  /// **'Open approval queue'**
+  String get panelBukaAntrean;
+
+  /// No description provided for @panelSebaranStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Session status spread'**
+  String get panelSebaranStatus;
+
+  /// No description provided for @panelPerluTindakLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'FOLLOW UP'**
+  String get panelPerluTindakLanjut;
+
+  /// No description provided for @panelSesiSelesai.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} sessions completed'**
+  String panelSesiSelesai(int count);
+
+  /// No description provided for @panelMasihDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Plus {count} still in draft'**
+  String panelMasihDraft(int count);
+
+  /// No description provided for @panelTotalSepanjangMasa.
+  ///
+  /// In en, this message translates to:
+  /// **'All-time total {count}'**
+  String panelTotalSepanjangMasa(int count);
+
+  /// No description provided for @panelStatusBelumLengkap.
+  ///
+  /// In en, this message translates to:
+  /// **'\"Needs revision\" isn\'t in the dashboard response yet — backend request pending.'**
+  String get panelStatusBelumLengkap;
 
   /// No description provided for @arsipPetunjukPindah.
   ///
@@ -3230,6 +3998,48 @@ abstract class AppLocalizations {
   /// **'TRY AGAIN'**
   String get emailRetry;
 
+  /// No description provided for @emailFormatJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'What to send'**
+  String get emailFormatJudul;
+
+  /// No description provided for @emailFormatPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF'**
+  String get emailFormatPdf;
+
+  /// No description provided for @emailFormatExcel.
+  ///
+  /// In en, this message translates to:
+  /// **'Excel'**
+  String get emailFormatExcel;
+
+  /// No description provided for @emailFormatTautan.
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get emailFormatTautan;
+
+  /// No description provided for @emailFormatPdfKet.
+  ///
+  /// In en, this message translates to:
+  /// **'The official document, attached to the email.'**
+  String get emailFormatPdfKet;
+
+  /// No description provided for @emailFormatExcelKet.
+  ///
+  /// In en, this message translates to:
+  /// **'Spreadsheet version, attached — for customers who process the data further.'**
+  String get emailFormatExcelKet;
+
+  /// No description provided for @emailFormatTautanKet.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification link only, no attachment. The customer downloads it from that page.'**
+  String get emailFormatTautanKet;
+
   /// No description provided for @ttdTitle.
   ///
   /// In en, this message translates to:
@@ -3791,7 +4601,7 @@ abstract class AppLocalizations {
   /// No description provided for @lkStandarPerTitik.
   ///
   /// In en, this message translates to:
-  /// **'Buffer standard'**
+  /// **'Point standard'**
   String get lkStandarPerTitik;
 
   /// No description provided for @lkStandarKadaluarsa.
@@ -3799,6 +4609,246 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'certificate expired'**
   String get lkStandarKadaluarsa;
+
+  /// No description provided for @antreanSemuaPt.
+  ///
+  /// In en, this message translates to:
+  /// **'All companies ({jumlah})'**
+  String antreanSemuaPt(int jumlah);
+
+  /// No description provided for @kirimLewatJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Send via'**
+  String get kirimLewatJudul;
+
+  /// No description provided for @kirimLewatEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get kirimLewatEmail;
+
+  /// No description provided for @kirimLewatWa.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp'**
+  String get kirimLewatWa;
+
+  /// No description provided for @waKeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp number'**
+  String get waKeLabel;
+
+  /// No description provided for @waKeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'08123456789'**
+  String get waKeHint;
+
+  /// No description provided for @waKeKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter at least one WhatsApp number.'**
+  String get waKeKosong;
+
+  /// No description provided for @waNomorSalah.
+  ///
+  /// In en, this message translates to:
+  /// **'One of the numbers isn\'t in a readable format.'**
+  String get waNomorSalah;
+
+  /// No description provided for @waKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'OPEN WHATSAPP'**
+  String get waKirim;
+
+  /// No description provided for @waTercatat.
+  ///
+  /// In en, this message translates to:
+  /// **'Send recorded in the history.'**
+  String get waTercatat;
+
+  /// No description provided for @waTakBisaDibuka.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp can\'t be opened on this device.'**
+  String get waTakBisaDibuka;
+
+  /// No description provided for @waKetPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp can\'t carry attachments, so a direct PDF download link is sent instead.'**
+  String get waKetPdf;
+
+  /// No description provided for @waKetExcel.
+  ///
+  /// In en, this message translates to:
+  /// **'A direct download link for the Excel file is sent.'**
+  String get waKetExcel;
+
+  /// No description provided for @waKetTautan.
+  ///
+  /// In en, this message translates to:
+  /// **'The verification page link is sent — the customer views the certificate there and downloads it themselves.'**
+  String get waKetTautan;
+
+  /// No description provided for @tolakJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Send back to technician'**
+  String get tolakJudul;
+
+  /// No description provided for @tolakPetunjuk.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick what needs fixing. The fields you flag get highlighted on the technician\'s worksheet, so they don\'t have to hunt for them.'**
+  String get tolakPetunjuk;
+
+  /// No description provided for @tolakDariPemeriksaan.
+  ///
+  /// In en, this message translates to:
+  /// **'From the validation check'**
+  String get tolakDariPemeriksaan;
+
+  /// No description provided for @tolakAlasanUmum.
+  ///
+  /// In en, this message translates to:
+  /// **'Other reasons'**
+  String get tolakAlasanUmum;
+
+  /// No description provided for @tolakAlasanSerial.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number doesn\'t match'**
+  String get tolakAlasanSerial;
+
+  /// No description provided for @tolakAlasanIdentitas.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment identity incomplete'**
+  String get tolakAlasanIdentitas;
+
+  /// No description provided for @tolakAlasanPemilik.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner details wrong'**
+  String get tolakAlasanPemilik;
+
+  /// No description provided for @tolakAlasanEnv.
+  ///
+  /// In en, this message translates to:
+  /// **'Env. Condition incomplete'**
+  String get tolakAlasanEnv;
+
+  /// No description provided for @tolakAlasanThermohygro.
+  ///
+  /// In en, this message translates to:
+  /// **'Thermohygro not selected'**
+  String get tolakAlasanThermohygro;
+
+  /// No description provided for @tolakAlasanPembacaan.
+  ///
+  /// In en, this message translates to:
+  /// **'Readings look wrong, redo them'**
+  String get tolakAlasanPembacaan;
+
+  /// No description provided for @tolakAlasanUsageCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Usage Check not ticked'**
+  String get tolakAlasanUsageCheck;
+
+  /// No description provided for @tolakCatatanTambahan.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra note (optional)'**
+  String get tolakCatatanTambahan;
+
+  /// No description provided for @tolakCatatanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Say why, so it doesn\'t happen again.'**
+  String get tolakCatatanHint;
+
+  /// No description provided for @tolakPratinjau.
+  ///
+  /// In en, this message translates to:
+  /// **'What the technician will see'**
+  String get tolakPratinjau;
+
+  /// No description provided for @tolakKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'SEND BACK TO TECHNICIAN'**
+  String get tolakKirim;
+
+  /// No description provided for @lkPerluDibetulin.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin asked you to fix this'**
+  String get lkPerluDibetulin;
+
+  /// No description provided for @lkBannerRevisiTanpaKolom.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin sent this worksheet back. Read the note below.'**
+  String get lkBannerRevisiTanpaKolom;
+
+  /// No description provided for @lkCatatanAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'ADMIN\'S NOTE'**
+  String get lkCatatanAdmin;
+
+  /// No description provided for @lkRevisiJumlahKolom.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} field(s) flagged for correction.'**
+  String lkRevisiJumlahKolom(int jumlah);
+
+  /// No description provided for @lkBannerRevisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin sent this worksheet back. The flagged fields below are the ones to fix.'**
+  String get lkBannerRevisi;
+
+  /// No description provided for @lkStandarBelumTerdaftar.
+  ///
+  /// In en, this message translates to:
+  /// **'not registered in the standards master'**
+  String get lkStandarBelumTerdaftar;
+
+  /// No description provided for @antreanMasukBaru.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah, plural, =1{1 new worksheet in the approval queue} other{{jumlah} new worksheets in the approval queue}}'**
+  String antreanMasukBaru(int jumlah);
+
+  /// No description provided for @lkThermohygroKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No thermohygro units registered yet.'**
+  String get lkThermohygroKosong;
+
+  /// No description provided for @lkHalamanKe.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {nomor} of {dari}'**
+  String lkHalamanKe(int nomor, int dari);
+
+  /// No description provided for @lkHalamanLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'NEXT PAGE'**
+  String get lkHalamanLanjut;
+
+  /// No description provided for @lkHalamanKembali.
+  ///
+  /// In en, this message translates to:
+  /// **'BACK'**
+  String get lkHalamanKembali;
 
   /// No description provided for @lkPilih.
   ///

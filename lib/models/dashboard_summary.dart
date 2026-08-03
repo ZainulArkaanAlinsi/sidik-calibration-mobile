@@ -53,7 +53,7 @@ class DashboardSummary {
     required this.menungguApproval,
     required this.sertifikatBulanIni,
     required this.grafikPekerjaan,
-    this.totalSertifikat = 0,
+    this.totalSertifikat,
   });
 
   final int totalAlat;
@@ -71,7 +71,15 @@ class DashboardSummary {
   /// Jadi wajar kalau teknisi lihat "Kalibrasi selesai: 2" bareng "Total
   /// sertifikat: 15" — itu bukan bug, makanya di layar dua kelompok angka ini
   /// dipisah dengan judul yang beda ("Kalibrasi Saya" vs "Sertifikat Lab").
-  final int totalSertifikat;
+  /// Total sertifikat sepanjang masa.
+  ///
+  /// **Nullable, dan itu penting.** Backend `GET /dashboard` NGGAK ngirim
+  /// field ini (dicek 31 Jul: responsnya cuma sampai `sertifikat_bulan_ini`).
+  /// Dulu default-nya `0`, jadi layar nulis "Total sepanjang masa 0" padahal
+  /// di database ada 32 — angka yang salah, bukan angka yang belum ada.
+  ///
+  /// `null` = belum diketahui. Nol itu PERNYATAAN, dan "belum tahu" bukan nol.
+  final int? totalSertifikat;
 
   /// 6 bulan terakhir, dikunci backend. Bisa kosong kalau backend versi lama —
   /// layar nanganin itu dengan nggak nampilin grafiknya sama sekali.
@@ -86,7 +94,7 @@ class DashboardSummary {
       kalibrasiDraft == 0 &&
       menungguApproval == 0 &&
       sertifikatBulanIni == 0 &&
-      totalSertifikat == 0;
+      (totalSertifikat ?? 0) == 0;
 
   factory DashboardSummary.fromJson(Map<String, dynamic> json) {
     // Field yang belum dikirim backend dianggap 0, bukan bikin app crash.
@@ -109,7 +117,9 @@ class DashboardSummary {
       // kali — sekali di kartu kiri, sekali lagi di kanan.
       menungguApproval: angka('menunggu_approval'),
       sertifikatBulanIni: angka('sertifikat_bulan_ini'),
-      totalSertifikat: angka('total_sertifikat'),
+      totalSertifikat: json.containsKey('total_sertifikat')
+          ? angka('total_sertifikat')
+          : null,
       grafikPekerjaan:
           parseListAman((json['grafik_pekerjaan'] as List<dynamic>? ?? const []), TitikTren.fromJson),
     );

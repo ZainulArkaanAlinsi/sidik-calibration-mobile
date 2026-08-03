@@ -252,35 +252,63 @@ void main() {
   });
 
   group('tolak', () {
-    testWidgets('catatan kosong nggak dikirim ke server', (tester) async {
+    /// Tombol kirimnya MATI selama belum ada alasan — bukan nyala, ditekan,
+    /// lalu dimarahin snackbar kayak versi dialog yang lama.
+    testWidgets('tanpa alasan, tombol kirimnya mati', (tester) async {
       _perbesarViewport(tester);
       final service = MockPerhitunganService();
       await _muat(tester, _app(service));
 
       await tester.tap(find.text('TOLAK'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('KEMBALIKAN'));
-      await tester.pumpAndSettle();
 
-      expect(service.aksi.any((a) => a.$1 == 'tolak'), isFalse);
-      expect(
-        find.textContaining('Tulis dulu apa yang harus dibenerin'),
-        findsOneWidget,
+      final tombol = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'KEMBALIKAN KE TEKNISI'),
       );
+      expect(tombol.onPressed, isNull);
+      expect(service.aksi.any((a) => a.$1 == 'tolak'), isFalse);
     });
 
-    testWidgets('catatan terisi kekirim apa adanya', (tester) async {
+    testWidgets('catatan bebas kekirim apa adanya', (tester) async {
       _perbesarViewport(tester);
       final service = MockPerhitunganService();
       await _muat(tester, _app(service));
 
       await tester.tap(find.text('TOLAK'));
       await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField), 'Buffer 7 cuma 2 bacaan.');
-      await tester.tap(find.text('KEMBALIKAN'));
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Catatan tambahan (opsional)'),
+        'Buffer 7 cuma 2 bacaan.',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('KEMBALIKAN KE TEKNISI'));
       await tester.pumpAndSettle();
 
       expect(service.aksi, contains(('tolak', 'Buffer 7 cuma 2 bacaan.')));
+    });
+
+    /// Ini inti perbaikannya: sekali tap alasan, kalimatnya kesusun sendiri
+    /// DAN kode kolomnya ikut kekirim — jadi lembar kerja teknisi bisa nyorot
+    /// persis yang salah, bukan cuma ngasih paragraf buat disisir sendiri.
+    testWidgets('alasan siap-pakai nyusun catatan + nandain kolomnya', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockPerhitunganService();
+      await _muat(tester, _app(service));
+
+      await tester.tap(find.text('TOLAK'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Serial number nggak cocok'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('KEMBALIKAN KE TEKNISI'));
+      await tester.pumpAndSettle();
+
+      expect(
+        service.aksi,
+        contains(('tolak', '• Serial number nggak cocok')),
+      );
+      expect(service.fieldTerakhir, ['alat_serial_number']);
     });
   });
 

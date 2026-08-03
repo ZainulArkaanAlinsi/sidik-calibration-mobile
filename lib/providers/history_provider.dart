@@ -19,9 +19,10 @@ final historyServiceProvider = Provider<HistoryService>((ref) {
 /// Live — dicek langsung ke `CalibrationController`/`CertificateController`
 /// di repo `sidik-calibration-api` (18 Jul). `approve`/`reject`/`retry`
 /// cocok persis sama yang mobile tulis di sini.
-final approvalServiceProvider = Provider<ApprovalService>(
-  (ref) => ApiApprovalService(ref.watch(apiClientProvider)),
-);
+final approvalServiceProvider = Provider<ApprovalService>((ref) {
+  if (AppConfig.useMock) return MockApprovalService();
+  return ApiApprovalService(ref.watch(apiClientProvider));
+});
 
 final pdfDownloaderProvider = Provider<PdfDownloader>((ref) => HttpPdfDownloader());
 
@@ -125,7 +126,7 @@ final calibrationDetailProvider =
 /// Antrean approval admin — semua kiriman dari semua teknisi
 /// (`GET /api/calibrations?status=menunggu_approval`).
 ///
-/// Dipisah dari [historyProvider] yang pakai `mine=true`: dua pertanyaan yang
+/// Dipisah dari [historyProvider]: dua pertanyaan yang
 /// beda ("kerjaan saya" vs "apa yang nunggu saya periksa"), dan admin bolak
 /// balik antara keduanya.
 final antreanApprovalProvider =

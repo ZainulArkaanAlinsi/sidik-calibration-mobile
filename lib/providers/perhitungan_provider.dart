@@ -60,11 +60,11 @@ class AksiAdmin {
     return hasil;
   }
 
-  Future<void> tolak(String catatanRevisi) async {
+  Future<void> tolak(String catatanRevisi, {List<String> field = const []}) async {
     final token = await _token(_ref);
     await _ref
         .read(perhitunganServiceProvider)
-        .tolak(token, calibrationId, catatanRevisi);
+        .tolak(token, calibrationId, catatanRevisi, field: field);
     _segarkan();
   }
 

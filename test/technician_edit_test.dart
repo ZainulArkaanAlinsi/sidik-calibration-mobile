@@ -95,7 +95,7 @@ void main() {
       // Yang nggak disentuh admin harus utuh — termasuk status `pending`,
       // yang punya jalannya sendiri lewat Setujui/Tolak.
       expect(eko.nama, 'Eko Prasetyo');
-      expect(eko.employeeId, 'ASM-0002');
+      expect(eko.employeeId, 'SDK-0002');
       expect(eko.role, UserRole.teknisi);
       expect(eko.status, UserStatus.pending);
     });
@@ -138,7 +138,7 @@ void main() {
       );
       expect(
         (await service.daftar('t')).firstWhere((u) => u.id == 2).employeeId,
-        'ASM-0002',
+        'SDK-0002',
       );
     });
 

@@ -16,6 +16,19 @@ abstract class KirimEmailService {
   /// berhasil.
   Future<void> kirim(String token, int certificateId, KirimEmailPermintaan isi);
 
+  /// Catat pengiriman lewat WhatsApp & ambil teks siap-tempelnya.
+  ///
+  /// Server nggak ngirim pesannya — yang ngirim aplikasi WhatsApp di HP admin.
+  /// Endpoint ini nyatet jejaknya (kapan, ke nomor mana, sama siapa), karena
+  /// itu yang ditanya waktu pelanggan ngaku nggak nerima, dan jejak yang cuma
+  /// ada di HP satu orang nggak bisa mbuktiin apa-apa.
+  Future<HasilCatatWhatsapp> catatWhatsapp(
+    String token,
+    int certificateId, {
+    required List<String> ke,
+    FormatKirim format = FormatKirim.tautan,
+  });
+
   /// Semua percobaan, **termasuk yang gagal**.
   Future<List<PercobaanEmail>> riwayat(String token, int certificateId);
 }
@@ -40,6 +53,22 @@ class ApiKirimEmailService implements KirimEmailService {
       // servernya masih ngirim.
       timeout: const Duration(seconds: 60),
     );
+  }
+
+  @override
+  Future<HasilCatatWhatsapp> catatWhatsapp(
+    String token,
+    int certificateId, {
+    required List<String> ke,
+    FormatKirim format = FormatKirim.tautan,
+  }) async {
+    final json = await _api.post(
+      '/certificates/$certificateId/catat-whatsapp',
+      token: token,
+      body: {'ke': ke, 'format': format.kode},
+    );
+
+    return HasilCatatWhatsapp.fromJson(json);
   }
 
   @override
@@ -80,6 +109,7 @@ class MockKirimEmailService implements KirimEmailService {
         id: _riwayat.length + 1,
         ke: isi.ke,
         cc: isi.cc,
+        format: isi.format,
         berhasil: !gagalKirim,
         error: gagalKirim ? 'SMTP nolak: mailbox penuh.' : null,
         waktu: DateTime(2026, 7, 28, 10, _riwayat.length),
@@ -94,6 +124,29 @@ class MockKirimEmailService implements KirimEmailService {
         body: const {},
       );
     }
+  }
+
+  @override
+  Future<HasilCatatWhatsapp> catatWhatsapp(
+    String token,
+    int certificateId, {
+    required List<String> ke,
+    FormatKirim format = FormatKirim.tautan,
+  }) async {
+    _riwayat.insert(
+      0,
+      PercobaanEmail(
+        id: _riwayat.length + 1,
+        ke: ke,
+        cc: const [],
+        format: FormatKirim.whatsapp,
+        berhasil: true,
+        waktu: DateTime(2026, 7, 29, 11, _riwayat.length),
+        oleh: 'Budi Santoso',
+      ),
+    );
+
+    return const HasilCatatWhatsapp(pesan: 'Sertifikat Kalibrasi CAL/2026/07/0001');
   }
 
   @override

@@ -172,7 +172,10 @@ class CertificateSnapshot {
     final meta = json['meta'] as Map<String, dynamic>? ?? const {};
 
     return CertificateSnapshot(
-      desimal: (json['desimal'] as num?)?.toInt() ?? 2,
+      // Jatuh ke 4, bukan 2 — itu bawaan backend kalau organisasinya nggak
+      // kebaca (handoff 31 Jul). Default 2 di sini bikin angka kepotong lebih
+      // pendek dari yang dicetak di PDF buat alat resolusi 0,001.
+      desimal: (json['desimal'] as num?)?.toInt() ?? 4,
       satuan: json['satuan'] as String?,
       keputusan: meta['keputusan'] as String?,
       header: HeaderSertifikat(

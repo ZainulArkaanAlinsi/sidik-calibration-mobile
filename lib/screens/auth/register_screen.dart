@@ -222,7 +222,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         NeuTextField(
                           icon: Icons.badge_outlined,
                           controller: _employeeId,
-                          hint: 'ID Pegawai (mis. ASM-0000)',
+                          hint: 'ID Pegawai (mis. SDK-0000)',
                           errorText: _employeeIdError,
                           enabled: !_loading,
                           textInputAction: TextInputAction.next,

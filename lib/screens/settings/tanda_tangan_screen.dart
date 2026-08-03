@@ -10,6 +10,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/izin_provider.dart';
 import '../../providers/tanda_tangan_provider.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/sidik_loader.dart';
 
 /// Pengaturan tanda tangan yang dicetak di sertifikat — **admin doang**.
 ///
@@ -181,7 +182,7 @@ class _IsiState extends ConsumerState<_Isi> {
           onCobaLagi: () => ref.read(tandaTanganProvider.notifier).muatUlang(),
         );
       }
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: SidikLoader(size: 88));
     }
 
     final posisi = _draf ?? data.info.posisi;

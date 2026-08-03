@@ -65,7 +65,7 @@ class User {
   final String nama;
   final String email;
 
-  /// Nomor pegawai, mis. `ASM-0001`. Bisa dipakai buat login (selain email).
+  /// Nomor pegawai, mis. `SDK-0001`. Bisa dipakai buat login (selain email).
   final String employeeId;
 
   final UserRole role;

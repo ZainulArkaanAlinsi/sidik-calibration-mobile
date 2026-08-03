@@ -105,7 +105,7 @@ void main() {
       await _isiLogin(
         tester,
         identifier: 'admin@pt-sidik.com',
-        password: 'password123',
+        password: 'rahasia123',
       );
       await tester.pumpAndSettle();
 
@@ -119,7 +119,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Teknisi di lapangan hafal nomor pegawainya, bukan emailnya.
-      await _isiLogin(tester, identifier: 'ASM-0002', password: 'password123');
+      await _isiLogin(tester, identifier: 'SDK-0002', password: 'rahasia123');
       await tester.pumpAndSettle();
 
       expect(find.byType(FloatingNavBar), findsOneWidget);
@@ -131,7 +131,7 @@ void main() {
       await tester.pumpWidget(_app(storage));
       await tester.pumpAndSettle();
 
-      await _isiLogin(tester, identifier: 'ASM-0004', password: 'password123');
+      await _isiLogin(tester, identifier: 'SDK-0004', password: 'rahasia123');
       await tester.pumpAndSettle();
 
       expect(
@@ -150,7 +150,7 @@ void main() {
       await tester.pumpWidget(_app(storage));
       await tester.pumpAndSettle();
 
-      await _isiLogin(tester, identifier: 'ASM-0001', password: 'ngasal');
+      await _isiLogin(tester, identifier: 'SDK-0001', password: 'ngasal');
       await tester.pumpAndSettle();
 
       expect(find.textContaining('atau password salah'), findsOneWidget);
@@ -162,11 +162,11 @@ void main() {
       await tester.pumpWidget(_app(InMemoryTokenStorage()));
       await tester.pumpAndSettle();
 
-      await _isiLogin(tester, identifier: 'ASM-0001', password: 'ngasal');
+      await _isiLogin(tester, identifier: 'SDK-0001', password: 'ngasal');
       await tester.pumpAndSettle();
 
       // User tinggal benerin password-nya doang, nggak ngetik ulang dari nol.
-      expect(find.text('ASM-0001'), findsOneWidget);
+      expect(find.text('SDK-0001'), findsOneWidget);
     });
 
     testWidgets('field kosong → divalidasi lokal, nggak nembak server', (
@@ -272,9 +272,9 @@ void main() {
       await isiForm(
         tester,
         nama: 'Eko Prasetyo',
-        employeeId: 'ASM-0099',
+        employeeId: 'SDK-0099',
         email: 'eko@pt-sidik.com',
-        password: 'password123',
+        password: 'rahasia123',
       );
       await tester.pumpAndSettle();
 
@@ -295,9 +295,9 @@ void main() {
       await isiForm(
         tester,
         nama: 'Eko Prasetyo',
-        employeeId: 'ASM-0098',
+        employeeId: 'SDK-0098',
         email: 'eko2@pt-sidik.com',
-        password: 'password123',
+        password: 'rahasia123',
       );
       await tester.pumpAndSettle();
 
@@ -315,9 +315,9 @@ void main() {
       await isiForm(
         tester,
         nama: 'Budi Kembar',
-        employeeId: 'ASM-0097',
+        employeeId: 'SDK-0097',
         email: 'admin@pt-sidik.com', // udah ada
-        password: 'password123',
+        password: 'rahasia123',
       );
       await tester.pumpAndSettle();
 
@@ -390,7 +390,7 @@ void main() {
 
       await _tapDiProfil(tester, find.text('Keluar'));
 
-      await _isiLogin(tester, identifier: 'ASM-0002', password: 'password123');
+      await _isiLogin(tester, identifier: 'SDK-0002', password: 'rahasia123');
       await tester.pumpAndSettle();
 
       expect(find.widgetWithText(AppBar, 'Dashboard'), findsOneWidget);

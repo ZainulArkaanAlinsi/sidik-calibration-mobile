@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../certificate/sertifikat_sukses_sheet.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
@@ -243,6 +244,10 @@ class _HistoryCard extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Ikon jenis alat — bikin kartu lebih gampang dipindai
+                  // (mata langsung ke jenis alatnya), gaya kartu referensi.
+                  _IkonAlat(nama: item.namaAlat),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,6 +303,47 @@ class _HistoryCard extends StatelessWidget {
   }
 }
 
+/// Ikon jenis alat dalam kotak membulat lembut. Ikonnya dicocokin lewat
+/// keyword nama (sumbernya teks bebas), dengan fallback ikon "ukur" generik.
+class _IkonAlat extends StatelessWidget {
+  const _IkonAlat({required this.nama});
+
+  final String nama;
+
+  IconData get _ikon {
+    final n = nama.toLowerCase();
+    return switch (n) {
+      _ when n.contains('ph meter') => Icons.science_outlined,
+      _ when n.contains('turbidi') => Icons.blur_on_outlined,
+      _ when n.contains('conductivity') => Icons.bolt_outlined,
+      _ when n.contains('thermo') || n.contains('termo') =>
+        Icons.device_thermostat_outlined,
+      _ when n.contains('timbang') => Icons.scale_outlined,
+      _ when n.contains('oven') || n.contains('furnace') =>
+        Icons.local_fire_department_outlined,
+      _ when n.contains('pipet') || n.contains('buret') => Icons.science_outlined,
+      _ when n.contains('caliper') || n.contains('micrometer') =>
+        Icons.straighten_outlined,
+      _ => Icons.straighten_outlined,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: 42,
+      height: 42,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(13),
+      ),
+      child: Icon(_ikon, size: 21, color: theme.colorScheme.onSurfaceVariant),
+    );
+  }
+}
+
 /// Tombol setujui/tolak — komponen sendiri (bukan langsung di `_HistoryCard`)
 /// biar bisa nyimpen state `_busy` lokal: dua tombol ini harus nonaktif
 /// bareng begitu salah satu dipencet, daripada admin nggak sabar mencet dua
@@ -321,6 +367,32 @@ class _ApprovalActionsState extends ConsumerState<_ApprovalActions> {
 
     try {
       await ref.read(historyProvider.notifier).approve(widget.item.id);
+
+      if (!mounted) return;
+
+      // Begitu disetujui, sertifikatnya langsung dikeluarin di sini —
+      // unduh/QR/tautan/kirim ada di satu lembar, nggak usah dicari lagi ke
+      // menu lain. Sheet-nya cuma dibuka kalau nomornya emang udah balik:
+      // pembuatan PDF-nya job antrean backend, dan kadang belum kelar persis
+      // waktu approve balik. Kalau belum, Alur Kerja yang nunjukin statusnya.
+      final terbaru = ref
+          .read(historyProvider)
+          .value
+          ?.where((s) => s.id == widget.item.id)
+          .firstOrNull;
+
+      // Syaratnya CUMA id. `approve` balikinnya `certificate_id` doang —
+      // nomornya nggak ikut, jadi nunggu nomor di sini bikin popup-nya nggak
+      // pernah muncul sama sekali. Sheet-nya yang narik nomor + token sendiri.
+      final certId = terbaru?.certificateId;
+
+      if (certId != null) {
+        await tampilkanSertifikatSukses(
+          context,
+          certificateId: certId,
+          nomor: terbaru?.nomorSertifikat,
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(

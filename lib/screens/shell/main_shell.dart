@@ -12,10 +12,11 @@ import '../equipment/equipment_list_screen.dart';
 import '../folder/folder_manager_screen.dart';
 import '../history/history_screen.dart';
 import '../admin/antrean_approval_screen.dart';
+import '../alur/alur_kerja_screen.dart';
+import '../../widgets/pemantau_antrean.dart';
 import '../admin/import_excel_screen.dart';
 import '../notification/notification_screen.dart';
 import '../profile/profile_screen.dart';
-import '../order/my_tasks_screen.dart';
 import '../settings/customer_list_screen.dart';
 import '../settings/organization_screen.dart';
 import '../settings/standard_list_screen.dart';
@@ -117,20 +118,24 @@ class MainShell extends ConsumerWidget {
         return Scaffold(
           key: mainShellKey,
           drawer: const _MenuUtama(),
-          body: pakaiRail
-              ? Row(
-                  children: [
-                    _RailSamping(
-                      selectedIndex: selected,
-                      onSelected: pilihTab,
-                      items: items,
-                      dibentangkan: constraints.maxWidth >= _lebarRailPanjang,
-                    ),
-                    const VerticalDivider(width: 1, thickness: 1),
-                    Expanded(child: isi),
-                  ],
-                )
-              : isi,
+          // Lihat catatan di DesktopShell: pemantau antrean dibungkus di luar
+          // isi supaya tandanya muncul di layar mana pun.
+          body: PemantauAntrean(
+            child: pakaiRail
+                ? Row(
+                    children: [
+                      _RailSamping(
+                        selectedIndex: selected,
+                        onSelected: pilihTab,
+                        items: items,
+                        dibentangkan: constraints.maxWidth >= _lebarRailPanjang,
+                      ),
+                      const VerticalDivider(width: 1, thickness: 1),
+                      Expanded(child: isi),
+                    ],
+                  )
+                : isi,
+          ),
           // Navbar bawah cuma buat layar sempit. Di desktop dua-duanya nongol
           // bakal jadi dua kontrol yang isinya sama persis — bingungin, dan
           // makan tinggi layar yang justru mahal di jendela pendek.
@@ -260,15 +265,6 @@ class _MenuUtama extends ConsumerWidget {
               title: Text(l10n.navDashboard),
               onTap: () => keTab(0),
             ),
-            // Ditaruh paling atas sesudah Dashboard, bukan di kelompok Master
-            // Data: buat teknisi ini layar kerja harian, bukan pengaturan.
-            // Viewer nggak dikasih — dia nggak pernah ditugaskan apa pun.
-            if (user?.role.bisaInput ?? false)
-              ListTile(
-                leading: const Icon(Icons.assignment_outlined),
-                title: Text(l10n.tugasTitle),
-                onTap: () => keLayar(const MyTasksScreen()),
-              ),
             ListTile(
               leading: const Icon(Icons.history_outlined),
               title: Text(l10n.navHistory),
@@ -281,6 +277,16 @@ class _MenuUtama extends ConsumerWidget {
                 leading: const Icon(Icons.inbox_outlined),
                 title: Text(l10n.antreanTitle),
                 onTap: () => keLayar(const AntreanApprovalScreen()),
+              ),
+            // Alur Kerja tadinya cuma ada di panel Windows, jadi admin yang
+            // pegang HP nggak bisa lihat sesi yang sedang jalan sama sekali —
+            // dia cuma lihat yang udah masuk antrean approval. Padahal yang
+            // nyangkut di tengah itu justru yang perlu ditengok.
+            if (admin)
+              ListTile(
+                leading: const Icon(Icons.account_tree_outlined),
+                title: Text(l10n.alurTitle),
+                onTap: () => keLayar(const AlurKerjaScreen()),
               ),
             ListTile(
               leading: const Icon(Icons.folder_outlined),

@@ -38,7 +38,16 @@ abstract class PerhitunganService {
     bool abaikanPeringatan = false,
   });
 
-  Future<void> tolak(String token, int calibrationId, String catatanRevisi);
+  /// [field] = kode kolom yang diminta dibetulin (`alat_serial_number`, ...).
+  /// Kosong tetap sah — nolak tanpa nunjuk kolom tertentu ("hasilnya nggak
+  /// masuk akal, ulangi seluruh titik 7"). Yang ditandai bakal kesorot di
+  /// lembar kerja teknisi, jadi dia nggak perlu nyari sendiri.
+  Future<void> tolak(
+    String token,
+    int calibrationId,
+    String catatanRevisi, {
+    List<String> field,
+  });
 
   /// Kolom administratif (`PATCH /calibrations/{id}/admin`). Begitu
   /// thermohygro dipilih, koreksi & U95% kondisi lingkungan langsung ikut
@@ -121,12 +130,16 @@ class ApiPerhitunganService implements PerhitunganService {
   Future<void> tolak(
     String token,
     int calibrationId,
-    String catatanRevisi,
-  ) async {
+    String catatanRevisi, {
+    List<String> field = const [],
+  }) async {
     await _api.post(
       '/calibrations/$calibrationId/reject',
       token: token,
-      body: {'catatan_revisi': catatanRevisi},
+      body: {
+        'catatan_revisi': catatanRevisi,
+        if (field.isNotEmpty) 'revisi_field': field,
+      },
     );
   }
 
@@ -356,11 +369,16 @@ class MockPerhitunganService implements PerhitunganService {
   Future<void> tolak(
     String token,
     int calibrationId,
-    String catatanRevisi,
-  ) async {
+    String catatanRevisi, {
+    List<String> field = const [],
+  }) async {
     if (gagal) throw Exception('server nggak nyaut');
     aksi.add(('tolak', catatanRevisi));
+    fieldTerakhir = field;
   }
+
+  /// Kode kolom yang ditandai di penolakan terakhir — dipakai test.
+  List<String> fieldTerakhir = const [];
 
   @override
   Future<void> simpanKolomAdmin(

@@ -9,9 +9,11 @@ import '../../providers/history_provider.dart';
 import '../../providers/perhitungan_provider.dart';
 import '../../services/perhitungan_service.dart' show HasilApprove;
 import '../../widgets/app_button.dart';
+import 'widgets/lembar_tolak.dart';
 import 'widgets/blok_kondisi.dart';
 import 'widgets/panel_temuan.dart';
 import 'widgets/tabel_perhitungan.dart';
+import '../../widgets/sidik_loader.dart';
 
 /// Lembar PERHITUNGAN — **layar utama admin** (spesifikasi poin 11 & 12A).
 ///
@@ -126,21 +128,19 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
   Future<void> _tolak() async {
     final l10n = AppLocalizations.of(context);
 
-    final catatan = await showDialog<String>(
+    // Lembar, bukan dialog kotak-kosong. Temuan pemeriksaan yang lagi tampil
+    // di layar ikut dibawa masuk supaya admin bisa nap satu-satu daripada
+    // ngetik ulang apa yang mesin udah tahu. Lihat docblock `LembarTolak`.
+    final kiriman = await showModalBottomSheet<KirimanTolak>(
       context: context,
-      builder: (context) => const _DialogTolak(),
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => LembarTolak(temuan: _validasi?.temuan ?? const []),
     );
-    if (catatan == null || !mounted) return;
-
-    if (catatan.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.perhitTolakKosong)));
-      return;
-    }
+    if (kiriman == null || !mounted) return;
 
     await _jalankan(() async {
-      await _aksi.tolak(catatan);
+      await _aksi.tolak(kiriman.catatan, field: kiriman.field);
       if (!mounted) return;
       ref.invalidate(antreanApprovalProvider);
       ScaffoldMessenger.of(
@@ -167,7 +167,7 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
           onCobaLagi: () =>
               ref.invalidate(perhitunganProvider(widget.calibrationId)),
         ),
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => const Center(child: SidikLoader(size: 88)),
       },
       bottomNavigationBar: async.hasValue
           ? _BilahAksi(
@@ -247,10 +247,37 @@ class _Isi extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.sm),
 
-        for (final tabel in perhitungan.hasil) ...[
-          TabelPerhitunganWidget(tabel: tabel),
-          const SizedBox(height: AppSpacing.lg),
-        ],
+        // Before & After dibungkus SATU kartu, bukan dua blok berjauhan.
+        //
+        // Dua-duanya satu lembar perhitungan yang sama — yang dibaca orang itu
+        // "alatnya datang segini, sesudah diadjust jadi segini". Ditaruh
+        // sebagai dua blok dengan jarak lebar, di layar sempit yang kedua
+        // jatuh di luar layar dan kelihatan kayak halaman lain; padahal
+        // membandingkan dua tabel itu justru gunanya lembar ini.
+        Card(
+          margin: EdgeInsets.zero,
+          clipBehavior: Clip.antiAlias,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.md,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final (i, tabel) in perhitungan.hasil.indexed) ...[
+                  if (i > 0) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    const Divider(height: 1),
+                    const SizedBox(height: AppSpacing.md),
+                  ],
+                  TabelPerhitunganWidget(tabel: tabel),
+                ],
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
 
         // Dua catatan yang paling gampang bikin salah baca angka. Ditulis di
         // layar, bukan cuma di komentar kode, karena yang kebalik nanti itu

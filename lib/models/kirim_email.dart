@@ -1,3 +1,39 @@
+/// Apa yang beneran dikirim ke pelanggan.
+///
+/// Bukan cuma soal selera: `tautan` NGGAK bawa lampiran sama sekali, jadi dua
+/// baris riwayat yang sama-sama "Terkirim" bisa berarti hal yang beda jauh.
+/// Makanya formatnya ikut ditampilin di riwayat, bukan cuma dipakai waktu
+/// ngirim.
+enum FormatKirim {
+  /// Dokumen resmi, dilampirkan. Default — dan yang dipakai semua kiriman
+  /// sebelum pilihan ini ada.
+  pdf('pdf'),
+
+  /// Lembar Excel, dilampirkan. Buat pelanggan yang ngolah datanya lagi.
+  xlsx('xlsx'),
+
+  /// Tautan verifikasi doang, tanpa lampiran. Buat kotak masuk yang nolak
+  /// lampiran, atau yang cuma perlu mastiin sertifikatnya asli.
+  tautan('tautan'),
+
+  /// Dikirim lewat WhatsApp dari HP admin, bukan dari server. Cuma muncul di
+  /// RIWAYAT — bukan pilihan waktu ngirim; yang dipilih waktu ngirim itu
+  /// salurannya (email/WA) lalu formatnya (pdf/xlsx/tautan).
+  whatsapp('whatsapp');
+
+  const FormatKirim(this.kode);
+
+  /// Nilai yang dikirim & diterima backend.
+  final String kode;
+
+  /// Yang nggak dikenal jatuh ke [pdf] — bukan error. Riwayat lama (sebelum
+  /// kolom `format` ada) balik tanpa field ini, dan semuanya memang PDF.
+  static FormatKirim dariKode(Object? nilai) => FormatKirim.values.firstWhere(
+    (f) => f.kode == '$nilai'.trim().toLowerCase(),
+    orElse: () => FormatKirim.pdf,
+  );
+}
+
 /// Satu percobaan kirim sertifikat ke email pelanggan.
 ///
 /// **Termasuk yang GAGAL.** Riwayatnya sengaja nyimpen percobaan gagal juga —
@@ -15,6 +51,7 @@ class PercobaanEmail {
     required this.cc,
     required this.berhasil,
     required this.waktu,
+    this.format = FormatKirim.pdf,
     this.error,
     this.oleh,
   });
@@ -22,6 +59,9 @@ class PercobaanEmail {
   final int id;
   final List<String> ke;
   final List<String> cc;
+
+  /// Yang beneran dikirim di percobaan ini.
+  final FormatKirim format;
 
   final bool berhasil;
 
@@ -69,6 +109,7 @@ class PercobaanEmail {
       id: (json['id'] as num?)?.toInt() ?? 0,
       ke: _alamat(json['ke'] ?? json['to']),
       cc: _alamat(json['cc']),
+      format: FormatKirim.dariKode(json['format']),
       berhasil: berhasil,
       error: (error != null && error.isEmpty) ? null : error,
       waktu: DateTime.tryParse('${waktu ?? ''}') ?? DateTime.now(),
@@ -81,9 +122,29 @@ class PercobaanEmail {
   }
 }
 
+/// Hasil `POST /certificates/{id}/catat-whatsapp`.
+///
+/// Server **nggak ngirim apa-apa** — dia nyatet jejaknya lalu ngasih balik teks
+/// yang siap ditempel ke WhatsApp. Pesannya disusun di server, bukan di sini:
+/// isinya tautan unduh yang nempel ke `qr_token` dan skema URL yang cuma
+/// backend yang tahu. Kalau app nyusun sendiri, satu perubahan rute bikin
+/// pelanggan nerima tautan mati — dan ketahuannya sesudah pesannya kekirim.
+class HasilCatatWhatsapp {
+  const HasilCatatWhatsapp({required this.pesan});
+
+  final String pesan;
+
+  factory HasilCatatWhatsapp.fromJson(Map<String, dynamic> json) =>
+      HasilCatatWhatsapp(pesan: json['pesan'] as String? ?? '');
+}
+
 /// Isi form kirim email.
 class KirimEmailPermintaan {
-  const KirimEmailPermintaan({required this.ke, this.cc = const []});
+  const KirimEmailPermintaan({
+    required this.ke,
+    this.cc = const [],
+    this.format = FormatKirim.pdf,
+  });
 
   /// Backend batasi **maks 10** alamat masing-masing. Divalidasi di layar juga
   /// biar admin tau sebelum nembak server.
@@ -91,9 +152,11 @@ class KirimEmailPermintaan {
 
   final List<String> ke;
   final List<String> cc;
+  final FormatKirim format;
 
   Map<String, dynamic> toJson() => {
     'ke': ke,
     if (cc.isNotEmpty) 'cc': cc,
+    'format': format.kode,
   };
 }

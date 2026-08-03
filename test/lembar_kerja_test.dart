@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sidik_calibration/l10n/app_localizations.dart';
+import 'package:sidik_calibration/models/calibration_detail.dart';
 import 'package:sidik_calibration/models/lembar_kerja.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/calibration_input_provider.dart';
@@ -21,8 +22,19 @@ import 'package:sidik_calibration/services/token_storage.dart';
 /// 60 kotak angka doang). `ListView` cuma nge-build yang deket viewport, jadi
 /// index widget-nya berubah-ubah tiap discroll — viewport test dibikin raksasa
 /// biar seluruh formulir ke-build sekaligus & index-nya stabil.
+/// Lebarnya SENGAJA di bawah ambang dua kolom (1100) — ini mode halaman, yang
+/// dipakai teknisi di HP. Buat mode dua kolom pakai [_viewportLebar].
 void _perbesarViewport(WidgetTester tester) {
-  tester.view.physicalSize = const Size(1400, 14000);
+  tester.view.physicalSize = const Size(1000, 14000);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+}
+
+/// Layar lebar: lembar kerjanya digambar dua kolom bersebelahan, persis
+/// kertasnya.
+void _viewportLebar(WidgetTester tester) {
+  tester.view.physicalSize = const Size(1600, 14000);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
@@ -72,7 +84,19 @@ Future<void> _pilihAlat(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
+/// Lembar kerjanya sekarang 2 halaman (ngikut kertasnya). Tabel hasil & tombol
+/// kirim ada di halaman terakhir, jadi hampir semua test butuh ini dulu.
+Future<void> _keHalamanAkhir(WidgetTester tester) async {
+  final lanjut = find.text('LANJUT KE HALAMAN BERIKUTNYA');
+  while (lanjut.evaluate().isNotEmpty) {
+    await tester.tap(lanjut);
+    await tester.pumpAndSettle();
+  }
+}
+
 void main() {
+  _testRevisi();
+
   group('bentuk formulir datang dari backend', () {
     testWidgets('bagian & kolom digambar dari respons, bukan di-hardcode', (
       tester,
@@ -80,18 +104,21 @@ void main() {
       _perbesarViewport(tester);
       await _muat(tester, _app(MockLembarKerjaService()));
 
-      // Enam bagian lembar kerja SIDIK-FM-CAL-0509_Rev.4.
+      // Halaman 1 ngikut urutan kertas.
       expect(find.text('EQUIPMENT IDENTITY AND CUSTOMER DATA'), findsOneWidget);
       expect(find.text('OWNER'), findsOneWidget);
-      expect(find.text('STANDARD CALIBRATION DATA'), findsOneWidget);
-      expect(find.text('STANDARD NAME / USAGE CHECK'), findsOneWidget);
-      expect(find.text('CALIBRATION RESULT'), findsOneWidget);
+      expect(find.text('STANDARD'), findsOneWidget);
+      expect(find.text('CALIBRATION DATA'), findsOneWidget);
+      expect(find.text('SIDIK-FM-CAL-0509_Rev.4'), findsOneWidget);
 
-      // Dua tabel hasil.
+      // Tabel hasil ada di halaman 2, bukan numpuk di satu layar panjang.
+      expect(find.text('Before adjustment Reading'), findsNothing);
+
+      await _keHalamanAkhir(tester);
+
+      expect(find.text('CALIBRATION RESULT'), findsOneWidget);
       expect(find.text('Before adjustment Reading'), findsOneWidget);
       expect(find.text('After adjustment Reading'), findsOneWidget);
-
-      expect(find.text('SIDIK-FM-CAL-0509_Rev.4'), findsOneWidget);
     });
 
     testWidgets('teknisi nggak lihat satu pun kolom administratif', (
@@ -102,9 +129,15 @@ void main() {
 
       // Backend nggak ngirim kolom ini ke teknisi sama sekali (bukan cuma
       // disembunyiin) — kalau sampai kelihatan, penyaringan per-role bocor.
-      expect(find.text('6. Thermohygro used'), findsNothing);
       expect(find.text('2. Calibration Methode'), findsNothing);
       expect(find.textContaining('Order Number'), findsNothing);
+
+      // Thermohygro SEBALIKNYA: pindah jadi hak teknisi 29 Juli 2026 — dia yang
+      // tau unit mana yang kebawa ke lokasi. Dulu kolom ini dibuang backend,
+      // jadi teknisi ngisi di HP dan nyampe server jadi null.
+      expect(find.text('6. Thermohygro used'), findsOneWidget);
+      expect(find.text('TH-2'), findsOneWidget);
+      expect(find.text('Insitu'), findsOneWidget);
     });
 
     testWidgets('kolom otomatis keisi dari alat & jadi read-only', (
@@ -115,16 +148,22 @@ void main() {
 
       await _pilihAlat(tester);
 
-      // Tujuh kolom yang ketarik otomatis begitu alatnya dipilih.
-      expect(find.text('Mettler Toledo'), findsWidgets);
-      expect(find.text('Five Easy'), findsWidgets);
+      // Nama alat & rentang tetap READ-ONLY — ketarik dari master, nggak
+      // diketik.
       // Pemisah rentangnya en-dash (`–`), bukan hyphen — itu format yang
       // dipakai `EquipmentLookup.rentangTeks` di seluruh layar worksheet.
       expect(find.text('0–14 pH / 0.01 pH'), findsOneWidget);
-      expect(
-        find.text('PT TIRTA GRACIA SEMESTA MANDIRI'),
-        findsOneWidget,
+
+      // Merk, Type/Model, Serial Number & identitas pemilik keisi dari master
+      // juga — TAPI di kotak yang bisa diedit, bukan teks mati. Teknisi mulai
+      // dari data yang benar dan cuma nyentuh yang beda sama barang fisiknya.
+      final merk = tester.widget<TextField>(
+        find.ancestor(
+          of: find.text('Mettler Toledo'),
+          matching: find.byType(TextField),
+        ),
       );
+      expect(merk.enabled, isNot(false));
     });
   });
 
@@ -137,6 +176,7 @@ void main() {
       // Cuma alat yang dipilih. Nol pembacaan, nol kondisi lingkungan.
       await _pilihAlat(tester);
 
+      await _keHalamanAkhir(tester);
       await tester.tap(find.text('KIRIM KE ADMIN'));
       await tester.pumpAndSettle();
 
@@ -150,6 +190,7 @@ void main() {
       await _muat(tester, _app(service));
 
       await _pilihAlat(tester);
+      await _keHalamanAkhir(tester);
       await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
       await tester.pumpAndSettle();
 
@@ -166,6 +207,7 @@ void main() {
       await _muat(tester, _app(service));
 
       await _pilihAlat(tester);
+      await _keHalamanAkhir(tester);
 
       // Isi Repeat 1 dan Repeat 3 di tabel After adjustment, titik pH 4 —
       // Repeat 2 sengaja dibiarin kos\ong.
@@ -208,6 +250,7 @@ void main() {
       await _muat(tester, _app(service));
 
       await _pilihAlat(tester);
+      await _keHalamanAkhir(tester);
       await tester.tap(find.text('KIRIM KE ADMIN'));
       await tester.pumpAndSettle();
 
@@ -232,6 +275,7 @@ void main() {
       await _muat(tester, _app(service));
 
       await _pilihAlat(tester);
+      await _keHalamanAkhir(tester);
 
       final kotak = find.byType(TextField);
       // Formulir kertasnya pakai koma desimal — teknisi ngetik sesuai yang
@@ -259,12 +303,14 @@ void main() {
 
       await _pilihAlat(tester);
 
+      await _keHalamanAkhir(tester);
       await tester.tap(find.text('KIRIM KE ADMIN'));
       await tester.pumpAndSettle();
 
       // Gagal → layarnya TETAP kebuka, isian nggak ilang, teknisi bisa coba lagi.
       expect(find.text('KIRIM KE ADMIN'), findsOneWidget);
 
+      await _keHalamanAkhir(tester);
       await tester.tap(find.text('KIRIM KE ADMIN'));
       await tester.pumpAndSettle();
 
@@ -282,6 +328,7 @@ void main() {
       final a = MockLembarKerjaService();
       await _muat(tester, _app(a));
       await _pilihAlat(tester);
+      await _keHalamanAkhir(tester);
       await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
       await tester.pumpAndSettle();
 
@@ -295,6 +342,7 @@ void main() {
       final b = MockLembarKerjaService();
       await _muat(tester, _app(b));
       await _pilihAlat(tester);
+      await _keHalamanAkhir(tester);
       await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
       await tester.pumpAndSettle();
 
@@ -315,6 +363,115 @@ void main() {
 
       expect(find.text('Gagal memuat bentuk lembar kerja.'), findsOneWidget);
       expect(find.text('COBA LAGI'), findsOneWidget);
+    });
+  });
+
+  group('layar lebar: dua kolom kayak kertasnya', () {
+    testWidgets('kiri & kanan kelihatan sekaligus, tanpa tombol halaman', (
+      tester,
+    ) async {
+      _viewportLebar(tester);
+      await _muat(tester, _app(MockLembarKerjaService()));
+
+      // Kiri: identitas & standar. Kanan: hasil kalibrasi. Satu layar, persis
+      // formulir cetaknya — teknisi udah hafal peta ini.
+      expect(find.text('EQUIPMENT IDENTITY AND CUSTOMER DATA'), findsOneWidget);
+      expect(find.text('CALIBRATION RESULT'), findsOneWidget);
+      expect(find.text('Before adjustment Reading'), findsOneWidget);
+
+      // Nggak ada yang perlu dibalik halaman — semuanya udah kelihatan.
+      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsNothing);
+      expect(find.text('KIRIM KE ADMIN'), findsOneWidget);
+    });
+  });
+
+  group('lembar kerja 2 halaman', () {
+    test('bagian kebagi ke halaman sesuai kertas', () {
+      final bentuk = LembarKerja.fromJson(contohBentukLembarKerja());
+
+      expect(bentuk.halaman, [1, 2]);
+
+      // Urutan halaman 1 ngikut kertas: identitas → owner → STANDARD →
+      // calibration data. Kalau ini kebalik, teknisi ngisi bukan urut lembar.
+      expect(
+        bentuk.bagianDiHalaman(1).map((b) => b.kode),
+        ['identitas_alat', 'pemilik', 'usage_check', 'data_kalibrasi'],
+      );
+      expect(
+        bentuk.bagianDiHalaman(2).map((b) => b.kode),
+        ['hasil', 'penutup'],
+      );
+    });
+
+    test('Env. Condition ada di halaman 2, bareng tabel hasilnya', () {
+      final bentuk = LembarKerja.fromJson(contohBentukLembarKerja());
+      final hasil = bentuk.bagianDiHalaman(2).first;
+
+      // Di kertas Env. Condition itu baris pertama blok CALIBRATION RESULT —
+      // dicatat waktu ngukur, bukan waktu nyiapin sesi.
+      expect(hasil.field.map((f) => f.kode), contains('suhu_awal'));
+      expect(hasil.tabel, hasLength(2));
+    });
+
+    test('bentuk lama tanpa `halaman` nggak bikin layar kosong', () {
+      final bentuk = LembarKerja.fromJson({
+        'bagian': [
+          {'kode': 'a', 'judul': 'A', 'field': <Map<String, dynamic>>[]},
+        ],
+      });
+
+      expect(bentuk.halaman, [1]);
+      expect(bentuk.bagianDiHalaman(1), hasLength(1));
+    });
+  });
+
+  group('tabel STANDARD barisnya tercetak', () {
+    test('lima baris, bukan seluruh katalog standar lab', () {
+      final bentuk = LembarKerja.fromJson(contohBentukLembarKerja());
+      final standar = bentuk.bagian.firstWhere((b) => b.kode == 'usage_check');
+
+      expect(standar.baris.map((b) => b.label), [
+        'pH Buffer Solutions 4',
+        'pH Buffer Solutions 7',
+        'pH Buffer Solutions 10',
+        'RTD Sensor/SH1/20',
+        'Victor 14+/992613877',
+      ]);
+    });
+
+    test('standar yang belum kedaftar TETAP jadi baris, tanpa id', () {
+      final bentuk = LembarKerja.fromJson(contohBentukLembarKerja());
+      final standar = bentuk.bagian.firstWhere((b) => b.kode == 'usage_check');
+      final victor = standar.baris.last;
+
+      // Barisnya hilang jauh lebih bahaya daripada baris yang belum ketaut:
+      // teknisi nggak bakal sadar ada standar yang nggak kecatat.
+      expect(victor.terdaftar, isFalse);
+      expect(victor.standardId, isNull);
+    });
+  });
+
+  group('Thermohygro used', () {
+    test('empat unit tercetak, dikelompokkan Insitu & Inlab', () {
+      final bentuk = LembarKerja.fromJson(contohBentukLembarKerja());
+      final field = bentuk.bagian
+          .expand((b) => b.field)
+          .firstWhere((f) => f.kode == 'thermohygro_standard_id');
+
+      expect(field.sumber, SumberField.masterThermohygro);
+      expect(
+        field.pilihan.map((p) => (p.label, p.grup)),
+        [('TH-2', 'Insitu'), ('TH-6', 'Insitu'), ('TH-7', 'Insitu'), ('TH-4', 'Inlab')],
+      );
+    });
+
+    test('BUKAN kolom admin lagi — teknisi yang tau unit mana yang kebawa', () {
+      final teknisi = LembarKerja.fromJson(contohBentukLembarKerja());
+
+      expect(
+        teknisi.bagian.expand((b) => b.field).map((f) => f.kode),
+        contains('thermohygro_standard_id'),
+      );
     });
   });
 
@@ -366,9 +523,13 @@ void main() {
       Iterable<String> kode(LembarKerja lk) =>
           lk.bagian.expand((b) => b.field).map((f) => f.kode);
 
-      expect(kode(teknisi), isNot(contains('thermohygro_standard_id')));
       expect(kode(teknisi), isNot(contains('calibration_method_id')));
-      expect(kode(admin), contains('thermohygro_standard_id'));
+      expect(kode(admin), contains('calibration_method_id'));
+
+      // `thermohygro_standard_id` SENGAJA nggak di sini lagi: sejak 29 Juli
+      // 2026 dia hak teknisi, bukan kolom administratif. Lihat group
+      // "Thermohygro used".
+      expect(kode(teknisi), contains('thermohygro_standard_id'));
       expect(admin.untukAdmin, isTrue);
       expect(teknisi.untukAdmin, isFalse);
     });
@@ -647,6 +808,180 @@ void main() {
 
       // Dua Repeat keisi dari foto, tiga sisanya tetap null di posisinya.
       expect(titik4['pembacaan'], [4.01, 4.02, null, null, null]);
+    });
+  });
+}
+
+void _testRevisi() {
+  group('revisi: kolom yang ditandai admin', () {
+    test('isian teknisi + kode kolom kebaca dari respons sesi', () {
+      final isi = IsianTeknisi.fromJson(const {
+        'alat_serial_number': 'HN-2211-05',
+        'pemilik_nama': 'PT Maju Jaya',
+        'suhu_awal': 19.8,
+        'revisi_field': ['alat_serial_number', 'suhu_awal'],
+      });
+
+      expect(isi.alatSerialNumber, 'HN-2211-05');
+      expect(isi.revisiField, {'alat_serial_number', 'suhu_awal'});
+    });
+
+    test('formulir keisi ulang dari sesi — teknisi nggak ngetik dari nol', () {
+      final state = LembarKerjaState(
+        bentuk: LembarKerja.fromJson(contohBentukLembarKerja()),
+        clientRequestId: 'x',
+      );
+
+      state.muatDariSesi(
+        IsianTeknisi.fromJson(const {
+          'alat_serial_number': 'HN-2211-05',
+          'alat_merk': 'Hanna',
+          'suhu_awal': 19.8,
+          'revisi_field': ['alat_serial_number'],
+        }),
+      );
+
+      expect(state.teks['alat_serial_number']!.text, 'HN-2211-05');
+      expect(state.teks['alat_merk']!.text, 'Hanna');
+      expect(state.teks['suhu_awal']!.text, '19.8');
+      expect(state.revisiField, {'alat_serial_number'});
+    });
+
+    test('catatan admin kebaca utuh, bukan cuma kode kolomnya', () {
+      final isi = IsianTeknisi.fromJson(const {
+        'revisi_field': ['suhu_awal'],
+        'catatan_revisi': 'Suhu awal 19,8 nggak masuk rentang IK (20±2). '
+            'Ulangi pembacaannya sesudah alatnya settle 15 menit.',
+      });
+
+      // Kolom bergaris merah cuma jawab MANA yang salah. Yang bikin teknisi
+      // ngerti harus ngapain itu alasannya — dan itu mesti utuh, nggak
+      // dipotong kayak di notifikasi.
+      expect(isi.catatanRevisi, contains('settle 15 menit'));
+    });
+
+    test('catatan admin dibawa ke state, kebaca di layar betulannya', () {
+      final state = LembarKerjaState(
+        bentuk: LembarKerja.fromJson(contohBentukLembarKerja()),
+        clientRequestId: 'x',
+      );
+
+      state.muatDariSesi(
+        IsianTeknisi.fromJson(const {
+          'revisi_field': ['suhu_awal'],
+          'catatan_revisi': 'Ulangi pembacaan suhu awal.',
+        }),
+      );
+
+      expect(state.catatanRevisi, 'Ulangi pembacaan suhu awal.');
+      expect(state.adaRevisi, isTrue);
+    });
+
+    test('ditolak dengan catatan TAPI tanpa nandain kolom tetap kelihatan', () {
+      final state = LembarKerjaState(
+        bentuk: LembarKerja.fromJson(contohBentukLembarKerja()),
+        clientRequestId: 'x',
+      );
+
+      // `revisi_field` boleh null di backend — admin sah nolak cuma pakai
+      // catatan. Dulu banner-nya digantung ke `revisiField.isNotEmpty`, jadi
+      // teknisi dapat lembar yang kelihatan normal padahal udah dikembaliin.
+      state.muatDariSesi(
+        IsianTeknisi.fromJson(const {
+          'catatan_revisi': 'Lembarnya ketuker sama sesi lain, kirim ulang.',
+        }),
+      );
+
+      expect(state.revisiField, isEmpty);
+      expect(state.adaRevisi, isTrue);
+    });
+
+    test('sesi normal (nggak ditolak) nggak munculin banner apa pun', () {
+      final state = LembarKerjaState(
+        bentuk: LembarKerja.fromJson(contohBentukLembarKerja()),
+        clientRequestId: 'x',
+      );
+
+      state.muatDariSesi(
+        IsianTeknisi.fromJson(const {'alat_merk': 'Hanna'}),
+      );
+
+      expect(state.adaRevisi, isFalse);
+    });
+
+    test('catatan kosong/spasi doang nggak dianggap revisi', () {
+      final state = LembarKerjaState(
+        bentuk: LembarKerja.fromJson(contohBentukLembarKerja()),
+        clientRequestId: 'x',
+      );
+
+      state.muatDariSesi(
+        IsianTeknisi.fromJson(const {'catatan_revisi': '   '}),
+      );
+
+      expect(state.adaRevisi, isFalse);
+    });
+
+    test('yang udah diketik teknisi NGGAK ketimpa data lama', () {
+      final state = LembarKerjaState(
+        bentuk: LembarKerja.fromJson(contohBentukLembarKerja()),
+        clientRequestId: 'x',
+      );
+
+      // Layar bisa kebuka duluan & teknisi langsung ngetik sebelum detail
+      // sesinya nyampe dari jaringan yang lelet. Kalau data lama nimpa, koreksi
+      // teknisi ilang di depan matanya sendiri.
+      state.teks['alat_serial_number']!.text = 'HN-BARU-DIKETIK';
+
+      state.muatDariSesi(
+        IsianTeknisi.fromJson(const {'alat_serial_number': 'HN-LAMA'}),
+      );
+
+      expect(state.teks['alat_serial_number']!.text, 'HN-BARU-DIKETIK');
+    });
+
+    test('pilih alat → identitas & pemilik keisi sendiri dari master', () async {
+      final state = LembarKerjaState(
+        bentuk: LembarKerja.fromJson(contohBentukLembarKerja()),
+        clientRequestId: 'x',
+      );
+
+      final daftar = await MockEquipmentLookupService().cari('');
+      state.alat = daftar.firstWhere(
+        (a) => a.pelangganNama.isNotEmpty,
+      );
+      state.isiDariAlat();
+
+      // Data master udah ada waktu pelanggannya didaftarin — nyuruh teknisi
+      // ngetik ulang di lapangan itu kerja dobel yang bikin salah ketik.
+      expect(state.teks['pemilik_nama']!.text, isNotEmpty);
+      expect(state.teks['alat_serial_number']!.text, isNotEmpty);
+    });
+
+    test('yang udah diketik NGGAK keganti waktu ganti alat', () async {
+      final state = LembarKerjaState(
+        bentuk: LembarKerja.fromJson(contohBentukLembarKerja()),
+        clientRequestId: 'x',
+      );
+
+      // Teknisi baca serial dari badan alat — beda dari master, dan ITU yang
+      // sah di dokumen kalibrasi.
+      state.teks['alat_serial_number']!.text = 'DIBACA-DARI-ALAT';
+      state.alat = (await MockEquipmentLookupService().cari('')).first;
+      state.isiDariAlat();
+
+      expect(state.teks['alat_serial_number']!.text, 'DIBACA-DARI-ALAT');
+    });
+
+    test('sesi tanpa revisi_field nggak nyorot apa-apa', () {
+      final state = LembarKerjaState(
+        bentuk: LembarKerja.fromJson(contohBentukLembarKerja()),
+        clientRequestId: 'x',
+      );
+
+      state.muatDariSesi(IsianTeknisi.fromJson(const {'alat_merk': 'Hanna'}));
+
+      expect(state.revisiField, isEmpty);
     });
   });
 }

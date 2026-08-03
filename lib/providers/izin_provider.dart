@@ -1,13 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/config/app_config.dart';
 import '../models/izin.dart';
 import '../models/user.dart';
 import '../services/izin_service.dart';
 import 'auth_provider.dart';
 
-final izinServiceProvider = Provider<IzinService>(
-  (ref) => ApiIzinService(ref.watch(apiClientProvider)),
-);
+final izinServiceProvider = Provider<IzinService>((ref) {
+  if (AppConfig.useMock) return MockIzinService();
+  return ApiIzinService(ref.watch(apiClientProvider));
+});
 
 /// Matriks peran user yang lagi login (`GET /api/me/permissions`).
 ///
