@@ -871,6 +871,31 @@ class _FieldBiasa extends StatelessWidget {
   }
 }
 
+/// Satuan ditaruh di `helperText`, bukan cuma diserahkan ke `suffixText`.
+///
+/// Flutter nge-render affix (`prefixText`/`suffixText`) dengan opacity 0 selama
+/// labelnya belum ngambang — lihat `_AffixText` di `input_decorator.dart`
+/// (`opacity: labelIsFloating ? 1.0 : 0.0`). Artinya satuan baru kelihatan
+/// setelah field difokus atau diisi.
+///
+/// Di lembar kerja itu bikin celaka: backend sengaja ngasih label kembar buat
+/// pasangan suhu/kelembaban ("Env. Condition — First" `°C` vs `%RH`), jadi
+/// satuan **satu-satunya** pembeda. Kalau disembunyikan sampai field disentuh,
+/// teknisi nggak punya cara tahu kotak mana yang mana waktu mau mulai ngisi.
+///
+/// Nggak digabung ke `labelText`: label bawaan backend udah panjang, dan
+/// `InputDecorator` motong label pakai `TextOverflow.ellipsis` — "Env.
+/// Condition — End (%RH)" kepotong jadi "(%R...". `helperText` selalu tampil
+/// dan punya barisnya sendiri, jadi aman.
+String? _helperSatuan(String? satuan, [String? tambahan]) {
+  final unit = (satuan == null || satuan.isEmpty) ? null : satuan;
+  return switch ((tambahan, unit)) {
+    (null, final u) => u,
+    (final t, null) => t,
+    (final t, final u) => '$t · $u',
+  };
+}
+
 class _Isian extends StatelessWidget {
   const _Isian({required this.field, required this.isian});
 
@@ -894,6 +919,7 @@ class _Isian extends StatelessWidget {
       decoration: InputDecoration(
         labelText: field.label,
         suffixText: field.satuan,
+        helperText: _helperSatuan(field.satuan),
         border: const OutlineInputBorder(),
       ),
     );
@@ -1282,7 +1308,7 @@ class _Readonly extends StatelessWidget {
         labelText: label,
         border: const OutlineInputBorder(),
         suffixText: satuan,
-        helperText: l10n.lkOtomatis,
+        helperText: _helperSatuan(satuan, l10n.lkOtomatis),
         filled: true,
         fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
           alpha: 0.4,
