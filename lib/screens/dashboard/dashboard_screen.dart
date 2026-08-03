@@ -303,9 +303,12 @@ class _KartuHero extends StatelessWidget {
                   ),
                 ),
                 _GarisPemisah(),
+                // Backend belum ngirim `total_sertifikat`, jadi angkanya bisa
+                // `null`. Yang ditampilin angka bulan ini — itu yang BENERAN
+                // dikirim — daripada nulis nol yang ngarang.
                 _AngkaHero(
                   label: l10n.dashTotalCerts,
-                  nilai: data.totalSertifikat,
+                  nilai: data.totalSertifikat ?? data.sertifikatBulanIni,
                   // Angka bulan berjalan nempel sebagai sub-teks, bukan kartu
                   // sendiri: dia cuma bikin angka total di atasnya kebaca
                   // ("dari sekian banyak, sekian terbit bulan ini").
