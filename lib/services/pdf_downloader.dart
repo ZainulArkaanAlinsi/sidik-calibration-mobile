@@ -52,7 +52,22 @@ class HttpPdfDownloader implements PdfDownloader {
     final dir = await getTemporaryDirectory();
     final aman = namaFile.replaceAll('/', '-');
     final file = File('${dir.path}/$aman');
-    await file.writeAsBytes(res.bodyBytes);
+
+    try {
+      // `create(recursive: true)` WAJIB: di macOS `getTemporaryDirectory()`
+      // nunjuk ke `~/Library/Caches/<bundle-id>` yang BELUM TENTU ADA, dan
+      // `writeAsBytes` nggak bikin folder induk sendiri — dia langsung lempar
+      // PathNotFoundException. Aman dipanggil berulang: kalau folder-nya sudah
+      // ada, `create` nggak ngapa-ngapain.
+      await dir.create(recursive: true);
+      await file.writeAsBytes(res.bodyBytes);
+    } on FileSystemException catch (e) {
+      // Kegagalan tulis DULU lolos jadi unhandled exception: pemanggilnya cuma
+      // nangkep [PdfDownloadException], jadi tombol Unduh kelihatan diam saja —
+      // nggak ada snackbar, nggak ada apa-apa. Dibungkus biar tetap satu jenis
+      // error yang sama, dan user dapat kabar kalau gagal.
+      throw PdfDownloadException('Gagal nyimpen PDF: ${e.osError?.message ?? e.message}');
+    }
     return file.path;
   }
 }
