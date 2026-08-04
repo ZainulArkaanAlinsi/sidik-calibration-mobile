@@ -1,0 +1,86 @@
+# Bikin paket tes OFFLINE buat tiga platform sekaligus: Windows, macOS, Android.
+#
+# Kenapa ada: ngetes app ini kelewat ribet kalau tiap kali harus `flutter run` +
+# `php artisan serve` + adb nyambung + IP laptop bener. Workflow ini ngeluarkan
+# file jadi yang tinggal dipasang — buka, pakai, nggak butuh server sama sekali.
+#
+# Semua build di sini `USE_MOCK=true`, jadi:
+#   - login offline: SDK-0001 / rahasia123 (hint-nya muncul di layar login)
+#   - kamera tetap kamera asli, angkanya dipra-isi MockWorksheetVisionService
+#   - NOL panggilan jaringan. Nggak ada API_BASE_URL, nggak ada rahasia apa pun
+#     yang ketanam — aman walau repo ini publik dan artefaknya bisa diunduh.
+#
+# Windows SENGAJA lewat sini: Flutter nggak bisa cross-compile ke Windows dari
+# macOS, jadi runner `windows-latest` ini satu-satunya cara Raihan dapat .exe
+# tanpa pinjam laptop Windows.
+#
+# JANGAN dipakai buat rilis ke pelanggan: Android-nya ditandatangani debug key
+# (lihat android/app/build.gradle.kts), dan build mock nggak nyambung ke data asli.
+name: Paket tes (mock, tanpa server)
+
+# Manual doang — biar nggak ngabisin menit CI tiap push. Jalankan dari tab
+# Actions → "Paket tes (mock, tanpa server)" → Run workflow.
+on:
+  workflow_dispatch:
+
+env:
+  # Samain persis sama yang dipakai lokal; Flutter beda minor sering ganti
+  # perilaku build desktop.
+  FLUTTER_VERSION: 3.44.6
+
+jobs:
+  build:
+    strategy:
+      # Jangan batalin dua platform lain cuma gara-gara satu gagal — sering kali
+      # yang gagal justru yang lagi nggak kamu butuhin hari itu.
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            nama: windows
+            perintah: flutter build windows --release --dart-define=USE_MOCK=true
+            hasil: build/windows/x64/runner/Release
+          - os: macos-latest
+            nama: macos
+            perintah: flutter build macos --release --dart-define=USE_MOCK=true
+            hasil: build/macos/Build/Products/Release
+          - os: ubuntu-latest
+            nama: android-apk
+            perintah: flutter build apk --release --dart-define=USE_MOCK=true
+            hasil: build/app/outputs/flutter-apk
+
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.nama }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Android butuh JDK; dua platform lain nggak kena efek apa-apa.
+      - uses: actions/setup-java@v4
+        if: matrix.nama == 'android-apk'
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      # Localization di-generate (pubspec `generate: true`); tanpa ini
+      # AppLocalizations nggak ada dan build-nya gagal di CI yang bersih.
+      - run: flutter gen-l10n
+        continue-on-error: true
+
+      - name: Build ${{ matrix.nama }}
+        run: ${{ matrix.perintah }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sidik-tes-mock-${{ matrix.nama }}
+          path: ${{ matrix.hasil }}
+          if-no-files-found: error
+          retention-days: 14
