@@ -2,20 +2,17 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>com.apple.security.app-sandbox</key>
-	<true/>
-	<!-- Wajib biar app (yang di-sandbox) bisa manggil backend lewat HTTP.
-	     Tanpa ini, build Release nggak bisa konek jaringan sama sekali —
-	     versi non-mock gagal total waktu login. -->
+	<!-- SANDBOX SENGAJA DIMATIKAN buat build lokal (unsigned).
+	     Kenapa: `flutter_secure_storage` nyimpen token login di Keychain.
+	     App sandbox butuh entitlement `keychain-access-groups`, TAPI itu
+	     cuma jalan kalau di-sign pakai sertifikat developer — build lokal
+	     `flutter build macos` itu unsigned, jadi malah GAGAL build. Tanpa
+	     keychain, app sandbox mental balik ke login (token nggak kesimpen).
+	     Lepas sandbox = secure_storage + jaringan jalan tanpa sertifikat,
+	     login nggak mental. Android (Keystore) & Windows nggak kena isu ini.
+	     Kalau nanti mau distribusi resmi ber-sertifikat, sandbox bisa
+	     dinyalain lagi + tambah keychain-access-groups. -->
 	<key>com.apple.security.network.client</key>
 	<true/>
-	<!-- flutter_secure_storage nyimpen token login di Keychain. App sandbox
-	     TANPA izin ini nggak bisa nulis Keychain — akibatnya login sukses tapi
-	     token nggak kesimpen, jadi app mental balik ke layar login. Android
-	     (Keystore) & Windows nggak kena; ini murni macOS sandbox. -->
-	<key>keychain-access-groups</key>
-	<array>
-		<string>$(AppIdentifierPrefix)$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-	</array>
 </dict>
 </plist>
