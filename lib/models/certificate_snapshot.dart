@@ -72,11 +72,29 @@ class BarisHasilSertifikat {
     required this.unitUnderTest,
     required this.correction,
     required this.u95,
+    this.desimal,
   });
 
   final int titikKe;
   final double standardValue;
   final double unitUnderTest;
+
+  /// Berapa desimal baris INI ditulis. `null` = backend belum ngirim, pakai
+  /// `desimal` sertifikat seperti dulu.
+  ///
+  /// Ada per baris karena sebagian alat resolusinya berubah menurut rentang:
+  /// Turbidimeter 0,01 di bawah 10 NTU, 0,1 di 10–100, 1 di atasnya. Satu
+  /// angka buat seluruh tabel bikin titik 100 NTU kecetak `101,00` — dua digit
+  /// yang alatnya nggak bisa tampilkan, dan di sertifikat terakreditasi itu
+  /// ngaku ketelitian yang nggak ada. Excel master lab nulisnya `101`.
+  final int? desimal;
+
+  /// Desimal yang benar-benar dipakai buat nulis baris ini.
+  ///
+  /// [desimalSertifikat] = angka tingkat-sertifikat, dipakai kalau backend
+  /// belum ngirim per baris. Dipisah jadi method biar aturannya bisa diuji —
+  /// dan biar cuma ADA SATU tempat yang mutusin, bukan diulang di tiap kolom.
+  int desimalEfektif(int desimalSertifikat) => desimal ?? desimalSertifikat;
 
   /// **Di sertifikat Correction = Standard − Average** — kebalikan dari lembar
   /// PERHITUNGAN. Dua-duanya bener, jangan dipakai silang.
@@ -91,6 +109,7 @@ class BarisHasilSertifikat {
         unitUnderTest: (json['unit_under_test'] as num?)?.toDouble() ?? 0,
         correction: (json['correction'] as num?)?.toDouble() ?? 0,
         u95: (json['u95'] as num?)?.toDouble() ?? 0,
+        desimal: (json['desimal'] as num?)?.toInt(),
       );
 }
 
