@@ -10,5 +10,11 @@
 	<true/>
 	<key>com.apple.security.network.client</key>
 	<true/>
+	<!-- Keychain buat flutter_secure_storage (token login). Tanpa ini, app
+	     sandbox mental balik ke login karena token nggak kesimpen. -->
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	</array>
 </dict>
 </plist>

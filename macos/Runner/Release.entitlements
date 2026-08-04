@@ -9,5 +9,13 @@
 	     versi non-mock gagal total waktu login. -->
 	<key>com.apple.security.network.client</key>
 	<true/>
+	<!-- flutter_secure_storage nyimpen token login di Keychain. App sandbox
+	     TANPA izin ini nggak bisa nulis Keychain — akibatnya login sukses tapi
+	     token nggak kesimpen, jadi app mental balik ke layar login. Android
+	     (Keystore) & Windows nggak kena; ini murni macOS sandbox. -->
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	</array>
 </dict>
 </plist>
