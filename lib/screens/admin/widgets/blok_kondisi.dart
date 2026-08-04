@@ -9,6 +9,7 @@ import '../../../models/standard.dart';
 import '../../../providers/calibration_input_provider.dart';
 import '../../../providers/perhitungan_provider.dart';
 import 'tabel_perhitungan.dart' show formatAngka;
+import '../../auth/widgets/neu.dart';
 
 /// Blok "PERHITUNGAN KONDISI LINGKUNGAN" — dua baris (Suhu Ruangan &
 /// Kelembaban) dengan sembilan kolom, persis sheet PERHITUNGAN.
@@ -32,10 +33,10 @@ class BlokKondisi extends ConsumerWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
+    return NeuRaised(
+      radius: 20,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
@@ -69,8 +70,7 @@ class BlokKondisi extends ConsumerWidget {
               kondisi: kondisi,
               calibrationId: calibrationId,
             ),
-          ],
-        ),
+        ],
       ),
     );
   }

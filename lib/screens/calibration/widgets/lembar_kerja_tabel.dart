@@ -221,12 +221,25 @@ class _TombolScanState extends ConsumerState<_TombolScan> {
         return;
       }
       _terapkan(hasil);
-    } catch (_) {
+    } catch (e, s) {
       // Izin kamera ditolak / AI-nya gagal / sinyal putus: kasih tau, jangan
       // diem. Kolomnya tetap bisa diketik manual — foto itu pemercepat, bukan
       // syarat (spec vision §4.2, fallback manual).
+      //
+      // Errornya SENGAJA nggak ditelan lagi. Dulu di sini `catch (_)`, jadi
+      // penyebabnya kebuang total: nggak kecatat di mana pun, dan yang muncul
+      // cuma satu kalimat generik. Waktu kameranya beneran rusak, nggak ada
+      // satu pun petunjuk buat nelusuri — endpoint-nya sehat, izinnya benar,
+      // AI-nya jalan, tapi nggak ada yang tahu apa yang gagal. Sama persis
+      // kayak layar login yang nuduh "server bermasalah" padahal Keychain.
+      debugPrint('[SCAN] gagal: $e\n$s');
       if (mounted) {
-        messenger.showSnackBar(SnackBar(content: Text(l10n.phCalibScanError)));
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('${l10n.phCalibScanError} ($e)'),
+            duration: const Duration(seconds: 8),
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _sibuk = false);
