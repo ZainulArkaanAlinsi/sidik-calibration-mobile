@@ -9,6 +9,38 @@ import 'register_screen.dart';
 import 'widgets/auth_brand_header.dart';
 import 'widgets/neu.dart';
 
+/// Pesan buat kegagalan login yang BUKAN [AuthException].
+///
+/// Dulu cabang ini selalu bilang "Nggak bisa nyambung ke server" — tebakan yang
+/// ditulis seolah fakta. Padahal kegagalan LOKAL mendarat di cabang yang sama:
+/// `auth_provider.login` nyimpen token sesudah auth sukses, dan waktu Keychain
+/// macOS nolak (errSecMissingEntitlement/-34018), yang muncul di layar tetap
+/// "server bermasalah". Akibatnya sehari kebuang ngoprek `artisan serve`, IP,
+/// dan adb — padahal backend-nya sehat, bahkan lagi MODE MOCK yang nggak punya
+/// server sama sekali.
+///
+/// Aturannya sekarang: sebut server HANYA kalau errornya memang error jaringan.
+/// Selain itu tampilkan penyebab aslinya — jelek dilihat, tapi bisa ditindak
+/// lanjuti. Pesan yang menyesatkan jauh lebih mahal daripada pesan yang jujur
+/// tapi teknis.
+String _pesanGagalLogin(Object error) {
+  final teknis = error.toString();
+  // Dicocokin lewat teks, bukan `is SocketException`, biar file ini nggak perlu
+  // impor `dart:io` (bikin build web mental).
+  const penandaJaringan = [
+    'SocketException',
+    'TimeoutException',
+    'ClientException',
+    'HandshakeException',
+    'Connection refused',
+    'Failed host lookup',
+  ];
+  if (penandaJaringan.any(teknis.contains)) {
+    return 'Nggak bisa nyambung ke server. Coba lagi.';
+  }
+  return 'Login gagal di perangkat ini: $teknis';
+}
+
 /// Layar Login — gaya soft UI / neumorphism (lihat `widgets/neu.dart`).
 /// Isinya sama persis kayak sebelumnya: login pakai ID pegawai **atau** email,
 /// validasi lokal dulu, error dari server ditampilin apa adanya, plus panel
@@ -68,11 +100,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final auth = ref.watch(authProvider);
     final loading = auth.isLoading;
 
-    // Cuma pesan dari AuthException yang ditampilin apa adanya. Exception
-    // teknis (timeout, parsing) disembunyiin — user nggak perlu lihat itu.
+    // Cuma pesan dari AuthException yang ditampilin apa adanya. Sisanya lewat
+    // [_pesanGagalLogin] — lihat catatan di sana kenapa nggak boleh main tuduh
+    // server.
     final errorLogin = switch (auth) {
       AsyncError(:final AuthException error) => error.message,
-      AsyncError() => 'Nggak bisa nyambung ke server. Coba lagi.',
+      AsyncError(:final error) => _pesanGagalLogin(error),
       _ => null,
     };
 

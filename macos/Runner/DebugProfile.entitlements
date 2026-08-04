@@ -2,8 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>com.apple.security.app-sandbox</key>
-	<true/>
+	<!-- App sandbox SENGAJA dilepas, sama kayak Release.entitlements.
+	     Sandbox butuh entitlement `keychain-access-groups`, dan itu cuma jalan
+	     kalau di-sign pakai sertifikat developer — build lokal nggak punya.
+	     Akibatnya `flutter_secure_storage` gagal nulis token dengan
+	     errSecMissingEntitlement (-34018), dan karena `AsyncValue.guard` di
+	     `auth_provider.dart` nelen exception-nya, di layar itu muncul sebagai
+	     "login gagal" — bukan sebagai error Keychain. Berjam-jam kebuang nyari
+	     di kredensial padahal auth-nya sendiri sukses.
+	     Release udah dilepas duluan; Debug kelewat, jadi justru jalur yang
+	     dipakai ngetes tiap hari yang rusak. -->
 	<key>com.apple.security.cs.allow-jit</key>
 	<true/>
 	<key>com.apple.security.network.server</key>
