@@ -20,6 +20,7 @@
              laptop berubah (cek: `ipconfig getifaddr en0`). -->
         <domain includeSubdomains="false">192.168.1.8</domain>
         <domain includeSubdomains="false">192.168.1.34</domain>
+        <domain includeSubdomains="false">192.168.1.27</domain>
 
         <!-- Emulator Android nembak host lewat alamat khusus ini. -->
         <domain includeSubdomains="false">10.0.2.2</domain>
