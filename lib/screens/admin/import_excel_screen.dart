@@ -8,6 +8,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/import_excel.dart';
 import '../../providers/import_provider.dart';
 import '../../widgets/app_button.dart';
+import '../auth/widgets/neu.dart';
 
 /// Import Excel buat masa transisi (spesifikasi poin 12C).
 ///
@@ -97,28 +98,66 @@ class _ImportExcelScreenState extends ConsumerState<ImportExcelScreen> {
     final theme = Theme.of(context);
     final hasil = _hasil;
 
+    final c = NeuColors.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.importTitle)),
+      backgroundColor: c.base,
+      appBar: AppBar(
+        backgroundColor: c.base,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: c.text),
+        title: Text(
+          l10n.importTitle,
+          style: TextStyle(
+            color: c.text,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
+          ),
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
-          DropdownButtonFormField<String>(
-            initialValue: _tipeTerpilih,
-            isExpanded: true,
-            decoration: InputDecoration(
-              labelText: l10n.importPilihTipe,
-              border: const OutlineInputBorder(),
+          // Pemilih tipe ditaruh di permukaan TENGGELAM (`NeuInset`) — di
+          // soft-UI itu bahasa buat "ini kolom isian", sama kayak kolom di
+          // layar Login. Kotak bergaris Material di tengah permukaan lembut
+          // kelihatan kayak nempel dari aplikasi lain.
+          NeuInset(
+            radius: 16,
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButtonFormField<String>(
+                initialValue: _tipeTerpilih,
+                isExpanded: true,
+                dropdownColor: c.base,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: c.text,
+                ),
+                decoration: InputDecoration(
+                  labelText: l10n.importPilihTipe,
+                  labelStyle: TextStyle(color: c.textMuted, fontSize: 13),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                ),
+                items: [
+                  for (final t in _tipe)
+                    DropdownMenuItem(
+                      value: t,
+                      child: Text(_labelTipe(l10n, t)),
+                    ),
+                ],
+                onChanged: _sibuk
+                    ? null
+                    : (v) => setState(() {
+                        _tipeTerpilih = v ?? _tipe.first;
+                        _hasil = null;
+                      }),
+              ),
             ),
-            items: [
-              for (final t in _tipe)
-                DropdownMenuItem(value: t, child: Text(_labelTipe(l10n, t))),
-            ],
-            onChanged: _sibuk
-                ? null
-                : (v) => setState(() {
-                    _tipeTerpilih = v ?? _tipe.first;
-                    _hasil = null;
-                  }),
           ),
           const SizedBox(height: AppSpacing.sm),
           _Catatan(teks: l10n.importUrutanCatatan),
@@ -201,16 +240,21 @@ class _Ringkasan extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
+    final neu = NeuColors.of(context);
+
+    return NeuRaised(
+      radius: 20,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              l10n.importRingkasan,
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w700,
+              l10n.importRingkasan.toUpperCase(),
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.8,
+                color: neu.accent,
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
@@ -244,7 +288,9 @@ class _Ringkasan extends StatelessWidget {
             ),
 
             if (hasil.kolomDiabaikan.isNotEmpty) ...[
-              const Divider(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.md),
+              Container(height: 1, color: neu.darkShadow.withValues(alpha: 0.35)),
+              const SizedBox(height: AppSpacing.md),
               Text(
                 '${l10n.importKolomDiabaikan}: '
                 '${hasil.kolomDiabaikan.join(", ")}',
@@ -254,10 +300,11 @@ class _Ringkasan extends StatelessWidget {
               ),
             ],
 
-            const Divider(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.md),
+            Container(height: 1, color: neu.darkShadow.withValues(alpha: 0.35)),
+            const SizedBox(height: AppSpacing.md),
             for (final b in hasil.baris) _BarisHasil(baris: b),
           ],
-        ),
       ),
     );
   }
