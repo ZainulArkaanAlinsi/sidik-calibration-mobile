@@ -360,6 +360,26 @@ class _ApprovalActions extends ConsumerStatefulWidget {
 class _ApprovalActionsState extends ConsumerState<_ApprovalActions> {
   bool _busy = false;
 
+  /// Dipegang State, BUKAN dibikin ulang tiap `_tolak()`.
+  ///
+  /// Dulu dibikin lokal di dalam `_tolak()` dan nggak pernah di-dispose sama
+  /// sekali — tiap penolakan nyisain satu controller hidup selama app jalan,
+  /// dan admin nekan tombol ini puluhan kali sehari.
+  ///
+  /// Mem-dispose-nya di ujung `_tolak()` BUKAN jalan keluarnya: `showDialog`
+  /// kelar begitu route-nya di-pop, sementara `TextField`-nya masih kepasang
+  /// selama animasi nutup — controller yang udah dibuang kepakai lagi di situ
+  /// dan Flutter langsung ngelempar "A TextEditingController was used after
+  /// being disposed". Ditaruh di State: sekali bikin, dibuang waktu layarnya
+  /// ilang, dan isinya dikosongin tiap dialog dibuka.
+  final _catatanTolak = TextEditingController();
+
+  @override
+  void dispose() {
+    _catatanTolak.dispose();
+    super.dispose();
+  }
+
   Future<void> _setujui() async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -405,7 +425,7 @@ class _ApprovalActionsState extends ConsumerState<_ApprovalActions> {
 
   Future<void> _tolak() async {
     final l10n = AppLocalizations.of(context);
-    final controller = TextEditingController();
+    final controller = _catatanTolak..clear();
 
     final catatan = await showDialog<String>(
       context: context,
