@@ -246,7 +246,18 @@ class _LembarTolakState extends State<LembarTolak> {
             child: SafeArea(
               top: false,
               child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
+                // Keyboard-nya nutupin bilah ini kalau nggak digeser: admin
+                // ngetik alasan di kotak "Catatan tambahan", lalu tombol KIRIM
+                // ada DI BAWAH papan ketik — dia mesti nutup keyboard dulu buat
+                // nemuin tombolnya. Sheet lain di app (Ruangan, Metode, Rumus)
+                // udah pakai `viewInsets`; cuma lembar ini yang kelewat.
+                padding: EdgeInsets.only(
+                  left: AppSpacing.md,
+                  right: AppSpacing.md,
+                  top: AppSpacing.md,
+                  bottom:
+                      MediaQuery.of(context).viewInsets.bottom + AppSpacing.md,
+                ),
                 child: FilledButton.icon(
                   icon: const Icon(Icons.reply),
                   label: Text(l10n.tolakKirim),

@@ -222,7 +222,34 @@ class _PilihThermohygroState extends ConsumerState<_PilihThermohygro> {
         standarAsync.when(
           skipLoadingOnReload: true,
           loading: () => const LinearProgressIndicator(),
-          error: (_, _) => const SizedBox.shrink(),
+          // Dulu ini `SizedBox.shrink()` — pickernya LENYAP tanpa sepatah kata
+          // kalau `GET /standards` gagal, sementara peringatan "thermohygro
+          // belum dipilih" di bawah tetap nongol. Jadi admin dikasih tahu ada
+          // yang kurang, terus kontrol buat mbenerinnya diumpetin: jalan buntu
+          // yang kelihatan kayak app-nya rusak, bukan jaringannya.
+          error: (_, _) => Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.cloud_off_outlined,
+                size: 14,
+                color: AppColors.warning,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  l10n.standarLoadFailed,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: AppColors.warning,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () => ref.invalidate(standardListProvider),
+                child: Text(l10n.standarRetry),
+              ),
+            ],
+          ),
           data: (list) {
             // Cuma standar yang punya `parameter_kondisi` yang berguna di
             // sini — sisanya nggak akan ngasih koreksi apa pun.

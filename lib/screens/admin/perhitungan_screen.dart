@@ -522,52 +522,10 @@ class _BilahAksi extends StatelessWidget {
   }
 }
 
-class _DialogTolak extends StatefulWidget {
-  const _DialogTolak();
-
-  @override
-  State<_DialogTolak> createState() => _DialogTolakState();
-}
-
-class _DialogTolakState extends State<_DialogTolak> {
-  final _controller = TextEditingController();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
-    return AlertDialog(
-      title: Text(l10n.perhitTolakJudul),
-      content: TextField(
-        controller: _controller,
-        autofocus: true,
-        maxLines: 4,
-        decoration: InputDecoration(
-          labelText: l10n.perhitTolakLabel,
-          border: const OutlineInputBorder(),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(l10n.perhitKonfirmasiBatal),
-        ),
-        TextButton(
-          onPressed: () =>
-              Navigator.of(context).pop(_controller.text.trim()),
-          child: Text(l10n.perhitTolakKirim),
-        ),
-      ],
-    );
-  }
-}
-
+/// Gagal muat. Sengaja soft-UI persis kayak `_Gagal` di Antrean Approval —
+/// layar ini latarnya `c.base`, jadi kartu error ber-`colorScheme.error` +
+/// tombol Material polos kelihatan nempel dari aplikasi lain. Itu justru layar
+/// yang paling sering dilihat waktu backend lagi ngadat.
 class _Gagal extends StatelessWidget {
   const _Gagal({required this.onCobaLagi});
 
@@ -575,31 +533,32 @@ class _Gagal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final c = NeuColors.of(context);
     final l10n = AppLocalizations.of(context);
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.xl),
       children: [
         const SizedBox(height: AppSpacing.xl),
-        Icon(
-          Icons.cloud_off_outlined,
-          size: 56,
-          color: theme.colorScheme.error,
+        Center(
+          child: NeuRaised(
+            circle: true,
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Icon(Icons.cloud_off_outlined, size: 44, color: c.danger),
+          ),
         ),
-        const SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.lg),
         Text(
           l10n.perhitGagal,
           textAlign: TextAlign.center,
-          style: theme.textTheme.titleMedium,
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: c.text,
+          ),
         ),
         const SizedBox(height: AppSpacing.lg),
-        AppButton(
-          label: l10n.folderRetry,
-          icon: Icons.refresh,
-          variant: AppButtonVariant.secondary,
-          onPressed: onCobaLagi,
-        ),
+        NeuButton(label: l10n.folderRetry, onPressed: onCobaLagi),
       ],
     );
   }
