@@ -123,10 +123,8 @@ void main() {
       expect(find.text('CALIBRATION DATA'), findsOneWidget);
       expect(find.text('SIDIK-FM-CAL-0509_Rev.4'), findsOneWidget);
 
-      // Tabel hasil ada di halaman 2, bukan numpuk di satu layar panjang.
-      expect(find.text('Before adjustment Reading'), findsNothing);
-
-      await _keHalamanAkhir(tester);
+      // Satu halaman: tabel hasilnya langsung kelihatan, nggak perlu dibalik.
+      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsNothing);
 
       expect(find.text('CALIBRATION RESULT'), findsOneWidget);
       expect(find.text('Before adjustment Reading'), findsOneWidget);
@@ -289,10 +287,21 @@ void main() {
       await _pilihAlat(tester);
       await _keHalamanAkhir(tester);
 
-      final kotak = find.byType(TextField);
+      // Ditunjuk lewat blok CALIBRATION RESULT, bukan `TextField` indeks 0.
+      // Indeks itu dulu kebetulan `suhu_awal` cuma karena halaman 2 mulai dari
+      // situ; begitu lembarnya jadi satu halaman (ngikut backend), indeksnya
+      // geser dan test-nya ngetik ke kolom yang salah tanpa ada yang gagal.
+      final blokHasil = find.ancestor(
+        of: find.text('CALIBRATION RESULT'),
+        matching: find.byType(Column),
+      );
+      final kotak = find.descendant(
+        of: blokHasil.first,
+        matching: find.byType(TextField),
+      );
       // Formulir kertasnya pakai koma desimal — teknisi ngetik sesuai yang
       // dia lihat, dan itu nggak boleh jadi angka hilang.
-      await tester.enterText(kotak.at(0), '21,3');
+      await tester.enterText(kotak.first, '21,3');
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('KIRIM KE ADMIN'));
@@ -397,27 +406,25 @@ void main() {
     });
   });
 
-  group('lembar kerja 2 halaman', () {
-    test('bagian kebagi ke halaman sesuai kertas', () {
+  group('lembar kerja SATU halaman — sama kayak backend', () {
+    /// Dulu bentuk pH di mock dipecah dua halaman, padahal backend udah nggak
+    /// sejak `3ab1d09` ("satu gulungan"). Bedanya kelihatan: build mock
+    /// nampilin tombol "LANJUT KE HALAMAN BERIKUTNYA" yang di build asli nggak
+    /// ada sama sekali. Diadu langsung ke `?profil=ph_meter` dari API hidup
+    /// 5 Agt 2026.
+    test('semua bagian di satu halaman, urutannya ngikut kertas', () {
       final bentuk = LembarKerja.fromJson(contohBentukLembarKerja());
 
-      expect(bentuk.halaman, [1, 2]);
-
-      // Urutan halaman 1 ngikut kertas: identitas → owner → STANDARD →
-      // calibration data. Kalau ini kebalik, teknisi ngisi bukan urut lembar.
+      expect(bentuk.halaman, [1]);
       expect(
         bentuk.bagianDiHalaman(1).map((b) => b.kode),
-        ['identitas_alat', 'pemilik', 'usage_check', 'data_kalibrasi'],
-      );
-      expect(
-        bentuk.bagianDiHalaman(2).map((b) => b.kode),
-        ['hasil', 'penutup'],
+        ['identitas_alat', 'pemilik', 'usage_check', 'data_kalibrasi', 'hasil', 'penutup'],
       );
     });
 
-    test('Env. Condition ada di halaman 2, bareng tabel hasilnya', () {
+    test('Env. Condition nempel sama tabel hasilnya', () {
       final bentuk = LembarKerja.fromJson(contohBentukLembarKerja());
-      final hasil = bentuk.bagianDiHalaman(2).first;
+      final hasil = bentuk.bagian.firstWhere((b) => b.kode == 'hasil');
 
       // Di kertas Env. Condition itu baris pertama blok CALIBRATION RESULT —
       // dicatat waktu ngukur, bukan waktu nyiapin sesi.
@@ -1175,9 +1182,9 @@ void _testTurbidimeter() {
       expect(tabel.kolom.first.satuan, 'NTU');
     });
 
-    test('satu halaman, bukan dua kayak pH — kertasnya emang selembar', () {
+    test('satu halaman — sama kayak pH & Chlorine sekarang', () {
       expect(bentukTurbidi().halaman, [1]);
-      expect(LembarKerja.fromJson(contohBentukLembarKerja()).halaman, [1, 2]);
+      expect(LembarKerja.fromJson(contohBentukLembarKerja()).halaman, [1]);
     });
 
     test('kolom admin tetap disaring sama kayak pH', () {

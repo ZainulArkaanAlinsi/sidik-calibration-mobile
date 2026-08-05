@@ -268,7 +268,11 @@ Map<String, dynamic> contohBentukLembarKerja({bool untukAdmin = false}) {
     },
     {
       'kode': 'hasil',
-      'halaman': 2,
+      // SATU halaman, sama kayak Turbidimeter & Chlorine. Backend udah nggak
+      // mecah dua sejak `3ab1d09` ("satu gulungan"), mobile-nya ketinggalan —
+      // jadi build mock nampilin tombol "LANJUT KE HALAMAN BERIKUTNYA" yang di
+      // build asli nggak ada sama sekali.
+      'halaman': 1,
       'judul': 'CALIBRATION RESULT',
       'field': [
         field('suhu_awal', 'Env. Condition — First', 'angka', satuan: '°C'),
@@ -283,7 +287,7 @@ Map<String, dynamic> contohBentukLembarKerja({bool untukAdmin = false}) {
     },
     {
       'kode': 'penutup',
-      'halaman': 2,
+      'halaman': 1,
       'judul': 'Catatan & Tanda Tangan',
       'field': [
         field('catatan_teknisi', 'Catatan', 'teks_panjang'),

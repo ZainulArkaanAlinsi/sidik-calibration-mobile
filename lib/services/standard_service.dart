@@ -105,7 +105,8 @@ class MockStandardService implements StandardService {
       merk: 'Supelco/Merck',
       serialNumber: 'HC45400338',
       masihBerlaku: true,
-      ketidakpastian: 0.024,
+      // 0,03 ngikut sertifikat aslinya (`kalibrasi-ph-meter.json` di backend).
+      ketidakpastian: 0.03,
       satuanKetidakpastian: 'pH',
       faktorCakupan: 2,
     ),
@@ -115,7 +116,9 @@ class MockStandardService implements StandardService {
       merk: 'Yokogawa/CA 150 Handy Cal',
       serialNumber: '23P1005',
       masihBerlaku: true,
-      ketidakpastian: 0.06,
+      // 0,72 — punya TERMOMETER. Angka lama 0,06 itu punya Sensor Suhu PT100,
+      // alat lain; ketuker waktu mock ini ditulis.
+      ketidakpastian: 0.72,
       satuanKetidakpastian: 'oC',
       faktorCakupan: 2,
     ),
