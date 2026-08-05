@@ -18,6 +18,7 @@ import 'package:sidik_calibration/screens/auth/splash_screen.dart';
 import 'package:sidik_calibration/screens/profile/profile_screen.dart';
 import 'package:sidik_calibration/providers/perhitungan_provider.dart';
 import 'package:sidik_calibration/screens/admin/perhitungan_screen.dart';
+import 'package:sidik_calibration/screens/dashboard/ringkasan_screen.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_screen.dart';
 import 'package:sidik_calibration/screens/shell/main_shell.dart';
 import 'package:sidik_calibration/services/dashboard_service.dart';
@@ -265,6 +266,31 @@ void main() {
     await expectLater(
       find.byType(PerhitunganScreen),
       matchesGoldenFile('screenshots/perhitungan-admin.png'),
+    );
+  });
+
+  /// Panel Ringkasan di lebar desktop.
+  ///
+  /// Ada di sini gara-gara satu bug yang cuma kelihatan di lebar segini: label
+  /// "Sebaran status sesi" dikunci `SizedBox(width: 140)` TANPA jarak ke batang
+  /// progresnya, jadi label yang lebih panjang dari itu ("Menunggu approval")
+  /// nempel langsung ke bar dan kebaca kayak satu gumpalan. Nol test yang
+  /// gagal, nol error — cuma kelihatan kalau dilihat.
+  testWidgets('ringkasan desktop', (tester) async {
+    tester.view.physicalSize = const Size(2400, 1700);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      _bungkus(const RingkasanScreen(), mode: Brightness.light),
+    );
+    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byType(RingkasanScreen),
+      matchesGoldenFile('screenshots/ringkasan-desktop.png'),
     );
   });
 }

@@ -385,11 +385,24 @@ class _Sebaran extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 6),
             child: Row(
               children: [
-                SizedBox(
-                  width: 140,
-                  child: Text(label, style: theme.textTheme.bodySmall),
-                ),
+                // Ikut lebar panel, BUKAN 140 px mati. Dulu dipatok segitu
+                // tanpa jarak ke batangnya sama sekali — begitu labelnya lebih
+                // panjang dari itu ("Menunggu approval"), teksnya nempel
+                // langsung ke bar dan kebaca kayak satu gumpalan. Label lain
+                // selamat cuma karena kebetulan lebih pendek, dan bahasa
+                // Inggris punya yang lebih panjang lagi.
                 Expanded(
+                  flex: 5,
+                  child: Text(
+                    label,
+                    style: theme.textTheme.bodySmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  flex: 6,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(999),
                     child: LinearProgressIndicator(
