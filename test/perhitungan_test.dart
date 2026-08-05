@@ -267,10 +267,15 @@ void main() {
       await tester.tap(find.text('TOLAK'));
       await tester.pumpAndSettle();
 
-      final tombol = tester.widget<FilledButton>(
-        find.widgetWithText(FilledButton, 'KEMBALIKAN KE TEKNISI'),
+      // `NeuButton` matiin tombolnya lewat `InkWell.onTap` null, bukan lewat
+      // widget tombol Material — jadi yang diperiksa InkWell-nya.
+      final tombol = tester.widget<InkWell>(
+        find.ancestor(
+          of: find.text('KEMBALIKAN KE TEKNISI'),
+          matching: find.byType(InkWell),
+        ).first,
       );
-      expect(tombol.onPressed, isNull);
+      expect(tombol.onTap, isNull);
       expect(service.aksi.any((a) => a.$1 == 'tolak'), isFalse);
     });
 
@@ -331,10 +336,10 @@ void main() {
       await tester.tap(find.text('TOLAK'));
       await tester.pumpAndSettle();
 
-      final tombol = find.widgetWithText(
-        FilledButton,
-        'KEMBALIKAN KE TEKNISI',
-      );
+      final tombol = find.ancestor(
+        of: find.text('KEMBALIKAN KE TEKNISI'),
+        matching: find.byType(InkWell),
+      ).first;
       final batasKeyboard =
           tester.view.physicalSize.height / tester.view.devicePixelRatio -
           tinggiKeyboard;

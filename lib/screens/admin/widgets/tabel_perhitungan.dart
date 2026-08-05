@@ -4,6 +4,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/angka.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/perhitungan.dart';
+import '../../auth/widgets/neu.dart';
 
 /// Angka lembar perhitungan ditampilkan **apa adanya dari server** — nggak ada
 /// pembulatan, dan nggak ada operasi aritmetika di file ini. Yang diatur cuma
@@ -34,7 +35,7 @@ class TabelPerhitunganWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final c = NeuColors.of(context);
     final l10n = AppLocalizations.of(context);
 
     if (tabel.titik.isEmpty) return const SizedBox.shrink();
@@ -44,8 +45,10 @@ class TabelPerhitunganWidget extends StatelessWidget {
       children: [
         Text(
           tabel.judul,
-          style: theme.textTheme.titleSmall?.copyWith(
+          style: TextStyle(
+            fontSize: 14,
             fontWeight: FontWeight.w700,
+            color: c.text,
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -72,7 +75,7 @@ class TabelPerhitunganWidget extends StatelessWidget {
                 kecil: true,
                 sel: [for (final t in tabel.titik) t.satuan ?? ''],
               ),
-              const Divider(height: AppSpacing.md),
+              _Garis(),
 
               for (var r = 0; r < tabel.jumlahPengulangan; r++)
                 _Baris(
@@ -83,7 +86,7 @@ class TabelPerhitunganWidget extends StatelessWidget {
                   ],
                 ),
 
-              const Divider(height: AppSpacing.md),
+              _Garis(),
               _Baris(
                 label: l10n.perhitAverage,
                 tebal: true,
@@ -124,13 +127,15 @@ class TabelPerhitunganWidget extends StatelessWidget {
             children: [
               Text(
                 '${l10n.perhitMaxStdev}: ',
-                style: theme.textTheme.labelSmall?.copyWith(
+                style: TextStyle(
+                  fontSize: 11.5,
                   fontWeight: FontWeight.w700,
+                  color: c.textMuted,
                 ),
               ),
               Text(
                 formatAngka(tabel.maxStdev!, maksDesimal: 7),
-                style: theme.textTheme.labelSmall,
+                style: TextStyle(fontSize: 11.5, color: c.text),
               ),
             ],
           ),
@@ -161,13 +166,13 @@ class _Baris extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final c = NeuColors.of(context);
     final gaya = kecil
-        ? theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          )
-        : theme.textTheme.bodySmall?.copyWith(
+        ? TextStyle(fontSize: 11, color: c.textMuted)
+        : TextStyle(
+            fontSize: 12.5,
             fontWeight: tebal ? FontWeight.w700 : FontWeight.w400,
+            color: c.text,
           );
 
     return Padding(
@@ -178,8 +183,10 @@ class _Baris extends StatelessWidget {
             width: TabelPerhitunganWidget._lebarLabel,
             child: Text(
               label,
-              style: theme.textTheme.labelSmall?.copyWith(
+              style: TextStyle(
+                fontSize: 11.5,
                 fontWeight: tebal ? FontWeight.w700 : FontWeight.w500,
+                color: tebal ? c.text : c.textMuted,
               ),
             ),
           ),
@@ -189,6 +196,22 @@ class _Baris extends StatelessWidget {
               child: Text(s, textAlign: TextAlign.center, style: gaya),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Pemisah baris tabel. Garis tipis dari bayangan gelap, bukan `Divider`
+/// Material — biar nyatu sama permukaan soft-UI, sama kayak `_Blok` di layar
+/// Perhitungan.
+class _Garis extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: Container(
+        height: 1,
+        color: NeuColors.of(context).darkShadow.withValues(alpha: 0.35),
       ),
     );
   }

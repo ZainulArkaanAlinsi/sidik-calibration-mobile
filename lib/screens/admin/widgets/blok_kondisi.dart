@@ -30,7 +30,6 @@ class BlokKondisi extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 
     return NeuRaised(
@@ -39,14 +38,24 @@ class BlokKondisi extends ConsumerWidget {
       child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Judul blok disamain persis sama `_Blok` di layar Perhitungan:
+            // huruf kecil beraksen + garis tipis dari bayangan, bukan Divider
+            // Material yang kelihatan kayak garis nempel.
             Text(
-              l10n.perhitKondisi,
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: theme.colorScheme.primary,
+              l10n.perhitKondisi.toUpperCase(),
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.8,
+                color: NeuColors.of(context).accent,
               ),
             ),
-            const Divider(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.sm),
+            Container(
+              height: 1,
+              color: NeuColors.of(context).darkShadow.withValues(alpha: 0.35),
+            ),
+            const SizedBox(height: AppSpacing.sm),
 
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -83,7 +92,7 @@ class _BarisKepala extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
+    final c = NeuColors.of(context);
 
     final kolom = [
       l10n.perhitAwal,
@@ -105,8 +114,10 @@ class _BarisKepala extends StatelessWidget {
             child: Text(
               k,
               textAlign: TextAlign.center,
-              style: theme.textTheme.labelSmall?.copyWith(
+              style: TextStyle(
+                fontSize: 11,
                 fontWeight: FontWeight.w700,
+                color: c.textMuted,
               ),
             ),
           ),
@@ -123,7 +134,7 @@ class _Baris extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final c = NeuColors.of(context);
 
     final nilai = [
       baris.awal,
@@ -144,8 +155,10 @@ class _Baris extends StatelessWidget {
             width: _lebarLabel,
             child: Text(
               '$label (${baris.satuan})',
-              style: theme.textTheme.bodySmall?.copyWith(
+              style: TextStyle(
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
+                color: c.text,
               ),
             ),
           ),
@@ -158,7 +171,11 @@ class _Baris extends StatelessWidget {
                 // sertifikat thermohygro yang belum diisi.
                 n == null ? '—' : formatAngka(n),
                 textAlign: TextAlign.center,
-                style: theme.textTheme.bodySmall,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  // Strip diredam biar beda jelas dari angka beneran.
+                  color: n == null ? c.textMuted : c.text,
+                ),
               ),
             ),
         ],
@@ -213,7 +230,6 @@ class _PilihThermohygroState extends ConsumerState<_PilihThermohygro> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
     final standarAsync = ref.watch(standardListProvider);
 
     return Column(
@@ -239,9 +255,7 @@ class _PilihThermohygroState extends ConsumerState<_PilihThermohygro> {
               Expanded(
                 child: Text(
                   l10n.standarLoadFailed,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: AppColors.warning,
-                  ),
+                  style: const TextStyle(fontSize: 11.5, color: AppColors.warning),
                 ),
               ),
               TextButton(
@@ -257,11 +271,32 @@ class _PilihThermohygroState extends ConsumerState<_PilihThermohygro> {
                 .where((s) => s.punyaParameterKondisi)
                 .toList();
 
-            return DropdownButtonFormField<int>(
+            return NeuInset(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButtonFormField<int>(
               isExpanded: true,
+              dropdownColor: NeuColors.of(context).base,
+              // DITURUNKAN dari theme, bukan TextStyle telanjang:
+              // `DropdownButtonFormField.style` MENGGANTI gaya teksnya, bukan
+              // nambahin — jadi `TextStyle(...)` tanpa `fontFamily` bikin nilai
+              // di dropdown ini berhenti pakai Inter sementara semua teks di
+              // sekitarnya masih. Ketahuan dari golden: 'TH-3' kerender jadi
+              // kotak-kotak.
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                color: NeuColors.of(context).text,
+              ),
               decoration: InputDecoration(
                 labelText: l10n.perhitPilihThermohygro,
-                border: const OutlineInputBorder(),
+                labelStyle: TextStyle(
+                  color: NeuColors.of(context).textMuted,
+                  fontSize: 13,
+                ),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
                 isDense: true,
               ),
               hint: Text(widget.kondisi.thermohygro ?? l10n.lkPilih),
@@ -279,6 +314,8 @@ class _PilihThermohygroState extends ConsumerState<_PilihThermohygro> {
                   ),
               ],
               onChanged: _sibuk ? null : (v) => v == null ? null : _simpan(v),
+                ),
+              ),
             );
           },
         ),
@@ -296,9 +333,7 @@ class _PilihThermohygroState extends ConsumerState<_PilihThermohygro> {
               Expanded(
                 child: Text(
                   l10n.perhitThermohygroKosong,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: AppColors.warning,
-                  ),
+                  style: const TextStyle(fontSize: 11.5, color: AppColors.warning),
                 ),
               ),
             ],

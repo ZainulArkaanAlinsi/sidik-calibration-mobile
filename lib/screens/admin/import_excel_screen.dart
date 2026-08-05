@@ -131,7 +131,10 @@ class _ImportExcelScreenState extends ConsumerState<ImportExcelScreen> {
                 initialValue: _tipeTerpilih,
                 isExpanded: true,
                 dropdownColor: c.base,
-                style: TextStyle(
+                // Diturunkan dari theme — lihat catatan panjang di
+                // `blok_kondisi.dart`. `style` di sini MENGGANTI, jadi
+                // `TextStyle` telanjang ngebuang fontFamily-nya.
+                style: theme.textTheme.bodyMedium?.copyWith(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: c.text,
@@ -173,7 +176,7 @@ class _ImportExcelScreenState extends ConsumerState<ImportExcelScreen> {
             const SizedBox(height: AppSpacing.sm),
             Text(
               l10n.importFileTerpilih(_fileNama!),
-              style: theme.textTheme.labelSmall,
+              style: TextStyle(fontSize: 11.5, color: c.textMuted),
             ),
           ],
           const SizedBox(height: AppSpacing.md),
@@ -238,8 +241,6 @@ class _Ringkasan extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-
     final neu = NeuColors.of(context);
 
     return NeuRaised(
@@ -294,9 +295,7 @@ class _Ringkasan extends StatelessWidget {
               Text(
                 '${l10n.importKolomDiabaikan}: '
                 '${hasil.kolomDiabaikan.join(", ")}',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: AppColors.warning,
-                ),
+                style: const TextStyle(fontSize: 11.5, color: AppColors.warning),
               ),
             ],
 
@@ -319,8 +318,7 @@ class _Angka extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final c = warna ?? theme.colorScheme.onSurfaceVariant;
+    final c = warna ?? NeuColors.of(context).textMuted;
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -333,7 +331,7 @@ class _Angka extends StatelessWidget {
       ),
       child: Text(
         '$nilai $label',
-        style: theme.textTheme.labelSmall?.copyWith(color: c),
+        style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: c),
       ),
     );
   }
@@ -347,7 +345,7 @@ class _BarisHasil extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
+    final neu = NeuColors.of(context);
 
     final (ikon, warna) = switch (baris.tindakan) {
       TindakanImport.dibuat => (Icons.add_circle_outline, AppColors.success),
@@ -373,12 +371,12 @@ class _BarisHasil extends StatelessWidget {
                   // Nomor barisnya ditulis biar admin tau persis mana yang
                   // harus dibenerin di file Excel-nya.
                   '${l10n.importBarisKe(baris.baris)} · ${baris.nama ?? "—"}',
-                  style: theme.textTheme.bodySmall,
+                  style: TextStyle(fontSize: 12.5, color: neu.text),
                 ),
                 if (baris.alasan != null)
                   Text(
                     baris.alasan!,
-                    style: theme.textTheme.labelSmall?.copyWith(color: warna),
+                    style: TextStyle(fontSize: 11.5, color: warna),
                   ),
               ],
             ),
@@ -397,10 +395,9 @@ class _Catatan extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final warna = peringatan
         ? AppColors.warning
-        : theme.colorScheme.onSurfaceVariant;
+        : NeuColors.of(context).textMuted;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -414,7 +411,7 @@ class _Catatan extends StatelessWidget {
         Expanded(
           child: Text(
             teks,
-            style: theme.textTheme.labelSmall?.copyWith(color: warna),
+            style: TextStyle(fontSize: 11.5, height: 1.45, color: warna),
           ),
         ),
       ],

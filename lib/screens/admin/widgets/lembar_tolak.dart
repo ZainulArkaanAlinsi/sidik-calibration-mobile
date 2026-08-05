@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/validasi.dart';
+import '../../auth/widgets/neu.dart';
 
 /// Apa yang dikirim balik waktu admin nolak lembar kerja.
 class KirimanTolak {
@@ -122,8 +123,8 @@ class _LembarTolakState extends State<LembarTolak> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
+    final c = NeuColors.of(context);
     final catatan = _susunCatatan(l10n);
 
     // Backend minta minimal 5 karakter. Dijaga di sini juga supaya tombolnya
@@ -135,27 +136,51 @@ class _LembarTolakState extends State<LembarTolak> {
       minChildSize: 0.4,
       maxChildSize: 0.95,
       expand: false,
-      builder: (context, scrollController) => Column(
+      // Latarnya `c.base` sama kayak layar Perhitungan yang manggil lembar
+      // ini — sheet putih Material di atas panel soft-UI kelihatan nempel dari
+      // aplikasi lain.
+      builder: (context, scrollController) => Container(
+        decoration: BoxDecoration(
+          color: c.base,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppSpacing.radiusLg),
+          ),
+        ),
+        child: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(AppSpacing.md),
             child: Row(
               children: [
+                // Gagang seret kecil — penanda bahwa lembarnya bisa ditarik,
+                // dan pengganti garis Divider yang dibuang.
                 Expanded(
                   child: Text(
                     l10n.tolakJudul,
-                    style: theme.textTheme.titleMedium,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: c.text,
+                    ),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  tooltip: l10n.perhitKonfirmasiBatal,
-                  onPressed: () => Navigator.of(context).pop(),
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: NeuRaised(
+                    circle: true,
+                    distance: 3,
+                    blur: 7,
+                    padding: const EdgeInsets.all(AppSpacing.sm),
+                    child: Icon(Icons.close, size: 18, color: c.textMuted),
+                  ),
                 ),
               ],
             ),
           ),
-          const Divider(height: 1),
+          Container(
+            height: 1,
+            color: c.darkShadow.withValues(alpha: 0.5),
+          ),
 
           Expanded(
             child: ListView(
@@ -164,9 +189,7 @@ class _LembarTolakState extends State<LembarTolak> {
               children: [
                 Text(
                   l10n.tolakPetunjuk,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+                  style: TextStyle(fontSize: 12.5, height: 1.45, color: c.textMuted),
                 ),
                 const SizedBox(height: AppSpacing.md),
 
@@ -174,45 +197,67 @@ class _LembarTolakState extends State<LembarTolak> {
                 // paling sering jadi alasan sebenernya.
                 if (widget.temuan.isNotEmpty) ...[
                   Text(
-                    l10n.tolakDariPemeriksaan,
-                    style: theme.textTheme.labelLarge,
+                    l10n.tolakDariPemeriksaan.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.8,
+                      color: c.accent,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   for (final t in widget.temuan)
-                    CheckboxListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      controlAffinity: ListTileControlAffinity.leading,
-                      value: _dipilih.contains('temuan:${t.kode}'),
-                      onChanged: (_) => _tukar('temuan:${t.kode}'),
-                      title: Text(t.pesan, style: theme.textTheme.bodySmall),
+                    _BarisTemuan(
+                      pesan: t.pesan,
+                      dipilih: _dipilih.contains('temuan:${t.kode}'),
+                      onTap: () => _tukar('temuan:${t.kode}'),
                     ),
                   const SizedBox(height: AppSpacing.md),
                 ],
 
-                Text(l10n.tolakAlasanUmum, style: theme.textTheme.labelLarge),
+                Text(
+                  l10n.tolakAlasanUmum.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.8,
+                    color: c.accent,
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.xs),
                 Wrap(
                   spacing: AppSpacing.sm,
                   runSpacing: AppSpacing.xs,
                   children: [
                     for (final a in _alasan(l10n))
-                      FilterChip(
-                        label: Text(a.label),
-                        selected: _dipilih.contains('alasan:${a.label}'),
-                        onSelected: (_) => _tukar('alasan:${a.label}'),
+                      _ChipAlasan(
+                        label: a.label,
+                        aktif: _dipilih.contains('alasan:${a.label}'),
+                        onTap: () => _tukar('alasan:${a.label}'),
                       ),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.md),
 
-                TextField(
-                  controller: _catatan,
-                  maxLines: 3,
-                  decoration: InputDecoration(
-                    labelText: l10n.tolakCatatanTambahan,
-                    hintText: l10n.tolakCatatanHint,
-                    border: const OutlineInputBorder(),
+                NeuInset(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  child: TextField(
+                    controller: _catatan,
+                    maxLines: 3,
+                    style: TextStyle(fontSize: 13.5, color: c.text),
+                    decoration: InputDecoration(
+                      labelText: l10n.tolakCatatanTambahan,
+                      labelStyle: TextStyle(color: c.textMuted, fontSize: 13),
+                      hintText: l10n.tolakCatatanHint,
+                      hintStyle: TextStyle(color: c.textMuted, fontSize: 12.5),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      isDense: true,
+                    ),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -221,18 +266,24 @@ class _LembarTolakState extends State<LembarTolak> {
                 // teknisi sebelum ngirim.
                 if (catatan.isNotEmpty) ...[
                   Text(
-                    l10n.tolakPratinjau,
-                    style: theme.textTheme.labelLarge,
+                    l10n.tolakPratinjau.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.8,
+                      color: c.accent,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.xs),
-                  Container(
-                    width: double.infinity,
+                  NeuInset(
                     padding: const EdgeInsets.all(AppSpacing.md),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: Text(
+                        catatan,
+                        style: TextStyle(fontSize: 12.5, height: 1.5, color: c.text),
+                      ),
                     ),
-                    child: Text(catatan, style: theme.textTheme.bodySmall),
                   ),
                 ],
                 const SizedBox(height: AppSpacing.lg),
@@ -240,9 +291,23 @@ class _LembarTolakState extends State<LembarTolak> {
             ),
           ),
 
-          Material(
-            elevation: 8,
-            color: theme.colorScheme.surface,
+          // Bilah yang ngirim penolakan — sengaja tetap tegas batasnya dari
+          // isi yang dibaca, sama alasannya kayak `_BilahAksi` di layar
+          // Perhitungan.
+          Container(
+            decoration: BoxDecoration(
+              color: c.base,
+              border: Border(
+                top: BorderSide(color: c.darkShadow.withValues(alpha: 0.5)),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: c.darkShadow.withValues(alpha: 0.45),
+                  offset: const Offset(0, -4),
+                  blurRadius: 14,
+                ),
+              ],
+            ),
             child: SafeArea(
               top: false,
               child: Padding(
@@ -258,9 +323,8 @@ class _LembarTolakState extends State<LembarTolak> {
                   bottom:
                       MediaQuery.of(context).viewInsets.bottom + AppSpacing.md,
                 ),
-                child: FilledButton.icon(
-                  icon: const Icon(Icons.reply),
-                  label: Text(l10n.tolakKirim),
+                child: NeuButton(
+                  label: l10n.tolakKirim,
                   onPressed: bolehKirim
                       ? () => Navigator.of(context).pop(
                           KirimanTolak(
@@ -274,6 +338,107 @@ class _LembarTolakState extends State<LembarTolak> {
             ),
           ),
         ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Satu temuan mesin yang bisa ditap. Bukan `CheckboxListTile`: kotak centang
+/// Material di tengah lembar soft-UI kelihatan nempel dari aplikasi lain, dan
+/// baris ini yang paling sering ditap admin.
+class _BarisTemuan extends StatelessWidget {
+  const _BarisTemuan({
+    required this.pesan,
+    required this.dipilih,
+    required this.onTap,
+  });
+
+  final String pesan;
+  final bool dipilih;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = NeuColors.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: GestureDetector(
+        onTap: onTap,
+        child: NeuRaised(
+          radius: 14,
+          distance: dipilih ? 2 : 4,
+          blur: dipilih ? 6 : 10,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm + 2,
+            vertical: AppSpacing.sm + 2,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                dipilih ? Icons.check_circle : Icons.circle_outlined,
+                size: 18,
+                color: dipilih ? c.accent : c.textMuted,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  pesan,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    height: 1.4,
+                    fontWeight: dipilih ? FontWeight.w600 : FontWeight.w400,
+                    color: c.text,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Alasan siap-pakai. Yang aktif diisi warna aksen — di permukaan sewarna,
+/// bayangan doang kurang kebaca sekilas, dan ini kontrol yang dipakai sambil
+/// buru-buru. Sama perlakuannya kayak `_Chip` di Antrean Approval.
+class _ChipAlasan extends StatelessWidget {
+  const _ChipAlasan({
+    required this.label,
+    required this.aktif,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool aktif;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = NeuColors.of(context);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: NeuRaised(
+        radius: 18,
+        distance: aktif ? 3 : 5,
+        blur: aktif ? 8 : 12,
+        color: aktif ? c.accent : null,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12.5,
+            fontWeight: aktif ? FontWeight.w700 : FontWeight.w600,
+            color: aktif ? c.onAccent : c.textMuted,
+          ),
+        ),
       ),
     );
   }

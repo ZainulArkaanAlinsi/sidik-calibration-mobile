@@ -55,9 +55,12 @@ class PanelTemuan extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              l10n.perhitTemuanJudul,
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w700,
+              l10n.perhitTemuanJudul.toUpperCase(),
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.8,
+                color: NeuColors.of(context).accent,
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
@@ -69,7 +72,12 @@ class PanelTemuan extends StatelessWidget {
                     _Lencana(tingkat: t, jumlah: validasi.jumlah(t)),
               ],
             ),
-            const Divider(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.sm),
+            Container(
+              height: 1,
+              color: NeuColors.of(context).darkShadow.withValues(alpha: 0.35),
+            ),
+            const SizedBox(height: AppSpacing.sm),
 
             // Diurut dari yang paling berat — yang nahan penerbitan harus
             // kebaca duluan, bukan ketimbun di bawah daftar info.
