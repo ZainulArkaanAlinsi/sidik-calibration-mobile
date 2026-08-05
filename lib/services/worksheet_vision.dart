@@ -483,24 +483,37 @@ class MockWorksheetVisionService implements WorksheetVisionService {
 
     final unitPh = (satuan ?? '').toLowerCase() == 'ph';
 
-    // Data contoh: satu Repeat kebaca, kolom terakhir ditandai keyakinan rendah.
-    return HasilEkstraksiTabel(
-      baris: [
+    // SEMUA Repeat kebaca, bukan cuma satu.
+    //
+    // Dulu mock ini balikin satu baris doang, jadi di lembar Chlorine (2 titik)
+    // hasilnya "4 dari 20 sel keisi" dan di layar kebaca kayak kameranya gagal
+    // 80% — padahal itu emang cuma data contohnya yang sedikit. Backend asli
+    // balikin semua Repeat yang kebaca, jadi mock-nya disamain.
+    //
+    // Satu sel SENGAJA disisain keyakinan rendah (Repeat terakhir, titik
+    // terakhir): penandaan low-confidence itu pagar penting di alur foto, dan
+    // kalau nggak pernah kelihatan waktu demo, nggak ada yang tau dia ada.
+    final baris = [
+      for (var r = 0; r < jumlahBaris; r++)
         BarisTabel(
           ph: List.generate(jumlahTitik, bacaan),
           suhu: List.filled(jumlahTitik, 22.2),
           phKeyakinan: List.generate(
             jumlahTitik,
-            (t) => t == jumlahTitik - 1
+            (t) => (r == jumlahBaris - 1 && t == jumlahTitik - 1)
                 ? TingkatKeyakinan.rendah
                 : TingkatKeyakinan.tinggi,
           ),
           suhuKeyakinan: List.filled(jumlahTitik, TingkatKeyakinan.tinggi),
         ),
-      ],
-      jumlahSelKebaca: jumlahTitik * 2,
-      jumlahSelDiharapkan: jumlahBaris * jumlahTitik * 2,
-      jumlahAngkaTerdeteksi: jumlahTitik * 2,
+    ];
+    final selKebaca = jumlahBaris * jumlahTitik * 2;
+
+    return HasilEkstraksiTabel(
+      baris: baris,
+      jumlahSelKebaca: selKebaca,
+      jumlahSelDiharapkan: selKebaca,
+      jumlahAngkaTerdeteksi: selKebaca,
       header: HasilEkstraksiHeader(
         // Env condition itu sifat RUANGAN, sama buat alat apa pun — selalu diisi.
         field: {

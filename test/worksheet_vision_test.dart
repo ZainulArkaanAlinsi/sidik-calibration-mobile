@@ -234,4 +234,59 @@ void main() {
       expect(parseTanggalAi(''), isNull);
     });
   });
+
+  group('mock kamera ngisi SEMUA Repeat, bukan cuma satu', () {
+    /// Dulu mock ini balikin satu baris doang. Di lembar Chlorine (2 titik)
+    /// hasilnya "4 dari 20 sel keisi" — di layar kebaca kayak kameranya gagal
+    /// 80%, padahal cuma data contohnya yang sedikit. Dilaporin dari HP.
+    test('chlorine 2 titik x 5 repeat -> 20 sel, bukan 4', () async {
+      final hasil = await MockWorksheetVisionService().ekstrak(
+        File('x.png'),
+        jumlahTitik: 2,
+        jumlahBaris: 5,
+        satuan: 'mg/L',
+        nominal: [1.74, 1.83],
+        desimal: [null, null],
+      );
+
+      expect(hasil!.baris, hasLength(5));
+      expect(hasil.jumlahSelKebaca, 20);
+      // Kalau kebaca == diharapkan, layar nggak lagi nempelin kalimat
+      // "sel yang kosong: ketik manual atau foto ulang".
+      expect(hasil.jumlahSelDiharapkan, hasil.jumlahSelKebaca);
+    });
+
+    test('pH 3 titik x 5 repeat -> 30 sel', () async {
+      final hasil = await MockWorksheetVisionService().ekstrak(
+        File('x.png'),
+        jumlahTitik: 3,
+        jumlahBaris: 5,
+        satuan: 'pH',
+        nominal: [4.0, 7.0, 10.01],
+      );
+
+      expect(hasil!.baris, hasLength(5));
+      expect(hasil.jumlahSelKebaca, 30);
+    });
+
+    /// Penandaan low-confidence itu pagar penting di alur foto — kalau nggak
+    /// pernah kelihatan waktu demo, nggak ada yang tau dia ada. Disisain SATU
+    /// sel supaya tetap kedemo tanpa bikin hasilnya kelihatan gagal.
+    test('tetap ada TEPAT satu sel keyakinan rendah buat demo penandaannya', () async {
+      final hasil = await MockWorksheetVisionService().ekstrak(
+        File('x.png'),
+        jumlahTitik: 2,
+        jumlahBaris: 5,
+        nominal: [1.74, 1.83],
+      );
+
+      var rendah = 0;
+      for (var r = 0; r < hasil!.baris.length; r++) {
+        for (var t = 0; t < 2; t++) {
+          if (hasil.baris[r].keyakinanPh(t) == TingkatKeyakinan.rendah) rendah++;
+        }
+      }
+      expect(rendah, 1);
+    });
+  });
 }
