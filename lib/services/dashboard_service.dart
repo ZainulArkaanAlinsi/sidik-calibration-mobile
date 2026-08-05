@@ -1,4 +1,6 @@
+import '../models/calibration_history_item.dart';
 import '../models/dashboard_summary.dart';
+import 'history_service.dart';
 import 'api_client.dart';
 
 abstract class DashboardService {
@@ -76,12 +78,23 @@ class MockDashboardService implements DashboardService {
     // bukan lewat constructor. Waktu mock-nya ngisi `TitikTren` langsung,
     // salah nama field di parser (`periode` vs `bulan`) nggak kelihatan sama
     // sekali dari test — mock-nya ngelewatin parser yang mau diuji.
-    return DashboardSummary.fromJson(const {
+    // Tiga angka status DIHITUNG dari daftar sesi yang sama kayak layar
+    // Riwayat & Antrean Approval — bukan ditulis apa adanya.
+    //
+    // Dulu `menunggu_approval` dipatok 5 sementara antreannya cuma punya 1 sesi
+    // berstatus itu: dua angka di satu layar yang saling membantah. Dan waktu
+    // teknisi ngirim lembar baru, badge-nya nggak ikut naik sama sekali —
+    // kelihatan kayak kirimannya nggak nyampe.
+    final sesi = MockHistoryService.sesiMock();
+    int hitung(CalibrationStatus s) =>
+        sesi.where((x) => x.status == s).length;
+
+    return DashboardSummary.fromJson({
       'total_alat': 42,
       'alat_overdue': 3,
-      'kalibrasi_draft': 2,
-      'kalibrasi_selesai': 18,
-      'menunggu_approval': 5,
+      'kalibrasi_draft': hitung(CalibrationStatus.draft),
+      'kalibrasi_selesai': hitung(CalibrationStatus.disetujui),
+      'menunggu_approval': hitung(CalibrationStatus.menungguApproval),
       'sertifikat_bulan_ini': 12,
       'total_sertifikat': 137,
       'grafik_pekerjaan': [

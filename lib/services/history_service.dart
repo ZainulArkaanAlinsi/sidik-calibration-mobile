@@ -101,6 +101,18 @@ class MockHistoryService implements HistoryService {
     if (gagal) throw Exception('server nggak nyaut');
     if (kosong) return const [];
 
+    return sesiMock();
+  }
+
+  /// Semua sesi yang kelihatan di build mock: yang dikirim lewat app
+  /// ([MockStore]) + contoh bawaan.
+  ///
+  /// Dipisah jadi fungsi supaya **angka di dashboard dihitung dari daftar yang
+  /// SAMA**. Sebelum ini dashboard nulis `menunggu_approval: 5` apa adanya
+  /// sementara antreannya cuma punya 1 sesi berstatus itu — dua angka di satu
+  /// layar yang saling membantah, dan badge-nya nggak ikut naik waktu teknisi
+  /// ngirim lembar baru.
+  static List<CalibrationHistoryItem> sesiMock() {
     final sekarang = DateTime.now();
 
     return [
@@ -148,8 +160,53 @@ class MockHistoryService implements HistoryService {
         tanggalKalibrasi: sekarang.subtract(const Duration(days: 9)),
         status: CalibrationStatus.draft,
       ),
+
+      // Pelengkap supaya jumlah per status MASUK AKAL & bisa dihitung sendiri
+      // di layar: 5 menunggu approval, 2 draft, 18 selesai.
+      //
+      // Bukan sekadar biar angka dashboard cocok — badge "5" di sidebar itu
+      // janji ke admin bahwa ada 5 yang nunggu. Waktu antreannya cuma nampilin
+      // 1 baris, yang salah bukan badge-nya doang: admin nggak tau lagi mana
+      // yang bisa dipercaya.
+      for (var i = 0; i < 4; i++)
+        CalibrationHistoryItem(
+          id: 20 + i,
+          namaAlat: _alatContoh[i % _alatContoh.length],
+          namaTeknisi: i.isEven ? 'Andi' : 'Sari',
+          tanggalKalibrasi: sekarang.subtract(Duration(days: 2 + i)),
+          status: CalibrationStatus.menungguApproval,
+        ),
+      CalibrationHistoryItem(
+        id: 30,
+        namaAlat: 'Oven Memmert UN55',
+        namaTeknisi: 'Andi',
+        tanggalKalibrasi: sekarang.subtract(const Duration(days: 11)),
+        status: CalibrationStatus.draft,
+      ),
+      for (var i = 0; i < 16; i++)
+        CalibrationHistoryItem(
+          id: 40 + i,
+          namaAlat: _alatContoh[i % _alatContoh.length],
+          namaTeknisi: i.isEven ? 'Sari' : 'Andi',
+          tanggalKalibrasi: sekarang.subtract(Duration(days: 14 + i * 3)),
+          status: CalibrationStatus.disetujui,
+          keputusan: i % 7 == 0 ? Keputusan.fail : Keputusan.pass,
+          nomorSertifikat: 'CAL/2026/0${(i % 7) + 1}/${(i + 10).toString().padLeft(4, '0')}',
+          certificateId: 910 + i,
+        ),
     ];
   }
+
+  /// Nama alat buat sesi pelengkap — diputer biar riwayatnya nggak kelihatan
+  /// satu alat doang.
+  static const _alatContoh = [
+    'pH Meter Mettler Toledo',
+    'Turbidimeter HACH 2100Q',
+    'Chlorine Meter Hanna HI97711',
+    'Timbangan Digital Ohaus',
+    'Termometer Digital Fluke',
+    'Jangka Sorong Mitutoyo',
+  ];
 
   /// Titik contoh angkanya diambil dari `PERHITUNGAN.csv` master worksheet
   /// pH (`Project-PT-Sidik/Master Olah Data_pH for trial_CSV`) — biar layar
