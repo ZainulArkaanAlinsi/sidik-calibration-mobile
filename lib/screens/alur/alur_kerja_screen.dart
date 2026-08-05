@@ -13,6 +13,7 @@ import '../../widgets/skeleton.dart';
 import '../../widgets/status_badge.dart';
 import '../admin/perhitungan_screen.dart';
 import '../calibration/calibration_input_screen.dart';
+import '../calibration/instrument_picker_screen.dart' show profilLembarKerjaUntuk;
 import '../calibration/lembar_kerja_screen.dart';
 import '../history/calibration_detail_screen.dart';
 import '../history/certificate_screen.dart';
@@ -528,7 +529,25 @@ class _TombolLangkah extends ConsumerWidget {
           l10n.alurBukaLembarKerja,
           Icons.edit_note,
           bolehInput
-              ? () => buka(LembarKerjaScreen(sesiId: sesi.id))
+              // Profil WAJIB ikut dioper. Tanpa ini `LembarKerjaScreen` jatuh ke
+              // default `ph_meter`, jadi melanjutkan draft / mbenerin lembar
+              // Chlorine atau Turbidimeter yang dikembalikan admin bakal
+              // ngambil formulir pH: 3 titik 4/7/10,01 padahal alatnya 2 titik
+              // 1,74/1,83 mg/L, satuan & kode dokumennya juga ikut salah.
+              //
+              // Efeknya nyampe ke KAMERA, bukan cuma tampilan: tombol foto tabel
+              // ngirim `nominal` & `satuan` dari titik yang kebentuk di layar
+              // sebagai petunjuk ke AI. Formulir pH di atas lembar chlorine
+              // bikin AI dikasih tahu "harap 3 kolom di 4/7/10,01" buat foto
+              // yang isinya 2 kolom 1,74/1,83 — angkanya mendarat di sel yang
+              // salah, dan hasilnya kebaca sebagai "kameranya meleset".
+              //
+              // Alat yang nggak punya lembar khusus tetap `ph_meter`, sama
+              // kayak default lama — nggak ada perilaku yang berubah di situ.
+              ? () => buka(LembarKerjaScreen(
+                    sesiId: sesi.id,
+                    profil: profilLembarKerjaUntuk(sesi.namaAlat) ?? 'ph_meter',
+                  ))
               : null,
         ),
       _Tahap.perhitungan => (
