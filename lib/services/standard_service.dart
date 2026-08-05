@@ -122,6 +122,41 @@ class MockStandardService implements StandardService {
       satuanKetidakpastian: 'oC',
       faktorCakupan: 2,
     ),
+    // Tiga larutan turbidity — nama, serial & U95 dari
+    // `Master Data TurbidiMeter_CSV/DATABASE.csv` (Supelco/Merck, U95 0,04 / 3
+    // / 21 NTU, k=2). Id-nya 20/21/22 ngikut yang dirujuk bentuk lembar
+    // turbidimeter; sebelum ini id itu NGGAK ADA isinya, jadi baris STANDARD-nya
+    // ngaku `terdaftar` tapi serial & ketertelusurannya kosong di layar.
+    const Standard(
+      id: 20,
+      nama: 'Turbidity Standard 1 NTU',
+      merk: 'Supelco/Merck',
+      serialNumber: 'LRAD7304',
+      masihBerlaku: true,
+      ketidakpastian: 0.04,
+      satuanKetidakpastian: 'NTU',
+      faktorCakupan: 2,
+    ),
+    const Standard(
+      id: 21,
+      nama: 'Turbidity Standard 100 NTU',
+      merk: 'Supelco/Merck',
+      serialNumber: 'LRAD7305',
+      masihBerlaku: true,
+      ketidakpastian: 3,
+      satuanKetidakpastian: 'NTU',
+      faktorCakupan: 2,
+    ),
+    const Standard(
+      id: 22,
+      nama: 'Turbidity Standard 1000 NTU',
+      merk: 'Supelco/Merck',
+      serialNumber: 'LRAD7089',
+      masihBerlaku: true,
+      ketidakpastian: 21,
+      satuanKetidakpastian: 'NTU',
+      faktorCakupan: 2,
+    ),
     // Dua larutan chlorine — angka & nama dari `Chlorine_Meter_CSV/DATABASE.csv`
     // (Supelco/Merck, U95 0,09 & 0,06 mg/L, k=2). Tanpa ini baris STANDARD di
     // lembar Chlorine nggak ketaut ke master dan kebaca "belum terdaftar".

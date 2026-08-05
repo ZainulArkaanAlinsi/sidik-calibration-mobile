@@ -130,6 +130,17 @@ void main() {
     await tester.tap(find.text('SIMPAN'));
     await tester.pumpAndSettle();
 
+    // Digulung dulu, bukan diharap langsung kelihatan: standar baru masuk di
+    // AKHIR daftar, dan daftar mock-nya tumbuh tiap kali ada alat baru
+    // (larutan turbidity, chlorine, unit thermohygro). Tanpa ini, test-nya
+    // merah bukan karena fiturnya rusak, tapi karena daftarnya kepanjangan.
+    await tester.scrollUntilVisible(
+      find.text('Termometer Std. Baru'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
     expect(find.text('Termometer Std. Baru'), findsOneWidget);
   });
 
