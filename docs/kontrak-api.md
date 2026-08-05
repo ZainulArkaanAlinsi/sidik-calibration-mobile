@@ -393,6 +393,13 @@ Balikin **bentuk formulir**, bukan data — mobile mem-parse ini jadi form. Jeni
 |---|---|---|---|
 | `ph_meter` (default) | `SIDIK-FM-CAL-0509_Rev.4` | 4,00 / 7,00 / 10,01 | `pH` |
 | `turbidimeter` | `SIDIK-FM-CAL-0530_Rev.2` | 1 / 100 / 1000 | `NTU` |
+| `chlorine_meter` | `SIDIK-FM-CAL-0531_Rev.2` | 1,74 / 1,83 | `mg/L` |
+
+> **⚠️ Chlorin Meter — lembar cetaknya beda dari lingkup akreditasi, jangan ikut yang dicetak.**
+> `SIDIK-FM-CAL-0531_Rev.2` yang dipegang teknisi nulis `Solution Standard 0.40` & `4.00`, baris STANDARD-nya "Chlorine Std. Solutions 0.4 / 4 mg/l". Tiga sumber yang lebih baru bilang **1,74 & 1,83 mg/L**: lampiran akreditasi LK-285-IDN no. 42 (CMC 0,091 & 0,08), `Chlorine_Meter_CSV/DATABASE.csv` (snapshot 19 Des 2025, standar fisiknya "Chlorine Standard Solution 1.74 mg/L" U95 0,09 & "Chlorine Standar Cuvettes 1.83 mg/L" U95 0,06), dan sesi asli 0189-CAL-624. `FORM_VALIDASI.csv` rev #6 (3 Apr 2024) nyatet set standarnya sempat diubah — lembar cetaknya ketinggalan.
+> **Backend wajib pakai 1,74 & 1,83.** Kalibrasi di titik luar lampiran nggak bisa jadi sertifikat berakreditasi. Diputusin 5 Agt 2026. Kalau lab mau balik ke 0,4/4, yang mesti diurus dulu lampiran akreditasinya, bukan kodenya.
+
+Nama alatnya di lampiran ditulis **"Chlorin Meter"** (tanpa 'e'), di lembar kerja **"Chlorine Meter"**. Mobile ngenalin dua-duanya (`InstrumentPickerScreen.profilUntuk`, cocokinnya case-insensitive) — backend bebas ngirim yang mana pun.
 
 **`profil` kosong / nggak dikenal → JATUH KE pH, jangan `404`.** Mobile masih punya tautan lama yang nggak nempelin query-nya sama sekali (`ApiLembarKerjaService.ambilBentuk`), dan `404` di situ bikin teknisi mendarat di layar "gagal muat" tanpa sebab yang kelihatan.
 

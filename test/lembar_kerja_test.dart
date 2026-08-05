@@ -8,6 +8,7 @@ import 'package:sidik_calibration/models/lembar_kerja.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/calibration_input_provider.dart';
 import 'package:sidik_calibration/providers/lembar_kerja_provider.dart';
+import 'package:sidik_calibration/screens/calibration/instrument_picker_screen.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_screen.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_state.dart';
 import 'package:sidik_calibration/services/equipment_lookup_service.dart';
@@ -824,6 +825,190 @@ void main() {
 
   _testDropdownGagal();
   _testTurbidimeter();
+  _testChlorine();
+}
+
+/// Chlorin Meter — jenis alat KETIGA yang punya lembar kerja sendiri
+/// (`SIDIK-FM-CAL-0531_Rev.2`, satu halaman, metode SIDIK-IK-CAL-0524).
+void _testChlorine() {
+  LembarKerja bentukChlorine({bool untukAdmin = false}) => LembarKerja.fromJson(
+    contohBentukLembarKerjaChlorine(untukAdmin: untukAdmin),
+  );
+
+  group('Chlorin Meter: titiknya ikut akreditasi, bukan yang tercetak', () {
+    /// **Test paling penting di grup ini.**
+    ///
+    /// Lembar cetak Rev.2 yang dipegang teknisi nulis `Solution Standard 0.40`
+    /// & `4.00`. Tiga sumber yang lebih baru bilang 1,74 & 1,83: lampiran
+    /// akreditasi LK-285-IDN no. 42, `Chlorine_Meter_CSV/DATABASE.csv`, dan
+    /// sesi asli 0189-CAL-624. Yang dipakai yang ADA DI LINGKUP AKREDITASI —
+    /// kalibrasi di titik luar lampiran nggak bisa jadi sertifikat.
+    ///
+    /// Kalau suatu hari ada yang "mbenerin" ini ngikut kertasnya, test ini yang
+    /// bakal teriak duluan. Jangan diubah tanpa ngurus lampirannya dulu.
+    test('titik ukurnya 1,74 & 1,83 — BUKAN 0,40 & 4,00 yang dicetak', () {
+      final bentuk = bentukChlorine();
+
+      expect(bentuk.larutanStandar, [1.74, 1.83]);
+      expect(bentuk.larutanStandar, isNot(contains(0.40)));
+      expect(bentuk.larutanStandar, isNot(contains(4.00)));
+      expect(bentuk.satuan, 'mg/L');
+    });
+
+    test('profil chlorine_meter → dokumen 0531, bukan 0509 punya pH', () async {
+      final turun = await MockLembarKerjaService().ambilBentuk(
+        't',
+        profil: 'chlorine_meter',
+      );
+
+      expect(turun.kodeDokumen, 'SIDIK-FM-CAL-0531_Rev.2');
+      expect(turun.judul, 'Calibration Worksheet - Chlorine Meter');
+      expect(turun.larutanStandar, [1.74, 1.83]);
+    });
+
+    test('DUA titik, bukan tiga — pH & Turbidimeter kebetulan sama-sama 3', () {
+      final tabel = bentukChlorine()
+          .bagian
+          .firstWhere((b) => b.kode == 'hasil')
+          .tabel
+          .first;
+
+      expect(tabel.baris, hasLength(2));
+      expect(tabel.baris.map((b) => b.titikUkur), [1.74, 1.83]);
+      expect(tabel.kolom.map((k) => k.label), ['mg/L', '°C']);
+    });
+
+    test('resolusi SERAGAM 0,01 → desimal per baris sengaja nggak dikirim', () {
+      final tabel = bentukChlorine()
+          .bagian
+          .firstWhere((b) => b.kode == 'hasil')
+          .tabel
+          .first;
+
+      // Beda dari Turbidimeter (2/1/0). Alat ini resolusinya sama di dua titik,
+      // jadi `null` = seragam — bukan lupa diisi.
+      expect(tabel.baris.map((b) => b.desimal), [null, null]);
+      expect(tabel.baris.map((b) => b.resolusi), [null, null]);
+    });
+
+    test('STANDARD-nya larutan chlorine dari DATABASE.csv', () {
+      final standar =
+          bentukChlorine().bagian.firstWhere((b) => b.kode == 'usage_check');
+
+      expect(standar.baris.map((b) => b.label), [
+        'Chlorine Standard Solution 1.74 mg/L',
+        'Chlorine Standar Cuvettes 1.83 mg/L',
+        'RTD Sensor/SH1/20',
+        'Victor 14+/992613877',
+      ]);
+      expect(standar.baris.last.terdaftar, isFalse);
+      expect(standar.baris.last.standardId, isNull);
+    });
+
+    test('satu halaman — `Page 1 of 1` di kertasnya', () {
+      expect(bentukChlorine().halaman, [1]);
+    });
+
+    test('kolom admin tetap disaring sama kayak dua alat sebelumnya', () {
+      Iterable<String> kode(LembarKerja lk) =>
+          lk.bagian.expand((b) => b.field).map((f) => f.kode);
+
+      expect(kode(bentukChlorine()), isNot(contains('calibration_method_id')));
+      expect(
+        kode(bentukChlorine(untukAdmin: true)),
+        contains('calibration_method_id'),
+      );
+    });
+  });
+
+  group('nama alat → profil', () {
+    /// `namaAlat` itu teks bebas dari lampiran akreditasi, bukan enum. Lampiran
+    /// nulis "Chlorin Meter", lembar kerjanya "Chlorine Meter" — dua-duanya
+    /// wajib nyampe ke profil yang sama. Dulu dicocokin persis, jadi beda satu
+    /// huruf bikin alatnya diam-diam jatuh ke form generik tanpa error.
+    test('dua ejaan Chlorin/Chlorine sama-sama ke chlorine_meter', () {
+      expect(profilLembarKerjaUntuk('Chlorin Meter'), 'chlorine_meter');
+      expect(profilLembarKerjaUntuk('Chlorine Meter'), 'chlorine_meter');
+    });
+
+    test('beda huruf besar-kecil & spasi dobel nggak bikin jatuh ke generik', () {
+      expect(profilLembarKerjaUntuk('CHLORINE METER'), 'chlorine_meter');
+      expect(profilLembarKerjaUntuk('  chlorine   meter  '), 'chlorine_meter');
+      expect(profilLembarKerjaUntuk('pH METER'), 'ph_meter');
+      expect(profilLembarKerjaUntuk('turbidimeter'), 'turbidimeter');
+    });
+
+    test('alat tanpa lembar khusus tetap null → form generik', () {
+      expect(profilLembarKerjaUntuk('Conductivity Meter'), isNull);
+      expect(profilLembarKerjaUntuk('Timbangan'), isNull);
+      expect(profilLembarKerjaUntuk(''), isNull);
+    });
+  });
+
+  group('Chlorin Meter di layar', () {
+    testWidgets('dua titik mg/L ikut terkirim, sel kosong tetap null', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'chlorine_meter'));
+
+      expect(find.text('SIDIK-FM-CAL-0531_Rev.2'), findsOneWidget);
+      expect(find.text('Chlorine Standard Solution 1.74 mg/L'), findsOneWidget);
+      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsNothing);
+
+      await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+
+      final tabelAfter = find.ancestor(
+        of: find.text('After adjustment Reading'),
+        matching: find.byType(Column),
+      );
+      final kotak = find.descendant(
+        of: tabelAfter.first,
+        matching: find.byType(TextField),
+      );
+
+      // Angka dari sesi asli 0189-CAL-624: titik 1,74 kebaca 1,76 di 25,7 °C.
+      await tester.enterText(kotak.at(0), '1,76');
+      await tester.enterText(kotak.at(1), '25.7');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      final measurements =
+          service.payloadTerakhir!['measurements'] as List<dynamic>;
+
+      expect(
+        measurements.map((m) => (m as Map)['titik_ukur']).toList(),
+        [1.74, 1.83],
+      );
+
+      final titik174 = measurements.first as Map<String, dynamic>;
+      expect(titik174['pembacaan'], [1.76, null, null, null, null]);
+      expect(titik174['suhu'], [25.7, null, null, null, null]);
+      expect(titik174['satuan'], 'mg/L');
+    });
+
+    testWidgets('sesi baru masuk antrean sebagai Chlorine, bukan alat lain', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await _muat(
+        tester,
+        _app(MockLembarKerjaService(), profil: 'chlorine_meter'),
+      );
+
+      await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      expect(
+        MockStore.instance.sesi.first.namaAlat,
+        'Chlorine Meter Hanna (sesi baru)',
+      );
+    });
+  });
 }
 
 /// Tiga dropdown di lembar kerja dulu HILANG tanpa sepatah kata kalau daftarnya

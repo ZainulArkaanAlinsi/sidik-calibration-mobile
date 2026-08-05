@@ -124,6 +124,32 @@ class MockCategoryService implements CategoryService {
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0507_Rev.6',
       ),
+      // 2 titik Chlorin Meter — angkanya dari lampiran akreditasi LK-285-IDN
+      // no. 42 (`docs/Rekap-Data-Kemampuan-Kalibrasi.md`), dan sama persis sama
+      // `Chlorine_Meter_CSV/DATABASE.csv`. Namanya ditulis "Chlorin" (tanpa
+      // 'e') karena begitu bunyinya di lampiran — backend narik dari situ.
+      // Lembar kerjanya sendiri nulis "Chlorine"; dua-duanya dikenali
+      // `InstrumentPickerScreen.profilUntuk`.
+      CalibrationCapability(
+        namaAlat: 'Chlorin Meter',
+        rangeMin: 1.74,
+        rangeMax: 1.74,
+        satuan: 'mg/L',
+        ketidakpastianTerbaik: 0.091,
+        satuanKetidakpastian: 'mg/L',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0524_Rev.1',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Chlorin Meter',
+        rangeMin: 1.83,
+        rangeMax: 1.83,
+        satuan: 'mg/L',
+        ketidakpastianTerbaik: 0.08,
+        satuanKetidakpastian: 'mg/L',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0524_Rev.1',
+      ),
       // 3 titik Turbidimeter (CMC 0,041/3,1/22 NTU) — biar di USE_MOCK kartu
       // "Turbidimeter" muncul & bisa dites offline, nyambung ke profil
       // turbidimeter (larutan 1/100/1000 NTU). Tanpa ini, build mock nggak

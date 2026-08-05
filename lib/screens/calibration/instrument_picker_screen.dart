@@ -16,8 +16,8 @@ import 'lembar_kerja_screen.dart';
 /// datanya dari lampiran akreditasi LK-285-IDN, bukan dikarang.
 ///
 /// Sebagian jenis alat punya form kalibrasi sendiri ([LembarKerjaScreen]) karena
-/// strukturnya jauh lebih spesifik dari form generik — pH Meter & Turbidimeter
-/// (lihat [_InstrumenCard._profilKhusus]). Jenis alat lain lanjut ke
+/// strukturnya jauh lebih spesifik dari form generik — pH Meter, Turbidimeter,
+/// & Chlorin Meter (lihat [profilLembarKerjaUntuk]). Jenis alat lain lanjut ke
 /// [CalibrationInputScreen] generik, dengan kategori udah ke-pre-fill biar
 /// teknisi nggak milih ulang.
 class InstrumentPickerScreen extends ConsumerWidget {
@@ -65,6 +65,34 @@ class InstrumentPickerScreen extends ConsumerWidget {
     return hasil;
   }
 }
+
+/// Jenis alat yang punya lembar kerja khusus ([LembarKerjaScreen]) — nama alat
+/// → kode profil backend. Jenis lain lanjut ke form generik. Nambah alat
+/// berikutnya yang butuh lembar sendiri = tambah satu baris di sini.
+///
+/// Kuncinya HURUF KECIL semua — lihat [profilLembarKerjaUntuk].
+const _profilKhusus = {
+  'ph meter': 'ph_meter',
+  'turbidimeter': 'turbidimeter',
+  // Lampiran akreditasi LK-285-IDN no. 42 nulisnya "Chlorin Meter" (tanpa 'e'),
+  // sementara lembar kerjanya SIDIK-FM-CAL-0531 nulis "Chlorine Meter".
+  // Dua-duanya didaftarin: yang nyampe ke sini teks dari backend, dan backend
+  // narik namanya dari lampiran.
+  'chlorin meter': 'chlorine_meter',
+  'chlorine meter': 'chlorine_meter',
+};
+
+/// Cocokin nama alat ke kode profil lembar kerja, **case-insensitive & spasi
+/// dirapetin**. `null` = alat ini nggak punya lembar khusus, pakai form generik.
+///
+/// Dulu dicocokin persis (`_profilKhusus[namaAlat]`). Itu rapuh: `namaAlat` teks
+/// bebas dari lampiran akreditasi, bukan enum — beda satu huruf besar/kecil atau
+/// spasi dobel bikin alatnya diam-diam jatuh ke form generik. Gagal tanpa
+/// gejala: teknisi dapat form yang salah dan nggak ada satu pun yang error.
+String? profilLembarKerjaUntuk(String namaAlat) => _profilKhusus[namaAlat
+    .toLowerCase()
+    .trim()
+    .replaceAll(RegExp(r'\s+'), ' ')];
 
 /// Ambang jumlah alat sebelum kolom cari ditampilin — kategori kecil
 /// (mis. Panjang, cuma 4 alat) nggak perlu, scroll aja udah cukup.
@@ -148,14 +176,6 @@ class _InstrumenCard extends StatelessWidget {
   final Category kategori;
   final CalibrationCapability kemampuan;
 
-  /// Jenis alat yang punya lembar kerja khusus ([LembarKerjaScreen]) — nama
-  /// alat → kode profil backend. Jenis lain lanjut ke form generik. Nambah alat
-  /// ke-3..48 yang butuh lembar sendiri = tambah satu baris di sini.
-  static const _profilKhusus = {
-    'pH Meter': 'ph_meter',
-    'Turbidimeter': 'turbidimeter',
-  };
-
   /// Ikon per jenis alat — dicocokin lewat keyword nama karena
   /// `namaAlat` sumbernya teks bebas dari lampiran akreditasi (bukan enum),
   /// jadi nggak ada daftar tetap buat di-switch persis.
@@ -198,7 +218,7 @@ class _InstrumenCard extends StatelessWidget {
   }
 
   void _pilih(BuildContext context) {
-    final profil = _profilKhusus[kemampuan.namaAlat];
+    final profil = profilLembarKerjaUntuk(kemampuan.namaAlat);
     if (profil != null) {
       Navigator.of(context).push(
         MaterialPageRoute<void>(

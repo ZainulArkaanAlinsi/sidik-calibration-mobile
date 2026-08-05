@@ -25,7 +25,8 @@ Future<String> _token(Ref ref) async {
   return token;
 }
 
-/// Bentuk formulir lembar kerja per JENIS ALAT (`ph_meter` / `turbidimeter`).
+/// Bentuk formulir lembar kerja per JENIS ALAT (`ph_meter` / `turbidimeter` /
+/// `chlorine_meter`).
 /// Di-`watch` ke [authProvider] supaya ganti akun (teknisi → admin) ngambil
 /// bentuk yang beda — bukan nyisain formulir punya role sebelumnya.
 final lembarKerjaProvider = FutureProvider.family<LembarKerja, String>((

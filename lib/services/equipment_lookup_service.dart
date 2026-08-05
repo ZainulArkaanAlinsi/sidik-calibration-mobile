@@ -94,6 +94,28 @@ const daftarAlatMock = <EquipmentLookup>[
         'Jl. Arteri Primer A-10 RT. 01 RW.12 Nyalindung Kec. Cicalengka, '
         'Kab. Bandung, Jawa Barat',
   ),
+  // Alat & rentangnya dari sesi asli 0189-CAL-624 (`Chlorine_Meter_CSV/
+  // INPUT_DATA.csv`): Hanna HI97711, rentang 0–4 mg/L, resolusi 0,01. Pelanggan
+  // sengaja dipakai ulang dari baris di atas, bukan disalin dari sesi aslinya —
+  // repo ini publik, dan nambah nama pelanggan baru ke sini itu keputusan
+  // sendiri yang belum pernah diambil.
+  EquipmentLookup(
+    id: 16,
+    namaAlat: 'Chlorine Meter Hanna',
+    serialNumber: '905320134111',
+    kategori: 'instrumen-analitik',
+    status: 'aktif',
+    merk: 'Hanna Instrument',
+    model: 'HI97711',
+    satuan: 'mg/L',
+    rangeMin: 0,
+    rangeMax: 4,
+    resolusi: 0.01,
+    pelangganNama: 'PT TIRTA GRACIA SEMESTA MANDIRI',
+    pelangganAlamat:
+        'Jl. Arteri Primer A-10 RT. 01 RW.12 Nyalindung Kec. Cicalengka, '
+        'Kab. Bandung, Jawa Barat',
+  ),
 ];
 
 /// Nama alat buat `equipment_id` yang dipilih di picker mock. `null` kalau

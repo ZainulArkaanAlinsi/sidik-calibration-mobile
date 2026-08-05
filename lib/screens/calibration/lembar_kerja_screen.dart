@@ -54,8 +54,8 @@ class LembarKerjaScreen extends ConsumerWidget {
 
   final String? judulTambahan;
 
-  /// Kode jenis alat (`ph_meter` / `turbidimeter`) — nentuin bentuk lembar
-  /// kerja yang diambil dari backend.
+  /// Kode jenis alat (`ph_meter` / `turbidimeter` / `chlorine_meter`) —
+  /// nentuin bentuk lembar kerja yang diambil dari backend.
   final String profil;
 
   @override
