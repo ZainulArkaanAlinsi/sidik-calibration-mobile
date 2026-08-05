@@ -41,7 +41,12 @@ void _viewportLebar(WidgetTester tester) {
   addTearDown(tester.view.resetDevicePixelRatio);
 }
 
-Widget _app(MockLembarKerjaService service, {String profil = 'ph_meter'}) {
+Widget _app(
+  MockLembarKerjaService service, {
+  String profil = 'ph_meter',
+  MockStandardService? standar,
+  MockRoomService? ruangan,
+}) {
   return ProviderScope(
     overrides: [
       tokenStorageProvider.overrideWithValue(
@@ -49,8 +54,10 @@ Widget _app(MockLembarKerjaService service, {String profil = 'ph_meter'}) {
       ),
       authServiceProvider.overrideWithValue(MockAuthService()),
       lembarKerjaServiceProvider.overrideWithValue(service),
-      standardServiceProvider.overrideWithValue(MockStandardService()),
-      roomServiceProvider.overrideWithValue(MockRoomService()),
+      standardServiceProvider.overrideWithValue(
+        standar ?? MockStandardService(),
+      ),
+      roomServiceProvider.overrideWithValue(ruangan ?? MockRoomService()),
       equipmentLookupServiceProvider.overrideWithValue(
         MockEquipmentLookupService(),
       ),
@@ -815,7 +822,85 @@ void main() {
     });
   });
 
+  _testDropdownGagal();
   _testTurbidimeter();
+}
+
+/// Tiga dropdown di lembar kerja dulu HILANG tanpa sepatah kata kalau daftarnya
+/// gagal diambil. Buat teknisi, kolom yang nggak ada itu nggak bisa dibedain
+/// dari kolom yang emang nggak diminta di lembar ini — dia lanjut ngisi,
+/// ngirim, dan baru tahu ada yang kurang waktu admin ngembaliin sesinya.
+void _testDropdownGagal() {
+  group('daftar gagal dimuat → kolomnya bilang, bukan menghilang', () {
+    testWidgets('standar acuan per titik: pesan + COBA LAGI', (tester) async {
+      _perbesarViewport(tester);
+      await _muat(
+        tester,
+        _app(
+          MockLembarKerjaService(),
+          standar: MockStandardService(gagal: true),
+        ),
+      );
+      await _keHalamanAkhir(tester);
+
+      // Tiga titik pH → tiga dropdown standar per titik, tiga-tiganya wajib
+      // ngaku. Ini ketertelusuran: sesi tanpa standar yang ketaut nggak bisa
+      // jadi sertifikat berakreditasi.
+      expect(find.text('Gagal memuat standar acuan.'), findsNWidgets(3));
+      expect(find.text('COBA LAGI'), findsNWidgets(3));
+    });
+
+    testWidgets('ruangan: gagal muat beda dari "belum ada ruangan"', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await _muat(
+        tester,
+        _app(MockLembarKerjaService(), ruangan: MockRoomService(gagal: true)),
+      );
+
+      expect(find.text('Gagal memuat daftar ruangan.'), findsOneWidget);
+    });
+
+    testWidgets('daftar sehat → nggak ada pesan gagal yang nyasar', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await _muat(tester, _app(MockLembarKerjaService()));
+      await _keHalamanAkhir(tester);
+
+      expect(find.text('Gagal memuat standar acuan.'), findsNothing);
+      expect(find.text('Gagal memuat daftar ruangan.'), findsNothing);
+    });
+
+    testWidgets('lembar tetap bisa dikirim walau daftarnya gagal', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(
+        tester,
+        _app(
+          service,
+          standar: MockStandardService(gagal: true),
+          ruangan: MockRoomService(gagal: true),
+        ),
+      );
+
+      await _pilihAlat(tester);
+      await _keHalamanAkhir(tester);
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      // Aturan lembar kerja nggak berubah: tombol kirim NGGAK PERNAH dikunci.
+      // Pesan gagal itu ngasih tahu, bukan ngeblok — kalau sampai ngeblok,
+      // teknisi di lapangan kehilangan seluruh isian gara-gara satu daftar
+      // yang nggak keambil.
+      expect(service.jumlahKirim, 1);
+      expect(service.payloadTerakhir!['standard_id'], isNull);
+      expect(service.payloadTerakhir!['room_id'], isNull);
+    });
+  });
 }
 
 /// Turbidimeter itu jenis alat KEDUA yang punya lembar kerja sendiri, dan

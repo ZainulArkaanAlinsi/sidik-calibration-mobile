@@ -10,6 +10,7 @@ import '../../../providers/calibration_input_provider.dart';
 import '../../../providers/worksheet_vision_provider.dart';
 import '../../../services/worksheet_vision.dart';
 import '../lembar_kerja_state.dart';
+import 'dropdown_gagal.dart';
 
 /// Satu tabel hasil kalibrasi — Before atau After adjustment.
 ///
@@ -477,7 +478,15 @@ class _PilihStandarTitik extends ConsumerWidget {
     return standarAsync.when(
       skipLoadingOnReload: true,
       loading: () => const LinearProgressIndicator(),
-      error: (_, _) => const SizedBox.shrink(),
+      // Sama kayak `_PilihStandar`, tapi taruhannya lebih besar: ini standar
+      // PER TITIK (buffer 4/7/10). Ilang diam-diam artinya tiga baris
+      // ketertelusuran hilang sekaligus, dan yang kelihatan di layar cuma
+      // ruang kosong di bawah tabel.
+      error: (_, _) => DropdownGagal(
+        label: '${l10n.lkStandarPerTitik} $label',
+        pesan: l10n.standarLoadFailed,
+        onCobaLagi: () => ref.invalidate(standardListProvider),
+      ),
       data: (list) {
         // Standar yang punya kurva suhu ditaruh duluan: itu yang bikin nilai
         // Standard-nya ngikutin suhu larutan, bukan mentok di nilai nominal.

@@ -2465,6 +2465,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkAlatKosong => 'No equipment available yet.';
 
   @override
+  String get lkRuanganGagal => 'Couldn\'t load the room list.';
+
+  @override
   String get lkBelumPilihAlat =>
       'Choose the equipment first — the identity and owner fields fill in automatically.';
 
