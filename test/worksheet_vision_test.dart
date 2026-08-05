@@ -47,8 +47,8 @@ void main() {
 
   group('GabungTabel — foto ulang nggak boleh nimpa', () {
     test('sel kosong keisi', () {
-      expect(GabungTabel.nilaiBaru('', 4.04), '4.04');
-      expect(GabungTabel.nilaiBaru('   ', 22.2), '22.2');
+      expect(GabungTabel.nilaiBaru('', 4.04), '4,04');
+      expect(GabungTabel.nilaiBaru('   ', 22.2), '22,2');
     });
 
     test('sel yang udah keisi TIDAK diubah', () {
@@ -68,15 +68,16 @@ void main() {
     test('nol di belakang dibuang, desimal asli dipertahankan', () {
       // pH ditulis 2 desimal, suhu cuma 1 — nggak boleh dipaksa seragam.
       expect(GabungTabel.nilaiBaru('', 4.0), '4');
-      expect(GabungTabel.nilaiBaru('', 22.2), '22.2');
-      expect(GabungTabel.nilaiBaru('', 4.04), '4.04');
-      expect(GabungTabel.nilaiBaru('', 10.11), '10.11');
+      expect(GabungTabel.nilaiBaru('', 22.2), '22,2');
+      expect(GabungTabel.nilaiBaru('', 4.04), '4,04');
+      expect(GabungTabel.nilaiBaru('', 10.11), '10,11');
       expect(GabungTabel.nilaiBaru('', 100), '100');
     });
 
     test('desimal titik diisi → dipad ke resolusi (Turbidimeter)', () {
-      // Titik 1 NTU resolusi 0,01 → 2 desimal: 4.6 masuk sebagai 4.60.
-      expect(GabungTabel.nilaiBaru('', 4.6, desimal: 2), '4.60');
+      // Titik 1 NTU resolusi 0,01 → 2 desimal: 4,6 masuk sebagai 4,60 —
+      // KOMA, sama kayak sisa lembarnya.
+      expect(GabungTabel.nilaiBaru('', 4.6, desimal: 2), '4,60');
       // Titik 1000 NTU resolusi 1 → 0 desimal: 999 tetap 999.
       expect(GabungTabel.nilaiBaru('', 999.0, desimal: 0), '999');
       expect(GabungTabel.nilaiBaru('', 1000.0, desimal: 0), '1000');

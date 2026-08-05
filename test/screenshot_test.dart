@@ -293,4 +293,35 @@ void main() {
       matchesGoldenFile('screenshots/ringkasan-desktop.png'),
     );
   });
+
+  /// Lembar Chlorine DENGAN alat kepilih.
+  ///
+  /// Yang dicek: blok Identitas Alat keisi dari master — khususnya
+  /// "2. Range/Resolution", yang di sheet PERHITUNGAN dipisah jadi Rentang
+  /// Ukur / Kapasitas Max. / Resolusi Alat.
+  testWidgets('lembar chlorine — alat kepilih', (tester) async {
+    tester.view.physicalSize = const Size(1200, 3000);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      _bungkus(
+        const LembarKerjaScreen(profil: 'chlorine_meter'),
+        mode: Brightness.light,
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Pilih alat'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Chlorine Meter Hanna · 905320134111').last);
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byType(LembarKerjaScreen),
+      matchesGoldenFile('screenshots/lembar-chlorine-alat-kepilih.png'),
+    );
+  });
 }

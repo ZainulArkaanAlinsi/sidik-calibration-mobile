@@ -375,7 +375,12 @@ class GabungTabel {
   static String? nilaiBaru(String sekarang, double? hasil, {int? desimal}) {
     if (hasil == null) return null;
     if (sekarang.trim().isNotEmpty) return null;
-    return desimal != null ? formatNilai(hasil, desimalMin: desimal) : _rapi(hasil);
+    // Dua jalurnya sama-sama pakai KOMA. `formatNilai` sengaja nggak diubah
+    // global — dia kepakai juga di tabel Perhitungan & sertifikat, dan itu
+    // urusan terpisah. Yang diseragamin cuma isian lembar kerja.
+    return desimal != null
+        ? formatNilai(hasil, desimalMin: desimal).replaceAll('.', ',')
+        : _rapi(hasil);
   }
 
   /// Versi teks buat kolom non-tabel (catatan, lokasi, env condition).
@@ -389,8 +394,17 @@ class GabungTabel {
 
   /// Buang nol di belakang: `4.0` → `4`, `22.2` tetap `22.2`, `10.11` tetap
   /// `10.11`. Bukan dibulatkan ke desimal tetap — pH 2 desimal, suhu 1 desimal.
-  static String _rapi(double nilai) =>
-      nilai.toStringAsFixed(3).replaceFirst(RegExp(r'\.?0+$'), '');
+  /// Desimalnya KOMA, ngikut lembar kerjanya sendiri (titik ukur ditulis
+  /// `1,74`) dan formulir kertasnya. Dulu hasil AI ditulis `1.74` pakai titik,
+  /// jadi di satu tabel yang sama label barisnya berkoma tapi isian yang
+  /// dituangin AI bertitik — kelihatan kayak dua sumber angka yang beda.
+  ///
+  /// Kotaknya sendiri emang nerima dua-duanya (`parseAngka`), jadi ini murni
+  /// biar kebacanya seragam.
+  static String _rapi(double nilai) => nilai
+      .toStringAsFixed(3)
+      .replaceFirst(RegExp(r'\.?0+$'), '')
+      .replaceAll('.', ',');
 }
 
 /// Baca tanggal hasil AI. Menerima `yyyy-MM-dd`, `dd/MM/yyyy`, `dd-MM-yyyy`.
