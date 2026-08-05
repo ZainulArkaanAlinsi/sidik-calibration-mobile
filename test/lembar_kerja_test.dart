@@ -13,6 +13,7 @@ import 'package:sidik_calibration/screens/calibration/lembar_kerja_state.dart';
 import 'package:sidik_calibration/services/equipment_lookup_service.dart';
 import 'package:sidik_calibration/services/lembar_kerja_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
+import 'package:sidik_calibration/services/mock_store.dart';
 import 'package:sidik_calibration/services/room_service.dart';
 import 'package:sidik_calibration/services/standard_service.dart';
 import 'package:sidik_calibration/services/worksheet_vision.dart';
@@ -40,7 +41,7 @@ void _viewportLebar(WidgetTester tester) {
   addTearDown(tester.view.resetDevicePixelRatio);
 }
 
-Widget _app(MockLembarKerjaService service) {
+Widget _app(MockLembarKerjaService service, {String profil = 'ph_meter'}) {
   return ProviderScope(
     overrides: [
       tokenStorageProvider.overrideWithValue(
@@ -58,7 +59,7 @@ Widget _app(MockLembarKerjaService service) {
       locale: const Locale('id'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: const LembarKerjaScreen(),
+      home: LembarKerjaScreen(profil: profil),
     ),
   );
 }
@@ -77,10 +78,13 @@ Future<void> _muat(WidgetTester tester, Widget app) async {
 
 /// Pilih alat lewat dropdown "Pilih alat" — sesudah ini kolom identitas &
 /// pemilik harusnya keisi sendiri.
-Future<void> _pilihAlat(WidgetTester tester) async {
+Future<void> _pilihAlat(
+  WidgetTester tester, {
+  String alat = 'pH Meter Mettler Toledo · B628755900',
+}) async {
   await tester.tap(find.text('Pilih alat'));
   await tester.pumpAndSettle();
-  await tester.tap(find.text('pH Meter Mettler Toledo · B628755900').last);
+  await tester.tap(find.text(alat).last);
   await tester.pumpAndSettle();
 }
 
@@ -808,6 +812,197 @@ void main() {
 
       // Dua Repeat keisi dari foto, tiga sisanya tetap null di posisinya.
       expect(titik4['pembacaan'], [4.01, 4.02, null, null, null]);
+    });
+  });
+
+  _testTurbidimeter();
+}
+
+/// Turbidimeter itu jenis alat KEDUA yang punya lembar kerja sendiri, dan
+/// bentuknya beda dari pH di tempat-tempat yang gampang ketuker: satu halaman
+/// (bukan dua), titik 1/100/1000 NTU, dan resolusinya beda PER BARIS. Selama
+/// ini semua test lembar kerja cuma megang pH, jadi kalau jalur `?profil=`
+/// diam-diam balik ke bentuk pH, nggak ada satu pun yang gagal.
+void _testTurbidimeter() {
+  LembarKerja bentukTurbidi({bool untukAdmin = false}) =>
+      LembarKerja.fromJson(contohBentukLembarKerjaTurbidi(untukAdmin: untukAdmin));
+
+  group('Turbidimeter: bentuknya sendiri, bukan pH yang disamar', () {
+    test('profil dilempar ke backend → dokumen & titik ukurnya ikut ganti', () async {
+      final service = MockLembarKerjaService();
+
+      final turbidi = await service.ambilBentuk('t', profil: 'turbidimeter');
+      expect(turbidi.kodeDokumen, 'SIDIK-FM-CAL-0530_Rev.2');
+      expect(turbidi.satuan, 'NTU');
+      expect(turbidi.larutanStandar, [1.0, 100.0, 1000.0]);
+    });
+
+    test('profil kosong tetap dapat pH — bukan error, bukan layar kosong', () async {
+      final service = MockLembarKerjaService();
+
+      // Layar lama & tautan yang belum bawa `profil` masih ada di app —
+      // `LembarKerjaScreen.profil` default-nya `ph_meter`, dan `ApiLembarKerja
+      // Service` malah nggak nempelin query-nya sama sekali kalau kosong.
+      // Jadi "tanpa profil" wajib jatuh ke pH, bukan error.
+      final tanpaProfil = await service.ambilBentuk('t');
+      expect(tanpaProfil.kodeDokumen, 'SIDIK-FM-CAL-0509_Rev.4');
+      expect(tanpaProfil.satuan, 'pH');
+    });
+
+    test('resolusi beda PER BARIS, bukan satu angka buat seluruh tabel', () {
+      final tabel = bentukTurbidi()
+          .bagian
+          .firstWhere((b) => b.kode == 'hasil')
+          .tabel
+          .first;
+
+      // Ini inti alat ini: 1 NTU dibaca sampai 0,01, 1000 NTU dibulatin ke
+      // satuan. Dipaksa satu angka buat semuanya, titik 100 kecetak `101,00`
+      // di sertifikat — cacat angka penting, bukan cuma jelek dilihat.
+      expect(tabel.baris.map((b) => b.titikUkur), [1.0, 100.0, 1000.0]);
+      expect(tabel.baris.map((b) => b.desimal), [2, 1, 0]);
+      expect(tabel.baris.map((b) => b.resolusi), [0.01, 0.1, 1.0]);
+    });
+
+    test('pH SEBALIKNYA nggak bawa desimal per baris — resolusinya seragam', () {
+      final tabel = LembarKerja.fromJson(contohBentukLembarKerja())
+          .bagian
+          .firstWhere((b) => b.kode == 'hasil')
+          .tabel
+          .first;
+
+      // Kalau suatu hari pH ikut bawa `desimal`, yang berubah bukan cuma
+      // sertifikatnya — jalur "null = seragam" di [BarisTabelHasil] ikut mati.
+      expect(tabel.baris.map((b) => b.desimal), [null, null, null]);
+    });
+
+    test('STANDARD-nya larutan turbidity, bukan buffer pH', () {
+      final standar =
+          bentukTurbidi().bagian.firstWhere((b) => b.kode == 'usage_check');
+
+      expect(standar.baris.map((b) => b.label), [
+        'Turbidity Standard 1 NTU',
+        'Turbidity Standard 100 NTU',
+        'Turbidity Standard 1000 NTU',
+        'RTD Sensor/SH1/20',
+        'Victor 14+/992613877',
+      ]);
+
+      // Aturan yang sama kayak pH: standar yang belum kedaftar TETAP jadi
+      // baris, tanpa id.
+      expect(standar.baris.last.terdaftar, isFalse);
+      expect(standar.baris.last.standardId, isNull);
+    });
+
+    test('kolom tabelnya NTU, bukan pH yang lupa diganti', () {
+      final tabel = bentukTurbidi()
+          .bagian
+          .firstWhere((b) => b.kode == 'hasil')
+          .tabel
+          .first;
+
+      expect(tabel.kolom.map((k) => k.label), ['NTU', '°C']);
+      expect(tabel.kolom.first.satuan, 'NTU');
+    });
+
+    test('satu halaman, bukan dua kayak pH — kertasnya emang selembar', () {
+      expect(bentukTurbidi().halaman, [1]);
+      expect(LembarKerja.fromJson(contohBentukLembarKerja()).halaman, [1, 2]);
+    });
+
+    test('kolom admin tetap disaring sama kayak pH', () {
+      Iterable<String> kode(LembarKerja lk) =>
+          lk.bagian.expand((b) => b.field).map((f) => f.kode);
+
+      expect(kode(bentukTurbidi()), isNot(contains('calibration_method_id')));
+      expect(
+        kode(bentukTurbidi(untukAdmin: true)),
+        contains('calibration_method_id'),
+      );
+    });
+  });
+
+  group('Turbidimeter di layar', () {
+    testWidgets('tabel hasil langsung kelihatan, nggak ada balik halaman', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await _muat(
+        tester,
+        _app(MockLembarKerjaService(), profil: 'turbidimeter'),
+      );
+
+      expect(find.text('SIDIK-FM-CAL-0530_Rev.2'), findsOneWidget);
+      expect(find.text('Turbidity Standard 1 NTU'), findsOneWidget);
+
+      // Beda paling kerasa dari pH: nggak ada halaman 2, jadi tombol lanjutnya
+      // nggak boleh nongol sama sekali.
+      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsNothing);
+      expect(find.text('Before adjustment Reading'), findsOneWidget);
+      expect(find.text('KIRIM KE ADMIN'), findsOneWidget);
+    });
+
+    testWidgets('tiga titik NTU ikut terkirim, sel kosong tetap null', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'turbidimeter'));
+
+      await _pilihAlat(tester, alat: 'Turbidimeter Hach · HC-2100Q-114');
+
+      final tabelAfter = find.ancestor(
+        of: find.text('After adjustment Reading'),
+        matching: find.byType(Column),
+      );
+      final kotak = find.descendant(
+        of: tabelAfter.first,
+        matching: find.byType(TextField),
+      );
+
+      // Baris pertama = titik 1 NTU. Repeat 1 & 3 diisi, Repeat 2 dilewat.
+      await tester.enterText(kotak.at(0), '1,01');
+      await tester.enterText(kotak.at(1), '22.2');
+      await tester.enterText(kotak.at(4), '0,99');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      final measurements =
+          service.payloadTerakhir!['measurements'] as List<dynamic>;
+
+      expect(
+        measurements.map((m) => (m as Map)['titik_ukur']).toList(),
+        [1.0, 100.0, 1000.0],
+      );
+
+      final titik1 = measurements.first as Map<String, dynamic>;
+      expect(titik1['pembacaan'], [1.01, null, 0.99, null, null]);
+      expect(titik1['suhu'], [22.2, null, null, null, null]);
+      expect(titik1['satuan'], 'NTU');
+    });
+
+    testWidgets('sesi baru masuk antrean sebagai Turbidimeter, bukan pH Meter', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await _muat(
+        tester,
+        _app(MockLembarKerjaService(), profil: 'turbidimeter'),
+      );
+
+      await _pilihAlat(tester, alat: 'Turbidimeter Hach · HC-2100Q-114');
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      // Nama sesi di USE_MOCK dulu dipatok 'pH Meter (sesi baru)' — admin yang
+      // nyoba alur turbidimeter offline lihat pH di antrean approval dan nggak
+      // punya cara buat sadar itu salah.
+      expect(
+        MockStore.instance.sesi.first.namaAlat,
+        'Turbidimeter Hach (sesi baru)',
+      );
     });
   });
 }

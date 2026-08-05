@@ -36,6 +36,75 @@ class ApiEquipmentLookupService implements EquipmentLookupService {
   }
 }
 
+/// Daftar alat tiruan. Ditaruh di luar kelas karena dipakai bareng sama
+/// [MockLembarKerjaService] buat namain sesi yang barusan dikirim — satu
+/// sumber, biar nama di antrean approval nggak beda sama alat yang dipilih
+/// teknisi.
+const daftarAlatMock = <EquipmentLookup>[
+  EquipmentLookup(
+    id: 12,
+    namaAlat: 'Jangka Sorong Mitutoyo',
+    serialNumber: 'MT-500-196-30',
+    kategori: 'panjang',
+    status: 'aktif',
+  ),
+  EquipmentLookup(
+    id: 13,
+    namaAlat: 'Timbangan Digital Ohaus',
+    serialNumber: 'OH-8825-01',
+    kategori: 'massa',
+    status: 'overdue',
+  ),
+  // Angkanya disamain sama worksheet asli 012-CAL-524 biar test bisa
+  // ngunci kolom Identitas Alat ke nilai yang beneran ada di kertas.
+  EquipmentLookup(
+    id: 14,
+    namaAlat: 'pH Meter Mettler Toledo',
+    serialNumber: 'B628755900',
+    kategori: 'instrumen-analitik',
+    status: 'aktif',
+    merk: 'Mettler Toledo',
+    model: 'Five Easy',
+    satuan: 'pH',
+    rangeMin: 0,
+    rangeMax: 14,
+    resolusi: 0.01,
+    pelangganNama: 'PT TIRTA GRACIA SEMESTA MANDIRI',
+    pelangganAlamat:
+        'Jl. Arteri Primer A-10 RT. 01 RW.12 Nyalindung Kec. Cicalengka, '
+        'Kab. Bandung, Jawa Barat',
+  ),
+  // Tanpa baris ini, worksheet Turbidimeter di USE_MOCK nggak punya alat yang
+  // bisa dipilih sama sekali — dan tombol kirim nahan sampai alat kepilih,
+  // jadi alurnya buntu sebelum sempat dicoba.
+  EquipmentLookup(
+    id: 15,
+    namaAlat: 'Turbidimeter Hach',
+    serialNumber: 'HC-2100Q-114',
+    kategori: 'instrumen-analitik',
+    status: 'aktif',
+    merk: 'Hach',
+    model: '2100Q',
+    satuan: 'NTU',
+    rangeMin: 0,
+    rangeMax: 1000,
+    resolusi: 0.01,
+    pelangganNama: 'PT TIRTA GRACIA SEMESTA MANDIRI',
+    pelangganAlamat:
+        'Jl. Arteri Primer A-10 RT. 01 RW.12 Nyalindung Kec. Cicalengka, '
+        'Kab. Bandung, Jawa Barat',
+  ),
+];
+
+/// Nama alat buat `equipment_id` yang dipilih di picker mock. `null` kalau
+/// idnya bukan dari [daftarAlatMock].
+String? namaAlatMock(int id) {
+  for (final e in daftarAlatMock) {
+    if (e.id == id) return e.namaAlat;
+  }
+  return null;
+}
+
 /// Data tiruan buat test.
 class MockEquipmentLookupService implements EquipmentLookupService {
   MockEquipmentLookupService({this.gagal = false});
@@ -50,43 +119,7 @@ class MockEquipmentLookupService implements EquipmentLookupService {
   }) async {
     if (gagal) throw Exception('server nggak nyaut');
 
-    final semua = const [
-      EquipmentLookup(
-        id: 12,
-        namaAlat: 'Jangka Sorong Mitutoyo',
-        serialNumber: 'MT-500-196-30',
-        kategori: 'panjang',
-        status: 'aktif',
-      ),
-      EquipmentLookup(
-        id: 13,
-        namaAlat: 'Timbangan Digital Ohaus',
-        serialNumber: 'OH-8825-01',
-        kategori: 'massa',
-        status: 'overdue',
-      ),
-      // Angkanya disamain sama worksheet asli 012-CAL-524 biar test bisa
-      // ngunci kolom Identitas Alat ke nilai yang beneran ada di kertas.
-      EquipmentLookup(
-        id: 14,
-        namaAlat: 'pH Meter Mettler Toledo',
-        serialNumber: 'B628755900',
-        kategori: 'instrumen-analitik',
-        status: 'aktif',
-        merk: 'Mettler Toledo',
-        model: 'Five Easy',
-        satuan: 'pH',
-        rangeMin: 0,
-        rangeMax: 14,
-        resolusi: 0.01,
-        pelangganNama: 'PT TIRTA GRACIA SEMESTA MANDIRI',
-        pelangganAlamat:
-            'Jl. Arteri Primer A-10 RT. 01 RW.12 Nyalindung Kec. Cicalengka, '
-            'Kab. Bandung, Jawa Barat',
-      ),
-    ];
-
-    return semua.where((e) {
+    return daftarAlatMock.where((e) {
       final cocokKategori = kategori == null || kategori.isEmpty || e.kategori == kategori;
       final cocokSearch = search == null ||
           search.isEmpty ||

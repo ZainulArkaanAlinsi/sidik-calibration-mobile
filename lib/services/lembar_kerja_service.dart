@@ -2,6 +2,7 @@ import 'mock_store.dart';
 import '../models/lembar_kerja.dart';
 import '../models/lembar_kerja_submission.dart';
 import 'api_client.dart';
+import 'equipment_lookup_service.dart';
 
 /// Lembar kerja teknisi: ambil bentuk formulirnya, kirim isiannya.
 abstract class LembarKerjaService {
@@ -105,8 +106,12 @@ class MockLembarKerjaService implements LembarKerjaService {
     // yang barusan dikirim teknisi nggak pernah nongol di antrean approval,
     // dan alur dari lembar kerja sampai sertifikat nggak bisa dicoba sama
     // sekali tanpa backend nyala. Lihat [MockStore].
+    //
+    // Namanya dibaca dari alat yang DIPILIH, bukan dipatok 'pH Meter': dulu
+    // sesi turbidimeter nongol di antrean approval sebagai pH Meter, dan admin
+    // yang lagi nyoba alurnya offline nggak punya cara buat sadar itu salah.
     final id = MockStore.instance.tambahSesi(
-      namaAlat: 'pH Meter (sesi baru)',
+      namaAlat: '${namaAlatMock(isian.equipmentId) ?? 'Alat'} (sesi baru)',
       namaTeknisi: 'Teknisi',
     );
 
