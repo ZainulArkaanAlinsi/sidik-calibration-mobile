@@ -16,6 +16,7 @@ import '../../providers/lembar_kerja_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/sidik_loader.dart';
 import 'lembar_kerja_state.dart';
+import 'widgets/dropdown_gagal.dart';
 import 'widgets/lembar_kerja_tabel.dart';
 
 /// Lembar Kerja (SIDIK-FM-CAL-0509_Rev.4) — layar input teknisi, dipakai buat
@@ -53,8 +54,8 @@ class LembarKerjaScreen extends ConsumerWidget {
 
   final String? judulTambahan;
 
-  /// Kode jenis alat (`ph_meter` / `turbidimeter`) — nentuin bentuk lembar
-  /// kerja yang diambil dari backend.
+  /// Kode jenis alat (`ph_meter` / `turbidimeter` / `chlorine_meter`) —
+  /// nentuin bentuk lembar kerja yang diambil dari backend.
   final String profil;
 
   @override
@@ -1182,9 +1183,15 @@ class _PilihRuangan extends ConsumerWidget {
     return ruanganAsync.when(
       skipLoadingOnReload: true,
       loading: () => const LinearProgressIndicator(),
-      // Ruangan itu kolom opsional — kalau daftarnya gagal dimuat, jangan
-      // ngeblok lembar kerjanya, cukup nggak usah ditawarin.
-      error: (_, _) => const SizedBox.shrink(),
+      // Ruangan itu kolom opsional — gagal muat NGGAK ngeblok lembar kerjanya.
+      // Tapi dibikin lenyap juga salah: teknisi nggak bisa bedain "kolomnya
+      // emang nggak diminta" dari "kolomnya gagal keambil", jadi dia ngirim
+      // tanpa ruangan sambil ngira itu sah. Lihat [DropdownGagal].
+      error: (_, _) => DropdownGagal(
+        label: field.label,
+        pesan: l10n.lkRuanganGagal,
+        onCobaLagi: () => ref.invalidate(roomListProvider),
+      ),
       data: (list) => DropdownButtonFormField<int>(
         initialValue: isian.roomId,
         isExpanded: true,
@@ -1229,7 +1236,15 @@ class _PilihStandar extends ConsumerWidget {
     return standarAsync.when(
       skipLoadingOnReload: true,
       loading: () => const LinearProgressIndicator(),
-      error: (_, _) => const SizedBox.shrink(),
+      // Standar acuan itu KETERTELUSURAN — sesi tanpa standar yang ketaut
+      // nggak bisa jadi sertifikat berakreditasi. Dulu kolomnya ilang diam-diam
+      // waktu `GET /standards` gagal, jadi teknisi ngirim lembar yang pasti
+      // dikembaliin admin, tanpa pernah dikasih tahu kenapa.
+      error: (_, _) => DropdownGagal(
+        label: field.label,
+        pesan: l10n.standarLoadFailed,
+        onCobaLagi: () => ref.invalidate(standardListProvider),
+      ),
       data: (list) {
         final pilihan = thermohygro
             ? list.where((s) => s.punyaParameterKondisi).toList()

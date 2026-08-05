@@ -27,12 +27,19 @@ class ApiRoomService implements RoomService {
 }
 
 class MockRoomService implements RoomService {
-  MockRoomService({this.kosong = false});
+  MockRoomService({this.kosong = false, this.gagal = false});
 
   final bool kosong;
 
+  /// Beda dari [kosong]: "belum ada ruangan kedaftar" itu keadaan sah, "daftar
+  /// ruangannya nggak keambil" itu kegagalan — dan layar wajib bedain
+  /// dua-duanya. Lihat `DropdownGagal`.
+  final bool gagal;
+
   @override
-  Future<List<Room>> daftar(String token) async => kosong
+  Future<List<Room>> daftar(String token) async => gagal
+      ? throw Exception('server nggak nyaut')
+      : kosong
       ? const []
       : const [
           Room(

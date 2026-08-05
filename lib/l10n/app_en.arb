@@ -1062,6 +1062,7 @@
   "lkRetry": "RETRY",
   "lkPilihAlat": "Choose equipment",
   "lkAlatKosong": "No equipment available yet.",
+  "lkRuanganGagal": "Couldn't load the room list.",
   "lkBelumPilihAlat": "Choose the equipment first — the identity and owner fields fill in automatically.",
   "lkOtomatis": "Filled automatically",
   "lkKosong": "—",

@@ -8,11 +8,13 @@ import 'package:sidik_calibration/models/lembar_kerja.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/calibration_input_provider.dart';
 import 'package:sidik_calibration/providers/lembar_kerja_provider.dart';
+import 'package:sidik_calibration/screens/calibration/instrument_picker_screen.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_screen.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_state.dart';
 import 'package:sidik_calibration/services/equipment_lookup_service.dart';
 import 'package:sidik_calibration/services/lembar_kerja_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
+import 'package:sidik_calibration/services/mock_store.dart';
 import 'package:sidik_calibration/services/room_service.dart';
 import 'package:sidik_calibration/services/standard_service.dart';
 import 'package:sidik_calibration/services/worksheet_vision.dart';
@@ -40,7 +42,12 @@ void _viewportLebar(WidgetTester tester) {
   addTearDown(tester.view.resetDevicePixelRatio);
 }
 
-Widget _app(MockLembarKerjaService service) {
+Widget _app(
+  MockLembarKerjaService service, {
+  String profil = 'ph_meter',
+  MockStandardService? standar,
+  MockRoomService? ruangan,
+}) {
   return ProviderScope(
     overrides: [
       tokenStorageProvider.overrideWithValue(
@@ -48,8 +55,10 @@ Widget _app(MockLembarKerjaService service) {
       ),
       authServiceProvider.overrideWithValue(MockAuthService()),
       lembarKerjaServiceProvider.overrideWithValue(service),
-      standardServiceProvider.overrideWithValue(MockStandardService()),
-      roomServiceProvider.overrideWithValue(MockRoomService()),
+      standardServiceProvider.overrideWithValue(
+        standar ?? MockStandardService(),
+      ),
+      roomServiceProvider.overrideWithValue(ruangan ?? MockRoomService()),
       equipmentLookupServiceProvider.overrideWithValue(
         MockEquipmentLookupService(),
       ),
@@ -58,7 +67,7 @@ Widget _app(MockLembarKerjaService service) {
       locale: const Locale('id'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: const LembarKerjaScreen(),
+      home: LembarKerjaScreen(profil: profil),
     ),
   );
 }
@@ -77,10 +86,13 @@ Future<void> _muat(WidgetTester tester, Widget app) async {
 
 /// Pilih alat lewat dropdown "Pilih alat" — sesudah ini kolom identitas &
 /// pemilik harusnya keisi sendiri.
-Future<void> _pilihAlat(WidgetTester tester) async {
+Future<void> _pilihAlat(
+  WidgetTester tester, {
+  String alat = 'pH Meter Mettler Toledo · B628755900',
+}) async {
   await tester.tap(find.text('Pilih alat'));
   await tester.pumpAndSettle();
-  await tester.tap(find.text('pH Meter Mettler Toledo · B628755900').last);
+  await tester.tap(find.text(alat).last);
   await tester.pumpAndSettle();
 }
 
@@ -111,10 +123,8 @@ void main() {
       expect(find.text('CALIBRATION DATA'), findsOneWidget);
       expect(find.text('SIDIK-FM-CAL-0509_Rev.4'), findsOneWidget);
 
-      // Tabel hasil ada di halaman 2, bukan numpuk di satu layar panjang.
-      expect(find.text('Before adjustment Reading'), findsNothing);
-
-      await _keHalamanAkhir(tester);
+      // Satu halaman: tabel hasilnya langsung kelihatan, nggak perlu dibalik.
+      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsNothing);
 
       expect(find.text('CALIBRATION RESULT'), findsOneWidget);
       expect(find.text('Before adjustment Reading'), findsOneWidget);
@@ -277,10 +287,21 @@ void main() {
       await _pilihAlat(tester);
       await _keHalamanAkhir(tester);
 
-      final kotak = find.byType(TextField);
+      // Ditunjuk lewat blok CALIBRATION RESULT, bukan `TextField` indeks 0.
+      // Indeks itu dulu kebetulan `suhu_awal` cuma karena halaman 2 mulai dari
+      // situ; begitu lembarnya jadi satu halaman (ngikut backend), indeksnya
+      // geser dan test-nya ngetik ke kolom yang salah tanpa ada yang gagal.
+      final blokHasil = find.ancestor(
+        of: find.text('CALIBRATION RESULT'),
+        matching: find.byType(Column),
+      );
+      final kotak = find.descendant(
+        of: blokHasil.first,
+        matching: find.byType(TextField),
+      );
       // Formulir kertasnya pakai koma desimal — teknisi ngetik sesuai yang
       // dia lihat, dan itu nggak boleh jadi angka hilang.
-      await tester.enterText(kotak.at(0), '21,3');
+      await tester.enterText(kotak.first, '21,3');
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('KIRIM KE ADMIN'));
@@ -385,27 +406,25 @@ void main() {
     });
   });
 
-  group('lembar kerja 2 halaman', () {
-    test('bagian kebagi ke halaman sesuai kertas', () {
+  group('lembar kerja SATU halaman — sama kayak backend', () {
+    /// Dulu bentuk pH di mock dipecah dua halaman, padahal backend udah nggak
+    /// sejak `3ab1d09` ("satu gulungan"). Bedanya kelihatan: build mock
+    /// nampilin tombol "LANJUT KE HALAMAN BERIKUTNYA" yang di build asli nggak
+    /// ada sama sekali. Diadu langsung ke `?profil=ph_meter` dari API hidup
+    /// 5 Agt 2026.
+    test('semua bagian di satu halaman, urutannya ngikut kertas', () {
       final bentuk = LembarKerja.fromJson(contohBentukLembarKerja());
 
-      expect(bentuk.halaman, [1, 2]);
-
-      // Urutan halaman 1 ngikut kertas: identitas → owner → STANDARD →
-      // calibration data. Kalau ini kebalik, teknisi ngisi bukan urut lembar.
+      expect(bentuk.halaman, [1]);
       expect(
         bentuk.bagianDiHalaman(1).map((b) => b.kode),
-        ['identitas_alat', 'pemilik', 'usage_check', 'data_kalibrasi'],
-      );
-      expect(
-        bentuk.bagianDiHalaman(2).map((b) => b.kode),
-        ['hasil', 'penutup'],
+        ['identitas_alat', 'pemilik', 'usage_check', 'data_kalibrasi', 'hasil', 'penutup'],
       );
     });
 
-    test('Env. Condition ada di halaman 2, bareng tabel hasilnya', () {
+    test('Env. Condition nempel sama tabel hasilnya', () {
       final bentuk = LembarKerja.fromJson(contohBentukLembarKerja());
-      final hasil = bentuk.bagianDiHalaman(2).first;
+      final hasil = bentuk.bagian.firstWhere((b) => b.kode == 'hasil');
 
       // Di kertas Env. Condition itu baris pertama blok CALIBRATION RESULT —
       // dicatat waktu ngukur, bukan waktu nyiapin sesi.
@@ -808,6 +827,459 @@ void main() {
 
       // Dua Repeat keisi dari foto, tiga sisanya tetap null di posisinya.
       expect(titik4['pembacaan'], [4.01, 4.02, null, null, null]);
+    });
+  });
+
+  _testDropdownGagal();
+  _testTurbidimeter();
+  _testChlorine();
+}
+
+/// Chlorin Meter — jenis alat KETIGA yang punya lembar kerja sendiri
+/// (`SIDIK-FM-CAL-0531_Rev.2`, satu halaman, metode SIDIK-IK-CAL-0524).
+void _testChlorine() {
+  LembarKerja bentukChlorine({bool untukAdmin = false}) => LembarKerja.fromJson(
+    contohBentukLembarKerjaChlorine(untukAdmin: untukAdmin),
+  );
+
+  group('Chlorin Meter: titiknya ikut akreditasi, bukan yang tercetak', () {
+    /// **Test paling penting di grup ini.**
+    ///
+    /// Lembar cetak Rev.2 yang dipegang teknisi nulis `Solution Standard 0.40`
+    /// & `4.00`. Tiga sumber yang lebih baru bilang 1,74 & 1,83: lampiran
+    /// akreditasi LK-285-IDN no. 42, `Chlorine_Meter_CSV/DATABASE.csv`, dan
+    /// sesi asli 0189-CAL-624. Yang dipakai yang ADA DI LINGKUP AKREDITASI —
+    /// kalibrasi di titik luar lampiran nggak bisa jadi sertifikat.
+    ///
+    /// Kalau suatu hari ada yang "mbenerin" ini ngikut kertasnya, test ini yang
+    /// bakal teriak duluan. Jangan diubah tanpa ngurus lampirannya dulu.
+    test('titik ukurnya 1,74 & 1,83 — BUKAN 0,40 & 4,00 yang dicetak', () {
+      final bentuk = bentukChlorine();
+
+      expect(bentuk.larutanStandar, [1.74, 1.83]);
+      expect(bentuk.larutanStandar, isNot(contains(0.40)));
+      expect(bentuk.larutanStandar, isNot(contains(4.00)));
+      expect(bentuk.satuan, 'mg/L');
+    });
+
+    test('profil chlorine_meter → dokumen 0531, bukan 0509 punya pH', () async {
+      final turun = await MockLembarKerjaService().ambilBentuk(
+        't',
+        profil: 'chlorine_meter',
+      );
+
+      expect(turun.kodeDokumen, 'SIDIK-FM-CAL-0531_Rev.2');
+      expect(turun.judul, 'Calibration Worksheet - Chlorine Meter');
+      expect(turun.larutanStandar, [1.74, 1.83]);
+    });
+
+    test('DUA titik, bukan tiga — pH & Turbidimeter kebetulan sama-sama 3', () {
+      final tabel = bentukChlorine()
+          .bagian
+          .firstWhere((b) => b.kode == 'hasil')
+          .tabel
+          .first;
+
+      expect(tabel.baris, hasLength(2));
+      expect(tabel.baris.map((b) => b.titikUkur), [1.74, 1.83]);
+      expect(tabel.kolom.map((k) => k.label), ['mg/L', '°C']);
+    });
+
+    test('resolusi SERAGAM 0,01 → desimal per baris sengaja nggak dikirim', () {
+      final tabel = bentukChlorine()
+          .bagian
+          .firstWhere((b) => b.kode == 'hasil')
+          .tabel
+          .first;
+
+      // Beda dari Turbidimeter (2/1/0). Alat ini resolusinya sama di dua titik,
+      // jadi `null` = seragam — bukan lupa diisi.
+      expect(tabel.baris.map((b) => b.desimal), [null, null]);
+      expect(tabel.baris.map((b) => b.resolusi), [null, null]);
+    });
+
+    test('STANDARD-nya larutan chlorine dari DATABASE.csv', () {
+      final standar =
+          bentukChlorine().bagian.firstWhere((b) => b.kode == 'usage_check');
+
+      expect(standar.baris.map((b) => b.label), [
+        'Chlorine Standard Solution 1.74 mg/L',
+        'Chlorine Standar Cuvettes 1.83 mg/L',
+        'RTD Sensor/SH1/20',
+        'Victor 14+/992613877',
+      ]);
+      expect(standar.baris.last.terdaftar, isFalse);
+      expect(standar.baris.last.standardId, isNull);
+    });
+
+    test('satu halaman — `Page 1 of 1` di kertasnya', () {
+      expect(bentukChlorine().halaman, [1]);
+    });
+
+    test('kolom admin tetap disaring sama kayak dua alat sebelumnya', () {
+      Iterable<String> kode(LembarKerja lk) =>
+          lk.bagian.expand((b) => b.field).map((f) => f.kode);
+
+      expect(kode(bentukChlorine()), isNot(contains('calibration_method_id')));
+      expect(
+        kode(bentukChlorine(untukAdmin: true)),
+        contains('calibration_method_id'),
+      );
+    });
+  });
+
+  group('nama alat → profil', () {
+    /// `namaAlat` itu teks bebas dari lampiran akreditasi, bukan enum. Lampiran
+    /// nulis "Chlorin Meter", lembar kerjanya "Chlorine Meter" — dua-duanya
+    /// wajib nyampe ke profil yang sama. Dulu dicocokin persis, jadi beda satu
+    /// huruf bikin alatnya diam-diam jatuh ke form generik tanpa error.
+    test('dua ejaan Chlorin/Chlorine sama-sama ke chlorine_meter', () {
+      expect(profilLembarKerjaUntuk('Chlorin Meter'), 'chlorine_meter');
+      expect(profilLembarKerjaUntuk('Chlorine Meter'), 'chlorine_meter');
+    });
+
+    test('beda huruf besar-kecil & spasi dobel nggak bikin jatuh ke generik', () {
+      expect(profilLembarKerjaUntuk('CHLORINE METER'), 'chlorine_meter');
+      expect(profilLembarKerjaUntuk('  chlorine   meter  '), 'chlorine_meter');
+      expect(profilLembarKerjaUntuk('pH METER'), 'ph_meter');
+      expect(profilLembarKerjaUntuk('turbidimeter'), 'turbidimeter');
+    });
+
+    test('alat tanpa lembar khusus tetap null → form generik', () {
+      expect(profilLembarKerjaUntuk('Conductivity Meter'), isNull);
+      expect(profilLembarKerjaUntuk('Timbangan'), isNull);
+      expect(profilLembarKerjaUntuk(''), isNull);
+    });
+  });
+
+  group('Chlorin Meter di layar', () {
+    testWidgets('dua titik mg/L ikut terkirim, sel kosong tetap null', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'chlorine_meter'));
+
+      expect(find.text('SIDIK-FM-CAL-0531_Rev.2'), findsOneWidget);
+      expect(find.text('Chlorine Standard Solution 1.74 mg/L'), findsOneWidget);
+      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsNothing);
+
+      await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+
+      final tabelAfter = find.ancestor(
+        of: find.text('After adjustment Reading'),
+        matching: find.byType(Column),
+      );
+      final kotak = find.descendant(
+        of: tabelAfter.first,
+        matching: find.byType(TextField),
+      );
+
+      // Angka dari sesi asli 0189-CAL-624: titik 1,74 kebaca 1,76 di 25,7 °C.
+      await tester.enterText(kotak.at(0), '1,76');
+      await tester.enterText(kotak.at(1), '25.7');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      final measurements =
+          service.payloadTerakhir!['measurements'] as List<dynamic>;
+
+      expect(
+        measurements.map((m) => (m as Map)['titik_ukur']).toList(),
+        [1.74, 1.83],
+      );
+
+      final titik174 = measurements.first as Map<String, dynamic>;
+      expect(titik174['pembacaan'], [1.76, null, null, null, null]);
+      expect(titik174['suhu'], [25.7, null, null, null, null]);
+      expect(titik174['satuan'], 'mg/L');
+    });
+
+    testWidgets('sesi baru masuk antrean sebagai Chlorine, bukan alat lain', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await _muat(
+        tester,
+        _app(MockLembarKerjaService(), profil: 'chlorine_meter'),
+      );
+
+      await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      expect(
+        MockStore.instance.sesi.first.namaAlat,
+        'Chlorine Meter Hanna (sesi baru)',
+      );
+    });
+  });
+}
+
+/// Tiga dropdown di lembar kerja dulu HILANG tanpa sepatah kata kalau daftarnya
+/// gagal diambil. Buat teknisi, kolom yang nggak ada itu nggak bisa dibedain
+/// dari kolom yang emang nggak diminta di lembar ini — dia lanjut ngisi,
+/// ngirim, dan baru tahu ada yang kurang waktu admin ngembaliin sesinya.
+void _testDropdownGagal() {
+  group('daftar gagal dimuat → kolomnya bilang, bukan menghilang', () {
+    testWidgets('standar acuan per titik: pesan + COBA LAGI', (tester) async {
+      _perbesarViewport(tester);
+      await _muat(
+        tester,
+        _app(
+          MockLembarKerjaService(),
+          standar: MockStandardService(gagal: true),
+        ),
+      );
+      await _keHalamanAkhir(tester);
+
+      // Tiga titik pH → tiga dropdown standar per titik, tiga-tiganya wajib
+      // ngaku. Ini ketertelusuran: sesi tanpa standar yang ketaut nggak bisa
+      // jadi sertifikat berakreditasi.
+      expect(find.text('Gagal memuat standar acuan.'), findsNWidgets(3));
+      expect(find.text('COBA LAGI'), findsNWidgets(3));
+    });
+
+    testWidgets('ruangan: gagal muat beda dari "belum ada ruangan"', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await _muat(
+        tester,
+        _app(MockLembarKerjaService(), ruangan: MockRoomService(gagal: true)),
+      );
+
+      expect(find.text('Gagal memuat daftar ruangan.'), findsOneWidget);
+    });
+
+    testWidgets('daftar sehat → nggak ada pesan gagal yang nyasar', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await _muat(tester, _app(MockLembarKerjaService()));
+      await _keHalamanAkhir(tester);
+
+      expect(find.text('Gagal memuat standar acuan.'), findsNothing);
+      expect(find.text('Gagal memuat daftar ruangan.'), findsNothing);
+    });
+
+    testWidgets('lembar tetap bisa dikirim walau daftarnya gagal', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(
+        tester,
+        _app(
+          service,
+          standar: MockStandardService(gagal: true),
+          ruangan: MockRoomService(gagal: true),
+        ),
+      );
+
+      await _pilihAlat(tester);
+      await _keHalamanAkhir(tester);
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      // Aturan lembar kerja nggak berubah: tombol kirim NGGAK PERNAH dikunci.
+      // Pesan gagal itu ngasih tahu, bukan ngeblok — kalau sampai ngeblok,
+      // teknisi di lapangan kehilangan seluruh isian gara-gara satu daftar
+      // yang nggak keambil.
+      expect(service.jumlahKirim, 1);
+      expect(service.payloadTerakhir!['standard_id'], isNull);
+      expect(service.payloadTerakhir!['room_id'], isNull);
+    });
+  });
+}
+
+/// Turbidimeter itu jenis alat KEDUA yang punya lembar kerja sendiri, dan
+/// bentuknya beda dari pH di tempat-tempat yang gampang ketuker: satu halaman
+/// (bukan dua), titik 1/100/1000 NTU, dan resolusinya beda PER BARIS. Selama
+/// ini semua test lembar kerja cuma megang pH, jadi kalau jalur `?profil=`
+/// diam-diam balik ke bentuk pH, nggak ada satu pun yang gagal.
+void _testTurbidimeter() {
+  LembarKerja bentukTurbidi({bool untukAdmin = false}) =>
+      LembarKerja.fromJson(contohBentukLembarKerjaTurbidi(untukAdmin: untukAdmin));
+
+  group('Turbidimeter: bentuknya sendiri, bukan pH yang disamar', () {
+    test('profil dilempar ke backend → dokumen & titik ukurnya ikut ganti', () async {
+      final service = MockLembarKerjaService();
+
+      final turbidi = await service.ambilBentuk('t', profil: 'turbidimeter');
+      expect(turbidi.kodeDokumen, 'SIDIK-FM-CAL-0530_Rev.2');
+      expect(turbidi.satuan, 'NTU');
+      expect(turbidi.larutanStandar, [1.0, 100.0, 1000.0]);
+    });
+
+    test('profil kosong tetap dapat pH — bukan error, bukan layar kosong', () async {
+      final service = MockLembarKerjaService();
+
+      // Layar lama & tautan yang belum bawa `profil` masih ada di app —
+      // `LembarKerjaScreen.profil` default-nya `ph_meter`, dan `ApiLembarKerja
+      // Service` malah nggak nempelin query-nya sama sekali kalau kosong.
+      // Jadi "tanpa profil" wajib jatuh ke pH, bukan error.
+      final tanpaProfil = await service.ambilBentuk('t');
+      expect(tanpaProfil.kodeDokumen, 'SIDIK-FM-CAL-0509_Rev.4');
+      expect(tanpaProfil.satuan, 'pH');
+    });
+
+    test('resolusi beda PER BARIS, bukan satu angka buat seluruh tabel', () {
+      final tabel = bentukTurbidi()
+          .bagian
+          .firstWhere((b) => b.kode == 'hasil')
+          .tabel
+          .first;
+
+      // Ini inti alat ini: 1 NTU dibaca sampai 0,01, 1000 NTU dibulatin ke
+      // satuan. Dipaksa satu angka buat semuanya, titik 100 kecetak `101,00`
+      // di sertifikat — cacat angka penting, bukan cuma jelek dilihat.
+      expect(tabel.baris.map((b) => b.titikUkur), [1.0, 100.0, 1000.0]);
+      expect(tabel.baris.map((b) => b.desimal), [2, 1, 0]);
+      expect(tabel.baris.map((b) => b.resolusi), [0.01, 0.1, 1.0]);
+    });
+
+    test('pH SEBALIKNYA nggak bawa desimal per baris — resolusinya seragam', () {
+      final tabel = LembarKerja.fromJson(contohBentukLembarKerja())
+          .bagian
+          .firstWhere((b) => b.kode == 'hasil')
+          .tabel
+          .first;
+
+      // Kalau suatu hari pH ikut bawa `desimal`, yang berubah bukan cuma
+      // sertifikatnya — jalur "null = seragam" di [BarisTabelHasil] ikut mati.
+      expect(tabel.baris.map((b) => b.desimal), [null, null, null]);
+    });
+
+    test('STANDARD-nya larutan turbidity, bukan buffer pH', () {
+      final standar =
+          bentukTurbidi().bagian.firstWhere((b) => b.kode == 'usage_check');
+
+      expect(standar.baris.map((b) => b.label), [
+        'Turbidity Standard 1 NTU',
+        'Turbidity Standard 100 NTU',
+        'Turbidity Standard 1000 NTU',
+        'RTD Sensor/SH1/20',
+        'Victor 14+/992613877',
+      ]);
+
+      // Aturan yang sama kayak pH: standar yang belum kedaftar TETAP jadi
+      // baris, tanpa id.
+      expect(standar.baris.last.terdaftar, isFalse);
+      expect(standar.baris.last.standardId, isNull);
+    });
+
+    test('kolom tabelnya NTU, bukan pH yang lupa diganti', () {
+      final tabel = bentukTurbidi()
+          .bagian
+          .firstWhere((b) => b.kode == 'hasil')
+          .tabel
+          .first;
+
+      expect(tabel.kolom.map((k) => k.label), ['NTU', '°C']);
+      expect(tabel.kolom.first.satuan, 'NTU');
+    });
+
+    test('satu halaman — sama kayak pH & Chlorine sekarang', () {
+      expect(bentukTurbidi().halaman, [1]);
+      expect(LembarKerja.fromJson(contohBentukLembarKerja()).halaman, [1]);
+    });
+
+    test('kolom admin tetap disaring sama kayak pH', () {
+      Iterable<String> kode(LembarKerja lk) =>
+          lk.bagian.expand((b) => b.field).map((f) => f.kode);
+
+      expect(kode(bentukTurbidi()), isNot(contains('calibration_method_id')));
+      expect(
+        kode(bentukTurbidi(untukAdmin: true)),
+        contains('calibration_method_id'),
+      );
+    });
+  });
+
+  group('Turbidimeter di layar', () {
+    testWidgets('tabel hasil langsung kelihatan, nggak ada balik halaman', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await _muat(
+        tester,
+        _app(MockLembarKerjaService(), profil: 'turbidimeter'),
+      );
+
+      expect(find.text('SIDIK-FM-CAL-0530_Rev.2'), findsOneWidget);
+      expect(find.text('Turbidity Standard 1 NTU'), findsOneWidget);
+
+      // Beda paling kerasa dari pH: nggak ada halaman 2, jadi tombol lanjutnya
+      // nggak boleh nongol sama sekali.
+      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsNothing);
+      expect(find.text('Before adjustment Reading'), findsOneWidget);
+      expect(find.text('KIRIM KE ADMIN'), findsOneWidget);
+    });
+
+    testWidgets('tiga titik NTU ikut terkirim, sel kosong tetap null', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'turbidimeter'));
+
+      await _pilihAlat(tester, alat: 'Turbidimeter Hach · HC-2100Q-114');
+
+      final tabelAfter = find.ancestor(
+        of: find.text('After adjustment Reading'),
+        matching: find.byType(Column),
+      );
+      final kotak = find.descendant(
+        of: tabelAfter.first,
+        matching: find.byType(TextField),
+      );
+
+      // Baris pertama = titik 1 NTU. Repeat 1 & 3 diisi, Repeat 2 dilewat.
+      await tester.enterText(kotak.at(0), '1,01');
+      await tester.enterText(kotak.at(1), '22.2');
+      await tester.enterText(kotak.at(4), '0,99');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      final measurements =
+          service.payloadTerakhir!['measurements'] as List<dynamic>;
+
+      expect(
+        measurements.map((m) => (m as Map)['titik_ukur']).toList(),
+        [1.0, 100.0, 1000.0],
+      );
+
+      final titik1 = measurements.first as Map<String, dynamic>;
+      expect(titik1['pembacaan'], [1.01, null, 0.99, null, null]);
+      expect(titik1['suhu'], [22.2, null, null, null, null]);
+      expect(titik1['satuan'], 'NTU');
+    });
+
+    testWidgets('sesi baru masuk antrean sebagai Turbidimeter, bukan pH Meter', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await _muat(
+        tester,
+        _app(MockLembarKerjaService(), profil: 'turbidimeter'),
+      );
+
+      await _pilihAlat(tester, alat: 'Turbidimeter Hach · HC-2100Q-114');
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      // Nama sesi di USE_MOCK dulu dipatok 'pH Meter (sesi baru)' — admin yang
+      // nyoba alur turbidimeter offline lihat pH di antrean approval dan nggak
+      // punya cara buat sadar itu salah.
+      expect(
+        MockStore.instance.sesi.first.namaAlat,
+        'Turbidimeter Hach (sesi baru)',
+      );
     });
   });
 }

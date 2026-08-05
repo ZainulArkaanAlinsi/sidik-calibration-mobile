@@ -281,20 +281,25 @@ class _TabelHasil extends StatelessWidget {
                     _sel(context, l10n.sertKolU95, tebal: true),
                   ],
                 ),
+                // Desimal diambil PER BARIS (`b.desimal`) dulu, baru jatuh ke
+                // `desimal` sertifikat. Alat yang resolusinya berubah menurut
+                // rentang (Turbidimeter: 0,01 / 0,1 / 1 NTU) nggak bisa diwakili
+                // satu angka — dipaksa satu, titik 100 NTU kecetak `101,00`,
+                // dua digit yang alatnya nggak bisa tampilkan. Sertifikat lama
+                // yang snapshot-nya belum punya field ini tetap kecetak persis
+                // seperti waktu diterbitkan.
                 for (final b in snapshot.hasil)
                   TableRow(
                     children: [
-                      // Jumlah desimalnya ditentukan backend dari resolusi
-                      // alatnya — jangan dipatok di layar.
-                      _sel(context, b.standardValue.toStringAsFixed(d)),
-                      _sel(context, b.unitUnderTest.toStringAsFixed(d)),
-                      _sel(context, b.correction.toStringAsFixed(d)),
+                      _sel(context, b.standardValue.toStringAsFixed(b.desimalEfektif(d))),
+                      _sel(context, b.unitUnderTest.toStringAsFixed(b.desimalEfektif(d))),
+                      _sel(context, b.correction.toStringAsFixed(b.desimalEfektif(d))),
                       // U95 pakai formatter sendiri: dia dijamin kebaca 2
                       // angka penting, nggak dipaksa ikut desimal alat. Ikut
                       // desimal alat, `0.0234` kecetak `0.02` dan kehilangan
                       // setengah nilainya — dan layar ini dipakai buat
                       // nyocokin sama PDF-nya, jadi dua-duanya harus sama.
-                      _sel(context, formatKetidakpastian(b.u95, d)),
+                      _sel(context, formatKetidakpastian(b.u95, b.desimalEfektif(d))),
                     ],
                   ),
               ],

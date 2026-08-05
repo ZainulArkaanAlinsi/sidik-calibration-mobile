@@ -29,7 +29,10 @@ HasilValidasi _validasi({
   },
 );
 
-Widget _app(MockPerhitunganService service) {
+Widget _app(
+  MockPerhitunganService service, {
+  MockStandardService? standar,
+}) {
   return ProviderScope(
     overrides: [
       tokenStorageProvider.overrideWithValue(
@@ -37,7 +40,9 @@ Widget _app(MockPerhitunganService service) {
       ),
       authServiceProvider.overrideWithValue(MockAuthService()),
       perhitunganServiceProvider.overrideWithValue(service),
-      standardServiceProvider.overrideWithValue(MockStandardService()),
+      standardServiceProvider.overrideWithValue(
+        standar ?? MockStandardService(),
+      ),
     ],
     child: MaterialApp(
       locale: const Locale('id'),
@@ -262,10 +267,15 @@ void main() {
       await tester.tap(find.text('TOLAK'));
       await tester.pumpAndSettle();
 
-      final tombol = tester.widget<FilledButton>(
-        find.widgetWithText(FilledButton, 'KEMBALIKAN KE TEKNISI'),
+      // `NeuButton` matiin tombolnya lewat `InkWell.onTap` null, bukan lewat
+      // widget tombol Material — jadi yang diperiksa InkWell-nya.
+      final tombol = tester.widget<InkWell>(
+        find.ancestor(
+          of: find.text('KEMBALIKAN KE TEKNISI'),
+          matching: find.byType(InkWell),
+        ).first,
       );
-      expect(tombol.onPressed, isNull);
+      expect(tombol.onTap, isNull);
       expect(service.aksi.any((a) => a.$1 == 'tolak'), isFalse);
     });
 
@@ -309,6 +319,88 @@ void main() {
         contains(('tolak', '• Serial number nggak cocok')),
       );
       expect(service.fieldTerakhir, ['alat_serial_number']);
+    });
+
+    /// Kotak "Catatan tambahan" itu satu-satunya kolom ketik di lembar ini,
+    /// jadi keyboard PASTI kebuka di alur normal. Tanpa `viewInsets`, tombol
+    /// KEMBALIKAN KE TEKNISI mendarat di bawah papan ketik: admin ngetik
+    /// alasannya, terus kelihatan nggak ada tombol kirim sama sekali.
+    testWidgets('tombol kirim nggak ketutup keyboard', (tester) async {
+      _perbesarViewport(tester);
+      const tinggiKeyboard = 900.0;
+      tester.view.viewInsets = const FakeViewPadding(bottom: tinggiKeyboard);
+      addTearDown(tester.view.resetViewInsets);
+
+      await _muat(tester, _app(MockPerhitunganService()));
+
+      await tester.tap(find.text('TOLAK'));
+      await tester.pumpAndSettle();
+
+      final tombol = find.ancestor(
+        of: find.text('KEMBALIKAN KE TEKNISI'),
+        matching: find.byType(InkWell),
+      ).first;
+      final batasKeyboard =
+          tester.view.physicalSize.height / tester.view.devicePixelRatio -
+          tinggiKeyboard;
+
+      expect(tester.getRect(tombol).bottom, lessThanOrEqualTo(batasKeyboard));
+    });
+  });
+
+  group('panel admin nggak boleh jadi jalan buntu', () {
+    /// Ini yang paling kejam waktu kejadian: peringatan "Thermohygro belum
+    /// dipilih" tetap nongol, tapi picker buat mbenerinnya LENYAP tanpa
+    /// sepatah kata. Admin dikasih tahu ada yang kurang, lalu kontrolnya
+    /// diumpetin — kebaca kayak app-nya rusak, padahal cuma `GET /standards`
+    /// yang lagi nggak nyaut.
+    testWidgets('standar gagal dimuat → pesan + COBA LAGI, bukan lenyap', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await _muat(
+        tester,
+        _app(
+          MockPerhitunganService(thermohygroBelumDipilih: true),
+          standar: MockStandardService(gagal: true),
+        ),
+      );
+
+      expect(find.text('Gagal memuat standar acuan.'), findsOneWidget);
+      expect(find.text('COBA LAGI'), findsWidgets);
+
+      // Peringatannya tetap ada — yang salah dulu bukan peringatannya, tapi
+      // hilangnya jalan keluar.
+      expect(find.textContaining('Belum dipilih'), findsOneWidget);
+    });
+
+    testWidgets('picker tetap ada waktu standarnya kebaca normal', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await _muat(
+        tester,
+        _app(MockPerhitunganService(thermohygroBelumDipilih: true)),
+      );
+
+      // Kebalikannya: jangan sampai pesan gagal nongol di keadaan sehat.
+      expect(find.text('Gagal memuat standar acuan.'), findsNothing);
+      expect(find.text('Thermohygro used'), findsOneWidget);
+    });
+
+    testWidgets('lembar gagal dimuat → tombol coba lagi, bukan layar kosong', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await _muat(tester, _app(MockPerhitunganService(gagal: true)));
+
+      expect(find.text('Gagal memuat lembar perhitungan.'), findsOneWidget);
+      expect(find.text('COBA LAGI'), findsOneWidget);
+
+      // Bilah aksi nggak boleh ikut kegambar waktu datanya nggak ada — tombol
+      // SETUJUI di atas layar error itu tombol yang nggak tau lagi nyetujuin
+      // apa.
+      expect(find.text('SETUJUI'), findsNothing);
     });
   });
 

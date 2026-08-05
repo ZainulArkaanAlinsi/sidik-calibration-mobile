@@ -4550,6 +4550,12 @@ abstract class AppLocalizations {
   /// **'No equipment available yet.'**
   String get lkAlatKosong;
 
+  /// No description provided for @lkRuanganGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the room list.'**
+  String get lkRuanganGagal;
+
   /// No description provided for @lkBelumPilihAlat.
   ///
   /// In en, this message translates to:

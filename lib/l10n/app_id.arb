@@ -804,6 +804,7 @@
   "lkRetry": "COBA LAGI",
   "lkPilihAlat": "Pilih alat",
   "lkAlatKosong": "Belum ada alat.",
+  "lkRuanganGagal": "Gagal memuat daftar ruangan.",
   "lkBelumPilihAlat": "Pilih alatnya dulu — kolom identitas & pemilik keisi otomatis.",
   "lkOtomatis": "Keisi otomatis",
   "lkKosong": "—",

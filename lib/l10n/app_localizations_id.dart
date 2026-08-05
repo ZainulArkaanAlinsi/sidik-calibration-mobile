@@ -2453,6 +2453,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkAlatKosong => 'Belum ada alat.';
 
   @override
+  String get lkRuanganGagal => 'Gagal memuat daftar ruangan.';
+
+  @override
   String get lkBelumPilihAlat =>
       'Pilih alatnya dulu — kolom identitas & pemilik keisi otomatis.';
 

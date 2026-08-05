@@ -13,7 +13,25 @@ abstract class TokenStorage {
 
 class SecureTokenStorage implements TokenStorage {
   SecureTokenStorage([FlutterSecureStorage? storage])
-    : _storage = storage ?? const FlutterSecureStorage();
+    : _storage = storage ?? const FlutterSecureStorage(mOptions: _macOs);
+
+  /// macOS: JANGAN pakai data protection keychain (default paket = `true`).
+  ///
+  /// Keychain jenis itu mewajibkan entitlement `keychain-access-groups`, dan
+  /// entitlement itu cuma sah kalau app di-sign pakai sertifikat developer
+  /// beneran. Build lokal (`flutter run`/`flutter build macos` tanpa akun
+  /// Apple) itu **adhoc**, `TeamIdentifier=not set` — jadi nulis token selalu
+  /// gagal dengan errSecMissingEntitlement (-34018).
+  ///
+  /// Efeknya sempat nyamar parah: `AsyncValue.guard` di `auth_provider.dart`
+  /// nelen exception-nya dan layar login nampilin "Nggak bisa nyambung ke
+  /// server" — padahal lagi MODE MOCK yang nggak punya server sama sekali.
+  /// Berjam-jam kebuang ngoprek backend, IP, dan adb gara-gara pesan itu.
+  ///
+  /// `false` = keychain klasik, yang nggak nuntut entitlement dan jalan di
+  /// build tanpa sertifikat. Android (Keystore), iOS, & Windows nggak kena
+  /// opsi ini sama sekali — `mOptions` cuma dibaca di macOS.
+  static const _macOs = MacOsOptions(usesDataProtectionKeychain: false);
 
   static const _key = 'auth_token';
 

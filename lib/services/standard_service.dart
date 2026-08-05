@@ -105,7 +105,8 @@ class MockStandardService implements StandardService {
       merk: 'Supelco/Merck',
       serialNumber: 'HC45400338',
       masihBerlaku: true,
-      ketidakpastian: 0.024,
+      // 0,03 ngikut sertifikat aslinya (`kalibrasi-ph-meter.json` di backend).
+      ketidakpastian: 0.03,
       satuanKetidakpastian: 'pH',
       faktorCakupan: 2,
     ),
@@ -115,9 +116,136 @@ class MockStandardService implements StandardService {
       merk: 'Yokogawa/CA 150 Handy Cal',
       serialNumber: '23P1005',
       masihBerlaku: true,
-      ketidakpastian: 0.06,
+      // 0,72 — punya TERMOMETER. Angka lama 0,06 itu punya Sensor Suhu PT100,
+      // alat lain; ketuker waktu mock ini ditulis.
+      ketidakpastian: 0.72,
       satuanKetidakpastian: 'oC',
       faktorCakupan: 2,
+    ),
+    // Tiga larutan turbidity — nama, serial & U95 dari
+    // `Master Data TurbidiMeter_CSV/DATABASE.csv` (Supelco/Merck, U95 0,04 / 3
+    // / 21 NTU, k=2). Id-nya 20/21/22 ngikut yang dirujuk bentuk lembar
+    // turbidimeter; sebelum ini id itu NGGAK ADA isinya, jadi baris STANDARD-nya
+    // ngaku `terdaftar` tapi serial & ketertelusurannya kosong di layar.
+    const Standard(
+      id: 20,
+      nama: 'Turbidity Standard 1 NTU',
+      merk: 'Supelco/Merck',
+      serialNumber: 'LRAD7304',
+      masihBerlaku: true,
+      ketidakpastian: 0.04,
+      satuanKetidakpastian: 'NTU',
+      faktorCakupan: 2,
+    ),
+    const Standard(
+      id: 21,
+      nama: 'Turbidity Standard 100 NTU',
+      merk: 'Supelco/Merck',
+      serialNumber: 'LRAD7305',
+      masihBerlaku: true,
+      ketidakpastian: 3,
+      satuanKetidakpastian: 'NTU',
+      faktorCakupan: 2,
+    ),
+    const Standard(
+      id: 22,
+      nama: 'Turbidity Standard 1000 NTU',
+      merk: 'Supelco/Merck',
+      serialNumber: 'LRAD7089',
+      masihBerlaku: true,
+      ketidakpastian: 21,
+      satuanKetidakpastian: 'NTU',
+      faktorCakupan: 2,
+    ),
+    // Dua larutan chlorine — angka & nama dari `Chlorine_Meter_CSV/DATABASE.csv`
+    // (Supelco/Merck, U95 0,09 & 0,06 mg/L, k=2). Tanpa ini baris STANDARD di
+    // lembar Chlorine nggak ketaut ke master dan kebaca "belum terdaftar".
+    const Standard(
+      id: 30,
+      nama: 'Chlorine Standard Solution 1.74 mg/L',
+      merk: 'Supelco/Merck',
+      serialNumber: 'QC1065-2ML',
+      masihBerlaku: true,
+      ketidakpastian: 0.09,
+      satuanKetidakpastian: 'mg/L',
+      faktorCakupan: 2,
+    ),
+    const Standard(
+      id: 31,
+      nama: 'Chlorine Standar Cuvettes 1.83 mg/L',
+      merk: 'Supelco/Merck',
+      serialNumber: 'LRAD8911',
+      masihBerlaku: true,
+      ketidakpastian: 0.06,
+      satuanKetidakpastian: 'mg/L',
+      faktorCakupan: 2,
+    ),
+    // Unit thermohygro. `parameterKondisi` yang bikin `punyaParameterKondisi`
+    // true — itu satu-satunya saringan yang dipakai picker "Thermohygro used".
+    //
+    // Sebelum ini mock NGGAK punya satu pun, jadi di USE_MOCK kolom Thermohygro
+    // mati total: lembar Turbidimeter & Chlorine nampilin "Belum ada unit
+    // thermohygro terdaftar", dan yang bergantung ke situ (koreksi + U95%
+    // kondisi lingkungan) nggak bisa dicoba offline sama sekali. pH lolos cuma
+    // karena pilihannya di-hardcode di bentuk formulirnya.
+    //
+    // Koreksi & U95-nya dari `DATABASE.csv` baris TH-2 & TH-4 di titik 20 °C /
+    // 50 %RH — titik yang paling dekat sama kondisi lab.
+    const Standard(
+      id: 40,
+      nama: 'TH-2',
+      merk: 'Thermohygrometer',
+      serialNumber: 'TH-2',
+      masihBerlaku: true,
+      ketidakpastian: 1.7,
+      satuanKetidakpastian: 'oC',
+      faktorCakupan: 2,
+      parameterKondisi: {
+        'suhu': {'koreksi': -0.39, 'u95': 1.7},
+        'kelembaban': {'koreksi': -1.0, 'u95': 4.8},
+      },
+    ),
+    const Standard(
+      id: 41,
+      nama: 'TH-4',
+      merk: 'Thermohygrometer',
+      serialNumber: 'TH-4',
+      masihBerlaku: true,
+      ketidakpastian: 1.7,
+      satuanKetidakpastian: 'oC',
+      faktorCakupan: 2,
+      parameterKondisi: {
+        'suhu': {'koreksi': -0.16, 'u95': 1.7},
+        'kelembaban': {'koreksi': -1.96, 'u95': 4.8},
+      },
+    ),
+    const Standard(
+      id: 42,
+      nama: 'TH-6',
+      merk: 'Thermohygrometer',
+      serialNumber: 'TH-6',
+      masihBerlaku: true,
+      ketidakpastian: 1.7,
+      satuanKetidakpastian: 'oC',
+      faktorCakupan: 2,
+      parameterKondisi: {
+        'suhu': {'koreksi': -0.23, 'u95': 1.7},
+        'kelembaban': {'koreksi': -3.17, 'u95': 4.8},
+      },
+    ),
+    const Standard(
+      id: 43,
+      nama: 'TH-7',
+      merk: 'Thermohygrometer',
+      serialNumber: 'TH-7',
+      masihBerlaku: true,
+      ketidakpastian: 1.7,
+      satuanKetidakpastian: 'oC',
+      faktorCakupan: 2,
+      parameterKondisi: {
+        'suhu': {'koreksi': -0.43, 'u95': 1.7},
+        'kelembaban': {'koreksi': -2.55, 'u95': 4.8},
+      },
     ),
   ];
 

@@ -383,6 +383,44 @@ Mobile butuh ini buat isi dropdown kategori + nyiapin worksheet dinamis (kolom t
 >
 > **✅ 18 Jul — `POST`/`PUT`/`DELETE /api/standards` ternyata udah ada** (admin doang, dijaga `role:admin`) — dokumen ini ketinggalan, mobile baru sadar pas ngecek `StandardController.php` langsung. Layar kelola Standar Acuan (list + form CRUD) sekarang ada di app (Profil → Standar Acuan admin), dan field `model` yang sebelumnya kelewat di model mobile sekarang ikut ditangkep.
 
+### `GET /api/calibrations/lembar-kerja?profil=` — bentuk form per JENIS ALAT
+
+> **⚠️ 5 Agt — endpoint ini belum pernah masuk dokumen ini sama sekali.** Bentuknya cuma ada di `docs/permintaan-backend-2026-07-24.md` §1 (24 Jul, cuma pH), dan parameter `profil` **nggak ada di dokumen mana pun** padahal udah kepakai di produksi buat Turbidimeter. Selama cuma 2 jenis alat, itu ketahanan; begitu jadi 5, orang backend nggak punya rujukan.
+
+Balikin **bentuk formulir**, bukan data — mobile mem-parse ini jadi form. Jenis alat yang punya lembar kerja sendiri dipilih lewat query `profil`:
+
+| `profil` | Dokumen | Titik ukur | Satuan |
+|---|---|---|---|
+| `ph_meter` (default) | `SIDIK-FM-CAL-0509_Rev.4` | 4,00 / 7,00 / 10,01 | `pH` |
+| `turbidimeter` | `SIDIK-FM-CAL-0530_Rev.2` | 1 / 100 / 1000 | `NTU` |
+| `chlorine_meter` | `SIDIK-FM-CAL-0531_Rev.2` | 1,74 / 1,83 | `mg/L` |
+
+> **⚠️ Chlorin Meter — lembar cetaknya beda dari lingkup akreditasi, jangan ikut yang dicetak.**
+> `SIDIK-FM-CAL-0531_Rev.2` yang dipegang teknisi nulis `Solution Standard 0.40` & `4.00`, baris STANDARD-nya "Chlorine Std. Solutions 0.4 / 4 mg/l". Tiga sumber yang lebih baru bilang **1,74 & 1,83 mg/L**: lampiran akreditasi LK-285-IDN no. 42 (CMC 0,091 & 0,08), `Chlorine_Meter_CSV/DATABASE.csv` (snapshot 19 Des 2025, standar fisiknya "Chlorine Standard Solution 1.74 mg/L" U95 0,09 & "Chlorine Standar Cuvettes 1.83 mg/L" U95 0,06), dan sesi asli 0189-CAL-624. `FORM_VALIDASI.csv` rev #6 (3 Apr 2024) nyatet set standarnya sempat diubah — lembar cetaknya ketinggalan.
+> **Backend wajib pakai 1,74 & 1,83.** Kalibrasi di titik luar lampiran nggak bisa jadi sertifikat berakreditasi. Diputusin 5 Agt 2026. Kalau lab mau balik ke 0,4/4, yang mesti diurus dulu lampiran akreditasinya, bukan kodenya.
+
+Nama alatnya di lampiran ditulis **"Chlorin Meter"** (tanpa 'e'), di lembar kerja **"Chlorine Meter"**. Mobile ngenalin dua-duanya (`InstrumentPickerScreen.profilUntuk`, cocokinnya case-insensitive) — backend bebas ngirim yang mana pun.
+
+**`profil` kosong / nggak dikenal → JATUH KE pH, jangan `404`.** Mobile masih punya tautan lama yang nggak nempelin query-nya sama sekali (`ApiLembarKerjaService.ambilBentuk`), dan `404` di situ bikin teknisi mendarat di layar "gagal muat" tanpa sebab yang kelihatan.
+
+Field wajib non-null, penyaringan `hanya_admin` per role, dan bentuk `bagian[]` **sama persis** kayak `permintaan-backend-2026-07-24.md` §1 — nggak diulang di sini. Tiga hal yang ditambahin sesudah dokumen itu ditulis:
+
+**1. `bagian[].halaman`** — nomor halaman kertasnya (`1`-based). pH kebagi 2 halaman, Turbidimeter selembar (semua bagian `halaman: 1`). Boleh nggak dikirim: mobile nganggep semuanya halaman 1, form tetap kebentuk.
+
+**2. `tabel.baris[].resolusi` + `baris[].desimal`** — resolusi **PER BARIS**, bukan satu angka buat seluruh tabel:
+```json
+"baris": [
+  {"titik_ukur": 1.0,    "label": "1",    "resolusi": 0.01, "desimal": 2},
+  {"titik_ukur": 100.0,  "label": "100",  "resolusi": 0.1,  "desimal": 1},
+  {"titik_ukur": 1000.0, "label": "1000", "resolusi": 1.0,  "desimal": 0}
+]
+```
+Turbidimeter dibaca sampai 0,01 di bawah 10 NTU tapi bulat di atas 100. **Dipaksa satu angka buat semuanya, titik 100 kecetak `101,00` di sertifikat** — itu cacat angka penting di dokumen berakreditasi, bukan cuma jelek dilihat. `null` = resolusinya seragam (jalur pH); jangan diisi `0` buat "nggak ada".
+
+**3. `bagian[].baris[]` di `usage_check`** — baris STANDARD yang **tercetak di formulir**, bukan katalog standar lab. Baris yang standarnya belum kedaftar di master dikirim dengan `standard_id: null`, `terdaftar: false` — **tetap dikirim**, jangan dibuang. Kalau barisnya hilang, teknisi nggak bakal sadar ada standar yang nggak kecatat.
+
+Nambah jenis alat ke-3: satu profil baru di backend + satu baris di `_profilKhusus` (`lib/screens/calibration/instrument_picker_screen.dart`). Jenis alat yang nggak punya profil tetap lewat form generik, jadi nggak ada yang rusak selama transisi.
+
 ### `POST /api/calibrations`
 Bikin sesi kalibrasi + kirim data mentah sekaligus. **Data dari input manual dan dari hasil scan kamera masuk ke endpoint yang sama persis** — nggak usah bikin endpoint terpisah buat OCR. Bedanya cuma di field `input_method` (buat statistik, bukan buat logic beda).
 

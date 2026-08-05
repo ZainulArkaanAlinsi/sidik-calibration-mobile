@@ -4,6 +4,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/validasi.dart';
+import '../../auth/widgets/neu.dart';
 
 /// Hasil tombol "Periksa" (spesifikasi poin 11).
 ///
@@ -24,11 +25,11 @@ class PanelTemuan extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     if (validasi.temuan.isEmpty) {
-      return Card(
-        color: AppColors.success.withValues(alpha: 0.10),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Row(
+      return NeuRaised(
+        radius: 20,
+        color: AppColors.success.withValues(alpha: 0.12),
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Row(
             children: [
               const Icon(
                 Icons.check_circle_outline,
@@ -42,22 +43,24 @@ class PanelTemuan extends StatelessWidget {
                   style: theme.textTheme.bodySmall,
                 ),
               ),
-            ],
-          ),
+          ],
         ),
       );
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
+    return NeuRaised(
+      radius: 20,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              l10n.perhitTemuanJudul,
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w700,
+              l10n.perhitTemuanJudul.toUpperCase(),
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.8,
+                color: NeuColors.of(context).accent,
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
@@ -69,15 +72,19 @@ class PanelTemuan extends StatelessWidget {
                     _Lencana(tingkat: t, jumlah: validasi.jumlah(t)),
               ],
             ),
-            const Divider(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.sm),
+            Container(
+              height: 1,
+              color: NeuColors.of(context).darkShadow.withValues(alpha: 0.35),
+            ),
+            const SizedBox(height: AppSpacing.sm),
 
             // Diurut dari yang paling berat — yang nahan penerbitan harus
             // kebaca duluan, bukan ketimbun di bawah daftar info.
             for (final tingkat in TingkatTemuan.values)
               for (final temuan in validasi.pada(tingkat))
                 _BarisTemuan(temuan: temuan),
-          ],
-        ),
+        ],
       ),
     );
   }

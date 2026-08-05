@@ -84,12 +84,17 @@ class MockCategoryService implements CategoryService {
     // `instrumen-analitik`, dipakai buat mastiin `InstrumentPickerScreen`
     // nge-dedupe 3 baris pH itu jadi 1 kartu "pH Meter".
     const kemampuanInstrumenAnalitik = [
+      // CMC pH ikut LAMPIRAN AKREDITASI (LK-285-IDN no. 41: 0,023 / 0,021 /
+      // 0,031), bukan hasil hitung satu sesi. Angka lama di sini (0,02343221 /
+      // 0,02110895 / 0,03032720) itu uc hasil hitungan yang kejebak jadi CMC —
+      // backend udah dibenerin di `07078c3`, mobile-nya ketinggalan, jadi kartu
+      // di layar beda dari yang dipakai ngitung sertifikat.
       CalibrationCapability(
         namaAlat: 'pH Meter',
         rangeMin: 4,
         rangeMax: 4,
         satuan: 'pH',
-        ketidakpastianTerbaik: 0.02343221,
+        ketidakpastianTerbaik: 0.023,
         satuanKetidakpastian: 'pH',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0506_Rev.6',
@@ -99,7 +104,7 @@ class MockCategoryService implements CategoryService {
         rangeMin: 7,
         rangeMax: 7,
         satuan: 'pH',
-        ketidakpastianTerbaik: 0.02110895,
+        ketidakpastianTerbaik: 0.021,
         satuanKetidakpastian: 'pH',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0506_Rev.6',
@@ -109,7 +114,7 @@ class MockCategoryService implements CategoryService {
         rangeMin: 10,
         rangeMax: 10,
         satuan: 'pH',
-        ketidakpastianTerbaik: 0.03032720,
+        ketidakpastianTerbaik: 0.031,
         satuanKetidakpastian: 'pH',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0506_Rev.6',
@@ -123,6 +128,32 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: 'µS/cm',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0507_Rev.6',
+      ),
+      // 2 titik Chlorin Meter — angkanya dari lampiran akreditasi LK-285-IDN
+      // no. 42 (`docs/Rekap-Data-Kemampuan-Kalibrasi.md`), dan sama persis sama
+      // `Chlorine_Meter_CSV/DATABASE.csv`. Namanya ditulis "Chlorin" (tanpa
+      // 'e') karena begitu bunyinya di lampiran — backend narik dari situ.
+      // Lembar kerjanya sendiri nulis "Chlorine"; dua-duanya dikenali
+      // `InstrumentPickerScreen.profilUntuk`.
+      CalibrationCapability(
+        namaAlat: 'Chlorin Meter',
+        rangeMin: 1.74,
+        rangeMax: 1.74,
+        satuan: 'mg/L',
+        ketidakpastianTerbaik: 0.091,
+        satuanKetidakpastian: 'mg/L',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0524_Rev.1',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Chlorin Meter',
+        rangeMin: 1.83,
+        rangeMax: 1.83,
+        satuan: 'mg/L',
+        ketidakpastianTerbaik: 0.08,
+        satuanKetidakpastian: 'mg/L',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0524_Rev.1',
       ),
       // 3 titik Turbidimeter (CMC 0,041/3,1/22 NTU) — biar di USE_MOCK kartu
       // "Turbidimeter" muncul & bisa dites offline, nyambung ke profil

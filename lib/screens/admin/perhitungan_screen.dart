@@ -9,6 +9,7 @@ import '../../providers/history_provider.dart';
 import '../../providers/perhitungan_provider.dart';
 import '../../services/perhitungan_service.dart' show HasilApprove;
 import '../../widgets/app_button.dart';
+import '../auth/widgets/neu.dart';
 import 'widgets/lembar_tolak.dart';
 import 'widgets/blok_kondisi.dart';
 import 'widgets/panel_temuan.dart';
@@ -155,8 +156,26 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
     final l10n = AppLocalizations.of(context);
     final async = ref.watch(perhitunganProvider(widget.calibrationId));
 
+    final c = NeuColors.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.perhitTitle)),
+      // Soft-UI, sama kayak Antrean & Login: latar dan isi kartu sewarna,
+      // kedalamannya dari bayangan. Lihat catatan di `NeuColors.base`.
+      backgroundColor: c.base,
+      appBar: AppBar(
+        backgroundColor: c.base,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: c.text),
+        title: Text(
+          l10n.perhitTitle,
+          style: TextStyle(
+            color: c.text,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
+          ),
+        ),
+      ),
       body: switch (async) {
         AsyncData(:final value) => _Isi(
           perhitungan: value,
@@ -238,11 +257,16 @@ class _Isi extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.md),
 
-        Text(
-          l10n.perhitHasil,
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: Theme.of(context).colorScheme.primary,
+        Padding(
+          padding: const EdgeInsets.only(left: AppSpacing.xs),
+          child: Text(
+            l10n.perhitHasil.toUpperCase(),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.8,
+              color: NeuColors.of(context).accent,
+            ),
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -254,27 +278,29 @@ class _Isi extends StatelessWidget {
         // sebagai dua blok dengan jarak lebar, di layar sempit yang kedua
         // jatuh di luar layar dan kelihatan kayak halaman lain; padahal
         // membandingkan dua tabel itu justru gunanya lembar ini.
-        Card(
-          margin: EdgeInsets.zero,
-          clipBehavior: Clip.antiAlias,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.sm,
-              vertical: AppSpacing.md,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final (i, tabel) in perhitungan.hasil.indexed) ...[
-                  if (i > 0) ...[
-                    const SizedBox(height: AppSpacing.md),
-                    const Divider(height: 1),
-                    const SizedBox(height: AppSpacing.md),
-                  ],
-                  TabelPerhitunganWidget(tabel: tabel),
+        NeuRaised(
+          radius: 20,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm,
+            vertical: AppSpacing.md,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final (i, tabel) in perhitungan.hasil.indexed) ...[
+                if (i > 0) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  Container(
+                    height: 1,
+                    color: NeuColors.of(
+                      context,
+                    ).darkShadow.withValues(alpha: 0.35),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
                 ],
+                TabelPerhitunganWidget(tabel: tabel),
               ],
-            ),
+            ],
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
@@ -309,46 +335,59 @@ class _Blok extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final c = NeuColors.of(context);
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              judul,
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: theme.colorScheme.primary,
-              ),
+    return NeuRaised(
+      radius: 20,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            judul.toUpperCase(),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.8,
+              color: c.accent,
             ),
-            const Divider(height: AppSpacing.lg),
-            for (final (label, nilai) in baris)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 128,
-                      child: Text(label, style: theme.textTheme.bodySmall),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          // Garis tipis dari bayangan gelap, bukan Divider Material — biar
+          // pemisahnya nyatu sama permukaan soft-UI, nggak kayak garis nempel.
+          Container(height: 1, color: c.darkShadow.withValues(alpha: 0.35)),
+          const SizedBox(height: AppSpacing.sm),
+          for (final (label, nilai) in baris)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.xs + 2),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 128,
+                    child: Text(
+                      label,
+                      style: TextStyle(fontSize: 12, color: c.textMuted),
                     ),
-                    Text(': ', style: theme.textTheme.bodySmall),
-                    Expanded(
-                      child: Text(
-                        // Strip, bukan kosong: kolom yang belum diisi harus
-                        // kelihatan belum diisi.
-                        (nilai == null || nilai.isEmpty) ? '—' : nilai,
-                        style: theme.textTheme.bodyMedium,
+                  ),
+                  Expanded(
+                    child: Text(
+                      // Strip, bukan kosong: kolom yang belum diisi harus
+                      // kelihatan belum diisi.
+                      (nilai == null || nilai.isEmpty) ? '—' : nilai,
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: (nilai == null || nilai.isEmpty)
+                            ? c.textMuted
+                            : c.text,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
@@ -361,26 +400,23 @@ class _Catatan extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final c = NeuColors.of(context);
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(
-          Icons.info_outline,
-          size: 14,
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: Text(
-            teks,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, size: 14, color: c.textMuted),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              teks,
+              style: TextStyle(fontSize: 11.5, height: 1.45, color: c.textMuted),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -403,16 +439,33 @@ class _BilahAksi extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
 
     // Temuan fatal nahan approve TANPA SYARAT — tombolnya dimatiin, bukan
     // cuma dikasih peringatan. Peringatan (kuning) beda: tombolnya tetap
     // hidup, tapi server bakal minta konfirmasi sekali.
     final diblokir = validasi != null && !validasi!.bolehTerbit;
 
-    return Material(
-      elevation: 8,
-      color: theme.colorScheme.surface,
+    final c = NeuColors.of(context);
+
+    // Bilah aksi ini yang menerbitkan sertifikat, jadi sengaja TIDAK ikut
+    // ditenggelamkan jadi permukaan sewarna: dia diberi latar sedikit terangkat
+    // + garis pemisah, biar batas antara "isi yang dibaca" dan "tombol yang
+    // mengubah keadaan" tetap tegas. Tombol paling merusak kalau ketekan tanpa
+    // sadar itu Setujui.
+    return Container(
+      decoration: BoxDecoration(
+        color: c.base,
+        border: Border(
+          top: BorderSide(color: c.darkShadow.withValues(alpha: 0.5)),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: c.darkShadow.withValues(alpha: 0.45),
+            offset: const Offset(0, -4),
+            blurRadius: 14,
+          ),
+        ],
+      ),
       child: SafeArea(
         top: false,
         child: Padding(
@@ -423,9 +476,12 @@ class _BilahAksi extends StatelessWidget {
               if (diblokir) ...[
                 Text(
                   l10n.perhitApproveDiblokir,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.error,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: c.danger,
                   ),
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: AppSpacing.sm),
               ],
@@ -466,52 +522,10 @@ class _BilahAksi extends StatelessWidget {
   }
 }
 
-class _DialogTolak extends StatefulWidget {
-  const _DialogTolak();
-
-  @override
-  State<_DialogTolak> createState() => _DialogTolakState();
-}
-
-class _DialogTolakState extends State<_DialogTolak> {
-  final _controller = TextEditingController();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
-    return AlertDialog(
-      title: Text(l10n.perhitTolakJudul),
-      content: TextField(
-        controller: _controller,
-        autofocus: true,
-        maxLines: 4,
-        decoration: InputDecoration(
-          labelText: l10n.perhitTolakLabel,
-          border: const OutlineInputBorder(),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(l10n.perhitKonfirmasiBatal),
-        ),
-        TextButton(
-          onPressed: () =>
-              Navigator.of(context).pop(_controller.text.trim()),
-          child: Text(l10n.perhitTolakKirim),
-        ),
-      ],
-    );
-  }
-}
-
+/// Gagal muat. Sengaja soft-UI persis kayak `_Gagal` di Antrean Approval —
+/// layar ini latarnya `c.base`, jadi kartu error ber-`colorScheme.error` +
+/// tombol Material polos kelihatan nempel dari aplikasi lain. Itu justru layar
+/// yang paling sering dilihat waktu backend lagi ngadat.
 class _Gagal extends StatelessWidget {
   const _Gagal({required this.onCobaLagi});
 
@@ -519,31 +533,32 @@ class _Gagal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final c = NeuColors.of(context);
     final l10n = AppLocalizations.of(context);
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.xl),
       children: [
         const SizedBox(height: AppSpacing.xl),
-        Icon(
-          Icons.cloud_off_outlined,
-          size: 56,
-          color: theme.colorScheme.error,
+        Center(
+          child: NeuRaised(
+            circle: true,
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Icon(Icons.cloud_off_outlined, size: 44, color: c.danger),
+          ),
         ),
-        const SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.lg),
         Text(
           l10n.perhitGagal,
           textAlign: TextAlign.center,
-          style: theme.textTheme.titleMedium,
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: c.text,
+          ),
         ),
         const SizedBox(height: AppSpacing.lg),
-        AppButton(
-          label: l10n.folderRetry,
-          icon: Icons.refresh,
-          variant: AppButtonVariant.secondary,
-          onPressed: onCobaLagi,
-        ),
+        NeuButton(label: l10n.folderRetry, onPressed: onCobaLagi),
       ],
     );
   }
