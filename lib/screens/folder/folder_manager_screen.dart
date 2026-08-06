@@ -11,6 +11,8 @@ import '../../providers/folder_provider.dart';
 import '../../providers/history_provider.dart' show pdfDownloaderProvider;
 import '../../services/buka_berkas.dart';
 import '../../services/pdf_downloader.dart' show PdfDownloadException;
+import '../../widgets/glass_surface.dart';
+import '../history/calibration_detail_screen.dart';
 import '../history/kirim_email_screen.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/notification_bell.dart';
@@ -455,6 +457,19 @@ class _KartuFileState extends ConsumerState<_KartuFile> {
     }
   }
 
+  /// Lembar kerja nggak punya berkas buat diunduh — backend sengaja ngirim
+  /// `download_url: null` (lihat `FolderFileResource`). Tanpa ini barisnya
+  /// mati total: nggak bisa diunduh DAN nggak nganterin ke mana-mana.
+  void _bukaSesi() {
+    final id = file.calibrationSessionId;
+    if (id == null) return;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => CalibrationDetailScreen(calibrationId: id),
+      ),
+    );
+  }
+
   void _bagikan() {
     final id = file.sertifikatId;
     final nomor = file.sertifikatNomor;
@@ -486,64 +501,101 @@ class _KartuFileState extends ConsumerState<_KartuFile> {
     final bisaDibuka = !belumSiap && file.downloadUrl.isNotEmpty;
     final bisaDibagikan = file.sertifikatId != null && !belumSiap;
 
-    return Card(
-      child: ListTile(
-        // Ditekan = buka. Ini yang dulu nggak ada sama sekali, dan bikin
-        // seluruh daftar berkas kelihatan mati.
-        onTap: bisaDibuka ? _buka : null,
-        enabled: bisaDibuka,
-        leading: _sibuk
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : Icon(
-                file.dariSertifikat
-                    ? Icons.workspace_premium_outlined
-                    : Icons.insert_drive_file_outlined,
-                color: belumSiap
-                    ? theme.colorScheme.outline
-                    : theme.colorScheme.secondary,
-              ),
-        title: Text(file.nama, overflow: TextOverflow.ellipsis),
-        subtitle: Text(
-          belumSiap ? l10n.folderSertifikatBelumSiap : rincian,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: belumSiap ? theme.colorScheme.error : null,
+    // Lembar kerja nggak punya berkas buat diunduh (backend sengaja ngirim
+    // `download_url: null`), tapi punya sesi — jadi barisnya nganterin ke
+    // detail sesinya. Sebelum ini baris lembar kerja mati total.
+    final aksiUtama = bisaDibuka
+        ? _buka
+        : (file.calibrationSessionId != null ? _bukaSesi : null);
+
+    // Gaya disamain sama layar Login & Arsip (`SoftRaised`), bukan Card +
+    // ListTile bawaan Material — layar ini satu-satunya yang kelihatan beda
+    // sendiri di seluruh app.
+    return SoftRaised(
+      radius: AppSpacing.radiusLg,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      onTap: aksiUtama,
+      child: Row(
+        children: [
+          SizedBox(
+            width: 32,
+            height: 32,
+            child: _sibuk
+                ? const Center(
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                : Icon(
+                    file.dariSertifikat
+                        ? Icons.workspace_premium_outlined
+                        : Icons.insert_drive_file_outlined,
+                    color: belumSiap
+                        ? theme.colorScheme.outline
+                        : theme.colorScheme.secondary,
+                  ),
           ),
-        ),
-        // Menu cuma dimunculkan kalau ada yang bisa dilakukan — daripada
-        // ngasih tombol yang ditekan lalu diam, persis masalah yang lagi
-        // dibenerin di sini.
-        trailing: (bisaDibuka || bisaDibagikan)
-            ? PopupMenuButton<String>(
-                enabled: !_sibuk,
-                onSelected: (v) => v == 'buka' ? _buka() : _bagikan(),
-                itemBuilder: (_) => [
-                  if (bisaDibuka)
-                    PopupMenuItem(
-                      value: 'buka',
-                      child: ListTile(
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.open_in_new),
-                        title: Text(l10n.folderBukaBerkas),
-                      ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  file.nama,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (belumSiap || rincian.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    belumSiap ? l10n.folderSertifikatBelumSiap : rincian,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: belumSiap
+                          ? theme.colorScheme.error
+                          : theme.colorScheme.onSurfaceVariant,
                     ),
-                  if (bisaDibagikan)
-                    PopupMenuItem(
-                      value: 'bagikan',
-                      child: ListTile(
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.share_outlined),
-                        title: Text(l10n.folderBagikanBerkas),
-                      ),
-                    ),
+                  ),
                 ],
-              )
-            : null,
+              ],
+            ),
+          ),
+          // Menu cuma dimunculkan kalau ada yang bisa dilakukan — daripada
+          // ngasih tombol yang ditekan lalu diam, persis masalah yang lagi
+          // dibenerin di sini.
+          if (bisaDibuka || bisaDibagikan)
+            PopupMenuButton<String>(
+              enabled: !_sibuk,
+              onSelected: (v) => v == 'buka' ? _buka() : _bagikan(),
+              itemBuilder: (_) => [
+                if (bisaDibuka)
+                  PopupMenuItem(
+                    value: 'buka',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.open_in_new),
+                      title: Text(l10n.folderBukaBerkas),
+                    ),
+                  ),
+                if (bisaDibagikan)
+                  PopupMenuItem(
+                    value: 'bagikan',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.share_outlined),
+                      title: Text(l10n.folderBagikanBerkas),
+                    ),
+                  ),
+              ],
+            )
+          else if (aksiUtama != null)
+            const Icon(Icons.chevron_right),
+        ],
       ),
     );
   }

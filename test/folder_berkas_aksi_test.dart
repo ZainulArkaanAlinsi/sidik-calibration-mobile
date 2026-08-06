@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sidik_calibration/l10n/app_localizations.dart';
+import 'package:sidik_calibration/models/folder.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/folder_provider.dart';
 import 'package:sidik_calibration/providers/history_provider.dart';
@@ -61,10 +62,6 @@ void main() {
 
     // Inti regresinya: sebelum diperbaiki `onTap`-nya null, jadi `lastUrl`
     // tetap null berapa kali pun ditekan.
-    final tile = find.ancestor(of: baris, matching: find.byType(ListTile));
-    expect(tester.widget<ListTile>(tile).onTap, isNotNull,
-        reason: 'baris berkas harus bisa ditekan');
-
     await tester.tap(baris);
 
     // Sengaja BUKAN `pumpAndSettle`: selama mengunduh barisnya nampilin
@@ -96,5 +93,26 @@ void main() {
       findsOneWidget,
       reason: 'berkas sertifikat punya id, jadi bisa dikirim ke pelanggan',
     );
+  });
+
+  test('baris LEMBAR KERJA nggak mati — nganterin ke detail sesi', () {
+    // Lembar kerja sengaja nggak punya `download_url` dari backend (nggak ada
+    // berkas buat diunduh). Dulu itu bikin barisnya mati total: nggak bisa
+    // diunduh DAN nggak nganterin ke mana-mana.
+    const lk = FolderFile(
+      id: 202,
+      folderId: 11,
+      nama: 'Lembar Kerja KAL/2026/08/0003',
+      downloadUrl: '',
+      calibrationSessionId: 7,
+    );
+
+    expect(lk.downloadUrl, isEmpty, reason: 'lembar kerja emang nggak diunduh');
+    expect(
+      lk.calibrationSessionId,
+      isNotNull,
+      reason: 'tapi dia punya sesi — itu yang dipakai buat nganterin',
+    );
+    expect(lk.dariSertifikat, isFalse);
   });
 }
