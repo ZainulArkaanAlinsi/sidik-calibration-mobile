@@ -176,6 +176,18 @@ class LembarKerjaState {
   /// Keyed by nilai larutan standar (4.00 / 7.00 / 10.01).
   final Map<double, TitikState> titik = {};
 
+  /// Ada minimal satu sel yang pernah diisi hasil **foto tabel (AI Vision)**,
+  /// walau sesudah itu dibetulin manual teknisi.
+  ///
+  /// Dipakai buat `input_method` yang dikirim ke backend. Dulu kolom itu dipatok
+  /// `manual` terus, jadi sesi yang tabelnya dibaca AI kecatat sama persis kayak
+  /// yang diketik tangan. Waktu ada angka sertifikat yang kelihatan aneh, nggak
+  /// ada satu pun cara buat tahu angka itu datang dari mana — 6 Agt 2026 mesti
+  /// ngubek log server buat mastiin satu sesi chlorine bukan hasil salah baca
+  /// AI. Backend udah nerima `manual|ocr|ai_vision` sejak awal
+  /// (`CalibrationRequest`), cuma nggak pernah dikasih tahu.
+  bool adaIsianDariFoto = false;
+
   /// Sel yang diisi AI dengan **keyakinan rendah** — ditandai di layar biar
   /// teknisi ngecek angka itu saja, bukan seluruh tabel (spec vision §4.1).
   /// Kuncinya [kunciSel]. Dibersihin kalau selnya diisi ulang dengan keyakinan
@@ -338,6 +350,9 @@ class LembarKerjaState {
           .map((u) => u.toSubmission())
           .toList(),
       measurements: measurements,
+      inputMethod: adaIsianDariFoto
+          ? MetodeInput.aiVision
+          : MetodeInput.manual,
     );
   }
 
@@ -366,6 +381,7 @@ class LembarKerjaState {
   int terapkanHasilEkstraksi(HasilEkstraksiTabel hasil, {required String tahap}) {
     final urut = titikUrut;
     var terisi = 0;
+    adaIsianDariFoto = true;
 
     for (var pengulangan = 0; pengulangan < hasil.baris.length; pengulangan++) {
       final baris = hasil.baris[pengulangan];

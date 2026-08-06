@@ -57,6 +57,23 @@ class TitikLembarKerja {
   };
 }
 
+/// Dari mana angka di lembar kerja ini datang — nilainya persis yang diterima
+/// backend (`CalibrationRequest`: `manual|ocr|ai_vision`).
+///
+/// Ini catatan asal-usul, bukan hiasan: kalau ada angka sertifikat yang
+/// kelihatan meleset, pertanyaan pertamanya selalu "ini diketik teknisi atau
+/// hasil baca AI?". Sebelum ini semua sesi kecatat `manual`, termasuk yang
+/// tabelnya diisi dari foto — jawabannya cuma bisa dicari di log server, dan
+/// log-nya nggak selamanya ada.
+enum MetodeInput {
+  manual('manual'),
+  aiVision('ai_vision');
+
+  const MetodeInput(this.api);
+
+  final String api;
+}
+
 /// Satu baris "Usage Check": standar mana yang dicentang teknisi.
 class StandarDicek {
   const StandarDicek({
@@ -108,6 +125,7 @@ class LembarKerjaSubmission {
     this.standarDicek = const [],
     this.measurements = const [],
     this.sertakanMeasurements = true,
+    this.inputMethod = MetodeInput.manual,
   });
 
   final int equipmentId;
@@ -157,6 +175,10 @@ class LembarKerjaSubmission {
   /// lingkungan di draft yang tabelnya udah keisi.
   final bool sertakanMeasurements;
 
+  /// Lihat [MetodeInput]. Bawaannya `manual` — sesi yang tabelnya nggak pernah
+  /// disentuh foto tetap kecatat sama kayak sebelumnya.
+  final MetodeInput inputMethod;
+
   static String _tanggal(DateTime d) =>
       '${d.year.toString().padLeft(4, '0')}-'
       '${d.month.toString().padLeft(2, '0')}-'
@@ -165,7 +187,7 @@ class LembarKerjaSubmission {
   Map<String, dynamic> toJson() => {
     'equipment_id': equipmentId,
     'client_request_id': clientRequestId,
-    'input_method': 'manual',
+    'input_method': inputMethod.api,
     'lokasi': lokasi.toApi(),
     'status': simpanSebagaiDraft ? 'draft' : 'menunggu_approval',
 
