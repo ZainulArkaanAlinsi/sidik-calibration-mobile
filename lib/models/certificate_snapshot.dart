@@ -73,6 +73,7 @@ class BarisHasilSertifikat {
     required this.correction,
     required this.u95,
     this.desimal,
+    this.remark,
   });
 
   final int titikKe;
@@ -102,6 +103,15 @@ class BarisHasilSertifikat {
 
   final double u95;
 
+  /// Kolom "Remark" di sertifikat cetak. `null` buat alat yang nggak punya —
+  /// dan waktu SEMUA baris null, kolomnya nggak dirender sama sekali (sama
+  /// kayak `pdf.blade.php`), bukan dirender berisi strip.
+  ///
+  /// Chlorine butuh ini: dua titiknya parameter yang BEDA (Free Chlorine vs
+  /// Total Chlorine), bukan dua level di besaran yang sama. Tanpa kolom ini
+  /// pembacanya nggak bisa tahu baris mana yang mana.
+  final String? remark;
+
   factory BarisHasilSertifikat.fromJson(Map<String, dynamic> json) =>
       BarisHasilSertifikat(
         titikKe: (json['titik_ke'] as num?)?.toInt() ?? 0,
@@ -110,6 +120,10 @@ class BarisHasilSertifikat {
         correction: (json['correction'] as num?)?.toDouble() ?? 0,
         u95: (json['u95'] as num?)?.toDouble() ?? 0,
         desimal: (json['desimal'] as num?)?.toInt(),
+        remark: switch (json['remark']) {
+          final String s when s.trim().isNotEmpty => s.trim(),
+          _ => null,
+        },
       );
 }
 
@@ -186,6 +200,11 @@ class CertificateSnapshot {
   final String? keputusan;
 
   bool get gagal => keputusan == 'FAIL';
+
+  /// Kolom Remark cuma dirender kalau ADA yang ngisi — sama aturannya kayak
+  /// `pdf.blade.php`, biar tabel di layar dan di PDF punya jumlah kolom yang
+  /// sama buat sertifikat yang sama.
+  bool get adaRemark => hasil.any((b) => b.remark != null);
 
   factory CertificateSnapshot.fromJson(Map<String, dynamic> json) {
     final meta = json['meta'] as Map<String, dynamic>? ?? const {};

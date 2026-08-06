@@ -5582,6 +5582,12 @@ abstract class AppLocalizations {
   /// **'U95% (±)'**
   String get sertKolU95;
 
+  /// No description provided for @sertKolRemark.
+  ///
+  /// In en, this message translates to:
+  /// **'Remark'**
+  String get sertKolRemark;
+
   /// No description provided for @sertStandarJudul.
   ///
   /// In en, this message translates to:

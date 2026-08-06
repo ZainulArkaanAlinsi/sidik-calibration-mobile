@@ -47,6 +47,50 @@ String formatNilai(double nilai, {int desimalMin = 0, int desimalMaks = 8}) {
   return teks;
 }
 
+/// Format angka **persis kayak yang dicetak di sertifikat**: desimal tetap,
+/// koma sebagai pemisah desimal, titik sebagai pemisah ribuan.
+///
+/// Padanan `App\Support\Angka::id()` di backend, yang dipakai
+/// `sertifikat/pdf.blade.php` buat SEMUA kolom tabel hasil — termasuk U95.
+///
+/// ```
+/// formatSertifikat(1.758, 2)   ->  "1,76"
+/// formatSertifikat(0.091, 2)   ->  "0,09"
+/// formatSertifikat(-0.018, 2)  ->  "-0,02"
+/// formatSertifikat(1234.5, 1)  ->  "1.234,5"
+/// ```
+///
+/// **Jangan dipakai di luar layar sertifikat.** Lembar perhitungan pakai
+/// [formatNilai] (separator titik, nol belakang dipertahankan) karena angkanya
+/// masih dipakai buat ngitung dan diketik ulang, bukan buat dicetak.
+String formatSertifikat(double nilai, int desimal) {
+  if (!nilai.isFinite) return '$nilai';
+
+  final d = desimal.clamp(0, 8);
+  final teks = nilai.toStringAsFixed(d);
+  final negatif = teks.startsWith('-');
+  final tanpaTanda = negatif ? teks.substring(1) : teks;
+
+  final titik = tanpaTanda.indexOf('.');
+  final bulat = titik == -1 ? tanpaTanda : tanpaTanda.substring(0, titik);
+  final pecahan = titik == -1 ? '' : tanpaTanda.substring(titik + 1);
+
+  // Ribuan dikelompokin dari kanan: "1234567" -> "1.234.567".
+  final buf = StringBuffer();
+  for (var i = 0; i < bulat.length; i++) {
+    if (i > 0 && (bulat.length - i) % 3 == 0) buf.write('.');
+    buf.write(bulat[i]);
+  }
+
+  final hasil = pecahan.isEmpty ? buf.toString() : '${buf.toString()},$pecahan';
+
+  // `-0,00` itu hasil pembulatan nilai negatif kecil. Ditulis apa adanya bikin
+  // orang ngira ada koreksi negatif padahal nol — tandanya dibuang.
+  if (negatif && double.parse(teks) == 0) return hasil;
+
+  return negatif ? '-$hasil' : hasil;
+}
+
 /// Format ketidakpastian (U95) — dijamin kebaca **2 angka penting**.
 ///
 /// Kolom hasil lain dicetak sebanyak desimal alatnya (resolusi 0,01 → 2
@@ -72,8 +116,18 @@ String formatNilai(double nilai, {int desimalMin = 0, int desimalMaks = 8}) {
 /// 0,00234 desimal 3  ->  "0.0023"
 /// ```
 ///
-/// Padanan `App\Support\Angka::ketidakpastian()` di backend — dua-duanya harus
-/// keluar angka yang sama, karena layar ini dipakai buat nyocokin sama PDF-nya.
+/// ## BUKAN aturan yang dipakai sertifikat (per 6 Agt 2026)
+///
+/// Sertifikat lab ini nulis U95 sebanyak desimal alatnya, sama kayak kolom
+/// lain — `0,091` dicetak `0,09`. Itu yang ada di sertifikat asli lab dan yang
+/// sekarang dipakai PDF, Excel, sama pratinjau di app: [formatSertifikat].
+///
+/// Fungsi ini disimpan buat kalau lab balik ke aturan 2-angka-penting (yang
+/// lazim di GUM), TAPI jangan dipakai di layar sertifikat: bikin angka layar
+/// beda dari PDF, dan itu persis bug yang dilaporin 6 Agt.
+///
+/// Padanannya di backend `App\Support\Angka::ketidakpastian()`, sama-sama nggak
+/// kepakai sekarang.
 String formatKetidakpastian(double nilai, int desimalAlat) {
   final besar = nilai.abs();
 

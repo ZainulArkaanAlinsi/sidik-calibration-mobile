@@ -266,11 +266,12 @@ class _TabelHasil extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             Table(
-              columnWidths: const {
-                0: FlexColumnWidth(1.1),
-                1: FlexColumnWidth(1.1),
-                2: FlexColumnWidth(1),
-                3: FlexColumnWidth(1),
+              columnWidths: {
+                0: const FlexColumnWidth(1.1),
+                1: const FlexColumnWidth(1.1),
+                2: const FlexColumnWidth(1),
+                3: const FlexColumnWidth(1),
+                if (snapshot.adaRemark) 4: const FlexColumnWidth(1.3),
               },
               children: [
                 TableRow(
@@ -279,6 +280,8 @@ class _TabelHasil extends StatelessWidget {
                     _sel(context, l10n.sertKolUut, tebal: true),
                     _sel(context, l10n.sertKolCorrection, tebal: true),
                     _sel(context, l10n.sertKolU95, tebal: true),
+                    if (snapshot.adaRemark)
+                      _sel(context, l10n.sertKolRemark, tebal: true),
                   ],
                 ),
                 // Desimal diambil PER BARIS (`b.desimal`) dulu, baru jatuh ke
@@ -288,18 +291,24 @@ class _TabelHasil extends StatelessWidget {
                 // dua digit yang alatnya nggak bisa tampilkan. Sertifikat lama
                 // yang snapshot-nya belum punya field ini tetap kecetak persis
                 // seperti waktu diterbitkan.
+                // KEEMPAT kolom pakai formatter yang sama persis dengan
+                // `pdf.blade.php` (`Angka::id`) — desimal tetap, koma sebagai
+                // pemisah. Layar ini dipakai buat nyocokin sama PDF sebelum
+                // dikirim ke pelanggan, jadi beda sedikit pun bikin orang ragu
+                // mana yang resmi.
+                //
+                // Dulu U95 dicetak pakai aturan 2-angka-penting, jadi layar
+                // nulis `0.091` sementara PDF nulis `0,09` buat sertifikat yang
+                // sama. Lihat [formatKetidakpastian] soal kenapa aturan itu
+                // nggak dipakai lagi di sini.
                 for (final b in snapshot.hasil)
                   TableRow(
                     children: [
-                      _sel(context, b.standardValue.toStringAsFixed(b.desimalEfektif(d))),
-                      _sel(context, b.unitUnderTest.toStringAsFixed(b.desimalEfektif(d))),
-                      _sel(context, b.correction.toStringAsFixed(b.desimalEfektif(d))),
-                      // U95 pakai formatter sendiri: dia dijamin kebaca 2
-                      // angka penting, nggak dipaksa ikut desimal alat. Ikut
-                      // desimal alat, `0.0234` kecetak `0.02` dan kehilangan
-                      // setengah nilainya — dan layar ini dipakai buat
-                      // nyocokin sama PDF-nya, jadi dua-duanya harus sama.
-                      _sel(context, formatKetidakpastian(b.u95, b.desimalEfektif(d))),
+                      _sel(context, formatSertifikat(b.standardValue, b.desimalEfektif(d))),
+                      _sel(context, formatSertifikat(b.unitUnderTest, b.desimalEfektif(d))),
+                      _sel(context, formatSertifikat(b.correction, b.desimalEfektif(d))),
+                      _sel(context, formatSertifikat(b.u95, b.desimalEfektif(d))),
+                      if (snapshot.adaRemark) _sel(context, b.remark ?? '—'),
                     ],
                   ),
               ],

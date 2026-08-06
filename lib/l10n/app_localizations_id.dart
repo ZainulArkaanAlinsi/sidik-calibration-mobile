@@ -3015,6 +3015,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get sertKolU95 => 'U95% (±)';
 
   @override
+  String get sertKolRemark => 'Remark';
+
+  @override
   String get sertStandarJudul => 'Standar yang Digunakan';
 
   @override
