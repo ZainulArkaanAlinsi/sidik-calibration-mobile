@@ -1346,6 +1346,111 @@ void _testTurbidimeter() {
       expect(titik1['satuan'], 'NTU');
     });
 
+    /// Dua tabel diisi PENUH pakai angka master — yang dijaga di sini pemetaan
+    /// baris & tahap, bukan "angka bisa masuk".
+    ///
+    /// Turbidimeter paling rawan dari tiga alat: tiga titik yang skalanya beda
+    /// jauh (1 / 100 / 1.000 NTU) dengan resolusi beda-beda (0,01 / 0,1 / 1).
+    /// Kalau angkanya nyasar baris, `1.001` yang mendarat di baris 100 NTU tetap
+    /// kelihatan wajar — nggak ada yang error, dan ketahuannya baru waktu
+    /// pelanggan mbandingin sertifikat sama kertas lab.
+    ///
+    /// Before & After sengaja dikasih angka BEDA (99,8 vs 100 · 999 vs 1.000),
+    /// beda dari lembar Chlorine yang dua tabelnya kembar. Itu yang bikin
+    /// kebocoran antar-tahap kelihatan: kalau tabel Before nulis ke kolom
+    /// After, angkanya langsung nggak cocok.
+    testWidgets('tiga titik keisi penuh: baris & tahapnya nggak ketuker', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'turbidimeter'));
+
+      await _pilihAlat(tester, alat: 'Turbidimeter Hach · HC-2100Q-114');
+
+      // Angka master `Master Data TurbidiMeter_CSV/INPUT_DATA.csv`:
+      // Before baris 38–42, After baris 47–51. Rata-rata After-nya yang jadi
+      // Unit Under Test di sertifikat asli: 1,004 · 100,02 · 1.000,6.
+      const after = [
+        ['1', '1', '1', '1', '1,02'],
+        ['100', '100', '100', '100', '100,1'],
+        ['1000', '1000', '1001', '1001', '1001'],
+      ];
+      const before = [
+        ['1', '1', '1', '1', '1'],
+        ['99,8', '99,8', '99,8', '99,8', '99,8'],
+        ['999', '999', '999', '999', '999'],
+      ];
+      const suhu = ['23,3', '23,4', '23,4'];
+
+      Finder kotakTabel(String judul) => find.descendant(
+        of: find
+            .ancestor(of: find.text(judul), matching: find.byType(Column))
+            .first,
+        matching: find.byType(TextField),
+      );
+
+      // Satu baris = 5 Repeat × 2 kotak (NTU, °C); baris urut 1 → 100 → 1000.
+      for (var titik = 0; titik < 3; titik++) {
+        for (var r = 0; r < 5; r++) {
+          final sel = titik * 10 + r * 2;
+          await tester.enterText(
+            kotakTabel('After adjustment Reading').at(sel),
+            after[titik][r],
+          );
+          await tester.enterText(
+            kotakTabel('After adjustment Reading').at(sel + 1),
+            suhu[titik],
+          );
+          await tester.enterText(
+            kotakTabel('Before adjustment Reading').at(sel),
+            before[titik][r],
+          );
+          await tester.enterText(
+            kotakTabel('Before adjustment Reading').at(sel + 1),
+            suhu[titik],
+          );
+        }
+      }
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      final measurements =
+          service.payloadTerakhir!['measurements'] as List<dynamic>;
+
+      expect(
+        measurements.map((m) => (m as Map)['titik_ukur']).toList(),
+        [1.0, 100.0, 1000.0],
+      );
+
+      final titik1 = measurements[0] as Map<String, dynamic>;
+      final titik100 = measurements[1] as Map<String, dynamic>;
+      final titik1000 = measurements[2] as Map<String, dynamic>;
+
+      expect(titik1['pembacaan'], [1.0, 1.0, 1.0, 1.0, 1.02]);
+      expect(titik100['pembacaan'], [100.0, 100.0, 100.0, 100.0, 100.1]);
+      expect(titik1000['pembacaan'], [1000.0, 1000.0, 1001.0, 1001.0, 1001.0]);
+
+      expect(titik1['pembacaan_sebelum'], [1.0, 1.0, 1.0, 1.0, 1.0]);
+      expect(titik100['pembacaan_sebelum'], [99.8, 99.8, 99.8, 99.8, 99.8]);
+      expect(titik1000['pembacaan_sebelum'], [999.0, 999.0, 999.0, 999.0, 999.0]);
+
+      expect(titik1['suhu'], [23.3, 23.3, 23.3, 23.3, 23.3]);
+      expect(titik100['suhu_sebelum'], [23.4, 23.4, 23.4, 23.4, 23.4]);
+
+      // Rata-rata After inilah yang jadi Unit Under Test di sertifikat. Dihitung
+      // backend, tapi kalau angkanya udah nyasar dari sini, hitungan sebener
+      // apa pun nggak nolong — jadi dicek di sisi ini juga.
+      double rata(List<dynamic> n) =>
+          n.cast<double>().reduce((a, b) => a + b) / n.length;
+
+      expect(rata(titik1['pembacaan'] as List<dynamic>), closeTo(1.004, 1e-9));
+      expect(rata(titik100['pembacaan'] as List<dynamic>), closeTo(100.02, 1e-9));
+      expect(rata(titik1000['pembacaan'] as List<dynamic>), closeTo(1000.6, 1e-9));
+    });
+
     testWidgets('sesi baru masuk antrean sebagai Turbidimeter, bukan pH Meter', (
       tester,
     ) async {
