@@ -1121,6 +1121,25 @@
   },
   "lkUbahPengulanganLanjut": "Ubah",
   "lkPengulanganBatal": "Batal",
+  "lkKonfirmasiJudul": "Cek dulu angkanya sebelum dikirim",
+  "lkKonfirmasiCatatan": "Rata-rata pembacaan After adjustment. Koreksi & ketidakpastian dihitung server sesudah ini dikirim.",
+  "lkKonfirmasiBaris": "{terisi} dari {total} kotak · rata-rata {rata}",
+  "@lkKonfirmasiBaris": {
+    "placeholders": {
+      "terisi": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "rata": {
+        "type": "String"
+      }
+    }
+  },
+  "lkKonfirmasiBarisKosong": "Belum diisi",
+  "lkKonfirmasiPeriksaLagi": "Periksa lagi",
+  "lkKonfirmasiKirim": "Kirim sekarang",
   "emailRiwayatBelumKeluar": "Belum keluar",
   "emailKontakKosong": "Email {pt} belum diisi di data pelanggan. Isi lewat panel admin → Pelanggan, biar nanti tinggal pilih.",
   "@emailKontakKosong": {

@@ -20,6 +20,46 @@ String formatAngka(double nilai) => nilai == nilai.roundToDouble()
     ? nilai.toStringAsFixed(0)
     : '$nilai';
 
+/// Satu baris di layar konfirmasi sebelum kirim: larutan standar, berapa kotak
+/// yang keisi, dan rata-rata pembacaan After adjustment.
+///
+/// **Sengaja NGGAK bawa koreksi.** Koreksi = nilai standar − rata-rata, dan
+/// nilai standar buat pH itu hasil koreksi kurva suhu yang dihitung server
+/// (buffer 7 di 22,2 °C jadi 6,9889072, bukan 7,00). Kalau layar ini nebak
+/// sendiri pakai nominal, angkanya beda dari yang nanti kecetak di sertifikat —
+/// bikin masalah baru "layar vs PDF beda" persis yang lagi diberesin. Rata-rata
+/// doang udah cukup buat tujuannya: teknisi lihat `1,83 → 1,90` dan sadar dia
+/// salah ketik.
+class RingkasanTitik {
+  const RingkasanTitik({
+    required this.label,
+    required this.satuan,
+    required this.terisi,
+    required this.total,
+    required this.desimal,
+    this.rataRata,
+  });
+
+  /// Label larutan standar seperti yang tercetak di lembar kerja (`1,83`).
+  final String label;
+  final String satuan;
+
+  /// Berapa kotak pembacaan After adjustment yang keisi, dari [total].
+  final int terisi;
+  final int total;
+
+  /// Desimal buat nampilin [rataRata].
+  final int desimal;
+
+  /// `null` = baris ini belum diisi sama sekali.
+  final double? rataRata;
+
+  bool get kosong => rataRata == null;
+
+  /// Ada kotak yang dilewat — bukan salah, tapi hampir selalu nggak disengaja.
+  bool get adaYangKosong => terisi > 0 && terisi < total;
+}
+
 /// Isian satu baris tabel hasil: satu larutan standar, dua tahap
 /// (before & after adjustment), masing-masing n pengulangan × 2 kolom.
 ///
@@ -355,6 +395,37 @@ class LembarKerjaState {
           : MetodeInput.manual,
     );
   }
+
+  /// Ringkasan buat layar konfirmasi sebelum kirim — satu baris per larutan
+  /// standar, urutannya sama kayak tabelnya.
+  ///
+  /// Yang dirata-rata cuma tahap **After adjustment**: itu yang jadi Unit Under
+  /// Test di sertifikat. As-found (Before) sengaja nggak ikut biar angka yang
+  /// dilihat teknisi di sini sama dengan yang nanti kecetak.
+  List<RingkasanTitik> ringkasanKirim() => [
+    for (final t in titikUrut)
+      () {
+        final isi = [
+          for (var i = 0; i < t.jumlahPengulangan; i++)
+            parseAngka(t.kotak('sesudah_adjustment', 'pembacaan', i).text),
+        ].whereType<double>().toList();
+
+        return RingkasanTitik(
+          label: t.label,
+          satuan: t.satuan,
+          terisi: isi.length,
+          total: t.jumlahPengulangan,
+          // Alat yang resolusinya beda per titik (Turbidimeter) ngirim
+          // `desimal` sendiri per baris. Yang nggak ngirim itu alat resolusi
+          // seragam — pH & Chlorine, dua-duanya 0,01 — jadi 2 di sini bukan
+          // tebakan, tapi resolusi alatnya.
+          desimal: t.desimal ?? 2,
+          rataRata: isi.isEmpty
+              ? null
+              : isi.reduce((a, b) => a + b) / isi.length,
+        );
+      }(),
+  ];
 
   /// Titik diurut naik (4 / 7 / 10,01) — urutan yang sama dipakai parser OCR
   /// waktu misahin kolom, dan urutan yang dikirim ke backend.

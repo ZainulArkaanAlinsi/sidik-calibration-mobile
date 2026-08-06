@@ -5906,6 +5906,42 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get lkPengulanganBatal;
 
+  /// No description provided for @lkKonfirmasiJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the numbers before sending'**
+  String get lkKonfirmasiJudul;
+
+  /// No description provided for @lkKonfirmasiCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Averages of the After adjustment readings. Correction and uncertainty are computed by the server once this is sent.'**
+  String get lkKonfirmasiCatatan;
+
+  /// No description provided for @lkKonfirmasiBaris.
+  ///
+  /// In en, this message translates to:
+  /// **'{terisi} of {total} boxes · average {rata}'**
+  String lkKonfirmasiBaris(int terisi, int total, String rata);
+
+  /// No description provided for @lkKonfirmasiBarisKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Not filled in'**
+  String get lkKonfirmasiBarisKosong;
+
+  /// No description provided for @lkKonfirmasiPeriksaLagi.
+  ///
+  /// In en, this message translates to:
+  /// **'Check again'**
+  String get lkKonfirmasiPeriksaLagi;
+
+  /// No description provided for @lkKonfirmasiKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Send now'**
+  String get lkKonfirmasiKirim;
+
   /// No description provided for @emailRiwayatBelumKeluar.
   ///
   /// In en, this message translates to:

@@ -106,6 +106,22 @@ Future<void> _keHalamanAkhir(WidgetTester tester) async {
   }
 }
 
+/// Tekan KIRIM KE ADMIN, terus setujui dialog konfirmasi angkanya.
+///
+/// Dialognya cuma nongol kalau ada pembacaan yang keisi (lihat
+/// `_konfirmasiAngka` di layar), jadi test yang ngirim lembar kosong tetap
+/// lewat sini tanpa perlu tau bedanya.
+Future<void> _kirimKeAdmin(WidgetTester tester) async {
+  await tester.tap(find.text('KIRIM KE ADMIN'));
+  await tester.pumpAndSettle();
+
+  final konfirmasi = find.text('Kirim sekarang');
+  if (konfirmasi.evaluate().isNotEmpty) {
+    await tester.tap(konfirmasi);
+    await tester.pumpAndSettle();
+  }
+}
+
 void main() {
   _testRevisi();
 
@@ -187,8 +203,7 @@ void main() {
       await _pilihAlat(tester);
 
       await _keHalamanAkhir(tester);
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       expect(service.jumlahKirim, 1);
       expect(service.payloadTerakhir!['status'], 'menunggu_approval');
@@ -237,8 +252,7 @@ void main() {
       await tester.enterText(kotak.at(5), '22.1');
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       final measurements =
           service.payloadTerakhir!['measurements'] as List<dynamic>;
@@ -326,8 +340,7 @@ void main() {
       }
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       final measurements =
           service.payloadTerakhir!['measurements'] as List<dynamic>;
@@ -374,8 +387,7 @@ void main() {
 
       await _pilihAlat(tester);
       await _keHalamanAkhir(tester);
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       final measurements =
           service.payloadTerakhir!['measurements'] as List<dynamic>;
@@ -417,8 +429,7 @@ void main() {
       await tester.enterText(kotak.first, '21,3');
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       expect(service.payloadTerakhir!['suhu_awal'], 21.3);
     });
@@ -438,15 +449,13 @@ void main() {
       await _pilihAlat(tester);
 
       await _keHalamanAkhir(tester);
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       // Gagal → layarnya TETAP kebuka, isian nggak ilang, teknisi bisa coba lagi.
       expect(find.text('KIRIM KE ADMIN'), findsOneWidget);
 
       await _keHalamanAkhir(tester);
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       expect(service.jumlahKirim, 2);
       final pertama = service.payload[0]['client_request_id'];
@@ -966,6 +975,7 @@ void main() {
   _testDropdownGagal();
   _testTurbidimeter();
   _testChlorine();
+  _testKonfirmasiKirim();
 }
 
 /// Chlorin Meter — jenis alat KETIGA yang punya lembar kerja sendiri
@@ -1113,8 +1123,7 @@ void _testChlorine() {
       await tester.enterText(kotak.at(1), '25.7');
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       final measurements =
           service.payloadTerakhir!['measurements'] as List<dynamic>;
@@ -1140,8 +1149,7 @@ void _testChlorine() {
       );
 
       await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       expect(
         MockStore.instance.sesi.first.namaAlat,
@@ -1195,8 +1203,7 @@ void _testChlorine() {
       }
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       final measurements =
           service.payloadTerakhir!['measurements'] as List<dynamic>;
@@ -1280,8 +1287,7 @@ void _testDropdownGagal() {
 
       await _pilihAlat(tester);
       await _keHalamanAkhir(tester);
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       // Aturan lembar kerja nggak berubah: tombol kirim NGGAK PERNAH dikunci.
       // Pesan gagal itu ngasih tahu, bukan ngeblok — kalau sampai ngeblok,
@@ -1442,8 +1448,7 @@ void _testTurbidimeter() {
       await tester.enterText(kotak.at(4), '0,99');
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       final measurements =
           service.payloadTerakhir!['measurements'] as List<dynamic>;
@@ -1527,8 +1532,7 @@ void _testTurbidimeter() {
       }
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       final measurements =
           service.payloadTerakhir!['measurements'] as List<dynamic>;
@@ -1574,8 +1578,7 @@ void _testTurbidimeter() {
       );
 
       await _pilihAlat(tester, alat: 'Turbidimeter Hach · HC-2100Q-114');
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       // Nama sesi di USE_MOCK dulu dipatok 'pH Meter (sesi baru)' — admin yang
       // nyoba alur turbidimeter offline lihat pH di antrean approval dan nggak
@@ -1584,6 +1587,280 @@ void _testTurbidimeter() {
         MockStore.instance.sesi.first.namaAlat,
         'Turbidimeter Hach (sesi baru)',
       );
+    });
+  });
+}
+
+/// Konfirmasi angka sebelum KIRIM KE ADMIN.
+///
+/// Ini penjaga terakhir buat salah ketik yang angkanya WAJAR — kasus 6 Agt 2026
+/// (`0189-CAL-624`): standar 1,83 kecatat 1,90, padahal kertasnya 1,86. Nggak
+/// ada pemeriksaan otomatis yang bisa nangkep itu, jadi yang dijaga di sini
+/// bukan "angkanya bener", tapi "angkanya sempat dilihat teknisi".
+void _testKonfirmasiKirim() {
+  group('konfirmasi angka sebelum kirim', () {
+    /// Kotak-kotak tabel After adjustment: 5 Repeat × 2 kolom per baris titik,
+    /// urutannya sama kayak `_testChlorine`.
+    Finder kotakAfter() => find.descendant(
+      of: find
+          .ancestor(
+            of: find.text('After adjustment Reading'),
+            matching: find.byType(Column),
+          )
+          .first,
+      matching: find.byType(TextField),
+    );
+
+    testWidgets('rata-rata tiap larutan ditunjukin sebelum kekirim', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'chlorine_meter'));
+
+      await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+
+      // Persis angka yang lolos 6 Agt: titik 1,83 kebaca 1,90 rata.
+      final kotak = kotakAfter();
+      for (var r = 0; r < 5; r++) {
+        await tester.enterText(kotak.at(r * 2), '1,76');
+        await tester.enterText(kotak.at(10 + r * 2), '1,90');
+      }
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      // Larutan standar & rata-ratanya berdampingan — yang salah ketik
+      // kelihatan sendiri waktu diadu ke lembar kerja kertas.
+      expect(find.text('Cek dulu angkanya sebelum dikirim'), findsOneWidget);
+      expect(find.text('1,74 mg/L'), findsOneWidget);
+      expect(find.text('5 dari 5 kotak · rata-rata 1,76'), findsOneWidget);
+      expect(find.text('1,83 mg/L'), findsOneWidget);
+      expect(find.text('5 dari 5 kotak · rata-rata 1,90'), findsOneWidget);
+
+      // Belum kekirim apa-apa: dialognya nanya, bukan ngabarin.
+      expect(service.jumlahKirim, 0);
+    });
+
+    testWidgets('Periksa lagi → nggak kekirim & isiannya utuh', (tester) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'chlorine_meter'));
+
+      await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+      await tester.enterText(kotakAfter().at(10), '1,90');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Periksa lagi'));
+      await tester.pumpAndSettle();
+
+      expect(service.jumlahKirim, 0);
+
+      // Balik ke formulir yang sama, bukan formulir kosong — teknisi mundur
+      // buat MBENERIN satu angka, bukan buat ngetik ulang semuanya.
+      expect(find.text('KIRIM KE ADMIN'), findsOneWidget);
+      expect(
+        (tester.widget(kotakAfter().at(10)) as TextField).controller!.text,
+        '1,90',
+      );
+    });
+
+    testWidgets('Kirim sekarang → angkanya kekirim apa adanya', (tester) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'chlorine_meter'));
+
+      await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+      await tester.enterText(kotakAfter().at(10), '1,90');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Kirim sekarang'));
+      await tester.pumpAndSettle();
+
+      expect(service.jumlahKirim, 1);
+      final measurements =
+          service.payloadTerakhir!['measurements'] as List<dynamic>;
+      expect((measurements.last as Map)['pembacaan'], [
+        1.90,
+        null,
+        null,
+        null,
+        null,
+      ]);
+    });
+
+    /// Yang dirata-rata cuma After adjustment — itu yang jadi Unit Under Test
+    /// di sertifikat. Kalau Before ikut kehitung, angka di dialog beda dari
+    /// yang nanti kecetak, dan dialognya malah nyesatin.
+    testWidgets('rata-rata cuma dari After adjustment, Before nggak ikut', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await _muat(
+        tester,
+        _app(MockLembarKerjaService(), profil: 'chlorine_meter'),
+      );
+
+      await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+
+      final kotakBefore = find.descendant(
+        of: find
+            .ancestor(
+              of: find.text('Before adjustment Reading'),
+              matching: find.byType(Column),
+            )
+            .first,
+        matching: find.byType(TextField),
+      );
+      // As-found sengaja dibikin jauh: kalau kebawa ke rata-rata, angkanya
+      // meleset jauh dan test ini gagal keras.
+      await tester.enterText(kotakBefore.at(10), '9,00');
+      await tester.enterText(kotakAfter().at(10), '1,86');
+      await tester.enterText(kotakAfter().at(12), '1,88');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('2 dari 5 kotak · rata-rata 1,87'), findsOneWidget);
+      // Baris yang nggak disentuh sama sekali dibilang apa adanya, bukan 0,00.
+      expect(find.text('Belum diisi'), findsOneWidget);
+    });
+
+    /// Turbidimeter satu-satunya yang resolusinya beda per titik (0,01 / 0,1 /
+    /// 1) — dan itu jalur kode sendiri di `RingkasanTitik.desimal`. Angka di
+    /// dialog harus sebentuk sama yang nanti kecetak di sertifikat: teknisi
+    /// mbandingin baris ini ke kertas di tangannya, jadi `1.003` yang kebaca
+    /// `1003.0` aja udah bikin dia ragu-ragu di titik yang salah.
+    testWidgets('Turbidimeter: desimalnya ngikut resolusi tiap titik', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await _muat(
+        tester,
+        _app(MockLembarKerjaService(), profil: 'turbidimeter'),
+      );
+
+      await _pilihAlat(tester, alat: 'Turbidimeter Hach · HC-2100Q-114');
+
+      // Satu baris = 5 Repeat × 2 kotak, urutannya 1 / 100 / 1000 NTU.
+      final kotak = kotakAfter();
+      await tester.enterText(kotak.at(0), '1,02');
+      await tester.enterText(kotak.at(2), '1,04');
+      await tester.enterText(kotak.at(10), '100,2');
+      await tester.enterText(kotak.at(20), '1002');
+      await tester.enterText(kotak.at(22), '1004');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 NTU'), findsOneWidget);
+      expect(find.text('2 dari 5 kotak · rata-rata 1,03'), findsOneWidget);
+
+      expect(find.text('100 NTU'), findsOneWidget);
+      expect(find.text('1 dari 5 kotak · rata-rata 100,2'), findsOneWidget);
+
+      // Titik 1.000 NTU resolusinya 1 — nol desimal, dan ribuannya pakai titik
+      // persis kayak `formatSertifikat` di PDF.
+      expect(find.text('1000 NTU'), findsOneWidget);
+      expect(find.text('2 dari 5 kotak · rata-rata 1.003'), findsOneWidget);
+    });
+
+    testWidgets('lembar yang belum diisi nggak usah dikonfirmasi', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'chlorine_meter'));
+
+      await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      // Nggak ada angka yang perlu dicek ulang — dialognya cuma jadi satu
+      // ketukan sia-sia, dan sesi tabel-nyusul tetap boleh dikirim.
+      expect(find.text('Cek dulu angkanya sebelum dikirim'), findsNothing);
+      expect(service.jumlahKirim, 1);
+    });
+
+    /// Draft itu justru dipakai buat nyimpen kerjaan setengah jadi. Nanyain
+    /// "yakin angkanya?" tiap kali teknisi nyimpen di tengah jalan cuma bikin
+    /// dialognya diklik tanpa dibaca — pas beneran penting, nggak kebaca lagi.
+    testWidgets('simpan draft nggak ditanyain angkanya', (tester) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'chlorine_meter'));
+
+      await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+      await tester.enterText(kotakAfter().at(10), '1,90');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Cek dulu angkanya sebelum dikirim'), findsNothing);
+      expect(service.payloadTerakhir!['status'], 'draft');
+    });
+
+    /// Dialognya dilihat di HP, bukan di viewport raksasa yang dipakai test
+    /// lain. pH punya 3 baris titik, dan teknisi lapangan banyak yang naikin
+    /// ukuran huruf HP-nya — dua-duanya nambah tinggi isi dialog.
+    ///
+    /// Formulirnya diisi di viewport gede dulu (di layar 640 px, dropdown &
+    /// tombol kirimnya belum ke-build sama `ListView`, jadi nggak bisa
+    /// dipencet). Layarnya baru dikecilkan sesudah dialognya kebuka — yang
+    /// diuji emang cuma dialognya.
+    ///
+    /// Hurufnya 1,3×, bukan lebih: dari 1,5× ke atas TABELNYA sendiri yang
+    /// meluber (header "Repeat" tingginya dipatok) — bug lama yang beda
+    /// urusan, dan kalau ikut kesenggol di sini kegagalannya jadi nunjuk
+    /// tempat yang salah. 1,3× udah cukup: tanpa `scrollable: true` di
+    /// dialognya, test ini gagal.
+    testWidgets('muat di layar HP dengan huruf gede', (tester) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(
+        tester,
+        MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(1.3)),
+          child: _app(service),
+        ),
+      );
+
+      await _pilihAlat(tester);
+      await _keHalamanAkhir(tester);
+
+      final kotak = find.descendant(
+        of: find
+            .ancestor(
+              of: find.text('After adjustment Reading'),
+              matching: find.byType(Column),
+            )
+            .first,
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(kotak.first, '4,01');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      tester.view.physicalSize = const Size(360, 640);
+      await tester.pumpAndSettle();
+
+      // Yang dijaga: dialognya nggak overflow (test gagal sendiri kalau iya)
+      // dan tombolnya masih bisa dipencet — bukan cuma "widget-nya ada".
+      expect(find.text('Kirim sekarang'), findsOneWidget);
+      await tester.tap(find.text('Kirim sekarang'));
+      await tester.pumpAndSettle();
+
+      expect(service.jumlahKirim, 1);
     });
   });
 }

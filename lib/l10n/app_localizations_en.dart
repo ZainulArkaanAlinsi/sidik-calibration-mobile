@@ -3219,6 +3219,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkPengulanganBatal => 'Cancel';
 
   @override
+  String get lkKonfirmasiJudul => 'Check the numbers before sending';
+
+  @override
+  String get lkKonfirmasiCatatan =>
+      'Averages of the After adjustment readings. Correction and uncertainty are computed by the server once this is sent.';
+
+  @override
+  String lkKonfirmasiBaris(int terisi, int total, String rata) {
+    return '$terisi of $total boxes · average $rata';
+  }
+
+  @override
+  String get lkKonfirmasiBarisKosong => 'Not filled in';
+
+  @override
+  String get lkKonfirmasiPeriksaLagi => 'Check again';
+
+  @override
+  String get lkKonfirmasiKirim => 'Send now';
+
+  @override
   String get emailRiwayatBelumKeluar => 'Not sent yet';
 
   @override

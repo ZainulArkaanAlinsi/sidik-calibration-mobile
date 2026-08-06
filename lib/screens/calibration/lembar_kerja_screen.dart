@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../core/utils/angka.dart';
 import '../../core/utils/uuid.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_draft.dart' show LokasiKalibrasi;
@@ -306,6 +307,9 @@ class _FormState extends ConsumerState<_Form> {
       return;
     }
 
+    if (!draft && !await _konfirmasiAngka()) return;
+    if (!mounted) return;
+
     setState(() => _mengirim = true);
 
     final hasil = await ref
@@ -331,6 +335,72 @@ class _FormState extends ConsumerState<_Form> {
       ),
     );
     navigator.pop(hasil.id);
+  }
+
+  /// Rata-rata tiap larutan standar ditunjukin sekali, tepat sebelum kirim.
+  ///
+  /// Ini penjaga terakhir buat salah ketik yang angkanya WAJAR. 6 Agt 2026 satu
+  /// sesi chlorine kekirim dengan pembacaan 1,90 buat standar 1,83 (lembar
+  /// kerjanya 1,86) dan nembus sampai sertifikat terbit. Nggak ada satu pun
+  /// pemeriksaan otomatis yang bisa nangkep itu: 1,90 meleset 3,8% di alat
+  /// bertoleransi 8% — angka yang sama sekali wajar, nggak bisa dibedain dari
+  /// penyimpangan alat beneran. Yang bisa mbedain cuma orang yang inget dia
+  /// nulis apa di kertas.
+  ///
+  /// Makanya bentuknya ringkasan, bukan peringatan: `1,83 → rata-rata 1,90`
+  /// berdampingan, dan yang salah ketik bakal kelihatan sendiri. Nggak ada yang
+  /// diblokir — tombol kirimnya tetap ada di dialog yang sama.
+  ///
+  /// Cuma buat KIRIM KE ADMIN. Draft sengaja lolos: draft itu justru dipakai
+  /// buat nyimpen kerjaan setengah jadi, dan nanyain "yakin angkanya?" tiap kali
+  /// teknisi nyimpen di tengah jalan cuma bikin dialognya diklik tanpa dibaca.
+  Future<bool> _konfirmasiAngka() async {
+    final l10n = AppLocalizations.of(context);
+    final ringkasan = _isian.ringkasanKirim();
+
+    // Nggak ada satu pun pembacaan — nggak ada yang perlu dicek ulang. Sesi
+    // kosong tetap boleh dikirim (mis. lembar kerja yang tabelnya nyusul), dan
+    // dialog kosong cuma jadi satu ketukan sia-sia.
+    if (ringkasan.every((r) => r.kosong)) return true;
+
+    final lanjut = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        // Isinya setinggi jumlah titik × ukuran huruf HP-nya: lembar pH (3
+        // titik) di huruf 1,3× aja udah lebih tinggi dari layar 640 px. Tanpa
+        // ini isinya overflow sampai tombol "Kirim sekarang" kedorong keluar
+        // layar — dialog yang nggak bisa ditutup, tepat di detik teknisi mau
+        // ngirim.
+        scrollable: true,
+        title: Text(l10n.lkKonfirmasiJudul),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final r in ringkasan) _BarisKonfirmasi(ringkasan: r),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.lkKonfirmasiCatatan,
+              style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.lkKonfirmasiPeriksaLagi),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.lkKonfirmasiKirim),
+          ),
+        ],
+      ),
+    );
+
+    return lanjut ?? false;
   }
 
   Future<bool> _bolehKeluar() async {
@@ -1598,6 +1668,57 @@ class _UsageCheckBaris extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// Satu larutan standar di dialog konfirmasi: label larutan di kiri, rata-rata
+/// pembacaannya di kanan.
+///
+/// Angkanya diformat pakai [formatSertifikat] — pemisah koma, desimal ngikut
+/// resolusi titiknya, sama persis kayak yang nanti kecetak di sertifikat.
+/// Teknisi mbandingin baris ini ke lembar kerja kertas di tangannya, jadi
+/// bentuk angkanya nggak boleh beda dari yang dia tulis.
+class _BarisKonfirmasi extends StatelessWidget {
+  const _BarisKonfirmasi({required this.ringkasan});
+
+  final RingkasanTitik ringkasan;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final rata = ringkasan.rataRata;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${ringkasan.label} ${ringkasan.satuan}',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          Text(
+            rata == null
+                ? l10n.lkKonfirmasiBarisKosong
+                : l10n.lkKonfirmasiBaris(
+                    ringkasan.terisi,
+                    ringkasan.total,
+                    formatSertifikat(rata, ringkasan.desimal),
+                  ),
+            style: theme.textTheme.bodySmall?.copyWith(
+              // Kotak yang dilewat ditandai warna, bukan cuma angka kecil:
+              // "3 dari 5" gampang kebaca sekilas sebagai lengkap.
+              color: ringkasan.adaYangKosong
+                  ? theme.colorScheme.error
+                  : theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

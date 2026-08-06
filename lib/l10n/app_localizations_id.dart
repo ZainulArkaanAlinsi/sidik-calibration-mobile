@@ -3195,6 +3195,27 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkPengulanganBatal => 'Batal';
 
   @override
+  String get lkKonfirmasiJudul => 'Cek dulu angkanya sebelum dikirim';
+
+  @override
+  String get lkKonfirmasiCatatan =>
+      'Rata-rata pembacaan After adjustment. Koreksi & ketidakpastian dihitung server sesudah ini dikirim.';
+
+  @override
+  String lkKonfirmasiBaris(int terisi, int total, String rata) {
+    return '$terisi dari $total kotak · rata-rata $rata';
+  }
+
+  @override
+  String get lkKonfirmasiBarisKosong => 'Belum diisi';
+
+  @override
+  String get lkKonfirmasiPeriksaLagi => 'Periksa lagi';
+
+  @override
+  String get lkKonfirmasiKirim => 'Kirim sekarang';
+
+  @override
   String get emailRiwayatBelumKeluar => 'Belum keluar';
 
   @override

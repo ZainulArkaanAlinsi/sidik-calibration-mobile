@@ -1619,6 +1619,25 @@
   },
   "lkUbahPengulanganLanjut": "Change",
   "lkPengulanganBatal": "Cancel",
+  "lkKonfirmasiJudul": "Check the numbers before sending",
+  "lkKonfirmasiCatatan": "Averages of the After adjustment readings. Correction and uncertainty are computed by the server once this is sent.",
+  "lkKonfirmasiBaris": "{terisi} of {total} boxes · average {rata}",
+  "@lkKonfirmasiBaris": {
+    "placeholders": {
+      "terisi": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "rata": {
+        "type": "String"
+      }
+    }
+  },
+  "lkKonfirmasiBarisKosong": "Not filled in",
+  "lkKonfirmasiPeriksaLagi": "Check again",
+  "lkKonfirmasiKirim": "Send now",
   "emailRiwayatBelumKeluar": "Not sent yet",
   "emailKontakKosong": "{pt} has no email in the customer record. Add it in the admin panel → Customers so it can be picked here.",
   "@emailKontakKosong": {
