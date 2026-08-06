@@ -223,6 +223,10 @@ class MockFolderService implements FolderService {
                 downloadUrl: 'https://contoh/folder-files/101/download',
                 mime: 'application/pdf',
                 ukuran: 248_512,
+                // Backend ngirim `sertifikat.id` dari dulu (`FolderFileResource`);
+                // mock-nya nyusul biar aksi Bagikan — yang butuh id, bukan
+                // nomor — ikut kepakai di jalur mock & test.
+                sertifikatId: 901,
                 sertifikatNomor: '012-CAL-524',
                 sertifikatSiapDiunduh: true,
               ),

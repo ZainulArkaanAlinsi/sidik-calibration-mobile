@@ -77,6 +77,7 @@ class FolderFile {
     this.ukuran,
     this.keterangan,
     this.diunggahOleh,
+    this.sertifikatId,
     this.sertifikatNomor,
     this.sertifikatSiapDiunduh = false,
   });
@@ -94,6 +95,11 @@ class FolderFile {
   final int? ukuran;
   final String? keterangan;
   final String? diunggahOleh;
+
+  /// Id sertifikat aslinya — dipakai layar Kirim/Bagikan, yang butuh id, bukan
+  /// nomor. Backend udah ngirimnya dari dulu (`FolderFileResource`), cuma
+  /// nggak pernah dibaca di sini.
+  final int? sertifikatId;
 
   /// File sertifikat nggak disalin — dia nunjuk ke sertifikat aslinya.
   final String? sertifikatNomor;
@@ -126,6 +132,7 @@ class FolderFile {
       ukuran: (json['ukuran'] as num?)?.toInt(),
       keterangan: json['keterangan'] as String?,
       diunggahOleh: json['diunggah_oleh'] as String?,
+      sertifikatId: (sertifikat?['id'] as num?)?.toInt(),
       sertifikatNomor: sertifikat?['nomor'] as String?,
       sertifikatSiapDiunduh: sertifikat?['siap_diunduh'] as bool? ?? false,
     );

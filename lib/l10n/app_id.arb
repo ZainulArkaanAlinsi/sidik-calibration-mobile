@@ -883,6 +883,8 @@
   "folderOtomatis": "Kebentuk otomatis",
   "folderUnduh": "Unduh",
   "folderSertifikatBelumSiap": "PDF sertifikatnya masih dibikin.",
+  "folderBukaBerkas": "Buka berkas",
+  "folderBagikanBerkas": "Bagikan sertifikat",
   "folderUnduhGagal": "Gagal mengunduh: {pesan}",
   "notifTandaiSemua": "Tandai semua dibaca",
   "notifSemuaDibaca": "Semua notifikasi ditandai udah dibaca.",

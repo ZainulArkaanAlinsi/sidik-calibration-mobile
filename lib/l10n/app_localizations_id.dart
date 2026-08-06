@@ -2709,6 +2709,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get folderSertifikatBelumSiap => 'PDF sertifikatnya masih dibikin.';
 
   @override
+  String get folderBukaBerkas => 'Buka berkas';
+
+  @override
+  String get folderBagikanBerkas => 'Bagikan sertifikat';
+
+  @override
   String folderUnduhGagal(String pesan) {
     return 'Gagal mengunduh: $pesan';
   }

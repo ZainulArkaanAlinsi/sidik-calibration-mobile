@@ -2734,6 +2734,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'The certificate PDF is still being generated.';
 
   @override
+  String get folderBukaBerkas => 'Open file';
+
+  @override
+  String get folderBagikanBerkas => 'Share certificate';
+
+  @override
   String folderUnduhGagal(String pesan) {
     return 'Couldn\'t download: $pesan';
   }

@@ -5000,6 +5000,18 @@ abstract class AppLocalizations {
   /// **'The certificate PDF is still being generated.'**
   String get folderSertifikatBelumSiap;
 
+  /// No description provided for @folderBukaBerkas.
+  ///
+  /// In en, this message translates to:
+  /// **'Open file'**
+  String get folderBukaBerkas;
+
+  /// No description provided for @folderBagikanBerkas.
+  ///
+  /// In en, this message translates to:
+  /// **'Share certificate'**
+  String get folderBagikanBerkas;
+
   /// No description provided for @folderUnduhGagal.
   ///
   /// In en, this message translates to:
