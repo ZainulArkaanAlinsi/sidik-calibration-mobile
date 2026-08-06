@@ -3190,4 +3190,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lkScanMemproses => 'AI is reading the table…';
+
+  @override
+  String lkPengulanganRingkas(int n) {
+    return '${n}x';
+  }
+
+  @override
+  String get lkPengulanganTooltip => 'Number of repeat columns';
+
+  @override
+  String lkPengulanganPilihan(int n) {
+    return '$n repetitions';
+  }
+
+  @override
+  String get lkUbahPengulanganJudul => 'Change repetitions?';
+
+  @override
+  String lkUbahPengulanganPesan(int n) {
+    return 'The results table is rebuilt with $n columns, and numbers already typed into it will be lost. Identity and room-condition fields stay.';
+  }
+
+  @override
+  String get lkUbahPengulanganLanjut => 'Change';
+
+  @override
+  String get lkPengulanganBatal => 'Cancel';
 }

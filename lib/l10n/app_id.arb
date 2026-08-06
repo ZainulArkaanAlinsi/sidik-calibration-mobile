@@ -1,8 +1,6 @@
 {
   "@@locale": "id",
-
   "appTagline": "Manajemen Kalibrasi Presisi",
-
   "loginIdentifierLabel": "ID Pegawai / Email",
   "loginIdentifierHint": "SDK-0001 atau nama@pt-sidik.com",
   "passwordLabel": "Password",
@@ -13,7 +11,6 @@
   "loginIdentifierRequired": "ID pegawai atau email wajib diisi.",
   "passwordRequired": "Password wajib diisi.",
   "errorNoConnection": "Nggak bisa nyambung ke server. Coba lagi.",
-
   "registerTitle": "Daftar Akun",
   "registerSubtitle": "Buat profil teknisi kamu",
   "nameLabel": "Nama Lengkap",
@@ -36,7 +33,6 @@
   "registerSuccessTitle": "Pendaftaran terkirim",
   "registerSuccessBody": "Akun kamu masih menunggu persetujuan admin. Kamu belum bisa masuk sampai admin nyetujuin dan nentuin role kamu.\n\nHubungi admin kalau kelamaan nggak ada kabar.",
   "registerSuccessDismiss": "MENGERTI",
-
   "forgotTitle": "Lupa Password",
   "forgotSubtitle": "Verifikasi email dulu, terus atur password baru",
   "forgotBody": "Masukin email yang kamu pakai waktu daftar. Kalau cocok, kamu langsung bisa bikin password baru di sini.",
@@ -51,15 +47,12 @@
   "resetDoneTitle": "Password berhasil diubah",
   "resetDoneBody": "Password kamu udah diperbarui. Sekarang masuk pakai password baru ya.",
   "backToLoginCaps": "BALIK KE LOGIN",
-
   "languageLabel": "Bahasa",
-
   "navDashboard": "Dashboard",
   "navEquipment": "Alat",
   "navHistory": "Riwayat",
   "navNotifications": "Notifikasi",
   "navProfile": "Profil",
-
   "dashGreeting": "Halo,",
   "dashTotalDevices": "Total alat",
   "dashOverdue": "Jatuh tempo",
@@ -71,7 +64,9 @@
   "dashCertsThisMonthSub": "{count} bulan ini",
   "@dashCertsThisMonthSub": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "dashCalibrationMine": "Kalibrasi saya",
@@ -79,13 +74,17 @@
   "dashTrendUp": "{count} lebih banyak dari periode lalu",
   "@dashTrendUp": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "dashTrendDown": "{count} lebih sedikit dari periode lalu",
   "@dashTrendDown": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "dashTrendFlat": "Sama kayak periode lalu",
@@ -100,7 +99,6 @@
   "dashEmptyBodyInput": "Belum ada alat yang terdaftar. Mulai dengan nambahin alat ukur pertama.",
   "dashEmptyBodyReadonly": "Belum ada data yang bisa ditampilkan.",
   "snackCalibInputSoon": "Input kalibrasi digarap minggu 4.",
-
   "profAccountInfo": "Info Akun",
   "profRoleLabel": "Role",
   "profChangePhotoSheet": "Foto Profil",
@@ -132,22 +130,61 @@
   "rumusKosong": "Belum ada rumus yang tercatat.",
   "rumusCobaLagi": "Coba lagi",
   "rumusVersiBerlaku": "Versi {nomor} berlaku",
-  "@rumusVersiBerlaku": {"placeholders": {"nomor": {"type": "int"}}},
+  "@rumusVersiBerlaku": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
   "rumusTanpaVersiBerlaku": "Belum ada versi berlaku",
   "rumusJumlahVersi": "{jumlah} versi",
-  "@rumusJumlahVersi": {"placeholders": {"jumlah": {"type": "int"}}},
+  "@rumusJumlahVersi": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "rumusVersiKe": "Versi {nomor}",
-  "@rumusVersiKe": {"placeholders": {"nomor": {"type": "int"}}},
+  "@rumusVersiKe": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
   "rumusStatusAktif": "Aktif",
   "rumusStatusDraft": "Draft",
   "rumusStatusArsip": "Arsip",
   "rumusBerlakuSejak": "Berlaku sejak {mulai} sampai sekarang",
-  "@rumusBerlakuSejak": {"placeholders": {"mulai": {"type": "String"}}},
+  "@rumusBerlakuSejak": {
+    "placeholders": {
+      "mulai": {
+        "type": "String"
+      }
+    }
+  },
   "rumusBerlakuRentang": "Berlaku {mulai} – {selesai}",
-  "@rumusBerlakuRentang": {"placeholders": {"mulai": {"type": "String"}, "selesai": {"type": "String"}}},
+  "@rumusBerlakuRentang": {
+    "placeholders": {
+      "mulai": {
+        "type": "String"
+      },
+      "selesai": {
+        "type": "String"
+      }
+    }
+  },
   "rumusDibuatSistem": "Dibuat sistem",
   "rumusDibuatOleh": "Diterbitkan oleh {nama}",
-  "@rumusDibuatOleh": {"placeholders": {"nama": {"type": "String"}}},
+  "@rumusDibuatOleh": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
   "rumusTerbitkanVersi": "Terbitkan versi baru",
   "rumusTerbitkan": "TERBITKAN",
   "rumusBatal": "Batal",
@@ -162,7 +199,13 @@
   "rumusLangsungAktif": "Langsung aktifkan",
   "rumusLangsungAktifKet": "Kalau dimatikan, versinya disimpan sebagai draft dulu — belum dipakai menghitung, jadi aman untuk dicoba.",
   "rumusVersiTerbit": "Versi {nomor} diterbitkan.",
-  "@rumusVersiTerbit": {"placeholders": {"nomor": {"type": "int"}}},
+  "@rumusVersiTerbit": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
   "profRumus": "Rumus Kalibrasi",
   "profRumusSub": "Parameter & riwayat versi perhitungan",
   "ruanganTitle": "Ruangan Lab",
@@ -195,7 +238,13 @@
   "metodeBerlaku": "Berlaku mulai",
   "metodeBerlakuKosong": "Belum diisi",
   "metodeBerlakuMulai": "Berlaku mulai {tanggal}",
-  "@metodeBerlakuMulai": {"placeholders": {"tanggal": {"type": "String"}}},
+  "@metodeBerlakuMulai": {
+    "placeholders": {
+      "tanggal": {
+        "type": "String"
+      }
+    }
+  },
   "metodeAktifKet": "Yang nonaktif tetap tersimpan — sertifikat lama menyebut metode ini.",
   "profRuangan": "Ruangan Lab",
   "profRuanganSub": "Daftar ruangan & syarat kondisi lingkungan",
@@ -219,7 +268,6 @@
   "profSessionsRevoked": "{count} sesi dicabut. Login lagi ya.",
   "profAllSessionsRevoked": "Semua sesi dicabut. Login lagi ya.",
   "profRevokeFailed": "Gagal nyabut sesi: {message}",
-
   "equipLoadFailed": "Gagal memuat daftar alat.",
   "equipSearchHint": "Cari nama alat",
   "equipFilterKategoriHint": "Kategori",
@@ -265,7 +313,6 @@
   "equipStatus": "Status",
   "equipSave": "SIMPAN",
   "equipSaveFailed": "Gagal menyimpan: {pesan}",
-
   "historyEmptyTitle": "Belum ada riwayat",
   "historyEmptyBody": "Sesi kalibrasi yang udah kelar bakal muncul di sini.",
   "historyLoadFailed": "Gagal memuat riwayat.",
@@ -315,7 +362,6 @@
   "certBelumDihitung": "Titik ukurnya belum dihitung backend, jadi tabel laporannya belum bisa ditampilkan.",
   "certDisclaimer": "— Hasil kalibrasi tidak untuk diumumkan dan hanya berlaku untuk alat terkait —",
   "certLihatDetail": "LIHAT DETAIL PERHITUNGAN",
-
   "detailTitle": "Detail Hasil Kalibrasi",
   "detailLoadFailed": "Gagal memuat detail kalibrasi.",
   "detailPaneEmptyTitle": "Belum ada sesi yang dipilih",
@@ -356,7 +402,6 @@
   "detailSesudahAdjustment": "Sesudah adjustment (disertifikasi)",
   "detailAsFoundCatatan": "Dokumentasi kondisi alat waktu diterima — nggak ikut hasil yang disertifikasi.",
   "detailPerluVerifikasi": "Masih ada pembacaan OCR yang belum dikonfirmasi — sesi ini belum bisa di-approve.",
-
   "arsipTitle": "Arsip",
   "arsipCariPerusahaan": "Cari perusahaan...",
   "arsipPerusahaanKosong": "Belum ada perusahaan.",
@@ -399,7 +444,6 @@
   "certBelumAdaTautan": "Backend belum nerbitin token verifikasi, jadi belum ada tautan yang bisa dibagiin.",
   "certPesanBagikan": "Halo,\n\nSertifikat kalibrasi Anda sudah terbit.\n\nNomor Sertifikat:\n{nomor}\n\nTautan Verifikasi:\n{tautan}\n\nSilakan scan kode QR atau buka tautan di atas.\n\nTerima kasih.",
   "certSubjekEmail": "Sertifikat Kalibrasi {nomor}",
-
   "alurTitle": "Alur Kerja",
   "alurSub": "Dari isian teknisi sampai sertifikatnya nyampe ke pelanggan.",
   "alurPilihSesi": "Pilih sesi di kiri buat lihat posisinya sekarang.",
@@ -420,7 +464,6 @@
   "alurCatatanRevisi": "Dibalikin admin: {catatan}",
   "alurLangkahSekarang": "Lagi di sini",
   "alurLangkahSelesai": "Beres",
-
   "panelSeksiOperasional": "Operasional",
   "panelSeksiDokumen": "Dokumen",
   "panelSeksiSistem": "Sistem",
@@ -439,12 +482,10 @@
   "panelMasihDraft": "Plus {count} masih draft",
   "panelTotalSepanjangMasa": "Total sepanjang masa {count}",
   "panelStatusBelumLengkap": "\"Perlu revisi\" belum ada di respons dashboard — masih nunggu backend.",
-
   "arsipPetunjukPindah": "Tahan item-nya buat mindahin.",
   "arsipTakBisaDipindah": "Folder otomatis — tempatnya ngikut PT/tahun.",
   "arsipFolderDipindah": "Folder dipindah ke \"{tujuan}\".",
   "arsipBerkasDipindah": "Berkas dipindah ke \"{tujuan}\".",
-
   "orgTitle": "Data Organisasi",
   "orgNama": "Nama PT",
   "orgAlamat": "Alamat",
@@ -464,7 +505,6 @@
   "orgSaveFailed": "Gagal menyimpan: {pesan}",
   "orgLoadFailed": "Gagal memuat data organisasi.",
   "orgRetry": "COBA LAGI",
-
   "standarTitle": "Standar Acuan",
   "standarLoadFailed": "Gagal memuat standar acuan.",
   "standarAdd": "TAMBAH STANDAR",
@@ -493,7 +533,6 @@
   "standarFaktorCakupan": "Faktor cakupan (k)",
   "standarDrift": "Drift per tahun",
   "standarSave": "SIMPAN",
-
   "custTitle": "Pelanggan",
   "custSearchHint": "Cari nama pelanggan",
   "custEmptyTitle": "Belum ada pelanggan",
@@ -516,7 +555,6 @@
   "custSaveFailed": "Gagal menyimpan: {pesan}",
   "custEquipmentCount": "{jumlah} alat",
   "custFieldRequired": "Wajib diisi.",
-
   "calibTitle": "Input Kalibrasi",
   "calibKategori": "Kategori",
   "calibKategoriHint": "Pilih kategori alat",
@@ -554,7 +592,6 @@
   "calibGagal": "Gagal menyimpan: {pesan}",
   "calibLoadPilihanGagal": "Gagal memuat pilihan kategori/standar.",
   "calibRetry": "COBA LAGI",
-
   "calibPilihKategoriTitle": "Pilih Kategori Alat",
   "calibPilihKategoriSubtitle": "Pilih kelompok pengukuran dulu, baru jenis alat spesifiknya.",
   "calibKategoriKosong": "Belum ada kategori.",
@@ -564,7 +601,6 @@
   "calibInstrumenMetodeLabel": "Metode",
   "calibCariInstrumenHint": "Cari jenis alat...",
   "calibInstrumenTidakDitemukan": "Nggak ketemu jenis alat yang cocok.",
-
   "phCalibTitle": "Kalibrasi pH Meter",
   "phCalibThermohygro": "Thermohygro dipakai",
   "phCalibThermohygroHint": "mis. TH-3",
@@ -631,7 +667,9 @@
   "phCalibFotoTabelPosisiKacau": "{jumlah} angka kebaca, tapi belum kebentuk tabel. Biasanya karena fotonya miring atau yang kefoto selembar penuh — coba foto TABEL-nya aja, tegak lurus dari atas. Kolomnya tetap bisa diketik manual.",
   "@phCalibFotoTabelPosisiKacau": {
     "placeholders": {
-      "jumlah": { "type": "int" }
+      "jumlah": {
+        "type": "int"
+      }
     }
   },
   "phCalibFotoTabelKosong": "Angka di foto belum kebaca. Tips: foto TABEL-nya aja (nggak usah selembar penuh), tegak lurus dari atas, cahaya rata tanpa bayangan tangan. Atau ketik manual.",
@@ -639,7 +677,9 @@
   "phCalibFotoHeaderHasil": "Plus {jumlah} kolom di luar tabel (kondisi, catatan, standar dipakai) — tolong dicek.",
   "@phCalibFotoHeaderHasil": {
     "placeholders": {
-      "jumlah": { "type": "int" }
+      "jumlah": {
+        "type": "int"
+      }
     }
   },
   "phCalibOcrBelumDikonfirmasi": "Dari kamera — cek dulu",
@@ -665,7 +705,6 @@
   "phCalibDokumentasi": "Dokumentasi",
   "phCalibDihitungServer": "Rata-rata, budget ketidakpastian, U95% lingkungan & keputusan PASS/FAIL semuanya dihitung server.",
   "phCalibOpsional": "Opsional",
-
   "notifEmptyTitle": "Belum ada notifikasi",
   "notifEmptyBody": "Pengingat jatuh tempo & update approval bakal muncul di sini.",
   "notifLoadFailed": "Gagal memuat notifikasi.",
@@ -675,7 +714,6 @@
   "notifTypeDueDate": "Jatuh tempo",
   "notifTypeApproval": "Approval",
   "notifTypeRevision": "Revisi",
-
   "teknisiTitle": "Data Teknisi",
   "teknisiFilterSemua": "Semua",
   "teknisiFilterPending": "Pending",
@@ -758,7 +796,11 @@
   "teknisiResetPasswordJudul": "Reset password akun",
   "teknisiResetPasswordIsi": "Tentukan password baru buat {nama}. Sesi dia di semua perangkat bakal dicabut.",
   "@teknisiResetPasswordIsi": {
-    "placeholders": { "nama": { "type": "String" } }
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
   },
   "teknisiResetPasswordLabel": "Password baru",
   "teknisiResetPasswordHelper": "Minimal 8 karakter. Backend nggak ngirim email — kasih tahu orangnya langsung.",
@@ -768,11 +810,9 @@
   "teknisiKonfirmTolakIsi": "Dia bakal dikeluarkan dari semua perangkat dan nggak bisa login lagi. Riwayat kalibrasi yang lama tetap utuh.",
   "teknisiTanpaEmployeeId": "Tanpa ID pegawai",
   "teknisiHanyaAdmin": "Cuma admin yang bisa kelola akun.",
-
   "menuUtama": "Menu utama",
   "menuMasterData": "Master Data",
   "menuPengaturan": "Pengaturan",
-
   "sheetTutup": "TUTUP",
   "sheetCobaLagi": "COBA LAGI",
   "sheetKirimBerhasil": "Kekirim!",
@@ -792,7 +832,6 @@
   "tugasMasuk": "Masuk",
   "tugasJanji": "Janji selesai",
   "tugasBelumDitugaskan": "Belum dibagi",
-
   "dashSummaryOrg": "Ringkasan organisasi",
   "dashSummaryYours": "Ringkasan kamu",
   "snackAddDeviceSoon": "Tambah alat digarap minggu 3.",
@@ -816,7 +855,13 @@
   "lkStandarPerTitik": "Standar titik",
   "lkStandarKadaluarsa": "sertifikat kadaluarsa",
   "antreanSemuaPt": "Semua PT ({jumlah})",
-  "@antreanSemuaPt": { "placeholders": { "jumlah": { "type": "int" } } },
+  "@antreanSemuaPt": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "kirimLewatJudul": "Kirim lewat",
   "kirimLewatEmail": "Email",
   "kirimLewatWa": "WhatsApp",
@@ -849,14 +894,35 @@
   "lkBannerRevisiTanpaKolom": "Admin ngembaliin lembar kerja ini. Baca catatannya di bawah.",
   "lkCatatanAdmin": "CATATAN ADMIN",
   "lkRevisiJumlahKolom": "{jumlah} kolom ditandai perlu dibetulin.",
-  "@lkRevisiJumlahKolom": {"placeholders": {"jumlah": {"type": "int"}}},
+  "@lkRevisiJumlahKolom": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "lkBannerRevisi": "Admin ngembaliin lembar kerja ini. Kolom yang ditandai di bawah yang perlu dibetulin.",
   "lkStandarBelumTerdaftar": "belum terdaftar di master standar",
   "antreanMasukBaru": "{jumlah, plural, =1{1 lembar kerja baru masuk antrean approval} other{{jumlah} lembar kerja baru masuk antrean approval}}",
-  "@antreanMasukBaru": { "placeholders": { "jumlah": { "type": "int" } } },
+  "@antreanMasukBaru": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "lkThermohygroKosong": "Belum ada unit thermohygro terdaftar.",
   "lkHalamanKe": "Halaman {nomor} dari {dari}",
-  "@lkHalamanKe": { "placeholders": { "nomor": { "type": "int" }, "dari": { "type": "int" } } },
+  "@lkHalamanKe": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      },
+      "dari": {
+        "type": "int"
+      }
+    }
+  },
   "lkHalamanLanjut": "LANJUT KE HALAMAN BERIKUTNYA",
   "lkHalamanKembali": "KEMBALI",
   "lkPilih": "Pilih",
@@ -1026,5 +1092,33 @@
   "importGagal": "Import gagal: {pesan}",
   "lkKirimAdmin": "KIRIM",
   "lkScanTabel": "FOTO TABEL INI — DIBACA AI",
-  "lkScanMemproses": "AI lagi baca tabel…"
+  "lkScanMemproses": "AI lagi baca tabel…",
+  "lkPengulanganRingkas": "{n}x",
+  "@lkPengulanganRingkas": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "lkPengulanganTooltip": "Jumlah kolom pengulangan",
+  "lkPengulanganPilihan": "{n} kali pengulangan",
+  "@lkPengulanganPilihan": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "lkUbahPengulanganJudul": "Ubah jumlah pengulangan?",
+  "lkUbahPengulanganPesan": "Tabel hasil dibangun ulang jadi {n} kolom, dan angka yang udah diketik di tabel akan hilang. Kolom identitas & kondisi ruangan tetap aman.",
+  "@lkUbahPengulanganPesan": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "lkUbahPengulanganLanjut": "Ubah",
+  "lkPengulanganBatal": "Batal"
 }

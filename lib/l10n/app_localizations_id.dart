@@ -3166,4 +3166,31 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get lkScanMemproses => 'AI lagi baca tabel…';
+
+  @override
+  String lkPengulanganRingkas(int n) {
+    return '${n}x';
+  }
+
+  @override
+  String get lkPengulanganTooltip => 'Jumlah kolom pengulangan';
+
+  @override
+  String lkPengulanganPilihan(int n) {
+    return '$n kali pengulangan';
+  }
+
+  @override
+  String get lkUbahPengulanganJudul => 'Ubah jumlah pengulangan?';
+
+  @override
+  String lkUbahPengulanganPesan(int n) {
+    return 'Tabel hasil dibangun ulang jadi $n kolom, dan angka yang udah diketik di tabel akan hilang. Kolom identitas & kondisi ruangan tetap aman.';
+  }
+
+  @override
+  String get lkUbahPengulanganLanjut => 'Ubah';
+
+  @override
+  String get lkPengulanganBatal => 'Batal';
 }

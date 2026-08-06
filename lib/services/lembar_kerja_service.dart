@@ -13,7 +13,12 @@ abstract class LembarKerjaService {
   /// [profil] = kode jenis alat (`ph_meter` / `turbidimeter` /
   /// `chlorine_meter`). Backend milih bentuk lembar kerjanya dari sini;
   /// default pH kalau kosong. Lihat `docs/kontrak-api.md` §4.
-  Future<LembarKerja> ambilBentuk(String token, {String? profil});
+  ///
+  /// [pengulangan] = berapa KOTAK pengulangan yang digambar (2–10). `null` =
+  /// pakai bawaan profilnya (5, ngikut form kertas). Ini murni soal tampilan:
+  /// rumusnya selalu ngikut berapa kotak yang beneran diisi, jadi ngecilin
+  /// kolom nggak ngubah hasil hitungannya.
+  Future<LembarKerja> ambilBentuk(String token, {String? profil, int? pengulangan});
 
   /// `POST /api/calibrations` — balikin id sesi yang kebentuk.
   Future<int> kirim(String token, LembarKerjaSubmission isian);
@@ -29,10 +34,16 @@ class ApiLembarKerjaService implements LembarKerjaService {
   final ApiClient _api;
 
   @override
-  Future<LembarKerja> ambilBentuk(String token, {String? profil}) async {
-    final path = profil == null || profil.isEmpty
-        ? '/calibrations/lembar-kerja'
-        : '/calibrations/lembar-kerja?profil=$profil';
+  Future<LembarKerja> ambilBentuk(
+    String token, {
+    String? profil,
+    int? pengulangan,
+  }) async {
+    final q = <String>[
+      if (profil != null && profil.isNotEmpty) 'profil=$profil',
+      if (pengulangan != null) 'pengulangan=$pengulangan',
+    ];
+    final path = '/calibrations/lembar-kerja${q.isEmpty ? '' : '?${q.join('&')}'}';
     final json = await _api.get(path, token: token);
     final data = (json['data'] ?? json) as Map<String, dynamic>;
     return LembarKerja.fromJson(data);
@@ -91,16 +102,32 @@ class MockLembarKerjaService implements LembarKerjaService {
 
   int get jumlahKirim => payload.length;
 
+  /// Jumlah kotak pengulangan yang diminta tiap kali bentuk diambil (`null` =
+  /// nggak minta apa-apa, pakai bawaan). Dicatat biar test bisa mastiin
+  /// pilihan teknisi beneran nyampe ke backend, bukan cuma keganti di layar.
+  final List<int?> pengulanganDiminta = [];
+
   @override
-  Future<LembarKerja> ambilBentuk(String token, {String? profil}) async {
+  Future<LembarKerja> ambilBentuk(
+    String token, {
+    String? profil,
+    int? pengulangan,
+  }) async {
     if (gagal) throw Exception('server nggak nyaut');
-    return LembarKerja.fromJson(switch (profil) {
+    pengulanganDiminta.add(pengulangan);
+
+    final bentuk = switch (profil) {
       'turbidimeter' => contohBentukLembarKerjaTurbidi(untukAdmin: untukAdmin),
       'chlorine_meter' => contohBentukLembarKerjaChlorine(untukAdmin: untukAdmin),
       // Profil kosong / nggak dikenal SENGAJA jatuh ke pH, bukan lempar error —
       // sama kayak janji kontraknya (`docs/kontrak-api.md` §4).
       _ => contohBentukLembarKerja(untukAdmin: untukAdmin),
-    });
+    };
+
+    // Niru backend: yang ditulis ulang cuma jumlah KOTAKnya.
+    return LembarKerja.fromJson(
+      pengulangan == null ? bentuk : setelKolomPengulanganMock(bentuk, pengulangan),
+    );
   }
 
   @override
@@ -136,6 +163,35 @@ class MockLembarKerjaService implements LembarKerjaService {
 
     return id;
   }
+}
+
+/// Tiruan `CalibrationProfile::setelKolomPengulangan()` di backend, buat mode
+/// mock & widget test.
+///
+/// Sengaja niru bentuk keluarannya, bukan aturannya: yang diuji di sisi mobile
+/// itu "layarnya ngikut apa pun jumlah kotak yang dikirim backend", bukan
+/// "mobile bisa ngitung sendiri berapa kotaknya". Batas 2–10 tetap urusan
+/// backend — di sini nggak divalidasi lagi biar nggak ada dua sumber aturan.
+Map<String, dynamic> setelKolomPengulanganMock(
+  Map<String, dynamic> bentuk,
+  int jumlah,
+) {
+  Object? tulisUlang(Object? simpul) {
+    if (simpul is Map<String, dynamic>) {
+      return {
+        for (final e in simpul.entries)
+          e.key: switch (e.key) {
+            'jumlah_pengulangan' when e.value is int => jumlah,
+            'pengulangan' when e.value is List => List<int>.generate(jumlah, (i) => i + 1),
+            _ => tulisUlang(e.value),
+          },
+      };
+    }
+    if (simpul is List) return simpul.map(tulisUlang).toList();
+    return simpul;
+  }
+
+  return tulisUlang(bentuk)! as Map<String, dynamic>;
 }
 
 /// Salinan bentuk yang dibalikin `GET /api/calibrations/lembar-kerja`
