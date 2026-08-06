@@ -223,6 +223,9 @@ class CertificateDetail {
     this.pdfUrl,
     this.qrToken,
     this.diterbitkanPada,
+    this.pelangganNama,
+    this.pelangganEmail,
+    this.pelangganTelepon,
   });
 
   final int id;
@@ -239,10 +242,23 @@ class CertificateDetail {
   final String? qrToken;
   final String? diterbitkanPada;
 
+  /// Kontak pelanggan buat tombol kirim — **backend udah ngirim ini dari dulu**
+  /// (`CertificateResource`), cuma nggak pernah dibaca di sini. Akibatnya kolom
+  /// "To" selalu kosong dan admin ngetik alamatnya manual tiap kali, padahal
+  /// datanya udah nyampe.
+  ///
+  /// Boleh null: master pelanggan boleh belum keisi email/teleponnya. Layar
+  /// yang mutusin nampilin pilihan apa nggak — jangan nebak alamat sendiri.
+  final String? pelangganNama;
+  final String? pelangganEmail;
+  final String? pelangganTelepon;
+
   bool get siap => status == 'terbit';
 
-  factory CertificateDetail.fromJson(Map<String, dynamic> json) =>
-      CertificateDetail(
+  factory CertificateDetail.fromJson(Map<String, dynamic> json) {
+    final pelanggan = json['pelanggan'] as Map<String, dynamic>?;
+
+    return CertificateDetail(
         id: (json['id'] as num).toInt(),
         nomor: json['nomor'] as String? ?? '',
         status: json['status'] as String? ?? 'menunggu_generate',
@@ -254,5 +270,9 @@ class CertificateDetail {
                 json['snapshot'] as Map<String, dynamic>,
               )
             : null,
+        pelangganNama: pelanggan?['nama'] as String?,
+        pelangganEmail: pelanggan?['email'] as String?,
+        pelangganTelepon: pelanggan?['telepon'] as String?,
       );
+  }
 }

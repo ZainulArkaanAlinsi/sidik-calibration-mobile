@@ -8,6 +8,8 @@ import 'package:sidik_calibration/models/kirim_email.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/kirim_email_provider.dart';
 import 'package:sidik_calibration/screens/history/kirim_email_screen.dart';
+import 'package:sidik_calibration/providers/certificate_provider.dart';
+import 'package:sidik_calibration/services/certificate_service.dart';
 import 'package:sidik_calibration/services/kirim_email_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
@@ -18,6 +20,7 @@ Widget _app(MockKirimEmailService service, {String token = 'mock-token-1'}) {
       tokenStorageProvider.overrideWithValue(InMemoryTokenStorage(token)),
       authServiceProvider.overrideWithValue(MockAuthService()),
       kirimEmailServiceProvider.overrideWithValue(service),
+      certificateServiceProvider.overrideWithValue(MockCertificateService()),
     ],
     child: MaterialApp(
       locale: const Locale('id'),
@@ -33,6 +36,14 @@ Widget _app(MockKirimEmailService service, {String token = 'mock-token-1'}) {
 
 /// `MockAuthService` jedanya 600 ms dan `pumpAndSettle()` nggak majuin timer.
 Future<void> _pasang(WidgetTester tester, Widget app) async {
+  // Jendela default test (800x600) kependekan sejak layar ini nambah pilihan
+  // kontak pelanggan di atas: bagian riwayat kedorong keluar viewport, dan
+  // `ListView` bangun isinya lazy — jadi `find.text` nggak nemu apa-apa
+  // walaupun widget-nya bener. Ditinggiin biar seluruh layar kebangun.
+  tester.view.physicalSize = const Size(1000, 2200);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+
   await tester.pumpWidget(app);
   await tester.pump(const Duration(milliseconds: 700));
   await tester.pumpAndSettle();
@@ -419,6 +430,44 @@ void main() {
       });
 
       expect(p.format, FormatKirim.pdf);
+    });
+  });
+
+  group('pilih penerima tanpa ngetik', () {
+    /// **Latar:** backend udah ngirim kontak pelanggan di `CertificateResource`
+    /// dari dulu, tapi mobile nggak pernah bacanya — jadi kolom "To" selalu
+    /// kosong dan admin ngetik alamatnya manual tiap kali.
+    testWidgets('email pelanggan muncul sebagai pilihan sekali tap', (
+      tester,
+    ) async {
+      await _pasang(tester, _app(MockKirimEmailService()));
+
+      final chip = find.widgetWithText(ActionChip, 'pic@tirta.co.id');
+      expect(chip, findsOneWidget, reason: 'kontak pelanggan mestinya ditawarin');
+      expect(find.textContaining('TIRTA GRACIA'), findsWidgets);
+
+      await tester.tap(chip);
+      await tester.pumpAndSettle();
+
+      final ke = tester.widget<TextField>(find.byType(TextField).first);
+      expect(ke.controller!.text, 'pic@tirta.co.id');
+    });
+
+    /// Ditambahkan, BUKAN ditimpa — admin boleh ngirim ke pelanggan sekaligus
+    /// ke orang lain, dan yang udah diketik nggak boleh ilang.
+    testWidgets('pilihan ditambahkan ke alamat yang udah diketik', (
+      tester,
+    ) async {
+      await _pasang(tester, _app(MockKirimEmailService()));
+
+      await tester.enterText(find.byType(TextField).first, 'lain@contoh.com');
+      await tester.pump();
+
+      await tester.tap(find.widgetWithText(ActionChip, 'pic@tirta.co.id'));
+      await tester.pumpAndSettle();
+
+      final ke = tester.widget<TextField>(find.byType(TextField).first);
+      expect(ke.controller!.text, 'lain@contoh.com, pic@tirta.co.id');
     });
   });
 }

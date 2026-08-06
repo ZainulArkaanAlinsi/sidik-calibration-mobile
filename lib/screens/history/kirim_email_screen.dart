@@ -10,6 +10,7 @@ import '../../models/izin.dart';
 import '../../models/kirim_email.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/izin_provider.dart';
+import '../../providers/certificate_provider.dart';
 import '../../providers/kirim_email_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/status_badge.dart';
@@ -283,9 +284,63 @@ class _IsiState extends ConsumerState<_Isi> {
     final l10n = AppLocalizations.of(context);
     final riwayat = ref.watch(riwayatEmailProvider(widget.certificateId));
 
+    // Kontak pelanggan buat tombol "tinggal pilih". Backend udah ngirim ini
+    // dari dulu (`CertificateResource.pelanggan`) — sebelumnya kebuang, dan
+    // admin ngetik alamatnya manual tiap kali padahal datanya udah nyampe.
+    final detail = ref.watch(certificateDetailProvider(widget.certificateId)).value;
+    final saran = _lewatWa ? detail?.pelangganTelepon : detail?.pelangganEmail;
+
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
+        // Cuma muncul kalau master pelanggan emang udah keisi. Kalau kosong,
+        // layarnya persis kayak sebelumnya — ketik manual, nggak ada yang
+        // rusak. Jadi ini aman dipasang sebelum datanya lengkap.
+        if (saran != null && saran.trim().isNotEmpty) ...[
+          Row(
+            children: [
+              Icon(
+                Icons.business_outlined,
+                size: 16,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Text(
+                  detail?.pelangganNama ?? '',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: ActionChip(
+              avatar: const Icon(Icons.person_add_alt, size: 18),
+              label: Text(saran),
+              onPressed: _mengirim
+                  ? null
+                  // Ditambahkan, BUKAN ditimpa: admin boleh ngirim ke pelanggan
+                  // sekaligus ke orang lain, dan yang udah diketik nggak boleh
+                  // ilang cuma gara-gara mencet ini.
+                  : () => setState(() {
+                        final ada = _ke.text
+                            .split(',')
+                            .map((e) => e.trim())
+                            .where((e) => e.isNotEmpty)
+                            .toList();
+                        if (ada.contains(saran)) return;
+                        ada.add(saran);
+                        _ke.text = ada.join(', ');
+                      }),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+        ],
         TextField(
           controller: _ke,
           enabled: !_mengirim,
