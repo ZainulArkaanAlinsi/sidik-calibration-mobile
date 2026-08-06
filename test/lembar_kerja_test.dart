@@ -828,6 +828,26 @@ void main() {
       // Dua Repeat keisi dari foto, tiga sisanya tetap null di posisinya.
       expect(titik4['pembacaan'], [4.01, 4.02, null, null, null]);
     });
+
+    /// Asal-usul angka ikut kesimpen, bukan cuma angkanya.
+    ///
+    /// Dulu payload selalu nulis `input_method: manual`, termasuk buat tabel
+    /// yang dibaca AI dari foto. Waktu ada angka sertifikat yang kelihatan
+    /// meleset (6 Agt 2026, chlorine titik 1,83), pertanyaan pertama admin —
+    /// "ini diketik atau hasil foto?" — cuma bisa dijawab dengan ngubek log
+    /// server, dan log-nya nggak selamanya ada.
+    test('sesi yang tabelnya dari foto kecatat ai_vision, bukan manual', () {
+      final polos = buatState()..alat = daftarAlatMock.first;
+      expect(polos.toSubmission(draft: false).toJson()['input_method'], 'manual');
+
+      final difoto = buatState()..alat = daftarAlatMock.first;
+      difoto.terapkanHasilEkstraksi(contohHasil(), tahap: 'sesudah_adjustment');
+
+      expect(
+        difoto.toSubmission(draft: false).toJson()['input_method'],
+        'ai_vision',
+      );
+    });
   });
 
   _testDropdownGagal();
@@ -1014,6 +1034,72 @@ void _testChlorine() {
         MockStore.instance.sesi.first.namaAlat,
         'Chlorine Meter Hanna (sesi baru)',
       );
+    });
+
+    /// Seluruh tabel diisi, bukan satu sel — yang dijaga di sini **pemetaan
+    /// baris**, bukan "angka bisa masuk".
+    ///
+    /// 6 Agt 2026: sertifikat di HP nampilin titik kedua `1,90` / `-0,07`,
+    /// padahal sertifikat asli `0189-CAL-624` nulis `1,86` / `-0,03`. Yang
+    /// dicurigai duluan olah datanya; ternyata pembacaan yang KESIMPEN emang
+    /// 1,90 — hitungannya bener buat masukan itu (dibuktiin
+    /// `SertifikatCocokMasterTest` di backend). Buat mastiin bukan layar ini
+    /// yang naruh angka di baris yang salah, seluruh tabel diadu ke masternya.
+    ///
+    /// Kalau dua baris ini ketuker atau nyampur, angkanya tetap "kelihatan
+    /// wajar" di layar — nggak ada yang error, dan ketahuannya baru waktu
+    /// pelanggan mbandingin sertifikat sama kertas lab.
+    testWidgets('dua titik keisi penuh: angkanya nggak ketuker antar baris', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'chlorine_meter'));
+
+      await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+
+      // Angka master `Chlorine_Meter_CSV/INPUT_DATA.csv` baris 44–48: titik
+      // 1,74 kebaca 1,76 (Repeat 5 turun ke 1,75), titik 1,83 kebaca 1,86 rata.
+      const bacaan174 = ['1,76', '1,76', '1,76', '1,76', '1,75'];
+      const bacaan183 = ['1,86', '1,86', '1,86', '1,86', '1,86'];
+      const suhu = ['25,7', '25,8', '25,8', '25,8', '25,8'];
+
+      final tabelAfter = find.ancestor(
+        of: find.text('After adjustment Reading'),
+        matching: find.byType(Column),
+      );
+      final kotak = find.descendant(
+        of: tabelAfter.first,
+        matching: find.byType(TextField),
+      );
+
+      // Satu baris = 5 Repeat × 2 kotak (mg/L, °C), baris 1,74 duluan.
+      for (var r = 0; r < 5; r++) {
+        await tester.enterText(kotak.at(r * 2), bacaan174[r]);
+        await tester.enterText(kotak.at(r * 2 + 1), suhu[r]);
+        await tester.enterText(kotak.at(10 + r * 2), bacaan183[r]);
+        await tester.enterText(kotak.at(10 + r * 2 + 1), suhu[r]);
+      }
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      final measurements =
+          service.payloadTerakhir!['measurements'] as List<dynamic>;
+      final titik174 = measurements.first as Map<String, dynamic>;
+      final titik183 = measurements.last as Map<String, dynamic>;
+
+      expect(titik174['titik_ukur'], 1.74);
+      expect(titik174['pembacaan'], [1.76, 1.76, 1.76, 1.76, 1.75]);
+      expect(titik183['titik_ukur'], 1.83);
+      expect(titik183['pembacaan'], [1.86, 1.86, 1.86, 1.86, 1.86]);
+
+      // Suhunya sama di dua baris, jadi kalau kolom pembacaan & suhu ketuker
+      // bedanya nggak kelihatan dari nilai suhu doang — makanya dicek juga
+      // bahwa kolom pembacaan nggak kemasukan 25,x.
+      expect(titik174['suhu'], [25.7, 25.8, 25.8, 25.8, 25.8]);
+      expect(titik183['suhu'], [25.7, 25.8, 25.8, 25.8, 25.8]);
     });
   });
 }
