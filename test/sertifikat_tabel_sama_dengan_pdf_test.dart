@@ -105,6 +105,25 @@ void main() {
       expect(formatSertifikat(1234.5, 1), '1.234,5');
     });
 
+    test('Turbidimeter: tiga titik, tiga resolusi berbeda — sama kayak PDF', () {
+      // Diambil dari sertifikat asli CAL/2026/08/0011 yang baru terbit:
+      //   1,00   | 1,00  | 0,00 | 0,04
+      //   100    | 100   | 0    | 3
+      //   1.000  | 1.001 | -1   | 22
+      // Resolusi Turbidimeter berubah menurut rentang (0,01 / 0,1 / 1 NTU),
+      // jadi tiga baris ini pakai tiga jumlah desimal yang beda.
+      expect(formatSertifikat(1.0, 2), '1,00');
+      expect(formatSertifikat(0.041, 2), '0,04');
+
+      expect(formatSertifikat(100.2, 0), '100');
+      expect(formatSertifikat(-0.2, 0), '0'); // membulat ke nol, tanpa minus
+      expect(formatSertifikat(3.1, 0), '3');
+
+      expect(formatSertifikat(1001.0, 0), '1.001');
+      expect(formatSertifikat(-1.0, 0), '-1');
+      expect(formatSertifikat(22.0, 0), '22');
+    });
+
     test('nol negatif hasil pembulatan ditulis tanpa tanda minus', () {
       // `-0,004` dibulatkan ke 2 desimal itu nol. Ditulis `-0,00`, orang ngira
       // ada koreksi negatif padahal nggak ada.
