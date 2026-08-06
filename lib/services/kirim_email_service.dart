@@ -14,7 +14,13 @@ abstract class KirimEmailService {
   /// tercatat** di riwayat — jadi jangan diperlakukan sebagai "nggak terjadi
   /// apa-apa"; riwayatnya wajib dimuat ulang sesudah gagal, sama kayak sesudah
   /// berhasil.
-  Future<void> kirim(String token, int certificateId, KirimEmailPermintaan isi);
+  ///
+  /// Baliknya `peringatan` dari server, atau `null` kalau emailnya beneran
+  /// keluar. Isinya kejadian yang **sukses tapi nggak nyampe** — mis. server
+  /// masih pakai `MAIL_MAILER=log`, yang nulis email ke berkas log dan nggak
+  /// pernah gagal. Tanpa ini layar bakal bilang "Email terkirim" buat email
+  /// yang nggak pernah keluar, dan admin nungguin balasan yang nggak ada.
+  Future<String?> kirim(String token, int certificateId, KirimEmailPermintaan isi);
 
   /// Catat pengiriman lewat WhatsApp & ambil teks siap-tempelnya.
   ///
@@ -39,12 +45,12 @@ class ApiKirimEmailService implements KirimEmailService {
   final ApiClient _api;
 
   @override
-  Future<void> kirim(
+  Future<String?> kirim(
     String token,
     int certificateId,
     KirimEmailPermintaan isi,
   ) async {
-    await _api.post(
+    final json = await _api.post(
       '/certificates/$certificateId/kirim-email',
       token: token,
       body: isi.toJson(),
@@ -53,6 +59,14 @@ class ApiKirimEmailService implements KirimEmailService {
       // servernya masih ngirim.
       timeout: const Duration(seconds: 60),
     );
+
+    // Server lama nggak ngirim field ini — dianggep beneran terkirim, persis
+    // kayak perilaku sebelumnya.
+    final peringatan = json['peringatan'];
+    if (peringatan is! String) return null;
+
+    final teks = peringatan.trim();
+    return teks.isEmpty ? null : teks;
   }
 
   @override
@@ -88,15 +102,18 @@ class ApiKirimEmailService implements KirimEmailService {
 
 /// Versi in-memory buat mode mock & widget test.
 class MockKirimEmailService implements KirimEmailService {
-  MockKirimEmailService({this.gagalKirim = false});
+  MockKirimEmailService({this.gagalKirim = false, this.peringatan});
 
   /// Meniru `502` — server nerima permintaannya tapi email nggak keluar.
   final bool gagalKirim;
 
+  /// Meniru sukses-tapi-nggak-nyampe (`MAIL_MAILER=log` di server).
+  final String? peringatan;
+
   final List<PercobaanEmail> _riwayat = [];
 
   @override
-  Future<void> kirim(
+  Future<String?> kirim(
     String token,
     int certificateId,
     KirimEmailPermintaan isi,
@@ -124,6 +141,8 @@ class MockKirimEmailService implements KirimEmailService {
         body: const {},
       );
     }
+
+    return peringatan;
   }
 
   @override

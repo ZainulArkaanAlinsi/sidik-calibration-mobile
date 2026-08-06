@@ -213,6 +213,29 @@ void main() {
       expect(find.textContaining('mailbox penuh'), findsOneWidget);
     });
 
+    testWidgets(
+        'server bilang belum beneran terkirim → JANGAN nampilin "Email terkirim"',
+        (tester) async {
+      // `MAIL_MAILER=log` di server: emailnya cuma ditulis ke berkas log, dan
+      // `Mail::send()` nggak pernah gagal — jadi dari sini keliatan sukses
+      // sempurna. Sukses yang bohong lebih mahal daripada gagal: admin nutup
+      // layar dan nungguin balasan pelanggan yang emailnya nggak pernah keluar.
+      const pesan = 'Belum beneran terkirim. MAIL_MAILER masih `log`.';
+      final service = MockKirimEmailService(peringatan: pesan);
+      await _pasang(tester, _app(service));
+
+      await _isiKe(tester, 'pelanggan@pt-maju.com');
+      await tester.tap(find.text('KIRIM SEKARANG'));
+      await tester.pumpAndSettle();
+
+      expect(find.text(pesan), findsOneWidget);
+      expect(find.text('Email terkirim.'), findsNothing);
+
+      // Alamatnya harus tetap kesimpen — bakal dipakai kirim ulang begitu
+      // SMTP-nya dibenerin, dan ngetik ulang 10 alamat itu bikin males.
+      expect(find.text('pelanggan@pt-maju.com'), findsWidgets);
+    });
+
     testWidgets('belum pernah dikirim → dibilang, bukan daftar kosong melompong',
         (tester) async {
       await _pasang(tester, _app(MockKirimEmailService()));

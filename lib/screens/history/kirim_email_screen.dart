@@ -163,12 +163,33 @@ class _IsiState extends ConsumerState<_Isi> {
 
     setState(() => _mengirim = true);
     try {
-      await kirimSertifikatLewatEmail(
+      final peringatan = await kirimSertifikatLewatEmail(
         ref,
         certificateId: widget.certificateId,
         isi: KirimEmailPermintaan(ke: ke, cc: cc, format: _format),
       );
       if (!mounted) return;
+
+      // Sukses-tapi-nggak-nyampe: server nerima, nggak error, tapi emailnya
+      // nggak pernah keluar (mis. `MAIL_MAILER=log`). Bilang "Email terkirim"
+      // di sini lebih bahaya daripada error — admin nutup layar dan nungguin
+      // balasan pelanggan yang nggak bakal datang.
+      //
+      // Kolomnya SENGAJA nggak dikosongin: alamatnya masih dibutuhin buat
+      // kirim ulang begitu SMTP-nya dibenerin.
+      if (peringatan != null) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(peringatan),
+            // Peringatannya panjang dan cuma muncul sekali — 4 detik bawaan
+            // nggak cukup buat dibaca sampai habis.
+            duration: const Duration(seconds: 10),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+        return;
+      }
+
       messenger.showSnackBar(SnackBar(content: Text(l10n.emailTerkirim)));
       _ke.clear();
       _cc.clear();
