@@ -3193,4 +3193,17 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get lkPengulanganBatal => 'Batal';
+
+  @override
+  String get emailRiwayatBelumKeluar => 'Belum keluar';
+
+  @override
+  String emailKontakKosong(String pt) {
+    return 'Email $pt belum diisi di data pelanggan. Isi lewat panel admin → Pelanggan, biar nanti tinggal pilih.';
+  }
+
+  @override
+  String emailKontakKosongWa(String pt) {
+    return 'Nomor WhatsApp $pt belum diisi di data pelanggan. Isi lewat panel admin → Pelanggan, biar nanti tinggal pilih.';
+  }
 }

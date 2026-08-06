@@ -3217,4 +3217,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lkPengulanganBatal => 'Cancel';
+
+  @override
+  String get emailRiwayatBelumKeluar => 'Not sent yet';
+
+  @override
+  String emailKontakKosong(String pt) {
+    return '$pt has no email in the customer record. Add it in the admin panel → Customers so it can be picked here.';
+  }
+
+  @override
+  String emailKontakKosongWa(String pt) {
+    return '$pt has no WhatsApp number in the customer record. Add it in the admin panel → Customers so it can be picked here.';
+  }
 }

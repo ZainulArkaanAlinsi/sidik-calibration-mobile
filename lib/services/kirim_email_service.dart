@@ -127,8 +127,14 @@ class MockKirimEmailService implements KirimEmailService {
         ke: isi.ke,
         cc: isi.cc,
         format: isi.format,
-        berhasil: !gagalKirim,
-        error: gagalKirim ? 'SMTP nolak: mailbox penuh.' : null,
+        // Mailer mati dicatat sebagai `tidakTerkirim`, sama kayak backend —
+        // bukan sukses, tapi juga bukan gagal.
+        hasil: switch ((gagalKirim, peringatan)) {
+          (true, _) => HasilKirim.gagal,
+          (false, final String _) => HasilKirim.tidakTerkirim,
+          _ => HasilKirim.terkirim,
+        },
+        error: gagalKirim ? 'SMTP nolak: mailbox penuh.' : peringatan,
         waktu: DateTime(2026, 7, 28, 10, _riwayat.length),
         oleh: 'Budi Santoso',
       ),
@@ -159,7 +165,7 @@ class MockKirimEmailService implements KirimEmailService {
         ke: ke,
         cc: const [],
         format: FormatKirim.whatsapp,
-        berhasil: true,
+        hasil: HasilKirim.terkirim,
         waktu: DateTime(2026, 7, 29, 11, _riwayat.length),
         oleh: 'Budi Santoso',
       ),

@@ -228,8 +228,18 @@ void main() {
       await tester.tap(find.text('KIRIM SEKARANG'));
       await tester.pumpAndSettle();
 
-      expect(find.text(pesan), findsOneWidget);
+      // Muncul di dua tempat, dan dua-duanya perlu: snackbar buat yang lagi
+      // ngeliat, riwayat buat yang buka layar ini besok.
+      expect(find.text(pesan), findsWidgets);
       expect(find.text('Email terkirim.'), findsNothing);
+
+      // Dan ini yang paling penting: BADGE-nya nggak boleh bilang "Terkirim".
+      // Riwayat pengiriman itu yang dipakai jadi bukti waktu pelanggan bilang
+      // nggak nerima sertifikatnya — kalau dia ngaku terkirim buat email yang
+      // nggak pernah keluar, buktinya justru nyesatin.
+      expect(find.text('Belum keluar'), findsOneWidget);
+      expect(find.text('Terkirim'), findsNothing);
+      expect(find.text('Gagal'), findsNothing);
 
       // Alamatnya harus tetap kesimpen — bakal dipakai kirim ulang begitu
       // SMTP-nya dibenerin, dan ngetik ulang 10 alamat itu bikin males.

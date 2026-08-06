@@ -1618,5 +1618,22 @@
     }
   },
   "lkUbahPengulanganLanjut": "Change",
-  "lkPengulanganBatal": "Cancel"
+  "lkPengulanganBatal": "Cancel",
+  "emailRiwayatBelumKeluar": "Not sent yet",
+  "emailKontakKosong": "{pt} has no email in the customer record. Add it in the admin panel → Customers so it can be picked here.",
+  "@emailKontakKosong": {
+    "placeholders": {
+      "pt": {
+        "type": "String"
+      }
+    }
+  },
+  "emailKontakKosongWa": "{pt} has no WhatsApp number in the customer record. Add it in the admin panel → Customers so it can be picked here.",
+  "@emailKontakKosongWa": {
+    "placeholders": {
+      "pt": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -1120,5 +1120,22 @@
     }
   },
   "lkUbahPengulanganLanjut": "Ubah",
-  "lkPengulanganBatal": "Batal"
+  "lkPengulanganBatal": "Batal",
+  "emailRiwayatBelumKeluar": "Belum keluar",
+  "emailKontakKosong": "Email {pt} belum diisi di data pelanggan. Isi lewat panel admin → Pelanggan, biar nanti tinggal pilih.",
+  "@emailKontakKosong": {
+    "placeholders": {
+      "pt": {
+        "type": "String"
+      }
+    }
+  },
+  "emailKontakKosongWa": "Nomor WhatsApp {pt} belum diisi di data pelanggan. Isi lewat panel admin → Pelanggan, biar nanti tinggal pilih.",
+  "@emailKontakKosongWa": {
+    "placeholders": {
+      "pt": {
+        "type": "String"
+      }
+    }
+  }
 }

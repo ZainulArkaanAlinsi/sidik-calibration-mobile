@@ -361,6 +361,36 @@ class _IsiState extends ConsumerState<_Isi> {
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
+        ]
+        // Kontaknya belum ada di master. Dulu di sini nggak muncul apa-apa —
+        // kolom "To" kosong melompong, dan nggak ada cara buat tahu kenapa
+        // tombol "tinggal pilih" yang dijanjiin nggak pernah nongol.
+        //
+        // Bukan error: ngetik manual tetap jalan. Yang dikasih tahu cuma DI MANA
+        // datanya diisi, biar nggak nebak-nebak.
+        else if (detail?.pelangganNama != null) ...[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: 16,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Text(
+                  _lewatWa
+                      ? l10n.emailKontakKosongWa(detail!.pelangganNama!)
+                      : l10n.emailKontakKosong(detail!.pelangganNama!),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
         ],
         TextField(
           controller: _ke,
@@ -550,16 +580,28 @@ class _BarisRiwayat extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
+                // TIGA keadaan. `tidakTerkirim` yang paling penting dibedain:
+                // server nerima, nggak ada error, tapi emailnya nggak pernah
+                // keluar. Ditandai "Terkirim" — kayak dulu — bikin riwayat ini
+                // ngaku pelanggan udah nerima sertifikatnya padahal belum.
                 StatusBadge(
-                  label: percobaan.berhasil
-                      ? l10n.emailRiwayatBerhasil
-                      : l10n.emailRiwayatGagal,
-                  tone: percobaan.berhasil
-                      ? BadgeTone.success
-                      : BadgeTone.danger,
-                  icon: percobaan.berhasil
-                      ? Icons.check_circle_outline
-                      : Icons.error_outline,
+                  label: switch (percobaan.hasil) {
+                    HasilKirim.terkirim => l10n.emailRiwayatBerhasil,
+                    HasilKirim.tidakTerkirim => l10n.emailRiwayatBelumKeluar,
+                    HasilKirim.gagal => l10n.emailRiwayatGagal,
+                  },
+                  tone: switch (percobaan.hasil) {
+                    HasilKirim.terkirim => BadgeTone.success,
+                    // Bukan `danger`: nggak ada yang gagal, dan nggak ada yang
+                    // perlu dicoba ulang sampai setelan servernya dibetulin.
+                    HasilKirim.tidakTerkirim => BadgeTone.warning,
+                    HasilKirim.gagal => BadgeTone.danger,
+                  },
+                  icon: switch (percobaan.hasil) {
+                    HasilKirim.terkirim => Icons.check_circle_outline,
+                    HasilKirim.tidakTerkirim => Icons.pause_circle_outline,
+                    HasilKirim.gagal => Icons.error_outline,
+                  },
                 ),
               ],
             ),

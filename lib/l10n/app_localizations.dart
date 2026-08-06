@@ -5905,6 +5905,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancel'**
   String get lkPengulanganBatal;
+
+  /// No description provided for @emailRiwayatBelumKeluar.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sent yet'**
+  String get emailRiwayatBelumKeluar;
+
+  /// No description provided for @emailKontakKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'{pt} has no email in the customer record. Add it in the admin panel → Customers so it can be picked here.'**
+  String emailKontakKosong(String pt);
+
+  /// No description provided for @emailKontakKosongWa.
+  ///
+  /// In en, this message translates to:
+  /// **'{pt} has no WhatsApp number in the customer record. Add it in the admin panel → Customers so it can be picked here.'**
+  String emailKontakKosongWa(String pt);
 }
 
 class _AppLocalizationsDelegate
