@@ -252,6 +252,119 @@ void main() {
       expect(titik4['suhu'], [22.2, null, 22.1, null, null]);
     });
 
+    /// Dua tabel diisi PENUH pakai angka master — padanan tes yang sama buat
+    /// Turbidimeter & Chlorine, biar ketiga alat setara penjagaannya.
+    ///
+    /// pH yang paling nggak boleh ketuker barisnya. Di dua alat lain, Standard
+    /// Value itu angka nominal apa adanya; di sini dia dikoreksi kurva suhu
+    /// dulu (buffer 4 di 22,2 °C jadi 4,009244572). Jadi pembacaan yang nyasar
+    /// ke baris lain bukan cuma pindah tempat — dia diadu ke nilai acuan yang
+    /// salah, dan koreksinya ikut salah tanpa ada yang kelihatan aneh.
+    ///
+    /// Repeat 4 titik 4 pH sengaja `5,00`: itu angka ASLI dari sheet lab
+    /// (`PERHITUNGAN.csv` baris 27, tabel Before). Nilai nyeleneh yang cuma ada
+    /// di satu sel itu justru penanda posisi paling bagus — kalau dia mendarat
+    /// di Repeat lain, langsung ketahuan.
+    testWidgets('tiga titik keisi penuh: baris & tahapnya nggak ketuker', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service));
+
+      await _pilihAlat(tester);
+      await _keHalamanAkhir(tester);
+
+      // `Master Olah Data_pH for trial_CSV/PERHITUNGAN.csv`: Before baris
+      // 24–28, After baris 37–41. Rata-rata After yang jadi Unit Under Test di
+      // sertifikat 012-CAL-524: 4,00 · 7,004 · 10,11.
+      const after = [
+        ['4', '4', '4', '4', '4'],
+        ['7,01', '7,01', '7', '7', '7'],
+        ['10,11', '10,11', '10,11', '10,11', '10,11'],
+      ];
+      const suhuAfter = [
+        ['22,2', '22,2', '22,1', '22,2', '22,2'],
+        ['22,2', '22,2', '22,2', '22,2', '22,2'],
+        ['22,1', '22,1', '22,1', '22,1', '22,1'],
+      ];
+      const before = [
+        ['4,04', '4,04', '4,04', '5', '4,04'],
+        ['7,02', '7,04', '7,05', '7,02', '7,02'],
+        ['9,61', '9,94', '9,66', '9,61', '9,61'],
+      ];
+      const suhuBefore = ['22,2', '22,3', '22,2'];
+
+      Finder kotakTabel(String judul) => find.descendant(
+        of: find
+            .ancestor(of: find.text(judul), matching: find.byType(Column))
+            .first,
+        matching: find.byType(TextField),
+      );
+
+      // Satu baris = 5 Repeat × 2 kotak (pH, °C); baris urut 4 → 7 → 10,01.
+      for (var titik = 0; titik < 3; titik++) {
+        for (var r = 0; r < 5; r++) {
+          final sel = titik * 10 + r * 2;
+          await tester.enterText(
+            kotakTabel('After adjustment Reading').at(sel),
+            after[titik][r],
+          );
+          await tester.enterText(
+            kotakTabel('After adjustment Reading').at(sel + 1),
+            suhuAfter[titik][r],
+          );
+          await tester.enterText(
+            kotakTabel('Before adjustment Reading').at(sel),
+            before[titik][r],
+          );
+          await tester.enterText(
+            kotakTabel('Before adjustment Reading').at(sel + 1),
+            suhuBefore[titik],
+          );
+        }
+      }
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      final measurements =
+          service.payloadTerakhir!['measurements'] as List<dynamic>;
+
+      // Yang dikirim mobile itu nominal buffernya. Koreksi kurva suhu jadi
+      // 4,009244572 dikerjain backend — mobile nggak boleh nebak-nebak sendiri.
+      expect(
+        measurements.map((m) => (m as Map)['titik_ukur']).toList(),
+        [4.00, 7.00, 10.01],
+      );
+
+      final titik4 = measurements[0] as Map<String, dynamic>;
+      final titik7 = measurements[1] as Map<String, dynamic>;
+      final titik10 = measurements[2] as Map<String, dynamic>;
+
+      expect(titik4['pembacaan'], [4.0, 4.0, 4.0, 4.0, 4.0]);
+      expect(titik7['pembacaan'], [7.01, 7.01, 7.0, 7.0, 7.0]);
+      expect(titik10['pembacaan'], [10.11, 10.11, 10.11, 10.11, 10.11]);
+
+      // `5,00` di Repeat 4 — penanda posisi dari sheet aslinya.
+      expect(titik4['pembacaan_sebelum'], [4.04, 4.04, 4.04, 5.0, 4.04]);
+      expect(titik7['pembacaan_sebelum'], [7.02, 7.04, 7.05, 7.02, 7.02]);
+      expect(titik10['pembacaan_sebelum'], [9.61, 9.94, 9.66, 9.61, 9.61]);
+
+      // Suhu per Repeat, bukan satu angka per baris: titik 4 Repeat 3 tercatat
+      // 22,1 °C sementara sisanya 22,2 (sheet baris 39).
+      expect(titik4['suhu'], [22.2, 22.2, 22.1, 22.2, 22.2]);
+      expect(titik7['suhu_sebelum'], [22.3, 22.3, 22.3, 22.3, 22.3]);
+
+      double rata(List<dynamic> n) =>
+          n.cast<double>().reduce((a, b) => a + b) / n.length;
+
+      expect(rata(titik4['pembacaan'] as List<dynamic>), closeTo(4.0, 1e-9));
+      expect(rata(titik7['pembacaan'] as List<dynamic>), closeTo(7.004, 1e-9));
+      expect(rata(titik10['pembacaan'] as List<dynamic>), closeTo(10.11, 1e-9));
+    });
+
     testWidgets('titik yang sama sekali kosong tetap ikut terkirim', (
       tester,
     ) async {
