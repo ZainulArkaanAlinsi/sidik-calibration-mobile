@@ -3243,6 +3243,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkKonfirmasiKirim => 'Send now';
 
   @override
+  String get lkGantiSatuanJudul => 'Switching units clears the table';
+
+  @override
+  String lkGantiSatuanPesan(String dari, String ke) {
+    return '$dari uses different standard solutions than $ke, so the table rows change and any readings you entered are discarded. A $dari value is not a $ke value.';
+  }
+
+  @override
+  String get lkGantiSatuanBatal => 'Cancel';
+
+  @override
+  String get lkGantiSatuanLanjut => 'Switch & clear';
+
+  @override
   String get emailRiwayatBelumKeluar => 'Not sent yet';
 
   @override

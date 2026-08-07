@@ -225,6 +225,7 @@ class TabelHasil {
     required this.baris,
     required this.kolom,
     required this.pengulangan,
+    this.barisPerSatuan = const {},
   });
 
   /// `sebelum_adjustment` / `sesudah_adjustment`.
@@ -232,6 +233,26 @@ class TabelHasil {
   final String judul;
   final List<BarisTabelHasil> baris;
   final List<KolomTabelHasil> kolom;
+
+  /// Baris tabel per satuan alat — cuma Refractometer yang ngirim ini.
+  ///
+  /// Satuan alat nentuin titik standarnya, bukan cuma koefisien suhunya:
+  /// larutan fisik yang sama dibaca **2,5 °Brix** atau **1,33659 n20D**
+  /// (`BSAG2.5-0034`). Tanpa ini, sesi °Brix ngirim `titik_ukur: 1,33659`
+  /// bareng `satuan: "°Brix"` — nilai standar satu skala, pembacaan skala lain.
+  ///
+  /// Backend ngirim SEMUA set sekaligus, bukan lembar kerjanya diambil ulang
+  /// tiap satuan diganti: satuannya dipilih di dalam formulir ini, jadi waktu
+  /// bentuknya diambil backend belum tahu mana yang bakal dipakai — dan ngambil
+  /// ulang bakal ngereset semua yang udah diketik teknisi di lapangan.
+  ///
+  /// Kosong = alat satu satuan; [baris] yang dipakai, persis kayak dulu.
+  final Map<String, List<BarisTabelHasil>> barisPerSatuan;
+
+  /// Baris buat [satuan], jatuh ke [baris] kalau satuannya nggak dikenal —
+  /// bukan bikin tabel kosong. Alat satu satuan lewat sini juga.
+  List<BarisTabelHasil> barisUntuk(String satuan) =>
+      barisPerSatuan[satuan] ?? baris;
 
   /// Nomor Repeat yang tercetak di lembar kerja, biasanya 1..5.
   final List<int> pengulangan;
@@ -242,6 +263,12 @@ class TabelHasil {
     tahap: json['tahap'] as String,
     judul: json['judul'] as String? ?? '',
     baris: parseListAman(json['baris'], BarisTabelHasil.fromJson),
+    barisPerSatuan: {
+      for (final e in (json['baris_per_satuan'] as Map<String, dynamic>? ??
+              const <String, dynamic>{})
+          .entries)
+        e.key: parseListAman(e.value, BarisTabelHasil.fromJson),
+    },
     kolom: parseListAman(json['kolom'], KolomTabelHasil.fromJson),
     pengulangan: (json['pengulangan'] as List<dynamic>? ?? const [])
         .whereType<num>()

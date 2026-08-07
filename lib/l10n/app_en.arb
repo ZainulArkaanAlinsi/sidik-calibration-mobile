@@ -1639,6 +1639,20 @@
   "lkKonfirmasiBarisKosong": "Not filled in",
   "lkKonfirmasiPeriksaLagi": "Check again",
   "lkKonfirmasiKirim": "Send now",
+  "lkGantiSatuanJudul": "Switching units clears the table",
+  "lkGantiSatuanPesan": "{dari} uses different standard solutions than {ke}, so the table rows change and any readings you entered are discarded. A {dari} value is not a {ke} value.",
+  "@lkGantiSatuanPesan": {
+    "placeholders": {
+      "dari": {
+        "type": "String"
+      },
+      "ke": {
+        "type": "String"
+      }
+    }
+  },
+  "lkGantiSatuanBatal": "Cancel",
+  "lkGantiSatuanLanjut": "Switch & clear",
   "emailRiwayatBelumKeluar": "Not sent yet",
   "emailKontakKosong": "{pt} has no email in the customer record. Add it in the admin panel → Customers so it can be picked here.",
   "@emailKontakKosong": {

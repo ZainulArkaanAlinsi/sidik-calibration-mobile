@@ -1303,12 +1303,50 @@ class _PilihSatuan extends StatelessWidget {
         for (final p in field.pilihan)
           DropdownMenuItem(value: p.nilai, child: Text(p.label)),
       ],
-      onChanged: (value) {
-        if (value == null) return;
-        isian.satuan = value;
-        onBerubah();
-      },
+      onChanged: (value) => _pilih(context, value),
     );
+  }
+
+  /// Ganti satuan bisa **ngosongin tabel** — Refractometer di skala °Brix
+  /// diadu ke larutan 2,5 & 40, bukan 1,33659 & 1,39986.
+  ///
+  /// Pembacaan yang kebuang emang nggak punya arti di satuan baru, tapi tetap
+  /// angka yang diketik teknisi di lapangan — jadi ditanya dulu, bukan
+  /// dilenyapkan diam-diam. Kalau tabelnya masih kosong (kasus paling umum:
+  /// satuan disetel di awal, sebelum ngisi), nggak ada yang ditanyain.
+  Future<void> _pilih(BuildContext context, String? value) async {
+    if (value == null || value == isian.satuan) return;
+
+    if (isian.gantiSatuanMenghapusIsian(value)) {
+      final l10n = AppLocalizations.of(context);
+      final lanjut = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(l10n.lkGantiSatuanJudul),
+          content: Text(l10n.lkGantiSatuanPesan(isian.satuan, value)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text(l10n.lkGantiSatuanBatal),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: Text(l10n.lkGantiSatuanLanjut),
+            ),
+          ],
+        ),
+      );
+
+      if (lanjut != true) {
+        // Dropdown-nya udah terlanjur nampilin pilihan baru; `onBerubah` bikin
+        // dia digambar ulang dari `isian.satuan` yang nggak jadi berubah.
+        onBerubah();
+        return;
+      }
+    }
+
+    isian.satuan = value;
+    onBerubah();
   }
 }
 

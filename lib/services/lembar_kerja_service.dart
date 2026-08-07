@@ -750,14 +750,25 @@ Map<String, dynamic> contohBentukLembarKerjaRefractometer({
     'hanya_admin': hanyaAdmin,
   };
 
+  // Larutan fisiknya SAMA, cuma dibaca di skala yang beda: `BSAG2.5-0034`
+  // dibaca 2,5 °Brix atau 1,33659 n20D, `BSAG40-0071` dibaca 40 °Brix atau
+  // 1,39986 n20D. Angkanya cocok sama CMC yang diseed backend, jadi titiknya
+  // tetap dapat budget ketidakpastian.
+  const barisN20D = [
+    {'titik_ukur': 1.33659, 'label': '1,33659'},
+    {'titik_ukur': 1.39986, 'label': '1,39986'},
+  ];
+  const barisBrix = [
+    {'titik_ukur': 2.5, 'label': '2,5'},
+    {'titik_ukur': 40.0, 'label': '40'},
+  ];
+
   Map<String, dynamic> tabel(String tahap, String judul) => {
     'tahap': tahap,
     'judul': judul,
     // Sengaja tanpa `resolusi`/`desimal` — lihat docblock.
-    'baris': [
-      {'titik_ukur': 1.33659, 'label': '1,33659'},
-      {'titik_ukur': 1.39986, 'label': '1,39986'},
-    ],
+    'baris': barisN20D,
+    'baris_per_satuan': {'n20D': barisN20D, '°Brix': barisBrix},
     'kolom': [
       {'kode': 'pembacaan', 'label': 'n20D', 'tipe': 'angka', 'satuan': 'n20D'},
       {'kode': 'suhu', 'label': '°C', 'tipe': 'angka', 'satuan': '°C'},

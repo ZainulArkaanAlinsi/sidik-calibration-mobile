@@ -5948,6 +5948,30 @@ abstract class AppLocalizations {
   /// **'Send now'**
   String get lkKonfirmasiKirim;
 
+  /// No description provided for @lkGantiSatuanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Switching units clears the table'**
+  String get lkGantiSatuanJudul;
+
+  /// No description provided for @lkGantiSatuanPesan.
+  ///
+  /// In en, this message translates to:
+  /// **'{dari} uses different standard solutions than {ke}, so the table rows change and any readings you entered are discarded. A {dari} value is not a {ke} value.'**
+  String lkGantiSatuanPesan(String dari, String ke);
+
+  /// No description provided for @lkGantiSatuanBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get lkGantiSatuanBatal;
+
+  /// No description provided for @lkGantiSatuanLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch & clear'**
+  String get lkGantiSatuanLanjut;
+
   /// No description provided for @emailRiwayatBelumKeluar.
   ///
   /// In en, this message translates to:

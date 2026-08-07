@@ -1173,6 +1173,16 @@ void _testRefractometer() {
         ['°Brix', '°Brix'],
       );
 
+      // **Titik standarnya ikut ganti, bukan cuma labelnya.** Larutan fisiknya
+      // sama — BSAG2.5-0034 dibaca 2,5 °Brix ATAU 1,33659 n20D — tapi angka
+      // yang ditulis di lembar kerja beda. Sebelum ini sesi °Brix ngirim titik
+      // n20D bareng satuan °Brix, lalu dikoreksi pakai koefisien °Brix: nilai
+      // standar satu skala, pembacaan skala lain, dan nggak ada yang error.
+      expect(
+        measurements.map((m) => (m as Map)['titik_ukur']).toList(),
+        [2.5, 40.0],
+      );
+
       // Backend milih koefisien suhu dari `equipments.satuan`, BUKAN dari
       // satuan per pembacaan — jadi pilihannya mesti nyampe lewat kunci ini
       // juga. Tanpa dia, pembacaannya kelabel °Brix tapi tetap dikoreksi pakai
@@ -1335,6 +1345,38 @@ void _testRefractometer() {
         ..isiDariAlat();
 
       expect(isian.teks['alat_serial_number']!.text, 'C12345-REV2');
+    });
+
+    /// Ganti satuan nuker baris tabelnya, bukan cuma label kolomnya.
+    test('titik standar ikut satuan: n20D 1,33659/1,39986 → °Brix 2,5/40', () {
+      final isian = buatState();
+      expect(isian.titikUrut.map((t) => t.titikUkur), [1.33659, 1.39986]);
+
+      isian.satuan = '°Brix';
+      expect(isian.titikUrut.map((t) => t.titikUkur), [2.5, 40.0]);
+      expect(isian.titikUrut.map((t) => t.label), ['2,5', '40']);
+
+      // Balik lagi ke n20D tetap dapat titik n20D — bukan nyangkut di °Brix.
+      isian.satuan = 'n20D';
+      expect(isian.titikUrut.map((t) => t.titikUkur), [1.33659, 1.39986]);
+    });
+
+    /// Pembacaan yang udah diketik bakal kebuang waktu satuannya diganti, dan
+    /// itu memang benar — angka n20D nggak punya arti sebagai °Brix. Yang nggak
+    /// boleh: ilang tanpa ditanya. State ngasih tau layar kapan mesti nanya.
+    test('layar dikasih tau kalau ganti satuan bakal ngosongin tabel', () {
+      final isian = buatState();
+
+      // Tabel masih kosong → nggak ada yang perlu dikonfirmasi.
+      expect(isian.gantiSatuanMenghapusIsian('°Brix'), isFalse);
+
+      isian.titik[1.33659]!.kotak('sesudah_adjustment', 'pembacaan', 0).text =
+          '1,3362';
+      expect(isian.gantiSatuanMenghapusIsian('°Brix'), isTrue);
+
+      // Satuan yang sama nggak ngubah tabel, jadi nggak perlu nanya walau ada
+      // isian.
+      expect(isian.gantiSatuanMenghapusIsian('n20D'), isFalse);
     });
 
     /// Satuan kena kelas bug yang sama, dan taruhannya paling tinggi: dia yang

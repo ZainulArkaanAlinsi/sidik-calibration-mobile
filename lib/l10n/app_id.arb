@@ -1141,6 +1141,20 @@
   "lkKonfirmasiBarisKosong": "Belum diisi",
   "lkKonfirmasiPeriksaLagi": "Periksa lagi",
   "lkKonfirmasiKirim": "Kirim sekarang",
+  "lkGantiSatuanJudul": "Ganti satuan bakal ngosongin tabel",
+  "lkGantiSatuanPesan": "{dari} pakai larutan standar yang beda dari {ke}, jadi baris tabelnya ikut ganti dan pembacaan yang udah diisi kehapus. Angka {dari} nggak bisa dipakai sebagai {ke}.",
+  "@lkGantiSatuanPesan": {
+    "placeholders": {
+      "dari": {
+        "type": "String"
+      },
+      "ke": {
+        "type": "String"
+      }
+    }
+  },
+  "lkGantiSatuanBatal": "Batal",
+  "lkGantiSatuanLanjut": "Ganti & kosongin",
   "emailRiwayatBelumKeluar": "Belum keluar",
   "emailKontakKosong": "Email {pt} belum diisi di data pelanggan. Isi lewat panel admin → Pelanggan, biar nanti tinggal pilih.",
   "@emailKontakKosong": {

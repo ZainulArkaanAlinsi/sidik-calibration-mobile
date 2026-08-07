@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show setEquals;
 import 'package:flutter/widgets.dart';
 
 import '../../core/utils/angka.dart';
@@ -189,15 +190,32 @@ class LembarKerjaState {
         }
       }
 
+    }
+
+    _bangunTitik();
+  }
+
+  /// Bikin baris tabel hasil buat [satuan] yang lagi kepilih.
+  ///
+  /// Dipisah dari konstruktor karena dipanggil lagi tiap satuan berubah:
+  /// Refractometer ngirim titik standar yang beda per skala (1,33659/1,39986
+  /// n20D vs 2,5/40 °Brix), jadi tabelnya ikut ganti — bukan cuma labelnya.
+  void _bangunTitik() {
+    for (final t in titik.values) {
+      t.dispose();
+    }
+    titik.clear();
+
+    for (final bagian in bentuk.bagian) {
       for (final t in bagian.tabel) {
-        for (final b in t.baris) {
+        for (final b in t.barisUntuk(satuan)) {
           titik.putIfAbsent(
             b.titikUkur,
             () => TitikState(
               titikUkur: b.titikUkur,
               label: b.label,
               jumlahPengulangan: t.pengulangan.length,
-              satuan: bentuk.satuan,
+              satuan: satuan,
               desimal: b.desimal,
             ),
           );
@@ -205,6 +223,24 @@ class LembarKerjaState {
       }
     }
   }
+
+  /// Titik ukur yang bakal kebentuk kalau satuannya [calon] — dipakai layar
+  /// buat tau apakah ganti satuan bakal ngubah tabelnya sama sekali.
+  Set<double> _titikUntuk(String calon) => {
+    for (final bagian in bentuk.bagian)
+      for (final t in bagian.tabel)
+        for (final b in t.barisUntuk(calon)) b.titikUkur,
+  };
+
+  /// Ganti satuan ke [calon] bakal **ngosongin** tabel yang udah diisi?
+  ///
+  /// `true` cuma kalau dua-duanya kejadian: titik standarnya beda, DAN udah ada
+  /// pembacaan yang diketik. Layar wajib nanya dulu sebelum manggil setter
+  /// [satuan] — angka yang diketik di lapangan nggak boleh ilang diam-diam,
+  /// walau angka n20D emang nggak ada artinya sebagai °Brix.
+  bool gantiSatuanMenghapusIsian(String calon) =>
+      !setEquals(_titikUntuk(calon), titik.keys.toSet()) &&
+      titik.values.any((t) => t.adaIsian);
 
   final LembarKerja bentuk;
   final String clientRequestId;
@@ -232,11 +268,26 @@ class LembarKerjaState {
   String get satuan => _satuanPilihan ?? bentuk.satuan;
 
   set satuan(String nilai) {
+    final titikBaru = _titikUntuk(nilai);
     _satuanPilihan = nilai;
-    // Titik-titiknya ikut dibarengin sekarang juga, bukan pas nyusun payload.
-    // Ringkasan sebelum kirim baca `TitikState.satuan` langsung — kalau cuma
-    // ditimpa waktu submit, teknisi ganti ke °Brix tapi layar konfirmasinya
-    // tetap nulis n20D, dan yang dia setujui bukan yang dikirim.
+
+    // Titik standarnya beda → tabelnya dibangun ulang. Refractometer di skala
+    // °Brix diadu ke larutan 2,5 & 40, bukan 1,33659 & 1,39986 — larutan
+    // fisiknya sama, angkanya beda. Pembacaan lama ikut kebuang, dan itu bukan
+    // kehilangan data: angka n20D nggak punya arti sebagai °Brix. Layar wajib
+    // konfirmasi dulu lewat [gantiSatuanMenghapusIsian].
+    if (!setEquals(titikBaru, titik.keys.toSet())) {
+      _bangunTitik();
+      return;
+    }
+
+    // Titiknya sama (alat satu satuan, atau satuan yang nggak ngubah tabel) —
+    // isian dipertahankan, cuma label satuannya yang ikut.
+    //
+    // Dibarengin sekarang juga, bukan pas nyusun payload: ringkasan sebelum
+    // kirim baca `TitikState.satuan` langsung, jadi kalau cuma ditimpa waktu
+    // submit, teknisi ganti ke °Brix tapi layar konfirmasinya tetap nulis n20D
+    // — dan yang dia setujui bukan yang dikirim.
     for (final t in titik.values) {
       t.satuan = nilai;
     }

@@ -3219,6 +3219,20 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkKonfirmasiKirim => 'Kirim sekarang';
 
   @override
+  String get lkGantiSatuanJudul => 'Ganti satuan bakal ngosongin tabel';
+
+  @override
+  String lkGantiSatuanPesan(String dari, String ke) {
+    return '$dari pakai larutan standar yang beda dari $ke, jadi baris tabelnya ikut ganti dan pembacaan yang udah diisi kehapus. Angka $dari nggak bisa dipakai sebagai $ke.';
+  }
+
+  @override
+  String get lkGantiSatuanBatal => 'Batal';
+
+  @override
+  String get lkGantiSatuanLanjut => 'Ganti & kosongin';
+
+  @override
   String get emailRiwayatBelumKeluar => 'Belum keluar';
 
   @override

@@ -35,6 +35,16 @@ class LembarKerjaTabel extends StatelessWidget {
   final LembarKerjaState isian;
   final VoidCallback onBerubah;
 
+  /// Baris yang digambar — **ngikut satuan yang lagi kepilih**, bukan
+  /// `tabel.baris` yang isinya set bawaan dari backend.
+  ///
+  /// Refractometer ngirim titik standar beda per skala (1,33659/1,39986 n20D
+  /// vs 2,5/40 °Brix), dan `LembarKerjaState` mbangun `titik`-nya dari set yang
+  /// kepilih. Waktu widget ini masih baca `tabel.baris` sementara state-nya
+  /// udah pindah ke °Brix, `isian.titik[...]!` nabrak null dan tabelnya gagal
+  /// digambar sama sekali.
+  List<BarisTabelHasil> get _baris => tabel.barisUntuk(isian.satuan);
+
   static const _lebarSel = 78.0;
   static const _lebarLabel = 104.0;
 
@@ -78,7 +88,7 @@ class LembarKerjaTabel extends StatelessWidget {
                   teks: 'Standard',
                   tinggi: _tinggiKepala,
                 ),
-                for (final baris in tabel.baris)
+                for (final baris in _baris)
                   _SelKepala(
                     lebar: _lebarLabel,
                     teks: baris.label,
@@ -106,7 +116,7 @@ class LembarKerjaTabel extends StatelessWidget {
                       ],
                     ),
 
-                    for (final baris in tabel.baris)
+                    for (final baris in _baris)
                       Row(
                         children: [
                           for (var i = 0; i < tabel.pengulangan.length; i++)
@@ -141,7 +151,7 @@ class LembarKerjaTabel extends StatelessWidget {
         // suhunya yang beda. Nanyain dua kali cuma bikin peluang salah pilih.
         if (tabel.sebelumAdjustment) ...[
           const SizedBox(height: AppSpacing.md),
-          for (final baris in tabel.baris)
+          for (final baris in _baris)
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),
               child: _PilihStandarTitik(
