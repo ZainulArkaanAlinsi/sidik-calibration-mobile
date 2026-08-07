@@ -775,8 +775,11 @@ Map<String, dynamic> contohBentukLembarKerjaRefractometer({
         field('tanggal_kalibrasi', 'Calibration Date', 'tanggal'),
         field('equipment_id', 'Equipment', 'pilihan', sumber: 'master_alat'),
         field('equipment.nama_alat', '1. Name', 'teks', sumber: 'otomatis'),
+        // Tanpa `satuan` — nilainya udah bawa satuannya sendiri ("0–53 °Brix /
+        // 0,1 °Brix"), dan alat ini bisa kecatat di skala mana pun. Lihat
+        // `RefractometerProfile` di backend.
         field('equipment.range_resolusi', '2. Range/Resolution', 'teks',
-            sumber: 'otomatis', satuan: 'n20D'),
+            sumber: 'otomatis'),
         field('alat_model', '3. Type/Model', 'teks'),
         field('alat_serial_number', '4. Serial Number/LPI', 'teks'),
         field('alat_merk', '5. Merk/Manufacture', 'teks'),

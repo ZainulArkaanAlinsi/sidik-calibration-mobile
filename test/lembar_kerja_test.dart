@@ -1195,14 +1195,19 @@ void _testRefractometer() {
 
       await _pilihAlat(tester, alat: 'Refractometer · C67890');
 
-      final kotak = find.ancestor(
-        of: find.text('7. Satuan Refracto'),
-        matching: find.byType(DropdownButtonFormField<String>),
+      // Nilai TERPILIH-nya yang dibaca, bukan sekadar ada tulisan "°Brix" di
+      // dalam dropdown. `DropdownButtonFormField` mbangun SEMUA item-nya di
+      // tree buat ngukur lebar, jadi `find.text('°Brix')` ketemu terus — kepilih
+      // atau nggak. Assertion versi itu lolos dua-duanya, dan gara-gara itu bug
+      // preselect-nya sempat lolos ke HP (7 Agt 2026).
+      final dropdown = find.descendant(
+        of: find.ancestor(
+          of: find.text('7. Satuan Refracto'),
+          matching: find.byType(DropdownButtonFormField<String>),
+        ),
+        matching: find.byType(DropdownButton<String>),
       );
-      expect(
-        find.descendant(of: kotak, matching: find.text('°Brix')),
-        findsOneWidget,
-      );
+      expect(tester.widget<DropdownButton<String>>(dropdown).value, '°Brix');
 
       await _kirimKeAdmin(tester);
       expect(service.payloadTerakhir!['equipment_satuan'], '°Brix');
