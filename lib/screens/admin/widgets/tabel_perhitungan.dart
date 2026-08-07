@@ -41,9 +41,35 @@ class TabelPerhitunganWidget extends StatelessWidget {
   final double? resolusiAlat;
 
   /// Berapa desimal buat titik ini: yang dikirim per baris menang
-  /// (Turbidimeter), sisanya ikut resolusi alat.
-  int _desimal(TitikPerhitungan t) =>
-      t.desimal ?? desimalDariResolusi(resolusiAlat) ?? 0;
+  /// (Turbidimeter), sisanya ikut resolusi alat. `null` = nggak ada yang bisa
+  /// disimpulin — sesi lama yang alatnya nggak kekirim resolusinya.
+  int? _desimalTitik(TitikPerhitungan t) =>
+      t.desimal ?? desimalDariResolusi(resolusiAlat);
+
+  int _desimal(TitikPerhitungan t) => _desimalTitik(t) ?? 0;
+
+  /// Batas desimal buat nilai yang satuannya sama dengan pembacaan — Standard
+  /// & Correction.
+  ///
+  /// Dipotong ke resolusi alat, bukan dibiarin 7: `Standard 4.0092252` di alat
+  /// beresolusi 0,01 itu lima digit yang nggak mewakili apa pun, dan bikin mata
+  /// susah mbandingin baris. Sertifikatnya sendiri nyetak `4,01`.
+  ///
+  /// Resolusinya nggak ketahuan → balik ke 7, persis kayak sebelumnya. Mending
+  /// kepanjangan daripada mbulatkan pakai angka yang cuma ditebak.
+  int _maksNilai(TitikPerhitungan t) => _desimalTitik(t) ?? 7;
+
+  /// Batas desimal buat STDEV — resolusi alat **+2**, bukan resolusi persis.
+  ///
+  /// STDEV itu sebaran, dan sering jauh lebih kecil dari resolusi: `0,0054772`
+  /// dibulatkan ke 2 desimal jadi `0,01`, sama persis kayak `0,0149`. Dua
+  /// keterulangan yang beda jadi kelihatan sama, padahal justru itu yang dipakai
+  /// admin buat mutusin. Beda dari Standard/Correction yang emang nilai
+  /// pengukuran dan pantas dipotong ke resolusi.
+  int _maksStdev(TitikPerhitungan t) {
+    final d = _desimalTitik(t);
+    return d == null ? 7 : d + 2;
+  }
 
   /// Titik ini pembacaannya dipindah suhu (Refractometer) — bukan cuma beda
   /// tipis karena derau float.
@@ -92,7 +118,7 @@ class TabelPerhitunganWidget extends StatelessWidget {
                   for (final t in tabel.titik)
                     t.standard == null
                         ? '—'
-                        : formatAngka(t.standard!, maksDesimal: 7, desimalMin: _desimal(t)),
+                        : formatAngka(t.standard!, maksDesimal: _maksNilai(t), desimalMin: _desimal(t)),
                 ],
               ),
               _Baris(
@@ -117,9 +143,13 @@ class TabelPerhitunganWidget extends StatelessWidget {
               // ngitung Correction di bawahnya dan yang kecetak di sertifikat
               // sebagai Unit Under Test.
               //
-              // `maksDesimal: 7`, bukan 4 (bawaan): nilai terkoreksi
-              // Refractometer bisa 5 desimal (`1,33935`) walau resolusi alatnya
-              // 4, dan kepotong di 4 dia jadi `1,3394` — beda dari sertifikat.
+              // Dipotong ke resolusi alat, sama kayak Standard & Correction.
+              // Sempat dibiarin 7 desimal dengan alasan "nilai terkoreksi
+              // Refractometer bisa 5 desimal (1,33935), kepotong di 4 jadi beda
+              // dari sertifikat" — alasan itu KELIRU: `SertifikatCocokMasterTest`
+              // nunjukin sertifikatnya sendiri nyetak `1,3394`. Yang kejadian
+              // malah sebaliknya, layar nampilin `7.004` buat pH yang di
+              // sertifikat kecetak `7,00`.
               _Baris(
                 label: l10n.perhitAverage,
                 tebal: true,
@@ -127,7 +157,7 @@ class TabelPerhitunganWidget extends StatelessWidget {
                   for (final t in tabel.titik)
                     t.averageDikoreksiSuhu == null
                         ? '—'
-                        : '${formatAngka(t.averageDikoreksiSuhu!, maksDesimal: 7, desimalMin: _desimal(t))}'
+                        : '${formatAngka(t.averageDikoreksiSuhu!, maksDesimal: _maksNilai(t), desimalMin: _desimal(t))}'
                               '${t.averageSuhu == null ? '' : '  ·  ${formatAngka(t.averageSuhu!)} °C'}',
                 ],
               ),
@@ -148,7 +178,7 @@ class TabelPerhitunganWidget extends StatelessWidget {
                           ? '—'
                           : formatAngka(
                               t.average!,
-                              maksDesimal: 7,
+                              maksDesimal: _maksNilai(t),
                               desimalMin: _desimal(t),
                             ),
                   ],
@@ -160,7 +190,7 @@ class TabelPerhitunganWidget extends StatelessWidget {
                   for (final t in tabel.titik)
                     t.correction == null
                         ? '—'
-                        : formatAngka(t.correction!, maksDesimal: 7),
+                        : formatAngka(t.correction!, maksDesimal: _maksNilai(t), desimalMin: _desimal(t)),
                 ],
               ),
               _Baris(
@@ -169,7 +199,7 @@ class TabelPerhitunganWidget extends StatelessWidget {
                   for (final t in tabel.titik)
                     t.stdev == null
                         ? '—'
-                        : formatAngka(t.stdev!, maksDesimal: 7),
+                        : formatAngka(t.stdev!, maksDesimal: _maksStdev(t)),
                 ],
               ),
             ],
@@ -189,7 +219,13 @@ class TabelPerhitunganWidget extends StatelessWidget {
                 ),
               ),
               Text(
-                formatAngka(tabel.maxStdev!, maksDesimal: 7),
+                // MAX STDEV itu salah satu STDEV di atasnya, jadi dipotong
+                // pakai aturan yang sama — kalau nggak, angka yang sama muncul
+                // dua kali dengan panjang beda dan kelihatan kayak dua nilai.
+                formatAngka(
+                  tabel.maxStdev!,
+                  maksDesimal: _maksStdev(tabel.titik.first),
+                ),
                 style: TextStyle(fontSize: 11.5, color: c.text),
               ),
             ],

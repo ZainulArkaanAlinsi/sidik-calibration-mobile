@@ -89,8 +89,14 @@ void main() {
 
       // Nilai Standard = nilai buffer pada suhu larutan (4,0092252 di 22,2 °C),
       // BUKAN nominal 4,00. Ini angka asli dari PERHITUNGAN.csv.
-      expect(find.text('4.0092252'), findsOneWidget);
-      expect(find.text('6.9885032'), findsOneWidget);
+      //
+      // Yang dicek versi TAMPILNYA — dibulatkan ke resolusi alat (0,01), sama
+      // kayak yang kecetak di sertifikat. Angkanya tetap dari server: buffer
+      // nominal 10,01 tampil `9.98`, dan itu mustahil muncul kalau layar ini
+      // mbulatkan nominalnya sendiri. Dua kali per nilai — tabel Before &
+      // After punya baris Standard masing-masing.
+      expect(find.text('6.99'), findsNWidgets(2));
+      expect(find.text('9.98'), findsNWidgets(2));
 
       // U95% Sertifikat suhu TH-3, hasil akar(1,7² + 0,2²).
       expect(find.text('1.7117'), findsOneWidget);
