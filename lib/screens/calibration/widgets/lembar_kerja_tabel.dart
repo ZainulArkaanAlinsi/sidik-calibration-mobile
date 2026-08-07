@@ -217,12 +217,17 @@ class _TombolScanState extends ConsumerState<_TombolScan> {
         // Jadi fotonya ditolak SEBELUM nyampe ke AI — yang kelihatan teknisi
         // cuma "scan gagal", padahal kamera, izin, key, & model semuanya sehat.
         //
-        // 2400 px itu ngecilin ukuran ~10x tapi angka di tabel tetap tajam:
-        // lembar kerja difoto dari jarak dekat, dan satu digit masih kebagian
-        // puluhan piksel. Mengecilkan DIMENSI beda dari menurunkan kualitas —
-        // yang bikin koma ilang itu artefak JPEG di garis tipis, bukan jumlah
-        // pikselnya.
-        maxWidth: 2400,
+        // Angkanya dipilih dari FOTO BENERAN, bukan dikira-kira: jepretan HP tes
+        // keluar 4080×3060 / 3,9 MB — udah aman di bawah 8 MB. Batas ini cuma
+        // buat jaga-jaga kalau ada kamera yang jauh lebih besar, jadi ditaruh
+        // TEPAT DI ATAS resolusi asli supaya foto normal lewat tanpa disentuh.
+        //
+        // Sempat dipatok 2400 px, dan itu overkoreksi: motong 41% detail linear
+        // buat masalah yang nggak ada. Diuji ulang di foto yang sama, dua-duanya
+        // baca 20/20 sel dengan benar — tapi lembar kerja kertas jauh lebih
+        // rapat dari layar Excel, dan di situ detail yang kebuang bisa nentuin.
+        // Nggak ada alasan mbuang piksel yang nggak bikin fotonya ditolak.
+        maxWidth: 4200,
         imageQuality: 100,
       );
       if (foto == null || !mounted) return;

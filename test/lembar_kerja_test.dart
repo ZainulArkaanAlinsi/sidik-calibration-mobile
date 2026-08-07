@@ -1008,7 +1008,7 @@ void main() {
       isNotNull,
       reason: 'tanpa maxWidth, fotonya lewat batas 8 MB backend',
     );
-    expect(kamera.maxWidthTerakhir, lessThanOrEqualTo(3000));
+    expect(kamera.maxWidthTerakhir, lessThanOrEqualTo(5000));
     expect(kamera.kualitasTerakhir, 100);
   });
 
@@ -1332,6 +1332,47 @@ void _testRefractometer() {
       isian.isiDariAlat();
 
       expect(isian.satuan, 'pH');
+    });
+
+    /// Hasil foto AI mesti ngisi SEMUA sel tabelnya, bukan sebagian.
+    ///
+    /// Angkanya bukan karangan — ini keluaran beneran Gemini 7 Agt 2026 buat
+    /// foto tabel Refractometer teknisi (`extract()` balikin 20/20 sel terisi,
+    /// `1,3362 · 1,3986 · 25 · 25` di kelima Repeat). Yang diuji di sini bagian
+    /// SESUDAHNYA: hasil yang udah benar itu mendarat utuh di kotak yang benar.
+    ///
+    /// Dua titik, bukan tiga — pemetaan kolomnya gampang meleset waktu jumlah
+    /// titiknya beda dari pH yang jadi acuan awal.
+    test('hasil foto AI ngisi 20 sel Refractometer, bukan sebagian', () {
+      final isian = buatState()..alat = alat('n20D');
+
+      final terisi = isian.terapkanHasilEkstraksi(
+        HasilEkstraksiTabel(
+          baris: [
+            for (var i = 0; i < 5; i++)
+              BarisTabel(ph: [1.3362, 1.3986], suhu: [25, 25]),
+          ],
+          jumlahSelKebaca: 20,
+          jumlahSelDiharapkan: 20,
+          jumlahAngkaTerdeteksi: 20,
+        ),
+        tahap: 'sesudah_adjustment',
+      );
+
+      expect(terisi, 20, reason: '2 titik x 5 repeat x 2 kolom');
+
+      final t1 = isian.titik[1.33659]!;
+      final t2 = isian.titik[1.39986]!;
+      for (var i = 0; i < 5; i++) {
+        expect(t1.kotak('sesudah_adjustment', 'pembacaan', i).text, '1.3362');
+        expect(t2.kotak('sesudah_adjustment', 'pembacaan', i).text, '1.3986');
+        expect(t1.kotak('sesudah_adjustment', 'suhu', i).text, '25');
+      }
+
+      // Tabel Before SENGAJA tetap kosong: satu foto = satu tabel, persis kayak
+      // di kertas yang dua tabelnya kepisah. Ini yang gampang kebaca sebagai
+      // "AI-nya ngambil kurang" padahal teknisi baru motret satu tabel.
+      expect(t1.kotak('sebelum_adjustment', 'pembacaan', 0).text, isEmpty);
     });
 
     /// Ganti alat = identitasnya ikut ganti SEMUA, bukan setengah-setengah.

@@ -389,8 +389,22 @@ class GabungTabel {
 
   /// Buang nol di belakang: `4.0` → `4`, `22.2` tetap `22.2`, `10.11` tetap
   /// `10.11`. Bukan dibulatkan ke desimal tetap — pH 2 desimal, suhu 1 desimal.
+  ///
+  /// **8, bukan 3.** Dulu `toStringAsFixed(3)`, dan itu MEMBUANG digit: AI baca
+  /// `1,3362` dari foto Refractometer, yang mendarat di kotak `1,336`. Teknisi
+  /// lihat angkanya "kurang" tanpa ada yang error — pembacaan resolusi 0,0001
+  /// dipotong jadi 0,001, sepuluh kali lebih kasar dari alatnya.
+  ///
+  /// Tiga alat pertama selamat cuma karena kebetulan: pH 0,01, Turbidimeter &
+  /// Chlorine paling halus 0,01 — semuanya muat di 3 desimal. Refractometer
+  /// alat pertama yang lebih teliti dari itu.
+  ///
+  /// Angka 8 disamain sama `formatNilai` (`desimalMaks: 8`) dan kolom DB
+  /// `decimal(20,8)` — batas presisi yang sama di seluruh sistem. Nol di
+  /// belakang tetap dibuang, jadi `25,0` tetap `25` dan derau float
+  /// (`0.30000000000000004`) tetap jadi `0.3`.
   static String _rapi(double nilai) =>
-      nilai.toStringAsFixed(3).replaceFirst(RegExp(r'\.?0+$'), '');
+      nilai.toStringAsFixed(8).replaceFirst(RegExp(r'\.?0+$'), '');
 }
 
 /// Baca tanggal hasil AI. Menerima `yyyy-MM-dd`, `dd/MM/yyyy`, `dd-MM-yyyy`.

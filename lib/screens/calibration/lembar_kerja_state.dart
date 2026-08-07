@@ -673,7 +673,13 @@ class LembarKerjaState {
   ) {
     final kotak = state.kotak(tahap, kolom, index);
     // Pembacaan dipad ke resolusi titiknya (4,60), suhu nggak.
-    final desimal = kolom == 'pembacaan' ? state.desimal : null;
+    //
+    // Titik yang nggak ngirim `desimal` sendiri (alat resolusi seragam) ikut
+    // resolusi ALATNYA — aturan yang sama kayak di `ringkasanKirim`. Tanpa ini
+    // Refractometer jatuh ke jalur tanpa desimal, dan pembacaannya kepotong.
+    final desimal = kolom == 'pembacaan'
+        ? state.desimal ?? desimalDariResolusi(alat?.resolusi)
+        : null;
     final baru = GabungTabel.nilaiBaru(kotak.text, nilai, desimal: desimal);
     if (baru == null) return 0;
 
