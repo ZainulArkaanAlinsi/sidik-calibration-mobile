@@ -2793,7 +2793,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get folderNamaKosong => 'Isi nama foldernya dulu.';
 
   @override
-  String get antreanTitle => 'Antrean approval';
+  String get antreanTitle => 'Antrean Approval';
 
   @override
   String get antreanKosong => 'Nggak ada yang nunggu disetujui';

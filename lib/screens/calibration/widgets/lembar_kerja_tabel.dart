@@ -81,7 +81,12 @@ class LembarKerjaTabel extends StatelessWidget {
                 for (final baris in tabel.baris)
                   _SelKepala(
                     lebar: _lebarLabel,
-                    teks: baris.label,
+                    // Satuannya ikut, persis sheet INPUT DATA yang nulis
+                    // "1,74 mg/L". Tanpa itu angka standarnya kebaca telanjang
+                    // dan gampang ketuker sama pembacaan di sebelahnya.
+                    teks: isian.bentuk.satuan.isEmpty
+                        ? baris.label
+                        : '${baris.label} ${isian.bentuk.satuan}',
                     tinggi: _tinggiBaris,
                     kiri: true,
                   ),

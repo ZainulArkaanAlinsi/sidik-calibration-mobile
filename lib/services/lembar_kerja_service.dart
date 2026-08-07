@@ -143,9 +143,16 @@ class MockLembarKerjaService implements LembarKerjaService {
     final id = MockStore.instance.tambahSesi(
       namaAlat: '${namaAlatMock(isian.equipmentId) ?? 'Alat'} (sesi baru)',
       namaTeknisi: 'Teknisi',
+      draft: isian.simpanSebagaiDraft,
     );
 
-    return _catat(isian, id);
+    final hasil = _catat(isian, id);
+
+    // Baru bilang berhasil sesudah sesinya beneran mendarat di disk. Lihat
+    // `MockStore.tungguTersimpan`.
+    await MockStore.instance.tungguTersimpan();
+
+    return hasil;
   }
 
   @override

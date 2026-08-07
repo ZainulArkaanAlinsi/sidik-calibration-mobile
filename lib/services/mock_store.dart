@@ -72,6 +72,9 @@ class MockStore {
   /// `null` = jalan di memori doang (test, atau app sebelum [pulihkan]).
   PenyimpanMockStore? _penyimpan;
 
+  /// Tulisan terakhir yang lagi jalan. Dipakai [tungguTersimpan].
+  Future<void>? _tulisanBerjalan;
+
   List<CalibrationHistoryItem> get sesi => List.unmodifiable(_sesi);
 
   /// Pasang penyimpan & muat isi yang tersimpan. Dipanggil SEKALI waktu app
@@ -111,10 +114,17 @@ class MockStore {
 
   /// Catat sesi baru dari lembar kerja yang barusan dikirim.
   ///
-  /// Statusnya langsung `menungguApproval`, bukan `draft`: yang manggil ini
-  /// adalah tombol KIRIM, dan di alur aslinya itu emang langsung nyetor ke
-  /// antrean admin.
-  int tambahSesi({required String namaAlat, required String namaTeknisi}) {
+  /// [draft] `true` = tombol SIMPAN SEBAGAI DRAFT, `false` = KIRIM KE ADMIN.
+  ///
+  /// Dulu statusnya SELALU `menungguApproval`, apa pun tombolnya. Akibatnya
+  /// draft yang belum siap ikut nongol di antrean approval admin — dan teknisi
+  /// nggak punya cara buat mbedain mana yang beneran udah dikirim. Dua-duanya
+  /// kelihatan sama.
+  int tambahSesi({
+    required String namaAlat,
+    required String namaTeknisi,
+    bool draft = false,
+  }) {
     final id = _idBerikutnya++;
 
     _sesi.insert(
@@ -124,12 +134,25 @@ class MockStore {
         namaAlat: namaAlat,
         namaTeknisi: namaTeknisi,
         tanggalKalibrasi: DateTime.now(),
-        status: CalibrationStatus.menungguApproval,
+        status: draft
+            ? CalibrationStatus.draft
+            : CalibrationStatus.menungguApproval,
       ),
     );
 
     _simpan();
     return id;
+  }
+
+  /// Tunggu tulisan terakhir mendarat di disk.
+  ///
+  /// [_simpan] sengaja nggak di-`await` yang manggil supaya tombolnya nggak
+  /// nahan UI. Tapi buat KIRIM itu nggak cukup: kalau app ditutup persis
+  /// sesudah kirim, tulisannya bisa belum sempat mendarat dan sesinya ilang —
+  /// gejalanya "harusnya udah kekirim, kok nggak ada". Jadi jalur kirim nunggu
+  /// di sini sebelum bilang berhasil.
+  Future<void> tungguTersimpan() async {
+    await _tulisanBerjalan;
   }
 
   /// Setujui sesi → terbit sertifikatnya. Balikin id sertifikat, atau `null`
@@ -171,6 +194,7 @@ class MockStore {
     _sesi.clear();
     _idBerikutnya = 500;
     _idSertifikatBerikutnya = 950;
+    _tulisanBerjalan = null;
     if (lupakanPenyimpan) _penyimpan = null;
   }
 
@@ -188,7 +212,7 @@ class MockStore {
     });
 
     // Gagal tulis didiemin dengan alasan yang sama kayak gagal baca.
-    penyimpan.tulis(isi).catchError((_) {});
+    _tulisanBerjalan = penyimpan.tulis(isi).catchError((_) {});
   }
 
   /// Bentuk simpanan LOKAL — sengaja beda dari `CalibrationHistoryItem.fromJson`

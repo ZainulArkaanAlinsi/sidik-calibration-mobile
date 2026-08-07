@@ -47,8 +47,8 @@ void main() {
 
   group('GabungTabel — foto ulang nggak boleh nimpa', () {
     test('sel kosong keisi', () {
-      expect(GabungTabel.nilaiBaru('', 4.04), '4.04');
-      expect(GabungTabel.nilaiBaru('   ', 22.2), '22.2');
+      expect(GabungTabel.nilaiBaru('', 4.04), '4,04');
+      expect(GabungTabel.nilaiBaru('   ', 22.2), '22,2');
     });
 
     test('sel yang udah keisi TIDAK diubah', () {
@@ -68,15 +68,16 @@ void main() {
     test('nol di belakang dibuang, desimal asli dipertahankan', () {
       // pH ditulis 2 desimal, suhu cuma 1 — nggak boleh dipaksa seragam.
       expect(GabungTabel.nilaiBaru('', 4.0), '4');
-      expect(GabungTabel.nilaiBaru('', 22.2), '22.2');
-      expect(GabungTabel.nilaiBaru('', 4.04), '4.04');
-      expect(GabungTabel.nilaiBaru('', 10.11), '10.11');
+      expect(GabungTabel.nilaiBaru('', 22.2), '22,2');
+      expect(GabungTabel.nilaiBaru('', 4.04), '4,04');
+      expect(GabungTabel.nilaiBaru('', 10.11), '10,11');
       expect(GabungTabel.nilaiBaru('', 100), '100');
     });
 
     test('desimal titik diisi → dipad ke resolusi (Turbidimeter)', () {
-      // Titik 1 NTU resolusi 0,01 → 2 desimal: 4.6 masuk sebagai 4.60.
-      expect(GabungTabel.nilaiBaru('', 4.6, desimal: 2), '4.60');
+      // Titik 1 NTU resolusi 0,01 → 2 desimal: 4,6 masuk sebagai 4,60 —
+      // KOMA, sama kayak sisa lembarnya.
+      expect(GabungTabel.nilaiBaru('', 4.6, desimal: 2), '4,60');
       // Titik 1000 NTU resolusi 1 → 0 desimal: 999 tetap 999.
       expect(GabungTabel.nilaiBaru('', 999.0, desimal: 0), '999');
       expect(GabungTabel.nilaiBaru('', 1000.0, desimal: 0), '1000');
@@ -232,6 +233,61 @@ void main() {
       expect(parseTanggalAi('kemarin'), isNull);
       expect(parseTanggalAi('23 Juli 2026'), isNull);
       expect(parseTanggalAi(''), isNull);
+    });
+  });
+
+  group('mock kamera ngisi SEMUA Repeat, bukan cuma satu', () {
+    /// Dulu mock ini balikin satu baris doang. Di lembar Chlorine (2 titik)
+    /// hasilnya "4 dari 20 sel keisi" — di layar kebaca kayak kameranya gagal
+    /// 80%, padahal cuma data contohnya yang sedikit. Dilaporin dari HP.
+    test('chlorine 2 titik x 5 repeat -> 20 sel, bukan 4', () async {
+      final hasil = await MockWorksheetVisionService().ekstrak(
+        File('x.png'),
+        jumlahTitik: 2,
+        jumlahBaris: 5,
+        satuan: 'mg/L',
+        nominal: [1.74, 1.83],
+        desimal: [null, null],
+      );
+
+      expect(hasil!.baris, hasLength(5));
+      expect(hasil.jumlahSelKebaca, 20);
+      // Kalau kebaca == diharapkan, layar nggak lagi nempelin kalimat
+      // "sel yang kosong: ketik manual atau foto ulang".
+      expect(hasil.jumlahSelDiharapkan, hasil.jumlahSelKebaca);
+    });
+
+    test('pH 3 titik x 5 repeat -> 30 sel', () async {
+      final hasil = await MockWorksheetVisionService().ekstrak(
+        File('x.png'),
+        jumlahTitik: 3,
+        jumlahBaris: 5,
+        satuan: 'pH',
+        nominal: [4.0, 7.0, 10.01],
+      );
+
+      expect(hasil!.baris, hasLength(5));
+      expect(hasil.jumlahSelKebaca, 30);
+    });
+
+    /// Penandaan low-confidence itu pagar penting di alur foto — kalau nggak
+    /// pernah kelihatan waktu demo, nggak ada yang tau dia ada. Disisain SATU
+    /// sel supaya tetap kedemo tanpa bikin hasilnya kelihatan gagal.
+    test('tetap ada TEPAT satu sel keyakinan rendah buat demo penandaannya', () async {
+      final hasil = await MockWorksheetVisionService().ekstrak(
+        File('x.png'),
+        jumlahTitik: 2,
+        jumlahBaris: 5,
+        nominal: [1.74, 1.83],
+      );
+
+      var rendah = 0;
+      for (var r = 0; r < hasil!.baris.length; r++) {
+        for (var t = 0; t < 2; t++) {
+          if (hasil.baris[r].keyakinanPh(t) == TingkatKeyakinan.rendah) rendah++;
+        }
+      }
+      expect(rendah, 1);
     });
   });
 }

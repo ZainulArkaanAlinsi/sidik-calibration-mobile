@@ -162,7 +162,10 @@ void main() {
       // diketik.
       // Pemisah rentangnya en-dash (`–`), bukan hyphen — itu format yang
       // dipakai `EquipmentLookup.rentangTeks` di seluruh layar worksheet.
-      expect(find.text('0–14 pH / 0.01 pH'), findsOneWidget);
+      // Tiga angka yang di sheet PERHITUNGAN jadi baris sendiri: Rentang Ukur,
+      // Kapasitas Max., Resolusi Alat. Dulu Kapasitas Max. nggak ikut sama
+      // sekali, dan desimalnya pakai titik di tengah lembar yang semuanya koma.
+      expect(find.text('0–14 pH · maks 14 pH · res 0,01 pH'), findsOneWidget);
 
       // Merk, Type/Model, Serial Number & identitas pemilik keisi dari master
       // juga — TAPI di kotak yang bisa diedit, bukan teks mati. Teknisi mulai
@@ -632,6 +635,8 @@ void main() {
       clientRequestId: 'uuid-test',
     );
 
+    // Angka hasil AI ditulis pakai KOMA sejak lembar kerjanya sendiri berkoma
+    // (titik ukur `4,00` / `1,74`). Kotaknya tetap nerima dua-duanya.
     test('angka masuk ke Repeat & larutan standar yang benar', () {
       final isian = buatState();
       final terisi = isian.terapkanHasilEkstraksi(
@@ -646,10 +651,10 @@ void main() {
       final titik10 = isian.titik[10.01]!;
 
       // Repeat 1 buffer 4 -> 4.01, BUKAN 7.02 (itu buffer 7 di Repeat yang sama).
-      expect(titik4.kotak('sesudah_adjustment', 'pembacaan', 0).text, '4.01');
-      expect(titik4.kotak('sesudah_adjustment', 'pembacaan', 1).text, '4.02');
-      expect(titik10.kotak('sesudah_adjustment', 'pembacaan', 0).text, '10.11');
-      expect(titik4.kotak('sesudah_adjustment', 'suhu', 0).text, '22.2');
+      expect(titik4.kotak('sesudah_adjustment', 'pembacaan', 0).text, '4,01');
+      expect(titik4.kotak('sesudah_adjustment', 'pembacaan', 1).text, '4,02');
+      expect(titik10.kotak('sesudah_adjustment', 'pembacaan', 0).text, '10,11');
+      expect(titik4.kotak('sesudah_adjustment', 'suhu', 0).text, '22,2');
     });
 
     test('sel yang udah diketik manual NGGAK ketimpa hasil foto', () {
@@ -815,7 +820,7 @@ void main() {
       isian.terapkanHasilEkstraksi(contohHasil(), tahap: 'sebelum_adjustment');
 
       final titik4 = isian.titik[4.00]!;
-      expect(titik4.kotak('sebelum_adjustment', 'pembacaan', 0).text, '4.01');
+      expect(titik4.kotak('sebelum_adjustment', 'pembacaan', 0).text, '4,01');
       expect(titik4.kotak('sesudah_adjustment', 'pembacaan', 0).text, isEmpty);
     });
 
@@ -963,6 +968,13 @@ void _testChlorine() {
       expect(find.text('SIDIK-FM-CAL-0531_Rev.2'), findsOneWidget);
       expect(find.text('Chlorine Standard Solution 1.74 mg/L'), findsOneWidget);
       expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsNothing);
+
+      // Label baris tabel bawa SATUANNYA, persis sheet INPUT DATA yang nulis
+      // "1,74 mg/L". Tanpa itu angka standarnya kebaca telanjang dan gampang
+      // ketuker sama pembacaan di kolom sebelahnya. Dua tabel (before/after),
+      // jadi tiap label muncul dua kali.
+      expect(find.text('1,74 mg/L'), findsNWidgets(2));
+      expect(find.text('1,83 mg/L'), findsNWidgets(2));
 
       await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
 

@@ -68,12 +68,11 @@ class EquipmentLookup {
     return satuan.isEmpty ? '$min–$max' : '$min–$max $satuan';
   }
 
-  /// Kolom **Kapasitas Max.** — di worksheet ditulis tanpa satuan (`0-14`),
-  /// beda dari Rentang Ukur yang pakai satuan (`0-14 pH`). Dipisah biar dua
-  /// kolom sebelahan itu nggak kelihatan kembar persis.
+  /// Kolom **Kapasitas Max.** — batas atas alatnya. Di sheet PERHITUNGAN dia
+  /// baris sendiri (`4 mg/L`), bukan rentang.
   String? get kapasitasTeks {
-    if (rangeMin == null || rangeMax == null) return null;
-    return '${_ringkas(rangeMin!)}–${_ringkas(rangeMax!)}';
+    if (rangeMax == null) return null;
+    return satuan.isEmpty ? _ringkas(rangeMax!) : '${_ringkas(rangeMax!)} $satuan';
   }
 
   String? get resolusiTeks {
@@ -81,21 +80,36 @@ class EquipmentLookup {
     return satuan.isEmpty ? _ringkas(resolusi!) : '${_ringkas(resolusi!)} $satuan';
   }
 
-  /// Kolom "2. Range/Resolution" di **lembar kerja** — dua angka digabung jadi
-  /// satu kolom, beda dari sheet PERHITUNGAN yang misahin Rentang Ukur,
-  /// Kapasitas Max., dan Resolusi jadi baris sendiri-sendiri.
+  /// Kolom "2. Range/Resolution" di **lembar kerja**.
   ///
-  /// String kosong kalau dua-duanya belum diisi admin — biar kelihatan kurang,
+  /// Isinya TIGA angka yang di sheet PERHITUNGAN jadi baris sendiri-sendiri:
+  /// Rentang Ukur, Kapasitas Max., dan Resolusi Alat. Dulu Kapasitas Max. nggak
+  /// ikut sama sekali, jadi teknisi nggak pernah lihat batas atas alatnya di
+  /// lembar kerjanya — padahal itu yang nentuin titik mana yang boleh dipakai.
+  ///
+  /// Dikasih label pendek biar kebaca sebagai tiga hal, bukan deretan angka:
+  /// `0–4 mg/L · maks 4 mg/L · res 0,01 mg/L`.
+  ///
+  /// String kosong kalau semuanya belum diisi admin — biar kelihatan kurang,
   /// bukan diisi tebakan.
-  String get rangeResolusi =>
-      [rentangTeks, resolusiTeks].whereType<String>().join(' / ');
+  String get rangeResolusi => [
+    rentangTeks,
+    if (kapasitasTeks != null) 'maks $kapasitasTeks',
+    if (resolusiTeks != null) 'res $resolusiTeks',
+  ].whereType<String>().join(' · ');
 
-  /// Buang nol di ekor: `14.0` → `14`, tapi `0.01` tetap `0.01`.
+  /// Buang nol di ekor: `14.0` → `14`, tapi `0.01` tetap `0,01`.
+  ///
+  /// Desimalnya KOMA, ngikut lembar kerjanya sendiri (titik ukur ditulis `1,74`
+  /// / `1,83`) dan sheet PERHITUNGAN (`0,01 mg/L`). Sebelum ini kolom Range/
+  /// Resolution nulis `0.01` pakai titik — satu-satunya angka bertitik di
+  /// tengah lembar yang semuanya berkoma.
   static String _ringkas(double v) {
     final s = v.toStringAsFixed(4);
-    return s.contains('.')
+    final rapi = s.contains('.')
         ? s.replaceFirst(RegExp(r'0+$'), '').replaceFirst(RegExp(r'\.$'), '')
         : s;
+    return rapi.replaceAll('.', ',');
   }
 
   factory EquipmentLookup.fromJson(Map<String, dynamic> json) {
