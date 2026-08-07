@@ -1220,13 +1220,18 @@ void _testRefractometer() {
       clientRequestId: 'uuid-test',
     );
 
-    EquipmentLookup alat(String satuan) => EquipmentLookup(
+    EquipmentLookup alat(
+      String satuan, {
+      String serial = 'C12345',
+      String merk = '',
+    }) => EquipmentLookup(
       id: 17,
       namaAlat: 'Refractometer',
-      serialNumber: 'C12345',
+      serialNumber: serial,
       kategori: 'instrumen-analitik',
       status: 'aktif',
       satuan: satuan,
+      merk: merk,
     );
 
     /// Alat yang didaftarin sebagai °Brix mesti KEBUKA sebagai °Brix.
@@ -1278,6 +1283,73 @@ void _testRefractometer() {
       isian.isiDariAlat();
 
       expect(isian.satuan, 'pH');
+    });
+
+    /// Ganti alat = identitasnya ikut ganti SEMUA, bukan setengah-setengah.
+    ///
+    /// **Bug nyata, ketemu di HP 7 Agt 2026.** Pilih Jangka Sorong, terus ganti
+    /// ke Refractometer Atago: Type/Model & Merk ikut alat baru (dua kolom itu
+    /// kosong di Jangka Sorong, jadi kena aturan "isi yang kosong"), tapi Serial
+    /// Number nyisa `MT-500-196-30` punya si jangka sorong. Satu blok identitas
+    /// berisi dua alat berbeda, di lembar kerja yang gunanya justru nyatet alat
+    /// mana yang dikalibrasi — dan nggak ada satu pun yang error.
+    test('ganti alat nggak ninggalin identitas alat sebelumnya', () {
+      final isian = buatState()..alat = alat('n20D', serial: 'MT-500-196-30');
+      isian.isiDariAlat();
+      expect(isian.teks['alat_serial_number']!.text, 'MT-500-196-30');
+
+      isian
+        ..alat = alat('°Brix', serial: 'C67890', merk: 'Atago')
+        ..isiDariAlat();
+
+      expect(isian.teks['alat_serial_number']!.text, 'C67890');
+      expect(isian.teks['alat_merk']!.text, 'Atago');
+    });
+
+    /// Alat baru yang serial-nya belum kecatat di master mesti nampilin kotak
+    /// KOSONG, biar teknisi ngisi dari badan alat. Nyisain serial alat
+    /// sebelumnya itu kegagalan yang sama, cuma lebih sunyi.
+    test('alat baru tanpa serial mengosongkan kolomnya, bukan nyisain yang lama',
+        () {
+      final isian = buatState()..alat = alat('n20D', serial: 'MT-500-196-30');
+      isian.isiDariAlat();
+
+      isian
+        ..alat = alat('n20D', serial: '')
+        ..isiDariAlat();
+
+      expect(isian.teks['alat_serial_number']!.text, isEmpty);
+    });
+
+    /// Pagar yang bikin perbaikan di atas aman: yang DIKETIK teknisi tetap
+    /// haram disentuh. Master diisi admin dan sering beda dari unit fisik yang
+    /// beneran datang — yang sah tetap yang dibaca teknisi dari badan alat.
+    test('yang diketik teknisi nggak ketimpa waktu ganti alat', () {
+      final isian = buatState()..alat = alat('n20D', serial: 'C12345');
+      isian.isiDariAlat();
+
+      isian.teks['alat_serial_number']!.text = 'C12345-REV2';
+
+      isian
+        ..alat = alat('°Brix', serial: 'C67890')
+        ..isiDariAlat();
+
+      expect(isian.teks['alat_serial_number']!.text, 'C12345-REV2');
+    });
+
+    /// Satuan kena kelas bug yang sama, dan taruhannya paling tinggi: dia yang
+    /// nentuin koefisien normalisasi suhu di backend (0,00045/°C vs 0,07/°C).
+    test('ganti ke alat °Brix bikin satuannya ikut, kalau teknisi belum milih',
+        () {
+      final isian = buatState()..alat = alat('n20D');
+      isian.isiDariAlat();
+      expect(isian.satuan, 'n20D');
+
+      isian
+        ..alat = alat('°Brix')
+        ..isiDariAlat();
+
+      expect(isian.satuan, '°Brix');
     });
 
     /// `equipment_satuan` nulis ke data MASTER alat di backend. Kalau lembar pH

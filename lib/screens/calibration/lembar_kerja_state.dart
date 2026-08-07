@@ -654,14 +654,40 @@ class LembarKerjaState {
   /// yang benar dan cuma nyentuh yang beda — bukan ngetik dari nol, bukan juga
   /// kekunci sama data master yang mungkin basi.
   ///
-  /// Cuma kolom KOSONG yang diisi. Kalau teknisi udah ngetik lalu ganti alat,
-  /// yang dia ketik nggak boleh keganti diam-diam.
+  /// Yang ditulis ulang cuma kolom yang **kosong** atau yang isinya masih persis
+  /// seperti yang kita isi sendiri dari alat sebelumnya. Kolom yang teknisi
+  /// ketik sendiri nggak pernah disentuh.
+  ///
+  /// Dulu aturannya cuma "isi yang kosong", dan itu bocor waktu teknisi GANTI
+  /// alat: kolom yang keisi otomatis dari alat pertama ikut bertahan di lembar
+  /// alat kedua. Kejadian nyatanya di HP 7 Agt 2026 — pilih Jangka Sorong,
+  /// ganti ke Refractometer Atago, hasilnya Type/Model & Merk ikut alat baru
+  /// (dua kolom itu kosong di Jangka Sorong) tapi Serial Number nyisa
+  /// `MT-500-196-30` punya si jangka sorong. Satu blok identitas berisi dua
+  /// alat berbeda, di dokumen yang justru gunanya nyatet alat mana yang
+  /// dikalibrasi — dan nggak ada satu pun yang error.
+  ///
+  /// Nilai kosong dari alat baru **mengosongkan** kolomnya, bukan dilewat.
+  /// Alat yang serial-nya belum kecatat di master mesti nampilin kotak kosong
+  /// supaya teknisi ngisi dari badan alat; nyisain serial alat sebelumnya itu
+  /// persis kegagalan yang bikin catatan ini ditulis.
   void isiDariAlat() {
     void isi(String kode, String? nilai) {
       final kotak = teks[kode];
-      if (kotak == null || nilai == null || nilai.trim().isEmpty) return;
-      if (kotak.text.trim().isNotEmpty) return;
-      kotak.text = nilai;
+      if (kotak == null) return;
+
+      // Teknisi udah nyentuh kolom ini → berhenti, apa pun kata master.
+      final sekarang = kotak.text.trim();
+      if (sekarang.isNotEmpty && sekarang != _terisiDariAlat[kode]) return;
+
+      final baru = nilai?.trim() ?? '';
+      kotak.text = baru;
+
+      if (baru.isEmpty) {
+        _terisiDariAlat.remove(kode);
+      } else {
+        _terisiDariAlat[kode] = baru;
+      }
     }
 
     isi('alat_model', alat?.model);
@@ -673,6 +699,13 @@ class LembarKerjaState {
     _pilihkanSatuanDariAlat();
   }
 
+  /// Nilai terakhir yang **kita** tulis ke tiap kolom dari master alat.
+  ///
+  /// Ini yang bikin [isiDariAlat] bisa mbedain "keisi otomatis dari alat
+  /// sebelumnya" (boleh diperbarui) dari "diketik teknisi" (haram disentuh) —
+  /// dua hal yang di `TextEditingController` kelihatan sama persis.
+  final Map<String, String> _terisiDariAlat = {};
+
   /// Setel "7. Satuan Refracto" ke satuan yang kecatat di master alat.
   ///
   /// Alat yang didaftarin sebagai °Brix mesti kebuka sebagai °Brix, bukan
@@ -680,11 +713,16 @@ class LembarKerjaState {
   /// pilihannya ngubah koefisien suhu, jadi yang kelewat nggak bikin error,
   /// cuma bikin sertifikatnya meleset.
   ///
-  /// Sama kayak kolom lain di [isiDariAlat]: **cuma kalau teknisi belum milih**
-  /// apa-apa. Pilihan yang udah dia buat nggak boleh keganti gara-gara master
-  /// bilang lain — barang fisik yang datang sering beda dari yang kecatat.
+  /// Aturannya sama persis kayak kolom teks di [isiDariAlat], dan karena alasan
+  /// yang sama: pilihan yang **teknisi** buat sendiri haram disentuh, tapi yang
+  /// **kita** setel sendiri waktu alat sebelumnya dipilih boleh diperbarui.
+  ///
+  /// Tanpa pembedaan itu, ganti dari alat n20D ke alat yang kecatat °Brix bakal
+  /// ninggalin "n20D" di layar — dan satuan itu yang nentuin koefisien
+  /// normalisasi suhu di backend (0,00045/°C vs 0,07/°C, beda 155 kali).
   void _pilihkanSatuanDariAlat() {
-    if (_satuanPilihan != null) return;
+    // Pernah disetel, dan yang nyetel bukan kita → itu pilihan teknisi.
+    if (_satuanPilihan != null && _satuanPilihan != _satuanDariAlat) return;
 
     final dariMaster = alat?.satuan.trim();
     if (dariMaster == null || dariMaster.isEmpty) return;
@@ -695,12 +733,17 @@ class LembarKerjaState {
       for (final p in f.pilihan) {
         if (_satuanSama(p.nilai, dariMaster)) {
           satuan = p.nilai;
+          _satuanDariAlat = p.nilai;
           return;
         }
       }
       return;
     }
   }
+
+  /// Satuan terakhir yang **kita** setel dari master alat — pasangannya
+  /// [_terisiDariAlat], buat kolom yang bukan kotak teks.
+  String? _satuanDariAlat;
 
   /// Dua tulisan satuan ini menunjuk hal yang sama?
   ///
