@@ -328,6 +328,36 @@ class _FormState extends ConsumerState<_Form> {
       return;
     }
 
+    // Teknisi baru aja nyatain di dialog konfirmasi bahwa angka hasil foto
+    // udah dia cocokin sama alatnya — jadi ditandai SEKARANG, bukan disuruh
+    // balik lagi ke Riwayat buat mencet tombol kedua.
+    //
+    // Draft dilewat: draft nggak masuk antrean admin, jadi nggak ada yang
+    // keblokir, dan dialog konfirmasinya sendiri emang nggak muncul buat draft.
+    if (!draft && _isian.adaIsianDariFoto) {
+      try {
+        final token = await ref.read(tokenStorageProvider).read();
+        if (token != null) {
+          await ref
+              .read(historyServiceProvider)
+              .verifikasiPembacaan(token, hasil.id);
+        }
+      } catch (e) {
+        // Kiriman UDAH sukses — ini cuma penandaan. Jangan bikin teknisi
+        // ngira sesinya gagal; kasih tau jalan keluarnya, tombolnya masih ada
+        // di layar detail sesi.
+        if (mounted) {
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.lkKonfirmasiGagalTandai('$e'))),
+          );
+          navigator.pop(hasil.id);
+          return;
+        }
+      }
+    }
+
+    if (!mounted) return;
+
     messenger.showSnackBar(
       SnackBar(
         content: Text(
@@ -379,6 +409,27 @@ class _FormState extends ConsumerState<_Form> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             for (final r in ringkasan) _BarisKonfirmasi(ringkasan: r),
+
+            // Angka hasil foto disebut EKSPLISIT di sini, dan di sini juga
+            // teknisi menyatakan udah ngecek — bukan lewat tombol terpisah
+            // sesudah kirim.
+            //
+            // Dulu penandaannya jadi langkah sendiri di layar Riwayat, dan
+            // itu keliru dua-duanya: teknisi nggak pernah dikasih tau dia
+            // mesti balik ke sana (sesinya diam-diam nge-blok admin), dan
+            // tombol yang ditekan belakangan cuma buat mbuka blokir itu
+            // stempel karet — dia nggak lagi natap angkanya. Yang natap
+            // angkanya ya di dialog ini.
+            if (_isian.adaIsianDariFoto) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                l10n.lkKonfirmasiDariFoto,
+                style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+
             const SizedBox(height: AppSpacing.sm),
             Text(
               l10n.lkKonfirmasiCatatan,

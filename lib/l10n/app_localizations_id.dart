@@ -3217,6 +3217,15 @@ class AppLocalizationsId extends AppLocalizations {
       'Rata-rata pembacaan After adjustment. Koreksi & ketidakpastian dihitung server sesudah ini dikirim.';
 
   @override
+  String get lkKonfirmasiDariFoto =>
+      'Sebagian angka di tabel ini datang dari foto. Dengan mengirim, kamu menyatakan sudah mencocokkannya dengan yang tertera di alat.';
+
+  @override
+  String lkKonfirmasiGagalTandai(String pesan) {
+    return 'Terkirim, tapi penandaan \"sudah dicek\" gagal: $pesan. Buka sesinya di Riwayat dan tekan \"Saya sudah cek angkanya\".';
+  }
+
+  @override
   String lkKonfirmasiBaris(int terisi, int total, String rata) {
     return '$terisi dari $total kotak · rata-rata $rata';
   }

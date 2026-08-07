@@ -1628,6 +1628,11 @@
   "lkPengulanganBatal": "Cancel",
   "lkKonfirmasiJudul": "Check the numbers before sending",
   "lkKonfirmasiCatatan": "Averages of the After adjustment readings. Correction and uncertainty are computed by the server once this is sent.",
+  "lkKonfirmasiDariFoto": "Some numbers in this table came from a photo. By sending, you confirm you've checked them against the instrument.",
+  "lkKonfirmasiGagalTandai": "Sent, but marking them as checked failed: {pesan}. Open the session in History and tap \"I've checked these readings\".",
+  "@lkKonfirmasiGagalTandai": {
+    "placeholders": { "pesan": { "type": "String" } }
+  },
   "lkKonfirmasiBaris": "{terisi} of {total} boxes · average {rata}",
   "@lkKonfirmasiBaris": {
     "placeholders": {

@@ -1130,6 +1130,11 @@
   "lkPengulanganBatal": "Batal",
   "lkKonfirmasiJudul": "Cek dulu angkanya sebelum dikirim",
   "lkKonfirmasiCatatan": "Rata-rata pembacaan After adjustment. Koreksi & ketidakpastian dihitung server sesudah ini dikirim.",
+  "lkKonfirmasiDariFoto": "Sebagian angka di tabel ini datang dari foto. Dengan mengirim, kamu menyatakan sudah mencocokkannya dengan yang tertera di alat.",
+  "lkKonfirmasiGagalTandai": "Terkirim, tapi penandaan \"sudah dicek\" gagal: {pesan}. Buka sesinya di Riwayat dan tekan \"Saya sudah cek angkanya\".",
+  "@lkKonfirmasiGagalTandai": {
+    "placeholders": { "pesan": { "type": "String" } }
+  },
   "lkKonfirmasiBaris": "{terisi} dari {total} kotak · rata-rata {rata}",
   "@lkKonfirmasiBaris": {
     "placeholders": {

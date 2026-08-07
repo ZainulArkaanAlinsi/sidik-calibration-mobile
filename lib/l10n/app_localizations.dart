@@ -5942,6 +5942,18 @@ abstract class AppLocalizations {
   /// **'Averages of the After adjustment readings. Correction and uncertainty are computed by the server once this is sent.'**
   String get lkKonfirmasiCatatan;
 
+  /// No description provided for @lkKonfirmasiDariFoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Some numbers in this table came from a photo. By sending, you confirm you\'ve checked them against the instrument.'**
+  String get lkKonfirmasiDariFoto;
+
+  /// No description provided for @lkKonfirmasiGagalTandai.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent, but marking them as checked failed: {pesan}. Open the session in History and tap \"I\'ve checked these readings\".'**
+  String lkKonfirmasiGagalTandai(String pesan);
+
   /// No description provided for @lkKonfirmasiBaris.
   ///
   /// In en, this message translates to:

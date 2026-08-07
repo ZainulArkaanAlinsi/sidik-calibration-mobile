@@ -3241,6 +3241,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Averages of the After adjustment readings. Correction and uncertainty are computed by the server once this is sent.';
 
   @override
+  String get lkKonfirmasiDariFoto =>
+      'Some numbers in this table came from a photo. By sending, you confirm you\'ve checked them against the instrument.';
+
+  @override
+  String lkKonfirmasiGagalTandai(String pesan) {
+    return 'Sent, but marking them as checked failed: $pesan. Open the session in History and tap \"I\'ve checked these readings\".';
+  }
+
+  @override
   String lkKonfirmasiBaris(int terisi, int total, String rata) {
     return '$terisi of $total boxes · average $rata';
   }

@@ -15,7 +15,9 @@ import 'package:sidik_calibration/screens/calibration/lembar_kerja_state.dart';
 import 'package:sidik_calibration/services/equipment_lookup_service.dart';
 import 'package:sidik_calibration/services/lembar_kerja_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
+import 'package:sidik_calibration/providers/history_provider.dart';
 import 'package:sidik_calibration/providers/worksheet_vision_provider.dart';
+import 'package:sidik_calibration/services/history_service.dart';
 import 'package:sidik_calibration/services/mock_store.dart';
 import 'package:sidik_calibration/services/photo_source.dart';
 import 'package:sidik_calibration/services/room_service.dart';
@@ -51,6 +53,8 @@ Widget _app(
   MockStandardService? standar,
   MockRoomService? ruangan,
   MockSumberFoto? kamera,
+  MockHistoryService? riwayat,
+  MockWorksheetVisionService? visi,
 }) {
   return ProviderScope(
     overrides: [
@@ -67,6 +71,8 @@ Widget _app(
         MockEquipmentLookupService(),
       ),
       if (kamera != null) sumberFotoProvider.overrideWithValue(kamera),
+      if (riwayat != null) historyServiceProvider.overrideWithValue(riwayat),
+      if (visi != null) worksheetVisionProvider.overrideWithValue(visi),
     ],
     child: MaterialApp(
       locale: const Locale('id'),
@@ -1472,6 +1478,53 @@ void _testRefractometer() {
         ..isiDariAlat();
 
       expect(isian.satuan, '°Brix');
+    });
+
+
+    /// Angka hasil foto ditandai "udah dicek" SAAT KIRIM, bukan lewat langkah
+    /// terpisah sesudahnya.
+    ///
+    /// **Desain yang salah, dikeluhkan 7 Agt 2026.** Dulu penandaannya cuma ada
+    /// di layar Riwayat: teknisi ngirim, ngerasa kelar, dan sesinya diam-diam
+    /// nge-blok admin (`ocr_belum_diverifikasi`) tanpa dia pernah dikasih tau
+    /// mesti balik ke sana. Tiga sesi berturut-turut mentok begitu.
+    ///
+    /// Dan tombol yang ditekan belakangan itu stempel karet — teknisi nggak
+    /// lagi natap angkanya, dia cuma mbuka blokir. Yang natap angkanya ya di
+    /// dialog "Cek dulu angkanya sebelum dikirim", dan di situ juga sekarang
+    /// dia nyatain udah nyocokin ke alat.
+    testWidgets('kirim sesi hasil foto langsung nandain pembacaannya', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      final riwayat = MockHistoryService();
+      await _muat(
+        tester,
+        _app(
+          service,
+          profil: 'refractometer',
+          riwayat: riwayat,
+          kamera: MockSumberFoto(),
+          visi: MockWorksheetVisionService(),
+        ),
+      );
+
+      await _pilihAlat(tester, alat: 'Refractometer · C12345');
+
+      // Lewat jalur kamera yang SEBENARNYA: tombol foto -> sumber foto tiruan
+      // -> AI tiruan. Bukan nyuntik state dari luar, biar yang diuji jalur yang
+      // beneran dipakai teknisi.
+      await tester.tap(find.text('FOTO TABEL INI — DIBACA AI').last);
+      await tester.pumpAndSettle();
+
+      await _kirimKeAdmin(tester);
+
+      expect(
+        riwayat.diverifikasi,
+        isNotEmpty,
+        reason: 'tanpa ini sesinya nge-blok admin tanpa teknisi tau',
+      );
     });
 
     /// `equipment_satuan` nulis ke data MASTER alat di backend. Kalau lembar pH
