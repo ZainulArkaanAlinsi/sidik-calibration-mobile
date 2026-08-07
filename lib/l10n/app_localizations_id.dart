@@ -1060,6 +1060,18 @@ class AppLocalizationsId extends AppLocalizations {
       'Masih ada pembacaan OCR yang belum dikonfirmasi — sesi ini belum bisa di-approve.';
 
   @override
+  String get detailVerifikasiTombol => 'Saya sudah cek angkanya';
+
+  @override
+  String get detailVerifikasiSukses =>
+      'Pembacaan dikonfirmasi. Sesi ini sekarang bisa diperiksa admin.';
+
+  @override
+  String detailVerifikasiGagal(String pesan) {
+    return 'Gagal mengonfirmasi: $pesan';
+  }
+
+  @override
   String get arsipTitle => 'Arsip';
 
   @override

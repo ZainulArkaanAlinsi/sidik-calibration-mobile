@@ -402,6 +402,12 @@
   "detailSesudahAdjustment": "Sesudah adjustment (disertifikasi)",
   "detailAsFoundCatatan": "Dokumentasi kondisi alat waktu diterima — nggak ikut hasil yang disertifikasi.",
   "detailPerluVerifikasi": "Masih ada pembacaan OCR yang belum dikonfirmasi — sesi ini belum bisa di-approve.",
+  "detailVerifikasiTombol": "Saya sudah cek angkanya",
+  "detailVerifikasiSukses": "Pembacaan dikonfirmasi. Sesi ini sekarang bisa diperiksa admin.",
+  "detailVerifikasiGagal": "Gagal mengonfirmasi: {pesan}",
+  "@detailVerifikasiGagal": {
+    "placeholders": { "pesan": { "type": "String" } }
+  },
   "arsipTitle": "Arsip",
   "arsipCariPerusahaan": "Cari perusahaan...",
   "arsipPerusahaanKosong": "Belum ada perusahaan.",

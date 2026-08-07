@@ -1062,6 +1062,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Some OCR readings still need confirming — this session can\'t be approved yet.';
 
   @override
+  String get detailVerifikasiTombol => 'I\'ve checked these readings';
+
+  @override
+  String get detailVerifikasiSukses =>
+      'Readings confirmed. This session can now be reviewed by an admin.';
+
+  @override
+  String detailVerifikasiGagal(String pesan) {
+    return 'Couldn\'t confirm: $pesan';
+  }
+
+  @override
   String get arsipTitle => 'Archive';
 
   @override

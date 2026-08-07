@@ -8,6 +8,7 @@ import '../../core/theme/app_typography.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_detail.dart';
 import '../../models/calibration_history_item.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
@@ -39,7 +40,7 @@ class CalibrationDetailScreen extends ConsumerWidget {
 
     final Widget isi;
     if (data != null) {
-      isi = _Isi(detail: data);
+      isi = _Isi(detail: data, calibrationId: calibrationId);
     } else if (detail.hasError) {
       isi = _Gagal(
         onCobaLagi: () =>
@@ -57,7 +58,9 @@ class CalibrationDetailScreen extends ConsumerWidget {
 }
 
 class _Isi extends StatelessWidget {
-  const _Isi({required this.detail});
+  const _Isi({required this.detail, required this.calibrationId});
+
+  final int calibrationId;
 
   final CalibrationDetail detail;
 
@@ -180,6 +183,8 @@ class _Isi extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(height: AppSpacing.sm),
+          _TombolVerifikasi(calibrationId: calibrationId),
         ],
 
         const SizedBox(height: AppSpacing.lg),
@@ -827,6 +832,78 @@ class _Skeleton extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
         SkeletonBox(height: 160, width: double.infinity),
       ],
+    );
+  }
+}
+
+/// Tombol "Saya sudah cek angkanya" — satu-satunya cara membuka sesi yang
+/// pembacaannya datang dari kamera.
+///
+/// **Tanpa ini sesinya jalan buntu.** Pembacaan hasil foto disimpen
+/// `is_verified: false`, dan pemeriksaan admin nolak nerbitin sertifikat selama
+/// masih ada yang belum dikonfirmasi (`ocr_belum_diverifikasi`). Peringatannya
+/// udah lama tampil di layar ini, tapi endpoint-nya nggak pernah dipanggil dari
+/// mana pun — jadi admin keblokir dan teknisi nggak punya cara mbuka. Ketemu
+/// 7 Agt 2026, waktu sesi Refractometer pertama dari foto mentok di antrean.
+///
+/// Kalimatnya sengaja **pernyataan teknisi**, bukan "Verifikasi": yang
+/// ditandatangani di sini itu klaim bahwa dia udah mbandingin angka di layar
+/// sama angka di alat. Itu inti aturannya — kamera mempercepat pengetikan,
+/// bukan menggantikan orang yang bertanggung jawab.
+class _TombolVerifikasi extends ConsumerStatefulWidget {
+  const _TombolVerifikasi({required this.calibrationId});
+
+  final int calibrationId;
+
+  @override
+  ConsumerState<_TombolVerifikasi> createState() => _TombolVerifikasiState();
+}
+
+class _TombolVerifikasiState extends ConsumerState<_TombolVerifikasi> {
+  bool _sibuk = false;
+
+  Future<void> _kirim() async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    setState(() => _sibuk = true);
+    try {
+      final token = await ref.read(tokenStorageProvider).read();
+      if (token == null) throw Exception('Sesi login habis.');
+
+      await ref
+          .read(historyServiceProvider)
+          .verifikasiPembacaan(token, widget.calibrationId);
+
+      if (!mounted) return;
+      // Detailnya ditarik ulang, bukan ditebak: yang nentuin peringatan itu
+      // hilang atau nggak ya server, bukan layar ini.
+      ref.invalidate(calibrationDetailProvider(widget.calibrationId));
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.detailVerifikasiSukses)),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      // Errornya ditampilin apa adanya — kalau ditelan, teknisi cuma lihat
+      // tombol yang nggak ngapa-ngapain.
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.detailVerifikasiGagal('$e'))),
+      );
+    } finally {
+      if (mounted) setState(() => _sibuk = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: AppButton(
+        label: AppLocalizations.of(context).detailVerifikasiTombol,
+        icon: Icons.check_circle_outline,
+        isLoading: _sibuk,
+        onPressed: _sibuk ? null : _kirim,
+      ),
     );
   }
 }

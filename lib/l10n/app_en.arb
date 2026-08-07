@@ -516,6 +516,12 @@
   "detailSesudahAdjustment": "After adjustment (certified)",
   "detailAsFoundCatatan": "Documents the state the instrument arrived in — not part of the certified result.",
   "detailPerluVerifikasi": "Some OCR readings still need confirming — this session can't be approved yet.",
+  "detailVerifikasiTombol": "I've checked these readings",
+  "detailVerifikasiSukses": "Readings confirmed. This session can now be reviewed by an admin.",
+  "detailVerifikasiGagal": "Couldn't confirm: {pesan}",
+  "@detailVerifikasiGagal": {
+    "placeholders": { "pesan": { "type": "String" } }
+  },
   "arsipTitle": "Archive",
   "arsipCariPerusahaan": "Search company...",
   "arsipPerusahaanKosong": "No companies yet.",

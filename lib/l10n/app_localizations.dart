@@ -2030,6 +2030,24 @@ abstract class AppLocalizations {
   /// **'Some OCR readings still need confirming — this session can\'t be approved yet.'**
   String get detailPerluVerifikasi;
 
+  /// No description provided for @detailVerifikasiTombol.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ve checked these readings'**
+  String get detailVerifikasiTombol;
+
+  /// No description provided for @detailVerifikasiSukses.
+  ///
+  /// In en, this message translates to:
+  /// **'Readings confirmed. This session can now be reviewed by an admin.'**
+  String get detailVerifikasiSukses;
+
+  /// No description provided for @detailVerifikasiGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t confirm: {pesan}'**
+  String detailVerifikasiGagal(String pesan);
+
   /// No description provided for @arsipTitle.
   ///
   /// In en, this message translates to:
