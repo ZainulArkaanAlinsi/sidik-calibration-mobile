@@ -44,12 +44,23 @@ enum FormatKirim {
 /// > di `kontrak-api.md` — yang ada baru prosa di handoff 28 Juli. Parsingnya
 /// > sengaja longgar (beberapa nama kunci diterima, semua opsional kecuali
 /// > waktu) sampai bentuk pastinya dikonfirmasi. Lihat `permintaan-backend-*`.
+/// Hasil satu percobaan kirim — TIGA keadaan, bukan dua.
+///
+/// [tidakTerkirim] itu yang gampang kelewat: server nerima permintaannya, nggak
+/// ada yang error, tapi emailnya nggak pernah keluar (mailer server masih
+/// `log`/`array`). Dulu ini kecatat sama dengan [terkirim], jadi riwayat
+/// pengiriman ngaku sertifikatnya udah sampai ke pelanggan padahal nggak.
+///
+/// Buat lab terakreditasi bedanya penting: riwayat ini yang dijadiin bukti
+/// waktu pelanggan bilang nggak nerima.
+enum HasilKirim { terkirim, tidakTerkirim, gagal }
+
 class PercobaanEmail {
   const PercobaanEmail({
     required this.id,
     required this.ke,
     required this.cc,
-    required this.berhasil,
+    required this.hasil,
     required this.waktu,
     this.format = FormatKirim.pdf,
     this.error,
@@ -63,7 +74,11 @@ class PercobaanEmail {
   /// Yang beneran dikirim di percobaan ini.
   final FormatKirim format;
 
-  final bool berhasil;
+  final HasilKirim hasil;
+
+  /// Beneran nyampe ke penerima. `false` buat [HasilKirim.tidakTerkirim] juga —
+  /// dan itu yang bener: nggak ada yang nerima apa pun.
+  bool get berhasil => hasil == HasilKirim.terkirim;
 
   /// Pesan kegagalan dari server. Ditampilin apa adanya — admin butuh tau
   /// alasannya ("mailbox penuh" beda penanganan dari "alamat nggak ada").
@@ -95,11 +110,22 @@ class PercobaanEmail {
     // lebih bahaya: admin ngira udah kekirim padahal belum.
     final status = '${json['status'] ?? ''}'.toLowerCase();
     final error = json['error'] as String? ?? json['pesan_error'] as String?;
-    final berhasil = switch (json['berhasil']) {
-      final bool b => b,
-      _ => status.isNotEmpty
-          ? (status == 'terkirim' || status == 'berhasil' || status == 'sukses')
-          : (error == null || error.isEmpty),
+    // `tidak_terkirim` dicek DULUAN: dia ngandung kata "terkirim", jadi
+    // pencocokan longgar di bawah bakal salah baca dia sebagai sukses.
+    final hasil = switch (status) {
+      'tidak_terkirim' || 'tidak terkirim' || 'belum_terkirim' =>
+        HasilKirim.tidakTerkirim,
+      _ => switch (json['berhasil']) {
+        final bool b => b ? HasilKirim.terkirim : HasilKirim.gagal,
+        _ =>
+          (status.isNotEmpty
+                  ? (status == 'terkirim' ||
+                      status == 'berhasil' ||
+                      status == 'sukses')
+                  : (error == null || error.isEmpty))
+              ? HasilKirim.terkirim
+              : HasilKirim.gagal,
+      },
     };
 
     final waktu =
@@ -110,7 +136,7 @@ class PercobaanEmail {
       ke: _alamat(json['ke'] ?? json['to']),
       cc: _alamat(json['cc']),
       format: FormatKirim.dariKode(json['format']),
-      berhasil: berhasil,
+      hasil: hasil,
       error: (error != null && error.isEmpty) ? null : error,
       waktu: DateTime.tryParse('${waktu ?? ''}') ?? DateTime.now(),
       oleh: switch (json['oleh']) {

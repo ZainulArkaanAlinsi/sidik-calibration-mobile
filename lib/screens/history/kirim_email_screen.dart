@@ -10,6 +10,7 @@ import '../../models/izin.dart';
 import '../../models/kirim_email.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/izin_provider.dart';
+import '../../providers/certificate_provider.dart';
 import '../../providers/kirim_email_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/status_badge.dart';
@@ -162,12 +163,33 @@ class _IsiState extends ConsumerState<_Isi> {
 
     setState(() => _mengirim = true);
     try {
-      await kirimSertifikatLewatEmail(
+      final peringatan = await kirimSertifikatLewatEmail(
         ref,
         certificateId: widget.certificateId,
         isi: KirimEmailPermintaan(ke: ke, cc: cc, format: _format),
       );
       if (!mounted) return;
+
+      // Sukses-tapi-nggak-nyampe: server nerima, nggak error, tapi emailnya
+      // nggak pernah keluar (mis. `MAIL_MAILER=log`). Bilang "Email terkirim"
+      // di sini lebih bahaya daripada error — admin nutup layar dan nungguin
+      // balasan pelanggan yang nggak bakal datang.
+      //
+      // Kolomnya SENGAJA nggak dikosongin: alamatnya masih dibutuhin buat
+      // kirim ulang begitu SMTP-nya dibenerin.
+      if (peringatan != null) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(peringatan),
+            // Peringatannya panjang dan cuma muncul sekali — 4 detik bawaan
+            // nggak cukup buat dibaca sampai habis.
+            duration: const Duration(seconds: 10),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+        return;
+      }
+
       messenger.showSnackBar(SnackBar(content: Text(l10n.emailTerkirim)));
       _ke.clear();
       _cc.clear();
@@ -283,9 +305,93 @@ class _IsiState extends ConsumerState<_Isi> {
     final l10n = AppLocalizations.of(context);
     final riwayat = ref.watch(riwayatEmailProvider(widget.certificateId));
 
+    // Kontak pelanggan buat tombol "tinggal pilih". Backend udah ngirim ini
+    // dari dulu (`CertificateResource.pelanggan`) — sebelumnya kebuang, dan
+    // admin ngetik alamatnya manual tiap kali padahal datanya udah nyampe.
+    final detail = ref.watch(certificateDetailProvider(widget.certificateId)).value;
+    final saran = _lewatWa ? detail?.pelangganTelepon : detail?.pelangganEmail;
+
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
+        // Cuma muncul kalau master pelanggan emang udah keisi. Kalau kosong,
+        // layarnya persis kayak sebelumnya — ketik manual, nggak ada yang
+        // rusak. Jadi ini aman dipasang sebelum datanya lengkap.
+        if (saran != null && saran.trim().isNotEmpty) ...[
+          Row(
+            children: [
+              Icon(
+                Icons.business_outlined,
+                size: 16,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Text(
+                  detail?.pelangganNama ?? '',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: ActionChip(
+              avatar: const Icon(Icons.person_add_alt, size: 18),
+              label: Text(saran),
+              onPressed: _mengirim
+                  ? null
+                  // Ditambahkan, BUKAN ditimpa: admin boleh ngirim ke pelanggan
+                  // sekaligus ke orang lain, dan yang udah diketik nggak boleh
+                  // ilang cuma gara-gara mencet ini.
+                  : () => setState(() {
+                        final ada = _ke.text
+                            .split(',')
+                            .map((e) => e.trim())
+                            .where((e) => e.isNotEmpty)
+                            .toList();
+                        if (ada.contains(saran)) return;
+                        ada.add(saran);
+                        _ke.text = ada.join(', ');
+                      }),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+        ]
+        // Kontaknya belum ada di master. Dulu di sini nggak muncul apa-apa —
+        // kolom "To" kosong melompong, dan nggak ada cara buat tahu kenapa
+        // tombol "tinggal pilih" yang dijanjiin nggak pernah nongol.
+        //
+        // Bukan error: ngetik manual tetap jalan. Yang dikasih tahu cuma DI MANA
+        // datanya diisi, biar nggak nebak-nebak.
+        else if (detail?.pelangganNama != null) ...[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: 16,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Text(
+                  _lewatWa
+                      ? l10n.emailKontakKosongWa(detail!.pelangganNama!)
+                      : l10n.emailKontakKosong(detail!.pelangganNama!),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+        ],
         TextField(
           controller: _ke,
           enabled: !_mengirim,
@@ -474,16 +580,28 @@ class _BarisRiwayat extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
+                // TIGA keadaan. `tidakTerkirim` yang paling penting dibedain:
+                // server nerima, nggak ada error, tapi emailnya nggak pernah
+                // keluar. Ditandai "Terkirim" — kayak dulu — bikin riwayat ini
+                // ngaku pelanggan udah nerima sertifikatnya padahal belum.
                 StatusBadge(
-                  label: percobaan.berhasil
-                      ? l10n.emailRiwayatBerhasil
-                      : l10n.emailRiwayatGagal,
-                  tone: percobaan.berhasil
-                      ? BadgeTone.success
-                      : BadgeTone.danger,
-                  icon: percobaan.berhasil
-                      ? Icons.check_circle_outline
-                      : Icons.error_outline,
+                  label: switch (percobaan.hasil) {
+                    HasilKirim.terkirim => l10n.emailRiwayatBerhasil,
+                    HasilKirim.tidakTerkirim => l10n.emailRiwayatBelumKeluar,
+                    HasilKirim.gagal => l10n.emailRiwayatGagal,
+                  },
+                  tone: switch (percobaan.hasil) {
+                    HasilKirim.terkirim => BadgeTone.success,
+                    // Bukan `danger`: nggak ada yang gagal, dan nggak ada yang
+                    // perlu dicoba ulang sampai setelan servernya dibetulin.
+                    HasilKirim.tidakTerkirim => BadgeTone.warning,
+                    HasilKirim.gagal => BadgeTone.danger,
+                  },
+                  icon: switch (percobaan.hasil) {
+                    HasilKirim.terkirim => Icons.check_circle_outline,
+                    HasilKirim.tidakTerkirim => Icons.pause_circle_outline,
+                    HasilKirim.gagal => Icons.error_outline,
+                  },
                 ),
               ],
             ),

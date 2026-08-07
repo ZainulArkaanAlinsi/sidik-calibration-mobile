@@ -43,24 +43,58 @@ class ApiHistoryService implements HistoryService {
   /// kerjaan orang lain dengan ngirim `mine=false`. Jadi tanpa parameter ini
   /// teknisi tetap lihat punyanya sendiri, dan admin lihat semuanya.
   @override
-  Future<List<CalibrationHistoryItem>> ambilRiwayat(String token) async {
-    final json = await _api.get('/calibrations', token: token);
-    final data = (json['data'] as List<dynamic>? ?? const []);
-
-    return parseListAman(data, CalibrationHistoryItem.fromJson);
-  }
+  Future<List<CalibrationHistoryItem>> ambilRiwayat(String token) =>
+      _semuaHalaman('/calibrations', token);
 
   @override
-  Future<List<CalibrationHistoryItem>> ambilAntreanApproval(
+  Future<List<CalibrationHistoryItem>> ambilAntreanApproval(String token) =>
+      _semuaHalaman('/calibrations?status=menunggu_approval', token);
+
+  /// Batas pengaman kalau `meta` dari server ngaco — 20 × 15 = 300 sesi.
+  /// Tanpa ini, `last_page` yang salah bisa bikin app nembak server terus
+  /// sampai teknisi kehabisan kuota.
+  static const _maksHalaman = 20;
+
+  /// Tarik SEMUA halaman, bukan cuma halaman pertama.
+  ///
+  /// `CalibrationController::index()` di backend itu `paginate(15)`. Dulu di
+  /// sini cuma `json['data']` yang dibaca dan `meta`-nya diabaikan, jadi
+  /// mobile berhenti di 15 baris tanpa ada cara apa pun buat lihat sisanya —
+  /// nggak ada tombol "muat lagi" di layar mana pun.
+  ///
+  /// Dua akibatnya nyata:
+  ///
+  /// - **Antrean approval bohong.** Kartu dashboard ngitung `count()` PENUH
+  ///   (`DashboardController`), sementara layar antrean cuma sanggup nampilin
+  ///   15. Admin baca "23 menunggu approval" lalu ngeliat 15 baris, dan 8
+  ///   kiriman teknisi nggak bisa disentuh sama sekali.
+  /// - **Riwayat teknisi kepotong** di 15 sesi terakhir; sesi lama ilang dari
+  ///   layar walaupun ada di server.
+  ///
+  /// Nggak kekejar test karena semua mock balikin daftar pendek dalam satu
+  /// halaman — 15 baris itu batas yang cuma kelihatan di lab yang lagi ramai.
+  Future<List<CalibrationHistoryItem>> _semuaHalaman(
+    String path,
     String token,
   ) async {
-    final json = await _api.get(
-      '/calibrations?status=menunggu_approval',
-      token: token,
-    );
-    final data = (json['data'] as List<dynamic>? ?? const []);
+    final hasil = <CalibrationHistoryItem>[];
+    final pemisah = path.contains('?') ? '&' : '?';
 
-    return parseListAman(data, CalibrationHistoryItem.fromJson);
+    for (var halaman = 1; halaman <= _maksHalaman; halaman++) {
+      final json = await _api.get('$path${pemisah}page=$halaman', token: token);
+      hasil.addAll(
+        parseListAman(json['data'], CalibrationHistoryItem.fromJson),
+      );
+
+      final meta = json['meta'];
+      final terakhir = meta is Map ? (meta['last_page'] as num?)?.toInt() : null;
+
+      // `meta` nggak ada = server lama yang nggak paginate: apa yang kebaca
+      // barusan itu semuanya, jangan nembak halaman kedua.
+      if (terakhir == null || halaman >= terakhir) break;
+    }
+
+    return hasil;
   }
 
   @override

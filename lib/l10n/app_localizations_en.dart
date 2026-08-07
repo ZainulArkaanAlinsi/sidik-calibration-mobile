@@ -2734,6 +2734,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'The certificate PDF is still being generated.';
 
   @override
+  String get folderBukaBerkas => 'Open file';
+
+  @override
+  String get folderBagikanBerkas => 'Share certificate';
+
+  @override
   String folderUnduhGagal(String pesan) {
     return 'Couldn\'t download: $pesan';
   }
@@ -3033,6 +3039,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sertKolU95 => 'U95% (±)';
 
   @override
+  String get sertKolRemark => 'Remark';
+
+  @override
   String get sertStandarJudul => 'Standard Used';
 
   @override
@@ -3181,4 +3190,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lkScanMemproses => 'AI is reading the table…';
+
+  @override
+  String lkPengulanganRingkas(int n) {
+    return '${n}x';
+  }
+
+  @override
+  String get lkPengulanganTooltip => 'Number of repeat columns';
+
+  @override
+  String lkPengulanganPilihan(int n) {
+    return '$n repetitions';
+  }
+
+  @override
+  String get lkUbahPengulanganJudul => 'Change repetitions?';
+
+  @override
+  String lkUbahPengulanganPesan(int n) {
+    return 'The results table is rebuilt with $n columns, and numbers already typed into it will be lost. Identity and room-condition fields stay.';
+  }
+
+  @override
+  String get lkUbahPengulanganLanjut => 'Change';
+
+  @override
+  String get lkPengulanganBatal => 'Cancel';
+
+  @override
+  String get emailRiwayatBelumKeluar => 'Not sent yet';
+
+  @override
+  String emailKontakKosong(String pt) {
+    return '$pt has no email in the customer record. Add it in the admin panel → Customers so it can be picked here.';
+  }
+
+  @override
+  String emailKontakKosongWa(String pt) {
+    return '$pt has no WhatsApp number in the customer record. Add it in the admin panel → Customers so it can be picked here.';
+  }
 }

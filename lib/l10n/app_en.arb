@@ -1,8 +1,6 @@
 {
   "@@locale": "en",
-
   "appTagline": "Precision Calibration Management",
-
   "loginIdentifierLabel": "Employee ID / Email",
   "loginIdentifierHint": "SDK-0001 or name@pt-sidik.com",
   "passwordLabel": "Password",
@@ -13,7 +11,6 @@
   "loginIdentifierRequired": "Employee ID or email is required.",
   "passwordRequired": "Password is required.",
   "errorNoConnection": "Can't reach the server. Please try again.",
-
   "registerTitle": "Register Account",
   "registerSubtitle": "Create your technician profile",
   "nameLabel": "Full Name",
@@ -36,7 +33,6 @@
   "registerSuccessTitle": "Registration submitted",
   "registerSuccessBody": "Your account is still awaiting admin approval. You can't sign in until an admin approves it and assigns your role.\n\nContact an admin if you don't hear back for a while.",
   "registerSuccessDismiss": "GOT IT",
-
   "forgotTitle": "Forgot Password",
   "forgotSubtitle": "Verify your email, then set a new password",
   "forgotBody": "Enter the email you used to register. If it matches, you can create a new password right here.",
@@ -46,7 +42,9 @@
   "resetNewPassSubtitle": "Create a new password for {email}",
   "@resetNewPassSubtitle": {
     "placeholders": {
-      "email": { "type": "String" }
+      "email": {
+        "type": "String"
+      }
     }
   },
   "newPasswordLabel": "New Password",
@@ -56,15 +54,12 @@
   "resetDoneTitle": "Password changed",
   "resetDoneBody": "Your password has been updated. Sign in with your new password now.",
   "backToLoginCaps": "BACK TO LOGIN",
-
   "languageLabel": "Language",
-
   "navDashboard": "Dashboard",
   "navEquipment": "Equipment",
   "navHistory": "History",
   "navNotifications": "Notifications",
   "navProfile": "Profile",
-
   "dashGreeting": "Hello,",
   "dashTotalDevices": "Total devices",
   "dashOverdue": "Overdue",
@@ -76,7 +71,9 @@
   "dashCertsThisMonthSub": "{count} this month",
   "@dashCertsThisMonthSub": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "dashCalibrationMine": "My calibrations",
@@ -84,13 +81,17 @@
   "dashTrendUp": "{count} more completed than last period",
   "@dashTrendUp": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "dashTrendDown": "{count} fewer completed than last period",
   "@dashTrendDown": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "dashTrendFlat": "Same as last period",
@@ -103,14 +104,15 @@
   "dashOverdueWarning": "{count} device(s) past their calibration due date. Measurements from overdue devices can't be relied upon.",
   "@dashOverdueWarning": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "dashEmptyTitle": "No data yet",
   "dashEmptyBodyInput": "No devices registered yet. Start by adding your first measuring device.",
   "dashEmptyBodyReadonly": "There's nothing to show yet.",
   "snackCalibInputSoon": "Calibration input is planned for week 4.",
-
   "profAccountInfo": "Account Info",
   "profRoleLabel": "Role",
   "profChangePhotoSheet": "Profile Photo",
@@ -142,22 +144,61 @@
   "rumusKosong": "No formulas recorded yet.",
   "rumusCobaLagi": "Try again",
   "rumusVersiBerlaku": "Version {nomor} in effect",
-  "@rumusVersiBerlaku": {"placeholders": {"nomor": {"type": "int"}}},
+  "@rumusVersiBerlaku": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
   "rumusTanpaVersiBerlaku": "No version in effect",
   "rumusJumlahVersi": "{jumlah} version(s)",
-  "@rumusJumlahVersi": {"placeholders": {"jumlah": {"type": "int"}}},
+  "@rumusJumlahVersi": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "rumusVersiKe": "Version {nomor}",
-  "@rumusVersiKe": {"placeholders": {"nomor": {"type": "int"}}},
+  "@rumusVersiKe": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
   "rumusStatusAktif": "Active",
   "rumusStatusDraft": "Draft",
   "rumusStatusArsip": "Archived",
   "rumusBerlakuSejak": "In effect since {mulai}",
-  "@rumusBerlakuSejak": {"placeholders": {"mulai": {"type": "String"}}},
+  "@rumusBerlakuSejak": {
+    "placeholders": {
+      "mulai": {
+        "type": "String"
+      }
+    }
+  },
   "rumusBerlakuRentang": "In effect {mulai} – {selesai}",
-  "@rumusBerlakuRentang": {"placeholders": {"mulai": {"type": "String"}, "selesai": {"type": "String"}}},
+  "@rumusBerlakuRentang": {
+    "placeholders": {
+      "mulai": {
+        "type": "String"
+      },
+      "selesai": {
+        "type": "String"
+      }
+    }
+  },
   "rumusDibuatSistem": "Created by the system",
   "rumusDibuatOleh": "Published by {nama}",
-  "@rumusDibuatOleh": {"placeholders": {"nama": {"type": "String"}}},
+  "@rumusDibuatOleh": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
   "rumusTerbitkanVersi": "Publish new version",
   "rumusTerbitkan": "PUBLISH",
   "rumusBatal": "Cancel",
@@ -172,7 +213,13 @@
   "rumusLangsungAktif": "Activate immediately",
   "rumusLangsungAktifKet": "If off, the version is saved as a draft — not used for calculations yet, so it is safe to try.",
   "rumusVersiTerbit": "Version {nomor} published.",
-  "@rumusVersiTerbit": {"placeholders": {"nomor": {"type": "int"}}},
+  "@rumusVersiTerbit": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
   "profRumus": "Calibration Formulas",
   "profRumusSub": "Parameters & calculation version history",
   "ruanganTitle": "Lab Rooms",
@@ -205,7 +252,13 @@
   "metodeBerlaku": "Effective from",
   "metodeBerlakuKosong": "Not set",
   "metodeBerlakuMulai": "Effective from {tanggal}",
-  "@metodeBerlakuMulai": {"placeholders": {"tanggal": {"type": "String"}}},
+  "@metodeBerlakuMulai": {
+    "placeholders": {
+      "tanggal": {
+        "type": "String"
+      }
+    }
+  },
   "metodeAktifKet": "Inactive ones are kept — older certificates cite this method.",
   "profRuangan": "Lab Rooms",
   "profRuanganSub": "Rooms & their environmental limits",
@@ -229,17 +282,20 @@
   "profSessionsRevoked": "{count} session(s) revoked. Please sign in again.",
   "@profSessionsRevoked": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "profAllSessionsRevoked": "All sessions revoked. Please sign in again.",
   "profRevokeFailed": "Couldn't revoke sessions: {message}",
   "@profRevokeFailed": {
     "placeholders": {
-      "message": { "type": "String" }
+      "message": {
+        "type": "String"
+      }
     }
   },
-
   "equipLoadFailed": "Couldn't load the device list.",
   "equipSearchHint": "Search device name",
   "equipFilterKategoriHint": "Category",
@@ -258,13 +314,17 @@
   "equipDeleteConfirmBody": "\"{nama}\" will be permanently deleted.",
   "@equipDeleteConfirmBody": {
     "placeholders": {
-      "nama": { "type": "String" }
+      "nama": {
+        "type": "String"
+      }
     }
   },
   "equipDeleteFailed": "Couldn't delete: {pesan}",
   "@equipDeleteFailed": {
     "placeholders": {
-      "pesan": { "type": "String" }
+      "pesan": {
+        "type": "String"
+      }
     }
   },
   "equipNamaAlat": "Device name",
@@ -297,10 +357,11 @@
   "equipSaveFailed": "Couldn't save: {pesan}",
   "@equipSaveFailed": {
     "placeholders": {
-      "pesan": { "type": "String" }
+      "pesan": {
+        "type": "String"
+      }
     }
   },
-
   "historyEmptyTitle": "No history yet",
   "historyEmptyBody": "Completed calibration sessions will show up here.",
   "historyLoadFailed": "Couldn't load history.",
@@ -309,7 +370,9 @@
   "historyCertNumber": "Certificate no. {nomor}",
   "@historyCertNumber": {
     "placeholders": {
-      "nomor": { "type": "String" }
+      "nomor": {
+        "type": "String"
+      }
     }
   },
   "historyStatusPass": "PASS",
@@ -322,7 +385,9 @@
   "historyApproveFailed": "Couldn't approve: {pesan}",
   "@historyApproveFailed": {
     "placeholders": {
-      "pesan": { "type": "String" }
+      "pesan": {
+        "type": "String"
+      }
     }
   },
   "historyRejectDialogTitle": "Reject this calibration session?",
@@ -333,13 +398,17 @@
   "historyRejectFailed": "Couldn't reject: {pesan}",
   "@historyRejectFailed": {
     "placeholders": {
-      "pesan": { "type": "String" }
+      "pesan": {
+        "type": "String"
+      }
     }
   },
   "historyCatatanRevisi": "Revision note: {catatan}",
   "@historyCatatanRevisi": {
     "placeholders": {
-      "catatan": { "type": "String" }
+      "catatan": {
+        "type": "String"
+      }
     }
   },
   "historyViewCertificate": "View certificate",
@@ -358,14 +427,18 @@
   "certOpenFailed": "No app found to open the PDF: {message}",
   "@certOpenFailed": {
     "placeholders": {
-      "message": { "type": "String" }
+      "message": {
+        "type": "String"
+      }
     }
   },
   "certBelumTerbit": "Certificate not issued yet",
   "certQrToken": "QR token: {token}",
   "@certQrToken": {
     "placeholders": {
-      "token": { "type": "String" }
+      "token": {
+        "type": "String"
+      }
     }
   },
   "certRingkasanTitle": "Result Summary",
@@ -383,7 +456,6 @@
   "certBelumDihitung": "The measurement points haven't been calculated by the backend yet, so the report table can't be shown.",
   "certDisclaimer": "— Calibration results are not to be announced and only apply to related tools —",
   "certLihatDetail": "VIEW CALCULATION DETAIL",
-
   "detailTitle": "Calibration Result Detail",
   "detailLoadFailed": "Couldn't load calibration detail.",
   "detailPaneEmptyTitle": "No session selected",
@@ -394,7 +466,9 @@
   "detailNomorSesi": "Session no. {nomor}",
   "@detailNomorSesi": {
     "placeholders": {
-      "nomor": { "type": "String" }
+      "nomor": {
+        "type": "String"
+      }
     }
   },
   "detailKondisiLingkungan": "Environmental Condition & Standard",
@@ -410,8 +484,12 @@
   "detailTitikLabel": "Point {index} · {nilai}",
   "@detailTitikLabel": {
     "placeholders": {
-      "index": { "type": "int" },
-      "nilai": { "type": "String" }
+      "index": {
+        "type": "int"
+      },
+      "nilai": {
+        "type": "String"
+      }
     }
   },
   "detailRataRata": "Average",
@@ -438,7 +516,6 @@
   "detailSesudahAdjustment": "After adjustment (certified)",
   "detailAsFoundCatatan": "Documents the state the instrument arrived in — not part of the certified result.",
   "detailPerluVerifikasi": "Some OCR readings still need confirming — this session can't be approved yet.",
-
   "arsipTitle": "Archive",
   "arsipCariPerusahaan": "Search company...",
   "arsipPerusahaanKosong": "No companies yet.",
@@ -448,15 +525,23 @@
   "arsipRingkasPerusahaan": "{alat} instruments · {sertifikat} certificates",
   "@arsipRingkasPerusahaan": {
     "placeholders": {
-      "alat": { "type": "int" },
-      "sertifikat": { "type": "int" }
+      "alat": {
+        "type": "int"
+      },
+      "sertifikat": {
+        "type": "int"
+      }
     }
   },
   "arsipRingkasFolder": "{subfolder} folders · {berkas} files",
   "@arsipRingkasFolder": {
     "placeholders": {
-      "subfolder": { "type": "int" },
-      "berkas": { "type": "int" }
+      "subfolder": {
+        "type": "int"
+      },
+      "berkas": {
+        "type": "int"
+      }
     }
   },
   "arsipFolderBaru": "New folder",
@@ -471,7 +556,9 @@
   "arsipHapusIsi": "Folder \"{nama}\" will be removed. Only empty folders can be deleted.",
   "@arsipHapusIsi": {
     "placeholders": {
-      "nama": { "type": "String" }
+      "nama": {
+        "type": "String"
+      }
     }
   },
   "arsipTakBisaHapus": "Move or delete its contents first.",
@@ -496,30 +583,39 @@
   "certPngDisimpan": "QR saved to {lokasi}",
   "@certPngDisimpan": {
     "placeholders": {
-      "lokasi": { "type": "String" }
+      "lokasi": {
+        "type": "String"
+      }
     }
   },
   "certGagalBuka": "Couldn't open {tujuan} on this device.",
   "@certGagalBuka": {
     "placeholders": {
-      "tujuan": { "type": "String" }
+      "tujuan": {
+        "type": "String"
+      }
     }
   },
   "certBelumAdaTautan": "The backend hasn't issued a verification token yet, so there's no link to share.",
   "certPesanBagikan": "Hello,\n\nYour calibration certificate has been generated.\n\nCertificate Number:\n{nomor}\n\nVerification Link:\n{tautan}\n\nScan the QR code or open the link above.\n\nThank you.",
   "@certPesanBagikan": {
     "placeholders": {
-      "nomor": { "type": "String" },
-      "tautan": { "type": "String" }
+      "nomor": {
+        "type": "String"
+      },
+      "tautan": {
+        "type": "String"
+      }
     }
   },
   "certSubjekEmail": "Calibration Certificate {nomor}",
   "@certSubjekEmail": {
     "placeholders": {
-      "nomor": { "type": "String" }
+      "nomor": {
+        "type": "String"
+      }
     }
   },
-
   "alurTitle": "Workflow",
   "alurSub": "From the technician's entry to the certificate landing in the client's inbox.",
   "alurPilihSesi": "Pick a session on the left to see where it stands.",
@@ -540,12 +636,13 @@
   "alurCatatanRevisi": "Sent back by the admin: {catatan}",
   "@alurCatatanRevisi": {
     "placeholders": {
-      "catatan": { "type": "String" }
+      "catatan": {
+        "type": "String"
+      }
     }
   },
   "alurLangkahSekarang": "You are here",
   "alurLangkahSelesai": "Done",
-
   "panelSeksiOperasional": "Operations",
   "panelSeksiDokumen": "Documents",
   "panelSeksiSistem": "System",
@@ -557,7 +654,9 @@
   "panelSubjudul": "Desktop · {akreditasi}",
   "@panelSubjudul": {
     "placeholders": {
-      "akreditasi": { "type": "String" }
+      "akreditasi": {
+        "type": "String"
+      }
     }
   },
   "panelRingkasan": "Overview",
@@ -568,38 +667,46 @@
   "panelSesiSelesai": "{count} sessions completed",
   "@panelSesiSelesai": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "panelMasihDraft": "Plus {count} still in draft",
   "@panelMasihDraft": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "panelTotalSepanjangMasa": "All-time total {count}",
   "@panelTotalSepanjangMasa": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "panelStatusBelumLengkap": "\"Needs revision\" isn't in the dashboard response yet — backend request pending.",
-
   "arsipPetunjukPindah": "Press and hold an item to move it.",
   "arsipTakBisaDipindah": "Auto-generated folder — its place follows the client/year.",
   "arsipFolderDipindah": "Folder moved into \"{tujuan}\".",
   "@arsipFolderDipindah": {
     "placeholders": {
-      "tujuan": { "type": "String" }
+      "tujuan": {
+        "type": "String"
+      }
     }
   },
   "arsipBerkasDipindah": "File moved into \"{tujuan}\".",
   "@arsipBerkasDipindah": {
     "placeholders": {
-      "tujuan": { "type": "String" }
+      "tujuan": {
+        "type": "String"
+      }
     }
   },
-
   "orgTitle": "Organization Data",
   "orgNama": "Company name",
   "orgAlamat": "Address",
@@ -619,12 +726,13 @@
   "orgSaveFailed": "Couldn't save: {pesan}",
   "@orgSaveFailed": {
     "placeholders": {
-      "pesan": { "type": "String" }
+      "pesan": {
+        "type": "String"
+      }
     }
   },
   "orgLoadFailed": "Couldn't load organization data.",
   "orgRetry": "RETRY",
-
   "standarTitle": "Reference Standards",
   "standarLoadFailed": "Couldn't load reference standards.",
   "standarAdd": "ADD STANDARD",
@@ -638,19 +746,25 @@
   "standarDeleteConfirmBody": "\"{nama}\" will be permanently deleted.",
   "@standarDeleteConfirmBody": {
     "placeholders": {
-      "nama": { "type": "String" }
+      "nama": {
+        "type": "String"
+      }
     }
   },
   "standarDeleteFailed": "Couldn't delete: {pesan}",
   "@standarDeleteFailed": {
     "placeholders": {
-      "pesan": { "type": "String" }
+      "pesan": {
+        "type": "String"
+      }
     }
   },
   "standarSaveFailed": "Couldn't save: {pesan}",
   "@standarSaveFailed": {
     "placeholders": {
-      "pesan": { "type": "String" }
+      "pesan": {
+        "type": "String"
+      }
     }
   },
   "standarFaktorCakupanInvalid": "Coverage factor (k) must be at least 1 — usually 2.",
@@ -668,7 +782,6 @@
   "standarFaktorCakupan": "Coverage factor (k)",
   "standarDrift": "Annual drift",
   "standarSave": "SAVE",
-
   "custTitle": "Customers",
   "custSearchHint": "Search customer name",
   "custEmptyTitle": "No customers yet",
@@ -689,29 +802,36 @@
   "custDeleteConfirmBody": "\"{nama}\" will be permanently deleted.",
   "@custDeleteConfirmBody": {
     "placeholders": {
-      "nama": { "type": "String" }
+      "nama": {
+        "type": "String"
+      }
     }
   },
   "custDeleteFailed": "Couldn't delete: {pesan}",
   "@custDeleteFailed": {
     "placeholders": {
-      "pesan": { "type": "String" }
+      "pesan": {
+        "type": "String"
+      }
     }
   },
   "custSaveFailed": "Couldn't save: {pesan}",
   "@custSaveFailed": {
     "placeholders": {
-      "pesan": { "type": "String" }
+      "pesan": {
+        "type": "String"
+      }
     }
   },
   "custEquipmentCount": "{jumlah} devices",
   "@custEquipmentCount": {
     "placeholders": {
-      "jumlah": { "type": "int" }
+      "jumlah": {
+        "type": "int"
+      }
     }
   },
   "custFieldRequired": "Required.",
-
   "calibTitle": "Calibration Input",
   "calibKategori": "Category",
   "calibKategoriHint": "Choose a device category",
@@ -733,7 +853,9 @@
   "calibTitikUkur": "Measurement point {index}",
   "@calibTitikUkur": {
     "placeholders": {
-      "index": { "type": "int" }
+      "index": {
+        "type": "int"
+      }
     }
   },
   "calibNilaiTarget": "Target value",
@@ -741,7 +863,9 @@
   "calibPembacaan": "Reading {index}",
   "@calibPembacaan": {
     "placeholders": {
-      "index": { "type": "int" }
+      "index": {
+        "type": "int"
+      }
     }
   },
   "calibTambahTitik": "ADD MEASUREMENT POINT",
@@ -759,19 +883,22 @@
   "calibGagal": "Couldn't save: {pesan}",
   "@calibGagal": {
     "placeholders": {
-      "pesan": { "type": "String" }
+      "pesan": {
+        "type": "String"
+      }
     }
   },
   "calibLoadPilihanGagal": "Couldn't load category/standard options.",
   "calibRetry": "RETRY",
-
   "calibPilihKategoriTitle": "Choose Equipment Category",
   "calibPilihKategoriSubtitle": "Pick the measurement group first, then the specific instrument type.",
   "calibKategoriKosong": "No categories yet.",
   "calibJumlahAlat": "{jumlah} instrument type{jumlah, plural, =1{} other{s}}",
   "@calibJumlahAlat": {
     "placeholders": {
-      "jumlah": { "type": "int" }
+      "jumlah": {
+        "type": "int"
+      }
     }
   },
   "calibPilihInstrumenTitle": "Choose Instrument Type",
@@ -779,7 +906,6 @@
   "calibInstrumenMetodeLabel": "Method",
   "calibCariInstrumenHint": "Search instrument type...",
   "calibInstrumenTidakDitemukan": "No matching instrument type.",
-
   "phCalibTitle": "pH Meter Calibration",
   "phCalibThermohygro": "Thermohygrometer used",
   "phCalibThermohygroHint": "e.g. TH-3",
@@ -797,7 +923,9 @@
   "phCalibTitikBuffer": "pH {label} buffer",
   "@phCalibTitikBuffer": {
     "placeholders": {
-      "label": { "type": "String" }
+      "label": {
+        "type": "String"
+      }
     }
   },
   "phCalibNilaiStandar": "Reference value (temp-corrected)",
@@ -848,15 +976,21 @@
   "phCalibFotoTabelHasil": "{terisi} of {total} cells filled.",
   "@phCalibFotoTabelHasil": {
     "placeholders": {
-      "terisi": { "type": "int" },
-      "total": { "type": "int" }
+      "terisi": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "phCalibFotoTabelTakTerbaca": "No numbers could be read at all. The photo is probably dark, blurry, or too far away — try closer and brighter. You can still type the values in.",
   "phCalibFotoTabelPosisiKacau": "{jumlah} numbers were read, but they don't line up as a table. Usually the photo is skewed or shows the whole sheet — try photographing just the TABLE, straight from above. You can still type the values in.",
   "@phCalibFotoTabelPosisiKacau": {
     "placeholders": {
-      "jumlah": { "type": "int" }
+      "jumlah": {
+        "type": "int"
+      }
     }
   },
   "phCalibFotoTabelKosong": "Couldn't read the numbers yet. Tips: photograph just the TABLE (not the whole sheet), straight from above, even light with no hand shadow. Or type it in.",
@@ -864,7 +998,9 @@
   "phCalibFotoHeaderHasil": "Plus {jumlah} fields outside the table (conditions, notes, standards used) — please check them.",
   "@phCalibFotoHeaderHasil": {
     "placeholders": {
-      "jumlah": { "type": "int" }
+      "jumlah": {
+        "type": "int"
+      }
     }
   },
   "phCalibOcrBelumDikonfirmasi": "From camera — please check",
@@ -872,7 +1008,9 @@
   "phCalibPembacaanKe": "Reading {index}",
   "@phCalibPembacaanKe": {
     "placeholders": {
-      "index": { "type": "int" }
+      "index": {
+        "type": "int"
+      }
     }
   },
   "phCalibSuhu": "Temp.",
@@ -880,7 +1018,9 @@
   "phCalibValidasiPembacaan": "Each buffer point needs at least {minimum} valid after-adjustment readings.",
   "@phCalibValidasiPembacaan": {
     "placeholders": {
-      "minimum": { "type": "int" }
+      "minimum": {
+        "type": "int"
+      }
     }
   },
   "phCalibValidasiNilaiAcuan": "Fill in the temperature-corrected reference value for every buffer point.",
@@ -889,8 +1029,12 @@
   "phCalibLangkahKe": "Step {nomor} of {total}",
   "@phCalibLangkahKe": {
     "placeholders": {
-      "nomor": { "type": "int" },
-      "total": { "type": "int" }
+      "nomor": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "phCalibIdentitasAlat": "Instrument Identity",
@@ -907,7 +1051,6 @@
   "phCalibDokumentasi": "Documentation",
   "phCalibDihitungServer": "Averages, uncertainty budget, environmental U95% and the PASS/FAIL call are all computed by the server.",
   "phCalibOpsional": "Optional",
-
   "notifEmptyTitle": "No notifications yet",
   "notifEmptyBody": "Due-date reminders & approval updates will show up here.",
   "notifLoadFailed": "Couldn't load notifications.",
@@ -917,7 +1060,6 @@
   "notifTypeDueDate": "Due date",
   "notifTypeApproval": "Approval",
   "notifTypeRevision": "Revision",
-
   "teknisiTitle": "Technicians",
   "teknisiFilterSemua": "All",
   "teknisiFilterPending": "Pending",
@@ -935,22 +1077,48 @@
   "emailKeHint": "customer@company.com",
   "emailCcLabel": "Cc (optional)",
   "emailPisahKoma": "Separate multiple addresses with commas. Max {maks} each.",
-  "@emailPisahKoma": {"placeholders": {"maks": {"type": "int"}}},
+  "@emailPisahKoma": {
+    "placeholders": {
+      "maks": {
+        "type": "int"
+      }
+    }
+  },
   "emailKirim": "SEND NOW",
   "emailMengirim": "Sending — this waits until the mail server actually accepts it.",
-  "@emailMengirim": {"description": "Shown while POST /certificates/{id}/kirim-email is in flight. The call is synchronous on purpose, so this can take a while."},
+  "@emailMengirim": {
+    "description": "Shown while POST /certificates/{id}/kirim-email is in flight. The call is synchronous on purpose, so this can take a while."
+  },
   "emailTerkirim": "Certificate sent.",
   "emailKeKosong": "Enter at least one recipient.",
   "emailAlamatSalah": "Not a valid email address: {alamat}",
-  "@emailAlamatSalah": {"placeholders": {"alamat": {"type": "String"}}},
+  "@emailAlamatSalah": {
+    "placeholders": {
+      "alamat": {
+        "type": "String"
+      }
+    }
+  },
   "emailKebanyakan": "Max {maks} addresses.",
-  "@emailKebanyakan": {"placeholders": {"maks": {"type": "int"}}},
+  "@emailKebanyakan": {
+    "placeholders": {
+      "maks": {
+        "type": "int"
+      }
+    }
+  },
   "emailRiwayatJudul": "Send history",
   "emailRiwayatKosong": "Never sent yet.",
   "emailRiwayatBerhasil": "Sent",
   "emailRiwayatGagal": "Failed",
   "emailRiwayatOleh": "by {nama}",
-  "@emailRiwayatOleh": {"placeholders": {"nama": {"type": "String"}}},
+  "@emailRiwayatOleh": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
   "emailGagalMuat": "Couldn't load the send history.",
   "emailRetry": "TRY AGAIN",
   "emailFormatJudul": "What to send",
@@ -973,14 +1141,34 @@
   "ttdPosisiJudul": "Print position",
   "ttdPosisiIsi": "Applies to every certificate, not just one. Already-issued certificates keep the position they were printed with.",
   "ttdGeserX": "Horizontal ({nilai} mm)",
-  "@ttdGeserX": {"placeholders": {"nilai": {"type": "String"}}},
+  "@ttdGeserX": {
+    "placeholders": {
+      "nilai": {
+        "type": "String"
+      }
+    }
+  },
   "ttdGeserY": "Vertical ({nilai} mm)",
-  "@ttdGeserY": {"placeholders": {"nilai": {"type": "String"}}},
+  "@ttdGeserY": {
+    "placeholders": {
+      "nilai": {
+        "type": "String"
+      }
+    }
+  },
   "ttdLebar": "Width ({nilai} mm)",
-  "@ttdLebar": {"placeholders": {"nilai": {"type": "String"}}},
+  "@ttdLebar": {
+    "placeholders": {
+      "nilai": {
+        "type": "String"
+      }
+    }
+  },
   "ttdArahX": "negative = left",
   "ttdArahY": "positive = up",
-  "@ttdArahY": {"description": "Critical: backend treats positive geser_y_mm as UP, opposite of screen coordinates."},
+  "@ttdArahY": {
+    "description": "Critical: backend treats positive geser_y_mm as UP, opposite of screen coordinates."
+  },
   "ttdSimpanPosisi": "SAVE POSITION",
   "ttdPosisiTersimpan": "Print position saved.",
   "ttdTerunggah": "Signature uploaded.",
@@ -994,7 +1182,11 @@
   },
   "teknisiEditJudul": "Edit {nama}",
   "@teknisiEditJudul": {
-    "placeholders": { "nama": { "type": "String" } }
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
   },
   "teknisiEditNama": "Full name",
   "teknisiEditEmail": "Email",
@@ -1015,7 +1207,11 @@
   "teknisiResetPasswordJudul": "Reset account password",
   "teknisiResetPasswordIsi": "Set a new password for {nama}. Their sessions on every device will be revoked.",
   "@teknisiResetPasswordIsi": {
-    "placeholders": { "nama": { "type": "String" } }
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
   },
   "teknisiResetPasswordLabel": "New password",
   "teknisiResetPasswordHelper": "At least 8 characters. The backend sends no email — tell them directly.",
@@ -1025,11 +1221,9 @@
   "teknisiKonfirmTolakIsi": "They will be signed out of every device and can no longer sign in. Past calibration records stay intact.",
   "teknisiTanpaEmployeeId": "No employee ID",
   "teknisiHanyaAdmin": "Only admins can manage accounts.",
-
   "menuUtama": "Main menu",
   "menuMasterData": "Master Data",
   "menuPengaturan": "Settings",
-
   "sheetTutup": "CLOSE",
   "sheetCobaLagi": "TRY AGAIN",
   "sheetKirimBerhasil": "Sent!",
@@ -1045,12 +1239,17 @@
   "tugasLoadGagal": "Could not load your task queue.",
   "tugasRetry": "TRY AGAIN",
   "tugasJumlahAlat": "{jumlah} items",
-  "@tugasJumlahAlat": { "placeholders": { "jumlah": { "type": "int" } } },
+  "@tugasJumlahAlat": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "tugasTelat": "Past due date",
   "tugasMasuk": "Received",
   "tugasJanji": "Due",
   "tugasBelumDitugaskan": "Unassigned",
-
   "dashSummaryOrg": "Organization summary",
   "dashSummaryYours": "Your summary",
   "snackAddDeviceSoon": "Adding devices is planned for week 3.",
@@ -1074,7 +1273,13 @@
   "lkStandarPerTitik": "Point standard",
   "lkStandarKadaluarsa": "certificate expired",
   "antreanSemuaPt": "All companies ({jumlah})",
-  "@antreanSemuaPt": { "placeholders": { "jumlah": { "type": "int" } } },
+  "@antreanSemuaPt": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "kirimLewatJudul": "Send via",
   "kirimLewatEmail": "Email",
   "kirimLewatWa": "WhatsApp",
@@ -1107,14 +1312,35 @@
   "lkBannerRevisiTanpaKolom": "Admin sent this worksheet back. Read the note below.",
   "lkCatatanAdmin": "ADMIN'S NOTE",
   "lkRevisiJumlahKolom": "{jumlah} field(s) flagged for correction.",
-  "@lkRevisiJumlahKolom": {"placeholders": {"jumlah": {"type": "int"}}},
+  "@lkRevisiJumlahKolom": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "lkBannerRevisi": "Admin sent this worksheet back. The flagged fields below are the ones to fix.",
   "lkStandarBelumTerdaftar": "not registered in the standards master",
   "antreanMasukBaru": "{jumlah, plural, =1{1 new worksheet in the approval queue} other{{jumlah} new worksheets in the approval queue}}",
-  "@antreanMasukBaru": { "placeholders": { "jumlah": { "type": "int" } } },
+  "@antreanMasukBaru": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "lkThermohygroKosong": "No thermohygro units registered yet.",
   "lkHalamanKe": "Page {nomor} of {dari}",
-  "@lkHalamanKe": { "placeholders": { "nomor": { "type": "int" }, "dari": { "type": "int" } } },
+  "@lkHalamanKe": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      },
+      "dari": {
+        "type": "int"
+      }
+    }
+  },
   "lkHalamanLanjut": "NEXT PAGE",
   "lkHalamanKembali": "BACK",
   "lkPilih": "Choose",
@@ -1172,6 +1398,8 @@
   "folderOtomatis": "Created automatically",
   "folderUnduh": "Download",
   "folderSertifikatBelumSiap": "The certificate PDF is still being generated.",
+  "folderBukaBerkas": "Open file",
+  "folderBagikanBerkas": "Share certificate",
   "folderUnduhGagal": "Couldn't download: {pesan}",
   "@folderUnduhGagal": {
     "placeholders": {
@@ -1198,7 +1426,13 @@
   "folderHapus": "Delete",
   "folderHapusJudul": "Delete this folder?",
   "folderHapusBody": "\"{nama}\" will be removed. This can't be undone.",
-  "@folderHapusBody": {"placeholders": {"nama": {"type": "String"}}},
+  "@folderHapusBody": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
   "folderBatal": "CANCEL",
   "folderSimpan": "SAVE",
   "folderHapusLanjut": "DELETE",
@@ -1209,7 +1443,13 @@
   "antreanKosongBody": "Worksheets submitted by technicians show up here.",
   "antreanGagal": "Couldn't load the queue.",
   "antreanOleh": "by {nama}",
-  "@antreanOleh": {"placeholders": {"nama": {"type": "String"}}},
+  "@antreanOleh": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
   "perhitTitle": "Calculation sheet",
   "perhitIdentitasAlat": "EQUIPMENT IDENTITY",
   "perhitIdentitasCustomer": "CUSTOMER IDENTITY",
@@ -1276,6 +1516,7 @@
   "sertKolUut": "Unit Under Test",
   "sertKolCorrection": "Correction",
   "sertKolU95": "U95% (±)",
+  "sertKolRemark": "Remark",
   "sertStandarJudul": "Standard Used",
   "sertKolName": "Name",
   "sertKolMerk": "Merk/Type",
@@ -1291,7 +1532,13 @@
   "sertBelumTerbit": "The certificate file isn't ready yet.",
   "sertGagalMuat": "Couldn't load the certificate.",
   "sertUnduhGagal": "Couldn't download: {pesan}",
-  "@sertUnduhGagal": {"placeholders": {"pesan": {"type": "String"}}},
+  "@sertUnduhGagal": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
   "sertQrJudul": "Certificate QR",
   "sertQrBody": "Scan to open the verification page for this certificate.",
   "sertCorrectionCatatan": "On the certificate Correction = Standard − Average — the reverse of the calculation sheet.",
@@ -1303,7 +1550,13 @@
   "importUrutanCatatan": "Import order: clients → standards → equipment. Equipment needs its company to exist first.",
   "importPilihFile": "CHOOSE FILE",
   "importFileTerpilih": "File: {nama}",
-  "@importFileTerpilih": {"placeholders": {"nama": {"type": "String"}}},
+  "@importFileTerpilih": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
   "importUjiCoba": "DRY RUN",
   "importTerapkan": "APPLY NOW",
   "importUlangi": "CHOOSE ANOTHER FILE",
@@ -1320,10 +1573,67 @@
   "importKolomDikenal": "Recognised columns",
   "importKolomDiabaikan": "Ignored columns",
   "importBarisKe": "Row {nomor}",
-  "@importBarisKe": {"placeholders": {"nomor": {"type": "int"}}},
+  "@importBarisKe": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
   "importGagal": "Import failed: {pesan}",
-  "@importGagal": {"placeholders": {"pesan": {"type": "String"}}},
+  "@importGagal": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
   "lkKirimAdmin": "SUBMIT",
   "lkScanTabel": "PHOTO THIS TABLE — READ BY AI",
-  "lkScanMemproses": "AI is reading the table…"
+  "lkScanMemproses": "AI is reading the table…",
+  "lkPengulanganRingkas": "{n}x",
+  "@lkPengulanganRingkas": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "lkPengulanganTooltip": "Number of repeat columns",
+  "lkPengulanganPilihan": "{n} repetitions",
+  "@lkPengulanganPilihan": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "lkUbahPengulanganJudul": "Change repetitions?",
+  "lkUbahPengulanganPesan": "The results table is rebuilt with {n} columns, and numbers already typed into it will be lost. Identity and room-condition fields stay.",
+  "@lkUbahPengulanganPesan": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "lkUbahPengulanganLanjut": "Change",
+  "lkPengulanganBatal": "Cancel",
+  "emailRiwayatBelumKeluar": "Not sent yet",
+  "emailKontakKosong": "{pt} has no email in the customer record. Add it in the admin panel → Customers so it can be picked here.",
+  "@emailKontakKosong": {
+    "placeholders": {
+      "pt": {
+        "type": "String"
+      }
+    }
+  },
+  "emailKontakKosongWa": "{pt} has no WhatsApp number in the customer record. Add it in the admin panel → Customers so it can be picked here.",
+  "@emailKontakKosongWa": {
+    "placeholders": {
+      "pt": {
+        "type": "String"
+      }
+    }
+  }
 }

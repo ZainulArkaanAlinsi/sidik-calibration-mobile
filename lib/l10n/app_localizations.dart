@@ -5000,6 +5000,18 @@ abstract class AppLocalizations {
   /// **'The certificate PDF is still being generated.'**
   String get folderSertifikatBelumSiap;
 
+  /// No description provided for @folderBukaBerkas.
+  ///
+  /// In en, this message translates to:
+  /// **'Open file'**
+  String get folderBukaBerkas;
+
+  /// No description provided for @folderBagikanBerkas.
+  ///
+  /// In en, this message translates to:
+  /// **'Share certificate'**
+  String get folderBagikanBerkas;
+
   /// No description provided for @folderUnduhGagal.
   ///
   /// In en, this message translates to:
@@ -5570,6 +5582,12 @@ abstract class AppLocalizations {
   /// **'U95% (±)'**
   String get sertKolU95;
 
+  /// No description provided for @sertKolRemark.
+  ///
+  /// In en, this message translates to:
+  /// **'Remark'**
+  String get sertKolRemark;
+
   /// No description provided for @sertStandarJudul.
   ///
   /// In en, this message translates to:
@@ -5845,6 +5863,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'AI is reading the table…'**
   String get lkScanMemproses;
+
+  /// No description provided for @lkPengulanganRingkas.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}x'**
+  String lkPengulanganRingkas(int n);
+
+  /// No description provided for @lkPengulanganTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of repeat columns'**
+  String get lkPengulanganTooltip;
+
+  /// No description provided for @lkPengulanganPilihan.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} repetitions'**
+  String lkPengulanganPilihan(int n);
+
+  /// No description provided for @lkUbahPengulanganJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Change repetitions?'**
+  String get lkUbahPengulanganJudul;
+
+  /// No description provided for @lkUbahPengulanganPesan.
+  ///
+  /// In en, this message translates to:
+  /// **'The results table is rebuilt with {n} columns, and numbers already typed into it will be lost. Identity and room-condition fields stay.'**
+  String lkUbahPengulanganPesan(int n);
+
+  /// No description provided for @lkUbahPengulanganLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get lkUbahPengulanganLanjut;
+
+  /// No description provided for @lkPengulanganBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get lkPengulanganBatal;
+
+  /// No description provided for @emailRiwayatBelumKeluar.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sent yet'**
+  String get emailRiwayatBelumKeluar;
+
+  /// No description provided for @emailKontakKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'{pt} has no email in the customer record. Add it in the admin panel → Customers so it can be picked here.'**
+  String emailKontakKosong(String pt);
+
+  /// No description provided for @emailKontakKosongWa.
+  ///
+  /// In en, this message translates to:
+  /// **'{pt} has no WhatsApp number in the customer record. Add it in the admin panel → Customers so it can be picked here.'**
+  String emailKontakKosongWa(String pt);
 }
 
 class _AppLocalizationsDelegate

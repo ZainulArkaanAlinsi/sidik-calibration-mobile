@@ -40,7 +40,7 @@ import 'widgets/lembar_kerja_tabel.dart';
 /// **Nggak ada satu pun rumus di sini.** Average, Correction, STDEV, U95% —
 /// semua dihitung backend. Ikut ngitung di layar cepat atau lambat bikin
 /// angkanya beda dari sertifikat.
-class LembarKerjaScreen extends ConsumerWidget {
+class LembarKerjaScreen extends ConsumerStatefulWidget {
   const LembarKerjaScreen({
     super.key,
     this.sesiId,
@@ -59,9 +59,51 @@ class LembarKerjaScreen extends ConsumerWidget {
   final String profil;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LembarKerjaScreen> createState() => _LembarKerjaScreenState();
+}
+
+class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen> {
+  /// Berapa kotak pengulangan yang digambar. `null` = bawaan profilnya (5,
+  /// ngikut form kertas) — teknisi yang nggak peduli nggak perlu milih apa-apa.
+  int? _pengulangan;
+
+  /// Ganti jumlah kotak = bentuk formulirnya beda = tabelnya dibangun ulang,
+  /// dan isian yang udah diketik ilang.
+  ///
+  /// Dikonfirmasi dulu, bukan dikerjain diam-diam. Teknisi yang udah ngisi tiga
+  /// titik terus nggak sengaja nyenggol menu ini nggak punya cara ngembaliin
+  /// isiannya — nggak ada undo di layar ini.
+  Future<void> _ubahPengulangan(int pilihan) async {
     final l10n = AppLocalizations.of(context);
-    final bentukAsync = ref.watch(lembarKerjaProvider(profil));
+    if (pilihan == (_pengulangan ?? 5)) return;
+
+    final lanjut = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.lkUbahPengulanganJudul),
+        content: Text(l10n.lkUbahPengulanganPesan(pilihan)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.lkPengulanganBatal),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.lkUbahPengulanganLanjut),
+          ),
+        ],
+      ),
+    );
+
+    if (lanjut == true && mounted) setState(() => _pengulangan = pilihan);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final kunci = (profil: widget.profil, pengulangan: _pengulangan);
+    final bentukAsync = ref.watch(lembarKerjaProvider(kunci));
+    final terpakai = bentukAsync.value?.jumlahPengulangan ?? _pengulangan ?? 5;
 
     return Scaffold(
       appBar: AppBar(
@@ -72,19 +114,62 @@ class LembarKerjaScreen extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(l10n.lkTitle),
-            if (judulTambahan != null)
+            if (widget.judulTambahan != null)
               Text(
-                judulTambahan!,
+                widget.judulTambahan!,
                 style: Theme.of(context).textTheme.labelSmall,
               ),
           ],
         ),
+        actions: [
+          PopupMenuButton<int>(
+            tooltip: l10n.lkPengulanganTooltip,
+            onSelected: _ubahPengulangan,
+            itemBuilder: (_) => [
+              for (var n = 2; n <= 10; n++)
+                PopupMenuItem(
+                  value: n,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 24,
+                        child: n == terpakai
+                            ? const Icon(Icons.check, size: 18)
+                            : null,
+                      ),
+                      // `Expanded`, bukan `Text` telanjang: lebar popup-nya
+                      // dibatasi, dan tanpa ini barisnya meluber di locale yang
+                      // labelnya lebih panjang.
+                      Expanded(child: Text(l10n.lkPengulanganPilihan(n))),
+                    ],
+                  ),
+                ),
+            ],
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                child: Text(
+                  l10n.lkPengulanganRingkas(terpakai),
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body: switch (bentukAsync) {
-        AsyncData(:final value) => _Form(bentuk: value, sesiId: sesiId),
+        // `ValueKey` WAJIB: `_FormState` bikin `LembarKerjaState`-nya sekali
+        // (`late final`) dari `widget.bentuk`. Tanpa key, Flutter mendaur ulang
+        // State yang lama waktu jumlah kotaknya ganti — tabelnya bakal tetap
+        // 5 kolom padahal backend udah ngirim 3, dan nggak ada yang error.
+        AsyncData(:final value) => _Form(
+          key: ValueKey(value.jumlahPengulangan),
+          bentuk: value,
+          sesiId: widget.sesiId,
+        ),
         AsyncError(:final error) => _Gagal(
           error: error,
-          onCobaLagi: () => ref.invalidate(lembarKerjaProvider(profil)),
+          onCobaLagi: () => ref.invalidate(lembarKerjaProvider(kunci)),
         ),
         _ => const Center(child: SidikLoader(size: 88)),
       },
@@ -146,7 +231,7 @@ class _Gagal extends StatelessWidget {
 }
 
 class _Form extends ConsumerStatefulWidget {
-  const _Form({required this.bentuk, this.sesiId});
+  const _Form({super.key, required this.bentuk, this.sesiId});
 
   final LembarKerja bentuk;
   final int? sesiId;

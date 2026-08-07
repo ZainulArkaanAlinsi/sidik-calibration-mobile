@@ -2709,6 +2709,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get folderSertifikatBelumSiap => 'PDF sertifikatnya masih dibikin.';
 
   @override
+  String get folderBukaBerkas => 'Buka berkas';
+
+  @override
+  String get folderBagikanBerkas => 'Bagikan sertifikat';
+
+  @override
   String folderUnduhGagal(String pesan) {
     return 'Gagal mengunduh: $pesan';
   }
@@ -3009,6 +3015,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get sertKolU95 => 'U95% (±)';
 
   @override
+  String get sertKolRemark => 'Remark';
+
+  @override
   String get sertStandarJudul => 'Standar yang Digunakan';
 
   @override
@@ -3157,4 +3166,44 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get lkScanMemproses => 'AI lagi baca tabel…';
+
+  @override
+  String lkPengulanganRingkas(int n) {
+    return '${n}x';
+  }
+
+  @override
+  String get lkPengulanganTooltip => 'Jumlah kolom pengulangan';
+
+  @override
+  String lkPengulanganPilihan(int n) {
+    return '$n kali pengulangan';
+  }
+
+  @override
+  String get lkUbahPengulanganJudul => 'Ubah jumlah pengulangan?';
+
+  @override
+  String lkUbahPengulanganPesan(int n) {
+    return 'Tabel hasil dibangun ulang jadi $n kolom, dan angka yang udah diketik di tabel akan hilang. Kolom identitas & kondisi ruangan tetap aman.';
+  }
+
+  @override
+  String get lkUbahPengulanganLanjut => 'Ubah';
+
+  @override
+  String get lkPengulanganBatal => 'Batal';
+
+  @override
+  String get emailRiwayatBelumKeluar => 'Belum keluar';
+
+  @override
+  String emailKontakKosong(String pt) {
+    return 'Email $pt belum diisi di data pelanggan. Isi lewat panel admin → Pelanggan, biar nanti tinggal pilih.';
+  }
+
+  @override
+  String emailKontakKosongWa(String pt) {
+    return 'Nomor WhatsApp $pt belum diisi di data pelanggan. Isi lewat panel admin → Pelanggan, biar nanti tinggal pilih.';
+  }
 }

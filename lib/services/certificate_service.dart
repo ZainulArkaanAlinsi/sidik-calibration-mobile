@@ -84,6 +84,11 @@ class MockCertificateService implements CertificateService {
       pdfUrl: 'https://contoh/certificates/$certificateId/download',
       qrToken: 'abc123',
       diterbitkanPada: '2024-05-30',
+      // Kontak pelanggan — backend emang ngirim ini (`CertificateResource`),
+      // dipakai tombol "tinggal pilih" di layar kirim.
+      pelangganNama: 'PT TIRTA GRACIA SEMESTA MANDIRI',
+      pelangganEmail: 'pic@tirta.co.id',
+      pelangganTelepon: '081234567890',
       snapshot: CertificateSnapshot.fromJson(const {
         'desimal': 2,
         'satuan': 'pH',

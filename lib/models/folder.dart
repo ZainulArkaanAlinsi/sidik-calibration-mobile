@@ -77,8 +77,10 @@ class FolderFile {
     this.ukuran,
     this.keterangan,
     this.diunggahOleh,
+    this.sertifikatId,
     this.sertifikatNomor,
     this.sertifikatSiapDiunduh = false,
+    this.calibrationSessionId,
   });
 
   final int id;
@@ -95,12 +97,26 @@ class FolderFile {
   final String? keterangan;
   final String? diunggahOleh;
 
+  /// Id sertifikat aslinya — dipakai layar Kirim/Bagikan, yang butuh id, bukan
+  /// nomor. Backend udah ngirimnya dari dulu (`FolderFileResource`), cuma
+  /// nggak pernah dibaca di sini.
+  final int? sertifikatId;
+
   /// File sertifikat nggak disalin — dia nunjuk ke sertifikat aslinya.
   final String? sertifikatNomor;
 
   /// `false` kalau PDF-nya masih digenerate (job antrean) — tombol unduhnya
   /// dimatiin, bukan ngasih file setengah jadi.
   final bool sertifikatSiapDiunduh;
+
+  /// Sesi kalibrasi asal, buat berkas bertipe **lembar kerja**.
+  ///
+  /// Lembar kerja nggak punya `download_url` — backend sengaja ngirim `null`
+  /// karena emang nggak ada berkas yang bisa diunduh (lihat
+  /// `FolderFileResource`). Tanpa id ini barisnya jadi mati total: nggak bisa
+  /// diunduh DAN nggak bisa dibuka ke mana-mana. Dengan id-nya, barisnya
+  /// nganterin ke detail sesinya — yang emang isinya.
+  final int? calibrationSessionId;
 
   bool get dariSertifikat => sertifikatNomor != null;
 
@@ -115,6 +131,7 @@ class FolderFile {
 
   factory FolderFile.fromJson(Map<String, dynamic> json) {
     final sertifikat = json['sertifikat'] as Map<String, dynamic>?;
+    final lembarKerja = json['lembar_kerja'] as Map<String, dynamic>?;
 
     return FolderFile(
       id: (json['id'] as num).toInt(),
@@ -126,8 +143,11 @@ class FolderFile {
       ukuran: (json['ukuran'] as num?)?.toInt(),
       keterangan: json['keterangan'] as String?,
       diunggahOleh: json['diunggah_oleh'] as String?,
+      sertifikatId: (sertifikat?['id'] as num?)?.toInt(),
       sertifikatNomor: sertifikat?['nomor'] as String?,
       sertifikatSiapDiunduh: sertifikat?['siap_diunduh'] as bool? ?? false,
+      calibrationSessionId:
+          (lembarKerja?['calibration_session_id'] as num?)?.toInt(),
     );
   }
 }

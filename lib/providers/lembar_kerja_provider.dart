@@ -25,20 +25,32 @@ Future<String> _token(Ref ref) async {
   return token;
 }
 
+/// Kunci [lembarKerjaProvider]: jenis alat + berapa kotak pengulangan.
+///
+/// Record, bukan String gabungan: dua-duanya ikut jadi identitas cache, jadi
+/// ganti jumlah kotak otomatis ngambil bentuk baru tanpa perlu invalidate
+/// manual — dan `ph_meter` 3 kotak nggak ketuker sama `ph_meter` 5 kotak.
+typedef KunciLembarKerja = ({String profil, int? pengulangan});
+
 /// Bentuk formulir lembar kerja per JENIS ALAT (`ph_meter` / `turbidimeter` /
 /// `chlorine_meter`).
+///
+/// `pengulangan` = berapa KOTAK pengulangan yang digambar; `null` = bawaan
+/// profilnya (5, ngikut form kertas). Ini murni tampilan — rumusnya selalu
+/// ngikut berapa kotak yang beneran diisi.
+///
 /// Di-`watch` ke [authProvider] supaya ganti akun (teknisi → admin) ngambil
 /// bentuk yang beda — bukan nyisain formulir punya role sebelumnya.
-final lembarKerjaProvider = FutureProvider.family<LembarKerja, String>((
-  ref,
-  profil,
-) async {
-  ref.watch(authProvider);
-  final token = await _token(ref);
-  return ref
-      .read(lembarKerjaServiceProvider)
-      .ambilBentuk(token, profil: profil);
-}, retry: (retryCount, error) => null);
+final lembarKerjaProvider =
+    FutureProvider.family<LembarKerja, KunciLembarKerja>((ref, kunci) async {
+      ref.watch(authProvider);
+      final token = await _token(ref);
+      return ref.read(lembarKerjaServiceProvider).ambilBentuk(
+        token,
+        profil: kunci.profil,
+        pengulangan: kunci.pengulangan,
+      );
+    }, retry: (retryCount, error) => null);
 
 final roomListProvider = FutureProvider<List<Room>>((ref) async {
   final token = await _token(ref);

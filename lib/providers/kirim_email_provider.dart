@@ -33,7 +33,9 @@ final riwayatEmailProvider =
 ///
 /// Errornya **dilempar ulang**, bukan ditelan — layar perlu nampilin pesan
 /// server apa adanya (mis. `502` gagal kirim).
-Future<void> kirimSertifikatLewatEmail(
+/// Baliknya `peringatan` server (`null` = beneran terkirim) — lihat
+/// [KirimEmailService.kirim].
+Future<String?> kirimSertifikatLewatEmail(
   WidgetRef ref, {
   required int certificateId,
   required KirimEmailPermintaan isi,
@@ -42,7 +44,9 @@ Future<void> kirimSertifikatLewatEmail(
   if (token == null) throw const TokenHilangException();
 
   try {
-    await ref.read(kirimEmailServiceProvider).kirim(token, certificateId, isi);
+    return await ref
+        .read(kirimEmailServiceProvider)
+        .kirim(token, certificateId, isi);
   } finally {
     ref.invalidate(riwayatEmailProvider(certificateId));
   }

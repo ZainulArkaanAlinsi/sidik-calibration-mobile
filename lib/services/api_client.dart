@@ -94,6 +94,9 @@ class ApiClient {
   /// Nggak lewat [_headers]: `Content-Type` harus dibiarin `http` yang nyusun
   /// (dia yang tau boundary multipart-nya). Kalau dipaksa
   /// `application/json` kayak endpoint lain, server nolak sebelum baca filenya.
+  ///
+  /// [timeout] lebih longgar dari request biasa: file 10 MB lewat sinyal
+  /// lapangan nggak bakal kelar dalam 20 detik.
   Future<Map<String, dynamic>> unggahFile(
     String path, {
     required String field,
@@ -102,20 +105,31 @@ class ApiClient {
     String? token,
     Duration timeout = const Duration(seconds: 60),
   }) async {
-    return _kirim(() async {
-      final request = http.MultipartRequest('POST', _uri(path))
-        ..headers.addAll({
-          'Accept': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        })
-        ..fields.addAll(fields)
-        ..files.add(await http.MultipartFile.fromPath(field, filePath));
+    return _kirim(
+      () async {
+        final request = http.MultipartRequest('POST', _uri(path))
+          ..headers.addAll({
+            'Accept': 'application/json',
+            if (token != null) 'Authorization': 'Bearer $token',
+          })
+          ..fields.addAll(fields)
+          ..files.add(await http.MultipartFile.fromPath(field, filePath));
 
-      // Timeout-nya lebih longgar dari request biasa: file 10 MB lewat sinyal
-      // lapangan nggak bakal kelar dalam 20 detik.
-      final streamed = await request.send().timeout(timeout);
-      return http.Response.fromStream(streamed);
-    });
+        // `request.send()` sengaja NGGAK dipakai: dia bikin `http.Client()`
+        // BARU sendiri di dalam, jadi client yang disuntik lewat konstruktor
+        // nggak kepakai sama sekali di jalur unggah. Efeknya jalur ini satu-
+        // satunya yang nggak bisa dites — mock client di test nggak pernah
+        // kena, jadi unggah foto & Import Excel lolos tanpa uji apa pun.
+        final streamed = await _client.send(request);
+        return http.Response.fromStream(streamed);
+      },
+      // Timeout-nya dioper ke [_kirim], BUKAN dipasang di dalam closure.
+      // Dulu dipasang di dalam, dan itu nggak ada efeknya: `_kirim` membungkus
+      // seluruh closure dengan batas bawaan 20 detik, jadi 20 detik yang
+      // menang dan unggahan >20 detik selalu mati duluan dengan "Server nggak
+      // nyaut" — persis di sinyal lapangan yang bikin batas 60 detik ini ada.
+      timeout: timeout,
+    );
   }
 
   /// Ambil **byte mentah**, bukan JSON — buat gambar yang dilayani di balik
@@ -204,8 +218,13 @@ class ApiClient {
   /// (mis. beda pesan buat akun `pending` vs `nonaktif`). Kalau kosong, baru
   /// pakai pesan cadangan per status code.
   String _pesanError(int status, Map<String, dynamic> json) {
-    final dariServer = json['message'] as String?;
-    if (dariServer != null && dariServer.isNotEmpty) return dariServer;
+    // Dicek pakai `is String`, BUKAN `as String?`. Nggak semua yang balikin
+    // `message` itu Laravel-nya sendiri: proxy, load balancer, atau paket lain
+    // bisa naruh objek/array di situ. `as String?` bakal ngelempar TypeError
+    // DI DALAM penanganan error — jadi status 500 yang harusnya kebaca "Server
+    // lagi bermasalah" malah jadi crash mentah yang naik ke layar.
+    final dariServer = json['message'];
+    if (dariServer is String && dariServer.isNotEmpty) return dariServer;
 
     return switch (status) {
       401 => 'ID pegawai / email atau password salah.',

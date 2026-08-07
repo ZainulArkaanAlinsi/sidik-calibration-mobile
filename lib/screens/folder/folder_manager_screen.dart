@@ -8,6 +8,12 @@ import '../../models/folder.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/izin_provider.dart';
 import '../../providers/folder_provider.dart';
+import '../../providers/history_provider.dart' show pdfDownloaderProvider;
+import '../../services/buka_berkas.dart';
+import '../../services/pdf_downloader.dart' show PdfDownloadException;
+import '../../widgets/glass_surface.dart';
+import '../history/calibration_detail_screen.dart';
+import '../history/kirim_email_screen.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/notification_bell.dart';
 import '../../widgets/readable_width.dart';
@@ -395,10 +401,89 @@ class _MenuFolder extends ConsumerWidget {
   }
 }
 
-class _KartuFile extends StatelessWidget {
+/// Satu baris berkas di dalam folder — **bisa dibuka & dibagikan**.
+///
+/// Sebelum ini barisnya `ListTile` tanpa `onTap`, tanpa tombol, tanpa menu:
+/// ditekan nggak terjadi apa-apa. Padahal semua bahannya udah ada dan udah
+/// kepakai di layar Sertifikat — [bukaBerkas] (yang ngerti beda Android/iOS
+/// vs desktop), [pdfDownloaderProvider], dan [KirimEmailScreen]. Yang kurang
+/// cuma penyambungannya di sini.
+///
+/// Alurnya sama persis dengan layar Sertifikat, sengaja nggak bikin jalur
+/// baru: unduh ke berkas lokal lewat endpoint ber-otorisasi, baru serahin ke
+/// aplikasi bawaan sistem. `download_url` butuh header `Authorization`, jadi
+/// nggak bisa dilempar mentah ke browser.
+class _KartuFile extends ConsumerStatefulWidget {
   const _KartuFile({required this.file});
 
   final FolderFile file;
+
+  @override
+  ConsumerState<_KartuFile> createState() => _KartuFileState();
+}
+
+class _KartuFileState extends ConsumerState<_KartuFile> {
+  bool _sibuk = false;
+
+  FolderFile get file => widget.file;
+
+  /// Sertifikat yang PDF-nya masih digenerate belum bisa dibuka — ditahan di
+  /// sini juga, bukan cuma diberi label, biar nggak ada yang nembak 404.
+  bool get _belumSiap => file.dariSertifikat && !file.sertifikatSiapDiunduh;
+
+  Future<void> _buka() async {
+    if (_sibuk || _belumSiap || file.downloadUrl.isEmpty) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    final token = await ref.read(tokenStorageProvider).read();
+    if (token == null || !mounted) return;
+
+    setState(() => _sibuk = true);
+    try {
+      final path = await ref
+          .read(pdfDownloaderProvider)
+          .unduh(token, file.downloadUrl, namaFile: file.nama);
+
+      final gagal = await bukaBerkas(path);
+      if (gagal != null && mounted) {
+        messenger.showSnackBar(SnackBar(content: Text(gagal)));
+      }
+    } on PdfDownloadException catch (e) {
+      if (mounted) messenger.showSnackBar(SnackBar(content: Text('$e')));
+    } catch (e) {
+      if (mounted) messenger.showSnackBar(SnackBar(content: Text('$e')));
+    } finally {
+      if (mounted) setState(() => _sibuk = false);
+    }
+  }
+
+  /// Lembar kerja nggak punya berkas buat diunduh — backend sengaja ngirim
+  /// `download_url: null` (lihat `FolderFileResource`). Tanpa ini barisnya
+  /// mati total: nggak bisa diunduh DAN nggak nganterin ke mana-mana.
+  void _bukaSesi() {
+    final id = file.calibrationSessionId;
+    if (id == null) return;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => CalibrationDetailScreen(calibrationId: id),
+      ),
+    );
+  }
+
+  void _bagikan() {
+    final id = file.sertifikatId;
+    final nomor = file.sertifikatNomor;
+    if (id == null || nomor == null) return;
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => KirimEmailScreen(
+          certificateId: id,
+          nomorSertifikat: nomor,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -412,25 +497,105 @@ class _KartuFile extends StatelessWidget {
 
     // Sertifikat yang PDF-nya masih digenerate belum bisa diunduh — kasih tau,
     // jangan kasih tombol yang bakal balik 404.
-    final belumSiap = file.dariSertifikat && !file.sertifikatSiapDiunduh;
+    final belumSiap = _belumSiap;
+    final bisaDibuka = !belumSiap && file.downloadUrl.isNotEmpty;
+    final bisaDibagikan = file.sertifikatId != null && !belumSiap;
 
-    return Card(
-      child: ListTile(
-        leading: Icon(
-          file.dariSertifikat
-              ? Icons.workspace_premium_outlined
-              : Icons.insert_drive_file_outlined,
-          color: belumSiap
-              ? theme.colorScheme.outline
-              : theme.colorScheme.secondary,
-        ),
-        title: Text(file.nama, overflow: TextOverflow.ellipsis),
-        subtitle: Text(
-          belumSiap ? l10n.folderSertifikatBelumSiap : rincian,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: belumSiap ? theme.colorScheme.error : null,
+    // Lembar kerja nggak punya berkas buat diunduh (backend sengaja ngirim
+    // `download_url: null`), tapi punya sesi — jadi barisnya nganterin ke
+    // detail sesinya. Sebelum ini baris lembar kerja mati total.
+    final aksiUtama = bisaDibuka
+        ? _buka
+        : (file.calibrationSessionId != null ? _bukaSesi : null);
+
+    // Gaya disamain sama layar Login & Arsip (`SoftRaised`), bukan Card +
+    // ListTile bawaan Material — layar ini satu-satunya yang kelihatan beda
+    // sendiri di seluruh app.
+    return SoftRaised(
+      radius: AppSpacing.radiusLg,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      onTap: aksiUtama,
+      child: Row(
+        children: [
+          SizedBox(
+            width: 32,
+            height: 32,
+            child: _sibuk
+                ? const Center(
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                : Icon(
+                    file.dariSertifikat
+                        ? Icons.workspace_premium_outlined
+                        : Icons.insert_drive_file_outlined,
+                    color: belumSiap
+                        ? theme.colorScheme.outline
+                        : theme.colorScheme.secondary,
+                  ),
           ),
-        ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  file.nama,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (belumSiap || rincian.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    belumSiap ? l10n.folderSertifikatBelumSiap : rincian,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: belumSiap
+                          ? theme.colorScheme.error
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          // Menu cuma dimunculkan kalau ada yang bisa dilakukan — daripada
+          // ngasih tombol yang ditekan lalu diam, persis masalah yang lagi
+          // dibenerin di sini.
+          if (bisaDibuka || bisaDibagikan)
+            PopupMenuButton<String>(
+              enabled: !_sibuk,
+              onSelected: (v) => v == 'buka' ? _buka() : _bagikan(),
+              itemBuilder: (_) => [
+                if (bisaDibuka)
+                  PopupMenuItem(
+                    value: 'buka',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.open_in_new),
+                      title: Text(l10n.folderBukaBerkas),
+                    ),
+                  ),
+                if (bisaDibagikan)
+                  PopupMenuItem(
+                    value: 'bagikan',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.share_outlined),
+                      title: Text(l10n.folderBagikanBerkas),
+                    ),
+                  ),
+              ],
+            )
+          else if (aksiUtama != null)
+            const Icon(Icons.chevron_right),
+        ],
       ),
     );
   }
