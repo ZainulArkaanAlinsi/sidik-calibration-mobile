@@ -40,10 +40,32 @@ class PerhitunganScreen extends ConsumerStatefulWidget {
 
 class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
   /// Hasil "Periksa". Ditaruh di layar, bukan provider: cuma layar ini yang
-  /// memakainya, dan admin sendiri yang mutusin kapan pemeriksaan jalan.
+  /// memakainya.
   HasilValidasi? _validasi;
 
   bool _sibuk = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Pemeriksaan jalan SENDIRI begitu layar kebuka.
+    //
+    // Dulu cuma jalan waktu admin mencet PERIKSA, dan itu bikin temuan basi
+    // kelihatan seperti kondisi sekarang. Kejadian 7 Agt 2026: teknisi baru aja
+    // ngonfirmasi pembacaan hasil foto dari HP, tapi layar admin masih nampilin
+    // "1 Blocks issuance — pembacaan AI Vision belum diverifikasi". Admin
+    // mencet Approve, ditolak, dan nggak ada satu pun petunjuk kalau blokirnya
+    // sebenarnya UDAH nggak ada. Temuan yang salah lebih menyesatkan daripada
+    // nggak ada temuan sama sekali.
+    //
+    // Tombol PERIKSA-nya TETAP ADA — pemeriksaan itu hitung ulang penuh dari
+    // pembacaan mentah, dan admin masih perlu bisa mengulangnya kapan pun tanpa
+    // keluar-masuk layar.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _periksa();
+    });
+  }
 
   AksiAdmin get _aksi => ref.read(aksiAdminProvider(widget.calibrationId));
 
