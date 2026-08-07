@@ -21,6 +21,7 @@ void main() {
     expect(profilLembarKerjaUntuk('Chlorine Meter'), 'chlorine_meter');
     expect(profilLembarKerjaUntuk('Turbidimeter'), 'turbidimeter');
     expect(profilLembarKerjaUntuk('pH Meter'), 'ph_meter');
+    expect(profilLembarKerjaUntuk('Refractometer'), 'refractometer');
 
     // Alat tanpa lembar khusus → null, dan pemanggil yang jatuh ke `ph_meter`.
     // "pH Meter Bench" sengaja diuji: dia NGGAK cocok persis, dan itu memang

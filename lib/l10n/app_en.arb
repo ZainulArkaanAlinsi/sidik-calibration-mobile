@@ -1471,6 +1471,7 @@
   "perhitAwal": "Start",
   "perhitAkhir": "End",
   "perhitAverage": "Average",
+  "perhitObserved": "observed (before temp. correction)",
   "perhitIndexed": "Indexed Value",
   "perhitCorrection": "Correction",
   "perhitDelta": "Δ",

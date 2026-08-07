@@ -1001,6 +1001,7 @@
   "perhitAwal": "Awal",
   "perhitAkhir": "Akhir",
   "perhitAverage": "Average",
+  "perhitObserved": "dibaca (sebelum koreksi suhu)",
   "perhitIndexed": "Indexed Value",
   "perhitCorrection": "Correction",
   "perhitDelta": "Δ",

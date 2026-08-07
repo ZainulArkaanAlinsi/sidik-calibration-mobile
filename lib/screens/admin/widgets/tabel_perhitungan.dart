@@ -26,9 +26,34 @@ String formatAngka(double n, {int maksDesimal = 4, int desimalMin = 0}) =>
 /// ukur dan kolomnya Repeat. Bukan kesalahan — dua dokumen itu memang beda
 /// susunannya, dan yang dicontek di sini sheet PERHITUNGAN-nya.
 class TabelPerhitunganWidget extends StatelessWidget {
-  const TabelPerhitunganWidget({super.key, required this.tabel});
+  const TabelPerhitunganWidget({
+    super.key,
+    required this.tabel,
+    this.resolusiAlat,
+  });
 
   final TabelPerhitungan tabel;
+
+  /// Resolusi alatnya (`IdentitasAlat.resolusi`) — dipakai buat titik yang
+  /// `desimal`-nya null, artinya alat resolusi seragam. Tanpa ini pembacaan
+  /// `1,3360` di alat 0,0001 tampil `1,336` dan kelihatan kayak alat yang lebih
+  /// kasar dari aslinya.
+  final double? resolusiAlat;
+
+  /// Berapa desimal buat titik ini: yang dikirim per baris menang
+  /// (Turbidimeter), sisanya ikut resolusi alat.
+  int _desimal(TitikPerhitungan t) =>
+      t.desimal ?? desimalDariResolusi(resolusiAlat) ?? 0;
+
+  /// Titik ini pembacaannya dipindah suhu (Refractometer) — bukan cuma beda
+  /// tipis karena derau float.
+  static bool _adaKoreksiSuhu(TitikPerhitungan t) {
+    final mentah = t.average;
+    final terkoreksi = t.averageDikoreksiSuhu;
+    if (mentah == null || terkoreksi == null) return false;
+
+    return (terkoreksi - mentah).abs() > 1e-9;
+  }
 
   static const _lebarLabel = 96.0;
   static const _lebarKolom = 108.0;
@@ -67,7 +92,7 @@ class TabelPerhitunganWidget extends StatelessWidget {
                   for (final t in tabel.titik)
                     t.standard == null
                         ? '—'
-                        : formatAngka(t.standard!, maksDesimal: 7, desimalMin: t.desimal ?? 0),
+                        : formatAngka(t.standard!, maksDesimal: 7, desimalMin: _desimal(t)),
                 ],
               ),
               _Baris(
@@ -82,22 +107,52 @@ class TabelPerhitunganWidget extends StatelessWidget {
                   label: '${l10n.perhitRepeat} ${r + 1}',
                   sel: [
                     for (final t in tabel.titik)
-                      r < t.pembacaan.length ? _sel(t.pembacaan[r], t.desimal) : '—',
+                      r < t.pembacaan.length ? _sel(t.pembacaan[r], _desimal(t)) : '—',
                   ],
                 ),
 
               _Garis(),
+
+              // Baris Average nampilin **nilai terkoreksi** — itu yang dipakai
+              // ngitung Correction di bawahnya dan yang kecetak di sertifikat
+              // sebagai Unit Under Test.
+              //
+              // `maksDesimal: 7`, bukan 4 (bawaan): nilai terkoreksi
+              // Refractometer bisa 5 desimal (`1,33935`) walau resolusi alatnya
+              // 4, dan kepotong di 4 dia jadi `1,3394` — beda dari sertifikat.
               _Baris(
                 label: l10n.perhitAverage,
                 tebal: true,
                 sel: [
                   for (final t in tabel.titik)
-                    t.average == null
+                    t.averageDikoreksiSuhu == null
                         ? '—'
-                        : '${formatAngka(t.average!, desimalMin: t.desimal ?? 0)}'
+                        : '${formatAngka(t.averageDikoreksiSuhu!, maksDesimal: 7, desimalMin: _desimal(t))}'
                               '${t.averageSuhu == null ? '' : '  ·  ${formatAngka(t.averageSuhu!)} °C'}',
                 ],
               ),
+
+              // Pembacaan mentahnya cuma ditunjukin kalau emang BEDA dari yang
+              // terkoreksi — buat pH/Turbidimeter/Chlorine dua-duanya sama
+              // persis, dan baris kembar cuma bikin tabelnya rame. Yang butuh
+              // ini Refractometer: teknisi perlu lihat angka yang dia ketik
+              // (`1,3362`) buat ngecek dia nggak salah ketik, sementara yang
+              // dihitung `1,33935`.
+              if (tabel.titik.any(_adaKoreksiSuhu))
+                _Baris(
+                  label: l10n.perhitObserved,
+                  kecil: true,
+                  sel: [
+                    for (final t in tabel.titik)
+                      t.average == null
+                          ? '—'
+                          : formatAngka(
+                              t.average!,
+                              maksDesimal: 7,
+                              desimalMin: _desimal(t),
+                            ),
+                  ],
+                ),
               _Baris(
                 label: l10n.perhitCorrection,
                 tebal: true,

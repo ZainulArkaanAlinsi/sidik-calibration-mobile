@@ -298,7 +298,10 @@ class _Isi extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.md),
                 ],
-                TabelPerhitunganWidget(tabel: tabel),
+                TabelPerhitunganWidget(
+                  tabel: tabel,
+                  resolusiAlat: perhitungan.identitasAlat.resolusi,
+                ),
               ],
             ],
           ),

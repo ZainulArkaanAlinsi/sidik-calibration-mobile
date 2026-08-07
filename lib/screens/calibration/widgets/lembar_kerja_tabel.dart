@@ -206,6 +206,10 @@ class _TombolScanState extends ConsumerState<_TombolScan> {
       final hasil = await ref.read(worksheetVisionProvider).ekstrak(
             foto,
             jumlahTitik: titik.length,
+            // Dulu nggak dikirim, jadi kekunci di bawaan 5 walau teknisi milih
+            // 3 pengulangan — AI-nya disuruh nyari dua baris yang nggak ada di
+            // kertasnya.
+            jumlahBaris: widget.tabel.pengulangan.length,
             // Petunjuk biar AI nangkap angka lebih akurat: satuan + nilai
             // nominal tiap kolom + jumlah desimalnya (dari bentuk lembar kerja).
             satuan: titik.isEmpty ? null : titik.first.satuan,

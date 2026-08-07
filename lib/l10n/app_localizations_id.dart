@@ -2874,6 +2874,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get perhitAverage => 'Average';
 
   @override
+  String get perhitObserved => 'dibaca (sebelum koreksi suhu)';
+
+  @override
   String get perhitIndexed => 'Indexed Value';
 
   @override

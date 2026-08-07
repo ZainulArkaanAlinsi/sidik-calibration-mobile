@@ -2899,6 +2899,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get perhitAverage => 'Average';
 
   @override
+  String get perhitObserved => 'observed (before temp. correction)';
+
+  @override
   String get perhitIndexed => 'Indexed Value';
 
   @override

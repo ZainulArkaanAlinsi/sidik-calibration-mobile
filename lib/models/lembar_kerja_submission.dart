@@ -122,6 +122,7 @@ class LembarKerjaSubmission {
     this.alatMerk,
     this.pemilikNama,
     this.pemilikAlamat,
+    this.equipmentSatuan,
     this.standarDicek = const [],
     this.measurements = const [],
     this.sertakanMeasurements = true,
@@ -165,6 +166,22 @@ class LembarKerjaSubmission {
   final String? alatMerk;
   final String? pemilikNama;
   final String? pemilikAlamat;
+
+  /// Satuan yang dipilih teknisi di "7. Satuan Refracto" — `n20D` atau `°Brix`.
+  ///
+  /// **Null buat alat yang lembar kerjanya nggak punya kolom itu**, dan itu
+  /// bukan kelalaian: backend nyimpen nilai ini ke `equipments.satuan`, jadi
+  /// ngirimnya terus-terusan bikin tiap kiriman lembar kerja nulis ulang data
+  /// master alat — pH Meter bakal ngeset satuan alatnya jadi "pH" tiap sesi,
+  /// diam-diam, tanpa ada yang minta.
+  ///
+  /// Kenapa perlu dikirim sama sekali: `RefractometerProfile` di backend baca
+  /// `equipments.satuan` buat milih koefisien suhu (0,00045/°C buat n20D vs
+  /// 0,07/°C buat °Brix) dan komponen CMC-nya. Tanpa kolom ini, teknisi yang
+  /// mindahin alatnya ke skala °Brix cuma keubah label pembacaannya —
+  /// koreksinya tetap dihitung pakai koefisien n20D, meleset 155 kali, dan
+  /// nggak ada satu pun yang error.
+  final String? equipmentSatuan;
 
   final List<StandarDicek> standarDicek;
   final List<TitikLembarKerja> measurements;
@@ -217,6 +234,13 @@ class LembarKerjaSubmission {
     'alat_merk': alatMerk?.trim(),
     'pemilik_nama': pemilikNama?.trim(),
     'pemilik_alamat': pemilikAlamat?.trim(),
+
+    // Satu-satunya kolom di blok ini yang kuncinya DIHILANGKAN waktu null,
+    // bukan dikirim eksplisit. Aturan "kirim null biar PUT bisa mengosongkan"
+    // di atas berlaku buat kolom milik sesi; yang ini nulis ke data MASTER
+    // alat, dan "kosongin satuan alatnya" nggak pernah jadi maksud teknisi
+    // waktu dia ngirim lembar kerja yang kebetulan nggak punya kolom itu.
+    if (equipmentSatuan != null) 'equipment_satuan': equipmentSatuan,
 
     'standar_dicek': standarDicek.map((s) => s.toJson()).toList(),
 

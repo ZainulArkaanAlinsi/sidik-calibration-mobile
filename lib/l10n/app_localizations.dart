@@ -5312,6 +5312,12 @@ abstract class AppLocalizations {
   /// **'Average'**
   String get perhitAverage;
 
+  /// No description provided for @perhitObserved.
+  ///
+  /// In en, this message translates to:
+  /// **'observed (before temp. correction)'**
+  String get perhitObserved;
+
   /// No description provided for @perhitIndexed.
   ///
   /// In en, this message translates to:

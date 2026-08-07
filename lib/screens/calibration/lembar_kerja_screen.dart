@@ -55,7 +55,8 @@ class LembarKerjaScreen extends ConsumerStatefulWidget {
 
   final String? judulTambahan;
 
-  /// Kode jenis alat (`ph_meter` / `turbidimeter` / `chlorine_meter`) —
+  /// Kode jenis alat (`ph_meter` / `turbidimeter` / `chlorine_meter` /
+  /// `refractometer`) —
   /// nentuin bentuk lembar kerja yang diambil dari backend.
   final String profil;
 
@@ -905,9 +906,59 @@ class _Bagian extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.lg),
             ],
+
+            // Catatan pengisian diulang di bawah tabel, bukan cuma di kop
+            // dokumen. Kopnya ada di paling atas; waktu teknisi lagi ngisi
+            // kotak angka dia udah discroll jauh dari situ, dan buat
+            // Refractometer kalimat itu yang ngasih tahu kolom °C bukan
+            // pelengkap — pembacaan yang suhunya kosong nggak bisa
+            // dinormalisasi ke 20 °C.
+            //
+            // Kalimatnya diambil dari backend (`catatan_pengisian`), jadi tiap
+            // alat dapat catatannya sendiri dan layar ini nggak perlu tahu alat
+            // mana yang suhunya ikut dihitung.
+            if (bagian.tabel.isNotEmpty && isian.bentuk.catatanPengisian.isNotEmpty)
+              _CatatanIsi(catatan: isian.bentuk.catatanPengisian),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Catatan pengisian yang ditaruh nempel di bawah tabel hasil.
+///
+/// Nadanya sengaja **ngasih tahu, bukan ngelarang**: nggak ada kotak yang
+/// ditandai merah dan nggak ada yang ngunci tombol kirim. Lembar setengah jadi
+/// tetap boleh dikirim dari lapangan — itu aturan lembar kerja yang nggak
+/// berubah sejak awal, dan penjagaannya ada di pemeriksaan admin.
+class _CatatanIsi extends StatelessWidget {
+  const _CatatanIsi({required this.catatan});
+
+  final String catatan;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          Icons.info_outline,
+          size: 14,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Text(
+            catatan,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -1165,6 +1216,10 @@ class _PilihanTetap extends StatelessWidget {
       );
     }
 
+    if (field.kode == 'equipment.satuan') {
+      return _PilihSatuan(field: field, isian: isian, onBerubah: onBerubah);
+    }
+
     // Sisanya cuma Location. Kolom pilihan lain yang belum dikenali sengaja
     // nggak dirender apa-apa daripada nampilin dropdown yang nilainya nggak
     // nyambung ke mana-mana waktu dikirim.
@@ -1189,6 +1244,68 @@ class _PilihanTetap extends StatelessWidget {
       onChanged: (value) {
         if (value == null) return;
         isian.lokasi = value;
+        onBerubah();
+      },
+    );
+  }
+}
+
+/// "7. Satuan Refracto" — n20D (indeks bias) atau °Brix (kadar sukrosa).
+///
+/// Satu-satunya kolom `pilihan` yang kodenya **bertitik** (`equipment.satuan`)
+/// tapi tetap bisa diedit. Di tempat lain kode bertitik artinya kolom turunan
+/// yang read-only (lihat `FieldLembarKerja.turunan`), dan itu bukan cuma gaya
+/// penamaan: `terapkanHasilHeader` mengandalkan kolom bertitik nggak punya
+/// controller di `teks` supaya AI Vision nggak pernah bisa nulis serial number
+/// atau nama pelanggan. Aturan itu **tetap utuh** — pilihan ini disimpen di
+/// `LembarKerjaState.satuan`, bukan di `teks`, jadi nggak ada jalur baru buat
+/// AI ngisi kolom identitas.
+///
+/// Kenapa ditanya ke teknisi dan bukan diambil diam-diam dari master alat: satu
+/// refractometer fisik bisa nampilin dua-duanya, dan yang nentuin ya posisi
+/// skala waktu dibaca — bukan yang kecatat waktu alatnya didaftarin. Nilai
+/// awalnya tetap dari master (lihat `isiDariAlat`), jadi kasus normal nol
+/// ketukan.
+class _PilihSatuan extends StatelessWidget {
+  const _PilihSatuan({
+    required this.field,
+    required this.isian,
+    required this.onBerubah,
+  });
+
+  final FieldLembarKerja field;
+  final LembarKerjaState isian;
+  final VoidCallback onBerubah;
+
+  @override
+  Widget build(BuildContext context) {
+    // Satuan dari backend yang nggak ada di daftar pilihan dibiarin kosong,
+    // bukan dipaksa masuk: `DropdownButtonFormField` nge-assert kalau nilainya
+    // nggak cocok persis salah satu item, dan itu bikin layarnya mati total
+    // cuma gara-gara beda ejaan.
+    final terpilih = field.pilihan.any((p) => p.nilai == isian.satuan)
+        ? isian.satuan
+        : null;
+
+    return DropdownButtonFormField<String>(
+      // Nilainya bisa berubah dari LUAR dropdown ini — `isiDariAlat` nyetel
+      // satuan begitu alatnya dipilih. `FormField` nggak nyinkronin
+      // `initialValue` waktu rebuild, jadi tanpa key yang ikut berubah,
+      // teknisi milih alat °Brix tapi kotaknya tetap nulis n20D.
+      key: ValueKey(terpilih),
+      initialValue: terpilih,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: field.label,
+        border: const OutlineInputBorder(),
+      ),
+      items: [
+        for (final p in field.pilihan)
+          DropdownMenuItem(value: p.nilai, child: Text(p.label)),
+      ],
+      onChanged: (value) {
+        if (value == null) return;
+        isian.satuan = value;
         onBerubah();
       },
     );

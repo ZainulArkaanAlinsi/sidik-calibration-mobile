@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../core/utils/angka.dart';
 import '../../models/calibration_detail.dart' show IsianTeknisi;
 import '../../models/calibration_draft.dart' show LokasiKalibrasi;
 import '../../models/equipment_lookup.dart';
@@ -78,7 +79,15 @@ class TitikState {
   final double titikUkur;
   final String label;
   final int jumlahPengulangan;
-  final String satuan;
+
+  /// Satuan pembacaan yang ikut ke `measurements[].satuan`.
+  ///
+  /// **Bisa berubah di tengah jalan**, beda dari kolom lain di kelas ini. Satu
+  /// refractometer bisa nampilin n20D atau °Brix, dan teknisi milihnya di
+  /// formulir ("7. Satuan Refracto") — lihat [LembarKerjaState.satuan]. Alat
+  /// lain nggak pernah nyentuh ini: bentuk lembar kerjanya nggak punya kolom
+  /// itu, jadi isinya tetap `bentuk.satuan` dari awal sampai kirim.
+  String satuan;
 
   /// Jumlah desimal resolusi titik ini (Turbidimeter 2/1/0). `null` = resolusi
   /// seragam. Dipakai buat mad pembacaan hasil kamera ke resolusi titik.
@@ -204,6 +213,47 @@ class LembarKerjaState {
   LokasiKalibrasi lokasi = LokasiKalibrasi.lab;
   int? roomId;
   int? standardId;
+
+  /// Satuan yang lagi ditampilin alatnya — dipilih teknisi lewat kolom
+  /// `equipment.satuan` ("7. Satuan Refracto"), dan ikut ke tiap
+  /// `measurements[].satuan`.
+  ///
+  /// Cuma Refractometer yang punya kolomnya: satu alat fisik bisa nampilin
+  /// **n20D** (indeks bias) atau **°Brix** (kadar sukrosa), dan pilihannya
+  /// ngubah semua angka hilirnya — koefisien suhu 0,00045/°C vs 0,07/°C, titik
+  /// larutan standar, sampai CMC-nya. Makanya ditanya di depan, bukan ditebak
+  /// dari angka yang masuk.
+  ///
+  /// Bawaannya `bentuk.satuan` dari backend, bukan `alat?.satuan`: yang kedua
+  /// bakal ngubah perilaku tiga alat lama yang selama ini selalu ikut bentuk.
+  /// Master alat cuma dipakai buat **milihin nilai awal** waktu alatnya
+  /// dipilih, dan itu pun lewat [isiDariAlat] yang cuma ngisi yang masih
+  /// kosong.
+  String get satuan => _satuanPilihan ?? bentuk.satuan;
+
+  set satuan(String nilai) {
+    _satuanPilihan = nilai;
+    // Titik-titiknya ikut dibarengin sekarang juga, bukan pas nyusun payload.
+    // Ringkasan sebelum kirim baca `TitikState.satuan` langsung — kalau cuma
+    // ditimpa waktu submit, teknisi ganti ke °Brix tapi layar konfirmasinya
+    // tetap nulis n20D, dan yang dia setujui bukan yang dikirim.
+    for (final t in titik.values) {
+      t.satuan = nilai;
+    }
+  }
+
+  String? _satuanPilihan;
+
+  /// Lembar kerja ini punya kolom "7. Satuan Refracto"?
+  ///
+  /// Yang nentuin **bentuk dari backend**, bukan daftar nama alat di sini —
+  /// begitu ada alat kelima yang satuannya bisa dipindah, dia ikut jalan tanpa
+  /// nyentuh file ini. Dipakai buat mutusin `equipment_satuan` ikut dikirim
+  /// atau nggak; lihat `LembarKerjaSubmission.equipmentSatuan` soal kenapa
+  /// ngirimnya terus-terusan itu merusak.
+  bool get satuanBisaDipilih => bentuk.bagian
+      .expand((b) => b.field)
+      .any((f) => f.kode == 'equipment.satuan');
 
   /// Kolom administratif — cuma kebentuk kalau backend ngirimin bagiannya
   /// (yaitu waktu yang login admin).
@@ -385,6 +435,7 @@ class LembarKerjaState {
       alatMerk: kalimat('alat_merk'),
       pemilikNama: kalimat('pemilik_nama'),
       pemilikAlamat: kalimat('pemilik_alamat'),
+      equipmentSatuan: satuanBisaDipilih ? satuan : null,
       standarDicek: usageCheck.values
           .where((u) => u.adaIsian)
           .map((u) => u.toSubmission())
@@ -416,10 +467,14 @@ class LembarKerjaState {
           terisi: isi.length,
           total: t.jumlahPengulangan,
           // Alat yang resolusinya beda per titik (Turbidimeter) ngirim
-          // `desimal` sendiri per baris. Yang nggak ngirim itu alat resolusi
-          // seragam — pH & Chlorine, dua-duanya 0,01 — jadi 2 di sini bukan
-          // tebakan, tapi resolusi alatnya.
-          desimal: t.desimal ?? 2,
+          // `desimal` sendiri per baris; yang nggak ngirim itu alat resolusi
+          // seragam, dan yang bener dipakai resolusi alatnya.
+          //
+          // Dulu di sini angkanya dipatok 2, waktu tiga alat pertama
+          // resolusinya 0,01 semua. Refractometer resolusinya 0,0001, dan
+          // pematokan itu bikin `1,3362` tampil `1,34` — teknisi mbandingin ke
+          // kertas, ketemu angka yang beda, padahal isiannya bener.
+          desimal: t.desimal ?? desimalDariResolusi(alat?.resolusi) ?? 2,
           rataRata: isi.isEmpty
               ? null
               : isi.reduce((a, b) => a + b) / isi.length,
@@ -614,6 +669,51 @@ class LembarKerjaState {
     isi('alat_merk', alat?.merk);
     isi('pemilik_nama', alat?.pelangganNama);
     isi('pemilik_alamat', alat?.pelangganAlamat);
+
+    _pilihkanSatuanDariAlat();
+  }
+
+  /// Setel "7. Satuan Refracto" ke satuan yang kecatat di master alat.
+  ///
+  /// Alat yang didaftarin sebagai °Brix mesti kebuka sebagai °Brix, bukan
+  /// balik ke bawaan formulir (n20D) dan nunggu teknisi sadar sendiri —
+  /// pilihannya ngubah koefisien suhu, jadi yang kelewat nggak bikin error,
+  /// cuma bikin sertifikatnya meleset.
+  ///
+  /// Sama kayak kolom lain di [isiDariAlat]: **cuma kalau teknisi belum milih**
+  /// apa-apa. Pilihan yang udah dia buat nggak boleh keganti gara-gara master
+  /// bilang lain — barang fisik yang datang sering beda dari yang kecatat.
+  void _pilihkanSatuanDariAlat() {
+    if (_satuanPilihan != null) return;
+
+    final dariMaster = alat?.satuan.trim();
+    if (dariMaster == null || dariMaster.isEmpty) return;
+
+    for (final f in bentuk.bagian.expand((b) => b.field)) {
+      if (f.kode != 'equipment.satuan') continue;
+
+      for (final p in f.pilihan) {
+        if (_satuanSama(p.nilai, dariMaster)) {
+          satuan = p.nilai;
+          return;
+        }
+      }
+      return;
+    }
+  }
+
+  /// Dua tulisan satuan ini menunjuk hal yang sama?
+  ///
+  /// Klausa `brix`-nya **nyontek `RefractometerProfile::satuan()` di backend**,
+  /// yang nganggep ejaan apa pun yang mengandung "brix" sebagai °Brix. Bukan
+  /// kerapian: labnya nulis `oBrix` di Excel, `°Brix` di lampiran akreditasi,
+  /// jadi master alat bisa nyimpen salah satunya. Tanpa klausa ini yang `oBrix`
+  /// nggak kecocok ke pilihan mana pun dan diam-diam jatuh ke n20D.
+  static bool _satuanSama(String a, String b) {
+    final x = a.toLowerCase().trim();
+    final y = b.toLowerCase().trim();
+
+    return x == y || (x.contains('brix') && y.contains('brix'));
   }
 
   String nilaiTurunan(String kode, {String? namaTeknisi, String? namaReviewer}) {

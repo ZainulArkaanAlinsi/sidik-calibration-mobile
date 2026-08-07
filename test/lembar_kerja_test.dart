@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/models/calibration_detail.dart';
+import 'package:sidik_calibration/models/equipment_lookup.dart';
 import 'package:sidik_calibration/models/lembar_kerja.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/calibration_input_provider.dart';
@@ -975,7 +976,326 @@ void main() {
   _testDropdownGagal();
   _testTurbidimeter();
   _testChlorine();
+  _testRefractometer();
   _testKonfirmasiKirim();
+}
+
+/// Refractometer — jenis alat KEEMPAT yang punya lembar kerja sendiri
+/// (`SIDIK-FM-CAL-0523_Rev.2`, satu halaman).
+///
+/// Angka-angka di grup ini dari sesi master `2211.11.R`
+/// (`Refractometer_CSV/INPUT DATA.csv` + `PERHITUNGAN.csv`), sesi yang sama yang
+/// dijaga `SertifikatCocokMasterTest` di backend. Kalau layar ini nampilin atau
+/// ngirim angka lain, yang salah layarnya.
+void _testRefractometer() {
+  group('Refractometer: suhu tiap pembacaan ikut kekirim', () {
+    /// **Test paling penting di grup ini.**
+    ///
+    /// Beda paling tajam dari tiga alat sebelumnya: di lembar Chlorine kolom °C
+    /// cuma dicatat buat jejak, di sini dia yang dipakai NGITUNG. Indeks bias
+    /// berubah ikut suhu, jadi backend mindahin pembacaan ke 20 °C dulu
+    /// (`Corrected = Observed + 0,00045 × (T − 20)`) sebelum diadu ke larutan
+    /// standar.
+    ///
+    /// Di master, Repeat 5 titik 1,33659 suhunya **35 °C** sementara empat
+    /// lainnya 25 °C — rata-ratanya jadi 27, dan `1,3362` jadi `1,33935` di
+    /// sertifikat. Satu angka 35 itu yang mindahin hasilnya. Kalau layar ini
+    /// ngedrop atau mbuletin kolom suhu, sertifikatnya meleset tanpa ada satu
+    /// pun yang error — persis jenis kegagalan yang bikin grup ini ditulis.
+    testWidgets('kolom suhu nyampe utuh per pembacaan, termasuk yang 35 °C', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'refractometer'));
+
+      await _pilihAlat(tester, alat: 'Refractometer · C12345');
+
+      final tabelAfter = find.ancestor(
+        of: find.text('After adjustment Reading'),
+        matching: find.byType(Column),
+      );
+      final kotak = find.descendant(
+        of: tabelAfter.first,
+        matching: find.byType(TextField),
+      );
+
+      // Master `INPUT DATA.csv` blok After Adjustment: dua titik, lima Repeat,
+      // dan Repeat 5 titik pertama suhunya 35 °C.
+      const suhu174 = ['25', '25', '25', '25', '35'];
+      for (var r = 0; r < 5; r++) {
+        await tester.enterText(kotak.at(r * 2), '1,3362');
+        await tester.enterText(kotak.at(r * 2 + 1), suhu174[r]);
+        await tester.enterText(kotak.at(10 + r * 2), '1,3986');
+        await tester.enterText(kotak.at(10 + r * 2 + 1), '25');
+      }
+      await tester.pumpAndSettle();
+
+      await _kirimKeAdmin(tester);
+
+      final measurements =
+          service.payloadTerakhir!['measurements'] as List<dynamic>;
+      final titik1 = measurements.first as Map<String, dynamic>;
+      final titik2 = measurements.last as Map<String, dynamic>;
+
+      expect(titik1['titik_ukur'], 1.33659);
+      expect(titik1['pembacaan'], [1.3362, 1.3362, 1.3362, 1.3362, 1.3362]);
+      expect(titik1['suhu'], [25.0, 25.0, 25.0, 25.0, 35.0]);
+      expect(titik1['satuan'], 'n20D');
+
+      expect(titik2['titik_ukur'], 1.39986);
+      expect(titik2['pembacaan'], [1.3986, 1.3986, 1.3986, 1.3986, 1.3986]);
+      expect(titik2['suhu'], [25.0, 25.0, 25.0, 25.0, 25.0]);
+    });
+
+    /// Empat desimal itu resolusi alatnya (0,0001). Kalau ada yang mbuletin
+    /// pembacaan di jalan — mis. nganggep dua desimal kayak tiga alat lain —
+    /// `1,3362` jadi `1,34` dan sertifikatnya meleset 0,004 n20D, empat puluh
+    /// kali resolusi alatnya.
+    testWidgets('empat desimal nggak dibuletin di jalan', (tester) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'refractometer'));
+
+      await _pilihAlat(tester, alat: 'Refractometer · C12345');
+
+      final kotak = find.descendant(
+        of: find
+            .ancestor(
+              of: find.text('After adjustment Reading'),
+              matching: find.byType(Column),
+            )
+            .first,
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(kotak.at(0), '1,3362');
+      await tester.pumpAndSettle();
+
+      await _kirimKeAdmin(tester);
+
+      final measurements =
+          service.payloadTerakhir!['measurements'] as List<dynamic>;
+      expect((measurements.first as Map)['pembacaan'], [
+        1.3362,
+        null,
+        null,
+        null,
+        null,
+      ]);
+    });
+
+    testWidgets('lembarnya satu halaman & titiknya dua, bukan tiga', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await _muat(
+        tester,
+        _app(MockLembarKerjaService(), profil: 'refractometer'),
+      );
+
+      expect(find.text('SIDIK-FM-CAL-0523_Rev.2'), findsOneWidget);
+      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsNothing);
+
+      // Larutan standarnya empat baris walau titik yang dikalibrasi cuma dua:
+      // satu botol fisik dipakai buat dua satuan sekaligus.
+      expect(
+        find.text('Refractometer Std Solution 1.33659 n20D'),
+        findsOneWidget,
+      );
+      expect(find.text('Refractometer Std Solution 2.5 oBrix'), findsOneWidget);
+
+      // Satuan ditanya di depan — dia yang nentuin koefisien suhu (0,00045 vs
+      // 0,07), titik standar, sama CMC-nya.
+      expect(find.text('7. Satuan Refracto'), findsOneWidget);
+    });
+
+    testWidgets('sesi baru masuk antrean sebagai Refractometer', (tester) async {
+      _perbesarViewport(tester);
+      await _muat(
+        tester,
+        _app(MockLembarKerjaService(), profil: 'refractometer'),
+      );
+
+      await _pilihAlat(tester, alat: 'Refractometer · C12345');
+      await _kirimKeAdmin(tester);
+
+      expect(MockStore.instance.sesi.first.namaAlat, 'Refractometer (sesi baru)');
+    });
+
+    /// Dropdown "7. Satuan Refracto" mesti **nyampe ke payload**, bukan cuma
+    /// kelihatan di layar.
+    ///
+    /// Pilihannya nentuin koefisien suhu yang dipakai backend buat mindahin
+    /// pembacaan ke 20 °C — 0,00045/°C buat n20D, 0,07/°C buat °Brix, beda 155
+    /// kali. Waktu kolom ini belum kerender sama sekali, seluruh sesi °Brix
+    /// diam-diam kekirim sebagai n20D: nggak ada yang error, angkanya cuma
+    /// salah.
+    testWidgets('pilihan °Brix ikut ke tiap measurements[].satuan', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'refractometer'));
+
+      await _pilihAlat(tester, alat: 'Refractometer · C12345');
+
+      await tester.tap(
+        find.ancestor(
+          of: find.text('7. Satuan Refracto'),
+          matching: find.byType(DropdownButtonFormField<String>),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('°Brix').last);
+      await tester.pumpAndSettle();
+
+      final kotak = find.descendant(
+        of: find
+            .ancestor(
+              of: find.text('After adjustment Reading'),
+              matching: find.byType(Column),
+            )
+            .first,
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(kotak.at(0), '1,3362');
+      await tester.pumpAndSettle();
+
+      await _kirimKeAdmin(tester);
+
+      final measurements =
+          service.payloadTerakhir!['measurements'] as List<dynamic>;
+
+      // DUA-DUANYA, bukan cuma titik yang keisi: satuan itu sifat alatnya,
+      // bukan sifat baris yang kebetulan diketik.
+      expect(
+        measurements.map((m) => (m as Map)['satuan']).toList(),
+        ['°Brix', '°Brix'],
+      );
+
+      // Backend milih koefisien suhu dari `equipments.satuan`, BUKAN dari
+      // satuan per pembacaan — jadi pilihannya mesti nyampe lewat kunci ini
+      // juga. Tanpa dia, pembacaannya kelabel °Brix tapi tetap dikoreksi pakai
+      // koefisien n20D.
+      expect(service.payloadTerakhir!['equipment_satuan'], '°Brix');
+    });
+
+    /// Alat yang kecatat °Brix mesti kebaca °Brix **di kotaknya**, bukan cuma
+    /// di dalam state.
+    ///
+    /// Bedanya penting: kalau kotaknya nulis n20D sementara yang dikirim °Brix,
+    /// teknisi nyetujuin satu hal dan yang kekirim hal lain. `FormField` nggak
+    /// nyinkronin `initialValue` waktu rebuild, jadi ini beneran gampang lepas.
+    testWidgets('alat °Brix bikin kotaknya langsung nulis °Brix', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'refractometer'));
+
+      await _pilihAlat(tester, alat: 'Refractometer · C67890');
+
+      final kotak = find.ancestor(
+        of: find.text('7. Satuan Refracto'),
+        matching: find.byType(DropdownButtonFormField<String>),
+      );
+      expect(
+        find.descendant(of: kotak, matching: find.text('°Brix')),
+        findsOneWidget,
+      );
+
+      await _kirimKeAdmin(tester);
+      expect(service.payloadTerakhir!['equipment_satuan'], '°Brix');
+    });
+  });
+
+  group('Refractometer: satuan awal ngikut master alat', () {
+    LembarKerjaState buatState() => LembarKerjaState(
+      bentuk: LembarKerja.fromJson(contohBentukLembarKerjaRefractometer()),
+      clientRequestId: 'uuid-test',
+    );
+
+    EquipmentLookup alat(String satuan) => EquipmentLookup(
+      id: 17,
+      namaAlat: 'Refractometer',
+      serialNumber: 'C12345',
+      kategori: 'instrumen-analitik',
+      status: 'aktif',
+      satuan: satuan,
+    );
+
+    /// Alat yang didaftarin sebagai °Brix mesti KEBUKA sebagai °Brix.
+    ///
+    /// Kalau formulirnya balik ke bawaan n20D, teknisi mesti inget sendiri buat
+    /// ngeganti — dan yang lupa nggak dapat peringatan apa pun, cuma sertifikat
+    /// yang koefisien suhunya salah.
+    test('alat °Brix bikin formulirnya kebuka di °Brix', () {
+      final isian = buatState()..alat = alat('°Brix');
+      expect(isian.satuan, 'n20D'); // bawaan formulir, sebelum alat dibaca
+
+      isian.isiDariAlat();
+      expect(isian.satuan, '°Brix');
+
+      // Titik yang udah kebentuk duluan ikut kebawa — bukan cuma nilai di layar.
+      expect(isian.titik.values.map((t) => t.satuan).toSet(), {'°Brix'});
+    });
+
+    /// Labnya nulis `oBrix` di Excel dan `°Brix` di lampiran akreditasi, jadi
+    /// master alat bisa nyimpen ejaan mana pun. Backend
+    /// (`RefractometerProfile::satuan()`) nganggep dua-duanya °Brix; layar ini
+    /// mesti sepakat, bukan diam-diam jatuh ke n20D gara-gara beda satu huruf.
+    test('ejaan `oBrix` dari master tetap kebaca °Brix', () {
+      final isian = buatState()..alat = alat('oBrix');
+      isian.isiDariAlat();
+
+      expect(isian.satuan, '°Brix');
+    });
+
+    /// Master alat sering basi — barang fisik yang datang bisa beda dari yang
+    /// kecatat waktu didaftarin. Yang sah tetap yang dibaca teknisi di lapangan.
+    test('pilihan teknisi nggak ketimpa master', () {
+      final isian = buatState()
+        ..satuan = 'n20D'
+        ..alat = alat('°Brix');
+      isian.isiDariAlat();
+
+      expect(isian.satuan, 'n20D');
+    });
+
+    /// Tiga alat lama nggak punya kolom "Satuan Refracto" sama sekali, jadi
+    /// master alat nggak boleh ngutak-atik satuan mereka lewat pintu belakang
+    /// ini — apa pun isi `equipments.satuan`.
+    test('alat tanpa kolom satuan nggak kesentuh', () {
+      final isian = LembarKerjaState(
+        bentuk: LembarKerja.fromJson(contohBentukLembarKerja()),
+        clientRequestId: 'uuid-test',
+      )..alat = alat('°Brix');
+      isian.isiDariAlat();
+
+      expect(isian.satuan, 'pH');
+    });
+
+    /// `equipment_satuan` nulis ke data MASTER alat di backend. Kalau lembar pH
+    /// ikut ngirimnya, tiap sesi pH diam-diam nyetel `equipments.satuan` jadi
+    /// "pH" — data master keubah sama kiriman yang nggak pernah nanya soal itu.
+    test('kunci equipment_satuan cuma ikut buat lembar yang punya kolomnya', () {
+      final refracto = buatState()..alat = alat('n20D');
+      expect(
+        refracto.toSubmission(draft: false).toJson()['equipment_satuan'],
+        'n20D',
+      );
+
+      final ph = LembarKerjaState(
+        bentuk: LembarKerja.fromJson(contohBentukLembarKerja()),
+        clientRequestId: 'uuid-test',
+      )..alat = alat('n20D');
+
+      expect(
+        ph.toSubmission(draft: false).toJson().containsKey('equipment_satuan'),
+        isFalse,
+      );
+    });
+  });
 }
 
 /// Chlorin Meter — jenis alat KETIGA yang punya lembar kerja sendiri

@@ -47,6 +47,39 @@ String formatNilai(double nilai, {int desimalMin = 0, int desimalMaks = 8}) {
   return teks;
 }
 
+/// Berapa desimal yang mewakili [resolusi] alat: `0,01` → 2, `0,0001` → 4,
+/// `1` → 0.
+///
+/// Dipakai buat alat yang resolusinya **seragam** di semua titik (pH, Chlorine,
+/// Refractometer) — bentuk lembar kerjanya sengaja nggak ngirim `desimal` per
+/// baris, dan yang bener dipakai ya resolusi alatnya. Cuma alat yang
+/// resolusinya beda per titik (Turbidimeter: 0,01 / 0,1 / 1) yang ngirim
+/// sendiri, dan angka itu yang menang.
+///
+/// **Jangan diganti angka tetap.** Sampai 6 Agt 2026 tiga alat pertama
+/// resolusinya 0,01 semua, jadi "2" kelihatan aman — sampai Refractometer masuk
+/// dengan 0,0001 dan `1,3362` berubah jadi `1,34` di layar tanpa ada yang
+/// error.
+///
+/// `null`/nol/negatif → `null`: nggak ada yang bisa disimpulin, dan nebak 2 di
+/// sini itu persis kesalahan yang bikin catatan di atas ditulis.
+int? desimalDariResolusi(double? resolusi) {
+  if (resolusi == null || !resolusi.isFinite || resolusi <= 0) return null;
+
+  // Lewat teks, bukan log10: `log10(0.001)` balikin -2,9999999999999996 dan
+  // pembulatannya gampang meleset satu desimal.
+  final teks = resolusi.toStringAsFixed(8);
+  final titik = teks.indexOf('.');
+  if (titik == -1) return 0;
+
+  var akhir = teks.length;
+  while (akhir > titik + 1 && teks[akhir - 1] == '0') {
+    akhir--;
+  }
+
+  return akhir - titik - 1;
+}
+
 /// Format angka **persis kayak yang dicetak di sertifikat**: desimal tetap,
 /// koma sebagai pemisah desimal, titik sebagai pemisah ribuan.
 ///
