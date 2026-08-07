@@ -207,7 +207,22 @@ class _TombolScanState extends ConsumerState<_TombolScan> {
     try {
       final foto = await ref.read(sumberFotoProvider).ambil(
         // Tabel penuh angka kecil: kompresi agresif bikin koma ilang dan
-        // `4,04` kebaca `404`.
+        // `4,04` kebaca `404`. Makanya kualitasnya tetap 100 — yang dibatasi
+        // UKURANNYA, bukan mutunya.
+        //
+        // `maxWidth` WAJIB ada. Tanpa ini fotonya keluar di resolusi penuh
+        // sensor: kamera HP tes (Samsung A55) 50 MP, satu jepretan gampang
+        // 10–20 MB, sementara backend nolak di 8 MB
+        // (`WorksheetExtractionController`: `'foto' => [..., 'max:8192']`).
+        // Jadi fotonya ditolak SEBELUM nyampe ke AI — yang kelihatan teknisi
+        // cuma "scan gagal", padahal kamera, izin, key, & model semuanya sehat.
+        //
+        // 2400 px itu ngecilin ukuran ~10x tapi angka di tabel tetap tajam:
+        // lembar kerja difoto dari jarak dekat, dan satu digit masih kebagian
+        // puluhan piksel. Mengecilkan DIMENSI beda dari menurunkan kualitas —
+        // yang bikin koma ilang itu artefak JPEG di garis tipis, bukan jumlah
+        // pikselnya.
+        maxWidth: 2400,
         imageQuality: 100,
       );
       if (foto == null || !mounted) return;

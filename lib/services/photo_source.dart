@@ -40,7 +40,20 @@ class MockSumberFoto implements SumberFoto {
   /// Meniru user yang buka kamera lalu mundur tanpa motret.
   final bool dibatalkan;
 
+  /// Argumen panggilan terakhir — dipakai test buat ngunci batas ukuran foto.
+  ///
+  /// Bukan detail sepele: tanpa `maxWidth`, foto keluar di resolusi penuh
+  /// sensor dan ditolak backend di 8 MB, jadi scan-nya gagal terus padahal
+  /// kamera & AI-nya sehat. Yang gagal begini nggak keliatan di test mana pun
+  /// kalau argumennya nggak pernah diperiksa.
+  int? maxWidthTerakhir;
+  int? kualitasTerakhir;
+
   @override
-  Future<File?> ambil({int? maxWidth, int? imageQuality}) async =>
-      dibatalkan ? null : (file ?? File('tes-foto.png'));
+  Future<File?> ambil({int? maxWidth, int? imageQuality}) async {
+    maxWidthTerakhir = maxWidth;
+    kualitasTerakhir = imageQuality;
+
+    return dibatalkan ? null : (file ?? File('tes-foto.png'));
+  }
 }

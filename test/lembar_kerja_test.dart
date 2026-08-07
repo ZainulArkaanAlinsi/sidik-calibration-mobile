@@ -15,7 +15,9 @@ import 'package:sidik_calibration/screens/calibration/lembar_kerja_state.dart';
 import 'package:sidik_calibration/services/equipment_lookup_service.dart';
 import 'package:sidik_calibration/services/lembar_kerja_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
+import 'package:sidik_calibration/providers/worksheet_vision_provider.dart';
 import 'package:sidik_calibration/services/mock_store.dart';
+import 'package:sidik_calibration/services/photo_source.dart';
 import 'package:sidik_calibration/services/room_service.dart';
 import 'package:sidik_calibration/services/standard_service.dart';
 import 'package:sidik_calibration/services/worksheet_vision.dart';
@@ -48,6 +50,7 @@ Widget _app(
   String profil = 'ph_meter',
   MockStandardService? standar,
   MockRoomService? ruangan,
+  MockSumberFoto? kamera,
 }) {
   return ProviderScope(
     overrides: [
@@ -63,6 +66,7 @@ Widget _app(
       equipmentLookupServiceProvider.overrideWithValue(
         MockEquipmentLookupService(),
       ),
+      if (kamera != null) sumberFotoProvider.overrideWithValue(kamera),
     ],
     child: MaterialApp(
       locale: const Locale('id'),
@@ -971,6 +975,41 @@ void main() {
         'ai_vision',
       );
     });
+  });
+
+  /// **Foto tabel wajib dibatasi ukurannya sebelum diunggah.**
+  ///
+  /// Tanpa `maxWidth`, `image_picker` balikin foto di resolusi penuh sensor.
+  /// Kamera HP tes (Samsung A55) 50 MP — satu jepretan gampang 10–20 MB,
+  /// sementara `WorksheetExtractionController` di backend nolak di 8 MB
+  /// (`'foto' => [..., 'max:8192']`). Fotonya ditolak SEBELUM nyampe AI, dan
+  /// yang kelihatan teknisi cuma "scan gagal" walau kamera, izin, API key, &
+  /// model Gemini semuanya sehat.
+  ///
+  /// Kualitasnya SENGAJA tetap 100: yang bikin koma ilang & `4,04` kebaca `404`
+  /// itu artefak JPEG di garis tipis, bukan jumlah pikselnya. Jadi yang boleh
+  /// dipangkas dimensinya, bukan mutunya.
+  testWidgets('foto tabel dibatasi dimensinya, mutunya nggak diturunin', (
+    tester,
+  ) async {
+    _perbesarViewport(tester);
+    final kamera = MockSumberFoto(dibatalkan: true);
+    await _muat(
+      tester,
+      _app(MockLembarKerjaService(), kamera: kamera),
+    );
+    await _keHalamanAkhir(tester);
+
+    await tester.tap(find.text('FOTO TABEL INI — DIBACA AI').first);
+    await tester.pumpAndSettle();
+
+    expect(
+      kamera.maxWidthTerakhir,
+      isNotNull,
+      reason: 'tanpa maxWidth, fotonya lewat batas 8 MB backend',
+    );
+    expect(kamera.maxWidthTerakhir, lessThanOrEqualTo(3000));
+    expect(kamera.kualitasTerakhir, 100);
   });
 
   _testDropdownGagal();
