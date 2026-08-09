@@ -27,10 +27,13 @@ Tidak ada URL yang di-hardcode. Semua lewat `--dart-define` (lihat `lib/core/con
 | `APP_ENV` | `dev` | `dev` / `staging` / `prod` |
 | `API_BASE_URL` | `http://10.0.2.2:8000/api` | `10.0.2.2` = localhost laptop dilihat dari emulator Android, jadi nyambung ke `php artisan serve` |
 
-Kalau test di HP fisik, `API_BASE_URL` harus IP LAN laptop — dan IP itu ganti
-tiap pindah wifi. Jangan ditulis manual: `./tool/dev.sh hp` membacanya dari
-interface yang aktif. Skrip itu juga menolak jalan kalau `php artisan serve`
-lupa dikasih `--host=0.0.0.0`, penyebab paling sering "HP nggak konek".
+Buat HP fisik, jangan isi IP LAN laptop — nilai itu ganti tiap pindah wifi dan
+harus didaftarkan lagi di `network_security_config.xml`, kalau tidak requestnya
+ditolak Android dengan `CLEARTEXT_NOT_PERMITTED` yang nyamar jadi "backend
+mati". `./tool/dev.sh hp` menghindari IP sama sekali: `adb reverse` bikin port
+di HP nembus ke laptop, jadi app-nya nembak `127.0.0.1` — alamat yang tidak
+mungkin basi, dan jalan lewat USB juga tanpa wifi. Skrip itu menolak jalan
+kalau backendnya belum hidup.
 
 Supaya URL-nya berhenti berubah sama sekali, lihat
 [`docs/tunnel-cloudflare.md`](docs/tunnel-cloudflare.md).
