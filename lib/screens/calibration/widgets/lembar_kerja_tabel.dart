@@ -464,8 +464,110 @@ class _SelAngka extends StatelessWidget {
 
 /// Standar buffer yang dipakai di satu titik. pH butuh standar BEDA per titik
 /// (buffer 4/7/10), bukan satu standar buat seluruh sesi.
-class _PilihStandarTitik extends ConsumerWidget {
+///
+/// Normalnya ini cuma KOTAK CENTANG: pasangan titik↔larutan udah tercetak di
+/// formulir (titik 7,00 pakai Buffer 7), jadi backend yang ngirim pasangannya
+/// dan teknisi tinggal mastiin larutan itu yang beneran dia pakai.
+///
+/// Dulu tiap titik satu dropdown berisi SELURUH master standar. Dua ongkosnya:
+/// tiga dropdown yang mesti dibuka buat jawaban yang udah ketentu, dan — yang
+/// mahal — salah pilih nggak kelihatan salah. Sesi pH 7 Agt 2026 kepilih
+/// Buffer 4 di titik 7,00, dan itu baru ketahuan di sertifikat pelanggan
+/// sebagai Correction `-2,99` (= 4,0092 − 7,00) di antara dua angka wajar.
+///
+/// Dropdownnya nggak dibuang, cuma nggak lagi jadi jalur utama: dipanggil
+/// lewat "Ganti", atau otomatis kalau titik ini nggak punya pasangan (standar
+/// belum kedaftar di master). Teknisi yang kepaksa pakai lot lain tetap bisa
+/// nyatet — bedanya sekarang itu keputusan sadar, bukan bawaan yang gampang
+/// meleset.
+class _PilihStandarTitik extends ConsumerStatefulWidget {
   const _PilihStandarTitik({
+    required this.label,
+    required this.state,
+    required this.onBerubah,
+  });
+
+  final String label;
+  final TitikState state;
+  final VoidCallback onBerubah;
+
+  @override
+  ConsumerState<_PilihStandarTitik> createState() => _PilihStandarTitikState();
+}
+
+class _PilihStandarTitikState extends ConsumerState<_PilihStandarTitik> {
+  /// Teknisi minta milih sendiri buat titik ini. Sekali dibuka tetap kebuka —
+  /// nutup sendiri begitu dia milih cuma bikin pilihannya kelihatan hilang.
+  bool _manual = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final state = widget.state;
+
+    if (!_manual && state.standardIdTercetak != null) {
+      return _Centang(
+        judul: l10n.lkStandarTitikDipakai(widget.label, state.standardNama!),
+        subjudul: l10n.lkStandarTitikTercetak,
+        nilai: state.standarTercetakDipakai,
+        onUbah: (dicentang) {
+          setState(() {
+            state.standardId = dicentang ? state.standardIdTercetak : null;
+          });
+          widget.onBerubah();
+        },
+        labelGanti: l10n.lkStandarTitikGanti,
+        onGanti: () => setState(() => _manual = true),
+      );
+    }
+
+    return _Dropdown(
+      label: widget.label,
+      state: state,
+      onBerubah: widget.onBerubah,
+    );
+  }
+}
+
+/// Baris centang "titik ini pakai larutan X", plus jalan keluar ke pilihan
+/// manual.
+class _Centang extends StatelessWidget {
+  const _Centang({
+    required this.judul,
+    required this.subjudul,
+    required this.nilai,
+    required this.onUbah,
+    required this.labelGanti,
+    required this.onGanti,
+  });
+
+  final String judul;
+  final String subjudul;
+  final bool nilai;
+  final ValueChanged<bool> onUbah;
+  final String labelGanti;
+  final VoidCallback onGanti;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return CheckboxListTile(
+      value: nilai,
+      onChanged: (v) => onUbah(v ?? false),
+      controlAffinity: ListTileControlAffinity.leading,
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      title: Text(judul, style: theme.textTheme.bodyMedium),
+      subtitle: Text(subjudul, style: theme.textTheme.bodySmall),
+      secondary: TextButton(onPressed: onGanti, child: Text(labelGanti)),
+    );
+  }
+}
+
+/// Pilihan manual dari master standar — jalur cadangan, bukan jalur utama.
+class _Dropdown extends ConsumerWidget {
+  const _Dropdown({
     required this.label,
     required this.state,
     required this.onBerubah,

@@ -390,6 +390,82 @@ void main() {
     });
   });
 
+  group('standar per titik: dicentang, bukan dipilih dari katalog', () {
+    /// Yang dijaga bukan "ada centangnya", tapi PASANGANNYA: titik 7,00 kirim
+    /// buffer 7. Ketuker itu mode gagal yang bikin sertifikat pelanggan salah —
+    /// sesi pH 7 Agt 2026 kepilih Buffer 4 di titik 7,00 dan Correction-nya
+    /// kecetak `-2,99`. Dropdown lama nggak punya cara nangkep itu.
+    testWidgets('tiap titik kekirim sama larutan pasangannya', (tester) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service));
+      await _pilihAlat(tester);
+      await _keHalamanAkhir(tester);
+
+      await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
+      await tester.pumpAndSettle();
+
+      final titik = (service.payloadTerakhir!['measurements'] as List)
+          .cast<Map<String, dynamic>>();
+
+      expect(
+        {
+          for (final t in titik) t['titik_ukur'] as double: t['standard_id'],
+        },
+        {4.00: 2, 7.00: 3, 10.01: 4},
+      );
+    });
+
+    testWidgets('dropdown katalog nggak dibuka-buka lagi buat jalur normal', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await _muat(tester, _app(MockLembarKerjaService()));
+      await _pilihAlat(tester);
+      await _keHalamanAkhir(tester);
+
+      // Tiga baris centang, nol dropdown standar-per-titik. Inilah keluhan
+      // aslinya: "gk usah buka banyak banyak gitu".
+      expect(find.byType(CheckboxListTile), findsNWidgets(3));
+      expect(find.text('pH Buffer Solution 7'), findsNothing);
+      expect(find.textContaining('Titik 7,00 — pH Buffer Solution 7'),
+          findsOneWidget);
+    });
+
+    testWidgets('centang dilepas → standarnya ikut lepas dari kiriman', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service));
+      await _pilihAlat(tester);
+      await _keHalamanAkhir(tester);
+
+      // Larutan yang nggak jadi dipakai harus bisa dicabut — centangnya bukan
+      // hiasan yang selalu true.
+      await tester.tap(
+        find.textContaining('Titik 7,00 — pH Buffer Solution 7'),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
+      await tester.pumpAndSettle();
+
+      final titik = (service.payloadTerakhir!['measurements'] as List)
+          .cast<Map<String, dynamic>>();
+      final tujuh = titik.firstWhere((t) => t['titik_ukur'] == 7.00);
+
+      // Kuncinya emang dihilangkan waktu null (`TitikLembarKerja.toJson`),
+      // bukan dikirim `null` — dua-duanya dibaca backend sebagai "nggak ada
+      // standar", jadi yang diuji ketiadaan nilainya.
+      expect(tujuh['standard_id'], isNull);
+
+      // Titik lain nggak boleh ikut kecabut.
+      final empat = titik.firstWhere((t) => t['titik_ukur'] == 4.00);
+      expect(empat['standard_id'], 2);
+    });
+  });
+
   group('layar lebar: dua kolom kayak kertasnya', () {
     testWidgets('kiri & kanan kelihatan sekaligus, tanpa tombol halaman', (
       tester,
@@ -1036,7 +1112,12 @@ void _testChlorine() {
 /// ngirim, dan baru tahu ada yang kurang waktu admin ngembaliin sesinya.
 void _testDropdownGagal() {
   group('daftar gagal dimuat → kolomnya bilang, bukan menghilang', () {
-    testWidgets('standar acuan per titik: pesan + COBA LAGI', (tester) async {
+    /// Standar per titik sekarang datang bareng lembar kerjanya, jadi
+    /// `GET /standards` ambruk NGGAK lagi bisa ngerusaknya — teknisi tetap bisa
+    /// nyentang buffer yang bener. Dulu tiga titiknya sekaligus jatuh ke pesan
+    /// error cuma gara-gara satu request katalog yang jawabannya sebenernya
+    /// nggak dibutuhin.
+    testWidgets('katalog ambruk nggak nyeret standar per titik', (tester) async {
       _perbesarViewport(tester);
       await _muat(
         tester,
@@ -1047,9 +1128,27 @@ void _testDropdownGagal() {
       );
       await _keHalamanAkhir(tester);
 
-      // Tiga titik pH → tiga dropdown standar per titik, tiga-tiganya wajib
-      // ngaku. Ini ketertelusuran: sesi tanpa standar yang ketaut nggak bisa
-      // jadi sertifikat berakreditasi.
+      expect(find.byType(CheckboxListTile), findsNWidgets(3));
+      expect(find.text('Gagal memuat standar acuan.'), findsNothing);
+    });
+
+    /// Tapi titik yang emang nggak punya pasangan tetap harus ngaku. Ini
+    /// ketertelusuran: sesi tanpa standar yang ketaut nggak bisa jadi
+    /// sertifikat berakreditasi, dan kolom yang menghilang nggak bisa dibedain
+    /// dari kolom yang emang nggak diminta.
+    testWidgets('titik tanpa pasangan + katalog ambruk: pesan + COBA LAGI', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await _muat(
+        tester,
+        _app(
+          MockLembarKerjaService(tanpaPasanganStandar: true),
+          standar: MockStandardService(gagal: true),
+        ),
+      );
+      await _keHalamanAkhir(tester);
+
       expect(find.text('Gagal memuat standar acuan.'), findsNWidgets(3));
       expect(find.text('COBA LAGI'), findsNWidgets(3));
     });

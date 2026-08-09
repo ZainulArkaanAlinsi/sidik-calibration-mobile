@@ -174,10 +174,28 @@ class BarisTabelHasil {
     required this.label,
     this.desimal,
     this.resolusi,
+    this.standardId,
+    this.standardNama,
   });
 
   final double titikUkur;
   final String label;
+
+  /// Larutan standar yang TERCETAK berpasangan sama titik ini di formulir —
+  /// titik 7,00 pakai pH Buffer Solution 7, titik 100 NTU pakai botol 100 NTU.
+  ///
+  /// Dulu nggak ada, dan teknisi milih sendiri per titik dari dropdown berisi
+  /// seluruh master standar. Salah pilih nggak kelihatan salah di layar: sesi
+  /// pH 7 Agt 2026 kepilih Buffer 4 di titik 7,00, dan baru ketahuan di
+  /// sertifikat sebagai Correction `-2,99` (= 4,0092 − 7,00).
+  ///
+  /// Null = backend nggak nemu standarnya di master (belum didaftarin, atau
+  /// alatnya emang nggak punya pasangan tetap). Layar jatuh ke pilihan manual
+  /// buat titik itu doang.
+  final int? standardId;
+
+  /// Nama standar pasangannya, buat ditampilin tanpa nunggu `GET /standards`.
+  final String? standardNama;
 
   /// Jumlah desimal resolusi titik ini (Turbidimeter: 2/1/0 buat 1/100/1000
   /// NTU). Dipakai [formatNilai] buat mad pembacaan ke resolusi tanpa buang nol
@@ -192,6 +210,8 @@ class BarisTabelHasil {
         label: json['label'] as String? ?? '${json['titik_ukur']}',
         desimal: (json['desimal'] as num?)?.toInt(),
         resolusi: (json['resolusi'] as num?)?.toDouble(),
+        standardId: (json['standard_id'] as num?)?.toInt(),
+        standardNama: json['standard_nama'] as String?,
       );
 }
 

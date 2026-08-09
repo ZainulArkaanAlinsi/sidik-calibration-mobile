@@ -2499,6 +2499,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkStandarKadaluarsa => 'certificate expired';
 
   @override
+  String lkStandarTitikDipakai(String label, String standar) {
+    return 'Point $label — $standar';
+  }
+
+  @override
+  String get lkStandarTitikGanti => 'Change';
+
+  @override
+  String get lkStandarTitikTercetak => 'As printed on the worksheet';
+
+  @override
   String antreanSemuaPt(int jumlah) {
     return 'All companies ($jumlah)';
   }

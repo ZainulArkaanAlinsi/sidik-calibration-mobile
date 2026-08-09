@@ -33,7 +33,10 @@ class TitikState {
     required this.jumlahPengulangan,
     required this.satuan,
     this.desimal,
-  }) : _kotak = {};
+    this.standardIdTercetak,
+    this.standardNama,
+  }) : standardId = standardIdTercetak,
+       _kotak = {};
 
   final double titikUkur;
   final String label;
@@ -45,7 +48,26 @@ class TitikState {
   final int? desimal;
 
   /// Standar buffer khusus titik ini (buffer 4/7/10 beda-beda).
+  ///
+  /// Terisi otomatis dari pasangan tercetak di formulir; teknisi cuma nyentang
+  /// buat mastiin larutan itu yang beneran dia pakai. Bisa ditimpa manual —
+  /// kalau botolnya habis dan dia pakai lot lain, itu tetap harus bisa
+  /// dicatat, tapi jadi keputusan sadar, bukan default yang gampang salah.
   int? standardId;
+
+  /// Pasangan tercetak titik ini, dipegang terpisah dari [standardId] yang
+  /// bisa berubah. Dipakai layar buat tau centangnya lagi nunjuk larutan yang
+  /// tercetak atau udah ditimpa manual. Null = titik ini nggak punya pasangan.
+  final int? standardIdTercetak;
+
+  /// Nama standar pasangannya dari formulir, buat label centangnya. Nggak ikut
+  /// berubah waktu [standardId] ditimpa manual — yang manual ambil namanya
+  /// dari master standar.
+  final String? standardNama;
+
+  /// Centangnya lagi nunjuk larutan yang tercetak di formulir?
+  bool get standarTercetakDipakai =>
+      standardIdTercetak != null && standardId == standardIdTercetak;
 
   /// Kunci: `tahap|kolom|indexPengulangan`.
   final Map<String, TextEditingController> _kotak;
@@ -150,6 +172,10 @@ class LembarKerjaState {
               jumlahPengulangan: t.pengulangan.length,
               satuan: bentuk.satuan,
               desimal: b.desimal,
+              // Standar pasangan titik ini udah kepilih dari formulirnya —
+              // teknisi tinggal nyentang, nggak milih ulang dari katalog.
+              standardIdTercetak: b.standardId,
+              standardNama: b.standardNama,
             ),
           );
         }

@@ -854,6 +854,10 @@
   "lkUsageCheckKeterangan": "Keterangan",
   "lkStandarPerTitik": "Standar titik",
   "lkStandarKadaluarsa": "sertifikat kadaluarsa",
+  "lkStandarTitikDipakai": "Titik {label} — {standar}",
+  "@lkStandarTitikDipakai": { "placeholders": { "label": { "type": "String" }, "standar": { "type": "String" } } },
+  "lkStandarTitikGanti": "Ganti",
+  "lkStandarTitikTercetak": "Sesuai lembar kerja",
   "antreanSemuaPt": "Semua PT ({jumlah})",
   "@antreanSemuaPt": {
     "placeholders": {

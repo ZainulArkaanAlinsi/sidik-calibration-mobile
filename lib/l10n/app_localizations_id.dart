@@ -2487,6 +2487,17 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkStandarKadaluarsa => 'sertifikat kadaluarsa';
 
   @override
+  String lkStandarTitikDipakai(String label, String standar) {
+    return 'Titik $label — $standar';
+  }
+
+  @override
+  String get lkStandarTitikGanti => 'Ganti';
+
+  @override
+  String get lkStandarTitikTercetak => 'Sesuai lembar kerja';
+
+  @override
   String antreanSemuaPt(int jumlah) {
     return 'Semua PT ($jumlah)';
   }
