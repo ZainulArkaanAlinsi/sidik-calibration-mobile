@@ -3,16 +3,25 @@
 # Jalanin app tanpa pernah ngetik IP laptop manual.
 #
 #   ./tool/dev.sh mac    → macOS desktop, nembak localhost
-#   ./tool/dev.sh hp     → HP fisik lewat adb (IP LAN laptop dideteksi otomatis)
+#   ./tool/dev.sh hp     → HP fisik lewat adb (port di-relay, tanpa IP sama sekali)
 #   ./tool/dev.sh mock   → tanpa server sama sekali
 #
 # Kenapa ada skrip ini: IP LAN laptop ganti tiap pindah wifi, jadi
-# --dart-define=API_BASE_URL harus diedit terus. Di sini IP-nya dibaca dari
-# interface yang aktif, bukan ditulis di file yang lama-lama basi.
+# --dart-define=API_BASE_URL harus diedit terus.
+#
+# Jalan keluarnya BUKAN mendeteksi IP itu lebih pintar, tapi tidak memakai IP
+# sama sekali. `adb reverse` bikin port di HP nembus ke laptop, jadi dari sisi
+# app alamatnya selalu 127.0.0.1 — nilai yang tidak mungkin basi, tidak peduli
+# lagi di wifi mana, atau bahkan lewat USB tanpa wifi.
+#
+# Ini sekaligus lolos dari android/app/src/main/res/xml/network_security_config.xml:
+# Android 9+ cuma ngasih HTTP polos ke alamat yang terdaftar di situ, dan
+# 127.0.0.1 permanen ada di daftar. IP LAN tidak, dan tiap ganti wifi berkas itu
+# harus diedit juga — gagalnya muncul sebagai CLEARTEXT_NOT_PERMITTED, yang
+# nyamar jadi "backend mati".
 #
 # Kalau API_URL sudah diisi (mis. URL Cloudflare Tunnel — lihat
-# docs/tunnel-cloudflare.md), nilai itu yang dipakai dan deteksi IP dilewati.
-# Saat itu HP tidak perlu sewifi sama laptop lagi:
+# docs/tunnel-cloudflare.md), nilai itu yang dipakai dan relay dilewati.
 #
 #   API_URL=https://api-dev.contoh.id/api ./tool/dev.sh hp
 
@@ -26,26 +35,15 @@ usage() {
   exit 64
 }
 
-# IP LAN laptop, dibaca dari interface yang benar-benar punya route ke luar.
-# `route get` ikut wifi/ethernet mana pun yang lagi aktif, jadi tidak perlu
-# nebak en0 vs en1.
-ip_lan() {
-  local iface
-  iface="$(route -n get default 2>/dev/null | awk '/interface: /{print $2; exit}')"
-  [ -n "$iface" ] && ipconfig getifaddr "$iface" 2>/dev/null
-}
-
-# Backend harus bind 0.0.0.0, bukan 127.0.0.1 — kalau tidak, HP tidak akan
-# pernah nyampe walaupun wifi-nya benar. Ini beda yang paling sering bikin
-# salah sangka "server mati".
+# Backend selalu diadu ke 127.0.0.1 — buat HP pun, karena yang menerima
+# sambungan hasil relay adalah laptop ini juga.
 cek_backend() {
-  local host="$1"
-  if ! nc -z -G 3 "$host" "$PORT" 2>/dev/null; then
-    echo "!! Backend tidak menjawab di ${host}:${PORT}" >&2
+  if ! nc -z -G 3 127.0.0.1 "$PORT" 2>/dev/null; then
+    echo "!! Backend tidak menjawab di 127.0.0.1:${PORT}" >&2
     echo "   Di repo sidik-calibration-api jalankan:" >&2
-    echo "     php artisan serve --host=0.0.0.0 --port=${PORT}" >&2
-    echo "   (--host=0.0.0.0 wajib. Default artisan cuma 127.0.0.1 dan itu" >&2
-    echo "    tidak kelihatan dari HP.)" >&2
+    echo "     php artisan serve --port=${PORT}" >&2
+    echo "   (Tidak perlu --host=0.0.0.0 lagi: relay adb yang nganterin, bukan" >&2
+    echo "    wifi, jadi bind default 127.0.0.1 sudah cukup.)" >&2
     exit 1
   fi
 }
@@ -59,7 +57,7 @@ device_android() {
 case "$MODE" in
   mac)
     URL="${API_URL:-http://127.0.0.1:${PORT}/api}"
-    [ -n "${API_URL:-}" ] || cek_backend 127.0.0.1
+    [ -n "${API_URL:-}" ] || cek_backend
     echo "→ macOS · ${URL}"
     exec flutter run -d macos \
       --dart-define=APP_ENV=dev \
@@ -81,13 +79,18 @@ case "$MODE" in
     if [ -n "${API_URL:-}" ]; then
       URL="$API_URL"
     else
-      LAN="$(ip_lan)"
-      if [ -z "$LAN" ]; then
-        echo "!! IP LAN laptop tidak terbaca — tidak ada koneksi jaringan aktif?" >&2
+      cek_backend
+      # Relay-nya dipasang ulang tiap run: `adb reverse` hilang begitu HP
+      # lepas dari adb, dan itu sering terjadi tanpa disadari di wireless
+      # debugging.
+      if ! adb -s "$DEV" reverse "tcp:${PORT}" "tcp:${PORT}" >/dev/null; then
+        echo "!! Gagal masang relay port ke HP (adb reverse)." >&2
+        echo "   Coba: adb kill-server && ADB_MDNS_OPENSCREEN=1 adb start-server" >&2
+        echo "   Kalau HP-nya lewat wifi dan tetap gagal, colok USB — reverse" >&2
+        echo "   lebih tahan banting di USB." >&2
         exit 1
       fi
-      cek_backend "$LAN"
-      URL="http://${LAN}:${PORT}/api"
+      URL="http://127.0.0.1:${PORT}/api"
     fi
 
     echo "→ HP ${DEV} · ${URL}"

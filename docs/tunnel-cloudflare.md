@@ -16,6 +16,7 @@ antara yang gratis dan bisa dipasang hari ini juga.
 |---|---|
 | ✅ IP LAN laptop ganti tiap pindah wifi | tidak relevan lagi — URL-nya tetap |
 | ✅ HP harus sewifi sama laptop | tidak perlu, lewat internet |
+| ✅ HTTP polos harus didaftar di `network_security_config.xml` | tidak perlu, HTTPS |
 | ✅ HTTPS (kamera & upload butuh ini di web) | otomatis, sertifikat dari Cloudflare |
 | ✅ port forwarding / setting router | tidak perlu sama sekali |
 | ❌ laptop harus nyala | **iya, tetap.** Laptop mati = API mati |
@@ -136,8 +137,8 @@ Biar tidak diketik terus, taruh di shell profile:
 echo 'export API_URL=https://api-dev.<domain>/api' >> ~/.zshrc
 ```
 
-Setelah itu `./tool/dev.sh hp` saja sudah cukup, dan deteksi IP LAN otomatis
-dilewati.
+Setelah itu `./tool/dev.sh hp` saja sudah cukup, dan relay `adb reverse`
+dilewati — alamatnya sudah tetap dari sananya.
 
 ## Cek berhasil
 
