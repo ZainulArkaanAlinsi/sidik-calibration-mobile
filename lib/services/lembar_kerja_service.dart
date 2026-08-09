@@ -84,10 +84,17 @@ class MockLembarKerjaService implements LembarKerjaService {
     this.gagal = false,
     this.untukAdmin = false,
     this.gagalKirimSampaiPercobaanKe = 0,
+    this.tanpaPasanganStandar = false,
   });
 
   final bool gagal;
   final bool untukAdmin;
+
+  /// Buang `standard_id` dari baris tabel hasil — niru standar yang belum
+  /// didaftarin di master lab, atau backend versi lama yang belum ngirim
+  /// pasangan titik↔larutan. Layar mesti jatuh ke pilihan manual, bukan
+  /// ninggalin titiknya tanpa standar diam-diam.
+  final bool tanpaPasanganStandar;
 
   /// Bikin `kirim`/`perbarui` gagal sampai percobaan ke-n — buat niru sinyal
   /// putus di lapangan, dan mastiin retry-nya bawa `client_request_id` yang
@@ -125,10 +132,39 @@ class MockLembarKerjaService implements LembarKerjaService {
     };
 
     // Niru backend: yang ditulis ulang cuma jumlah KOTAKnya.
+    final dipakai = pengulangan == null
+        ? bentuk
+        : setelKolomPengulanganMock(bentuk, pengulangan);
+
     return LembarKerja.fromJson(
-      pengulangan == null ? bentuk : setelKolomPengulanganMock(bentuk, pengulangan),
+      tanpaPasanganStandar ? _tanpaPasangan(dipakai) : dipakai,
     );
   }
+
+  /// Salinan bentuk tanpa `standard_id`/`standard_nama` di baris tabel hasil.
+  static Map<String, dynamic> _tanpaPasangan(Map<String, dynamic> bentuk) => {
+    ...bentuk,
+    'bagian': [
+      for (final bagian in (bentuk['bagian'] as List).cast<Map<String, dynamic>>())
+        {
+          ...bagian,
+          if (bagian['tabel'] != null)
+            'tabel': [
+              for (final tabel in (bagian['tabel'] as List).cast<Map<String, dynamic>>())
+                {
+                  ...tabel,
+                  'baris': [
+                    for (final baris
+                        in (tabel['baris'] as List).cast<Map<String, dynamic>>())
+                      {...baris}
+                        ..remove('standard_id')
+                        ..remove('standard_nama'),
+                  ],
+                },
+            ],
+        },
+    ],
+  };
 
   @override
   Future<int> kirim(String token, LembarKerjaSubmission isian) async {
@@ -228,10 +264,29 @@ Map<String, dynamic> contohBentukLembarKerja({bool untukAdmin = false}) {
   Map<String, dynamic> tabel(String tahap, String judul) => {
     'tahap': tahap,
     'judul': judul,
+    // `standard_id` per baris = pasangan tercetak titik↔buffer, dan id-nya
+    // sengaja sama persis kayak baris usage check di bawah: itu larutan yang
+    // SAMA, cuma dilihat dari dua bagian formulir. Mock yang ngirim id beda
+    // bakal bikin layar kelihatan bener padahal ketertelusurannya pecah.
     'baris': [
-      {'titik_ukur': 4.00, 'label': '4,00'},
-      {'titik_ukur': 7.00, 'label': '7,00'},
-      {'titik_ukur': 10.01, 'label': '10,01'},
+      {
+        'titik_ukur': 4.00,
+        'label': '4,00',
+        'standard_id': 2,
+        'standard_nama': 'pH Buffer Solution 4',
+      },
+      {
+        'titik_ukur': 7.00,
+        'label': '7,00',
+        'standard_id': 3,
+        'standard_nama': 'pH Buffer Solution 7',
+      },
+      {
+        'titik_ukur': 10.01,
+        'label': '10,01',
+        'standard_id': 4,
+        'standard_nama': 'pH Buffer Solution 10',
+      },
     ],
     'kolom': [
       {'kode': 'pembacaan', 'label': 'pH', 'tipe': 'angka', 'satuan': 'pH'},
@@ -403,9 +458,30 @@ Map<String, dynamic> contohBentukLembarKerjaTurbidi({bool untukAdmin = false}) {
     'tahap': tahap,
     'judul': judul,
     'baris': [
-      {'titik_ukur': 1.0, 'label': '1', 'resolusi': 0.01, 'desimal': 2},
-      {'titik_ukur': 100.0, 'label': '100', 'resolusi': 0.1, 'desimal': 1},
-      {'titik_ukur': 1000.0, 'label': '1000', 'resolusi': 1.0, 'desimal': 0},
+      {
+        'titik_ukur': 1.0,
+        'label': '1',
+        'resolusi': 0.01,
+        'desimal': 2,
+        'standard_id': 20,
+        'standard_nama': 'Turbidity Standard 1 NTU',
+      },
+      {
+        'titik_ukur': 100.0,
+        'label': '100',
+        'resolusi': 0.1,
+        'desimal': 1,
+        'standard_id': 21,
+        'standard_nama': 'Turbidity Standard 100 NTU',
+      },
+      {
+        'titik_ukur': 1000.0,
+        'label': '1000',
+        'resolusi': 1.0,
+        'desimal': 0,
+        'standard_id': 22,
+        'standard_nama': 'Turbidity Standard 1000 NTU',
+      },
     ],
     'kolom': [
       {'kode': 'pembacaan', 'label': 'NTU', 'tipe': 'angka', 'satuan': 'NTU'},
@@ -572,8 +648,18 @@ Map<String, dynamic> contohBentukLembarKerjaChlorine({bool untukAdmin = false}) 
     'tahap': tahap,
     'judul': judul,
     'baris': [
-      {'titik_ukur': 1.74, 'label': '1,74'},
-      {'titik_ukur': 1.83, 'label': '1,83'},
+      {
+        'titik_ukur': 1.74,
+        'label': '1,74',
+        'standard_id': 30,
+        'standard_nama': 'Chlorine Standard Solution 1.74 mg/L',
+      },
+      {
+        'titik_ukur': 1.83,
+        'label': '1,83',
+        'standard_id': 31,
+        'standard_nama': 'Chlorine Standar Cuvettes 1.83 mg/L',
+      },
     ],
     'kolom': [
       {'kode': 'pembacaan', 'label': 'mg/L', 'tipe': 'angka', 'satuan': 'mg/L'},

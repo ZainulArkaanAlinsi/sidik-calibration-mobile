@@ -4616,6 +4616,24 @@ abstract class AppLocalizations {
   /// **'certificate expired'**
   String get lkStandarKadaluarsa;
 
+  /// No description provided for @lkStandarTitikDipakai.
+  ///
+  /// In en, this message translates to:
+  /// **'Point {label} — {standar}'**
+  String lkStandarTitikDipakai(String label, String standar);
+
+  /// No description provided for @lkStandarTitikGanti.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get lkStandarTitikGanti;
+
+  /// No description provided for @lkStandarTitikTercetak.
+  ///
+  /// In en, this message translates to:
+  /// **'As printed on the worksheet'**
+  String get lkStandarTitikTercetak;
+
   /// No description provided for @antreanSemuaPt.
   ///
   /// In en, this message translates to:

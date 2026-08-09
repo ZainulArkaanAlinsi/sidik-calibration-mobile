@@ -12,9 +12,9 @@ Aplikasi mobile (Flutter, satu APK) untuk kalibrasi alat ukur & sertifikat digit
 
 ```bash
 git clone <url-repo>
-cd asmo_mobile
+cd sidik-calibration-mobile
 flutter pub get
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000/api
+./tool/dev.sh mac    # atau: hp (HP fisik) · mock (tanpa server)
 ```
 
 Pastikan `flutter doctor` bersih (tanpa silang merah) sebelum run pertama kali.
@@ -27,14 +27,23 @@ Tidak ada URL yang di-hardcode. Semua lewat `--dart-define` (lihat `lib/core/con
 | `APP_ENV` | `dev` | `dev` / `staging` / `prod` |
 | `API_BASE_URL` | `http://10.0.2.2:8000/api` | `10.0.2.2` = localhost laptop dilihat dari emulator Android, jadi nyambung ke `php artisan serve` |
 
-Kalau test di HP fisik, ganti ke IP LAN laptop, misal `--dart-define=API_BASE_URL=http://192.168.1.10:8000/api`.
+Buat HP fisik, jangan isi IP LAN laptop — nilai itu ganti tiap pindah wifi dan
+harus didaftarkan lagi di `network_security_config.xml`, kalau tidak requestnya
+ditolak Android dengan `CLEARTEXT_NOT_PERMITTED` yang nyamar jadi "backend
+mati". `./tool/dev.sh hp` menghindari IP sama sekali: `adb reverse` bikin port
+di HP nembus ke laptop, jadi app-nya nembak `127.0.0.1` — alamat yang tidak
+mungkin basi, dan jalan lewat USB juga tanpa wifi. Skrip itu menolak jalan
+kalau backendnya belum hidup.
+
+Supaya URL-nya berhenti berubah sama sekali, lihat
+[`docs/tunnel-cloudflare.md`](docs/tunnel-cloudflare.md).
 
 ## Perintah Harian
 
 ```bash
-flutter analyze   # wajib bersih sebelum commit
-flutter test      # unit + widget test
-flutter run       # jalanin app
+flutter analyze     # wajib bersih sebelum commit
+flutter test        # unit + widget test
+./tool/dev.sh mac   # jalanin app: mac | hp | mock
 ```
 
 ## Struktur Folder
