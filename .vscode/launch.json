@@ -13,14 +13,27 @@
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
-      "toolArgs": ["--dart-define=API_BASE_URL=http://localhost:8001/api"]
+      "toolArgs": ["--dart-define=API_BASE_URL=http://localhost:${input:portApi}/api"]
     },
     {
-      "name": "PT Sidik — API asli (HP fisik via IP laptop)",
+      "name": "PT Sidik — API asli (HP fisik / tunnel, isi URL)",
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
-      "toolArgs": ["--dart-define=API_BASE_URL=http://192.168.1.48:8001/api"]
+      "toolArgs": ["--dart-define=API_BASE_URL=${input:urlApi}"]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "portApi",
+      "type": "promptString",
+      "description": "Port php artisan serve",
+      "default": "8000"
+    },
+    {
+      "id": "urlApi",
+      "type": "promptString",
+      "description": "URL API. Buat HP fisik lebih gampang pakai ./tool/dev.sh hp (IP laptop dideteksi otomatis). Isi manual di sini kalau pakai URL tunnel."
     }
   ]
 }

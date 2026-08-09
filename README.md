@@ -12,9 +12,9 @@ Aplikasi mobile (Flutter, satu APK) untuk kalibrasi alat ukur & sertifikat digit
 
 ```bash
 git clone <url-repo>
-cd asmo_mobile
+cd sidik-calibration-mobile
 flutter pub get
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000/api
+./tool/dev.sh mac    # atau: hp (HP fisik) · mock (tanpa server)
 ```
 
 Pastikan `flutter doctor` bersih (tanpa silang merah) sebelum run pertama kali.
@@ -27,14 +27,20 @@ Tidak ada URL yang di-hardcode. Semua lewat `--dart-define` (lihat `lib/core/con
 | `APP_ENV` | `dev` | `dev` / `staging` / `prod` |
 | `API_BASE_URL` | `http://10.0.2.2:8000/api` | `10.0.2.2` = localhost laptop dilihat dari emulator Android, jadi nyambung ke `php artisan serve` |
 
-Kalau test di HP fisik, ganti ke IP LAN laptop, misal `--dart-define=API_BASE_URL=http://192.168.1.10:8000/api`.
+Kalau test di HP fisik, `API_BASE_URL` harus IP LAN laptop — dan IP itu ganti
+tiap pindah wifi. Jangan ditulis manual: `./tool/dev.sh hp` membacanya dari
+interface yang aktif. Skrip itu juga menolak jalan kalau `php artisan serve`
+lupa dikasih `--host=0.0.0.0`, penyebab paling sering "HP nggak konek".
+
+Supaya URL-nya berhenti berubah sama sekali, lihat
+[`docs/tunnel-cloudflare.md`](docs/tunnel-cloudflare.md).
 
 ## Perintah Harian
 
 ```bash
-flutter analyze   # wajib bersih sebelum commit
-flutter test      # unit + widget test
-flutter run       # jalanin app
+flutter analyze     # wajib bersih sebelum commit
+flutter test        # unit + widget test
+./tool/dev.sh mac   # jalanin app: mac | hp | mock
 ```
 
 ## Struktur Folder
