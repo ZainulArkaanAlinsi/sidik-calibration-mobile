@@ -10,15 +10,18 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/utils/waktu_tampil.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_history_item.dart';
+import '../../models/validasi.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../providers/history_provider.dart';
+import '../../services/auth_service.dart' show ApiException;
 import '../../widgets/app_button.dart';
 import '../../widgets/master_detail_pane.dart';
 import '../../widgets/readable_width.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/notification_bell.dart';
+import '../admin/widgets/panel_temuan.dart';
 import 'calibration_detail_screen.dart';
 
 /// Riwayat kalibrasi — sama pola 4-state-nya kayak Dashboard
@@ -445,13 +448,19 @@ class _ApprovalActionsState extends ConsumerState<_ApprovalActions> {
     super.dispose();
   }
 
-  Future<void> _setujui() async {
+  /// Setujui sesi ini.
+  ///
+  /// [abaikanPeringatan] cuma `true` kalau admin barusan lihat daftar
+  /// temuannya di [_konfirmasiPeringatan] dan tetap mutusin lanjut.
+  Future<void> _setujui({bool abaikanPeringatan = false}) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _busy = true);
 
     try {
-      await ref.read(historyProvider.notifier).approve(widget.item.id);
+      await ref
+          .read(historyProvider.notifier)
+          .approve(widget.item.id, abaikanPeringatan: abaikanPeringatan);
 
       if (!mounted) return;
 
@@ -478,6 +487,36 @@ class _ApprovalActionsState extends ConsumerState<_ApprovalActions> {
           nomor: terbaru?.nomorSertifikat,
         );
       }
+    } on ApiException catch (e) {
+      if (!mounted) return;
+
+      // Backend nolak sekali dengan 422 + `butuh_konfirmasi` waktu ada
+      // PERINGATAN (bukan error): dia minta admin lihat temuannya dulu.
+      //
+      // Dulu di sini semua kegagalan diperlakukan sama, jadi yang muncul cuma
+      // snackbar berisi teks exception mentah. Akibatnya, dari layar ini admin
+      // nggak bisa tau apa peringatannya — apalagi mutusin. Sesi Turbidimeter
+      // `KAL/2026/08/0031` lolos dengan `kelembaban_awal = 2 %RH` (52 kepencet
+      // jadi 2) dan sertifikatnya kecetak `%RH: 27% ± 53,2%` — ketidakpastian
+      // dua kali nilainya sendiri, di dokumen terakreditasi.
+      //
+      // Validatornya sendiri udah bener dan udah teriak dua kali. Yang bolong
+      // jalannya ke mata admin.
+      final validasi = _peringatanDari(e);
+
+      if (validasi != null) {
+        setState(() => _busy = false);
+
+        if (await _konfirmasiPeringatan(validasi) && mounted) {
+          await _setujui(abaikanPeringatan: true);
+        }
+
+        return;
+      }
+
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.historyApproveFailed(e.message))),
+      );
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(
@@ -486,6 +525,56 @@ class _ApprovalActionsState extends ConsumerState<_ApprovalActions> {
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  /// Temuan di balik penolakan 422, atau null kalau gagalnya karena hal lain
+  /// (jaringan, sesi habis, sesi udah disetujui orang lain).
+  HasilValidasi? _peringatanDari(ApiException e) {
+    if (e.status != 422 || !e.butuhKonfirmasi) return null;
+
+    final validasi = e.body['validasi'];
+    if (validasi is! Map<String, dynamic>) return null;
+
+    return HasilValidasi.fromJson(validasi);
+  }
+
+  /// Daftar temuannya ditampilin apa adanya, lalu admin mutusin.
+  ///
+  /// Tombol lanjutnya sengaja BUKAN "OK": yang diputuskan di sini itu
+  /// nerbitin sertifikat terakreditasi di atas data yang sistemnya sendiri
+  /// bilang janggal, jadi tulisannya mesti nyebut itu.
+  Future<bool> _konfirmasiPeringatan(HasilValidasi validasi) async {
+    final l10n = AppLocalizations.of(context);
+
+    final lanjut = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.historyPeringatanJudul),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(l10n.historyPeringatanBody),
+              const SizedBox(height: AppSpacing.md),
+              PanelTemuan(validasi: validasi),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.historyPeringatanBatal),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.historyPeringatanLanjut),
+          ),
+        ],
+      ),
+    );
+
+    return lanjut ?? false;
   }
 
   Future<void> _tolak() async {

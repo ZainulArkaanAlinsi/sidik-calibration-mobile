@@ -788,6 +788,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historySegarkan => 'Refresh list';
 
   @override
+  String get historyPeringatanJudul => 'Check this before approving';
+
+  @override
+  String get historyPeringatanBody =>
+      'The system re-checked this session and found things worth a second look. You can still approve — but the certificate will be issued on this data.';
+
+  @override
+  String get historyPeringatanBatal => 'CHECK AGAIN';
+
+  @override
+  String get historyPeringatanLanjut => 'APPROVE ANYWAY';
+
+  @override
   String historyCertNumber(String nomor) {
     return 'Certificate no. $nomor';
   }

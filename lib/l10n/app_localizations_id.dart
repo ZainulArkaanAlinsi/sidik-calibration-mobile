@@ -786,6 +786,19 @@ class AppLocalizationsId extends AppLocalizations {
   String get historySegarkan => 'Segarkan daftar';
 
   @override
+  String get historyPeringatanJudul => 'Periksa dulu sebelum disetujui';
+
+  @override
+  String get historyPeringatanBody =>
+      'Sistem ngitung ulang sesi ini dan nemu hal yang perlu dilihat lagi. Kamu tetap boleh menyetujui — tapi sertifikatnya bakal terbit di atas data ini.';
+
+  @override
+  String get historyPeringatanBatal => 'PERIKSA LAGI';
+
+  @override
+  String get historyPeringatanLanjut => 'SETUJUI TETAP';
+
+  @override
   String historyCertNumber(String nomor) {
     return 'No. sertifikat $nomor';
   }

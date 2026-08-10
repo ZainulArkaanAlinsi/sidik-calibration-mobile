@@ -16,7 +16,16 @@ class CatatanKosongException implements Exception {
 abstract class ApprovalService {
   /// Admin doang — `docs/kontrak-api.md` §5. Balikin `certificate_id` (bisa
   /// `null` sesaat, generate-nya jalan di queue).
-  Future<int?> approve(String token, int calibrationId);
+  /// [abaikanPeringatan] = admin udah lihat temuannya dan mutusin lanjut.
+  ///
+  /// Tanpa ini backend nolak sekali dengan 422 + `butuh_konfirmasi` — dan itu
+  /// disengaja: peringatan kayak "kelembaban 2 %RH" harus dilewati secara
+  /// SADAR, bukan diam-diam.
+  Future<int?> approve(
+    String token,
+    int calibrationId, {
+    bool abaikanPeringatan = false,
+  });
 
   Future<void> reject(String token, int calibrationId, String catatanRevisi);
 
@@ -31,10 +40,15 @@ class ApiApprovalService implements ApprovalService {
   final ApiClient _api;
 
   @override
-  Future<int?> approve(String token, int calibrationId) async {
+  Future<int?> approve(
+    String token,
+    int calibrationId, {
+    bool abaikanPeringatan = false,
+  }) async {
     final json = await _api.post(
       '/calibrations/$calibrationId/approve',
       token: token,
+      body: abaikanPeringatan ? const {'abaikan_peringatan': true} : null,
     );
     final data = (json['data'] ?? json) as Map<String, dynamic>;
     return (data['certificate_id'] as num?)?.toInt();
@@ -72,7 +86,11 @@ class MockApprovalService implements ApprovalService {
   }
 
   @override
-  Future<int?> approve(String token, int calibrationId) async {
+  Future<int?> approve(
+    String token,
+    int calibrationId, {
+    bool abaikanPeringatan = false,
+  }) async {
     await _tunda();
 
     // Sesi yang lahir dari lembar kerja diurus [MockStore] biar statusnya

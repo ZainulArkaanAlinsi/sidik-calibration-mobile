@@ -368,6 +368,10 @@
   "historySessionExpired": "Your session expired. Please sign in again.",
   "historyRetry": "RETRY",
   "historySegarkan": "Refresh list",
+  "historyPeringatanJudul": "Check this before approving",
+  "historyPeringatanBody": "The system re-checked this session and found things worth a second look. You can still approve — but the certificate will be issued on this data.",
+  "historyPeringatanBatal": "CHECK AGAIN",
+  "historyPeringatanLanjut": "APPROVE ANYWAY",
   "historyCertNumber": "Certificate no. {nomor}",
   "@historyCertNumber": {
     "placeholders": {

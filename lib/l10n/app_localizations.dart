@@ -1532,6 +1532,30 @@ abstract class AppLocalizations {
   /// **'Refresh list'**
   String get historySegarkan;
 
+  /// No description provided for @historyPeringatanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Check this before approving'**
+  String get historyPeringatanJudul;
+
+  /// No description provided for @historyPeringatanBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The system re-checked this session and found things worth a second look. You can still approve — but the certificate will be issued on this data.'**
+  String get historyPeringatanBody;
+
+  /// No description provided for @historyPeringatanBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'CHECK AGAIN'**
+  String get historyPeringatanBatal;
+
+  /// No description provided for @historyPeringatanLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'APPROVE ANYWAY'**
+  String get historyPeringatanLanjut;
+
   /// No description provided for @historyCertNumber.
   ///
   /// In en, this message translates to:
