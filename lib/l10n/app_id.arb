@@ -984,6 +984,8 @@
   "antreanKosongBody": "Lembar kerja yang dikirim teknisi bakal muncul di sini.",
   "antreanGagal": "Gagal memuat antrean.",
   "antreanOleh": "oleh {nama}",
+  "waktuHariIni": "Hari ini",
+  "waktuKemarin": "Kemarin",
   "perhitTitle": "Lembar perhitungan",
   "perhitIdentitasAlat": "IDENTITAS ALAT",
   "perhitIdentitasCustomer": "IDENTITAS CUSTOMER",

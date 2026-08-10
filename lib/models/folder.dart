@@ -18,6 +18,7 @@ class Folder {
     this.jumlahFile,
     this.subFolder = const [],
     this.file = const [],
+    this.dibuatPada,
   });
 
   final int id;
@@ -41,6 +42,11 @@ class Folder {
   final List<Folder> subFolder;
   final List<FolderFile> file;
 
+  /// Kapan foldernya dibikin — **punya jam**. Backend udah lama ngirim ini
+  /// (`dibuat_pada`), cuma nggak pernah dibaca di sini, jadi folder yang
+  /// dibikin di hari yang sama nggak bisa dibedain mana yang terbaru.
+  final DateTime? dibuatPada;
+
   bool get folderSistem => tipe == 'sistem';
 
   /// Folder yang isinya nol — dipakai buat nampilin keadaan kosong yang jujur
@@ -61,9 +67,15 @@ class Folder {
       jumlahFile: (json['jumlah_file'] as num?)?.toInt(),
       subFolder: parseListAman((json['sub_folder'] as List<dynamic>? ?? const []), Folder.fromJson),
       file: parseListAman((json['file'] as List<dynamic>? ?? const []), FolderFile.fromJson),
+      dibuatPada: _waktu(json['dibuat_pada']),
     );
   }
 }
+
+/// ISO 8601 dari backend (UTC) → `DateTime` LOKAL. Tanpa `toLocal()` jamnya
+/// kecetak mundur 7 jam di Jakarta.
+DateTime? _waktu(Object? raw) =>
+    raw is String ? DateTime.tryParse(raw)?.toLocal() : null;
 
 /// Satu file di dalam folder (`GET /api/folder-files`).
 class FolderFile {
@@ -81,6 +93,7 @@ class FolderFile {
     this.sertifikatNomor,
     this.sertifikatSiapDiunduh = false,
     this.calibrationSessionId,
+    this.dibuatPada,
   });
 
   final int id;
@@ -118,6 +131,11 @@ class FolderFile {
   /// nganterin ke detail sesinya — yang emang isinya.
   final int? calibrationSessionId;
 
+  /// Kapan berkasnya masuk folder — **punya jam**. Dikirim backend sebagai
+  /// `dibuat_pada`; sebelumnya nggak dibaca, jadi beberapa berkas yang diunggah
+  /// di hari yang sama kelihatan sama persis.
+  final DateTime? dibuatPada;
+
   bool get dariSertifikat => sertifikatNomor != null;
 
   /// Ukuran yang kebaca manusia. Null kalau backend nggak ngirim ukurannya.
@@ -148,6 +166,7 @@ class FolderFile {
       sertifikatSiapDiunduh: sertifikat?['siap_diunduh'] as bool? ?? false,
       calibrationSessionId:
           (lembarKerja?['calibration_session_id'] as num?)?.toInt(),
+      dibuatPada: _waktu(json['dibuat_pada']),
     );
   }
 }

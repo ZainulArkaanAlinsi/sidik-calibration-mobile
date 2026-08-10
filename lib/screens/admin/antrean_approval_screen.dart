@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../core/utils/waktu_tampil.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_history_item.dart';
 import '../../providers/history_provider.dart';
@@ -318,6 +319,28 @@ class _Kartu extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 11.5, color: c.textMuted),
                   ),
+                  // Waktu KIRIM, baris sendiri di bawah tanggal kalibrasi —
+                  // dua hal yang beda dan gampang ketuker kalau digabung.
+                  // Tanggal kalibrasi itu kapan alatnya dikerjain; ini kapan
+                  // lembarnya masuk ke meja admin, dan itu yang nentuin urutan
+                  // periksa waktu beberapa sesi masuk di hari yang sama.
+                  if (item.waktuTerakhir != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      waktuRelatif(
+                        item.waktuTerakhir!,
+                        locale,
+                        hariIni: l10n.waktuHariIni,
+                        kemarin: l10n.waktuKemarin,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: c.textMuted,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

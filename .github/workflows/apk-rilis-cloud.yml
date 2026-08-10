@@ -1,0 +1,78 @@
+# Tiap ada perubahan yang masuk, APK-nya kebangun ulang sendiri — nggak perlu
+# ada yang inget buat build manual.
+#
+# Bedanya sama "Paket tes (mock, tanpa server)": yang itu offline dan datanya
+# palsu, buat nyoba tampilan. Yang ini nyambung ke server Render beneran, buat
+# uji coba di lokasi.
+#
+# ALAMAT SERVERNYA NGGAK DITULIS DI SINI. Repo ini publik, jadi URL-nya diambil
+# dari repository variable `API_BASE_URL`. Pasangnya sekali:
+#   Settings → Secrets and variables → Actions → Variables → New repository
+#   variable → nama: API_BASE_URL, nilai: https://<url>.onrender.com
+# (Variable, BUKAN Secret. Secret disensor jadi `***` di log, dan nilainya ikut
+#  ketanam ke APK lewat --dart-define — jadi nyensor di log nggak nambah aman,
+#  cuma bikin nggak bisa dibaca waktu nyari sebab error.)
+name: APK rilis (nyambung server)
+
+on:
+  push:
+    branches:
+      - main
+      - chore/apk-rilis-cloud
+  # Biar bisa dipicu manual juga, mis. abis ganti URL server tanpa ganti kode.
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: 3.44.6
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    name: build apk
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Gagal di sini, di detik pertama, dengan sebab yang jelas. Tanpa
+      # penjagaan ini APK-nya tetap kebangun tapi API_BASE_URL-nya kosong —
+      # dan nilai kosong bikin AppConfig balik ke bawaan `10.0.2.2`, alamat
+      # emulator, yang di HP asli nggak nyambung ke mana-mana.
+      - name: Pastiin URL server udah dipasang
+        run: |
+          if [ -z "${{ vars.API_BASE_URL }}" ]; then
+            echo "::error::Repository variable API_BASE_URL belum diisi. Lihat komentar di atas berkas workflow ini."
+            exit 1
+          fi
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - run: flutter gen-l10n
+        continue-on-error: true
+
+      # Kalau test-nya merah, APK-nya nggak usah dibikin. Uji coba di lokasi
+      # pakai APK yang test-nya gagal itu buang-buang perjalanan.
+      - run: flutter test
+
+      - name: Build APK
+        run: |
+          flutter build apk --release \
+            --dart-define=APP_ENV=prod \
+            --dart-define=API_BASE_URL="${{ vars.API_BASE_URL }}/api"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sidik-cloud-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 30

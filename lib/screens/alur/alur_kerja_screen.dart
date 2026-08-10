@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../core/utils/waktu_tampil.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_history_item.dart';
 import '../../models/izin.dart';
@@ -217,7 +218,14 @@ class _BarisSesi extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                sesi.namaTeknisi,
+                // Teknisi + kapan barisnya terakhir bergerak. Di papan alur
+                // kerja dua sesi bisa nangkring di tahap yang sama seharian;
+                // jamnya yang mbedain mana yang baru masuk.
+                switch (sesi.waktuTerakhir) {
+                  final DateTime w => '${sesi.namaTeknisi} · '
+                      '${waktuRelatif(w, Localizations.localeOf(context).languageCode, hariIni: AppLocalizations.of(context).waktuHariIni, kemarin: AppLocalizations.of(context).waktuKemarin)}',
+                  _ => sesi.namaTeknisi,
+                },
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.labelSmall?.copyWith(
