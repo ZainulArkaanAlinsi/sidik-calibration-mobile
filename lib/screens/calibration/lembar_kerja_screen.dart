@@ -12,6 +12,7 @@ import '../../models/standard.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/calibration_input_provider.dart';
 import '../../providers/history_provider.dart';
+import '../../providers/jam_provider.dart';
 import '../../providers/lembar_kerja_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/sidik_loader.dart';
@@ -248,6 +249,10 @@ class _FormState extends ConsumerState<_Form> {
     // ini submission yang sama dan balikin sesi yang udah ada — bukan bikin
     // sesi dobel buat satu kejadian kalibrasi.
     clientRequestId: generateUuidV4(),
+    // Lewat `jamProvider`, bukan `DateTime.now()` langsung — tanggal ini
+    // kecetak ke golden lembar kerja, dan tanpa seam-nya golden itu merah tiap
+    // ganti hari tanpa ada yang rusak.
+    tanggalKalibrasiAwal: ref.read(jamProvider)(),
   );
 
   /// Di atas lebar ini lembar kerjanya digambar dua kolom bersebelahan, persis

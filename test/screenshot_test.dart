@@ -23,6 +23,7 @@ import 'package:sidik_calibration/screens/calibration/lembar_kerja_screen.dart';
 import 'package:sidik_calibration/screens/shell/main_shell.dart';
 import 'package:sidik_calibration/services/dashboard_service.dart';
 import 'package:sidik_calibration/providers/calibration_input_provider.dart';
+import 'package:sidik_calibration/providers/jam_provider.dart';
 import 'package:sidik_calibration/providers/lembar_kerja_provider.dart';
 import 'package:sidik_calibration/services/equipment_lookup_service.dart';
 import 'package:sidik_calibration/services/lembar_kerja_service.dart';
@@ -89,6 +90,11 @@ Future<void> _pumpLayar(WidgetTester tester, Widget layar) async {
   await tester.pumpAndSettle();
 }
 
+/// Tanggal yang kecetak di golden lembar kerja. Angkanya sendiri nggak penting
+/// — yang penting dia TETAP. Kalau diubah, dua golden lembar kerja mesti
+/// digenerate ulang.
+final _tanggalGolden = DateTime(2026, 8, 9, 10, 30);
+
 Widget _bungkus(Widget layar, {required Brightness mode}) {
   return ProviderScope(
     overrides: [
@@ -106,6 +112,15 @@ Widget _bungkus(Widget layar, {required Brightness mode}) {
       equipmentLookupServiceProvider.overrideWithValue(
         MockEquipmentLookupService(),
       ),
+      // Jam dipatok, alasannya sama persis kayak locale di bawah: bikin golden
+      // deterministik.
+      //
+      // Lembar kerja ngisi "Calibration Date" dengan tanggal hari ini, dan itu
+      // kecetak ke gambarnya. Tanpa patokan ini, dua golden lembar kerja MERAH
+      // TIAP GANTI HARI padahal nggak ada yang rusak — dan tes yang merahnya
+      // nggak nyambung sama perubahan kode itu lama-lama diabaikan orang,
+      // termasuk waktu dia beneran nangkep bug. Kejadian 10 Agt 2026.
+      jamProvider.overrideWithValue(() => _tanggalGolden),
     ],
     child: MaterialApp(
       debugShowCheckedModeBanner: false,
