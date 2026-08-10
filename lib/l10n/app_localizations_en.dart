@@ -785,6 +785,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historyRetry => 'RETRY';
 
   @override
+  String get historySegarkan => 'Refresh list';
+
+  @override
   String historyCertNumber(String nomor) {
     return 'Certificate no. $nomor';
   }

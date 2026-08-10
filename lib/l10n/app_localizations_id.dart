@@ -783,6 +783,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get historyRetry => 'COBA LAGI';
 
   @override
+  String get historySegarkan => 'Segarkan daftar';
+
+  @override
   String historyCertNumber(String nomor) {
     return 'No. sertifikat $nomor';
   }

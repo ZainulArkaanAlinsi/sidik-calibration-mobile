@@ -318,6 +318,7 @@
   "historyLoadFailed": "Gagal memuat riwayat.",
   "historySessionExpired": "Sesi kamu habis. Login ulang ya.",
   "historyRetry": "COBA LAGI",
+  "historySegarkan": "Segarkan daftar",
   "historyCertNumber": "No. sertifikat {nomor}",
   "historyStatusPass": "PASS",
   "historyStatusFail": "FAIL",

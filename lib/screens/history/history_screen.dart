@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -38,11 +40,44 @@ class HistoryScreen extends ConsumerStatefulWidget {
   ConsumerState<HistoryScreen> createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends ConsumerState<HistoryScreen> {
+class _HistoryScreenState extends ConsumerState<HistoryScreen>
+    with WidgetsBindingObserver {
   /// Sesi yang lagi kebuka di panel kanan. Null = belum ada yang dipilih.
   /// Cuma dipakai waktu panel ganda aktif; di mode satu panel detailnya
   /// di-push, bukan disimpen di sini.
   int? _terpilih;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Balik ke jendela/app ini → tarik ulang daftarnya.
+  ///
+  /// Daftar riwayat itu satu-satunya layar yang nampilin keputusan orang lain
+  /// (admin nyetujui, teknisi ngirim ulang), jadi dia paling gampang basi. Yang
+  /// mestinya ngabarin itu broadcast realtime, TAPI `realtimeSyncProvider`
+  /// jatuh ke [MockRealtimeService] begitu kunci Reverb kosong — dan itu
+  /// keadaan normal di dev. Akibatnya: sesi ditolak lewat HP, jendela macOS
+  /// tetap nulis "Menunggu approval" sampai app-nya dimatiin. Dua perangkat
+  /// nunjuk database yang sama tapi cerita beda, dan yang kelihatan salah
+  /// justru layarnya, bukan sinkronnya.
+  ///
+  /// Nggak nunggu selesai & nggak nampilin loading: ini penyegaran latar, dan
+  /// daftar lama tetap kepakai sampai yang baru dateng.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    if (!mounted) return;
+    unawaited(ref.read(historyProvider.notifier).muatUlang());
+  }
 
   /// Dipanggil dari kartu. [panelGanda] dateng dari tata letak yang lagi
   /// aktif — bukan dari `Platform`, karena jendela desktop yang disempitin
@@ -103,7 +138,18 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         // bagian "Folder" dihapus dari Riwayat, karena penelusuran folder
         // pindah SELURUHNYA ke Folder Manager di navbar bawah. Dua pintu ke
         // hal yang sama cuma bikin orang ragu mana yang bener.
-        actions: const [NotificationBell(), SizedBox(width: AppSpacing.sm)],
+        // `RefreshIndicator` di bawah cuma kepanggil sama gestur TARIK, dan
+        // di desktop gestur itu nggak ada — jadi tanpa tombol ini jendela
+        // macOS nggak punya cara nyegerin daftar sama sekali selain dimatiin.
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: l10n.historySegarkan,
+            onPressed: () => ref.read(historyProvider.notifier).muatUlang(),
+          ),
+          const NotificationBell(),
+          const SizedBox(width: AppSpacing.sm),
+        ],
       ),
       body: MasterDetailPane(
         master: (context, panelGanda) => RefreshIndicator(

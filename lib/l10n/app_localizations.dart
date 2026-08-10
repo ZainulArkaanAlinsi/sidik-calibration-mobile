@@ -1526,6 +1526,12 @@ abstract class AppLocalizations {
   /// **'RETRY'**
   String get historyRetry;
 
+  /// No description provided for @historySegarkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh list'**
+  String get historySegarkan;
+
   /// No description provided for @historyCertNumber.
   ///
   /// In en, this message translates to:

@@ -367,6 +367,7 @@
   "historyLoadFailed": "Couldn't load history.",
   "historySessionExpired": "Your session expired. Please sign in again.",
   "historyRetry": "RETRY",
+  "historySegarkan": "Refresh list",
   "historyCertNumber": "Certificate no. {nomor}",
   "@historyCertNumber": {
     "placeholders": {

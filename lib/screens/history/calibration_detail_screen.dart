@@ -322,8 +322,25 @@ class _Isi extends StatelessWidget {
   }
 }
 
+/// Satu baris `label — nilai`.
+///
+/// Label dikasih **kolom berlebar tetap**, bukan `Expanded`. Dulu `Expanded`,
+/// dan di HP itu nggak kelihatan salah karena kartunya sempit — labelnya melar
+/// sedikit, nilainya tetap kebaca di sebelahnya.
+///
+/// Di panel kanan desktop kartunya ~800px, dan `Expanded` mendorong nilainya ke
+/// tepi kanan sejauh itu juga. Yang kejadian: "Suhu ruang" di kiri, `21,0 °C`
+/// nyaris di ujung layar, dan mata nggak pernah nyampai ke sana — dilaporkan
+/// 10 Agt 2026 sebagai "nilai suhu & kelembabannya kosong", padahal angkanya
+/// dikirim backend dan memang dirender.
+///
+/// [_lebarLabel] muat buat label terpanjang di blok ini ("Lokasi kalibrasi")
+/// dan masih nyisain ruang nilai di layar HP tersempit, jadi nilainya berbaris
+/// rapi satu kolom tanpa kejauhan — di HP maupun di desktop.
 class _InfoRow extends StatelessWidget {
   const _InfoRow({required this.label, required this.value});
+
+  static const double _lebarLabel = 160;
 
   final String label;
   final String value;
@@ -335,8 +352,10 @@ class _InfoRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
+          SizedBox(
+            width: _lebarLabel,
             child: Text(
               label,
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -344,10 +363,15 @@ class _InfoRow extends StatelessWidget {
               ),
             ),
           ),
-          Text(
-            value,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600,
+          const SizedBox(width: AppSpacing.md),
+          // Sisanya buat nilai — biar teks panjang (nama standar acuan) turun
+          // baris di kolomnya sendiri, bukan kepotong.
+          Expanded(
+            child: Text(
+              value,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
