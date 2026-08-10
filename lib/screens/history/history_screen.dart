@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../certificate/sertifikat_sukses_sheet.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/utils/waktu_tampil.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_history_item.dart';
 import '../../providers/auth_provider.dart';
@@ -265,6 +266,24 @@ class _HistoryCard extends StatelessWidget {
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
+                        // Kapan barisnya TERAKHIR bergerak — beda dari tanggal
+                        // kalibrasi di atas, dan ini yang mbedain beberapa sesi
+                        // yang tanggal kalibrasinya sama persis.
+                        if (item.waktuTerakhir != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            waktuRelatif(
+                              item.waktuTerakhir!,
+                              locale,
+                              hariIni: l10n.waktuHariIni,
+                              kemarin: l10n.waktuKemarin,
+                            ),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
                         if (item.nomorSertifikat != null) ...[
                           const SizedBox(height: AppSpacing.xs),
                           Text(

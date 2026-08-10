@@ -18,6 +18,11 @@ extension CalibrationStatusJson on CalibrationStatus {
 /// (masih draft / belum ada pengukuran).
 enum Keputusan { pass, fail }
 
+/// Titik waktu dari backend → `DateTime` LOKAL. Null-aman: field-nya belum ada
+/// di respons backend lama.
+DateTime? _waktu(Object? raw) =>
+    raw is String ? DateTime.tryParse(raw)?.toLocal() : null;
+
 /// Satu baris riwayat kalibrasi — versi ringkas dari respons
 /// `GET /api/calibrations` (§4 `docs/kontrak-api.md`), cuma field yang
 /// dibutuhin layar Riwayat.
@@ -33,6 +38,9 @@ class CalibrationHistoryItem {
     this.catatanRevisi,
     this.certificateId,
     this.namaPelanggan,
+    this.dikirimPada,
+    this.diperiksaPada,
+    this.diubahPada,
   });
 
   final int id;
@@ -59,6 +67,32 @@ class CalibrationHistoryItem {
   /// queue backend (`docs/kontrak-api.md` §5).
   final int? certificateId;
 
+  /// Titik waktu — **punya jam**, beda dari [tanggalKalibrasi] yang cuma
+  /// tanggal kalender (kolomnya `date` di backend, jamnya nggak pernah ada).
+  ///
+  /// Adanya karena beberapa sesi masuk di HARI yang sama nggak bisa dibedain
+  /// mana yang terbaru: yang kelihatan cuma `10 Agt 2026` berulang-ulang,
+  /// padahal urutan itu yang nentuin mana yang diperiksa duluan.
+  ///
+  /// Null buat respons backend lama — layar jatuh ke tanggal saja.
+  final DateTime? dikirimPada;
+
+  final DateTime? diperiksaPada;
+
+  final DateTime? diubahPada;
+
+  /// Kapan baris ini TERAKHIR bergerak, menurut statusnya sekarang.
+  ///
+  /// Satu getter, bukan tiga tanggal berjejer di layar: yang dicari orang itu
+  /// "mana yang paling baru", bukan riwayat lengkapnya. Sesi yang udah
+  /// diperiksa dinilai dari waktu diperiksa, yang masih nunggu dari waktu
+  /// dikirim, dan draft yang belum pernah dikirim dari waktu terakhir diubah.
+  DateTime? get waktuTerakhir => switch (status) {
+    CalibrationStatus.disetujui ||
+    CalibrationStatus.perluRevisi => diperiksaPada ?? dikirimPada ?? diubahPada,
+    _ => dikirimPada ?? diubahPada,
+  };
+
   CalibrationHistoryItem copyWith({
     CalibrationStatus? status,
     Keputusan? keputusan,
@@ -75,6 +109,9 @@ class CalibrationHistoryItem {
     catatanRevisi: catatanRevisi ?? this.catatanRevisi,
     certificateId: certificateId ?? this.certificateId,
     namaPelanggan: namaPelanggan,
+    dikirimPada: dikirimPada,
+    diperiksaPada: diperiksaPada,
+    diubahPada: diubahPada,
   );
 
   factory CalibrationHistoryItem.fromJson(Map<String, dynamic> json) {
@@ -98,6 +135,12 @@ class CalibrationHistoryItem {
       certificateId: (json['certificate_id'] as num?)?.toInt(),
       namaPelanggan:
           (json['pelanggan'] as Map<String, dynamic>?)?['nama'] as String?,
+      // ISO 8601 dari backend (UTC) → dijadiin waktu LOKAL. Tanpa `toLocal()`
+      // jamnya kecetak mundur 7 jam di Jakarta, dan itu justru bikin urutan
+      // "yang terbaru" kelihatan salah — persis masalah yang mau dipecahin.
+      dikirimPada: _waktu(json['submitted_at']),
+      diperiksaPada: _waktu(json['reviewed_at']),
+      diubahPada: _waktu(json['updated_at']),
     );
   }
 }

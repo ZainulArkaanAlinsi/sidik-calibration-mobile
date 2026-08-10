@@ -2822,6 +2822,12 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String get waktuHariIni => 'Hari ini';
+
+  @override
+  String get waktuKemarin => 'Kemarin';
+
+  @override
   String get perhitTitle => 'Lembar perhitungan';
 
   @override

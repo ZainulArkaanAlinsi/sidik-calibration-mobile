@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../core/utils/waktu_tampil.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/izin.dart';
 import '../../models/folder.dart';
@@ -265,6 +266,16 @@ class _KartuFolder extends ConsumerWidget {
         l10n.folderJumlahFolder(folder.jumlahFolder!),
       if (folder.jumlahFile != null && folder.jumlahFile! > 0)
         l10n.folderJumlahFile(folder.jumlahFile!),
+      // Waktu bikin ikut di baris rincian, bukan baris sendiri: folder
+      // biasanya banyak dan pendek-pendek, jadi nambah baris ketiga bikin
+      // daftarnya dua kali lebih panjang tanpa nambah kejelasan.
+      if (folder.dibuatPada != null)
+        waktuRelatif(
+          folder.dibuatPada!,
+          Localizations.localeOf(context).languageCode,
+          hariIni: l10n.waktuHariIni,
+          kemarin: l10n.waktuKemarin,
+        ),
     ].join(' · ');
 
     return Card(
@@ -493,6 +504,16 @@ class _KartuFileState extends ConsumerState<_KartuFile> {
     final rincian = [
       if (file.ukuranTerbaca != null) file.ukuranTerbaca!,
       if (file.diunggahOleh != null) file.diunggahOleh!,
+      // Kapan berkasnya masuk. Satu folder gampang berisi belasan sertifikat
+      // yang terbit di hari yang sama — tanpa jam, urutannya cuma bisa ditebak
+      // dari posisi baris.
+      if (file.dibuatPada != null)
+        waktuRelatif(
+          file.dibuatPada!,
+          Localizations.localeOf(context).languageCode,
+          hariIni: l10n.waktuHariIni,
+          kemarin: l10n.waktuKemarin,
+        ),
     ].join(' · ');
 
     // Sertifikat yang PDF-nya masih digenerate belum bisa diunduh — kasih tau,

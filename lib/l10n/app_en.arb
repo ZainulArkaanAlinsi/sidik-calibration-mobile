@@ -1447,6 +1447,8 @@
   "antreanKosongBody": "Worksheets submitted by technicians show up here.",
   "antreanGagal": "Couldn't load the queue.",
   "antreanOleh": "by {nama}",
+  "waktuHariIni": "Today",
+  "waktuKemarin": "Yesterday",
   "@antreanOleh": {
     "placeholders": {
       "nama": {

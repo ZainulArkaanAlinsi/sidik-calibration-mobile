@@ -44,6 +44,7 @@ class ArsipFolder {
     required this.jumlahBerkas,
     this.parentId,
     this.tipe = 'manual',
+    this.dibuatPada,
   });
 
   final int id;
@@ -61,6 +62,11 @@ class ArsipFolder {
 
   final int jumlahSubfolder;
   final int jumlahBerkas;
+
+  /// Kapan foldernya dibikin — **punya jam**. Backend udah ngirim (`dibuat_pada`
+  /// di `FolderResource`), cuma nggak pernah dibaca di sini, jadi folder tahun
+  /// & folder manual yang dibikin di hari yang sama nggak bisa dibedain.
+  final DateTime? dibuatPada;
 
   /// Folder kosong boleh dihapus; yang masih ada isinya ditolak backend.
   /// Dicek di sini biar tombolnya bisa dimatiin duluan.
@@ -84,6 +90,11 @@ class ArsipFolder {
       tipe: json['tipe'] as String? ?? 'manual',
       jumlahSubfolder: (json['jumlah_subfolder'] as num?)?.toInt() ?? 0,
       jumlahBerkas: (json['jumlah_berkas'] as num?)?.toInt() ?? 0,
+      // UTC dari backend → waktu lokal; tanpa ini jamnya mundur 7 jam.
+      dibuatPada: switch (json['dibuat_pada']) {
+        String s => DateTime.tryParse(s)?.toLocal(),
+        _ => null,
+      },
     );
   }
 }
