@@ -126,6 +126,9 @@ class MockLembarKerjaService implements LembarKerjaService {
     final bentuk = switch (profil) {
       'turbidimeter' => contohBentukLembarKerjaTurbidi(untukAdmin: untukAdmin),
       'chlorine_meter' => contohBentukLembarKerjaChlorine(untukAdmin: untukAdmin),
+      'refractometer' => contohBentukLembarKerjaRefractometer(
+        untukAdmin: untukAdmin,
+      ),
       // Profil kosong / nggak dikenal SENGAJA jatuh ke pH, bukan lempar error —
       // sama kayak janji kontraknya (`docs/kontrak-api.md` §4).
       _ => contohBentukLembarKerja(untukAdmin: untukAdmin),
@@ -779,6 +782,234 @@ Map<String, dynamic> contohBentukLembarKerjaChlorine({bool untukAdmin = false}) 
     'catatan_pengisian':
         'Kolom yang belum bisa diisi di lapangan boleh dikosongin — '
         'lembar kerja tetap bisa dikirim.',
+    'bagian': bagian,
+  };
+}
+
+/// Salinan bentuk Refractometer (`?profil=refractometer`, `RefractometerProfile`
+/// di backend). Lembar cetaknya **SIDIK-FM-CAL-0523_Rev.2**, satu halaman.
+/// Alat KEEMPAT yang punya lembar sendiri, dan yang paling beda dari tiga
+/// sebelumnya.
+///
+/// ## Kolom °C di sini BUKAN pelengkap
+///
+/// Di lembar Chlorine, suhu cuma dicatat buat jejak. Di sini dia yang dipakai
+/// NGITUNG: indeks bias berubah ikut suhu, jadi pembacaan dinormalisasi dulu ke
+/// **20 °C** (huruf "20" di `n20D` itu ini) sebelum diadu ke larutan standar.
+///
+/// ```
+/// Corrected = Observed + 0,00045 × (T − 20)     // n20D
+/// Corrected = Observed + 0,07    × (T − 20)     // °Brix
+/// ```
+///
+/// Sesi master `2211.11.R`: titik 1,33659 dibaca `1,3362` pada rata-rata suhu
+/// **27 °C** → `1,3362 + 0,00045 × 7` = **1,33935**. Yang kecetak di sertifikat
+/// sebagai Unit Under Test itu 1,33935, BUKAN 1,3362. Teknisi yang ngosongin
+/// kolom suhu tetap boleh ngirim — backend pakai pembacaan apa adanya, nggak
+/// nebak — tapi hasilnya jadi kurang teliti.
+///
+/// ## Kenapa `desimal`/`resolusi` per baris NGGAK dikirim
+///
+/// Sama alasannya kayak Chlorine: resolusinya **seragam** 0,0001 n20D di dua
+/// titik. Bedanya, di sini itu penting banget — nilai terkoreksinya bisa **5
+/// desimal** (`1,33935`) padahal resolusi alatnya 4. Mad ke 4 desimal bikin
+/// `1,33935` kecetak `1,3394`, beda dari sertifikat.
+///
+/// ## Satuan ditanya di depan
+///
+/// Satu refractometer bisa nampilin n20D atau °Brix, dan pilihannya ngubah
+/// SEMUA angka hilirnya (koefisien suhu 0,00045 vs 0,07, titik standar, CMC).
+/// Makanya `equipment.satuan` ada di `identitas_alat` — ditanya sebelum teknisi
+/// mulai ngisi tabel, bukan ditebak.
+Map<String, dynamic> contohBentukLembarKerjaRefractometer({
+  bool untukAdmin = false,
+}) {
+  Map<String, dynamic> field(
+    String kode,
+    String label,
+    String tipe, {
+    String? sumber,
+    String? satuan,
+    List<Map<String, String>> pilihan = const [],
+    bool hanyaAdmin = false,
+  }) => {
+    'kode': kode,
+    'label': label,
+    'tipe': tipe,
+    'wajib': false,
+    'sumber': sumber,
+    'satuan': satuan,
+    'pilihan': pilihan,
+    'hanya_admin': hanyaAdmin,
+  };
+
+  // Larutan fisiknya SAMA, cuma dibaca di skala yang beda: `BSAG2.5-0034`
+  // dibaca 2,5 °Brix atau 1,33659 n20D, `BSAG40-0071` dibaca 40 °Brix atau
+  // 1,39986 n20D. Angkanya cocok sama CMC yang diseed backend, jadi titiknya
+  // tetap dapat budget ketidakpastian.
+  const barisN20D = [
+    {'titik_ukur': 1.33659, 'label': '1,33659'},
+    {'titik_ukur': 1.39986, 'label': '1,39986'},
+  ];
+  const barisBrix = [
+    {'titik_ukur': 2.5, 'label': '2,5'},
+    {'titik_ukur': 40.0, 'label': '40'},
+  ];
+
+  Map<String, dynamic> tabel(String tahap, String judul) => {
+    'tahap': tahap,
+    'judul': judul,
+    // Sengaja tanpa `resolusi`/`desimal` — lihat docblock.
+    'baris': barisN20D,
+    'baris_per_satuan': {'n20D': barisN20D, '°Brix': barisBrix},
+    'kolom': [
+      {'kode': 'pembacaan', 'label': 'n20D', 'tipe': 'angka', 'satuan': 'n20D'},
+      {'kode': 'suhu', 'label': '°C', 'tipe': 'angka', 'satuan': '°C'},
+    ],
+    'pengulangan': [1, 2, 3, 4, 5],
+  };
+
+  final bagian = <Map<String, dynamic>>[
+    {
+      'kode': 'identitas_alat',
+      'halaman': 1,
+      'judul': 'EQUIPMENT IDENTITY AND CUSTOMER DATA',
+      'field': [
+        field('tanggal_terima', 'Received Date', 'tanggal'),
+        field('tanggal_kalibrasi', 'Calibration Date', 'tanggal'),
+        field('equipment_id', 'Equipment', 'pilihan', sumber: 'master_alat'),
+        field('equipment.nama_alat', '1. Name', 'teks', sumber: 'otomatis'),
+        // Tanpa `satuan` — nilainya udah bawa satuannya sendiri ("0–53 °Brix /
+        // 0,1 °Brix"), dan alat ini bisa kecatat di skala mana pun. Lihat
+        // `RefractometerProfile` di backend.
+        field('equipment.range_resolusi', '2. Range/Resolution', 'teks',
+            sumber: 'otomatis'),
+        field('alat_model', '3. Type/Model', 'teks'),
+        field('alat_serial_number', '4. Serial Number/LPI', 'teks'),
+        field('alat_merk', '5. Merk/Manufacture', 'teks'),
+        field('thermohygro_standard_id', '6. Thermohygro Used', 'pilihan',
+            sumber: 'master_thermohygro',
+            pilihan: const [
+              {'nilai': '36', 'label': 'TH-1', 'grup': 'Inlab'},
+              {'nilai': '40', 'label': 'TH-2', 'grup': 'Insitu'},
+              {'nilai': '44', 'label': 'TH-5', 'grup': 'Inlab'},
+              {'nilai': '42', 'label': 'TH-6', 'grup': 'Insitu'},
+              {'nilai': '43', 'label': 'TH-7', 'grup': 'Insitu'},
+            ]),
+        // Pilihannya ikut di field-nya sendiri, jadi layar nggak perlu baca
+        // `pilihan_satuan` di akar respons — dua-duanya isinya sama.
+        field('equipment.satuan', '7. Satuan Refracto', 'pilihan',
+            pilihan: const [
+              {'nilai': 'n20D', 'label': 'n20D'},
+              {'nilai': '°Brix', 'label': '°Brix'},
+            ]),
+      ],
+    },
+    {
+      'kode': 'pemilik',
+      'halaman': 1,
+      'judul': 'OWNER',
+      'field': [
+        field('pemilik_nama', '1. Name', 'teks'),
+        field('pemilik_alamat', '2. Address', 'teks_panjang'),
+      ],
+    },
+    {
+      'kode': 'usage_check',
+      'halaman': 1,
+      'judul': 'STANDARD',
+      // Satu botol fisik dipakai buat dua satuan sekaligus (BSAG2.5-0034 =
+      // 2,5 °Brix DAN 1,33659 n20D), makanya empat baris larutan walau yang
+      // dikalibrasi cuma dua titik n20D.
+      'baris': [
+        {
+          'label': 'Refractometer Std Solution 1.33659 n20D',
+          'standard_id': 50,
+          'terdaftar': true,
+        },
+        {
+          'label': 'Refractometer Std Solution 1.39986 n20D',
+          'standard_id': 51,
+          'terdaftar': true,
+        },
+        {
+          'label': 'Refractometer Std Solution 2.5 oBrix',
+          'standard_id': 52,
+          'terdaftar': true,
+        },
+        {
+          'label': 'Refractometer Std Solution 40 oBrix',
+          'standard_id': 53,
+          'terdaftar': true,
+        },
+        {
+          'label': 'Termometer & Sensor Std.',
+          'standard_id': 6,
+          'terdaftar': true,
+        },
+        {'label': 'PT100/SH1', 'standard_id': null, 'terdaftar': false},
+      ],
+      'field': <Map<String, dynamic>>[],
+    },
+    {
+      'kode': 'data_kalibrasi',
+      'halaman': 1,
+      'judul': 'CALIBRATION DATA',
+      'field': [
+        field('lokasi', '1. Location', 'pilihan', pilihan: [
+          {'nilai': 'lab', 'label': 'Inlab'},
+          {'nilai': 'onsite', 'label': 'Insitu'},
+        ]),
+        field('room_id', 'Ruangan', 'pilihan', sumber: 'master_ruangan'),
+        if (untukAdmin)
+          field('calibration_method_id', '2. Calibration Methode', 'pilihan',
+              sumber: 'master_metode', hanyaAdmin: true),
+      ],
+    },
+    {
+      'kode': 'hasil',
+      'halaman': 1,
+      'judul': 'CALIBRATION RESULT',
+      'field': [
+        field('suhu_awal', 'Env. Condition — First', 'angka', satuan: '°C'),
+        field('kelembaban_awal', 'Env. Condition — First', 'angka', satuan: '%RH'),
+        field('suhu_akhir', 'Env. Condition — End', 'angka', satuan: '°C'),
+        field('kelembaban_akhir', 'Env. Condition — End', 'angka', satuan: '%RH'),
+      ],
+      'tabel': [
+        tabel('sebelum_adjustment', 'Before adjustment Reading'),
+        tabel('sesudah_adjustment', 'After adjustment Reading'),
+      ],
+    },
+    {
+      'kode': 'penutup',
+      'halaman': 1,
+      'judul': 'Catatan & Tanda Tangan',
+      'field': [
+        field('catatan_teknisi', 'Catatan', 'teks_panjang'),
+        field('teknisi.nama', 'Calibrated by', 'teks', sumber: 'otomatis'),
+        field('reviewer.nama', 'Checked by', 'teks', sumber: 'otomatis'),
+      ],
+    },
+  ];
+
+  return {
+    'kode_dokumen': 'SIDIK-FM-CAL-0523_Rev.2',
+    'judul': 'Calibration Worksheet - Refractometer',
+    'untuk': untukAdmin ? 'admin' : 'teknisi',
+    'jumlah_pengulangan': 5,
+    'larutan_standar': [1.33659, 1.39986],
+    'satuan': 'n20D',
+    'satuan_suhu': '°C',
+    'pilihan_satuan': [
+      {'nilai': 'n20D', 'label': 'n20D (indeks bias)'},
+      {'nilai': '°Brix', 'label': '°Brix (kadar sukrosa)'},
+    ],
+    'semua_kolom_opsional': true,
+    'catatan_pengisian':
+        'Kolom yang belum bisa diisi di lapangan boleh dikosongin — '
+        'lembar kerja tetap bisa dikirim. Suhu tiap pembacaan WAJIB diisi kalau '
+        'bisa: tanpa itu pembacaan nggak bisa dinormalisasi ke 20 °C.',
     'bagian': bagian,
   };
 }

@@ -89,8 +89,14 @@ void main() {
 
       // Nilai Standard = nilai buffer pada suhu larutan (4,0092252 di 22,2 °C),
       // BUKAN nominal 4,00. Ini angka asli dari PERHITUNGAN.csv.
-      expect(find.text('4.0092252'), findsOneWidget);
-      expect(find.text('6.9885032'), findsOneWidget);
+      //
+      // Yang dicek versi TAMPILNYA — dibulatkan ke resolusi alat (0,01), sama
+      // kayak yang kecetak di sertifikat. Angkanya tetap dari server: buffer
+      // nominal 10,01 tampil `9.98`, dan itu mustahil muncul kalau layar ini
+      // mbulatkan nominalnya sendiri. Dua kali per nilai — tabel Before &
+      // After punya baris Standard masing-masing.
+      expect(find.text('6.99'), findsNWidgets(2));
+      expect(find.text('9.98'), findsNWidgets(2));
 
       // U95% Sertifikat suhu TH-3, hasil akar(1,7² + 0,2²).
       expect(find.text('1.7117'), findsOneWidget);
@@ -157,6 +163,38 @@ void main() {
       expect(service.aksi, contains(('periksa', 1)));
       // Periksa NGGAK boleh ikut nyetujuin.
       expect(service.aksi.any((a) => a.$1 == 'setujui'), isFalse);
+    });
+
+    /// Temuan dimuat SENDIRI begitu layar kebuka, tanpa nunggu admin mencet.
+    ///
+    /// **Bug lapangan 7 Agt 2026.** Pemeriksaan cuma jalan waktu tombol PERIKSA
+    /// ditekan, jadi yang tampil bisa temuan basi. Teknisi baru aja ngonfirmasi
+    /// pembacaan hasil foto dari HP, tapi layar admin masih nulis "1 Blocks
+    /// issuance — pembacaan AI Vision belum diverifikasi". Admin mencet Approve,
+    /// ditolak, dan nggak ada petunjuk kalau blokirnya sebenarnya udah nggak
+    /// ada. Temuan yang salah lebih menyesatkan daripada nggak ada temuan.
+    testWidgets('temuan kemuat sendiri waktu layar dibuka', (tester) async {
+      _perbesarViewport(tester);
+      final service = MockPerhitunganService(
+        validasi: _validasi(
+          info: 1,
+          temuan: const [
+            Temuan(
+              tingkat: TingkatTemuan.info,
+              kode: 'nomor_order_kosong',
+              pesan: 'Order Number belum diisi.',
+            ),
+          ],
+        ),
+      );
+      await _muat(tester, _app(service));
+
+      // Belum ada satu pun tap ke PERIKSA.
+      expect(service.aksi, contains(('periksa', 1)));
+      expect(find.text('Order Number belum diisi.'), findsOneWidget);
+
+      // Tombolnya TETAP ada — admin masih bisa ngulang kapan pun.
+      expect(find.text('PERIKSA'), findsOneWidget);
     });
 
     testWidgets('temuan error mematikan tombol Setujui', (tester) async {

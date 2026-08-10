@@ -57,6 +57,23 @@ class TitikLembarKerja {
   };
 }
 
+/// Dari mana angka di lembar kerja ini datang — nilainya persis yang diterima
+/// backend (`CalibrationRequest`: `manual|ocr|ai_vision`).
+///
+/// Ini catatan asal-usul, bukan hiasan: kalau ada angka sertifikat yang
+/// kelihatan meleset, pertanyaan pertamanya selalu "ini diketik teknisi atau
+/// hasil baca AI?". Sebelum ini semua sesi kecatat `manual`, termasuk yang
+/// tabelnya diisi dari foto — jawabannya cuma bisa dicari di log server, dan
+/// log-nya nggak selamanya ada.
+enum MetodeInput {
+  manual('manual'),
+  aiVision('ai_vision');
+
+  const MetodeInput(this.api);
+
+  final String api;
+}
+
 /// Satu baris "Usage Check": standar mana yang dicentang teknisi.
 class StandarDicek {
   const StandarDicek({
@@ -105,9 +122,11 @@ class LembarKerjaSubmission {
     this.alatMerk,
     this.pemilikNama,
     this.pemilikAlamat,
+    this.equipmentSatuan,
     this.standarDicek = const [],
     this.measurements = const [],
     this.sertakanMeasurements = true,
+    this.inputMethod = MetodeInput.manual,
   });
 
   final int equipmentId;
@@ -148,6 +167,22 @@ class LembarKerjaSubmission {
   final String? pemilikNama;
   final String? pemilikAlamat;
 
+  /// Satuan yang dipilih teknisi di "7. Satuan Refracto" — `n20D` atau `°Brix`.
+  ///
+  /// **Null buat alat yang lembar kerjanya nggak punya kolom itu**, dan itu
+  /// bukan kelalaian: backend nyimpen nilai ini ke `equipments.satuan`, jadi
+  /// ngirimnya terus-terusan bikin tiap kiriman lembar kerja nulis ulang data
+  /// master alat — pH Meter bakal ngeset satuan alatnya jadi "pH" tiap sesi,
+  /// diam-diam, tanpa ada yang minta.
+  ///
+  /// Kenapa perlu dikirim sama sekali: `RefractometerProfile` di backend baca
+  /// `equipments.satuan` buat milih koefisien suhu (0,00045/°C buat n20D vs
+  /// 0,07/°C buat °Brix) dan komponen CMC-nya. Tanpa kolom ini, teknisi yang
+  /// mindahin alatnya ke skala °Brix cuma keubah label pembacaannya —
+  /// koreksinya tetap dihitung pakai koefisien n20D, meleset 155 kali, dan
+  /// nggak ada satu pun yang error.
+  final String? equipmentSatuan;
+
   final List<StandarDicek> standarDicek;
   final List<TitikLembarKerja> measurements;
 
@@ -157,6 +192,10 @@ class LembarKerjaSubmission {
   /// lingkungan di draft yang tabelnya udah keisi.
   final bool sertakanMeasurements;
 
+  /// Lihat [MetodeInput]. Bawaannya `manual` — sesi yang tabelnya nggak pernah
+  /// disentuh foto tetap kecatat sama kayak sebelumnya.
+  final MetodeInput inputMethod;
+
   static String _tanggal(DateTime d) =>
       '${d.year.toString().padLeft(4, '0')}-'
       '${d.month.toString().padLeft(2, '0')}-'
@@ -165,7 +204,7 @@ class LembarKerjaSubmission {
   Map<String, dynamic> toJson() => {
     'equipment_id': equipmentId,
     'client_request_id': clientRequestId,
-    'input_method': 'manual',
+    'input_method': inputMethod.api,
     'lokasi': lokasi.toApi(),
     'status': simpanSebagaiDraft ? 'draft' : 'menunggu_approval',
 
@@ -195,6 +234,13 @@ class LembarKerjaSubmission {
     'alat_merk': alatMerk?.trim(),
     'pemilik_nama': pemilikNama?.trim(),
     'pemilik_alamat': pemilikAlamat?.trim(),
+
+    // Satu-satunya kolom di blok ini yang kuncinya DIHILANGKAN waktu null,
+    // bukan dikirim eksplisit. Aturan "kirim null biar PUT bisa mengosongkan"
+    // di atas berlaku buat kolom milik sesi; yang ini nulis ke data MASTER
+    // alat, dan "kosongin satuan alatnya" nggak pernah jadi maksud teknisi
+    // waktu dia ngirim lembar kerja yang kebetulan nggak punya kolom itu.
+    if (equipmentSatuan != null) 'equipment_satuan': equipmentSatuan,
 
     'standar_dicek': standarDicek.map((s) => s.toJson()).toList(),
 

@@ -2060,6 +2060,24 @@ abstract class AppLocalizations {
   /// **'Some OCR readings still need confirming — this session can\'t be approved yet.'**
   String get detailPerluVerifikasi;
 
+  /// No description provided for @detailVerifikasiTombol.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ve checked these readings'**
+  String get detailVerifikasiTombol;
+
+  /// No description provided for @detailVerifikasiSukses.
+  ///
+  /// In en, this message translates to:
+  /// **'Readings confirmed. This session can now be reviewed by an admin.'**
+  String get detailVerifikasiSukses;
+
+  /// No description provided for @detailVerifikasiGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t confirm: {pesan}'**
+  String detailVerifikasiGagal(String pesan);
+
   /// No description provided for @arsipTitle.
   ///
   /// In en, this message translates to:
@@ -5372,6 +5390,12 @@ abstract class AppLocalizations {
   /// **'Average'**
   String get perhitAverage;
 
+  /// No description provided for @perhitObserved.
+  ///
+  /// In en, this message translates to:
+  /// **'observed (before temp. correction)'**
+  String get perhitObserved;
+
   /// No description provided for @perhitIndexed.
   ///
   /// In en, this message translates to:
@@ -5965,6 +5989,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancel'**
   String get lkPengulanganBatal;
+
+  /// No description provided for @lkKonfirmasiJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the numbers before sending'**
+  String get lkKonfirmasiJudul;
+
+  /// No description provided for @lkKonfirmasiCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Averages of the After adjustment readings. Correction and uncertainty are computed by the server once this is sent.'**
+  String get lkKonfirmasiCatatan;
+
+  /// No description provided for @lkKonfirmasiDariFoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Some numbers in this table came from a photo. By sending, you confirm you\'ve checked them against the instrument.'**
+  String get lkKonfirmasiDariFoto;
+
+  /// No description provided for @lkKonfirmasiGagalTandai.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent, but marking them as checked failed: {pesan}. Open the session in History and tap \"I\'ve checked these readings\".'**
+  String lkKonfirmasiGagalTandai(String pesan);
+
+  /// No description provided for @lkKonfirmasiBaris.
+  ///
+  /// In en, this message translates to:
+  /// **'{terisi} of {total} boxes · average {rata}'**
+  String lkKonfirmasiBaris(int terisi, int total, String rata);
+
+  /// No description provided for @lkKonfirmasiBarisKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Not filled in'**
+  String get lkKonfirmasiBarisKosong;
+
+  /// No description provided for @lkKonfirmasiPeriksaLagi.
+  ///
+  /// In en, this message translates to:
+  /// **'Check again'**
+  String get lkKonfirmasiPeriksaLagi;
+
+  /// No description provided for @lkKonfirmasiKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Send now'**
+  String get lkKonfirmasiKirim;
+
+  /// No description provided for @lkGantiSatuanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Switching units clears the table'**
+  String get lkGantiSatuanJudul;
+
+  /// No description provided for @lkGantiSatuanPesan.
+  ///
+  /// In en, this message translates to:
+  /// **'{dari} uses different standard solutions than {ke}, so the table rows change and any readings you entered are discarded. A {dari} value is not a {ke} value.'**
+  String lkGantiSatuanPesan(String dari, String ke);
+
+  /// No description provided for @lkGantiSatuanBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get lkGantiSatuanBatal;
+
+  /// No description provided for @lkGantiSatuanLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch & clear'**
+  String get lkGantiSatuanLanjut;
 
   /// No description provided for @emailRiwayatBelumKeluar.
   ///

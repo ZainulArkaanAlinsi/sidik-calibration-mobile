@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart' show setEquals;
 import 'package:flutter/widgets.dart';
 
+import '../../core/utils/angka.dart';
 import '../../models/calibration_detail.dart' show IsianTeknisi;
 import '../../models/calibration_draft.dart' show LokasiKalibrasi;
 import '../../models/equipment_lookup.dart';
@@ -19,6 +21,46 @@ double? parseAngka(String teks) =>
 String formatAngka(double nilai) => nilai == nilai.roundToDouble()
     ? nilai.toStringAsFixed(0)
     : '$nilai';
+
+/// Satu baris di layar konfirmasi sebelum kirim: larutan standar, berapa kotak
+/// yang keisi, dan rata-rata pembacaan After adjustment.
+///
+/// **Sengaja NGGAK bawa koreksi.** Koreksi = nilai standar − rata-rata, dan
+/// nilai standar buat pH itu hasil koreksi kurva suhu yang dihitung server
+/// (buffer 7 di 22,2 °C jadi 6,9889072, bukan 7,00). Kalau layar ini nebak
+/// sendiri pakai nominal, angkanya beda dari yang nanti kecetak di sertifikat —
+/// bikin masalah baru "layar vs PDF beda" persis yang lagi diberesin. Rata-rata
+/// doang udah cukup buat tujuannya: teknisi lihat `1,83 → 1,90` dan sadar dia
+/// salah ketik.
+class RingkasanTitik {
+  const RingkasanTitik({
+    required this.label,
+    required this.satuan,
+    required this.terisi,
+    required this.total,
+    required this.desimal,
+    this.rataRata,
+  });
+
+  /// Label larutan standar seperti yang tercetak di lembar kerja (`1,83`).
+  final String label;
+  final String satuan;
+
+  /// Berapa kotak pembacaan After adjustment yang keisi, dari [total].
+  final int terisi;
+  final int total;
+
+  /// Desimal buat nampilin [rataRata].
+  final int desimal;
+
+  /// `null` = baris ini belum diisi sama sekali.
+  final double? rataRata;
+
+  bool get kosong => rataRata == null;
+
+  /// Ada kotak yang dilewat — bukan salah, tapi hampir selalu nggak disengaja.
+  bool get adaYangKosong => terisi > 0 && terisi < total;
+}
 
 /// Isian satu baris tabel hasil: satu larutan standar, dua tahap
 /// (before & after adjustment), masing-masing n pengulangan × 2 kolom.
@@ -41,7 +83,15 @@ class TitikState {
   final double titikUkur;
   final String label;
   final int jumlahPengulangan;
-  final String satuan;
+
+  /// Satuan pembacaan yang ikut ke `measurements[].satuan`.
+  ///
+  /// **Bisa berubah di tengah jalan**, beda dari kolom lain di kelas ini. Satu
+  /// refractometer bisa nampilin n20D atau °Brix, dan teknisi milihnya di
+  /// formulir ("7. Satuan Refracto") — lihat [LembarKerjaState.satuan]. Alat
+  /// lain nggak pernah nyentuh ini: bentuk lembar kerjanya nggak punya kolom
+  /// itu, jadi isinya tetap `bentuk.satuan` dari awal sampai kirim.
+  String satuan;
 
   /// Jumlah desimal resolusi titik ini (Turbidimeter 2/1/0). `null` = resolusi
   /// seragam. Dipakai buat mad pembacaan hasil kamera ke resolusi titik.
@@ -162,15 +212,32 @@ class LembarKerjaState {
         }
       }
 
+    }
+
+    _bangunTitik();
+  }
+
+  /// Bikin baris tabel hasil buat [satuan] yang lagi kepilih.
+  ///
+  /// Dipisah dari konstruktor karena dipanggil lagi tiap satuan berubah:
+  /// Refractometer ngirim titik standar yang beda per skala (1,33659/1,39986
+  /// n20D vs 2,5/40 °Brix), jadi tabelnya ikut ganti — bukan cuma labelnya.
+  void _bangunTitik() {
+    for (final t in titik.values) {
+      t.dispose();
+    }
+    titik.clear();
+
+    for (final bagian in bentuk.bagian) {
       for (final t in bagian.tabel) {
-        for (final b in t.baris) {
+        for (final b in t.barisUntuk(satuan)) {
           titik.putIfAbsent(
             b.titikUkur,
             () => TitikState(
               titikUkur: b.titikUkur,
               label: b.label,
               jumlahPengulangan: t.pengulangan.length,
-              satuan: bentuk.satuan,
+              satuan: satuan,
               desimal: b.desimal,
               // Standar pasangan titik ini udah kepilih dari formulirnya —
               // teknisi tinggal nyentang, nggak milih ulang dari katalog.
@@ -183,6 +250,24 @@ class LembarKerjaState {
     }
   }
 
+  /// Titik ukur yang bakal kebentuk kalau satuannya [calon] — dipakai layar
+  /// buat tau apakah ganti satuan bakal ngubah tabelnya sama sekali.
+  Set<double> _titikUntuk(String calon) => {
+    for (final bagian in bentuk.bagian)
+      for (final t in bagian.tabel)
+        for (final b in t.barisUntuk(calon)) b.titikUkur,
+  };
+
+  /// Ganti satuan ke [calon] bakal **ngosongin** tabel yang udah diisi?
+  ///
+  /// `true` cuma kalau dua-duanya kejadian: titik standarnya beda, DAN udah ada
+  /// pembacaan yang diketik. Layar wajib nanya dulu sebelum manggil setter
+  /// [satuan] — angka yang diketik di lapangan nggak boleh ilang diam-diam,
+  /// walau angka n20D emang nggak ada artinya sebagai °Brix.
+  bool gantiSatuanMenghapusIsian(String calon) =>
+      !setEquals(_titikUntuk(calon), titik.keys.toSet()) &&
+      titik.values.any((t) => t.adaIsian);
+
   final LembarKerja bentuk;
   final String clientRequestId;
 
@@ -190,6 +275,62 @@ class LembarKerjaState {
   LokasiKalibrasi lokasi = LokasiKalibrasi.lab;
   int? roomId;
   int? standardId;
+
+  /// Satuan yang lagi ditampilin alatnya — dipilih teknisi lewat kolom
+  /// `equipment.satuan` ("7. Satuan Refracto"), dan ikut ke tiap
+  /// `measurements[].satuan`.
+  ///
+  /// Cuma Refractometer yang punya kolomnya: satu alat fisik bisa nampilin
+  /// **n20D** (indeks bias) atau **°Brix** (kadar sukrosa), dan pilihannya
+  /// ngubah semua angka hilirnya — koefisien suhu 0,00045/°C vs 0,07/°C, titik
+  /// larutan standar, sampai CMC-nya. Makanya ditanya di depan, bukan ditebak
+  /// dari angka yang masuk.
+  ///
+  /// Bawaannya `bentuk.satuan` dari backend, bukan `alat?.satuan`: yang kedua
+  /// bakal ngubah perilaku tiga alat lama yang selama ini selalu ikut bentuk.
+  /// Master alat cuma dipakai buat **milihin nilai awal** waktu alatnya
+  /// dipilih, dan itu pun lewat [isiDariAlat] yang cuma ngisi yang masih
+  /// kosong.
+  String get satuan => _satuanPilihan ?? bentuk.satuan;
+
+  set satuan(String nilai) {
+    final titikBaru = _titikUntuk(nilai);
+    _satuanPilihan = nilai;
+
+    // Titik standarnya beda → tabelnya dibangun ulang. Refractometer di skala
+    // °Brix diadu ke larutan 2,5 & 40, bukan 1,33659 & 1,39986 — larutan
+    // fisiknya sama, angkanya beda. Pembacaan lama ikut kebuang, dan itu bukan
+    // kehilangan data: angka n20D nggak punya arti sebagai °Brix. Layar wajib
+    // konfirmasi dulu lewat [gantiSatuanMenghapusIsian].
+    if (!setEquals(titikBaru, titik.keys.toSet())) {
+      _bangunTitik();
+      return;
+    }
+
+    // Titiknya sama (alat satu satuan, atau satuan yang nggak ngubah tabel) —
+    // isian dipertahankan, cuma label satuannya yang ikut.
+    //
+    // Dibarengin sekarang juga, bukan pas nyusun payload: ringkasan sebelum
+    // kirim baca `TitikState.satuan` langsung, jadi kalau cuma ditimpa waktu
+    // submit, teknisi ganti ke °Brix tapi layar konfirmasinya tetap nulis n20D
+    // — dan yang dia setujui bukan yang dikirim.
+    for (final t in titik.values) {
+      t.satuan = nilai;
+    }
+  }
+
+  String? _satuanPilihan;
+
+  /// Lembar kerja ini punya kolom "7. Satuan Refracto"?
+  ///
+  /// Yang nentuin **bentuk dari backend**, bukan daftar nama alat di sini —
+  /// begitu ada alat kelima yang satuannya bisa dipindah, dia ikut jalan tanpa
+  /// nyentuh file ini. Dipakai buat mutusin `equipment_satuan` ikut dikirim
+  /// atau nggak; lihat `LembarKerjaSubmission.equipmentSatuan` soal kenapa
+  /// ngirimnya terus-terusan itu merusak.
+  bool get satuanBisaDipilih => bentuk.bagian
+      .expand((b) => b.field)
+      .any((f) => f.kode == 'equipment.satuan');
 
   /// Kolom administratif — cuma kebentuk kalau backend ngirimin bagiannya
   /// (yaitu waktu yang login admin).
@@ -201,6 +342,18 @@ class LembarKerjaState {
 
   /// Keyed by nilai larutan standar (4.00 / 7.00 / 10.01).
   final Map<double, TitikState> titik = {};
+
+  /// Ada minimal satu sel yang pernah diisi hasil **foto tabel (AI Vision)**,
+  /// walau sesudah itu dibetulin manual teknisi.
+  ///
+  /// Dipakai buat `input_method` yang dikirim ke backend. Dulu kolom itu dipatok
+  /// `manual` terus, jadi sesi yang tabelnya dibaca AI kecatat sama persis kayak
+  /// yang diketik tangan. Waktu ada angka sertifikat yang kelihatan aneh, nggak
+  /// ada satu pun cara buat tahu angka itu datang dari mana — 6 Agt 2026 mesti
+  /// ngubek log server buat mastiin satu sesi chlorine bukan hasil salah baca
+  /// AI. Backend udah nerima `manual|ocr|ai_vision` sejak awal
+  /// (`CalibrationRequest`), cuma nggak pernah dikasih tahu.
+  bool adaIsianDariFoto = false;
 
   /// Sel yang diisi AI dengan **keyakinan rendah** — ditandai di layar biar
   /// teknisi ngecek angka itu saja, bukan seluruh tabel (spec vision §4.1).
@@ -359,13 +512,52 @@ class LembarKerjaState {
       alatMerk: kalimat('alat_merk'),
       pemilikNama: kalimat('pemilik_nama'),
       pemilikAlamat: kalimat('pemilik_alamat'),
+      equipmentSatuan: satuanBisaDipilih ? satuan : null,
       standarDicek: usageCheck.values
           .where((u) => u.adaIsian)
           .map((u) => u.toSubmission())
           .toList(),
       measurements: measurements,
+      inputMethod: adaIsianDariFoto
+          ? MetodeInput.aiVision
+          : MetodeInput.manual,
     );
   }
+
+  /// Ringkasan buat layar konfirmasi sebelum kirim — satu baris per larutan
+  /// standar, urutannya sama kayak tabelnya.
+  ///
+  /// Yang dirata-rata cuma tahap **After adjustment**: itu yang jadi Unit Under
+  /// Test di sertifikat. As-found (Before) sengaja nggak ikut biar angka yang
+  /// dilihat teknisi di sini sama dengan yang nanti kecetak.
+  List<RingkasanTitik> ringkasanKirim() => [
+    for (final t in titikUrut)
+      () {
+        final isi = [
+          for (var i = 0; i < t.jumlahPengulangan; i++)
+            parseAngka(t.kotak('sesudah_adjustment', 'pembacaan', i).text),
+        ].whereType<double>().toList();
+
+        return RingkasanTitik(
+          label: t.label,
+          satuan: t.satuan,
+          terisi: isi.length,
+          total: t.jumlahPengulangan,
+          // Alat yang resolusinya beda per titik (Turbidimeter) ngirim
+          // `desimal` sendiri per baris; yang nggak ngirim itu alat resolusi
+          // seragam, dan yang bener dipakai resolusi alatnya.
+          //
+          // Dulu di sini angkanya dipatok 2, waktu tiga alat pertama
+          // resolusinya 0,01 semua. Refractometer resolusinya 0,0001, dan
+          // pematokan itu bikin `1,3362` tampil `1,34` — teknisi mbandingin ke
+          // kertas, ketemu angka yang beda, padahal isiannya bener.
+          desimal: t.desimal ?? desimalDariResolusi(alat?.resolusi) ?? 2,
+          rataRata: isi.isEmpty
+              ? null
+              : isi.reduce((a, b) => a + b) / isi.length,
+        );
+      }(),
+  ];
 
   /// Titik diurut naik (4 / 7 / 10,01) — urutan yang sama dipakai parser OCR
   /// waktu misahin kolom, dan urutan yang dikirim ke backend.
@@ -392,6 +584,7 @@ class LembarKerjaState {
   int terapkanHasilEkstraksi(HasilEkstraksiTabel hasil, {required String tahap}) {
     final urut = titikUrut;
     var terisi = 0;
+    adaIsianDariFoto = true;
 
     for (var pengulangan = 0; pengulangan < hasil.baris.length; pengulangan++) {
       final baris = hasil.baris[pengulangan];
@@ -506,7 +699,13 @@ class LembarKerjaState {
   ) {
     final kotak = state.kotak(tahap, kolom, index);
     // Pembacaan dipad ke resolusi titiknya (4,60), suhu nggak.
-    final desimal = kolom == 'pembacaan' ? state.desimal : null;
+    //
+    // Titik yang nggak ngirim `desimal` sendiri (alat resolusi seragam) ikut
+    // resolusi ALATNYA — aturan yang sama kayak di `ringkasanKirim`. Tanpa ini
+    // Refractometer jatuh ke jalur tanpa desimal, dan pembacaannya kepotong.
+    final desimal = kolom == 'pembacaan'
+        ? state.desimal ?? desimalDariResolusi(alat?.resolusi)
+        : null;
     final baru = GabungTabel.nilaiBaru(kotak.text, nilai, desimal: desimal);
     if (baru == null) return 0;
 
@@ -538,14 +737,40 @@ class LembarKerjaState {
   /// yang benar dan cuma nyentuh yang beda — bukan ngetik dari nol, bukan juga
   /// kekunci sama data master yang mungkin basi.
   ///
-  /// Cuma kolom KOSONG yang diisi. Kalau teknisi udah ngetik lalu ganti alat,
-  /// yang dia ketik nggak boleh keganti diam-diam.
+  /// Yang ditulis ulang cuma kolom yang **kosong** atau yang isinya masih persis
+  /// seperti yang kita isi sendiri dari alat sebelumnya. Kolom yang teknisi
+  /// ketik sendiri nggak pernah disentuh.
+  ///
+  /// Dulu aturannya cuma "isi yang kosong", dan itu bocor waktu teknisi GANTI
+  /// alat: kolom yang keisi otomatis dari alat pertama ikut bertahan di lembar
+  /// alat kedua. Kejadian nyatanya di HP 7 Agt 2026 — pilih Jangka Sorong,
+  /// ganti ke Refractometer Atago, hasilnya Type/Model & Merk ikut alat baru
+  /// (dua kolom itu kosong di Jangka Sorong) tapi Serial Number nyisa
+  /// `MT-500-196-30` punya si jangka sorong. Satu blok identitas berisi dua
+  /// alat berbeda, di dokumen yang justru gunanya nyatet alat mana yang
+  /// dikalibrasi — dan nggak ada satu pun yang error.
+  ///
+  /// Nilai kosong dari alat baru **mengosongkan** kolomnya, bukan dilewat.
+  /// Alat yang serial-nya belum kecatat di master mesti nampilin kotak kosong
+  /// supaya teknisi ngisi dari badan alat; nyisain serial alat sebelumnya itu
+  /// persis kegagalan yang bikin catatan ini ditulis.
   void isiDariAlat() {
     void isi(String kode, String? nilai) {
       final kotak = teks[kode];
-      if (kotak == null || nilai == null || nilai.trim().isEmpty) return;
-      if (kotak.text.trim().isNotEmpty) return;
-      kotak.text = nilai;
+      if (kotak == null) return;
+
+      // Teknisi udah nyentuh kolom ini → berhenti, apa pun kata master.
+      final sekarang = kotak.text.trim();
+      if (sekarang.isNotEmpty && sekarang != _terisiDariAlat[kode]) return;
+
+      final baru = nilai?.trim() ?? '';
+      kotak.text = baru;
+
+      if (baru.isEmpty) {
+        _terisiDariAlat.remove(kode);
+      } else {
+        _terisiDariAlat[kode] = baru;
+      }
     }
 
     isi('alat_model', alat?.model);
@@ -553,6 +778,68 @@ class LembarKerjaState {
     isi('alat_merk', alat?.merk);
     isi('pemilik_nama', alat?.pelangganNama);
     isi('pemilik_alamat', alat?.pelangganAlamat);
+
+    _pilihkanSatuanDariAlat();
+  }
+
+  /// Nilai terakhir yang **kita** tulis ke tiap kolom dari master alat.
+  ///
+  /// Ini yang bikin [isiDariAlat] bisa mbedain "keisi otomatis dari alat
+  /// sebelumnya" (boleh diperbarui) dari "diketik teknisi" (haram disentuh) —
+  /// dua hal yang di `TextEditingController` kelihatan sama persis.
+  final Map<String, String> _terisiDariAlat = {};
+
+  /// Setel "7. Satuan Refracto" ke satuan yang kecatat di master alat.
+  ///
+  /// Alat yang didaftarin sebagai °Brix mesti kebuka sebagai °Brix, bukan
+  /// balik ke bawaan formulir (n20D) dan nunggu teknisi sadar sendiri —
+  /// pilihannya ngubah koefisien suhu, jadi yang kelewat nggak bikin error,
+  /// cuma bikin sertifikatnya meleset.
+  ///
+  /// Aturannya sama persis kayak kolom teks di [isiDariAlat], dan karena alasan
+  /// yang sama: pilihan yang **teknisi** buat sendiri haram disentuh, tapi yang
+  /// **kita** setel sendiri waktu alat sebelumnya dipilih boleh diperbarui.
+  ///
+  /// Tanpa pembedaan itu, ganti dari alat n20D ke alat yang kecatat °Brix bakal
+  /// ninggalin "n20D" di layar — dan satuan itu yang nentuin koefisien
+  /// normalisasi suhu di backend (0,00045/°C vs 0,07/°C, beda 155 kali).
+  void _pilihkanSatuanDariAlat() {
+    // Pernah disetel, dan yang nyetel bukan kita → itu pilihan teknisi.
+    if (_satuanPilihan != null && _satuanPilihan != _satuanDariAlat) return;
+
+    final dariMaster = alat?.satuan.trim();
+    if (dariMaster == null || dariMaster.isEmpty) return;
+
+    for (final f in bentuk.bagian.expand((b) => b.field)) {
+      if (f.kode != 'equipment.satuan') continue;
+
+      for (final p in f.pilihan) {
+        if (_satuanSama(p.nilai, dariMaster)) {
+          satuan = p.nilai;
+          _satuanDariAlat = p.nilai;
+          return;
+        }
+      }
+      return;
+    }
+  }
+
+  /// Satuan terakhir yang **kita** setel dari master alat — pasangannya
+  /// [_terisiDariAlat], buat kolom yang bukan kotak teks.
+  String? _satuanDariAlat;
+
+  /// Dua tulisan satuan ini menunjuk hal yang sama?
+  ///
+  /// Klausa `brix`-nya **nyontek `RefractometerProfile::satuan()` di backend**,
+  /// yang nganggep ejaan apa pun yang mengandung "brix" sebagai °Brix. Bukan
+  /// kerapian: labnya nulis `oBrix` di Excel, `°Brix` di lampiran akreditasi,
+  /// jadi master alat bisa nyimpen salah satunya. Tanpa klausa ini yang `oBrix`
+  /// nggak kecocok ke pilihan mana pun dan diam-diam jatuh ke n20D.
+  static bool _satuanSama(String a, String b) {
+    final x = a.toLowerCase().trim();
+    final y = b.toLowerCase().trim();
+
+    return x == y || (x.contains('brix') && y.contains('brix'));
   }
 
   String nilaiTurunan(String kode, {String? namaTeknisi, String? namaReviewer}) {

@@ -35,6 +35,16 @@ class LembarKerjaTabel extends StatelessWidget {
   final LembarKerjaState isian;
   final VoidCallback onBerubah;
 
+  /// Baris yang digambar — **ngikut satuan yang lagi kepilih**, bukan
+  /// `tabel.baris` yang isinya set bawaan dari backend.
+  ///
+  /// Refractometer ngirim titik standar beda per skala (1,33659/1,39986 n20D
+  /// vs 2,5/40 °Brix), dan `LembarKerjaState` mbangun `titik`-nya dari set yang
+  /// kepilih. Waktu widget ini masih baca `tabel.baris` sementara state-nya
+  /// udah pindah ke °Brix, `isian.titik[...]!` nabrak null dan tabelnya gagal
+  /// digambar sama sekali.
+  List<BarisTabelHasil> get _baris => tabel.barisUntuk(isian.satuan);
+
   static const _lebarSel = 78.0;
   static const _lebarLabel = 104.0;
 
@@ -78,7 +88,7 @@ class LembarKerjaTabel extends StatelessWidget {
                   teks: 'Standard',
                   tinggi: _tinggiKepala,
                 ),
-                for (final baris in tabel.baris)
+                for (final baris in _baris)
                   _SelKepala(
                     lebar: _lebarLabel,
                     // Satuannya ikut, persis sheet INPUT DATA yang nulis
@@ -111,7 +121,7 @@ class LembarKerjaTabel extends StatelessWidget {
                       ],
                     ),
 
-                    for (final baris in tabel.baris)
+                    for (final baris in _baris)
                       Row(
                         children: [
                           for (var i = 0; i < tabel.pengulangan.length; i++)
@@ -146,7 +156,7 @@ class LembarKerjaTabel extends StatelessWidget {
         // suhunya yang beda. Nanyain dua kali cuma bikin peluang salah pilih.
         if (tabel.sebelumAdjustment) ...[
           const SizedBox(height: AppSpacing.md),
-          for (final baris in tabel.baris)
+          for (final baris in _baris)
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),
               child: _PilihStandarTitik(
@@ -202,7 +212,27 @@ class _TombolScanState extends ConsumerState<_TombolScan> {
     try {
       final foto = await ref.read(sumberFotoProvider).ambil(
         // Tabel penuh angka kecil: kompresi agresif bikin koma ilang dan
-        // `4,04` kebaca `404`.
+        // `4,04` kebaca `404`. Makanya kualitasnya tetap 100 — yang dibatasi
+        // UKURANNYA, bukan mutunya.
+        //
+        // `maxWidth` WAJIB ada. Tanpa ini fotonya keluar di resolusi penuh
+        // sensor: kamera HP tes (Samsung A55) 50 MP, satu jepretan gampang
+        // 10–20 MB, sementara backend nolak di 8 MB
+        // (`WorksheetExtractionController`: `'foto' => [..., 'max:8192']`).
+        // Jadi fotonya ditolak SEBELUM nyampe ke AI — yang kelihatan teknisi
+        // cuma "scan gagal", padahal kamera, izin, key, & model semuanya sehat.
+        //
+        // Angkanya dipilih dari FOTO BENERAN, bukan dikira-kira: jepretan HP tes
+        // keluar 4080×3060 / 3,9 MB — udah aman di bawah 8 MB. Batas ini cuma
+        // buat jaga-jaga kalau ada kamera yang jauh lebih besar, jadi ditaruh
+        // TEPAT DI ATAS resolusi asli supaya foto normal lewat tanpa disentuh.
+        //
+        // Sempat dipatok 2400 px, dan itu overkoreksi: motong 41% detail linear
+        // buat masalah yang nggak ada. Diuji ulang di foto yang sama, dua-duanya
+        // baca 20/20 sel dengan benar — tapi lembar kerja kertas jauh lebih
+        // rapat dari layar Excel, dan di situ detail yang kebuang bisa nentuin.
+        // Nggak ada alasan mbuang piksel yang nggak bikin fotonya ditolak.
+        maxWidth: 4200,
         imageQuality: 100,
       );
       if (foto == null || !mounted) return;
@@ -211,6 +241,10 @@ class _TombolScanState extends ConsumerState<_TombolScan> {
       final hasil = await ref.read(worksheetVisionProvider).ekstrak(
             foto,
             jumlahTitik: titik.length,
+            // Dulu nggak dikirim, jadi kekunci di bawaan 5 walau teknisi milih
+            // 3 pengulangan — AI-nya disuruh nyari dua baris yang nggak ada di
+            // kertasnya.
+            jumlahBaris: widget.tabel.pengulangan.length,
             // Petunjuk biar AI nangkap angka lebih akurat: satuan + nilai
             // nominal tiap kolom + jumlah desimalnya (dari bentuk lembar kerja).
             satuan: titik.isEmpty ? null : titik.first.satuan,

@@ -102,6 +102,10 @@ class _SatuSesiMenunggu implements HistoryService {
   @override
   Future<CalibrationDetail> ambilDetail(String token, int id) =>
       MockHistoryService().ambilDetail(token, id);
+
+  @override
+  Future<CalibrationDetail> verifikasiPembacaan(String token, int id) =>
+      MockHistoryService().verifikasiPembacaan(token, id);
 }
 
 Widget _app(ApprovalService approval) {

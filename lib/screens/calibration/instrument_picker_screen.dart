@@ -17,7 +17,8 @@ import 'lembar_kerja_screen.dart';
 ///
 /// Sebagian jenis alat punya form kalibrasi sendiri ([LembarKerjaScreen]) karena
 /// strukturnya jauh lebih spesifik dari form generik — pH Meter, Turbidimeter,
-/// & Chlorin Meter (lihat [profilLembarKerjaUntuk]). Jenis alat lain lanjut ke
+/// Chlorin Meter, & Refractometer (lihat [profilLembarKerjaUntuk]). Jenis alat
+/// lain lanjut ke
 /// [CalibrationInputScreen] generik, dengan kategori udah ke-pre-fill biar
 /// teknisi nggak milih ulang.
 class InstrumentPickerScreen extends ConsumerWidget {
@@ -80,6 +81,7 @@ const _profilKhusus = {
   // narik namanya dari lampiran.
   'chlorin meter': 'chlorine_meter',
   'chlorine meter': 'chlorine_meter',
+  'refractometer': 'refractometer',
 };
 
 /// Cocokin nama alat ke kode profil lembar kerja, **case-insensitive & spasi

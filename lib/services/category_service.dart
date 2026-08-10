@@ -189,6 +189,65 @@ class MockCategoryService implements CategoryService {
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0523_Rev.1',
       ),
+      // 4 titik Refractometer — angkanya dipetik dari
+      // `RefractometerCapabilitySeeder` di backend, yang sendiri nyalin sheet
+      // DATABASE `Master Olah Data_Refractometer.xlsm` & lampiran akreditasi
+      // LK-285-IDN no. 45. Jangan dibulatkan di sini: kartu di layar mesti sama
+      // dengan yang dipakai backend ngitung sertifikat.
+      //
+      // **Tanpa empat baris ini fiturnya nggak bisa dipakai sama sekali.**
+      // Teknisi nyampe ke lembar kerja Refractometer lewat Kategori → Instrumen
+      // Analitik → Refractometer, dan kartunya cuma muncul kalau jenis alatnya
+      // ada di daftar kemampuan. Ketahuan 7 Agt 2026 waktu app-nya beneran
+      // dijalanin di HP: seluruh test hijau, tapi picker-nya cuma nampilin
+      // empat alat lama — test-nya manggil `LembarKerjaScreen(profil:
+      // 'refractometer')` langsung, jadi ngelewatin pintu masuknya.
+      //
+      // Dua titik n20D & dua titik °Brix, ikut satu botol fisik yang dibaca dua
+      // satuan (BSAG2.5-0034 = 2,5 °Brix DAN 1,33659 n20D). Nilai titiknya versi
+      // bulat tabel CMC (1,3366 / 1,3999), beda dari nominal larutan di lembar
+      // kerja (1,33659 / 1,39986) — itu dua hal yang berbeda dan memang beda di
+      // masternya.
+      CalibrationCapability(
+        namaAlat: 'Refractometer',
+        rangeMin: 1.3366,
+        rangeMax: 1.3366,
+        satuan: 'n20D',
+        ketidakpastianTerbaik: 6.2e-05,
+        satuanKetidakpastian: 'n20D',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0516',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Refractometer',
+        rangeMin: 1.3999,
+        rangeMax: 1.3999,
+        satuan: 'n20D',
+        ketidakpastianTerbaik: 6.7e-05,
+        satuanKetidakpastian: 'n20D',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0516',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Refractometer',
+        rangeMin: 2.5,
+        rangeMax: 2.5,
+        satuan: '°Brix',
+        ketidakpastianTerbaik: 0.019,
+        satuanKetidakpastian: '°Brix',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0516',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Refractometer',
+        rangeMin: 40,
+        rangeMax: 40,
+        satuan: '°Brix',
+        ketidakpastianTerbaik: 0.02,
+        satuanKetidakpastian: '°Brix',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0516',
+      ),
     ];
 
     return switch (kode) {

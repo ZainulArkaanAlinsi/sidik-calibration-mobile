@@ -234,6 +234,39 @@ void main() {
       expect(parseTanggalAi('23 Juli 2026'), isNull);
       expect(parseTanggalAi(''), isNull);
     });
+
+    /// **Angka hasil foto nggak boleh kehilangan digit.**
+    ///
+    /// Bug lapangan 7 Agt 2026: AI baca `1,3362` dari foto tabel Refractometer,
+    /// yang mendarat di kotak jadi `1,336`. Penyebabnya `toStringAsFixed(3)`
+    /// dipatok di perapian angka — pembacaan resolusi 0,0001 dipotong jadi
+    /// 0,001, sepuluh kali lebih kasar dari alatnya, tanpa satu pun error.
+    ///
+    /// Tiga alat pertama selamat cuma karena kebetulan resolusinya 0,01 semua,
+    /// jadi muat di 3 desimal. Alat berikutnya yang lebih teliti bakal kena
+    /// lagi kalau batas ini dipatok — makanya yang diuji BUKAN satu angka, tapi
+    /// beberapa tingkat resolusi sekaligus.
+    test('digit pembacaan nggak kepotong, seberapa pun telitinya alatnya', () {
+      // 4 desimal — Refractometer (0,0001). Ini yang beneran kejadian.
+      expect(GabungTabel.nilaiBaru('', 1.3362), '1,3362');
+      expect(GabungTabel.nilaiBaru('', 1.39986), '1,39986');
+
+      // 5-6 desimal — belum ada alatnya, tapi batas ini nggak boleh jadi
+      // penghalang berikutnya.
+      expect(GabungTabel.nilaiBaru('', 1.339351), '1,339351');
+
+      // Nol di belakang TETAP dibuang: 25,0 tetap `25`, bukan `25,00000000`.
+      //
+      // Pemisah desimalnya KOMA, ngikut lembar kerja & formulir kertasnya —
+      // lihat `WorksheetVisionService._rapi`. Ekspektasi di tes ini sempat
+      // bertitik karena dua perbaikan (8 desimal & koma) lahir di dua branch
+      // terpisah; disatuin waktu merge 10 Agt 2026.
+      expect(GabungTabel.nilaiBaru('', 25.0), '25');
+      expect(GabungTabel.nilaiBaru('', 4.60), '4,6');
+
+      // Derau float nggak ikut kecetak.
+      expect(GabungTabel.nilaiBaru('', 0.1 + 0.2), '0,3');
+    });
   });
 
   group('mock kamera ngisi SEMUA Repeat, bukan cuma satu', () {

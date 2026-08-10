@@ -1076,6 +1076,18 @@ class AppLocalizationsId extends AppLocalizations {
       'Masih ada pembacaan OCR yang belum dikonfirmasi — sesi ini belum bisa di-approve.';
 
   @override
+  String get detailVerifikasiTombol => 'Saya sudah cek angkanya';
+
+  @override
+  String get detailVerifikasiSukses =>
+      'Pembacaan dikonfirmasi. Sesi ini sekarang bisa diperiksa admin.';
+
+  @override
+  String detailVerifikasiGagal(String pesan) {
+    return 'Gagal mengonfirmasi: $pesan';
+  }
+
+  @override
   String get arsipTitle => 'Arsip';
 
   @override
@@ -2907,6 +2919,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get perhitAverage => 'Average';
 
   @override
+  String get perhitObserved => 'dibaca (sebelum koreksi suhu)';
+
+  @override
   String get perhitIndexed => 'Indexed Value';
 
   @override
@@ -3226,6 +3241,50 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get lkPengulanganBatal => 'Batal';
+
+  @override
+  String get lkKonfirmasiJudul => 'Cek dulu angkanya sebelum dikirim';
+
+  @override
+  String get lkKonfirmasiCatatan =>
+      'Rata-rata pembacaan After adjustment. Koreksi & ketidakpastian dihitung server sesudah ini dikirim.';
+
+  @override
+  String get lkKonfirmasiDariFoto =>
+      'Sebagian angka di tabel ini datang dari foto. Dengan mengirim, kamu menyatakan sudah mencocokkannya dengan yang tertera di alat.';
+
+  @override
+  String lkKonfirmasiGagalTandai(String pesan) {
+    return 'Terkirim, tapi penandaan \"sudah dicek\" gagal: $pesan. Buka sesinya di Riwayat dan tekan \"Saya sudah cek angkanya\".';
+  }
+
+  @override
+  String lkKonfirmasiBaris(int terisi, int total, String rata) {
+    return '$terisi dari $total kotak · rata-rata $rata';
+  }
+
+  @override
+  String get lkKonfirmasiBarisKosong => 'Belum diisi';
+
+  @override
+  String get lkKonfirmasiPeriksaLagi => 'Periksa lagi';
+
+  @override
+  String get lkKonfirmasiKirim => 'Kirim sekarang';
+
+  @override
+  String get lkGantiSatuanJudul => 'Ganti satuan bakal ngosongin tabel';
+
+  @override
+  String lkGantiSatuanPesan(String dari, String ke) {
+    return '$dari pakai larutan standar yang beda dari $ke, jadi baris tabelnya ikut ganti dan pembacaan yang udah diisi kehapus. Angka $dari nggak bisa dipakai sebagai $ke.';
+  }
+
+  @override
+  String get lkGantiSatuanBatal => 'Batal';
+
+  @override
+  String get lkGantiSatuanLanjut => 'Ganti & kosongin';
 
   @override
   String get emailRiwayatBelumKeluar => 'Belum keluar';

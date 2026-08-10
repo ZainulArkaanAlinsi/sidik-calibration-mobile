@@ -407,6 +407,12 @@
   "detailSesudahAdjustment": "Sesudah adjustment (disertifikasi)",
   "detailAsFoundCatatan": "Dokumentasi kondisi alat waktu diterima — nggak ikut hasil yang disertifikasi.",
   "detailPerluVerifikasi": "Masih ada pembacaan OCR yang belum dikonfirmasi — sesi ini belum bisa di-approve.",
+  "detailVerifikasiTombol": "Saya sudah cek angkanya",
+  "detailVerifikasiSukses": "Pembacaan dikonfirmasi. Sesi ini sekarang bisa diperiksa admin.",
+  "detailVerifikasiGagal": "Gagal mengonfirmasi: {pesan}",
+  "@detailVerifikasiGagal": {
+    "placeholders": { "pesan": { "type": "String" } }
+  },
   "arsipTitle": "Arsip",
   "arsipCariPerusahaan": "Cari perusahaan...",
   "arsipPerusahaanKosong": "Belum ada perusahaan.",
@@ -1012,6 +1018,7 @@
   "perhitAwal": "Awal",
   "perhitAkhir": "Akhir",
   "perhitAverage": "Average",
+  "perhitObserved": "dibaca (sebelum koreksi suhu)",
   "perhitIndexed": "Indexed Value",
   "perhitCorrection": "Correction",
   "perhitDelta": "Δ",
@@ -1132,6 +1139,44 @@
   },
   "lkUbahPengulanganLanjut": "Ubah",
   "lkPengulanganBatal": "Batal",
+  "lkKonfirmasiJudul": "Cek dulu angkanya sebelum dikirim",
+  "lkKonfirmasiCatatan": "Rata-rata pembacaan After adjustment. Koreksi & ketidakpastian dihitung server sesudah ini dikirim.",
+  "lkKonfirmasiDariFoto": "Sebagian angka di tabel ini datang dari foto. Dengan mengirim, kamu menyatakan sudah mencocokkannya dengan yang tertera di alat.",
+  "lkKonfirmasiGagalTandai": "Terkirim, tapi penandaan \"sudah dicek\" gagal: {pesan}. Buka sesinya di Riwayat dan tekan \"Saya sudah cek angkanya\".",
+  "@lkKonfirmasiGagalTandai": {
+    "placeholders": { "pesan": { "type": "String" } }
+  },
+  "lkKonfirmasiBaris": "{terisi} dari {total} kotak · rata-rata {rata}",
+  "@lkKonfirmasiBaris": {
+    "placeholders": {
+      "terisi": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "rata": {
+        "type": "String"
+      }
+    }
+  },
+  "lkKonfirmasiBarisKosong": "Belum diisi",
+  "lkKonfirmasiPeriksaLagi": "Periksa lagi",
+  "lkKonfirmasiKirim": "Kirim sekarang",
+  "lkGantiSatuanJudul": "Ganti satuan bakal ngosongin tabel",
+  "lkGantiSatuanPesan": "{dari} pakai larutan standar yang beda dari {ke}, jadi baris tabelnya ikut ganti dan pembacaan yang udah diisi kehapus. Angka {dari} nggak bisa dipakai sebagai {ke}.",
+  "@lkGantiSatuanPesan": {
+    "placeholders": {
+      "dari": {
+        "type": "String"
+      },
+      "ke": {
+        "type": "String"
+      }
+    }
+  },
+  "lkGantiSatuanBatal": "Batal",
+  "lkGantiSatuanLanjut": "Ganti & kosongin",
   "emailRiwayatBelumKeluar": "Belum keluar",
   "emailKontakKosong": "Email {pt} belum diisi di data pelanggan. Isi lewat panel admin → Pelanggan, biar nanti tinggal pilih.",
   "@emailKontakKosong": {

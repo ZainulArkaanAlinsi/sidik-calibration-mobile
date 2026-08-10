@@ -1078,6 +1078,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Some OCR readings still need confirming — this session can\'t be approved yet.';
 
   @override
+  String get detailVerifikasiTombol => 'I\'ve checked these readings';
+
+  @override
+  String get detailVerifikasiSukses =>
+      'Readings confirmed. This session can now be reviewed by an admin.';
+
+  @override
+  String detailVerifikasiGagal(String pesan) {
+    return 'Couldn\'t confirm: $pesan';
+  }
+
+  @override
   String get arsipTitle => 'Archive';
 
   @override
@@ -2932,6 +2944,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get perhitAverage => 'Average';
 
   @override
+  String get perhitObserved => 'observed (before temp. correction)';
+
+  @override
   String get perhitIndexed => 'Indexed Value';
 
   @override
@@ -3250,6 +3265,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lkPengulanganBatal => 'Cancel';
+
+  @override
+  String get lkKonfirmasiJudul => 'Check the numbers before sending';
+
+  @override
+  String get lkKonfirmasiCatatan =>
+      'Averages of the After adjustment readings. Correction and uncertainty are computed by the server once this is sent.';
+
+  @override
+  String get lkKonfirmasiDariFoto =>
+      'Some numbers in this table came from a photo. By sending, you confirm you\'ve checked them against the instrument.';
+
+  @override
+  String lkKonfirmasiGagalTandai(String pesan) {
+    return 'Sent, but marking them as checked failed: $pesan. Open the session in History and tap \"I\'ve checked these readings\".';
+  }
+
+  @override
+  String lkKonfirmasiBaris(int terisi, int total, String rata) {
+    return '$terisi of $total boxes · average $rata';
+  }
+
+  @override
+  String get lkKonfirmasiBarisKosong => 'Not filled in';
+
+  @override
+  String get lkKonfirmasiPeriksaLagi => 'Check again';
+
+  @override
+  String get lkKonfirmasiKirim => 'Send now';
+
+  @override
+  String get lkGantiSatuanJudul => 'Switching units clears the table';
+
+  @override
+  String lkGantiSatuanPesan(String dari, String ke) {
+    return '$dari uses different standard solutions than $ke, so the table rows change and any readings you entered are discarded. A $dari value is not a $ke value.';
+  }
+
+  @override
+  String get lkGantiSatuanBatal => 'Cancel';
+
+  @override
+  String get lkGantiSatuanLanjut => 'Switch & clear';
 
   @override
   String get emailRiwayatBelumKeluar => 'Not sent yet';

@@ -521,6 +521,12 @@
   "detailSesudahAdjustment": "After adjustment (certified)",
   "detailAsFoundCatatan": "Documents the state the instrument arrived in — not part of the certified result.",
   "detailPerluVerifikasi": "Some OCR readings still need confirming — this session can't be approved yet.",
+  "detailVerifikasiTombol": "I've checked these readings",
+  "detailVerifikasiSukses": "Readings confirmed. This session can now be reviewed by an admin.",
+  "detailVerifikasiGagal": "Couldn't confirm: {pesan}",
+  "@detailVerifikasiGagal": {
+    "placeholders": { "pesan": { "type": "String" } }
+  },
   "arsipTitle": "Archive",
   "arsipCariPerusahaan": "Search company...",
   "arsipPerusahaanKosong": "No companies yet.",
@@ -1482,6 +1488,7 @@
   "perhitAwal": "Start",
   "perhitAkhir": "End",
   "perhitAverage": "Average",
+  "perhitObserved": "observed (before temp. correction)",
   "perhitIndexed": "Indexed Value",
   "perhitCorrection": "Correction",
   "perhitDelta": "Δ",
@@ -1630,6 +1637,44 @@
   },
   "lkUbahPengulanganLanjut": "Change",
   "lkPengulanganBatal": "Cancel",
+  "lkKonfirmasiJudul": "Check the numbers before sending",
+  "lkKonfirmasiCatatan": "Averages of the After adjustment readings. Correction and uncertainty are computed by the server once this is sent.",
+  "lkKonfirmasiDariFoto": "Some numbers in this table came from a photo. By sending, you confirm you've checked them against the instrument.",
+  "lkKonfirmasiGagalTandai": "Sent, but marking them as checked failed: {pesan}. Open the session in History and tap \"I've checked these readings\".",
+  "@lkKonfirmasiGagalTandai": {
+    "placeholders": { "pesan": { "type": "String" } }
+  },
+  "lkKonfirmasiBaris": "{terisi} of {total} boxes · average {rata}",
+  "@lkKonfirmasiBaris": {
+    "placeholders": {
+      "terisi": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "rata": {
+        "type": "String"
+      }
+    }
+  },
+  "lkKonfirmasiBarisKosong": "Not filled in",
+  "lkKonfirmasiPeriksaLagi": "Check again",
+  "lkKonfirmasiKirim": "Send now",
+  "lkGantiSatuanJudul": "Switching units clears the table",
+  "lkGantiSatuanPesan": "{dari} uses different standard solutions than {ke}, so the table rows change and any readings you entered are discarded. A {dari} value is not a {ke} value.",
+  "@lkGantiSatuanPesan": {
+    "placeholders": {
+      "dari": {
+        "type": "String"
+      },
+      "ke": {
+        "type": "String"
+      }
+    }
+  },
+  "lkGantiSatuanBatal": "Cancel",
+  "lkGantiSatuanLanjut": "Switch & clear",
   "emailRiwayatBelumKeluar": "Not sent yet",
   "emailKontakKosong": "{pt} has no email in the customer record. Add it in the admin panel → Customers so it can be picked here.",
   "@emailKontakKosong": {

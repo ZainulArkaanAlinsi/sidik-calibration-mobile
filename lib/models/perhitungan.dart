@@ -180,12 +180,13 @@ class TitikPerhitungan {
     this.standardDariSuhu = false,
     this.satuan,
     this.average,
+    double? averageDikoreksiSuhu,
     this.averageSuhu,
     this.correction,
     this.stdev,
     this.desimal,
     this.resolusi,
-  });
+  }) : _averageDikoreksiSuhu = averageDikoreksiSuhu;
 
   final int titikKe;
   final List<PembacaanPerhitungan> pembacaan;
@@ -209,7 +210,34 @@ class TitikPerhitungan {
   final bool standardDariSuhu;
 
   final String? satuan;
+
+  /// **Observed Value** — rata-rata pembacaan MENTAH, apa adanya dari teknisi.
+  /// Ditampilkan biar salah ketik masih bisa keliatan; BUKAN ini yang dipakai
+  /// ngitung Correction.
   final double? average;
+
+  /// **Corrected Value** — [average] yang udah dinormalisasi ke suhu acuan
+  /// alatnya, dan ini yang dipakai backend ngitung [correction].
+  ///
+  /// Buat pH/Turbidimeter/Chlorine isinya **sama persis** sama [average]
+  /// (profilnya balikin angka apa adanya). Yang beda cuma Refractometer:
+  /// indeks bias berubah ikut suhu, jadi pembacaan dipindah dulu ke 20 °C
+  /// (`1,3362` pada 27 °C → `1,33935`) sebelum diadu ke larutan standar.
+  ///
+  /// Yang kecetak di sertifikat sebagai Unit Under Test itu angka INI. Nampilin
+  /// [average] di tempat yang mestinya ini bikin admin lihat angka yang beda
+  /// dari sertifikat, dan bedanya nggak keliatan sampai ada yang mbandingin dua
+  /// dokumen.
+  ///
+  /// Kosong → jatuh ke [average], dan itu **bukan tebakan**: alat yang nggak
+  /// mindahin pembacaan lewat suhu emang dua-duanya sama. Fallback-nya di sini,
+  /// bukan di `fromJson`, biar yang ngerakit objek ini langsung (fixture, test,
+  /// layar admin) dapat aturan yang sama — waktu fallback-nya cuma di parser,
+  /// baris Average di lembar perhitungan langsung jadi "—" semua.
+  double? get averageDikoreksiSuhu => _averageDikoreksiSuhu ?? average;
+
+  final double? _averageDikoreksiSuhu;
+
   final double? averageSuhu;
 
   /// **Di lembar ini Correction = Average − Standard.** Di SERTIFIKAT tandanya
@@ -226,6 +254,8 @@ class TitikPerhitungan {
         standardDariSuhu: json['standard_dari_suhu'] as bool? ?? false,
         satuan: json['satuan'] as String?,
         average: (json['average'] as num?)?.toDouble(),
+        averageDikoreksiSuhu:
+            (json['average_dikoreksi_suhu'] as num?)?.toDouble(),
         averageSuhu: (json['average_suhu'] as num?)?.toDouble(),
         correction: (json['correction'] as num?)?.toDouble(),
         stdev: (json['stdev'] as num?)?.toDouble(),
