@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/utils/waktu_tampil.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/arsip.dart';
 import '../../providers/arsip_provider.dart';
@@ -661,10 +662,23 @@ class _BadanKartuFolder extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    l10n.arsipRingkasFolder(
-                      folder.jumlahSubfolder,
-                      folder.jumlahBerkas,
-                    ),
+                    [
+                      l10n.arsipRingkasFolder(
+                        folder.jumlahSubfolder,
+                        folder.jumlahBerkas,
+                      ),
+                      // Waktu bikin nempel di baris ringkasan yang udah ada.
+                      // Arsip isinya folder per PT & per tahun yang kebentuk
+                      // borongan di hari yang sama — tanpa jam, nggak ketahuan
+                      // mana yang baru muncul.
+                      if (folder.dibuatPada != null)
+                        waktuRelatif(
+                          folder.dibuatPada!,
+                          Localizations.localeOf(context).languageCode,
+                          hariIni: l10n.waktuHariIni,
+                          kemarin: l10n.waktuKemarin,
+                        ),
+                    ].join(' · '),
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),

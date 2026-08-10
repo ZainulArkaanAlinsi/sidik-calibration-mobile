@@ -5204,6 +5204,18 @@ abstract class AppLocalizations {
   /// **'by {nama}'**
   String antreanOleh(String nama);
 
+  /// No description provided for @waktuHariIni.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get waktuHariIni;
+
+  /// No description provided for @waktuKemarin.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get waktuKemarin;
+
   /// No description provided for @perhitTitle.
   ///
   /// In en, this message translates to:
