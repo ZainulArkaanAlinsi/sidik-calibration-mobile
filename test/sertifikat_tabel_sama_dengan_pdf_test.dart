@@ -98,36 +98,45 @@ void main() {
       expect(formatSertifikat(-1.0, 0), '-1');
     });
 
-    test('ribuan dipisah titik, kayak di PDF', () {
-      // Turbidimeter titik 1000 NTU kecetak `1.000` di sertifikat.
-      expect(formatSertifikat(1000, 0), '1.000');
-      expect(formatSertifikat(1001, 0), '1.001');
-      expect(formatSertifikat(1234.5, 1), '1.234,5');
+    test('ribuan TANPA pemisah, kayak di master', () {
+      // Sempat dipatok `1.000`/`1.001` di sini — ditulis dari kebiasaan format
+      // Indonesia, bukan dibaca dari kertasnya. Master Turbidimeter
+      // `0189-CAL-624` nulis `1000` & `1001` polos, dan di dokumen yang komanya
+      // dipakai buat desimal, titik ribuan justru kebaca ambigu.
+      expect(formatSertifikat(1000, 0), '1000');
+      expect(formatSertifikat(1001, 0), '1001');
+      expect(formatSertifikat(1234.5, 1), '1234,5');
     });
 
-    test('Turbidimeter: tiga titik, tiga resolusi berbeda — sama kayak PDF', () {
-      // Diambil dari sertifikat asli CAL/2026/08/0011 yang baru terbit:
-      //   1,00   | 1,00  | 0,00 | 0,04
-      //   100    | 100   | 0    | 3
-      //   1.000  | 1.001 | -1   | 22
-      // Resolusi Turbidimeter berubah menurut rentang (0,01 / 0,1 / 1 NTU),
-      // jadi tiga baris ini pakai tiga jumlah desimal yang beda.
-      expect(formatSertifikat(1.0, 2), '1,00');
+    test('Turbidimeter: tiga titik, tiga resolusi berbeda — sama kayak master', () {
+      // Disalin dari master `0189-CAL-624` yang diadu langsung 10 Agt 2026:
+      //   1    | 1,00  | -0,00 | 0,04
+      //   100  | 100,0 | -0,0  | 3,1
+      //   1000 | 1001  | -1    | 22
+      // Tiga baris, tiga resolusi (0,01 / 0,1 / 1 NTU). Perhatiin baris kedua:
+      // 1 desimal, BUKAN 0 — titik 100 NTU masih di pita 0,1.
+      expect(formatNilaiStandar(1.0, 2), '1');
+      expect(formatSertifikat(1.004, 2), '1,00');
+      expect(formatSertifikat(-0.004, 2), '-0,00');
       expect(formatSertifikat(0.041, 2), '0,04');
 
-      expect(formatSertifikat(100.2, 0), '100');
-      expect(formatSertifikat(-0.2, 0), '0'); // membulat ke nol, tanpa minus
-      expect(formatSertifikat(3.1, 0), '3');
+      expect(formatNilaiStandar(100.0, 1), '100');
+      expect(formatSertifikat(100.02, 1), '100,0');
+      expect(formatSertifikat(-0.02, 1), '-0,0');
+      expect(formatSertifikat(3.1, 1), '3,1');
 
-      expect(formatSertifikat(1001.0, 0), '1.001');
-      expect(formatSertifikat(-1.0, 0), '-1');
+      expect(formatNilaiStandar(1000.0, 0), '1000');
+      expect(formatSertifikat(1000.6, 0), '1001');
+      expect(formatSertifikat(-0.6, 0), '-1');
       expect(formatSertifikat(22.0, 0), '22');
     });
 
-    test('nol negatif hasil pembulatan ditulis tanpa tanda minus', () {
-      // `-0,004` dibulatkan ke 2 desimal itu nol. Ditulis `-0,00`, orang ngira
-      // ada koreksi negatif padahal nggak ada.
-      expect(formatSertifikat(-0.004, 2), '0,00');
+    test('nol negatif hasil pembulatan TETAP bawa tanda minus', () {
+      // Kebalikan dari yang dipatok di sini sebelumnya ("orang ngira ada
+      // koreksi negatif padahal nggak ada"). Master nulis `-0,00` & `-0,0`, dan
+      // tandanya bukan hiasan: dia yang bilang alatnya baca DI ATAS standar.
+      expect(formatSertifikat(-0.004, 2), '-0,00');
+      expect(formatSertifikat(-0.02, 1), '-0,0');
     });
   });
 

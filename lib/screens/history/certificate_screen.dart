@@ -387,7 +387,7 @@ class _TabelLaporan extends StatelessWidget {
 
                       return DataRow(
                         cells: [
-                          DataCell(Text(formatSertifikat(t.titikUkur, d), style: gayaAngka)),
+                          DataCell(Text(formatNilaiStandar(t.titikUkur, d), style: gayaAngka)),
                           DataCell(Text(formatSertifikat(t.rataRata, d), style: gayaAngka)),
                           DataCell(Text(formatSertifikat(t.koreksi, d), style: gayaAngka)),
                           DataCell(

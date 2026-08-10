@@ -71,24 +71,32 @@ String formatSertifikat(double nilai, int desimal) {
   final negatif = teks.startsWith('-');
   final tanpaTanda = negatif ? teks.substring(1) : teks;
 
-  final titik = tanpaTanda.indexOf('.');
-  final bulat = titik == -1 ? tanpaTanda : tanpaTanda.substring(0, titik);
-  final pecahan = titik == -1 ? '' : tanpaTanda.substring(titik + 1);
+  // Ribuan TIDAK dikelompokin. Master nulis `1000` & `1001`; `1.000` di dokumen
+  // yang komanya dipakai buat desimal kebaca ambigu. Padanan
+  // `Angka::hasil()` di backend.
+  final hasil = tanpaTanda.replaceFirst('.', ',');
 
-  // Ribuan dikelompokin dari kanan: "1234567" -> "1.234.567".
-  final buf = StringBuffer();
-  for (var i = 0; i < bulat.length; i++) {
-    if (i > 0 && (bulat.length - i) % 3 == 0) buf.write('.');
-    buf.write(bulat[i]);
-  }
-
-  final hasil = pecahan.isEmpty ? buf.toString() : '${buf.toString()},$pecahan';
-
-  // `-0,00` itu hasil pembulatan nilai negatif kecil. Ditulis apa adanya bikin
-  // orang ngira ada koreksi negatif padahal nol — tandanya dibuang.
-  if (negatif && double.parse(teks) == 0) return hasil;
-
+  // `-0,00` DITULIS apa adanya. Sempat tandanya dibuang di sini dengan alasan
+  // "bikin orang ngira ada koreksi negatif padahal nol" — masuk akal, tapi
+  // master Turbidimeter `0189-CAL-624` nulis `-0,00` & `-0,0`, dan tanda itu
+  // yang bilang alatnya baca DI ATAS standar. Diadu langsung 10 Agt 2026.
   return negatif ? '-$hasil' : hasil;
+}
+
+/// Kolom **Standard Value** — [formatSertifikat] dengan nol di belakang dibuang.
+///
+/// Master nulis nilai NOMINAL standarnya: Turbidimeter `1` / `100` / `1000`
+/// (bukan `1,00` / `100,0`), sementara Chlorine tetap `1,74` dan pH `4,01`.
+/// Bedanya bukan aturan per alat — standar Turbidimeter emang angka bulat, jadi
+/// desimalnya nggak bawa informasi apa pun.
+///
+/// Padanan `Angka::nilaiStandar()` di backend.
+String formatNilaiStandar(double nilai, int desimal) {
+  final teks = formatSertifikat(nilai, desimal);
+
+  if (!teks.contains(',')) return teks;
+
+  return teks.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r',$'), '');
 }
 
 /// Format ketidakpastian (U95) — dijamin kebaca **2 angka penting**.

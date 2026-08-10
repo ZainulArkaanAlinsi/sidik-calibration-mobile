@@ -125,8 +125,9 @@ void main() {
       });
 
       expect(t.desimalEfektif(2), 0);
-      expect(formatSertifikat(t.titikUkur, t.desimalEfektif(2)), '1.000');
-      expect(formatSertifikat(t.rataRata, t.desimalEfektif(2)), '1.001');
+      // Tanpa pemisah ribuan — master nulis `1000` & `1001` polos.
+      expect(formatNilaiStandar(t.titikUkur, t.desimalEfektif(2)), '1000');
+      expect(formatSertifikat(t.rataRata, t.desimalEfektif(2)), '1001');
       expect(formatSertifikat(t.koreksi, t.desimalEfektif(2)), '-1');
       expect(
         formatSertifikat(t.ketidakpastianDiperluas, t.desimalEfektif(2)),

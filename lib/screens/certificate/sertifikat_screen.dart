@@ -304,7 +304,7 @@ class _TabelHasil extends StatelessWidget {
                 for (final b in snapshot.hasil)
                   TableRow(
                     children: [
-                      _sel(context, formatSertifikat(b.standardValue, b.desimalEfektif(d))),
+                      _sel(context, formatNilaiStandar(b.standardValue, b.desimalEfektif(d))),
                       _sel(context, formatSertifikat(b.unitUnderTest, b.desimalEfektif(d))),
                       _sel(context, formatSertifikat(b.correction, b.desimalEfektif(d))),
                       _sel(context, formatSertifikat(b.u95, b.desimalEfektif(d))),
