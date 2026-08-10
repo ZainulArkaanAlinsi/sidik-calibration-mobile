@@ -7,6 +7,7 @@ import '../../core/config/lab_profile.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/utils/angka.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/izin.dart';
 import '../../models/calibration_detail.dart';
@@ -156,7 +157,7 @@ class _IsiState extends ConsumerState<_Isi> {
         // diubah lagi (`docs/kontrak-api.md` §4: sesi `disetujui` ditolak 422).
         _IdentitasSesi(detail: detail),
         const SizedBox(height: AppSpacing.lg),
-        _TabelLaporan(titik: detail.titik),
+        _TabelLaporan(titik: detail.titik, desimal: detail.desimal),
         const SizedBox(height: AppSpacing.lg),
         _StandarDipakai(titik: detail.titik),
         const SizedBox(height: AppSpacing.lg),
@@ -321,10 +322,21 @@ class _IdentitasSesi extends StatelessWidget {
 /// (pembacaan − standar). Dua-duanya dikirim backend dan cuma beda tanda —
 /// yang masuk sertifikat itu `koreksi`, sesuai formulir. Ketuker berarti
 /// tanda koreksi di sertifikat pelanggan kebalik.
+///
+/// Angkanya ditulis lewat [formatSertifikat] dengan desimal per titik — jalur
+/// yang sama dipakai layar sertifikat & `pdf.blade.php`. Dulu di sini dipatok
+/// dua desimal, dan itu bikin layar riwayat beda dari sertifikatnya sendiri
+/// buat dua alat: Refractometer `1,33935` kebaca `1,34` (U95% `0,00053` malah
+/// jadi `0,00`, seolah nggak ada ketidakpastian), dan titik 1.000 NTU
+/// Turbidimeter kebaca `1000,60` — dua digit yang alatnya nggak bisa tampilkan.
 class _TabelLaporan extends StatelessWidget {
-  const _TabelLaporan({required this.titik});
+  const _TabelLaporan({required this.titik, required this.desimal});
 
   final List<MeasurementResult> titik;
+
+  /// Desimal tingkat-sesi; tiap titik boleh nimpa lewat
+  /// [MeasurementResult.desimalEfektif].
+  final int desimal;
 
   @override
   Widget build(BuildContext context) {
@@ -370,14 +382,23 @@ class _TabelLaporan extends StatelessWidget {
                 ],
                 rows: [
                   for (final t in titik)
-                    DataRow(
-                      cells: [
-                        DataCell(Text(_angka(t.titikUkur), style: gayaAngka)),
-                        DataCell(Text(_angka(t.rataRata), style: gayaAngka)),
-                        DataCell(Text(_angka(t.koreksi), style: gayaAngka)),
-                        DataCell(Text(_angka(t.ketidakpastianDiperluas), style: gayaAngka)),
-                      ],
-                    ),
+                    () {
+                      final d = t.desimalEfektif(desimal);
+
+                      return DataRow(
+                        cells: [
+                          DataCell(Text(formatSertifikat(t.titikUkur, d), style: gayaAngka)),
+                          DataCell(Text(formatSertifikat(t.rataRata, d), style: gayaAngka)),
+                          DataCell(Text(formatSertifikat(t.koreksi, d), style: gayaAngka)),
+                          DataCell(
+                            Text(
+                              formatSertifikat(t.ketidakpastianDiperluas, d),
+                              style: gayaAngka,
+                            ),
+                          ),
+                        ],
+                      );
+                    }(),
                 ],
               ),
             ),

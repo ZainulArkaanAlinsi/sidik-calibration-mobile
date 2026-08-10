@@ -224,6 +224,7 @@ class MeasurementResult {
     required this.keputusan,
     this.standarAcuan,
     this.metode,
+    this.desimal,
   });
 
   final int titikKe;
@@ -253,6 +254,21 @@ class MeasurementResult {
   /// sertifikat, jadi ditampilin apa adanya.
   final String? metode;
 
+  /// Berapa desimal angka titik INI ditulis. `null` = ikut `desimal` level sesi
+  /// ([CalibrationDetail.desimal]).
+  ///
+  /// Dikirim backend buat alat yang resolusinya berubah per rentang
+  /// (Turbidimeter: 0,01 di bawah 10 NTU, 1 di atas 100) — satu angka di level
+  /// sesi nggak bisa mewakili tiga resolusi sekaligus. Padanan `desimal`
+  /// per-baris di [CertificateSnapshot], dan aturan jatuh-baliknya sama.
+  final int? desimal;
+
+  /// Desimal yang benar-benar dipakai nyetak titik ini.
+  ///
+  /// [desimalSesi] = angka tingkat-sesi, dipakai kalau backend nggak ngirim
+  /// angka khusus buat titik ini.
+  int desimalEfektif(int desimalSesi) => desimal ?? desimalSesi;
+
   factory MeasurementResult.fromJson(Map<String, dynamic> json) {
     final komponen = json['type_b_components'] as List<dynamic>? ?? const [];
     final standar = json['standar_acuan'] as Map<String, dynamic>?;
@@ -277,6 +293,7 @@ class MeasurementResult {
       keputusan: json['keputusan'] == 'FAIL' ? Keputusan.fail : Keputusan.pass,
       standarAcuan: standar == null ? null : StandardRef.fromJson(standar),
       metode: json['metode'] as String?,
+      desimal: (json['desimal'] as num?)?.toInt(),
     );
   }
 }
