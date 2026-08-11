@@ -77,6 +77,7 @@ class TitikState {
     this.desimal,
     this.standardIdTercetak,
     this.standardNama,
+    this.eksklusifDengan,
   }) : standardId = standardIdTercetak,
        _kotak = {};
 
@@ -96,6 +97,45 @@ class TitikState {
   /// Jumlah desimal resolusi titik ini (Turbidimeter 2/1/0). `null` = resolusi
   /// seragam. Dipakai buat mad pembacaan hasil kamera ke resolusi titik.
   final int? desimal;
+
+  /// `titik_ukur` baris yang MENIADAKAN baris ini, atau null.
+  ///
+  /// Titik tengah Conductivity punya dua bentuk buat botol yang sama —
+  /// `1412 µS/cm` & `1,412 mS/cm`. Yang diisi salah satu; kalau dua-duanya
+  /// keisi, sistem nerima dua nilai buat satu botol.
+  final double? eksklusifDengan;
+
+  /// Ada pembacaan yang diisi tapi kolom suhunya di baris yang sama kosong?
+  ///
+  /// Nilai acuan larutan Conductivity DIGESER ikut suhu, jadi pembacaan tanpa
+  /// suhu bukan sekadar data kurang — di master Excel-nya, kolom suhu kosong
+  /// bikin polinomial dievaluasi pada T=0 dan keluar `0,738 mS/cm`: angka yang
+  /// kelihatan wajar, bukan error, dan ikut tercetak di sertifikat.
+  ///
+  /// Dicek per (tahap, nomor repeat) — bukan per baris — supaya Repeat 3 yang
+  /// bolong ketahuan walau Repeat 1 & 2 lengkap.
+  bool get adaPembacaanTanpaSuhu {
+    for (final entry in _kotak.entries) {
+      final bagian = entry.key.split('|');
+      if (bagian.length != 3 || bagian[1] != 'pembacaan') continue;
+      if (entry.value.text.trim().isEmpty) continue;
+
+      // Tabel yang NGGAK punya kolom suhu sama sekali dilewat.
+      //
+      // Turbidimeter & Chlorine dibaca nominal — lembarnya emang cuma satu
+      // kolom. Tanpa penjaga ini tiap pembacaan mereka kebaca "suhunya
+      // kosong" dan lembarnya nggak akan pernah bisa dikirim.
+      final adaKolomSuhu = _kotak.keys.any(
+        (k) => k.startsWith('${bagian[0]}|suhu|'),
+      );
+      if (!adaKolomSuhu) continue;
+
+      final suhu = _kotak['${bagian[0]}|suhu|${bagian[2]}'];
+      if (suhu == null || suhu.text.trim().isEmpty) return true;
+    }
+
+    return false;
+  }
 
   /// Standar buffer khusus titik ini (buffer 4/7/10 beda-beda).
   ///
@@ -237,8 +277,16 @@ class LembarKerjaState {
               titikUkur: b.titikUkur,
               label: b.label,
               jumlahPengulangan: t.pengulangan.length,
-              satuan: satuan,
+              // Lembar bersatuan CAMPUR ngambil dari barisnya; sisanya pakai
+              // satuan yang lagi KEPILIH — bukan satuan lembar.
+              //
+              // Bedanya penting: Refractometer nggak campur, tapi satuannya
+              // bisa dipindah teknisi (n20D ↔ °Brix). Kalau di sini dipatok ke
+              // `bentuk.satuan`, pilihan °Brix-nya kebuang tiap tabel dibangun
+              // ulang dan `measurements[].satuan` kekirim n20D.
+              satuan: bentuk.satuanCampuran ? (b.satuan ?? satuan) : satuan,
               desimal: b.desimal,
+              eksklusifDengan: b.eksklusifDengan,
               // Standar pasangan titik ini udah kepilih dari formulirnya —
               // teknisi tinggal nyentang, nggak milih ulang dari katalog.
               standardIdTercetak: b.standardId,
@@ -314,12 +362,41 @@ class LembarKerjaState {
     // kirim baca `TitikState.satuan` langsung, jadi kalau cuma ditimpa waktu
     // submit, teknisi ganti ke °Brix tapi layar konfirmasinya tetap nulis n20D
     // — dan yang dia setujui bukan yang dikirim.
+    // Lembar bersatuan CAMPUR nggak ikut: satuannya nempel per baris dari
+    // backend, dan nimpa borongan di sini bikin 111 mS/cm kelabel µS/cm.
+    if (bentuk.satuanCampuran) return;
+
     for (final t in titik.values) {
       t.satuan = nilai;
     }
   }
 
   String? _satuanPilihan;
+
+  /// Baris [titikUkur] lagi TERKUNCI karena pasangannya udah mulai diisi?
+  ///
+  /// Titik tengah Conductivity dikirim dalam dua bentuk buat botol yang sama
+  /// (`1412 µS/cm` & `1,412 mS/cm`). Begitu salah satu diisi, pasangannya
+  /// dikunci — bukan disembunyikan, supaya teknisi lihat bahwa itu alternatif
+  /// satuan, bukan titik yang hilang.
+  ///
+  /// Balik kebuka sendiri kalau isian baris aktifnya dikosongin lagi.
+  bool titikTerkunci(double titikUkur) {
+    final pasangan = titik[titikUkur]?.eksklusifDengan;
+    if (pasangan == null) return false;
+
+    return titik[pasangan]?.adaIsian ?? false;
+  }
+
+  /// Baris yang pembacaannya keisi tapi suhunya kosong — penahan sebelum kirim.
+  ///
+  /// Kosong = boleh kirim. Lihat [TitikState.adaPembacaanTanpaSuhu] soal kenapa
+  /// ini bukan formalitas.
+  List<TitikState> get titikSuhuBelumLengkap => bentuk.suhuWajib
+      ? titik.values
+            .where((t) => !titikTerkunci(t.titikUkur) && t.adaPembacaanTanpaSuhu)
+            .toList()
+      : const [];
 
   /// Lembar kerja ini punya kolom "7. Satuan Refracto"?
   ///

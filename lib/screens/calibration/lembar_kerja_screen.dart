@@ -313,6 +313,28 @@ class _FormState extends ConsumerState<_Form> {
       return;
     }
 
+    // Pembacaan tanpa suhu ditahan SEBELUM konfirmasi angka — biar teknisi
+    // tau di lapangan, bukan sesudah kirim.
+    //
+    // Nilai acuan larutan Conductivity digeser ikut suhu. Di master Excel-nya,
+    // kolom suhu kosong bikin polinomial dievaluasi pada T=0 dan keluar
+    // `0,738 mS/cm`: bukan error, angka yang kelihatan wajar, dan ikut
+    // tercetak di sertifikat. Draft tetap boleh disimpan setengah jadi.
+    if (!draft) {
+      final belum = _isian.titikSuhuBelumLengkap;
+
+      if (belum.isNotEmpty) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              l10n.lkSuhuWajib(belum.map((t) => t.label).join(', ')),
+            ),
+          ),
+        );
+        return;
+      }
+    }
+
     if (!draft && !await _konfirmasiAngka()) return;
     if (!mounted) return;
 

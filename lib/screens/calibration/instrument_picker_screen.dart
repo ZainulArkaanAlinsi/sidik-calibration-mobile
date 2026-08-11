@@ -82,6 +82,12 @@ const _profilKhusus = {
   'chlorin meter': 'chlorine_meter',
   'chlorine meter': 'chlorine_meter',
   'refractometer': 'refractometer',
+  // Lampiran akreditasi nulis "Conductivitymeter" (satu kata) sementara
+  // sertifikat & lembar kerjanya nulis "Conductivity Meter". Dua-duanya
+  // didaftarin, alasan yang sama kayak Chlorin/Chlorine di atas: yang nyampe
+  // ke sini teks bebas dari backend, bukan enum.
+  'conductivity meter': 'conductivity_meter',
+  'conductivitymeter': 'conductivity_meter',
 };
 
 /// Cocokin nama alat ke kode profil lembar kerja, **case-insensitive & spasi

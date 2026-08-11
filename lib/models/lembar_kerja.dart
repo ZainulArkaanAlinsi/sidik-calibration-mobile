@@ -176,10 +176,34 @@ class BarisTabelHasil {
     this.resolusi,
     this.standardId,
     this.standardNama,
+    this.satuan,
+    this.eksklusifDengan,
   });
 
   final double titikUkur;
   final String label;
+
+  /// Satuan baris INI, buat alat yang nyampur satuan dalam satu lembar.
+  ///
+  /// Conductivity baca 25 & 1412 dalam µS/cm tapi 111 dalam mS/cm — lembarnya
+  /// ngirim `satuan: null` di level atas plus `satuan_campuran: true`, dan
+  /// satuan yang bener nempel di tiap baris. Ambil dari level lembar = seluruh
+  /// kolom salah label.
+  ///
+  /// `null` = alat bersatuan seragam (pH, Turbidimeter, Chlorine,
+  /// Refractometer); layar jatuh ke satuan lembar seperti biasa.
+  final String? satuan;
+
+  /// Titik ukur baris pasangan yang **meniadakan** baris ini, atau `null`.
+  ///
+  /// Titik tengah Conductivity punya dua bentuk buat botol larutan yang SAMA:
+  /// `1412 µS/cm` dan `1,412 mS/cm`. Teknisi ngisi salah satu, nggak pernah
+  /// dua-duanya — kalau dua-duanya keisi, sistem nerima dua nilai buat satu
+  /// botol dan sertifikatnya jadi ambigu.
+  ///
+  /// Nilainya `titik_ukur` pasangannya, jadi layar bisa nyari barisnya tanpa
+  /// perlu id tambahan.
+  final double? eksklusifDengan;
 
   /// Larutan standar yang TERCETAK berpasangan sama titik ini di formulir —
   /// titik 7,00 pakai pH Buffer Solution 7, titik 100 NTU pakai botol 100 NTU.
@@ -212,6 +236,8 @@ class BarisTabelHasil {
         resolusi: (json['resolusi'] as num?)?.toDouble(),
         standardId: (json['standard_id'] as num?)?.toInt(),
         standardNama: json['standard_nama'] as String?,
+        satuan: json['satuan'] as String?,
+        eksklusifDengan: (json['eksklusif_dengan'] as num?)?.toDouble(),
       );
 }
 
@@ -352,6 +378,8 @@ class LembarKerja {
     required this.jumlahPengulangan,
     required this.larutanStandar,
     required this.satuan,
+    this.satuanCampuran = false,
+    this.suhuWajib = false,
     required this.satuanSuhu,
     required this.semuaKolomOpsional,
     required this.catatanPengisian,
@@ -367,6 +395,23 @@ class LembarKerja {
   final int jumlahPengulangan;
   final List<double> larutanStandar;
   final String satuan;
+
+  /// Lembar ini memakai **lebih dari satu satuan**, jadi [satuan] di level
+  /// lembar kosong dan yang berlaku ada di tiap baris.
+  ///
+  /// Conductivity satu-satunya sejauh ini: 25 & 1412 dibaca µS/cm, 111 dibaca
+  /// mS/cm. Backend ngirim `satuan: null` + `satuan_campuran: true` supaya
+  /// layar nggak diam-diam melabeli semua kolom dengan satu satuan.
+  final bool satuanCampuran;
+
+  /// Suhu larutan WAJIB diisi buat tiap baris yang pembacaannya diisi.
+  ///
+  /// Dikirim backend, bukan disimpulin layar dari nama alat: keempat alat
+  /// sama-sama punya kolom `suhu`, yang beda cuma apakah suhunya masuk
+  /// hitungan. Conductivity nilai acuannya digeser ikut suhu; Turbidimeter &
+  /// Chlorine dibaca nominal.
+  final bool suhuWajib;
+
   final String satuanSuhu;
 
   /// Selalu true dari backend. Dipakai layar buat mastiin tombol kirim nggak
@@ -394,6 +439,14 @@ class LembarKerja {
     return nomor.isEmpty ? const [1] : nomor;
   }
 
+  /// Satuan yang berlaku buat [baris].
+  ///
+  /// Lembar bersatuan campur ([satuanCampuran]) ngambil dari barisnya; sisanya
+  /// pakai [satuan] lembar seperti biasa. Satu pintu supaya nggak ada layar
+  /// yang lupa dan melabeli 111 mS/cm sebagai µS/cm.
+  String satuanUntuk(BarisTabelHasil baris) =>
+      satuanCampuran ? (baris.satuan ?? satuan) : satuan;
+
   /// Bagian di satu halaman, urutannya ngikut backend.
   List<BagianLembarKerja> bagianDiHalaman(int nomor) =>
       bagian.where((b) => b.halaman == nomor).toList();
@@ -408,6 +461,8 @@ class LembarKerja {
         .map((e) => e.toDouble())
         .toList(),
     satuan: json['satuan'] as String? ?? '',
+    satuanCampuran: json['satuan_campuran'] as bool? ?? false,
+    suhuWajib: json['suhu_wajib'] as bool? ?? false,
     satuanSuhu: json['satuan_suhu'] as String? ?? '°C',
     semuaKolomOpsional: json['semua_kolom_opsional'] as bool? ?? true,
     catatanPengisian: json['catatan_pengisian'] as String? ?? '',

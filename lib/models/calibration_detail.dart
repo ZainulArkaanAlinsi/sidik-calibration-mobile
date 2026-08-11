@@ -225,6 +225,7 @@ class MeasurementResult {
     this.standarAcuan,
     this.metode,
     this.desimal,
+    this.satuan,
   });
 
   final int titikKe;
@@ -263,6 +264,14 @@ class MeasurementResult {
   /// per-baris di [CertificateSnapshot], dan aturan jatuh-baliknya sama.
   final int? desimal;
 
+  /// Satuan titik INI, buat alat yang nyampur satuan dalam satu lembar
+  /// (Conductivity: 25 & 1412 µS/cm, 111 mS/cm).
+  ///
+  /// `null` = alat bersatuan seragam; layar jatuh ke satuan alat seperti biasa.
+  /// Sebelum ada ini, layar detail & sertifikat nggak punya cara nulis
+  /// `25 µS/cm` vs `111 mS/cm` selain nebak dari besar angkanya.
+  final String? satuan;
+
   /// Desimal yang benar-benar dipakai nyetak titik ini.
   ///
   /// [desimalSesi] = angka tingkat-sesi, dipakai kalau backend nggak ngirim
@@ -294,6 +303,7 @@ class MeasurementResult {
       standarAcuan: standar == null ? null : StandardRef.fromJson(standar),
       metode: json['metode'] as String?,
       desimal: (json['desimal'] as num?)?.toInt(),
+      satuan: json['satuan'] as String?,
     );
   }
 }

@@ -387,7 +387,19 @@ class _TabelLaporan extends StatelessWidget {
 
                       return DataRow(
                         cells: [
-                          DataCell(Text(formatNilaiStandar(t.titikUkur, d), style: gayaAngka)),
+                          // Satuan ikut di kolom pertama buat alat yang
+                          // nyampur satuan dalam satu lembar (Conductivity:
+                          // `25 µS/cm` vs `111 mS/cm`). Alat bersatuan seragam
+                          // ngirim `satuan: null` dan tampilannya nggak berubah
+                          // — satuannya udah kesebut di tempat lain.
+                          DataCell(
+                            Text(
+                              t.satuan == null
+                                  ? formatNilaiStandar(t.titikUkur, d)
+                                  : '${formatNilaiStandar(t.titikUkur, d)} ${t.satuan}',
+                              style: gayaAngka,
+                            ),
+                          ),
                           DataCell(Text(formatSertifikat(t.rataRata, d), style: gayaAngka)),
                           DataCell(Text(formatSertifikat(t.koreksi, d), style: gayaAngka)),
                           DataCell(

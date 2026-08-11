@@ -13,6 +13,8 @@ import '../../providers/history_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/status_badge.dart';
+import '../calibration/lembar_kerja_screen.dart';
+import '../calibration/instrument_picker_screen.dart';
 import '../certificate/sertifikat_screen.dart';
 
 String _fmt(double? v, {int decimals = 4}) =>
@@ -68,16 +70,29 @@ class _Isi extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     if (detail.status == CalibrationStatus.disetujui) {
+    // `keputusan` bisa NULL, dan itu keadaan yang sah — bukan "belum ada".
+    //
+    // Conductivity Meter nggak divonis lulus/gagal: master Excel-nya nggak
+    // punya satu pun sel yang mbandingin hasil ke batas keberterimaan, jadi
+    // backend ngirim `keputusan: null`. Sebelum ini `_ =>` nangkep null dan
+    // nampilinnya sebagai PASS — tiap sesi Conductivity kebaca "lulus" padahal
+    // alatnya emang nggak pernah dinilai.
+    //
+    // Yang ditampilkan strip, bukan badge kosong dan bukan tulisan "null".
       return switch (detail.keputusan) {
         Keputusan.fail => StatusBadge(
           label: l10n.historyStatusFail,
           tone: BadgeTone.danger,
           icon: Icons.cancel_outlined,
         ),
-        _ => StatusBadge(
+        Keputusan.pass => StatusBadge(
           label: l10n.historyStatusPass,
           tone: BadgeTone.success,
           icon: Icons.check_circle_outline,
+        ),
+        null => StatusBadge(
+          label: l10n.statusTanpaKeputusan,
+          tone: BadgeTone.neutral,
         ),
       };
     }
@@ -185,6 +200,21 @@ class _Isi extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           _TombolVerifikasi(calibrationId: calibrationId),
+        ],
+
+        // Admin boleh mbenerin lembar yang MASIH nunggu approval.
+        //
+        // Dulu status itu ngunci semua orang, jadi admin yang nemu satu angka
+        // keliru harus nolak — lembar balik ke teknisi, teknisi betulin, kirim
+        // ulang, admin review lagi. Sekarang `PUT /api/calibrations/{id}`
+        // nerima admin di status ini (backend yang mutusin; frontend cuma
+        // mbukain pintunya).
+        //
+        // `disetujui` tetap terkunci buat SEMUA orang — sertifikatnya udah
+        // terbit dan udah dikirim ke pelanggan.
+        if (detail.status == CalibrationStatus.menungguApproval) ...[
+          const SizedBox(height: AppSpacing.md),
+          _TombolEditAdmin(detail: detail),
         ],
 
         const SizedBox(height: AppSpacing.lg),
@@ -927,6 +957,45 @@ class _TombolVerifikasiState extends ConsumerState<_TombolVerifikasi> {
         icon: Icons.check_circle_outline,
         isLoading: _sibuk,
         onPressed: _sibuk ? null : _kirim,
+      ),
+    );
+  }
+}
+
+/// Tombol Edit buat admin di sesi `menunggu_approval`.
+///
+/// Dipisah jadi widget sendiri karena butuh `ref` (cek peran), sementara
+/// [_Isi] di atas `StatelessWidget` — dan mengubahnya jadi Consumer cuma buat
+/// satu tombol bikin seluruh layar ikut rebuild tiap auth berubah.
+///
+/// Teknisi nggak dikasih tombol ini: backend nolak dengan 422 yang jelas
+/// ("…nggak bisa diubah teknisi. Minta admin yang ngedit…"), dan mancing orang
+/// ke tombol yang pasti ditolak itu bikin dia ngira app-nya rusak.
+class _TombolEditAdmin extends ConsumerWidget {
+  const _TombolEditAdmin({required this.detail});
+
+  final CalibrationDetail detail;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final isAdmin = ref.watch(authProvider).value?.role.isAdmin ?? false;
+
+    if (!isAdmin) return const SizedBox.shrink();
+
+    return AppButton(
+      label: l10n.detailEditAdmin,
+      icon: Icons.edit_outlined,
+      variant: AppButtonVariant.secondary,
+      onPressed: () => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => LembarKerjaScreen(
+            sesiId: detail.id,
+            // Profil WAJIB ikut — tanpa ini layar jatuh ke formulir pH dan
+            // admin ngedit lembar Conductivity pakai 3 titik 4/7/10,01.
+            profil: profilLembarKerjaUntuk(detail.namaAlat) ?? 'ph_meter',
+          ),
+        ),
       ),
     );
   }

@@ -94,9 +94,17 @@ class LembarKerjaTabel extends StatelessWidget {
                     // Satuannya ikut, persis sheet INPUT DATA yang nulis
                     // "1,74 mg/L". Tanpa itu angka standarnya kebaca telanjang
                     // dan gampang ketuker sama pembacaan di sebelahnya.
-                    teks: isian.bentuk.satuan.isEmpty
+                    // Satuan diambil PER BARIS lewat `satuanUntuk` — lembar
+                    // Conductivity nyampur µS/cm & mS/cm, dan ngambil dari
+                    // level lembar bikin 111 mS/cm kelabel µS/cm.
+                    teks: isian.bentuk.satuanUntuk(baris).isEmpty
                         ? baris.label
-                        : '${baris.label} ${isian.bentuk.satuan}',
+                        : '${baris.label} ${isian.bentuk.satuanUntuk(baris)}',
+                    // Keterangan singkat kenapa baris ini mati — tanpa itu
+                    // teknisi lihat kotak abu tanpa sebab.
+                    catatan: isian.titikTerkunci(baris.titikUkur)
+                        ? AppLocalizations.of(context).lkTitikAlternatifSatuan
+                        : null,
                     tinggi: _tinggiBaris,
                     kiri: true,
                   ),
@@ -128,6 +136,11 @@ class LembarKerjaTabel extends StatelessWidget {
                             for (final kolom in tabel.kolom)
                               _SelAngka(
                                 lebar: _lebarSel,
+                                // Botol yang sama dibaca dua satuan: begitu
+                                // pasangannya mulai diisi, baris ini dikunci.
+                                // Dikunci, bukan disembunyikan — teknisi perlu
+                                // lihat bahwa ini alternatif satuan.
+                                terkunci: isian.titikTerkunci(baris.titikUkur),
                                 controller: isian
                                     .titik[baris.titikUkur]!
                                     .kotak(tabel.tahap, kolom.kode, i),
@@ -410,12 +423,17 @@ class _SelKepala extends StatelessWidget {
     required this.teks,
     required this.tinggi,
     this.kiri = false,
+    this.catatan,
   });
 
   final double lebar;
   final String teks;
   final double tinggi;
   final bool kiri;
+
+  /// Keterangan kecil di bawah label — dipakai buat bilang kenapa baris ini
+  /// dikunci (alternatif satuan dari botol yang sama).
+  final String? catatan;
 
   @override
   Widget build(BuildContext context) {
@@ -426,11 +444,30 @@ class _SelKepala extends StatelessWidget {
       height: tinggi,
       child: Align(
         alignment: kiri ? Alignment.centerLeft : Alignment.center,
-        child: Text(
-          teks,
-          style: theme.textTheme.labelMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment:
+              kiri ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+          children: [
+            Text(
+              teks,
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: catatan == null
+                    ? null
+                    : theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            if (catatan != null)
+              Text(
+                catatan!,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+          ],
         ),
       ),
     );
@@ -442,6 +479,7 @@ class _SelAngka extends StatelessWidget {
     required this.lebar,
     required this.controller,
     this.rendah = false,
+    this.terkunci = false,
   });
 
   final double lebar;
@@ -450,6 +488,11 @@ class _SelAngka extends StatelessWidget {
   /// Sel ini diisi AI dengan keyakinan rendah — dikasih border kuning biar
   /// teknisi ngecek angkanya. Bukan ngunci apa-apa, cuma pengingat visual.
   final bool rendah;
+
+  /// Baris pasangannya udah mulai diisi, jadi baris ini nggak boleh diisi.
+  /// Tetap KELIHATAN — cuma nggak bisa diketik — supaya teknisi paham ini
+  /// alternatif satuan dari botol yang sama, bukan titik yang hilang.
+  final bool terkunci;
 
   @override
   Widget build(BuildContext context) {
@@ -469,6 +512,7 @@ class _SelAngka extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
         child: TextField(
           controller: controller,
+          enabled: !terkunci,
           textAlign: TextAlign.center,
           style: theme.textTheme.bodySmall,
           keyboardType: const TextInputType.numberWithOptions(
@@ -482,8 +526,12 @@ class _SelAngka extends StatelessWidget {
           ],
           decoration: InputDecoration(
             isDense: true,
-            filled: rendah,
-            fillColor: rendah ? warna.withValues(alpha: 0.12) : null,
+            filled: rendah || terkunci,
+            fillColor: rendah
+                ? warna.withValues(alpha: 0.12)
+                : (terkunci
+                    ? theme.colorScheme.onSurface.withValues(alpha: 0.05)
+                    : null),
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
             border: const OutlineInputBorder(),

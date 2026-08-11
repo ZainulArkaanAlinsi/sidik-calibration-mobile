@@ -5990,6 +5990,30 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get lkPengulanganBatal;
 
+  /// No description provided for @lkSuhuWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading filled without solution temperature at point {titik}. Temperature is required — the reference value shifts with it.'**
+  String lkSuhuWajib(String titik);
+
+  /// No description provided for @statusTanpaKeputusan.
+  ///
+  /// In en, this message translates to:
+  /// **'Not assessed'**
+  String get statusTanpaKeputusan;
+
+  /// No description provided for @detailEditAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'EDIT SHEET'**
+  String get detailEditAdmin;
+
+  /// No description provided for @lkTitikAlternatifSatuan.
+  ///
+  /// In en, this message translates to:
+  /// **'Alternate unit of the same standard — already filled in the other row'**
+  String get lkTitikAlternatifSatuan;
+
   /// No description provided for @lkKonfirmasiJudul.
   ///
   /// In en, this message translates to:

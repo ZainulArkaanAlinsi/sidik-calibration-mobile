@@ -225,6 +225,15 @@ class _HistoryCard extends StatelessWidget {
 
   StatusBadge _badge(AppLocalizations l10n) {
     if (item.status == CalibrationStatus.disetujui) {
+    // `keputusan` bisa NULL, dan itu keadaan yang sah — bukan "belum ada".
+    //
+    // Conductivity Meter nggak divonis lulus/gagal: master Excel-nya nggak
+    // punya satu pun sel yang mbandingin hasil ke batas keberterimaan, jadi
+    // backend ngirim `keputusan: null`. Sebelum ini `_ =>` nangkep null dan
+    // nampilinnya sebagai PASS — tiap sesi Conductivity kebaca "lulus" padahal
+    // alatnya emang nggak pernah dinilai.
+    //
+    // Yang ditampilkan strip, bukan badge kosong dan bukan tulisan "null".
       return switch (item.keputusan) {
         Keputusan.pass => StatusBadge(
           label: l10n.historyStatusPass,
@@ -237,9 +246,8 @@ class _HistoryCard extends StatelessWidget {
           icon: Icons.cancel_outlined,
         ),
         null => StatusBadge(
-          label: l10n.historyStatusPass,
-          tone: BadgeTone.success,
-          icon: Icons.check_circle_outline,
+          label: l10n.statusTanpaKeputusan,
+          tone: BadgeTone.neutral,
         ),
       };
     }

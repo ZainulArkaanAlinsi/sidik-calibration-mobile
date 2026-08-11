@@ -3267,6 +3267,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkPengulanganBatal => 'Cancel';
 
   @override
+  String lkSuhuWajib(String titik) {
+    return 'Reading filled without solution temperature at point $titik. Temperature is required — the reference value shifts with it.';
+  }
+
+  @override
+  String get statusTanpaKeputusan => 'Not assessed';
+
+  @override
+  String get detailEditAdmin => 'EDIT SHEET';
+
+  @override
+  String get lkTitikAlternatifSatuan =>
+      'Alternate unit of the same standard — already filled in the other row';
+
+  @override
   String get lkKonfirmasiJudul => 'Check the numbers before sending';
 
   @override

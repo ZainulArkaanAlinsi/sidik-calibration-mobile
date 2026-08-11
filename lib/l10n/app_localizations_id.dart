@@ -3243,6 +3243,21 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkPengulanganBatal => 'Batal';
 
   @override
+  String lkSuhuWajib(String titik) {
+    return 'Ada pembacaan tanpa suhu larutan di titik $titik. Suhunya wajib diisi — nilai acuannya digeser ikut suhu.';
+  }
+
+  @override
+  String get statusTanpaKeputusan => 'Tanpa keputusan';
+
+  @override
+  String get detailEditAdmin => 'EDIT LEMBAR';
+
+  @override
+  String get lkTitikAlternatifSatuan =>
+      'Alternatif satuan dari botol yang sama — sudah diisi di baris satunya';
+
+  @override
   String get lkKonfirmasiJudul => 'Cek dulu angkanya sebelum dikirim';
 
   @override

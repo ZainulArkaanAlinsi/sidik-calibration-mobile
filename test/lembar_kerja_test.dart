@@ -1741,9 +1741,18 @@ void _testChlorine() {
       expect(profilLembarKerjaUntuk('turbidimeter'), 'turbidimeter');
     });
 
+    /// Conductivity dipindah dari daftar "belum punya lembar" ke daftar
+    /// "punya" 11 Agt 2026 — alat ke-5 masuk, dan sebelum dipetakan di sini
+    /// sesinya diam-diam kebuka pakai formulir pH.
+    test('Conductivity dua ejaan sama-sama ke conductivity_meter', () {
+      expect(profilLembarKerjaUntuk('Conductivity Meter'), 'conductivity_meter');
+      expect(profilLembarKerjaUntuk('Conductivitymeter'), 'conductivity_meter');
+      expect(profilLembarKerjaUntuk('CONDUCTIVITY  METER'), 'conductivity_meter');
+    });
+
     test('alat tanpa lembar khusus tetap null → form generik', () {
-      expect(profilLembarKerjaUntuk('Conductivity Meter'), isNull);
       expect(profilLembarKerjaUntuk('Timbangan'), isNull);
+      expect(profilLembarKerjaUntuk('Refraktometer Abbe'), isNull);
       expect(profilLembarKerjaUntuk(''), isNull);
     });
   });
