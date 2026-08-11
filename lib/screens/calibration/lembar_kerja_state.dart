@@ -169,6 +169,16 @@ class TitikState {
   bool get adaIsian =>
       _kotak.values.any((c) => c.text.trim().isNotEmpty) || standardId != null;
 
+  /// Ada ANGKA yang diketik di baris ini? Beda dari [adaIsian], dan bedanya
+  /// penting: [adaIsian] ikut ngitung `standardId`, yang KEISI SEJAK AWAL dari
+  /// standar tercetak lembar kerja.
+  ///
+  /// Dipakai buat ngunci baris pasangan. Kalau pakai [adaIsian], dua varian
+  /// satuan langsung saling ngunci begitu lembarnya kebuka — sebelum teknisi
+  /// ngetik apa pun — dan nyentang standar malah MEMATIKAN barisnya.
+  bool get adaPembacaan =>
+      _kotak.values.any((c) => c.text.trim().isNotEmpty);
+
   /// Salinan isian sel baris ini, buat diselamatkan waktu BENTUK lembar
   /// berubah (mis. teknisi milih alat, dan baris varian satuan menyusut).
   ///
@@ -456,7 +466,10 @@ class LembarKerjaState {
     final pasangan = titik[titikUkur]?.eksklusifDengan;
     if (pasangan == null) return false;
 
-    return titik[pasangan]?.adaIsian ?? false;
+    // Sengaja `adaPembacaan`, BUKAN `adaIsian`: yang ngunci baris pasangan itu
+    // ANGKA yang diketik teknisi, bukan standar tercetak yang emang udah keisi
+    // dari lembar kerjanya.
+    return titik[pasangan]?.adaPembacaan ?? false;
   }
 
   /// Baris yang pembacaannya keisi tapi suhunya kosong — penahan sebelum kirim.
