@@ -323,4 +323,49 @@ void main() {
       expect(rendah, 1);
     });
   });
+
+  group('standard_value nyocokin kolom foto ke baris yang BENAR', () {
+    test('kolom AI diurutin ulang, bukan ditebak dari posisi', () {
+      final hasil = HasilEkstraksiTabel.fromJson({
+        // Sengaja DIBALIK dari urutan lembar: AI baca 111 duluan.
+        'standard_value': [111, 25, 1412],
+        'baris': [
+          {
+            'ph': [110.69, 25.0, 1413.0],
+            'suhu': [25.2, 25.0, 24.9],
+          },
+        ],
+      });
+
+      expect(hasil.standarNilai, [111.0, 25.0, 1412.0]);
+    });
+
+    test('kolom yang nggak cocok ke titik mana pun kebuang', () {
+      final hasil = HasilEkstraksiTabel.fromJson({
+        'standard_value': [25, 9999],
+        'baris': [
+          {
+            'ph': [25.0, 1.0],
+            'suhu': [25.0, 25.0],
+          },
+        ],
+      });
+
+      expect(hasil.standarNilai, [25.0, 9999.0]);
+    });
+
+    test('respons lama tanpa standard_value tetap kebaca', () {
+      final hasil = HasilEkstraksiTabel.fromJson({
+        'baris': [
+          {
+            'ph': [4.01, 7.02, 10.11],
+            'suhu': [22.2, 22.3, 22.1],
+          },
+        ],
+      });
+
+      expect(hasil.standarNilai, isEmpty);
+      expect(hasil.baris.first.ph, [4.01, 7.02, 10.11]);
+    });
+  });
 }

@@ -182,6 +182,7 @@ class HasilEkstraksiTabel {
     required this.jumlahSelDiharapkan,
     this.jumlahAngkaTerdeteksi = 0,
     this.header = const HasilEkstraksiHeader(),
+    this.standarNilai = const [],
   });
 
   final List<BarisTabel> baris;
@@ -196,6 +197,14 @@ class HasilEkstraksiTabel {
   /// sama [jumlahSelKebaca] bikin pesan gagal berguna: terdeteksi 0 = fotonya
   /// bermasalah; terdeteksi banyak tapi sel 0 = fotonya bukan tabel worksheet.
   final int jumlahAngkaTerdeteksi;
+
+  /// Nilai standar per KOLOM, urut sama kayak `ph`/`suhu` — dari
+  /// `standard_value` di respons AI (SPEC §45).
+  ///
+  /// Ini yang bikin hasil foto bisa dicocokin ke BARIS YANG BENAR, bukan
+  /// ditebak dari urutan. Kosong = AI nggak ngirim (respons lama), dan
+  /// pemetaannya balik ke posisi kayak dulu.
+  final List<double?> standarNilai;
 
   double get kelengkapan =>
       jumlahSelDiharapkan == 0 ? 0 : jumlahSelKebaca / jumlahSelDiharapkan;
@@ -247,6 +256,7 @@ class HasilEkstraksiTabel {
 
     return HasilEkstraksiTabel(
       baris: baris,
+      standarNilai: angka(json['standard_value']),
       jumlahSelKebaca: kebaca,
       jumlahSelDiharapkan: jumlahBaris * jumlahTitik * 2,
       jumlahAngkaTerdeteksi: terdeteksi,

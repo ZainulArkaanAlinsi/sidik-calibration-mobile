@@ -802,15 +802,80 @@ class LembarKerjaState {
   /// Bentuk [hasil]: `baris[pengulangan].ph[titik]` — **baris itu Repeat 1..5**,
   /// isinya satu angka per larutan standar. Gampang kebalik, makanya nama
   /// variabelnya ditulis panjang di bawah.
+  /// Kolom foto ke-`k` → index titik di [urut], atau `null` kalau nggak ada
+  /// titik yang cocok.
+  ///
+  /// Toleransinya RELATIF (2%), bukan sama persis: nilai standar yang AI baca
+  /// itu angka tercetak di lembar, sementara titik di aplikasi bisa nominal
+  /// botol. Absolut nggak jalan — 2% di titik 1412 itu 28, di titik 25 cuma
+  /// 0,5.
+  ///
+  /// Tanpa `standard_value` (respons AI lama) balik ke pemetaan POSISI, jadi
+  /// perilakunya nggak berubah buat backend yang belum ngirim kolom itu.
+  List<int?> _petakanKolomFoto(List<double?> standarNilai, List<TitikState> urut) {
+    if (standarNilai.isEmpty) {
+      return [for (var i = 0; i < urut.length; i++) i];
+    }
+
+    final kepakai = <int>{};
+
+    return [
+      for (final nilai in standarNilai)
+        if (nilai == null)
+          null
+        else
+          () {
+            var terbaik = -1;
+            var selisihTerbaik = double.infinity;
+
+            for (var i = 0; i < urut.length; i++) {
+              if (kepakai.contains(i)) continue;
+
+              final titikUkur = urut[i].titikUkur;
+              final batas = (titikUkur.abs() * 0.02).clamp(1e-6, double.infinity);
+              final selisih = (nilai - titikUkur).abs();
+
+              if (selisih <= batas && selisih < selisihTerbaik) {
+                terbaik = i;
+                selisihTerbaik = selisih;
+              }
+            }
+
+            if (terbaik < 0) return null;
+
+            kepakai.add(terbaik);
+
+            return terbaik;
+          }(),
+    ];
+  }
+
   int terapkanHasilEkstraksi(HasilEkstraksiTabel hasil, {required String tahap}) {
     final urut = titikUrut;
     var terisi = 0;
     adaIsianDariFoto = true;
 
+    // Kolom AI ke-`k` mendarat di titik yang mana. Dicocokin ke NILAI STANDAR
+    // yang AI kirim (`standard_value`), bukan ditebak dari urutan.
+    //
+    // Kenapa penting: lembar yang digambar nggak selalu sejumlah & seurut
+    // kolom di foto. Lembar Conductivity generik punya 4 baris (dua varian
+    // satuan titik tengah) sementara fotonya cuma 3 kolom — dengan pemetaan
+    // posisi, SEMUA angka geser satu baris dan nggak ada yang error. Itu yang
+    // bikin `1413` mendarat di baris `25 µS/cm`.
+    final petaKolom = _petakanKolomFoto(hasil.standarNilai, urut);
+
     for (var pengulangan = 0; pengulangan < hasil.baris.length; pengulangan++) {
       final baris = hasil.baris[pengulangan];
 
-      for (var t = 0; t < urut.length; t++) {
+      for (var k = 0; k < petaKolom.length; k++) {
+        final t = petaKolom[k];
+
+        // Kolom yang nggak cocok ke titik mana pun DIBUANG, bukan dipaksa
+        // masuk ke baris terdekat. Angka kalibrasi di titik yang salah lebih
+        // bahaya daripada sel yang dibiarin kosong buat diisi tangan.
+        if (t == null) continue;
+
         final state = urut[t];
         if (pengulangan >= state.jumlahPengulangan) continue;
 
@@ -819,16 +884,16 @@ class LembarKerjaState {
           tahap,
           'pembacaan',
           pengulangan,
-          t < baris.ph.length ? baris.ph[t] : null,
-          baris.keyakinanPh(t),
+          k < baris.ph.length ? baris.ph[k] : null,
+          baris.keyakinanPh(k),
         );
         terisi += _isiSel(
           state,
           tahap,
           'suhu',
           pengulangan,
-          t < baris.suhu.length ? baris.suhu[t] : null,
-          baris.keyakinanSuhu(t),
+          k < baris.suhu.length ? baris.suhu[k] : null,
+          baris.keyakinanSuhu(k),
         );
       }
     }
