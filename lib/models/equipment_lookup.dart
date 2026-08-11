@@ -27,6 +27,21 @@ class EquipmentLookup {
     this.lokasi = '',
   });
 
+  /// Kesetaraan pakai `id`, BUKAN identitas objek.
+  ///
+  /// `DropdownButtonFormField` ngecek nilainya lawan daftar item; kalau
+  /// daftarnya ke-refresh, instance-nya baru semua. Tanpa `==` ini, alat yang
+  /// udah dipilih teknisi mendadak nggak cocok sama item mana pun — dropdown
+  /// balik ke hint "Pilih alat" dan Flutter ngelempar error, padahal pilihannya
+  /// masih utuh di state. Ketahuan 11 Agt 2026 waktu bentuk lembar mulai
+  /// diambil ulang tiap ganti alat.
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || (other is EquipmentLookup && other.id == id);
+
+  @override
+  int get hashCode => id.hashCode;
+
   final int id;
   final String namaAlat;
   final String serialNumber;
