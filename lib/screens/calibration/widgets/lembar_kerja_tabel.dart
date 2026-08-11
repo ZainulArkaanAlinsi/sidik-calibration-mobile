@@ -46,11 +46,84 @@ class LembarKerjaTabel extends StatelessWidget {
   List<BarisTabelHasil> get _baris => tabel.barisUntuk(isian.satuan);
 
   static const _lebarSel = 78.0;
-  static const _lebarLabel = 104.0;
+
+  /// Batas kolom label. Bawahnya lebar lama — cukup buat pH (`4`, `7`, `10`).
+  /// Atasnya biar area gulung nggak keburu habis di HP sempit.
+  static const _lebarLabelMin = 104.0;
+  static const _lebarLabelMaks = 152.0;
+
+  /// Jarak nafas di dalam sel label, kiri-kanan dan atas-bawah.
+  static const _selaLabel = 8.0;
+
+  /// Ukur kolom label dari ISINYA, bukan dipatok.
+  ///
+  /// Dulu 104×56 mati. Angka itu pas buat pH, tapi sesak buat Conductivity yang
+  /// labelnya bawa satuan (`1,412 mS/cm`) DAN nambah baris keterangan waktu
+  /// barisnya terkunci — dua-duanya numpuk di sel yang sama dan meluber 8px.
+  ///
+  /// Tingginya dipukul rata SATU nilai buat semua baris, bukan per baris:
+  /// kolom label ini di luar area gulung, jadi kalau tingginya beda-beda dia
+  /// langsung lari dari baris sel angka di sebelahnya.
+  ({double lebar, double tinggi}) _ukurKolomLabel(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final skala = MediaQuery.textScalerOf(context);
+
+    final gayaLabel = theme.textTheme.labelMedium?.copyWith(
+      fontWeight: FontWeight.w700,
+    );
+    final gayaCatatan = theme.textTheme.labelSmall;
+
+    double ukur(String teks, TextStyle? gaya, double lebarMaks, int? baris) {
+      final pelukis = TextPainter(
+        text: TextSpan(text: teks, style: gaya),
+        textDirection: Directionality.of(context),
+        textScaler: skala,
+        maxLines: baris,
+      )..layout(maxWidth: lebarMaks);
+
+      return baris == null ? pelukis.width : pelukis.height;
+    }
+
+    final teksBaris = [
+      for (final baris in _baris)
+        isian.bentuk.satuanUntuk(baris).isEmpty
+            ? baris.label
+            : '${baris.label} ${isian.bentuk.satuanUntuk(baris)}',
+    ];
+
+    // Lebar: cukup buat label terpanjang tanpa membungkus, dalam batas di atas.
+    var lebar = _lebarLabelMin;
+    for (final teks in [...teksBaris, 'Standard']) {
+      final perlu = ukur(teks, gayaLabel, double.infinity, null) + _selaLabel;
+      if (perlu > lebar) lebar = perlu;
+    }
+    lebar = lebar.clamp(_lebarLabelMin, _lebarLabelMaks);
+
+    // Tinggi: diukur PADA lebar yang barusan diputuskan — label yang masih
+    // membungkus di lebar maksimum tetap kehitung.
+    final adaCatatan = _baris.any((b) => isian.titikTerkunci(b.titikUkur));
+    final lebarIsi = lebar - _selaLabel;
+
+    var tinggi = _tinggiBarisMin;
+    for (final teks in teksBaris) {
+      var perlu = ukur(teks, gayaLabel, lebarIsi, 2);
+
+      if (adaCatatan) {
+        perlu += ukur(l10n.lkTitikAlternatifSatuan, gayaCatatan, lebarIsi, 2);
+      }
+
+      perlu += _selaLabel;
+      if (perlu > tinggi) tinggi = perlu;
+    }
+
+    return (lebar: lebar, tinggi: tinggi);
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final ukuran = _ukurKolomLabel(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,13 +157,13 @@ class LembarKerjaTabel extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _SelKepala(
-                  lebar: _lebarLabel,
+                  lebar: ukuran.lebar,
                   teks: 'Standard',
                   tinggi: _tinggiKepala,
                 ),
                 for (final baris in _baris)
                   _SelKepala(
-                    lebar: _lebarLabel,
+                    lebar: ukuran.lebar,
                     // Satuannya ikut, persis sheet INPUT DATA yang nulis
                     // "1,74 mg/L". Tanpa itu angka standarnya kebaca telanjang
                     // dan gampang ketuker sama pembacaan di sebelahnya.
@@ -105,7 +178,7 @@ class LembarKerjaTabel extends StatelessWidget {
                     catatan: isian.titikTerkunci(baris.titikUkur)
                         ? AppLocalizations.of(context).lkTitikAlternatifSatuan
                         : null,
-                    tinggi: _tinggiBaris,
+                    tinggi: ukuran.tinggi,
                     kiri: true,
                   ),
               ],
@@ -136,6 +209,7 @@ class LembarKerjaTabel extends StatelessWidget {
                             for (final kolom in tabel.kolom)
                               _SelAngka(
                                 lebar: _lebarSel,
+                                tinggi: ukuran.tinggi,
                                 // Botol yang sama dibaca dua satuan: begitu
                                 // pasangannya mulai diisi, baris ini dikunci.
                                 // Dikunci, bukan disembunyikan — teknisi perlu
@@ -184,7 +258,10 @@ class LembarKerjaTabel extends StatelessWidget {
   }
 
   static const _tinggiKepala = 44.0;
-  static const _tinggiBaris = 56.0;
+
+  /// Lantai tinggi baris — tinggi sebenarnya diukur dari isi di
+  /// [_ukurKolomLabel], dan nggak pernah turun di bawah ini.
+  static const _tinggiBarisMin = 56.0;
 }
 
 /// Foto satu tabel worksheet → **AI di backend** baca isinya → seluruh kolom
@@ -477,12 +554,17 @@ class _SelKepala extends StatelessWidget {
 class _SelAngka extends StatelessWidget {
   const _SelAngka({
     required this.lebar,
+    required this.tinggi,
     required this.controller,
     this.rendah = false,
     this.terkunci = false,
   });
 
   final double lebar;
+
+  /// Dikirim dari luar, bukan konstanta: harus PERSIS setinggi sel label di
+  /// kolom nempel sebelah kiri, atau barisnya lari sendiri-sendiri.
+  final double tinggi;
   final TextEditingController controller;
 
   /// Sel ini diisi AI dengan keyakinan rendah — dikasih border kuning biar
@@ -507,7 +589,7 @@ class _SelAngka extends StatelessWidget {
 
     return SizedBox(
       width: lebar,
-      height: LembarKerjaTabel._tinggiBaris,
+      height: tinggi,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
         child: TextField(
