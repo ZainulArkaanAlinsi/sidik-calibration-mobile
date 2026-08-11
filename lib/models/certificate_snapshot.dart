@@ -74,10 +74,23 @@ class BarisHasilSertifikat {
     required this.u95,
     this.desimal,
     this.remark,
+    this.satuan,
   });
 
   final int titikKe;
   final double standardValue;
+
+  /// Satuan baris INI — DIBEKUKAN waktu sertifikat terbit, buat alat yang
+  /// nyampur satuan dalam satu lembar (Conductivity: 25 & 1412 µS/cm, 111
+  /// mS/cm).
+  ///
+  /// Beda dari `satuan` di level snapshot, yang cuma nampung SATU satuan buat
+  /// seluruh lembar — itu yang bikin titik 111 mS/cm kelabel µS/cm kalau
+  /// dipakai borongan.
+  ///
+  /// `null` = alat bersatuan seragam; tampilan empat alat lain nggak berubah.
+  final String? satuan;
+
   final double unitUnderTest;
 
   /// Berapa desimal baris INI ditulis. `null` = backend belum ngirim, pakai
@@ -124,6 +137,7 @@ class BarisHasilSertifikat {
           final String s when s.trim().isNotEmpty => s.trim(),
           _ => null,
         },
+        satuan: json['satuan'] as String?,
       );
 }
 
