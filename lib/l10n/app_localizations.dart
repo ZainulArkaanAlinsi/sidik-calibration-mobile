@@ -6014,6 +6014,12 @@ abstract class AppLocalizations {
   /// **'Alternate unit of the same standard — already filled in the other row'**
   String get lkTitikAlternatifSatuan;
 
+  /// Shown when the sheet shrinks after picking an instrument and some filled points no longer exist.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah, plural, other{{jumlah} point(s) are not on this instrument’s sheet — their entries were discarded}}'**
+  String lkIsianTitikKebuang(int jumlah);
+
   /// No description provided for @lkKonfirmasiJudul.
   ///
   /// In en, this message translates to:

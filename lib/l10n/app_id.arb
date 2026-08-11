@@ -1144,6 +1144,11 @@
   "statusTanpaKeputusan": "Tanpa keputusan",
   "detailEditAdmin": "EDIT LEMBAR",
   "lkTitikAlternatifSatuan": "Alternatif satuan dari botol yang sama — sudah diisi di baris satunya",
+  "lkIsianTitikKebuang": "{jumlah, plural, other{{jumlah} titik tidak ada di lembar alat ini — isiannya dibuang}}",
+  "@lkIsianTitikKebuang": {
+    "description": "Peringatan waktu bentuk lembar menyusut sesudah alat dipilih, dan ada isian yang titiknya hilang.",
+    "placeholders": { "jumlah": { "type": "int" } }
+  },
   "lkKonfirmasiJudul": "Cek dulu angkanya sebelum dikirim",
   "lkKonfirmasiCatatan": "Rata-rata pembacaan After adjustment. Koreksi & ketidakpastian dihitung server sesudah ini dikirim.",
   "lkKonfirmasiDariFoto": "Sebagian angka di tabel ini datang dari foto. Dengan mengirim, kamu menyatakan sudah mencocokkannya dengan yang tertera di alat.",

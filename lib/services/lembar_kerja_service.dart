@@ -18,7 +18,17 @@ abstract class LembarKerjaService {
   /// pakai bawaan profilnya (5, ngikut form kertas). Ini murni soal tampilan:
   /// rumusnya selalu ngikut berapa kotak yang beneran diisi, jadi ngecilin
   /// kolom nggak ngubah hasil hitungannya.
-  Future<LembarKerja> ambilBentuk(String token, {String? profil, int? pengulangan});
+  /// [equipmentId] bikin backend nyusutin bentuknya ke ALAT ITU: titik yang
+  /// punya varian satuan dikirim SATU baris, ngikut satuan di resolusi alat.
+  /// Tanpa ini yang kekirim bentuk generik — Conductivity keluar 4 baris dengan
+  /// dua varian titik tengah yang saling ngunci, dan satuannya nggak ngikut
+  /// alat pelanggan.
+  Future<LembarKerja> ambilBentuk(
+    String token, {
+    String? profil,
+    int? pengulangan,
+    int? equipmentId,
+  });
 
   /// `POST /api/calibrations` — balikin id sesi yang kebentuk.
   Future<int> kirim(String token, LembarKerjaSubmission isian);
@@ -38,10 +48,12 @@ class ApiLembarKerjaService implements LembarKerjaService {
     String token, {
     String? profil,
     int? pengulangan,
+    int? equipmentId,
   }) async {
     final q = <String>[
       if (profil != null && profil.isNotEmpty) 'profil=$profil',
       if (pengulangan != null) 'pengulangan=$pengulangan',
+      if (equipmentId != null) 'equipment_id=$equipmentId',
     ];
     final path = '/calibrations/lembar-kerja${q.isEmpty ? '' : '?${q.join('&')}'}';
     final json = await _api.get(path, token: token);
@@ -109,6 +121,11 @@ class MockLembarKerjaService implements LembarKerjaService {
 
   int get jumlahKirim => payload.length;
 
+  /// Alat yang diminta tiap kali bentuk diambil (`null` = bentuk generik).
+  /// Dicatat karena inilah yang nentuin Conductivity keluar 3 baris atau 4:
+  /// tanpa ini, dua varian titik tengah muncul bareng dan saling ngunci.
+  final List<int?> equipmentIdDiminta = [];
+
   /// Jumlah kotak pengulangan yang diminta tiap kali bentuk diambil (`null` =
   /// nggak minta apa-apa, pakai bawaan). Dicatat biar test bisa mastiin
   /// pilihan teknisi beneran nyampe ke backend, bukan cuma keganti di layar.
@@ -119,9 +136,11 @@ class MockLembarKerjaService implements LembarKerjaService {
     String token, {
     String? profil,
     int? pengulangan,
+    int? equipmentId,
   }) async {
     if (gagal) throw Exception('server nggak nyaut');
     pengulanganDiminta.add(pengulangan);
+    equipmentIdDiminta.add(equipmentId);
 
     final bentuk = switch (profil) {
       'turbidimeter' => contohBentukLembarKerjaTurbidi(untukAdmin: untukAdmin),

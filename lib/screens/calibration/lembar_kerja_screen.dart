@@ -104,7 +104,13 @@ class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final kunci = (profil: widget.profil, pengulangan: _pengulangan);
+    // `equipmentId` masih null — plumbing-nya siap sampai service, tapi
+    // penyambungannya belum. Lihat catatan di bawah.
+    final kunci = (
+      profil: widget.profil,
+      pengulangan: _pengulangan,
+      equipmentId: null,
+    );
     final bentukAsync = ref.watch(lembarKerjaProvider(kunci));
     final terpakai = bentukAsync.value?.jumlahPengulangan ?? _pengulangan ?? 5;
 

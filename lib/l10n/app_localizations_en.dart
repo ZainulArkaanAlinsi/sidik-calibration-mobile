@@ -3282,6 +3282,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Alternate unit of the same standard — already filled in the other row';
 
   @override
+  String lkIsianTitikKebuang(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other:
+          '$jumlah point(s) are not on this instrument’s sheet — their entries were discarded',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get lkKonfirmasiJudul => 'Check the numbers before sending';
 
   @override

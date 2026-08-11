@@ -1642,6 +1642,11 @@
   "statusTanpaKeputusan": "Not assessed",
   "detailEditAdmin": "EDIT SHEET",
   "lkTitikAlternatifSatuan": "Alternate unit of the same standard — already filled in the other row",
+  "lkIsianTitikKebuang": "{jumlah, plural, other{{jumlah} point(s) are not on this instrument\u2019s sheet — their entries were discarded}}",
+  "@lkIsianTitikKebuang": {
+    "description": "Shown when the sheet shrinks after picking an instrument and some filled points no longer exist.",
+    "placeholders": { "jumlah": { "type": "int" } }
+  },
   "lkKonfirmasiJudul": "Check the numbers before sending",
   "lkKonfirmasiCatatan": "Averages of the After adjustment readings. Correction and uncertainty are computed by the server once this is sent.",
   "lkKonfirmasiDariFoto": "Some numbers in this table came from a photo. By sending, you confirm you've checked them against the instrument.",

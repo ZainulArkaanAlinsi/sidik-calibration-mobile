@@ -169,6 +169,27 @@ class TitikState {
   bool get adaIsian =>
       _kotak.values.any((c) => c.text.trim().isNotEmpty) || standardId != null;
 
+  /// Salinan isian sel baris ini, buat diselamatkan waktu BENTUK lembar
+  /// berubah (mis. teknisi milih alat, dan baris varian satuan menyusut).
+  ///
+  /// Yang kosong nggak ikut disalin — biar nempelnya nggak nimpa apa pun.
+  Map<String, String> salinKotak() => {
+    for (final e in _kotak.entries)
+      if (e.value.text.trim().isNotEmpty) e.key: e.value.text,
+  };
+
+  /// Kebalikan [salinKotak]. Kunci yang bentuknya nggak dikenal dilewat, bukan
+  /// bikin crash — salinan bisa datang dari bentuk lembar yang beda.
+  void tempelKotak(Map<String, String> dari) {
+    for (final e in dari.entries) {
+      final bagian = e.key.split('|');
+      if (bagian.length != 3) continue;
+      final index = int.tryParse(bagian[2]);
+      if (index == null) continue;
+      kotak(bagian[0], bagian[1], index).text = e.value;
+    }
+  }
+
   List<double?> _kolom(String tahap, String kolom) => List<double?>.generate(
     jumlahPengulangan,
     // Sel yang belum diisi jadi null, BUKAN dibuang — nomor Repeat-nya nggak
@@ -262,7 +283,18 @@ class LembarKerjaState {
   /// Dipisah dari konstruktor karena dipanggil lagi tiap satuan berubah:
   /// Refractometer ngirim titik standar yang beda per skala (1,33659/1,39986
   /// n20D vs 2,5/40 °Brix), jadi tabelnya ikut ganti — bukan cuma labelnya.
-  void _bangunTitik() {
+  int _bangunTitik({bool pertahankanIsian = false}) {
+    // Isian sel disalin DULU, sebelum yang lama dibuang. Yang disalin cuma
+    // angkanya — `TitikState`-nya sendiri dibikin ulang dari bentuk yang baru,
+    // karena satuan/desimal/eksklusif-nya bisa berubah dan objek lama bakal
+    // bawa metadata basi.
+    final lama = pertahankanIsian
+        ? {
+            for (final e in titik.entries)
+              if (e.value.salinKotak().isNotEmpty) e.key: e.value.salinKotak(),
+          }
+        : const <double, Map<String, String>>{};
+
     for (final t in titik.values) {
       t.dispose();
     }
@@ -296,6 +328,41 @@ class LembarKerjaState {
         }
       }
     }
+
+    var kebuang = 0;
+
+    for (final e in lama.entries) {
+      final tujuan = titik[e.key];
+
+      if (tujuan == null) {
+        kebuang++;
+        continue;
+      }
+
+      tujuan.tempelKotak(e.value);
+    }
+
+    return kebuang;
+  }
+
+  /// Ganti bentuk lembar TANPA ngebuang isian yang udah diketik.
+  ///
+  /// Dipanggil waktu teknisi milih alat: backend ngirim bentuk yang disusutin
+  /// ke alat itu. Conductivity generik punya baris `1412 µS/cm` DAN
+  /// `1,412 mS/cm`; begitu alatnya kebaca, cuma satu yang tersisa — yang
+  /// satuannya cocok sama resolusi alat pelanggan.
+  ///
+  /// Balikin JUMLAH TITIK yang isinya kebuang karena barisnya udah nggak ada.
+  /// Angka itu wajib ditampilin ke teknisi: isian kalibrasi yang ilang
+  /// diam-diam lebih bahaya daripada formulir yang bentuknya salah.
+  ///
+  /// Yang TIDAK ikut dipertahankan: pilihan standar per titik. Itu diturunkan
+  /// ulang dari bentuk yang baru dan kelihatan di daftar centang, jadi
+  /// perubahannya nggak diam-diam.
+  int gantiBentuk(LembarKerja baru) {
+    bentuk = baru;
+
+    return _bangunTitik(pertahankanIsian: true);
   }
 
   /// Titik ukur yang bakal kebentuk kalau satuannya [calon] — dipakai layar
@@ -316,7 +383,11 @@ class LembarKerjaState {
       !setEquals(_titikUntuk(calon), titik.keys.toSet()) &&
       titik.values.any((t) => t.adaIsian);
 
-  final LembarKerja bentuk;
+  /// **Nggak final.** Bentuk lembar bisa diganti di tengah jalan lewat
+  /// [gantiBentuk] — begitu teknisi milih alat, backend ngirim bentuk yang
+  /// disusutin ke alat itu (Conductivity: 4 baris → 3). State-nya sengaja
+  /// DIPERTAHANKAN, bukan dibikin ulang, supaya isian teknisi nggak ilang.
+  LembarKerja bentuk;
   final String clientRequestId;
 
   EquipmentLookup? alat;
@@ -557,6 +628,40 @@ class LembarKerjaState {
       teks.values.any((c) => c.text.trim().isNotEmpty) ||
       titik.values.any((t) => t.adaIsian) ||
       usageCheck.values.any((u) => u.adaIsian);
+
+  /// Salinan seluruh isian sel, dikunci per TITIK UKUR (bukan per posisi
+  /// baris) — posisinya bisa geser waktu bentuk lembar berubah, nilai titiknya
+  /// nggak.
+  Map<double, Map<String, String>> salinIsianTitik() => {
+    for (final e in titik.entries)
+      if (e.value.salinKotak().isNotEmpty) e.key: e.value.salinKotak(),
+  };
+
+  /// Tempel balik salinan dari [salinIsianTitik] sesudah bentuk lembar diganti.
+  ///
+  /// Balikin JUMLAH TITIK yang isinya kebuang karena barisnya udah nggak ada di
+  /// bentuk yang baru. Angka itu WAJIB dipakai buat ngasih tau teknisi — isian
+  /// kalibrasi yang ilang diam-diam jauh lebih bahaya daripada formulir yang
+  /// bentuknya salah, karena nggak ada yang tau angkanya pernah ada.
+  ///
+  /// Kasus nyatanya: lembar generik Conductivity punya baris `1412 µS/cm` DAN
+  /// `1,412 mS/cm`; begitu alatnya dipilih, cuma satu yang tersisa.
+  int tempelIsianTitik(Map<double, Map<String, String>> dari) {
+    var kebuang = 0;
+
+    for (final e in dari.entries) {
+      final tujuan = titik[e.key];
+
+      if (tujuan == null) {
+        kebuang++;
+        continue;
+      }
+
+      tujuan.tempelKotak(e.value);
+    }
+
+    return kebuang;
+  }
 
   /// Susun payload. **Nggak ada validasi di sini** — apa pun kondisinya, isian
   /// yang ada dikirim apa adanya. Yang nahan sertifikat terbit itu pemeriksaan

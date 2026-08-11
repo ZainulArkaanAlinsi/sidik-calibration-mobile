@@ -25,12 +25,19 @@ Future<String> _token(Ref ref) async {
   return token;
 }
 
-/// Kunci [lembarKerjaProvider]: jenis alat + berapa kotak pengulangan.
+/// Kunci [lembarKerjaProvider]: jenis alat + berapa kotak pengulangan + ALAT
+/// yang lagi dipilih.
 ///
-/// Record, bukan String gabungan: dua-duanya ikut jadi identitas cache, jadi
-/// ganti jumlah kotak otomatis ngambil bentuk baru tanpa perlu invalidate
-/// manual — dan `ph_meter` 3 kotak nggak ketuker sama `ph_meter` 5 kotak.
-typedef KunciLembarKerja = ({String profil, int? pengulangan});
+/// Record, bukan String gabungan: ketiganya ikut jadi identitas cache, jadi
+/// ganti jumlah kotak ATAU ganti alat otomatis ngambil bentuk baru tanpa perlu
+/// invalidate manual — dan `ph_meter` 3 kotak nggak ketuker sama `ph_meter` 5
+/// kotak.
+///
+/// `equipmentId` masuk kunci karena bentuknya beneran beda per alat, bukan cuma
+/// isinya: Conductivity tanpa alat keluar 4 baris (dua varian titik tengah yang
+/// saling ngunci), dengan alat keluar 3 baris dengan satuan ngikut resolusi alat
+/// pelanggan.
+typedef KunciLembarKerja = ({String profil, int? pengulangan, int? equipmentId});
 
 /// Bentuk formulir lembar kerja per JENIS ALAT (`ph_meter` / `turbidimeter` /
 /// `chlorine_meter`).
@@ -49,6 +56,7 @@ final lembarKerjaProvider =
         token,
         profil: kunci.profil,
         pengulangan: kunci.pengulangan,
+        equipmentId: kunci.equipmentId,
       );
     }, retry: (retryCount, error) => null);
 

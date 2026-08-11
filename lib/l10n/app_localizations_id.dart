@@ -3258,6 +3258,16 @@ class AppLocalizationsId extends AppLocalizations {
       'Alternatif satuan dari botol yang sama — sudah diisi di baris satunya';
 
   @override
+  String lkIsianTitikKebuang(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah titik tidak ada di lembar alat ini — isiannya dibuang',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get lkKonfirmasiJudul => 'Cek dulu angkanya sebelum dikirim';
 
   @override
