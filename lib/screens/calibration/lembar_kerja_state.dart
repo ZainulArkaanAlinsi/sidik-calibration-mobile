@@ -472,6 +472,32 @@ class LembarKerjaState {
     return titik[pasangan]?.adaPembacaan ?? false;
   }
 
+  /// Baris ini boleh diketik?
+  ///
+  /// Dua syarat, dan dua-duanya dari lab:
+  ///
+  ///  1. **Standarnya dicentang.** Centang = "botol ini yang saya pakai". Baris
+  ///     yang nggak dicentang tetap KELIHATAN — teknisi perlu tau titik itu ada
+  ///     di lembar kerjanya — tapi kotaknya mati.
+  ///  2. Pasangan satuannya belum diisi ([titikTerkunci]).
+  ///
+  /// Baris tanpa pasangan & tanpa standar tercetak (alat yang standarnya nggak
+  /// dipilih per titik) tetap kebuka: `standardId` null di situ artinya "lembar
+  /// ini emang nggak nanya", bukan "belum dicentang".
+  bool titikBisaDiisi(double titikUkur) {
+    final state = titik[titikUkur];
+    if (state == null) return false;
+
+    if (titikTerkunci(titikUkur)) return false;
+
+    // Cuma dipakai kalau lembarnya emang nyodorin pilihan standar per titik.
+    if (state.standardIdTercetak != null && state.standardId == null) {
+      return false;
+    }
+
+    return true;
+  }
+
   /// Baris yang pembacaannya keisi tapi suhunya kosong — penahan sebelum kirim.
   ///
   /// Kosong = boleh kirim. Lihat [TitikState.adaPembacaanTanpaSuhu] soal kenapa

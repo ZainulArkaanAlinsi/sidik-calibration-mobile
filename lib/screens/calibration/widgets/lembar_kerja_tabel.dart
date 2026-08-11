@@ -214,7 +214,9 @@ class LembarKerjaTabel extends StatelessWidget {
                                 // pasangannya mulai diisi, baris ini dikunci.
                                 // Dikunci, bukan disembunyikan — teknisi perlu
                                 // lihat bahwa ini alternatif satuan.
-                                terkunci: isian.titikTerkunci(baris.titikUkur),
+                                // Mati kalau standarnya belum dicentang ATAU pasangan
+                                // satuannya udah diisi. Lihat `titikBisaDiisi`.
+                                terkunci: !isian.titikBisaDiisi(baris.titikUkur),
                                 controller: isian
                                     .titik[baris.titikUkur]!
                                     .kotak(tabel.tahap, kolom.kode, i),
