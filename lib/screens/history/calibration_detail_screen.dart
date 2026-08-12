@@ -212,7 +212,11 @@ class _Isi extends StatelessWidget {
         //
         // `disetujui` tetap terkunci buat SEMUA orang — sertifikatnya udah
         // terbit dan udah dikirim ke pelanggan.
-        if (detail.status == CalibrationStatus.menungguApproval) ...[
+        // `perlu_revisi` ikut kebuka: itu sesi yang DIKEMBALIKAN admin ke
+        // teknisi. Tanpa pintu ini, teknisi cuma dapat notifikasi "ditolak"
+        // tanpa satu pun cara mbenerin — sesinya mentok di HP-nya.
+        if (detail.status == CalibrationStatus.menungguApproval ||
+            detail.status == CalibrationStatus.perluRevisi) ...[
           const SizedBox(height: AppSpacing.md),
           _TombolEditAdmin(detail: detail),
         ],
@@ -980,11 +984,16 @@ class _TombolEditAdmin extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final isAdmin = ref.watch(authProvider).value?.role.isAdmin ?? false;
+    final perluRevisi = detail.status == CalibrationStatus.perluRevisi;
 
-    if (!isAdmin) return const SizedBox.shrink();
+    // Sesi yang DIKEMBALIKAN admin memang buat dikerjain ulang teknisi, jadi
+    // di status itu tombolnya buat SEMUA orang. Di `menunggu_approval` tetap
+    // admin doang — backend nolak teknisi dengan 422, dan mancing orang ke
+    // tombol yang pasti ditolak bikin dia ngira app-nya rusak.
+    if (!isAdmin && !perluRevisi) return const SizedBox.shrink();
 
     return AppButton(
-      label: l10n.detailEditAdmin,
+      label: perluRevisi ? l10n.detailPerbaikiRevisi : l10n.detailEditAdmin,
       icon: Icons.edit_outlined,
       variant: AppButtonVariant.secondary,
       onPressed: () => Navigator.of(context).push(

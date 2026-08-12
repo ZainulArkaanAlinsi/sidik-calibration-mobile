@@ -3283,6 +3283,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get detailEditAdmin => 'EDIT SHEET';
 
   @override
+  String get detailPerbaikiRevisi => 'FIX WORKSHEET';
+
+  @override
   String get lkTitikAlternatifSatuan =>
       'Alternate unit of the same standard — already filled in the other row';
 

@@ -3259,6 +3259,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get detailEditAdmin => 'EDIT LEMBAR';
 
   @override
+  String get detailPerbaikiRevisi => 'PERBAIKI LEMBAR KERJA';
+
+  @override
   String get lkTitikAlternatifSatuan =>
       'Alternatif satuan dari botol yang sama — sudah diisi di baris satunya';
 

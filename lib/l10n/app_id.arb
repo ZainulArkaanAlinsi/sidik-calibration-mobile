@@ -1145,6 +1145,7 @@
   "@lkStandarBelumDicentang": {"placeholders": {"titik": {"type": "String"}}},
   "statusTanpaKeputusan": "Tanpa keputusan",
   "detailEditAdmin": "EDIT LEMBAR",
+  "detailPerbaikiRevisi": "PERBAIKI LEMBAR KERJA",
   "lkTitikAlternatifSatuan": "Alternatif satuan dari botol yang sama — sudah diisi di baris satunya",
   "lkIsianTitikKebuang": "{jumlah, plural, other{{jumlah} titik tidak ada di lembar alat ini — isiannya dibuang}}",
   "@lkIsianTitikKebuang": {

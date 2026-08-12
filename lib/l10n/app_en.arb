@@ -1643,6 +1643,7 @@
   "@lkSuhuWajib": {"placeholders": {"titik": {"type": "String"}}},
   "statusTanpaKeputusan": "Not assessed",
   "detailEditAdmin": "EDIT SHEET",
+  "detailPerbaikiRevisi": "FIX WORKSHEET",
   "lkTitikAlternatifSatuan": "Alternate unit of the same standard — already filled in the other row",
   "lkIsianTitikKebuang": "{jumlah, plural, other{{jumlah} point(s) are not on this instrument\u2019s sheet — their entries were discarded}}",
   "@lkIsianTitikKebuang": {
