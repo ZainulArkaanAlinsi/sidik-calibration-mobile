@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,6 +7,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/utils/angka.dart';
 import '../../core/utils/uuid.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/calibration_detail.dart' show MeasurementResult;
 import '../../models/calibration_draft.dart' show LokasiKalibrasi;
 import '../../models/equipment_lookup.dart';
 import '../../models/lembar_kerja.dart';
@@ -355,6 +358,11 @@ class _FormState extends ConsumerState<_Form> {
   void initState() {
     super.initState();
 
+    // Angka yang diketik di tabel hasil nggak lewat `_isianBerubah` — selnya
+    // sengaja nggak nge-rebuild formulir tiap ketukan tombol. Pratinjaunya
+    // dengerin dari sini.
+    _isian.onIsianDiketik = _jadwalkanPratinjau;
+
     final id = widget.sesiId;
     if (id != null) _muatSesiLama(id);
   }
@@ -413,7 +421,34 @@ class _FormState extends ConsumerState<_Form> {
   void _isianBerubah() {
     setState(() {});
     widget.onAlatBerubah(_isian.alat?.id);
+    _jadwalkanPratinjau();
   }
+
+  /// Minta backend ngitung isian yang sekarang — DITUNDA, bukan tiap ketukan.
+  ///
+  /// Satu titik Spectrophotometer ikut nentuin U95 seluruh saudaranya sekelompok
+  /// (STDEV terbesar yang masuk budget), jadi angka yang tampil bisa berubah
+  /// gara-gara baris LAIN yang barusan diisi. Itu justru alasan panelnya ada,
+  /// dan alasan permintaannya nggak bisa dipatok "sekali per baris kelar".
+  ///
+  /// Syaratnya cuma dua, dan dua-duanya soal jangan ngerepotin server buat
+  /// jawaban yang udah pasti kosong: alatnya udah dipilih (`equipment_id` wajib
+  /// di payload) dan ada minimal satu angka yang diketik.
+  void _jadwalkanPratinjau() {
+    _pratinjauTertunda?.cancel();
+
+    if (_isian.alat == null) return;
+    if (!_isian.titik.values.any((t) => t.adaPembacaan)) return;
+
+    _pratinjauTertunda = Timer(const Duration(milliseconds: 700), () {
+      if (!mounted) return;
+      ref
+          .read(pratinjauProvider.notifier)
+          .hitung(_isian.toSubmission(draft: true));
+    });
+  }
+
+  Timer? _pratinjauTertunda;
 
   /// Bentuk baru dari backend dipasang ke state yang SUDAH ADA, bukan bikin
   /// state baru — isian yang udah diketik dipindahin per titik ukur oleh
@@ -443,6 +478,7 @@ class _FormState extends ConsumerState<_Form> {
 
   @override
   void dispose() {
+    _pratinjauTertunda?.cancel();
     _isian.dispose();
     super.dispose();
   }
@@ -1185,6 +1221,12 @@ class _Bagian extends ConsumerWidget {
             // mana yang suhunya ikut dihitung.
             if (bagian.tabel.isNotEmpty && isian.bentuk.catatanPengisian.isNotEmpty)
               _CatatanIsi(catatan: isian.bentuk.catatanPengisian),
+
+            // Jaraknya ikut di dalam panel, bukan di sini: panel yang lagi
+            // kosong (belum ada isian, atau belum ada balasan) mesti nggak
+            // makan ruang sama sekali — kalau nggak, seluruh bagian di
+            // bawahnya kegeser buat sesuatu yang nggak kelihatan.
+            if (bagian.tabel.isNotEmpty) _PanelPratinjau(isian: isian),
           ],
         ),
       ),
@@ -1224,6 +1266,228 @@ class _CatatanIsi extends StatelessWidget {
             ),
           ),
         ),
+      ],
+    );
+  }
+}
+
+/// Hasil hitung sementara dari `POST /calibrations/preview`.
+///
+/// Ada supaya teknisi lihat angkanya SEBELUM lembarnya masuk antrean approval.
+/// Sebelum ini satu-satunya cara tau hasilnya adalah ngirim sesinya, dan sesi
+/// yang salah titik cuma bisa dibetulin lewat jalur revisi admin — bolak-balik
+/// yang makan sehari buat kesalahan ketik lima detik.
+///
+/// **Nggak ada satu pun rumus di sini.** Rata-rata, koreksi, dan U95 semuanya
+/// dari backend. Buat alat yang U95-nya lahir per kelompok (Spectrophotometer),
+/// angkanya bahkan nggak bisa diturunkan dari satu titik: yang masuk budget itu
+/// STDEV TERBESAR sekelompok, jadi baris yang barusan diketik bisa ngubah U95
+/// sembilan baris lain.
+///
+/// Titik yang U95-nya kembar SENGAJA nggak digabung. Sepuluh titik Holmium
+/// dengan `0,43255708` yang sama persis itu hasil yang bener, bukan data dobel,
+/// dan ngeringkasnya jadi satu baris bikin teknisi ngira sembilan titiknya
+/// nggak kehitung.
+class _PanelPratinjau extends ConsumerWidget {
+  const _PanelPratinjau({required this.isian});
+
+  final LembarKerjaState isian;
+
+  /// Desimal titik ini: dari backend dulu, baru dari bentuk lembar.
+  ///
+  /// Kalau dua-duanya diam, angkanya ditulis apa adanya ([formatNilai]) — bukan
+  /// dipatok dua desimal. Mbulatin ke angka karangan di layar yang dipakai
+  /// mriksa hasil itu kebalikan dari gunanya panel ini.
+  String _tulis(MeasurementResult titik, double nilai) {
+    final desimal = titik.desimal ?? isian.titik[titik.titikUkur]?.desimal;
+
+    return desimal == null
+        ? formatNilai(nilai)
+        : formatSertifikat(nilai, desimal, tandaNol: titik.tandaNol);
+  }
+
+  /// Label baris di lembar buat titik ke-[titikKe] (1-based, urutan kiriman).
+  ///
+  /// `belum_dihitung` cuma bawa nomor urut, dan "Titik ke-13" nggak nolong
+  /// siapa-siapa di lembar 24 baris. Urutan `titikUrut` sama persis sama urutan
+  /// `measurements` yang barusan dikirim — dua-duanya dari `titik.values`.
+  String? _labelTitik(int titikKe) {
+    final urut = isian.titikUrut;
+    if (titikKe < 1 || titikKe > urut.length) return null;
+
+    final t = urut[titikKe - 1];
+
+    return t.satuan.isEmpty ? t.label : '${t.label} ${t.satuan}';
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final status = ref.watch(pratinjauProvider);
+    final hasil = status.hasil;
+
+    if (hasil == null || hasil.kosong) return const SizedBox.shrink();
+
+    // Kelompok diambil dari `remark` yang dikirim backend, BUKAN ditebak dari
+    // besar angkanya: rentang Holmium (283–641 nm) & Didynium (474–810 nm)
+    // tumpang tindih 167 nm, jadi 513,7 nm kelihatan kayak Holmium padahal dia
+    // Didynium — dan U95 yang nempel jadi punya kelompok yang salah.
+    //
+    // Urutannya ngikut urutan titik, bukan diurut abjad: itu urutan lembarnya.
+    final kelompok = <String?, List<MeasurementResult>>{};
+    for (final t in hasil.titik) {
+      kelompok.putIfAbsent(t.remark, () => []).add(t);
+    }
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.lkPratinjauJudul,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ),
+              // Angka lama tetap kelihatan selama yang baru dihitung — yang
+              // nambah cuma penanda sibuk di pojok.
+              if (status.menghitung)
+                const SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            l10n.lkPratinjauCatatan,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+
+          for (final e in kelompok.entries) ...[
+            const SizedBox(height: AppSpacing.sm),
+            // Alat tanpa kelompok (pH, Turbidimeter, …) ngirim `remark: null` —
+            // kolomnya dikosongin, bukan dikasih judul karangan.
+            if (e.key != null && e.key!.isNotEmpty) ...[
+              Text(
+                e.key!,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+            ],
+            _TabelPratinjau(
+              titik: e.value,
+              tulis: _tulis,
+              satuanTitik: (t) => t.satuan ?? isian.titik[t.titikUkur]?.satuan ?? '',
+            ),
+          ],
+
+          if (hasil.belumDihitung.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.lkPratinjauBelumDihitung,
+              style: theme.textTheme.labelSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: theme.colorScheme.error,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            // Alasannya dari backend, ditampilin apa adanya. Lembar setengah
+            // isi tetap boleh dikirim — ini kabar, bukan penghalang — tapi tiap
+            // titik kosong NGURANGI dasar hitung kelompoknya, dan itu yang
+            // nggak kelihatan dari tabel yang barisnya keliatan wajar.
+            for (final b in hasil.belumDihitung)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                child: Text(
+                  '${_labelTitik(b.titikKe) ?? l10n.lkPratinjauTitikKe(b.titikKe)} — ${b.alasan}',
+                  style: theme.textTheme.bodySmall,
+                ),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Tabel angka pratinjau satu kelompok.
+class _TabelPratinjau extends StatelessWidget {
+  const _TabelPratinjau({
+    required this.titik,
+    required this.tulis,
+    required this.satuanTitik,
+  });
+
+  final List<MeasurementResult> titik;
+  final String Function(MeasurementResult, double) tulis;
+  final String Function(MeasurementResult) satuanTitik;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final gayaKepala = theme.textTheme.labelSmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    final gayaAngka = theme.textTheme.bodySmall?.copyWith(
+      fontFeatures: const [FontFeature.tabularFigures()],
+    );
+
+    TableRow baris(List<Widget> sel) => TableRow(children: [
+      for (final s in sel)
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: s,
+        ),
+    ]);
+
+    return Table(
+      columnWidths: const {
+        0: FlexColumnWidth(1.4),
+        1: FlexColumnWidth(1),
+        2: FlexColumnWidth(1),
+        3: FlexColumnWidth(1),
+      },
+      children: [
+        baris([
+          Text(l10n.lkPratinjauKolomTitik, style: gayaKepala),
+          Text(l10n.lkPratinjauKolomRata, style: gayaKepala, textAlign: TextAlign.right),
+          Text(l10n.lkPratinjauKolomKoreksi, style: gayaKepala, textAlign: TextAlign.right),
+          Text(l10n.lkPratinjauKolomU95, style: gayaKepala, textAlign: TextAlign.right),
+        ]),
+        for (final t in titik)
+          baris([
+            Text(
+              '${tulis(t, t.titikUkur)} ${satuanTitik(t)}'.trim(),
+              style: gayaAngka,
+            ),
+            Text(tulis(t, t.rataRata), style: gayaAngka, textAlign: TextAlign.right),
+            Text(tulis(t, t.koreksi), style: gayaAngka, textAlign: TextAlign.right),
+            Text(
+              tulis(t, t.ketidakpastianDiperluas),
+              style: gayaAngka,
+              textAlign: TextAlign.right,
+            ),
+          ]),
       ],
     );
   }

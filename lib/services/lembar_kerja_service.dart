@@ -1,6 +1,7 @@
 import 'mock_store.dart';
 import '../models/lembar_kerja.dart';
 import '../models/lembar_kerja_submission.dart';
+import '../models/pratinjau_hitung.dart';
 import 'api_client.dart';
 import 'equipment_lookup_service.dart';
 
@@ -29,6 +30,13 @@ abstract class LembarKerjaService {
     int? pengulangan,
     int? equipmentId,
   });
+
+  /// `POST /api/calibrations/preview` — hitung TANPA nyimpen.
+  ///
+  /// Bodinya identik sama [kirim], jadi nggak ada dua bentuk payload yang harus
+  /// dirawat: yang dilihat teknisi di layar dihitung dari kiriman yang sama
+  /// persis kayak yang bakal disimpan.
+  Future<PratinjauHitung> pratinjau(String token, LembarKerjaSubmission isian);
 
   /// `POST /api/calibrations` — balikin id sesi yang kebentuk.
   Future<int> kirim(String token, LembarKerjaSubmission isian);
@@ -59,6 +67,19 @@ class ApiLembarKerjaService implements LembarKerjaService {
     final json = await _api.get(path, token: token);
     final data = (json['data'] ?? json) as Map<String, dynamic>;
     return LembarKerja.fromJson(data);
+  }
+
+  @override
+  Future<PratinjauHitung> pratinjau(
+    String token,
+    LembarKerjaSubmission isian,
+  ) async {
+    final json = await _api.post(
+      '/calibrations/preview',
+      token: token,
+      body: isian.toJson(),
+    );
+    return PratinjauHitung.fromJson(json);
   }
 
   @override
@@ -130,6 +151,32 @@ class MockLembarKerjaService implements LembarKerjaService {
   /// nggak minta apa-apa, pakai bawaan). Dicatat biar test bisa mastiin
   /// pilihan teknisi beneran nyampe ke backend, bukan cuma keganti di layar.
   final List<int?> pengulanganDiminta = [];
+
+  /// Payload tiap kali pratinjau diminta — dipakai test buat mastiin bodinya
+  /// sama persis kayak yang dikirim `kirim`, bukan bentuk kedua yang dirawat
+  /// terpisah.
+  final List<Map<String, dynamic>> payloadPratinjau = [];
+
+  /// Jawaban yang dibalikin [pratinjau].
+  ///
+  /// Sengaja **dititipin test**, bukan dihitung di sini: begitu mock ngitung
+  /// rata-rata/U95 sendiri, repo ini punya implementasi rumus kedua yang bisa
+  /// beda diam-diam dari backend — dan angka yang keliatan bener di test justru
+  /// jadi bukti palsu. Test spectro ngisinya dari respons ASLI
+  /// `POST /api/calibrations/preview`.
+  PratinjauHitung? balasanPratinjau;
+
+  @override
+  Future<PratinjauHitung> pratinjau(
+    String token,
+    LembarKerjaSubmission isian,
+  ) async {
+    if (gagal) throw Exception('server nggak nyaut');
+    payloadPratinjau.add(isian.toJson());
+
+    return balasanPratinjau ??
+        const PratinjauHitung(titik: [], belumDihitung: []);
+  }
 
   @override
   Future<LembarKerja> ambilBentuk(

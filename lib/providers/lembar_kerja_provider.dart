@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/config/app_config.dart';
 import '../models/lembar_kerja.dart';
 import '../models/lembar_kerja_submission.dart';
+import '../models/pratinjau_hitung.dart';
 import '../models/room.dart';
 import '../services/lembar_kerja_service.dart';
 import '../services/room_service.dart';
@@ -114,6 +115,67 @@ class KirimLembarKerjaController
     }
   }
 }
+
+/// Keadaan panel pratinjau.
+///
+/// Bukan `AsyncValue`: hasil terakhir WAJIB tetap kepegang selama permintaan
+/// berikutnya jalan. Teknisi ngetik terus, jadi kalau tiap permintaan
+/// ngosongin panelnya, angkanya kedip-kedip dan kebacanya kayak hasilnya ilang.
+class StatusPratinjau {
+  const StatusPratinjau({this.hasil, this.menghitung = false, this.gagal});
+
+  /// Hitungan terakhir yang berhasil. Tetap ditahan waktu [menghitung] atau
+  /// waktu permintaan terbaru [gagal].
+  final PratinjauHitung? hasil;
+
+  final bool menghitung;
+
+  /// Kegagalan permintaan TERAKHIR. Cuma buat dikabarin kecil di panel —
+  /// pratinjau gagal nggak nahan apa pun, dan angkanya tetap dihitung ulang
+  /// backend waktu lembarnya beneran dikirim.
+  final Object? gagal;
+}
+
+/// Hitungan sementara buat lembar yang lagi diisi (`POST /calibrations/preview`).
+///
+/// **Bukan jalur kirim.** Gagalnya nggak nahan apa pun dan nggak boleh bikin
+/// layar merah: ini panel bantu supaya teknisi tau angkanya mendarat di mana
+/// sebelum lembarnya kekunci di antrean approval.
+class PratinjauController extends Notifier<StatusPratinjau> {
+  @override
+  StatusPratinjau build() => const StatusPratinjau();
+
+  /// Nomor permintaan terakhir yang dikirim.
+  ///
+  /// Dipakai buang balasan yang KETINGGALAN: permintaan lama bisa nyampe
+  /// sesudah yang baru dan nimpa layar dengan hitungan dari isian yang udah
+  /// nggak ada. Debounce ngurangin peluangnya, nggak ngilangin.
+  int _terakhir = 0;
+
+  Future<void> hitung(LembarKerjaSubmission isian) async {
+    final token = await ref.read(tokenStorageProvider).read();
+    if (token == null) return;
+
+    final nomor = ++_terakhir;
+    state = StatusPratinjau(hasil: state.hasil, menghitung: true);
+
+    try {
+      final hasil = await ref
+          .read(lembarKerjaServiceProvider)
+          .pratinjau(token, isian);
+      if (nomor != _terakhir) return;
+      state = StatusPratinjau(hasil: hasil);
+    } catch (e) {
+      if (nomor != _terakhir) return;
+      state = StatusPratinjau(hasil: state.hasil, gagal: e);
+    }
+  }
+}
+
+final pratinjauProvider =
+    NotifierProvider<PratinjauController, StatusPratinjau>(
+      PratinjauController.new,
+    );
 
 final kirimLembarKerjaProvider =
     NotifierProvider<

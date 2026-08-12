@@ -81,8 +81,17 @@ class TitikState {
     this.standardIdTercetak,
     this.standardNama,
     this.eksklusifDengan,
+    this.onKetik,
   }) : standardId = standardIdTercetak,
        _kotak = {};
+
+  /// Dipanggil tiap ANGKA di baris ini berubah.
+  ///
+  /// Sel angka nggak punya `onChanged` — sengaja: rebuild seluruh formulir tiap
+  /// ketukan tombol bikin tabel 87 kotak (Spectrophotometer) tersendat di HP.
+  /// Jadi kabarnya lewat listener controller, dan yang dengerin milih sendiri
+  /// mau ngapain. Layar cuma pakai buat NJADWALIN pratinjau, tanpa `setState`.
+  final VoidCallback? onKetik;
 
   final double titikUkur;
   final String label;
@@ -201,7 +210,12 @@ class TitikState {
   final Map<String, TextEditingController> _kotak;
 
   TextEditingController kotak(String tahap, String kolom, int index) =>
-      _kotak.putIfAbsent('$tahap|$kolom|$index', TextEditingController.new);
+      _kotak.putIfAbsent('$tahap|$kolom|$index', () {
+        final controller = TextEditingController();
+        if (onKetik != null) controller.addListener(onKetik!);
+
+        return controller;
+      });
 
   /// Sudah ada isian apa pun di baris ini?
   bool get adaIsian =>
@@ -371,6 +385,7 @@ class LembarKerjaState {
               // teknisi tinggal nyentang, nggak milih ulang dari katalog.
               standardIdTercetak: b.standardId,
               standardNama: b.standardNama,
+              onKetik: () => onIsianDiketik?.call(),
             ),
           );
         }
@@ -437,6 +452,17 @@ class LembarKerjaState {
   /// DIPERTAHANKAN, bukan dibikin ulang, supaya isian teknisi nggak ilang.
   LembarKerja bentuk;
   final String clientRequestId;
+
+  /// Dipasang layar buat tau ada ANGKA yang baru diketik di tabel hasil.
+  ///
+  /// Dibaca lewat listener controller, bukan `onChanged` di tiap sel: yang
+  /// dengerin (penjadwal pratinjau) nggak butuh rebuild, dan rebuild tiap
+  /// ketukan tombol bikin tabel 87 kotak tersendat di HP.
+  ///
+  /// Dipegang di sini, bukan di tiap [TitikState], supaya tetap kepasang waktu
+  /// tabelnya dibangun ulang ([gantiBentuk] / ganti satuan) — `TitikState`-nya
+  /// dibikin baru di situ.
+  VoidCallback? onIsianDiketik;
 
   EquipmentLookup? alat;
   LokasiKalibrasi lokasi = LokasiKalibrasi.lab;
