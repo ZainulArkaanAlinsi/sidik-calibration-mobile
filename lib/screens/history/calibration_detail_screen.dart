@@ -542,7 +542,11 @@ class _TitikResultCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final pass = titik.keputusan == Keputusan.pass;
+    // Tiga keadaan, bukan dua. `null` = alatnya emang nggak divonis PASS/FAIL
+    // (Conductivity Meter), dan itu HARUS kelihatan beda dari lulus — badge
+    // hijau di titik yang nggak punya kriteria kelulusan itu ngaku-ngaku
+    // penilaian, di layar yang dipakai mutusin nerbitin sertifikat.
+    final keputusan = titik.keputusan;
 
     return Card(
       child: Padding(
@@ -564,9 +568,21 @@ class _TitikResultCard extends StatelessWidget {
                   ),
                 ),
                 StatusBadge(
-                  label: pass ? l10n.historyStatusPass : l10n.historyStatusFail,
-                  tone: pass ? BadgeTone.success : BadgeTone.danger,
-                  icon: pass ? Icons.check_circle_outline : Icons.cancel_outlined,
+                  label: switch (keputusan) {
+                    Keputusan.pass => l10n.historyStatusPass,
+                    Keputusan.fail => l10n.historyStatusFail,
+                    null => l10n.detailTanpaVonis,
+                  },
+                  tone: switch (keputusan) {
+                    Keputusan.pass => BadgeTone.success,
+                    Keputusan.fail => BadgeTone.danger,
+                    null => BadgeTone.neutral,
+                  },
+                  icon: switch (keputusan) {
+                    Keputusan.pass => Icons.check_circle_outline,
+                    Keputusan.fail => Icons.cancel_outlined,
+                    null => Icons.remove_circle_outline,
+                  },
                 ),
               ],
             ),

@@ -1,8 +1,11 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart' show setEquals;
 import 'package:flutter/widgets.dart';
 
 import '../../core/utils/angka.dart';
-import '../../models/calibration_detail.dart' show IsianTeknisi;
+import '../../models/calibration_detail.dart'
+    show IsianTeknisi, MeasurementResult, RawMeasurement, TahapPembacaan;
 import '../../models/calibration_draft.dart' show LokasiKalibrasi;
 import '../../models/equipment_lookup.dart';
 import '../../models/lembar_kerja.dart';
@@ -132,6 +135,41 @@ class TitikState {
 
       final suhu = _kotak['${bagian[0]}|suhu|${bagian[2]}'];
       if (suhu == null || suhu.text.trim().isEmpty) return true;
+    }
+
+    return false;
+  }
+
+  /// Ada pembacaan yang meleset SATU ORDE atau lebih dari nominal barisnya.
+  ///
+  /// Nangkep salah satuan & koma kegeser, dan sengaja diadu ke [titikUkur]
+  /// baris ini — bukan ke rentang alat. Dua-duanya udah dalam satuan yang SAMA
+  /// PERSIS ([satuan] baris), jadi nggak perlu konversi apa pun, dan aturan
+  /// metrologi di backend nggak perlu disalin ke sini buat melenceng belakangan.
+  ///
+  /// Kasus nyatanya sesi 53 (12 Agt 2026): teknisi milih baris varian
+  /// **1,412 mS/cm** lalu ngetik **1413** — angka µS/cm, 1000× lipat. Backend
+  /// ngitung Error = 1413 − 1,412 = 1411,588 dan itu nyampe admin sebagai
+  /// lembar yang kelihatan sehat. Peringatan `pembacaan_di_luar_rentang` emang
+  /// nyala 7×, tapi levelnya cuma peringatan dan orang yang bisa mbenerin —
+  /// teknisi yang lagi berdiri di depan alatnya — udah nggak di situ.
+  ///
+  /// Faktor 10, bukan lebih ketat: alat yang beneran rusak parah masih boleh
+  /// dikalibrasi dan hasilnya masih boleh jelek. Yang ditahan itu angka yang
+  /// mustahil datang dari alat yang lagi diukur di titik ini.
+  bool get adaPembacaanJauhDariTitik {
+    // Nominal 0 nggak punya orde — nggak ada yang bisa dibandingin.
+    if (titikUkur == 0) return false;
+
+    for (final entry in _kotak.entries) {
+      final bagian = entry.key.split('|');
+      if (bagian.length != 3 || bagian[1] != 'pembacaan') continue;
+
+      final nilai = parseAngka(entry.value.text);
+      if (nilai == null) continue;
+
+      final rasio = nilai.abs() / titikUkur.abs();
+      if (rasio >= 10 || rasio <= 0.1) return true;
     }
 
     return false;
@@ -508,6 +546,17 @@ class LembarKerjaState {
             .toList()
       : const [];
 
+  /// Baris yang pembacaannya meleset satu orde dari nominalnya — penahan
+  /// sebelum kirim, sejajar sama penjaga suhu & penjaga isian yatim.
+  ///
+  /// Lihat [TitikState.adaPembacaanJauhDariTitik] soal kenapa ini ditahan di HP
+  /// dan bukan dibiarin jadi peringatan di admin.
+  List<TitikState> get titikPembacaanJauh => titik.values
+      .where(
+        (t) => !titikTerkunci(t.titikUkur) && t.adaPembacaanJauhDariTitik,
+      )
+      .toList();
+
   /// Baris yang ANGKANYA keisi tapi standar acuannya belum dicentang.
   ///
   /// Keadaan ini mustahil secara maksud, tapi gampang kejadian: teknisi ngisi
@@ -699,6 +748,111 @@ class LembarKerjaState {
       if (e.value.salinKotak().isNotEmpty) e.key: e.value.salinKotak(),
   };
 
+  /// Isi tabel Before/After dari pembacaan yang udah tersimpan di server —
+  /// lanjut draft, atau perbaiki lembar yang dikembalikan admin.
+  ///
+  /// Ini bagian yang selama ini BOLONG. [muatDariSesi] cuma mulangin kolom
+  /// header (model, serial, suhu ruang, catatan); docblock-nya nunjuk ke
+  /// "terapkanPembacaan" buat tabel pengukurannya, dan metode itu nggak pernah
+  /// ditulis. Akibatnya teknisi yang mbuka draft-nya lagi — atau yang lembarnya
+  /// dibalikin admin buat dibetulin — dapat tabel KOSONG, dan mesti ngetik
+  /// ulang semua angka dari kertas. Di sesi revisi efeknya lebih parah lagi:
+  /// yang dia kirim balik ke admin cuma sisa yang sempat diketik ulang.
+  ///
+  /// Dicocokin per **titik ukur**, bukan `titik_ke`. Alasannya sama kayak
+  /// [salinIsianTitik]: `titik_ke` itu posisi baris, dan posisinya geser tiap
+  /// bentuk lembar berubah — baris varian satuan Conductivity nyusut begitu
+  /// alatnya kepilih, dan baris yang nggak keisi nggak nyimpen apa-apa di
+  /// server sama sekali.
+  ///
+  /// Sel yang teknisinya SUDAH ngetik nggak ditimpa, sama kayak [muatDariSesi]:
+  /// layar ini bisa kebuka duluan sebelum detail sesinya nyampe dari jaringan
+  /// lelet, dan angka yang barusan diketik ilang di depan mata itu kerusakan
+  /// yang lebih besar daripada satu sel yang nggak kepulihkan.
+  ///
+  /// Balikin JUMLAH pembacaan yang nggak ketemu barisnya — layar wajib ngasih
+  /// tau teknisi kalau ada, karena diam-diam ngilangin angka kalibrasi itu
+  /// persis kerusakan yang lagi ditutup di sini.
+  int terapkanPembacaan(Iterable<RawMeasurement> mentah) {
+    var kebuang = 0;
+
+    for (final m in mentah) {
+      final tujuan = _titikTerdekat(m.titikUkur);
+
+      if (tujuan == null) {
+        kebuang++;
+        continue;
+      }
+
+      // Centang standar acuannya ikut pulih. Tanpa ini teknisi mesti nyentang
+      // ulang tiap buka draft — dan kalau kelewat, sesinya kekirim tanpa nilai
+      // acuan, nggak ada titik yang bisa dihitung, dan admin dapat lembar yang
+      // keblokir `titik_kosong`.
+      tujuan.standardId ??= m.standardId;
+
+      // `pembacaan_ke` dari server itu 1-based; kotaknya 0-based.
+      final index = m.pembacaanKe - 1;
+
+      if (index < 0 || index >= tujuan.jumlahPengulangan) {
+        kebuang++;
+        continue;
+      }
+
+      final tahap = m.tahap == TahapPembacaan.sebelumAdjustment
+          ? 'sebelum_adjustment'
+          : 'sesudah_adjustment';
+
+      final kotakPembacaan = tujuan.kotak(tahap, 'pembacaan', index);
+
+      if (kotakPembacaan.text.trim().isEmpty) {
+        kotakPembacaan.text = formatAngka(m.pembacaan);
+      }
+
+      final suhu = m.suhu;
+
+      if (suhu != null) {
+        final kotakSuhu = tujuan.kotak(tahap, 'suhu', index);
+        if (kotakSuhu.text.trim().isEmpty) kotakSuhu.text = formatAngka(suhu);
+      }
+    }
+
+    return kebuang;
+  }
+
+  /// Cadangan buat sesi yang dikirim SEBELUM `raw_measurements.standard_id`
+  /// ada: centang standarnya cuma kerekam di hasil hitung.
+  ///
+  /// Cuma kena titik yang berhasil dihitung — sesi draft lama yang nggak punya
+  /// hasil hitung emang nggak nyimpen pilihan standarnya di mana pun, dan
+  /// nggak ada yang bisa mulangin itu.
+  void terapkanStandarDariHasil(Iterable<MeasurementResult> hasil) {
+    for (final h in hasil) {
+      final tujuan = _titikTerdekat(h.titikUkur);
+      if (tujuan == null) continue;
+      tujuan.standardId ??= h.standardId;
+    }
+  }
+
+  /// Baris buat satu nilai titik, toleran sama beda pembulatan.
+  ///
+  /// Kunci [titik] itu `double`, dan angkanya datang dari dua sumber yang
+  /// nggak dijamin bit-identik: bentuk lembar dari backend, dan kolom
+  /// `decimal(20,8)` yang dibaca ulang dari DB. `111.193568` yang bolak-balik
+  /// lewat JSON gampang meleset di digit terakhir, dan `Map` nggak peduli
+  /// selisihnya sekecil apa — barisnya dianggap nggak ada, angkanya kebuang.
+  TitikState? _titikTerdekat(double titikUkur) {
+    final persis = titik[titikUkur];
+    if (persis != null) return persis;
+
+    for (final e in titik.entries) {
+      // Relatif, bukan absolut: titiknya berkisar dari 1,412 sampai 12880.
+      final toleransi = math.max(e.key.abs(), titikUkur.abs()) * 1e-6;
+      if ((e.key - titikUkur).abs() <= toleransi) return e.value;
+    }
+
+    return null;
+  }
+
   /// Tempel balik salinan dari [salinIsianTitik] sesudah bentuk lembar diganti.
   ///
   /// Balikin JUMLAH TITIK yang isinya kebuang karena barisnya udah nggak ada di
@@ -729,12 +883,28 @@ class LembarKerjaState {
   /// yang ada dikirim apa adanya. Yang nahan sertifikat terbit itu pemeriksaan
   /// admin, bukan formulirnya.
   LembarKerjaSubmission toSubmission({required bool draft}) {
+    // Urutan LEMBAR, bukan urutan angka.
+    //
+    // `titik` dibangun ngikut baris di `bentuk`, jadi urutan aslinya udah
+    // bener; dulu di sini diurut ulang naik berdasarkan `titikUkur` dan itu
+    // yang ngerusak. Backend ngasih `titik_ke` dari posisi array ini, dan
+    // sertifikat nyetak barisnya per `titik_ke` — jadi urutannya mendarat
+    // langsung di dokumen.
+    //
+    // Buat lembar yang satuannya CAMPUR, urutan angka bukan urutan lembar:
+    //
+    //  - varian µS/cm → 25 < 111 < 1412, titik tengah kelempar ke baris 3
+    //  - varian mS/cm → 1,412 < 25 < 111, titik tengah naik ke baris 1
+    //
+    // Master lab-nya sendiri urut `25 µS/cm → 1412 µS/cm → 111 mS/cm`. Sesi 51
+    // yang angkanya udah cocok sama master tetap kesimpen `[25, 111.193568,
+    // 1412]` gara-gara ini.
+    //
     // Baris yang sama sekali belum disentuh tetap ikut dikirim: backend nyimpen
     // titiknya mentah (nggak dihitung) dan itu yang bikin lembar kerja setengah
     // jadi tetap kebaca utuh sama admin — kolom mana yang kosong kelihatan,
     // bukan ilang dari tabel.
-    final measurements = titik.values.map((t) => t.toSubmission()).toList()
-      ..sort((a, b) => a.titikUkur.compareTo(b.titikUkur));
+    final measurements = titik.values.map((t) => t.toSubmission()).toList();
 
     return LembarKerjaSubmission(
       equipmentId: alat!.id,

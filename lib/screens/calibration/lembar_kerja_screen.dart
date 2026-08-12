@@ -70,6 +70,14 @@ class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen> {
   /// ngikut form kertas) — teknisi yang nggak peduli nggak perlu milih apa-apa.
   int? _pengulangan;
 
+  /// Alat yang lagi dipilih, diangkat ke sini karena bentuk lembar ditarik di
+  /// level ini sementara dropdown alatnya ada di dalam [_Form].
+  int? _equipmentId;
+
+  /// Bentuk terakhir yang berhasil dimuat — dipegang biar layar nggak balik
+  /// kosong waktu ganti alat bikin provider-nya mulai dari `loading`.
+  LembarKerja? _bentukTerakhir;
+
   /// Ganti jumlah kotak = bentuk formulirnya beda = tabelnya dibangun ulang,
   /// dan isian yang udah diketik ilang.
   ///
@@ -104,15 +112,36 @@ class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    // `equipmentId` masih null — plumbing-nya siap sampai service, tapi
-    // penyambungannya belum. Lihat catatan di bawah.
+    // Alat yang lagi dipilih ikut jadi kunci — TANPA ini backend selalu ngirim
+    // bentuk GENERIK, dan buat Conductivity itu artinya baris `1,412 mS/cm`
+    // muncul di lembar alat yang nggak punya titik itu sama sekali.
+    //
+    // Sesi 53 (12 Agt 2026) kejeblos di situ: teknisi ngisi 1413 di baris
+    // 1,412 mS/cm — di master Excel kolom itu justru dikosongin, 1413 punya
+    // kolom `1412 µS/cm`. Backend ngitung Error = 1413 − 1,412 = 1411,588 dan
+    // lembarnya nyampe admin. Anggaran ketidakpastiannya sendiri udah bener
+    // (U95 8,10901195 sama persis kayak Excel) — yang salah cuma barisnya.
     final kunci = (
       profil: widget.profil,
       pengulangan: _pengulangan,
-      equipmentId: null,
+      equipmentId: _equipmentId,
     );
+    // Ganti alat = kunci baru = provider baru = mulai dari `loading`. Tanpa
+    // nyimpen bentuk terakhir, badan layar balik jadi spinner sekejap dan
+    // `_Form` ke-unmount — seluruh isian yang udah diketik ilang, termasuk alat
+    // yang barusan dipilih. Formulirnya HARUS tetap terpasang; bentuk barunya
+    // dipasang belakangan lewat `gantiBentuk`.
+    ref.listen(lembarKerjaProvider(kunci), (_, next) {
+      final baru = next.value;
+      if (baru == null || identical(baru, _bentukTerakhir)) return;
+      setState(() => _bentukTerakhir = baru);
+    });
+
     final bentukAsync = ref.watch(lembarKerjaProvider(kunci));
-    final terpakai = bentukAsync.value?.jumlahPengulangan ?? _pengulangan ?? 5;
+    final bentuk = bentukAsync.value ?? _bentukTerakhir;
+    // Dari bentuk yang lagi KEPASANG, bukan dari status async — waktu ganti
+    // alat lagi dimuat, label jumlah kotak nggak boleh loncat balik ke bawaan.
+    final terpakai = bentuk?.jumlahPengulangan ?? _pengulangan ?? 5;
 
     return Scaffold(
       appBar: AppBar(
@@ -166,17 +195,31 @@ class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen> {
           ),
         ],
       ),
-      body: switch (bentukAsync) {
+      // Bentuk yang udah pernah kepegang MENANG atas status loading — lihat
+      // `ref.listen` di atas. Gagal cuma ditampilin kalau belum ada bentuk sama
+      // sekali; gagal narik bentuk alat nggak boleh ngebuang lembar yang lagi
+      // diisi.
+      body: switch ((bentuk, bentukAsync)) {
         // `ValueKey` WAJIB: `_FormState` bikin `LembarKerjaState`-nya sekali
         // (`late final`) dari `widget.bentuk`. Tanpa key, Flutter mendaur ulang
         // State yang lama waktu jumlah kotaknya ganti — tabelnya bakal tetap
         // 5 kolom padahal backend udah ngirim 3, dan nggak ada yang error.
-        AsyncData(:final value) => _Form(
-          key: ValueKey(value.jumlahPengulangan),
-          bentuk: value,
+        //
+        // `key` SENGAJA nggak bawa `equipmentId`: ganti alat mesti mempertahankan
+        // isian yang udah diketik, jadi State-nya dipakai ulang dan bentuk
+        // barunya dipasang lewat `gantiBentuk` di `didUpdateWidget`. Kalau
+        // equipmentId ikut key, tiap ganti alat bikin State baru dan seluruh
+        // tabel yang udah diisi ilang — termasuk alat yang barusan dipilih.
+        (final LembarKerja b, _) => _Form(
+          key: ValueKey(b.jumlahPengulangan),
+          bentuk: b,
           sesiId: widget.sesiId,
+          onAlatBerubah: (id) {
+            if (id == _equipmentId) return;
+            setState(() => _equipmentId = id);
+          },
         ),
-        AsyncError(:final error) => _Gagal(
+        (_, AsyncError(:final error)) => _Gagal(
           error: error,
           onCobaLagi: () => ref.invalidate(lembarKerjaProvider(kunci)),
         ),
@@ -240,9 +283,19 @@ class _Gagal extends StatelessWidget {
 }
 
 class _Form extends ConsumerStatefulWidget {
-  const _Form({super.key, required this.bentuk, this.sesiId});
+  const _Form({
+    super.key,
+    required this.bentuk,
+    required this.onAlatBerubah,
+    this.sesiId,
+  });
 
   final LembarKerja bentuk;
+
+  /// Dipanggil begitu teknisi milih alat — bikin layar di atas narik bentuk
+  /// lembar yang udah disusutin ke alat itu.
+  final ValueChanged<int?> onAlatBerubah;
+
   final int? sesiId;
 
   @override
@@ -293,11 +346,75 @@ class _FormState extends ConsumerState<_Form> {
     try {
       final detail = await ref.read(calibrationDetailProvider(id).future);
       final isi = detail.isianTeknisi;
-      if (isi == null || !mounted) return;
+      if (!mounted) return;
 
-      setState(() => _isian.muatDariSesi(isi));
+      // Tabel pengukurannya dipulihkan walau `isian_teknisi` nggak ikut di
+      // respons — dua-duanya datang dari sesi yang sama, tapi yang bikin
+      // teknisi harus ngetik ulang dari kertas itu angkanya, bukan header-nya.
+      var kebuang = 0;
+
+      setState(() {
+        if (isi != null) _isian.muatDariSesi(isi);
+        kebuang = _isian.terapkanPembacaan(detail.pembacaanMentah);
+        // Alat sesi lama ikut ngabarin ke atas, jadi lembar yang ditarik ulang
+        // udah bentuk yang disusutin ke alat itu — bukan generik.
+        widget.onAlatBerubah(_isian.alat?.id);
+        // Sesudah baris mentah, bukan sebelum: yang mentah lebih dekat ke apa
+        // yang teknisi centang (termasuk titik yang belum kehitung), yang
+        // hasil hitung cuma cadangan buat sesi lama.
+        _isian.terapkanStandarDariHasil(detail.titik);
+      });
+
+      // Angka yang nggak ketemu barisnya HARUS diomongin. Draft yang balik
+      // dengan tabel bolong tanpa ada yang bilang itu persis cara sesi kekirim
+      // ke admin dengan titik yang ilang diam-diam.
+      if (kebuang > 0 && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context).lkPembacaanTakTerpulih(kebuang)),
+            duration: const Duration(seconds: 8),
+          ),
+        );
+      }
     } catch (_) {
       // Lihat docblock.
+    }
+  }
+
+  /// Satu pintu buat tiap perubahan isian.
+  ///
+  /// Selain nge-rebuild, dia ngabarin alat yang lagi kepilih ke layar di atas.
+  /// Dipasang di sini — bukan cuma di dalam dropdown alat — supaya jalur lain
+  /// yang nyetel alat (mis. pulih dari draft) ikut narik bentuk yang benar.
+  /// Yang di atas nyaring sendiri kalau id-nya nggak berubah.
+  void _isianBerubah() {
+    setState(() {});
+    widget.onAlatBerubah(_isian.alat?.id);
+  }
+
+  /// Bentuk baru dari backend dipasang ke state yang SUDAH ADA, bukan bikin
+  /// state baru — isian yang udah diketik dipindahin per titik ukur oleh
+  /// `gantiBentuk`, dan yang barisnya udah nggak ada dihitung biar bisa
+  /// diomongin. Isian kalibrasi yang ilang diam-diam lebih bahaya daripada
+  /// formulir yang bentuknya salah.
+  @override
+  void didUpdateWidget(covariant _Form lama) {
+    super.didUpdateWidget(lama);
+
+    if (identical(widget.bentuk, lama.bentuk)) return;
+
+    final kebuang = _isian.gantiBentuk(widget.bentuk);
+    setState(() {});
+
+    if (kebuang > 0 && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context).lkIsianTitikKebuang(kebuang),
+          ),
+          duration: const Duration(seconds: 8),
+        ),
+      );
     }
   }
 
@@ -335,6 +452,26 @@ class _FormState extends ConsumerState<_Form> {
             content: Text(
               l10n.lkSuhuWajib(belum.map((t) => t.label).join(', ')),
             ),
+          ),
+        );
+        return;
+      }
+
+      // Pembacaan yang melesetnya SATU ORDE dari nominal barisnya — salah
+      // satuan atau koma kegeser. Ditahan di sini karena yang bisa mbenerin
+      // cuma orang yang lagi berdiri di depan alatnya; di admin angka kayak
+      // gini cuma jadi peringatan yang gampang dilewatin.
+      final jauh = _isian.titikPembacaanJauh;
+
+      if (jauh.isNotEmpty) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              l10n.lkPembacaanJauhDariTitik(
+                jauh.map((t) => t.label).join(', '),
+              ),
+            ),
+            duration: const Duration(seconds: 10),
           ),
         );
         return;
@@ -570,13 +707,13 @@ class _FormState extends ConsumerState<_Form> {
                     ? _LembarDuaKolom(
                         bentuk: bentuk,
                         isian: _isian,
-                        onBerubah: () => setState(() {}),
+                        onBerubah: _isianBerubah,
                       )
                     : _LembarSatuKolom(
                         bentuk: bentuk,
                         isian: _isian,
                         halaman: _halaman,
-                        onBerubah: () => setState(() {}),
+                        onBerubah: _isianBerubah,
                       ),
               ),
 

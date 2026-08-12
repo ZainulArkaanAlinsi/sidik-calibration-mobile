@@ -3277,6 +3277,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String lkPembacaanTakTerpulih(int jumlah) {
+    return '$jumlah saved readings had no matching row on this sheet and were not restored. Check the table before submitting.';
+  }
+
+  @override
+  String lkPembacaanJauhDariTitik(String titik) {
+    return 'Readings at point $titik are more than 10× off the point value — check the unit, or the decimal place. If the reading really is that value, switch to the row with the correct unit first.';
+  }
+
+  @override
+  String get detailTanpaVonis => 'NOT JUDGED';
+
+  @override
   String get statusTanpaKeputusan => 'Not assessed';
 
   @override

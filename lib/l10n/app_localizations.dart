@@ -6002,6 +6002,24 @@ abstract class AppLocalizations {
   /// **'Point {titik} has readings but its reference standard is not ticked — those numbers cannot be calculated. Tick the standard, or clear the row if this instrument does not use that point.'**
   String lkStandarBelumDicentang(String titik);
 
+  /// No description provided for @lkPembacaanTakTerpulih.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} saved readings had no matching row on this sheet and were not restored. Check the table before submitting.'**
+  String lkPembacaanTakTerpulih(int jumlah);
+
+  /// No description provided for @lkPembacaanJauhDariTitik.
+  ///
+  /// In en, this message translates to:
+  /// **'Readings at point {titik} are more than 10× off the point value — check the unit, or the decimal place. If the reading really is that value, switch to the row with the correct unit first.'**
+  String lkPembacaanJauhDariTitik(String titik);
+
+  /// Badge for a point on an instrument that is not assessed PASS/FAIL (no tolerance limit)
+  ///
+  /// In en, this message translates to:
+  /// **'NOT JUDGED'**
+  String get detailTanpaVonis;
+
   /// No description provided for @statusTanpaKeputusan.
   ///
   /// In en, this message translates to:

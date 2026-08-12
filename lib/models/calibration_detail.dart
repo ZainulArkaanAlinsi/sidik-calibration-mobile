@@ -66,6 +66,8 @@ class RawMeasurement {
   const RawMeasurement({
     required this.id,
     required this.titikKe,
+    required this.titikUkur,
+    this.standardId,
     required this.pembacaanKe,
     required this.pembacaan,
     required this.inputSource,
@@ -76,6 +78,18 @@ class RawMeasurement {
 
   final int id;
   final int titikKe;
+
+  /// Standar acuan yang dicentang teknisi buat baris ini. Null = belum dipilih
+  /// (sah buat draft), atau baris dari sesi yang dikirim sebelum kolom ini ada.
+  final int? standardId;
+
+  /// Nilai titiknya (4.00 / 7.00 / 10.01), bukan nomor barisnya.
+  ///
+  /// Ini yang dipakai buat naruh angka balik ke lembar kerja waktu draft dibuka
+  /// lagi. [titikKe] nggak bisa dipercaya buat itu — dia posisi, dan posisinya
+  /// geser tiap bentuk lembar berubah.
+  final double titikUkur;
+
   final int pembacaanKe;
   final double pembacaan;
 
@@ -97,6 +111,12 @@ class RawMeasurement {
     return RawMeasurement(
       id: (json['id'] as num).toInt(),
       titikKe: (json['titik_ke'] as num).toInt(),
+      // Backend ngirim decimal(20,8) — bisa nyampe sebagai angka atau string.
+      titikUkur:
+          (json['titik_ukur'] as num?)?.toDouble() ??
+          double.tryParse('${json['titik_ukur']}') ??
+          0,
+      standardId: (json['standard_id'] as num?)?.toInt(),
       pembacaanKe: (json['pembacaan_ke'] as num).toInt(),
       pembacaan: (json['pembacaan'] as num).toDouble(),
       tahap: TahapPembacaan.fromJson(json['tahap'] as String?),
@@ -221,7 +241,8 @@ class MeasurementResult {
     required this.faktorCakupanK,
     required this.ketidakpastianDiperluas,
     required this.toleransi,
-    required this.keputusan,
+    this.keputusan,
+    this.standardId,
     this.standarAcuan,
     this.metode,
     this.desimal,
@@ -230,6 +251,13 @@ class MeasurementResult {
 
   final int titikKe;
   final double titikUkur;
+
+  /// Standar acuan yang dipakai ngitung titik ini.
+  ///
+  /// Dipakai buat mulangin CENTANG standar ke lembar kerja waktu sesi lama
+  /// dibuka lagi. Sesi yang dikirim sebelum `raw_measurements.standard_id` ada
+  /// cuma nyimpen pilihannya di sini.
+  final int? standardId;
   final double rataRata;
   final double error;
   final double koreksi;
@@ -245,7 +273,19 @@ class MeasurementResult {
 
   /// `PASS` / `FAIL` per titik — satu titik `FAIL` bikin seluruh sesi `FAIL`
   /// (`CalibrationController::isiUlangPengukuran()`).
-  final Keputusan keputusan;
+  /// Null = alat ini **nggak divonis** PASS/FAIL.
+  ///
+  /// Bukan "belum diputuskan". Conductivity Meter nggak punya satu pun batas
+  /// keberterimaan di master-nya, dan sertifikatnya berhenti di `Correction` +
+  /// `U95%`. `GumCalculator::keputusan()` sengaja balikin null buat alat kayak
+  /// gitu, dan kolomnya udah dibikin nullable di backend
+  /// (`2026_08_10_150000_keputusan_titik_boleh_null`).
+  ///
+  /// Dulu field ini non-nullable dan parsingnya `== 'FAIL' ? fail : pass`, jadi
+  /// null mendarat jadi **PASS**. Layar detail nampilin badge hijau "PASS" di
+  /// titik yang nggak punya kriteria kelulusan sama sekali — di layar yang
+  /// dipakai admin buat mutusin nerbitin sertifikat.
+  final Keputusan? keputusan;
 
   /// Cuma keisi kalau titik ini pakai standar BEDA dari standar default sesi
   /// (mis. pH: buffer 4/7/10 masing-masing sertifikatnya sendiri).
@@ -285,6 +325,7 @@ class MeasurementResult {
     return MeasurementResult(
       titikKe: (json['titik_ke'] as num?)?.toInt() ?? 0,
       titikUkur: (json['titik_ukur'] as num?)?.toDouble() ?? 0,
+      standardId: (json['standard_id'] as num?)?.toInt(),
       rataRata: (json['rata_rata'] as num?)?.toDouble() ?? 0,
       error: (json['error'] as num?)?.toDouble() ?? 0,
       koreksi: (json['koreksi'] as num?)?.toDouble() ?? 0,
@@ -299,7 +340,11 @@ class MeasurementResult {
       ketidakpastianDiperluas:
           (json['ketidakpastian_diperluas'] as num?)?.toDouble() ?? 0,
       toleransi: (json['toleransi'] as num?)?.toDouble() ?? 0,
-      keputusan: json['keputusan'] == 'FAIL' ? Keputusan.fail : Keputusan.pass,
+      keputusan: switch (json['keputusan']) {
+        'PASS' => Keputusan.pass,
+        'FAIL' => Keputusan.fail,
+        _ => null,
+      },
       standarAcuan: standar == null ? null : StandardRef.fromJson(standar),
       metode: json['metode'] as String?,
       desimal: (json['desimal'] as num?)?.toInt(),

@@ -3253,6 +3253,19 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String lkPembacaanTakTerpulih(int jumlah) {
+    return '$jumlah pembacaan tersimpan nggak ketemu barisnya di lembar ini dan nggak ikut dipulihkan. Cek tabelnya sebelum dikirim.';
+  }
+
+  @override
+  String lkPembacaanJauhDariTitik(String titik) {
+    return 'Pembacaan di titik $titik melesetnya lebih dari 10× dari nilai titiknya — cek satuannya, atau posisi komanya. Kalau angkanya emang segitu, pindah ke baris satuan yang benar dulu.';
+  }
+
+  @override
+  String get detailTanpaVonis => 'TANPA VONIS';
+
+  @override
   String get statusTanpaKeputusan => 'Tanpa keputusan';
 
   @override
