@@ -1638,6 +1638,8 @@
   "lkUbahPengulanganLanjut": "Change",
   "lkPengulanganBatal": "Cancel",
   "lkSuhuWajib": "Reading filled without solution temperature at point {titik}. Temperature is required — the reference value shifts with it.",
+  "lkStandarBelumDicentang": "Point {titik} has readings but its reference standard is not ticked — those numbers cannot be calculated. Tick the standard, or clear the row if this instrument does not use that point.",
+  "@lkStandarBelumDicentang": {"placeholders": {"titik": {"type": "String"}}},
   "@lkSuhuWajib": {"placeholders": {"titik": {"type": "String"}}},
   "statusTanpaKeputusan": "Not assessed",
   "detailEditAdmin": "EDIT SHEET",

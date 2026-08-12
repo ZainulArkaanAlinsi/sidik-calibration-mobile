@@ -1141,6 +1141,8 @@
   "lkPengulanganBatal": "Batal",
   "lkSuhuWajib": "Ada pembacaan tanpa suhu larutan di titik {titik}. Suhunya wajib diisi — nilai acuannya digeser ikut suhu.",
   "@lkSuhuWajib": {"placeholders": {"titik": {"type": "String"}}},
+  "lkStandarBelumDicentang": "Titik {titik} udah diisi angkanya tapi standar acuannya belum dicentang — angkanya nggak bisa dihitung. Centang standarnya, atau kosongkan barisnya kalau alat ini emang nggak pakai titik itu.",
+  "@lkStandarBelumDicentang": {"placeholders": {"titik": {"type": "String"}}},
   "statusTanpaKeputusan": "Tanpa keputusan",
   "detailEditAdmin": "EDIT LEMBAR",
   "lkTitikAlternatifSatuan": "Alternatif satuan dari botol yang sama — sudah diisi di baris satunya",

@@ -339,6 +339,26 @@ class _FormState extends ConsumerState<_Form> {
         );
         return;
       }
+
+      // Isian YATIM: angkanya keisi tapi standarnya belum dicentang, jadi
+      // nggak bisa dihitung. Ditahan di sini, bukan dibiarin nyampe admin —
+      // di sana dia muncul sebagai `titik_kosong` yang MEMBLOKIR penerbitan,
+      // dan yang bisa mbenerin justru udah nggak di depan alatnya.
+      final yatim = _isian.titikTerisiTanpaStandar;
+
+      if (yatim.isNotEmpty) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              l10n.lkStandarBelumDicentang(
+                yatim.map((t) => t.label).join(', '),
+              ),
+            ),
+            duration: const Duration(seconds: 8),
+          ),
+        );
+        return;
+      }
     }
 
     if (!draft && !await _konfirmasiAngka()) return;

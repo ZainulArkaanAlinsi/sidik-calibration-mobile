@@ -5996,6 +5996,12 @@ abstract class AppLocalizations {
   /// **'Reading filled without solution temperature at point {titik}. Temperature is required — the reference value shifts with it.'**
   String lkSuhuWajib(String titik);
 
+  /// No description provided for @lkStandarBelumDicentang.
+  ///
+  /// In en, this message translates to:
+  /// **'Point {titik} has readings but its reference standard is not ticked — those numbers cannot be calculated. Tick the standard, or clear the row if this instrument does not use that point.'**
+  String lkStandarBelumDicentang(String titik);
+
   /// No description provided for @statusTanpaKeputusan.
   ///
   /// In en, this message translates to:

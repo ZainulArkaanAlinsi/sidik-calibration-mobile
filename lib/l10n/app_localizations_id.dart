@@ -3248,6 +3248,11 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String lkStandarBelumDicentang(String titik) {
+    return 'Titik $titik udah diisi angkanya tapi standar acuannya belum dicentang — angkanya nggak bisa dihitung. Centang standarnya, atau kosongkan barisnya kalau alat ini emang nggak pakai titik itu.';
+  }
+
+  @override
   String get statusTanpaKeputusan => 'Tanpa keputusan';
 
   @override

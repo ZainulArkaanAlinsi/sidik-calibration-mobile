@@ -3272,6 +3272,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String lkStandarBelumDicentang(String titik) {
+    return 'Point $titik has readings but its reference standard is not ticked — those numbers cannot be calculated. Tick the standard, or clear the row if this instrument does not use that point.';
+  }
+
+  @override
   String get statusTanpaKeputusan => 'Not assessed';
 
   @override

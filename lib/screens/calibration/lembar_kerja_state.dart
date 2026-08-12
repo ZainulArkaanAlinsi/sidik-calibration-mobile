@@ -508,6 +508,29 @@ class LembarKerjaState {
             .toList()
       : const [];
 
+  /// Baris yang ANGKANYA keisi tapi standar acuannya belum dicentang.
+  ///
+  /// Keadaan ini mustahil secara maksud, tapi gampang kejadian: teknisi ngisi
+  /// angka lalu lepas centangnya (atau sebaliknya). Hasilnya isian YATIM —
+  /// kesimpen tapi nggak bisa dihitung, karena nilai acuan titik itu nggak
+  /// ketauan dari botol mana.
+  ///
+  /// Dulu ini lolos sampai admin, dan baru ketahuan di sana sebagai
+  /// `titik_tidak_terhitung` + `titik_kosong` yang MEMBLOKIR penerbitan —
+  /// jauh dari lapangan, jauh dari orang yang bisa mbenerin. Sekarang ditahan
+  /// di HP, sejajar sama penjaga suhu.
+  ///
+  /// Titik yang emang nggak dipakai alat pelanggan TIDAK kena: dia nggak
+  /// dicentang DAN barisnya kosong, jadi nggak masuk daftar ini.
+  List<TitikState> get titikTerisiTanpaStandar => titik.values
+      .where(
+        (t) =>
+            t.adaPembacaan &&
+            t.standardIdTercetak != null &&
+            t.standardId == null,
+      )
+      .toList();
+
   /// Lembar kerja ini punya kolom "7. Satuan Refracto"?
   ///
   /// Yang nentuin **bentuk dari backend**, bukan daftar nama alat di sini —
