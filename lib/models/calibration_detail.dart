@@ -248,6 +248,7 @@ class MeasurementResult {
     this.desimal,
     this.satuan,
     this.tandaNol = true,
+    this.remark,
   });
 
   final int titikKe;
@@ -325,6 +326,21 @@ class MeasurementResult {
   /// yang nemu duluan justru teknisi yang lagi mriksa hasilnya sendiri.
   final bool tandaNol;
 
+  /// Nama KELOMPOK titik ini, mis. `Wave Length ( λ ) - Filter Holmium`.
+  ///
+  /// Cuma keisi buat alat yang titiknya berkelompok. Spectrophotometer yang
+  /// pertama, dan di situ kelompok bukan label kosmetik: U95-nya lahir PER
+  /// KELOMPOK, dari STDEV terbesar seluruh titik kelompok itu — sepuluh titik
+  /// Holmium pulang dengan `ketidakpastian_diperluas` dan `faktor_cakupan_k`
+  /// yang sama persis. Itu bener, bukan data kembar.
+  ///
+  /// Tanpa label ini, tabel di layar nampilin 24 baris dengan tiga nilai U95
+  /// yang keliatan acak, dan `0,4 nm` nggak punya cara dibedain punya Didynium
+  /// apa Holmium. Rentang dua kelompok itu tumpang tindih 167 nm, jadi
+  /// nebaknya dari besar angka bakal salah persis di titik yang paling gampang
+  /// ketuker.
+  final String? remark;
+
   /// Desimal yang benar-benar dipakai nyetak titik ini.
   ///
   /// [desimalSesi] = angka tingkat-sesi, dipakai kalau backend nggak ngirim
@@ -363,6 +379,7 @@ class MeasurementResult {
       desimal: (json['desimal'] as num?)?.toInt(),
       satuan: json['satuan'] as String?,
       tandaNol: json['tanda_nol'] as bool? ?? true,
+      remark: json['remark'] as String?,
     );
   }
 }

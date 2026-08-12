@@ -306,7 +306,28 @@ class _Isi extends StatelessWidget {
             ),
           )
         else
-          for (final titik in detail.titik) ...[
+          for (final (i, titik) in detail.titik.indexed) ...[
+            // Kepala kelompok tiap kali `remark` ganti — dari backend, BUKAN
+            // ditebak dari besar angkanya. Rentang Holmium (283–641 nm) &
+            // Didynium (474–810 nm) tumpang tindih 167 nm, jadi 513,7 nm
+            // kelihatan kayak Holmium padahal dia Didynium.
+            //
+            // Titiknya nggak dikelompokin ulang, cuma dikasih kepala waktu
+            // labelnya ganti: urutan yang dikirim backend itu urutan lembar,
+            // dan itu juga urutan barisnya di sertifikat.
+            if (titik.remark != null &&
+                titik.remark!.isNotEmpty &&
+                (i == 0 || detail.titik[i - 1].remark != titik.remark)) ...[
+              if (i > 0) const SizedBox(height: AppSpacing.sm),
+              Text(
+                titik.remark!,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+            ],
             _TitikResultCard(
               titik: titik,
               pembacaan: detail.pembacaanMentah

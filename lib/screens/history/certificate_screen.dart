@@ -353,6 +353,16 @@ class _TabelLaporan extends StatelessWidget {
     );
     final gayaAngka = AppTypography.measurement.copyWith(fontSize: 13);
 
+    // Kolom "Remark" cuma muncul buat alat yang titiknya BERKELOMPOK — sama
+    // aturannya kayak tabel snapshot sertifikat, jadi layar & PDF punya jumlah
+    // kolom yang sama.
+    //
+    // Buat Spectrophotometer kolom ini bukan hiasan: U95 lahir per KELOMPOK,
+    // jadi sepuluh titik Holmium pulang dengan `0,43255708` yang sama persis.
+    // Tanpa labelnya, tabel 24 baris kelihatan punya tiga angka U95 yang muncul
+    // acak, dan `0,4 nm` nggak punya cara dibedain punya Didynium apa Holmium.
+    final adaRemark = titik.any((t) => t.remark != null && t.remark!.isNotEmpty);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -379,6 +389,8 @@ class _TabelLaporan extends StatelessWidget {
                   DataColumn(label: Text(l10n.certColUut, style: gayaJudul)),
                   DataColumn(label: Text(l10n.certColKoreksi, style: gayaJudul)),
                   DataColumn(label: Text(l10n.certColU95, style: gayaJudul)),
+                  if (adaRemark)
+                    DataColumn(label: Text(l10n.sertKolRemark, style: gayaJudul)),
                 ],
                 rows: [
                   for (final t in titik)
@@ -418,6 +430,17 @@ class _TabelLaporan extends StatelessWidget {
                               style: gayaAngka,
                             ),
                           ),
+                          // Titik yang emang nggak punya keterangan dibiarin
+                          // KOSONG, bukan diisi strip: strip di kolom kelompok
+                          // kebacanya kayak kelompok yang namanya nggak
+                          // kekirim.
+                          if (adaRemark)
+                            DataCell(
+                              Text(
+                                t.remark ?? '',
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ),
                         ],
                       );
                     }(),
@@ -532,17 +555,33 @@ class _Ringkasan extends StatelessWidget {
                         ),
                       ),
                     ),
-                    StatusBadge(
-                      label: detail.keputusan == Keputusan.fail
-                          ? l10n.historyStatusFail
-                          : l10n.historyStatusPass,
-                      tone: detail.keputusan == Keputusan.fail
-                          ? BadgeTone.danger
-                          : BadgeTone.success,
-                      icon: detail.keputusan == Keputusan.fail
-                          ? Icons.cancel_outlined
-                          : Icons.check_circle_outline,
-                    ),
+                    // TIGA keadaan, bukan dua. `keputusan: null` itu sah —
+                    // alat yang master-nya nggak punya batas keberterimaan
+                    // (Conductivity, Spectrophotometer) emang nggak divonis
+                    // lulus/gagal, dan sertifikatnya berhenti di Correction +
+                    // U95%.
+                    //
+                    // Waktu ini masih `== FAIL ? FAIL : PASS`, null mendarat
+                    // sebagai badge hijau PASS — di layar sertifikat, dokumen
+                    // yang dipegang pelanggan, buat sesi yang nggak pernah
+                    // dinilai sama sekali.
+                    switch (detail.keputusan) {
+                      Keputusan.fail => StatusBadge(
+                        label: l10n.historyStatusFail,
+                        tone: BadgeTone.danger,
+                        icon: Icons.cancel_outlined,
+                      ),
+                      Keputusan.pass => StatusBadge(
+                        label: l10n.historyStatusPass,
+                        tone: BadgeTone.success,
+                        icon: Icons.check_circle_outline,
+                      ),
+                      null => StatusBadge(
+                        label: l10n.statusTanpaKeputusan,
+                        tone: BadgeTone.neutral,
+                        icon: Icons.remove_circle_outline,
+                      ),
+                    },
                   ],
                 ),
                 const SizedBox(height: AppSpacing.sm),
