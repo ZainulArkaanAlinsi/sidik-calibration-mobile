@@ -310,8 +310,22 @@ class _TabelHasil extends StatelessWidget {
                             ? formatNilaiStandar(b.standardValue, b.desimalEfektif(d))
                             : '${formatNilaiStandar(b.standardValue, b.desimalEfektif(d))} ${b.satuan}',
                       ),
-                      _sel(context, formatSertifikat(b.unitUnderTest, b.desimalEfektif(d))),
-                      _sel(context, formatSertifikat(b.correction, b.desimalEfektif(d))),
+                      _sel(
+                        context,
+                        formatSertifikat(
+                          b.unitUnderTest,
+                          b.desimalEfektif(d),
+                          tandaNol: b.tandaNol,
+                        ),
+                      ),
+                      _sel(
+                        context,
+                        formatSertifikat(
+                          b.correction,
+                          b.desimalEfektif(d),
+                          tandaNol: b.tandaNol,
+                        ),
+                      ),
                       _sel(context, formatSertifikat(b.u95, b.desimalEfektif(d))),
                       if (snapshot.adaRemark) _sel(context, b.remark ?? '—'),
                     ],

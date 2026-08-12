@@ -96,7 +96,12 @@ int? desimalDariResolusi(double? resolusi) {
 /// **Jangan dipakai di luar layar sertifikat.** Lembar perhitungan pakai
 /// [formatNilai] (separator titik, nol belakang dipertahankan) karena angkanya
 /// masih dipakai buat ngitung dan diketik ulang, bukan buat dicetak.
-String formatSertifikat(double nilai, int desimal) {
+///
+/// [tandaNol] ngatur nasib koreksi negatif yang MEMBULAT KE NOL — lihat catatan
+/// di badan fungsi. Backend yang mutusin per alat dan ngirimnya lewat
+/// `tanda_nol`; default `true` biar alat yang belum ngirim field itu kecetak
+/// persis kayak sebelumnya.
+String formatSertifikat(double nilai, int desimal, {bool tandaNol = true}) {
   if (!nilai.isFinite) return '$nilai';
 
   final d = desimal.clamp(0, 8);
@@ -109,11 +114,22 @@ String formatSertifikat(double nilai, int desimal) {
   // `Angka::hasil()` di backend.
   final hasil = tanpaTanda.replaceFirst('.', ',');
 
-  // `-0,00` DITULIS apa adanya. Sempat tandanya dibuang di sini dengan alasan
-  // "bikin orang ngira ada koreksi negatif padahal nol" — masuk akal, tapi
-  // master Turbidimeter `0189-CAL-624` nulis `-0,00` & `-0,0`, dan tanda itu
-  // yang bilang alatnya baca DI ATAS standar. Diadu langsung 10 Agt 2026.
-  return negatif ? '-$hasil' : hasil;
+  // `-0,00` DITULIS apa adanya — TAPI cuma buat alat yang masternya emang gitu.
+  //
+  // Sempat tandanya dibuang di sini dengan alasan "bikin orang ngira ada
+  // koreksi negatif padahal nol"; itu dibalik waktu master Turbidimeter
+  // `0189-CAL-624` diadu langsung 10 Agt 2026 dan ternyata nulis `-0,00` &
+  // `-0,0`. Tandanya bilang alatnya baca DI ATAS standar.
+  //
+  // Yang ketahuan belakangan: jawabannya beda per alat, dan nggak bisa
+  // diturunkan dari nalar. Master Conductivity nyimpen koreksi
+  // `-0.03999999999999915` — sama persis kayak yang dihitung sistem — tapi
+  // nyetaknya `0,0`, tanpa minus. Dua dokumen resmi lab, dua jawaban beda buat
+  // bentuk angka yang sama, jadi yang milih backend (`tanda_nol`), bukan sini.
+  final nolSetelahDibulatkan = double.parse(teks) == 0;
+  final pakaiTanda = negatif && (tandaNol || !nolSetelahDibulatkan);
+
+  return pakaiTanda ? '-$hasil' : hasil;
 }
 
 /// Kolom **Standard Value** — [formatSertifikat] dengan nol di belakang dibuang.

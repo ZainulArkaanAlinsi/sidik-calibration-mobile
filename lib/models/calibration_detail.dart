@@ -247,6 +247,7 @@ class MeasurementResult {
     this.metode,
     this.desimal,
     this.satuan,
+    this.tandaNol = true,
   });
 
   final int titikKe;
@@ -312,6 +313,18 @@ class MeasurementResult {
   /// `25 µS/cm` vs `111 mS/cm` selain nebak dari besar angkanya.
   final String? satuan;
 
+  /// Koreksi negatif yang MEMBULAT KE NOL ditulis `-0,0` atau `0,0`.
+  ///
+  /// Beda per alat, dibaca dari master masing-masing: Turbidimeter
+  /// `0189-CAL-624` nulis `-0,00`, sementara master Conductivity nyimpen
+  /// `-0.03999999999999915` tapi nyetaknya `0,0`. Backend yang mutusin
+  /// (`CalibrationProfile::tandaNolDicetak()`), layar tinggal ikut.
+  ///
+  /// Ada di sini — bukan cuma di [CertificateSnapshot] — biar tabel Calibration
+  /// Report di layar riwayat & approval sama persis sama PDF-nya. Kalau beda,
+  /// yang nemu duluan justru teknisi yang lagi mriksa hasilnya sendiri.
+  final bool tandaNol;
+
   /// Desimal yang benar-benar dipakai nyetak titik ini.
   ///
   /// [desimalSesi] = angka tingkat-sesi, dipakai kalau backend nggak ngirim
@@ -349,6 +362,7 @@ class MeasurementResult {
       metode: json['metode'] as String?,
       desimal: (json['desimal'] as num?)?.toInt(),
       satuan: json['satuan'] as String?,
+      tandaNol: json['tanda_nol'] as bool? ?? true,
     );
   }
 }

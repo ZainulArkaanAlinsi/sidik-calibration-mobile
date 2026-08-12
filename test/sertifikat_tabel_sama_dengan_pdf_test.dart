@@ -138,6 +138,33 @@ void main() {
       expect(formatSertifikat(-0.004, 2), '-0,00');
       expect(formatSertifikat(-0.02, 1), '-0,0');
     });
+
+    test('Conductivity: nol negatif kecetak TANPA minus', () {
+      // Aturan di atas ternyata nggak berlaku di semua alat, dan ini bukan
+      // pilihan gaya — master Conductivity nyimpen koreksi
+      // `-0.03999999999999915` (sama persis kayak yang dihitung sistem) tapi
+      // nyetaknya `0,0`. Dua dokumen resmi lab, dua jawaban beda buat bentuk
+      // angka yang sama, jadi yang milih backend lewat `tanda_nol`.
+      expect(formatSertifikat(-0.03999999999999915, 1, tandaNol: false), '0,0');
+      expect(formatSertifikat(-0.001, 2, tandaNol: false), '0,00');
+    });
+
+    test('tanda_nol: false NGGAK ngebuang minus yang bukan nol', () {
+      // Di sertifikat Conductivity yang sama, dua titik lain koreksinya `-1`
+      // dan `0,52`. Kalau setelan ini bocor ke situ, `-1 µS/cm` kecetak
+      // `1 µS/cm` — arah koreksinya kebalik, dan pelanggan yang nerapin bakal
+      // ngegeser pembacaannya ke arah yang salah.
+      expect(formatSertifikat(-1.0, 0, tandaNol: false), '-1');
+      expect(formatSertifikat(-0.01, 2, tandaNol: false), '-0,01');
+      expect(formatSertifikat(-0.05, 1, tandaNol: false), '-0,1');
+    });
+
+    test('bawaannya mempertahankan tanda', () {
+      // Empat dari lima alat mempertahankan tandanya. Pemanggil yang lupa
+      // ngoper flag-nya harus jatuh ke perilaku lama, bukan ke Conductivity.
+      expect(formatSertifikat(-0.004, 2), formatSertifikat(-0.004, 2, tandaNol: true));
+      expect(formatSertifikat(-0.004, 2), '-0,00');
+    });
   });
 
   group('tabel Calibration Report', () {

@@ -75,6 +75,7 @@ class BarisHasilSertifikat {
     this.desimal,
     this.remark,
     this.satuan,
+    this.tandaNol = true,
   });
 
   final int titikKe;
@@ -114,6 +115,18 @@ class BarisHasilSertifikat {
   /// PERHITUNGAN. Dua-duanya bener, jangan dipakai silang.
   final double correction;
 
+  /// Koreksi negatif yang MEMBULAT KE NOL dicetak `-0,0` atau `0,0`.
+  ///
+  /// Beda per alat, dan bedanya dibaca dari master masing-masing — bukan dari
+  /// nalar. Master Turbidimeter `0189-CAL-624` nulis `-0,00`; master
+  /// Conductivity nyimpen `-0.03999999999999915` di selnya tapi nyetaknya
+  /// `0,0`. Backend yang mutusin (`CalibrationProfile::tandaNolDicetak()`).
+  ///
+  /// Default `true` buat sertifikat yang terbit SEBELUM field ini ada:
+  /// snapshot-nya nggak punya kunci `tanda_nol`, dan yang bener buat dokumen
+  /// yang udah dipegang pelanggan adalah tampil persis kayak waktu diterbitkan.
+  final bool tandaNol;
+
   final double u95;
 
   /// Kolom "Remark" di sertifikat cetak. `null` buat alat yang nggak punya —
@@ -138,6 +151,7 @@ class BarisHasilSertifikat {
           _ => null,
         },
         satuan: json['satuan'] as String?,
+        tandaNol: json['tanda_nol'] as bool? ?? true,
       );
 }
 

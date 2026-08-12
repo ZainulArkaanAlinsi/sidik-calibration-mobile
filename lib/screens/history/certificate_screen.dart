@@ -400,8 +400,18 @@ class _TabelLaporan extends StatelessWidget {
                               style: gayaAngka,
                             ),
                           ),
-                          DataCell(Text(formatSertifikat(t.rataRata, d), style: gayaAngka)),
-                          DataCell(Text(formatSertifikat(t.koreksi, d), style: gayaAngka)),
+                          DataCell(
+                            Text(
+                              formatSertifikat(t.rataRata, d, tandaNol: t.tandaNol),
+                              style: gayaAngka,
+                            ),
+                          ),
+                          DataCell(
+                            Text(
+                              formatSertifikat(t.koreksi, d, tandaNol: t.tandaNol),
+                              style: gayaAngka,
+                            ),
+                          ),
                           DataCell(
                             Text(
                               formatSertifikat(t.ketidakpastianDiperluas, d),
