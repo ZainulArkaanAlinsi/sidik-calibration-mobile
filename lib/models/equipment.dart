@@ -52,6 +52,7 @@ class Equipment {
     this.lokasi = '',
     this.namaAlatKemampuan,
     this.catatan = '',
+    this.resolusiRentang = const [],
   });
 
   final int id;
@@ -90,6 +91,18 @@ class Equipment {
   final double? rangeMax;
   final String satuan;
   final double? resolusi;
+
+  /// Resolusi PER TITIK standar, lengkap sama satuannya — blok "Resolusi Alat"
+  /// di lembar kerja kertas.
+  ///
+  /// Ini sifat ALAT PELANGGAN, bukan sifat sesi: diisi sekali waktu alatnya
+  /// didaftarin, dan dari situ diturunkan satuan tiap baris lembar kerja,
+  /// jumlah desimal, dan style sertifikat. Teknisi di lapangan nggak ngisi
+  /// satuan apa pun.
+  ///
+  /// Kosong = alat lama / lembar yang nggak butuh per titik; sistem balik ke
+  /// [resolusi] tunggal, persis perilaku sebelumnya.
+  final List<ResolusiTitik> resolusiRentang;
   final double? toleransi;
   final String lokasi;
   final String catatan;
@@ -138,6 +151,8 @@ class Equipment {
   /// Body `POST`/`PUT` — `pelanggan_id`, bukan objek `pelanggan`
   /// (`docs/kontrak-api.md` §3 poin 2). `status` cuma `aktif`/`nonaktif`.
   Map<String, dynamic> toJson() => {
+    if (resolusiRentang.isNotEmpty)
+      'resolusi_rentang': [for (final r in resolusiRentang) r.toJson()],
     'nama_alat': namaAlat,
     'serial_number': serialNumber,
     'kategori': kategori,
@@ -161,6 +176,10 @@ class Equipment {
     String teks(String key) => json[key] as String? ?? '';
 
     return Equipment(
+      resolusiRentang: parseListAman<ResolusiTitik>(
+        json['resolusi_rentang'],
+        ResolusiTitik.fromJson,
+      ),
       id: (json['id'] as num).toInt(),
       namaAlat: teks('nama_alat'),
       serialNumber: teks('serial_number'),
@@ -214,4 +233,35 @@ class EquipmentPage {
       lastPage: (meta?['last_page'] as num?)?.toInt() ?? 1,
     );
   }
+}
+
+/// Satu baris blok "Resolusi Alat": titik standar, satuan yang TAMPIL di alat
+/// pelanggan, dan resolusi bacanya.
+class ResolusiTitik {
+  const ResolusiTitik({
+    required this.titik,
+    required this.satuan,
+    required this.resolusi,
+  });
+
+  factory ResolusiTitik.fromJson(Map<String, dynamic> json) => ResolusiTitik(
+    titik: (json['titik'] as num?)?.toDouble() ?? 0,
+    satuan: json['satuan'] as String? ?? '',
+    resolusi: (json['resolusi'] as num?)?.toDouble() ?? 0,
+  );
+
+  /// Nilai nominal larutan standar (25 / 1412 / 111).
+  final double titik;
+
+  /// Satuan yang tampil di layar alat pelanggan buat titik ini — `µS/cm` atau
+  /// `mS/cm`. INI yang nentuin satuan sertifikat, bukan satuan lembar.
+  final String satuan;
+
+  final double resolusi;
+
+  Map<String, dynamic> toJson() => {
+    'titik': titik,
+    'satuan': satuan,
+    'resolusi': resolusi,
+  };
 }
