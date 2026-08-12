@@ -175,6 +175,17 @@ class HasilEkstraksiHeader {
 
 /// Hasil ekstraksi AI dari satu foto worksheet: tabel hasil (Before ATAU After
 /// adjustment) plus blok non-tabel di [header].
+/// Kegagalan yang PENYEBABNYA udah dijelasin backend — 503, jawaban kepotong,
+/// key salah. Dibedain dari hasil kosong supaya layar berhenti nuduh fotonya.
+class WorksheetVisionException implements Exception {
+  const WorksheetVisionException(this.pesan);
+
+  final String pesan;
+
+  @override
+  String toString() => pesan;
+}
+
 class HasilEkstraksiTabel {
   const HasilEkstraksiTabel({
     required this.baris,
@@ -332,6 +343,29 @@ class ApiWorksheetVisionService implements WorksheetVisionService {
       fields: fields,
       token: await _token(),
     );
+
+    // Kegagalan dari backend DILEMPAR, bukan dipelintir jadi hasil kosong.
+    //
+    // Bentuk gagalnya `{ok: false, data: null, error: "..."}`. Kode lama
+    // langsung ambil `json['data'] ?? json`, jadi `data: null` jatuh ke body
+    // utuh, `baris`-nya nggak ketemu, dan hasilnya kosong — persis sama kayak
+    // foto yang beneran nggak kebaca. Pesan `error` dari backend kebuang total.
+    //
+    // Akibatnya SEMUA kegagalan muncul sebagai "fotonya gelap/buram/kejauhan":
+    // layanan AI lagi sibuk (503), jawaban kepotong (MAX_TOKENS), API key
+    // salah — semuanya. Teknisi motret ulang berkali-kali buat sesuatu yang
+    // mustahil berhasil. Kejadian 12 Agt 2026, dua penyebab beda, satu pesan
+    // yang sama-sama salah.
+    final gagal = json['ok'] == false || json['status'] == 'gagal';
+    final pesan = json['error'];
+
+    if (gagal || (json['data'] == null && pesan is String)) {
+      throw WorksheetVisionException(
+        pesan is String && pesan.trim().isNotEmpty
+            ? pesan
+            : 'Layanan AI nggak bisa membaca foto ini.',
+      );
+    }
 
     final data = (json['data'] ?? json) as Map<String, dynamic>;
     return HasilEkstraksiTabel.fromJson(

@@ -366,9 +366,16 @@ class _TombolScanState extends ConsumerState<_TombolScan> {
       // kayak layar login yang nuduh "server bermasalah" padahal Keychain.
       debugPrint('[SCAN] gagal: $e\n$s');
       if (mounted) {
+        // Backend yang tau sebabnya (503 / kepotong / key salah) — pesannya
+        // ditampilin APA ADANYA, tanpa dibungkus "scan gagal (…)" yang bikin
+        // orang ngira fotonya lagi yang salah.
         messenger.showSnackBar(
           SnackBar(
-            content: Text('${l10n.phCalibScanError} ($e)'),
+            content: Text(
+              e is WorksheetVisionException
+                  ? e.pesan
+                  : '${l10n.phCalibScanError} ($e)',
+            ),
             duration: const Duration(seconds: 8),
           ),
         );
