@@ -334,6 +334,8 @@ class BagianLembarKerja {
     required this.tabel,
     required this.baris,
     this.sumber,
+    this.status,
+    this.catatan,
   });
 
   final String kode;
@@ -355,10 +357,32 @@ class BagianLembarKerja {
   /// dipatok di formulirnya. Null di bagian yang barisnya udah tercetak.
   final String? sumber;
 
+  /// Bagian yang **ada di lembar kertas tapi belum bisa diisi**, mis.
+  /// `sumber_belum_ada`.
+  ///
+  /// SRE (Stray Radiant Energy) di Spectrophotometer yang pertama: di master
+  /// Excel nilai standarnya `#REF!` dan budget-nya `#DIV/0!`, jadi backend
+  /// nolak nyetak angka SRE sampai lab nyediakan lembar sumber yang sah.
+  ///
+  /// Dibaca sebagai KUNCI UMUM, bukan dicocokin ke [kode] `sre`: bagian mana
+  /// pun yang datang berstatus begini diperlakukan sama, sekarang dan buat alat
+  /// berikutnya.
+  final String? status;
+
+  /// Alasan yang ditulis backend buat [status] — ditampilin apa adanya.
+  /// Teknisi nyariin blok ini karena ada di lembar kertasnya; nyembunyiin
+  /// diam-diam bikin dia ngira layarnya yang rusak.
+  final String? catatan;
+
+  /// Bagian ini cuma buat dibaca — nggak nerima input sama sekali.
+  bool get belumBisaDiisi => status == 'sumber_belum_ada';
+
   factory BagianLembarKerja.fromJson(Map<String, dynamic> json) =>
       BagianLembarKerja(
         kode: json['kode'] as String,
         judul: json['judul'] as String? ?? '',
+        status: json['status'] as String?,
+        catatan: json['catatan'] as String?,
         // Default 1: lembar kerja versi backend lama nggak ngirim `halaman`,
         // dan satu halaman penuh lebih baik daripada layar kosong.
         halaman: (json['halaman'] as num?)?.toInt() ?? 1,
@@ -368,6 +392,24 @@ class BagianLembarKerja {
         baris: parseListAman(json['baris'], BarisStandar.fromJson),
       );
 }
+
+/// `satuan_campuran` datang dalam DUA bentuk, dan dua-duanya sah.
+///
+/// Conductivity ngirim `true`. Spectrophotometer ngirim daftar satuan yang
+/// dipakai (`["nm", "%T"]`) — kunci yang sama, tipe yang beda.
+///
+/// Waktu ini masih `json['satuan_campuran'] as bool?`, daftar itu ngelempar
+/// `TypeError`, dan yang gagal bukan satu kolom melainkan **seluruh lembar**:
+/// `LembarKerja.fromJson` di luar jangkauan [parseListAman], jadi layar
+/// kalibrasinya kosong sebelum satu baris pun sempat digambar.
+///
+/// Daftar KOSONG dianggap `false`: itu bacanya "nggak ada satuan campur",
+/// bukan "campur tapi nggak ada satuannya".
+bool _campuran(dynamic nilai) => switch (nilai) {
+  final bool b => b,
+  final List<dynamic> l => l.isNotEmpty,
+  _ => false,
+};
 
 /// Formulir lembar kerja utuh.
 class LembarKerja {
@@ -397,11 +439,16 @@ class LembarKerja {
   final String satuan;
 
   /// Lembar ini memakai **lebih dari satu satuan**, jadi [satuan] di level
-  /// lembar kosong dan yang berlaku ada di tiap baris.
+  /// lembar nggak mewakili dan yang berlaku ada di tiap baris.
   ///
-  /// Conductivity satu-satunya sejauh ini: 25 & 1412 dibaca µS/cm, 111 dibaca
-  /// mS/cm. Backend ngirim `satuan: null` + `satuan_campuran: true` supaya
-  /// layar nggak diam-diam melabeli semua kolom dengan satu satuan.
+  /// Conductivity yang pertama: 25 & 1412 dibaca µS/cm, 111 dibaca mS/cm.
+  /// Backend ngirim `satuan: null` + `satuan_campuran: true` supaya layar nggak
+  /// diam-diam melabeli semua kolom dengan satu satuan.
+  ///
+  /// Spectrophotometer ngirim kunci yang sama dalam bentuk **daftar satuan**
+  /// (`["nm", "%T"]`) plus `satuan` level lembar yang keisi satuan blok
+  /// pertama. Lihat [_campuran] buat kenapa dua bentuk itu dua-duanya harus
+  /// kebaca.
   final bool satuanCampuran;
 
   /// Suhu larutan WAJIB diisi buat tiap baris yang pembacaannya diisi.
@@ -461,7 +508,7 @@ class LembarKerja {
         .map((e) => e.toDouble())
         .toList(),
     satuan: json['satuan'] as String? ?? '',
-    satuanCampuran: json['satuan_campuran'] as bool? ?? false,
+    satuanCampuran: _campuran(json['satuan_campuran']),
     suhuWajib: json['suhu_wajib'] as bool? ?? false,
     satuanSuhu: json['satuan_suhu'] as String? ?? '°C',
     semuaKolomOpsional: json['semua_kolom_opsional'] as bool? ?? true,

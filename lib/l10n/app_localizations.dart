@@ -5036,6 +5036,60 @@ abstract class AppLocalizations {
   /// **'Any field you can\'t fill in the field may be left blank — the worksheet can still be submitted.'**
   String get lkSemuaOpsional;
 
+  /// No description provided for @lkBagianBelumBisaDiisi.
+  ///
+  /// In en, this message translates to:
+  /// **'NOT FILLABLE YET'**
+  String get lkBagianBelumBisaDiisi;
+
+  /// No description provided for @lkPratinjauJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'PRELIMINARY RESULTS'**
+  String get lkPratinjauJudul;
+
+  /// No description provided for @lkPratinjauCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Computed by the server from what\'s filled in right now, not on the phone. These numbers can change as other rows are filled.'**
+  String get lkPratinjauCatatan;
+
+  /// No description provided for @lkPratinjauKolomTitik.
+  ///
+  /// In en, this message translates to:
+  /// **'Point'**
+  String get lkPratinjauKolomTitik;
+
+  /// No description provided for @lkPratinjauKolomRata.
+  ///
+  /// In en, this message translates to:
+  /// **'Mean'**
+  String get lkPratinjauKolomRata;
+
+  /// No description provided for @lkPratinjauKolomKoreksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction'**
+  String get lkPratinjauKolomKoreksi;
+
+  /// No description provided for @lkPratinjauKolomU95.
+  ///
+  /// In en, this message translates to:
+  /// **'U95'**
+  String get lkPratinjauKolomU95;
+
+  /// No description provided for @lkPratinjauBelumDihitung.
+  ///
+  /// In en, this message translates to:
+  /// **'NOT COMPUTED YET'**
+  String get lkPratinjauBelumDihitung;
+
+  /// No description provided for @lkPratinjauTitikKe.
+  ///
+  /// In en, this message translates to:
+  /// **'Point {nomor}'**
+  String lkPratinjauTitikKe(int nomor);
+
   /// No description provided for @lkKeluarTanpaSimpan.
   ///
   /// In en, this message translates to:

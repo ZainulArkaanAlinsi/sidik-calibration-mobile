@@ -2728,6 +2728,36 @@ class AppLocalizationsId extends AppLocalizations {
       'Kolom yang belum bisa diisi di lapangan boleh dikosongin — lembar kerjanya tetap bisa dikirim.';
 
   @override
+  String get lkBagianBelumBisaDiisi => 'BELUM BISA DIISI';
+
+  @override
+  String get lkPratinjauJudul => 'HASIL HITUNG SEMENTARA';
+
+  @override
+  String get lkPratinjauCatatan =>
+      'Dihitung server dari isian yang sekarang, bukan di HP. Angkanya bisa berubah kalau baris lain ikut diisi.';
+
+  @override
+  String get lkPratinjauKolomTitik => 'Titik';
+
+  @override
+  String get lkPratinjauKolomRata => 'Rata-rata';
+
+  @override
+  String get lkPratinjauKolomKoreksi => 'Koreksi';
+
+  @override
+  String get lkPratinjauKolomU95 => 'U95';
+
+  @override
+  String get lkPratinjauBelumDihitung => 'BELUM BISA DIHITUNG';
+
+  @override
+  String lkPratinjauTitikKe(int nomor) {
+    return 'Titik ke-$nomor';
+  }
+
+  @override
   String get lkKeluarTanpaSimpan => 'Keluar tanpa menyimpan?';
 
   @override

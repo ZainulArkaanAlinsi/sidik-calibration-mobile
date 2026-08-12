@@ -2740,6 +2740,36 @@ class AppLocalizationsEn extends AppLocalizations {
       'Any field you can\'t fill in the field may be left blank — the worksheet can still be submitted.';
 
   @override
+  String get lkBagianBelumBisaDiisi => 'NOT FILLABLE YET';
+
+  @override
+  String get lkPratinjauJudul => 'PRELIMINARY RESULTS';
+
+  @override
+  String get lkPratinjauCatatan =>
+      'Computed by the server from what\'s filled in right now, not on the phone. These numbers can change as other rows are filled.';
+
+  @override
+  String get lkPratinjauKolomTitik => 'Point';
+
+  @override
+  String get lkPratinjauKolomRata => 'Mean';
+
+  @override
+  String get lkPratinjauKolomKoreksi => 'Correction';
+
+  @override
+  String get lkPratinjauKolomU95 => 'U95';
+
+  @override
+  String get lkPratinjauBelumDihitung => 'NOT COMPUTED YET';
+
+  @override
+  String lkPratinjauTitikKe(int nomor) {
+    return 'Point $nomor';
+  }
+
+  @override
   String get lkKeluarTanpaSimpan => 'Leave without saving?';
 
   @override

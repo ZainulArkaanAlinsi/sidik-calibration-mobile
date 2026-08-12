@@ -148,6 +148,9 @@ class MockLembarKerjaService implements LembarKerjaService {
       'refractometer' => contohBentukLembarKerjaRefractometer(
         untukAdmin: untukAdmin,
       ),
+      'spectrophotometer' => contohBentukLembarKerjaSpectro(
+        untukAdmin: untukAdmin,
+      ),
       // Profil kosong / nggak dikenal SENGAJA jatuh ke pH, bukan lempar error —
       // sama kayak janji kontraknya (`docs/kontrak-api.md` §4).
       _ => contohBentukLembarKerja(untukAdmin: untukAdmin),
@@ -1029,6 +1032,252 @@ Map<String, dynamic> contohBentukLembarKerjaRefractometer({
         'Kolom yang belum bisa diisi di lapangan boleh dikosongin — '
         'lembar kerja tetap bisa dikirim. Suhu tiap pembacaan WAJIB diisi kalau '
         'bisa: tanpa itu pembacaan nggak bisa dinormalisasi ke 20 °C.',
+    'bagian': bagian,
+  };
+}
+
+/// Salinan bentuk Spectrophotometer (`?profil=spectrophotometer`,
+/// `SpectrophotometerProfile` di backend). Diambil dari respons ASLI
+/// `GET /api/calibrations/lembar-kerja?equipment_id=12` di DB lab, bukan
+/// dikarang — angka titiknya persis yang tercetak di master
+/// `Master Olah Data_Spectrofotometer.xlsm`.
+///
+/// Tiga hal di bentuk ini yang nggak ada di lima alat sebelumnya, dan
+/// ketiganya pernah bikin layar salah gambar:
+///
+///  1. **Tiga tabel dalam satu bagian**, masing-masing punya satuan &
+///     jumlah pengulangan sendiri. Blok %T dapat **enam** kolom (master nyetak
+///     dua baris X1..X3 per nilai standar), sementara `jumlah_pengulangan` di
+///     level lembar tetap 3. Layar yang ngambil dari level lembar bakal
+///     ngilangin tiga kolom terakhir %T — dan teknisi nggak punya tempat
+///     ngetik separuh datanya.
+///  2. **`satuan_campuran` berbentuk DAFTAR** (`["nm", "%T"]`), bukan `true`
+///     kayak Conductivity. Dua-duanya sah; lihat `_campuran` di
+///     `models/lembar_kerja.dart`.
+///  3. **Bagian berstatus `sumber_belum_ada`** (SRE) yang tampil tapi nggak
+///     nerima input sama sekali.
+Map<String, dynamic> contohBentukLembarKerjaSpectro({bool untukAdmin = false}) {
+  Map<String, dynamic> field(
+    String kode,
+    String label,
+    String tipe, {
+    String? sumber,
+    String? satuan,
+    List<Map<String, String>> pilihan = const [],
+    bool hanyaAdmin = false,
+  }) => {
+    'kode': kode,
+    'label': label,
+    'tipe': tipe,
+    'wajib': false,
+    'sumber': sumber,
+    'satuan': satuan,
+    'pilihan': pilihan,
+    'hanya_admin': hanyaAdmin,
+  };
+
+  // Tiap baris bawa `standard_id`-nya sendiri — teknisi NGGAK milih filter per
+  // titik. Rentang Holmium (283–641 nm) & Didynium (474–810 nm) tumpang tindih
+  // 167 nm, jadi pemilihan manual gampang salah dan salahnya nggak kelihatan
+  // dari dokumen hasilnya.
+  Map<String, dynamic> tabel(
+    String grup,
+    String judul,
+    String satuan,
+    double resolusi,
+    int desimal,
+    int standardId,
+    String standardNama,
+    List<double> nilai,
+    int pengulangan,
+  ) => {
+    // Alat ini nggak punya tahap adjustment — master-nya cuma sekali baca per
+    // titik. `tahap` tetap dikirim backend sebagai identitas kolom isian, dan
+    // ketiga tabelnya isinya SAMA. Aman karena tiap titik cuma punya satu
+    // tabel; yang misahin isian antar tabel itu titiknya, bukan tahapnya.
+    'tahap': 'sesudah_adjustment',
+    'grup': grup,
+    'judul': judul,
+    'satuan': satuan,
+    'baris': [
+      for (final n in nilai)
+        {
+          'titik_ukur': n,
+          'label': n.toStringAsFixed(desimal),
+          'resolusi': resolusi,
+          'desimal': desimal,
+          'satuan': satuan,
+          'standard_id': standardId,
+          'standard_nama': standardNama,
+        },
+    ],
+    'kolom': [
+      {'kode': 'pembacaan', 'label': satuan, 'tipe': 'angka', 'satuan': satuan},
+    ],
+    'pengulangan': [for (var i = 1; i <= pengulangan; i++) i],
+  };
+
+  final bagian = <Map<String, dynamic>>[
+    {
+      'kode': 'identitas_alat',
+      'halaman': 1,
+      'judul': 'EQUIPMENT IDENTITY AND CUSTOMER DATA',
+      'field': [
+        field('tanggal_terima', 'Received Date', 'tanggal'),
+        field('tanggal_kalibrasi', 'Calibration Date', 'tanggal'),
+        field('equipment_id', 'Equipment', 'pilihan', sumber: 'master_alat'),
+        field('equipment.nama_alat', '1. Name', 'teks', sumber: 'otomatis'),
+        field('equipment.range_resolusi', '2. Range/Resolution', 'teks',
+            sumber: 'otomatis'),
+        field('alat_model', '3. Type/Model', 'teks'),
+        field('alat_serial_number', '4. Serial Number/LPI', 'teks'),
+        field('alat_merk', '5. Merk/Manufacture', 'teks'),
+        field('thermohygro_standard_id', '6. Thermohygro used', 'pilihan',
+            sumber: 'master_thermohygro'),
+      ],
+    },
+    {
+      'kode': 'pemilik',
+      'halaman': 1,
+      'judul': 'OWNER',
+      'field': [
+        field('pemilik_nama', '1. Name', 'teks'),
+        field('pemilik_alamat', '2. Address', 'teks_panjang'),
+      ],
+    },
+    {
+      'kode': 'usage_check',
+      'halaman': 1,
+      'judul': 'STANDARD',
+      'baris': [
+        {
+          'label': 'Filter Standard 1 (Holmium Oxide)',
+          'standard_id': 25,
+          'serial_number': 'SPG080982.A',
+          'terdaftar': true,
+        },
+        {
+          'label': 'Filter Standard 2 (Didynium)',
+          'standard_id': 26,
+          'serial_number': 'SPG080982.B',
+          'terdaftar': true,
+        },
+        {
+          'label': 'Filter Standard 3 (Neutral Gas Filter 1,2,3)',
+          'standard_id': 27,
+          'serial_number': 'SPG080982.C',
+          'terdaftar': true,
+        },
+      ],
+      'field': <Map<String, dynamic>>[],
+    },
+    {
+      'kode': 'data_kalibrasi',
+      'halaman': 1,
+      'judul': 'CALIBRATION DATA',
+      'field': [
+        field('lokasi', '1. Location', 'pilihan', pilihan: [
+          {'nilai': 'lab', 'label': 'In lab'},
+          {'nilai': 'onsite', 'label': 'Insitu'},
+        ]),
+        field('room_id', 'Ruangan', 'pilihan', sumber: 'master_ruangan'),
+        if (untukAdmin)
+          field('calibration_method_id', '2. Calibration Methode', 'pilihan',
+              sumber: 'master_metode', hanyaAdmin: true),
+      ],
+    },
+    {
+      'kode': 'hasil',
+      'halaman': 1,
+      'judul': 'CALIBRATION RESULT',
+      'field': [
+        field('suhu_awal', 'Env. Condition — First', 'angka', satuan: '°C'),
+        field('kelembaban_awal', 'Env. Condition — First', 'angka', satuan: '%RH'),
+        field('suhu_akhir', 'Env. Condition — End', 'angka', satuan: '°C'),
+        field('kelembaban_akhir', 'Env. Condition — End', 'angka', satuan: '%RH'),
+      ],
+      'tabel': [
+        tabel(
+          'holmium',
+          'Wave Length ( λ ) - Filter Holmium',
+          'nm',
+          0.01,
+          2,
+          25,
+          'Filter Standard 1',
+          const [279.6, 287.7, 334, 360.9, 418.6, 445.8, 453.6, 460, 536.3, 637.9],
+          3,
+        ),
+        tabel(
+          'didynium',
+          'Wave Length ( λ ) - Filter Didynium',
+          'nm',
+          0.01,
+          2,
+          26,
+          'Filter Standard 2',
+          const [475.2, 513.7, 529.7, 572.7, 585.7, 684.9, 738.5, 748, 806.1],
+          3,
+        ),
+        tabel(
+          'akurasi_transmitan',
+          'Accuracy %T and Linierity at λ = 560nm',
+          '%T',
+          0.001,
+          3,
+          27,
+          'Filter Standard 3',
+          const [0, 9.9, 20, 30.1, 100],
+          6,
+        ),
+      ],
+    },
+    {
+      'kode': 'sre',
+      'halaman': 1,
+      'judul': 'SRE (Stray Radiant Energy)',
+      'status': 'sumber_belum_ada',
+      'catatan':
+          'Belum diimplementasikan: di master, nilai standar SRE hilang '
+          '(SERTIFIKAT!C57 & O57 = #REF!), budget-nya #DIV/0! '
+          '(PERHITUNGAN U95%!AA65-AA66), faktor cakupannya bukan t-student, dan '
+          'CMC-nya nunjuk balik ke hasil hitungnya sendiri. Backend nggak '
+          'nyetak angka SRE sampai lab nyediakan lembar sumber yang sah.',
+      'field': <Map<String, dynamic>>[],
+    },
+    {
+      'kode': 'penutup',
+      'halaman': 1,
+      'judul': 'Catatan & Tanda Tangan',
+      'field': [
+        field('catatan_teknisi', 'Catatan', 'teks_panjang'),
+        field('teknisi.nama', 'Calibrated by', 'teks', sumber: 'otomatis'),
+        field('reviewer.nama', 'Checked by', 'teks', sumber: 'otomatis'),
+      ],
+    },
+  ];
+
+  return {
+    'kode_dokumen': 'SIDIK-IK-CAL-0508_Rev.4',
+    'judul': 'Calibration Worksheet - Spectrophotometer',
+    'untuk': untukAdmin ? 'admin' : 'teknisi',
+    'jumlah_pengulangan': 3,
+    'larutan_standar': const [
+      279.6, 287.7, 334, 360.9, 418.6, 445.8, 453.6, 460, 536.3, 637.9,
+      475.2, 513.7, 529.7, 572.7, 585.7, 684.9, 738.5, 748, 806.1,
+      0, 9.9, 20, 30.1, 100,
+    ],
+    // Keisi satuan blok PERTAMA, bukan kosong — itu yang dikirim backend, dan
+    // `satuan_campuran` di bawahnya yang bilang jangan dipakai buat melabeli.
+    'satuan': 'nm',
+    'satuan_campuran': const ['nm', '%T'],
+    'satuan_suhu': '°C',
+    'semua_kolom_opsional': true,
+    'catatan_pengisian':
+        'Kolom yang belum bisa diisi di lapangan boleh dikosongin — lembar '
+        'kerja tetap bisa dikirim. Tiap kelompok (Holmium / Didynium / %T) '
+        'punya SATU U95 bersama yang dihitung dari STDEV terbesar di kelompok '
+        'itu, jadi titik yang kosong ngurangin dasar hitungnya.',
     'bagian': bagian,
   };
 }

@@ -1153,7 +1153,9 @@ class _Bagian extends ConsumerWidget {
             ),
             const Divider(height: AppSpacing.lg),
 
-            if (bagian.kode == 'usage_check')
+            if (bagian.belumBisaDiisi)
+              _BagianTanpaInput(catatan: bagian.catatan)
+            else if (bagian.kode == 'usage_check')
               _UsageCheck(bagian: bagian, isian: isian, onBerubah: onBerubah)
             else ...[
               for (final f in bagian.field) ...[
@@ -1223,6 +1225,69 @@ class _CatatanIsi extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Bagian yang ADA di lembar kertas tapi belum punya sumber angka yang sah
+/// (`status: sumber_belum_ada`).
+///
+/// Dua jalan pintas yang sama-sama salah dihindari di sini. Nyembunyiin
+/// bagiannya bikin teknisi ngira layarnya kurang — dia nyariin, karena blok itu
+/// tercetak di lembar kertas yang dia pegang. Nyediakan kotak kosong bikin dia
+/// ngetik angka yang nggak akan pernah nyampe: backend nggak nerima field apa
+/// pun dari bagian ini, jadi isiannya ilang tanpa jejak.
+///
+/// Jadi: kelihatan, berlabel, dengan alasan dari backend apa adanya — dan tanpa
+/// satu pun kotak yang bisa disentuh.
+class _BagianTanpaInput extends StatelessWidget {
+  const _BagianTanpaInput({required this.catatan});
+
+  final String? catatan;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.lock_outline,
+                size: 16,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                l10n.lkBagianBelumBisaDiisi,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+          if (catatan != null && catatan!.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              catatan!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

@@ -475,10 +475,23 @@ class _KepalaPengulangan extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            '${l10n.lkRepeat} $nomor',
-            style: theme.textTheme.labelSmall?.copyWith(
-              fontWeight: FontWeight.w700,
+          // Nggak boleh membungkus: tinggi kepala dipatok
+          // [LembarKerjaTabel._tinggiKepala] supaya sebaris sama kolom label
+          // yang nempel di kiri, dan "Repeat 10" yang jatuh ke baris kedua
+          // bikin kepalanya meluber.
+          //
+          // Kelihatannya baru di tabel BERKOLOM SATU: lebar kepala =
+          // `lebarSel × jumlah kolom`, jadi tabel dua kolom (pembacaan + suhu)
+          // punya 156px dan nggak pernah kena. Spectrophotometer cuma punya
+          // kolom `pembacaan` — 78px, dan teksnya langsung nggak muat.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              '${l10n.lkRepeat} $nomor',
+              maxLines: 1,
+              style: theme.textTheme.labelSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
           const SizedBox(height: 2),
