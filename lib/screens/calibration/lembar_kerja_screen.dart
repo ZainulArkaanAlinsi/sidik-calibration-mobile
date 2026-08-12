@@ -15,6 +15,7 @@ import '../../providers/calibration_input_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../providers/jam_provider.dart';
 import '../../providers/lembar_kerja_provider.dart';
+import '../../services/auth_service.dart' show AuthException;
 import '../../widgets/app_button.dart';
 import '../../widgets/sidik_loader.dart';
 import 'lembar_kerja_state.dart';
@@ -132,6 +133,28 @@ class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen> {
     // yang barusan dipilih. Formulirnya HARUS tetap terpasang; bentuk barunya
     // dipasang belakangan lewat `gantiBentuk`.
     ref.listen(lembarKerjaProvider(kunci), (_, next) {
+      // Gagal narik bentuk alat SESUDAH lembar kepegang nggak boleh diam.
+      //
+      // Backend nolak (422) kalau master alatnya belum nyebut varian satuan
+      // mana yang dipakai. Karena bentuk lama tetap kepasang biar isian nggak
+      // ilang, tanpa pesan ini teknisi bakal lanjut ngisi lembar GENERIK yang
+      // ambigu — persis keadaan yang penolakan itu mau cegah.
+      if (next is AsyncError && _bentukTerakhir != null) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(
+                next.error is AuthException
+                    ? (next.error as AuthException).message
+                    : '${next.error}',
+              ),
+              duration: const Duration(seconds: 10),
+            ),
+          );
+        return;
+      }
+
       final baru = next.value;
       if (baru == null || identical(baru, _bentukTerakhir)) return;
       setState(() => _bentukTerakhir = baru);
