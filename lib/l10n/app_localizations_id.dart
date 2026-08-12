@@ -743,6 +743,44 @@ class AppLocalizationsId extends AppLocalizations {
   String get equipResolusi => 'Resolusi';
 
   @override
+  String get equipResolusiRentang => 'Resolusi per titik';
+
+  @override
+  String get equipResolusiRentangHint =>
+      'Isi kalau alat ini TIDAK seragam — resolusi atau satuannya berubah antar titik. Kosongkan kalau resolusi tunggal di atas sudah mewakili. Isian ini yang nentuin satuan tiap baris lembar kerja dan jumlah desimal yang kecetak di sertifikat.';
+
+  @override
+  String get equipResolusiBentukTitik => 'Titik standar';
+
+  @override
+  String get equipResolusiBentukMaks => 'Batas atas';
+
+  @override
+  String get equipResolusiTitik => 'Titik standar';
+
+  @override
+  String get equipResolusiMaks => 'Batas atas';
+
+  @override
+  String get equipResolusiMaksKosong => 'kosong = golongan terakhir';
+
+  @override
+  String get equipResolusiTambahBaris => 'TAMBAH BARIS RESOLUSI';
+
+  @override
+  String get equipResolusiHapusBaris => 'Hapus baris';
+
+  @override
+  String get equipResolusiBarisWajib => 'Wajib diisi, lebih besar dari 0.';
+
+  @override
+  String get equipResolusiTitikWajib => 'Wajib diisi.';
+
+  @override
+  String get equipResolusiBarisAdaYangSalah =>
+      'Ada baris resolusi yang belum bener di bawah.';
+
+  @override
   String get equipToleransi => 'Toleransi';
 
   @override

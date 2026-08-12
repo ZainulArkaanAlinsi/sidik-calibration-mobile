@@ -1454,6 +1454,78 @@ abstract class AppLocalizations {
   /// **'Resolution'**
   String get equipResolusi;
 
+  /// No description provided for @equipResolusiRentang.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolution per point'**
+  String get equipResolusiRentang;
+
+  /// No description provided for @equipResolusiRentangHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill this in when the device is NOT uniform — the resolution or the unit changes between points. Leave it empty when the single resolution above already says everything. This decides the unit on each worksheet row and the decimals printed on the certificate.'**
+  String get equipResolusiRentangHint;
+
+  /// No description provided for @equipResolusiBentukTitik.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard point'**
+  String get equipResolusiBentukTitik;
+
+  /// No description provided for @equipResolusiBentukMaks.
+  ///
+  /// In en, this message translates to:
+  /// **'Upper bound'**
+  String get equipResolusiBentukMaks;
+
+  /// No description provided for @equipResolusiTitik.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard point'**
+  String get equipResolusiTitik;
+
+  /// No description provided for @equipResolusiMaks.
+  ///
+  /// In en, this message translates to:
+  /// **'Upper bound'**
+  String get equipResolusiMaks;
+
+  /// No description provided for @equipResolusiMaksKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'empty = last band'**
+  String get equipResolusiMaksKosong;
+
+  /// No description provided for @equipResolusiTambahBaris.
+  ///
+  /// In en, this message translates to:
+  /// **'ADD RESOLUTION ROW'**
+  String get equipResolusiTambahBaris;
+
+  /// No description provided for @equipResolusiHapusBaris.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete row'**
+  String get equipResolusiHapusBaris;
+
+  /// No description provided for @equipResolusiBarisWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Required, greater than 0.'**
+  String get equipResolusiBarisWajib;
+
+  /// No description provided for @equipResolusiTitikWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Required.'**
+  String get equipResolusiTitikWajib;
+
+  /// No description provided for @equipResolusiBarisAdaYangSalah.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the resolution rows below.'**
+  String get equipResolusiBarisAdaYangSalah;
+
   /// No description provided for @equipToleransi.
   ///
   /// In en, this message translates to:

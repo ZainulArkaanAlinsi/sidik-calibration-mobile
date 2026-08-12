@@ -58,6 +58,11 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
   late final _lokasi = TextEditingController(text: widget.existing?.lokasi);
   late final _catatan = TextEditingController(text: widget.existing?.catatan);
 
+  /// Baris "Resolusi per titik" yang lagi diedit, satu controller per kolom
+  /// biar angka setengah ketik (`0,`) nggak keburu diparse jadi `null` dan
+  /// balik jadi kosong di tengah pengetikan.
+  final List<_BarisResolusi> _resolusiRentang = [];
+
   String? _kategori;
   int? _pelangganId;
 
@@ -75,12 +80,17 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
   String? _errorKategori;
   String? _errorPelanggan;
   String? _errorToleransi;
+  String? _errorResolusiRentang;
 
   @override
   void initState() {
     super.initState();
     _kategori = widget.existing?.kategori;
     _pelangganId = widget.existing?.pelangganId;
+    _resolusiRentang.addAll([
+      for (final r in widget.existing?.resolusiRentang ?? const <ResolusiTitik>[])
+        _BarisResolusi.dari(r),
+    ]);
     _pelangganNama = widget.existing?.pelangganNama;
     _namaAlatKemampuan = widget.existing?.namaAlatKemampuan;
 
@@ -109,6 +119,9 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
     _toleransi.dispose();
     _lokasi.dispose();
     _catatan.dispose();
+    for (final baris in _resolusiRentang) {
+      baris.dispose();
+    }
     super.dispose();
   }
 
@@ -135,12 +148,36 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
       _errorToleransi = _parse(_toleransi.text) == null
           ? l10n.equipToleransiWajib
           : null;
+
+      // Baris resolusi divalidasi di sini, bukan dibiarin kena 422 dari
+      // backend: pesannya balik sebagai satu string panjang ber-indeks
+      // (`resolusi_rentang.1.resolusi`) yang nggak nunjuk ke baris mana pun di
+      // layar.
+      _errorResolusiRentang = null;
+      for (final baris in _resolusiRentang) {
+        baris.errorNilai = null;
+        baris.errorResolusi = null;
+
+        final resolusi = _parse(baris.resolusi.text);
+        if (resolusi == null || resolusi <= 0) {
+          baris.errorResolusi = l10n.equipResolusiBarisWajib;
+          _errorResolusiRentang = l10n.equipResolusiBarisAdaYangSalah;
+        }
+
+        // Baris ambang boleh kosong nilainya — itu golongan terakhir yang
+        // nampung sisa pembacaan. Baris titik standar nggak boleh.
+        if (!baris.pakaiMaks && _parse(baris.nilai.text) == null) {
+          baris.errorNilai = l10n.equipResolusiTitikWajib;
+          _errorResolusiRentang = l10n.equipResolusiBarisAdaYangSalah;
+        }
+      }
     });
     if (_errorNama != null ||
         _errorSerial != null ||
         _errorKategori != null ||
         _errorPelanggan != null ||
-        _errorToleransi != null) {
+        _errorToleransi != null ||
+        _errorResolusiRentang != null) {
       return;
     }
 
@@ -164,6 +201,16 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
       toleransi: _parse(_toleransi.text),
       lokasi: _lokasi.text.trim(),
       catatan: _catatan.text.trim(),
+      resolusiRentang: [
+        for (final baris in _resolusiRentang)
+          ResolusiTitik(
+            titik: baris.pakaiMaks ? null : _parse(baris.nilai.text),
+            maks: baris.pakaiMaks ? _parse(baris.nilai.text) : null,
+            satuan: baris.satuan.text.trim(),
+            resolusi: _parse(baris.resolusi.text) ?? 0,
+            pakaiMaks: baris.pakaiMaks,
+          ),
+      ],
     );
 
     final navigator = Navigator.of(context);
@@ -331,6 +378,22 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
+
+          _BlokResolusiRentang(
+            baris: _resolusiRentang,
+            enabled: bisaInput,
+            error: _errorResolusiRentang,
+            onUbah: () => setState(() {}),
+            onTambah: () => setState(
+              () => _resolusiRentang.add(_BarisResolusi.kosong(_satuan.text.trim())),
+            ),
+            onHapus: (index) => setState(() {
+              _resolusiRentang.removeAt(index).dispose();
+              if (_resolusiRentang.isEmpty) _errorResolusiRentang = null;
+            }),
+          ),
+          const SizedBox(height: AppSpacing.md),
+
           AppTextField.measurement(
             label: l10n.equipToleransi,
             controller: _toleransi,
@@ -392,6 +455,204 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
           ],
         ],
       ),
+    );
+  }
+}
+
+/// Satu baris "Resolusi per titik" yang lagi diedit — controller-nya idup
+/// selama layar kebuka, jadi angka setengah ketik nggak kereset tiap rebuild.
+class _BarisResolusi {
+  _BarisResolusi({
+    required String nilai,
+    required String satuan,
+    required String resolusi,
+    required this.pakaiMaks,
+  })  : nilai = TextEditingController(text: nilai),
+        satuan = TextEditingController(text: satuan),
+        resolusi = TextEditingController(text: resolusi);
+
+  factory _BarisResolusi.dari(ResolusiTitik r) => _BarisResolusi(
+    nilai: _teksAngka(r.pakaiMaks ? r.maks : r.titik),
+    satuan: r.satuan,
+    resolusi: _teksAngka(r.resolusi),
+    pakaiMaks: r.pakaiMaks,
+  );
+
+  /// Baris baru default ke bentuk **titik standar**: itu bentuk yang bikin blok
+  /// ini ada (satuan campur di Conductivity). Satuan alatnya diikutin sebagai
+  /// tebakan awal — tinggal diganti di baris yang pindah satuan.
+  factory _BarisResolusi.kosong(String satuanAlat) => _BarisResolusi(
+    nilai: '',
+    satuan: satuanAlat,
+    resolusi: '',
+    pakaiMaks: false,
+  );
+
+  final TextEditingController nilai;
+  final TextEditingController satuan;
+  final TextEditingController resolusi;
+
+  bool pakaiMaks;
+  String? errorNilai;
+  String? errorResolusi;
+
+  void dispose() {
+    nilai.dispose();
+    satuan.dispose();
+    resolusi.dispose();
+  }
+
+  /// `25.0` ditulis `25`, `0.01` tetap `0.01` — nol belakang yang nggak bawa
+  /// informasi bikin kolomnya kelihatan kayak angka hasil ukur.
+  static String _teksAngka(double? nilai) {
+    if (nilai == null) return '';
+
+    return nilai == nilai.roundToDouble()
+        ? nilai.toStringAsFixed(0)
+        : '$nilai';
+  }
+}
+
+/// Blok "Resolusi per titik" — padanan repeater `resolusi_rentang` di panel
+/// admin.
+///
+/// Isinya nentuin hal yang nggak kelihatan dari namanya: satuan tiap baris
+/// lembar kerja, jumlah desimal yang kecetak di sertifikat, dan — buat
+/// Conductivity — style sertifikatnya. Alat yang barisnya kosong balik ke
+/// kolom `resolusi` tunggal di atas, persis perilaku lama.
+class _BlokResolusiRentang extends StatelessWidget {
+  const _BlokResolusiRentang({
+    required this.baris,
+    required this.enabled,
+    required this.error,
+    required this.onUbah,
+    required this.onTambah,
+    required this.onHapus,
+  });
+
+  final List<_BarisResolusi> baris;
+  final bool enabled;
+  final String? error;
+  final VoidCallback onUbah;
+  final VoidCallback onTambah;
+  final ValueChanged<int> onHapus;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.equipResolusiRentang.toUpperCase(),
+          style: theme.textTheme.labelLarge,
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          l10n.equipResolusiRentangHint,
+          style: theme.textTheme.bodySmall,
+        ),
+        if (error != null) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            error!,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.error,
+            ),
+          ),
+        ],
+        const SizedBox(height: AppSpacing.sm),
+
+        for (var i = 0; i < baris.length; i++) ...[
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<bool>(
+                          initialValue: baris[i].pakaiMaks,
+                          isExpanded: true,
+                          items: [
+                            DropdownMenuItem(
+                              value: false,
+                              child: Text(l10n.equipResolusiBentukTitik),
+                            ),
+                            DropdownMenuItem(
+                              value: true,
+                              child: Text(l10n.equipResolusiBentukMaks),
+                            ),
+                          ],
+                          onChanged: enabled
+                              ? (value) {
+                                  baris[i].pakaiMaks = value ?? false;
+                                  onUbah();
+                                }
+                              : null,
+                        ),
+                      ),
+                      if (enabled)
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline),
+                          tooltip: l10n.equipResolusiHapusBaris,
+                          onPressed: () => onHapus(i),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AppTextField.measurement(
+                          label: baris[i].pakaiMaks
+                              ? l10n.equipResolusiMaks
+                              : l10n.equipResolusiTitik,
+                          // Baris ambang terakhir sengaja dibiarin kosong —
+                          // itu golongan yang nampung sisa pembacaan di atas
+                          // band sebelumnya, bukan baris yang belum diisi.
+                          hint: baris[i].pakaiMaks
+                              ? l10n.equipResolusiMaksKosong
+                              : null,
+                          controller: baris[i].nilai,
+                          errorText: baris[i].errorNilai,
+                          enabled: enabled,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: AppTextField.measurement(
+                          label: l10n.equipResolusi,
+                          controller: baris[i].resolusi,
+                          errorText: baris[i].errorResolusi,
+                          enabled: enabled,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  AppTextField(
+                    label: l10n.equipSatuan,
+                    controller: baris[i].satuan,
+                    enabled: enabled,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+        ],
+
+        if (enabled)
+          OutlinedButton.icon(
+            onPressed: onTambah,
+            icon: const Icon(Icons.add),
+            label: Text(l10n.equipResolusiTambahBaris),
+          ),
+      ],
     );
   }
 }

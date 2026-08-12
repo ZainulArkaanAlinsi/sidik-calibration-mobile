@@ -744,6 +744,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipResolusi => 'Resolution';
 
   @override
+  String get equipResolusiRentang => 'Resolution per point';
+
+  @override
+  String get equipResolusiRentangHint =>
+      'Fill this in when the device is NOT uniform — the resolution or the unit changes between points. Leave it empty when the single resolution above already says everything. This decides the unit on each worksheet row and the decimals printed on the certificate.';
+
+  @override
+  String get equipResolusiBentukTitik => 'Standard point';
+
+  @override
+  String get equipResolusiBentukMaks => 'Upper bound';
+
+  @override
+  String get equipResolusiTitik => 'Standard point';
+
+  @override
+  String get equipResolusiMaks => 'Upper bound';
+
+  @override
+  String get equipResolusiMaksKosong => 'empty = last band';
+
+  @override
+  String get equipResolusiTambahBaris => 'ADD RESOLUTION ROW';
+
+  @override
+  String get equipResolusiHapusBaris => 'Delete row';
+
+  @override
+  String get equipResolusiBarisWajib => 'Required, greater than 0.';
+
+  @override
+  String get equipResolusiTitikWajib => 'Required.';
+
+  @override
+  String get equipResolusiBarisAdaYangSalah =>
+      'Check the resolution rows below.';
+
+  @override
   String get equipToleransi => 'Tolerance';
 
   @override
