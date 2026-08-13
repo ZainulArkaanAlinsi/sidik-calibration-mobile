@@ -2769,6 +2769,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkBagianBelumBisaDiisi => 'NOT FILLABLE YET';
 
   @override
+  String get lkPindaiLembar => 'SCAN WORKSHEET';
+
+  @override
+  String lkPindaiBelumSiap(String alasan) {
+    return 'Not scannable yet: $alasan';
+  }
+
+  @override
   String get lkPratinjauJudul => 'PRELIMINARY RESULTS';
 
   @override

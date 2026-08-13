@@ -6,11 +6,13 @@ import 'package:sidik_calibration/models/lembar_kerja.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/calibration_input_provider.dart';
 import 'package:sidik_calibration/providers/lembar_kerja_provider.dart';
+import 'package:sidik_calibration/providers/worksheet_scan_provider.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_screen.dart';
 import 'package:sidik_calibration/screens/calibration/widgets/lembar_kerja_tabel.dart';
 import 'package:sidik_calibration/services/equipment_lookup_service.dart';
 import 'package:sidik_calibration/services/lembar_kerja_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
+import 'package:sidik_calibration/services/worksheet_scan_service.dart';
 import 'package:sidik_calibration/services/room_service.dart';
 import 'package:sidik_calibration/services/standard_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
@@ -261,6 +263,44 @@ void main() {
     });
   });
 
+
+  group('pindai lembar kerja', () {
+    /// Tombol pindai HARUS ngikut `siap_pindai` dari server.
+    ///
+    /// Sekarang keenam lembar masih `geometri_belum_diverifikasi`: koordinat
+    /// selnya belum diukur dari formulir CETAK asli. Koordinat tebakan berarti
+    /// angka mendarat di sel yang salah — persis kegagalan yang mau dicegah
+    /// fitur ini. Nyalain paksa "biar bisa dites dulu" cuma bikin teknisi
+    /// percaya jalur yang belum boleh dipakai.
+    testWidgets('lembar yang belum siap: tombolnya mati + alasannya tampil', (
+      tester,
+    ) async {
+      await _bukaLembar(tester);
+
+      final tombol = find.widgetWithText(OutlinedButton, 'PINDAI LEMBAR KERJA');
+
+      expect(tombol, findsOneWidget);
+      expect(tester.widget<OutlinedButton>(tombol).onPressed, isNull);
+
+      // Alasannya ditampilin APA ADANYA, bukan diterjemahin jadi "fitur belum
+      // tersedia": yang bisa nutup cuma lab (cetak ulang formulir + ukur), dan
+      // teknisi berhak tahu yang kurang itu apa.
+      expect(
+        find.textContaining('geometri_belum_diverifikasi'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('lembar yang udah siap: tombolnya hidup', (tester) async {
+      await _bukaLembar(tester, siapPindai: true);
+
+      final tombol = find.widgetWithText(OutlinedButton, 'PINDAI LEMBAR KERJA');
+
+      expect(tester.widget<OutlinedButton>(tombol).onPressed, isNotNull);
+      expect(find.textContaining('geometri_belum_diverifikasi'), findsNothing);
+    });
+  });
+
   group('kirim lembar', () {
     /// Bisa nggak lembarnya BENERAN dikirim sesudah diisi?
     ///
@@ -375,7 +415,8 @@ void main() {
   });
 }
 
-Widget _app(MockLembarKerjaService service) => ProviderScope(
+Widget _app(MockLembarKerjaService service, {bool siapPindai = false}) =>
+    ProviderScope(
   overrides: [
     tokenStorageProvider.overrideWithValue(InMemoryTokenStorage('mock-token-1')),
     authServiceProvider.overrideWithValue(MockAuthService()),
@@ -384,6 +425,9 @@ Widget _app(MockLembarKerjaService service) => ProviderScope(
     roomServiceProvider.overrideWithValue(MockRoomService()),
     equipmentLookupServiceProvider.overrideWithValue(
       MockEquipmentLookupService(),
+    ),
+    worksheetScanServiceProvider.overrideWithValue(
+      MockWorksheetScanService(siapPindai: siapPindai),
     ),
   ],
   child: MaterialApp(
@@ -398,6 +442,7 @@ Widget _app(MockLembarKerjaService service) => ProviderScope(
 Future<MockLembarKerjaService> _bukaLembar(
   WidgetTester tester, {
   MockLembarKerjaService? service,
+  bool siapPindai = false,
 }) async {
   // Lembarnya 24 baris × sampai 6 kolom — jauh lebih tinggi dari viewport test
   // standar, dan `ListView` cuma nge-build yang deket layar.
@@ -409,7 +454,7 @@ Future<MockLembarKerjaService> _bukaLembar(
   addTearDown(tester.view.reset);
 
   final dipakai = service ?? MockLembarKerjaService();
-  await tester.pumpWidget(_app(dipakai));
+  await tester.pumpWidget(_app(dipakai, siapPindai: siapPindai));
   await tester.pump(const Duration(milliseconds: 700));
   await tester.pumpAndSettle();
 

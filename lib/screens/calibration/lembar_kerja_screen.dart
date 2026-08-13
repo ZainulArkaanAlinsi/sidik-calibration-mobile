@@ -18,6 +18,7 @@ import '../../providers/calibration_input_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../providers/jam_provider.dart';
 import '../../providers/lembar_kerja_provider.dart';
+import '../../providers/worksheet_scan_provider.dart';
 import '../../services/auth_service.dart' show AuthException;
 import '../../widgets/app_button.dart';
 import '../../widgets/sidik_loader.dart';
@@ -1213,6 +1214,14 @@ class _Bagian extends ConsumerWidget {
               ],
             ],
 
+            // Pindai lembar penuh (OCR lokal) — di atas tabelnya, karena dia
+            // ngisi SELURUH tabel sekaligus, bukan satu tabel.
+            if (bagian.tabel.isNotEmpty)
+              _TombolPindaiLembar(
+                profil: isian.bentuk.kodeDokumen,
+                equipmentId: isian.alat?.id,
+              ),
+
             for (final tabel in bagian.tabel) ...[
               LembarKerjaTabel(
                 tabel: tabel,
@@ -1279,6 +1288,67 @@ class _CatatanIsi extends StatelessWidget {
             ),
           ),
         ),
+      ],
+    );
+  }
+}
+
+
+/// Tombol pindai LEMBAR PENUH (OCR lokal) — beda dari tombol "foto tabel ini"
+/// yang ngirim citranya ke AI di server.
+///
+/// Jalur ini baca angkanya DI HP (ML Kit on-device): fotonya nggak pernah
+/// keluar dari perangkat, nggak ada biaya per foto, dan jalan tanpa sinyal.
+/// Syaratnya satu: koordinat tiap sel harus udah diukur dari formulir CETAK
+/// asli, dan formulirnya dicetak ulang pakai 4 penanda sudut + QR versi.
+///
+/// **`siap_pindai` dari server yang mutusin tombol ini hidup atau mati.**
+/// Sekarang keenam lembar masih `geometri_belum_diverifikasi` — koordinat
+/// tebakan berarti angka mendarat di sel yang salah, dan itu justru kegagalan
+/// yang mau dicegah fitur ini. Alasannya ditampilin apa adanya, bukan
+/// diterjemahin jadi "fitur belum tersedia": teknisi berhak tahu yang kurang
+/// itu apa, dan yang bisa nutup cuma lab (cetak ulang formulir + ukur).
+class _TombolPindaiLembar extends ConsumerWidget {
+  const _TombolPindaiLembar({required this.profil, required this.equipmentId});
+
+  final String profil;
+  final int? equipmentId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final template = ref.watch(
+      worksheetTemplateProvider((kode: profil, equipmentId: equipmentId)),
+    );
+
+    // Gagal narik template NGGAK ditampilin sebagai error: ini jalan pintas,
+    // bukan jalur kerja. Yang nggak boleh cuma satu — nampilin tombol aktif
+    // buat lembar yang belum boleh dipindai.
+    final data = template.value;
+    if (data == null) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: data.siapPindai ? () {} : null,
+            icon: const Icon(Icons.document_scanner_outlined, size: 18),
+            label: Text(l10n.lkPindaiLembar),
+          ),
+        ),
+        if (!data.siapPindai) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            l10n.lkPindaiBelumSiap(data.alasanBelumSiap ?? '—'),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+        const SizedBox(height: AppSpacing.md),
       ],
     );
   }

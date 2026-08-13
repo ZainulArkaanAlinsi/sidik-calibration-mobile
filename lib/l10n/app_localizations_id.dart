@@ -2756,6 +2756,14 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkBagianBelumBisaDiisi => 'BELUM BISA DIISI';
 
   @override
+  String get lkPindaiLembar => 'PINDAI LEMBAR KERJA';
+
+  @override
+  String lkPindaiBelumSiap(String alasan) {
+    return 'Belum bisa dipindai: $alasan';
+  }
+
+  @override
   String get lkPratinjauJudul => 'HASIL HITUNG SEMENTARA';
 
   @override

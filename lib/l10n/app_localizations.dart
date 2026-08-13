@@ -5090,6 +5090,18 @@ abstract class AppLocalizations {
   /// **'NOT FILLABLE YET'**
   String get lkBagianBelumBisaDiisi;
 
+  /// No description provided for @lkPindaiLembar.
+  ///
+  /// In en, this message translates to:
+  /// **'SCAN WORKSHEET'**
+  String get lkPindaiLembar;
+
+  /// No description provided for @lkPindaiBelumSiap.
+  ///
+  /// In en, this message translates to:
+  /// **'Not scannable yet: {alasan}'**
+  String lkPindaiBelumSiap(String alasan);
+
   /// No description provided for @lkPratinjauJudul.
   ///
   /// In en, this message translates to:
