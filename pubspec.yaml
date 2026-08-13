@@ -65,6 +65,27 @@ dependencies:
   file_picker: ^8.1.7
   qr_flutter: ^4.1.0
 
+  # --- Pindai lembar kerja (OCR LOKAL) ---
+  #
+  # Dua paket ini yang bikin angka lembar kerja kebaca TANPA fotonya keluar dari
+  # HP: nggak ada biaya per foto, jalan tanpa sinyal (lab pelanggan sering nggak
+  # ada), dan citra pelanggan nggak pernah nyampe pihak ketiga. Bandingannya
+  # jalur AI Vision yang lama — foto naik ke Google, ada biaya, butuh sinyal.
+  #
+  # `google_mlkit_text_recognition` jalan sepenuhnya di perangkat (model-nya
+  # ikut Google Play Services). Yang DILARANG masuk sini: SDK OCR apa pun yang
+  # ngirim citra ke server orang, atau yang butuh API key ke layanan luar.
+  google_mlkit_text_recognition: ^0.15.0
+
+  # Baca & potong citra di Dart murni — warp perspektif dari 4 marker sudut,
+  # lalu motong per sel dari koordinat template. Dipakai juga buat ambang gelap
+  # waktu nyari markernya.
+  #
+  # Dipilih daripada OpenCV: markernya sengaja kotak hitam pejal (lihat
+  # `ocr:cetak-lembar` di backend), dan deteksinya cuma butuh ambang + titik
+  # berat gumpalan. Nyeret OpenCV ke APK buat itu doang nambah puluhan MB.
+  image: ^4.3.0
+
   # Buka WhatsApp (wa.me) & Gmail (mailto:) buat bagiin sertifikat. Dipilih
   # daripada share_plus: yang dibutuhin nembak SATU aplikasi tertentu dengan
   # pesan yang udah disiapin, bukan buka lembar "bagikan ke..." bawaan OS.
