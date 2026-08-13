@@ -998,6 +998,8 @@
   "pindaiAlasanDesimalAmbigu": "nggak jelas titik itu koma desimal atau pemisah ribuan",
   "pindaiAlasanMinusTengah": "ada tanda minus di tengah angka",
   "pindaiAlasanMinusTakBoleh": "kolom ini nggak boleh bernilai negatif",
+  "lkRepeatMenyimpang": "Di titik {titik} ada satu pembacaan yang jauh beda dari Repeat lainnya — cek lagi, kemungkinan ada digit yang ketuker waktu ngetik. Satu angka begini bisa bikin ketidakpastian di sertifikat meleset ratusan kali lipat.",
+  "@lkRepeatMenyimpang": {"placeholders": {"titik": {"type": "String"}}},
   "lkPindaiLembar": "PINDAI LEMBAR KERJA",
   "lkPindaiBelumSiap": "Belum bisa dipindai: {alasan}",
   "@lkPindaiBelumSiap": {"placeholders": {"alasan": {"type": "String"}}},

@@ -1423,6 +1423,8 @@
   "pindaiAlasanDesimalAmbigu": "unclear whether that dot is a decimal point or a thousands separator",
   "pindaiAlasanMinusTengah": "a minus sign in the middle of the number",
   "pindaiAlasanMinusTakBoleh": "this column cannot be negative",
+  "lkRepeatMenyimpang": "At point {titik} one reading is far off from the other repeats — check it, two digits may have been swapped while typing. A single number like this can throw the certificate uncertainty off by hundreds of times.",
+  "@lkRepeatMenyimpang": {"placeholders": {"titik": {"type": "String"}}},
   "lkPindaiLembar": "SCAN WORKSHEET",
   "lkPindaiBelumSiap": "Not scannable yet: {alasan}",
   "@lkPindaiBelumSiap": {"placeholders": {"alasan": {"type": "String"}}},

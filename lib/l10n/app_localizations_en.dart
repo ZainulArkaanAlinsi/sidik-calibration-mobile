@@ -2869,6 +2869,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pindaiAlasanMinusTakBoleh => 'this column cannot be negative';
 
   @override
+  String lkRepeatMenyimpang(String titik) {
+    return 'At point $titik one reading is far off from the other repeats — check it, two digits may have been swapped while typing. A single number like this can throw the certificate uncertainty off by hundreds of times.';
+  }
+
+  @override
   String get lkPindaiLembar => 'SCAN WORKSHEET';
 
   @override

@@ -184,6 +184,57 @@ class TitikState {
     return false;
   }
 
+
+  /// Satu Repeat yang jauh menyimpang dari Repeat LAIN di baris yang sama.
+  ///
+  /// Beda dari [adaPembacaanJauhDariTitik], dan bedanya menentukan: yang itu
+  /// mengadu ke NOMINAL titiknya (nangkep koma kegeser, 1000× lipat), yang ini
+  /// mengadu antar-pembacaan (nangkep DIGIT KETUKER).
+  ///
+  /// Kejadian nyata `CAL/2026/08/0043`: titik 738,5 diketik
+  /// `738,63 / 783,52 / 738,52`. `783,52` itu `738,52` dengan digit 3 & 8
+  /// tertukar — cuma 6% dari nominalnya, jadi penjaga orde lolos mulus. Tapi
+  /// STDEV baris itu meledak, dan buat alat yang U95-nya lahir per KELOMPOK
+  /// (Spectrophotometer) satu angka itu menaikkan U95 sembilan titik saudaranya
+  /// dari 0,40 nm ke 84,84 nm — 212× CMC lab. Sertifikatnya tetap terbit.
+  ///
+  /// Ambangnya dari RESOLUSI alat, bukan persen: alat resolusi 0,01 nm yang
+  /// tiga bacaannya beda 45 nm itu mustahil, sementara beda 45 di alat
+  /// resolusi 1 masih wajar. Faktor 1000 sengaja longgar — yang dicari salah
+  /// ketik, bukan alat yang kurang stabil.
+  bool get adaRepeatMenyimpang {
+    final nilai = <double>[];
+
+    for (final e in _kotak.entries) {
+      final bagian = e.key.split('|');
+      if (bagian.length != 3 || bagian[1] != 'pembacaan') continue;
+
+      final n = parseAngka(e.value.text);
+      if (n != null) nilai.add(n);
+    }
+
+    // Butuh minimal tiga: dengan dua angka, nggak ada cara tahu mana yang
+    // nyasar — dua-duanya sama-sama "beda dari yang satunya".
+    if (nilai.length < 3) return false;
+
+    final urut = [...nilai]..sort();
+    final tengah = urut[urut.length ~/ 2];
+
+    // Sebaran yang masih masuk akal buat alat seresolusi ini.
+    final batas = (desimal == null ? 0.01 : _langkah(desimal!)) * 1000;
+
+    return nilai.any((n) => (n - tengah).abs() > batas);
+  }
+
+  static double _langkah(int desimal) {
+    var l = 1.0;
+    for (var i = 0; i < desimal; i++) {
+      l /= 10;
+    }
+
+    return l;
+  }
+
   /// Standar buffer khusus titik ini (buffer 4/7/10 beda-beda).
   ///
   /// Terisi otomatis dari pasangan tercetak di formulir; teknisi cuma nyentang
@@ -581,6 +632,16 @@ class LembarKerjaState {
       .where(
         (t) => !titikTerkunci(t.titikUkur) && t.adaPembacaanJauhDariTitik,
       )
+      .toList();
+
+  /// Baris yang satu Repeat-nya jauh menyimpang dari Repeat lain SEBARIS.
+  ///
+  /// Penjaga terpisah dari [titikPembacaanJauh] karena yang ditangkap beda:
+  /// yang itu koma kegeser, yang ini digit ketuker. Lihat
+  /// [TitikState.adaRepeatMenyimpang] — satu digit yang ketuker pernah bikin
+  /// U95 sertifikat 212x CMC lab.
+  List<TitikState> get titikRepeatMenyimpang => titik.values
+      .where((t) => !titikTerkunci(t.titikUkur) && t.adaRepeatMenyimpang)
       .toList();
 
   /// Baris yang ANGKANYA keisi tapi standar acuannya belum dicentang.

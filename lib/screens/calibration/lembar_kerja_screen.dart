@@ -537,6 +537,29 @@ class _FormState extends ConsumerState<_Form> {
         return;
       }
 
+      // Satu Repeat yang jauh menyimpang dari Repeat lain SEBARIS — nangkep
+      // DIGIT KETUKER, yang penjaga di atas nggak bisa nangkep.
+      //
+      // `783,52` di baris `738,5` cuma 6% dari nominalnya, jadi penjaga orde
+      // lolos mulus. Tapi buat alat yang U95-nya lahir per kelompok, satu
+      // angka itu menaikkan U95 sembilan titik saudaranya 212x CMC lab — dan
+      // sertifikatnya terbit dengan angka itu (`CAL/2026/08/0043`).
+      final menyimpang = _isian.titikRepeatMenyimpang;
+
+      if (menyimpang.isNotEmpty) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              l10n.lkRepeatMenyimpang(
+                menyimpang.map((t) => t.label).join(', '),
+              ),
+            ),
+            duration: const Duration(seconds: 10),
+          ),
+        );
+        return;
+      }
+
       // Isian YATIM: angkanya keisi tapi standarnya belum dicentang, jadi
       // nggak bisa dihitung. Ditahan di sini, bukan dibiarin nyampe admin —
       // di sana dia muncul sebagai `titik_kosong` yang MEMBLOKIR penerbitan,

@@ -2853,6 +2853,11 @@ class AppLocalizationsId extends AppLocalizations {
       'kolom ini nggak boleh bernilai negatif';
 
   @override
+  String lkRepeatMenyimpang(String titik) {
+    return 'Di titik $titik ada satu pembacaan yang jauh beda dari Repeat lainnya — cek lagi, kemungkinan ada digit yang ketuker waktu ngetik. Satu angka begini bisa bikin ketidakpastian di sertifikat meleset ratusan kali lipat.';
+  }
+
+  @override
   String get lkPindaiLembar => 'PINDAI LEMBAR KERJA';
 
   @override
