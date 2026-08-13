@@ -24,12 +24,41 @@ void main() {
     expect(profilLembarKerjaUntuk('pH Meter'), 'ph_meter');
     expect(profilLembarKerjaUntuk('Refractometer'), 'refractometer');
 
+    expect(profilLembarKerjaUntuk('Spectrophotometer'), 'spectrophotometer');
+
+    // Tiga ejaan yang beneran ada di data lab: master Excel nulis
+    // "Spectrophotometer", `kemampuan-kalibrasi.json` nulis "Spektrofotometer",
+    // dan alat pelanggannya terdaftar "Visible Spectrofotometer".
+    expect(profilLembarKerjaUntuk('Spektrofotometer'), 'spectrophotometer');
+    expect(
+      profilLembarKerjaUntuk('Visible Spectrofotometer'),
+      'spectrophotometer',
+    );
+
     // Alat tanpa lembar khusus → null, dan pemanggil yang jatuh ke `ph_meter`.
-    // "pH Meter Bench" sengaja diuji: dia NGGAK cocok persis, dan itu memang
-    // perilaku yang diinginkan sekarang — tapi nunjukin kenapa alat yang
-    // dinamai "Turbidimeter HACH 2100Q" bakal ikut jatuh ke pH.
-    expect(profilLembarKerjaUntuk('pH Meter Bench'), isNull);
     expect(profilLembarKerjaUntuk('Jangka Sorong Mitutoyo'), isNull);
+  });
+
+  /// Nama ALAT PELANGGAN, bukan nama jenis alat.
+  ///
+  /// Alur Kerja & layar detail sesi ngoper `sesi.namaAlat` ke sini, dan di
+  /// master pelanggan namanya nggak pernah persis: "Turbidimeter Hach",
+  /// "pH Meter Mettler Toledo", "Visible Spectrofotometer". Waktu
+  /// pencocokannya masih persis, semuanya balik `null` dan pemanggilnya jatuh
+  /// ke `?? 'ph_meter'` — sesi Turbidimeter yang dibuka lagi dari Alur Kerja
+  /// dapat lembar pH, tanpa satu pun error.
+  ///
+  /// Kunci terpanjang dicoba duluan, jadi nama yang nyimpen dua kunci mendarat
+  /// di yang paling spesifik.
+  test('nama alat pelanggan yang bermerek tetap ketemu lembarnya', () {
+    expect(profilLembarKerjaUntuk('Turbidimeter Hach'), 'turbidimeter');
+    expect(profilLembarKerjaUntuk('pH Meter Mettler Toledo'), 'ph_meter');
+    expect(profilLembarKerjaUntuk('pH Meter Bench'), 'ph_meter');
+    expect(
+      profilLembarKerjaUntuk('Chlorine Meter Hanna'),
+      'chlorine_meter',
+      reason: 'kunci "chlorine meter" mesti menang atas "ph meter"/"meter"',
+    );
   });
 
   // CELAH YANG DISADARI: test end-to-end yang beneran nge-tap "Buka lembar
@@ -69,7 +98,17 @@ void main() {
     );
     final namaAlat = analitik.kemampuan.map((k) => k.namaAlat).toSet();
 
-    for (final nama in ['pH Meter', 'Turbidimeter', 'Chlorin Meter', 'Refractometer']) {
+    for (final nama in [
+      'pH Meter',
+      'Turbidimeter',
+      'Chlorin Meter',
+      'Refractometer',
+      // Ditambah 13 Agt 2026: seluruh jalur spektro udah jadi & test-nya hijau,
+      // tapi di HP nggak ada yang berubah — kartunya nggak pernah muncul, dan
+      // nama alatnya nggak kedaftar di `_profilKhusus`. Persis kejadian
+      // Refractometer 7 Agt, terulang.
+      'Spectrophotometer',
+    ]) {
       expect(
         namaAlat,
         contains(nama),

@@ -248,6 +248,47 @@ class MockCategoryService implements CategoryService {
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0516',
       ),
+      // 3 baris Spectrophotometer — disalin dari
+      // `SpectrophotometerCapabilitySeeder` di backend. Sama alasannya kayak
+      // Refractometer di atas: **tanpa baris ini lembar kerjanya nggak bisa
+      // dibuka lewat jalur mana pun**. Teknisi nyampe ke situ dari Kategori →
+      // Instrumen Analitik → pilih alat, dan kartunya cuma muncul kalau jenis
+      // alatnya ada di daftar kemampuan.
+      //
+      // `rangeMin != rangeMax` di sini, beda dari pH/Turbidimeter/Conductivity
+      // yang nge-CMC per titik: dua kelompok panjang gelombangnya dibedain
+      // lewat PARAMETER, bukan lewat angka — rentang Holmium (283–641) dan
+      // Didynium (474–810) tumpang tindih 167 nm.
+      CalibrationCapability(
+        namaAlat: 'Spectrophotometer',
+        rangeMin: 283,
+        rangeMax: 641,
+        satuan: 'nm',
+        ketidakpastianTerbaik: 0.4,
+        satuanKetidakpastian: 'nm',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0508_Rev.4',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Spectrophotometer',
+        rangeMin: 474,
+        rangeMax: 810,
+        satuan: 'nm',
+        ketidakpastianTerbaik: 0.4,
+        satuanKetidakpastian: 'nm',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0508_Rev.4',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Spectrophotometer',
+        rangeMin: 10,
+        rangeMax: 30.5,
+        satuan: '%T',
+        ketidakpastianTerbaik: 0.5,
+        satuanKetidakpastian: '%T',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0508_Rev.4',
+      ),
     ];
 
     return switch (kode) {
