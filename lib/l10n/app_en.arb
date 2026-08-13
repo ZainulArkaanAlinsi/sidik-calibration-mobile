@@ -509,6 +509,14 @@
       }
     }
   },
+  "detailProsesHitung": "Calculation steps",
+  "detailProsesCatatan": "Formulas are copied from the lab's master workbook; the numbers come from the server, not the phone.",
+  "detailRumusTypeA": "= STDEV / repeatability divisor",
+  "detailRumusTypeB": "= SQRT(sum of squares of the components below)",
+  "detailVeff": "Effective degrees of freedom",
+  "detailJumlahPengulangan": "Readings taken",
+  "detailKolStandard": "Standard",
+  "detailKolU95": "U95%",
   "detailRataRata": "Average",
   "detailError": "Error",
   "detailKoreksi": "Correction",

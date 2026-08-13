@@ -1040,6 +1040,31 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String get detailProsesHitung => 'Proses hitung';
+
+  @override
+  String get detailProsesCatatan =>
+      'Rumusnya disalin dari master Excel lab; angkanya dihitung server, bukan di HP.';
+
+  @override
+  String get detailRumusTypeA => '= STDEV / pembagi keterulangan';
+
+  @override
+  String get detailRumusTypeB => '= AKAR(jumlah kuadrat komponen di bawah)';
+
+  @override
+  String get detailVeff => 'Derajat kebebasan efektif';
+
+  @override
+  String get detailJumlahPengulangan => 'Jumlah pembacaan';
+
+  @override
+  String get detailKolStandard => 'Standar';
+
+  @override
+  String get detailKolU95 => 'U95%';
+
+  @override
   String get detailRataRata => 'Rata-rata';
 
   @override

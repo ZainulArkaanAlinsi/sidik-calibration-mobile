@@ -12,6 +12,7 @@ import 'package:sidik_calibration/core/theme/app_theme.dart';
 import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/dashboard_provider.dart';
+import 'package:sidik_calibration/providers/history_provider.dart';
 import 'package:sidik_calibration/screens/auth/login_screen.dart';
 import 'package:sidik_calibration/screens/auth/register_screen.dart';
 import 'package:sidik_calibration/screens/auth/splash_screen.dart';
@@ -20,8 +21,10 @@ import 'package:sidik_calibration/providers/perhitungan_provider.dart';
 import 'package:sidik_calibration/screens/admin/perhitungan_screen.dart';
 import 'package:sidik_calibration/screens/dashboard/ringkasan_screen.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_screen.dart';
+import 'package:sidik_calibration/screens/history/calibration_detail_screen.dart';
 import 'package:sidik_calibration/screens/shell/main_shell.dart';
 import 'package:sidik_calibration/services/dashboard_service.dart';
+import 'package:sidik_calibration/services/history_service.dart';
 import 'package:sidik_calibration/providers/calibration_input_provider.dart';
 import 'package:sidik_calibration/providers/jam_provider.dart';
 import 'package:sidik_calibration/providers/lembar_kerja_provider.dart';
@@ -107,6 +110,9 @@ Widget _bungkus(Widget layar, {required Brightness mode}) {
       ),
       lembarKerjaServiceProvider.overrideWithValue(MockLembarKerjaService()),
       perhitunganServiceProvider.overrideWithValue(MockPerhitunganService()),
+      // Layar detail sesi narik dari sini. Tanpa override-nya, golden-nya cuma
+      // kerangka skeleton — providernya nembak API asli dan gagal.
+      historyServiceProvider.overrideWithValue(MockHistoryService()),
       standardServiceProvider.overrideWithValue(MockStandardService()),
       roomServiceProvider.overrideWithValue(MockRoomService()),
       equipmentLookupServiceProvider.overrideWithValue(
@@ -285,6 +291,34 @@ void main() {
     await expectLater(
       find.byType(LembarKerjaScreen),
       matchesGoldenFile('screenshots/lembar-kerja-spectrophotometer.png'),
+    );
+  });
+
+
+  /// Calibration Result Details — layar yang dipakai admin sebelum nerbitin.
+  ///
+  /// Ada di sini karena bentuknya yang paling gampang berantakan: 24 titik
+  /// dalam tiga kelompok, masing-masing punya ringkasan + rantai hitung
+  /// berikut rumus Excel-nya. PNG-nya bikin "rapi apa nggak" bisa dinilai
+  /// tanpa nyalain HP.
+  testWidgets('detail sesi spectrophotometer', (tester) async {
+    tester.view.physicalSize = const Size(1200, 9000);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      _bungkus(
+        const CalibrationDetailScreen(calibrationId: 1),
+        mode: Brightness.light,
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byType(CalibrationDetailScreen),
+      matchesGoldenFile('screenshots/detail-sesi.png'),
     );
   });
 

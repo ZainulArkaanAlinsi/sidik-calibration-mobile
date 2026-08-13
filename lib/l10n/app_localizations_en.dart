@@ -1042,6 +1042,32 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get detailProsesHitung => 'Calculation steps';
+
+  @override
+  String get detailProsesCatatan =>
+      'Formulas are copied from the lab\'s master workbook; the numbers come from the server, not the phone.';
+
+  @override
+  String get detailRumusTypeA => '= STDEV / repeatability divisor';
+
+  @override
+  String get detailRumusTypeB =>
+      '= SQRT(sum of squares of the components below)';
+
+  @override
+  String get detailVeff => 'Effective degrees of freedom';
+
+  @override
+  String get detailJumlahPengulangan => 'Readings taken';
+
+  @override
+  String get detailKolStandard => 'Standard';
+
+  @override
+  String get detailKolU95 => 'U95%';
+
+  @override
   String get detailRataRata => 'Average';
 
   @override

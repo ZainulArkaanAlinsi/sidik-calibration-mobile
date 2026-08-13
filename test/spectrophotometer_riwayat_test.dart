@@ -7,6 +7,7 @@ import 'package:sidik_calibration/models/calibration_detail.dart';
 import 'package:sidik_calibration/models/certificate_snapshot.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/history_provider.dart';
+import 'package:sidik_calibration/screens/history/calibration_detail_screen.dart';
 import 'package:sidik_calibration/screens/history/certificate_screen.dart';
 import 'package:sidik_calibration/services/approval_service.dart';
 import 'package:sidik_calibration/services/history_service.dart';
@@ -77,6 +78,67 @@ void main() {
       // bikin `desimal` per titik harus dipakai, bukan angka level snapshot.
       expect(formatSertifikat(transmitan.unitUnderTest, transmitan.desimalEfektif(d)), '9,665');
       expect(formatSertifikat(transmitan.correction, transmitan.desimalEfektif(d)), '0,235');
+    });
+  });
+
+
+  group('layar detail sesi', () {
+    /// Layar ini yang dipakai admin sebelum nerbitin sertifikat, dan dulu cuma
+    /// tumpukan kartu setinggi ±18 baris PER TITIK. Buat alat 24 titik itu
+    /// nyaris dua puluh layar scroll, tanpa satu tempat pun yang nunjukin hasil
+    /// sesi secara utuh.
+    testWidgets('tiap kelompok dapat tabel ringkasan', (tester) async {
+      await _bukaDetail(tester);
+
+      expect(find.text('Wave Length ( λ ) - Filter Holmium'), findsOneWidget);
+      expect(find.text('Wave Length ( λ ) - Filter Didynium'), findsOneWidget);
+
+      // Angkanya sama persis sama yang kecetak di sertifikat — satu jalur
+      // formatter & desimal per titik.
+      expect(find.text('279,6'), findsWidgets);
+      expect(find.text('280,00'), findsWidgets);
+      expect(find.text('-0,40'), findsWidgets);
+      expect(find.text('0,43'), findsWidgets);
+    });
+
+    /// Rantai hitungnya kelihatan, berikut rumus Excel-nya — tanpa itu, `k =
+    /// 3,18` muncul tanpa asal-usul dan satu-satunya cara ngecek adalah buka
+    /// master Excel di laptop lain.
+    testWidgets('proses hitung tampil lengkap sama rumusnya', (tester) async {
+      await _bukaDetail(tester);
+
+      expect(find.text('PROSES HITUNG'), findsWidgets);
+      expect(find.text('=AVERAGE(X1:X3)'), findsWidgets);
+      expect(find.text('=STDEV.S(X1:X3)'), findsWidgets);
+      expect(find.text('=SQRT(A² + B²)'), findsWidgets);
+      expect(find.text('=TINV(0,05; veff)'), findsWidgets);
+      expect(find.text('= uc × k'), findsWidgets);
+
+      // Angkanya dari server, bukan dihitung layar — dan itu ditulis di
+      // bawahnya biar nggak ada yang ngira HP-nya ikut ngitung.
+      expect(
+        find.textContaining('angkanya dihitung server'),
+        findsWidgets,
+      );
+
+      // veff ikut ditampilin: dia yang nentuin k lewat TINV.
+      //
+      // Separator TITIK, bukan koma: blok proses hitung itu angka KERJA, satu
+      // gaya sama lembar perhitungan. Yang berkoma cuma tabel ringkasan di
+      // atasnya, karena itu angka yang bakal kecetak di sertifikat.
+      expect(find.text('3.4643'), findsOneWidget);
+    });
+
+    /// Alat tanpa batas keberterimaan nggak punya baris toleransi — `± 0,0000`
+    /// di situ kebaca kayak batasnya nol, dan itu kebalikan dari "nggak
+    /// dinilai".
+    testWidgets('titik tanpa vonis nggak nampilin baris toleransi', (
+      tester,
+    ) async {
+      await _bukaDetail(tester);
+
+      expect(find.text('TANPA VONIS'), findsWidgets);
+      expect(find.textContaining('± 0,0000'), findsNothing);
     });
   });
 
@@ -161,6 +223,13 @@ class _HistorySpectro extends MockHistoryService {
             'remark': 'Wave Length ( λ ) - Filter Holmium',
             'rata_rata': 280.0,
             'koreksi': -0.4,
+            'error': 0.4,
+            'standar_deviasi': 0.0,
+            'jumlah_pengulangan': 3,
+            'type_a': 0.11844666,
+            'type_b': 0.06666744,
+            'ketidakpastian_gabungan': 0.13591968,
+            'derajat_kebebasan_efektif': 3.46426187,
             'ketidakpastian_diperluas': 0.43255708,
             'faktor_cakupan_k': 3.18244631,
             'keputusan': null,
@@ -175,6 +244,7 @@ class _HistorySpectro extends MockHistoryService {
             'remark': 'Wave Length ( λ ) - Filter Didynium',
             'rata_rata': 514.2,
             'koreksi': -0.5,
+            'jumlah_pengulangan': 3,
             'ketidakpastian_diperluas': 0.4,
             'faktor_cakupan_k': 2.36462425,
             'keputusan': null,
@@ -228,3 +298,31 @@ const _snapshotAsli = <String, dynamic>{
     },
   ],
 };
+
+Future<void> _bukaDetail(WidgetTester tester) async {
+  tester.view.physicalSize = const Size(1200, 6000);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.reset);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        tokenStorageProvider.overrideWithValue(
+          InMemoryTokenStorage('mock-token-1'),
+        ),
+        authServiceProvider.overrideWithValue(MockAuthService()),
+        historyServiceProvider.overrideWithValue(_HistorySpectro()),
+        approvalServiceProvider.overrideWithValue(MockApprovalService()),
+        pdfDownloaderProvider.overrideWithValue(MockPdfDownloader()),
+      ],
+      child: MaterialApp(
+        locale: const Locale('id'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const CalibrationDetailScreen(calibrationId: 58),
+      ),
+    ),
+  );
+  await tester.pump(const Duration(milliseconds: 700));
+  await tester.pumpAndSettle();
+}

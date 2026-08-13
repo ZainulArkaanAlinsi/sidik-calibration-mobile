@@ -249,6 +249,7 @@ class MeasurementResult {
     this.satuan,
     this.tandaNol = true,
     this.remark,
+    this.derajatKebebasanEfektif,
   });
 
   final int titikKe;
@@ -341,6 +342,17 @@ class MeasurementResult {
   /// ketuker.
   final String? remark;
 
+  /// Derajat kebebasan efektif (Welch–Satterthwaite) — angka yang NENTUIN
+  /// [faktorCakupanK] lewat `TINV(0,05; veff)`.
+  ///
+  /// Dipakai layar detail buat nunjukin rantai hitungnya utuh. Tanpa ini,
+  /// `k = 3,18` muncul tanpa asal-usul dan nggak ada yang bisa ngecek ulang —
+  /// padahal justru pemotongan veff ke bilangan bulat yang bikin k spektro
+  /// beda jauh dari ±2 (`floor(3,4643)` → 3 → k 3,1824).
+  ///
+  /// `null` buat sesi lama yang responsnya belum bawa kunci ini.
+  final double? derajatKebebasanEfektif;
+
   /// Desimal yang benar-benar dipakai nyetak titik ini.
   ///
   /// [desimalSesi] = angka tingkat-sesi, dipakai kalau backend nggak ngirim
@@ -380,6 +392,8 @@ class MeasurementResult {
       satuan: json['satuan'] as String?,
       tandaNol: json['tanda_nol'] as bool? ?? true,
       remark: json['remark'] as String?,
+      derajatKebebasanEfektif:
+          (json['derajat_kebebasan_efektif'] as num?)?.toDouble(),
     );
   }
 }

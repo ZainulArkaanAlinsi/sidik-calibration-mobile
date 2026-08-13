@@ -1988,6 +1988,54 @@ abstract class AppLocalizations {
   /// **'Point {index} · {nilai}'**
   String detailTitikLabel(int index, String nilai);
 
+  /// No description provided for @detailProsesHitung.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculation steps'**
+  String get detailProsesHitung;
+
+  /// No description provided for @detailProsesCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Formulas are copied from the lab\'s master workbook; the numbers come from the server, not the phone.'**
+  String get detailProsesCatatan;
+
+  /// No description provided for @detailRumusTypeA.
+  ///
+  /// In en, this message translates to:
+  /// **'= STDEV / repeatability divisor'**
+  String get detailRumusTypeA;
+
+  /// No description provided for @detailRumusTypeB.
+  ///
+  /// In en, this message translates to:
+  /// **'= SQRT(sum of squares of the components below)'**
+  String get detailRumusTypeB;
+
+  /// No description provided for @detailVeff.
+  ///
+  /// In en, this message translates to:
+  /// **'Effective degrees of freedom'**
+  String get detailVeff;
+
+  /// No description provided for @detailJumlahPengulangan.
+  ///
+  /// In en, this message translates to:
+  /// **'Readings taken'**
+  String get detailJumlahPengulangan;
+
+  /// No description provided for @detailKolStandard.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get detailKolStandard;
+
+  /// No description provided for @detailKolU95.
+  ///
+  /// In en, this message translates to:
+  /// **'U95%'**
+  String get detailKolU95;
+
   /// No description provided for @detailRataRata.
   ///
   /// In en, this message translates to:
