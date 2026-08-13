@@ -462,6 +462,7 @@ class IsianTeknisi {
     this.standarDicek = const {},
     this.revisiField = const {},
     this.catatanRevisi,
+    this.spesifikasiAlat = const {},
   });
 
   final int? equipmentId;
@@ -477,6 +478,11 @@ class IsianTeknisi {
   final String? alatMerk;
   final String? pemilikNama;
   final String? pemilikAlamat;
+
+  /// Rentang ukur / kapasitas / resolusi versi teknisi, kunci → teks apa
+  /// adanya. Dipulangin backend biar draft yang dibuka lagi keisi persis kayak
+  /// waktu ditinggal.
+  final Map<String, String> spesifikasiAlat;
 
   final double? suhuAwal;
   final double? suhuAkhir;
@@ -528,6 +534,12 @@ class IsianTeknisi {
           : DateTime.tryParse(tanggalTerima),
       lokasi: json['lokasi'] as String?,
       catatanTeknisi: json['catatan_teknisi'] as String?,
+      spesifikasiAlat: {
+        for (final e in (json['spesifikasi_alat'] as Map<String, dynamic>? ??
+                const <String, dynamic>{})
+            .entries)
+          if (e.value != null) e.key: '${e.value}',
+      },
       alatModel: json['alat_model'] as String?,
       alatSerialNumber: json['alat_serial_number'] as String?,
       alatMerk: json['alat_merk'] as String?,

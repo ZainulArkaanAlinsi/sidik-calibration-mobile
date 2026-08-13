@@ -1189,8 +1189,19 @@ Map<String, dynamic> contohBentukLembarKerjaSpectro({bool untukAdmin = false}) {
         field('tanggal_kalibrasi', 'Calibration Date', 'tanggal'),
         field('equipment_id', 'Equipment', 'pilihan', sumber: 'master_alat'),
         field('equipment.nama_alat', '1. Name', 'teks', sumber: 'otomatis'),
-        field('equipment.range_resolusi', '2. Range/Resolution', 'teks',
-            sumber: 'otomatis'),
+        // DIKETIK TEKNISI, bukan ditarik master alat: alat ini punya DUA skala
+        // (`0–100 %T` & `200–700 nm`), sementara `equipments` cuma punya satu
+        // satuan + satu pasang rentang, jadi yang otomatis pasti salah separuh.
+        field('spesifikasi_alat.rentang_ukur_transmitan', '2. Rentang Ukur',
+            'teks', satuan: '%T'),
+        field('spesifikasi_alat.rentang_ukur_panjang_gelombang',
+            '2. Rentang Ukur', 'teks', satuan: 'nm'),
+        field('spesifikasi_alat.kapasitas_maks_transmitan', 'Kapasitas Max.',
+            'teks', satuan: '%T'),
+        field('spesifikasi_alat.resolusi_transmitan', 'Resolusi Alat', 'teks',
+            satuan: '%T'),
+        field('spesifikasi_alat.resolusi_panjang_gelombang', 'Resolusi Alat',
+            'teks', satuan: 'nm'),
         field('alat_model', '3. Type/Model', 'teks'),
         field('alat_serial_number', '4. Serial Number/LPI', 'teks'),
         field('alat_merk', '5. Merk/Manufacture', 'teks'),

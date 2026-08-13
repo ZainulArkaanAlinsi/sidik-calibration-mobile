@@ -170,6 +170,54 @@ void main() {
     });
   });
 
+  group('spesifikasi alat', () {
+    /// Rentang ukur / kapasitas / resolusi DIKETIK teknisi, dan yang diketik
+    /// beneran kekirim.
+    ///
+    /// Sebelumnya tiga baris ini `equipment.range_resolusi` bersumber
+    /// `otomatis` — kotak mati berisi salinan master alat. Buat alat berskala
+    /// DUA (`0–100 %T` dan `200–700 nm`) master cuma bisa jawab separuh, dan
+    /// separuh yang salah itu kecetak di sertifikat sebagai Capacity/Graduation.
+    testWidgets('spesifikasi alat diketik teknisi & ikut kekirim', (
+      tester,
+    ) async {
+      final service = await _bukaLembar(tester);
+      await _pilihAlat(tester);
+
+      // Label ditulis SEKALI, kotaknya dua — persis lembar cetaknya.
+      expect(find.text('2. Rentang Ukur'), findsOneWidget);
+      expect(find.text('Kapasitas Max.'), findsOneWidget);
+      expect(find.text('Resolusi Alat'), findsOneWidget);
+      expect(find.text('2. Range/Resolution'), findsNothing);
+
+      // Kotaknya dicari lewat label satuan di dalamnya (`%T` / `nm`), sama
+      // kayak yang dilihat teknisi.
+      final kotakT = find.widgetWithText(TextField, '%T');
+      final kotakNm = find.widgetWithText(TextField, 'nm');
+
+      expect(kotakT, findsNWidgets(3));
+      expect(kotakNm, findsNWidgets(2));
+
+      await tester.enterText(kotakT.at(0), '0-100');
+      await tester.enterText(kotakNm.at(0), '200-700');
+      await tester.enterText(kotakT.at(1), '100');
+      await tester.enterText(kotakT.at(2), '0,001');
+      await tester.enterText(kotakNm.at(1), '0,01');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
+      await tester.pumpAndSettle();
+
+      expect(service.payloadTerakhir!['spesifikasi_alat'], {
+        'rentang_ukur_transmitan': '0-100',
+        'rentang_ukur_panjang_gelombang': '200-700',
+        'kapasitas_maks_transmitan': '100',
+        'resolusi_transmitan': '0,001',
+        'resolusi_panjang_gelombang': '0,01',
+      });
+    });
+  });
+
   group('kirim lembar', () {
     /// Bisa nggak lembarnya BENERAN dikirim sesudah diisi?
     ///

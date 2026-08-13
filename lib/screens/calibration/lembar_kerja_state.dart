@@ -721,6 +721,12 @@ class LembarKerjaState {
     isiTeks('pemilik_alamat', isi.pemilikAlamat);
     isiTeks('catatan_teknisi', isi.catatanTeknisi);
 
+    // Kuncinya dari bentuk lembar kerja, jadi kolom yang udah nggak ada di
+    // bentuk baru dilewat begitu aja — bukan bikin controller yatim.
+    for (final e in isi.spesifikasiAlat.entries) {
+      isiTeks('spesifikasi_alat.${e.key}', e.value);
+    }
+
     isiAngka('suhu_awal', isi.suhuAwal);
     isiAngka('suhu_akhir', isi.suhuAkhir);
     isiAngka('kelembaban_awal', isi.kelembabanAwal);
@@ -905,6 +911,21 @@ class LembarKerjaState {
     return kebuang;
   }
 
+  /// Rentang ukur / kapasitas / resolusi yang diketik teknisi, siap kirim.
+  ///
+  /// Kuncinya diambil dari BENTUK lembar kerja (`spesifikasi_alat.<kunci>`),
+  /// bukan didaftar di sini: alat berikutnya bisa punya baris yang beda, dan
+  /// daftar kedua di HP itu tempat paling gampang dua sisi jadi nggak sama.
+  ///
+  /// Yang kosong nggak ikut — biar `PUT` draft bertahap nggak ngosongin yang
+  /// udah keisi sebelumnya.
+  Map<String, String> get spesifikasiAlat => {
+    for (final bagian in bentuk.bagian)
+      for (final f in bagian.field)
+        if (f.spesifikasiAlat && (teks[f.kode]?.text.trim().isNotEmpty ?? false))
+          f.kunciSpesifikasi: teks[f.kode]!.text.trim(),
+  };
+
   /// Susun payload. **Nggak ada validasi di sini** — apa pun kondisinya, isian
   /// yang ada dikirim apa adanya. Yang nahan sertifikat terbit itu pemeriksaan
   /// admin, bukan formulirnya.
@@ -953,6 +974,7 @@ class LembarKerjaState {
       pemilikNama: kalimat('pemilik_nama'),
       pemilikAlamat: kalimat('pemilik_alamat'),
       equipmentSatuan: satuanBisaDipilih ? satuan : null,
+      spesifikasiAlat: spesifikasiAlat,
       standarDicek: usageCheck.values
           .where((u) => u.adaIsian)
           .map((u) => u.toSubmission())

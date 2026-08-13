@@ -152,7 +152,20 @@ class FieldLembarKerja {
 
   /// Kolom turunan kayak `equipment.merk` — diisi sistem dari alat yang
   /// dipilih, bukan dikirim balik sebagai kunci payload sendiri.
-  bool get turunan => kode.contains('.');
+  ///
+  /// `spesifikasi_alat.*` DIKECUALIKAN: titiknya di situ artinya
+  /// PENGELOMPOKAN, bukan turunan. Rentang ukur, kapasitas, dan resolusi
+  /// diketik teknisi dari badan alatnya — dulu ditarik otomatis dari master
+  /// (`equipment.range_resolusi`), dan buat alat berskala dua (`%T` dan `nm`)
+  /// master cuma bisa jawab separuh.
+  bool get turunan => kode.contains('.') && !spesifikasiAlat;
+
+  /// Kolom yang masuk ke `spesifikasi_alat` di payload, dikelompokkan lewat
+  /// awalan kodenya. Kuncinya bagian sesudah titik.
+  bool get spesifikasiAlat => kode.startsWith('spesifikasi_alat.');
+
+  /// Kunci kolom ini di dalam `spesifikasi_alat`.
+  String get kunciSpesifikasi => kode.substring('spesifikasi_alat.'.length);
 
   factory FieldLembarKerja.fromJson(Map<String, dynamic> json) {
     return FieldLembarKerja(

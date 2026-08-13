@@ -1194,8 +1194,14 @@ class _Bagian extends ConsumerWidget {
             else if (bagian.kode == 'usage_check')
               _UsageCheck(bagian: bagian, isian: isian, onBerubah: onBerubah)
             else ...[
-              for (final f in bagian.field) ...[
-                _Field(field: f, isian: isian, onBerubah: onBerubah),
+              for (final grup in _kelompokkanField(bagian.field)) ...[
+                // Seluruh blok spesifikasi digambar bentuk cetak — termasuk
+                // yang cuma sekotak (`Kapasitas Max.`), biar ketiga barisnya
+                // sejajar kayak di kertas dan bukan campur dua gaya.
+                if (grup.first.spesifikasiAlat)
+                  _BarisSpesifikasi(field: grup, isian: isian)
+                else
+                  _Field(field: grup.first, isian: isian, onBerubah: onBerubah),
                 const SizedBox(height: AppSpacing.md),
               ],
             ],
@@ -1552,6 +1558,86 @@ class _BagianTanpaInput extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+
+/// Kolom yang di lembar cetak digambar SEBARIS dikelompokkan di sini.
+///
+/// Cuma berlaku buat `spesifikasi_alat.*` yang labelnya sama & berurutan —
+/// `2. Rentang Ukur` punya dua kotak (`0-100 %T` dan `200-700 nm`), dan di
+/// kertas dua-duanya di satu baris, di kanan satu label.
+///
+/// Sengaja NGGAK digeneralisasi ke semua kolom berlabel kembar: pasangan
+/// "Env. Condition — First" (°C / %RH) juga berlabel sama, dan bentuk
+/// bertumpuknya udah dipakai lima alat lain. Yang berubah cuma blok yang
+/// backend-nya emang minta bentuk cetak.
+List<List<FieldLembarKerja>> _kelompokkanField(List<FieldLembarKerja> field) {
+  final hasil = <List<FieldLembarKerja>>[];
+
+  for (final f in field) {
+    final akhir = hasil.isEmpty ? null : hasil.last;
+    final gabung = akhir != null &&
+        f.spesifikasiAlat &&
+        akhir.first.spesifikasiAlat &&
+        akhir.first.label == f.label;
+
+    if (gabung) {
+      akhir.add(f);
+    } else {
+      hasil.add([f]);
+    }
+  }
+
+  return hasil;
+}
+
+/// Satu baris spesifikasi alat: satu label, beberapa kotak bersatuan.
+///
+/// Bentuknya niru lembar cetak — `Rentang Ukur : [0-100] %T [200-700] nm`.
+/// Isinya teks apa adanya, bukan angka: `0-100` emang bukan bilangan, dan yang
+/// tercetak di sertifikat juga teks.
+class _BarisSpesifikasi extends StatelessWidget {
+  const _BarisSpesifikasi({required this.field, required this.isian});
+
+  final List<FieldLembarKerja> field;
+  final LembarKerjaState isian;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          field.first.label,
+          style: theme.textTheme.labelMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final f in field) ...[
+              if (f != field.first) const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: TextField(
+                  controller: isian.teks[f.kode],
+                  decoration: InputDecoration(
+                    // Labelnya udah ditulis sekali di atas — yang di dalam
+                    // kotak tinggal satuannya, persis kertasnya.
+                    labelText: f.satuan,
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ],
     );
   }
 }

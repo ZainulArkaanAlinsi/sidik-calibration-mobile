@@ -124,6 +124,7 @@ class LembarKerjaSubmission {
     this.pemilikAlamat,
     this.equipmentSatuan,
     this.standarDicek = const [],
+    this.spesifikasiAlat = const {},
     this.measurements = const [],
     this.sertakanMeasurements = true,
     this.inputMethod = MetodeInput.manual,
@@ -183,6 +184,16 @@ class LembarKerjaSubmission {
   /// nggak ada satu pun yang error.
   final String? equipmentSatuan;
 
+  /// Rentang ukur / kapasitas / resolusi yang DIBACA teknisi dari badan alat.
+  ///
+  /// Kuncinya datang dari bentuk lembar kerja (`spesifikasi_alat.<kunci>`),
+  /// bukan dikarang di sini: alat berikutnya bisa punya baris yang beda, dan
+  /// HP nggak boleh jadi tempat kedua yang nyimpen daftar itu.
+  ///
+  /// Nilainya TEKS apa adanya (`0-100`, `0,001`) — yang tercetak di sertifikat
+  /// juga teks, bukan hasil hitung, dan `0-100` emang bukan angka.
+  final Map<String, String> spesifikasiAlat;
+
   final List<StandarDicek> standarDicek;
   final List<TitikLembarKerja> measurements;
 
@@ -241,6 +252,8 @@ class LembarKerjaSubmission {
     // alat, dan "kosongin satuan alatnya" nggak pernah jadi maksud teknisi
     // waktu dia ngirim lembar kerja yang kebetulan nggak punya kolom itu.
     if (equipmentSatuan != null) 'equipment_satuan': equipmentSatuan,
+
+    if (spesifikasiAlat.isNotEmpty) 'spesifikasi_alat': spesifikasiAlat,
 
     'standar_dicek': standarDicek.map((s) => s.toJson()).toList(),
 
