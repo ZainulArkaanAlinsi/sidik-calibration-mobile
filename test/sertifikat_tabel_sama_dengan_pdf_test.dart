@@ -172,12 +172,16 @@ void main() {
         (tester) async {
       await pasang(tester, sertifikatChlorine());
 
-      expect(find.text('0,09'), findsOneWidget);
-      expect(find.text('0,08'), findsOneWidget);
+      // U95 sekarang berdiri sendiri di bawah tiap kelompok
+      // (`Uncertainty U95% = ± 0,09`), bukan jadi kolom keempat — persis
+      // lembar master & `pdf.blade.php`. Yang dijaga tetap sama: angkanya
+      // ngikut desimal alat.
+      expect(find.textContaining('± 0,09'), findsOneWidget);
+      expect(find.textContaining('± 0,08'), findsOneWidget);
 
       // Ini bentuk bug-nya: nilai mentah bocor ke layar.
-      expect(find.text('0.091'), findsNothing);
-      expect(find.text('0.080'), findsNothing);
+      expect(find.textContaining('0.091'), findsNothing);
+      expect(find.textContaining('0.080'), findsNothing);
     });
 
     testWidgets('semua kolom pakai koma, sama kayak PDF', (tester) async {
@@ -192,12 +196,19 @@ void main() {
       expect(find.text('1.758'), findsNothing);
     });
 
-    testWidgets('kolom Remark ikut kerender', (tester) async {
+    testWidgets('titik berketerangan dipisah jadi blok berjudul', (
+      tester,
+    ) async {
       await pasang(tester, sertifikatChlorine());
 
-      expect(find.text('Remark'), findsOneWidget);
+      // `remark` sekarang jadi JUDUL BLOK, bukan kolom kelima — sama kayak
+      // sertifikat cetaknya, yang misahin Free/Total Chlorine jadi dua tabel
+      // dengan U95-nya masing-masing. Buat alat yang U95-nya lahir per
+      // kelompok, kolom kelima bikin angka yang sama persis keulang di tiap
+      // baris dan kebaca kayak kebetulan.
       expect(find.text('Free Chlorine'), findsOneWidget);
       expect(find.text('Total Chlorine'), findsOneWidget);
+      expect(find.textContaining('Uncertainty'), findsNWidgets(2));
     });
 
     testWidgets('alat tanpa remark: kolomnya NGGAK dirender sama sekali',
@@ -229,13 +240,16 @@ void main() {
 
       await pasang(tester, tanpaRemark);
 
-      expect(find.text('Remark'), findsNothing);
+      // Nggak ada judul blok sama sekali: alat tanpa keterangan titik lewat
+      // jalur yang sama sebagai SATU kelompok tanpa judul, jadi tampilannya
+      // nggak berubah dari sebelum pengelompokan ada.
+      expect(find.textContaining('Uncertainty'), findsOneWidget);
 
-      // Baris asli 012-CAL-524: `6,99` · `7,00` · `-0,02` · `0,02`.
+      // Baris asli 012-CAL-524: `6,99` · `7,00` · `-0,02` · U95 `0,02`.
       expect(find.text('6,99'), findsOneWidget);
       expect(find.text('7,00'), findsOneWidget);
       expect(find.text('-0,02'), findsOneWidget);
-      expect(find.text('0,02'), findsOneWidget);
+      expect(find.textContaining('± 0,02'), findsOneWidget);
     });
   });
 }

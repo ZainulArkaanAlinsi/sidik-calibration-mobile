@@ -76,6 +76,7 @@ class BarisHasilSertifikat {
     this.remark,
     this.satuan,
     this.tandaNol = true,
+    this.faktorCakupanK,
   });
 
   final int titikKe;
@@ -129,6 +130,16 @@ class BarisHasilSertifikat {
 
   final double u95;
 
+  /// Faktor cakupan yang dipakai buat [u95] titik ini.
+  ///
+  /// Sertifikat master nyetaknya di bawah TIAP tabel hasil ("…Coverage Factor
+  /// ( k ) = 3"), dan angkanya beda per kelompok — Holmium 3,18; Didynium
+  /// 2,36; %T 2,01 — jadi nggak bisa diwakili satu nilai di level sertifikat.
+  ///
+  /// `null` buat sertifikat yang terbit sebelum field ini dibekukan: barisnya
+  /// dikosongin, bukan diisi angka karangan.
+  final double? faktorCakupanK;
+
   /// Kolom "Remark" di sertifikat cetak. `null` buat alat yang nggak punya —
   /// dan waktu SEMUA baris null, kolomnya nggak dirender sama sekali (sama
   /// kayak `pdf.blade.php`), bukan dirender berisi strip.
@@ -152,6 +163,7 @@ class BarisHasilSertifikat {
         },
         satuan: json['satuan'] as String?,
         tandaNol: json['tanda_nol'] as bool? ?? true,
+        faktorCakupanK: (json['faktor_cakupan_k'] as num?)?.toDouble(),
       );
 }
 

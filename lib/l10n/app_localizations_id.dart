@@ -3131,6 +3131,14 @@ class AppLocalizationsId extends AppLocalizations {
   String get sertKolU95 => 'U95% (±)';
 
   @override
+  String get sertU95Baris => 'Uncertainty U95% = ±';
+
+  @override
+  String sertFaktorCakupan(String k) {
+    return 'Faktor cakupan (k) = $k, tingkat kepercayaan 95 %';
+  }
+
+  @override
   String get sertKolRemark => 'Remark';
 
   @override

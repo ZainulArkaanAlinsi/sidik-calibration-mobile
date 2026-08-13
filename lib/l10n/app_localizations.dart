@@ -5792,6 +5792,18 @@ abstract class AppLocalizations {
   /// **'U95% (±)'**
   String get sertKolU95;
 
+  /// No description provided for @sertU95Baris.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncertainty U95% = ±'**
+  String get sertU95Baris;
+
+  /// No description provided for @sertFaktorCakupan.
+  ///
+  /// In en, this message translates to:
+  /// **'Coverage factor (k) = {k}, confidence level 95 %'**
+  String sertFaktorCakupan(String k);
+
   /// No description provided for @sertKolRemark.
   ///
   /// In en, this message translates to:

@@ -3155,6 +3155,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sertKolU95 => 'U95% (±)';
 
   @override
+  String get sertU95Baris => 'Uncertainty U95% = ±';
+
+  @override
+  String sertFaktorCakupan(String k) {
+    return 'Coverage factor (k) = $k, confidence level 95 %';
+  }
+
+  @override
   String get sertKolRemark => 'Remark';
 
   @override
