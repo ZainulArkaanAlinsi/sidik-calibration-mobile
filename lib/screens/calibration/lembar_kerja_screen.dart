@@ -1224,7 +1224,22 @@ class _Bagian extends ConsumerWidget {
             else if (bagian.kode == 'usage_check')
               _UsageCheck(bagian: bagian, isian: isian, onBerubah: onBerubah)
             else ...[
+              // Kondisi lingkungan di kertas itu TABEL, bukan empat kotak
+              // bertumpuk: baris `First`/`End`, kolom `Temperature`/`Humidity`.
+              // Digambar sekali di sini, lalu keempat kolomnya dilewati di
+              // perulangan bawah.
+              if (_kondisiLingkungan(bagian.field) != null) ...[
+                _TabelKondisiLingkungan(
+                  field: _kondisiLingkungan(bagian.field)!,
+                  isian: isian,
+                ),
+                const SizedBox(height: AppSpacing.md),
+              ],
+
               for (final grup in _kelompokkanField(bagian.field)) ...[
+                if (_kodeKondisiLingkungan.contains(grup.first.kode))
+                  const SizedBox.shrink()
+                else
                 // Seluruh blok spesifikasi digambar bentuk cetak — termasuk
                 // yang cuma sekotak (`Kapasitas Max.`), biar ketiga barisnya
                 // sejajar kayak di kertas dan bukan campur dua gaya.
@@ -1679,6 +1694,57 @@ class _BagianTanpaInput extends StatelessWidget {
 /// "Env. Condition — First" (°C / %RH) juga berlabel sama, dan bentuk
 /// bertumpuknya udah dipakai lima alat lain. Yang berubah cuma blok yang
 /// backend-nya emang minta bentuk cetak.
+/// Empat kolom yang di kertas jadi satu tabel Environment Condition.
+///
+/// Kunci payload-nya sama di keenam alat, jadi dicocokkan lewat kode — bukan
+/// lewat label, yang tiap profil menulisnya sedikit berbeda ("Env. Condition —
+/// First", "Suhu Ruangan").
+const _kodeKondisiLingkungan = {
+  'suhu_awal',
+  'kelembaban_awal',
+  'suhu_akhir',
+  'kelembaban_akhir',
+};
+
+/// Keempat kolom kondisi lingkungan, atau `null` kalau bagian ini nggak punya
+/// keempat-empatnya.
+///
+/// Sengaja semua-atau-nggak-sama-sekali: tabel yang separuh kotaknya hilang
+/// lebih membingungkan daripada empat kotak bertumpuk seperti dulu.
+({
+  FieldLembarKerja suhuAwal,
+  FieldLembarKerja kelembabanAwal,
+  FieldLembarKerja suhuAkhir,
+  FieldLembarKerja kelembabanAkhir,
+})? _kondisiLingkungan(List<FieldLembarKerja> field) {
+  FieldLembarKerja? cari(String kode) {
+    for (final f in field) {
+      if (f.kode == kode) return f;
+    }
+
+    return null;
+  }
+
+  final suhuAwal = cari('suhu_awal');
+  final kelembabanAwal = cari('kelembaban_awal');
+  final suhuAkhir = cari('suhu_akhir');
+  final kelembabanAkhir = cari('kelembaban_akhir');
+
+  if (suhuAwal == null ||
+      kelembabanAwal == null ||
+      suhuAkhir == null ||
+      kelembabanAkhir == null) {
+    return null;
+  }
+
+  return (
+    suhuAwal: suhuAwal,
+    kelembabanAwal: kelembabanAwal,
+    suhuAkhir: suhuAkhir,
+    kelembabanAkhir: kelembabanAkhir,
+  );
+}
+
 List<List<FieldLembarKerja>> _kelompokkanField(List<FieldLembarKerja> field) {
   final hasil = <List<FieldLembarKerja>>[];
 
@@ -1835,6 +1901,128 @@ class _Field extends ConsumerWidget {
       ),
       _ => _FieldBiasa(field: field, isian: isian, onBerubah: onBerubah),
     };
+  }
+}
+
+/// Environment Condition, digambar seperti di lembar cetak.
+///
+/// Kertasnya (lihat `SIDIK-FM-CAL-0511_Rev.5` & `…0510_Rev.5`) menaruhnya
+/// sebagai tabel: baris `First`/`End`, kolom `Temperature`/`Humidity`, satuan
+/// tercetak di sel sendiri di kanan tiap angka. Layar dulu menumpuk keempat
+/// kolomnya sebagai empat baris berlabel "Env. Condition — First" — isinya
+/// sama, tapi teknisi yang menyalin dari kertas harus mencari-cari mana yang
+/// suhu dan mana yang kelembaban.
+class _TabelKondisiLingkungan extends StatelessWidget {
+  const _TabelKondisiLingkungan({required this.field, required this.isian});
+
+  final ({
+    FieldLembarKerja suhuAwal,
+    FieldLembarKerja kelembabanAwal,
+    FieldLembarKerja suhuAkhir,
+    FieldLembarKerja kelembabanAkhir,
+  })
+  field;
+
+  final LembarKerjaState isian;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    final garis = BorderSide(color: theme.colorScheme.outlineVariant);
+
+    Widget kepala(String teks) => Container(
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+      alignment: Alignment.center,
+      color: theme.colorScheme.surfaceContainerHighest,
+      child: Text(
+        teks,
+        style: theme.textTheme.labelMedium?.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+
+    Widget waktu(String teks) => Container(
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+      alignment: Alignment.center,
+      child: Text(teks, style: theme.textTheme.labelMedium),
+    );
+
+    Widget kotak(FieldLembarKerja f) => Padding(
+      padding: const EdgeInsets.all(4),
+      child: TextField(
+        controller: isian.teks[f.kode],
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        textAlign: TextAlign.center,
+        decoration: InputDecoration(
+          isDense: true,
+          border: const OutlineInputBorder(),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 8,
+            horizontal: 6,
+          ),
+          // Satuannya tercetak di kertas sebagai sel sendiri, jadi di sini
+          // dipakai `suffixText` — bukan `helperText` seperti kolom lain, yang
+          // di dalam sel tabel malah menambah tinggi baris.
+          suffixText: f.satuan,
+        ),
+      ),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.lkKondisiLingkungan,
+          style: theme.textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Table(
+          border: TableBorder(
+            top: garis,
+            bottom: garis,
+            left: garis,
+            right: garis,
+            horizontalInside: garis,
+            verticalInside: garis,
+          ),
+          columnWidths: const {
+            0: FlexColumnWidth(1),
+            1: FlexColumnWidth(1.6),
+            2: FlexColumnWidth(1.6),
+          },
+          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+          children: [
+            TableRow(
+              children: [
+                kepala(l10n.lkWaktu),
+                kepala(l10n.lkSuhu),
+                kepala(l10n.lkKelembaban),
+              ],
+            ),
+            TableRow(
+              children: [
+                waktu(l10n.lkAwal),
+                kotak(field.suhuAwal),
+                kotak(field.kelembabanAwal),
+              ],
+            ),
+            TableRow(
+              children: [
+                waktu(l10n.lkAkhir),
+                kotak(field.suhuAkhir),
+                kotak(field.kelembabanAkhir),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }
 

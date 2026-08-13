@@ -1298,6 +1298,30 @@
   "lkKosong": "—",
   "lkPilihTanggal": "Choose date",
   "lkHapusTanggal": "Clear date",
+  "lkKondisiLingkungan": "Environment Condition",
+  "@lkKondisiLingkungan": {
+    "description": "Judul tabel kondisi lingkungan di lembar kerja."
+  },
+  "lkWaktu": "Time",
+  "@lkWaktu": {
+    "description": "Kepala kolom waktu (First/End) di tabel kondisi lingkungan."
+  },
+  "lkSuhu": "Temperature",
+  "@lkSuhu": {
+    "description": "Kepala kolom suhu di tabel kondisi lingkungan."
+  },
+  "lkKelembaban": "Humidity",
+  "@lkKelembaban": {
+    "description": "Kepala kolom kelembaban di tabel kondisi lingkungan."
+  },
+  "lkAwal": "First",
+  "@lkAwal": {
+    "description": "Baris pengukuran awal di tabel kondisi lingkungan."
+  },
+  "lkAkhir": "End",
+  "@lkAkhir": {
+    "description": "Baris pengukuran akhir di tabel kondisi lingkungan."
+  },
   "lkRepeat": "Repeat",
   "lkUsageCheckKosong": "No reference standards in master data yet.",
   "lkUsageCheckKeterangan": "Notes",

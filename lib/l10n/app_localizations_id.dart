@@ -2563,6 +2563,24 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkHapusTanggal => 'Kosongkan tanggal';
 
   @override
+  String get lkKondisiLingkungan => 'Environment Condition';
+
+  @override
+  String get lkWaktu => 'Time';
+
+  @override
+  String get lkSuhu => 'Temperature';
+
+  @override
+  String get lkKelembaban => 'Humidity';
+
+  @override
+  String get lkAwal => 'First';
+
+  @override
+  String get lkAkhir => 'End';
+
+  @override
   String get lkRepeat => 'Repeat';
 
   @override

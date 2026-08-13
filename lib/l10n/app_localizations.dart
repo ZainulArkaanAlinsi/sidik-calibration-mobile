@@ -4754,6 +4754,42 @@ abstract class AppLocalizations {
   /// **'Clear date'**
   String get lkHapusTanggal;
 
+  /// Judul tabel kondisi lingkungan di lembar kerja.
+  ///
+  /// In en, this message translates to:
+  /// **'Environment Condition'**
+  String get lkKondisiLingkungan;
+
+  /// Kepala kolom waktu (First/End) di tabel kondisi lingkungan.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get lkWaktu;
+
+  /// Kepala kolom suhu di tabel kondisi lingkungan.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature'**
+  String get lkSuhu;
+
+  /// Kepala kolom kelembaban di tabel kondisi lingkungan.
+  ///
+  /// In en, this message translates to:
+  /// **'Humidity'**
+  String get lkKelembaban;
+
+  /// Baris pengukuran awal di tabel kondisi lingkungan.
+  ///
+  /// In en, this message translates to:
+  /// **'First'**
+  String get lkAwal;
+
+  /// Baris pengukuran akhir di tabel kondisi lingkungan.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get lkAkhir;
+
   /// Header of the repeat-number column on sheets whose Repeat runs downwards.
   ///
   /// In en, this message translates to:
