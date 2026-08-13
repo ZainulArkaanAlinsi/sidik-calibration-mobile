@@ -1028,10 +1028,37 @@ class LembarKerjaState {
   List<TitikState> get titikUrut =>
       titik.values.toList()..sort((a, b) => a.titikUkur.compareTo(b.titikUkur));
 
+  /// Titik milik SATU tabel, urut nilai — bukan seluruh titik lembar.
+  ///
+  /// Bedanya baru kelihatan di alat yang punya lebih dari satu tabel dengan
+  /// titik yang beda-beda. Spectrophotometer punya TIGA (Holmium 10 titik nm,
+  /// Didynium 9 titik nm, %T 5 titik): [titikUrut] ngasih 24 titik campur dua
+  /// satuan, jadi foto satu tabel dikasih tahu "harap 24 kolom" dan angkanya
+  /// diadu ke nilai standar milik tabel lain.
+  ///
+  /// Alat satu-tabel lewat sini juga dan hasilnya sama persis kayak dulu.
+  List<TitikState> titikTabel(TabelHasil tabel) {
+    final punyaTabel = {
+      for (final b in tabel.barisUntuk(satuan)) b.titikUkur,
+    };
+
+    return [
+      for (final t in titikUrut)
+        if (punyaTabel.contains(t.titikUkur)) t,
+    ];
+  }
+
   /// Berapa sel yang bisa diisi satu tabel — buat pesan "x dari y sel".
   /// Dua kolom per pengulangan: pH & °C.
   int get selPerTabel =>
       titikUrut.fold(0, (jumlah, t) => jumlah + t.jumlahPengulangan * 2);
+
+  /// Versi [selPerTabel] yang ngitung SATU tabel — dipakai pesan "x dari y sel"
+  /// sesudah foto, biar angkanya nggak ngitung tabel yang nggak difoto.
+  int selPerTabelIni(TabelHasil tabel) => titikTabel(tabel).fold(
+    0,
+    (jumlah, t) => jumlah + t.jumlahPengulangan * tabel.kolom.length,
+  );
 
   /// Tempelin hasil baca tabel worksheet ke kolom satu tahap. Balikin jumlah
   /// sel yang beneran keisi.
@@ -1093,8 +1120,15 @@ class LembarKerjaState {
     ];
   }
 
-  int terapkanHasilEkstraksi(HasilEkstraksiTabel hasil, {required String tahap}) {
-    final urut = titikUrut;
+  int terapkanHasilEkstraksi(
+    HasilEkstraksiTabel hasil, {
+    required String tahap,
+    TabelHasil? tabel,
+  }) {
+    // Dibatasi ke titik TABEL yang difoto. Tanpa itu, foto tabel Holmium
+    // dicocokin ke 24 titik lintas tiga tabel — dan titik %T `20,0` gampang
+    // banget nyamar jadi nilai standar nm yang salah.
+    final urut = tabel == null ? titikUrut : titikTabel(tabel);
     var terisi = 0;
     adaIsianDariFoto = true;
 

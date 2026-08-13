@@ -525,6 +525,16 @@ class MockWorksheetVisionService implements WorksheetVisionService {
   final HasilEkstraksiTabel? hasil;
   final bool gagal;
 
+  /// Petunjuk yang dioper layar tiap kali foto dikirim.
+  ///
+  /// Dicatat karena inilah yang nentuin AI nyari berapa kolom dan ngadu
+  /// angkanya ke nilai standar yang mana. Lembar bertabel banyak
+  /// (Spectrophotometer: 10 nm + 9 nm + 5 %T) gampang banget ngirim petunjuk
+  /// SELURUH lembar buat foto SATU tabel — dan salahnya nggak kelihatan dari
+  /// tampilan, cuma dari angka yang mendarat di baris yang salah.
+  final List<({int jumlahTitik, String? satuan, List<double>? nominal})>
+  petunjukDiminta = [];
+
   @override
   Future<HasilEkstraksiTabel?> ekstrak(
     File foto, {
@@ -535,6 +545,12 @@ class MockWorksheetVisionService implements WorksheetVisionService {
     List<double>? nominal,
     List<int?>? desimal,
   }) async {
+    petunjukDiminta.add((
+      jumlahTitik: jumlahTitik,
+      satuan: satuan,
+      nominal: nominal,
+    ));
+
     if (gagal) throw Exception('ekstraksi AI gagal');
     if (hasil != null) return hasil;
 

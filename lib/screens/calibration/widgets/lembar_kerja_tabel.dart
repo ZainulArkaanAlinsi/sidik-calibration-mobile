@@ -439,7 +439,11 @@ class _TombolScanState extends ConsumerState<_TombolScan> {
       );
       if (foto == null || !mounted) return;
 
-      final titik = widget.isian.titikUrut;
+      // Titik TABEL INI, bukan seluruh lembar. Spectrophotometer punya tiga
+      // tabel dengan titik beda-beda (10 nm + 9 nm + 5 %T); ngirim seluruhnya
+      // bikin AI disuruh nyari 24 kolom di foto yang isinya 10, dan nominal
+      // pembandingnya nyampur dua satuan.
+      final titik = widget.isian.titikTabel(widget.tabel);
       final hasil = await ref.read(worksheetVisionProvider).ekstrak(
             foto,
             jumlahTitik: titik.length,
@@ -500,6 +504,7 @@ class _TombolScanState extends ConsumerState<_TombolScan> {
     final terisi = widget.isian.terapkanHasilEkstraksi(
       hasil,
       tahap: widget.tabel.tahap,
+      tabel: widget.tabel,
     );
 
     // Blok non-tabel (kondisi lingkungan, catatan, usage check) ikut keisi dari
@@ -510,7 +515,7 @@ class _TombolScanState extends ConsumerState<_TombolScan> {
 
     final pesan = pesanHasilFotoTabel(
       terisi: terisi,
-      diharapkan: widget.isian.selPerTabel,
+      diharapkan: widget.isian.selPerTabelIni(widget.tabel),
       terdeteksi: hasil.jumlahAngkaTerdeteksi,
       takTerbaca: l10n.phCalibFotoTabelTakTerbaca,
       posisiKacau: l10n.phCalibFotoTabelPosisiKacau,
