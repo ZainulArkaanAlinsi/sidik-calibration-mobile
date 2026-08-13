@@ -3490,6 +3490,17 @@ class AppLocalizationsId extends AppLocalizations {
       'Alternatif satuan dari botol yang sama — sudah diisi di baris satunya';
 
   @override
+  String get lkResolusiKosong => 'Resolusi: ( )';
+
+  @override
+  String lkResolusiNilai(String nilai, String satuan) {
+    return 'Resolusi: $nilai $satuan';
+  }
+
+  @override
+  String get lkSlotTanpaLarutan => 'belum ada larutannya';
+
+  @override
   String lkIsianTitikKebuang(int jumlah) {
     String _temp0 = intl.Intl.pluralLogic(
       jumlah,

@@ -1719,6 +1719,23 @@
   "detailEditAdmin": "EDIT SHEET",
   "detailPerbaikiRevisi": "FIX WORKSHEET",
   "lkTitikAlternatifSatuan": "Alternate unit of the same standard — already filled in the other row",
+  "lkRepeat": "Repeat",
+  "@lkRepeat": {
+    "description": "Header of the repeat-number column on sheets whose Repeat runs downwards."
+  },
+  "lkResolusiKosong": "Resolution: ( )",
+  "@lkResolusiKosong": {
+    "description": "Resolution row in the table header when the instrument resolution is not filled in — mirrors the empty box on the printed sheet."
+  },
+  "lkResolusiNilai": "Resolution: {nilai} {satuan}",
+  "@lkResolusiNilai": {
+    "description": "Resolution row in the table header, filled from the instrument specification.",
+    "placeholders": { "nilai": { "type": "String" }, "satuan": { "type": "String" } }
+  },
+  "lkSlotTanpaLarutan": "no standard registered",
+  "@lkSlotTanpaLarutan": {
+    "description": "Note on a column that is printed on the sheet but has no registered standard solution."
+  },
   "lkIsianTitikKebuang": "{jumlah, plural, other{{jumlah} point(s) are not on this instrument\u2019s sheet — their entries were discarded}}",
   "@lkIsianTitikKebuang": {
     "description": "Shown when the sheet shrinks after picking an instrument and some filled points no longer exist.",

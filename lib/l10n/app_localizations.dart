@@ -4754,7 +4754,7 @@ abstract class AppLocalizations {
   /// **'Clear date'**
   String get lkHapusTanggal;
 
-  /// No description provided for @lkRepeat.
+  /// Header of the repeat-number column on sheets whose Repeat runs downwards.
   ///
   /// In en, this message translates to:
   /// **'Repeat'**
@@ -6397,6 +6397,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Alternate unit of the same standard — already filled in the other row'**
   String get lkTitikAlternatifSatuan;
+
+  /// Resolution row in the table header when the instrument resolution is not filled in — mirrors the empty box on the printed sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolution: ( )'**
+  String get lkResolusiKosong;
+
+  /// Resolution row in the table header, filled from the instrument specification.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolution: {nilai} {satuan}'**
+  String lkResolusiNilai(String nilai, String satuan);
+
+  /// Note on a column that is printed on the sheet but has no registered standard solution.
+  ///
+  /// In en, this message translates to:
+  /// **'no standard registered'**
+  String get lkSlotTanpaLarutan;
 
   /// Shown when the sheet shrinks after picking an instrument and some filled points no longer exist.
   ///

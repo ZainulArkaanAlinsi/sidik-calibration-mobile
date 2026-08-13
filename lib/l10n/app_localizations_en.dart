@@ -3518,6 +3518,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Alternate unit of the same standard — already filled in the other row';
 
   @override
+  String get lkResolusiKosong => 'Resolution: ( )';
+
+  @override
+  String lkResolusiNilai(String nilai, String satuan) {
+    return 'Resolution: $nilai $satuan';
+  }
+
+  @override
+  String get lkSlotTanpaLarutan => 'no standard registered';
+
+  @override
   String lkIsianTitikKebuang(int jumlah) {
     String _temp0 = intl.Intl.pluralLogic(
       jumlah,

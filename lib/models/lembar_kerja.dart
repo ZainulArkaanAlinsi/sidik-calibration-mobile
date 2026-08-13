@@ -100,12 +100,21 @@ class BarisStandar {
     required this.label,
     required this.standardId,
     required this.terdaftar,
+    this.labelCetak,
     this.serialNumber,
     this.noSertifikat,
     this.tertelusurKe,
   });
 
   final String label;
+
+  /// Tulisan baris ini di lembar CETAK, kalau beda dari [label].
+  ///
+  /// Lembar Conductivity `Rev.5` masih menulis nominal botol lama
+  /// (`Std Solution 84 µS`) dan readout lama (`Victor 14+`), sementara master
+  /// sudah pindah ke larutan & alat yang sekarang. Yang dicentang tetap alat
+  /// yang benar; yang dibaca teknisi tetap tulisan yang ada di kertas.
+  final String? labelCetak;
   final int? standardId;
   final bool terdaftar;
   final String? serialNumber;
@@ -114,6 +123,7 @@ class BarisStandar {
 
   factory BarisStandar.fromJson(Map<String, dynamic> json) => BarisStandar(
     label: json['label'] as String? ?? '—',
+    labelCetak: json['label_cetak'] as String?,
     standardId: (json['standard_id'] as num?)?.toInt(),
     terdaftar: json['terdaftar'] as bool? ?? (json['standard_id'] != null),
     serialNumber: json['serial_number'] as String?,
@@ -310,6 +320,8 @@ class TabelHasil {
     this.pengulanganPerBaris,
     this.kolomTetap,
     this.catatan,
+    this.sumbuPengulangan = 'kolom',
+    this.slotCetak = const [],
   });
 
   /// `sebelum_adjustment` / `sesudah_adjustment`.
@@ -376,6 +388,21 @@ class TabelHasil {
   /// Ditampilin apa adanya; ini bagian dari dokumen, bukan tulisan layar.
   final String? catatan;
 
+  /// Arah nomor Repeat di lembar CETAK: `kolom` = berjajar ke kanan (bentuk
+  /// pH, `SIDIK-FM-CAL-0509`), `baris` = turun ke bawah (bentuk Conductivity,
+  /// `SIDIK-FM-CAL-0510`).
+  ///
+  /// Datang dari backend, bukan disimpulin layar dari nama alat: dua bentuk itu
+  /// sama-sama sah, dan yang tahu bentuk kertasnya cuma profil alatnya.
+  /// Bawaannya `kolom` supaya empat alat yang sudah jalan nggak berubah.
+  final String sumbuPengulangan;
+
+  /// Kepala kolom "Solution Standard" seperti TERCETAK, dipakai kalau
+  /// [pengulanganKeBawah]. Kosong = pakai [baris] seperti biasa.
+  final List<SlotCetak> slotCetak;
+
+  bool get pengulanganKeBawah => sumbuPengulangan == 'baris';
+
   bool get sebelumAdjustment => tahap == 'sebelum_adjustment';
 
   /// Nomor pengulangan dipotong jadi baris-baris sesuai [pengulanganPerBaris].
@@ -402,6 +429,8 @@ class TabelHasil {
         ? null
         : KolomTetap.fromJson(json['kolom_tetap'] as Map<String, dynamic>),
     catatan: json['catatan'] as String?,
+    sumbuPengulangan: json['sumbu_pengulangan'] as String? ?? 'kolom',
+    slotCetak: parseListAman(json['slot_cetak'], SlotCetak.fromJson),
     baris: parseListAman(json['baris'], BarisTabelHasil.fromJson),
     barisPerSatuan: {
       for (final e in (json['baris_per_satuan'] as Map<String, dynamic>? ??
@@ -414,6 +443,58 @@ class TabelHasil {
         .whereType<num>()
         .map((e) => e.toInt())
         .toList(),
+  );
+}
+
+/// Satu kepala kolom "Solution Standard" seperti TERCETAK di lembar kerja.
+///
+/// Ada karena tulisan di kertas nggak sama dengan titik yang dihitung. Formulir
+/// Conductivity `Rev.5` (Des 2023) masih menulis nominal botol lama —
+/// `84 / 1413 / 5000 / 80000` — sementara master pindah ke tiga titik
+/// (`25 / 1412 / 111`) pada April 2024. Layar mencetak [label] supaya cocok
+/// sama kertas di tangan teknisi, dan [titikUkur] yang nentuin angkanya masuk
+/// ke titik yang mana.
+class SlotCetak {
+  const SlotCetak({
+    required this.label,
+    required this.titikUkur,
+    this.varian,
+    this.satuan,
+    this.resolusi,
+    this.desimal,
+  });
+
+  /// Tulisan di kertas, mis. `1413 µS`.
+  final String label;
+
+  /// Pasangan satuan yang di kertas punya kotak "ceklis salah satu", mis.
+  /// `1.413 mS`. Null = slot ini cuma satu satuan (`84`).
+  final String? varian;
+
+  /// Titik yang beneran dihitung buat slot ini. **Kosong = slot mati** —
+  /// kotaknya tetap digambar karena ada di kertas, tapi nggak bisa diisi.
+  ///
+  /// Bisa berisi DUA nilai kalau backend ngirim dua varian satuan buat botol
+  /// yang sama (`1412` µS/cm dan `1,412` mS/cm); yang saling mengunci tetap
+  /// `eksklusif_dengan` di barisnya.
+  final List<double> titikUkur;
+
+  final String? satuan;
+  final double? resolusi;
+  final int? desimal;
+
+  bool get mati => titikUkur.isEmpty;
+
+  factory SlotCetak.fromJson(Map<String, dynamic> json) => SlotCetak(
+    label: json['label'] as String? ?? '',
+    varian: json['varian'] as String?,
+    titikUkur: (json['titik_ukur'] as List<dynamic>? ?? const [])
+        .whereType<num>()
+        .map((e) => e.toDouble())
+        .toList(),
+    satuan: json['satuan'] as String?,
+    resolusi: (json['resolusi'] as num?)?.toDouble(),
+    desimal: (json['desimal'] as num?)?.toInt(),
   );
 }
 

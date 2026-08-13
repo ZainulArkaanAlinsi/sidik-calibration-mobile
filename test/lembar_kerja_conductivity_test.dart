@@ -11,6 +11,8 @@ import 'package:sidik_calibration/models/lembar_kerja.dart';
 /// dikarang — termasuk `satuan: null` di level lembar, yang justru itu inti
 /// masalahnya.
 void main() {
+  bentukCetak();
+
   /// Bentuk generik (tanpa `equipment_id`): 4 baris, titik tengah dikirim dalam
   /// DUA varian satuan buat dipilih.
   LembarKerja lembarGenerik() => LembarKerja.fromJson({
@@ -158,6 +160,124 @@ void main() {
     test('nol belakang dipertahankan di kolom hasil', () {
       expect(formatSertifikat(25.0, 1), isNot('25'));
       expect(formatSertifikat(1.7, 2), isNot('1,7'));
+    });
+  });
+}
+
+/// Bentuk CETAK lembar Conductivity — `SIDIK-FM-CAL-0510_Rev.5`.
+///
+/// Dipisah dari `main()` di atas karena yang diuji beda: bukan lagi soal
+/// satuan campur, tapi soal susunan kertasnya. Formulir ini dua hal berbeda
+/// dari lembar pH yang selama ini jadi satu-satunya bentuk yang digambar:
+/// Repeat turun ke bawah, dan kepala kolomnya masih menulis nominal botol lama
+/// (`84 / 1413 / 5000 / 80000`) padahal titik yang dihitung `25 / 1412 / 111`.
+void bentukCetak() {
+  TabelHasil tabel(Map<String, dynamic> tambahan) =>
+      TabelHasil.fromJson({
+        'tahap': 'sebelum_adjustment',
+        'judul': 'Before adjustment Reading',
+        'kolom': [
+          {'kode': 'pembacaan', 'label': 'Reading', 'tipe': 'angka'},
+          {'kode': 'suhu', 'label': '°C', 'tipe': 'angka', 'satuan': '°C'},
+        ],
+        'pengulangan': [1, 2, 3, 4, 5],
+        'baris': [
+          {'titik_ukur': 25, 'label': '25', 'satuan': 'µS/cm', 'resolusi': 0.1, 'desimal': 1},
+          {'titik_ukur': 1412, 'label': '1412', 'satuan': 'µS/cm', 'resolusi': 1, 'desimal': 0, 'eksklusif_dengan': 1.412},
+          {'titik_ukur': 1.412, 'label': '1,412', 'satuan': 'mS/cm', 'resolusi': 0.001, 'desimal': 3, 'eksklusif_dengan': 1412},
+          {'titik_ukur': 111, 'label': '111', 'satuan': 'mS/cm', 'resolusi': 0.01, 'desimal': 2},
+        ],
+        ...tambahan,
+      });
+
+  group('susunan lembar cetak', () {
+    /// Bentuk pH (`sumbu_pengulangan` nggak dikirim) TIDAK boleh ikut berubah —
+    /// empat alat lain masih pakai itu.
+    test('bawaannya tetap Repeat ke samping', () {
+      expect(tabel(const {}).sumbuPengulangan, 'kolom');
+      expect(tabel(const {}).pengulanganKeBawah, isFalse);
+      expect(tabel(const {}).slotCetak, isEmpty);
+    });
+
+    test('Conductivity ngirim Repeat ke bawah', () {
+      final t = tabel(const {'sumbu_pengulangan': 'baris'});
+
+      expect(t.pengulanganKeBawah, isTrue);
+    });
+
+    /// Inti bedanya kertas vs sistem: yang tercetak nominal botol lama, yang
+    /// dihitung titik yang sekarang. Dua-duanya harus kebawa — yang pertama
+    /// biar teknisi ketemu kolomnya di kertas, yang kedua biar angkanya
+    /// mendarat di titik yang benar.
+    test('slot bawa tulisan kertas DAN titik yang dihitung', () {
+      final t = tabel(const {
+        'sumbu_pengulangan': 'baris',
+        'slot_cetak': [
+          {'label': '84', 'varian': null, 'titik_ukur': [25], 'satuan': 'µS/cm', 'resolusi': 0.1, 'desimal': 1},
+          {'label': '1413 µS', 'varian': '1.413 mS', 'titik_ukur': [1412, 1.412], 'satuan': 'µS/cm', 'resolusi': 1, 'desimal': 0},
+          {'label': '5000 µS', 'varian': '5 mS', 'titik_ukur': [111], 'satuan': 'mS/cm', 'resolusi': 0.01, 'desimal': 2},
+          {'label': '80000 µS', 'varian': '80 mS', 'titik_ukur': <double>[]},
+        ],
+      });
+
+      expect(t.slotCetak.map((s) => s.label).toList(), [
+        '84',
+        '1413 µS',
+        '5000 µS',
+        '80000 µS',
+      ]);
+      expect(t.slotCetak.map((s) => s.titikUkur).toList(), [
+        [25.0],
+        [1412.0, 1.412],
+        [111.0],
+        <double>[],
+      ]);
+    });
+
+    /// `Conduct 80000` dicentang TRUE di master tapi baris DATABASE-nya kosong
+    /// — nggak punya nilai acuan, CMC, maupun kurva suhu. Kotaknya tetap ada di
+    /// kertas, jadi tetap digambar, tapi harus kebaca MATI. Kalau slot ini
+    /// pernah kebaca hidup, angka yang diketik teknisi nggak punya titik tujuan
+    /// dan diam-diam hilang.
+    test('slot tanpa larutan kebaca mati', () {
+      final t = tabel(const {
+        'sumbu_pengulangan': 'baris',
+        'slot_cetak': [
+          {'label': '84', 'titik_ukur': [25], 'satuan': 'µS/cm'},
+          {'label': '80000 µS', 'varian': '80 mS', 'titik_ukur': <double>[]},
+        ],
+      });
+
+      expect(t.slotCetak.first.mati, isFalse);
+      expect(t.slotCetak.last.mati, isTrue);
+      expect(t.slotCetak.last.varian, '80 mS');
+    });
+  });
+
+  group('nama standar di kertas beda dari nama di master', () {
+    /// Kertas Rev.5 masih menulis nominal botol lama & readout lama. Yang
+    /// dicentang tetap alat yang benar; yang dibaca teknisi tetap tulisan yang
+    /// ada di kertas depan mata.
+    test('baris STANDARD bawa dua nama', () {
+      final baris = BarisStandar.fromJson({
+        'label': 'Conductivity Std Solution 25 µS/cm',
+        'label_cetak': 'Std Solution 84 µS',
+        'standard_id': 3,
+        'serial_number': 'LRAD7693',
+      });
+
+      expect(baris.labelCetak, 'Std Solution 84 µS');
+      expect(baris.label, 'Conductivity Std Solution 25 µS/cm');
+      expect(baris.standardId, 3);
+    });
+
+    /// Alat lain nggak ngirim `label_cetak`, dan layar harus jatuh ke `label`
+    /// tanpa nampilin keterangan kosong.
+    test('alat tanpa label cetak tetap null', () {
+      expect(
+        BarisStandar.fromJson({'label': 'Buffer pH 7', 'standard_id': 1}).labelCetak,
+        isNull,
+      );
     });
   });
 }

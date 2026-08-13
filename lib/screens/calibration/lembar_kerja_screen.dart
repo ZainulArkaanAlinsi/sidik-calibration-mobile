@@ -2504,6 +2504,7 @@ class _UsageCheck extends ConsumerWidget {
         for (final baris in bagian.baris) ...[
           _UsageCheckBaris(
             label: baris.label,
+            labelCetak: baris.labelCetak,
             serialNumber:
                 baris.serialNumber ?? master[baris.standardId]?.serialNumber,
             kadaluarsa: master[baris.standardId]?.masihBerlaku == false,
@@ -2528,11 +2529,18 @@ class _UsageCheckBaris extends StatelessWidget {
     required this.label,
     required this.state,
     required this.onBerubah,
+    this.labelCetak,
     this.serialNumber,
     this.kadaluarsa = false,
   });
 
   final String label;
+
+  /// Tulisan baris ini di kertas, kalau beda dari [label]. Yang dicetak besar
+  /// adalah yang ini — teknisi mencocokkan layar ke lembar di tangannya, dan
+  /// nama alat standar yang sebenarnya turun jadi keterangan di bawahnya.
+  final String? labelCetak;
+
   final String? serialNumber;
   final bool kadaluarsa;
 
@@ -2567,11 +2575,21 @@ class _UsageCheckBaris extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    label,
+                    labelCetak ?? label,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: aktif ? null : theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
+                  // Nama alat standar yang sebenarnya, waktu kertasnya menulis
+                  // nama lain. Tanpa ini teknisi mencentang "Std Solution
+                  // 84 µS" tanpa pernah tahu botol yang dipakai 25 µS/cm.
+                  if (labelCetak != null && labelCetak != label)
+                    Text(
+                      label,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   if (serialNumber != null && serialNumber!.isNotEmpty)
                     Text(
                       serialNumber!,

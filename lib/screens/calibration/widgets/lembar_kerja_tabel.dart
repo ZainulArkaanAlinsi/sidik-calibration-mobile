@@ -170,6 +170,14 @@ class LembarKerjaTabel extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.sm),
 
+        // Lembar yang Repeat-nya turun ke bawah (Conductivity,
+        // `SIDIK-FM-CAL-0510`) digambar terbalik dari bentuk pH. Dipisah jadi
+        // widget sendiri, bukan ditekuk di sini: dua bentuk itu beda kepala,
+        // beda kolom nempel, dan yang satu punya kotak ceklis satuan yang
+        // nggak ada di bentuk satunya.
+        if (tabel.pengulanganKeBawah && tabel.slotCetak.isNotEmpty)
+          _TabelKeBawah(tabel: tabel, isian: isian, onBerubah: onBerubah)
+        else
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -374,6 +382,309 @@ class LembarKerjaTabel extends StatelessWidget {
   /// Lantai tinggi baris — tinggi sebenarnya diukur dari isi di
   /// [_ukurKolomLabel], dan nggak pernah turun di bawah ini.
   static const _tinggiBarisMin = 56.0;
+}
+
+/// Tabel hasil buat lembar yang Repeat-nya TURUN KE BAWAH.
+///
+/// Susunannya ngikut cetakan `SIDIK-FM-CAL-0510_Rev.5`: kepala "Solution
+/// Standard" berjajar ke samping, di bawahnya baris `Resolusi:`, lalu kepala
+/// satuan per kolom, baru Repeat 1..5 turun ke bawah.
+///
+/// Stateful karena kotak "ceklis salah satu" di kepala kolom itu PILIHAN, dan
+/// pilihan itu nentuin sel di seluruh kolom bawahnya nulis ke titik yang mana
+/// (`1412 µS/cm` atau `1,412 mS/cm` — botol yang sama, dua satuan).
+class _TabelKeBawah extends StatefulWidget {
+  const _TabelKeBawah({
+    required this.tabel,
+    required this.isian,
+    required this.onBerubah,
+  });
+
+  final TabelHasil tabel;
+  final LembarKerjaState isian;
+  final VoidCallback onBerubah;
+
+  @override
+  State<_TabelKeBawah> createState() => _TabelKeBawahState();
+}
+
+class _TabelKeBawahState extends State<_TabelKeBawah> {
+  /// Index slot → index titik yang lagi kepilih di slot itu. Slot yang cuma
+  /// punya satu titik nggak pernah masuk sini.
+  final Map<int, int> _pilihan = {};
+
+  static const _lebarSel = 78.0;
+  static const _lebarRepeat = 72.0;
+  static const _tinggiBaris = 56.0;
+  static const _tinggiKepalaSlot = 46.0;
+  static const _tinggiResolusi = 28.0;
+  static const _tinggiKepalaSatuan = 30.0;
+
+  TabelHasil get _tabel => widget.tabel;
+
+  List<KolomTabelHasil> get _kolom => _tabel.kolom;
+
+  double get _lebarSlot => _lebarSel * _kolom.length;
+
+  /// Titik yang aktif buat slot ini.
+  ///
+  /// Bukan cuma baca [_pilihan]: kalau salah satu varian udah keisi (mis. draft
+  /// yang dipulihkan, atau hasil scan), yang keisi itu yang menang — teknisi
+  /// nggak boleh lihat kolom kosong padahal angkanya ada di titik sebelah.
+  double? _titikAktif(int index, SlotCetak slot) {
+    if (slot.mati) return null;
+    if (slot.titikUkur.length == 1) return slot.titikUkur.first;
+
+    for (final titik in slot.titikUkur) {
+      if (widget.isian.titikTerkunci(titik)) continue;
+      if (!widget.isian.titikBisaDiisi(titik)) continue;
+
+      // Yang pasangannya udah kekunci = yang lagi dipakai. Ini menang atas
+      // pilihan manual supaya angka yang udah diketik nggak ketutup.
+      if (slot.titikUkur.any(widget.isian.titikTerkunci)) return titik;
+    }
+
+    final dipilih = _pilihan[index] ?? 0;
+    return slot.titikUkur[dipilih.clamp(0, slot.titikUkur.length - 1)];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final slot = _tabel.slotCetak;
+    final ulang = _tabel.pengulangan;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Kolom "Repeat" nempel di kiri, di luar area gulung — sama alasannya
+        // kayak kolom label di bentuk pH: tanpa itu teknisi kehilangan nomor
+        // pengulangan begitu geser ke slot paling kanan.
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _SelKepala(
+              lebar: _lebarRepeat,
+              teks: '',
+              tinggi: _tinggiKepalaSlot + _tinggiResolusi,
+            ),
+            _SelKepala(
+              lebar: _lebarRepeat,
+              teks: l10n.lkRepeat,
+              tinggi: _tinggiKepalaSatuan,
+            ),
+            for (final r in ulang)
+              _SelKepala(
+                lebar: _lebarRepeat,
+                teks: '$r',
+                tinggi: _tinggiBaris,
+              ),
+          ],
+        ),
+
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Kepala "Solution Standard": tulisan kertas + kotak ceklis
+                // satuan kalau slotnya punya dua varian.
+                Row(
+                  children: [
+                    for (var i = 0; i < slot.length; i++)
+                      _KepalaSlot(
+                        lebar: _lebarSlot,
+                        tinggi: _tinggiKepalaSlot,
+                        slot: slot[i],
+                        titikAktif: _titikAktif(i, slot[i]),
+                        onPilih: slot[i].titikUkur.length < 2
+                            ? null
+                            : (pilih) => setState(() => _pilihan[i] = pilih),
+                      ),
+                  ],
+                ),
+
+                // Baris `Resolusi: ( )` — di kertas satu baris sendiri per
+                // slot. Angkanya dari spesifikasi alat, jadi ditampilin, bukan
+                // dikosongin buat diisi tangan.
+                Row(
+                  children: [
+                    for (final s in slot)
+                      _SelKepala(
+                        lebar: _lebarSlot,
+                        tinggi: _tinggiResolusi,
+                        teks: s.resolusi == null
+                            ? l10n.lkResolusiKosong
+                            : l10n.lkResolusiNilai(
+                                formatAngka(s.resolusi!),
+                                s.satuan ?? '',
+                              ),
+                      ),
+                  ],
+                ),
+
+                // Kepala satuan per kolom: `µS` / `°C` di kertas.
+                Row(
+                  children: [
+                    for (final s in slot)
+                      for (final k in _kolom)
+                        _SelKepala(
+                          lebar: _lebarSel,
+                          tinggi: _tinggiKepalaSatuan,
+                          teks: k.kode == 'suhu'
+                              ? (k.satuan ?? '°C')
+                              : (s.satuan ?? k.label),
+                        ),
+                  ],
+                ),
+
+                for (final r in ulang)
+                  Row(
+                    children: [
+                      for (var i = 0; i < slot.length; i++)
+                        for (final k in _kolom)
+                          _selAngka(slot[i], i, k, r),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _selAngka(SlotCetak slot, int index, KolomTabelHasil kolom, int r) {
+    final titik = _titikAktif(index, slot);
+    final state = titik == null ? null : widget.isian.titik[titik];
+
+    // Slot mati (`80000 µS` — dicentang di master tapi baris DATABASE-nya
+    // kosong) tetap DIGAMBAR karena kotaknya ada di kertas, tapi nggak punya
+    // controller: nggak ada titik yang bisa nampung angkanya.
+    if (state == null) {
+      return _SelKosong(lebar: _lebarSel, tinggi: _tinggiBaris);
+    }
+
+    final urutan = _tabel.pengulangan.indexOf(r);
+
+    return _SelAngka(
+      lebar: _lebarSel,
+      tinggi: _tinggiBaris,
+      terkunci: !widget.isian.titikBisaDiisi(titik!),
+      controller: state.kotak(_tabel.tahap, kolom.kode, urutan),
+      rendah: widget.isian.selRendahKeyakinan.contains(
+        LembarKerjaState.kunciSel(titik, _tabel.tahap, kolom.kode, urutan),
+      ),
+    );
+  }
+}
+
+/// Kepala satu slot: tulisan kertas di atas, kotak ceklis satuan di bawahnya.
+class _KepalaSlot extends StatelessWidget {
+  const _KepalaSlot({
+    required this.lebar,
+    required this.tinggi,
+    required this.slot,
+    required this.titikAktif,
+    required this.onPilih,
+  });
+
+  final double lebar;
+  final double tinggi;
+  final SlotCetak slot;
+  final double? titikAktif;
+
+  /// Null = slot ini nggak punya pilihan satuan (`84`, atau slot mati).
+  final void Function(int)? onPilih;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    final gaya = theme.textTheme.labelMedium?.copyWith(
+      fontWeight: FontWeight.w700,
+      color: slot.mati ? theme.colorScheme.onSurfaceVariant : null,
+    );
+
+    return SizedBox(
+      width: lebar,
+      height: tinggi,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (onPilih == null)
+            Text(slot.label, style: gaya)
+          else
+            // Kertasnya bilang "ceklis salah satu" — jadi di layar pun ini
+            // pilihan, bukan dua kolom terpisah. Yang kepilih nentuin sel di
+            // bawahnya nulis ke titik yang mana.
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                for (var i = 0; i < slot.titikUkur.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: ChoiceChip(
+                      label: Text(
+                        i == 0 ? slot.label : (slot.varian ?? slot.label),
+                        style: theme.textTheme.labelSmall,
+                      ),
+                      selected: titikAktif == slot.titikUkur[i],
+                      onSelected: (_) => onPilih!(i),
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize:
+                          MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
+              ],
+            ),
+
+          // Larutan yang SEBENARNYA di balik slot ini. Tulisan kertasnya
+          // nominal botol lama, jadi tanpa baris ini teknisi bisa menuang
+          // botol yang salah — lihat `SlotCetak`.
+          Text(
+            slot.mati
+                ? l10n.lkSlotTanpaLarutan
+                : '${formatAngka(slot.titikUkur.first)} ${slot.satuan ?? ''}',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Kotak yang ada di kertas tapi nggak punya titik — digambar, nggak bisa
+/// diisi.
+class _SelKosong extends StatelessWidget {
+  const _SelKosong({required this.lebar, required this.tinggi});
+
+  final double lebar;
+  final double tinggi;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.all(2),
+      child: Container(
+        width: lebar - 4,
+        height: tinggi - 4,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: theme.colorScheme.outlineVariant),
+        ),
+      ),
+    );
+  }
 }
 
 /// Foto satu tabel worksheet → **AI di backend** baca isinya → seluruh kolom

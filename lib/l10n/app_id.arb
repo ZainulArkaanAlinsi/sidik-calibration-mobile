@@ -1221,6 +1221,23 @@
   "detailEditAdmin": "EDIT LEMBAR",
   "detailPerbaikiRevisi": "PERBAIKI LEMBAR KERJA",
   "lkTitikAlternatifSatuan": "Alternatif satuan dari botol yang sama — sudah diisi di baris satunya",
+  "lkRepeat": "Repeat",
+  "@lkRepeat": {
+    "description": "Kepala kolom nomor pengulangan di lembar kerja yang Repeat-nya turun ke bawah."
+  },
+  "lkResolusiKosong": "Resolusi: ( )",
+  "@lkResolusiKosong": {
+    "description": "Baris Resolusi di kepala tabel waktu resolusi alat belum diisi — sengaja meniru kotak kosong di lembar cetak."
+  },
+  "lkResolusiNilai": "Resolusi: {nilai} {satuan}",
+  "@lkResolusiNilai": {
+    "description": "Baris Resolusi di kepala tabel, diisi dari spesifikasi alat.",
+    "placeholders": { "nilai": { "type": "String" }, "satuan": { "type": "String" } }
+  },
+  "lkSlotTanpaLarutan": "belum ada larutannya",
+  "@lkSlotTanpaLarutan": {
+    "description": "Keterangan di kepala kolom yang tercetak di kertas tapi tidak punya larutan standar terdaftar."
+  },
   "lkIsianTitikKebuang": "{jumlah, plural, other{{jumlah} titik tidak ada di lembar alat ini — isiannya dibuang}}",
   "@lkIsianTitikKebuang": {
     "description": "Peringatan waktu bentuk lembar menyusut sesudah alat dipilih, dan ada isian yang titiknya hilang.",
