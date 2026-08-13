@@ -1146,7 +1146,13 @@ class _KopDokumen extends StatelessWidget {
             Text(bentuk.judul, style: theme.textTheme.titleMedium),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              bentuk.kodeDokumen,
+              // Nomor formulir + nomor metode, persis kayak yang tercetak di
+              // kertas: yang FM di kop, yang IK di baris "Calibration Methode".
+              // Teknisi cuma membacanya — `calibration_method_id` tetap milik
+              // admin.
+              bentuk.kodeMetode == null
+                  ? bentuk.kodeDokumen
+                  : '${bentuk.kodeDokumen} · ${bentuk.kodeMetode}',
               style: theme.textTheme.labelSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),

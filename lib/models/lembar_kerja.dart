@@ -509,6 +509,7 @@ bool _campuran(dynamic nilai) => switch (nilai) {
 class LembarKerja {
   const LembarKerja({
     required this.kodeDokumen,
+    this.kodeMetode,
     required this.judul,
     required this.untuk,
     required this.jumlahPengulangan,
@@ -523,6 +524,15 @@ class LembarKerja {
   });
 
   final String kodeDokumen;
+
+  /// Nomor instruksi kerja yang TERCETAK di lembar ("2. Calibration Methode :
+  /// SIDIK-IK-CAL-0507"), buat ditampilkan apa adanya.
+  ///
+  /// Beda dari [kodeDokumen], yang nomor FORMULIR-nya (`SIDIK-FM-CAL-…`). Dua
+  /// nomor ini pernah ketuker di profil Conductivity — makanya dipisah, dan
+  /// `null` di alat yang backend-nya belum ngirim.
+  final String? kodeMetode;
+
   final String judul;
 
   /// `teknisi` atau `admin` — backend yang mutusin dari role token.
@@ -594,6 +604,7 @@ class LembarKerja {
 
   factory LembarKerja.fromJson(Map<String, dynamic> json) => LembarKerja(
     kodeDokumen: json['kode_dokumen'] as String? ?? '',
+    kodeMetode: json['kode_metode'] as String?,
     judul: json['judul'] as String? ?? '',
     untuk: json['untuk'] as String? ?? 'teknisi',
     jumlahPengulangan: (json['jumlah_pengulangan'] as num?)?.toInt() ?? 5,
