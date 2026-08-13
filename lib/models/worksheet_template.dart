@@ -17,6 +17,8 @@ class WorksheetTemplate {
     required this.siapPindai,
     this.alasanBelumSiap,
     this.ukuranReferensi,
+    this.marker = const [],
+    this.qrIsi,
   });
 
   final String templateId;
@@ -48,6 +50,17 @@ class WorksheetTemplate {
   /// `null` selama geometrinya belum diukur.
   final ({int w, int h})? ukuranReferensi;
 
+  /// Empat penanda sudut di ruang [ukuranReferensi], urut id 0..3.
+  ///
+  /// Ini TUJUAN warp — bukan sudut halaman. Markernya dicetak agak masuk ke
+  /// dalam kertas, jadi meratakan foto ke pojok halaman menggeser seluruh grid
+  /// sebesar jarak itu.
+  final List<({double x, double y})> marker;
+
+  /// Isi QR yang tercetak di lembar (`conductivity_meter|v1`). Dikirim balik
+  /// apa adanya sebagai bukti versi lembar yang difoto.
+  final String? qrIsi;
+
   factory WorksheetTemplate.fromJson(Map<String, dynamic> json) {
     final data = (json['data'] ?? json) as Map<String, dynamic>;
     final geometri = data['geometri'] as Map<String, dynamic>?;
@@ -74,6 +87,15 @@ class WorksheetTemplate {
               w: (ukuran['w'] as num?)?.toInt() ?? 0,
               h: (ukuran['h'] as num?)?.toInt() ?? 0,
             ),
+      marker: [
+        for (final m in geometri?['marker'] as List<dynamic>? ?? const [])
+          if (m is Map<String, dynamic>)
+            (
+              x: (m['x'] as num?)?.toDouble() ?? 0,
+              y: (m['y'] as num?)?.toDouble() ?? 0,
+            ),
+      ],
+      qrIsi: (geometri?['qr'] as Map<String, dynamic>?)?['isi'] as String?,
     );
   }
 }

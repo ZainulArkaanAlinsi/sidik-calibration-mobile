@@ -2594,6 +2594,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkAkhir => 'End';
 
   @override
+  String get lkPindaiGagalFoto =>
+      'The photo could not be read. Try taking it again.';
+
+  @override
+  String get lkPindaiTanpaGeometri =>
+      'This sheet\'s cell coordinates are not on the server yet.';
+
+  @override
+  String get lkPindaiMarkerHilang =>
+      'The four corner markers were not found. Make sure the whole sheet is in frame and well lit.';
+
+  @override
+  String get lkPindaiTerlaluMiring =>
+      'The photo is too skewed. Shoot it more square-on above the sheet.';
+
+  @override
   String get lkRepeat => 'Repeat';
 
   @override

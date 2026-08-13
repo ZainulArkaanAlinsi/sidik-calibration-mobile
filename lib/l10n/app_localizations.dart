@@ -4790,6 +4790,30 @@ abstract class AppLocalizations {
   /// **'End'**
   String get lkAkhir;
 
+  /// Pesan waktu foto gagal didekode atau pindai gagal karena sebab tak terduga.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo could not be read. Try taking it again.'**
+  String get lkPindaiGagalFoto;
+
+  /// Pesan waktu template belum punya koordinat sel.
+  ///
+  /// In en, this message translates to:
+  /// **'This sheet\'s cell coordinates are not on the server yet.'**
+  String get lkPindaiTanpaGeometri;
+
+  /// Pesan waktu empat penanda sudut tidak ditemukan di foto.
+  ///
+  /// In en, this message translates to:
+  /// **'The four corner markers were not found. Make sure the whole sheet is in frame and well lit.'**
+  String get lkPindaiMarkerHilang;
+
+  /// Pesan waktu geometri foto meleset terlalu jauh.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo is too skewed. Shoot it more square-on above the sheet.'**
+  String get lkPindaiTerlaluMiring;
+
   /// Header of the repeat-number column on sheets whose Repeat runs downwards.
   ///
   /// In en, this message translates to:

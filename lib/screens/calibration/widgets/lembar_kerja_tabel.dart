@@ -7,6 +7,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../models/lembar_kerja.dart';
 import '../../../models/standard.dart';
 import '../../../providers/calibration_input_provider.dart';
+import '../../../providers/sumber_foto_provider.dart';
 import '../../../providers/worksheet_vision_provider.dart';
 import '../../../services/worksheet_vision.dart';
 import '../lembar_kerja_state.dart';

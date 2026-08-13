@@ -2581,6 +2581,21 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkAkhir => 'End';
 
   @override
+  String get lkPindaiGagalFoto => 'Foto tidak bisa dibaca. Coba jepret ulang.';
+
+  @override
+  String get lkPindaiTanpaGeometri =>
+      'Koordinat sel lembar ini belum ada di server.';
+
+  @override
+  String get lkPindaiMarkerHilang =>
+      'Empat penanda sudut tidak ketemu. Pastikan seluruh lembar masuk frame dan cukup terang.';
+
+  @override
+  String get lkPindaiTerlaluMiring =>
+      'Fotonya terlalu miring. Jepret lebih tegak lurus di atas lembar.';
+
+  @override
   String get lkRepeat => 'Repeat';
 
   @override

@@ -34,6 +34,13 @@ abstract class WorksheetScanService {
     int? jumlahPengulangan,
   });
 
+  /// Kirim hasil baca satu lembar — `POST /api/worksheet-scans`.
+  ///
+  /// [body] disusun `PayloadPindai.susun()`, dan dikirim APA ADANYA. Jangan
+  /// disunting di sini: kunci selnya milik template, dan satu kunci yang
+  /// diubah bikin seluruh lembar ditolak server.
+  Future<HasilPindai> kirim(String token, Map<String, dynamic> body);
+
   /// Hasil pindai yang udah tersimpan — buat layar review yang dibuka lagi.
   Future<HasilPindai> ambilHasil(String token, int scanId);
 
@@ -95,6 +102,20 @@ class ApiWorksheetScanService implements WorksheetScanService {
     );
 
     return WorksheetTemplate.fromJson(json);
+  }
+
+  @override
+  Future<HasilPindai> kirim(String token, Map<String, dynamic> body) async {
+    // Batas waktunya dilonggarkan: bodinya membawa 80+ sel berikut kotak &
+    // buktinya, dan server masih menilai mutu foto sebelum menjawab.
+    final json = await _api.post(
+      '/worksheet-scans',
+      body: body,
+      token: token,
+      timeout: const Duration(seconds: 60),
+    );
+
+    return HasilPindai.fromJson(json);
   }
 
   @override
@@ -170,6 +191,17 @@ class MockWorksheetScanService implements WorksheetScanService {
     int? equipmentId,
     int? jumlahPengulangan,
   }) async => WorksheetTemplate.fromJson(_template(kode));
+
+  /// Bodi yang dikirim [kirim] — dipegang biar test bisa memeriksanya tanpa
+  /// jaringan.
+  final List<Map<String, dynamic>> terkirim = [];
+
+  @override
+  Future<HasilPindai> kirim(String token, Map<String, dynamic> body) async {
+    terkirim.add(body);
+
+    return ambilHasil(token, 0);
+  }
 
   @override
   Future<HasilPindai> ambilHasil(String token, int scanId) async {

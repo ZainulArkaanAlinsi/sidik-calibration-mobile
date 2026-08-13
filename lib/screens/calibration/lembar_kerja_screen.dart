@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image/image.dart' as img;
 
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/angka.dart';
@@ -13,16 +14,22 @@ import '../../models/equipment_lookup.dart';
 import '../../models/lembar_kerja.dart';
 import '../../models/room.dart';
 import '../../models/standard.dart';
+import '../../models/worksheet_template.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/calibration_input_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../providers/jam_provider.dart';
 import '../../providers/lembar_kerja_provider.dart';
+import '../../providers/sumber_foto_provider.dart';
 import '../../providers/worksheet_scan_provider.dart';
 import '../../services/auth_service.dart' show AuthException;
+import '../../services/jalankan_pindai.dart';
+import '../../services/pembaca_sel.dart';
+import '../../services/pindai_lembar.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/sidik_loader.dart';
 import 'lembar_kerja_state.dart';
+import 'pindai_review_screen.dart';
 import 'widgets/dropdown_gagal.dart';
 import 'widgets/lembar_kerja_tabel.dart';
 
@@ -1352,18 +1359,109 @@ class _CatatanIsi extends StatelessWidget {
 /// yang mau dicegah fitur ini. Alasannya ditampilin apa adanya, bukan
 /// diterjemahin jadi "fitur belum tersedia": teknisi berhak tahu yang kurang
 /// itu apa, dan yang bisa nutup cuma lab (cetak ulang formulir + ukur).
-class _TombolPindaiLembar extends ConsumerWidget {
+class _TombolPindaiLembar extends ConsumerStatefulWidget {
   const _TombolPindaiLembar({required this.profil, required this.equipmentId});
 
   final String profil;
   final int? equipmentId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_TombolPindaiLembar> createState() =>
+      _TombolPindaiLembarState();
+}
+
+class _TombolPindaiLembarState extends ConsumerState<_TombolPindaiLembar> {
+  bool _sibuk = false;
+
+  /// Foto → ratakan → potong 80 sel → baca ML Kit → kirim → layar review.
+  ///
+  /// Urutannya ada di [JalankanPindai], bukan di sini: yang di layar cuma
+  /// ambil fotonya, tampilkan sibuknya, dan terjemahkan sebabnya kalau gagal.
+  Future<void> _pindai(WorksheetTemplate template) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    setState(() => _sibuk = true);
+
+    try {
+      // Lembar penuh, jadi resolusinya dipertahankan: yang dibaca ML Kit itu
+      // potongan sel selebar ~140 px di ruang template, dan tiap piksel yang
+      // dibuang di sini hilang dari angka yang dibaca.
+      final foto = await ref
+          .read(sumberFotoProvider)
+          .ambil(maxWidth: 4200, imageQuality: 100);
+
+      if (foto == null || !mounted) return;
+
+      final citra = img.decodeImage(await foto.readAsBytes());
+
+      if (citra == null) {
+        messenger.showSnackBar(SnackBar(content: Text(l10n.lkPindaiGagalFoto)));
+
+        return;
+      }
+
+      final pembaca = MlKitPembacaSel();
+
+      try {
+        final body = await JalankanPindai(
+          mesin: const PindaiLembar(),
+          pembaca: pembaca,
+        ).susun(
+          citra,
+          template: template,
+          equipmentId: widget.equipmentId,
+        );
+
+        final token = await ref.read(tokenStorageProvider).read();
+        if (token == null || !mounted) return;
+
+        final hasil = await ref
+            .read(worksheetScanServiceProvider)
+            .kirim(token, body);
+
+        if (!mounted) return;
+
+        await navigator.push(
+          MaterialPageRoute<void>(
+            builder: (_) => PindaiReviewScreen(hasil: hasil),
+          ),
+        );
+      } finally {
+        await pembaca.tutup();
+      }
+    } on PindaiGagal catch (e) {
+      // Sebabnya ditampilkan, bukan "gagal memindai": tiga dari empat sebab
+      // nggak akan membaik dengan mengulang jepretan.
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(switch (e.sebab) {
+            GagalPindai.belumSiap => l10n.lkPindaiBelumSiap('—'),
+            GagalPindai.tanpaGeometri => l10n.lkPindaiTanpaGeometri,
+            GagalPindai.markerTidakKetemu => l10n.lkPindaiMarkerHilang,
+            GagalPindai.geometriMeleset => l10n.lkPindaiTerlaluMiring,
+          }),
+        ),
+      );
+    } catch (_) {
+      if (mounted) {
+        messenger.showSnackBar(SnackBar(content: Text(l10n.lkPindaiGagalFoto)));
+      }
+    } finally {
+      if (mounted) setState(() => _sibuk = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final template = ref.watch(
-      worksheetTemplateProvider((kode: profil, equipmentId: equipmentId)),
+      worksheetTemplateProvider((
+        kode: widget.profil,
+        equipmentId: widget.equipmentId,
+      )),
     );
 
     // Gagal narik template NGGAK ditampilin sebagai error: ini jalan pintas,
@@ -1378,8 +1476,16 @@ class _TombolPindaiLembar extends ConsumerWidget {
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
-            onPressed: data.siapPindai ? () {} : null,
-            icon: const Icon(Icons.document_scanner_outlined, size: 18),
+            onPressed: data.siapPindai && !_sibuk
+                ? () => _pindai(data)
+                : null,
+            icon: _sibuk
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.document_scanner_outlined, size: 18),
             label: Text(l10n.lkPindaiLembar),
           ),
         ),

@@ -904,6 +904,22 @@
   "@lkAkhir": {
     "description": "Baris pengukuran akhir di tabel kondisi lingkungan."
   },
+  "lkPindaiGagalFoto": "Foto tidak bisa dibaca. Coba jepret ulang.",
+  "@lkPindaiGagalFoto": {
+    "description": "Pesan waktu foto gagal didekode atau pindai gagal karena sebab tak terduga."
+  },
+  "lkPindaiTanpaGeometri": "Koordinat sel lembar ini belum ada di server.",
+  "@lkPindaiTanpaGeometri": {
+    "description": "Pesan waktu template belum punya koordinat sel."
+  },
+  "lkPindaiMarkerHilang": "Empat penanda sudut tidak ketemu. Pastikan seluruh lembar masuk frame dan cukup terang.",
+  "@lkPindaiMarkerHilang": {
+    "description": "Pesan waktu empat penanda sudut tidak ditemukan di foto."
+  },
+  "lkPindaiTerlaluMiring": "Fotonya terlalu miring. Jepret lebih tegak lurus di atas lembar.",
+  "@lkPindaiTerlaluMiring": {
+    "description": "Pesan waktu geometri foto meleset terlalu jauh."
+  },
   "lkRepeat": "Repeat",
   "lkUsageCheckKosong": "Belum ada standar acuan di master data.",
   "lkUsageCheckKeterangan": "Keterangan",
