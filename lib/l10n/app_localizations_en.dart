@@ -2769,6 +2769,106 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkBagianBelumBisaDiisi => 'NOT FILLABLE YET';
 
   @override
+  String get pindaiReviewJudul => 'Check Scan Result';
+
+  @override
+  String pindaiRingkasan(int total, int kuning, int merah, int kosong) {
+    return '$total cells read · $kuning need checking · $merah unreadable · $kosong empty';
+  }
+
+  @override
+  String get pindaiCatatanKuning =>
+      'Handwriting is never marked safe automatically — so it\'s normal for almost every cell to need checking. Compare each number with the cropped photo beside it.';
+
+  @override
+  String get pindaiPakaiAngka => 'USE THESE NUMBERS';
+
+  @override
+  String get pindaiDitahanServer =>
+      'Some cells could not be read. Fix them, or type the sheet manually.';
+
+  @override
+  String pindaiRepeat(int nomor) {
+    return 'Repeat $nomor';
+  }
+
+  @override
+  String pindaiTerbaca(String teks) {
+    return 'Read as: $teks';
+  }
+
+  @override
+  String pindaiNormalisasi(String catatan) {
+    return 'Server adjusted: $catatan';
+  }
+
+  @override
+  String pindaiKoreksiGagal(String pesan) {
+    return 'The numbers were kept, but the correction log failed to send: $pesan';
+  }
+
+  @override
+  String get pindaiAlasanMeluber =>
+      'the writing spills out of its box and may have been read from the next column';
+
+  @override
+  String get pindaiAlasanLuarRentang =>
+      'the number is outside the sensible range for this point';
+
+  @override
+  String get pindaiAlasanMagnitudo =>
+      'the number is far from this point’s standard value';
+
+  @override
+  String get pindaiAlasanKoreksiKarakter => 'a letter was guessed as a digit';
+
+  @override
+  String get pindaiAlasanDesimalBanyak =>
+      'more decimals than the instrument resolution';
+
+  @override
+  String get pindaiAlasanBukanKelipatan =>
+      'an instrument with this resolution cannot produce that number';
+
+  @override
+  String get pindaiAlasanJauhDariRepeat =>
+      'far off from the other repeats in this row';
+
+  @override
+  String get pindaiAlasanSebarTakDiuji =>
+      'too few repeats were read to compare';
+
+  @override
+  String get pindaiAlasanBanyakSubstitusi =>
+      'too many characters had to be guessed';
+
+  @override
+  String get pindaiAlasanKarakterAsing =>
+      'contains a character that is not a digit';
+
+  @override
+  String get pindaiAlasanBentukTakWajar =>
+      'the number shape does not make sense';
+
+  @override
+  String get pindaiAlasanDigitBanyak => 'too many digits for this column';
+
+  @override
+  String get pindaiAlasanPemisahTakWajar =>
+      'the decimal separator sits in an odd place';
+
+  @override
+  String get pindaiAlasanDesimalAmbigu =>
+      'unclear whether that dot is a decimal point or a thousands separator';
+
+  @override
+  String get pindaiAlasanMinusTengah =>
+      'a minus sign in the middle of the number';
+
+  @override
+  String get pindaiAlasanMinusTakBoleh => 'this column cannot be negative';
+
+  @override
   String get lkPindaiLembar => 'SCAN WORKSHEET';
 
   @override

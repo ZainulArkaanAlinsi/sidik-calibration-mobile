@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import '../models/worksheet_scan.dart';
 import '../models/worksheet_template.dart';
 import 'api_client.dart';
@@ -42,6 +44,16 @@ abstract class WorksheetScanService {
   /// nggak ada bukti bacanya bener, dan sel hijau yang salah nggak akan pernah
   /// ketahuan.
   Future<void> kirimKoreksi(String token, int scanId, List<KoreksiSel> koreksi);
+
+  /// Potongan citra satu sel, JPEG mentah.
+  ///
+  /// Ditarik lewat [ApiClient.ambilBytes], bukan `Image.network`: endpointnya
+  /// di balik auth dan `Image.network` nggak bawa header `Authorization`.
+  ///
+  /// Balasannya `Cache-Control: private` dan berisi data pelanggan — boleh
+  /// nempel di memori selama layar hidup, **jangan** ditulis ke penyimpanan
+  /// bersama, galeri, atau folder yang ikut ter-backup ke cloud.
+  Future<Uint8List?> cropSel(String token, int scanId, String kunci);
 
   /// URL potongan citra satu sel — dipakai layar review buat mbandingin angka
   /// bacaan mesin sama coretan aslinya di layar yang sama.
@@ -106,6 +118,10 @@ class ApiWorksheetScanService implements WorksheetScanService {
   }
 
   @override
+  Future<Uint8List?> cropSel(String token, int scanId, String kunci) =>
+      _api.ambilBytes(urlCrop(scanId, kunci), token: token);
+
+  @override
   String urlCrop(int scanId, String kunci) =>
       '/worksheet-scans/$scanId/sel/${Uri.encodeComponent(kunci)}/crop';
 }
@@ -117,7 +133,11 @@ class ApiWorksheetScanService implements WorksheetScanService {
 /// asli. Itu bukan kekurangan mock — itu keadaan yang wajib kehandle layar,
 /// dan yang paling gampang kelewat kalau mock-nya optimistis.
 class MockWorksheetScanService implements WorksheetScanService {
-  MockWorksheetScanService({this.siapPindai = false, this.hasil});
+  MockWorksheetScanService({this.siapPindai = false, this.hasil, this.crop});
+
+  /// Byte potongan sel yang dibalikin [cropSel]. `null` = server belum punya
+  /// citranya (citra audit boleh gagal naik tanpa mbatalin hasil pindai).
+  final Uint8List? crop;
 
   final bool siapPindai;
 
@@ -167,6 +187,10 @@ class MockWorksheetScanService implements WorksheetScanService {
   ) async {
     koreksiTerkirim.add(koreksi);
   }
+
+  @override
+  Future<Uint8List?> cropSel(String token, int scanId, String kunci) async =>
+      crop;
 
   @override
   String urlCrop(int scanId, String kunci) =>

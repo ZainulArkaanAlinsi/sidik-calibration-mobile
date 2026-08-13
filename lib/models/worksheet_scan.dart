@@ -161,7 +161,14 @@ class BarisPindai {
     // Urutannya dari `pengulangan` TABEL, bukan dari urutan array yang datang —
     // sama aturannya kayak kunci sel: nggak ada satu pun tahap yang boleh
     // ngandelin urutan array.
-    final urut = urutan.isEmpty ? perRepeat.keys.toList() : urutan;
+    //
+    // Respons pindai yang sekarang NGGAK ngirim `pengulangan` di level tabel
+    // (`PemrosesScanLembarKerja::susunPerTabel` cuma ngirim tabel_id/tahap/
+    // grup/judul/baris), jadi jatuhnya ke nomor Repeat yang diurut naik —
+    // deterministik, dan tetap nggak ngandelin urutan array.
+    final urut = urutan.isEmpty
+        ? (perRepeat.keys.toList()..sort())
+        : urutan;
 
     return BarisPindai(
       barisKe: (json['baris_ke'] as num?)?.toInt() ?? 0,

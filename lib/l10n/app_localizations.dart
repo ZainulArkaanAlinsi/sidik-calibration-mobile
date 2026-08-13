@@ -5090,6 +5090,156 @@ abstract class AppLocalizations {
   /// **'NOT FILLABLE YET'**
   String get lkBagianBelumBisaDiisi;
 
+  /// No description provided for @pindaiReviewJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Check Scan Result'**
+  String get pindaiReviewJudul;
+
+  /// No description provided for @pindaiRingkasan.
+  ///
+  /// In en, this message translates to:
+  /// **'{total} cells read · {kuning} need checking · {merah} unreadable · {kosong} empty'**
+  String pindaiRingkasan(int total, int kuning, int merah, int kosong);
+
+  /// No description provided for @pindaiCatatanKuning.
+  ///
+  /// In en, this message translates to:
+  /// **'Handwriting is never marked safe automatically — so it\'s normal for almost every cell to need checking. Compare each number with the cropped photo beside it.'**
+  String get pindaiCatatanKuning;
+
+  /// No description provided for @pindaiPakaiAngka.
+  ///
+  /// In en, this message translates to:
+  /// **'USE THESE NUMBERS'**
+  String get pindaiPakaiAngka;
+
+  /// No description provided for @pindaiDitahanServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Some cells could not be read. Fix them, or type the sheet manually.'**
+  String get pindaiDitahanServer;
+
+  /// No description provided for @pindaiRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat {nomor}'**
+  String pindaiRepeat(int nomor);
+
+  /// No description provided for @pindaiTerbaca.
+  ///
+  /// In en, this message translates to:
+  /// **'Read as: {teks}'**
+  String pindaiTerbaca(String teks);
+
+  /// No description provided for @pindaiNormalisasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Server adjusted: {catatan}'**
+  String pindaiNormalisasi(String catatan);
+
+  /// No description provided for @pindaiKoreksiGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The numbers were kept, but the correction log failed to send: {pesan}'**
+  String pindaiKoreksiGagal(String pesan);
+
+  /// No description provided for @pindaiAlasanMeluber.
+  ///
+  /// In en, this message translates to:
+  /// **'the writing spills out of its box and may have been read from the next column'**
+  String get pindaiAlasanMeluber;
+
+  /// No description provided for @pindaiAlasanLuarRentang.
+  ///
+  /// In en, this message translates to:
+  /// **'the number is outside the sensible range for this point'**
+  String get pindaiAlasanLuarRentang;
+
+  /// No description provided for @pindaiAlasanMagnitudo.
+  ///
+  /// In en, this message translates to:
+  /// **'the number is far from this point’s standard value'**
+  String get pindaiAlasanMagnitudo;
+
+  /// No description provided for @pindaiAlasanKoreksiKarakter.
+  ///
+  /// In en, this message translates to:
+  /// **'a letter was guessed as a digit'**
+  String get pindaiAlasanKoreksiKarakter;
+
+  /// No description provided for @pindaiAlasanDesimalBanyak.
+  ///
+  /// In en, this message translates to:
+  /// **'more decimals than the instrument resolution'**
+  String get pindaiAlasanDesimalBanyak;
+
+  /// No description provided for @pindaiAlasanBukanKelipatan.
+  ///
+  /// In en, this message translates to:
+  /// **'an instrument with this resolution cannot produce that number'**
+  String get pindaiAlasanBukanKelipatan;
+
+  /// No description provided for @pindaiAlasanJauhDariRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'far off from the other repeats in this row'**
+  String get pindaiAlasanJauhDariRepeat;
+
+  /// No description provided for @pindaiAlasanSebarTakDiuji.
+  ///
+  /// In en, this message translates to:
+  /// **'too few repeats were read to compare'**
+  String get pindaiAlasanSebarTakDiuji;
+
+  /// No description provided for @pindaiAlasanBanyakSubstitusi.
+  ///
+  /// In en, this message translates to:
+  /// **'too many characters had to be guessed'**
+  String get pindaiAlasanBanyakSubstitusi;
+
+  /// No description provided for @pindaiAlasanKarakterAsing.
+  ///
+  /// In en, this message translates to:
+  /// **'contains a character that is not a digit'**
+  String get pindaiAlasanKarakterAsing;
+
+  /// No description provided for @pindaiAlasanBentukTakWajar.
+  ///
+  /// In en, this message translates to:
+  /// **'the number shape does not make sense'**
+  String get pindaiAlasanBentukTakWajar;
+
+  /// No description provided for @pindaiAlasanDigitBanyak.
+  ///
+  /// In en, this message translates to:
+  /// **'too many digits for this column'**
+  String get pindaiAlasanDigitBanyak;
+
+  /// No description provided for @pindaiAlasanPemisahTakWajar.
+  ///
+  /// In en, this message translates to:
+  /// **'the decimal separator sits in an odd place'**
+  String get pindaiAlasanPemisahTakWajar;
+
+  /// No description provided for @pindaiAlasanDesimalAmbigu.
+  ///
+  /// In en, this message translates to:
+  /// **'unclear whether that dot is a decimal point or a thousands separator'**
+  String get pindaiAlasanDesimalAmbigu;
+
+  /// No description provided for @pindaiAlasanMinusTengah.
+  ///
+  /// In en, this message translates to:
+  /// **'a minus sign in the middle of the number'**
+  String get pindaiAlasanMinusTengah;
+
+  /// No description provided for @pindaiAlasanMinusTakBoleh.
+  ///
+  /// In en, this message translates to:
+  /// **'this column cannot be negative'**
+  String get pindaiAlasanMinusTakBoleh;
+
   /// No description provided for @lkPindaiLembar.
   ///
   /// In en, this message translates to:

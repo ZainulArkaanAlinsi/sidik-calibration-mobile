@@ -2756,6 +2756,103 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkBagianBelumBisaDiisi => 'BELUM BISA DIISI';
 
   @override
+  String get pindaiReviewJudul => 'Cek Hasil Pindai';
+
+  @override
+  String pindaiRingkasan(int total, int kuning, int merah, int kosong) {
+    return '$total sel dibaca · $kuning perlu dicek · $merah nggak kebaca · $kosong kosong';
+  }
+
+  @override
+  String get pindaiCatatanKuning =>
+      'Tulisan tangan nggak pernah ditandai aman otomatis — jadi wajar kalau hampir semuanya perlu dicek. Cocokin angkanya sama potongan foto di sebelahnya.';
+
+  @override
+  String get pindaiPakaiAngka => 'PAKAI ANGKA INI';
+
+  @override
+  String get pindaiDitahanServer =>
+      'Masih ada sel yang nggak kebaca. Betulin dulu, atau ketik manual di lembar kerjanya.';
+
+  @override
+  String pindaiRepeat(int nomor) {
+    return 'Repeat $nomor';
+  }
+
+  @override
+  String pindaiTerbaca(String teks) {
+    return 'Terbaca: $teks';
+  }
+
+  @override
+  String pindaiNormalisasi(String catatan) {
+    return 'Dibetulkan server: $catatan';
+  }
+
+  @override
+  String pindaiKoreksiGagal(String pesan) {
+    return 'Angkanya kepakai, tapi catatan koreksinya gagal dikirim: $pesan';
+  }
+
+  @override
+  String get pindaiAlasanMeluber =>
+      'tulisannya keluar dari kotak, bisa jadi kebaca dari kolom sebelah';
+
+  @override
+  String get pindaiAlasanLuarRentang =>
+      'angkanya di luar rentang wajar titik ini';
+
+  @override
+  String get pindaiAlasanMagnitudo =>
+      'angkanya jauh dari nilai standar titik ini';
+
+  @override
+  String get pindaiAlasanKoreksiKarakter => 'ada huruf yang ditebak jadi angka';
+
+  @override
+  String get pindaiAlasanDesimalBanyak =>
+      'desimalnya lebih banyak dari resolusi alat';
+
+  @override
+  String get pindaiAlasanBukanKelipatan =>
+      'angkanya nggak mungkin keluar dari alat dengan resolusi ini';
+
+  @override
+  String get pindaiAlasanJauhDariRepeat =>
+      'angkanya jauh beda dari Repeat lain di baris ini';
+
+  @override
+  String get pindaiAlasanSebarTakDiuji =>
+      'Repeat yang kebaca terlalu sedikit buat dibandingin';
+
+  @override
+  String get pindaiAlasanBanyakSubstitusi =>
+      'terlalu banyak huruf yang harus ditebak';
+
+  @override
+  String get pindaiAlasanKarakterAsing => 'ada karakter yang bukan angka';
+
+  @override
+  String get pindaiAlasanBentukTakWajar => 'bentuk angkanya nggak masuk akal';
+
+  @override
+  String get pindaiAlasanDigitBanyak => 'digitnya kebanyakan buat kolom ini';
+
+  @override
+  String get pindaiAlasanPemisahTakWajar => 'letak koma/titiknya nggak wajar';
+
+  @override
+  String get pindaiAlasanDesimalAmbigu =>
+      'nggak jelas titik itu koma desimal atau pemisah ribuan';
+
+  @override
+  String get pindaiAlasanMinusTengah => 'ada tanda minus di tengah angka';
+
+  @override
+  String get pindaiAlasanMinusTakBoleh =>
+      'kolom ini nggak boleh bernilai negatif';
+
+  @override
   String get lkPindaiLembar => 'PINDAI LEMBAR KERJA';
 
   @override
