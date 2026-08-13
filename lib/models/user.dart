@@ -55,6 +55,7 @@ class User {
     required this.nama,
     required this.email,
     required this.employeeId,
+    this.kodeTeknisi,
     required this.role,
     required this.status,
     required this.organizationId,
@@ -67,6 +68,15 @@ class User {
 
   /// Nomor pegawai, mis. `SDK-0001`. Bisa dipakai buat login (selain email).
   final String employeeId;
+
+  /// "Technician ID" yang tercetak di lembar kerja & sertifikat — inisial
+  /// (`JO`), bukan `SDK-0001`.
+  ///
+  /// Datang dari backend (`User::kodeTeknisi()`), BUKAN dipotong dari nama di
+  /// sini: yang dibekukan ke snapshot sertifikat juga lewat fungsi itu, dan dua
+  /// tempat yang sama-sama "motong dua huruf pertama" cepat atau lambat beda —
+  /// mis. buat akun yang `kode_teknisi`-nya diisi manual admin.
+  final String? kodeTeknisi;
 
   final UserRole role;
   final UserStatus status;
@@ -84,6 +94,7 @@ class User {
       nama: json['nama'] as String,
       email: json['email'] as String,
       employeeId: json['employee_id'] as String,
+      kodeTeknisi: json['kode_teknisi'] as String?,
       role: UserRole.fromApi(json['role'] as String),
       // Backend lama yang belum ngirim `status` dianggap aktif — biar app
       // nggak ngunci semua orang gara-gara satu field belum ada.

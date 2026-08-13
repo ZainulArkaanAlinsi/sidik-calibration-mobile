@@ -720,6 +720,7 @@ class LembarKerjaState {
     isiTeks('pemilik_nama', isi.pemilikNama);
     isiTeks('pemilik_alamat', isi.pemilikAlamat);
     isiTeks('catatan_teknisi', isi.catatanTeknisi);
+    isiTeks('lokasi_nama', isi.lokasiNama);
 
     // Kuncinya dari bentuk lembar kerja, jadi kolom yang udah nggak ada di
     // bentuk baru dilewat begitu aja — bukan bikin controller yatim.
@@ -960,6 +961,7 @@ class LembarKerjaState {
       standardId: standardId,
       roomId: roomId,
       lokasi: lokasi,
+      lokasiNama: kalimat('lokasi_nama'),
       tanggalKalibrasi: tanggal['tanggal_kalibrasi'],
       tanggalTerima: tanggal['tanggal_terima'],
       suhuAwal: angka('suhu_awal'),
@@ -1369,7 +1371,12 @@ class LembarKerjaState {
     return x == y || (x.contains('brix') && y.contains('brix'));
   }
 
-  String nilaiTurunan(String kode, {String? namaTeknisi, String? namaReviewer}) {
+  String nilaiTurunan(
+    String kode, {
+    String? namaTeknisi,
+    String? namaReviewer,
+    String? kodeTeknisi,
+  }) {
     return switch (kode) {
       'equipment.nama_alat' => alat?.namaAlat ?? '',
       'equipment.range_resolusi' => alat?.rangeResolusi ?? '',
@@ -1379,6 +1386,10 @@ class LembarKerjaState {
       'customer.nama' => alat?.pelangganNama ?? '',
       'customer.alamat' => alat?.pelangganAlamat ?? '',
       'teknisi.nama' => namaTeknisi ?? '',
+      // "Technician ID" — inisial dari akun yang lagi login, dikirim backend.
+      // Teknisi cuma lihat: yang kecetak di sertifikat diambil dari sesi, jadi
+      // ngasih kotak isian di sini cuma bikin dua sumber yang bisa beda.
+      'teknisi.kode' => kodeTeknisi ?? '',
       // "Checked by" sengaja kosong sampai admin nyetujuin — biar nggak ada
       // yang bisa ngaku-ngaku udah diperiksa.
       'reviewer.nama' => namaReviewer ?? '',

@@ -449,6 +449,7 @@ class IsianTeknisi {
     this.thermohygroStandardId,
     this.tanggalTerima,
     this.lokasi,
+    this.lokasiNama,
     this.catatanTeknisi,
     this.alatModel,
     this.alatSerialNumber,
@@ -471,6 +472,9 @@ class IsianTeknisi {
   final int? thermohygroStandardId;
   final DateTime? tanggalTerima;
   final String? lokasi;
+
+  /// Nama tempat buat sesi `onsite` — `PT. LDC` di `Insitu (PT. LDC)`.
+  final String? lokasiNama;
   final String? catatanTeknisi;
 
   final String? alatModel;
@@ -533,6 +537,7 @@ class IsianTeknisi {
           ? null
           : DateTime.tryParse(tanggalTerima),
       lokasi: json['lokasi'] as String?,
+      lokasiNama: json['lokasi_nama'] as String?,
       catatanTeknisi: json['catatan_teknisi'] as String?,
       spesifikasiAlat: {
         for (final e in (json['spesifikasi_alat'] as Map<String, dynamic>? ??

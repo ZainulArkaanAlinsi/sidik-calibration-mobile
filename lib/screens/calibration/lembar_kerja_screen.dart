@@ -1198,7 +1198,14 @@ class _Bagian extends ConsumerWidget {
                 // Seluruh blok spesifikasi digambar bentuk cetak — termasuk
                 // yang cuma sekotak (`Kapasitas Max.`), biar ketiga barisnya
                 // sejajar kayak di kertas dan bukan campur dua gaya.
-                if (grup.first.spesifikasiAlat)
+                // Nama tempat cuma ditanyain kalau kalibrasinya DI LUAR lab.
+                // Sesi in-lab yang nyimpen nama tempat bikin sertifikatnya
+                // nulis `Insitu (…)` buat kerjaan yang nggak pernah keluar
+                // gedung.
+                if (grup.first.kode == 'lokasi_nama' &&
+                    isian.lokasi != LokasiKalibrasi.onsite)
+                  const SizedBox.shrink()
+                else if (grup.first.spesifikasiAlat)
                   _BarisSpesifikasi(field: grup, isian: isian)
                 else
                   _Field(field: grup.first, isian: isian, onBerubah: onBerubah),
@@ -1698,7 +1705,11 @@ class _Field extends ConsumerWidget {
       final user = ref.watch(authProvider).value;
       return _Readonly(
         label: field.label,
-        nilai: isian.nilaiTurunan(field.kode, namaTeknisi: user?.nama),
+        nilai: isian.nilaiTurunan(
+          field.kode,
+          namaTeknisi: user?.nama,
+          kodeTeknisi: user?.kodeTeknisi,
+        ),
         satuan: field.satuan,
       );
     }

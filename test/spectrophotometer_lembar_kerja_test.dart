@@ -218,6 +218,49 @@ void main() {
     });
   });
 
+  group('kop lembar', () {
+    /// Technician ID ngikut akun yang login, dan lokasi Insitu bawa nama
+    /// tempatnya.
+    ///
+    /// Dua-duanya kecetak di sertifikat: `Technician ID : JO` dan
+    /// `Calibration Location : Insitu (PT. LDC)`. Tanpa nama tempat, dokumen
+    /// nggak bisa ditelusuri balik ke kunjungan mana.
+    testWidgets('technician id otomatis, nama lokasi muncul waktu Insitu', (
+      tester,
+    ) async {
+      final service = await _bukaLembar(tester);
+      await _pilihAlat(tester);
+
+      // Inisial datang dari backend (`kode_teknisi` di `/me`), bukan dipotong
+      // di layar — MockAuthService ngirim `BS` buat Budi Santoso.
+      expect(find.text('Technician ID'), findsOneWidget);
+      expect(find.text('BS'), findsOneWidget);
+
+      // Sesi in-lab NGGAK nanyain nama tempat: sertifikatnya bakal nulis
+      // `Insitu (…)` buat kerjaan yang nggak pernah keluar gedung.
+      expect(find.text('Nama Lokasi (kalau Insitu)'), findsNothing);
+
+      await tester.tap(find.text('In lab'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Insitu').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nama Lokasi (kalau Insitu)'), findsOneWidget);
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Nama Lokasi (kalau Insitu)'),
+        'PT. LDC',
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
+      await tester.pumpAndSettle();
+
+      expect(service.payloadTerakhir!['lokasi'], 'onsite');
+      expect(service.payloadTerakhir!['lokasi_nama'], 'PT. LDC');
+    });
+  });
+
   group('kirim lembar', () {
     /// Bisa nggak lembarnya BENERAN dikirim sesudah diisi?
     ///

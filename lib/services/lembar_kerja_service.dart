@@ -1253,6 +1253,9 @@ Map<String, dynamic> contohBentukLembarKerjaSpectro({bool untukAdmin = false}) {
           {'nilai': 'lab', 'label': 'In lab'},
           {'nilai': 'onsite', 'label': 'Insitu'},
         ]),
+        // Sertifikat nulis `Insitu (PT. LDC)` — nama tempatnya diketik teknisi.
+        field('lokasi_nama', 'Nama Lokasi (kalau Insitu)', 'teks'),
+        field('teknisi.kode', 'Technician ID', 'teks', sumber: 'otomatis'),
         field('room_id', 'Ruangan', 'pilihan', sumber: 'master_ruangan'),
         if (untukAdmin)
           field('calibration_method_id', '2. Calibration Methode', 'pilihan',

@@ -109,6 +109,7 @@ class LembarKerjaSubmission {
     this.standardId,
     this.roomId,
     this.lokasi = LokasiKalibrasi.lab,
+    this.lokasiNama,
     this.tanggalKalibrasi,
     this.tanggalTerima,
     this.suhuAwal,
@@ -194,6 +195,9 @@ class LembarKerjaSubmission {
   /// juga teks, bukan hasil hitung, dan `0-100` emang bukan angka.
   final Map<String, String> spesifikasiAlat;
 
+  /// Nama tempat kalibrasi buat sesi `onsite`, mis. `PT. LDC`.
+  final String? lokasiNama;
+
   final List<StandarDicek> standarDicek;
   final List<TitikLembarKerja> measurements;
 
@@ -217,6 +221,10 @@ class LembarKerjaSubmission {
     'client_request_id': clientRequestId,
     'input_method': inputMethod.api,
     'lokasi': lokasi.toApi(),
+    // Nama tempat buat sesi Insitu — yang tercetak `Insitu (PT. LDC)` di
+    // sertifikat. Dikirim eksplisit (termasuk null) biar `PUT` bisa
+    // ngosongin waktu sesinya dipindah balik ke lab.
+    'lokasi_nama': lokasiNama,
     'status': simpanSebagaiDraft ? 'draft' : 'menunggu_approval',
 
     // Tanggal dikirim sebagai tanggal lokal (YYYY-MM-DD), bukan ISO UTC.
