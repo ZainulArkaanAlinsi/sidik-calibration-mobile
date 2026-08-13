@@ -3502,10 +3502,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get detailTanpaVonis => 'NOT JUDGED';
+  String get detailTanpaVonis => 'NO PASS/FAIL';
 
   @override
-  String get statusTanpaKeputusan => 'Not assessed';
+  String get statusTanpaKeputusan => 'No pass/fail';
 
   @override
   String get detailEditAdmin => 'EDIT SHEET';

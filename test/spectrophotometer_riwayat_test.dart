@@ -165,7 +165,7 @@ void main() {
       // badge-nya masih `== FAIL ? FAIL : PASS`, sesi Spectrophotometer
       // kebaca "LULUS" di layar sertifikat — dokumen yang dipegang pelanggan.
       expect(find.text('LULUS'), findsNothing);
-      expect(find.text('Tanpa keputusan'), findsOneWidget);
+      expect(find.text('Tanpa PASS/FAIL'), findsOneWidget);
     });
 
     testWidgets('tabel laporan misahin kelompok lewat kolom Remark', (

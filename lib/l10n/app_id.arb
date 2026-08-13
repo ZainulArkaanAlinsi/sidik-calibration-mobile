@@ -1217,7 +1217,7 @@
   "@lkPembacaanJauhDariTitik": {"placeholders": {"titik": {"type": "String"}}},
   "detailTanpaVonis": "TANPA VONIS",
   "@detailTanpaVonis": {"description": "Badge titik pada alat yang tidak dinilai PASS/FAIL (tidak punya batas toleransi)"},
-  "statusTanpaKeputusan": "Tanpa keputusan",
+  "statusTanpaKeputusan": "Tanpa PASS/FAIL",
   "detailEditAdmin": "EDIT LEMBAR",
   "detailPerbaikiRevisi": "PERBAIKI LEMBAR KERJA",
   "lkTitikAlternatifSatuan": "Alternatif satuan dari botol yang sama — sudah diisi di baris satunya",

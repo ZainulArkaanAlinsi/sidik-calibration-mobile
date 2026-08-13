@@ -3477,7 +3477,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get detailTanpaVonis => 'TANPA VONIS';
 
   @override
-  String get statusTanpaKeputusan => 'Tanpa keputusan';
+  String get statusTanpaKeputusan => 'Tanpa PASS/FAIL';
 
   @override
   String get detailEditAdmin => 'EDIT LEMBAR';

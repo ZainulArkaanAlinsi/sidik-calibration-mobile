@@ -6371,13 +6371,13 @@ abstract class AppLocalizations {
   /// Badge for a point on an instrument that is not assessed PASS/FAIL (no tolerance limit)
   ///
   /// In en, this message translates to:
-  /// **'NOT JUDGED'**
+  /// **'NO PASS/FAIL'**
   String get detailTanpaVonis;
 
   /// No description provided for @statusTanpaKeputusan.
   ///
   /// In en, this message translates to:
-  /// **'Not assessed'**
+  /// **'No pass/fail'**
   String get statusTanpaKeputusan;
 
   /// No description provided for @detailEditAdmin.
