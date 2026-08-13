@@ -79,8 +79,23 @@ void main() {
       expect(formatSertifikat(transmitan.unitUnderTest, transmitan.desimalEfektif(d)), '9,665');
       expect(formatSertifikat(transmitan.correction, transmitan.desimalEfektif(d)), '0,235');
     });
-  });
 
+    test('baris U95 %T dicetak dua desimal, kolom lain tetap tiga', () {
+      final snapshot = CertificateSnapshot.fromJson(_snapshotAsli);
+      final transmitan = snapshot.hasil[2];
+      final d = snapshot.desimal;
+
+      // Master nulis `0,50 %T` di baris U95, tapi `9,665` di kolom UUT — dua
+      // angka, dua format, satu tabel. Yang nentuin dokumen resminya.
+      expect(transmitan.desimal, 3);
+      expect(transmitan.desimalU95, 2);
+      expect(formatSertifikat(transmitan.u95, transmitan.desimalU95!), '0,50');
+      expect(
+        formatSertifikat(transmitan.unitUnderTest, transmitan.desimalEfektif(d)),
+        '9,665',
+      );
+    });
+  });
 
   group('layar detail sesi', () {
     /// Layar ini yang dipakai admin sebelum nerbitin sertifikat, dan dulu cuma
@@ -293,6 +308,9 @@ const _snapshotAsli = <String, dynamic>{
       'u95': 0.5,
       'satuan': '%T',
       'desimal': 3,
+      // Baris U95 blok %T dicetak DUA desimal (`0,50`) sementara kolom UUT &
+      // Correction pakai tiga (`9,665`) — diadu ke `SERTIFIKAT.csv` master.
+      'desimal_u95': 2,
       'tanda_nol': true,
       'remark': 'Accuracy %T and Linierity at λ = 560nm',
     },

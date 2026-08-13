@@ -77,6 +77,7 @@ class BarisHasilSertifikat {
     this.satuan,
     this.tandaNol = true,
     this.faktorCakupanK,
+    this.desimalU95,
   });
 
   final int titikKe;
@@ -140,6 +141,16 @@ class BarisHasilSertifikat {
   /// dikosongin, bukan diisi angka karangan.
   final double? faktorCakupanK;
 
+  /// Desimal khusus baris `Uncertainty U95% = ±`, kalau alat ini nyetaknya beda
+  /// dari kolom hasil di atasnya.
+  ///
+  /// Master Spectrophotometer nulis `0,50 %T` sementara kolom UUT & Correction
+  /// di blok yang sama pakai TIGA desimal (`9,665`). Dua angka, dua format,
+  /// satu tabel — dan yang nentuin dokumen resminya.
+  ///
+  /// `null` = ikut [desimal] titik, persis perilaku lama.
+  final int? desimalU95;
+
   /// Kolom "Remark" di sertifikat cetak. `null` buat alat yang nggak punya —
   /// dan waktu SEMUA baris null, kolomnya nggak dirender sama sekali (sama
   /// kayak `pdf.blade.php`), bukan dirender berisi strip.
@@ -164,6 +175,7 @@ class BarisHasilSertifikat {
         satuan: json['satuan'] as String?,
         tandaNol: json['tanda_nol'] as bool? ?? true,
         faktorCakupanK: (json['faktor_cakupan_k'] as num?)?.toDouble(),
+        desimalU95: (json['desimal_u95'] as num?)?.toInt(),
       );
 }
 

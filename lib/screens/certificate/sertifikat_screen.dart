@@ -367,7 +367,9 @@ class _TabelHasil extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: Text(
                   '${l10n.sertU95Baris} '
-                  '${formatSertifikat(e.value.first.u95, e.value.first.desimalEfektif(d))}'
+                  // Desimal U95 punya jalurnya sendiri — lihat
+                  // [BarisHasilSertifikat.desimalU95].
+                  '${formatSertifikat(e.value.first.u95, e.value.first.desimalU95 ?? e.value.first.desimalEfektif(d))}'
                   '${e.value.first.satuan == null ? '' : ' ${e.value.first.satuan}'}',
                   style: theme.textTheme.labelSmall?.copyWith(
                     fontWeight: FontWeight.w700,
