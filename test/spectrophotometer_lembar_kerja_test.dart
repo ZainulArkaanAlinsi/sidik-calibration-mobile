@@ -110,6 +110,84 @@ void main() {
     });
   });
 
+  group('kirim lembar', () {
+    /// Bisa nggak lembarnya BENERAN dikirim sesudah diisi?
+    ///
+    /// Panel pratinjau & tabelnya boleh jadi bener semua, tapi tombol kirim
+    /// punya penjaganya sendiri (suhu, pembacaan yang meleset satu orde, isian
+    /// yatim) — dan penjaga itu ditulis waktu belum ada alat berkelompok. Yang
+    /// dibuktiin di sini: 24 baris terisi lewat, dan yang nyampe service persis
+    /// bentuk yang diminta backend.
+    testWidgets('24 titik terisi lolos penjaga dan kekirim utuh', (
+      tester,
+    ) async {
+      final service = await _bukaLembar(tester);
+      await _pilihAlat(tester);
+
+      final bentuk = LembarKerja.fromJson(contohBentukLembarKerjaSpectro());
+      final tabel = bentuk.bagianHasil!.tabel;
+
+      // Diisi PERSIS di nominalnya: penjaga `titikPembacaanJauh` nolak
+      // pembacaan yang melesetnya 10x dari nilai titik, dan itu penjaga yang
+      // bener — bukan yang mau dites di sini.
+      for (var t = 0; t < tabel.length; t++) {
+        final kotak = find.descendant(
+          of: find.byType(LembarKerjaTabel).at(t),
+          matching: find.byType(TextField),
+        );
+        final kolom = tabel[t].pengulangan.length;
+
+        for (var baris = 0; baris < tabel[t].baris.length; baris++) {
+          for (var ulang = 0; ulang < kolom; ulang++) {
+            await tester.enterText(
+              kotak.at(baris * kolom + ulang),
+              '${tabel[t].baris[baris].titikUkur}',
+            );
+          }
+        }
+      }
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      // Dialog konfirmasi angka muncul dulu — kiriman yang nggak disetujui
+      // teknisi nggak boleh berangkat.
+      expect(find.text('Cek dulu angkanya sebelum dikirim'), findsOneWidget);
+      expect(service.jumlahKirim, 0);
+
+      await tester.tap(find.text('Kirim sekarang'));
+      await tester.pumpAndSettle();
+
+      final body = service.payloadTerakhir!;
+      final measurements = (body['measurements'] as List)
+          .cast<Map<String, dynamic>>();
+
+      expect(service.jumlahKirim, 1);
+      expect(body['status'], 'menunggu_approval');
+      expect(measurements, hasLength(24));
+
+      // Satuan & standar per baris, panjang pembacaan ikut TABELnya: 3 buat
+      // panjang gelombang, 6 buat %T.
+      final holmium = measurements.firstWhere((m) => m['titik_ukur'] == 279.6);
+      final transmitan = measurements.firstWhere((m) => m['titik_ukur'] == 9.9);
+
+      expect(holmium['satuan'], 'nm');
+      expect(holmium['standard_id'], 25);
+      expect(holmium['pembacaan'], hasLength(3));
+      expect(transmitan['satuan'], '%T');
+      expect(transmitan['standard_id'], 27);
+      expect(transmitan['pembacaan'], hasLength(6));
+      expect(
+        measurements.every(
+          (m) => (m['pembacaan'] as List).every((x) => x != null),
+        ),
+        isTrue,
+        reason: 'nggak ada kotak yang diam-diam nggak kekirim',
+      );
+    });
+  });
+
   group('layar teknisi', () {
     testWidgets('blok %T dapat ENAM kotak per baris, bukan tiga', (
       tester,
@@ -187,3 +265,9 @@ Future<MockLembarKerjaService> _bukaLembar(
   return dipakai;
 }
 
+Future<void> _pilihAlat(WidgetTester tester) async {
+  await tester.tap(find.text('Pilih alat'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('pH Meter Mettler Toledo · B628755900').last);
+  await tester.pumpAndSettle();
+}
