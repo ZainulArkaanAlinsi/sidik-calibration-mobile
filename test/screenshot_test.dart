@@ -257,6 +257,37 @@ void main() {
     );
   });
 
+  /// Lembar kerja Spectrophotometer (`SIDIK-IK-CAL-0508_Rev.4`) — alat ke-6.
+  ///
+  /// Ini lembar yang bentuknya paling jauh dari lima alat sebelumnya: TIGA
+  /// tabel dalam satu bagian, kolom "No.", kepala `Std Value (λ1)` /
+  /// `Measurement Result` / `X1..X3`, kolom `λ (nm)` yang kegabung di blok %T,
+  /// dan tiap nilai standar %T menaungi DUA baris X1..X3.
+  ///
+  /// PNG-nya ada supaya bisa diadu langsung sama lembar cetaknya tanpa nyalain
+  /// HP — versi pertama layar ini "hijau di test" tapi susunannya nggak sama
+  /// sekali kayak kertas yang dipegang teknisi.
+  testWidgets('lembar kerja spectrophotometer', (tester) async {
+    tester.view.physicalSize = const Size(1200, 11000);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      _bungkus(
+        const LembarKerjaScreen(profil: 'spectrophotometer'),
+        mode: Brightness.light,
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byType(LembarKerjaScreen),
+      matchesGoldenFile('screenshots/lembar-kerja-spectrophotometer.png'),
+    );
+  });
+
   /// Lembar PERHITUNGAN — layar utama admin.
   ///
   /// Ada di sini karena ini layar yang paling lama dipelototin admin, dan

@@ -1130,14 +1130,17 @@ Map<String, dynamic> contohBentukLembarKerjaSpectro({bool untukAdmin = false}) {
   Map<String, dynamic> tabel(
     String grup,
     String judul,
+    String judulNilai,
     String satuan,
     double resolusi,
     int desimal,
     int standardId,
     String standardNama,
     List<double> nilai,
-    int pengulangan,
-  ) => {
+    int pengulangan, {
+    Map<String, String>? kolomTetap,
+    String? catatan,
+  }) => {
     // Alat ini nggak punya tahap adjustment — master-nya cuma sekali baca per
     // titik. `tahap` tetap dikirim backend sebagai identitas kolom isian, dan
     // ketiga tabelnya isinya SAMA. Aman karena tiap titik cuma punya satu
@@ -1146,11 +1149,23 @@ Map<String, dynamic> contohBentukLembarKerjaSpectro({bool untukAdmin = false}) {
     'grup': grup,
     'judul': judul,
     'satuan': satuan,
+    // Bentuk tabel seperti di lembar CETAK: kolom "No.", kepala kolom nilai
+    // standar, kepala gabungan kolom angka, dan awalan X1..X3. Blok %T nggak
+    // punya kolom "No." — kolom kirinya dipakai `λ (nm)` yang kegabung.
+    'nomor_baris': kolomTetap == null,
+    'judul_nilai': judulNilai,
+    'judul_pengulangan': 'Measurement Result',
+    'prefiks_pengulangan': 'X',
+    // Enam pengulangan %T digambar DUA baris X1..X3 di kertas.
+    'pengulangan_per_baris': 3,
+    'kolom_tetap': kolomTetap,
+    'catatan': catatan,
     'baris': [
       for (final n in nilai)
         {
           'titik_ukur': n,
-          'label': n.toStringAsFixed(desimal),
+          // Ditulis kayak di kertas: satu desimal, koma.
+          'label': n.toStringAsFixed(1).replaceAll('.', ','),
           'resolusi': resolusi,
           'desimal': desimal,
           'satuan': satuan,
@@ -1247,6 +1262,7 @@ Map<String, dynamic> contohBentukLembarKerjaSpectro({bool untukAdmin = false}) {
         tabel(
           'holmium',
           'Wave Length ( λ ) - Filter Holmium',
+          'Std Value (λ1)',
           'nm',
           0.01,
           2,
@@ -1258,6 +1274,7 @@ Map<String, dynamic> contohBentukLembarKerjaSpectro({bool untukAdmin = false}) {
         tabel(
           'didynium',
           'Wave Length ( λ ) - Filter Didynium',
+          'Std Value (λ1)',
           'nm',
           0.01,
           2,
@@ -1265,10 +1282,12 @@ Map<String, dynamic> contohBentukLembarKerjaSpectro({bool untukAdmin = false}) {
           'Filter Standard 2',
           const [475.2, 513.7, 529.7, 572.7, 585.7, 684.9, 738.5, 748, 806.1],
           3,
+          catatan: '*) Measured at 25°C and with spectral bandwidth 1 nm.',
         ),
         tabel(
           'akurasi_transmitan',
           'Accuracy %T and Linierity at λ = 560nm',
+          'Std Value',
           '%T',
           0.001,
           3,
@@ -1276,6 +1295,7 @@ Map<String, dynamic> contohBentukLembarKerjaSpectro({bool untukAdmin = false}) {
           'Filter Standard 3',
           const [0, 9.9, 20, 30.1, 100],
           6,
+          kolomTetap: const {'label': 'λ (nm)', 'nilai': '560'},
         ),
       ],
     },

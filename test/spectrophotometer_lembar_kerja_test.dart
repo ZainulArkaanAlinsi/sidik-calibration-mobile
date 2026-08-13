@@ -97,7 +97,9 @@ void main() {
       // Desimal beda per kelompok: 2 buat nm, 3 buat %T.
       expect(tabel[0].baris.first.desimal, 2);
       expect(tabel[2].baris.first.desimal, 3);
-      expect(tabel[2].baris.first.label, '0.000');
+      // Label nilai standar ditulis kayak di kertas: satu desimal, koma.
+      expect(tabel[2].baris.first.label, '0,0');
+      expect(tabel[0].baris.first.label, '279,6');
     });
 
     test('bagian SRE kebaca berstatus & nggak nerima input', () {
@@ -107,6 +109,64 @@ void main() {
       expect(sre.belumBisaDiisi, isTrue);
       expect(sre.field, isEmpty);
       expect(sre.catatan, contains('#REF!'));
+    });
+  });
+
+  group('bentuk tabel di layar', () {
+    /// Susunan kolomnya wajib sama sama LEMBAR CETAK, bukan sekadar benar
+    /// datanya — teknisi ngisi sambil megang kertas yang sama.
+    testWidgets('kepala tabel ngikut lembar cetak', (tester) async {
+      await _bukaLembar(tester);
+
+      // Dua tabel panjang gelombang: `No.` + `Std Value (λ1)`.
+      expect(find.text('No.'), findsNWidgets(2));
+      expect(find.text('Std Value (λ1)'), findsNWidgets(2));
+
+      // Blok %T: kolom kirinya `λ (nm)` = 560 yang kegabung buat seluruh
+      // tabel, dan kepala nilainya tanpa (λ1).
+      expect(find.text('λ (nm)'), findsOneWidget);
+      expect(find.text('560'), findsOneWidget);
+      expect(find.text('Std Value'), findsOneWidget);
+
+      expect(find.text('Measurement Result'), findsNWidgets(3));
+      expect(find.text('X1'), findsNWidgets(3));
+      expect(find.text('X3'), findsNWidgets(3));
+
+      // `Repeat n` itu bentuk alat lain — di kertas spektro nggak ada.
+      expect(find.text('Repeat 1'), findsNothing);
+
+      // Nilai standar ditulis kayak di kertas: satu desimal, koma, tanpa
+      // satuan nempel (satuannya udah kesebut di judul tabel & kepala kolom).
+      expect(find.text('279,6'), findsOneWidget);
+      expect(find.text('100,0'), findsOneWidget);
+      expect(find.text('0,000 %T'), findsNothing);
+
+      // Catatan yang tercetak di bawah tabel Didynium.
+      expect(
+        find.text('*) Measured at 25°C and with spectral bandwidth 1 nm.'),
+        findsOneWidget,
+      );
+    });
+
+    /// Enam pengulangan %T digambar DUA baris X1..X3 per nilai standar, persis
+    /// kertasnya — bukan satu baris enam kolom.
+    testWidgets('%T digambar dua baris per nilai standar', (tester) async {
+      await _bukaLembar(tester);
+
+      final tabelT = find.byType(LembarKerjaTabel).at(2);
+      final kotak = find.descendant(of: tabelT, matching: find.byType(TextField));
+
+      expect(kotak, findsNWidgets(30));
+
+      // Tiga kotak sebaris: kotak ke-1 & ke-4 (baris kedua nilai standar yang
+      // sama) beda posisi Y, bukan cuma geser ke kanan.
+      final pertama = tester.getTopLeft(kotak.at(0));
+      final ketiga = tester.getTopLeft(kotak.at(2));
+      final keempat = tester.getTopLeft(kotak.at(3));
+
+      expect(ketiga.dy, pertama.dy, reason: 'X1..X3 sebaris');
+      expect(keempat.dy, greaterThan(pertama.dy), reason: 'X4 turun sebaris');
+      expect(keempat.dx, pertama.dx, reason: 'X4 balik ke kolom X1');
     });
   });
 

@@ -263,6 +263,24 @@ class KolomTabelHasil {
       );
 }
 
+/// Kolom kiri yang nilainya SAMA buat seluruh tabel, dan di lembar cetak
+/// digambar sebagai satu sel yang kegabung ke bawah.
+///
+/// Blok %T yang pertama punya: `λ (nm)` = `560`. Itu bukan data per baris —
+/// seluruh titik %T diukur di panjang gelombang yang sama, dan angkanya bagian
+/// dari identitas tabelnya.
+class KolomTetap {
+  const KolomTetap({required this.label, required this.nilai});
+
+  final String label;
+  final String nilai;
+
+  factory KolomTetap.fromJson(Map<String, dynamic> json) => KolomTetap(
+    label: json['label'] as String? ?? '',
+    nilai: '${json['nilai'] ?? ''}',
+  );
+}
+
 /// Satu tabel hasil: Before atau After adjustment.
 class TabelHasil {
   const TabelHasil({
@@ -272,6 +290,13 @@ class TabelHasil {
     required this.kolom,
     required this.pengulangan,
     this.barisPerSatuan = const {},
+    this.nomorBaris = false,
+    this.judulNilai,
+    this.judulPengulangan,
+    this.prefiksPengulangan,
+    this.pengulanganPerBaris,
+    this.kolomTetap,
+    this.catatan,
   });
 
   /// `sebelum_adjustment` / `sesudah_adjustment`.
@@ -303,11 +328,67 @@ class TabelHasil {
   /// Nomor Repeat yang tercetak di lembar kerja, biasanya 1..5.
   final List<int> pengulangan;
 
+  /// Kolom "No." di kiri tabel — nomor urut baris seperti di lembar cetak.
+  final bool nomorBaris;
+
+  /// Kepala kolom nilai standar, mis. `Std Value (λ1)`. Null = pakai label
+  /// bawaan layar (`Standard`).
+  final String? judulNilai;
+
+  /// Kepala yang memayungi seluruh kolom pengulangan, mis.
+  /// `Measurement Result`. Null = nggak ada baris kepala gabungan.
+  final String? judulPengulangan;
+
+  /// Awalan nomor pengulangan yang TERCETAK di kertas — `X` bikin `X1 X2 X3`.
+  /// Null = pakai `Repeat n` seperti alat lain.
+  final String? prefiksPengulangan;
+
+  /// Berapa kolom pengulangan yang digambar PER BARIS.
+  ///
+  /// Bedanya sama [pengulangan]: yang itu bentuk DATA-nya, yang ini bentuk
+  /// KERTASNYA. Blok %T Spectrophotometer punya enam pengulangan, tapi di
+  /// lembar cetak digambar **dua baris X1..X3** per nilai standar — dan dua
+  /// baris itu yang dilihat teknisi waktu nyalin angka.
+  ///
+  /// Datang dari backend, bukan dihitung di layar: motong tiap 3 kolom itu
+  /// tebakan yang kebetulan bener buat satu alat, dan bakal salah di alat
+  /// berikutnya yang polanya beda. Null = satu baris, seperti biasa.
+  final int? pengulanganPerBaris;
+
+  /// Kolom kiri yang di kertas KEGABUNG buat seluruh tabel — di blok %T isinya
+  /// `λ (nm)` = `560`, panjang gelombang tempat seluruh titik diukur.
+  final KolomTetap? kolomTetap;
+
+  /// Catatan yang tercetak di bawah tabel, mis. `*) Measured at 25°C…`.
+  /// Ditampilin apa adanya; ini bagian dari dokumen, bukan tulisan layar.
+  final String? catatan;
+
   bool get sebelumAdjustment => tahap == 'sebelum_adjustment';
+
+  /// Nomor pengulangan dipotong jadi baris-baris sesuai [pengulanganPerBaris].
+  /// Satu baris utuh kalau backend nggak nyebut apa-apa.
+  List<List<int>> get pengulanganPerBarisnya {
+    final n = pengulanganPerBaris;
+    if (n == null || n <= 0 || n >= pengulangan.length) return [pengulangan];
+
+    return [
+      for (var i = 0; i < pengulangan.length; i += n)
+        pengulangan.sublist(i, (i + n).clamp(0, pengulangan.length)),
+    ];
+  }
 
   factory TabelHasil.fromJson(Map<String, dynamic> json) => TabelHasil(
     tahap: json['tahap'] as String,
     judul: json['judul'] as String? ?? '',
+    nomorBaris: json['nomor_baris'] as bool? ?? false,
+    judulNilai: json['judul_nilai'] as String?,
+    judulPengulangan: json['judul_pengulangan'] as String?,
+    prefiksPengulangan: json['prefiks_pengulangan'] as String?,
+    pengulanganPerBaris: (json['pengulangan_per_baris'] as num?)?.toInt(),
+    kolomTetap: json['kolom_tetap'] == null
+        ? null
+        : KolomTetap.fromJson(json['kolom_tetap'] as Map<String, dynamic>),
+    catatan: json['catatan'] as String?,
     baris: parseListAman(json['baris'], BarisTabelHasil.fromJson),
     barisPerSatuan: {
       for (final e in (json['baris_per_satuan'] as Map<String, dynamic>? ??

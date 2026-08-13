@@ -85,12 +85,7 @@ class LembarKerjaTabel extends StatelessWidget {
       return baris == null ? pelukis.width : pelukis.height;
     }
 
-    final teksBaris = [
-      for (final baris in _baris)
-        isian.bentuk.satuanUntuk(baris).isEmpty
-            ? baris.label
-            : '${baris.label} ${isian.bentuk.satuanUntuk(baris)}',
-    ];
+    final teksBaris = [for (final baris in _baris) _labelBaris(baris)];
 
     // Lebar: cukup buat label terpanjang tanpa membungkus, dalam batas di atas.
     var lebar = _lebarLabelMin;
@@ -120,10 +115,36 @@ class LembarKerjaTabel extends StatelessWidget {
     return (lebar: lebar, tinggi: tinggi);
   }
 
+
+  /// Teks kolom nilai standar.
+  ///
+  /// Satuannya IKUT — persis sheet INPUT DATA yang nulis "1,74 mg/L". Tanpa itu
+  /// angka standarnya kebaca telanjang dan gampang ketuker sama pembacaan di
+  /// sebelahnya. Diambil PER BARIS lewat `satuanUntuk`: lembar Conductivity
+  /// nyampur µS/cm & mS/cm, dan ngambil dari level lembar bikin 111 mS/cm
+  /// kelabel µS/cm.
+  ///
+  /// KECUALI di lembar yang kepala kolomnya udah ditentuin backend
+  /// ([TabelHasil.judulNilai]) — di situ satuannya udah kesebut di judul tabel
+  /// & kepala kolom, persis kayak lembar cetaknya, jadi nempelin lagi bikin
+  /// `0,0 %T` yang nggak ada di kertas mana pun.
+  String _labelBaris(BarisTabelHasil baris) {
+    final satuan = isian.bentuk.satuanUntuk(baris);
+    if (tabel.judulNilai != null || satuan.isEmpty) return baris.label;
+
+    return '${baris.label} $satuan';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final ukuran = _ukurKolomLabel(context);
+
+    // Nomor pengulangan dipotong jadi baris-baris sesuai lembar cetaknya —
+    // satu potongan buat alat biasa, dua buat blok %T (X1..X3 dua kali).
+    final potongan = tabel.pengulanganPerBarisnya;
+    final tinggiKepala = _tinggiKepala +
+        (tabel.judulPengulangan == null ? 0.0 : _tinggiKepalaGabungan);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,14 +173,56 @@ class LembarKerjaTabel extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Kolom kiri yang di kertas KEGABUNG buat seluruh tabel — di blok
+            // %T isinya `λ (nm)` = 560. Digambar sebagai satu sel setinggi
+            // seluruh baris, persis kayak sel merge di lembar cetaknya.
+            if (tabel.kolomTetap != null)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _SelKepala(
+                    lebar: _lebarKolomTetap,
+                    teks: tabel.kolomTetap!.label,
+                    tinggi: tinggiKepala,
+                  ),
+                  _SelKepala(
+                    lebar: _lebarKolomTetap,
+                    teks: tabel.kolomTetap!.nilai,
+                    tinggi: ukuran.tinggi * potongan.length * _baris.length,
+                  ),
+                ],
+              ),
+
+            // Kolom "No." — nomor urut baris seperti di lembar cetak.
+            if (tabel.nomorBaris)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _SelKepala(
+                    lebar: _lebarNomor,
+                    teks: 'No.',
+                    tinggi: tinggiKepala,
+                  ),
+                  for (var i = 0; i < _baris.length; i++)
+                    _SelKepala(
+                      lebar: _lebarNomor,
+                      teks: '${i + 1}',
+                      tinggi: ukuran.tinggi * potongan.length,
+                    ),
+                ],
+              ),
+
             // Kolom label yang nempel — di luar area gulung.
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _SelKepala(
                   lebar: ukuran.lebar,
-                  teks: 'Standard',
-                  tinggi: _tinggiKepala,
+                  // Kepala kolom nilai standar ngikut lembar cetaknya
+                  // (`Std Value (λ1)`); alat yang backend-nya nggak nyebut
+                  // apa-apa tetap dapat "Standard" seperti dulu.
+                  teks: tabel.judulNilai ?? 'Standard',
+                  tinggi: tinggiKepala,
                 ),
                 for (final baris in _baris)
                   _SelKepala(
@@ -170,15 +233,15 @@ class LembarKerjaTabel extends StatelessWidget {
                     // Satuan diambil PER BARIS lewat `satuanUntuk` — lembar
                     // Conductivity nyampur µS/cm & mS/cm, dan ngambil dari
                     // level lembar bikin 111 mS/cm kelabel µS/cm.
-                    teks: isian.bentuk.satuanUntuk(baris).isEmpty
-                        ? baris.label
-                        : '${baris.label} ${isian.bentuk.satuanUntuk(baris)}',
+                    teks: _labelBaris(baris),
                     // Keterangan singkat kenapa baris ini mati — tanpa itu
                     // teknisi lihat kotak abu tanpa sebab.
                     catatan: isian.titikTerkunci(baris.titikUkur)
                         ? AppLocalizations.of(context).lkTitikAlternatifSatuan
                         : null,
-                    tinggi: ukuran.tinggi,
+                    // Setinggi SELURUH potongan barisnya: satu nilai standar
+                    // %T menaungi dua baris X1..X3 di kertas.
+                    tinggi: ukuran.tinggi * potongan.length,
                     kiri: true,
                   ),
               ],
@@ -190,22 +253,38 @@ class LembarKerjaTabel extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Baris kepala: Repeat 1..n, tiap satu dibagi dua kolom.
+                    // Kepala yang memayungi seluruh kolom angka
+                    // (`Measurement Result`). Cuma muncul kalau backend
+                    // nyebutin — alat lain nggak berubah tampilannya.
+                    if (tabel.judulPengulangan != null)
+                      _SelKepala(
+                        lebar: _lebarSel * tabel.kolom.length * potongan.first.length,
+                        teks: tabel.judulPengulangan!,
+                        tinggi: _tinggiKepalaGabungan,
+                      ),
+
+                    // Baris kepala: Repeat 1..n (atau X1..X3 buat lembar yang
+                    // nyetaknya begitu), tiap satu dibagi jumlah kolomnya.
+                    //
+                    // Yang digambar potongan PERTAMA doang: di kertas, dua
+                    // baris X1..X3 blok %T berbagi satu kepala.
                     Row(
                       children: [
-                        for (final r in tabel.pengulangan)
+                        for (final r in potongan.first)
                           _KepalaPengulangan(
                             nomor: r,
                             kolom: tabel.kolom,
                             lebarSel: _lebarSel,
+                            prefiks: tabel.prefiksPengulangan,
                           ),
                       ],
                     ),
 
                     for (final baris in _baris)
+                      for (final sepotong in potongan)
                       Row(
                         children: [
-                          for (var i = 0; i < tabel.pengulangan.length; i++)
+                          for (final r in sepotong)
                             for (final kolom in tabel.kolom)
                               _SelAngka(
                                 lebar: _lebarSel,
@@ -217,9 +296,18 @@ class LembarKerjaTabel extends StatelessWidget {
                                 // Mati kalau standarnya belum dicentang ATAU pasangan
                                 // satuannya udah diisi. Lihat `titikBisaDiisi`.
                                 terkunci: !isian.titikBisaDiisi(baris.titikUkur),
+                                // Index kotak diambil dari POSISI nomor
+                                // pengulangan di daftar aslinya, bukan dari
+                                // urutan gambar — baris kedua %T isinya
+                                // pengulangan 4-6 dan kotaknya beda dari
+                                // baris pertama walau kepalanya sama.
                                 controller: isian
                                     .titik[baris.titikUkur]!
-                                    .kotak(tabel.tahap, kolom.kode, i),
+                                    .kotak(
+                                      tabel.tahap,
+                                      kolom.kode,
+                                      tabel.pengulangan.indexOf(r),
+                                    ),
                                 // Sel yang diisi AI dengan keyakinan rendah
                                 // ditandai supaya dicek — bukan seluruh tabel.
                                 rendah: isian.selRendahKeyakinan.contains(
@@ -227,7 +315,7 @@ class LembarKerjaTabel extends StatelessWidget {
                                     baris.titikUkur,
                                     tabel.tahap,
                                     kolom.kode,
-                                    i,
+                                    tabel.pengulangan.indexOf(r),
                                   ),
                                 ),
                               ),
@@ -239,6 +327,19 @@ class LembarKerjaTabel extends StatelessWidget {
             ),
           ],
         ),
+
+        // Catatan yang tercetak di bawah tabelnya di lembar kerja, mis.
+        // `*) Measured at 25°C and with spectral bandwidth 1 nm.` — bagian dari
+        // dokumen, bukan tulisan layar, jadi ditampilin apa adanya.
+        if (tabel.catatan != null && tabel.catatan!.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            tabel.catatan!,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
 
         // Standar buffer per titik cuma dipilih SEKALI (di tabel pertama) —
         // buffer yang dipakai sama untuk before & after adjustment, cuma
@@ -260,6 +361,15 @@ class LembarKerjaTabel extends StatelessWidget {
   }
 
   static const _tinggiKepala = 44.0;
+
+  /// Baris kepala gabungan (`Measurement Result`) — di atas kepala X1..X3.
+  static const _tinggiKepalaGabungan = 26.0;
+
+  /// Kolom "No." cuma nampung dua digit.
+  static const _lebarNomor = 40.0;
+
+  /// Kolom kegabung kiri (`λ (nm)` = 560).
+  static const _lebarKolomTetap = 64.0;
 
   /// Lantai tinggi baris — tinggi sebenarnya diukur dari isi di
   /// [_ukurKolomLabel], dan nggak pernah turun di bawah ini.
@@ -458,11 +568,17 @@ class _KepalaPengulangan extends StatelessWidget {
     required this.nomor,
     required this.kolom,
     required this.lebarSel,
+    this.prefiks,
   });
 
   final int nomor;
   final List<KolomTabelHasil> kolom;
   final double lebarSel;
+
+  /// Awalan nomor yang TERCETAK di kertas — `X` bikin `X1`, dan waktu ada
+  /// awalannya, label satuan per kolom nggak ikut digambar: lembar cetaknya
+  /// juga nggak nulis itu di kepala kolom.
+  final String? prefiks;
 
   @override
   Widget build(BuildContext context) {
@@ -487,29 +603,31 @@ class _KepalaPengulangan extends StatelessWidget {
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
-              '${l10n.lkRepeat} $nomor',
+              prefiks == null ? '${l10n.lkRepeat} $nomor' : '$prefiks$nomor',
               maxLines: 1,
               style: theme.textTheme.labelSmall?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
             ),
           ),
-          const SizedBox(height: 2),
-          Row(
-            children: [
-              for (final k in kolom)
-                SizedBox(
-                  width: lebarSel,
-                  child: Text(
-                    k.label,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+          if (prefiks == null) ...[
+            const SizedBox(height: 2),
+            Row(
+              children: [
+                for (final k in kolom)
+                  SizedBox(
+                    width: lebarSel,
+                    child: Text(
+                      k.label,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
-                ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
       ),
     );
