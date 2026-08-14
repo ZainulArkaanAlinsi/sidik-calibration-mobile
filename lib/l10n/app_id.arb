@@ -901,6 +901,15 @@
     "description": "Pesan waktu empat penanda sudut tidak ditemukan di foto."
   },
   "lkPindaiTerlaluMiring": "Fotonya terlalu miring. Jepret lebih tegak lurus di atas lembar.",
+  "lkPindaiTemplateGagal": "Bentuk lembar buat pindai gagal diambil: {pesan}",
+  "@lkPindaiTemplateGagal": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
+  "lkPindaiTemplateMemuat": "Menyiapkan pindai…",
   "lkPindaiQrHilang": "Kode QR versi lembar nggak kebaca. Formulir lama tanpa QR nggak bisa dipindai — cetak ulang lembarnya, atau ketik manual.",
   "lkPindaiQrLembarLain": "QR yang kebaca punya lembar/versi lain. Foto ulang nggak nolong — pastikan lembarnya yang bener.",
   "lkPindaiBuram": "Fotonya buram. Tahan HP lebih diam, lalu foto ulang.",

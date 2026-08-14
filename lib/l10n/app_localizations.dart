@@ -4736,6 +4736,18 @@ abstract class AppLocalizations {
   /// **'The photo is too skewed. Shoot it more square-on above the sheet.'**
   String get lkPindaiTerlaluMiring;
 
+  /// No description provided for @lkPindaiTemplateGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the scan template: {pesan}'**
+  String lkPindaiTemplateGagal(String pesan);
+
+  /// No description provided for @lkPindaiTemplateMemuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing scan…'**
+  String get lkPindaiTemplateMemuat;
+
   /// No description provided for @lkPindaiQrHilang.
   ///
   /// In en, this message translates to:

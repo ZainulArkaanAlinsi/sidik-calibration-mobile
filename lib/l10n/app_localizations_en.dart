@@ -2562,6 +2562,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'The photo is too skewed. Shoot it more square-on above the sheet.';
 
   @override
+  String lkPindaiTemplateGagal(String pesan) {
+    return 'Couldn\'t load the scan template: $pesan';
+  }
+
+  @override
+  String get lkPindaiTemplateMemuat => 'Preparing scan…';
+
+  @override
   String get lkPindaiQrHilang =>
       'The sheet\'s version QR code could not be read. Old forms without a QR cannot be scanned — reprint the sheet, or type the values manually.';
 

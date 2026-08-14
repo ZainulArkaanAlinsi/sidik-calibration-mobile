@@ -2548,6 +2548,14 @@ class AppLocalizationsId extends AppLocalizations {
       'Fotonya terlalu miring. Jepret lebih tegak lurus di atas lembar.';
 
   @override
+  String lkPindaiTemplateGagal(String pesan) {
+    return 'Bentuk lembar buat pindai gagal diambil: $pesan';
+  }
+
+  @override
+  String get lkPindaiTemplateMemuat => 'Menyiapkan pindai…';
+
+  @override
   String get lkPindaiQrHilang =>
       'Kode QR versi lembar nggak kebaca. Formulir lama tanpa QR nggak bisa dipindai — cetak ulang lembarnya, atau ketik manual.';
 

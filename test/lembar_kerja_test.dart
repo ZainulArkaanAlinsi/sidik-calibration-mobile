@@ -17,6 +17,7 @@ import 'package:sidik_calibration/services/lembar_kerja_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/providers/history_provider.dart';
 import 'package:sidik_calibration/models/worksheet_scan.dart';
+import 'package:sidik_calibration/models/worksheet_template.dart';
 import 'package:sidik_calibration/providers/sumber_foto_provider.dart';
 import 'package:sidik_calibration/providers/worksheet_scan_provider.dart';
 import 'package:sidik_calibration/services/history_service.dart';
@@ -1050,6 +1051,55 @@ void main() {
         'manual',
       );
     });
+  });
+
+  /// **Tombol pindai nggak boleh HILANG waktu templatenya gagal diambil.**
+  ///
+  /// Bug nyata, 14 Agt 2026. Layar ngirim nomor FORMULIR
+  /// (`SIDIK-IK-CAL-0508_Rev.4`) ke `GET /worksheet-templates/{kode}` yang mau
+  /// kode ALAT (`spectrophotometer`) — 404, providernya error, dan tombolnya
+  /// `SizedBox.shrink()`. Dari mata teknisi fiturnya kelihatan **nggak pernah
+  /// dibikin**: nggak ada tombol mati, nggak ada pesan, nggak ada apa pun.
+  ///
+  /// Dua yang dikunci di sini: kodenya yang benar yang dikirim, dan gagal
+  /// ambil template tetap ninggalin tombol (mati) plus alasannya.
+  testWidgets('template gagal diambil: tombol tetap ada, mati, ada alasannya', (
+    tester,
+  ) async {
+    _perbesarViewport(tester);
+    await _muat(
+      tester,
+      _app(
+        MockLembarKerjaService(),
+        pindai: _PindaiGagalTemplate(),
+      ),
+    );
+    await _keHalamanAkhir(tester);
+
+    final tombol = find.widgetWithText(OutlinedButton, 'PINDAI LEMBAR KERJA');
+
+    expect(
+      tombol,
+      findsWidgets,
+      reason: 'Tombolnya hilang — teknisi nggak punya cara tau fiturnya ada.',
+    );
+    expect(tester.widget<OutlinedButton>(tombol.first).onPressed, isNull);
+    expect(find.textContaining('gagal diambil'), findsWidgets);
+  });
+
+  testWidgets('yang diminta ke server kode ALAT, bukan nomor formulirnya', (
+    tester,
+  ) async {
+    _perbesarViewport(tester);
+    final pindai = MockWorksheetScanService(siapPindai: true);
+    await _muat(tester, _app(MockLembarKerjaService(), pindai: pindai));
+    await _keHalamanAkhir(tester);
+
+    expect(
+      pindai.kodeDiminta,
+      contains('ph_meter'),
+      reason: 'Nomor formulir (`SIDIK-FM-CAL-…`) bikin endpointnya 404.',
+    );
   });
 
   /// **Tombol pindai ikut `siap_pindai` dari server, titik.**
@@ -2751,4 +2801,16 @@ void _testRevisi() {
       expect(state.revisiField, isEmpty);
     });
   });
+}
+
+/// Layanan pindai yang templatenya selalu gagal diambil — niru 404 dari
+/// endpoint, atau sinyal putus di lapangan.
+class _PindaiGagalTemplate extends MockWorksheetScanService {
+  @override
+  Future<WorksheetTemplate> template(
+    String token,
+    String kode, {
+    int? equipmentId,
+    int? jumlahPengulangan,
+  }) async => throw Exception('404 template nggak ketemu');
 }

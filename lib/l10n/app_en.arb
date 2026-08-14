@@ -1309,6 +1309,15 @@
     "description": "Pesan waktu empat penanda sudut tidak ditemukan di foto."
   },
   "lkPindaiTerlaluMiring": "The photo is too skewed. Shoot it more square-on above the sheet.",
+  "lkPindaiTemplateGagal": "Couldn't load the scan template: {pesan}",
+  "@lkPindaiTemplateGagal": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
+  "lkPindaiTemplateMemuat": "Preparing scan…",
   "lkPindaiQrHilang": "The sheet's version QR code could not be read. Old forms without a QR cannot be scanned — reprint the sheet, or type the values manually.",
   "lkPindaiQrLembarLain": "The QR belongs to a different sheet or version. Retaking the photo won't help — make sure you have the right sheet.",
   "lkPindaiBuram": "The photo is blurry. Hold the phone steadier and take it again.",

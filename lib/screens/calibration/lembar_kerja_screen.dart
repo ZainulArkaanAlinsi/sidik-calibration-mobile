@@ -250,6 +250,7 @@ class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen> {
           key: ValueKey(b.jumlahPengulangan),
           bentuk: b,
           sesiId: widget.sesiId,
+          profil: widget.profil,
           onAlatBerubah: (id) {
             if (id == _equipmentId) return;
             setState(() => _equipmentId = id);
@@ -323,10 +324,21 @@ class _Form extends ConsumerStatefulWidget {
     super.key,
     required this.bentuk,
     required this.onAlatBerubah,
+    required this.profil,
     this.sesiId,
   });
 
   final LembarKerja bentuk;
+
+  /// Kode ALAT (`ph_meter`, `spectrophotometer`, …), dioper turun ke tombol
+  /// pindai.
+  ///
+  /// **Bukan `bentuk.kodeDokumen`.** Dulu yang dikirim nomor formulirnya
+  /// (`SIDIK-IK-CAL-0508_Rev.4`), sementara `GET /worksheet-templates/{kode}`
+  /// mau kode alat — jadi 404, providernya error, dan tombol pindainya HILANG
+  /// dari layar tanpa satu pun pesan. Kegagalan yang paling mahal waktunya:
+  /// dari layar, fiturnya kelihatan nggak pernah dibikin.
+  final String profil;
 
   /// Dipanggil begitu teknisi milih alat — bikin layar di atas narik bentuk
   /// lembar yang udah disusutin ke alat itu.
@@ -801,6 +813,7 @@ class _FormState extends ConsumerState<_Form> {
                         isian: _isian,
                         onBerubah: _isianBerubah,
                         sesiId: widget.sesiId,
+                        profil: widget.profil,
                       )
                     : _LembarSatuKolom(
                         bentuk: bentuk,
@@ -808,6 +821,7 @@ class _FormState extends ConsumerState<_Form> {
                         halaman: _halaman,
                         onBerubah: _isianBerubah,
                         sesiId: widget.sesiId,
+                        profil: widget.profil,
                       ),
               ),
 
@@ -979,11 +993,15 @@ class _LembarSatuKolom extends StatelessWidget {
     required this.isian,
     required this.halaman,
     required this.onBerubah,
+    required this.profil,
     this.sesiId,
   });
 
   /// Sesi yang lagi dikerjakan — dioper turun ke tombol pindai.
   final int? sesiId;
+
+  /// Kode ALAT, dioper turun ke tombol pindai.
+  final String profil;
 
   final LembarKerja bentuk;
   final LembarKerjaState isian;
@@ -1024,6 +1042,7 @@ class _LembarSatuKolom extends StatelessWidget {
             isian: isian,
             onBerubah: onBerubah,
             sesiId: sesiId,
+            profil: profil,
           ),
           const SizedBox(height: AppSpacing.md),
         ],
@@ -1049,11 +1068,15 @@ class _LembarDuaKolom extends StatelessWidget {
     required this.bentuk,
     required this.isian,
     required this.onBerubah,
+    required this.profil,
     this.sesiId,
   });
 
   /// Sesi yang lagi dikerjakan — dioper turun ke tombol pindai.
   final int? sesiId;
+
+  /// Kode ALAT, dioper turun ke tombol pindai.
+  final String profil;
 
   final LembarKerja bentuk;
   final LembarKerjaState isian;
@@ -1066,6 +1089,7 @@ class _LembarDuaKolom extends StatelessWidget {
         isian: isian,
         onBerubah: onBerubah,
         sesiId: sesiId,
+        profil: profil,
       ),
       const SizedBox(height: AppSpacing.md),
     ],
@@ -1223,6 +1247,7 @@ class _Bagian extends ConsumerWidget {
     required this.bagian,
     required this.isian,
     required this.onBerubah,
+    required this.profil,
     this.sesiId,
   });
 
@@ -1233,6 +1258,9 @@ class _Bagian extends ConsumerWidget {
   /// Dioper ke tombol pindai: hasil pindai dicatat server per sesi, dan teknisi
   /// cuma boleh memindai sesi yang dia kerjakan sendiri.
   final int? sesiId;
+
+  /// Kode ALAT (`ph_meter`, `spectrophotometer`, …) — bukan nomor formulirnya.
+  final String profil;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1296,7 +1324,7 @@ class _Bagian extends ConsumerWidget {
             // ngisi SELURUH tabel sekaligus, bukan satu tabel.
             if (bagian.tabel.isNotEmpty)
               _TombolPindaiLembar(
-                profil: isian.bentuk.kodeDokumen,
+                profil: profil,
                 equipmentId: isian.alat?.id,
                 sesiId: sesiId,
                 isian: isian,
@@ -1557,7 +1585,26 @@ class _TombolPindaiLembarState extends ConsumerState<_TombolPindaiLembar> {
     // bukan jalur kerja. Yang nggak boleh cuma satu — nampilin tombol aktif
     // buat lembar yang belum boleh dipindai.
     final data = template.value;
-    if (data == null) return const SizedBox.shrink();
+
+    // **Tombolnya selalu digambar**, bahkan waktu templatenya gagal diambil.
+    //
+    // Dulu di sini `return const SizedBox.shrink()` — dan itu bikin satu
+    // kegagalan kecil di jaringan/URL berubah jadi FITURNYA HILANG DARI LAYAR
+    // tanpa satu pun pesan. Yang kejadian 14 Agt 2026: layar ngirim nomor
+    // formulir (`SIDIK-IK-CAL-0508_Rev.4`) ke endpoint yang mau kode alat, jadi
+    // 404 — dan dari mata teknisi, tombol pindainya kelihatan nggak pernah
+    // dibikin. Nggak ada error, nggak ada tombol mati, nggak ada apa-apa.
+    //
+    // Sekarang: gagal ambil template = tombol MATI + alasannya kelihatan.
+    // Nggak bisa dipakai tetap nggak bisa dipakai, tapi setidaknya kelihatan
+    // ADA dan kelihatan KENAPA.
+    final alasan = switch ((data, template)) {
+      (final WorksheetTemplate t, _) when !t.siapPindai =>
+        l10n.lkPindaiBelumSiap(t.alasanBelumSiap ?? '—'),
+      (null, AsyncError(:final error)) => l10n.lkPindaiTemplateGagal('$error'),
+      (null, _) => l10n.lkPindaiTemplateMemuat,
+      _ => null,
+    };
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1565,10 +1612,10 @@ class _TombolPindaiLembarState extends ConsumerState<_TombolPindaiLembar> {
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
-            onPressed: data.siapPindai && !_sibuk
-                ? () => _pindai(data)
+            onPressed: (data?.siapPindai ?? false) && !_sibuk
+                ? () => _pindai(data!)
                 : null,
-            icon: _sibuk
+            icon: _sibuk || template.isLoading
                 ? const SizedBox(
                     width: 16,
                     height: 16,
@@ -1578,10 +1625,10 @@ class _TombolPindaiLembarState extends ConsumerState<_TombolPindaiLembar> {
             label: Text(l10n.lkPindaiLembar),
           ),
         ),
-        if (!data.siapPindai) ...[
+        if (alasan != null) ...[
           const SizedBox(height: AppSpacing.xs),
           Text(
-            l10n.lkPindaiBelumSiap(data.alasanBelumSiap ?? '—'),
+            alasan,
             style: theme.textTheme.labelSmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),

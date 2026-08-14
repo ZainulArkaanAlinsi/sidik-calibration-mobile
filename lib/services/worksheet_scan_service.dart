@@ -285,11 +285,22 @@ class MockWorksheetScanService implements WorksheetScanService {
     String kode, {
     int? equipmentId,
     int? jumlahPengulangan,
-  }) async => templateLengkap ?? WorksheetTemplate.fromJson(_template(kode));
+  }) async {
+    kodeDiminta.add(kode);
+
+    return templateLengkap ?? WorksheetTemplate.fromJson(_template(kode));
+  }
 
   /// Bodi yang dikirim [kirim] — dipegang biar test bisa memeriksanya tanpa
   /// jaringan.
   final List<Map<String, dynamic>> terkirim = [];
+
+  /// Kode yang diminta [template] tiap kali dipanggil.
+  ///
+  /// Dicatat karena pernah SALAH tanpa gejala: layar ngirim nomor formulir
+  /// (`SIDIK-IK-CAL-0508_Rev.4`) padahal endpointnya mau kode alat, dan yang
+  /// kelihatan cuma tombol pindai yang lenyap dari layar.
+  final List<String> kodeDiminta = [];
 
   /// Ditolak server? Dititipin test buat nguji jalur 422 tanpa jaringan.
   PindaiDitolak? ditolak;
