@@ -5,22 +5,6 @@ import '../models/worksheet_template.dart';
 import 'api_client.dart';
 import 'auth_service.dart' show ApiException;
 
-/// Jalur **pindai lembar kerja (OCR lokal)** — `docs/SPEC-ocr-template-lokal.md`
-/// di repo API.
-///
-/// Tiga hal yang bikin jalur ini beda dari AI Vision yang lama, dan ketiganya
-/// dijaga di sini:
-///
-///  1. **Fotonya nggak keluar dari HP.** Yang dikirim hasil BACANYA (teks per
-///     sel + skor + kotak), bukan citranya; citra cuma lampiran audit dan boleh
-///     gagal naik tanpa mbatalin hasil pindai.
-///  2. **Kunci sel diambil dari template apa adanya.** HP nggak pernah nyusun
-///     kunci dari indeks tampilan — kiriman berkunci asing bikin satu lembar
-///     penuh ditolak, dan kunci karangan bisa mendaratkan angka di sel yang
-///     salah tanpa error.
-///  3. **Hasil pindai itu USULAN.** Nyimpen hasil kalibrasi tetap lewat
-///     `POST`/`PUT /api/calibrations`; endpoint pindai nggak pernah bikin
-///     `raw_measurements`.
 /// Lembar yang DITOLAK server (422).
 ///
 /// **Satu lembar ditolak berarti nggak ada satu angka pun yang dipakai.**
@@ -77,6 +61,22 @@ class PindaiDitolak implements Exception {
   }
 }
 
+/// Jalur **pindai lembar kerja (OCR lokal)** — `docs/SPEC-ocr-template-lokal.md`
+/// di repo API.
+///
+/// Tiga hal yang bikin jalur ini beda dari AI Vision yang lama, dan ketiganya
+/// dijaga di sini:
+///
+///  1. **Fotonya nggak keluar dari HP.** Yang dikirim hasil BACANYA (teks per
+///     sel + skor + kotak), bukan citranya; citra cuma lampiran audit dan boleh
+///     gagal naik tanpa mbatalin hasil pindai.
+///  2. **Kunci sel diambil dari template apa adanya.** HP nggak pernah nyusun
+///     kunci dari indeks tampilan — kiriman berkunci asing bikin satu lembar
+///     penuh ditolak, dan kunci karangan bisa mendaratkan angka di sel yang
+///     salah tanpa error.
+///  3. **Hasil pindai itu USULAN.** Nyimpen hasil kalibrasi tetap lewat
+///     `POST`/`PUT /api/calibrations`; endpoint pindai nggak pernah bikin
+///     `raw_measurements`.
 abstract class WorksheetScanService {
   /// Daftar lembar kerja yang dikenal sistem, berikut `siap_pindai`-nya.
   Future<List<WorksheetTemplate>> daftarTemplate(String token);
@@ -239,7 +239,17 @@ class ApiWorksheetScanService implements WorksheetScanService {
 /// asli. Itu bukan kekurangan mock — itu keadaan yang wajib kehandle layar,
 /// dan yang paling gampang kelewat kalau mock-nya optimistis.
 class MockWorksheetScanService implements WorksheetScanService {
-  MockWorksheetScanService({this.siapPindai = false, this.hasil, this.crop});
+  MockWorksheetScanService({
+    this.siapPindai = false,
+    this.hasil,
+    this.crop,
+    this.templateLengkap,
+  });
+
+  /// Template berikut geometrinya. Dititipin test yang mau menjalankan JALUR
+  /// PINDAI PENUH — tanpa geometri, `JalankanPindai` berhenti di
+  /// `GagalPindai.tanpaGeometri` sebelum kamera sempat kepakai.
+  final WorksheetTemplate? templateLengkap;
 
   /// Byte potongan sel yang dibalikin [cropSel]. `null` = server belum punya
   /// citranya (citra audit boleh gagal naik tanpa mbatalin hasil pindai).
@@ -266,7 +276,7 @@ class MockWorksheetScanService implements WorksheetScanService {
 
   @override
   Future<List<WorksheetTemplate>> daftarTemplate(String token) async => [
-    WorksheetTemplate.fromJson(_template('spectrophotometer')),
+    templateLengkap ?? WorksheetTemplate.fromJson(_template('spectrophotometer')),
   ];
 
   @override
@@ -275,7 +285,7 @@ class MockWorksheetScanService implements WorksheetScanService {
     String kode, {
     int? equipmentId,
     int? jumlahPengulangan,
-  }) async => WorksheetTemplate.fromJson(_template(kode));
+  }) async => templateLengkap ?? WorksheetTemplate.fromJson(_template(kode));
 
   /// Bodi yang dikirim [kirim] — dipegang biar test bisa memeriksanya tanpa
   /// jaringan.

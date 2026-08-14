@@ -25,8 +25,7 @@ import '../../providers/sumber_foto_provider.dart';
 import '../../providers/worksheet_scan_provider.dart';
 import '../../services/auth_service.dart' show AuthException;
 import '../../services/jalankan_pindai.dart';
-import '../../services/pembaca_qr.dart';
-import '../../services/pembaca_sel.dart';
+import '../../services/pembaca_sel.dart' show pngDari;
 import '../../services/pindai_lembar.dart';
 import '../../services/worksheet_scan_service.dart' show PindaiDitolak;
 import '../../widgets/app_button.dart';
@@ -1448,8 +1447,9 @@ class _TombolPindaiLembarState extends ConsumerState<_TombolPindaiLembar> {
         return;
       }
 
-      final pembaca = MlKitPembacaSel();
-      final pembacaQr = MlKitPembacaQr();
+      final pabrik = ref.read(pabrikPembacaPindaiProvider);
+      final pembaca = pabrik.sel();
+      final pembacaQr = pabrik.qr();
 
       try {
         final susunan = await JalankanPindai(

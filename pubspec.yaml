@@ -103,6 +103,12 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+  # Uji DI PERANGKAT. ML Kit (teks & QR) nggak bisa jalan di `flutter test`:
+  # modelnya hidup di sisi native, jadi satu-satunya cara mbuktiin dia beneran
+  # kebaca itu jalanin di HP/emulator — `flutter test integration_test`.
+  integration_test:
+    sdk: flutter
+
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
@@ -145,6 +151,12 @@ flutter:
   # Logo resmi PT Sidik (dipakai di badge brand layar auth).
   assets:
     - assets/images/logo_pt_sidik.png
+    # Lembar cetak bermarker buat uji di perangkat (`integration_test`).
+    # Ikut dibundel karena aset uji cuma bisa dibaca lewat `rootBundle` waktu
+    # jalan di HP. ~140 KB, dan berkasnya SATU — yang dipakai `flutter test`
+    # juga berkas ini, biar nggak ada dua salinan yang bisa beda diam-diam.
+    - test/assets/lembar-conductivity-v1.png
+    - test/assets/geometri-conductivity-v1.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -47,8 +47,39 @@ class MlKitPembacaSel implements PembacaSel {
 
   final _pengenal = TextRecognizer(script: TextRecognitionScript.latin);
 
+  /// Tinggi minimum potongan yang dikirim ke ML Kit, dalam piksel.
+  ///
+  /// ML Kit punya batas bawah tinggi teks yang dia mau lihat, dan potongan sel
+  /// lembar kerja sering di bawah batas itu — label Repeat tercetak 8 pt,
+  /// badan hurufnya cuma ~22 px di ruang template.
+  ///
+  /// **Ini BELUM menyelesaikan masalahnya**, dan angkanya jangan dibaca
+  /// sebagai "udah beres". Diadu ke HP beneran (14 Agt 2026), label `X1..X5`
+  /// kebaca:
+  ///
+  ///  - potongan apa adanya (39 px): `X-` `X?` `X` `Xe` `XE`
+  ///  - diperbesar ke 96 px: `X` `X` `XE` `X4` `XE`
+  ///
+  /// Hurufnya ketemu di dua-duanya, ANGKANYA yang hilang. Jadi memperbesar
+  /// menggeser hasilnya tanpa membetulkannya. Dipertahankan karena nggak ada
+  /// ruginya (memperbesar nggak menambah maupun mengurangi informasi), tapi
+  /// yang beneran dibutuhkan kemungkinan besar di sisi KERTAS: label jangkarnya
+  /// dicetak lebih besar lewat `ocr:cetak-lembar` di repo API. Lihat test yang
+  /// di-skip di `integration_test/pindai_hp_test.dart`.
+  static const _tinggiMin = 96;
+
   @override
   Future<BacaanSel> baca(img.Image potongan) async {
+    if (potongan.height < _tinggiMin) {
+      potongan = img.copyResize(
+        potongan,
+        height: _tinggiMin,
+        // Kubik, bukan tetangga-terdekat: yang dibesarkan tulisan tipis, dan
+        // tepi bergerigi bikin ML Kit membaca gerigi itu sebagai coretan.
+        interpolation: img.Interpolation.cubic,
+      );
+    }
+
     // ML Kit minta berkas atau byte ber-metadata; potongan sel kecil, jadi
     // ditulis ke folder sementara app — BUKAN galeri atau folder bersama.
     // Isinya lembar kerja pelanggan.

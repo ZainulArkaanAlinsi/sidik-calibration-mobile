@@ -37,22 +37,32 @@ sengaja tidak disentuh — keputusan mematikannya ada di lab.
 | `lib/screens/calibration/pindai_review_screen.dart` | tabel bervonis warna, crop sel di sebelah kotak isian, "Pakai Angka Ini" → `POST .../koreksi` |
 | `lib/screens/calibration/lembar_kerja_state.dart` | `terapkanHasilPindai()` — menuang angka yang disetujui teknisi ke kotak isian |
 
+## Diuji di mana
+
+| Yang dijaga | Di mana |
+|---|---|
+| marker, warp, tiap sel mendarat di dalam kotaknya, kotak jangkar menaungi tulisannya | `test/pindai_lembar_cetakan_test.dart` — diadu ke lembar cetak asli |
+| urutan pipeline, QR, gerbang mutu, jangkar, semua sel terkirim | `test/jalankan_pindai_test.dart` |
+| layar review: vonis warna, crop sel, koreksi dikirim semua | `test/pindai_review_test.dart` |
+| **sambungan penuh**: tombol → server → review → angka masuk formulir → `input_method: ocr` + verifikasi pembacaan | `test/pindai_alur_layar_test.dart` |
+| **ML Kit sungguhan** (QR & label Repeat) | `integration_test/pindai_hp_test.dart` — butuh HP: `flutter test integration_test/pindai_hp_test.dart -d <id>` |
+
+Ambang mutu di `AmbangMutu` menyalin `config/ocr.php` persis. Kalau salah
+satunya digeser, yang lain wajib ikut — gerbang yang lebih longgar cuma
+memindahkan penolakan ke belakang, yang lebih ketat menolak foto yang sah.
+
 ## Yang belum selesai
 
 - **`siap_pindai` masih `false` untuk keenam alat** (`geometri_belum_diverifikasi`).
   Tombol pindai mati dan alasannya ditampilkan apa adanya. Yang menutup ini lab:
-  cetak ulang formulir dari `php artisan ocr:cetak-lembar {kode}`, ukur, lalu
-  set `terverifikasi: true`.
-- **Jangkar (label Repeat) belum bisa dibaca.** Semua berkas geometri rangka
-  menulis kotak jangkar `{x:0,y:0,w:0,h:0}`; kotak sebesar nol tidak bisa
-  dipotong. Aplikasi **tidak** mengirim `sel_jangkar` palsu — akibatnya server
-  menolak setiap pindai di tahap 4 (`mapping_gagal`) sampai kotak jangkarnya
-  diisi di sisi backend.
-- **Belum diuji di HP fisik.** Yang sudah diadu ke lembar cetak asli baru
-  deteksi marker, warp, dan pemetaan sel (`test/pindai_lembar_cetakan_test.dart`,
-  `test/jalankan_pindai_test.dart`). Ketajaman ML Kit pada tulisan tangan,
-  pembacaan QR dari jepretan nyata, dan sambungan "kirim → verifikasi
-  pembacaan" di layar belum ada yang menjaga.
+  cetak ulang formulir dari `php artisan ocr:cetak-lembar {kode}`, adu ke foto
+  nyata, lalu set `terverifikasi: true`.
+- **Ketajaman ML Kit pada tulisan tangan belum terukur.** Yang sudah dibuktikan
+  di HP cuma yang TERCETAK (QR & label Repeat). Angka tulisan tangan bukan
+  soal lulus/gagal tapi akurasi per kolom — `php artisan ocr:akurasi` di sisi
+  server, dan datanya baru ada sesudah teknisi memakainya.
 - **Blok non-tabel tidak lagi terisi otomatis.** Jalur AI dulu ikut mengisi
   kondisi lingkungan, catatan, dan tanggal terima dari foto yang sama.
   Template OCR cuma memetakan sel tabel, jadi kolom itu kembali diketik manual.
+  Ini penyempitan yang disengaja: template OCR menaruh angka lewat kunci sel
+  yang eksplisit, dan kolom non-tabel tidak punya kunci semacam itu.

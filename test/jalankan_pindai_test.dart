@@ -50,6 +50,7 @@ img.Image _sepertiJepretan(img.Image asli) {
 void main() {
   late img.Image lembar;
   late WorksheetTemplate template;
+  late Map<String, dynamic> templateJson;
 
   setUpAll(() {
     lembar = _sepertiJepretan(
@@ -89,7 +90,7 @@ void main() {
       });
     }
 
-    template = WorksheetTemplate.fromJson({
+    templateJson = {
       'template_id': geometri['template_id'],
       'versi': geometri['versi'],
       'kode_dokumen': geometri['kode_dokumen'],
@@ -99,7 +100,9 @@ void main() {
       'sel': sel,
       'jangkar': geometri['jangkar'],
       'geometri': geometri,
-    });
+    };
+
+    template = WorksheetTemplate.fromJson(templateJson);
   });
 
   test('template bawa marker & QR dari geometri', () {
@@ -134,7 +137,10 @@ void main() {
     // Semua sel template ikut, termasuk yang kosong: sel yang hilang tanpa
     // suara lebih bahaya daripada scan yang ditolak.
     expect(sel, hasLength(template.sel.length));
-    expect(pembaca.dibaca, template.sel.length);
+
+    // Yang dibaca 80 sel PLUS 5 label Repeat: jangkar dibaca dari potongan
+    // sendiri, bukan ditebak dari sel yang udah kebaca.
+    expect(pembaca.dibaca, template.sel.length + template.jangkar.length);
 
     // Kuncinya dipecah server dari `tabel|baris|repeat|field`; yang dikirim
     // harus cocok dengan kunci template, bukan indeks tampilan.
@@ -332,36 +338,109 @@ void main() {
     });
   });
 
-  /// Jangkar = label Repeat yang TERCETAK di lembar. Penjagaan lain ngukur
-  /// geometri; yang ini baca isinya, dan itu satu-satunya yang nangkep grid
-  /// yang kegeser satu baris.
-  test('jangkar berkotak nol nggak dikirim sebagai "cocok"', () async {
-    // Semua berkas geometri sekarang masih rangka: kotak jangkarnya `0×0`.
-    // Kotak sebesar nol nggak bisa dipotong, jadi mengaku cocok berarti
-    // mematikan penjagaannya sambil bikin dia kelihatan hidup. Yang benar:
-    // nggak dikirim sama sekali, biar server yang nolak dengan alasan jujur.
-    expect(template.jangkar, hasLength(5));
-    expect(template.jangkar.every((j) => !j.bisaDibaca), isTrue);
+  /// Jangkar = label Repeat yang TERCETAK di lembar.
+  ///
+  /// Penjagaan lain ngukur geometri; yang ini BACA ISINYA, dan cuma itu yang
+  /// nangkep grid yang kegeser satu baris — kalau gridnya turun satu, label
+  /// yang kebaca di posisi Repeat 2 bakal `X3`.
+  group('jangkar', () {
+    test('label yang cocok dikirim sebagai bukti barisnya nggak geser', () async {
+      final body = (await JalankanPindai(
+        mesin: const PindaiLembar(),
+        pembaca: _PembacaPalsu(jangkar: const ['X1', 'X2', 'X3', 'X4', 'X5']),
+        pembacaQr: MockPembacaQr(isi: 'conductivity_meter|v1'),
+      ).susun(lembar, template: template)).body;
 
-    final body = (await JalankanPindai(
-      mesin: const PindaiLembar(),
-      pembaca: _PembacaPalsu(),
-      pembacaQr: MockPembacaQr(isi: 'conductivity_meter|v1'),
-    ).susun(lembar, template: template)).body;
+      final jangkar = (body['sel_jangkar'] as List<dynamic>)
+          .cast<Map<String, dynamic>>();
 
-    expect(body.containsKey('sel_jangkar'), isFalse);
+      expect(jangkar, hasLength(5));
+      expect([for (final j in jangkar) j['repeat_no']], [1, 2, 3, 4, 5]);
+      expect(
+        jangkar.every(
+          (j) => j['field_id'] == 'label_repeat' && j['cocok'] == true,
+        ),
+        isTrue,
+      );
+    });
+
+    test('label yang meleset dikirim apa adanya, bukan dibulatin jadi cocok',
+        () async {
+      // Ini bentuk kegagalan yang jangkarnya ada buat nangkep: grid turun satu
+      // baris, jadi di posisi Repeat 2 yang kebaca `X3`. Yang dikirim HP
+      // `cocok: false`; yang nolak seluruh lembarnya servernya.
+      final body = (await JalankanPindai(
+        mesin: const PindaiLembar(),
+        pembaca: _PembacaPalsu(jangkar: const ['X1', 'X3', 'X3', 'X4', 'X5']),
+        pembacaQr: MockPembacaQr(isi: 'conductivity_meter|v1'),
+      ).susun(lembar, template: template)).body;
+
+      final jangkar = (body['sel_jangkar'] as List<dynamic>)
+          .cast<Map<String, dynamic>>();
+
+      expect(
+        [for (final j in jangkar) j['cocok']],
+        [true, false, true, true, true],
+      );
+      expect(jangkar[1]['teks_mentah'], 'X3');
+    });
+
+    test('jangkar berkotak nol nggak dikirim sebagai "cocok"', () async {
+      // Keadaan berkas geometri sebelum kotaknya diisi: `0×0`. Kotak sebesar
+      // nol nggak bisa dipotong, jadi ngaku "cocok" berarti mematikan
+      // penjagaannya sambil bikin dia kelihatan hidup. Yang benar: nggak
+      // dikirim sama sekali, biar servernya yang nolak dengan alasan jujur.
+      final tanpaKotak = WorksheetTemplate.fromJson({
+        ...templateJson,
+        'jangkar': [
+          for (final j in templateJson['jangkar'] as List<dynamic>)
+            {
+              ...j as Map<String, dynamic>,
+              'kotak': {'x': 0, 'y': 0, 'w': 0, 'h': 0},
+            },
+        ],
+      });
+
+      expect(tanpaKotak.jangkar, hasLength(5));
+      expect(tanpaKotak.jangkar.every((j) => !j.bisaDibaca), isTrue);
+
+      final body = (await JalankanPindai(
+        mesin: const PindaiLembar(),
+        pembaca: _PembacaPalsu(jangkar: const ['X1', 'X2', 'X3', 'X4', 'X5']),
+        pembacaQr: MockPembacaQr(isi: 'conductivity_meter|v1'),
+      ).susun(lembar, template: tanpaKotak)).body;
+
+      expect(body.containsKey('sel_jangkar'), isFalse);
+    });
   });
 }
 
 
 /// Pembaca sel palsu — ML Kit butuh perangkat, dan yang diuji di sini
 /// pemetaannya, bukan ketajaman OCR-nya.
+/// Potongan JANGKAR dibedakan dari potongan sel lewat tingginya: di lembar
+/// Conductivity kotak selnya 100 px, kotak labelnya 39 px. Dipilih begitu
+/// karena yang sampai ke pembaca cuma citranya — persis kayak ML Kit beneran,
+/// yang juga nggak tahu potongan itu sel atau label.
 class _PembacaPalsu implements PembacaSel {
+  _PembacaPalsu({this.jangkar = const []});
+
+  /// Dibalikin berurutan buat potongan seukuran label.
+  final List<String> jangkar;
+
   int dibaca = 0;
+  int _jangkarKe = 0;
 
   @override
   Future<BacaanSel> baca(img.Image potongan) async {
     dibaca++;
+
+    if (potongan.height < 60) {
+      final teks = _jangkarKe < jangkar.length ? jangkar[_jangkarKe] : null;
+      _jangkarKe++;
+
+      return (teks: teks, keyakinan: null, didalamKotak: true);
+    }
 
     return (teks: null, keyakinan: null, didalamKotak: true);
   }

@@ -147,6 +147,72 @@ void main() {
   /// Foto beneran nggak pernah rata: HP dipegang miring, kertas nggak sejajar
   /// meja. Yang diuji di sini justru itu — kalau cuma citra sempurna yang
   /// pernah dicoba, warp-nya nggak pernah beneran dipakai.
+  /// **Kotak jangkar menaungi tulisan yang beneran tercetak.**
+  ///
+  /// Jangkar itu penjagaan "geser satu baris" satu-satunya yang MEMBACA ISI,
+  /// bukan mengukur geometri: kalau gridnya bergeser, label yang kebaca di
+  /// posisi Repeat 2 bakal `X3`. Tapi dia cuma berguna kalau kotaknya jatuh
+  /// pas di atas tulisannya — kotak yang meleset bikin sel kosong kebaca,
+  /// `cocok: false`, dan SELURUH lembar ditolak walau angkanya benar.
+  ///
+  /// Yang diadu di sini kotak dari berkas geometri ke tinta di lembar cetak
+  /// yang dihasilkan `ocr:cetak-lembar` — dua sisi yang, sejak kotaknya
+  /// dihitung `LetakLabelLembar`, memang wajib sama.
+  test('kotak jangkar jatuh di atas label yang tercetak', () {
+    final jangkar = (geometri['jangkar'] as List<dynamic>)
+        .cast<Map<String, dynamic>>();
+
+    expect(
+      jangkar,
+      hasLength(5),
+      reason: 'Lembar Conductivity punya 5 Repeat, tiap Repeat satu label.',
+    );
+
+    final mesin = PindaiLembar();
+    final marker = mesin.cariMarker(lembar)!;
+    final warp = mesin.warp(
+      lembar,
+      marker,
+      lebar: lebar,
+      tinggi: tinggi,
+      tujuan: tujuan,
+    );
+
+    for (final j in jangkar) {
+      final kotak = j['kotak'] as Map<String, dynamic>;
+
+      expect(
+        (kotak['w'] as num) >= 1 && (kotak['h'] as num) >= 1,
+        isTrue,
+        reason: 'Kotak `0×0` nggak bisa dipotong — jangkarnya mati diam-diam.',
+      );
+
+      final potongan = mesin.potongSel(
+        warp.citra,
+        x: (kotak['x'] as num).toDouble(),
+        y: (kotak['y'] as num).toDouble(),
+        w: (kotak['w'] as num).toDouble(),
+        h: (kotak['h'] as num).toDouble(),
+      );
+
+      // Ada tinta di dalamnya — kotak yang meleset ke kertas kosong balik 0%.
+      // Ambangnya rendah karena `X1` itu dua huruf di kotak selebar 19 mm.
+      expect(
+        gelap(potongan),
+        greaterThan(0.01),
+        reason: 'Kotak jangkar ${j['teks']} jatuh di kertas kosong.',
+      );
+
+      // Dan tinta itu BUKAN garis kotak sel yang kebetulan kepotong: label
+      // berdiri di luar grid, jadi potongannya nggak boleh separuh hitam.
+      expect(
+        gelap(potongan),
+        lessThan(0.30),
+        reason: 'Kotak jangkar ${j['teks']} kena garis grid, bukan tulisannya.',
+      );
+    }
+  });
+
   test('foto miring & juling dikembalikan ke ruang template', () {
     // Julingkan: keempat sudut digeser beda-beda, plus digeser & diperbesar,
     // seperti foto dari tangan.
