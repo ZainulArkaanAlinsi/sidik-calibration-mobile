@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/config/app_config.dart';
 import '../models/worksheet_template.dart';
+import '../services/pembaca_halaman.dart';
 import '../services/pembaca_qr.dart';
 import '../services/pembaca_sel.dart';
 import '../services/worksheet_scan_service.dart';
@@ -21,6 +22,7 @@ final worksheetScanServiceProvider = Provider<WorksheetScanService>((ref) {
 typedef PabrikPembacaPindai = ({
   PembacaSel Function() sel,
   PembacaQr Function() qr,
+  PembacaHalaman Function() halaman,
 });
 
 /// Disuntik lewat provider supaya seluruh jalur pindai bisa dijalanin di test
@@ -33,7 +35,11 @@ typedef PabrikPembacaPindai = ({
 /// nyampe formulir tapi sesinya nggak ditandai butuh verifikasi, misalnya,
 /// nggak ngasih gejala apa pun sampai admin keblokir.
 final pabrikPembacaPindaiProvider = Provider<PabrikPembacaPindai>(
-  (ref) => (sel: MlKitPembacaSel.new, qr: MlKitPembacaQr.new),
+  (ref) => (
+    sel: MlKitPembacaSel.new,
+    qr: MlKitPembacaQr.new,
+    halaman: MlKitPembacaHalaman.new,
+  ),
 );
 
 /// Kunci [worksheetTemplateProvider]: kode lembar + alat yang lagi dipilih.

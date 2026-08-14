@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image/image.dart' as img;
 
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/lembar_kerja.dart';
 import '../../../models/standard.dart';
 import '../../../providers/calibration_input_provider.dart';
+import '../../../providers/sumber_foto_provider.dart';
+import '../../../providers/worksheet_scan_provider.dart';
+import '../../../services/peta_tabel_foto.dart';
 import '../lembar_kerja_state.dart';
 import 'dropdown_gagal.dart';
 
@@ -151,6 +155,19 @@ class LembarKerjaTabel extends StatelessWidget {
           tabel.judul,
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+
+        // Tombolnya sengaja LEBAR & BERLABEL, bukan ikon kecil di pojok: ini
+        // jalan pintas yang paling sering dipakai di lapangan, dan waktu cuma
+        // ikon di sebelah judul, teknisi nggak nemu sama sekali.
+        SizedBox(
+          width: double.infinity,
+          child: _TombolFotoTabel(
+            tabel: tabel,
+            isian: isian,
+            onBerubah: onBerubah,
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -1044,6 +1061,156 @@ class _Dropdown extends ConsumerWidget {
           },
         );
       },
+    );
+  }
+}
+
+/// Foto SATU tabel → angkanya masuk ke tabel itu.
+///
+/// ## Kenapa per tabel, bukan selembar
+///
+/// Ada dua jalur foto di aplikasi ini, dan bedanya bukan selera:
+///
+///  - **Pindai lembar kerja** (tombol di atas tabel) butuh lembar yang dicetak
+///    dari `ocr:cetak-lembar` — bermarker sudut + QR. Angkanya dipotong dari
+///    koordinat yang eksak, divonis server, dan lewat layar review. Paling
+///    aman, tapi cuma jalan buat kertas yang kita cetak sendiri.
+///  - **Foto tabel ini** (tombol ini) jalan di tabel APA ADANYA, termasuk
+///    formulir lama yang nggak bermarker. Yang mengunci posisinya bukan
+///    koordinat, tapi tinta yang tercetak di tabelnya sendiri: nilai standar
+///    di kolom kiri buat baris, `X1`..`Xn` di kepala buat kolom.
+///
+/// Dua-duanya nolak menebak dari urutan. Yang ini menolak lebih keras: sel
+/// yang nggak punya jangkar baris DAN kolom nggak pernah keisi — dan berapa
+/// yang kebuang dilaporkan, supaya teknisi tau ada yang nggak keangkut.
+///
+/// **Semua yang keisi ditandai perlu dicek.** Tanpa server, nggak ada yang
+/// mengadu angkanya ke rentang titik maupun resolusi alat; yang tersisa cuma
+/// mata teknisi.
+class _TombolFotoTabel extends ConsumerStatefulWidget {
+  const _TombolFotoTabel({
+    required this.tabel,
+    required this.isian,
+    required this.onBerubah,
+  });
+
+  final TabelHasil tabel;
+  final LembarKerjaState isian;
+  final VoidCallback onBerubah;
+
+  @override
+  ConsumerState<_TombolFotoTabel> createState() => _TombolFotoTabelState();
+}
+
+class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
+  bool _sibuk = false;
+
+  Future<void> _foto() async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    setState(() => _sibuk = true);
+
+    try {
+      // Resolusinya dipertahankan: yang dibaca ML Kit angka setinggi beberapa
+      // puluh piksel, dan tiap piksel yang dibuang di sini hilang dari angka
+      // yang kebaca. Yang dibatasi UKURANNYA, bukan mutunya — artefak JPEG di
+      // garis tipis itu yang bikin `4,04` kebaca `404`.
+      final foto = await ref
+          .read(sumberFotoProvider)
+          .ambil(maxWidth: 4200, imageQuality: 100);
+
+      if (foto == null || !mounted) return;
+
+      final citra = img.decodeImage(await foto.readAsBytes());
+
+      if (citra == null) {
+        messenger.showSnackBar(SnackBar(content: Text(l10n.lkFotoTabelGagal)));
+
+        return;
+      }
+
+      final pembaca = ref.read(pabrikPembacaPindaiProvider).halaman();
+
+      final HasilPetaTabel hasil;
+
+      try {
+        // Titik TABEL INI, bukan seluruh lembar. Spectrophotometer punya tiga
+        // tabel dengan titik beda-beda (10 nm + 9 nm + 5 %T); ngasih seluruh
+        // titik bikin nilai `20,0 %T` bisa nyamar jadi jangkar baris nm.
+        final titik = widget.isian.titikTabel(widget.tabel);
+
+        hasil = const PetaTabelFoto().petakan(
+          terbaca: await pembaca.baca(citra),
+          titikUkur: [for (final t in titik) t.titikUkur],
+          pengulangan: widget.tabel.pengulangan,
+          fieldPerRepeat: [for (final k in widget.tabel.kolom) k.kode],
+          labelField: {
+            for (final k in widget.tabel.kolom) k.kode: k.label,
+          },
+        );
+      } finally {
+        await pembaca.tutup();
+      }
+
+      if (!mounted) return;
+
+      if (hasil.kosong) {
+        // Nol sel bukan "OCR-nya jelek" — biasanya yang kefoto bukan tabelnya,
+        // atau kolom nilai standarnya nggak ikut masuk frame. Pesannya nyebut
+        // itu, karena mengulang jepretan yang sama nggak akan menolong.
+        messenger.showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 8),
+            content: Text(l10n.lkFotoTabelTanpaJangkar),
+          ),
+        );
+
+        return;
+      }
+
+      final terisi = widget.isian.terapkanHasilFotoTabel(
+        hasil.sel,
+        tahap: widget.tabel.tahap,
+      );
+
+      widget.onBerubah();
+
+      messenger.showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 6),
+          content: Text(
+            hasil.angkaTakTerpetakan == 0
+                ? l10n.lkFotoTabelTerisi(terisi)
+                : l10n.lkFotoTabelSebagian(terisi, hasil.angkaTakTerpetakan),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.lkFotoTabelError('$e'))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _sibuk = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    return OutlinedButton.icon(
+      onPressed: _sibuk ? null : _foto,
+      icon: _sibuk
+          ? const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.photo_camera_outlined, size: 18),
+      label: Text(l10n.lkFotoTabel),
     );
   }
 }

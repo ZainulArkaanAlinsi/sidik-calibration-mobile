@@ -16,6 +16,10 @@ import 'package:sidik_calibration/services/equipment_lookup_service.dart';
 import 'package:sidik_calibration/services/lembar_kerja_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/providers/history_provider.dart';
+import 'dart:io';
+
+import 'package:image/image.dart' as img;
+
 import 'package:sidik_calibration/models/worksheet_scan.dart';
 import 'package:sidik_calibration/models/worksheet_template.dart';
 import 'package:sidik_calibration/providers/sumber_foto_provider.dart';
@@ -25,6 +29,9 @@ import 'package:sidik_calibration/services/mock_store.dart';
 import 'package:sidik_calibration/services/photo_source.dart';
 import 'package:sidik_calibration/services/room_service.dart';
 import 'package:sidik_calibration/services/standard_service.dart';
+import 'package:sidik_calibration/services/pembaca_halaman.dart';
+import 'package:sidik_calibration/services/pembaca_qr.dart';
+import 'package:sidik_calibration/services/pembaca_sel.dart';
 import 'package:sidik_calibration/services/worksheet_scan_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 
@@ -58,6 +65,7 @@ Widget _app(
   MockSumberFoto? kamera,
   MockHistoryService? riwayat,
   MockWorksheetScanService? pindai,
+  MockPembacaHalaman? halaman,
 }) {
   return ProviderScope(
     overrides: [
@@ -80,6 +88,12 @@ Widget _app(
       worksheetScanServiceProvider.overrideWithValue(
         pindai ?? MockWorksheetScanService(),
       ),
+      if (halaman != null)
+        pabrikPembacaPindaiProvider.overrideWithValue((
+          sel: MockPembacaSel.new,
+          qr: MockPembacaQr.new,
+          halaman: () => halaman,
+        )),
     ],
     child: MaterialApp(
       locale: const Locale('id'),
@@ -1051,6 +1065,73 @@ void main() {
         'manual',
       );
     });
+  });
+
+  /// **Foto satu tabel → angkanya masuk ke tabel itu**, lewat layar aslinya.
+  ///
+  /// Ini yang paling sering dipakai teknisi, dan jalur yang paling gampang
+  /// pecah tanpa gejala: yang menentukan posisi angka bukan koordinat cetak
+  /// (lembarnya nggak bermarker) tapi jangkar yang kebaca dari tabelnya
+  /// sendiri. Kalau sambungannya putus, yang kelihatan cuma "kok nggak keisi".
+  testWidgets('foto tabel: angkanya mendarat di baris & kolom yang benar', (
+    tester,
+  ) async {
+    _perbesarViewport(tester);
+
+    // Hasil OCR tabel pH: nilai standar di kolom kiri, dua Repeat di kanan.
+    TeksTerbaca kata(String t, double x, double y) =>
+        (teks: t, kotak: Rect.fromLTWH(x, y, t.length * 14, 24));
+
+    await _muat(
+      tester,
+      _app(
+        MockLembarKerjaService(),
+        // Citranya kecil & polos: yang diuji sambungannya, dan hasil OCR-nya
+        // dititipin lewat `MockPembacaHalaman`. Lembar 1654×2339 cuma bikin
+        // decode-nya makan detik tanpa nambah bukti apa pun.
+        kamera: MockSumberFoto(file: _fotoKecil()),
+        // Kepala kolomnya ikut — tanpa `pH`/`°C` yang tercetak, nggak ada
+        // dasar buat mbedain pembacaan dari suhu, dan yang benar memang
+        // membuangnya (dijaga `peta_tabel_foto_test`).
+        halaman: MockPembacaHalaman([
+          kata('X1', 480, 60),
+          kata('X2', 760, 60),
+          kata('pH', 420, 100),
+          kata('°C', 560, 100),
+          kata('pH', 700, 100),
+          kata('°C', 840, 100),
+          kata('4,00', 200, 200),
+          kata('4,01', 420, 200),
+          kata('25,1', 560, 200),
+          kata('4,02', 700, 200),
+          kata('7,00', 200, 260),
+          kata('7,03', 420, 260),
+        ]),
+      ),
+    );
+    await _keHalamanAkhir(tester);
+
+    await tester.ensureVisible(find.text('FOTO TABEL INI').first);
+    await tester.pump();
+
+    // `runAsync` WAJIB: di widget test I/O aslinya dipalsukan, jadi
+    // `File.readAsBytes()` (fotonya) nggak pernah selesai di dalam `pump`
+    // biasa — dan tombolnya nyangkut di spinner selamanya.
+    await tester.runAsync(() async {
+      await tester.tap(find.text('FOTO TABEL INI').first);
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+    });
+
+    for (var i = 0; i < 40; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+      if (find.widgetWithText(TextField, '4,01').evaluate().isNotEmpty) break;
+    }
+
+    // Angkanya mendarat di kotaknya — bukan di baris sebelah.
+    expect(find.widgetWithText(TextField, '4,01'), findsWidgets);
+    expect(find.widgetWithText(TextField, '7,03'), findsWidgets);
+    expect(find.widgetWithText(TextField, '4,02'), findsWidgets);
+    expect(find.widgetWithText(TextField, '25,1'), findsWidgets);
   });
 
   /// **Tombol pindai nggak boleh HILANG waktu templatenya gagal diambil.**
@@ -2813,4 +2894,17 @@ class _PindaiGagalTemplate extends MockWorksheetScanService {
     int? equipmentId,
     int? jumlahPengulangan,
   }) async => throw Exception('404 template nggak ketemu');
+}
+
+/// Citra 8×8 putih di folder sementara — cukup buat jalur foto, tanpa ongkos
+/// decode lembar penuh.
+File _fotoKecil() {
+  final berkas = File(
+    '${Directory.systemTemp.createTempSync('fototabel').path}/kecil.png',
+  );
+  final citra = img.Image(width: 8, height: 8);
+  img.fill(citra, color: img.ColorRgb8(255, 255, 255));
+  berkas.writeAsBytesSync(img.encodePng(citra));
+
+  return berkas;
 }

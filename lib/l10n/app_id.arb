@@ -901,6 +901,36 @@
     "description": "Pesan waktu empat penanda sudut tidak ditemukan di foto."
   },
   "lkPindaiTerlaluMiring": "Fotonya terlalu miring. Jepret lebih tegak lurus di atas lembar.",
+  "lkFotoTabel": "FOTO TABEL INI",
+  "lkFotoTabelGagal": "Foto tidak bisa dibaca. Coba jepret ulang.",
+  "lkFotoTabelTanpaJangkar": "Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom nilai standar (kiri) dan kepala kolom X1, X2, … ikut kefoto — tanpa itu angkanya nggak bisa ditaruh dengan aman. Kolomnya tetap bisa diketik manual.",
+  "lkFotoTabelTerisi": "{terisi} sel keisi dari foto. Semuanya ditandai perlu dicek — cocokin sama kertasnya.",
+  "lkFotoTabelSebagian": "{terisi} sel keisi, {terbuang} angka dilewat karena tempatnya nggak bisa dipastikan. Yang kosong ketik manual.",
+  "lkFotoTabelError": "Foto tabel gagal: {pesan}",
+  "@lkFotoTabelTerisi": {
+    "placeholders": {
+      "terisi": {
+        "type": "int"
+      }
+    }
+  },
+  "@lkFotoTabelSebagian": {
+    "placeholders": {
+      "terisi": {
+        "type": "int"
+      },
+      "terbuang": {
+        "type": "int"
+      }
+    }
+  },
+  "@lkFotoTabelError": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
   "lkPindaiTemplateGagal": "Bentuk lembar buat pindai gagal diambil: {pesan}",
   "@lkPindaiTemplateGagal": {
     "placeholders": {

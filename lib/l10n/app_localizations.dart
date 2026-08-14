@@ -4736,6 +4736,42 @@ abstract class AppLocalizations {
   /// **'The photo is too skewed. Shoot it more square-on above the sheet.'**
   String get lkPindaiTerlaluMiring;
 
+  /// No description provided for @lkFotoTabel.
+  ///
+  /// In en, this message translates to:
+  /// **'PHOTOGRAPH THIS TABLE'**
+  String get lkFotoTabel;
+
+  /// No description provided for @lkFotoTabelGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo couldn\'t be read. Take it again.'**
+  String get lkFotoTabelGagal;
+
+  /// No description provided for @lkFotoTabelTanpaJangkar.
+  ///
+  /// In en, this message translates to:
+  /// **'No reading could be placed with certainty. Make sure the standard-value column (left) and the X1, X2, … column headers are in frame — without them the numbers cannot be placed safely. You can still type the values manually.'**
+  String get lkFotoTabelTanpaJangkar;
+
+  /// No description provided for @lkFotoTabelTerisi.
+  ///
+  /// In en, this message translates to:
+  /// **'{terisi} cells filled from the photo. All are flagged for checking — compare them with the paper.'**
+  String lkFotoTabelTerisi(int terisi);
+
+  /// No description provided for @lkFotoTabelSebagian.
+  ///
+  /// In en, this message translates to:
+  /// **'{terisi} cells filled; {terbuang} numbers skipped because their position was uncertain. Type the empty ones manually.'**
+  String lkFotoTabelSebagian(int terisi, int terbuang);
+
+  /// No description provided for @lkFotoTabelError.
+  ///
+  /// In en, this message translates to:
+  /// **'Table photo failed: {pesan}'**
+  String lkFotoTabelError(String pesan);
+
   /// No description provided for @lkPindaiTemplateGagal.
   ///
   /// In en, this message translates to:

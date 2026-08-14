@@ -2548,6 +2548,31 @@ class AppLocalizationsId extends AppLocalizations {
       'Fotonya terlalu miring. Jepret lebih tegak lurus di atas lembar.';
 
   @override
+  String get lkFotoTabel => 'FOTO TABEL INI';
+
+  @override
+  String get lkFotoTabelGagal => 'Foto tidak bisa dibaca. Coba jepret ulang.';
+
+  @override
+  String get lkFotoTabelTanpaJangkar =>
+      'Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom nilai standar (kiri) dan kepala kolom X1, X2, … ikut kefoto — tanpa itu angkanya nggak bisa ditaruh dengan aman. Kolomnya tetap bisa diketik manual.';
+
+  @override
+  String lkFotoTabelTerisi(int terisi) {
+    return '$terisi sel keisi dari foto. Semuanya ditandai perlu dicek — cocokin sama kertasnya.';
+  }
+
+  @override
+  String lkFotoTabelSebagian(int terisi, int terbuang) {
+    return '$terisi sel keisi, $terbuang angka dilewat karena tempatnya nggak bisa dipastikan. Yang kosong ketik manual.';
+  }
+
+  @override
+  String lkFotoTabelError(String pesan) {
+    return 'Foto tabel gagal: $pesan';
+  }
+
+  @override
   String lkPindaiTemplateGagal(String pesan) {
     return 'Bentuk lembar buat pindai gagal diambil: $pesan';
   }

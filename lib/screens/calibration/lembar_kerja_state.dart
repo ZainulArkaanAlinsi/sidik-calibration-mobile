@@ -12,6 +12,7 @@ import '../../models/lembar_kerja.dart';
 import '../../models/lembar_kerja_submission.dart';
 import '../../models/worksheet_scan.dart';
 import '../../services/gabung_tabel.dart';
+import '../../services/peta_tabel_foto.dart';
 
 /// Angka di lembar kerja diketik teknisi lapangan, yang kadang pakai koma
 /// (`22,2`) karena itu yang dipakai di formulir kertasnya. Dua-duanya
@@ -1152,6 +1153,46 @@ class LembarKerjaState {
 
     return terisi;
   }
+  /// Tuang hasil FOTO SATU TABEL ke kotak isian tabel itu.
+  ///
+  /// Bedanya dari [terapkanHasilPindai]: yang ini nggak lewat server. Fotonya
+  /// dibaca di HP, dipetakan `PetaTabelFoto` lewat jangkar yang tercetak di
+  /// tabelnya sendiri, dan hasilnya langsung masuk kotak — **semuanya ditandai
+  /// perlu dicek**, tanpa kecuali.
+  ///
+  /// Nggak ada vonis hijau di jalur ini, dan itu disengaja: tanpa server nggak
+  /// ada yang mengadu angkanya ke rentang titik, resolusi alat, atau sebaran
+  /// antar-Repeat. Yang tersisa cuma mata teknisi, jadi tiap sel yang keisi
+  /// dari foto ditandai — bukan sebagian.
+  ///
+  /// Sel yang sudah ada isinya nggak pernah ditimpa, sama seperti jalur lain.
+  int terapkanHasilFotoTabel(
+    List<SelTabelFoto> sel, {
+    required String tahap,
+  }) {
+    var terisi = 0;
+
+    for (final s in sel) {
+      final state = _titikTerdekat(s.titikUkur);
+      if (state == null) continue;
+
+      final index = s.repeatNo - 1;
+      if (index < 0 || index >= state.jumlahPengulangan) continue;
+
+      // Teksnya dibaca jadi angka DI SINI, bukan di pemetanya: yang di sana
+      // cuma menjawab "tempatnya di mana", dan mencampur dua urusan itu bikin
+      // aturan angka tersebar di dua tempat.
+      final nilai = parseAngka(s.teks);
+      if (nilai == null) continue;
+
+      terisi += _isiSel(state, tahap, s.fieldId, index, nilai, true);
+    }
+
+    if (terisi > 0) adaIsianDariFoto = true;
+
+    return terisi;
+  }
+
   void _tandai(String kunci, bool perluDicek) {
     if (perluDicek) {
       selRendahKeyakinan.add(kunci);

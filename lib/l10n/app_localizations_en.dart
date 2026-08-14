@@ -2562,6 +2562,31 @@ class AppLocalizationsEn extends AppLocalizations {
       'The photo is too skewed. Shoot it more square-on above the sheet.';
 
   @override
+  String get lkFotoTabel => 'PHOTOGRAPH THIS TABLE';
+
+  @override
+  String get lkFotoTabelGagal => 'The photo couldn\'t be read. Take it again.';
+
+  @override
+  String get lkFotoTabelTanpaJangkar =>
+      'No reading could be placed with certainty. Make sure the standard-value column (left) and the X1, X2, … column headers are in frame — without them the numbers cannot be placed safely. You can still type the values manually.';
+
+  @override
+  String lkFotoTabelTerisi(int terisi) {
+    return '$terisi cells filled from the photo. All are flagged for checking — compare them with the paper.';
+  }
+
+  @override
+  String lkFotoTabelSebagian(int terisi, int terbuang) {
+    return '$terisi cells filled; $terbuang numbers skipped because their position was uncertain. Type the empty ones manually.';
+  }
+
+  @override
+  String lkFotoTabelError(String pesan) {
+    return 'Table photo failed: $pesan';
+  }
+
+  @override
   String lkPindaiTemplateGagal(String pesan) {
     return 'Couldn\'t load the scan template: $pesan';
   }

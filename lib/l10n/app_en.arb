@@ -1309,6 +1309,36 @@
     "description": "Pesan waktu empat penanda sudut tidak ditemukan di foto."
   },
   "lkPindaiTerlaluMiring": "The photo is too skewed. Shoot it more square-on above the sheet.",
+  "lkFotoTabel": "PHOTOGRAPH THIS TABLE",
+  "lkFotoTabelGagal": "The photo couldn't be read. Take it again.",
+  "lkFotoTabelTanpaJangkar": "No reading could be placed with certainty. Make sure the standard-value column (left) and the X1, X2, … column headers are in frame — without them the numbers cannot be placed safely. You can still type the values manually.",
+  "lkFotoTabelTerisi": "{terisi} cells filled from the photo. All are flagged for checking — compare them with the paper.",
+  "lkFotoTabelSebagian": "{terisi} cells filled; {terbuang} numbers skipped because their position was uncertain. Type the empty ones manually.",
+  "lkFotoTabelError": "Table photo failed: {pesan}",
+  "@lkFotoTabelTerisi": {
+    "placeholders": {
+      "terisi": {
+        "type": "int"
+      }
+    }
+  },
+  "@lkFotoTabelSebagian": {
+    "placeholders": {
+      "terisi": {
+        "type": "int"
+      },
+      "terbuang": {
+        "type": "int"
+      }
+    }
+  },
+  "@lkFotoTabelError": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
   "lkPindaiTemplateGagal": "Couldn't load the scan template: {pesan}",
   "@lkPindaiTemplateGagal": {
     "placeholders": {

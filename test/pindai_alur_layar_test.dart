@@ -19,6 +19,7 @@ import 'package:sidik_calibration/services/equipment_lookup_service.dart';
 import 'package:sidik_calibration/services/history_service.dart';
 import 'package:sidik_calibration/services/lembar_kerja_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
+import 'package:sidik_calibration/services/pembaca_halaman.dart';
 import 'package:sidik_calibration/services/pembaca_qr.dart';
 import 'package:sidik_calibration/services/pembaca_sel.dart';
 import 'package:sidik_calibration/services/photo_source.dart';
@@ -198,6 +199,7 @@ void main() {
           pabrikPembacaPindaiProvider.overrideWithValue((
             sel: () => _PembacaLembar(),
             qr: () => MockPembacaQr(isi: 'conductivity_meter|v1'),
+            halaman: () => MockPembacaHalaman(const []),
           )),
         ],
         child: MaterialApp(
