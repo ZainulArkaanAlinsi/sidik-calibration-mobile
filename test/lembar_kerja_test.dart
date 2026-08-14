@@ -16,14 +16,15 @@ import 'package:sidik_calibration/services/equipment_lookup_service.dart';
 import 'package:sidik_calibration/services/lembar_kerja_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/providers/history_provider.dart';
+import 'package:sidik_calibration/models/worksheet_scan.dart';
 import 'package:sidik_calibration/providers/sumber_foto_provider.dart';
-import 'package:sidik_calibration/providers/worksheet_vision_provider.dart';
+import 'package:sidik_calibration/providers/worksheet_scan_provider.dart';
 import 'package:sidik_calibration/services/history_service.dart';
 import 'package:sidik_calibration/services/mock_store.dart';
 import 'package:sidik_calibration/services/photo_source.dart';
 import 'package:sidik_calibration/services/room_service.dart';
 import 'package:sidik_calibration/services/standard_service.dart';
-import 'package:sidik_calibration/services/worksheet_vision.dart';
+import 'package:sidik_calibration/services/worksheet_scan_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 
 /// Lembar kerjanya panjang banget (2 tabel x 3 baris x 5 repeat x 2 kolom =
@@ -55,7 +56,7 @@ Widget _app(
   MockRoomService? ruangan,
   MockSumberFoto? kamera,
   MockHistoryService? riwayat,
-  MockWorksheetVisionService? visi,
+  MockWorksheetScanService? pindai,
 }) {
   return ProviderScope(
     overrides: [
@@ -73,7 +74,11 @@ Widget _app(
       ),
       if (kamera != null) sumberFotoProvider.overrideWithValue(kamera),
       if (riwayat != null) historyServiceProvider.overrideWithValue(riwayat),
-      if (visi != null) worksheetVisionProvider.overrideWithValue(visi),
+      // Tombol pindai nanya kesiapan lembar ke sini. Bawaannya
+      // `siap_pindai: false` — sama kayak keadaan server sekarang.
+      worksheetScanServiceProvider.overrideWithValue(
+        pindai ?? MockWorksheetScanService(),
+      ),
     ],
     child: MaterialApp(
       locale: const Locale('id'),
@@ -826,35 +831,50 @@ void main() {
     });
   });
 
-  group('OCR tabel worksheet', () {
-    /// `baris` itu **Repeat**, isinya satu angka per larutan standar. Dua sumbu
-    /// ini gampang kebalik, dan kalau kebalik angkanya nyasar ke buffer yang
-    /// salah tanpa ada yang error — makanya diuji eksplisit.
-    HasilEkstraksiTabel contohHasil() => const HasilEkstraksiTabel(
-      baris: [
-        BarisTabel(ph: [4.01, 7.02, 10.11], suhu: [22.2, 22.3, 22.1]),
-        BarisTabel(ph: [4.02, 7.03, 10.12], suhu: [22.2, 22.3, 22.1]),
-      ],
-      jumlahSelKebaca: 12,
-      jumlahSelDiharapkan: 30,
-      jumlahAngkaTerdeteksi: 12,
-    );
+  group('hasil pindai lembar kerja', () {
+    /// Sel yang UDAH lewat mata teknisi di layar review — bukan bacaan mentah
+    /// OCR. Alamatnya tahap + titik ukur + nomor Repeat + kolom, bukan urutan
+    /// array: begitu ada satu tahap yang ngandelin urutan, angka bisa mendarat
+    /// di baris sebelah tanpa satu pun error muncul.
+    List<SelDipakaiPindai> contohHasil({String tahap = 'sesudah_adjustment'}) =>
+        [
+          for (final (titik, nilai) in const [
+            (4.00, [4.01, 4.02]),
+            (7.00, [7.02, 7.03]),
+            (10.01, [10.11, 10.12]),
+          ])
+            for (var r = 0; r < nilai.length; r++) ...[
+              (
+                tahap: tahap,
+                titikUkur: titik,
+                repeatNo: r + 1,
+                fieldId: 'pembacaan',
+                nilai: nilai[r],
+                perluDicek: true,
+              ),
+              (
+                tahap: tahap,
+                titikUkur: titik,
+                repeatNo: r + 1,
+                fieldId: 'suhu',
+                nilai: 22.2,
+                perluDicek: true,
+              ),
+            ],
+        ];
 
     LembarKerjaState buatState() => LembarKerjaState(
       bentuk: LembarKerja.fromJson(contohBentukLembarKerja()),
       clientRequestId: 'uuid-test',
     );
 
-    // Angka hasil AI ditulis pakai KOMA sejak lembar kerjanya sendiri berkoma
-    // (titik ukur `4,00` / `1,74`). Kotaknya tetap nerima dua-duanya.
+    // Angka hasil pindai ditulis pakai KOMA sejak lembar kerjanya sendiri
+    // berkoma (titik ukur `4,00` / `1,74`). Kotaknya tetap nerima dua-duanya.
     test('angka masuk ke Repeat & larutan standar yang benar', () {
       final isian = buatState();
-      final terisi = isian.terapkanHasilEkstraksi(
-        contohHasil(),
-        tahap: 'sesudah_adjustment',
-      );
+      final terisi = isian.terapkanHasilPindai(contohHasil());
 
-      // 2 Repeat x 3 titik x 2 kolom (pH & suhu).
+      // 2 Repeat x 3 titik x 2 kolom (pembacaan & suhu).
       expect(terisi, 12);
 
       final titik4 = isian.titik[4.00]!;
@@ -867,237 +887,221 @@ void main() {
       expect(titik4.kotak('sesudah_adjustment', 'suhu', 0).text, '22,2');
     });
 
-    test('sel yang udah diketik manual NGGAK ketimpa hasil foto', () {
+    /// Urutan array kiriman NGGAK boleh menentukan apa pun.
+    ///
+    /// Aturan yang sama dijaga di sisi server (payload yang dibalik urutannya
+    /// menghasilkan angka identik); di sini yang dijaga sisi layarnya, karena
+    /// pemetaan yang diam-diam ngandelin urutan cuma ketahuan waktu ada alat
+    /// yang barisnya nggak seurut titiknya.
+    test('urutan kiriman dibalik → angkanya identik', () {
+      final urut = buatState()..terapkanHasilPindai(contohHasil());
+      final balik = buatState()
+        ..terapkanHasilPindai(contohHasil().reversed.toList());
+
+      for (final titik in const [4.00, 7.00, 10.01]) {
+        for (var r = 0; r < 2; r++) {
+          expect(
+            balik.titik[titik]!.kotak('sesudah_adjustment', 'pembacaan', r).text,
+            urut.titik[titik]!.kotak('sesudah_adjustment', 'pembacaan', r).text,
+          );
+        }
+      }
+    });
+
+    test('sel yang udah diketik manual NGGAK ketimpa hasil pindai', () {
       final isian = buatState();
       final titik4 = isian.titik[4.00]!;
 
       // Teknisi udah betulin angka ini sendiri.
       titik4.kotak('sesudah_adjustment', 'pembacaan', 0).text = '4.00';
 
-      final terisi = isian.terapkanHasilEkstraksi(
-        contohHasil(),
-        tahap: 'sesudah_adjustment',
-      );
+      final terisi = isian.terapkanHasilPindai(contohHasil());
 
-      // Foto boleh dipakai berkali-kali buat nambal yang kurang; yang udah
-      // dibetulin manusia harus menang.
+      // Lembarnya boleh dipindai berkali-kali buat nambal yang kurang; yang
+      // udah dibetulin manusia harus menang.
       expect(titik4.kotak('sesudah_adjustment', 'pembacaan', 0).text, '4.00');
       expect(terisi, 11, reason: 'satu sel dilewat karena udah keisi');
     });
 
-    test('blok non-tabel keisi dari foto yang sama', () {
+    test('sel bervonis kuning ditandai perlu dicek, yang hijau nggak', () {
       final isian = buatState();
-      final terisi = isian.terapkanHasilHeader(
-        const HasilEkstraksiHeader(
-          field: {
-            'suhu_awal': NilaiHeader(
-              nilai: '22.2',
-              keyakinan: TingkatKeyakinan.tinggi,
-            ),
-            'catatan_teknisi': NilaiHeader(
-              nilai: 'buffer 10 baru dibuka',
-              keyakinan: TingkatKeyakinan.rendah,
-            ),
-          },
-          tanggal: {
-            'tanggal_terima': NilaiHeader(
-              nilai: '23/07/2026',
-              keyakinan: TingkatKeyakinan.sedang,
-            ),
-          },
+
+      isian.terapkanHasilPindai([
+        (
+          tahap: 'sesudah_adjustment',
+          titikUkur: 4.00,
+          repeatNo: 1,
+          fieldId: 'pembacaan',
+          nilai: 4.01,
+          perluDicek: true,
         ),
-      );
+        (
+          tahap: 'sesudah_adjustment',
+          titikUkur: 7.00,
+          repeatNo: 1,
+          fieldId: 'pembacaan',
+          nilai: 7.02,
+          perluDicek: false,
+        ),
+      ]);
 
-      expect(terisi, 3);
-      expect(isian.teks['suhu_awal']!.text, '22.2');
-      expect(isian.teks['catatan_teknisi']!.text, 'buffer 10 baru dibuka');
-      expect(isian.tanggal['tanggal_terima'], DateTime(2026, 7, 23));
-
-      // Cuma yang keyakinannya rendah yang ditandai — nyuruh cek SEMUA kolom
-      // sama aja nggak nandain apa-apa.
+      // Nyuruh cek SEMUA sel sama aja nggak nandain apa-apa.
       expect(
         isian.selRendahKeyakinan.contains(
-          LembarKerjaState.kunciField('catatan_teknisi'),
+          LembarKerjaState.kunciSel(4.00, 'sesudah_adjustment', 'pembacaan', 0),
         ),
         isTrue,
       );
       expect(
         isian.selRendahKeyakinan.contains(
-          LembarKerjaState.kunciField('suhu_awal'),
+          LembarKerjaState.kunciSel(7.00, 'sesudah_adjustment', 'pembacaan', 0),
         ),
         isFalse,
       );
     });
 
-    test('AI NGGAK BISA nulis serial number / tanda tangan', () {
-      // Ini pagar paling penting di seluruh alur foto. Serial number salah satu
-      // digit bikin kalibrasi nempel ke instrumen yang salah — itu cacat
-      // sertifikat berakreditasi, bukan sekadar bug. Sumbernya wajib DB.
-      // Tanda tangan "Checked by" apalagi: itu provenance, bukan data.
+    test('titik yang nggak ada di lembar ini DIBUANG, bukan dipaksa masuk', () {
+      // Angka kalibrasi di titik yang salah lebih bahaya daripada sel yang
+      // dibiarin kosong buat diisi tangan.
       final isian = buatState();
-      final terisi = isian.terapkanHasilHeader(
-        const HasilEkstraksiHeader(
-          field: {
-            'equipment.serial_number': NilaiHeader(
-              nilai: 'B628755900',
-              keyakinan: TingkatKeyakinan.tinggi,
-            ),
-            'customer.nama': NilaiHeader(
-              nilai: 'PT Tirta Gracia',
-              keyakinan: TingkatKeyakinan.tinggi,
-            ),
-            'reviewer.nama': NilaiHeader(
-              nilai: 'Budi',
-              keyakinan: TingkatKeyakinan.tinggi,
-            ),
-          },
+
+      final terisi = isian.terapkanHasilPindai([
+        (
+          tahap: 'sesudah_adjustment',
+          titikUkur: 1412.0,
+          repeatNo: 1,
+          fieldId: 'pembacaan',
+          nilai: 1413,
+          perluDicek: true,
         ),
-      );
-
-      // Backend boleh nekat ngirim kolom ini; mobile tetap nolak semuanya.
-      expect(terisi, 0);
-      expect(isian.teks.containsKey('equipment.serial_number'), isFalse);
-      expect(isian.teks.containsKey('customer.nama'), isFalse);
-      expect(isian.teks.containsKey('reviewer.nama'), isFalse);
-    });
-
-    test('kolom non-tabel yang udah diketik manual NGGAK ketimpa', () {
-      final isian = buatState();
-      isian.teks['suhu_awal']!.text = '23.0';
-
-      final terisi = isian.terapkanHasilHeader(
-        const HasilEkstraksiHeader(
-          field: {
-            'suhu_awal': NilaiHeader(
-              nilai: '22.2',
-              keyakinan: TingkatKeyakinan.tinggi,
-            ),
-          },
-        ),
-      );
+      ]);
 
       expect(terisi, 0);
-      expect(isian.teks['suhu_awal']!.text, '23.0');
+      expect(isian.titik.containsKey(1412.0), isFalse);
     });
 
-    test('tanggal_kalibrasi udah keisi hari ini → AI nggak nimpa', () {
+    test('Repeat di luar jumlah kotak lembar ini dilewat', () {
+      // Lembar yang dipangkas jadi 3 Repeat nggak punya kotak ke-5; nulis ke
+      // situ bikin kotak siluman yang nggak pernah kelihatan di layar tapi
+      // ikut kekirim.
       final isian = buatState();
-      final sebelum = isian.tanggal['tanggal_kalibrasi'];
 
-      isian.terapkanHasilHeader(
-        const HasilEkstraksiHeader(
-          tanggal: {
-            'tanggal_kalibrasi': NilaiHeader(
-              nilai: '01/01/2020',
-              keyakinan: TingkatKeyakinan.tinggi,
-            ),
-          },
+      final terisi = isian.terapkanHasilPindai([
+        (
+          tahap: 'sesudah_adjustment',
+          titikUkur: 4.00,
+          repeatNo: 99,
+          fieldId: 'pembacaan',
+          nilai: 4.01,
+          perluDicek: true,
         ),
-      );
+      ]);
 
-      expect(isian.tanggal['tanggal_kalibrasi'], sebelum);
+      expect(terisi, 0);
     });
 
-    test('usage check dari AI SELALU ditandai perlu dicek', () {
-      // Centang yang kebalik itu klaim standar mana yang dipakai — alias
-      // ketertelusuran. Beda kelas dari salah baca satu angka, jadi keyakinan
-      // "high" pun nggak cukup buat ngelolosin tanpa mata manusia.
-      final isian = buatState();
-      final terisi = isian.terapkanHasilHeader(
-        const HasilEkstraksiHeader(
-          usageCheck: [
-            UsageCheckAi(
-              standardId: 3,
-              dipakai: true,
-              keterangan: 'buffer 4',
-              keyakinan: TingkatKeyakinan.tinggi,
-            ),
-          ],
-        ),
-      );
-
-      expect(terisi, 1);
-      expect(isian.usageCheck[3]!.dipakai, isTrue);
-      expect(isian.usageCheck[3]!.keterangan.text, 'buffer 4');
-      expect(
-        isian.selRendahKeyakinan.contains(LembarKerjaState.kunciUsage(3)),
-        isTrue,
-      );
-    });
-
-    test('foto tabel Before nggak nyentuh tabel After', () {
-      final isian = buatState();
-      isian.terapkanHasilEkstraksi(contohHasil(), tahap: 'sebelum_adjustment');
+    test('pindai tabel Before nggak nyentuh tabel After', () {
+      final isian = buatState()
+        ..terapkanHasilPindai(contohHasil(tahap: 'sebelum_adjustment'));
 
       final titik4 = isian.titik[4.00]!;
       expect(titik4.kotak('sebelum_adjustment', 'pembacaan', 0).text, '4,01');
       expect(titik4.kotak('sesudah_adjustment', 'pembacaan', 0).text, isEmpty);
     });
 
-    test('hasil OCR ikut kekirim lewat payload, sel sisanya tetap null', () {
+    test('hasil pindai ikut kekirim lewat payload, sel sisanya tetap null', () {
       final isian = buatState()..alat = null;
-      isian.terapkanHasilEkstraksi(contohHasil(), tahap: 'sesudah_adjustment');
+      isian.terapkanHasilPindai(contohHasil());
 
       final titik4 = isian.titik[4.00]!.toSubmission().toJson();
 
-      // Dua Repeat keisi dari foto, tiga sisanya tetap null di posisinya.
+      // Dua Repeat keisi dari pindai, tiga sisanya tetap null di posisinya.
       expect(titik4['pembacaan'], [4.01, 4.02, null, null, null]);
     });
 
     /// Asal-usul angka ikut kesimpen, bukan cuma angkanya.
     ///
     /// Dulu payload selalu nulis `input_method: manual`, termasuk buat tabel
-    /// yang dibaca AI dari foto. Waktu ada angka sertifikat yang kelihatan
+    /// yang dibaca mesin dari foto. Waktu ada angka sertifikat yang kelihatan
     /// meleset (6 Agt 2026, chlorine titik 1,83), pertanyaan pertama admin —
     /// "ini diketik atau hasil foto?" — cuma bisa dijawab dengan ngubek log
     /// server, dan log-nya nggak selamanya ada.
-    test('sesi yang tabelnya dari foto kecatat ai_vision, bukan manual', () {
+    test('sesi yang tabelnya dari pindai kecatat ocr, bukan manual', () {
       final polos = buatState()..alat = daftarAlatMock.first;
       expect(polos.toSubmission(draft: false).toJson()['input_method'], 'manual');
 
-      final difoto = buatState()..alat = daftarAlatMock.first;
-      difoto.terapkanHasilEkstraksi(contohHasil(), tahap: 'sesudah_adjustment');
+      final dipindai = buatState()..alat = daftarAlatMock.first;
+      dipindai.terapkanHasilPindai(contohHasil());
 
       expect(
-        difoto.toSubmission(draft: false).toJson()['input_method'],
-        'ai_vision',
+        dipindai.toSubmission(draft: false).toJson()['input_method'],
+        'ocr',
+      );
+    });
+
+    test('pindai yang nggak ngisi apa-apa nggak ngubah asal-usulnya', () {
+      // Sesi yang kecatat `ocr` padahal semua angkanya diketik tangan bikin
+      // jejaknya bohong ke arah sebaliknya.
+      final isian = buatState()..alat = daftarAlatMock.first;
+      isian.terapkanHasilPindai(const []);
+
+      expect(
+        isian.toSubmission(draft: false).toJson()['input_method'],
+        'manual',
       );
     });
   });
 
-  /// **Foto tabel wajib dibatasi ukurannya sebelum diunggah.**
+  /// **Tombol pindai ikut `siap_pindai` dari server, titik.**
   ///
-  /// Tanpa `maxWidth`, `image_picker` balikin foto di resolusi penuh sensor.
-  /// Kamera HP tes (Samsung A55) 50 MP — satu jepretan gampang 10–20 MB,
-  /// sementara `WorksheetExtractionController` di backend nolak di 8 MB
-  /// (`'foto' => [..., 'max:8192']`). Fotonya ditolak SEBELUM nyampe AI, dan
-  /// yang kelihatan teknisi cuma "scan gagal" walau kamera, izin, API key, &
-  /// model Gemini semuanya sehat.
-  ///
-  /// Kualitasnya SENGAJA tetap 100: yang bikin koma ilang & `4,04` kebaca `404`
-  /// itu artefak JPEG di garis tipis, bukan jumlah pikselnya. Jadi yang boleh
-  /// dipangkas dimensinya, bukan mutunya.
-  testWidgets('foto tabel dibatasi dimensinya, mutunya nggak diturunin', (
+  /// Sekarang keenam lembar masih `geometri_belum_diverifikasi`: koordinat
+  /// selnya belum diukur dari lembar CETAK asli. Koordinat tebakan berarti
+  /// angka mendarat di sel yang salah — persis kegagalan yang bikin fitur ini
+  /// dirancang. Nyalain paksa "biar bisa dites dulu" cuma bikin teknisi
+  /// percaya fitur yang belum boleh dipakai.
+  testWidgets('lembar yang belum siap: tombol mati + alasannya apa adanya', (
     tester,
   ) async {
     _perbesarViewport(tester);
-    final kamera = MockSumberFoto(dibatalkan: true);
     await _muat(
       tester,
-      _app(MockLembarKerjaService(), kamera: kamera),
+      _app(
+        MockLembarKerjaService(),
+        pindai: MockWorksheetScanService(siapPindai: false),
+      ),
     );
     await _keHalamanAkhir(tester);
 
-    await tester.tap(find.text('FOTO TABEL INI — DIBACA AI').first);
-    await tester.pumpAndSettle();
-
+    final tombol = find.widgetWithText(OutlinedButton, 'PINDAI LEMBAR KERJA');
+    expect(tombol, findsWidgets);
     expect(
-      kamera.maxWidthTerakhir,
-      isNotNull,
-      reason: 'tanpa maxWidth, fotonya lewat batas 8 MB backend',
+      tester.widget<OutlinedButton>(tombol.first).onPressed,
+      isNull,
+      reason: 'lembar tanpa geometri terverifikasi nggak boleh dipindai',
     );
-    expect(kamera.maxWidthTerakhir, lessThanOrEqualTo(5000));
-    expect(kamera.kualitasTerakhir, 100);
+
+    // Alasannya ditampilin APA ADANYA, bukan diterjemahin jadi "fitur belum
+    // tersedia": teknisi berhak tahu yang kurang itu apa, dan yang bisa nutup
+    // cuma lab (cetak ulang formulir + ukur koordinatnya).
+    expect(
+      find.textContaining('geometri_belum_diverifikasi'),
+      findsWidgets,
+    );
+  });
+
+  testWidgets('lembar yang udah siap: tombol pindai hidup', (tester) async {
+    _perbesarViewport(tester);
+    await _muat(
+      tester,
+      _app(
+        MockLembarKerjaService(),
+        pindai: MockWorksheetScanService(siapPindai: true),
+      ),
+    );
+    await _keHalamanAkhir(tester);
+
+    final tombol = find.widgetWithText(OutlinedButton, 'PINDAI LEMBAR KERJA');
+    expect(tester.widget<OutlinedButton>(tombol.first).onPressed, isNotNull);
   });
 
   _testDropdownGagal();
@@ -1422,30 +1426,41 @@ void _testRefractometer() {
       expect(isian.satuan, 'pH');
     });
 
-    /// Hasil foto AI mesti ngisi SEMUA sel tabelnya, bukan sebagian.
+    /// Hasil pindai mesti ngisi SEMUA sel tabelnya, bukan sebagian.
     ///
-    /// Angkanya bukan karangan — ini keluaran beneran Gemini 7 Agt 2026 buat
-    /// foto tabel Refractometer teknisi (`extract()` balikin 20/20 sel terisi,
-    /// `1,3362 · 1,3986 · 25 · 25` di kelima Repeat). Yang diuji di sini bagian
-    /// SESUDAHNYA: hasil yang udah benar itu mendarat utuh di kotak yang benar.
+    /// Angkanya dari sesi master Refractometer (`1,3362 · 1,3986 · 25 · 25` di
+    /// kelima Repeat). Yang diuji bagian sesudah layar review: angka yang udah
+    /// disetujui teknisi mendarat utuh di kotak yang benar.
     ///
-    /// Dua titik, bukan tiga — pemetaan kolomnya gampang meleset waktu jumlah
+    /// Dua titik, bukan tiga — pemetaannya gampang meleset waktu jumlah
     /// titiknya beda dari pH yang jadi acuan awal.
-    test('hasil foto AI ngisi 20 sel Refractometer, bukan sebagian', () {
+    test('hasil pindai ngisi 20 sel Refractometer, bukan sebagian', () {
       final isian = buatState()..alat = alat('n20D');
 
-      final terisi = isian.terapkanHasilEkstraksi(
-        HasilEkstraksiTabel(
-          baris: [
-            for (var i = 0; i < 5; i++)
-              BarisTabel(ph: [1.3362, 1.3986], suhu: [25, 25]),
+      final terisi = isian.terapkanHasilPindai([
+        for (var r = 1; r <= 5; r++)
+          for (final (titik, baca) in const [
+            (1.33659, 1.3362),
+            (1.39986, 1.3986),
+          ]) ...[
+            (
+              tahap: 'sesudah_adjustment',
+              titikUkur: titik,
+              repeatNo: r,
+              fieldId: 'pembacaan',
+              nilai: baca,
+              perluDicek: true,
+            ),
+            (
+              tahap: 'sesudah_adjustment',
+              titikUkur: titik,
+              repeatNo: r,
+              fieldId: 'suhu',
+              nilai: 25.0,
+              perluDicek: true,
+            ),
           ],
-          jumlahSelKebaca: 20,
-          jumlahSelDiharapkan: 20,
-          jumlahAngkaTerdeteksi: 20,
-        ),
-        tahap: 'sesudah_adjustment',
-      );
+      ]);
 
       expect(terisi, 20, reason: '2 titik x 5 repeat x 2 kolom');
 
@@ -1457,9 +1472,8 @@ void _testRefractometer() {
         expect(t1.kotak('sesudah_adjustment', 'suhu', i).text, '25');
       }
 
-      // Tabel Before SENGAJA tetap kosong: satu foto = satu tabel, persis kayak
-      // di kertas yang dua tabelnya kepisah. Ini yang gampang kebaca sebagai
-      // "AI-nya ngambil kurang" padahal teknisi baru motret satu tabel.
+      // Tabel Before SENGAJA tetap kosong: yang dituang cuma tabel yang
+      // dipindai, persis kayak di kertas yang dua tabelnya kepisah.
       expect(t1.kotak('sebelum_adjustment', 'pembacaan', 0).text, isEmpty);
     });
 
@@ -1571,42 +1585,30 @@ void _testRefractometer() {
     /// nge-blok admin (`ocr_belum_diverifikasi`) tanpa dia pernah dikasih tau
     /// mesti balik ke sana. Tiga sesi berturut-turut mentok begitu.
     ///
-    /// Dan tombol yang ditekan belakangan itu stempel karet — teknisi nggak
-    /// lagi natap angkanya, dia cuma mbuka blokir. Yang natap angkanya ya di
-    /// dialog "Cek dulu angkanya sebelum dikirim", dan di situ juga sekarang
-    /// dia nyatain udah nyocokin ke alat.
-    testWidgets('kirim sesi hasil foto langsung nandain pembacaannya', (
-      tester,
-    ) async {
-      _perbesarViewport(tester);
-      final service = MockLembarKerjaService();
-      final riwayat = MockHistoryService();
-      await _muat(
-        tester,
-        _app(
-          service,
-          profil: 'refractometer',
-          riwayat: riwayat,
-          kamera: MockSumberFoto(),
-          visi: MockWorksheetVisionService(),
+    /// **Yang dijaga di sini tinggal separuh.** Dulu dijalanin lewat UI:
+    /// tombol "FOTO TABEL" → sumber foto tiruan → AI tiruan → kirim. Jalur AI
+    /// itu udah dicabut, dan penggantinya (pindai lembar) nggak bisa dijalanin
+    /// dari widget test — dia butuh marker, QR, dan gerbang mutu yang cuma ada
+    /// di foto lembar cetak beneran. Jadi yang keuji sekarang cuma penanda di
+    /// state-nya; **sambungan "kirim → verifikasiPembacaan" di layar nggak ada
+    /// yang jaga**, dan itu mesti diadu ke HP fisik sebelum fitur pindai
+    /// dinyalain buat teknisi.
+    test('sesi yang tabelnya dari pindai nandain butuh verifikasi', () {
+      final isian = buatState()..alat = alat('n20D');
+      expect(isian.adaIsianDariFoto, isFalse);
+
+      isian.terapkanHasilPindai([
+        (
+          tahap: 'sesudah_adjustment',
+          titikUkur: 1.33659,
+          repeatNo: 1,
+          fieldId: 'pembacaan',
+          nilai: 1.3362,
+          perluDicek: true,
         ),
-      );
+      ]);
 
-      await _pilihAlat(tester, alat: 'Refractometer · C12345');
-
-      // Lewat jalur kamera yang SEBENARNYA: tombol foto -> sumber foto tiruan
-      // -> AI tiruan. Bukan nyuntik state dari luar, biar yang diuji jalur yang
-      // beneran dipakai teknisi.
-      await tester.tap(find.text('FOTO TABEL INI — DIBACA AI').last);
-      await tester.pumpAndSettle();
-
-      await _kirimKeAdmin(tester);
-
-      expect(
-        riwayat.diverifikasi,
-        isNotEmpty,
-        reason: 'tanpa ini sesinya nge-blok admin tanpa teknisi tau',
-      );
+      expect(isian.adaIsianDariFoto, isTrue);
     });
 
     /// `equipment_satuan` nulis ke data MASTER alat di backend. Kalau lembar pH

@@ -100,12 +100,26 @@ class RingkasanPindai {
 class TabelPindai {
   const TabelPindai({
     required this.tabelId,
+    required this.tahap,
     required this.judul,
     required this.baris,
     required this.pengulangan,
+    this.grup,
   });
 
+  /// `grup ?? tahap` — identitas tabel di kunci sel.
   final String tabelId;
+
+  /// `sebelum_adjustment` / `sesudah_adjustment`. **Ini yang dipakai buat
+  /// nuang angkanya balik ke formulir**, bukan [tabelId]: kotak isian di layar
+  /// lembar kerja dikunci per tahap, dan Spectrophotometer punya tiga tabel
+  /// dengan tahap yang sama tapi `tabel_id` beda-beda.
+  final String tahap;
+
+  /// Pembeda tabel yang tahap-nya sama (tiga blok Spectrophotometer). `null` di
+  /// alat yang satu tahap = satu tabel.
+  final String? grup;
+
   final String judul;
   final List<BarisPindai> baris;
 
@@ -114,6 +128,10 @@ class TabelPindai {
 
   factory TabelPindai.fromJson(Map<String, dynamic> json) => TabelPindai(
     tabelId: json['tabel_id'] as String? ?? '',
+    // Respons lama nggak ngirim `tahap` kepisah; jatuh ke `tabel_id` biar
+    // alat satu-tahap tetap kepetakan — di situ dua-duanya memang sama.
+    tahap: json['tahap'] as String? ?? json['tabel_id'] as String? ?? '',
+    grup: json['grup'] as String?,
     judul: json['judul'] as String? ?? '',
     pengulangan: (json['pengulangan'] as List<dynamic>? ?? const [])
         .whereType<num>()
@@ -181,8 +199,15 @@ class BarisPindai {
                       as Map<String, dynamic>? ??
                   const <String, dynamic>{})
               .entries)
+            // Kunci map-nya = `field_id` kolom itu. Sel yang isinya `null`
+            // artinya kolom itu nggak ada di lembar ini — digambar sebagai sel
+            // kosong, bukan error.
             if (e.value is Map<String, dynamic>)
-              SelPindai.fromJson(e.value as Map<String, dynamic>, nomor),
+              SelPindai.fromJson(
+                e.value as Map<String, dynamic>,
+                nomor,
+                e.key,
+              ),
       ],
     );
   }
@@ -193,6 +218,7 @@ class SelPindai {
   const SelPindai({
     required this.kunci,
     required this.repeatNo,
+    required this.fieldId,
     required this.vonis,
     this.teksMentah,
     this.nilai,
@@ -205,6 +231,12 @@ class SelPindai {
   final String kunci;
 
   final int repeatNo;
+
+  /// Kolom lembar kerja: `pembacaan`, `suhu`, … Sama persis dengan `kode`
+  /// kolom di bentuk lembar, jadi dipakai apa adanya waktu angkanya dituang
+  /// balik ke kotak isian.
+  final String fieldId;
+
   final VonisSel vonis;
 
   /// Teks apa adanya hasil OCR, termasuk yang ngawur.
@@ -221,10 +253,15 @@ class SelPindai {
   /// angka yang dia lihat udah ditebak-tebak sampai mana.
   final List<String> normalisasi;
 
-  factory SelPindai.fromJson(Map<String, dynamic> json, int repeatNo) =>
+  factory SelPindai.fromJson(
+    Map<String, dynamic> json,
+    int repeatNo,
+    String fieldId,
+  ) =>
       SelPindai(
         kunci: json['kunci'] as String? ?? '',
         repeatNo: repeatNo,
+        fieldId: fieldId,
         vonis: VonisSel.fromApi(json['status'] as String?),
         teksMentah: json['teks_mentah'] as String?,
         nilai: (json['nilai'] as num?)?.toDouble(),
@@ -236,6 +273,24 @@ class SelPindai {
             .toList(),
       );
 }
+
+/// Satu sel yang teknisi SETUJUI di layar review, siap dituang ke formulir.
+///
+/// Bentuknya sengaja bukan `Map<String, double>` berkunci sel: kunci sel itu
+/// bahasa server (`{tabel_id}|{baris_ke}|{repeat_no}|{field_id}`), sementara
+/// kotak isian di layar lembar kerja dialamati pakai tahap + titik ukur +
+/// nomor Repeat + kolom. Nerjemahin kunci jadi alamat kotak dengan mecah
+/// stringnya berarti nebak `baris_ke` itu titik yang mana — dan tebakan itu
+/// persis cara angka mendarat di baris sebelah. Di sini terjemahannya diambil
+/// dari respons server, yang emang ngirim `titik_ukur` per baris.
+typedef SelDipakaiPindai = ({
+  String tahap,
+  double titikUkur,
+  int repeatNo,
+  String fieldId,
+  double nilai,
+  bool perluDicek,
+});
 
 /// Satu baris koreksi yang dikirim balik waktu teknisi nekan "Pakai Angka Ini".
 class KoreksiSel {

@@ -3704,84 +3704,6 @@ abstract class AppLocalizations {
   /// **'Values from a photo must still be checked before submitting. An issued certificate cannot be changed.'**
   String get phCalibCaraCatatan;
 
-  /// No description provided for @phCalibScanTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Photograph the pH meter display'**
-  String get phCalibScanTooltip;
-
-  /// No description provided for @phCalibScanGagal.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t read the number clearly. Try a closer photo, or type it in.'**
-  String get phCalibScanGagal;
-
-  /// No description provided for @phCalibScanError.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t open the camera.'**
-  String get phCalibScanError;
-
-  /// No description provided for @phCalibFotoTabel.
-  ///
-  /// In en, this message translates to:
-  /// **'PHOTO TABLE'**
-  String get phCalibFotoTabel;
-
-  /// No description provided for @phCalibFotoTabelSesudah.
-  ///
-  /// In en, this message translates to:
-  /// **'After adjustment'**
-  String get phCalibFotoTabelSesudah;
-
-  /// No description provided for @phCalibFotoTabelSebelum.
-  ///
-  /// In en, this message translates to:
-  /// **'Before adjustment'**
-  String get phCalibFotoTabelSebelum;
-
-  /// No description provided for @phCalibFotoTabelJudul.
-  ///
-  /// In en, this message translates to:
-  /// **'Which table are you photographing?'**
-  String get phCalibFotoTabelJudul;
-
-  /// No description provided for @phCalibFotoTabelInfo.
-  ///
-  /// In en, this message translates to:
-  /// **'One shot fills the whole table for all three buffers. Cells you already filled are never overwritten — reshoot as many times as you need.'**
-  String get phCalibFotoTabelInfo;
-
-  /// No description provided for @phCalibFotoTabelHasil.
-  ///
-  /// In en, this message translates to:
-  /// **'{terisi} of {total} cells filled.'**
-  String phCalibFotoTabelHasil(int terisi, int total);
-
-  /// No description provided for @phCalibFotoTabelTakTerbaca.
-  ///
-  /// In en, this message translates to:
-  /// **'No numbers could be read at all. The photo is probably dark, blurry, or too far away — try closer and brighter. You can still type the values in.'**
-  String get phCalibFotoTabelTakTerbaca;
-
-  /// No description provided for @phCalibFotoTabelPosisiKacau.
-  ///
-  /// In en, this message translates to:
-  /// **'{jumlah} numbers were read, but they don\'t line up as a table. Usually the photo is skewed or shows the whole sheet — try photographing just the TABLE, straight from above. You can still type the values in.'**
-  String phCalibFotoTabelPosisiKacau(int jumlah);
-
-  /// No description provided for @phCalibFotoTabelKosong.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t read the numbers yet. Tips: photograph just the TABLE (not the whole sheet), straight from above, even light with no hand shadow. Or type it in.'**
-  String get phCalibFotoTabelKosong;
-
-  /// No description provided for @phCalibFotoTabelSisa.
-  ///
-  /// In en, this message translates to:
-  /// **'Empty cells: type them in or reshoot — nothing you already entered will be replaced.'**
-  String get phCalibFotoTabelSisa;
-
   /// No description provided for @phCalibFotoHeaderHasil.
   ///
   /// In en, this message translates to:
@@ -4813,6 +4735,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The photo is too skewed. Shoot it more square-on above the sheet.'**
   String get lkPindaiTerlaluMiring;
+
+  /// No description provided for @lkPindaiQrHilang.
+  ///
+  /// In en, this message translates to:
+  /// **'The sheet\'s version QR code could not be read. Old forms without a QR cannot be scanned — reprint the sheet, or type the values manually.'**
+  String get lkPindaiQrHilang;
+
+  /// No description provided for @lkPindaiQrLembarLain.
+  ///
+  /// In en, this message translates to:
+  /// **'The QR belongs to a different sheet or version. Retaking the photo won\'t help — make sure you have the right sheet.'**
+  String get lkPindaiQrLembarLain;
+
+  /// No description provided for @lkPindaiBuram.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo is blurry. Hold the phone steadier and take it again.'**
+  String get lkPindaiBuram;
+
+  /// No description provided for @lkPindaiGelap.
+  ///
+  /// In en, this message translates to:
+  /// **'Too dark. Find brighter light, then take the photo again.'**
+  String get lkPindaiGelap;
+
+  /// No description provided for @lkPindaiSilau.
+  ///
+  /// In en, this message translates to:
+  /// **'So bright the numbers washed out. Reduce direct light, then take the photo again.'**
+  String get lkPindaiSilau;
+
+  /// No description provided for @lkPindaiPantulan.
+  ///
+  /// In en, this message translates to:
+  /// **'There is glare on the sheet. Shift its position slightly, then take the photo again.'**
+  String get lkPindaiPantulan;
+
+  /// No description provided for @lkPindaiKejauhan.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo is too far away — the numbers are too small to read. Move the phone closer and take it again.'**
+  String get lkPindaiKejauhan;
+
+  /// No description provided for @lkPindaiTerpakai.
+  ///
+  /// In en, this message translates to:
+  /// **'{terisi} cells filled from the scan. Cells that already had values were left untouched.'**
+  String lkPindaiTerpakai(int terisi);
+
+  /// No description provided for @lkPindaiBugAplikasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan rejected by the server: {pesan} This is an app defect, not your photo — report it to the team and type the values manually for now.'**
+  String lkPindaiBugAplikasi(String pesan);
 
   /// Header of the repeat-number column on sheets whose Repeat runs downwards.
   ///
@@ -6349,12 +6325,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'SUBMIT'**
   String get lkKirimAdmin;
-
-  /// No description provided for @lkScanTabel.
-  ///
-  /// In en, this message translates to:
-  /// **'PHOTO THIS TABLE — READ BY AI'**
-  String get lkScanTabel;
 
   /// No description provided for @lkScanMemproses.
   ///

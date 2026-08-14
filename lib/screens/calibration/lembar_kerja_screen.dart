@@ -14,6 +14,7 @@ import '../../models/equipment_lookup.dart';
 import '../../models/lembar_kerja.dart';
 import '../../models/room.dart';
 import '../../models/standard.dart';
+import '../../models/worksheet_scan.dart' show SelDipakaiPindai;
 import '../../models/worksheet_template.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/calibration_input_provider.dart';
@@ -24,8 +25,10 @@ import '../../providers/sumber_foto_provider.dart';
 import '../../providers/worksheet_scan_provider.dart';
 import '../../services/auth_service.dart' show AuthException;
 import '../../services/jalankan_pindai.dart';
+import '../../services/pembaca_qr.dart';
 import '../../services/pembaca_sel.dart';
 import '../../services/pindai_lembar.dart';
+import '../../services/worksheet_scan_service.dart' show PindaiDitolak;
 import '../../widgets/app_button.dart';
 import '../../widgets/sidik_loader.dart';
 import 'lembar_kerja_state.dart';
@@ -798,12 +801,14 @@ class _FormState extends ConsumerState<_Form> {
                         bentuk: bentuk,
                         isian: _isian,
                         onBerubah: _isianBerubah,
+                        sesiId: widget.sesiId,
                       )
                     : _LembarSatuKolom(
                         bentuk: bentuk,
                         isian: _isian,
                         halaman: _halaman,
                         onBerubah: _isianBerubah,
+                        sesiId: widget.sesiId,
                       ),
               ),
 
@@ -975,7 +980,11 @@ class _LembarSatuKolom extends StatelessWidget {
     required this.isian,
     required this.halaman,
     required this.onBerubah,
+    this.sesiId,
   });
+
+  /// Sesi yang lagi dikerjakan — dioper turun ke tombol pindai.
+  final int? sesiId;
 
   final LembarKerja bentuk;
   final LembarKerjaState isian;
@@ -1011,7 +1020,12 @@ class _LembarSatuKolom extends StatelessWidget {
         for (final bagian in bentuk.bagianDiHalaman(
           bentuk.halaman[halaman],
         )) ...[
-          _Bagian(bagian: bagian, isian: isian, onBerubah: onBerubah),
+          _Bagian(
+            bagian: bagian,
+            isian: isian,
+            onBerubah: onBerubah,
+            sesiId: sesiId,
+          ),
           const SizedBox(height: AppSpacing.md),
         ],
 
@@ -1036,7 +1050,11 @@ class _LembarDuaKolom extends StatelessWidget {
     required this.bentuk,
     required this.isian,
     required this.onBerubah,
+    this.sesiId,
   });
+
+  /// Sesi yang lagi dikerjakan — dioper turun ke tombol pindai.
+  final int? sesiId;
 
   final LembarKerja bentuk;
   final LembarKerjaState isian;
@@ -1044,7 +1062,12 @@ class _LembarDuaKolom extends StatelessWidget {
 
   List<Widget> _isiKolom(int nomorHalaman) => [
     for (final bagian in bentuk.bagianDiHalaman(nomorHalaman)) ...[
-      _Bagian(bagian: bagian, isian: isian, onBerubah: onBerubah),
+      _Bagian(
+        bagian: bagian,
+        isian: isian,
+        onBerubah: onBerubah,
+        sesiId: sesiId,
+      ),
       const SizedBox(height: AppSpacing.md),
     ],
     const SizedBox(height: AppSpacing.lg),
@@ -1201,11 +1224,16 @@ class _Bagian extends ConsumerWidget {
     required this.bagian,
     required this.isian,
     required this.onBerubah,
+    this.sesiId,
   });
 
   final BagianLembarKerja bagian;
   final LembarKerjaState isian;
   final VoidCallback onBerubah;
+
+  /// Dioper ke tombol pindai: hasil pindai dicatat server per sesi, dan teknisi
+  /// cuma boleh memindai sesi yang dia kerjakan sendiri.
+  final int? sesiId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1271,6 +1299,9 @@ class _Bagian extends ConsumerWidget {
               _TombolPindaiLembar(
                 profil: isian.bentuk.kodeDokumen,
                 equipmentId: isian.alat?.id,
+                sesiId: sesiId,
+                isian: isian,
+                onBerubah: onBerubah,
               ),
 
             for (final tabel in bagian.tabel) ...[
@@ -1360,10 +1391,23 @@ class _CatatanIsi extends StatelessWidget {
 /// diterjemahin jadi "fitur belum tersedia": teknisi berhak tahu yang kurang
 /// itu apa, dan yang bisa nutup cuma lab (cetak ulang formulir + ukur).
 class _TombolPindaiLembar extends ConsumerStatefulWidget {
-  const _TombolPindaiLembar({required this.profil, required this.equipmentId});
+  const _TombolPindaiLembar({
+    required this.profil,
+    required this.equipmentId,
+    required this.isian,
+    required this.onBerubah,
+    this.sesiId,
+  });
 
   final String profil;
   final int? equipmentId;
+
+  /// Sesi yang lagi dikerjakan. Boleh `null` — teknisi kadang memindai sebelum
+  /// sesinya dibikin, dan server memang menerima kiriman tanpa sesi.
+  final int? sesiId;
+
+  final LembarKerjaState isian;
+  final VoidCallback onBerubah;
 
   @override
   ConsumerState<_TombolPindaiLembar> createState() =>
@@ -1373,10 +1417,12 @@ class _TombolPindaiLembar extends ConsumerStatefulWidget {
 class _TombolPindaiLembarState extends ConsumerState<_TombolPindaiLembar> {
   bool _sibuk = false;
 
-  /// Foto → ratakan → potong 80 sel → baca ML Kit → kirim → layar review.
+  /// Foto → baca QR → ratakan → potong tiap sel → baca ML Kit → kirim → layar
+  /// review → angkanya masuk formulir.
   ///
   /// Urutannya ada di [JalankanPindai], bukan di sini: yang di layar cuma
-  /// ambil fotonya, tampilkan sibuknya, dan terjemahkan sebabnya kalau gagal.
+  /// ambil fotonya, tampilkan sibuknya, terjemahkan sebabnya kalau gagal, dan
+  /// nuang angka yang teknisi setujui.
   Future<void> _pindai(WorksheetTemplate template) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -1403,14 +1449,17 @@ class _TombolPindaiLembarState extends ConsumerState<_TombolPindaiLembar> {
       }
 
       final pembaca = MlKitPembacaSel();
+      final pembacaQr = MlKitPembacaQr();
 
       try {
-        final body = await JalankanPindai(
+        final susunan = await JalankanPindai(
           mesin: const PindaiLembar(),
           pembaca: pembaca,
+          pembacaQr: pembacaQr,
         ).susun(
           citra,
           template: template,
+          calibrationSessionId: widget.sesiId,
           equipmentId: widget.equipmentId,
         );
 
@@ -1419,29 +1468,69 @@ class _TombolPindaiLembarState extends ConsumerState<_TombolPindaiLembar> {
 
         final hasil = await ref
             .read(worksheetScanServiceProvider)
-            .kirim(token, body);
+            .kirim(
+              token,
+              susunan.body,
+              // Lampiran audit — dan sumber potongan sel di layar review.
+              // Boleh gagal naik; hasil bacanya nggak ikut batal.
+              citraWarp: pngDari(susunan.citraWarp),
+            );
 
         if (!mounted) return;
 
-        await navigator.push(
-          MaterialPageRoute<void>(
+        final dipakai = await navigator.push<List<SelDipakaiPindai>>(
+          MaterialPageRoute<List<SelDipakaiPindai>>(
             builder: (_) => PindaiReviewScreen(hasil: hasil),
           ),
         );
+
+        if (dipakai == null || dipakai.isEmpty || !mounted) return;
+
+        final terisi = widget.isian.terapkanHasilPindai(dipakai);
+        widget.onBerubah();
+
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.lkPindaiTerpakai(terisi))),
+        );
       } finally {
         await pembaca.tutup();
+        await pembacaQr.tutup();
       }
     } on PindaiGagal catch (e) {
-      // Sebabnya ditampilkan, bukan "gagal memindai": tiga dari empat sebab
-      // nggak akan membaik dengan mengulang jepretan.
+      // Sebabnya ditampilkan, bukan "gagal memindai": sebagian besar sebab
+      // nggak akan membaik dengan mengulang jepretan, dan teknisi yang motret
+      // ulang lima kali buat lembar yang memang nggak ber-QR itu kerugian yang
+      // nggak kelihatan di mana pun.
       messenger.showSnackBar(
         SnackBar(
+          duration: const Duration(seconds: 6),
           content: Text(switch (e.sebab) {
-            GagalPindai.belumSiap => l10n.lkPindaiBelumSiap('—'),
+            GagalPindai.belumSiap =>
+              l10n.lkPindaiBelumSiap(template.alasanBelumSiap ?? '—'),
             GagalPindai.tanpaGeometri => l10n.lkPindaiTanpaGeometri,
             GagalPindai.markerTidakKetemu => l10n.lkPindaiMarkerHilang,
             GagalPindai.geometriMeleset => l10n.lkPindaiTerlaluMiring,
+            GagalPindai.qrTidakKebaca => l10n.lkPindaiQrHilang,
+            GagalPindai.qrLembarLain => l10n.lkPindaiQrLembarLain,
+            GagalPindai.mutuBuram => l10n.lkPindaiBuram,
+            GagalPindai.mutuGelap => l10n.lkPindaiGelap,
+            GagalPindai.mutuSilau => l10n.lkPindaiSilau,
+            GagalPindai.mutuPantulan => l10n.lkPindaiPantulan,
+            GagalPindai.mutuMiring => l10n.lkPindaiTerlaluMiring,
+            GagalPindai.mutuKejauhan => l10n.lkPindaiKejauhan,
           }),
+        ),
+      );
+    } on PindaiDitolak catch (e) {
+      // Pesan server ditampilkan APA ADANYA — kalimatnya sudah ditulis buat
+      // teknisi yang lagi berdiri di depan alat pelanggan. Nggak ada satu
+      // angka pun yang dipakai dari lembar yang ditolak.
+      messenger.showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text(
+            e.bugAplikasi ? l10n.lkPindaiBugAplikasi(e.pesan) : e.pesan,
+          ),
         ),
       );
     } catch (_) {

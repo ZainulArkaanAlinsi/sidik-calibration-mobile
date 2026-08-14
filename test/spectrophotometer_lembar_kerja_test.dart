@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,17 +8,13 @@ import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/calibration_input_provider.dart';
 import 'package:sidik_calibration/providers/lembar_kerja_provider.dart';
 import 'package:sidik_calibration/providers/worksheet_scan_provider.dart';
-import 'package:sidik_calibration/providers/sumber_foto_provider.dart';
-import 'package:sidik_calibration/providers/worksheet_vision_provider.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_screen.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_state.dart';
 import 'package:sidik_calibration/screens/calibration/widgets/lembar_kerja_tabel.dart';
 import 'package:sidik_calibration/services/equipment_lookup_service.dart';
 import 'package:sidik_calibration/services/lembar_kerja_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
-import 'package:sidik_calibration/services/photo_source.dart';
 import 'package:sidik_calibration/services/worksheet_scan_service.dart';
-import 'package:sidik_calibration/services/worksheet_vision.dart';
 import 'package:sidik_calibration/services/room_service.dart';
 import 'package:sidik_calibration/services/standard_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
@@ -309,41 +304,14 @@ void main() {
   });
 
 
-  group('scan foto tabel', () {
-    /// Foto satu tabel cuma boleh diadu ke titik TABEL ITU.
+  group('titik per tabel', () {
+    /// Tiga tabel spektro berbagi satu `titik` di state, tapi titiknya
+    /// beda-beda (10 nm + 9 nm + 5 %T).
     ///
-    /// Lembar spektro punya TIGA tabel dengan titik yang beda-beda (10 nm +
-    /// 9 nm + 5 %T) tapi berbagi satu `titik` di state. Waktu petunjuk buat AI
-    /// diambil dari `titikUrut` (seluruh lembar), foto tabel Holmium dikasih
-    /// tahu "harap 24 kolom" dengan nominal campur dua satuan — dan titik %T
-    /// `20,0` gampang nyamar jadi nilai standar nm yang salah.
-    /// Yang dikunci di sini PEMANGGILNYA, bukan cuma helper-nya: foto tabel
-    /// Holmium wajib ngirim petunjuk 10 titik nm, bukan 24 titik campur dua
-    /// satuan. Versi pertama test ini cuma meriksa `titikTabel()` — dan waktu
-    /// pemanggilnya dibalikin ke `titikUrut`, test-nya tetap hijau.
-    testWidgets('foto tabel Holmium ngirim petunjuk 10 titik nm, bukan 24', (
-      tester,
-    ) async {
-      final vision = MockWorksheetVisionService();
-      await _bukaLembar(tester, vision: vision);
-      await _pilihAlat(tester);
-
-      // Tombol scan tabel PERTAMA (Holmium).
-      await tester.tap(find.text('FOTO TABEL INI — DIBACA AI').first);
-      await tester.pumpAndSettle();
-
-      final petunjuk = vision.petunjukDiminta.single;
-
-      expect(petunjuk.jumlahTitik, 10);
-      expect(petunjuk.satuan, 'nm');
-      expect(petunjuk.nominal, hasLength(10));
-      expect(petunjuk.nominal!.first, 279.6);
-
-      // Titik %T nggak boleh ikut: `20,0 %T` gampang nyamar jadi nilai standar
-      // nm yang salah waktu AI ngadu angkanya.
-      expect(petunjuk.nominal, isNot(contains(9.9)));
-    });
-
+    /// Yang dulu dijaga di sini: foto satu tabel nggak boleh diadu ke titik
+    /// SELURUH lembar — `20,0 %T` gampang nyamar jadi nilai standar nm yang
+    /// salah. Jalur fotonya (AI Vision) udah dicabut; pemisahan per tabelnya
+    /// tetap dipakai layar & tetap dijaga di bawah.
     test('petunjuk & pemetaan dibatasi ke titik tabelnya', () {
       final bentuk = LembarKerja.fromJson(contohBentukLembarKerjaSpectro());
       final tabel = bentuk.bagianHasil!.tabel;
@@ -494,7 +462,6 @@ void main() {
 Widget _app(
   MockLembarKerjaService service, {
   bool siapPindai = false,
-  MockWorksheetVisionService? vision,
 }) => ProviderScope(
   overrides: [
     tokenStorageProvider.overrideWithValue(InMemoryTokenStorage('mock-token-1')),
@@ -508,13 +475,6 @@ Widget _app(
     worksheetScanServiceProvider.overrideWithValue(
       MockWorksheetScanService(siapPindai: siapPindai),
     ),
-    if (vision != null) ...[
-      worksheetVisionProvider.overrideWithValue(vision),
-      // Path-nya nggak pernah dibaca — layanan visionnya tiruan.
-      sumberFotoProvider.overrideWithValue(
-        MockSumberFoto(file: File('uji-foto.jpg')),
-      ),
-    ],
   ],
   child: MaterialApp(
     locale: const Locale('id'),
@@ -529,7 +489,6 @@ Future<MockLembarKerjaService> _bukaLembar(
   WidgetTester tester, {
   MockLembarKerjaService? service,
   bool siapPindai = false,
-  MockWorksheetVisionService? vision,
 }) async {
   // Lembarnya 24 baris × sampai 6 kolom — jauh lebih tinggi dari viewport test
   // standar, dan `ListView` cuma nge-build yang deket layar.
@@ -542,7 +501,7 @@ Future<MockLembarKerjaService> _bukaLembar(
 
   final dipakai = service ?? MockLembarKerjaService();
   await tester.pumpWidget(
-    _app(dipakai, siapPindai: siapPindai, vision: vision),
+    _app(dipakai, siapPindai: siapPindai),
   );
   await tester.pump(const Duration(milliseconds: 700));
   await tester.pumpAndSettle();

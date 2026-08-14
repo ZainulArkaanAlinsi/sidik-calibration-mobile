@@ -51,10 +51,9 @@ dependencies:
   # Nyimpen pilihan bahasa biar nggak balik ke default tiap app dibuka.
   shared_preferences: ^2.3.2
 
-  # Ambil foto profil dari galeri/kamera HP masing-masing, plus foto tabel
-  # worksheet buat diekstrak AI Vision di backend (lihat `worksheet_vision.dart`
-  # + `SPEC-vision-ai-worksheet-extraction.md`). Cukup sekali jepret — nggak
-  # perlu aliran frame lagi karena AI yang paham layout & orientasi tabel.
+  # Ambil foto profil dari galeri/kamera HP masing-masing, plus jepretan lembar
+  # kerja buat dipindai OCR lokal (`pindai_lembar.dart`). Cukup sekali jepret —
+  # yang meratakan & memotong per sel jalan di HP sesudah fotonya diambil.
   image_picker: ^1.1.2
 
   path_provider: ^2.1.6
@@ -76,6 +75,15 @@ dependencies:
   # ikut Google Play Services). Yang DILARANG masuk sini: SDK OCR apa pun yang
   # ngirim citra ke server orang, atau yang butuh API key ke layanan luar.
   google_mlkit_text_recognition: ^0.15.0
+
+  # QR versi lembar (`{template_id}|v{versi}`). Server NOLAK seluruh pindai
+  # kalau `qr.terbaca` bukan `true`, dan itu penjagaan yang bener: QR-nya
+  # satu-satunya cara sistem tau lembar mana & revisi ke berapa yang lagi
+  # difoto — dua formulir Rev.4 & Rev.5 mirip di mata orang, beda di mata
+  # koordinat. Jadi QR-nya WAJIB dibaca dari fotonya sendiri, bukan disalin
+  # dari respons template (itu sama dengan ngaku baca sesuatu yang nggak
+  # pernah dilihat). Sama kayak text recognition: sepenuhnya on-device.
+  google_mlkit_barcode_scanning: ^0.14.0
 
   # Baca & potong citra di Dart murni — warp perspektif dari 4 marker sudut,
   # lalu motong per sel dari koordinat template. Dipakai juga buat ambang gelap

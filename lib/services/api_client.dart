@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:http/http.dart' as http;
 
 import '../core/config/app_config.dart';
@@ -132,6 +133,45 @@ class ApiClient {
     );
   }
 
+  /// Unggah beberapa berkas SEKALIGUS sama bodi bersarang — dipakai kiriman
+  /// hasil pindai lembar kerja (`POST /worksheet-scans`).
+  ///
+  /// Beda dari [unggahFile] yang cuma bawa satu berkas + kolom datar: bodinya
+  /// di sini array bersarang (80+ sel, tiap sel punya kotak sendiri), dan
+  /// citranya lampiran yang boleh nggak ada. `multipart` nggak kenal JSON, jadi
+  /// bodinya diratakan jadi kolom bertanda kurung (`sel[0][kotak][x]`) — bentuk
+  /// yang Laravel rakit balik jadi array yang sama persis.
+  Future<Map<String, dynamic>> unggahBanyak(
+    String path, {
+    required Map<String, dynamic> body,
+    Map<String, ({String namaBerkas, Uint8List isi})> berkas = const {},
+    String? token,
+    Duration timeout = const Duration(seconds: 90),
+  }) async {
+    return _kirim(() async {
+      final request = http.MultipartRequest('POST', _uri(path))
+        ..headers.addAll({
+          'Accept': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        })
+        ..fields.addAll(ratakanUntukMultipart(body));
+
+      for (final e in berkas.entries) {
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            e.key,
+            e.value.isi,
+            filename: e.value.namaBerkas,
+          ),
+        );
+      }
+
+      final streamed = await _client.send(request);
+
+      return http.Response.fromStream(streamed);
+    }, timeout: timeout);
+  }
+
   /// Ambil **byte mentah**, bukan JSON — buat gambar yang dilayani di balik
   /// auth (tanda tangan sertifikat).
   ///
@@ -200,6 +240,42 @@ class ApiClient {
       status: res.statusCode,
       body: json,
     );
+  }
+
+  /// Bodi bersarang → kolom multipart bertanda kurung.
+  ///
+  /// `{"sel": [{"kotak": {"x": 1}}]}` jadi `sel[0][kotak][x] = "1"`. Bentuk itu
+  /// yang dirakit balik Laravel jadi array yang sama persis, jadi aturan
+  /// validasinya (`sel.*.kotak.x`) tetap kena.
+  ///
+  /// **`null` dibuang, bukan dikirim string `"null"`.** Multipart nggak punya
+  /// nilai kosong yang beda dari teks; `"null"` bakal lolos `nullable|string`
+  /// sebagai teks empat huruf, dan sel yang memang KOSONG di kertasnya berubah
+  /// jadi sel berisi. `bool` jadi `"1"`/`"0"` — dua-duanya diterima aturan
+  /// `boolean` Laravel, sementara `"true"`/`"false"` cuma diterima sebagian.
+  @visibleForTesting
+  static Map<String, String> ratakanUntukMultipart(Map<String, dynamic> body) {
+    final hasil = <String, String>{};
+
+    void isi(String kunci, dynamic nilai) {
+      if (nilai == null) return;
+
+      if (nilai is Map) {
+        nilai.forEach((k, v) => isi('$kunci[$k]', v));
+      } else if (nilai is List) {
+        for (var i = 0; i < nilai.length; i++) {
+          isi('$kunci[$i]', nilai[i]);
+        }
+      } else if (nilai is bool) {
+        hasil[kunci] = nilai ? '1' : '0';
+      } else {
+        hasil[kunci] = '$nilai';
+      }
+    }
+
+    body.forEach(isi);
+
+    return hasil;
   }
 
   Map<String, dynamic> _decode(http.Response res) {

@@ -1,5 +1,22 @@
 # Implementation Spec: AI Vision-Based Worksheet Data Extraction
 
+
+> **Status per 14 Agustus 2026: jalur ini SUDAH DICABUT dari aplikasi mobile.**
+>
+> `lib/services/worksheet_vision.dart`, providernya, dan tombol "FOTO TABEL INI
+> — DIBACA AI" dihapus. Penggantinya **pindai lembar kerja (OCR lokal)**: foto
+> dibaca di HP pakai ML Kit on-device, yang naik ke server cuma teks per sel +
+> geometri + skor mutu. Kontraknya `docs/SPEC-ocr-template-lokal.md` di repo
+> API; sisi HP-nya di `lib/services/pindai_lembar.dart`,
+> `lib/services/jalankan_pindai.dart`, dan `lib/screens/calibration/
+> pindai_review_screen.dart`.
+>
+> Endpoint `POST /api/raw-measurements/extract-from-photo` **masih hidup di
+> backend** dan sengaja nggak disentuh — keputusan matiin totalnya ada di lab,
+> bukan di kode. Dokumen ini disimpen sebagai catatan sejarah rancangannya.
+
+---
+
 **Project:** Sidik Calibration (backend: `sidik-calibration-api` / Laravel, mobile: `sidik-calibration-mobile` a.k.a. `asmo_mobile` / Flutter)
 **Feature:** Replace error-prone traditional OCR with an AI Vision extraction pipeline for reading calibration worksheets in the field.
 

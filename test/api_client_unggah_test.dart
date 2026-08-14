@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -110,5 +111,85 @@ void main() {
       lessThan(const Duration(seconds: 2)),
       reason: 'nyerahnya harus di batas yang diminta, bukan nunggu server',
     );
+  });
+
+  /// Kiriman hasil pindai lembar kerja: bodinya array bersarang + citra.
+  ///
+  /// `multipart` nggak kenal JSON, jadi bodinya diratakan jadi kolom bertanda
+  /// kurung — bentuk yang Laravel rakit balik jadi array yang sama persis, dan
+  /// aturan validasinya (`sel.*.kotak.x`) tetap kena.
+  group('ratakan bodi buat multipart', () {
+    test('array bersarang jadi kolom bertanda kurung', () {
+      final hasil = ApiClient.ratakanUntukMultipart({
+        'template_id': 'ph_meter',
+        'template_versi': 1,
+        'qr': {'terbaca': true, 'isi': 'ph_meter|v1'},
+        'sel': [
+          {
+            'tabel_id': 'sebelum_adjustment',
+            'kotak': {'x': 413, 'y': 940.5},
+          },
+        ],
+      });
+
+      expect(hasil['template_id'], 'ph_meter');
+      expect(hasil['template_versi'], '1');
+      expect(hasil['sel[0][tabel_id]'], 'sebelum_adjustment');
+      expect(hasil['sel[0][kotak][x]'], '413');
+      expect(hasil['sel[0][kotak][y]'], '940.5');
+      expect(hasil['qr[isi]'], 'ph_meter|v1');
+    });
+
+    test('boolean jadi 1/0, bukan "true"/"false"', () {
+      // Aturan `boolean` Laravel nerima `"1"`/`"0"` di semua versi; `"true"`
+      // cuma di sebagian. `qr.terbaca` yang ditolak bikin SELURUH lembar
+      // ditolak di lapisan bentuk, sebelum satu sel pun dilihat.
+      final hasil = ApiClient.ratakanUntukMultipart({
+        'qr': {'terbaca': true},
+        'geometri': {'grid_tersnap': false},
+      });
+
+      expect(hasil['qr[terbaca]'], '1');
+      expect(hasil['geometri[grid_tersnap]'], '0');
+    });
+
+    test('null DIBUANG, bukan dikirim string "null"', () {
+      // Sel yang memang KOSONG di kertasnya nggak boleh berubah jadi sel
+      // berisi teks empat huruf.
+      final hasil = ApiClient.ratakanUntukMultipart({
+        'sel': [
+          {'teks_mentah': null, 'field_id': 'pembacaan'},
+        ],
+      });
+
+      expect(hasil.containsKey('sel[0][teks_mentah]'), isFalse);
+      expect(hasil['sel[0][field_id]'], 'pembacaan');
+    });
+  });
+
+  test('unggah banyak: bodi jadi kolom, citra jadi berkas', () async {
+    final client = _ClientPalsu();
+    final api = ApiClient(client: client, baseUrl: 'http://contoh.test/api');
+
+    await api.unggahBanyak(
+      '/worksheet-scans',
+      body: {
+        'template_id': 'ph_meter',
+        'sel': [
+          {'field_id': 'pembacaan', 'teks_mentah': '4,01'},
+        ],
+      },
+      berkas: {
+        'citra_warp': (namaBerkas: 'warp.png', isi: Uint8List.fromList([1, 2])),
+      },
+      token: 'token-abc',
+    );
+
+    final request = client.terakhir! as http.MultipartRequest;
+
+    expect(request.fields['template_id'], 'ph_meter');
+    expect(request.fields['sel[0][teks_mentah]'], '4,01');
+    expect(request.files.single.field, 'citra_warp');
+    expect(request.headers['Authorization'], 'Bearer token-abc');
   });
 }

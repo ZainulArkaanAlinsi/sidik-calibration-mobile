@@ -8,6 +8,14 @@ import 'package:path_provider/path_provider.dart';
 /// Hasil baca satu potongan sel.
 typedef BacaanSel = ({String? teks, double? keyakinan, bool didalamKotak});
 
+/// Hasil baca satu label tercetak (nomor Repeat) — bukti barisnya nggak geser.
+typedef BacaanJangkar = ({
+  String fieldId,
+  int repeatNo,
+  String? teks,
+  bool cocok,
+});
+
 /// Baca teks tiap potongan sel — **ML Kit on-device**.
 ///
 /// ## Kenapa dibaca PER CROP, bukan sehalaman
@@ -152,7 +160,8 @@ class PayloadPindai {
     required ({int w, int h}) ukuranReferensi,
     required ({double blur, double kecerahan, double glare}) mutu,
     required double sudutMiringDeg,
-    required double pxPerSelTinggi,
+    required int pxPerSelTinggi,
+    List<BacaanJangkar> jangkar = const [],
     int? calibrationSessionId,
     int? equipmentId,
     int? jumlahPengulangan,
@@ -184,6 +193,10 @@ class PayloadPindai {
       // Angkanya dikirim APA ADANYA, nggak dibulatkan: ambangnya milik server
       // (`config/ocr.php`), dan membulatkan di sini bikin foto yang pas-pasan
       // lolos/ketolak beda dari yang seharusnya.
+      //
+      // Kecuali `px_per_sel_tinggi`, yang divalidasi server sebagai `integer`
+      // (`WorksheetScanRequest`) — pecahan di situ bikin SELURUH kiriman
+      // ditolak 422 di lapisan bentuk, sebelum satu sel pun dilihat.
       'kualitas': {
         'blur_laplacian': mutu.blur,
         'kecerahan_rata': mutu.kecerahan,
@@ -226,6 +239,22 @@ class PayloadPindai {
             };
           }(),
       ],
+
+      // Label Repeat yang tercetak di lembar. Kosong = nggak ada satu pun
+      // jangkar yang bisa dibaca, dan server MENOLAK lembarnya karena itu —
+      // memang begitu maunya: tanpa jangkar, posisi baris cuma dijamin sama
+      // geometri, dan geometri yang meleset satu baris nggak ngasih gejala apa
+      // pun.
+      if (jangkar.isNotEmpty)
+        'sel_jangkar': [
+          for (final j in jangkar)
+            {
+              'field_id': j.fieldId,
+              'repeat_no': j.repeatNo,
+              'teks_mentah': j.teks,
+              'cocok': j.cocok,
+            },
+        ],
     };
   }
 }

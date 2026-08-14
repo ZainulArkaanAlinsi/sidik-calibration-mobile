@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import '../models/worksheet_scan.dart';
 import '../models/worksheet_template.dart';
 import 'api_client.dart';
+import 'auth_service.dart' show ApiException;
 
 /// Jalur **pindai lembar kerja (OCR lokal)** — `docs/SPEC-ocr-template-lokal.md`
 /// di repo API.
@@ -20,6 +21,62 @@ import 'api_client.dart';
 ///  3. **Hasil pindai itu USULAN.** Nyimpen hasil kalibrasi tetap lewat
 ///     `POST`/`PUT /api/calibrations`; endpoint pindai nggak pernah bikin
 ///     `raw_measurements`.
+/// Lembar yang DITOLAK server (422).
+///
+/// **Satu lembar ditolak berarti nggak ada satu angka pun yang dipakai.**
+/// Ngisi sebagian dari hasil yang ditolak jauh lebih bahaya daripada gagal
+/// terang-terangan: separuh benar di posisi yang salah nggak kelihatan sampai
+/// sertifikatnya terbit.
+class PindaiDitolak implements Exception {
+  const PindaiDitolak({
+    required this.status,
+    required this.pesan,
+    this.scanId,
+    this.fallbackManual = true,
+  });
+
+  /// `ditolak_kualitas` · `geometri_meragukan` · `mapping_gagal` ·
+  /// `template_tidak_dikenali`.
+  final String status;
+
+  /// Kalimat dari server, **ditampilkan apa adanya**. Kalimatnya ditulis buat
+  /// teknisi yang lagi berdiri di depan alat pelanggan ("Fotonya buram. Tahan
+  /// HP lebih diam, lalu foto ulang."), bukan buat programmer — dibungkus lagi
+  /// jadi "pindai gagal (…)" cuma bikin orang ngira fotonya yang salah.
+  final String pesan;
+
+  final int? scanId;
+
+  /// `true` = jalur ketik manual tetap kebuka. Gagal pindai nggak boleh bikin
+  /// teknisi buntu di depan alat pelanggan.
+  final bool fallbackManual;
+
+  /// Salah aplikasi, bukan salah teknisi — foto ulang nggak akan menolong.
+  bool get bugAplikasi =>
+      status == 'mapping_gagal' || status == 'template_tidak_dikenali';
+
+  /// Balasan 422 → [PindaiDitolak], atau `null` kalau errornya jenis lain
+  /// (jaringan, 500, 403) yang nggak boleh nyamar jadi penolakan pindai.
+  static PindaiDitolak? dariRespons(ApiException e) {
+    if (e.status != 422) return null;
+
+    final data = (e.body['data'] ?? e.body) as Map<String, dynamic>;
+    final status = data['status'];
+
+    // Tanpa `status`, ini 422 biasa dari lapisan bentuk (`WorksheetScanRequest`)
+    // — bug kiriman aplikasi, dan menyamarkannya jadi "fotonya buram" bikin
+    // teknisi motret ulang selamanya.
+    if (status is! String || status.isEmpty) return null;
+
+    return PindaiDitolak(
+      status: status,
+      pesan: e.message,
+      scanId: (data['scan_id'] as num?)?.toInt(),
+      fallbackManual: data['fallback_manual'] as bool? ?? true,
+    );
+  }
+}
+
 abstract class WorksheetScanService {
   /// Daftar lembar kerja yang dikenal sistem, berikut `siap_pindai`-nya.
   Future<List<WorksheetTemplate>> daftarTemplate(String token);
@@ -39,7 +96,20 @@ abstract class WorksheetScanService {
   /// [body] disusun `PayloadPindai.susun()`, dan dikirim APA ADANYA. Jangan
   /// disunting di sini: kunci selnya milik template, dan satu kunci yang
   /// diubah bikin seluruh lembar ditolak server.
-  Future<HasilPindai> kirim(String token, Map<String, dynamic> body);
+  ///
+  /// [citraWarp] lampiran audit — PNG citra yang udah diratakan. Boleh `null`:
+  /// sinyal lapangan sering lemah, dan nolak hasil pindai gara-gara fotonya
+  /// gagal naik itu ngorbanin kerjaan teknisi demi arsip. Tapi tanpa dia layar
+  /// review nggak punya potongan sel buat diadu sama angkanya.
+  ///
+  /// Lembar yang ditolak server dilempar sebagai [PindaiDitolak], bukan
+  /// dibalikin sebagai hasil setengah jadi: **satu lembar ditolak berarti
+  /// nggak ada satu angka pun yang dipakai.**
+  Future<HasilPindai> kirim(
+    String token,
+    Map<String, dynamic> body, {
+    Uint8List? citraWarp,
+  });
 
   /// Hasil pindai yang udah tersimpan — buat layar review yang dibuka lagi.
   Future<HasilPindai> ambilHasil(String token, int scanId);
@@ -105,17 +175,32 @@ class ApiWorksheetScanService implements WorksheetScanService {
   }
 
   @override
-  Future<HasilPindai> kirim(String token, Map<String, dynamic> body) async {
-    // Batas waktunya dilonggarkan: bodinya membawa 80+ sel berikut kotak &
-    // buktinya, dan server masih menilai mutu foto sebelum menjawab.
-    final json = await _api.post(
-      '/worksheet-scans',
-      body: body,
-      token: token,
-      timeout: const Duration(seconds: 60),
-    );
+  Future<HasilPindai> kirim(
+    String token,
+    Map<String, dynamic> body, {
+    Uint8List? citraWarp,
+  }) async {
+    try {
+      // Batas waktunya dilonggarkan: bodinya membawa 80+ sel berikut kotak &
+      // buktinya, plus citra hasil warp, dan server masih menilai mutu foto
+      // sebelum menjawab.
+      final json = await _api.unggahBanyak(
+        '/worksheet-scans',
+        body: body,
+        berkas: {
+          if (citraWarp != null)
+            'citra_warp': (namaBerkas: 'warp.png', isi: citraWarp),
+        },
+        token: token,
+      );
 
-    return HasilPindai.fromJson(json);
+      return HasilPindai.fromJson(json);
+    } on ApiException catch (e) {
+      final ditolak = PindaiDitolak.dariRespons(e);
+      if (ditolak != null) throw ditolak;
+
+      rethrow;
+    }
   }
 
   @override
@@ -196,9 +281,19 @@ class MockWorksheetScanService implements WorksheetScanService {
   /// jaringan.
   final List<Map<String, dynamic>> terkirim = [];
 
+  /// Ditolak server? Dititipin test buat nguji jalur 422 tanpa jaringan.
+  PindaiDitolak? ditolak;
+
   @override
-  Future<HasilPindai> kirim(String token, Map<String, dynamic> body) async {
+  Future<HasilPindai> kirim(
+    String token,
+    Map<String, dynamic> body, {
+    Uint8List? citraWarp,
+  }) async {
     terkirim.add(body);
+
+    final tolak = ditolak;
+    if (tolak != null) throw tolak;
 
     return ambilHasil(token, 0);
   }

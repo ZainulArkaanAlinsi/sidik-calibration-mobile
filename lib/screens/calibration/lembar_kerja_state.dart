@@ -10,7 +10,8 @@ import '../../models/calibration_draft.dart' show LokasiKalibrasi;
 import '../../models/equipment_lookup.dart';
 import '../../models/lembar_kerja.dart';
 import '../../models/lembar_kerja_submission.dart';
-import '../../services/worksheet_vision.dart';
+import '../../models/worksheet_scan.dart';
+import '../../services/gabung_tabel.dart';
 
 /// Angka di lembar kerja diketik teknisi lapangan, yang kadang pakai koma
 /// (`22,2`) karena itu yang dipakai di formulir kertasnya. Dua-duanya
@@ -689,22 +690,23 @@ class LembarKerjaState {
   /// Keyed by nilai larutan standar (4.00 / 7.00 / 10.01).
   final Map<double, TitikState> titik = {};
 
-  /// Ada minimal satu sel yang pernah diisi hasil **foto tabel (AI Vision)**,
-  /// walau sesudah itu dibetulin manual teknisi.
+  /// Ada minimal satu sel yang pernah diisi hasil **pindai lembar (OCR
+  /// lokal)**, walau sesudah itu dibetulin manual teknisi.
   ///
   /// Dipakai buat `input_method` yang dikirim ke backend. Dulu kolom itu dipatok
-  /// `manual` terus, jadi sesi yang tabelnya dibaca AI kecatat sama persis kayak
-  /// yang diketik tangan. Waktu ada angka sertifikat yang kelihatan aneh, nggak
-  /// ada satu pun cara buat tahu angka itu datang dari mana — 6 Agt 2026 mesti
-  /// ngubek log server buat mastiin satu sesi chlorine bukan hasil salah baca
-  /// AI. Backend udah nerima `manual|ocr|ai_vision` sejak awal
-  /// (`CalibrationRequest`), cuma nggak pernah dikasih tahu.
+  /// `manual` terus, jadi sesi yang tabelnya dibaca mesin kecatat sama persis
+  /// kayak yang diketik tangan. Waktu ada angka sertifikat yang kelihatan aneh,
+  /// nggak ada satu pun cara buat tahu angka itu datang dari mana — 6 Agt 2026
+  /// mesti ngubek log server buat mastiin satu sesi chlorine bukan hasil salah
+  /// baca mesin. Backend nerima `manual|ocr|ai_vision`
+  /// (`CalibrationRequest`); sesudah jalur AI Vision dicabut, yang mungkin
+  /// tinggal `manual` & `ocr`.
   bool adaIsianDariFoto = false;
 
-  /// Sel yang diisi AI dengan **keyakinan rendah** — ditandai di layar biar
-  /// teknisi ngecek angka itu saja, bukan seluruh tabel (spec vision §4.1).
-  /// Kuncinya [kunciSel]. Dibersihin kalau selnya diisi ulang dengan keyakinan
-  /// bagus di foto berikutnya.
+  /// Sel yang diisi hasil pindai dengan vonis server **kuning atau merah** —
+  /// ditandai di layar biar teknisi ngecek angka itu saja, bukan seluruh tabel.
+  /// Kuncinya [kunciSel]. Dibersihin kalau selnya diisi ulang dengan vonis
+  /// bagus di pindai berikutnya.
   final Set<String> selRendahKeyakinan = {};
 
   /// Kunci satu sel tabel — sama persis dengan yang dibangun widget tabel biar
@@ -1043,9 +1045,7 @@ class LembarKerjaState {
           .map((u) => u.toSubmission())
           .toList(),
       measurements: measurements,
-      inputMethod: adaIsianDariFoto
-          ? MetodeInput.aiVision
-          : MetodeInput.manual,
+      inputMethod: adaIsianDariFoto ? MetodeInput.ocr : MetodeInput.manual,
     );
   }
 
@@ -1121,190 +1121,37 @@ class LembarKerjaState {
     (jumlah, t) => jumlah + t.jumlahPengulangan * tabel.kolom.length,
   );
 
-  /// Tempelin hasil baca tabel worksheet ke kolom satu tahap. Balikin jumlah
-  /// sel yang beneran keisi.
+  /// Tuang angka hasil pindai yang UDAH lewat layar review ke kotak isian.
+  /// Balikin jumlah sel yang beneran keisi.
   ///
-  /// **Cuma sel kosong yang diisi.** Ini aturan intinya: teknisi boleh foto
-  /// ulang berkali-kali buat nambal yang kurang, dan angka yang udah dia
-  /// betulin manual nggak boleh keganti sama hasil foto berikutnya. Aturan
-  /// per-selnya ada di [GabungTabel.nilaiBaru], bukan di sini — biar bisa
-  /// diuji tanpa kamera.
+  /// Yang masuk ke sini bukan bacaan mentah OCR: [sel] isinya angka yang
+  /// teknisi setujui di `PindaiReviewScreen`, sesudah dia mbandingin tiap sel
+  /// kuning & merah sama potongan citranya. Hasil pindai itu USULAN — yang
+  /// bikin dia jadi data cuma persetujuan orang.
   ///
-  /// Bentuk [hasil]: `baris[pengulangan].ph[titik]` — **baris itu Repeat 1..5**,
-  /// isinya satu angka per larutan standar. Gampang kebalik, makanya nama
-  /// variabelnya ditulis panjang di bawah.
-  /// Kolom foto ke-`k` → index titik di [urut], atau `null` kalau nggak ada
-  /// titik yang cocok.
-  ///
-  /// Toleransinya RELATIF (2%), bukan sama persis: nilai standar yang AI baca
-  /// itu angka tercetak di lembar, sementara titik di aplikasi bisa nominal
-  /// botol. Absolut nggak jalan — 2% di titik 1412 itu 28, di titik 25 cuma
-  /// 0,5.
-  ///
-  /// Tanpa `standard_value` (respons AI lama) balik ke pemetaan POSISI, jadi
-  /// perilakunya nggak berubah buat backend yang belum ngirim kolom itu.
-  List<int?> _petakanKolomFoto(List<double?> standarNilai, List<TitikState> urut) {
-    if (standarNilai.isEmpty) {
-      return [for (var i = 0; i < urut.length; i++) i];
-    }
-
-    final kepakai = <int>{};
-
-    return [
-      for (final nilai in standarNilai)
-        if (nilai == null)
-          null
-        else
-          () {
-            var terbaik = -1;
-            var selisihTerbaik = double.infinity;
-
-            for (var i = 0; i < urut.length; i++) {
-              if (kepakai.contains(i)) continue;
-
-              final titikUkur = urut[i].titikUkur;
-              final batas = (titikUkur.abs() * 0.02).clamp(1e-6, double.infinity);
-              final selisih = (nilai - titikUkur).abs();
-
-              if (selisih <= batas && selisih < selisihTerbaik) {
-                terbaik = i;
-                selisihTerbaik = selisih;
-              }
-            }
-
-            if (terbaik < 0) return null;
-
-            kepakai.add(terbaik);
-
-            return terbaik;
-          }(),
-    ];
-  }
-
-  int terapkanHasilEkstraksi(
-    HasilEkstraksiTabel hasil, {
-    required String tahap,
-    TabelHasil? tabel,
-  }) {
-    // Dibatasi ke titik TABEL yang difoto. Tanpa itu, foto tabel Holmium
-    // dicocokin ke 24 titik lintas tiga tabel — dan titik %T `20,0` gampang
-    // banget nyamar jadi nilai standar nm yang salah.
-    final urut = tabel == null ? titikUrut : titikTabel(tabel);
+  /// **Selnya dicari lewat titik ukur + tahap + nomor Repeat, bukan urutan
+  /// array.** Aturannya sama kayak kunci sel di sisi server: begitu ada satu
+  /// tahap yang ngandelin urutan, angka bisa mendarat di baris sebelah tanpa
+  /// satu pun error muncul. Sel yang titik ukurnya nggak ada di lembar ini
+  /// DIBUANG, bukan dipaksa masuk ke baris terdekat.
+  int terapkanHasilPindai(List<SelDipakaiPindai> sel) {
     var terisi = 0;
-    adaIsianDariFoto = true;
 
-    // Kolom AI ke-`k` mendarat di titik yang mana. Dicocokin ke NILAI STANDAR
-    // yang AI kirim (`standard_value`), bukan ditebak dari urutan.
-    //
-    // Kenapa penting: lembar yang digambar nggak selalu sejumlah & seurut
-    // kolom di foto. Lembar Conductivity generik punya 4 baris (dua varian
-    // satuan titik tengah) sementara fotonya cuma 3 kolom — dengan pemetaan
-    // posisi, SEMUA angka geser satu baris dan nggak ada yang error. Itu yang
-    // bikin `1413` mendarat di baris `25 µS/cm`.
-    final petaKolom = _petakanKolomFoto(hasil.standarNilai, urut);
+    for (final s in sel) {
+      final state = _titikTerdekat(s.titikUkur);
+      if (state == null) continue;
 
-    for (var pengulangan = 0; pengulangan < hasil.baris.length; pengulangan++) {
-      final baris = hasil.baris[pengulangan];
+      // `repeat_no` di server 1-based, index kotak di sini 0-based.
+      final index = s.repeatNo - 1;
+      if (index < 0 || index >= state.jumlahPengulangan) continue;
 
-      for (var k = 0; k < petaKolom.length; k++) {
-        final t = petaKolom[k];
-
-        // Kolom yang nggak cocok ke titik mana pun DIBUANG, bukan dipaksa
-        // masuk ke baris terdekat. Angka kalibrasi di titik yang salah lebih
-        // bahaya daripada sel yang dibiarin kosong buat diisi tangan.
-        if (t == null) continue;
-
-        final state = urut[t];
-        if (pengulangan >= state.jumlahPengulangan) continue;
-
-        terisi += _isiSel(
-          state,
-          tahap,
-          'pembacaan',
-          pengulangan,
-          k < baris.ph.length ? baris.ph[k] : null,
-          baris.keyakinanPh(k),
-        );
-        terisi += _isiSel(
-          state,
-          tahap,
-          'suhu',
-          pengulangan,
-          k < baris.suhu.length ? baris.suhu[k] : null,
-          baris.keyakinanSuhu(k),
-        );
-      }
+      terisi += _isiSel(state, s.tahap, s.fieldId, index, s.nilai, s.perluDicek);
     }
+
+    if (terisi > 0) adaIsianDariFoto = true;
 
     return terisi;
   }
-
-  /// Tempelin blok **non-tabel** hasil foto: env condition, lokasi, catatan,
-  /// tanggal, usage check. Balikin jumlah kolom yang beneran keisi.
-  ///
-  /// Tiga aturan yang bikin ini aman dipakai di sertifikat berakreditasi:
-  ///
-  /// 1. **Kolom identitas nggak pernah keisi AI.** Map [teks] cuma dibangun
-  ///    dari kolom non-turunan (lihat konstruktor), sedangkan `equipment.*`,
-  ///    `customer.*`, `teknisi.*`, `reviewer.*` semuanya bertitik alias
-  ///    turunan. Jadi walaupun backend nekat ngirim `equipment.serial_number`
-  ///    di `header`, lookup `teks[kode]` di sini balikin null dan diskip.
-  ///    Serial number tetap dari DB, tanda tangan tetap dari alur approval.
-  /// 2. **Cuma kolom kosong yang diisi** — sama kayak tabel, biar koreksi
-  ///    manual teknisi nggak keganti jepretan berikutnya.
-  /// 3. **Usage check selalu ditandai perlu dicek**, berapa pun keyakinan AI:
-  ///    centang yang kebalik itu klaim standar mana yang dipakai, alias
-  ///    ketertelusuran — beda kelas dari salah baca satu angka.
-  int terapkanHasilHeader(HasilEkstraksiHeader hasil) {
-    var terisi = 0;
-
-    hasil.field.forEach((kode, nilai) {
-      final kotak = teks[kode];
-      if (kotak == null) return; // kolom turunan / nggak ada di formulir ini
-      final baru = GabungTabel.nilaiBaruTeks(kotak.text, nilai.nilai);
-      if (baru == null) return;
-
-      kotak.text = baru;
-      _tandai(kunciField(kode), nilai.keyakinan.perluDicek);
-      terisi++;
-    });
-
-    hasil.tanggal.forEach((kode, nilai) {
-      // Kolom tanggal yang udah ada isinya dilewat — `tanggal_kalibrasi` udah
-      // diisi hari ini di konstruktor, jadi praktisnya cuma `tanggal_terima`
-      // yang kebuka buat AI. Itu memang yang kita mau.
-      if (tanggal[kode] != null) return;
-      final hasilTanggal = parseTanggalAi(nilai.nilai);
-      if (hasilTanggal == null) return;
-
-      tanggal[kode] = hasilTanggal;
-      _tandai(kunciField(kode), nilai.keyakinan.perluDicek);
-      terisi++;
-    });
-
-    for (final u in hasil.usageCheck) {
-      final state = usage(u.standardId);
-      var berubah = false;
-
-      if (u.dipakai != null && !state.adaIsian) {
-        state.dipakai = u.dipakai!;
-        berubah = true;
-      }
-      final ket = GabungTabel.nilaiBaruTeks(state.keterangan.text, u.keterangan);
-      if (ket != null) {
-        state.keterangan.text = ket;
-        berubah = true;
-      }
-
-      if (berubah) {
-        _tandai(kunciUsage(u.standardId), true);
-        terisi++;
-      }
-    }
-
-    return terisi;
-  }
-
   void _tandai(String kunci, bool perluDicek) {
     if (perluDicek) {
       selRendahKeyakinan.add(kunci);
@@ -1319,7 +1166,7 @@ class LembarKerjaState {
     String kolom,
     int index,
     double? nilai,
-    TingkatKeyakinan keyakinan,
+    bool perluDicek,
   ) {
     final kotak = state.kotak(tahap, kolom, index);
     // Pembacaan dipad ke resolusi titiknya (4,60), suhu nggak.
@@ -1335,12 +1182,10 @@ class LembarKerjaState {
 
     kotak.text = baru;
 
-    // Sel yang keyakinannya rendah ditandai; kalau foto ulang mengisinya dengan
-    // keyakinan bagus, tandanya dilepas.
-    _tandai(
-      kunciSel(state.titikUkur, tahap, kolom, index),
-      keyakinan.perluDicek,
-    );
+    // Sel yang vonis servernya kuning/merah ditandai; kalau pindai ulang
+    // mengisinya dengan vonis bagus, tandanya dilepas.
+    _tandai(kunciSel(state.titikUkur, tahap, kolom, index), perluDicek);
+
     return 1;
   }
 

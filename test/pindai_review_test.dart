@@ -129,6 +129,50 @@ void main() {
       );
       expect(koreksi[1].nilaiFinal, 280.5);
     });
+
+    /// Yang dibalikin ke lembar kerja itu ALAMAT KOTAKNYA, bukan kunci sel.
+    ///
+    /// Kunci sel (`holmium|1|2|pembacaan`) bahasa server: `baris_ke` di situ
+    /// nomor baris di lembar cetak, bukan titik ukurnya. Nerjemahin kunci jadi
+    /// alamat kotak dengan mecah stringnya berarti nebak baris ke-1 itu titik
+    /// yang mana — persis tebakan yang bikin angka mendarat di baris sebelah.
+    /// Terjemahannya diambil dari respons server, yang emang ngirim
+    /// `titik_ukur` per baris.
+    testWidgets('yang dibalikin ke formulir: tahap + titik + Repeat + kolom', (
+      tester,
+    ) async {
+      List<SelDipakaiPindai>? dipakai;
+
+      await _buka(
+        tester,
+        hasil: _hasilBolehSimpan,
+        service: MockWorksheetScanService(hasil: _hasilBolehSimpan),
+        onKembali: (h) => dipakai = h,
+      );
+
+      await tester.enterText(find.byType(TextField).at(1), '280,5');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('PAKAI ANGKA INI'));
+      await tester.pumpAndSettle();
+
+      // Sel yang kotaknya dikosongin (Repeat 3, memang kosong di kertasnya)
+      // NGGAK ikut — yang kosong di kertas tetap kosong di formulir.
+      expect(dipakai, hasLength(2));
+
+      expect(dipakai!.first.tahap, 'sesudah_adjustment');
+      expect(dipakai!.first.titikUkur, 279.6);
+      expect(dipakai!.first.repeatNo, 1);
+      expect(dipakai!.first.fieldId, 'pembacaan');
+      expect(dipakai!.first.nilai, 280.0);
+
+      // Vonis kuning/merah dibawa terus sebagai "perlu dicek": teknisi udah
+      // lihat sekali di layar ini, dan tandanya yang bikin dia lihat sekali
+      // lagi sebelum lembarnya dikirim.
+      expect(dipakai!.every((s) => s.perluDicek), isTrue);
+      expect(dipakai!.last.repeatNo, 2);
+      expect(dipakai!.last.nilai, 280.5);
+    });
   });
 }
 
@@ -136,6 +180,7 @@ Future<void> _buka(
   WidgetTester tester, {
   HasilPindai? hasil,
   MockWorksheetScanService? service,
+  void Function(List<SelDipakaiPindai>?)? onKembali,
 }) async {
   tester.view.physicalSize = const Size(1000, 3000);
   tester.view.devicePixelRatio = 1.0;
@@ -156,9 +201,17 @@ Future<void> _buka(
         locale: const Locale('id'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: PindaiReviewScreen(
-          hasil: hasil ?? HasilPindai.fromJson(_responsAcak),
-        ),
+        // Layar review balikin hasilnya lewat `Navigator.pop`, dan route
+        // paling bawah nggak bisa di-pop. Jadi waktu hasilnya yang diuji,
+        // layarnya di-PUSH dari layar lain — sama kayak di aplikasi.
+        home: onKembali == null
+            ? PindaiReviewScreen(
+                hasil: hasil ?? HasilPindai.fromJson(_responsAcak),
+              )
+            : _Peluncur(
+                hasil: hasil ?? HasilPindai.fromJson(_responsAcak),
+                onKembali: onKembali,
+              ),
       ),
     ),
   );
@@ -253,3 +306,33 @@ const _responsAcak = <String, dynamic>{
     },
   ],
 };
+
+/// Layar pemanggil — nangkep apa yang dibalikin layar review.
+class _Peluncur extends StatefulWidget {
+  const _Peluncur({required this.hasil, required this.onKembali});
+
+  final HasilPindai hasil;
+  final void Function(List<SelDipakaiPindai>?) onKembali;
+
+  @override
+  State<_Peluncur> createState() => _PeluncurState();
+}
+
+class _PeluncurState extends State<_Peluncur> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      widget.onKembali(
+        await Navigator.of(context).push<List<SelDipakaiPindai>>(
+          MaterialPageRoute<List<SelDipakaiPindai>>(
+            builder: (_) => PindaiReviewScreen(hasil: widget.hasil),
+          ),
+        ),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const Scaffold();
+}

@@ -370,13 +370,17 @@ void main() {
         ukuranReferensi: (w: 414, h: 585),
         mutu: (blur: 89.7431, kecerahan: 142.55, glare: 0.0123),
         sudutMiringDeg: 1.4567,
-        pxPerSelTinggi: 61.2,
+        pxPerSelTinggi: 61,
       );
 
       final kualitas = body['kualitas'] as Map<String, dynamic>;
 
       expect(kualitas['blur_laplacian'], 89.7431);
       expect(kualitas['rasio_glare'], 0.0123);
+      // Satu-satunya yang memang bulat: server memvalidasinya sebagai
+      // `integer`, dan pecahan di situ bikin SELURUH kiriman ditolak di lapisan
+      // bentuk — sebelum satu sel pun dilihat.
+      expect(kualitas['px_per_sel_tinggi'], 61);
       expect((body['geometri'] as Map)['residual_reproyeksi_px'], 0.83741);
     });
   });

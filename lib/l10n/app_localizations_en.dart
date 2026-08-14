@@ -1989,54 +1989,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Values from a photo must still be checked before submitting. An issued certificate cannot be changed.';
 
   @override
-  String get phCalibScanTooltip => 'Photograph the pH meter display';
-
-  @override
-  String get phCalibScanGagal =>
-      'Couldn\'t read the number clearly. Try a closer photo, or type it in.';
-
-  @override
-  String get phCalibScanError => 'Couldn\'t open the camera.';
-
-  @override
-  String get phCalibFotoTabel => 'PHOTO TABLE';
-
-  @override
-  String get phCalibFotoTabelSesudah => 'After adjustment';
-
-  @override
-  String get phCalibFotoTabelSebelum => 'Before adjustment';
-
-  @override
-  String get phCalibFotoTabelJudul => 'Which table are you photographing?';
-
-  @override
-  String get phCalibFotoTabelInfo =>
-      'One shot fills the whole table for all three buffers. Cells you already filled are never overwritten — reshoot as many times as you need.';
-
-  @override
-  String phCalibFotoTabelHasil(int terisi, int total) {
-    return '$terisi of $total cells filled.';
-  }
-
-  @override
-  String get phCalibFotoTabelTakTerbaca =>
-      'No numbers could be read at all. The photo is probably dark, blurry, or too far away — try closer and brighter. You can still type the values in.';
-
-  @override
-  String phCalibFotoTabelPosisiKacau(int jumlah) {
-    return '$jumlah numbers were read, but they don\'t line up as a table. Usually the photo is skewed or shows the whole sheet — try photographing just the TABLE, straight from above. You can still type the values in.';
-  }
-
-  @override
-  String get phCalibFotoTabelKosong =>
-      'Couldn\'t read the numbers yet. Tips: photograph just the TABLE (not the whole sheet), straight from above, even light with no hand shadow. Or type it in.';
-
-  @override
-  String get phCalibFotoTabelSisa =>
-      'Empty cells: type them in or reshoot — nothing you already entered will be replaced.';
-
-  @override
   String phCalibFotoHeaderHasil(int jumlah) {
     return 'Plus $jumlah fields outside the table (conditions, notes, standards used) — please check them.';
   }
@@ -2608,6 +2560,44 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get lkPindaiTerlaluMiring =>
       'The photo is too skewed. Shoot it more square-on above the sheet.';
+
+  @override
+  String get lkPindaiQrHilang =>
+      'The sheet\'s version QR code could not be read. Old forms without a QR cannot be scanned — reprint the sheet, or type the values manually.';
+
+  @override
+  String get lkPindaiQrLembarLain =>
+      'The QR belongs to a different sheet or version. Retaking the photo won\'t help — make sure you have the right sheet.';
+
+  @override
+  String get lkPindaiBuram =>
+      'The photo is blurry. Hold the phone steadier and take it again.';
+
+  @override
+  String get lkPindaiGelap =>
+      'Too dark. Find brighter light, then take the photo again.';
+
+  @override
+  String get lkPindaiSilau =>
+      'So bright the numbers washed out. Reduce direct light, then take the photo again.';
+
+  @override
+  String get lkPindaiPantulan =>
+      'There is glare on the sheet. Shift its position slightly, then take the photo again.';
+
+  @override
+  String get lkPindaiKejauhan =>
+      'The photo is too far away — the numbers are too small to read. Move the phone closer and take it again.';
+
+  @override
+  String lkPindaiTerpakai(int terisi) {
+    return '$terisi cells filled from the scan. Cells that already had values were left untouched.';
+  }
+
+  @override
+  String lkPindaiBugAplikasi(String pesan) {
+    return 'Scan rejected by the server: $pesan This is an app defect, not your photo — report it to the team and type the values manually for now.';
+  }
 
   @override
   String get lkRepeat => 'Repeat';
@@ -3481,9 +3471,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lkKirimAdmin => 'SUBMIT';
-
-  @override
-  String get lkScanTabel => 'PHOTO THIS TABLE — READ BY AI';
 
   @override
   String get lkScanMemproses => 'AI is reading the table…';

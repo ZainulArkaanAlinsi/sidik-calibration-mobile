@@ -82,12 +82,7 @@ class _PindaiReviewScreenState extends ConsumerState<PindaiReviewScreen> {
     // SEMUA sel dikirim, bukan cuma yang diubah — lihat docblock kelas.
     final koreksi = [
       for (final s in widget.hasil.semuaSel)
-        KoreksiSel(
-          kunci: s.kunci,
-          nilaiFinal: double.tryParse(
-            (_isian[s.kunci]?.text ?? '').trim().replaceAll(',', '.'),
-          ),
-        ),
+        KoreksiSel(kunci: s.kunci, nilaiFinal: _angka(_isian[s.kunci]?.text)),
     ];
 
     try {
@@ -111,13 +106,34 @@ class _PindaiReviewScreenState extends ConsumerState<PindaiReviewScreen> {
     if (!mounted) return;
     setState(() => _mengirim = false);
 
-    navigator.pop(<String, double>{
-      for (final e in _isian.entries)
-        if (double.tryParse(e.value.text.trim().replaceAll(',', '.'))
-            case final double n)
-          e.key: n,
-    });
+    // Yang dibalikin ke layar lembar kerja bukan peta berkunci sel, tapi
+    // alamat kotaknya: tahap + titik ukur + Repeat + kolom. Kunci sel itu
+    // bahasa server, dan nerjemahinnya di layar tujuan berarti mecah string
+    // lalu nebak `baris_ke` itu titik yang mana.
+    navigator.pop(<SelDipakaiPindai>[
+      for (final t in widget.hasil.tabel)
+        for (final b in t.baris)
+          for (final s in b.sel)
+            if (_angka(_isian[s.kunci]?.text) case final double n)
+              (
+                tahap: t.tahap,
+                titikUkur: b.titikUkur,
+                repeatNo: s.repeatNo,
+                fieldId: s.fieldId,
+                nilai: n,
+                // Vonis hijau doang yang lewat tanpa tanda. Selebihnya
+                // ditandai di formulir — teknisi udah lihat sekali di sini,
+                // dan tanda itu yang bikin dia lihat sekali lagi sebelum
+                // lembarnya dikirim.
+                perluDicek: s.vonis != VonisSel.hijau,
+              ),
+    ]);
   }
+
+  /// Teks kotak isian → angka. Koma diterima: formulir kertasnya pakai koma,
+  /// dan teknisi ngetik ngikut kertas.
+  static double? _angka(String? teks) =>
+      teks == null ? null : double.tryParse(teks.trim().replaceAll(',', '.'));
 
   @override
   Widget build(BuildContext context) {

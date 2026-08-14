@@ -1979,54 +1979,6 @@ class AppLocalizationsId extends AppLocalizations {
       'Angka hasil foto tetap wajib dicek sebelum dikirim. Sertifikat yang sudah terbit tidak bisa diubah.';
 
   @override
-  String get phCalibScanTooltip => 'Foto layar pH meter';
-
-  @override
-  String get phCalibScanGagal =>
-      'Angkanya nggak kebaca jelas. Coba foto ulang lebih dekat, atau ketik manual.';
-
-  @override
-  String get phCalibScanError => 'Kamera nggak bisa dibuka.';
-
-  @override
-  String get phCalibFotoTabel => 'FOTO TABEL';
-
-  @override
-  String get phCalibFotoTabelSesudah => 'Sesudah adjustment';
-
-  @override
-  String get phCalibFotoTabelSebelum => 'Sebelum adjustment';
-
-  @override
-  String get phCalibFotoTabelJudul => 'Mau foto tabel yang mana?';
-
-  @override
-  String get phCalibFotoTabelInfo =>
-      'Sekali foto ngisi satu tabel penuh buat ketiga buffer. Sel yang udah keisi nggak akan ditimpa — jadi boleh foto ulang berkali-kali.';
-
-  @override
-  String phCalibFotoTabelHasil(int terisi, int total) {
-    return '$terisi dari $total sel keisi.';
-  }
-
-  @override
-  String get phCalibFotoTabelTakTerbaca =>
-      'Nggak ada angka yang kebaca sama sekali. Fotonya kemungkinan gelap, buram, atau kejauhan — coba lebih dekat dan terang. Kolomnya tetap bisa diketik manual.';
-
-  @override
-  String phCalibFotoTabelPosisiKacau(int jumlah) {
-    return '$jumlah angka kebaca, tapi belum kebentuk tabel. Biasanya karena fotonya miring atau yang kefoto selembar penuh — coba foto TABEL-nya aja, tegak lurus dari atas. Kolomnya tetap bisa diketik manual.';
-  }
-
-  @override
-  String get phCalibFotoTabelKosong =>
-      'Angka di foto belum kebaca. Tips: foto TABEL-nya aja (nggak usah selembar penuh), tegak lurus dari atas, cahaya rata tanpa bayangan tangan. Atau ketik manual.';
-
-  @override
-  String get phCalibFotoTabelSisa =>
-      'Sel yang kosong: ketik manual atau foto ulang — yang udah keisi nggak bakal keganti.';
-
-  @override
   String phCalibFotoHeaderHasil(int jumlah) {
     return 'Plus $jumlah kolom di luar tabel (kondisi, catatan, standar dipakai) — tolong dicek.';
   }
@@ -2594,6 +2546,44 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get lkPindaiTerlaluMiring =>
       'Fotonya terlalu miring. Jepret lebih tegak lurus di atas lembar.';
+
+  @override
+  String get lkPindaiQrHilang =>
+      'Kode QR versi lembar nggak kebaca. Formulir lama tanpa QR nggak bisa dipindai — cetak ulang lembarnya, atau ketik manual.';
+
+  @override
+  String get lkPindaiQrLembarLain =>
+      'QR yang kebaca punya lembar/versi lain. Foto ulang nggak nolong — pastikan lembarnya yang bener.';
+
+  @override
+  String get lkPindaiBuram =>
+      'Fotonya buram. Tahan HP lebih diam, lalu foto ulang.';
+
+  @override
+  String get lkPindaiGelap =>
+      'Terlalu gelap. Cari cahaya yang lebih terang, lalu foto ulang.';
+
+  @override
+  String get lkPindaiSilau =>
+      'Terlalu terang sampai angkanya pudar. Kurangi cahaya langsung, lalu foto ulang.';
+
+  @override
+  String get lkPindaiPantulan =>
+      'Ada pantulan cahaya di lembar. Geser sedikit posisinya, lalu foto ulang.';
+
+  @override
+  String get lkPindaiKejauhan =>
+      'Fotonya kejauhan — angkanya kekecilan buat dibaca. Dekatkan HP, lalu foto ulang.';
+
+  @override
+  String lkPindaiTerpakai(int terisi) {
+    return '$terisi sel keisi dari hasil pindai. Sel yang udah ada isinya nggak ditimpa.';
+  }
+
+  @override
+  String lkPindaiBugAplikasi(String pesan) {
+    return 'Pindai ditolak server: $pesan Ini kesalahan aplikasi, bukan fotonya — laporkan ke tim, dan ketik manual dulu.';
+  }
 
   @override
   String get lkRepeat => 'Repeat';
@@ -3452,9 +3442,6 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get lkKirimAdmin => 'KIRIM';
-
-  @override
-  String get lkScanTabel => 'FOTO TABEL INI — DIBACA AI';
 
   @override
   String get lkScanMemproses => 'AI lagi baca tabel…';

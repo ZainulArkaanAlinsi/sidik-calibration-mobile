@@ -545,7 +545,11 @@
   "detailVerifikasiSukses": "Readings confirmed. This session can now be reviewed by an admin.",
   "detailVerifikasiGagal": "Couldn't confirm: {pesan}",
   "@detailVerifikasiGagal": {
-    "placeholders": { "pesan": { "type": "String" } }
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
   },
   "arsipTitle": "Archive",
   "arsipCariPerusahaan": "Search company...",
@@ -996,36 +1000,6 @@
   "phCalibCaraManual": "Type it in",
   "phCalibCaraManualKeterangan": "Fill each field yourself",
   "phCalibCaraCatatan": "Values from a photo must still be checked before submitting. An issued certificate cannot be changed.",
-  "phCalibScanTooltip": "Photograph the pH meter display",
-  "phCalibScanGagal": "Couldn't read the number clearly. Try a closer photo, or type it in.",
-  "phCalibScanError": "Couldn't open the camera.",
-  "phCalibFotoTabel": "PHOTO TABLE",
-  "phCalibFotoTabelSesudah": "After adjustment",
-  "phCalibFotoTabelSebelum": "Before adjustment",
-  "phCalibFotoTabelJudul": "Which table are you photographing?",
-  "phCalibFotoTabelInfo": "One shot fills the whole table for all three buffers. Cells you already filled are never overwritten — reshoot as many times as you need.",
-  "phCalibFotoTabelHasil": "{terisi} of {total} cells filled.",
-  "@phCalibFotoTabelHasil": {
-    "placeholders": {
-      "terisi": {
-        "type": "int"
-      },
-      "total": {
-        "type": "int"
-      }
-    }
-  },
-  "phCalibFotoTabelTakTerbaca": "No numbers could be read at all. The photo is probably dark, blurry, or too far away — try closer and brighter. You can still type the values in.",
-  "phCalibFotoTabelPosisiKacau": "{jumlah} numbers were read, but they don't line up as a table. Usually the photo is skewed or shows the whole sheet — try photographing just the TABLE, straight from above. You can still type the values in.",
-  "@phCalibFotoTabelPosisiKacau": {
-    "placeholders": {
-      "jumlah": {
-        "type": "int"
-      }
-    }
-  },
-  "phCalibFotoTabelKosong": "Couldn't read the numbers yet. Tips: photograph just the TABLE (not the whole sheet), straight from above, even light with no hand shadow. Or type it in.",
-  "phCalibFotoTabelSisa": "Empty cells: type them in or reshoot — nothing you already entered will be replaced.",
   "phCalibFotoHeaderHasil": "Plus {jumlah} fields outside the table (conditions, notes, standards used) — please check them.",
   "@phCalibFotoHeaderHasil": {
     "placeholders": {
@@ -1335,6 +1309,29 @@
     "description": "Pesan waktu empat penanda sudut tidak ditemukan di foto."
   },
   "lkPindaiTerlaluMiring": "The photo is too skewed. Shoot it more square-on above the sheet.",
+  "lkPindaiQrHilang": "The sheet's version QR code could not be read. Old forms without a QR cannot be scanned — reprint the sheet, or type the values manually.",
+  "lkPindaiQrLembarLain": "The QR belongs to a different sheet or version. Retaking the photo won't help — make sure you have the right sheet.",
+  "lkPindaiBuram": "The photo is blurry. Hold the phone steadier and take it again.",
+  "lkPindaiGelap": "Too dark. Find brighter light, then take the photo again.",
+  "lkPindaiSilau": "So bright the numbers washed out. Reduce direct light, then take the photo again.",
+  "lkPindaiPantulan": "There is glare on the sheet. Shift its position slightly, then take the photo again.",
+  "lkPindaiKejauhan": "The photo is too far away — the numbers are too small to read. Move the phone closer and take it again.",
+  "lkPindaiTerpakai": "{terisi} cells filled from the scan. Cells that already had values were left untouched.",
+  "@lkPindaiTerpakai": {
+    "placeholders": {
+      "terisi": {
+        "type": "int"
+      }
+    }
+  },
+  "lkPindaiBugAplikasi": "Scan rejected by the server: {pesan} This is an app defect, not your photo — report it to the team and type the values manually for now.",
+  "@lkPindaiBugAplikasi": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
   "@lkPindaiTerlaluMiring": {
     "description": "Pesan waktu geometri foto meleset terlalu jauh."
   },
@@ -1344,7 +1341,16 @@
   "lkStandarPerTitik": "Point standard",
   "lkStandarKadaluarsa": "certificate expired",
   "lkStandarTitikDipakai": "Point {label} — {standar}",
-  "@lkStandarTitikDipakai": { "placeholders": { "label": { "type": "String" }, "standar": { "type": "String" } } },
+  "@lkStandarTitikDipakai": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "standar": {
+        "type": "String"
+      }
+    }
+  },
   "lkStandarTitikGanti": "Change",
   "lkStandarTitikTercetak": "As printed on the worksheet",
   "antreanSemuaPt": "All companies ({jumlah})",
@@ -1435,21 +1441,60 @@
   "lkBagianBelumBisaDiisi": "NOT FILLABLE YET",
   "pindaiReviewJudul": "Check Scan Result",
   "pindaiRingkasan": "{total} cells read · {kuning} need checking · {merah} unreadable · {kosong} empty",
-  "@pindaiRingkasan": {"placeholders": {"total": {"type": "int"}, "kuning": {"type": "int"}, "merah": {"type": "int"}, "kosong": {"type": "int"}}},
+  "@pindaiRingkasan": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "kuning": {
+        "type": "int"
+      },
+      "merah": {
+        "type": "int"
+      },
+      "kosong": {
+        "type": "int"
+      }
+    }
+  },
   "pindaiCatatanKuning": "Handwriting is never marked safe automatically — so it's normal for almost every cell to need checking. Compare each number with the cropped photo beside it.",
   "pindaiPakaiAngka": "USE THESE NUMBERS",
   "pindaiDitahanServer": "Some cells could not be read. Fix them, or type the sheet manually.",
   "pindaiRepeat": "Repeat {nomor}",
-  "@pindaiRepeat": {"placeholders": {"nomor": {"type": "int"}}},
+  "@pindaiRepeat": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
   "pindaiTerbaca": "Read as: {teks}",
-  "@pindaiTerbaca": {"placeholders": {"teks": {"type": "String"}}},
+  "@pindaiTerbaca": {
+    "placeholders": {
+      "teks": {
+        "type": "String"
+      }
+    }
+  },
   "pindaiNormalisasi": "Server adjusted: {catatan}",
-  "@pindaiNormalisasi": {"placeholders": {"catatan": {"type": "String"}}},
+  "@pindaiNormalisasi": {
+    "placeholders": {
+      "catatan": {
+        "type": "String"
+      }
+    }
+  },
   "pindaiKoreksiGagal": "The numbers were kept, but the correction log failed to send: {pesan}",
-  "@pindaiKoreksiGagal": {"placeholders": {"pesan": {"type": "String"}}},
+  "@pindaiKoreksiGagal": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
   "pindaiAlasanMeluber": "the writing spills out of its box and may have been read from the next column",
   "pindaiAlasanLuarRentang": "the number is outside the sensible range for this point",
-  "pindaiAlasanMagnitudo": "the number is far from this point\u2019s standard value",
+  "pindaiAlasanMagnitudo": "the number is far from this point’s standard value",
   "pindaiAlasanKoreksiKarakter": "a letter was guessed as a digit",
   "pindaiAlasanDesimalBanyak": "more decimals than the instrument resolution",
   "pindaiAlasanBukanKelipatan": "an instrument with this resolution cannot produce that number",
@@ -1464,10 +1509,22 @@
   "pindaiAlasanMinusTengah": "a minus sign in the middle of the number",
   "pindaiAlasanMinusTakBoleh": "this column cannot be negative",
   "lkRepeatMenyimpang": "At point {titik} one reading is far off from the other repeats — check it, two digits may have been swapped while typing. A single number like this can throw the certificate uncertainty off by hundreds of times.",
-  "@lkRepeatMenyimpang": {"placeholders": {"titik": {"type": "String"}}},
+  "@lkRepeatMenyimpang": {
+    "placeholders": {
+      "titik": {
+        "type": "String"
+      }
+    }
+  },
   "lkPindaiLembar": "SCAN WORKSHEET",
   "lkPindaiBelumSiap": "Not scannable yet: {alasan}",
-  "@lkPindaiBelumSiap": {"placeholders": {"alasan": {"type": "String"}}},
+  "@lkPindaiBelumSiap": {
+    "placeholders": {
+      "alasan": {
+        "type": "String"
+      }
+    }
+  },
   "lkPratinjauJudul": "PRELIMINARY RESULTS",
   "lkPratinjauCatatan": "Computed by the server from what's filled in right now, not on the phone. These numbers can change as other rows are filled.",
   "lkPratinjauKolomTitik": "Point",
@@ -1476,7 +1533,13 @@
   "lkPratinjauKolomU95": "U95",
   "lkPratinjauBelumDihitung": "NOT COMPUTED YET",
   "lkPratinjauTitikKe": "Point {nomor}",
-  "@lkPratinjauTitikKe": {"placeholders": {"nomor": {"type": "int"}}},
+  "@lkPratinjauTitikKe": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
   "lkKeluarTanpaSimpan": "Leave without saving?",
   "lkKeluarTanpaSimpanBody": "What you've typed will be lost.",
   "lkKeluarBatal": "KEEP EDITING",
@@ -1641,7 +1704,13 @@
   "sertKolU95": "U95% (±)",
   "sertU95Baris": "Uncertainty U95% = ±",
   "sertFaktorCakupan": "Coverage factor (k) = {k}, confidence level 95 %",
-  "@sertFaktorCakupan": {"placeholders": {"k": {"type": "String"}}},
+  "@sertFaktorCakupan": {
+    "placeholders": {
+      "k": {
+        "type": "String"
+      }
+    }
+  },
   "sertKolRemark": "Remark",
   "sertStandarJudul": "Standard Used",
   "sertKolName": "Name",
@@ -1715,7 +1784,6 @@
     }
   },
   "lkKirimAdmin": "SUBMIT",
-  "lkScanTabel": "PHOTO THIS TABLE — READ BY AI",
   "lkScanMemproses": "AI is reading the table…",
   "lkPengulanganRingkas": "{n}x",
   "@lkPengulanganRingkas": {
@@ -1747,19 +1815,44 @@
   "lkPengulanganBatal": "Cancel",
   "lkSuhuWajib": "Reading filled without solution temperature at point {titik}. Temperature is required — the reference value shifts with it.",
   "lkStandarBelumDicentang": "Point {titik} has readings but its reference standard is not ticked — those numbers cannot be calculated. Tick the standard, or clear the row if this instrument does not use that point.",
-  "@lkStandarBelumDicentang": {"placeholders": {"titik": {"type": "String"}}},
+  "@lkStandarBelumDicentang": {
+    "placeholders": {
+      "titik": {
+        "type": "String"
+      }
+    }
+  },
   "lkPembacaanTakTerpulih": "{jumlah} saved readings had no matching row on this sheet and were not restored. Check the table before submitting.",
-  "@lkPembacaanTakTerpulih": {"placeholders": {"jumlah": {"type": "int"}}},
+  "@lkPembacaanTakTerpulih": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "lkPembacaanJauhDariTitik": "Readings at point {titik} are more than 10× off the point value — check the unit, or the decimal place. If the reading really is that value, switch to the row with the correct unit first.",
-  "@lkPembacaanJauhDariTitik": {"placeholders": {"titik": {"type": "String"}}},
+  "@lkPembacaanJauhDariTitik": {
+    "placeholders": {
+      "titik": {
+        "type": "String"
+      }
+    }
+  },
   "detailTanpaVonis": "NO PASS/FAIL",
-  "@detailTanpaVonis": {"description": "Badge for a point on an instrument that is not assessed PASS/FAIL (no tolerance limit)"},
-  "@lkSuhuWajib": {"placeholders": {"titik": {"type": "String"}}},
+  "@detailTanpaVonis": {
+    "description": "Badge for a point on an instrument that is not assessed PASS/FAIL (no tolerance limit)"
+  },
+  "@lkSuhuWajib": {
+    "placeholders": {
+      "titik": {
+        "type": "String"
+      }
+    }
+  },
   "statusTanpaKeputusan": "No pass/fail",
   "detailEditAdmin": "EDIT SHEET",
   "detailPerbaikiRevisi": "FIX WORKSHEET",
   "lkTitikAlternatifSatuan": "Alternate unit of the same standard — already filled in the other row",
-  "lkRepeat": "Repeat",
   "@lkRepeat": {
     "description": "Header of the repeat-number column on sheets whose Repeat runs downwards."
   },
@@ -1770,23 +1863,38 @@
   "lkResolusiNilai": "Resolution: {nilai} {satuan}",
   "@lkResolusiNilai": {
     "description": "Resolution row in the table header, filled from the instrument specification.",
-    "placeholders": { "nilai": { "type": "String" }, "satuan": { "type": "String" } }
+    "placeholders": {
+      "nilai": {
+        "type": "String"
+      },
+      "satuan": {
+        "type": "String"
+      }
+    }
   },
   "lkSlotTanpaLarutan": "no standard registered",
   "@lkSlotTanpaLarutan": {
     "description": "Note on a column that is printed on the sheet but has no registered standard solution."
   },
-  "lkIsianTitikKebuang": "{jumlah, plural, other{{jumlah} point(s) are not on this instrument\u2019s sheet — their entries were discarded}}",
+  "lkIsianTitikKebuang": "{jumlah, plural, other{{jumlah} point(s) are not on this instrument’s sheet — their entries were discarded}}",
   "@lkIsianTitikKebuang": {
     "description": "Shown when the sheet shrinks after picking an instrument and some filled points no longer exist.",
-    "placeholders": { "jumlah": { "type": "int" } }
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
   },
   "lkKonfirmasiJudul": "Check the numbers before sending",
   "lkKonfirmasiCatatan": "Averages of the After adjustment readings. Correction and uncertainty are computed by the server once this is sent.",
   "lkKonfirmasiDariFoto": "Some numbers in this table came from a photo. By sending, you confirm you've checked them against the instrument.",
   "lkKonfirmasiGagalTandai": "Sent, but marking them as checked failed: {pesan}. Open the session in History and tap \"I've checked these readings\".",
   "@lkKonfirmasiGagalTandai": {
-    "placeholders": { "pesan": { "type": "String" } }
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
   },
   "lkKonfirmasiBaris": "{terisi} of {total} boxes · average {rata}",
   "@lkKonfirmasiBaris": {

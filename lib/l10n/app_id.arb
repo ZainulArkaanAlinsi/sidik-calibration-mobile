@@ -431,7 +431,11 @@
   "detailVerifikasiSukses": "Pembacaan dikonfirmasi. Sesi ini sekarang bisa diperiksa admin.",
   "detailVerifikasiGagal": "Gagal mengonfirmasi: {pesan}",
   "@detailVerifikasiGagal": {
-    "placeholders": { "pesan": { "type": "String" } }
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
   },
   "arsipTitle": "Arsip",
   "arsipCariPerusahaan": "Cari perusahaan...",
@@ -685,26 +689,6 @@
   "phCalibCaraManual": "Ketik manual",
   "phCalibCaraManualKeterangan": "Isi sendiri tiap kolom",
   "phCalibCaraCatatan": "Angka hasil foto tetap wajib dicek sebelum dikirim. Sertifikat yang sudah terbit tidak bisa diubah.",
-  "phCalibScanTooltip": "Foto layar pH meter",
-  "phCalibScanGagal": "Angkanya nggak kebaca jelas. Coba foto ulang lebih dekat, atau ketik manual.",
-  "phCalibScanError": "Kamera nggak bisa dibuka.",
-  "phCalibFotoTabel": "FOTO TABEL",
-  "phCalibFotoTabelSesudah": "Sesudah adjustment",
-  "phCalibFotoTabelSebelum": "Sebelum adjustment",
-  "phCalibFotoTabelJudul": "Mau foto tabel yang mana?",
-  "phCalibFotoTabelInfo": "Sekali foto ngisi satu tabel penuh buat ketiga buffer. Sel yang udah keisi nggak akan ditimpa — jadi boleh foto ulang berkali-kali.",
-  "phCalibFotoTabelHasil": "{terisi} dari {total} sel keisi.",
-  "phCalibFotoTabelTakTerbaca": "Nggak ada angka yang kebaca sama sekali. Fotonya kemungkinan gelap, buram, atau kejauhan — coba lebih dekat dan terang. Kolomnya tetap bisa diketik manual.",
-  "phCalibFotoTabelPosisiKacau": "{jumlah} angka kebaca, tapi belum kebentuk tabel. Biasanya karena fotonya miring atau yang kefoto selembar penuh — coba foto TABEL-nya aja, tegak lurus dari atas. Kolomnya tetap bisa diketik manual.",
-  "@phCalibFotoTabelPosisiKacau": {
-    "placeholders": {
-      "jumlah": {
-        "type": "int"
-      }
-    }
-  },
-  "phCalibFotoTabelKosong": "Angka di foto belum kebaca. Tips: foto TABEL-nya aja (nggak usah selembar penuh), tegak lurus dari atas, cahaya rata tanpa bayangan tangan. Atau ketik manual.",
-  "phCalibFotoTabelSisa": "Sel yang kosong: ketik manual atau foto ulang — yang udah keisi nggak bakal keganti.",
   "phCalibFotoHeaderHasil": "Plus {jumlah} kolom di luar tabel (kondisi, catatan, standar dipakai) — tolong dicek.",
   "@phCalibFotoHeaderHasil": {
     "placeholders": {
@@ -917,6 +901,29 @@
     "description": "Pesan waktu empat penanda sudut tidak ditemukan di foto."
   },
   "lkPindaiTerlaluMiring": "Fotonya terlalu miring. Jepret lebih tegak lurus di atas lembar.",
+  "lkPindaiQrHilang": "Kode QR versi lembar nggak kebaca. Formulir lama tanpa QR nggak bisa dipindai — cetak ulang lembarnya, atau ketik manual.",
+  "lkPindaiQrLembarLain": "QR yang kebaca punya lembar/versi lain. Foto ulang nggak nolong — pastikan lembarnya yang bener.",
+  "lkPindaiBuram": "Fotonya buram. Tahan HP lebih diam, lalu foto ulang.",
+  "lkPindaiGelap": "Terlalu gelap. Cari cahaya yang lebih terang, lalu foto ulang.",
+  "lkPindaiSilau": "Terlalu terang sampai angkanya pudar. Kurangi cahaya langsung, lalu foto ulang.",
+  "lkPindaiPantulan": "Ada pantulan cahaya di lembar. Geser sedikit posisinya, lalu foto ulang.",
+  "lkPindaiKejauhan": "Fotonya kejauhan — angkanya kekecilan buat dibaca. Dekatkan HP, lalu foto ulang.",
+  "lkPindaiTerpakai": "{terisi} sel keisi dari hasil pindai. Sel yang udah ada isinya nggak ditimpa.",
+  "@lkPindaiTerpakai": {
+    "placeholders": {
+      "terisi": {
+        "type": "int"
+      }
+    }
+  },
+  "lkPindaiBugAplikasi": "Pindai ditolak server: {pesan} Ini kesalahan aplikasi, bukan fotonya — laporkan ke tim, dan ketik manual dulu.",
+  "@lkPindaiBugAplikasi": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
   "@lkPindaiTerlaluMiring": {
     "description": "Pesan waktu geometri foto meleset terlalu jauh."
   },
@@ -926,7 +933,16 @@
   "lkStandarPerTitik": "Standar titik",
   "lkStandarKadaluarsa": "sertifikat kadaluarsa",
   "lkStandarTitikDipakai": "Titik {label} — {standar}",
-  "@lkStandarTitikDipakai": { "placeholders": { "label": { "type": "String" }, "standar": { "type": "String" } } },
+  "@lkStandarTitikDipakai": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "standar": {
+        "type": "String"
+      }
+    }
+  },
   "lkStandarTitikGanti": "Ganti",
   "lkStandarTitikTercetak": "Sesuai lembar kerja",
   "antreanSemuaPt": "Semua PT ({jumlah})",
@@ -1010,18 +1026,57 @@
   "lkBagianBelumBisaDiisi": "BELUM BISA DIISI",
   "pindaiReviewJudul": "Cek Hasil Pindai",
   "pindaiRingkasan": "{total} sel dibaca · {kuning} perlu dicek · {merah} nggak kebaca · {kosong} kosong",
-  "@pindaiRingkasan": {"placeholders": {"total": {"type": "int"}, "kuning": {"type": "int"}, "merah": {"type": "int"}, "kosong": {"type": "int"}}},
+  "@pindaiRingkasan": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "kuning": {
+        "type": "int"
+      },
+      "merah": {
+        "type": "int"
+      },
+      "kosong": {
+        "type": "int"
+      }
+    }
+  },
   "pindaiCatatanKuning": "Tulisan tangan nggak pernah ditandai aman otomatis — jadi wajar kalau hampir semuanya perlu dicek. Cocokin angkanya sama potongan foto di sebelahnya.",
   "pindaiPakaiAngka": "PAKAI ANGKA INI",
   "pindaiDitahanServer": "Masih ada sel yang nggak kebaca. Betulin dulu, atau ketik manual di lembar kerjanya.",
   "pindaiRepeat": "Repeat {nomor}",
-  "@pindaiRepeat": {"placeholders": {"nomor": {"type": "int"}}},
+  "@pindaiRepeat": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
   "pindaiTerbaca": "Terbaca: {teks}",
-  "@pindaiTerbaca": {"placeholders": {"teks": {"type": "String"}}},
+  "@pindaiTerbaca": {
+    "placeholders": {
+      "teks": {
+        "type": "String"
+      }
+    }
+  },
   "pindaiNormalisasi": "Dibetulkan server: {catatan}",
-  "@pindaiNormalisasi": {"placeholders": {"catatan": {"type": "String"}}},
+  "@pindaiNormalisasi": {
+    "placeholders": {
+      "catatan": {
+        "type": "String"
+      }
+    }
+  },
   "pindaiKoreksiGagal": "Angkanya kepakai, tapi catatan koreksinya gagal dikirim: {pesan}",
-  "@pindaiKoreksiGagal": {"placeholders": {"pesan": {"type": "String"}}},
+  "@pindaiKoreksiGagal": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
   "pindaiAlasanMeluber": "tulisannya keluar dari kotak, bisa jadi kebaca dari kolom sebelah",
   "pindaiAlasanLuarRentang": "angkanya di luar rentang wajar titik ini",
   "pindaiAlasanMagnitudo": "angkanya jauh dari nilai standar titik ini",
@@ -1039,10 +1094,22 @@
   "pindaiAlasanMinusTengah": "ada tanda minus di tengah angka",
   "pindaiAlasanMinusTakBoleh": "kolom ini nggak boleh bernilai negatif",
   "lkRepeatMenyimpang": "Di titik {titik} ada satu pembacaan yang jauh beda dari Repeat lainnya — cek lagi, kemungkinan ada digit yang ketuker waktu ngetik. Satu angka begini bisa bikin ketidakpastian di sertifikat meleset ratusan kali lipat.",
-  "@lkRepeatMenyimpang": {"placeholders": {"titik": {"type": "String"}}},
+  "@lkRepeatMenyimpang": {
+    "placeholders": {
+      "titik": {
+        "type": "String"
+      }
+    }
+  },
   "lkPindaiLembar": "PINDAI LEMBAR KERJA",
   "lkPindaiBelumSiap": "Belum bisa dipindai: {alasan}",
-  "@lkPindaiBelumSiap": {"placeholders": {"alasan": {"type": "String"}}},
+  "@lkPindaiBelumSiap": {
+    "placeholders": {
+      "alasan": {
+        "type": "String"
+      }
+    }
+  },
   "lkPratinjauJudul": "HASIL HITUNG SEMENTARA",
   "lkPratinjauCatatan": "Dihitung server dari isian yang sekarang, bukan di HP. Angkanya bisa berubah kalau baris lain ikut diisi.",
   "lkPratinjauKolomTitik": "Titik",
@@ -1051,7 +1118,13 @@
   "lkPratinjauKolomU95": "U95",
   "lkPratinjauBelumDihitung": "BELUM BISA DIHITUNG",
   "lkPratinjauTitikKe": "Titik ke-{nomor}",
-  "@lkPratinjauTitikKe": {"placeholders": {"nomor": {"type": "int"}}},
+  "@lkPratinjauTitikKe": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
   "lkKeluarTanpaSimpan": "Keluar tanpa menyimpan?",
   "lkKeluarTanpaSimpanBody": "Yang udah kamu ketik bakal ilang.",
   "lkKeluarBatal": "LANJUT ISI",
@@ -1171,7 +1244,13 @@
   "sertKolU95": "U95% (±)",
   "sertU95Baris": "Uncertainty U95% = ±",
   "sertFaktorCakupan": "Faktor cakupan (k) = {k}, tingkat kepercayaan 95 %",
-  "@sertFaktorCakupan": {"placeholders": {"k": {"type": "String"}}},
+  "@sertFaktorCakupan": {
+    "placeholders": {
+      "k": {
+        "type": "String"
+      }
+    }
+  },
   "sertKolRemark": "Remark",
   "sertStandarJudul": "Standar yang Digunakan",
   "sertKolName": "Name",
@@ -1217,7 +1296,6 @@
   "importBarisKe": "Baris {nomor}",
   "importGagal": "Import gagal: {pesan}",
   "lkKirimAdmin": "KIRIM",
-  "lkScanTabel": "FOTO TABEL INI — DIBACA AI",
   "lkScanMemproses": "AI lagi baca tabel…",
   "lkPengulanganRingkas": "{n}x",
   "@lkPengulanganRingkas": {
@@ -1248,20 +1326,45 @@
   "lkUbahPengulanganLanjut": "Ubah",
   "lkPengulanganBatal": "Batal",
   "lkSuhuWajib": "Ada pembacaan tanpa suhu larutan di titik {titik}. Suhunya wajib diisi — nilai acuannya digeser ikut suhu.",
-  "@lkSuhuWajib": {"placeholders": {"titik": {"type": "String"}}},
+  "@lkSuhuWajib": {
+    "placeholders": {
+      "titik": {
+        "type": "String"
+      }
+    }
+  },
   "lkStandarBelumDicentang": "Titik {titik} udah diisi angkanya tapi standar acuannya belum dicentang — angkanya nggak bisa dihitung. Centang standarnya, atau kosongkan barisnya kalau alat ini emang nggak pakai titik itu.",
-  "@lkStandarBelumDicentang": {"placeholders": {"titik": {"type": "String"}}},
+  "@lkStandarBelumDicentang": {
+    "placeholders": {
+      "titik": {
+        "type": "String"
+      }
+    }
+  },
   "lkPembacaanTakTerpulih": "{jumlah} pembacaan tersimpan nggak ketemu barisnya di lembar ini dan nggak ikut dipulihkan. Cek tabelnya sebelum dikirim.",
-  "@lkPembacaanTakTerpulih": {"placeholders": {"jumlah": {"type": "int"}}},
+  "@lkPembacaanTakTerpulih": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "lkPembacaanJauhDariTitik": "Pembacaan di titik {titik} melesetnya lebih dari 10× dari nilai titiknya — cek satuannya, atau posisi komanya. Kalau angkanya emang segitu, pindah ke baris satuan yang benar dulu.",
-  "@lkPembacaanJauhDariTitik": {"placeholders": {"titik": {"type": "String"}}},
+  "@lkPembacaanJauhDariTitik": {
+    "placeholders": {
+      "titik": {
+        "type": "String"
+      }
+    }
+  },
   "detailTanpaVonis": "TANPA VONIS",
-  "@detailTanpaVonis": {"description": "Badge titik pada alat yang tidak dinilai PASS/FAIL (tidak punya batas toleransi)"},
+  "@detailTanpaVonis": {
+    "description": "Badge titik pada alat yang tidak dinilai PASS/FAIL (tidak punya batas toleransi)"
+  },
   "statusTanpaKeputusan": "Tanpa PASS/FAIL",
   "detailEditAdmin": "EDIT LEMBAR",
   "detailPerbaikiRevisi": "PERBAIKI LEMBAR KERJA",
   "lkTitikAlternatifSatuan": "Alternatif satuan dari botol yang sama — sudah diisi di baris satunya",
-  "lkRepeat": "Repeat",
   "@lkRepeat": {
     "description": "Kepala kolom nomor pengulangan di lembar kerja yang Repeat-nya turun ke bawah."
   },
@@ -1272,7 +1375,14 @@
   "lkResolusiNilai": "Resolusi: {nilai} {satuan}",
   "@lkResolusiNilai": {
     "description": "Baris Resolusi di kepala tabel, diisi dari spesifikasi alat.",
-    "placeholders": { "nilai": { "type": "String" }, "satuan": { "type": "String" } }
+    "placeholders": {
+      "nilai": {
+        "type": "String"
+      },
+      "satuan": {
+        "type": "String"
+      }
+    }
   },
   "lkSlotTanpaLarutan": "belum ada larutannya",
   "@lkSlotTanpaLarutan": {
@@ -1281,14 +1391,22 @@
   "lkIsianTitikKebuang": "{jumlah, plural, other{{jumlah} titik tidak ada di lembar alat ini — isiannya dibuang}}",
   "@lkIsianTitikKebuang": {
     "description": "Peringatan waktu bentuk lembar menyusut sesudah alat dipilih, dan ada isian yang titiknya hilang.",
-    "placeholders": { "jumlah": { "type": "int" } }
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
   },
   "lkKonfirmasiJudul": "Cek dulu angkanya sebelum dikirim",
   "lkKonfirmasiCatatan": "Rata-rata pembacaan After adjustment. Koreksi & ketidakpastian dihitung server sesudah ini dikirim.",
   "lkKonfirmasiDariFoto": "Sebagian angka di tabel ini datang dari foto. Dengan mengirim, kamu menyatakan sudah mencocokkannya dengan yang tertera di alat.",
   "lkKonfirmasiGagalTandai": "Terkirim, tapi penandaan \"sudah dicek\" gagal: {pesan}. Buka sesinya di Riwayat dan tekan \"Saya sudah cek angkanya\".",
   "@lkKonfirmasiGagalTandai": {
-    "placeholders": { "pesan": { "type": "String" } }
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
   },
   "lkKonfirmasiBaris": "{terisi} dari {total} kotak · rata-rata {rata}",
   "@lkKonfirmasiBaris": {

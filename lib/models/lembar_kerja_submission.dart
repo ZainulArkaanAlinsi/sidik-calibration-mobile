@@ -62,11 +62,20 @@ class TitikLembarKerja {
 ///
 /// Ini catatan asal-usul, bukan hiasan: kalau ada angka sertifikat yang
 /// kelihatan meleset, pertanyaan pertamanya selalu "ini diketik teknisi atau
-/// hasil baca AI?". Sebelum ini semua sesi kecatat `manual`, termasuk yang
+/// hasil baca mesin?". Sebelum ini semua sesi kecatat `manual`, termasuk yang
 /// tabelnya diisi dari foto — jawabannya cuma bisa dicari di log server, dan
 /// log-nya nggak selamanya ada.
+///
+/// [aiVision] disimpen walau jalur AI-nya udah dicabut dari aplikasi: sesi lama
+/// di database masih bernilai itu, dan enum yang nggak kenal nilainya bikin
+/// riwayat gagal dibaca.
 enum MetodeInput {
   manual('manual'),
+
+  /// Angkanya masuk lewat pindai lembar kerja (OCR on-device) yang disetujui
+  /// teknisi di layar review.
+  ocr('ocr'),
+
   aiVision('ai_vision');
 
   const MetodeInput(this.api);

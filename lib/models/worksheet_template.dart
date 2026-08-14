@@ -18,6 +18,7 @@ class WorksheetTemplate {
     this.alasanBelumSiap,
     this.ukuranReferensi,
     this.marker = const [],
+    this.jangkar = const [],
     this.qrIsi,
   });
 
@@ -57,8 +58,19 @@ class WorksheetTemplate {
   /// sebesar jarak itu.
   final List<({double x, double y})> marker;
 
-  /// Isi QR yang tercetak di lembar (`conductivity_meter|v1`). Dikirim balik
-  /// apa adanya sebagai bukti versi lembar yang difoto.
+  /// Label yang TERCETAK di lembar (nomor Repeat) berikut kotaknya.
+  ///
+  /// Ini penangkal paling ampuh buat kesalahan "geser satu baris": penjagaan
+  /// lain ngukur geometri, yang ini **baca isinya**. Kalau grid kegeser, label
+  /// yang kebaca di posisi baris ke-2 bakal `3`.
+  final List<JangkarTemplate> jangkar;
+
+  /// Isi QR yang tercetak di lembar (`conductivity_meter|v1`).
+  ///
+  /// Dipakai buat MEMBANDINGKAN sama QR yang beneran kebaca dari foto —
+  /// **bukan** buat dikirim balik seolah-olah kebaca. Nyalin nilai ini ke
+  /// `qr.isi` tanpa mindai fotonya sama dengan ngaku baca sesuatu yang nggak
+  /// pernah dilihat, dan yang dikorbanin persis penjagaan versi lembar.
   final String? qrIsi;
 
   factory WorksheetTemplate.fromJson(Map<String, dynamic> json) {
@@ -95,9 +107,47 @@ class WorksheetTemplate {
               y: (m['y'] as num?)?.toDouble() ?? 0,
             ),
       ],
+      // `jangkar` ada di level atas respons, bukan di dalam `geometri`.
+      jangkar: parseListAman(data['jangkar'], JangkarTemplate.fromJson),
       qrIsi: (geometri?['qr'] as Map<String, dynamic>?)?['isi'] as String?,
     );
   }
+}
+
+/// Satu label tercetak yang ikut dibaca sebagai bukti barisnya nggak geser.
+class JangkarTemplate {
+  const JangkarTemplate({
+    required this.fieldId,
+    required this.repeatNo,
+    required this.teks,
+    required this.kotak,
+  });
+
+  final String fieldId;
+  final int repeatNo;
+
+  /// Teks yang MESTI kebaca di kotak itu. Yang dikirim balik ke server cuma
+  /// cocok/nggaknya — servernya yang mutusin artinya.
+  final String teks;
+
+  /// Kotak di ruang citra hasil warp. Bisa `0×0` selama geometrinya masih
+  /// rangka: berkas `ocr:rangka-geometri` nulis `{x:0,y:0,w:0,h:0}` buat semua
+  /// jangkar. Kotak sebesar itu nggak bisa dipotong, jadi jangkarnya nggak
+  /// dibaca — dan yang dikirim BUKAN `cocok: true` karangan, tapi nggak ada
+  /// sama sekali, biar servernya yang nolak dengan alasan yang jujur.
+  final KotakSel kotak;
+
+  bool get bisaDibaca => kotak.w >= 1 && kotak.h >= 1;
+
+  factory JangkarTemplate.fromJson(Map<String, dynamic> json) =>
+      JangkarTemplate(
+        fieldId: json['field_id'] as String? ?? '',
+        repeatNo: (json['repeat_no'] as num?)?.toInt() ?? 0,
+        teks: '${json['teks'] ?? ''}',
+        kotak: KotakSel.fromJson(
+          json['kotak'] as Map<String, dynamic>? ?? const {},
+        ),
+      );
 }
 
 /// Satu tabel di template pindai.
