@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Unduh — PT Sidik Kalibrasi</title>
+
+<!--
+  Halaman unduh internal. Firebase Hosting di sini perannya cuma file server:
+  App Distribution nggak nerima binary desktop, jadi Windows & macOS dibagikan
+  sebagai zip biasa, sementara Android tetap lewat App Distribution.
+
+  SEBELUM DEPLOY, dua hal harus diisi:
+    1. href tombol Android di bawah — ganti #ganti-link-app-distribution dengan
+       link undangan dari Firebase Console → App Distribution → Testers & groups.
+    2. Taruh sidik-windows.zip & sidik-macos.zip di folder ini (unduh dari
+       artifact workflow "Rilis desktop (nyambung server)").
+
+  Halaman ini nggak boleh nyantumin URL backend. Repo ini publik.
+-->
+
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --ink: #14181f;
+    --ink-lembut: #5c6570;
+    --garis: #e2e6ea;
+    --aksen: #1f6feb;
+    --peringatan-bg: #fff8e6;
+    --peringatan-garis: #e8d9a8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1216;
+      --card: #171b21;
+      --ink: #e8ebef;
+      --ink-lembut: #9aa4b0;
+      --garis: #2a313a;
+      --aksen: #4f8ef7;
+      --peringatan-bg: #241f10;
+      --peringatan-garis: #4a3f1c;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 2.5rem 1.25rem 4rem;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 44rem; margin: 0 auto; }
+
+  header { margin-bottom: 2.25rem; }
+  h1 { font-size: 1.6rem; margin: 0 0 .35rem; letter-spacing: -.01em; }
+  header p { margin: 0; color: var(--ink-lembut); font-size: .95rem; }
+
+  .kartu {
+    background: var(--card);
+    border: 1px solid var(--garis);
+    border-radius: 12px;
+    padding: 1.25rem 1.35rem;
+    margin-bottom: 1rem;
+  }
+  .kartu h2 { font-size: 1.05rem; margin: 0 0 .2rem; }
+  .kartu .platform { color: var(--ink-lembut); font-size: .85rem; margin: 0 0 1rem; }
+
+  a.tombol {
+    display: inline-block;
+    background: var(--aksen);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: .92rem;
+    padding: .6rem 1.1rem;
+    border-radius: 8px;
+  }
+  a.tombol:hover { filter: brightness(1.08); }
+
+  details { margin-top: 1rem; }
+  summary {
+    cursor: pointer;
+    font-size: .88rem;
+    font-weight: 600;
+    color: var(--ink-lembut);
+  }
+  details p { font-size: .88rem; margin: .6rem 0 0; }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: .84em;
+    background: var(--bg);
+    border: 1px solid var(--garis);
+    border-radius: 5px;
+    padding: .12em .4em;
+  }
+  pre {
+    background: var(--bg);
+    border: 1px solid var(--garis);
+    border-radius: 8px;
+    padding: .75rem .9rem;
+    overflow-x: auto;
+    margin: .6rem 0 0;
+  }
+  pre code { background: none; border: 0; padding: 0; }
+
+  .catatan {
+    background: var(--peringatan-bg);
+    border: 1px solid var(--peringatan-garis);
+    border-radius: 10px;
+    padding: .9rem 1.1rem;
+    font-size: .88rem;
+    margin-top: 2rem;
+  }
+  .catatan strong { display: block; margin-bottom: .25rem; }
+  footer {
+    margin-top: 2.5rem;
+    color: var(--ink-lembut);
+    font-size: .8rem;
+    border-top: 1px solid var(--garis);
+    padding-top: 1rem;
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <header>
+    <h1>PT Sidik Kalibrasi — Unduh Aplikasi</h1>
+    <p>Halaman internal. Jangan sebarkan link ini ke luar tim.</p>
+  </header>
+
+  <div class="catatan" style="margin-top:0">
+    <strong>Versi uji offline — datanya palsu.</strong>
+    Paket di halaman ini belum nyambung ke server mana pun: login pakai
+    <code>SDK-0001</code> / <code>rahasia123</code>, dan semua data yang muncul
+    cuma contoh yang ikut dibundel. Nol panggilan jaringan, jadi aman dipakai
+    di mana saja. Versi yang membaca data asli menyusul begitu backend-nya
+    berdiri.
+  </div>
+
+  <section class="kartu">
+    <h2>Android</h2>
+    <p class="platform">HP teknisi · lewat Firebase App Distribution</p>
+    <a class="tombol"
+       href="https://appdistribution.firebase.google.com/testerapps/1:573275146800:android:6b5ffb7202167a0ccb3bf5">Buka
+      halaman tester</a>
+    <details>
+      <summary>Cara pasang</summary>
+      <p>
+        Buka link di atas dari HP, login pakai email yang sudah didaftarkan di
+        grup tester, lalu pasang aplikasi <strong>App Tester</strong> waktu
+        diminta. Setiap build baru masuk sendiri ke situ — nggak perlu balik ke
+        halaman ini.
+      </p>
+      <p>
+        Kalau halamannya bilang nggak punya akses, berarti emailmu belum
+        didaftarkan. Minta ke Raihan atau Arkaan buat ditambahkan ke grup
+        <code>teknisi</code>.
+      </p>
+      <p>
+        Kalau HP-nya pernah dipakai buat <code>flutter run</code>, copot dulu
+        versi debug-nya. Dua versi itu ditandatangani kunci yang beda, jadi
+        Android nolak pasang yang baru di atas yang lama.
+      </p>
+    </details>
+  </section>
+
+  <section class="kartu">
+    <h2>macOS</h2>
+    <p class="platform">Apple Silicon &amp; Intel · file .zip</p>
+    <a class="tombol" href="sidik-macos.zip" download>Unduh untuk macOS</a>
+    <details>
+      <summary>macOS bilang aplikasinya rusak — ini normal</summary>
+      <p>
+        Aplikasinya belum ditandatangani sertifikat Apple berbayar, jadi
+        Gatekeeper nolak duluan tanpa pernah membukanya. Pindahkan dulu
+        aplikasinya ke folder <strong>Applications</strong>, lalu jalankan sekali
+        di Terminal:
+      </p>
+      <pre><code>xattr -dr com.apple.quarantine /Applications/PTSidikCalibration.app</code></pre>
+      <p>Sesudah itu tinggal dibuka biasa, nggak perlu diulang lagi.</p>
+    </details>
+  </section>
+
+  <section class="kartu">
+    <h2>Windows</h2>
+    <p class="platform">Windows 10/11 64-bit · file .zip</p>
+    <a class="tombol" href="sidik-windows.zip" download>Unduh untuk Windows</a>
+    <details>
+      <summary>Cara pasang &amp; peringatan SmartScreen</summary>
+      <p>
+        Ekstrak <strong>seluruh isi</strong> zip-nya ke satu folder, baru jalankan
+        <code>sidik_calibration.exe</code> dari dalam situ. Jangan cuma menyeret
+        file .exe-nya keluar — file DLL dan folder <code>data</code> di sebelahnya
+        itu bagian dari aplikasinya, dan tanpa mereka aplikasinya mati begitu
+        diklik.
+      </p>
+      <p>
+        Windows bakal munculkan layar biru "Windows protected your PC" karena
+        aplikasinya belum ditandatangani. Klik <strong>More info</strong> →
+        <strong>Run anyway</strong>.
+      </p>
+    </details>
+  </section>
+
+  <div class="catatan">
+    <strong>Fitur pindai lembar kerja cuma jalan di HP.</strong>
+    Pembacaan OCR pakai ML Kit yang jalan di sisi perangkat Android/iOS. Di
+    Windows dan macOS menu itu ada tapi kameranya nggak tersedia — angkanya
+    diisi manual.
+  </div>
+
+  <footer>
+    Aplikasi internal PT Sidik. Jangan sebarkan link ini ke luar tim.
+  </footer>
+
+</main>
+</body>
+</html>

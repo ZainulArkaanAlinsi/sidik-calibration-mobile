@@ -61,3 +61,14 @@ app.*.map.json
 # publik. Dipakai cuma sebagai acuan waktu ngembangin, bukan bagian dari kode.
 SIDIK-FM-*.pdf
 SIDIK-IK-*.pdf
+
+# Paket build yang ditaruh di halaman unduh Firebase Hosting. Ukurannya puluhan
+# MB dan isinya bisa diregenerasi kapan saja dari workflow "Rilis desktop" —
+# yang di-commit cuma halaman unduhnya (`public/index.html`), bukan binernya.
+/public/*.zip
+/public/*.apk
+
+# Jejak Firebase CLI.
+.firebase/
+firebase-debug.log
+firebase-debug.*.log

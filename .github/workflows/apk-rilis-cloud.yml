@@ -37,12 +37,33 @@ jobs:
       # penjagaan ini APK-nya tetap kebangun tapi API_BASE_URL-nya kosong —
       # dan nilai kosong bikin AppConfig balik ke bawaan `10.0.2.2`, alamat
       # emulator, yang di HP asli nggak nyambung ke mana-mana.
+      #
+      # Nilai placeholder ikut ditolak. Cek "tidak kosong" saja tidak cukup:
+      # contoh di dokumentasi (`https://<url-render>.onrender.com`) gampang
+      # ke-copy mentah-mentah, lolos cek kosong, lalu ketanam ke APK sebagai
+      # alamat yang tidak pernah ada — dan gagalnya baru ketahuan di lokasi.
       - name: Pastiin URL server udah dipasang
+        env:
+          URL: ${{ vars.API_BASE_URL }}
         run: |
-          if [ -z "${{ vars.API_BASE_URL }}" ]; then
+          if [ -z "$URL" ]; then
             echo "::error::Repository variable API_BASE_URL belum diisi. Lihat komentar di atas berkas workflow ini."
             exit 1
           fi
+          case "$URL" in
+            *"<"*|*">"*)
+              echo "::error::API_BASE_URL masih berisi contoh dari dokumentasi ($URL). Ganti dengan URL backend yang asli."
+              exit 1 ;;
+            https://*) ;;
+            *)
+              echo "::error::API_BASE_URL harus mulai dengan https:// (sekarang: $URL)."
+              exit 1 ;;
+          esac
+          case "$URL" in
+            */api|*/api/)
+              echo "::error::API_BASE_URL jangan pakai /api di belakang — workflow ini yang nambahin sendiri."
+              exit 1 ;;
+          esac
 
       - uses: actions/setup-java@v4
         with:

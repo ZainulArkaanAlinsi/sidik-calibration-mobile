@@ -2,11 +2,27 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>com.apple.security.app-sandbox</key>
-	<true/>
-	<!-- Wajib biar app (yang di-sandbox) bisa manggil backend lewat HTTP.
-	     Tanpa ini, build Release nggak bisa konek jaringan sama sekali —
-	     versi non-mock gagal total waktu login. -->
+	<!-- App sandbox SENGAJA dilepas, sama seperti DebugProfile.entitlements.
+
+	     Sandbox butuh entitlement `keychain-access-groups`, dan itu cuma
+	     ditegakkan kalau app-nya ditandatangani pakai sertifikat Developer ID.
+	     Build yang dibagikan lewat Firebase Hosting tidak ditandatangani
+	     (ad-hoc), jadi `flutter_secure_storage` gagal nulis token dengan
+	     errSecMissingEntitlement (-34018). `AsyncValue.guard` di
+	     `auth_provider.dart` nelen exception-nya, jadi di layar itu muncul
+	     sebagai "login gagal" — bukan sebagai error Keychain.
+
+	     Komentar di DebugProfile.entitlements dulu nulis bahwa Release sudah
+	     dilepas duluan. Itu tidak pernah benar sampai commit ini: Debug yang
+	     dibetulkan, Release-nya kelewat — jadi justru build yang dibagikan ke
+	     orang yang rusak, sementara build harian di laptop jalan mulus.
+
+	     Kalau nanti app-nya ditandatangani Developer ID + notarisasi, sandbox
+	     boleh dinyalakan lagi, tapi `keychain-access-groups` harus ikut. -->
+
+	<!-- Tanpa sandbox, entitlement ini tidak lagi jadi syarat akses jaringan.
+	     Dibiarkan supaya kalau sandbox dinyalakan lagi nanti, jalur HTTP ke
+	     backend tidak ikut mati diam-diam. -->
 	<key>com.apple.security.network.client</key>
 	<true/>
 </dict>
