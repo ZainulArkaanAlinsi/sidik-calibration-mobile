@@ -154,18 +154,21 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
           const SizedBox(width: AppSpacing.sm),
         ],
       ),
-      body: MasterDetailPane(
-        master: (context, panelGanda) => RefreshIndicator(
-          onRefresh: () => ref.read(historyProvider.notifier).muatUlang(),
-          child: ReadableWidth(child: isi(panelGanda)),
-        ),
-        detail: _terpilih == null
-            ? null
-            : CalibrationDetailScreen(calibrationId: _terpilih!),
-        kosong: PanePlaceholder(
-          icon: Icons.fact_check_outlined,
-          judul: l10n.detailPaneEmptyTitle,
-          pesan: l10n.detailPaneEmptyBody,
+      body: Container(
+        decoration: BoxDecoration(gradient: AppColors.gradasiLatar(context)),
+        child: MasterDetailPane(
+          master: (context, panelGanda) => RefreshIndicator(
+            onRefresh: () => ref.read(historyProvider.notifier).muatUlang(),
+            child: ReadableWidth(child: isi(panelGanda)),
+          ),
+          detail: _terpilih == null
+              ? null
+              : CalibrationDetailScreen(calibrationId: _terpilih!),
+          kosong: PanePlaceholder(
+            icon: Icons.fact_check_outlined,
+            judul: l10n.detailPaneEmptyTitle,
+            pesan: l10n.detailPaneEmptyBody,
+          ),
         ),
       ),
     );
@@ -225,15 +228,15 @@ class _HistoryCard extends StatelessWidget {
 
   StatusBadge _badge(AppLocalizations l10n) {
     if (item.status == CalibrationStatus.disetujui) {
-    // `keputusan` bisa NULL, dan itu keadaan yang sah — bukan "belum ada".
-    //
-    // Conductivity Meter nggak divonis lulus/gagal: master Excel-nya nggak
-    // punya satu pun sel yang mbandingin hasil ke batas keberterimaan, jadi
-    // backend ngirim `keputusan: null`. Sebelum ini `_ =>` nangkep null dan
-    // nampilinnya sebagai PASS — tiap sesi Conductivity kebaca "lulus" padahal
-    // alatnya emang nggak pernah dinilai.
-    //
-    // Yang ditampilkan strip, bukan badge kosong dan bukan tulisan "null".
+      // `keputusan` bisa NULL, dan itu keadaan yang sah — bukan "belum ada".
+      //
+      // Conductivity Meter nggak divonis lulus/gagal: master Excel-nya nggak
+      // punya satu pun sel yang mbandingin hasil ke batas keberterimaan, jadi
+      // backend ngirim `keputusan: null`. Sebelum ini `_ =>` nangkep null dan
+      // nampilinnya sebagai PASS — tiap sesi Conductivity kebaca "lulus" padahal
+      // alatnya emang nggak pernah dinilai.
+      //
+      // Yang ditampilkan strip, bukan badge kosong dan bukan tulisan "null".
       return switch (item.keputusan) {
         Keputusan.pass => StatusBadge(
           label: l10n.historyStatusPass,
@@ -277,9 +280,10 @@ class _HistoryCard extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).languageCode;
-    final tanggal = DateFormat('d MMM yyyy', locale).format(
-      item.tanggalKalibrasi,
-    );
+    final tanggal = DateFormat(
+      'd MMM yyyy',
+      locale,
+    ).format(item.tanggalKalibrasi);
 
     return Card(
       // Kartu yang lagi kebuka di panel kanan dikasih garis tepi aksen, bukan
@@ -367,7 +371,8 @@ class _HistoryCard extends StatelessWidget {
                   ),
                 ),
               ],
-              if (isAdmin && item.status == CalibrationStatus.menungguApproval) ...[
+              if (isAdmin &&
+                  item.status == CalibrationStatus.menungguApproval) ...[
                 const SizedBox(height: AppSpacing.sm),
                 _ApprovalActions(item: item),
               ],
@@ -397,7 +402,8 @@ class _IkonAlat extends StatelessWidget {
       _ when n.contains('timbang') => Icons.scale_outlined,
       _ when n.contains('oven') || n.contains('furnace') =>
         Icons.local_fire_department_outlined,
-      _ when n.contains('pipet') || n.contains('buret') => Icons.science_outlined,
+      _ when n.contains('pipet') || n.contains('buret') =>
+        Icons.science_outlined,
       _ when n.contains('caliper') || n.contains('micrometer') =>
         Icons.straighten_outlined,
       _ => Icons.straighten_outlined,
@@ -629,9 +635,7 @@ class _ApprovalActionsState extends ConsumerState<_ApprovalActions> {
     setState(() => _busy = true);
 
     try {
-      await ref
-          .read(historyProvider.notifier)
-          .reject(widget.item.id, catatan);
+      await ref.read(historyProvider.notifier).reject(widget.item.id, catatan);
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(

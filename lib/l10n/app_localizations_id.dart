@@ -2555,7 +2555,11 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get lkFotoTabelTanpaJangkar =>
-      'Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom nilai standar (kiri) dan kepala kolom X1, X2, … ikut kefoto — tanpa itu angkanya nggak bisa ditaruh dengan aman. Kolomnya tetap bisa diketik manual.';
+      'Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom nilai standar (kiri) dan kepala kolom Repeat (X1 / Repeat 1) ikut kefoto — tanpa itu angkanya nggak bisa ditaruh dengan aman. Kolomnya tetap bisa diketik manual.';
+
+  @override
+  String get lkFotoTabelTanpaJangkarKeBawah =>
+      'Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom Repeat (kiri) dan kepala kolom larutan (baris paling atas) ikut kefoto — tanpa itu angkanya nggak bisa ditaruh dengan aman. Kolomnya tetap bisa diketik manual.';
 
   @override
   String lkFotoTabelTerisi(int terisi) {
@@ -3619,4 +3623,95 @@ class AppLocalizationsId extends AppLocalizations {
   String emailKontakKosongWa(String pt) {
     return 'Nomor WhatsApp $pt belum diisi di data pelanggan. Isi lewat panel admin → Pelanggan, biar nanti tinggal pilih.';
   }
+
+  @override
+  String get dashLiveWorkspace => 'Ruang kerja aktif';
+
+  @override
+  String dashGreetingName(String name) {
+    return 'Halo, $name';
+  }
+
+  @override
+  String dashActiveTasks(int count) {
+    return '$count tugas aktif';
+  }
+
+  @override
+  String get dashSpin3d => 'Geser bendanya buat muter';
+
+  @override
+  String get onbSkip => 'Lewati';
+
+  @override
+  String get onbNext => 'LANJUT';
+
+  @override
+  String get onbEnter => 'MASUK WORKSPACE';
+
+  @override
+  String get onbStep1Title => 'Semua alat, satu tempat.';
+
+  @override
+  String get onbStep1Body =>
+      'Pilih alat, mulai kalibrasi, dan lihat statusnya tanpa nunggu laporan orang lain.';
+
+  @override
+  String get onbStep2Title => 'Lembar kerja tinggal difoto.';
+
+  @override
+  String get onbStep2Body =>
+      'Angka di kertas kebaca langsung dari kamera. Nggak ada ketik ulang, dan fotonya nggak keluar dari HP kamu.';
+
+  @override
+  String get onbStep3Title => 'Sertifikat terbit lebih cepat.';
+
+  @override
+  String get onbStep3Body =>
+      'Kirim ke admin begitu datanya lengkap. Approval dan penerbitan jalan di app yang sama.';
+
+  @override
+  String get profSwipeHint => 'Geser buat bagian berikutnya';
+
+  @override
+  String get profSectionWorkspace => 'RUANG KERJA';
+
+  @override
+  String get profSectionSystem => 'SISTEM';
+
+  @override
+  String get profSectionAccount => 'AKUN';
+
+  @override
+  String get profPreferensiSub => 'Atur cara perangkat ini kerja buat kamu.';
+
+  @override
+  String get profAdminMenuSub => 'Kelola data inti lab.';
+
+  @override
+  String get profLabSettings => 'Pengaturan lab';
+
+  @override
+  String get profLabSettingsSub => 'Metode, ruangan, dan rumus kerja.';
+
+  @override
+  String get profSecuritySub => 'Status perangkat dan akses akun.';
+
+  @override
+  String profSectionOf(int current, int total) {
+    return 'Bagian $current dari $total';
+  }
+
+  @override
+  String get profChangePhoto => 'Ganti foto profil';
+
+  @override
+  String get profChangePhotoSub => 'Diambil dari galeri atau kamera kamu';
+
+  @override
+  String get profTechnicianCode => 'Kode teknisi';
+
+  @override
+  String get profTechnicianCodeSub =>
+      'Kecetak di sertifikat yang kamu tanda tangani';
 }

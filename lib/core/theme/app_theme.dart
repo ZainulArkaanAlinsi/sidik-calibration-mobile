@@ -6,10 +6,9 @@ import 'app_typography.dart';
 
 /// Tema "Titanium" — satu-satunya sumber gaya visual.
 ///
-/// Prinsip dari `DESIGN.md`: kedalaman dibentuk lewat **garis tipis**, bukan
-/// bayangan tebal. Card = border 1px, tanpa elevation. Tombol utama = solid
-/// navy, tombol sekunder = border tipis. Nggak ada gradient, nggak ada
-/// warna-warni — teal dipakai irit cuma buat sinyal fungsional.
+/// Arah visual aplikasi: panel instrumen yang modern, berlapis liquid glass,
+/// dengan aksen retro yang hangat. Kontras dan warna status tetap dijaga agar
+/// nyaman dipakai saat kerja di lab, bukan sekadar dekoratif.
 class AppTheme {
   const AppTheme._();
 
@@ -86,7 +85,7 @@ class AppTheme {
       // dikontraskan. Di atas abu-abu, kartu putih dan bayangannya nyaris
       // menyatu dan kedalamannya ilang.
       scaffoldBackgroundColor: isLight
-          ? const Color(0xFFE9F0F9)
+          ? const Color(0xFFE7EEF8)
           : AppColors.darkBase,
       textTheme: text,
 
@@ -100,6 +99,8 @@ class AppTheme {
         scrolledUnderElevation: 0,
         centerTitle: false,
         titleTextStyle: text.titleLarge,
+        toolbarHeight: 68,
+        iconTheme: IconThemeData(color: scheme.onSurfaceVariant),
       ),
 
       // Arah desain berubah: dulu kedalaman digambar pakai garis rambut
@@ -110,7 +111,7 @@ class AppTheme {
       // Bayangannya sengaja lebar & tipis, bukan pekat & sempit: yang pertama
       // kebaca empuk, yang kedua kebaca kayak kartu ketebalan.
       cardTheme: CardThemeData(
-        elevation: 8,
+        elevation: 0,
         shadowColor: (isLight ? AppColors.navy : Colors.black).withValues(
           alpha: isLight ? 0.16 : 0.5,
         ),
@@ -118,7 +119,12 @@ class AppTheme {
         color: isLight ? AppColors.white : AppColors.darkSurface,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+          borderRadius: BorderRadius.circular(22),
+          side: BorderSide(
+            color: (isLight ? AppColors.white : AppColors.white).withValues(
+              alpha: isLight ? 0.72 : 0.10,
+            ),
+          ),
         ),
       ),
 
@@ -129,10 +135,12 @@ class AppTheme {
           minimumSize: const Size.fromHeight(52),
           backgroundColor: scheme.primary,
           foregroundColor: scheme.onPrimary,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           disabledBackgroundColor: scheme.onSurface.withValues(alpha: 0.12),
           textStyle: text.labelLarge?.copyWith(letterSpacing: 1.0),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            borderRadius: BorderRadius.circular(16),
           ),
         ),
       ),
@@ -142,9 +150,12 @@ class AppTheme {
           minimumSize: const Size.fromHeight(52),
           foregroundColor: scheme.onSurface,
           side: BorderSide(color: scheme.outlineVariant),
+          backgroundColor: scheme.surface.withValues(
+            alpha: isLight ? 0.48 : 0.22,
+          ),
           textStyle: text.labelLarge?.copyWith(letterSpacing: 1.0),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            borderRadius: BorderRadius.circular(16),
           ),
         ),
       ),
@@ -158,7 +169,9 @@ class AppTheme {
 
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: isLight ? AppColors.white : AppColors.darkSurface,
+        fillColor: isLight
+            ? AppColors.white.withValues(alpha: 0.78)
+            : AppColors.darkSurface,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
           vertical: AppSpacing.md,
@@ -204,6 +217,62 @@ class AppTheme {
       ),
 
       dividerTheme: DividerThemeData(color: scheme.outlineVariant, space: 1),
+
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: scheme.surface.withValues(alpha: 0.94),
+        surfaceTintColor: Colors.transparent,
+        showDragHandle: true,
+        dragHandleColor: scheme.onSurfaceVariant.withValues(alpha: 0.45),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+      ),
+
+      dialogTheme: DialogThemeData(
+        backgroundColor: scheme.surface.withValues(alpha: 0.96),
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      ),
+
+      chipTheme: ChipThemeData(
+        backgroundColor: scheme.surface.withValues(
+          alpha: isLight ? 0.64 : 0.30,
+        ),
+        selectedColor: scheme.primaryContainer,
+        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.72)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        labelStyle: text.labelMedium,
+      ),
+
+      listTileTheme: ListTileThemeData(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.xs,
+        ),
+        iconColor: scheme.onSurfaceVariant,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          foregroundColor: scheme.onSurfaceVariant,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+      ),
+
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          visualDensity: VisualDensity.compact,
+          side: WidgetStatePropertyAll(
+            BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.7)),
+          ),
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+      ),
 
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,

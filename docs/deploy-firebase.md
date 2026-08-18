@@ -40,6 +40,40 @@ gh variable set API_BASE_URL --body "https://<yang-asli>.onrender.com"
 
 lalu jalankan ulang kedua workflow rilis.
 
+### Jalan pintas: APK nyambung backend laptop (quick tunnel)
+
+Kalau butuh APK yang beneran membaca data hari ini juga, tanpa nunggu Render,
+backend di laptop bisa dibuka ke internet lewat quick tunnel Cloudflare —
+gratis, tanpa akun, tanpa domain:
+
+```bash
+# terminal 1 — di repo sidik-calibration-api
+php artisan serve --port=8000
+
+# terminal 2
+cloudflared tunnel --url http://127.0.0.1:8000
+# catat URL https://<acak>.trycloudflare.com yang muncul
+
+# terminal 3 — di repo mobile
+flutter build apk --release \
+  --dart-define=APP_ENV=prod \
+  --dart-define=API_BASE_URL="https://<acak>.trycloudflare.com/api"
+```
+
+Yang harus diterima kalau menempuh jalur ini:
+
+- **URL-nya acak dan mati begitu `cloudflared` berhenti.** Restart tunnel =
+  URL baru = APK harus dibangun ulang. Jangan taruh URL ini ke repository
+  variable `API_BASE_URL`: build CI berikutnya akan lolos penjagaan lalu
+  menghasilkan APK yang menembak alamat yang sudah tidak ada.
+- **Laptop harus nyala dan tunnel harus jalan.** Laptop tidur, aplikasi mati.
+- **Seluruh backend ikut terbuka, bukan cuma `/api`.** Panel Filament di
+  `/admin` ikut bisa dibuka siapa pun yang tahu URL-nya, dan akun hasil seeder
+  memakai password `rahasia123` (lihat `database/seeders/DatabaseSeeder.php`).
+  Database yang dipakai juga database kerja, bukan database contoh. Karena itu
+  tunnel ini untuk uji singkat yang ditunggui, lalu dimatikan — bukan
+  ditinggal hidup.
+
 ## Firebase bisa apa, dan tidak bisa apa
 
 | Target | Jalur | Catatan |

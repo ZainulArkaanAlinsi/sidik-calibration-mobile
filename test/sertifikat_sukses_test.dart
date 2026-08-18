@@ -13,10 +13,12 @@ import 'package:sidik_calibration/services/dashboard_service.dart';
 import 'package:sidik_calibration/services/history_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
+import 'support/lewati_onboarding.dart';
 
 Widget _app() {
   return ProviderScope(
     overrides: [
+      lewatiOnboarding,
       tokenStorageProvider.overrideWithValue(
         InMemoryTokenStorage('mock-token-1'),
       ),

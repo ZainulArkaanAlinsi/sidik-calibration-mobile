@@ -710,10 +710,49 @@ class LembarKerjaState {
   /// bagus di pindai berikutnya.
   final Set<String> selRendahKeyakinan = {};
 
+  /// Slot cetak bersatuan dobel: kunci [kunciSlot] → index varian yang kepilih.
+  ///
+  /// Kertas Conductivity nyetak `1413 µS` dan `1.413 mS` berdampingan dengan
+  /// "ceklis salah satu" — botol yang sama, dua satuan. Pilihannya nentuin
+  /// angka yang masuk mendarat di titik `1412` atau `1,412`.
+  ///
+  /// Ditaruh DI SINI, bukan di state widget tabelnya, karena dua tempat butuh
+  /// jawabannya: tabel yang digambar, dan tombol foto tabel yang mesti tahu
+  /// kolom itu lagi nunjuk titik yang mana. Bonusnya pilihan teknisi nggak
+  /// hilang waktu widgetnya kebangun ulang.
+  final Map<String, int> pilihanSlot = {};
+
+  /// Kunci satu slot cetak di dalam satu tabel.
+  static String kunciSlot(String tahap, int index) => '$tahap|$index';
+
   /// Kunci satu sel tabel — sama persis dengan yang dibangun widget tabel biar
   /// penandaan keyakinan-rendah nyambung ke kotak yang benar.
   static String kunciSel(double titikUkur, String tahap, String kolom, int index) =>
       '$titikUkur|$tahap|$kolom|$index';
+
+  /// Titik yang lagi aktif buat satu slot cetak — jawaban yang sama buat tabel
+  /// yang digambar dan buat tombol foto tabel.
+  ///
+  /// Bukan cuma baca [pilihanSlot]: kalau salah satu varian udah keisi (draft
+  /// yang dipulihkan, atau hasil pindai), yang keisi itu yang menang — teknisi
+  /// nggak boleh lihat kolom kosong padahal angkanya ada di titik sebelah.
+  double? titikAktifSlot(String tahap, int index, SlotCetak slot) {
+    if (slot.mati) return null;
+    if (slot.titikUkur.length == 1) return slot.titikUkur.first;
+
+    for (final t in slot.titikUkur) {
+      if (titikTerkunci(t)) continue;
+      if (!titikBisaDiisi(t)) continue;
+
+      // Yang pasangannya udah kekunci = yang lagi dipakai. Ini menang atas
+      // pilihan manual supaya angka yang udah diketik nggak ketutup.
+      if (slot.titikUkur.any(titikTerkunci)) return t;
+    }
+
+    final dipilih = pilihanSlot[kunciSlot(tahap, index)] ?? 0;
+
+    return slot.titikUkur[dipilih.clamp(0, slot.titikUkur.length - 1)];
+  }
 
   /// Kunci penanda buat kolom non-tabel & baris usage check. Prefiks-nya bikin
   /// nggak mungkin bentrok sama [kunciSel] yang diawali angka titik ukur.

@@ -1311,7 +1311,11 @@
   "lkPindaiTerlaluMiring": "The photo is too skewed. Shoot it more square-on above the sheet.",
   "lkFotoTabel": "PHOTOGRAPH THIS TABLE",
   "lkFotoTabelGagal": "The photo couldn't be read. Take it again.",
-  "lkFotoTabelTanpaJangkar": "No reading could be placed with certainty. Make sure the standard-value column (left) and the X1, X2, … column headers are in frame — without them the numbers cannot be placed safely. You can still type the values manually.",
+  "lkFotoTabelTanpaJangkar": "No reading could be placed with certainty. Make sure the standard-value column (left) and the repeat headers (X1 / Repeat 1) are in frame — without them the numbers cannot be placed safely. You can still type the values manually.",
+  "lkFotoTabelTanpaJangkarKeBawah": "No reading could be placed with certainty. Make sure the Repeat column (left) and the solution headers along the top are in frame — without them the numbers cannot be placed safely. You can still type the values manually.",
+  "@lkFotoTabelTanpaJangkarKeBawah": {
+    "description": "Foto tabel gagal total di lembar yang Repeat-nya turun ke bawah (Conductivity) — jangkarnya beda dari bentuk pH, jadi petunjuknya juga beda."
+  },
   "lkFotoTabelTerisi": "{terisi} cells filled from the photo. All are flagged for checking — compare them with the paper.",
   "lkFotoTabelSebagian": "{terisi} cells filled; {terbuang} numbers skipped because their position was uncertain. Type the empty ones manually.",
   "lkFotoTabelError": "Table photo failed: {pesan}",
@@ -1982,5 +1986,56 @@
         "type": "String"
       }
     }
-  }
+  },
+  "dashLiveWorkspace": "Live workspace",
+  "dashGreetingName": "Hi, {name}",
+  "@dashGreetingName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dashActiveTasks": "{count} active tasks",
+  "@dashActiveTasks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashSpin3d": "Swipe the object to rotate it",
+  "onbSkip": "Skip",
+  "onbNext": "NEXT",
+  "onbEnter": "ENTER WORKSPACE",
+  "onbStep1Title": "Every instrument, one place.",
+  "onbStep1Body": "Pick an instrument, start the calibration, and watch its status without waiting for somebody else's report.",
+  "onbStep2Title": "Photograph the worksheet.",
+  "onbStep2Body": "Readings on paper are picked up straight from your camera. No retyping — and the photo never leaves your phone.",
+  "onbStep3Title": "Certificates land sooner.",
+  "onbStep3Body": "Send to the admin once the data is complete. Approval and issuing happen in this same app.",
+  "profSwipeHint": "Swipe for the next section",
+  "profSectionWorkspace": "WORKSPACE",
+  "profSectionSystem": "SYSTEM",
+  "profSectionAccount": "ACCOUNT",
+  "profPreferensiSub": "Tune how this device works for you.",
+  "profAdminMenuSub": "Manage the lab's core records.",
+  "profLabSettings": "Lab setup",
+  "profLabSettingsSub": "Methods, rooms, and working formulas.",
+  "profSecuritySub": "Device status and account access.",
+  "profSectionOf": "Section {current} of {total}",
+  "@profSectionOf": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "profChangePhoto": "Change profile photo",
+  "profChangePhotoSub": "Taken from your gallery or camera",
+  "profTechnicianCode": "Technician code",
+  "profTechnicianCodeSub": "Printed on the certificates you sign"
 }

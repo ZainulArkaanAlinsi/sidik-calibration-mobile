@@ -13,7 +13,9 @@ import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/dashboard_provider.dart';
 import 'package:sidik_calibration/providers/history_provider.dart';
+import 'package:sidik_calibration/models/user.dart';
 import 'package:sidik_calibration/screens/auth/login_screen.dart';
+import 'package:sidik_calibration/screens/auth/onboarding_screen.dart';
 import 'package:sidik_calibration/screens/auth/register_screen.dart';
 import 'package:sidik_calibration/screens/auth/splash_screen.dart';
 import 'package:sidik_calibration/screens/profile/profile_screen.dart';
@@ -98,12 +100,17 @@ Future<void> _pumpLayar(WidgetTester tester, Widget layar) async {
 /// digenerate ulang.
 final _tanggalGolden = DateTime(2026, 8, 9, 10, 30);
 
-Widget _bungkus(Widget layar, {required Brightness mode}) {
+Widget _bungkus(
+  Widget layar, {
+  required Brightness mode,
+  // `mock-token-1` = admin, `mock-token-2` = teknisi (lihat MockAuthService).
+  // Dua-duanya dipotret: layar teknisi dan layar admin sekarang beda isi,
+  // jadi satu golden aja nutupin separuh app yang berubah.
+  String token = 'mock-token-1',
+}) {
   return ProviderScope(
     overrides: [
-      tokenStorageProvider.overrideWithValue(
-        InMemoryTokenStorage('mock-token-1'),
-      ),
+      tokenStorageProvider.overrideWithValue(InMemoryTokenStorage(token)),
       authServiceProvider.overrideWithValue(MockAuthService()),
       dashboardServiceProvider.overrideWithValue(
         MockDashboardService(jeda: Duration.zero),
@@ -155,7 +162,10 @@ void main() {
 
   testWidgets('login — terang', (tester) async {
     pasangUkuranHp(tester);
-    await _pumpLayar(tester, _bungkus(const LoginScreen(), mode: Brightness.light));
+    await _pumpLayar(
+      tester,
+      _bungkus(const LoginScreen(), mode: Brightness.light),
+    );
 
     await expectLater(
       find.byType(LoginScreen),
@@ -165,7 +175,10 @@ void main() {
 
   testWidgets('login — gelap', (tester) async {
     pasangUkuranHp(tester);
-    await _pumpLayar(tester, _bungkus(const LoginScreen(), mode: Brightness.dark));
+    await _pumpLayar(
+      tester,
+      _bungkus(const LoginScreen(), mode: Brightness.dark),
+    );
 
     await expectLater(
       find.byType(LoginScreen),
@@ -188,11 +201,79 @@ void main() {
 
   testWidgets('dashboard', (tester) async {
     pasangUkuranHp(tester);
-    await _pumpLayar(tester, _bungkus(const MainShell(), mode: Brightness.light));
+    await _pumpLayar(
+      tester,
+      _bungkus(const MainShell(), mode: Brightness.light),
+    );
 
     await expectLater(
       find.byType(MainShell),
       matchesGoldenFile('screenshots/dashboard.png'),
+    );
+  });
+
+  /// Dashboard TEKNISI — beda isi dari dashboard admin: panel 3D di atas,
+  /// tanpa grafik tren. Golden-nya kepisah karena kalau cuma admin yang
+  /// dipotret, seluruh layar yang dilihat teknisi tiap hari nggak kejaga.
+  testWidgets('dashboard teknisi', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayar(
+      tester,
+      _bungkus(
+        const MainShell(),
+        mode: Brightness.light,
+        token: 'mock-token-2',
+      ),
+    );
+
+    await expectLater(
+      find.byType(MainShell),
+      matchesGoldenFile('screenshots/dashboard-teknisi.png'),
+    );
+  });
+
+  /// Onboarding karyawan baru — halaman pertama.
+  testWidgets('onboarding', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayar(
+      tester,
+      _bungkus(
+        OnboardingScreen(
+          user: User(
+            id: 2,
+            nama: 'Andi Pratama',
+            email: 'teknisi@pt-sidik.com',
+            employeeId: 'SDK-0002',
+            role: UserRole.teknisi,
+            status: UserStatus.aktif,
+            department: 'Kalibrasi',
+            organizationId: 1,
+          ),
+        ),
+        mode: Brightness.light,
+      ),
+    );
+
+    await expectLater(
+      find.byType(OnboardingScreen),
+      matchesGoldenFile('screenshots/onboarding.png'),
+    );
+  });
+
+  testWidgets('profil teknisi', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayar(
+      tester,
+      _bungkus(
+        const ProfileScreen(),
+        mode: Brightness.light,
+        token: 'mock-token-2',
+      ),
+    );
+
+    await expectLater(
+      find.byType(ProfileScreen),
+      matchesGoldenFile('screenshots/profil-teknisi.png'),
     );
   });
 
@@ -293,7 +374,6 @@ void main() {
       matchesGoldenFile('screenshots/lembar-kerja-spectrophotometer.png'),
     );
   });
-
 
   /// Calibration Result Details — layar yang dipakai admin sebelum nerbitin.
   ///

@@ -903,7 +903,8 @@
   "lkPindaiTerlaluMiring": "Fotonya terlalu miring. Jepret lebih tegak lurus di atas lembar.",
   "lkFotoTabel": "FOTO TABEL INI",
   "lkFotoTabelGagal": "Foto tidak bisa dibaca. Coba jepret ulang.",
-  "lkFotoTabelTanpaJangkar": "Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom nilai standar (kiri) dan kepala kolom X1, X2, … ikut kefoto — tanpa itu angkanya nggak bisa ditaruh dengan aman. Kolomnya tetap bisa diketik manual.",
+  "lkFotoTabelTanpaJangkar": "Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom nilai standar (kiri) dan kepala kolom Repeat (X1 / Repeat 1) ikut kefoto — tanpa itu angkanya nggak bisa ditaruh dengan aman. Kolomnya tetap bisa diketik manual.",
+  "lkFotoTabelTanpaJangkarKeBawah": "Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom Repeat (kiri) dan kepala kolom larutan (baris paling atas) ikut kefoto — tanpa itu angkanya nggak bisa ditaruh dengan aman. Kolomnya tetap bisa diketik manual.",
   "lkFotoTabelTerisi": "{terisi} sel keisi dari foto. Semuanya ditandai perlu dicek — cocokin sama kertasnya.",
   "lkFotoTabelSebagian": "{terisi} sel keisi, {terbuang} angka dilewat karena tempatnya nggak bisa dipastikan. Yang kosong ketik manual.",
   "lkFotoTabelError": "Foto tabel gagal: {pesan}",
@@ -1494,5 +1495,32 @@
         "type": "String"
       }
     }
-  }
+  },
+  "dashLiveWorkspace": "Ruang kerja aktif",
+  "dashGreetingName": "Halo, {name}",
+  "dashActiveTasks": "{count} tugas aktif",
+  "dashSpin3d": "Geser bendanya buat muter",
+  "onbSkip": "Lewati",
+  "onbNext": "LANJUT",
+  "onbEnter": "MASUK WORKSPACE",
+  "onbStep1Title": "Semua alat, satu tempat.",
+  "onbStep1Body": "Pilih alat, mulai kalibrasi, dan lihat statusnya tanpa nunggu laporan orang lain.",
+  "onbStep2Title": "Lembar kerja tinggal difoto.",
+  "onbStep2Body": "Angka di kertas kebaca langsung dari kamera. Nggak ada ketik ulang, dan fotonya nggak keluar dari HP kamu.",
+  "onbStep3Title": "Sertifikat terbit lebih cepat.",
+  "onbStep3Body": "Kirim ke admin begitu datanya lengkap. Approval dan penerbitan jalan di app yang sama.",
+  "profSwipeHint": "Geser buat bagian berikutnya",
+  "profSectionWorkspace": "RUANG KERJA",
+  "profSectionSystem": "SISTEM",
+  "profSectionAccount": "AKUN",
+  "profPreferensiSub": "Atur cara perangkat ini kerja buat kamu.",
+  "profAdminMenuSub": "Kelola data inti lab.",
+  "profLabSettings": "Pengaturan lab",
+  "profLabSettingsSub": "Metode, ruangan, dan rumus kerja.",
+  "profSecuritySub": "Status perangkat dan akses akun.",
+  "profSectionOf": "Bagian {current} dari {total}",
+  "profChangePhoto": "Ganti foto profil",
+  "profChangePhotoSub": "Diambil dari galeri atau kamera kamu",
+  "profTechnicianCode": "Kode teknisi",
+  "profTechnicianCodeSub": "Kecetak di sertifikat yang kamu tanda tangani"
 }

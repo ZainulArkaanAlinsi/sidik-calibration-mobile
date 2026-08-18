@@ -63,17 +63,49 @@ class GlassSurface extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [
             dasar.withValues(alpha: opacity),
-            dasar.withValues(alpha: opacity * (gelap ? 0.78 : 0.62)),
+            dasar.withValues(alpha: opacity * (gelap ? 0.76 : 0.60)),
           ],
         ),
         border: Border.all(
-          color: (gelap ? AppColors.white : AppColors.white).withValues(
-            alpha: gelap ? 0.14 : 0.65,
-          ),
+          color: AppColors.white.withValues(alpha: gelap ? 0.16 : 0.72),
           width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: (gelap ? Colors.black : AppColors.navy).withValues(
+              alpha: gelap ? 0.16 : 0.09,
+            ),
+            blurRadius: 26,
+            offset: const Offset(0, 12),
+          ),
+          BoxShadow(
+            color: (gelap ? AppColors.tealBright : AppColors.electricBlue)
+                .withValues(alpha: gelap ? 0.055 : 0.075),
+            blurRadius: 28,
+            spreadRadius: -8,
+            offset: const Offset(-10, -12),
+          ),
+        ],
       ),
-      child: Padding(padding: padding, child: child),
+      child: Stack(
+        children: [
+          // Pantulan tipis di atas: cukup untuk memberi kedalaman kaca tanpa
+          // motif dekoratif yang mengganggu teks/data di dalam kartu.
+          Positioned(
+            top: 0,
+            left: radius * 0.65,
+            right: radius * 0.65,
+            child: Container(
+              height: 1,
+              decoration: BoxDecoration(
+                color: AppColors.white.withValues(alpha: gelap ? 0.22 : 0.88),
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+          ),
+          Padding(padding: padding, child: child),
+        ],
+      ),
     );
 
     if (!_pakaiBlur) return isi;

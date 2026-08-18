@@ -83,6 +83,33 @@ void main() {
         fieldPerRepeat: const ['pembacaan'],
       );
 
+  /// Kepala kolom yang tercetak beda per formulir: lembar hasil
+  /// `ocr:cetak-lembar` nyetak `X1`, formulir lain nyetak `Repeat 1`. Bawaannya
+  /// nerima dua-duanya — kertas lama lab belum dipastikan bentuknya, dan
+  /// nerima keduanya nggak bisa bikin salah taruh karena dua tulisan itu cuma
+  /// ada di kepala kolom.
+  test('kepala kolom `Repeat n` kebaca sama kayak `Xn`', () {
+    final terbaca = [
+      for (final t in tabel())
+        if (RegExp(r'^X\d$').hasMatch(t.teks))
+          (teks: 'Repeat ${t.teks.substring(1)}', kotak: t.kotak)
+        else
+          t,
+    ];
+
+    final hasil = petakan(terbaca);
+
+    expect(hasil.sel, hasLength(30), reason: '10 titik × 3 Repeat');
+    expect(hasil.angkaTakTerpetakan, 0);
+
+    final peta = {
+      for (final s in hasil.sel) '${s.titikUkur}|${s.repeatNo}': s.teks,
+    };
+
+    expect(peta['${titik[0]}|1'], bacaan[0][0]);
+    expect(peta['${titik.last}|3'], bacaan.last[2]);
+  });
+
   test('30 sel mendarat di baris & kolom yang benar', () {
     final hasil = petakan(tabel());
 

@@ -4751,8 +4751,14 @@ abstract class AppLocalizations {
   /// No description provided for @lkFotoTabelTanpaJangkar.
   ///
   /// In en, this message translates to:
-  /// **'No reading could be placed with certainty. Make sure the standard-value column (left) and the X1, X2, … column headers are in frame — without them the numbers cannot be placed safely. You can still type the values manually.'**
+  /// **'No reading could be placed with certainty. Make sure the standard-value column (left) and the repeat headers (X1 / Repeat 1) are in frame — without them the numbers cannot be placed safely. You can still type the values manually.'**
   String get lkFotoTabelTanpaJangkar;
+
+  /// Foto tabel gagal total di lembar yang Repeat-nya turun ke bawah (Conductivity) — jangkarnya beda dari bentuk pH, jadi petunjuknya juga beda.
+  ///
+  /// In en, this message translates to:
+  /// **'No reading could be placed with certainty. Make sure the Repeat column (left) and the solution headers along the top are in frame — without them the numbers cannot be placed safely. You can still type the values manually.'**
+  String get lkFotoTabelTanpaJangkarKeBawah;
 
   /// No description provided for @lkFotoTabelTerisi.
   ///
@@ -6589,6 +6595,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{pt} has no WhatsApp number in the customer record. Add it in the admin panel → Customers so it can be picked here.'**
   String emailKontakKosongWa(String pt);
+
+  /// No description provided for @dashLiveWorkspace.
+  ///
+  /// In en, this message translates to:
+  /// **'Live workspace'**
+  String get dashLiveWorkspace;
+
+  /// No description provided for @dashGreetingName.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi, {name}'**
+  String dashGreetingName(String name);
+
+  /// No description provided for @dashActiveTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} active tasks'**
+  String dashActiveTasks(int count);
+
+  /// No description provided for @dashSpin3d.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe the object to rotate it'**
+  String get dashSpin3d;
+
+  /// No description provided for @onbSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get onbSkip;
+
+  /// No description provided for @onbNext.
+  ///
+  /// In en, this message translates to:
+  /// **'NEXT'**
+  String get onbNext;
+
+  /// No description provided for @onbEnter.
+  ///
+  /// In en, this message translates to:
+  /// **'ENTER WORKSPACE'**
+  String get onbEnter;
+
+  /// No description provided for @onbStep1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Every instrument, one place.'**
+  String get onbStep1Title;
+
+  /// No description provided for @onbStep1Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick an instrument, start the calibration, and watch its status without waiting for somebody else\'s report.'**
+  String get onbStep1Body;
+
+  /// No description provided for @onbStep2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Photograph the worksheet.'**
+  String get onbStep2Title;
+
+  /// No description provided for @onbStep2Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Readings on paper are picked up straight from your camera. No retyping — and the photo never leaves your phone.'**
+  String get onbStep2Body;
+
+  /// No description provided for @onbStep3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificates land sooner.'**
+  String get onbStep3Title;
+
+  /// No description provided for @onbStep3Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to the admin once the data is complete. Approval and issuing happen in this same app.'**
+  String get onbStep3Body;
+
+  /// No description provided for @profSwipeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe for the next section'**
+  String get profSwipeHint;
+
+  /// No description provided for @profSectionWorkspace.
+  ///
+  /// In en, this message translates to:
+  /// **'WORKSPACE'**
+  String get profSectionWorkspace;
+
+  /// No description provided for @profSectionSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'SYSTEM'**
+  String get profSectionSystem;
+
+  /// No description provided for @profSectionAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'ACCOUNT'**
+  String get profSectionAccount;
+
+  /// No description provided for @profPreferensiSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Tune how this device works for you.'**
+  String get profPreferensiSub;
+
+  /// No description provided for @profAdminMenuSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage the lab\'s core records.'**
+  String get profAdminMenuSub;
+
+  /// No description provided for @profLabSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Lab setup'**
+  String get profLabSettings;
+
+  /// No description provided for @profLabSettingsSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Methods, rooms, and working formulas.'**
+  String get profLabSettingsSub;
+
+  /// No description provided for @profSecuritySub.
+  ///
+  /// In en, this message translates to:
+  /// **'Device status and account access.'**
+  String get profSecuritySub;
+
+  /// No description provided for @profSectionOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Section {current} of {total}'**
+  String profSectionOf(int current, int total);
+
+  /// No description provided for @profChangePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Change profile photo'**
+  String get profChangePhoto;
+
+  /// No description provided for @profChangePhotoSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken from your gallery or camera'**
+  String get profChangePhotoSub;
+
+  /// No description provided for @profTechnicianCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician code'**
+  String get profTechnicianCode;
+
+  /// No description provided for @profTechnicianCodeSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Printed on the certificates you sign'**
+  String get profTechnicianCodeSub;
 }
 
 class _AppLocalizationsDelegate

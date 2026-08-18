@@ -2569,7 +2569,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lkFotoTabelTanpaJangkar =>
-      'No reading could be placed with certainty. Make sure the standard-value column (left) and the X1, X2, … column headers are in frame — without them the numbers cannot be placed safely. You can still type the values manually.';
+      'No reading could be placed with certainty. Make sure the standard-value column (left) and the repeat headers (X1 / Repeat 1) are in frame — without them the numbers cannot be placed safely. You can still type the values manually.';
+
+  @override
+  String get lkFotoTabelTanpaJangkarKeBawah =>
+      'No reading could be placed with certainty. Make sure the Repeat column (left) and the solution headers along the top are in frame — without them the numbers cannot be placed safely. You can still type the values manually.';
 
   @override
   String lkFotoTabelTerisi(int terisi) {
@@ -3649,4 +3653,94 @@ class AppLocalizationsEn extends AppLocalizations {
   String emailKontakKosongWa(String pt) {
     return '$pt has no WhatsApp number in the customer record. Add it in the admin panel → Customers so it can be picked here.';
   }
+
+  @override
+  String get dashLiveWorkspace => 'Live workspace';
+
+  @override
+  String dashGreetingName(String name) {
+    return 'Hi, $name';
+  }
+
+  @override
+  String dashActiveTasks(int count) {
+    return '$count active tasks';
+  }
+
+  @override
+  String get dashSpin3d => 'Swipe the object to rotate it';
+
+  @override
+  String get onbSkip => 'Skip';
+
+  @override
+  String get onbNext => 'NEXT';
+
+  @override
+  String get onbEnter => 'ENTER WORKSPACE';
+
+  @override
+  String get onbStep1Title => 'Every instrument, one place.';
+
+  @override
+  String get onbStep1Body =>
+      'Pick an instrument, start the calibration, and watch its status without waiting for somebody else\'s report.';
+
+  @override
+  String get onbStep2Title => 'Photograph the worksheet.';
+
+  @override
+  String get onbStep2Body =>
+      'Readings on paper are picked up straight from your camera. No retyping — and the photo never leaves your phone.';
+
+  @override
+  String get onbStep3Title => 'Certificates land sooner.';
+
+  @override
+  String get onbStep3Body =>
+      'Send to the admin once the data is complete. Approval and issuing happen in this same app.';
+
+  @override
+  String get profSwipeHint => 'Swipe for the next section';
+
+  @override
+  String get profSectionWorkspace => 'WORKSPACE';
+
+  @override
+  String get profSectionSystem => 'SYSTEM';
+
+  @override
+  String get profSectionAccount => 'ACCOUNT';
+
+  @override
+  String get profPreferensiSub => 'Tune how this device works for you.';
+
+  @override
+  String get profAdminMenuSub => 'Manage the lab\'s core records.';
+
+  @override
+  String get profLabSettings => 'Lab setup';
+
+  @override
+  String get profLabSettingsSub => 'Methods, rooms, and working formulas.';
+
+  @override
+  String get profSecuritySub => 'Device status and account access.';
+
+  @override
+  String profSectionOf(int current, int total) {
+    return 'Section $current of $total';
+  }
+
+  @override
+  String get profChangePhoto => 'Change profile photo';
+
+  @override
+  String get profChangePhotoSub => 'Taken from your gallery or camera';
+
+  @override
+  String get profTechnicianCode => 'Technician code';
+
+  @override
+  String get profTechnicianCodeSub => 'Printed on the certificates you sign';
 }

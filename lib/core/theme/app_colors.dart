@@ -17,6 +17,11 @@ class AppColors {
   static const Color navyDeep = Color(0xFF0B1C30);
   static const Color teal = Color(0xFF006B5F); // aksen fungsional, dipakai irit
   static const Color tealBright = Color(0xFF14B8A6); // aksen di tema gelap
+  // Aksen "instrument panel". Amber dipakai terbatas untuk penanda aktif,
+  // bukan sebagai warna status, supaya ada rasa retro yang hangat tanpa
+  // mengganggu arti hijau/merah pada data kalibrasi.
+  static const Color signalAmber = Color(0xFFF2B84B);
+  static const Color electricBlue = Color(0xFF5CC8FF);
 
   // Netral (light)
   static const Color white = Color(0xFFFFFFFF);
@@ -59,5 +64,28 @@ class AppColors {
           ? const [Color(0xFF102C38), Color(0xFF091A21)]
           : const [Color(0xFFDCE8F7), Color(0xFFF4F8FD)],
     );
+  }
+
+  /// Halo warna besar di belakang permukaan kaca. Bukan pola digital/matrix:
+  /// cukup dua sumber cahaya lembut agar UI terasa seperti panel instrumen
+  /// retro yang dilapis kaca.
+  static List<BoxShadow> glowLatar(BuildContext context) {
+    final gelap = Theme.of(context).brightness == Brightness.dark;
+    return [
+      BoxShadow(
+        color: (gelap ? tealBright : electricBlue).withValues(
+          alpha: gelap ? 0.11 : 0.15,
+        ),
+        blurRadius: 90,
+        spreadRadius: 18,
+        offset: const Offset(-42, -66),
+      ),
+      BoxShadow(
+        color: signalAmber.withValues(alpha: gelap ? 0.055 : 0.09),
+        blurRadius: 100,
+        spreadRadius: 12,
+        offset: const Offset(110, 180),
+      ),
+    ];
   }
 }

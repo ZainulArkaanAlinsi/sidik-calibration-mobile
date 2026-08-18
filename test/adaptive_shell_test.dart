@@ -11,10 +11,12 @@ import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/notification_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/widgets/floating_nav_bar.dart';
+import 'support/lewati_onboarding.dart';
 
 Widget _app() {
   return ProviderScope(
     overrides: [
+      lewatiOnboarding,
       tokenStorageProvider.overrideWithValue(
         InMemoryTokenStorage('mock-token-1'),
       ),
@@ -126,7 +128,9 @@ void main() {
       await _sampaiShell(tester);
 
       expect(
-        tester.widget<NavigationRail>(find.byType(NavigationRail)).selectedIndex,
+        tester
+            .widget<NavigationRail>(find.byType(NavigationRail))
+            .selectedIndex,
         0,
       );
 
@@ -135,7 +139,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        tester.widget<NavigationRail>(find.byType(NavigationRail)).selectedIndex,
+        tester
+            .widget<NavigationRail>(find.byType(NavigationRail))
+            .selectedIndex,
         2,
       );
     });

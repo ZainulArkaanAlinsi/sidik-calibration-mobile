@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
@@ -227,132 +228,175 @@ class _MenuUtama extends ConsumerWidget {
 
     void keLayar(Widget layar) {
       Navigator.of(context).pop();
-      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => layar));
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute<void>(builder: (_) => layar));
     }
 
     return Drawer(
-      child: SafeArea(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.lg,
-                AppSpacing.lg,
-                AppSpacing.md,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l10n.menuUtama, style: theme.textTheme.titleMedium),
-                  if (user != null) ...[
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      user.nama,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+      backgroundColor: Colors.transparent,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: AppColors.gradasiLatar(context),
+          border: Border(
+            right: BorderSide(color: Colors.white.withValues(alpha: 0.50)),
+          ),
+        ),
+        child: SafeArea(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.lg,
+                  AppSpacing.lg,
+                  AppSpacing.md,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        color: theme.colorScheme.primary,
+                        boxShadow: [
+                          BoxShadow(
+                            color: theme.colorScheme.primary.withValues(
+                              alpha: 0.24,
+                            ),
+                            blurRadius: 14,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.tune_rounded,
+                        color: theme.colorScheme.onPrimary,
+                        size: 21,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.menuUtama,
+                            style: theme.textTheme.titleMedium,
+                          ),
+                          if (user != null) ...[
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              user.nama,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   ],
-                ],
+                ),
               ),
-            ),
-            const Divider(height: 1),
+              const Divider(height: 1),
 
-            ListTile(
-              leading: const Icon(Icons.space_dashboard_outlined),
-              title: Text(l10n.navDashboard),
-              onTap: () => keTab(0),
-            ),
-            ListTile(
-              leading: const Icon(Icons.history_outlined),
-              title: Text(l10n.navHistory),
-              onTap: () => keTab(2),
-            ),
-            // Antrean approval = layar kerja harian admin, sejajar sama
-            // "Tugas Saya" punya teknisi — bukan pengaturan.
-            if (admin)
               ListTile(
-                leading: const Icon(Icons.inbox_outlined),
-                title: Text(l10n.antreanTitle),
-                onTap: () => keLayar(const AntreanApprovalScreen()),
+                leading: const Icon(Icons.space_dashboard_outlined),
+                title: Text(l10n.navDashboard),
+                onTap: () => keTab(0),
               ),
-            // Alur Kerja tadinya cuma ada di panel Windows, jadi admin yang
-            // pegang HP nggak bisa lihat sesi yang sedang jalan sama sekali —
-            // dia cuma lihat yang udah masuk antrean approval. Padahal yang
-            // nyangkut di tengah itu justru yang perlu ditengok.
-            if (admin)
               ListTile(
-                leading: const Icon(Icons.account_tree_outlined),
-                title: Text(l10n.alurTitle),
-                onTap: () => keLayar(const AlurKerjaScreen()),
+                leading: const Icon(Icons.history_outlined),
+                title: Text(l10n.navHistory),
+                onTap: () => keTab(2),
               ),
-            ListTile(
-              leading: const Icon(Icons.folder_outlined),
-              title: Text(l10n.navFolderManager),
-              onTap: () => keTab(3),
-            ),
-            // Notifikasi udah bukan tab: dia halaman sendiri yang dibuka dari
-            // lonceng di app bar (spesifikasi poin 4). Di menu samping tetap
-            // dikasih pintu, tapi lewat `keLayar` — `keTab(3)` sekarang
-            // ngarah ke Folder Manager.
-            ListTile(
-              leading: const Icon(Icons.notifications_none),
-              title: Text(l10n.navNotifications),
-              onTap: () => keLayar(const NotificationScreen()),
-            ),
+              // Antrean approval = layar kerja harian admin, sejajar sama
+              // "Tugas Saya" punya teknisi — bukan pengaturan.
+              if (admin)
+                ListTile(
+                  leading: const Icon(Icons.inbox_outlined),
+                  title: Text(l10n.antreanTitle),
+                  onTap: () => keLayar(const AntreanApprovalScreen()),
+                ),
+              // Alur Kerja tadinya cuma ada di panel Windows, jadi admin yang
+              // pegang HP nggak bisa lihat sesi yang sedang jalan sama sekali —
+              // dia cuma lihat yang udah masuk antrean approval. Padahal yang
+              // nyangkut di tengah itu justru yang perlu ditengok.
+              if (admin)
+                ListTile(
+                  leading: const Icon(Icons.account_tree_outlined),
+                  title: Text(l10n.alurTitle),
+                  onTap: () => keLayar(const AlurKerjaScreen()),
+                ),
+              ListTile(
+                leading: const Icon(Icons.folder_outlined),
+                title: Text(l10n.navFolderManager),
+                onTap: () => keTab(3),
+              ),
+              // Notifikasi udah bukan tab: dia halaman sendiri yang dibuka dari
+              // lonceng di app bar (spesifikasi poin 4). Di menu samping tetap
+              // dikasih pintu, tapi lewat `keLayar` — `keTab(3)` sekarang
+              // ngarah ke Folder Manager.
+              ListTile(
+                leading: const Icon(Icons.notifications_none),
+                title: Text(l10n.navNotifications),
+                onTap: () => keLayar(const NotificationScreen()),
+              ),
 
-            const Divider(),
-            _LabelSeksi(l10n.menuMasterData),
-            ListTile(
-              leading: const Icon(Icons.straighten_outlined),
-              title: Text(l10n.navEquipment),
-              onTap: () => keTab(1),
-            ),
-            // Pelanggan, standar, dan akun cuma bisa diubah admin — backend
-            // nolak dengan 403 kalau role lain nembak, jadi nggak usah
-            // ditampilin buat teknisi/viewer.
-            if (admin) ...[
+              const Divider(),
+              _LabelSeksi(l10n.menuMasterData),
               ListTile(
-                leading: const Icon(Icons.people_outline),
-                title: Text(l10n.profCustomers),
-                onTap: () => keLayar(const CustomerListScreen()),
+                leading: const Icon(Icons.straighten_outlined),
+                title: Text(l10n.navEquipment),
+                onTap: () => keTab(1),
               ),
+              // Pelanggan, standar, dan akun cuma bisa diubah admin — backend
+              // nolak dengan 403 kalau role lain nembak, jadi nggak usah
+              // ditampilin buat teknisi/viewer.
+              if (admin) ...[
+                ListTile(
+                  leading: const Icon(Icons.people_outline),
+                  title: Text(l10n.profCustomers),
+                  onTap: () => keLayar(const CustomerListScreen()),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.science_outlined),
+                  title: Text(l10n.standarTitle),
+                  onTap: () => keLayar(const StandardListScreen()),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.badge_outlined),
+                  title: Text(l10n.teknisiTitle),
+                  onTap: () => keLayar(const TechnicianListScreen()),
+                ),
+              ],
+
+              const Divider(),
+              _LabelSeksi(l10n.menuPengaturan),
+              if (admin) ...[
+                ListTile(
+                  leading: const Icon(Icons.apartment_outlined),
+                  title: Text(l10n.orgTitle),
+                  onTap: () => keLayar(const OrganizationScreen()),
+                ),
+                // Import Excel = alat masa transisi, bukan kerja harian —
+                // makanya ditaruh di Pengaturan, bukan di navbar.
+                ListTile(
+                  leading: const Icon(Icons.upload_file_outlined),
+                  title: Text(l10n.importTitle),
+                  onTap: () => keLayar(const ImportExcelScreen()),
+                ),
+              ],
               ListTile(
-                leading: const Icon(Icons.science_outlined),
-                title: Text(l10n.standarTitle),
-                onTap: () => keLayar(const StandardListScreen()),
-              ),
-              ListTile(
-                leading: const Icon(Icons.badge_outlined),
-                title: Text(l10n.teknisiTitle),
-                onTap: () => keLayar(const TechnicianListScreen()),
+                leading: const Icon(Icons.person_outline),
+                title: Text(l10n.navProfile),
+                onTap: () => keTab(4),
               ),
             ],
-
-            const Divider(),
-            _LabelSeksi(l10n.menuPengaturan),
-            if (admin) ...[
-              ListTile(
-                leading: const Icon(Icons.apartment_outlined),
-                title: Text(l10n.orgTitle),
-                onTap: () => keLayar(const OrganizationScreen()),
-              ),
-              // Import Excel = alat masa transisi, bukan kerja harian —
-              // makanya ditaruh di Pengaturan, bukan di navbar.
-              ListTile(
-                leading: const Icon(Icons.upload_file_outlined),
-                title: Text(l10n.importTitle),
-                onTap: () => keLayar(const ImportExcelScreen()),
-              ),
-            ],
-            ListTile(
-              leading: const Icon(Icons.person_outline),
-              title: Text(l10n.navProfile),
-              onTap: () => keTab(4),
-            ),
-          ],
+          ),
         ),
       ),
     );

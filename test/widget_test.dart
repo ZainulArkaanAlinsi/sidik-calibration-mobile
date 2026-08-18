@@ -12,12 +12,14 @@ import 'package:sidik_calibration/providers/dashboard_provider.dart';
 import 'package:sidik_calibration/services/dashboard_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
+import 'support/lewati_onboarding.dart';
 
 /// App dalam kondisi udah login (token admin) — soalnya sekarang app mendarat
 /// di layar Login dulu kalau nggak ada token tersimpan. Alur login-nya sendiri
 /// diuji terpisah di `auth_test.dart`.
 Widget _appLoggedIn({String? apiBaseUrl}) => ProviderScope(
   overrides: [
+    lewatiOnboarding,
     tokenStorageProvider.overrideWithValue(
       InMemoryTokenStorage('mock-token-1'),
     ),

@@ -12,10 +12,16 @@ import 'package:sidik_calibration/services/notification_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/widgets/notification_bell.dart';
 import 'package:sidik_calibration/widgets/skeleton.dart';
+import 'support/lewati_onboarding.dart';
 
-Widget _app({bool kosong = false, bool gagal = false, Duration jeda = Duration.zero}) {
+Widget _app({
+  bool kosong = false,
+  bool gagal = false,
+  Duration jeda = Duration.zero,
+}) {
   return ProviderScope(
     overrides: [
+      lewatiOnboarding,
       tokenStorageProvider.overrideWithValue(
         InMemoryTokenStorage('mock-token-1'),
       ),
@@ -44,9 +50,7 @@ void main() {
       // Jeda ambil datanya dibikin jauh lebih lama dari animasi buka halaman
       // (300 ms) — kalau nggak, datanya keburu nyampe sebelum halamannya
       // selesai mount dan skeleton-nya nggak pernah kelihatan.
-      await tester.pumpWidget(
-        _app(jeda: const Duration(milliseconds: 2000)),
-      );
+      await tester.pumpWidget(_app(jeda: const Duration(milliseconds: 2000)));
       // Lewatin splash/auth dulu — MainShell baru mount di titik ini.
       await tester.pump(const Duration(milliseconds: 700));
 
@@ -82,9 +86,7 @@ void main() {
       expect(find.text('Belum ada notifikasi'), findsOneWidget);
     });
 
-    testWidgets('ERROR: gagal muat → pesan + tombol coba lagi', (
-      tester,
-    ) async {
+    testWidgets('ERROR: gagal muat → pesan + tombol coba lagi', (tester) async {
       await tester.pumpWidget(_app(gagal: true));
       await tester.pumpAndSettle();
       await _bukaHalamanNotifikasi(tester);

@@ -46,6 +46,8 @@ sengaja tidak disentuh — keputusan mematikannya ada di lab.
 | layar review: vonis warna, crop sel, koreksi dikirim semua | `test/pindai_review_test.dart` |
 | **sambungan penuh**: tombol → server → review → angka masuk formulir → `input_method: ocr` + verifikasi pembacaan | `test/pindai_alur_layar_test.dart` |
 | **ML Kit sungguhan** (QR & label Repeat) | `integration_test/pindai_hp_test.dart` — butuh HP: `flutter test integration_test/pindai_hp_test.dart -d <id>` |
+| foto SATU tabel bentuk pH/spektro (Repeat berjajar ke kanan) | `test/peta_tabel_foto_test.dart` |
+| foto SATU tabel bentuk Conductivity (Repeat turun ke bawah, slot larutan ke kanan) | `test/peta_tabel_foto_kebawah_test.dart` |
 
 Ambang mutu di `AmbangMutu` menyalin `config/ocr.php` persis. Kalau salah
 satunya digeser, yang lain wajib ikut — gerbang yang lebih longgar cuma
@@ -61,6 +63,17 @@ memindahkan penolakan ke belakang, yang lebih ketat menolak foto yang sah.
   di HP cuma yang TERCETAK (QR & label Repeat). Angka tulisan tangan bukan
   soal lulus/gagal tapi akurasi per kolom — `php artisan ocr:akurasi` di sisi
   server, dan datanya baru ada sesudah teknisi memakainya.
+- **Tulisan kepala Repeat di formulir LAMA lab belum dipastikan.** Ini
+  menyangkut jalur kedua — "Foto tabel ini" (`PetaTabelFoto`), yang justru
+  diarahkan ke formulir tak bermarker, jadi lembar hasil `ocr:cetak-lembar`
+  bukan acuannya. Jangkar kolomnya dicocokkan ke tulisan yang tercetak, dan
+  yang dikirim layar sekarang ikut `prefiks_pengulangan` dari backend (`X`
+  membuat `X1`); alat yang backend-nya diam jatuh ke bawaan `X1`..`Xn`. Kalau
+  kertas lab ternyata mencetak `Repeat 1` atau nomor polos, satu-satunya yang
+  perlu diubah `_TombolFotoTabelState._kepalaPengulangan` di
+  `lembar_kerja_tabel.dart` — mesinnya sendiri sudah menerima daftar tulisan
+  apa pun. Sampai itu dipastikan, foto per tabel hanya terbukti jalan pada
+  lembar yang mencetak `Xn`.
 - **Blok non-tabel tidak lagi terisi otomatis.** Jalur AI dulu ikut mengisi
   kondisi lingkungan, catatan, dan tanggal terima dari foto yang sama.
   Template OCR cuma memetakan sel tabel, jadi kolom itu kembali diketik manual.
