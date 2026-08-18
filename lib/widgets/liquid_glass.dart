@@ -61,37 +61,52 @@ class LiquidGlass extends StatelessWidget {
     final s = sorot.clamp(0.0, 1.0);
 
     final List<Color> dasar;
-    final Color garisTepi;
-    final Color kilauAtas;
+    final Color tepiTerang;
+    final Color tepiRedup;
+    final double alphaKilauAtas;
     if (panelGelap) {
       dasar = const [Color(0xFF16304C), Color(0xFF0D3B4A), Color(0xFF0B2036)];
-      garisTepi = Colors.white.withValues(alpha: 0.20);
-      kilauAtas = Colors.white.withValues(alpha: 0.30);
+      tepiTerang = Colors.white.withValues(alpha: 0.34);
+      tepiRedup = aksenWarna.withValues(alpha: 0.22);
+      alphaKilauAtas = 0.30;
     } else if (gelapTema) {
       dasar = [
-        AppColors.darkElevated.withValues(alpha: 0.92),
+        Color.lerp(
+          AppColors.darkElevated,
+          aksenWarna,
+          0.10,
+        )!.withValues(alpha: 0.92),
         AppColors.darkSurface.withValues(alpha: 0.80),
       ];
-      garisTepi = Colors.white.withValues(alpha: 0.14);
-      kilauAtas = Colors.white.withValues(alpha: 0.20);
+      tepiTerang = Colors.white.withValues(alpha: 0.26);
+      tepiRedup = aksenWarna.withValues(alpha: 0.20);
+      alphaKilauAtas = 0.20;
     } else {
+      // Putih polos di sini dulu kebaca nyaris nggak ada bedanya sama kartu
+      // Material biasa — kaca beneran selalu mantulin sedikit warna
+      // sekitarnya, bukan bening total. Semburat `aksenWarna` tipis + tepi
+      // gradasi (bukan `Border.all` satu warna, yang ilang total pas putih
+      // ketemu latar putih) yang bikin dia akhirnya kebaca sebagai kaca.
       dasar = [
-        Colors.white.withValues(alpha: 0.94),
+        Color.lerp(Colors.white, aksenWarna, 0.07)!.withValues(alpha: 0.94),
         Colors.white.withValues(alpha: 0.70),
       ];
-      garisTepi = Colors.white.withValues(alpha: 0.86);
-      kilauAtas = Colors.white;
+      tepiTerang = Colors.white.withValues(alpha: 0.95);
+      tepiRedup = aksenWarna.withValues(alpha: 0.32);
+      alphaKilauAtas = 0.60;
     }
 
-    final kotak = DecoratedBox(
+    // Tepi kaca digambar sebagai gradasi lewat Container 1,2px yang latarnya
+    // gradient, isinya ditempel di dalam — trik gradient border tanpa nambah
+    // dependency baru.
+    final kotak = Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(radius),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: dasar,
+          colors: [tepiTerang, tepiRedup],
         ),
-        border: Border.all(color: garisTepi),
         boxShadow: tinggiBayangan <= 0
             ? null
             : [
@@ -105,67 +120,117 @@ class LiquidGlass extends StatelessWidget {
                   offset: Offset(0, 14 * tinggiBayangan),
                 ),
                 BoxShadow(
-                  color: aksenWarna.withValues(alpha: 0.10 * tinggiBayangan),
+                  color: aksenWarna.withValues(alpha: 0.14 * tinggiBayangan),
                   blurRadius: 26 * tinggiBayangan,
                   spreadRadius: -8,
                   offset: const Offset(-12, -10),
                 ),
               ],
       ),
+      padding: const EdgeInsets.all(1.2),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(radius),
-        child: Stack(
-          children: [
-            if (gurat)
+        borderRadius: BorderRadius.circular(radius - 1.2),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: dasar,
+            ),
+          ),
+          child: Stack(
+            children: [
+              if (gurat)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: CustomPaint(
+                      painter: _GuratInstrumen(
+                        warna:
+                            (panelGelap || gelapTema
+                                    ? Colors.white
+                                    : AppColors.navy)
+                                .withValues(alpha: panelGelap ? 0.045 : 0.030),
+                      ),
+                    ),
+                  ),
+                ),
+              // Halo warna lembut di pojok kanan-atas — dipotong `ClipRRect`
+              // di luar, jadi cuma nongol separuh, kesannya nempel di kaca.
+              Positioned(
+                right: -radius * 0.7,
+                top: -radius * 0.7,
+                width: radius * 2.6,
+                height: radius * 2.6,
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          aksenWarna.withValues(
+                            alpha: panelGelap ? 0.20 : 0.14,
+                          ),
+                          aksenWarna.withValues(alpha: 0),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // Sapuan cahaya. Lebarnya sepertiga panel dan tepinya lembut, jadi
+              // dia kebaca kayak pantulan yang lewat, bukan garis putih.
               Positioned.fill(
                 child: IgnorePointer(
-                  child: CustomPaint(
-                    painter: _GuratInstrumen(
-                      warna:
-                          (panelGelap || gelapTema
-                                  ? Colors.white
-                                  : AppColors.navy)
-                              .withValues(alpha: panelGelap ? 0.045 : 0.030),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        stops: [
+                          (s - 0.26).clamp(0.0, 1.0),
+                          s.clamp(0.0, 1.0),
+                          (s + 0.26).clamp(0.0, 1.0),
+                        ],
+                        colors: [
+                          Colors.white.withValues(alpha: 0),
+                          Colors.white.withValues(
+                            alpha: panelGelap ? 0.085 : 0.55,
+                          ),
+                          Colors.white.withValues(alpha: 0),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            // Sapuan cahaya. Lebarnya sepertiga panel dan tepinya lembut, jadi
-            // dia kebaca kayak pantulan yang lewat, bukan garis putih.
-            Positioned.fill(
-              child: IgnorePointer(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      stops: [
-                        (s - 0.26).clamp(0.0, 1.0),
-                        s.clamp(0.0, 1.0),
-                        (s + 0.26).clamp(0.0, 1.0),
-                      ],
-                      colors: [
-                        Colors.white.withValues(alpha: 0),
-                        Colors.white.withValues(
-                          alpha: panelGelap ? 0.085 : 0.55,
-                        ),
-                        Colors.white.withValues(alpha: 0),
-                      ],
+              // Pantulan di bibir atas — pita gradasi, bukan garis rambut 1px
+              // (itu yang dulu ilang total pas putih ketemu latar putih).
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: radius * 1.6,
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(radius),
+                      ),
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.white.withValues(alpha: alphaKilauAtas),
+                          Colors.white.withValues(alpha: 0),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            // Kilau tipis di bibir atas — satu-satunya garis yang bikin tepi
-            // kaca kebaca tebal.
-            Positioned(
-              top: 0,
-              left: radius * 0.6,
-              right: radius * 0.6,
-              child: Container(height: 1, color: kilauAtas),
-            ),
-            Padding(padding: padding, child: child),
-          ],
+              Padding(padding: padding, child: child),
+            ],
+          ),
         ),
       ),
     );

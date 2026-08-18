@@ -99,7 +99,7 @@ class TechnicianPulsePanel extends StatelessWidget {
                 ),
               ),
               Positioned(
-                right: -6,
+                right: 6,
                 top: 2,
                 bottom: 72,
                 width: 190,
@@ -117,6 +117,11 @@ class TechnicianPulsePanel extends StatelessWidget {
                   yawAwal: -1.25,
                   yawAkhir: 0.48,
                   bayangan: 1.9,
+                  // Gurat tepi tipis — fitur mesin gambarnya udah ada
+                  // (`renderer3d.dart`) tapi belum dipasang di mana pun.
+                  // Ini yang bikin bidang datarnya kebaca gambar teknik/panel
+                  // instrumen, bukan cuma blok abu-abu polos.
+                  garisTepi: 1.1,
                   semantics: null,
                 ),
               ),
@@ -175,6 +180,7 @@ class TechnicianPulsePanel extends StatelessWidget {
                           nilai: draft,
                           label: draftLabel,
                           warna: Colors.white,
+                          icon: Icons.edit_note_rounded,
                         ),
                         const SizedBox(width: AppSpacing.sm),
                         _Metrik(
@@ -183,12 +189,14 @@ class TechnicianPulsePanel extends StatelessWidget {
                           warna: pending > 0
                               ? AppColors.signalAmber
                               : Colors.white,
+                          icon: Icons.hourglass_top_rounded,
                         ),
                         const SizedBox(width: AppSpacing.sm),
                         _Metrik(
                           nilai: done,
                           label: doneLabel,
                           warna: AppColors.tealBright,
+                          icon: Icons.task_alt_rounded,
                         ),
                       ],
                     ),
@@ -240,9 +248,11 @@ class _Live extends StatelessWidget {
   }
 }
 
-/// Tombol utama panel. Bukan tombol pejal: kacanya dilanjutin ke tombol biar
-/// panelnya kebaca satu bidang, tapi tepinya lebih terang dari sekitarnya
-/// supaya tetap kelihatan bisa ditekan.
+/// Tombol utama panel. Diisi solid amber, bukan kaca tipis lagi — di antara
+/// banyak permukaan kaca/gelap di panel ini, tombol yang ikut kaca gampang
+/// kebaca sebagai dekorasi, bukan sebagai satu-satunya aksi yang harus
+/// dipencet. Amber = warna sinyal aktif di seluruh app (`AppColors`); di sini
+/// dipakai penuh, bukan cuma aksen, karena ini SATU-SATUNYA tombol di panel.
 class _TombolMulai extends StatelessWidget {
   const _TombolMulai({required this.label, required this.onTap});
 
@@ -252,31 +262,36 @@ class _TombolMulai extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white.withValues(alpha: 0.16),
+      color: Colors.transparent,
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(18),
         child: Container(
-          height: 48,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          height: 50,
+          padding: const EdgeInsets.symmetric(horizontal: 18),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.38)),
-            gradient: LinearGradient(
-              colors: [
-                Colors.white.withValues(alpha: 0.12),
-                Colors.white.withValues(alpha: 0.02),
-              ],
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [AppColors.signalAmber, Color(0xFFE0952E)],
             ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.signalAmber.withValues(alpha: 0.38),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(
                 Icons.play_arrow_rounded,
-                color: Colors.white,
-                size: 21,
+                color: AppColors.navyDeep,
+                size: 22,
               ),
               const SizedBox(width: 7),
               ConstrainedBox(
@@ -286,8 +301,9 @@ class _TombolMulai extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Colors.white,
-                    letterSpacing: 0.5,
+                    color: AppColors.navyDeep,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.3,
                   ),
                 ),
               ),
@@ -304,11 +320,13 @@ class _Metrik extends StatelessWidget {
     required this.nilai,
     required this.label,
     required this.warna,
+    required this.icon,
   });
 
   final int nilai;
   final String label;
   final Color warna;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -325,6 +343,8 @@ class _Metrik extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
+            Icon(icon, size: 14, color: warna.withValues(alpha: 0.85)),
+            const SizedBox(height: 6),
             Text(
               '$nilai',
               style: theme.textTheme.headlineSmall?.copyWith(

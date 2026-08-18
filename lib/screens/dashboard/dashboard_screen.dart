@@ -617,6 +617,12 @@ class _PeringatanOverdue extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 
+    // Sengaja BUKAN `GlassSurface.rata` (itu netral, aksennya `electricBlue`
+    // tetap) — bidang ini satu-satunya yang boleh kebaca "hati-hati", jadi
+    // kaca & halonya sendiri diwarnain amber, bukan cuma ikon doang. Tetap
+    // satu keluarga (tepi gradasi, pantulan atas, halo pojok) sama kartu kaca
+    // lain di layar ini — dulu kartu ini kotak beige polos yang kebaca kayak
+    // alert bootstrap nyasar, beda bahasa visual sama sekitarnya.
     return InkWell(
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute<void>(
@@ -628,28 +634,89 @@ class _PeringatanOverdue extends StatelessWidget {
       ),
       borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
       child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: AppColors.warning.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.warning_amber_outlined, color: AppColors.warning),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Text(
-                l10n.dashOverdueWarning(jumlah),
-                style: theme.textTheme.bodySmall,
-              ),
-            ),
-            Icon(
-              Icons.chevron_right,
-              size: 20,
-              color: theme.colorScheme.onSurfaceVariant,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.warning.withValues(alpha: 0.55),
+              AppColors.signalAmber.withValues(alpha: 0.30),
+            ],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.warning.withValues(alpha: 0.16),
+              blurRadius: 22,
+              offset: const Offset(0, 10),
             ),
           ],
+        ),
+        padding: const EdgeInsets.all(1.2),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd - 1.2),
+          child: Stack(
+            children: [
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withValues(alpha: 0.11),
+                ),
+              ),
+              Positioned(
+                right: -18,
+                top: -18,
+                width: 90,
+                height: 90,
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          AppColors.signalAmber.withValues(alpha: 0.30),
+                          AppColors.signalAmber.withValues(alpha: 0),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: AppColors.warning.withValues(alpha: 0.18),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.warning_amber_rounded,
+                        color: AppColors.warning,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        l10n.dashOverdueWarning(jumlah),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      size: 20,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
