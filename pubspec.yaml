@@ -98,6 +98,7 @@ dependencies:
   # daripada share_plus: yang dibutuhin nembak SATU aplikasi tertentu dengan
   # pesan yang udah disiapin, bukan buka lembar "bagikan ke..." bawaan OS.
   url_launcher: ^6.3.1
+  flutter_local_notifications: ^22.3.0
 
 dev_dependencies:
   flutter_test:
