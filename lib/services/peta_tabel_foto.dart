@@ -1,3 +1,5 @@
+import 'dart:ui' show Rect;
+
 import 'pembaca_halaman.dart';
 
 /// Satu angka hasil foto tabel, sudah ketahuan tempatnya.
@@ -190,6 +192,29 @@ class PetaTabelFoto {
       if (deret != null) jangkarKolom = deret;
     }
 
+    // Cadangan terakhir: LABEL SUB-KOLOM yang terulang sekali per Repeat.
+    //
+    // Diuji di emulator dengan ML Kit asli (`integration_test/
+    // foto_tabel_viscometer_hp_test.dart`): di lembar Viscometer, digit `3`
+    // di kepala kolom **nggak kebaca sama sekali** — digit tunggal berdiri
+    // sendiri itu bentuk tersulit buat ML Kit — sementara `cP` kebaca kelima-
+    // limanya. Deret nomor yang bolong satu membatalkan seluruh tabel, jadi
+    // tanpa jalur ini jepretan yang sehat tetap ditolak.
+    //
+    // Aman karena syaratnya ketat: labelnya harus muncul **persis** sebanyak
+    // Repeat, semuanya sebaris mendatar, dan semuanya di atas baris isi.
+    if (jangkarKolom.length < pengulangan.length) {
+      final dariLabel = _jangkarDariLabelSubKolom(
+        terbaca,
+        pengulangan,
+        fieldPerRepeat,
+        labelField,
+        jangkarBaris,
+      );
+
+      if (dariLabel != null) jangkarKolom = dariLabel;
+    }
+
     if (jangkarBaris.isEmpty || jangkarKolom.isEmpty) {
       // Nggak ada satu pun jangkar = nggak ada dasar buat naruh angka mana pun.
       // Dikembalikan KOSONG, bukan dipetakan pakai urutan.
@@ -237,6 +262,19 @@ class PetaTabelFoto {
       //
       // Yang hilang dicatat, bukan cuma dibuang, supaya teknisi dikasih tau
       // kolom mana yang harus ikut kefoto.
+      // Label yang hilang di SEBAGIAN Repeat dilengkapi dari jaraknya sendiri.
+      //
+      // Diuji di emulator: `°C` kebaca di empat Repeat dan lewat di satu.
+      // Akibatnya suhu Repeat itu jatuh lebih dekat ke `cP`-nya sendiri,
+      // bentrok dengan pembacaan di sel yang sama, dan `_buangSelKembar`
+      // membuang KEDUANYA — satu label yang lewat menghapus enam sel.
+      //
+      // Jarak antar label sub-kolom di dalam satu Repeat itu tetap (di lembar
+      // uji: 151/152/151/151 px), jadi yang hilang bisa ditempatkan dari jarak
+      // yang sudah terbaca. Ini deduksi dari tata letak yang terukur, bukan
+      // tebakan urutan — dan tetap ditolak kalau jaraknya nggak konsisten.
+      _lengkapiJangkarField(jangkarField, fieldPerRepeat, jangkarKolom);
+
       final ketemu = {for (final j in jangkarField) j.field};
 
       if (ketemu.length < fieldPerRepeat.length) {
@@ -263,10 +301,24 @@ class PetaTabelFoto {
     // pembacaan. Dibedakan supaya laporan "ada yang nggak keangkut" tetap
     // berarti apa yang dia katakan; kalau nomor urut ikut kehitung, tiap foto
     // yang sempurna pun kelihatan seperti kehilangan sepuluh angka.
+    // Diukur dari PUSAT jangkar paling kiri, mundur setengah lebar kolom —
+    // bukan dari tepi kirinya mundur setinggi baris.
+    //
+    // Bedanya menentukan sejak jangkar kolom bisa datang dari label sub-kolom
+    // (`_jangkarDariLabelSubKolom`), yang posisinya sengaja digeser ke tengah
+    // span kolomnya. Diukur dari tepi kiri jangkar yang sudah tergeser itu,
+    // batasnya masuk terlalu ke kanan dan MEMAKAN kolom pembacaan Repeat 1 —
+    // lima belas sel hilang tanpa satu pun dilaporkan nyasar.
+    //
+    // Setengah lebar kolom itu batas alaminya: di kirinya sudah wilayah kolom
+    // label tabel, bukan kolom Repeat pertama.
+    final jarakKolom = _jarakAntarKolom(jangkarKolom.values);
+    final mundur = jarakKolom.isFinite ? jarakKolom / 2 : tinggiBaris;
+
     final batasKiri = jangkarKolom.values
-            .map((j) => j.kotak.left)
+            .map((j) => j.kotak.center.dx)
             .reduce((a, b) => a < b ? a : b) -
-        tinggiBaris;
+        mundur;
 
     // Batas ATAS area pembacaan — kembarannya [batasKiri], buat sumbu tegak.
     //
@@ -750,6 +802,193 @@ class PetaTabelFoto {
       }
 
       if (menaik) return perNomor;
+    }
+
+    return null;
+  }
+
+  /// Seberapa jauh jarak antar label sub-kolom boleh menyimpang sebelum
+  /// dianggap bukan tata letak yang seragam, relatif terhadap jaraknya sendiri.
+  ///
+  /// Tabel cetak kolomnya seragam; 15 % sudah jauh lebih longgar dari
+  /// penyimpangan yang wajar (di lembar uji: 151/152/151/151 px, 0,7 %) dan
+  /// masih jauh lebih ketat dari jarak antar Repeat, yang dua kali lipatnya.
+  static const _toleransiJarakLabel = 0.15;
+
+  /// Tempatkan label sub-kolom yang lewat di sebagian Repeat.
+  ///
+  /// Dipanggil sesudah [jangkarField] terkumpul, dan cuma bekerja kalau ada
+  /// field yang jangkarnya LEBIH lengkap dari yang lain — jaraknya diambil
+  /// dari Repeat yang punya dua-duanya, lalu dipakai menempatkan yang hilang.
+  ///
+  /// Nggak melakukan apa-apa kalau: cuma satu Repeat yang punya pasangan
+  /// lengkap (nggak ada yang bisa dirata-rata), atau jaraknya nggak konsisten
+  /// antar Repeat ([_toleransiJarakLabel]). Dua-duanya berarti tata letaknya
+  /// nggak sesuai dugaan, dan menempatkan jangkar di situ sama saja mengarang
+  /// posisi kolom.
+  void _lengkapiJangkarField(
+    List<({String field, TeksTerbaca t})> jangkarField,
+    List<String> fieldPerRepeat,
+    Map<int, TeksTerbaca> jangkarKolom,
+  ) {
+    if (jangkarField.isEmpty || jangkarKolom.isEmpty) return;
+
+    // Tiap jangkar dikelompokkan ke Repeat-nya.
+    final perField = <String, Map<int, TeksTerbaca>>{};
+
+    for (final j in jangkarField) {
+      final repeat = _kolomTerdekat(j.t, jangkarKolom);
+      if (repeat == null) continue;
+
+      // Satu Repeat cuma boleh punya satu label per field; yang paling kiri
+      // menang supaya hasilnya nggak bergantung urutan OCR.
+      final ada = perField[j.field]?[repeat];
+      if (ada == null || j.t.kotak.left < ada.kotak.left) {
+        (perField[j.field] ??= {})[repeat] = j.t;
+      }
+    }
+
+    if (perField.length < 2) return;
+
+    // Field paling lengkap jadi acuan penempatan.
+    final acuan = perField.entries.reduce(
+      (a, b) => a.value.length >= b.value.length ? a : b,
+    );
+
+    for (final f in fieldPerRepeat) {
+      if (f == acuan.key) continue;
+
+      final punya = perField[f];
+      if (punya == null || punya.isEmpty) continue;
+
+      // Jarak field ini dari acuan, diukur di Repeat yang punya dua-duanya.
+      final jarak = <double>[];
+
+      for (final e in punya.entries) {
+        final pasangan = acuan.value[e.key];
+        if (pasangan == null) continue;
+
+        jarak.add(e.value.kotak.left - pasangan.kotak.left);
+      }
+
+      if (jarak.length < 2) continue;
+
+      final rata = jarak.reduce((a, b) => a + b) / jarak.length;
+
+      if (rata == 0) continue;
+
+      final menyimpang = jarak.any(
+        (j) => (j - rata).abs() > rata.abs() * _toleransiJarakLabel,
+      );
+
+      if (menyimpang) continue;
+
+      // Repeat yang labelnya lewat: ditempatkan dari acuan + jarak itu.
+      for (final e in acuan.value.entries) {
+        if (punya.containsKey(e.key)) continue;
+
+        final kotak = e.value.kotak;
+
+        jangkarField.add((
+          field: f,
+          t: (
+            teks: '',
+            kotak: Rect.fromLTWH(
+              kotak.left + rata,
+              kotak.top,
+              kotak.width,
+              kotak.height,
+            ),
+          ),
+        ));
+      }
+    }
+  }
+
+  /// Kepala kolom yang disimpulkan dari LABEL SUB-KOLOM (`cP`, `°C`).
+  ///
+  /// Dipakai kalau kepala tekstual maupun deret nomor polos gagal — dan itu
+  /// kejadian nyata, bukan pengaman teoretis: di lembar Viscometer ML Kit
+  /// melewatkan digit `3` di kepala kolom sementara `cP` kebaca kelimanya.
+  ///
+  /// Label sub-kolom tercetak **sekali per Repeat**, jadi kalau salah satunya
+  /// muncul persis sebanyak Repeat dan semuanya sebaris mendatar di atas isi
+  /// tabel, urutan kirinya adalah urutan Repeat-nya. Yang dipakai di sini
+  /// urutan **spasial** (kiri ke kanan di kertas), bukan urutan hasil OCR —
+  /// urutan OCR memang nggak boleh dipercaya, tapi tata letak kolom di kertas
+  /// boleh.
+  ///
+  /// Jangkarnya nggak ditaruh di label itu sendiri, tapi di **tengah span
+  /// kolomnya**. Label `cP` berdiri di tepi kiri Repeat-nya, jadi memakainya
+  /// apa adanya bikin kolom suhu Repeat 1 nyaris sama jauh dari `cP` Repeat 1
+  /// dan `cP` Repeat 2 (155 px vs 165 px di jepretan uji) — selisih setipis
+  /// itu bisa berbalik cuma karena fotonya agak miring. Digeser ke tengah
+  /// span, jaraknya jadi 12 px vs 308 px.
+  ///
+  /// Balik `null` kalau nggak ada label yang memenuhi syarat.
+  Map<int, TeksTerbaca>? _jangkarDariLabelSubKolom(
+    List<TeksTerbaca> terbaca,
+    List<int> pengulangan,
+    List<String> fieldPerRepeat,
+    Map<String, String> labelField,
+    Map<double, TeksTerbaca> jangkarBaris,
+  ) {
+    if (jangkarBaris.isEmpty || pengulangan.length < 2) return null;
+
+    final atasIsi = jangkarBaris.values
+        .map((j) => j.kotak.top)
+        .reduce((a, b) => a < b ? a : b);
+
+    for (final f in fieldPerRepeat) {
+      final label = labelField[f] ?? f;
+
+      final cocok = [
+        for (final t in terbaca)
+          if (_samaLabel(t.teks, label) && t.kotak.bottom <= atasIsi) t,
+      ]..sort((a, b) => a.kotak.left.compareTo(b.kotak.left));
+
+      // Harus PERSIS sebanyak Repeat. Kurang berarti ada yang nggak kebaca
+      // dan kita nggak tau yang mana; lebih berarti labelnya muncul di tempat
+      // lain juga, jadi urutan kirinya nggak lagi berarti nomor Repeat.
+      if (cocok.length != pengulangan.length) continue;
+
+      // Semuanya harus sebaris mendatar — baris satuan di kepala tabel.
+      final tinggi = cocok
+          .map((t) => t.kotak.height)
+          .reduce((a, b) => a > b ? a : b);
+      final yPertama = cocok.first.kotak.center.dy;
+
+      if (cocok.any((t) => (t.kotak.center.dy - yPertama).abs() > tinggi)) {
+        continue;
+      }
+
+      // Lebar satu kolom Repeat, dari jarak antar label.
+      final jarak =
+          (cocok.last.kotak.left - cocok.first.kotak.left) /
+          (cocok.length - 1);
+
+      if (jarak <= 0) continue;
+
+      final urut = [...pengulangan]..sort();
+      final hasil = <int, TeksTerbaca>{};
+
+      for (var i = 0; i < urut.length; i++) {
+        final kotak = cocok[i].kotak;
+
+        hasil[urut[i]] = (
+          teks: cocok[i].teks,
+          // Digeser ke tengah span kolomnya — lihat alasannya di dokumentasi
+          // method ini.
+          kotak: Rect.fromLTWH(
+            kotak.left + jarak / 2 - kotak.width / 2,
+            kotak.top,
+            kotak.width,
+            kotak.height,
+          ),
+        );
+      }
+
+      return hasil;
     }
 
     return null;

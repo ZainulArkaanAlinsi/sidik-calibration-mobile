@@ -1,0 +1,304 @@
+{
+  "kode_dokumen": "SIDIK-FM-CAL-0524_Rev.3",
+  "kode_metode": "SIDIK-IK-CAL-0517_Rev.3",
+  "judul": "Calibration Worksheet - Viscometer",
+  "jumlah_pengulangan": 5,
+  "larutan_standar": [
+    99.65,
+    1018,
+    59003
+  ],
+  "satuan": "cP",
+  "satuan_suhu": "°C",
+  "semua_kolom_opsional": true,
+  "catatan_pengisian": "Kolom yang belum bisa diisi di lapangan boleh dikosongin — lembar kerja tetap bisa dikirim. Khusus alat ini: Spindle & RPM tiap titik ikut nentuin batas keberterimaan (MPE), jadi titik yang dua kolom itu kosong tetap dihitung U95%-nya tapi nggak dapat vonis PASS/FAIL.",
+  "untuk": "teknisi",
+  "bagian": [
+    {
+      "kode": "hasil",
+      "halaman": 1,
+      "judul": "Data Result",
+      "field": [
+        {
+          "kode": "suhu_awal",
+          "label": "T awal",
+          "tipe": "angka",
+          "wajib": false,
+          "sumber": null,
+          "satuan": "°C",
+          "pilihan": [],
+          "hanya_admin": false
+        },
+        {
+          "kode": "suhu_akhir",
+          "label": "T akhir",
+          "tipe": "angka",
+          "wajib": false,
+          "sumber": null,
+          "satuan": "°C",
+          "pilihan": [],
+          "hanya_admin": false
+        },
+        {
+          "kode": "kelembaban_awal",
+          "label": "RH awal",
+          "tipe": "angka",
+          "wajib": false,
+          "sumber": null,
+          "satuan": "%RH",
+          "pilihan": [],
+          "hanya_admin": false
+        },
+        {
+          "kode": "kelembaban_akhir",
+          "label": "RH akhir",
+          "tipe": "angka",
+          "wajib": false,
+          "sumber": null,
+          "satuan": "%RH",
+          "pilihan": [],
+          "hanya_admin": false
+        },
+        {
+          "kode": "spesifikasi_alat.spindle_titik_1",
+          "label": "Spindle — 100 cP",
+          "tipe": "pilihan",
+          "wajib": false,
+          "sumber": null,
+          "satuan": null,
+          "pilihan": [
+            {
+              "nilai": "RV1",
+              "label": "RV1 (SMC 1)",
+              "grup": "RV"
+            },
+            {
+              "nilai": "RV2",
+              "label": "RV2 (SMC 4)",
+              "grup": "RV"
+            }
+          ],
+          "hanya_admin": false
+        },
+        {
+          "kode": "spesifikasi_alat.rpm_titik_1",
+          "label": "RPM — 100 cP",
+          "tipe": "angka",
+          "wajib": false,
+          "sumber": null,
+          "satuan": "rpm",
+          "pilihan": [],
+          "hanya_admin": false
+        },
+        {
+          "kode": "spesifikasi_alat.resolusi_titik_1",
+          "label": "Resolusi — 100 cP",
+          "tipe": "angka",
+          "wajib": false,
+          "sumber": null,
+          "satuan": "cP",
+          "pilihan": [],
+          "hanya_admin": false
+        },
+        {
+          "kode": "spesifikasi_alat.spindle_titik_2",
+          "label": "Spindle — 1000 cP",
+          "tipe": "pilihan",
+          "wajib": false,
+          "sumber": null,
+          "satuan": null,
+          "pilihan": [
+            {
+              "nilai": "RV1",
+              "label": "RV1 (SMC 1)",
+              "grup": "RV"
+            },
+            {
+              "nilai": "RV2",
+              "label": "RV2 (SMC 4)",
+              "grup": "RV"
+            }
+          ],
+          "hanya_admin": false
+        },
+        {
+          "kode": "spesifikasi_alat.rpm_titik_2",
+          "label": "RPM — 1000 cP",
+          "tipe": "angka",
+          "wajib": false,
+          "sumber": null,
+          "satuan": "rpm",
+          "pilihan": [],
+          "hanya_admin": false
+        },
+        {
+          "kode": "spesifikasi_alat.resolusi_titik_2",
+          "label": "Resolusi — 1000 cP",
+          "tipe": "angka",
+          "wajib": false,
+          "sumber": null,
+          "satuan": "cP",
+          "pilihan": [],
+          "hanya_admin": false
+        },
+        {
+          "kode": "spesifikasi_alat.spindle_titik_3",
+          "label": "Spindle — 60000 cP",
+          "tipe": "pilihan",
+          "wajib": false,
+          "sumber": null,
+          "satuan": null,
+          "pilihan": [
+            {
+              "nilai": "RV1",
+              "label": "RV1 (SMC 1)",
+              "grup": "RV"
+            },
+            {
+              "nilai": "RV2",
+              "label": "RV2 (SMC 4)",
+              "grup": "RV"
+            }
+          ],
+          "hanya_admin": false
+        },
+        {
+          "kode": "spesifikasi_alat.rpm_titik_3",
+          "label": "RPM — 60000 cP",
+          "tipe": "angka",
+          "wajib": false,
+          "sumber": null,
+          "satuan": "rpm",
+          "pilihan": [],
+          "hanya_admin": false
+        },
+        {
+          "kode": "spesifikasi_alat.resolusi_titik_3",
+          "label": "Resolusi — 60000 cP",
+          "tipe": "angka",
+          "wajib": false,
+          "sumber": null,
+          "satuan": "cP",
+          "pilihan": [],
+          "hanya_admin": false
+        }
+      ],
+      "tabel": [
+        {
+          "tahap": "sebelum_adjustment",
+          "judul": "Before Adjustment",
+          "satuan": "cP",
+          "judul_nilai": "Standard",
+          "judul_pengulangan": "UUT Reading",
+          "baris": [
+            {
+              "titik_ukur": 99.65,
+              "label": "100",
+              "resolusi": 0.1,
+              "desimal": 1,
+              "satuan": "cP",
+              "standard_id": 28,
+              "standard_nama": "Viscosity Standard Solution 100 cP"
+            },
+            {
+              "titik_ukur": 1018,
+              "label": "1000",
+              "resolusi": 0.1,
+              "desimal": 1,
+              "satuan": "cP",
+              "standard_id": 29,
+              "standard_nama": "Viscosity Standard Solution 1000 cP"
+            },
+            {
+              "titik_ukur": 59003,
+              "label": "60000",
+              "resolusi": 0.1,
+              "desimal": 1,
+              "satuan": "cP",
+              "standard_id": 30,
+              "standard_nama": "Viscosity Standard Solution 60000 cP"
+            }
+          ],
+          "kolom": [
+            {
+              "kode": "pembacaan",
+              "label": "cP",
+              "tipe": "angka",
+              "satuan": "cP"
+            },
+            {
+              "kode": "suhu",
+              "label": "°C",
+              "tipe": "angka",
+              "satuan": "°C"
+            }
+          ],
+          "pengulangan": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "tahap": "sesudah_adjustment",
+          "judul": "After Adjustment",
+          "satuan": "cP",
+          "judul_nilai": "Standard",
+          "judul_pengulangan": "UUT Reading",
+          "baris": [
+            {
+              "titik_ukur": 99.65,
+              "label": "100",
+              "resolusi": 0.1,
+              "desimal": 1,
+              "satuan": "cP",
+              "standard_id": 28,
+              "standard_nama": "Viscosity Standard Solution 100 cP"
+            },
+            {
+              "titik_ukur": 1018,
+              "label": "1000",
+              "resolusi": 0.1,
+              "desimal": 1,
+              "satuan": "cP",
+              "standard_id": 29,
+              "standard_nama": "Viscosity Standard Solution 1000 cP"
+            },
+            {
+              "titik_ukur": 59003,
+              "label": "60000",
+              "resolusi": 0.1,
+              "desimal": 1,
+              "satuan": "cP",
+              "standard_id": 30,
+              "standard_nama": "Viscosity Standard Solution 60000 cP"
+            }
+          ],
+          "kolom": [
+            {
+              "kode": "pembacaan",
+              "label": "cP",
+              "tipe": "angka",
+              "satuan": "cP"
+            },
+            {
+              "kode": "suhu",
+              "label": "°C",
+              "tipe": "angka",
+              "satuan": "°C"
+            }
+          ],
+          "pengulangan": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -157,6 +157,13 @@ flutter:
     # juga berkas ini, biar nggak ada dua salinan yang bisa beda diam-diam.
     - test/assets/lembar-conductivity-v1.png
     - test/assets/geometri-conductivity-v1.json
+    # Tabel hasil Viscometer terisi angka sesi master — buat menguji jalur
+    # "FOTO TABEL INI" dengan ML Kit ASLI (`integration_test`). Jalur itu
+    # nggak bermarker & nggak ber-QR, jadi lembar conductivity di atas nggak
+    # bisa dipakai: yang diuji di sini pemetaan lewat label kolom & nomor
+    # Repeat, bukan geometri sel.
+    - test/assets/tabel-viscometer-uji.png
+    - test/assets/viscometer-bentuk-hasil.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

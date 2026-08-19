@@ -457,13 +457,37 @@ void main() {
       }
     });
 
-    test('deret nomor kurang satu → BATAL, bukan dipakai sebagian', () {
-      // Empat kolom kejangkar & satu nggak itu jauh lebih berbahaya daripada
-      // nol: angka Repeat 3 bakal ketarik ke kolom tetangga terdekat.
+    /// **Diuji di emulator dengan ML Kit asli, dan di situ digit `3` di kepala
+    /// kolom memang nggak kebaca** — digit tunggal berdiri sendiri itu bentuk
+    /// tersulit buat ML Kit, sementara `cP` kebaca kelima-limanya.
+    ///
+    /// Deret nomor yang bolong tetap NGGAK dipakai sebagian (empat kolom
+    /// kejangkar & satu nggak itu lebih berbahaya daripada nol — angka Repeat
+    /// 3 bakal ketarik ke tetangga). Yang menyelamatkan lembar ini jangkar
+    /// cadangan dari label sub-kolom, dan itu jalur yang beda.
+    test('deret nomor bolong → diselamatkan label sub-kolom, taruhnya benar', () {
       final hasil = petakanVisco(lembar(rusak: {'nomor3'}));
 
+      expect(hasil.repeatKetemu, containsAll([1, 2, 3, 4, 5]));
+      expect(hasil.sel, hasLength(30));
+
+      final peta = {
+        for (final s in hasil.sel)
+          '${s.titikUkur}|${s.repeatNo}|${s.fieldId}': s.teks,
+      };
+
+      // Repeat 3 — kolom yang nomornya hilang — harus tetap mendarat benar,
+      // bukan ketarik ke Repeat 2 atau 4.
+      expect(peta['99.65|3|pembacaan'], bacaan[99.65]![2]);
+      expect(peta['99.65|3|suhu'], suhu[99.65]![2]);
+      expect(peta['59003.0|3|pembacaan'], bacaan[59003.0]![2]);
+    });
+
+    test('nomor bolong DAN label sub-kolom bolong → batal, bukan ditebak', () {
+      // Dua jalur jangkar gagal sekaligus: nggak ada dasar buat naruh apa pun.
+      final hasil = petakanVisco(lembar(rusak: {'nomor3', 'cP'}));
+
       expect(hasil.sel, isEmpty);
-      expect(hasil.repeatKetemu, isEmpty);
     });
 
     test('label sub-kolom hilang → NOL sel + laporan kolom mana', () {
@@ -480,6 +504,10 @@ void main() {
       // Titik 100 cP dibaca `1`..`5` (alat rusak parah / salah satuan). Angka
       // itu ada di BARIS ISI, jadi syarat "kepala selalu di atas isi" yang
       // harus nolak dia — bukan kebetulan nilainya beda.
+      //
+      // Seluruh nomor kepala dibuang, jadi yang menjangkar kolom label
+      // sub-kolom. Yang dijaga di sini: baris pertama TETAP dibaca sebagai
+      // pembacaan `1`..`5`, bukan dianggap kepala lalu barisnya hilang.
       final terbaca = [
         ...lembar(rusak: {'nomor1', 'nomor2', 'nomor3', 'nomor4', 'nomor5'}),
         for (var r = 0; r < 5; r++) kata('${r + 1}', xBacaan(r), yBaris[0]),
@@ -487,8 +515,25 @@ void main() {
 
       final hasil = petakanVisco(terbaca);
 
-      expect(hasil.repeatKetemu, isEmpty, reason: 'isi tabel bukan kepala');
-      expect(hasil.sel, isEmpty);
+      final peta = {
+        for (final s in hasil.sel)
+          '${s.titikUkur}|${s.repeatNo}|${s.fieldId}': s.teks,
+      };
+
+      // Dua angka jatuh di sel yang sama (pembacaan asli + `1`..`5` yang
+      // ditumpuk di baris itu), jadi baris 100 cP kolom cP DIBUANG dua-duanya
+      // — bukan salah satunya dipilih diam-diam.
+      for (var r = 1; r <= 5; r++) {
+        expect(
+          peta['99.65|$r|pembacaan'],
+          isNull,
+          reason: 'Sel kembar mestinya dibuang, bukan dipilih asal.',
+        );
+      }
+
+      // Baris lain nggak ikut terseret, dan angkanya tetap benar.
+      expect(peta['1018.0|1|pembacaan'], bacaan[1018.0]![0]);
+      expect(peta['59003.0|5|pembacaan'], bacaan[59003.0]![4]);
     });
   });
 }
