@@ -12,6 +12,7 @@ import '../../models/calibration_history_item.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/autoclave_hasil_panel.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/status_badge.dart';
 import '../calibration/lembar_kerja_screen.dart';
@@ -288,7 +289,12 @@ class _Isi extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.sm),
 
-        if (detail.titik.isEmpty)
+        if (detail.autoclave != null)
+          // Autoklaf: hasilnya Section A/B/C, bukan tabel titik ukur. `titik`-nya
+          // memang kosong, jadi tanpa cabang ini sesi Autoklaf cuma nampilin
+          // "belum dihitung" padahal hasilnya lengkap.
+          AutoclaveHasilPanel(hasil: detail.autoclave!)
+        else if (detail.titik.isEmpty)
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(

@@ -1,3 +1,4 @@
+import 'autoclave_hasil.dart';
 import 'calibration_history_item.dart';
 import '../core/utils/parse_list.dart';
 
@@ -601,6 +602,7 @@ class CalibrationDetail {
     this.pembacaanMentah = const [],
     this.perluVerifikasi = false,
     this.isianTeknisi,
+    this.autoclave,
   });
 
   final int id;
@@ -655,6 +657,11 @@ class CalibrationDetail {
   /// Masih ada pembacaan OCR yang belum dikonfirmasi teknisi — selama `true`,
   /// sesi ini ditolak backend waktu di-approve.
   final bool perluVerifikasi;
+
+  /// Hasil Autoklaf (Section A/B/C), kalau sesi ini Autoklaf. `null` di alat
+  /// lain — mereka pakai [titik]. Autoklaf `titik`-nya kosong; layar detail
+  /// mbranch ke sini biar sesi tersimpan bisa direview sebelum approve.
+  final AutoclaveHasil? autoclave;
 
   /// STDEV terbesar antar titik — kolom **MAX STDEV** di worksheet asli
   /// (`DATA HASIL KALIBRASI`), dihitung di sini karena backend nggak
@@ -715,6 +722,10 @@ class CalibrationDetail {
       titikSebelum: parseListAman(sebelumJson, MeasurementBefore.fromJson),
       pembacaanMentah: parseListAman(pembacaanJson, RawMeasurement.fromJson),
       perluVerifikasi: json['perlu_verifikasi'] as bool? ?? false,
+      autoclave: json['hasil_autoclave'] is Map<String, dynamic> &&
+              (json['hasil_autoclave'] as Map).isNotEmpty
+          ? AutoclaveHasil.fromJson(json['hasil_autoclave'] as Map<String, dynamic>)
+          : null,
     );
   }
 }

@@ -10,6 +10,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/certificate_snapshot.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/autoclave_hasil_panel.dart';
 import '../../providers/certificate_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../services/pdf_downloader.dart';
@@ -106,7 +107,13 @@ class _Isi extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.md),
 
-        _TabelHasil(snapshot: snap),
+        // Autoklaf: hasilnya Section A/B/C, bukan tabel empat kolom. `hasil`-nya
+        // memang kosong buat Autoklaf, jadi tanpa cabang ini sesi Autoklaf
+        // tampil sebagai tabel kosong di HP padahal PDF-nya penuh.
+        if (snap.autoclave != null)
+          AutoclaveHasilPanel(hasil: snap.autoclave!)
+        else
+          _TabelHasil(snapshot: snap),
         const SizedBox(height: AppSpacing.md),
 
         // Dua catatan baku — datang dari backend, bukan ditulis ulang di sini.
