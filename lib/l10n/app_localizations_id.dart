@@ -2555,7 +2555,16 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get lkFotoTabelTanpaJangkar =>
-      'Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom nilai standar (kiri) dan kepala kolom Repeat (X1 / Repeat 1) ikut kefoto — tanpa itu angkanya nggak bisa ditaruh dengan aman. Kolomnya tetap bisa diketik manual.';
+      'Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom nilai standar (kiri) dan kepala kolom Repeat (nomor 1..5, atau X1 / Repeat 1) ikut kefoto — semuanya, jangan ada yang kepotong. Kolomnya tetap bisa diketik manual.';
+
+  @override
+  String lkFotoTabelKolomHilang(String kolom) {
+    return 'Label kolom $kolom nggak kebaca di foto, jadi nggak ada yang diisi — kalau dipaksa, angkanya bisa mendarat di kolom sebelah tanpa ketahuan. Jepret ulang dengan baris satuan di kepala tabel ikut masuk frame.';
+  }
+
+  @override
+  String get lkFotoTabelKosong =>
+      'Tabelnya kebaca, tapi kotak isiannya masih kosong — nggak ada angka tulisan tangan yang ketemu di dalamnya. Isi dulu kertasnya, baru difoto.';
 
   @override
   String get lkFotoTabelTanpaJangkarKeBawah =>

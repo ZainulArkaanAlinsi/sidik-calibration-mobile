@@ -267,4 +267,228 @@ void main() {
     expect(peta['4.0|2|pembacaan'], '4,02');
     expect(peta['4.0|2|suhu'], '25,2');
   });
+
+  /// **Bug asli:** lembar Viscometer nyetak label larutan bulat di kolom
+  /// Standard ("100"/"1000"/"60000" cP), tapi angka yang dipakai ngitung
+  /// nilai sertifikat pada 25 °C (`ViscometerProfile::TITIK`):
+  /// 99,65 / 1018 / 59003 cP. Titik ke-2 & ke-3 meleset 1,77% & 1,69% dari
+  /// labelnya — jauh di luar toleransi jangkar angka (0,5%, `_toleransiTitik`),
+  /// jadi dua dari tiga baris nggak akan PERNAH kejangkar lewat angka, sebagus
+  /// apa pun fotonya. Yang benar: dicocokkan sebagai TEKS ke label yang
+  /// beneran tercetak (`labelTercetak`), bukan dilonggarkan toleransinya.
+  group('Viscometer: label tercetak beda dari nilai sertifikat', () {
+    const titikUkur = [99.65, 1018.0, 59003.0];
+    final labelTercetak = {99.65: '100', 1018.0: '1000', 59003.0: '60000'};
+    // Meleset jelas dari titiknya (bukan cuma beberapa digit di belakang
+    // koma) — supaya pembacaan nggak kebetulan ikut lolos toleransi jangkar
+    // angka dan diam-diam jadi jangkar barisnya sendiri sebelum labelnya
+    // sempat diuji. "Before Adjustment" itu maksudnya: alat MEMANG belum
+    // sesuai standar.
+    final pembacaan = {99.65: '97,20', 1018.0: '985,40', 59003.0: '61250,00'};
+
+    const xStandar = 200.0;
+    const xRepeat1 = 420.0;
+    const yKepala = 100.0;
+    const yBaris = [200.0, 260.0, 320.0];
+
+    List<TeksTerbaca> lembar() => [
+      kata('X1', xRepeat1, yKepala),
+      for (var i = 0; i < titikUkur.length; i++) ...[
+        kata(labelTercetak[titikUkur[i]]!, xStandar, yBaris[i]),
+        kata(pembacaan[titikUkur[i]]!, xRepeat1, yBaris[i]),
+      ],
+    ];
+
+    test('tanpa labelTercetak, dua dari tiga baris hilang', () {
+      final hasil = const PetaTabelFoto().petakan(
+        terbaca: lembar(),
+        titikUkur: titikUkur,
+        pengulangan: const [1],
+        fieldPerRepeat: const ['pembacaan'],
+      );
+
+      expect(hasil.titikKetemu, contains(99.65));
+      expect(hasil.titikKetemu, isNot(contains(1018.0)));
+      expect(hasil.titikKetemu, isNot(contains(59003.0)));
+      expect(hasil.sel, hasLength(1), reason: 'cuma baris 100 cP yang kejangkar');
+    });
+
+    test('dengan labelTercetak, ketiga baris kejangkar & angkanya benar', () {
+      final hasil = const PetaTabelFoto().petakan(
+        terbaca: lembar(),
+        titikUkur: titikUkur,
+        pengulangan: const [1],
+        fieldPerRepeat: const ['pembacaan'],
+        labelTercetak: labelTercetak,
+      );
+
+      expect(hasil.titikKetemu, containsAll(titikUkur));
+      expect(hasil.sel, hasLength(3));
+
+      final peta = {
+        for (final s in hasil.sel) s.titikUkur: s.teks,
+      };
+
+      expect(peta[99.65], pembacaan[99.65]);
+      expect(peta[1018.0], pembacaan[1018.0]);
+      expect(peta[59003.0], pembacaan[59003.0]);
+    });
+  });
+
+  /// Lembar Viscometer UTUH seperti kertasnya: 3 baris × 5 Repeat × 2
+  /// sub-kolom (cP + °C), kepala kolomnya NOMOR POLOS `1`..`5` di bawah
+  /// tulisan `UUT Reading`.
+  ///
+  /// **Bug asli:** formulir Rev.3 nggak nyetak `X1`/`Repeat 1` — cuma nomor
+  /// polos — dan `prefiks_pengulangan` cuma dikirim profil Spectrophotometer.
+  /// Jadi jangkar kolomnya nggak pernah ketemu, dan tiap jepretan balik nol
+  /// sel dengan pesan "nggak ada angka yang bisa dipastikan tempatnya" —
+  /// sebagus apa pun fotonya.
+  group('Viscometer: lembar utuh, kepala kolom nomor polos', () {
+    const titikUkur = [99.65, 1018.0, 59003.0];
+    final label = {99.65: '100', 1018.0: '1000', 59003.0: '60000'};
+
+    // Angka lembar kerja: pembacaan cP + suhu larutan °C, per Repeat.
+    final bacaan = {
+      99.65: ['97,20', '97,25', '97,18', '97,22', '97,19'],
+      1018.0: ['985,40', '985,60', '985,30', '985,50', '985,45'],
+      59003.0: ['61250,00', '61248,00', '61252,00', '61249,00', '61251,00'],
+    };
+    final suhu = {
+      99.65: ['25,10', '25,12', '25,11', '25,13', '25,10'],
+      1018.0: ['25,20', '25,21', '25,19', '25,22', '25,20'],
+      59003.0: ['25,30', '25,31', '25,29', '25,32', '25,30'],
+    };
+
+    const xStandar = 150.0;
+    const yJudul = 60.0;
+    const yNomor = 110.0;
+    const ySatuan = 150.0;
+    const yBaris = [220.0, 300.0, 380.0];
+
+    // Tiap Repeat dua sub-kolom: cP di kiri, °C di kanannya.
+    double xBacaan(int r) => 320.0 + r * 300.0;
+    double xSuhu(int r) => xBacaan(r) + 140.0;
+    double xNomor(int r) => xBacaan(r) + 70.0;
+
+    /// [satuanSuhu] dibikin bisa diganti buat nguji `°C` yang kebaca meleset.
+    List<TeksTerbaca> lembar({
+      String satuanSuhu = '°C',
+      Set<String> rusak = const {},
+    }) {
+      final hasil = <TeksTerbaca>[kata('UUT Reading', xBacaan(0), yJudul)];
+
+      for (var r = 0; r < 5; r++) {
+        if (!rusak.contains('nomor${r + 1}')) {
+          hasil.add(kata('${r + 1}', xNomor(r), yNomor));
+        }
+        if (!rusak.contains('cP')) hasil.add(kata('cP', xBacaan(r), ySatuan));
+        if (!rusak.contains('suhu')) {
+          hasil.add(kata(satuanSuhu, xSuhu(r), ySatuan));
+        }
+      }
+
+      for (var i = 0; i < titikUkur.length; i++) {
+        final t = titikUkur[i];
+        hasil.add(kata(label[t]!, xStandar, yBaris[i]));
+
+        for (var r = 0; r < 5; r++) {
+          hasil.add(kata(bacaan[t]![r], xBacaan(r), yBaris[i]));
+          hasil.add(kata(suhu[t]![r], xSuhu(r), yBaris[i]));
+        }
+      }
+
+      return hasil;
+    }
+
+    HasilPetaTabel petakanVisco(List<TeksTerbaca> terbaca) =>
+        const PetaTabelFoto().petakan(
+          terbaca: terbaca,
+          titikUkur: titikUkur,
+          pengulangan: const [1, 2, 3, 4, 5],
+          fieldPerRepeat: const ['pembacaan', 'suhu'],
+          labelField: const {'pembacaan': 'cP', 'suhu': '°C'},
+          labelTercetak: label,
+        );
+
+    test('30 sel mendarat di baris, Repeat, & sub-kolom yang benar', () {
+      final hasil = petakanVisco(lembar());
+
+      expect(hasil.repeatKetemu, containsAll([1, 2, 3, 4, 5]));
+      expect(hasil.titikKetemu, containsAll(titikUkur));
+      expect(hasil.sel, hasLength(30), reason: '3 titik × 5 Repeat × 2 kolom');
+      expect(hasil.angkaTakTerpetakan, 0);
+
+      final peta = {
+        for (final s in hasil.sel)
+          '${s.titikUkur}|${s.repeatNo}|${s.fieldId}': s.teks,
+      };
+
+      for (var i = 0; i < titikUkur.length; i++) {
+        final t = titikUkur[i];
+
+        for (var r = 0; r < 5; r++) {
+          expect(
+            peta['$t|${r + 1}|pembacaan'],
+            bacaan[t]![r],
+            reason: 'Titik $t Repeat ${r + 1} kolom cP salah.',
+          );
+          expect(
+            peta['$t|${r + 1}|suhu'],
+            suhu[t]![r],
+            reason: 'Titik $t Repeat ${r + 1} kolom °C salah.',
+          );
+        }
+      }
+    });
+
+    /// `°C` itu bentuk tersulit buat ML Kit di seluruh lembar. Kalau
+    /// lingkarannya kebaca sebagai huruf, jepretan yang sehat nggak boleh
+    /// ditolak gara-gara satu karakter yang bukan bagian angkanya.
+    test('`°C` yang kebaca `oC` / `C` polos tetap kejangkar', () {
+      for (final varian in ['oC', 'C', '0C', '˚C']) {
+        final hasil = petakanVisco(lembar(satuanSuhu: varian));
+
+        expect(
+          hasil.sel,
+          hasLength(30),
+          reason: 'satuan suhu kebaca `$varian` mestinya masih kena.',
+        );
+      }
+    });
+
+    test('deret nomor kurang satu → BATAL, bukan dipakai sebagian', () {
+      // Empat kolom kejangkar & satu nggak itu jauh lebih berbahaya daripada
+      // nol: angka Repeat 3 bakal ketarik ke kolom tetangga terdekat.
+      final hasil = petakanVisco(lembar(rusak: {'nomor3'}));
+
+      expect(hasil.sel, isEmpty);
+      expect(hasil.repeatKetemu, isEmpty);
+    });
+
+    test('label sub-kolom hilang → NOL sel + laporan kolom mana', () {
+      // Kalau `cP` nggak kebaca sementara `°C` kebaca, tanpa penjaga ini
+      // SELURUH pembacaan mendarat di kolom suhu — kotaknya terisi rapi,
+      // jumlahnya pas, dan baru ketahuan aneh di sertifikat.
+      final hasil = petakanVisco(lembar(rusak: {'cP'}));
+
+      expect(hasil.sel, isEmpty);
+      expect(hasil.labelKolomKurang, contains('cP'));
+    });
+
+    test('pembacaan nggak pernah nyamar jadi kepala kolom', () {
+      // Titik 100 cP dibaca `1`..`5` (alat rusak parah / salah satuan). Angka
+      // itu ada di BARIS ISI, jadi syarat "kepala selalu di atas isi" yang
+      // harus nolak dia — bukan kebetulan nilainya beda.
+      final terbaca = [
+        ...lembar(rusak: {'nomor1', 'nomor2', 'nomor3', 'nomor4', 'nomor5'}),
+        for (var r = 0; r < 5; r++) kata('${r + 1}', xBacaan(r), yBaris[0]),
+      ];
+
+      final hasil = petakanVisco(terbaca);
+
+      expect(hasil.repeatKetemu, isEmpty, reason: 'isi tabel bukan kepala');
+      expect(hasil.sel, isEmpty);
+    });
+  });
 }

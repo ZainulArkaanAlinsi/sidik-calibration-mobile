@@ -37,6 +37,7 @@ class HasilPetaTabel {
     required this.titikKetemu,
     required this.repeatKetemu,
     required this.angkaTakTerpetakan,
+    this.labelKolomKurang = const [],
   });
 
   final List<SelTabelFoto> sel;
@@ -52,6 +53,12 @@ class HasilPetaTabel {
   /// dipaksa masuk** — dan jumlahnya dilaporkan supaya teknisi tahu ada yang
   /// nggak keangkut, bukan mengira tabelnya memang segitu.
   final int angkaTakTerpetakan;
+
+  /// Label sub-kolom di dalam satu Repeat (`cP`, `°C`) yang NGGAK kebaca di
+  /// foto. Selama ada isinya, seluruh tabel sengaja nggak dipetakan — lihat
+  /// alasannya di [PetaTabelFoto.petakan]. Dilaporkan supaya pesan ke teknisi
+  /// bisa nyebut yang hilang, bukan nyuruh dia nebak.
+  final List<String> labelKolomKurang;
 
   bool get kosong => sel.isEmpty;
 }
@@ -142,6 +149,16 @@ class PetaTabelFoto {
     required List<String> fieldPerRepeat,
     Map<String, String> labelField = const {},
     Map<int, List<String>> kepalaPengulangan = const {},
+    // Tulisan kepala baris yang TERCETAK, kalau beda dari `titikUkur`.
+    //
+    // Viscometer yang bikin ini perlu: kertasnya nyetak label larutan bulat
+    // ("100"/"1000"/"60000"), sementara titik yang dihitung nilai sertifikat
+    // (99,65/1018/59003) — beda sampai 1,8%, jauh di luar [_toleransiTitik].
+    // Baris begini nggak akan PERNAH kejangkar lewat angka, sebagus apa pun
+    // fotonya. Diberi tulisan aslinya di sini, dicocokkan sebagai TEKS persis
+    // kayak jangkar kolom `Xn` — bukan dilonggarkan toleransinya (itu yang
+    // bikin 453,6 & 460,0 di lembar spektro bisa saling rebut).
+    Map<double, String> labelTercetak = const {},
   }) {
     final angka = <({double nilai, TeksTerbaca t})>[];
 
@@ -150,13 +167,28 @@ class PetaTabelFoto {
       if (n != null) angka.add((nilai: n, t: t));
     }
 
-    final jangkarBaris = _jangkarBaris(angka, titikUkur);
+    final jangkarBaris = _jangkarBaris(angka, titikUkur, labelTercetak);
 
     // --- jangkar KOLOM: kepala `X1`..`Xn` yang tercetak --------------------
-    final jangkarKolom = _jangkarTeks(
+    var jangkarKolom = _jangkarTeks(
       terbaca,
       {for (final r in pengulangan) r: kepalaPengulangan[r] ?? kepalaBawaan(r)},
     );
+
+    // Kertas yang kepala kolomnya NOMOR POLOS (`1`..`5`), bukan `X1`/`Repeat 1`.
+    //
+    // Formulir Viscometer Rev.3 begitu — `UUT Reading` di atas, lalu deretan
+    // 1..5 polos di bawahnya — dan lima lembar lain juga nggak ngirim
+    // `prefiks_pengulangan`. Tanpa jalur ini kepala kolomnya NGGAK PERNAH
+    // ketemu, jadi nol sel di tiap jepretan sesempurna apa pun fotonya.
+    //
+    // Nomor polos tetap nggak diterima satu-satu (lihat [kepalaBawaan]) —
+    // yang diterima cuma DERETNYA UTUH, dan syaratnya di [_jangkarNomorPolos]
+    // dibikin supaya pembacaan nggak bisa menyamar jadi deret itu.
+    if (jangkarKolom.length < pengulangan.length) {
+      final deret = _jangkarNomorPolos(terbaca, pengulangan, jangkarBaris);
+      if (deret != null) jangkarKolom = deret;
+    }
 
     if (jangkarBaris.isEmpty || jangkarKolom.isEmpty) {
       // Nggak ada satu pun jangkar = nggak ada dasar buat naruh angka mana pun.
@@ -181,16 +213,44 @@ class PetaTabelFoto {
     // (yang x-nya jauh di kanan) lebih dekat ke `°C` Repeat 1 daripada ke
     // `pH` Repeat 1, dan mendarat di kolom suhu.
     final jangkarField = <({String field, TeksTerbaca t})>[];
+    final labelKolomKurang = <String>[];
 
     if (fieldPerRepeat.length > 1) {
       for (final f in fieldPerRepeat) {
         final label = labelField[f] ?? f;
 
         for (final t in terbaca) {
-          if (_samaAbaikanBesarKecil(t.teks, label)) {
+          if (_samaLabel(t.teks, label)) {
             jangkarField.add((field: f, t: t));
           }
         }
+      }
+
+      // **Nggak semua label sub-kolom kebaca → seluruh tabel nggak dipetakan.**
+      //
+      // Ini aturan yang sama dengan [_fieldSlot] di jalur ke-bawah, dan
+      // sebabnya kejadian nyata: waktu label kolom pembacaan (`cP`) nggak
+      // kebaca sementara `°C` kebaca, yang TERDEKAT dari setiap angka jadi
+      // `°C` — dan seluruh pembacaan mendarat rapi di kolom suhu. Nggak ada
+      // yang kelihatan salah: kotaknya terisi, jumlahnya pas, dan angkanya
+      // baru ketahuan aneh waktu sertifikatnya terbit.
+      //
+      // Yang hilang dicatat, bukan cuma dibuang, supaya teknisi dikasih tau
+      // kolom mana yang harus ikut kefoto.
+      final ketemu = {for (final j in jangkarField) j.field};
+
+      if (ketemu.length < fieldPerRepeat.length) {
+        for (final f in fieldPerRepeat) {
+          if (!ketemu.contains(f)) labelKolomKurang.add(labelField[f] ?? f);
+        }
+
+        return HasilPetaTabel(
+          sel: const [],
+          titikKetemu: jangkarBaris.keys.toList(),
+          repeatKetemu: jangkarKolom.keys.toList(),
+          angkaTakTerpetakan: angka.length,
+          labelKolomKurang: labelKolomKurang,
+        );
       }
     }
 
@@ -208,11 +268,24 @@ class PetaTabelFoto {
             .reduce((a, b) => a < b ? a : b) -
         tinggiBaris;
 
+    // Batas ATAS area pembacaan — kembarannya [batasKiri], buat sumbu tegak.
+    //
+    // Semua yang di atasnya itu kepala tabel: nomor kolom (`1`..`5` di lembar
+    // Viscometer) dan baris satuan. Angka yang sah, tapi bukan pembacaan —
+    // jadi dilewat tanpa ikut kehitung "nggak keangkut", persis seperti
+    // [batasKiri] melewat kolom label di kiri. Tanpa ini tiap foto yang
+    // sempurna dilaporkan kehilangan lima angka.
+    final batasAtas = jangkarBaris.values
+            .map((j) => j.kotak.top)
+            .reduce((a, b) => a < b ? a : b) -
+        tinggiBaris;
+
     final sel = <SelTabelFoto>[];
     var terbuang = 0;
 
     for (final a in angka) {
       if (a.t.kotak.center.dx < batasKiri) continue;
+      if (a.t.kotak.center.dy < batasAtas) continue;
 
       final titik = _barisTerdekat(a.t, jangkarBaris, tinggiBaris);
       final repeat = _kolomTerdekat(a.t, jangkarKolom);
@@ -322,7 +395,7 @@ class PetaTabelFoto {
       if (s.labelField.length < 2) continue;
 
       for (final e in s.labelField.entries) {
-        labelKeField.putIfAbsent(_rapatkan(e.value), () => e.key);
+        labelKeField.putIfAbsent(_normalLabel(e.value), () => e.key);
       }
     }
 
@@ -335,7 +408,7 @@ class PetaTabelFoto {
     final fieldPerSlot = <int, List<({String field, TeksTerbaca t})>>{};
 
     for (final t in terbaca) {
-      final field = labelKeField[_rapatkan(t.teks)];
+      final field = labelKeField[_normalLabel(t.teks)];
       if (field == null) continue;
 
       final i = _kolomTerdekat(t, jangkarKolom, batas: batasKolom);
@@ -477,14 +550,20 @@ class PetaTabelFoto {
   Map<double, TeksTerbaca> _jangkarBaris(
     List<({double nilai, TeksTerbaca t})> angka,
     List<double> titikUkur,
+    Map<double, String> labelTercetak,
   ) {
     // Semua angka yang NILAINYA cocok ke salah satu titik — calon jangkar,
-    // termasuk pembacaan yang kebetulan mirip.
+    // termasuk pembacaan yang kebetulan mirip. Atau, kalau labelnya beda dari
+    // nilai (Viscometer), yang TEKS-nya persis sama dengan label tercetak.
     final calon = <({double titik, TeksTerbaca t})>[];
 
     for (final a in angka) {
       for (final titik in titikUkur) {
-        if ((a.nilai - titik).abs() <= titik.abs() * _toleransiTitik) {
+        final cocokAngka = (a.nilai - titik).abs() <= titik.abs() * _toleransiTitik;
+        final label = labelTercetak[titik];
+        final cocokLabel = label != null && _rapatkan(a.t.teks) == _rapatkan(label);
+
+        if (cocokAngka || cocokLabel) {
           calon.add((titik: titik, t: a.t));
         }
       }
@@ -573,6 +652,107 @@ class PetaTabelFoto {
     }
 
     return hasil;
+  }
+
+  /// Kepala kolom yang di kertas ditulis NOMOR POLOS (`1`..`5`).
+  ///
+  /// Dipakai cuma kalau kepala tekstual (`X1` / `Repeat 1`) nggak lengkap —
+  /// formulir Viscometer Rev.3 & lima lembar lain nyetak nomor polos, dan
+  /// tanpa ini kolomnya nggak pernah kejangkar.
+  ///
+  /// Nomor polos sendirian memang nggak bisa dipercaya: `1` juga bisa jadi
+  /// pembacaan atau nomor urut baris. Yang dipercaya di sini bukan nomornya,
+  /// tapi **DERETNYA** — dan empat syarat di bawah yang bikin pembacaan nggak
+  /// bisa menyamar jadi deret itu:
+  ///
+  ///  1. SELURUH nomor pengulangan harus ada. Kurang satu → batal, bukan
+  ///     dipakai sebagian.
+  ///  2. Semuanya sebaris mendatar (dalam satu tinggi huruf).
+  ///  3. `x`-nya menaik persis mengikuti nomornya (1 di kiri 2, 2 di kiri 3).
+  ///  4. Barisnya ADA DI ATAS jangkar baris paling atas — kepala tabel selalu
+  ///     di atas isinya. Ini yang paling menentukan: pembacaan hidup di baris
+  ///     yang SAMA dengan nilai standarnya, jadi dia nggak pernah lolos.
+  ///
+  /// Balik `null` kalau salah satu syarat nggak kepenuhan — sengaja, karena
+  /// kepala kolom yang salah tebak itu persis cara angka mendarat di kolom
+  /// yang salah tanpa ngasih gejala.
+  Map<int, TeksTerbaca>? _jangkarNomorPolos(
+    List<TeksTerbaca> terbaca,
+    List<int> pengulangan,
+    Map<double, TeksTerbaca> jangkarBaris,
+  ) {
+    // Tanpa jangkar baris nggak ada acuan "di atas isi tabel", jadi syarat
+    // ke-4 nggak bisa ditegakkan sama sekali.
+    if (jangkarBaris.isEmpty || pengulangan.isEmpty) return null;
+
+    final atasIsi = jangkarBaris.values
+        .map((j) => j.kotak.top)
+        .reduce((a, b) => a < b ? a : b);
+
+    final calon = <({int no, TeksTerbaca t})>[];
+
+    for (final t in terbaca) {
+      final n = int.tryParse(t.teks.trim());
+
+      if (n == null || !pengulangan.contains(n)) continue;
+      // Syarat 4: yang sejajar atau di bawah baris pertama itu ISI tabel.
+      if (t.kotak.bottom > atasIsi) continue;
+
+      calon.add((no: n, t: t));
+    }
+
+    if (calon.isEmpty) return null;
+
+    final tinggiHuruf = calon
+        .map((c) => c.t.kotak.height)
+        .reduce((a, b) => a > b ? a : b);
+
+    // Syarat 2: dikelompokkan per baris mendatar.
+    calon.sort((a, b) => a.t.kotak.center.dy.compareTo(b.t.kotak.center.dy));
+
+    final klaster = <List<({int no, TeksTerbaca t})>>[];
+
+    for (final c in calon) {
+      final akhir = klaster.isEmpty ? null : klaster.last;
+
+      if (akhir != null &&
+          (c.t.kotak.center.dy - akhir.first.t.kotak.center.dy).abs() <=
+              tinggiHuruf) {
+        akhir.add(c);
+      } else {
+        klaster.add([c]);
+      }
+    }
+
+    final urut = [...pengulangan]..sort();
+
+    for (final k in klaster) {
+      final perNomor = <int, TeksTerbaca>{};
+
+      for (final c in k) {
+        final ada = perNomor[c.no];
+        if (ada == null || c.t.kotak.left < ada.kotak.left) {
+          perNomor[c.no] = c.t;
+        }
+      }
+
+      // Syarat 1: lengkap.
+      if (perNomor.length != urut.length) continue;
+
+      // Syarat 3: menaik ke kanan sesuai nomornya.
+      var menaik = true;
+
+      for (var i = 1; i < urut.length; i++) {
+        if (perNomor[urut[i]]!.kotak.left <= perNomor[urut[i - 1]]!.kotak.left) {
+          menaik = false;
+          break;
+        }
+      }
+
+      if (menaik) return perNomor;
+    }
+
+    return null;
   }
 
   /// Baris yang jangkarnya paling sejajar, atau `null` kalau nggak ada yang
@@ -727,6 +907,24 @@ class PetaTabelFoto {
   static String _rapatkan(String teks) =>
       teks.toLowerCase().replaceAll(RegExp(r'\s+'), '');
 
-  static bool _samaAbaikanBesarKecil(String a, String b) =>
-      a.trim().toLowerCase() == b.trim().toLowerCase();
+  /// Label SATUAN kolom buat dibandingin — lebih longgar dari [_rapatkan].
+  ///
+  /// Lingkaran derajat itu bentuk tersulit buat ML Kit di seluruh lembar:
+  /// `°C` rutin kebaca `oC`, `0C`, `˚C`, atau `C` polos. Dicocokkan mentah,
+  /// satu lingkaran yang meleset bikin SELURUH tabel nggak jadi dipetakan
+  /// (lihat penjaga label di [petakan]) — jepretan sehat ditolak gara-gara
+  /// satu karakter yang bahkan bukan bagian dari angkanya.
+  ///
+  /// Melonggarkan ini nggak bisa bikin salah taruh: yang dibandingkan cuma
+  /// label satuan antar sub-kolom di satu tabel, dan `cP` vs `C` tetap beda.
+  static String _normalLabel(String teks) {
+    final s = teks.toLowerCase().replaceAll(RegExp(r'[\s°º˚*]'), '');
+
+    // `oC` / `0C` — huruf atau nol yang berdiri sendiri di depan satuan suhu
+    // itu sisa lingkaran derajat, bukan bagian satuannya.
+    return RegExp(r'^[o0]c$').hasMatch(s) ? 'c' : s;
+  }
+
+  static bool _samaLabel(String a, String b) =>
+      _normalLabel(a) == _normalLabel(b);
 }

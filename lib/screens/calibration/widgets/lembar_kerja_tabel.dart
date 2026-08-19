@@ -1535,6 +1535,13 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
             labelField: {
               for (final k in widget.tabel.kolom) k.kode: k.label,
             },
+            // Viscometer: kertas nyetak label larutan bulat ("1000"), bukan
+            // nilai sertifikat (1018) — lihat komentar `labelTercetak` di
+            // `PetaTabelFoto.petakan`. Alat lain labelnya == nilainya, jadi
+            // ini nggak ngubah apa-apa buat mereka.
+            labelTercetak: {
+              for (final t in titik) t.titikUkur: t.label,
+            },
             kepalaPengulangan: _kepalaPengulangan(),
           );
         }
@@ -1556,7 +1563,24 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
           SnackBar(
             duration: const Duration(seconds: 8),
             content: Text(
-              widget.tabel.pengulanganKeBawah
+              // Label sub-kolom yang hilang disebut NAMANYA. Sebabnya beda
+              // dari jangkar baris/kolom yang kepotong, dan nyuruh teknisi
+              // "pastikan kolom nilai standar kefoto" waktu yang hilang
+              // sebenarnya baris satuan itu nyuruh dia mbenerin hal yang
+              // udah bener.
+              hasil.labelKolomKurang.isNotEmpty
+                  ? l10n.lkFotoTabelKolomHilang(
+                      hasil.labelKolomKurang.join(' & '),
+                    )
+                  // Jangkarnya ketemu SEMUA, cuma badan tabelnya nggak ada
+                  // angkanya — kertas yang difoto memang belum diisi. Nyuruh
+                  // teknisi "pastikan kolom nilai standar kefoto" di sini
+                  // bikin dia motret ulang lembar yang sama berkali-kali,
+                  // karena yang disuruh perbaiki udah bener dari tadi.
+                  : (hasil.titikKetemu.isNotEmpty &&
+                        hasil.repeatKetemu.isNotEmpty)
+                  ? l10n.lkFotoTabelKosong
+                  : widget.tabel.pengulanganKeBawah
                   ? l10n.lkFotoTabelTanpaJangkarKeBawah
                   : l10n.lkFotoTabelTanpaJangkar,
             ),

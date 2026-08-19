@@ -2569,7 +2569,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lkFotoTabelTanpaJangkar =>
-      'No reading could be placed with certainty. Make sure the standard-value column (left) and the repeat headers (X1 / Repeat 1) are in frame — without them the numbers cannot be placed safely. You can still type the values manually.';
+      'No reading could be placed with certainty. Make sure the standard-value column (left) and the repeat headers (numbers 1..5, or X1 / Repeat 1) are in frame — all of them, none cut off. You can still type the values manually.';
+
+  @override
+  String lkFotoTabelKolomHilang(String kolom) {
+    return 'The $kolom column header couldn\'t be read, so nothing was filled in — forcing it risks numbers landing in the neighbouring column unnoticed. Retake the photo with the unit row of the table header in frame.';
+  }
+
+  @override
+  String get lkFotoTabelKosong =>
+      'The table was recognised, but its cells are still empty — no handwritten numbers were found inside. Fill in the sheet first, then photograph it.';
 
   @override
   String get lkFotoTabelTanpaJangkarKeBawah =>

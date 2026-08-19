@@ -903,7 +903,20 @@
   "lkPindaiTerlaluMiring": "Fotonya terlalu miring. Jepret lebih tegak lurus di atas lembar.",
   "lkFotoTabel": "FOTO TABEL INI",
   "lkFotoTabelGagal": "Foto tidak bisa dibaca. Coba jepret ulang.",
-  "lkFotoTabelTanpaJangkar": "Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom nilai standar (kiri) dan kepala kolom Repeat (X1 / Repeat 1) ikut kefoto — tanpa itu angkanya nggak bisa ditaruh dengan aman. Kolomnya tetap bisa diketik manual.",
+  "lkFotoTabelTanpaJangkar": "Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom nilai standar (kiri) dan kepala kolom Repeat (nomor 1..5, atau X1 / Repeat 1) ikut kefoto — semuanya, jangan ada yang kepotong. Kolomnya tetap bisa diketik manual.",
+  "lkFotoTabelKolomHilang": "Label kolom {kolom} nggak kebaca di foto, jadi nggak ada yang diisi — kalau dipaksa, angkanya bisa mendarat di kolom sebelah tanpa ketahuan. Jepret ulang dengan baris satuan di kepala tabel ikut masuk frame.",
+  "lkFotoTabelKosong": "Tabelnya kebaca, tapi kotak isiannya masih kosong — nggak ada angka tulisan tangan yang ketemu di dalamnya. Isi dulu kertasnya, baru difoto.",
+  "@lkFotoTabelKosong": {
+    "description": "Jangkar baris & kolom ketemu semua, tapi nol angka di badan tabel — biasanya kertas/lembar yang difoto memang belum diisi."
+  },
+  "@lkFotoTabelKolomHilang": {
+    "description": "Foto tabel gagal karena label sub-kolom (mis. cP / °C) nggak kebaca. Sengaja nolak semua, bukan naruh sebagian.",
+    "placeholders": {
+      "kolom": {
+        "type": "String"
+      }
+    }
+  },
   "lkFotoTabelTanpaJangkarKeBawah": "Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom Repeat (kiri) dan kepala kolom larutan (baris paling atas) ikut kefoto — tanpa itu angkanya nggak bisa ditaruh dengan aman. Kolomnya tetap bisa diketik manual.",
   "lkFotoTabelTerisi": "{terisi} sel keisi dari foto. Semuanya ditandai perlu dicek — cocokin sama kertasnya.",
   "lkFotoTabelSebagian": "{terisi} sel keisi, {terbuang} angka dilewat karena tempatnya nggak bisa dipastikan. Yang kosong ketik manual.",

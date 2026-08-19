@@ -4751,8 +4751,20 @@ abstract class AppLocalizations {
   /// No description provided for @lkFotoTabelTanpaJangkar.
   ///
   /// In en, this message translates to:
-  /// **'No reading could be placed with certainty. Make sure the standard-value column (left) and the repeat headers (X1 / Repeat 1) are in frame — without them the numbers cannot be placed safely. You can still type the values manually.'**
+  /// **'No reading could be placed with certainty. Make sure the standard-value column (left) and the repeat headers (numbers 1..5, or X1 / Repeat 1) are in frame — all of them, none cut off. You can still type the values manually.'**
   String get lkFotoTabelTanpaJangkar;
+
+  /// Foto tabel gagal karena label sub-kolom (mis. cP / °C) nggak kebaca. Sengaja nolak semua, bukan naruh sebagian.
+  ///
+  /// In en, this message translates to:
+  /// **'The {kolom} column header couldn\'t be read, so nothing was filled in — forcing it risks numbers landing in the neighbouring column unnoticed. Retake the photo with the unit row of the table header in frame.'**
+  String lkFotoTabelKolomHilang(String kolom);
+
+  /// Jangkar baris & kolom ketemu semua, tapi nol angka di badan tabel — biasanya kertas/lembar yang difoto memang belum diisi.
+  ///
+  /// In en, this message translates to:
+  /// **'The table was recognised, but its cells are still empty — no handwritten numbers were found inside. Fill in the sheet first, then photograph it.'**
+  String get lkFotoTabelKosong;
 
   /// Foto tabel gagal total di lembar yang Repeat-nya turun ke bawah (Conductivity) — jangkarnya beda dari bentuk pH, jadi petunjuknya juga beda.
   ///
