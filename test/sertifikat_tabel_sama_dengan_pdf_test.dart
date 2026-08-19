@@ -84,6 +84,93 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Snapshot Viscometer: `u95_per_titik: true`, tiga U95 yang beda jauh.
+  ///
+  /// Angkanya dari sesi master lab yang diadu ke `SERTIFIKAT.csv` — 0,49 / 2,71
+  /// / 145,72 cP. Perhatiin jaraknya: 300 kali lipat antar titik pertama dan
+  /// terakhir. Itu yang bikin bentuk ringkas nggak bisa dipakai di alat ini.
+  CertificateDetail sertifikatViscometer() => CertificateDetail(
+    id: 77,
+    nomor: 'CAL/2026/08/0052',
+    status: 'terbit',
+    snapshot: CertificateSnapshot.fromJson(const {
+      'desimal': 2,
+      'satuan': 'cP',
+      'u95_per_titik': true,
+      'header': {'certificate_number': 'CAL/2026/08/0052'},
+      'hasil': [
+        {
+          'titik_ke': 1,
+          'standard_value': 93.87566510172147,
+          'unit_under_test': 96.72,
+          'correction': -2.8443348982785324,
+          'u95': 0.49299153941105106,
+          'desimal': 2,
+        },
+        {
+          'titik_ke': 2,
+          'standard_value': 910.2887323943662,
+          'unit_under_test': 917.66,
+          'correction': -7.371267605633875,
+          'u95': 2.712003152654588,
+          'desimal': 2,
+        },
+        {
+          'titik_ke': 3,
+          'standard_value': 61898.12,
+          'unit_under_test': 63151.85,
+          'correction': -1253.73,
+          'u95': 145.71592952342112,
+          'desimal': 2,
+        },
+      ],
+      'catatan': <String>[],
+      'standar_digunakan': <Map<String, dynamic>>[],
+      'footer': <String, dynamic>{},
+    }),
+  );
+
+  /// KETIGA U95 kelihatan di layar, bukan cuma punya titik pertama.
+  ///
+  /// ## Bug yang dijaga di sini
+  ///
+  /// Tabel ini dulu nutup tiap kelompok dengan satu baris
+  /// `Uncertainty U95% = ±` yang diambil dari baris PERTAMA kelompoknya. Bener
+  /// buat alat yang U95-nya lahir per kelompok (sepuluh baris Holmium
+  /// Spectrophotometer bawa angka yang sama persis), salah buat Viscometer yang
+  /// ketiga titiknya masuk satu kelompok tanpa remark dengan U95 beda 300 kali
+  /// lipat.
+  ///
+  /// Yang kelihatan cuma `0,49`. Dua angka sisanya nggak ada di layar — dan
+  /// layar ini justru yang dipakai admin buat nyocokin sebelum sertifikatnya
+  /// dikirim ke pelanggan.
+  testWidgets('Viscometer: tiga U95 jadi kolom, bukan satu baris ringkas', (
+    tester,
+  ) async {
+    await pasang(tester, sertifikatViscometer());
+
+    // Satuan nempel di kepala kolom cuma buat lembar bersatuan campur;
+    // snapshot ini satuannya seragam, jadi judulnya polos.
+    expect(find.text('U95%, k=2'), findsOneWidget);
+
+    for (final u95 in ['0,49', '2,71', '145,72']) {
+      expect(find.text(u95), findsOneWidget, reason: 'U95 $u95 nggak kelihatan');
+    }
+
+    // Baris ringkas lamanya nggak boleh ikut kegambar — kalau dua-duanya ada,
+    // `0,49` muncul dobel dan yang kedua kebaca kayak U95 buat SELURUH tabel.
+    expect(find.textContaining('Uncertainty U95%'), findsNothing);
+  });
+
+  /// Alat lain nggak kesenggol: bentuk ringkasnya tetap, kolom keempat nggak
+  /// muncul. Snapshot lama yang belum punya `u95_per_titik` jatuh ke `false`.
+  testWidgets('Chlorine tetap bentuk ringkas, tanpa kolom U95', (tester) async {
+    await pasang(tester, sertifikatChlorine());
+
+    expect(find.text('U95%, k=2'), findsNothing);
+    expect(find.textContaining('Uncertainty U95%'), findsWidgets);
+  });
+
   group('formatSertifikat — padanan Angka::id di backend', () {
     test('dibulatkan ke desimal alat, koma sebagai pemisah', () {
       expect(formatSertifikat(1.758, 2), '1,76');

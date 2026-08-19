@@ -3332,7 +3332,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get sertKolCorrection => 'Correction';
 
   @override
-  String get sertKolU95 => 'U95% (±)';
+  String get sertKolU95 => 'U95%, k=2';
 
   @override
   String get sertU95Baris => 'Uncertainty U95% = ±';
