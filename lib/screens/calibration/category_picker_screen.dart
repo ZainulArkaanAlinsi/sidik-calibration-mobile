@@ -7,6 +7,7 @@ import '../../models/category.dart';
 import '../../providers/calibration_input_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
+import '../../widgets/tampil_masuk.dart';
 import 'instrument_picker_screen.dart';
 
 /// Langkah 1 dari alur "Mulai Kalibrasi": pilih salah satu dari 10 kategori
@@ -63,8 +64,11 @@ class _Isi extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        for (final kategori in items) ...[
-          _KategoriCard(kategori: kategori),
+        // `ListView(children:)`, bukan `.builder` — seluruh kartu kebangun
+        // sekaligus, jadi aman dikasih animasi masuk berurutan tanpa risiko
+        // dia jalan ulang tiap digulir balik.
+        for (var i = 0; i < items.length; i++) ...[
+          TampilMasuk(indeks: i, child: _KategoriCard(kategori: items[i])),
           const SizedBox(height: AppSpacing.sm),
         ],
       ],
