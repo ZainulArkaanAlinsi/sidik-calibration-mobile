@@ -37,6 +37,12 @@ void main() {
 
     expect(profilLembarKerjaUntuk('Viscometer'), 'viscometer');
 
+    // Autoklaf: lampiran akreditasi nulis "Autoklaf", lembar kerja & DATABASE
+    // nulis "Autoclave". Dua-duanya nunjuk ke profil `autoclave` (layar khusus).
+    expect(profilLembarKerjaUntuk('Autoclave'), 'autoclave');
+    expect(profilLembarKerjaUntuk('Autoklaf'), 'autoclave');
+    expect(profilLembarKerjaUntuk('Autoclave Hirayama'), 'autoclave');
+
     // Alat tanpa lembar khusus → null, dan pemanggil yang jatuh ke `ph_meter`.
     expect(profilLembarKerjaUntuk('Jangka Sorong Mitutoyo'), isNull);
   });
