@@ -229,6 +229,7 @@ class CertificateSnapshot {
     this.desimal = 2,
     this.satuan,
     this.keputusan,
+    this.u95PerTitik = false,
   });
 
   final HeaderSertifikat header;
@@ -253,6 +254,21 @@ class CertificateSnapshot {
 
   bool get gagal => keputusan == 'FAIL';
 
+  /// `U95` dirender sebagai KOLOM di tiap baris, bukan satu baris ringkas di
+  /// bawah tabel.
+  ///
+  /// Ditentukan backend per alat (`CalibrationProfile::u95PerTitik()`), bukan
+  /// ditebak di sini — layar ini dipakai buat nyocokin sama PDF sebelum
+  /// dokumennya dikirim ke pelanggan, jadi jumlah kolomnya wajib sama.
+  ///
+  /// Viscometer `true`: tiap titik punya U95 sendiri dan jaraknya jauh (0,49 /
+  /// 2,71 / 145,72 cP). Waktu masih diringkas satu baris, yang kelihatan cuma
+  /// punya titik pertama — dua angka sisanya nggak ada di layar maupun di PDF.
+  ///
+  /// Sertifikat lama yang snapshot-nya belum punya kunci ini balik `false`,
+  /// jadi bentuknya persis kayak waktu diterbitkan.
+  final bool u95PerTitik;
+
   /// Kolom Remark cuma dirender kalau ADA yang ngisi — sama aturannya kayak
   /// `pdf.blade.php`, biar tabel di layar dan di PDF punya jumlah kolom yang
   /// sama buat sertifikat yang sama.
@@ -268,6 +284,7 @@ class CertificateSnapshot {
       desimal: (json['desimal'] as num?)?.toInt() ?? 4,
       satuan: json['satuan'] as String?,
       keputusan: meta['keputusan'] as String?,
+      u95PerTitik: json['u95_per_titik'] as bool? ?? false,
       header: HeaderSertifikat(
         json['header'] as Map<String, dynamic>? ?? const {},
       ),

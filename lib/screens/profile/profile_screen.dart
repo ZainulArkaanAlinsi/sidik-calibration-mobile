@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../core/config/app_config.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/utils/inisial_nama.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/user.dart';
 import '../../providers/app_config_provider.dart';
@@ -1397,7 +1398,9 @@ class _Header extends ConsumerWidget {
           child: _Avatar(
             size: _avatar,
             fotoPath: fotoPath,
-            inisial: user.nama.characters.first,
+            // Satu huruf, sama kayak sebelumnya — yang berubah cuma nama
+            // kosong nggak lagi nglempar `StateError` dari `characters.first`.
+            inisial: inisialNama(user.nama, maks: 1),
             onTap: onEditFoto,
           ),
         ),

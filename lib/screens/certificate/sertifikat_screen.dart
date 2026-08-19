@@ -307,17 +307,29 @@ class _TabelHasil extends StatelessWidget {
                 const SizedBox(height: AppSpacing.xs),
               ],
               Table(
-                columnWidths: const {
-                  0: FlexColumnWidth(1.1),
-                  1: FlexColumnWidth(1.1),
-                  2: FlexColumnWidth(1),
-                },
+                columnWidths: snapshot.u95PerTitik
+                    ? const {
+                        0: FlexColumnWidth(1.1),
+                        1: FlexColumnWidth(1.1),
+                        2: FlexColumnWidth(1),
+                        3: FlexColumnWidth(1),
+                      }
+                    : const {
+                        0: FlexColumnWidth(1.1),
+                        1: FlexColumnWidth(1.1),
+                        2: FlexColumnWidth(1),
+                      },
                 children: [
                   TableRow(
                     children: [
                       _sel(context, _kepala(l10n.sertKolStandard, e.value), tebal: true),
                       _sel(context, _kepala(l10n.sertKolUut, e.value), tebal: true),
                       _sel(context, _kepala(l10n.sertKolCorrection, e.value), tebal: true),
+                      // Judulnya nyebut `k=2` persis kayak master — angka
+                      // ketidakpastian tanpa faktor cakupannya nggak berarti
+                      // apa-apa.
+                      if (snapshot.u95PerTitik)
+                        _sel(context, _kepala(l10n.sertKolU95, e.value), tebal: true),
                     ],
                   ),
                   // Desimal diambil PER BARIS (`b.desimal`) dulu, baru jatuh ke
@@ -353,6 +365,17 @@ class _TabelHasil extends StatelessWidget {
                             tandaNol: b.tandaNol,
                           ),
                         ),
+                        // Desimal U95 lewat jalurnya sendiri (`desimalU95`),
+                        // bukan desimal baris — master nyetak `0,50 %T`
+                        // sementara kolom lain di blok yang sama tiga desimal.
+                        if (snapshot.u95PerTitik)
+                          _sel(
+                            context,
+                            formatSertifikat(
+                              b.u95,
+                              b.desimalU95 ?? b.desimalEfektif(d),
+                            ),
+                          ),
                       ],
                     ),
                 ],
@@ -363,6 +386,11 @@ class _TabelHasil extends StatelessWidget {
               // ulang. Tiap titik sekelompok emang bawa angka yang sama; kalau
               // suatu saat beda, yang salah datanya, dan ngerata-ratain di sini
               // cuma nyembunyiin itu.
+              //
+              // Dilewat buat alat yang U95-nya udah jadi kolom per baris —
+              // kalau dua-duanya dirender, angka titik pertama muncul dobel dan
+              // yang kedua kebaca kayak U95 buat SELURUH tabel.
+              if (!snapshot.u95PerTitik)
               Align(
                 alignment: Alignment.centerRight,
                 child: Text(

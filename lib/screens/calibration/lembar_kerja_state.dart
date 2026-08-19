@@ -378,24 +378,54 @@ class LembarKerjaState {
     // Masih bisa dikosongin manual kalau dia mau nyimpen draft.
     tanggal['tanggal_kalibrasi'] = tanggalKalibrasiAwal ?? DateTime.now();
 
+    _selaraskanKotakTeks();
+    _bangunTitik();
+  }
+
+  /// Kolom yang isinya diketik butuh controller — dan `teks` itu satu-satunya
+  /// tempat [spesifikasiAlat] & [kalimat] baca isiannya waktu payload disusun.
+  bool _pakaiKotakTeks(FieldLembarKerja f) =>
+      !f.turunan &&
+      (f.tipe == TipeField.teks ||
+          f.tipe == TipeField.teksPanjang ||
+          f.tipe == TipeField.angka ||
+          // `spesifikasi_alat.*` bertipe pilihan (mis. model & spindle
+          // Viscometer) digambar `_BarisSpesifikasi`, bukan `_PilihanTetap`
+          // — tanpa controller di sini kotaknya kepilih tapi nilainya nggak
+          // pernah masuk `spesifikasiAlat` waktu dikirim.
+          (f.tipe == TipeField.pilihan && f.spesifikasiAlat));
+
+  /// Samain isi `teks` sama bentuk yang lagi kepasang.
+  ///
+  /// Dipanggil ULANG dari [gantiBentuk], bukan cuma sekali di konstruktor.
+  /// Dulu cuma di konstruktor, dan itu bolong: bentuk yang dipasang belakangan
+  /// bisa bawa kolom yang bentuk awal nggak punya, dan kolom itu nggak dapat
+  /// controller sama sekali. Akibatnya dua-duanya diam:
+  /// `TextField(controller: null)` nampung ketikan di dalam dirinya sendiri
+  /// terus ilang waktu dikirim (`teks[kode]` null → kolomnya dilewat), dan
+  /// `_BarisSpesifikasi` yang butuh `teks[kode]!` buat dropdown malah matiin
+  /// layarnya. Diadu ke bentuk pH → Spectrophotometer, ada 6 kolom yang
+  /// kelewat — termasuk kelima `spesifikasi_alat.*` yang tercetak di
+  /// sertifikat.
+  void _selaraskanKotakTeks() {
+    final dipakai = <String>{};
+
     for (final bagian in bentuk.bagian) {
       for (final f in bagian.field) {
-        if (f.turunan) continue;
-        if (f.tipe == TipeField.teks ||
-            f.tipe == TipeField.teksPanjang ||
-            f.tipe == TipeField.angka ||
-            // `spesifikasi_alat.*` bertipe pilihan (mis. model & spindle
-            // Viscometer) digambar `_BarisSpesifikasi`, bukan `_PilihanTetap`
-            // — tanpa controller di sini kotaknya kepilih tapi nilainya nggak
-            // pernah masuk `spesifikasiAlat` waktu dikirim.
-            (f.tipe == TipeField.pilihan && f.spesifikasiAlat)) {
-          teks.putIfAbsent(f.kode, TextEditingController.new);
-        }
+        if (!_pakaiKotakTeks(f)) continue;
+        dipakai.add(f.kode);
+        teks.putIfAbsent(f.kode, TextEditingController.new);
       }
-
     }
 
-    _bangunTitik();
+    // Kolom yang udah nggak ada di bentuk baru dibuang — controller-nya nggak
+    // ada yang megang lagi, dan `spesifikasiAlat` baca dari BENTUK, jadi
+    // nyisainnya cuma bikin bocor.
+    for (final kode in teks.keys.toList()) {
+      if (dipakai.contains(kode)) continue;
+      teks.remove(kode)!.dispose();
+      _terisiDariAlat.remove(kode);
+    }
   }
 
   /// Bikin baris tabel hasil buat [satuan] yang lagi kepilih.
@@ -477,11 +507,15 @@ class LembarKerjaState {
   /// Angka itu wajib ditampilin ke teknisi: isian kalibrasi yang ilang
   /// diam-diam lebih bahaya daripada formulir yang bentuknya salah.
   ///
+  /// Kotak teksnya ikut diselaraskan ([_selaraskanKotakTeks]): kolom yang cuma
+  /// ada di bentuk baru dapat controller-nya di sini, bukan dibiarin yatim.
+  ///
   /// Yang TIDAK ikut dipertahankan: pilihan standar per titik. Itu diturunkan
   /// ulang dari bentuk yang baru dan kelihatan di daftar centang, jadi
   /// perubahannya nggak diam-diam.
   int gantiBentuk(LembarKerja baru) {
     bentuk = baru;
+    _selaraskanKotakTeks();
 
     return _bangunTitik(pertahankanIsian: true);
   }

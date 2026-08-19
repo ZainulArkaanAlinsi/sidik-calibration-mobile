@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/utils/inisial_nama.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/izin.dart';
 import '../../providers/auth_provider.dart';
@@ -660,13 +661,7 @@ class _Avatar extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 
-    final inisial = nama
-        .trim()
-        .split(RegExp(r'\s+'))
-        .where((k) => k.isNotEmpty)
-        .take(2)
-        .map((k) => k[0].toUpperCase())
-        .join();
+    final inisial = inisialNama(nama);
 
     return Tooltip(
       message: nama,
@@ -679,7 +674,7 @@ class _Avatar extends StatelessWidget {
           radius: 18,
           backgroundColor: theme.colorScheme.primaryContainer,
           child: Text(
-            inisial.isEmpty ? '?' : inisial,
+            inisial,
             style: theme.textTheme.labelMedium?.copyWith(
               color: theme.colorScheme.onPrimaryContainer,
               fontWeight: FontWeight.w700,

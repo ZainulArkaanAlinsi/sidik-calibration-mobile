@@ -6107,7 +6107,7 @@ abstract class AppLocalizations {
   /// No description provided for @sertKolU95.
   ///
   /// In en, this message translates to:
-  /// **'U95% (±)'**
+  /// **'U95%, k=2'**
   String get sertKolU95;
 
   /// No description provided for @sertU95Baris.

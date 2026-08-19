@@ -1757,7 +1757,7 @@
   "sertKolStandard": "Standard Value",
   "sertKolUut": "Unit Under Test",
   "sertKolCorrection": "Correction",
-  "sertKolU95": "U95% (±)",
+  "sertKolU95": "U95%, k=2",
   "sertU95Baris": "Uncertainty U95% = ±",
   "sertFaktorCakupan": "Coverage factor (k) = {k}, confidence level 95 %",
   "@sertFaktorCakupan": {

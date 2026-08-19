@@ -198,6 +198,7 @@ class MockLembarKerjaService implements LembarKerjaService {
       'spectrophotometer' => contohBentukLembarKerjaSpectro(
         untukAdmin: untukAdmin,
       ),
+      'viscometer' => contohBentukLembarKerjaVisco(untukAdmin: untukAdmin),
       // Profil kosong / nggak dikenal SENGAJA jatuh ke pH, bukan lempar error —
       // sama kayak janji kontraknya (`docs/kontrak-api.md` §4).
       _ => contohBentukLembarKerja(untukAdmin: untukAdmin),
@@ -1359,6 +1360,247 @@ Map<String, dynamic> contohBentukLembarKerjaSpectro({bool untukAdmin = false}) {
         'kerja tetap bisa dikirim. Tiap kelompok (Holmium / Didynium / %T) '
         'punya SATU U95 bersama yang dihitung dari STDEV terbesar di kelompok '
         'itu, jadi titik yang kosong ngurangin dasar hitungnya.',
+    'bagian': bagian,
+  };
+}
+
+/// Bentuk lembar kerja **Viscometer** (alat ke-7).
+///
+/// Tanpa ini `MockLembarKerjaService.ambilBentuk` jatuh ke cabang `_` dan
+/// mulangin lembar pH Meter buat profil `viscometer` — kartunya udah nongol di
+/// picker (`_profilKhusus` + baris CMC di `MockCategoryService`), teknisi
+/// natapnya, dan yang kebuka formulir alat lain tanpa satu pun error. Persis
+/// kegagalan diam yang bikin commit "alat ke-7 nyambung ke lembar kerja"
+/// ditulis, cuma pindah ke jalur offline.
+///
+/// Bagian `hasil`-nya disalin dari keluaran backend beneran
+/// (`test/fixtures/viscometer-bentuk-hasil.json`, dump
+/// `ViscometerProfile::bentukLembarKerja()`): dua tabel Before/After yang
+/// isinya sama, kolom `cP` + `°C` per Repeat, dan Spindle/RPM/Resolusi PER
+/// TITIK. Bagian identitas & penutupnya nyusul pola enam alat lain, karena
+/// dump-nya cuma nyimpen bagian hasil.
+Map<String, dynamic> contohBentukLembarKerjaVisco({bool untukAdmin = false}) {
+  Map<String, dynamic> field(
+    String kode,
+    String label,
+    String tipe, {
+    String? sumber,
+    String? satuan,
+    List<Map<String, String>> pilihan = const [],
+    bool hanyaAdmin = false,
+  }) => {
+    'kode': kode,
+    'label': label,
+    'tipe': tipe,
+    'wajib': false,
+    'sumber': sumber,
+    'satuan': satuan,
+    'pilihan': pilihan,
+    'hanya_admin': hanyaAdmin,
+  };
+
+  // Tiga titik master lab: nilai sertifikat larutannya (99,65 / 1018 / 59003
+  // cP) beda jauh dari label bulat yang TERCETAK di kertas (100 / 1000 /
+  // 60000). Bedanya sengaja dipertahankan — itu yang bikin `labelTercetak`
+  // ada di jalur foto tabel, dan mock yang meratakan keduanya bakal nutupin
+  // bug jangkar yang justru mau dijaga.
+  const titik = [
+    (nilai: 99.65, label: '100', standardId: 28),
+    (nilai: 1018.0, label: '1000', standardId: 29),
+    (nilai: 59003.0, label: '60000', standardId: 30),
+  ];
+
+  Map<String, dynamic> tabel(String tahap, String judul) => {
+    'tahap': tahap,
+    'judul': judul,
+    'satuan': 'cP',
+    'judul_nilai': 'Standard',
+    'judul_pengulangan': 'UUT Reading',
+    // `prefiks_pengulangan` sengaja NULL: kertas Rev.3 nyetak kepala kolomnya
+    // sebagai nomor polos `1`..`5`, bukan `X1` / `Repeat 1`.
+    'baris': [
+      for (final t in titik)
+        {
+          'titik_ukur': t.nilai,
+          'label': t.label,
+          'resolusi': 0.1,
+          'desimal': 1,
+          'satuan': 'cP',
+          'standard_id': t.standardId,
+          'standard_nama': 'Viscosity Standard Solution ${t.label} cP',
+        },
+    ],
+    // Dua sub-kolom per Repeat — pembacaan DAN suhu larutannya, karena nilai
+    // acuan larutan diinterpolasi di suhu terukur titik itu.
+    'kolom': const [
+      {'kode': 'pembacaan', 'label': 'cP', 'tipe': 'angka', 'satuan': 'cP'},
+      {'kode': 'suhu', 'label': '°C', 'tipe': 'angka', 'satuan': '°C'},
+    ],
+    'pengulangan': const [1, 2, 3, 4, 5],
+  };
+
+  // Daftar spindle dipangkas kayak fixture-nya (aslinya 63 opsi). Yang
+  // disisain cuma yang ANGKANYA ada di dokumen lab: HA1/HA2/HA7 dari sesi
+  // master (`docs/data-uji-viscometer.md` §3) plus dua RV yang kebawa di dump
+  // backend. SMC nggak ditebak dari konvensi Brookfield — salah satu digit di
+  // sini nggeser Fullscale ratusan kali dan vonis PASS/FAIL ikut geser.
+  const spindle = [
+    {'nilai': 'HA1', 'label': 'HA1 (SMC 1)', 'grup': 'HA'},
+    {'nilai': 'HA2', 'label': 'HA2 (SMC 4)', 'grup': 'HA'},
+    {'nilai': 'HA7', 'label': 'HA7 (SMC 400)', 'grup': 'HA'},
+    {'nilai': 'RV1', 'label': 'RV1 (SMC 1)', 'grup': 'RV'},
+    {'nilai': 'RV2', 'label': 'RV2 (SMC 4)', 'grup': 'RV'},
+  ];
+
+  final bagian = <Map<String, dynamic>>[
+    {
+      'kode': 'identitas_alat',
+      'halaman': 1,
+      'judul': 'EQUIPMENT IDENTITY AND CUSTOMER DATA',
+      'field': [
+        field('tanggal_terima', 'Received Date', 'tanggal'),
+        field('tanggal_kalibrasi', 'Calibration Date', 'tanggal'),
+        field('equipment_id', 'Equipment', 'pilihan', sumber: 'master_alat'),
+        field('equipment.nama_alat', '1. Name', 'teks', sumber: 'otomatis'),
+        // Kode yang sama kayak enam alat lain — `nilaiOtomatis` di
+        // `LembarKerjaState` cuma kenal daftar `equipment.*` yang itu, dan kode
+        // karangan bakal nampilin kotak kosong selamanya tanpa ngeluh.
+        field('equipment.range_resolusi', '2. Range/Resolution', 'teks',
+            sumber: 'otomatis', satuan: 'cP'),
+        field('alat_model', '3. Type/Model', 'teks'),
+        field('alat_serial_number', '4. Serial Number/LPI', 'teks'),
+        field('alat_merk', '5. Merk/Manufacture', 'teks'),
+        field('thermohygro_standard_id', '6. Thermohygro used', 'pilihan',
+            sumber: 'master_thermohygro'),
+      ],
+    },
+    {
+      'kode': 'pemilik',
+      'halaman': 1,
+      'judul': 'OWNER',
+      'field': [
+        field('pemilik_nama', '1. Name', 'teks'),
+        field('pemilik_alamat', '2. Address', 'teks_panjang'),
+      ],
+    },
+    {
+      'kode': 'model_viscometer',
+      'halaman': 1,
+      'judul': 'Model Viscometer',
+      // Dipilih SEKALI per sesi, dan dia yang nentuin `TK` di
+      // `Fullscale = TK × SMC × 10000 / RPM`. Nggak dipilih → MPE nggak ada →
+      // sertifikatnya terbit tanpa vonis PASS/FAIL, bukan ditolak.
+      'field': [
+        field(
+          'spesifikasi_alat.model_viscometer',
+          'Model',
+          'pilihan',
+          // Cuma model yang dipakai sesi master (`TK = 2`) yang ditulis di
+          // sini. Model lain ada di backend, tapi TK-nya belum kecatat di
+          // dokumen mana pun yang repo ini pegang.
+          pilihan: const [
+            {'nilai': 'DV2THA', 'label': 'DV2THA / HA (TK 2)'},
+          ],
+        ),
+      ],
+    },
+    {
+      'kode': 'usage_check',
+      'halaman': 1,
+      'judul': 'STANDARD',
+      'baris': [
+        for (final t in titik)
+          {
+            'label': 'Viscosity Standard Solution ${t.label} cP',
+            'standard_id': t.standardId,
+            'terdaftar': true,
+          },
+      ],
+      'field': <Map<String, dynamic>>[],
+    },
+    {
+      'kode': 'data_kalibrasi',
+      'halaman': 1,
+      'judul': 'CALIBRATION DATA',
+      'field': [
+        field('lokasi', '1. Location', 'pilihan', pilihan: const [
+          {'nilai': 'lab', 'label': 'In lab'},
+          {'nilai': 'onsite', 'label': 'Insitu'},
+        ]),
+        field('lokasi_nama', 'Nama Lokasi (kalau Insitu)', 'teks'),
+        field('teknisi.kode', 'Technician ID', 'teks', sumber: 'otomatis'),
+        field('room_id', 'Ruangan', 'pilihan', sumber: 'master_ruangan'),
+        if (untukAdmin)
+          field('calibration_method_id', '2. Calibration Methode', 'pilihan',
+              sumber: 'master_metode', hanyaAdmin: true),
+      ],
+    },
+    {
+      'kode': 'hasil',
+      'halaman': 1,
+      'judul': 'Data Result',
+      'field': [
+        field('suhu_awal', 'T awal', 'angka', satuan: '°C'),
+        field('suhu_akhir', 'T akhir', 'angka', satuan: '°C'),
+        field('kelembaban_awal', 'RH awal', 'angka', satuan: '%RH'),
+        field('kelembaban_akhir', 'RH akhir', 'angka', satuan: '%RH'),
+        // Spindle & RPM PER TITIK, bukan sekali per lembar: sesi master pakai
+        // tiga spindle beda dengan dua kecepatan di satu lembar. Urutannya
+        // dijaga per titik supaya `_indeksTitik` bisa nempelin tiap set ke
+        // tabel titiknya.
+        for (var i = 0; i < titik.length; i++) ...[
+          field(
+            'spesifikasi_alat.spindle_titik_${i + 1}',
+            'Spindle — ${titik[i].label} cP',
+            'pilihan',
+            pilihan: spindle,
+          ),
+          field(
+            'spesifikasi_alat.rpm_titik_${i + 1}',
+            'RPM — ${titik[i].label} cP',
+            'angka',
+            satuan: 'rpm',
+          ),
+          field(
+            'spesifikasi_alat.resolusi_titik_${i + 1}',
+            'Resolusi — ${titik[i].label} cP',
+            'angka',
+            satuan: 'cP',
+          ),
+        ],
+      ],
+      'tabel': [
+        tabel('sebelum_adjustment', 'Before Adjustment'),
+        tabel('sesudah_adjustment', 'After Adjustment'),
+      ],
+    },
+    {
+      'kode': 'penutup',
+      'halaman': 1,
+      'judul': 'Catatan & Tanda Tangan',
+      'field': [
+        field('catatan_teknisi', 'Catatan', 'teks_panjang'),
+        field('teknisi.nama', 'Calibrated by', 'teks', sumber: 'otomatis'),
+        field('reviewer.nama', 'Checked by', 'teks', sumber: 'otomatis'),
+      ],
+    },
+  ];
+
+  return {
+    'kode_dokumen': 'SIDIK-FM-CAL-0524_Rev.3',
+    'kode_metode': 'SIDIK-IK-CAL-0517_Rev.3',
+    'judul': 'Calibration Worksheet - Viscometer',
+    'untuk': untukAdmin ? 'admin' : 'teknisi',
+    'jumlah_pengulangan': 5,
+    'larutan_standar': const [99.65, 1018.0, 59003.0],
+    'satuan': 'cP',
+    'satuan_suhu': '°C',
+    'semua_kolom_opsional': true,
+    'catatan_pengisian':
+        'Kolom yang belum bisa diisi di lapangan boleh dikosongin — lembar '
+        'kerja tetap bisa dikirim. Khusus alat ini: Spindle & RPM tiap titik '
+        'ikut nentuin batas keberterimaan (MPE), jadi titik yang dua kolom itu '
+        'kosong tetap dihitung U95%-nya tapi nggak dapat vonis PASS/FAIL.',
     'bagian': bagian,
   };
 }
