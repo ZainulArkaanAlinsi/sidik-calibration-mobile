@@ -35,6 +35,8 @@ void main() {
       'spectrophotometer',
     );
 
+    expect(profilLembarKerjaUntuk('Viscometer'), 'viscometer');
+
     // Alat tanpa lembar khusus → null, dan pemanggil yang jatuh ke `ph_meter`.
     expect(profilLembarKerjaUntuk('Jangka Sorong Mitutoyo'), isNull);
   });
@@ -108,6 +110,10 @@ void main() {
       // nama alatnya nggak kedaftar di `_profilKhusus`. Persis kejadian
       // Refractometer 7 Agt, terulang.
       'Spectrophotometer',
+      // Ditambah 18 Agt 2026: alat ke-7. `_profilKhusus` udah kenal
+      // 'viscometer', tapi tanpa baris CMC di sini kartunya nggak muncul —
+      // kejadian yang sama, ketiga kalinya.
+      'Viscometer',
     ]) {
       expect(
         namaAlat,

@@ -96,6 +96,7 @@ const _profilKhusus = {
   'spectrophotometer': 'spectrophotometer',
   'spektrofotometer': 'spectrophotometer',
   'spectrofotometer': 'spectrophotometer',
+  'viscometer': 'viscometer',
 };
 
 /// Cocokin nama alat ke kode profil lembar kerja, **case-insensitive, spasi

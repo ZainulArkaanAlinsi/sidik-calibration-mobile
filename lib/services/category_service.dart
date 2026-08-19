@@ -289,6 +289,41 @@ class MockCategoryService implements CategoryService {
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0508_Rev.4',
       ),
+      // 3 titik Viscometer (alat ke-7) — angkanya dari lampiran akreditasi
+      // LK-285-IDN no. 44 (`docs/Rekap-Data-Kemampuan-Kalibrasi.md`). Sama
+      // alasannya kayak Refractometer & Spectrophotometer di atas: tanpa baris
+      // ini kartunya nggak muncul di picker walau `_profilKhusus` udah kenal
+      // namanya, dan lembar kerjanya nggak bisa dibuka lewat jalur mana pun.
+      CalibrationCapability(
+        namaAlat: 'Viscometer',
+        rangeMin: 102,
+        rangeMax: 102,
+        satuan: 'cP',
+        ketidakpastianTerbaik: 0.2,
+        satuanKetidakpastian: 'cP',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0517_Rev.3',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Viscometer',
+        rangeMin: 1028,
+        rangeMax: 1028,
+        satuan: 'cP',
+        ketidakpastianTerbaik: 2.1,
+        satuanKetidakpastian: 'cP',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0517_Rev.3',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Viscometer',
+        rangeMin: 58021,
+        rangeMax: 58021,
+        satuan: 'cP',
+        ketidakpastianTerbaik: 1.4,
+        satuanKetidakpastian: 'cP',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0517_Rev.3',
+      ),
     ];
 
     return switch (kode) {
