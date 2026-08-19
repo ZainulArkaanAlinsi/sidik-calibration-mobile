@@ -42,7 +42,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
   }
 
-  Widget app(MockLembarKerjaService service) => ProviderScope(
+  Widget app(MockLembarKerjaService service, {String profil = 'ph_meter'}) => ProviderScope(
     overrides: [
       tokenStorageProvider.overrideWithValue(
         InMemoryTokenStorage('mock-token-1'),
@@ -62,7 +62,7 @@ void main() {
       locale: const Locale('id'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: const LembarKerjaScreen(profil: 'ph_meter'),
+      home: LembarKerjaScreen(profil: profil),
     ),
   );
 
@@ -106,6 +106,65 @@ void main() {
     await tester.enterText(kotak.at(1), '22.2');
     await tester.pumpAndSettle();
   }
+
+  /// Lembar kerja Viscometer yang ASLI — bentuknya dari backend, dua tabel,
+  /// tiga titik (99,65 / 1018 / 59003 cP), bukan lembar pH yang dipakai test di
+  /// bawah.
+  ///
+  /// Bedanya menentukan: penjaga orde mengadu pembacaan ke `titik_ukur` BARIS
+  /// ITU, dan titik viscometer angkanya besar-besar. `631.74` di baris 59003 cP
+  /// rasionya 0,0107 — persis kasus 19 Agt 2026 yang bikin lembarnya kekunci
+  /// mati, dan persis angka yang muncul waktu sel master `631.74.2` diketik
+  /// ulang teknisi.
+  testWidgets('lembar Viscometer asli: 631.74 di titik 59003 bisa nembus', (
+    tester,
+  ) async {
+    perbesarViewport(tester);
+    final service = MockLembarKerjaService();
+    await muat(tester, app(service, profil: 'viscometer'));
+    await siapkanLembar(tester);
+
+    final tabelAfter = find.ancestor(
+      of: find.text('After Adjustment'),
+      matching: find.byType(Column),
+    );
+    final kotak = find.descendant(
+      of: tabelAfter.first,
+      matching: find.byType(TextField),
+    );
+
+    // Baris ketiga (titik 59003 cP), Repeat 1. Tiap Repeat dua sub-kolom
+    // (cP + °C) dan tiap baris 5 Repeat, jadi baris ke-3 mulai di indeks 20.
+    await tester.enterText(kotak.at(20), '631.74');
+    await tester.enterText(kotak.at(21), '24.6');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('KIRIM KE ADMIN'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Angkanya kelihatan nggak wajar'), findsOneWidget);
+    expect(find.textContaining('melesetnya lebih dari 10×'), findsOneWidget);
+
+    await tester.tap(find.text('Angkanya emang segitu — kirim'));
+    await tester.pumpAndSettle();
+
+    final konfirmasi = find.text('Kirim sekarang');
+    if (konfirmasi.evaluate().isNotEmpty) {
+      await tester.tap(konfirmasi);
+      await tester.pumpAndSettle();
+    }
+
+    expect(service.jumlahKirim, 1, reason: 'lembar viscometer nggak jadi kekirim');
+
+    // Angkanya nyampe APA ADANYA — nggak dibuletin, nggak dibuang.
+    final measurements =
+        service.payloadTerakhir!['measurements'] as List<dynamic>;
+    final titik = measurements.firstWhere(
+      (m) => (m as Map)['titik_ukur'] == 59003,
+    ) as Map<String, dynamic>;
+
+    expect((titik['pembacaan'] as List<dynamic>).first, 631.74);
+  });
 
   testWidgets('peringatannya dialog, bukan penolakan diam-diam', (
     tester,
