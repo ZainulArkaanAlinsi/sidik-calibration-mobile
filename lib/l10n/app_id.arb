@@ -306,6 +306,18 @@
   "equipRangeMax": "Rentang maks.",
   "equipSatuan": "Satuan",
   "equipResolusi": "Resolusi",
+  "equipResolusiRentang": "Resolusi per titik",
+  "equipResolusiRentangHint": "Isi kalau alat ini TIDAK seragam — resolusi atau satuannya berubah antar titik. Kosongkan kalau resolusi tunggal di atas sudah mewakili. Isian ini yang nentuin satuan tiap baris lembar kerja dan jumlah desimal yang kecetak di sertifikat.",
+  "equipResolusiBentukTitik": "Titik standar",
+  "equipResolusiBentukMaks": "Batas atas",
+  "equipResolusiTitik": "Titik standar",
+  "equipResolusiMaks": "Batas atas",
+  "equipResolusiMaksKosong": "kosong = golongan terakhir",
+  "equipResolusiTambahBaris": "TAMBAH BARIS RESOLUSI",
+  "equipResolusiHapusBaris": "Hapus baris",
+  "equipResolusiBarisWajib": "Wajib diisi, lebih besar dari 0.",
+  "equipResolusiTitikWajib": "Wajib diisi.",
+  "equipResolusiBarisAdaYangSalah": "Ada baris resolusi yang belum bener di bawah.",
   "equipToleransi": "Toleransi",
   "equipToleransiWajib": "Toleransi wajib diisi.",
   "equipToleransiWajibHint": "Alat tanpa toleransi nggak bisa dikalibrasi — PASS/FAIL-nya nggak bisa diputusin.",
@@ -318,6 +330,11 @@
   "historyLoadFailed": "Gagal memuat riwayat.",
   "historySessionExpired": "Sesi kamu habis. Login ulang ya.",
   "historyRetry": "COBA LAGI",
+  "historySegarkan": "Segarkan daftar",
+  "historyPeringatanJudul": "Periksa dulu sebelum disetujui",
+  "historyPeringatanBody": "Sistem ngitung ulang sesi ini dan nemu hal yang perlu dilihat lagi. Kamu tetap boleh menyetujui — tapi sertifikatnya bakal terbit di atas data ini.",
+  "historyPeringatanBatal": "PERIKSA LAGI",
+  "historyPeringatanLanjut": "SETUJUI TETAP",
   "historyCertNumber": "No. sertifikat {nomor}",
   "historyStatusPass": "PASS",
   "historyStatusFail": "FAIL",
@@ -378,6 +395,14 @@
   "detailBelumDihitung": "Sesi ini belum dihitung server — hasil bakal muncul begitu sesi diproses.",
   "detailLihatSertifikat": "LIHAT SERTIFIKAT",
   "detailTitikLabel": "Titik {index} · {nilai}",
+  "detailProsesHitung": "Proses hitung",
+  "detailProsesCatatan": "Rumusnya disalin dari master Excel lab; angkanya dihitung server, bukan di HP.",
+  "detailRumusTypeA": "= STDEV / pembagi keterulangan",
+  "detailRumusTypeB": "= AKAR(jumlah kuadrat komponen di bawah)",
+  "detailVeff": "Derajat kebebasan efektif",
+  "detailJumlahPengulangan": "Jumlah pembacaan",
+  "detailKolStandard": "Standar",
+  "detailKolU95": "U95%",
   "detailRataRata": "Rata-rata",
   "detailError": "Error",
   "detailKoreksi": "Koreksi",
@@ -402,6 +427,16 @@
   "detailSesudahAdjustment": "Sesudah adjustment (disertifikasi)",
   "detailAsFoundCatatan": "Dokumentasi kondisi alat waktu diterima — nggak ikut hasil yang disertifikasi.",
   "detailPerluVerifikasi": "Masih ada pembacaan OCR yang belum dikonfirmasi — sesi ini belum bisa di-approve.",
+  "detailVerifikasiTombol": "Saya sudah cek angkanya",
+  "detailVerifikasiSukses": "Pembacaan dikonfirmasi. Sesi ini sekarang bisa diperiksa admin.",
+  "detailVerifikasiGagal": "Gagal mengonfirmasi: {pesan}",
+  "@detailVerifikasiGagal": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
   "arsipTitle": "Arsip",
   "arsipCariPerusahaan": "Cari perusahaan...",
   "arsipPerusahaanKosong": "Belum ada perusahaan.",
@@ -654,26 +689,6 @@
   "phCalibCaraManual": "Ketik manual",
   "phCalibCaraManualKeterangan": "Isi sendiri tiap kolom",
   "phCalibCaraCatatan": "Angka hasil foto tetap wajib dicek sebelum dikirim. Sertifikat yang sudah terbit tidak bisa diubah.",
-  "phCalibScanTooltip": "Foto layar pH meter",
-  "phCalibScanGagal": "Angkanya nggak kebaca jelas. Coba foto ulang lebih dekat, atau ketik manual.",
-  "phCalibScanError": "Kamera nggak bisa dibuka.",
-  "phCalibFotoTabel": "FOTO TABEL",
-  "phCalibFotoTabelSesudah": "Sesudah adjustment",
-  "phCalibFotoTabelSebelum": "Sebelum adjustment",
-  "phCalibFotoTabelJudul": "Mau foto tabel yang mana?",
-  "phCalibFotoTabelInfo": "Sekali foto ngisi satu tabel penuh buat ketiga buffer. Sel yang udah keisi nggak akan ditimpa — jadi boleh foto ulang berkali-kali.",
-  "phCalibFotoTabelHasil": "{terisi} dari {total} sel keisi.",
-  "phCalibFotoTabelTakTerbaca": "Nggak ada angka yang kebaca sama sekali. Fotonya kemungkinan gelap, buram, atau kejauhan — coba lebih dekat dan terang. Kolomnya tetap bisa diketik manual.",
-  "phCalibFotoTabelPosisiKacau": "{jumlah} angka kebaca, tapi belum kebentuk tabel. Biasanya karena fotonya miring atau yang kefoto selembar penuh — coba foto TABEL-nya aja, tegak lurus dari atas. Kolomnya tetap bisa diketik manual.",
-  "@phCalibFotoTabelPosisiKacau": {
-    "placeholders": {
-      "jumlah": {
-        "type": "int"
-      }
-    }
-  },
-  "phCalibFotoTabelKosong": "Angka di foto belum kebaca. Tips: foto TABEL-nya aja (nggak usah selembar penuh), tegak lurus dari atas, cahaya rata tanpa bayangan tangan. Atau ketik manual.",
-  "phCalibFotoTabelSisa": "Sel yang kosong: ketik manual atau foto ulang — yang udah keisi nggak bakal keganti.",
   "phCalibFotoHeaderHasil": "Plus {jumlah} kolom di luar tabel (kondisi, catatan, standar dipakai) — tolong dicek.",
   "@phCalibFotoHeaderHasil": {
     "placeholders": {
@@ -849,13 +864,138 @@
   "lkKosong": "—",
   "lkPilihTanggal": "Pilih tanggal",
   "lkHapusTanggal": "Kosongkan tanggal",
+  "lkKondisiLingkungan": "Environment Condition",
+  "@lkKondisiLingkungan": {
+    "description": "Judul tabel kondisi lingkungan di lembar kerja."
+  },
+  "lkWaktu": "Time",
+  "@lkWaktu": {
+    "description": "Kepala kolom waktu (First/End) di tabel kondisi lingkungan."
+  },
+  "lkSuhu": "Temperature",
+  "@lkSuhu": {
+    "description": "Kepala kolom suhu di tabel kondisi lingkungan."
+  },
+  "lkKelembaban": "Humidity",
+  "@lkKelembaban": {
+    "description": "Kepala kolom kelembaban di tabel kondisi lingkungan."
+  },
+  "lkAwal": "First",
+  "@lkAwal": {
+    "description": "Baris pengukuran awal di tabel kondisi lingkungan."
+  },
+  "lkAkhir": "End",
+  "@lkAkhir": {
+    "description": "Baris pengukuran akhir di tabel kondisi lingkungan."
+  },
+  "lkPindaiGagalFoto": "Foto tidak bisa dibaca. Coba jepret ulang.",
+  "@lkPindaiGagalFoto": {
+    "description": "Pesan waktu foto gagal didekode atau pindai gagal karena sebab tak terduga."
+  },
+  "lkPindaiTanpaGeometri": "Koordinat sel lembar ini belum ada di server.",
+  "@lkPindaiTanpaGeometri": {
+    "description": "Pesan waktu template belum punya koordinat sel."
+  },
+  "lkPindaiMarkerHilang": "Empat penanda sudut tidak ketemu. Pastikan seluruh lembar masuk frame dan cukup terang.",
+  "@lkPindaiMarkerHilang": {
+    "description": "Pesan waktu empat penanda sudut tidak ditemukan di foto."
+  },
+  "lkPindaiTerlaluMiring": "Fotonya terlalu miring. Jepret lebih tegak lurus di atas lembar.",
+  "lkFotoTabel": "FOTO TABEL INI",
+  "lkFotoTabelGagal": "Foto tidak bisa dibaca. Coba jepret ulang.",
+  "lkFotoTabelTanpaJangkar": "Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom nilai standar (kiri) dan kepala kolom Repeat (nomor 1..5, atau X1 / Repeat 1) ikut kefoto — semuanya, jangan ada yang kepotong. Kolomnya tetap bisa diketik manual.",
+  "lkFotoTabelKolomHilang": "Label kolom {kolom} nggak kebaca di foto, jadi nggak ada yang diisi — kalau dipaksa, angkanya bisa mendarat di kolom sebelah tanpa ketahuan. Jepret ulang dengan baris satuan di kepala tabel ikut masuk frame.",
+  "lkFotoTabelKosong": "Tabelnya kebaca, tapi kotak isiannya masih kosong — nggak ada angka tulisan tangan yang ketemu di dalamnya. Isi dulu kertasnya, baru difoto.",
+  "@lkFotoTabelKosong": {
+    "description": "Jangkar baris & kolom ketemu semua, tapi nol angka di badan tabel — biasanya kertas/lembar yang difoto memang belum diisi."
+  },
+  "@lkFotoTabelKolomHilang": {
+    "description": "Foto tabel gagal karena label sub-kolom (mis. cP / °C) nggak kebaca. Sengaja nolak semua, bukan naruh sebagian.",
+    "placeholders": {
+      "kolom": {
+        "type": "String"
+      }
+    }
+  },
+  "lkFotoTabelTanpaJangkarKeBawah": "Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom Repeat (kiri) dan kepala kolom larutan (baris paling atas) ikut kefoto — tanpa itu angkanya nggak bisa ditaruh dengan aman. Kolomnya tetap bisa diketik manual.",
+  "lkFotoTabelTerisi": "{terisi} sel keisi dari foto. Semuanya ditandai perlu dicek — cocokin sama kertasnya.",
+  "lkFotoTabelSebagian": "{terisi} sel keisi, {terbuang} angka dilewat karena tempatnya nggak bisa dipastikan. Yang kosong ketik manual.",
+  "lkFotoTabelError": "Foto tabel gagal: {pesan}",
+  "@lkFotoTabelTerisi": {
+    "placeholders": {
+      "terisi": {
+        "type": "int"
+      }
+    }
+  },
+  "@lkFotoTabelSebagian": {
+    "placeholders": {
+      "terisi": {
+        "type": "int"
+      },
+      "terbuang": {
+        "type": "int"
+      }
+    }
+  },
+  "@lkFotoTabelError": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
+  "lkPindaiTemplateGagal": "Bentuk lembar buat pindai gagal diambil: {pesan}",
+  "@lkPindaiTemplateGagal": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
+  "lkPindaiTemplateMemuat": "Menyiapkan pindai…",
+  "lkPindaiQrHilang": "Kode QR versi lembar nggak kebaca. Formulir lama tanpa QR nggak bisa dipindai — cetak ulang lembarnya, atau ketik manual.",
+  "lkPindaiQrLembarLain": "QR yang kebaca punya lembar/versi lain. Foto ulang nggak nolong — pastikan lembarnya yang bener.",
+  "lkPindaiBuram": "Fotonya buram. Tahan HP lebih diam, lalu foto ulang.",
+  "lkPindaiGelap": "Terlalu gelap. Cari cahaya yang lebih terang, lalu foto ulang.",
+  "lkPindaiSilau": "Terlalu terang sampai angkanya pudar. Kurangi cahaya langsung, lalu foto ulang.",
+  "lkPindaiPantulan": "Ada pantulan cahaya di lembar. Geser sedikit posisinya, lalu foto ulang.",
+  "lkPindaiKejauhan": "Fotonya kejauhan — angkanya kekecilan buat dibaca. Dekatkan HP, lalu foto ulang.",
+  "lkPindaiTerpakai": "{terisi} sel keisi dari hasil pindai. Sel yang udah ada isinya nggak ditimpa.",
+  "@lkPindaiTerpakai": {
+    "placeholders": {
+      "terisi": {
+        "type": "int"
+      }
+    }
+  },
+  "lkPindaiBugAplikasi": "Pindai ditolak server: {pesan} Ini kesalahan aplikasi, bukan fotonya — laporkan ke tim, dan ketik manual dulu.",
+  "@lkPindaiBugAplikasi": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
+  "@lkPindaiTerlaluMiring": {
+    "description": "Pesan waktu geometri foto meleset terlalu jauh."
+  },
   "lkRepeat": "Repeat",
   "lkUsageCheckKosong": "Belum ada standar acuan di master data.",
   "lkUsageCheckKeterangan": "Keterangan",
   "lkStandarPerTitik": "Standar titik",
   "lkStandarKadaluarsa": "sertifikat kadaluarsa",
   "lkStandarTitikDipakai": "Titik {label} — {standar}",
-  "@lkStandarTitikDipakai": { "placeholders": { "label": { "type": "String" }, "standar": { "type": "String" } } },
+  "@lkStandarTitikDipakai": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "standar": {
+        "type": "String"
+      }
+    }
+  },
   "lkStandarTitikGanti": "Ganti",
   "lkStandarTitikTercetak": "Sesuai lembar kerja",
   "antreanSemuaPt": "Semua PT ({jumlah})",
@@ -936,6 +1076,108 @@
   "lkBerhasilDraft": "Tersimpan sebagai draft.",
   "lkGagalKirim": "Gagal menyimpan: {pesan}",
   "lkSemuaOpsional": "Kolom yang belum bisa diisi di lapangan boleh dikosongin — lembar kerjanya tetap bisa dikirim.",
+  "lkBagianBelumBisaDiisi": "BELUM BISA DIISI",
+  "pindaiReviewJudul": "Cek Hasil Pindai",
+  "pindaiRingkasan": "{total} sel dibaca · {kuning} perlu dicek · {merah} nggak kebaca · {kosong} kosong",
+  "@pindaiRingkasan": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "kuning": {
+        "type": "int"
+      },
+      "merah": {
+        "type": "int"
+      },
+      "kosong": {
+        "type": "int"
+      }
+    }
+  },
+  "pindaiCatatanKuning": "Tulisan tangan nggak pernah ditandai aman otomatis — jadi wajar kalau hampir semuanya perlu dicek. Cocokin angkanya sama potongan foto di sebelahnya.",
+  "pindaiPakaiAngka": "PAKAI ANGKA INI",
+  "pindaiDitahanServer": "Masih ada sel yang nggak kebaca. Betulin dulu, atau ketik manual di lembar kerjanya.",
+  "pindaiRepeat": "Repeat {nomor}",
+  "@pindaiRepeat": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
+  "pindaiTerbaca": "Terbaca: {teks}",
+  "@pindaiTerbaca": {
+    "placeholders": {
+      "teks": {
+        "type": "String"
+      }
+    }
+  },
+  "pindaiNormalisasi": "Dibetulkan server: {catatan}",
+  "@pindaiNormalisasi": {
+    "placeholders": {
+      "catatan": {
+        "type": "String"
+      }
+    }
+  },
+  "pindaiKoreksiGagal": "Angkanya kepakai, tapi catatan koreksinya gagal dikirim: {pesan}",
+  "@pindaiKoreksiGagal": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
+  "pindaiAlasanMeluber": "tulisannya keluar dari kotak, bisa jadi kebaca dari kolom sebelah",
+  "pindaiAlasanLuarRentang": "angkanya di luar rentang wajar titik ini",
+  "pindaiAlasanMagnitudo": "angkanya jauh dari nilai standar titik ini",
+  "pindaiAlasanKoreksiKarakter": "ada huruf yang ditebak jadi angka",
+  "pindaiAlasanDesimalBanyak": "desimalnya lebih banyak dari resolusi alat",
+  "pindaiAlasanBukanKelipatan": "angkanya nggak mungkin keluar dari alat dengan resolusi ini",
+  "pindaiAlasanJauhDariRepeat": "angkanya jauh beda dari Repeat lain di baris ini",
+  "pindaiAlasanSebarTakDiuji": "Repeat yang kebaca terlalu sedikit buat dibandingin",
+  "pindaiAlasanBanyakSubstitusi": "terlalu banyak huruf yang harus ditebak",
+  "pindaiAlasanKarakterAsing": "ada karakter yang bukan angka",
+  "pindaiAlasanBentukTakWajar": "bentuk angkanya nggak masuk akal",
+  "pindaiAlasanDigitBanyak": "digitnya kebanyakan buat kolom ini",
+  "pindaiAlasanPemisahTakWajar": "letak koma/titiknya nggak wajar",
+  "pindaiAlasanDesimalAmbigu": "nggak jelas titik itu koma desimal atau pemisah ribuan",
+  "pindaiAlasanMinusTengah": "ada tanda minus di tengah angka",
+  "pindaiAlasanMinusTakBoleh": "kolom ini nggak boleh bernilai negatif",
+  "lkRepeatMenyimpang": "Di titik {titik} ada satu pembacaan yang jauh beda dari Repeat lainnya — cek lagi, kemungkinan ada digit yang ketuker waktu ngetik. Satu angka begini bisa bikin ketidakpastian di sertifikat meleset ratusan kali lipat.",
+  "@lkRepeatMenyimpang": {
+    "placeholders": {
+      "titik": {
+        "type": "String"
+      }
+    }
+  },
+  "lkPindaiLembar": "PINDAI LEMBAR KERJA",
+  "lkPindaiBelumSiap": "Belum bisa dipindai: {alasan}",
+  "@lkPindaiBelumSiap": {
+    "placeholders": {
+      "alasan": {
+        "type": "String"
+      }
+    }
+  },
+  "lkPratinjauJudul": "HASIL HITUNG SEMENTARA",
+  "lkPratinjauCatatan": "Dihitung server dari isian yang sekarang, bukan di HP. Angkanya bisa berubah kalau baris lain ikut diisi.",
+  "lkPratinjauKolomTitik": "Titik",
+  "lkPratinjauKolomRata": "Rata-rata",
+  "lkPratinjauKolomKoreksi": "Koreksi",
+  "lkPratinjauKolomU95": "U95",
+  "lkPratinjauBelumDihitung": "BELUM BISA DIHITUNG",
+  "lkPratinjauTitikKe": "Titik ke-{nomor}",
+  "@lkPratinjauTitikKe": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
   "lkKeluarTanpaSimpan": "Keluar tanpa menyimpan?",
   "lkKeluarTanpaSimpanBody": "Yang udah kamu ketik bakal ilang.",
   "lkKeluarBatal": "LANJUT ISI",
@@ -1007,6 +1249,7 @@
   "perhitAwal": "Awal",
   "perhitAkhir": "Akhir",
   "perhitAverage": "Average",
+  "perhitObserved": "dibaca (sebelum koreksi suhu)",
   "perhitIndexed": "Indexed Value",
   "perhitCorrection": "Correction",
   "perhitDelta": "Δ",
@@ -1052,6 +1295,15 @@
   "sertKolUut": "Unit Under Test",
   "sertKolCorrection": "Correction",
   "sertKolU95": "U95% (±)",
+  "sertU95Baris": "Uncertainty U95% = ±",
+  "sertFaktorCakupan": "Faktor cakupan (k) = {k}, tingkat kepercayaan 95 %",
+  "@sertFaktorCakupan": {
+    "placeholders": {
+      "k": {
+        "type": "String"
+      }
+    }
+  },
   "sertKolRemark": "Remark",
   "sertStandarJudul": "Standar yang Digunakan",
   "sertKolName": "Name",
@@ -1097,7 +1349,6 @@
   "importBarisKe": "Baris {nomor}",
   "importGagal": "Import gagal: {pesan}",
   "lkKirimAdmin": "KIRIM",
-  "lkScanTabel": "FOTO TABEL INI — DIBACA AI",
   "lkScanMemproses": "AI lagi baca tabel…",
   "lkPengulanganRingkas": "{n}x",
   "@lkPengulanganRingkas": {
@@ -1127,6 +1378,122 @@
   },
   "lkUbahPengulanganLanjut": "Ubah",
   "lkPengulanganBatal": "Batal",
+  "lkSuhuWajib": "Ada pembacaan tanpa suhu larutan di titik {titik}. Suhunya wajib diisi — nilai acuannya digeser ikut suhu.",
+  "@lkSuhuWajib": {
+    "placeholders": {
+      "titik": {
+        "type": "String"
+      }
+    }
+  },
+  "lkStandarBelumDicentang": "Titik {titik} udah diisi angkanya tapi standar acuannya belum dicentang — angkanya nggak bisa dihitung. Centang standarnya, atau kosongkan barisnya kalau alat ini emang nggak pakai titik itu.",
+  "@lkStandarBelumDicentang": {
+    "placeholders": {
+      "titik": {
+        "type": "String"
+      }
+    }
+  },
+  "lkPembacaanTakTerpulih": "{jumlah} pembacaan tersimpan nggak ketemu barisnya di lembar ini dan nggak ikut dipulihkan. Cek tabelnya sebelum dikirim.",
+  "@lkPembacaanTakTerpulih": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "lkPembacaanJauhDariTitik": "Pembacaan di titik {titik} melesetnya lebih dari 10× dari nilai titiknya — cek satuannya, atau posisi komanya. Kalau angkanya emang segitu, pindah ke baris satuan yang benar dulu.",
+  "@lkPembacaanJauhDariTitik": {
+    "placeholders": {
+      "titik": {
+        "type": "String"
+      }
+    }
+  },
+  "detailTanpaVonis": "TANPA VONIS",
+  "@detailTanpaVonis": {
+    "description": "Badge titik pada alat yang tidak dinilai PASS/FAIL (tidak punya batas toleransi)"
+  },
+  "statusTanpaKeputusan": "Tanpa PASS/FAIL",
+  "detailEditAdmin": "EDIT LEMBAR",
+  "detailPerbaikiRevisi": "PERBAIKI LEMBAR KERJA",
+  "lkTitikAlternatifSatuan": "Alternatif satuan dari botol yang sama — sudah diisi di baris satunya",
+  "@lkRepeat": {
+    "description": "Kepala kolom nomor pengulangan di lembar kerja yang Repeat-nya turun ke bawah."
+  },
+  "lkResolusiKosong": "Resolusi: ( )",
+  "@lkResolusiKosong": {
+    "description": "Baris Resolusi di kepala tabel waktu resolusi alat belum diisi — sengaja meniru kotak kosong di lembar cetak."
+  },
+  "lkResolusiNilai": "Resolusi: {nilai} {satuan}",
+  "@lkResolusiNilai": {
+    "description": "Baris Resolusi di kepala tabel, diisi dari spesifikasi alat.",
+    "placeholders": {
+      "nilai": {
+        "type": "String"
+      },
+      "satuan": {
+        "type": "String"
+      }
+    }
+  },
+  "lkSlotTanpaLarutan": "belum ada larutannya",
+  "@lkSlotTanpaLarutan": {
+    "description": "Keterangan di kepala kolom yang tercetak di kertas tapi tidak punya larutan standar terdaftar."
+  },
+  "lkIsianTitikKebuang": "{jumlah, plural, other{{jumlah} titik tidak ada di lembar alat ini — isiannya dibuang}}",
+  "@lkIsianTitikKebuang": {
+    "description": "Peringatan waktu bentuk lembar menyusut sesudah alat dipilih, dan ada isian yang titiknya hilang.",
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "lkKonfirmasiJudul": "Cek dulu angkanya sebelum dikirim",
+  "lkKonfirmasiCatatan": "Rata-rata pembacaan After adjustment. Koreksi & ketidakpastian dihitung server sesudah ini dikirim.",
+  "lkKonfirmasiDariFoto": "Sebagian angka di tabel ini datang dari foto. Dengan mengirim, kamu menyatakan sudah mencocokkannya dengan yang tertera di alat.",
+  "lkKonfirmasiGagalTandai": "Terkirim, tapi penandaan \"sudah dicek\" gagal: {pesan}. Buka sesinya di Riwayat dan tekan \"Saya sudah cek angkanya\".",
+  "@lkKonfirmasiGagalTandai": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
+  "lkKonfirmasiBaris": "{terisi} dari {total} kotak · rata-rata {rata}",
+  "@lkKonfirmasiBaris": {
+    "placeholders": {
+      "terisi": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "rata": {
+        "type": "String"
+      }
+    }
+  },
+  "lkKonfirmasiBarisKosong": "Belum diisi",
+  "lkKonfirmasiPeriksaLagi": "Periksa lagi",
+  "lkKonfirmasiKirim": "Kirim sekarang",
+  "lkPeringatanAngkaJudul": "Angkanya kelihatan nggak wajar",
+  "lkPeringatanAngkaLanjut": "Angkanya emang segitu — kirim",
+  "lkGantiSatuanJudul": "Ganti satuan bakal ngosongin tabel",
+  "lkGantiSatuanPesan": "{dari} pakai larutan standar yang beda dari {ke}, jadi baris tabelnya ikut ganti dan pembacaan yang udah diisi kehapus. Angka {dari} nggak bisa dipakai sebagai {ke}.",
+  "@lkGantiSatuanPesan": {
+    "placeholders": {
+      "dari": {
+        "type": "String"
+      },
+      "ke": {
+        "type": "String"
+      }
+    }
+  },
+  "lkGantiSatuanBatal": "Batal",
+  "lkGantiSatuanLanjut": "Ganti & kosongin",
   "emailRiwayatBelumKeluar": "Belum keluar",
   "emailKontakKosong": "Email {pt} belum diisi di data pelanggan. Isi lewat panel admin → Pelanggan, biar nanti tinggal pilih.",
   "@emailKontakKosong": {
@@ -1143,5 +1510,32 @@
         "type": "String"
       }
     }
-  }
+  },
+  "dashLiveWorkspace": "Ruang kerja aktif",
+  "dashGreetingName": "Halo, {name}",
+  "dashActiveTasks": "{count} tugas aktif",
+  "dashSpin3d": "Geser bendanya buat muter",
+  "onbSkip": "Lewati",
+  "onbNext": "LANJUT",
+  "onbEnter": "MASUK WORKSPACE",
+  "onbStep1Title": "Semua alat, satu tempat.",
+  "onbStep1Body": "Pilih alat, mulai kalibrasi, dan lihat statusnya tanpa nunggu laporan orang lain.",
+  "onbStep2Title": "Lembar kerja tinggal difoto.",
+  "onbStep2Body": "Angka di kertas kebaca langsung dari kamera. Nggak ada ketik ulang, dan fotonya nggak keluar dari HP kamu.",
+  "onbStep3Title": "Sertifikat terbit lebih cepat.",
+  "onbStep3Body": "Kirim ke admin begitu datanya lengkap. Approval dan penerbitan jalan di app yang sama.",
+  "profSwipeHint": "Geser buat bagian berikutnya",
+  "profSectionWorkspace": "RUANG KERJA",
+  "profSectionSystem": "SISTEM",
+  "profSectionAccount": "AKUN",
+  "profPreferensiSub": "Atur cara perangkat ini kerja buat kamu.",
+  "profAdminMenuSub": "Kelola data inti lab.",
+  "profLabSettings": "Pengaturan lab",
+  "profLabSettingsSub": "Metode, ruangan, dan rumus kerja.",
+  "profSecuritySub": "Status perangkat dan akses akun.",
+  "profSectionOf": "Bagian {current} dari {total}",
+  "profChangePhoto": "Ganti foto profil",
+  "profChangePhotoSub": "Diambil dari galeri atau kamera kamu",
+  "profTechnicianCode": "Kode teknisi",
+  "profTechnicianCodeSub": "Kecetak di sertifikat yang kamu tanda tangani"
 }

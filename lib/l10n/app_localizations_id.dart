@@ -743,6 +743,44 @@ class AppLocalizationsId extends AppLocalizations {
   String get equipResolusi => 'Resolusi';
 
   @override
+  String get equipResolusiRentang => 'Resolusi per titik';
+
+  @override
+  String get equipResolusiRentangHint =>
+      'Isi kalau alat ini TIDAK seragam — resolusi atau satuannya berubah antar titik. Kosongkan kalau resolusi tunggal di atas sudah mewakili. Isian ini yang nentuin satuan tiap baris lembar kerja dan jumlah desimal yang kecetak di sertifikat.';
+
+  @override
+  String get equipResolusiBentukTitik => 'Titik standar';
+
+  @override
+  String get equipResolusiBentukMaks => 'Batas atas';
+
+  @override
+  String get equipResolusiTitik => 'Titik standar';
+
+  @override
+  String get equipResolusiMaks => 'Batas atas';
+
+  @override
+  String get equipResolusiMaksKosong => 'kosong = golongan terakhir';
+
+  @override
+  String get equipResolusiTambahBaris => 'TAMBAH BARIS RESOLUSI';
+
+  @override
+  String get equipResolusiHapusBaris => 'Hapus baris';
+
+  @override
+  String get equipResolusiBarisWajib => 'Wajib diisi, lebih besar dari 0.';
+
+  @override
+  String get equipResolusiTitikWajib => 'Wajib diisi.';
+
+  @override
+  String get equipResolusiBarisAdaYangSalah =>
+      'Ada baris resolusi yang belum bener di bawah.';
+
+  @override
   String get equipToleransi => 'Toleransi';
 
   @override
@@ -781,6 +819,22 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get historyRetry => 'COBA LAGI';
+
+  @override
+  String get historySegarkan => 'Segarkan daftar';
+
+  @override
+  String get historyPeringatanJudul => 'Periksa dulu sebelum disetujui';
+
+  @override
+  String get historyPeringatanBody =>
+      'Sistem ngitung ulang sesi ini dan nemu hal yang perlu dilihat lagi. Kamu tetap boleh menyetujui — tapi sertifikatnya bakal terbit di atas data ini.';
+
+  @override
+  String get historyPeringatanBatal => 'PERIKSA LAGI';
+
+  @override
+  String get historyPeringatanLanjut => 'SETUJUI TETAP';
 
   @override
   String historyCertNumber(String nomor) {
@@ -986,6 +1040,31 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String get detailProsesHitung => 'Proses hitung';
+
+  @override
+  String get detailProsesCatatan =>
+      'Rumusnya disalin dari master Excel lab; angkanya dihitung server, bukan di HP.';
+
+  @override
+  String get detailRumusTypeA => '= STDEV / pembagi keterulangan';
+
+  @override
+  String get detailRumusTypeB => '= AKAR(jumlah kuadrat komponen di bawah)';
+
+  @override
+  String get detailVeff => 'Derajat kebebasan efektif';
+
+  @override
+  String get detailJumlahPengulangan => 'Jumlah pembacaan';
+
+  @override
+  String get detailKolStandard => 'Standar';
+
+  @override
+  String get detailKolU95 => 'U95%';
+
+  @override
   String get detailRataRata => 'Rata-rata';
 
   @override
@@ -1058,6 +1137,18 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get detailPerluVerifikasi =>
       'Masih ada pembacaan OCR yang belum dikonfirmasi — sesi ini belum bisa di-approve.';
+
+  @override
+  String get detailVerifikasiTombol => 'Saya sudah cek angkanya';
+
+  @override
+  String get detailVerifikasiSukses =>
+      'Pembacaan dikonfirmasi. Sesi ini sekarang bisa diperiksa admin.';
+
+  @override
+  String detailVerifikasiGagal(String pesan) {
+    return 'Gagal mengonfirmasi: $pesan';
+  }
 
   @override
   String get arsipTitle => 'Arsip';
@@ -1888,54 +1979,6 @@ class AppLocalizationsId extends AppLocalizations {
       'Angka hasil foto tetap wajib dicek sebelum dikirim. Sertifikat yang sudah terbit tidak bisa diubah.';
 
   @override
-  String get phCalibScanTooltip => 'Foto layar pH meter';
-
-  @override
-  String get phCalibScanGagal =>
-      'Angkanya nggak kebaca jelas. Coba foto ulang lebih dekat, atau ketik manual.';
-
-  @override
-  String get phCalibScanError => 'Kamera nggak bisa dibuka.';
-
-  @override
-  String get phCalibFotoTabel => 'FOTO TABEL';
-
-  @override
-  String get phCalibFotoTabelSesudah => 'Sesudah adjustment';
-
-  @override
-  String get phCalibFotoTabelSebelum => 'Sebelum adjustment';
-
-  @override
-  String get phCalibFotoTabelJudul => 'Mau foto tabel yang mana?';
-
-  @override
-  String get phCalibFotoTabelInfo =>
-      'Sekali foto ngisi satu tabel penuh buat ketiga buffer. Sel yang udah keisi nggak akan ditimpa — jadi boleh foto ulang berkali-kali.';
-
-  @override
-  String phCalibFotoTabelHasil(int terisi, int total) {
-    return '$terisi dari $total sel keisi.';
-  }
-
-  @override
-  String get phCalibFotoTabelTakTerbaca =>
-      'Nggak ada angka yang kebaca sama sekali. Fotonya kemungkinan gelap, buram, atau kejauhan — coba lebih dekat dan terang. Kolomnya tetap bisa diketik manual.';
-
-  @override
-  String phCalibFotoTabelPosisiKacau(int jumlah) {
-    return '$jumlah angka kebaca, tapi belum kebentuk tabel. Biasanya karena fotonya miring atau yang kefoto selembar penuh — coba foto TABEL-nya aja, tegak lurus dari atas. Kolomnya tetap bisa diketik manual.';
-  }
-
-  @override
-  String get phCalibFotoTabelKosong =>
-      'Angka di foto belum kebaca. Tips: foto TABEL-nya aja (nggak usah selembar penuh), tegak lurus dari atas, cahaya rata tanpa bayangan tangan. Atau ketik manual.';
-
-  @override
-  String get phCalibFotoTabelSisa =>
-      'Sel yang kosong: ketik manual atau foto ulang — yang udah keisi nggak bakal keganti.';
-
-  @override
   String phCalibFotoHeaderHasil(int jumlah) {
     return 'Plus $jumlah kolom di luar tabel (kondisi, catatan, standar dipakai) — tolong dicek.';
   }
@@ -2472,6 +2515,123 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkHapusTanggal => 'Kosongkan tanggal';
 
   @override
+  String get lkKondisiLingkungan => 'Environment Condition';
+
+  @override
+  String get lkWaktu => 'Time';
+
+  @override
+  String get lkSuhu => 'Temperature';
+
+  @override
+  String get lkKelembaban => 'Humidity';
+
+  @override
+  String get lkAwal => 'First';
+
+  @override
+  String get lkAkhir => 'End';
+
+  @override
+  String get lkPindaiGagalFoto => 'Foto tidak bisa dibaca. Coba jepret ulang.';
+
+  @override
+  String get lkPindaiTanpaGeometri =>
+      'Koordinat sel lembar ini belum ada di server.';
+
+  @override
+  String get lkPindaiMarkerHilang =>
+      'Empat penanda sudut tidak ketemu. Pastikan seluruh lembar masuk frame dan cukup terang.';
+
+  @override
+  String get lkPindaiTerlaluMiring =>
+      'Fotonya terlalu miring. Jepret lebih tegak lurus di atas lembar.';
+
+  @override
+  String get lkFotoTabel => 'FOTO TABEL INI';
+
+  @override
+  String get lkFotoTabelGagal => 'Foto tidak bisa dibaca. Coba jepret ulang.';
+
+  @override
+  String get lkFotoTabelTanpaJangkar =>
+      'Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom nilai standar (kiri) dan kepala kolom Repeat (nomor 1..5, atau X1 / Repeat 1) ikut kefoto — semuanya, jangan ada yang kepotong. Kolomnya tetap bisa diketik manual.';
+
+  @override
+  String lkFotoTabelKolomHilang(String kolom) {
+    return 'Label kolom $kolom nggak kebaca di foto, jadi nggak ada yang diisi — kalau dipaksa, angkanya bisa mendarat di kolom sebelah tanpa ketahuan. Jepret ulang dengan baris satuan di kepala tabel ikut masuk frame.';
+  }
+
+  @override
+  String get lkFotoTabelKosong =>
+      'Tabelnya kebaca, tapi kotak isiannya masih kosong — nggak ada angka tulisan tangan yang ketemu di dalamnya. Isi dulu kertasnya, baru difoto.';
+
+  @override
+  String get lkFotoTabelTanpaJangkarKeBawah =>
+      'Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom Repeat (kiri) dan kepala kolom larutan (baris paling atas) ikut kefoto — tanpa itu angkanya nggak bisa ditaruh dengan aman. Kolomnya tetap bisa diketik manual.';
+
+  @override
+  String lkFotoTabelTerisi(int terisi) {
+    return '$terisi sel keisi dari foto. Semuanya ditandai perlu dicek — cocokin sama kertasnya.';
+  }
+
+  @override
+  String lkFotoTabelSebagian(int terisi, int terbuang) {
+    return '$terisi sel keisi, $terbuang angka dilewat karena tempatnya nggak bisa dipastikan. Yang kosong ketik manual.';
+  }
+
+  @override
+  String lkFotoTabelError(String pesan) {
+    return 'Foto tabel gagal: $pesan';
+  }
+
+  @override
+  String lkPindaiTemplateGagal(String pesan) {
+    return 'Bentuk lembar buat pindai gagal diambil: $pesan';
+  }
+
+  @override
+  String get lkPindaiTemplateMemuat => 'Menyiapkan pindai…';
+
+  @override
+  String get lkPindaiQrHilang =>
+      'Kode QR versi lembar nggak kebaca. Formulir lama tanpa QR nggak bisa dipindai — cetak ulang lembarnya, atau ketik manual.';
+
+  @override
+  String get lkPindaiQrLembarLain =>
+      'QR yang kebaca punya lembar/versi lain. Foto ulang nggak nolong — pastikan lembarnya yang bener.';
+
+  @override
+  String get lkPindaiBuram =>
+      'Fotonya buram. Tahan HP lebih diam, lalu foto ulang.';
+
+  @override
+  String get lkPindaiGelap =>
+      'Terlalu gelap. Cari cahaya yang lebih terang, lalu foto ulang.';
+
+  @override
+  String get lkPindaiSilau =>
+      'Terlalu terang sampai angkanya pudar. Kurangi cahaya langsung, lalu foto ulang.';
+
+  @override
+  String get lkPindaiPantulan =>
+      'Ada pantulan cahaya di lembar. Geser sedikit posisinya, lalu foto ulang.';
+
+  @override
+  String get lkPindaiKejauhan =>
+      'Fotonya kejauhan — angkanya kekecilan buat dibaca. Dekatkan HP, lalu foto ulang.';
+
+  @override
+  String lkPindaiTerpakai(int terisi) {
+    return '$terisi sel keisi dari hasil pindai. Sel yang udah ada isinya nggak ditimpa.';
+  }
+
+  @override
+  String lkPindaiBugAplikasi(String pesan) {
+    return 'Pindai ditolak server: $pesan Ini kesalahan aplikasi, bukan fotonya — laporkan ke tim, dan ketik manual dulu.';
+  }
+
+  @override
   String get lkRepeat => 'Repeat';
 
   @override
@@ -2660,6 +2820,146 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get lkSemuaOpsional =>
       'Kolom yang belum bisa diisi di lapangan boleh dikosongin — lembar kerjanya tetap bisa dikirim.';
+
+  @override
+  String get lkBagianBelumBisaDiisi => 'BELUM BISA DIISI';
+
+  @override
+  String get pindaiReviewJudul => 'Cek Hasil Pindai';
+
+  @override
+  String pindaiRingkasan(int total, int kuning, int merah, int kosong) {
+    return '$total sel dibaca · $kuning perlu dicek · $merah nggak kebaca · $kosong kosong';
+  }
+
+  @override
+  String get pindaiCatatanKuning =>
+      'Tulisan tangan nggak pernah ditandai aman otomatis — jadi wajar kalau hampir semuanya perlu dicek. Cocokin angkanya sama potongan foto di sebelahnya.';
+
+  @override
+  String get pindaiPakaiAngka => 'PAKAI ANGKA INI';
+
+  @override
+  String get pindaiDitahanServer =>
+      'Masih ada sel yang nggak kebaca. Betulin dulu, atau ketik manual di lembar kerjanya.';
+
+  @override
+  String pindaiRepeat(int nomor) {
+    return 'Repeat $nomor';
+  }
+
+  @override
+  String pindaiTerbaca(String teks) {
+    return 'Terbaca: $teks';
+  }
+
+  @override
+  String pindaiNormalisasi(String catatan) {
+    return 'Dibetulkan server: $catatan';
+  }
+
+  @override
+  String pindaiKoreksiGagal(String pesan) {
+    return 'Angkanya kepakai, tapi catatan koreksinya gagal dikirim: $pesan';
+  }
+
+  @override
+  String get pindaiAlasanMeluber =>
+      'tulisannya keluar dari kotak, bisa jadi kebaca dari kolom sebelah';
+
+  @override
+  String get pindaiAlasanLuarRentang =>
+      'angkanya di luar rentang wajar titik ini';
+
+  @override
+  String get pindaiAlasanMagnitudo =>
+      'angkanya jauh dari nilai standar titik ini';
+
+  @override
+  String get pindaiAlasanKoreksiKarakter => 'ada huruf yang ditebak jadi angka';
+
+  @override
+  String get pindaiAlasanDesimalBanyak =>
+      'desimalnya lebih banyak dari resolusi alat';
+
+  @override
+  String get pindaiAlasanBukanKelipatan =>
+      'angkanya nggak mungkin keluar dari alat dengan resolusi ini';
+
+  @override
+  String get pindaiAlasanJauhDariRepeat =>
+      'angkanya jauh beda dari Repeat lain di baris ini';
+
+  @override
+  String get pindaiAlasanSebarTakDiuji =>
+      'Repeat yang kebaca terlalu sedikit buat dibandingin';
+
+  @override
+  String get pindaiAlasanBanyakSubstitusi =>
+      'terlalu banyak huruf yang harus ditebak';
+
+  @override
+  String get pindaiAlasanKarakterAsing => 'ada karakter yang bukan angka';
+
+  @override
+  String get pindaiAlasanBentukTakWajar => 'bentuk angkanya nggak masuk akal';
+
+  @override
+  String get pindaiAlasanDigitBanyak => 'digitnya kebanyakan buat kolom ini';
+
+  @override
+  String get pindaiAlasanPemisahTakWajar => 'letak koma/titiknya nggak wajar';
+
+  @override
+  String get pindaiAlasanDesimalAmbigu =>
+      'nggak jelas titik itu koma desimal atau pemisah ribuan';
+
+  @override
+  String get pindaiAlasanMinusTengah => 'ada tanda minus di tengah angka';
+
+  @override
+  String get pindaiAlasanMinusTakBoleh =>
+      'kolom ini nggak boleh bernilai negatif';
+
+  @override
+  String lkRepeatMenyimpang(String titik) {
+    return 'Di titik $titik ada satu pembacaan yang jauh beda dari Repeat lainnya — cek lagi, kemungkinan ada digit yang ketuker waktu ngetik. Satu angka begini bisa bikin ketidakpastian di sertifikat meleset ratusan kali lipat.';
+  }
+
+  @override
+  String get lkPindaiLembar => 'PINDAI LEMBAR KERJA';
+
+  @override
+  String lkPindaiBelumSiap(String alasan) {
+    return 'Belum bisa dipindai: $alasan';
+  }
+
+  @override
+  String get lkPratinjauJudul => 'HASIL HITUNG SEMENTARA';
+
+  @override
+  String get lkPratinjauCatatan =>
+      'Dihitung server dari isian yang sekarang, bukan di HP. Angkanya bisa berubah kalau baris lain ikut diisi.';
+
+  @override
+  String get lkPratinjauKolomTitik => 'Titik';
+
+  @override
+  String get lkPratinjauKolomRata => 'Rata-rata';
+
+  @override
+  String get lkPratinjauKolomKoreksi => 'Koreksi';
+
+  @override
+  String get lkPratinjauKolomU95 => 'U95';
+
+  @override
+  String get lkPratinjauBelumDihitung => 'BELUM BISA DIHITUNG';
+
+  @override
+  String lkPratinjauTitikKe(int nomor) {
+    return 'Titik ke-$nomor';
+  }
 
   @override
   String get lkKeluarTanpaSimpan => 'Keluar tanpa menyimpan?';
@@ -2891,6 +3191,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get perhitAverage => 'Average';
 
   @override
+  String get perhitObserved => 'dibaca (sebelum koreksi suhu)';
+
+  @override
   String get perhitIndexed => 'Indexed Value';
 
   @override
@@ -3030,6 +3333,14 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get sertKolU95 => 'U95% (±)';
+
+  @override
+  String get sertU95Baris => 'Uncertainty U95% = ±';
+
+  @override
+  String sertFaktorCakupan(String k) {
+    return 'Faktor cakupan (k) = $k, tingkat kepercayaan 95 %';
+  }
 
   @override
   String get sertKolRemark => 'Remark';
@@ -3179,9 +3490,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkKirimAdmin => 'KIRIM';
 
   @override
-  String get lkScanTabel => 'FOTO TABEL INI — DIBACA AI';
-
-  @override
   String get lkScanMemproses => 'AI lagi baca tabel…';
 
   @override
@@ -3212,6 +3520,113 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkPengulanganBatal => 'Batal';
 
   @override
+  String lkSuhuWajib(String titik) {
+    return 'Ada pembacaan tanpa suhu larutan di titik $titik. Suhunya wajib diisi — nilai acuannya digeser ikut suhu.';
+  }
+
+  @override
+  String lkStandarBelumDicentang(String titik) {
+    return 'Titik $titik udah diisi angkanya tapi standar acuannya belum dicentang — angkanya nggak bisa dihitung. Centang standarnya, atau kosongkan barisnya kalau alat ini emang nggak pakai titik itu.';
+  }
+
+  @override
+  String lkPembacaanTakTerpulih(int jumlah) {
+    return '$jumlah pembacaan tersimpan nggak ketemu barisnya di lembar ini dan nggak ikut dipulihkan. Cek tabelnya sebelum dikirim.';
+  }
+
+  @override
+  String lkPembacaanJauhDariTitik(String titik) {
+    return 'Pembacaan di titik $titik melesetnya lebih dari 10× dari nilai titiknya — cek satuannya, atau posisi komanya. Kalau angkanya emang segitu, pindah ke baris satuan yang benar dulu.';
+  }
+
+  @override
+  String get detailTanpaVonis => 'TANPA VONIS';
+
+  @override
+  String get statusTanpaKeputusan => 'Tanpa PASS/FAIL';
+
+  @override
+  String get detailEditAdmin => 'EDIT LEMBAR';
+
+  @override
+  String get detailPerbaikiRevisi => 'PERBAIKI LEMBAR KERJA';
+
+  @override
+  String get lkTitikAlternatifSatuan =>
+      'Alternatif satuan dari botol yang sama — sudah diisi di baris satunya';
+
+  @override
+  String get lkResolusiKosong => 'Resolusi: ( )';
+
+  @override
+  String lkResolusiNilai(String nilai, String satuan) {
+    return 'Resolusi: $nilai $satuan';
+  }
+
+  @override
+  String get lkSlotTanpaLarutan => 'belum ada larutannya';
+
+  @override
+  String lkIsianTitikKebuang(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah titik tidak ada di lembar alat ini — isiannya dibuang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lkKonfirmasiJudul => 'Cek dulu angkanya sebelum dikirim';
+
+  @override
+  String get lkKonfirmasiCatatan =>
+      'Rata-rata pembacaan After adjustment. Koreksi & ketidakpastian dihitung server sesudah ini dikirim.';
+
+  @override
+  String get lkKonfirmasiDariFoto =>
+      'Sebagian angka di tabel ini datang dari foto. Dengan mengirim, kamu menyatakan sudah mencocokkannya dengan yang tertera di alat.';
+
+  @override
+  String lkKonfirmasiGagalTandai(String pesan) {
+    return 'Terkirim, tapi penandaan \"sudah dicek\" gagal: $pesan. Buka sesinya di Riwayat dan tekan \"Saya sudah cek angkanya\".';
+  }
+
+  @override
+  String lkKonfirmasiBaris(int terisi, int total, String rata) {
+    return '$terisi dari $total kotak · rata-rata $rata';
+  }
+
+  @override
+  String get lkKonfirmasiBarisKosong => 'Belum diisi';
+
+  @override
+  String get lkKonfirmasiPeriksaLagi => 'Periksa lagi';
+
+  @override
+  String get lkKonfirmasiKirim => 'Kirim sekarang';
+
+  @override
+  String get lkPeringatanAngkaJudul => 'Angkanya kelihatan nggak wajar';
+
+  @override
+  String get lkPeringatanAngkaLanjut => 'Angkanya emang segitu — kirim';
+
+  @override
+  String get lkGantiSatuanJudul => 'Ganti satuan bakal ngosongin tabel';
+
+  @override
+  String lkGantiSatuanPesan(String dari, String ke) {
+    return '$dari pakai larutan standar yang beda dari $ke, jadi baris tabelnya ikut ganti dan pembacaan yang udah diisi kehapus. Angka $dari nggak bisa dipakai sebagai $ke.';
+  }
+
+  @override
+  String get lkGantiSatuanBatal => 'Batal';
+
+  @override
+  String get lkGantiSatuanLanjut => 'Ganti & kosongin';
+
+  @override
   String get emailRiwayatBelumKeluar => 'Belum keluar';
 
   @override
@@ -3223,4 +3638,95 @@ class AppLocalizationsId extends AppLocalizations {
   String emailKontakKosongWa(String pt) {
     return 'Nomor WhatsApp $pt belum diisi di data pelanggan. Isi lewat panel admin → Pelanggan, biar nanti tinggal pilih.';
   }
+
+  @override
+  String get dashLiveWorkspace => 'Ruang kerja aktif';
+
+  @override
+  String dashGreetingName(String name) {
+    return 'Halo, $name';
+  }
+
+  @override
+  String dashActiveTasks(int count) {
+    return '$count tugas aktif';
+  }
+
+  @override
+  String get dashSpin3d => 'Geser bendanya buat muter';
+
+  @override
+  String get onbSkip => 'Lewati';
+
+  @override
+  String get onbNext => 'LANJUT';
+
+  @override
+  String get onbEnter => 'MASUK WORKSPACE';
+
+  @override
+  String get onbStep1Title => 'Semua alat, satu tempat.';
+
+  @override
+  String get onbStep1Body =>
+      'Pilih alat, mulai kalibrasi, dan lihat statusnya tanpa nunggu laporan orang lain.';
+
+  @override
+  String get onbStep2Title => 'Lembar kerja tinggal difoto.';
+
+  @override
+  String get onbStep2Body =>
+      'Angka di kertas kebaca langsung dari kamera. Nggak ada ketik ulang, dan fotonya nggak keluar dari HP kamu.';
+
+  @override
+  String get onbStep3Title => 'Sertifikat terbit lebih cepat.';
+
+  @override
+  String get onbStep3Body =>
+      'Kirim ke admin begitu datanya lengkap. Approval dan penerbitan jalan di app yang sama.';
+
+  @override
+  String get profSwipeHint => 'Geser buat bagian berikutnya';
+
+  @override
+  String get profSectionWorkspace => 'RUANG KERJA';
+
+  @override
+  String get profSectionSystem => 'SISTEM';
+
+  @override
+  String get profSectionAccount => 'AKUN';
+
+  @override
+  String get profPreferensiSub => 'Atur cara perangkat ini kerja buat kamu.';
+
+  @override
+  String get profAdminMenuSub => 'Kelola data inti lab.';
+
+  @override
+  String get profLabSettings => 'Pengaturan lab';
+
+  @override
+  String get profLabSettingsSub => 'Metode, ruangan, dan rumus kerja.';
+
+  @override
+  String get profSecuritySub => 'Status perangkat dan akses akun.';
+
+  @override
+  String profSectionOf(int current, int total) {
+    return 'Bagian $current dari $total';
+  }
+
+  @override
+  String get profChangePhoto => 'Ganti foto profil';
+
+  @override
+  String get profChangePhotoSub => 'Diambil dari galeri atau kamera kamu';
+
+  @override
+  String get profTechnicianCode => 'Kode teknisi';
+
+  @override
+  String get profTechnicianCodeSub =>
+      'Kecetak di sertifikat yang kamu tanda tangani';
 }

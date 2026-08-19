@@ -13,6 +13,9 @@ class MockAuthService implements AuthService {
     {
       'id': 1,
       'nama': 'Budi Santoso',
+      // Inisial yang tercetak sebagai "Technician ID" — dikirim backend
+      // lewat `User::kodeTeknisi()`, bukan dipotong di layar.
+      'kode_teknisi': 'BS',
       'email': 'admin@pt-sidik.com',
       'employee_id': 'SDK-0001',
       'role': 'admin',
@@ -23,6 +26,9 @@ class MockAuthService implements AuthService {
     {
       'id': 2,
       'nama': 'Andi Pratama',
+      // Inisial yang tercetak sebagai "Technician ID" — dikirim backend
+      // lewat `User::kodeTeknisi()`, bukan dipotong di layar.
+      'kode_teknisi': 'AP',
       'email': 'teknisi@pt-sidik.com',
       'employee_id': 'SDK-0002',
       'role': 'teknisi',
@@ -33,6 +39,9 @@ class MockAuthService implements AuthService {
     {
       'id': 3,
       'nama': 'Citra Dewi',
+      // Inisial yang tercetak sebagai "Technician ID" — dikirim backend
+      // lewat `User::kodeTeknisi()`, bukan dipotong di layar.
+      'kode_teknisi': 'CD',
       'email': 'viewer@pt-sidik.com',
       'employee_id': 'SDK-0003',
       'role': 'viewer',
@@ -45,6 +54,9 @@ class MockAuthService implements AuthService {
     {
       'id': 4,
       'nama': 'Dewi Lestari',
+      // Inisial yang tercetak sebagai "Technician ID" — dikirim backend
+      // lewat `User::kodeTeknisi()`, bukan dipotong di layar.
+      'kode_teknisi': 'DL',
       'email': 'pending@pt-sidik.com',
       'employee_id': 'SDK-0004',
       'role': 'teknisi',

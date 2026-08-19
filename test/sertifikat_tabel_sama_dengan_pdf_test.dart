@@ -98,36 +98,72 @@ void main() {
       expect(formatSertifikat(-1.0, 0), '-1');
     });
 
-    test('ribuan dipisah titik, kayak di PDF', () {
-      // Turbidimeter titik 1000 NTU kecetak `1.000` di sertifikat.
-      expect(formatSertifikat(1000, 0), '1.000');
-      expect(formatSertifikat(1001, 0), '1.001');
-      expect(formatSertifikat(1234.5, 1), '1.234,5');
+    test('ribuan TANPA pemisah, kayak di master', () {
+      // Sempat dipatok `1.000`/`1.001` di sini — ditulis dari kebiasaan format
+      // Indonesia, bukan dibaca dari kertasnya. Master Turbidimeter
+      // `0189-CAL-624` nulis `1000` & `1001` polos, dan di dokumen yang komanya
+      // dipakai buat desimal, titik ribuan justru kebaca ambigu.
+      expect(formatSertifikat(1000, 0), '1000');
+      expect(formatSertifikat(1001, 0), '1001');
+      expect(formatSertifikat(1234.5, 1), '1234,5');
     });
 
-    test('Turbidimeter: tiga titik, tiga resolusi berbeda — sama kayak PDF', () {
-      // Diambil dari sertifikat asli CAL/2026/08/0011 yang baru terbit:
-      //   1,00   | 1,00  | 0,00 | 0,04
-      //   100    | 100   | 0    | 3
-      //   1.000  | 1.001 | -1   | 22
-      // Resolusi Turbidimeter berubah menurut rentang (0,01 / 0,1 / 1 NTU),
-      // jadi tiga baris ini pakai tiga jumlah desimal yang beda.
-      expect(formatSertifikat(1.0, 2), '1,00');
+    test('Turbidimeter: tiga titik, tiga resolusi berbeda — sama kayak master', () {
+      // Disalin dari master `0189-CAL-624` yang diadu langsung 10 Agt 2026:
+      //   1    | 1,00  | -0,00 | 0,04
+      //   100  | 100,0 | -0,0  | 3,1
+      //   1000 | 1001  | -1    | 22
+      // Tiga baris, tiga resolusi (0,01 / 0,1 / 1 NTU). Perhatiin baris kedua:
+      // 1 desimal, BUKAN 0 — titik 100 NTU masih di pita 0,1.
+      expect(formatNilaiStandar(1.0, 2), '1');
+      expect(formatSertifikat(1.004, 2), '1,00');
+      expect(formatSertifikat(-0.004, 2), '-0,00');
       expect(formatSertifikat(0.041, 2), '0,04');
 
-      expect(formatSertifikat(100.2, 0), '100');
-      expect(formatSertifikat(-0.2, 0), '0'); // membulat ke nol, tanpa minus
-      expect(formatSertifikat(3.1, 0), '3');
+      expect(formatNilaiStandar(100.0, 1), '100');
+      expect(formatSertifikat(100.02, 1), '100,0');
+      expect(formatSertifikat(-0.02, 1), '-0,0');
+      expect(formatSertifikat(3.1, 1), '3,1');
 
-      expect(formatSertifikat(1001.0, 0), '1.001');
-      expect(formatSertifikat(-1.0, 0), '-1');
+      expect(formatNilaiStandar(1000.0, 0), '1000');
+      expect(formatSertifikat(1000.6, 0), '1001');
+      expect(formatSertifikat(-0.6, 0), '-1');
       expect(formatSertifikat(22.0, 0), '22');
     });
 
-    test('nol negatif hasil pembulatan ditulis tanpa tanda minus', () {
-      // `-0,004` dibulatkan ke 2 desimal itu nol. Ditulis `-0,00`, orang ngira
-      // ada koreksi negatif padahal nggak ada.
-      expect(formatSertifikat(-0.004, 2), '0,00');
+    test('nol negatif hasil pembulatan TETAP bawa tanda minus', () {
+      // Kebalikan dari yang dipatok di sini sebelumnya ("orang ngira ada
+      // koreksi negatif padahal nggak ada"). Master nulis `-0,00` & `-0,0`, dan
+      // tandanya bukan hiasan: dia yang bilang alatnya baca DI ATAS standar.
+      expect(formatSertifikat(-0.004, 2), '-0,00');
+      expect(formatSertifikat(-0.02, 1), '-0,0');
+    });
+
+    test('Conductivity: nol negatif kecetak TANPA minus', () {
+      // Aturan di atas ternyata nggak berlaku di semua alat, dan ini bukan
+      // pilihan gaya — master Conductivity nyimpen koreksi
+      // `-0.03999999999999915` (sama persis kayak yang dihitung sistem) tapi
+      // nyetaknya `0,0`. Dua dokumen resmi lab, dua jawaban beda buat bentuk
+      // angka yang sama, jadi yang milih backend lewat `tanda_nol`.
+      expect(formatSertifikat(-0.03999999999999915, 1, tandaNol: false), '0,0');
+      expect(formatSertifikat(-0.001, 2, tandaNol: false), '0,00');
+    });
+
+    test('tanda_nol: false NGGAK ngebuang minus yang bukan nol', () {
+      // Di sertifikat Conductivity yang sama, dua titik lain koreksinya `-1`
+      // dan `0,52`. Kalau setelan ini bocor ke situ, `-1 µS/cm` kecetak
+      // `1 µS/cm` — arah koreksinya kebalik, dan pelanggan yang nerapin bakal
+      // ngegeser pembacaannya ke arah yang salah.
+      expect(formatSertifikat(-1.0, 0, tandaNol: false), '-1');
+      expect(formatSertifikat(-0.01, 2, tandaNol: false), '-0,01');
+      expect(formatSertifikat(-0.05, 1, tandaNol: false), '-0,1');
+    });
+
+    test('bawaannya mempertahankan tanda', () {
+      // Empat dari lima alat mempertahankan tandanya. Pemanggil yang lupa
+      // ngoper flag-nya harus jatuh ke perilaku lama, bukan ke Conductivity.
+      expect(formatSertifikat(-0.004, 2), formatSertifikat(-0.004, 2, tandaNol: true));
+      expect(formatSertifikat(-0.004, 2), '-0,00');
     });
   });
 
@@ -136,12 +172,16 @@ void main() {
         (tester) async {
       await pasang(tester, sertifikatChlorine());
 
-      expect(find.text('0,09'), findsOneWidget);
-      expect(find.text('0,08'), findsOneWidget);
+      // U95 sekarang berdiri sendiri di bawah tiap kelompok
+      // (`Uncertainty U95% = ± 0,09`), bukan jadi kolom keempat — persis
+      // lembar master & `pdf.blade.php`. Yang dijaga tetap sama: angkanya
+      // ngikut desimal alat.
+      expect(find.textContaining('± 0,09'), findsOneWidget);
+      expect(find.textContaining('± 0,08'), findsOneWidget);
 
       // Ini bentuk bug-nya: nilai mentah bocor ke layar.
-      expect(find.text('0.091'), findsNothing);
-      expect(find.text('0.080'), findsNothing);
+      expect(find.textContaining('0.091'), findsNothing);
+      expect(find.textContaining('0.080'), findsNothing);
     });
 
     testWidgets('semua kolom pakai koma, sama kayak PDF', (tester) async {
@@ -156,12 +196,19 @@ void main() {
       expect(find.text('1.758'), findsNothing);
     });
 
-    testWidgets('kolom Remark ikut kerender', (tester) async {
+    testWidgets('titik berketerangan dipisah jadi blok berjudul', (
+      tester,
+    ) async {
       await pasang(tester, sertifikatChlorine());
 
-      expect(find.text('Remark'), findsOneWidget);
+      // `remark` sekarang jadi JUDUL BLOK, bukan kolom kelima — sama kayak
+      // sertifikat cetaknya, yang misahin Free/Total Chlorine jadi dua tabel
+      // dengan U95-nya masing-masing. Buat alat yang U95-nya lahir per
+      // kelompok, kolom kelima bikin angka yang sama persis keulang di tiap
+      // baris dan kebaca kayak kebetulan.
       expect(find.text('Free Chlorine'), findsOneWidget);
       expect(find.text('Total Chlorine'), findsOneWidget);
+      expect(find.textContaining('Uncertainty'), findsNWidgets(2));
     });
 
     testWidgets('alat tanpa remark: kolomnya NGGAK dirender sama sekali',
@@ -193,13 +240,16 @@ void main() {
 
       await pasang(tester, tanpaRemark);
 
-      expect(find.text('Remark'), findsNothing);
+      // Nggak ada judul blok sama sekali: alat tanpa keterangan titik lewat
+      // jalur yang sama sebagai SATU kelompok tanpa judul, jadi tampilannya
+      // nggak berubah dari sebelum pengelompokan ada.
+      expect(find.textContaining('Uncertainty'), findsOneWidget);
 
-      // Baris asli 012-CAL-524: `6,99` · `7,00` · `-0,02` · `0,02`.
+      // Baris asli 012-CAL-524: `6,99` · `7,00` · `-0,02` · U95 `0,02`.
       expect(find.text('6,99'), findsOneWidget);
       expect(find.text('7,00'), findsOneWidget);
       expect(find.text('-0,02'), findsOneWidget);
-      expect(find.text('0,02'), findsOneWidget);
+      expect(find.textContaining('± 0,02'), findsOneWidget);
     });
   });
 }

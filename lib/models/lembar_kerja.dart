@@ -100,12 +100,21 @@ class BarisStandar {
     required this.label,
     required this.standardId,
     required this.terdaftar,
+    this.labelCetak,
     this.serialNumber,
     this.noSertifikat,
     this.tertelusurKe,
   });
 
   final String label;
+
+  /// Tulisan baris ini di lembar CETAK, kalau beda dari [label].
+  ///
+  /// Lembar Conductivity `Rev.5` masih menulis nominal botol lama
+  /// (`Std Solution 84 µS`) dan readout lama (`Victor 14+`), sementara master
+  /// sudah pindah ke larutan & alat yang sekarang. Yang dicentang tetap alat
+  /// yang benar; yang dibaca teknisi tetap tulisan yang ada di kertas.
+  final String? labelCetak;
   final int? standardId;
   final bool terdaftar;
   final String? serialNumber;
@@ -114,6 +123,7 @@ class BarisStandar {
 
   factory BarisStandar.fromJson(Map<String, dynamic> json) => BarisStandar(
     label: json['label'] as String? ?? '—',
+    labelCetak: json['label_cetak'] as String?,
     standardId: (json['standard_id'] as num?)?.toInt(),
     terdaftar: json['terdaftar'] as bool? ?? (json['standard_id'] != null),
     serialNumber: json['serial_number'] as String?,
@@ -152,7 +162,20 @@ class FieldLembarKerja {
 
   /// Kolom turunan kayak `equipment.merk` — diisi sistem dari alat yang
   /// dipilih, bukan dikirim balik sebagai kunci payload sendiri.
-  bool get turunan => kode.contains('.');
+  ///
+  /// `spesifikasi_alat.*` DIKECUALIKAN: titiknya di situ artinya
+  /// PENGELOMPOKAN, bukan turunan. Rentang ukur, kapasitas, dan resolusi
+  /// diketik teknisi dari badan alatnya — dulu ditarik otomatis dari master
+  /// (`equipment.range_resolusi`), dan buat alat berskala dua (`%T` dan `nm`)
+  /// master cuma bisa jawab separuh.
+  bool get turunan => kode.contains('.') && !spesifikasiAlat;
+
+  /// Kolom yang masuk ke `spesifikasi_alat` di payload, dikelompokkan lewat
+  /// awalan kodenya. Kuncinya bagian sesudah titik.
+  bool get spesifikasiAlat => kode.startsWith('spesifikasi_alat.');
+
+  /// Kunci kolom ini di dalam `spesifikasi_alat`.
+  String get kunciSpesifikasi => kode.substring('spesifikasi_alat.'.length);
 
   factory FieldLembarKerja.fromJson(Map<String, dynamic> json) {
     return FieldLembarKerja(
@@ -176,10 +199,34 @@ class BarisTabelHasil {
     this.resolusi,
     this.standardId,
     this.standardNama,
+    this.satuan,
+    this.eksklusifDengan,
   });
 
   final double titikUkur;
   final String label;
+
+  /// Satuan baris INI, buat alat yang nyampur satuan dalam satu lembar.
+  ///
+  /// Conductivity baca 25 & 1412 dalam µS/cm tapi 111 dalam mS/cm — lembarnya
+  /// ngirim `satuan: null` di level atas plus `satuan_campuran: true`, dan
+  /// satuan yang bener nempel di tiap baris. Ambil dari level lembar = seluruh
+  /// kolom salah label.
+  ///
+  /// `null` = alat bersatuan seragam (pH, Turbidimeter, Chlorine,
+  /// Refractometer); layar jatuh ke satuan lembar seperti biasa.
+  final String? satuan;
+
+  /// Titik ukur baris pasangan yang **meniadakan** baris ini, atau `null`.
+  ///
+  /// Titik tengah Conductivity punya dua bentuk buat botol larutan yang SAMA:
+  /// `1412 µS/cm` dan `1,412 mS/cm`. Teknisi ngisi salah satu, nggak pernah
+  /// dua-duanya — kalau dua-duanya keisi, sistem nerima dua nilai buat satu
+  /// botol dan sertifikatnya jadi ambigu.
+  ///
+  /// Nilainya `titik_ukur` pasangannya, jadi layar bisa nyari barisnya tanpa
+  /// perlu id tambahan.
+  final double? eksklusifDengan;
 
   /// Larutan standar yang TERCETAK berpasangan sama titik ini di formulir —
   /// titik 7,00 pakai pH Buffer Solution 7, titik 100 NTU pakai botol 100 NTU.
@@ -212,6 +259,8 @@ class BarisTabelHasil {
         resolusi: (json['resolusi'] as num?)?.toDouble(),
         standardId: (json['standard_id'] as num?)?.toInt(),
         standardNama: json['standard_nama'] as String?,
+        satuan: json['satuan'] as String?,
+        eksklusifDengan: (json['eksklusif_dengan'] as num?)?.toDouble(),
       );
 }
 
@@ -237,6 +286,24 @@ class KolomTabelHasil {
       );
 }
 
+/// Kolom kiri yang nilainya SAMA buat seluruh tabel, dan di lembar cetak
+/// digambar sebagai satu sel yang kegabung ke bawah.
+///
+/// Blok %T yang pertama punya: `λ (nm)` = `560`. Itu bukan data per baris —
+/// seluruh titik %T diukur di panjang gelombang yang sama, dan angkanya bagian
+/// dari identitas tabelnya.
+class KolomTetap {
+  const KolomTetap({required this.label, required this.nilai});
+
+  final String label;
+  final String nilai;
+
+  factory KolomTetap.fromJson(Map<String, dynamic> json) => KolomTetap(
+    label: json['label'] as String? ?? '',
+    nilai: '${json['nilai'] ?? ''}',
+  );
+}
+
 /// Satu tabel hasil: Before atau After adjustment.
 class TabelHasil {
   const TabelHasil({
@@ -245,6 +312,16 @@ class TabelHasil {
     required this.baris,
     required this.kolom,
     required this.pengulangan,
+    this.barisPerSatuan = const {},
+    this.nomorBaris = false,
+    this.judulNilai,
+    this.judulPengulangan,
+    this.prefiksPengulangan,
+    this.pengulanganPerBaris,
+    this.kolomTetap,
+    this.catatan,
+    this.sumbuPengulangan = 'kolom',
+    this.slotCetak = const [],
   });
 
   /// `sebelum_adjustment` / `sesudah_adjustment`.
@@ -253,20 +330,171 @@ class TabelHasil {
   final List<BarisTabelHasil> baris;
   final List<KolomTabelHasil> kolom;
 
+  /// Baris tabel per satuan alat — cuma Refractometer yang ngirim ini.
+  ///
+  /// Satuan alat nentuin titik standarnya, bukan cuma koefisien suhunya:
+  /// larutan fisik yang sama dibaca **2,5 °Brix** atau **1,33659 n20D**
+  /// (`BSAG2.5-0034`). Tanpa ini, sesi °Brix ngirim `titik_ukur: 1,33659`
+  /// bareng `satuan: "°Brix"` — nilai standar satu skala, pembacaan skala lain.
+  ///
+  /// Backend ngirim SEMUA set sekaligus, bukan lembar kerjanya diambil ulang
+  /// tiap satuan diganti: satuannya dipilih di dalam formulir ini, jadi waktu
+  /// bentuknya diambil backend belum tahu mana yang bakal dipakai — dan ngambil
+  /// ulang bakal ngereset semua yang udah diketik teknisi di lapangan.
+  ///
+  /// Kosong = alat satu satuan; [baris] yang dipakai, persis kayak dulu.
+  final Map<String, List<BarisTabelHasil>> barisPerSatuan;
+
+  /// Baris buat [satuan], jatuh ke [baris] kalau satuannya nggak dikenal —
+  /// bukan bikin tabel kosong. Alat satu satuan lewat sini juga.
+  List<BarisTabelHasil> barisUntuk(String satuan) =>
+      barisPerSatuan[satuan] ?? baris;
+
   /// Nomor Repeat yang tercetak di lembar kerja, biasanya 1..5.
   final List<int> pengulangan;
 
+  /// Kolom "No." di kiri tabel — nomor urut baris seperti di lembar cetak.
+  final bool nomorBaris;
+
+  /// Kepala kolom nilai standar, mis. `Std Value (λ1)`. Null = pakai label
+  /// bawaan layar (`Standard`).
+  final String? judulNilai;
+
+  /// Kepala yang memayungi seluruh kolom pengulangan, mis.
+  /// `Measurement Result`. Null = nggak ada baris kepala gabungan.
+  final String? judulPengulangan;
+
+  /// Awalan nomor pengulangan yang TERCETAK di kertas — `X` bikin `X1 X2 X3`.
+  /// Null = pakai `Repeat n` seperti alat lain.
+  final String? prefiksPengulangan;
+
+  /// Berapa kolom pengulangan yang digambar PER BARIS.
+  ///
+  /// Bedanya sama [pengulangan]: yang itu bentuk DATA-nya, yang ini bentuk
+  /// KERTASNYA. Blok %T Spectrophotometer punya enam pengulangan, tapi di
+  /// lembar cetak digambar **dua baris X1..X3** per nilai standar — dan dua
+  /// baris itu yang dilihat teknisi waktu nyalin angka.
+  ///
+  /// Datang dari backend, bukan dihitung di layar: motong tiap 3 kolom itu
+  /// tebakan yang kebetulan bener buat satu alat, dan bakal salah di alat
+  /// berikutnya yang polanya beda. Null = satu baris, seperti biasa.
+  final int? pengulanganPerBaris;
+
+  /// Kolom kiri yang di kertas KEGABUNG buat seluruh tabel — di blok %T isinya
+  /// `λ (nm)` = `560`, panjang gelombang tempat seluruh titik diukur.
+  final KolomTetap? kolomTetap;
+
+  /// Catatan yang tercetak di bawah tabel, mis. `*) Measured at 25°C…`.
+  /// Ditampilin apa adanya; ini bagian dari dokumen, bukan tulisan layar.
+  final String? catatan;
+
+  /// Arah nomor Repeat di lembar CETAK: `kolom` = berjajar ke kanan (bentuk
+  /// pH, `SIDIK-FM-CAL-0509`), `baris` = turun ke bawah (bentuk Conductivity,
+  /// `SIDIK-FM-CAL-0510`).
+  ///
+  /// Datang dari backend, bukan disimpulin layar dari nama alat: dua bentuk itu
+  /// sama-sama sah, dan yang tahu bentuk kertasnya cuma profil alatnya.
+  /// Bawaannya `kolom` supaya empat alat yang sudah jalan nggak berubah.
+  final String sumbuPengulangan;
+
+  /// Kepala kolom "Solution Standard" seperti TERCETAK, dipakai kalau
+  /// [pengulanganKeBawah]. Kosong = pakai [baris] seperti biasa.
+  final List<SlotCetak> slotCetak;
+
+  bool get pengulanganKeBawah => sumbuPengulangan == 'baris';
+
   bool get sebelumAdjustment => tahap == 'sebelum_adjustment';
+
+  /// Nomor pengulangan dipotong jadi baris-baris sesuai [pengulanganPerBaris].
+  /// Satu baris utuh kalau backend nggak nyebut apa-apa.
+  List<List<int>> get pengulanganPerBarisnya {
+    final n = pengulanganPerBaris;
+    if (n == null || n <= 0 || n >= pengulangan.length) return [pengulangan];
+
+    return [
+      for (var i = 0; i < pengulangan.length; i += n)
+        pengulangan.sublist(i, (i + n).clamp(0, pengulangan.length)),
+    ];
+  }
 
   factory TabelHasil.fromJson(Map<String, dynamic> json) => TabelHasil(
     tahap: json['tahap'] as String,
     judul: json['judul'] as String? ?? '',
+    nomorBaris: json['nomor_baris'] as bool? ?? false,
+    judulNilai: json['judul_nilai'] as String?,
+    judulPengulangan: json['judul_pengulangan'] as String?,
+    prefiksPengulangan: json['prefiks_pengulangan'] as String?,
+    pengulanganPerBaris: (json['pengulangan_per_baris'] as num?)?.toInt(),
+    kolomTetap: json['kolom_tetap'] == null
+        ? null
+        : KolomTetap.fromJson(json['kolom_tetap'] as Map<String, dynamic>),
+    catatan: json['catatan'] as String?,
+    sumbuPengulangan: json['sumbu_pengulangan'] as String? ?? 'kolom',
+    slotCetak: parseListAman(json['slot_cetak'], SlotCetak.fromJson),
     baris: parseListAman(json['baris'], BarisTabelHasil.fromJson),
+    barisPerSatuan: {
+      for (final e in (json['baris_per_satuan'] as Map<String, dynamic>? ??
+              const <String, dynamic>{})
+          .entries)
+        e.key: parseListAman(e.value, BarisTabelHasil.fromJson),
+    },
     kolom: parseListAman(json['kolom'], KolomTabelHasil.fromJson),
     pengulangan: (json['pengulangan'] as List<dynamic>? ?? const [])
         .whereType<num>()
         .map((e) => e.toInt())
         .toList(),
+  );
+}
+
+/// Satu kepala kolom "Solution Standard" seperti TERCETAK di lembar kerja.
+///
+/// Ada karena tulisan di kertas nggak sama dengan titik yang dihitung. Formulir
+/// Conductivity `Rev.5` (Des 2023) masih menulis nominal botol lama —
+/// `84 / 1413 / 5000 / 80000` — sementara master pindah ke tiga titik
+/// (`25 / 1412 / 111`) pada April 2024. Layar mencetak [label] supaya cocok
+/// sama kertas di tangan teknisi, dan [titikUkur] yang nentuin angkanya masuk
+/// ke titik yang mana.
+class SlotCetak {
+  const SlotCetak({
+    required this.label,
+    required this.titikUkur,
+    this.varian,
+    this.satuan,
+    this.resolusi,
+    this.desimal,
+  });
+
+  /// Tulisan di kertas, mis. `1413 µS`.
+  final String label;
+
+  /// Pasangan satuan yang di kertas punya kotak "ceklis salah satu", mis.
+  /// `1.413 mS`. Null = slot ini cuma satu satuan (`84`).
+  final String? varian;
+
+  /// Titik yang beneran dihitung buat slot ini. **Kosong = slot mati** —
+  /// kotaknya tetap digambar karena ada di kertas, tapi nggak bisa diisi.
+  ///
+  /// Bisa berisi DUA nilai kalau backend ngirim dua varian satuan buat botol
+  /// yang sama (`1412` µS/cm dan `1,412` mS/cm); yang saling mengunci tetap
+  /// `eksklusif_dengan` di barisnya.
+  final List<double> titikUkur;
+
+  final String? satuan;
+  final double? resolusi;
+  final int? desimal;
+
+  bool get mati => titikUkur.isEmpty;
+
+  factory SlotCetak.fromJson(Map<String, dynamic> json) => SlotCetak(
+    label: json['label'] as String? ?? '',
+    varian: json['varian'] as String?,
+    titikUkur: (json['titik_ukur'] as List<dynamic>? ?? const [])
+        .whereType<num>()
+        .map((e) => e.toDouble())
+        .toList(),
+    satuan: json['satuan'] as String?,
+    resolusi: (json['resolusi'] as num?)?.toDouble(),
+    desimal: (json['desimal'] as num?)?.toInt(),
   );
 }
 
@@ -281,6 +509,8 @@ class BagianLembarKerja {
     required this.tabel,
     required this.baris,
     this.sumber,
+    this.status,
+    this.catatan,
   });
 
   final String kode;
@@ -302,10 +532,32 @@ class BagianLembarKerja {
   /// dipatok di formulirnya. Null di bagian yang barisnya udah tercetak.
   final String? sumber;
 
+  /// Bagian yang **ada di lembar kertas tapi belum bisa diisi**, mis.
+  /// `sumber_belum_ada`.
+  ///
+  /// SRE (Stray Radiant Energy) di Spectrophotometer yang pertama: di master
+  /// Excel nilai standarnya `#REF!` dan budget-nya `#DIV/0!`, jadi backend
+  /// nolak nyetak angka SRE sampai lab nyediakan lembar sumber yang sah.
+  ///
+  /// Dibaca sebagai KUNCI UMUM, bukan dicocokin ke [kode] `sre`: bagian mana
+  /// pun yang datang berstatus begini diperlakukan sama, sekarang dan buat alat
+  /// berikutnya.
+  final String? status;
+
+  /// Alasan yang ditulis backend buat [status] — ditampilin apa adanya.
+  /// Teknisi nyariin blok ini karena ada di lembar kertasnya; nyembunyiin
+  /// diam-diam bikin dia ngira layarnya yang rusak.
+  final String? catatan;
+
+  /// Bagian ini cuma buat dibaca — nggak nerima input sama sekali.
+  bool get belumBisaDiisi => status == 'sumber_belum_ada';
+
   factory BagianLembarKerja.fromJson(Map<String, dynamic> json) =>
       BagianLembarKerja(
         kode: json['kode'] as String,
         judul: json['judul'] as String? ?? '',
+        status: json['status'] as String?,
+        catatan: json['catatan'] as String?,
         // Default 1: lembar kerja versi backend lama nggak ngirim `halaman`,
         // dan satu halaman penuh lebih baik daripada layar kosong.
         halaman: (json['halaman'] as num?)?.toInt() ?? 1,
@@ -316,15 +568,36 @@ class BagianLembarKerja {
       );
 }
 
+/// `satuan_campuran` datang dalam DUA bentuk, dan dua-duanya sah.
+///
+/// Conductivity ngirim `true`. Spectrophotometer ngirim daftar satuan yang
+/// dipakai (`["nm", "%T"]`) — kunci yang sama, tipe yang beda.
+///
+/// Waktu ini masih `json['satuan_campuran'] as bool?`, daftar itu ngelempar
+/// `TypeError`, dan yang gagal bukan satu kolom melainkan **seluruh lembar**:
+/// `LembarKerja.fromJson` di luar jangkauan [parseListAman], jadi layar
+/// kalibrasinya kosong sebelum satu baris pun sempat digambar.
+///
+/// Daftar KOSONG dianggap `false`: itu bacanya "nggak ada satuan campur",
+/// bukan "campur tapi nggak ada satuannya".
+bool _campuran(dynamic nilai) => switch (nilai) {
+  final bool b => b,
+  final List<dynamic> l => l.isNotEmpty,
+  _ => false,
+};
+
 /// Formulir lembar kerja utuh.
 class LembarKerja {
   const LembarKerja({
     required this.kodeDokumen,
+    this.kodeMetode,
     required this.judul,
     required this.untuk,
     required this.jumlahPengulangan,
     required this.larutanStandar,
     required this.satuan,
+    this.satuanCampuran = false,
+    this.suhuWajib = false,
     required this.satuanSuhu,
     required this.semuaKolomOpsional,
     required this.catatanPengisian,
@@ -332,6 +605,15 @@ class LembarKerja {
   });
 
   final String kodeDokumen;
+
+  /// Nomor instruksi kerja yang TERCETAK di lembar ("2. Calibration Methode :
+  /// SIDIK-IK-CAL-0507"), buat ditampilkan apa adanya.
+  ///
+  /// Beda dari [kodeDokumen], yang nomor FORMULIR-nya (`SIDIK-FM-CAL-…`). Dua
+  /// nomor ini pernah ketuker di profil Conductivity — makanya dipisah, dan
+  /// `null` di alat yang backend-nya belum ngirim.
+  final String? kodeMetode;
+
   final String judul;
 
   /// `teknisi` atau `admin` — backend yang mutusin dari role token.
@@ -340,6 +622,28 @@ class LembarKerja {
   final int jumlahPengulangan;
   final List<double> larutanStandar;
   final String satuan;
+
+  /// Lembar ini memakai **lebih dari satu satuan**, jadi [satuan] di level
+  /// lembar nggak mewakili dan yang berlaku ada di tiap baris.
+  ///
+  /// Conductivity yang pertama: 25 & 1412 dibaca µS/cm, 111 dibaca mS/cm.
+  /// Backend ngirim `satuan: null` + `satuan_campuran: true` supaya layar nggak
+  /// diam-diam melabeli semua kolom dengan satu satuan.
+  ///
+  /// Spectrophotometer ngirim kunci yang sama dalam bentuk **daftar satuan**
+  /// (`["nm", "%T"]`) plus `satuan` level lembar yang keisi satuan blok
+  /// pertama. Lihat [_campuran] buat kenapa dua bentuk itu dua-duanya harus
+  /// kebaca.
+  final bool satuanCampuran;
+
+  /// Suhu larutan WAJIB diisi buat tiap baris yang pembacaannya diisi.
+  ///
+  /// Dikirim backend, bukan disimpulin layar dari nama alat: keempat alat
+  /// sama-sama punya kolom `suhu`, yang beda cuma apakah suhunya masuk
+  /// hitungan. Conductivity nilai acuannya digeser ikut suhu; Turbidimeter &
+  /// Chlorine dibaca nominal.
+  final bool suhuWajib;
+
   final String satuanSuhu;
 
   /// Selalu true dari backend. Dipakai layar buat mastiin tombol kirim nggak
@@ -367,12 +671,21 @@ class LembarKerja {
     return nomor.isEmpty ? const [1] : nomor;
   }
 
+  /// Satuan yang berlaku buat [baris].
+  ///
+  /// Lembar bersatuan campur ([satuanCampuran]) ngambil dari barisnya; sisanya
+  /// pakai [satuan] lembar seperti biasa. Satu pintu supaya nggak ada layar
+  /// yang lupa dan melabeli 111 mS/cm sebagai µS/cm.
+  String satuanUntuk(BarisTabelHasil baris) =>
+      satuanCampuran ? (baris.satuan ?? satuan) : satuan;
+
   /// Bagian di satu halaman, urutannya ngikut backend.
   List<BagianLembarKerja> bagianDiHalaman(int nomor) =>
       bagian.where((b) => b.halaman == nomor).toList();
 
   factory LembarKerja.fromJson(Map<String, dynamic> json) => LembarKerja(
     kodeDokumen: json['kode_dokumen'] as String? ?? '',
+    kodeMetode: json['kode_metode'] as String?,
     judul: json['judul'] as String? ?? '',
     untuk: json['untuk'] as String? ?? 'teknisi',
     jumlahPengulangan: (json['jumlah_pengulangan'] as num?)?.toInt() ?? 5,
@@ -381,6 +694,8 @@ class LembarKerja {
         .map((e) => e.toDouble())
         .toList(),
     satuan: json['satuan'] as String? ?? '',
+    satuanCampuran: _campuran(json['satuan_campuran']),
+    suhuWajib: json['suhu_wajib'] as bool? ?? false,
     satuanSuhu: json['satuan_suhu'] as String? ?? '°C',
     semuaKolomOpsional: json['semua_kolom_opsional'] as bool? ?? true,
     catatanPengisian: json['catatan_pengisian'] as String? ?? '',

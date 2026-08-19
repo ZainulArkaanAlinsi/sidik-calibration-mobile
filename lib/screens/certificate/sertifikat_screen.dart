@@ -245,6 +245,26 @@ class _TabelHasil extends StatelessWidget {
 
   final CertificateSnapshot snapshot;
 
+  /// Baris hasil dikelompokkan pakai `remark`, urut ngikut urutan sertifikat.
+  /// Alat tanpa keterangan titik jadi SATU kelompok berkunci kosong.
+  Map<String, List<BarisHasilSertifikat>> get _kelompok {
+    final hasil = <String, List<BarisHasilSertifikat>>{};
+    for (final b in snapshot.hasil) {
+      hasil.putIfAbsent(b.remark ?? '', () => []).add(b);
+    }
+
+    return hasil;
+  }
+
+  /// Kepala kolom bawa satuan kelompoknya (`Standard (nm)`), persis lembar
+  /// master. Satu kelompok selalu satu satuan; alat bersatuan seragam ngirim
+  /// null dan kepalanya tetap kayak dulu.
+  static String _kepala(String label, List<BarisHasilSertifikat> baris) {
+    final satuan = baris.first.satuan;
+
+    return satuan == null ? label : '$label ($satuan)';
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -265,54 +285,111 @@ class _TabelHasil extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
-            Table(
-              columnWidths: {
-                0: const FlexColumnWidth(1.1),
-                1: const FlexColumnWidth(1.1),
-                2: const FlexColumnWidth(1),
-                3: const FlexColumnWidth(1),
-                if (snapshot.adaRemark) 4: const FlexColumnWidth(1.3),
-              },
-              children: [
-                TableRow(
-                  children: [
-                    _sel(context, l10n.sertKolStandard, tebal: true),
-                    _sel(context, l10n.sertKolUut, tebal: true),
-                    _sel(context, l10n.sertKolCorrection, tebal: true),
-                    _sel(context, l10n.sertKolU95, tebal: true),
-                    if (snapshot.adaRemark)
-                      _sel(context, l10n.sertKolRemark, tebal: true),
-                  ],
+
+            // Dikelompokkan pakai `remark`, persis PDF-nya: satu tabel per
+            // kelompok, dan `Uncertainty U95% = ±` di bawah tiap tabel.
+            //
+            // Buat alat yang U95-nya lahir per KELOMPOK (Spectrophotometer),
+            // sepuluh baris Holmium bawa angka yang sama persis — di tabel
+            // datar 24 baris itu kebaca kayak muncul acak, dan `0,4 nm` nggak
+            // punya cara dibedain punya Didynium apa Holmium.
+            //
+            // Alat tanpa keterangan titik lewat jalur yang SAMA sebagai satu
+            // kelompok tanpa judul: tampilannya nggak berubah sama sekali.
+            for (final e in _kelompok.entries) ...[
+              if (e.key.isNotEmpty) ...[
+                Text(
+                  e.key,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-                // Desimal diambil PER BARIS (`b.desimal`) dulu, baru jatuh ke
-                // `desimal` sertifikat. Alat yang resolusinya berubah menurut
-                // rentang (Turbidimeter: 0,01 / 0,1 / 1 NTU) nggak bisa diwakili
-                // satu angka — dipaksa satu, titik 100 NTU kecetak `101,00`,
-                // dua digit yang alatnya nggak bisa tampilkan. Sertifikat lama
-                // yang snapshot-nya belum punya field ini tetap kecetak persis
-                // seperti waktu diterbitkan.
-                // KEEMPAT kolom pakai formatter yang sama persis dengan
-                // `pdf.blade.php` (`Angka::id`) — desimal tetap, koma sebagai
-                // pemisah. Layar ini dipakai buat nyocokin sama PDF sebelum
-                // dikirim ke pelanggan, jadi beda sedikit pun bikin orang ragu
-                // mana yang resmi.
-                //
-                // Dulu U95 dicetak pakai aturan 2-angka-penting, jadi layar
-                // nulis `0.091` sementara PDF nulis `0,09` buat sertifikat yang
-                // sama. Lihat [formatKetidakpastian] soal kenapa aturan itu
-                // nggak dipakai lagi di sini.
-                for (final b in snapshot.hasil)
+                const SizedBox(height: AppSpacing.xs),
+              ],
+              Table(
+                columnWidths: const {
+                  0: FlexColumnWidth(1.1),
+                  1: FlexColumnWidth(1.1),
+                  2: FlexColumnWidth(1),
+                },
+                children: [
                   TableRow(
                     children: [
-                      _sel(context, formatSertifikat(b.standardValue, b.desimalEfektif(d))),
-                      _sel(context, formatSertifikat(b.unitUnderTest, b.desimalEfektif(d))),
-                      _sel(context, formatSertifikat(b.correction, b.desimalEfektif(d))),
-                      _sel(context, formatSertifikat(b.u95, b.desimalEfektif(d))),
-                      if (snapshot.adaRemark) _sel(context, b.remark ?? '—'),
+                      _sel(context, _kepala(l10n.sertKolStandard, e.value), tebal: true),
+                      _sel(context, _kepala(l10n.sertKolUut, e.value), tebal: true),
+                      _sel(context, _kepala(l10n.sertKolCorrection, e.value), tebal: true),
                     ],
                   ),
-              ],
-            ),
+                  // Desimal diambil PER BARIS (`b.desimal`) dulu, baru jatuh ke
+                  // `desimal` sertifikat. Alat yang resolusinya berubah menurut
+                  // rentang (Turbidimeter: 0,01 / 0,1 / 1 NTU) nggak bisa
+                  // diwakili satu angka — dipaksa satu, titik 100 NTU kecetak
+                  // `101,00`, dua digit yang alatnya nggak bisa tampilkan.
+                  //
+                  // Formatternya sama persis sama `pdf.blade.php`: layar ini
+                  // dipakai buat nyocokin sama PDF sebelum dikirim ke
+                  // pelanggan, jadi beda sedikit pun bikin orang ragu mana yang
+                  // resmi.
+                  for (final b in e.value)
+                    TableRow(
+                      children: [
+                        _sel(
+                          context,
+                          formatNilaiStandar(b.standardValue, b.desimalEfektif(d)),
+                        ),
+                        _sel(
+                          context,
+                          formatSertifikat(
+                            b.unitUnderTest,
+                            b.desimalEfektif(d),
+                            tandaNol: b.tandaNol,
+                          ),
+                        ),
+                        _sel(
+                          context,
+                          formatSertifikat(
+                            b.correction,
+                            b.desimalEfektif(d),
+                            tandaNol: b.tandaNol,
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xs),
+
+              // U95 satu kelompok — diambil dari baris pertama, BUKAN dihitung
+              // ulang. Tiap titik sekelompok emang bawa angka yang sama; kalau
+              // suatu saat beda, yang salah datanya, dan ngerata-ratain di sini
+              // cuma nyembunyiin itu.
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  '${l10n.sertU95Baris} '
+                  // Desimal U95 punya jalurnya sendiri — lihat
+                  // [BarisHasilSertifikat.desimalU95].
+                  '${formatSertifikat(e.value.first.u95, e.value.first.desimalU95 ?? e.value.first.desimalEfektif(d))}'
+                  '${e.value.first.satuan == null ? '' : ' ${e.value.first.satuan}'}',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              if (e.value.first.faktorCakupanK != null)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    l10n.sertFaktorCakupan(
+                      formatNilai(e.value.first.faktorCakupanK!, desimalMaks: 2),
+                    ),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              const SizedBox(height: AppSpacing.sm),
+            ],
           ],
         ),
       ),

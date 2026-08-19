@@ -52,6 +52,7 @@ class Equipment {
     this.lokasi = '',
     this.namaAlatKemampuan,
     this.catatan = '',
+    this.resolusiRentang = const [],
   });
 
   final int id;
@@ -90,6 +91,18 @@ class Equipment {
   final double? rangeMax;
   final String satuan;
   final double? resolusi;
+
+  /// Resolusi PER TITIK standar, lengkap sama satuannya — blok "Resolusi Alat"
+  /// di lembar kerja kertas.
+  ///
+  /// Ini sifat ALAT PELANGGAN, bukan sifat sesi: diisi sekali waktu alatnya
+  /// didaftarin, dan dari situ diturunkan satuan tiap baris lembar kerja,
+  /// jumlah desimal, dan style sertifikat. Teknisi di lapangan nggak ngisi
+  /// satuan apa pun.
+  ///
+  /// Kosong = alat lama / lembar yang nggak butuh per titik; sistem balik ke
+  /// [resolusi] tunggal, persis perilaku sebelumnya.
+  final List<ResolusiTitik> resolusiRentang;
   final double? toleransi;
   final String lokasi;
   final String catatan;
@@ -112,8 +125,12 @@ class Equipment {
     String? lokasi,
     String? namaAlatKemampuan,
     String? catatan,
+    List<ResolusiTitik>? resolusiRentang,
   }) => Equipment(
     id: id,
+    // Sempat nggak ikut disalin sama sekali, jadi tiap `copyWith` diam-diam
+    // ngosongin band per titik alatnya.
+    resolusiRentang: resolusiRentang ?? this.resolusiRentang,
     namaAlat: namaAlat ?? this.namaAlat,
     serialNumber: serialNumber ?? this.serialNumber,
     kategori: kategori ?? this.kategori,
@@ -138,6 +155,15 @@ class Equipment {
   /// Body `POST`/`PUT` — `pelanggan_id`, bukan objek `pelanggan`
   /// (`docs/kontrak-api.md` §3 poin 2). `status` cuma `aktif`/`nonaktif`.
   Map<String, dynamic> toJson() => {
+    // Dikirim SELALU, termasuk waktu kosong. Waktu masih `if (isNotEmpty)`,
+    // baris terakhir nggak bisa dihapus dari HP: kiriman tanpa kunci ini kebaca
+    // "nggak nyentuh band" di backend (`sometimes`), jadi band lamanya balik
+    // lagi begitu layarnya di-refresh.
+    //
+    // Konsekuensinya: siapa pun yang nyusun [Equipment] buat dikirim WAJIB
+    // ngisi [resolusiRentang] dari data alat yang lagi diedit, bukan
+    // ngebiarinnya default kosong.
+    'resolusi_rentang': [for (final r in resolusiRentang) r.toJson()],
     'nama_alat': namaAlat,
     'serial_number': serialNumber,
     'kategori': kategori,
@@ -161,6 +187,10 @@ class Equipment {
     String teks(String key) => json[key] as String? ?? '';
 
     return Equipment(
+      resolusiRentang: parseListAman<ResolusiTitik>(
+        json['resolusi_rentang'],
+        ResolusiTitik.fromJson,
+      ),
       id: (json['id'] as num).toInt(),
       namaAlat: teks('nama_alat'),
       serialNumber: teks('serial_number'),
@@ -214,4 +244,91 @@ class EquipmentPage {
       lastPage: (meta?['last_page'] as num?)?.toInt() ?? 1,
     );
   }
+}
+
+/// Satu baris blok "Resolusi Alat": resolusi baca alat pelanggan, satuan yang
+/// TAMPIL di layarnya, dan penanda baris ini berlaku di mana.
+///
+/// ## Dua bentuk baris, dan kenapa dua-duanya harus utuh
+///
+/// **Berkunci [titik]** (Conductivity) — dikunci ke nilai nominal larutan (25 /
+/// 1412 / 111), karena satuannya campur: `111 mS/cm` secara ANGKA lebih kecil
+/// dari `1412 µS/cm` padahal fisiknya hampir 100× lebih besar, jadi ambang
+/// numerik bakal nyangkutin titik 111 ke golongan µS/cm.
+///
+/// **Berkunci [maks]** (Turbidimeter) — ambang numerik: 0–10 NTU resolusi 0,01,
+/// dst. `maks: null` = golongan terakhir, nampung sisanya.
+///
+/// Dua-duanya numpang di kolom yang sama (`equipments.resolusi_rentang`) dan
+/// dibedain `Equipment::bandResolusi()` di backend. Model ini WAJIB bisa
+/// bulak-balik dua bentuk itu tanpa berubah: sebelum ada [maks] di sini, baris
+/// Turbidimeter yang lewat sini kebaca `titik: 0` dan `maks`-nya lenyap — buka
+/// form alat, simpan, dan seluruh resolusi bertingkatnya hilang tanpa error.
+class ResolusiTitik {
+  const ResolusiTitik({
+    this.titik,
+    this.maks,
+    required this.satuan,
+    required this.resolusi,
+    this.pakaiMaks = false,
+  });
+
+  /// Bentuk barisnya dibaca dari KUNCI yang ada, bukan dari nilainya: `maks`
+  /// bernilai `null` itu golongan terakhir Turbidimeter yang sah, dan di Dart
+  /// nilainya nggak bisa dibedain dari kunci yang nggak ada sama sekali.
+  factory ResolusiTitik.fromJson(Map<String, dynamic> json) => ResolusiTitik(
+    titik: (json['titik'] as num?)?.toDouble(),
+    maks: (json['maks'] as num?)?.toDouble(),
+    satuan: json['satuan'] as String? ?? '',
+    resolusi: (json['resolusi'] as num?)?.toDouble() ?? 0,
+    pakaiMaks: json.containsKey('maks') && json['titik'] == null,
+  );
+
+  /// Nilai nominal larutan standar (25 / 1412 / 111). `null` = baris ini
+  /// berbentuk [maks].
+  final double? titik;
+
+  /// Batas atas pembacaan (INKLUSIF) buat baris berbentuk ambang. `null` +
+  /// [pakaiMaks] = golongan terakhir, nampung sisanya.
+  final double? maks;
+
+  /// Satuan yang tampil di layar alat pelanggan buat baris ini — `µS/cm` atau
+  /// `mS/cm`. INI yang nentuin satuan sertifikat, bukan satuan lembar.
+  final String satuan;
+
+  final double resolusi;
+
+  /// `true` = baris ambang (Turbidimeter), `false` = baris titik standar
+  /// (Conductivity).
+  final bool pakaiMaks;
+
+  ResolusiTitik salin({
+    double? titik,
+    double? maks,
+    String? satuan,
+    double? resolusi,
+    bool? pakaiMaks,
+  }) {
+    final bentukMaks = pakaiMaks ?? this.pakaiMaks;
+
+    return ResolusiTitik(
+      // Bentuknya yang nentuin kunci mana yang hidup — baris yang dipindah dari
+      // titik ke ambang nggak boleh bawa sisa `titik` lamanya, karena di
+      // backend band ber-`titik` selalu menang dan `maks`-nya bakal diabaikan
+      // diam-diam.
+      titik: bentukMaks ? null : (titik ?? this.titik),
+      maks: bentukMaks ? (maks ?? this.maks) : null,
+      satuan: satuan ?? this.satuan,
+      resolusi: resolusi ?? this.resolusi,
+      pakaiMaks: bentukMaks,
+    );
+  }
+
+  /// Cuma kunci yang relevan sama bentuk barisnya yang dikirim. Ngirim dua-
+  /// duanya bikin backend nolak (`EquipmentRequest::after()`).
+  Map<String, dynamic> toJson() => {
+    if (pakaiMaks) 'maks': maks else 'titik': titik,
+    'satuan': satuan,
+    'resolusi': resolusi,
+  };
 }

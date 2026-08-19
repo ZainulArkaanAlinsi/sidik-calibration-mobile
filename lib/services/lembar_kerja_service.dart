@@ -1,6 +1,7 @@
 import 'mock_store.dart';
 import '../models/lembar_kerja.dart';
 import '../models/lembar_kerja_submission.dart';
+import '../models/pratinjau_hitung.dart';
 import 'api_client.dart';
 import 'equipment_lookup_service.dart';
 
@@ -18,7 +19,24 @@ abstract class LembarKerjaService {
   /// pakai bawaan profilnya (5, ngikut form kertas). Ini murni soal tampilan:
   /// rumusnya selalu ngikut berapa kotak yang beneran diisi, jadi ngecilin
   /// kolom nggak ngubah hasil hitungannya.
-  Future<LembarKerja> ambilBentuk(String token, {String? profil, int? pengulangan});
+  /// [equipmentId] bikin backend nyusutin bentuknya ke ALAT ITU: titik yang
+  /// punya varian satuan dikirim SATU baris, ngikut satuan di resolusi alat.
+  /// Tanpa ini yang kekirim bentuk generik — Conductivity keluar 4 baris dengan
+  /// dua varian titik tengah yang saling ngunci, dan satuannya nggak ngikut
+  /// alat pelanggan.
+  Future<LembarKerja> ambilBentuk(
+    String token, {
+    String? profil,
+    int? pengulangan,
+    int? equipmentId,
+  });
+
+  /// `POST /api/calibrations/preview` — hitung TANPA nyimpen.
+  ///
+  /// Bodinya identik sama [kirim], jadi nggak ada dua bentuk payload yang harus
+  /// dirawat: yang dilihat teknisi di layar dihitung dari kiriman yang sama
+  /// persis kayak yang bakal disimpan.
+  Future<PratinjauHitung> pratinjau(String token, LembarKerjaSubmission isian);
 
   /// `POST /api/calibrations` — balikin id sesi yang kebentuk.
   Future<int> kirim(String token, LembarKerjaSubmission isian);
@@ -38,15 +56,30 @@ class ApiLembarKerjaService implements LembarKerjaService {
     String token, {
     String? profil,
     int? pengulangan,
+    int? equipmentId,
   }) async {
     final q = <String>[
       if (profil != null && profil.isNotEmpty) 'profil=$profil',
       if (pengulangan != null) 'pengulangan=$pengulangan',
+      if (equipmentId != null) 'equipment_id=$equipmentId',
     ];
     final path = '/calibrations/lembar-kerja${q.isEmpty ? '' : '?${q.join('&')}'}';
     final json = await _api.get(path, token: token);
     final data = (json['data'] ?? json) as Map<String, dynamic>;
     return LembarKerja.fromJson(data);
+  }
+
+  @override
+  Future<PratinjauHitung> pratinjau(
+    String token,
+    LembarKerjaSubmission isian,
+  ) async {
+    final json = await _api.post(
+      '/calibrations/preview',
+      token: token,
+      body: isian.toJson(),
+    );
+    return PratinjauHitung.fromJson(json);
   }
 
   @override
@@ -109,23 +142,62 @@ class MockLembarKerjaService implements LembarKerjaService {
 
   int get jumlahKirim => payload.length;
 
+  /// Alat yang diminta tiap kali bentuk diambil (`null` = bentuk generik).
+  /// Dicatat karena inilah yang nentuin Conductivity keluar 3 baris atau 4:
+  /// tanpa ini, dua varian titik tengah muncul bareng dan saling ngunci.
+  final List<int?> equipmentIdDiminta = [];
+
   /// Jumlah kotak pengulangan yang diminta tiap kali bentuk diambil (`null` =
   /// nggak minta apa-apa, pakai bawaan). Dicatat biar test bisa mastiin
   /// pilihan teknisi beneran nyampe ke backend, bukan cuma keganti di layar.
   final List<int?> pengulanganDiminta = [];
+
+  /// Payload tiap kali pratinjau diminta — dipakai test buat mastiin bodinya
+  /// sama persis kayak yang dikirim `kirim`, bukan bentuk kedua yang dirawat
+  /// terpisah.
+  final List<Map<String, dynamic>> payloadPratinjau = [];
+
+  /// Jawaban yang dibalikin [pratinjau].
+  ///
+  /// Sengaja **dititipin test**, bukan dihitung di sini: begitu mock ngitung
+  /// rata-rata/U95 sendiri, repo ini punya implementasi rumus kedua yang bisa
+  /// beda diam-diam dari backend — dan angka yang keliatan bener di test justru
+  /// jadi bukti palsu. Test spectro ngisinya dari respons ASLI
+  /// `POST /api/calibrations/preview`.
+  PratinjauHitung? balasanPratinjau;
+
+  @override
+  Future<PratinjauHitung> pratinjau(
+    String token,
+    LembarKerjaSubmission isian,
+  ) async {
+    if (gagal) throw Exception('server nggak nyaut');
+    payloadPratinjau.add(isian.toJson());
+
+    return balasanPratinjau ??
+        const PratinjauHitung(titik: [], belumDihitung: []);
+  }
 
   @override
   Future<LembarKerja> ambilBentuk(
     String token, {
     String? profil,
     int? pengulangan,
+    int? equipmentId,
   }) async {
     if (gagal) throw Exception('server nggak nyaut');
     pengulanganDiminta.add(pengulangan);
+    equipmentIdDiminta.add(equipmentId);
 
     final bentuk = switch (profil) {
       'turbidimeter' => contohBentukLembarKerjaTurbidi(untukAdmin: untukAdmin),
       'chlorine_meter' => contohBentukLembarKerjaChlorine(untukAdmin: untukAdmin),
+      'refractometer' => contohBentukLembarKerjaRefractometer(
+        untukAdmin: untukAdmin,
+      ),
+      'spectrophotometer' => contohBentukLembarKerjaSpectro(
+        untukAdmin: untukAdmin,
+      ),
       // Profil kosong / nggak dikenal SENGAJA jatuh ke pH, bukan lempar error —
       // sama kayak janji kontraknya (`docs/kontrak-api.md` §4).
       _ => contohBentukLembarKerja(untukAdmin: untukAdmin),
@@ -779,6 +851,514 @@ Map<String, dynamic> contohBentukLembarKerjaChlorine({bool untukAdmin = false}) 
     'catatan_pengisian':
         'Kolom yang belum bisa diisi di lapangan boleh dikosongin — '
         'lembar kerja tetap bisa dikirim.',
+    'bagian': bagian,
+  };
+}
+
+/// Salinan bentuk Refractometer (`?profil=refractometer`, `RefractometerProfile`
+/// di backend). Lembar cetaknya **SIDIK-FM-CAL-0523_Rev.2**, satu halaman.
+/// Alat KEEMPAT yang punya lembar sendiri, dan yang paling beda dari tiga
+/// sebelumnya.
+///
+/// ## Kolom °C di sini BUKAN pelengkap
+///
+/// Di lembar Chlorine, suhu cuma dicatat buat jejak. Di sini dia yang dipakai
+/// NGITUNG: indeks bias berubah ikut suhu, jadi pembacaan dinormalisasi dulu ke
+/// **20 °C** (huruf "20" di `n20D` itu ini) sebelum diadu ke larutan standar.
+///
+/// ```
+/// Corrected = Observed + 0,00045 × (T − 20)     // n20D
+/// Corrected = Observed + 0,07    × (T − 20)     // °Brix
+/// ```
+///
+/// Sesi master `2211.11.R`: titik 1,33659 dibaca `1,3362` pada rata-rata suhu
+/// **27 °C** → `1,3362 + 0,00045 × 7` = **1,33935**. Yang kecetak di sertifikat
+/// sebagai Unit Under Test itu 1,33935, BUKAN 1,3362. Teknisi yang ngosongin
+/// kolom suhu tetap boleh ngirim — backend pakai pembacaan apa adanya, nggak
+/// nebak — tapi hasilnya jadi kurang teliti.
+///
+/// ## Kenapa `desimal`/`resolusi` per baris NGGAK dikirim
+///
+/// Sama alasannya kayak Chlorine: resolusinya **seragam** 0,0001 n20D di dua
+/// titik. Bedanya, di sini itu penting banget — nilai terkoreksinya bisa **5
+/// desimal** (`1,33935`) padahal resolusi alatnya 4. Mad ke 4 desimal bikin
+/// `1,33935` kecetak `1,3394`, beda dari sertifikat.
+///
+/// ## Satuan ditanya di depan
+///
+/// Satu refractometer bisa nampilin n20D atau °Brix, dan pilihannya ngubah
+/// SEMUA angka hilirnya (koefisien suhu 0,00045 vs 0,07, titik standar, CMC).
+/// Makanya `equipment.satuan` ada di `identitas_alat` — ditanya sebelum teknisi
+/// mulai ngisi tabel, bukan ditebak.
+Map<String, dynamic> contohBentukLembarKerjaRefractometer({
+  bool untukAdmin = false,
+}) {
+  Map<String, dynamic> field(
+    String kode,
+    String label,
+    String tipe, {
+    String? sumber,
+    String? satuan,
+    List<Map<String, String>> pilihan = const [],
+    bool hanyaAdmin = false,
+  }) => {
+    'kode': kode,
+    'label': label,
+    'tipe': tipe,
+    'wajib': false,
+    'sumber': sumber,
+    'satuan': satuan,
+    'pilihan': pilihan,
+    'hanya_admin': hanyaAdmin,
+  };
+
+  // Larutan fisiknya SAMA, cuma dibaca di skala yang beda: `BSAG2.5-0034`
+  // dibaca 2,5 °Brix atau 1,33659 n20D, `BSAG40-0071` dibaca 40 °Brix atau
+  // 1,39986 n20D. Angkanya cocok sama CMC yang diseed backend, jadi titiknya
+  // tetap dapat budget ketidakpastian.
+  const barisN20D = [
+    {'titik_ukur': 1.33659, 'label': '1,33659'},
+    {'titik_ukur': 1.39986, 'label': '1,39986'},
+  ];
+  const barisBrix = [
+    {'titik_ukur': 2.5, 'label': '2,5'},
+    {'titik_ukur': 40.0, 'label': '40'},
+  ];
+
+  Map<String, dynamic> tabel(String tahap, String judul) => {
+    'tahap': tahap,
+    'judul': judul,
+    // Sengaja tanpa `resolusi`/`desimal` — lihat docblock.
+    'baris': barisN20D,
+    'baris_per_satuan': {'n20D': barisN20D, '°Brix': barisBrix},
+    'kolom': [
+      {'kode': 'pembacaan', 'label': 'n20D', 'tipe': 'angka', 'satuan': 'n20D'},
+      {'kode': 'suhu', 'label': '°C', 'tipe': 'angka', 'satuan': '°C'},
+    ],
+    'pengulangan': [1, 2, 3, 4, 5],
+  };
+
+  final bagian = <Map<String, dynamic>>[
+    {
+      'kode': 'identitas_alat',
+      'halaman': 1,
+      'judul': 'EQUIPMENT IDENTITY AND CUSTOMER DATA',
+      'field': [
+        field('tanggal_terima', 'Received Date', 'tanggal'),
+        field('tanggal_kalibrasi', 'Calibration Date', 'tanggal'),
+        field('equipment_id', 'Equipment', 'pilihan', sumber: 'master_alat'),
+        field('equipment.nama_alat', '1. Name', 'teks', sumber: 'otomatis'),
+        // Tanpa `satuan` — nilainya udah bawa satuannya sendiri ("0–53 °Brix /
+        // 0,1 °Brix"), dan alat ini bisa kecatat di skala mana pun. Lihat
+        // `RefractometerProfile` di backend.
+        field('equipment.range_resolusi', '2. Range/Resolution', 'teks',
+            sumber: 'otomatis'),
+        field('alat_model', '3. Type/Model', 'teks'),
+        field('alat_serial_number', '4. Serial Number/LPI', 'teks'),
+        field('alat_merk', '5. Merk/Manufacture', 'teks'),
+        field('thermohygro_standard_id', '6. Thermohygro Used', 'pilihan',
+            sumber: 'master_thermohygro',
+            pilihan: const [
+              {'nilai': '36', 'label': 'TH-1', 'grup': 'Inlab'},
+              {'nilai': '40', 'label': 'TH-2', 'grup': 'Insitu'},
+              {'nilai': '44', 'label': 'TH-5', 'grup': 'Inlab'},
+              {'nilai': '42', 'label': 'TH-6', 'grup': 'Insitu'},
+              {'nilai': '43', 'label': 'TH-7', 'grup': 'Insitu'},
+            ]),
+        // Pilihannya ikut di field-nya sendiri, jadi layar nggak perlu baca
+        // `pilihan_satuan` di akar respons — dua-duanya isinya sama.
+        field('equipment.satuan', '7. Satuan Refracto', 'pilihan',
+            pilihan: const [
+              {'nilai': 'n20D', 'label': 'n20D'},
+              {'nilai': '°Brix', 'label': '°Brix'},
+            ]),
+      ],
+    },
+    {
+      'kode': 'pemilik',
+      'halaman': 1,
+      'judul': 'OWNER',
+      'field': [
+        field('pemilik_nama', '1. Name', 'teks'),
+        field('pemilik_alamat', '2. Address', 'teks_panjang'),
+      ],
+    },
+    {
+      'kode': 'usage_check',
+      'halaman': 1,
+      'judul': 'STANDARD',
+      // Satu botol fisik dipakai buat dua satuan sekaligus (BSAG2.5-0034 =
+      // 2,5 °Brix DAN 1,33659 n20D), makanya empat baris larutan walau yang
+      // dikalibrasi cuma dua titik n20D.
+      'baris': [
+        {
+          'label': 'Refractometer Std Solution 1.33659 n20D',
+          'standard_id': 50,
+          'terdaftar': true,
+        },
+        {
+          'label': 'Refractometer Std Solution 1.39986 n20D',
+          'standard_id': 51,
+          'terdaftar': true,
+        },
+        {
+          'label': 'Refractometer Std Solution 2.5 oBrix',
+          'standard_id': 52,
+          'terdaftar': true,
+        },
+        {
+          'label': 'Refractometer Std Solution 40 oBrix',
+          'standard_id': 53,
+          'terdaftar': true,
+        },
+        {
+          'label': 'Termometer & Sensor Std.',
+          'standard_id': 6,
+          'terdaftar': true,
+        },
+        {'label': 'PT100/SH1', 'standard_id': null, 'terdaftar': false},
+      ],
+      'field': <Map<String, dynamic>>[],
+    },
+    {
+      'kode': 'data_kalibrasi',
+      'halaman': 1,
+      'judul': 'CALIBRATION DATA',
+      'field': [
+        field('lokasi', '1. Location', 'pilihan', pilihan: [
+          {'nilai': 'lab', 'label': 'Inlab'},
+          {'nilai': 'onsite', 'label': 'Insitu'},
+        ]),
+        field('room_id', 'Ruangan', 'pilihan', sumber: 'master_ruangan'),
+        if (untukAdmin)
+          field('calibration_method_id', '2. Calibration Methode', 'pilihan',
+              sumber: 'master_metode', hanyaAdmin: true),
+      ],
+    },
+    {
+      'kode': 'hasil',
+      'halaman': 1,
+      'judul': 'CALIBRATION RESULT',
+      'field': [
+        field('suhu_awal', 'Env. Condition — First', 'angka', satuan: '°C'),
+        field('kelembaban_awal', 'Env. Condition — First', 'angka', satuan: '%RH'),
+        field('suhu_akhir', 'Env. Condition — End', 'angka', satuan: '°C'),
+        field('kelembaban_akhir', 'Env. Condition — End', 'angka', satuan: '%RH'),
+      ],
+      'tabel': [
+        tabel('sebelum_adjustment', 'Before adjustment Reading'),
+        tabel('sesudah_adjustment', 'After adjustment Reading'),
+      ],
+    },
+    {
+      'kode': 'penutup',
+      'halaman': 1,
+      'judul': 'Catatan & Tanda Tangan',
+      'field': [
+        field('catatan_teknisi', 'Catatan', 'teks_panjang'),
+        field('teknisi.nama', 'Calibrated by', 'teks', sumber: 'otomatis'),
+        field('reviewer.nama', 'Checked by', 'teks', sumber: 'otomatis'),
+      ],
+    },
+  ];
+
+  return {
+    'kode_dokumen': 'SIDIK-FM-CAL-0523_Rev.2',
+    'judul': 'Calibration Worksheet - Refractometer',
+    'untuk': untukAdmin ? 'admin' : 'teknisi',
+    'jumlah_pengulangan': 5,
+    'larutan_standar': [1.33659, 1.39986],
+    'satuan': 'n20D',
+    'satuan_suhu': '°C',
+    'pilihan_satuan': [
+      {'nilai': 'n20D', 'label': 'n20D (indeks bias)'},
+      {'nilai': '°Brix', 'label': '°Brix (kadar sukrosa)'},
+    ],
+    'semua_kolom_opsional': true,
+    'catatan_pengisian':
+        'Kolom yang belum bisa diisi di lapangan boleh dikosongin — '
+        'lembar kerja tetap bisa dikirim. Suhu tiap pembacaan WAJIB diisi kalau '
+        'bisa: tanpa itu pembacaan nggak bisa dinormalisasi ke 20 °C.',
+    'bagian': bagian,
+  };
+}
+
+/// Salinan bentuk Spectrophotometer (`?profil=spectrophotometer`,
+/// `SpectrophotometerProfile` di backend). Diambil dari respons ASLI
+/// `GET /api/calibrations/lembar-kerja?equipment_id=12` di DB lab, bukan
+/// dikarang — angka titiknya persis yang tercetak di master
+/// `Master Olah Data_Spectrofotometer.xlsm`.
+///
+/// Tiga hal di bentuk ini yang nggak ada di lima alat sebelumnya, dan
+/// ketiganya pernah bikin layar salah gambar:
+///
+///  1. **Tiga tabel dalam satu bagian**, masing-masing punya satuan &
+///     jumlah pengulangan sendiri. Blok %T dapat **enam** kolom (master nyetak
+///     dua baris X1..X3 per nilai standar), sementara `jumlah_pengulangan` di
+///     level lembar tetap 3. Layar yang ngambil dari level lembar bakal
+///     ngilangin tiga kolom terakhir %T — dan teknisi nggak punya tempat
+///     ngetik separuh datanya.
+///  2. **`satuan_campuran` berbentuk DAFTAR** (`["nm", "%T"]`), bukan `true`
+///     kayak Conductivity. Dua-duanya sah; lihat `_campuran` di
+///     `models/lembar_kerja.dart`.
+///  3. **Bagian berstatus `sumber_belum_ada`** (SRE) yang tampil tapi nggak
+///     nerima input sama sekali.
+Map<String, dynamic> contohBentukLembarKerjaSpectro({bool untukAdmin = false}) {
+  Map<String, dynamic> field(
+    String kode,
+    String label,
+    String tipe, {
+    String? sumber,
+    String? satuan,
+    List<Map<String, String>> pilihan = const [],
+    bool hanyaAdmin = false,
+  }) => {
+    'kode': kode,
+    'label': label,
+    'tipe': tipe,
+    'wajib': false,
+    'sumber': sumber,
+    'satuan': satuan,
+    'pilihan': pilihan,
+    'hanya_admin': hanyaAdmin,
+  };
+
+  // Tiap baris bawa `standard_id`-nya sendiri — teknisi NGGAK milih filter per
+  // titik. Rentang Holmium (283–641 nm) & Didynium (474–810 nm) tumpang tindih
+  // 167 nm, jadi pemilihan manual gampang salah dan salahnya nggak kelihatan
+  // dari dokumen hasilnya.
+  Map<String, dynamic> tabel(
+    String grup,
+    String judul,
+    String judulNilai,
+    String satuan,
+    double resolusi,
+    int desimal,
+    int standardId,
+    String standardNama,
+    List<double> nilai,
+    int pengulangan, {
+    Map<String, String>? kolomTetap,
+    String? catatan,
+  }) => {
+    // Alat ini nggak punya tahap adjustment — master-nya cuma sekali baca per
+    // titik. `tahap` tetap dikirim backend sebagai identitas kolom isian, dan
+    // ketiga tabelnya isinya SAMA. Aman karena tiap titik cuma punya satu
+    // tabel; yang misahin isian antar tabel itu titiknya, bukan tahapnya.
+    'tahap': 'sesudah_adjustment',
+    'grup': grup,
+    'judul': judul,
+    'satuan': satuan,
+    // Bentuk tabel seperti di lembar CETAK: kolom "No.", kepala kolom nilai
+    // standar, kepala gabungan kolom angka, dan awalan X1..X3. Blok %T nggak
+    // punya kolom "No." — kolom kirinya dipakai `λ (nm)` yang kegabung.
+    'nomor_baris': kolomTetap == null,
+    'judul_nilai': judulNilai,
+    'judul_pengulangan': 'Measurement Result',
+    'prefiks_pengulangan': 'X',
+    // Enam pengulangan %T digambar DUA baris X1..X3 di kertas.
+    'pengulangan_per_baris': 3,
+    'kolom_tetap': kolomTetap,
+    'catatan': catatan,
+    'baris': [
+      for (final n in nilai)
+        {
+          'titik_ukur': n,
+          // Ditulis kayak di kertas: satu desimal, koma.
+          'label': n.toStringAsFixed(1).replaceAll('.', ','),
+          'resolusi': resolusi,
+          'desimal': desimal,
+          'satuan': satuan,
+          'standard_id': standardId,
+          'standard_nama': standardNama,
+        },
+    ],
+    'kolom': [
+      {'kode': 'pembacaan', 'label': satuan, 'tipe': 'angka', 'satuan': satuan},
+    ],
+    'pengulangan': [for (var i = 1; i <= pengulangan; i++) i],
+  };
+
+  final bagian = <Map<String, dynamic>>[
+    {
+      'kode': 'identitas_alat',
+      'halaman': 1,
+      'judul': 'EQUIPMENT IDENTITY AND CUSTOMER DATA',
+      'field': [
+        field('tanggal_terima', 'Received Date', 'tanggal'),
+        field('tanggal_kalibrasi', 'Calibration Date', 'tanggal'),
+        field('equipment_id', 'Equipment', 'pilihan', sumber: 'master_alat'),
+        field('equipment.nama_alat', '1. Name', 'teks', sumber: 'otomatis'),
+        // DIKETIK TEKNISI, bukan ditarik master alat: alat ini punya DUA skala
+        // (`0–100 %T` & `200–700 nm`), sementara `equipments` cuma punya satu
+        // satuan + satu pasang rentang, jadi yang otomatis pasti salah separuh.
+        field('spesifikasi_alat.rentang_ukur_transmitan', '2. Rentang Ukur',
+            'teks', satuan: '%T'),
+        field('spesifikasi_alat.rentang_ukur_panjang_gelombang',
+            '2. Rentang Ukur', 'teks', satuan: 'nm'),
+        field('spesifikasi_alat.kapasitas_maks_transmitan', 'Kapasitas Max.',
+            'teks', satuan: '%T'),
+        field('spesifikasi_alat.resolusi_transmitan', 'Resolusi Alat', 'teks',
+            satuan: '%T'),
+        field('spesifikasi_alat.resolusi_panjang_gelombang', 'Resolusi Alat',
+            'teks', satuan: 'nm'),
+        field('alat_model', '3. Type/Model', 'teks'),
+        field('alat_serial_number', '4. Serial Number/LPI', 'teks'),
+        field('alat_merk', '5. Merk/Manufacture', 'teks'),
+        field('thermohygro_standard_id', '6. Thermohygro used', 'pilihan',
+            sumber: 'master_thermohygro'),
+      ],
+    },
+    {
+      'kode': 'pemilik',
+      'halaman': 1,
+      'judul': 'OWNER',
+      'field': [
+        field('pemilik_nama', '1. Name', 'teks'),
+        field('pemilik_alamat', '2. Address', 'teks_panjang'),
+      ],
+    },
+    {
+      'kode': 'usage_check',
+      'halaman': 1,
+      'judul': 'STANDARD',
+      'baris': [
+        {
+          'label': 'Filter Standard 1 (Holmium Oxide)',
+          'standard_id': 25,
+          'serial_number': 'SPG080982.A',
+          'terdaftar': true,
+        },
+        {
+          'label': 'Filter Standard 2 (Didynium)',
+          'standard_id': 26,
+          'serial_number': 'SPG080982.B',
+          'terdaftar': true,
+        },
+        {
+          'label': 'Filter Standard 3 (Neutral Gas Filter 1,2,3)',
+          'standard_id': 27,
+          'serial_number': 'SPG080982.C',
+          'terdaftar': true,
+        },
+      ],
+      'field': <Map<String, dynamic>>[],
+    },
+    {
+      'kode': 'data_kalibrasi',
+      'halaman': 1,
+      'judul': 'CALIBRATION DATA',
+      'field': [
+        field('lokasi', '1. Location', 'pilihan', pilihan: [
+          {'nilai': 'lab', 'label': 'In lab'},
+          {'nilai': 'onsite', 'label': 'Insitu'},
+        ]),
+        // Sertifikat nulis `Insitu (PT. LDC)` — nama tempatnya diketik teknisi.
+        field('lokasi_nama', 'Nama Lokasi (kalau Insitu)', 'teks'),
+        field('teknisi.kode', 'Technician ID', 'teks', sumber: 'otomatis'),
+        field('room_id', 'Ruangan', 'pilihan', sumber: 'master_ruangan'),
+        if (untukAdmin)
+          field('calibration_method_id', '2. Calibration Methode', 'pilihan',
+              sumber: 'master_metode', hanyaAdmin: true),
+      ],
+    },
+    {
+      'kode': 'hasil',
+      'halaman': 1,
+      'judul': 'CALIBRATION RESULT',
+      'field': [
+        field('suhu_awal', 'Env. Condition — First', 'angka', satuan: '°C'),
+        field('kelembaban_awal', 'Env. Condition — First', 'angka', satuan: '%RH'),
+        field('suhu_akhir', 'Env. Condition — End', 'angka', satuan: '°C'),
+        field('kelembaban_akhir', 'Env. Condition — End', 'angka', satuan: '%RH'),
+      ],
+      'tabel': [
+        tabel(
+          'holmium',
+          'Wave Length ( λ ) - Filter Holmium',
+          'Std Value (λ1)',
+          'nm',
+          0.01,
+          2,
+          25,
+          'Filter Standard 1',
+          const [279.6, 287.7, 334, 360.9, 418.6, 445.8, 453.6, 460, 536.3, 637.9],
+          3,
+        ),
+        tabel(
+          'didynium',
+          'Wave Length ( λ ) - Filter Didynium',
+          'Std Value (λ1)',
+          'nm',
+          0.01,
+          2,
+          26,
+          'Filter Standard 2',
+          const [475.2, 513.7, 529.7, 572.7, 585.7, 684.9, 738.5, 748, 806.1],
+          3,
+          catatan: '*) Measured at 25°C and with spectral bandwidth 1 nm.',
+        ),
+        tabel(
+          'akurasi_transmitan',
+          'Accuracy %T and Linierity at λ = 560nm',
+          'Std Value',
+          '%T',
+          0.001,
+          3,
+          27,
+          'Filter Standard 3',
+          const [0, 9.9, 20, 30.1, 100],
+          6,
+          kolomTetap: const {'label': 'λ (nm)', 'nilai': '560'},
+        ),
+      ],
+    },
+    {
+      'kode': 'sre',
+      'halaman': 1,
+      'judul': 'SRE (Stray Radiant Energy)',
+      'status': 'sumber_belum_ada',
+      'catatan':
+          'Belum diimplementasikan: di master, nilai standar SRE hilang '
+          '(SERTIFIKAT!C57 & O57 = #REF!), budget-nya #DIV/0! '
+          '(PERHITUNGAN U95%!AA65-AA66), faktor cakupannya bukan t-student, dan '
+          'CMC-nya nunjuk balik ke hasil hitungnya sendiri. Backend nggak '
+          'nyetak angka SRE sampai lab nyediakan lembar sumber yang sah.',
+      'field': <Map<String, dynamic>>[],
+    },
+    {
+      'kode': 'penutup',
+      'halaman': 1,
+      'judul': 'Catatan & Tanda Tangan',
+      'field': [
+        field('catatan_teknisi', 'Catatan', 'teks_panjang'),
+        field('teknisi.nama', 'Calibrated by', 'teks', sumber: 'otomatis'),
+        field('reviewer.nama', 'Checked by', 'teks', sumber: 'otomatis'),
+      ],
+    },
+  ];
+
+  return {
+    'kode_dokumen': 'SIDIK-IK-CAL-0508_Rev.4',
+    'judul': 'Calibration Worksheet - Spectrophotometer',
+    'untuk': untukAdmin ? 'admin' : 'teknisi',
+    'jumlah_pengulangan': 3,
+    'larutan_standar': const [
+      279.6, 287.7, 334, 360.9, 418.6, 445.8, 453.6, 460, 536.3, 637.9,
+      475.2, 513.7, 529.7, 572.7, 585.7, 684.9, 738.5, 748, 806.1,
+      0, 9.9, 20, 30.1, 100,
+    ],
+    // Keisi satuan blok PERTAMA, bukan kosong — itu yang dikirim backend, dan
+    // `satuan_campuran` di bawahnya yang bilang jangan dipakai buat melabeli.
+    'satuan': 'nm',
+    'satuan_campuran': const ['nm', '%T'],
+    'satuan_suhu': '°C',
+    'semua_kolom_opsional': true,
+    'catatan_pengisian':
+        'Kolom yang belum bisa diisi di lapangan boleh dikosongin — lembar '
+        'kerja tetap bisa dikirim. Tiap kelompok (Holmium / Didynium / %T) '
+        'punya SATU U95 bersama yang dihitung dari STDEV terbesar di kelompok '
+        'itu, jadi titik yang kosong ngurangin dasar hitungnya.',
     'bagian': bagian,
   };
 }

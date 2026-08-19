@@ -1,4 +1,8 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+
+import '../core/theme/app_colors.dart';
 
 /// Satu item di [FloatingNavBar].
 class FloatingNavItem {
@@ -55,35 +59,45 @@ class FloatingNavBar extends StatelessWidget {
             return Stack(
               clipBehavior: Clip.none,
               children: [
-                // Pill bar.
+                // Pill transparan: navigasi tetap ringan secara visual dan
+                // konten di belakangnya masih terasa menyatu dengan layar.
                 Positioned(
                   left: _hMargin,
                   right: _hMargin,
                   bottom: _bottom,
                   height: _barHeight,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: scheme.surface,
-                      borderRadius: BorderRadius.circular(26),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.14),
-                          blurRadius: 22,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        for (var i = 0; i < items.length; i++)
-                          Expanded(
-                            child: _Item(
-                              item: items[i],
-                              active: i == selectedIndex,
-                              onTap: () => onSelected(i),
-                            ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(26),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: scheme.surface.withValues(alpha: 0.76),
+                          borderRadius: BorderRadius.circular(26),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.50),
                           ),
-                      ],
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.16),
+                              blurRadius: 24,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            for (var i = 0; i < items.length; i++)
+                              Expanded(
+                                child: _Item(
+                                  item: items[i],
+                                  active: i == selectedIndex,
+                                  onTap: () => onSelected(i),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -106,6 +120,11 @@ class FloatingNavBar extends StatelessWidget {
                           color: scheme.primary.withValues(alpha: 0.35),
                           blurRadius: 12,
                           offset: const Offset(0, 5),
+                        ),
+                        BoxShadow(
+                          color: AppColors.signalAmber.withValues(alpha: 0.13),
+                          blurRadius: 18,
+                          spreadRadius: 1,
                         ),
                       ],
                     ),
@@ -160,7 +179,11 @@ class _Item extends StatelessWidget {
               child: AnimatedOpacity(
                 opacity: active ? 0 : 1,
                 duration: const Duration(milliseconds: 180),
-                child: Icon(item.icon, size: 23, color: scheme.onSurfaceVariant),
+                child: Icon(
+                  item.icon,
+                  size: 23,
+                  color: scheme.onSurfaceVariant,
+                ),
               ),
             ),
             const SizedBox(height: 2),

@@ -74,10 +74,26 @@ class BarisHasilSertifikat {
     required this.u95,
     this.desimal,
     this.remark,
+    this.satuan,
+    this.tandaNol = true,
+    this.faktorCakupanK,
+    this.desimalU95,
   });
 
   final int titikKe;
   final double standardValue;
+
+  /// Satuan baris INI — DIBEKUKAN waktu sertifikat terbit, buat alat yang
+  /// nyampur satuan dalam satu lembar (Conductivity: 25 & 1412 µS/cm, 111
+  /// mS/cm).
+  ///
+  /// Beda dari `satuan` di level snapshot, yang cuma nampung SATU satuan buat
+  /// seluruh lembar — itu yang bikin titik 111 mS/cm kelabel µS/cm kalau
+  /// dipakai borongan.
+  ///
+  /// `null` = alat bersatuan seragam; tampilan empat alat lain nggak berubah.
+  final String? satuan;
+
   final double unitUnderTest;
 
   /// Berapa desimal baris INI ditulis. `null` = backend belum ngirim, pakai
@@ -101,7 +117,39 @@ class BarisHasilSertifikat {
   /// PERHITUNGAN. Dua-duanya bener, jangan dipakai silang.
   final double correction;
 
+  /// Koreksi negatif yang MEMBULAT KE NOL dicetak `-0,0` atau `0,0`.
+  ///
+  /// Beda per alat, dan bedanya dibaca dari master masing-masing — bukan dari
+  /// nalar. Master Turbidimeter `0189-CAL-624` nulis `-0,00`; master
+  /// Conductivity nyimpen `-0.03999999999999915` di selnya tapi nyetaknya
+  /// `0,0`. Backend yang mutusin (`CalibrationProfile::tandaNolDicetak()`).
+  ///
+  /// Default `true` buat sertifikat yang terbit SEBELUM field ini ada:
+  /// snapshot-nya nggak punya kunci `tanda_nol`, dan yang bener buat dokumen
+  /// yang udah dipegang pelanggan adalah tampil persis kayak waktu diterbitkan.
+  final bool tandaNol;
+
   final double u95;
+
+  /// Faktor cakupan yang dipakai buat [u95] titik ini.
+  ///
+  /// Sertifikat master nyetaknya di bawah TIAP tabel hasil ("…Coverage Factor
+  /// ( k ) = 3"), dan angkanya beda per kelompok — Holmium 3,18; Didynium
+  /// 2,36; %T 2,01 — jadi nggak bisa diwakili satu nilai di level sertifikat.
+  ///
+  /// `null` buat sertifikat yang terbit sebelum field ini dibekukan: barisnya
+  /// dikosongin, bukan diisi angka karangan.
+  final double? faktorCakupanK;
+
+  /// Desimal khusus baris `Uncertainty U95% = ±`, kalau alat ini nyetaknya beda
+  /// dari kolom hasil di atasnya.
+  ///
+  /// Master Spectrophotometer nulis `0,50 %T` sementara kolom UUT & Correction
+  /// di blok yang sama pakai TIGA desimal (`9,665`). Dua angka, dua format,
+  /// satu tabel — dan yang nentuin dokumen resminya.
+  ///
+  /// `null` = ikut [desimal] titik, persis perilaku lama.
+  final int? desimalU95;
 
   /// Kolom "Remark" di sertifikat cetak. `null` buat alat yang nggak punya —
   /// dan waktu SEMUA baris null, kolomnya nggak dirender sama sekali (sama
@@ -124,6 +172,10 @@ class BarisHasilSertifikat {
           final String s when s.trim().isNotEmpty => s.trim(),
           _ => null,
         },
+        satuan: json['satuan'] as String?,
+        tandaNol: json['tanda_nol'] as bool? ?? true,
+        faktorCakupanK: (json['faktor_cakupan_k'] as num?)?.toDouble(),
+        desimalU95: (json['desimal_u95'] as num?)?.toInt(),
       );
 }
 

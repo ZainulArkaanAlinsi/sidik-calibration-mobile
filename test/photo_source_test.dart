@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:sidik_calibration/providers/worksheet_vision_provider.dart';
+import 'package:sidik_calibration/providers/sumber_foto_provider.dart';
 import 'package:sidik_calibration/services/photo_source.dart';
 
 /// Tombol "foto tabel ini" dulu SELALU manggil kamera, apa pun platformnya.

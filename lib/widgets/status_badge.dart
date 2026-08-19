@@ -14,7 +14,12 @@ enum BadgeTone { success, danger, warning, info, neutral }
 /// tetap harus bisa bedain PASS dan FAIL. Ini bukan hiasan — hasil kalibrasi
 /// itu data yang dipertanggungjawabkan.
 class StatusBadge extends StatelessWidget {
-  const StatusBadge({super.key, required this.label, required this.tone, this.icon});
+  const StatusBadge({
+    super.key,
+    required this.label,
+    required this.tone,
+    this.icon,
+  });
 
   final String label;
   final BadgeTone tone;
@@ -105,8 +110,15 @@ class StatusBadge extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-        border: Border.all(color: color.withValues(alpha: 0.35)),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.42)),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -117,7 +129,10 @@ class StatusBadge extends StatelessWidget {
           ],
           Text(
             label,
-            style: theme.textTheme.labelSmall?.copyWith(color: color),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: color,
+              letterSpacing: 0.65,
+            ),
           ),
         ],
       ),

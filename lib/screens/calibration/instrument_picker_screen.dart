@@ -17,7 +17,8 @@ import 'lembar_kerja_screen.dart';
 ///
 /// Sebagian jenis alat punya form kalibrasi sendiri ([LembarKerjaScreen]) karena
 /// strukturnya jauh lebih spesifik dari form generik — pH Meter, Turbidimeter,
-/// & Chlorin Meter (lihat [profilLembarKerjaUntuk]). Jenis alat lain lanjut ke
+/// Chlorin Meter, & Refractometer (lihat [profilLembarKerjaUntuk]). Jenis alat
+/// lain lanjut ke
 /// [CalibrationInputScreen] generik, dengan kategori udah ke-pre-fill biar
 /// teknisi nggak milih ulang.
 class InstrumentPickerScreen extends ConsumerWidget {
@@ -80,19 +81,56 @@ const _profilKhusus = {
   // narik namanya dari lampiran.
   'chlorin meter': 'chlorine_meter',
   'chlorine meter': 'chlorine_meter',
+  'refractometer': 'refractometer',
+  // Lampiran akreditasi nulis "Conductivitymeter" (satu kata) sementara
+  // sertifikat & lembar kerjanya nulis "Conductivity Meter". Dua-duanya
+  // didaftarin, alasan yang sama kayak Chlorin/Chlorine di atas: yang nyampe
+  // ke sini teks bebas dari backend, bukan enum.
+  'conductivity meter': 'conductivity_meter',
+  'conductivitymeter': 'conductivity_meter',
+  // TIGA ejaan, dan ketiganya beneran ada di data lab: master Excel &
+  // `DATABASE.csv` nulis "Spectrophotometer", `kemampuan-kalibrasi.json` nulis
+  // "Spektrofotometer" (tiga baris CMC yang nggak dipakai jalur hitung, tapi
+  // KARTUNYA tetap muncul di picker), dan alat pelanggannya sendiri terdaftar
+  // "Visible Spectrofotometer". Ketiganya nunjuk ke satu profil backend.
+  'spectrophotometer': 'spectrophotometer',
+  'spektrofotometer': 'spectrophotometer',
+  'spectrofotometer': 'spectrophotometer',
+  'viscometer': 'viscometer',
 };
 
-/// Cocokin nama alat ke kode profil lembar kerja, **case-insensitive & spasi
-/// dirapetin**. `null` = alat ini nggak punya lembar khusus, pakai form generik.
+/// Cocokin nama alat ke kode profil lembar kerja, **case-insensitive, spasi
+/// dirapetin, dan boleh nempel di tengah nama**. `null` = alat ini nggak punya
+/// lembar khusus, pakai form generik.
 ///
 /// Dulu dicocokin persis (`_profilKhusus[namaAlat]`). Itu rapuh: `namaAlat` teks
 /// bebas dari lampiran akreditasi, bukan enum — beda satu huruf besar/kecil atau
 /// spasi dobel bikin alatnya diam-diam jatuh ke form generik. Gagal tanpa
 /// gejala: teknisi dapat form yang salah dan nggak ada satu pun yang error.
-String? profilLembarKerjaUntuk(String namaAlat) => _profilKhusus[namaAlat
-    .toLowerCase()
-    .trim()
-    .replaceAll(RegExp(r'\s+'), ' ')];
+///
+/// Cocok-persisnya sendiri masih kurang, dan itu ketahuan dari dua pemanggil
+/// yang ngoper **nama alat pelanggan**, bukan nama jenis alat: Alur Kerja dan
+/// layar detail sesi (`profilLembarKerjaUntuk(sesi.namaAlat) ?? 'ph_meter'`).
+/// Alat di master pelanggan namanya "Visible Spectrofotometer",
+/// "Turbidimeter Hach", "pH Meter Mettler Toledo" — nggak ada satu pun yang
+/// cocok persis, jadi semuanya jatuh ke `ph_meter` dan sesi yang dibuka lagi
+/// dapat lembar pH. Sekarang kunci yang paling panjang dicoba duluan, biar nama
+/// yang kebetulan nyimpen dua kunci (mis. "Chlorine Meter" vs "Meter") mendarat
+/// di yang paling spesifik.
+String? profilLembarKerjaUntuk(String namaAlat) {
+  final n = namaAlat.toLowerCase().trim().replaceAll(RegExp(r'\s+'), ' ');
+  final tepat = _profilKhusus[n];
+  if (tepat != null) return tepat;
+
+  final kunci = _profilKhusus.keys.toList()
+    ..sort((a, b) => b.length.compareTo(a.length));
+
+  for (final k in kunci) {
+    if (n.contains(k)) return _profilKhusus[k];
+  }
+
+  return null;
+}
 
 /// Ambang jumlah alat sebelum kolom cari ditampilin — kategori kecil
 /// (mis. Panjang, cuma 4 alat) nggak perlu, scroll aja udah cukup.
@@ -189,7 +227,9 @@ class _InstrumenCard extends StatelessWidget {
       _ when n.contains('viscomet') => Icons.opacity_outlined,
       _ when n.contains('refractomet') => Icons.remove_red_eye_outlined,
       _ when n.contains('do meter') => Icons.air_outlined,
-      _ when n.contains('spektro') => Icons.gradient_outlined,
+      // Tiga ejaan yang beneran dipakai lab — lihat [_profilKhusus].
+      _ when n.contains('spektro') || n.contains('spectro') =>
+        Icons.gradient_outlined,
       _ when n.contains('autoklaf') => Icons.local_fire_department_outlined,
       _ when n.contains('thermohygro') => Icons.thermostat_outlined,
       _ when n.contains('thermo') || n.contains('termo') => Icons.device_thermostat_outlined,

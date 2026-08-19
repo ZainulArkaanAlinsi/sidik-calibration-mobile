@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/auth_provider.dart';
+import '../../providers/onboarding_provider.dart';
 import '../../providers/platform_provider.dart';
 import '../shell/desktop_shell.dart';
 import '../shell/main_shell.dart';
 import 'login_screen.dart';
+import 'onboarding_screen.dart';
 import 'splash_screen.dart';
 
 /// Nentuin layar pertama yang dilihat user.
@@ -28,12 +30,27 @@ class AuthGate extends ConsumerWidget {
     // Lihat [pakaiPanelDesktopProvider] buat alasan kenapa ini dipatok ke
     // platform, bukan ke lebar jendela.
     final panelDesktop = ref.watch(pakaiPanelDesktopProvider);
+    final onboarding = ref.watch(onboardingProvider);
 
     return switch (auth) {
-      AsyncData(:final value?) => panelDesktop
-          ? DesktopShell(key: ValueKey(value.id))
-          : MainShell(key: ValueKey(value.id)),
-      AsyncLoading() when !auth.hasValue && !auth.hasError => const SplashScreen(),
+      AsyncData(:final value?) =>
+        panelDesktop
+            ? DesktopShell(key: ValueKey(value.id))
+            : onboarding.when(
+                data: (status) => status.perluTampil(value.id)
+                    ? OnboardingScreen(
+                        key: ValueKey('onboarding-${value.id}'),
+                        user: value,
+                      )
+                    : MainShell(key: ValueKey(value.id)),
+                loading: () => const SplashScreen(),
+                // Gagal baca status = langsung masuk kerja. Panduan yang
+                // kelewat jauh lebih murah daripada orang yang nggak bisa
+                // masuk gara-gara penyimpanan lokalnya rewel.
+                error: (_, _) => MainShell(key: ValueKey(value.id)),
+              ),
+      AsyncLoading() when !auth.hasValue && !auth.hasError =>
+        const SplashScreen(),
       _ => const LoginScreen(),
     };
   }

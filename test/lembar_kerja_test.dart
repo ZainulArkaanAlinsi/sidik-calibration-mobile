@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/models/calibration_detail.dart';
+import 'package:sidik_calibration/models/equipment_lookup.dart';
 import 'package:sidik_calibration/models/lembar_kerja.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/calibration_input_provider.dart';
@@ -14,10 +15,24 @@ import 'package:sidik_calibration/screens/calibration/lembar_kerja_state.dart';
 import 'package:sidik_calibration/services/equipment_lookup_service.dart';
 import 'package:sidik_calibration/services/lembar_kerja_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
+import 'package:sidik_calibration/providers/history_provider.dart';
+import 'dart:io';
+
+import 'package:image/image.dart' as img;
+
+import 'package:sidik_calibration/models/worksheet_scan.dart';
+import 'package:sidik_calibration/models/worksheet_template.dart';
+import 'package:sidik_calibration/providers/sumber_foto_provider.dart';
+import 'package:sidik_calibration/providers/worksheet_scan_provider.dart';
+import 'package:sidik_calibration/services/history_service.dart';
 import 'package:sidik_calibration/services/mock_store.dart';
+import 'package:sidik_calibration/services/photo_source.dart';
 import 'package:sidik_calibration/services/room_service.dart';
 import 'package:sidik_calibration/services/standard_service.dart';
-import 'package:sidik_calibration/services/worksheet_vision.dart';
+import 'package:sidik_calibration/services/pembaca_halaman.dart';
+import 'package:sidik_calibration/services/pembaca_qr.dart';
+import 'package:sidik_calibration/services/pembaca_sel.dart';
+import 'package:sidik_calibration/services/worksheet_scan_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 
 /// Lembar kerjanya panjang banget (2 tabel x 3 baris x 5 repeat x 2 kolom =
@@ -47,6 +62,10 @@ Widget _app(
   String profil = 'ph_meter',
   MockStandardService? standar,
   MockRoomService? ruangan,
+  MockSumberFoto? kamera,
+  MockHistoryService? riwayat,
+  MockWorksheetScanService? pindai,
+  MockPembacaHalaman? halaman,
 }) {
   return ProviderScope(
     overrides: [
@@ -62,6 +81,19 @@ Widget _app(
       equipmentLookupServiceProvider.overrideWithValue(
         MockEquipmentLookupService(),
       ),
+      if (kamera != null) sumberFotoProvider.overrideWithValue(kamera),
+      if (riwayat != null) historyServiceProvider.overrideWithValue(riwayat),
+      // Tombol pindai nanya kesiapan lembar ke sini. Bawaannya
+      // `siap_pindai: false` — sama kayak keadaan server sekarang.
+      worksheetScanServiceProvider.overrideWithValue(
+        pindai ?? MockWorksheetScanService(),
+      ),
+      if (halaman != null)
+        pabrikPembacaPindaiProvider.overrideWithValue((
+          sel: MockPembacaSel.new,
+          qr: MockPembacaQr.new,
+          halaman: () => halaman,
+        )),
     ],
     child: MaterialApp(
       locale: const Locale('id'),
@@ -102,6 +134,22 @@ Future<void> _keHalamanAkhir(WidgetTester tester) async {
   final lanjut = find.text('LANJUT KE HALAMAN BERIKUTNYA');
   while (lanjut.evaluate().isNotEmpty) {
     await tester.tap(lanjut);
+    await tester.pumpAndSettle();
+  }
+}
+
+/// Tekan KIRIM KE ADMIN, terus setujui dialog konfirmasi angkanya.
+///
+/// Dialognya cuma nongol kalau ada pembacaan yang keisi (lihat
+/// `_konfirmasiAngka` di layar), jadi test yang ngirim lembar kosong tetap
+/// lewat sini tanpa perlu tau bedanya.
+Future<void> _kirimKeAdmin(WidgetTester tester) async {
+  await tester.tap(find.text('KIRIM KE ADMIN'));
+  await tester.pumpAndSettle();
+
+  final konfirmasi = find.text('Kirim sekarang');
+  if (konfirmasi.evaluate().isNotEmpty) {
+    await tester.tap(konfirmasi);
     await tester.pumpAndSettle();
   }
 }
@@ -190,8 +238,7 @@ void main() {
       await _pilihAlat(tester);
 
       await _keHalamanAkhir(tester);
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       expect(service.jumlahKirim, 1);
       expect(service.payloadTerakhir!['status'], 'menunggu_approval');
@@ -240,8 +287,7 @@ void main() {
       await tester.enterText(kotak.at(5), '22.1');
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       final measurements =
           service.payloadTerakhir!['measurements'] as List<dynamic>;
@@ -255,6 +301,118 @@ void main() {
       expect(titik4['suhu'], [22.2, null, 22.1, null, null]);
     });
 
+    /// Dua tabel diisi PENUH pakai angka master — padanan tes yang sama buat
+    /// Turbidimeter & Chlorine, biar ketiga alat setara penjagaannya.
+    ///
+    /// pH yang paling nggak boleh ketuker barisnya. Di dua alat lain, Standard
+    /// Value itu angka nominal apa adanya; di sini dia dikoreksi kurva suhu
+    /// dulu (buffer 4 di 22,2 °C jadi 4,009244572). Jadi pembacaan yang nyasar
+    /// ke baris lain bukan cuma pindah tempat — dia diadu ke nilai acuan yang
+    /// salah, dan koreksinya ikut salah tanpa ada yang kelihatan aneh.
+    ///
+    /// Repeat 4 titik 4 pH sengaja `5,00`: itu angka ASLI dari sheet lab
+    /// (`PERHITUNGAN.csv` baris 27, tabel Before). Nilai nyeleneh yang cuma ada
+    /// di satu sel itu justru penanda posisi paling bagus — kalau dia mendarat
+    /// di Repeat lain, langsung ketahuan.
+    testWidgets('tiga titik keisi penuh: baris & tahapnya nggak ketuker', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service));
+
+      await _pilihAlat(tester);
+      await _keHalamanAkhir(tester);
+
+      // `Master Olah Data_pH for trial_CSV/PERHITUNGAN.csv`: Before baris
+      // 24–28, After baris 37–41. Rata-rata After yang jadi Unit Under Test di
+      // sertifikat 012-CAL-524: 4,00 · 7,004 · 10,11.
+      const after = [
+        ['4', '4', '4', '4', '4'],
+        ['7,01', '7,01', '7', '7', '7'],
+        ['10,11', '10,11', '10,11', '10,11', '10,11'],
+      ];
+      const suhuAfter = [
+        ['22,2', '22,2', '22,1', '22,2', '22,2'],
+        ['22,2', '22,2', '22,2', '22,2', '22,2'],
+        ['22,1', '22,1', '22,1', '22,1', '22,1'],
+      ];
+      const before = [
+        ['4,04', '4,04', '4,04', '5', '4,04'],
+        ['7,02', '7,04', '7,05', '7,02', '7,02'],
+        ['9,61', '9,94', '9,66', '9,61', '9,61'],
+      ];
+      const suhuBefore = ['22,2', '22,3', '22,2'];
+
+      Finder kotakTabel(String judul) => find.descendant(
+        of: find
+            .ancestor(of: find.text(judul), matching: find.byType(Column))
+            .first,
+        matching: find.byType(TextField),
+      );
+
+      // Satu baris = 5 Repeat × 2 kotak (pH, °C); baris urut 4 → 7 → 10,01.
+      for (var titik = 0; titik < 3; titik++) {
+        for (var r = 0; r < 5; r++) {
+          final sel = titik * 10 + r * 2;
+          await tester.enterText(
+            kotakTabel('After adjustment Reading').at(sel),
+            after[titik][r],
+          );
+          await tester.enterText(
+            kotakTabel('After adjustment Reading').at(sel + 1),
+            suhuAfter[titik][r],
+          );
+          await tester.enterText(
+            kotakTabel('Before adjustment Reading').at(sel),
+            before[titik][r],
+          );
+          await tester.enterText(
+            kotakTabel('Before adjustment Reading').at(sel + 1),
+            suhuBefore[titik],
+          );
+        }
+      }
+      await tester.pumpAndSettle();
+
+      await _kirimKeAdmin(tester);
+
+      final measurements =
+          service.payloadTerakhir!['measurements'] as List<dynamic>;
+
+      // Yang dikirim mobile itu nominal buffernya. Koreksi kurva suhu jadi
+      // 4,009244572 dikerjain backend — mobile nggak boleh nebak-nebak sendiri.
+      expect(
+        measurements.map((m) => (m as Map)['titik_ukur']).toList(),
+        [4.00, 7.00, 10.01],
+      );
+
+      final titik4 = measurements[0] as Map<String, dynamic>;
+      final titik7 = measurements[1] as Map<String, dynamic>;
+      final titik10 = measurements[2] as Map<String, dynamic>;
+
+      expect(titik4['pembacaan'], [4.0, 4.0, 4.0, 4.0, 4.0]);
+      expect(titik7['pembacaan'], [7.01, 7.01, 7.0, 7.0, 7.0]);
+      expect(titik10['pembacaan'], [10.11, 10.11, 10.11, 10.11, 10.11]);
+
+      // `5,00` di Repeat 4 — penanda posisi dari sheet aslinya.
+      expect(titik4['pembacaan_sebelum'], [4.04, 4.04, 4.04, 5.0, 4.04]);
+      expect(titik7['pembacaan_sebelum'], [7.02, 7.04, 7.05, 7.02, 7.02]);
+      expect(titik10['pembacaan_sebelum'], [9.61, 9.94, 9.66, 9.61, 9.61]);
+
+      // Suhu per Repeat, bukan satu angka per baris: titik 4 Repeat 3 tercatat
+      // 22,1 °C sementara sisanya 22,2 (sheet baris 39).
+      expect(titik4['suhu'], [22.2, 22.2, 22.1, 22.2, 22.2]);
+      expect(titik7['suhu_sebelum'], [22.3, 22.3, 22.3, 22.3, 22.3]);
+
+      double rata(List<dynamic> n) =>
+          n.cast<double>().reduce((a, b) => a + b) / n.length;
+
+      expect(rata(titik4['pembacaan'] as List<dynamic>), closeTo(4.0, 1e-9));
+      expect(rata(titik7['pembacaan'] as List<dynamic>), closeTo(7.004, 1e-9));
+      expect(rata(titik10['pembacaan'] as List<dynamic>), closeTo(10.11, 1e-9));
+    });
+
     testWidgets('titik yang sama sekali kosong tetap ikut terkirim', (
       tester,
     ) async {
@@ -264,8 +422,7 @@ void main() {
 
       await _pilihAlat(tester);
       await _keHalamanAkhir(tester);
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       final measurements =
           service.payloadTerakhir!['measurements'] as List<dynamic>;
@@ -307,8 +464,7 @@ void main() {
       await tester.enterText(kotak.first, '21,3');
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       expect(service.payloadTerakhir!['suhu_awal'], 21.3);
     });
@@ -328,15 +484,13 @@ void main() {
       await _pilihAlat(tester);
 
       await _keHalamanAkhir(tester);
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       // Gagal → layarnya TETAP kebuka, isian nggak ilang, teknisi bisa coba lagi.
       expect(find.text('KIRIM KE ADMIN'), findsOneWidget);
 
       await _keHalamanAkhir(tester);
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       expect(service.jumlahKirim, 2);
       final pertama = service.payload[0]['client_request_id'];
@@ -692,35 +846,50 @@ void main() {
     });
   });
 
-  group('OCR tabel worksheet', () {
-    /// `baris` itu **Repeat**, isinya satu angka per larutan standar. Dua sumbu
-    /// ini gampang kebalik, dan kalau kebalik angkanya nyasar ke buffer yang
-    /// salah tanpa ada yang error — makanya diuji eksplisit.
-    HasilEkstraksiTabel contohHasil() => const HasilEkstraksiTabel(
-      baris: [
-        BarisTabel(ph: [4.01, 7.02, 10.11], suhu: [22.2, 22.3, 22.1]),
-        BarisTabel(ph: [4.02, 7.03, 10.12], suhu: [22.2, 22.3, 22.1]),
-      ],
-      jumlahSelKebaca: 12,
-      jumlahSelDiharapkan: 30,
-      jumlahAngkaTerdeteksi: 12,
-    );
+  group('hasil pindai lembar kerja', () {
+    /// Sel yang UDAH lewat mata teknisi di layar review — bukan bacaan mentah
+    /// OCR. Alamatnya tahap + titik ukur + nomor Repeat + kolom, bukan urutan
+    /// array: begitu ada satu tahap yang ngandelin urutan, angka bisa mendarat
+    /// di baris sebelah tanpa satu pun error muncul.
+    List<SelDipakaiPindai> contohHasil({String tahap = 'sesudah_adjustment'}) =>
+        [
+          for (final (titik, nilai) in const [
+            (4.00, [4.01, 4.02]),
+            (7.00, [7.02, 7.03]),
+            (10.01, [10.11, 10.12]),
+          ])
+            for (var r = 0; r < nilai.length; r++) ...[
+              (
+                tahap: tahap,
+                titikUkur: titik,
+                repeatNo: r + 1,
+                fieldId: 'pembacaan',
+                nilai: nilai[r],
+                perluDicek: true,
+              ),
+              (
+                tahap: tahap,
+                titikUkur: titik,
+                repeatNo: r + 1,
+                fieldId: 'suhu',
+                nilai: 22.2,
+                perluDicek: true,
+              ),
+            ],
+        ];
 
     LembarKerjaState buatState() => LembarKerjaState(
       bentuk: LembarKerja.fromJson(contohBentukLembarKerja()),
       clientRequestId: 'uuid-test',
     );
 
-    // Angka hasil AI ditulis pakai KOMA sejak lembar kerjanya sendiri berkoma
-    // (titik ukur `4,00` / `1,74`). Kotaknya tetap nerima dua-duanya.
+    // Angka hasil pindai ditulis pakai KOMA sejak lembar kerjanya sendiri
+    // berkoma (titik ukur `4,00` / `1,74`). Kotaknya tetap nerima dua-duanya.
     test('angka masuk ke Repeat & larutan standar yang benar', () {
       final isian = buatState();
-      final terisi = isian.terapkanHasilEkstraksi(
-        contohHasil(),
-        tahap: 'sesudah_adjustment',
-      );
+      final terisi = isian.terapkanHasilPindai(contohHasil());
 
-      // 2 Repeat x 3 titik x 2 kolom (pH & suhu).
+      // 2 Repeat x 3 titik x 2 kolom (pembacaan & suhu).
       expect(terisi, 12);
 
       final titik4 = isian.titik[4.00]!;
@@ -733,187 +902,867 @@ void main() {
       expect(titik4.kotak('sesudah_adjustment', 'suhu', 0).text, '22,2');
     });
 
-    test('sel yang udah diketik manual NGGAK ketimpa hasil foto', () {
+    /// Urutan array kiriman NGGAK boleh menentukan apa pun.
+    ///
+    /// Aturan yang sama dijaga di sisi server (payload yang dibalik urutannya
+    /// menghasilkan angka identik); di sini yang dijaga sisi layarnya, karena
+    /// pemetaan yang diam-diam ngandelin urutan cuma ketahuan waktu ada alat
+    /// yang barisnya nggak seurut titiknya.
+    test('urutan kiriman dibalik → angkanya identik', () {
+      final urut = buatState()..terapkanHasilPindai(contohHasil());
+      final balik = buatState()
+        ..terapkanHasilPindai(contohHasil().reversed.toList());
+
+      for (final titik in const [4.00, 7.00, 10.01]) {
+        for (var r = 0; r < 2; r++) {
+          expect(
+            balik.titik[titik]!.kotak('sesudah_adjustment', 'pembacaan', r).text,
+            urut.titik[titik]!.kotak('sesudah_adjustment', 'pembacaan', r).text,
+          );
+        }
+      }
+    });
+
+    test('sel yang udah diketik manual NGGAK ketimpa hasil pindai', () {
       final isian = buatState();
       final titik4 = isian.titik[4.00]!;
 
       // Teknisi udah betulin angka ini sendiri.
       titik4.kotak('sesudah_adjustment', 'pembacaan', 0).text = '4.00';
 
-      final terisi = isian.terapkanHasilEkstraksi(
-        contohHasil(),
-        tahap: 'sesudah_adjustment',
-      );
+      final terisi = isian.terapkanHasilPindai(contohHasil());
 
-      // Foto boleh dipakai berkali-kali buat nambal yang kurang; yang udah
-      // dibetulin manusia harus menang.
+      // Lembarnya boleh dipindai berkali-kali buat nambal yang kurang; yang
+      // udah dibetulin manusia harus menang.
       expect(titik4.kotak('sesudah_adjustment', 'pembacaan', 0).text, '4.00');
       expect(terisi, 11, reason: 'satu sel dilewat karena udah keisi');
     });
 
-    test('blok non-tabel keisi dari foto yang sama', () {
+    test('sel bervonis kuning ditandai perlu dicek, yang hijau nggak', () {
       final isian = buatState();
-      final terisi = isian.terapkanHasilHeader(
-        const HasilEkstraksiHeader(
-          field: {
-            'suhu_awal': NilaiHeader(
-              nilai: '22.2',
-              keyakinan: TingkatKeyakinan.tinggi,
-            ),
-            'catatan_teknisi': NilaiHeader(
-              nilai: 'buffer 10 baru dibuka',
-              keyakinan: TingkatKeyakinan.rendah,
-            ),
-          },
-          tanggal: {
-            'tanggal_terima': NilaiHeader(
-              nilai: '23/07/2026',
-              keyakinan: TingkatKeyakinan.sedang,
-            ),
-          },
+
+      isian.terapkanHasilPindai([
+        (
+          tahap: 'sesudah_adjustment',
+          titikUkur: 4.00,
+          repeatNo: 1,
+          fieldId: 'pembacaan',
+          nilai: 4.01,
+          perluDicek: true,
         ),
-      );
+        (
+          tahap: 'sesudah_adjustment',
+          titikUkur: 7.00,
+          repeatNo: 1,
+          fieldId: 'pembacaan',
+          nilai: 7.02,
+          perluDicek: false,
+        ),
+      ]);
 
-      expect(terisi, 3);
-      expect(isian.teks['suhu_awal']!.text, '22.2');
-      expect(isian.teks['catatan_teknisi']!.text, 'buffer 10 baru dibuka');
-      expect(isian.tanggal['tanggal_terima'], DateTime(2026, 7, 23));
-
-      // Cuma yang keyakinannya rendah yang ditandai — nyuruh cek SEMUA kolom
-      // sama aja nggak nandain apa-apa.
+      // Nyuruh cek SEMUA sel sama aja nggak nandain apa-apa.
       expect(
         isian.selRendahKeyakinan.contains(
-          LembarKerjaState.kunciField('catatan_teknisi'),
+          LembarKerjaState.kunciSel(4.00, 'sesudah_adjustment', 'pembacaan', 0),
         ),
         isTrue,
       );
       expect(
         isian.selRendahKeyakinan.contains(
-          LembarKerjaState.kunciField('suhu_awal'),
+          LembarKerjaState.kunciSel(7.00, 'sesudah_adjustment', 'pembacaan', 0),
         ),
         isFalse,
       );
     });
 
-    test('AI NGGAK BISA nulis serial number / tanda tangan', () {
-      // Ini pagar paling penting di seluruh alur foto. Serial number salah satu
-      // digit bikin kalibrasi nempel ke instrumen yang salah — itu cacat
-      // sertifikat berakreditasi, bukan sekadar bug. Sumbernya wajib DB.
-      // Tanda tangan "Checked by" apalagi: itu provenance, bukan data.
+    test('titik yang nggak ada di lembar ini DIBUANG, bukan dipaksa masuk', () {
+      // Angka kalibrasi di titik yang salah lebih bahaya daripada sel yang
+      // dibiarin kosong buat diisi tangan.
       final isian = buatState();
-      final terisi = isian.terapkanHasilHeader(
-        const HasilEkstraksiHeader(
-          field: {
-            'equipment.serial_number': NilaiHeader(
-              nilai: 'B628755900',
-              keyakinan: TingkatKeyakinan.tinggi,
-            ),
-            'customer.nama': NilaiHeader(
-              nilai: 'PT Tirta Gracia',
-              keyakinan: TingkatKeyakinan.tinggi,
-            ),
-            'reviewer.nama': NilaiHeader(
-              nilai: 'Budi',
-              keyakinan: TingkatKeyakinan.tinggi,
-            ),
-          },
+
+      final terisi = isian.terapkanHasilPindai([
+        (
+          tahap: 'sesudah_adjustment',
+          titikUkur: 1412.0,
+          repeatNo: 1,
+          fieldId: 'pembacaan',
+          nilai: 1413,
+          perluDicek: true,
         ),
-      );
-
-      // Backend boleh nekat ngirim kolom ini; mobile tetap nolak semuanya.
-      expect(terisi, 0);
-      expect(isian.teks.containsKey('equipment.serial_number'), isFalse);
-      expect(isian.teks.containsKey('customer.nama'), isFalse);
-      expect(isian.teks.containsKey('reviewer.nama'), isFalse);
-    });
-
-    test('kolom non-tabel yang udah diketik manual NGGAK ketimpa', () {
-      final isian = buatState();
-      isian.teks['suhu_awal']!.text = '23.0';
-
-      final terisi = isian.terapkanHasilHeader(
-        const HasilEkstraksiHeader(
-          field: {
-            'suhu_awal': NilaiHeader(
-              nilai: '22.2',
-              keyakinan: TingkatKeyakinan.tinggi,
-            ),
-          },
-        ),
-      );
+      ]);
 
       expect(terisi, 0);
-      expect(isian.teks['suhu_awal']!.text, '23.0');
+      expect(isian.titik.containsKey(1412.0), isFalse);
     });
 
-    test('tanggal_kalibrasi udah keisi hari ini → AI nggak nimpa', () {
+    test('Repeat di luar jumlah kotak lembar ini dilewat', () {
+      // Lembar yang dipangkas jadi 3 Repeat nggak punya kotak ke-5; nulis ke
+      // situ bikin kotak siluman yang nggak pernah kelihatan di layar tapi
+      // ikut kekirim.
       final isian = buatState();
-      final sebelum = isian.tanggal['tanggal_kalibrasi'];
 
-      isian.terapkanHasilHeader(
-        const HasilEkstraksiHeader(
-          tanggal: {
-            'tanggal_kalibrasi': NilaiHeader(
-              nilai: '01/01/2020',
-              keyakinan: TingkatKeyakinan.tinggi,
-            ),
-          },
+      final terisi = isian.terapkanHasilPindai([
+        (
+          tahap: 'sesudah_adjustment',
+          titikUkur: 4.00,
+          repeatNo: 99,
+          fieldId: 'pembacaan',
+          nilai: 4.01,
+          perluDicek: true,
         ),
-      );
+      ]);
 
-      expect(isian.tanggal['tanggal_kalibrasi'], sebelum);
+      expect(terisi, 0);
     });
 
-    test('usage check dari AI SELALU ditandai perlu dicek', () {
-      // Centang yang kebalik itu klaim standar mana yang dipakai — alias
-      // ketertelusuran. Beda kelas dari salah baca satu angka, jadi keyakinan
-      // "high" pun nggak cukup buat ngelolosin tanpa mata manusia.
-      final isian = buatState();
-      final terisi = isian.terapkanHasilHeader(
-        const HasilEkstraksiHeader(
-          usageCheck: [
-            UsageCheckAi(
-              standardId: 3,
-              dipakai: true,
-              keterangan: 'buffer 4',
-              keyakinan: TingkatKeyakinan.tinggi,
-            ),
-          ],
-        ),
-      );
-
-      expect(terisi, 1);
-      expect(isian.usageCheck[3]!.dipakai, isTrue);
-      expect(isian.usageCheck[3]!.keterangan.text, 'buffer 4');
-      expect(
-        isian.selRendahKeyakinan.contains(LembarKerjaState.kunciUsage(3)),
-        isTrue,
-      );
-    });
-
-    test('foto tabel Before nggak nyentuh tabel After', () {
-      final isian = buatState();
-      isian.terapkanHasilEkstraksi(contohHasil(), tahap: 'sebelum_adjustment');
+    test('pindai tabel Before nggak nyentuh tabel After', () {
+      final isian = buatState()
+        ..terapkanHasilPindai(contohHasil(tahap: 'sebelum_adjustment'));
 
       final titik4 = isian.titik[4.00]!;
       expect(titik4.kotak('sebelum_adjustment', 'pembacaan', 0).text, '4,01');
       expect(titik4.kotak('sesudah_adjustment', 'pembacaan', 0).text, isEmpty);
     });
 
-    test('hasil OCR ikut kekirim lewat payload, sel sisanya tetap null', () {
+    test('hasil pindai ikut kekirim lewat payload, sel sisanya tetap null', () {
       final isian = buatState()..alat = null;
-      isian.terapkanHasilEkstraksi(contohHasil(), tahap: 'sesudah_adjustment');
+      isian.terapkanHasilPindai(contohHasil());
 
       final titik4 = isian.titik[4.00]!.toSubmission().toJson();
 
-      // Dua Repeat keisi dari foto, tiga sisanya tetap null di posisinya.
+      // Dua Repeat keisi dari pindai, tiga sisanya tetap null di posisinya.
       expect(titik4['pembacaan'], [4.01, 4.02, null, null, null]);
     });
+
+    /// Asal-usul angka ikut kesimpen, bukan cuma angkanya.
+    ///
+    /// Dulu payload selalu nulis `input_method: manual`, termasuk buat tabel
+    /// yang dibaca mesin dari foto. Waktu ada angka sertifikat yang kelihatan
+    /// meleset (6 Agt 2026, chlorine titik 1,83), pertanyaan pertama admin —
+    /// "ini diketik atau hasil foto?" — cuma bisa dijawab dengan ngubek log
+    /// server, dan log-nya nggak selamanya ada.
+    test('sesi yang tabelnya dari pindai kecatat ocr, bukan manual', () {
+      final polos = buatState()..alat = daftarAlatMock.first;
+      expect(polos.toSubmission(draft: false).toJson()['input_method'], 'manual');
+
+      final dipindai = buatState()..alat = daftarAlatMock.first;
+      dipindai.terapkanHasilPindai(contohHasil());
+
+      expect(
+        dipindai.toSubmission(draft: false).toJson()['input_method'],
+        'ocr',
+      );
+    });
+
+    test('pindai yang nggak ngisi apa-apa nggak ngubah asal-usulnya', () {
+      // Sesi yang kecatat `ocr` padahal semua angkanya diketik tangan bikin
+      // jejaknya bohong ke arah sebaliknya.
+      final isian = buatState()..alat = daftarAlatMock.first;
+      isian.terapkanHasilPindai(const []);
+
+      expect(
+        isian.toSubmission(draft: false).toJson()['input_method'],
+        'manual',
+      );
+    });
+  });
+
+  /// **Foto satu tabel → angkanya masuk ke tabel itu**, lewat layar aslinya.
+  ///
+  /// Ini yang paling sering dipakai teknisi, dan jalur yang paling gampang
+  /// pecah tanpa gejala: yang menentukan posisi angka bukan koordinat cetak
+  /// (lembarnya nggak bermarker) tapi jangkar yang kebaca dari tabelnya
+  /// sendiri. Kalau sambungannya putus, yang kelihatan cuma "kok nggak keisi".
+  testWidgets('foto tabel: angkanya mendarat di baris & kolom yang benar', (
+    tester,
+  ) async {
+    _perbesarViewport(tester);
+
+    // Hasil OCR tabel pH: nilai standar di kolom kiri, dua Repeat di kanan.
+    TeksTerbaca kata(String t, double x, double y) =>
+        (teks: t, kotak: Rect.fromLTWH(x, y, t.length * 14, 24));
+
+    await _muat(
+      tester,
+      _app(
+        MockLembarKerjaService(),
+        // Citranya kecil & polos: yang diuji sambungannya, dan hasil OCR-nya
+        // dititipin lewat `MockPembacaHalaman`. Lembar 1654×2339 cuma bikin
+        // decode-nya makan detik tanpa nambah bukti apa pun.
+        kamera: MockSumberFoto(file: _fotoKecil()),
+        // Kepala kolomnya ikut — tanpa `pH`/`°C` yang tercetak, nggak ada
+        // dasar buat mbedain pembacaan dari suhu, dan yang benar memang
+        // membuangnya (dijaga `peta_tabel_foto_test`).
+        halaman: MockPembacaHalaman([
+          kata('X1', 480, 60),
+          kata('X2', 760, 60),
+          kata('pH', 420, 100),
+          kata('°C', 560, 100),
+          kata('pH', 700, 100),
+          kata('°C', 840, 100),
+          kata('4,00', 200, 200),
+          kata('4,01', 420, 200),
+          kata('25,1', 560, 200),
+          kata('4,02', 700, 200),
+          kata('7,00', 200, 260),
+          kata('7,03', 420, 260),
+        ]),
+      ),
+    );
+    await _keHalamanAkhir(tester);
+
+    await tester.ensureVisible(find.text('FOTO TABEL INI').first);
+    await tester.pump();
+
+    // `runAsync` WAJIB: di widget test I/O aslinya dipalsukan, jadi
+    // `File.readAsBytes()` (fotonya) nggak pernah selesai di dalam `pump`
+    // biasa — dan tombolnya nyangkut di spinner selamanya.
+    await tester.runAsync(() async {
+      await tester.tap(find.text('FOTO TABEL INI').first);
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+    });
+
+    for (var i = 0; i < 40; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+      if (find.widgetWithText(TextField, '4,01').evaluate().isNotEmpty) break;
+    }
+
+    // Angkanya mendarat di kotaknya — bukan di baris sebelah.
+    expect(find.widgetWithText(TextField, '4,01'), findsWidgets);
+    expect(find.widgetWithText(TextField, '7,03'), findsWidgets);
+    expect(find.widgetWithText(TextField, '4,02'), findsWidgets);
+    expect(find.widgetWithText(TextField, '25,1'), findsWidgets);
+  });
+
+  /// **Tombol pindai nggak boleh HILANG waktu templatenya gagal diambil.**
+  ///
+  /// Bug nyata, 14 Agt 2026. Layar ngirim nomor FORMULIR
+  /// (`SIDIK-IK-CAL-0508_Rev.4`) ke `GET /worksheet-templates/{kode}` yang mau
+  /// kode ALAT (`spectrophotometer`) — 404, providernya error, dan tombolnya
+  /// `SizedBox.shrink()`. Dari mata teknisi fiturnya kelihatan **nggak pernah
+  /// dibikin**: nggak ada tombol mati, nggak ada pesan, nggak ada apa pun.
+  ///
+  /// Dua yang dikunci di sini: kodenya yang benar yang dikirim, dan gagal
+  /// ambil template tetap ninggalin tombol (mati) plus alasannya.
+  testWidgets('template gagal diambil: tombol tetap ada, mati, ada alasannya', (
+    tester,
+  ) async {
+    _perbesarViewport(tester);
+    await _muat(
+      tester,
+      _app(
+        MockLembarKerjaService(),
+        pindai: _PindaiGagalTemplate(),
+      ),
+    );
+    await _keHalamanAkhir(tester);
+
+    final tombol = find.widgetWithText(OutlinedButton, 'PINDAI LEMBAR KERJA');
+
+    expect(
+      tombol,
+      findsWidgets,
+      reason: 'Tombolnya hilang — teknisi nggak punya cara tau fiturnya ada.',
+    );
+    expect(tester.widget<OutlinedButton>(tombol.first).onPressed, isNull);
+    expect(find.textContaining('gagal diambil'), findsWidgets);
+  });
+
+  testWidgets('yang diminta ke server kode ALAT, bukan nomor formulirnya', (
+    tester,
+  ) async {
+    _perbesarViewport(tester);
+    final pindai = MockWorksheetScanService(siapPindai: true);
+    await _muat(tester, _app(MockLembarKerjaService(), pindai: pindai));
+    await _keHalamanAkhir(tester);
+
+    expect(
+      pindai.kodeDiminta,
+      contains('ph_meter'),
+      reason: 'Nomor formulir (`SIDIK-FM-CAL-…`) bikin endpointnya 404.',
+    );
+  });
+
+  /// **Tombol pindai ikut `siap_pindai` dari server, titik.**
+  ///
+  /// Sekarang keenam lembar masih `geometri_belum_diverifikasi`: koordinat
+  /// selnya belum diukur dari lembar CETAK asli. Koordinat tebakan berarti
+  /// angka mendarat di sel yang salah — persis kegagalan yang bikin fitur ini
+  /// dirancang. Nyalain paksa "biar bisa dites dulu" cuma bikin teknisi
+  /// percaya fitur yang belum boleh dipakai.
+  testWidgets('lembar yang belum siap: tombol mati + alasannya apa adanya', (
+    tester,
+  ) async {
+    _perbesarViewport(tester);
+    await _muat(
+      tester,
+      _app(
+        MockLembarKerjaService(),
+        pindai: MockWorksheetScanService(siapPindai: false),
+      ),
+    );
+    await _keHalamanAkhir(tester);
+
+    final tombol = find.widgetWithText(OutlinedButton, 'PINDAI LEMBAR KERJA');
+    expect(tombol, findsWidgets);
+    expect(
+      tester.widget<OutlinedButton>(tombol.first).onPressed,
+      isNull,
+      reason: 'lembar tanpa geometri terverifikasi nggak boleh dipindai',
+    );
+
+    // Alasannya ditampilin APA ADANYA, bukan diterjemahin jadi "fitur belum
+    // tersedia": teknisi berhak tahu yang kurang itu apa, dan yang bisa nutup
+    // cuma lab (cetak ulang formulir + ukur koordinatnya).
+    expect(
+      find.textContaining('geometri_belum_diverifikasi'),
+      findsWidgets,
+    );
+  });
+
+  testWidgets('lembar yang udah siap: tombol pindai hidup', (tester) async {
+    _perbesarViewport(tester);
+    await _muat(
+      tester,
+      _app(
+        MockLembarKerjaService(),
+        pindai: MockWorksheetScanService(siapPindai: true),
+      ),
+    );
+    await _keHalamanAkhir(tester);
+
+    final tombol = find.widgetWithText(OutlinedButton, 'PINDAI LEMBAR KERJA');
+    expect(tester.widget<OutlinedButton>(tombol.first).onPressed, isNotNull);
   });
 
   _testDropdownGagal();
   _testTurbidimeter();
   _testChlorine();
+  _testRefractometer();
+  _testKonfirmasiKirim();
+}
+
+/// Refractometer — jenis alat KEEMPAT yang punya lembar kerja sendiri
+/// (`SIDIK-FM-CAL-0523_Rev.2`, satu halaman).
+///
+/// Angka-angka di grup ini dari sesi master `2211.11.R`
+/// (`Refractometer_CSV/INPUT DATA.csv` + `PERHITUNGAN.csv`), sesi yang sama yang
+/// dijaga `SertifikatCocokMasterTest` di backend. Kalau layar ini nampilin atau
+/// ngirim angka lain, yang salah layarnya.
+void _testRefractometer() {
+  group('Refractometer: suhu tiap pembacaan ikut kekirim', () {
+    /// **Test paling penting di grup ini.**
+    ///
+    /// Beda paling tajam dari tiga alat sebelumnya: di lembar Chlorine kolom °C
+    /// cuma dicatat buat jejak, di sini dia yang dipakai NGITUNG. Indeks bias
+    /// berubah ikut suhu, jadi backend mindahin pembacaan ke 20 °C dulu
+    /// (`Corrected = Observed + 0,00045 × (T − 20)`) sebelum diadu ke larutan
+    /// standar.
+    ///
+    /// Di master, Repeat 5 titik 1,33659 suhunya **35 °C** sementara empat
+    /// lainnya 25 °C — rata-ratanya jadi 27, dan `1,3362` jadi `1,33935` di
+    /// sertifikat. Satu angka 35 itu yang mindahin hasilnya. Kalau layar ini
+    /// ngedrop atau mbuletin kolom suhu, sertifikatnya meleset tanpa ada satu
+    /// pun yang error — persis jenis kegagalan yang bikin grup ini ditulis.
+    testWidgets('kolom suhu nyampe utuh per pembacaan, termasuk yang 35 °C', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'refractometer'));
+
+      await _pilihAlat(tester, alat: 'Refractometer · C12345');
+
+      final tabelAfter = find.ancestor(
+        of: find.text('After adjustment Reading'),
+        matching: find.byType(Column),
+      );
+      final kotak = find.descendant(
+        of: tabelAfter.first,
+        matching: find.byType(TextField),
+      );
+
+      // Master `INPUT DATA.csv` blok After Adjustment: dua titik, lima Repeat,
+      // dan Repeat 5 titik pertama suhunya 35 °C.
+      const suhu174 = ['25', '25', '25', '25', '35'];
+      for (var r = 0; r < 5; r++) {
+        await tester.enterText(kotak.at(r * 2), '1,3362');
+        await tester.enterText(kotak.at(r * 2 + 1), suhu174[r]);
+        await tester.enterText(kotak.at(10 + r * 2), '1,3986');
+        await tester.enterText(kotak.at(10 + r * 2 + 1), '25');
+      }
+      await tester.pumpAndSettle();
+
+      await _kirimKeAdmin(tester);
+
+      final measurements =
+          service.payloadTerakhir!['measurements'] as List<dynamic>;
+      final titik1 = measurements.first as Map<String, dynamic>;
+      final titik2 = measurements.last as Map<String, dynamic>;
+
+      expect(titik1['titik_ukur'], 1.33659);
+      expect(titik1['pembacaan'], [1.3362, 1.3362, 1.3362, 1.3362, 1.3362]);
+      expect(titik1['suhu'], [25.0, 25.0, 25.0, 25.0, 35.0]);
+      expect(titik1['satuan'], 'n20D');
+
+      expect(titik2['titik_ukur'], 1.39986);
+      expect(titik2['pembacaan'], [1.3986, 1.3986, 1.3986, 1.3986, 1.3986]);
+      expect(titik2['suhu'], [25.0, 25.0, 25.0, 25.0, 25.0]);
+    });
+
+    /// Empat desimal itu resolusi alatnya (0,0001). Kalau ada yang mbuletin
+    /// pembacaan di jalan — mis. nganggep dua desimal kayak tiga alat lain —
+    /// `1,3362` jadi `1,34` dan sertifikatnya meleset 0,004 n20D, empat puluh
+    /// kali resolusi alatnya.
+    testWidgets('empat desimal nggak dibuletin di jalan', (tester) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'refractometer'));
+
+      await _pilihAlat(tester, alat: 'Refractometer · C12345');
+
+      final kotak = find.descendant(
+        of: find
+            .ancestor(
+              of: find.text('After adjustment Reading'),
+              matching: find.byType(Column),
+            )
+            .first,
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(kotak.at(0), '1,3362');
+      await tester.pumpAndSettle();
+
+      await _kirimKeAdmin(tester);
+
+      final measurements =
+          service.payloadTerakhir!['measurements'] as List<dynamic>;
+      expect((measurements.first as Map)['pembacaan'], [
+        1.3362,
+        null,
+        null,
+        null,
+        null,
+      ]);
+    });
+
+    testWidgets('lembarnya satu halaman & titiknya dua, bukan tiga', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await _muat(
+        tester,
+        _app(MockLembarKerjaService(), profil: 'refractometer'),
+      );
+
+      expect(find.text('SIDIK-FM-CAL-0523_Rev.2'), findsOneWidget);
+      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsNothing);
+
+      // Larutan standarnya empat baris walau titik yang dikalibrasi cuma dua:
+      // satu botol fisik dipakai buat dua satuan sekaligus.
+      expect(
+        find.text('Refractometer Std Solution 1.33659 n20D'),
+        findsOneWidget,
+      );
+      expect(find.text('Refractometer Std Solution 2.5 oBrix'), findsOneWidget);
+
+      // Satuan ditanya di depan — dia yang nentuin koefisien suhu (0,00045 vs
+      // 0,07), titik standar, sama CMC-nya.
+      expect(find.text('7. Satuan Refracto'), findsOneWidget);
+    });
+
+    testWidgets('sesi baru masuk antrean sebagai Refractometer', (tester) async {
+      _perbesarViewport(tester);
+      await _muat(
+        tester,
+        _app(MockLembarKerjaService(), profil: 'refractometer'),
+      );
+
+      await _pilihAlat(tester, alat: 'Refractometer · C12345');
+      await _kirimKeAdmin(tester);
+
+      expect(MockStore.instance.sesi.first.namaAlat, 'Refractometer (sesi baru)');
+    });
+
+    /// Dropdown "7. Satuan Refracto" mesti **nyampe ke payload**, bukan cuma
+    /// kelihatan di layar.
+    ///
+    /// Pilihannya nentuin koefisien suhu yang dipakai backend buat mindahin
+    /// pembacaan ke 20 °C — 0,00045/°C buat n20D, 0,07/°C buat °Brix, beda 155
+    /// kali. Waktu kolom ini belum kerender sama sekali, seluruh sesi °Brix
+    /// diam-diam kekirim sebagai n20D: nggak ada yang error, angkanya cuma
+    /// salah.
+    testWidgets('pilihan °Brix ikut ke tiap measurements[].satuan', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'refractometer'));
+
+      await _pilihAlat(tester, alat: 'Refractometer · C12345');
+
+      await tester.tap(
+        find.ancestor(
+          of: find.text('7. Satuan Refracto'),
+          matching: find.byType(DropdownButtonFormField<String>),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('°Brix').last);
+      await tester.pumpAndSettle();
+
+      final kotak = find.descendant(
+        of: find
+            .ancestor(
+              of: find.text('After adjustment Reading'),
+              matching: find.byType(Column),
+            )
+            .first,
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(kotak.at(0), '1,3362');
+      await tester.pumpAndSettle();
+
+      await _kirimKeAdmin(tester);
+
+      final measurements =
+          service.payloadTerakhir!['measurements'] as List<dynamic>;
+
+      // DUA-DUANYA, bukan cuma titik yang keisi: satuan itu sifat alatnya,
+      // bukan sifat baris yang kebetulan diketik.
+      expect(
+        measurements.map((m) => (m as Map)['satuan']).toList(),
+        ['°Brix', '°Brix'],
+      );
+
+      // **Titik standarnya ikut ganti, bukan cuma labelnya.** Larutan fisiknya
+      // sama — BSAG2.5-0034 dibaca 2,5 °Brix ATAU 1,33659 n20D — tapi angka
+      // yang ditulis di lembar kerja beda. Sebelum ini sesi °Brix ngirim titik
+      // n20D bareng satuan °Brix, lalu dikoreksi pakai koefisien °Brix: nilai
+      // standar satu skala, pembacaan skala lain, dan nggak ada yang error.
+      expect(
+        measurements.map((m) => (m as Map)['titik_ukur']).toList(),
+        [2.5, 40.0],
+      );
+
+      // Backend milih koefisien suhu dari `equipments.satuan`, BUKAN dari
+      // satuan per pembacaan — jadi pilihannya mesti nyampe lewat kunci ini
+      // juga. Tanpa dia, pembacaannya kelabel °Brix tapi tetap dikoreksi pakai
+      // koefisien n20D.
+      expect(service.payloadTerakhir!['equipment_satuan'], '°Brix');
+    });
+
+    /// Alat yang kecatat °Brix mesti kebaca °Brix **di kotaknya**, bukan cuma
+    /// di dalam state.
+    ///
+    /// Bedanya penting: kalau kotaknya nulis n20D sementara yang dikirim °Brix,
+    /// teknisi nyetujuin satu hal dan yang kekirim hal lain. `FormField` nggak
+    /// nyinkronin `initialValue` waktu rebuild, jadi ini beneran gampang lepas.
+    testWidgets('alat °Brix bikin kotaknya langsung nulis °Brix', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'refractometer'));
+
+      await _pilihAlat(tester, alat: 'Refractometer · C67890');
+
+      // Nilai TERPILIH-nya yang dibaca, bukan sekadar ada tulisan "°Brix" di
+      // dalam dropdown. `DropdownButtonFormField` mbangun SEMUA item-nya di
+      // tree buat ngukur lebar, jadi `find.text('°Brix')` ketemu terus — kepilih
+      // atau nggak. Assertion versi itu lolos dua-duanya, dan gara-gara itu bug
+      // preselect-nya sempat lolos ke HP (7 Agt 2026).
+      final dropdown = find.descendant(
+        of: find.ancestor(
+          of: find.text('7. Satuan Refracto'),
+          matching: find.byType(DropdownButtonFormField<String>),
+        ),
+        matching: find.byType(DropdownButton<String>),
+      );
+      expect(tester.widget<DropdownButton<String>>(dropdown).value, '°Brix');
+
+      await _kirimKeAdmin(tester);
+      expect(service.payloadTerakhir!['equipment_satuan'], '°Brix');
+    });
+  });
+
+  group('Refractometer: satuan awal ngikut master alat', () {
+    LembarKerjaState buatState() => LembarKerjaState(
+      bentuk: LembarKerja.fromJson(contohBentukLembarKerjaRefractometer()),
+      clientRequestId: 'uuid-test',
+    );
+
+    EquipmentLookup alat(
+      String satuan, {
+      String serial = 'C12345',
+      String merk = '',
+    }) => EquipmentLookup(
+      id: 17,
+      namaAlat: 'Refractometer',
+      serialNumber: serial,
+      kategori: 'instrumen-analitik',
+      status: 'aktif',
+      satuan: satuan,
+      merk: merk,
+    );
+
+    /// Alat yang didaftarin sebagai °Brix mesti KEBUKA sebagai °Brix.
+    ///
+    /// Kalau formulirnya balik ke bawaan n20D, teknisi mesti inget sendiri buat
+    /// ngeganti — dan yang lupa nggak dapat peringatan apa pun, cuma sertifikat
+    /// yang koefisien suhunya salah.
+    test('alat °Brix bikin formulirnya kebuka di °Brix', () {
+      final isian = buatState()..alat = alat('°Brix');
+      expect(isian.satuan, 'n20D'); // bawaan formulir, sebelum alat dibaca
+
+      isian.isiDariAlat();
+      expect(isian.satuan, '°Brix');
+
+      // Titik yang udah kebentuk duluan ikut kebawa — bukan cuma nilai di layar.
+      expect(isian.titik.values.map((t) => t.satuan).toSet(), {'°Brix'});
+    });
+
+    /// Labnya nulis `oBrix` di Excel dan `°Brix` di lampiran akreditasi, jadi
+    /// master alat bisa nyimpen ejaan mana pun. Backend
+    /// (`RefractometerProfile::satuan()`) nganggep dua-duanya °Brix; layar ini
+    /// mesti sepakat, bukan diam-diam jatuh ke n20D gara-gara beda satu huruf.
+    test('ejaan `oBrix` dari master tetap kebaca °Brix', () {
+      final isian = buatState()..alat = alat('oBrix');
+      isian.isiDariAlat();
+
+      expect(isian.satuan, '°Brix');
+    });
+
+    /// Master alat sering basi — barang fisik yang datang bisa beda dari yang
+    /// kecatat waktu didaftarin. Yang sah tetap yang dibaca teknisi di lapangan.
+    test('pilihan teknisi nggak ketimpa master', () {
+      final isian = buatState()
+        ..satuan = 'n20D'
+        ..alat = alat('°Brix');
+      isian.isiDariAlat();
+
+      expect(isian.satuan, 'n20D');
+    });
+
+    /// Tiga alat lama nggak punya kolom "Satuan Refracto" sama sekali, jadi
+    /// master alat nggak boleh ngutak-atik satuan mereka lewat pintu belakang
+    /// ini — apa pun isi `equipments.satuan`.
+    test('alat tanpa kolom satuan nggak kesentuh', () {
+      final isian = LembarKerjaState(
+        bentuk: LembarKerja.fromJson(contohBentukLembarKerja()),
+        clientRequestId: 'uuid-test',
+      )..alat = alat('°Brix');
+      isian.isiDariAlat();
+
+      expect(isian.satuan, 'pH');
+    });
+
+    /// Hasil pindai mesti ngisi SEMUA sel tabelnya, bukan sebagian.
+    ///
+    /// Angkanya dari sesi master Refractometer (`1,3362 · 1,3986 · 25 · 25` di
+    /// kelima Repeat). Yang diuji bagian sesudah layar review: angka yang udah
+    /// disetujui teknisi mendarat utuh di kotak yang benar.
+    ///
+    /// Dua titik, bukan tiga — pemetaannya gampang meleset waktu jumlah
+    /// titiknya beda dari pH yang jadi acuan awal.
+    test('hasil pindai ngisi 20 sel Refractometer, bukan sebagian', () {
+      final isian = buatState()..alat = alat('n20D');
+
+      final terisi = isian.terapkanHasilPindai([
+        for (var r = 1; r <= 5; r++)
+          for (final (titik, baca) in const [
+            (1.33659, 1.3362),
+            (1.39986, 1.3986),
+          ]) ...[
+            (
+              tahap: 'sesudah_adjustment',
+              titikUkur: titik,
+              repeatNo: r,
+              fieldId: 'pembacaan',
+              nilai: baca,
+              perluDicek: true,
+            ),
+            (
+              tahap: 'sesudah_adjustment',
+              titikUkur: titik,
+              repeatNo: r,
+              fieldId: 'suhu',
+              nilai: 25.0,
+              perluDicek: true,
+            ),
+          ],
+      ]);
+
+      expect(terisi, 20, reason: '2 titik x 5 repeat x 2 kolom');
+
+      final t1 = isian.titik[1.33659]!;
+      final t2 = isian.titik[1.39986]!;
+      for (var i = 0; i < 5; i++) {
+        expect(t1.kotak('sesudah_adjustment', 'pembacaan', i).text, '1,3362');
+        expect(t2.kotak('sesudah_adjustment', 'pembacaan', i).text, '1,3986');
+        expect(t1.kotak('sesudah_adjustment', 'suhu', i).text, '25');
+      }
+
+      // Tabel Before SENGAJA tetap kosong: yang dituang cuma tabel yang
+      // dipindai, persis kayak di kertas yang dua tabelnya kepisah.
+      expect(t1.kotak('sebelum_adjustment', 'pembacaan', 0).text, isEmpty);
+    });
+
+    /// Ganti alat = identitasnya ikut ganti SEMUA, bukan setengah-setengah.
+    ///
+    /// **Bug nyata, ketemu di HP 7 Agt 2026.** Pilih Jangka Sorong, terus ganti
+    /// ke Refractometer Atago: Type/Model & Merk ikut alat baru (dua kolom itu
+    /// kosong di Jangka Sorong, jadi kena aturan "isi yang kosong"), tapi Serial
+    /// Number nyisa `MT-500-196-30` punya si jangka sorong. Satu blok identitas
+    /// berisi dua alat berbeda, di lembar kerja yang gunanya justru nyatet alat
+    /// mana yang dikalibrasi — dan nggak ada satu pun yang error.
+    test('ganti alat nggak ninggalin identitas alat sebelumnya', () {
+      final isian = buatState()..alat = alat('n20D', serial: 'MT-500-196-30');
+      isian.isiDariAlat();
+      expect(isian.teks['alat_serial_number']!.text, 'MT-500-196-30');
+
+      isian
+        ..alat = alat('°Brix', serial: 'C67890', merk: 'Atago')
+        ..isiDariAlat();
+
+      expect(isian.teks['alat_serial_number']!.text, 'C67890');
+      expect(isian.teks['alat_merk']!.text, 'Atago');
+    });
+
+    /// Alat baru yang serial-nya belum kecatat di master mesti nampilin kotak
+    /// KOSONG, biar teknisi ngisi dari badan alat. Nyisain serial alat
+    /// sebelumnya itu kegagalan yang sama, cuma lebih sunyi.
+    test('alat baru tanpa serial mengosongkan kolomnya, bukan nyisain yang lama',
+        () {
+      final isian = buatState()..alat = alat('n20D', serial: 'MT-500-196-30');
+      isian.isiDariAlat();
+
+      isian
+        ..alat = alat('n20D', serial: '')
+        ..isiDariAlat();
+
+      expect(isian.teks['alat_serial_number']!.text, isEmpty);
+    });
+
+    /// Pagar yang bikin perbaikan di atas aman: yang DIKETIK teknisi tetap
+    /// haram disentuh. Master diisi admin dan sering beda dari unit fisik yang
+    /// beneran datang — yang sah tetap yang dibaca teknisi dari badan alat.
+    test('yang diketik teknisi nggak ketimpa waktu ganti alat', () {
+      final isian = buatState()..alat = alat('n20D', serial: 'C12345');
+      isian.isiDariAlat();
+
+      isian.teks['alat_serial_number']!.text = 'C12345-REV2';
+
+      isian
+        ..alat = alat('°Brix', serial: 'C67890')
+        ..isiDariAlat();
+
+      expect(isian.teks['alat_serial_number']!.text, 'C12345-REV2');
+    });
+
+    /// Ganti satuan nuker baris tabelnya, bukan cuma label kolomnya.
+    test('titik standar ikut satuan: n20D 1,33659/1,39986 → °Brix 2,5/40', () {
+      final isian = buatState();
+      expect(isian.titikUrut.map((t) => t.titikUkur), [1.33659, 1.39986]);
+
+      isian.satuan = '°Brix';
+      expect(isian.titikUrut.map((t) => t.titikUkur), [2.5, 40.0]);
+      expect(isian.titikUrut.map((t) => t.label), ['2,5', '40']);
+
+      // Balik lagi ke n20D tetap dapat titik n20D — bukan nyangkut di °Brix.
+      isian.satuan = 'n20D';
+      expect(isian.titikUrut.map((t) => t.titikUkur), [1.33659, 1.39986]);
+    });
+
+    /// Pembacaan yang udah diketik bakal kebuang waktu satuannya diganti, dan
+    /// itu memang benar — angka n20D nggak punya arti sebagai °Brix. Yang nggak
+    /// boleh: ilang tanpa ditanya. State ngasih tau layar kapan mesti nanya.
+    test('layar dikasih tau kalau ganti satuan bakal ngosongin tabel', () {
+      final isian = buatState();
+
+      // Tabel masih kosong → nggak ada yang perlu dikonfirmasi.
+      expect(isian.gantiSatuanMenghapusIsian('°Brix'), isFalse);
+
+      isian.titik[1.33659]!.kotak('sesudah_adjustment', 'pembacaan', 0).text =
+          '1,3362';
+      expect(isian.gantiSatuanMenghapusIsian('°Brix'), isTrue);
+
+      // Satuan yang sama nggak ngubah tabel, jadi nggak perlu nanya walau ada
+      // isian.
+      expect(isian.gantiSatuanMenghapusIsian('n20D'), isFalse);
+    });
+
+    /// Satuan kena kelas bug yang sama, dan taruhannya paling tinggi: dia yang
+    /// nentuin koefisien normalisasi suhu di backend (0,00045/°C vs 0,07/°C).
+    test('ganti ke alat °Brix bikin satuannya ikut, kalau teknisi belum milih',
+        () {
+      final isian = buatState()..alat = alat('n20D');
+      isian.isiDariAlat();
+      expect(isian.satuan, 'n20D');
+
+      isian
+        ..alat = alat('°Brix')
+        ..isiDariAlat();
+
+      expect(isian.satuan, '°Brix');
+    });
+
+
+    /// Angka hasil foto ditandai "udah dicek" SAAT KIRIM, bukan lewat langkah
+    /// terpisah sesudahnya.
+    ///
+    /// **Desain yang salah, dikeluhkan 7 Agt 2026.** Dulu penandaannya cuma ada
+    /// di layar Riwayat: teknisi ngirim, ngerasa kelar, dan sesinya diam-diam
+    /// nge-blok admin (`ocr_belum_diverifikasi`) tanpa dia pernah dikasih tau
+    /// mesti balik ke sana. Tiga sesi berturut-turut mentok begitu.
+    ///
+    /// **Yang dijaga di sini tinggal separuh.** Dulu dijalanin lewat UI:
+    /// tombol "FOTO TABEL" → sumber foto tiruan → AI tiruan → kirim. Jalur AI
+    /// itu udah dicabut, dan penggantinya (pindai lembar) nggak bisa dijalanin
+    /// dari widget test — dia butuh marker, QR, dan gerbang mutu yang cuma ada
+    /// di foto lembar cetak beneran. Jadi yang keuji sekarang cuma penanda di
+    /// state-nya; **sambungan "kirim → verifikasiPembacaan" di layar nggak ada
+    /// yang jaga**, dan itu mesti diadu ke HP fisik sebelum fitur pindai
+    /// dinyalain buat teknisi.
+    test('sesi yang tabelnya dari pindai nandain butuh verifikasi', () {
+      final isian = buatState()..alat = alat('n20D');
+      expect(isian.adaIsianDariFoto, isFalse);
+
+      isian.terapkanHasilPindai([
+        (
+          tahap: 'sesudah_adjustment',
+          titikUkur: 1.33659,
+          repeatNo: 1,
+          fieldId: 'pembacaan',
+          nilai: 1.3362,
+          perluDicek: true,
+        ),
+      ]);
+
+      expect(isian.adaIsianDariFoto, isTrue);
+    });
+
+    /// `equipment_satuan` nulis ke data MASTER alat di backend. Kalau lembar pH
+    /// ikut ngirimnya, tiap sesi pH diam-diam nyetel `equipments.satuan` jadi
+    /// "pH" — data master keubah sama kiriman yang nggak pernah nanya soal itu.
+    test('kunci equipment_satuan cuma ikut buat lembar yang punya kolomnya', () {
+      final refracto = buatState()..alat = alat('n20D');
+      expect(
+        refracto.toSubmission(draft: false).toJson()['equipment_satuan'],
+        'n20D',
+      );
+
+      final ph = LembarKerjaState(
+        bentuk: LembarKerja.fromJson(contohBentukLembarKerja()),
+        clientRequestId: 'uuid-test',
+      )..alat = alat('n20D');
+
+      expect(
+        ph.toSubmission(draft: false).toJson().containsKey('equipment_satuan'),
+        isFalse,
+      );
+    });
+  });
 }
 
 /// Chlorin Meter — jenis alat KETIGA yang punya lembar kerja sendiri
@@ -1026,9 +1875,18 @@ void _testChlorine() {
       expect(profilLembarKerjaUntuk('turbidimeter'), 'turbidimeter');
     });
 
+    /// Conductivity dipindah dari daftar "belum punya lembar" ke daftar
+    /// "punya" 11 Agt 2026 — alat ke-5 masuk, dan sebelum dipetakan di sini
+    /// sesinya diam-diam kebuka pakai formulir pH.
+    test('Conductivity dua ejaan sama-sama ke conductivity_meter', () {
+      expect(profilLembarKerjaUntuk('Conductivity Meter'), 'conductivity_meter');
+      expect(profilLembarKerjaUntuk('Conductivitymeter'), 'conductivity_meter');
+      expect(profilLembarKerjaUntuk('CONDUCTIVITY  METER'), 'conductivity_meter');
+    });
+
     test('alat tanpa lembar khusus tetap null → form generik', () {
-      expect(profilLembarKerjaUntuk('Conductivity Meter'), isNull);
       expect(profilLembarKerjaUntuk('Timbangan'), isNull);
+      expect(profilLembarKerjaUntuk('Refraktometer Abbe'), isNull);
       expect(profilLembarKerjaUntuk(''), isNull);
     });
   });
@@ -1068,8 +1926,7 @@ void _testChlorine() {
       await tester.enterText(kotak.at(1), '25.7');
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       final measurements =
           service.payloadTerakhir!['measurements'] as List<dynamic>;
@@ -1095,13 +1952,77 @@ void _testChlorine() {
       );
 
       await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       expect(
         MockStore.instance.sesi.first.namaAlat,
         'Chlorine Meter Hanna (sesi baru)',
       );
+    });
+
+    /// Seluruh tabel diisi, bukan satu sel — yang dijaga di sini **pemetaan
+    /// baris**, bukan "angka bisa masuk".
+    ///
+    /// 6 Agt 2026: sertifikat di HP nampilin titik kedua `1,90` / `-0,07`,
+    /// padahal sertifikat asli `0189-CAL-624` nulis `1,86` / `-0,03`. Yang
+    /// dicurigai duluan olah datanya; ternyata pembacaan yang KESIMPEN emang
+    /// 1,90 — hitungannya bener buat masukan itu (dibuktiin
+    /// `SertifikatCocokMasterTest` di backend). Buat mastiin bukan layar ini
+    /// yang naruh angka di baris yang salah, seluruh tabel diadu ke masternya.
+    ///
+    /// Kalau dua baris ini ketuker atau nyampur, angkanya tetap "kelihatan
+    /// wajar" di layar — nggak ada yang error, dan ketahuannya baru waktu
+    /// pelanggan mbandingin sertifikat sama kertas lab.
+    testWidgets('dua titik keisi penuh: angkanya nggak ketuker antar baris', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'chlorine_meter'));
+
+      await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+
+      // Angka master `Chlorine_Meter_CSV/INPUT_DATA.csv` baris 44–48: titik
+      // 1,74 kebaca 1,76 (Repeat 5 turun ke 1,75), titik 1,83 kebaca 1,86 rata.
+      const bacaan174 = ['1,76', '1,76', '1,76', '1,76', '1,75'];
+      const bacaan183 = ['1,86', '1,86', '1,86', '1,86', '1,86'];
+      const suhu = ['25,7', '25,8', '25,8', '25,8', '25,8'];
+
+      final tabelAfter = find.ancestor(
+        of: find.text('After adjustment Reading'),
+        matching: find.byType(Column),
+      );
+      final kotak = find.descendant(
+        of: tabelAfter.first,
+        matching: find.byType(TextField),
+      );
+
+      // Satu baris = 5 Repeat × 2 kotak (mg/L, °C), baris 1,74 duluan.
+      for (var r = 0; r < 5; r++) {
+        await tester.enterText(kotak.at(r * 2), bacaan174[r]);
+        await tester.enterText(kotak.at(r * 2 + 1), suhu[r]);
+        await tester.enterText(kotak.at(10 + r * 2), bacaan183[r]);
+        await tester.enterText(kotak.at(10 + r * 2 + 1), suhu[r]);
+      }
+      await tester.pumpAndSettle();
+
+      await _kirimKeAdmin(tester);
+
+      final measurements =
+          service.payloadTerakhir!['measurements'] as List<dynamic>;
+      final titik174 = measurements.first as Map<String, dynamic>;
+      final titik183 = measurements.last as Map<String, dynamic>;
+
+      expect(titik174['titik_ukur'], 1.74);
+      expect(titik174['pembacaan'], [1.76, 1.76, 1.76, 1.76, 1.75]);
+      expect(titik183['titik_ukur'], 1.83);
+      expect(titik183['pembacaan'], [1.86, 1.86, 1.86, 1.86, 1.86]);
+
+      // Suhunya sama di dua baris, jadi kalau kolom pembacaan & suhu ketuker
+      // bedanya nggak kelihatan dari nilai suhu doang — makanya dicek juga
+      // bahwa kolom pembacaan nggak kemasukan 25,x.
+      expect(titik174['suhu'], [25.7, 25.8, 25.8, 25.8, 25.8]);
+      expect(titik183['suhu'], [25.7, 25.8, 25.8, 25.8, 25.8]);
     });
   });
 }
@@ -1192,8 +2113,7 @@ void _testDropdownGagal() {
 
       await _pilihAlat(tester);
       await _keHalamanAkhir(tester);
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       // Aturan lembar kerja nggak berubah: tombol kirim NGGAK PERNAH dikunci.
       // Pesan gagal itu ngasih tahu, bukan ngeblok — kalau sampai ngeblok,
@@ -1354,8 +2274,7 @@ void _testTurbidimeter() {
       await tester.enterText(kotak.at(4), '0,99');
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       final measurements =
           service.payloadTerakhir!['measurements'] as List<dynamic>;
@@ -1371,6 +2290,110 @@ void _testTurbidimeter() {
       expect(titik1['satuan'], 'NTU');
     });
 
+    /// Dua tabel diisi PENUH pakai angka master — yang dijaga di sini pemetaan
+    /// baris & tahap, bukan "angka bisa masuk".
+    ///
+    /// Turbidimeter paling rawan dari tiga alat: tiga titik yang skalanya beda
+    /// jauh (1 / 100 / 1.000 NTU) dengan resolusi beda-beda (0,01 / 0,1 / 1).
+    /// Kalau angkanya nyasar baris, `1.001` yang mendarat di baris 100 NTU tetap
+    /// kelihatan wajar — nggak ada yang error, dan ketahuannya baru waktu
+    /// pelanggan mbandingin sertifikat sama kertas lab.
+    ///
+    /// Before & After sengaja dikasih angka BEDA (99,8 vs 100 · 999 vs 1.000),
+    /// beda dari lembar Chlorine yang dua tabelnya kembar. Itu yang bikin
+    /// kebocoran antar-tahap kelihatan: kalau tabel Before nulis ke kolom
+    /// After, angkanya langsung nggak cocok.
+    testWidgets('tiga titik keisi penuh: baris & tahapnya nggak ketuker', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'turbidimeter'));
+
+      await _pilihAlat(tester, alat: 'Turbidimeter Hach · HC-2100Q-114');
+
+      // Angka master `Master Data TurbidiMeter_CSV/INPUT_DATA.csv`:
+      // Before baris 38–42, After baris 47–51. Rata-rata After-nya yang jadi
+      // Unit Under Test di sertifikat asli: 1,004 · 100,02 · 1.000,6.
+      const after = [
+        ['1', '1', '1', '1', '1,02'],
+        ['100', '100', '100', '100', '100,1'],
+        ['1000', '1000', '1001', '1001', '1001'],
+      ];
+      const before = [
+        ['1', '1', '1', '1', '1'],
+        ['99,8', '99,8', '99,8', '99,8', '99,8'],
+        ['999', '999', '999', '999', '999'],
+      ];
+      const suhu = ['23,3', '23,4', '23,4'];
+
+      Finder kotakTabel(String judul) => find.descendant(
+        of: find
+            .ancestor(of: find.text(judul), matching: find.byType(Column))
+            .first,
+        matching: find.byType(TextField),
+      );
+
+      // Satu baris = 5 Repeat × 2 kotak (NTU, °C); baris urut 1 → 100 → 1000.
+      for (var titik = 0; titik < 3; titik++) {
+        for (var r = 0; r < 5; r++) {
+          final sel = titik * 10 + r * 2;
+          await tester.enterText(
+            kotakTabel('After adjustment Reading').at(sel),
+            after[titik][r],
+          );
+          await tester.enterText(
+            kotakTabel('After adjustment Reading').at(sel + 1),
+            suhu[titik],
+          );
+          await tester.enterText(
+            kotakTabel('Before adjustment Reading').at(sel),
+            before[titik][r],
+          );
+          await tester.enterText(
+            kotakTabel('Before adjustment Reading').at(sel + 1),
+            suhu[titik],
+          );
+        }
+      }
+      await tester.pumpAndSettle();
+
+      await _kirimKeAdmin(tester);
+
+      final measurements =
+          service.payloadTerakhir!['measurements'] as List<dynamic>;
+
+      expect(
+        measurements.map((m) => (m as Map)['titik_ukur']).toList(),
+        [1.0, 100.0, 1000.0],
+      );
+
+      final titik1 = measurements[0] as Map<String, dynamic>;
+      final titik100 = measurements[1] as Map<String, dynamic>;
+      final titik1000 = measurements[2] as Map<String, dynamic>;
+
+      expect(titik1['pembacaan'], [1.0, 1.0, 1.0, 1.0, 1.02]);
+      expect(titik100['pembacaan'], [100.0, 100.0, 100.0, 100.0, 100.1]);
+      expect(titik1000['pembacaan'], [1000.0, 1000.0, 1001.0, 1001.0, 1001.0]);
+
+      expect(titik1['pembacaan_sebelum'], [1.0, 1.0, 1.0, 1.0, 1.0]);
+      expect(titik100['pembacaan_sebelum'], [99.8, 99.8, 99.8, 99.8, 99.8]);
+      expect(titik1000['pembacaan_sebelum'], [999.0, 999.0, 999.0, 999.0, 999.0]);
+
+      expect(titik1['suhu'], [23.3, 23.3, 23.3, 23.3, 23.3]);
+      expect(titik100['suhu_sebelum'], [23.4, 23.4, 23.4, 23.4, 23.4]);
+
+      // Rata-rata After inilah yang jadi Unit Under Test di sertifikat. Dihitung
+      // backend, tapi kalau angkanya udah nyasar dari sini, hitungan sebener
+      // apa pun nggak nolong — jadi dicek di sisi ini juga.
+      double rata(List<dynamic> n) =>
+          n.cast<double>().reduce((a, b) => a + b) / n.length;
+
+      expect(rata(titik1['pembacaan'] as List<dynamic>), closeTo(1.004, 1e-9));
+      expect(rata(titik100['pembacaan'] as List<dynamic>), closeTo(100.02, 1e-9));
+      expect(rata(titik1000['pembacaan'] as List<dynamic>), closeTo(1000.6, 1e-9));
+    });
+
     testWidgets('sesi baru masuk antrean sebagai Turbidimeter, bukan pH Meter', (
       tester,
     ) async {
@@ -1381,8 +2404,7 @@ void _testTurbidimeter() {
       );
 
       await _pilihAlat(tester, alat: 'Turbidimeter Hach · HC-2100Q-114');
-      await tester.tap(find.text('KIRIM KE ADMIN'));
-      await tester.pumpAndSettle();
+      await _kirimKeAdmin(tester);
 
       // Nama sesi di USE_MOCK dulu dipatok 'pH Meter (sesi baru)' — admin yang
       // nyoba alur turbidimeter offline lihat pH di antrean approval dan nggak
@@ -1391,6 +2413,299 @@ void _testTurbidimeter() {
         MockStore.instance.sesi.first.namaAlat,
         'Turbidimeter Hach (sesi baru)',
       );
+    });
+  });
+}
+
+/// Konfirmasi angka sebelum KIRIM KE ADMIN.
+///
+/// Ini penjaga terakhir buat salah ketik yang angkanya WAJAR — kasus 6 Agt 2026
+/// (`0189-CAL-624`): standar 1,83 kecatat 1,90, padahal kertasnya 1,86. Nggak
+/// ada pemeriksaan otomatis yang bisa nangkep itu, jadi yang dijaga di sini
+/// bukan "angkanya bener", tapi "angkanya sempat dilihat teknisi".
+void _testKonfirmasiKirim() {
+  group('konfirmasi angka sebelum kirim', () {
+    /// Kotak-kotak tabel After adjustment: 5 Repeat × 2 kolom per baris titik,
+    /// urutannya sama kayak `_testChlorine`.
+    Finder kotakAfter() => find.descendant(
+      of: find
+          .ancestor(
+            of: find.text('After adjustment Reading'),
+            matching: find.byType(Column),
+          )
+          .first,
+      matching: find.byType(TextField),
+    );
+
+    testWidgets('rata-rata tiap larutan ditunjukin sebelum kekirim', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'chlorine_meter'));
+
+      await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+
+      // Persis angka yang lolos 6 Agt: titik 1,83 kebaca 1,90 rata.
+      final kotak = kotakAfter();
+      for (var r = 0; r < 5; r++) {
+        await tester.enterText(kotak.at(r * 2), '1,76');
+        await tester.enterText(kotak.at(10 + r * 2), '1,90');
+      }
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      // Larutan standar & rata-ratanya berdampingan — yang salah ketik
+      // kelihatan sendiri waktu diadu ke lembar kerja kertas.
+      // Dicari DI DALAM dialognya, bukan di seluruh layar. Label standar per
+      // titik di lembar kerjanya sendiri juga nulis `1,74 mg/L` (lihat tes
+      // "standar per titik"), jadi `findsOneWidget` global ketemu tiga —
+      // ketahuan waktu merge 10 Agt 2026, bukan karena dialognya salah.
+      Finder diDialog(String teks) => find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text(teks),
+      );
+
+      expect(find.text('Cek dulu angkanya sebelum dikirim'), findsOneWidget);
+      expect(diDialog('1,74 mg/L'), findsOneWidget);
+      expect(find.text('5 dari 5 kotak · rata-rata 1,76'), findsOneWidget);
+      expect(diDialog('1,83 mg/L'), findsOneWidget);
+      expect(find.text('5 dari 5 kotak · rata-rata 1,90'), findsOneWidget);
+
+      // Belum kekirim apa-apa: dialognya nanya, bukan ngabarin.
+      expect(service.jumlahKirim, 0);
+    });
+
+    testWidgets('Periksa lagi → nggak kekirim & isiannya utuh', (tester) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'chlorine_meter'));
+
+      await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+      await tester.enterText(kotakAfter().at(10), '1,90');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Periksa lagi'));
+      await tester.pumpAndSettle();
+
+      expect(service.jumlahKirim, 0);
+
+      // Balik ke formulir yang sama, bukan formulir kosong — teknisi mundur
+      // buat MBENERIN satu angka, bukan buat ngetik ulang semuanya.
+      expect(find.text('KIRIM KE ADMIN'), findsOneWidget);
+      expect(
+        (tester.widget(kotakAfter().at(10)) as TextField).controller!.text,
+        '1,90',
+      );
+    });
+
+    testWidgets('Kirim sekarang → angkanya kekirim apa adanya', (tester) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'chlorine_meter'));
+
+      await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+      await tester.enterText(kotakAfter().at(10), '1,90');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Kirim sekarang'));
+      await tester.pumpAndSettle();
+
+      expect(service.jumlahKirim, 1);
+      final measurements =
+          service.payloadTerakhir!['measurements'] as List<dynamic>;
+      expect((measurements.last as Map)['pembacaan'], [
+        1.90,
+        null,
+        null,
+        null,
+        null,
+      ]);
+    });
+
+    /// Yang dirata-rata cuma After adjustment — itu yang jadi Unit Under Test
+    /// di sertifikat. Kalau Before ikut kehitung, angka di dialog beda dari
+    /// yang nanti kecetak, dan dialognya malah nyesatin.
+    testWidgets('rata-rata cuma dari After adjustment, Before nggak ikut', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await _muat(
+        tester,
+        _app(MockLembarKerjaService(), profil: 'chlorine_meter'),
+      );
+
+      await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+
+      final kotakBefore = find.descendant(
+        of: find
+            .ancestor(
+              of: find.text('Before adjustment Reading'),
+              matching: find.byType(Column),
+            )
+            .first,
+        matching: find.byType(TextField),
+      );
+      // As-found sengaja dibikin jauh: kalau kebawa ke rata-rata, angkanya
+      // meleset jauh dan test ini gagal keras.
+      await tester.enterText(kotakBefore.at(10), '9,00');
+      await tester.enterText(kotakAfter().at(10), '1,86');
+      await tester.enterText(kotakAfter().at(12), '1,88');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('2 dari 5 kotak · rata-rata 1,87'), findsOneWidget);
+      // Baris yang nggak disentuh sama sekali dibilang apa adanya, bukan 0,00.
+      expect(find.text('Belum diisi'), findsOneWidget);
+    });
+
+    /// Turbidimeter satu-satunya yang resolusinya beda per titik (0,01 / 0,1 /
+    /// 1) — dan itu jalur kode sendiri di `RingkasanTitik.desimal`. Angka di
+    /// dialog harus sebentuk sama yang nanti kecetak di sertifikat: teknisi
+    /// mbandingin baris ini ke kertas di tangannya, jadi `1.003` yang kebaca
+    /// `1003.0` aja udah bikin dia ragu-ragu di titik yang salah.
+    testWidgets('Turbidimeter: desimalnya ngikut resolusi tiap titik', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      await _muat(
+        tester,
+        _app(MockLembarKerjaService(), profil: 'turbidimeter'),
+      );
+
+      await _pilihAlat(tester, alat: 'Turbidimeter Hach · HC-2100Q-114');
+
+      // Satu baris = 5 Repeat × 2 kotak, urutannya 1 / 100 / 1000 NTU.
+      final kotak = kotakAfter();
+      await tester.enterText(kotak.at(0), '1,02');
+      await tester.enterText(kotak.at(2), '1,04');
+      await tester.enterText(kotak.at(10), '100,2');
+      await tester.enterText(kotak.at(20), '1002');
+      await tester.enterText(kotak.at(22), '1004');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      // Diruncingin ke isi dialog: label titik di lembar kerjanya sendiri
+      // juga nulis `1 NTU`, jadi pencarian se-layar ketemu tiga.
+      Finder diDialog(String teks) => find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text(teks),
+      );
+
+      expect(diDialog('1 NTU'), findsOneWidget);
+      expect(find.text('2 dari 5 kotak · rata-rata 1,03'), findsOneWidget);
+
+      expect(diDialog('100 NTU'), findsOneWidget);
+      expect(find.text('1 dari 5 kotak · rata-rata 100,2'), findsOneWidget);
+
+      // Titik 1.000 NTU resolusinya 1 → nol desimal, dan ribuannya TANPA
+      // pemisah — `1003`, bukan `1.003`. Ekspektasi lama nulis `1.003` dengan
+      // alasan "persis kayak formatSertifikat di PDF", dan waktu itu bener;
+      // 10 Agt 2026 `formatSertifikat` sendiri yang berubah, sesudah master
+      // Turbidimeter diadu langsung dan ternyata nulis `1000` & `1001` polos.
+      expect(diDialog('1000 NTU'), findsOneWidget);
+      expect(find.text('2 dari 5 kotak · rata-rata 1003'), findsOneWidget);
+    });
+
+    testWidgets('lembar yang belum diisi nggak usah dikonfirmasi', (
+      tester,
+    ) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'chlorine_meter'));
+
+      await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      // Nggak ada angka yang perlu dicek ulang — dialognya cuma jadi satu
+      // ketukan sia-sia, dan sesi tabel-nyusul tetap boleh dikirim.
+      expect(find.text('Cek dulu angkanya sebelum dikirim'), findsNothing);
+      expect(service.jumlahKirim, 1);
+    });
+
+    /// Draft itu justru dipakai buat nyimpen kerjaan setengah jadi. Nanyain
+    /// "yakin angkanya?" tiap kali teknisi nyimpen di tengah jalan cuma bikin
+    /// dialognya diklik tanpa dibaca — pas beneran penting, nggak kebaca lagi.
+    testWidgets('simpan draft nggak ditanyain angkanya', (tester) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(tester, _app(service, profil: 'chlorine_meter'));
+
+      await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+      await tester.enterText(kotakAfter().at(10), '1,90');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Cek dulu angkanya sebelum dikirim'), findsNothing);
+      expect(service.payloadTerakhir!['status'], 'draft');
+    });
+
+    /// Dialognya dilihat di HP, bukan di viewport raksasa yang dipakai test
+    /// lain. pH punya 3 baris titik, dan teknisi lapangan banyak yang naikin
+    /// ukuran huruf HP-nya — dua-duanya nambah tinggi isi dialog.
+    ///
+    /// Formulirnya diisi di viewport gede dulu (di layar 640 px, dropdown &
+    /// tombol kirimnya belum ke-build sama `ListView`, jadi nggak bisa
+    /// dipencet). Layarnya baru dikecilkan sesudah dialognya kebuka — yang
+    /// diuji emang cuma dialognya.
+    ///
+    /// Hurufnya 1,3×, bukan lebih: dari 1,5× ke atas TABELNYA sendiri yang
+    /// meluber (header "Repeat" tingginya dipatok) — bug lama yang beda
+    /// urusan, dan kalau ikut kesenggol di sini kegagalannya jadi nunjuk
+    /// tempat yang salah. 1,3× udah cukup: tanpa `scrollable: true` di
+    /// dialognya, test ini gagal.
+    testWidgets('muat di layar HP dengan huruf gede', (tester) async {
+      _perbesarViewport(tester);
+      final service = MockLembarKerjaService();
+      await _muat(
+        tester,
+        MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(1.3)),
+          child: _app(service),
+        ),
+      );
+
+      await _pilihAlat(tester);
+      await _keHalamanAkhir(tester);
+
+      final kotak = find.descendant(
+        of: find
+            .ancestor(
+              of: find.text('After adjustment Reading'),
+              matching: find.byType(Column),
+            )
+            .first,
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(kotak.first, '4,01');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.pumpAndSettle();
+
+      tester.view.physicalSize = const Size(360, 640);
+      await tester.pumpAndSettle();
+
+      // Yang dijaga: dialognya nggak overflow (test gagal sendiri kalau iya)
+      // dan tombolnya masih bisa dipencet — bukan cuma "widget-nya ada".
+      expect(find.text('Kirim sekarang'), findsOneWidget);
+      await tester.tap(find.text('Kirim sekarang'));
+      await tester.pumpAndSettle();
+
+      expect(service.jumlahKirim, 1);
     });
   });
 }
@@ -1567,4 +2882,29 @@ void _testRevisi() {
       expect(state.revisiField, isEmpty);
     });
   });
+}
+
+/// Layanan pindai yang templatenya selalu gagal diambil — niru 404 dari
+/// endpoint, atau sinyal putus di lapangan.
+class _PindaiGagalTemplate extends MockWorksheetScanService {
+  @override
+  Future<WorksheetTemplate> template(
+    String token,
+    String kode, {
+    int? equipmentId,
+    int? jumlahPengulangan,
+  }) async => throw Exception('404 template nggak ketemu');
+}
+
+/// Citra 8×8 putih di folder sementara — cukup buat jalur foto, tanpa ongkos
+/// decode lembar penuh.
+File _fotoKecil() {
+  final berkas = File(
+    '${Directory.systemTemp.createTempSync('fototabel').path}/kecil.png',
+  );
+  final citra = img.Image(width: 8, height: 8);
+  img.fill(citra, color: img.ColorRgb8(255, 255, 255));
+  berkas.writeAsBytesSync(img.encodePng(citra));
+
+  return berkas;
 }

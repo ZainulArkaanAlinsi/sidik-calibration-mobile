@@ -1,0 +1,137 @@
+# Bikin paket desktop yang NYAMBUNG SERVER buat Windows & macOS, sudah dizip
+# dan siap ditaruh di halaman unduh Firebase Hosting (lihat docs/deploy-firebase.md).
+#
+# Bedanya sama "Paket tes (mock, tanpa server)": yang itu offline dan datanya
+# palsu, cuma buat nyoba tampilan. Yang ini nembak backend beneran.
+#
+# Kenapa lewat CI, bukan build di laptop:
+#   - Windows nggak bisa di-cross-compile dari macOS. Runner `windows-latest`
+#     ini satu-satunya cara dapat .exe tanpa pinjam laptop Windows.
+#   - macOS ikut sekalian biar dua-duanya keluar dari sumber yang sama, dengan
+#     versi Flutter yang sama persis. Kalau macOS dibangun di laptop dan Windows
+#     di CI, beda perilaku antar platform jadi susah dilacak sebabnya.
+#
+# ALAMAT SERVERNYA NGGAK DITULIS DI SINI. Repo ini publik, jadi URL-nya diambil
+# dari repository variable `API_BASE_URL` — sama persis kayak apk-rilis-cloud.yml.
+#   Settings → Secrets and variables → Actions → Variables → New repository
+#   variable → nama: API_BASE_URL, nilai: https://<url>.onrender.com
+name: Rilis desktop (nyambung server)
+
+# Manual doang. Rilis desktop itu keputusan, bukan efek samping tiap push —
+# dan dua runner desktop jauh lebih mahal menitnya daripada ubuntu.
+on:
+  workflow_dispatch:
+
+env:
+  # Samain persis sama yang dipakai lokal; Flutter beda minor sering ganti
+  # perilaku build desktop.
+  FLUTTER_VERSION: 3.44.6
+
+jobs:
+  build:
+    strategy:
+      # Jangan batalin platform lain cuma gara-gara satu gagal.
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            nama: windows
+          - os: macos-latest
+            nama: macos
+
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.nama }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Gagal di sini, di detik pertama, dengan sebab yang jelas. Tanpa
+      # penjagaan ini paketnya tetap kebangun tapi API_BASE_URL-nya kosong —
+      # dan nilai kosong bikin AppConfig balik ke bawaan `10.0.2.2`, alamat
+      # emulator Android, yang di desktop nggak nyambung ke mana-mana.
+      #
+      # Nilai placeholder ikut ditolak. Cek "tidak kosong" saja tidak cukup:
+      # contoh di dokumentasi (`https://<url-render>.onrender.com`) gampang
+      # ke-copy mentah-mentah, lolos cek kosong, lalu ketanam ke biner sebagai
+      # alamat yang tidak pernah ada — dan gagalnya baru ketahuan di lokasi.
+      - name: Pastiin URL server udah dipasang
+        shell: bash
+        env:
+          URL: ${{ vars.API_BASE_URL }}
+        run: |
+          if [ -z "$URL" ]; then
+            echo "::error::Repository variable API_BASE_URL belum diisi. Lihat komentar di atas berkas workflow ini."
+            exit 1
+          fi
+          case "$URL" in
+            *"<"*|*">"*)
+              echo "::error::API_BASE_URL masih berisi contoh dari dokumentasi ($URL). Ganti dengan URL backend yang asli."
+              exit 1 ;;
+            https://*) ;;
+            *)
+              echo "::error::API_BASE_URL harus mulai dengan https:// (sekarang: $URL)."
+              exit 1 ;;
+          esac
+          case "$URL" in
+            */api|*/api/)
+              echo "::error::API_BASE_URL jangan pakai /api di belakang — workflow ini yang nambahin sendiri."
+              exit 1 ;;
+          esac
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      # Localization di-generate (pubspec `generate: true`); tanpa ini
+      # AppLocalizations nggak ada dan build-nya gagal di CI yang bersih.
+      - run: flutter gen-l10n
+        continue-on-error: true
+
+      # Test-nya merah, paketnya nggak usah dibikin. Ngirim build gagal test ke
+      # orang yang nunggu itu bikin mereka ngejar bug yang udah kita tau ada.
+      - run: flutter test
+
+      - name: Build windows
+        if: matrix.nama == 'windows'
+        run: >
+          flutter build windows --release
+          --dart-define=APP_ENV=prod
+          --dart-define=API_BASE_URL=${{ vars.API_BASE_URL }}/api
+
+      - name: Build macos
+        if: matrix.nama == 'macos'
+        run: >
+          flutter build macos --release
+          --dart-define=APP_ENV=prod
+          --dart-define=API_BASE_URL=${{ vars.API_BASE_URL }}/api
+
+      # SELURUH isi folder Release yang dizip, bukan .exe-nya doang: DLL Flutter
+      # dan folder `data/` (aset, font, ICU) wajib ikut sebelahan. Tanpa itu
+      # app-nya mati begitu diklik, tanpa pesan apa pun.
+      - name: Bungkus windows
+        if: matrix.nama == 'windows'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path build/windows/x64/runner/Release/* `
+                           -DestinationPath sidik-windows.zip
+
+      # `ditto`, bukan `zip` biasa dan bukan upload-artifact langsung ke .app:
+      # bundel .app isinya symlink & bit executable, dan dua cara itu ngerusak
+      # keduanya — hasil unduhannya nggak bisa dibuka di Mac tujuan.
+      - name: Bungkus macos
+        if: matrix.nama == 'macos'
+        run: |
+          cd build/macos/Build/Products/Release
+          APP=$(ls -d *.app | head -1)
+          ditto -c -k --keepParent "$APP" "$GITHUB_WORKSPACE/sidik-macos.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sidik-desktop-${{ matrix.nama }}
+          path: sidik-${{ matrix.nama }}.zip
+          if-no-files-found: error
+          retention-days: 30

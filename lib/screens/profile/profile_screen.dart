@@ -17,7 +17,9 @@ import '../../providers/locale_provider.dart';
 import '../../providers/platform_provider.dart';
 import '../../providers/theme_mode_provider.dart';
 import '../../services/auth_service.dart';
+import '../../widgets/liquid_glass.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/glass_surface.dart';
 import '../../widgets/readable_width.dart';
 import '../../widgets/status_badge.dart';
 import '../arsip/arsip_screen.dart';
@@ -59,210 +61,234 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         scrolledUnderElevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
-      body: ReadableWidth(
-        child: ListView(
-          // Padding bawah lega biar item terakhir nggak ketutup bottom-nav
-          // yang mengambang. Top sengaja 0 — header foto harus full-bleed.
-          padding: const EdgeInsets.only(bottom: 40),
-          children: [
-            if (user != null) ...[
-              _Header(user: user, onEditFoto: _pilihFoto),
-              const SizedBox(height: AppSpacing.lg),
-            ],
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          // Di HP, profil adalah kumpulan scene satu layar. Pengguna geser
+          // samping untuk pindah kelompok, bukan menggulir halaman panjang.
+          if (constraints.maxWidth < 700 && user != null) {
+            return _MobileProfileCarousel(
+              user: user,
+              apiBaseUrl: apiBaseUrl,
+              sedangLogout: sedangLogout,
+              sedangCabutSemua: _sedangCabutSemua,
+              onEditFoto: _pilihFoto,
+              onCabutSemua: _cabutSemuaSesi,
+              onLogout: () => ref.read(authProvider.notifier).logout(),
+            );
+          }
 
-            // Menu master data cuma muncul di HP.
-            //
-            // Di panel desktop, Pelanggan/Standar/Organisasi/Tanda Tangan/Arsip
-            // semuanya UDAH jadi item sidebar sendiri — nampilinnya lagi di
-            // sini bikin admin lihat tujuan yang sama dua kali, dan Pengaturan
-            // jadi cuma salinan navigasi utama. Yang tersisa di layar ini
-            // preferensi & diagnosa: hal-hal yang emang nggak ada di sidebar.
-            //
-            // Di HP nggak ada sidebar, jadi di situ blok ini SATU-SATUNYA jalan
-            // ke master data dan tetap dipertahankan.
-            if (user != null && user.role.isAdmin && !panelDesktop) ...[
-              _JudulSeksi(l10n.profAdminMenu),
-              _KartuMenu(
-                children: [
-                  _BarisMenu(
-                    icon: Icons.group_outlined,
-                    title: l10n.profUserManagement,
-                    subtitle: l10n.profUserManagementSub,
-                    enabled: false,
-                  ),
-                  const _GarisPemisah(),
-                  _BarisMenu(
-                    icon: Icons.apartment_outlined,
-                    title: l10n.profOrgData,
-                    subtitle: l10n.profOrgDataSub,
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const OrganizationScreen(),
-                      ),
-                    ),
-                  ),
-                  const _GarisPemisah(),
-                  // Ditaruh nempel sama Data Organisasi, bukan di kelompok
-                  // lain: dua-duanya nyetel apa yang KECETAK di sertifikat,
-                  // dan admin nyarinya di tempat yang sama.
-                  _BarisMenu(
-                    icon: Icons.draw_outlined,
-                    title: l10n.profTandaTangan,
-                    subtitle: l10n.profTandaTanganSub,
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const TandaTanganScreen(),
-                      ),
-                    ),
-                  ),
-                  const _GarisPemisah(),
-                  _BarisMenu(
-                    icon: Icons.people_outline,
-                    title: l10n.profCustomers,
-                    subtitle: l10n.profCustomersSub,
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const CustomerListScreen(),
-                      ),
-                    ),
-                  ),
-                  const _GarisPemisah(),
-                  _BarisMenu(
-                    icon: Icons.straighten_outlined,
-                    title: l10n.profStandards,
-                    subtitle: l10n.profStandardsSub,
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const StandardListScreen(),
-                      ),
-                    ),
-                  ),
-                  const _GarisPemisah(),
-                  _BarisMenu(
-                    icon: Icons.functions_outlined,
-                    title: l10n.profRumus,
-                    subtitle: l10n.profRumusSub,
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const RumusListScreen(),
-                      ),
-                    ),
-                  ),
-                  const _GarisPemisah(),
-                  _BarisMenu(
-                    icon: Icons.meeting_room_outlined,
-                    title: l10n.profRuangan,
-                    subtitle: l10n.profRuanganSub,
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const RuanganListScreen(),
-                      ),
-                    ),
-                  ),
-                  const _GarisPemisah(),
-                  _BarisMenu(
-                    icon: Icons.menu_book_outlined,
-                    title: l10n.profMetode,
-                    subtitle: l10n.profMetodeSub,
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const MetodeListScreen(),
-                      ),
-                    ),
-                  ),
+          return ReadableWidth(
+            child: ListView(
+              // Padding bawah lega biar item terakhir nggak ketutup bottom-nav
+              // yang mengambang. Top sengaja 0 — header foto harus full-bleed.
+              padding: const EdgeInsets.only(bottom: 40),
+              children: [
+                if (user != null) ...[
+                  _Header(user: user, onEditFoto: _pilihFoto),
+                  const SizedBox(height: AppSpacing.lg),
                 ],
-              ),
-              const SizedBox(height: AppSpacing.lg),
-            ],
 
-            // Preferensi: milik SATU ORANG, bukan milik lab. Tema & bahasa
-            // nggak pernah jadi item sidebar karena bukan tujuan navigasi —
-            // jadi ini isi Pengaturan yang nggak mungkin duplikat.
-            _JudulSeksi(l10n.profPreferensi),
-            const _KartuMenu(children: [_PilihTema(), _GarisPemisah(), _PilihBahasa()]),
-            const SizedBox(height: AppSpacing.lg),
-
-            _KartuMenu(
-              children: [
-                // Di luar blok admin: arsip itu baca-baca hasil kerja, dan
-                // backend ngizinin semua role (berkasnya sendiri tetap disaring
-                // per-teknisi di server).
-                _BarisMenu(
-                  icon: Icons.folder_copy_outlined,
-                  title: l10n.profArsip,
-                  subtitle: l10n.profArsipSub,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(builder: (_) => const ArsipScreen()),
+                // Menu master data cuma muncul di HP.
+                //
+                // Di panel desktop, Pelanggan/Standar/Organisasi/Tanda Tangan/Arsip
+                // semuanya UDAH jadi item sidebar sendiri — nampilinnya lagi di
+                // sini bikin admin lihat tujuan yang sama dua kali, dan Pengaturan
+                // jadi cuma salinan navigasi utama. Yang tersisa di layar ini
+                // preferensi & diagnosa: hal-hal yang emang nggak ada di sidebar.
+                //
+                // Di HP nggak ada sidebar, jadi di situ blok ini SATU-SATUNYA jalan
+                // ke master data dan tetap dipertahankan.
+                if (user != null && user.role.isAdmin && !panelDesktop) ...[
+                  _JudulSeksi(l10n.profAdminMenu),
+                  _KartuMenu(
+                    children: [
+                      _BarisMenu(
+                        icon: Icons.group_outlined,
+                        title: l10n.profUserManagement,
+                        subtitle: l10n.profUserManagementSub,
+                        enabled: false,
+                      ),
+                      const _GarisPemisah(),
+                      _BarisMenu(
+                        icon: Icons.apartment_outlined,
+                        title: l10n.profOrgData,
+                        subtitle: l10n.profOrgDataSub,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const OrganizationScreen(),
+                          ),
+                        ),
+                      ),
+                      const _GarisPemisah(),
+                      // Ditaruh nempel sama Data Organisasi, bukan di kelompok
+                      // lain: dua-duanya nyetel apa yang KECETAK di sertifikat,
+                      // dan admin nyarinya di tempat yang sama.
+                      _BarisMenu(
+                        icon: Icons.draw_outlined,
+                        title: l10n.profTandaTangan,
+                        subtitle: l10n.profTandaTanganSub,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const TandaTanganScreen(),
+                          ),
+                        ),
+                      ),
+                      const _GarisPemisah(),
+                      _BarisMenu(
+                        icon: Icons.people_outline,
+                        title: l10n.profCustomers,
+                        subtitle: l10n.profCustomersSub,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const CustomerListScreen(),
+                          ),
+                        ),
+                      ),
+                      const _GarisPemisah(),
+                      _BarisMenu(
+                        icon: Icons.straighten_outlined,
+                        title: l10n.profStandards,
+                        subtitle: l10n.profStandardsSub,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const StandardListScreen(),
+                          ),
+                        ),
+                      ),
+                      const _GarisPemisah(),
+                      _BarisMenu(
+                        icon: Icons.functions_outlined,
+                        title: l10n.profRumus,
+                        subtitle: l10n.profRumusSub,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const RumusListScreen(),
+                          ),
+                        ),
+                      ),
+                      const _GarisPemisah(),
+                      _BarisMenu(
+                        icon: Icons.meeting_room_outlined,
+                        title: l10n.profRuangan,
+                        subtitle: l10n.profRuanganSub,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const RuanganListScreen(),
+                          ),
+                        ),
+                      ),
+                      const _GarisPemisah(),
+                      _BarisMenu(
+                        icon: Icons.menu_book_outlined,
+                        title: l10n.profMetode,
+                        subtitle: l10n.profMetodeSub,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const MetodeListScreen(),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: AppSpacing.lg),
+                ],
+
+                // Preferensi: milik SATU ORANG, bukan milik lab. Tema & bahasa
+                // nggak pernah jadi item sidebar karena bukan tujuan navigasi —
+                // jadi ini isi Pengaturan yang nggak mungkin duplikat.
+                _JudulSeksi(l10n.profPreferensi),
+                const _KartuMenu(
+                  children: [_PilihTema(), _GarisPemisah(), _PilihBahasa()],
                 ),
-                const _GarisPemisah(),
-                _BarisMenu(
-                  icon: Icons.palette_outlined,
-                  title: l10n.profDesignSystem,
-                  subtitle: l10n.profDesignSystemSub,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const DesignSystemScreen(),
+                const SizedBox(height: AppSpacing.lg),
+
+                _KartuMenu(
+                  children: [
+                    // Di luar blok admin: arsip itu baca-baca hasil kerja, dan
+                    // backend ngizinin semua role (berkasnya sendiri tetap disaring
+                    // per-teknisi di server).
+                    _BarisMenu(
+                      icon: Icons.folder_copy_outlined,
+                      title: l10n.profArsip,
+                      subtitle: l10n.profArsipSub,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const ArsipScreen(),
+                        ),
+                      ),
                     ),
+                    const _GarisPemisah(),
+                    _BarisMenu(
+                      icon: Icons.palette_outlined,
+                      title: l10n.profDesignSystem,
+                      subtitle: l10n.profDesignSystemSub,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const DesignSystemScreen(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.lg),
+
+                _JudulSeksi(l10n.profAppInfo),
+                _KartuMenu(
+                  children: [
+                    _BarisMenu(
+                      icon: Icons.layers_outlined,
+                      title: l10n.profEnvironment,
+                      subtitle: AppConfig.envLabel,
+                      showChevron: false,
+                    ),
+                    const _GarisPemisah(),
+                    _BarisMenu(
+                      icon: Icons.cloud_outlined,
+                      title: l10n.profApiBaseUrl,
+                      subtitle: apiBaseUrl,
+                      showChevron: false,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.lg),
+
+                _JudulSeksi(l10n.profSecurity),
+                _KartuMenu(
+                  children: [
+                    _BarisMenu(
+                      icon: Icons.phonelink_erase_outlined,
+                      iconColor: theme.colorScheme.error,
+                      title: l10n.profLogoutAll,
+                      subtitle: l10n.profLogoutAllSub,
+                      trailing: _sedangCabutSemua
+                          ? const SizedBox(
+                              height: 18,
+                              width: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : null,
+                      onTap: _sedangCabutSemua ? null : _cabutSemuaSesi,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xl),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                  ),
+                  child: AppButton(
+                    label: l10n.profLogout,
+                    icon: Icons.logout,
+                    variant: AppButtonVariant.secondary,
+                    isLoading: sedangLogout,
+                    onPressed: () => ref.read(authProvider.notifier).logout(),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.lg),
-
-            _JudulSeksi(l10n.profAppInfo),
-            _KartuMenu(
-              children: [
-                _BarisMenu(
-                  icon: Icons.layers_outlined,
-                  title: l10n.profEnvironment,
-                  subtitle: AppConfig.envLabel,
-                  showChevron: false,
-                ),
-                const _GarisPemisah(),
-                _BarisMenu(
-                  icon: Icons.cloud_outlined,
-                  title: l10n.profApiBaseUrl,
-                  subtitle: apiBaseUrl,
-                  showChevron: false,
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
-
-            _JudulSeksi(l10n.profSecurity),
-            _KartuMenu(
-              children: [
-                _BarisMenu(
-                  icon: Icons.phonelink_erase_outlined,
-                  iconColor: theme.colorScheme.error,
-                  title: l10n.profLogoutAll,
-                  subtitle: l10n.profLogoutAllSub,
-                  trailing: _sedangCabutSemua
-                      ? const SizedBox(
-                          height: 18,
-                          width: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : null,
-                  onTap: _sedangCabutSemua ? null : _cabutSemuaSesi,
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.xl),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-              child: AppButton(
-                label: l10n.profLogout,
-                icon: Icons.logout,
-                variant: AppButtonVariant.secondary,
-                isLoading: sedangLogout,
-                onPressed: () => ref.read(authProvider.notifier).logout(),
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -390,6 +416,835 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 }
 
+/// Profil versi HP: **satu bagian = satu layar penuh**, pindahnya digeser ke
+/// samping.
+///
+/// Kenapa nggak digulung ke bawah kayak biasanya:
+///
+/// - Daftar pengaturan yang panjang bikin orang lupa udah lihat apa. Dipecah
+///   jadi bagian yang tiap-tiapnya muat sekali lihat, nggak ada yang
+///   kesembunyi di bawah lipatan.
+/// - Tingginya diambil dari layar HP-nya sendiri lewat `LayoutBuilder`, bukan
+///   angka mati. HP pendek dapat jarak lebih rapat, HP jangkung dapat lebih
+///   lega — dua-duanya tetap pas satu layar tanpa scroll.
+///
+/// Kacanya ([LiquidGlass]) sapuan cahayanya diikat ke posisi geseran, jadi pas
+/// jari gerak, panelnya kelihatan mantulin cahaya — bukan cuma pindah tempat.
+class _MobileProfileCarousel extends StatefulWidget {
+  const _MobileProfileCarousel({
+    required this.user,
+    required this.apiBaseUrl,
+    required this.sedangLogout,
+    required this.sedangCabutSemua,
+    required this.onEditFoto,
+    required this.onCabutSemua,
+    required this.onLogout,
+  });
+
+  final User user;
+  final String apiBaseUrl;
+  final bool sedangLogout;
+  final bool sedangCabutSemua;
+  final VoidCallback onEditFoto;
+  final VoidCallback onCabutSemua;
+  final VoidCallback onLogout;
+
+  @override
+  State<_MobileProfileCarousel> createState() => _MobileProfileCarouselState();
+}
+
+class _MobileProfileCarouselState extends State<_MobileProfileCarousel> {
+  final _page = PageController();
+  double _posisi = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Dipantau terus, bukan cuma waktu halaman kelepas: sapuan cahaya di kaca
+    // dan geser paralaks isinya diikat ke angka ini.
+    _page.addListener(() {
+      final p = _page.page;
+      if (p != null && p != _posisi) setState(() => _posisi = p);
+    });
+  }
+
+  @override
+  void dispose() {
+    _page.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final admin = widget.user.role.isAdmin;
+
+    final bagian = <_Bagian>[
+      _Bagian(
+        label: l10n.profSectionAccount,
+        bangun: (context, jarak) => _AdeganIdentitas(
+          user: widget.user,
+          onEditFoto: widget.onEditFoto,
+          jarak: jarak,
+        ),
+      ),
+      _Bagian(
+        label: l10n.profPreferensi,
+        bangun: (context, jarak) =>
+            _AdeganPreferensi(user: widget.user, jarak: jarak),
+      ),
+      if (admin)
+        _Bagian(
+          label: l10n.profAdminMenu,
+          bangun: (context, jarak) => _AdeganPintasan(
+            eyebrow: l10n.profSectionWorkspace,
+            judul: l10n.profAdminMenu,
+            subjudul: l10n.profAdminMenuSub,
+            jarak: jarak,
+            item: [
+              _Pintasan(
+                Icons.apartment_outlined,
+                l10n.profOrgData,
+                l10n.profOrgDataSub,
+                () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const OrganizationScreen(),
+                  ),
+                ),
+              ),
+              _Pintasan(
+                Icons.draw_outlined,
+                l10n.profTandaTangan,
+                l10n.profTandaTanganSub,
+                () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const TandaTanganScreen(),
+                  ),
+                ),
+              ),
+              _Pintasan(
+                Icons.people_outline,
+                l10n.profCustomers,
+                l10n.profCustomersSub,
+                () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const CustomerListScreen(),
+                  ),
+                ),
+              ),
+              _Pintasan(
+                Icons.straighten_outlined,
+                l10n.profStandards,
+                l10n.profStandardsSub,
+                () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const StandardListScreen(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      if (admin)
+        _Bagian(
+          label: l10n.profLabSettings,
+          bangun: (context, jarak) => _AdeganPintasan(
+            eyebrow: l10n.profSectionWorkspace,
+            judul: l10n.profLabSettings,
+            subjudul: l10n.profLabSettingsSub,
+            jarak: jarak,
+            item: [
+              _Pintasan(
+                Icons.functions_outlined,
+                l10n.profRumus,
+                l10n.profRumusSub,
+                () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const RumusListScreen(),
+                  ),
+                ),
+              ),
+              _Pintasan(
+                Icons.meeting_room_outlined,
+                l10n.profRuangan,
+                l10n.profRuanganSub,
+                () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const RuanganListScreen(),
+                  ),
+                ),
+              ),
+              _Pintasan(
+                Icons.menu_book_outlined,
+                l10n.profMetode,
+                l10n.profMetodeSub,
+                () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const MetodeListScreen(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      _Bagian(
+        label: l10n.profSecurity,
+        bangun: (context, jarak) => _AdeganSistem(
+          apiBaseUrl: widget.apiBaseUrl,
+          sedangLogout: widget.sedangLogout,
+          sedangCabutSemua: widget.sedangCabutSemua,
+          onCabutSemua: widget.onCabutSemua,
+          onLogout: widget.onLogout,
+          jarak: jarak,
+        ),
+      ),
+    ];
+
+    final aktif = _posisi.round().clamp(0, bagian.length - 1);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: AppColors.gradasiLatar(context),
+        boxShadow: AppColors.glowLatar(context),
+      ),
+      child: Column(
+        children: [
+          Expanded(
+            child: PageView.builder(
+              controller: _page,
+              itemCount: bagian.length,
+              itemBuilder: (context, i) =>
+                  bagian[i].bangun(context, (_posisi - i).clamp(-1.0, 1.0)),
+            ),
+          ),
+          _KakiCarousel(
+            posisi: _posisi,
+            jumlah: bagian.length,
+            label: bagian[aktif].label,
+            petunjuk: l10n.profSwipeHint,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Bagian {
+  const _Bagian({required this.label, required this.bangun});
+
+  final String label;
+  final Widget Function(BuildContext context, double jarak) bangun;
+}
+
+/// Bilah kaki yang tetap: titik halaman + nama bagian + petunjuk geser.
+///
+/// Ditaruh di luar PageView, bukan di dalam tiap adegan, biar dia nggak ikut
+/// geser — jadi dia kebaca sebagai penunjuk posisi, bukan bagian dari isi.
+class _KakiCarousel extends StatelessWidget {
+  const _KakiCarousel({
+    required this.posisi,
+    required this.jumlah,
+    required this.label,
+    required this.petunjuk,
+  });
+
+  final double posisi;
+  final int jumlah;
+  final String label;
+  final String petunjuk;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final munculHint = posisi < 0.6;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.sm,
+        AppSpacing.lg,
+        AppSpacing.md,
+      ),
+      child: Row(
+        children: [
+          Row(
+            children: List.generate(jumlah, (i) {
+              // Lebarnya ikut posisi pecahan — titiknya meleleh pelan ke titik
+              // sebelah selama jari masih nempel, bukan lompat pas kelepas.
+              final dekat = (1 - (posisi - i).abs()).clamp(0.0, 1.0);
+              return Container(
+                height: 5,
+                width: 5 + 16 * dekat,
+                margin: const EdgeInsets.only(right: 4),
+                decoration: BoxDecoration(
+                  color: Color.lerp(
+                    // Bukan `outlineVariant`: di latar terang warnanya nyaris
+                    // nyatu sama gradasi, jadi titik yang belum kepilih
+                    // kelihatan kayak nggak ada.
+                    theme.colorScheme.outline.withValues(alpha: 0.45),
+                    theme.colorScheme.primary,
+                    dekat,
+                  ),
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              );
+            }),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          // Petunjuk gesernya cuma nongol di bagian pertama (label-nya masih
+          // pendek, "Akun"/"Preferensi") — begitu ilang, nama bagian yang
+          // bisa panjang ("Pengaturan Lab", dst) butuh SEMUA sisa baris buat
+          // ellipsis-nya sendiri. Makanya `Expanded` cuma dipasang pas hint
+          // nggak ada: dua widget flex sama-sama di baris ini bakal dibagi
+          // rata SETENGAH-SETENGAH oleh Flutter walaupun labelnya cuma
+          // "Akun" — hint-nya jadi kepotong padahal ruangnya sebenarnya
+          // cukup (kejadian 18 Agt 2026, golden `profil.png` ketangkep).
+          munculHint
+              ? Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    letterSpacing: 0.6,
+                    fontWeight: FontWeight.w600,
+                  ),
+                )
+              : Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                      letterSpacing: 0.6,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+          // Satu-satunya flex child di baris ini pas dia nongol (lihat
+          // komentar di atas) — jadi dia kebagian SEMUA sisa ruang, bukan
+          // separuh. `Flexible`, bukan `Expanded`: pas jari lagi di antara
+          // dua titik, DUA titik sekaligus melar — total lebar dots di frame
+          // itu lebih gede dari frame diam manapun, jadi tetap butuh
+          // ellipsis buat frame transisi yang paling sempit.
+          if (munculHint) ...[
+            const SizedBox(width: AppSpacing.sm),
+            Flexible(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.swipe_left_alt_rounded,
+                    size: 15,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 5),
+                  Flexible(
+                    child: Text(
+                      petunjuk,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Bingkai isi tiap adegan: judul kecil + judul besar + keterangan, terus
+/// sisanya diserahkan ke isi.
+///
+/// Tinggi jarak-jaraknya diambil dari tinggi yang beneran tersedia, jadi
+/// bagian ini pas di layar HP mana pun tanpa pernah butuh scroll.
+class _Bingkai extends StatelessWidget {
+  const _Bingkai({
+    required this.eyebrow,
+    required this.judul,
+    required this.subjudul,
+    required this.jarak,
+    required this.child,
+  });
+
+  final String eyebrow;
+  final String judul;
+  final String subjudul;
+
+  /// -1..1, jarak halaman ini dari tengah layar. Dipakai buat paralaks.
+  final double jarak;
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return LayoutBuilder(
+      builder: (context, batas) {
+        // Rapat di HP pendek, lega di HP jangkung. Acuannya 720 — tinggi isi
+        // di HP 6 inci sesudah dipotong bilah atas & navbar bawah.
+        final rapat = (batas.maxHeight / 720).clamp(0.82, 1.16);
+        final atas = MediaQuery.paddingOf(context).top + 12 * rapat;
+
+        return Padding(
+          padding: EdgeInsets.only(top: atas, bottom: 6),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Transform.translate(
+                // Judul jalan lebih jauh dari kartunya — lapisannya jadi
+                // kebaca punya kedalaman waktu digeser.
+                offset: Offset(jarak * -54, 0),
+                child: Opacity(
+                  opacity: (1 - jarak.abs()).clamp(0.0, 1.0),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 14,
+                              height: 3,
+                              decoration: BoxDecoration(
+                                color: AppColors.signalAmber,
+                                borderRadius: BorderRadius.circular(99),
+                              ),
+                            ),
+                            const SizedBox(width: 7),
+                            Text(
+                              eyebrow,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.primary,
+                                letterSpacing: 1.6,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 8 * rapat),
+                        Text(
+                          judul,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        SizedBox(height: 4 * rapat),
+                        Text(
+                          subjudul,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 18 * rapat),
+              Expanded(
+                child: Transform.translate(
+                  offset: Offset(jarak * -22, 0),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg,
+                    ),
+                    child: child,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Adegan 1 — identitas. Satu-satunya adegan yang full-bleed sampai tepi
+/// layar: foto hero-nya emang harus nyampe di bawah status bar.
+class _AdeganIdentitas extends StatelessWidget {
+  const _AdeganIdentitas({
+    required this.user,
+    required this.onEditFoto,
+    required this.jarak,
+  });
+
+  final User user;
+  final VoidCallback onEditFoto;
+  final double jarak;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    return LayoutBuilder(
+      builder: (context, batas) {
+        return Column(
+          children: [
+            _Header(
+              user: user,
+              onEditFoto: onEditFoto,
+              // Foto hero ikut tinggi layar, bukan 260 mati: di HP pendek dia
+              // makan lebih dari sepertiga layar dan ngedorong panelnya keluar.
+              tinggiFoto: (batas.maxHeight * 0.33).clamp(170.0, 260.0),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Expanded(
+              child: Transform.translate(
+                offset: Offset(jarak * -34, 0),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                  ),
+                  // `SingleChildScrollView`, bukan `Column` + `Spacer`: di
+                  // HP tinggi normal isinya nggak nyampe separuh ruang jadi
+                  // dia diam kayak biasa, nggak kelihatan scrollable sama
+                  // sekali. Tapi begitu kartunya kepepet (HP super pendek,
+                  // atau kode teknisi bikin barisnya jadi tiga), dia ngalah
+                  // geser dikit — bukan overflow merah nabrak tepi layar.
+                  child: SingleChildScrollView(
+                    child: LiquidGlass(
+                      radius: 22,
+                      sorot: (0.5 - jarak * 0.5).clamp(0.0, 1.0),
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _BarisMenu(
+                            icon: Icons.photo_camera_outlined,
+                            title: l10n.profChangePhoto,
+                            subtitle: l10n.profChangePhotoSub,
+                            onTap: onEditFoto,
+                          ),
+                          // Kode teknisi cuma dirender kalau backend
+                          // ngirimnya. Baris "Kode teknisi: —" nggak ngasih
+                          // tau apa-apa selain bahwa ada yang kosong.
+                          if ((user.kodeTeknisi ?? '').isNotEmpty) ...[
+                            const _GarisPemisah(),
+                            _BarisMenu(
+                              icon: Icons.tag,
+                              title: l10n.profTechnicianCode,
+                              subtitle: l10n.profTechnicianCodeSub,
+                              trailing: Text(
+                                user.kodeTeknisi!,
+                                style: Theme.of(context).textTheme.titleSmall
+                                    ?.copyWith(letterSpacing: 1.4),
+                              ),
+                              showChevron: false,
+                            ),
+                          ],
+                          const _GarisPemisah(),
+                          _BarisMenu(
+                            icon: Icons.badge_outlined,
+                            title: l10n.profAccountInfo,
+                            subtitle: user.email,
+                            showChevron: false,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// Adegan 2 — preferensi perangkat.
+class _AdeganPreferensi extends StatelessWidget {
+  const _AdeganPreferensi({required this.user, required this.jarak});
+
+  final User user;
+  final double jarak;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return _Bingkai(
+      eyebrow: user.role.label.toUpperCase(),
+      judul: l10n.profPreferensi,
+      subjudul: l10n.profPreferensiSub,
+      jarak: jarak,
+      child: Column(
+        children: [
+          // Dua spacer nggak seimbang: kartunya duduk agak di atas tengah,
+          // bukan nempel di kepala judul. Ruang sisanya jadi napas, bukan
+          // lubang di bawah layar.
+          const Spacer(flex: 1),
+          _KacaKartu(
+            sorot: (0.5 - jarak * 0.6).clamp(0.0, 1.0),
+            child: const Column(
+              children: [_PilihTema(), _GarisPemisah(), _PilihBahasa()],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          _KacaKartu(
+            sorot: (0.62 - jarak * 0.6).clamp(0.0, 1.0),
+            child: Column(
+              children: [
+                _BarisMenu(
+                  icon: Icons.folder_copy_outlined,
+                  title: l10n.profArsip,
+                  subtitle: l10n.profArsipSub,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const ArsipScreen(),
+                    ),
+                  ),
+                ),
+                const _GarisPemisah(),
+                _BarisMenu(
+                  icon: Icons.palette_outlined,
+                  title: l10n.profDesignSystem,
+                  subtitle: l10n.profDesignSystemSub,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const DesignSystemScreen(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Spacer(flex: 3),
+        ],
+      ),
+    );
+  }
+}
+
+/// Adegan pintasan — petak kartu. Perbandingan sisi kartunya dihitung dari
+/// ruang yang tersisa, jadi empat kartu SELALU muat tanpa scroll, baik di HP
+/// pendek maupun jangkung.
+class _AdeganPintasan extends StatelessWidget {
+  const _AdeganPintasan({
+    required this.eyebrow,
+    required this.judul,
+    required this.subjudul,
+    required this.item,
+    required this.jarak,
+  });
+
+  final String eyebrow;
+  final String judul;
+  final String subjudul;
+  final List<_Pintasan> item;
+  final double jarak;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Bingkai(
+      eyebrow: eyebrow,
+      judul: judul,
+      subjudul: subjudul,
+      jarak: jarak,
+      child: LayoutBuilder(
+        builder: (context, batas) {
+          const jeda = AppSpacing.sm;
+          final baris = (item.length / 2).ceil();
+          final lebarKartu = (batas.maxWidth - jeda) / 2;
+
+          // Kartu boleh manjang buat ngisi layar, TAPI ada batasnya: kartu
+          // yang tingginya lebih dari 1,15x lebarnya isinya jadi ngambang di
+          // tengah kolom kosong. Sisa ruangnya dibiarin jadi napas di bawah,
+          // bukan dipaksa ditelen kartu.
+          final muat = (batas.maxHeight - jeda * (baris - 1)) / baris;
+          final tinggiKartu = muat.clamp(96.0, lebarKartu * 1.15);
+
+          return Align(
+            alignment: Alignment.topCenter,
+            child: SizedBox(
+              height: tinggiKartu * baris + jeda * (baris - 1),
+              child: GridView.builder(
+                padding: EdgeInsets.zero,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: item.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: jeda,
+                  crossAxisSpacing: jeda,
+                  childAspectRatio: lebarKartu / tinggiKartu,
+                ),
+                itemBuilder: (context, i) => _KartuPintasan(
+                  item: item[i],
+                  sorot: (0.42 + i * 0.12 - jarak * 0.6).clamp(0.0, 1.0),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Adegan terakhir — status sistem & akses akun.
+class _AdeganSistem extends StatelessWidget {
+  const _AdeganSistem({
+    required this.apiBaseUrl,
+    required this.sedangLogout,
+    required this.sedangCabutSemua,
+    required this.onCabutSemua,
+    required this.onLogout,
+    required this.jarak,
+  });
+
+  final String apiBaseUrl;
+  final bool sedangLogout;
+  final bool sedangCabutSemua;
+  final VoidCallback onCabutSemua;
+  final VoidCallback onLogout;
+  final double jarak;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+
+    return _Bingkai(
+      eyebrow: l10n.profSectionSystem,
+      judul: l10n.profSecurity,
+      subjudul: l10n.profSecuritySub,
+      jarak: jarak,
+      child: Column(
+        children: [
+          _KacaKartu(
+            sorot: (0.5 - jarak * 0.6).clamp(0.0, 1.0),
+            child: Column(
+              children: [
+                _BarisMenu(
+                  icon: Icons.layers_outlined,
+                  title: l10n.profEnvironment,
+                  subtitle: AppConfig.envLabel,
+                  showChevron: false,
+                ),
+                const _GarisPemisah(),
+                _BarisMenu(
+                  icon: Icons.cloud_outlined,
+                  title: l10n.profApiBaseUrl,
+                  subtitle: apiBaseUrl,
+                  showChevron: false,
+                ),
+                const _GarisPemisah(),
+                _BarisMenu(
+                  icon: Icons.phonelink_erase_outlined,
+                  iconColor: theme.colorScheme.error,
+                  title: l10n.profLogoutAll,
+                  subtitle: l10n.profLogoutAllSub,
+                  trailing: sedangCabutSemua
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : null,
+                  onTap: sedangCabutSemua ? null : onCabutSemua,
+                ),
+              ],
+            ),
+          ),
+          const Spacer(),
+          AppButton(
+            label: l10n.profLogout,
+            icon: Icons.logout,
+            variant: AppButtonVariant.secondary,
+            isLoading: sedangLogout,
+            onPressed: onLogout,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+        ],
+      ),
+    );
+  }
+}
+
+/// Kartu kaca pembungkus baris-baris menu.
+class _KacaKartu extends StatelessWidget {
+  const _KacaKartu({required this.child, required this.sorot});
+
+  final Widget child;
+  final double sorot;
+
+  @override
+  Widget build(BuildContext context) {
+    return LiquidGlass(
+      radius: 22,
+      sorot: sorot,
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: child,
+    );
+  }
+}
+
+class _Pintasan {
+  const _Pintasan(this.icon, this.title, this.subtitle, this.onTap);
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+}
+
+class _KartuPintasan extends StatelessWidget {
+  const _KartuPintasan({required this.item, required this.sorot});
+
+  final _Pintasan item;
+  final double sorot;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return LiquidGlass(
+      radius: 20,
+      sorot: sorot,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      onTap: item.onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _IkonPetak(icon: item.icon),
+          const Spacer(),
+          Text(
+            item.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleSmall,
+          ),
+          const SizedBox(height: 3),
+          Text(
+            item.subtitle,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Judul kecil di atas tiap seksi.
 class _JudulSeksi extends StatelessWidget {
   const _JudulSeksi(this.teks);
@@ -422,11 +1277,19 @@ class _JudulSeksi extends StatelessWidget {
 /// rata kiri numpuk di sambungan foto↔panel putih, nama+email rata kiri,
 /// terus baris statistik 3 kolom (ID Pegawai / Departemen / Role).
 class _Header extends ConsumerWidget {
-  const _Header({required this.user, required this.onEditFoto});
+  const _Header({
+    required this.user,
+    required this.onEditFoto,
+    this.tinggiFoto = 260.0,
+  });
 
-  static const _fotoH = 260.0;
+  /// Tinggi foto hero. Bisa disetel karena di HP pendek angka mati 260
+  /// makan lebih dari sepertiga layar dan ngedorong panel identitasnya keluar.
+  final double tinggiFoto;
+
   static const _avatar = 96.0;
-  static const _overlap = _avatar / 2; // separuh nongol di foto, separuh di panel
+  static const _overlap =
+      _avatar / 2; // separuh nongol di foto, separuh di panel
 
   final User user;
   final VoidCallback onEditFoto;
@@ -445,7 +1308,7 @@ class _Header extends ConsumerWidget {
             // Foto hero — nyampe tepi layar, disambung `extendBodyBehindAppBar`
             // di Scaffold biar nembus sampai di bawah status bar.
             Container(
-              height: _fotoH,
+              height: tinggiFoto,
               width: double.infinity,
               decoration: BoxDecoration(
                 gradient: fotoPath == null
@@ -529,7 +1392,7 @@ class _Header extends ConsumerWidget {
         ),
         // Avatar numpuk pas di sambungan foto <-> panel, rata kiri.
         Positioned(
-          top: _fotoH - _overlap,
+          top: tinggiFoto - _overlap,
           left: AppSpacing.lg,
           child: _Avatar(
             size: _avatar,
@@ -719,22 +1582,13 @@ class _Kartu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.5)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
-          ),
-        ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: GlassSurface.rata(
+        radius: 22,
+        padding: EdgeInsets.zero,
+        child: child,
       ),
-      child: child,
     );
   }
 }
@@ -763,15 +1617,15 @@ class _PilihTema extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final mode = ref.watch(themeModeProvider);
 
-    return ListTile(
-      leading: const Icon(Icons.brightness_6_outlined),
-      title: Text(l10n.profTema),
-      subtitle: Text(switch (mode) {
+    return _BarisPilihan(
+      icon: Icons.brightness_6_outlined,
+      judul: l10n.profTema,
+      nilai: switch (mode) {
         ThemeMode.light => l10n.profTemaTerang,
         ThemeMode.dark => l10n.profTemaGelap,
         ThemeMode.system => l10n.profTemaSistem,
-      }),
-      trailing: SegmentedButton<ThemeMode>(
+      },
+      kontrol: SegmentedButton<ThemeMode>(
         showSelectedIcon: false,
         segments: [
           ButtonSegment(
@@ -809,10 +1663,11 @@ class _PilihBahasa extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final locale = ref.watch(localeProvider);
 
-    return ListTile(
-      leading: const Icon(Icons.translate_outlined),
-      title: Text(l10n.profBahasa),
-      trailing: SegmentedButton<String>(
+    return _BarisPilihan(
+      icon: Icons.translate,
+      judul: l10n.profBahasa,
+      nilai: locale.languageCode == 'en' ? 'English' : 'Indonesia',
+      kontrol: SegmentedButton<String>(
         showSelectedIcon: false,
         segments: const [
           ButtonSegment(value: 'id', label: Text('Indonesia')),
@@ -821,6 +1676,75 @@ class _PilihBahasa extends ConsumerWidget {
         selected: {locale.languageCode},
         onSelectionChanged: (p) =>
             ref.read(localeProvider.notifier).setLocale(Locale(p.first)),
+      ),
+    );
+  }
+}
+
+/// Baris pengaturan yang punya kontrol lebar: label di atas, kontrolnya
+/// sebaris penuh di bawah.
+///
+/// Dulu ini `ListTile` dengan `SegmentedButton` di `trailing`. Di lebar HP
+/// kontrolnya makan lebih dari separuh baris, dan judulnya kepaksa ngelipat
+/// sampai "Bahasa" kepotong jadi "Baha / sa". Kontrol selebar baris juga
+/// bikin tiap pilihan dapat lebar yang sama — target sentuhnya jadi jelas.
+class _BarisPilihan extends StatelessWidget {
+  const _BarisPilihan({
+    required this.icon,
+    required this.judul,
+    required this.nilai,
+    required this.kontrol,
+  });
+
+  final IconData icon;
+  final String judul;
+  final String nilai;
+  final Widget kontrol;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+        AppSpacing.sm,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _IkonPetak(icon: icon),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      judul,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      nilai,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          SizedBox(width: double.infinity, child: kontrol),
+        ],
       ),
     );
   }

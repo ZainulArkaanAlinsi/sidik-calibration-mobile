@@ -11,23 +11,25 @@ import 'package:sidik_calibration/services/dashboard_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/screens/profile/profile_screen.dart';
+import 'support/lewati_onboarding.dart';
 
 /// Test alur UI pakai `MockAuthService` — nggak nembak jaringan.
 /// Sambungan ke API asli diuji terpisah di `api_auth_service_test.dart`
 /// pakai HTTP tiruan.
 ProviderScope _app(TokenStorage storage, {MockAuthService? auth}) =>
     ProviderScope(
-  overrides: [
-    tokenStorageProvider.overrideWithValue(storage),
-    authServiceProvider.overrideWithValue(auth ?? MockAuthService()),
-    // Dashboard ikut kebuka begitu login sukses. Tanpa jeda, biar nggak ada
-    // timer nyangkut waktu test kelar (Flutter nganggep itu error).
-    dashboardServiceProvider.overrideWithValue(
-      MockDashboardService(jeda: Duration.zero),
-    ),
-  ],
-  child: const SidikApp(),
-);
+      overrides: [
+        lewatiOnboarding,
+        tokenStorageProvider.overrideWithValue(storage),
+        authServiceProvider.overrideWithValue(auth ?? MockAuthService()),
+        // Dashboard ikut kebuka begitu login sukses. Tanpa jeda, biar nggak ada
+        // timer nyangkut waktu test kelar (Flutter nganggep itu error).
+        dashboardServiceProvider.overrideWithValue(
+          MockDashboardService(jeda: Duration.zero),
+        ),
+      ],
+      child: const SidikApp(),
+    );
 
 /// Niru Keystore yang rusak — `flutter_secure_storage` bisa lempar
 /// PlatformException, bukan AuthException.
@@ -143,20 +145,21 @@ void main() {
       expect(await storage.read(), isNull);
     });
 
-    testWidgets('password salah → error, tetap di Login, token nggak disimpan', (
-      tester,
-    ) async {
-      final storage = InMemoryTokenStorage();
-      await tester.pumpWidget(_app(storage));
-      await tester.pumpAndSettle();
+    testWidgets(
+      'password salah → error, tetap di Login, token nggak disimpan',
+      (tester) async {
+        final storage = InMemoryTokenStorage();
+        await tester.pumpWidget(_app(storage));
+        await tester.pumpAndSettle();
 
-      await _isiLogin(tester, identifier: 'SDK-0001', password: 'ngasal');
-      await tester.pumpAndSettle();
+        await _isiLogin(tester, identifier: 'SDK-0001', password: 'ngasal');
+        await tester.pumpAndSettle();
 
-      expect(find.textContaining('atau password salah'), findsOneWidget);
-      expect(find.byType(FloatingNavBar), findsNothing);
-      expect(await storage.read(), isNull);
-    });
+        expect(find.textContaining('atau password salah'), findsOneWidget);
+        expect(find.byType(FloatingNavBar), findsNothing);
+        expect(await storage.read(), isNull);
+      },
+    );
 
     testWidgets('login gagal → yang udah diketik NGGAK ilang', (tester) async {
       await tester.pumpWidget(_app(InMemoryTokenStorage()));
@@ -280,10 +283,7 @@ void main() {
 
       // Ini inti keamanannya: daftar ≠ boleh masuk.
       expect(find.text('Pendaftaran terkirim'), findsOneWidget);
-      expect(
-        find.textContaining('menunggu persetujuan admin'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('menunggu persetujuan admin'), findsOneWidget);
       expect(find.byType(FloatingNavBar), findsNothing);
     });
 
@@ -419,7 +419,9 @@ void main() {
       await _tapDiProfil(tester, find.text('Keluar dari semua perangkat'));
     }
 
-    testWidgets('minta konfirmasi dulu — nggak langsung nyabut', (tester) async {
+    testWidgets('minta konfirmasi dulu — nggak langsung nyabut', (
+      tester,
+    ) async {
       final storage = InMemoryTokenStorage('mock-token-1');
       await tester.pumpWidget(_app(storage));
       await tester.pumpAndSettle();
@@ -449,7 +451,11 @@ void main() {
       await tester.tap(find.text('Cabut semua sesi'));
       await tester.pumpAndSettle();
 
-      expect(find.text('MASUK'), findsOneWidget, reason: 'harus balik ke Login');
+      expect(
+        find.text('MASUK'),
+        findsOneWidget,
+        reason: 'harus balik ke Login',
+      );
       expect(await storage.read(), isNull);
       // Jumlahnya dilaporin, biar user tahu ada berapa perangkat yang kecabut.
       expect(find.textContaining('3 sesi dicabut'), findsOneWidget);

@@ -18,6 +18,21 @@ abstract class HistoryService {
   /// `GET /api/calibrations/{id}` — versi lengkap satu sesi, termasuk
   /// breakdown per titik ukur (`docs/kontrak-api.md` §4).
   Future<CalibrationDetail> ambilDetail(String token, int id);
+
+  /// `POST /api/calibrations/{id}/measurements/verify` — teknisi nyatain angka
+  /// hasil foto udah dia cek sendiri.
+  ///
+  /// **Tanpa ini sesinya jalan buntu.** Pembacaan yang datang dari kamera
+  /// disimpen `is_verified: false`, dan pemeriksaan admin nolak nerbitin
+  /// sertifikat selama masih ada yang belum dikonfirmasi
+  /// (`ocr_belum_diverifikasi`). Layar detail udah lama nampilin peringatannya,
+  /// tapi nggak pernah ada yang manggil endpoint-nya — jadi admin keblokir dan
+  /// teknisi nggak punya cara mbuka. Ketemu 7 Agt 2026 waktu sesi Refractometer
+  /// pertama dari foto mentok di antrean.
+  ///
+  /// Sengaja verifikasi SEMUA sekaligus (tanpa `measurement_ids`): yang dicek
+  /// teknisi itu tabelnya, bukan sel satu per satu.
+  Future<CalibrationDetail> verifikasiPembacaan(String token, int id);
 }
 
 /// Nembak `GET /api/calibrations` (live sejak 14 Jul,
@@ -100,6 +115,19 @@ class ApiHistoryService implements HistoryService {
   @override
   Future<CalibrationDetail> ambilDetail(String token, int id) async {
     final json = await _api.get('/calibrations/$id', token: token);
+    final data = (json['data'] ?? json) as Map<String, dynamic>;
+    return CalibrationDetail.fromJson(data);
+  }
+
+  @override
+  Future<CalibrationDetail> verifikasiPembacaan(String token, int id) async {
+    // Body kosong = verifikasi semua yang belum dicek. Backend sendiri yang
+    // nyaring `is_verified: false`, jadi mobile nggak perlu tau id-nya.
+    final json = await _api.post(
+      '/calibrations/$id/measurements/verify',
+      body: const <String, dynamic>{},
+      token: token,
+    );
     final data = (json['data'] ?? json) as Map<String, dynamic>;
     return CalibrationDetail.fromJson(data);
   }
@@ -390,4 +418,20 @@ class MockHistoryService implements HistoryService {
       titik: sudahDihitung ? _titikContoh : const [],
     );
   }
+
+  /// Sesudah diverifikasi, `perlu_verifikasi` mestinya mati. Mock-nya cukup
+  /// balikin detail apa adanya — yang diuji layarnya, bukan penyimpanannya.
+  @override
+  Future<CalibrationDetail> verifikasiPembacaan(String token, int id) async {
+    if (jeda > Duration.zero) await Future<void>.delayed(jeda);
+    if (gagal) throw Exception('server nggak nyaut');
+
+    diverifikasi.add(id);
+
+    return ambilDetail(token, id);
+  }
+
+  /// Sesi yang pernah diverifikasi lewat mock ini — dipakai test buat mastiin
+  /// tombolnya beneran manggil endpoint, bukan cuma nyembunyiin peringatan.
+  final List<int> diverifikasi = [];
 }

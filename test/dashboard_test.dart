@@ -18,6 +18,7 @@ import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/widgets/skeleton.dart';
 import 'package:sidik_calibration/widgets/stat_card.dart';
+import 'support/lewati_onboarding.dart';
 
 /// `mock-token-1` = admin · `mock-token-2` = teknisi · `mock-token-3` = viewer.
 Widget _app({
@@ -28,6 +29,7 @@ Widget _app({
 }) {
   return ProviderScope(
     overrides: [
+      lewatiOnboarding,
       tokenStorageProvider.overrideWithValue(InMemoryTokenStorage(token)),
       authServiceProvider.overrideWithValue(MockAuthService()),
       dashboardServiceProvider.overrideWithValue(
@@ -189,28 +191,29 @@ void main() {
     );
   });
 
-  testWidgets('tap "TAMBAH ALAT" → form kebuka, bukan snackbar "segera hadir"', (
-    tester,
-  ) async {
-    await tester.pumpWidget(_app());
-    await tester.pumpAndSettle();
+  testWidgets(
+    'tap "TAMBAH ALAT" → form kebuka, bukan snackbar "segera hadir"',
+    (tester) async {
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
 
-    final tombol = find.text('TAMBAH ALAT');
-    await tester.scrollUntilVisible(
-      tombol,
-      200,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.pumpAndSettle();
+      final tombol = find.text('TAMBAH ALAT');
+      await tester.scrollUntilVisible(
+        tombol,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
 
-    await tester.tap(tombol);
-    await tester.pumpAndSettle();
+      await tester.tap(tombol);
+      await tester.pumpAndSettle();
 
-    // Form-nya beneran ke-push — dulu tombol ini cuma munculin snackbar
-    // "Tambah alat digarap minggu 3".
-    expect(find.widgetWithText(AppBar, 'TAMBAH ALAT'), findsOneWidget);
-    expect(find.text('NOMOR SERI'), findsOneWidget);
-  });
+      // Form-nya beneran ke-push — dulu tombol ini cuma munculin snackbar
+      // "Tambah alat digarap minggu 3".
+      expect(find.widgetWithText(AppBar, 'TAMBAH ALAT'), findsOneWidget);
+      expect(find.text('NOMOR SERI'), findsOneWidget);
+    },
+  );
 
   testWidgets(
     'tap "Total alat" → push layar ringkasan (bukan lompat tab navbar)',

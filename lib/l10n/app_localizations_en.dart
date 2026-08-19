@@ -744,6 +744,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipResolusi => 'Resolution';
 
   @override
+  String get equipResolusiRentang => 'Resolution per point';
+
+  @override
+  String get equipResolusiRentangHint =>
+      'Fill this in when the device is NOT uniform — the resolution or the unit changes between points. Leave it empty when the single resolution above already says everything. This decides the unit on each worksheet row and the decimals printed on the certificate.';
+
+  @override
+  String get equipResolusiBentukTitik => 'Standard point';
+
+  @override
+  String get equipResolusiBentukMaks => 'Upper bound';
+
+  @override
+  String get equipResolusiTitik => 'Standard point';
+
+  @override
+  String get equipResolusiMaks => 'Upper bound';
+
+  @override
+  String get equipResolusiMaksKosong => 'empty = last band';
+
+  @override
+  String get equipResolusiTambahBaris => 'ADD RESOLUTION ROW';
+
+  @override
+  String get equipResolusiHapusBaris => 'Delete row';
+
+  @override
+  String get equipResolusiBarisWajib => 'Required, greater than 0.';
+
+  @override
+  String get equipResolusiTitikWajib => 'Required.';
+
+  @override
+  String get equipResolusiBarisAdaYangSalah =>
+      'Check the resolution rows below.';
+
+  @override
   String get equipToleransi => 'Tolerance';
 
   @override
@@ -783,6 +821,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get historyRetry => 'RETRY';
+
+  @override
+  String get historySegarkan => 'Refresh list';
+
+  @override
+  String get historyPeringatanJudul => 'Check this before approving';
+
+  @override
+  String get historyPeringatanBody =>
+      'The system re-checked this session and found things worth a second look. You can still approve — but the certificate will be issued on this data.';
+
+  @override
+  String get historyPeringatanBatal => 'CHECK AGAIN';
+
+  @override
+  String get historyPeringatanLanjut => 'APPROVE ANYWAY';
 
   @override
   String historyCertNumber(String nomor) {
@@ -988,6 +1042,32 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get detailProsesHitung => 'Calculation steps';
+
+  @override
+  String get detailProsesCatatan =>
+      'Formulas are copied from the lab\'s master workbook; the numbers come from the server, not the phone.';
+
+  @override
+  String get detailRumusTypeA => '= STDEV / repeatability divisor';
+
+  @override
+  String get detailRumusTypeB =>
+      '= SQRT(sum of squares of the components below)';
+
+  @override
+  String get detailVeff => 'Effective degrees of freedom';
+
+  @override
+  String get detailJumlahPengulangan => 'Readings taken';
+
+  @override
+  String get detailKolStandard => 'Standard';
+
+  @override
+  String get detailKolU95 => 'U95%';
+
+  @override
   String get detailRataRata => 'Average';
 
   @override
@@ -1060,6 +1140,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get detailPerluVerifikasi =>
       'Some OCR readings still need confirming — this session can\'t be approved yet.';
+
+  @override
+  String get detailVerifikasiTombol => 'I\'ve checked these readings';
+
+  @override
+  String get detailVerifikasiSukses =>
+      'Readings confirmed. This session can now be reviewed by an admin.';
+
+  @override
+  String detailVerifikasiGagal(String pesan) {
+    return 'Couldn\'t confirm: $pesan';
+  }
 
   @override
   String get arsipTitle => 'Archive';
@@ -1897,54 +1989,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Values from a photo must still be checked before submitting. An issued certificate cannot be changed.';
 
   @override
-  String get phCalibScanTooltip => 'Photograph the pH meter display';
-
-  @override
-  String get phCalibScanGagal =>
-      'Couldn\'t read the number clearly. Try a closer photo, or type it in.';
-
-  @override
-  String get phCalibScanError => 'Couldn\'t open the camera.';
-
-  @override
-  String get phCalibFotoTabel => 'PHOTO TABLE';
-
-  @override
-  String get phCalibFotoTabelSesudah => 'After adjustment';
-
-  @override
-  String get phCalibFotoTabelSebelum => 'Before adjustment';
-
-  @override
-  String get phCalibFotoTabelJudul => 'Which table are you photographing?';
-
-  @override
-  String get phCalibFotoTabelInfo =>
-      'One shot fills the whole table for all three buffers. Cells you already filled are never overwritten — reshoot as many times as you need.';
-
-  @override
-  String phCalibFotoTabelHasil(int terisi, int total) {
-    return '$terisi of $total cells filled.';
-  }
-
-  @override
-  String get phCalibFotoTabelTakTerbaca =>
-      'No numbers could be read at all. The photo is probably dark, blurry, or too far away — try closer and brighter. You can still type the values in.';
-
-  @override
-  String phCalibFotoTabelPosisiKacau(int jumlah) {
-    return '$jumlah numbers were read, but they don\'t line up as a table. Usually the photo is skewed or shows the whole sheet — try photographing just the TABLE, straight from above. You can still type the values in.';
-  }
-
-  @override
-  String get phCalibFotoTabelKosong =>
-      'Couldn\'t read the numbers yet. Tips: photograph just the TABLE (not the whole sheet), straight from above, even light with no hand shadow. Or type it in.';
-
-  @override
-  String get phCalibFotoTabelSisa =>
-      'Empty cells: type them in or reshoot — nothing you already entered will be replaced.';
-
-  @override
   String phCalibFotoHeaderHasil(int jumlah) {
     return 'Plus $jumlah fields outside the table (conditions, notes, standards used) — please check them.';
   }
@@ -2484,6 +2528,124 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkHapusTanggal => 'Clear date';
 
   @override
+  String get lkKondisiLingkungan => 'Environment Condition';
+
+  @override
+  String get lkWaktu => 'Time';
+
+  @override
+  String get lkSuhu => 'Temperature';
+
+  @override
+  String get lkKelembaban => 'Humidity';
+
+  @override
+  String get lkAwal => 'First';
+
+  @override
+  String get lkAkhir => 'End';
+
+  @override
+  String get lkPindaiGagalFoto =>
+      'The photo could not be read. Try taking it again.';
+
+  @override
+  String get lkPindaiTanpaGeometri =>
+      'This sheet\'s cell coordinates are not on the server yet.';
+
+  @override
+  String get lkPindaiMarkerHilang =>
+      'The four corner markers were not found. Make sure the whole sheet is in frame and well lit.';
+
+  @override
+  String get lkPindaiTerlaluMiring =>
+      'The photo is too skewed. Shoot it more square-on above the sheet.';
+
+  @override
+  String get lkFotoTabel => 'PHOTOGRAPH THIS TABLE';
+
+  @override
+  String get lkFotoTabelGagal => 'The photo couldn\'t be read. Take it again.';
+
+  @override
+  String get lkFotoTabelTanpaJangkar =>
+      'No reading could be placed with certainty. Make sure the standard-value column (left) and the repeat headers (numbers 1..5, or X1 / Repeat 1) are in frame — all of them, none cut off. You can still type the values manually.';
+
+  @override
+  String lkFotoTabelKolomHilang(String kolom) {
+    return 'The $kolom column header couldn\'t be read, so nothing was filled in — forcing it risks numbers landing in the neighbouring column unnoticed. Retake the photo with the unit row of the table header in frame.';
+  }
+
+  @override
+  String get lkFotoTabelKosong =>
+      'The table was recognised, but its cells are still empty — no handwritten numbers were found inside. Fill in the sheet first, then photograph it.';
+
+  @override
+  String get lkFotoTabelTanpaJangkarKeBawah =>
+      'No reading could be placed with certainty. Make sure the Repeat column (left) and the solution headers along the top are in frame — without them the numbers cannot be placed safely. You can still type the values manually.';
+
+  @override
+  String lkFotoTabelTerisi(int terisi) {
+    return '$terisi cells filled from the photo. All are flagged for checking — compare them with the paper.';
+  }
+
+  @override
+  String lkFotoTabelSebagian(int terisi, int terbuang) {
+    return '$terisi cells filled; $terbuang numbers skipped because their position was uncertain. Type the empty ones manually.';
+  }
+
+  @override
+  String lkFotoTabelError(String pesan) {
+    return 'Table photo failed: $pesan';
+  }
+
+  @override
+  String lkPindaiTemplateGagal(String pesan) {
+    return 'Couldn\'t load the scan template: $pesan';
+  }
+
+  @override
+  String get lkPindaiTemplateMemuat => 'Preparing scan…';
+
+  @override
+  String get lkPindaiQrHilang =>
+      'The sheet\'s version QR code could not be read. Old forms without a QR cannot be scanned — reprint the sheet, or type the values manually.';
+
+  @override
+  String get lkPindaiQrLembarLain =>
+      'The QR belongs to a different sheet or version. Retaking the photo won\'t help — make sure you have the right sheet.';
+
+  @override
+  String get lkPindaiBuram =>
+      'The photo is blurry. Hold the phone steadier and take it again.';
+
+  @override
+  String get lkPindaiGelap =>
+      'Too dark. Find brighter light, then take the photo again.';
+
+  @override
+  String get lkPindaiSilau =>
+      'So bright the numbers washed out. Reduce direct light, then take the photo again.';
+
+  @override
+  String get lkPindaiPantulan =>
+      'There is glare on the sheet. Shift its position slightly, then take the photo again.';
+
+  @override
+  String get lkPindaiKejauhan =>
+      'The photo is too far away — the numbers are too small to read. Move the phone closer and take it again.';
+
+  @override
+  String lkPindaiTerpakai(int terisi) {
+    return '$terisi cells filled from the scan. Cells that already had values were left untouched.';
+  }
+
+  @override
+  String lkPindaiBugAplikasi(String pesan) {
+    return 'Scan rejected by the server: $pesan This is an app defect, not your photo — report it to the team and type the values manually for now.';
+  }
+
+  @override
   String get lkRepeat => 'Repeat';
 
   @override
@@ -2672,6 +2834,149 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get lkSemuaOpsional =>
       'Any field you can\'t fill in the field may be left blank — the worksheet can still be submitted.';
+
+  @override
+  String get lkBagianBelumBisaDiisi => 'NOT FILLABLE YET';
+
+  @override
+  String get pindaiReviewJudul => 'Check Scan Result';
+
+  @override
+  String pindaiRingkasan(int total, int kuning, int merah, int kosong) {
+    return '$total cells read · $kuning need checking · $merah unreadable · $kosong empty';
+  }
+
+  @override
+  String get pindaiCatatanKuning =>
+      'Handwriting is never marked safe automatically — so it\'s normal for almost every cell to need checking. Compare each number with the cropped photo beside it.';
+
+  @override
+  String get pindaiPakaiAngka => 'USE THESE NUMBERS';
+
+  @override
+  String get pindaiDitahanServer =>
+      'Some cells could not be read. Fix them, or type the sheet manually.';
+
+  @override
+  String pindaiRepeat(int nomor) {
+    return 'Repeat $nomor';
+  }
+
+  @override
+  String pindaiTerbaca(String teks) {
+    return 'Read as: $teks';
+  }
+
+  @override
+  String pindaiNormalisasi(String catatan) {
+    return 'Server adjusted: $catatan';
+  }
+
+  @override
+  String pindaiKoreksiGagal(String pesan) {
+    return 'The numbers were kept, but the correction log failed to send: $pesan';
+  }
+
+  @override
+  String get pindaiAlasanMeluber =>
+      'the writing spills out of its box and may have been read from the next column';
+
+  @override
+  String get pindaiAlasanLuarRentang =>
+      'the number is outside the sensible range for this point';
+
+  @override
+  String get pindaiAlasanMagnitudo =>
+      'the number is far from this point’s standard value';
+
+  @override
+  String get pindaiAlasanKoreksiKarakter => 'a letter was guessed as a digit';
+
+  @override
+  String get pindaiAlasanDesimalBanyak =>
+      'more decimals than the instrument resolution';
+
+  @override
+  String get pindaiAlasanBukanKelipatan =>
+      'an instrument with this resolution cannot produce that number';
+
+  @override
+  String get pindaiAlasanJauhDariRepeat =>
+      'far off from the other repeats in this row';
+
+  @override
+  String get pindaiAlasanSebarTakDiuji =>
+      'too few repeats were read to compare';
+
+  @override
+  String get pindaiAlasanBanyakSubstitusi =>
+      'too many characters had to be guessed';
+
+  @override
+  String get pindaiAlasanKarakterAsing =>
+      'contains a character that is not a digit';
+
+  @override
+  String get pindaiAlasanBentukTakWajar =>
+      'the number shape does not make sense';
+
+  @override
+  String get pindaiAlasanDigitBanyak => 'too many digits for this column';
+
+  @override
+  String get pindaiAlasanPemisahTakWajar =>
+      'the decimal separator sits in an odd place';
+
+  @override
+  String get pindaiAlasanDesimalAmbigu =>
+      'unclear whether that dot is a decimal point or a thousands separator';
+
+  @override
+  String get pindaiAlasanMinusTengah =>
+      'a minus sign in the middle of the number';
+
+  @override
+  String get pindaiAlasanMinusTakBoleh => 'this column cannot be negative';
+
+  @override
+  String lkRepeatMenyimpang(String titik) {
+    return 'At point $titik one reading is far off from the other repeats — check it, two digits may have been swapped while typing. A single number like this can throw the certificate uncertainty off by hundreds of times.';
+  }
+
+  @override
+  String get lkPindaiLembar => 'SCAN WORKSHEET';
+
+  @override
+  String lkPindaiBelumSiap(String alasan) {
+    return 'Not scannable yet: $alasan';
+  }
+
+  @override
+  String get lkPratinjauJudul => 'PRELIMINARY RESULTS';
+
+  @override
+  String get lkPratinjauCatatan =>
+      'Computed by the server from what\'s filled in right now, not on the phone. These numbers can change as other rows are filled.';
+
+  @override
+  String get lkPratinjauKolomTitik => 'Point';
+
+  @override
+  String get lkPratinjauKolomRata => 'Mean';
+
+  @override
+  String get lkPratinjauKolomKoreksi => 'Correction';
+
+  @override
+  String get lkPratinjauKolomU95 => 'U95';
+
+  @override
+  String get lkPratinjauBelumDihitung => 'NOT COMPUTED YET';
+
+  @override
+  String lkPratinjauTitikKe(int nomor) {
+    return 'Point $nomor';
+  }
 
   @override
   String get lkKeluarTanpaSimpan => 'Leave without saving?';
@@ -2916,6 +3221,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get perhitAverage => 'Average';
 
   @override
+  String get perhitObserved => 'observed (before temp. correction)';
+
+  @override
   String get perhitIndexed => 'Indexed Value';
 
   @override
@@ -3054,6 +3362,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sertKolU95 => 'U95% (±)';
+
+  @override
+  String get sertU95Baris => 'Uncertainty U95% = ±';
+
+  @override
+  String sertFaktorCakupan(String k) {
+    return 'Coverage factor (k) = $k, confidence level 95 %';
+  }
 
   @override
   String get sertKolRemark => 'Remark';
@@ -3203,9 +3519,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkKirimAdmin => 'SUBMIT';
 
   @override
-  String get lkScanTabel => 'PHOTO THIS TABLE — READ BY AI';
-
-  @override
   String get lkScanMemproses => 'AI is reading the table…';
 
   @override
@@ -3236,6 +3549,114 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkPengulanganBatal => 'Cancel';
 
   @override
+  String lkSuhuWajib(String titik) {
+    return 'Reading filled without solution temperature at point $titik. Temperature is required — the reference value shifts with it.';
+  }
+
+  @override
+  String lkStandarBelumDicentang(String titik) {
+    return 'Point $titik has readings but its reference standard is not ticked — those numbers cannot be calculated. Tick the standard, or clear the row if this instrument does not use that point.';
+  }
+
+  @override
+  String lkPembacaanTakTerpulih(int jumlah) {
+    return '$jumlah saved readings had no matching row on this sheet and were not restored. Check the table before submitting.';
+  }
+
+  @override
+  String lkPembacaanJauhDariTitik(String titik) {
+    return 'Readings at point $titik are more than 10× off the point value — check the unit, or the decimal place. If the reading really is that value, switch to the row with the correct unit first.';
+  }
+
+  @override
+  String get detailTanpaVonis => 'NO PASS/FAIL';
+
+  @override
+  String get statusTanpaKeputusan => 'No pass/fail';
+
+  @override
+  String get detailEditAdmin => 'EDIT SHEET';
+
+  @override
+  String get detailPerbaikiRevisi => 'FIX WORKSHEET';
+
+  @override
+  String get lkTitikAlternatifSatuan =>
+      'Alternate unit of the same standard — already filled in the other row';
+
+  @override
+  String get lkResolusiKosong => 'Resolution: ( )';
+
+  @override
+  String lkResolusiNilai(String nilai, String satuan) {
+    return 'Resolution: $nilai $satuan';
+  }
+
+  @override
+  String get lkSlotTanpaLarutan => 'no standard registered';
+
+  @override
+  String lkIsianTitikKebuang(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other:
+          '$jumlah point(s) are not on this instrument’s sheet — their entries were discarded',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lkKonfirmasiJudul => 'Check the numbers before sending';
+
+  @override
+  String get lkKonfirmasiCatatan =>
+      'Averages of the After adjustment readings. Correction and uncertainty are computed by the server once this is sent.';
+
+  @override
+  String get lkKonfirmasiDariFoto =>
+      'Some numbers in this table came from a photo. By sending, you confirm you\'ve checked them against the instrument.';
+
+  @override
+  String lkKonfirmasiGagalTandai(String pesan) {
+    return 'Sent, but marking them as checked failed: $pesan. Open the session in History and tap \"I\'ve checked these readings\".';
+  }
+
+  @override
+  String lkKonfirmasiBaris(int terisi, int total, String rata) {
+    return '$terisi of $total boxes · average $rata';
+  }
+
+  @override
+  String get lkKonfirmasiBarisKosong => 'Not filled in';
+
+  @override
+  String get lkKonfirmasiPeriksaLagi => 'Check again';
+
+  @override
+  String get lkKonfirmasiKirim => 'Send now';
+
+  @override
+  String get lkPeringatanAngkaJudul => 'These readings look implausible';
+
+  @override
+  String get lkPeringatanAngkaLanjut => 'The reading really is that — send';
+
+  @override
+  String get lkGantiSatuanJudul => 'Switching units clears the table';
+
+  @override
+  String lkGantiSatuanPesan(String dari, String ke) {
+    return '$dari uses different standard solutions than $ke, so the table rows change and any readings you entered are discarded. A $dari value is not a $ke value.';
+  }
+
+  @override
+  String get lkGantiSatuanBatal => 'Cancel';
+
+  @override
+  String get lkGantiSatuanLanjut => 'Switch & clear';
+
+  @override
   String get emailRiwayatBelumKeluar => 'Not sent yet';
 
   @override
@@ -3247,4 +3668,94 @@ class AppLocalizationsEn extends AppLocalizations {
   String emailKontakKosongWa(String pt) {
     return '$pt has no WhatsApp number in the customer record. Add it in the admin panel → Customers so it can be picked here.';
   }
+
+  @override
+  String get dashLiveWorkspace => 'Live workspace';
+
+  @override
+  String dashGreetingName(String name) {
+    return 'Hi, $name';
+  }
+
+  @override
+  String dashActiveTasks(int count) {
+    return '$count active tasks';
+  }
+
+  @override
+  String get dashSpin3d => 'Swipe the object to rotate it';
+
+  @override
+  String get onbSkip => 'Skip';
+
+  @override
+  String get onbNext => 'NEXT';
+
+  @override
+  String get onbEnter => 'ENTER WORKSPACE';
+
+  @override
+  String get onbStep1Title => 'Every instrument, one place.';
+
+  @override
+  String get onbStep1Body =>
+      'Pick an instrument, start the calibration, and watch its status without waiting for somebody else\'s report.';
+
+  @override
+  String get onbStep2Title => 'Photograph the worksheet.';
+
+  @override
+  String get onbStep2Body =>
+      'Readings on paper are picked up straight from your camera. No retyping — and the photo never leaves your phone.';
+
+  @override
+  String get onbStep3Title => 'Certificates land sooner.';
+
+  @override
+  String get onbStep3Body =>
+      'Send to the admin once the data is complete. Approval and issuing happen in this same app.';
+
+  @override
+  String get profSwipeHint => 'Swipe for the next section';
+
+  @override
+  String get profSectionWorkspace => 'WORKSPACE';
+
+  @override
+  String get profSectionSystem => 'SYSTEM';
+
+  @override
+  String get profSectionAccount => 'ACCOUNT';
+
+  @override
+  String get profPreferensiSub => 'Tune how this device works for you.';
+
+  @override
+  String get profAdminMenuSub => 'Manage the lab\'s core records.';
+
+  @override
+  String get profLabSettings => 'Lab setup';
+
+  @override
+  String get profLabSettingsSub => 'Methods, rooms, and working formulas.';
+
+  @override
+  String get profSecuritySub => 'Device status and account access.';
+
+  @override
+  String profSectionOf(int current, int total) {
+    return 'Section $current of $total';
+  }
+
+  @override
+  String get profChangePhoto => 'Change profile photo';
+
+  @override
+  String get profChangePhotoSub => 'Taken from your gallery or camera';
+
+  @override
+  String get profTechnicianCode => 'Technician code';
+
+  @override
+  String get profTechnicianCodeSub => 'Printed on the certificates you sign';
 }

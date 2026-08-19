@@ -116,6 +116,54 @@ const daftarAlatMock = <EquipmentLookup>[
         'Jl. Arteri Primer A-10 RT. 01 RW.12 Nyalindung Kec. Cicalengka, '
         'Kab. Bandung, Jawa Barat',
   ),
+  // Alat & rentangnya dari sesi master 2211.11.R (`Refractometer_CSV/INPUT
+  // DATA.csv`): Hanna HI 96811, "Capacity/Graduation : 1.7 n20D / 0.0001 n20D".
+  //
+  // Resolusinya 0,0001 — SATU-SATUNYA alat di daftar ini yang lebih teliti dari
+  // 0,01, dan itu yang bikin dia berguna buat nangkep pembulatan yang kelewat
+  // di layar. Pelanggannya sengaja dipakai ulang dari baris di atas: pelanggan
+  // asli sesi ini instansi beneran, dan repo ini publik.
+  EquipmentLookup(
+    id: 17,
+    namaAlat: 'Refractometer',
+    serialNumber: 'C12345',
+    kategori: 'instrumen-analitik',
+    status: 'aktif',
+    merk: 'Hanna Instrument',
+    model: 'HI 96811',
+    satuan: 'n20D',
+    rangeMin: 0,
+    rangeMax: 1.7,
+    resolusi: 0.0001,
+    pelangganNama: 'PT TIRTA GRACIA SEMESTA MANDIRI',
+    pelangganAlamat:
+        'Jl. Arteri Primer A-10 RT. 01 RW.12 Nyalindung Kec. Cicalengka, '
+        'Kab. Bandung, Jawa Barat',
+  ),
+  // Refractometer kedua, kecatat di skala **°Brix** — bukan duplikat malas.
+  //
+  // Satu alat fisik bisa dipindah antara n20D & °Brix, dan pilihannya nentuin
+  // koefisien normalisasi suhu (0,00045/°C vs 0,07/°C). Tanpa ada satu pun alat
+  // °Brix di daftar ini, jalur "alatnya kecatat bukan di satuan bawaan" nggak
+  // pernah kejalan sekali pun — dan itu jalur yang gagalnya diam: layar nulis
+  // n20D, hitungannya °Brix, nggak ada yang error.
+  EquipmentLookup(
+    id: 18,
+    namaAlat: 'Refractometer',
+    serialNumber: 'C67890',
+    kategori: 'instrumen-analitik',
+    status: 'aktif',
+    merk: 'Atago',
+    model: 'MASTER-53M',
+    satuan: '°Brix',
+    rangeMin: 0,
+    rangeMax: 53,
+    resolusi: 0.1,
+    pelangganNama: 'PT TIRTA GRACIA SEMESTA MANDIRI',
+    pelangganAlamat:
+        'Jl. Arteri Primer A-10 RT. 01 RW.12 Nyalindung Kec. Cicalengka, '
+        'Kab. Bandung, Jawa Barat',
+  ),
 ];
 
 /// Nama alat buat `equipment_id` yang dipilih di picker mock. `null` kalau

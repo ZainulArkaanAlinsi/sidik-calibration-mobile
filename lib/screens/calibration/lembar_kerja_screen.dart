@@ -1,21 +1,37 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image/image.dart' as img;
 
 import '../../core/theme/app_spacing.dart';
+import '../../core/utils/angka.dart';
 import '../../core/utils/uuid.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/calibration_detail.dart' show MeasurementResult;
 import '../../models/calibration_draft.dart' show LokasiKalibrasi;
 import '../../models/equipment_lookup.dart';
 import '../../models/lembar_kerja.dart';
 import '../../models/room.dart';
 import '../../models/standard.dart';
+import '../../models/worksheet_scan.dart' show SelDipakaiPindai;
+import '../../models/worksheet_template.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/calibration_input_provider.dart';
 import '../../providers/history_provider.dart';
+import '../../providers/jam_provider.dart';
 import '../../providers/lembar_kerja_provider.dart';
+import '../../providers/sumber_foto_provider.dart';
+import '../../providers/worksheet_scan_provider.dart';
+import '../../services/auth_service.dart' show AuthException;
+import '../../services/jalankan_pindai.dart';
+import '../../services/pembaca_sel.dart' show pngDari;
+import '../../services/pindai_lembar.dart';
+import '../../services/worksheet_scan_service.dart' show PindaiDitolak;
 import '../../widgets/app_button.dart';
 import '../../widgets/sidik_loader.dart';
 import 'lembar_kerja_state.dart';
+import 'pindai_review_screen.dart';
 import 'widgets/dropdown_gagal.dart';
 import 'widgets/lembar_kerja_tabel.dart';
 
@@ -54,7 +70,8 @@ class LembarKerjaScreen extends ConsumerStatefulWidget {
 
   final String? judulTambahan;
 
-  /// Kode jenis alat (`ph_meter` / `turbidimeter` / `chlorine_meter`) —
+  /// Kode jenis alat (`ph_meter` / `turbidimeter` / `chlorine_meter` /
+  /// `refractometer`) —
   /// nentuin bentuk lembar kerja yang diambil dari backend.
   final String profil;
 
@@ -66,6 +83,14 @@ class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen> {
   /// Berapa kotak pengulangan yang digambar. `null` = bawaan profilnya (5,
   /// ngikut form kertas) — teknisi yang nggak peduli nggak perlu milih apa-apa.
   int? _pengulangan;
+
+  /// Alat yang lagi dipilih, diangkat ke sini karena bentuk lembar ditarik di
+  /// level ini sementara dropdown alatnya ada di dalam [_Form].
+  int? _equipmentId;
+
+  /// Bentuk terakhir yang berhasil dimuat — dipegang biar layar nggak balik
+  /// kosong waktu ganti alat bikin provider-nya mulai dari `loading`.
+  LembarKerja? _bentukTerakhir;
 
   /// Ganti jumlah kotak = bentuk formulirnya beda = tabelnya dibangun ulang,
   /// dan isian yang udah diketik ilang.
@@ -101,9 +126,58 @@ class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final kunci = (profil: widget.profil, pengulangan: _pengulangan);
+    // Alat yang lagi dipilih ikut jadi kunci — TANPA ini backend selalu ngirim
+    // bentuk GENERIK, dan buat Conductivity itu artinya baris `1,412 mS/cm`
+    // muncul di lembar alat yang nggak punya titik itu sama sekali.
+    //
+    // Sesi 53 (12 Agt 2026) kejeblos di situ: teknisi ngisi 1413 di baris
+    // 1,412 mS/cm — di master Excel kolom itu justru dikosongin, 1413 punya
+    // kolom `1412 µS/cm`. Backend ngitung Error = 1413 − 1,412 = 1411,588 dan
+    // lembarnya nyampe admin. Anggaran ketidakpastiannya sendiri udah bener
+    // (U95 8,10901195 sama persis kayak Excel) — yang salah cuma barisnya.
+    final kunci = (
+      profil: widget.profil,
+      pengulangan: _pengulangan,
+      equipmentId: _equipmentId,
+    );
+    // Ganti alat = kunci baru = provider baru = mulai dari `loading`. Tanpa
+    // nyimpen bentuk terakhir, badan layar balik jadi spinner sekejap dan
+    // `_Form` ke-unmount — seluruh isian yang udah diketik ilang, termasuk alat
+    // yang barusan dipilih. Formulirnya HARUS tetap terpasang; bentuk barunya
+    // dipasang belakangan lewat `gantiBentuk`.
+    ref.listen(lembarKerjaProvider(kunci), (_, next) {
+      // Gagal narik bentuk alat SESUDAH lembar kepegang nggak boleh diam.
+      //
+      // Backend nolak (422) kalau master alatnya belum nyebut varian satuan
+      // mana yang dipakai. Karena bentuk lama tetap kepasang biar isian nggak
+      // ilang, tanpa pesan ini teknisi bakal lanjut ngisi lembar GENERIK yang
+      // ambigu — persis keadaan yang penolakan itu mau cegah.
+      if (next is AsyncError && _bentukTerakhir != null) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(
+                next.error is AuthException
+                    ? (next.error as AuthException).message
+                    : '${next.error}',
+              ),
+              duration: const Duration(seconds: 10),
+            ),
+          );
+        return;
+      }
+
+      final baru = next.value;
+      if (baru == null || identical(baru, _bentukTerakhir)) return;
+      setState(() => _bentukTerakhir = baru);
+    });
+
     final bentukAsync = ref.watch(lembarKerjaProvider(kunci));
-    final terpakai = bentukAsync.value?.jumlahPengulangan ?? _pengulangan ?? 5;
+    final bentuk = bentukAsync.value ?? _bentukTerakhir;
+    // Dari bentuk yang lagi KEPASANG, bukan dari status async — waktu ganti
+    // alat lagi dimuat, label jumlah kotak nggak boleh loncat balik ke bawaan.
+    final terpakai = bentuk?.jumlahPengulangan ?? _pengulangan ?? 5;
 
     return Scaffold(
       appBar: AppBar(
@@ -157,17 +231,32 @@ class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen> {
           ),
         ],
       ),
-      body: switch (bentukAsync) {
+      // Bentuk yang udah pernah kepegang MENANG atas status loading — lihat
+      // `ref.listen` di atas. Gagal cuma ditampilin kalau belum ada bentuk sama
+      // sekali; gagal narik bentuk alat nggak boleh ngebuang lembar yang lagi
+      // diisi.
+      body: switch ((bentuk, bentukAsync)) {
         // `ValueKey` WAJIB: `_FormState` bikin `LembarKerjaState`-nya sekali
         // (`late final`) dari `widget.bentuk`. Tanpa key, Flutter mendaur ulang
         // State yang lama waktu jumlah kotaknya ganti — tabelnya bakal tetap
         // 5 kolom padahal backend udah ngirim 3, dan nggak ada yang error.
-        AsyncData(:final value) => _Form(
-          key: ValueKey(value.jumlahPengulangan),
-          bentuk: value,
+        //
+        // `key` SENGAJA nggak bawa `equipmentId`: ganti alat mesti mempertahankan
+        // isian yang udah diketik, jadi State-nya dipakai ulang dan bentuk
+        // barunya dipasang lewat `gantiBentuk` di `didUpdateWidget`. Kalau
+        // equipmentId ikut key, tiap ganti alat bikin State baru dan seluruh
+        // tabel yang udah diisi ilang — termasuk alat yang barusan dipilih.
+        (final LembarKerja b, _) => _Form(
+          key: ValueKey(b.jumlahPengulangan),
+          bentuk: b,
           sesiId: widget.sesiId,
+          profil: widget.profil,
+          onAlatBerubah: (id) {
+            if (id == _equipmentId) return;
+            setState(() => _equipmentId = id);
+          },
         ),
-        AsyncError(:final error) => _Gagal(
+        (_, AsyncError(:final error)) => _Gagal(
           error: error,
           onCobaLagi: () => ref.invalidate(lembarKerjaProvider(kunci)),
         ),
@@ -231,9 +320,30 @@ class _Gagal extends StatelessWidget {
 }
 
 class _Form extends ConsumerStatefulWidget {
-  const _Form({super.key, required this.bentuk, this.sesiId});
+  const _Form({
+    super.key,
+    required this.bentuk,
+    required this.onAlatBerubah,
+    required this.profil,
+    this.sesiId,
+  });
 
   final LembarKerja bentuk;
+
+  /// Kode ALAT (`ph_meter`, `spectrophotometer`, …), dioper turun ke tombol
+  /// pindai.
+  ///
+  /// **Bukan `bentuk.kodeDokumen`.** Dulu yang dikirim nomor formulirnya
+  /// (`SIDIK-IK-CAL-0508_Rev.4`), sementara `GET /worksheet-templates/{kode}`
+  /// mau kode alat — jadi 404, providernya error, dan tombol pindainya HILANG
+  /// dari layar tanpa satu pun pesan. Kegagalan yang paling mahal waktunya:
+  /// dari layar, fiturnya kelihatan nggak pernah dibikin.
+  final String profil;
+
+  /// Dipanggil begitu teknisi milih alat — bikin layar di atas narik bentuk
+  /// lembar yang udah disusutin ke alat itu.
+  final ValueChanged<int?> onAlatBerubah;
+
   final int? sesiId;
 
   @override
@@ -248,6 +358,10 @@ class _FormState extends ConsumerState<_Form> {
     // ini submission yang sama dan balikin sesi yang udah ada — bukan bikin
     // sesi dobel buat satu kejadian kalibrasi.
     clientRequestId: generateUuidV4(),
+    // Lewat `jamProvider`, bukan `DateTime.now()` langsung — tanggal ini
+    // kecetak ke golden lembar kerja, dan tanpa seam-nya golden itu merah tiap
+    // ganti hari tanpa ada yang rusak.
+    tanggalKalibrasiAwal: ref.read(jamProvider)(),
   );
 
   /// Di atas lebar ini lembar kerjanya digambar dua kolom bersebelahan, persis
@@ -266,6 +380,11 @@ class _FormState extends ConsumerState<_Form> {
   void initState() {
     super.initState();
 
+    // Angka yang diketik di tabel hasil nggak lewat `_isianBerubah` — selnya
+    // sengaja nggak nge-rebuild formulir tiap ketukan tombol. Pratinjaunya
+    // dengerin dari sini.
+    _isian.onIsianDiketik = _jadwalkanPratinjau;
+
     final id = widget.sesiId;
     if (id != null) _muatSesiLama(id);
   }
@@ -280,16 +399,108 @@ class _FormState extends ConsumerState<_Form> {
     try {
       final detail = await ref.read(calibrationDetailProvider(id).future);
       final isi = detail.isianTeknisi;
-      if (isi == null || !mounted) return;
+      if (!mounted) return;
 
-      setState(() => _isian.muatDariSesi(isi));
+      // Tabel pengukurannya dipulihkan walau `isian_teknisi` nggak ikut di
+      // respons — dua-duanya datang dari sesi yang sama, tapi yang bikin
+      // teknisi harus ngetik ulang dari kertas itu angkanya, bukan header-nya.
+      var kebuang = 0;
+
+      setState(() {
+        if (isi != null) _isian.muatDariSesi(isi);
+        kebuang = _isian.terapkanPembacaan(detail.pembacaanMentah);
+        // Alat sesi lama ikut ngabarin ke atas, jadi lembar yang ditarik ulang
+        // udah bentuk yang disusutin ke alat itu — bukan generik.
+        widget.onAlatBerubah(_isian.alat?.id);
+        // Sesudah baris mentah, bukan sebelum: yang mentah lebih dekat ke apa
+        // yang teknisi centang (termasuk titik yang belum kehitung), yang
+        // hasil hitung cuma cadangan buat sesi lama.
+        _isian.terapkanStandarDariHasil(detail.titik);
+      });
+
+      // Angka yang nggak ketemu barisnya HARUS diomongin. Draft yang balik
+      // dengan tabel bolong tanpa ada yang bilang itu persis cara sesi kekirim
+      // ke admin dengan titik yang ilang diam-diam.
+      if (kebuang > 0 && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context).lkPembacaanTakTerpulih(kebuang)),
+            duration: const Duration(seconds: 8),
+          ),
+        );
+      }
     } catch (_) {
       // Lihat docblock.
     }
   }
 
+  /// Satu pintu buat tiap perubahan isian.
+  ///
+  /// Selain nge-rebuild, dia ngabarin alat yang lagi kepilih ke layar di atas.
+  /// Dipasang di sini — bukan cuma di dalam dropdown alat — supaya jalur lain
+  /// yang nyetel alat (mis. pulih dari draft) ikut narik bentuk yang benar.
+  /// Yang di atas nyaring sendiri kalau id-nya nggak berubah.
+  void _isianBerubah() {
+    setState(() {});
+    widget.onAlatBerubah(_isian.alat?.id);
+    _jadwalkanPratinjau();
+  }
+
+  /// Minta backend ngitung isian yang sekarang — DITUNDA, bukan tiap ketukan.
+  ///
+  /// Satu titik Spectrophotometer ikut nentuin U95 seluruh saudaranya sekelompok
+  /// (STDEV terbesar yang masuk budget), jadi angka yang tampil bisa berubah
+  /// gara-gara baris LAIN yang barusan diisi. Itu justru alasan panelnya ada,
+  /// dan alasan permintaannya nggak bisa dipatok "sekali per baris kelar".
+  ///
+  /// Syaratnya cuma dua, dan dua-duanya soal jangan ngerepotin server buat
+  /// jawaban yang udah pasti kosong: alatnya udah dipilih (`equipment_id` wajib
+  /// di payload) dan ada minimal satu angka yang diketik.
+  void _jadwalkanPratinjau() {
+    _pratinjauTertunda?.cancel();
+
+    if (_isian.alat == null) return;
+    if (!_isian.titik.values.any((t) => t.adaPembacaan)) return;
+
+    _pratinjauTertunda = Timer(const Duration(milliseconds: 700), () {
+      if (!mounted) return;
+      ref
+          .read(pratinjauProvider.notifier)
+          .hitung(_isian.toSubmission(draft: true));
+    });
+  }
+
+  Timer? _pratinjauTertunda;
+
+  /// Bentuk baru dari backend dipasang ke state yang SUDAH ADA, bukan bikin
+  /// state baru — isian yang udah diketik dipindahin per titik ukur oleh
+  /// `gantiBentuk`, dan yang barisnya udah nggak ada dihitung biar bisa
+  /// diomongin. Isian kalibrasi yang ilang diam-diam lebih bahaya daripada
+  /// formulir yang bentuknya salah.
+  @override
+  void didUpdateWidget(covariant _Form lama) {
+    super.didUpdateWidget(lama);
+
+    if (identical(widget.bentuk, lama.bentuk)) return;
+
+    final kebuang = _isian.gantiBentuk(widget.bentuk);
+    setState(() {});
+
+    if (kebuang > 0 && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context).lkIsianTitikKebuang(kebuang),
+          ),
+          duration: const Duration(seconds: 8),
+        ),
+      );
+    }
+  }
+
   @override
   void dispose() {
+    _pratinjauTertunda?.cancel();
     _isian.dispose();
     super.dispose();
   }
@@ -305,6 +516,94 @@ class _FormState extends ConsumerState<_Form> {
       messenger.showSnackBar(SnackBar(content: Text(l10n.lkBelumPilihAlat)));
       return;
     }
+
+    // Pembacaan tanpa suhu ditahan SEBELUM konfirmasi angka — biar teknisi
+    // tau di lapangan, bukan sesudah kirim.
+    //
+    // Nilai acuan larutan Conductivity digeser ikut suhu. Di master Excel-nya,
+    // kolom suhu kosong bikin polinomial dievaluasi pada T=0 dan keluar
+    // `0,738 mS/cm`: bukan error, angka yang kelihatan wajar, dan ikut
+    // tercetak di sertifikat. Draft tetap boleh disimpan setengah jadi.
+    if (!draft) {
+      final belum = _isian.titikSuhuBelumLengkap;
+
+      if (belum.isNotEmpty) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              l10n.lkSuhuWajib(belum.map((t) => t.label).join(', ')),
+            ),
+          ),
+        );
+        return;
+      }
+
+      // Pembacaan yang melesetnya SATU ORDE dari nominal barisnya — salah
+      // satuan atau koma kegeser. Ditanyain di sini karena yang bisa mbenerin
+      // cuma orang yang lagi berdiri di depan alatnya; di admin angka kayak
+      // gini cuma jadi peringatan yang gampang dilewatin.
+      //
+      // TANYA, bukan tahan. Ini dugaan soal kewajaran angka, bukan kekurangan
+      // data: alat yang lagi dikalibrasi BOLEH baca jauh melenceng — rusak,
+      // spindle/RPM nggak cocok, atau nol karena torsinya nggak nyampe. Waktu
+      // penjaga ini masih memblokir, viscometer 19 Agt 2026 nggak bisa dikirim
+      // sama sekali walau angkanya emang segitu di layar alatnya, dan
+      // satu-satunya jalan keluar teknisi ya ngarang angka biar lolos — persis
+      // kebalikan dari yang mau dijaga.
+      final jauh = _isian.titikPembacaanJauh;
+
+      if (jauh.isNotEmpty) {
+        final lanjut = await _konfirmasiPeringatan(
+          l10n.lkPembacaanJauhDariTitik(jauh.map((t) => t.label).join(', ')),
+        );
+        if (!lanjut) return;
+        if (!mounted) return;
+      }
+
+      // Satu Repeat yang jauh menyimpang dari Repeat lain SEBARIS — nangkep
+      // DIGIT KETUKER, yang penjaga di atas nggak bisa nangkep.
+      //
+      // `783,52` di baris `738,5` cuma 6% dari nominalnya, jadi penjaga orde
+      // lolos mulus. Tapi buat alat yang U95-nya lahir per kelompok, satu
+      // angka itu menaikkan U95 sembilan titik saudaranya 212x CMC lab — dan
+      // sertifikatnya terbit dengan angka itu (`CAL/2026/08/0043`).
+      //
+      // Sama kayak penjaga di atas: ditanyain, bukan ditahan. Sebaran antar
+      // Repeat yang lebar itu GEJALA alat jelek, dan alat jelek justru yang
+      // paling perlu sertifikatnya terbit apa adanya.
+      final menyimpang = _isian.titikRepeatMenyimpang;
+
+      if (menyimpang.isNotEmpty) {
+        final lanjut = await _konfirmasiPeringatan(
+          l10n.lkRepeatMenyimpang(menyimpang.map((t) => t.label).join(', ')),
+        );
+        if (!lanjut) return;
+        if (!mounted) return;
+      }
+
+      // Isian YATIM: angkanya keisi tapi standarnya belum dicentang, jadi
+      // nggak bisa dihitung. Ditahan di sini, bukan dibiarin nyampe admin —
+      // di sana dia muncul sebagai `titik_kosong` yang MEMBLOKIR penerbitan,
+      // dan yang bisa mbenerin justru udah nggak di depan alatnya.
+      final yatim = _isian.titikTerisiTanpaStandar;
+
+      if (yatim.isNotEmpty) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              l10n.lkStandarBelumDicentang(
+                yatim.map((t) => t.label).join(', '),
+              ),
+            ),
+            duration: const Duration(seconds: 8),
+          ),
+        );
+        return;
+      }
+    }
+
+    if (!draft && !await _konfirmasiAngka()) return;
+    if (!mounted) return;
 
     setState(() => _mengirim = true);
 
@@ -323,6 +622,36 @@ class _FormState extends ConsumerState<_Form> {
       return;
     }
 
+    // Teknisi baru aja nyatain di dialog konfirmasi bahwa angka hasil foto
+    // udah dia cocokin sama alatnya — jadi ditandai SEKARANG, bukan disuruh
+    // balik lagi ke Riwayat buat mencet tombol kedua.
+    //
+    // Draft dilewat: draft nggak masuk antrean admin, jadi nggak ada yang
+    // keblokir, dan dialog konfirmasinya sendiri emang nggak muncul buat draft.
+    if (!draft && _isian.adaIsianDariFoto) {
+      try {
+        final token = await ref.read(tokenStorageProvider).read();
+        if (token != null) {
+          await ref
+              .read(historyServiceProvider)
+              .verifikasiPembacaan(token, hasil.id);
+        }
+      } catch (e) {
+        // Kiriman UDAH sukses — ini cuma penandaan. Jangan bikin teknisi
+        // ngira sesinya gagal; kasih tau jalan keluarnya, tombolnya masih ada
+        // di layar detail sesi.
+        if (mounted) {
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.lkKonfirmasiGagalTandai('$e'))),
+          );
+          navigator.pop(hasil.id);
+          return;
+        }
+      }
+    }
+
+    if (!mounted) return;
+
     messenger.showSnackBar(
       SnackBar(
         content: Text(
@@ -331,6 +660,128 @@ class _FormState extends ConsumerState<_Form> {
       ),
     );
     navigator.pop(hasil.id);
+  }
+
+  /// Peringatan kewajaran angka yang BISA dilewati teknisi.
+  ///
+  /// Bedanya sama penjaga suhu & isian yatim: yang itu bikin angkanya nggak
+  /// bisa DIHITUNG sama sekali (nilai acuan nggak ketauan), jadi tetap ditahan
+  /// mati. Yang lewat sini cuma dugaan "kelihatan salah ketik" — dan dugaan
+  /// nggak boleh nyandera data lapangan, karena alat yang lagi dikalibrasi
+  /// emang boleh baca aneh.
+  ///
+  /// Tetap dialog, bukan snackbar: teknisi mesti natap angkanya sekali dan
+  /// menyatakan "emang segitu", jadi salah ketik beneran masih ketangkep.
+  Future<bool> _konfirmasiPeringatan(String pesan) async {
+    final l10n = AppLocalizations.of(context);
+
+    final lanjut = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        scrollable: true,
+        title: Text(l10n.lkPeringatanAngkaJudul),
+        content: Text(pesan),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.lkKonfirmasiPeriksaLagi),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.lkPeringatanAngkaLanjut),
+          ),
+        ],
+      ),
+    );
+
+    return lanjut ?? false;
+  }
+
+  /// Rata-rata tiap larutan standar ditunjukin sekali, tepat sebelum kirim.
+  ///
+  /// Ini penjaga terakhir buat salah ketik yang angkanya WAJAR. 6 Agt 2026 satu
+  /// sesi chlorine kekirim dengan pembacaan 1,90 buat standar 1,83 (lembar
+  /// kerjanya 1,86) dan nembus sampai sertifikat terbit. Nggak ada satu pun
+  /// pemeriksaan otomatis yang bisa nangkep itu: 1,90 meleset 3,8% di alat
+  /// bertoleransi 8% — angka yang sama sekali wajar, nggak bisa dibedain dari
+  /// penyimpangan alat beneran. Yang bisa mbedain cuma orang yang inget dia
+  /// nulis apa di kertas.
+  ///
+  /// Makanya bentuknya ringkasan, bukan peringatan: `1,83 → rata-rata 1,90`
+  /// berdampingan, dan yang salah ketik bakal kelihatan sendiri. Nggak ada yang
+  /// diblokir — tombol kirimnya tetap ada di dialog yang sama.
+  ///
+  /// Cuma buat KIRIM KE ADMIN. Draft sengaja lolos: draft itu justru dipakai
+  /// buat nyimpen kerjaan setengah jadi, dan nanyain "yakin angkanya?" tiap kali
+  /// teknisi nyimpen di tengah jalan cuma bikin dialognya diklik tanpa dibaca.
+  Future<bool> _konfirmasiAngka() async {
+    final l10n = AppLocalizations.of(context);
+    final ringkasan = _isian.ringkasanKirim();
+
+    // Nggak ada satu pun pembacaan — nggak ada yang perlu dicek ulang. Sesi
+    // kosong tetap boleh dikirim (mis. lembar kerja yang tabelnya nyusul), dan
+    // dialog kosong cuma jadi satu ketukan sia-sia.
+    if (ringkasan.every((r) => r.kosong)) return true;
+
+    final lanjut = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        // Isinya setinggi jumlah titik × ukuran huruf HP-nya: lembar pH (3
+        // titik) di huruf 1,3× aja udah lebih tinggi dari layar 640 px. Tanpa
+        // ini isinya overflow sampai tombol "Kirim sekarang" kedorong keluar
+        // layar — dialog yang nggak bisa ditutup, tepat di detik teknisi mau
+        // ngirim.
+        scrollable: true,
+        title: Text(l10n.lkKonfirmasiJudul),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final r in ringkasan) _BarisKonfirmasi(ringkasan: r),
+
+            // Angka hasil foto disebut EKSPLISIT di sini, dan di sini juga
+            // teknisi menyatakan udah ngecek — bukan lewat tombol terpisah
+            // sesudah kirim.
+            //
+            // Dulu penandaannya jadi langkah sendiri di layar Riwayat, dan
+            // itu keliru dua-duanya: teknisi nggak pernah dikasih tau dia
+            // mesti balik ke sana (sesinya diam-diam nge-blok admin), dan
+            // tombol yang ditekan belakangan cuma buat mbuka blokir itu
+            // stempel karet — dia nggak lagi natap angkanya. Yang natap
+            // angkanya ya di dialog ini.
+            if (_isian.adaIsianDariFoto) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                l10n.lkKonfirmasiDariFoto,
+                style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.lkKonfirmasiCatatan,
+              style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.lkKonfirmasiPeriksaLagi),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.lkKonfirmasiKirim),
+          ),
+        ],
+      ),
+    );
+
+    return lanjut ?? false;
   }
 
   Future<bool> _bolehKeluar() async {
@@ -395,13 +846,17 @@ class _FormState extends ConsumerState<_Form> {
                     ? _LembarDuaKolom(
                         bentuk: bentuk,
                         isian: _isian,
-                        onBerubah: () => setState(() {}),
+                        onBerubah: _isianBerubah,
+                        sesiId: widget.sesiId,
+                        profil: widget.profil,
                       )
                     : _LembarSatuKolom(
                         bentuk: bentuk,
                         isian: _isian,
                         halaman: _halaman,
-                        onBerubah: () => setState(() {}),
+                        onBerubah: _isianBerubah,
+                        sesiId: widget.sesiId,
+                        profil: widget.profil,
                       ),
               ),
 
@@ -573,7 +1028,15 @@ class _LembarSatuKolom extends StatelessWidget {
     required this.isian,
     required this.halaman,
     required this.onBerubah,
+    required this.profil,
+    this.sesiId,
   });
+
+  /// Sesi yang lagi dikerjakan — dioper turun ke tombol pindai.
+  final int? sesiId;
+
+  /// Kode ALAT, dioper turun ke tombol pindai.
+  final String profil;
 
   final LembarKerja bentuk;
   final LembarKerjaState isian;
@@ -609,7 +1072,13 @@ class _LembarSatuKolom extends StatelessWidget {
         for (final bagian in bentuk.bagianDiHalaman(
           bentuk.halaman[halaman],
         )) ...[
-          _Bagian(bagian: bagian, isian: isian, onBerubah: onBerubah),
+          _Bagian(
+            bagian: bagian,
+            isian: isian,
+            onBerubah: onBerubah,
+            sesiId: sesiId,
+            profil: profil,
+          ),
           const SizedBox(height: AppSpacing.md),
         ],
 
@@ -634,7 +1103,15 @@ class _LembarDuaKolom extends StatelessWidget {
     required this.bentuk,
     required this.isian,
     required this.onBerubah,
+    required this.profil,
+    this.sesiId,
   });
+
+  /// Sesi yang lagi dikerjakan — dioper turun ke tombol pindai.
+  final int? sesiId;
+
+  /// Kode ALAT, dioper turun ke tombol pindai.
+  final String profil;
 
   final LembarKerja bentuk;
   final LembarKerjaState isian;
@@ -642,7 +1119,13 @@ class _LembarDuaKolom extends StatelessWidget {
 
   List<Widget> _isiKolom(int nomorHalaman) => [
     for (final bagian in bentuk.bagianDiHalaman(nomorHalaman)) ...[
-      _Bagian(bagian: bagian, isian: isian, onBerubah: onBerubah),
+      _Bagian(
+        bagian: bagian,
+        isian: isian,
+        onBerubah: onBerubah,
+        sesiId: sesiId,
+        profil: profil,
+      ),
       const SizedBox(height: AppSpacing.md),
     ],
     const SizedBox(height: AppSpacing.lg),
@@ -751,7 +1234,13 @@ class _KopDokumen extends StatelessWidget {
             Text(bentuk.judul, style: theme.textTheme.titleMedium),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              bentuk.kodeDokumen,
+              // Nomor formulir + nomor metode, persis kayak yang tercetak di
+              // kertas: yang FM di kop, yang IK di baris "Calibration Methode".
+              // Teknisi cuma membacanya — `calibration_method_id` tetap milik
+              // admin.
+              bentuk.kodeMetode == null
+                  ? bentuk.kodeDokumen
+                  : '${bentuk.kodeDokumen} · ${bentuk.kodeMetode}',
               style: theme.textTheme.labelSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -793,15 +1282,38 @@ class _Bagian extends ConsumerWidget {
     required this.bagian,
     required this.isian,
     required this.onBerubah,
+    required this.profil,
+    this.sesiId,
   });
 
   final BagianLembarKerja bagian;
   final LembarKerjaState isian;
   final VoidCallback onBerubah;
 
+  /// Dioper ke tombol pindai: hasil pindai dicatat server per sesi, dan teknisi
+  /// cuma boleh memindai sesi yang dia kerjakan sendiri.
+  final int? sesiId;
+
+  /// Kode ALAT (`ph_meter`, `spectrophotometer`, …) — bukan nomor formulirnya.
+  final String profil;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+
+    // Grup `spindle_titik_N` / `rpm_titik_N` / `resolusi_titik_N` ditarik
+    // keluar dari daftar field biasa SELAMA bagian ini punya tabel buat
+    // ditempelin — kalau nggak ada tabel sama sekali, dibiarin lewat jalur
+    // lama (render di daftar field) daripada ilang diam-diam.
+    final grupField = _kelompokkanField(bagian.field);
+    final grupTitik = <int, List<List<FieldLembarKerja>>>{};
+    if (bagian.tabel.isNotEmpty) {
+      for (final grup in grupField) {
+        final indeks = _indeksTitik(grup.first);
+        if (indeks != null) (grupTitik[indeks] ??= []).add(grup);
+      }
+    }
+    final urutanTitik = grupTitik.keys.toList()..sort();
 
     return Card(
       child: Padding(
@@ -818,26 +1330,877 @@ class _Bagian extends ConsumerWidget {
             ),
             const Divider(height: AppSpacing.lg),
 
-            if (bagian.kode == 'usage_check')
+            if (bagian.belumBisaDiisi)
+              _BagianTanpaInput(catatan: bagian.catatan)
+            else if (bagian.kode == 'usage_check')
               _UsageCheck(bagian: bagian, isian: isian, onBerubah: onBerubah)
             else ...[
-              for (final f in bagian.field) ...[
-                _Field(field: f, isian: isian, onBerubah: onBerubah),
+              // Kondisi lingkungan di kertas itu TABEL, bukan empat kotak
+              // bertumpuk: baris `First`/`End`, kolom `Temperature`/`Humidity`.
+              // Digambar sekali di sini, lalu keempat kolomnya dilewati di
+              // perulangan bawah.
+              if (_kondisiLingkungan(bagian.field) != null) ...[
+                _TabelKondisiLingkungan(
+                  field: _kondisiLingkungan(bagian.field)!,
+                  isian: isian,
+                ),
+                const SizedBox(height: AppSpacing.md),
+              ],
+
+              for (final grup in grupField) ...[
+                if (_kodeKondisiLingkungan.contains(grup.first.kode))
+                  const SizedBox.shrink()
+                else if (_indeksTitik(grup.first) != null &&
+                    bagian.tabel.isNotEmpty)
+                  // Ditunda: digambar nempel ke tabel titiknya, lihat di
+                  // bawah — bukan di sini.
+                  const SizedBox.shrink()
+                else
+                // Seluruh blok spesifikasi digambar bentuk cetak — termasuk
+                // yang cuma sekotak (`Kapasitas Max.`), biar ketiga barisnya
+                // sejajar kayak di kertas dan bukan campur dua gaya.
+                // Nama tempat cuma ditanyain kalau kalibrasinya DI LUAR lab.
+                // Sesi in-lab yang nyimpen nama tempat bikin sertifikatnya
+                // nulis `Insitu (…)` buat kerjaan yang nggak pernah keluar
+                // gedung.
+                if (grup.first.kode == 'lokasi_nama' &&
+                    isian.lokasi != LokasiKalibrasi.onsite)
+                  const SizedBox.shrink()
+                else if (grup.first.spesifikasiAlat)
+                  _BarisSpesifikasi(
+                    field: grup,
+                    isian: isian,
+                    onBerubah: onBerubah,
+                  )
+                else
+                  _Field(field: grup.first, isian: isian, onBerubah: onBerubah),
                 const SizedBox(height: AppSpacing.md),
               ],
             ],
 
-            for (final tabel in bagian.tabel) ...[
+            // Pindai lembar penuh (OCR lokal) — di atas tabelnya, karena dia
+            // ngisi SELURUH tabel sekaligus, bukan satu tabel.
+            if (bagian.tabel.isNotEmpty)
+              _TombolPindaiLembar(
+                profil: profil,
+                equipmentId: isian.alat?.id,
+                sesiId: sesiId,
+                isian: isian,
+                onBerubah: onBerubah,
+              ),
+
+            for (var i = 0; i < bagian.tabel.length; i++) ...[
               LembarKerjaTabel(
-                tabel: tabel,
+                tabel: bagian.tabel[i],
                 isian: isian,
                 onBerubah: onBerubah,
               ),
               const SizedBox(height: AppSpacing.lg),
+
+              // Spindle/RPM/Resolusi tiap titik ditempel di sini, sesudah
+              // tabel PERTAMA — persis posisinya di kertas: langsung di
+              // bawah `Standard`/`UUT Reading` titik itu, bukan dikumpulin
+              // jauh di atas kedua tabel. Sekali aja (nggak diulang lagi
+              // sesudah tabel After Adjustment): datanya milik titik, bukan
+              // milik tahap — spindle & RPM yang dipakai sama buat before
+              // maupun after.
+              if (i == 0 && urutanTitik.isNotEmpty) ...[
+                for (final indeks in urutanTitik) ...[
+                  for (final grup in grupTitik[indeks]!) ...[
+                    _BarisSpesifikasi(
+                      field: grup,
+                      isian: isian,
+                      onBerubah: onBerubah,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                  ],
+                ],
+                const SizedBox(height: AppSpacing.sm),
+              ],
             ],
+
+            // Catatan pengisian diulang di bawah tabel, bukan cuma di kop
+            // dokumen. Kopnya ada di paling atas; waktu teknisi lagi ngisi
+            // kotak angka dia udah discroll jauh dari situ, dan buat
+            // Refractometer kalimat itu yang ngasih tahu kolom °C bukan
+            // pelengkap — pembacaan yang suhunya kosong nggak bisa
+            // dinormalisasi ke 20 °C.
+            //
+            // Kalimatnya diambil dari backend (`catatan_pengisian`), jadi tiap
+            // alat dapat catatannya sendiri dan layar ini nggak perlu tahu alat
+            // mana yang suhunya ikut dihitung.
+            if (bagian.tabel.isNotEmpty && isian.bentuk.catatanPengisian.isNotEmpty)
+              _CatatanIsi(catatan: isian.bentuk.catatanPengisian),
+
+            // Jaraknya ikut di dalam panel, bukan di sini: panel yang lagi
+            // kosong (belum ada isian, atau belum ada balasan) mesti nggak
+            // makan ruang sama sekali — kalau nggak, seluruh bagian di
+            // bawahnya kegeser buat sesuatu yang nggak kelihatan.
+            if (bagian.tabel.isNotEmpty) _PanelPratinjau(isian: isian),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Catatan pengisian yang ditaruh nempel di bawah tabel hasil.
+///
+/// Nadanya sengaja **ngasih tahu, bukan ngelarang**: nggak ada kotak yang
+/// ditandai merah dan nggak ada yang ngunci tombol kirim. Lembar setengah jadi
+/// tetap boleh dikirim dari lapangan — itu aturan lembar kerja yang nggak
+/// berubah sejak awal, dan penjagaannya ada di pemeriksaan admin.
+class _CatatanIsi extends StatelessWidget {
+  const _CatatanIsi({required this.catatan});
+
+  final String catatan;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          Icons.info_outline,
+          size: 14,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Text(
+            catatan,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+
+/// Tombol pindai LEMBAR PENUH (OCR lokal) — beda dari tombol "foto tabel ini"
+/// yang ngirim citranya ke AI di server.
+///
+/// Jalur ini baca angkanya DI HP (ML Kit on-device): fotonya nggak pernah
+/// keluar dari perangkat, nggak ada biaya per foto, dan jalan tanpa sinyal.
+/// Syaratnya satu: koordinat tiap sel harus udah diukur dari formulir CETAK
+/// asli, dan formulirnya dicetak ulang pakai 4 penanda sudut + QR versi.
+///
+/// **`siap_pindai` dari server yang mutusin tombol ini hidup atau mati.**
+/// Sekarang keenam lembar masih `geometri_belum_diverifikasi` — koordinat
+/// tebakan berarti angka mendarat di sel yang salah, dan itu justru kegagalan
+/// yang mau dicegah fitur ini. Alasannya ditampilin apa adanya, bukan
+/// diterjemahin jadi "fitur belum tersedia": teknisi berhak tahu yang kurang
+/// itu apa, dan yang bisa nutup cuma lab (cetak ulang formulir + ukur).
+class _TombolPindaiLembar extends ConsumerStatefulWidget {
+  const _TombolPindaiLembar({
+    required this.profil,
+    required this.equipmentId,
+    required this.isian,
+    required this.onBerubah,
+    this.sesiId,
+  });
+
+  final String profil;
+  final int? equipmentId;
+
+  /// Sesi yang lagi dikerjakan. Boleh `null` — teknisi kadang memindai sebelum
+  /// sesinya dibikin, dan server memang menerima kiriman tanpa sesi.
+  final int? sesiId;
+
+  final LembarKerjaState isian;
+  final VoidCallback onBerubah;
+
+  @override
+  ConsumerState<_TombolPindaiLembar> createState() =>
+      _TombolPindaiLembarState();
+}
+
+class _TombolPindaiLembarState extends ConsumerState<_TombolPindaiLembar> {
+  bool _sibuk = false;
+
+  /// Foto → baca QR → ratakan → potong tiap sel → baca ML Kit → kirim → layar
+  /// review → angkanya masuk formulir.
+  ///
+  /// Urutannya ada di [JalankanPindai], bukan di sini: yang di layar cuma
+  /// ambil fotonya, tampilkan sibuknya, terjemahkan sebabnya kalau gagal, dan
+  /// nuang angka yang teknisi setujui.
+  Future<void> _pindai(WorksheetTemplate template) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    setState(() => _sibuk = true);
+
+    try {
+      // Lembar penuh, jadi resolusinya dipertahankan: yang dibaca ML Kit itu
+      // potongan sel selebar ~140 px di ruang template, dan tiap piksel yang
+      // dibuang di sini hilang dari angka yang dibaca.
+      final foto = await ref
+          .read(sumberFotoProvider)
+          .ambil(maxWidth: 4200, imageQuality: 100);
+
+      if (foto == null || !mounted) return;
+
+      final citra = img.decodeImage(await foto.readAsBytes());
+
+      if (citra == null) {
+        messenger.showSnackBar(SnackBar(content: Text(l10n.lkPindaiGagalFoto)));
+
+        return;
+      }
+
+      final pabrik = ref.read(pabrikPembacaPindaiProvider);
+      final pembaca = pabrik.sel();
+      final pembacaQr = pabrik.qr();
+
+      try {
+        final susunan = await JalankanPindai(
+          mesin: const PindaiLembar(),
+          pembaca: pembaca,
+          pembacaQr: pembacaQr,
+        ).susun(
+          citra,
+          template: template,
+          calibrationSessionId: widget.sesiId,
+          equipmentId: widget.equipmentId,
+        );
+
+        final token = await ref.read(tokenStorageProvider).read();
+        if (token == null || !mounted) return;
+
+        final hasil = await ref
+            .read(worksheetScanServiceProvider)
+            .kirim(
+              token,
+              susunan.body,
+              // Lampiran audit — dan sumber potongan sel di layar review.
+              // Boleh gagal naik; hasil bacanya nggak ikut batal.
+              citraWarp: pngDari(susunan.citraWarp),
+            );
+
+        if (!mounted) return;
+
+        final dipakai = await navigator.push<List<SelDipakaiPindai>>(
+          MaterialPageRoute<List<SelDipakaiPindai>>(
+            builder: (_) => PindaiReviewScreen(hasil: hasil),
+          ),
+        );
+
+        if (dipakai == null || dipakai.isEmpty || !mounted) return;
+
+        final terisi = widget.isian.terapkanHasilPindai(dipakai);
+        widget.onBerubah();
+
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.lkPindaiTerpakai(terisi))),
+        );
+      } finally {
+        await pembaca.tutup();
+        await pembacaQr.tutup();
+      }
+    } on PindaiGagal catch (e) {
+      // Sebabnya ditampilkan, bukan "gagal memindai": sebagian besar sebab
+      // nggak akan membaik dengan mengulang jepretan, dan teknisi yang motret
+      // ulang lima kali buat lembar yang memang nggak ber-QR itu kerugian yang
+      // nggak kelihatan di mana pun.
+      messenger.showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 6),
+          content: Text(switch (e.sebab) {
+            GagalPindai.belumSiap =>
+              l10n.lkPindaiBelumSiap(template.alasanBelumSiap ?? '—'),
+            GagalPindai.tanpaGeometri => l10n.lkPindaiTanpaGeometri,
+            GagalPindai.markerTidakKetemu => l10n.lkPindaiMarkerHilang,
+            GagalPindai.geometriMeleset => l10n.lkPindaiTerlaluMiring,
+            GagalPindai.qrTidakKebaca => l10n.lkPindaiQrHilang,
+            GagalPindai.qrLembarLain => l10n.lkPindaiQrLembarLain,
+            GagalPindai.mutuBuram => l10n.lkPindaiBuram,
+            GagalPindai.mutuGelap => l10n.lkPindaiGelap,
+            GagalPindai.mutuSilau => l10n.lkPindaiSilau,
+            GagalPindai.mutuPantulan => l10n.lkPindaiPantulan,
+            GagalPindai.mutuMiring => l10n.lkPindaiTerlaluMiring,
+            GagalPindai.mutuKejauhan => l10n.lkPindaiKejauhan,
+          }),
+        ),
+      );
+    } on PindaiDitolak catch (e) {
+      // Pesan server ditampilkan APA ADANYA — kalimatnya sudah ditulis buat
+      // teknisi yang lagi berdiri di depan alat pelanggan. Nggak ada satu
+      // angka pun yang dipakai dari lembar yang ditolak.
+      messenger.showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text(
+            e.bugAplikasi ? l10n.lkPindaiBugAplikasi(e.pesan) : e.pesan,
+          ),
+        ),
+      );
+    } catch (_) {
+      if (mounted) {
+        messenger.showSnackBar(SnackBar(content: Text(l10n.lkPindaiGagalFoto)));
+      }
+    } finally {
+      if (mounted) setState(() => _sibuk = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final template = ref.watch(
+      worksheetTemplateProvider((
+        kode: widget.profil,
+        equipmentId: widget.equipmentId,
+      )),
+    );
+
+    // Gagal narik template NGGAK ditampilin sebagai error: ini jalan pintas,
+    // bukan jalur kerja. Yang nggak boleh cuma satu — nampilin tombol aktif
+    // buat lembar yang belum boleh dipindai.
+    final data = template.value;
+
+    // **Tombolnya selalu digambar**, bahkan waktu templatenya gagal diambil.
+    //
+    // Dulu di sini `return const SizedBox.shrink()` — dan itu bikin satu
+    // kegagalan kecil di jaringan/URL berubah jadi FITURNYA HILANG DARI LAYAR
+    // tanpa satu pun pesan. Yang kejadian 14 Agt 2026: layar ngirim nomor
+    // formulir (`SIDIK-IK-CAL-0508_Rev.4`) ke endpoint yang mau kode alat, jadi
+    // 404 — dan dari mata teknisi, tombol pindainya kelihatan nggak pernah
+    // dibikin. Nggak ada error, nggak ada tombol mati, nggak ada apa-apa.
+    //
+    // Sekarang: gagal ambil template = tombol MATI + alasannya kelihatan.
+    // Nggak bisa dipakai tetap nggak bisa dipakai, tapi setidaknya kelihatan
+    // ADA dan kelihatan KENAPA.
+    final alasan = switch ((data, template)) {
+      (final WorksheetTemplate t, _) when !t.siapPindai =>
+        l10n.lkPindaiBelumSiap(t.alasanBelumSiap ?? '—'),
+      (null, AsyncError(:final error)) => l10n.lkPindaiTemplateGagal('$error'),
+      (null, _) => l10n.lkPindaiTemplateMemuat,
+      _ => null,
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: (data?.siapPindai ?? false) && !_sibuk
+                ? () => _pindai(data!)
+                : null,
+            icon: _sibuk || template.isLoading
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.document_scanner_outlined, size: 18),
+            label: Text(l10n.lkPindaiLembar),
+          ),
+        ),
+        if (alasan != null) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            alasan,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+        const SizedBox(height: AppSpacing.md),
+      ],
+    );
+  }
+}
+
+/// Hasil hitung sementara dari `POST /calibrations/preview`.
+///
+/// Ada supaya teknisi lihat angkanya SEBELUM lembarnya masuk antrean approval.
+/// Sebelum ini satu-satunya cara tau hasilnya adalah ngirim sesinya, dan sesi
+/// yang salah titik cuma bisa dibetulin lewat jalur revisi admin — bolak-balik
+/// yang makan sehari buat kesalahan ketik lima detik.
+///
+/// **Nggak ada satu pun rumus di sini.** Rata-rata, koreksi, dan U95 semuanya
+/// dari backend. Buat alat yang U95-nya lahir per kelompok (Spectrophotometer),
+/// angkanya bahkan nggak bisa diturunkan dari satu titik: yang masuk budget itu
+/// STDEV TERBESAR sekelompok, jadi baris yang barusan diketik bisa ngubah U95
+/// sembilan baris lain.
+///
+/// Titik yang U95-nya kembar SENGAJA nggak digabung. Sepuluh titik Holmium
+/// dengan `0,43255708` yang sama persis itu hasil yang bener, bukan data dobel,
+/// dan ngeringkasnya jadi satu baris bikin teknisi ngira sembilan titiknya
+/// nggak kehitung.
+class _PanelPratinjau extends ConsumerWidget {
+  const _PanelPratinjau({required this.isian});
+
+  final LembarKerjaState isian;
+
+  /// Desimal titik ini: dari backend dulu, baru dari bentuk lembar.
+  ///
+  /// Kalau dua-duanya diam, angkanya ditulis apa adanya ([formatNilai]) — bukan
+  /// dipatok dua desimal. Mbulatin ke angka karangan di layar yang dipakai
+  /// mriksa hasil itu kebalikan dari gunanya panel ini.
+  String _tulis(MeasurementResult titik, double nilai) {
+    final desimal = titik.desimal ?? isian.titik[titik.titikUkur]?.desimal;
+
+    return desimal == null
+        ? formatNilai(nilai)
+        : formatSertifikat(nilai, desimal, tandaNol: titik.tandaNol);
+  }
+
+  /// Label baris di lembar buat titik ke-[titikKe] (1-based, urutan kiriman).
+  ///
+  /// `belum_dihitung` cuma bawa nomor urut, dan "Titik ke-13" nggak nolong
+  /// siapa-siapa di lembar 24 baris. Urutan `titikUrut` sama persis sama urutan
+  /// `measurements` yang barusan dikirim — dua-duanya dari `titik.values`.
+  String? _labelTitik(int titikKe) {
+    final urut = isian.titikUrut;
+    if (titikKe < 1 || titikKe > urut.length) return null;
+
+    final t = urut[titikKe - 1];
+
+    return t.satuan.isEmpty ? t.label : '${t.label} ${t.satuan}';
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final status = ref.watch(pratinjauProvider);
+    final hasil = status.hasil;
+
+    if (hasil == null || hasil.kosong) return const SizedBox.shrink();
+
+    // Kelompok diambil dari `remark` yang dikirim backend, BUKAN ditebak dari
+    // besar angkanya: rentang Holmium (283–641 nm) & Didynium (474–810 nm)
+    // tumpang tindih 167 nm, jadi 513,7 nm kelihatan kayak Holmium padahal dia
+    // Didynium — dan U95 yang nempel jadi punya kelompok yang salah.
+    //
+    // Urutannya ngikut urutan titik, bukan diurut abjad: itu urutan lembarnya.
+    final kelompok = <String?, List<MeasurementResult>>{};
+    for (final t in hasil.titik) {
+      kelompok.putIfAbsent(t.remark, () => []).add(t);
+    }
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.lkPratinjauJudul,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ),
+              // Angka lama tetap kelihatan selama yang baru dihitung — yang
+              // nambah cuma penanda sibuk di pojok.
+              if (status.menghitung)
+                const SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            l10n.lkPratinjauCatatan,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+
+          for (final e in kelompok.entries) ...[
+            const SizedBox(height: AppSpacing.sm),
+            // Alat tanpa kelompok (pH, Turbidimeter, …) ngirim `remark: null` —
+            // kolomnya dikosongin, bukan dikasih judul karangan.
+            if (e.key != null && e.key!.isNotEmpty) ...[
+              Text(
+                e.key!,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+            ],
+            _TabelPratinjau(
+              titik: e.value,
+              tulis: _tulis,
+              satuanTitik: (t) => t.satuan ?? isian.titik[t.titikUkur]?.satuan ?? '',
+            ),
+          ],
+
+          if (hasil.belumDihitung.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.lkPratinjauBelumDihitung,
+              style: theme.textTheme.labelSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: theme.colorScheme.error,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            // Alasannya dari backend, ditampilin apa adanya. Lembar setengah
+            // isi tetap boleh dikirim — ini kabar, bukan penghalang — tapi tiap
+            // titik kosong NGURANGI dasar hitung kelompoknya, dan itu yang
+            // nggak kelihatan dari tabel yang barisnya keliatan wajar.
+            for (final b in hasil.belumDihitung)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                child: Text(
+                  '${_labelTitik(b.titikKe) ?? l10n.lkPratinjauTitikKe(b.titikKe)} — ${b.alasan}',
+                  style: theme.textTheme.bodySmall,
+                ),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Tabel angka pratinjau satu kelompok.
+class _TabelPratinjau extends StatelessWidget {
+  const _TabelPratinjau({
+    required this.titik,
+    required this.tulis,
+    required this.satuanTitik,
+  });
+
+  final List<MeasurementResult> titik;
+  final String Function(MeasurementResult, double) tulis;
+  final String Function(MeasurementResult) satuanTitik;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final gayaKepala = theme.textTheme.labelSmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    final gayaAngka = theme.textTheme.bodySmall?.copyWith(
+      fontFeatures: const [FontFeature.tabularFigures()],
+    );
+
+    TableRow baris(List<Widget> sel) => TableRow(children: [
+      for (final s in sel)
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: s,
+        ),
+    ]);
+
+    return Table(
+      columnWidths: const {
+        0: FlexColumnWidth(1.4),
+        1: FlexColumnWidth(1),
+        2: FlexColumnWidth(1),
+        3: FlexColumnWidth(1),
+      },
+      children: [
+        baris([
+          Text(l10n.lkPratinjauKolomTitik, style: gayaKepala),
+          Text(l10n.lkPratinjauKolomRata, style: gayaKepala, textAlign: TextAlign.right),
+          Text(l10n.lkPratinjauKolomKoreksi, style: gayaKepala, textAlign: TextAlign.right),
+          Text(l10n.lkPratinjauKolomU95, style: gayaKepala, textAlign: TextAlign.right),
+        ]),
+        for (final t in titik)
+          baris([
+            Text(
+              '${tulis(t, t.titikUkur)} ${satuanTitik(t)}'.trim(),
+              style: gayaAngka,
+            ),
+            Text(tulis(t, t.rataRata), style: gayaAngka, textAlign: TextAlign.right),
+            Text(tulis(t, t.koreksi), style: gayaAngka, textAlign: TextAlign.right),
+            Text(
+              tulis(t, t.ketidakpastianDiperluas),
+              style: gayaAngka,
+              textAlign: TextAlign.right,
+            ),
+          ]),
+      ],
+    );
+  }
+}
+
+/// Bagian yang ADA di lembar kertas tapi belum punya sumber angka yang sah
+/// (`status: sumber_belum_ada`).
+///
+/// Dua jalan pintas yang sama-sama salah dihindari di sini. Nyembunyiin
+/// bagiannya bikin teknisi ngira layarnya kurang — dia nyariin, karena blok itu
+/// tercetak di lembar kertas yang dia pegang. Nyediakan kotak kosong bikin dia
+/// ngetik angka yang nggak akan pernah nyampe: backend nggak nerima field apa
+/// pun dari bagian ini, jadi isiannya ilang tanpa jejak.
+///
+/// Jadi: kelihatan, berlabel, dengan alasan dari backend apa adanya — dan tanpa
+/// satu pun kotak yang bisa disentuh.
+class _BagianTanpaInput extends StatelessWidget {
+  const _BagianTanpaInput({required this.catatan});
+
+  final String? catatan;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.lock_outline,
+                size: 16,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                l10n.lkBagianBelumBisaDiisi,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+          if (catatan != null && catatan!.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              catatan!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+
+/// Kolom yang di lembar cetak digambar SEBARIS dikelompokkan di sini.
+///
+/// Cuma berlaku buat `spesifikasi_alat.*` yang labelnya sama & berurutan —
+/// `2. Rentang Ukur` punya dua kotak (`0-100 %T` dan `200-700 nm`), dan di
+/// kertas dua-duanya di satu baris, di kanan satu label.
+///
+/// Sengaja NGGAK digeneralisasi ke semua kolom berlabel kembar: pasangan
+/// "Env. Condition — First" (°C / %RH) juga berlabel sama, dan bentuk
+/// bertumpuknya udah dipakai lima alat lain. Yang berubah cuma blok yang
+/// backend-nya emang minta bentuk cetak.
+/// Empat kolom yang di kertas jadi satu tabel Environment Condition.
+///
+/// Kunci payload-nya sama di keenam alat, jadi dicocokkan lewat kode — bukan
+/// lewat label, yang tiap profil menulisnya sedikit berbeda ("Env. Condition —
+/// First", "Suhu Ruangan").
+const _kodeKondisiLingkungan = {
+  'suhu_awal',
+  'kelembaban_awal',
+  'suhu_akhir',
+  'kelembaban_akhir',
+};
+
+/// Keempat kolom kondisi lingkungan, atau `null` kalau bagian ini nggak punya
+/// keempat-empatnya.
+///
+/// Sengaja semua-atau-nggak-sama-sekali: tabel yang separuh kotaknya hilang
+/// lebih membingungkan daripada empat kotak bertumpuk seperti dulu.
+({
+  FieldLembarKerja suhuAwal,
+  FieldLembarKerja kelembabanAwal,
+  FieldLembarKerja suhuAkhir,
+  FieldLembarKerja kelembabanAkhir,
+})? _kondisiLingkungan(List<FieldLembarKerja> field) {
+  FieldLembarKerja? cari(String kode) {
+    for (final f in field) {
+      if (f.kode == kode) return f;
+    }
+
+    return null;
+  }
+
+  final suhuAwal = cari('suhu_awal');
+  final kelembabanAwal = cari('kelembaban_awal');
+  final suhuAkhir = cari('suhu_akhir');
+  final kelembabanAkhir = cari('kelembaban_akhir');
+
+  if (suhuAwal == null ||
+      kelembabanAwal == null ||
+      suhuAkhir == null ||
+      kelembabanAkhir == null) {
+    return null;
+  }
+
+  return (
+    suhuAwal: suhuAwal,
+    kelembabanAwal: kelembabanAwal,
+    suhuAkhir: suhuAkhir,
+    kelembabanAkhir: kelembabanAkhir,
+  );
+}
+
+/// Kolom `spesifikasi_alat.*_titik_N` — Spindle/RPM/Resolusi Viscometer,
+/// satu set per titik ukur. Dipakai buat naruh grupnya NEMPEL ke tabel
+/// titik itu ([_Bagian.build]), bukan numpuk di atas kedua tabel kayak
+/// kolom spesifikasi lain: lihat `perintah-frontend-viscometer.md` §5.2 —
+/// di kertas cetaknya, `Resolusi UUT` / `Rpm used` / `Spindle used` ada
+/// PERSIS di bawah tabel `Standard`/`UUT Reading` titik itu.
+final _polaTitik = RegExp(r'_titik_(\d+)$');
+
+int? _indeksTitik(FieldLembarKerja field) {
+  if (!field.spesifikasiAlat) return null;
+  final cocok = _polaTitik.firstMatch(field.kunciSpesifikasi);
+  return cocok == null ? null : int.parse(cocok.group(1)!);
+}
+
+List<List<FieldLembarKerja>> _kelompokkanField(List<FieldLembarKerja> field) {
+  final hasil = <List<FieldLembarKerja>>[];
+
+  for (final f in field) {
+    final akhir = hasil.isEmpty ? null : hasil.last;
+    final gabung = akhir != null &&
+        f.spesifikasiAlat &&
+        akhir.first.spesifikasiAlat &&
+        akhir.first.label == f.label;
+
+    if (gabung) {
+      akhir.add(f);
+    } else {
+      hasil.add([f]);
+    }
+  }
+
+  return hasil;
+}
+
+/// Satu baris spesifikasi alat: satu label, beberapa kotak bersatuan.
+///
+/// Bentuknya niru lembar cetak — `Rentang Ukur : [0-100] %T [200-700] nm`.
+/// Isinya teks apa adanya, bukan angka: `0-100` emang bukan bilangan, dan yang
+/// tercetak di sertifikat juga teks.
+class _BarisSpesifikasi extends StatelessWidget {
+  const _BarisSpesifikasi({
+    required this.field,
+    required this.isian,
+    required this.onBerubah,
+  });
+
+  final List<FieldLembarKerja> field;
+  final LembarKerjaState isian;
+  final VoidCallback onBerubah;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          field.first.label,
+          style: theme.textTheme.labelMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final f in field) ...[
+              if (f != field.first) const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                // Spindle & Model Viscometer nyampe ke sini sebagai
+                // `spesifikasi_alat.*` bertipe pilihan — daftarnya 63 opsi
+                // (SMC-nya beda 400× antar spindle) dan HARUS dropdown, bukan
+                // isian bebas: lihat `perintah-frontend-viscometer.md` §3.1.
+                child: f.tipe == TipeField.pilihan
+                    ? _DropdownSpesifikasi(
+                        field: f,
+                        controller: isian.teks[f.kode]!,
+                        onBerubah: onBerubah,
+                      )
+                    : TextField(
+                        controller: isian.teks[f.kode],
+                        decoration: InputDecoration(
+                          // Labelnya udah ditulis sekali di atas — yang di
+                          // dalam kotak tinggal satuannya, persis kertasnya.
+                          labelText: f.satuan,
+                          border: const OutlineInputBorder(),
+                        ),
+                      ),
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Dropdown buat `spesifikasi_alat.*` bertipe pilihan (Model & Spindle
+/// Viscometer). Nilai kepilih ditulis ke [controller] apa adanya — kunci
+/// payloadnya udah lewat `kunciSpesifikasi`, bukan `f.kode`, jadi widget ini
+/// nggak perlu tahu bentuk payloadnya.
+class _DropdownSpesifikasi extends StatelessWidget {
+  const _DropdownSpesifikasi({
+    required this.field,
+    required this.controller,
+    required this.onBerubah,
+  });
+
+  final FieldLembarKerja field;
+  final TextEditingController controller;
+  final VoidCallback onBerubah;
+
+  @override
+  Widget build(BuildContext context) {
+    // Nilai lama yang nggak ketemu di daftar pilihan dibiarin kosong, bukan
+    // dipaksa masuk — `DropdownButtonFormField` nge-assert kalau nilainya
+    // nggak cocok persis salah satu item, dan itu bikin layarnya mati total.
+    final terpilih = field.pilihan.any((p) => p.nilai == controller.text)
+        ? controller.text
+        : null;
+
+    return DropdownButtonFormField<String>(
+      initialValue: terpilih,
+      isExpanded: true,
+      decoration: const InputDecoration(border: OutlineInputBorder()),
+      items: [
+        for (final p in field.pilihan)
+          DropdownMenuItem(value: p.nilai, child: Text(p.label)),
+      ],
+      onChanged: (value) {
+        if (value == null) return;
+        controller.text = value;
+        onBerubah();
+      },
     );
   }
 }
@@ -898,7 +2261,11 @@ class _Field extends ConsumerWidget {
       final user = ref.watch(authProvider).value;
       return _Readonly(
         label: field.label,
-        nilai: isian.nilaiTurunan(field.kode, namaTeknisi: user?.nama),
+        nilai: isian.nilaiTurunan(
+          field.kode,
+          namaTeknisi: user?.nama,
+          kodeTeknisi: user?.kodeTeknisi,
+        ),
         satuan: field.satuan,
       );
     }
@@ -925,6 +2292,128 @@ class _Field extends ConsumerWidget {
       ),
       _ => _FieldBiasa(field: field, isian: isian, onBerubah: onBerubah),
     };
+  }
+}
+
+/// Environment Condition, digambar seperti di lembar cetak.
+///
+/// Kertasnya (lihat `SIDIK-FM-CAL-0511_Rev.5` & `…0510_Rev.5`) menaruhnya
+/// sebagai tabel: baris `First`/`End`, kolom `Temperature`/`Humidity`, satuan
+/// tercetak di sel sendiri di kanan tiap angka. Layar dulu menumpuk keempat
+/// kolomnya sebagai empat baris berlabel "Env. Condition — First" — isinya
+/// sama, tapi teknisi yang menyalin dari kertas harus mencari-cari mana yang
+/// suhu dan mana yang kelembaban.
+class _TabelKondisiLingkungan extends StatelessWidget {
+  const _TabelKondisiLingkungan({required this.field, required this.isian});
+
+  final ({
+    FieldLembarKerja suhuAwal,
+    FieldLembarKerja kelembabanAwal,
+    FieldLembarKerja suhuAkhir,
+    FieldLembarKerja kelembabanAkhir,
+  })
+  field;
+
+  final LembarKerjaState isian;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    final garis = BorderSide(color: theme.colorScheme.outlineVariant);
+
+    Widget kepala(String teks) => Container(
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+      alignment: Alignment.center,
+      color: theme.colorScheme.surfaceContainerHighest,
+      child: Text(
+        teks,
+        style: theme.textTheme.labelMedium?.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+
+    Widget waktu(String teks) => Container(
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+      alignment: Alignment.center,
+      child: Text(teks, style: theme.textTheme.labelMedium),
+    );
+
+    Widget kotak(FieldLembarKerja f) => Padding(
+      padding: const EdgeInsets.all(4),
+      child: TextField(
+        controller: isian.teks[f.kode],
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        textAlign: TextAlign.center,
+        decoration: InputDecoration(
+          isDense: true,
+          border: const OutlineInputBorder(),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 8,
+            horizontal: 6,
+          ),
+          // Satuannya tercetak di kertas sebagai sel sendiri, jadi di sini
+          // dipakai `suffixText` — bukan `helperText` seperti kolom lain, yang
+          // di dalam sel tabel malah menambah tinggi baris.
+          suffixText: f.satuan,
+        ),
+      ),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.lkKondisiLingkungan,
+          style: theme.textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Table(
+          border: TableBorder(
+            top: garis,
+            bottom: garis,
+            left: garis,
+            right: garis,
+            horizontalInside: garis,
+            verticalInside: garis,
+          ),
+          columnWidths: const {
+            0: FlexColumnWidth(1),
+            1: FlexColumnWidth(1.6),
+            2: FlexColumnWidth(1.6),
+          },
+          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+          children: [
+            TableRow(
+              children: [
+                kepala(l10n.lkWaktu),
+                kepala(l10n.lkSuhu),
+                kepala(l10n.lkKelembaban),
+              ],
+            ),
+            TableRow(
+              children: [
+                waktu(l10n.lkAwal),
+                kotak(field.suhuAwal),
+                kotak(field.kelembabanAwal),
+              ],
+            ),
+            TableRow(
+              children: [
+                waktu(l10n.lkAkhir),
+                kotak(field.suhuAkhir),
+                kotak(field.kelembabanAkhir),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }
 
@@ -1095,6 +2584,10 @@ class _PilihanTetap extends StatelessWidget {
       );
     }
 
+    if (field.kode == 'equipment.satuan') {
+      return _PilihSatuan(field: field, isian: isian, onBerubah: onBerubah);
+    }
+
     // Sisanya cuma Location. Kolom pilihan lain yang belum dikenali sengaja
     // nggak dirender apa-apa daripada nampilin dropdown yang nilainya nggak
     // nyambung ke mana-mana waktu dikirim.
@@ -1122,6 +2615,106 @@ class _PilihanTetap extends StatelessWidget {
         onBerubah();
       },
     );
+  }
+}
+
+/// "7. Satuan Refracto" — n20D (indeks bias) atau °Brix (kadar sukrosa).
+///
+/// Satu-satunya kolom `pilihan` yang kodenya **bertitik** (`equipment.satuan`)
+/// tapi tetap bisa diedit. Di tempat lain kode bertitik artinya kolom turunan
+/// yang read-only (lihat `FieldLembarKerja.turunan`), dan itu bukan cuma gaya
+/// penamaan: `terapkanHasilHeader` mengandalkan kolom bertitik nggak punya
+/// controller di `teks` supaya AI Vision nggak pernah bisa nulis serial number
+/// atau nama pelanggan. Aturan itu **tetap utuh** — pilihan ini disimpen di
+/// `LembarKerjaState.satuan`, bukan di `teks`, jadi nggak ada jalur baru buat
+/// AI ngisi kolom identitas.
+///
+/// Kenapa ditanya ke teknisi dan bukan diambil diam-diam dari master alat: satu
+/// refractometer fisik bisa nampilin dua-duanya, dan yang nentuin ya posisi
+/// skala waktu dibaca — bukan yang kecatat waktu alatnya didaftarin. Nilai
+/// awalnya tetap dari master (lihat `isiDariAlat`), jadi kasus normal nol
+/// ketukan.
+class _PilihSatuan extends StatelessWidget {
+  const _PilihSatuan({
+    required this.field,
+    required this.isian,
+    required this.onBerubah,
+  });
+
+  final FieldLembarKerja field;
+  final LembarKerjaState isian;
+  final VoidCallback onBerubah;
+
+  @override
+  Widget build(BuildContext context) {
+    // Satuan dari backend yang nggak ada di daftar pilihan dibiarin kosong,
+    // bukan dipaksa masuk: `DropdownButtonFormField` nge-assert kalau nilainya
+    // nggak cocok persis salah satu item, dan itu bikin layarnya mati total
+    // cuma gara-gara beda ejaan.
+    final terpilih = field.pilihan.any((p) => p.nilai == isian.satuan)
+        ? isian.satuan
+        : null;
+
+    return DropdownButtonFormField<String>(
+      // Nilainya bisa berubah dari LUAR dropdown ini — `isiDariAlat` nyetel
+      // satuan begitu alatnya dipilih. `FormField` nggak nyinkronin
+      // `initialValue` waktu rebuild, jadi tanpa key yang ikut berubah,
+      // teknisi milih alat °Brix tapi kotaknya tetap nulis n20D.
+      key: ValueKey(terpilih),
+      initialValue: terpilih,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: field.label,
+        border: const OutlineInputBorder(),
+      ),
+      items: [
+        for (final p in field.pilihan)
+          DropdownMenuItem(value: p.nilai, child: Text(p.label)),
+      ],
+      onChanged: (value) => _pilih(context, value),
+    );
+  }
+
+  /// Ganti satuan bisa **ngosongin tabel** — Refractometer di skala °Brix
+  /// diadu ke larutan 2,5 & 40, bukan 1,33659 & 1,39986.
+  ///
+  /// Pembacaan yang kebuang emang nggak punya arti di satuan baru, tapi tetap
+  /// angka yang diketik teknisi di lapangan — jadi ditanya dulu, bukan
+  /// dilenyapkan diam-diam. Kalau tabelnya masih kosong (kasus paling umum:
+  /// satuan disetel di awal, sebelum ngisi), nggak ada yang ditanyain.
+  Future<void> _pilih(BuildContext context, String? value) async {
+    if (value == null || value == isian.satuan) return;
+
+    if (isian.gantiSatuanMenghapusIsian(value)) {
+      final l10n = AppLocalizations.of(context);
+      final lanjut = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(l10n.lkGantiSatuanJudul),
+          content: Text(l10n.lkGantiSatuanPesan(isian.satuan, value)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text(l10n.lkGantiSatuanBatal),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: Text(l10n.lkGantiSatuanLanjut),
+            ),
+          ],
+        ),
+      );
+
+      if (lanjut != true) {
+        // Dropdown-nya udah terlanjur nampilin pilihan baru; `onBerubah` bikin
+        // dia digambar ulang dari `isian.satuan` yang nggak jadi berubah.
+        onBerubah();
+        return;
+      }
+    }
+
+    isian.satuan = value;
+    onBerubah();
   }
 }
 
@@ -1490,6 +3083,7 @@ class _UsageCheck extends ConsumerWidget {
         for (final baris in bagian.baris) ...[
           _UsageCheckBaris(
             label: baris.label,
+            labelCetak: baris.labelCetak,
             serialNumber:
                 baris.serialNumber ?? master[baris.standardId]?.serialNumber,
             kadaluarsa: master[baris.standardId]?.masihBerlaku == false,
@@ -1514,11 +3108,18 @@ class _UsageCheckBaris extends StatelessWidget {
     required this.label,
     required this.state,
     required this.onBerubah,
+    this.labelCetak,
     this.serialNumber,
     this.kadaluarsa = false,
   });
 
   final String label;
+
+  /// Tulisan baris ini di kertas, kalau beda dari [label]. Yang dicetak besar
+  /// adalah yang ini — teknisi mencocokkan layar ke lembar di tangannya, dan
+  /// nama alat standar yang sebenarnya turun jadi keterangan di bawahnya.
+  final String? labelCetak;
+
   final String? serialNumber;
   final bool kadaluarsa;
 
@@ -1553,11 +3154,21 @@ class _UsageCheckBaris extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    label,
+                    labelCetak ?? label,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: aktif ? null : theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
+                  // Nama alat standar yang sebenarnya, waktu kertasnya menulis
+                  // nama lain. Tanpa ini teknisi mencentang "Std Solution
+                  // 84 µS" tanpa pernah tahu botol yang dipakai 25 µS/cm.
+                  if (labelCetak != null && labelCetak != label)
+                    Text(
+                      label,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   if (serialNumber != null && serialNumber!.isNotEmpty)
                     Text(
                       serialNumber!,
@@ -1598,6 +3209,57 @@ class _UsageCheckBaris extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// Satu larutan standar di dialog konfirmasi: label larutan di kiri, rata-rata
+/// pembacaannya di kanan.
+///
+/// Angkanya diformat pakai [formatSertifikat] — pemisah koma, desimal ngikut
+/// resolusi titiknya, sama persis kayak yang nanti kecetak di sertifikat.
+/// Teknisi mbandingin baris ini ke lembar kerja kertas di tangannya, jadi
+/// bentuk angkanya nggak boleh beda dari yang dia tulis.
+class _BarisKonfirmasi extends StatelessWidget {
+  const _BarisKonfirmasi({required this.ringkasan});
+
+  final RingkasanTitik ringkasan;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final rata = ringkasan.rataRata;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${ringkasan.label} ${ringkasan.satuan}',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          Text(
+            rata == null
+                ? l10n.lkKonfirmasiBarisKosong
+                : l10n.lkKonfirmasiBaris(
+                    ringkasan.terisi,
+                    ringkasan.total,
+                    formatSertifikat(rata, ringkasan.desimal),
+                  ),
+            style: theme.textTheme.bodySmall?.copyWith(
+              // Kotak yang dilewat ditandai warna, bukan cuma angka kecil:
+              // "3 dari 5" gampang kebaca sekilas sebagai lengkap.
+              color: ringkasan.adaYangKosong
+                  ? theme.colorScheme.error
+                  : theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

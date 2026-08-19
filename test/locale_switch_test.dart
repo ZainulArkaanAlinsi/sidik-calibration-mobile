@@ -11,6 +11,7 @@ import 'package:sidik_calibration/providers/locale_provider.dart';
 import 'package:sidik_calibration/services/dashboard_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
+import 'support/lewati_onboarding.dart';
 
 /// Nguji dwibahasa layar NON-auth (dashboard/navbar). Toggle bahasa di layar
 /// auth belum diuji: auth neumorphism (PR #16) belum dwibahasa — lihat catatan
@@ -20,7 +21,6 @@ void main() {
   // (channel plugin nggak dijawab di test) — dan `await setLocale(...)` di test
   // ikut nyangkut sampai timeout 10 menit. Mock-nya bikin resolve seketika.
   setUp(() => SharedPreferences.setMockInitialValues({}));
-
 
   // CATATAN (2026-07-24): tes toggle bahasa DI LAYAR AUTH dihapus sementara.
   // Auth neumorphism (di-merge dari PR #16) belum dwibahasa — teksnya di-hardcode
@@ -34,6 +34,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          lewatiOnboarding,
           tokenStorageProvider.overrideWithValue(
             InMemoryTokenStorage('mock-token-1'),
           ),

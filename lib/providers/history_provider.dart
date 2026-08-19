@@ -52,7 +52,7 @@ class HistoryController extends AsyncNotifier<List<CalibrationHistoryItem>> {
 
   /// Approve satu sesi. Optimistic: status berubah duluan di UI, baru
   /// nembak server — kalau gagal dibalikin ke semula.
-  Future<void> approve(int id) async {
+  Future<void> approve(int id, {bool abaikanPeringatan = false}) async {
     final sebelum = state.value;
     if (sebelum == null) return;
 
@@ -70,7 +70,7 @@ class HistoryController extends AsyncNotifier<List<CalibrationHistoryItem>> {
     try {
       final certificateId = await ref
           .read(approvalServiceProvider)
-          .approve(token, id);
+          .approve(token, id, abaikanPeringatan: abaikanPeringatan);
       final terkini = state.value;
       if (terkini == null) return;
       state = AsyncValue.data([

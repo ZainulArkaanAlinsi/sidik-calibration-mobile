@@ -47,6 +47,39 @@ String formatNilai(double nilai, {int desimalMin = 0, int desimalMaks = 8}) {
   return teks;
 }
 
+/// Berapa desimal yang mewakili [resolusi] alat: `0,01` → 2, `0,0001` → 4,
+/// `1` → 0.
+///
+/// Dipakai buat alat yang resolusinya **seragam** di semua titik (pH, Chlorine,
+/// Refractometer) — bentuk lembar kerjanya sengaja nggak ngirim `desimal` per
+/// baris, dan yang bener dipakai ya resolusi alatnya. Cuma alat yang
+/// resolusinya beda per titik (Turbidimeter: 0,01 / 0,1 / 1) yang ngirim
+/// sendiri, dan angka itu yang menang.
+///
+/// **Jangan diganti angka tetap.** Sampai 6 Agt 2026 tiga alat pertama
+/// resolusinya 0,01 semua, jadi "2" kelihatan aman — sampai Refractometer masuk
+/// dengan 0,0001 dan `1,3362` berubah jadi `1,34` di layar tanpa ada yang
+/// error.
+///
+/// `null`/nol/negatif → `null`: nggak ada yang bisa disimpulin, dan nebak 2 di
+/// sini itu persis kesalahan yang bikin catatan di atas ditulis.
+int? desimalDariResolusi(double? resolusi) {
+  if (resolusi == null || !resolusi.isFinite || resolusi <= 0) return null;
+
+  // Lewat teks, bukan log10: `log10(0.001)` balikin -2,9999999999999996 dan
+  // pembulatannya gampang meleset satu desimal.
+  final teks = resolusi.toStringAsFixed(8);
+  final titik = teks.indexOf('.');
+  if (titik == -1) return 0;
+
+  var akhir = teks.length;
+  while (akhir > titik + 1 && teks[akhir - 1] == '0') {
+    akhir--;
+  }
+
+  return akhir - titik - 1;
+}
+
 /// Format angka **persis kayak yang dicetak di sertifikat**: desimal tetap,
 /// koma sebagai pemisah desimal, titik sebagai pemisah ribuan.
 ///
@@ -63,7 +96,12 @@ String formatNilai(double nilai, {int desimalMin = 0, int desimalMaks = 8}) {
 /// **Jangan dipakai di luar layar sertifikat.** Lembar perhitungan pakai
 /// [formatNilai] (separator titik, nol belakang dipertahankan) karena angkanya
 /// masih dipakai buat ngitung dan diketik ulang, bukan buat dicetak.
-String formatSertifikat(double nilai, int desimal) {
+///
+/// [tandaNol] ngatur nasib koreksi negatif yang MEMBULAT KE NOL — lihat catatan
+/// di badan fungsi. Backend yang mutusin per alat dan ngirimnya lewat
+/// `tanda_nol`; default `true` biar alat yang belum ngirim field itu kecetak
+/// persis kayak sebelumnya.
+String formatSertifikat(double nilai, int desimal, {bool tandaNol = true}) {
   if (!nilai.isFinite) return '$nilai';
 
   final d = desimal.clamp(0, 8);
@@ -71,24 +109,43 @@ String formatSertifikat(double nilai, int desimal) {
   final negatif = teks.startsWith('-');
   final tanpaTanda = negatif ? teks.substring(1) : teks;
 
-  final titik = tanpaTanda.indexOf('.');
-  final bulat = titik == -1 ? tanpaTanda : tanpaTanda.substring(0, titik);
-  final pecahan = titik == -1 ? '' : tanpaTanda.substring(titik + 1);
+  // Ribuan TIDAK dikelompokin. Master nulis `1000` & `1001`; `1.000` di dokumen
+  // yang komanya dipakai buat desimal kebaca ambigu. Padanan
+  // `Angka::hasil()` di backend.
+  final hasil = tanpaTanda.replaceFirst('.', ',');
 
-  // Ribuan dikelompokin dari kanan: "1234567" -> "1.234.567".
-  final buf = StringBuffer();
-  for (var i = 0; i < bulat.length; i++) {
-    if (i > 0 && (bulat.length - i) % 3 == 0) buf.write('.');
-    buf.write(bulat[i]);
-  }
+  // `-0,00` DITULIS apa adanya — TAPI cuma buat alat yang masternya emang gitu.
+  //
+  // Sempat tandanya dibuang di sini dengan alasan "bikin orang ngira ada
+  // koreksi negatif padahal nol"; itu dibalik waktu master Turbidimeter
+  // `0189-CAL-624` diadu langsung 10 Agt 2026 dan ternyata nulis `-0,00` &
+  // `-0,0`. Tandanya bilang alatnya baca DI ATAS standar.
+  //
+  // Yang ketahuan belakangan: jawabannya beda per alat, dan nggak bisa
+  // diturunkan dari nalar. Master Conductivity nyimpen koreksi
+  // `-0.03999999999999915` — sama persis kayak yang dihitung sistem — tapi
+  // nyetaknya `0,0`, tanpa minus. Dua dokumen resmi lab, dua jawaban beda buat
+  // bentuk angka yang sama, jadi yang milih backend (`tanda_nol`), bukan sini.
+  final nolSetelahDibulatkan = double.parse(teks) == 0;
+  final pakaiTanda = negatif && (tandaNol || !nolSetelahDibulatkan);
 
-  final hasil = pecahan.isEmpty ? buf.toString() : '${buf.toString()},$pecahan';
+  return pakaiTanda ? '-$hasil' : hasil;
+}
 
-  // `-0,00` itu hasil pembulatan nilai negatif kecil. Ditulis apa adanya bikin
-  // orang ngira ada koreksi negatif padahal nol — tandanya dibuang.
-  if (negatif && double.parse(teks) == 0) return hasil;
+/// Kolom **Standard Value** — [formatSertifikat] dengan nol di belakang dibuang.
+///
+/// Master nulis nilai NOMINAL standarnya: Turbidimeter `1` / `100` / `1000`
+/// (bukan `1,00` / `100,0`), sementara Chlorine tetap `1,74` dan pH `4,01`.
+/// Bedanya bukan aturan per alat — standar Turbidimeter emang angka bulat, jadi
+/// desimalnya nggak bawa informasi apa pun.
+///
+/// Padanan `Angka::nilaiStandar()` di backend.
+String formatNilaiStandar(double nilai, int desimal) {
+  final teks = formatSertifikat(nilai, desimal);
 
-  return negatif ? '-$hasil' : hasil;
+  if (!teks.contains(',')) return teks;
+
+  return teks.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r',$'), '');
 }
 
 /// Format ketidakpastian (U95) — dijamin kebaca **2 angka penting**.

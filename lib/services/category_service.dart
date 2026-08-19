@@ -189,6 +189,141 @@ class MockCategoryService implements CategoryService {
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0523_Rev.1',
       ),
+      // 4 titik Refractometer — angkanya dipetik dari
+      // `RefractometerCapabilitySeeder` di backend, yang sendiri nyalin sheet
+      // DATABASE `Master Olah Data_Refractometer.xlsm` & lampiran akreditasi
+      // LK-285-IDN no. 45. Jangan dibulatkan di sini: kartu di layar mesti sama
+      // dengan yang dipakai backend ngitung sertifikat.
+      //
+      // **Tanpa empat baris ini fiturnya nggak bisa dipakai sama sekali.**
+      // Teknisi nyampe ke lembar kerja Refractometer lewat Kategori → Instrumen
+      // Analitik → Refractometer, dan kartunya cuma muncul kalau jenis alatnya
+      // ada di daftar kemampuan. Ketahuan 7 Agt 2026 waktu app-nya beneran
+      // dijalanin di HP: seluruh test hijau, tapi picker-nya cuma nampilin
+      // empat alat lama — test-nya manggil `LembarKerjaScreen(profil:
+      // 'refractometer')` langsung, jadi ngelewatin pintu masuknya.
+      //
+      // Dua titik n20D & dua titik °Brix, ikut satu botol fisik yang dibaca dua
+      // satuan (BSAG2.5-0034 = 2,5 °Brix DAN 1,33659 n20D). Nilai titiknya versi
+      // bulat tabel CMC (1,3366 / 1,3999), beda dari nominal larutan di lembar
+      // kerja (1,33659 / 1,39986) — itu dua hal yang berbeda dan memang beda di
+      // masternya.
+      CalibrationCapability(
+        namaAlat: 'Refractometer',
+        rangeMin: 1.3366,
+        rangeMax: 1.3366,
+        satuan: 'n20D',
+        ketidakpastianTerbaik: 6.2e-05,
+        satuanKetidakpastian: 'n20D',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0516',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Refractometer',
+        rangeMin: 1.3999,
+        rangeMax: 1.3999,
+        satuan: 'n20D',
+        ketidakpastianTerbaik: 6.7e-05,
+        satuanKetidakpastian: 'n20D',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0516',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Refractometer',
+        rangeMin: 2.5,
+        rangeMax: 2.5,
+        satuan: '°Brix',
+        ketidakpastianTerbaik: 0.019,
+        satuanKetidakpastian: '°Brix',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0516',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Refractometer',
+        rangeMin: 40,
+        rangeMax: 40,
+        satuan: '°Brix',
+        ketidakpastianTerbaik: 0.02,
+        satuanKetidakpastian: '°Brix',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0516',
+      ),
+      // 3 baris Spectrophotometer — disalin dari
+      // `SpectrophotometerCapabilitySeeder` di backend. Sama alasannya kayak
+      // Refractometer di atas: **tanpa baris ini lembar kerjanya nggak bisa
+      // dibuka lewat jalur mana pun**. Teknisi nyampe ke situ dari Kategori →
+      // Instrumen Analitik → pilih alat, dan kartunya cuma muncul kalau jenis
+      // alatnya ada di daftar kemampuan.
+      //
+      // `rangeMin != rangeMax` di sini, beda dari pH/Turbidimeter/Conductivity
+      // yang nge-CMC per titik: dua kelompok panjang gelombangnya dibedain
+      // lewat PARAMETER, bukan lewat angka — rentang Holmium (283–641) dan
+      // Didynium (474–810) tumpang tindih 167 nm.
+      CalibrationCapability(
+        namaAlat: 'Spectrophotometer',
+        rangeMin: 283,
+        rangeMax: 641,
+        satuan: 'nm',
+        ketidakpastianTerbaik: 0.4,
+        satuanKetidakpastian: 'nm',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0508_Rev.4',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Spectrophotometer',
+        rangeMin: 474,
+        rangeMax: 810,
+        satuan: 'nm',
+        ketidakpastianTerbaik: 0.4,
+        satuanKetidakpastian: 'nm',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0508_Rev.4',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Spectrophotometer',
+        rangeMin: 10,
+        rangeMax: 30.5,
+        satuan: '%T',
+        ketidakpastianTerbaik: 0.5,
+        satuanKetidakpastian: '%T',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0508_Rev.4',
+      ),
+      // 3 titik Viscometer (alat ke-7) — angkanya dari lampiran akreditasi
+      // LK-285-IDN no. 44 (`docs/Rekap-Data-Kemampuan-Kalibrasi.md`). Sama
+      // alasannya kayak Refractometer & Spectrophotometer di atas: tanpa baris
+      // ini kartunya nggak muncul di picker walau `_profilKhusus` udah kenal
+      // namanya, dan lembar kerjanya nggak bisa dibuka lewat jalur mana pun.
+      CalibrationCapability(
+        namaAlat: 'Viscometer',
+        rangeMin: 102,
+        rangeMax: 102,
+        satuan: 'cP',
+        ketidakpastianTerbaik: 0.2,
+        satuanKetidakpastian: 'cP',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0517_Rev.3',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Viscometer',
+        rangeMin: 1028,
+        rangeMax: 1028,
+        satuan: 'cP',
+        ketidakpastianTerbaik: 2.1,
+        satuanKetidakpastian: 'cP',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0517_Rev.3',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Viscometer',
+        rangeMin: 58021,
+        rangeMax: 58021,
+        satuan: 'cP',
+        ketidakpastianTerbaik: 1.4,
+        satuanKetidakpastian: 'cP',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0517_Rev.3',
+      ),
     ];
 
     return switch (kode) {

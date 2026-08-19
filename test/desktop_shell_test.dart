@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -17,11 +20,13 @@ import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/notification_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/widgets/floating_nav_bar.dart';
+import 'support/lewati_onboarding.dart';
 
 /// `mock-token-1` = admin · `mock-token-2` = teknisi · `mock-token-3` = viewer.
 Widget _app({String token = 'mock-token-1', bool panelDesktop = true}) {
   return ProviderScope(
     overrides: [
+      lewatiOnboarding,
       // Ditimpa terang-terangan: nilai bawaannya nengok platform, dan di
       // bawah `flutter test` selalu false biar suite-nya nggak beda-beda
       // hasilnya antar mesin.
@@ -47,12 +52,31 @@ Future<void> _jendelaDesktop(WidgetTester tester) async {
   addTearDown(() => tester.binding.setSurfaceSize(null));
 }
 
-Future<void> _sampaiPanel(WidgetTester tester, {String token = 'mock-token-1'}) async {
+Future<void> _sampaiPanel(
+  WidgetTester tester, {
+  String token = 'mock-token-1',
+}) async {
   await tester.pumpWidget(_app(token: token));
   await tester.pumpAndSettle();
 }
 
+/// Tanpa font asli, `flutter test` ngukur teks pakai font fallback yang
+/// metriknya beda jauh dari Inter — carousel profil HP yang pas-pasan di
+/// tinggi kena overflow palsu gara-gara itu, bukan gara-gara layoutnya
+/// beneran nggak muat di HP asli (lihat golden `profil.png` di 360x760 asli:
+/// nggak overflow).
+Future<void> _muatFont() async {
+  final inter = FontLoader('Inter');
+  for (final b in ['Regular', 'Medium', 'SemiBold', 'Bold']) {
+    final bytes = File('assets/fonts/Inter-$b.ttf').readAsBytesSync();
+    inter.addFont(Future.value(bytes.buffer.asByteData()));
+  }
+  await inter.load();
+}
+
 void main() {
+  setUpAll(_muatFont);
+
   testWidgets('desktop dapat panel admin, BUKAN rangka lima tab HP', (
     tester,
   ) async {
@@ -188,14 +212,17 @@ void main() {
 
     expect(find.byType(ProfileScreen), findsOneWidget);
 
-    // Layar 400x800: header + statistik makan seluruh viewport, dan body-nya
-    // `ListView` yang bangun anaknya sesuai viewport. Digeser dulu biar
-    // bloknya kebikin.
-    await tester.drag(find.byType(ProfileScreen), const Offset(0, -400));
+    // Di HP, profil itu carousel geser-samping (bukan `ListView` lagi):
+    // adegan 0 = Akun, 1 = Preferensi, 2 = Menu Admin. Digeser dua kali biar
+    // sampai di adegan admin.
+    await tester.drag(find.byType(PageView), const Offset(-400, 0));
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(PageView), const Offset(-400, 0));
     await tester.pumpAndSettle();
 
     // Di HP ini SATU-SATUNYA jalan ke master data, jadi ngilangin blok ini
-    // bakal mutus aksesnya sama sekali.
-    expect(find.text('MENU ADMIN'), findsOneWidget);
+    // bakal mutus aksesnya sama sekali. Muncul dua kali (judul adegan +
+    // label kaki carousel) — makanya `findsWidgets`, bukan `findsOneWidget`.
+    expect(find.text('Menu Admin'), findsWidgets);
   });
 }

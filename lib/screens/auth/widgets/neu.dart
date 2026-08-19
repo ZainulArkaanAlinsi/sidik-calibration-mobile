@@ -39,23 +39,23 @@ class NeuColors {
       Theme.of(context).brightness == Brightness.dark ? dark : light;
 
   static const light = NeuColors(
-    base: Color(0xFFE4E9F0),
+    base: Color(0xFFE7EEF8),
     lightShadow: Color(0xFFFFFFFF),
     darkShadow: Color(0xFFB9C2D4),
     text: Color(0xFF313B4C),
     textMuted: Color(0xFF8A94A6),
-    accent: Color(0xFF5B9BB5),
+    accent: Color(0xFF0F6575),
     onAccent: Color(0xFFFFFFFF),
     danger: Color(0xFFC0413B),
   );
 
   static const dark = NeuColors(
-    base: Color(0xFF262B33),
+    base: Color(0xFF10252E),
     lightShadow: Color(0xFF323842),
     darkShadow: Color(0xFF181B21),
     text: Color(0xFFE7ECF3),
     textMuted: Color(0xFF9AA4B4),
-    accent: Color(0xFF5FA6C4),
+    accent: Color(0xFF25B6AB),
     onAccent: Color(0xFF07141A),
     danger: Color(0xFFE99A96),
   );
@@ -98,9 +98,16 @@ class NeuRaised extends StatelessWidget {
       child: Container(
         padding: padding,
         decoration: BoxDecoration(
-          color: color ?? c.base,
+          color: color ?? c.base.withValues(alpha: 0.86),
           shape: circle ? BoxShape.circle : BoxShape.rectangle,
           borderRadius: circle ? null : BorderRadius.circular(radius),
+          border: Border.all(
+            color: Colors.white.withValues(
+              alpha: Theme.of(context).brightness == Brightness.dark
+                  ? 0.10
+                  : 0.64,
+            ),
+          ),
           boxShadow: [
             BoxShadow(
               color: c.darkShadow,

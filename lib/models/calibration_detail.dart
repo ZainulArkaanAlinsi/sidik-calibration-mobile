@@ -66,6 +66,8 @@ class RawMeasurement {
   const RawMeasurement({
     required this.id,
     required this.titikKe,
+    required this.titikUkur,
+    this.standardId,
     required this.pembacaanKe,
     required this.pembacaan,
     required this.inputSource,
@@ -76,6 +78,18 @@ class RawMeasurement {
 
   final int id;
   final int titikKe;
+
+  /// Standar acuan yang dicentang teknisi buat baris ini. Null = belum dipilih
+  /// (sah buat draft), atau baris dari sesi yang dikirim sebelum kolom ini ada.
+  final int? standardId;
+
+  /// Nilai titiknya (4.00 / 7.00 / 10.01), bukan nomor barisnya.
+  ///
+  /// Ini yang dipakai buat naruh angka balik ke lembar kerja waktu draft dibuka
+  /// lagi. [titikKe] nggak bisa dipercaya buat itu — dia posisi, dan posisinya
+  /// geser tiap bentuk lembar berubah.
+  final double titikUkur;
+
   final int pembacaanKe;
   final double pembacaan;
 
@@ -97,6 +111,12 @@ class RawMeasurement {
     return RawMeasurement(
       id: (json['id'] as num).toInt(),
       titikKe: (json['titik_ke'] as num).toInt(),
+      // Backend ngirim decimal(20,8) — bisa nyampe sebagai angka atau string.
+      titikUkur:
+          (json['titik_ukur'] as num?)?.toDouble() ??
+          double.tryParse('${json['titik_ukur']}') ??
+          0,
+      standardId: (json['standard_id'] as num?)?.toInt(),
       pembacaanKe: (json['pembacaan_ke'] as num).toInt(),
       pembacaan: (json['pembacaan'] as num).toDouble(),
       tahap: TahapPembacaan.fromJson(json['tahap'] as String?),
@@ -221,13 +241,26 @@ class MeasurementResult {
     required this.faktorCakupanK,
     required this.ketidakpastianDiperluas,
     required this.toleransi,
-    required this.keputusan,
+    this.keputusan,
+    this.standardId,
     this.standarAcuan,
     this.metode,
+    this.desimal,
+    this.satuan,
+    this.tandaNol = true,
+    this.remark,
+    this.derajatKebebasanEfektif,
   });
 
   final int titikKe;
   final double titikUkur;
+
+  /// Standar acuan yang dipakai ngitung titik ini.
+  ///
+  /// Dipakai buat mulangin CENTANG standar ke lembar kerja waktu sesi lama
+  /// dibuka lagi. Sesi yang dikirim sebelum `raw_measurements.standard_id` ada
+  /// cuma nyimpen pilihannya di sini.
+  final int? standardId;
   final double rataRata;
   final double error;
   final double koreksi;
@@ -243,7 +276,19 @@ class MeasurementResult {
 
   /// `PASS` / `FAIL` per titik — satu titik `FAIL` bikin seluruh sesi `FAIL`
   /// (`CalibrationController::isiUlangPengukuran()`).
-  final Keputusan keputusan;
+  /// Null = alat ini **nggak divonis** PASS/FAIL.
+  ///
+  /// Bukan "belum diputuskan". Conductivity Meter nggak punya satu pun batas
+  /// keberterimaan di master-nya, dan sertifikatnya berhenti di `Correction` +
+  /// `U95%`. `GumCalculator::keputusan()` sengaja balikin null buat alat kayak
+  /// gitu, dan kolomnya udah dibikin nullable di backend
+  /// (`2026_08_10_150000_keputusan_titik_boleh_null`).
+  ///
+  /// Dulu field ini non-nullable dan parsingnya `== 'FAIL' ? fail : pass`, jadi
+  /// null mendarat jadi **PASS**. Layar detail nampilin badge hijau "PASS" di
+  /// titik yang nggak punya kriteria kelulusan sama sekali — di layar yang
+  /// dipakai admin buat mutusin nerbitin sertifikat.
+  final Keputusan? keputusan;
 
   /// Cuma keisi kalau titik ini pakai standar BEDA dari standar default sesi
   /// (mis. pH: buffer 4/7/10 masing-masing sertifikatnya sendiri).
@@ -253,6 +298,67 @@ class MeasurementResult {
   /// sertifikat, jadi ditampilin apa adanya.
   final String? metode;
 
+  /// Berapa desimal angka titik INI ditulis. `null` = ikut `desimal` level sesi
+  /// ([CalibrationDetail.desimal]).
+  ///
+  /// Dikirim backend buat alat yang resolusinya berubah per rentang
+  /// (Turbidimeter: 0,01 di bawah 10 NTU, 1 di atas 100) — satu angka di level
+  /// sesi nggak bisa mewakili tiga resolusi sekaligus. Padanan `desimal`
+  /// per-baris di [CertificateSnapshot], dan aturan jatuh-baliknya sama.
+  final int? desimal;
+
+  /// Satuan titik INI, buat alat yang nyampur satuan dalam satu lembar
+  /// (Conductivity: 25 & 1412 µS/cm, 111 mS/cm).
+  ///
+  /// `null` = alat bersatuan seragam; layar jatuh ke satuan alat seperti biasa.
+  /// Sebelum ada ini, layar detail & sertifikat nggak punya cara nulis
+  /// `25 µS/cm` vs `111 mS/cm` selain nebak dari besar angkanya.
+  final String? satuan;
+
+  /// Koreksi negatif yang MEMBULAT KE NOL ditulis `-0,0` atau `0,0`.
+  ///
+  /// Beda per alat, dibaca dari master masing-masing: Turbidimeter
+  /// `0189-CAL-624` nulis `-0,00`, sementara master Conductivity nyimpen
+  /// `-0.03999999999999915` tapi nyetaknya `0,0`. Backend yang mutusin
+  /// (`CalibrationProfile::tandaNolDicetak()`), layar tinggal ikut.
+  ///
+  /// Ada di sini — bukan cuma di [CertificateSnapshot] — biar tabel Calibration
+  /// Report di layar riwayat & approval sama persis sama PDF-nya. Kalau beda,
+  /// yang nemu duluan justru teknisi yang lagi mriksa hasilnya sendiri.
+  final bool tandaNol;
+
+  /// Nama KELOMPOK titik ini, mis. `Wave Length ( λ ) - Filter Holmium`.
+  ///
+  /// Cuma keisi buat alat yang titiknya berkelompok. Spectrophotometer yang
+  /// pertama, dan di situ kelompok bukan label kosmetik: U95-nya lahir PER
+  /// KELOMPOK, dari STDEV terbesar seluruh titik kelompok itu — sepuluh titik
+  /// Holmium pulang dengan `ketidakpastian_diperluas` dan `faktor_cakupan_k`
+  /// yang sama persis. Itu bener, bukan data kembar.
+  ///
+  /// Tanpa label ini, tabel di layar nampilin 24 baris dengan tiga nilai U95
+  /// yang keliatan acak, dan `0,4 nm` nggak punya cara dibedain punya Didynium
+  /// apa Holmium. Rentang dua kelompok itu tumpang tindih 167 nm, jadi
+  /// nebaknya dari besar angka bakal salah persis di titik yang paling gampang
+  /// ketuker.
+  final String? remark;
+
+  /// Derajat kebebasan efektif (Welch–Satterthwaite) — angka yang NENTUIN
+  /// [faktorCakupanK] lewat `TINV(0,05; veff)`.
+  ///
+  /// Dipakai layar detail buat nunjukin rantai hitungnya utuh. Tanpa ini,
+  /// `k = 3,18` muncul tanpa asal-usul dan nggak ada yang bisa ngecek ulang —
+  /// padahal justru pemotongan veff ke bilangan bulat yang bikin k spektro
+  /// beda jauh dari ±2 (`floor(3,4643)` → 3 → k 3,1824).
+  ///
+  /// `null` buat sesi lama yang responsnya belum bawa kunci ini.
+  final double? derajatKebebasanEfektif;
+
+  /// Desimal yang benar-benar dipakai nyetak titik ini.
+  ///
+  /// [desimalSesi] = angka tingkat-sesi, dipakai kalau backend nggak ngirim
+  /// angka khusus buat titik ini.
+  int desimalEfektif(int desimalSesi) => desimal ?? desimalSesi;
+
   factory MeasurementResult.fromJson(Map<String, dynamic> json) {
     final komponen = json['type_b_components'] as List<dynamic>? ?? const [];
     final standar = json['standar_acuan'] as Map<String, dynamic>?;
@@ -260,6 +366,7 @@ class MeasurementResult {
     return MeasurementResult(
       titikKe: (json['titik_ke'] as num?)?.toInt() ?? 0,
       titikUkur: (json['titik_ukur'] as num?)?.toDouble() ?? 0,
+      standardId: (json['standard_id'] as num?)?.toInt(),
       rataRata: (json['rata_rata'] as num?)?.toDouble() ?? 0,
       error: (json['error'] as num?)?.toDouble() ?? 0,
       koreksi: (json['koreksi'] as num?)?.toDouble() ?? 0,
@@ -274,9 +381,19 @@ class MeasurementResult {
       ketidakpastianDiperluas:
           (json['ketidakpastian_diperluas'] as num?)?.toDouble() ?? 0,
       toleransi: (json['toleransi'] as num?)?.toDouble() ?? 0,
-      keputusan: json['keputusan'] == 'FAIL' ? Keputusan.fail : Keputusan.pass,
+      keputusan: switch (json['keputusan']) {
+        'PASS' => Keputusan.pass,
+        'FAIL' => Keputusan.fail,
+        _ => null,
+      },
       standarAcuan: standar == null ? null : StandardRef.fromJson(standar),
       metode: json['metode'] as String?,
+      desimal: (json['desimal'] as num?)?.toInt(),
+      satuan: json['satuan'] as String?,
+      tandaNol: json['tanda_nol'] as bool? ?? true,
+      remark: json['remark'] as String?,
+      derajatKebebasanEfektif:
+          (json['derajat_kebebasan_efektif'] as num?)?.toDouble(),
     );
   }
 }
@@ -346,6 +463,7 @@ class IsianTeknisi {
     this.thermohygroStandardId,
     this.tanggalTerima,
     this.lokasi,
+    this.lokasiNama,
     this.catatanTeknisi,
     this.alatModel,
     this.alatSerialNumber,
@@ -359,6 +477,7 @@ class IsianTeknisi {
     this.standarDicek = const {},
     this.revisiField = const {},
     this.catatanRevisi,
+    this.spesifikasiAlat = const {},
   });
 
   final int? equipmentId;
@@ -367,6 +486,9 @@ class IsianTeknisi {
   final int? thermohygroStandardId;
   final DateTime? tanggalTerima;
   final String? lokasi;
+
+  /// Nama tempat buat sesi `onsite` — `PT. LDC` di `Insitu (PT. LDC)`.
+  final String? lokasiNama;
   final String? catatanTeknisi;
 
   final String? alatModel;
@@ -374,6 +496,11 @@ class IsianTeknisi {
   final String? alatMerk;
   final String? pemilikNama;
   final String? pemilikAlamat;
+
+  /// Rentang ukur / kapasitas / resolusi versi teknisi, kunci → teks apa
+  /// adanya. Dipulangin backend biar draft yang dibuka lagi keisi persis kayak
+  /// waktu ditinggal.
+  final Map<String, String> spesifikasiAlat;
 
   final double? suhuAwal;
   final double? suhuAkhir;
@@ -424,7 +551,14 @@ class IsianTeknisi {
           ? null
           : DateTime.tryParse(tanggalTerima),
       lokasi: json['lokasi'] as String?,
+      lokasiNama: json['lokasi_nama'] as String?,
       catatanTeknisi: json['catatan_teknisi'] as String?,
+      spesifikasiAlat: {
+        for (final e in (json['spesifikasi_alat'] as Map<String, dynamic>? ??
+                const <String, dynamic>{})
+            .entries)
+          if (e.value != null) e.key: '${e.value}',
+      },
       alatModel: json['alat_model'] as String?,
       alatSerialNumber: json['alat_serial_number'] as String?,
       alatMerk: json['alat_merk'] as String?,

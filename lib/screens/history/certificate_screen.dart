@@ -7,6 +7,7 @@ import '../../core/config/lab_profile.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/utils/angka.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/izin.dart';
 import '../../models/calibration_detail.dart';
@@ -156,7 +157,7 @@ class _IsiState extends ConsumerState<_Isi> {
         // diubah lagi (`docs/kontrak-api.md` §4: sesi `disetujui` ditolak 422).
         _IdentitasSesi(detail: detail),
         const SizedBox(height: AppSpacing.lg),
-        _TabelLaporan(titik: detail.titik),
+        _TabelLaporan(titik: detail.titik, desimal: detail.desimal),
         const SizedBox(height: AppSpacing.lg),
         _StandarDipakai(titik: detail.titik),
         const SizedBox(height: AppSpacing.lg),
@@ -321,10 +322,21 @@ class _IdentitasSesi extends StatelessWidget {
 /// (pembacaan − standar). Dua-duanya dikirim backend dan cuma beda tanda —
 /// yang masuk sertifikat itu `koreksi`, sesuai formulir. Ketuker berarti
 /// tanda koreksi di sertifikat pelanggan kebalik.
+///
+/// Angkanya ditulis lewat [formatSertifikat] dengan desimal per titik — jalur
+/// yang sama dipakai layar sertifikat & `pdf.blade.php`. Dulu di sini dipatok
+/// dua desimal, dan itu bikin layar riwayat beda dari sertifikatnya sendiri
+/// buat dua alat: Refractometer `1,33935` kebaca `1,34` (U95% `0,00053` malah
+/// jadi `0,00`, seolah nggak ada ketidakpastian), dan titik 1.000 NTU
+/// Turbidimeter kebaca `1000,60` — dua digit yang alatnya nggak bisa tampilkan.
 class _TabelLaporan extends StatelessWidget {
-  const _TabelLaporan({required this.titik});
+  const _TabelLaporan({required this.titik, required this.desimal});
 
   final List<MeasurementResult> titik;
+
+  /// Desimal tingkat-sesi; tiap titik boleh nimpa lewat
+  /// [MeasurementResult.desimalEfektif].
+  final int desimal;
 
   @override
   Widget build(BuildContext context) {
@@ -340,6 +352,16 @@ class _TabelLaporan extends StatelessWidget {
       color: theme.colorScheme.onSurfaceVariant,
     );
     final gayaAngka = AppTypography.measurement.copyWith(fontSize: 13);
+
+    // Kolom "Remark" cuma muncul buat alat yang titiknya BERKELOMPOK — sama
+    // aturannya kayak tabel snapshot sertifikat, jadi layar & PDF punya jumlah
+    // kolom yang sama.
+    //
+    // Buat Spectrophotometer kolom ini bukan hiasan: U95 lahir per KELOMPOK,
+    // jadi sepuluh titik Holmium pulang dengan `0,43255708` yang sama persis.
+    // Tanpa labelnya, tabel 24 baris kelihatan punya tiga angka U95 yang muncul
+    // acak, dan `0,4 nm` nggak punya cara dibedain punya Didynium apa Holmium.
+    final adaRemark = titik.any((t) => t.remark != null && t.remark!.isNotEmpty);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -367,17 +389,61 @@ class _TabelLaporan extends StatelessWidget {
                   DataColumn(label: Text(l10n.certColUut, style: gayaJudul)),
                   DataColumn(label: Text(l10n.certColKoreksi, style: gayaJudul)),
                   DataColumn(label: Text(l10n.certColU95, style: gayaJudul)),
+                  if (adaRemark)
+                    DataColumn(label: Text(l10n.sertKolRemark, style: gayaJudul)),
                 ],
                 rows: [
                   for (final t in titik)
-                    DataRow(
-                      cells: [
-                        DataCell(Text(_angka(t.titikUkur), style: gayaAngka)),
-                        DataCell(Text(_angka(t.rataRata), style: gayaAngka)),
-                        DataCell(Text(_angka(t.koreksi), style: gayaAngka)),
-                        DataCell(Text(_angka(t.ketidakpastianDiperluas), style: gayaAngka)),
-                      ],
-                    ),
+                    () {
+                      final d = t.desimalEfektif(desimal);
+
+                      return DataRow(
+                        cells: [
+                          // Satuan ikut di kolom pertama buat alat yang
+                          // nyampur satuan dalam satu lembar (Conductivity:
+                          // `25 µS/cm` vs `111 mS/cm`). Alat bersatuan seragam
+                          // ngirim `satuan: null` dan tampilannya nggak berubah
+                          // — satuannya udah kesebut di tempat lain.
+                          DataCell(
+                            Text(
+                              t.satuan == null
+                                  ? formatNilaiStandar(t.titikUkur, d)
+                                  : '${formatNilaiStandar(t.titikUkur, d)} ${t.satuan}',
+                              style: gayaAngka,
+                            ),
+                          ),
+                          DataCell(
+                            Text(
+                              formatSertifikat(t.rataRata, d, tandaNol: t.tandaNol),
+                              style: gayaAngka,
+                            ),
+                          ),
+                          DataCell(
+                            Text(
+                              formatSertifikat(t.koreksi, d, tandaNol: t.tandaNol),
+                              style: gayaAngka,
+                            ),
+                          ),
+                          DataCell(
+                            Text(
+                              formatSertifikat(t.ketidakpastianDiperluas, d),
+                              style: gayaAngka,
+                            ),
+                          ),
+                          // Titik yang emang nggak punya keterangan dibiarin
+                          // KOSONG, bukan diisi strip: strip di kolom kelompok
+                          // kebacanya kayak kelompok yang namanya nggak
+                          // kekirim.
+                          if (adaRemark)
+                            DataCell(
+                              Text(
+                                t.remark ?? '',
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ),
+                        ],
+                      );
+                    }(),
                 ],
               ),
             ),
@@ -489,17 +555,33 @@ class _Ringkasan extends StatelessWidget {
                         ),
                       ),
                     ),
-                    StatusBadge(
-                      label: detail.keputusan == Keputusan.fail
-                          ? l10n.historyStatusFail
-                          : l10n.historyStatusPass,
-                      tone: detail.keputusan == Keputusan.fail
-                          ? BadgeTone.danger
-                          : BadgeTone.success,
-                      icon: detail.keputusan == Keputusan.fail
-                          ? Icons.cancel_outlined
-                          : Icons.check_circle_outline,
-                    ),
+                    // TIGA keadaan, bukan dua. `keputusan: null` itu sah —
+                    // alat yang master-nya nggak punya batas keberterimaan
+                    // (Conductivity, Spectrophotometer) emang nggak divonis
+                    // lulus/gagal, dan sertifikatnya berhenti di Correction +
+                    // U95%.
+                    //
+                    // Waktu ini masih `== FAIL ? FAIL : PASS`, null mendarat
+                    // sebagai badge hijau PASS — di layar sertifikat, dokumen
+                    // yang dipegang pelanggan, buat sesi yang nggak pernah
+                    // dinilai sama sekali.
+                    switch (detail.keputusan) {
+                      Keputusan.fail => StatusBadge(
+                        label: l10n.historyStatusFail,
+                        tone: BadgeTone.danger,
+                        icon: Icons.cancel_outlined,
+                      ),
+                      Keputusan.pass => StatusBadge(
+                        label: l10n.historyStatusPass,
+                        tone: BadgeTone.success,
+                        icon: Icons.check_circle_outline,
+                      ),
+                      null => StatusBadge(
+                        label: l10n.statusTanpaKeputusan,
+                        tone: BadgeTone.neutral,
+                        icon: Icons.remove_circle_outline,
+                      ),
+                    },
                   ],
                 ),
                 const SizedBox(height: AppSpacing.sm),

@@ -12,6 +12,7 @@ import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/standard_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/widgets/floating_nav_bar.dart';
+import 'support/lewati_onboarding.dart';
 
 /// Dibungkus `SidikApp` (bukan langsung `StandardListScreen`) — layar Profil
 /// yang jadi jalan masuknya nge-watch `authProvider`, dan kalau dibuka lepas
@@ -23,6 +24,7 @@ import 'package:sidik_calibration/widgets/floating_nav_bar.dart';
 Widget _app({String token = 'mock-token-1', bool gagal = false}) {
   return ProviderScope(
     overrides: [
+      lewatiOnboarding,
       tokenStorageProvider.overrideWithValue(InMemoryTokenStorage(token)),
       authServiceProvider.overrideWithValue(MockAuthService()),
       dashboardServiceProvider.overrideWithValue(
@@ -121,7 +123,10 @@ void main() {
     await tester.tap(find.text('TAMBAH STANDAR'));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextField).first, 'Termometer Std. Baru');
+    await tester.enterText(
+      find.byType(TextField).first,
+      'Termometer Std. Baru',
+    );
     // Urutan TextField: nama[0], merk[1], model[2], serial[3], no.
     // sertifikat[4], tertelusur ke[5], lalu ketidakpastian[6] (measurement
     // field pertama sesudah date picker yang bukan TextField).

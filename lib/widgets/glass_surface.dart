@@ -51,29 +51,119 @@ class GlassSurface extends StatelessWidget {
   Widget build(BuildContext context) {
     final gelap = Theme.of(context).brightness == Brightness.dark;
     final dasar = gelap ? AppColors.darkElevated : AppColors.white;
+    // Semburat warna tipis di kaca — bukan putih polos. Putih murni di atas
+    // latar yang udah pucat (`gradasiLatar` terang) nyaris nggak kebeda dari
+    // kartu Material biasa; kaca beneran selalu mantulin sedikit warna
+    // sekitarnya.
+    final aksenKaca = gelap ? AppColors.tealBright : AppColors.electricBlue;
 
     // Gradient miring: sisi kiri-atas lebih terang (seolah cahaya jatuh dari
     // sana), sisi kanan-bawah lebih redup. Ini yang bikin bidangnya kebaca
     // sebagai lempeng kaca, bukan sekadar kotak transparan.
-    final isi = DecoratedBox(
+    //
+    // Tepinya sendiri digambar sebagai gradasi (bukan `Border.all` satu
+    // warna): dibungkus lewat Container 1,2px yang latarnya gradient, terus
+    // isinya ditempel di dalam — trik lama buat gradient border di Flutter
+    // tanpa nambah dependency. Garis putih rata dulu ilang total di latar
+    // terang (putih di atas putih); gradasi ini tetap kebaca dari dua sisi.
+    final isi = Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(radius),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            dasar.withValues(alpha: opacity),
-            dasar.withValues(alpha: opacity * (gelap ? 0.78 : 0.62)),
+            AppColors.white.withValues(alpha: gelap ? 0.30 : 0.95),
+            aksenKaca.withValues(alpha: gelap ? 0.20 : 0.28),
           ],
         ),
-        border: Border.all(
-          color: (gelap ? AppColors.white : AppColors.white).withValues(
-            alpha: gelap ? 0.14 : 0.65,
+        boxShadow: [
+          BoxShadow(
+            color: (gelap ? Colors.black : AppColors.navy).withValues(
+              alpha: gelap ? 0.18 : 0.10,
+            ),
+            blurRadius: 30,
+            offset: const Offset(0, 14),
           ),
-          width: 1,
+          BoxShadow(
+            color: aksenKaca.withValues(alpha: gelap ? 0.10 : 0.14),
+            blurRadius: 34,
+            spreadRadius: -10,
+            offset: const Offset(-12, -14),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(1.2),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(radius - 1.2),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color.lerp(
+                  dasar,
+                  aksenKaca,
+                  gelap ? 0.12 : 0.05,
+                )!.withValues(alpha: opacity),
+                dasar.withValues(alpha: opacity * (gelap ? 0.76 : 0.60)),
+              ],
+            ),
+          ),
+          child: Stack(
+            children: [
+              // Halo warna lembut di pojok — ala panel instrumen retro.
+              // Dipotong `ClipRRect` di atas, jadi cuma nongol separuh —
+              // kesannya nempel di kaca, bukan digambar rapi di tengah kartu.
+              Positioned(
+                right: -radius * 0.6,
+                top: -radius * 0.6,
+                width: radius * 2.4,
+                height: radius * 2.4,
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          aksenKaca.withValues(alpha: gelap ? 0.16 : 0.13),
+                          aksenKaca.withValues(alpha: 0),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // Pantulan di atas: pita gradasi, bukan garis rambut — itu yang
+              // dulu ilang total di latar terang (putih 1px di atas putih).
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 46,
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          AppColors.white.withValues(
+                            alpha: gelap ? 0.10 : 0.55,
+                          ),
+                          AppColors.white.withValues(alpha: 0),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(padding: padding, child: child),
+            ],
+          ),
         ),
       ),
-      child: Padding(padding: padding, child: child),
     );
 
     if (!_pakaiBlur) return isi;
@@ -118,8 +208,22 @@ class SoftRaised extends StatelessWidget {
     final kotak = Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: dasar,
+        // Gradasi tipis + garis tepi rambut, bukan warna rata: kartu ini
+        // sengaja BUKAN kaca (nggak ada halo/pantulan), tapi warna rata
+        // polos di sebelah kartu kaca yang sekarang ada tekstur bikin dia
+        // kebaca kayak elemen dari sistem desain yang beda — cukup gradasi
+        // super tipis biar tetap satu keluarga tanpa ikut jadi "kaca".
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color.lerp(dasar, Colors.white, gelap ? 0.05 : 0.6)!, dasar],
+        ),
         borderRadius: BorderRadius.circular(radius),
+        border: Border.all(
+          color: gelap
+              ? Colors.white.withValues(alpha: 0.06)
+              : AppColors.navy.withValues(alpha: 0.045),
+        ),
         boxShadow: [
           BoxShadow(
             color: (gelap ? Colors.black : AppColors.navy).withValues(

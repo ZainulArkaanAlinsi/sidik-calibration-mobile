@@ -78,9 +78,22 @@ jobs:
       - name: Build ${{ matrix.nama }}
         run: ${{ matrix.perintah }}
 
+      # Bundel .app isinya symlink dan bit executable, dan upload-artifact
+      # ngerusak dua-duanya — yang diunduh nggak bisa dibuka di Mac tujuan,
+      # gagalnya muncul sebagai "aplikasi rusak" yang gampang dikira salah
+      # build. `ditto` bikin zip yang mempertahankan keduanya.
+      #
+      # Windows nggak butuh ini: isinya file biasa, nggak ada symlink.
+      - name: Bungkus macos
+        if: matrix.nama == 'macos'
+        run: |
+          cd ${{ matrix.hasil }}
+          APP=$(ls -d *.app | head -1)
+          ditto -c -k --keepParent "$APP" "$GITHUB_WORKSPACE/sidik-tes-mock-macos.zip"
+
       - uses: actions/upload-artifact@v4
         with:
           name: sidik-tes-mock-${{ matrix.nama }}
-          path: ${{ matrix.hasil }}
+          path: ${{ matrix.nama == 'macos' && 'sidik-tes-mock-macos.zip' || matrix.hasil }}
           if-no-files-found: error
           retention-days: 14

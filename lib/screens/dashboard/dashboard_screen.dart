@@ -17,6 +17,7 @@ import '../../widgets/skeleton.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/work_chart.dart';
 import '../../widgets/status_badge.dart';
+import '../../widgets/technician_pulse_panel.dart';
 import '../../widgets/notification_bell.dart';
 import '../calibration/category_picker_screen.dart';
 import '../equipment/equipment_form_screen.dart';
@@ -75,13 +76,19 @@ class DashboardScreen extends ConsumerWidget {
         ),
         // Ikon notifikasi di atas layar (spesifikasi poin 4), bukan di navbar
         // bawah — tempatnya di navbar diambil Folder Manager.
-        actions: const [NotificationBell(), SizedBox(width: AppSpacing.sm)],
+        actions: const [
+          NotificationBell(),
+          SizedBox(width: AppSpacing.sm),
+        ],
       ),
       // Latar bergradasi, bukan warna rata: kartu SoftRaised butuh bidang yang
       // ada arah cahayanya biar bayangannya kebaca sebagai kedalaman. Di atas
       // warna rata, bayangan lembut cuma kelihatan kayak kotor.
       body: Container(
-        decoration: BoxDecoration(gradient: AppColors.gradasiLatar(context)),
+        decoration: BoxDecoration(
+          gradient: AppColors.gradasiLatar(context),
+          boxShadow: AppColors.glowLatar(context),
+        ),
         child: RefreshIndicator(
           onRefresh: () => ref.read(dashboardProvider.notifier).muatUlang(),
           // Di DALAM Container, biar gradasi latarnya tetap penuh selebar
@@ -103,14 +110,36 @@ class _Isi extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final admin = user?.role.isAdmin ?? false;
+    final teknisi = !admin && (user?.role.bisaInput ?? false);
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
-        // Kartu hero nampung angka yang **selalu se-lab** — jumlah alat, alat
-        // jatuh tempo, sertifikat terbit. Angka-angka ini nggak pernah
-        // disaring per user, jadi aman jadi "wajah" dashboard buat semua role.
-        _KartuHero(data: data, user: user),
+        // Teknisi masuk lewat command deck yang fokus ke kerja pribadinya;
+        // admin tetap melihat ringkasan se-lab. Sumber datanya sama.
+        if (teknisi)
+          TechnicianPulsePanel(
+            name: user?.nama ?? '',
+            title: l10n.dashCalibrationMine,
+            startLabel: l10n.dashStartCalibration,
+            draftLabel: l10n.dashCalibrationDraft,
+            pendingLabel: l10n.dashPendingApproval,
+            doneLabel: l10n.dashCalibrationDone,
+            activeLabel: l10n.dashActiveTasks(
+              data.kalibrasiDraft + data.menungguApproval,
+            ),
+            liveLabel: l10n.dashLiveWorkspace,
+            draft: data.kalibrasiDraft,
+            pending: data.menungguApproval,
+            done: data.kalibrasiSelesai,
+            onStart: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const CategoryPickerScreen(),
+              ),
+            ),
+          )
+        else
+          _KartuHero(data: data, user: user),
 
         // Peringatannya nempel persis di bawah angkanya, bukan di dasar layar
         // kayak dulu — kalau ditaruh jauh, orang keburu scroll lewat.
@@ -128,36 +157,49 @@ class _Isi extends ConsumerWidget {
         // teknisi nampilin "Selesai: 2" bareng "Sertifikat: 137" tanpa
         // penjelasan — kebaca kayak datanya ngaco, padahal cakupannya emang
         // beda (`docs/kontrak-api.md`, handoff backend §B).
-        _JudulSeksi(admin ? l10n.dashCalibrationLab : l10n.dashCalibrationMine),
-        const SizedBox(height: AppSpacing.sm),
-        // Draft & menunggu-proses dulu ditampilin gantian tergantung role, jadi
-        // tiap role cuma lihat separuh gambaran. Sekarang dua-duanya dirender:
-        // backend udah ngirim keduanya, jadi nggak ada request tambahan.
-        StatCardRow(
-          kiri: StatCard(
-            label: l10n.dashCalibrationDraft,
-            nilai: data.kalibrasiDraft,
-            icon: Icons.edit_note,
+        if (teknisi) ...[
+          _JudulSeksi(l10n.dashLabScope),
+          const SizedBox(height: AppSpacing.sm),
+          _RingkasanLab(data: data, l10n: l10n),
+        ] else ...[
+          _JudulSeksi(l10n.dashCalibrationLab),
+          const SizedBox(height: AppSpacing.sm),
+          // Draft & menunggu-proses dulu ditampilin gantian tergantung role,
+          // jadi tiap role cuma lihat separuh gambaran. Sekarang dua-duanya
+          // dirender: backend udah ngirim keduanya, jadi nggak ada request
+          // tambahan.
+          StatCardRow(
+            kiri: StatCard(
+              label: l10n.dashCalibrationDraft,
+              nilai: data.kalibrasiDraft,
+              icon: Icons.edit_note,
+            ),
+            kanan: StatCard(
+              label: l10n.dashPendingApproval,
+              nilai: data.menungguApproval,
+              icon: Icons.hourglass_empty,
+              warna: data.menungguApproval > 0 ? AppColors.info : null,
+            ),
           ),
-          kanan: StatCard(
-            label: l10n.dashPendingApproval,
-            nilai: data.menungguApproval,
-            icon: Icons.hourglass_empty,
-            warna: data.menungguApproval > 0 ? AppColors.info : null,
+          const SizedBox(height: AppSpacing.sm),
+          StatCardWide(
+            label: l10n.dashCalibrationDone,
+            nilai: data.kalibrasiSelesai,
+            icon: Icons.task_alt,
+            warna: AppColors.success,
           ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        StatCardWide(
-          label: l10n.dashCalibrationDone,
-          nilai: data.kalibrasiSelesai,
-          icon: Icons.task_alt,
-          warna: AppColors.success,
-        ),
+        ],
 
         // Grafik cuma dirender kalau backend beneran ngirim datanya. Backend
         // versi lama nggak punya `grafik_pekerjaan`, dan seksi kosong berjudul
         // "Grafik pekerjaan" lebih bikin bingung daripada nggak ada sama sekali.
-        if (data.grafikPekerjaan.isNotEmpty) ...[
+        // Grafiknya cuma buat ADMIN. Dashboard teknisi sengaja dipendekin
+        // jadi empat blok — angka miliknya sendiri, peringatan jatuh tempo,
+        // angka se-lab, satu aksi. Layar ini dibuka sambil berdiri di depan
+        // alat, bukan sambil duduk nganalisa tren; buat teknisi grafik enam
+        // bulan cuma nambah satu layar scroll sebelum tombol yang beneran dia
+        // butuhin. Datanya nggak ilang — tetap ada di Riwayat.
+        if (!teknisi && data.grafikPekerjaan.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.lg),
           _JudulSeksi(l10n.dashWorkChart),
           const SizedBox(height: AppSpacing.sm),
@@ -188,23 +230,18 @@ class _Isi extends ConsumerWidget {
             padding: const EdgeInsets.all(AppSpacing.md),
             child: Column(
               children: [
-                // Satu pintu buat semua kalibrasi, termasuk pH Meter.
-                //
-                // Dulu ada tombol pintasan "Kalibrasi pH Meter" terpisah di
-                // bawah tombol ini. Dihapus karena alurnya udah kelewat sama
-                // pintu ini (Kategori → Instrumen Analitik → pH Meter), dan
-                // dua tombol yang ujungnya ke form yang sama bikin orang mikir
-                // ada dua jenis kalibrasi yang beda.
-                AppButton(
-                  label: l10n.dashStartCalibration,
-                  icon: Icons.add_task,
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const CategoryPickerScreen(),
+                if (!teknisi) ...[
+                  AppButton(
+                    label: l10n.dashStartCalibration,
+                    icon: Icons.add_task,
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const CategoryPickerScreen(),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
                 AppButton(
                   label: l10n.dashAddDevice,
                   icon: Icons.add,
@@ -230,9 +267,9 @@ Future<void> _bukaTambahAlat(BuildContext context, WidgetRef ref) async {
   // ngelempar begitu dipakai.
   final dashboard = ref.read(dashboardProvider.notifier);
 
-  await Navigator.of(context).push(
-    MaterialPageRoute<void>(builder: (_) => const EquipmentFormScreen()),
-  );
+  await Navigator.of(
+    context,
+  ).push(MaterialPageRoute<void>(builder: (_) => const EquipmentFormScreen()));
 
   await dashboard.muatUlang();
 }
@@ -318,6 +355,64 @@ class _KartuHero extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Ringkasan se-lab versi ringkas untuk teknisi. Dipisah dari command deck
+/// supaya angka kerja pribadi tidak tercampur dengan angka yang cakupannya
+/// seluruh lab, tetapi pintasan ke detailnya tetap tersedia.
+class _RingkasanLab extends StatelessWidget {
+  const _RingkasanLab({required this.data, required this.l10n});
+
+  final DashboardSummary data;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassSurface.rata(
+      radius: 22,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _AngkaHero(
+              label: l10n.dashTotalDevices,
+              nilai: data.totalAlat,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) =>
+                      DeviceOverviewScreen(title: l10n.dashTotalDevices),
+                ),
+              ),
+            ),
+            _GarisPemisah(),
+            _AngkaHero(
+              label: l10n.dashOverdue,
+              nilai: data.alatOverdue,
+              warna: data.alatOverdue > 0 ? AppColors.warning : null,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => DeviceOverviewScreen(
+                    title: l10n.dashOverdue,
+                    statusFilter: 'overdue',
+                  ),
+                ),
+              ),
+            ),
+            _GarisPemisah(),
+            _AngkaHero(
+              label: l10n.dashTotalCerts,
+              nilai: data.totalSertifikat ?? data.sertifikatBulanIni,
+              sub: l10n.dashCertsThisMonthSub(data.sertifikatBulanIni),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -522,6 +617,12 @@ class _PeringatanOverdue extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 
+    // Sengaja BUKAN `GlassSurface.rata` (itu netral, aksennya `electricBlue`
+    // tetap) — bidang ini satu-satunya yang boleh kebaca "hati-hati", jadi
+    // kaca & halonya sendiri diwarnain amber, bukan cuma ikon doang. Tetap
+    // satu keluarga (tepi gradasi, pantulan atas, halo pojok) sama kartu kaca
+    // lain di layar ini — dulu kartu ini kotak beige polos yang kebaca kayak
+    // alert bootstrap nyasar, beda bahasa visual sama sekitarnya.
     return InkWell(
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute<void>(
@@ -533,28 +634,89 @@ class _PeringatanOverdue extends StatelessWidget {
       ),
       borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
       child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: AppColors.warning.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.warning_amber_outlined, color: AppColors.warning),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Text(
-                l10n.dashOverdueWarning(jumlah),
-                style: theme.textTheme.bodySmall,
-              ),
-            ),
-            Icon(
-              Icons.chevron_right,
-              size: 20,
-              color: theme.colorScheme.onSurfaceVariant,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.warning.withValues(alpha: 0.55),
+              AppColors.signalAmber.withValues(alpha: 0.30),
+            ],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.warning.withValues(alpha: 0.16),
+              blurRadius: 22,
+              offset: const Offset(0, 10),
             ),
           ],
+        ),
+        padding: const EdgeInsets.all(1.2),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd - 1.2),
+          child: Stack(
+            children: [
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withValues(alpha: 0.11),
+                ),
+              ),
+              Positioned(
+                right: -18,
+                top: -18,
+                width: 90,
+                height: 90,
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          AppColors.signalAmber.withValues(alpha: 0.30),
+                          AppColors.signalAmber.withValues(alpha: 0),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: AppColors.warning.withValues(alpha: 0.18),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.warning_amber_rounded,
+                        color: AppColors.warning,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        l10n.dashOverdueWarning(jumlah),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      size: 20,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

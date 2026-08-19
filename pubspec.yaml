@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: ^3.11.5
@@ -51,10 +51,9 @@ dependencies:
   # Nyimpen pilihan bahasa biar nggak balik ke default tiap app dibuka.
   shared_preferences: ^2.3.2
 
-  # Ambil foto profil dari galeri/kamera HP masing-masing, plus foto tabel
-  # worksheet buat diekstrak AI Vision di backend (lihat `worksheet_vision.dart`
-  # + `SPEC-vision-ai-worksheet-extraction.md`). Cukup sekali jepret — nggak
-  # perlu aliran frame lagi karena AI yang paham layout & orientasi tabel.
+  # Ambil foto profil dari galeri/kamera HP masing-masing, plus jepretan lembar
+  # kerja buat dipindai OCR lokal (`pindai_lembar.dart`). Cukup sekali jepret —
+  # yang meratakan & memotong per sel jalan di HP sesudah fotonya diambil.
   image_picker: ^1.1.2
 
   path_provider: ^2.1.6
@@ -65,6 +64,36 @@ dependencies:
   file_picker: ^8.1.7
   qr_flutter: ^4.1.0
 
+  # --- Pindai lembar kerja (OCR LOKAL) ---
+  #
+  # Dua paket ini yang bikin angka lembar kerja kebaca TANPA fotonya keluar dari
+  # HP: nggak ada biaya per foto, jalan tanpa sinyal (lab pelanggan sering nggak
+  # ada), dan citra pelanggan nggak pernah nyampe pihak ketiga. Bandingannya
+  # jalur AI Vision yang lama — foto naik ke Google, ada biaya, butuh sinyal.
+  #
+  # `google_mlkit_text_recognition` jalan sepenuhnya di perangkat (model-nya
+  # ikut Google Play Services). Yang DILARANG masuk sini: SDK OCR apa pun yang
+  # ngirim citra ke server orang, atau yang butuh API key ke layanan luar.
+  google_mlkit_text_recognition: ^0.15.0
+
+  # QR versi lembar (`{template_id}|v{versi}`). Server NOLAK seluruh pindai
+  # kalau `qr.terbaca` bukan `true`, dan itu penjagaan yang bener: QR-nya
+  # satu-satunya cara sistem tau lembar mana & revisi ke berapa yang lagi
+  # difoto — dua formulir Rev.4 & Rev.5 mirip di mata orang, beda di mata
+  # koordinat. Jadi QR-nya WAJIB dibaca dari fotonya sendiri, bukan disalin
+  # dari respons template (itu sama dengan ngaku baca sesuatu yang nggak
+  # pernah dilihat). Sama kayak text recognition: sepenuhnya on-device.
+  google_mlkit_barcode_scanning: ^0.14.0
+
+  # Baca & potong citra di Dart murni — warp perspektif dari 4 marker sudut,
+  # lalu motong per sel dari koordinat template. Dipakai juga buat ambang gelap
+  # waktu nyari markernya.
+  #
+  # Dipilih daripada OpenCV: markernya sengaja kotak hitam pejal (lihat
+  # `ocr:cetak-lembar` di backend), dan deteksinya cuma butuh ambang + titik
+  # berat gumpalan. Nyeret OpenCV ke APK buat itu doang nambah puluhan MB.
+  image: ^4.3.0
+
   # Buka WhatsApp (wa.me) & Gmail (mailto:) buat bagiin sertifikat. Dipilih
   # daripada share_plus: yang dibutuhin nembak SATU aplikasi tertentu dengan
   # pesan yang udah disiapin, bukan buka lembar "bagikan ke..." bawaan OS.
@@ -72,6 +101,12 @@ dependencies:
 
 dev_dependencies:
   flutter_test:
+    sdk: flutter
+
+  # Uji DI PERANGKAT. ML Kit (teks & QR) nggak bisa jalan di `flutter test`:
+  # modelnya hidup di sisi native, jadi satu-satunya cara mbuktiin dia beneran
+  # kebaca itu jalanin di HP/emulator — `flutter test integration_test`.
+  integration_test:
     sdk: flutter
 
   # The "flutter_lints" package below contains a set of recommended lints to
@@ -116,6 +151,19 @@ flutter:
   # Logo resmi PT Sidik (dipakai di badge brand layar auth).
   assets:
     - assets/images/logo_pt_sidik.png
+    # Lembar cetak bermarker buat uji di perangkat (`integration_test`).
+    # Ikut dibundel karena aset uji cuma bisa dibaca lewat `rootBundle` waktu
+    # jalan di HP. ~140 KB, dan berkasnya SATU — yang dipakai `flutter test`
+    # juga berkas ini, biar nggak ada dua salinan yang bisa beda diam-diam.
+    - test/assets/lembar-conductivity-v1.png
+    - test/assets/geometri-conductivity-v1.json
+    # Tabel hasil Viscometer terisi angka sesi master — buat menguji jalur
+    # "FOTO TABEL INI" dengan ML Kit ASLI (`integration_test`). Jalur itu
+    # nggak bermarker & nggak ber-QR, jadi lembar conductivity di atas nggak
+    # bisa dipakai: yang diuji di sini pemetaan lewat label kolom & nomor
+    # Repeat, bukan geometri sel.
+    - test/assets/tabel-viscometer-uji.png
+    - test/assets/viscometer-bentuk-hasil.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

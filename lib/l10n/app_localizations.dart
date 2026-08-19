@@ -1454,6 +1454,78 @@ abstract class AppLocalizations {
   /// **'Resolution'**
   String get equipResolusi;
 
+  /// No description provided for @equipResolusiRentang.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolution per point'**
+  String get equipResolusiRentang;
+
+  /// No description provided for @equipResolusiRentangHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill this in when the device is NOT uniform — the resolution or the unit changes between points. Leave it empty when the single resolution above already says everything. This decides the unit on each worksheet row and the decimals printed on the certificate.'**
+  String get equipResolusiRentangHint;
+
+  /// No description provided for @equipResolusiBentukTitik.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard point'**
+  String get equipResolusiBentukTitik;
+
+  /// No description provided for @equipResolusiBentukMaks.
+  ///
+  /// In en, this message translates to:
+  /// **'Upper bound'**
+  String get equipResolusiBentukMaks;
+
+  /// No description provided for @equipResolusiTitik.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard point'**
+  String get equipResolusiTitik;
+
+  /// No description provided for @equipResolusiMaks.
+  ///
+  /// In en, this message translates to:
+  /// **'Upper bound'**
+  String get equipResolusiMaks;
+
+  /// No description provided for @equipResolusiMaksKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'empty = last band'**
+  String get equipResolusiMaksKosong;
+
+  /// No description provided for @equipResolusiTambahBaris.
+  ///
+  /// In en, this message translates to:
+  /// **'ADD RESOLUTION ROW'**
+  String get equipResolusiTambahBaris;
+
+  /// No description provided for @equipResolusiHapusBaris.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete row'**
+  String get equipResolusiHapusBaris;
+
+  /// No description provided for @equipResolusiBarisWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Required, greater than 0.'**
+  String get equipResolusiBarisWajib;
+
+  /// No description provided for @equipResolusiTitikWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Required.'**
+  String get equipResolusiTitikWajib;
+
+  /// No description provided for @equipResolusiBarisAdaYangSalah.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the resolution rows below.'**
+  String get equipResolusiBarisAdaYangSalah;
+
   /// No description provided for @equipToleransi.
   ///
   /// In en, this message translates to:
@@ -1525,6 +1597,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'RETRY'**
   String get historyRetry;
+
+  /// No description provided for @historySegarkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh list'**
+  String get historySegarkan;
+
+  /// No description provided for @historyPeringatanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Check this before approving'**
+  String get historyPeringatanJudul;
+
+  /// No description provided for @historyPeringatanBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The system re-checked this session and found things worth a second look. You can still approve — but the certificate will be issued on this data.'**
+  String get historyPeringatanBody;
+
+  /// No description provided for @historyPeringatanBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'CHECK AGAIN'**
+  String get historyPeringatanBatal;
+
+  /// No description provided for @historyPeringatanLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'APPROVE ANYWAY'**
+  String get historyPeringatanLanjut;
 
   /// No description provided for @historyCertNumber.
   ///
@@ -1886,6 +1988,54 @@ abstract class AppLocalizations {
   /// **'Point {index} · {nilai}'**
   String detailTitikLabel(int index, String nilai);
 
+  /// No description provided for @detailProsesHitung.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculation steps'**
+  String get detailProsesHitung;
+
+  /// No description provided for @detailProsesCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Formulas are copied from the lab\'s master workbook; the numbers come from the server, not the phone.'**
+  String get detailProsesCatatan;
+
+  /// No description provided for @detailRumusTypeA.
+  ///
+  /// In en, this message translates to:
+  /// **'= STDEV / repeatability divisor'**
+  String get detailRumusTypeA;
+
+  /// No description provided for @detailRumusTypeB.
+  ///
+  /// In en, this message translates to:
+  /// **'= SQRT(sum of squares of the components below)'**
+  String get detailRumusTypeB;
+
+  /// No description provided for @detailVeff.
+  ///
+  /// In en, this message translates to:
+  /// **'Effective degrees of freedom'**
+  String get detailVeff;
+
+  /// No description provided for @detailJumlahPengulangan.
+  ///
+  /// In en, this message translates to:
+  /// **'Readings taken'**
+  String get detailJumlahPengulangan;
+
+  /// No description provided for @detailKolStandard.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get detailKolStandard;
+
+  /// No description provided for @detailKolU95.
+  ///
+  /// In en, this message translates to:
+  /// **'U95%'**
+  String get detailKolU95;
+
   /// No description provided for @detailRataRata.
   ///
   /// In en, this message translates to:
@@ -2029,6 +2179,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Some OCR readings still need confirming — this session can\'t be approved yet.'**
   String get detailPerluVerifikasi;
+
+  /// No description provided for @detailVerifikasiTombol.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ve checked these readings'**
+  String get detailVerifikasiTombol;
+
+  /// No description provided for @detailVerifikasiSukses.
+  ///
+  /// In en, this message translates to:
+  /// **'Readings confirmed. This session can now be reviewed by an admin.'**
+  String get detailVerifikasiSukses;
+
+  /// No description provided for @detailVerifikasiGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t confirm: {pesan}'**
+  String detailVerifikasiGagal(String pesan);
 
   /// No description provided for @arsipTitle.
   ///
@@ -3536,84 +3704,6 @@ abstract class AppLocalizations {
   /// **'Values from a photo must still be checked before submitting. An issued certificate cannot be changed.'**
   String get phCalibCaraCatatan;
 
-  /// No description provided for @phCalibScanTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Photograph the pH meter display'**
-  String get phCalibScanTooltip;
-
-  /// No description provided for @phCalibScanGagal.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t read the number clearly. Try a closer photo, or type it in.'**
-  String get phCalibScanGagal;
-
-  /// No description provided for @phCalibScanError.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t open the camera.'**
-  String get phCalibScanError;
-
-  /// No description provided for @phCalibFotoTabel.
-  ///
-  /// In en, this message translates to:
-  /// **'PHOTO TABLE'**
-  String get phCalibFotoTabel;
-
-  /// No description provided for @phCalibFotoTabelSesudah.
-  ///
-  /// In en, this message translates to:
-  /// **'After adjustment'**
-  String get phCalibFotoTabelSesudah;
-
-  /// No description provided for @phCalibFotoTabelSebelum.
-  ///
-  /// In en, this message translates to:
-  /// **'Before adjustment'**
-  String get phCalibFotoTabelSebelum;
-
-  /// No description provided for @phCalibFotoTabelJudul.
-  ///
-  /// In en, this message translates to:
-  /// **'Which table are you photographing?'**
-  String get phCalibFotoTabelJudul;
-
-  /// No description provided for @phCalibFotoTabelInfo.
-  ///
-  /// In en, this message translates to:
-  /// **'One shot fills the whole table for all three buffers. Cells you already filled are never overwritten — reshoot as many times as you need.'**
-  String get phCalibFotoTabelInfo;
-
-  /// No description provided for @phCalibFotoTabelHasil.
-  ///
-  /// In en, this message translates to:
-  /// **'{terisi} of {total} cells filled.'**
-  String phCalibFotoTabelHasil(int terisi, int total);
-
-  /// No description provided for @phCalibFotoTabelTakTerbaca.
-  ///
-  /// In en, this message translates to:
-  /// **'No numbers could be read at all. The photo is probably dark, blurry, or too far away — try closer and brighter. You can still type the values in.'**
-  String get phCalibFotoTabelTakTerbaca;
-
-  /// No description provided for @phCalibFotoTabelPosisiKacau.
-  ///
-  /// In en, this message translates to:
-  /// **'{jumlah} numbers were read, but they don\'t line up as a table. Usually the photo is skewed or shows the whole sheet — try photographing just the TABLE, straight from above. You can still type the values in.'**
-  String phCalibFotoTabelPosisiKacau(int jumlah);
-
-  /// No description provided for @phCalibFotoTabelKosong.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t read the numbers yet. Tips: photograph just the TABLE (not the whole sheet), straight from above, even light with no hand shadow. Or type it in.'**
-  String get phCalibFotoTabelKosong;
-
-  /// No description provided for @phCalibFotoTabelSisa.
-  ///
-  /// In en, this message translates to:
-  /// **'Empty cells: type them in or reshoot — nothing you already entered will be replaced.'**
-  String get phCalibFotoTabelSisa;
-
   /// No description provided for @phCalibFotoHeaderHasil.
   ///
   /// In en, this message translates to:
@@ -4586,7 +4676,187 @@ abstract class AppLocalizations {
   /// **'Clear date'**
   String get lkHapusTanggal;
 
-  /// No description provided for @lkRepeat.
+  /// Judul tabel kondisi lingkungan di lembar kerja.
+  ///
+  /// In en, this message translates to:
+  /// **'Environment Condition'**
+  String get lkKondisiLingkungan;
+
+  /// Kepala kolom waktu (First/End) di tabel kondisi lingkungan.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get lkWaktu;
+
+  /// Kepala kolom suhu di tabel kondisi lingkungan.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature'**
+  String get lkSuhu;
+
+  /// Kepala kolom kelembaban di tabel kondisi lingkungan.
+  ///
+  /// In en, this message translates to:
+  /// **'Humidity'**
+  String get lkKelembaban;
+
+  /// Baris pengukuran awal di tabel kondisi lingkungan.
+  ///
+  /// In en, this message translates to:
+  /// **'First'**
+  String get lkAwal;
+
+  /// Baris pengukuran akhir di tabel kondisi lingkungan.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get lkAkhir;
+
+  /// Pesan waktu foto gagal didekode atau pindai gagal karena sebab tak terduga.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo could not be read. Try taking it again.'**
+  String get lkPindaiGagalFoto;
+
+  /// Pesan waktu template belum punya koordinat sel.
+  ///
+  /// In en, this message translates to:
+  /// **'This sheet\'s cell coordinates are not on the server yet.'**
+  String get lkPindaiTanpaGeometri;
+
+  /// Pesan waktu empat penanda sudut tidak ditemukan di foto.
+  ///
+  /// In en, this message translates to:
+  /// **'The four corner markers were not found. Make sure the whole sheet is in frame and well lit.'**
+  String get lkPindaiMarkerHilang;
+
+  /// Pesan waktu geometri foto meleset terlalu jauh.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo is too skewed. Shoot it more square-on above the sheet.'**
+  String get lkPindaiTerlaluMiring;
+
+  /// No description provided for @lkFotoTabel.
+  ///
+  /// In en, this message translates to:
+  /// **'PHOTOGRAPH THIS TABLE'**
+  String get lkFotoTabel;
+
+  /// No description provided for @lkFotoTabelGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo couldn\'t be read. Take it again.'**
+  String get lkFotoTabelGagal;
+
+  /// No description provided for @lkFotoTabelTanpaJangkar.
+  ///
+  /// In en, this message translates to:
+  /// **'No reading could be placed with certainty. Make sure the standard-value column (left) and the repeat headers (numbers 1..5, or X1 / Repeat 1) are in frame — all of them, none cut off. You can still type the values manually.'**
+  String get lkFotoTabelTanpaJangkar;
+
+  /// Foto tabel gagal karena label sub-kolom (mis. cP / °C) nggak kebaca. Sengaja nolak semua, bukan naruh sebagian.
+  ///
+  /// In en, this message translates to:
+  /// **'The {kolom} column header couldn\'t be read, so nothing was filled in — forcing it risks numbers landing in the neighbouring column unnoticed. Retake the photo with the unit row of the table header in frame.'**
+  String lkFotoTabelKolomHilang(String kolom);
+
+  /// Jangkar baris & kolom ketemu semua, tapi nol angka di badan tabel — biasanya kertas/lembar yang difoto memang belum diisi.
+  ///
+  /// In en, this message translates to:
+  /// **'The table was recognised, but its cells are still empty — no handwritten numbers were found inside. Fill in the sheet first, then photograph it.'**
+  String get lkFotoTabelKosong;
+
+  /// Foto tabel gagal total di lembar yang Repeat-nya turun ke bawah (Conductivity) — jangkarnya beda dari bentuk pH, jadi petunjuknya juga beda.
+  ///
+  /// In en, this message translates to:
+  /// **'No reading could be placed with certainty. Make sure the Repeat column (left) and the solution headers along the top are in frame — without them the numbers cannot be placed safely. You can still type the values manually.'**
+  String get lkFotoTabelTanpaJangkarKeBawah;
+
+  /// No description provided for @lkFotoTabelTerisi.
+  ///
+  /// In en, this message translates to:
+  /// **'{terisi} cells filled from the photo. All are flagged for checking — compare them with the paper.'**
+  String lkFotoTabelTerisi(int terisi);
+
+  /// No description provided for @lkFotoTabelSebagian.
+  ///
+  /// In en, this message translates to:
+  /// **'{terisi} cells filled; {terbuang} numbers skipped because their position was uncertain. Type the empty ones manually.'**
+  String lkFotoTabelSebagian(int terisi, int terbuang);
+
+  /// No description provided for @lkFotoTabelError.
+  ///
+  /// In en, this message translates to:
+  /// **'Table photo failed: {pesan}'**
+  String lkFotoTabelError(String pesan);
+
+  /// No description provided for @lkPindaiTemplateGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the scan template: {pesan}'**
+  String lkPindaiTemplateGagal(String pesan);
+
+  /// No description provided for @lkPindaiTemplateMemuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing scan…'**
+  String get lkPindaiTemplateMemuat;
+
+  /// No description provided for @lkPindaiQrHilang.
+  ///
+  /// In en, this message translates to:
+  /// **'The sheet\'s version QR code could not be read. Old forms without a QR cannot be scanned — reprint the sheet, or type the values manually.'**
+  String get lkPindaiQrHilang;
+
+  /// No description provided for @lkPindaiQrLembarLain.
+  ///
+  /// In en, this message translates to:
+  /// **'The QR belongs to a different sheet or version. Retaking the photo won\'t help — make sure you have the right sheet.'**
+  String get lkPindaiQrLembarLain;
+
+  /// No description provided for @lkPindaiBuram.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo is blurry. Hold the phone steadier and take it again.'**
+  String get lkPindaiBuram;
+
+  /// No description provided for @lkPindaiGelap.
+  ///
+  /// In en, this message translates to:
+  /// **'Too dark. Find brighter light, then take the photo again.'**
+  String get lkPindaiGelap;
+
+  /// No description provided for @lkPindaiSilau.
+  ///
+  /// In en, this message translates to:
+  /// **'So bright the numbers washed out. Reduce direct light, then take the photo again.'**
+  String get lkPindaiSilau;
+
+  /// No description provided for @lkPindaiPantulan.
+  ///
+  /// In en, this message translates to:
+  /// **'There is glare on the sheet. Shift its position slightly, then take the photo again.'**
+  String get lkPindaiPantulan;
+
+  /// No description provided for @lkPindaiKejauhan.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo is too far away — the numbers are too small to read. Move the phone closer and take it again.'**
+  String get lkPindaiKejauhan;
+
+  /// No description provided for @lkPindaiTerpakai.
+  ///
+  /// In en, this message translates to:
+  /// **'{terisi} cells filled from the scan. Cells that already had values were left untouched.'**
+  String lkPindaiTerpakai(int terisi);
+
+  /// No description provided for @lkPindaiBugAplikasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan rejected by the server: {pesan} This is an app defect, not your photo — report it to the team and type the values manually for now.'**
+  String lkPindaiBugAplikasi(String pesan);
+
+  /// Header of the repeat-number column on sheets whose Repeat runs downwards.
   ///
   /// In en, this message translates to:
   /// **'Repeat'**
@@ -4915,6 +5185,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Any field you can\'t fill in the field may be left blank — the worksheet can still be submitted.'**
   String get lkSemuaOpsional;
+
+  /// No description provided for @lkBagianBelumBisaDiisi.
+  ///
+  /// In en, this message translates to:
+  /// **'NOT FILLABLE YET'**
+  String get lkBagianBelumBisaDiisi;
+
+  /// No description provided for @pindaiReviewJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Check Scan Result'**
+  String get pindaiReviewJudul;
+
+  /// No description provided for @pindaiRingkasan.
+  ///
+  /// In en, this message translates to:
+  /// **'{total} cells read · {kuning} need checking · {merah} unreadable · {kosong} empty'**
+  String pindaiRingkasan(int total, int kuning, int merah, int kosong);
+
+  /// No description provided for @pindaiCatatanKuning.
+  ///
+  /// In en, this message translates to:
+  /// **'Handwriting is never marked safe automatically — so it\'s normal for almost every cell to need checking. Compare each number with the cropped photo beside it.'**
+  String get pindaiCatatanKuning;
+
+  /// No description provided for @pindaiPakaiAngka.
+  ///
+  /// In en, this message translates to:
+  /// **'USE THESE NUMBERS'**
+  String get pindaiPakaiAngka;
+
+  /// No description provided for @pindaiDitahanServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Some cells could not be read. Fix them, or type the sheet manually.'**
+  String get pindaiDitahanServer;
+
+  /// No description provided for @pindaiRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat {nomor}'**
+  String pindaiRepeat(int nomor);
+
+  /// No description provided for @pindaiTerbaca.
+  ///
+  /// In en, this message translates to:
+  /// **'Read as: {teks}'**
+  String pindaiTerbaca(String teks);
+
+  /// No description provided for @pindaiNormalisasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Server adjusted: {catatan}'**
+  String pindaiNormalisasi(String catatan);
+
+  /// No description provided for @pindaiKoreksiGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The numbers were kept, but the correction log failed to send: {pesan}'**
+  String pindaiKoreksiGagal(String pesan);
+
+  /// No description provided for @pindaiAlasanMeluber.
+  ///
+  /// In en, this message translates to:
+  /// **'the writing spills out of its box and may have been read from the next column'**
+  String get pindaiAlasanMeluber;
+
+  /// No description provided for @pindaiAlasanLuarRentang.
+  ///
+  /// In en, this message translates to:
+  /// **'the number is outside the sensible range for this point'**
+  String get pindaiAlasanLuarRentang;
+
+  /// No description provided for @pindaiAlasanMagnitudo.
+  ///
+  /// In en, this message translates to:
+  /// **'the number is far from this point’s standard value'**
+  String get pindaiAlasanMagnitudo;
+
+  /// No description provided for @pindaiAlasanKoreksiKarakter.
+  ///
+  /// In en, this message translates to:
+  /// **'a letter was guessed as a digit'**
+  String get pindaiAlasanKoreksiKarakter;
+
+  /// No description provided for @pindaiAlasanDesimalBanyak.
+  ///
+  /// In en, this message translates to:
+  /// **'more decimals than the instrument resolution'**
+  String get pindaiAlasanDesimalBanyak;
+
+  /// No description provided for @pindaiAlasanBukanKelipatan.
+  ///
+  /// In en, this message translates to:
+  /// **'an instrument with this resolution cannot produce that number'**
+  String get pindaiAlasanBukanKelipatan;
+
+  /// No description provided for @pindaiAlasanJauhDariRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'far off from the other repeats in this row'**
+  String get pindaiAlasanJauhDariRepeat;
+
+  /// No description provided for @pindaiAlasanSebarTakDiuji.
+  ///
+  /// In en, this message translates to:
+  /// **'too few repeats were read to compare'**
+  String get pindaiAlasanSebarTakDiuji;
+
+  /// No description provided for @pindaiAlasanBanyakSubstitusi.
+  ///
+  /// In en, this message translates to:
+  /// **'too many characters had to be guessed'**
+  String get pindaiAlasanBanyakSubstitusi;
+
+  /// No description provided for @pindaiAlasanKarakterAsing.
+  ///
+  /// In en, this message translates to:
+  /// **'contains a character that is not a digit'**
+  String get pindaiAlasanKarakterAsing;
+
+  /// No description provided for @pindaiAlasanBentukTakWajar.
+  ///
+  /// In en, this message translates to:
+  /// **'the number shape does not make sense'**
+  String get pindaiAlasanBentukTakWajar;
+
+  /// No description provided for @pindaiAlasanDigitBanyak.
+  ///
+  /// In en, this message translates to:
+  /// **'too many digits for this column'**
+  String get pindaiAlasanDigitBanyak;
+
+  /// No description provided for @pindaiAlasanPemisahTakWajar.
+  ///
+  /// In en, this message translates to:
+  /// **'the decimal separator sits in an odd place'**
+  String get pindaiAlasanPemisahTakWajar;
+
+  /// No description provided for @pindaiAlasanDesimalAmbigu.
+  ///
+  /// In en, this message translates to:
+  /// **'unclear whether that dot is a decimal point or a thousands separator'**
+  String get pindaiAlasanDesimalAmbigu;
+
+  /// No description provided for @pindaiAlasanMinusTengah.
+  ///
+  /// In en, this message translates to:
+  /// **'a minus sign in the middle of the number'**
+  String get pindaiAlasanMinusTengah;
+
+  /// No description provided for @pindaiAlasanMinusTakBoleh.
+  ///
+  /// In en, this message translates to:
+  /// **'this column cannot be negative'**
+  String get pindaiAlasanMinusTakBoleh;
+
+  /// No description provided for @lkRepeatMenyimpang.
+  ///
+  /// In en, this message translates to:
+  /// **'At point {titik} one reading is far off from the other repeats — check it, two digits may have been swapped while typing. A single number like this can throw the certificate uncertainty off by hundreds of times.'**
+  String lkRepeatMenyimpang(String titik);
+
+  /// No description provided for @lkPindaiLembar.
+  ///
+  /// In en, this message translates to:
+  /// **'SCAN WORKSHEET'**
+  String get lkPindaiLembar;
+
+  /// No description provided for @lkPindaiBelumSiap.
+  ///
+  /// In en, this message translates to:
+  /// **'Not scannable yet: {alasan}'**
+  String lkPindaiBelumSiap(String alasan);
+
+  /// No description provided for @lkPratinjauJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'PRELIMINARY RESULTS'**
+  String get lkPratinjauJudul;
+
+  /// No description provided for @lkPratinjauCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Computed by the server from what\'s filled in right now, not on the phone. These numbers can change as other rows are filled.'**
+  String get lkPratinjauCatatan;
+
+  /// No description provided for @lkPratinjauKolomTitik.
+  ///
+  /// In en, this message translates to:
+  /// **'Point'**
+  String get lkPratinjauKolomTitik;
+
+  /// No description provided for @lkPratinjauKolomRata.
+  ///
+  /// In en, this message translates to:
+  /// **'Mean'**
+  String get lkPratinjauKolomRata;
+
+  /// No description provided for @lkPratinjauKolomKoreksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction'**
+  String get lkPratinjauKolomKoreksi;
+
+  /// No description provided for @lkPratinjauKolomU95.
+  ///
+  /// In en, this message translates to:
+  /// **'U95'**
+  String get lkPratinjauKolomU95;
+
+  /// No description provided for @lkPratinjauBelumDihitung.
+  ///
+  /// In en, this message translates to:
+  /// **'NOT COMPUTED YET'**
+  String get lkPratinjauBelumDihitung;
+
+  /// No description provided for @lkPratinjauTitikKe.
+  ///
+  /// In en, this message translates to:
+  /// **'Point {nomor}'**
+  String lkPratinjauTitikKe(int nomor);
 
   /// No description provided for @lkKeluarTanpaSimpan.
   ///
@@ -5342,6 +5834,12 @@ abstract class AppLocalizations {
   /// **'Average'**
   String get perhitAverage;
 
+  /// No description provided for @perhitObserved.
+  ///
+  /// In en, this message translates to:
+  /// **'observed (before temp. correction)'**
+  String get perhitObserved;
+
   /// No description provided for @perhitIndexed.
   ///
   /// In en, this message translates to:
@@ -5611,6 +6109,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'U95% (±)'**
   String get sertKolU95;
+
+  /// No description provided for @sertU95Baris.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncertainty U95% = ±'**
+  String get sertU95Baris;
+
+  /// No description provided for @sertFaktorCakupan.
+  ///
+  /// In en, this message translates to:
+  /// **'Coverage factor (k) = {k}, confidence level 95 %'**
+  String sertFaktorCakupan(String k);
 
   /// No description provided for @sertKolRemark.
   ///
@@ -5882,12 +6392,6 @@ abstract class AppLocalizations {
   /// **'SUBMIT'**
   String get lkKirimAdmin;
 
-  /// No description provided for @lkScanTabel.
-  ///
-  /// In en, this message translates to:
-  /// **'PHOTO THIS TABLE — READ BY AI'**
-  String get lkScanTabel;
-
   /// No description provided for @lkScanMemproses.
   ///
   /// In en, this message translates to:
@@ -5936,6 +6440,168 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get lkPengulanganBatal;
 
+  /// No description provided for @lkSuhuWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading filled without solution temperature at point {titik}. Temperature is required — the reference value shifts with it.'**
+  String lkSuhuWajib(String titik);
+
+  /// No description provided for @lkStandarBelumDicentang.
+  ///
+  /// In en, this message translates to:
+  /// **'Point {titik} has readings but its reference standard is not ticked — those numbers cannot be calculated. Tick the standard, or clear the row if this instrument does not use that point.'**
+  String lkStandarBelumDicentang(String titik);
+
+  /// No description provided for @lkPembacaanTakTerpulih.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} saved readings had no matching row on this sheet and were not restored. Check the table before submitting.'**
+  String lkPembacaanTakTerpulih(int jumlah);
+
+  /// No description provided for @lkPembacaanJauhDariTitik.
+  ///
+  /// In en, this message translates to:
+  /// **'Readings at point {titik} are more than 10× off the point value — check the unit, or the decimal place. If the reading really is that value, switch to the row with the correct unit first.'**
+  String lkPembacaanJauhDariTitik(String titik);
+
+  /// Badge for a point on an instrument that is not assessed PASS/FAIL (no tolerance limit)
+  ///
+  /// In en, this message translates to:
+  /// **'NO PASS/FAIL'**
+  String get detailTanpaVonis;
+
+  /// No description provided for @statusTanpaKeputusan.
+  ///
+  /// In en, this message translates to:
+  /// **'No pass/fail'**
+  String get statusTanpaKeputusan;
+
+  /// No description provided for @detailEditAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'EDIT SHEET'**
+  String get detailEditAdmin;
+
+  /// No description provided for @detailPerbaikiRevisi.
+  ///
+  /// In en, this message translates to:
+  /// **'FIX WORKSHEET'**
+  String get detailPerbaikiRevisi;
+
+  /// No description provided for @lkTitikAlternatifSatuan.
+  ///
+  /// In en, this message translates to:
+  /// **'Alternate unit of the same standard — already filled in the other row'**
+  String get lkTitikAlternatifSatuan;
+
+  /// Resolution row in the table header when the instrument resolution is not filled in — mirrors the empty box on the printed sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolution: ( )'**
+  String get lkResolusiKosong;
+
+  /// Resolution row in the table header, filled from the instrument specification.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolution: {nilai} {satuan}'**
+  String lkResolusiNilai(String nilai, String satuan);
+
+  /// Note on a column that is printed on the sheet but has no registered standard solution.
+  ///
+  /// In en, this message translates to:
+  /// **'no standard registered'**
+  String get lkSlotTanpaLarutan;
+
+  /// Shown when the sheet shrinks after picking an instrument and some filled points no longer exist.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah, plural, other{{jumlah} point(s) are not on this instrument’s sheet — their entries were discarded}}'**
+  String lkIsianTitikKebuang(int jumlah);
+
+  /// No description provided for @lkKonfirmasiJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the numbers before sending'**
+  String get lkKonfirmasiJudul;
+
+  /// No description provided for @lkKonfirmasiCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Averages of the After adjustment readings. Correction and uncertainty are computed by the server once this is sent.'**
+  String get lkKonfirmasiCatatan;
+
+  /// No description provided for @lkKonfirmasiDariFoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Some numbers in this table came from a photo. By sending, you confirm you\'ve checked them against the instrument.'**
+  String get lkKonfirmasiDariFoto;
+
+  /// No description provided for @lkKonfirmasiGagalTandai.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent, but marking them as checked failed: {pesan}. Open the session in History and tap \"I\'ve checked these readings\".'**
+  String lkKonfirmasiGagalTandai(String pesan);
+
+  /// No description provided for @lkKonfirmasiBaris.
+  ///
+  /// In en, this message translates to:
+  /// **'{terisi} of {total} boxes · average {rata}'**
+  String lkKonfirmasiBaris(int terisi, int total, String rata);
+
+  /// No description provided for @lkKonfirmasiBarisKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Not filled in'**
+  String get lkKonfirmasiBarisKosong;
+
+  /// No description provided for @lkKonfirmasiPeriksaLagi.
+  ///
+  /// In en, this message translates to:
+  /// **'Check again'**
+  String get lkKonfirmasiPeriksaLagi;
+
+  /// No description provided for @lkKonfirmasiKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Send now'**
+  String get lkKonfirmasiKirim;
+
+  /// No description provided for @lkPeringatanAngkaJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'These readings look implausible'**
+  String get lkPeringatanAngkaJudul;
+
+  /// No description provided for @lkPeringatanAngkaLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'The reading really is that — send'**
+  String get lkPeringatanAngkaLanjut;
+
+  /// No description provided for @lkGantiSatuanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Switching units clears the table'**
+  String get lkGantiSatuanJudul;
+
+  /// No description provided for @lkGantiSatuanPesan.
+  ///
+  /// In en, this message translates to:
+  /// **'{dari} uses different standard solutions than {ke}, so the table rows change and any readings you entered are discarded. A {dari} value is not a {ke} value.'**
+  String lkGantiSatuanPesan(String dari, String ke);
+
+  /// No description provided for @lkGantiSatuanBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get lkGantiSatuanBatal;
+
+  /// No description provided for @lkGantiSatuanLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch & clear'**
+  String get lkGantiSatuanLanjut;
+
   /// No description provided for @emailRiwayatBelumKeluar.
   ///
   /// In en, this message translates to:
@@ -5953,6 +6619,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{pt} has no WhatsApp number in the customer record. Add it in the admin panel → Customers so it can be picked here.'**
   String emailKontakKosongWa(String pt);
+
+  /// No description provided for @dashLiveWorkspace.
+  ///
+  /// In en, this message translates to:
+  /// **'Live workspace'**
+  String get dashLiveWorkspace;
+
+  /// No description provided for @dashGreetingName.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi, {name}'**
+  String dashGreetingName(String name);
+
+  /// No description provided for @dashActiveTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} active tasks'**
+  String dashActiveTasks(int count);
+
+  /// No description provided for @dashSpin3d.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe the object to rotate it'**
+  String get dashSpin3d;
+
+  /// No description provided for @onbSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get onbSkip;
+
+  /// No description provided for @onbNext.
+  ///
+  /// In en, this message translates to:
+  /// **'NEXT'**
+  String get onbNext;
+
+  /// No description provided for @onbEnter.
+  ///
+  /// In en, this message translates to:
+  /// **'ENTER WORKSPACE'**
+  String get onbEnter;
+
+  /// No description provided for @onbStep1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Every instrument, one place.'**
+  String get onbStep1Title;
+
+  /// No description provided for @onbStep1Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick an instrument, start the calibration, and watch its status without waiting for somebody else\'s report.'**
+  String get onbStep1Body;
+
+  /// No description provided for @onbStep2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Photograph the worksheet.'**
+  String get onbStep2Title;
+
+  /// No description provided for @onbStep2Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Readings on paper are picked up straight from your camera. No retyping — and the photo never leaves your phone.'**
+  String get onbStep2Body;
+
+  /// No description provided for @onbStep3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificates land sooner.'**
+  String get onbStep3Title;
+
+  /// No description provided for @onbStep3Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to the admin once the data is complete. Approval and issuing happen in this same app.'**
+  String get onbStep3Body;
+
+  /// No description provided for @profSwipeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe for the next section'**
+  String get profSwipeHint;
+
+  /// No description provided for @profSectionWorkspace.
+  ///
+  /// In en, this message translates to:
+  /// **'WORKSPACE'**
+  String get profSectionWorkspace;
+
+  /// No description provided for @profSectionSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'SYSTEM'**
+  String get profSectionSystem;
+
+  /// No description provided for @profSectionAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'ACCOUNT'**
+  String get profSectionAccount;
+
+  /// No description provided for @profPreferensiSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Tune how this device works for you.'**
+  String get profPreferensiSub;
+
+  /// No description provided for @profAdminMenuSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage the lab\'s core records.'**
+  String get profAdminMenuSub;
+
+  /// No description provided for @profLabSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Lab setup'**
+  String get profLabSettings;
+
+  /// No description provided for @profLabSettingsSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Methods, rooms, and working formulas.'**
+  String get profLabSettingsSub;
+
+  /// No description provided for @profSecuritySub.
+  ///
+  /// In en, this message translates to:
+  /// **'Device status and account access.'**
+  String get profSecuritySub;
+
+  /// No description provided for @profSectionOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Section {current} of {total}'**
+  String profSectionOf(int current, int total);
+
+  /// No description provided for @profChangePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Change profile photo'**
+  String get profChangePhoto;
+
+  /// No description provided for @profChangePhotoSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken from your gallery or camera'**
+  String get profChangePhotoSub;
+
+  /// No description provided for @profTechnicianCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician code'**
+  String get profTechnicianCode;
+
+  /// No description provided for @profTechnicianCodeSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Printed on the certificates you sign'**
+  String get profTechnicianCodeSub;
 }
 
 class _AppLocalizationsDelegate

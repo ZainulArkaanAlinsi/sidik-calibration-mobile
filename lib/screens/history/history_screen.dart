@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -8,15 +10,18 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/utils/waktu_tampil.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_history_item.dart';
+import '../../models/validasi.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../providers/history_provider.dart';
+import '../../services/auth_service.dart' show ApiException;
 import '../../widgets/app_button.dart';
 import '../../widgets/master_detail_pane.dart';
 import '../../widgets/readable_width.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/notification_bell.dart';
+import '../admin/widgets/panel_temuan.dart';
 import 'calibration_detail_screen.dart';
 
 /// Riwayat kalibrasi — sama pola 4-state-nya kayak Dashboard
@@ -38,11 +43,44 @@ class HistoryScreen extends ConsumerStatefulWidget {
   ConsumerState<HistoryScreen> createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends ConsumerState<HistoryScreen> {
+class _HistoryScreenState extends ConsumerState<HistoryScreen>
+    with WidgetsBindingObserver {
   /// Sesi yang lagi kebuka di panel kanan. Null = belum ada yang dipilih.
   /// Cuma dipakai waktu panel ganda aktif; di mode satu panel detailnya
   /// di-push, bukan disimpen di sini.
   int? _terpilih;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Balik ke jendela/app ini → tarik ulang daftarnya.
+  ///
+  /// Daftar riwayat itu satu-satunya layar yang nampilin keputusan orang lain
+  /// (admin nyetujui, teknisi ngirim ulang), jadi dia paling gampang basi. Yang
+  /// mestinya ngabarin itu broadcast realtime, TAPI `realtimeSyncProvider`
+  /// jatuh ke [MockRealtimeService] begitu kunci Reverb kosong — dan itu
+  /// keadaan normal di dev. Akibatnya: sesi ditolak lewat HP, jendela macOS
+  /// tetap nulis "Menunggu approval" sampai app-nya dimatiin. Dua perangkat
+  /// nunjuk database yang sama tapi cerita beda, dan yang kelihatan salah
+  /// justru layarnya, bukan sinkronnya.
+  ///
+  /// Nggak nunggu selesai & nggak nampilin loading: ini penyegaran latar, dan
+  /// daftar lama tetap kepakai sampai yang baru dateng.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    if (!mounted) return;
+    unawaited(ref.read(historyProvider.notifier).muatUlang());
+  }
 
   /// Dipanggil dari kartu. [panelGanda] dateng dari tata letak yang lagi
   /// aktif — bukan dari `Platform`, karena jendela desktop yang disempitin
@@ -103,20 +141,34 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         // bagian "Folder" dihapus dari Riwayat, karena penelusuran folder
         // pindah SELURUHNYA ke Folder Manager di navbar bawah. Dua pintu ke
         // hal yang sama cuma bikin orang ragu mana yang bener.
-        actions: const [NotificationBell(), SizedBox(width: AppSpacing.sm)],
+        // `RefreshIndicator` di bawah cuma kepanggil sama gestur TARIK, dan
+        // di desktop gestur itu nggak ada — jadi tanpa tombol ini jendela
+        // macOS nggak punya cara nyegerin daftar sama sekali selain dimatiin.
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: l10n.historySegarkan,
+            onPressed: () => ref.read(historyProvider.notifier).muatUlang(),
+          ),
+          const NotificationBell(),
+          const SizedBox(width: AppSpacing.sm),
+        ],
       ),
-      body: MasterDetailPane(
-        master: (context, panelGanda) => RefreshIndicator(
-          onRefresh: () => ref.read(historyProvider.notifier).muatUlang(),
-          child: ReadableWidth(child: isi(panelGanda)),
-        ),
-        detail: _terpilih == null
-            ? null
-            : CalibrationDetailScreen(calibrationId: _terpilih!),
-        kosong: PanePlaceholder(
-          icon: Icons.fact_check_outlined,
-          judul: l10n.detailPaneEmptyTitle,
-          pesan: l10n.detailPaneEmptyBody,
+      body: Container(
+        decoration: BoxDecoration(gradient: AppColors.gradasiLatar(context)),
+        child: MasterDetailPane(
+          master: (context, panelGanda) => RefreshIndicator(
+            onRefresh: () => ref.read(historyProvider.notifier).muatUlang(),
+            child: ReadableWidth(child: isi(panelGanda)),
+          ),
+          detail: _terpilih == null
+              ? null
+              : CalibrationDetailScreen(calibrationId: _terpilih!),
+          kosong: PanePlaceholder(
+            icon: Icons.fact_check_outlined,
+            judul: l10n.detailPaneEmptyTitle,
+            pesan: l10n.detailPaneEmptyBody,
+          ),
         ),
       ),
     );
@@ -176,6 +228,15 @@ class _HistoryCard extends StatelessWidget {
 
   StatusBadge _badge(AppLocalizations l10n) {
     if (item.status == CalibrationStatus.disetujui) {
+      // `keputusan` bisa NULL, dan itu keadaan yang sah — bukan "belum ada".
+      //
+      // Conductivity Meter nggak divonis lulus/gagal: master Excel-nya nggak
+      // punya satu pun sel yang mbandingin hasil ke batas keberterimaan, jadi
+      // backend ngirim `keputusan: null`. Sebelum ini `_ =>` nangkep null dan
+      // nampilinnya sebagai PASS — tiap sesi Conductivity kebaca "lulus" padahal
+      // alatnya emang nggak pernah dinilai.
+      //
+      // Yang ditampilkan strip, bukan badge kosong dan bukan tulisan "null".
       return switch (item.keputusan) {
         Keputusan.pass => StatusBadge(
           label: l10n.historyStatusPass,
@@ -188,9 +249,8 @@ class _HistoryCard extends StatelessWidget {
           icon: Icons.cancel_outlined,
         ),
         null => StatusBadge(
-          label: l10n.historyStatusPass,
-          tone: BadgeTone.success,
-          icon: Icons.check_circle_outline,
+          label: l10n.statusTanpaKeputusan,
+          tone: BadgeTone.neutral,
         ),
       };
     }
@@ -220,9 +280,10 @@ class _HistoryCard extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).languageCode;
-    final tanggal = DateFormat('d MMM yyyy', locale).format(
-      item.tanggalKalibrasi,
-    );
+    final tanggal = DateFormat(
+      'd MMM yyyy',
+      locale,
+    ).format(item.tanggalKalibrasi);
 
     return Card(
       // Kartu yang lagi kebuka di panel kanan dikasih garis tepi aksen, bukan
@@ -310,7 +371,8 @@ class _HistoryCard extends StatelessWidget {
                   ),
                 ),
               ],
-              if (isAdmin && item.status == CalibrationStatus.menungguApproval) ...[
+              if (isAdmin &&
+                  item.status == CalibrationStatus.menungguApproval) ...[
                 const SizedBox(height: AppSpacing.sm),
                 _ApprovalActions(item: item),
               ],
@@ -340,7 +402,8 @@ class _IkonAlat extends StatelessWidget {
       _ when n.contains('timbang') => Icons.scale_outlined,
       _ when n.contains('oven') || n.contains('furnace') =>
         Icons.local_fire_department_outlined,
-      _ when n.contains('pipet') || n.contains('buret') => Icons.science_outlined,
+      _ when n.contains('pipet') || n.contains('buret') =>
+        Icons.science_outlined,
       _ when n.contains('caliper') || n.contains('micrometer') =>
         Icons.straighten_outlined,
       _ => Icons.straighten_outlined,
@@ -399,13 +462,19 @@ class _ApprovalActionsState extends ConsumerState<_ApprovalActions> {
     super.dispose();
   }
 
-  Future<void> _setujui() async {
+  /// Setujui sesi ini.
+  ///
+  /// [abaikanPeringatan] cuma `true` kalau admin barusan lihat daftar
+  /// temuannya di [_konfirmasiPeringatan] dan tetap mutusin lanjut.
+  Future<void> _setujui({bool abaikanPeringatan = false}) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _busy = true);
 
     try {
-      await ref.read(historyProvider.notifier).approve(widget.item.id);
+      await ref
+          .read(historyProvider.notifier)
+          .approve(widget.item.id, abaikanPeringatan: abaikanPeringatan);
 
       if (!mounted) return;
 
@@ -432,6 +501,36 @@ class _ApprovalActionsState extends ConsumerState<_ApprovalActions> {
           nomor: terbaru?.nomorSertifikat,
         );
       }
+    } on ApiException catch (e) {
+      if (!mounted) return;
+
+      // Backend nolak sekali dengan 422 + `butuh_konfirmasi` waktu ada
+      // PERINGATAN (bukan error): dia minta admin lihat temuannya dulu.
+      //
+      // Dulu di sini semua kegagalan diperlakukan sama, jadi yang muncul cuma
+      // snackbar berisi teks exception mentah. Akibatnya, dari layar ini admin
+      // nggak bisa tau apa peringatannya — apalagi mutusin. Sesi Turbidimeter
+      // `KAL/2026/08/0031` lolos dengan `kelembaban_awal = 2 %RH` (52 kepencet
+      // jadi 2) dan sertifikatnya kecetak `%RH: 27% ± 53,2%` — ketidakpastian
+      // dua kali nilainya sendiri, di dokumen terakreditasi.
+      //
+      // Validatornya sendiri udah bener dan udah teriak dua kali. Yang bolong
+      // jalannya ke mata admin.
+      final validasi = _peringatanDari(e);
+
+      if (validasi != null) {
+        setState(() => _busy = false);
+
+        if (await _konfirmasiPeringatan(validasi) && mounted) {
+          await _setujui(abaikanPeringatan: true);
+        }
+
+        return;
+      }
+
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.historyApproveFailed(e.message))),
+      );
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(
@@ -440,6 +539,56 @@ class _ApprovalActionsState extends ConsumerState<_ApprovalActions> {
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  /// Temuan di balik penolakan 422, atau null kalau gagalnya karena hal lain
+  /// (jaringan, sesi habis, sesi udah disetujui orang lain).
+  HasilValidasi? _peringatanDari(ApiException e) {
+    if (e.status != 422 || !e.butuhKonfirmasi) return null;
+
+    final validasi = e.body['validasi'];
+    if (validasi is! Map<String, dynamic>) return null;
+
+    return HasilValidasi.fromJson(validasi);
+  }
+
+  /// Daftar temuannya ditampilin apa adanya, lalu admin mutusin.
+  ///
+  /// Tombol lanjutnya sengaja BUKAN "OK": yang diputuskan di sini itu
+  /// nerbitin sertifikat terakreditasi di atas data yang sistemnya sendiri
+  /// bilang janggal, jadi tulisannya mesti nyebut itu.
+  Future<bool> _konfirmasiPeringatan(HasilValidasi validasi) async {
+    final l10n = AppLocalizations.of(context);
+
+    final lanjut = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.historyPeringatanJudul),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(l10n.historyPeringatanBody),
+              const SizedBox(height: AppSpacing.md),
+              PanelTemuan(validasi: validasi),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.historyPeringatanBatal),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.historyPeringatanLanjut),
+          ),
+        ],
+      ),
+    );
+
+    return lanjut ?? false;
   }
 
   Future<void> _tolak() async {
@@ -486,9 +635,7 @@ class _ApprovalActionsState extends ConsumerState<_ApprovalActions> {
     setState(() => _busy = true);
 
     try {
-      await ref
-          .read(historyProvider.notifier)
-          .reject(widget.item.id, catatan);
+      await ref.read(historyProvider.notifier).reject(widget.item.id, catatan);
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(

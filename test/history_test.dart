@@ -12,6 +12,7 @@ import 'package:sidik_calibration/services/history_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/widgets/skeleton.dart';
+import 'support/lewati_onboarding.dart';
 
 /// `mock-token-1` = admin · `mock-token-2` = teknisi.
 Widget _app({
@@ -23,6 +24,7 @@ Widget _app({
 }) {
   return ProviderScope(
     overrides: [
+      lewatiOnboarding,
       tokenStorageProvider.overrideWithValue(InMemoryTokenStorage(token)),
       authServiceProvider.overrideWithValue(MockAuthService()),
       dashboardServiceProvider.overrideWithValue(
@@ -47,9 +49,7 @@ Future<void> _bukaTabRiwayat(WidgetTester tester) async {
 void main() {
   group('4 state riwayat', () {
     testWidgets('LOADING: skeleton muncul duluan', (tester) async {
-      await tester.pumpWidget(
-        _app(jeda: const Duration(milliseconds: 300)),
-      );
+      await tester.pumpWidget(_app(jeda: const Duration(milliseconds: 300)));
       // Lewatin splash/auth dulu — MainShell (dan historyProvider ikut
       // mulai nge-build lewat IndexedStack) baru mount di titik ini.
       await tester.pump(const Duration(milliseconds: 700));
@@ -99,9 +99,7 @@ void main() {
       expect(find.text('Belum ada riwayat'), findsOneWidget);
     });
 
-    testWidgets('ERROR: gagal muat → pesan + tombol coba lagi', (
-      tester,
-    ) async {
+    testWidgets('ERROR: gagal muat → pesan + tombol coba lagi', (tester) async {
       await tester.pumpWidget(_app(gagal: true));
       await tester.pumpAndSettle();
       await _bukaTabRiwayat(tester);
@@ -128,9 +126,7 @@ void main() {
       expect(find.text('TOLAK'), findsNothing);
     });
 
-    testWidgets('tap SETUJUI → status berubah jadi PASS/FAIL', (
-      tester,
-    ) async {
+    testWidgets('tap SETUJUI → status berubah jadi PASS/FAIL', (tester) async {
       await tester.pumpWidget(_app());
       await tester.pumpAndSettle();
       await _bukaTabRiwayat(tester);

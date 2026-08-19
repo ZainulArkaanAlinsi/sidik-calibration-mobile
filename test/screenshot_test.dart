@@ -12,7 +12,10 @@ import 'package:sidik_calibration/core/theme/app_theme.dart';
 import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/dashboard_provider.dart';
+import 'package:sidik_calibration/providers/history_provider.dart';
+import 'package:sidik_calibration/models/user.dart';
 import 'package:sidik_calibration/screens/auth/login_screen.dart';
+import 'package:sidik_calibration/screens/auth/onboarding_screen.dart';
 import 'package:sidik_calibration/screens/auth/register_screen.dart';
 import 'package:sidik_calibration/screens/auth/splash_screen.dart';
 import 'package:sidik_calibration/screens/profile/profile_screen.dart';
@@ -20,9 +23,12 @@ import 'package:sidik_calibration/providers/perhitungan_provider.dart';
 import 'package:sidik_calibration/screens/admin/perhitungan_screen.dart';
 import 'package:sidik_calibration/screens/dashboard/ringkasan_screen.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_screen.dart';
+import 'package:sidik_calibration/screens/history/calibration_detail_screen.dart';
 import 'package:sidik_calibration/screens/shell/main_shell.dart';
 import 'package:sidik_calibration/services/dashboard_service.dart';
+import 'package:sidik_calibration/services/history_service.dart';
 import 'package:sidik_calibration/providers/calibration_input_provider.dart';
+import 'package:sidik_calibration/providers/jam_provider.dart';
 import 'package:sidik_calibration/providers/lembar_kerja_provider.dart';
 import 'package:sidik_calibration/services/equipment_lookup_service.dart';
 import 'package:sidik_calibration/services/lembar_kerja_service.dart';
@@ -89,23 +95,45 @@ Future<void> _pumpLayar(WidgetTester tester, Widget layar) async {
   await tester.pumpAndSettle();
 }
 
-Widget _bungkus(Widget layar, {required Brightness mode}) {
+/// Tanggal yang kecetak di golden lembar kerja. Angkanya sendiri nggak penting
+/// — yang penting dia TETAP. Kalau diubah, dua golden lembar kerja mesti
+/// digenerate ulang.
+final _tanggalGolden = DateTime(2026, 8, 9, 10, 30);
+
+Widget _bungkus(
+  Widget layar, {
+  required Brightness mode,
+  // `mock-token-1` = admin, `mock-token-2` = teknisi (lihat MockAuthService).
+  // Dua-duanya dipotret: layar teknisi dan layar admin sekarang beda isi,
+  // jadi satu golden aja nutupin separuh app yang berubah.
+  String token = 'mock-token-1',
+}) {
   return ProviderScope(
     overrides: [
-      tokenStorageProvider.overrideWithValue(
-        InMemoryTokenStorage('mock-token-1'),
-      ),
+      tokenStorageProvider.overrideWithValue(InMemoryTokenStorage(token)),
       authServiceProvider.overrideWithValue(MockAuthService()),
       dashboardServiceProvider.overrideWithValue(
         MockDashboardService(jeda: Duration.zero),
       ),
       lembarKerjaServiceProvider.overrideWithValue(MockLembarKerjaService()),
       perhitunganServiceProvider.overrideWithValue(MockPerhitunganService()),
+      // Layar detail sesi narik dari sini. Tanpa override-nya, golden-nya cuma
+      // kerangka skeleton — providernya nembak API asli dan gagal.
+      historyServiceProvider.overrideWithValue(MockHistoryService()),
       standardServiceProvider.overrideWithValue(MockStandardService()),
       roomServiceProvider.overrideWithValue(MockRoomService()),
       equipmentLookupServiceProvider.overrideWithValue(
         MockEquipmentLookupService(),
       ),
+      // Jam dipatok, alasannya sama persis kayak locale di bawah: bikin golden
+      // deterministik.
+      //
+      // Lembar kerja ngisi "Calibration Date" dengan tanggal hari ini, dan itu
+      // kecetak ke gambarnya. Tanpa patokan ini, dua golden lembar kerja MERAH
+      // TIAP GANTI HARI padahal nggak ada yang rusak — dan tes yang merahnya
+      // nggak nyambung sama perubahan kode itu lama-lama diabaikan orang,
+      // termasuk waktu dia beneran nangkep bug. Kejadian 10 Agt 2026.
+      jamProvider.overrideWithValue(() => _tanggalGolden),
     ],
     child: MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -134,7 +162,10 @@ void main() {
 
   testWidgets('login — terang', (tester) async {
     pasangUkuranHp(tester);
-    await _pumpLayar(tester, _bungkus(const LoginScreen(), mode: Brightness.light));
+    await _pumpLayar(
+      tester,
+      _bungkus(const LoginScreen(), mode: Brightness.light),
+    );
 
     await expectLater(
       find.byType(LoginScreen),
@@ -144,7 +175,10 @@ void main() {
 
   testWidgets('login — gelap', (tester) async {
     pasangUkuranHp(tester);
-    await _pumpLayar(tester, _bungkus(const LoginScreen(), mode: Brightness.dark));
+    await _pumpLayar(
+      tester,
+      _bungkus(const LoginScreen(), mode: Brightness.dark),
+    );
 
     await expectLater(
       find.byType(LoginScreen),
@@ -167,11 +201,79 @@ void main() {
 
   testWidgets('dashboard', (tester) async {
     pasangUkuranHp(tester);
-    await _pumpLayar(tester, _bungkus(const MainShell(), mode: Brightness.light));
+    await _pumpLayar(
+      tester,
+      _bungkus(const MainShell(), mode: Brightness.light),
+    );
 
     await expectLater(
       find.byType(MainShell),
       matchesGoldenFile('screenshots/dashboard.png'),
+    );
+  });
+
+  /// Dashboard TEKNISI — beda isi dari dashboard admin: panel 3D di atas,
+  /// tanpa grafik tren. Golden-nya kepisah karena kalau cuma admin yang
+  /// dipotret, seluruh layar yang dilihat teknisi tiap hari nggak kejaga.
+  testWidgets('dashboard teknisi', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayar(
+      tester,
+      _bungkus(
+        const MainShell(),
+        mode: Brightness.light,
+        token: 'mock-token-2',
+      ),
+    );
+
+    await expectLater(
+      find.byType(MainShell),
+      matchesGoldenFile('screenshots/dashboard-teknisi.png'),
+    );
+  });
+
+  /// Onboarding karyawan baru — halaman pertama.
+  testWidgets('onboarding', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayar(
+      tester,
+      _bungkus(
+        OnboardingScreen(
+          user: User(
+            id: 2,
+            nama: 'Andi Pratama',
+            email: 'teknisi@pt-sidik.com',
+            employeeId: 'SDK-0002',
+            role: UserRole.teknisi,
+            status: UserStatus.aktif,
+            department: 'Kalibrasi',
+            organizationId: 1,
+          ),
+        ),
+        mode: Brightness.light,
+      ),
+    );
+
+    await expectLater(
+      find.byType(OnboardingScreen),
+      matchesGoldenFile('screenshots/onboarding.png'),
+    );
+  });
+
+  testWidgets('profil teknisi', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayar(
+      tester,
+      _bungkus(
+        const ProfileScreen(),
+        mode: Brightness.light,
+        token: 'mock-token-2',
+      ),
+    );
+
+    await expectLater(
+      find.byType(ProfileScreen),
+      matchesGoldenFile('screenshots/profil-teknisi.png'),
     );
   });
 
@@ -239,6 +341,64 @@ void main() {
     await expectLater(
       find.byType(LembarKerjaScreen),
       matchesGoldenFile('screenshots/lembar-kerja-chlorine.png'),
+    );
+  });
+
+  /// Lembar kerja Spectrophotometer (`SIDIK-IK-CAL-0508_Rev.4`) — alat ke-6.
+  ///
+  /// Ini lembar yang bentuknya paling jauh dari lima alat sebelumnya: TIGA
+  /// tabel dalam satu bagian, kolom "No.", kepala `Std Value (λ1)` /
+  /// `Measurement Result` / `X1..X3`, kolom `λ (nm)` yang kegabung di blok %T,
+  /// dan tiap nilai standar %T menaungi DUA baris X1..X3.
+  ///
+  /// PNG-nya ada supaya bisa diadu langsung sama lembar cetaknya tanpa nyalain
+  /// HP — versi pertama layar ini "hijau di test" tapi susunannya nggak sama
+  /// sekali kayak kertas yang dipegang teknisi.
+  testWidgets('lembar kerja spectrophotometer', (tester) async {
+    tester.view.physicalSize = const Size(1200, 11000);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      _bungkus(
+        const LembarKerjaScreen(profil: 'spectrophotometer'),
+        mode: Brightness.light,
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byType(LembarKerjaScreen),
+      matchesGoldenFile('screenshots/lembar-kerja-spectrophotometer.png'),
+    );
+  });
+
+  /// Calibration Result Details — layar yang dipakai admin sebelum nerbitin.
+  ///
+  /// Ada di sini karena bentuknya yang paling gampang berantakan: 24 titik
+  /// dalam tiga kelompok, masing-masing punya ringkasan + rantai hitung
+  /// berikut rumus Excel-nya. PNG-nya bikin "rapi apa nggak" bisa dinilai
+  /// tanpa nyalain HP.
+  testWidgets('detail sesi spectrophotometer', (tester) async {
+    tester.view.physicalSize = const Size(1200, 9000);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      _bungkus(
+        const CalibrationDetailScreen(calibrationId: 1),
+        mode: Brightness.light,
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byType(CalibrationDetailScreen),
+      matchesGoldenFile('screenshots/detail-sesi.png'),
     );
   });
 

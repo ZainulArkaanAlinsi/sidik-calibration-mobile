@@ -38,6 +38,13 @@ kalau backendnya belum hidup.
 Supaya URL-nya berhenti berubah sama sekali, lihat
 [`docs/tunnel-cloudflare.md`](docs/tunnel-cloudflare.md).
 
+## Membagikan Aplikasi
+
+Untuk memasang aplikasi di HP teknisi, Mac, dan PC Windows tanpa laptop
+developer, lihat [`docs/deploy-firebase.md`](docs/deploy-firebase.md) — Android
+lewat Firebase App Distribution, desktop lewat halaman unduh di Firebase
+Hosting.
+
 ## Perintah Harian
 
 ```bash

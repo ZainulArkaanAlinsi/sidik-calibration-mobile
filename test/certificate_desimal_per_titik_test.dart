@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:sidik_calibration/core/utils/angka.dart';
+import 'package:sidik_calibration/models/calibration_detail.dart';
 import 'package:sidik_calibration/models/certificate_snapshot.dart';
 
 /// Desimal PER TITIK di tabel Calibration Report.
@@ -72,6 +74,65 @@ void main() {
       expect(b.standardValue.toStringAsFixed(b.desimalEfektif(2)), '9.98');
       expect(b.unitUnderTest.toStringAsFixed(b.desimalEfektif(2)), '10.11');
       expect(b.correction.toStringAsFixed(b.desimalEfektif(2)), '-0.13');
+    });
+  });
+
+  /// Tabel Calibration Report juga muncul di layar RIWAYAT, dan di sana
+  /// sumbernya `titik[]` respons sesi — bukan snapshot sertifikat.
+  ///
+  /// Jalur itu sempat kelewat: desimalnya dipatok dua di widget, jadi satu
+  /// sertifikat punya dua tampilan. Refractometer `2211.11.R` yang paling
+  /// parah — `1,33935` kebaca `1,34` dan U95% `0,00053` jadi `0,00`, kelihatan
+  /// kayak alatnya nggak punya ketidakpastian sama sekali.
+  group('desimal titik di respons sesi (layar riwayat)', () {
+    MeasurementResult titik(Map<String, dynamic> json) =>
+        MeasurementResult.fromJson(json);
+
+    /// Refractometer: 5 desimal datang dari `desimal` LEVEL SESI (resolusinya
+    /// seragam, jadi backend nggak ngirim angka per titik). Angkanya sendiri
+    /// dari `Refractometer_CSV 2/SERTIFIKAT.csv` baris 18.
+    test('alat resolusi seragam ikut desimal sesi, bukan dua dipatok', () {
+      final t = titik({
+        'titik_ke': 1,
+        'titik_ukur': 1.33659,
+        'rata_rata': 1.33935,
+        'koreksi': -0.00276,
+        'ketidakpastian_diperluas': 0.00052715,
+      });
+
+      expect(t.desimal, isNull);
+      expect(t.desimalEfektif(5), 5);
+      expect(formatSertifikat(t.titikUkur, t.desimalEfektif(5)), '1,33659');
+      expect(formatSertifikat(t.rataRata, t.desimalEfektif(5)), '1,33935');
+      expect(formatSertifikat(t.koreksi, t.desimalEfektif(5)), '-0,00276');
+      expect(
+        formatSertifikat(t.ketidakpastianDiperluas, t.desimalEfektif(5)),
+        '0,00053',
+      );
+    });
+
+    /// Turbidimeter: `desimal` per titik dikirim backend dan menang atas
+    /// angka sesi. Baris 1.000 NTU di master kecetak `1.000` / `1.001` / `-1`
+    /// — dengan titik ribuan, tanpa desimal.
+    test('desimal per titik menang atas desimal sesi', () {
+      final t = titik({
+        'titik_ke': 3,
+        'titik_ukur': 1000,
+        'rata_rata': 1000.6,
+        'koreksi': -0.6,
+        'ketidakpastian_diperluas': 22,
+        'desimal': 0,
+      });
+
+      expect(t.desimalEfektif(2), 0);
+      // Tanpa pemisah ribuan — master nulis `1000` & `1001` polos.
+      expect(formatNilaiStandar(t.titikUkur, t.desimalEfektif(2)), '1000');
+      expect(formatSertifikat(t.rataRata, t.desimalEfektif(2)), '1001');
+      expect(formatSertifikat(t.koreksi, t.desimalEfektif(2)), '-1');
+      expect(
+        formatSertifikat(t.ketidakpastianDiperluas, t.desimalEfektif(2)),
+        '22',
+      );
     });
   });
 }

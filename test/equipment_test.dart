@@ -18,6 +18,7 @@ import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/widgets/app_text_field.dart';
 import 'package:sidik_calibration/widgets/floating_nav_bar.dart';
+import 'support/lewati_onboarding.dart';
 
 /// Dibungkus `SidikApp` (bukan langsung `EquipmentListScreen`) — layar ini
 /// nge-watch `authProvider`, dan kalau dibuka lepas dari `AuthGate`,
@@ -27,6 +28,7 @@ import 'package:sidik_calibration/widgets/floating_nav_bar.dart';
 Widget _app({String token = 'mock-token-1', bool gagal = false}) {
   return ProviderScope(
     overrides: [
+      lewatiOnboarding,
       tokenStorageProvider.overrideWithValue(InMemoryTokenStorage(token)),
       authServiceProvider.overrideWithValue(MockAuthService()),
       dashboardServiceProvider.overrideWithValue(
@@ -69,7 +71,10 @@ Future<void> _tapTabAlat(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
-Future<void> _bukaTabAlat(WidgetTester tester, {String token = 'mock-token-1'}) async {
+Future<void> _bukaTabAlat(
+  WidgetTester tester, {
+  String token = 'mock-token-1',
+}) async {
   // Widget kosong dulu biar `ProviderScope`/container app sebelumnya (kalau
   // ada, dari pemanggilan `_bukaTabAlat` lain di test yang sama) beneran
   // dibuang — tanpa ini Flutter ngereuse elemen `SidikApp` lama, jadi state
@@ -175,7 +180,10 @@ void main() {
     await tester.tap(find.text('TAMBAH ALAT'));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextField).first, 'Alat Tanpa Toleransi');
+    await tester.enterText(
+      find.byType(TextField).first,
+      'Alat Tanpa Toleransi',
+    );
     await tester.enterText(find.byType(TextField).at(1), 'TT-001');
 
     await tester.tap(find.text('Pilih kategori alat'), warnIfMissed: false);
@@ -213,7 +221,10 @@ void main() {
 
       // MockCategoryService.detail('panjang') balikin 2 kemampuan — dropdown-nya
       // muncul begitu kategori dipilih, bukan cuma field kosong nggak berguna.
-      expect(find.text('Pilih jenis alat (opsional, buat CMC akurat)'), findsOneWidget);
+      expect(
+        find.text('Pilih jenis alat (opsional, buat CMC akurat)'),
+        findsOneWidget,
+      );
       await tester.tap(
         find.text('Pilih jenis alat (opsional, buat CMC akurat)'),
         warnIfMissed: false,
