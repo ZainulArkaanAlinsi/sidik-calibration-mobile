@@ -13,6 +13,7 @@ library;
 
 /// Header — 16 field, urutannya ngikutin yang tercetak di sertifikat.
 import '../core/utils/parse_list.dart';
+import 'autoclave_hasil.dart';
 
 class HeaderSertifikat {
   const HeaderSertifikat(this._raw);
@@ -230,10 +231,17 @@ class CertificateSnapshot {
     this.satuan,
     this.keputusan,
     this.u95PerTitik = false,
+    this.autoclave,
   });
 
   final HeaderSertifikat header;
   final List<BarisHasilSertifikat> hasil;
+
+  /// Hasil Autoklaf (Section A/B/C), kalau sertifikat ini Autoklaf. `null` di
+  /// alat lain — mereka pakai [hasil] (tabel empat kolom). Bentuknya sama persis
+  /// keluaran kalkulator; layar sertifikat mbranch ke sini biar sesi Autoklaf
+  /// nggak tampil sebagai tabel kosong (`hasil`-nya memang kosong).
+  final AutoclaveHasil? autoclave;
 
   /// Dua catatan baku di bawah tabel. **Datang dari backend**, bukan ditulis
   /// ulang di mobile — kalau lab merevisi kalimatnya, yang berubah satu tempat.
@@ -296,6 +304,10 @@ class CertificateSnapshot {
       footer: FooterSertifikat.fromJson(
         json['footer'] as Map<String, dynamic>? ?? const {},
       ),
+      autoclave: json['autoclave'] is Map<String, dynamic> &&
+              (json['autoclave'] as Map).isNotEmpty
+          ? AutoclaveHasil.fromJson(json['autoclave'] as Map<String, dynamic>)
+          : null,
     );
   }
 }

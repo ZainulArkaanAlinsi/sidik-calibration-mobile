@@ -271,8 +271,10 @@ class _InstrumenCard extends StatelessWidget {
       // endpoint `/calibrations/autoclave/preview` sendiri, bukan lembar generik.
       Navigator.of(context).push(
         MaterialPageRoute<void>(
-          builder: (_) =>
-              AutoclaveInputScreen(judulTambahan: kemampuan.namaAlat),
+          builder: (_) => AutoclaveInputScreen(
+            judulTambahan: kemampuan.namaAlat,
+            kategori: kategori.kode,
+          ),
         ),
       );
       return;

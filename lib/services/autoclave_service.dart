@@ -10,6 +10,11 @@ import 'api_client.dart';
 abstract class AutoclaveService {
   /// [payload] = data ukur mentah (lihat `AutoclaveInputScreen._payload`).
   Future<AutoclaveHasil> pratinjau(String token, Map<String, dynamic> payload);
+
+  /// Simpan sesi Autoklaf (`POST /calibrations/autoclave`). [payload] gabungan
+  /// identitas (equipment_id, tanggal, kondisi lingkungan) + data ukur.
+  /// Balik id sesi tersimpan.
+  Future<int> simpan(String token, Map<String, dynamic> payload);
 }
 
 class ApiAutoclaveService implements AutoclaveService {
@@ -28,5 +33,16 @@ class ApiAutoclaveService implements AutoclaveService {
       body: payload,
     );
     return AutoclaveHasil.fromJson(json);
+  }
+
+  @override
+  Future<int> simpan(String token, Map<String, dynamic> payload) async {
+    final json = await _api.post(
+      '/calibrations/autoclave',
+      token: token,
+      body: payload,
+    );
+    final data = (json['data'] ?? json) as Map<String, dynamic>;
+    return (data['id'] as num).toInt();
   }
 }

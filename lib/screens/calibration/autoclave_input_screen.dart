@@ -3,10 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
-import '../../core/utils/angka.dart';
-import '../../models/autoclave_hasil.dart';
+import '../../models/equipment_lookup.dart';
 import '../../providers/autoclave_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/calibration_input_provider.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/autoclave_hasil_panel.dart';
 
 /// Lembar Kerja Autoklaf (SIDIK-FM-CAL-0539_Rev.4) — layar input teknisi.
 ///
@@ -21,10 +23,13 @@ import '../../widgets/app_button.dart';
 /// Variasi, konversi satuan, dan U95 semua dari backend. Layar cuma ngumpulin
 /// angka & nampilin hasil.
 class AutoclaveInputScreen extends ConsumerStatefulWidget {
-  const AutoclaveInputScreen({super.key, this.judulTambahan});
+  const AutoclaveInputScreen({super.key, this.judulTambahan, this.kategori});
 
   /// Nama alat, buat subjudul app bar (mis. "Autoclave").
   final String? judulTambahan;
+
+  /// Kode kategori alat — nyaring picker Equipment biar cuma alat relevan.
+  final String? kategori;
 
   @override
   ConsumerState<AutoclaveInputScreen> createState() =>
@@ -52,6 +57,15 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
   late final List<TextEditingController> _pembacaanTekanan;
   String _satuan = 'MPa';
   String _display = 'Digital';
+
+  // ---- Identitas (buat Simpan) ----
+  int? _equipmentId;
+  DateTime _tanggalKalibrasi = DateTime.now();
+  final _suhuAwalCtrl = TextEditingController();
+  final _suhuAkhirCtrl = TextEditingController();
+  final _rhAwalCtrl = TextEditingController();
+  final _rhAkhirCtrl = TextEditingController();
+  bool _menyimpan = false;
 
   String? _errorInput;
 
@@ -82,6 +96,10 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
       c.dispose();
     }
     _uutSettingCtrl.dispose();
+    _suhuAwalCtrl.dispose();
+    _suhuAkhirCtrl.dispose();
+    _rhAwalCtrl.dispose();
+    _rhAkhirCtrl.dispose();
     super.dispose();
   }
 
@@ -149,6 +167,62 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
     await ref.read(autoclavePratinjauProvider.notifier).hitung(payload);
   }
 
+  /// Payload simpan = data ukur (`_payload`) + identitas sesi. Equipment &
+  /// tanggal wajib buat kirim; kondisi lingkungan opsional (admin bisa lengkapi).
+  Map<String, dynamic>? _payloadSimpan() {
+    final ukur = _payload();
+    if (ukur == null) return null;
+
+    if (_equipmentId == null) {
+      setState(() => _errorInput = 'Pilih Alat (Equipment) dulu sebelum menyimpan.');
+      return null;
+    }
+
+    return {
+      ...ukur,
+      'equipment_id': _equipmentId,
+      'tanggal_kalibrasi':
+          _tanggalKalibrasi.toIso8601String().substring(0, 10),
+      if (_num(_suhuAwalCtrl) != null) 'suhu_awal': _num(_suhuAwalCtrl),
+      if (_num(_suhuAkhirCtrl) != null) 'suhu_akhir': _num(_suhuAkhirCtrl),
+      if (_num(_rhAwalCtrl) != null) 'kelembaban_awal': _num(_rhAwalCtrl),
+      if (_num(_rhAkhirCtrl) != null) 'kelembaban_akhir': _num(_rhAkhirCtrl),
+    };
+  }
+
+  Future<void> _simpan() async {
+    FocusScope.of(context).unfocus();
+    final payload = _payloadSimpan();
+    if (payload == null) return;
+
+    setState(() => _menyimpan = true);
+    try {
+      final token = await ref.read(tokenStorageProvider).read();
+      if (token == null) throw Exception('Sesi login habis, masuk lagi.');
+      await ref.read(autoclaveServiceProvider).simpan(token, payload);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sesi Autoklaf terkirim ke admin.')),
+      );
+      Navigator.of(context).pop();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _errorInput = 'Gagal menyimpan: $e');
+    } finally {
+      if (mounted) setState(() => _menyimpan = false);
+    }
+  }
+
+  Future<void> _pilihTanggal() async {
+    final hasil = await showDatePicker(
+      context: context,
+      initialDate: _tanggalKalibrasi,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+    if (hasil != null) setState(() => _tanggalKalibrasi = hasil);
+  }
+
   @override
   Widget build(BuildContext context) {
     final status = ref.watch(autoclavePratinjauProvider);
@@ -173,8 +247,12 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
+          _seksiIdentitas(theme),
+          const SizedBox(height: AppSpacing.md),
           _seksi('1. Set Point', [
-            _fieldAngka(_setPointCtrl, label: 'Set Point (°C)'),
+            _fieldAngka(_setPointCtrl,
+                label: 'Set Point (°C)',
+                fieldKey: const Key('ac_setpoint')),
           ]),
           const SizedBox(height: AppSpacing.md),
           _seksiSuhu(theme),
@@ -186,17 +264,33 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
                 style: TextStyle(color: theme.colorScheme.error)),
             const SizedBox(height: AppSpacing.sm),
           ],
-          AppButton(
-            label: 'Hitung',
-            isLoading: status.menghitung,
-            onPressed: _hitung,
+          Row(
+            children: [
+              Expanded(
+                child: AppButton(
+                  label: 'Hitung',
+                  variant: AppButtonVariant.secondary,
+                  isLoading: status.menghitung,
+                  onPressed: _hitung,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: AppButton(
+                  label: 'Simpan & Kirim',
+                  isLoading: _menyimpan,
+                  onPressed: _simpan,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: AppSpacing.lg),
           if (status.gagal != null) ...[
             _KotakError(pesan: '${status.gagal}'),
             const SizedBox(height: AppSpacing.md),
           ],
-          if (status.hasil != null) _HasilPanel(hasil: status.hasil!),
+          if (status.hasil != null)
+            AutoclaveHasilPanel(hasil: status.hasil!, judul: 'Hasil Olah Data'),
           const SizedBox(height: AppSpacing.lg),
         ],
       ),
@@ -204,6 +298,64 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
   }
 
   // ---- Bagian input ----
+
+  Widget _seksiIdentitas(ThemeData theme) {
+    final alatAsync = ref.watch(equipmentLookupProvider(widget.kategori));
+
+    return _seksi('Identitas Kalibrasi', [
+      alatAsync.when(
+        data: (list) => DropdownButtonFormField<int>(
+          initialValue:
+              list.any((a) => a.id == _equipmentId) ? _equipmentId : null,
+          isExpanded: true,
+          decoration: const InputDecoration(
+            labelText: 'Alat (Equipment) *',
+            border: OutlineInputBorder(),
+          ),
+          items: [
+            for (final EquipmentLookup a in list)
+              DropdownMenuItem(
+                value: a.id,
+                child: Text('${a.namaAlat} — ${a.serialNumber}',
+                    overflow: TextOverflow.ellipsis),
+              ),
+          ],
+          onChanged: (v) => setState(() => _equipmentId = v),
+        ),
+        loading: () => const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: LinearProgressIndicator(),
+        ),
+        error: (e, _) => Text('Gagal muat daftar alat: $e',
+            style: TextStyle(color: theme.colorScheme.error)),
+      ),
+      const SizedBox(height: AppSpacing.sm),
+      InkWell(
+        onTap: _pilihTanggal,
+        child: InputDecorator(
+          decoration: const InputDecoration(
+            labelText: 'Tanggal Kalibrasi',
+            border: OutlineInputBorder(),
+          ),
+          child: Text(_tanggalKalibrasi.toIso8601String().substring(0, 10)),
+        ),
+      ),
+      const SizedBox(height: AppSpacing.sm),
+      Text('Kondisi Lingkungan (opsional)', style: theme.textTheme.bodySmall),
+      const SizedBox(height: 4),
+      Row(children: [
+        Expanded(child: _fieldAngka(_suhuAwalCtrl, label: 'T awal (°C)')),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(child: _fieldAngka(_suhuAkhirCtrl, label: 'T akhir (°C)')),
+      ]),
+      const SizedBox(height: AppSpacing.sm),
+      Row(children: [
+        Expanded(child: _fieldAngka(_rhAwalCtrl, label: 'RH awal (%)')),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(child: _fieldAngka(_rhAkhirCtrl, label: 'RH akhir (%)')),
+      ]),
+    ]);
+  }
 
   Widget _seksiSuhu(ThemeData theme) {
     final header = ['', for (var i = 1; i <= _jumlahTitikWaktu; i++) 'W$i'];
@@ -276,10 +428,12 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
       const SizedBox(height: 4),
       Row(
         children: [
-          for (final c in _pembacaanTekanan)
+          for (final (i, c) in _pembacaanTekanan.indexed)
             Expanded(child: Padding(
               padding: const EdgeInsets.all(2),
-              child: _fieldAngka(c, dense: true),
+              child: _fieldAngka(c,
+                  dense: true,
+                  fieldKey: i == 0 ? const Key('ac_p0') : null),
             )),
         ],
       ),
@@ -304,8 +458,9 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
   }
 
   Widget _fieldAngka(TextEditingController c,
-      {String? label, bool dense = false}) {
+      {String? label, bool dense = false, Key? fieldKey}) {
     return TextField(
+      key: fieldKey,
       controller: c,
       keyboardType: const TextInputType.numberWithOptions(
           decimal: true, signed: true),
@@ -325,124 +480,6 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
     );
   }
 }
-
-// ---- Panel hasil ----
-
-class _HasilPanel extends StatelessWidget {
-  const _HasilPanel({required this.hasil});
-
-  final AutoclaveHasil hasil;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Hasil Olah Data', style: theme.textTheme.titleMedium),
-        const SizedBox(height: AppSpacing.sm),
-        if (hasil.suhu != null) _kartuSuhu(context, hasil.suhu!),
-        if (hasil.suhu != null) const SizedBox(height: AppSpacing.md),
-        if (hasil.tekanan != null) _kartuTekanan(context, hasil.tekanan!),
-      ],
-    );
-  }
-
-  Widget _kartuSuhu(BuildContext context, AutoclaveSuhu s) {
-    final theme = Theme.of(context);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('A) Sebaran Suhu', style: theme.textTheme.titleSmall),
-            const SizedBox(height: AppSpacing.sm),
-            Table(
-              border: TableBorder.all(color: theme.dividerColor),
-              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-              children: [
-                _barisTabel(
-                    ['Sensor', 'Std Terkoreksi', 'Koreksi', 'ΔT'],
-                    header: true),
-                for (final sen in s.sensor)
-                  _barisTabel([
-                    '${sen.no}',
-                    _f(sen.standarTerkoreksi, 3),
-                    _f(sen.koreksi, 3),
-                    _f(sen.deltaT, 3),
-                  ]),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text('B) Kinerja Autoklaf', style: theme.textTheme.titleSmall),
-            const SizedBox(height: 4),
-            _kv('Suhu Indikator (rata)', _f(s.indikatorRata, 2), '°C'),
-            _kv('Kestabilan (SS)', _f(s.kestabilan, 3), '°C'),
-            _kv('Keseragaman (KS)', _f(s.keseragaman, 3), '°C'),
-            _kv('Variasi Keseluruhan (VK)', _f(s.variasi, 3), '°C'),
-            const Divider(),
-            _kv('U95%', '± ${_f(s.u95, 4)}', '°C', tebal: true),
-            _kv('Faktor cakupan (k)', _f(s.k, 4), ''),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _kartuTekanan(BuildContext context, AutoclaveTekanan t) {
-    final theme = Theme.of(context);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('C) Tekanan (${t.satuan})',
-                style: theme.textTheme.titleSmall),
-            const SizedBox(height: 4),
-            _kv('UUT Setting', _f(t.uutSetting, 4), t.satuan),
-            _kv('Standard Value', _f(t.standarTerkoreksi, 4), t.satuan),
-            _kv('Correction', _f(t.koreksi, 4), t.satuan),
-            const Divider(),
-            _kv('U95%', '± ${_f(t.u95, 4)}', t.satuan, tebal: true),
-            _kv('Faktor cakupan (k)', _f(t.k, 4), ''),
-          ],
-        ),
-      ),
-    );
-  }
-
-  TableRow _barisTabel(List<String> sel, {bool header = false}) {
-    return TableRow(
-      children: [
-        for (final s in sel)
-          Padding(
-            padding: const EdgeInsets.all(6),
-            child: Text(s,
-                style: header
-                    ? const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)
-                    : const TextStyle(fontSize: 12)),
-          ),
-      ],
-    );
-  }
-
-  Widget _kv(String k, String v, String satuan, {bool tebal = false}) {
-    final gaya = tebal ? const TextStyle(fontWeight: FontWeight.bold) : null;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(child: Text(k, style: gaya)),
-          Text(satuan.isEmpty ? v : '$v $satuan', style: gaya),
-        ],
-      ),
-    );
-  }
-}
-
 class _KotakError extends StatelessWidget {
   const _KotakError({required this.pesan});
 
@@ -464,7 +501,3 @@ class _KotakError extends StatelessWidget {
   }
 }
 
-/// Format angka hasil buat tampilan. Nol belakang dipertahankan sampai
-/// [desimal] (ikut gaya sertifikat lab), tapi angka null jadi "—".
-String _f(double? v, int desimal) =>
-    v == null ? '—' : formatNilai(v, desimalMin: desimal, desimalMaks: desimal);
