@@ -6566,6 +6566,18 @@ abstract class AppLocalizations {
   /// **'Send now'**
   String get lkKonfirmasiKirim;
 
+  /// No description provided for @lkPeringatanAngkaJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'These readings look implausible'**
+  String get lkPeringatanAngkaJudul;
+
+  /// No description provided for @lkPeringatanAngkaLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'The reading really is that — send'**
+  String get lkPeringatanAngkaLanjut;
+
   /// No description provided for @lkGantiSatuanJudul.
   ///
   /// In en, this message translates to:

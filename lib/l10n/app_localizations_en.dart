@@ -3637,6 +3637,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkKonfirmasiKirim => 'Send now';
 
   @override
+  String get lkPeringatanAngkaJudul => 'These readings look implausible';
+
+  @override
+  String get lkPeringatanAngkaLanjut => 'The reading really is that — send';
+
+  @override
   String get lkGantiSatuanJudul => 'Switching units clears the table';
 
   @override

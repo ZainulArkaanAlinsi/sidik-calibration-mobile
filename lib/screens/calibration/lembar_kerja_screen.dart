@@ -539,23 +539,25 @@ class _FormState extends ConsumerState<_Form> {
       }
 
       // Pembacaan yang melesetnya SATU ORDE dari nominal barisnya — salah
-      // satuan atau koma kegeser. Ditahan di sini karena yang bisa mbenerin
+      // satuan atau koma kegeser. Ditanyain di sini karena yang bisa mbenerin
       // cuma orang yang lagi berdiri di depan alatnya; di admin angka kayak
       // gini cuma jadi peringatan yang gampang dilewatin.
+      //
+      // TANYA, bukan tahan. Ini dugaan soal kewajaran angka, bukan kekurangan
+      // data: alat yang lagi dikalibrasi BOLEH baca jauh melenceng — rusak,
+      // spindle/RPM nggak cocok, atau nol karena torsinya nggak nyampe. Waktu
+      // penjaga ini masih memblokir, viscometer 19 Agt 2026 nggak bisa dikirim
+      // sama sekali walau angkanya emang segitu di layar alatnya, dan
+      // satu-satunya jalan keluar teknisi ya ngarang angka biar lolos — persis
+      // kebalikan dari yang mau dijaga.
       final jauh = _isian.titikPembacaanJauh;
 
       if (jauh.isNotEmpty) {
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n.lkPembacaanJauhDariTitik(
-                jauh.map((t) => t.label).join(', '),
-              ),
-            ),
-            duration: const Duration(seconds: 10),
-          ),
+        final lanjut = await _konfirmasiPeringatan(
+          l10n.lkPembacaanJauhDariTitik(jauh.map((t) => t.label).join(', ')),
         );
-        return;
+        if (!lanjut) return;
+        if (!mounted) return;
       }
 
       // Satu Repeat yang jauh menyimpang dari Repeat lain SEBARIS — nangkep
@@ -565,20 +567,18 @@ class _FormState extends ConsumerState<_Form> {
       // lolos mulus. Tapi buat alat yang U95-nya lahir per kelompok, satu
       // angka itu menaikkan U95 sembilan titik saudaranya 212x CMC lab — dan
       // sertifikatnya terbit dengan angka itu (`CAL/2026/08/0043`).
+      //
+      // Sama kayak penjaga di atas: ditanyain, bukan ditahan. Sebaran antar
+      // Repeat yang lebar itu GEJALA alat jelek, dan alat jelek justru yang
+      // paling perlu sertifikatnya terbit apa adanya.
       final menyimpang = _isian.titikRepeatMenyimpang;
 
       if (menyimpang.isNotEmpty) {
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n.lkRepeatMenyimpang(
-                menyimpang.map((t) => t.label).join(', '),
-              ),
-            ),
-            duration: const Duration(seconds: 10),
-          ),
+        final lanjut = await _konfirmasiPeringatan(
+          l10n.lkRepeatMenyimpang(menyimpang.map((t) => t.label).join(', ')),
         );
-        return;
+        if (!lanjut) return;
+        if (!mounted) return;
       }
 
       // Isian YATIM: angkanya keisi tapi standarnya belum dicentang, jadi
@@ -660,6 +660,41 @@ class _FormState extends ConsumerState<_Form> {
       ),
     );
     navigator.pop(hasil.id);
+  }
+
+  /// Peringatan kewajaran angka yang BISA dilewati teknisi.
+  ///
+  /// Bedanya sama penjaga suhu & isian yatim: yang itu bikin angkanya nggak
+  /// bisa DIHITUNG sama sekali (nilai acuan nggak ketauan), jadi tetap ditahan
+  /// mati. Yang lewat sini cuma dugaan "kelihatan salah ketik" — dan dugaan
+  /// nggak boleh nyandera data lapangan, karena alat yang lagi dikalibrasi
+  /// emang boleh baca aneh.
+  ///
+  /// Tetap dialog, bukan snackbar: teknisi mesti natap angkanya sekali dan
+  /// menyatakan "emang segitu", jadi salah ketik beneran masih ketangkep.
+  Future<bool> _konfirmasiPeringatan(String pesan) async {
+    final l10n = AppLocalizations.of(context);
+
+    final lanjut = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        scrollable: true,
+        title: Text(l10n.lkPeringatanAngkaJudul),
+        content: Text(pesan),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.lkKonfirmasiPeriksaLagi),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.lkPeringatanAngkaLanjut),
+          ),
+        ],
+      ),
+    );
+
+    return lanjut ?? false;
   }
 
   /// Rata-rata tiap larutan standar ditunjukin sekali, tepat sebelum kirim.
@@ -1266,6 +1301,20 @@ class _Bagian extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
+    // Grup `spindle_titik_N` / `rpm_titik_N` / `resolusi_titik_N` ditarik
+    // keluar dari daftar field biasa SELAMA bagian ini punya tabel buat
+    // ditempelin — kalau nggak ada tabel sama sekali, dibiarin lewat jalur
+    // lama (render di daftar field) daripada ilang diam-diam.
+    final grupField = _kelompokkanField(bagian.field);
+    final grupTitik = <int, List<List<FieldLembarKerja>>>{};
+    if (bagian.tabel.isNotEmpty) {
+      for (final grup in grupField) {
+        final indeks = _indeksTitik(grup.first);
+        if (indeks != null) (grupTitik[indeks] ??= []).add(grup);
+      }
+    }
+    final urutanTitik = grupTitik.keys.toList()..sort();
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -1298,8 +1347,13 @@ class _Bagian extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.md),
               ],
 
-              for (final grup in _kelompokkanField(bagian.field)) ...[
+              for (final grup in grupField) ...[
                 if (_kodeKondisiLingkungan.contains(grup.first.kode))
+                  const SizedBox.shrink()
+                else if (_indeksTitik(grup.first) != null &&
+                    bagian.tabel.isNotEmpty)
+                  // Ditunda: digambar nempel ke tabel titiknya, lihat di
+                  // bawah — bukan di sini.
                   const SizedBox.shrink()
                 else
                 // Seluruh blok spesifikasi digambar bentuk cetak — termasuk
@@ -1335,13 +1389,34 @@ class _Bagian extends ConsumerWidget {
                 onBerubah: onBerubah,
               ),
 
-            for (final tabel in bagian.tabel) ...[
+            for (var i = 0; i < bagian.tabel.length; i++) ...[
               LembarKerjaTabel(
-                tabel: tabel,
+                tabel: bagian.tabel[i],
                 isian: isian,
                 onBerubah: onBerubah,
               ),
               const SizedBox(height: AppSpacing.lg),
+
+              // Spindle/RPM/Resolusi tiap titik ditempel di sini, sesudah
+              // tabel PERTAMA — persis posisinya di kertas: langsung di
+              // bawah `Standard`/`UUT Reading` titik itu, bukan dikumpulin
+              // jauh di atas kedua tabel. Sekali aja (nggak diulang lagi
+              // sesudah tabel After Adjustment): datanya milik titik, bukan
+              // milik tahap — spindle & RPM yang dipakai sama buat before
+              // maupun after.
+              if (i == 0 && urutanTitik.isNotEmpty) ...[
+                for (final indeks in urutanTitik) ...[
+                  for (final grup in grupTitik[indeks]!) ...[
+                    _BarisSpesifikasi(
+                      field: grup,
+                      isian: isian,
+                      onBerubah: onBerubah,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                  ],
+                ],
+                const SizedBox(height: AppSpacing.sm),
+              ],
             ],
 
             // Catatan pengisian diulang di bawah tabel, bukan cuma di kop
@@ -1989,6 +2064,20 @@ const _kodeKondisiLingkungan = {
     suhuAkhir: suhuAkhir,
     kelembabanAkhir: kelembabanAkhir,
   );
+}
+
+/// Kolom `spesifikasi_alat.*_titik_N` — Spindle/RPM/Resolusi Viscometer,
+/// satu set per titik ukur. Dipakai buat naruh grupnya NEMPEL ke tabel
+/// titik itu ([_Bagian.build]), bukan numpuk di atas kedua tabel kayak
+/// kolom spesifikasi lain: lihat `perintah-frontend-viscometer.md` §5.2 —
+/// di kertas cetaknya, `Resolusi UUT` / `Rpm used` / `Spindle used` ada
+/// PERSIS di bawah tabel `Standard`/`UUT Reading` titik itu.
+final _polaTitik = RegExp(r'_titik_(\d+)$');
+
+int? _indeksTitik(FieldLembarKerja field) {
+  if (!field.spesifikasiAlat) return null;
+  final cocok = _polaTitik.firstMatch(field.kunciSpesifikasi);
+  return cocok == null ? null : int.parse(cocok.group(1)!);
 }
 
 List<List<FieldLembarKerja>> _kelompokkanField(List<FieldLembarKerja> field) {

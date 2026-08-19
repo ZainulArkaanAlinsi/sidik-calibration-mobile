@@ -1478,6 +1478,8 @@
   "lkKonfirmasiBarisKosong": "Belum diisi",
   "lkKonfirmasiPeriksaLagi": "Periksa lagi",
   "lkKonfirmasiKirim": "Kirim sekarang",
+  "lkPeringatanAngkaJudul": "Angkanya kelihatan nggak wajar",
+  "lkPeringatanAngkaLanjut": "Angkanya emang segitu — kirim",
   "lkGantiSatuanJudul": "Ganti satuan bakal ngosongin tabel",
   "lkGantiSatuanPesan": "{dari} pakai larutan standar yang beda dari {ke}, jadi baris tabelnya ikut ganti dan pembacaan yang udah diisi kehapus. Angka {dari} nggak bisa dipakai sebagai {ke}.",
   "@lkGantiSatuanPesan": {

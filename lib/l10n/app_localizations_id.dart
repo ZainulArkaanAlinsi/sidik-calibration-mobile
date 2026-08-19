@@ -3607,6 +3607,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkKonfirmasiKirim => 'Kirim sekarang';
 
   @override
+  String get lkPeringatanAngkaJudul => 'Angkanya kelihatan nggak wajar';
+
+  @override
+  String get lkPeringatanAngkaLanjut => 'Angkanya emang segitu — kirim';
+
+  @override
   String get lkGantiSatuanJudul => 'Ganti satuan bakal ngosongin tabel';
 
   @override

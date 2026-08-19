@@ -1969,6 +1969,8 @@
   "lkKonfirmasiBarisKosong": "Not filled in",
   "lkKonfirmasiPeriksaLagi": "Check again",
   "lkKonfirmasiKirim": "Send now",
+  "lkPeringatanAngkaJudul": "These readings look implausible",
+  "lkPeringatanAngkaLanjut": "The reading really is that — send",
   "lkGantiSatuanJudul": "Switching units clears the table",
   "lkGantiSatuanPesan": "{dari} uses different standard solutions than {ke}, so the table rows change and any readings you entered are discarded. A {dari} value is not a {ke} value.",
   "@lkGantiSatuanPesan": {
