@@ -1313,7 +1313,11 @@ class _Bagian extends ConsumerWidget {
                     isian.lokasi != LokasiKalibrasi.onsite)
                   const SizedBox.shrink()
                 else if (grup.first.spesifikasiAlat)
-                  _BarisSpesifikasi(field: grup, isian: isian)
+                  _BarisSpesifikasi(
+                    field: grup,
+                    isian: isian,
+                    onBerubah: onBerubah,
+                  )
                 else
                   _Field(field: grup.first, isian: isian, onBerubah: onBerubah),
                 const SizedBox(height: AppSpacing.md),
@@ -2013,10 +2017,15 @@ List<List<FieldLembarKerja>> _kelompokkanField(List<FieldLembarKerja> field) {
 /// Isinya teks apa adanya, bukan angka: `0-100` emang bukan bilangan, dan yang
 /// tercetak di sertifikat juga teks.
 class _BarisSpesifikasi extends StatelessWidget {
-  const _BarisSpesifikasi({required this.field, required this.isian});
+  const _BarisSpesifikasi({
+    required this.field,
+    required this.isian,
+    required this.onBerubah,
+  });
 
   final List<FieldLembarKerja> field;
   final LembarKerjaState isian;
+  final VoidCallback onBerubah;
 
   @override
   Widget build(BuildContext context) {
@@ -2038,20 +2047,71 @@ class _BarisSpesifikasi extends StatelessWidget {
             for (final f in field) ...[
               if (f != field.first) const SizedBox(width: AppSpacing.sm),
               Expanded(
-                child: TextField(
-                  controller: isian.teks[f.kode],
-                  decoration: InputDecoration(
-                    // Labelnya udah ditulis sekali di atas — yang di dalam
-                    // kotak tinggal satuannya, persis kertasnya.
-                    labelText: f.satuan,
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
+                // Spindle & Model Viscometer nyampe ke sini sebagai
+                // `spesifikasi_alat.*` bertipe pilihan — daftarnya 63 opsi
+                // (SMC-nya beda 400× antar spindle) dan HARUS dropdown, bukan
+                // isian bebas: lihat `perintah-frontend-viscometer.md` §3.1.
+                child: f.tipe == TipeField.pilihan
+                    ? _DropdownSpesifikasi(
+                        field: f,
+                        controller: isian.teks[f.kode]!,
+                        onBerubah: onBerubah,
+                      )
+                    : TextField(
+                        controller: isian.teks[f.kode],
+                        decoration: InputDecoration(
+                          // Labelnya udah ditulis sekali di atas — yang di
+                          // dalam kotak tinggal satuannya, persis kertasnya.
+                          labelText: f.satuan,
+                          border: const OutlineInputBorder(),
+                        ),
+                      ),
               ),
             ],
           ],
         ),
       ],
+    );
+  }
+}
+
+/// Dropdown buat `spesifikasi_alat.*` bertipe pilihan (Model & Spindle
+/// Viscometer). Nilai kepilih ditulis ke [controller] apa adanya — kunci
+/// payloadnya udah lewat `kunciSpesifikasi`, bukan `f.kode`, jadi widget ini
+/// nggak perlu tahu bentuk payloadnya.
+class _DropdownSpesifikasi extends StatelessWidget {
+  const _DropdownSpesifikasi({
+    required this.field,
+    required this.controller,
+    required this.onBerubah,
+  });
+
+  final FieldLembarKerja field;
+  final TextEditingController controller;
+  final VoidCallback onBerubah;
+
+  @override
+  Widget build(BuildContext context) {
+    // Nilai lama yang nggak ketemu di daftar pilihan dibiarin kosong, bukan
+    // dipaksa masuk — `DropdownButtonFormField` nge-assert kalau nilainya
+    // nggak cocok persis salah satu item, dan itu bikin layarnya mati total.
+    final terpilih = field.pilihan.any((p) => p.nilai == controller.text)
+        ? controller.text
+        : null;
+
+    return DropdownButtonFormField<String>(
+      initialValue: terpilih,
+      isExpanded: true,
+      decoration: const InputDecoration(border: OutlineInputBorder()),
+      items: [
+        for (final p in field.pilihan)
+          DropdownMenuItem(value: p.nilai, child: Text(p.label)),
+      ],
+      onChanged: (value) {
+        if (value == null) return;
+        controller.text = value;
+        onBerubah();
+      },
     );
   }
 }

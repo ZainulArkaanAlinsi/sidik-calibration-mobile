@@ -383,7 +383,12 @@ class LembarKerjaState {
         if (f.turunan) continue;
         if (f.tipe == TipeField.teks ||
             f.tipe == TipeField.teksPanjang ||
-            f.tipe == TipeField.angka) {
+            f.tipe == TipeField.angka ||
+            // `spesifikasi_alat.*` bertipe pilihan (mis. model & spindle
+            // Viscometer) digambar `_BarisSpesifikasi`, bukan `_PilihanTetap`
+            // — tanpa controller di sini kotaknya kepilih tapi nilainya nggak
+            // pernah masuk `spesifikasiAlat` waktu dikirim.
+            (f.tipe == TipeField.pilihan && f.spesifikasiAlat)) {
           teks.putIfAbsent(f.kode, TextEditingController.new);
         }
       }
