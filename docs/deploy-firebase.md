@@ -293,10 +293,22 @@ backend berarti membangun ulang ketiga platform — tidak ada cara mengubahnya
 dari sisi Hosting atau dari sisi aplikasi yang sudah terpasang. Jadi pastikan
 URL backend sudah final sebelum mulai membagikan.
 
-Nomor versi di `pubspec.yaml` (`version: 1.0.0+1`) belum pernah dinaikkan. Untuk
-Android itu bukan sekadar kosmetik: Android menolak memasang APK dengan
-`versionCode` yang tidak lebih besar dari yang sudah terpasang. Naikkan angka
-sesudah `+` setiap kali mengirim build baru ke App Distribution.
+Nomor versi **untuk build CI sudah otomatis**. Workflow "APK rilis (nyambung
+server)" mengoper `--build-number=${{ github.run_number }}`, angka yang naik
+sendiri setiap workflow itu jalan, dan nomornya ikut ditulis di catatan rilis
+App Distribution ("build 25 · …") supaya bisa diadu waktu teknisi lapor.
+
+Ini bukan kosmetik. Android menolak memasang APK dengan `versionCode` yang
+tidak lebih besar dari yang sudah terpasang, dan gagalnya cuma muncul sebagai
+"App not installed" tanpa sebab. App Tester juga mengelompokkan rilis per
+versi, jadi build baru bernomor sama nangkring di bawah judul yang sama seperti
+yang lama — teknisi melihat "sudah terpasang" lalu tetap memegang versi kemarin.
+
+`version:` di `pubspec.yaml` sengaja dibiarkan di `+2`. Itu membuat build lokal
+selalu berangka lebih kecil daripada build CI, jadi APK hasil coba-coba di
+laptop tidak bisa menimpa rilis yang dipegang teknisi — kebalikannya yang
+berbahaya, dan diam-diam. Kalau memang perlu membagikan build lokal, oper
+`--build-number` sendiri dengan angka di atas nomor run CI terakhir.
 
 ## Kenapa bukan Flutter Web
 
