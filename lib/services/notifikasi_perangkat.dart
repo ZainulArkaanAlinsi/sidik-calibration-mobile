@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../core/navigasi_global.dart';
 import '../models/notification_item.dart';
 
 /// Notifikasi tingkat SISTEM OPERASI — yang nongol di bilah HP dan di pojok
@@ -70,6 +71,12 @@ class LocalNotifikasiPerangkat implements NotifikasiPerangkat {
     );
 
     final ok = await _plugin.initialize(
+      // Ketukan di bilah notifikasi mendarat di sini. Muatannya `tipe:id`,
+      // bukan id notifikasinya — biar layarnya kebuka tanpa perlu narik
+      // daftar notifikasi dulu, yang belum tentu sempat waktu aplikasinya
+      // baru bangun.
+      onDidReceiveNotificationResponse: (respons) =>
+          bukaTautanDariLuar(bacaTautan(respons.payload)),
       settings: const InitializationSettings(
         android: android,
         iOS: apple,
@@ -137,7 +144,7 @@ class LocalNotifikasiPerangkat implements NotifikasiPerangkat {
       ),
       // Dibawa balik waktu notifikasinya diketuk — dipakai buat mbuka layar
       // yang bersangkutan, bukan cuma mbuka app di halaman depan.
-      payload: item.id,
+      payload: sandiTautan(item.tautan),
     );
   }
 

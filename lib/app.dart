@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/navigasi_global.dart';
 import 'core/theme/app_theme.dart';
 import 'l10n/app_localizations.dart';
 import 'providers/locale_provider.dart';
@@ -16,6 +17,9 @@ class SidikApp extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp(
+      // Dipakai buat mbuka layar tujuan waktu notifikasi sistem diketuk —
+      // di situ nggak ada `BuildContext` sama sekali.
+      navigatorKey: navigatorKey,
       title: 'PT Sidik — Kalibrasi',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,

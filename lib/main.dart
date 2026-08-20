@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app.dart';
 import 'core/config/app_config.dart';
+import 'services/ketukan_push.dart';
 import 'services/mock_store.dart';
 
 Future<void> main() async {
@@ -45,6 +46,10 @@ Future<void> _nyalakanFirebase() async {
 
   try {
     await Firebase.initializeApp();
+    // Ketukan pada push — termasuk yang MENYALAKAN aplikasi dari keadaan mati.
+    // Dipasang di sini, sesudah Firebase hidup dan sebelum `runApp`, karena
+    // `getInitialMessage()` cuma bisa dibaca sekali.
+    await KetukanPush.pasang();
   } catch (e) {
     debugPrint('Firebase nggak nyala: $e');
   }
