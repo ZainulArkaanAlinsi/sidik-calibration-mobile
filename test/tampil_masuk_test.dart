@@ -84,4 +84,40 @@ void main() {
 
     expect(tester.widget<Opacity>(find.byType(Opacity)).opacity, lessThan(1));
   });
+  group('berurutan', () {
+    test('tiap yang kelihatan dibungkus, jumlahnya tetap', () {
+      final hasil = berurutan(const [Text('a'), Text('b'), Text('c')]);
+
+      expect(hasil.length, 3);
+      expect(hasil.every((w) => w is TampilMasuk), isTrue);
+      expect(hasil.map((w) => (w as TampilMasuk).indeks), [0, 1, 2]);
+    });
+
+    /// `SizedBox` cuma pengatur ruang. Kalau dia ikut dapat nomor urut, jeda
+    /// antar kartu yang KELIHATAN jadi dobel di sebagian tempat dan iramanya
+    /// kebaca timpang.
+    test('widget jarak dilewati dan nggak makan nomor urut', () {
+      final hasil = berurutan(const [
+        Text('a'),
+        SizedBox(height: 8),
+        Text('b'),
+        SizedBox(height: 8),
+        Text('c'),
+      ]);
+
+      expect(hasil.length, 5, reason: 'jumlah & posisinya nggak boleh berubah');
+      expect(hasil[1], isA<SizedBox>());
+      expect(hasil[3], isA<SizedBox>());
+
+      final urut = [
+        for (final w in hasil)
+          if (w is TampilMasuk) w.indeks,
+      ];
+      expect(urut, [0, 1, 2]);
+    });
+
+    test('daftar kosong tetap kosong', () {
+      expect(berurutan(const []), isEmpty);
+    });
+  });
 }

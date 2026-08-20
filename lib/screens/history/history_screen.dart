@@ -20,6 +20,7 @@ import '../../widgets/master_detail_pane.dart';
 import '../../widgets/readable_width.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/status_badge.dart';
+import '../../widgets/tampil_masuk.dart';
 import '../../widgets/notification_bell.dart';
 import '../admin/widgets/panel_temuan.dart';
 import 'calibration_detail_screen.dart';
@@ -175,7 +176,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
   }
 }
 
-class _Isi extends StatelessWidget {
+class _Isi extends StatefulWidget {
   const _Isi({
     required this.items,
     required this.isAdmin,
@@ -192,18 +193,32 @@ class _Isi extends StatelessWidget {
   final void Function(CalibrationHistoryItem item) onPilih;
 
   @override
+  State<_Isi> createState() => _IsiState();
+}
+
+class _IsiState extends State<_Isi> {
+  /// Daftar riwayat me-recycle kartunya. Tanpa catatan ini, tiap kartu yang
+  /// digulir balik animasi masuknya jalan lagi — dan daftar yang berkedip tiap
+  /// discroll justru terbaca sebagai scroll yang berat, bukan hidup.
+  final _jejak = JejakMasuk();
+
+  @override
   Widget build(BuildContext context) {
     return ListView.separated(
       padding: const EdgeInsets.all(AppSpacing.md),
-      itemCount: items.length,
+      itemCount: widget.items.length,
       separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
       itemBuilder: (context, index) {
-        final item = items[index];
-        return _HistoryCard(
-          item: item,
-          isAdmin: isAdmin,
-          disorot: item.id == terpilih,
-          onTap: () => onPilih(item),
+        final item = widget.items[index];
+        return TampilMasuk(
+          indeks: index,
+          jejak: _jejak,
+          child: _HistoryCard(
+            item: item,
+            isAdmin: widget.isAdmin,
+            disorot: item.id == widget.terpilih,
+            onTap: () => widget.onPilih(item),
+          ),
         );
       },
     );

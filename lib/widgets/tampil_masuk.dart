@@ -93,3 +93,24 @@ class _TampilMasukState extends State<TampilMasuk> {
     );
   }
 }
+
+/// Bungkus isi satu `ListView(children:)` biar datang berurutan.
+///
+/// Dipakai buat daftar yang anaknya disusun langsung — dashboard, misalnya —
+/// bukan `ListView.builder`. Di situ seluruh anaknya kebangun sekaligus, jadi
+/// aman tanpa [JejakMasuk].
+///
+/// Widget JARAK dilewati: `SizedBox` cuma pengatur ruang, dan kalau dia ikut
+/// dapat nomor urut, jeda antar kartu yang kelihatan jadi dobel di sebagian
+/// tempat dan iramanya kebaca timpang. Yang dihitung cuma yang kelihatan.
+///
+/// Susunan layarnya NGGAK berubah sama sekali — tiap anak dibungkus di
+/// tempatnya, nggak ada yang dipindah, digabung, atau dibuang.
+List<Widget> berurutan(List<Widget> anak) {
+  var urut = 0;
+
+  return [
+    for (final w in anak)
+      if (w is SizedBox) w else TampilMasuk(indeks: urut++, child: w),
+  ];
+}
