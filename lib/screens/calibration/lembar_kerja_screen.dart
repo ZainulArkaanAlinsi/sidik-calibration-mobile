@@ -30,6 +30,7 @@ import '../../services/pindai_lembar.dart';
 import '../../services/worksheet_scan_service.dart' show PindaiDitolak;
 import '../../widgets/app_button.dart';
 import '../../widgets/sidik_loader.dart';
+import '../../widgets/tampil_masuk.dart';
 import 'lembar_kerja_state.dart';
 import 'pindai_review_screen.dart';
 import 'widgets/dropdown_gagal.dart';
@@ -1069,18 +1070,19 @@ class _LembarSatuKolom extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
         ],
 
-        for (final bagian in bentuk.bagianDiHalaman(
-          bentuk.halaman[halaman],
-        )) ...[
-          _Bagian(
+        // Kartu bertabel SENGAJA nggak dianimasikan — lihat catatan di
+        // `_LembarDuaKolom._isiKolom`. Ini jalur HP, yang paling sering
+        // dibuka, jadi justru di sini ongkosnya paling terasa.
+        ...bagianBerurutan(
+          bentuk.bagianDiHalaman(bentuk.halaman[halaman]),
+          (bagian) => _Bagian(
             bagian: bagian,
             isian: isian,
             onBerubah: onBerubah,
             sesiId: sesiId,
             profil: profil,
           ),
-          const SizedBox(height: AppSpacing.md),
-        ],
+        ),
 
         const SizedBox(height: AppSpacing.lg),
       ],
@@ -1117,17 +1119,29 @@ class _LembarDuaKolom extends StatelessWidget {
   final LembarKerjaState isian;
   final VoidCallback onBerubah;
 
+  /// Kartu bagian, sebagian datang berurutan.
+  ///
+  /// Yang punya TABEL sengaja muncul langsung tanpa animasi, dan ini bukan
+  /// karena kelewat. `Opacity` memaksa Flutter merender subtree-nya ke lapisan
+  /// terpisah selama animasi berjalan, dan tabel hasil di layar ini rutin berisi
+  /// 60 kotak angka (2 tabel x 3 baris x 5 repeat x 2 kolom). Menganimasikan
+  /// lapisan sebesar itu bikin lembar kerja terasa LEBIH LAMBAT dibuka — persis
+  /// kebalikan dari alasan animasinya ditambahkan.
+  ///
+  /// Yang tersisa justru yang paling menentukan kesannya: kop, identitas alat,
+  /// pemilik, data kalibrasi, dan penutup. Itu yang kelihatan duluan waktu
+  /// layarnya dibuka; tabelnya sendiri hampir selalu perlu digulir dulu.
   List<Widget> _isiKolom(int nomorHalaman) => [
-    for (final bagian in bentuk.bagianDiHalaman(nomorHalaman)) ...[
-      _Bagian(
+    ...bagianBerurutan(
+      bentuk.bagianDiHalaman(nomorHalaman),
+      (bagian) => _Bagian(
         bagian: bagian,
         isian: isian,
         onBerubah: onBerubah,
         sesiId: sesiId,
         profil: profil,
       ),
-      const SizedBox(height: AppSpacing.md),
-    ],
+    ),
     const SizedBox(height: AppSpacing.lg),
   ];
 
@@ -1277,6 +1291,38 @@ class _KopDokumen extends StatelessWidget {
 
 /// Satu bagian lembar kerja. Bagian yang punya tabel dirender sebagai tabel
 /// hasil; sisanya sebagai daftar kolom.
+/// Kartu bagian + jarak antar kartu, sebagian datang berurutan.
+///
+/// Yang punya TABEL sengaja muncul langsung tanpa animasi, dan ini bukan
+/// karena kelewat. `Opacity` memaksa Flutter merender subtree-nya ke lapisan
+/// terpisah selama animasi berjalan, dan tabel hasil di layar ini rutin berisi
+/// 60 kotak angka (2 tabel x 3 baris x 5 repeat x 2 kolom). Menganimasikan
+/// lapisan sebesar itu bikin lembar kerja terasa LEBIH LAMBAT dibuka — persis
+/// kebalikan dari alasan animasinya ditambahkan.
+///
+/// Yang tersisa justru yang paling menentukan kesan pertamanya: kop, identitas
+/// alat, pemilik, data kalibrasi, penutup. Itu yang kelihatan begitu layarnya
+/// kebuka; tabelnya sendiri hampir selalu perlu digulir dulu.
+///
+/// Dipakai bareng jalur satu kolom (HP) dan dua kolom (layar lebar) supaya
+/// aturannya nggak bisa beda di antara keduanya.
+List<Widget> bagianBerurutan(
+  List<BagianLembarKerja> bagian,
+  Widget Function(BagianLembarKerja) bangun,
+) {
+  var urut = 0;
+
+  return [
+    for (final b in bagian) ...[
+      if (b.tabel.isEmpty)
+        TampilMasuk(indeks: urut++, child: bangun(b))
+      else
+        bangun(b),
+      const SizedBox(height: AppSpacing.md),
+    ],
+  ];
+}
+
 class _Bagian extends ConsumerWidget {
   const _Bagian({
     required this.bagian,
