@@ -1067,11 +1067,27 @@ class _KepalaPengulangan extends StatelessWidget {
                 for (final k in kolom)
                   SizedBox(
                     width: lebarSel,
-                    child: Text(
-                      k.label,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                    // Sama alasannya dengan `FittedBox` di atas, dan ini
+                    // kelanjutan bolongnya: dulu cuma teks "Repeat N" yang
+                    // dijaga, label kolomnya nggak. Selama tiap tabel
+                    // berkolom-satu kebetulan pakai `prefiks_pengulangan`
+                    // (Spectrophotometer pakai `X`), baris label ini memang
+                    // nggak pernah digambar dan bolongnya nggak kelihatan.
+                    //
+                    // Gas Detector yang pertama berkolom satu TANPA prefiks:
+                    // lebar kepalanya cuma `lebarSel` × 1, dan labelnya bikin
+                    // kolom ini lewat dari `_tinggiKepala` yang dipatok — 3,6px
+                    // yang keluar sebagai garis loreng kuning-hitam di layar
+                    // teknisi, bukan sebagai error.
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        k.label,
+                        maxLines: 1,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
                   ),

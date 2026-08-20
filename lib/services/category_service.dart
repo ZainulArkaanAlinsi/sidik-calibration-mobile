@@ -342,6 +342,28 @@ class MockCategoryService implements CategoryService {
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0530_Rev.2',
       ),
+      // Gas Detector (alat ke-10) — SATU baris buat empat gas, bukan empat.
+      //
+      // Rentang 0–1999 ppm itu rentang ukur CO di alat contoh, dipakai sebagai
+      // rentang PENCOCOKAN, bukan klaim kemampuan: CMC-nya nol karena KAN
+      // belum mengakreditasi gas detector. Memecahnya jadi empat baris cuma
+      // menambah baris identik yang saling menutupi — rentang CO sudah
+      // mencakup ketiga gas lain. Begitu akreditasinya turun, yang benar
+      // memang empat baris dengan CMC masing-masing.
+      //
+      // Satuannya campur (ppm / %LEL / %); kolom yang cuma muat satu diisi
+      // yang paling banyak dipakai. Satuan yang BENAR per baris datang dari
+      // bentuk lembar kerjanya, bukan dari sini.
+      CalibrationCapability(
+        namaAlat: 'Gas Detector',
+        rangeMin: 0,
+        rangeMax: 1999,
+        satuan: 'ppm',
+        ketidakpastianTerbaik: 0,
+        satuanKetidakpastian: 'ppm',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0536_Rev.0',
+      ),
     ];
 
     return switch (kode) {

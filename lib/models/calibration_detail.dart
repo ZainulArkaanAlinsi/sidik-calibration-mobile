@@ -475,6 +475,8 @@ class IsianTeknisi {
     this.suhuAkhir,
     this.kelembabanAwal,
     this.kelembabanAkhir,
+    this.tekananAwal,
+    this.tekananAkhir,
     this.standarDicek = const {},
     this.revisiField = const {},
     this.catatanRevisi,
@@ -507,6 +509,12 @@ class IsianTeknisi {
   final double? suhuAkhir;
   final double? kelembabanAwal;
   final double? kelembabanAkhir;
+
+  /// Tekanan udara awal & akhir (hPa) — cuma Gas Detector yang punya.
+  /// Dibawa balik supaya draft yang dibuka lagi nggak kehilangan dua angka
+  /// yang justru nentuin ketidakpastiannya.
+  final double? tekananAwal;
+  final double? tekananAkhir;
 
   /// `standard_id` → (dipakai, keterangan).
   final Map<int, ({bool dipakai, String? keterangan})> standarDicek;
@@ -569,6 +577,8 @@ class IsianTeknisi {
       suhuAkhir: (json['suhu_akhir'] as num?)?.toDouble(),
       kelembabanAwal: (json['kelembaban_awal'] as num?)?.toDouble(),
       kelembabanAkhir: (json['kelembaban_akhir'] as num?)?.toDouble(),
+      tekananAwal: (json['tekanan_awal'] as num?)?.toDouble(),
+      tekananAkhir: (json['tekanan_akhir'] as num?)?.toDouble(),
       standarDicek: dicek,
       revisiField: {
         for (final k in json['revisi_field'] as List<dynamic>? ?? const [])

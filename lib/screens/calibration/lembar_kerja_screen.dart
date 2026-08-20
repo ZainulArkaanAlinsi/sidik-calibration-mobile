@@ -2084,6 +2084,11 @@ const _kodeKondisiLingkungan = {
   'kelembaban_awal',
   'suhu_akhir',
   'kelembaban_akhir',
+  // Cuma Gas Detector yang ngirim dua ini. Ikut didaftarin di sini supaya
+  // mereka nggak digambar DUA KALI: sekali sebagai kolom ketiga tabel, sekali
+  // lagi sebagai kotak lepas di perulangan bawah.
+  'tekanan_awal',
+  'tekanan_akhir',
 };
 
 /// Keempat kolom kondisi lingkungan, atau `null` kalau bagian ini nggak punya
@@ -2096,6 +2101,8 @@ const _kodeKondisiLingkungan = {
   FieldLembarKerja kelembabanAwal,
   FieldLembarKerja suhuAkhir,
   FieldLembarKerja kelembabanAkhir,
+  FieldLembarKerja? tekananAwal,
+  FieldLembarKerja? tekananAkhir,
 })? _kondisiLingkungan(List<FieldLembarKerja> field) {
   FieldLembarKerja? cari(String kode) {
     for (final f in field) {
@@ -2117,11 +2124,20 @@ const _kodeKondisiLingkungan = {
     return null;
   }
 
+  // Tekanan udara OPSIONAL, dan sepasang-sepasang: satu kolom yang cuma punya
+  // baris First tanpa End itu setengah tabel, dan setengah tabel lebih bikin
+  // ragu daripada nggak ada kolomnya sama sekali.
+  final tekananAwal = cari('tekanan_awal');
+  final tekananAkhir = cari('tekanan_akhir');
+  final adaTekanan = tekananAwal != null && tekananAkhir != null;
+
   return (
     suhuAwal: suhuAwal,
     kelembabanAwal: kelembabanAwal,
     suhuAkhir: suhuAkhir,
     kelembabanAkhir: kelembabanAkhir,
+    tekananAwal: adaTekanan ? tekananAwal : null,
+    tekananAkhir: adaTekanan ? tekananAkhir : null,
   );
 }
 
@@ -2370,6 +2386,8 @@ class _TabelKondisiLingkungan extends StatelessWidget {
     FieldLembarKerja kelembabanAwal,
     FieldLembarKerja suhuAkhir,
     FieldLembarKerja kelembabanAkhir,
+    FieldLembarKerja? tekananAwal,
+    FieldLembarKerja? tekananAkhir,
   })
   field;
 
@@ -2381,6 +2399,9 @@ class _TabelKondisiLingkungan extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     final garis = BorderSide(color: theme.colorScheme.outlineVariant);
+
+    // Dua-duanya ada atau dua-duanya nggak — dijamin `_kondisiLingkungan()`.
+    final adaTekanan = field.tekananAwal != null && field.tekananAkhir != null;
 
     Widget kepala(String teks) => Container(
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
@@ -2441,10 +2462,14 @@ class _TabelKondisiLingkungan extends StatelessWidget {
             horizontalInside: garis,
             verticalInside: garis,
           ),
-          columnWidths: const {
-            0: FlexColumnWidth(1),
-            1: FlexColumnWidth(1.6),
-            2: FlexColumnWidth(1.6),
+          // Kolom tekanan cuma ada di Gas Detector. Lebar kolomnya dihitung,
+          // bukan ditulis dua versi: tabel yang sama dipakai sembilan alat,
+          // dan dua cabang tata letak cepat atau lambat jadi dua tampilan yang
+          // beda tanpa ada yang berniat begitu.
+          columnWidths: {
+            0: const FlexColumnWidth(1),
+            for (var i = 1; i <= (adaTekanan ? 3 : 2); i++)
+              i: const FlexColumnWidth(1.6),
           },
           defaultVerticalAlignment: TableCellVerticalAlignment.middle,
           children: [
@@ -2453,6 +2478,7 @@ class _TabelKondisiLingkungan extends StatelessWidget {
                 kepala(l10n.lkWaktu),
                 kepala(l10n.lkSuhu),
                 kepala(l10n.lkKelembaban),
+                if (adaTekanan) kepala(l10n.lkTekanan),
               ],
             ),
             TableRow(
@@ -2460,6 +2486,7 @@ class _TabelKondisiLingkungan extends StatelessWidget {
                 waktu(l10n.lkAwal),
                 kotak(field.suhuAwal),
                 kotak(field.kelembabanAwal),
+                if (adaTekanan) kotak(field.tekananAwal!),
               ],
             ),
             TableRow(
@@ -2467,6 +2494,7 @@ class _TabelKondisiLingkungan extends StatelessWidget {
                 waktu(l10n.lkAkhir),
                 kotak(field.suhuAkhir),
                 kotak(field.kelembabanAkhir),
+                if (adaTekanan) kotak(field.tekananAkhir!),
               ],
             ),
           ],

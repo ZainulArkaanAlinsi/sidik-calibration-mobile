@@ -4700,6 +4700,12 @@ abstract class AppLocalizations {
   /// **'Humidity'**
   String get lkKelembaban;
 
+  /// Kepala kolom tekanan udara di tabel kondisi lingkungan. Cuma muncul buat Gas Detector.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure'**
+  String get lkTekanan;
+
   /// Baris pengukuran awal di tabel kondisi lingkungan.
   ///
   /// In en, this message translates to:

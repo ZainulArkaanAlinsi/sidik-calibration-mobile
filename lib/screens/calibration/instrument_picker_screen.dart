@@ -104,6 +104,13 @@ const _profilKhusus = {
   // sini teks bebas dari backend, bukan enum.
   'do meter': 'do_meter',
   'dometer': 'do_meter',
+  // Lampiran akreditasi nulis "Gas Detector"; lembar kerja & sertifikatnya
+  // nyebut "Multi Gas Detector", dan sebagian data alat pelanggan nulisnya
+  // tanpa spasi. Ketiganya didaftarin — yang nyampe ke sini teks bebas dari
+  // backend, bukan enum.
+  'gas detector': 'gas_detector',
+  'multi gas detector': 'gas_detector',
+  'gasdetector': 'gas_detector',
   // Lampiran akreditasi LK-285-IDN no. 48 nulis "Autoklaf"; lembar kerjanya
   // SIDIK-FM-CAL-0539 & DATABASE nulis "Autoclave". Dua-duanya didaftarin —
   // yang nyampe ke sini teks bebas dari backend. Autoklaf pakai layar khusus
