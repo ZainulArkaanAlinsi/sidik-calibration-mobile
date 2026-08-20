@@ -1317,6 +1317,15 @@
   "lkFotoTabelGagal": "The photo couldn't be read. Take it again.",
   "lkFotoTabelTanpaJangkar": "No reading could be placed with certainty. Make sure the standard-value column (left) and the repeat headers (numbers 1..5, or X1 / Repeat 1) are in frame — all of them, none cut off. You can still type the values manually.",
   "lkFotoTabelKolomHilang": "The {kolom} column header couldn't be read, so nothing was filled in — forcing it risks numbers landing in the neighbouring column unnoticed. Retake the photo with the unit row of the table header in frame.",
+  "lkFotoTabelBarisKembar": "This sheet's table shape can't be photographed yet: row marker {baris} is registered more than once, so there's no way to tell which row a reading belongs to. Retaking the photo won't help — fill it in by hand and tell an admin to fix the row markers in the master.",
+  "@lkFotoTabelBarisKembar": {
+    "placeholders": {
+      "baris": {
+        "type": "String",
+        "description": "The duplicated row marker values, comma separated."
+      }
+    }
+  },
   "lkFotoTabelKosong": "The table was recognised, but its cells are still empty — no handwritten numbers were found inside. Fill in the sheet first, then photograph it.",
   "@lkFotoTabelKosong": {
     "description": "Jangkar baris & kolom ketemu semua, tapi nol angka di badan tabel — biasanya kertas/lembar yang difoto memang belum diisi."

@@ -2566,6 +2566,11 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String lkFotoTabelBarisKembar(String baris) {
+    return 'Bentuk tabel lembar ini belum bisa difoto: baris $baris kedaftar lebih dari sekali sebagai penanda baris, jadi angkanya nggak bisa dipastikan masuk baris yang mana. Jepret ulang nggak nolong — isi manual dulu, dan kasih tau admin biar penanda barisnya dibetulin di master.';
+  }
+
+  @override
   String get lkFotoTabelKosong =>
       'Tabelnya kebaca, tapi kotak isiannya masih kosong — nggak ada angka tulisan tangan yang ketemu di dalamnya. Isi dulu kertasnya, baru difoto.';
 
