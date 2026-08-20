@@ -3,7 +3,38 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
-    id("com.google.gms.google-services")
+}
+
+// Google Services dipasang CUMA kalau berkasnya ada.
+//
+// `google-services.json` masuk `.gitignore` (repo ini publik), jadi checkout
+// yang bersih NGGAK punya berkas itu. Waktu plugin ini dipasang tanpa syarat,
+// akibatnya bukan "push-nya mati" — `assembleDebug` GAGAL TOTAL:
+//
+//     File google-services.json is missing.
+//     The Google Services Plugin cannot function without it.
+//
+// Artinya siapa pun yang baru clone nggak bisa menjalankan aplikasinya sama
+// sekali, cuma karena satu berkas kredensial yang memang sengaja nggak
+// di-commit. Harga yang jauh lebih mahal daripada yang dibeli.
+//
+// Sisi runtime-nya sudah aman duluan: `_nyalakanFirebase()` di `main.dart`
+// sengaja menelan kegagalan, dan `FcmSumberTokenPush` balikin token null
+// kalau Firebase nggak hidup. Jadi tanpa berkas ini aplikasinya tetap jalan
+// penuh — yang nggak ada cuma notifikasi push.
+//
+// Taruh `android/app/google-services.json` (unduh dari Firebase Console
+// proyek `sidik-kalibrasi`) dan push langsung hidup, tanpa mengubah apa pun
+// di sini.
+val berkasGoogleServices = file("google-services.json")
+
+if (berkasGoogleServices.exists()) {
+    apply(plugin = "com.google.gms.google-services")
+} else {
+    logger.lifecycle(
+        "[sidik] google-services.json nggak ada — build jalan terus, " +
+            "notifikasi push aja yang mati. Lihat docs/deploy-firebase.md.",
+    )
 }
 
 android {
