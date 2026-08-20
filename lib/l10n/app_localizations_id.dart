@@ -3729,4 +3729,61 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get profTechnicianCodeSub =>
       'Kecetak di sertifikat yang kamu tanda tangani';
+
+  @override
+  String get acHitung => 'Hitung';
+
+  @override
+  String get acSimpanKirim => 'Simpan & Kirim';
+
+  @override
+  String get acHasilOlahData => 'Hasil Olah Data';
+
+  @override
+  String get acCatatan => 'Catatan:';
+
+  @override
+  String get acSetPointWajib => 'Set Point wajib diisi.';
+
+  @override
+  String get acPilihAlatDulu =>
+      'Pilih Alat (Equipment) dulu sebelum menyimpan.';
+
+  @override
+  String get acIsiMinimalSatuBlok =>
+      'Isi minimal satu blok: data Suhu (disk/indikator) atau Tekanan.';
+
+  @override
+  String get acSesiLoginHabis => 'Sesi login habis, masuk lagi.';
+
+  @override
+  String get acTerkirimKeAdmin => 'Sesi Autoklaf terkirim ke admin.';
+
+  @override
+  String acGagalMenyimpan(String pesan) {
+    return 'Gagal menyimpan: $pesan';
+  }
+
+  @override
+  String acGagalMenghitung(String pesan) {
+    return 'Gagal menghitung: $pesan';
+  }
+
+  @override
+  String acGagalMuatAlat(String pesan) {
+    return 'Gagal muat daftar alat: $pesan';
+  }
+
+  @override
+  String get acDiLuarKertas => 'Di luar kertas — unduhan Pressure Disk Logger';
+
+  @override
+  String get acPetunjukDiskLogger =>
+      'Angkanya diunduh dari disk logger, bukan ditulis di lapangan. Boleh dikosongin: lembarnya tetap kekirim, olah data tekanannya nunggu angka ini lengkap.';
+
+  @override
+  String get acNamaOtomatis => 'Name: (otomatis dari akun teknisi)';
+
+  @override
+  String get acPetunjukPilihAlat => 'pilih alat';
 }

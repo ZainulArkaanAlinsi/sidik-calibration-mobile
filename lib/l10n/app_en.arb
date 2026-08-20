@@ -2052,5 +2052,85 @@
   "profChangePhoto": "Change profile photo",
   "profChangePhotoSub": "Taken from your gallery or camera",
   "profTechnicianCode": "Technician code",
-  "profTechnicianCodeSub": "Printed on the certificates you sign"
+  "profTechnicianCodeSub": "Printed on the certificates you sign",
+
+  "acHitung": "Calculate",
+  "@acHitung": {
+    "description": "Tombol pratinjau olah data Autoklaf — menghitung tanpa menyimpan sesi."
+  },
+  "acSimpanKirim": "Save & Send",
+  "@acSimpanKirim": {
+    "description": "Tombol kirim sesi Autoklaf ke antrean approval admin."
+  },
+  "acHasilOlahData": "Processed Result",
+  "@acHasilOlahData": {
+    "description": "Judul panel hasil hitungan yang datang dari backend."
+  },
+  "acCatatan": "Notes:",
+  "@acCatatan": {
+    "description": "Judul blok catatan & tanda tangan di lembar Autoklaf."
+  },
+  "acSetPointWajib": "Set Point is required.",
+  "@acSetPointWajib": {
+    "description": "Penjaga: tanpa Set Point, olah data suhu nggak punya acuan."
+  },
+  "acPilihAlatDulu": "Select the Equipment before saving.",
+  "@acPilihAlatDulu": {
+    "description": "Penjaga: sesi tanpa alat nggak bisa ditelusuri balik ke perangkat mana pun."
+  },
+  "acIsiMinimalSatuBlok": "Fill in at least one block: Temperature (disk/indicator) or Pressure.",
+  "@acIsiMinimalSatuBlok": {
+    "description": "Penjaga: lembar kosong melompong nggak ada yang bisa dihitung."
+  },
+  "acSesiLoginHabis": "Your session expired, please sign in again.",
+  "@acSesiLoginHabis": {
+    "description": "Token hilang waktu menyimpan — bukan salah datanya."
+  },
+  "acTerkirimKeAdmin": "Autoclave session sent to the admin.",
+  "@acTerkirimKeAdmin": {
+    "description": "Konfirmasi sesudah sesi tersimpan."
+  },
+  "acGagalMenyimpan": "Failed to save: {pesan}",
+  "@acGagalMenyimpan": {
+    "description": "Kegagalan simpan sesi Autoklaf, pesannya apa adanya dari server.",
+    "placeholders": {
+        "pesan": {
+            "type": "String"
+        }
+    }
+  },
+  "acGagalMenghitung": "Failed to calculate: {pesan}",
+  "@acGagalMenghitung": {
+    "description": "Kegagalan pratinjau olah data.",
+    "placeholders": {
+        "pesan": {
+            "type": "String"
+        }
+    }
+  },
+  "acGagalMuatAlat": "Failed to load the equipment list: {pesan}",
+  "@acGagalMuatAlat": {
+    "description": "Daftar alat nggak kebaca — teknisi belum bisa milih Equipment.",
+    "placeholders": {
+        "pesan": {
+            "type": "String"
+        }
+    }
+  },
+  "acDiLuarKertas": "Not on the printed form — Pressure Disk Logger download",
+  "@acDiLuarKertas": {
+    "description": "Penanda bahwa blok ini nggak ada di formulir cetak."
+  },
+  "acPetunjukDiskLogger": "These numbers are downloaded from the disk logger, not written in the field. Leaving them empty is fine: the sheet still submits, and the pressure calculation waits until they are complete.",
+  "@acPetunjukDiskLogger": {
+    "description": "Petunjuk kenapa blok tekanan boleh kosong."
+  },
+  "acNamaOtomatis": "Name: (from the signed-in technician account)",
+  "@acNamaOtomatis": {
+    "description": "Nama penandatangan diambil dari akun yang login, bukan diketik."
+  },
+  "acPetunjukPilihAlat": "select equipment",
+  "@acPetunjukPilihAlat": {
+    "description": "Petunjuk di dropdown Equipment lembar Autoklaf."
+  }
 }

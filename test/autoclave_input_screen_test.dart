@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/models/autoclave_hasil.dart';
 import 'package:sidik_calibration/models/equipment_lookup.dart';
 import 'package:sidik_calibration/providers/autoclave_provider.dart';
@@ -83,7 +84,15 @@ Widget _bungkus(_FakeAutoclaveService fake) {
         InMemoryTokenStorage('mock-token'),
       ),
     ],
-    child: const MaterialApp(home: AutoclaveInputScreen()),
+    // Delegate l10n WAJIB ada sejak teks chrome layar ini pindah ke `.arb`.
+    // Tanpa itu `AppLocalizations.of(context)` melempar, dan yang merah bukan
+    // satu label — seluruh layarnya gagal dibangun.
+    child: const MaterialApp(
+      locale: Locale('id'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: AutoclaveInputScreen(),
+    ),
   );
 }
 
@@ -293,7 +302,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
-    expect(find.text('Identitas Kalibrasi'), findsOneWidget);
+    expect(find.text('General Information'), findsOneWidget);
   });
 
   /// Kotak angka wajib cukup lebar buat diketik DAN diperiksa ulang. Angka di
@@ -304,6 +313,15 @@ void main() {
   ) async {
     hp(tester);
     await tester.pumpWidget(_bungkus(_FakeAutoclaveService()));
+    await tester.pumpAndSettle();
+
+    // Baris tekanan ada jauh di bawah; `ListView` nggak membangunnya sampai
+    // digulir ke sana, jadi diukur sesudah kelihatan.
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('ac_p0')),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.pumpAndSettle();
 
     final lebar = tester.getSize(find.byKey(const Key('ac_p0'))).width;

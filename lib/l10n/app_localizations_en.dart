@@ -3758,4 +3758,61 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profTechnicianCodeSub => 'Printed on the certificates you sign';
+
+  @override
+  String get acHitung => 'Calculate';
+
+  @override
+  String get acSimpanKirim => 'Save & Send';
+
+  @override
+  String get acHasilOlahData => 'Processed Result';
+
+  @override
+  String get acCatatan => 'Notes:';
+
+  @override
+  String get acSetPointWajib => 'Set Point is required.';
+
+  @override
+  String get acPilihAlatDulu => 'Select the Equipment before saving.';
+
+  @override
+  String get acIsiMinimalSatuBlok =>
+      'Fill in at least one block: Temperature (disk/indicator) or Pressure.';
+
+  @override
+  String get acSesiLoginHabis => 'Your session expired, please sign in again.';
+
+  @override
+  String get acTerkirimKeAdmin => 'Autoclave session sent to the admin.';
+
+  @override
+  String acGagalMenyimpan(String pesan) {
+    return 'Failed to save: $pesan';
+  }
+
+  @override
+  String acGagalMenghitung(String pesan) {
+    return 'Failed to calculate: $pesan';
+  }
+
+  @override
+  String acGagalMuatAlat(String pesan) {
+    return 'Failed to load the equipment list: $pesan';
+  }
+
+  @override
+  String get acDiLuarKertas =>
+      'Not on the printed form — Pressure Disk Logger download';
+
+  @override
+  String get acPetunjukDiskLogger =>
+      'These numbers are downloaded from the disk logger, not written in the field. Leaving them empty is fine: the sheet still submits, and the pressure calculation waits until they are complete.';
+
+  @override
+  String get acNamaOtomatis => 'Name: (from the signed-in technician account)';
+
+  @override
+  String get acPetunjukPilihAlat => 'select equipment';
 }

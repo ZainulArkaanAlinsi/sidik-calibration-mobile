@@ -6781,6 +6781,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Printed on the certificates you sign'**
   String get profTechnicianCodeSub;
+
+  /// Tombol pratinjau olah data Autoklaf — menghitung tanpa menyimpan sesi.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculate'**
+  String get acHitung;
+
+  /// Tombol kirim sesi Autoklaf ke antrean approval admin.
+  ///
+  /// In en, this message translates to:
+  /// **'Save & Send'**
+  String get acSimpanKirim;
+
+  /// Judul panel hasil hitungan yang datang dari backend.
+  ///
+  /// In en, this message translates to:
+  /// **'Processed Result'**
+  String get acHasilOlahData;
+
+  /// Judul blok catatan & tanda tangan di lembar Autoklaf.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes:'**
+  String get acCatatan;
+
+  /// Penjaga: tanpa Set Point, olah data suhu nggak punya acuan.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Point is required.'**
+  String get acSetPointWajib;
+
+  /// Penjaga: sesi tanpa alat nggak bisa ditelusuri balik ke perangkat mana pun.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the Equipment before saving.'**
+  String get acPilihAlatDulu;
+
+  /// Penjaga: lembar kosong melompong nggak ada yang bisa dihitung.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in at least one block: Temperature (disk/indicator) or Pressure.'**
+  String get acIsiMinimalSatuBlok;
+
+  /// Token hilang waktu menyimpan — bukan salah datanya.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session expired, please sign in again.'**
+  String get acSesiLoginHabis;
+
+  /// Konfirmasi sesudah sesi tersimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'Autoclave session sent to the admin.'**
+  String get acTerkirimKeAdmin;
+
+  /// Kegagalan simpan sesi Autoklaf, pesannya apa adanya dari server.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save: {pesan}'**
+  String acGagalMenyimpan(String pesan);
+
+  /// Kegagalan pratinjau olah data.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to calculate: {pesan}'**
+  String acGagalMenghitung(String pesan);
+
+  /// Daftar alat nggak kebaca — teknisi belum bisa milih Equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load the equipment list: {pesan}'**
+  String acGagalMuatAlat(String pesan);
+
+  /// Penanda bahwa blok ini nggak ada di formulir cetak.
+  ///
+  /// In en, this message translates to:
+  /// **'Not on the printed form — Pressure Disk Logger download'**
+  String get acDiLuarKertas;
+
+  /// Petunjuk kenapa blok tekanan boleh kosong.
+  ///
+  /// In en, this message translates to:
+  /// **'These numbers are downloaded from the disk logger, not written in the field. Leaving them empty is fine: the sheet still submits, and the pressure calculation waits until they are complete.'**
+  String get acPetunjukDiskLogger;
+
+  /// Nama penandatangan diambil dari akun yang login, bukan diketik.
+  ///
+  /// In en, this message translates to:
+  /// **'Name: (from the signed-in technician account)'**
+  String get acNamaOtomatis;
+
+  /// Petunjuk di dropdown Equipment lembar Autoklaf.
+  ///
+  /// In en, this message translates to:
+  /// **'select equipment'**
+  String get acPetunjukPilihAlat;
 }
 
 class _AppLocalizationsDelegate
