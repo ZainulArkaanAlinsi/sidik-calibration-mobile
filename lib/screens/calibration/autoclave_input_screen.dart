@@ -4,24 +4,35 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../models/equipment_lookup.dart';
+import '../../models/standard.dart';
+import '../../providers/auth_provider.dart' show tokenStorageProvider;
 import '../../providers/autoclave_provider.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/calibration_input_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/autoclave_hasil_panel.dart';
 
-/// Lembar Kerja Autoklaf (SIDIK-FM-CAL-0539_Rev.4) — layar input teknisi.
+/// Lembar Kerja Autoklaf (SIDIK-FM-CAL-0539_Rev.4 / LK-285-IDN) — layar input
+/// teknisi.
 ///
-/// Autoklaf punya bentuk sendiri, beda dari `LembarKerjaScreen` generik: satu
-/// sesi mengukur DUA besaran (Suhu & Tekanan). Suhu diambil 3 disk sensor
-/// sekaligus, tiap disk beberapa titik waktu pada satu Set Point, plus
-/// Indikator & Suhu Ruang; Tekanan satu titik dengan pilihan satuan & tipe
-/// display. Karena itu layar & endpoint-nya khusus
-/// (`POST /calibrations/autoclave/preview`).
+/// Susunannya dibikin SEBARIS-SEBARIS ngikut kertasnya: panel General
+/// Information, lalu panel Data Result yang isinya SATU tabel (Set Point +
+/// lima kolom waktu × tujuh baris), lalu Standard Used, Catatan, dan tanda
+/// tangan. Bukan kemiripan gaya — teknisi ngisi layar ini sambil megang kertas
+/// yang barusan dia tulis di lapangan, dan matanya lompat baris per baris.
+/// Versi sebelumnya numpang bentuk lembar pH: bagian bernomor, suhu & tekanan
+/// kepisah dua kartu, dan dua baris kertas (`Indikator Pressure`, `Tekanan atm
+/// awal`) nggak ada tempatnya sama sekali. Baris ke-5 di kertas itu Indikator
+/// Pressure, di layar lama baris ke-5 itu Suhu Ruang — kalau nyalinnya keburu,
+/// tekanan manometer masuk ke kolom suhu, dan angka itu jalan terus sampai
+/// sertifikat.
+///
+/// Autoklaf punya layar sendiri (bukan `LembarKerjaScreen` generik) karena satu
+/// sesi mengukur DUA besaran sekaligus dan tabelnya matriks, bukan "titik ukur
+/// × pengulangan".
 ///
 /// **Nggak ada rumus di layar ini.** Rata-rata, koreksi, Kestabilan/Keseragaman/
-/// Variasi, konversi satuan, dan U95 semua dari backend. Layar cuma ngumpulin
-/// angka & nampilin hasil.
+/// Variasi, konversi satuan, dan U95 semua dari backend
+/// (`POST /calibrations/autoclave/preview`). Layar cuma ngumpulin angka.
 class AutoclaveInputScreen extends ConsumerStatefulWidget {
   const AutoclaveInputScreen({super.key, this.judulTambahan, this.kategori});
 
@@ -37,71 +48,133 @@ class AutoclaveInputScreen extends ConsumerStatefulWidget {
 }
 
 class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
+  static const String _kodeDokumen = 'SIDIK-FM-CAL-0539_Rev.4';
+  static const String _kodeLembar = 'LK-285-IDN';
+
   static const int _jumlahDisk = 3;
   static const int _jumlahTitikWaktu = 5;
   static const int _jumlahPembacaanTekanan = 5;
 
   static const List<String> _satuanTekanan = [
-    'Bar', 'MPa', 'kPa', 'Psi', 'kg/cm2', 'inHg', 'mmHg', 'Pa',
+    'Bar',
+    'MPa',
+    'kPa',
+    'Psi',
+    'kg/cm2',
+    'inHg',
+    'mmHg',
+    'Pa',
   ];
   static const List<String> _displayTekanan = [
-    'Digital', 'Analog 1', 'Analog 2', 'Analog 3',
+    'Digital',
+    'Analog 1',
+    'Analog 2',
+    'Analog 3',
   ];
 
-  final _setPointCtrl = TextEditingController(text: '121');
-  late final List<List<TextEditingController>> _disk;
-  late final List<TextEditingController> _indikator;
-  late final List<TextEditingController> _suhuRuang;
+  /// Kotak centang "Standard Used:" — dua baris, persis kayak yang tercetak.
+  static const List<String> _standarTercetak = [
+    'Temperature Calibrator -Technosoft (Disk 1,2,3)',
+    'Pressure Disk Logger-Technosoft',
+  ];
 
-  final _uutSettingCtrl = TextEditingController();
-  late final List<TextEditingController> _pembacaanTekanan;
-  String _satuan = 'MPa';
-  String _display = 'Digital';
+  /// Unit thermohygro yang TERCETAK di kertas Autoklaf. Unit lain tetap bisa
+  /// dipilih lewat daftar "unit lain" — kertas yang nggak nyetak satu unit
+  /// bukan bukti unit itu nggak pernah dibawa ke lapangan.
+  static const List<String> _thermohygroTercetak = ['TH-2', 'TH-6', 'TH-7'];
 
-  // ---- Identitas (buat Simpan) ----
-  int? _equipmentId;
+  // ---- General Information ----
+  DateTime? _tanggalTerima;
   DateTime _tanggalKalibrasi = DateTime.now();
+  final _customerCtrl = TextEditingController();
+  final _alamatCtrl = TextEditingController();
+
+  String _lokasi = 'onsite';
   final _suhuAwalCtrl = TextEditingController();
   final _suhuAkhirCtrl = TextEditingController();
   final _rhAwalCtrl = TextEditingController();
   final _rhAkhirCtrl = TextEditingController();
-  bool _menyimpan = false;
+  int? _thermohygroId;
 
+  int? _equipmentId;
+  final _merkCtrl = TextEditingController();
+  final _typeCtrl = TextEditingController();
+  final _snCtrl = TextEditingController();
+  final _rangeSuhuCtrl = TextEditingController();
+  final _resolusiSuhuCtrl = TextEditingController();
+  final _rangeTekananCtrl = TextEditingController();
+  final _resolusiTekananCtrl = TextEditingController();
+  String _satuan = 'MPa';
+
+  // ---- Data Result ----
+  final _setPointCtrl = TextEditingController(text: '121');
+  late final List<TextEditingController> _waktu;
+  late final List<List<TextEditingController>> _disk;
+  late final List<TextEditingController> _indikatorSuhu;
+  late final List<TextEditingController> _indikatorPressure;
+  late final List<TextEditingController> _tekananAtm;
+  late final List<TextEditingController> _suhuRuang;
+
+  // Di luar kertas: angkanya diunduh dari Pressure Disk Logger.
+  late final List<TextEditingController> _pembacaanTekanan;
+  String _display = 'Digital';
+
+  final List<bool> _standarDicek = List.filled(_standarTercetak.length, false);
+  final _catatanCtrl = TextEditingController();
+
+  bool _menyimpan = false;
   String? _errorInput;
 
   @override
   void initState() {
     super.initState();
-    _disk = List.generate(
-      _jumlahDisk,
-      (_) => List.generate(_jumlahTitikWaktu, (_) => TextEditingController()),
+    List<TextEditingController> kolom() =>
+        List.generate(_jumlahTitikWaktu, (_) => TextEditingController());
+
+    _waktu = kolom();
+    _disk = List.generate(_jumlahDisk, (_) => kolom());
+    _indikatorSuhu = kolom();
+    _indikatorPressure = kolom();
+    _tekananAtm = kolom();
+    _suhuRuang = kolom();
+    _pembacaanTekanan = List.generate(
+      _jumlahPembacaanTekanan,
+      (_) => TextEditingController(),
     );
-    _indikator =
-        List.generate(_jumlahTitikWaktu, (_) => TextEditingController());
-    _suhuRuang =
-        List.generate(_jumlahTitikWaktu, (_) => TextEditingController());
-    _pembacaanTekanan =
-        List.generate(_jumlahPembacaanTekanan, (_) => TextEditingController());
   }
 
   @override
   void dispose() {
-    _setPointCtrl.dispose();
-    for (final baris in _disk) {
-      for (final c in baris) {
-        c.dispose();
-      }
-    }
-    for (final c in [..._indikator, ..._suhuRuang, ..._pembacaanTekanan]) {
+    for (final c in [
+      _setPointCtrl,
+      _customerCtrl,
+      _alamatCtrl,
+      _suhuAwalCtrl,
+      _suhuAkhirCtrl,
+      _rhAwalCtrl,
+      _rhAkhirCtrl,
+      _merkCtrl,
+      _typeCtrl,
+      _snCtrl,
+      _rangeSuhuCtrl,
+      _resolusiSuhuCtrl,
+      _rangeTekananCtrl,
+      _resolusiTekananCtrl,
+      _catatanCtrl,
+      ..._waktu,
+      ..._indikatorSuhu,
+      ..._indikatorPressure,
+      ..._tekananAtm,
+      ..._suhuRuang,
+      ..._pembacaanTekanan,
+      for (final baris in _disk) ...baris,
+    ]) {
       c.dispose();
     }
-    _uutSettingCtrl.dispose();
-    _suhuAwalCtrl.dispose();
-    _suhuAkhirCtrl.dispose();
-    _rhAwalCtrl.dispose();
-    _rhAkhirCtrl.dispose();
     super.dispose();
   }
+
+  // ---- Perakitan payload ----
 
   double? _num(TextEditingController c) {
     final t = c.text.trim().replaceAll(',', '.');
@@ -114,9 +187,16 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
 
   bool _adaIsi(Iterable<double?> xs) => xs.any((x) => x != null);
 
-  /// Rakit payload untuk `POST /calibrations/autoclave/preview`. Blok suhu /
-  /// tekanan cuma ikut kalau ada isinya — backend nolak blok tekanan tanpa
-  /// pembacaan, dan blok suhu kosong nggak ada gunanya dihitung.
+  List<String?> _jam() =>
+      _waktu.map((c) => c.text.trim().isEmpty ? null : c.text.trim()).toList();
+
+  /// Rakit payload `POST /calibrations/autoclave/preview`.
+  ///
+  /// `uut_setting` SENGAJA nggak dikirim: di kertas angka itu ada di baris
+  /// Indikator Pressure, dan backend yang mutusin (kalau kelima kolomnya sama,
+  /// itu yang kepakai; kalau beda, kirimannya ditolak dengan pesan jelas).
+  /// Ngerata-rata di layar bakal bikin angka yang nggak pernah ditulis siapa
+  /// pun ikut ke sertifikat.
   Map<String, dynamic>? _payload() {
     setState(() => _errorInput = null);
 
@@ -128,32 +208,43 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
 
     final payload = <String, dynamic>{'set_point': setPoint};
 
+    final jam = _jam();
+    if (jam.any((x) => x != null)) payload['waktu'] = jam;
+
     final disk = _disk.map(_kolom).toList();
-    final indikator = _kolom(_indikator);
+    final indikatorSuhu = _kolom(_indikatorSuhu);
     final suhuRuang = _kolom(_suhuRuang);
-    final adaSuhu = disk.any(_adaIsi) || _adaIsi(indikator);
+    final adaSuhu = disk.any(_adaIsi) || _adaIsi(indikatorSuhu);
     if (adaSuhu) {
       payload['suhu'] = {
         'disk': disk,
-        'indikator': indikator,
+        'indikator': indikatorSuhu,
         'suhu_ruang': suhuRuang,
       };
     }
 
-    final uut = _num(_uutSettingCtrl);
-    final bacaan = _kolom(_pembacaanTekanan);
-    if (uut != null && _adaIsi(bacaan)) {
+    final indikatorPressure = _kolom(_indikatorPressure);
+    final tekananAtm = _kolom(_tekananAtm);
+    final bacaanStandar = _kolom(_pembacaanTekanan);
+    final adaTekanan =
+        _adaIsi(indikatorPressure) ||
+        _adaIsi(tekananAtm) ||
+        _adaIsi(bacaanStandar);
+    if (adaTekanan) {
       payload['tekanan'] = {
-        'uut_setting': uut,
+        'indikator_pressure': indikatorPressure,
+        'tekanan_atm_awal': tekananAtm,
         'satuan': _satuan,
         'display': _display,
-        'pembacaan_standar': bacaan,
+        'pembacaan_standar': bacaanStandar,
       };
     }
 
-    if (!adaSuhu && payload['tekanan'] == null) {
-      setState(() => _errorInput =
-          'Isi minimal satu blok: data Suhu (disk/indikator) atau Tekanan.');
+    if (!adaSuhu && !adaTekanan) {
+      setState(
+        () => _errorInput =
+            'Isi minimal satu blok: data Suhu (disk/indikator) atau Tekanan.',
+      );
       return null;
     }
 
@@ -167,26 +258,41 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
     await ref.read(autoclavePratinjauProvider.notifier).hitung(payload);
   }
 
-  /// Payload simpan = data ukur (`_payload`) + identitas sesi. Equipment &
-  /// tanggal wajib buat kirim; kondisi lingkungan opsional (admin bisa lengkapi).
+  /// Payload simpan = data ukur + identitas lembar. Equipment & tanggal wajib
+  /// buat kirim; sisanya opsional — kolom yang belum keisi di lapangan nggak
+  /// boleh nahan kiriman.
   Map<String, dynamic>? _payloadSimpan() {
     final ukur = _payload();
     if (ukur == null) return null;
 
     if (_equipmentId == null) {
-      setState(() => _errorInput = 'Pilih Alat (Equipment) dulu sebelum menyimpan.');
+      setState(
+        () => _errorInput = 'Pilih Alat (Equipment) dulu sebelum menyimpan.',
+      );
       return null;
     }
+
+    String? teks(TextEditingController c) =>
+        c.text.trim().isEmpty ? null : c.text.trim();
 
     return {
       ...ukur,
       'equipment_id': _equipmentId,
-      'tanggal_kalibrasi':
-          _tanggalKalibrasi.toIso8601String().substring(0, 10),
+      'tanggal_kalibrasi': _tanggalKalibrasi.toIso8601String().substring(0, 10),
+      if (_tanggalTerima != null)
+        'tanggal_terima': _tanggalTerima!.toIso8601String().substring(0, 10),
+      if (teks(_customerCtrl) != null) 'pemilik_nama': teks(_customerCtrl),
+      if (teks(_alamatCtrl) != null) 'pemilik_alamat': teks(_alamatCtrl),
+      'lokasi': _lokasi,
+      if (_thermohygroId != null) 'thermohygro_standard_id': _thermohygroId,
       if (_num(_suhuAwalCtrl) != null) 'suhu_awal': _num(_suhuAwalCtrl),
       if (_num(_suhuAkhirCtrl) != null) 'suhu_akhir': _num(_suhuAkhirCtrl),
       if (_num(_rhAwalCtrl) != null) 'kelembaban_awal': _num(_rhAwalCtrl),
       if (_num(_rhAkhirCtrl) != null) 'kelembaban_akhir': _num(_rhAkhirCtrl),
+      if (teks(_merkCtrl) != null) 'alat_merk': teks(_merkCtrl),
+      if (teks(_typeCtrl) != null) 'alat_model': teks(_typeCtrl),
+      if (teks(_snCtrl) != null) 'alat_serial_number': teks(_snCtrl),
+      if (teks(_catatanCtrl) != null) 'catatan_teknisi': teks(_catatanCtrl),
     };
   }
 
@@ -213,15 +319,27 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
     }
   }
 
-  Future<void> _pilihTanggal() async {
+  Future<void> _pilihTanggal({required bool terima}) async {
+    final awal = terima
+        ? (_tanggalTerima ?? DateTime.now())
+        : _tanggalKalibrasi;
     final hasil = await showDatePicker(
       context: context,
-      initialDate: _tanggalKalibrasi,
+      initialDate: awal,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
     );
-    if (hasil != null) setState(() => _tanggalKalibrasi = hasil);
+    if (hasil == null) return;
+    setState(() {
+      if (terima) {
+        _tanggalTerima = hasil;
+      } else {
+        _tanggalKalibrasi = hasil;
+      }
+    });
   }
+
+  // ---- Tampilan ----
 
   @override
   Widget build(BuildContext context) {
@@ -230,38 +348,54 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Lembar Kerja Autoclave'),
-        bottom: widget.judulTambahan == null
-            ? null
-            : PreferredSize(
-                preferredSize: const Size.fromHeight(20),
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(
-                    widget.judulTambahan!,
-                    style: theme.textTheme.bodySmall,
-                  ),
-                ),
-              ),
+        title: const Text('Calibration Worksheet - Autoclave'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(22),
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              [
+                'PT. SIDIK',
+                _kodeDokumen,
+                _kodeLembar,
+                if (widget.judulTambahan != null) widget.judulTambahan!,
+              ].join(' · '),
+              style: theme.textTheme.bodySmall,
+            ),
+          ),
+        ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
-          _seksiIdentitas(theme),
-          const SizedBox(height: AppSpacing.md),
-          _seksi('1. Set Point', [
-            _fieldAngka(_setPointCtrl,
-                label: 'Set Point (°C)',
-                fieldKey: const Key('ac_setpoint')),
+          _panel('General Information', [
+            _blokPenerimaan(theme),
+            const Divider(height: AppSpacing.lg),
+            _blokKondisi(theme),
+            const Divider(height: AppSpacing.lg),
+            _blokIdentitasAlat(theme),
           ]),
           const SizedBox(height: AppSpacing.md),
-          _seksiSuhu(theme),
+          _panel('Data Result', [
+            Text(
+              'Calibration Result for Temperature & Pressure',
+              style: theme.textTheme.labelLarge,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _tabelHasil(theme),
+            const SizedBox(height: AppSpacing.md),
+            _blokDiLuarKertas(theme),
+          ]),
           const SizedBox(height: AppSpacing.md),
-          _seksiTekanan(theme),
+          _panel('Standard Used:', [_blokStandar(theme)]),
+          const SizedBox(height: AppSpacing.md),
+          _panel('Catatan:', [_blokPenutup(theme)]),
           const SizedBox(height: AppSpacing.lg),
           if (_errorInput != null) ...[
-            Text(_errorInput!,
-                style: TextStyle(color: theme.colorScheme.error)),
+            Text(
+              _errorInput!,
+              style: TextStyle(color: theme.colorScheme.error),
+            ),
             const SizedBox(height: AppSpacing.sm),
           ],
           Row(
@@ -297,294 +431,603 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
     );
   }
 
-  // ---- Bagian input ----
-
-  Widget _seksiIdentitas(ThemeData theme) {
-    final alatAsync = ref.watch(equipmentLookupProvider(widget.kategori));
-
-    return _seksi('Identitas Kalibrasi', [
-      alatAsync.when(
-        data: (list) => DropdownButtonFormField<int>(
-          initialValue:
-              list.any((a) => a.id == _equipmentId) ? _equipmentId : null,
-          isExpanded: true,
-          decoration: const InputDecoration(
-            labelText: 'Alat (Equipment) *',
-            border: OutlineInputBorder(),
+  /// Empat baris teratas kertas: Receive Date / Customer / Addresss /
+  /// Calibration Date. "Addresss" emang tiga huruf s — ditulis apa adanya biar
+  /// bisa diadu langsung sama formulirnya.
+  Widget _blokPenerimaan(ThemeData theme) {
+    return Column(
+      children: [
+        _baris(
+          'Receive Date',
+          _kotakTanggal(
+            _tanggalTerima,
+            kosong: 'belum diisi',
+            onTap: () => _pilihTanggal(terima: true),
           ),
-          items: [
-            for (final EquipmentLookup a in list)
-              DropdownMenuItem(
-                value: a.id,
-                child: Text('${a.namaAlat} — ${a.serialNumber}',
-                    overflow: TextOverflow.ellipsis),
-              ),
-          ],
-          onChanged: (v) => setState(() => _equipmentId = v),
         ),
-        loading: () => const Padding(
-          padding: EdgeInsets.symmetric(vertical: 8),
-          child: LinearProgressIndicator(),
+        _baris(
+          'Customer',
+          _fieldTeks(_customerCtrl, fieldKey: const Key('ac_customer')),
         ),
-        error: (e, _) => Text('Gagal muat daftar alat: $e',
-            style: TextStyle(color: theme.colorScheme.error)),
-      ),
-      const SizedBox(height: AppSpacing.sm),
-      InkWell(
-        onTap: _pilihTanggal,
-        child: InputDecorator(
-          decoration: const InputDecoration(
-            labelText: 'Tanggal Kalibrasi',
-            border: OutlineInputBorder(),
+        _baris('Addresss', _fieldTeks(_alamatCtrl, barisBanyak: true)),
+        _baris(
+          'Calibration Date',
+          _kotakTanggal(
+            _tanggalKalibrasi,
+            onTap: () => _pilihTanggal(terima: false),
           ),
-          child: Text(_tanggalKalibrasi.toIso8601String().substring(0, 10)),
         ),
-      ),
-      const SizedBox(height: AppSpacing.sm),
-      Text('Kondisi Lingkungan (opsional)', style: theme.textTheme.bodySmall),
-      const SizedBox(height: AppSpacing.xs),
-      Row(children: [
-        Expanded(child: _fieldAngka(_suhuAwalCtrl, label: 'T awal (°C)')),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(child: _fieldAngka(_suhuAkhirCtrl, label: 'T akhir (°C)')),
-      ]),
-      const SizedBox(height: AppSpacing.sm),
-      Row(children: [
-        Expanded(child: _fieldAngka(_rhAwalCtrl, label: 'RH awal (%)')),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(child: _fieldAngka(_rhAkhirCtrl, label: 'RH akhir (%)')),
-      ]),
-    ]);
+      ],
+    );
   }
 
-  /// Lebar satu sel angka.
-  ///
-  /// Disamakan dengan tabel lembar kerja (`LembarKerjaTabel._lebarSel`) supaya
-  /// nggak ada dua ukuran tabel yang beda di aplikasi yang sama.
-  static const double _lebarSel = 78;
+  /// Kolom KIRI blok kedua kertas: lokasi, kondisi lingkungan, thermohygro.
+  Widget _blokKondisi(ThemeData theme) {
+    return Column(
+      children: [
+        _baris(
+          'Location of Calibration',
+          DropdownButtonFormField<String>(
+            initialValue: _lokasi,
+            isExpanded: true,
+            decoration: _dekorasi(),
+            items: const [
+              DropdownMenuItem(value: 'lab', child: Text('In lab')),
+              DropdownMenuItem(value: 'onsite', child: Text('Insitu')),
+            ],
+            onChanged: (v) => setState(() => _lokasi = v ?? _lokasi),
+          ),
+        ),
+        _baris('T awal', _fieldAngka(_suhuAwalCtrl, akhiran: '°C')),
+        _baris('T akhir', _fieldAngka(_suhuAkhirCtrl, akhiran: '°C')),
+        _baris('RH awal', _fieldAngka(_rhAwalCtrl, akhiran: '%RH')),
+        _baris('RH akhir', _fieldAngka(_rhAkhirCtrl, akhiran: '%RH')),
+        const SizedBox(height: AppSpacing.sm),
+        _blokThermohygro(theme),
+      ],
+    );
+  }
 
-  /// Lebar kolom label kiri.
-  ///
-  /// 128, bukan 104: di 104 label "Indikator" dan "Suhu Ruang" membungkus jadi
-  /// dua baris di HP sempit, dan baris yang tingginya dipatok bikin
-  /// bungkusannya kepotong separuh.
-  static const double _lebarLabel = 128;
+  /// Kotak centang Thermohygro. Yang digambar sebagai kotak = yang TERCETAK di
+  /// kertas (TH-2/TH-6/TH-7); unit lain tetap kepilih lewat dropdown di
+  /// bawahnya. Id-nya diambil dari bentuk lembar backend, bukan dipetakan di
+  /// sini — nomor unit itu label, `standard_id` yang nentuin tabel koreksi mana
+  /// yang kepakai.
+  Widget _blokThermohygro(ThemeData theme) {
+    final master = ref.watch(standardListProvider);
 
-  /// Tinggi baris dipatok supaya kolom label yang DIAM dan kolom sel yang
-  /// DIGESER tetap sebaris. Tanpa tinggi yang sama persis, label "Disk 2" bisa
-  /// mendarat di samping angka milik Disk 1 — dan di lembar kalibrasi, baris
-  /// yang meleset satu itu salah data, bukan salah tampilan.
-  static const double _tinggiBaris = 56;
-  static const double _tinggiKepala = 24;
+    // Unit thermohygro = standar yang punya `parameterKondisi` (tabel koreksi
+    // suhu/kelembaban). Diambil dari master, BUKAN dipetakan di layar: nomor
+    // unit itu label, `standard_id` yang nentuin tabel koreksi mana yang
+    // kepakai — dan Env. Condition pernah meleset gara-gara unit ketuker.
+    final unit = master.maybeWhen(
+      data: (list) => list.where((s) => s.parameterKondisi != null).toList(),
+      orElse: () => const <Standard>[],
+    );
 
-  Widget _seksiSuhu(ThemeData theme) {
-    // Sel angkanya digeser mendatar, bukan diperas jadi selebar apa pun yang
-    // tersisa. Sebelumnya lima titik waktu dibagi rata di sisa lebar layar:
-    // di HP 360 dp itu jadi ~50 dp per kotak — terlalu sempit buat mengetik
-    // angka berkoma, apalagi buat memeriksanya lagi sebelum dikirim.
-    // Pemisah antara tiga disk dan dua sensor acuan. Tingginya dipatok dan
-    // dipasang di KEDUA kolom — kalau cuma di satu, baris di bawahnya langsung
-    // meleset sebaris penuh.
-    const tinggiPemisah = 9.0;
+    Standard? cari(String label) =>
+        unit.where((s) => s.nama == label).firstOrNull;
 
-    Widget kolomLabel(List<String> label) => SizedBox(
-      width: _lebarLabel,
+    final lainnya = unit
+        .where((s) => !_thermohygroTercetak.contains(s.nama))
+        .toList();
+
+    return Align(
+      alignment: Alignment.centerLeft,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: _tinggiKepala),
-          for (final (i, l) in label.indexed) ...[
-            if (i == _jumlahDisk)
-              const SizedBox(height: tinggiPemisah, child: Divider()),
-            SizedBox(
-              height: _tinggiBaris,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(l, style: theme.textTheme.bodySmall),
-              ),
+          Text('Thermohygro used', style: theme.textTheme.bodySmall),
+          for (final label in _thermohygroTercetak)
+            Builder(
+              builder: (_) {
+                final unitIni = cari(label);
+                return CheckboxListTile(
+                  key: Key('ac_th_$label'),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  title: Text(label),
+                  // Kotak yang unitnya belum keseed di master tetap KELIHATAN
+                  // (kertasnya nyetak dia), cuma nggak bisa dicentang — biar
+                  // bedanya "belum kedaftar di master" vs "nggak ada di
+                  // formulir" kebaca.
+                  value: unitIni != null && _thermohygroId == unitIni.id,
+                  onChanged: unitIni == null
+                      ? null
+                      : (pilih) => setState(
+                          () => _thermohygroId = pilih == true
+                              ? unitIni.id
+                              : null,
+                        ),
+                );
+              },
             ),
-          ],
-        ],
-      ),
-    );
-
-    Widget barisSel(List<TextEditingController> ctrls) => SizedBox(
-      height: _tinggiBaris,
-      child: Row(
-        children: [
-          for (final c in ctrls)
-            SizedBox(
-              width: _lebarSel,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.xs / 2,
-                  vertical: AppSpacing.xs,
+          if (lainnya.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: DropdownButtonFormField<int>(
+                initialValue: lainnya.any((s) => s.id == _thermohygroId)
+                    ? _thermohygroId
+                    : null,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: 'Unit lain (di luar yang tercetak)',
+                  border: OutlineInputBorder(),
+                  isDense: true,
                 ),
-                child: _fieldAngka(c, dense: true),
+                items: [
+                  for (final s in lainnya)
+                    DropdownMenuItem(value: s.id, child: Text(s.nama)),
+                ],
+                onChanged: (v) => setState(() => _thermohygroId = v),
               ),
             ),
         ],
       ),
     );
+  }
 
-    final label = [
-      for (var d = 0; d < _jumlahDisk; d++) 'Disk ${d + 1}',
-      'Indikator',
-      'Suhu Ruang',
-    ];
+  /// Kolom KANAN blok kedua kertas. Empat baris terakhir punya kurung satuan
+  /// kosong `( )` di kertas — satuannya ditulis teknisi, bukan dipatok
+  /// formulir, karena range autoklaf datang dalam MPa, bar, atau psi tergantung
+  /// mereknya.
+  Widget _blokIdentitasAlat(ThemeData theme) {
+    final alatAsync = ref.watch(equipmentLookupProvider(widget.kategori));
 
-    final baris = [..._disk, _indikator, _suhuRuang];
+    return Column(
+      children: [
+        _baris(
+          'Equipment Name',
+          alatAsync.when(
+            data: (list) => DropdownButtonFormField<int>(
+              key: const Key('ac_equipment'),
+              initialValue: list.any((a) => a.id == _equipmentId)
+                  ? _equipmentId
+                  : null,
+              isExpanded: true,
+              decoration: _dekorasi(petunjuk: 'pilih alat'),
+              items: [
+                for (final EquipmentLookup a in list)
+                  DropdownMenuItem(
+                    value: a.id,
+                    child: Text(
+                      '${a.namaAlat} — ${a.serialNumber}',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+              ],
+              onChanged: (v) => setState(() => _equipmentId = v),
+            ),
+            loading: () => const LinearProgressIndicator(),
+            error: (e, _) => Text(
+              'Gagal muat daftar alat: $e',
+              style: TextStyle(color: theme.colorScheme.error),
+            ),
+          ),
+        ),
+        _baris('Manufacturer', _fieldTeks(_merkCtrl)),
+        _baris('Type', _fieldTeks(_typeCtrl)),
+        _baris('SN', _fieldTeks(_snCtrl)),
+        _baris('Range Temp.', _fieldAngka(_rangeSuhuCtrl, akhiran: '( °C )')),
+        _baris(
+          'Resolution Temp.',
+          _fieldAngka(_resolusiSuhuCtrl, akhiran: '( °C )'),
+        ),
+        _baris(
+          'Range Pressure',
+          _fieldAngka(_rangeTekananCtrl, akhiran: '( $_satuan )'),
+        ),
+        _baris(
+          'Resolution Pressure',
+          _fieldAngka(_resolusiTekananCtrl, akhiran: '( $_satuan )'),
+        ),
+        _baris(
+          'Pressure Unit',
+          DropdownButtonFormField<String>(
+            initialValue: _satuan,
+            isExpanded: true,
+            decoration: _dekorasi(),
+            items: [
+              for (final s in _satuanTekanan)
+                DropdownMenuItem(value: s, child: Text(s)),
+            ],
+            onChanged: (v) => setState(() => _satuan = v ?? _satuan),
+          ),
+        ),
+      ],
+    );
+  }
 
-    return _seksi('2. Hasil Suhu ($_jumlahDisk disk × $_jumlahTitikWaktu titik waktu)', [
-      Row(
+  /// SATU tabel, persis kayak kertas: Set Point di pojok kiri, banner
+  /// "Pengukuran Berulang UUT Selama Proses Sterilisasi" di atas lima kolom
+  /// waktu, lalu tujuh baris — Disk 1/2/3 → Indikator Suhu → Indikator
+  /// Pressure → Tekanan atm awal → Suhu Ruang.
+  Widget _tabelHasil(ThemeData theme) {
+    const lebarLabel = 148.0;
+    const lebarKolom = 96.0;
+
+    Widget selLabel(String teks, {bool tebal = false}) => Container(
+      width: lebarLabel,
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+      color: theme.colorScheme.surfaceContainerHighest,
+      child: Text(
+        teks,
+        style: theme.textTheme.bodySmall?.copyWith(
+          fontWeight: tebal ? FontWeight.w600 : null,
+        ),
+      ),
+    );
+
+    Widget barisAngka(
+      String label,
+      List<TextEditingController> ctrls, {
+      String? satuan,
+      Key? kunciPertama,
+    }) {
+      // IntrinsicHeight: sel label diwarnai penuh setinggi barisnya (garis
+      // tabel kertas), dan `stretch` butuh tinggi terbatas — di dalam ListView
+      // tingginya tak terbatas.
+      return IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            selLabel(satuan == null ? label : '$label ($satuan)'),
+            for (final (i, c) in ctrls.indexed)
+              SizedBox(
+                width: lebarKolom,
+                child: Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: _fieldAngka(
+                    c,
+                    rapat: true,
+                    fieldKey: i == 0 ? kunciPertama : null,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          kolomLabel(label),
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+          // Baris Set Point + banner kolom.
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                selLabel('Set Point (°C)', tebal: true),
+                SizedBox(
+                  width: lebarKolom,
+                  child: Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: _fieldAngka(
+                      _setPointCtrl,
+                      rapat: true,
+                      fieldKey: const Key('ac_setpoint'),
+                    ),
+                  ),
+                ),
+                Container(
+                  width: lebarKolom * (_jumlahTitikWaktu - 1),
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  child: Text(
+                    'Pengukuran Berulang UUT Selama Proses Sterilisasi',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Baris "Time" — jam beneran (kertas nulis __:__:__:__), bukan nomor
+          // urut. Tanpa jamnya, lima kolom angka nggak bisa diadu balik ke
+          // rekaman disk waktu sertifikatnya diperiksa.
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                selLabel('Time', tebal: true),
+                for (final (i, c) in _waktu.indexed)
+                  SizedBox(
+                    width: lebarKolom,
+                    child: Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: TextField(
+                        key: i == 0 ? const Key('ac_waktu0') : null,
+                        controller: c,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 13),
+                        keyboardType: TextInputType.datetime,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[0-9:]')),
+                          LengthLimitingTextInputFormatter(8),
+                        ],
+                        decoration: const InputDecoration(
+                          hintText: '--:--:--',
+                          isDense: true,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 8,
+                          ),
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          for (var d = 0; d < _jumlahDisk; d++)
+            barisAngka(
+              'Temp. Disk ${d + 1}',
+              _disk[d],
+              satuan: '°C',
+              kunciPertama: d == 0 ? const Key('ac_disk1_0') : null,
+            ),
+          barisAngka('Indikator Suhu', _indikatorSuhu, satuan: '°C'),
+          barisAngka(
+            'Indikator Pressure',
+            _indikatorPressure,
+            satuan: _satuan,
+            kunciPertama: const Key('ac_indikator_p0'),
+          ),
+          barisAngka('Tekanan atm awal', _tekananAtm, satuan: _satuan),
+          barisAngka('Suhu Ruang', _suhuRuang, satuan: '°C'),
+        ],
+      ),
+    );
+  }
+
+  /// Blok yang MEMANG nggak ada di kertas — dipisah dan diberi label supaya
+  /// nggak kebaca sebagai baris formulir waktu lembarnya diadu ke aslinya.
+  Widget _blokDiLuarKertas(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        border: Border.all(color: theme.dividerColor),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Di luar kertas — unduhan Pressure Disk Logger',
+            style: theme.textTheme.labelLarge,
+          ),
+          Text(
+            'Angkanya diunduh dari disk logger, bukan ditulis di lapangan. '
+            'Boleh dikosongin: lembarnya tetap kekirim, olah data tekanannya '
+            'nunggu angka ini lengkap.',
+            style: theme.textTheme.bodySmall,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text('Standar Reading (Bar)', style: theme.textTheme.bodySmall),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              for (final (i, c) in _pembacaanTekanan.indexed)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: _fieldAngka(
+                      c,
+                      rapat: true,
+                      fieldKey: i == 0 ? const Key('ac_p0') : null,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          DropdownButtonFormField<String>(
+            initialValue: _display,
+            decoration: const InputDecoration(
+              labelText: 'Tipe Display (Pressure)',
+              border: OutlineInputBorder(),
+              isDense: true,
+            ),
+            items: [
+              for (final s in _displayTekanan)
+                DropdownMenuItem(value: s, child: Text(s)),
+            ],
+            onChanged: (v) => setState(() => _display = v ?? _display),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _blokStandar(ThemeData theme) {
+    return Column(
+      children: [
+        for (final (i, label) in _standarTercetak.indexed)
+          CheckboxListTile(
+            key: Key('ac_standar_$i'),
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
+            title: Text(label, style: theme.textTheme.bodySmall),
+            value: _standarDicek[i],
+            onChanged: (v) => setState(() => _standarDicek[i] = v ?? false),
+          ),
+      ],
+    );
+  }
+
+  Widget _blokPenutup(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: _catatanCtrl,
+          minLines: 3,
+          maxLines: 5,
+          decoration: const InputDecoration(border: OutlineInputBorder()),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(
-                    height: _tinggiKepala,
-                    child: Row(
-                      children: [
-                        for (var i = 1; i <= _jumlahTitikWaktu; i++)
-                          SizedBox(
-                            width: _lebarSel,
-                            child: Center(
-                              child: Text(
-                                'W$i',
-                                style: theme.textTheme.labelSmall,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
+                  Text('Calibrated by:', style: theme.textTheme.labelLarge),
+                  // Diisi server dari akun teknisi yang ngirim. SENGAJA nggak
+                  // baca `authProvider` di sini: nge-`watch` provider itu
+                  // mancing pemeriksaan sesi, dan sesi yang lagi bermasalah
+                  // bakal ngebuang token di tengah teknisi ngisi lembar.
+                  Text(
+                    'Name: (otomatis dari akun teknisi)',
+                    style: theme.textTheme.bodySmall,
                   ),
-                  for (final (i, ctrls) in baris.indexed) ...[
-                    if (i == _jumlahDisk)
-                      const SizedBox(height: tinggiPemisah, child: Divider()),
-                    barisSel(ctrls),
-                  ],
+                  Text('Sign: —', style: theme.textTheme.bodySmall),
                 ],
               ),
             ),
-          ),
-        ],
-      ),
-    ]);
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Corrected by:', style: theme.textTheme.labelLarge),
+                  // Diisi admin waktu memeriksa, bukan teknisi.
+                  Text('Name: —', style: theme.textTheme.bodySmall),
+                  Text('Sign: —', style: theme.textTheme.bodySmall),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
-  Widget _seksiTekanan(ThemeData theme) {
-    return _seksi('3. Hasil Tekanan (1 titik)', [
-      Row(
+  // ---- Potongan tampilan ----
+
+  /// Panel berjudul — padanan banner biru di kertas.
+  Widget _panel(String judul, List<Widget> anak) {
+    final theme = Theme.of(context);
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(
-              child: _fieldAngka(_uutSettingCtrl, label: 'UUT Setting')),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: DropdownButtonFormField<String>(
-              initialValue: _satuan,
-              decoration: const InputDecoration(labelText: 'Satuan'),
-              items: [
-                for (final s in _satuanTekanan)
-                  DropdownMenuItem(value: s, child: Text(s)),
-              ],
-              onChanged: (v) => setState(() => _satuan = v ?? _satuan),
+          Container(
+            color: theme.colorScheme.primaryContainer,
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+            child: Text(
+              judul,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: theme.colorScheme.onPrimaryContainer,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: anak,
             ),
           ),
         ],
       ),
-      const SizedBox(height: AppSpacing.sm),
-      DropdownButtonFormField<String>(
-        initialValue: _display,
-        decoration: const InputDecoration(labelText: 'Tipe Display'),
-        items: [
-          for (final s in _displayTekanan)
-            DropdownMenuItem(value: s, child: Text(s)),
-        ],
-        onChanged: (v) => setState(() => _display = v ?? _display),
-      ),
-      const SizedBox(height: AppSpacing.sm),
-      Text('Standar Reading — Pressure Disk Logger (Bar)',
-          style: theme.textTheme.bodySmall),
-      const SizedBox(height: AppSpacing.xs),
-      // Digeser mendatar, bukan diperas rata seperti dulu — sama alasannya
-      // dengan kisi suhu di atas. Lima pembacaan yang dibagi rata di lebar HP
-      // jadi ~55 dp per kotak, terlalu sempit buat angka empat desimal seperti
-      // `1.231`.
-      SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            for (final (i, c) in _pembacaanTekanan.indexed)
-              SizedBox(
-                width: _lebarSel,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xs / 2,
-                  ),
-                  child: _fieldAngka(
-                    c,
-                    dense: true,
-                    fieldKey: i == 0 ? const Key('ac_p0') : null,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    ]);
+    );
   }
 
-  Widget _seksi(String judul, List<Widget> anak) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(judul,
-                style: Theme.of(context).textTheme.titleSmall),
-            const SizedBox(height: AppSpacing.sm),
-            ...anak,
-          ],
+  /// Satu baris kertas: `Label  :  ______`.
+  Widget _baris(String label, Widget isian) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 150,
+            child: Text(label, style: Theme.of(context).textTheme.bodySmall),
+          ),
+          const Text(':  '),
+          Expanded(child: isian),
+        ],
+      ),
+    );
+  }
+
+  InputDecoration _dekorasi({String? petunjuk, String? akhiran}) =>
+      InputDecoration(
+        hintText: petunjuk,
+        suffixText: akhiran,
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        border: const OutlineInputBorder(),
+      );
+
+  Widget _kotakTanggal(
+    DateTime? nilai, {
+    required VoidCallback onTap,
+    String kosong = '—',
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: InputDecorator(
+        decoration: _dekorasi(),
+        child: Text(
+          nilai == null ? kosong : nilai.toIso8601String().substring(0, 10),
         ),
       ),
     );
   }
 
-  Widget _fieldAngka(TextEditingController c,
-      {String? label, bool dense = false, Key? fieldKey}) {
+  Widget _fieldTeks(
+    TextEditingController c, {
+    bool barisBanyak = false,
+    Key? fieldKey,
+  }) {
+    return TextField(
+      key: fieldKey,
+      controller: c,
+      minLines: barisBanyak ? 2 : 1,
+      maxLines: barisBanyak ? 3 : 1,
+      decoration: _dekorasi(),
+    );
+  }
+
+  Widget _fieldAngka(
+    TextEditingController c, {
+    String? akhiran,
+    bool rapat = false,
+    Key? fieldKey,
+  }) {
     return TextField(
       key: fieldKey,
       controller: c,
       keyboardType: const TextInputType.numberWithOptions(
-          decimal: true, signed: true),
+        decimal: true,
+        signed: true,
+      ),
       inputFormatters: [
         FilteringTextInputFormatter.allow(RegExp(r'[0-9.,\-]')),
       ],
-      textAlign: dense ? TextAlign.center : TextAlign.start,
-      // Ikut skala tema, bukan angka lepas: ukuran huruf yang dipatok di satu
-      // layar bikin dia beda sendiri waktu skala teks sistem dinaikkan — dan
-      // yang menaikkannya biasanya orang yang memang susah membaca angka kecil.
-      style: dense ? Theme.of(context).textTheme.bodySmall : null,
-      decoration: InputDecoration(
-        labelText: label,
-        isDense: dense,
-        contentPadding: dense
-            ? const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xs,
-                vertical: AppSpacing.sm,
-              )
-            : null,
-        border: const OutlineInputBorder(),
-      ),
+      textAlign: rapat ? TextAlign.center : TextAlign.start,
+      style: rapat ? const TextStyle(fontSize: 13) : null,
+      decoration: rapat
+          ? const InputDecoration(
+              isDense: true,
+              contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              border: OutlineInputBorder(),
+            )
+          : _dekorasi(akhiran: akhiran),
     );
   }
 }
+
 class _KotakError extends StatelessWidget {
   const _KotakError({required this.pesan});
 
@@ -605,4 +1048,3 @@ class _KotakError extends StatelessWidget {
     );
   }
 }
-

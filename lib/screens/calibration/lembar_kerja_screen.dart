@@ -1528,20 +1528,33 @@ class _CatatanIsi extends StatelessWidget {
 }
 
 
-/// Tombol pindai LEMBAR PENUH (OCR lokal) — beda dari tombol "foto tabel ini"
-/// yang ngirim citranya ke AI di server.
+/// Tombol pindai LEMBAR PENUH — satu-satunya jalur kamera yang dipakai app ini.
 ///
-/// Jalur ini baca angkanya DI HP (ML Kit on-device): fotonya nggak pernah
-/// keluar dari perangkat, nggak ada biaya per foto, dan jalan tanpa sinyal.
-/// Syaratnya satu: koordinat tiap sel harus udah diukur dari formulir CETAK
-/// asli, dan formulirnya dicetak ulang pakai 4 penanda sudut + QR versi.
+/// ANGKANYA dibaca DI HP (ML Kit on-device): nggak ada panggilan ke layanan AI
+/// pihak ketiga, nggak ada biaya per foto, dan pembacaannya jalan tanpa sinyal.
+/// Endpoint AI lama (`POST /raw-measurements/extract-from-photo`) masih hidup di
+/// server tapi app ini nggak pernah manggilnya lagi — jangan hidupkan lagi tanpa
+/// membaca ulang docblock-nya di backend.
 ///
-/// **`siap_pindai` dari server yang mutusin tombol ini hidup atau mati.**
-/// Sekarang keenam lembar masih `geometri_belum_diverifikasi` — koordinat
-/// tebakan berarti angka mendarat di sel yang salah, dan itu justru kegagalan
-/// yang mau dicegah fitur ini. Alasannya ditampilin apa adanya, bukan
-/// diterjemahin jadi "fitur belum tersedia": teknisi berhak tahu yang kurang
-/// itu apa, dan yang bisa nutup cuma lab (cetak ulang formulir + ukur).
+/// **Yang dikirim ke server bukan cuma angkanya.** `POST /worksheet-scans` juga
+/// mengunggah citra lembar yang sudah diratakan; server menyimpannya dan
+/// menyajikannya lagi per sel supaya layar review bisa nampilin tulisan aslinya
+/// di sebelah angka tebakan. Jadi "dibaca di HP" bukan berarti fotonya nggak
+/// keluar HP — retensinya diatur `config/ocr.php` di backend. Ditulis terang di
+/// sini karena versi sebelumnya menjanjikan sebaliknya.
+///
+/// Syarat teknisnya satu: koordinat tiap sel harus sudah diukur dari formulir
+/// CETAK asli, dan formulirnya dicetak ulang pakai 4 penanda sudut + QR versi.
+///
+/// **`siap_pindai` dari server yang mutusin tombol ini hidup atau mati.** Per
+/// 20 Agu 2026 enam lembar sudah `terverifikasi` (pH, Turbidimeter, Chlorine,
+/// Refractometer, Conductivity, Spectrophotometer); Viscometer masih
+/// `geometri_belum_diverifikasi` dan Autoklaf masih menunggu geometrinya diadu
+/// ke lembar cetak. Koordinat tebakan berarti angka mendarat di sel yang salah,
+/// dan itu justru kegagalan yang mau dicegah fitur ini. Alasannya ditampilin apa
+/// adanya, bukan diterjemahin jadi "fitur belum tersedia": teknisi berhak tahu
+/// yang kurang itu apa, dan yang bisa nutup cuma lab (cetak ulang formulir +
+/// ukur).
 class _TombolPindaiLembar extends ConsumerStatefulWidget {
   const _TombolPindaiLembar({
     required this.profil,
