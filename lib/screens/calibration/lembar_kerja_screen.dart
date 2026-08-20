@@ -2880,6 +2880,51 @@ class _PilihTanggal extends StatelessWidget {
   }
 }
 
+/// Dropdown untuk kolom `pilihan` yang daftarnya ikut di bentuk lembar.
+///
+/// Nilainya disimpan di `isian.teks[kode]` — sama seperti kolom ketik — supaya
+/// perakit payload nggak perlu tahu kolom ini dropdown atau bukan.
+class _PilihanUmum extends StatelessWidget {
+  const _PilihanUmum({
+    required this.field,
+    required this.isian,
+    required this.onBerubah,
+  });
+
+  final FieldLembarKerja field;
+  final LembarKerjaState isian;
+  final VoidCallback onBerubah;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = isian.teks[field.kode];
+    if (controller == null) return const SizedBox.shrink();
+
+    final nilai = controller.text.trim();
+    final adaDiDaftar = field.pilihan.any((p) => p.nilai == nilai);
+
+    return DropdownButtonFormField<String>(
+      // Nilai di luar daftar dianggap belum kepilih, bukan dipaksa masuk:
+      // `DropdownButtonFormField` melempar assert kalau `value`-nya nggak ada
+      // di `items`, dan itu bikin seluruh layar merah — bukan satu kolom.
+      initialValue: adaDiDaftar ? nilai : null,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: field.label,
+        border: const OutlineInputBorder(),
+      ),
+      items: [
+        for (final p in field.pilihan)
+          DropdownMenuItem(value: p.nilai, child: Text(p.label)),
+      ],
+      onChanged: (v) {
+        controller.text = v ?? '';
+        onBerubah();
+      },
+    );
+  }
+}
+
 class _PilihanTetap extends StatelessWidget {
   const _PilihanTetap({
     required this.field,
@@ -2905,10 +2950,25 @@ class _PilihanTetap extends StatelessWidget {
       return _PilihSatuan(field: field, isian: isian, onBerubah: onBerubah);
     }
 
-    // Sisanya cuma Location. Kolom pilihan lain yang belum dikenali sengaja
-    // nggak dirender apa-apa daripada nampilin dropdown yang nilainya nggak
-    // nyambung ke mana-mana waktu dikirim.
-    if (field.kode != 'lokasi') return const SizedBox.shrink();
+    // Kolom pilihan yang bawa daftar pilihannya sendiri digambar dropdown
+    // biasa. Dulu SEMUA kolom pilihan di luar tiga kode di atas dirender
+    // `SizedBox.shrink()` — alasannya waktu itu benar (nilainya nggak nyambung
+    // ke mana-mana waktu dikirim), tapi jadi salah begitu Autoklaf masuk:
+    // `satuan_tekanan` & `display_tekanan` nentuin ARTI angka tekanan (Bar vs
+    // Psi vs kPa) dan sekarang ikut kekirim lewat `payloadMatriks`.
+    //
+    // Gagalnya diam-diam: kotaknya nggak ada di layar, teknisi nggak pernah
+    // tahu ada yang harus dipilih, dan angka tekanannya sampai server tanpa
+    // satuan.
+    if (field.kode != 'lokasi') {
+      if (field.pilihan.isEmpty) return const SizedBox.shrink();
+
+      return _PilihanUmum(
+        field: field,
+        isian: isian,
+        onBerubah: onBerubah,
+      );
+    }
 
     return DropdownButtonFormField<LokasiKalibrasi>(
       initialValue: isian.lokasi,

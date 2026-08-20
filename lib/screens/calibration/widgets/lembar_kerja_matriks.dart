@@ -269,10 +269,12 @@ class _TabelTambahan extends StatelessWidget {
                     vertical: 10,
                   ),
                   color: theme.colorScheme.surfaceContainerHighest,
+                  // Labelnya dipakai apa adanya. Ditempelin satuan lagi di
+                  // sini bikin "Pressure Disk Logger — hasil unduh (Bar) (Bar)"
+                  // — judul bloknya di atas SUDAH menyebut satuannya, dan
+                  // backend nulis satuan itu di dua tempat.
                   child: Text(
-                    tabel.satuan == null
-                        ? tabel.label
-                        : '${tabel.label} (${tabel.satuan})',
+                    tabel.label,
                     style: theme.textTheme.bodySmall,
                   ),
                 ),
