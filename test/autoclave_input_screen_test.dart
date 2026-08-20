@@ -9,6 +9,7 @@ import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/calibration_input_provider.dart';
 import 'package:sidik_calibration/screens/calibration/autoclave_input_screen.dart';
 import 'package:sidik_calibration/services/autoclave_service.dart';
+import 'package:sidik_calibration/services/standard_service.dart';
 import 'package:sidik_calibration/services/equipment_lookup_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 
@@ -27,7 +28,12 @@ class _FakeAutoclaveService implements AutoclaveService {
         'suhu': {
           'indikator_rata': 121.0,
           'sensor': [
-            {'no': 1, 'standar_terkoreksi': 121.396, 'koreksi': 0.396, 'delta_t': 0.02},
+            {
+              'no': 1,
+              'standar_terkoreksi': 121.396,
+              'koreksi': 0.396,
+              'delta_t': 0.02,
+            },
           ],
           'kestabilan': 0.045,
           'keseragaman': 0.464,
@@ -48,8 +54,11 @@ class _FakeAutoclaveService implements AutoclaveService {
 
 class _FakeEquipmentLookup implements EquipmentLookupService {
   @override
-  Future<List<EquipmentLookup>> cari(String token,
-      {String? search, String? kategori}) async {
+  Future<List<EquipmentLookup>> cari(
+    String token, {
+    String? search,
+    String? kategori,
+  }) async {
     return [
       const EquipmentLookup(
         id: 42,
@@ -66,8 +75,13 @@ Widget _bungkus(_FakeAutoclaveService fake) {
   return ProviderScope(
     overrides: [
       autoclaveServiceProvider.overrideWithValue(fake),
+      // Layar narik master standar cuma buat mapping unit thermohygro ke
+      // `standard_id`. Dipalsuin biar test nggak nyentuh jaringan.
+      standardServiceProvider.overrideWithValue(MockStandardService()),
       equipmentLookupServiceProvider.overrideWithValue(_FakeEquipmentLookup()),
-      tokenStorageProvider.overrideWithValue(InMemoryTokenStorage('mock-token')),
+      tokenStorageProvider.overrideWithValue(
+        InMemoryTokenStorage('mock-token'),
+      ),
     ],
     child: const MaterialApp(home: AutoclaveInputScreen()),
   );
@@ -86,8 +100,9 @@ void main() {
     await tester.pumpWidget(_bungkus(_FakeAutoclaveService()));
     await tester.pumpAndSettle();
 
-    expect(find.text('Identitas Kalibrasi'), findsOneWidget);
-    expect(find.text('1. Set Point'), findsOneWidget);
+    expect(find.text('General Information'), findsOneWidget);
+    expect(find.text('Data Result'), findsOneWidget);
+    expect(find.text('Set Point (°C)'), findsOneWidget);
     expect(find.widgetWithText(OutlinedButton, 'Hitung'), findsOneWidget);
     expect(find.widgetWithText(FilledButton, 'Simpan & Kirim'), findsOneWidget);
   });
@@ -99,11 +114,13 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byKey(const Key('ac_setpoint')), '121');
-    // Satu pembacaan tekanan cukup buat blok tekanan ikut (uut default kosong,
-    // jadi isi juga UUT Setting lewat label).
-    await tester.enterText(find.widgetWithText(TextField, 'UUT Setting'), '0.112');
+    // Bacaan UUT diambil dari baris kertas "Indikator Pressure", bukan kolom
+    // "UUT Setting" karangan — kertasnya nggak punya kolom itu.
+    await tester.enterText(find.byKey(const Key('ac_indikator_p0')), '0.112');
     await tester.enterText(find.byKey(const Key('ac_p0')), '1.231');
 
+    await tester.ensureVisible(find.widgetWithText(OutlinedButton, 'Hitung'));
+    await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(OutlinedButton, 'Hitung'));
     await tester.pumpAndSettle();
 
@@ -113,17 +130,105 @@ void main() {
     expect(find.textContaining('0.464'), findsWidgets);
   });
 
-  testWidgets('Simpan tanpa pilih alat → error, service tidak dipanggil',
-      (tester) async {
+  /// Lembar di layar diadu BARIS PER BARIS ke kertas
+  /// `SIDIK-FM-CAL-0539_Rev.4`. Bentuk sebelumnya numpang lembar pH: dua baris
+  /// kertas (`Indikator Pressure`, `Tekanan atm awal`) nggak ada tempatnya, dan
+  /// baris ke-5 di layar itu Suhu Ruang padahal di kertas baris ke-5 itu
+  /// Indikator Pressure. Teknisi nyalin sambil megang kertas — geser satu baris
+  /// berarti tekanan manometer masuk ke kolom suhu.
+  testWidgets('tabel Data Result urut sama kayak kertas Rev.4', (tester) async {
+    besar(tester);
+    await tester.pumpWidget(_bungkus(_FakeAutoclaveService()));
+    await tester.pumpAndSettle();
+
+    for (final label in [
+      'Receive Date',
+      'Customer',
+      'Addresss',
+      'Calibration Date',
+      'Location of Calibration',
+      'Equipment Name',
+      'Manufacturer',
+      'Type',
+      'SN',
+      'Range Temp.',
+      'Resolution Temp.',
+      'Range Pressure',
+      'Resolution Pressure',
+      'Calibration Result for Temperature & Pressure',
+      'Pengukuran Berulang UUT Selama Proses Sterilisasi',
+      'Time',
+      'Temp. Disk 1 (°C)',
+      'Temp. Disk 2 (°C)',
+      'Temp. Disk 3 (°C)',
+      'Indikator Suhu (°C)',
+      'Indikator Pressure (MPa)',
+      'Tekanan atm awal (MPa)',
+      'Suhu Ruang (°C)',
+      'Standard Used:',
+      'Temperature Calibrator -Technosoft (Disk 1,2,3)',
+      'Pressure Disk Logger-Technosoft',
+      'Catatan:',
+      'Calibrated by:',
+      'Corrected by:',
+    ]) {
+      expect(
+        find.text(label),
+        findsOneWidget,
+        reason: 'Kertas punya "$label".',
+      );
+    }
+
+    // Lima kolom waktu, dan jam beneran — bukan nomor urut W1..W5.
+    expect(find.byKey(const Key('ac_waktu0')), findsOneWidget);
+    expect(find.text('W1'), findsNothing);
+  });
+
+  /// Baris kertas "Indikator Pressure" itu yang jadi bacaan UUT. Layar nggak
+  /// boleh ngerata-rata kelima kolomnya sendiri — backend yang mutusin, dan
+  /// nolak kalau kolomnya beda-beda.
+  testWidgets('payload bawa baris kertas, bukan uut_setting karangan', (
+    tester,
+  ) async {
     besar(tester);
     final fake = _FakeAutoclaveService();
     await tester.pumpWidget(_bungkus(fake));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byKey(const Key('ac_setpoint')), '121');
-    await tester.enterText(find.widgetWithText(TextField, 'UUT Setting'), '0.112');
+    await tester.enterText(find.byKey(const Key('ac_waktu0')), '02:00:00');
+    await tester.enterText(find.byKey(const Key('ac_indikator_p0')), '0.112');
     await tester.enterText(find.byKey(const Key('ac_p0')), '1.231');
 
+    await tester.ensureVisible(find.widgetWithText(OutlinedButton, 'Hitung'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Hitung'));
+    await tester.pumpAndSettle();
+
+    final kirim = fake.pratinjauTerakhir!;
+    expect((kirim['waktu'] as List).first, '02:00:00');
+    final tekanan = kirim['tekanan'] as Map<String, dynamic>;
+    expect(tekanan.containsKey('uut_setting'), isFalse);
+    expect((tekanan['indikator_pressure'] as List).first, 0.112);
+    expect(tekanan.containsKey('tekanan_atm_awal'), isTrue);
+  });
+
+  testWidgets('Simpan tanpa pilih alat → error, service tidak dipanggil', (
+    tester,
+  ) async {
+    besar(tester);
+    final fake = _FakeAutoclaveService();
+    await tester.pumpWidget(_bungkus(fake));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('ac_setpoint')), '121');
+    await tester.enterText(find.byKey(const Key('ac_indikator_p0')), '0.112');
+    await tester.enterText(find.byKey(const Key('ac_p0')), '1.231');
+
+    await tester.ensureVisible(
+      find.widgetWithText(FilledButton, 'Simpan & Kirim'),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'Simpan & Kirim'));
     await tester.pumpAndSettle();
 
@@ -131,23 +236,28 @@ void main() {
     expect(fake.simpanTerakhir, isNull);
   });
 
-  testWidgets('pilih alat → Simpan → payload bawa equipment_id + data ukur',
-      (tester) async {
+  testWidgets('pilih alat → Simpan → payload bawa equipment_id + data ukur', (
+    tester,
+  ) async {
     besar(tester);
     final fake = _FakeAutoclaveService();
     await tester.pumpWidget(_bungkus(fake));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byKey(const Key('ac_setpoint')), '121');
-    await tester.enterText(find.widgetWithText(TextField, 'UUT Setting'), '0.112');
+    await tester.enterText(find.byKey(const Key('ac_indikator_p0')), '0.112');
     await tester.enterText(find.byKey(const Key('ac_p0')), '1.231');
 
     // Pilih alat dari dropdown.
-    await tester.tap(find.byType(DropdownButtonFormField<int>));
+    await tester.tap(find.byKey(const Key('ac_equipment')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Autoclave — DR-0000173').last);
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(
+      find.widgetWithText(FilledButton, 'Simpan & Kirim'),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'Simpan & Kirim'));
     await tester.pumpAndSettle();
 
