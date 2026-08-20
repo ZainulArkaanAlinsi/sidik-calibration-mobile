@@ -95,7 +95,7 @@ class _EquipmentListScreenState extends ConsumerState<EquipmentListScreen> {
         ],
       ),
       body: Container(
-        decoration: BoxDecoration(gradient: AppColors.gradasiLatar(context)),
+        decoration: BoxDecoration(color: AppColors.warnaLatar(context)),
         child: ReadableWidth(
           child: Column(
             children: [

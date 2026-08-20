@@ -74,7 +74,7 @@ class _MyTasksScreenState extends ConsumerState<MyTasksScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.tugasTitle)),
       body: Container(
-        decoration: BoxDecoration(gradient: AppColors.gradasiLatar(context)),
+        decoration: BoxDecoration(color: AppColors.warnaLatar(context)),
         child: isi,
       ),
     );
@@ -233,7 +233,7 @@ class _Rincian extends StatelessWidget {
         Text(
           nilai,
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: sorot ? AppColors.danger : null,
+            color: sorot ? AppColors.statusBahaya(context) : null,
             fontWeight: sorot ? FontWeight.w700 : null,
           ),
         ),

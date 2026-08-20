@@ -23,19 +23,51 @@ class DesignSystemScreen extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
           _Section(
-            title: 'Warna',
+            title: 'Palet inti',
             child: Wrap(
               spacing: AppSpacing.sm,
               runSpacing: AppSpacing.sm,
               children: const [
-                _Swatch(color: AppColors.navy, name: 'Navy'),
-                _Swatch(color: AppColors.teal, name: 'Teal'),
-                _Swatch(color: AppColors.titanium, name: 'Titanium'),
-                _Swatch(color: AppColors.surfaceMuted, name: 'Surface'),
-                _Swatch(color: AppColors.success, name: 'Success'),
-                _Swatch(color: AppColors.danger, name: 'Danger'),
-                _Swatch(color: AppColors.warning, name: 'Warning'),
-                _Swatch(color: AppColors.info, name: 'Info'),
+                _Swatch(color: AppColors.crimson, name: 'Crimson Red'),
+                _Swatch(color: AppColors.ink, name: 'Jet Black'),
+                _Swatch(color: AppColors.mint, name: 'Arctic Mint'),
+                _Swatch(color: AppColors.ivory, name: 'Bright Ivory'),
+                _Swatch(color: AppColors.cobalt, name: 'Cobalt Blue'),
+              ],
+            ),
+          ),
+
+          _Section(
+            title: 'Turunan',
+            child: Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              children: const [
+                _Swatch(color: AppColors.cobaltDeep, name: 'Cobalt Deep'),
+                _Swatch(color: AppColors.cobaltSoft, name: 'Cobalt Soft'),
+                _Swatch(color: AppColors.mintDeep, name: 'Mint Deep'),
+                _Swatch(color: AppColors.crimsonSoft, name: 'Crimson Soft'),
+                _Swatch(color: AppColors.hairline, name: 'Hairline'),
+              ],
+            ),
+          ),
+
+          _Section(
+            title: 'Status',
+            child: Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              children: [
+                _Swatch(
+                  color: AppColors.statusSukses(context),
+                  name: 'Success',
+                ),
+                _Swatch(color: AppColors.statusBahaya(context), name: 'Danger'),
+                _Swatch(
+                  color: AppColors.statusPeringatan(context),
+                  name: 'Warning',
+                ),
+                _Swatch(color: AppColors.statusInfo(context), name: 'Info'),
               ],
             ),
           ),
@@ -47,8 +79,14 @@ class DesignSystemScreen extends StatelessWidget {
               children: [
                 Text('Headline Small', style: theme.textTheme.headlineSmall),
                 Text('Title Medium', style: theme.textTheme.titleMedium),
-                Text('Body Medium — teks isi biasa', style: theme.textTheme.bodyMedium),
-                Text('Body Small — keterangan', style: theme.textTheme.bodySmall),
+                Text(
+                  'Body Medium — teks isi biasa',
+                  style: theme.textTheme.bodyMedium,
+                ),
+                Text(
+                  'Body Small — keterangan',
+                  style: theme.textTheme.bodySmall,
+                ),
               ],
             ),
           ),

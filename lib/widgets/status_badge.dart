@@ -90,18 +90,18 @@ class StatusBadge extends StatelessWidget {
     };
   }
 
-  Color _color(ColorScheme scheme) => switch (tone) {
-    BadgeTone.success => AppColors.success,
-    BadgeTone.danger => AppColors.danger,
-    BadgeTone.warning => AppColors.warning,
-    BadgeTone.info => AppColors.info,
+  Color _color(BuildContext context, ColorScheme scheme) => switch (tone) {
+    BadgeTone.success => AppColors.statusSukses(context),
+    BadgeTone.danger => AppColors.statusBahaya(context),
+    BadgeTone.warning => AppColors.statusPeringatan(context),
+    BadgeTone.info => AppColors.statusInfo(context),
     BadgeTone.neutral => scheme.onSurfaceVariant,
   };
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = _color(theme.colorScheme);
+    final color = _color(context, theme.colorScheme);
 
     return Container(
       padding: const EdgeInsets.symmetric(

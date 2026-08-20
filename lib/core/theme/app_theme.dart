@@ -16,56 +16,61 @@ class AppTheme {
   static ThemeData get light => _build(
     Brightness.light,
     const ColorScheme.light(
-      primary: AppColors.navy,
+      // Cobalt satu-satunya warna interaktif. Semua tombol utama, tautan, dan
+      // penanda aktif pakai ini — jadi teknisi nggak perlu nebak mana yang
+      // bisa dipencet.
+      primary: AppColors.cobalt,
       onPrimary: AppColors.white,
-      primaryContainer: AppColors.surfaceMuted,
-      onPrimaryContainer: AppColors.navy,
-      secondary: AppColors.teal,
+      primaryContainer: AppColors.cobaltSoft,
+      onPrimaryContainer: AppColors.cobaltDeep,
+      // Mint aslinya jadi bidang (chip, badge) dengan teks hitam di atasnya;
+      // versi gelapnya yang dipakai kalau mint harus jadi huruf.
+      secondary: AppColors.mintDeep,
       onSecondary: AppColors.white,
-      secondaryContainer: Color(0xFFD6F2EC),
-      onSecondaryContainer: Color(0xFF00382F),
+      secondaryContainer: AppColors.mint,
+      onSecondaryContainer: AppColors.ink,
       surface: AppColors.white,
-      onSurface: Color(0xFF191C1D),
+      onSurface: AppColors.ink,
       onSurfaceVariant: AppColors.textMuted,
       surfaceContainerLowest: AppColors.white,
-      surfaceContainerLow: AppColors.surfaceLight,
-      surfaceContainer: Color(0xFFEDEEEF),
-      surfaceContainerHighest: Color(0xFFE1E3E4),
-      error: AppColors.danger,
+      surfaceContainerLow: AppColors.ivory,
+      surfaceContainer: AppColors.ivoryDim,
+      surfaceContainerHighest: AppColors.hairline,
+      error: AppColors.crimson,
       onError: AppColors.white,
-      errorContainer: Color(0xFFFFDAD6),
-      onErrorContainer: Color(0xFF93000A),
+      errorContainer: AppColors.crimsonSoft,
+      onErrorContainer: AppColors.crimsonDeep,
       outline: AppColors.outline,
-      outlineVariant: AppColors.titanium,
+      outlineVariant: AppColors.hairline,
     ),
   );
 
   static ThemeData get dark => _build(
     Brightness.dark,
     const ColorScheme.dark(
-      // Di tema gelap, tombol utama jadi putih di atas navy — persis
-      // tombol "SIGN IN" di screenshot desain.
-      primary: AppColors.white,
-      onPrimary: AppColors.navyDeep,
-      primaryContainer: AppColors.darkElevated,
-      onPrimaryContainer: AppColors.white,
-      secondary: AppColors.tealBright,
-      onSecondary: Color(0xFF00382F),
-      secondaryContainer: Color(0xFF005046),
-      onSecondaryContainer: Color(0xFF6DF5E1),
-      surface: AppColors.darkBase,
-      onSurface: Color(0xFFF0F1F2),
-      onSurfaceVariant: AppColors.darkTextMuted,
-      surfaceContainerLowest: Color(0xFF081A21),
-      surfaceContainerLow: AppColors.darkSurface,
-      surfaceContainer: AppColors.darkSurface,
-      surfaceContainerHighest: AppColors.darkElevated,
-      error: Color(0xFFFFB4AB),
-      onError: Color(0xFF690005),
-      errorContainer: Color(0xFF93000A),
-      onErrorContainer: Color(0xFFFFDAD6),
-      outline: Color(0xFF7A9198),
-      outlineVariant: AppColors.darkOutline,
+      // Cobalt penuh terlalu gelap buat jadi bidang di atas Jet Black; versi
+      // terangnya yang dipakai, tetap rona yang sama.
+      primary: AppColors.cobaltLight,
+      onPrimary: AppColors.ink,
+      primaryContainer: AppColors.cobaltDeep,
+      onPrimaryContainer: AppColors.cobaltSoft,
+      secondary: AppColors.mint,
+      onSecondary: AppColors.ink,
+      secondaryContainer: AppColors.mintInk,
+      onSecondaryContainer: AppColors.mint,
+      surface: AppColors.inkSurface,
+      onSurface: AppColors.ivory,
+      onSurfaceVariant: AppColors.inkTextMuted,
+      surfaceContainerLowest: AppColors.inkDeep,
+      surfaceContainerLow: AppColors.inkSurface,
+      surfaceContainer: AppColors.inkSurface,
+      surfaceContainerHighest: AppColors.inkElevated,
+      error: AppColors.crimsonLight,
+      onError: AppColors.ink,
+      errorContainer: AppColors.crimsonDeep,
+      onErrorContainer: AppColors.crimsonSoft,
+      outline: Color(0xFF8A8A85),
+      outlineVariant: AppColors.inkOutline,
     ),
   );
 
@@ -81,13 +86,11 @@ class AppTheme {
       brightness: brightness,
       colorScheme: scheme,
       fontFamily: AppTypography.family,
-      // Bidang dasar condong biru, bukan abu-abu netral. Kartu putih di atas
-      // ground kebiruan kebaca "ngambang" — bayangannya punya warna buat
-      // dikontraskan. Di atas abu-abu, kartu putih dan bayangannya nyaris
-      // menyatu dan kedalamannya ilang.
-      scaffoldBackgroundColor: isLight
-          ? const Color(0xFFE7EEF8)
-          : AppColors.darkBase,
+      // Ground rata satu warna. Ivory sedikit lebih tua dari putih, jadi kartu
+      // putih di atasnya tetap kebaca timbul tanpa perlu latar yang melandai —
+      // dan aksen cobalt/mint di atasnya kebaca bersih, nggak ketarik rona
+      // latar.
+      scaffoldBackgroundColor: isLight ? AppColors.ivory : AppColors.inkDeep,
       textTheme: text,
       // Perpindahan halaman diseragamkan lewat tema, bukan per `Navigator.push`
       // — ada 60-an `MaterialPageRoute` di app ini dan nyetel satu-satu itu
@@ -125,18 +128,14 @@ class AppTheme {
       // kebaca empuk, yang kedua kebaca kayak kartu ketebalan.
       cardTheme: CardThemeData(
         elevation: 0,
-        shadowColor: (isLight ? AppColors.navy : Colors.black).withValues(
-          alpha: isLight ? 0.16 : 0.5,
-        ),
+        shadowColor: AppColors.ink.withValues(alpha: isLight ? 0.14 : 0.6),
         surfaceTintColor: Colors.transparent,
-        color: isLight ? AppColors.white : AppColors.darkSurface,
+        color: isLight ? AppColors.white : AppColors.inkSurface,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
           side: BorderSide(
-            color: (isLight ? AppColors.white : AppColors.white).withValues(
-              alpha: isLight ? 0.72 : 0.10,
-            ),
+            color: isLight ? AppColors.hairline : AppColors.inkOutline,
           ),
         ),
       ),
@@ -163,9 +162,7 @@ class AppTheme {
           minimumSize: const Size.fromHeight(52),
           foregroundColor: scheme.onSurface,
           side: BorderSide(color: scheme.outlineVariant),
-          backgroundColor: scheme.surface.withValues(
-            alpha: isLight ? 0.48 : 0.22,
-          ),
+          backgroundColor: isLight ? AppColors.white : AppColors.inkSurface,
           textStyle: text.labelLarge?.copyWith(letterSpacing: 1.0),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -175,24 +172,22 @@ class AppTheme {
 
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: isLight ? AppColors.teal : AppColors.tealBright,
+          foregroundColor: isLight ? AppColors.cobalt : AppColors.cobaltLight,
           textStyle: text.labelLarge,
         ),
       ),
 
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: isLight
-            ? AppColors.white.withValues(alpha: 0.78)
-            : AppColors.darkSurface,
+        fillColor: isLight ? AppColors.white : AppColors.inkElevated,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
           vertical: AppSpacing.md,
         ),
         border: _border(scheme.outlineVariant),
         enabledBorder: _border(scheme.outlineVariant),
-        // Fokus = border nebel jadi navy (light) / putih (dark), bukan ganti
-        // warna — sesuai DESIGN.md.
+        // Fokus = border nebel jadi cobalt, satu-satunya warna interaktif.
+        // Ketebalannya yang naik, bukan ronanya yang loncat.
         focusedBorder: _border(scheme.primary, width: 2),
         errorBorder: _border(scheme.error),
         focusedErrorBorder: _border(scheme.error, width: 2),
@@ -208,6 +203,13 @@ class AppTheme {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: scheme.surface,
         indicatorColor: scheme.primaryContainer,
+        iconTheme: WidgetStateProperty.resolveWith(
+          (states) => IconThemeData(
+            color: states.contains(WidgetState.selected)
+                ? scheme.onPrimaryContainer
+                : scheme.onSurfaceVariant,
+          ),
+        ),
         elevation: 0,
         height: 68,
         labelTextStyle: WidgetStatePropertyAll(text.labelSmall),
@@ -218,7 +220,7 @@ class AppTheme {
         textStyle: text.bodyMedium,
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: isLight ? AppColors.white : AppColors.darkSurface,
+          fillColor: isLight ? AppColors.white : AppColors.inkElevated,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
             vertical: AppSpacing.md,
@@ -232,7 +234,7 @@ class AppTheme {
       dividerTheme: DividerThemeData(color: scheme.outlineVariant, space: 1),
 
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: scheme.surface.withValues(alpha: 0.94),
+        backgroundColor: scheme.surface,
         surfaceTintColor: Colors.transparent,
         showDragHandle: true,
         dragHandleColor: scheme.onSurfaceVariant.withValues(alpha: 0.45),
@@ -242,15 +244,13 @@ class AppTheme {
       ),
 
       dialogTheme: DialogThemeData(
-        backgroundColor: scheme.surface.withValues(alpha: 0.96),
+        backgroundColor: scheme.surface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       ),
 
       chipTheme: ChipThemeData(
-        backgroundColor: scheme.surface.withValues(
-          alpha: isLight ? 0.64 : 0.30,
-        ),
+        backgroundColor: isLight ? AppColors.ivoryDim : AppColors.inkElevated,
         selectedColor: scheme.primaryContainer,
         side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.72)),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

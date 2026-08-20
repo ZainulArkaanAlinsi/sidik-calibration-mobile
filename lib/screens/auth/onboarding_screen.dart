@@ -78,16 +78,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         judul: l10n.onbStep1Title,
         isi: l10n.onbStep1Body,
         mesh: Alat3D.anakTimbangan(),
-        warna: AppColors.signalAmber,
-        warnaDua: const Color(0xFFE8833A),
+        warna: AppColors.cobalt,
+        warnaDua: AppColors.cobaltDeep,
         kamera: const Kamera3D(jarak: 4.4, pitch: 0.26),
       ),
       _Adegan(
         judul: l10n.onbStep2Title,
         isi: l10n.onbStep2Body,
         mesh: Alat3D.lembarKerja(),
-        warna: AppColors.tealBright,
-        warnaDua: const Color(0xFF0E7C8C),
+        warna: AppColors.mintDeep,
+        warnaDua: AppColors.mintInk,
         kamera: const Kamera3D(jarak: 5.4, pitch: 0.50),
         pusat: const Vek3(0, -0.6, 0),
       ),
@@ -95,8 +95,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         judul: l10n.onbStep3Title,
         isi: l10n.onbStep3Body,
         mesh: Alat3D.sertifikat(),
-        warna: AppColors.electricBlue,
-        warnaDua: const Color(0xFF2E64A8),
+        warna: AppColors.crimson,
+        warnaDua: AppColors.crimsonDeep,
         kamera: const Kamera3D(jarak: 4.8, pitch: 0.20),
       ),
     ];
@@ -136,6 +136,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       const Spacer(),
                       TextButton(
                         onPressed: _selesai,
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.ivory,
+                        ),
                         child: Text(l10n.onbSkip),
                       ),
                     ],
@@ -296,6 +299,10 @@ class _AdeganView extends StatelessWidget {
   }
 }
 
+/// Merek di pojok kiri-atas. Berdiri di atas panggung warna adegan — yang
+/// warnanya ganti tiap halaman — jadi warnanya dikunci ivory, bukan ikut
+/// `onSurface`. Kalau ikut tema, di halaman terang huruf gelapnya ketelen
+/// bidang cobalt/crimson di belakangnya.
 class _Merek extends StatelessWidget {
   const _Merek();
 
@@ -308,16 +315,19 @@ class _Merek extends StatelessWidget {
           height: 30,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(9),
-            gradient: const LinearGradient(
-              colors: [AppColors.navy, AppColors.teal],
-            ),
+            color: AppColors.ivory,
           ),
-          child: const Icon(Icons.straighten, color: Colors.white, size: 17),
+          child: const Icon(
+            Icons.straighten,
+            color: AppColors.ink,
+            size: 17,
+          ),
         ),
         const SizedBox(width: AppSpacing.sm),
         Text(
           'SIDIK',
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            color: AppColors.ivory,
             letterSpacing: 2.2,
             fontWeight: FontWeight.w700,
           ),
@@ -355,8 +365,8 @@ class _Titik extends StatelessWidget {
   }
 }
 
-/// Gelombang latar. Dua pita lengkung yang jalan lebih pelan dari halamannya,
-/// warnanya dicampur antar-adegan.
+/// Panggung warna di paruh atas layar: dua pita lengkung pekat yang jalan
+/// lebih pelan dari halamannya, dengan warna adegan yang lagi kebuka.
 class _LatarGelombang extends CustomPainter {
   const _LatarGelombang({
     required this.posisi,
@@ -368,34 +378,38 @@ class _LatarGelombang extends CustomPainter {
   final List<_Adegan> adegan;
   final bool gelap;
 
-  Color _campur(Color Function(_Adegan) ambil) {
+  /// Warna adegan terdekat, bukan campuran dua adegan.
+  ///
+  /// Dulu di sini `Color.lerp` antar adegan: di tengah geseran, cobalt dan
+  /// crimson ketemu jadi warna ungu yang nggak ada di palet. Sekarang warnanya
+  /// loncat di titik tengah — yang gerak tetap gelombang dan paralaksnya, jadi
+  /// perpindahannya tetap kebaca halus tanpa perlu warna antara.
+  Color _adeganTerdekat(Color Function(_Adegan) ambil) {
     final i = posisi.clamp(0.0, adegan.length - 1.0);
-    final bawah = i.floor();
-    final atas = math.min(bawah + 1, adegan.length - 1);
-    return Color.lerp(ambil(adegan[bawah]), ambil(adegan[atas]), i - bawah)!;
+    return ambil(adegan[i.round().clamp(0, adegan.length - 1)]);
   }
 
   @override
   void paint(Canvas canvas, Size size) {
-    final warna = _campur((a) => a.warna);
-    final warnaDua = _campur((a) => a.warnaDua);
+    final warna = _adeganTerdekat((a) => a.warna);
+    final warnaDua = _adeganTerdekat((a) => a.warnaDua);
 
     canvas.drawRect(
       Offset.zero & size,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: gelap
-              ? [const Color(0xFF0B1E2B), const Color(0xFF091620)]
-              : [const Color(0xFFF7FAFD), const Color(0xFFEDF3F9)],
-        ).createShader(Offset.zero & size),
+      Paint()..color = gelap ? AppColors.inkDeep : AppColors.ivory,
     );
 
     final geser = -posisi * size.width * 0.18;
-    final tinggi = size.height * 0.60;
+    // Panggung warnanya berhenti di 0,52 tinggi layar — di bawah situ judul
+    // dan isi teks berdiri di atas ivory polos. Kalau pitanya lebih turun,
+    // huruf gelap nabrak bidang warna dan kontrasnya jatuh.
+    final tinggi = size.height * 0.52;
 
-    void pita(double y, double amplitudo, Color c, double alpha) {
+    // Pita digambar **pekat**, tanpa alpha. Dulu dua pita ini ditumpuk pakai
+    // alpha di atas ivory: cobalt jadi lavender pucat, crimson jadi merah
+    // muda kusam — warnanya bukan warna palet lagi, dan sekelas layar penuh
+    // warna kusam itu yang bikin onboarding kebaca murah.
+    void pita(double y, double amplitudo, Color c) {
       final path = Path()..moveTo(-size.width, 0);
       path.lineTo(-size.width, y);
       for (var x = -size.width; x <= size.width * 2; x += size.width / 12) {
@@ -406,15 +420,18 @@ class _LatarGelombang extends CustomPainter {
       }
       path.lineTo(size.width * 2, 0);
       path.close();
-      canvas.drawPath(path, Paint()..color = c.withValues(alpha: alpha));
+      canvas.drawPath(path, Paint()..color = c);
     }
 
-    pita(tinggi * 1.02, size.height * 0.035, warnaDua, gelap ? 0.30 : 0.28);
-    pita(tinggi * 0.94, size.height * 0.028, warna, gelap ? 0.34 : 0.42);
+    // Dua pita = dua tingkat dari rona yang sama, bukan dua warna beda. Yang
+    // lebih tua di belakang bikin tepi gelombangnya kebaca punya tebal.
+    pita(tinggi * 1.06, size.height * 0.032, warnaDua);
+    pita(tinggi * 0.96, size.height * 0.026, warna);
 
     // Bulatan kecil yang ikut geser lebih cepat dari gelombang — lapisan
-    // paling depan di paralaks.
-    final titik = Paint()..color = warna.withValues(alpha: 0.55);
+    // paling depan di paralaks. Ivory pekat, jadi kebaca sebagai lubang di
+    // bidang warna, bukan sebagai warna ketiga.
+    final titik = Paint()..color = AppColors.ivory;
     canvas.drawCircle(
       Offset(size.width * 0.82 + geser * 1.6, size.height * 0.16),
       7,
@@ -423,7 +440,7 @@ class _LatarGelombang extends CustomPainter {
     canvas.drawCircle(
       Offset(size.width * 0.16 + geser * 2.1, size.height * 0.30),
       4,
-      titik..color = warnaDua.withValues(alpha: 0.5),
+      titik,
     );
   }
 

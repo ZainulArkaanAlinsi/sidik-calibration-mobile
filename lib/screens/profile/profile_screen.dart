@@ -604,10 +604,7 @@ class _MobileProfileCarouselState extends State<_MobileProfileCarousel> {
     final aktif = _posisi.round().clamp(0, bagian.length - 1);
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: AppColors.gradasiLatar(context),
-        boxShadow: AppColors.glowLatar(context),
-      ),
+      decoration: BoxDecoration(color: AppColors.warnaLatar(context)),
       child: Column(
         children: [
           Expanded(
@@ -818,7 +815,7 @@ class _Bingkai extends StatelessWidget {
                               width: 14,
                               height: 3,
                               decoration: BoxDecoration(
-                                color: AppColors.signalAmber,
+                                color: AppColors.cobalt,
                                 borderRadius: BorderRadius.circular(99),
                               ),
                             ),
@@ -922,7 +919,6 @@ class _AdeganIdentitas extends StatelessWidget {
                   child: SingleChildScrollView(
                     child: LiquidGlass(
                       radius: 22,
-                      sorot: (0.5 - jarak * 0.5).clamp(0.0, 1.0),
                       padding: const EdgeInsets.symmetric(vertical: 4),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -993,14 +989,12 @@ class _AdeganPreferensi extends StatelessWidget {
           // lubang di bawah layar.
           const Spacer(flex: 1),
           _KacaKartu(
-            sorot: (0.5 - jarak * 0.6).clamp(0.0, 1.0),
             child: const Column(
               children: [_PilihTema(), _GarisPemisah(), _PilihBahasa()],
             ),
           ),
           const SizedBox(height: AppSpacing.md),
           _KacaKartu(
-            sorot: (0.62 - jarak * 0.6).clamp(0.0, 1.0),
             child: Column(
               children: [
                 _BarisMenu(
@@ -1086,10 +1080,7 @@ class _AdeganPintasan extends StatelessWidget {
                   crossAxisSpacing: jeda,
                   childAspectRatio: lebarKartu / tinggiKartu,
                 ),
-                itemBuilder: (context, i) => _KartuPintasan(
-                  item: item[i],
-                  sorot: (0.42 + i * 0.12 - jarak * 0.6).clamp(0.0, 1.0),
-                ),
+                itemBuilder: (context, i) => _KartuPintasan(item: item[i]),
               ),
             ),
           );
@@ -1130,7 +1121,6 @@ class _AdeganSistem extends StatelessWidget {
       child: Column(
         children: [
           _KacaKartu(
-            sorot: (0.5 - jarak * 0.6).clamp(0.0, 1.0),
             child: Column(
               children: [
                 _BarisMenu(
@@ -1181,16 +1171,14 @@ class _AdeganSistem extends StatelessWidget {
 
 /// Kartu kaca pembungkus baris-baris menu.
 class _KacaKartu extends StatelessWidget {
-  const _KacaKartu({required this.child, required this.sorot});
+  const _KacaKartu({required this.child});
 
   final Widget child;
-  final double sorot;
 
   @override
   Widget build(BuildContext context) {
     return LiquidGlass(
       radius: 22,
-      sorot: sorot,
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: child,
     );
@@ -1207,17 +1195,15 @@ class _Pintasan {
 }
 
 class _KartuPintasan extends StatelessWidget {
-  const _KartuPintasan({required this.item, required this.sorot});
+  const _KartuPintasan({required this.item});
 
   final _Pintasan item;
-  final double sorot;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return LiquidGlass(
       radius: 20,
-      sorot: sorot,
       padding: const EdgeInsets.all(AppSpacing.md),
       onTap: item.onTap,
       child: Column(
@@ -1312,13 +1298,11 @@ class _Header extends ConsumerWidget {
               height: tinggiFoto,
               width: double.infinity,
               decoration: BoxDecoration(
-                gradient: fotoPath == null
-                    ? const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [AppColors.navy, AppColors.teal],
-                      )
-                    : null,
+                // Tanpa foto: bidang Cobalt rata. Sempat Jet Black, dan sebidang
+                // hitam setinggi ini di atas layar kebaca kayak gambar yang
+                // gagal muat — cobalt kebaca sebagai bidang merek yang memang
+                // disengaja.
+                color: fotoPath == null ? AppColors.cobalt : null,
                 image: fotoPath != null
                     ? DecorationImage(
                         image: FileImage(File(fotoPath)),
@@ -1560,7 +1544,7 @@ class _Avatar extends StatelessWidget {
                 padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.navy,
+                  color: AppColors.ink,
                   border: Border.all(color: ring, width: 2.5),
                 ),
                 child: const Icon(

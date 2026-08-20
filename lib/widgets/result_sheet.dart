@@ -210,15 +210,7 @@ class _SegelPainter extends CustomPainter {
     path.close();
 
     canvas.drawShadow(path, warna.withValues(alpha: 0.6), 10, false);
-    canvas.drawPath(
-      path,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color.lerp(warna, Colors.white, 0.26)!, warna],
-        ).createShader(Offset.zero & size),
-    );
+    canvas.drawPath(path, Paint()..color = warna);
   }
 
   @override
@@ -268,9 +260,15 @@ class _LencanaState extends State<_Lencana>
   @override
   Widget build(BuildContext context) {
     final (warna, ikon) = switch (widget.status) {
-      HasilKirim.proses => (AppColors.info, null),
-      HasilKirim.berhasil => (AppColors.success, Icons.check_rounded),
-      HasilKirim.gagal => (AppColors.warning, Icons.priority_high_rounded),
+      HasilKirim.proses => (AppColors.statusInfo(context), null),
+      HasilKirim.berhasil => (
+        AppColors.statusSukses(context),
+        Icons.check_rounded,
+      ),
+      HasilKirim.gagal => (
+        AppColors.statusPeringatan(context),
+        Icons.priority_high_rounded,
+      ),
     };
 
     // Waktu proses, segelnya diam — animasi mantul di keadaan "lagi jalan"

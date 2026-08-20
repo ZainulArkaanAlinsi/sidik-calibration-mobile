@@ -156,7 +156,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
         ],
       ),
       body: Container(
-        decoration: BoxDecoration(gradient: AppColors.gradasiLatar(context)),
+        decoration: BoxDecoration(color: AppColors.warnaLatar(context)),
         child: MasterDetailPane(
           master: (context, panelGanda) => RefreshIndicator(
             onRefresh: () => ref.read(historyProvider.notifier).muatUlang(),
@@ -382,7 +382,7 @@ class _HistoryCard extends StatelessWidget {
                 Text(
                   l10n.historyCatatanRevisi(item.catatanRevisi!),
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.warning,
+                    color: AppColors.statusPeringatan(context),
                   ),
                 ),
               ],

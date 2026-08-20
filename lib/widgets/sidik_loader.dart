@@ -45,8 +45,8 @@ class _SidikLoaderState extends State<SidikLoader>
   @override
   Widget build(BuildContext context) {
     final gelap = Theme.of(context).brightness == Brightness.dark;
-    final tick = widget.warna ?? (gelap ? AppColors.tealBright : AppColors.teal);
-    final sapuan = widget.warnaSapuan ?? AppColors.warning;
+    final tick = widget.warna ?? (gelap ? AppColors.mint : AppColors.mintDeep);
+    final sapuan = widget.warnaSapuan ?? AppColors.statusPeringatan(context);
 
     return RepaintBoundary(
       child: SizedBox(
@@ -56,7 +56,8 @@ class _SidikLoaderState extends State<SidikLoader>
           animation: _c,
           builder: (context, child) {
             // Denyut logo sinkron sama sapuan lewat "jam 12".
-            final pulse = 1 - 0.025 * (0.5 - 0.5 * math.cos(_c.value * 2 * math.pi));
+            final pulse =
+                1 - 0.025 * (0.5 - 0.5 * math.cos(_c.value * 2 * math.pi));
             return CustomPaint(
               painter: _DialPainter(t: _c.value, tick: tick, sapuan: sapuan),
               child: Center(
@@ -136,8 +137,7 @@ class _DialPainter extends CustomPainter {
         tick,
         sapuan,
         glow > 0.72 ? (glow - 0.72) / 0.28 : 0,
-      )!
-          .withValues(alpha: alpha);
+      )!.withValues(alpha: alpha);
 
       final p1 = Offset(
         pusat.dx + math.cos(sudut) * rLuar,

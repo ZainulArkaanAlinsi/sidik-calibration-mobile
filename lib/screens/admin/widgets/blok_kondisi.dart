@@ -36,49 +36,46 @@ class BlokKondisi extends ConsumerWidget {
       radius: 20,
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Judul blok disamain persis sama `_Blok` di layar Perhitungan:
-            // huruf kecil beraksen + garis tipis dari bayangan, bukan Divider
-            // Material yang kelihatan kayak garis nempel.
-            Text(
-              l10n.perhitKondisi.toUpperCase(),
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.8,
-                color: NeuColors.of(context).accent,
-              ),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Judul blok disamain persis sama `_Blok` di layar Perhitungan:
+          // huruf kecil beraksen + garis tipis dari bayangan, bukan Divider
+          // Material yang kelihatan kayak garis nempel.
+          Text(
+            l10n.perhitKondisi.toUpperCase(),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.8,
+              color: NeuColors.of(context).accent,
             ),
-            const SizedBox(height: AppSpacing.sm),
-            Container(
-              height: 1,
-              color: NeuColors.of(context).darkShadow.withValues(alpha: 0.35),
-            ),
-            const SizedBox(height: AppSpacing.sm),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Container(
+            height: 1,
+            color: NeuColors.of(context).darkShadow.withValues(alpha: 0.35),
+          ),
+          const SizedBox(height: AppSpacing.sm),
 
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _BarisKepala(),
-                  if (kondisi.suhu != null)
-                    _Baris(label: l10n.perhitSuhuRuangan, baris: kondisi.suhu!),
-                  if (kondisi.kelembaban != null)
-                    _Baris(
-                      label: l10n.perhitKelembaban,
-                      baris: kondisi.kelembaban!,
-                    ),
-                ],
-              ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _BarisKepala(),
+                if (kondisi.suhu != null)
+                  _Baris(label: l10n.perhitSuhuRuangan, baris: kondisi.suhu!),
+                if (kondisi.kelembaban != null)
+                  _Baris(
+                    label: l10n.perhitKelembaban,
+                    baris: kondisi.kelembaban!,
+                  ),
+              ],
             ),
+          ),
 
-            const SizedBox(height: AppSpacing.md),
-            _PilihThermohygro(
-              kondisi: kondisi,
-              calibrationId: calibrationId,
-            ),
+          const SizedBox(height: AppSpacing.md),
+          _PilihThermohygro(kondisi: kondisi, calibrationId: calibrationId),
         ],
       ),
     );
@@ -189,10 +186,7 @@ class _Baris extends StatelessWidget {
 /// Begitu dipilih, koreksi & U95% di dua baris atas **langsung ikut terhitung**
 /// di server, jadi perhitungannya dimuat ulang sesudah simpan.
 class _PilihThermohygro extends ConsumerStatefulWidget {
-  const _PilihThermohygro({
-    required this.kondisi,
-    required this.calibrationId,
-  });
+  const _PilihThermohygro({required this.kondisi, required this.calibrationId});
 
   final KondisiLingkungan kondisi;
   final int calibrationId;
@@ -246,16 +240,19 @@ class _PilihThermohygroState extends ConsumerState<_PilihThermohygro> {
           error: (_, _) => Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Icon(
+              Icon(
                 Icons.cloud_off_outlined,
                 size: 14,
-                color: AppColors.warning,
+                color: AppColors.statusPeringatan(context),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
                   l10n.standarLoadFailed,
-                  style: const TextStyle(fontSize: 11.5, color: AppColors.warning),
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: AppColors.statusPeringatan(context),
+                  ),
                 ),
               ),
               TextButton(
@@ -275,45 +272,47 @@ class _PilihThermohygroState extends ConsumerState<_PilihThermohygro> {
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: DropdownButtonHideUnderline(
                 child: DropdownButtonFormField<int>(
-              isExpanded: true,
-              dropdownColor: NeuColors.of(context).base,
-              // DITURUNKAN dari theme, bukan TextStyle telanjang:
-              // `DropdownButtonFormField.style` MENGGANTI gaya teksnya, bukan
-              // nambahin — jadi `TextStyle(...)` tanpa `fontFamily` bikin nilai
-              // di dropdown ini berhenti pakai Inter sementara semua teks di
-              // sekitarnya masih. Ketahuan dari golden: 'TH-3' kerender jadi
-              // kotak-kotak.
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontSize: 13.5,
-                fontWeight: FontWeight.w600,
-                color: NeuColors.of(context).text,
-              ),
-              decoration: InputDecoration(
-                labelText: l10n.perhitPilihThermohygro,
-                labelStyle: TextStyle(
-                  color: NeuColors.of(context).textMuted,
-                  fontSize: 13,
-                ),
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                isDense: true,
-              ),
-              hint: Text(widget.kondisi.thermohygro ?? l10n.lkPilih),
-              items: [
-                for (final Standard s in thermohygro)
-                  DropdownMenuItem(
-                    value: s.id,
-                    enabled: s.masihBerlaku,
-                    child: Text(
-                      s.masihBerlaku
-                          ? s.nama
-                          : '${s.nama} (${l10n.lkStandarKadaluarsa})',
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  isExpanded: true,
+                  dropdownColor: NeuColors.of(context).base,
+                  // DITURUNKAN dari theme, bukan TextStyle telanjang:
+                  // `DropdownButtonFormField.style` MENGGANTI gaya teksnya, bukan
+                  // nambahin — jadi `TextStyle(...)` tanpa `fontFamily` bikin nilai
+                  // di dropdown ini berhenti pakai Inter sementara semua teks di
+                  // sekitarnya masih. Ketahuan dari golden: 'TH-3' kerender jadi
+                  // kotak-kotak.
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: NeuColors.of(context).text,
                   ),
-              ],
-              onChanged: _sibuk ? null : (v) => v == null ? null : _simpan(v),
+                  decoration: InputDecoration(
+                    labelText: l10n.perhitPilihThermohygro,
+                    labelStyle: TextStyle(
+                      color: NeuColors.of(context).textMuted,
+                      fontSize: 13,
+                    ),
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    isDense: true,
+                  ),
+                  hint: Text(widget.kondisi.thermohygro ?? l10n.lkPilih),
+                  items: [
+                    for (final Standard s in thermohygro)
+                      DropdownMenuItem(
+                        value: s.id,
+                        enabled: s.masihBerlaku,
+                        child: Text(
+                          s.masihBerlaku
+                              ? s.nama
+                              : '${s.nama} (${l10n.lkStandarKadaluarsa})',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                  onChanged: _sibuk
+                      ? null
+                      : (v) => v == null ? null : _simpan(v),
                 ),
               ),
             );
@@ -324,16 +323,19 @@ class _PilihThermohygroState extends ConsumerState<_PilihThermohygro> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(
+              Icon(
                 Icons.warning_amber_outlined,
                 size: 14,
-                color: AppColors.warning,
+                color: AppColors.statusPeringatan(context),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
                   l10n.perhitThermohygroKosong,
-                  style: const TextStyle(fontSize: 11.5, color: AppColors.warning),
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: AppColors.statusPeringatan(context),
+                  ),
                 ),
               ),
             ],

@@ -69,14 +69,11 @@ class _SplashScreenState extends State<SplashScreen>
     final theme = Theme.of(context);
 
     return Scaffold(
+      // Bidang rata Jet Black. Dulu tiga warna bergradasi di sini; logo dan
+      // cincin cobalt di atasnya jadi ketarik rona latar dan warnanya nggak
+      // pernah kebaca murni.
       body: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF102C46), Color(0xFF0A535A), Color(0xFF0B1D35)],
-          ),
-        ),
+        decoration: const BoxDecoration(color: AppColors.ink),
         child: SafeArea(
           child: AnimatedBuilder(
             animation: _motion,
@@ -181,7 +178,7 @@ class _Cakram extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.tealBright.withValues(alpha: 0.34),
+            color: AppColors.mint.withValues(alpha: 0.34),
             blurRadius: 40,
             spreadRadius: 5,
           ),
@@ -244,7 +241,9 @@ class _OrbitSplash extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2
       ..strokeCap = StrokeCap.round
-      ..color = Colors.white.withValues(alpha: 0.18 * cincin);
+      // Cincin luar ivory. Sebelumnya putih 18% di atas Jet Black — nyaris
+      // nggak kelihatan sama sekali di HP terang.
+      ..color = AppColors.ivory.withValues(alpha: 0.42 * cincin);
 
     canvas.drawArc(
       Rect.fromCenter(center: pusat, width: size.width * 0.94, height: 142),
@@ -258,7 +257,7 @@ class _OrbitSplash extends CustomPainter {
       -math.pi / 2,
       math.pi * 2 * Curves.easeOut.transform(cincin),
       false,
-      garis..color = AppColors.tealBright.withValues(alpha: 0.22 * cincin),
+      garis..color = AppColors.mint.withValues(alpha: 0.70 * cincin),
     );
 
     // Titik yang jalan di sepanjang cincin luar, berhenti di ujung sapuan.
@@ -269,17 +268,17 @@ class _OrbitSplash extends CustomPainter {
     canvas.drawCircle(
       titik,
       13,
-      Paint()..color = AppColors.signalAmber.withValues(alpha: 0.16 * cincin),
+      Paint()..color = AppColors.cobaltLight.withValues(alpha: 0.28 * cincin),
     );
     canvas.drawCircle(
       titik,
       5,
-      Paint()..color = AppColors.signalAmber.withValues(alpha: cincin),
+      Paint()..color = AppColors.cobaltLight.withValues(alpha: cincin),
     );
     canvas.drawCircle(
       pusat + const Offset(-118, -56),
       4,
-      Paint()..color = AppColors.tealBright.withValues(alpha: 0.9 * sapuan),
+      Paint()..color = AppColors.mint.withValues(alpha: 0.9 * sapuan),
     );
   }
 

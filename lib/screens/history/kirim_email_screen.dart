@@ -122,11 +122,8 @@ class _IsiState extends ConsumerState<_Isi> {
   }
 
   /// "a@b.com, c@d.com" → daftar alamat, kosong dibuang.
-  List<String> _pisah(String teks) => teks
-      .split(',')
-      .map((e) => e.trim())
-      .where((e) => e.isNotEmpty)
-      .toList();
+  List<String> _pisah(String teks) =>
+      teks.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
 
   /// Divalidasi longgar — cukup mastiin ada `@` dan titik sesudahnya. Validasi
   /// email yang ketat sering nolak alamat yang sah, dan yang berwenang nolak
@@ -308,7 +305,9 @@ class _IsiState extends ConsumerState<_Isi> {
     // Kontak pelanggan buat tombol "tinggal pilih". Backend udah ngirim ini
     // dari dulu (`CertificateResource.pelanggan`) — sebelumnya kebuang, dan
     // admin ngetik alamatnya manual tiap kali padahal datanya udah nyampe.
-    final detail = ref.watch(certificateDetailProvider(widget.certificateId)).value;
+    final detail = ref
+        .watch(certificateDetailProvider(widget.certificateId))
+        .value;
     final saran = _lewatWa ? detail?.pelangganTelepon : detail?.pelangganEmail;
 
     return ListView(
@@ -349,15 +348,15 @@ class _IsiState extends ConsumerState<_Isi> {
                   // sekaligus ke orang lain, dan yang udah diketik nggak boleh
                   // ilang cuma gara-gara mencet ini.
                   : () => setState(() {
-                        final ada = _ke.text
-                            .split(',')
-                            .map((e) => e.trim())
-                            .where((e) => e.isNotEmpty)
-                            .toList();
-                        if (ada.contains(saran)) return;
-                        ada.add(saran);
-                        _ke.text = ada.join(', ');
-                      }),
+                      final ada = _ke.text
+                          .split(',')
+                          .map((e) => e.trim())
+                          .where((e) => e.isNotEmpty)
+                          .toList();
+                      if (ada.contains(saran)) return;
+                      ada.add(saran);
+                      _ke.text = ada.join(', ');
+                    }),
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -518,22 +517,22 @@ class _IsiState extends ConsumerState<_Isi> {
         const SizedBox(height: AppSpacing.sm),
 
         switch (riwayat) {
-          AsyncData(:final value) => value.isEmpty
-              ? Text(
-                  l10n.emailRiwayatKosong,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+          AsyncData(:final value) =>
+            value.isEmpty
+                ? Text(
+                    l10n.emailRiwayatKosong,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  )
+                : Column(
+                    children: [
+                      for (final p in value) _BarisRiwayat(percobaan: p),
+                    ],
                   ),
-                )
-              : Column(
-                  children: [
-                    for (final p in value) _BarisRiwayat(percobaan: p),
-                  ],
-                ),
           AsyncError() => _GagalRiwayat(
-            onCobaLagi: () => ref.invalidate(
-              riwayatEmailProvider(widget.certificateId),
-            ),
+            onCobaLagi: () =>
+                ref.invalidate(riwayatEmailProvider(widget.certificateId)),
           ),
           _ => const Center(child: SidikLoader(size: 88)),
         },
@@ -562,8 +561,10 @@ class _BarisRiwayat extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).languageCode;
-    final waktu = DateFormat('d MMM yyyy · HH:mm', locale)
-        .format(percobaan.waktu);
+    final waktu = DateFormat(
+      'd MMM yyyy · HH:mm',
+      locale,
+    ).format(percobaan.waktu);
 
     return Card(
       child: Padding(
@@ -634,7 +635,7 @@ class _BarisRiwayat extends StatelessWidget {
               Text(
                 percobaan.error!,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.danger,
+                  color: AppColors.statusBahaya(context),
                 ),
               ),
             ],

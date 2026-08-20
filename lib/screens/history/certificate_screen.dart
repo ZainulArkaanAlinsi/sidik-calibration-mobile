@@ -50,7 +50,8 @@ class CertificateScreen extends ConsumerWidget {
       isi = _Isi(detail: data);
     } else if (detail.hasError) {
       isi = _Gagal(
-        onCobaLagi: () => ref.invalidate(calibrationDetailProvider(calibrationId)),
+        onCobaLagi: () =>
+            ref.invalidate(calibrationDetailProvider(calibrationId)),
       );
     } else {
       isi = const _Skeleton();
@@ -84,7 +85,9 @@ class _IsiState extends ConsumerState<_Isi> {
 
     setState(() => _busy = true);
     try {
-      await ref.read(approvalServiceProvider).retryGenerate(token, sertifikat.id);
+      await ref
+          .read(approvalServiceProvider)
+          .retryGenerate(token, sertifikat.id);
     } finally {
       if (mounted) setState(() => _busy = false);
       ref.invalidate(calibrationDetailProvider(widget.detail.id));
@@ -136,7 +139,7 @@ class _IsiState extends ConsumerState<_Isi> {
           child: Icon(
             Icons.workspace_premium_outlined,
             size: 72,
-            color: AppColors.success,
+            color: AppColors.statusSukses(context),
           ),
         ),
         const SizedBox(height: AppSpacing.md),
@@ -165,13 +168,13 @@ class _IsiState extends ConsumerState<_Isi> {
         if (sertifikat == null) ...[
           _StatusBanner(
             icon: Icons.hourglass_empty,
-            warna: AppColors.info,
+            warna: AppColors.statusInfo(context),
             pesan: l10n.certStatusMenungguGenerate,
           ),
         ] else if (sertifikat.status == 'menunggu_generate') ...[
           _StatusBanner(
             icon: Icons.hourglass_empty,
-            warna: AppColors.info,
+            warna: AppColors.statusInfo(context),
             pesan: l10n.certStatusMenungguGenerate,
           ),
         ] else if (sertifikat.status == 'gagal') ...[
@@ -283,7 +286,9 @@ class _IdentitasSesi extends StatelessWidget {
               children: [
                 _RingkasanRow(
                   label: l10n.certTanggalKalibrasi,
-                  value: DateFormat('d MMM yyyy').format(detail.tanggalKalibrasi),
+                  value: DateFormat(
+                    'd MMM yyyy',
+                  ).format(detail.tanggalKalibrasi),
                 ),
                 _RingkasanRow(
                   label: l10n.certTeknisi,
@@ -361,7 +366,9 @@ class _TabelLaporan extends StatelessWidget {
     // jadi sepuluh titik Holmium pulang dengan `0,43255708` yang sama persis.
     // Tanpa labelnya, tabel 24 baris kelihatan punya tiga angka U95 yang muncul
     // acak, dan `0,4 nm` nggak punya cara dibedain punya Didynium apa Holmium.
-    final adaRemark = titik.any((t) => t.remark != null && t.remark!.isNotEmpty);
+    final adaRemark = titik.any(
+      (t) => t.remark != null && t.remark!.isNotEmpty,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -385,12 +392,18 @@ class _TabelLaporan extends StatelessWidget {
                 dataRowMinHeight: 34,
                 dataRowMaxHeight: 40,
                 columns: [
-                  DataColumn(label: Text(l10n.certColStandard, style: gayaJudul)),
+                  DataColumn(
+                    label: Text(l10n.certColStandard, style: gayaJudul),
+                  ),
                   DataColumn(label: Text(l10n.certColUut, style: gayaJudul)),
-                  DataColumn(label: Text(l10n.certColKoreksi, style: gayaJudul)),
+                  DataColumn(
+                    label: Text(l10n.certColKoreksi, style: gayaJudul),
+                  ),
                   DataColumn(label: Text(l10n.certColU95, style: gayaJudul)),
                   if (adaRemark)
-                    DataColumn(label: Text(l10n.sertKolRemark, style: gayaJudul)),
+                    DataColumn(
+                      label: Text(l10n.sertKolRemark, style: gayaJudul),
+                    ),
                 ],
                 rows: [
                   for (final t in titik)
@@ -414,13 +427,21 @@ class _TabelLaporan extends StatelessWidget {
                           ),
                           DataCell(
                             Text(
-                              formatSertifikat(t.rataRata, d, tandaNol: t.tandaNol),
+                              formatSertifikat(
+                                t.rataRata,
+                                d,
+                                tandaNol: t.tandaNol,
+                              ),
                               style: gayaAngka,
                             ),
                           ),
                           DataCell(
                             Text(
-                              formatSertifikat(t.koreksi, d, tandaNol: t.tandaNol),
+                              formatSertifikat(
+                                t.koreksi,
+                                d,
+                                tandaNol: t.tandaNol,
+                              ),
                               style: gayaAngka,
                             ),
                           ),
@@ -509,10 +530,7 @@ class _StandarDipakai extends StatelessWidget {
             child: Column(
               children: [
                 for (final s in unik.values)
-                  _RingkasanRow(
-                    label: s.nama,
-                    value: s.noSertifikat ?? '—',
-                  ),
+                  _RingkasanRow(label: s.nama, value: s.noSertifikat ?? '—'),
               ],
             ),
           ),
@@ -537,7 +555,10 @@ class _Ringkasan extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(l10n.certRingkasanTitle.toUpperCase(), style: theme.textTheme.labelLarge),
+        Text(
+          l10n.certRingkasanTitle.toUpperCase(),
+          style: theme.textTheme.labelLarge,
+        ),
         const SizedBox(height: AppSpacing.sm),
         Card(
           child: Padding(

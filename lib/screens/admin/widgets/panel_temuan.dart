@@ -27,22 +27,22 @@ class PanelTemuan extends StatelessWidget {
     if (validasi.temuan.isEmpty) {
       return NeuRaised(
         radius: 20,
-        color: AppColors.success.withValues(alpha: 0.12),
+        color: AppColors.mintSoft,
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
-            children: [
-              const Icon(
-                Icons.check_circle_outline,
-                size: 20,
-                color: AppColors.success,
+          children: [
+            Icon(
+              Icons.check_circle_outline,
+              size: 20,
+              color: AppColors.statusSukses(context),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(
+                l10n.perhitTemuanBersih,
+                style: theme.textTheme.bodySmall,
               ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  l10n.perhitTemuanBersih,
-                  style: theme.textTheme.bodySmall,
-                ),
-              ),
+            ),
           ],
         ),
       );
@@ -52,62 +52,65 @@ class PanelTemuan extends StatelessWidget {
       radius: 20,
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.perhitTemuanJudul.toUpperCase(),
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.8,
-                color: NeuColors.of(context).accent,
-              ),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.perhitTemuanJudul.toUpperCase(),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.8,
+              color: NeuColors.of(context).accent,
             ),
-            const SizedBox(height: AppSpacing.sm),
-            Wrap(
-              spacing: AppSpacing.sm,
-              children: [
-                for (final t in TingkatTemuan.values)
-                  if (validasi.jumlah(t) > 0)
-                    _Lencana(tingkat: t, jumlah: validasi.jumlah(t)),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Container(
-              height: 1,
-              color: NeuColors.of(context).darkShadow.withValues(alpha: 0.35),
-            ),
-            const SizedBox(height: AppSpacing.sm),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Wrap(
+            spacing: AppSpacing.sm,
+            children: [
+              for (final t in TingkatTemuan.values)
+                if (validasi.jumlah(t) > 0)
+                  _Lencana(tingkat: t, jumlah: validasi.jumlah(t)),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Container(
+            height: 1,
+            color: NeuColors.of(context).darkShadow.withValues(alpha: 0.35),
+          ),
+          const SizedBox(height: AppSpacing.sm),
 
-            // Diurut dari yang paling berat — yang nahan penerbitan harus
-            // kebaca duluan, bukan ketimbun di bawah daftar info.
-            for (final tingkat in TingkatTemuan.values)
-              for (final temuan in validasi.pada(tingkat))
-                _BarisTemuan(temuan: temuan),
+          // Diurut dari yang paling berat — yang nahan penerbitan harus
+          // kebaca duluan, bukan ketimbun di bawah daftar info.
+          for (final tingkat in TingkatTemuan.values)
+            for (final temuan in validasi.pada(tingkat))
+              _BarisTemuan(temuan: temuan),
         ],
       ),
     );
   }
 }
 
-(Color, IconData, String) _gaya(TingkatTemuan t, AppLocalizations l10n) =>
-    switch (t) {
-      TingkatTemuan.error => (
-        AppColors.danger,
-        Icons.error_outline,
-        l10n.perhitTingkatError,
-      ),
-      TingkatTemuan.peringatan => (
-        AppColors.warning,
-        Icons.warning_amber_outlined,
-        l10n.perhitTingkatPeringatan,
-      ),
-      TingkatTemuan.info => (
-        AppColors.info,
-        Icons.info_outline,
-        l10n.perhitTingkatInfo,
-      ),
-    };
+(Color, IconData, String) _gaya(
+  BuildContext context,
+  TingkatTemuan t,
+  AppLocalizations l10n,
+) => switch (t) {
+  TingkatTemuan.error => (
+    AppColors.statusBahaya(context),
+    Icons.error_outline,
+    l10n.perhitTingkatError,
+  ),
+  TingkatTemuan.peringatan => (
+    AppColors.statusPeringatan(context),
+    Icons.warning_amber_outlined,
+    l10n.perhitTingkatPeringatan,
+  ),
+  TingkatTemuan.info => (
+    AppColors.statusInfo(context),
+    Icons.info_outline,
+    l10n.perhitTingkatInfo,
+  ),
+};
 
 class _Lencana extends StatelessWidget {
   const _Lencana({required this.tingkat, required this.jumlah});
@@ -118,7 +121,7 @@ class _Lencana extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final (warna, ikon, label) = _gaya(tingkat, l10n);
+    final (warna, ikon, label) = _gaya(context, tingkat, l10n);
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -155,7 +158,7 @@ class _BarisTemuan extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final (warna, ikon, _) = _gaya(temuan.tingkat, l10n);
+    final (warna, ikon, _) = _gaya(context, temuan.tingkat, l10n);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
