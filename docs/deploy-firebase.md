@@ -133,8 +133,25 @@ sendiri.
 
    App ID bukan rahasia — nilainya ikut terbawa di dalam setiap APK, jadi aman
    ditulis di repo publik ini. Yang rahasia tetap cuma isi `.env` backend.
-2. `google-services.json` **tidak perlu diunduh**. App ini belum memakai SDK
-   Firebase apa pun di dalam kodenya — App Distribution cuma menerima APK jadi.
+2. `google-services.json` perlu diunduh **kalau mau notifikasi push**, dan
+   cuma itu.
+
+   Kalimat ini dulu berbunyi "tidak perlu diunduh — app ini belum memakai SDK
+   Firebase apa pun". Itu benar sampai `firebase_core` &
+   `firebase_messaging` masuk; sesudahnya jadi menyesatkan.
+
+   Berkasnya masuk `.gitignore` (repo ini publik), jadi checkout yang bersih
+   nggak punya dia. Ambil dari Firebase Console → project `sidik-kalibrasi` →
+   Project settings → app `com.ptsidik.kalibrasi` → **Download
+   google-services.json**, lalu taruh di `android/app/google-services.json`.
+
+   **Tanpa berkas itu build tetap jalan.** `android/app/build.gradle.kts`
+   memasang plugin Google Services cuma kalau berkasnya ada, dan
+   `_nyalakanFirebase()` di `main.dart` sengaja menelan kegagalan — jadi yang
+   hilang cuma notifikasi push, bukan aplikasinya. Kalau plugin itu dipasang
+   tanpa syarat, `assembleDebug` gagal total dengan
+   `File google-services.json is missing` dan nggak ada yang bisa menjalankan
+   aplikasinya sama sekali.
 3. Bangun APK-nya. Cara termudah: jalankan workflow **"APK rilis (nyambung
    server)"** dari tab Actions, lalu unduh artifact-nya. Atau lokal:
 
