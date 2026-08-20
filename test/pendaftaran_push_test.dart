@@ -61,7 +61,41 @@ void main() {
   /// Pendaftarannya berantai: ambil token perangkat, baca token akun dari
   /// storage, baru kirim ke server. Tiap `await` itu satu putaran microtask,
   /// jadi satu `Duration.zero` nggak cukup buat nunggu ujungnya.
-  Future<void> tunggu() => Future<void>.delayed(const Duration(milliseconds: 50));
+  ///
+  /// DULU ini `Future.delayed(50ms)` mati, dan itu flaky: lulus di laptop yang
+  /// nganggur, gagal di runner CI yang lagi jalanin puluhan berkas test
+  /// barengan. Ketahuan 20 Agu 2026, di PR pertama yang lewat CI baru —
+  /// `didaftarkan` cuma keisi `['fcm-lama']` waktu yang ditunggu dua.
+  ///
+  /// Jeda tetap itu taruhan sama beban mesin, dan taruhan yang kalahnya
+  /// kelihatan sebagai "test yang kadang merah" — jenis kegagalan yang paling
+  /// cepat bikin orang berhenti percaya sama CI-nya sendiri.
+  ///
+  /// Sekarang yang ditunggu KONDISI, bukan durasi: berhenti begitu jumlah
+  /// pendaftarannya sampai [sampai], atau menyerah sesudah 5 detik.
+  ///
+  /// Tanpa [sampai] — dipakai test yang justru harus melihat NGGAK ada yang
+  /// kedaftar — nunggu kondisi nggak ada gunanya: kondisinya emang nggak akan
+  /// pernah tercapai, dan nahan 5 detik cuma buat membuktikan sesuatu nggak
+  /// terjadi itu 5 detik yang dibayar tiap kali suite jalan. Yang dipakai jeda
+  /// tetap yang pendek, dan arah salahnya aman: kalau pendaftarannya ternyata
+  /// lebih lambat dari ini, yang kejadian test-nya lulus padahal harusnya
+  /// gagal — dan tiga test di atas yang nunggu kondisi udah membuktikan
+  /// rantainya selesai jauh di bawah 300 md.
+  Future<void> tunggu({int sampai = 0}) async {
+    if (sampai == 0) {
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+
+      return;
+    }
+
+    final batas = DateTime.now().add(const Duration(seconds: 5));
+
+    while (DateTime.now().isBefore(batas)) {
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+      if (layanan.didaftarkan.length >= sampai) return;
+    }
+  }
 
   Future<void> login(ProviderContainer container) async {
     await container
@@ -74,7 +108,7 @@ void main() {
 
     await login(container);
     container.read(pendaftaranPushSyncProvider);
-    await tunggu();
+    await tunggu(sampai: 1);
 
     expect(layanan.didaftarkan, ['fcm-abc']);
   });
@@ -98,10 +132,10 @@ void main() {
 
     await login(container);
     container.read(pendaftaranPushSyncProvider);
-    await tunggu();
+    await tunggu(sampai: 1);
 
     sumber.rotasi('fcm-baru');
-    await tunggu();
+    await tunggu(sampai: 2);
 
     expect(layanan.didaftarkan, ['fcm-lama', 'fcm-baru']);
   });
