@@ -43,6 +43,18 @@ void main() {
     expect(profilLembarKerjaUntuk('Autoklaf'), 'autoclave');
     expect(profilLembarKerjaUntuk('Autoclave Hirayama'), 'autoclave');
 
+    // DO Meter (alat ke-9). Lembarnya bentuk Chlorine — satu titik,
+    // Before/After adjustment — jadi lewat LembarKerjaScreen generik.
+    expect(profilLembarKerjaUntuk('DO Meter'), 'do_meter');
+    expect(profilLembarKerjaUntuk('DO Meter Mettler Toledo'), 'do_meter');
+    expect(profilLembarKerjaUntuk('Dissolved Oxygen Meter'), 'do_meter');
+
+    // JANGAN sampai nyangkut ke alat lain. `contains` yang dipakai
+    // [profilLembarKerjaUntuk] bikin kunci pendek berbahaya, dan
+    // "Conductivity Meter" itu tetangga terdekatnya di daftar kemampuan.
+    expect(profilLembarKerjaUntuk('Conductivity Meter'), 'conductivity_meter');
+    expect(profilLembarKerjaUntuk('Conductivitymeter'), 'conductivity_meter');
+
     // Alat tanpa lembar khusus → null, dan pemanggil yang jatuh ke `ph_meter`.
     expect(profilLembarKerjaUntuk('Jangka Sorong Mitutoyo'), isNull);
   });

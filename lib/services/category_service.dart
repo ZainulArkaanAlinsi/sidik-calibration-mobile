@@ -324,6 +324,23 @@ class MockCategoryService implements CategoryService {
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0517_Rev.3',
       ),
+      // DO Meter (alat ke-9) — satu titik, CMC 0,16 mg/L dari
+      // `DO_Meter_CSV/DATABASE.csv` sel S5. Sama alasannya kayak Viscometer di
+      // atas: tanpa baris ini kartunya nggak muncul di picker walau
+      // `_profilKhusus` udah kenal namanya.
+      //
+      // Titiknya 8,77 — BUKAN 0,00 yang tercetak di kertas Rev.2. Lihat
+      // `contohBentukLembarKerjaDoMeter`.
+      CalibrationCapability(
+        namaAlat: 'DO Meter',
+        rangeMin: 8.77,
+        rangeMax: 8.77,
+        satuan: 'mg/L',
+        ketidakpastianTerbaik: 0.16,
+        satuanKetidakpastian: 'mg/L',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0530_Rev.2',
+      ),
     ];
 
     return switch (kode) {

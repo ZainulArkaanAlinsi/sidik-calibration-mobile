@@ -1,0 +1,424 @@
+{
+    "kode_dokumen": "SIDIK-FM-CAL-0532_Rev.2",
+    "judul": "Calibration Worksheet - DO Meter",
+    "jumlah_pengulangan": 5,
+    "larutan_standar": [
+        8.77
+    ],
+    "satuan": "mg/L",
+    "satuan_suhu": "°C",
+    "semua_kolom_opsional": true,
+    "catatan_pengisian": "Kolom yang belum bisa diisi di lapangan boleh dikosongin — lembar kerja tetap bisa dikirim. Titik yang datanya belum cukup nggak ikut dihitung, dan sertifikatnya baru bisa terbit sesudah dilengkapi admin.",
+    "bagian": [
+        {
+            "kode": "identitas_alat",
+            "halaman": 1,
+            "judul": "EQUIPMENT IDENTITY AND CUSTOMER DATA",
+            "field": [
+                {
+                    "kode": "tanggal_terima",
+                    "label": "Received Date",
+                    "tipe": "tanggal",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false
+                },
+                {
+                    "kode": "tanggal_kalibrasi",
+                    "label": "Calibration Date",
+                    "tipe": "tanggal",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false
+                },
+                {
+                    "kode": "equipment_id",
+                    "label": "Equipment",
+                    "tipe": "pilihan",
+                    "wajib": false,
+                    "sumber": "master_alat",
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false
+                },
+                {
+                    "kode": "equipment.nama_alat",
+                    "label": "1. Name",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": "otomatis",
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false
+                },
+                {
+                    "kode": "equipment.range_resolusi",
+                    "label": "2. Range/Resolution",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": "otomatis",
+                    "satuan": "mg/L",
+                    "pilihan": [],
+                    "hanya_admin": false
+                },
+                {
+                    "kode": "alat_model",
+                    "label": "3. Type/Model",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false
+                },
+                {
+                    "kode": "alat_serial_number",
+                    "label": "4. Serial Number/LPI",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false
+                },
+                {
+                    "kode": "alat_merk",
+                    "label": "5. Merk/Manufacture",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false
+                }
+            ]
+        },
+        {
+            "kode": "pemilik",
+            "halaman": 1,
+            "judul": "OWNER",
+            "field": [
+                {
+                    "kode": "pemilik_nama",
+                    "label": "1. Name",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false
+                },
+                {
+                    "kode": "pemilik_alamat",
+                    "label": "2. Address",
+                    "tipe": "teks_panjang",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false
+                }
+            ]
+        },
+        {
+            "kode": "usage_check",
+            "halaman": 1,
+            "judul": "STANDARD",
+            "baris": [
+                {
+                    "label": "Oxygen Standard Solution 8.77 mg/L",
+                    "standard_id": null,
+                    "serial_number": null,
+                    "no_sertifikat": null,
+                    "tertelusur_ke": null,
+                    "terdaftar": false
+                },
+                {
+                    "label": "Oxygen Standard Solution 5.51 mg/L",
+                    "standard_id": null,
+                    "serial_number": null,
+                    "no_sertifikat": null,
+                    "tertelusur_ke": null,
+                    "terdaftar": false
+                },
+                {
+                    "label": "RTD Sensor/SH1/20",
+                    "standard_id": 12,
+                    "serial_number": "23P1005",
+                    "no_sertifikat": "23P1005",
+                    "tertelusur_ke": "LK-285-IDN",
+                    "terdaftar": true
+                },
+                {
+                    "label": "Victor 14+/992613877",
+                    "standard_id": null,
+                    "serial_number": null,
+                    "no_sertifikat": null,
+                    "tertelusur_ke": null,
+                    "terdaftar": false
+                }
+            ],
+            "field": [
+                {
+                    "kode": "standar_dicek.*.dipakai",
+                    "label": "Usage Check",
+                    "tipe": "centang",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false
+                },
+                {
+                    "kode": "standar_dicek.*.keterangan",
+                    "label": "Keterangan",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false
+                }
+            ]
+        },
+        {
+            "kode": "data_kalibrasi",
+            "halaman": 1,
+            "judul": "CALIBRATION DATA",
+            "field": [
+                {
+                    "kode": "lokasi",
+                    "label": "1. Location",
+                    "tipe": "pilihan",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [
+                        {
+                            "nilai": "lab",
+                            "label": "Inlab"
+                        },
+                        {
+                            "nilai": "onsite",
+                            "label": "Insitu"
+                        }
+                    ],
+                    "hanya_admin": false
+                },
+                {
+                    "kode": "room_id",
+                    "label": "Ruangan",
+                    "tipe": "pilihan",
+                    "wajib": false,
+                    "sumber": "master_ruangan",
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false
+                }
+            ]
+        },
+        {
+            "kode": "hasil",
+            "halaman": 1,
+            "judul": "CALIBRATION RESULT",
+            "field": [
+                {
+                    "kode": "suhu_awal",
+                    "label": "Env. Condition — First",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "°C",
+                    "pilihan": [],
+                    "hanya_admin": false
+                },
+                {
+                    "kode": "kelembaban_awal",
+                    "label": "Env. Condition — First",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "%RH",
+                    "pilihan": [],
+                    "hanya_admin": false
+                },
+                {
+                    "kode": "suhu_akhir",
+                    "label": "Env. Condition — End",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "°C",
+                    "pilihan": [],
+                    "hanya_admin": false
+                },
+                {
+                    "kode": "kelembaban_akhir",
+                    "label": "Env. Condition — End",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "%RH",
+                    "pilihan": [],
+                    "hanya_admin": false
+                },
+                {
+                    "kode": "thermohygro_standard_id",
+                    "label": "Thermohygro Used",
+                    "tipe": "pilihan",
+                    "wajib": false,
+                    "sumber": "master_thermohygro",
+                    "satuan": null,
+                    "pilihan": [
+                        {
+                            "nilai": "1",
+                            "label": "TH-1",
+                            "grup": "Inlab"
+                        },
+                        {
+                            "nilai": "3",
+                            "label": "TH-3",
+                            "grup": "Inlab"
+                        },
+                        {
+                            "nilai": "4",
+                            "label": "TH-4",
+                            "grup": "Inlab"
+                        },
+                        {
+                            "nilai": "5",
+                            "label": "TH-5",
+                            "grup": "Inlab"
+                        },
+                        {
+                            "nilai": "7",
+                            "label": "TH-7",
+                            "grup": "Inlab"
+                        },
+                        {
+                            "nilai": "2",
+                            "label": "TH-2",
+                            "grup": "Insitu"
+                        },
+                        {
+                            "nilai": "6",
+                            "label": "TH-6",
+                            "grup": "Insitu"
+                        }
+                    ],
+                    "hanya_admin": false
+                }
+            ],
+            "tabel": [
+                {
+                    "tahap": "sebelum_adjustment",
+                    "judul": "Before adjustment Reading",
+                    "baris": [
+                        {
+                            "titik_ukur": 8.77,
+                            "label": "8,77",
+                            "standard_id": null,
+                            "standard_nama": null
+                        }
+                    ],
+                    "kolom": [
+                        {
+                            "kode": "pembacaan",
+                            "label": "mg/L",
+                            "tipe": "angka",
+                            "satuan": "mg/L"
+                        },
+                        {
+                            "kode": "suhu",
+                            "label": "°C",
+                            "tipe": "angka",
+                            "satuan": "°C"
+                        }
+                    ],
+                    "pengulangan": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ]
+                },
+                {
+                    "tahap": "sesudah_adjustment",
+                    "judul": "After adjustment Reading",
+                    "baris": [
+                        {
+                            "titik_ukur": 8.77,
+                            "label": "8,77",
+                            "standard_id": null,
+                            "standard_nama": null
+                        }
+                    ],
+                    "kolom": [
+                        {
+                            "kode": "pembacaan",
+                            "label": "mg/L",
+                            "tipe": "angka",
+                            "satuan": "mg/L"
+                        },
+                        {
+                            "kode": "suhu",
+                            "label": "°C",
+                            "tipe": "angka",
+                            "satuan": "°C"
+                        }
+                    ],
+                    "pengulangan": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ]
+                }
+            ]
+        },
+        {
+            "kode": "penutup",
+            "halaman": 1,
+            "judul": "Catatan & Tanda Tangan",
+            "field": [
+                {
+                    "kode": "catatan_teknisi",
+                    "label": "Catatan",
+                    "tipe": "teks_panjang",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false
+                },
+                {
+                    "kode": "teknisi.nama",
+                    "label": "Calibrated by",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": "otomatis",
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false
+                },
+                {
+                    "kode": "reviewer.nama",
+                    "label": "Checked by",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": "otomatis",
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false
+                }
+            ]
+        }
+    ],
+    "untuk": "teknisi"
+}

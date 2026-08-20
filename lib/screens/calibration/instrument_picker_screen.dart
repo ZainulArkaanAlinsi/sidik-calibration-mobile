@@ -104,6 +104,16 @@ const _profilKhusus = {
   // (AutoclaveInputScreen), bukan LembarKerjaScreen generik.
   'autoklaf': 'autoclave',
   'autoclave': 'autoclave',
+  // DO Meter (alat ke-9). Bentuk lembarnya sama persis kayak Chlorin Meter —
+  // satu titik, Before/After adjustment, tiap sel pembacaan mg/L + suhu
+  // larutan — jadi dia pakai `LembarKerjaScreen` generik, bukan layar sendiri
+  // kayak Autoklaf.
+  //
+  // "do meter" sengaja NGGAK didaftarin sebagai potongan longgar tanpa spasi
+  // (`dometer`): pencocokan di [profilLembarKerjaUntuk] pakai `contains`, dan
+  // kunci sependek itu gampang nyangkut di nama alat lain.
+  'do meter': 'do_meter',
+  'dissolved oxygen meter': 'do_meter',
 };
 
 /// Cocokin nama alat ke kode profil lembar kerja, **case-insensitive, spasi

@@ -199,6 +199,7 @@ class MockLembarKerjaService implements LembarKerjaService {
         untukAdmin: untukAdmin,
       ),
       'viscometer' => contohBentukLembarKerjaVisco(untukAdmin: untukAdmin),
+      'do_meter' => contohBentukLembarKerjaDoMeter(untukAdmin: untukAdmin),
       // Profil kosong / nggak dikenal SENGAJA jatuh ke pH, bukan lempar error —
       // sama kayak janji kontraknya (`docs/kontrak-api.md` §4).
       _ => contohBentukLembarKerja(untukAdmin: untukAdmin),
@@ -1360,6 +1361,173 @@ Map<String, dynamic> contohBentukLembarKerjaSpectro({bool untukAdmin = false}) {
         'kerja tetap bisa dikirim. Tiap kelompok (Holmium / Didynium / %T) '
         'punya SATU U95 bersama yang dihitung dari STDEV terbesar di kelompok '
         'itu, jadi titik yang kosong ngurangin dasar hitungnya.',
+    'bagian': bagian,
+  };
+}
+
+/// Bentuk lembar kerja **DO Meter** (alat ke-9), salinan keluaran backend
+/// `DoMeterProfile::bentukLembarKerja()` (`test/fixtures/do-meter-bentuk.json`).
+///
+/// Tanpa ini `MockLembarKerjaService.ambilBentuk` jatuh ke cabang `_` dan
+/// mulangin lembar **pH Meter** buat profil `do_meter` — kartunya udah nongol
+/// di picker, teknisi natapnya, dan yang kebuka formulir alat lain tanpa satu
+/// pun error. Kegagalan diam yang sama persis kayak yang bikin bentuk
+/// Viscometer ditulis.
+///
+/// Bentuknya sama keluarga sama Chlorin Meter — dua tabel Before/After, tiap
+/// sel `mg/L` + `°C` — bedanya **satu titik**: 8,77 mg/L, BUKAN 0,00 yang
+/// tercetak di kertas Rev.2. "Zero Oxygen Std. 0.0 mg/l" di form itu larutan
+/// penol alat, bukan titik kalibrasi; yang terakreditasi 8,77 (satu-satunya
+/// titik yang punya CMC). Lihat docblock `DoMeterProfile` di backend.
+Map<String, dynamic> contohBentukLembarKerjaDoMeter({bool untukAdmin = false}) {
+  Map<String, dynamic> field(
+    String kode,
+    String label,
+    String tipe, {
+    String? sumber,
+    String? satuan,
+    List<Map<String, String>> pilihan = const [],
+    bool hanyaAdmin = false,
+  }) => {
+    'kode': kode,
+    'label': label,
+    'tipe': tipe,
+    'wajib': false,
+    'sumber': sumber,
+    'satuan': satuan,
+    'pilihan': pilihan,
+    'hanya_admin': hanyaAdmin,
+  };
+
+  Map<String, dynamic> tabel(String tahap, String judul) => {
+    'tahap': tahap,
+    'judul': judul,
+    'baris': [
+      {
+        'titik_ukur': 8.77,
+        'label': '8,77',
+        'standard_id': 50,
+        'standard_nama': 'Oxygen Standard Solution 8.77 mg/L',
+      },
+    ],
+    'kolom': [
+      {'kode': 'pembacaan', 'label': 'mg/L', 'tipe': 'angka', 'satuan': 'mg/L'},
+      {'kode': 'suhu', 'label': '°C', 'tipe': 'angka', 'satuan': '°C'},
+    ],
+    'pengulangan': [1, 2, 3, 4, 5],
+  };
+
+  final bagian = <Map<String, dynamic>>[
+    {
+      'kode': 'identitas_alat',
+      'halaman': 1,
+      'judul': 'EQUIPMENT IDENTITY AND CUSTOMER DATA',
+      'field': [
+        field('tanggal_terima', 'Received Date', 'tanggal'),
+        field('tanggal_kalibrasi', 'Calibration Date', 'tanggal'),
+        field('equipment_id', 'Equipment', 'pilihan', sumber: 'master_alat'),
+        field('equipment.nama_alat', '1. Name', 'teks', sumber: 'otomatis'),
+        field('equipment.range_resolusi', '2. Range/Resolution', 'teks',
+            sumber: 'otomatis', satuan: 'mg/L'),
+        field('alat_model', '3. Type/Model', 'teks'),
+        field('alat_serial_number', '4. Serial Number/LPI', 'teks'),
+        field('alat_merk', '5. Merk/Manufacture', 'teks'),
+      ],
+    },
+    {
+      'kode': 'pemilik',
+      'halaman': 1,
+      'judul': 'OWNER',
+      'field': [
+        field('pemilik_nama', '1. Name', 'teks'),
+        field('pemilik_alamat', '2. Address', 'teks_panjang'),
+      ],
+    },
+    {
+      'kode': 'usage_check',
+      'halaman': 1,
+      'judul': 'STANDARD',
+      'baris': [
+        {
+          'label': 'Oxygen Standard Solution 8.77 mg/L',
+          'standard_id': 50,
+          'terdaftar': true,
+        },
+        {
+          'label': 'Oxygen Standard Solution 5.51 mg/L',
+          'standard_id': 51,
+          'terdaftar': true,
+        },
+        {'label': 'RTD Sensor/SH1/20', 'standard_id': 6, 'terdaftar': true},
+        {'label': 'Victor 14+/992613877', 'standard_id': null, 'terdaftar': false},
+      ],
+      'field': <Map<String, dynamic>>[],
+    },
+    {
+      'kode': 'data_kalibrasi',
+      'halaman': 1,
+      'judul': 'CALIBRATION DATA',
+      'field': [
+        field('lokasi', '1. Location', 'pilihan', pilihan: [
+          {'nilai': 'lab', 'label': 'Inlab'},
+          {'nilai': 'onsite', 'label': 'Insitu'},
+        ]),
+        field('room_id', 'Ruangan', 'pilihan', sumber: 'master_ruangan'),
+        if (untukAdmin)
+          field('calibration_method_id', '2. Calibration Methode', 'pilihan',
+              sumber: 'master_metode', hanyaAdmin: true),
+      ],
+    },
+    {
+      'kode': 'hasil',
+      'halaman': 1,
+      'judul': 'CALIBRATION RESULT',
+      'field': [
+        field('suhu_awal', 'Env. Condition — First', 'angka', satuan: '°C'),
+        field('kelembaban_awal', 'Env. Condition — First', 'angka', satuan: '%RH'),
+        field('suhu_akhir', 'Env. Condition — End', 'angka', satuan: '°C'),
+        field('kelembaban_akhir', 'Env. Condition — End', 'angka', satuan: '%RH'),
+        // Thermohygro DO Meter ada di blok CALIBRATION RESULT (kotak centang
+        // TH-2/6/7/4 di kertas), BUKAN di EQUIPMENT IDENTITY kayak lembar
+        // pH/Chlorine. Ikut kertasnya.
+        field('thermohygro_standard_id', 'Thermohygro Used', 'pilihan',
+            sumber: 'master_thermohygro',
+            pilihan: const [
+              {'nilai': '40', 'label': 'TH-2', 'grup': 'Insitu'},
+              {'nilai': '42', 'label': 'TH-6', 'grup': 'Insitu'},
+              {'nilai': '43', 'label': 'TH-7', 'grup': 'Insitu'},
+              {'nilai': '41', 'label': 'TH-4', 'grup': 'Inlab'},
+            ]),
+      ],
+      'tabel': [
+        tabel('sebelum_adjustment', 'Before adjustment Reading'),
+        tabel('sesudah_adjustment', 'After adjustment Reading'),
+      ],
+    },
+    {
+      'kode': 'penutup',
+      'halaman': 1,
+      'judul': 'Catatan & Tanda Tangan',
+      'field': [
+        field('catatan_teknisi', 'Catatan', 'teks_panjang'),
+        field('teknisi.nama', 'Calibrated by', 'teks', sumber: 'otomatis'),
+        field('reviewer.nama', 'Checked by', 'teks', sumber: 'otomatis'),
+      ],
+    },
+  ];
+
+  return {
+    'kode_dokumen': 'SIDIK-FM-CAL-0532_Rev.2',
+    'judul': 'Calibration Worksheet - DO Meter',
+    'untuk': untukAdmin ? 'admin' : 'teknisi',
+    'jumlah_pengulangan': 5,
+    'larutan_standar': [8.77],
+    'satuan': 'mg/L',
+    'satuan_suhu': '°C',
+    'semua_kolom_opsional': true,
+    'catatan_pengisian':
+        'Kolom yang belum bisa diisi di lapangan boleh dikosongin — '
+        'lembar kerja tetap bisa dikirim.',
     'bagian': bagian,
   };
 }
