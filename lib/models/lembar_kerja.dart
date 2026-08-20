@@ -201,10 +201,23 @@ class BarisTabelHasil {
     this.standardNama,
     this.satuan,
     this.eksklusifDengan,
+    this.tipe,
   });
 
   final double titikUkur;
   final String label;
+
+  /// Jenis isian baris ini kalau BUKAN angka biasa.
+  ///
+  /// Sejauh ini cuma `jam` yang dipakai — baris `Time` di lembar Autoklaf,
+  /// yang tiap kolomnya diisi jam sterilisasi (`HH:mm`), bukan hasil ukur.
+  ///
+  /// `null` = baris angka seperti delapan alat lain, dan seluruh perilaku lama
+  /// jalan persis kayak sebelumnya.
+  ///
+  /// Ditaruh di BARIS, bukan di tabel: satu tabel Autoklaf memuat baris jam DAN
+  /// baris angka sekaligus, jadi jenisnya properti baris.
+  final String? tipe;
 
   /// Satuan baris INI, buat alat yang nyampur satuan dalam satu lembar.
   ///
@@ -261,6 +274,7 @@ class BarisTabelHasil {
         standardNama: json['standard_nama'] as String?,
         satuan: json['satuan'] as String?,
         eksklusifDengan: (json['eksklusif_dengan'] as num?)?.toDouble(),
+        tipe: json['tipe'] as String?,
       );
 }
 
