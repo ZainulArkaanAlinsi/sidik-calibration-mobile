@@ -8,7 +8,6 @@ import '../../providers/calibration_input_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/tampil_masuk.dart';
-import 'autoclave_input_screen.dart';
 import 'calibration_input_screen.dart';
 import 'lembar_kerja_screen.dart';
 
@@ -113,8 +112,7 @@ const _profilKhusus = {
   'gasdetector': 'gas_detector',
   // Lampiran akreditasi LK-285-IDN no. 48 nulis "Autoklaf"; lembar kerjanya
   // SIDIK-FM-CAL-0539 & DATABASE nulis "Autoclave". Dua-duanya didaftarin —
-  // yang nyampe ke sini teks bebas dari backend. Autoklaf pakai layar khusus
-  // (AutoclaveInputScreen), bukan LembarKerjaScreen generik.
+  // yang nyampe ke sini teks bebas dari backend.
   'autoklaf': 'autoclave',
   'autoclave': 'autoclave',
 };
@@ -288,19 +286,13 @@ class _InstrumenCard extends StatelessWidget {
 
   void _pilih(BuildContext context) {
     final profil = profilLembarKerjaUntuk(kemampuan.namaAlat);
-    if (profil == 'autoclave') {
-      // Autoklaf bentuk datanya beda (3 disk suhu + 1 titik tekanan) — layar &
-      // endpoint `/calibrations/autoclave/preview` sendiri, bukan lembar generik.
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => AutoclaveInputScreen(
-            judulTambahan: kemampuan.namaAlat,
-            kategori: kategori.kode,
-          ),
-        ),
-      );
-      return;
-    }
+
+    // Autoklaf ikut `LembarKerjaScreen` kayak sembilan alat lain sejak 20 Agu
+    // 2026. Tabelnya masih beda — baris = besaran, kolom = titik waktu — tapi
+    // bentuk itu sekarang dituturkan backend (`bagian.matriks`) dan digambar
+    // `LembarKerjaMatriks`, jadi nggak perlu layar sendiri. Endpoint simpan &
+    // olah datanya tetap `/calibrations/autoclave`; yang disatukan layarnya,
+    // bukan bentuk datanya.
     if (profil != null) {
       Navigator.of(context).push(
         MaterialPageRoute<void>(

@@ -774,6 +774,14 @@ class LembarKerjaState {
   final Map<String, TextEditingController> teks = {};
   final Map<String, DateTime?> tanggal = {};
 
+  /// Sel tabel matriks (besaran × titik waktu), keyed [kunciMatriks].
+  ///
+  /// Kepisah dari [titik] karena barisnya bukan titik ukur: `Temp. Disk 1` dan
+  /// `Indikator Pressure` besaran yang beda, bukan dua level dari besaran yang
+  /// sama. Dipaksa masuk [titik], kedelapan barisnya berbagi satu `TitikState`
+  /// dan saling nimpa.
+  final Map<String, TextEditingController> matriks = {};
+
   /// Keyed by nilai larutan standar (4.00 / 7.00 / 10.01).
   final Map<double, TitikState> titik = {};
 
@@ -1512,8 +1520,198 @@ class LembarKerjaState {
     };
   }
 
+  /// Kunci satu sel matriks: jalur data barisnya + nomor titik waktu.
+  ///
+  /// Jalur data (`suhu.disk.0`) yang dipakai, bukan index baris — supaya
+  /// urutan baris di layar nggak memikul arti. Baris kegeser cuma bikin
+  /// tampilannya beda urutan, bukan bikin angkanya pindah besaran.
+  static String kunciMatriks(String kodeData, int titikWaktu) =>
+      '$kodeData#$titikWaktu';
+
+  TextEditingController kotakMatriks(String kodeData, int titikWaktu) =>
+      matriks.putIfAbsent(
+        kunciMatriks(kodeData, titikWaktu),
+        () => TextEditingController()
+          ..addListener(() => onIsianDiketik?.call()),
+      );
+
+/// Rakit blok data ukur untuk lembar bertabel matriks (Autoklaf).
+  ///
+  /// Angkanya ditulis ke jalur yang DITENTUKAN BACKEND (`BarisMatriks.kodeData`
+  /// — `suhu.disk.0`, `tekanan.indikator_pressure`), bukan ke jalur yang
+  /// dihafal layar. Bedanya kelihatan waktu formulirnya direvisi: baris yang
+  /// pindah urutan di kertas cuma mengubah tampilannya, nggak mengubah besaran
+  /// mana yang dikirim ke mana.
+  ///
+  /// Blok `suhu` dan `tekanan` cuma ikut kalau ADA ISINYA. Blok kosong yang
+  /// tetap dikirim bikin backend menghitung rata-rata dari daftar null.
+  ///
+  /// `tekanan.uut_setting` sengaja NGGAK dikirim: di kertas angka itu ada di
+  /// baris Indikator Pressure, dan backend yang mutusin — kalau kelima
+  /// kolomnya sama, itu yang kepakai; kalau beda, kirimannya ditolak dengan
+  /// pesan jelas. Merata-rata di layar bikin angka yang nggak pernah ditulis
+  /// siapa pun ikut ke sertifikat.
+  Map<String, dynamic> payloadMatriks(MatriksHasil m, TabelSatuBaris? tambahan) {
+    final hasil = <String, dynamic>{};
+
+    void tulis(String jalur, List<dynamic> nilai) {
+      if (nilai.every((v) => v == null)) return;
+
+      final bagian = jalur.split('.');
+      dynamic wadah = hasil;
+
+      for (var i = 0; i < bagian.length - 1; i++) {
+        final kunci = bagian[i];
+        final berikutnyaIndex = int.tryParse(bagian[i + 1]) != null;
+
+        wadah = (wadah as Map<String, dynamic>).putIfAbsent(
+          kunci,
+          () => berikutnyaIndex ? <String, dynamic>{} : <String, dynamic>{},
+        );
+      }
+
+      (wadah as Map<String, dynamic>)[bagian.last] = nilai;
+    }
+
+    for (final b in m.semuaBaris) {
+      if (b.kodeData.isEmpty) continue;
+
+      tulis(b.kodeData, [
+        for (final t in m.titikWaktu)
+          _nilaiSelMatriks(b, LembarKerjaState.kunciMatriks(b.kodeData, t)),
+      ]);
+    }
+
+    if (tambahan != null && tambahan.kodeData.isNotEmpty) {
+      tulis(tambahan.kodeData, [
+        for (final t in tambahan.pengulangan)
+          parseAngka(
+            matriks[LembarKerjaState.kunciMatriks(tambahan.kodeData, t)]?.text ??
+                '',
+          ),
+      ]);
+    }
+
+    // Dua kolom pressure yang jalur payload-nya beda dari kode kolomnya. Ditulis
+    // terang di sini, bukan disembunyiin di pemetaan umum: cuma ini yang nggak
+    // bisa diturunkan dari `kode_data`, dan sisanya jangan ikut-ikutan.
+    const jalurField = {
+      'satuan_tekanan': 'tekanan.satuan',
+      'display_tekanan': 'tekanan.display',
+    };
+
+    for (final e in jalurField.entries) {
+      final nilai = teks[e.key]?.text.trim();
+      if (nilai == null || nilai.isEmpty) continue;
+      if (!hasil.containsKey('tekanan')) continue;
+      (hasil['tekanan'] as Map<String, dynamic>)[e.value.split('.').last] =
+          nilai;
+    }
+
+    // `suhu.disk` di API itu daftar-di-dalam-daftar (`suhu.disk.*.*`), jadi
+    // wadah bernomor yang kebentuk dari jalur `suhu.disk.0` diratakan jadi
+    // List sesuai urutan nomornya.
+    _ratakanWadahBernomor(hasil);
+
+    final setPoint = parseAngka(teks['set_point']?.text ?? '');
+    if (setPoint != null) hasil['set_point'] = setPoint;
+
+    return hasil;
+  }
+
+  /// Baris `Time` disimpan apa adanya (`02:00:00`); sisanya jadi angka.
+  dynamic _nilaiSelMatriks(BarisMatriks b, String kunci) {
+    final teksSel = matriks[kunci]?.text.trim() ?? '';
+    if (teksSel.isEmpty) return null;
+    return b.jam ? teksSel : parseAngka(teksSel);
+  }
+
+  void _ratakanWadahBernomor(Map<String, dynamic> wadah) {
+    for (final kunci in wadah.keys.toList()) {
+      final isi = wadah[kunci];
+      if (isi is! Map<String, dynamic>) continue;
+
+      final nomor = isi.keys.map(int.tryParse).toList();
+
+      if (nomor.isNotEmpty && nomor.every((n) => n != null)) {
+        final urut = [...isi.keys]..sort(
+          (a, b) => int.parse(a).compareTo(int.parse(b)),
+        );
+        wadah[kunci] = [for (final k in urut) isi[k]];
+      } else {
+        _ratakanWadahBernomor(isi);
+      }
+    }
+  }
+
+/// Bagian yang punya tabel matriks. Null buat sembilan alat lain.
+  BagianLembarKerja? get bagianMatriks {
+    for (final b in bentuk.bagian) {
+      if (b.matriks != null) return b;
+    }
+    return null;
+  }
+
+  /// Ada minimal satu sel matriks yang keisi — syarat minta pratinjau.
+  ///
+  /// Kepisah dari [titik] karena teknisi ngetik ke [matriks], bukan ke sana.
+  /// Dipakai `titik` sebagai syarat, pratinjaunya nggak pernah kepanggil dan
+  /// panel hasilnya diam terus tanpa satu pun tanda kenapa.
+  bool get adaIsianMatriks =>
+      matriks.values.any((c) => c.text.trim().isNotEmpty);
+
+  /// Payload simpan lembar bermatriks: data ukur + identitas sesi.
+  ///
+  /// Bentuknya ngikut `POST /calibrations/autoclave` — alat, tanggal, dan
+  /// kondisi lingkungan di level atas, bukan dibungkus `measurements[]`.
+  /// Alat & tanggal kalibrasi wajib buat kirim; sisanya opsional, karena kolom
+  /// yang belum keisi di lapangan nggak boleh nahan kiriman.
+  Map<String, dynamic> payloadSimpanMatriks(
+    BagianLembarKerja bagian, {
+    required bool draft,
+  }) {
+    final tanggalKalibrasi = tanggal['tanggal_kalibrasi'];
+    final tanggalTerima = tanggal['tanggal_terima'];
+
+    return {
+      ...payloadMatriks(bagian.matriks!, bagian.tabelTambahan),
+      'equipment_id': alat?.id,
+      'client_request_id': clientRequestId,
+      // Draft ditandai lewat `status`, dan itu yang melonggarkan kolom wajib
+      // di server. Tanpa kunci ini, draft setengah jadi ditolak 422 karena
+      // `set_point` & tanggal kalibrasi belum keisi.
+      if (draft) 'status': 'draft',
+      if (tanggalKalibrasi != null)
+        'tanggal_kalibrasi': tanggalKalibrasi.toIso8601String().substring(0, 10),
+      if (tanggalTerima != null)
+        'tanggal_terima': tanggalTerima.toIso8601String().substring(0, 10),
+      'lokasi': lokasi.name,
+      if (thermohygroStandardId != null)
+        'thermohygro_standard_id': thermohygroStandardId,
+      if (angka('suhu_awal') != null) 'suhu_awal': angka('suhu_awal'),
+      if (angka('suhu_akhir') != null) 'suhu_akhir': angka('suhu_akhir'),
+      if (angka('kelembaban_awal') != null)
+        'kelembaban_awal': angka('kelembaban_awal'),
+      if (angka('kelembaban_akhir') != null)
+        'kelembaban_akhir': angka('kelembaban_akhir'),
+      if (kalimat('pemilik_nama') != null)
+        'pemilik_nama': kalimat('pemilik_nama'),
+      if (kalimat('pemilik_alamat') != null)
+        'pemilik_alamat': kalimat('pemilik_alamat'),
+      if (kalimat('alat_merk') != null) 'alat_merk': kalimat('alat_merk'),
+      if (kalimat('alat_model') != null) 'alat_model': kalimat('alat_model'),
+      if (kalimat('alat_serial_number') != null)
+        'alat_serial_number': kalimat('alat_serial_number'),
+      if (kalimat('catatan_teknisi') != null)
+        'catatan_teknisi': kalimat('catatan_teknisi'),
+    };
+  }
+
   void dispose() {
     for (final c in teks.values) {
+      c.dispose();
+    }
+    for (final c in matriks.values) {
       c.dispose();
     }
     for (final t in titik.values) {

@@ -8,7 +8,8 @@ import 'api_client.dart';
 /// di model "titik ukur + pengulangan" alat lain. Tabel kalibrator & CMC ada di
 /// server; payload cuma data ukur teknisi.
 abstract class AutoclaveService {
-  /// [payload] = data ukur mentah (lihat `AutoclaveInputScreen._payload`).
+  /// [payload] = data ukur mentah, dirakit `LembarKerjaState.payloadMatriks`
+  /// dari jalur `kode_data` yang dikirim backend di `bagian.matriks`.
   Future<AutoclaveHasil> pratinjau(String token, Map<String, dynamic> payload);
 
   /// Simpan sesi Autoklaf (`POST /calibrations/autoclave`). [payload] gabungan
