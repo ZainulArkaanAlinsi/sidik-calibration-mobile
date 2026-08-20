@@ -909,6 +909,15 @@
   "lkFotoTabelGagal": "Foto tidak bisa dibaca. Coba jepret ulang.",
   "lkFotoTabelTanpaJangkar": "Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom nilai standar (kiri) dan kepala kolom Repeat (nomor 1..5, atau X1 / Repeat 1) ikut kefoto — semuanya, jangan ada yang kepotong. Kolomnya tetap bisa diketik manual.",
   "lkFotoTabelKolomHilang": "Label kolom {kolom} nggak kebaca di foto, jadi nggak ada yang diisi — kalau dipaksa, angkanya bisa mendarat di kolom sebelah tanpa ketahuan. Jepret ulang dengan baris satuan di kepala tabel ikut masuk frame.",
+  "lkFotoTabelBarisKembar": "Bentuk tabel lembar ini belum bisa difoto: baris {baris} kedaftar lebih dari sekali sebagai penanda baris, jadi angkanya nggak bisa dipastikan masuk baris yang mana. Jepret ulang nggak nolong — isi manual dulu, dan kasih tau admin biar penanda barisnya dibetulin di master.",
+  "@lkFotoTabelBarisKembar": {
+    "placeholders": {
+      "baris": {
+        "type": "String",
+        "description": "Nilai penanda baris yang kembar, dipisah koma."
+      }
+    }
+  },
   "lkFotoTabelKosong": "Tabelnya kebaca, tapi kotak isiannya masih kosong — nggak ada angka tulisan tangan yang ketemu di dalamnya. Isi dulu kertasnya, baru difoto.",
   "@lkFotoTabelKosong": {
     "description": "Jangkar baris & kolom ketemu semua, tapi nol angka di badan tabel — biasanya kertas/lembar yang difoto memang belum diisi."

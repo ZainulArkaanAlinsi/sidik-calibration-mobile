@@ -40,6 +40,7 @@ class HasilPetaTabel {
     required this.repeatKetemu,
     required this.angkaTakTerpetakan,
     this.labelKolomKurang = const [],
+    this.barisKembar = const [],
   });
 
   final List<SelTabelFoto> sel;
@@ -61,6 +62,14 @@ class HasilPetaTabel {
   /// alasannya di [PetaTabelFoto.petakan]. Dilaporkan supaya pesan ke teknisi
   /// bisa nyebut yang hilang, bukan nyuruh dia nebak.
   final List<String> labelKolomKurang;
+
+  /// Nilai jangkar baris yang muncul lebih dari sekali di bentuk tabelnya.
+  ///
+  /// Selama ada isinya, seluruh tabel sengaja nggak dipetakan — lihat
+  /// alasannya di [PetaTabelFoto._titikKembar]. Dilaporkan terpisah dari
+  /// jangkar yang kepotong karena sebabnya beda: yang ini nggak bisa
+  /// dibetulkan dengan jepretan ulang.
+  final List<double> barisKembar;
 
   bool get kosong => sel.isEmpty;
 }
@@ -107,6 +116,32 @@ class PetaTabelFoto {
   /// (`279,6` → `279,5`). Dilonggarkan, dua titik yang berdekatan
   /// (Spectrophotometer punya 453,6 & 460,0) bisa saling rebut.
   static const _toleransiTitik = 0.005;
+
+  /// Nilai jangkar baris yang muncul lebih dari sekali di `titikUkur`.
+  ///
+  /// Jangkar baris disimpan berkunci nilainya (`Map<double, TeksTerbaca>`),
+  /// jadi titik kembar runtuh jadi SATU baris: angka yang mestinya jatuh ke
+  /// delapan baris beda semuanya ngaku baris yang sama, dan sisanya dibuang.
+  ///
+  /// Bentuk begitu ada beneran — lembar Autoclave (`SIDIK-FM-CAL-0539`)
+  /// barisnya berlabel kata (`Time`, `Temp. Disk 1`), dan `titik_ukur`-nya nol
+  /// semua sebagai pengisi.
+  ///
+  /// Ini nggak bisa dibetulin sama jepretan ulang, dan kalau dibiarkan jalan
+  /// hasilnya bukan "gagal" tapi "sebagian angka mendarat di baris yang
+  /// salah" — persis kegagalan tanpa gejala yang dicegah seluruh berkas ini.
+  static List<double> _titikKembar(List<double> titikUkur) {
+    final hitung = <double, int>{};
+
+    for (final t in titikUkur) {
+      hitung[t] = (hitung[t] ?? 0) + 1;
+    }
+
+    return [
+      for (final e in hitung.entries)
+        if (e.value > 1) e.key,
+    ];
+  }
 
   /// Setinggi apa satu baris dianggap masih baris yang sama, relatif terhadap
   /// jarak antar jangkar baris.
@@ -162,6 +197,21 @@ class PetaTabelFoto {
     // bikin 453,6 & 460,0 di lembar spektro bisa saling rebut).
     Map<double, String> labelTercetak = const {},
   }) {
+    final kembar = _titikKembar(titikUkur);
+
+    if (kembar.isNotEmpty) {
+      // Bentuk tabelnya sendiri yang nggak bisa dipetakan — lihat
+      // [_titikKembar]. Ditolak SEBELUM baca apa pun, biar sebabnya nunjuk ke
+      // bentuk lembarnya, bukan ke kualitas fotonya.
+      return HasilPetaTabel(
+        sel: const [],
+        titikKetemu: const [],
+        repeatKetemu: const [],
+        angkaTakTerpetakan: 0,
+        barisKembar: kembar,
+      );
+    }
+
     final angka = <({double nilai, TeksTerbaca t})>[];
 
     for (final t in terbaca) {
@@ -404,6 +454,26 @@ class PetaTabelFoto {
     required List<int> pengulangan,
     Map<int, List<String>> kepalaPengulangan = const {},
   }) {
+    // Baris di sini dijangkar nomor Repeat dan kolomnya index slot — dua-duanya
+    // sudah unik, jadi jangkarnya nggak bisa runtuh seperti di [petakan]. Yang
+    // masih bisa runtuh sel keluarannya: dua slot yang titik ukurnya sama
+    // menghasilkan kunci `(titikUkur, repeatNo, fieldId)` yang sama, dan yang
+    // belakangan diam-diam menimpa yang duluan.
+    final kembar = _titikKembar([
+      for (final s in slot)
+        if (s.titikUkur != null) s.titikUkur!,
+    ]);
+
+    if (kembar.isNotEmpty) {
+      return HasilPetaTabel(
+        sel: const [],
+        titikKetemu: const [],
+        repeatKetemu: const [],
+        angkaTakTerpetakan: 0,
+        barisKembar: kembar,
+      );
+    }
+
     final angka = <({double nilai, TeksTerbaca t})>[];
 
     for (final t in terbaca) {

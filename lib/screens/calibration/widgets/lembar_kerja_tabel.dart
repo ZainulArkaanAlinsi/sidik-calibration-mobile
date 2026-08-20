@@ -1593,7 +1593,17 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
               // "pastikan kolom nilai standar kefoto" waktu yang hilang
               // sebenarnya baris satuan itu nyuruh dia mbenerin hal yang
               // udah bener.
-              hasil.labelKolomKurang.isNotEmpty
+              // Bentuk tabelnya sendiri yang nggak bisa dipetakan: ada
+              // penanda baris yang kembar, jadi angkanya nggak bisa
+              // dipastikan masuk baris yang mana. Disebut duluan dan disebut
+              // beda, karena ini satu-satunya sebab di daftar ini yang
+              // JEPRETAN ULANGNYA NGGAK NOLONG — yang harus dibetulin master
+              // lembarnya, bukan fotonya.
+              hasil.barisKembar.isNotEmpty
+                  ? l10n.lkFotoTabelBarisKembar(
+                      hasil.barisKembar.map(_angkaTampil).join(', '),
+                    )
+                  : hasil.labelKolomKurang.isNotEmpty
                   ? l10n.lkFotoTabelKolomHilang(
                       hasil.labelKolomKurang.join(' & '),
                     )
