@@ -342,7 +342,7 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
       ),
       const SizedBox(height: AppSpacing.sm),
       Text('Kondisi Lingkungan (opsional)', style: theme.textTheme.bodySmall),
-      const SizedBox(height: 4),
+      const SizedBox(height: AppSpacing.xs),
       Row(children: [
         Expanded(child: _fieldAngka(_suhuAwalCtrl, label: 'T awal (°C)')),
         const SizedBox(width: AppSpacing.sm),
@@ -357,38 +357,123 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
     ]);
   }
 
+  /// Lebar satu sel angka.
+  ///
+  /// Disamakan dengan tabel lembar kerja (`LembarKerjaTabel._lebarSel`) supaya
+  /// nggak ada dua ukuran tabel yang beda di aplikasi yang sama.
+  static const double _lebarSel = 78;
+
+  /// Lebar kolom label kiri.
+  ///
+  /// 128, bukan 104: di 104 label "Indikator" dan "Suhu Ruang" membungkus jadi
+  /// dua baris di HP sempit, dan baris yang tingginya dipatok bikin
+  /// bungkusannya kepotong separuh.
+  static const double _lebarLabel = 128;
+
+  /// Tinggi baris dipatok supaya kolom label yang DIAM dan kolom sel yang
+  /// DIGESER tetap sebaris. Tanpa tinggi yang sama persis, label "Disk 2" bisa
+  /// mendarat di samping angka milik Disk 1 — dan di lembar kalibrasi, baris
+  /// yang meleset satu itu salah data, bukan salah tampilan.
+  static const double _tinggiBaris = 56;
+  static const double _tinggiKepala = 24;
+
   Widget _seksiSuhu(ThemeData theme) {
-    final header = ['', for (var i = 1; i <= _jumlahTitikWaktu; i++) 'W$i'];
+    // Sel angkanya digeser mendatar, bukan diperas jadi selebar apa pun yang
+    // tersisa. Sebelumnya lima titik waktu dibagi rata di sisa lebar layar:
+    // di HP 360 dp itu jadi ~50 dp per kotak — terlalu sempit buat mengetik
+    // angka berkoma, apalagi buat memeriksanya lagi sebelum dikirim.
+    // Pemisah antara tiga disk dan dua sensor acuan. Tingginya dipatok dan
+    // dipasang di KEDUA kolom — kalau cuma di satu, baris di bawahnya langsung
+    // meleset sebaris penuh.
+    const tinggiPemisah = 9.0;
 
-    Widget baris(String label, List<TextEditingController> ctrls) {
-      return Row(
+    Widget kolomLabel(List<String> label) => SizedBox(
+      width: _lebarLabel,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 96, child: Text(label, style: theme.textTheme.bodySmall)),
-          for (final c in ctrls)
-            Expanded(child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: _fieldAngka(c, dense: true),
-            )),
-        ],
-      );
-    }
-
-    return _seksi('2. Hasil Suhu (3 disk × $_jumlahTitikWaktu titik waktu)', [
-      Row(
-        children: [
-          for (final h in header)
-            h.isEmpty
-                ? const SizedBox(width: 96)
-                : Expanded(
-                    child: Center(
-                        child: Text(h, style: theme.textTheme.labelSmall))),
+          const SizedBox(height: _tinggiKepala),
+          for (final (i, l) in label.indexed) ...[
+            if (i == _jumlahDisk)
+              const SizedBox(height: tinggiPemisah, child: Divider()),
+            SizedBox(
+              height: _tinggiBaris,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(l, style: theme.textTheme.bodySmall),
+              ),
+            ),
+          ],
         ],
       ),
-      const SizedBox(height: 4),
-      for (var d = 0; d < _jumlahDisk; d++) baris('Disk ${d + 1}', _disk[d]),
-      const Divider(),
-      baris('Indikator', _indikator),
-      baris('Suhu Ruang', _suhuRuang),
+    );
+
+    Widget barisSel(List<TextEditingController> ctrls) => SizedBox(
+      height: _tinggiBaris,
+      child: Row(
+        children: [
+          for (final c in ctrls)
+            SizedBox(
+              width: _lebarSel,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.xs / 2,
+                  vertical: AppSpacing.xs,
+                ),
+                child: _fieldAngka(c, dense: true),
+              ),
+            ),
+        ],
+      ),
+    );
+
+    final label = [
+      for (var d = 0; d < _jumlahDisk; d++) 'Disk ${d + 1}',
+      'Indikator',
+      'Suhu Ruang',
+    ];
+
+    final baris = [..._disk, _indikator, _suhuRuang];
+
+    return _seksi('2. Hasil Suhu ($_jumlahDisk disk × $_jumlahTitikWaktu titik waktu)', [
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          kolomLabel(label),
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: _tinggiKepala,
+                    child: Row(
+                      children: [
+                        for (var i = 1; i <= _jumlahTitikWaktu; i++)
+                          SizedBox(
+                            width: _lebarSel,
+                            child: Center(
+                              child: Text(
+                                'W$i',
+                                style: theme.textTheme.labelSmall,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  for (final (i, ctrls) in baris.indexed) ...[
+                    if (i == _jumlahDisk)
+                      const SizedBox(height: tinggiPemisah, child: Divider()),
+                    barisSel(ctrls),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     ]);
   }
 
@@ -425,17 +510,31 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
       const SizedBox(height: AppSpacing.sm),
       Text('Standar Reading — Pressure Disk Logger (Bar)',
           style: theme.textTheme.bodySmall),
-      const SizedBox(height: 4),
-      Row(
-        children: [
-          for (final (i, c) in _pembacaanTekanan.indexed)
-            Expanded(child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: _fieldAngka(c,
-                  dense: true,
-                  fieldKey: i == 0 ? const Key('ac_p0') : null),
-            )),
-        ],
+      const SizedBox(height: AppSpacing.xs),
+      // Digeser mendatar, bukan diperas rata seperti dulu — sama alasannya
+      // dengan kisi suhu di atas. Lima pembacaan yang dibagi rata di lebar HP
+      // jadi ~55 dp per kotak, terlalu sempit buat angka empat desimal seperti
+      // `1.231`.
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            for (final (i, c) in _pembacaanTekanan.indexed)
+              SizedBox(
+                width: _lebarSel,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xs / 2,
+                  ),
+                  child: _fieldAngka(
+                    c,
+                    dense: true,
+                    fieldKey: i == 0 ? const Key('ac_p0') : null,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     ]);
   }
@@ -468,12 +567,18 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
         FilteringTextInputFormatter.allow(RegExp(r'[0-9.,\-]')),
       ],
       textAlign: dense ? TextAlign.center : TextAlign.start,
-      style: dense ? const TextStyle(fontSize: 13) : null,
+      // Ikut skala tema, bukan angka lepas: ukuran huruf yang dipatok di satu
+      // layar bikin dia beda sendiri waktu skala teks sistem dinaikkan — dan
+      // yang menaikkannya biasanya orang yang memang susah membaca angka kecil.
+      style: dense ? Theme.of(context).textTheme.bodySmall : null,
       decoration: InputDecoration(
         labelText: label,
         isDense: dense,
         contentPadding: dense
-            ? const EdgeInsets.symmetric(horizontal: 4, vertical: 8)
+            ? const EdgeInsets.symmetric(
+                horizontal: AppSpacing.xs,
+                vertical: AppSpacing.sm,
+              )
             : null,
         border: const OutlineInputBorder(),
       ),

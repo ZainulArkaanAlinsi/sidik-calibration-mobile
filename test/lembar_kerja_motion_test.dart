@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sidik_calibration/l10n/app_localizations.dart';
-import 'package:sidik_calibration/models/lembar_kerja.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/calibration_input_provider.dart';
 import 'package:sidik_calibration/providers/lembar_kerja_provider.dart';
