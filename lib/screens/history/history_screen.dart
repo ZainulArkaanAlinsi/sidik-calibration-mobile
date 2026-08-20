@@ -382,7 +382,7 @@ class _HistoryCard extends StatelessWidget {
                 Text(
                   l10n.historyCatatanRevisi(item.catatanRevisi!),
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.warning,
+                    color: AppColors.statusPeringatan(context),
                   ),
                 ),
               ],

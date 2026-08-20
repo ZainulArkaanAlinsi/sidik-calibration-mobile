@@ -288,9 +288,9 @@ class _SelReviewState extends ConsumerState<_SelReview> {
     final s = widget.sel;
 
     final warna = switch (s.vonis) {
-      VonisSel.hijau => AppColors.success,
-      VonisSel.kuning => AppColors.warning,
-      VonisSel.merah => AppColors.danger,
+      VonisSel.hijau => AppColors.statusSukses(context),
+      VonisSel.kuning => AppColors.statusPeringatan(context),
+      VonisSel.merah => AppColors.statusBahaya(context),
       VonisSel.kosong => theme.colorScheme.outline,
     };
 
@@ -310,7 +310,12 @@ class _SelReviewState extends ConsumerState<_SelReview> {
           if (_crop != null)
             Padding(
               padding: const EdgeInsets.only(right: AppSpacing.sm),
-              child: Image.memory(_crop!, width: 72, height: 44, fit: BoxFit.contain),
+              child: Image.memory(
+                _crop!,
+                width: 72,
+                height: 44,
+                fit: BoxFit.contain,
+              ),
             ),
 
           Expanded(

@@ -67,25 +67,26 @@ class _ArsipScreenState extends ConsumerState<ArsipScreen> {
             ),
             Expanded(
               child: switch (async) {
-                AsyncData(:final value) => value.isEmpty
-                    ? _Kosong(pesan: l10n.arsipPerusahaanKosong)
-                    : RefreshIndicator(
-                        onRefresh: () async => ref.invalidate(
-                          arsipPerusahaanProvider(_kataKunci),
+                AsyncData(:final value) =>
+                  value.isEmpty
+                      ? _Kosong(pesan: l10n.arsipPerusahaanKosong)
+                      : RefreshIndicator(
+                          onRefresh: () async => ref.invalidate(
+                            arsipPerusahaanProvider(_kataKunci),
+                          ),
+                          child: ListView.separated(
+                            padding: const EdgeInsets.all(AppSpacing.md),
+                            itemCount: value.length,
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(height: AppSpacing.sm),
+                            itemBuilder: (_, i) =>
+                                _KartuPerusahaan(perusahaan: value[i]),
+                          ),
                         ),
-                        child: ListView.separated(
-                          padding: const EdgeInsets.all(AppSpacing.md),
-                          itemCount: value.length,
-                          separatorBuilder: (_, _) =>
-                              const SizedBox(height: AppSpacing.sm),
-                          itemBuilder: (_, i) =>
-                              _KartuPerusahaan(perusahaan: value[i]),
-                        ),
-                      ),
                 AsyncError() => _Gagal(
-                    onCobaLagi: () =>
-                        ref.invalidate(arsipPerusahaanProvider(_kataKunci)),
-                  ),
+                  onCobaLagi: () =>
+                      ref.invalidate(arsipPerusahaanProvider(_kataKunci)),
+                ),
                 _ => const _Skeleton(),
               },
             ),
@@ -148,7 +149,10 @@ class _KartuPerusahaan extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.primary.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(20),
@@ -179,10 +183,7 @@ class _KartuPerusahaan extends StatelessWidget {
               ],
             ),
           ),
-          Icon(
-            Icons.chevron_right,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
+          Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
         ],
       ),
     );
@@ -227,8 +228,8 @@ class FolderScreen extends ConsumerWidget {
         body: switch (async) {
           AsyncData(:final value) => _IsiFolder(isi: value, alamat: alamat),
           AsyncError() => _Gagal(
-              onCobaLagi: () => ref.invalidate(arsipIsiFolderProvider(alamat)),
-            ),
+            onCobaLagi: () => ref.invalidate(arsipIsiFolderProvider(alamat)),
+          ),
           _ => const _Skeleton(),
         },
       ),
@@ -325,9 +326,9 @@ class _IsiFolder extends ConsumerWidget {
 /// dan yang bedain cuma endpoint mana yang dipanggil.
 class _Pindahan {
   const _Pindahan.folder({required this.id, required this.nama})
-      : berkas = false;
+    : berkas = false;
   const _Pindahan.berkas({required this.id, required this.nama})
-      : berkas = true;
+    : berkas = true;
 
   final int id;
   final String nama;
@@ -547,8 +548,8 @@ class _LangkahBreadcrumb extends ConsumerWidget {
                 color: disorot
                     ? theme.colorScheme.primary
                     : iniYangDibuka
-                        ? theme.colorScheme.onSurface
-                        : theme.colorScheme.onSurfaceVariant,
+                    ? theme.colorScheme.onSurface
+                    : theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -817,7 +818,9 @@ class _KartuBerkas extends StatelessWidget {
             terbit
                 ? Icons.workspace_premium_outlined
                 : Icons.description_outlined,
-            color: terbit ? AppColors.success : theme.colorScheme.onSurfaceVariant,
+            color: terbit
+                ? AppColors.statusSukses(context)
+                : theme.colorScheme.onSurfaceVariant,
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -872,11 +875,8 @@ Future<void> _dialogNamaFolder(
 
   final nama = await showDialog<String>(
     context: context,
-    builder: (_) => _DialogNama(
-      judul: judul,
-      aksiLabel: aksiLabel,
-      nilaiAwal: nilaiAwal,
-    ),
+    builder: (_) =>
+        _DialogNama(judul: judul, aksiLabel: aksiLabel, nilaiAwal: nilaiAwal),
   );
 
   if (nama == null || nama.isEmpty) return;
@@ -966,7 +966,14 @@ Future<void> _konfirmasiHapus(
           child: Text(l10n.arsipBatal),
         ),
         FilledButton(
-          style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
+          // Bidang pekat, jadi warnanya diambil langsung dari palet — bukan
+          // lewat `statusBahaya`, yang di tema gelap ngasih crimson terang
+          // buat dibaca sebagai huruf. Crimson terang jadi latar tombol bikin
+          // label putihnya nggak kebaca.
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.crimson,
+            foregroundColor: AppColors.white,
+          ),
           onPressed: () => Navigator.of(dialogContext).pop(true),
           child: Text(l10n.arsipHapus),
         ),
@@ -1065,7 +1072,11 @@ class _Gagal extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.xl),
       children: [
         const SizedBox(height: AppSpacing.xl),
-        Icon(Icons.cloud_off_outlined, size: 56, color: theme.colorScheme.error),
+        Icon(
+          Icons.cloud_off_outlined,
+          size: 56,
+          color: theme.colorScheme.error,
+        ),
         const SizedBox(height: AppSpacing.md),
         Text(
           l10n.arsipLoadGagal,
@@ -1093,7 +1104,8 @@ class _Skeleton extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       itemCount: 5,
       separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-      itemBuilder: (_, _) => const SkeletonBox(height: 76, width: double.infinity),
+      itemBuilder: (_, _) =>
+          const SkeletonBox(height: 76, width: double.infinity),
     );
   }
 }

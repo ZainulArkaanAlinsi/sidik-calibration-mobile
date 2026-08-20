@@ -44,10 +44,10 @@ class DropdownGagal extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.cloud_off_outlined,
             size: 16,
-            color: AppColors.warning,
+            color: AppColors.statusPeringatan(context),
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
@@ -64,7 +64,7 @@ class DropdownGagal extends StatelessWidget {
                 Text(
                   pesan,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.warning,
+                    color: AppColors.statusPeringatan(context),
                   ),
                 ),
               ],

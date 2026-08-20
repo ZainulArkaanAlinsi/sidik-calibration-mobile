@@ -604,9 +604,7 @@ class _MobileProfileCarouselState extends State<_MobileProfileCarousel> {
     final aktif = _posisi.round().clamp(0, bagian.length - 1);
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: AppColors.warnaLatar(context),
-      ),
+      decoration: BoxDecoration(color: AppColors.warnaLatar(context)),
       child: Column(
         children: [
           Expanded(
@@ -1082,9 +1080,7 @@ class _AdeganPintasan extends StatelessWidget {
                   crossAxisSpacing: jeda,
                   childAspectRatio: lebarKartu / tinggiKartu,
                 ),
-                itemBuilder: (context, i) => _KartuPintasan(
-                  item: item[i],
-                ),
+                itemBuilder: (context, i) => _KartuPintasan(item: item[i]),
               ),
             ),
           );
@@ -1302,10 +1298,11 @@ class _Header extends ConsumerWidget {
               height: tinggiFoto,
               width: double.infinity,
               decoration: BoxDecoration(
-                // Tanpa foto: bidang Jet Black rata sebagai penampung. Dulu di
-                // sini gradasi ink-ke-mint, dan mintnya kebaca sebagai warna
-                // ketiga yang bukan bagian palet.
-                color: fotoPath == null ? AppColors.ink : null,
+                // Tanpa foto: bidang Cobalt rata. Sempat Jet Black, dan sebidang
+                // hitam setinggi ini di atas layar kebaca kayak gambar yang
+                // gagal muat — cobalt kebaca sebagai bidang merek yang memang
+                // disengaja.
+                color: fotoPath == null ? AppColors.cobalt : null,
                 image: fotoPath != null
                     ? DecorationImage(
                         image: FileImage(File(fotoPath)),

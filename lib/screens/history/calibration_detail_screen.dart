@@ -72,15 +72,15 @@ class _Isi extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     if (detail.status == CalibrationStatus.disetujui) {
-    // `keputusan` bisa NULL, dan itu keadaan yang sah — bukan "belum ada".
-    //
-    // Conductivity Meter nggak divonis lulus/gagal: master Excel-nya nggak
-    // punya satu pun sel yang mbandingin hasil ke batas keberterimaan, jadi
-    // backend ngirim `keputusan: null`. Sebelum ini `_ =>` nangkep null dan
-    // nampilinnya sebagai PASS — tiap sesi Conductivity kebaca "lulus" padahal
-    // alatnya emang nggak pernah dinilai.
-    //
-    // Yang ditampilkan strip, bukan badge kosong dan bukan tulisan "null".
+      // `keputusan` bisa NULL, dan itu keadaan yang sah — bukan "belum ada".
+      //
+      // Conductivity Meter nggak divonis lulus/gagal: master Excel-nya nggak
+      // punya satu pun sel yang mbandingin hasil ke batas keberterimaan, jadi
+      // backend ngirim `keputusan: null`. Sebelum ini `_ =>` nangkep null dan
+      // nampilinnya sebagai PASS — tiap sesi Conductivity kebaca "lulus" padahal
+      // alatnya emang nggak pernah dinilai.
+      //
+      // Yang ditampilkan strip, bukan badge kosong dan bukan tulisan "null".
       return switch (detail.keputusan) {
         Keputusan.fail => StatusBadge(
           label: l10n.historyStatusFail,
@@ -175,9 +175,9 @@ class _Isi extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: AppColors.warning.withValues(alpha: 0.1),
+              color: AppColors.cobaltSoft,
               borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-              border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
+              border: Border.all(color: AppColors.cobalt),
             ),
             child: Text(l10n.historyCatatanRevisi(detail.catatanRevisi!)),
           ),
@@ -188,13 +188,16 @@ class _Isi extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: AppColors.warning.withValues(alpha: 0.1),
+              color: AppColors.cobaltSoft,
               borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-              border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
+              border: Border.all(color: AppColors.cobalt),
             ),
             child: Row(
               children: [
-                Icon(Icons.fact_check_outlined, color: AppColors.warning),
+                Icon(
+                  Icons.fact_check_outlined,
+                  color: AppColors.statusPeringatan(context),
+                ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(child: Text(l10n.detailPerluVerifikasi)),
               ],
@@ -382,10 +385,7 @@ class _Isi extends StatelessWidget {
         // yang letaknya juga di ujung kanan bawah tiap tabel.
         if (detail.maxStdev != null) ...[
           const SizedBox(height: AppSpacing.xs),
-          _MaxStdev(
-            sesudah: detail.maxStdev!,
-            sebelum: detail.maxStdevSebelum,
-          ),
+          _MaxStdev(sesudah: detail.maxStdev!, sebelum: detail.maxStdevSebelum),
         ],
 
         if (detail.certificateId != null) ...[
@@ -657,7 +657,7 @@ class _TitikResultCard extends StatelessWidget {
               _TahapPembacaan(
                 judul: l10n.detailSesudahAdjustment,
                 pembacaan: pembacaan,
-                tone: AppColors.success,
+                tone: AppColors.statusSukses(context),
               ),
             ],
             const SizedBox(height: AppSpacing.sm),
@@ -744,7 +744,6 @@ class _TitikResultCard extends StatelessWidget {
   }
 }
 
-
 /// Ringkasan satu kelompok titik — empat angka per baris, sekali lihat.
 ///
 /// Layar ini dulu cuma tumpukan kartu setinggi ±18 baris per titik. Buat alat
@@ -789,9 +788,21 @@ class _RingkasanKelompok extends StatelessWidget {
             TableRow(
               children: [
                 Text(kepala(l10n.detailKolStandard), style: gayaKepala),
-                Text(kepala(l10n.detailRataRata), style: gayaKepala, textAlign: TextAlign.right),
-                Text(kepala(l10n.detailKoreksi), style: gayaKepala, textAlign: TextAlign.right),
-                Text(kepala(l10n.detailKolU95), style: gayaKepala, textAlign: TextAlign.right),
+                Text(
+                  kepala(l10n.detailRataRata),
+                  style: gayaKepala,
+                  textAlign: TextAlign.right,
+                ),
+                Text(
+                  kepala(l10n.detailKoreksi),
+                  style: gayaKepala,
+                  textAlign: TextAlign.right,
+                ),
+                Text(
+                  kepala(l10n.detailKolU95),
+                  style: gayaKepala,
+                  textAlign: TextAlign.right,
+                ),
               ],
             ),
             for (final t in titik)
@@ -800,7 +811,10 @@ class _RingkasanKelompok extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
-                      formatNilaiStandar(t.titikUkur, t.desimalEfektif(desimalSesi)),
+                      formatNilaiStandar(
+                        t.titikUkur,
+                        t.desimalEfektif(desimalSesi),
+                      ),
                       style: gayaAngka,
                     ),
                   ),
@@ -883,7 +897,8 @@ class _ProsesHitung extends StatelessWidget {
       ),
       (
         judul: l10n.detailKoreksi,
-        rumus: '= ${_fmt(titik.titikUkur, decimals: 2)} − ${_fmt(titik.rataRata, decimals: 4)}',
+        rumus:
+            '= ${_fmt(titik.titikUkur, decimals: 2)} − ${_fmt(titik.rataRata, decimals: 4)}',
         nilai: _fmt(titik.koreksi, decimals: 4),
       ),
       (

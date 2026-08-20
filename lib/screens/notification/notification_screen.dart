@@ -128,14 +128,17 @@ class _NotificationCard extends StatelessWidget {
   (IconData, Color) _ikon(BuildContext context) {
     final theme = Theme.of(context);
     return switch (item.kategori) {
-      NotifKategori.jatuhTempo => (Icons.schedule, AppColors.warning),
+      NotifKategori.jatuhTempo => (
+        Icons.schedule,
+        AppColors.statusPeringatan(context),
+      ),
       NotifKategori.sesiMenungguApproval => (
         Icons.hourglass_empty,
-        AppColors.warning,
+        AppColors.statusPeringatan(context),
       ),
       NotifKategori.sesiDisetujui => (
         Icons.verified_outlined,
-        AppColors.success,
+        AppColors.statusSukses(context),
       ),
       NotifKategori.sesiPerluRevisi => (
         Icons.edit_outlined,
@@ -143,7 +146,7 @@ class _NotificationCard extends StatelessWidget {
       ),
       NotifKategori.sertifikatTerbit => (
         Icons.workspace_premium_outlined,
-        AppColors.success,
+        AppColors.statusSukses(context),
       ),
       NotifKategori.umum => (
         Icons.info_outline,

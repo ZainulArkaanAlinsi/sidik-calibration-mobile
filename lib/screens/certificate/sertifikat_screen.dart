@@ -87,10 +87,7 @@ class _Isi extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
-        if (snap.gagal) ...[
-          _PitaFail(),
-          const SizedBox(height: AppSpacing.md),
-        ],
+        if (snap.gagal) ...[_PitaFail(), const SizedBox(height: AppSpacing.md)],
 
         // Header — 16 field, urutannya persis sertifikat cetak.
         Card(
@@ -190,12 +187,16 @@ class _PitaFail extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.danger.withValues(alpha: 0.12),
+        color: AppColors.crimsonSoft,
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
       ),
       child: Row(
         children: [
-          const Icon(Icons.cancel_outlined, size: 20, color: AppColors.danger),
+          Icon(
+            Icons.cancel_outlined,
+            size: 20,
+            color: AppColors.statusBahaya(context),
+          ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
@@ -203,7 +204,7 @@ class _PitaFail extends StatelessWidget {
               // pakai". Yang beda keputusannya, bukan boleh/nggaknya terbit.
               'FAIL — alat tidak laik pakai',
               style: theme.textTheme.bodySmall?.copyWith(
-                color: AppColors.danger,
+                color: AppColors.statusBahaya(context),
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -329,14 +330,30 @@ class _TabelHasil extends StatelessWidget {
                 children: [
                   TableRow(
                     children: [
-                      _sel(context, _kepala(l10n.sertKolStandard, e.value), tebal: true),
-                      _sel(context, _kepala(l10n.sertKolUut, e.value), tebal: true),
-                      _sel(context, _kepala(l10n.sertKolCorrection, e.value), tebal: true),
+                      _sel(
+                        context,
+                        _kepala(l10n.sertKolStandard, e.value),
+                        tebal: true,
+                      ),
+                      _sel(
+                        context,
+                        _kepala(l10n.sertKolUut, e.value),
+                        tebal: true,
+                      ),
+                      _sel(
+                        context,
+                        _kepala(l10n.sertKolCorrection, e.value),
+                        tebal: true,
+                      ),
                       // Judulnya nyebut `k=2` persis kayak master — angka
                       // ketidakpastian tanpa faktor cakupannya nggak berarti
                       // apa-apa.
                       if (snapshot.u95PerTitik)
-                        _sel(context, _kepala(l10n.sertKolU95, e.value), tebal: true),
+                        _sel(
+                          context,
+                          _kepala(l10n.sertKolU95, e.value),
+                          tebal: true,
+                        ),
                     ],
                   ),
                   // Desimal diambil PER BARIS (`b.desimal`) dulu, baru jatuh ke
@@ -354,7 +371,10 @@ class _TabelHasil extends StatelessWidget {
                       children: [
                         _sel(
                           context,
-                          formatNilaiStandar(b.standardValue, b.desimalEfektif(d)),
+                          formatNilaiStandar(
+                            b.standardValue,
+                            b.desimalEfektif(d),
+                          ),
                         ),
                         _sel(
                           context,
@@ -398,19 +418,19 @@ class _TabelHasil extends StatelessWidget {
               // kalau dua-duanya dirender, angka titik pertama muncul dobel dan
               // yang kedua kebaca kayak U95 buat SELURUH tabel.
               if (!snapshot.u95PerTitik)
-              Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  '${l10n.sertU95Baris} '
-                  // Desimal U95 punya jalurnya sendiri — lihat
-                  // [BarisHasilSertifikat.desimalU95].
-                  '${formatSertifikat(e.value.first.u95, e.value.first.desimalU95 ?? e.value.first.desimalEfektif(d))}'
-                  '${e.value.first.satuan == null ? '' : ' ${e.value.first.satuan}'}',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    '${l10n.sertU95Baris} '
+                    // Desimal U95 punya jalurnya sendiri — lihat
+                    // [BarisHasilSertifikat.desimalU95].
+                    '${formatSertifikat(e.value.first.u95, e.value.first.desimalU95 ?? e.value.first.desimalEfektif(d))}'
+                    '${e.value.first.satuan == null ? '' : ' ${e.value.first.satuan}'}',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
-              ),
               if (e.value.first.faktorCakupanK != null)
                 Align(
                   alignment: Alignment.centerRight,
@@ -581,7 +601,10 @@ class _BilahUnduhState extends ConsumerState<_BilahUnduh> {
             // isi yang di-encode nggak mungkin beda dari halaman verifikasi.
             Image.file(File(path), width: 200, height: 200),
             const SizedBox(height: AppSpacing.sm),
-            Text(l10n.sertQrBody, style: Theme.of(context).textTheme.labelSmall),
+            Text(
+              l10n.sertQrBody,
+              style: Theme.of(context).textTheme.labelSmall,
+            ),
           ],
         ),
         actions: [

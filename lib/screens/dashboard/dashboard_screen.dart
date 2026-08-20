@@ -86,9 +86,7 @@ class DashboardScreen extends ConsumerWidget {
       // ada arah cahayanya biar bayangannya kebaca sebagai kedalaman. Di atas
       // warna rata, bayangan lembut cuma kelihatan kayak kotor.
       body: Container(
-        decoration: BoxDecoration(
-          color: AppColors.warnaLatar(context),
-        ),
+        decoration: BoxDecoration(color: AppColors.warnaLatar(context)),
         child: RefreshIndicator(
           onRefresh: () => ref.read(dashboardProvider.notifier).muatUlang(),
           // Di DALAM Container, biar gradasi latarnya tetap penuh selebar
@@ -181,7 +179,9 @@ class _Isi extends ConsumerWidget {
               label: l10n.dashPendingApproval,
               nilai: data.menungguApproval,
               icon: Icons.hourglass_empty,
-              warna: data.menungguApproval > 0 ? AppColors.info : null,
+              warna: data.menungguApproval > 0
+                  ? AppColors.statusInfo(context)
+                  : null,
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -189,7 +189,7 @@ class _Isi extends ConsumerWidget {
             label: l10n.dashCalibrationDone,
             nilai: data.kalibrasiSelesai,
             icon: Icons.task_alt,
-            warna: AppColors.success,
+            warna: AppColors.statusSukses(context),
           ),
         ],
 
@@ -332,7 +332,9 @@ class _KartuHero extends StatelessWidget {
                 _AngkaHero(
                   label: l10n.dashOverdue,
                   nilai: data.alatOverdue,
-                  warna: data.alatOverdue > 0 ? AppColors.warning : null,
+                  warna: data.alatOverdue > 0
+                      ? AppColors.statusPeringatan(context)
+                      : null,
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
                       builder: (_) => DeviceOverviewScreen(
@@ -398,7 +400,9 @@ class _RingkasanLab extends StatelessWidget {
             _AngkaHero(
               label: l10n.dashOverdue,
               nilai: data.alatOverdue,
-              warna: data.alatOverdue > 0 ? AppColors.warning : null,
+              warna: data.alatOverdue > 0
+                  ? AppColors.statusPeringatan(context)
+                  : null,
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
                   builder: (_) => DeviceOverviewScreen(
@@ -524,10 +528,14 @@ class _RingkasanTren extends StatelessWidget {
     final selisih = titik.last.selesai - titik[titik.length - 2].selesai;
 
     final (IconData ikon, Color warna, String teks) = switch (selisih) {
-      > 0 => (Icons.trending_up, AppColors.success, l10n.dashTrendUp(selisih)),
+      > 0 => (
+        Icons.trending_up,
+        AppColors.statusSukses(context),
+        l10n.dashTrendUp(selisih),
+      ),
       < 0 => (
         Icons.trending_down,
-        AppColors.warning,
+        AppColors.statusPeringatan(context),
         l10n.dashTrendDown(-selisih),
       ),
       _ => (
@@ -671,11 +679,7 @@ class _PeringatanOverdue extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.xs),
-            const Icon(
-              Icons.chevron_right,
-              size: 20,
-              color: AppColors.white,
-            ),
+            const Icon(Icons.chevron_right, size: 20, color: AppColors.white),
           ],
         ),
       ),

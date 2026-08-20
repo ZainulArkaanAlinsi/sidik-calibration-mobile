@@ -61,9 +61,7 @@ class _ImportExcelScreenState extends ConsumerState<ImportExcelScreen> {
 
     final path = _filePath;
     if (path == null) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.importBelumAdaFile)),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(l10n.importBelumAdaFile)));
       return;
     }
 
@@ -77,15 +75,11 @@ class _ImportExcelScreenState extends ConsumerState<ImportExcelScreen> {
       setState(() => _hasil = hasil);
 
       if (!ujiCoba) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(l10n.importSelesai)),
-        );
+        messenger.showSnackBar(SnackBar(content: Text(l10n.importSelesai)));
       }
     } catch (e) {
       if (mounted) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(l10n.importGagal('$e'))),
-        );
+        messenger.showSnackBar(SnackBar(content: Text(l10n.importGagal('$e'))));
       }
     } finally {
       if (mounted) setState(() => _sibuk = false);
@@ -185,7 +179,9 @@ class _ImportExcelScreenState extends ConsumerState<ImportExcelScreen> {
             label: l10n.importUjiCoba,
             icon: Icons.fact_check_outlined,
             isLoading: _sibuk,
-            onPressed: _filePath == null ? null : () => _jalankan(ujiCoba: true),
+            onPressed: _filePath == null
+                ? null
+                : () => _jalankan(ujiCoba: true),
           ),
 
           if (hasil != null) ...[
@@ -247,63 +243,66 @@ class _Ringkasan extends StatelessWidget {
       radius: 20,
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.importRingkasan.toUpperCase(),
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.8,
-                color: neu.accent,
-              ),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.importRingkasan.toUpperCase(),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.8,
+              color: neu.accent,
             ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+
+          if (hasil.ujiCoba) ...[
+            _Catatan(teks: l10n.importUjiCobaCatatan, peringatan: true),
             const SizedBox(height: AppSpacing.sm),
+          ],
 
-            if (hasil.ujiCoba) ...[
-              _Catatan(teks: l10n.importUjiCobaCatatan, peringatan: true),
-              const SizedBox(height: AppSpacing.sm),
-            ],
-
-            Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.xs,
-              children: [
-                _Angka(label: l10n.importDibaca, nilai: hasil.dibaca),
-                _Angka(
-                  label: l10n.importDibuat,
-                  nilai: hasil.dibuat,
-                  warna: AppColors.success,
-                ),
-                _Angka(
-                  label: l10n.importDiperbarui,
-                  nilai: hasil.diperbarui,
-                  warna: AppColors.info,
-                ),
-                _Angka(
-                  label: l10n.importDilewati,
-                  nilai: hasil.dilewati,
-                  warna: AppColors.warning,
-                ),
-              ],
-            ),
-
-            if (hasil.kolomDiabaikan.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.md),
-              Container(height: 1, color: neu.darkShadow.withValues(alpha: 0.35)),
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                '${l10n.importKolomDiabaikan}: '
-                '${hasil.kolomDiabaikan.join(", ")}',
-                style: const TextStyle(fontSize: 11.5, color: AppColors.warning),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.xs,
+            children: [
+              _Angka(label: l10n.importDibaca, nilai: hasil.dibaca),
+              _Angka(
+                label: l10n.importDibuat,
+                nilai: hasil.dibuat,
+                warna: AppColors.statusSukses(context),
+              ),
+              _Angka(
+                label: l10n.importDiperbarui,
+                nilai: hasil.diperbarui,
+                warna: AppColors.statusInfo(context),
+              ),
+              _Angka(
+                label: l10n.importDilewati,
+                nilai: hasil.dilewati,
+                warna: AppColors.statusPeringatan(context),
               ),
             ],
+          ),
 
+          if (hasil.kolomDiabaikan.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
             Container(height: 1, color: neu.darkShadow.withValues(alpha: 0.35)),
             const SizedBox(height: AppSpacing.md),
-            for (final b in hasil.baris) _BarisHasil(baris: b),
+            Text(
+              '${l10n.importKolomDiabaikan}: '
+              '${hasil.kolomDiabaikan.join(", ")}',
+              style: TextStyle(
+                fontSize: 11.5,
+                color: AppColors.statusPeringatan(context),
+              ),
+            ),
           ],
+
+          const SizedBox(height: AppSpacing.md),
+          Container(height: 1, color: neu.darkShadow.withValues(alpha: 0.35)),
+          const SizedBox(height: AppSpacing.md),
+          for (final b in hasil.baris) _BarisHasil(baris: b),
+        ],
       ),
     );
   }
@@ -348,11 +347,14 @@ class _BarisHasil extends StatelessWidget {
     final neu = NeuColors.of(context);
 
     final (ikon, warna) = switch (baris.tindakan) {
-      TindakanImport.dibuat => (Icons.add_circle_outline, AppColors.success),
-      TindakanImport.diperbarui => (Icons.sync, AppColors.info),
+      TindakanImport.dibuat => (
+        Icons.add_circle_outline,
+        AppColors.statusSukses(context),
+      ),
+      TindakanImport.diperbarui => (Icons.sync, AppColors.statusInfo(context)),
       TindakanImport.dilewati => (
         Icons.remove_circle_outline,
-        AppColors.warning,
+        AppColors.statusPeringatan(context),
       ),
     };
 
@@ -396,7 +398,7 @@ class _Catatan extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final warna = peringatan
-        ? AppColors.warning
+        ? AppColors.statusPeringatan(context)
         : NeuColors.of(context).textMuted;
 
     return Row(

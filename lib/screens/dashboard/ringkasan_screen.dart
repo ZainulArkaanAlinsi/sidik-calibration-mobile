@@ -151,7 +151,7 @@ class _Isi extends ConsumerWidget {
                       bagian: ringkas.totalAlat == 0
                           ? null
                           : ringkas.alatOverdue / ringkas.totalAlat,
-                      warna: AppColors.danger,
+                      warna: AppColors.statusBahaya(context),
                     ),
                   ),
                   SizedBox(
@@ -183,7 +183,7 @@ class _Isi extends ConsumerWidget {
                           ? null
                           : ringkas.sertifikatBulanIni /
                                 ringkas.totalSertifikat!,
-                      warna: AppColors.success,
+                      warna: AppColors.statusSukses(context),
                     ),
                   ),
                 ],

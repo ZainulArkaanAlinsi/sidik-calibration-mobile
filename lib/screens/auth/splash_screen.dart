@@ -241,7 +241,9 @@ class _OrbitSplash extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2
       ..strokeCap = StrokeCap.round
-      ..color = Colors.white.withValues(alpha: 0.18 * cincin);
+      // Cincin luar ivory. Sebelumnya putih 18% di atas Jet Black — nyaris
+      // nggak kelihatan sama sekali di HP terang.
+      ..color = AppColors.ivory.withValues(alpha: 0.42 * cincin);
 
     canvas.drawArc(
       Rect.fromCenter(center: pusat, width: size.width * 0.94, height: 142),
@@ -255,7 +257,7 @@ class _OrbitSplash extends CustomPainter {
       -math.pi / 2,
       math.pi * 2 * Curves.easeOut.transform(cincin),
       false,
-      garis..color = AppColors.mint.withValues(alpha: 0.22 * cincin),
+      garis..color = AppColors.mint.withValues(alpha: 0.70 * cincin),
     );
 
     // Titik yang jalan di sepanjang cincin luar, berhenti di ujung sapuan.
@@ -266,12 +268,12 @@ class _OrbitSplash extends CustomPainter {
     canvas.drawCircle(
       titik,
       13,
-      Paint()..color = AppColors.cobalt.withValues(alpha: 0.16 * cincin),
+      Paint()..color = AppColors.cobaltLight.withValues(alpha: 0.28 * cincin),
     );
     canvas.drawCircle(
       titik,
       5,
-      Paint()..color = AppColors.cobalt.withValues(alpha: cincin),
+      Paint()..color = AppColors.cobaltLight.withValues(alpha: cincin),
     );
     canvas.drawCircle(
       pusat + const Offset(-118, -56),

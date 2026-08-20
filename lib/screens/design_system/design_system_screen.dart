@@ -17,8 +17,6 @@ class DesignSystemScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final brightness = Theme.of(context).brightness;
-
     return Scaffold(
       appBar: AppBar(title: const Text('Design System')),
       body: ListView(
@@ -61,18 +59,15 @@ class DesignSystemScreen extends StatelessWidget {
               runSpacing: AppSpacing.sm,
               children: [
                 _Swatch(
-                  color: AppColors.statusSukses(brightness),
+                  color: AppColors.statusSukses(context),
                   name: 'Success',
                 ),
+                _Swatch(color: AppColors.statusBahaya(context), name: 'Danger'),
                 _Swatch(
-                  color: AppColors.statusBahaya(brightness),
-                  name: 'Danger',
-                ),
-                _Swatch(
-                  color: AppColors.statusPeringatan(brightness),
+                  color: AppColors.statusPeringatan(context),
                   name: 'Warning',
                 ),
-                _Swatch(color: AppColors.statusInfo(brightness), name: 'Info'),
+                _Swatch(color: AppColors.statusInfo(context), name: 'Info'),
               ],
             ),
           ),
@@ -84,8 +79,14 @@ class DesignSystemScreen extends StatelessWidget {
               children: [
                 Text('Headline Small', style: theme.textTheme.headlineSmall),
                 Text('Title Medium', style: theme.textTheme.titleMedium),
-                Text('Body Medium — teks isi biasa', style: theme.textTheme.bodyMedium),
-                Text('Body Small — keterangan', style: theme.textTheme.bodySmall),
+                Text(
+                  'Body Medium — teks isi biasa',
+                  style: theme.textTheme.bodyMedium,
+                ),
+                Text(
+                  'Body Small — keterangan',
+                  style: theme.textTheme.bodySmall,
+                ),
               ],
             ),
           ),

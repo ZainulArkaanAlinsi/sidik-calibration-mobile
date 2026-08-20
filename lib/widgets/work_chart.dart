@@ -31,9 +31,9 @@ class WorkChart extends StatelessWidget {
       children: [
         Row(
           children: [
-            _Kunci(warna: AppColors.info, teks: 'Masuk'),
+            _Kunci(warna: AppColors.statusInfo(context), teks: 'Masuk'),
             const SizedBox(width: AppSpacing.md),
-            _Kunci(warna: AppColors.success, teks: 'Selesai'),
+            _Kunci(warna: AppColors.statusSukses(context), teks: 'Selesai'),
           ],
         ),
         const SizedBox(height: AppSpacing.md),
@@ -43,8 +43,8 @@ class WorkChart extends StatelessWidget {
             size: Size.infinite,
             painter: _ChartPainter(
               titik: titik,
-              warnaMasuk: AppColors.info,
-              warnaSelesai: AppColors.success,
+              warnaMasuk: AppColors.statusInfo(context),
+              warnaSelesai: AppColors.statusSukses(context),
               warnaGaris: theme.colorScheme.outlineVariant,
               gayaLabel:
                   theme.textTheme.labelSmall?.copyWith(
@@ -140,9 +140,7 @@ class _ChartPainter extends CustomPainter {
       void batang(int nilai, Color warna, double geser) {
         // Batang bernilai nol tetap dikasih tinggi 2px — biar kebaca sebagai
         // "ada periodenya, isinya nol", bukan periode yang ilang.
-        final tinggi = nilai == 0
-            ? 2.0
-            : (nilai / puncak) * (tinggiPlot - 8);
+        final tinggi = nilai == 0 ? 2.0 : (nilai / puncak) * (tinggiPlot - 8);
         final kiri = tengah + geser - lebarBatang / 2;
 
         canvas.drawRRect(

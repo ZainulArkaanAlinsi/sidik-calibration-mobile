@@ -95,7 +95,11 @@ class LiquidGlass extends StatelessWidget {
           decoration: BoxDecoration(color: dasar),
           child: Stack(
             children: [
-              if (gurat)
+              // Gurat cuma di panel gelap. Di bidang terang, garis-garis ini
+              // dulu ketutup gradasi & pantulan; sekarang permukaannya rata,
+              // jadi mereka kebaca jelas dan kartunya kelihatan kayak kertas
+              // bergaris — bukan panel instrumen.
+              if (gurat && panelGelap)
                 Positioned.fill(
                   child: IgnorePointer(
                     child: CustomPaint(

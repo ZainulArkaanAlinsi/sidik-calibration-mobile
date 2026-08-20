@@ -84,7 +84,7 @@ class AdminDashboardDesktop extends StatelessWidget {
                   label: 'Menunggu Approval',
                   nilai: data.menungguApproval,
                   icon: Icons.hourglass_empty,
-                  warna: AppColors.info,
+                  warna: AppColors.statusInfo(context),
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
@@ -93,7 +93,7 @@ class AdminDashboardDesktop extends StatelessWidget {
                   label: 'Alat Overdue',
                   nilai: data.alatOverdue,
                   icon: Icons.warning_amber_rounded,
-                  warna: AppColors.warning,
+                  warna: AppColors.statusPeringatan(context),
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
@@ -143,7 +143,7 @@ class AdminDashboardDesktop extends StatelessWidget {
                       judul: 'Kalibrasi Selesai',
                       nilai: data.kalibrasiSelesai,
                       total: data.totalSertifikat,
-                      warna: AppColors.success,
+                      warna: AppColors.statusSukses(context),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     _KartuAngka(
@@ -177,7 +177,9 @@ class _KotakCari extends StatelessWidget {
           hintText: 'Cari alat / sertifikat…',
           prefixIcon: const Icon(Icons.search, size: 20),
           filled: true,
-          fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.5,
+          ),
           contentPadding: const EdgeInsets.symmetric(vertical: 12),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30),
@@ -348,8 +350,8 @@ class _KartuHighlight extends StatelessWidget {
           Text(
             label.toUpperCase(),
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.9),
-                ),
+              color: Colors.white.withValues(alpha: 0.9),
+            ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),

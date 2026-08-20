@@ -39,7 +39,9 @@ class AppColors {
   // gelapnya yang dipakai kalau mint harus kebaca sebagai huruf, bukan bidang.
   static const Color mintDeep = Color(0xFF0B7A67);
   static const Color mintSoft = Color(0xFFDDFAF3);
-  static const Color mintInk = Color(0xFF05473B); // isian kontainer di tema gelap
+  static const Color mintInk = Color(
+    0xFF05473B,
+  ); // isian kontainer di tema gelap
 
   static const Color crimsonDeep = Color(0xFF8C0C26);
   static const Color crimsonSoft = Color(0xFFFFE2E7);
@@ -84,14 +86,17 @@ class AppColors {
   static const Color warningDark = cobaltLight;
   static const Color infoDark = inkTextMuted;
 
-  static Color statusSukses(Brightness b) =>
-      b == Brightness.dark ? successDark : success;
-  static Color statusBahaya(Brightness b) =>
-      b == Brightness.dark ? dangerDark : danger;
-  static Color statusPeringatan(Brightness b) =>
-      b == Brightness.dark ? warningDark : warning;
-  static Color statusInfo(Brightness b) =>
-      b == Brightness.dark ? infoDark : info;
+  static bool _gelap(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  static Color statusSukses(BuildContext context) =>
+      _gelap(context) ? successDark : success;
+  static Color statusBahaya(BuildContext context) =>
+      _gelap(context) ? dangerDark : danger;
+  static Color statusPeringatan(BuildContext context) =>
+      _gelap(context) ? warningDark : warning;
+  static Color statusInfo(BuildContext context) =>
+      _gelap(context) ? infoDark : info;
 
   /// Warna bidang dasar layar. Rata, satu warna — bukan gradasi.
   ///

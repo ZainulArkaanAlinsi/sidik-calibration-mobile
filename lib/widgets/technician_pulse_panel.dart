@@ -76,22 +76,6 @@ class TechnicianPulsePanel extends StatelessWidget {
           padding: EdgeInsets.zero,
           child: Stack(
             children: [
-              // Halo cahaya di belakang benda. Radial gradient statis — nggak
-              // ada blur, jadi nggak nambah lapisan raster.
-              Positioned(
-                right: -46,
-                top: -34,
-                width: 250,
-                height: 250,
-                child: IgnorePointer(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.mint.withValues(alpha: 0.14),
-                    ),
-                  ),
-                ),
-              ),
               Positioned(
                 right: 6,
                 top: 2,
@@ -180,9 +164,7 @@ class TechnicianPulsePanel extends StatelessWidget {
                         _Metrik(
                           nilai: pending,
                           label: pendingLabel,
-                          warna: pending > 0
-                              ? AppColors.cobalt
-                              : Colors.white,
+                          warna: pending > 0 ? AppColors.cobalt : Colors.white,
                           icon: Icons.hourglass_top_rounded,
                         ),
                         const SizedBox(width: AppSpacing.sm),
@@ -242,11 +224,10 @@ class _Live extends StatelessWidget {
   }
 }
 
-/// Tombol utama panel. Diisi solid amber, bukan kaca tipis lagi — di antara
-/// banyak permukaan kaca/gelap di panel ini, tombol yang ikut kaca gampang
-/// kebaca sebagai dekorasi, bukan sebagai satu-satunya aksi yang harus
-/// dipencet. Amber = warna sinyal aktif di seluruh app (`AppColors`); di sini
-/// dipakai penuh, bukan cuma aksen, karena ini SATU-SATUNYA tombol di panel.
+/// Tombol utama panel. Diisi Cobalt pekat — di antara bidang gelap di panel
+/// ini, tombol yang cuma bergaris kebaca sebagai dekorasi, bukan sebagai
+/// satu-satunya aksi yang harus dipencet. Cobalt = warna interaktif di seluruh
+/// app; di sini dipakai penuh karena ini SATU-SATUNYA tombol di panel.
 class _TombolMulai extends StatelessWidget {
   const _TombolMulai({required this.label, required this.onTap});
 
@@ -280,7 +261,7 @@ class _TombolMulai extends StatelessWidget {
             children: [
               const Icon(
                 Icons.play_arrow_rounded,
-                color: AppColors.inkDeep,
+                color: AppColors.white,
                 size: 22,
               ),
               const SizedBox(width: 7),
@@ -291,7 +272,10 @@ class _TombolMulai extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: AppColors.inkDeep,
+                    // Putih, bukan Jet Black: hitam di atas cobalt cuma
+                    // nyampe 3,5:1 — di bawah ambang 4,5:1 buat teks
+                    // sekecil label tombol.
+                    color: AppColors.white,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.3,
                   ),
