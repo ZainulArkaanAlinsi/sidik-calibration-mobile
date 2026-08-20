@@ -199,6 +199,7 @@ class MockLembarKerjaService implements LembarKerjaService {
         untukAdmin: untukAdmin,
       ),
       'viscometer' => contohBentukLembarKerjaVisco(untukAdmin: untukAdmin),
+      'do_meter' => contohBentukLembarKerjaDo(untukAdmin: untukAdmin),
       // Profil kosong / nggak dikenal SENGAJA jatuh ke pH, bukan lempar error —
       // sama kayak janji kontraknya (`docs/kontrak-api.md` §4).
       _ => contohBentukLembarKerja(untukAdmin: untukAdmin),
@@ -1601,6 +1602,192 @@ Map<String, dynamic> contohBentukLembarKerjaVisco({bool untukAdmin = false}) {
         'kerja tetap bisa dikirim. Khusus alat ini: Spindle & RPM tiap titik '
         'ikut nentuin batas keberterimaan (MPE), jadi titik yang dua kolom itu '
         'kosong tetap dihitung U95%-nya tapi nggak dapat vonis PASS/FAIL.',
+    'bagian': bagian,
+  };
+}
+
+/// Bentuk lembar kerja **DO Meter** (alat ke-9).
+///
+/// Strukturnya kembar dengan Chlorine — jalur generik yang sama, tanpa layar
+/// atau endpoint khusus. Yang khas cuma empat hal, dan semuanya gampang salah
+/// kalau ditebak dari kertasnya:
+///
+///  1. **Satu titik: 8,77 mg/L**, bukan 0,00 yang tercetak di formulir. "Zero
+///     Oxygen Std. 0.0 mg/l" di kertas itu larutan buat MENOL-KAN alat sebelum
+///     diukur, bukan titik kalibrasinya. Pola yang sama dengan Chlorine, yang
+///     kertasnya nyetak 0,4/4 tapi titiknya 1,74/1,83.
+///  2. **Thermohygro ada di bagian `hasil`**, bukan di identitas alat seperti
+///     pH & Chlorine — mengikuti kotak centang TH-2/6/7/4 di kertasnya.
+///  3. **Tanpa vonis PASS/FAIL.** Master nggak punya batas keberterimaan dan
+///     sertifikatnya nggak mencetak vonis, jadi `keputusan` sesi bakal `null`.
+///  4. **`%O2` nggak diolah.** Kertas & master punya kolomnya, tapi seluruh
+///     perhitungan %O2 di master rusak (`#DIV/0!` / `#REF!`) — di
+///     `SERTIFIKAT` sel U95-nya pun `#REF!`. Backend cuma mengolah mg/L, sama
+///     dengan yang benar-benar tercetak di sertifikat, jadi kolom %O2 SENGAJA
+///     nggak dibikin di sini.
+///
+/// `resolusi`/`desimal` per baris sengaja nggak dikirim: resolusinya seragam
+/// 0,01 dan "nggak ada" di mobile berarti "pakai resolusi alat". Sama seperti
+/// Chlorine.
+Map<String, dynamic> contohBentukLembarKerjaDo({bool untukAdmin = false}) {
+  Map<String, dynamic> field(
+    String kode,
+    String label,
+    String tipe, {
+    String? sumber,
+    String? satuan,
+    List<Map<String, String>> pilihan = const [],
+    bool hanyaAdmin = false,
+  }) => {
+    'kode': kode,
+    'label': label,
+    'tipe': tipe,
+    'wajib': false,
+    'sumber': sumber,
+    'satuan': satuan,
+    'pilihan': pilihan,
+    'hanya_admin': hanyaAdmin,
+  };
+
+  // Nilai sertifikat larutannya, bukan angka bulat di kertas. Sesi master
+  // `0566-CAL-624` memakai titik ini.
+  Map<String, dynamic> tabel(String tahap, String judul) => {
+    'tahap': tahap,
+    'judul': judul,
+    'baris': [
+      {
+        'titik_ukur': 8.77,
+        'label': '8,77',
+        'standard_id': 32,
+        'standard_nama': 'Oxygen Standard Solution 8.77 mg/L',
+      },
+    ],
+    'kolom': [
+      {'kode': 'pembacaan', 'label': 'mg/L', 'tipe': 'angka', 'satuan': 'mg/L'},
+      {'kode': 'suhu', 'label': '°C', 'tipe': 'angka', 'satuan': '°C'},
+    ],
+    'pengulangan': [1, 2, 3, 4, 5],
+  };
+
+  final bagian = <Map<String, dynamic>>[
+    {
+      'kode': 'identitas_alat',
+      'halaman': 1,
+      'judul': 'EQUIPMENT IDENTITY AND CUSTOMER DATA',
+      'field': [
+        field('tanggal_terima', 'Received Date', 'tanggal'),
+        field('tanggal_kalibrasi', 'Calibration Date', 'tanggal'),
+        field('equipment_id', 'Equipment', 'pilihan', sumber: 'master_alat'),
+        field('equipment.nama_alat', '1. Name', 'teks', sumber: 'otomatis'),
+        field('equipment.range_resolusi', '2. Range/Resolution', 'teks',
+            sumber: 'otomatis', satuan: 'mg/L'),
+        field('alat_model', '3. Type/Model', 'teks'),
+        field('alat_serial_number', '4. Serial Number/LPI', 'teks'),
+        field('alat_merk', '5. Merk/Manufacture', 'teks'),
+      ],
+    },
+    {
+      'kode': 'pemilik',
+      'halaman': 1,
+      'judul': 'OWNER',
+      'field': [
+        field('pemilik_nama', '1. Name', 'teks'),
+        field('pemilik_alamat', '2. Address', 'teks_panjang'),
+      ],
+    },
+    {
+      'kode': 'usage_check',
+      'halaman': 1,
+      'judul': 'STANDARD',
+      // Nama & nomor seri disalin dari blok "Standard used" di master
+      // (`SERTIFIKAT` baris 32-34). Larutan 5,51 mg/L ikut terdaftar karena
+      // dipakai menol-kan alat, walau bukan titik kalibrasinya.
+      'baris': [
+        {
+          'label': 'Oxygen Standard Solution 8.77 mg/L',
+          'standard_id': 32,
+          'terdaftar': true,
+        },
+        {
+          'label': 'Oxygen Standard Solution 5.51 mg/L',
+          'standard_id': 33,
+          'terdaftar': true,
+        },
+        {
+          'label': 'Termometer & Sensor Std.',
+          'standard_id': 34,
+          'terdaftar': true,
+        },
+      ],
+      'field': <Map<String, dynamic>>[],
+    },
+    {
+      'kode': 'data_kalibrasi',
+      'halaman': 1,
+      'judul': 'CALIBRATION DATA',
+      'field': [
+        field('lokasi', '1. Location', 'pilihan', pilihan: [
+          {'nilai': 'lab', 'label': 'Inlab'},
+          {'nilai': 'onsite', 'label': 'Insitu'},
+        ]),
+        field('room_id', 'Ruangan', 'pilihan', sumber: 'master_ruangan'),
+        if (untukAdmin)
+          field('calibration_method_id', '2. Calibration Methode', 'pilihan',
+              sumber: 'master_metode', hanyaAdmin: true),
+      ],
+    },
+    {
+      'kode': 'hasil',
+      'halaman': 1,
+      'judul': 'CALIBRATION RESULT',
+      'field': [
+        field('suhu_awal', 'Env. Condition — First', 'angka', satuan: '°C'),
+        field('kelembaban_awal', 'Env. Condition — First', 'angka', satuan: '%RH'),
+        field('suhu_akhir', 'Env. Condition — End', 'angka', satuan: '°C'),
+        field('kelembaban_akhir', 'Env. Condition — End', 'angka', satuan: '%RH'),
+        // Di sini, BUKAN di identitas alat — mengikuti kotak centang
+        // TH-2/6/7/4 yang tercetak di blok hasil kertasnya.
+        field('thermohygro_standard_id', 'Thermohygro Used', 'pilihan',
+            sumber: 'master_thermohygro',
+            pilihan: const [
+              {'nilai': '40', 'label': 'TH-2', 'grup': 'Insitu'},
+              {'nilai': '42', 'label': 'TH-6', 'grup': 'Insitu'},
+              {'nilai': '43', 'label': 'TH-7', 'grup': 'Insitu'},
+              {'nilai': '41', 'label': 'TH-4', 'grup': 'Inlab'},
+            ]),
+      ],
+      'tabel': [
+        tabel('sebelum_adjustment', 'Before adjustment Reading'),
+        tabel('sesudah_adjustment', 'After adjustment Reading'),
+      ],
+    },
+    {
+      'kode': 'penutup',
+      'halaman': 1,
+      'judul': 'Catatan & Tanda Tangan',
+      'field': [
+        field('catatan_teknisi', 'Catatan', 'teks_panjang'),
+        field('teknisi.nama', 'Calibrated by', 'teks', sumber: 'otomatis'),
+        field('reviewer.nama', 'Checked by', 'teks', sumber: 'otomatis'),
+      ],
+    },
+  ];
+
+  return {
+    'kode_dokumen': 'SIDIK-FM-CAL-0532_Rev.2',
+    'kode_metode': 'SIDIK-IK-CAL-0530_Rev.2',
+    'judul': 'Calibration Worksheet - DO Meter',
+    'untuk': untukAdmin ? 'admin' : 'teknisi',
+    'jumlah_pengulangan': 5,
+    'larutan_standar': const [8.77],
+    'satuan': 'mg/L',
+    'satuan_suhu': '°C',
+    'semua_kolom_opsional': true,
+    'catatan_pengisian':
+        'Kolom yang belum bisa diisi di lapangan boleh dikosongin — lembar '
+        'kerja tetap bisa dikirim. Sertifikat memakai tabel After adjustment; '
+        'alat ini nggak dapat vonis PASS/FAIL karena masternya nggak punya '
+        'batas keberterimaan.',
     'bagian': bagian,
   };
 }

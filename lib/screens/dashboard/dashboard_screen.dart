@@ -15,6 +15,7 @@ import '../../widgets/glass_surface.dart';
 import '../../widgets/readable_width.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/stat_card.dart';
+import '../../widgets/tampil_masuk.dart';
 import '../../widgets/work_chart.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/technician_pulse_panel.dart';
@@ -114,7 +115,10 @@ class _Isi extends ConsumerWidget {
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
-      children: [
+      // Kartunya datang berurutan, bukan serempak. Susunannya nggak dipindah
+      // sama sekali — `berurutan` cuma membungkus tiap anak di tempatnya, dan
+      // widget jarak dilewati supaya iramanya rata.
+      children: berurutan([
         // Teknisi masuk lewat command deck yang fokus ke kerja pribadinya;
         // admin tetap melihat ringkasan se-lab. Sumber datanya sama.
         if (teknisi)
@@ -252,7 +256,7 @@ class _Isi extends ConsumerWidget {
             ),
           ),
         ],
-      ],
+      ]),
     );
   }
 }

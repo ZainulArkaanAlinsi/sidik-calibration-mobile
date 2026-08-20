@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/models/autoclave_hasil.dart';
 import 'package:sidik_calibration/models/equipment_lookup.dart';
 import 'package:sidik_calibration/providers/autoclave_provider.dart';
@@ -83,11 +84,29 @@ Widget _bungkus(_FakeAutoclaveService fake) {
         InMemoryTokenStorage('mock-token'),
       ),
     ],
-    child: const MaterialApp(home: AutoclaveInputScreen()),
+    // Delegate l10n WAJIB ada sejak teks chrome layar ini pindah ke `.arb`.
+    // Tanpa itu `AppLocalizations.of(context)` melempar, dan yang merah bukan
+    // satu label — seluruh layarnya gagal dibangun.
+    child: const MaterialApp(
+      locale: Locale('id'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: AutoclaveInputScreen(),
+    ),
   );
 }
 
 void main() {
+  /// Lebar HP beneran. Ini yang selama ini nggak pernah diuji: semua test
+  /// Autoklaf lain pakai 1400 px, dan di lebar itu kisi suhunya kelihatan
+  /// baik-baik saja walau di HP tiap kotak angkanya cuma ~50 dp.
+  void hp(WidgetTester tester) {
+    tester.view.physicalSize = const Size(360, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+  }
+
   void besar(WidgetTester tester) {
     tester.view.physicalSize = const Size(1400, 7000);
     tester.view.devicePixelRatio = 1.0;
@@ -266,5 +285,46 @@ void main() {
     expect(fake.simpanTerakhir!['set_point'], 121.0);
     expect(fake.simpanTerakhir!.containsKey('tekanan'), isTrue);
     expect(fake.simpanTerakhir!.containsKey('tanggal_kalibrasi'), isTrue);
+  });
+
+  /// Layar ini dipakai teknisi di HP, bukan di laptop.
+  ///
+  /// Flutter melaporkan tata letak yang meluber sebagai exception waktu test,
+  /// jadi sekadar merendernya di lebar HP sudah menangkap kisi yang terlalu
+  /// sempit, label yang kepotong, dan baris yang nggak muat. Sebelum ada test
+  /// ini, kisi suhu 5 titik waktu diperas jadi ~50 dp per kotak dan nggak ada
+  /// satu pun test yang merah.
+  testWidgets('kerender di lebar HP tanpa tata letak yang meluber', (
+    tester,
+  ) async {
+    hp(tester);
+    await tester.pumpWidget(_bungkus(_FakeAutoclaveService()));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('General Information'), findsOneWidget);
+  });
+
+  /// Kotak angka wajib cukup lebar buat diketik DAN diperiksa ulang. Angka di
+  /// lembar ini berkoma empat desimal (mis. `1.231`); kotak yang lebih sempit
+  /// dari ini bikin isinya kepotong waktu dibaca lagi sebelum dikirim.
+  testWidgets('kotak angka di kisi suhu punya lebar yang layak', (
+    tester,
+  ) async {
+    hp(tester);
+    await tester.pumpWidget(_bungkus(_FakeAutoclaveService()));
+    await tester.pumpAndSettle();
+
+    // Baris tekanan ada jauh di bawah; `ListView` nggak membangunnya sampai
+    // digulir ke sana, jadi diukur sesudah kelihatan.
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('ac_p0')),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    final lebar = tester.getSize(find.byKey(const Key('ac_p0'))).width;
+    expect(lebar, greaterThan(60));
   });
 }

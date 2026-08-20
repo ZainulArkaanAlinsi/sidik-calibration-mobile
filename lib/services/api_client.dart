@@ -86,8 +86,21 @@ class ApiClient {
     );
   }
 
-  Future<Map<String, dynamic>> delete(String path, {String? token}) async {
-    return _kirim(() => _client.delete(_uri(path), headers: _headers(token)));
+  /// [body] opsional — dipakai `DELETE /device-tokens`, yang butuh nyebut
+  /// token perangkat MANA yang dicabut. Pemanggil lama nggak berubah: tanpa
+  /// [body], badannya nggak ikut dikirim sama sekali, sama persis kayak dulu.
+  Future<Map<String, dynamic>> delete(
+    String path, {
+    String? token,
+    Map<String, dynamic>? body,
+  }) async {
+    return _kirim(
+      () => _client.delete(
+        _uri(path),
+        headers: _headers(token),
+        body: body == null ? null : jsonEncode(body),
+      ),
+    );
   }
 
   /// Unggah file (multipart) — dipakai Import Excel & foto OCR.

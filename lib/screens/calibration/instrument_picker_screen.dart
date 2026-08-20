@@ -7,6 +7,7 @@ import '../../models/category.dart';
 import '../../providers/calibration_input_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
+import '../../widgets/tampil_masuk.dart';
 import 'autoclave_input_screen.dart';
 import 'calibration_input_screen.dart';
 import 'lembar_kerja_screen.dart';
@@ -98,6 +99,11 @@ const _profilKhusus = {
   'spektrofotometer': 'spectrophotometer',
   'spectrofotometer': 'spectrophotometer',
   'viscometer': 'viscometer',
+  // Lampiran akreditasi & DATABASE nulis "DO Meter"; sebagian data alat
+  // pelanggan nulisnya tanpa spasi. Dua-duanya didaftarin — yang nyampe ke
+  // sini teks bebas dari backend, bukan enum.
+  'do meter': 'do_meter',
+  'dometer': 'do_meter',
   // Lampiran akreditasi LK-285-IDN no. 48 nulis "Autoklaf"; lembar kerjanya
   // SIDIK-FM-CAL-0539 & DATABASE nulis "Autoclave". Dua-duanya didaftarin —
   // yang nyampe ke sini teks bebas dari backend. Autoklaf pakai layar khusus
@@ -154,6 +160,11 @@ class _Isi extends StatefulWidget {
 }
 
 class _IsiState extends State<_Isi> {
+  /// Daftar alat ini pakai `ListView.separated` yang recycle item-nya. Tanpa
+  /// catatan ini, tiap kartu yang digulir balik animasi masuknya jalan lagi —
+  /// dan daftar yang berkedip tiap discroll kebaca sebagai scroll yang berat.
+  final _jejak = JejakMasuk();
+
   final _searchController = TextEditingController();
   String _query = '';
 
@@ -204,9 +215,13 @@ class _IsiState extends State<_Isi> {
                   ),
                   itemCount: terfilter.length,
                   separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-                  itemBuilder: (context, index) => _InstrumenCard(
-                    kategori: widget.kategori,
-                    kemampuan: terfilter[index],
+                  itemBuilder: (context, index) => TampilMasuk(
+                    indeks: index,
+                    jejak: _jejak,
+                    child: _InstrumenCard(
+                      kategori: widget.kategori,
+                      kemampuan: terfilter[index],
+                    ),
                   ),
                 ),
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../motion/transisi_halaman.dart';
 import 'app_colors.dart';
 import 'app_spacing.dart';
 import 'app_typography.dart';
@@ -88,6 +89,18 @@ class AppTheme {
           ? const Color(0xFFE7EEF8)
           : AppColors.darkBase,
       textTheme: text,
+      // Perpindahan halaman diseragamkan lewat tema, bukan per `Navigator.push`
+      // — ada 60-an `MaterialPageRoute` di app ini dan nyetel satu-satu itu
+      // cara paling pasti buat ninggalin sebagian. iOS & macOS dibiarkan
+      // bawaan supaya gestur geser-balik dari tepi layar nggak ilang.
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: TransisiHalus(),
+          TargetPlatform.fuchsia: TransisiHalus(),
+          TargetPlatform.linux: TransisiHalus(),
+          TargetPlatform.windows: TransisiHalus(),
+        },
+      ),
 
       appBarTheme: AppBarTheme(
         // Nyatu sama ground, tanpa garis pemisah — biar layar kebaca sebagai

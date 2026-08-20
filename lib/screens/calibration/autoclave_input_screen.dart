@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/equipment_lookup.dart';
 import '../../models/standard.dart';
 import '../../providers/auth_provider.dart' show tokenStorageProvider;
@@ -202,7 +203,7 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
 
     final setPoint = _num(_setPointCtrl);
     if (setPoint == null) {
-      setState(() => _errorInput = 'Set Point wajib diisi.');
+      setState(() => _errorInput = AppLocalizations.of(context).acSetPointWajib);
       return null;
     }
 
@@ -242,8 +243,7 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
 
     if (!adaSuhu && !adaTekanan) {
       setState(
-        () => _errorInput =
-            'Isi minimal satu blok: data Suhu (disk/indikator) atau Tekanan.',
+        () => _errorInput = AppLocalizations.of(context).acIsiMinimalSatuBlok,
       );
       return null;
     }
@@ -267,7 +267,7 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
 
     if (_equipmentId == null) {
       setState(
-        () => _errorInput = 'Pilih Alat (Equipment) dulu sebelum menyimpan.',
+        () => _errorInput = AppLocalizations.of(context).acPilihAlatDulu,
       );
       return null;
     }
@@ -301,19 +301,29 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
     final payload = _payloadSimpan();
     if (payload == null) return;
 
+    // Diambil SEBELUM `await`. Sesudahnya, `context` belum tentu masih hidup —
+    // teknisi bisa keburu menutup layar sementara kirimannya jalan, dan
+    // membaca `AppLocalizations` dari context yang sudah dibuang itu error
+    // yang munculnya cuma sesekali dan susah dilacak.
+    final l10n = AppLocalizations.of(context);
+
     setState(() => _menyimpan = true);
     try {
       final token = await ref.read(tokenStorageProvider).read();
-      if (token == null) throw Exception('Sesi login habis, masuk lagi.');
+      if (token == null) throw Exception(l10n.acSesiLoginHabis);
       await ref.read(autoclaveServiceProvider).simpan(token, payload);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sesi Autoklaf terkirim ke admin.')),
+        SnackBar(
+          content: Text(l10n.acTerkirimKeAdmin),
+        ),
       );
       Navigator.of(context).pop();
     } catch (e) {
       if (!mounted) return;
-      setState(() => _errorInput = 'Gagal menyimpan: $e');
+      setState(
+        () => _errorInput = l10n.acGagalMenyimpan('$e'),
+      );
     } finally {
       if (mounted) setState(() => _menyimpan = false);
     }
@@ -389,7 +399,9 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
           const SizedBox(height: AppSpacing.md),
           _panel('Standard Used:', [_blokStandar(theme)]),
           const SizedBox(height: AppSpacing.md),
-          _panel('Catatan:', [_blokPenutup(theme)]),
+          _panel(AppLocalizations.of(context).acCatatan, [
+            _blokPenutup(theme),
+          ]),
           const SizedBox(height: AppSpacing.lg),
           if (_errorInput != null) ...[
             Text(
@@ -402,7 +414,7 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
             children: [
               Expanded(
                 child: AppButton(
-                  label: 'Hitung',
+                  label: AppLocalizations.of(context).acHitung,
                   variant: AppButtonVariant.secondary,
                   isLoading: status.menghitung,
                   onPressed: _hitung,
@@ -411,7 +423,7 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: AppButton(
-                  label: 'Simpan & Kirim',
+                  label: AppLocalizations.of(context).acSimpanKirim,
                   isLoading: _menyimpan,
                   onPressed: _simpan,
                 ),
@@ -424,7 +436,10 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
             const SizedBox(height: AppSpacing.md),
           ],
           if (status.hasil != null)
-            AutoclaveHasilPanel(hasil: status.hasil!, judul: 'Hasil Olah Data'),
+            AutoclaveHasilPanel(
+              hasil: status.hasil!,
+              judul: AppLocalizations.of(context).acHasilOlahData,
+            ),
           const SizedBox(height: AppSpacing.lg),
         ],
       ),
@@ -586,7 +601,9 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
                   ? _equipmentId
                   : null,
               isExpanded: true,
-              decoration: _dekorasi(petunjuk: 'pilih alat'),
+              decoration: _dekorasi(
+                petunjuk: AppLocalizations.of(context).acPetunjukPilihAlat,
+              ),
               items: [
                 for (final EquipmentLookup a in list)
                   DropdownMenuItem(
@@ -601,7 +618,7 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
             ),
             loading: () => const LinearProgressIndicator(),
             error: (e, _) => Text(
-              'Gagal muat daftar alat: $e',
+              AppLocalizations.of(context).acGagalMuatAlat('$e'),
               style: TextStyle(color: theme.colorScheme.error),
             ),
           ),
@@ -798,32 +815,39 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Di luar kertas — unduhan Pressure Disk Logger',
+            AppLocalizations.of(context).acDiLuarKertas,
             style: theme.textTheme.labelLarge,
           ),
           Text(
-            'Angkanya diunduh dari disk logger, bukan ditulis di lapangan. '
-            'Boleh dikosongin: lembarnya tetap kekirim, olah data tekanannya '
-            'nunggu angka ini lengkap.',
+            AppLocalizations.of(context).acPetunjukDiskLogger,
             style: theme.textTheme.bodySmall,
           ),
           const SizedBox(height: AppSpacing.sm),
           Text('Standar Reading (Bar)', style: theme.textTheme.bodySmall),
           const SizedBox(height: 4),
-          Row(
-            children: [
-              for (final (i, c) in _pembacaanTekanan.indexed)
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(2),
-                    child: _fieldAngka(
-                      c,
-                      rapat: true,
-                      fieldKey: i == 0 ? const Key('ac_p0') : null,
+          // Digeser mendatar dengan lebar kolom tetap, sama seperti kisi suhu
+          // di atas. Waktu dibagi rata pakai `Expanded`, lima pembacaan di HP
+          // 360 dp jadi ~55 dp per kotak — terlalu sempit buat angka empat
+          // desimal seperti `1.231`, apalagi buat memeriksanya lagi sebelum
+          // sesinya dikirim.
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (final (i, c) in _pembacaanTekanan.indexed)
+                  SizedBox(
+                    width: 96,
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.xs / 2),
+                      child: _fieldAngka(
+                        c,
+                        rapat: true,
+                        fieldKey: i == 0 ? const Key('ac_p0') : null,
+                      ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: AppSpacing.sm),
           DropdownButtonFormField<String>(
@@ -885,7 +909,7 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
                   // mancing pemeriksaan sesi, dan sesi yang lagi bermasalah
                   // bakal ngebuang token di tengah teknisi ngisi lembar.
                   Text(
-                    'Name: (otomatis dari akun teknisi)',
+                    AppLocalizations.of(context).acNamaOtomatis,
                     style: theme.textTheme.bodySmall,
                   ),
                   Text('Sign: —', style: theme.textTheme.bodySmall),
@@ -942,20 +966,49 @@ class _AutoclaveInputScreenState extends ConsumerState<AutoclaveInputScreen> {
     );
   }
 
-  /// Satu baris kertas: `Label  :  ______`.
+  /// Lebar label di susunan kertas.
+  static const double _lebarLabelBaris = 150;
+
+  /// Di bawah lebar ini, label pindah ke ATAS isiannya.
+  ///
+  /// 150 dp label + pemisah + padding kartu menyisakan sekitar 95 dp buat
+  /// isian di HP 360 dp — terlalu sempit buat mengetik angka bersatuan, dan
+  /// labelnya sendiri membungkus jadi dua baris sehingga tinggi barisnya
+  /// jadi tidak seragam. Susunan kertas tetap dipakai di layar lebar, tempat
+  /// kemiripan dengan formulir cetak memang ada gunanya.
+  static const double _ambangBarisKertas = 420;
+
+  /// Satu baris kertas: `Label  :  ______`, atau label-di-atas kalau sempit.
   Widget _baris(String label, Widget isian) {
+    final gaya = Theme.of(context).textTheme.bodySmall;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 150,
-            child: Text(label, style: Theme.of(context).textTheme.bodySmall),
-          ),
-          const Text(':  '),
-          Expanded(child: isian),
-        ],
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      child: LayoutBuilder(
+        builder: (context, batas) {
+          if (batas.maxWidth < _ambangBarisKertas) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(label, style: gaya),
+                const SizedBox(height: AppSpacing.xs),
+                isian,
+              ],
+            );
+          }
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: _lebarLabelBaris,
+                child: Text(label, style: gaya),
+              ),
+              const Text(':  '),
+              Expanded(child: isian),
+            ],
+          );
+        },
       ),
     );
   }
@@ -1041,7 +1094,7 @@ class _KotakError extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Text(
-          'Gagal menghitung: $pesan',
+          AppLocalizations.of(context).acGagalMenghitung(pesan),
           style: TextStyle(color: theme.colorScheme.onErrorContainer),
         ),
       ),

@@ -1537,5 +1537,85 @@
   "profChangePhoto": "Ganti foto profil",
   "profChangePhotoSub": "Diambil dari galeri atau kamera kamu",
   "profTechnicianCode": "Kode teknisi",
-  "profTechnicianCodeSub": "Kecetak di sertifikat yang kamu tanda tangani"
+  "profTechnicianCodeSub": "Kecetak di sertifikat yang kamu tanda tangani",
+
+  "acHitung": "Hitung",
+  "@acHitung": {
+    "description": "Tombol pratinjau olah data Autoklaf — menghitung tanpa menyimpan sesi."
+  },
+  "acSimpanKirim": "Simpan & Kirim",
+  "@acSimpanKirim": {
+    "description": "Tombol kirim sesi Autoklaf ke antrean approval admin."
+  },
+  "acHasilOlahData": "Hasil Olah Data",
+  "@acHasilOlahData": {
+    "description": "Judul panel hasil hitungan yang datang dari backend."
+  },
+  "acCatatan": "Catatan:",
+  "@acCatatan": {
+    "description": "Judul blok catatan & tanda tangan di lembar Autoklaf."
+  },
+  "acSetPointWajib": "Set Point wajib diisi.",
+  "@acSetPointWajib": {
+    "description": "Penjaga: tanpa Set Point, olah data suhu nggak punya acuan."
+  },
+  "acPilihAlatDulu": "Pilih Alat (Equipment) dulu sebelum menyimpan.",
+  "@acPilihAlatDulu": {
+    "description": "Penjaga: sesi tanpa alat nggak bisa ditelusuri balik ke perangkat mana pun."
+  },
+  "acIsiMinimalSatuBlok": "Isi minimal satu blok: data Suhu (disk/indikator) atau Tekanan.",
+  "@acIsiMinimalSatuBlok": {
+    "description": "Penjaga: lembar kosong melompong nggak ada yang bisa dihitung."
+  },
+  "acSesiLoginHabis": "Sesi login habis, masuk lagi.",
+  "@acSesiLoginHabis": {
+    "description": "Token hilang waktu menyimpan — bukan salah datanya."
+  },
+  "acTerkirimKeAdmin": "Sesi Autoklaf terkirim ke admin.",
+  "@acTerkirimKeAdmin": {
+    "description": "Konfirmasi sesudah sesi tersimpan."
+  },
+  "acGagalMenyimpan": "Gagal menyimpan: {pesan}",
+  "@acGagalMenyimpan": {
+    "description": "Kegagalan simpan sesi Autoklaf, pesannya apa adanya dari server.",
+    "placeholders": {
+        "pesan": {
+            "type": "String"
+        }
+    }
+  },
+  "acGagalMenghitung": "Gagal menghitung: {pesan}",
+  "@acGagalMenghitung": {
+    "description": "Kegagalan pratinjau olah data.",
+    "placeholders": {
+        "pesan": {
+            "type": "String"
+        }
+    }
+  },
+  "acGagalMuatAlat": "Gagal muat daftar alat: {pesan}",
+  "@acGagalMuatAlat": {
+    "description": "Daftar alat nggak kebaca — teknisi belum bisa milih Equipment.",
+    "placeholders": {
+        "pesan": {
+            "type": "String"
+        }
+    }
+  },
+  "acDiLuarKertas": "Di luar kertas — unduhan Pressure Disk Logger",
+  "@acDiLuarKertas": {
+    "description": "Penanda bahwa blok ini nggak ada di formulir cetak."
+  },
+  "acPetunjukDiskLogger": "Angkanya diunduh dari disk logger, bukan ditulis di lapangan. Boleh dikosongin: lembarnya tetap kekirim, olah data tekanannya nunggu angka ini lengkap.",
+  "@acPetunjukDiskLogger": {
+    "description": "Petunjuk kenapa blok tekanan boleh kosong."
+  },
+  "acNamaOtomatis": "Name: (otomatis dari akun teknisi)",
+  "@acNamaOtomatis": {
+    "description": "Nama penandatangan diambil dari akun yang login, bukan diketik."
+  },
+  "acPetunjukPilihAlat": "pilih alat",
+  "@acPetunjukPilihAlat": {
+    "description": "Petunjuk di dropdown Equipment lembar Autoklaf."
+  }
 }
