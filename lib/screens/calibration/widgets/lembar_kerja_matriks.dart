@@ -182,6 +182,11 @@ class LembarKerjaMatriks extends StatelessWidget {
                         onBerubah: onBerubah,
                       )
                     : _KotakAngka(
+                        // Kunci per sel — dipakai test buat ngukur lebar kotak
+                        // di lebar HP beneran. Kotak yang lebih sempit dari
+                        // ~60 dp bikin angka berkoma tiga desimal (`1.231`)
+                        // kepotong waktu dibaca ulang sebelum dikirim.
+                        key: Key('matriks_${b.kodeData}_$t'),
                         controller: isian.kotakMatriks(b.kodeData, t),
                         onBerubah: onBerubah,
                       ),
@@ -292,7 +297,11 @@ class _TabelTambahan extends StatelessWidget {
 }
 
 class _KotakAngka extends StatelessWidget {
-  const _KotakAngka({required this.controller, required this.onBerubah});
+  const _KotakAngka({
+    super.key,
+    required this.controller,
+    required this.onBerubah,
+  });
 
   final TextEditingController? controller;
   final VoidCallback onBerubah;

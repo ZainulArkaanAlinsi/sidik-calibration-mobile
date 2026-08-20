@@ -112,8 +112,7 @@ const _profilKhusus = {
   'gasdetector': 'gas_detector',
   // Lampiran akreditasi LK-285-IDN no. 48 nulis "Autoklaf"; lembar kerjanya
   // SIDIK-FM-CAL-0539 & DATABASE nulis "Autoclave". Dua-duanya didaftarin —
-  // yang nyampe ke sini teks bebas dari backend. Autoklaf pakai layar khusus
-  // (AutoclaveInputScreen), bukan LembarKerjaScreen generik.
+  // yang nyampe ke sini teks bebas dari backend.
   'autoklaf': 'autoclave',
   'autoclave': 'autoclave',
 };

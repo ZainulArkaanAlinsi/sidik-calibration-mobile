@@ -224,4 +224,53 @@ void main() {
     // Kotak jam punya petunjuk formatnya sendiri — bukan kotak angka biasa.
     expect(find.text('--:--:--'), findsNWidgets(5));
   });
+
+  /// Lebar HP beneran. Layar Autoklaf lama dua kali kena bug ini — kisi
+  /// angkanya kelihatan baik-baik saja di 1400 px, dan di 360 px tiap kotak
+  /// cuma ~50 dp. Diuji di lebar HP, bukan lebar meja.
+  testWidgets('kerender di lebar HP tanpa tata letak yang meluber', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final bentuk = LembarKerja.fromJson(bentukJson());
+    final isian = LembarKerjaState(
+      bentuk: bentuk,
+      clientRequestId: 'uji-hp',
+    );
+    addTearDown(isian.dispose);
+
+    final b = bentuk.bagian.single;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: LembarKerjaMatriks(
+              matriks: b.matriks!,
+              isian: isian,
+              onBerubah: () {},
+              tabelTambahan: b.tabelTambahan,
+              setPoint: b.field.first,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+
+    // Kotak angka wajib cukup lebar buat diketik DAN diperiksa ulang. Angka
+    // tekanan di lembar ini berkoma tiga desimal (`1,231`); kotak yang lebih
+    // sempit bikin isinya kepotong waktu dibaca lagi sebelum dikirim.
+    final lebar = tester
+        .getSize(find.byKey(const Key('matriks_tekanan.indikator_pressure_1')))
+        .width;
+
+    expect(lebar, greaterThan(60), reason: 'kotak angka kesempitan di HP');
+  });
 }

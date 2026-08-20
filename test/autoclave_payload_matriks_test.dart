@@ -10,8 +10,10 @@ import 'package:sidik_calibration/screens/calibration/lembar_kerja_state.dart';
 /// suhu — persis kegagalan yang bikin layar khusus Autoklaf dibikin 20 Agu
 /// 2026, dan angkanya jalan terus sampai sertifikat tanpa satu pun error.
 ///
-/// Bentuk payload acuannya disalin dari `AutoclaveInputScreen._payload()`,
-/// yang sudah dipakai kirim beneran.
+/// Bentuk payload acuannya disalin dari `AutoclaveInputScreen._payload()` —
+/// layar khusus Autoklaf yang dipensiunkan waktu alat ini pindah ke lembar
+/// kerja generik. Berkasnya sudah nggak ada; angka-angka di sini yang jadi
+/// catatan bentuk mana yang dulu terbukti diterima server.
 void main() {
   MatriksHasil matriks() => MatriksHasil.fromJson({
     'judul_kolom': 'Pengukuran Berulang UUT',
