@@ -79,6 +79,7 @@ class BarisHasilSertifikat {
     this.tandaNol = true,
     this.faktorCakupanK,
     this.desimalU95,
+    this.desimalK,
   });
 
   final int titikKe;
@@ -152,6 +153,19 @@ class BarisHasilSertifikat {
   /// `null` = ikut [desimal] titik, persis perilaku lama.
   final int? desimalU95;
 
+  /// Desimal buat FAKTOR CAKUPAN `k`, kalau alat ini nyetaknya beda.
+  ///
+  /// Master nyimpen nilai penuh tapi selnya diformat `0`: DO Meter nyimpen
+  /// 1,9718… dan nyetak `2`; Spectrophotometer nyimpen 3,1824… dan nyetak `3`.
+  /// Yang nentuin dokumen resminya, bukan konvensi metrologi — kalau layar ini
+  /// nulis `1,97` sementara PDF-nya nulis `2`, admin lagi mutusin nerbitin
+  /// sambil natap dua angka yang beda buat sertifikat yang sama.
+  ///
+  /// `null` = perilaku lama (maksimal 2 desimal, nol di belakang dibuang),
+  /// dan itu yang berlaku buat sertifikat yang terbit sebelum backend
+  /// mulai ngirim field ini.
+  final int? desimalK;
+
   /// Kolom "Remark" di sertifikat cetak. `null` buat alat yang nggak punya —
   /// dan waktu SEMUA baris null, kolomnya nggak dirender sama sekali (sama
   /// kayak `pdf.blade.php`), bukan dirender berisi strip.
@@ -177,6 +191,7 @@ class BarisHasilSertifikat {
         tandaNol: json['tanda_nol'] as bool? ?? true,
         faktorCakupanK: (json['faktor_cakupan_k'] as num?)?.toDouble(),
         desimalU95: (json['desimal_u95'] as num?)?.toInt(),
+        desimalK: (json['desimal_k'] as num?)?.toInt(),
       );
 }
 
