@@ -290,7 +290,7 @@ class LembarKerjaTabel extends StatelessWidget {
                       ],
                     ),
 
-                    for (final baris in _baris)
+                    for (var indexBaris = 0; indexBaris < _baris.length; indexBaris++)
                       for (final sepotong in potongan)
                       Row(
                         children: [
@@ -305,14 +305,23 @@ class LembarKerjaTabel extends StatelessWidget {
                                 // lihat bahwa ini alternatif satuan.
                                 // Mati kalau standarnya belum dicentang ATAU pasangan
                                 // satuannya udah diisi. Lihat `titikBisaDiisi`.
-                                terkunci: !isian.titikBisaDiisi(baris.titikUkur),
+                                terkunci: !isian.titikBisaDiisi(
+                                  isian.kunciBaris(_baris, indexBaris),
+                                ),
                                 // Index kotak diambil dari POSISI nomor
                                 // pengulangan di daftar aslinya, bukan dari
                                 // urutan gambar — baris kedua %T isinya
                                 // pengulangan 4-6 dan kotaknya beda dari
                                 // baris pertama walau kepalanya sama.
+                                // Kuncinya lewat `kunciBaris`, BUKAN
+                                // `baris.titikUkur` mentah. Autoklaf ngirim
+                                // `titik_ukur: 0` buat kedelapan barisnya —
+                                // besarannya emang beda-beda, bukan titik ukur
+                                // — jadi kalau dibaca mentah kedelapan baris
+                                // nunjuk ke controller yang SAMA dan yang
+                                // keliatan cuma satu baris keisi.
                                 controller: isian
-                                    .titik[baris.titikUkur]!
+                                    .titik[isian.kunciBaris(_baris, indexBaris)]!
                                     .kotak(
                                       tabel.tahap,
                                       kolom.kode,
@@ -322,7 +331,7 @@ class LembarKerjaTabel extends StatelessWidget {
                                 // ditandai supaya dicek — bukan seluruh tabel.
                                 rendah: isian.selRendahKeyakinan.contains(
                                   LembarKerjaState.kunciSel(
-                                    baris.titikUkur,
+                                    isian.kunciBaris(_baris, indexBaris),
                                     tabel.tahap,
                                     kolom.kode,
                                     tabel.pengulangan.indexOf(r),

@@ -79,6 +79,7 @@ class TitikState {
     required this.label,
     required this.jumlahPengulangan,
     required this.satuan,
+    this.tipe,
     this.desimal,
     this.standardIdTercetak,
     this.standardNama,
@@ -96,6 +97,11 @@ class TitikState {
   final VoidCallback? onKetik;
 
   final double titikUkur;
+
+  /// Jenis isian baris ini kalau BUKAN angka — sejauh ini cuma `jam`, baris
+  /// `Time` di lembar Autoklaf. `null` = angka biasa, seperti seluruh baris di
+  /// delapan alat lain.
+  final String? tipe;
   final String label;
   final int jumlahPengulangan;
 
@@ -433,6 +439,38 @@ class LembarKerjaState {
   /// Dipisah dari konstruktor karena dipanggil lagi tiap satuan berubah:
   /// Refractometer ngirim titik standar yang beda per skala (1,33659/1,39986
   /// n20D vs 2,5/40 °Brix), jadi tabelnya ikut ganti — bukan cuma labelnya.
+  /// Kunci `titik` buat satu baris tabel.
+  ///
+  /// Delapan alat lama: satu baris = satu TITIK UKUR (pH 4/7/10, Turbidimeter
+  /// 1/100/1000), dan `titikUkur`-nya unik — jadi dia sendiri yang jadi kunci,
+  /// sama persis kayak sebelum fungsi ini ada. Tabel Before & After yang
+  /// urutan barisnya sama tetap berbagi satu `TitikState`, yang memang
+  /// disengaja: satu titik memuat dua tahap.
+  ///
+  /// AUTOKLAF beda, dan bedanya bukan detail: kedelapan barisnya
+  /// (`Time`, Disk 1-3, Indikator Suhu, Indikator Pressure, Tekanan atm awal,
+  /// Suhu Ruang) itu BESARAN YANG BERBEDA, bukan tiga level dari besaran yang
+  /// sama. Backend ngirim `titik_ukur: 0` buat kedelapannya karena emang nggak
+  /// ada titik ukurnya. Dikunci pakai `titikUkur`, kedelapan baris itu jatuh
+  /// ke satu `TitikState` dan saling nimpa — yang keliatan di layar cuma satu
+  /// baris keisi, tujuh sisanya kosong tiap kali tabelnya dibangun ulang.
+  ///
+  /// Jadi: kunci pakai INDEKS baris cuma kalau `titikUkur`-nya ada yang
+  /// kembar. Buat tabel yang titiknya unik — semua alat yang sudah ada —
+  /// nilainya persis `titikUkur` seperti dulu, jadi nggak ada satu pun
+  /// perilaku lama yang bergeser.
+  ///
+  /// Indeksnya sejajar antar-tabel karena urutan baris Before & After selalu
+  /// sama; kalau suatu hari nggak sama lagi, yang pecah tabelnya, bukan diam-
+  /// diam salah pasang.
+  double kunciBaris(List<BarisTabelHasil> baris, int index) {
+    final titikUnik = baris.map((b) => b.titikUkur).toSet().length;
+
+    return titikUnik == baris.length
+        ? baris[index].titikUkur
+        : index.toDouble();
+  }
+
   int _bangunTitik({bool pertahankanIsian = false}) {
     // Isian sel disalin DULU, sebelum yang lama dibuang. Yang disalin cuma
     // angkanya — `TitikState`-nya sendiri dibikin ulang dari bentuk yang baru,
@@ -452,11 +490,16 @@ class LembarKerjaState {
 
     for (final bagian in bentuk.bagian) {
       for (final t in bagian.tabel) {
-        for (final b in t.barisUntuk(satuan)) {
+        final baris = t.barisUntuk(satuan);
+
+        for (var i = 0; i < baris.length; i++) {
+          final b = baris[i];
+
           titik.putIfAbsent(
-            b.titikUkur,
+            kunciBaris(baris, i),
             () => TitikState(
               titikUkur: b.titikUkur,
+              tipe: b.tipe,
               label: b.label,
               jumlahPengulangan: t.pengulangan.length,
               // Lembar bersatuan CAMPUR ngambil dari barisnya; sisanya pakai
@@ -525,7 +568,11 @@ class LembarKerjaState {
   Set<double> _titikUntuk(String calon) => {
     for (final bagian in bentuk.bagian)
       for (final t in bagian.tabel)
-        for (final b in t.barisUntuk(calon)) b.titikUkur,
+        // Kuncinya wajib dihitung sama kayak [_bangunTitik]; kalau di sini
+        // pakai `titikUkur` mentah, perbandingan set-nya bilang tabelnya
+        // berubah padahal nggak.
+        for (var i = 0; i < t.barisUntuk(calon).length; i++)
+          kunciBaris(t.barisUntuk(calon), i),
   };
 
   /// Ganti satuan ke [calon] bakal **ngosongin** tabel yang udah diisi?
