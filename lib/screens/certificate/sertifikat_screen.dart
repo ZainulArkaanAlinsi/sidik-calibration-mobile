@@ -416,7 +416,19 @@ class _TabelHasil extends StatelessWidget {
                   alignment: Alignment.centerRight,
                   child: Text(
                     l10n.sertFaktorCakupan(
-                      formatNilai(e.value.first.faktorCakupanK!, desimalMaks: 2),
+                      formatNilai(
+                        e.value.first.faktorCakupanK!,
+                        // Dari SNAPSHOT, bukan angka yang dipatok di sini.
+                        // Master nyimpen nilai penuh tapi selnya diformat `0`:
+                        // DO Meter 1,9718… tercetak `2`, Spectrophotometer
+                        // 3,1824… tercetak `3`. Waktu layar ini mematok 2
+                        // desimal, admin mutusin nerbitin sambil natap `1,97`
+                        // padahal PDF yang dikirim ke pelanggan nulis `2`.
+                        //
+                        // `null` = perilaku lama, buat sertifikat yang terbit
+                        // sebelum backend ngirim field ini.
+                        desimalMaks: e.value.first.desimalK ?? 2,
+                      ),
                     ),
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
