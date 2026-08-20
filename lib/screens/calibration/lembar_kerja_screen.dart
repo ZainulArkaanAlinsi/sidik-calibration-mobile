@@ -16,6 +16,7 @@ import '../../models/room.dart';
 import '../../models/standard.dart';
 import '../../models/worksheet_scan.dart' show SelDipakaiPindai;
 import '../../models/worksheet_template.dart';
+import '../../providers/autoclave_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/calibration_input_provider.dart';
 import '../../providers/history_provider.dart';
@@ -28,12 +29,14 @@ import '../../services/jalankan_pindai.dart';
 import '../../services/pembaca_sel.dart' show pngDari;
 import '../../services/pindai_lembar.dart';
 import '../../services/worksheet_scan_service.dart' show PindaiDitolak;
+import '../../widgets/autoclave_hasil_panel.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/sidik_loader.dart';
 import '../../widgets/tampil_masuk.dart';
 import 'lembar_kerja_state.dart';
 import 'pindai_review_screen.dart';
 import 'widgets/dropdown_gagal.dart';
+import 'widgets/lembar_kerja_matriks.dart';
 import 'widgets/lembar_kerja_tabel.dart';
 
 /// Lembar Kerja (SIDIK-FM-CAL-0509_Rev.4) — layar input teknisi, dipakai buat
@@ -461,6 +464,26 @@ class _FormState extends ConsumerState<_Form> {
     _pratinjauTertunda?.cancel();
 
     if (_isian.alat == null) return;
+
+    // Lembar bermatriks (Autoklaf) punya endpoint olah data sendiri, dan
+    // teknisinya ngetik ke kotak matriks — bukan ke `titik`. Dipakai syarat
+    // yang sama kayak alat lain, pratinjaunya nggak pernah kepanggil dan panel
+    // hasilnya diam terus tanpa satu pun tanda kenapa.
+    final bagian = _isian.bagianMatriks;
+
+    if (bagian != null) {
+      if (!_isian.adaIsianMatriks) return;
+
+      _pratinjauTertunda = Timer(const Duration(milliseconds: 700), () {
+        if (!mounted) return;
+        ref
+            .read(autoclavePratinjauProvider.notifier)
+            .hitung(_isian.payloadMatriks(bagian.matriks!, bagian.tabelTambahan));
+      });
+
+      return;
+    }
+
     if (!_isian.titik.values.any((t) => t.adaPembacaan)) return;
 
     _pratinjauTertunda = Timer(const Duration(milliseconds: 700), () {
@@ -608,6 +631,17 @@ class _FormState extends ConsumerState<_Form> {
 
     setState(() => _mengirim = true);
 
+    // Lembar bermatriks punya endpoint simpan sendiri (`POST
+    // /calibrations/autoclave`): payloadnya bukan `measurements[]` melainkan
+    // blok `suhu`/`tekanan` bermatriks, dan server yang mutusin UUT Reading
+    // dari kelima kolomnya.
+    final bagianMatriks = _isian.bagianMatriks;
+
+    if (bagianMatriks != null) {
+      await _kirimMatriks(bagianMatriks, draft: draft);
+      return;
+    }
+
     final hasil = await ref
         .read(kirimLembarKerjaProvider.notifier)
         .kirim(_isian.toSubmission(draft: draft), sesiId: widget.sesiId);
@@ -661,6 +695,54 @@ class _FormState extends ConsumerState<_Form> {
       ),
     );
     navigator.pop(hasil.id);
+  }
+
+  /// Kirim lembar bermatriks lewat endpoint alatnya sendiri.
+  ///
+  /// Kepisah dari jalur `measurements[]` bukan karena rapi-rapian: bentuk
+  /// datanya beda sampai ke akarnya, dan memaksanya lewat jalur yang sama
+  /// berarti meratakan matriks jadi daftar titik — yang persis bikin bacaan
+  /// manometer bisa mendarat di blok suhu.
+  Future<void> _kirimMatriks(
+    BagianLembarKerja bagian, {
+    required bool draft,
+  }) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    try {
+      final token = await ref.read(tokenStorageProvider).read();
+
+      if (token == null) {
+        if (!mounted) return;
+        setState(() => _mengirim = false);
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.lkGagalKirim('token'))),
+        );
+        return;
+      }
+
+      final id = await ref
+          .read(autoclaveServiceProvider)
+          .simpan(token, _isian.payloadSimpanMatriks(bagian, draft: draft));
+
+      if (!mounted) return;
+      setState(() => _mengirim = false);
+
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(draft ? l10n.lkBerhasilDraft : l10n.lkBerhasilKirim),
+        ),
+      );
+      navigator.pop(id);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _mengirim = false);
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.lkGagalKirim('$e'))),
+      );
+    }
   }
 
   /// Peringatan kewajaran angka yang BISA dilewati teknisi.
@@ -1412,6 +1494,12 @@ class _Bagian extends ConsumerWidget {
                 if (grup.first.kode == 'lokasi_nama' &&
                     isian.lokasi != LokasiKalibrasi.onsite)
                   const SizedBox.shrink()
+                // `Set Point` digambar menyatu sama kepala matriks, persis
+                // posisinya di pojok kiri-atas tabel di kertas. Dilewat di
+                // sini biar nggak muncul dua kali.
+                else if (bagian.matriks != null &&
+                    grup.first.kode == 'set_point')
+                  const SizedBox.shrink()
                 else if (grup.first.spesifikasiAlat)
                   _BarisSpesifikasi(
                     field: grup,
@@ -1435,6 +1523,32 @@ class _Bagian extends ConsumerWidget {
                 onBerubah: onBerubah,
               ),
 
+            // Bagian bermatriks menggambar matriksnya, BUKAN `bagian.tabel`.
+            //
+            // Autoklaf mengirim dua-duanya buat dua pembaca yang beda:
+            // `matriks` buat layar teknisi, `tabel` buat pipeline OCR — bentuk
+            // "baris × pengulangan" yang `titik_ukur`-nya nol semua, dibikin
+            // supaya rangka geometri lembar cetaknya bisa lahir. Digambar
+            // dua-duanya, teknisi lihat tabel yang sama dua kali dan yang satu
+            // barisnya tanpa nama.
+            if (bagian.matriks != null) ...[
+              LembarKerjaMatriks(
+                matriks: bagian.matriks!,
+                isian: isian,
+                onBerubah: onBerubah,
+                tabelTambahan: bagian.tabelTambahan,
+                setPoint: _fieldSetPoint(bagian),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              if (bagian.fieldDiLuarKertas.isNotEmpty) ...[
+                _FieldDiLuarKertas(
+                  field: bagian.fieldDiLuarKertas,
+                  isian: isian,
+                  onBerubah: onBerubah,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+              ],
+            ] else
             for (var i = 0; i < bagian.tabel.length; i++) ...[
               LembarKerjaTabel(
                 tabel: bagian.tabel[i],
@@ -1482,7 +1596,14 @@ class _Bagian extends ConsumerWidget {
             // kosong (belum ada isian, atau belum ada balasan) mesti nggak
             // makan ruang sama sekali — kalau nggak, seluruh bagian di
             // bawahnya kegeser buat sesuatu yang nggak kelihatan.
-            if (bagian.tabel.isNotEmpty) _PanelPratinjau(isian: isian),
+            // Panel hasil ikut bentuk lembarnya. Lembar bermatriks dihitung
+            // endpoint lain dan jawabannya juga beda bentuk (Kestabilan /
+            // Keseragaman / Variasi, bukan koreksi per titik) — dipaksa lewat
+            // panel titik, yang kelihatan cuma kotak kosong.
+            if (bagian.matriks != null)
+              const _PanelHasilMatriks()
+            else if (bagian.tabel.isNotEmpty)
+              _PanelPratinjau(isian: isian),
           ],
         ),
       ),
@@ -1795,6 +1916,43 @@ class _TombolPindaiLembarState extends ConsumerState<_TombolPindaiLembar> {
 /// dengan `0,43255708` yang sama persis itu hasil yang bener, bukan data dobel,
 /// dan ngeringkasnya jadi satu baris bikin teknisi ngira sembilan titiknya
 /// nggak kehitung.
+/// Panel hasil buat lembar bermatriks (Autoklaf).
+///
+/// Isinya jawaban `POST /calibrations/autoclave/preview` — Kestabilan,
+/// Keseragaman, Variasi — bukan koreksi per titik ukur. Bentuknya beda sampai
+/// ke akarnya dari [_PanelPratinjau], jadi dipisah widget, bukan ditekuk.
+class _PanelHasilMatriks extends ConsumerWidget {
+  const _PanelHasilMatriks();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final status = ref.watch(autoclavePratinjauProvider);
+    final theme = Theme.of(context);
+
+    if (status.hasil == null && !status.menghitung && status.gagal == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (status.gagal != null)
+            Text(
+              AppLocalizations.of(context).acGagalMenghitung('${status.gagal}'),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
+          if (status.hasil != null)
+            AutoclaveHasilPanel(hasil: status.hasil!),
+        ],
+      ),
+    );
+  }
+}
+
 class _PanelPratinjau extends ConsumerWidget {
   const _PanelPratinjau({required this.isian});
 
@@ -2180,6 +2338,78 @@ List<List<FieldLembarKerja>> _kelompokkanField(List<FieldLembarKerja> field) {
 /// Bentuknya niru lembar cetak — `Rentang Ukur : [0-100] %T [200-700] nm`.
 /// Isinya teks apa adanya, bukan angka: `0-100` emang bukan bilangan, dan yang
 /// tercetak di sertifikat juga teks.
+/// `Set Point` digambar MENYATU sama kepala tabel, bukan di daftar kolom biasa.
+///
+/// Di kertas Autoklaf angka itu duduk di pojok kiri-atas tabel, sebaris sama
+/// banner kolom — bukan di panel identitas alat di atasnya. Ditarik keluar di
+/// sini supaya nggak digambar dua kali.
+FieldLembarKerja? _fieldSetPoint(BagianLembarKerja bagian) {
+  for (final f in bagian.field) {
+    if (f.kode == 'set_point') return f;
+  }
+  return null;
+}
+
+/// Kolom yang **nggak ada di lembar kertas** tapi dibutuhkan olah datanya.
+///
+/// Dipisah dengan penanda, bukan dicampur ke kolom lain: teknisi yang nyocokin
+/// layar ke kertasnya bakal nyariin kolom ini di lembar dan nggak nemu. Tanpa
+/// penanda dia bakal ngira layarnya rusak — atau lebih buruk, ngira kolomnya
+/// boleh dilewat, padahal olah data tekanan nggak jalan tanpa itu.
+class _FieldDiLuarKertas extends StatelessWidget {
+  const _FieldDiLuarKertas({
+    required this.field,
+    required this.isian,
+    required this.onBerubah,
+  });
+
+  final List<FieldLembarKerja> field;
+  final LembarKerjaState isian;
+  final VoidCallback onBerubah;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.info_outline,
+              size: 15,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'Di luar kertas',
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        for (final f in field) ...[
+          _Field(field: f, isian: isian, onBerubah: onBerubah),
+          if (f.catatan != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              f.catatan!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+          const SizedBox(height: AppSpacing.md),
+        ],
+      ],
+    );
+  }
+}
+
 class _BarisSpesifikasi extends StatelessWidget {
   const _BarisSpesifikasi({
     required this.field,

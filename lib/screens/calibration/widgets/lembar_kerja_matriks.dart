@@ -1,0 +1,350 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../../../core/theme/app_spacing.dart';
+import '../../../models/lembar_kerja.dart';
+import '../lembar_kerja_state.dart';
+
+/// Tabel MATRIKS: satu baris = satu besaran, satu kolom = satu titik waktu.
+///
+/// Bedanya dari [LembarKerjaTabel] bukan gaya, tapi arti sumbunya. Di tabel
+/// biasa, baris = titik ukur dan kolom = pengulangan pembacaan titik yang
+/// SAMA. Di sini baris = besaran yang berbeda-beda (`Temp. Disk 1`,
+/// `Indikator Pressure`, `Suhu Ruang`) dan kolom = saat pengambilannya selama
+/// proses berlangsung.
+///
+/// Susunannya SEBARIS-SEBARIS ngikut kertas, dan itu bukan soal selera:
+/// teknisi ngisi layar ini sambil megang kertas yang barusan dia tulis di
+/// lapangan, dan matanya lompat baris per baris. Waktu Autoklaf sempat
+/// dipaksa masuk bentuk lembar pH (20 Agu 2026), baris kelima di kertas
+/// (`Indikator Pressure`) ketemu baris kelima di layar (`Suhu Ruang`) — salah
+/// salin satu baris berarti bacaan manometer masuk ke kolom suhu, dan angka
+/// itu jalan terus sampai sertifikat tanpa satu pun error.
+///
+/// Yang mana mendarat di mana ditentukan [BarisMatriks.kodeData] dari backend,
+/// bukan urutan baris di layar ini.
+class LembarKerjaMatriks extends StatelessWidget {
+  const LembarKerjaMatriks({
+    super.key,
+    required this.matriks,
+    required this.isian,
+    required this.onBerubah,
+    this.tabelTambahan,
+    this.setPoint,
+  });
+
+  final MatriksHasil matriks;
+  final LembarKerjaState isian;
+  final VoidCallback onBerubah;
+
+  /// Tabel satu-baris di luar matriks (`Pressure Disk Logger`).
+  final TabelSatuBaris? tabelTambahan;
+
+  /// Kolom yang tercetak MENYATU sama kepala tabel di kertas — di Autoklaf
+  /// `Set Point` duduk di pojok kiri-atas, sebaris sama banner kolom.
+  final FieldLembarKerja? setPoint;
+
+  static const _lebarLabel = 148.0;
+  static const _lebarKolom = 96.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final kolom = matriks.titikWaktu;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (setPoint != null || matriks.judulKolom.isNotEmpty)
+                _barisKepala(context, theme, kolom.length),
+              for (final b in matriks.semuaBaris)
+                _baris(context, theme, b, kolom),
+            ],
+          ),
+        ),
+
+        if (tabelTambahan != null) ...[
+          const SizedBox(height: AppSpacing.lg),
+          _TabelTambahan(
+            tabel: tabelTambahan!,
+            isian: isian,
+            onBerubah: onBerubah,
+            lebarLabel: _lebarLabel,
+            lebarKolom: _lebarKolom,
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _selLabel(ThemeData theme, String teks, {bool tebal = false}) =>
+      Container(
+        width: _lebarLabel,
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+        color: theme.colorScheme.surfaceContainerHighest,
+        child: Text(
+          teks,
+          style: theme.textTheme.bodySmall?.copyWith(
+            fontWeight: tebal ? FontWeight.w600 : null,
+          ),
+        ),
+      );
+
+  /// Baris Set Point + banner kolom, persis kayak pojok kiri-atas kertasnya.
+  Widget _barisKepala(BuildContext context, ThemeData theme, int jumlahKolom) {
+    final sisa = jumlahKolom - (setPoint == null ? 0 : 1);
+
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _selLabel(
+            theme,
+            setPoint == null
+                ? ''
+                : [
+                    setPoint!.label,
+                    if (setPoint!.satuan != null) '(${setPoint!.satuan})',
+                  ].join(' '),
+            tebal: true,
+          ),
+          if (setPoint != null)
+            SizedBox(
+              width: _lebarKolom,
+              child: Padding(
+                padding: const EdgeInsets.all(2),
+                child: _KotakAngka(
+                  controller: isian.teks[setPoint!.kode],
+                  onBerubah: onBerubah,
+                ),
+              ),
+            ),
+          if (sisa > 0)
+            Container(
+              width: _lebarKolom * sisa,
+              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 6,
+                vertical: 10,
+              ),
+              color: theme.colorScheme.surfaceContainerHighest,
+              child: Text(
+                matriks.judulKolom,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _baris(
+    BuildContext context,
+    ThemeData theme,
+    BarisMatriks b,
+    List<int> kolom,
+  ) {
+    // Satuan tekanan ikut kolom `satuan_tekanan` yang lagi kepilih — angkanya
+    // sama, artinya beda tergantung Bar/Psi/kPa. Ditulis di label barisnya
+    // supaya teknisi lihat satuannya di baris yang lagi dia isi, bukan cuma
+    // jauh di atas di panel identitas alat.
+    final satuan =
+        b.satuan ??
+        (b.satuanDari == null
+            ? null
+            : isian.teks[b.satuanDari]?.text.trim().isEmpty ?? true
+            ? null
+            : isian.teks[b.satuanDari]!.text.trim());
+
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _selLabel(
+            theme,
+            satuan == null ? b.label : '${b.label} ($satuan)',
+            tebal: b.jam,
+          ),
+          for (final t in kolom)
+            SizedBox(
+              width: _lebarKolom,
+              child: Padding(
+                padding: const EdgeInsets.all(2),
+                child: b.jam
+                    ? _KotakJam(
+                        controller: isian.kotakMatriks(b.kodeData, t),
+                        onBerubah: onBerubah,
+                      )
+                    : _KotakAngka(
+                        controller: isian.kotakMatriks(b.kodeData, t),
+                        onBerubah: onBerubah,
+                      ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Tabel satu-baris di bawah matriks. Autoklaf: `Pressure Disk Logger`.
+///
+/// Dikasih penanda "di luar kertas" terang-terangan. Teknisi yang nyocokin
+/// layar ke lembarnya bakal nyariin baris ini di kertas dan nggak nemu —
+/// tanpa penanda, dia bakal ngira layarnya yang salah, atau lebih buruk,
+/// ngira barisnya boleh dilewat.
+class _TabelTambahan extends StatelessWidget {
+  const _TabelTambahan({
+    required this.tabel,
+    required this.isian,
+    required this.onBerubah,
+    required this.lebarLabel,
+    required this.lebarKolom,
+  });
+
+  final TabelSatuBaris tabel;
+  final LembarKerjaState isian;
+  final VoidCallback onBerubah;
+  final double lebarLabel;
+  final double lebarKolom;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            if (tabel.diLuarKertas) ...[
+              Icon(
+                Icons.info_outline,
+                size: 15,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 6),
+            ],
+            Flexible(
+              child: Text(
+                tabel.label,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (tabel.catatan != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            tabel.catatan!,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+        const SizedBox(height: AppSpacing.sm),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  width: lebarLabel,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 10,
+                  ),
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  child: Text(
+                    tabel.satuan == null
+                        ? tabel.label
+                        : '${tabel.label} (${tabel.satuan})',
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ),
+                for (final n in tabel.pengulangan)
+                  SizedBox(
+                    width: lebarKolom,
+                    child: Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: _KotakAngka(
+                        controller: isian.kotakMatriks(tabel.kodeData, n),
+                        onBerubah: onBerubah,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _KotakAngka extends StatelessWidget {
+  const _KotakAngka({required this.controller, required this.onBerubah});
+
+  final TextEditingController? controller;
+  final VoidCallback onBerubah;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      textAlign: TextAlign.center,
+      style: const TextStyle(fontSize: 13),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'[0-9.,\-]')),
+      ],
+      decoration: const InputDecoration(
+        isDense: true,
+        contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        border: OutlineInputBorder(),
+      ),
+      onChanged: (_) => onBerubah(),
+    );
+  }
+}
+
+/// Jam pengambilan, bukan nomor urut kolom.
+///
+/// Nggak ikut dihitung, tapi tetap disimpan: tanpa jamnya lima kolom angka
+/// nggak bisa diadu balik ke rekaman disk waktu sertifikatnya diperiksa.
+class _KotakJam extends StatelessWidget {
+  const _KotakJam({required this.controller, required this.onBerubah});
+
+  final TextEditingController controller;
+  final VoidCallback onBerubah;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      textAlign: TextAlign.center,
+      style: const TextStyle(fontSize: 13),
+      keyboardType: TextInputType.datetime,
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'[0-9:]')),
+        LengthLimitingTextInputFormatter(8),
+      ],
+      decoration: const InputDecoration(
+        hintText: '--:--:--',
+        isDense: true,
+        contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        border: OutlineInputBorder(),
+      ),
+      onChanged: (_) => onBerubah(),
+    );
+  }
+}

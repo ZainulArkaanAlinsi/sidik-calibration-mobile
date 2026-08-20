@@ -142,6 +142,7 @@ class FieldLembarKerja {
     required this.wajib,
     this.satuan,
     this.pilihan = const [],
+    this.catatan,
   });
 
   /// Kode yang dipakai di payload, mis. `suhu_awal` atau `equipment.merk`.
@@ -153,6 +154,11 @@ class FieldLembarKerja {
   final SumberField sumber;
   final String? satuan;
   final List<PilihanField> pilihan;
+
+  /// Kalimat penjelas dari backend, ditampilin apa adanya di bawah kolomnya.
+  /// Dipakai kolom yang butuh alasan kenapa dia ada — mis. kolom di luar
+  /// kertas, yang teknisi nggak akan nemu waktu nyocokin layar ke lembarnya.
+  final String? catatan;
 
   /// **Backend selalu ngirim `false`.** Disimpen apa adanya, bukan diabaikan,
   /// biar kalau suatu saat ada kolom yang beneran wajib, layarnya udah siap —
@@ -186,6 +192,7 @@ class FieldLembarKerja {
       wajib: json['wajib'] as bool? ?? false,
       satuan: json['satuan'] as String?,
       pilihan: parseListAman(json['pilihan'], PilihanField.fromJson),
+      catatan: json['catatan'] as String?,
     );
   }
 }
@@ -514,6 +521,153 @@ class SlotCetak {
 
 /// Satu bagian (section) lembar kerja, mis. "EQUIPMENT IDENTITY AND CUSTOMER
 /// DATA". Bagian hasil punya [tabel] bukan [field].
+/// Satu baris di tabel matriks Autoklaf.
+///
+/// Bedanya dari [BarisTabelHasil]: baris di sini bukan "titik ukur" melainkan
+/// **besaran tersendiri** (`Temp. Disk 1`, `Indikator Pressure`, `Suhu Ruang`),
+/// dan yang berjajar ke kanan bukan pengulangan pembacaan melainkan **titik
+/// waktu** selama proses sterilisasi.
+///
+/// [kodeData] itu yang bikin layar nggak perlu tahu apa-apa soal Autoklaf:
+/// jalur bertitik ke tempat angkanya di payload (`suhu.disk.0`,
+/// `tekanan.indikator_pressure`), ditentukan backend. Sebelum ini pemetaan
+/// baris → payload ditulis ulang di layar, dan urutan barisnya jadi memikul
+/// arti — satu baris kegeser berarti bacaan manometer masuk ke kolom suhu, dan
+/// angka itu jalan terus sampai sertifikat.
+class BarisMatriks {
+  const BarisMatriks({
+    required this.kode,
+    required this.label,
+    required this.kodeData,
+    this.tipe,
+    this.satuan,
+    this.satuanDari,
+    this.kurungSatuan = false,
+    this.format,
+  });
+
+  final String kode;
+  final String label;
+
+  /// Jalur bertitik ke tempat nilainya di payload, mis. `suhu.disk.0`.
+  final String kodeData;
+
+  final String? tipe;
+  final String? satuan;
+
+  /// Satuannya nggak tetap — ikut kolom lain di lembar yang sama
+  /// (`satuan_tekanan`). Baris tekanan begini: angkanya sama, artinya beda
+  /// tergantung Bar/Psi/kPa yang dipilih teknisi.
+  final String? satuanDari;
+
+  final bool kurungSatuan;
+
+  /// Format isian buat baris bertipe `jam`, mis. `HH:mm:ss`.
+  final String? format;
+
+  bool get jam => tipe == 'jam';
+
+  factory BarisMatriks.fromJson(Map<String, dynamic> json) => BarisMatriks(
+    kode: json['kode'] as String? ?? '',
+    label: json['label'] as String? ?? '',
+    kodeData: json['kode_data'] as String? ?? '',
+    tipe: json['tipe'] as String?,
+    satuan: json['satuan'] as String?,
+    satuanDari: json['satuan_dari'] as String?,
+    kurungSatuan: json['kurung_satuan'] as bool? ?? false,
+    format: json['format'] as String?,
+  );
+}
+
+/// Tabel tambahan yang isinya SATU baris berulang, di luar matriks utama.
+///
+/// Autoklaf: `Pressure Disk Logger — hasil unduh`. Nggak ada di kertas —
+/// angkanya diunduh dari alat, bukan ditulis teknisi — tapi tanpa baris ini
+/// olah data tekanannya nggak jalan sama sekali.
+class TabelSatuBaris {
+  const TabelSatuBaris({
+    required this.label,
+    required this.kodeData,
+    required this.pengulangan,
+    this.satuan,
+    this.diLuarKertas = false,
+    this.catatan,
+  });
+
+  final String label;
+  final String kodeData;
+  final List<int> pengulangan;
+  final String? satuan;
+  final bool diLuarKertas;
+  final String? catatan;
+
+  static TabelSatuBaris? fromJson(Map<String, dynamic> json) {
+    final kolom = json['kolom'];
+    if (kolom is! Map<String, dynamic>) return null;
+
+    final kode = kolom['kode'] as String?;
+    if (kode == null || kode.isEmpty) return null;
+
+    return TabelSatuBaris(
+      label: json['label'] as String? ?? kolom['label'] as String? ?? '',
+      kodeData: kode,
+      satuan: kolom['satuan'] as String?,
+      diLuarKertas: json['di_luar_kertas'] as bool? ?? false,
+      catatan: json['catatan'] as String?,
+      pengulangan: [
+        for (final n in (json['pengulangan'] as List<dynamic>? ?? []))
+          if (n is num) n.toInt(),
+      ],
+    );
+  }
+}
+
+/// Tabel matriks: satu baris = satu besaran, satu kolom = satu titik waktu.
+///
+/// Dipakai Autoklaf, dan sengaja dibaca sebagai BENTUK UMUM — bukan dicocokin
+/// ke kode profil `autoclave`. Alat berikutnya yang satu sesinya mengukur dua
+/// besaran sekaligus dapat layar yang sama tanpa nambah cabang di sini.
+class MatriksHasil {
+  const MatriksHasil({
+    required this.judulKolom,
+    required this.titikWaktu,
+    required this.baris,
+    this.barisWaktu,
+  });
+
+  final String judulKolom;
+  final List<int> titikWaktu;
+
+  /// Baris `Time` di paling atas — jam pengambilan tiap kolom. Nggak ikut
+  /// dihitung, tapi tanpa jamnya lima kolom angka nggak bisa diadu balik ke
+  /// rekaman disk.
+  final BarisMatriks? barisWaktu;
+
+  final List<BarisMatriks> baris;
+
+  /// Semua baris yang punya kotak isian, `Time` duluan persis kayak kertasnya.
+  List<BarisMatriks> get semuaBaris => [?barisWaktu, ...baris];
+
+  static MatriksHasil? fromJson(Map<String, dynamic> json) {
+    final baris = parseListAman(json['baris'], BarisMatriks.fromJson);
+    if (baris.isEmpty) return null;
+
+    final waktu = json['baris_waktu'];
+
+    return MatriksHasil(
+      judulKolom: json['judul_kolom'] as String? ?? '',
+      titikWaktu: [
+        for (final n in (json['titik_waktu'] as List<dynamic>? ?? []))
+          if (n is num) n.toInt(),
+      ],
+      barisWaktu: waktu is Map<String, dynamic>
+          ? BarisMatriks.fromJson(waktu)
+          : null,
+      baris: baris,
+    );
+  }
+}
+
 class BagianLembarKerja {
   const BagianLembarKerja({
     required this.kode,
@@ -522,6 +676,9 @@ class BagianLembarKerja {
     required this.field,
     required this.tabel,
     required this.baris,
+    this.matriks,
+    this.tabelTambahan,
+    this.fieldDiLuarKertas = const [],
     this.sumber,
     this.status,
     this.catatan,
@@ -541,6 +698,17 @@ class BagianLembarKerja {
 
   /// Baris tercetak tabel STANDARD. Kosong di bagian lain.
   final List<BarisStandar> baris;
+
+  /// Tabel matriks (besaran × titik waktu). Null di bagian yang tabelnya
+  /// bentuk biasa — sembilan alat lain nggak punya ini.
+  final MatriksHasil? matriks;
+
+  /// Tabel satu-baris di luar matriks (`Pressure Disk Logger`).
+  final TabelSatuBaris? tabelTambahan;
+
+  /// Kolom yang **nggak ada di kertas** tapi dibutuhkan olah datanya.
+  /// Digambar terpisah dengan penanda, biar teknisi nggak nyariin di lembar.
+  final List<FieldLembarKerja> fieldDiLuarKertas;
 
   /// Mis. `master_standar` — daftarnya diambil dari master data lab, bukan
   /// dipatok di formulirnya. Null di bagian yang barisnya udah tercetak.
@@ -579,6 +747,18 @@ class BagianLembarKerja {
         field: parseListAman(json['field'], FieldLembarKerja.fromJson),
         tabel: parseListAman(json['tabel'], TabelHasil.fromJson),
         baris: parseListAman(json['baris'], BarisStandar.fromJson),
+        matriks: json['matriks'] is Map<String, dynamic>
+            ? MatriksHasil.fromJson(json['matriks'] as Map<String, dynamic>)
+            : null,
+        tabelTambahan: json['tabel_tekanan'] is Map<String, dynamic>
+            ? TabelSatuBaris.fromJson(
+                json['tabel_tekanan'] as Map<String, dynamic>,
+              )
+            : null,
+        fieldDiLuarKertas: parseListAman(
+          json['field_di_luar_kertas'],
+          FieldLembarKerja.fromJson,
+        ),
       );
 }
 
