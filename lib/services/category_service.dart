@@ -324,6 +324,24 @@ class MockCategoryService implements CategoryService {
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0517_Rev.3',
       ),
+      // DO Meter (alat ke-9) — satu titik, 8,77 mg/L. Sama alasannya kayak
+      // Viscometer & Spectrophotometer di atas: tanpa baris ini kartunya nggak
+      // muncul di picker walau `_profilKhusus` udah kenal namanya, dan lembar
+      // kerjanya nggak bisa dibuka lewat jalur mana pun.
+      //
+      // U95 0,16 mg/L itu CMC dari lampiran akreditasi, dan di master dia yang
+      // MENANG atas U hitung (0,148) lewat `MAX(U, CMC)`. Jadi selama alatnya
+      // sehat, angka yang terbit 0,16.
+      CalibrationCapability(
+        namaAlat: 'DO Meter',
+        rangeMin: 8.77,
+        rangeMax: 8.77,
+        satuan: 'mg/L',
+        ketidakpastianTerbaik: 0.16,
+        satuanKetidakpastian: 'mg/L',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0530_Rev.2',
+      ),
     ];
 
     return switch (kode) {
