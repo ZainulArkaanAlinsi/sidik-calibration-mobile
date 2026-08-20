@@ -94,9 +94,32 @@ jobs:
       # pakai APK yang test-nya gagal itu buang-buang perjalanan.
       - run: flutter test
 
+      # `--build-number` bukan kosmetik. Tanpa dia semua rilis mewarisi
+      # `version: 1.0.0+2` dari pubspec — dan angka `+2` itu belum pernah naik
+      # sejak setup awal. Artinya tiap APK punya versionCode yang SAMA PERSIS,
+      # dan itu yang bikin "kok masih yang lama":
+      #
+      #   - Android nolak masang APK dengan versionCode yang nggak lebih besar
+      #     dari yang udah terpasang, dan gagalnya cuma muncul sebagai
+      #     "App not installed" tanpa sebab.
+      #   - App Tester ngelompokkin rilis per versi, jadi build baru nangkring
+      #     di bawah judul yang sama kayak yang lama. Teknisi lihat "sudah
+      #     terpasang", nutup aplikasinya, dan tetap megang versi kemarin.
+      #
+      # `github.run_number` naik sendiri tiap workflow ini jalan, jadi nggak ada
+      # yang perlu inget naikkin manual — dan itu justru intinya: yang mesti
+      # diinget tiap rilis pasti kelupaan suatu hari.
+      #
+      # `version:` di pubspec sengaja DIBIARIN di `+2`. Itu bikin build lokal
+      # selalu berangka lebih kecil daripada build CI, jadi APK hasil coba-coba
+      # di laptop nggak bisa nimpa rilis yang dipegang teknisi — kebalikannya
+      # yang bahaya, dan diam-diam.
       - name: Build APK
+        env:
+          NOMOR_BUILD: ${{ github.run_number }}
         run: |
           flutter build apk --release \
+            --build-number="$NOMOR_BUILD" \
             --dart-define=APP_ENV=prod \
             --dart-define=API_BASE_URL="${{ vars.API_BASE_URL }}/api"
 
@@ -141,7 +164,13 @@ jobs:
           # tanda kutip atau `;` bakal kebaca sebagai perintah — dan pesan
           # commit itu bisa datang dari siapa pun yang ngirim PR.
           KUNCI: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          CATATAN_RILIS: ${{ github.event.head_commit.message || github.sha }}
+          # Nomor build ikut ditulis di catatan rilis. Di App Tester dua rilis
+          # beruntun sering cuma beda satu kata di pesan commit, dan waktu
+          # teknisi lapor "punyaku masih yang lama" nggak ada yang bisa dipakai
+          # buat mastiin dia megang yang mana. Angka ini yang bisa diadu.
+          CATATAN_RILIS: >-
+            build ${{ github.run_number }} ·
+            ${{ github.event.head_commit.message || github.sha }}
         run: |
           # Kuncinya ditulis ke berkas, bukan dioper sebagai argumen: argumen
           # kelihatan di daftar proses runner, berkas nggak.
