@@ -72,3 +72,16 @@ SIDIK-IK-*.pdf
 .firebase/
 firebase-debug.log
 firebase-debug.*.log
+
+# Konfigurasi Firebase per-aplikasi.
+#
+# DITAHAN DULU, bukan diputuskan selamanya. Repo ini publik, dan berkas ini
+# memuat API key Android proyek `sidik-kalibrasi`. Kunci itu memang ikut
+# terbungkus di dalam setiap APK (siapa pun bisa mengeluarkannya) dan Google
+# menganggapnya bukan rahasia SELAMA dibatasi ke nama paket + sidik jari SHA-1
+# di Google Cloud Console. Kalau pembatasan itu sudah dipasang, berkas ini boleh
+# ikut di-commit — dan sebaiknya begitu, karena tanpa dia `flutter build apk`
+# gagal di mesin mana pun yang belum punya salinannya.
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+macos/Runner/GoogleService-Info.plist

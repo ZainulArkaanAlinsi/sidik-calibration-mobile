@@ -65,7 +65,7 @@ class LocalNotifikasiPerangkat implements NotifikasiPerangkat {
     // angka yang berubah tiap rilis bikin setelan user kereset diam-diam.
     const windows = WindowsInitializationSettings(
       appName: 'Sidik Calibration',
-      appUserModelId: 'com.sidik.calibration',
+      appUserModelId: 'com.ptsidik.kalibrasi',
       guid: '9d3f6c2a-7b41-4e58-9c0d-2f7a1b8e5d34',
     );
 

@@ -2,18 +2,24 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/config/app_config.dart';
+import '../services/fcm_sumber_token_push.dart';
 import '../services/pendaftaran_push.dart';
 import '../services/sumber_token_push.dart';
 import 'auth_provider.dart';
 
 /// Dari mana token push diambil.
 ///
-/// Sekarang selalu kosong — Firebase belum dipasang, dan panel desktop memang
-/// nggak pernah punya token push. Waktu `firebase_messaging` masuk, yang
-/// ditukar cuma baris ini.
-final sumberTokenPushProvider = Provider<SumberTokenPush>(
-  (ref) => const TanpaTokenPush(),
-);
+/// `TanpaTokenPush` bukan penambal: panel admin desktop memang nggak pernah
+/// punya token push, dan di mode mock kita nggak mau nyentuh layanan Google
+/// sama sekali. Di situ kabarnya sudah lewat websocket Reverb.
+final sumberTokenPushProvider = Provider<SumberTokenPush>((ref) {
+  if (AppConfig.useMock || !FcmSumberTokenPush.didukung) {
+    return const TanpaTokenPush();
+  }
+
+  return FcmSumberTokenPush();
+});
 
 final pendaftaranPushServiceProvider = Provider<PendaftaranPush>(
   (ref) => ApiPendaftaranPush(ref.watch(apiClientProvider)),

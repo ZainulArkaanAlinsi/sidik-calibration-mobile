@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -19,5 +23,29 @@ Future<void> main() async {
     await MockStore.instance.pulihkan(PenyimpanPrefs());
   }
 
+  // Firebase dinyalain SEBELUM `runApp`, dan kegagalannya sengaja didiamkan.
+  //
+  // Dia cuma dibutuhin buat satu hal: push waktu aplikasi ketutup total. Kalau
+  // inisialisasinya gagal — HP tanpa layanan Google Play, `google-services.json`
+  // belum disalin di mesin yang lagi ngoding, atau proyeknya salah setel — yang
+  // hilang cuma kabar di keadaan itu. Melempar di sini berarti aplikasi kalibrasi
+  // nggak bisa dibuka sama sekali gara-gara layanan notifikasi, dan itu jauh
+  // lebih parah daripada notifikasi yang nggak nongol.
+  //
+  // Desktop dilewat: `firebase_messaging` nggak jalan di situ, dan panel admin
+  // sudah dikabari lewat websocket Reverb selama aplikasinya kebuka.
+  await _nyalakanFirebase();
+
   runApp(const ProviderScope(child: SidikApp()));
+}
+
+Future<void> _nyalakanFirebase() async {
+  if (AppConfig.useMock) return;
+  if (kIsWeb || !(Platform.isAndroid || Platform.isIOS)) return;
+
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint('Firebase nggak nyala: $e');
+  }
 }

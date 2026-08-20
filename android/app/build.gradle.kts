@@ -3,6 +3,7 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -11,6 +12,12 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // Diminta `flutter_local_notifications`: dia memakai API waktu/tanggal
+        // Java 8+ yang belum ada di Android lama, dan desugaring inilah yang
+        // menyediakannya. Tanpa baris ini `assembleDebug` GAGAL total —
+        // aplikasinya nggak bisa dibangun sama sekali, bukan sekadar
+        // notifikasinya nggak jalan.
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -40,4 +47,9 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // Pustaka desugaring buat `isCoreLibraryDesugaringEnabled` di atas.
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }
