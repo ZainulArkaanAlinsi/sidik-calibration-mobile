@@ -1,0 +1,121 @@
+# Pemeriksaan otomatis tiap pull request: analyze, test, dan build Android.
+#
+# ## Kenapa ada
+#
+# Sampai 20 Agu 2026 repo ini NGGAK punya satu pun workflow yang jalan di
+# `pull_request` — tiga yang lain (`build-tes-mock`, `apk-rilis-cloud`,
+# `rilis-desktop`) semuanya manual/`main`. Akibatnya satu-satunya bukti sebuah
+# PR sehat adalah "sudah kucek di laptopku", dan itu bukan bukti yang bisa
+# dilihat orang lain.
+#
+# ## Kenapa build Android ikut, bukan cuma test
+#
+# Ini bagian yang paling mahal kalau dilewat. Dua kali build Android patah
+# TOTAL — aplikasinya nggak bisa dijalankan sama sekali — dan dua-duanya lolos
+# karena yang dijalankan cuma `flutter test`, yang nggak pernah menyentuh
+# Gradle:
+#
+#   1. `flutter_local_notifications` menuntut core library desugaring:
+#      "Dependency ':flutter_local_notifications' requires core library
+#      desugaring". Ketahuan berhari-hari sesudah commit-nya mendarat.
+#   2. Plugin `com.google.gms.google-services` dipasang tanpa syarat sementara
+#      `google-services.json` masuk `.gitignore`: "File google-services.json is
+#      missing." Ketahuan waktu pemiliknya mau menjalankan aplikasinya sendiri.
+#
+# Runner CI itu checkout bersih tanpa `google-services.json` — persis kondisi
+# orang yang baru clone. Jadi job `android` di bawah ini bukan cuma nguji
+# Gradle-nya jalan, dia juga yang menjaga aplikasinya tetap bisa dibangun TANPA
+# berkas kredensial yang memang nggak pernah di-commit.
+#
+# ## Kenapa boleh jalan tiap PR
+#
+# Repo ini publik, dan runner standar GitHub gratis buat repo publik. Jadi
+# alasan "biar nggak ngabisin menit CI" yang bikin tiga workflow lain manual
+# nggak berlaku di sini.
+name: Periksa PR
+
+on:
+  pull_request:
+  # `main` ikut diperiksa supaya kalau ada yang mendarat lewat push langsung
+  # (atau merge yang konfliknya diselesaikan di web), ketahuannya tetap di sini
+  # dan bukan di laptop orang.
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Push beruntun ke PR yang sama nggak perlu diperiksa satu-satu — yang penting
+# commit terakhirnya. Yang lama dibatalin.
+concurrency:
+  group: periksa-pr-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Samain persis sama yang dipakai lokal & workflow lain. Flutter beda minor
+  # sering ganti perilaku analyzer, dan CI yang beda versi bikin "hijau di CI,
+  # merah di laptop" — kebalikan dari gunanya CI.
+  FLUTTER_VERSION: 3.44.6
+
+jobs:
+  periksa:
+    name: Analyze & test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      # Localization di-generate (pubspec `generate: true`); tanpa ini
+      # AppLocalizations nggak ada dan analyze-nya penuh error palsu.
+      - run: flutter gen-l10n
+        continue-on-error: true
+
+      # `--fatal-infos` sengaja NGGAK dipakai: `flutter analyze` polos sudah
+      # gagal kalau ada warning/error, dan menaikkannya ke info bikin PR yang
+      # sehat merah gara-gara saran gaya penulisan.
+      - name: flutter analyze
+        run: flutter analyze
+
+      # Reporter-nya sengaja nggak diset: di GitHub Actions `flutter test`
+      # otomatis pakai reporter `github`, yang bikin grup lipat per file dan
+      # menempelkan anotasi tepat di baris test yang gagal. Menyetel
+      # `--reporter expanded` justru membuang keduanya jadi 700-an baris datar.
+      - name: flutter test
+        run: flutter test
+
+  android:
+    name: Build Android (debug)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - run: flutter gen-l10n
+        continue-on-error: true
+
+      # Runner ini SENGAJA nggak dikasih `google-services.json` — lihat
+      # docblock di atas. Kalau suatu hari langkah ini gagal dengan
+      # "File google-services.json is missing", artinya plugin Google Services
+      # dipasang tanpa syarat lagi di `android/app/build.gradle.kts`; yang
+      # dibetulkan penjaganya di situ, BUKAN dengan menaruh berkasnya di CI.
+      - name: flutter build apk --debug
+        run: flutter build apk --debug
