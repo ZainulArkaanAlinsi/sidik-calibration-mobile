@@ -119,6 +119,26 @@ class CalibrationHistoryItem {
     final equipment = json['equipment'] as Map<String, dynamic>?;
     final teknisi = json['teknisi'] as Map<String, dynamic>?;
 
+    // Nomor sertifikat datang BERSARANG di `sertifikat.nomor`, bukan sebagai
+    // `nomor_sertifikat` di tingkat atas — kunci itu nggak ada sama sekali di
+    // respons `GET /api/calibrations` (diadu ke server asli 21 Agt 2026).
+    //
+    // Selama ini dibaca dari tingkat atas, jadi nilainya SELALU null buat
+    // setiap sesi yang sertifikatnya udah terbit. Efeknya kelihatan sebagai
+    // "nomornya nggak muncul": lencana Alur Kerja jatuh ke tulisan umum
+    // "Disetujui" (`sesi.nomorSertifikat ?? l10n.alurStatusDisetujui`), dan
+    // baris riwayat kehilangan satu-satunya penanda yang bisa diadu ke
+    // sertifikat cetak.
+    //
+    // Tiga model tetangga yang baca sertifikat dari respons yang sama —
+    // `arsip.dart`, `folder.dart`, `calibration_detail.dart` — semuanya udah
+    // baca `sertifikat['nomor']`. Yang ini ketinggalan sendirian.
+    //
+    // Test nggak nangkep karena `MockHistoryService` ngisi `nomorSertifikat`
+    // langsung lewat konstruktor, jadi `fromJson` yang salah itu nggak pernah
+    // kelewatan jalur mock.
+    final sertifikat = json['sertifikat'] as Map<String, dynamic>?;
+
     return CalibrationHistoryItem(
       id: (json['id'] as num).toInt(),
       namaAlat: equipment?['nama_alat'] as String? ?? '—',
@@ -130,7 +150,10 @@ class CalibrationHistoryItem {
         'FAIL' => Keputusan.fail,
         _ => null,
       },
-      nomorSertifikat: json['nomor_sertifikat'] as String?,
+      // Tingkat atas tetap dipakai sebagai cadangan: kalau suatu hari backend
+      // nambahin kuncinya, yang kebaca tetap nomor yang bener — bukan null.
+      nomorSertifikat:
+          sertifikat?['nomor'] as String? ?? json['nomor_sertifikat'] as String?,
       catatanRevisi: json['catatan_revisi'] as String?,
       certificateId: (json['certificate_id'] as num?)?.toInt(),
       namaPelanggan:
