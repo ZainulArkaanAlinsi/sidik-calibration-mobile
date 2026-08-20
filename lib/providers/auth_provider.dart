@@ -7,6 +7,7 @@ import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import '../services/mock_auth_service.dart';
 import '../services/token_storage.dart';
+import 'pendaftaran_push_provider.dart';
 import 'navigation_provider.dart';
 
 final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
@@ -99,6 +100,12 @@ class AuthController extends AsyncNotifier<User?> {
     state = const AsyncValue.loading();
 
     if (token != null) {
+      // Cabut DULUAN, selagi token akunnya masih ada. Kalau ditaruh sesudah
+      // `_storage.clear()`, nggak ada lagi yang bisa dipakai buat memanggil
+      // server, dan HP yang dipakai gantian bakal terus nerima kabar kerja
+      // orang sebelumnya — nomor sesi & nama alat pelanggan di layar kunci.
+      await _cabutTokenPerangkat(token);
+
       try {
         await _auth.logout(token);
       } on AuthException {
@@ -118,6 +125,26 @@ class AuthController extends AsyncNotifier<User?> {
     ref.invalidate(selectedTabProvider);
 
     state = const AsyncValue.data(null);
+  }
+
+  /// Cabut pendaftaran push perangkat ini.
+  ///
+  /// Gagalnya DIDIAMKAN sepenuhnya — orang yang nekan logout harus beneran
+  /// keluar, apa pun kata server soal token perangkatnya. Konsekuensinya
+  /// ditanggung sadar: token yang gagal dicabut masih terdaftar sampai layanan
+  /// push nolak dia permanen. Itu sebabnya server MEMINDAHKAN kepemilikan
+  /// token waktu orang lain login di HP yang sama, bukan cuma nambah baris.
+  Future<void> _cabutTokenPerangkat(String tokenAkun) async {
+    try {
+      final tokenPerangkat = await ref.read(sumberTokenPushProvider).token();
+      if (tokenPerangkat == null) return;
+
+      await ref
+          .read(pendaftaranPushServiceProvider)
+          .cabut(tokenAkun, tokenPerangkat);
+    } catch (_) {
+      // Lihat docblock: logout nggak boleh gagal gara-gara ini.
+    }
   }
 
   /// Cabut semua sesi di semua perangkat. Balikin jumlah sesi yang kecabut.
