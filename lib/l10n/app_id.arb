@@ -880,6 +880,10 @@
   "@lkKelembaban": {
     "description": "Kepala kolom kelembaban di tabel kondisi lingkungan."
   },
+  "lkTekanan": "Pressure",
+  "@lkTekanan": {
+    "description": "Kepala kolom tekanan udara di tabel kondisi lingkungan. Cuma muncul buat Gas Detector."
+  },
   "lkAwal": "First",
   "@lkAwal": {
     "description": "Baris pengukuran awal di tabel kondisi lingkungan."

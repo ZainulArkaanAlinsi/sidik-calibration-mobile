@@ -125,6 +125,8 @@ class LembarKerjaSubmission {
     this.suhuAkhir,
     this.kelembabanAwal,
     this.kelembabanAkhir,
+    this.tekananAwal,
+    this.tekananAkhir,
     this.catatanTeknisi,
     this.thermohygroStandardId,
     this.alatModel,
@@ -160,6 +162,19 @@ class LembarKerjaSubmission {
   final double? suhuAkhir;
   final double? kelembabanAwal;
   final double? kelembabanAkhir;
+
+  /// Tekanan udara ruangan, awal & akhir kerja (hPa).
+  ///
+  /// Cuma Gas Detector yang punya kolom ini, dan buat dia kolomnya BUKAN
+  /// pelengkap: komponen suhu & tekanan di budget ketidakpastiannya lahir dari
+  /// PERGESERAN ruangan selama sesi (Δ = |akhir − awal|), jadi tanpa dua angka
+  /// ini U95-nya keluar lebih kecil dari yang sebenarnya bisa
+  /// dipertanggungjawabkan.
+  ///
+  /// `null` buat delapan alat lain — lembarnya nggak punya kolomnya, dan
+  /// `toJson` di bawah nggak mengirim kunci yang nilainya null.
+  final double? tekananAwal;
+  final double? tekananAkhir;
   final String? catatanTeknisi;
 
   /// "6. Thermohygro used" — unit yang dipakai nyatet kondisi ruang. Diisi
@@ -256,6 +271,8 @@ class LembarKerjaSubmission {
     'suhu_akhir': suhuAkhir,
     'kelembaban_awal': kelembabanAwal,
     'kelembaban_akhir': kelembabanAkhir,
+    'tekanan_awal': tekananAwal,
+    'tekanan_akhir': tekananAkhir,
     'catatan_teknisi': catatanTeknisi?.trim(),
     'alat_model': alatModel?.trim(),
     'alat_serial_number': alatSerialNumber?.trim(),

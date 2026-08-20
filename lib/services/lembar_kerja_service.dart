@@ -200,6 +200,7 @@ class MockLembarKerjaService implements LembarKerjaService {
       ),
       'viscometer' => contohBentukLembarKerjaVisco(untukAdmin: untukAdmin),
       'do_meter' => contohBentukLembarKerjaDo(untukAdmin: untukAdmin),
+      'gas_detector' => contohBentukLembarKerjaGas(untukAdmin: untukAdmin),
       // Profil kosong / nggak dikenal SENGAJA jatuh ke pH, bukan lempar error —
       // sama kayak janji kontraknya (`docs/kontrak-api.md` §4).
       _ => contohBentukLembarKerja(untukAdmin: untukAdmin),
@@ -1788,6 +1789,213 @@ Map<String, dynamic> contohBentukLembarKerjaDo({bool untukAdmin = false}) {
         'kerja tetap bisa dikirim. Sertifikat memakai tabel After adjustment; '
         'alat ini nggak dapat vonis PASS/FAIL karena masternya nggak punya '
         'batas keberterimaan.',
+    'bagian': bagian,
+  };
+}
+
+/// Bentuk lembar kerja **Multi Gas Detector** (alat ke-10).
+///
+/// Disalin dari keluaran `GasDetectorProfile::bentukLembarKerja()`, bukan
+/// dikarang dari kertasnya. Tanpa ini mode offline diam-diam menyajikan lembar
+/// pH buat profil `gas_detector` — persis kegagalan senyap yang sudah terjadi
+/// di Viscometer.
+///
+/// Empat hal yang beda dari delapan alat lain, dan keempatnya gampang salah
+/// kalau ditebak:
+///
+///  1. **Satuannya campur per baris** — ppm, ppm, %LEL, %. `satuan` di level
+///     lembar sengaja `null`; yang benar nempel di tiap baris. Layar sudah
+///     mendukung ini (`BarisTabelHasil.satuan`), sama seperti Conductivity.
+///  2. **TIGA pengulangan, bukan lima.**
+///  3. **Ada tekanan udara awal & akhir (hPa)** — kolom ketiga di tabel
+///     Environment Condition, dan cuma alat ini yang punya. Bukan pelengkap:
+///     komponen suhu & tekanan di budget-nya lahir dari pergeseran ruangan
+///     (Δ = |akhir − awal|), jadi tanpa dua angka itu U95-nya keluar terlalu
+///     kecil tanpa satu pun error.
+///  4. **Tabelnya cuma kolom Reading** — nggak ada kolom suhu larutan seperti
+///     pH/DO, karena yang diukur gas, bukan larutan.
+///
+/// `kode_dokumen` memang `null`: lembar kerja gas detector belum punya nomor
+/// formulir. Yang tercetak di sertifikat metodenya, `SIDIK-IK-CAL-0536_Rev.0`.
+Map<String, dynamic> contohBentukLembarKerjaGas({bool untukAdmin = false}) {
+  Map<String, dynamic> field(
+    String kode,
+    String label,
+    String tipe, {
+    String? sumber,
+    String? satuan,
+    List<Map<String, String>> pilihan = const [],
+    bool hanyaAdmin = false,
+  }) => {
+    'kode': kode,
+    'label': label,
+    'tipe': tipe,
+    'wajib': false,
+    'sumber': sumber,
+    'satuan': satuan,
+    'pilihan': pilihan,
+    'hanya_admin': hanyaAdmin,
+  };
+
+  // Nilai titiknya konsentrasi sertifikat tabung gasnya, bukan angka bulat
+  // yang tertulis di badan alat.
+  Map<String, dynamic> tabel(String tahap, String judul) => {
+    'tahap': tahap,
+    'judul': judul,
+    'baris': const [
+      {
+        'titik_ukur': 101.0,
+        'label': 'CO',
+        'satuan': 'ppm',
+        'resolusi': 1.0,
+        'desimal': 0,
+        'remark': 'Carbon Monoxide (CO)',
+      },
+      {
+        'titik_ukur': 25.0,
+        'label': 'H2S',
+        'satuan': 'ppm',
+        'resolusi': 1.0,
+        'desimal': 0,
+        'remark': 'Hydrogen Sulfide (H\u2082S)',
+      },
+      {
+        'titik_ukur': 50.0,
+        'label': 'CH4',
+        'satuan': '%LEL',
+        'resolusi': 1.0,
+        'desimal': 0,
+        'remark': 'Methane (CH4)',
+      },
+      {
+        'titik_ukur': 17.9,
+        'label': 'O2',
+        'satuan': '%',
+        'resolusi': 0.1,
+        'desimal': 1,
+        'remark': 'Oxygen (O2)',
+      },
+    ],
+    // Satu kolom saja, dan satuannya null di level kolom — yang dipakai
+    // satuan per BARIS di atas.
+    'kolom': const [
+      {'kode': 'pembacaan', 'label': 'Reading', 'tipe': 'angka', 'satuan': null},
+    ],
+    'pengulangan': const [1, 2, 3],
+  };
+
+  final bagian = <Map<String, dynamic>>[
+    {
+      'kode': 'identitas_alat',
+      'halaman': 1,
+      'judul': 'EQUIPMENT IDENTITY AND CUSTOMER DATA',
+      'field': [
+        field('tanggal_terima', 'Received Date', 'tanggal'),
+        field('tanggal_kalibrasi', 'Calibration Date', 'tanggal'),
+        field('equipment_id', 'Equipment', 'pilihan', sumber: 'master_alat'),
+        field('equipment.nama_alat', '1. Name', 'teks', sumber: 'otomatis'),
+        field('alat_merk', '2. Merk/Manufacture', 'teks'),
+        field('alat_model', '3. Type/Model', 'teks'),
+        field('alat_serial_number', '4. Serial Number/LPI', 'teks'),
+      ],
+    },
+    {
+      'kode': 'pemilik',
+      'halaman': 1,
+      'judul': 'OWNER',
+      'field': [
+        field('pemilik_nama', '1. Name', 'teks'),
+        field('pemilik_alamat', '2. Address', 'teks_panjang'),
+      ],
+    },
+    {
+      'kode': 'usage_check',
+      'halaman': 1,
+      'judul': 'STANDARD',
+      // Empat tabung gas + satu thermobarometer. `terdaftar: false` karena
+      // master standarnya belum punya barisnya — namanya tetap tercetak di
+      // lembar supaya teknisi bisa mencentang apa yang benar-benar dipakai.
+      'baris': const [
+        {'label': 'Standar Gas Mixture (CO) \u2014 101 ppm', 'terdaftar': false},
+        {'label': 'Standar Gas Mixture (H\u2082S) \u2014 25 ppm', 'terdaftar': false},
+        {
+          'label': 'Standar Gas Mixture (CH4) \u2014 2,5 % (50 %LEL)',
+          'terdaftar': false,
+        },
+        {'label': 'Standar Gas Mixture (O2) \u2014 17,9 %', 'terdaftar': false},
+        {'label': 'Thermobarometer Lutron', 'terdaftar': false},
+      ],
+      'field': [
+        field('standar_dicek.*.dipakai', 'Usage Check', 'centang'),
+        field('standar_dicek.*.keterangan', 'Keterangan', 'teks'),
+      ],
+    },
+    {
+      'kode': 'data_kalibrasi',
+      'halaman': 1,
+      'judul': 'CALIBRATION DATA',
+      'field': [
+        field('lokasi', '1. Location', 'pilihan', pilihan: const [
+          {'nilai': 'lab', 'label': 'Inlab'},
+          {'nilai': 'onsite', 'label': 'Insitu'},
+        ]),
+        field('room_id', 'Ruangan', 'pilihan', sumber: 'master_ruangan'),
+        if (untukAdmin)
+          field('calibration_method_id', '2. Calibration Methode', 'pilihan',
+              sumber: 'master_metode', hanyaAdmin: true),
+      ],
+    },
+    {
+      'kode': 'hasil',
+      'halaman': 1,
+      'judul': 'CALIBRATION RESULT',
+      'field': [
+        field('suhu_awal', 'Env. Condition \u2014 First', 'angka', satuan: '\u00B0C'),
+        field('kelembaban_awal', 'Env. Condition \u2014 First', 'angka',
+            satuan: '%RH'),
+        field('tekanan_awal', 'Env. Condition \u2014 First', 'angka', satuan: 'hPa'),
+        field('suhu_akhir', 'Env. Condition \u2014 End', 'angka', satuan: '\u00B0C'),
+        field('kelembaban_akhir', 'Env. Condition \u2014 End', 'angka',
+            satuan: '%RH'),
+        field('tekanan_akhir', 'Env. Condition \u2014 End', 'angka', satuan: 'hPa'),
+        // Namanya "Environmental Meter", bukan "Thermohygro": alat yang
+        // dipakai di sini juga membaca tekanan.
+        field('thermohygro_standard_id', 'Environmental Meter Used', 'pilihan',
+            sumber: 'master_thermohygro'),
+      ],
+      'tabel': [
+        tabel('sebelum_adjustment', 'Before Adjustment Reading'),
+        tabel('sesudah_adjustment', 'After Adjustment Reading'),
+      ],
+    },
+    {
+      'kode': 'penutup',
+      'halaman': 1,
+      'judul': 'Catatan & Tanda Tangan',
+      'field': [
+        field('catatan_teknisi', 'Catatan', 'teks_panjang'),
+        field('teknisi.nama', 'Calibrated by', 'teks', sumber: 'otomatis'),
+        field('reviewer.nama', 'Checked by', 'teks', sumber: 'otomatis'),
+      ],
+    },
+  ];
+
+  return {
+    'kode_dokumen': null,
+    'kode_metode': 'SIDIK-IK-CAL-0536_Rev.0',
+    'judul': 'Calibration Worksheet - Multi Gas Detector',
+    'untuk': untukAdmin ? 'admin' : 'teknisi',
+    'jumlah_pengulangan': 3,
+    'larutan_standar': const [101.0, 25.0, 50.0, 17.9],
+    // Sengaja null — lihat docblock, satuannya nempel per baris.
+    'satuan': null,
+    'satuan_suhu': '\u00B0C',
+    'satuan_tekanan': 'hPa',
+    'semua_kolom_opsional': true,
+    'catatan_pengisian':
+        'Kolom yang belum bisa diisi di lapangan boleh dikosongin \u2014 lembar '
+        'kerja tetap bisa dikirim. Khusus alat ini, TEKANAN UDARA awal & akhir '
+        'wajib buat dapat ketidakpastian yang benar.',
     'bagian': bagian,
   };
 }

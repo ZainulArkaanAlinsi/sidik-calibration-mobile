@@ -874,6 +874,8 @@ class LembarKerjaState {
     isiAngka('suhu_akhir', isi.suhuAkhir);
     isiAngka('kelembaban_awal', isi.kelembabanAwal);
     isiAngka('kelembaban_akhir', isi.kelembabanAkhir);
+    isiAngka('tekanan_awal', isi.tekananAwal);
+    isiAngka('tekanan_akhir', isi.tekananAkhir);
 
     standardId ??= isi.standardId;
     roomId ??= isi.roomId;
@@ -1110,6 +1112,13 @@ class LembarKerjaState {
       suhuAkhir: angka('suhu_akhir'),
       kelembabanAwal: angka('kelembaban_awal'),
       kelembabanAkhir: angka('kelembaban_akhir'),
+      // Cuma Gas Detector yang lembarnya punya dua kolom ini; alat lain nggak
+      // punya kotaknya, `angka()` balikin null, dan kuncinya nggak kekirim.
+      // Buat Gas Detector dua angka ini nentuin komponen suhu & tekanan di
+      // budget-nya — kalau kelewat, U95-nya keluar terlalu kecil tanpa satu
+      // pun error.
+      tekananAwal: angka('tekanan_awal'),
+      tekananAkhir: angka('tekanan_akhir'),
       catatanTeknisi: kalimat('catatan_teknisi'),
       thermohygroStandardId: thermohygroStandardId,
       alatModel: kalimat('alat_model'),

@@ -2540,6 +2540,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkKelembaban => 'Humidity';
 
   @override
+  String get lkTekanan => 'Pressure';
+
+  @override
   String get lkAwal => 'First';
 
   @override
