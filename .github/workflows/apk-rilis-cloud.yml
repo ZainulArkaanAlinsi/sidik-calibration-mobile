@@ -30,6 +30,15 @@ jobs:
     runs-on: ubuntu-latest
     name: build apk
 
+    env:
+      # Konteks `secrets` nggak bisa dipakai langsung di `if:` sebuah step,
+      # jadi jawabannya diturunin sekali di sini — `env` boleh baca `secrets`,
+      # dan `if:` boleh baca `env`. Nilainya string 'true'/'false', bukan
+      # boolean, karena semua nilai `env` di Actions itu string.
+      #
+      # Yang dibocorin cuma "ada apa nggak", bukan isinya.
+      PUNYA_KUNCI_FIREBASE: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -97,3 +106,59 @@ jobs:
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 30
+
+      # Sampai sini APK-nya cuma jadi artifact: harus ada yang buka tab
+      # Actions, unduh zip-nya, ekstrak, lalu kirim manual ke tiap teknisi.
+      # Langkah di bawah yang bikin "otomatis"-nya beneran nyampe ke HP —
+      # App Distribution ngirim notifikasi ke grup `teknisi`, dan yang udah
+      # pasang aplikasi App Tester dapat update-nya sendiri.
+      #
+      # `if` di sini SENGAJA, dan bukan sekadar kehati-hatian: tanpa dia,
+      # setiap fork dan setiap checkout yang belum nempel service account
+      # bakal merah di langkah terakhir padahal APK-nya sukses kebangun.
+      # Yang belum dipasang itu keadaan yang sah, bukan kesalahan — jadi
+      # dilewat dengan catatan, bukan digagalin.
+      #
+      # Kenapa Secret (bukan Variable kayak API_BASE_URL): isi service
+      # account itu kunci yang bisa dipakai ngirim rilis atas nama project,
+      # dan dia TIDAK ikut ketanam ke APK. Beda persis sama API_BASE_URL,
+      # yang nilainya kebawa di dalam biner apa pun yang kita lakuin — itu
+      # sebabnya yang satu disensor dan yang satu nggak.
+      #
+      # Masangnya sekali, dari Firebase Console → Project settings →
+      # Service accounts → Generate new private key, lalu:
+      #   gh secret set FIREBASE_SERVICE_ACCOUNT < kunci-yang-diunduh.json
+      - name: Kirim ke tester (Firebase App Distribution)
+        if: env.PUNYA_KUNCI_FIREBASE == 'true'
+        env:
+          # App ID BUKAN rahasia — nilainya ikut terbawa di dalam setiap APK,
+          # jadi aman ditulis di repo publik ini (lihat docs/deploy-firebase.md).
+          APP_ID: '1:573275146800:android:6b5ffb7202167a0ccb3bf5'
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-sa.json
+          # Dua nilai di bawah lewat `env`, BUKAN ditempel langsung ke dalam
+          # `run:`. Yang ditempel `${{ }}` disalin mentah-mentah jadi teks
+          # skrip sebelum shell-nya jalan, jadi pesan commit yang isinya
+          # tanda kutip atau `;` bakal kebaca sebagai perintah — dan pesan
+          # commit itu bisa datang dari siapa pun yang ngirim PR.
+          KUNCI: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          CATATAN_RILIS: ${{ github.event.head_commit.message || github.sha }}
+        run: |
+          # Kuncinya ditulis ke berkas, bukan dioper sebagai argumen: argumen
+          # kelihatan di daftar proses runner, berkas nggak.
+          printf '%s' "$KUNCI" > "$GOOGLE_APPLICATION_CREDENTIALS"
+
+          # Versinya dipatok. `firebase-tools` rilis tiap minggu, dan update
+          # yang mendarat sendiri bikin rilis gagal di hari yang nggak ada
+          # kaitannya sama perubahan kode kita.
+          npm install --global firebase-tools@13
+
+          firebase appdistribution:distribute \
+            build/app/outputs/flutter-apk/app-release.apk \
+            --app "$APP_ID" \
+            --groups "teknisi" \
+            --release-notes "$CATATAN_RILIS"
+
+      - name: Catatan kalau belum dipasang
+        if: env.PUNYA_KUNCI_FIREBASE != 'true'
+        run: |
+          echo "::notice::APK-nya jadi, tapi belum kekirim otomatis ke tester — secret FIREBASE_SERVICE_ACCOUNT belum dipasang. Unduh manual dari artifact 'sidik-cloud-apk', atau pasang secretnya (lihat komentar di berkas workflow ini)."
