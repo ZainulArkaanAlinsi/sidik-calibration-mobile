@@ -6500,6 +6500,12 @@ abstract class AppLocalizations {
   /// **'FIX WORKSHEET'**
   String get detailPerbaikiRevisi;
 
+  /// No description provided for @detailLanjutkanDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTINUE DRAFT'**
+  String get detailLanjutkanDraft;
+
   /// No description provided for @lkTitikAlternatifSatuan.
   ///
   /// In en, this message translates to:

@@ -3560,6 +3560,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get detailPerbaikiRevisi => 'PERBAIKI LEMBAR KERJA';
 
   @override
+  String get detailLanjutkanDraft => 'LANJUTKAN DRAFT';
+
+  @override
   String get lkTitikAlternatifSatuan =>
       'Alternatif satuan dari botol yang sama — sudah diisi di baris satunya';
 

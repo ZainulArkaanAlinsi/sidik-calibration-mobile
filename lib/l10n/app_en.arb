@@ -1921,6 +1921,7 @@
   "statusTanpaKeputusan": "No pass/fail",
   "detailEditAdmin": "EDIT SHEET",
   "detailPerbaikiRevisi": "FIX WORKSHEET",
+  "detailLanjutkanDraft": "CONTINUE DRAFT",
   "lkTitikAlternatifSatuan": "Alternate unit of the same standard — already filled in the other row",
   "@lkRepeat": {
     "description": "Header of the repeat-number column on sheets whose Repeat runs downwards."

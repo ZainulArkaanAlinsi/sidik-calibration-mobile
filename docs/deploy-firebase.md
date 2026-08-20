@@ -161,7 +161,25 @@ sendiri.
      --dart-define=API_BASE_URL="https://<nama>.onrender.com/api"
    ```
 
-4. Kirim ke tester:
+4. Kirim ke tester — **sekarang otomatis**. Workflow "APK rilis (nyambung
+   server)" ngirim sendiri ke grup `teknisi` begitu APK-nya jadi, dengan
+   catatan rilis = pesan commit-nya.
+
+   Syaratnya satu, dipasang sekali: service account Firebase sebagai
+   **Secret** (bukan Variable — kunci ini nggak ikut ketanam ke APK, beda
+   sama `API_BASE_URL`). Firebase Console → Project settings → Service
+   accounts → **Generate new private key**, lalu:
+
+   ```bash
+   gh secret set FIREBASE_SERVICE_ACCOUNT < kunci-yang-diunduh.json
+   ```
+
+   Selama secret itu belum ada, workflow-nya **nggak gagal** — APK-nya tetap
+   kebangun dan tetap jadi artifact, cuma langkah kirimnya dilewat dengan
+   catatan di ringkasan run. Yang belum dipasang itu keadaan yang sah, bukan
+   kesalahan.
+
+   Kalau mau kirim manual (mis. APK hasil build lokal):
 
    ```bash
    firebase appdistribution:distribute \
