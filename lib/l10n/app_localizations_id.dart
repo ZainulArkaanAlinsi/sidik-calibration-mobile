@@ -2567,7 +2567,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String lkFotoTabelBarisKembar(String baris) {
-    return 'Bentuk tabel lembar ini belum bisa difoto: baris $baris kedaftar lebih dari sekali sebagai penanda baris, jadi angkanya nggak bisa dipastikan masuk baris yang mana. Jepret ulang nggak nolong — isi manual dulu, dan kasih tau admin biar penanda barisnya dibetulin di master.';
+    return 'Tabel lembar ini nggak bisa difoto: baris $baris kepakai lebih dari sekali sebagai penanda baris, jadi angkanya nggak bisa dipastikan masuk baris yang mana. Ini bentuk lembarnya, bukan fotonya — jepret ulang nggak nolong. Isi manual aja.';
   }
 
   @override

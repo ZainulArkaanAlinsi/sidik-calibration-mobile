@@ -2581,7 +2581,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String lkFotoTabelBarisKembar(String baris) {
-    return 'This sheet\'s table shape can\'t be photographed yet: row marker $baris is registered more than once, so there\'s no way to tell which row a reading belongs to. Retaking the photo won\'t help — fill it in by hand and tell an admin to fix the row markers in the master.';
+    return 'This sheet\'s table can\'t be photographed: row marker $baris is used more than once, so there\'s no way to tell which row a reading belongs to. This is the sheet\'s shape, not your photo — retaking won\'t help. Fill it in by hand.';
   }
 
   @override

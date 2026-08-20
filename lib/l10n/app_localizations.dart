@@ -4769,7 +4769,7 @@ abstract class AppLocalizations {
   /// No description provided for @lkFotoTabelBarisKembar.
   ///
   /// In en, this message translates to:
-  /// **'This sheet\'s table shape can\'t be photographed yet: row marker {baris} is registered more than once, so there\'s no way to tell which row a reading belongs to. Retaking the photo won\'t help — fill it in by hand and tell an admin to fix the row markers in the master.'**
+  /// **'This sheet\'s table can\'t be photographed: row marker {baris} is used more than once, so there\'s no way to tell which row a reading belongs to. This is the sheet\'s shape, not your photo — retaking won\'t help. Fill it in by hand.'**
   String lkFotoTabelBarisKembar(String baris);
 
   /// Jangkar baris & kolom ketemu semua, tapi nol angka di badan tabel — biasanya kertas/lembar yang difoto memang belum diisi.
