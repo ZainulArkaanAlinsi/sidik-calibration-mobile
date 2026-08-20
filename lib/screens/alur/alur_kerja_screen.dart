@@ -10,6 +10,7 @@ import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../providers/izin_provider.dart';
+import '../../widgets/master_detail_pane.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/status_badge.dart';
 import '../admin/perhitungan_screen.dart';
@@ -41,23 +42,67 @@ class _AlurKerjaScreenState extends ConsumerState<AlurKerjaScreen> {
   int? _sesiDipilih;
   String _cari = '';
 
+  /// Dipanggil dari baris daftar. [panelGanda] dateng dari tata letak yang
+  /// lagi aktif — bukan dari `Platform`, karena jendela desktop yang
+  /// disempitin pantas dapet perilaku HP. Sama kayak `history_screen.dart`.
+  void _pilih(CalibrationHistoryItem sesi, {required bool panelGanda}) {
+    if (panelGanda) {
+      setState(() => _sesiDipilih = sesi.id);
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => _HalamanTahapan(sesi: sesi)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final async = ref.watch(historyProvider);
+    final l10n = AppLocalizations.of(context);
 
-    return switch (async) {
-      AsyncData(:final value) => _Isi(
-          sesi: value,
-          dipilih: _sesiDipilih,
-          cari: _cari,
-          onCari: (v) => setState(() => _cari = v),
-          onPilih: (id) => setState(() => _sesiDipilih = id),
-        ),
-      AsyncError() => _Gagal(
-          onCobaLagi: () => ref.invalidate(historyProvider),
-        ),
-      _ => const _Skeleton(),
-    };
+    // AppBar-nya baru, dan bukan hiasan: layar ini dibuka lewat
+    // `Navigator.push` dari menu samping HP (`main_shell.dart`) sementara
+    // dia sendiri nggak punya `Scaffold` — jadi di HP dia mendarat tanpa
+    // tombol balik sama sekali. Di panel desktop bilah ini nggak nabrak apa-
+    // apa: `_BilahAtas` di `desktop_shell.dart` isinya cuma ikon di kanan,
+    // nggak ada judulnya. Sama persis kayak `AntreanApprovalScreen`, menu
+    // tetangganya, yang emang udah begitu dari dulu.
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.alurTitle)),
+      body: switch (async) {
+        AsyncData(:final value) => _Isi(
+            sesi: value,
+            dipilih: _sesiDipilih,
+            cari: _cari,
+            onCari: (v) => setState(() => _cari = v),
+            onPilih: _pilih,
+          ),
+        AsyncError() => _Gagal(
+            onCobaLagi: () => ref.invalidate(historyProvider),
+          ),
+        _ => const _Skeleton(),
+      },
+    );
+  }
+}
+
+/// [_PanelTahapan] sebagai halaman sendiri — dipakai waktu ruangnya cuma cukup
+/// buat satu panel.
+///
+/// Judul bilahnya sengaja nama layar, bukan nama alat: nama alatnya udah jadi
+/// kepala paling atas di dalam panelnya, dan nulis dua kali bikin orang ngira
+/// itu dua hal yang beda.
+class _HalamanTahapan extends StatelessWidget {
+  const _HalamanTahapan({required this.sesi});
+
+  final CalibrationHistoryItem sesi;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(AppLocalizations.of(context).alurTitle)),
+      body: _PanelTahapan(sesi: sesi),
+    );
   }
 }
 
@@ -74,7 +119,12 @@ class _Isi extends StatelessWidget {
   final int? dipilih;
   final String cari;
   final ValueChanged<String> onCari;
-  final ValueChanged<int> onPilih;
+
+  /// Ngoper sesinya utuh, bukan `id`-nya doang: di satu panel yang dipilih
+  /// langsung di-`push` sebagai halaman, dan halaman itu butuh datanya —
+  /// bukan cuma nomornya buat dicari ulang.
+  final void Function(CalibrationHistoryItem sesi, {required bool panelGanda})
+      onPilih;
 
   @override
   Widget build(BuildContext context) {
@@ -96,25 +146,29 @@ class _Isi extends StatelessWidget {
     // nggak nunjuk ke apa-apa.
     final aktif = tersaring.where((s) => s.id == dipilih).firstOrNull;
 
-    return Row(
-      children: [
-        SizedBox(
-          width: 340,
-          child: _DaftarSesi(
-            sesi: tersaring,
-            dipilih: aktif?.id,
-            cari: cari,
-            onCari: onCari,
-            onPilih: onPilih,
-          ),
-        ),
-        const VerticalDivider(width: 1, thickness: 1),
-        Expanded(
-          child: aktif == null
-              ? _BelumMilih(pesan: l10n.alurPilihSesi)
-              : _PanelTahapan(sesi: aktif),
-        ),
-      ],
+    // Dulu ini `Row` dengan `SizedBox(width: 340)` mati — nggak ada
+    // `LayoutBuilder` sama sekali. Di jendela desktop itu kelihatan bener, tapi
+    // di HP 360px daftarnya makan 340 dan panel tahapannya kebagian sisa ~19px:
+    // satu kolom teks yang nggak kebaca. Padahal jalur HP-nya emang disengaja —
+    // menu "Alur Kerja" di `main_shell.dart` ditambahin justru buat admin yang
+    // pegang HP.
+    //
+    // `lebarMaster` 340 dipertahanin (bawaan [MasterDetailPane] 380) supaya
+    // tampilan desktop yang udah jalan nggak ikut bergeser.
+    return MasterDetailPane(
+      lebarMaster: 340,
+      master: (context, panelGanda) => _DaftarSesi(
+        sesi: tersaring,
+        // Sorotan cuma masuk akal kalau panel tahapannya emang lagi kebuka di
+        // sebelahnya. Di satu panel, baris "terpilih" nggak nunjuk ke apa pun
+        // yang kelihatan.
+        dipilih: panelGanda ? aktif?.id : null,
+        cari: cari,
+        onCari: onCari,
+        onPilih: (s) => onPilih(s, panelGanda: panelGanda),
+      ),
+      detail: aktif == null ? null : _PanelTahapan(sesi: aktif),
+      kosong: _BelumMilih(pesan: l10n.alurPilihSesi),
     );
   }
 }
@@ -134,7 +188,7 @@ class _DaftarSesi extends StatelessWidget {
   final int? dipilih;
   final String cari;
   final ValueChanged<String> onCari;
-  final ValueChanged<int> onPilih;
+  final ValueChanged<CalibrationHistoryItem> onPilih;
 
   @override
   Widget build(BuildContext context) {
@@ -169,7 +223,7 @@ class _DaftarSesi extends StatelessWidget {
                   itemBuilder: (_, i) => _BarisSesi(
                     sesi: sesi[i],
                     aktif: sesi[i].id == dipilih,
-                    onTap: () => onPilih(sesi[i].id),
+                    onTap: () => onPilih(sesi[i]),
                   ),
                 ),
         ),
