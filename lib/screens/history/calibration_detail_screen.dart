@@ -220,10 +220,19 @@ class _Isi extends StatelessWidget {
         // `perlu_revisi` ikut kebuka: itu sesi yang DIKEMBALIKAN admin ke
         // teknisi. Tanpa pintu ini, teknisi cuma dapat notifikasi "ditolak"
         // tanpa satu pun cara mbenerin — sesinya mentok di HP-nya.
+        // `draft` ikut kebuka, dan ini yang paling lama kelewat: tombol SIMPAN
+        // SEBAGAI DRAFT itu janji "lanjut nanti", tapi status `draft` nggak
+        // pernah masuk daftar ini — jadi lembar setengah jadi kebuka di sini
+        // sebagai halaman baca-doang, tanpa satu pun cara nerusinnya. Satu-
+        // satunya jalan yang ada cuma layar Alur Kerja, yang di HP cuma muncul
+        // buat admin (`main_shell.dart`) — jadi buat teknisi drafnya beneran
+        // jalan buntu. `PUT /api/calibrations/{id}` emang nerima "nerusin
+        // draft" (kontrak-api.md §4); yang kurang cuma pintunya di layar ini.
         if (detail.status == CalibrationStatus.menungguApproval ||
-            detail.status == CalibrationStatus.perluRevisi) ...[
+            detail.status == CalibrationStatus.perluRevisi ||
+            detail.status == CalibrationStatus.draft) ...[
           const SizedBox(height: AppSpacing.md),
-          _TombolEditAdmin(detail: detail),
+          _TombolLanjutkanLembar(detail: detail),
         ],
 
         const SizedBox(height: AppSpacing.lg),
@@ -1269,17 +1278,20 @@ class _TombolVerifikasiState extends ConsumerState<_TombolVerifikasi> {
   }
 }
 
-/// Tombol Edit buat admin di sesi `menunggu_approval`.
+/// Tombol buat mbuka lembar kerja sesi ini lagi — nerusin draft, mbenerin
+/// lembar yang dikembalikan admin, atau (admin doang) ngedit yang masih
+/// nunggu approval.
 ///
 /// Dipisah jadi widget sendiri karena butuh `ref` (cek peran), sementara
 /// [_Isi] di atas `StatelessWidget` — dan mengubahnya jadi Consumer cuma buat
 /// satu tombol bikin seluruh layar ikut rebuild tiap auth berubah.
 ///
-/// Teknisi nggak dikasih tombol ini: backend nolak dengan 422 yang jelas
-/// ("…nggak bisa diubah teknisi. Minta admin yang ngedit…"), dan mancing orang
-/// ke tombol yang pasti ditolak itu bikin dia ngira app-nya rusak.
-class _TombolEditAdmin extends ConsumerWidget {
-  const _TombolEditAdmin({required this.detail});
+/// Yang dibatasi cuma `menunggu_approval`: di situ backend nolak teknisi
+/// dengan 422 yang jelas ("…nggak bisa diubah teknisi. Minta admin yang
+/// ngedit…"), dan mancing orang ke tombol yang pasti ditolak itu bikin dia
+/// ngira app-nya rusak. `draft` & `perlu_revisi` justru MEMANG punya teknisi.
+class _TombolLanjutkanLembar extends ConsumerWidget {
+  const _TombolLanjutkanLembar({required this.detail});
 
   final CalibrationDetail detail;
 
@@ -1288,15 +1300,21 @@ class _TombolEditAdmin extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final isAdmin = ref.watch(authProvider).value?.role.isAdmin ?? false;
     final perluRevisi = detail.status == CalibrationStatus.perluRevisi;
+    final draft = detail.status == CalibrationStatus.draft;
 
-    // Sesi yang DIKEMBALIKAN admin memang buat dikerjain ulang teknisi, jadi
-    // di status itu tombolnya buat SEMUA orang. Di `menunggu_approval` tetap
-    // admin doang — backend nolak teknisi dengan 422, dan mancing orang ke
-    // tombol yang pasti ditolak bikin dia ngira app-nya rusak.
-    if (!isAdmin && !perluRevisi) return const SizedBox.shrink();
+    // Sesi yang DIKEMBALIKAN admin memang buat dikerjain ulang teknisi, dan
+    // draft itu lembar teknisi sendiri yang belum pernah dikirim — dua-duanya
+    // buat SEMUA orang. Di `menunggu_approval` tetap admin doang: backend
+    // nolak teknisi dengan 422, dan mancing orang ke tombol yang pasti
+    // ditolak bikin dia ngira app-nya rusak.
+    if (!isAdmin && !perluRevisi && !draft) return const SizedBox.shrink();
 
     return AppButton(
-      label: perluRevisi ? l10n.detailPerbaikiRevisi : l10n.detailEditAdmin,
+      label: switch (detail.status) {
+        CalibrationStatus.draft => l10n.detailLanjutkanDraft,
+        CalibrationStatus.perluRevisi => l10n.detailPerbaikiRevisi,
+        _ => l10n.detailEditAdmin,
+      },
       icon: Icons.edit_outlined,
       variant: AppButtonVariant.secondary,
       onPressed: () => Navigator.of(context).push(

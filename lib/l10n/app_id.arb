@@ -1430,6 +1430,10 @@
   "statusTanpaKeputusan": "Tanpa PASS/FAIL",
   "detailEditAdmin": "EDIT LEMBAR",
   "detailPerbaikiRevisi": "PERBAIKI LEMBAR KERJA",
+  "detailLanjutkanDraft": "LANJUTKAN DRAFT",
+  "@detailLanjutkanDraft": {
+    "description": "Tombol di layar detail sesi berstatus draft — mbuka lembar kerjanya lagi buat diterusin. Sengaja bukan \"EDIT\": draft belum pernah dikirim, jadi yang dikerjain lanjutan, bukan koreksi."
+  },
   "lkTitikAlternatifSatuan": "Alternatif satuan dari botol yang sama — sudah diisi di baris satunya",
   "@lkRepeat": {
     "description": "Kepala kolom nomor pengulangan di lembar kerja yang Repeat-nya turun ke bawah."
