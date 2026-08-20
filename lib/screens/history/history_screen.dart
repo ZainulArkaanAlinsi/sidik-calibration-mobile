@@ -156,7 +156,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
         ],
       ),
       body: Container(
-        decoration: BoxDecoration(gradient: AppColors.gradasiLatar(context)),
+        decoration: BoxDecoration(color: AppColors.warnaLatar(context)),
         child: MasterDetailPane(
           master: (context, panelGanda) => RefreshIndicator(
             onRefresh: () => ref.read(historyProvider.notifier).muatUlang(),

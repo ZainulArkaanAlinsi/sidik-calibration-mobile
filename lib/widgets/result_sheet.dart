@@ -213,11 +213,7 @@ class _SegelPainter extends CustomPainter {
     canvas.drawPath(
       path,
       Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color.lerp(warna, Colors.white, 0.26)!, warna],
-        ).createShader(Offset.zero & size),
+        ..color = warna,
     );
   }
 

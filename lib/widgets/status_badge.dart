@@ -91,10 +91,10 @@ class StatusBadge extends StatelessWidget {
   }
 
   Color _color(ColorScheme scheme) => switch (tone) {
-    BadgeTone.success => AppColors.success,
-    BadgeTone.danger => AppColors.danger,
-    BadgeTone.warning => AppColors.warning,
-    BadgeTone.info => AppColors.info,
+    BadgeTone.success => AppColors.statusSukses(scheme.brightness),
+    BadgeTone.danger => AppColors.statusBahaya(scheme.brightness),
+    BadgeTone.warning => AppColors.statusPeringatan(scheme.brightness),
+    BadgeTone.info => AppColors.statusInfo(scheme.brightness),
     BadgeTone.neutral => scheme.onSurfaceVariant,
   };
 

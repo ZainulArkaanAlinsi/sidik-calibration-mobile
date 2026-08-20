@@ -17,25 +17,62 @@ class DesignSystemScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    final brightness = Theme.of(context).brightness;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Design System')),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
           _Section(
-            title: 'Warna',
+            title: 'Palet inti',
             child: Wrap(
               spacing: AppSpacing.sm,
               runSpacing: AppSpacing.sm,
               children: const [
-                _Swatch(color: AppColors.navy, name: 'Navy'),
-                _Swatch(color: AppColors.teal, name: 'Teal'),
-                _Swatch(color: AppColors.titanium, name: 'Titanium'),
-                _Swatch(color: AppColors.surfaceMuted, name: 'Surface'),
-                _Swatch(color: AppColors.success, name: 'Success'),
-                _Swatch(color: AppColors.danger, name: 'Danger'),
-                _Swatch(color: AppColors.warning, name: 'Warning'),
-                _Swatch(color: AppColors.info, name: 'Info'),
+                _Swatch(color: AppColors.crimson, name: 'Crimson Red'),
+                _Swatch(color: AppColors.ink, name: 'Jet Black'),
+                _Swatch(color: AppColors.mint, name: 'Arctic Mint'),
+                _Swatch(color: AppColors.ivory, name: 'Bright Ivory'),
+                _Swatch(color: AppColors.cobalt, name: 'Cobalt Blue'),
+              ],
+            ),
+          ),
+
+          _Section(
+            title: 'Turunan',
+            child: Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              children: const [
+                _Swatch(color: AppColors.cobaltDeep, name: 'Cobalt Deep'),
+                _Swatch(color: AppColors.cobaltSoft, name: 'Cobalt Soft'),
+                _Swatch(color: AppColors.mintDeep, name: 'Mint Deep'),
+                _Swatch(color: AppColors.crimsonSoft, name: 'Crimson Soft'),
+                _Swatch(color: AppColors.hairline, name: 'Hairline'),
+              ],
+            ),
+          ),
+
+          _Section(
+            title: 'Status',
+            child: Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              children: [
+                _Swatch(
+                  color: AppColors.statusSukses(brightness),
+                  name: 'Success',
+                ),
+                _Swatch(
+                  color: AppColors.statusBahaya(brightness),
+                  name: 'Danger',
+                ),
+                _Swatch(
+                  color: AppColors.statusPeringatan(brightness),
+                  name: 'Warning',
+                ),
+                _Swatch(color: AppColors.statusInfo(brightness), name: 'Info'),
               ],
             ),
           ),

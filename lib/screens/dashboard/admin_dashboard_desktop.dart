@@ -319,7 +319,7 @@ class _KartuHighlight extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.teal,
+        color: AppColors.mintDeep,
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
       ),
       child: Column(

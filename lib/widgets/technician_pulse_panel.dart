@@ -73,7 +73,6 @@ class TechnicianPulsePanel extends StatelessWidget {
         child: LiquidGlass(
           panelGelap: true,
           radius: 30,
-          sorot: 0.30,
           padding: EdgeInsets.zero,
           child: Stack(
             children: [
@@ -88,12 +87,7 @@ class TechnicianPulsePanel extends StatelessWidget {
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          AppColors.tealBright.withValues(alpha: 0.26),
-                          AppColors.tealBright.withValues(alpha: 0),
-                        ],
-                      ),
+                      color: AppColors.mint.withValues(alpha: 0.14),
                     ),
                   ),
                 ),
@@ -111,7 +105,7 @@ class TechnicianPulsePanel extends StatelessWidget {
                     geser: Offset(0, 0.04),
                   ),
                   cahaya: const Cahaya3D(
-                    warnaTepi: AppColors.electricBlue,
+                    warnaTepi: AppColors.cobalt,
                     kuatTepi: 0.62,
                   ),
                   yawAwal: -1.25,
@@ -187,7 +181,7 @@ class TechnicianPulsePanel extends StatelessWidget {
                           nilai: pending,
                           label: pendingLabel,
                           warna: pending > 0
-                              ? AppColors.signalAmber
+                              ? AppColors.cobalt
                               : Colors.white,
                           icon: Icons.hourglass_top_rounded,
                         ),
@@ -195,7 +189,7 @@ class TechnicianPulsePanel extends StatelessWidget {
                         _Metrik(
                           nilai: done,
                           label: doneLabel,
-                          warna: AppColors.tealBright,
+                          warna: AppColors.mint,
                           icon: Icons.task_alt_rounded,
                         ),
                       ],
@@ -226,10 +220,10 @@ class _Live extends StatelessWidget {
           height: 8,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.tealBright,
+            color: AppColors.mint,
             boxShadow: [
               BoxShadow(
-                color: AppColors.tealBright.withValues(alpha: 0.9),
+                color: AppColors.mint.withValues(alpha: 0.9),
                 blurRadius: 9,
               ),
             ],
@@ -272,14 +266,10 @@ class _TombolMulai extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 18),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [AppColors.signalAmber, Color(0xFFE0952E)],
-            ),
+            color: AppColors.cobalt,
             boxShadow: [
               BoxShadow(
-                color: AppColors.signalAmber.withValues(alpha: 0.38),
+                color: AppColors.cobalt.withValues(alpha: 0.38),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -290,7 +280,7 @@ class _TombolMulai extends StatelessWidget {
             children: [
               const Icon(
                 Icons.play_arrow_rounded,
-                color: AppColors.navyDeep,
+                color: AppColors.inkDeep,
                 size: 22,
               ),
               const SizedBox(width: 7),
@@ -301,7 +291,7 @@ class _TombolMulai extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: AppColors.navyDeep,
+                    color: AppColors.inkDeep,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.3,
                   ),

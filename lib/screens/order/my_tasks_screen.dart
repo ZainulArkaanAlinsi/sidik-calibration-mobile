@@ -74,7 +74,7 @@ class _MyTasksScreenState extends ConsumerState<MyTasksScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.tugasTitle)),
       body: Container(
-        decoration: BoxDecoration(gradient: AppColors.gradasiLatar(context)),
+        decoration: BoxDecoration(color: AppColors.warnaLatar(context)),
         child: isi,
       ),
     );

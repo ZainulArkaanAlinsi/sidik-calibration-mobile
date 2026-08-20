@@ -122,7 +122,7 @@ class FloatingNavBar extends StatelessWidget {
                           offset: const Offset(0, 5),
                         ),
                         BoxShadow(
-                          color: AppColors.signalAmber.withValues(alpha: 0.13),
+                          color: AppColors.cobalt.withValues(alpha: 0.13),
                           blurRadius: 18,
                           spreadRadius: 1,
                         ),

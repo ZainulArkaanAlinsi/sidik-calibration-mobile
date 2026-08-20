@@ -45,7 +45,7 @@ class _SidikLoaderState extends State<SidikLoader>
   @override
   Widget build(BuildContext context) {
     final gelap = Theme.of(context).brightness == Brightness.dark;
-    final tick = widget.warna ?? (gelap ? AppColors.tealBright : AppColors.teal);
+    final tick = widget.warna ?? (gelap ? AppColors.mint : AppColors.mintDeep);
     final sapuan = widget.warnaSapuan ?? AppColors.warning;
 
     return RepaintBoundary(

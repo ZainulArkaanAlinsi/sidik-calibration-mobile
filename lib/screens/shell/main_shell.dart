@@ -237,7 +237,7 @@ class _MenuUtama extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       child: Container(
         decoration: BoxDecoration(
-          gradient: AppColors.gradasiLatar(context),
+          color: AppColors.warnaLatar(context),
           border: Border(
             right: BorderSide(color: Colors.white.withValues(alpha: 0.50)),
           ),

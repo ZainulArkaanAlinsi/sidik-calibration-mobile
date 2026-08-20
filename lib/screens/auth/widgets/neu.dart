@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/config/lab_profile.dart';
+import '../../../core/theme/app_colors.dart';
 
 /// Kit "soft UI" / neumorphism — **khusus layar auth** (Login & Register).
 ///
@@ -30,7 +31,8 @@ class NeuColors {
   final Color text;
   final Color textMuted;
 
-  /// Aksen biru lembut buat tombol utama — diambil dari gambar acuan.
+  /// Aksen Cobalt buat tombol utama — sama persis sama warna interaktif di
+  /// sisa app, biar tombol di layar auth dan di dalam app kebaca satu bahasa.
   final Color accent;
   final Color onAccent;
   final Color danger;
@@ -38,26 +40,30 @@ class NeuColors {
   static NeuColors of(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark ? dark : light;
 
+  // Dasarnya ikut palet inti: Bright Ivory di terang, Jet Black di gelap.
+  // Dua warna bayangannya cuma versi lebih terang / lebih gelap dari dasar
+  // yang sama — itu yang bikin permukaannya kebaca timbul, dan itu bukan
+  // pencampuran warna palet.
   static const light = NeuColors(
-    base: Color(0xFFE7EEF8),
-    lightShadow: Color(0xFFFFFFFF),
-    darkShadow: Color(0xFFB9C2D4),
-    text: Color(0xFF313B4C),
-    textMuted: Color(0xFF8A94A6),
-    accent: Color(0xFF0F6575),
-    onAccent: Color(0xFFFFFFFF),
-    danger: Color(0xFFC0413B),
+    base: AppColors.ivory,
+    lightShadow: AppColors.white,
+    darkShadow: Color(0xFFDBDBD0),
+    text: AppColors.ink,
+    textMuted: AppColors.textMuted,
+    accent: AppColors.cobalt,
+    onAccent: AppColors.white,
+    danger: AppColors.crimson,
   );
 
   static const dark = NeuColors(
-    base: Color(0xFF10252E),
-    lightShadow: Color(0xFF323842),
-    darkShadow: Color(0xFF181B21),
-    text: Color(0xFFE7ECF3),
-    textMuted: Color(0xFF9AA4B4),
-    accent: Color(0xFF25B6AB),
-    onAccent: Color(0xFF07141A),
-    danger: Color(0xFFE99A96),
+    base: AppColors.ink,
+    lightShadow: Color(0xFF2E2E2E),
+    darkShadow: Color(0xFF080808),
+    text: AppColors.ivory,
+    textMuted: AppColors.inkTextMuted,
+    accent: AppColors.cobaltLight,
+    onAccent: AppColors.ink,
+    danger: AppColors.crimsonLight,
   );
 }
 
@@ -542,11 +548,7 @@ class NeuBrandBadge extends StatelessWidget {
         width: 76,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [c.accent, Color.lerp(c.accent, Colors.black, 0.28)!],
-          ),
+          color: c.accent,
         ),
         child: Icon(icon, size: 38, color: Colors.white),
       ),

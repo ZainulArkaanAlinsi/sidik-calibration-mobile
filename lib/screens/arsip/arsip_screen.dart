@@ -41,7 +41,7 @@ class _ArsipScreenState extends ConsumerState<ArsipScreen> {
     final async = ref.watch(arsipPerusahaanProvider(_kataKunci));
 
     return Container(
-      decoration: BoxDecoration(gradient: AppColors.gradasiLatar(context)),
+      decoration: BoxDecoration(color: AppColors.warnaLatar(context)),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(title: Text(l10n.arsipTitle)),
@@ -203,7 +203,7 @@ class FolderScreen extends ConsumerWidget {
     final isi = async.value;
 
     return Container(
-      decoration: BoxDecoration(gradient: AppColors.gradasiLatar(context)),
+      decoration: BoxDecoration(color: AppColors.warnaLatar(context)),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(title: Text(isi?.namaFolder ?? judul)),
