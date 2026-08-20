@@ -273,4 +273,71 @@ void main() {
 
     expect(lebar, greaterThan(60), reason: 'kotak angka kesempitan di HP');
   });
+
+  /// Satuan tekanan ikut kolom `satuan_tekanan` yang lagi kepilih.
+  ///
+  /// Angka `1,231` di baris Indikator Pressure artinya beda jauh antara Bar,
+  /// Psi, dan kPa. Tanpa satuannya tertulis di baris yang lagi diisi, teknisi
+  /// nggak punya cara tahu dia lagi nyalin ke satuan mana.
+  testWidgets('baris bersatuan_dari nunjukin satuan yang lagi kepilih', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 2000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final bentuk = LembarKerja.fromJson(bentukJson());
+    final isian = LembarKerjaState(
+      bentuk: bentuk,
+      clientRequestId: 'uji-satuan',
+    );
+    addTearDown(isian.dispose);
+
+    isian.teks['satuan_tekanan']!.text = 'Psi';
+
+    final b = bentuk.bagian.single;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: LembarKerjaMatriks(
+              matriks: b.matriks!,
+              isian: isian,
+              onBerubah: () {},
+              tabelTambahan: b.tabelTambahan,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Indikator Pressure (Psi)'), findsOneWidget);
+    expect(find.text('Tekanan atm awal (Psi)'), findsOneWidget);
+
+    // Label blok di luar kertas SUDAH bawa satuannya dari backend — ditempelin
+    // lagi jadi "… (Bar) (Bar)".
+    expect(find.text('Pressure Disk Logger — hasil unduh (Bar) (Bar)'),
+        findsNothing);
+  });
+
+  /// Kolom `pilihan` yang bawa daftar pilihannya sendiri WAJIB kegambar.
+  ///
+  /// Dulu `_PilihanTetap` cuma kenal tiga kode dan sisanya dirender
+  /// `SizedBox.shrink()`. Buat Autoklaf itu artinya `satuan_tekanan` &
+  /// `display_tekanan` nggak pernah muncul di layar: teknisi nggak tahu ada
+  /// yang harus dipilih, dan angka tekanannya sampai server tanpa satuan.
+  test('kolom pilihan berdaftar dapat controller, jadi nilainya ikut kekirim', () {
+    final bentuk = LembarKerja.fromJson(bentukJson());
+    final isian = LembarKerjaState(
+      bentuk: bentuk,
+      clientRequestId: 'uji-pilihan',
+    );
+    addTearDown(isian.dispose);
+
+    expect(
+      isian.teks.containsKey('display_tekanan'),
+      isTrue,
+      reason: 'kolom pilihan berdaftar butuh controller biar nilainya kekirim',
+    );
+  });
 }

@@ -399,7 +399,18 @@ class LembarKerjaState {
           // Viscometer) digambar `_BarisSpesifikasi`, bukan `_PilihanTetap`
           // — tanpa controller di sini kotaknya kepilih tapi nilainya nggak
           // pernah masuk `spesifikasiAlat` waktu dikirim.
-          (f.tipe == TipeField.pilihan && f.spesifikasiAlat));
+          //
+          // Kolom pilihan BIASA yang bawa daftar pilihannya sendiri juga ikut.
+          // Autoklaf yang bikin ini perlu: `satuan_tekanan` & `display_tekanan`
+          // nentuin arti angka tekanan (Bar vs Psi vs kPa), dan tanpa
+          // controller di sini dua-duanya nggak pernah kekirim — angka
+          // tekanannya sampai server tanpa satuan.
+          //
+          // Yang nggak bawa `pilihan` sengaja dilewat: itu kolom yang isinya
+          // ditarik master (`thermohygro_standard_id`, `lokasi`,
+          // `equipment.satuan`) dan punya jalur simpannya sendiri.
+          (f.tipe == TipeField.pilihan &&
+              (f.spesifikasiAlat || f.pilihan.isNotEmpty)));
 
   /// Samain isi `teks` sama bentuk yang lagi kepasang.
   ///
@@ -417,7 +428,11 @@ class LembarKerjaState {
     final dipakai = <String>{};
 
     for (final bagian in bentuk.bagian) {
-      for (final f in bagian.field) {
+      // Kolom "di luar kertas" ikut, bukan cuma `field`. Kolomnya nggak ada di
+      // lembar cetak tapi tetap dikirim — `display_tekanan` di Autoklaf nentuin
+      // cara baca manometer (Digital vs Analog 1/2/3), dan tanpa controller di
+      // sini kotaknya nggak pernah digambar dan nilainya nggak pernah kekirim.
+      for (final f in [...bagian.field, ...bagian.fieldDiLuarKertas]) {
         if (!_pakaiKotakTeks(f)) continue;
         dipakai.add(f.kode);
         teks.putIfAbsent(f.kode, TextEditingController.new);
