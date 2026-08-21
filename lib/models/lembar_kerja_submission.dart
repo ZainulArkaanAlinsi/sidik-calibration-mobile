@@ -127,6 +127,8 @@ class LembarKerjaSubmission {
     this.kelembabanAkhir,
     this.tekananAwal,
     this.tekananAkhir,
+    this.modeKalibrasi,
+    this.tipeSensor,
     this.catatanTeknisi,
     this.thermohygroStandardId,
     this.alatModel,
@@ -175,6 +177,21 @@ class LembarKerjaSubmission {
   /// `toJson` di bawah nggak mengirim kunci yang nilainya null.
   final double? tekananAwal;
   final double? tekananAkhir;
+  /// Mode kalibrasi TITS — `measure` atau `source`. Null buat sepuluh alat
+  /// lain, yang lembarnya nggak punya kotak ini.
+  ///
+  /// Bukan catatan: arah perhitungan koreksi BERBALIK antara dua mode, dan
+  /// tanpa ini backend nolak ngitung seluruh titiknya ketimbang nebak. Kolom
+  /// ini punya SESI, bukan alat — satu indikator dikalibrasi dua kali dengan
+  /// dua nomor sertifikat.
+  final String? modeKalibrasi;
+
+  /// Tipe sensor yang disimulasikan kalibrator — `Type K`/`Type N`/`RTD`/dst.
+  ///
+  /// Nentuin tabel koreksi kalibrator, drift-nya, dan baris CMC mana yang
+  /// dipakai. Null buat alat selain TITS.
+  final String? tipeSensor;
+
   final String? catatanTeknisi;
 
   /// "6. Thermohygro used" — unit yang dipakai nyatet kondisi ruang. Diisi
@@ -273,6 +290,8 @@ class LembarKerjaSubmission {
     'kelembaban_akhir': kelembabanAkhir,
     'tekanan_awal': tekananAwal,
     'tekanan_akhir': tekananAkhir,
+    'mode_kalibrasi': modeKalibrasi,
+    'tipe_sensor': tipeSensor,
     'catatan_teknisi': catatanTeknisi?.trim(),
     'alat_model': alatModel?.trim(),
     'alat_serial_number': alatSerialNumber?.trim(),

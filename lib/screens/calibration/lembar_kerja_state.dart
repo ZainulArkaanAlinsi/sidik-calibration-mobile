@@ -487,6 +487,92 @@ class LembarKerjaState {
         : index.toDouble();
   }
 
+  /// Titik ukur yang DIATUR TEKNISI, buat lembar yang `titik_bisa_diubah`.
+  ///
+  /// Kosong = pakai baris bawaan dari backend. Cuma TITS yang mengisinya:
+  /// rentang alat pelanggan beda-beda (sesi contohnya −20…1000 sembilan titik
+  /// dan 0…1200 delapan titik), jadi baris yang datang dari backend cuma SARAN.
+  ///
+  /// Disimpan sebagai daftar angka, bukan daftar [BarisTabelHasil]: yang boleh
+  /// diubah teknisi cuma nilainya — satuan, resolusi, dan standar acuannya tetap
+  /// milik bentuk.
+  final List<double> titikKustom = [];
+
+  /// Baris tabel yang BERLAKU sekarang — bawaan backend, atau hasil susunan
+  /// teknisi kalau tabelnya boleh diubah.
+  ///
+  /// Semua yang butuh daftar baris lewat sini, BUKAN `tabel.barisUntuk()`
+  /// langsung: kalau ada satu saja yang masih baca bentuk mentah, tabel yang
+  /// digambar dan titik yang dikirim jadi beda isi — dan bedanya nggak
+  /// memunculkan error di mana pun.
+  List<BarisTabelHasil> barisTabel(TabelHasil tabel, [String? satuanCalon]) {
+    final bawaan = tabel.barisUntuk(satuanCalon ?? satuan);
+
+    if (!tabel.titikBisaDiubah || titikKustom.isEmpty) return bawaan;
+
+    // Contoh dipakai buat mewarisi satuan/desimal/tipe/standar — yang berubah
+    // cuma NILAI titiknya. Kalau bentuknya nggak punya baris sama sekali
+    // (nggak pernah kejadian, tapi murah dijaga), baris kustomnya tetap jalan
+    // dengan satuan lembar.
+    final contoh = bawaan.isEmpty ? null : bawaan.first;
+
+    return [
+      for (final nilai in titikKustom)
+        contoh == null
+            ? BarisTabelHasil(titikUkur: nilai, label: _labelTitik(nilai))
+            : contoh.salinDenganTitik(nilai, _labelTitik(nilai)),
+    ];
+  }
+
+  /// Label baris buat titik yang diketik teknisi — `-20 °C`, `1000 °C`.
+  ///
+  /// Mengikuti bentuk label bawaan backend (`rtrim` nol di belakang koma) biar
+  /// baris tambahan nggak kelihatan beda dari baris saran.
+  String _labelTitik(double nilai) {
+    final teks = nilai == nilai.roundToDouble()
+        ? nilai.toInt().toString()
+        : nilai.toString();
+    final satuanBaris = bentuk.satuan;
+
+    return satuanBaris.isEmpty ? teks : '$teks $satuanBaris';
+  }
+
+  /// Ganti seluruh daftar titik dengan [nilai], lalu bangun ulang tabelnya
+  /// dengan isian yang sudah diketik tetap dipertahankan.
+  ///
+  /// Duplikat dibuang dan urutannya dinaikkan: dua baris bertitik sama bikin
+  /// [kunciBaris] jatuh ke mode indeks, dan dari situ dua baris yang keliatan
+  /// sama di layar nunjuk ke kotak yang beda-beda.
+  void aturTitik(Iterable<double> nilai) {
+    final bersih = nilai.toSet().toList()..sort();
+
+    titikKustom
+      ..clear()
+      ..addAll(bersih);
+
+    _bangunTitik(pertahankanIsian: true);
+  }
+
+  /// Titik yang berlaku sekarang, urut — buat layar pengatur titik.
+  List<double> get titikBerlaku {
+    if (titikKustom.isNotEmpty) return List.unmodifiable(titikKustom);
+
+    for (final bagian in bentuk.bagian) {
+      for (final t in bagian.tabel) {
+        if (t.titikBisaDiubah) {
+          return [for (final b in t.barisUntuk(satuan)) b.titikUkur];
+        }
+      }
+    }
+
+    return const [];
+  }
+
+  /// Lembar ini titiknya boleh diatur teknisi?
+  bool get titikBisaDiubah => bentuk.bagian.any(
+    (bagian) => bagian.tabel.any((t) => t.titikBisaDiubah),
+  );
+
   int _bangunTitik({bool pertahankanIsian = false}) {
     // Isian sel disalin DULU, sebelum yang lama dibuang. Yang disalin cuma
     // angkanya — `TitikState`-nya sendiri dibikin ulang dari bentuk yang baru,
@@ -506,7 +592,7 @@ class LembarKerjaState {
 
     for (final bagian in bentuk.bagian) {
       for (final t in bagian.tabel) {
-        final baris = t.barisUntuk(satuan);
+        final baris = barisTabel(t);
 
         for (var i = 0; i < baris.length; i++) {
           final b = baris[i];
@@ -587,8 +673,8 @@ class LembarKerjaState {
         // Kuncinya wajib dihitung sama kayak [_bangunTitik]; kalau di sini
         // pakai `titikUkur` mentah, perbandingan set-nya bilang tabelnya
         // berubah padahal nggak.
-        for (var i = 0; i < t.barisUntuk(calon).length; i++)
-          kunciBaris(t.barisUntuk(calon), i),
+        for (var i = 0; i < barisTabel(t, calon).length; i++)
+          kunciBaris(barisTabel(t, calon), i),
   };
 
   /// Ganti satuan ke [calon] bakal **ngosongin** tabel yang udah diisi?
@@ -978,6 +1064,15 @@ class LembarKerjaState {
     return (t == null || t.isEmpty) ? null : t;
   }
 
+  /// Mode kalibrasi yang lagi kepilih (`measure`/`source`), atau null.
+  ///
+  /// Dibaca widget tabel buat milih judul kolom: dua kolom TITS BERTUKAR sisi
+  /// antar mode, dan judul yang salah bikin teknisi ngisi kolom yang keliru
+  /// tanpa satu pun error muncul. Getter, bukan field tersimpan — sumbernya
+  /// tetap satu (`teks['mode_kalibrasi']`), jadi nggak ada dua salinan yang
+  /// bisa nggak sinkron waktu dropdown-nya diubah.
+  String? get modeKalibrasi => kalimat('mode_kalibrasi');
+
   /// Ada yang udah diketik sama sekali? Dipakai buat konfirmasi waktu teknisi
   /// nekan back — bukan buat nahan tombol kirim.
   bool get adaIsian =>
@@ -1190,6 +1285,13 @@ class LembarKerjaState {
       // pun error.
       tekananAwal: angka('tekanan_awal'),
       tekananAkhir: angka('tekanan_akhir'),
+      // Cuma TITS yang lembarnya punya dua dropdown ini. Dua-duanya nentuin
+      // ANGKA, bukan catatan: mode nentuin arah perhitungan koreksi (kolom
+      // Standard & UUT bertukar sisi), tipe sensor nentuin tabel koreksi
+      // kalibrator mana yang dibaca. Kalau kelewat, backend nolak ngitung
+      // seluruh titiknya — bukan ngeluarin angka yang salah diam-diam.
+      modeKalibrasi: kalimat('mode_kalibrasi'),
+      tipeSensor: kalimat('tipe_sensor'),
       catatanTeknisi: kalimat('catatan_teknisi'),
       thermohygroStandardId: thermohygroStandardId,
       alatModel: kalimat('alat_model'),
@@ -1259,7 +1361,7 @@ class LembarKerjaState {
   /// Alat satu-tabel lewat sini juga dan hasilnya sama persis kayak dulu.
   List<TitikState> titikTabel(TabelHasil tabel) {
     final punyaTabel = {
-      for (final b in tabel.barisUntuk(satuan)) b.titikUkur,
+      for (final b in barisTabel(tabel)) b.titikUkur,
     };
 
     return [
