@@ -1931,7 +1931,14 @@
   "detailEditAdmin": "EDIT SHEET",
   "detailPerbaikiRevisi": "FIX WORKSHEET",
   "detailLanjutkanDraft": "CONTINUE DRAFT",
-  "lkTitikAlternatifSatuan": "Alternate unit of the same standard — already filled in the other row",
+  "lkTitikAlternatifSatuan": "Locked: alternate unit",
+  "@lkTitikAlternatifSatuan": {
+    "description": "Short note under a locked row label. Kept short on purpose: the cell clips at 2 lines, and a longer sentence gets ellipsized exactly where the explanation begins."
+  },
+  "lkTitikAlternatifSatuanBantuan": "This row is an alternate unit of the same standard, so only one of the two gets filled. Want to use this unit instead? Clear every entry in the other row first — this one unlocks on its own.",
+  "@lkTitikAlternatifSatuanBantuan": {
+    "description": "Shown when the technician taps a locked row. Says HOW to switch units, which the clipped inline note could never fit."
+  },
   "@lkRepeat": {
     "description": "Header of the repeat-number column on sheets whose Repeat runs downwards."
   },

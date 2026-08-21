@@ -6512,11 +6512,17 @@ abstract class AppLocalizations {
   /// **'CONTINUE DRAFT'**
   String get detailLanjutkanDraft;
 
-  /// No description provided for @lkTitikAlternatifSatuan.
+  /// Short note under a locked row label. Kept short on purpose: the cell clips at 2 lines, and a longer sentence gets ellipsized exactly where the explanation begins.
   ///
   /// In en, this message translates to:
-  /// **'Alternate unit of the same standard — already filled in the other row'**
+  /// **'Locked: alternate unit'**
   String get lkTitikAlternatifSatuan;
+
+  /// Shown when the technician taps a locked row. Says HOW to switch units, which the clipped inline note could never fit.
+  ///
+  /// In en, this message translates to:
+  /// **'This row is an alternate unit of the same standard, so only one of the two gets filled. Want to use this unit instead? Clear every entry in the other row first — this one unlocks on its own.'**
+  String get lkTitikAlternatifSatuanBantuan;
 
   /// Resolution row in the table header when the instrument resolution is not filled in — mirrors the empty box on the printed sheet.
   ///

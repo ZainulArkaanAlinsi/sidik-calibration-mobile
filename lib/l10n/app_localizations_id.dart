@@ -3568,8 +3568,11 @@ class AppLocalizationsId extends AppLocalizations {
   String get detailLanjutkanDraft => 'LANJUTKAN DRAFT';
 
   @override
-  String get lkTitikAlternatifSatuan =>
-      'Alternatif satuan dari botol yang sama — sudah diisi di baris satunya';
+  String get lkTitikAlternatifSatuan => 'Terkunci: alternatif satuan';
+
+  @override
+  String get lkTitikAlternatifSatuanBantuan =>
+      'Baris ini alternatif satuan dari botol yang sama, jadi cuma salah satu yang diisi. Mau pakai satuan ini? Kosongkan dulu semua isian di baris satunya — baris ini kebuka sendiri.';
 
   @override
   String get lkResolusiKosong => 'Resolusi: ( )';

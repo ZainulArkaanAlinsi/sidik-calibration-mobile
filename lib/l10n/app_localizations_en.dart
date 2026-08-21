@@ -3597,8 +3597,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get detailLanjutkanDraft => 'CONTINUE DRAFT';
 
   @override
-  String get lkTitikAlternatifSatuan =>
-      'Alternate unit of the same standard — already filled in the other row';
+  String get lkTitikAlternatifSatuan => 'Locked: alternate unit';
+
+  @override
+  String get lkTitikAlternatifSatuanBantuan =>
+      'This row is an alternate unit of the same standard, so only one of the two gets filled. Want to use this unit instead? Clear every entry in the other row first — this one unlocks on its own.';
 
   @override
   String get lkResolusiKosong => 'Resolution: ( )';
