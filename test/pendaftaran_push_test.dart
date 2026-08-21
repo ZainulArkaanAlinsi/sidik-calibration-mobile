@@ -97,6 +97,27 @@ void main() {
     }
   }
 
+  /// Nyalain `pendaftaranPushSyncProvider` DAN nahan dia tetap hidup.
+  ///
+  /// Dulu ini `container.read(...)`, dan itu sebab sebenarnya test "token yang
+  /// dirotasi" jadi rapuh — bukan jedanya. `read` cuma mbaca sekali tanpa
+  /// ninggalin langganan; di Riverpod 3 provider tanpa pendengar boleh dibuang,
+  /// dan `ref.onDispose(langganan.cancel)` di providernya ikut mbatalin
+  /// langganan `tokenBerubah()`.
+  ///
+  /// Aliran rotasinya `broadcast`, jadi kejadian yang dikirim waktu nggak ada
+  /// pendengar HILANG — bukan diantre. Begitu providernya kebuang sebelum
+  /// `rotasi()` dipanggil, `fcm-baru` nggak akan pernah nyampe, dan nunggu
+  /// berapa lama pun nggak nolong: `didaftarkan` mentok di `['fcm-lama']`
+  /// sampai batas 5 detiknya habis. Persis yang kejadian di CI 20 Agt 2026,
+  /// sementara di laptop nganggur providernya keburu kepakai duluan.
+  ///
+  /// `listen` ninggalin langganan beneran, dan `container.dispose` di [wadah]
+  /// yang mbersihin.
+  void hidupkan(ProviderContainer container) {
+    container.listen(pendaftaranPushSyncProvider, (_, _) {});
+  }
+
   Future<void> login(ProviderContainer container) async {
     await container
         .read(authProvider.notifier)
@@ -107,7 +128,7 @@ void main() {
     final container = wadah(_SumberPalsu('fcm-abc'));
 
     await login(container);
-    container.read(pendaftaranPushSyncProvider);
+    hidupkan(container);
     await tunggu(sampai: 1);
 
     expect(layanan.didaftarkan, ['fcm-abc']);
@@ -119,7 +140,7 @@ void main() {
     final container = wadah(_SumberPalsu(null));
 
     await login(container);
-    container.read(pendaftaranPushSyncProvider);
+    hidupkan(container);
     await tunggu();
 
     expect(layanan.didaftarkan, isEmpty);
@@ -131,7 +152,7 @@ void main() {
     final container = wadah(sumber);
 
     await login(container);
-    container.read(pendaftaranPushSyncProvider);
+    hidupkan(container);
     await tunggu(sampai: 1);
 
     sumber.rotasi('fcm-baru');
@@ -143,7 +164,7 @@ void main() {
   test('belum login → nggak mendaftar apa pun', () async {
     final container = wadah(_SumberPalsu('fcm-abc'));
 
-    container.read(pendaftaranPushSyncProvider);
+    hidupkan(container);
     await tunggu();
 
     expect(layanan.didaftarkan, isEmpty);
