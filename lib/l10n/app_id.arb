@@ -327,6 +327,8 @@
   "equipSaveFailed": "Gagal menyimpan: {pesan}",
   "historyEmptyTitle": "Belum ada riwayat",
   "historyEmptyBody": "Sesi kalibrasi yang udah kelar bakal muncul di sini.",
+  "authServerTakTerjangkau": "Nggak bisa menghubungi server.",
+  "authServerTakTerjangkauPesan": "Sesi kamu masih tersimpan — nggak perlu masuk ulang. Cek koneksi, lalu coba lagi.",
   "historyLoadFailed": "Gagal memuat riwayat.",
   "historySessionExpired": "Sesi kamu habis. Login ulang ya.",
   "historyRetry": "COBA LAGI",

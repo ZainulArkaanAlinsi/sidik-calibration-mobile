@@ -181,7 +181,17 @@ class MockAuthService implements AuthService {
 
     final json = _akun.firstWhere(
       (u) => token == 'mock-token-${u['id']}',
-      orElse: () => throw const AuthException('Sesi kamu sudah berakhir.'),
+      // `ApiException` ber-status 401, PERSIS kayak backend asli — bukan
+      // `AuthException` polos.
+      //
+      // Bedanya penting sejak `AuthController.build()` mbedain "token ditolak
+      // server" dari "server nggak kejangkau": cuma yang pertama yang boleh
+      // ngehapus token. Mock yang ngelempar AuthException polos bikin token
+      // basi kebaca sebagai gangguan jaringan, lalu ditinggal di HP.
+      orElse: () => throw const ApiException(
+        'Sesi kamu sudah berakhir.',
+        status: 401,
+      ),
     );
 
     return User.fromJson(json);

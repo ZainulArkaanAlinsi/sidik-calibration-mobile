@@ -812,6 +812,13 @@ class AppLocalizationsId extends AppLocalizations {
       'Sesi kalibrasi yang udah kelar bakal muncul di sini.';
 
   @override
+  String get authServerTakTerjangkau => 'Nggak bisa menghubungi server.';
+
+  @override
+  String get authServerTakTerjangkauPesan =>
+      'Sesi kamu masih tersimpan — nggak perlu masuk ulang. Cek koneksi, lalu coba lagi.';
+
+  @override
   String get historyLoadFailed => 'Gagal memuat riwayat.';
 
   @override

@@ -47,10 +47,41 @@ class AuthController extends AsyncNotifier<User?> {
 
     try {
       return await _auth.me(token);
+    } on ApiException catch (e) {
+      // CUMA penolakan token yang bikin tokennya dibuang.
+      //
+      // Dulu di sini `on AuthException` — semua-semuanya. Masalahnya
+      // `ApiClient` ngelempar AuthException juga buat KEGAGALAN JARINGAN:
+      //
+      //     on SocketException { throw AuthException('Nggak bisa nyambung...') }
+      //     catch (_)          { throw AuthException('Server nggak nyaut...') }
+      //
+      // Jadi wifi ngadat sedetik waktu aplikasi dibuka = token DIHAPUS, dan
+      // orangnya mesti ngetik ulang kata sandinya. Itu dua keluhan yang selama
+      // ini dikira terpisah — "server nggak nyaut" dan "ke-logout terus" —
+      // padahal satu kejadian: pesan pertama muncul, penghapusan token
+      // nyusul diam-diam.
+      //
+      // Kejadian di macOS MAUPUN Android, karena yang salah kode bersamanya,
+      // bukan penyimpanan platformnya.
+      if (e.status == 401 || e.status == 403) {
+        await _storage.clear();
+      }
+      return null;
     } on AuthException {
-      // Token kadaluarsa/dicabut → buang, user balik ke layar login.
-      // Jangan lempar error ke UI: ini bukan salahnya user.
-      await _storage.clear();
+      // Jaringan mati / server nggak nyaut / timeout. Layarnya tetap jatuh ke
+      // Login seperti dulu — yang BERUBAH cuma satu: tokennya NGGAK dihapus.
+      // Jadi begitu jaringannya balik dan aplikasinya dibuka lagi, sesinya
+      // pulih sendiri tanpa teknisi ngetik kata sandi apa pun.
+      //
+      // Sengaja `return null`, bukan `rethrow`. Sempat kucoba rethrow biar
+      // bisa nampilin layar "server nggak kejangkau" dengan tombol coba lagi,
+      // dan itu MERUSAK jalur login: gagal login juga menghasilkan
+      // `AsyncError`, jadi salah ketik kata sandi ikut kelempar ke layar itu
+      // dan pesan kesalahannya ilang. Lima test auth nangkep itu. Layar
+      // khusus buat keadaan offline layak dibikin, tapi butuh cara mbedain
+      // "gagal verifikasi sesi tersimpan" dari "gagal masuk" — dan itu
+      // pekerjaan sendiri, bukan efek samping perbaikan ini.
       return null;
     }
   }

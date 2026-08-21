@@ -813,6 +813,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Completed calibration sessions will show up here.';
 
   @override
+  String get authServerTakTerjangkau => 'Nggak bisa menghubungi server.';
+
+  @override
+  String get authServerTakTerjangkauPesan =>
+      'Sesi kamu masih tersimpan — nggak perlu masuk ulang. Cek koneksi, lalu coba lagi.';
+
+  @override
   String get historyLoadFailed => 'Couldn\'t load history.';
 
   @override
