@@ -33,9 +33,25 @@ final pendaftaranPushServiceProvider = Provider<PendaftaranPush>(
 /// sebelum dibuang. Kalau ditaruh di sini, providernya sudah keburu dibuang
 /// waktu logout selesai dan tokennya nggak pernah kecabut.
 final pendaftaranPushSyncProvider = Provider<void>((ref) {
-  final user = ref.watch(authProvider).value;
+  // Yang diikuti ID-nya, BUKAN seluruh `AsyncValue`-nya.
+  //
+  // `ref.watch(authProvider)` kena tiap kali keadaan auth bergerak sama sekali
+  // — loading → data, dan tiap penyegaran `me()` yang ngasih user yang sama
+  // persis. Tiap gerakan itu ngebangun ulang provider ini, dan tiap
+  // pembangunan ulang ngirim POST pendaftaran lagi buat token yang SUDAH
+  // terdaftar. Ketahuan 21 Agt 2026 waktu test-nya akhirnya nahan provider ini
+  // tetap hidup: `didaftarkan` keisi `['fcm-lama', 'fcm-lama', 'fcm-baru']`.
+  //
+  // Servernya nggak rusak kena ini (pendaftarannya idempoten), tapi ini
+  // panggilan jaringan berulang yang nggak ada gunanya — di HP teknisi yang
+  // sinyalnya tipis di lokasi pelanggan, itu bukan hal sepele.
+  //
+  // Dengan `select`, providernya cuma dibangun ulang waktu yang login
+  // BERGANTI ORANG — yang emang saat satu-satunya token perlu didaftarkan
+  // ulang atas nama akun lain.
+  final idPengguna = ref.watch(authProvider.select((s) => s.value?.id));
 
-  if (user == null) return;
+  if (idPengguna == null) return;
 
   final sumber = ref.watch(sumberTokenPushProvider);
   final layanan = ref.watch(pendaftaranPushServiceProvider);
