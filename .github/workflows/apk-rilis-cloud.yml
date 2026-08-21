@@ -39,6 +39,17 @@ jobs:
       # Yang dibocorin cuma "ada apa nggak", bukan isinya.
       PUNYA_KUNCI_FIREBASE: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
 
+      # Dua secret Firebase ini beda peran, dan gampang ketuker:
+      #   - GOOGLE_SERVICES_JSON  → ikut MASUK ke dalam APK. Yang bikin
+      #     aplikasinya bisa NERIMA push. Isinya (app id, project number, api
+      #     key Android) toh kebawa di tiap APK, jadi bukan rahasia dalam arti
+      #     sebenarnya — dia Secret cuma karena repo ini publik.
+      #   - FIREBASE_SERVICE_ACCOUNT → dipakai runner buat NGIRIM rilis ke
+      #     App Distribution. TIDAK ikut ke dalam APK, dan ini rahasia beneran.
+      # Satu buat nerima, satu buat ngirim. Yang satu ada tanpa yang lain itu
+      # keadaan yang sah.
+      PUNYA_GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES_JSON != '' }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -93,6 +104,54 @@ jobs:
       # Kalau test-nya merah, APK-nya nggak usah dibikin. Uji coba di lokasi
       # pakai APK yang test-nya gagal itu buang-buang perjalanan.
       - run: flutter test
+
+      # Tanpa berkas ini APK-nya TETAP KEBANGUN, tapi push notification-nya
+      # mati — dan matinya diam-diam, yang bikin dia gampang dikira sudah jalan.
+      #
+      # Rantainya: `android/app/google-services.json` masuk `.gitignore` (repo
+      # ini publik), jadi runner yang checkout bersih nggak punya berkas itu.
+      # `Firebase.initializeApp()` di `main.dart` gagal, kegagalannya SENGAJA
+      # ditelan (`catch` di `_nyalakanFirebase`) supaya aplikasinya tetap bisa
+      # dijalankan orang yang baru clone — lalu FCM nggak pernah ngasih token,
+      # dan nggak ada yang bisa didaftarkan ke server. Satu-satunya jejaknya
+      # cuma `debugPrint` yang nggak kelihatan di APK release.
+      #
+      # Yang hilang cuma kabar waktu aplikasi KETUTUP TOTAL. Selama aplikasinya
+      # kebuka, websocket Reverb tetap ngabarin — itu sebabnya gejalanya
+      # membingungkan: notifikasi "kadang jalan".
+      #
+      # Nggak ada langkah bersih-bersih sesudahnya, dan itu disengaja: runner
+      # GitHub dibuang utuh tiap run selesai, dan nggak ada satu pun langkah di
+      # bawah yang ngunggah pohon sumber — artifact-nya cuma berkas .apk.
+      # Nambah `rm` cuma nambah baris yang keliatan menjaga sesuatu padahal
+      # nggak.
+      #
+      # Rilis desktop nggak dikasih langkah ini: FCM cuma jalan di Android/iOS
+      # (`FcmSumberTokenPush.didukung`), dan di desktop kabarnya lewat websocket
+      # Reverb.
+      #
+      # Masangnya sekali, dari Firebase Console → project `sidik-kalibrasi` →
+      # Project settings → app `com.ptsidik.kalibrasi` → Download
+      # google-services.json, lalu:
+      #   gh secret set GOOGLE_SERVICES_JSON < android/app/google-services.json
+      - name: Pasang google-services.json
+        if: env.PUNYA_GOOGLE_SERVICES == 'true'
+        env:
+          ISI: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          printf '%s' "$ISI" > android/app/google-services.json
+
+          # Gagal di sini kalau isinya kepotong atau kesalin setengah. Tanpa
+          # penjagaan ini Gradle-nya yang gagal, dengan pesan soal plugin Google
+          # Services yang nggak nyebut sebab sebenarnya — dan orang bakal nyari
+          # di tempat yang salah.
+          python3 -c "import json,sys; json.load(open('android/app/google-services.json'))" \
+            || { echo "::error::Isi secret GOOGLE_SERVICES_JSON bukan JSON yang sah. Pasang ulang: gh secret set GOOGLE_SERVICES_JSON < android/app/google-services.json"; exit 1; }
+
+      - name: Catatan kalau google-services.json belum dipasang
+        if: env.PUNYA_GOOGLE_SERVICES != 'true'
+        run: |
+          echo "::warning::APK ini kebangun TANPA google-services.json, jadi push notification-nya mati — kabar waktu aplikasi ketutup total nggak bakal masuk. Aplikasinya sendiri jalan normal. Pasang secret GOOGLE_SERVICES_JSON buat nyalain (lihat komentar di berkas workflow ini)."
 
       # `--build-number` bukan kosmetik. Tanpa dia semua rilis mewarisi
       # `version: 1.0.0+2` dari pubspec — dan angka `+2` itu belum pernah naik

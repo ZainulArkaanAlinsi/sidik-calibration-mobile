@@ -145,6 +145,25 @@ sendiri.
    Project settings → app `com.ptsidik.kalibrasi` → **Download
    google-services.json**, lalu taruh di `android/app/google-services.json`.
 
+   **Buat build CI, berkasnya dipasang sekali sebagai Secret** — runner
+   checkout bersih, jadi dia nggak akan pernah punya berkas ini sendiri:
+
+   ```bash
+   gh secret set GOOGLE_SERVICES_JSON < android/app/google-services.json
+   ```
+
+   Workflow "APK rilis (nyambung server)" nulis berkasnya sebelum build kalau
+   secret itu ada, dan ngeluarin peringatan (bukan gagal) kalau nggak ada.
+
+   > Jangan ketuker sama `FIREBASE_SERVICE_ACCOUNT`. Dua-duanya Firebase, tapi
+   > perannya kebalikan: `GOOGLE_SERVICES_JSON` **ikut masuk ke dalam APK** dan
+   > yang bikin aplikasinya bisa **menerima** push; `FIREBASE_SERVICE_ACCOUNT`
+   > dipakai runner buat **mengirim** rilis ke App Distribution dan **tidak**
+   > ikut ke dalam APK. Isi `google-services.json` (app id, project number, api
+   > key Android) toh terbawa di setiap APK, jadi bukan rahasia dalam arti
+   > sebenarnya — dia Secret cuma karena repo ini publik. Yang satunya rahasia
+   > beneran.
+
    **Tanpa berkas itu build tetap jalan.** `android/app/build.gradle.kts`
    memasang plugin Google Services cuma kalau berkasnya ada, dan
    `_nyalakanFirebase()` di `main.dart` sengaja menelan kegagalan — jadi yang
@@ -152,6 +171,14 @@ sendiri.
    tanpa syarat, `assembleDebug` gagal total dengan
    `File google-services.json is missing` dan nggak ada yang bisa menjalankan
    aplikasinya sama sekali.
+
+   Tapi perhatikan bentuk kegagalannya: **diam total.** Firebase gagal nyala,
+   kegagalannya ditelan, FCM nggak pernah ngasih token, dan nggak ada yang bisa
+   didaftarkan — satu-satunya jejaknya `debugPrint` yang nggak kelihatan di APK
+   release. Dan yang hilang cuma kabar waktu aplikasi **ketutup total**: selama
+   aplikasinya kebuka, websocket Reverb tetap ngabarin. Itu sebabnya gejalanya
+   kebaca sebagai "notifikasinya kadang jalan", bukan sebagai satu berkas yang
+   nggak ikut ke build.
 3. Bangun APK-nya. Cara termudah: jalankan workflow **"APK rilis (nyambung
    server)"** dari tab Actions, lalu unduh artifact-nya. Atau lokal:
 
