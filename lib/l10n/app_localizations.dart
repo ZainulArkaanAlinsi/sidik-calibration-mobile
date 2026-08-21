@@ -1580,6 +1580,18 @@ abstract class AppLocalizations {
   /// **'Completed calibration sessions will show up here.'**
   String get historyEmptyBody;
 
+  /// Shown at startup when the saved session cannot be verified because the server is unreachable. Deliberately NOT the login screen: the token is still valid and still stored, so asking for the password again would be wrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Nggak bisa menghubungi server.'**
+  String get authServerTakTerjangkau;
+
+  /// Reassures the technician that they were not logged out.
+  ///
+  /// In en, this message translates to:
+  /// **'Sesi kamu masih tersimpan — nggak perlu masuk ulang. Cek koneksi, lalu coba lagi.'**
+  String get authServerTakTerjangkauPesan;
+
   /// No description provided for @historyLoadFailed.
   ///
   /// In en, this message translates to:

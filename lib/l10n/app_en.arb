@@ -376,6 +376,14 @@
   },
   "historyEmptyTitle": "No history yet",
   "historyEmptyBody": "Completed calibration sessions will show up here.",
+  "authServerTakTerjangkau": "Nggak bisa menghubungi server.",
+  "@authServerTakTerjangkau": {
+    "description": "Shown at startup when the saved session cannot be verified because the server is unreachable. Deliberately NOT the login screen: the token is still valid and still stored, so asking for the password again would be wrong."
+  },
+  "authServerTakTerjangkauPesan": "Sesi kamu masih tersimpan — nggak perlu masuk ulang. Cek koneksi, lalu coba lagi.",
+  "@authServerTakTerjangkauPesan": {
+    "description": "Reassures the technician that they were not logged out."
+  },
   "historyLoadFailed": "Couldn't load history.",
   "historySessionExpired": "Your session expired. Please sign in again.",
   "historyRetry": "RETRY",
