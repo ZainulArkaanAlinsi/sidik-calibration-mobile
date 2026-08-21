@@ -46,7 +46,12 @@ jobs:
             hasil: build/macos/Build/Products/Release
           - os: ubuntu-latest
             nama: android-apk
-            perintah: flutter build apk --release --dart-define=USE_MOCK=true
+            # `--target-platform android-arm64` disamain sama workflow rilis:
+            # paket uji yang ukurannya beda jauh dari yang beneran dirilis itu
+            # uji yang nggak mewakili apa-apa. Alasan lengkapnya ada di
+            # apk-rilis-cloud.yml — ringkasnya, bawaannya ngemas tiga
+            # arsitektur padahal HP cuma pakai satu.
+            perintah: flutter build apk --release --target-platform android-arm64 --dart-define=USE_MOCK=true
             hasil: build/app/outputs/flutter-apk
 
     runs-on: ${{ matrix.os }}

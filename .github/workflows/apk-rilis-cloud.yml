@@ -173,14 +173,38 @@ jobs:
       # selalu berangka lebih kecil daripada build CI, jadi APK hasil coba-coba
       # di laptop nggak bisa nimpa rilis yang dipegang teknisi — kebalikannya
       # yang bahaya, dan diam-diam.
+      # `--target-platform android-arm64` motong APK dari ~115 MB jadi ~50 MB.
+      #
+      # Bawaannya "fat APK": mesin Flutter + SELURUH pustaka native dikemas tiga
+      # kali — arm64-v8a, armeabi-v7a, dan x86_64. HP yang masang cuma pakai
+      # satu dari tiga; dua sisanya ikut terunduh lalu nganggur di
+      # penyimpanan. Buat aplikasi ini beratnya kerasa karena dua model ML Kit
+      # (pengenal teks & barcode) ditanam di dalam APK — itu keputusan sadar
+      # supaya pindai lembar kerja jalan on-device dan foto pelanggan nggak
+      # pernah keluar dari HP, tapi harganya kelipatan tiga kalau ABI-nya nggak
+      # dibatasi.
+      #
+      # arm64-v8a nutup semua HP Android keluaran 2015 ke atas. Yang dikorbanin:
+      #   - HP 32-bit yang sangat lama nggak bisa masang. Kalau suatu hari ada
+      #     teknisi yang bawa satu, tambahin `,android-arm` di sini — bukan
+      #     balikin ke fat APK.
+      #   - Emulator x86_64 NGGAK kena: `flutter run` di emulator bangun debug,
+      #     dan baris ini cuma nyentuh jalur release.
       - name: Build APK
         env:
           NOMOR_BUILD: ${{ github.run_number }}
         run: |
           flutter build apk --release \
+            --target-platform android-arm64 \
             --build-number="$NOMOR_BUILD" \
             --dart-define=APP_ENV=prod \
             --dart-define=API_BASE_URL="${{ vars.API_BASE_URL }}/api"
+
+          # Ukurannya dicetak ke ringkasan run. Kalau suatu hari ada yang
+          # nambah dependensi berat, kenaikannya kelihatan di sini — bukan baru
+          # kerasa sama teknisi yang unduhnya lewat data lapangan.
+          UKURAN=$(du -m build/app/outputs/flutter-apk/app-release.apk | cut -f1)
+          echo "APK arm64: ${UKURAN} MB (build $NOMOR_BUILD)" >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
         with:
