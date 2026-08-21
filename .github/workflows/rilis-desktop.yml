@@ -1,5 +1,6 @@
-# Bikin paket desktop yang NYAMBUNG SERVER buat Windows & macOS, sudah dizip
-# dan siap ditaruh di halaman unduh Firebase Hosting (lihat docs/deploy-firebase.md).
+# Bikin paket desktop yang NYAMBUNG SERVER buat Windows & macOS, lalu MENERBITKAN
+# sendiri ke halaman unduh Firebase Hosting (lihat docs/deploy-firebase.md).
+# Nggak ada lagi zip yang di-copy tangan ke `public/`.
 #
 # Bedanya sama "Paket tes (mock, tanpa server)": yang itu offline dan datanya
 # palsu, cuma buat nyoba tampilan. Yang ini nembak backend beneran.
@@ -17,9 +18,20 @@
 #   variable → nama: API_BASE_URL, nilai: https://<url>.onrender.com
 name: Rilis desktop (nyambung server)
 
-# Manual doang. Rilis desktop itu keputusan, bukan efek samping tiap push —
-# dan dua runner desktop jauh lebih mahal menitnya daripada ubuntu.
+# Ikut tiap push ke `main`, sejajar sama jalur APK.
+#
+# Sebelumnya manual, dengan alasan "dua runner desktop jauh lebih mahal menitnya
+# daripada ubuntu". Alasan itu nggak kepakai di sini: repo ini publik, dan
+# runner standar GitHub gratis buat repo publik — sama persis kayak yang bikin
+# `periksa-pr.yml` boleh jalan tiap PR.
+#
+# Yang dibeli dengan itu: halaman unduhnya nggak pernah lebih tua dari kodenya.
+# Waktu masih manual, `public/` isinya zip yang di-copy tangan dan ketinggalan
+# enam hari — dan nggak ada yang tahu sampai ada yang ngeluh versinya beda.
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 env:
@@ -99,6 +111,7 @@ jobs:
         if: matrix.nama == 'windows'
         run: >
           flutter build windows --release
+          --build-number=${{ github.run_number }}
           --dart-define=APP_ENV=prod
           --dart-define=API_BASE_URL=${{ vars.API_BASE_URL }}/api
 
@@ -106,6 +119,7 @@ jobs:
         if: matrix.nama == 'macos'
         run: >
           flutter build macos --release
+          --build-number=${{ github.run_number }}
           --dart-define=APP_ENV=prod
           --dart-define=API_BASE_URL=${{ vars.API_BASE_URL }}/api
 
@@ -135,3 +149,59 @@ jobs:
           path: sidik-${{ matrix.nama }}.zip
           if-no-files-found: error
           retention-days: 30
+
+  terbitkan:
+    needs: build
+    runs-on: ubuntu-latest
+    name: terbitkan halaman unduh
+
+    # `needs: build` cuma lanjut kalau job `build` sukses. Dengan
+    # `fail-fast: false` di atas, satu platform gagal bikin platform satunya
+    # tetap selesai dan artefaknya tetap bisa diunduh dari tab Actions — tapi
+    # hasil job-nya tetap merah, jadi langkah ini nggak jalan.
+    #
+    # Itu disengaja: `firebase deploy` MENGGANTI seluruh isi situs, bukan
+    # nambahin. Nerbitkan pas cuma satu zip yang jadi bikin tombol platform
+    # satunya jadi 404 — halaman kelihatan normal, tombolnya yang mati. Lebih
+    # baik yang lama tetap tayang sampai perbaikannya mendarat.
+    steps:
+      - uses: actions/checkout@v4
+
+      # Dicek duluan, sebelum ngunduh apa-apa: kalau rahasianya belum dipasang,
+      # bilang cara masangnya — jangan biarin action Firebase-nya gagal dengan
+      # "invalid credentials" yang nggak nunjuk ke mana-mana.
+      #
+      # Secret yang SAMA dipakai jalur APK buat App Distribution, jadi kalau
+      # yang itu udah jalan, yang ini nggak butuh apa-apa lagi.
+      - name: Pastiin kredensial Firebase udah dipasang
+        env:
+          KUNCI: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$KUNCI" ]; then
+            echo "::error::Secret FIREBASE_SERVICE_ACCOUNT belum dipasang. Firebase Console → Project settings → Service accounts → Generate new private key, lalu: gh secret set FIREBASE_SERVICE_ACCOUNT < kunci-yang-diunduh.json"
+            exit 1
+          fi
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: unduhan
+
+      # Zip rilis TIDAK di-commit (lihat .gitignore) — berkasnya cuma numpang
+      # lewat di runner. Yang di-commit cuma halaman unduhnya.
+      - name: Kumpulin dua zip ke halaman unduh
+        run: |
+          cp unduhan/sidik-desktop-windows/sidik-windows.zip public/
+          cp unduhan/sidik-desktop-macos/sidik-macos.zip public/
+          ls -lh public/
+
+      # Android sengaja NGGAK ikut ke sini. APK-nya jalan lewat App
+      # Distribution di `apk-rilis-cloud.yml`, yang ngirim notifikasi ke grup
+      # `teknisi` dan bikin build baru masuk sendiri ke HP yang udah pasang App
+      # Tester. Nyalin APK ke situs ini cuma bikin dua sumber kebenaran, dan
+      # yang satu pasti ketinggalan.
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: sidik-kalibrasi
+          channelId: live
