@@ -249,6 +249,20 @@ class LembarKerjaTabel extends StatelessWidget {
                     catatan: isian.titikTerkunci(baris.titikUkur)
                         ? AppLocalizations.of(context).lkTitikAlternatifSatuan
                         : null,
+                    // Diketuk = keluar penjelasan penuhnya, termasuk CARA
+                    // mbukanya. Catatan sebarisnya nggak muat nampung itu.
+                    onKetuk: isian.titikTerkunci(baris.titikUkur)
+                        ? () => ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                AppLocalizations.of(
+                                  context,
+                                ).lkTitikAlternatifSatuanBantuan,
+                              ),
+                              duration: const Duration(seconds: 8),
+                            ),
+                          )
+                        : null,
                     // Setinggi SELURUH potongan barisnya: satu nilai standar
                     // %T menaungi dua baris X1..X3 di kertas.
                     tinggi: ukuran.tinggi * potongan.length,
@@ -1116,6 +1130,7 @@ class _SelKepala extends StatelessWidget {
     required this.tinggi,
     this.kiri = false,
     this.catatan,
+    this.onKetuk,
   });
 
   final double lebar;
@@ -1125,16 +1140,24 @@ class _SelKepala extends StatelessWidget {
 
   /// Keterangan kecil di bawah label — dipakai buat bilang kenapa baris ini
   /// dikunci (alternatif satuan dari botol yang sama).
+  ///
+  /// SENGAJA pendek. Sel ini mangkas di 2 baris (`maxLines: 2` + ellipsis) di
+  /// kolom selebar maksimal 152 dp, jadi kalimat panjang kepotong tepat di
+  /// bagian yang menjelaskan. Cara ngeganti satuannya dipindah ke [onKetuk].
   final String? catatan;
+
+  /// Dipanggil waktu label baris terkunci diketuk.
+  ///
+  /// Baris yang mati tanpa jalan keluar itu jalan buntu: teknisi lihat kotak
+  /// abu, baca catatan yang kepotong, dan nggak punya cara tau kalau baris ini
+  /// kebuka sendiri begitu baris pasangannya dikosongin.
+  final VoidCallback? onKetuk;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return SizedBox(
-      width: lebar,
-      height: tinggi,
-      child: Align(
+    final isi = Align(
         alignment: kiri ? Alignment.centerLeft : Alignment.center,
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1161,7 +1184,14 @@ class _SelKepala extends StatelessWidget {
               ),
           ],
         ),
-      ),
+      );
+
+    return SizedBox(
+      width: lebar,
+      height: tinggi,
+      child: onKetuk == null
+          ? isi
+          : InkWell(onTap: onKetuk, child: isi),
     );
   }
 }

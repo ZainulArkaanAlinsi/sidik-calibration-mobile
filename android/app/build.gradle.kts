@@ -72,6 +72,21 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+
+            // Tanpa baris ini `flutter build apk --release` GAGAL TOTAL di
+            // `:app:minifyReleaseWithR8` — R8 nemu rujukan menggantung ke
+            // pengenal teks Mandarin/Jepang/Korea/Devanagari milik ML Kit.
+            // Alasan lengkapnya ada di proguard-rules.pro.
+            //
+            // Kelewat selama ini karena nggak ada yang pernah mbangun release
+            // sampai ujung: "Build Android (debug)" di periksa-pr.yml pakai
+            // `--debug` (R8 nggak jalan), dan "APK rilis (nyambung server)"
+            // selalu mati lebih dulu di penjagaan API_BASE_URL yang belum
+            // diisi. Jadi jalur release-nya nggak pernah kelewatan sama sekali.
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 }

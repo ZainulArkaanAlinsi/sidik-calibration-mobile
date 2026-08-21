@@ -1399,6 +1399,7 @@
       }
     }
   },
+  "lkJamTidakTerbaca": "Kolom Time ke-{kolom} bentuknya belum kebaca. Ketik angkanya aja — titik duanya muncul sendiri (mis. 0830 jadi 08:30). Kosongkan kalau titik waktu itu emang nggak diambil.",
   "lkStandarBelumDicentang": "Titik {titik} udah diisi angkanya tapi standar acuannya belum dicentang — angkanya nggak bisa dihitung. Centang standarnya, atau kosongkan barisnya kalau alat ini emang nggak pakai titik itu.",
   "@lkStandarBelumDicentang": {
     "placeholders": {
@@ -1434,7 +1435,8 @@
   "@detailLanjutkanDraft": {
     "description": "Tombol di layar detail sesi berstatus draft — mbuka lembar kerjanya lagi buat diterusin. Sengaja bukan \"EDIT\": draft belum pernah dikirim, jadi yang dikerjain lanjutan, bukan koreksi."
   },
-  "lkTitikAlternatifSatuan": "Alternatif satuan dari botol yang sama — sudah diisi di baris satunya",
+  "lkTitikAlternatifSatuan": "Terkunci: alternatif satuan",
+  "lkTitikAlternatifSatuanBantuan": "Baris ini alternatif satuan dari botol yang sama, jadi cuma salah satu yang diisi. Mau pakai satuan ini? Kosongkan dulu semua isian di baris satunya — baris ini kebuka sendiri.",
   "@lkRepeat": {
     "description": "Kepala kolom nomor pengulangan di lembar kerja yang Repeat-nya turun ke bawah."
   },

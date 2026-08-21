@@ -626,6 +626,28 @@ class _FormState extends ConsumerState<_Form> {
       }
     }
 
+    // Jam yang bentuknya nggak kebaca ditahan DI SINI, bukan dibiarin ditolak
+    // server. Backend jawabnya `The waktu.0 field must match the format H:i`,
+    // dan `waktu.0` bukan nama yang ada di kertas kerja teknisi — dia nggak
+    // punya cara tau kolom mana yang mesti dibetulin.
+    //
+    // Kotak jamnya sendiri sekarang udah nyisipin titik dua sambil diketik,
+    // jadi yang nyampe sini praktis cuma draft lama yang kesimpen sebelum
+    // formatter itu ada.
+    final jamNgawur = _isian.jamMatriksNgawur();
+
+    if (jamNgawur.isNotEmpty) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n.lkJamTidakTerbaca(jamNgawur.map((t) => '$t').join(', ')),
+          ),
+          duration: const Duration(seconds: 8),
+        ),
+      );
+      return;
+    }
+
     if (!draft && !await _konfirmasiAngka()) return;
     if (!mounted) return;
 

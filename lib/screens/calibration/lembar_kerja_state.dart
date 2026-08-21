@@ -8,6 +8,7 @@ import '../../models/calibration_detail.dart'
     show IsianTeknisi, MeasurementResult, RawMeasurement, TahapPembacaan;
 import '../../models/calibration_draft.dart' show LokasiKalibrasi;
 import '../../models/equipment_lookup.dart';
+import '../../core/utils/jam_lembar.dart';
 import '../../models/lembar_kerja.dart';
 import '../../models/lembar_kerja_submission.dart';
 import '../../models/worksheet_scan.dart';
@@ -1634,11 +1635,51 @@ class LembarKerjaState {
     return hasil;
   }
 
-  /// Baris `Time` disimpan apa adanya (`02:00:00`); sisanya jadi angka.
+  /// Baris `Time` dirapikan jadi `HH:MM:SS`; sisanya jadi angka.
+  ///
+  /// Dulu jamnya dikirim APA ADANYA, dan itu jalan buntu yang diam: backend
+  /// nuntut `date_format:H:i,H:i:s`, jadi `8:30` ditolak dengan `The waktu.0
+  /// field must match the format H:i` — nama kolom yang nggak ada di kertas
+  /// kerja teknisi.
+  ///
+  /// Sekarang kotaknya sendiri udah nyisipin titik dua sambil diketik
+  /// ([FormatJamLembar]), jadi normalisasi di sini perannya jaring pengaman
+  /// buat draft yang terlanjur kesimpen sebelum formatter itu ada.
+  ///
+  /// Yang nggak bisa dirapikan dikirim apa adanya, BUKAN dibuang diam-diam:
+  /// jam ngawur yang hilang sendiri bikin teknisi ngira isiannya kesimpen.
+  /// Biar backend yang nolak — dan [jamMatriksNgawur] yang nahan duluan di
+  /// layar dengan pesan yang nyebut kolomnya.
   dynamic _nilaiSelMatriks(BarisMatriks b, String kunci) {
     final teksSel = matriks[kunci]?.text.trim() ?? '';
     if (teksSel.isEmpty) return null;
-    return b.jam ? teksSel : parseAngka(teksSel);
+    if (!b.jam) return parseAngka(teksSel);
+
+    return normalisasiJam(teksSel) ?? teksSel;
+  }
+
+  /// Titik waktu ke-berapa saja yang keisi tapi bentuknya nggak kebaca.
+  ///
+  /// Dipakai buat nahan di layar sebelum ngirim, dengan pesan yang nyebut
+  /// kolomnya — bukan `waktu.0` punya server.
+  List<int> jamMatriksNgawur() {
+    final bagian = bagianMatriks;
+    final m = bagian?.matriks;
+    if (m == null) return const [];
+
+    final ngawur = <int>[];
+
+    for (final b in m.semuaBaris.where((b) => b.jam)) {
+      for (final t in m.titikWaktu) {
+        final teksSel =
+            matriks[LembarKerjaState.kunciMatriks(b.kodeData, t)]?.text.trim() ??
+            '';
+        if (teksSel.isEmpty) continue;
+        if (normalisasiJam(teksSel) == null) ngawur.add(t);
+      }
+    }
+
+    return ngawur;
   }
 
   void _ratakanWadahBernomor(Map<String, dynamic> wadah) {

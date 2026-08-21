@@ -3533,6 +3533,11 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String lkJamTidakTerbaca(String kolom) {
+    return 'Kolom Time ke-$kolom bentuknya belum kebaca. Ketik angkanya aja — titik duanya muncul sendiri (mis. 0830 jadi 08:30). Kosongkan kalau titik waktu itu emang nggak diambil.';
+  }
+
+  @override
   String lkStandarBelumDicentang(String titik) {
     return 'Titik $titik udah diisi angkanya tapi standar acuannya belum dicentang — angkanya nggak bisa dihitung. Centang standarnya, atau kosongkan barisnya kalau alat ini emang nggak pakai titik itu.';
   }
@@ -3563,8 +3568,11 @@ class AppLocalizationsId extends AppLocalizations {
   String get detailLanjutkanDraft => 'LANJUTKAN DRAFT';
 
   @override
-  String get lkTitikAlternatifSatuan =>
-      'Alternatif satuan dari botol yang sama — sudah diisi di baris satunya';
+  String get lkTitikAlternatifSatuan => 'Terkunci: alternatif satuan';
+
+  @override
+  String get lkTitikAlternatifSatuanBantuan =>
+      'Baris ini alternatif satuan dari botol yang sama, jadi cuma salah satu yang diisi. Mau pakai satuan ini? Kosongkan dulu semua isian di baris satunya — baris ini kebuka sendiri.';
 
   @override
   String get lkResolusiKosong => 'Resolusi: ( )';

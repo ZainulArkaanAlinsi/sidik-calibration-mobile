@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/utils/jam_lembar.dart';
 import '../../../models/lembar_kerja.dart';
 import '../lembar_kerja_state.dart';
 
@@ -332,30 +333,74 @@ class _KotakAngka extends StatelessWidget {
 ///
 /// Nggak ikut dihitung, tapi tetap disimpan: tanpa jamnya lima kolom angka
 /// nggak bisa diadu balik ke rekaman disk waktu sertifikatnya diperiksa.
-class _KotakJam extends StatelessWidget {
+///
+/// **Teknisi cukup ngetik angka.** Titik duanya muncul sendiri
+/// ([FormatJamLembar]), dan begitu kotaknya ditinggal isinya dirapikan jadi
+/// `HH:MM:SS` — `2` jadi `02:00:00`, `830` jadi `08:30:00`.
+///
+/// Dulu kotak ini nerima ketikan bebas asal angka & titik dua, lalu dikirim apa
+/// adanya. Backend nuntut `H:i`/`H:i:s`, jadi `8:30` ditolak — dan penolakannya
+/// nyampe ke layar sebagai `The waktu.0 field must match the format H:i`, nama
+/// yang nggak ada di kertas kerjanya sama sekali. Di HP efeknya dobel: titik
+/// dua ada di papan tombol simbol, jadi tiap sel butuh dua kali pindah papan
+/// tombol buat menghasilkan sesuatu yang ternyata ditolak.
+class _KotakJam extends StatefulWidget {
   const _KotakJam({required this.controller, required this.onBerubah});
 
   final TextEditingController controller;
   final VoidCallback onBerubah;
 
   @override
+  State<_KotakJam> createState() => _KotakJamState();
+}
+
+class _KotakJamState extends State<_KotakJam> {
+  final _fokus = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _fokus.addListener(_rapikanSaatDitinggal);
+  }
+
+  @override
+  void dispose() {
+    _fokus
+      ..removeListener(_rapikanSaatDitinggal)
+      ..dispose();
+    super.dispose();
+  }
+
+  /// Dirapikan waktu DITINGGAL, bukan tiap ketukan: ngisi nol buat bagian yang
+  /// belum diketik di tengah pengetikan bikin kursornya lompat.
+  void _rapikanSaatDitinggal() {
+    if (_fokus.hasFocus) return;
+
+    final rapi = normalisasiJam(widget.controller.text);
+    if (rapi == null || rapi == widget.controller.text) return;
+
+    widget.controller.text = rapi;
+    widget.onBerubah();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return TextField(
-      controller: controller,
+      controller: widget.controller,
+      focusNode: _fokus,
       textAlign: TextAlign.center,
       style: const TextStyle(fontSize: 13),
-      keyboardType: TextInputType.datetime,
-      inputFormatters: [
-        FilteringTextInputFormatter.allow(RegExp(r'[0-9:]')),
-        LengthLimitingTextInputFormatter(8),
-      ],
+      // Papan tombol angka doang — titik duanya disisipin formatter, jadi
+      // nggak ada lagi alasan mindah ke papan tombol simbol.
+      keyboardType: TextInputType.number,
+      inputFormatters: const [FormatJamLembar()],
       decoration: const InputDecoration(
         hintText: '--:--:--',
         isDense: true,
         contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
         border: OutlineInputBorder(),
       ),
-      onChanged: (_) => onBerubah(),
+      onChanged: (_) => widget.onBerubah(),
     );
   }
 }
