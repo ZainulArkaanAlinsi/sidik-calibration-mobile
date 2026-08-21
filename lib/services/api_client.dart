@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -33,7 +34,13 @@ class ApiClient {
   };
 
   Future<Map<String, dynamic>> get(String path, {String? token}) async {
-    return _kirim(() => _client.get(_uri(path), headers: _headers(token)));
+    // Pembacaan aman diulang berapa kali pun — nggak ada yang berubah di
+    // server. Ini juga yang paling sering kena pergantian & bangun-tidur
+    // server, karena tiap layar dibuka pasti ngambil data dulu.
+    return _kirim(
+      () => _client.get(_uri(path), headers: _headers(token)),
+      bolehUlang: true,
+    );
   }
 
   /// [timeout] dinaikin buat endpoint yang kerjanya SINKRON — mis. kirim
@@ -46,6 +53,13 @@ class ApiClient {
     String? token,
     Duration? timeout,
   }) async {
+    // Cuma kiriman ber-`client_request_id` yang diulang. Backend nyari sesi
+    // dengan kunci sama sebelum bikin baru, jadi kiriman kedua mendarat di
+    // sesi yang itu-itu juga — bukan sesi kalibrasi kembar.
+    //
+    // `POST` lain (approve, reject, kirim email) SENGAJA nggak diulang:
+    // nggak ada kunci yang bikin server tau itu kiriman yang sama, dan email
+    // sertifikat yang kekirim dua kali ke pelanggan nggak bisa ditarik balik.
     return _kirim(
       () => _client.post(
         _uri(path),
@@ -53,6 +67,7 @@ class ApiClient {
         body: jsonEncode(body ?? {}),
       ),
       timeout: timeout,
+      bolehUlang: body != null && body['client_request_id'] != null,
     );
   }
 
@@ -61,12 +76,16 @@ class ApiClient {
     Map<String, dynamic>? body,
     String? token,
   }) async {
+    // `PUT` mengganti isi sumber daya, bukan nambah yang baru — dijalankan
+    // dua kali hasilnya sama persis. Ini yang dipakai "lanjutkan draft" dan
+    // "perbaiki lembar kerja".
     return _kirim(
       () => _client.put(
         _uri(path),
         headers: _headers(token),
         body: jsonEncode(body ?? {}),
       ),
+      bolehUlang: true,
     );
   }
 
@@ -223,14 +242,33 @@ class ApiClient {
     );
   }
 
+  /// Jeda antar percobaan. Naik supaya percobaan pertama cepat (kedipan
+  /// sedetik nggak usah bikin nunggu lama) tapi yang terakhir masih nutup
+  /// pergantian server yang makan puluhan detik.
+  static const _jedaUlang = [
+    Duration(seconds: 1),
+    Duration(seconds: 3),
+    Duration(seconds: 8),
+  ];
+
+  /// Kode HTTP yang artinya "servernya lagi nggak siap", BUKAN "permintaanmu
+  /// salah".
+  ///
+  /// 502/503/504 itu persis yang dibalikin Render waktu container lama
+  /// dimatikan dan yang baru belum siap, dan waktu layanan paket gratis
+  /// dibangunkan dari tidur. 500 SENGAJA nggak masuk: itu aplikasinya yang
+  /// meledak, dan ngulang cuma ngulang ledakan yang sama.
+  static const _kodeServerBelumSiap = {502, 503, 504};
+
   Future<Map<String, dynamic>> _kirim(
     Future<http.Response> Function() request, {
     Duration? timeout,
+    bool bolehUlang = false,
   }) async {
     final http.Response res;
 
     try {
-      res = await request().timeout(timeout ?? const Duration(seconds: 20));
+      res = await _dengarUlang(request, timeout: timeout, bolehUlang: bolehUlang);
     } on SocketException {
       // Paling sering kejadian: teknisi di lapangan sinyalnya ilang, atau
       // `php artisan serve` di laptop belum dinyalain.
@@ -253,6 +291,64 @@ class ApiClient {
       status: res.statusCode,
       body: json,
     );
+  }
+
+  /// Coba lagi waktu yang gagal SERVERNYA, bukan permintaannya.
+  ///
+  /// ## Kenapa ini ada
+  ///
+  /// Sebelumnya satu kali gagal langsung jadi pesan merah di layar teknisi.
+  /// Itu bikin dua keadaan yang sebenarnya normal kebaca sebagai kerusakan:
+  ///
+  ///  1. **Server lagi diganti.** Tiap deploy, container lama dimatikan dan
+  ///     yang baru butuh belasan detik buat siap. Selama itu Render jawab
+  ///     502/503/504.
+  ///  2. **Server lagi bangun.** Paket gratis Render menidurkan layanannya
+  ///     sesudah ~15 menit nganggur; permintaan pertama sesudah itu butuh
+  ///     30–60 detik.
+  ///
+  /// Dua-duanya sembuh sendiri kalau ditunggu. Yang salah bukan servernya,
+  /// tapi aplikasinya yang nyerah di percobaan pertama.
+  ///
+  /// ## Kenapa nggak semua diulang
+  ///
+  /// [bolehUlang] dipasang PER PEMANGGIL, bukan dinyalain borongan. Ngulang
+  /// permintaan yang sudah terlanjur sampai ke server bisa bikin kerjaan
+  /// dobel — dan buat alat ukur, sesi kalibrasi dobel itu lebih buruk daripada
+  /// satu pesan gagal.
+  ///
+  /// Yang aman diulang cuma yang hasilnya sama berapa kali pun dijalankan:
+  /// pembacaan (`GET`), penggantian utuh (`PUT`), penghapusan (`DELETE`), dan
+  /// `POST` yang bawa `client_request_id` — backend mendedup yang itu
+  /// (`CalibrationController` nyari sesi ber-`client_request_id` sama sebelum
+  /// bikin baru).
+  Future<http.Response> _dengarUlang(
+    Future<http.Response> Function() request, {
+    Duration? timeout,
+    required bool bolehUlang,
+  }) async {
+    final batas = timeout ?? const Duration(seconds: 20);
+
+    for (var percobaan = 0; ; percobaan++) {
+      final bolehLagi = bolehUlang && percobaan < _jedaUlang.length;
+
+      try {
+        final res = await request().timeout(batas);
+
+        if (bolehLagi && _kodeServerBelumSiap.contains(res.statusCode)) {
+          await Future<void>.delayed(_jedaUlang[percobaan]);
+          continue;
+        }
+
+        return res;
+      } on SocketException {
+        if (!bolehLagi) rethrow;
+        await Future<void>.delayed(_jedaUlang[percobaan]);
+      } on TimeoutException {
+        if (!bolehLagi) rethrow;
+        await Future<void>.delayed(_jedaUlang[percobaan]);
+      }
+    }
   }
 
   /// Bodi bersarang → kolom multipart bertanda kurung.
