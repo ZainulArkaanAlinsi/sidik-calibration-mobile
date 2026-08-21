@@ -17,7 +17,7 @@ sekarang.
 |---|---|
 | Project Firebase `sidik-kalibrasi` | ✅ ada, aktif (`.firebaserc` di repo) |
 | Aplikasi Android terdaftar | ✅ App ID di bawah |
-| Grup tester `teknisi` | ✅ dibuat, **belum ada anggotanya** |
+| Grup tester `teknisi` | ⚠️ dibuat, **belum ada anggotanya** — APK terkirim ke grup kosong sampai email tester didaftarkan |
 | Paket **uji offline** (mock) Windows/macOS/Android | ✅ bisa dibagikan sekarang |
 | Paket **nyambung server** | ⛔ terhalang — backend belum berdiri |
 
@@ -269,19 +269,34 @@ boleh dinyalakan lagi, tapi `keychain-access-groups` harus ikut dipasang.
 
 ## Halaman unduh — Hosting
 
-```bash
-# taruh dua zip hasil workflow di folder public/
-cp ~/Downloads/sidik-windows.zip public/
-cp ~/Downloads/sidik-macos.zip   public/
+**Sekarang otomatis.** Tiap push ke `main`, workflow "Rilis desktop (nyambung
+server)" membangun Windows & macOS, menaruh kedua zip-nya di `public/`, lalu
+mendorong situsnya sendiri. Nggak ada langkah tangan sama sekali.
 
-firebase deploy --only hosting
-```
+Yang dibutuhkan cuma secret `FIREBASE_SERVICE_ACCOUNT` — secret yang **sama**
+dengan yang dipakai jalur APK buat App Distribution, jadi kalau yang itu sudah
+jalan, yang ini nggak perlu apa-apa lagi.
 
 Hasilnya satu URL `https://<project>.web.app` berisi tiga tombol: Android
 (link App Distribution), macOS, Windows.
 
-Sebelum deploy pertama, buka `public/index.html` dan ganti
-`#ganti-link-app-distribution` dengan link undangan tester dari Console.
+Deploy tangan masih bisa dipakai kalau perlu — mis. mau nguji ubahan
+`index.html` tanpa nunggu build desktop selesai:
+
+```bash
+firebase deploy --only hosting
+```
+
+Tapi hati-hati: itu menerbitkan `public/` **apa adanya**. Kalau zip-nya nggak
+ada di folder itu (dan memang nggak ada, karena nggak di-commit), dua tombol
+desktopnya jadi 404 sampai push berikutnya membangunnya ulang.
+
+### Kenapa Android nggak ikut ke Hosting
+
+APK-nya jalan lewat App Distribution di `apk-rilis-cloud.yml` — dikirim ke grup
+`teknisi`, dan build baru masuk sendiri ke HP yang sudah pasang App Tester.
+Nyalin APK ke situs ini cuma bikin dua sumber kebenaran, dan yang satu pasti
+ketinggalan.
 
 Isi `public/*.zip` sengaja tidak di-commit (lihat `.gitignore`) — puluhan MB dan
 bisa diregenerasi kapan saja dari workflow. Yang di-commit cuma halaman unduhnya.
