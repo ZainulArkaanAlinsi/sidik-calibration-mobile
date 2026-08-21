@@ -201,6 +201,7 @@ class MockLembarKerjaService implements LembarKerjaService {
       'viscometer' => contohBentukLembarKerjaVisco(untukAdmin: untukAdmin),
       'do_meter' => contohBentukLembarKerjaDo(untukAdmin: untukAdmin),
       'gas_detector' => contohBentukLembarKerjaGas(untukAdmin: untukAdmin),
+      'tits' => contohBentukLembarKerjaTits(untukAdmin: untukAdmin),
       // Profil kosong / nggak dikenal SENGAJA jatuh ke pH, bukan lempar error —
       // sama kayak janji kontraknya (`docs/kontrak-api.md` §4).
       _ => contohBentukLembarKerja(untukAdmin: untukAdmin),
@@ -1996,6 +1997,190 @@ Map<String, dynamic> contohBentukLembarKerjaGas({bool untukAdmin = false}) {
         'Kolom yang belum bisa diisi di lapangan boleh dikosongin \u2014 lembar '
         'kerja tetap bisa dikirim. Khusus alat ini, TEKANAN UDARA awal & akhir '
         'wajib buat dapat ketidakpastian yang benar.',
+    'bagian': bagian,
+  };
+}
+
+/// Bentuk lembar kerja **TITS** (Temperature Indikator Tanpa Sensor, alat
+/// ke-11) — salinan respons backend buat mode offline & test widget.
+///
+/// Empat hal yang cuma alat ini punya, dan semuanya harus ikut di sini kalau
+/// nggak test-nya nguji lembar yang beda dari yang dikirim server:
+///
+///  1. `judul_nilai_per_mode` — kolom Standard & UUT BERTUKAR sisi antar mode.
+///  2. `pengulangan_arah` — enam kolom, UP ×3 lalu DOWN ×3.
+///  3. `titik_bisa_diubah` — barisnya cuma saran, teknisi yang nyusun.
+///  4. `mode_kalibrasi` & `tipe_sensor` — dua dropdown yang nentuin ANGKA.
+///
+/// Kunci polos `judul_nilai`/`judul_pengulangan`/`pengulangan` sengaja ikut
+/// dengan tipe LAMA (string & daftar angka), persis seperti backend: itu yang
+/// bikin aplikasi versi lama tetap bisa buka lembarnya.
+Map<String, dynamic> contohBentukLembarKerjaTits({bool untukAdmin = false}) {
+  Map<String, dynamic> field(
+    String kode,
+    String label,
+    String tipe, {
+    String? sumber,
+    String? satuan,
+    List<Map<String, String>> pilihan = const [],
+    bool hanyaAdmin = false,
+  }) => {
+    'kode': kode,
+    'label': label,
+    'tipe': tipe,
+    'wajib': false,
+    'sumber': sumber,
+    'satuan': satuan,
+    'pilihan': pilihan,
+    'hanya_admin': hanyaAdmin,
+  };
+
+  const titikSaran = [-20.0, 10.0, 50.0, 100.0, 200.0, 400.0, 600.0, 800.0, 1000.0];
+
+  Map<String, dynamic> tabel(String tahap, String judul) => {
+    'tahap': tahap,
+    'judul': judul,
+    'satuan': '°C',
+    'judul_nilai': 'Standard Indication',
+    'judul_nilai_per_mode': const {
+      'measure': 'Standard Indication',
+      'source': 'UUT Indication',
+    },
+    'judul_pengulangan': 'Reading Unit Under Test',
+    'judul_pengulangan_per_mode': const {
+      'measure': 'Reading Unit Under Test',
+      'source': 'Reading Standard',
+    },
+    'titik_bisa_diubah': true,
+    'baris': [
+      for (final t in titikSaran)
+        {
+          'titik_ukur': t,
+          'label': '${t == t.roundToDouble() ? t.toInt() : t} °C',
+          'satuan': '°C',
+        },
+    ],
+    'kolom': const [
+      {'kode': 'pembacaan', 'label': '°C', 'tipe': 'angka', 'satuan': '°C'},
+    ],
+    'pengulangan': const [1, 2, 3, 4, 5, 6],
+    'pengulangan_arah': const [
+      {'ke': 1, 'arah': 'UP', 'label': 'UP X1'},
+      {'ke': 2, 'arah': 'UP', 'label': 'UP X2'},
+      {'ke': 3, 'arah': 'UP', 'label': 'UP X3'},
+      {'ke': 4, 'arah': 'DOWN', 'label': 'DOWN X1'},
+      {'ke': 5, 'arah': 'DOWN', 'label': 'DOWN X2'},
+      {'ke': 6, 'arah': 'DOWN', 'label': 'DOWN X3'},
+    ],
+  };
+
+  final bagian = [
+    {
+      'kode': 'identitas_alat',
+      'halaman': 1,
+      'judul': 'EQUIPMENT IDENTITY AND CUSTOMER DATA',
+      'field': [
+        field('tanggal_terima', 'Received Date', 'tanggal'),
+        field('tanggal_kalibrasi', 'Calibration Date', 'tanggal'),
+        field('equipment_id', 'Equipment', 'pilihan', sumber: 'master_alat'),
+        field('equipment.nama_alat', '1. Name', 'teks', sumber: 'otomatis'),
+        field('alat_merk', '2. Merk/Manufacture', 'teks'),
+        field('alat_model', '3. Type/Model', 'teks'),
+        field('alat_serial_number', '4. Serial Number/LPI', 'teks'),
+        field('spesifikasi_alat.rentang_ukur', '5. Rentang Ukur', 'angka',
+            satuan: '°C'),
+        field('spesifikasi_alat.kapasitas', '6. Kapasitas Alat', 'angka',
+            satuan: '°C'),
+        field('spesifikasi_alat.resolusi', '7. Resolusi Alat', 'angka',
+            satuan: '°C'),
+      ],
+    },
+    {
+      'kode': 'pemilik',
+      'halaman': 1,
+      'judul': 'OWNER',
+      'field': [
+        field('pemilik_nama', '1. Name', 'teks'),
+        field('pemilik_alamat', '2. Address', 'teks_panjang'),
+      ],
+    },
+    {
+      'kode': 'data_kalibrasi',
+      'halaman': 1,
+      'judul': 'CALIBRATION DATA',
+      'field': [
+        field('mode_kalibrasi', '1. Mode', 'pilihan', pilihan: const [
+          {'nilai': 'measure', 'label': 'Measure (UUT membaca)'},
+          {'nilai': 'source', 'label': 'Source (UUT men-source)'},
+        ]),
+        field('tipe_sensor', '2. Temperature Type', 'pilihan', pilihan: const [
+          {'nilai': 'RTD', 'label': 'RTD'},
+          {'nilai': 'Type K', 'label': 'Type K'},
+          {'nilai': 'Type N', 'label': 'Type N'},
+          {'nilai': 'Type B', 'label': 'Type B'},
+          {'nilai': 'Type T', 'label': 'Type T'},
+          {'nilai': 'Type R', 'label': 'Type R'},
+          {'nilai': 'Type S', 'label': 'Type S'},
+          {'nilai': 'Type J', 'label': 'Type J'},
+        ]),
+        field('lokasi', '3. Location', 'pilihan', pilihan: const [
+          {'nilai': 'lab', 'label': 'Inlab'},
+          {'nilai': 'onsite', 'label': 'Insitu'},
+        ]),
+        field('room_id', 'Ruangan', 'pilihan', sumber: 'master_ruangan'),
+        if (untukAdmin)
+          field('calibration_method_id', '4. Calibration Methode', 'pilihan',
+              sumber: 'master_metode', hanyaAdmin: true),
+      ],
+    },
+    {
+      'kode': 'hasil',
+      'halaman': 1,
+      'judul': 'CALIBRATION RESULT',
+      'field': [
+        field('suhu_awal', 'Env. Condition — First', 'angka', satuan: '°C'),
+        field('kelembaban_awal', 'Env. Condition — First', 'angka',
+            satuan: '%RH'),
+        field('suhu_akhir', 'Env. Condition — End', 'angka', satuan: '°C'),
+        field('kelembaban_akhir', 'Env. Condition — End', 'angka',
+            satuan: '%RH'),
+        field('thermohygro_standard_id', 'Environmental Meter Used', 'pilihan',
+            sumber: 'master_thermohygro'),
+      ],
+      'tabel': [
+        tabel('sebelum_adjustment', 'Before Adjustment Reading'),
+        tabel('sesudah_adjustment', 'After Adjustment Reading'),
+      ],
+    },
+    {
+      'kode': 'penutup',
+      'halaman': 1,
+      'judul': 'Catatan & Tanda Tangan',
+      'field': [
+        field('catatan_teknisi', 'Catatan', 'teks_panjang'),
+        field('teknisi.nama', 'Calibrated by', 'teks', sumber: 'otomatis'),
+        field('reviewer.nama', 'Checked by', 'teks', sumber: 'otomatis'),
+      ],
+    },
+  ];
+
+  return {
+    'kode_dokumen': null,
+    'kode_metode': 'SIDIK-IK-CAL-0502_Rev.3',
+    'judul': 'Calibration Worksheet - Temperature Indicator Tanpa Sensor (TITS)',
+    'untuk': untukAdmin ? 'admin' : 'teknisi',
+    // TIGA per arah, sementara kolom yang digambar enam. Dua angka yang beda
+    // artinya, dan backend mengirim dua-duanya.
+    'jumlah_pengulangan': 3,
+    'arah_pembacaan': const ['UP', 'DOWN'],
+    'larutan_standar': titikSaran,
+    'satuan': '°C',
+    'satuan_suhu': '°C',
+    'semua_kolom_opsional': true,
+    'catatan_pengisian':
+        'Kolom yang belum bisa diisi di lapangan boleh dikosongin — lembar '
+        'kerja tetap bisa dikirim. Khusus alat ini, MODE (Measure/Source) dan '
+        'TIPE SENSOR wajib dipilih.',
     'bagian': bagian,
   };
 }

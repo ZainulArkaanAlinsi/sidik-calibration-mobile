@@ -214,6 +214,28 @@ class BarisTabelHasil {
   final double titikUkur;
   final String label;
 
+  /// Salinan baris ini dengan titik & label baru, sisanya diwarisi.
+  ///
+  /// Dipakai lembar yang titiknya boleh diatur teknisi (`titik_bisa_diubah`):
+  /// yang berubah cuma NILAI titiknya — satuan, resolusi, desimal, dan standar
+  /// acuannya tetap milik bentuk dari backend, karena tiga hal itu properti
+  /// alat & kalibratornya, bukan pilihan teknisi.
+  ///
+  /// [eksklusifDengan] sengaja TIDAK ikut: pasangan eksklusif nunjuk titik lain
+  /// yang mungkin sudah nggak ada di daftar baru, dan pasangan yang nunjuk
+  /// titik hantu bikin barisnya terkunci selamanya tanpa alasan yang kelihatan.
+  BarisTabelHasil salinDenganTitik(double titik, String labelBaru) =>
+      BarisTabelHasil(
+        titikUkur: titik,
+        label: labelBaru,
+        desimal: desimal,
+        resolusi: resolusi,
+        standardId: standardId,
+        standardNama: standardNama,
+        satuan: satuan,
+        tipe: tipe,
+      );
+
   /// Jenis isian baris ini kalau BUKAN angka biasa.
   ///
   /// Sejauh ini cuma `jam` yang dipakai — baris `Time` di lembar Autoklaf,
@@ -343,6 +365,10 @@ class TabelHasil {
     this.catatan,
     this.sumbuPengulangan = 'kolom',
     this.slotCetak = const [],
+    this.judulNilaiPerMode = const {},
+    this.judulPengulanganPerMode = const {},
+    this.pengulanganArah = const {},
+    this.titikBisaDiubah = false,
   });
 
   /// `sebelum_adjustment` / `sesudah_adjustment`.
@@ -388,6 +414,45 @@ class TabelHasil {
   /// Awalan nomor pengulangan yang TERCETAK di kertas — `X` bikin `X1 X2 X3`.
   /// Null = pakai `Repeat n` seperti alat lain.
   final String? prefiksPengulangan;
+
+  /// Judul kolom nilai per MODE kalibrasi — cuma TITS yang ngirim.
+  ///
+  /// Alat itu punya dua mode yang kolomnya BERTUKAR sisi: mode `measure` kolom
+  /// kirinya setpoint kalibrator (`Standard Indication`) dan kolom pengulangan
+  /// bacaan alat pelanggan; mode `source` kebalikannya. Judul yang salah bikin
+  /// teknisi ngisi kolom yang keliru, dan angkanya tetap masuk tanpa error.
+  ///
+  /// Kosong = alat satu judul; [judulNilai] yang dipakai, persis kayak dulu.
+  final Map<String, String> judulNilaiPerMode;
+
+  /// Pasangan [judulNilaiPerMode] buat kepala kolom pengulangan.
+  final Map<String, String> judulPengulanganPerMode;
+
+  /// Label kepala tiap nomor pengulangan — `{1: "UP X1", 4: "DOWN X1"}`.
+  ///
+  /// TITS membaca tiap titik naik tiga kali lalu turun tiga kali, dan arah itu
+  /// yang tercetak di kertasnya. Datang dari backend, bukan dihitung layar dari
+  /// indeks: kalau lab suatu saat baca empat kali per arah, yang berubah cukup
+  /// di sana.
+  ///
+  /// Kosong = kepala kolom pakai `Repeat n` / prefiks seperti alat lain.
+  final Map<int, String> pengulanganArah;
+
+  /// Teknisi boleh menambah, menghapus, dan mengubah titik ukurnya.
+  ///
+  /// Cuma TITS. Sepuluh alat lain titiknya konstanta (pH 4/7/10, gas
+  /// 101/25/50/17,9); di TITS rentang alat pelanggan beda-beda dan [baris] yang
+  /// datang cuma SARAN.
+  final bool titikBisaDiubah;
+
+  /// Judul kolom nilai buat [mode] yang lagi kepilih, jatuh ke [judulNilai]
+  /// kalau modenya belum dipilih atau alatnya nggak bermode.
+  String? judulNilaiUntuk(String? mode) =>
+      (mode == null ? null : judulNilaiPerMode[mode]) ?? judulNilai;
+
+  /// Pasangan [judulNilaiUntuk] buat kepala kolom pengulangan.
+  String? judulPengulanganUntuk(String? mode) =>
+      (mode == null ? null : judulPengulanganPerMode[mode]) ?? judulPengulangan;
 
   /// Berapa kolom pengulangan yang digambar PER BARIS.
   ///
@@ -464,7 +529,48 @@ class TabelHasil {
         .whereType<num>()
         .map((e) => e.toInt())
         .toList(),
+    judulNilaiPerMode: _petaTeks(json['judul_nilai_per_mode']),
+    judulPengulanganPerMode: _petaTeks(json['judul_pengulangan_per_mode']),
+    pengulanganArah: _arahPengulangan(json['pengulangan_arah']),
+    titikBisaDiubah: json['titik_bisa_diubah'] as bool? ?? false,
   );
+}
+
+/// Peta `{mode: judul}` yang tahan isi aneh.
+///
+/// Nilai yang bukan teks DIBUANG, bukan bikin seluruh lembar gagal: kunci ini
+/// baru dipakai satu alat, dan lembar yang kebuka dengan satu judul salah jauh
+/// lebih baik daripada layar kalibrasi yang kosong.
+Map<String, String> _petaTeks(dynamic nilai) {
+  if (nilai is! Map) return const {};
+
+  return {
+    for (final e in nilai.entries)
+      if (e.key is String && e.value is String) e.key as String: e.value as String,
+  };
+}
+
+/// `pengulangan_arah` → `{nomor: label}`.
+///
+/// Baris tanpa `ke` atau tanpa `label` dilewat. Label kosong juga dilewat —
+/// kepala kolom kosong lebih membingungkan daripada `Repeat n` bawaan.
+Map<int, String> _arahPengulangan(dynamic nilai) {
+  if (nilai is! List) return const {};
+
+  final hasil = <int, String>{};
+
+  for (final baris in nilai) {
+    if (baris is! Map) continue;
+
+    final ke = baris['ke'];
+    final label = baris['label'];
+
+    if (ke is num && label is String && label.trim().isNotEmpty) {
+      hasil[ke.toInt()] = label.trim();
+    }
+  }
+
+  return hasil;
 }
 
 /// Satu kepala kolom "Solution Standard" seperti TERCETAK di lembar kerja.
