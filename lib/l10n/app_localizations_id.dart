@@ -3533,6 +3533,11 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String lkJamTidakTerbaca(String kolom) {
+    return 'Kolom Time ke-$kolom bentuknya belum kebaca. Ketik angkanya aja — titik duanya muncul sendiri (mis. 0830 jadi 08:30). Kosongkan kalau titik waktu itu emang nggak diambil.';
+  }
+
+  @override
   String lkStandarBelumDicentang(String titik) {
     return 'Titik $titik udah diisi angkanya tapi standar acuannya belum dicentang — angkanya nggak bisa dihitung. Centang standarnya, atau kosongkan barisnya kalau alat ini emang nggak pakai titik itu.';
   }

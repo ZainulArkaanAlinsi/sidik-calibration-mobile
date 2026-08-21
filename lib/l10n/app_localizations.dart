@@ -6458,6 +6458,12 @@ abstract class AppLocalizations {
   /// **'Reading filled without solution temperature at point {titik}. Temperature is required — the reference value shifts with it.'**
   String lkSuhuWajib(String titik);
 
+  /// Guard before submit on matrix sheets (Autoclave). Names the COLUMN NUMBER visible on screen, not the backend validator's `waktu.0`.
+  ///
+  /// In en, this message translates to:
+  /// **'Time column {kolom} is not in a readable format. Just type the digits — the colons appear on their own (e.g. 0830 becomes 08:30). Leave it empty if that time point was not taken.'**
+  String lkJamTidakTerbaca(String kolom);
+
   /// No description provided for @lkStandarBelumDicentang.
   ///
   /// In en, this message translates to:

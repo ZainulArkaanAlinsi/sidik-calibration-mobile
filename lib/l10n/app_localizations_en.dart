@@ -3562,6 +3562,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String lkJamTidakTerbaca(String kolom) {
+    return 'Time column $kolom is not in a readable format. Just type the digits — the colons appear on their own (e.g. 0830 becomes 08:30). Leave it empty if that time point was not taken.';
+  }
+
+  @override
   String lkStandarBelumDicentang(String titik) {
     return 'Point $titik has readings but its reference standard is not ticked — those numbers cannot be calculated. Tick the standard, or clear the row if this instrument does not use that point.';
   }
