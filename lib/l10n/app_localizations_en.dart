@@ -2959,6 +2959,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String lkPenentuAngkaKosong(String field) {
+    return '$field has not been chosen yet. Without it the server cannot compute a single point — every row comes back uncalculated. Send anyway?';
+  }
+
+  @override
   String get lkPindaiLembar => 'SCAN WORKSHEET';
 
   @override

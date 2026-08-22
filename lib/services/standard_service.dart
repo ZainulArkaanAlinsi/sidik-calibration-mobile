@@ -180,6 +180,42 @@ class MockStandardService implements StandardService {
       satuanKetidakpastian: 'mg/L',
       faktorCakupan: 2,
     ),
+    // Dua kalibrator suhu buat TITS (alat ke-11). Nama & serialnya harus PERSIS
+    // sama kayak baris STANDARD di bentuk lembar kerjanya — itu satu-satunya
+    // yang nautin kotak "Usage Check" ke master standar.
+    //
+    // `ketidakpastian` NOL, bukan angka: ketidakpastian kalibrator ini beda per
+    // TIPE SENSOR dan per TITIK, tabelnya hidup di backend
+    // (`database/data/tabel-kalibrator-suhu.json`). Naruh satu angka di sini
+    // bakal kelihatan sah di layar padahal nggak pernah dipakai hitungan.
+    //
+    // Constant 40T sengaja `masihBerlaku: false` — sertifikatnya beneran lewat
+    // 28 Agustus 2025, dan kedua sesi master pakai Yokogawa. Lencana kadaluarsa
+    // yang muncul di lembar kerja itu keadaan nyata lab, bukan data mock rusak.
+    const Standard(
+      id: 50,
+      nama: 'Temperature Calibrator Constant 40T',
+      merk: 'Constant',
+      model: '40T',
+      serialNumber: '99875850',
+      tertelusurKe: 'LK-202-IDN',
+      masihBerlaku: false,
+      ketidakpastian: 0,
+      satuanKetidakpastian: '°C',
+      faktorCakupan: 2,
+    ),
+    const Standard(
+      id: 51,
+      nama: 'Temperature Calibrator Yokogawa CA 150 Handy Cal',
+      merk: 'Yokogawa',
+      model: 'CA 150 Handy Cal',
+      serialNumber: '23P1005',
+      tertelusurKe: 'LK-241-IDN',
+      masihBerlaku: true,
+      ketidakpastian: 0,
+      satuanKetidakpastian: '°C',
+      faktorCakupan: 2,
+    ),
     // Unit thermohygro. `parameterKondisi` yang bikin `punyaParameterKondisi`
     // true — itu satu-satunya saringan yang dipakai picker "Thermohygro used".
     //

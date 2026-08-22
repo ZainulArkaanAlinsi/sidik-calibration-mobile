@@ -1593,6 +1593,14 @@
       }
     }
   },
+  "lkPenentuAngkaKosong": "{field} has not been chosen yet. Without it the server cannot compute a single point — every row comes back uncalculated. Send anyway?",
+  "@lkPenentuAngkaKosong": {
+      "placeholders": {
+          "field": {
+              "type": "String"
+          }
+      }
+  },
   "lkPindaiLembar": "SCAN WORKSHEET",
   "lkPindaiBelumSiap": "Not scannable yet: {alasan}",
   "@lkPindaiBelumSiap": {

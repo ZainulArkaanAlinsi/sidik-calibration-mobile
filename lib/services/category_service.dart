@@ -366,6 +366,100 @@ class MockCategoryService implements CategoryService {
       ),
     ];
 
+    // TITS — Temperature Indicator tanpa Sensor (alat ke-11), dan alat pertama
+    // di kategori `suhu-dan-kelembapan` yang punya lembar kerja sendiri.
+    // Sebelum ini kategorinya pulang KOSONG dari mock, jadi kartunya nggak
+    // pernah nongol di picker walau `_profilKhusus` udah kenal namanya — sama
+    // persis kayak yang kejadian di Viscometer, Spectrophotometer, & DO Meter.
+    //
+    // TUJUH baris, satu per tipe sensor, dan angkanya beda-beda: lampiran
+    // akreditasi LK-285-IDN no. 1 (`database/data/kemampuan-kalibrasi.json` di
+    // backend) ngasih CMC sendiri per tipe. Picker nge-dedupe-nya jadi SATU
+    // kartu "Temperature Indicator tanpa Sensor", persis kayak 3 baris pH.
+    //
+    // Type B nggak ada di sini karena emang nggak diklaim lab — sesinya boleh
+    // disimpan tapi U95-nya nggak terbit, dan backend yang ngasih alasannya
+    // lewat `belum_dihitung`.
+    const kemampuanSuhu = [
+      CalibrationCapability(
+        namaAlat: 'Temperature Indicator tanpa Sensor',
+        parameter: 'Thermocouple sensor type K',
+        rangeMin: -20,
+        rangeMax: 1000,
+        satuan: '°C',
+        ketidakpastianTerbaik: 0.63,
+        satuanKetidakpastian: '°C',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0502_Rev.3',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Temperature Indicator tanpa Sensor',
+        parameter: 'Thermocouple sensor type J',
+        rangeMin: 0,
+        rangeMax: 1000,
+        satuan: '°C',
+        ketidakpastianTerbaik: 0.63,
+        satuanKetidakpastian: '°C',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0502_Rev.3',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Temperature Indicator tanpa Sensor',
+        parameter: 'Thermocouple sensor type T',
+        rangeMin: -20,
+        rangeMax: 400,
+        satuan: '°C',
+        ketidakpastianTerbaik: 0.56,
+        satuanKetidakpastian: '°C',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0502_Rev.3',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Temperature Indicator tanpa Sensor',
+        parameter: 'Thermocouple sensor type N',
+        rangeMin: -20,
+        rangeMax: 1000,
+        satuan: '°C',
+        ketidakpastianTerbaik: 0.83,
+        satuanKetidakpastian: '°C',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0502_Rev.3',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Temperature Indicator tanpa Sensor',
+        parameter: 'Thermocouple sensor type R',
+        rangeMin: 0,
+        rangeMax: 1000,
+        satuan: '°C',
+        ketidakpastianTerbaik: 1,
+        satuanKetidakpastian: '°C',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0502_Rev.3',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Temperature Indicator tanpa Sensor',
+        parameter: 'Thermocouple sensor type S',
+        rangeMin: 0,
+        rangeMax: 1000,
+        satuan: '°C',
+        ketidakpastianTerbaik: 1.2,
+        satuanKetidakpastian: '°C',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0502_Rev.3',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Temperature Indicator tanpa Sensor',
+        parameter: 'Resistance sensor',
+        rangeMin: -20,
+        rangeMax: 800,
+        satuan: '°C',
+        ketidakpastianTerbaik: 0.50,
+        satuanKetidakpastian: '°C',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0502_Rev.3',
+      ),
+    ];
+
     return switch (kode) {
       'panjang' => const CategoryDetail(
         kode: 'panjang',
@@ -376,6 +470,11 @@ class MockCategoryService implements CategoryService {
         kode: 'instrumen-analitik',
         nama: 'Instrumen Analitik',
         kemampuan: kemampuanInstrumenAnalitik,
+      ),
+      'suhu-dan-kelembapan' => const CategoryDetail(
+        kode: 'suhu-dan-kelembapan',
+        nama: 'Suhu & Kelembapan',
+        kemampuan: kemampuanSuhu,
       ),
       _ => CategoryDetail(kode: kode, nama: kode, kemampuan: const []),
     };

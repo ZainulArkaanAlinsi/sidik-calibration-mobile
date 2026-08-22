@@ -606,6 +606,29 @@ class _FormState extends ConsumerState<_Form> {
         if (!mounted) return;
       }
 
+      // Dropdown yang nentuin ANGKA tapi belum dipilih — di TITS itu Mode
+      // (Measure/Source) & Temperature Type.
+      //
+      // Beda dari kolom kosong biasa: arah perhitungan koreksi BERBALIK antara
+      // dua mode dan koreksi kalibrator beda per tipe sensor, jadi backend
+      // nggak nebak — dia mulangin SELURUH titik di `belum_dihitung`. Teknisi
+      // yang nggak ditanya di sini baru tau setelah lembarnya nyampe admin,
+      // dan waktu itu dia udah nggak di depan alatnya.
+      //
+      // TANYA, bukan tahan: backend nandainya `wajib: false`, dan lembar
+      // setengah jadi dari lapangan memang boleh dikirim.
+      final penentuKosong = _isian.pilihanPenentuAngkaKosong;
+
+      if (penentuKosong.isNotEmpty) {
+        final lanjut = await _konfirmasiPeringatan(
+          l10n.lkPenentuAngkaKosong(
+            penentuKosong.map((f) => f.label).join(', '),
+          ),
+        );
+        if (!lanjut) return;
+        if (!mounted) return;
+      }
+
       // Isian YATIM: angkanya keisi tapi standarnya belum dicentang, jadi
       // nggak bisa dihitung. Ditahan di sini, bukan dibiarin nyampe admin —
       // di sana dia muncul sebagai `titik_kosong` yang MEMBLOKIR penerbitan,
@@ -1357,9 +1380,16 @@ class _KopDokumen extends StatelessWidget {
               // kertas: yang FM di kop, yang IK di baris "Calibration Methode".
               // Teknisi cuma membacanya — `calibration_method_id` tetap milik
               // admin.
-              bentuk.kodeMetode == null
-                  ? bentuk.kodeDokumen
-                  : '${bentuk.kodeDokumen} · ${bentuk.kodeMetode}',
+              //
+              // Yang KOSONG dibuang, bukan dirangkai apa adanya. TITS &
+              // Gas Detector nomor formulirnya belum terbit (`kode_dokumen:
+              // null`), dan merangkai buta bikin kop-nya mulai dengan pemisah
+              // menggantung — " · SIDIK-IK-CAL-0502_Rev.3" — yang kebaca kayak
+              // nomor formulirnya gagal dimuat, bukan kayak memang belum ada.
+              [bentuk.kodeDokumen, bentuk.kodeMetode]
+                  .whereType<String>()
+                  .where((s) => s.isNotEmpty)
+                  .join(' · '),
               style: theme.textTheme.labelSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),

@@ -606,9 +606,17 @@ class _TombolLangkah extends ConsumerWidget {
               //
               // Alat yang nggak punya lembar khusus tetap `ph_meter`, sama
               // kayak default lama — nggak ada perilaku yang berubah di situ.
+              //
+              // `sesi.profil` (diresolusi backend) DULUAN. Nebak dari nama
+              // cuma cadangan buat server lama, dan buat TITS tebakan itu
+              // nggak pernah bisa kena: alat di master terdaftar "Temperature
+              // Calibrator" / "Temperature Recorder Controller", nol kemiripan
+              // sama "Temperature Indicator tanpa Sensor".
               ? () => buka(LembarKerjaScreen(
                     sesiId: sesi.id,
-                    profil: profilLembarKerjaUntuk(sesi.namaAlat) ?? 'ph_meter',
+                    profil: sesi.profil ??
+                        profilLembarKerjaUntuk(sesi.namaAlat) ??
+                        'ph_meter',
                   ))
               : null,
         ),
