@@ -1073,6 +1073,32 @@ class LembarKerjaState {
   /// bisa nggak sinkron waktu dropdown-nya diubah.
   String? get modeKalibrasi => kalimat('mode_kalibrasi');
 
+  /// Kode field yang nentuin ANGKA, bukan catatan — kalau kosong, hitungannya
+  /// nggak jalan sama sekali.
+  ///
+  /// Sejauh ini cuma dua, dan dua-duanya milik TITS. Backend nandainya
+  /// `wajib: false` (lembar setengah jadi tetap boleh dikirim dari lapangan),
+  /// tapi tanpa keduanya SELURUH titik pulang di `belum_dihitung`: arah
+  /// perhitungan koreksi berbalik antara mode measure & source, dan koreksi
+  /// kalibrator beda per tipe sensor — jadi backend menolak nebak.
+  ///
+  /// Daftar kode, bukan daftar nama alat: yang nentuin lembar ini nanya atau
+  /// nggak tetap BENTUK dari backend ([pilihanPenentuAngkaKosong] cuma lihat
+  /// field yang beneran ada), jadi sepuluh alat lain nggak kesenggol.
+  static const _kodePenentuAngka = {'mode_kalibrasi', 'tipe_sensor'};
+
+  /// Field penentu angka yang ada di lembar ini tapi belum dipilih.
+  ///
+  /// Kosong = aman, atau lembarnya emang nggak nanya. Dipakai buat NANYA
+  /// sebelum kirim, bukan buat nahan: `wajib: false` itu kontrak backend, dan
+  /// teknisi yang kelupaan tipe sensornya di lapangan tetap harus bisa nyimpen
+  /// apa yang udah dia ukur.
+  List<FieldLembarKerja> get pilihanPenentuAngkaKosong => [
+    for (final bagian in bentuk.bagian)
+      for (final f in bagian.field)
+        if (_kodePenentuAngka.contains(f.kode) && kalimat(f.kode) == null) f,
+  ];
+
   /// Ada yang udah diketik sama sekali? Dipakai buat konfirmasi waktu teknisi
   /// nekan back — bukan buat nahan tombol kirim.
   bool get adaIsian =>

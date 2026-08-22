@@ -2052,12 +2052,25 @@ Map<String, dynamic> contohBentukLembarKerjaTits({bool untukAdmin = false}) {
       'source': 'Reading Standard',
     },
     'titik_bisa_diubah': true,
+    // Tiap baris bawa kalibratornya sebagai NILAI AWAL, sama kayak sembilan
+    // alat lain — tapi artinya beda. Di pH tiap titik memang punya larutannya
+    // sendiri (buffer 4 nggak bisa dipakai buat titik 7); di sini SATU
+    // kalibrator melayani semua titik, dan pasangan ini cuma ngisi kotaknya
+    // biar lembar nggak datang dengan sembilan baris ber-`standard_id` kosong.
+    //
+    // Yang dipasang Yokogawa, bukan Constant, dan itu bukan urutan abjad:
+    // kedua sesi master pakai Yokogawa dan sertifikat Constant 40T udah lewat
+    // masa berlaku. Kalau lab pakai Constant, teknisi yang ngeganti — dan
+    // backend baca MERK dari standar yang beneran dikirim per baris, bukan
+    // dari daftar ini.
     'baris': [
       for (final t in titikSaran)
         {
           'titik_ukur': t,
           'label': '${t == t.roundToDouble() ? t.toInt() : t} °C',
           'satuan': '°C',
+          'standard_id': 51,
+          'standard_nama': 'Temperature Calibrator Yokogawa CA 150 Handy Cal',
         },
     ],
     'kolom': const [
@@ -2103,6 +2116,28 @@ Map<String, dynamic> contohBentukLembarKerjaTits({bool untukAdmin = false}) {
         field('pemilik_nama', '1. Name', 'teks'),
         field('pemilik_alamat', '2. Address', 'teks_panjang'),
       ],
+    },
+    {
+      'kode': 'usage_check',
+      'halaman': 1,
+      'judul': 'STANDARD',
+      // DUA kalibrator suhu lab (`TitsProfile::STANDARD_TERCETAK`), dan blok
+      // ini yang bikin pilihannya bisa diganti: merk kalibrator yang MENENTUKAN
+      // tabel koreksi mana yang dipakai backend, jadi salah centang di sini
+      // bukan salah catatan — angkanya ikut salah.
+      'baris': [
+        {
+          'label': 'Temperature Calibrator Constant 40T',
+          'standard_id': 50,
+          'terdaftar': true,
+        },
+        {
+          'label': 'Temperature Calibrator Yokogawa CA 150 Handy Cal',
+          'standard_id': 51,
+          'terdaftar': true,
+        },
+      ],
+      'field': <Map<String, dynamic>>[],
     },
     {
       'kode': 'data_kalibrasi',

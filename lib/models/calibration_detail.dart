@@ -596,6 +596,7 @@ class CalibrationDetail {
     required this.namaTeknisi,
     required this.tanggalKalibrasi,
     required this.status,
+    this.profil,
     this.keputusan,
     this.certificateId,
     this.catatanRevisi,
@@ -617,6 +618,21 @@ class CalibrationDetail {
 
   final int id;
   final String namaAlat;
+
+  /// Kode profil lembar kerja sesi ini (`tits`, `conductivity_meter`, …), dari
+  /// `equipment.profil`.
+  ///
+  /// Backend yang meresolusinya, bukan layar. [namaAlat] itu nama alat
+  /// PELANGGAN dan bentuknya bebas — sesi TITS di master bernama "Temperature
+  /// Calibrator" dan "Temperature Recorder Controller", nol kemiripan sama
+  /// "Temperature Indicator tanpa Sensor" yang jadi kunci pencocokan
+  /// profilnya. Nebak dari nama itu bikin sesi TITS yang dibuka lagi dapat
+  /// formulir pH: 3 titik 4/7/10,01 di atas lembar suhu 9 titik −20…1000 °C,
+  /// tanpa satu pun error muncul.
+  ///
+  /// Null = server lama yang belum ngirim kunci ini; pemanggil balik nebak
+  /// dari [namaAlat] seperti dulu.
+  final String? profil;
   final String namaTeknisi;
   final DateTime tanggalKalibrasi;
   final CalibrationStatus status;
@@ -707,6 +723,7 @@ class CalibrationDetail {
     return CalibrationDetail(
       id: (json['id'] as num).toInt(),
       namaAlat: equipment?['nama_alat'] as String? ?? '—',
+      profil: equipment?['profil'] as String?,
       namaTeknisi: teknisi?['nama'] as String? ?? '—',
       tanggalKalibrasi: DateTime.parse(json['tanggal_kalibrasi'] as String),
       status: CalibrationStatusJson.fromJson(json['status'] as String),

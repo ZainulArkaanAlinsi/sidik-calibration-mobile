@@ -5372,6 +5372,12 @@ abstract class AppLocalizations {
   /// **'At point {titik} one reading is far off from the other repeats — check it, two digits may have been swapped while typing. A single number like this can throw the certificate uncertainty off by hundreds of times.'**
   String lkRepeatMenyimpang(String titik);
 
+  /// No description provided for @lkPenentuAngkaKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'{field} has not been chosen yet. Without it the server cannot compute a single point — every row comes back uncalculated. Send anyway?'**
+  String lkPenentuAngkaKosong(String field);
+
   /// No description provided for @lkPindaiLembar.
   ///
   /// In en, this message translates to:

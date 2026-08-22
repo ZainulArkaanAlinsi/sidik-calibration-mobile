@@ -1323,7 +1323,15 @@ class _TombolLanjutkanLembar extends ConsumerWidget {
             sesiId: detail.id,
             // Profil WAJIB ikut — tanpa ini layar jatuh ke formulir pH dan
             // admin ngedit lembar Conductivity pakai 3 titik 4/7/10,01.
-            profil: profilLembarKerjaUntuk(detail.namaAlat) ?? 'ph_meter',
+            //
+            // `detail.profil` (dari backend) DULUAN, nebak dari nama cuma
+            // cadangan buat server lama. Nama alat itu teks bebas pelanggan,
+            // dan buat TITS tebakannya nggak pernah bisa kena: alatnya
+            // terdaftar "Temperature Calibrator" / "Temperature Recorder
+            // Controller".
+            profil: detail.profil ??
+                profilLembarKerjaUntuk(detail.namaAlat) ??
+                'ph_meter',
           ),
         ),
       ),

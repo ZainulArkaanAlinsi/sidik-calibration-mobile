@@ -115,6 +115,19 @@ const _profilKhusus = {
   // yang nyampe ke sini teks bebas dari backend.
   'autoklaf': 'autoclave',
   'autoclave': 'autoclave',
+  // TITS — Temperature Indicator tanpa Sensor (alat ke-11). Lampiran
+  // akreditasi LK-285-IDN no. 1 nulis "Indicator" (Inggris), sementara judul
+  // lembar kerja & dokumen labnya nulis "Indikator" (Indonesia). Dua-duanya
+  // didaftarin, alasan yang sama kayak Chlorin/Chlorine di atas.
+  //
+  // Singkatan "TITS" sengaja TIDAK didaftarin. Pencocokan di
+  // [profilLembarKerjaUntuk] nerima kunci yang nempel di TENGAH nama, dan
+  // empat huruf itu terlalu pendek buat aman — satu nama alat yang kebetulan
+  // memuatnya bakal diam-diam dapat lembar suhu. Nama panjangnya sendiri
+  // selalu ada: yang nyampe ke sini `nama_alat` lampiran akreditasi, bukan
+  // singkatan yang diketik teknisi.
+  'temperature indicator tanpa sensor': 'tits',
+  'temperature indikator tanpa sensor': 'tits',
 };
 
 /// Cocokin nama alat ke kode profil lembar kerja, **case-insensitive, spasi
@@ -259,7 +272,14 @@ class _InstrumenCard extends StatelessWidget {
         Icons.gradient_outlined,
       _ when n.contains('autoklaf') => Icons.local_fire_department_outlined,
       _ when n.contains('thermohygro') => Icons.thermostat_outlined,
-      _ when n.contains('thermo') || n.contains('termo') => Icons.device_thermostat_outlined,
+      // `temperature` ikut di sini buat TITS — lampiran akreditasi nulisnya
+      // "Temperature Indicator tanpa Sensor", nggak ada "thermo" mau pun
+      // "termo" di dalamnya, jadi tanpa kata ini kartunya dapat ikon kunci
+      // inggris umum.
+      _ when n.contains('thermo') ||
+              n.contains('termo') ||
+              n.contains('temperature') =>
+        Icons.device_thermostat_outlined,
       _ when n.contains('oven') || n.contains('furnace') || n.contains('bath') =>
         Icons.local_fire_department_outlined,
       _ when n.contains('inkubator') || n.contains('refrigerator') =>

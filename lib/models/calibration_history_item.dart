@@ -33,6 +33,7 @@ class CalibrationHistoryItem {
     required this.namaTeknisi,
     required this.tanggalKalibrasi,
     required this.status,
+    this.profil,
     this.keputusan,
     this.nomorSertifikat,
     this.catatanRevisi,
@@ -45,6 +46,11 @@ class CalibrationHistoryItem {
 
   final int id;
   final String namaAlat;
+
+  /// Kode profil lembar kerja sesi ini (`tits`, `conductivity_meter`, …), dari
+  /// `equipment.profil`. Lihat [CalibrationDetail.profil] soal kenapa nebak
+  /// dari [namaAlat] nggak cukup. Null buat respons backend lama.
+  final String? profil;
   final String namaTeknisi;
 
   /// PT pemilik alat. Dipakai layar antrean approval buat ngelompokkin
@@ -101,6 +107,7 @@ class CalibrationHistoryItem {
   }) => CalibrationHistoryItem(
     id: id,
     namaAlat: namaAlat,
+    profil: profil,
     namaTeknisi: namaTeknisi,
     tanggalKalibrasi: tanggalKalibrasi,
     status: status ?? this.status,
@@ -142,6 +149,7 @@ class CalibrationHistoryItem {
     return CalibrationHistoryItem(
       id: (json['id'] as num).toInt(),
       namaAlat: equipment?['nama_alat'] as String? ?? '—',
+      profil: equipment?['profil'] as String?,
       namaTeknisi: teknisi?['nama'] as String? ?? '—',
       tanggalKalibrasi: DateTime.parse(json['tanggal_kalibrasi'] as String),
       status: CalibrationStatusJson.fromJson(json['status'] as String),

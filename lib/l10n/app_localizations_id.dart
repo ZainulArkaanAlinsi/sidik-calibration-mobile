@@ -2942,6 +2942,11 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String lkPenentuAngkaKosong(String field) {
+    return '$field belum dipilih. Tanpa itu server nggak bisa ngitung satu titik pun — semua baris pulang belum dihitung. Tetap kirim?';
+  }
+
+  @override
   String get lkPindaiLembar => 'PINDAI LEMBAR KERJA';
 
   @override

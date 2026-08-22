@@ -1169,6 +1169,14 @@
       }
     }
   },
+  "lkPenentuAngkaKosong": "{field} belum dipilih. Tanpa itu server nggak bisa ngitung satu titik pun — semua baris pulang belum dihitung. Tetap kirim?",
+  "@lkPenentuAngkaKosong": {
+      "placeholders": {
+          "field": {
+              "type": "String"
+          }
+      }
+  },
   "lkPindaiLembar": "PINDAI LEMBAR KERJA",
   "lkPindaiBelumSiap": "Belum bisa dipindai: {alasan}",
   "@lkPindaiBelumSiap": {
