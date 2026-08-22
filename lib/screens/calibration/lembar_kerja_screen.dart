@@ -38,6 +38,7 @@ import 'pindai_review_screen.dart';
 import 'widgets/dropdown_gagal.dart';
 import 'widgets/lembar_kerja_matriks.dart';
 import 'widgets/lembar_kerja_tabel.dart';
+import 'widgets/pengatur_titik.dart';
 
 /// Lembar Kerja (SIDIK-FM-CAL-0509_Rev.4) — layar input teknisi, dipakai buat
 /// alat yang punya bentuk lembar sendiri (pH Meter, Turbidimeter, ...). Bentuk
@@ -1572,6 +1573,14 @@ class _Bagian extends ConsumerWidget {
               ],
             ] else
             for (var i = 0; i < bagian.tabel.length; i++) ...[
+              // Daftar titik diatur SEKALI di atas tabel pertama, bukan per
+              // tabel: satu daftar berlaku buat Before & After sekaligus.
+              // Cuma muncul di lembar yang backend-nya bilang titiknya boleh
+              // diubah (TITS); sepuluh alat lain nggak berubah tampilannya.
+              if (i == 0 && bagian.tabel[i].titikBisaDiubah) ...[
+                PengaturTitik(isian: isian, onBerubah: onBerubah),
+                const SizedBox(height: AppSpacing.lg),
+              ],
               LembarKerjaTabel(
                 tabel: bagian.tabel[i],
                 isian: isian,

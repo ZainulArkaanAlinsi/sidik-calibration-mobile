@@ -45,7 +45,10 @@ class LembarKerjaTabel extends StatelessWidget {
   /// kepilih. Waktu widget ini masih baca `tabel.baris` sementara state-nya
   /// udah pindah ke °Brix, `isian.titik[...]!` nabrak null dan tabelnya gagal
   /// digambar sama sekali.
-  List<BarisTabelHasil> get _baris => tabel.barisUntuk(isian.satuan);
+  // Lewat state, BUKAN `tabel.barisUntuk()` langsung — lembar yang titiknya
+  // boleh diatur teknisi (TITS) barisnya datang dari situ. Lihat
+  // `LembarKerjaState.barisTabel`.
+  List<BarisTabelHasil> get _baris => isian.barisTabel(tabel);
 
   static const _lebarSel = 78.0;
 
@@ -132,7 +135,9 @@ class LembarKerjaTabel extends StatelessWidget {
   /// `0,0 %T` yang nggak ada di kertas mana pun.
   String _labelBaris(BarisTabelHasil baris) {
     final satuan = isian.bentuk.satuanUntuk(baris);
-    if (tabel.judulNilai != null || satuan.isEmpty) return baris.label;
+    if (tabel.judulNilaiUntuk(isian.modeKalibrasi) != null || satuan.isEmpty) {
+      return baris.label;
+    }
 
     return '${baris.label} $satuan';
   }
@@ -145,8 +150,9 @@ class LembarKerjaTabel extends StatelessWidget {
     // Nomor pengulangan dipotong jadi baris-baris sesuai lembar cetaknya —
     // satu potongan buat alat biasa, dua buat blok %T (X1..X3 dua kali).
     final potongan = tabel.pengulanganPerBarisnya;
+    final judulPengulangan = tabel.judulPengulanganUntuk(isian.modeKalibrasi);
     final tinggiKepala = _tinggiKepala +
-        (tabel.judulPengulangan == null ? 0.0 : _tinggiKepalaGabungan);
+        (judulPengulangan == null ? 0.0 : _tinggiKepalaGabungan);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,7 +237,10 @@ class LembarKerjaTabel extends StatelessWidget {
                   // Kepala kolom nilai standar ngikut lembar cetaknya
                   // (`Std Value (λ1)`); alat yang backend-nya nggak nyebut
                   // apa-apa tetap dapat "Standard" seperti dulu.
-                  teks: tabel.judulNilai ?? 'Standard',
+                  // Judulnya BERTUKAR sisi antar mode di TITS — lihat
+                  // `TabelHasil.judulNilaiPerMode`. Alat lain nggak punya peta
+                  // itu dan jatuh ke `judulNilai` seperti dulu.
+                  teks: tabel.judulNilaiUntuk(isian.modeKalibrasi) ?? 'Standard',
                   tinggi: tinggiKepala,
                 ),
                 for (final baris in _baris)
@@ -280,10 +289,10 @@ class LembarKerjaTabel extends StatelessWidget {
                     // Kepala yang memayungi seluruh kolom angka
                     // (`Measurement Result`). Cuma muncul kalau backend
                     // nyebutin — alat lain nggak berubah tampilannya.
-                    if (tabel.judulPengulangan != null)
+                    if (judulPengulangan != null)
                       _SelKepala(
                         lebar: _lebarSel * tabel.kolom.length * potongan.first.length,
-                        teks: tabel.judulPengulangan!,
+                        teks: judulPengulangan,
                         tinggi: _tinggiKepalaGabungan,
                       ),
 
@@ -300,6 +309,9 @@ class LembarKerjaTabel extends StatelessWidget {
                             kolom: tabel.kolom,
                             lebarSel: _lebarSel,
                             prefiks: tabel.prefiksPengulangan,
+                            // `UP X1` / `DOWN X2` buat TITS. Kosong buat alat
+                            // lain, dan di situ nomornya digambar seperti dulu.
+                            label: tabel.pengulanganArah[r],
                           ),
                       ],
                     ),
@@ -599,7 +611,7 @@ class _TabelKeBawahState extends State<_TabelKeBawah> {
     }
 
     // --- kepala yang memayungi seluruh kolom slot (`Solution Standard`) ----
-    final judul = _tabel.judulNilai;
+    final judul = _tabel.judulNilaiUntuk(widget.isian.modeKalibrasi);
     var tinggiJudul = 0.0;
 
     if (judul != null && judul.isNotEmpty) {
@@ -635,7 +647,7 @@ class _TabelKeBawahState extends State<_TabelKeBawah> {
     final slot = _tabel.slotCetak;
     final ulang = _tabel.pengulangan;
     final ukuran = _ukurKepala(theme, l10n);
-    final judul = _tabel.judulNilai;
+    final judul = _tabel.judulNilaiUntuk(widget.isian.modeKalibrasi);
 
     final garis = theme.colorScheme.outlineVariant;
 
@@ -1042,11 +1054,19 @@ class _KepalaPengulangan extends StatelessWidget {
     required this.kolom,
     required this.lebarSel,
     this.prefiks,
+    this.label,
   });
 
   final int nomor;
   final List<KolomTabelHasil> kolom;
   final double lebarSel;
+
+  /// Tulisan kepala yang datang UTUH dari backend — `UP X1`, `DOWN X3`.
+  ///
+  /// Menang atas [prefiks] dan atas `Repeat n` bawaan: arah pembacaan itu
+  /// bagian dari kertasnya, dan layar nggak boleh nurunin sendiri dari nomor
+  /// (kalau lab suatu saat baca empat kali per arah, hitungannya salah).
+  final String? label;
 
   /// Awalan nomor yang TERCETAK di kertas — `X` bikin `X1`, dan waktu ada
   /// awalannya, label satuan per kolom nggak ikut digambar: lembar cetaknya
@@ -1076,7 +1096,10 @@ class _KepalaPengulangan extends StatelessWidget {
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
-              prefiks == null ? '${l10n.lkRepeat} $nomor' : '$prefiks$nomor',
+              label ??
+                  (prefiks == null
+                      ? '${l10n.lkRepeat} $nomor'
+                      : '$prefiks$nomor'),
               maxLines: 1,
               style: theme.textTheme.labelSmall?.copyWith(
                 fontWeight: FontWeight.w700,
