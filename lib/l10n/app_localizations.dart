@@ -5066,6 +5066,12 @@ abstract class AppLocalizations {
   /// **'Change'**
   String get lkStandarTitikGanti;
 
+  /// No description provided for @lkStandarSemuaTitikDipakai.
+  ///
+  /// In en, this message translates to:
+  /// **'All points — {standar}'**
+  String lkStandarSemuaTitikDipakai(String standar);
+
   /// No description provided for @lkStandarTitikTercetak.
   ///
   /// In en, this message translates to:
@@ -7171,6 +7177,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'select equipment'**
   String get acPetunjukPilihAlat;
+
+  /// No description provided for @lkAlatBaru.
+  ///
+  /// In en, this message translates to:
+  /// **'New equipment'**
+  String get lkAlatBaru;
+
+  /// No description provided for @lkAlatKosongAjakan.
+  ///
+  /// In en, this message translates to:
+  /// **'No equipment for this worksheet yet. Register it first — the type and category are already filled in.'**
+  String get lkAlatKosongAjakan;
+
+  /// No description provided for @lkAlatBaruTersimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment \"{nama}\" saved and selected for this worksheet.'**
+  String lkAlatBaruTersimpan(String nama);
 }
 
 class _AppLocalizationsDelegate

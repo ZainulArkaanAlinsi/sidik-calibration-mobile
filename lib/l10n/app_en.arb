@@ -1491,6 +1491,14 @@
     }
   },
   "lkStandarTitikGanti": "Change",
+  "lkStandarSemuaTitikDipakai": "All points — {standar}",
+  "@lkStandarSemuaTitikDipakai": {
+    "placeholders": {
+      "standar": {
+        "type": "String"
+      }
+    }
+  },
   "lkStandarTitikTercetak": "As printed on the worksheet",
   "antreanSemuaPt": "All companies ({jumlah})",
   "@antreanSemuaPt": {

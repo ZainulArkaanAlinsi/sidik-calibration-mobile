@@ -62,6 +62,24 @@ class LembarKerjaTabel extends StatelessWidget {
   // `LembarKerjaState.barisTabel`.
   List<BarisTabelHasil> get _baris => isian.barisTabel(tabel);
 
+  /// Semua baris nunjuk ke SATU standar tercetak yang sama?
+  ///
+  /// `false` kalau cuma ada satu baris (nggak ada yang digabung), atau kalau
+  /// ada baris tanpa pasangan standar sama sekali — yang begitu butuh
+  /// dropdown-nya sendiri, dan nyembunyiin di balik baris gabungan bikin
+  /// teknisi nggak punya jalan buat ngisinya.
+  bool get _satuStandarSemuaTitik {
+    final baris = _baris;
+    if (baris.length < 2) return false;
+
+    final pertama = isian.titik[baris.first.titikUkur]?.standardIdTercetak;
+    if (pertama == null) return false;
+
+    return baris.every(
+      (b) => isian.titik[b.titikUkur]?.standardIdTercetak == pertama,
+    );
+  }
+
   static const _lebarSel = 78.0;
 
   /// Batas kolom label. Bawahnya lebar lama — cukup buat pH (`4`, `7`, `10`).
@@ -410,15 +428,44 @@ class LembarKerjaTabel extends StatelessWidget {
         // suhunya yang beda. Nanyain dua kali cuma bikin peluang salah pilih.
         if (tabel.sebelumAdjustment) ...[
           const SizedBox(height: AppSpacing.md),
-          for (final baris in _baris)
+          // Satu standar buat SEMUA titik cuma ditanya sekali.
+          //
+          // Di pH tiap titik memang punya larutannya sendiri (buffer 4 nggak
+          // bisa dipakai buat titik 7), jadi tiga baris itu tiga pertanyaan
+          // beda. Di TITS satu kalibrator melayani sembilan titik: sembilan
+          // baris yang bunyinya sama persis bukan cuma berisik — dia bikin
+          // pembaca ngira tiap titik punya kalibrator sendiri, dan ngedorong
+          // tabel After Adjustment jauh ke bawah.
+          //
+          // Diputusin dari DATA (semua baris nunjuk standar yang sama), bukan
+          // dari daftar nama alat: alat mana pun yang standarnya satu ikut
+          // rapi tanpa nyentuh file ini, dan yang standarnya beneran beda per
+          // titik tetap dapat satu baris per titik seperti dulu.
+          if (_satuStandarSemuaTitik)
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),
               child: _PilihStandarTitik(
-                label: baris.label,
-                state: isian.titik[baris.titikUkur]!,
+                label: _baris.first.label,
+                state: isian.titik[_baris.first.titikUkur]!,
+                judulGabungan: true,
+                // Centang & "Ganti" berlaku buat seluruh titik — itu memang
+                // artinya waktu kalibratornya cuma satu.
+                serempak: [
+                  for (final b in _baris.skip(1)) isian.titik[b.titikUkur]!,
+                ],
                 onBerubah: onBerubah,
               ),
-            ),
+            )
+          else
+            for (final baris in _baris)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: _PilihStandarTitik(
+                  label: baris.label,
+                  state: isian.titik[baris.titikUkur]!,
+                  onBerubah: onBerubah,
+                ),
+              ),
         ],
       ],
     );
@@ -1351,11 +1398,21 @@ class _PilihStandarTitik extends ConsumerStatefulWidget {
     required this.label,
     required this.state,
     required this.onBerubah,
+    this.judulGabungan = false,
+    this.serempak = const [],
   });
 
   final String label;
   final TitikState state;
   final VoidCallback onBerubah;
+
+  /// Baris ini mewakili SELURUH titik, bukan titik [label] doang — judulnya
+  /// nyebut "Semua titik", bukan satu nilai titik yang kebetulan paling atas.
+  final bool judulGabungan;
+
+  /// Titik lain yang ikut berubah bareng [state]. Isi cuma waktu satu standar
+  /// melayani semua titik; kosong = perilaku lama, satu baris satu titik.
+  final List<TitikState> serempak;
 
   @override
   ConsumerState<_PilihStandarTitik> createState() => _PilihStandarTitikState();
@@ -1373,12 +1430,16 @@ class _PilihStandarTitikState extends ConsumerState<_PilihStandarTitik> {
 
     if (!_manual && state.standardIdTercetak != null) {
       return _Centang(
-        judul: l10n.lkStandarTitikDipakai(widget.label, state.standardNama!),
+        judul: widget.judulGabungan
+            ? l10n.lkStandarSemuaTitikDipakai(state.standardNama!)
+            : l10n.lkStandarTitikDipakai(widget.label, state.standardNama!),
         subjudul: l10n.lkStandarTitikTercetak,
         nilai: state.standarTercetakDipakai,
         onUbah: (dicentang) {
           setState(() {
-            state.standardId = dicentang ? state.standardIdTercetak : null;
+            for (final t in [state, ...widget.serempak]) {
+              t.standardId = dicentang ? t.standardIdTercetak : null;
+            }
           });
           widget.onBerubah();
         },
@@ -1390,6 +1451,10 @@ class _PilihStandarTitikState extends ConsumerState<_PilihStandarTitik> {
     return _Dropdown(
       label: widget.label,
       state: state,
+      // Ganti manual di baris gabungan mesti nyeret titik lain juga —
+      // kalibratornya satu, jadi nggak ada keadaan sah di mana titik 1000 °C
+      // pakai kalibrator lain dari titik -20 °C tanpa teknisi milihnya.
+      serempak: widget.serempak,
       onBerubah: widget.onBerubah,
     );
   }
@@ -1437,11 +1502,16 @@ class _Dropdown extends ConsumerWidget {
     required this.label,
     required this.state,
     required this.onBerubah,
+    this.serempak = const [],
   });
 
   final String label;
   final TitikState state;
   final VoidCallback onBerubah;
+
+  /// Titik lain yang ikut kena pilihan ini. Kosong = cuma [state], persis
+  /// kayak dulu. Lihat [_PilihStandarTitik.serempak].
+  final List<TitikState> serempak;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1492,7 +1562,9 @@ class _Dropdown extends ConsumerWidget {
               ),
           ],
           onChanged: (value) {
-            state.standardId = value;
+            for (final t in [state, ...serempak]) {
+              t.standardId = value;
+            }
             onBerubah();
           },
         );
