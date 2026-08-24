@@ -10,6 +10,7 @@ import '../../models/calibration_draft.dart' show LokasiKalibrasi;
 import '../../models/equipment_lookup.dart';
 import '../../core/utils/jam_lembar.dart';
 import '../../models/lembar_kerja.dart';
+import 'grid_sensor_state.dart';
 import '../../models/lembar_kerja_submission.dart';
 import '../../models/worksheet_scan.dart';
 import '../../services/gabung_tabel.dart';
@@ -387,6 +388,7 @@ class LembarKerjaState {
 
     _selaraskanKotakTeks();
     _bangunTitik();
+    _selaraskanGrid();
   }
 
   /// Kolom yang isinya diketik butuh controller — dan `teks` itu satu-satunya
@@ -661,8 +663,46 @@ class LembarKerjaState {
   int gantiBentuk(LembarKerja baru) {
     bentuk = baru;
     _selaraskanKotakTeks();
+    _selaraskanGrid();
 
     return _bangunTitik(pertahankanIsian: true);
+  }
+
+  /// Isian GRID sensor, cuma ada di lembar yang backend-nya mengirim
+  /// `grid_sensor` (Enclosure). Null buat sepuluh alat lain.
+  GridSensorState? grid;
+
+  /// Samain [grid] sama bentuk yang lagi kepasang.
+  ///
+  /// Dipanggil dari [gantiBentuk] juga, bukan cuma konstruktor: bentuk awal
+  /// datang sebelum teknisi milih alat, jadi lembar Enclosure baru kelihatan
+  /// ber-grid di panggilan KEDUA. Kalau cuma di konstruktor, gridnya nggak
+  /// pernah lahir dan layarnya kosong.
+  ///
+  /// Isian yang sudah diketik DIPERTAHANKAN selama bentuknya masih ber-grid —
+  /// sama alasannya dengan [_bangunTitik] yang `pertahankanIsian`: teknisi
+  /// bisa mengganti alat sesudah mulai mengisi, dan angka lapangan nggak boleh
+  /// hilang diam-diam.
+  void _selaraskanGrid() {
+    final bentukGrid = bentuk.gridSensor;
+
+    if (bentukGrid == null) {
+      grid?.dispose();
+      grid = null;
+      return;
+    }
+
+    if (grid == null) {
+      grid = GridSensorState(bentuk: bentukGrid);
+      return;
+    }
+
+    // Bentuk grid berubah (jumlah kolom pengulangan beda) — isian lama nggak
+    // bisa dipetakan dengan jujur ke kolom baru, jadi dibangun ulang.
+    if (grid!.bentuk.pengulangan.length != bentukGrid.pengulangan.length) {
+      grid!.dispose();
+      grid = GridSensorState(bentuk: bentukGrid);
+    }
   }
 
   /// Titik ukur yang bakal kebentuk kalau satuannya [calon] — dipakai layar
@@ -1290,6 +1330,21 @@ class LembarKerjaState {
     // bukan ilang dari tabel.
     final measurements = titik.values.map((t) => t.toSubmission()).toList();
 
+    // Lembar ber-GRID nggak punya `titik` sama sekali — bentuknya nggak
+    // mengirim `tabel`, jadi `measurements` di atas selalu kosong. Set point-nya
+    // disusun dari isian grid, dan yang benar-benar kosong dibuang di sana.
+    grid?.bacaUlang();
+    final measurementsGrid = grid?.payload(
+      satuan: bentuk.satuanSuhu,
+      // Kolom Channel cuma diisi kalau kalibratornya berkanal. Kalau merk-nya
+      // belum ketahuan (standar belum dipilih), kanal yang terlanjur diketik
+      // tetap dikirim — backend yang menolaknya kalau memang nggak relevan,
+      // dan itu lebih jujur daripada layar diam-diam membuang angka yang
+      // sudah diketik teknisi.
+      pakaiChannel: true,
+    );
+
+
     return LembarKerjaSubmission(
       equipmentId: alat!.id,
       clientRequestId: clientRequestId,
@@ -1311,11 +1366,16 @@ class LembarKerjaState {
       // pun error.
       tekananAwal: angka('tekanan_awal'),
       tekananAkhir: angka('tekanan_akhir'),
-      // Cuma TITS yang lembarnya punya dua dropdown ini. Dua-duanya nentuin
-      // ANGKA, bukan catatan: mode nentuin arah perhitungan koreksi (kolom
-      // Standard & UUT bertukar sisi), tipe sensor nentuin tabel koreksi
-      // kalibrator mana yang dibaca. Kalau kelewat, backend nolak ngitung
-      // seluruh titiknya — bukan ngeluarin angka yang salah diam-diam.
+      // Dua-duanya nentuin ANGKA, bukan catatan: mode nentuin arah
+      // perhitungan koreksi (kolom Standard & UUT bertukar sisi), tipe sensor
+      // nentuin tabel koreksi kalibrator mana yang dibaca. Kalau kelewat,
+      // backend nolak ngitung seluruh titiknya — bukan ngeluarin angka yang
+      // salah diam-diam.
+      //
+      // `mode_kalibrasi` cuma dipunyai TITS. `tipe_sensor` dipunyai TITS DAN
+      // Enclosure — dikirim dari sini buat dua-duanya, jadi lembar Enclosure
+      // nggak perlu jalur simpan sendiri. Lembar yang nggak punya kolomnya
+      // ngirim null, dan backend memang nerima itu.
       modeKalibrasi: kalimat('mode_kalibrasi'),
       tipeSensor: kalimat('tipe_sensor'),
       catatanTeknisi: kalimat('catatan_teknisi'),
@@ -1332,6 +1392,7 @@ class LembarKerjaState {
           .map((u) => u.toSubmission())
           .toList(),
       measurements: measurements,
+      measurementsGrid: measurementsGrid,
       inputMethod: adaIsianDariFoto ? MetodeInput.ocr : MetodeInput.manual,
     );
   }
@@ -1904,5 +1965,6 @@ class LembarKerjaState {
     for (final u in usageCheck.values) {
       u.dispose();
     }
+    grid?.dispose();
   }
 }

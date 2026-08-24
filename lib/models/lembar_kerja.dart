@@ -886,6 +886,104 @@ bool _campuran(dynamic nilai) => switch (nilai) {
   _ => false,
 };
 
+/// Bentuk GRID termokopel — satu set point diisi BANYAK sensor sekaligus,
+/// bukan satu deret pembacaan.
+///
+/// Dipakai Enclosure (Oven/Furnace/Bath/Inkubator/Refrigerator), dan sengaja
+/// dibaca sebagai BENTUK UMUM — bukan dicocokin ke kode profil `oven` dkk.
+/// Alat berikutnya yang satu set point-nya menaruh banyak sensor di banyak
+/// posisi dapat layar yang sama tanpa nambah cabang di sini.
+///
+/// Bedanya dari [MatriksHasil] bukan cuma jumlah baris. Di matriks, tiap baris
+/// itu BESARAN yang berbeda (`Temp. Disk 1`, `Indikator Pressure`) dan
+/// barisnya dipatok backend. Di sini tiap baris itu SENSOR YANG SAMA JENISNYA
+/// di posisi berbeda, jumlahnya ikut berapa termokopel yang benar-benar
+/// dipasang teknisi — jadi barisnya bisa ditambah & dikurangi di layar.
+class GridSensorBentuk {
+  const GridSensorBentuk({
+    required this.jumlahSensorSaran,
+    required this.pengulangan,
+    required this.butuhChannelUntuk,
+    required this.barisIndikator,
+    required this.barisSuhuRuang,
+    required this.catatanSensorAcuan,
+  });
+
+  /// Berapa termokopel yang BIASANYA dipasang (master: 9). Cuma saran jumlah
+  /// baris awal — bukan batas. Chamber kecil boleh kurang, dan backend
+  /// menerima sampai 40 per set point.
+  final int jumlahSensorSaran;
+
+  /// Nomor kolom pembacaan yang tercetak, mis. `[1, 2, 3, 4, 5]`.
+  ///
+  /// Lima kolom tetap digambar walau backend cuma butuh 4 (master membuang
+  /// pembacaan ke-5), supaya layar sama persis dengan kertas yang lagi dipegang
+  /// teknisi.
+  final List<int> pengulangan;
+
+  /// Merk kalibrator yang koreksinya dibaca PER KANAL — kolom Channel cuma
+  /// digambar buat merk ini. Kosong = nggak ada yang butuh kanal.
+  ///
+  /// Datang sebagai string tunggal (`"recorder"`) dari backend; disimpan
+  /// sebagai himpunan supaya merk kedua nanti nggak perlu ganti tipe.
+  final Set<String> butuhChannelUntuk;
+
+  final bool barisIndikator;
+
+  /// Baris Suhu Ruang DIGAMBAR tapi **nggak ikut dikirim**.
+  ///
+  /// Backend belum punya tempat menampungnya (validasi request cuma mengenal
+  /// `sensor_grid` & `indikator`), jadi kalau diikutkan angkanya hilang tanpa
+  /// satu pun pesan. Barisnya tetap ada di layar karena ada di kertas dan
+  /// teknisi memang menulisnya di lapangan — hilang dari layar berarti
+  /// teknisi ragu apakah dia salah lembar. Lihat `pertanyaan-lab-suhu.md` C-9.
+  final bool barisSuhuRuang;
+
+  /// Kalimat aturan Sensor Acuan apa adanya dari backend.
+  ///
+  /// Sengaja NGGAK ditulis ulang di sini: aturannya pernah berubah (dulu
+  /// "sensor pertama", sekarang "nomor terkecil"), dan layar yang menyimpan
+  /// salinannya sendiri bakal terus menampilkan aturan lama sesudah backend
+  /// dibetulkan.
+  final String catatanSensorAcuan;
+
+  /// Kalibrator [merk] butuh nomor Channel per termokopel?
+  bool butuhChannel(String? merk) {
+    if (merk == null || merk.trim().isEmpty) return false;
+    final m = merk.toLowerCase();
+    return butuhChannelUntuk.any((k) => m.contains(k));
+  }
+
+  static GridSensorBentuk? fromJson(Map<String, dynamic> json) {
+    final ulang = [
+      for (final n in (json['pengulangan'] as List<dynamic>? ?? const []))
+        if (n is num) n.toInt(),
+    ];
+    if (ulang.isEmpty) return null;
+
+    // `butuh_channel_untuk` dikirim string tunggal sekarang, tapi daftar juga
+    // diterima — supaya nambah merk berkanal kedua nggak perlu rilis mobile.
+    final channel = switch (json['butuh_channel_untuk']) {
+      final String s when s.trim().isNotEmpty => {s.trim().toLowerCase()},
+      final List<dynamic> l => {
+        for (final e in l)
+          if (e is String && e.trim().isNotEmpty) e.trim().toLowerCase(),
+      },
+      _ => <String>{},
+    };
+
+    return GridSensorBentuk(
+      jumlahSensorSaran:
+          (json['jumlah_sensor_saran'] as num?)?.toInt() ?? ulang.length,
+      pengulangan: ulang,
+      butuhChannelUntuk: channel,
+      barisIndikator: json['baris_indikator'] as bool? ?? true,
+      barisSuhuRuang: json['baris_suhu_ruang'] as bool? ?? false,
+      catatanSensorAcuan: json['catatan_sensor_acuan'] as String? ?? '',
+    );
+  }
+}
+
 /// Formulir lembar kerja utuh.
 class LembarKerja {
   const LembarKerja({
@@ -902,6 +1000,7 @@ class LembarKerja {
     required this.semuaKolomOpsional,
     required this.catatanPengisian,
     required this.bagian,
+    this.gridSensor,
   });
 
   final String kodeDokumen;
@@ -953,6 +1052,17 @@ class LembarKerja {
   final String catatanPengisian;
   final List<BagianLembarKerja> bagian;
 
+  /// Bentuk GRID termokopel, kalau lembar ini memakainya. Null buat sepuluh
+  /// alat lain yang satu titiknya cuma satu deret pembacaan.
+  final GridSensorBentuk? gridSensor;
+
+  /// Lembar ini diisi sebagai grid sensor, bukan tabel titik datar.
+  ///
+  /// Dibaca dari ADA-nya `grid_sensor` di respons — bukan dari nama atau kode
+  /// alat. Backend yang tahu alat mana berbentuk grid; layar cuma menggambar
+  /// apa yang dikirim.
+  bool get pakaiGrid => gridSensor != null;
+
   bool get untukAdmin => untuk == 'admin';
 
   /// Bagian yang isinya tabel hasil (Before/After adjustment).
@@ -983,6 +1093,15 @@ class LembarKerja {
   List<BagianLembarKerja> bagianDiHalaman(int nomor) =>
       bagian.where((b) => b.halaman == nomor).toList();
 
+  /// [b] itu bagian PERTAMA lembar ini?
+  ///
+  /// Dipakai buat memilih satu bagian yang menggambar GRID sensor — gridnya
+  /// milik lembar, bukan milik bagian, jadi tanpa penanda begini dia kegambar
+  /// sekali per bagian. Dibandingkan lewat `kode` (bukan `identical`) karena
+  /// dua tata letak halaman membangun daftar bagiannya masing-masing.
+  bool bagianPertama(BagianLembarKerja b) =>
+      bagian.isNotEmpty && bagian.first.kode == b.kode;
+
   factory LembarKerja.fromJson(Map<String, dynamic> json) => LembarKerja(
     kodeDokumen: json['kode_dokumen'] as String? ?? '',
     kodeMetode: json['kode_metode'] as String?,
@@ -1000,5 +1119,8 @@ class LembarKerja {
     semuaKolomOpsional: json['semua_kolom_opsional'] as bool? ?? true,
     catatanPengisian: json['catatan_pengisian'] as String? ?? '',
     bagian: parseListAman(json['bagian'], BagianLembarKerja.fromJson),
+    gridSensor: json['grid_sensor'] is Map<String, dynamic>
+        ? GridSensorBentuk.fromJson(json['grid_sensor'] as Map<String, dynamic>)
+        : null,
   );
 }
