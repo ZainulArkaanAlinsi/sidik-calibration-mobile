@@ -13,6 +13,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/user.dart';
 import '../../providers/app_config_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/versi_provider.dart';
 import '../../providers/avatar_provider.dart';
 import '../../providers/locale_provider.dart';
 import '../../providers/platform_provider.dart';
@@ -1155,6 +1156,8 @@ class _AdeganSistem extends StatelessWidget {
             ),
           ),
           const Spacer(),
+          const _BarisVersi(),
+          const SizedBox(height: AppSpacing.sm),
           AppButton(
             label: l10n.profLogout,
             icon: Icons.logout,
@@ -1166,6 +1169,39 @@ class _AdeganSistem extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// Versi & nomor build yang TERPASANG di HP ini.
+///
+/// Kecil dan di pojok, tapi bukan hiasan: sampai sebelum ada baris ini,
+/// pertanyaan "punyaku versi berapa" cuma bisa dijawab dari catatan rilis App
+/// Distribution — yang kelihatan SEBELUM dipasang, bukan sesudah. Waktu
+/// teknisi lapor "punyaku masih yang lama", tidak ada satu pun angka di
+/// layarnya yang bisa diadu.
+///
+/// Gagal membacanya tidak menampilkan apa-apa, bukan pesan error: yang rusak
+/// cuma label informatif, dan menaruh error merah di bawah tombol Keluar
+/// bikin teknisi mengira akunnya bermasalah.
+class _BarisVersi extends ConsumerWidget {
+  const _BarisVersi();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+
+    return ref
+        .watch(versiTerpasangProvider)
+        .maybeWhen(
+          data: (versi) => Text(
+            versi,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          orElse: () => const SizedBox.shrink(),
+        );
   }
 }
 

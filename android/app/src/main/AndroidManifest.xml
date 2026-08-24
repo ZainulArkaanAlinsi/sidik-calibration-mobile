@@ -24,6 +24,25 @@
          tiap request gagal tanpa penjelasan. -->
     <uses-permission android:name="android.permission.INTERNET"/>
 
+    <!-- Memasang APK pemutakhiran dari dalam aplikasi.
+
+         Aplikasi ini TIDAK diedarkan lewat Play Store — teknisi memasangnya
+         dari APK langsung, dan sebelum ada izin ini caranya bolak-balik: buka
+         GitHub/email, unduh manual, cari di folder Download, pasang. Izin ini
+         yang bikin aplikasinya bisa mengunduh penggantinya sendiri lalu
+         memanggil pemasang Android.
+
+         `open_filex` SENGAJA mencabut izin ini dari manifest-nya sendiri
+         supaya paketnya tetap lolos kebijakan Play Store — jadi aplikasi yang
+         memang butuh harus mendeklarasikannya di sini. Kalau suatu hari
+         aplikasi ini masuk Play Store, baris inilah yang pertama harus
+         dicabut, dan pemutakhirannya pindah ke mekanisme Play.
+
+         Izin ini TIDAK memberi hak memasang diam-diam: Android tetap membuka
+         layar konfirmasi pemasang, dan di Android 8+ pengguna masih harus
+         mengizinkan "Install unknown apps" buat aplikasi ini sekali. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
+
     <application
         android:label="PT Sidik Calibration"
         android:name="${applicationName}"

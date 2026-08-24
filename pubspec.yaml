@@ -59,6 +59,13 @@ dependencies:
   path_provider: ^2.1.6
   open_filex: ^4.7.0
 
+  # Baca versi & nomor build yang BENAR-BENAR terpasang di HP ini.
+  # Tanpa ini aplikasi cuma tahu versi yang ditulis di pubspec waktu
+  # dikompilasi — dan itu bukan hal yang sama: rilis CI menimpanya lewat
+  # `--build-name`/`--build-number`, jadi angka di pubspec justru selalu
+  # SALAH buat APK yang dipegang teknisi.
+  package_info_plus: ^8.1.1
+
   # Milih file .xlsx buat Import Excel (spesifikasi poin 12C). `image_picker`
   # yang udah ada cuma bisa gambar, jadi nggak kepakai di sini.
   file_picker: ^8.1.7
