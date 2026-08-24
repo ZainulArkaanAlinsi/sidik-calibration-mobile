@@ -2709,7 +2709,7 @@ class _Field extends ConsumerWidget {
     // Kolom `sumber: otomatis` — ketarik dari alat/akun, teknisi cuma lihat.
     if (field.sumber.readOnly) {
       final user = ref.watch(authProvider).value;
-      return _Readonly(
+      final readonly = _Readonly(
         label: field.label,
         nilai: isian.nilaiTurunan(
           field.kode,
@@ -2718,6 +2718,45 @@ class _Field extends ConsumerWidget {
         ),
         satuan: field.satuan,
       );
+
+      // Volume enclosure beda dari kolom otomatis lain: sumbernya BUKAN data
+      // yang sudah jadi (alat, akun), tapi kotak yang lagi diketik teknisi
+      // detik ini juga.
+      //
+      // Kotak isian biasa (`_Isian`) nyimpen isinya di controller-nya sendiri
+      // dan NGGAK manggil `onBerubah` tiap ketukan — sengaja, biar lembar
+      // 87 kotak nggak digambar ulang tiap huruf. Efek sampingnya: tanpa
+      // penyambung ini, teknisi ngetik P/L/T dan kotak Volume-nya diam aja.
+      // Nggak error, nggak kosong — cuma nggak pernah keisi, dan kelihatannya
+      // seperti fitur yang rusak.
+      //
+      // Jadi kotak ini nempel langsung ke lima controller yang jadi bahannya.
+      // Yang digambar ulang cuma dia sendiri, bukan seluruh lembar.
+      if (field.kode == 'dimensi.volume') {
+        final bahan = <Listenable>[
+          for (final k in const [
+            'dimensi_panjang',
+            'dimensi_lebar',
+            'dimensi_tinggi',
+            'dimensi_jari_jari',
+            'dimensi_tinggi_silinder',
+          ])
+            if (isian.teks[k] != null) isian.teks[k]!,
+        ];
+
+        if (bahan.isEmpty) return readonly;
+
+        return ListenableBuilder(
+          listenable: Listenable.merge(bahan),
+          builder: (_, _) => _Readonly(
+            label: field.label,
+            nilai: isian.nilaiTurunan(field.kode),
+            satuan: field.satuan,
+          ),
+        );
+      }
+
+      return readonly;
     }
 
     return switch (field.sumber) {

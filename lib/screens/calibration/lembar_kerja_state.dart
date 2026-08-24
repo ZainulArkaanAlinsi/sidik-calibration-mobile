@@ -1805,8 +1805,74 @@ class LembarKerjaState {
       // "Checked by" sengaja kosong sampai admin nyetujuin — biar nggak ada
       // yang bisa ngaku-ngaku udah diperiksa.
       'reviewer.nama' => namaReviewer ?? '',
+      'dimensi.volume' => _volumeEnclosure(),
       _ => '',
     };
+  }
+
+  /// Volume enclosure — DIHITUNG dari kotak dimensi, bukan diketik.
+  ///
+  /// Rumusnya persis masternya, dalam METER, tanpa satu pun faktor konversi:
+  ///
+  ///     balok    = P × L × T
+  ///     silinder = π · r² · t
+  ///
+  /// ## Tiga hal yang sengaja BEDA dari master
+  ///
+  /// **1. Kosong tetap kosong.** Di master penjaganya bocor: rumusnya
+  /// `IF(AND(r=0,t=0), P*L*T, "-")` dan kebalikannya, jadi waktu SEMUA kotak
+  /// kosong dua-duanya kondisinya benar dan hasilnya `0`, bukan `"-"`. Di master
+  /// Recorder itu beneran kejadian — blok dimensinya kosong total tapi volumenya
+  /// terbaca `0 m³`. "Nol meter kubik" dan "belum diisi" itu dua hal beda, dan
+  /// yang satu nggak boleh menyamar jadi yang lain.
+  ///
+  /// **2. Dua bentuk keisi barengan = nggak nampilin apa-apa.** Master milih
+  /// diam-diam lewat urutan guard-nya. Di sini isian yang saling bertentangan
+  /// nggak dijawab dengan salah satunya — teknisi yang ngisi P/L/T DAN jari-jari
+  /// lagi bilang dua hal yang beda, dan nebak maksudnya bikin angka yang keluar
+  /// nggak bisa ditelusuri balik ke yang dia ketik.
+  ///
+  /// **3. π-nya 3,14, bukan `math.pi`.** Ini niru masternya apa adanya — di sana
+  /// π sel input biasa berisi 3,14, bukan fungsi `PI()`. Selisihnya ~0,05% di
+  /// volume. Dipakai angka lab, bukan angka yang "lebih benar", supaya hasilnya
+  /// sama dengan yang mereka hitung sendiri di kertas.
+  ///
+  /// Angkanya sendiri nggak masuk perhitungan ketidakpastian dan nggak kecetak
+  /// di sertifikat — sudah ditelusuri dua arah di dua master, sel volumenya nol
+  /// konsumen. Jadi ini murni catatan lembar kerja.
+  String _volumeEnclosure() {
+    double? angka(String kode) {
+      final teksnya = teks[kode]?.text.trim().replaceAll(',', '.');
+      if (teksnya == null || teksnya.isEmpty) return null;
+      final n = double.tryParse(teksnya);
+
+      return (n == null || n <= 0) ? null : n;
+    }
+
+    final p = angka('dimensi_panjang');
+    final l = angka('dimensi_lebar');
+    final t = angka('dimensi_tinggi');
+    final r = angka('dimensi_jari_jari');
+    final ts = angka('dimensi_tinggi_silinder');
+
+    final balok = (p != null && l != null && t != null) ? p * l * t : null;
+    final silinder = (r != null && ts != null) ? 3.14 * r * r * ts : null;
+
+    // Dua-duanya keisi = isian saling bertentangan. Lihat catatan 2 di atas.
+    if (balok != null && silinder != null) return '';
+
+    final volume = balok ?? silinder;
+    if (volume == null) return '';
+
+    // Dipotong 4 desimal lalu nol di belakang dibuang: 0,125 tetap `0,125`,
+    // bukan `0,1250`. Koma, bukan titik — ini yang dibaca teknisi, dan seluruh
+    // lembar lain juga pakai koma.
+    final dipotong = volume
+        .toStringAsFixed(4)
+        .replaceFirst(RegExp(r'0+$'), '')
+        .replaceFirst(RegExp(r'\.$'), '');
+
+    return dipotong.replaceAll('.', ',');
   }
 
   /// Kunci satu sel matriks: jalur data barisnya + nomor titik waktu.
