@@ -118,6 +118,7 @@ class MockLembarKerjaService implements LembarKerjaService {
     this.untukAdmin = false,
     this.gagalKirimSampaiPercobaanKe = 0,
     this.tanpaPasanganStandar = false,
+    this.tanpaTampilKalau = false,
   });
 
   final bool gagal;
@@ -128,6 +129,15 @@ class MockLembarKerjaService implements LembarKerjaService {
   /// pasangan titik↔larutan. Layar mesti jatuh ke pilihan manual, bukan
   /// ninggalin titiknya tanpa standar diam-diam.
   final bool tanpaPasanganStandar;
+
+  /// Buang `tampil_kalau` dari SELURUH kolom — niru backend versi lama yang
+  /// belum kenal penanda tampil-bersyarat.
+  ///
+  /// APK baru ketemu server lama itu keadaan normal, bukan kasus pojok: lab
+  /// nge-update HP-nya duluan. Layar wajib tetap jalan — kedua kotak lokasi
+  /// kegambar sekaligus (label `(Inlab)`/`(Insitu)`-nya yang ngasih tau mana
+  /// yang berlaku), dan nggak ada satu pun kotak yang ilang tanpa alasan.
+  final bool tanpaTampilKalau;
 
   /// Bikin `kirim`/`perbarui` gagal sampai percobaan ke-n — buat niru sinyal
   /// putus di lapangan, dan mastiin retry-nya bawa `client_request_id` yang
@@ -212,12 +222,41 @@ class MockLembarKerjaService implements LembarKerjaService {
         ? bentuk
         : setelKolomPengulanganMock(bentuk, pengulangan);
 
+    final tanpaPasangan = tanpaPasanganStandar
+        ? _tanpaPasangan(dipakai)
+        : dipakai;
+
     return LembarKerja.fromJson(
-      tanpaPasanganStandar ? _tanpaPasangan(dipakai) : dipakai,
+      tanpaTampilKalau ? _tanpaTampilKalau(tanpaPasangan) : tanpaPasangan,
     );
   }
 
   /// Salinan bentuk tanpa `standard_id`/`standard_nama` di baris tabel hasil.
+  /// Salinan bentuk tanpa kunci `tampil_kalau` sama sekali — bukan `null`,
+  /// tapi kuncinya nggak ada. Bedanya penting: yang diuji jalur "server nggak
+  /// pernah ngomongin syarat tampil", dan `null` yang ditulis eksplisit itu
+  /// server BARU yang bilang "kolom ini selalu tampil".
+  static Map<String, dynamic> _tanpaTampilKalau(Map<String, dynamic> bentuk) {
+    List<Map<String, dynamic>> polos(Object? daftar) => [
+      for (final f in (daftar is List ? daftar : const []).cast<Map<String, dynamic>>())
+        {...f}..remove('tampil_kalau'),
+    ];
+
+    return {
+      ...bentuk,
+      'bagian': [
+        for (final bagian
+            in (bentuk['bagian'] as List).cast<Map<String, dynamic>>())
+          {
+            ...bagian,
+            'field': polos(bagian['field']),
+            if (bagian['field_di_luar_kertas'] != null)
+              'field_di_luar_kertas': polos(bagian['field_di_luar_kertas']),
+          },
+      ],
+    };
+  }
+
   static Map<String, dynamic> _tanpaPasangan(Map<String, dynamic> bentuk) => {
     ...bentuk,
     'bagian': [
@@ -317,6 +356,22 @@ Map<String, dynamic> setelKolomPengulanganMock(
 /// (`LembarKerjaTemplate` di backend). Ditaruh di lib, bukan di test, biar
 /// dipakai bareng sama mock — dan biar kalau bentuk backend berubah,
 /// ketahuannya dari satu tempat.
+/// Penanda tampil-bersyarat yang dikirim backend buat pasangan kotak lokasi —
+/// salinan `CalibrationProfile::TAMPIL_KALAU_INSITU` / `…_INLAB`.
+///
+/// Ditulis sekali di sini, bukan di tiap bentuk: sembilan mock yang nyalin
+/// tangan cepat atau lambat bakal beda satu huruf, dan yang beda itu justru
+/// aturan yang nentuin kotak mana yang kekirim ke sertifikat.
+const Map<String, dynamic> tampilKalauInsitu = {
+  'kode': 'lokasi',
+  'nilai': ['onsite'],
+};
+
+const Map<String, dynamic> tampilKalauInlab = {
+  'kode': 'lokasi',
+  'nilai': ['lab'],
+};
+
 Map<String, dynamic> contohBentukLembarKerja({bool untukAdmin = false}) {
   Map<String, dynamic> field(
     String kode,
@@ -326,6 +381,7 @@ Map<String, dynamic> contohBentukLembarKerja({bool untukAdmin = false}) {
     String? satuan,
     List<Map<String, String>> pilihan = const [],
     bool hanyaAdmin = false,
+    Map<String, dynamic>? tampilKalau,
   }) => {
     'kode': kode,
     'label': label,
@@ -335,6 +391,10 @@ Map<String, dynamic> contohBentukLembarKerja({bool untukAdmin = false}) {
     'satuan': satuan,
     'pilihan': pilihan,
     'hanya_admin': hanyaAdmin,
+    // Selalu ikut, `null` = selalu tampil — sama kayak backend. Mock yang
+    // ngilangin kuncinya bikin jalur "server lama" kepakai terus di test, dan
+    // aturan yang beneran dipakai di lapangan nggak pernah kelewat diuji.
+    'tampil_kalau': tampilKalau,
   };
 
   Map<String, dynamic> tabel(String tahap, String judul) => {
@@ -445,11 +505,23 @@ Map<String, dynamic> contohBentukLembarKerja({bool untukAdmin = false}) {
           '1. Location',
           'pilihan',
           pilihan: [
-            {'nilai': 'lab', 'label': 'In lab'},
+            {'nilai': 'lab', 'label': 'Inlab'},
             {'nilai': 'onsite', 'label': 'Insitu'},
           ],
         ),
-        field('room_id', 'Ruangan', 'pilihan', sumber: 'master_ruangan'),
+        field(
+          'lokasi_nama',
+          'Nama Tempat (Insitu)',
+          'teks',
+          tampilKalau: tampilKalauInsitu,
+        ),
+        field(
+          'room_id',
+          'Ruangan (Inlab)',
+          'pilihan',
+          sumber: 'master_ruangan',
+          tampilKalau: tampilKalauInlab,
+        ),
         if (untukAdmin)
           field(
             'calibration_method_id',
@@ -519,6 +591,7 @@ Map<String, dynamic> contohBentukLembarKerjaTurbidi({bool untukAdmin = false}) {
     String? satuan,
     List<Map<String, String>> pilihan = const [],
     bool hanyaAdmin = false,
+    Map<String, dynamic>? tampilKalau,
   }) => {
     'kode': kode,
     'label': label,
@@ -528,6 +601,10 @@ Map<String, dynamic> contohBentukLembarKerjaTurbidi({bool untukAdmin = false}) {
     'satuan': satuan,
     'pilihan': pilihan,
     'hanya_admin': hanyaAdmin,
+    // Selalu ikut, `null` = selalu tampil — sama kayak backend. Mock yang
+    // ngilangin kuncinya bikin jalur "server lama" kepakai terus di test, dan
+    // aturan yang beneran dipakai di lapangan nggak pernah kelewat diuji.
+    'tampil_kalau': tampilKalau,
   };
 
   Map<String, dynamic> tabel(String tahap, String judul) => {
@@ -619,10 +696,22 @@ Map<String, dynamic> contohBentukLembarKerjaTurbidi({bool untukAdmin = false}) {
       'judul': 'CALIBRATION DATA',
       'field': [
         field('lokasi', '1. Location', 'pilihan', pilihan: [
-          {'nilai': 'lab', 'label': 'In lab'},
+          {'nilai': 'lab', 'label': 'Inlab'},
           {'nilai': 'onsite', 'label': 'Insitu'},
         ]),
-        field('room_id', 'Ruangan', 'pilihan', sumber: 'master_ruangan'),
+        field(
+          'lokasi_nama',
+          'Nama Tempat (Insitu)',
+          'teks',
+          tampilKalau: tampilKalauInsitu,
+        ),
+        field(
+          'room_id',
+          'Ruangan (Inlab)',
+          'pilihan',
+          sumber: 'master_ruangan',
+          tampilKalau: tampilKalauInlab,
+        ),
         if (untukAdmin)
           field('calibration_method_id', '2. Calibration Methode', 'pilihan',
               sumber: 'master_metode', hanyaAdmin: true),
@@ -709,6 +798,7 @@ Map<String, dynamic> contohBentukLembarKerjaChlorine({bool untukAdmin = false}) 
     String? satuan,
     List<Map<String, String>> pilihan = const [],
     bool hanyaAdmin = false,
+    Map<String, dynamic>? tampilKalau,
   }) => {
     'kode': kode,
     'label': label,
@@ -718,6 +808,10 @@ Map<String, dynamic> contohBentukLembarKerjaChlorine({bool untukAdmin = false}) 
     'satuan': satuan,
     'pilihan': pilihan,
     'hanya_admin': hanyaAdmin,
+    // Selalu ikut, `null` = selalu tampil — sama kayak backend. Mock yang
+    // ngilangin kuncinya bikin jalur "server lama" kepakai terus di test, dan
+    // aturan yang beneran dipakai di lapangan nggak pernah kelewat diuji.
+    'tampil_kalau': tampilKalau,
   };
 
   Map<String, dynamic> tabel(String tahap, String judul) => {
@@ -810,7 +904,19 @@ Map<String, dynamic> contohBentukLembarKerjaChlorine({bool untukAdmin = false}) 
           {'nilai': 'lab', 'label': 'Inlab'},
           {'nilai': 'onsite', 'label': 'Insitu'},
         ]),
-        field('room_id', 'Ruangan', 'pilihan', sumber: 'master_ruangan'),
+        field(
+          'lokasi_nama',
+          'Nama Tempat (Insitu)',
+          'teks',
+          tampilKalau: tampilKalauInsitu,
+        ),
+        field(
+          'room_id',
+          'Ruangan (Inlab)',
+          'pilihan',
+          sumber: 'master_ruangan',
+          tampilKalau: tampilKalauInlab,
+        ),
         if (untukAdmin)
           field('calibration_method_id', '2. Calibration Methode', 'pilihan',
               sumber: 'master_metode', hanyaAdmin: true),
@@ -905,6 +1011,7 @@ Map<String, dynamic> contohBentukLembarKerjaRefractometer({
     String? satuan,
     List<Map<String, String>> pilihan = const [],
     bool hanyaAdmin = false,
+    Map<String, dynamic>? tampilKalau,
   }) => {
     'kode': kode,
     'label': label,
@@ -914,6 +1021,10 @@ Map<String, dynamic> contohBentukLembarKerjaRefractometer({
     'satuan': satuan,
     'pilihan': pilihan,
     'hanya_admin': hanyaAdmin,
+    // Selalu ikut, `null` = selalu tampil — sama kayak backend. Mock yang
+    // ngilangin kuncinya bikin jalur "server lama" kepakai terus di test, dan
+    // aturan yang beneran dipakai di lapangan nggak pernah kelewat diuji.
+    'tampil_kalau': tampilKalau,
   };
 
   // Larutan fisiknya SAMA, cuma dibaca di skala yang beda: `BSAG2.5-0034`
@@ -1033,7 +1144,19 @@ Map<String, dynamic> contohBentukLembarKerjaRefractometer({
           {'nilai': 'lab', 'label': 'Inlab'},
           {'nilai': 'onsite', 'label': 'Insitu'},
         ]),
-        field('room_id', 'Ruangan', 'pilihan', sumber: 'master_ruangan'),
+        field(
+          'lokasi_nama',
+          'Nama Tempat (Insitu)',
+          'teks',
+          tampilKalau: tampilKalauInsitu,
+        ),
+        field(
+          'room_id',
+          'Ruangan (Inlab)',
+          'pilihan',
+          sumber: 'master_ruangan',
+          tampilKalau: tampilKalauInlab,
+        ),
         if (untukAdmin)
           field('calibration_method_id', '2. Calibration Methode', 'pilihan',
               sumber: 'master_metode', hanyaAdmin: true),
@@ -1116,6 +1239,7 @@ Map<String, dynamic> contohBentukLembarKerjaSpectro({bool untukAdmin = false}) {
     String? satuan,
     List<Map<String, String>> pilihan = const [],
     bool hanyaAdmin = false,
+    Map<String, dynamic>? tampilKalau,
   }) => {
     'kode': kode,
     'label': label,
@@ -1125,6 +1249,10 @@ Map<String, dynamic> contohBentukLembarKerjaSpectro({bool untukAdmin = false}) {
     'satuan': satuan,
     'pilihan': pilihan,
     'hanya_admin': hanyaAdmin,
+    // Selalu ikut, `null` = selalu tampil — sama kayak backend. Mock yang
+    // ngilangin kuncinya bikin jalur "server lama" kepakai terus di test, dan
+    // aturan yang beneran dipakai di lapangan nggak pernah kelewat diuji.
+    'tampil_kalau': tampilKalau,
   };
 
   // Tiap baris bawa `standard_id`-nya sendiri — teknisi NGGAK milih filter per
@@ -1254,13 +1382,24 @@ Map<String, dynamic> contohBentukLembarKerjaSpectro({bool untukAdmin = false}) {
       'judul': 'CALIBRATION DATA',
       'field': [
         field('lokasi', '1. Location', 'pilihan', pilihan: [
-          {'nilai': 'lab', 'label': 'In lab'},
+          {'nilai': 'lab', 'label': 'Inlab'},
           {'nilai': 'onsite', 'label': 'Insitu'},
         ]),
         // Sertifikat nulis `Insitu (PT. LDC)` — nama tempatnya diketik teknisi.
-        field('lokasi_nama', 'Nama Lokasi (kalau Insitu)', 'teks'),
+        field(
+          'lokasi_nama',
+          'Nama Tempat (Insitu)',
+          'teks',
+          tampilKalau: tampilKalauInsitu,
+        ),
         field('teknisi.kode', 'Technician ID', 'teks', sumber: 'otomatis'),
-        field('room_id', 'Ruangan', 'pilihan', sumber: 'master_ruangan'),
+        field(
+          'room_id',
+          'Ruangan (Inlab)',
+          'pilihan',
+          sumber: 'master_ruangan',
+          tampilKalau: tampilKalauInlab,
+        ),
         if (untukAdmin)
           field('calibration_method_id', '2. Calibration Methode', 'pilihan',
               sumber: 'master_metode', hanyaAdmin: true),
@@ -1391,6 +1530,7 @@ Map<String, dynamic> contohBentukLembarKerjaVisco({bool untukAdmin = false}) {
     String? satuan,
     List<Map<String, String>> pilihan = const [],
     bool hanyaAdmin = false,
+    Map<String, dynamic>? tampilKalau,
   }) => {
     'kode': kode,
     'label': label,
@@ -1400,6 +1540,10 @@ Map<String, dynamic> contohBentukLembarKerjaVisco({bool untukAdmin = false}) {
     'satuan': satuan,
     'pilihan': pilihan,
     'hanya_admin': hanyaAdmin,
+    // Selalu ikut, `null` = selalu tampil — sama kayak backend. Mock yang
+    // ngilangin kuncinya bikin jalur "server lama" kepakai terus di test, dan
+    // aturan yang beneran dipakai di lapangan nggak pernah kelewat diuji.
+    'tampil_kalau': tampilKalau,
   };
 
   // Tiga titik master lab: nilai sertifikat larutannya (99,65 / 1018 / 59003
@@ -1527,12 +1671,23 @@ Map<String, dynamic> contohBentukLembarKerjaVisco({bool untukAdmin = false}) {
       'judul': 'CALIBRATION DATA',
       'field': [
         field('lokasi', '1. Location', 'pilihan', pilihan: const [
-          {'nilai': 'lab', 'label': 'In lab'},
+          {'nilai': 'lab', 'label': 'Inlab'},
           {'nilai': 'onsite', 'label': 'Insitu'},
         ]),
-        field('lokasi_nama', 'Nama Lokasi (kalau Insitu)', 'teks'),
+        field(
+          'lokasi_nama',
+          'Nama Tempat (Insitu)',
+          'teks',
+          tampilKalau: tampilKalauInsitu,
+        ),
         field('teknisi.kode', 'Technician ID', 'teks', sumber: 'otomatis'),
-        field('room_id', 'Ruangan', 'pilihan', sumber: 'master_ruangan'),
+        field(
+          'room_id',
+          'Ruangan (Inlab)',
+          'pilihan',
+          sumber: 'master_ruangan',
+          tampilKalau: tampilKalauInlab,
+        ),
         if (untukAdmin)
           field('calibration_method_id', '2. Calibration Methode', 'pilihan',
               sumber: 'master_metode', hanyaAdmin: true),
@@ -1640,6 +1795,7 @@ Map<String, dynamic> contohBentukLembarKerjaDo({bool untukAdmin = false}) {
     String? satuan,
     List<Map<String, String>> pilihan = const [],
     bool hanyaAdmin = false,
+    Map<String, dynamic>? tampilKalau,
   }) => {
     'kode': kode,
     'label': label,
@@ -1649,6 +1805,10 @@ Map<String, dynamic> contohBentukLembarKerjaDo({bool untukAdmin = false}) {
     'satuan': satuan,
     'pilihan': pilihan,
     'hanya_admin': hanyaAdmin,
+    // Selalu ikut, `null` = selalu tampil — sama kayak backend. Mock yang
+    // ngilangin kuncinya bikin jalur "server lama" kepakai terus di test, dan
+    // aturan yang beneran dipakai di lapangan nggak pernah kelewat diuji.
+    'tampil_kalau': tampilKalau,
   };
 
   // Nilai sertifikat larutannya, bukan angka bulat di kertas. Sesi master
@@ -1732,7 +1892,19 @@ Map<String, dynamic> contohBentukLembarKerjaDo({bool untukAdmin = false}) {
           {'nilai': 'lab', 'label': 'Inlab'},
           {'nilai': 'onsite', 'label': 'Insitu'},
         ]),
-        field('room_id', 'Ruangan', 'pilihan', sumber: 'master_ruangan'),
+        field(
+          'lokasi_nama',
+          'Nama Tempat (Insitu)',
+          'teks',
+          tampilKalau: tampilKalauInsitu,
+        ),
+        field(
+          'room_id',
+          'Ruangan (Inlab)',
+          'pilihan',
+          sumber: 'master_ruangan',
+          tampilKalau: tampilKalauInlab,
+        ),
         if (untukAdmin)
           field('calibration_method_id', '2. Calibration Methode', 'pilihan',
               sumber: 'master_metode', hanyaAdmin: true),
@@ -1827,6 +1999,7 @@ Map<String, dynamic> contohBentukLembarKerjaGas({bool untukAdmin = false}) {
     String? satuan,
     List<Map<String, String>> pilihan = const [],
     bool hanyaAdmin = false,
+    Map<String, dynamic>? tampilKalau,
   }) => {
     'kode': kode,
     'label': label,
@@ -1836,6 +2009,10 @@ Map<String, dynamic> contohBentukLembarKerjaGas({bool untukAdmin = false}) {
     'satuan': satuan,
     'pilihan': pilihan,
     'hanya_admin': hanyaAdmin,
+    // Selalu ikut, `null` = selalu tampil — sama kayak backend. Mock yang
+    // ngilangin kuncinya bikin jalur "server lama" kepakai terus di test, dan
+    // aturan yang beneran dipakai di lapangan nggak pernah kelewat diuji.
+    'tampil_kalau': tampilKalau,
   };
 
   // Nilai titiknya konsentrasi sertifikat tabung gasnya, bukan angka bulat
@@ -1940,7 +2117,19 @@ Map<String, dynamic> contohBentukLembarKerjaGas({bool untukAdmin = false}) {
           {'nilai': 'lab', 'label': 'Inlab'},
           {'nilai': 'onsite', 'label': 'Insitu'},
         ]),
-        field('room_id', 'Ruangan', 'pilihan', sumber: 'master_ruangan'),
+        field(
+          'lokasi_nama',
+          'Nama Tempat (Insitu)',
+          'teks',
+          tampilKalau: tampilKalauInsitu,
+        ),
+        field(
+          'room_id',
+          'Ruangan (Inlab)',
+          'pilihan',
+          sumber: 'master_ruangan',
+          tampilKalau: tampilKalauInlab,
+        ),
         if (untukAdmin)
           field('calibration_method_id', '2. Calibration Methode', 'pilihan',
               sumber: 'master_metode', hanyaAdmin: true),
@@ -2024,6 +2213,7 @@ Map<String, dynamic> contohBentukLembarKerjaTits({bool untukAdmin = false}) {
     String? satuan,
     List<Map<String, String>> pilihan = const [],
     bool hanyaAdmin = false,
+    Map<String, dynamic>? tampilKalau,
   }) => {
     'kode': kode,
     'label': label,
@@ -2033,6 +2223,10 @@ Map<String, dynamic> contohBentukLembarKerjaTits({bool untukAdmin = false}) {
     'satuan': satuan,
     'pilihan': pilihan,
     'hanya_admin': hanyaAdmin,
+    // Selalu ikut, `null` = selalu tampil — sama kayak backend. Mock yang
+    // ngilangin kuncinya bikin jalur "server lama" kepakai terus di test, dan
+    // aturan yang beneran dipakai di lapangan nggak pernah kelewat diuji.
+    'tampil_kalau': tampilKalau,
   };
 
   const titikSaran = [-20.0, 10.0, 50.0, 100.0, 200.0, 400.0, 600.0, 800.0, 1000.0];
@@ -2162,7 +2356,19 @@ Map<String, dynamic> contohBentukLembarKerjaTits({bool untukAdmin = false}) {
           {'nilai': 'lab', 'label': 'Inlab'},
           {'nilai': 'onsite', 'label': 'Insitu'},
         ]),
-        field('room_id', 'Ruangan', 'pilihan', sumber: 'master_ruangan'),
+        field(
+          'lokasi_nama',
+          'Nama Tempat (Insitu)',
+          'teks',
+          tampilKalau: tampilKalauInsitu,
+        ),
+        field(
+          'room_id',
+          'Ruangan (Inlab)',
+          'pilihan',
+          sumber: 'master_ruangan',
+          tampilKalau: tampilKalauInlab,
+        ),
         if (untukAdmin)
           field('calibration_method_id', '4. Calibration Methode', 'pilihan',
               sumber: 'master_metode', hanyaAdmin: true),

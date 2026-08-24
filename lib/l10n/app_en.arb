@@ -1333,6 +1333,10 @@
   "lkPilihAlat": "Choose equipment",
   "lkAlatKosong": "No equipment available yet.",
   "lkRuanganGagal": "Couldn't load the room list.",
+  "lkContohNamaTempat": "Example: PT. LDC",
+  "@lkContohNamaTempat": {
+    "description": "Contoh isian di bawah kotak nama tempat sesi Insitu. Yang dipakai nama pelanggan yang didatangi — itu yang kecetak di sertifikat sebagai Calibration Location : Insitu (PT. LDC)."
+  },
   "lkBelumPilihAlat": "Choose the equipment first — the identity and owner fields fill in automatically.",
   "lkOtomatis": "Filled automatically",
   "lkKosong": "—",
@@ -1775,6 +1779,62 @@
   "@tanggalKosong": {
     "description": "Pengganti tanggal kalibrasi yang belum diisi (draf). Sengaja em dash, bukan tanggal hari ini — tanggal palsu di daftar riwayat kelihatan sah dan nggak ada yang curiga."
   },
+  "waktuBaruSaja": "Just now",
+  "@waktuBaruSaja": {
+    "description": "Jarak waktu di bawah satu menit — dipakai daftar Draf. Juga jaring buat jam HP yang meleset ke depan, biar nggak kecetak \"-3 menit lalu\"."
+  },
+  "waktuMenitLalu": "{menit} min ago",
+  "@waktuMenitLalu": {
+    "placeholders": {
+      "menit": {
+        "type": "int"
+      }
+    }
+  },
+  "waktuJamLalu": "{jam} hours ago",
+  "@waktuJamLalu": {
+    "placeholders": {
+      "jam": {
+        "type": "int"
+      }
+    }
+  },
+  "waktuHariLalu": "{hari} days ago",
+  "@waktuHariLalu": {
+    "placeholders": {
+      "hari": {
+        "type": "int"
+      }
+    }
+  },
+  "drafTitle": "Drafts",
+  "@drafTitle": {
+    "description": "Judul layar Draf, sekaligus label item menu samping."
+  },
+  "drafSubjudul": "Worksheets saved but not submitted yet",
+  "drafCariHint": "Search equipment or customer",
+  "drafGrupJumlah": "{jumlah} drafts",
+  "@drafGrupJumlah": {
+    "description": "Jumlah draf di satu kelompok jenis alat.",
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "drafDisimpan": "Saved {waktu}",
+  "@drafDisimpan": {
+    "description": "Kapan draf terakhir disimpen, dalam bahasa manusia (\"2 jam lalu\").",
+    "placeholders": {
+      "waktu": {
+        "type": "String"
+      }
+    }
+  },
+  "drafKosongJudul": "No drafts saved",
+  "drafKosongBody": "Worksheets you save with SAVE DRAFT wait for you here.",
+  "drafCariKosong": "No draft matches that.",
+  "drafGagal": "Couldn't load the drafts.",
   "@antreanOleh": {
     "placeholders": {
       "nama": {

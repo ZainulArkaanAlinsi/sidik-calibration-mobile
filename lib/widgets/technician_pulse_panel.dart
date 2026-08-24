@@ -36,6 +36,7 @@ class TechnicianPulsePanel extends StatelessWidget {
     required this.pending,
     required this.done,
     required this.onStart,
+    this.onDraftTap,
     this.mesh,
   });
 
@@ -55,6 +56,16 @@ class TechnicianPulsePanel extends StatelessWidget {
   final int pending;
   final int done;
   final VoidCallback onStart;
+
+  /// Ketukan di angka DRAF. Null = angkanya diam kayak dua tetangganya.
+  ///
+  /// Cuma angka draf yang bisa diketuk, bukan ketiganya: draf punya satu layar
+  /// yang jelas jadi tujuannya, sementara "menunggu approval" & "selesai"
+  /// nggak — dan tiga kotak yang cuma satu di antaranya bereaksi lebih
+  /// bikin bingung daripada tiga kotak yang diam semua. Sampai dua-duanya
+  /// punya tujuan sendiri, yang satu ini yang paling sering diketuk teknisi
+  /// dan sebelumnya nggak ke mana-mana.
+  final VoidCallback? onDraftTap;
 
   /// Bisa ditukar buat pratinjau/tes. Default: anak timbangan.
   final Mesh3D? mesh;
@@ -159,6 +170,7 @@ class TechnicianPulsePanel extends StatelessWidget {
                           label: draftLabel,
                           warna: Colors.white,
                           icon: Icons.edit_note_rounded,
+                          onTap: onDraftTap,
                         ),
                         const SizedBox(width: AppSpacing.sm),
                         _Metrik(
@@ -295,18 +307,30 @@ class _Metrik extends StatelessWidget {
     required this.label,
     required this.warna,
     required this.icon,
+    this.onTap,
   });
 
   final int nilai;
   final String label;
   final Color warna;
   final IconData icon;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Expanded(
-      child: Container(
+      child: Material(
+        // Transparan + `InkWell` di dalam kotaknya, bukan `GestureDetector`:
+        // yang dicari bukan cuma ketukannya kejawab, tapi RIAKNYA kelihatan —
+        // di panel gelap ini kotak angka nggak punya satu pun penanda lain
+        // bahwa dia bisa dipencet.
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
         padding: const EdgeInsets.fromLTRB(11, 10, 8, 10),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.08),
@@ -340,6 +364,8 @@ class _Metrik extends StatelessWidget {
               ),
             ),
           ],
+        ),
+          ),
         ),
       ),
     );

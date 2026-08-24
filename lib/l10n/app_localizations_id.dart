@@ -2592,6 +2592,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkRuanganGagal => 'Gagal memuat daftar ruangan.';
 
   @override
+  String get lkContohNamaTempat => 'Contoh: PT. LDC';
+
+  @override
   String get lkBelumPilihAlat =>
       'Pilih alatnya dulu — kolom identitas & pemilik keisi otomatis.';
 
@@ -3235,6 +3238,56 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get tanggalKosong => '—';
+
+  @override
+  String get waktuBaruSaja => 'Baru saja';
+
+  @override
+  String waktuMenitLalu(int menit) {
+    return '$menit menit lalu';
+  }
+
+  @override
+  String waktuJamLalu(int jam) {
+    return '$jam jam lalu';
+  }
+
+  @override
+  String waktuHariLalu(int hari) {
+    return '$hari hari lalu';
+  }
+
+  @override
+  String get drafTitle => 'Draf';
+
+  @override
+  String get drafSubjudul => 'Lembar kerja yang disimpen, belum dikirim';
+
+  @override
+  String get drafCariHint => 'Cari nama alat atau pelanggan';
+
+  @override
+  String drafGrupJumlah(int jumlah) {
+    return '$jumlah draf';
+  }
+
+  @override
+  String drafDisimpan(String waktu) {
+    return 'Disimpan $waktu';
+  }
+
+  @override
+  String get drafKosongJudul => 'Belum ada draf';
+
+  @override
+  String get drafKosongBody =>
+      'Lembar kerja yang kamu simpen lewat SIMPAN DRAF nunggu di sini.';
+
+  @override
+  String get drafCariKosong => 'Nggak ada draf yang cocok.';
+
+  @override
+  String get drafGagal => 'Gagal memuat daftar draf.';
 
   @override
   String get perhitTitle => 'Lembar perhitungan';

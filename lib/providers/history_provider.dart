@@ -152,3 +152,40 @@ class AntreanApprovalController
     state = await AsyncValue.guard(() => build());
   }
 }
+
+/// Draf teknisi — lembar yang disimpen setengah jadi
+/// (`GET /api/calibrations?status=draft`).
+///
+/// Dipisah dari [historyProvider] & [antreanApprovalProvider] dengan alasan
+/// yang sama kayak keduanya dipisah: tiga pertanyaan yang beda ("apa yang
+/// pernah saya kerjakan" · "apa yang nunggu saya periksa" · "lembar mana yang
+/// saya tinggal setengah jadi"), dan yang ketiga dibuka paling sering justru
+/// sama teknisi yang lagi berdiri di depan alat.
+///
+/// **Wajib di-`invalidate` sesudah lembar kerja berhasil disimpen** — lihat
+/// [KirimLembarKerjaController.kirim] & `_kirimMatriks` di
+/// `lembar_kerja_screen.dart`. Tanpa itu draf yang barusan disimpen nggak
+/// nongol sampai layarnya ditarik-segarkan, dan teknisi ngira simpanannya
+/// nggak kesimpen.
+final drafProvider =
+    AsyncNotifierProvider<DrafController, List<CalibrationHistoryItem>>(
+      DrafController.new,
+      retry: (retryCount, error) => null,
+    );
+
+class DrafController extends AsyncNotifier<List<CalibrationHistoryItem>> {
+  @override
+  Future<List<CalibrationHistoryItem>> build() async {
+    ref.watch(authProvider);
+
+    final token = await ref.read(tokenStorageProvider).read();
+    if (token == null) throw const TokenHilangException();
+
+    return ref.read(historyServiceProvider).ambilDraf(token);
+  }
+
+  Future<void> muatUlang() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => build());
+  }
+}

@@ -100,6 +100,9 @@ class _SatuSesiMenunggu implements HistoryService {
   ) async => ambilRiwayat(token);
 
   @override
+  Future<List<CalibrationHistoryItem>> ambilDraf(String token) async => const [];
+
+  @override
   Future<CalibrationDetail> ambilDetail(String token, int id) =>
       MockHistoryService().ambilDetail(token, id);
 

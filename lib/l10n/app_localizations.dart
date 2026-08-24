@@ -4796,6 +4796,12 @@ abstract class AppLocalizations {
   /// **'Couldn\'t load the room list.'**
   String get lkRuanganGagal;
 
+  /// Contoh isian di bawah kotak nama tempat sesi Insitu. Yang dipakai nama pelanggan yang didatangi — itu yang kecetak di sertifikat sebagai Calibration Location : Insitu (PT. LDC).
+  ///
+  /// In en, this message translates to:
+  /// **'Example: PT. LDC'**
+  String get lkContohNamaTempat;
+
   /// No description provided for @lkBelumPilihAlat.
   ///
   /// In en, this message translates to:
@@ -5881,6 +5887,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'—'**
   String get tanggalKosong;
+
+  /// Jarak waktu di bawah satu menit — dipakai daftar Draf. Juga jaring buat jam HP yang meleset ke depan, biar nggak kecetak "-3 menit lalu".
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get waktuBaruSaja;
+
+  /// No description provided for @waktuMenitLalu.
+  ///
+  /// In en, this message translates to:
+  /// **'{menit} min ago'**
+  String waktuMenitLalu(int menit);
+
+  /// No description provided for @waktuJamLalu.
+  ///
+  /// In en, this message translates to:
+  /// **'{jam} hours ago'**
+  String waktuJamLalu(int jam);
+
+  /// No description provided for @waktuHariLalu.
+  ///
+  /// In en, this message translates to:
+  /// **'{hari} days ago'**
+  String waktuHariLalu(int hari);
+
+  /// Judul layar Draf, sekaligus label item menu samping.
+  ///
+  /// In en, this message translates to:
+  /// **'Drafts'**
+  String get drafTitle;
+
+  /// No description provided for @drafSubjudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Worksheets saved but not submitted yet'**
+  String get drafSubjudul;
+
+  /// No description provided for @drafCariHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search equipment or customer'**
+  String get drafCariHint;
+
+  /// Jumlah draf di satu kelompok jenis alat.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} drafts'**
+  String drafGrupJumlah(int jumlah);
+
+  /// Kapan draf terakhir disimpen, dalam bahasa manusia ("2 jam lalu").
+  ///
+  /// In en, this message translates to:
+  /// **'Saved {waktu}'**
+  String drafDisimpan(String waktu);
+
+  /// No description provided for @drafKosongJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'No drafts saved'**
+  String get drafKosongJudul;
+
+  /// No description provided for @drafKosongBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Worksheets you save with SAVE DRAFT wait for you here.'**
+  String get drafKosongBody;
+
+  /// No description provided for @drafCariKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No draft matches that.'**
+  String get drafCariKosong;
+
+  /// No description provided for @drafGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the drafts.'**
+  String get drafGagal;
 
   /// No description provided for @perhitTitle.
   ///

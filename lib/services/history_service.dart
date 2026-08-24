@@ -15,6 +15,20 @@ abstract class HistoryService {
   /// bukan di query param dari mobile.
   Future<List<CalibrationHistoryItem>> ambilAntreanApproval(String token);
 
+  /// Draf yang belum pernah dikirim (`GET /api/calibrations?status=draft`).
+  ///
+  /// Pertanyaannya beda dari dua di atas — bukan "apa yang nunggu saya
+  /// periksa" (antrean) dan bukan "apa yang pernah saya kerjakan" (riwayat),
+  /// melainkan "lembar mana yang saya tinggal setengah jadi". Layar Draf
+  /// nampilinnya dikelompokkan per jenis alat.
+  ///
+  /// **`mine=true` sengaja NGGAK dikirim**, alasan yang sama persis kayak
+  /// [ambilRiwayat]: teknisi udah disaring paksa di controller backend, dan
+  /// buat admin parameter itu bikin layarnya KOSONG — admin nggak pernah bikin
+  /// draf sendiri, padahal draf teknisi yang nyangkut justru yang perlu
+  /// ditengok.
+  Future<List<CalibrationHistoryItem>> ambilDraf(String token);
+
   /// `GET /api/calibrations/{id}` — versi lengkap satu sesi, termasuk
   /// breakdown per titik ukur (`docs/kontrak-api.md` §4).
   Future<CalibrationDetail> ambilDetail(String token, int id);
@@ -64,6 +78,17 @@ class ApiHistoryService implements HistoryService {
   @override
   Future<List<CalibrationHistoryItem>> ambilAntreanApproval(String token) =>
       _semuaHalaman('/calibrations?status=menunggu_approval', token);
+
+  /// Lewat [_semuaHalaman] yang sama, BUKAN salinan loop-nya sendiri.
+  ///
+  /// `room_service` sempat nyalin jalur ini dan ketinggalan halaman keduanya —
+  /// ruangan ke-16 ilang dari dropdown tanpa satu pun error. Draf gampang
+  /// nembus 15 baris: satu teknisi bisa ninggalin selusin lembar setengah jadi
+  /// dalam seminggu, dan yang paling lama ditinggal justru mendarat di halaman
+  /// belakang.
+  @override
+  Future<List<CalibrationHistoryItem>> ambilDraf(String token) =>
+      _semuaHalaman('/calibrations?status=draft', token);
 
   /// Batas pengaman kalau `meta` dari server ngaco — 20 × 15 = 300 sesi.
   /// Tanpa ini, `last_page` yang salah bisa bikin app nembak server terus
@@ -154,6 +179,12 @@ class MockHistoryService implements HistoryService {
     return semua
         .where((s) => s.status == CalibrationStatus.menungguApproval)
         .toList();
+  }
+
+  @override
+  Future<List<CalibrationHistoryItem>> ambilDraf(String token) async {
+    final semua = await ambilRiwayat(token);
+    return semua.where((s) => s.status == CalibrationStatus.draft).toList();
   }
 
   @override

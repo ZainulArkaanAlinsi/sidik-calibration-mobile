@@ -22,6 +22,7 @@ import '../../widgets/status_badge.dart';
 import '../../widgets/technician_pulse_panel.dart';
 import '../../widgets/notification_bell.dart';
 import '../calibration/category_picker_screen.dart';
+import '../draf/draf_screen.dart';
 import '../equipment/equipment_form_screen.dart';
 import 'device_overview_screen.dart';
 
@@ -143,6 +144,12 @@ class _Isi extends ConsumerWidget {
             draft: data.kalibrasiDraft,
             pending: data.menungguApproval,
             done: data.kalibrasiSelesai,
+            // Angka draf dulu cuma angka mati. Teknisi yang lihat "3" di sini
+            // nggak punya jalan dari situ ke tiga lembarnya — dia mesti buka
+            // menu samping, atau nyisir Riwayat yang campur sesi selesai.
+            onDraftTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const DrafScreen()),
+            ),
             onStart: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
                 builder: (_) => const CategoryPickerScreen(),
@@ -184,6 +191,13 @@ class _Isi extends ConsumerWidget {
               label: l10n.dashCalibrationDraft,
               nilai: data.kalibrasiDraft,
               icon: Icons.edit_note,
+              // Sama kayak panel teknisi di atas: angkanya nunjuk ke layar
+              // yang isinya, bukan berhenti sebagai angka. Buat admin isinya
+              // draf semua teknisi — yang nyangkut di tengah itu justru yang
+              // perlu ditengok.
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => const DrafScreen()),
+              ),
             ),
             kanan: StatCard(
               label: l10n.dashPendingApproval,

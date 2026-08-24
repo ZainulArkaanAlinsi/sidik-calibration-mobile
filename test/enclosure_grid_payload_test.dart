@@ -15,8 +15,11 @@ import 'package:sidik_calibration/screens/calibration/grid_sensor_state.dart';
 ///  2. **Sensor Acuan = nomor TERKECIL, bukan baris pertama.** Keseragaman
 ///     diukur relatif ke sensor itu; salah acuan menggeser seluruh kolom
 ///     Keseragaman yang tercetak. Pada grid contoh selisihnya bisa 2×.
-///  3. **Baris Suhu Ruang TIDAK ikut dikirim.** Backend belum punya tempat
-///     menampungnya, jadi mengirimnya bikin angkanya hilang tanpa pesan.
+///  3. **Baris Suhu Ruang ikut dikirim, dan nggak ikut ngitung.** Dulu dibuang
+///     di sini karena backend belum punya tempat menampungnya. Sekarang
+///     tempatnya ada (`peran_sensor = 'suhu_ruang'`), jadi yang dijaga
+///     berubah: angkanya harus SAMPAI, dan set point yang cuma punya baris itu
+///     nggak boleh dianggap kosong lalu kebuang diam-diam.
 void main() {
   GridSensorBentuk bentuk({String? butuhChannel = 'recorder'}) =>
       GridSensorBentuk.fromJson({
@@ -181,7 +184,7 @@ void main() {
       });
     });
 
-    test('baris Suhu Ruang nggak ikut dikirim', () {
+    test('baris Suhu Ruang ikut dikirim, sejajar per pengulangan', () {
       final state = GridSensorState(bentuk: bentuk());
       final sp = state.setPoint.first;
       sp.titikCtl.text = '15';
@@ -191,13 +194,46 @@ void main() {
       state.bacaUlang();
 
       final entri = state.payload(satuan: '°C', pakaiChannel: false).first;
-      expect(entri.keys, isNot(contains('suhu_ruang')));
+      expect(entri['suhu_ruang'], [24.5, 24.5, 24.6, 24.6, null]);
       expect(entri.keys, unorderedEquals([
         'titik_ukur',
         'satuan',
         'sensor_grid',
         'indikator',
+        'suhu_ruang',
       ]));
+    });
+
+    test('Suhu Ruang kosong nggak bikin kunci kosong ikut kekirim', () {
+      final state = GridSensorState(bentuk: bentuk());
+      final sp = state.setPoint.first;
+      sp.titikCtl.text = '15';
+      isi(sp.sensor[0], no: 3, baca: ['15.0', '15.1', '15.1', '15.1']);
+      isiDeret(sp.indikator, ['15.0', '15.0', '15.0', '15.0']);
+      state.bacaUlang();
+
+      expect(
+        state.payload(satuan: '°C', pakaiChannel: false).first.keys,
+        isNot(contains('suhu_ruang')),
+      );
+    });
+
+    /// Set point yang BARU keisi baris Suhu Ruang nggak boleh dianggap kosong.
+    ///
+    /// Ini pengulangan bug yang dulu kena baris Indikator. Bahayanya bukan
+    /// "nggak kekirim": `store()` di backend menghapus pembacaan lama SEBELUM
+    /// menyusun yang baru, jadi set point yang kesaring di sini bikin angka
+    /// lama ikut hilang permanen.
+    test('set point yang cuma punya Suhu Ruang tetap dikirim', () {
+      final state = GridSensorState(bentuk: bentuk());
+      final sp = state.setPoint.first;
+      sp.titikCtl.text = '15';
+      isiDeret(sp.suhuRuang, ['24.5', '24.6']);
+      state.bacaUlang();
+
+      final hasil = state.payload(satuan: '°C', pakaiChannel: false);
+      expect(hasil, hasLength(1));
+      expect(hasil.first['suhu_ruang'], [24.5, 24.6, null, null, null]);
     });
 
     test('set point yang belum disentuh nggak dikirim', () {
