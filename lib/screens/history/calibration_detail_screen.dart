@@ -124,10 +124,14 @@ class _Isi extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).languageCode;
-    final tanggal = DateFormat(
-      'd MMMM yyyy',
-      locale,
-    ).format(detail.tanggalKalibrasi);
+    // Null = draf yang belum ditanggalin (kolomnya nullable di backend).
+    // Ditulis apa adanya, bukan diganti tanggal hari ini — layar ini yang
+    // dipakai admin buat mutusin approve, dan tanggal karangan di situ bakal
+    // ikut kebeku ke sertifikat.
+    final tglKalibrasi = detail.tanggalKalibrasi;
+    final tanggal = tglKalibrasi == null
+        ? l10n.tanggalKosong
+        : DateFormat('d MMMM yyyy', locale).format(tglKalibrasi);
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),

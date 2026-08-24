@@ -1713,6 +1713,10 @@
   "antreanOleh": "by {nama}",
   "waktuHariIni": "Today",
   "waktuKemarin": "Yesterday",
+  "tanggalKosong": "—",
+  "@tanggalKosong": {
+    "description": "Pengganti tanggal kalibrasi yang belum diisi (draf). Sengaja em dash, bukan tanggal hari ini — tanggal palsu di daftar riwayat kelihatan sah dan nggak ada yang curiga."
+  },
   "@antreanOleh": {
     "placeholders": {
       "nama": {

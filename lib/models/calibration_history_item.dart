@@ -31,7 +31,7 @@ class CalibrationHistoryItem {
     required this.id,
     required this.namaAlat,
     required this.namaTeknisi,
-    required this.tanggalKalibrasi,
+    this.tanggalKalibrasi,
     required this.status,
     this.profil,
     this.keputusan,
@@ -57,7 +57,20 @@ class CalibrationHistoryItem {
   /// kiriman per perusahaan — admin mikirnya "beresin punya Maju Jaya dulu",
   /// bukan per teknisi. Null buat respons backend lama.
   final String? namaPelanggan;
-  final DateTime tanggalKalibrasi;
+
+  /// Tanggal kalender kalibrasi. **Boleh null.**
+  ///
+  /// Kolomnya di backend nullable sejak migrasi
+  /// `2026_07_23_120300_make_tanggal_kalibrasi_nullable_on_calibration_sessions_table`
+  /// — justru supaya draf boleh disimpen setengah jadi, sebelum teknisi tau
+  /// alatnya bakal dikerjain kapan.
+  ///
+  /// Dulu dibaca `DateTime.parse(json['tanggal_kalibrasi'] as String)`. Buat
+  /// draf tanpa tanggal cast-nya melempar, `parseListAman` nelen lemparannya,
+  /// dan barisnya DILEWAT diam-diam: dashboard ngitung draf itu, daftar
+  /// Riwayat & antrean nggak nampilinnya. Dua angka di satu app yang saling
+  /// membantah, tanpa satu pun pesan error yang bisa dikejar.
+  final DateTime? tanggalKalibrasi;
   final CalibrationStatus status;
 
   /// Cuma keisi kalau [status] `disetujui` (sesi udah dihitung backend).
@@ -146,12 +159,19 @@ class CalibrationHistoryItem {
     // kelewatan jalur mock.
     final sertifikat = json['sertifikat'] as Map<String, dynamic>?;
 
+    // Sengaja `is String`, bukan `as String?`: cast masih melempar kalau suatu
+    // hari kunci ini datang sebagai angka/objek — dan yang nelen lemparannya
+    // `parseListAman`, persis jalur yang bikin draf ilang senyap. Nggak
+    // di-`toLocal()` juga: kolomnya `date`, jamnya selalu 00:00, dan digeser
+    // zona waktu bikin tanggalnya kecetak mundur sehari di Jakarta.
+    final tanggal = json['tanggal_kalibrasi'];
+
     return CalibrationHistoryItem(
       id: (json['id'] as num).toInt(),
       namaAlat: equipment?['nama_alat'] as String? ?? '—',
       profil: equipment?['profil'] as String?,
       namaTeknisi: teknisi?['nama'] as String? ?? '—',
-      tanggalKalibrasi: DateTime.parse(json['tanggal_kalibrasi'] as String),
+      tanggalKalibrasi: tanggal is String ? DateTime.tryParse(tanggal) : null,
       status: CalibrationStatusJson.fromJson(json['status'] as String),
       keputusan: switch (hasil?['keputusan']) {
         'PASS' => Keputusan.pass,

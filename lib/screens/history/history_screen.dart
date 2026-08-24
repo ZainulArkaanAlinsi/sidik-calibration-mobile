@@ -295,10 +295,14 @@ class _HistoryCard extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).languageCode;
-    final tanggal = DateFormat(
-      'd MMM yyyy',
-      locale,
-    ).format(item.tanggalKalibrasi);
+    // Draf sah disimpen tanpa tanggal kalibrasi, jadi baris ini harus bisa
+    // ngaku "belum diisi". JANGAN dijatuhin ke `DateTime.now()`: tanggal palsu
+    // "hari ini" di daftar riwayat kelihatan sah, dan nggak ada yang bakal
+    // curiga sampai sertifikatnya kecetak salah tanggal.
+    final tglKalibrasi = item.tanggalKalibrasi;
+    final tanggal = tglKalibrasi == null
+        ? l10n.tanggalKosong
+        : DateFormat('d MMM yyyy', locale).format(tglKalibrasi);
 
     return Card(
       // Kartu yang lagi kebuka di panel kanan dikasih garis tepi aksen, bukan

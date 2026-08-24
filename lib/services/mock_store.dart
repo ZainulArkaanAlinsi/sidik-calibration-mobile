@@ -223,7 +223,7 @@ class MockStore {
     'nama_alat': s.namaAlat,
     'nama_teknisi': s.namaTeknisi,
     'nama_pelanggan': s.namaPelanggan,
-    'tanggal_kalibrasi': s.tanggalKalibrasi.toIso8601String(),
+    'tanggal_kalibrasi': s.tanggalKalibrasi?.toIso8601String(),
     'status': s.status.name,
     'keputusan': s.keputusan?.name,
     'nomor_sertifikat': s.nomorSertifikat,
@@ -240,7 +240,13 @@ class MockStore {
         namaAlat: j['nama_alat'] as String? ?? '—',
         namaTeknisi: j['nama_teknisi'] as String? ?? '—',
         namaPelanggan: j['nama_pelanggan'] as String?,
-        tanggalKalibrasi: DateTime.parse(j['tanggal_kalibrasi'] as String),
+        // Draf boleh nggak punya tanggal — dan di sini `DateTime.parse`
+        // ke null bakal ngebuang SATU BARIS UTUH lewat `catch` di bawah,
+        // bukan cuma ngosongin tanggalnya.
+        tanggalKalibrasi: switch (j['tanggal_kalibrasi']) {
+          final String t => DateTime.tryParse(t),
+          _ => null,
+        },
         status: CalibrationStatus.values.firstWhere(
           (s) => s.name == j['status'],
           orElse: () => CalibrationStatus.draft,
