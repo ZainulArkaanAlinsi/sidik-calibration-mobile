@@ -3404,6 +3404,144 @@ abstract class AppLocalizations {
   /// **'No matching instrument type.'**
   String get calibInstrumenTidakDitemukan;
 
+  /// No description provided for @calibTambahAlatCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Instrument not on the list? Add it yourself.'**
+  String get calibTambahAlatCta;
+
+  /// No description provided for @calibTambahAlatDariCari.
+  ///
+  /// In en, this message translates to:
+  /// **'Add \"{nama}\" as a new instrument'**
+  String calibTambahAlatDariCari(String nama);
+
+  /// No description provided for @calibTambahAlatJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Instrument Type'**
+  String get calibTambahAlatJudul;
+
+  /// No description provided for @calibTambahAlatLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'INSTRUMENT NAME'**
+  String get calibTambahAlatLabel;
+
+  /// No description provided for @calibTambahAlatHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type it exactly as written on the instrument'**
+  String get calibTambahAlatHint;
+
+  /// No description provided for @calibTambahAlatKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the instrument name first.'**
+  String get calibTambahAlatKosong;
+
+  /// No description provided for @calibTambahAlatPeringatanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Read this before saving'**
+  String get calibTambahAlatPeringatanJudul;
+
+  /// No description provided for @calibTambahAlatPeringatanIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'An instrument you add yourself has no accredited limit from the lab scope yet. The session still runs and the certificate still prints — but the ± figure comes from the generic route, and it can come out SMALLER than what we normally print for registered instruments. Nothing errors out; the number just looks too good. You may still continue, but tell an admin so this instrument gets registered properly.'**
+  String get calibTambahAlatPeringatanIsi;
+
+  /// No description provided for @calibTambahAlatSimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE & USE'**
+  String get calibTambahAlatSimpan;
+
+  /// No description provided for @calibTambahAlatBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'CANCEL'**
+  String get calibTambahAlatBatal;
+
+  /// No description provided for @calibTambahAlatBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{nama}\" is on the list now — ready to pick.'**
+  String calibTambahAlatBerhasil(String nama);
+
+  /// No description provided for @calibTambahAlatKembar.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{nama}\" already exists in this category. Close this box and look for it in the list.'**
+  String calibTambahAlatKembar(String nama);
+
+  /// No description provided for @calibTambahAlatGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t add the instrument: {pesan}'**
+  String calibTambahAlatGagal(String pesan);
+
+  /// No description provided for @calibInstrumenTanpaCmc.
+  ///
+  /// In en, this message translates to:
+  /// **'No CMC range yet'**
+  String get calibInstrumenTanpaCmc;
+
+  /// No description provided for @calibTiNama.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature Indicator'**
+  String get calibTiNama;
+
+  /// No description provided for @calibTiKartuRingkas.
+  ///
+  /// In en, this message translates to:
+  /// **'Two kinds — first pick whether the sensor is calibrated too'**
+  String get calibTiKartuRingkas;
+
+  /// No description provided for @calibTiGerbangPengantar.
+  ///
+  /// In en, this message translates to:
+  /// **'First pick whether the sensor is calibrated too. Everything on the next sheet follows this choice — the measuring points, the reference standards, right down to the uncertainty formula. Picking wrong raises no error at all, so settle it here.'**
+  String get calibTiGerbangPengantar;
+
+  /// No description provided for @calibTiTanpaSensorJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Without Sensor'**
+  String get calibTiTanpaSensorJudul;
+
+  /// No description provided for @calibTiTanpaSensorKeterangan.
+  ///
+  /// In en, this message translates to:
+  /// **'The sensor is NOT calibrated. The calibrator is wired into the indicator terminals and stands in for the sensor, so only the indicator reading is checked.'**
+  String get calibTiTanpaSensorKeterangan;
+
+  /// No description provided for @calibTiDenganSensorJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'With Sensor'**
+  String get calibTiDenganSensorJudul;
+
+  /// No description provided for @calibTiDenganSensorKeterangan.
+  ///
+  /// In en, this message translates to:
+  /// **'The sensor IS calibrated. Sensor and indicator are checked as one chain — the sensor goes into the medium alongside the reference thermometer, so the reading covers the whole chain.'**
+  String get calibTiDenganSensorKeterangan;
+
+  /// No description provided for @calibTiBelumSiap.
+  ///
+  /// In en, this message translates to:
+  /// **'Not on this server yet'**
+  String get calibTiBelumSiap;
+
+  /// No description provided for @calibTiBelumSiapPesan.
+  ///
+  /// In en, this message translates to:
+  /// **'The \"{varian}\" worksheet is not on the server in use yet. Tell an admin first — forcing it open now would hand you another instrument\'s sheet, and nothing would error out.'**
+  String calibTiBelumSiapPesan(String varian);
+
   /// No description provided for @phCalibTitle.
   ///
   /// In en, this message translates to:

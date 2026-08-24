@@ -1,6 +1,24 @@
 import '../models/category.dart';
 import '../core/utils/parse_list.dart';
 import 'api_client.dart';
+import 'auth_service.dart';
+
+/// Backend nolak nama alatnya karena **udah ada** di kategori itu — `422`
+/// dengan keluhannya di `errors.nama_alat` (kontrak `POST
+/// /api/categories/{kode}/kemampuan`).
+///
+/// Dibedain dari gagal lain SENGAJA. Kalau semua kegagalan tampil sebagai
+/// "gagal nambah alat", teknisi yang alatnya sebenernya udah terdaftar bakal
+/// nyoba lagi dengan nama yang beda tipis ("pH Meter " → "PH meter") sampai
+/// ada yang nyangkut — dan daftar kemampuan lab jadi kembar tiga.
+class NamaAlatKembarException implements Exception {
+  const NamaAlatKembarException(this.namaAlat);
+
+  final String namaAlat;
+
+  @override
+  String toString() => 'NamaAlatKembarException($namaAlat)';
+}
 
 abstract class CategoryService {
   Future<List<Category>> daftar(String token);
@@ -9,6 +27,25 @@ abstract class CategoryService {
   /// kategori itu, dipakai buat dropdown "Jenis Alat (Kemampuan Kalibrasi)"
   /// di form Alat (`docs/kontrak-api.md` §3).
   Future<CategoryDetail> detail(String token, String kode);
+
+  /// `POST /api/categories/{kode}/kemampuan` — teknisi nambah nama alat yang
+  /// belum ada di daftar, **tanpa nunggu persetujuan admin**.
+  ///
+  /// Keputusan pemiliknya begitu: alat yang ditambah langsung bisa dipakai.
+  /// Alasannya lapangan — teknisi udah berdiri di depan alat pelanggan, dan
+  /// nunggu admin bangun besok pagi artinya sesinya nggak jadi hari itu.
+  ///
+  /// Yang lahir dari sini `tanpa_cmc: true`: namanya ada, tapi lampiran
+  /// akreditasi nggak pernah nyebut dia, jadi nggak ada lantai CMC. Itu WAJIB
+  /// diomongin ke teknisi sebelum dia nyimpen — lihat peringatan di
+  /// `instrument_picker_screen.dart`.
+  ///
+  /// Lempar [NamaAlatKembarException] kalau namanya udah kepakai.
+  Future<CalibrationCapability> tambahKemampuan(
+    String token,
+    String kode,
+    String namaAlat,
+  );
 }
 
 /// Nembak `GET /api/categories` — live sejak 14 Jul, semua role
@@ -32,6 +69,46 @@ class ApiCategoryService implements CategoryService {
     final data = (json['data'] ?? json) as Map<String, dynamic>;
     return CategoryDetail.fromJson(data);
   }
+
+  @override
+  Future<CalibrationCapability> tambahKemampuan(
+    String token,
+    String kode,
+    String namaAlat,
+  ) async {
+    try {
+      final json = await _api.post(
+        '/categories/$kode/kemampuan',
+        token: token,
+        body: {'nama_alat': namaAlat},
+      );
+
+      // `201 { "data": { ...baris kemampuan... } }`. Baris yang balik dipakai
+      // apa adanya — dia yang tau `profil` & `tanpa_cmc`-nya, bukan kita.
+      final data = (json['data'] ?? json) as Map<String, dynamic>;
+      return CalibrationCapability.fromJson(data);
+    } on ApiException catch (e) {
+      // 422 di sini BUKAN error tak terduga — itu jawaban normal buat nama
+      // yang udah kepakai (lihat kontraknya di [CategoryService]). Yang lain
+      // (403 role, 404 server lama yang belum punya endpoint ini, 500)
+      // diterusin apa adanya biar pesannya nggak dipalsuin jadi "udah ada".
+      if (e.status == 422 && _mengeluhNamaAlat(e.body)) {
+        throw NamaAlatKembarException(namaAlat);
+      }
+      rethrow;
+    }
+  }
+
+  /// `errors.nama_alat` ada isinya = yang ditolak memang kolom namanya.
+  ///
+  /// Dicek, bukan diasumsikan dari status 422 doang: sekali waktu 422 bisa
+  /// datang dari hal lain (rate limit form, kolom lain yang ditambah backend
+  /// nanti), dan bilang "alatnya udah ada" buat kegagalan yang bukan itu
+  /// nyuruh teknisi nyari kartu yang nggak akan pernah dia temuin.
+  bool _mengeluhNamaAlat(Map<String, dynamic> body) {
+    final errors = body['errors'];
+    return errors is Map && errors['nama_alat'] != null;
+  }
 }
 
 /// Data tiruan buat test — 10 kategori lampiran akreditasi.
@@ -39,6 +116,15 @@ class MockCategoryService implements CategoryService {
   MockCategoryService({this.gagal = false});
 
   final bool gagal;
+
+  /// Nama alat yang ditambah teknisi lewat [tambahKemampuan], dikelompokin per
+  /// kode kategori.
+  ///
+  /// Nempel di instance, bukan `static`: `categoryServiceProvider` nyimpen satu
+  /// [MockCategoryService] selama app nyala, jadi di `USE_MOCK=true` alat yang
+  /// barusan ditambah tetap ada waktu layarnya dibuka lagi — sementara tiap
+  /// test yang bikin instance sendiri mulai dari daftar yang bersih.
+  final Map<String, List<CalibrationCapability>> _tambahan = {};
 
   @override
   Future<List<Category>> daftar(String token) async {
@@ -459,6 +545,53 @@ class MockCategoryService implements CategoryService {
         metode: 'SIDIK-IK-CAL-0502_Rev.3',
       ),
 
+      // TIDS — Temperatur Indikator DENGAN Sensor, lampiran akreditasi
+      // LK-285-IDN no. 2. Ejaannya beda bahasa dari no. 1 di atas
+      // ("Temperature Indicator tanpa Sensor", Inggris) dan itu bukan salah
+      // ketik yang boleh dirapiin di sini: yang ngiket lab tulisan di
+      // lampirannya, dan backend narik `nama_alat` dari situ apa adanya.
+      // Justru dua ejaan inilah yang bikin gerbang Temperatur Indikator
+      // nyocokin BENTUK nama, bukan daftar ejaan.
+      //
+      // `profil` sengaja NGGAK diisi. Backend baru punya `TitsProfile`; profil
+      // `tids` masih dibangun, dan `kodeProfilDariNama()` di sana emang
+      // mulangin null buat nama yang belum punya profil. Ngisi `'tids'` di
+      // mock bikin build offline kelihatan lebih jadi daripada kenyataannya —
+      // dan yang ketutup justru satu-satunya penanda yang ngasih tau lembarnya
+      // belum ada.
+      //
+      // Tiga baris, CMC-nya naik ikut rentang: 0,86 / 1,4 / 3,1 °C.
+      CalibrationCapability(
+        namaAlat: 'Temperatur Indikator dengan Sensor',
+        rangeMin: -20,
+        rangeMax: 150,
+        satuan: '°C',
+        ketidakpastianTerbaik: 0.86,
+        satuanKetidakpastian: '°C',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0503_Rev.6',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Temperatur Indikator dengan Sensor',
+        rangeMin: 150,
+        rangeMax: 400,
+        satuan: '°C',
+        ketidakpastianTerbaik: 1.4,
+        satuanKetidakpastian: '°C',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0503_Rev.6',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Temperatur Indikator dengan Sensor',
+        rangeMin: 400,
+        rangeMax: 600,
+        satuan: '°C',
+        ketidakpastianTerbaik: 3.1,
+        satuanKetidakpastian: '°C',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0503_Rev.6',
+      ),
+
       // ENCLOSURE — lima jenis, alat ke-12, dan masalahnya persis sama dengan
       // TITS di atas: lembar kerjanya sudah jadi & teruji, tapi kategorinya
       // nggak pernah memulangkan satu pun dari lima ini, jadi kartunya nggak
@@ -526,7 +659,7 @@ class MockCategoryService implements CategoryService {
       ),
     ];
 
-    return switch (kode) {
+    final bawaan = switch (kode) {
       'panjang' => const CategoryDetail(
         kode: 'panjang',
         nama: 'Panjang',
@@ -544,5 +677,54 @@ class MockCategoryService implements CategoryService {
       ),
       _ => CategoryDetail(kode: kode, nama: kode, kemampuan: const []),
     };
+
+    // Alat tambahan teknisi ditempel di BELAKANG daftar lampiran akreditasi —
+    // urutannya sama kayak yang backend pulangin (baris baru = id paling
+    // besar), jadi yang kelihatan di layar mock sama dengan yang nanti
+    // kelihatan lawan server asli.
+    final tambahan = _tambahan[kode];
+    if (tambahan == null || tambahan.isEmpty) return bawaan;
+
+    return CategoryDetail(
+      kode: bawaan.kode,
+      nama: bawaan.nama,
+      kemampuan: [...bawaan.kemampuan, ...tambahan],
+    );
   }
+
+  @override
+  Future<CalibrationCapability> tambahKemampuan(
+    String token,
+    String kode,
+    String namaAlat,
+  ) async {
+    if (gagal) throw Exception('server nggak nyaut');
+
+    final nama = namaAlat.trim();
+    final isi = await detail(token, kode);
+
+    if (isi.kemampuan.any((k) => _samaNama(k.namaAlat, nama))) {
+      throw NamaAlatKembarException(nama);
+    }
+
+    // Persis bentuk yang backend pulangin buat alat yang lahir dari teknisi:
+    // `tanpa_cmc: true` (lampiran akreditasi nggak pernah nyebut dia) dan
+    // `profil: null` (jatuh ke form generik). Ngasih CMC karangan di sini
+    // bakal bikin build mock kelihatan lebih meyakinkan daripada kenyataannya
+    // — dan justru peringatan yang mesti diuji itu yang ilang.
+    final baru = CalibrationCapability(namaAlat: nama, tanpaCmc: true);
+    (_tambahan[kode] ??= []).add(baru);
+
+    return baru;
+  }
+
+  /// Dua nama dianggap alat yang sama kalau cuma beda huruf besar/kecil atau
+  /// spasi. "pH Meter", "PH  meter", dan "ph meter " itu satu alat buat orang
+  /// yang megang, jadi mock-nya nolak ketiganya — kalau nggak, test 422 di
+  /// sini lolos padahal backend (yang bandinginnya juga nggak peka huruf)
+  /// bakal nolak.
+  static bool _samaNama(String a, String b) => _rapiin(a) == _rapiin(b);
+
+  static String _rapiin(String s) =>
+      s.toLowerCase().trim().replaceAll(RegExp(r'\s+'), ' ');
 }
