@@ -128,6 +128,29 @@ const _profilKhusus = {
   // singkatan yang diketik teknisi.
   'temperature indicator tanpa sensor': 'tits',
   'temperature indikator tanpa sensor': 'tits',
+
+  // ENCLOSURE — lima jenis, satu mesin hitung, tapi LIMA kode profil terpisah
+  // karena tiap jenis punya CMC sendiri di lampiran akreditasi (Oven 1,5 °C;
+  // Furnace 3,0; Bath 1,2; Inkubator 1,4; Refrigerator 1,5). Jadi kodenya
+  // nggak boleh disatukan jadi satu `enclosure`: yang menentukan lantai U95
+  // justru jenisnya.
+  //
+  // Kuncinya persis `nama_alat` di lampiran akreditasi. Diadu ke seluruh 48
+  // nama alat di master kemampuan kalibrasi: kelima kata ini nggak nempel di
+  // satu pun nama alat lain, jadi pencocokan-di-tengah aman di sini.
+  //
+  // `bath` cuma empat huruf — sependek "tits" yang sengaja TIDAK didaftarin di
+  // atas. Bedanya, `bath` itu nama alat yang sebenarnya di lampiran (bukan
+  // singkatan), dan varian yang dipakai lab semuanya memuatnya utuh:
+  // "Water Bath", "Oil Bath". Kalau nanti ada alat baru yang namanya
+  // kebetulan memuat "bath", yang dibetulkan daftar ini — bukan dibiarkan
+  // jatuh diam-diam ke lembar generik.
+  'oven': 'oven',
+  'furnace': 'furnace',
+  'bath': 'bath',
+  'inkubator': 'inkubator',
+  'incubator': 'inkubator',
+  'refrigerator': 'refrigerator',
 };
 
 /// Cocokin nama alat ke kode profil lembar kerja, **case-insensitive, spasi
