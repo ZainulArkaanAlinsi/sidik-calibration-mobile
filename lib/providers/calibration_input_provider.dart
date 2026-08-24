@@ -54,6 +54,59 @@ final categoryDetailProvider = FutureProvider.family<CategoryDetail, String>((
   return ref.read(categoryServiceProvider).detail(token, kode);
 }, retry: (retryCount, error) => null);
 
+/// Nambah nama alat sendiri dari layar pilih alat (`POST
+/// /api/categories/{kode}/kemampuan`).
+///
+/// Dipisah dari [categoryDetailProvider] yang cuma baca: yang ini nulis, dan
+/// yang manggil butuh tau kapan lagi jalan (biar tombolnya nggak bisa dipencet
+/// dua kali) plus baris yang lahir dari servernya.
+final tambahKemampuanProvider =
+    NotifierProvider<
+      TambahKemampuanController,
+      AsyncValue<CalibrationCapability?>
+    >(TambahKemampuanController.new);
+
+class TambahKemampuanController
+    extends Notifier<AsyncValue<CalibrationCapability?>> {
+  @override
+  AsyncValue<CalibrationCapability?> build() => const AsyncValue.data(null);
+
+  /// Error DILEMPAR, bukan cuma ditaruh di state — sama alasannya kayak
+  /// `RuanganController.simpan`: yang berguna buat teknisi itu pesan
+  /// penolakannya ("alatnya udah ada"), dan itu mesti muncul DI DIALOG yang
+  /// lagi kebuka, bukan bikin nama yang udah diketik ilang.
+  ///
+  /// State-nya tetap diisi supaya tombol simpan bisa nunjukin lagi jalan.
+  Future<CalibrationCapability> tambah({
+    required String kode,
+    required String namaAlat,
+  }) async {
+    state = const AsyncValue.loading();
+
+    try {
+      final token = await ref.read(tokenStorageProvider).read();
+      if (token == null) throw const TokenHilangException();
+
+      final baru = await ref
+          .read(categoryServiceProvider)
+          .tambahKemampuan(token, kode, namaAlat);
+
+      state = AsyncValue.data(baru);
+
+      // Daftar alatnya disegarin DI SINI, bukan di layar: siapa pun yang
+      // manggil ini pasti butuh daftar yang udah ada alat barunya, dan naruh
+      // invalidate-nya di layar berarti pemanggil berikutnya gampang lupa —
+      // teknisi nyimpen, daftarnya nggak berubah, dia nyimpen lagi.
+      ref.invalidate(categoryDetailProvider(kode));
+
+      return baru;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+}
+
 final standardListProvider = FutureProvider<List<Standard>>((ref) async {
   final token = await _token(ref);
   return ref.read(standardServiceProvider).daftar(token);

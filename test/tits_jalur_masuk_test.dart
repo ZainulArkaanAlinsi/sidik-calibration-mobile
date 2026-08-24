@@ -153,21 +153,25 @@ void main() {
       satuan: '°C',
     );
 
-    testWidgets('tujuh baris CMC per tipe sensor jadi SATU kartu', (
+    testWidgets('sepuluh baris CMC dua nama alat jadi SATU kartu', (
       tester,
     ) async {
       await tester.pumpWidget(app(suhu));
       await tester.pumpAndSettle();
 
-      // Tujuh baris (Type K/J/T/N/R/S + RTD) dengan nama alat yang sama —
-      // kalau dedupe-nya lepas, teknisi lihat tujuh kartu identik.
-      expect(
-        find.text('Temperature Indicator tanpa Sensor'),
-        findsOneWidget,
-      );
+      // Tujuh baris TITS (Type K/J/T/N/R/S + RTD) + tiga baris TIDS — kalau
+      // dedupe-nya lepas, teknisi lihat sepuluh kartu.
+      //
+      // Judulnya "Temperatur Indikator", bukan salah satu nama panjangnya:
+      // kartunya sekarang PINTU buat dua-duanya, dan varian-nya dipilih di
+      // `TemperaturIndikatorGerbangScreen` (permintaan pemilik proyek, Agu
+      // 2026). Nyetak salah satu nama panjang di kartu gabungan bikin teknisi
+      // ngira varian yang satunya nggak ada.
+      expect(find.text('Temperatur Indikator'), findsOneWidget);
+      expect(find.text('Temperature Indicator tanpa Sensor'), findsNothing);
     });
 
-    testWidgets('kartunya beneran mbuka lembar TITS, bukan formulir pH', (
+    testWidgets('lewat gerbang, "tanpa sensor" mbuka lembar TITS', (
       tester,
     ) async {
       // Lembar TITS panjang — di layar 800x600 bawaan, dua dropdown-nya ada di
@@ -180,7 +184,10 @@ void main() {
       await tester.pumpWidget(app(suhu));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Temperature Indicator tanpa Sensor'));
+      await tester.tap(find.text('Temperatur Indikator'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Tanpa Sensor'));
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
       final layar = tester.widget<LembarKerjaScreen>(

@@ -1830,6 +1830,92 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calibInstrumenTidakDitemukan => 'No matching instrument type.';
 
   @override
+  String get calibTambahAlatCta =>
+      'Instrument not on the list? Add it yourself.';
+
+  @override
+  String calibTambahAlatDariCari(String nama) {
+    return 'Add \"$nama\" as a new instrument';
+  }
+
+  @override
+  String get calibTambahAlatJudul => 'Add Instrument Type';
+
+  @override
+  String get calibTambahAlatLabel => 'INSTRUMENT NAME';
+
+  @override
+  String get calibTambahAlatHint =>
+      'Type it exactly as written on the instrument';
+
+  @override
+  String get calibTambahAlatKosong => 'Enter the instrument name first.';
+
+  @override
+  String get calibTambahAlatPeringatanJudul => 'Read this before saving';
+
+  @override
+  String get calibTambahAlatPeringatanIsi =>
+      'An instrument you add yourself has no accredited limit from the lab scope yet. The session still runs and the certificate still prints — but the ± figure comes from the generic route, and it can come out SMALLER than what we normally print for registered instruments. Nothing errors out; the number just looks too good. You may still continue, but tell an admin so this instrument gets registered properly.';
+
+  @override
+  String get calibTambahAlatSimpan => 'SAVE & USE';
+
+  @override
+  String get calibTambahAlatBatal => 'CANCEL';
+
+  @override
+  String calibTambahAlatBerhasil(String nama) {
+    return '\"$nama\" is on the list now — ready to pick.';
+  }
+
+  @override
+  String calibTambahAlatKembar(String nama) {
+    return '\"$nama\" already exists in this category. Close this box and look for it in the list.';
+  }
+
+  @override
+  String calibTambahAlatGagal(String pesan) {
+    return 'Couldn’t add the instrument: $pesan';
+  }
+
+  @override
+  String get calibInstrumenTanpaCmc => 'No CMC range yet';
+
+  @override
+  String get calibTiNama => 'Temperature Indicator';
+
+  @override
+  String get calibTiKartuRingkas =>
+      'Two kinds — first pick whether the sensor is calibrated too';
+
+  @override
+  String get calibTiGerbangPengantar =>
+      'First pick whether the sensor is calibrated too. Everything on the next sheet follows this choice — the measuring points, the reference standards, right down to the uncertainty formula. Picking wrong raises no error at all, so settle it here.';
+
+  @override
+  String get calibTiTanpaSensorJudul => 'Without Sensor';
+
+  @override
+  String get calibTiTanpaSensorKeterangan =>
+      'The sensor is NOT calibrated. The calibrator is wired into the indicator terminals and stands in for the sensor, so only the indicator reading is checked.';
+
+  @override
+  String get calibTiDenganSensorJudul => 'With Sensor';
+
+  @override
+  String get calibTiDenganSensorKeterangan =>
+      'The sensor IS calibrated. Sensor and indicator are checked as one chain — the sensor goes into the medium alongside the reference thermometer, so the reading covers the whole chain.';
+
+  @override
+  String get calibTiBelumSiap => 'Not on this server yet';
+
+  @override
+  String calibTiBelumSiapPesan(String varian) {
+    return 'The \"$varian\" worksheet is not on the server in use yet. Tell an admin first — forcing it open now would hand you another instrument\'s sheet, and nothing would error out.';
+  }
+
+  @override
   String get phCalibTitle => 'pH Meter Calibration';
 
   @override

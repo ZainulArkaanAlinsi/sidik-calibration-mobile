@@ -49,6 +49,8 @@ class CalibrationCapability {
     this.satuanKetidakpastian,
     this.faktorCakupan,
     this.metode,
+    this.profil,
+    this.tanpaCmc = false,
   });
 
   final String namaAlat;
@@ -65,6 +67,28 @@ class CalibrationCapability {
   final double? faktorCakupan;
   final String? metode;
 
+  /// Kode profil lembar kerja buat alat ini (`tits`, `oven`, `ph_meter`, ...),
+  /// dituturkan backend di tiap baris kemampuan. `null` = nggak punya lembar
+  /// khusus, pakai form generik.
+  ///
+  /// Ini SUMBER KEBENARAN-nya sekarang. Sebelum ini profilnya ditebak di HP
+  /// lewat `profilLembarKerjaUntuk()` — tabel ejaan nama alat yang ikut
+  /// ke-bundel di dalam APK. Akibatnya alat yang baru ditambah admin atau
+  /// teknisi mustahil dapat lembar yang benar sampai ada rilis APK baru:
+  /// tabelnya ada di HP orang, bukan di server.
+  final String? profil;
+
+  /// `true` = alat ini belum punya baris CMC di lampiran akreditasi
+  /// LK-285-IDN — biasanya nama alat yang baru ditambah teknisi sendiri lewat
+  /// `POST /api/categories/{kode}/kemampuan`.
+  ///
+  /// Bukan sekadar catatan: tanpa baris CMC, sesi yang memakai alat ini nggak
+  /// punya lantai ketidakpastian, jadi U95 yang terbit bisa lebih KECIL
+  /// daripada yang diakreditasi lab — dan nggak ada satu pun error yang bunyi,
+  /// angkanya cuma keluar kelihatan terlalu bagus. Makanya penandanya wajib
+  /// kelihatan di kartu picker.
+  final bool tanpaCmc;
+
   factory CalibrationCapability.fromJson(Map<String, dynamic> json) {
     return CalibrationCapability(
       namaAlat: json['nama_alat'] as String,
@@ -78,8 +102,42 @@ class CalibrationCapability {
       satuanKetidakpastian: json['satuan_ketidakpastian'] as String?,
       faktorCakupan: (json['faktor_cakupan'] as num?)?.toDouble(),
       metode: json['metode'] as String?,
+      profil: _bacaProfil(json['profil']),
+      tanpaCmc: _bacaTanpaCmc(json['tanpa_cmc']),
     );
   }
+}
+
+/// `profil` yang bukan String, atau string kosong, dianggap `null` = form
+/// generik.
+///
+/// Dua kegagalan yang dicegah. Satu, `json['profil'] as String?` NGELEMPAR
+/// kalau backend suatu saat ngirim angka atau objek di situ — dan lemparan itu
+/// ditelan [parseListAman], jadi barisnya dibuang diam-diam dan kartu alatnya
+/// HILANG dari picker. Dua, string kosong bakal dioper apa adanya ke
+/// `LembarKerjaScreen` dan bikin layar minta bentuk lembar `''` ke server.
+String? _bacaProfil(dynamic nilai) {
+  if (nilai is! String) return null;
+  final bersih = nilai.trim();
+  return bersih.isEmpty ? null : bersih;
+}
+
+/// `tanpa_cmc` yang nggak ada = `false` — server lama nggak ngirim field ini
+/// sama sekali, dan itu nggak boleh mematikan layar.
+///
+/// Sengaja nerima `1`/`0` & `"true"`/`"false"` juga, bukan cuma bool: kolom
+/// tinyint yang lupa di-`cast` di Eloquent nyampe ke sini sebagai `1`, dan
+/// `as bool?` bakal ngelempar di situ. Alasannya sama kayak [_bacaProfil] —
+/// [parseListAman] nelen lemparannya dan kartu alatnya ikut hilang. Penanda
+/// yang meleset masih jauh lebih baik daripada kartu yang nggak ada.
+bool _bacaTanpaCmc(dynamic nilai) {
+  if (nilai is bool) return nilai;
+  if (nilai is num) return nilai != 0;
+  if (nilai is String) {
+    final n = nilai.trim().toLowerCase();
+    return n == 'true' || n == '1';
+  }
+  return false;
 }
 
 /// Respons `GET /api/categories/{kode}` — daftar penuh kemampuan kalibrasi

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sidik_calibration/models/calibration_detail.dart';
 import 'package:sidik_calibration/screens/calibration/instrument_picker_screen.dart';
+import 'package:sidik_calibration/screens/calibration/temperatur_indikator_gerbang_screen.dart';
 import 'package:sidik_calibration/services/category_service.dart';
 
 /// JALAN MASUK ke lembar kerja Enclosure — bagian yang bolong, persis kayak
@@ -102,9 +103,14 @@ void main() {
       final detail =
           await MockCategoryService().detail('mock-token-1', 'suhu-dan-kelembapan');
 
+      // Dua Temperatur Indikator disaring lewat [namaTemperaturIndikator],
+      // bukan dibandingin ke satu ejaan: kategori ini punya DUA nama alat TI
+      // dengan ejaan beda bahasa (lampiran akreditasi no. 1 Inggris, no. 2
+      // Indonesia), dan nyebut salah satunya bikin yang lain bocor ke peta CMC
+      // enclosure di bawah.
       final cmc = {
         for (final k in detail.kemampuan)
-          if (k.namaAlat != 'Temperature Indicator tanpa Sensor')
+          if (!namaTemperaturIndikator(k.namaAlat))
             k.namaAlat: k.ketidakpastianTerbaik,
       };
 

@@ -949,6 +949,64 @@
   "calibInstrumenMetodeLabel": "Method",
   "calibCariInstrumenHint": "Search instrument type...",
   "calibInstrumenTidakDitemukan": "No matching instrument type.",
+  "calibTambahAlatCta": "Instrument not on the list? Add it yourself.",
+  "calibTambahAlatDariCari": "Add \"{nama}\" as a new instrument",
+  "@calibTambahAlatDariCari": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "calibTambahAlatJudul": "Add Instrument Type",
+  "calibTambahAlatLabel": "INSTRUMENT NAME",
+  "calibTambahAlatHint": "Type it exactly as written on the instrument",
+  "calibTambahAlatKosong": "Enter the instrument name first.",
+  "calibTambahAlatPeringatanJudul": "Read this before saving",
+  "calibTambahAlatPeringatanIsi": "An instrument you add yourself has no accredited limit from the lab scope yet. The session still runs and the certificate still prints \u2014 but the \u00b1 figure comes from the generic route, and it can come out SMALLER than what we normally print for registered instruments. Nothing errors out; the number just looks too good. You may still continue, but tell an admin so this instrument gets registered properly.",
+  "calibTambahAlatSimpan": "SAVE & USE",
+  "calibTambahAlatBatal": "CANCEL",
+  "calibTambahAlatBerhasil": "\"{nama}\" is on the list now \u2014 ready to pick.",
+  "@calibTambahAlatBerhasil": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "calibTambahAlatKembar": "\"{nama}\" already exists in this category. Close this box and look for it in the list.",
+  "@calibTambahAlatKembar": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "calibTambahAlatGagal": "Couldn\u2019t add the instrument: {pesan}",
+  "@calibTambahAlatGagal": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
+  "calibInstrumenTanpaCmc": "No CMC range yet",
+  "calibTiNama": "Temperature Indicator",
+  "calibTiKartuRingkas": "Two kinds \u2014 first pick whether the sensor is calibrated too",
+  "calibTiGerbangPengantar": "First pick whether the sensor is calibrated too. Everything on the next sheet follows this choice \u2014 the measuring points, the reference standards, right down to the uncertainty formula. Picking wrong raises no error at all, so settle it here.",
+  "calibTiTanpaSensorJudul": "Without Sensor",
+  "calibTiTanpaSensorKeterangan": "The sensor is NOT calibrated. The calibrator is wired into the indicator terminals and stands in for the sensor, so only the indicator reading is checked.",
+  "calibTiDenganSensorJudul": "With Sensor",
+  "calibTiDenganSensorKeterangan": "The sensor IS calibrated. Sensor and indicator are checked as one chain \u2014 the sensor goes into the medium alongside the reference thermometer, so the reading covers the whole chain.",
+  "calibTiBelumSiap": "Not on this server yet",
+  "calibTiBelumSiapPesan": "The \"{varian}\" worksheet is not on the server in use yet. Tell an admin first \u2014 forcing it open now would hand you another instrument's sheet, and nothing would error out.",
+  "@calibTiBelumSiapPesan": {
+    "placeholders": {
+      "varian": {
+        "type": "String"
+      }
+    }
+  },
   "phCalibTitle": "pH Meter Calibration",
   "phCalibThermohygro": "Thermohygrometer used",
   "phCalibThermohygroHint": "e.g. TH-3",

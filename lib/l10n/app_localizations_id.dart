@@ -1820,6 +1820,92 @@ class AppLocalizationsId extends AppLocalizations {
       'Nggak ketemu jenis alat yang cocok.';
 
   @override
+  String get calibTambahAlatCta =>
+      'Alatnya nggak ada di daftar? Tambah sendiri.';
+
+  @override
+  String calibTambahAlatDariCari(String nama) {
+    return 'Tambah \"$nama\" sebagai alat baru';
+  }
+
+  @override
+  String get calibTambahAlatJudul => 'Tambah Jenis Alat';
+
+  @override
+  String get calibTambahAlatLabel => 'NAMA ALAT';
+
+  @override
+  String get calibTambahAlatHint =>
+      'Tulis persis kayak yang tertulis di alatnya';
+
+  @override
+  String get calibTambahAlatKosong => 'Nama alatnya diisi dulu.';
+
+  @override
+  String get calibTambahAlatPeringatanJudul => 'Baca dulu sebelum disimpan';
+
+  @override
+  String get calibTambahAlatPeringatanIsi =>
+      'Alat yang kamu tambah sendiri belum punya angka batas dari lampiran akreditasi lab. Sesinya tetap bisa jalan dan sertifikatnya tetap terbit — tapi angka ± yang keluar dihitung pakai jalur umum, dan bisa lebih KECIL daripada angka yang biasa kita cetak buat alat yang udah terdaftar. Nggak ada error yang bunyi; angkanya cuma kelihatan terlalu bagus. Tetap boleh lanjut, tapi kabarin admin biar alat ini didaftarin resmi.';
+
+  @override
+  String get calibTambahAlatSimpan => 'SIMPAN & PAKAI';
+
+  @override
+  String get calibTambahAlatBatal => 'BATAL';
+
+  @override
+  String calibTambahAlatBerhasil(String nama) {
+    return '\"$nama\" udah masuk daftar — langsung bisa dipilih.';
+  }
+
+  @override
+  String calibTambahAlatKembar(String nama) {
+    return '\"$nama\" udah ada di kategori ini. Tutup kotak ini terus cari di daftarnya.';
+  }
+
+  @override
+  String calibTambahAlatGagal(String pesan) {
+    return 'Gagal nambah alat: $pesan';
+  }
+
+  @override
+  String get calibInstrumenTanpaCmc => 'Belum ada rentang CMC';
+
+  @override
+  String get calibTiNama => 'Temperatur Indikator';
+
+  @override
+  String get calibTiKartuRingkas =>
+      'Dua jenis — pilih dulu sensornya ikut dikalibrasi atau nggak';
+
+  @override
+  String get calibTiGerbangPengantar =>
+      'Pilih dulu sensornya ikut dikalibrasi atau nggak. Seluruh isi lembar berikutnya ngikut pilihan ini — titik ukurnya, standar acuannya, sampai rumus ketidakpastiannya. Salah pilih nggak bikin error apa pun, jadi pastiin di sini.';
+
+  @override
+  String get calibTiTanpaSensorJudul => 'Tanpa Sensor';
+
+  @override
+  String get calibTiTanpaSensorKeterangan =>
+      'Sensornya NGGAK ikut dikalibrasi. Kalibrator disambung ke terminal indikator dan berperan jadi sensor tiruan, jadi yang diperiksa cuma bacaan indikatornya.';
+
+  @override
+  String get calibTiDenganSensorJudul => 'Dengan Sensor';
+
+  @override
+  String get calibTiDenganSensorKeterangan =>
+      'Sensornya IKUT dikalibrasi. Sensor & indikator diperiksa sebagai satu rangkaian — sensornya dicelup bareng termometer acuan, jadi yang keluar bacaan rangkaian utuhnya.';
+
+  @override
+  String get calibTiBelumSiap => 'Belum ada di server ini';
+
+  @override
+  String calibTiBelumSiapPesan(String varian) {
+    return 'Lembar kerja \"$varian\" belum ada di server yang lagi dipakai. Kabarin admin dulu — kalau dipaksa buka sekarang, yang kebuka lembar alat lain dan nggak ada satu pun error yang bunyi.';
+  }
+
+  @override
   String get phCalibTitle => 'Kalibrasi pH Meter';
 
   @override
