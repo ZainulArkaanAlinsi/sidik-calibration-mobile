@@ -178,6 +178,12 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          // Dua tombol pindainya udah dimatiin di produksi
+          // (`AppConfig.pindaiLembarAktif`, default mati). Dinyalain paksa di
+          // sini karena SELURUH isi berkas ini emang jalur itu — tanpa ini
+          // yang kejadian bukan test hijau, tapi penjaga sambungannya hilang
+          // diam-diam sampai fiturnya dibuka lagi.
+          pindaiLembarAktifProvider.overrideWithValue(true),
           tokenStorageProvider.overrideWithValue(
             InMemoryTokenStorage('mock-token-1'),
           ),

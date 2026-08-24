@@ -5738,6 +5738,12 @@ abstract class AppLocalizations {
   /// **'Yesterday'**
   String get waktuKemarin;
 
+  /// Pengganti tanggal kalibrasi yang belum diisi (draf). Sengaja em dash, bukan tanggal hari ini — tanggal palsu di daftar riwayat kelihatan sah dan nggak ada yang curiga.
+  ///
+  /// In en, this message translates to:
+  /// **'—'**
+  String get tanggalKosong;
+
   /// No description provided for @perhitTitle.
   ///
   /// In en, this message translates to:

@@ -264,6 +264,11 @@ class _IdentitasSesi extends StatelessWidget {
     final theme = Theme.of(context);
     final lingkungan = detail.kondisiLingkungan;
 
+    // Sertifikat resmi selalu punya tanggal, tapi layar ini juga kepakai buat
+    // ngintip sesi yang BELUM terbit — dan di situ draf tanpa tanggal beneran
+    // lewat sini.
+    final tglKalibrasi = detail.tanggalKalibrasi;
+
     // Metode nempel di titik, bukan di sesi — tapi satu sesi selalu satu
     // metode, jadi diambil dari titik pertama yang punya.
     final metode = detail.titik
@@ -286,9 +291,9 @@ class _IdentitasSesi extends StatelessWidget {
               children: [
                 _RingkasanRow(
                   label: l10n.certTanggalKalibrasi,
-                  value: DateFormat(
-                    'd MMM yyyy',
-                  ).format(detail.tanggalKalibrasi),
+                  value: tglKalibrasi == null
+                      ? l10n.tanggalKosong
+                      : DateFormat('d MMM yyyy').format(tglKalibrasi),
                 ),
                 _RingkasanRow(
                   label: l10n.certTeknisi,

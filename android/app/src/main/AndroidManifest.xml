@@ -1,16 +1,25 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Permission CAMERA sekarang WAJIB dideklarasiin, dan ini berubah dari
-         sebelumnya.
+    <!-- Permission CAMERA — alasannya SUDAH BUKAN yang dulu ditulis di sini.
 
-         Dulu sengaja nggak ada: `image_picker` manggil app kamera lewat
-         intent, dan intent nggak butuh permission. Tapi scan langsung
-         (`live_scan_screen.dart`) bukan intent — dia buka kamera sendiri
-         lewat paket `camera` buat baca aliran frame. Tanpa baris ini,
-         kameranya gagal kebuka.
+         Komentar lamanya nyebut scan langsung lewat paket `camera` di
+         `live_scan_screen.dart`. Dua-duanya nggak ada lagi di proyek ini:
+         `camera` nggak kedaftar di `pubspec.yaml` maupun `pubspec.lock`, dan
+         berkas layar itu nggak ada di `lib/`. Satu-satunya jalan ke kamera
+         sekarang lewat `image_picker` — `KameraSumberFoto` di
+         `lib/services/photo_source.dart` (jepretan lembar kerja buat OCR
+         lokal) dan foto profil di `lib/screens/profile/profile_screen.dart`.
 
-         Plugin `camera` yang minta izinnya ke user waktu layar scan dibuka,
-         jadi nggak ada yang perlu ditangani manual. Yang nolak izin tetap
-         bisa ngetik manual — scan itu jalan pintas, bukan syarat.
+         `image_picker` nembak intent ke app kamera bawaan, dan intent sendiri
+         nggak butuh permission — jadi sekarang baris ini secara teknis nggak
+         wajib lagi. Tapi dia BUKAN deklarasi kosong: begitu CAMERA kesebut di
+         manifest, `image_picker_android` mewajibkan izinnya diminta dulu
+         sebelum intent-nya jalan (`ImagePickerDelegate` manggil
+         `ImagePickerUtils.needRequestCameraPermission()`, yang isinya cuma
+         ngintip manifest ini). Artinya baris ini yang nentuin teknisi kena
+         dialog izin sebelum motret atau nggak. Jadi jangan dicabut sambil
+         lalu: yang berubah bukan cuma daftar izin di Play/Settings, tapi alur
+         foto lembar kerja & foto profil di perangkat asli — uji dua-duanya
+         dulu kalau memang mau dicabut.
 
          Kameranya tetap OPSIONAL biar app masih keinstall di perangkat tanpa
          kamera (mis. emulator lama). -->

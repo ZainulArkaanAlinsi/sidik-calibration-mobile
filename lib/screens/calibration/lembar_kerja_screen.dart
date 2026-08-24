@@ -1494,6 +1494,13 @@ class _Bagian extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
+    // Satu saklar buat DUA tombol pindai di bagian ini — yang lembar penuh di
+    // bawah, dan yang per tabel di dalam `LembarKerjaTabel`. Dibaca sekali di
+    // sini biar nggak mungkin ada keadaan setengah: tombol "FOTO TABEL INI"
+    // nongol sendirian tanpa "PINDAI LEMBAR KERJA" itu justru bikin teknisi
+    // ngira fiturnya rusak, bukan dimatiin.
+    final pindaiAktif = ref.watch(pindaiLembarAktifProvider);
+
     // Grup `spindle_titik_N` / `rpm_titik_N` / `resolusi_titik_N` ditarik
     // keluar dari daftar field biasa SELAMA bagian ini punya tabel buat
     // ditempelin — kalau nggak ada tabel sama sekali, dibiarin lewat jalur
@@ -1579,7 +1586,12 @@ class _Bagian extends ConsumerWidget {
 
             // Pindai lembar penuh (OCR lokal) — di atas tabelnya, karena dia
             // ngisi SELURUH tabel sekaligus, bukan satu tabel.
-            if (bagian.tabel.isNotEmpty)
+            //
+            // Digantung di `--dart-define=PINDAI_LEMBAR` (default MATI). Yang
+            // dimatiin cuma render-nya: `_TombolPindaiLembar` di bawah dan
+            // seluruh mesin geometrinya tetap dikompilasi & tetap dites.
+            // Lihat `AppConfig.pindaiLembarAktif` buat alasan lengkapnya.
+            if (pindaiAktif && bagian.tabel.isNotEmpty)
               _TombolPindaiLembar(
                 profil: profil,
                 equipmentId: isian.alat?.id,
@@ -1644,6 +1656,7 @@ class _Bagian extends ConsumerWidget {
                 tabel: bagian.tabel[i],
                 isian: isian,
                 onBerubah: onBerubah,
+                pindaiAktif: pindaiAktif,
               ),
               const SizedBox(height: AppSpacing.lg),
 

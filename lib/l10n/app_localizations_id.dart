@@ -3148,6 +3148,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get waktuKemarin => 'Kemarin';
 
   @override
+  String get tanggalKosong => '—';
+
+  @override
   String get perhitTitle => 'Lembar perhitungan';
 
   @override

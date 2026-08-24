@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image/image.dart' as img;
 
+import '../../../core/config/app_config.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/lembar_kerja.dart';
@@ -31,11 +32,22 @@ class LembarKerjaTabel extends StatelessWidget {
     required this.tabel,
     required this.isian,
     required this.onBerubah,
+    this.pindaiAktif = AppConfig.pindaiLembarAktif,
   });
 
   final TabelHasil tabel;
   final LembarKerjaState isian;
   final VoidCallback onBerubah;
+
+  /// Saklar tombol `FOTO TABEL INI`. Default ngikut
+  /// [AppConfig.pindaiLembarAktif] — sekarang MATI.
+  ///
+  /// Dibikin parameter, bukan dibaca langsung dari `AppConfig` di dalam
+  /// `build`: nilai `const bool.fromEnvironment` nggak bisa disetel dari
+  /// `flutter test`, jadi tanpa jalan masuk ini test alur fotonya cuma bisa
+  /// dihapus. Layar ngisinya dari `pindaiLembarAktifProvider` biar satu bagian
+  /// nggak bisa setengah nyala.
+  final bool pindaiAktif;
 
   /// Baris yang digambar — **ngikut satuan yang lagi kepilih**, bukan
   /// `tabel.baris` yang isinya set bawaan dari backend.
@@ -168,15 +180,22 @@ class LembarKerjaTabel extends StatelessWidget {
         // Tombolnya sengaja LEBAR & BERLABEL, bukan ikon kecil di pojok: ini
         // jalan pintas yang paling sering dipakai di lapangan, dan waktu cuma
         // ikon di sebelah judul, teknisi nggak nemu sama sekali.
-        SizedBox(
-          width: double.infinity,
-          child: _TombolFotoTabel(
-            tabel: tabel,
-            isian: isian,
-            onBerubah: onBerubah,
+        //
+        // Spacer bawahnya ikut masuk `if`, bukan ditinggal di luar: kalau cuma
+        // tombolnya yang hilang, yang ketinggalan celah kosong dua kali `sm`
+        // di atas SETIAP tabel — dan celah kosong tanpa isi kelihatannya kayak
+        // widget yang gagal digambar.
+        if (pindaiAktif) ...[
+          SizedBox(
+            width: double.infinity,
+            child: _TombolFotoTabel(
+              tabel: tabel,
+              isian: isian,
+              onBerubah: onBerubah,
+            ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.sm),
+        ],
 
         // Lembar yang Repeat-nya turun ke bawah (Conductivity,
         // `SIDIK-FM-CAL-0510`) digambar terbalik dari bentuk pH. Dipisah jadi

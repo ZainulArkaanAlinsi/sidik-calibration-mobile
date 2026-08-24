@@ -264,6 +264,14 @@ class _Kartu extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).languageCode;
 
+    // Draf boleh belum ditanggalin. Baris ini nggak boleh ngarang "hari ini":
+    // yang lagi dilihat admin di sini justru kiriman yang mau diputus, dan
+    // tanggal palsu di situ nggak ada yang bisa mbantah.
+    final tglKalibrasi = item.tanggalKalibrasi;
+    final tanggal = tglKalibrasi == null
+        ? l10n.tanggalKosong
+        : DateFormat('d MMM yyyy', locale).format(tglKalibrasi);
+
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute<void>(
@@ -314,8 +322,7 @@ class _Kartu extends StatelessWidget {
                   ],
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    '${l10n.antreanOleh(item.namaTeknisi)} · '
-                    '${DateFormat('d MMM yyyy', locale).format(item.tanggalKalibrasi)}',
+                    '${l10n.antreanOleh(item.namaTeknisi)} · $tanggal',
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 11.5, color: c.textMuted),
                   ),

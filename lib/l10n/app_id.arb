@@ -1251,6 +1251,7 @@
   "antreanOleh": "oleh {nama}",
   "waktuHariIni": "Hari ini",
   "waktuKemarin": "Kemarin",
+  "tanggalKosong": "—",
   "perhitTitle": "Lembar perhitungan",
   "perhitIdentitasAlat": "IDENTITAS ALAT",
   "perhitIdentitasCustomer": "IDENTITAS CUSTOMER",

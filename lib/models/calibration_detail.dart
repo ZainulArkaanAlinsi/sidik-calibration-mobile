@@ -594,7 +594,7 @@ class CalibrationDetail {
     required this.id,
     required this.namaAlat,
     required this.namaTeknisi,
-    required this.tanggalKalibrasi,
+    this.tanggalKalibrasi,
     required this.status,
     this.profil,
     this.keputusan,
@@ -634,7 +634,13 @@ class CalibrationDetail {
   /// dari [namaAlat] seperti dulu.
   final String? profil;
   final String namaTeknisi;
-  final DateTime tanggalKalibrasi;
+
+  /// Tanggal kalender kalibrasi. **Boleh null** — alasan & riwayat bug-nya
+  /// ada di [CalibrationHistoryItem.tanggalKalibrasi]. Singkatnya: draf sah
+  /// disimpen tanpa tanggal, dan `DateTime.parse` di sini bikin sesi kayak
+  /// gitu gagal dibuka sama sekali (layar detail nampilin "Sesi nggak bisa
+  /// dimuat" buat draf yang jelas-jelas ada di daftar).
+  final DateTime? tanggalKalibrasi;
   final CalibrationStatus status;
   final Keputusan? keputusan;
   final int? certificateId;
@@ -720,12 +726,16 @@ class CalibrationDetail {
     final sebelumJson = json['titik_sebelum'] as List<dynamic>? ?? const [];
     final pembacaanJson = json['pembacaan_mentah'] as List<dynamic>? ?? const [];
 
+    // `is String`, bukan `as String?` — lihat alasannya di
+    // `CalibrationHistoryItem.fromJson`.
+    final tanggal = json['tanggal_kalibrasi'];
+
     return CalibrationDetail(
       id: (json['id'] as num).toInt(),
       namaAlat: equipment?['nama_alat'] as String? ?? '—',
       profil: equipment?['profil'] as String?,
       namaTeknisi: teknisi?['nama'] as String? ?? '—',
-      tanggalKalibrasi: DateTime.parse(json['tanggal_kalibrasi'] as String),
+      tanggalKalibrasi: tanggal is String ? DateTime.tryParse(tanggal) : null,
       status: CalibrationStatusJson.fromJson(json['status'] as String),
       keputusan: switch (hasil?['keputusan']) {
         'PASS' => Keputusan.pass,

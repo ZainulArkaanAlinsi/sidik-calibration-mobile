@@ -3178,6 +3178,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get waktuKemarin => 'Yesterday';
 
   @override
+  String get tanggalKosong => '—';
+
+  @override
   String get perhitTitle => 'Calculation sheet';
 
   @override

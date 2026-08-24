@@ -277,7 +277,7 @@ void main() {
     testWidgets('lembar yang belum siap: tombolnya mati + alasannya tampil', (
       tester,
     ) async {
-      await _bukaLembar(tester);
+      await _bukaLembar(tester, pindaiAktif: true);
 
       final tombol = find.widgetWithText(OutlinedButton, 'PINDAI LEMBAR KERJA');
 
@@ -294,7 +294,7 @@ void main() {
     });
 
     testWidgets('lembar yang udah siap: tombolnya hidup', (tester) async {
-      await _bukaLembar(tester, siapPindai: true);
+      await _bukaLembar(tester, siapPindai: true, pindaiAktif: true);
 
       final tombol = find.widgetWithText(OutlinedButton, 'PINDAI LEMBAR KERJA');
 
@@ -462,8 +462,12 @@ void main() {
 Widget _app(
   MockLembarKerjaService service, {
   bool siapPindai = false,
+  bool pindaiAktif = false,
 }) => ProviderScope(
   overrides: [
+    // UI pindai udah dimatiin di produksi (`AppConfig.pindaiLembarAktif`).
+    // Yang nyalain cuma test yang emang nguji alur pindainya.
+    pindaiLembarAktifProvider.overrideWithValue(pindaiAktif),
     tokenStorageProvider.overrideWithValue(InMemoryTokenStorage('mock-token-1')),
     authServiceProvider.overrideWithValue(MockAuthService()),
     lembarKerjaServiceProvider.overrideWithValue(service),
@@ -489,6 +493,7 @@ Future<MockLembarKerjaService> _bukaLembar(
   WidgetTester tester, {
   MockLembarKerjaService? service,
   bool siapPindai = false,
+  bool pindaiAktif = false,
 }) async {
   // Lembarnya 24 baris × sampai 6 kolom — jauh lebih tinggi dari viewport test
   // standar, dan `ListView` cuma nge-build yang deket layar.
@@ -501,7 +506,7 @@ Future<MockLembarKerjaService> _bukaLembar(
 
   final dipakai = service ?? MockLembarKerjaService();
   await tester.pumpWidget(
-    _app(dipakai, siapPindai: siapPindai),
+    _app(dipakai, siapPindai: siapPindai, pindaiAktif: pindaiAktif),
   );
   await tester.pump(const Duration(milliseconds: 700));
   await tester.pumpAndSettle();
