@@ -14,9 +14,9 @@ const _baseUrl = 'http://10.0.2.2:8000/api';
 ///
 /// `GET /rooms` dipatok `paginate(15)` di backend, dan dulu `ApiRoomService`
 /// cuma baca `json['data']` halaman pertama. Ruangan ke-16 dan seterusnya
-/// ilang TANPA error apa pun — teknisi nggak nemu ruangannya, admin nggak
-/// punya cara tau ada yang kurang. Kegagalan yang diam itu yang bikin test ini
-/// ada.
+/// ilang TANPA error apa pun — teknisi nggak nemu ruangannya di daftar, admin
+/// nggak punya cara tau ada yang kurang. Kegagalan yang diam kayak gitu yang
+/// bikin test ini ada.
 ApiRoomService _service(
   Future<http.Response> Function(http.Request req) handler,
 ) {
@@ -25,9 +25,9 @@ ApiRoomService _service(
   );
 }
 
-http.Response _json(Object body, [int status = 200]) => http.Response(
+http.Response _json(Object body) => http.Response(
   jsonEncode(body),
-  status,
+  200,
   headers: {'content-type': 'application/json'},
 );
 
@@ -38,7 +38,7 @@ Map<String, dynamic> _room(int id, {bool aktif = true}) => {
   'aktif': aktif,
 };
 
-/// Halaman ala Laravel: `data` + `meta` yang nyebut posisi halamannya.
+/// Bentuk halaman ala Laravel: `data` + `meta` yang nyebut posisi halamannya.
 Map<String, dynamic> _halaman(
   List<Map<String, dynamic>> data, {
   required int kini,
@@ -50,9 +50,7 @@ Map<String, dynamic> _halaman(
 
 void main() {
   group('ApiRoomService.daftar ngikutin paginasi', () {
-    test(
-      'halaman ke-2 beneran ditarik — ruangan ke-16 nyampe ke dropdown',
-      () async {
+    test('halaman ke-2 ditarik, ruangan ke-16 nyampe', () async {
       final diminta = <Uri>[];
 
       final service = _service((req) async {
@@ -84,9 +82,7 @@ void main() {
       expect(diminta[1].queryParameters['page'], '2');
     });
 
-    test(
-      '`hanya_aktif=1` kekirim di tiap halaman, bukan cuma yang pertama',
-      () async {
+    test('`hanya_aktif=1` ikut di TIAP halaman', () async {
       final diminta = <Uri>[];
 
       final service = _service((req) async {
@@ -99,27 +95,26 @@ void main() {
       await service.daftar('1|token');
 
       expect(diminta.length, 3);
-      // Kalau `page=` nabrak `hanya_aktif=` waktu path-nya dirakit, yang
-      // ilang bakal diam-diam lagi — jadi dicek per halaman, bukan sekali.
+      // Dicek per halaman, bukan sekali di awal: kalau `page=` sampai nabrak
+      // `hanya_aktif=` waktu path-nya dirakit, yang ilang bakal diam-diam
+      // lagi — persis kegagalan yang lagi kita berantas.
       for (final url in diminta) {
         expect(url.queryParameters['hanya_aktif'], '1');
       }
     });
 
-    test(
-      'server lama yang ngabaikan `hanya_aktif` tetap disaring di sini',
-      () async {
-      // Server yang belum punya parameter itu nggak nolak dengan 422 — dia
+    test('server lama yang ngabaikan `hanya_aktif` tetap disaring', () async {
+      // Server yang belum kenal parameter itu nggak nolak dengan 422 — dia
       // ngabaikannya DIAM-DIAM dan tetap ngirim yang nonaktif. Ini sabuk
       // keduanya: tanpa saringan klien, ruangan nonaktif nongol lagi di
       // dropdown sesi baru.
       final service = _service(
         (_) async => _json(
-          _halaman([
-            _room(1),
-            _room(2, aktif: false),
-            _room(3),
-          ], kini: 1, akhir: 1),
+          _halaman(
+            [_room(1), _room(2, aktif: false), _room(3)],
+            kini: 1,
+            akhir: 1,
+          ),
         ),
       );
 
@@ -128,9 +123,7 @@ void main() {
       expect(hasil.map((r) => r.id), [1, 3]);
     });
 
-    test(
-      'respons tanpa `meta` cukup sekali ambil',
-      () async {
+    test('respons tanpa `meta` cukup sekali ambil', () async {
       // Bentuk lama / endpoint yang belum dipaginasi. Kalau nggak di-break,
       // loopnya nembak halaman 2..50 yang isinya sama persis.
       var panggilan = 0;
@@ -148,9 +141,7 @@ void main() {
       expect(hasil.length, 2);
     });
 
-    test(
-      'rem 50 halaman: `meta` yang muter nggak bikin ngeloop selamanya',
-      () async {
+    test('rem 50 halaman nahan `meta` yang muter', () async {
       // Backend yang salah ngitung `last_page` nggak boleh bikin app-nya
       // gantung. Berhenti dengan data seadanya lebih baik daripada nggak
       // pernah berhenti.

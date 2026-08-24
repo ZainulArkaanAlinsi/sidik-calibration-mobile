@@ -36,6 +36,23 @@ class AppConfig {
   /// kebawa nyala diam-diam ke APK produksi.
   static const bool useMock = bool.fromEnvironment('USE_MOCK');
 
+  /// Saklar UI pindai lembar. Default **false** — dua tombolnya
+  /// (`PINDAI LEMBAR KERJA` di atas tabel & `FOTO TABEL INI` di tiap tabel)
+  /// nggak digambar sama sekali, di SEMUA lembar kerja.
+  ///
+  /// Nyalain lagi tanpa nyentuh kode: `--dart-define=PINDAI_LEMBAR=true`.
+  ///
+  /// **Disembunyiin, bukan dihapus.** Yang di belakang dua tombol itu mesin
+  /// geometri di HP (`services/pindai_lembar.dart` — 477 baris deteksi marker
+  /// + warp perspektif Dart murni) plus layar review per sel; dua-duanya mahal
+  /// dibangun ulang dan Gelombang 5 bakal makai lagi. Jadi yang dicabut cuma
+  /// pintunya, ruangannya dibiarin utuh.
+  ///
+  /// Sengaja `const bool.fromEnvironment` kayak [useMock]: di build release
+  /// nilainya ke-hardcode waktu compile, jadi jalur yang geometrinya belum
+  /// diverifikasi nggak mungkin nyala diam-diam di APK teknisi.
+  static const bool pindaiLembarAktif = bool.fromEnvironment('PINDAI_LEMBAR');
+
   /// Kunci app Reverb (protokol Pusher) buat realtime sync (spec poin 12D).
   /// **Kosong = realtime nonaktif** — app tetap jalan normal, cuma nggak ada
   /// push; data ketarik seperti biasa waktu layar dibuka. Diisi lewat

@@ -14,6 +14,21 @@ final worksheetScanServiceProvider = Provider<WorksheetScanService>((ref) {
   return ApiWorksheetScanService(ref.watch(apiClientProvider));
 });
 
+/// [AppConfig.pindaiLembarAktif], tapi lewat provider — supaya test alur
+/// pindai masih punya jalan masuk.
+///
+/// `bool.fromEnvironment` itu const waktu compile: nggak ada cara nyetel dia
+/// dari dalam `flutter test`. Tanpa seam ini, matiin dua tombolnya berarti
+/// ikut membuang enam test yang menjaga sambungan kamera → server → layar
+/// review → formulir — dan waktu jalurnya dinyalain lagi nanti, dia balik
+/// tanpa penjaga sama sekali. Alasannya sama persis kayak
+/// [pabrikPembacaPindaiProvider] di bawah.
+///
+/// Cuma test yang boleh nge-override; produksi selalu baca saklarnya.
+final pindaiLembarAktifProvider = Provider<bool>(
+  (ref) => AppConfig.pindaiLembarAktif,
+);
+
 /// Pabrik pembaca ML Kit — **bikin baru tiap pindai, tutup sesudahnya**.
 ///
 /// Yang dipegang provider ini fungsinya, bukan pembacanya: `TextRecognizer` &

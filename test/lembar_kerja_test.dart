@@ -66,9 +66,14 @@ Widget _app(
   MockHistoryService? riwayat,
   MockWorksheetScanService? pindai,
   MockPembacaHalaman? halaman,
+  bool pindaiAktif = false,
 }) {
   return ProviderScope(
     overrides: [
+      // UI pindai sekarang MATI di produksi (`AppConfig.pindaiLembarAktif`).
+      // Test yang emang nguji alur pindainya nyalain di sini — bukan biar
+      // hijau, tapi biar jalur yang nanti dibuka lagi tetap ada penjaganya.
+      pindaiLembarAktifProvider.overrideWithValue(pindaiAktif),
       tokenStorageProvider.overrideWithValue(
         InMemoryTokenStorage('mock-token-1'),
       ),
@@ -1086,6 +1091,7 @@ void main() {
       tester,
       _app(
         MockLembarKerjaService(),
+        pindaiAktif: true,
         // Citranya kecil & polos: yang diuji sambungannya, dan hasil OCR-nya
         // dititipin lewat `MockPembacaHalaman`. Lembar 1654×2339 cuma bikin
         // decode-nya makan detik tanpa nambah bukti apa pun.
@@ -1153,6 +1159,7 @@ void main() {
       _app(
         MockLembarKerjaService(),
         pindai: _PindaiGagalTemplate(),
+        pindaiAktif: true,
       ),
     );
     await _keHalamanAkhir(tester);
@@ -1173,7 +1180,10 @@ void main() {
   ) async {
     _perbesarViewport(tester);
     final pindai = MockWorksheetScanService(siapPindai: true);
-    await _muat(tester, _app(MockLembarKerjaService(), pindai: pindai));
+    await _muat(
+      tester,
+      _app(MockLembarKerjaService(), pindai: pindai, pindaiAktif: true),
+    );
     await _keHalamanAkhir(tester);
 
     expect(
@@ -1199,6 +1209,7 @@ void main() {
       _app(
         MockLembarKerjaService(),
         pindai: MockWorksheetScanService(siapPindai: false),
+        pindaiAktif: true,
       ),
     );
     await _keHalamanAkhir(tester);
@@ -1227,6 +1238,7 @@ void main() {
       _app(
         MockLembarKerjaService(),
         pindai: MockWorksheetScanService(siapPindai: true),
+        pindaiAktif: true,
       ),
     );
     await _keHalamanAkhir(tester);
