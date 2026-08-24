@@ -458,6 +458,72 @@ class MockCategoryService implements CategoryService {
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0502_Rev.3',
       ),
+
+      // ENCLOSURE — lima jenis, alat ke-12, dan masalahnya persis sama dengan
+      // TITS di atas: lembar kerjanya sudah jadi & teruji, tapi kategorinya
+      // nggak pernah memulangkan satu pun dari lima ini, jadi kartunya nggak
+      // ada yang bisa ditekan.
+      //
+      // Kelimanya kartu TERPISAH, bukan satu kartu "Enclosure": tiap jenis
+      // punya CMC sendiri di lampiran akreditasi LK-285-IDN, dan CMC itu yang
+      // jadi lantai U95 yang tercetak. Digabung jadi satu kartu, teknisi
+      // nggak punya cara memberi tahu sistem oven-nya oven atau furnace —
+      // padahal bedanya 1,5 °C lawan 3,0 °C.
+      //
+      // Angkanya disalin dari `database/data/kemampuan-kalibrasi.json` no. 6-10
+      // di backend, bukan dikarang.
+      CalibrationCapability(
+        namaAlat: 'Oven',
+        // Batas bawahnya "ambient" — teks di lampiran, bukan angka. Itu
+        // sebabnya `rangeMin` boleh null dan ada `rangeNote`.
+        rangeMax: 300,
+        rangeNote: 'ambient s/d 300 °C',
+        satuan: '°C',
+        ketidakpastianTerbaik: 1.5,
+        satuanKetidakpastian: '°C',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0501_Rev.6',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Bath',
+        rangeMin: 0,
+        rangeMax: 100,
+        satuan: '°C',
+        ketidakpastianTerbaik: 1.2,
+        satuanKetidakpastian: '°C',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0501_Rev.6',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Inkubator',
+        rangeMin: 15,
+        rangeMax: 100,
+        satuan: '°C',
+        ketidakpastianTerbaik: 1.4,
+        satuanKetidakpastian: '°C',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0501_Rev.6',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Furnace',
+        rangeMin: 300,
+        rangeMax: 1000,
+        satuan: '°C',
+        ketidakpastianTerbaik: 3.0,
+        satuanKetidakpastian: '°C',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0501_Rev.6',
+      ),
+      CalibrationCapability(
+        namaAlat: 'Refrigerator',
+        rangeMin: -20,
+        rangeMax: 10,
+        satuan: '°C',
+        ketidakpastianTerbaik: 1.5,
+        satuanKetidakpastian: '°C',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0501_Rev.6',
+      ),
     ];
 
     return switch (kode) {
