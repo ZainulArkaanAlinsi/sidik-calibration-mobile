@@ -36,6 +36,7 @@ import '../../widgets/tampil_masuk.dart';
 import 'lembar_kerja_state.dart';
 import 'pindai_review_screen.dart';
 import 'widgets/dropdown_gagal.dart';
+import 'widgets/lembar_kerja_grid.dart';
 import 'widgets/lembar_kerja_matriks.dart';
 import 'widgets/lembar_kerja_tabel.dart';
 import 'widgets/pengatur_titik.dart';
@@ -1209,6 +1210,7 @@ class _LembarSatuKolom extends StatelessWidget {
             onBerubah: onBerubah,
             sesiId: sesiId,
             profil: profil,
+            gambarGrid: bentuk.bagianPertama(bagian),
           ),
         ),
 
@@ -1268,6 +1270,7 @@ class _LembarDuaKolom extends StatelessWidget {
         onBerubah: onBerubah,
         sesiId: sesiId,
         profil: profil,
+        gambarGrid: bentuk.bagianPertama(bagian),
       ),
     ),
     const SizedBox(height: AppSpacing.lg),
@@ -1465,6 +1468,7 @@ class _Bagian extends ConsumerWidget {
     required this.onBerubah,
     required this.profil,
     this.sesiId,
+    this.gambarGrid = false,
   });
 
   final BagianLembarKerja bagian;
@@ -1477,6 +1481,14 @@ class _Bagian extends ConsumerWidget {
 
   /// Kode ALAT (`ph_meter`, `spectrophotometer`, …) — bukan nomor formulirnya.
   final String profil;
+
+  /// Bagian ini yang menggambar GRID sensor.
+  ///
+  /// Gridnya milik LEMBAR, bukan milik bagian — bentuk Enclosure mengirim
+  /// `grid_sensor` di tingkat atas, bukan di dalam salah satu `bagian`. Jadi
+  /// yang menggambarnya dipilih dari luar (bagian PERTAMA), supaya gridnya
+  /// nggak kegambar berkali-kali kalau nanti bentuknya nambah bagian kedua.
+  final bool gambarGrid;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1576,6 +1588,23 @@ class _Bagian extends ConsumerWidget {
                 onBerubah: onBerubah,
               ),
 
+            // Lembar ber-GRID (Enclosure) menggambar gridnya di sini, dan
+            // memang nggak punya `tabel` maupun `matriks` buat digambar
+            // sesudahnya — bentuknya cuma mengirim kolom identitas plus
+            // `grid_sensor`. Merk kalibrator dibaca dari standar yang lagi
+            // dipilih; itu yang menentukan kolom Channel muncul atau nggak.
+            if (gambarGrid && isian.grid != null) ...[
+              LembarKerjaGrid(
+                state: isian.grid!,
+                satuanSuhu: isian.bentuk.satuanSuhu,
+                onBerubah: onBerubah,
+                merkKalibrator: _merkStandar(ref, isian.standardId),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              if (isian.bentuk.catatanPengisian.isNotEmpty)
+                _CatatanIsi(catatan: isian.bentuk.catatanPengisian),
+            ],
+
             // Bagian bermatriks menggambar matriksnya, BUKAN `bagian.tabel`.
             //
             // Autoklaf mengirim dua-duanya buat dua pembaca yang beda:
@@ -1669,6 +1698,22 @@ class _Bagian extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// Merk standar yang lagi dipilih, buat menentukan kolom Channel.
+  ///
+  /// Null waktu daftar standarnya belum kebaca ATAU belum ada yang dipilih —
+  /// dan dua-duanya sengaja berujung "belum tahu", bukan "nggak butuh kanal".
+  /// Kolom Channel yang muncul belakangan lebih baik daripada kolom yang
+  /// terlanjur disembunyikan buat kalibrator yang sebenarnya butuh.
+  static String? _merkStandar(WidgetRef ref, int? standardId) {
+    if (standardId == null) return null;
+    final daftar = ref.watch(standardListProvider).value;
+    if (daftar == null) return null;
+    for (final s in daftar) {
+      if (s.id == standardId) return s.merk;
+    }
+    return null;
   }
 }
 

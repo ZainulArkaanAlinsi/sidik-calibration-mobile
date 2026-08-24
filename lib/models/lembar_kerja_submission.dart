@@ -140,6 +140,7 @@ class LembarKerjaSubmission {
     this.standarDicek = const [],
     this.spesifikasiAlat = const {},
     this.measurements = const [],
+    this.measurementsGrid,
     this.sertakanMeasurements = true,
     this.inputMethod = MetodeInput.manual,
   });
@@ -242,6 +243,18 @@ class LembarKerjaSubmission {
   final List<StandarDicek> standarDicek;
   final List<TitikLembarKerja> measurements;
 
+  /// `measurements` buat lembar ber-GRID (Enclosure), sudah berbentuk JSON.
+  ///
+  /// Bentuknya beda sama sepuluh alat lain dan nggak muat di
+  /// [TitikLembarKerja]: satu entri di sini bukan satu deret pembacaan, tapi
+  /// satu SET POINT yang isinya daftar termokopel (`sensor_grid`) plus baris
+  /// `indikator`. Dipaksa lewat [TitikLembarKerja] berarti nambah empat list
+  /// yang selamanya null buat sebelas alat, cuma supaya satu alat kebagian
+  /// bentuk yang bukan bentuknya.
+  ///
+  /// Kalau keisi, ini yang dikirim dan [measurements] diabaikan.
+  final List<Map<String, dynamic>>? measurementsGrid;
+
   /// `false` → kunci `measurements` **nggak ikut dikirim sama sekali**, dan
   /// backend cuma memperbarui bagian header tanpa ngehapus pengukuran yang
   /// udah kecatat. Dipakai waktu teknisi cuma ngerapiin identitas/kondisi
@@ -311,6 +324,7 @@ class LembarKerjaSubmission {
     'standar_dicek': standarDicek.map((s) => s.toJson()).toList(),
 
     if (sertakanMeasurements)
-      'measurements': measurements.map((m) => m.toJson()).toList(),
+      'measurements':
+          measurementsGrid ?? measurements.map((m) => m.toJson()).toList(),
   };
 }
