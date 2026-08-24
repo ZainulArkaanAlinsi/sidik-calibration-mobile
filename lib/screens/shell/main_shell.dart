@@ -9,6 +9,7 @@ import '../../providers/navigation_provider.dart';
 import '../../providers/realtime_provider.dart';
 import '../../widgets/floating_nav_bar.dart';
 import '../dashboard/dashboard_screen.dart';
+import '../draf/draf_screen.dart';
 import '../equipment/equipment_list_screen.dart';
 import '../folder/folder_manager_screen.dart';
 import '../history/history_screen.dart';
@@ -312,6 +313,20 @@ class _MenuUtama extends ConsumerWidget {
                 leading: const Icon(Icons.history_outlined),
                 title: Text(l10n.navHistory),
                 onTap: () => keTab(2),
+              ),
+              // Draf sejajar Alur Kerja — layar kerja, bukan pengaturan — tapi
+              // SENGAJA tanpa `if (admin)`. Yang paling butuh justru teknisi:
+              // draf itu lembarnya sendiri yang belum kekirim, dan sebelum ini
+              // satu-satunya jalan nemuinnya nyisir Riwayat yang isinya campur
+              // sesi selesai.
+              //
+              // Masuknya lewat menu samping, bukan navbar bawah: navbar udah
+              // penuh 5 tujuan, dan nambah slot ke-6 bikin kelimanya nyempit
+              // demi layar yang nggak dibuka tiap menit.
+              ListTile(
+                leading: const Icon(Icons.edit_note),
+                title: Text(l10n.drafTitle),
+                onTap: () => keLayar(const DrafScreen()),
               ),
               // Antrean approval = layar kerja harian admin, sejajar sama
               // "Tugas Saya" punya teknisi — bukan pengaturan.

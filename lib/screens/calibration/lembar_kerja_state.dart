@@ -1104,6 +1104,82 @@ class LembarKerjaState {
     return (t == null || t.isEmpty) ? null : t;
   }
 
+  /// Nilai kolom [kode] dalam bentuk API-nya — buat NGEJAWAB syarat tampil
+  /// ([SyaratTampil]), bukan buat nyusun payload.
+  ///
+  /// `lokasi` diladenin sendiri karena dia satu-satunya kolom pilihan yang
+  /// nggak disimpen di [teks]: dia punya slot bertipe ([lokasi]) supaya
+  /// payload-nya nggak bergantung ejaan teks. Sisanya lewat [teks] apa adanya,
+  /// jadi kolom bersyarat berikutnya nggak perlu nambah cabang di sini.
+  ///
+  /// `null` = kolomnya nggak ketemu atau belum keisi; [SyaratTampil.dipenuhi]
+  /// nganggep itu "tampilkan".
+  String? nilaiSyarat(String kode) {
+    if (kode == 'lokasi') return lokasi.toApi();
+    return kalimat(kode);
+  }
+
+  /// Kolom ini digambar di layar sekarang?
+  ///
+  /// SATU-SATUNYA aturan tampil bersyarat di app, dan dia nggak kenal satu pun
+  /// nama kolom — lihat [SyaratTampil] soal kenapa yang lama (hardcode
+  /// `lokasi_nama`) mesti dicabut.
+  bool fieldTampil(FieldLembarKerja f) =>
+      f.tampilKalau == null ||
+      f.tampilKalau!.dipenuhi(nilaiSyarat(f.tampilKalau!.kode));
+
+  /// Kosongin kolom yang lagi NGGAK tampil.
+  ///
+  /// Disembunyiin doang nggak cukup, dan itu bukan teori: dropdown `Ruangan`
+  /// dulu tetap kekirim waktu teknisi milih Insitu, jadi sertifikat kunjungan
+  /// ke pelanggan kecetak nama RUANG LAB — tempat yang alatnya nggak pernah ke
+  /// sana. Kolom tersembunyi yang masih nyimpen nilai = nilai yang nggak bisa
+  /// dilihat, nggak bisa dibetulin, tapi tetap nyampe ke dokumen.
+  ///
+  /// Dipanggil dua kali dan dua-duanya perlu: waktu isian berubah (biar teknisi
+  /// LIHAT kotaknya kosong kalau syaratnya balik kepenuhan) dan waktu payload
+  /// disusun (draft lama yang datanya udah terlanjur kotor nggak pernah
+  /// disentuh dropdown-nya sama sekali).
+  ///
+  /// [alat] sengaja NGGAK ikut dikosongin walau kolomnya bersyarat: seluruh
+  /// bentuk lembar disusutin ke alat itu, jadi ngosongin dia berarti ngebuang
+  /// tabel beserta isinya — kerusakan yang jauh lebih besar dari kolom nyasar.
+  void bersihkanFieldTersembunyi() {
+    for (final bagian in bentuk.bagian) {
+      // Kolom di luar kertas ikut disapu: dia digambar di panel sendiri, tapi
+      // nyimpen nilainya di slot yang sama. Dilewat di sini, kolom bersyarat
+      // pertama yang mendarat di sana bakal ngulang bug yang persis sama —
+      // kotaknya ilang dari layar, isinya tetap kekirim.
+      for (final f in [...bagian.field, ...bagian.fieldDiLuarKertas]) {
+        if (fieldTampil(f)) continue;
+
+        teks[f.kode]?.clear();
+        if (tanggal.containsKey(f.kode)) tanggal[f.kode] = null;
+
+        switch (f.sumber) {
+          case SumberField.masterRuangan:
+            roomId = null;
+          case SumberField.masterMetode:
+            calibrationMethodId = null;
+          case SumberField.masterStandar:
+          case SumberField.masterThermohygro:
+            // Dua kolom standar berbagi satu `sumber`, dan yang bener-bener
+            // dipakai dibedain lewat KODE-nya di layar (`_PilihStandar`).
+            // Ditiru di sini biar nggak ada yang kekosongin salah slot.
+            if (f.kode == 'thermohygro_standard_id') {
+              thermohygroStandardId = null;
+            } else {
+              standardId = null;
+            }
+          case SumberField.masterAlat:
+          case SumberField.manual:
+          case SumberField.otomatis:
+            break;
+        }
+      }
+    }
+  }
+
   /// Mode kalibrasi yang lagi kepilih (`measure`/`source`), atau null.
   ///
   /// Dibaca widget tabel buat milih judul kolom: dua kolom TITS BERTUKAR sisi
@@ -1307,6 +1383,14 @@ class LembarKerjaState {
   /// yang ada dikirim apa adanya. Yang nahan sertifikat terbit itu pemeriksaan
   /// admin, bukan formulirnya.
   LembarKerjaSubmission toSubmission({required bool draft}) {
+    // Kolom yang syarat tampilnya nggak kepenuhan dikosongin DI SINI juga,
+    // bukan cuma waktu dropdown-nya diubah: draft yang dipulihkan bisa bawa
+    // `room_id` dari sebelum aturan ini ada, dan teknisi yang cuma ngelanjutin
+    // ngisi nggak pernah nyentuh dropdown lokasinya. Lihat
+    // [bersihkanFieldTersembunyi] soal sertifikat Insitu yang kecetak nama
+    // ruang lab.
+    bersihkanFieldTersembunyi();
+
     // Urutan LEMBAR, bukan urutan angka.
     //
     // `titik` dibangun ngikut baris di `bentuk`, jadi urutan aslinya udah

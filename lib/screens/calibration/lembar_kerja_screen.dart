@@ -447,6 +447,12 @@ class _FormState extends ConsumerState<_Form> {
   /// yang nyetel alat (mis. pulih dari draft) ikut narik bentuk yang benar.
   /// Yang di atas nyaring sendiri kalau id-nya nggak berubah.
   void _isianBerubah() {
+    // Ganti lokasi = kotak yang berlaku ikut ganti, dan yang ditinggalkan wajib
+    // KOSONG, bukan cuma ilang dari layar. Dipanggil di sini — satu pintu buat
+    // semua perubahan — biar nggak ada jalur yang lupa: yang nyalain bug lama
+    // bukan dropdown ruangannya, tapi nilainya yang masih nyangkut sesudah
+    // teknisi pindah ke Insitu.
+    _isian.bersihkanFieldTersembunyi();
     setState(() {});
     widget.onAlatBerubah(_isian.alat?.id);
     _jadwalkanPratinjau();
@@ -773,6 +779,13 @@ class _FormState extends ConsumerState<_Form> {
       final id = await ref
           .read(autoclaveServiceProvider)
           .simpan(token, _isian.payloadSimpanMatriks(bagian, draft: draft));
+
+      // Lembar bermatriks lewat endpoint alatnya sendiri, jadi dia NGGAK
+      // kelewatan `KirimLembarKerjaController.kirim()` yang megang invalidasi
+      // buat jalur `measurements[]`. Tanpa baris ini draf Autoklaf yang barusan
+      // disimpen absen dari layar Draf sementara draf pH nongol — beda perilaku
+      // buat tombol yang tulisannya sama persis.
+      ref.invalidate(drafProvider);
 
       if (!mounted) return;
       setState(() => _mengirim = false);
@@ -1559,11 +1572,21 @@ class _Bagian extends ConsumerWidget {
                 // Seluruh blok spesifikasi digambar bentuk cetak — termasuk
                 // yang cuma sekotak (`Kapasitas Max.`), biar ketiga barisnya
                 // sejajar kayak di kertas dan bukan campur dua gaya.
-                // Nama tempat cuma ditanyain kalau kalibrasinya DI LUAR lab.
-                // Sesi in-lab yang nyimpen nama tempat bikin sertifikatnya
-                // nulis `Insitu (…)` buat kerjaan yang nggak pernah keluar
-                // gedung.
-                if (grup.first.kode == 'lokasi_nama' &&
+                // Kolom bersyarat yang syaratnya lagi nggak kepenuhan —
+                // `Ruangan` waktu Insitu, `Nama Tempat` waktu Inlab. Aturannya
+                // dibaca dari `tampil_kalau` yang dibawa bentuk lembar, jadi
+                // layar ini nggak kenal satu pun nama kolom. Nilainya SEKALIAN
+                // dikosongin di `bersihkanFieldTersembunyi` — disembunyiin doang
+                // itu yang dulu bikin sertifikat Insitu kecetak nama ruang lab.
+                if (!isian.fieldTampil(grup.first))
+                  const SizedBox.shrink()
+                // Jaring buat server yang belum ngirim `tampil_kalau` sama
+                // sekali: aturan lama yang nge-hardcode `lokasi_nama` tetap
+                // jalan, jadi APK baru + backend lama nggak nanyain nama tempat
+                // ke sesi in-lab. Dicabut begitu semua server produksi udah
+                // ngirim penandanya.
+                else if (grup.first.tampilKalau == null &&
+                    grup.first.kode == 'lokasi_nama' &&
                     isian.lokasi != LokasiKalibrasi.onsite)
                   const SizedBox.shrink()
                 // `Set Point` digambar menyatu sama kepala matriks, persis
@@ -2511,7 +2534,10 @@ class _FieldDiLuarKertas extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.sm),
-        for (final f in field) ...[
+        // Aturan tampil bersyarat yang sama kayak kolom di kertas — panel ini
+        // nyimpen nilainya di slot yang sama, jadi kalau dilewat di sini kolom
+        // bersyarat pertama yang mendarat di panel ini bakal kegambar terus.
+        for (final f in field.where(isian.fieldTampil)) ...[
           _Field(field: f, isian: isian, onBerubah: onBerubah),
           if (f.catatan != null) ...[
             const SizedBox(height: 4),
@@ -2907,6 +2933,24 @@ String? _helperSatuan(String? satuan, [String? tambahan]) {
   };
 }
 
+/// Contoh isian yang ditulis di bawah kotak, buat kolom yang labelnya doang
+/// nggak cukup buat orang lapangan.
+///
+/// "Nama Tempat (Insitu)" itu istilah sistem; yang bikin teknisi langsung
+/// ngerti apa yang diminta ya CONTOHnya — nama pelanggan yang beneran dia
+/// datangi, karena persis itu yang kecetak di sertifikat sebagai
+/// `Calibration Location : Insitu (PT. LDC)`. Sebelum ada contohnya, kotak itu
+/// keisi macam-macam ("Insitu", "luar", nama kota), dan yang kena dokumen
+/// resmi.
+///
+/// Ini satu-satunya tempat kode kolom masih disebut di layar, dan itu disengaja:
+/// yang nempel di kode cuma KALIMAT BANTU. Aturan tampil dan pengosongan
+/// nilainya udah generik lewat `tampil_kalau`, jadi kode yang nggak kekenal di
+/// sini paling banter kehilangan contohnya — bukan bikin kotaknya ilang atau
+/// nilainya kekirim diam-diam.
+String? _contohIsian(AppLocalizations l10n, FieldLembarKerja field) =>
+    field.kode == 'lokasi_nama' ? l10n.lkContohNamaTempat : null;
+
 class _Isian extends StatelessWidget {
   const _Isian({required this.field, required this.isian});
 
@@ -2918,8 +2962,10 @@ class _Isian extends StatelessWidget {
     final controller = isian.teks[field.kode];
     if (controller == null) return const SizedBox.shrink();
 
+    final l10n = AppLocalizations.of(context);
     final panjang = field.tipe == TipeField.teksPanjang;
     final angka = field.tipe == TipeField.angka;
+    final contoh = _contohIsian(l10n, field);
 
     return TextField(
       controller: controller,
@@ -2930,7 +2976,7 @@ class _Isian extends StatelessWidget {
       decoration: InputDecoration(
         labelText: field.label,
         suffixText: field.satuan,
-        helperText: _helperSatuan(field.satuan),
+        helperText: _helperSatuan(field.satuan, contoh),
         border: const OutlineInputBorder(),
       ),
     );

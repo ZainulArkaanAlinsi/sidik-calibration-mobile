@@ -62,6 +62,10 @@ class _ServisBerubah implements HistoryService {
       .toList();
 
   @override
+  Future<List<CalibrationHistoryItem>> ambilDraf(String token) async =>
+      _isi().where((s) => s.status == CalibrationStatus.draft).toList();
+
+  @override
   Future<CalibrationDetail> ambilDetail(String token, int id) =>
       MockHistoryService().ambilDetail(token, id);
 

@@ -242,17 +242,17 @@ void main() {
 
       // Sesi in-lab NGGAK nanyain nama tempat: sertifikatnya bakal nulis
       // `Insitu (…)` buat kerjaan yang nggak pernah keluar gedung.
-      expect(find.text('Nama Lokasi (kalau Insitu)'), findsNothing);
+      expect(find.text('Nama Tempat (Insitu)'), findsNothing);
 
-      await tester.tap(find.text('In lab'));
+      await tester.tap(find.text('Inlab'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Insitu').last);
       await tester.pumpAndSettle();
 
-      expect(find.text('Nama Lokasi (kalau Insitu)'), findsOneWidget);
+      expect(find.text('Nama Tempat (Insitu)'), findsOneWidget);
 
       await tester.enterText(
-        find.widgetWithText(TextField, 'Nama Lokasi (kalau Insitu)'),
+        find.widgetWithText(TextField, 'Nama Tempat (Insitu)'),
         'PT. LDC',
       );
       await tester.pumpAndSettle();

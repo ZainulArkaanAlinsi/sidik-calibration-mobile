@@ -34,6 +34,7 @@ class CalibrationHistoryItem {
     this.tanggalKalibrasi,
     required this.status,
     this.profil,
+    this.namaAlatKemampuan,
     this.keputusan,
     this.nomorSertifikat,
     this.catatanRevisi,
@@ -51,6 +52,20 @@ class CalibrationHistoryItem {
   /// `equipment.profil`. Lihat [CalibrationDetail.profil] soal kenapa nebak
   /// dari [namaAlat] nggak cukup. Null buat respons backend lama.
   final String? profil;
+
+  /// Nama JENIS alat menurut lampiran akreditasi (`pH Meter`, `Oven`,
+  /// `Temperature Indicator tanpa Sensor`), dari `equipment.nama_alat_kemampuan`.
+  ///
+  /// Bedanya sama [namaAlat]: yang itu nama alat PELANGGAN dan bentuknya bebas
+  /// — "pH Meter Mettler Toledo", "Turbidimeter Hach", "Visible
+  /// Spectrofotometer". Buat kepala kelompok di layar Draf yang dibutuhin
+  /// justru jenisnya, dan nurunin jenis dari [profil] berarti nulis tabel
+  /// `ph_meter` → "pH Meter" di dalam APK — tabel yang pasti ketinggalan tiap
+  /// alat baru masuk lewat `POST /api/categories/{kode}/kemampuan`.
+  ///
+  /// Null buat respons backend lama — layar jatuh ke [namaAlat].
+  final String? namaAlatKemampuan;
+
   final String namaTeknisi;
 
   /// PT pemilik alat. Dipakai layar antrean approval buat ngelompokkin
@@ -121,6 +136,7 @@ class CalibrationHistoryItem {
     id: id,
     namaAlat: namaAlat,
     profil: profil,
+    namaAlatKemampuan: namaAlatKemampuan,
     namaTeknisi: namaTeknisi,
     tanggalKalibrasi: tanggalKalibrasi,
     status: status ?? this.status,
@@ -170,6 +186,7 @@ class CalibrationHistoryItem {
       id: (json['id'] as num).toInt(),
       namaAlat: equipment?['nama_alat'] as String? ?? '—',
       profil: equipment?['profil'] as String?,
+      namaAlatKemampuan: equipment?['nama_alat_kemampuan'] as String?,
       namaTeknisi: teknisi?['nama'] as String? ?? '—',
       tanggalKalibrasi: tanggal is String ? DateTime.tryParse(tanggal) : null,
       status: CalibrationStatusJson.fromJson(json['status'] as String),

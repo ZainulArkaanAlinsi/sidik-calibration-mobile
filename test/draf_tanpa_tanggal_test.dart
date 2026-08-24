@@ -184,6 +184,10 @@ class _SatuDrafTanpaTanggal implements HistoryService {
   ) async => ambilRiwayat(token);
 
   @override
+  Future<List<CalibrationHistoryItem>> ambilDraf(String token) =>
+      ambilRiwayat(token);
+
+  @override
   Future<CalibrationDetail> ambilDetail(String token, int id) async =>
       CalibrationDetail.fromJson(_json);
 

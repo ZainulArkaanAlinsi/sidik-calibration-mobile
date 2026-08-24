@@ -9,6 +9,7 @@ import '../services/lembar_kerja_service.dart';
 import '../services/room_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
+import 'history_provider.dart' show drafProvider;
 
 final lembarKerjaServiceProvider = Provider<LembarKerjaService>((ref) {
   if (AppConfig.useMock) return MockLembarKerjaService();
@@ -107,6 +108,15 @@ class KirimLembarKerjaController
         id: id,
         draft: isian.simpanSebagaiDraft,
       );
+
+      // Daftar draf berubah di DUA arah, makanya nggak dijaga
+      // `if (isian.simpanSebagaiDraft)`: simpan-draf nambah satu baris,
+      // kirim-ke-admin justru NGELUARIN barisnya (statusnya pindah ke
+      // `menunggu_approval`). Sebelum ini invalidasinya nol — draf yang barusan
+      // disimpen nggak nongol sampai layarnya ditarik-segarkan, dan teknisi
+      // yang balik ke layar Draf ngira simpanannya nggak kesimpen.
+      ref.invalidate(drafProvider);
+
       state = AsyncValue.data(hasil);
       return hasil;
     } catch (e, st) {

@@ -132,6 +132,58 @@ class BarisStandar {
   );
 }
 
+/// Syarat TAMPIL satu kolom — dibaca "gambar kolom ini cuma kalau kolom [kode]
+/// isinya salah satu dari [nilai]".
+///
+/// Datang dari `tampil_kalau` di kontrak field (backend:
+/// `CalibrationProfile::TAMPIL_KALAU_INSITU` / `…_INLAB`). Sengaja GENERIK —
+/// nggak kenal satu pun nama kolom — karena layar lembar kerja dulu
+/// nge-hardcode `grup.first.kode == 'lokasi_nama'` buat mutusin kotak itu
+/// digambar apa nggak. Akibatnya kolom bersyarat BERIKUTNYA nggak bisa dipasang
+/// dari backend doang: satu kolom baru = satu rilis APK, dan teknisi yang belum
+/// update nggak lihat kotaknya sama sekali.
+///
+/// [nilai] itu nilai API-nya (`lab` / `onsite`), BUKAN labelnya — label boleh
+/// diseragamkan kapan aja (`In lab` → `Inlab`) tanpa mutusin aturan tampilnya.
+class SyaratTampil {
+  const SyaratTampil({required this.kode, required this.nilai});
+
+  final String kode;
+  final List<String> nilai;
+
+  /// `null` kalau kuncinya nggak ada atau bentuknya nggak kebaca — server lama
+  /// yang belum ngirim `tampil_kalau` sama sekali, atau isinya nggak lengkap.
+  /// Jatuh ke "selalu tampil", persis perilaku sebelum penanda ini ada: kotak
+  /// yang kegambar padahal nggak berlaku cuma ganggu, kotak yang ILANG bikin
+  /// teknisi nggak bisa nyelesein lembarnya dan nggak tau kenapa.
+  static SyaratTampil? fromJson(Object? json) {
+    if (json is! Map) return null;
+
+    final kode = json['kode'];
+    if (kode is! String || kode.isEmpty) return null;
+
+    final mentah = json['nilai'];
+    final nilai = [
+      for (final n in (mentah is List ? mentah : const []))
+        if (n != null) '$n',
+    ];
+    if (nilai.isEmpty) return null;
+
+    return SyaratTampil(kode: kode, nilai: nilai);
+  }
+
+  /// Syaratnya kepenuhan kalau kolom acuannya lagi berisi [nilaiSekarang]?
+  ///
+  /// `null` (kolom acuannya nggak ketemu / belum keisi) dianggap **kepenuhan**:
+  /// kotaknya tetap digambar. Nyembunyiin kotak gara-gara kolom acuannya nggak
+  /// kebaca berarti teknisi kehilangan isian yang seharusnya dia isi — dan
+  /// karena yang disembunyiin juga DIKOSONGIN (lihat
+  /// `LembarKerjaState.bersihkanFieldTersembunyi`), tebakan yang salah di sini
+  /// bukan cuma soal tampilan.
+  bool dipenuhi(String? nilaiSekarang) =>
+      nilaiSekarang == null || nilai.contains(nilaiSekarang);
+}
+
 /// Satu kolom di lembar kerja.
 class FieldLembarKerja {
   const FieldLembarKerja({
@@ -143,6 +195,7 @@ class FieldLembarKerja {
     this.satuan,
     this.pilihan = const [],
     this.catatan,
+    this.tampilKalau,
   });
 
   /// Kode yang dipakai di payload, mis. `suhu_awal` atau `equipment.merk`.
@@ -183,6 +236,9 @@ class FieldLembarKerja {
   /// Kunci kolom ini di dalam `spesifikasi_alat`.
   String get kunciSpesifikasi => kode.substring('spesifikasi_alat.'.length);
 
+  /// Syarat tampilnya, atau `null` = selalu tampil. Lihat [SyaratTampil].
+  final SyaratTampil? tampilKalau;
+
   factory FieldLembarKerja.fromJson(Map<String, dynamic> json) {
     return FieldLembarKerja(
       kode: json['kode'] as String,
@@ -193,6 +249,7 @@ class FieldLembarKerja {
       satuan: json['satuan'] as String?,
       pilihan: parseListAman(json['pilihan'], PilihanField.fromJson),
       catatan: json['catatan'] as String?,
+      tampilKalau: SyaratTampil.fromJson(json['tampil_kalau']),
     );
   }
 }

@@ -2605,6 +2605,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkRuanganGagal => 'Couldn\'t load the room list.';
 
   @override
+  String get lkContohNamaTempat => 'Example: PT. LDC';
+
+  @override
   String get lkBelumPilihAlat =>
       'Choose the equipment first — the identity and owner fields fill in automatically.';
 
@@ -3265,6 +3268,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tanggalKosong => '—';
+
+  @override
+  String get waktuBaruSaja => 'Just now';
+
+  @override
+  String waktuMenitLalu(int menit) {
+    return '$menit min ago';
+  }
+
+  @override
+  String waktuJamLalu(int jam) {
+    return '$jam hours ago';
+  }
+
+  @override
+  String waktuHariLalu(int hari) {
+    return '$hari days ago';
+  }
+
+  @override
+  String get drafTitle => 'Drafts';
+
+  @override
+  String get drafSubjudul => 'Worksheets saved but not submitted yet';
+
+  @override
+  String get drafCariHint => 'Search equipment or customer';
+
+  @override
+  String drafGrupJumlah(int jumlah) {
+    return '$jumlah drafts';
+  }
+
+  @override
+  String drafDisimpan(String waktu) {
+    return 'Saved $waktu';
+  }
+
+  @override
+  String get drafKosongJudul => 'No drafts saved';
+
+  @override
+  String get drafKosongBody =>
+      'Worksheets you save with SAVE DRAFT wait for you here.';
+
+  @override
+  String get drafCariKosong => 'No draft matches that.';
+
+  @override
+  String get drafGagal => 'Couldn\'t load the drafts.';
 
   @override
   String get perhitTitle => 'Calculation sheet';

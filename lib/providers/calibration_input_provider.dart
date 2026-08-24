@@ -11,6 +11,7 @@ import '../services/equipment_lookup_service.dart';
 import '../services/standard_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
+import 'history_provider.dart' show drafProvider;
 
 /// Semua nembak API asli — live sejak 14 Jul (`docs/kontrak-api.md` §3/§4).
 final categoryServiceProvider = Provider<CategoryService>((ref) {
@@ -187,6 +188,13 @@ class CalibrationSubmitController extends Notifier<AsyncValue<int?>> {
 
     try {
       final id = await ref.read(calibrationServiceProvider).buatSesi(token, draft);
+
+      // Jalur formulir generik juga bisa nyimpen draf (tombol SIMPAN DRAF di
+      // `calibration_input_screen.dart`). Invalidasinya di sini, bukan di
+      // layarnya, biar pemanggil berikutnya nggak gampang lupa — alasan yang
+      // sama kayak `categoryDetailProvider` di atas.
+      ref.invalidate(drafProvider);
+
       state = AsyncValue.data(id);
       return id;
     } catch (e, st) {

@@ -64,3 +64,52 @@ String waktuRelatif(
     _ => waktuLengkap(waktu, locale),
   };
 }
+
+/// `2 jam lalu` / `Kemarin` — JARAK dari sekarang, bukan titik waktunya.
+///
+/// Beda tujuan dari [waktuRelatif], yang tetap nyebut jam (`Hari ini · 09.14`):
+/// di antrean approval yang dicari admin itu urutan periksa antar kiriman di
+/// hari yang sama, jadi jamnya justru datanya. Di daftar draf pertanyaannya
+/// lain — "mana yang paling lama saya tinggal" — dan `10 Agt 2026 · 09.14`
+/// maksa mata ngurangin tanggal dulu sebelum jawabannya kebaca. Efeknya draf
+/// yang ditinggal tiga minggu kelihatan sama mendesaknya sama yang ditinggal
+/// sejam lalu.
+///
+/// Lewat seminggu balik ke tanggal penuh: "23 hari lalu" itu angka yang mesti
+/// dihitung mundur lagi biar berguna, sementara tanggalnya langsung kepakai.
+///
+/// [sekarang] bisa dioper biar test nggak bergantung jam dinding.
+String waktuLalu(
+  DateTime waktu,
+  String locale, {
+  required String baruSaja,
+  required String Function(int menit) menitLalu,
+  required String Function(int jam) jamLalu,
+  required String kemarin,
+  required String Function(int hari) hariLalu,
+  DateTime? sekarang,
+}) {
+  final acuan = sekarang ?? DateTime.now();
+  final selisih = acuan.difference(waktu);
+
+  // Jam HP yang meleset beberapa menit bikin `updated_at` dari server
+  // kelihatan ada di MASA DEPAN, dan `inMinutes` jadi negatif. "-3 menit lalu"
+  // itu tulisan yang nggak ada artinya; draf yang barusan disimpen memang
+  // "baru saja".
+  if (selisih.inMinutes < 1) return baruSaja;
+  if (selisih.inMinutes < 60) return menitLalu(selisih.inMinutes);
+  if (selisih.inHours < 24) return jamLalu(selisih.inHours);
+
+  // Sesudah lewat sehari, hitungannya pindah ke HARI KALENDER — bukan
+  // kelipatan 24 jam. Draf yang disimpen Senin malam dibuka Selasa pagi itu
+  // "kemarin" buat teknisinya, walau selisihnya baru 11 jam (yang di atas
+  // udah nangkep) atau justru 30 jam.
+  final hariWaktu = DateTime(waktu.year, waktu.month, waktu.day);
+  final hariAcuan = DateTime(acuan.year, acuan.month, acuan.day);
+  final hari = hariAcuan.difference(hariWaktu).inDays;
+
+  if (hari <= 1) return kemarin;
+  if (hari <= 7) return hariLalu(hari);
+
+  return waktuLengkap(waktu, locale);
+}
