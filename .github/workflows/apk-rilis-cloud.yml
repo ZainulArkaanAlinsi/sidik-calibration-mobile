@@ -28,6 +28,12 @@ env:
 jobs:
   apk:
     runs-on: ubuntu-latest
+
+    # Perlu buat menerbitkan GitHub Release. Bawaan runner cuma `contents:read`,
+    # dan tanpa baris ini langkah rilis gagal 403 SESUDAH APK-nya kebangun —
+    # gagal di ujung, waktu semuanya sudah terlanjur jalan sepuluh menit.
+    permissions:
+      contents: write
     name: build apk
 
     env:
@@ -190,12 +196,52 @@ jobs:
       #     balikin ke fat APK.
       #   - Emulator x86_64 NGGAK kena: `flutter run` di emulator bangun debug,
       #     dan baris ini cuma nyentuh jalur release.
-      - name: Build APK
+      # NAMA versi ikut naik, bukan cuma nomor build.
+      #
+      # Sampai sebelum ini `--build-number` saja yang naik, jadi tiap rilis
+      # tetap bernama "1.0.0". Akibatnya teknisi tidak punya cara menyebut versi
+      # yang dia pegang selain angka build yang tidak kelihatan di mana-mana,
+      # dan pemberitahuan "ada versi baru" di aplikasi tidak punya apa-apa buat
+      # dibandingkan — 1.0.0 lawan 1.0.0 selalu terbaca "sudah paling baru".
+      #
+      # Polanya `MAJOR.MINOR.<nomor build>`:
+      #   - MAJOR.MINOR diambil dari `version:` di pubspec, dan itu tetap
+      #     URUSAN MANUSIA. Dinaikkan waktu memang ada tonggak (alat baru,
+      #     perubahan alur), bukan tiap merge.
+      #   - PATCH = `github.run_number`, naik sendiri tiap workflow jalan.
+      #
+      # Jadi versinya selalu naik tanpa ada yang perlu diingat, tapi lompatan
+      # besarnya tetap bisa disengaja. Dan karena PATCH memakai angka yang sama
+      # dengan build number, dua-duanya tidak akan pernah saling bertentangan.
+      - name: Susun nomor versi
+        id: versi
         env:
           NOMOR_BUILD: ${{ github.run_number }}
         run: |
+          set -euo pipefail
+
+          # `version: 1.0.0+2` → `1.0.0` → `1.0`
+          DASAR=$(grep -m1 '^version:' pubspec.yaml | sed 's/^version:[[:space:]]*//' | cut -d'+' -f1)
+          MAYOR_MINOR=$(cut -d'.' -f1,2 <<<"$DASAR")
+
+          if [ -z "$MAYOR_MINOR" ]; then
+            echo "::error::Gagal membaca 'version:' dari pubspec.yaml."
+            exit 1
+          fi
+
+          NAMA_VERSI="${MAYOR_MINOR}.${NOMOR_BUILD}"
+          echo "nama=$NAMA_VERSI" >> "$GITHUB_OUTPUT"
+          echo "tag=v${NAMA_VERSI}+${NOMOR_BUILD}" >> "$GITHUB_OUTPUT"
+          echo "Versi rilis ini: $NAMA_VERSI (build $NOMOR_BUILD)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Build APK
+        env:
+          NOMOR_BUILD: ${{ github.run_number }}
+          NAMA_VERSI: ${{ steps.versi.outputs.nama }}
+        run: |
           flutter build apk --release \
             --target-platform android-arm64 \
+            --build-name="$NAMA_VERSI" \
             --build-number="$NOMOR_BUILD" \
             --dart-define=APP_ENV=prod \
             --dart-define=API_BASE_URL="${{ vars.API_BASE_URL }}/api"
@@ -212,6 +258,61 @@ jobs:
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 30
+
+      # GitHub Release: tautan unduh yang ALAMATNYA TETAP.
+      #
+      # Artifact di atas tidak bisa dipakai buat itu, dan bukan cuma soal
+      # kenyamanan: artifact butuh login GitHub buat diunduh, umurnya 30 hari,
+      # dan bentuknya zip — tiga-tiganya bikin dia mustahil dipakai aplikasi
+      # buat memperbarui dirinya sendiri di HP teknisi.
+      #
+      # Release-nya yang dibaca `GET /api/app/versi-terbaru` di repo API.
+      # Endpoint itu sengaja menumpang ke sini supaya tidak ada dua tempat yang
+      # harus dijaga tetap sama.
+      #
+      # APK-nya diberi nama berversi, bukan `app-release.apk`: yang terunduh ke
+      # folder Download teknisi harus bisa dibedakan dari unduhan sebelumnya —
+      # tiga berkas bernama sama persis bikin dia memasang yang mana saja.
+      #
+      # CATATAN KEAMANAN, sengaja ditulis di sini biar tidak hilang: repo ini
+      # PUBLIK, jadi APK di Release bisa diunduh siapa pun tanpa login. Isinya
+      # tidak memuat rahasia (lihat catatan GOOGLE_SERVICES_JSON di atas) dan
+      # tetap butuh akun buat masuk, tapi bedanya nyata dengan App Distribution
+      # yang undangan-saja. Kalau suatu hari itu tidak bisa diterima, yang
+      # diubah tempat menaruh APK-nya — bukan mengembalikan teknisi ke unduh
+      # manual.
+      - name: Terbitkan GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.versi.outputs.tag }}
+          NAMA_VERSI: ${{ steps.versi.outputs.nama }}
+          NOMOR_BUILD: ${{ github.run_number }}
+          # Lewat `env`, bukan ditempel ke `run:`. Pesan commit bisa memuat
+          # tanda kutip atau `;`, dan yang ditempel `${{ }}` disalin mentah jadi
+          # teks skrip sebelum shell-nya jalan — alasan yang sama dengan
+          # langkah App Distribution di bawah.
+          PESAN: ${{ github.event.head_commit.message || github.sha }}
+        run: |
+          set -euo pipefail
+
+          BERKAS="sidik-kalibrasi-${NAMA_VERSI}.apk"
+          cp build/app/outputs/flutter-apk/app-release.apk "$BERKAS"
+
+          # Re-run memakai `run_number` yang SAMA, jadi tag-nya bentrok dan
+          # `gh release create` gagal. Itu bukan kasus teoretis — riwayat
+          # workflow ini sudah memuat `run_attempt: 2`. Gagal di langkah
+          # terakhir sesudah sepuluh menit build itu mahal, dan gagalnya cuma
+          # karena hal yang seharusnya boleh diulang.
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$BERKAS" --clobber
+            echo "Release $TAG sudah ada — APK-nya ditimpa." >> "$GITHUB_STEP_SUMMARY"
+          else
+            gh release create "$TAG" "$BERKAS" \
+              --title "$NAMA_VERSI (build $NOMOR_BUILD)" \
+              --notes "$PESAN" \
+              --latest
+            echo "Release $TAG terbit dengan $BERKAS" >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       # Sampai sini APK-nya cuma jadi artifact: harus ada yang buka tab
       # Actions, unduh zip-nya, ekstrak, lalu kirim manual ke tiap teknisi.
