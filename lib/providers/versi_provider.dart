@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/config/app_config.dart';
 import '../models/versi_aplikasi.dart';
+import '../services/penyiap_update.dart';
 import '../services/versi_service.dart';
 import 'auth_provider.dart';
 
@@ -49,4 +50,34 @@ final updateTersediaProvider = FutureProvider<VersiAplikasi?>((ref) async {
   // Perbandingan ANGKA per ruas, bukan teks — `1.4.9` lawan `1.4.12` terbaca
   // terbalik kalau dibandingkan sebagai huruf, dan salahnya diam.
   return terbaru.lebihBaruDari(terpasang) ? terbaru : null;
+});
+
+final penyiapUpdateProvider = Provider<PenyiapUpdate>((ref) {
+  return PenyiapUpdateAsli();
+});
+
+/// Sudah ada APK siap pasang, jadi menekan tombol langsung membuka pemasang
+/// tanpa menunggu unduhan.
+///
+/// Provider ini yang MEMULAI unduhan latar. Dibaca sekali waktu banner
+/// digambar; kalau kondisinya pas (ada pemutakhiran + jaringan tak-berbayar),
+/// 68 MB-nya diambil diam-diam tanpa banner, tanpa progres, tanpa apa pun yang
+/// mengganggu layar. Yang teknisi lihat cuma hasilnya: "siap dipasang".
+///
+/// Di jaringan seluler ini pulang `false` tanpa mengunduh — dan bannernya jatuh
+/// ke tombol "Pasang (68 MB)" yang lama, lengkap dengan ukurannya. Kuota orang
+/// bukan milik kita.
+final updateSiapProvider = FutureProvider<bool>((ref) async {
+  final rilis = await ref.watch(updateTersediaProvider.future);
+  if (rilis == null) return false;
+
+  final penyiap = ref.watch(penyiapUpdateProvider);
+
+  try {
+    if (await penyiap.apkSiap(rilis.versi) != null) return true;
+
+    return await penyiap.siapkan(rilis);
+  } catch (_) {
+    return false;
+  }
 });

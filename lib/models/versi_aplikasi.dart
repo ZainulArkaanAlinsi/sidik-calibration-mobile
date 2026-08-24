@@ -64,7 +64,7 @@ class VersiAplikasi {
   final bool wajib;
 
   /// Ukuran dalam MB, dibulatkan — buat ditulis di tombol unduh. Teknisi di
-  /// lapangan memakai data seluler, dan 50 MB itu keputusan buat dia.
+  /// lapangan memakai data seluler, dan 68 MB itu keputusan buat dia.
   String? get ukuranMb {
     final b = ukuran;
     if (b == null || b <= 0) return null;

@@ -33,7 +33,9 @@ class UnduhGagal implements Exception {
 ///
 /// ## Kenapa progres wajib ada, bukan pemanis
 ///
-/// APK-nya ~50 MB dan teknisi mengunduhnya lewat data seluler di lokasi
+/// APK-nya ~68 MB (diukur dari rilis v1.0.37, bukan tebakan — komentar lama di
+/// workflow menyebut ~50 MB dan itu sudah tidak akurat) dan teknisi
+/// mengunduhnya lewat data seluler di lokasi
 /// pelanggan. Tanpa angka yang bergerak, unduhan yang lambat tidak bisa
 /// dibedakan dari unduhan yang menggantung — dan yang dilakukan orang waktu
 /// ragu adalah menekan tombolnya lagi, yang justru memulai unduhan kedua.
@@ -42,9 +44,24 @@ class UnduhGagal implements Exception {
 ///
 /// Bukan folder Download bersama. Dua alasan: berkas di direktori aplikasi
 /// tidak butuh izin penyimpanan sama sekali di Android modern, dan sistem
-/// membersihkannya sendiri — APK 50 MB per rilis yang menumpuk di folder
+/// membersihkannya sendiri — APK 68 MB per rilis yang menumpuk di folder
 /// Download itu sampah yang tidak pernah ada yang membereskan.
 abstract class PengunduhApk {
+  /// Unduh saja, tanpa memasang. `null` = gagal.
+  ///
+  /// Dipisah dari [unduhDanPasang] supaya penyiap latar bisa memakainya:
+  /// yang diunduh di latar TIDAK boleh langsung membuka pemasang — teknisi
+  /// yang tiba-tiba dilempar ke layar pemasang di tengah mengisi lembar kerja
+  /// akan kehilangan konteks, dan itu persis gangguan yang mau dihindari.
+  Future<File?> unduh(
+    String url, {
+    required String namaBerkas,
+    void Function(double? progres)? onProgres,
+  });
+
+  /// Serahkan berkas yang SUDAH ada ke pemasang Android.
+  Future<HasilPasang> pasang(File berkas);
+
   /// [onProgres] dipanggil dengan 0..1, atau `null` kalau server tidak
   /// mengirim `Content-Length` (panjang total tidak diketahui).
   Future<HasilPasang> unduhDanPasang(
@@ -60,20 +77,20 @@ class PengunduhApkAsli implements PengunduhApk {
   final http.Client _client;
 
   @override
-  Future<HasilPasang> unduhDanPasang(
+  Future<File?> unduh(
     String url, {
     required String namaBerkas,
     void Function(double? progres)? onProgres,
   }) async {
-    final File berkas;
     try {
-      berkas = await _unduh(url, namaBerkas, onProgres);
-    } on UnduhGagal {
-      return HasilPasang.gagalUnduh;
+      return await _unduh(url, namaBerkas, onProgres);
     } catch (_) {
-      return HasilPasang.gagalUnduh;
+      return null;
     }
+  }
 
+  @override
+  Future<HasilPasang> pasang(File berkas) async {
     final hasil = await OpenFilex.open(
       berkas.path,
       type: 'application/vnd.android.package-archive',
@@ -82,6 +99,18 @@ class PengunduhApkAsli implements PengunduhApk {
     return hasil.type == ResultType.done
         ? HasilPasang.pemasangDibuka
         : HasilPasang.ditolakSistem;
+  }
+
+  @override
+  Future<HasilPasang> unduhDanPasang(
+    String url, {
+    required String namaBerkas,
+    void Function(double? progres)? onProgres,
+  }) async {
+    final berkas = await unduh(url, namaBerkas: namaBerkas, onProgres: onProgres);
+    if (berkas == null) return HasilPasang.gagalUnduh;
+
+    return pasang(berkas);
   }
 
   Future<File> _unduh(

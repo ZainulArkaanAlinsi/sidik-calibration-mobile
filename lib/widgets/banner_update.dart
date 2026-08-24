@@ -14,7 +14,7 @@ import '../services/pengunduh_apk.dart';
 ///
 /// **Tidak memaksa.** Bannernya bisa ditutup, dan aplikasinya tetap jalan
 /// penuh dengan versi lama. Itu disengaja: teknisi yang sedang di lokasi
-/// pelanggan dengan sinyal seadanya tidak boleh dipaksa mengunduh 50 MB
+/// pelanggan dengan sinyal seadanya tidak boleh dipaksa mengunduh 68 MB
 /// sebelum boleh bekerja. Rilis yang memang WAJIB punya penandanya sendiri
 /// ([VersiAplikasi.wajib]) — dan bahkan itu belum dipakai sampai ada rilis
 /// yang benar-benar membutuhkannya.
@@ -42,13 +42,21 @@ class _BannerUpdateState extends ConsumerState<BannerUpdate> {
     });
 
     final pengunduh = widget.pengunduh ?? PengunduhApkAsli();
-    final hasil = await pengunduh.unduhDanPasang(
-      rilis.urlUnduh,
-      namaBerkas: 'sidik-kalibrasi-${rilis.versi}.apk',
-      onProgres: (p) {
-        if (mounted) setState(() => _progres = p);
-      },
-    );
+
+    // Kalau penyiap latar sudah menyelesaikan unduhannya, langsung ke pemasang
+    // — tidak ada 68 MB yang perlu ditunggu lagi. Inilah gunanya seluruh
+    // mekanisme latar itu: dari ketukan ke layar pemasang, tanpa jeda.
+    final siap = await ref.read(penyiapUpdateProvider).apkSiap(rilis.versi);
+
+    final hasil = siap != null
+        ? await pengunduh.pasang(siap)
+        : await pengunduh.unduhDanPasang(
+            rilis.urlUnduh,
+            namaBerkas: 'sidik-kalibrasi-${rilis.versi}.apk',
+            onProgres: (p) {
+              if (mounted) setState(() => _progres = p);
+            },
+          );
 
     if (!mounted) return;
 
@@ -79,6 +87,12 @@ class _BannerUpdateState extends ConsumerState<BannerUpdate> {
     final theme = Theme.of(context);
     final ukuran = rilis.ukuranMb;
 
+    // `false` selama unduhan latar masih jalan ATAU memang tidak jalan (di
+    // seluler). Dua-duanya berujung tombol lama yang menyebut ukuran — yang
+    // penting teknisi tidak pernah kehilangan cara memasang, cuma kadang
+    // caranya lebih cepat.
+    final siap = ref.watch(updateSiapProvider).value ?? false;
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.fromLTRB(
@@ -105,7 +119,9 @@ class _BannerUpdateState extends ConsumerState<BannerUpdate> {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
-                  'Versi ${rilis.versi} sudah tersedia',
+                  siap
+                      ? 'Versi ${rilis.versi} siap dipasang'
+                      : 'Versi ${rilis.versi} sudah tersedia',
                   style: theme.textTheme.titleSmall?.copyWith(
                     color: theme.colorScheme.onPrimaryContainer,
                     fontWeight: FontWeight.w600,
@@ -161,13 +177,20 @@ class _BannerUpdateState extends ConsumerState<BannerUpdate> {
                   onPressed: () => _pasang(rilis),
                   icon: const Icon(Icons.download, size: 18),
                   label: Text(
-                    ukuran == null ? 'Pasang sekarang' : 'Pasang ($ukuran)',
+                    // Ukuran cuma ditulis kalau memang akan diunduh sekarang.
+                    // Sudah siap = tidak ada yang diunduh, jadi menulis "68 MB"
+                    // justru bohong dan bikin ragu menekan.
+                    siap
+                        ? 'Pasang sekarang'
+                        : ukuran == null
+                        ? 'Pasang sekarang'
+                        : 'Pasang ($ukuran)',
                   ),
                 ),
               ],
             ),
             // Ukuran ditulis di tombol, bukan disembunyikan: teknisi di lokasi
-            // pelanggan memakai data seluler, dan 50 MB itu keputusan yang
+            // pelanggan memakai data seluler, dan 68 MB itu keputusan yang
             // harus dia ambil sadar — bukan kejutan sesudah menekan.
           ],
         ],

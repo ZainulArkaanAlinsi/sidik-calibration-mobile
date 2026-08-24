@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sidik_calibration/models/versi_aplikasi.dart';
 import 'package:sidik_calibration/providers/versi_provider.dart';
 import 'package:sidik_calibration/services/pengunduh_apk.dart';
+import 'package:sidik_calibration/services/penyiap_update.dart';
 import 'package:sidik_calibration/services/versi_service.dart';
 import 'package:sidik_calibration/widgets/banner_update.dart';
 
@@ -30,8 +32,12 @@ class _PengunduhPalsu implements PengunduhApk {
   String? urlDiminta;
   String? namaDiminta;
 
+  /// Berkas yang diserahkan lewat [pasang] — diisi cuma kalau banner memakai
+  /// jalur "sudah siap", bukan mengunduh ulang.
+  File? berkasDipasang;
+
   @override
-  Future<HasilPasang> unduhDanPasang(
+  Future<File?> unduh(
     String url, {
     required String namaBerkas,
     void Function(double? progres)? onProgres,
@@ -41,10 +47,48 @@ class _PengunduhPalsu implements PengunduhApk {
     for (final p in progres) {
       onProgres?.call(p);
     }
-
     if (tahan != null) await tahan!.future;
 
+    return hasil == HasilPasang.gagalUnduh ? null : File('/palsu/$namaBerkas');
+  }
+
+  @override
+  Future<HasilPasang> pasang(File berkas) async {
+    berkasDipasang = berkas;
+
     return hasil;
+  }
+
+  @override
+  Future<HasilPasang> unduhDanPasang(
+    String url, {
+    required String namaBerkas,
+    void Function(double? progres)? onProgres,
+  }) async {
+    final b = await unduh(url, namaBerkas: namaBerkas, onProgres: onProgres);
+    if (b == null) return HasilPasang.gagalUnduh;
+
+    return pasang(b);
+  }
+}
+
+/// Penyiap latar yang dipatok: [siap] menentukan apakah APK-nya sudah ada
+/// sebelum teknisi menekan apa pun.
+class _PenyiapPalsu implements PenyiapUpdate {
+  _PenyiapPalsu({this.siap = false});
+
+  final bool siap;
+  int panggilanSiapkan = 0;
+
+  @override
+  Future<File?> apkSiap(String versi) async =>
+      siap ? File('/palsu/sidik-kalibrasi-$versi.apk') : null;
+
+  @override
+  Future<bool> siapkan(VersiAplikasi rilis) async {
+    panggilanSiapkan++;
+
+    return siap;
   }
 }
 
@@ -60,10 +104,14 @@ void main() {
     WidgetTester tester, {
     required MockVersiService layanan,
     PengunduhApk? pengunduh,
+    PenyiapUpdate? penyiap,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [versiServiceProvider.overrideWithValue(layanan)],
+        overrides: [
+          versiServiceProvider.overrideWithValue(layanan),
+          penyiapUpdateProvider.overrideWithValue(penyiap ?? _PenyiapPalsu()),
+        ],
         child: MaterialApp(
           home: Scaffold(body: BannerUpdate(pengunduh: pengunduh)),
         ),
@@ -262,6 +310,110 @@ void main() {
 
       // Selesai unduh, tombol tutupnya balik.
       expect(find.byKey(const Key('banner_update_tutup')), findsOneWidget);
+    });
+  });
+
+  group('sudah disiapkan di latar', () {
+    testWidgets('judulnya "siap dipasang", bukan "sudah tersedia"', (
+      tester,
+    ) async {
+      await pasang(
+        tester,
+        layanan: MockVersiService(terpasang: '1.0.58', terbaru: rilis()),
+        penyiap: _PenyiapPalsu(siap: true),
+      );
+
+      expect(find.text('Versi 1.0.60 siap dipasang'), findsOneWidget);
+      expect(find.text('Versi 1.0.60 sudah tersedia'), findsNothing);
+    });
+
+    testWidgets('ukuran TIDAK ditulis di tombol — tidak ada yang diunduh', (
+      tester,
+    ) async {
+      // Menulis "50 MB" waktu berkasnya sudah ada itu bohong, dan bikin ragu
+      // menekan sesuatu yang sebenarnya instan.
+      await pasang(
+        tester,
+        layanan: MockVersiService(terpasang: '1.0.58', terbaru: rilis()),
+        penyiap: _PenyiapPalsu(siap: true),
+      );
+
+      expect(find.text('Pasang sekarang'), findsOneWidget);
+      expect(find.text('Pasang (50 MB)'), findsNothing);
+    });
+
+    testWidgets('menekan Pasang langsung ke pemasang, tanpa mengunduh ulang', (
+      tester,
+    ) async {
+      final pengunduh = _PengunduhPalsu(HasilPasang.pemasangDibuka);
+
+      await pasang(
+        tester,
+        layanan: MockVersiService(terpasang: '1.0.58', terbaru: rilis()),
+        pengunduh: pengunduh,
+        penyiap: _PenyiapPalsu(siap: true),
+      );
+
+      await tester.tap(find.byKey(const Key('banner_update_pasang')));
+      await tester.pumpAndSettle();
+
+      // Inti seluruh mekanisme latar: berkasnya diserahkan langsung, dan
+      // `unduh()` tidak pernah dipanggil.
+      expect(pengunduh.berkasDipasang?.path, contains('1.0.60'));
+      expect(pengunduh.urlDiminta, isNull);
+    });
+
+    testWidgets('belum siap: tetap pakai jalur unduh, ukuran tetap ditulis', (
+      tester,
+    ) async {
+      // Di jaringan seluler unduhan latar sengaja tidak jalan. Teknisi tidak
+      // boleh kehilangan cara memasang — cuma caranya yang lebih lambat, dan
+      // ukurannya disebut supaya keputusannya sadar.
+      final pengunduh = _PengunduhPalsu(HasilPasang.pemasangDibuka);
+
+      await pasang(
+        tester,
+        layanan: MockVersiService(terpasang: '1.0.58', terbaru: rilis()),
+        pengunduh: pengunduh,
+        penyiap: _PenyiapPalsu(siap: false),
+      );
+
+      expect(find.text('Pasang (50 MB)'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('banner_update_pasang')));
+      await tester.pumpAndSettle();
+
+      expect(pengunduh.urlDiminta, isNotNull);
+    });
+
+    testWidgets('penyiap latar dipanggil waktu ada pemutakhiran', (
+      tester,
+    ) async {
+      final penyiap = _PenyiapPalsu(siap: false);
+
+      await pasang(
+        tester,
+        layanan: MockVersiService(terpasang: '1.0.58', terbaru: rilis()),
+        penyiap: penyiap,
+      );
+
+      expect(penyiap.panggilanSiapkan, greaterThan(0));
+    });
+
+    testWidgets('TIDAK dipanggil kalau sudah paling baru', (tester) async {
+      // Menyiapkan unduhan buat versi yang sudah terpasang itu 50 MB percuma.
+      final penyiap = _PenyiapPalsu(siap: false);
+
+      await pasang(
+        tester,
+        layanan: MockVersiService(
+          terpasang: '1.0.60',
+          terbaru: rilis(versi: '1.0.60'),
+        ),
+        penyiap: penyiap,
+      );
+
+      expect(penyiap.panggilanSiapkan, 0);
     });
   });
 }
