@@ -66,6 +66,15 @@ dependencies:
   # SALAH buat APK yang dipegang teknisi.
   package_info_plus: ^8.1.1
 
+  # Bedakan WiFi dari data seluler.
+  #
+  # Bukan pemanis: pemutakhiran diunduh DIAM-DIAM di latar, dan menghabiskan
+  # 50 MB kuota teknisi yang sedang di lokasi pelanggan tanpa dia tahu itu
+  # lebih mengganggu daripada banner yang dia tutup sendiri. Unduhan latar
+  # cuma jalan di jaringan tak-berbayar; di seluler tombolnya tetap ada,
+  # cuma keputusannya dikembalikan ke dia.
+  connectivity_plus: ^6.1.0
+
   # Milih file .xlsx buat Import Excel (spesifikasi poin 12C). `image_picker`
   # yang udah ada cuma bisa gambar, jadi nggak kepakai di sini.
   file_picker: ^8.1.7
