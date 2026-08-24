@@ -10,6 +10,7 @@ import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../shell/main_shell.dart' show bukaMenuUtama;
 import '../../providers/dashboard_provider.dart';
+import '../../widgets/banner_update.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/readable_width.dart';
@@ -116,6 +117,15 @@ class _Isi extends ConsumerWidget {
       // sama sekali — `berurutan` cuma membungkus tiap anak di tempatnya, dan
       // widget jarak dilewati supaya iramanya rata.
       children: berurutan([
+        // Pemberitahuan versi baru ditaruh PALING ATAS, sebelum angka apa pun.
+        //
+        // Bukan di layar Pengaturan yang jarang dibuka: yang perlu memperbarui
+        // itu teknisi yang tiap hari membuka dashboard, dan sebelum ini
+        // caranya bolak-balik unduh manual dari GitHub atau email. Widget ini
+        // menggambar dirinya sebagai kotak kosong waktu tidak ada
+        // pemutakhiran — tidak memakan ruang dan tidak menggeser apa pun.
+        const BannerUpdate(),
+
         // Teknisi masuk lewat command deck yang fokus ke kerja pribadinya;
         // admin tetap melihat ringkasan se-lab. Sumber datanya sama.
         if (teknisi)
