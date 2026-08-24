@@ -50,12 +50,12 @@ Map<String, dynamic> _baris({
   'tanggal_kalibrasi': tanggal,
   'equipment': {
     'nama_alat': namaAlat,
-    if (profil != null) 'profil': profil,
-    if (jenis != null) 'nama_alat_kemampuan': jenis,
+    'profil': ?profil,
+    'nama_alat_kemampuan': ?jenis,
   },
   'teknisi': {'nama': 'Andi'},
   if (pelanggan != null) 'pelanggan': {'nama': pelanggan},
-  if (diubahPada != null) 'updated_at': diubahPada,
+  'updated_at': ?diubahPada,
 };
 
 /// `updated_at` dihitung mundur dari SEKARANG, bukan tanggal mati.
