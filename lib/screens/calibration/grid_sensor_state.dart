@@ -155,7 +155,10 @@ class SetPointGridState {
   /// Set point yang sama sekali belum disentuh: nggak ada pembacaan termokopel
   /// MAUPUN Indikator. Backend mengabaikannya; layar juga nggak mengirimnya.
   bool get kosongSemua =>
-      sensorTerisi.isEmpty && indikator.kosongSemua && titikUkur == null;
+      sensorTerisi.isEmpty &&
+      indikator.kosongSemua &&
+      suhuRuang.kosongSemua &&
+      titikUkur == null;
 
   /// Nomor termokopel yang KEMBAR di set point ini — ditolak backend 422.
   ///
@@ -316,9 +319,16 @@ class GridSensorState {
 
   /// `measurements[]` siap kirim.
   ///
-  /// Baris **Suhu Ruang sengaja nggak ikut**: backend belum punya tempat
-  /// menampungnya, jadi mengirimnya berarti angkanya hilang tanpa pesan.
-  /// Begitu keputusan lab turun (C-9), yang berubah cukup di sini.
+  /// Baris **Suhu Ruang sekarang ikut dikirim**. Dulu nggak, karena backend
+  /// belum punya tempat menampungnya — dan mengirim ke tempat yang nggak ada
+  /// berarti angkanya hilang tanpa satu pun pesan. Sekarang tempatnya ada:
+  /// `raw_measurements.peran_sensor = 'suhu_ruang'`.
+  ///
+  /// Yang TETAP berlaku: angkanya cuma DICATAT, nggak ikut ngitung apa pun.
+  /// Di master dia nol konsumen — nol rumus membacanya — jadi membuatnya
+  /// berpengaruh justru bikin hasil aplikasi beda dari hitungan lab di kertas.
+  /// Yang kecetak di sertifikat itu Suhu Ruangan awal/akhir di blok Kondisi
+  /// Lingkungan; nama mirip, hal beda.
   List<Map<String, dynamic>> payload({
     required String satuan,
     required bool pakaiChannel,
@@ -342,6 +352,7 @@ class GridSensorState {
         'satuan': satuan,
         if (grid.isNotEmpty) 'sensor_grid': grid,
         if (!sp.indikator.kosongSemua) 'indikator': sp.indikator.nilai,
+        if (!sp.suhuRuang.kosongSemua) 'suhu_ruang': sp.suhuRuang.nilai,
       });
     }
 

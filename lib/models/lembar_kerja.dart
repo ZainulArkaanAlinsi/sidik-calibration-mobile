@@ -987,13 +987,15 @@ class GridSensorBentuk {
 
   final bool barisIndikator;
 
-  /// Baris Suhu Ruang DIGAMBAR tapi **nggak ikut dikirim**.
+  /// Baris Suhu Ruang digambar **dan sekarang ikut dikirim**.
   ///
-  /// Backend belum punya tempat menampungnya (validasi request cuma mengenal
-  /// `sensor_grid` & `indikator`), jadi kalau diikutkan angkanya hilang tanpa
-  /// satu pun pesan. Barisnya tetap ada di layar karena ada di kertas dan
-  /// teknisi memang menulisnya di lapangan — hilang dari layar berarti
-  /// teknisi ragu apakah dia salah lembar. Lihat `pertanyaan-lab-suhu.md` C-9.
+  /// Dulu digambar tapi dibuang sebelum kirim, karena backend cuma mengenal
+  /// `sensor_grid` & `indikator` — angkanya lenyap tanpa satu pun pesan.
+  /// Sekarang `measurements[].suhu_ruang` diterima dan mendarat di
+  /// `raw_measurements` dengan `peran_sensor = 'suhu_ruang'`.
+  ///
+  /// Yang nggak berubah: angkanya cuma DICATAT. Nol rumus di master
+  /// membacanya, jadi dia nggak ikut ngitung apa pun.
   final bool barisSuhuRuang;
 
   /// Kalimat aturan Sensor Acuan apa adanya dari backend.
