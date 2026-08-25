@@ -105,7 +105,33 @@ jobs:
 
       # Test-nya merah, paketnya nggak usah dibikin. Ngirim build gagal test ke
       # orang yang nunggu itu bikin mereka ngejar bug yang udah kita tau ada.
-      - run: flutter test
+      #
+      # Kecuali golden (`@Tags(['screenshot'])`) — dan itu bukan kelonggaran,
+      # itu mindahin gerbang yang selama ini salah tempat.
+      #
+      # Golden di repo ini artefak macOS (lihat `test/flutter_test_config.dart`):
+      # di macOS ambangnya 0,1%, di luar macOS 15%. Jadi `periksa-pr.yml` yang
+      # jalan di ubuntu MEMANG buta sama pergeseran layout, dan satu-satunya
+      # tempat golden pernah diperiksa serius justru job rilis ini — yang
+      # jalannya sesudah merge.
+      #
+      # Yang kejadian 24 Agu 2026: screenshot lembar Chlorin bergeser 7,14%
+      # gara-gara dua tombol pindai dicabut (PR #97) lalu dipasang lagi
+      # (PR #100). Di ubuntu 7,14% masih di bawah 15%, jadi PR-nya hijau dan
+      # mendarat. Sesudah itu LIMA rilis desktop beruntun mati di langkah ini.
+      #
+      # Dan yang mati bukan cuma paketnya: job `terbitkan` nunggu `build`, jadi
+      # halaman unduh Firebase membeku di versi 24 Agu 07:50. Zip Windows-nya
+      # sendiri kebangun tiap kali dan nangkring di tab Actions, tapi nggak
+      # pernah terbit. Semua perbaikan sesudah itu nggak nyampe ke lab — karena
+      # sebuah PNG.
+      #
+      # Screenshot basi bukan bug yang bakal dikejar orang yang nunggu paketnya;
+      # dia catatan buat yang ngubah tampilan. Jadi gerbangnya pindah ke
+      # `periksa-pr.yml` (job `Golden (macOS)`, waktu PR, ambang 0,1%) — tempat
+      # yang ngubah masih pegang perubahannya dan belum ada yang nunggu. Di sini
+      # yang menahan paket tinggal test perilaku.
+      - run: flutter test --exclude-tags screenshot
 
       - name: Build windows
         if: matrix.nama == 'windows'
