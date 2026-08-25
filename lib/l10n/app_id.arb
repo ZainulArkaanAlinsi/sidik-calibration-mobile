@@ -1204,6 +1204,16 @@
           }
       }
   },
+  "lkPindaiBelumDiukur": "Lembar ini belum punya berkas ukuran kotaknya, jadi pindainya belum bisa dipakai. Isi manual seperti biasa.",
+  "lkPindaiBelumDiverifikasi": "Lembar cetaknya belum pernah diadu ke foto nyata, jadi pindainya masih ditahan. Isi manual seperti biasa.",
+  "lkPindaiKurangKotak": "Ada {jumlah} kotak yang belum punya koordinat, jadi pindainya ditahan supaya nggak ada angka yang mendarat di kotak sebelah.",
+  "@lkPindaiKurangKotak": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "lkPindaiLembar": "PINDAI LEMBAR KERJA",
   "lkPindaiBelumSiap": "Belum bisa dipindai: {alasan}",
   "@lkPindaiBelumSiap": {

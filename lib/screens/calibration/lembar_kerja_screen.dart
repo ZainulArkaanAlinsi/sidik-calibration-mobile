@@ -1977,6 +1977,36 @@ class _TombolPindaiLembarState extends ConsumerState<_TombolPindaiLembar> {
     }
   }
 
+  /// Kode alasan dari server → kalimat yang kebaca teknisi.
+  ///
+  /// Dulu di sini `l10n.lkPindaiBelumSiap(t.alasanBelumSiap ?? '—')` — dan
+  /// `alasanBelumSiap` itu KODE INTERNAL. Yang kebaca teknisi di lapangan:
+  ///
+  ///     Belum bisa dipindai: geometri_belum_diukur
+  ///
+  /// Itu bukan kalimat. Dan sejak UI pindai dinyalain lagi (25 Agt 2026),
+  /// tulisan itu muncul di 11 dari 17 lembar — termasuk SELURUH lembar suhu.
+  /// Dari mata teknisi, lembar yang sah kelihatan seperti aplikasi yang rusak.
+  ///
+  /// Yang penting bukan cuma bahasanya. Tiap alasan punya tindakan yang beda,
+  /// dan kode mentahnya nggak menyiratkan satu pun: yang belum diukur nunggu
+  /// berkas, yang belum diverifikasi nunggu satu foto, yang kurang kotak itu
+  /// berkasnya ada tapi nggak lengkap. Ketiganya sekarang bilang apa yang
+  /// terjadi DAN apa yang harus dilakukan teknisi sekarang — isi manual.
+  ///
+  /// Kode yang nggak dikenal tetap ditampilkan apa adanya. Kode baru yang
+  /// muncul dari server nggak boleh berubah jadi kalimat kosong yang menyembunyikan
+  /// keadaan yang belum pernah ditemui.
+  String _alasanTerbaca(AppLocalizations l10n, String? kode) => switch (kode) {
+    'geometri_belum_diukur' => l10n.lkPindaiBelumDiukur,
+    'geometri_belum_diverifikasi' => l10n.lkPindaiBelumDiverifikasi,
+    final String k when k.startsWith('geometri_kurang_') => l10n.lkPindaiKurangKotak(
+      int.tryParse(k.split('_').elementAtOrNull(2) ?? '') ?? 0,
+    ),
+    final String k => l10n.lkPindaiBelumSiap(k),
+    null => l10n.lkPindaiBelumSiap('—'),
+  };
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -2007,7 +2037,7 @@ class _TombolPindaiLembarState extends ConsumerState<_TombolPindaiLembar> {
     // ADA dan kelihatan KENAPA.
     final alasan = switch ((data, template)) {
       (final WorksheetTemplate t, _) when !t.siapPindai =>
-        l10n.lkPindaiBelumSiap(t.alasanBelumSiap ?? '—'),
+        _alasanTerbaca(l10n, t.alasanBelumSiap),
       (null, AsyncError(:final error)) => l10n.lkPindaiTemplateGagal('$error'),
       (null, _) => l10n.lkPindaiTemplateMemuat,
       _ => null,

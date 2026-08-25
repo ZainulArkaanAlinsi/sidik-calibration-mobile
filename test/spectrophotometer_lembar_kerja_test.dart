@@ -284,13 +284,12 @@ void main() {
       expect(tombol, findsOneWidget);
       expect(tester.widget<OutlinedButton>(tombol).onPressed, isNull);
 
-      // Alasannya ditampilin APA ADANYA, bukan diterjemahin jadi "fitur belum
-      // tersedia": yang bisa nutup cuma lab (cetak ulang formulir + ukur), dan
-      // teknisi berhak tahu yang kurang itu apa.
-      expect(
-        find.textContaining('geometri_belum_diverifikasi'),
-        findsOneWidget,
-      );
+      // Alasannya tetap SPESIFIK — yang bisa nutup cuma lab, dan teknisi
+      // berhak tahu yang kurang itu apa. Yang berubah cuma bahasanya: dulu di
+      // sini kode internal `geometri_belum_diverifikasi` kecetak apa adanya.
+      // Lihat `pindai_alasan_kebaca_test`.
+      expect(find.textContaining('geometri_belum_diverifikasi'), findsNothing);
+      expect(find.textContaining('foto nyata'), findsOneWidget);
     });
 
     testWidgets('lembar yang udah siap: tombolnya hidup', (tester) async {

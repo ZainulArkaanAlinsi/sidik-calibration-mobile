@@ -1200,7 +1200,7 @@ void main() {
   /// angka mendarat di sel yang salah — persis kegagalan yang bikin fitur ini
   /// dirancang. Nyalain paksa "biar bisa dites dulu" cuma bikin teknisi
   /// percaya fitur yang belum boleh dipakai.
-  testWidgets('lembar yang belum siap: tombol mati + alasannya apa adanya', (
+  testWidgets('lembar yang belum siap: tombol mati + alasannya kebaca', (
     tester,
   ) async {
     _perbesarViewport(tester);
@@ -1222,13 +1222,16 @@ void main() {
       reason: 'lembar tanpa geometri terverifikasi nggak boleh dipindai',
     );
 
-    // Alasannya ditampilin APA ADANYA, bukan diterjemahin jadi "fitur belum
-    // tersedia": teknisi berhak tahu yang kurang itu apa, dan yang bisa nutup
-    // cuma lab (cetak ulang formulir + ukur koordinatnya).
-    expect(
-      find.textContaining('geometri_belum_diverifikasi'),
-      findsWidgets,
-    );
+    // Alasannya tetap SPESIFIK — teknisi berhak tahu yang kurang itu apa, dan
+    // yang bisa nutup cuma lab. Yang berubah cuma bahasanya: dulu di sini
+    // `geometri_belum_diverifikasi` kecetak apa adanya, dan itu kode internal
+    // yang dibaca teknisi di lapangan sebagai aplikasi rusak.
+    //
+    // Yang diganti kodenya, BUKAN kekhususannya: kalimatnya masih membedakan
+    // "belum diukur" dari "belum diverifikasi" dari "kurang N kotak", karena
+    // ketiganya butuh tindakan yang beda. Lihat `pindai_alasan_kebaca_test`.
+    expect(find.textContaining('geometri_belum_diverifikasi'), findsNothing);
+    expect(find.textContaining('foto nyata'), findsWidgets);
   });
 
   testWidgets('lembar yang udah siap: tombol pindai hidup', (tester) async {

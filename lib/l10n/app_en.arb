@@ -1663,6 +1663,16 @@
           }
       }
   },
+  "lkPindaiBelumDiukur": "This sheet has no cell-measurement file yet, so scanning is not available. Fill it in manually as usual.",
+  "lkPindaiBelumDiverifikasi": "The printed sheet has never been checked against a real photo, so scanning is held back. Fill it in manually as usual.",
+  "lkPindaiKurangKotak": "{jumlah} cells have no coordinates yet, so scanning is held back to stop readings landing in the wrong box.",
+  "@lkPindaiKurangKotak": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "lkPindaiLembar": "SCAN WORKSHEET",
   "lkPindaiBelumSiap": "Not scannable yet: {alasan}",
   "@lkPindaiBelumSiap": {
