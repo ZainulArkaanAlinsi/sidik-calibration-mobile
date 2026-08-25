@@ -1060,6 +1060,7 @@ class LembarKerja {
     required this.catatanPengisian,
     required this.bagian,
     this.gridSensor,
+    this.fotoTabelDidukung = true,
   });
 
   final String kodeDokumen;
@@ -1114,6 +1115,24 @@ class LembarKerja {
   /// Bentuk GRID termokopel, kalau lembar ini memakainya. Null buat sepuluh
   /// alat lain yang satu titiknya cuma satu deret pembacaan.
   final GridSensorBentuk? gridSensor;
+
+  /// Kertas alat ini masih muat di bentuk yang bisa dituturkan ke pembaca foto.
+  ///
+  /// Datang dari `pindai_foto.didukung` — backend yang tahu, karena dua penanda
+  /// bentuk (`kolom_suhu`, `standar_di_baris`) cuma sanggup menggambarkan
+  /// lembar "titik ukur × Repeat". Lembar Autoklaf bentuknya matriks tujuh
+  /// besaran × lima titik waktu, dan TIDS dua tabel interval waktu; nggak ada
+  /// kombinasi dua penanda itu yang menggambarkan keduanya.
+  ///
+  /// Kenapa ini harus dibaca layar, bukan cuma dikirim ke endpoint: tanpa
+  /// gerbang ini tombol FOTO TABEL INI tetap digambar buat lembar itu, dan
+  /// yang balik ke teknisi bukan error — tapi angka ngawur yang kelihatan
+  /// wajar, hasil model membaca tabel yang nggak pernah ada di kertasnya.
+  ///
+  /// Default `true`: server lama yang belum ngirim kunci ini tetap berperilaku
+  /// seperti sebelumnya, dan alat yang kertasnya normal nggak ikut kekunci
+  /// gara-gara satu kunci hilang.
+  final bool fotoTabelDidukung;
 
   /// Lembar ini diisi sebagai grid sensor, bukan tabel titik datar.
   ///
@@ -1181,5 +1200,9 @@ class LembarKerja {
     gridSensor: json['grid_sensor'] is Map<String, dynamic>
         ? GridSensorBentuk.fromJson(json['grid_sensor'] as Map<String, dynamic>)
         : null,
+    fotoTabelDidukung: json['pindai_foto'] is Map<String, dynamic>
+        ? (json['pindai_foto'] as Map<String, dynamic>)['didukung'] as bool? ??
+              true
+        : true,
   );
 }
