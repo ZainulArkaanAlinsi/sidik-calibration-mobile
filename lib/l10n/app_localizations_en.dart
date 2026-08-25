@@ -3053,6 +3053,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get lkPindaiBelumDiukur =>
+      'This sheet has no cell-measurement file yet, so scanning is not available. Fill it in manually as usual.';
+
+  @override
+  String get lkPindaiBelumDiverifikasi =>
+      'The printed sheet has never been checked against a real photo, so scanning is held back. Fill it in manually as usual.';
+
+  @override
+  String lkPindaiKurangKotak(int jumlah) {
+    return '$jumlah cells have no coordinates yet, so scanning is held back to stop readings landing in the wrong box.';
+  }
+
+  @override
   String get lkPindaiLembar => 'SCAN WORKSHEET';
 
   @override

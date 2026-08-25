@@ -3036,6 +3036,19 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String get lkPindaiBelumDiukur =>
+      'Lembar ini belum punya berkas ukuran kotaknya, jadi pindainya belum bisa dipakai. Isi manual seperti biasa.';
+
+  @override
+  String get lkPindaiBelumDiverifikasi =>
+      'Lembar cetaknya belum pernah diadu ke foto nyata, jadi pindainya masih ditahan. Isi manual seperti biasa.';
+
+  @override
+  String lkPindaiKurangKotak(int jumlah) {
+    return 'Ada $jumlah kotak yang belum punya koordinat, jadi pindainya ditahan supaya nggak ada angka yang mendarat di kotak sebelah.';
+  }
+
+  @override
   String get lkPindaiLembar => 'PINDAI LEMBAR KERJA';
 
   @override

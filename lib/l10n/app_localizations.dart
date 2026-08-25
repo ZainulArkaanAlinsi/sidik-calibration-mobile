@@ -5522,6 +5522,24 @@ abstract class AppLocalizations {
   /// **'{field} has not been chosen yet. Without it the server cannot compute a single point — every row comes back uncalculated. Send anyway?'**
   String lkPenentuAngkaKosong(String field);
 
+  /// No description provided for @lkPindaiBelumDiukur.
+  ///
+  /// In en, this message translates to:
+  /// **'This sheet has no cell-measurement file yet, so scanning is not available. Fill it in manually as usual.'**
+  String get lkPindaiBelumDiukur;
+
+  /// No description provided for @lkPindaiBelumDiverifikasi.
+  ///
+  /// In en, this message translates to:
+  /// **'The printed sheet has never been checked against a real photo, so scanning is held back. Fill it in manually as usual.'**
+  String get lkPindaiBelumDiverifikasi;
+
+  /// No description provided for @lkPindaiKurangKotak.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} cells have no coordinates yet, so scanning is held back to stop readings landing in the wrong box.'**
+  String lkPindaiKurangKotak(int jumlah);
+
   /// No description provided for @lkPindaiLembar.
   ///
   /// In en, this message translates to:
