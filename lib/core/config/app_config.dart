@@ -42,16 +42,30 @@ class AppConfig {
   ///
   /// Nyalain lagi tanpa nyentuh kode: `--dart-define=PINDAI_LEMBAR=true`.
   ///
-  /// **Disembunyiin, bukan dihapus.** Yang di belakang dua tombol itu mesin
-  /// geometri di HP (`services/pindai_lembar.dart` — 477 baris deteksi marker
-  /// + warp perspektif Dart murni) plus layar review per sel; dua-duanya mahal
-  /// dibangun ulang dan Gelombang 5 bakal makai lagi. Jadi yang dicabut cuma
-  /// pintunya, ruangannya dibiarin utuh.
+  /// **NYALA lagi sejak 25 Agt 2026**, atas keputusan pemilik proyek — ini
+  /// membalik permintaan 3 yang dulu minta UI pindai dicabut "untuk sekarang".
   ///
-  /// Sengaja `const bool.fromEnvironment` kayak [useMock]: di build release
-  /// nilainya ke-hardcode waktu compile, jadi jalur yang geometrinya belum
-  /// diverifikasi nggak mungkin nyala diam-diam di APK teknisi.
-  static const bool pindaiLembarAktif = bool.fromEnvironment('PINDAI_LEMBAR');
+  /// Waktu dicabut, yang dilakukan cuma menutup pintunya: mesin geometri di HP
+  /// (`services/pindai_lembar.dart` — 477 baris deteksi marker + warp
+  /// perspektif Dart murni) dan layar review per sel dibiarkan utuh. Jadi
+  /// menyalakannya kembali memang cukup membalik satu nilai ini.
+  ///
+  /// **Yang nyala nggak sama dengan yang bisa dipakai**, dan bedanya penting:
+  ///
+  ///  - `PINDAI LEMBAR KERJA` (OCR template lokal) butuh file geometri per
+  ///    alat. Yang belum punya file — 9 dari 17 profil, termasuk SELURUH
+  ///    lembar suhu — tombolnya digambar tapi MATI, berikut alasannya. Itu
+  ///    perilaku yang memang dirancang begitu; lihat `TemplateLembarKerja`.
+  ///  - `FOTO TABEL INI` (AI Vision) butuh kertas yang muat di bentuk
+  ///    "titik ukur × Repeat". Digerbangi `pindai_foto.didukung` dari server.
+  ///
+  /// Tetap `bool.fromEnvironment` supaya bisa DIMATIKAN lagi tanpa ganti kode
+  /// (`--dart-define=PINDAI_LEMBAR=false`) — saklarnya masih saklar, cuma
+  /// posisi bawaannya yang pindah.
+  static const bool pindaiLembarAktif = bool.fromEnvironment(
+    'PINDAI_LEMBAR',
+    defaultValue: true,
+  );
 
   /// Kunci app Reverb (protokol Pusher) buat realtime sync (spec poin 12D).
   /// **Kosong = realtime nonaktif** — app tetap jalan normal, cuma nggak ada

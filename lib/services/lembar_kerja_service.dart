@@ -119,6 +119,7 @@ class MockLembarKerjaService implements LembarKerjaService {
     this.gagalKirimSampaiPercobaanKe = 0,
     this.tanpaPasanganStandar = false,
     this.tanpaTampilKalau = false,
+    this.fotoTabelDidukung = true,
   });
 
   final bool gagal;
@@ -138,6 +139,11 @@ class MockLembarKerjaService implements LembarKerjaService {
   /// kegambar sekaligus (label `(Inlab)`/`(Insitu)`-nya yang ngasih tau mana
   /// yang berlaku), dan nggak ada satu pun kotak yang ilang tanpa alasan.
   final bool tanpaTampilKalau;
+
+  /// Niru `pindai_foto.didukung` dari server. `false` = kertas alat ini nggak
+  /// muat di bentuk "titik ukur x Repeat" (Autoklaf, TIDS), jadi tombol
+  /// `FOTO TABEL INI` nggak boleh digambar walau saklar pindainya nyala.
+  final bool fotoTabelDidukung;
 
   /// Bikin `kirim`/`perbarui` gagal sampai percobaan ke-n — buat niru sinyal
   /// putus di lapangan, dan mastiin retry-nya bawa `client_request_id` yang
@@ -226,9 +232,18 @@ class MockLembarKerjaService implements LembarKerjaService {
         ? _tanpaPasangan(dipakai)
         : dipakai;
 
-    return LembarKerja.fromJson(
-      tanpaTampilKalau ? _tanpaTampilKalau(tanpaPasangan) : tanpaPasangan,
-    );
+    final akhir = tanpaTampilKalau
+        ? _tanpaTampilKalau(tanpaPasangan)
+        : tanpaPasangan;
+
+    return LembarKerja.fromJson({
+      ...akhir,
+      'pindai_foto': {
+        'kolom_suhu': false,
+        'standar_di_baris': true,
+        'didukung': fotoTabelDidukung,
+      },
+    });
   }
 
   /// Salinan bentuk tanpa `standard_id`/`standard_nama` di baris tabel hasil.

@@ -1679,7 +1679,13 @@ class _Bagian extends ConsumerWidget {
                 tabel: bagian.tabel[i],
                 isian: isian,
                 onBerubah: onBerubah,
-                pindaiAktif: pindaiAktif,
+                // Saklar DAN bentuk kertasnya. Saklar bilang "fitur ini
+                // nyala"; `fotoTabelDidukung` bilang "kertas alat INI bisa
+                // dituturkan ke pembaca foto". Dua-duanya harus benar —
+                // saklar nyala doang bikin tombolnya muncul di lembar
+                // Autoklaf & TIDS, dan yang balik ke teknisi bukan error tapi
+                // angka ngawur yang kelihatan wajar.
+                pindaiAktif: pindaiAktif && isian.bentuk.fotoTabelDidukung,
               ),
               const SizedBox(height: AppSpacing.lg),
 

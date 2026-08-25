@@ -65,6 +65,28 @@ Map<String, dynamic> _baris({
 String _lalu(Duration jarak) =>
     DateTime.now().toUtc().subtract(jarak).toIso8601String();
 
+/// "Kemarin" harus dihitung dari KALENDER, bukan dari selisih jam.
+///
+/// Dulu di sini `_lalu(Duration(days: 1, hours: 3))` — 27 jam mundur — dan itu
+/// cuma kebaca "kemarin" kalau test-nya jalan sesudah jam 03:00. Dijalankan
+/// jam 00:10, 27 jam mundur mendarat di DUA hari kalender sebelumnya, dan
+/// layarnya dengan benar nulis "2 hari lalu".
+///
+/// Jadi test-nya merah tiap hari di jendela 00:00–03:00, dan hijau di jam
+/// kerja — bentuk kegagalan yang paling gampang dikira "flaky, jalanin ulang
+/// aja" padahal jamnya yang salah, bukan nasibnya.
+///
+/// `DateTime(y, m, d - 1, ...)` dinormalkan Dart sendiri lintas bulan & tahun,
+/// dan selisihnya selalu tepat 24 jam — lewat ambang `inHours < 24` di
+/// `waktuLalu`, jadi mendarat di cabang kalender yang memang mau diuji.
+String _kemarinJamSama() {
+  final n = DateTime.now();
+
+  return DateTime(n.year, n.month, n.day - 1, n.hour, n.minute)
+      .toUtc()
+      .toIso8601String();
+}
+
 final _drafJson = <Map<String, dynamic>>[
   // Tiga pH Meter dari tiga PT — satu rak, karena `profil`-nya sama.
   _baris(
@@ -83,7 +105,7 @@ final _drafJson = <Map<String, dynamic>>[
     jenis: 'pH Meter',
     pelanggan: 'PT Sinar Abadi',
     tanggal: '2026-08-19',
-    diubahPada: _lalu(const Duration(days: 1, hours: 3)),
+    diubahPada: _kemarinJamSama(),
   ),
   // Draf TANPA tanggal kalibrasi — sah, dan wajib tetap nongol.
   _baris(
