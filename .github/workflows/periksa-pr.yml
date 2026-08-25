@@ -89,6 +89,65 @@ jobs:
       - name: flutter test
         run: flutter test
 
+  # Golden diperiksa DI SINI, di macOS, dan cuma di sini.
+  #
+  # `test/flutter_test_config.dart` menetapkan macOS sebagai platform acuan:
+  # PNG di `test/screenshots/` dirasterisasi di sana. Di platform lain ambangnya
+  # sengaja dilonggarkan ke 15%, karena beda CoreText lawan FreeType/DirectWrite
+  # sendirian sudah 2,5%-4,3% — angka yang nggak bisa dipakai mutusin apa pun.
+  #
+  # Akibatnya job `periksa` di atas (ubuntu) buta sama pergeseran layout. Sampai
+  # 25 Agu 2026 satu-satunya yang melihatnya job rilis desktop, dan itu tempat
+  # yang salah karena dia jalan SESUDAH merge: yang kena hukumannya bukan yang
+  # ngubah tampilan, tapi lab yang nunggu paketnya. Sekali kejadian, halaman
+  # unduh membeku sepuluh hari kerja. Ceritanya lengkap di `rilis-desktop.yml`.
+  #
+  # Job ini nggak nambah gerbang baru — dia mindahin gerbang yang sudah ada ke
+  # waktu PR, selagi yang ngubah masih pegang perubahannya.
+  golden:
+    name: Golden (macOS)
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - run: flutter gen-l10n
+        continue-on-error: true
+
+      - name: flutter test --tags screenshot
+        run: flutter test --tags screenshot
+
+      # Tanpa langkah ini kegagalan golden nggak bisa didiagnosa siapa pun yang
+      # nggak pegang Mac — dan itu persis yang terjadi selama lima rilis merah
+      # beruntun: yang kelihatan cuma angka "7,14%", nggak ada satu piksel pun
+      # yang bisa dilihat orangnya.
+      #
+      # `test/failures/` isinya empat PNG per golden yang gagal:
+      #   *_masterImage.png  — yang tersimpan di repo
+      #   *_testImage.png    — yang barusan dirender di runner ini
+      #   *_isolatedDiff.png & *_maskedDiff.png — bedanya di mana
+      #
+      # `_testImage.png` sekalian jadi jalan memperbarui golden TANPA Mac:
+      # kalau pergeserannya ternyata disengaja, berkas itu yang disalin ke
+      # `test/screenshots/`. Pikselnya sama persis dengan hasil
+      # `--update-goldens` di mesin ini, karena memang render yang sama.
+      - name: Simpan bukti golden yang gagal
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-yang-gagal
+          path: test/failures/
+          if-no-files-found: warn
+          retention-days: 14
+
   android:
     name: Build Android (debug)
     runs-on: ubuntu-latest
