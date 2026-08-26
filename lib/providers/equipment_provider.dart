@@ -109,20 +109,34 @@ class EquipmentController extends AsyncNotifier<List<Equipment>> {
     state = AsyncValue.data([...sebelum, ...hasil.items]);
   }
 
-  Future<void> tambah(Equipment data) async {
+  /// Balikin alat yang BARU TERSIMPAN, berikut `id` dari server.
+  ///
+  /// Dulu `void`, dan hasil `simpan()` dibuang — padahal layanan sudah lama
+  /// memulangkannya. Yang membuka form alat DARI lembar kerja butuh alat itu
+  /// langsung kepilih; tanpa nilai baliknya dia mesti mencarinya lagi di
+  /// dropdown yang baru saja dia isi.
+  ///
+  /// Null cuma kalau tokennya nggak ada — dan di keadaan itu memang nggak ada
+  /// yang tersimpan.
+  Future<Equipment?> tambah(Equipment data) async {
     final token = await ref.read(tokenStorageProvider).read();
-    if (token == null) return;
+    if (token == null) return null;
 
-    await ref.read(equipmentServiceProvider).simpan(token, data);
+    final tersimpan = await ref.read(equipmentServiceProvider).simpan(token, data);
     await muatUlang();
+
+    return tersimpan;
   }
 
-  Future<void> ubah(Equipment data) async {
+  /// Sama seperti [tambah]: alat hasil simpanan dipulangkan, bukan dibuang.
+  Future<Equipment?> ubah(Equipment data) async {
     final token = await ref.read(tokenStorageProvider).read();
-    if (token == null) return;
+    if (token == null) return null;
 
-    await ref.read(equipmentServiceProvider).ubah(token, data);
+    final tersimpan = await ref.read(equipmentServiceProvider).ubah(token, data);
     await muatUlang();
+
+    return tersimpan;
   }
 
   /// Ngelempar `AuthException` apa adanya kalau backend nolak (mis. alat

@@ -963,10 +963,10 @@
   "calibTambahAlatHint": "Type it exactly as written on the instrument",
   "calibTambahAlatKosong": "Enter the instrument name first.",
   "calibTambahAlatPeringatanJudul": "Read this before saving",
-  "calibTambahAlatPeringatanIsi": "An instrument you add yourself has no accredited limit from the lab scope yet. The session still runs and the certificate still prints \u2014 but the \u00b1 figure comes from the generic route, and it can come out SMALLER than what we normally print for registered instruments. Nothing errors out; the number just looks too good. You may still continue, but tell an admin so this instrument gets registered properly.",
+  "calibTambahAlatPeringatanIsi": "An instrument you add yourself has no accredited limit from the lab scope yet. The session still runs and the certificate still prints — but the ± figure comes from the generic route, and it can come out SMALLER than what we normally print for registered instruments. Nothing errors out; the number just looks too good. You may still continue, but tell an admin so this instrument gets registered properly.",
   "calibTambahAlatSimpan": "SAVE & USE",
   "calibTambahAlatBatal": "CANCEL",
-  "calibTambahAlatBerhasil": "\"{nama}\" is on the list now \u2014 ready to pick.",
+  "calibTambahAlatBerhasil": "\"{nama}\" is on the list now — ready to pick.",
   "@calibTambahAlatBerhasil": {
     "placeholders": {
       "nama": {
@@ -982,7 +982,7 @@
       }
     }
   },
-  "calibTambahAlatGagal": "Couldn\u2019t add the instrument: {pesan}",
+  "calibTambahAlatGagal": "Couldn’t add the instrument: {pesan}",
   "@calibTambahAlatGagal": {
     "placeholders": {
       "pesan": {
@@ -992,14 +992,14 @@
   },
   "calibInstrumenTanpaCmc": "No CMC range yet",
   "calibTiNama": "Temperature Indicator",
-  "calibTiKartuRingkas": "Two kinds \u2014 first pick whether the sensor is calibrated too",
-  "calibTiGerbangPengantar": "First pick whether the sensor is calibrated too. Everything on the next sheet follows this choice \u2014 the measuring points, the reference standards, right down to the uncertainty formula. Picking wrong raises no error at all, so settle it here.",
+  "calibTiKartuRingkas": "Two kinds — first pick whether the sensor is calibrated too",
+  "calibTiGerbangPengantar": "First pick whether the sensor is calibrated too. Everything on the next sheet follows this choice — the measuring points, the reference standards, right down to the uncertainty formula. Picking wrong raises no error at all, so settle it here.",
   "calibTiTanpaSensorJudul": "Without Sensor",
   "calibTiTanpaSensorKeterangan": "The sensor is NOT calibrated. The calibrator is wired into the indicator terminals and stands in for the sensor, so only the indicator reading is checked.",
   "calibTiDenganSensorJudul": "With Sensor",
-  "calibTiDenganSensorKeterangan": "The sensor IS calibrated. Sensor and indicator are checked as one chain \u2014 the sensor goes into the medium alongside the reference thermometer, so the reading covers the whole chain.",
+  "calibTiDenganSensorKeterangan": "The sensor IS calibrated. Sensor and indicator are checked as one chain — the sensor goes into the medium alongside the reference thermometer, so the reading covers the whole chain.",
   "calibTiBelumSiap": "Not on this server yet",
-  "calibTiBelumSiapPesan": "The \"{varian}\" worksheet is not on the server in use yet. Tell an admin first \u2014 forcing it open now would hand you another instrument's sheet, and nothing would error out.",
+  "calibTiBelumSiapPesan": "The \"{varian}\" worksheet is not on the server in use yet. Tell an admin first — forcing it open now would hand you another instrument's sheet, and nothing would error out.",
   "@calibTiBelumSiapPesan": {
     "placeholders": {
       "varian": {
@@ -1657,11 +1657,11 @@
   },
   "lkPenentuAngkaKosong": "{field} has not been chosen yet. Without it the server cannot compute a single point — every row comes back uncalculated. Send anyway?",
   "@lkPenentuAngkaKosong": {
-      "placeholders": {
-          "field": {
-              "type": "String"
-          }
+    "placeholders": {
+      "field": {
+        "type": "String"
       }
+    }
   },
   "lkPindaiBelumDiukur": "This sheet has no cell-measurement file yet, so scanning is not available. Fill it in manually as usual.",
   "lkPindaiBelumDiverifikasi": "The printed sheet has never been checked against a real photo, so scanning is held back. Fill it in manually as usual.",
@@ -2231,7 +2231,6 @@
   "profChangePhotoSub": "Taken from your gallery or camera",
   "profTechnicianCode": "Technician code",
   "profTechnicianCodeSub": "Printed on the certificates you sign",
-
   "acHitung": "Calculate",
   "@acHitung": {
     "description": "Tombol pratinjau olah data Autoklaf — menghitung tanpa menyimpan sesi."
@@ -2272,27 +2271,27 @@
   "@acGagalMenyimpan": {
     "description": "Kegagalan simpan sesi Autoklaf, pesannya apa adanya dari server.",
     "placeholders": {
-        "pesan": {
-            "type": "String"
-        }
+      "pesan": {
+        "type": "String"
+      }
     }
   },
   "acGagalMenghitung": "Failed to calculate: {pesan}",
   "@acGagalMenghitung": {
     "description": "Kegagalan pratinjau olah data.",
     "placeholders": {
-        "pesan": {
-            "type": "String"
-        }
+      "pesan": {
+        "type": "String"
+      }
     }
   },
   "acGagalMuatAlat": "Failed to load the equipment list: {pesan}",
   "@acGagalMuatAlat": {
     "description": "Daftar alat nggak kebaca — teknisi belum bisa milih Equipment.",
     "placeholders": {
-        "pesan": {
-            "type": "String"
-        }
+      "pesan": {
+        "type": "String"
+      }
     }
   },
   "acDiLuarKertas": "Not on the printed form — Pressure Disk Logger download",
@@ -2310,5 +2309,15 @@
   "acPetunjukPilihAlat": "select equipment",
   "@acPetunjukPilihAlat": {
     "description": "Petunjuk di dropdown Equipment lembar Autoklaf."
+  },
+  "lkAlatBaru": "New equipment",
+  "lkAlatKosongAjakan": "No equipment for this worksheet yet. Register it first — the type and category are already filled in.",
+  "lkAlatBaruTersimpan": "Equipment \"{nama}\" saved and selected for this worksheet.",
+  "@lkAlatBaruTersimpan": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
   }
 }

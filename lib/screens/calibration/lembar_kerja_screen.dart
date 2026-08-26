@@ -9,6 +9,7 @@ import '../../core/utils/uuid.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_detail.dart' show MeasurementResult;
 import '../../models/calibration_draft.dart' show LokasiKalibrasi;
+import '../../models/equipment.dart';
 import '../../models/equipment_lookup.dart';
 import '../../models/lembar_kerja.dart';
 import '../../models/room.dart';
@@ -27,6 +28,7 @@ import '../../widgets/sidik_loader.dart';
 import '../../widgets/tampil_masuk.dart';
 import 'lembar_kerja_state.dart';
 import 'widgets/dropdown_gagal.dart';
+import '../equipment/equipment_form_screen.dart';
 import 'widgets/lembar_kerja_grid.dart';
 import 'widgets/lembar_kerja_matriks.dart';
 import 'widgets/lembar_kerja_tabel.dart';
@@ -3153,34 +3155,109 @@ class _PilihAlat extends ConsumerWidget {
       skipLoadingOnReload: true,
       loading: () => const LinearProgressIndicator(),
       error: (_, _) => Text(l10n.lkAlatKosong),
-      data: (list) => DropdownButtonFormField<EquipmentLookup>(
-        initialValue: isian.alat,
-        isExpanded: true,
-        decoration: InputDecoration(
-          labelText: l10n.lkPilihAlat,
-          border: const OutlineInputBorder(),
-        ),
-        hint: Text(list.isEmpty ? l10n.lkAlatKosong : l10n.lkPilih),
-        items: [
-          for (final e in list)
-            DropdownMenuItem(
-              value: e,
-              child: Text(
-                '${e.namaAlat} · ${e.serialNumber}',
-                overflow: TextOverflow.ellipsis,
+      data: (list) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          DropdownButtonFormField<EquipmentLookup>(
+            initialValue: isian.alat,
+            isExpanded: true,
+            decoration: InputDecoration(
+              labelText: l10n.lkPilihAlat,
+              border: const OutlineInputBorder(),
+            ),
+            hint: Text(list.isEmpty ? l10n.lkAlatKosong : l10n.lkPilih),
+            items: [
+              for (final e in list)
+                DropdownMenuItem(
+                  value: e,
+                  child: Text(
+                    '${e.namaAlat} · ${e.serialNumber}',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+            ],
+            onChanged: list.isEmpty
+                ? null
+                : (value) {
+                    isian.alat = value;
+                    // Identitas alat & pemilik keisi dari master — teknisi
+                    // tinggal mbenerin yang beda sama barang fisiknya. Lihat
+                    // `isiDariAlat`.
+                    isian.isiDariAlat();
+                    onBerubah();
+                  },
+          ),
+
+          // Ajakan cuma digambar waktu daftarnya KOSONG.
+          //
+          // Di situ dropdown-nya mati dan tombol kirim menahan sesi yang
+          // alatnya belum dipilih — lembarnya bisa dibuka, bisa dibaca, nggak
+          // bisa dipakai. Tanpa kalimat ini teknisi cuma lihat "Belum ada
+          // alat." dan nggak punya petunjuk apa pun soal langkah berikutnya.
+          if (list.isEmpty && isian.bentuk.alatBaru != null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              l10n.lkAlatKosongAjakan,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+
+          // Tombolnya TETAP ada walau daftarnya sudah berisi: alat yang baru
+          // masuk lab hari itu juga perlu didaftarkan, dan menyuruh teknisi
+          // keluar ke menu Master Alat cuma karena kebetulan sudah ada satu
+          // alat lain itu jalan memutar yang sama saja.
+          if (isian.bentuk.alatBaru != null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () => _bikinAlat(context, ref),
+                icon: const Icon(Icons.add),
+                label: Text(l10n.lkAlatBaru),
               ),
             ),
+          ],
         ],
-        onChanged: list.isEmpty
-            ? null
-            : (value) {
-                isian.alat = value;
-                // Identitas alat & pemilik keisi dari master — teknisi tinggal
-                // mbenerin yang beda sama barang fisiknya. Lihat `isiDariAlat`.
-                isian.isiDariAlat();
-                onBerubah();
-              },
       ),
+    );
+  }
+
+  /// Buka form Alat dengan kategori & jenis yang sudah ditentukan lembar ini,
+  /// lalu pakai alat yang tersimpan LANGSUNG di lembar yang sama.
+  ///
+  /// Dua kotak teratas sengaja nggak dibiarkan kosong. Jawabannya sudah
+  /// ditentukan oleh lembar yang barusan dibuka teknisi, dan salah tebak di
+  /// situ bukan cuma merepotkan: alat yang jenisnya meleset jatuh ke form
+  /// generik, jadi lembar berikutnya yang dia buka bukan lembar alat itu.
+  Future<void> _bikinAlat(BuildContext context, WidgetRef ref) async {
+    final bekal = isian.bentuk.alatBaru;
+    if (bekal == null) return;
+
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    final dibuat = await Navigator.of(context).push<Equipment>(
+      MaterialPageRoute(
+        builder: (_) => EquipmentFormScreen(
+          kategoriAwal: bekal.kategori,
+          namaAlatKemampuanAwal: bekal.namaAlatKemampuan,
+        ),
+      ),
+    );
+
+    if (dibuat == null) return;
+
+    // Daftar alat ditarik ulang supaya alat baru muncul di dropdown — tanpa
+    // ini dia kepilih tapi nggak ada di daftarnya, dan Dropdown Flutter
+    // melempar kalau `value`-nya nggak ada di `items`.
+    ref.invalidate(equipmentLookupProfilProvider(isian.profil));
+
+    isian.alat = EquipmentLookup.dariEquipment(dibuat);
+    isian.isiDariAlat();
+    onBerubah();
+
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.lkAlatBaruTersimpan(dibuat.namaAlat))),
     );
   }
 }
