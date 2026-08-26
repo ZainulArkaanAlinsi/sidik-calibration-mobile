@@ -8,6 +8,7 @@ import '../../../models/perhitungan.dart';
 import '../../../models/standard.dart';
 import '../../../providers/calibration_input_provider.dart';
 import '../../../providers/perhitungan_provider.dart';
+import '../../../widgets/label_standar.dart';
 import 'tabel_perhitungan.dart' show formatAngka;
 import '../../auth/widgets/neu.dart';
 
@@ -297,17 +298,16 @@ class _PilihThermohygroState extends ConsumerState<_PilihThermohygro> {
                     isDense: true,
                   ),
                   hint: Text(widget.kondisi.thermohygro ?? l10n.lkPilih),
+                  selectedItemBuilder: (_) => [
+                    for (final Standard s in thermohygro)
+                      LabelStandarDropdown.namaSaja(s),
+                  ],
                   items: [
                     for (final Standard s in thermohygro)
                       DropdownMenuItem(
                         value: s.id,
                         enabled: s.masihBerlaku,
-                        child: Text(
-                          s.masihBerlaku
-                              ? s.nama
-                              : '${s.nama} (${l10n.lkStandarKadaluarsa})',
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        child: LabelStandarDropdown(standard: s),
                       ),
                   ],
                   onChanged: _sibuk

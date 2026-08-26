@@ -23,6 +23,7 @@ import '../../providers/worksheet_scan_provider.dart';
 import '../../services/auth_service.dart' show AuthException;
 import '../../widgets/autoclave_hasil_panel.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/label_standar.dart';
 import '../../widgets/sidik_loader.dart';
 import '../../widgets/tampil_masuk.dart';
 import 'lembar_kerja_state.dart';
@@ -3416,11 +3417,20 @@ class _PilihStandar extends ConsumerWidget {
               ? isian.thermohygroStandardId
               : isian.standardId,
           isExpanded: true,
+          // Tinggi baris menu ngikutin isinya: nama dua baris plus
+          // baris peringatan lewat dari jatah tetap 48 dp.
+          itemHeight: null,
           decoration: InputDecoration(
             labelText: field.label,
             border: const OutlineInputBorder(),
           ),
           hint: Text(l10n.lkPilih),
+          // Tombol tertutup sengaja nama saja — biar tingginya nggak ikut
+          // tumbuh gara-gara item kadaluarsa di daftarnya. Lihat
+          // [LabelStandarDropdown].
+          selectedItemBuilder: (_) => [
+            for (final Standard s in pilihan) LabelStandarDropdown.namaSaja(s),
+          ],
           items: [
             for (final Standard s in pilihan)
               DropdownMenuItem(
@@ -3429,12 +3439,7 @@ class _PilihStandar extends ConsumerWidget {
                 // kalau disembunyiin, teknisi yang nyari standar yang biasa dia
                 // pakai bakal ngira datanya ilang.
                 enabled: s.masihBerlaku,
-                child: Text(
-                  s.masihBerlaku
-                      ? s.nama
-                      : '${s.nama} (${l10n.lkStandarKadaluarsa})',
-                  overflow: TextOverflow.ellipsis,
-                ),
+                child: LabelStandarDropdown(standard: s),
               ),
           ],
           onChanged: (value) {

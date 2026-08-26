@@ -55,27 +55,31 @@ void main() {
     'thermocouple', 'thermometer_glass', 'thermohygro',
   ];
 
-  // ## Utang yang SUDAH ada sebelum penjaga ini ditulis
+  // ## Teks yang memang dipangkas, dan itu SAH
   //
-  // Dua lembar ini memotong label baris standarnya, dan dibuktikan memotongnya
-  // juga di `origin/main` — jadi bukan bawaan lembar suhu. Yang hilang di balik
-  // ellipsis-nya bukan hiasan:
+  // Dua lembar ini menyisakan satu nama kalibrator yang kepotong di TOMBOL
+  // dropdown yang tertutup:
   //
-  //     "Temperature Calibrator Constant 40T (sertifikat kadaluarsa)"
-  //      lebar 772, butuh 953 — yang kepotong justru "(sertifikat kadaluarsa)"
+  //     "Temperature Calibrator Yokogawa CA 150 Handy Cal"
+  //      lebar 772, butuh 775 — lebih panjang tiga piksel
   //
-  // Teknisi membaca nama kalibratornya lengkap dan TIDAK melihat peringatan
-  // bahwa sertifikatnya kadaluarsa. Itu temuan yang pantas diperbaiki, tapi di
-  // lembar yang bukan bagian pekerjaan ini — memperbaikinya di sini bikin PR
-  // alat suhu ikut mengubah Refractometer & Gas Detector.
+  // Dibiarkan, dan bedanya sama kasus yang diberantas berkas ini itu tegas:
+  // **teks ini punya jalan lain.** Tombol tertutup satu baris itu wajar buat
+  // form field, dan begitu daftarnya dibuka namanya kegambar dua baris, utuh —
+  // dijaga `standar_kadaluarsa_kelihatan_test.dart`.
   //
-  // Didaftar EKSPLISIT, bukan didiamkan: begitu labelnya dipendekin (atau
-  // kolomnya dilebarin), test-nya gagal karena lembar ini nggak lagi memotong —
-  // dan barisnya wajib dicabut dari sini. Daftar yang membusuk diam-diam persis
-  // yang bikin utang jadi permanen.
-  const utangLama = {
-    'refractometer': 4,
-    'gas_detector': 8,
+  // Yang dulu ada di sini dan sekarang HILANG dari daftar: peringatan
+  // "(sertifikat kadaluarsa)" yang nempel di buntut nama dan selalu kebuang
+  // duluan. Itu nggak punya jalan lain — dipotong berarti teknisi nggak pernah
+  // tahu kenapa kalibratornya nggak bisa dipilih. Sekarang peringatannya berdiri
+  // di barisnya sendiri, jadi panjang nama nggak lagi menentukan dia kebaca
+  // atau nggak.
+  //
+  // Didaftar EKSPLISIT, bukan didiamkan: kalau jumlahnya berubah, test-nya
+  // gagal dan angkanya wajib ditinjau ulang.
+  const dipangkasTapiSah = {
+    'refractometer': 2,
+    'gas_detector': 4,
   };
 
   for (final profil in semuaProfil) {
@@ -132,13 +136,13 @@ void main() {
 
       expect(
         kepotong.length,
-        utangLama[profil] ?? 0,
+        dipangkasTapiSah[profil] ?? 0,
         reason:
             'Teks berikut kepotong di lembar `$profil`. Yang kepotong itu '
             'informasi yang teknisi butuhkan, bukan hiasan — pendekin '
             'teksnya di profil server, jangan lebarin batas barisnya. '
-            'Kalau jumlahnya justru BERKURANG, cabut `$profil` dari '
-            '`utangLama`:\n'
+            'Kalau jumlahnya justru BERKURANG, perbarui `$profil` di '
+            '`dipangkasTapiSah`:\n'
             '  ${kepotong.join('\n  ')}',
       );
     });

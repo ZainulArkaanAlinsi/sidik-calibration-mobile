@@ -12,6 +12,7 @@ import '../../../providers/calibration_input_provider.dart';
 import '../../../providers/sumber_foto_provider.dart';
 import '../../../providers/worksheet_scan_provider.dart';
 import '../../../services/peta_tabel_foto.dart';
+import '../../../widgets/label_standar.dart';
 import '../lembar_kerja_state.dart';
 import 'dropdown_gagal.dart';
 
@@ -1501,23 +1502,24 @@ class _Dropdown extends ConsumerWidget {
         return DropdownButtonFormField<int>(
           initialValue: state.standardId,
           isExpanded: true,
+          // Tinggi baris menu ngikutin isinya: nama dua baris plus
+          // baris peringatan lewat dari jatah tetap 48 dp.
+          itemHeight: null,
           decoration: InputDecoration(
             isDense: true,
             labelText: '${l10n.lkStandarPerTitik} $label',
             border: const OutlineInputBorder(),
           ),
           hint: Text(l10n.lkPilih),
+          selectedItemBuilder: (_) => [
+            for (final Standard s in urut) LabelStandarDropdown.namaSaja(s),
+          ],
           items: [
             for (final Standard s in urut)
               DropdownMenuItem(
                 value: s.id,
                 enabled: s.masihBerlaku,
-                child: Text(
-                  s.masihBerlaku
-                      ? s.nama
-                      : '${s.nama} (${l10n.lkStandarKadaluarsa})',
-                  overflow: TextOverflow.ellipsis,
-                ),
+                child: LabelStandarDropdown(standard: s),
               ),
           ],
           onChanged: (value) {
