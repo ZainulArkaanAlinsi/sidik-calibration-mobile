@@ -244,7 +244,13 @@ void main() {
       // `Insitu (…)` buat kerjaan yang nggak pernah keluar gedung.
       expect(find.text('Nama Tempat (Insitu)'), findsNothing);
 
-      await tester.tap(find.text('Inlab'));
+      // `.last` di KEDUA baris, dan itu bukan kebiasaan: dropdown thermohygro
+      // mengelompokkan unitnya `Inlab`/`Insitu` juga, jadi kedua kata itu
+      // muncul dua kali di lembar yang sama — header grup di atas, tombol
+      // lokasi di bawah. `Insitu` sudah lama begitu; `Inlab` baru ikut setelah
+      // bentuk mock Spectro dapat daftar unitnya (dulu kosong, dan yang
+      // tergambar justru "Belum ada unit thermohygro terdaftar.").
+      await tester.tap(find.text('Inlab').last);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Insitu').last);
       await tester.pumpAndSettle();
