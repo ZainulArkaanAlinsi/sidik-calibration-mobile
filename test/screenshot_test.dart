@@ -375,6 +375,105 @@ void main() {
     );
   });
 
+  // ## Tiga lembar suhu ber-PASANGAN deret (alat ke-18, 19, 20)
+  //
+  // Ketiganya beda bentuk dari tujuh belas lembar sebelumnya, dan bedanya persis
+  // jenis yang paling sulit dinilai dari kode: **dua tabel pembacaan per
+  // besaran** — satu deret standar, satu deret UUT — yang di kertas berdiri
+  // bersebelahan dan di layar bertumpuk. Yang gampang salah bukan angkanya
+  // melainkan susunannya, dan itu cuma kelihatan kalau digambar.
+  //
+  // Tingginya diukur, bukan ditebak: rentang gulir tiap lembar pada lebar logis
+  // 600 masing-masing 6072, 6696, dan 8305 dp. Angka di bawah dibulatkan ke
+  // atas dari situ supaya lembarnya kepotret UTUH sampai blok penutup — beda
+  // dari golden Chlorine & Spectro yang jatahnya lebih pendek dari isinya.
+
+  /// Lembar kerja Thermocouple (`SIDIK-IK-CAL-0529_Rev.2`) — alat ke-18.
+  ///
+  /// Yang dijaga di sini susunan dua deretnya: `Pembacaan Standard` (detik ke-0,
+  /// 20, 40, 60, 80) dan `Pembacaan UUT` (detik ke-10, 30, 50, 70, 90) sebagai
+  /// DUA tabel terpisah, plus blok `No. Termokopel` yang cuma menempel di tabel
+  /// standar. Sempat kejadian keduanya berbagi satu controller — layarnya tetap
+  /// tergambar rapi dan angka UUT muncul juga di deret standar, tanpa satu pun
+  /// error.
+  testWidgets('lembar kerja thermocouple', (tester) async {
+    tester.view.physicalSize = const Size(1200, 12200);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      _bungkus(
+        const LembarKerjaScreen(profil: 'thermocouple'),
+        mode: Brightness.light,
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byType(LembarKerjaScreen),
+      matchesGoldenFile('screenshots/lembar-kerja-thermocouple.png'),
+    );
+  });
+
+  /// Lembar kerja Termometer Gelas (`SIDIK-IK-CAL-0527_Rev.1`) — alat ke-19.
+  ///
+  /// Bedanya dari Thermocouple: oilbath & tipe pencelupan menggantikan dryblock,
+  /// dan ada blok **Uji Titik Es** (`Ice Point X1..X3`) yang harus tergambar
+  /// sebagai kotak isian — bukan catatan. Rentangnya masuk budget
+  /// ketidakpastian, jadi blok yang hilang dari layar berarti komponen yang
+  /// diam-diam nol.
+  testWidgets('lembar kerja termometer gelas', (tester) async {
+    tester.view.physicalSize = const Size(1200, 13400);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      _bungkus(
+        const LembarKerjaScreen(profil: 'thermometer_glass'),
+        mode: Brightness.light,
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byType(LembarKerjaScreen),
+      matchesGoldenFile('screenshots/lembar-kerja-termometer-gelas.png'),
+    );
+  });
+
+  /// Lembar kerja Thermohygrometer (`SIDIK-IK-CAL-0518_Rev.4`) — alat ke-20.
+  ///
+  /// Lembar terpanjang dari ketiganya, dan satu-satunya yang punya **DUA
+  /// besaran**: suhu (°C) dan kelembapan (%RH), masing-masing sepasang tabel —
+  /// jadi EMPAT tabel dalam satu lembar. Set point `50` muncul di dua blok
+  /// sekaligus (50 °C dan 50 %RH); waktu barisnya dikunci ke angka saja, dua
+  /// baris itu berbagi satu state dan lembarnya menyusut jadi sembilan baris
+  /// dengan satuan yang salah diwarisi. Itu yang dijaga gambar ini.
+  testWidgets('lembar kerja thermohygro', (tester) async {
+    tester.view.physicalSize = const Size(1200, 16700);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      _bungkus(
+        const LembarKerjaScreen(profil: 'thermohygro'),
+        mode: Brightness.light,
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byType(LembarKerjaScreen),
+      matchesGoldenFile('screenshots/lembar-kerja-thermohygro.png'),
+    );
+  });
+
   /// Calibration Result Details — layar yang dipakai admin sebelum nerbitin.
   ///
   /// Ada di sini karena bentuknya yang paling gampang berantakan: 24 titik
