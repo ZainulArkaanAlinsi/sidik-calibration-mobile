@@ -1,3 +1,5 @@
+import 'equipment.dart';
+
 /// Versi ringkas alat — dipakai picker "Alat" di layar Input Kalibrasi, dan
 /// jadi sumber kolom yang **keisi otomatis** di lembar kerja
 /// (`GET /api/equipments`, `docs/kontrak-api.md` §3). Bukan model penuh buat
@@ -126,6 +128,36 @@ class EquipmentLookup {
         : s;
     return rapi.replaceAll('.', ',');
   }
+
+  /// Alat yang BARU disimpan dari form Master Alat, dibungkus jadi bentuk yang
+  /// dipakai dropdown lembar kerja.
+  ///
+  /// Dipakai supaya alat yang baru dibikin teknisi dari lembar kerja langsung
+  /// kepilih di lembar itu juga, tanpa dia harus mencarinya lagi di dropdown
+  /// yang baru saja dia isi.
+  ///
+  /// Kesetaraan [EquipmentLookup] pakai `id`, jadi begitu daftarnya ditarik
+  /// ulang, objek ini cocok dengan baris asli dari server — bukan jadi pilihan
+  /// hantu yang bikin Dropdown Flutter melempar.
+  ///
+  /// `pelangganAlamat` sengaja dikosongkan: `Equipment` nggak membawanya, dan
+  /// mengarang string kosong lebih jujur daripada menyalin alamat alat lain.
+  /// Kolomnya keisi sendiri begitu daftarnya ke-refresh.
+  factory EquipmentLookup.dariEquipment(Equipment e) => EquipmentLookup(
+    id: e.id,
+    namaAlat: e.namaAlat,
+    serialNumber: e.serialNumber,
+    kategori: e.kategori,
+    status: e.status.name,
+    merk: e.merk,
+    model: e.model,
+    satuan: e.satuan,
+    rangeMin: e.rangeMin,
+    rangeMax: e.rangeMax,
+    resolusi: e.resolusi,
+    pelangganNama: e.pelangganNama ?? '',
+    lokasi: e.lokasi,
+  );
 
   factory EquipmentLookup.fromJson(Map<String, dynamic> json) {
     final pelanggan = json['pelanggan'] as Map<String, dynamic>? ?? const {};

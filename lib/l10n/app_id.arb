@@ -645,7 +645,7 @@
   "calibTambahAlatHint": "Tulis persis kayak yang tertulis di alatnya",
   "calibTambahAlatKosong": "Nama alatnya diisi dulu.",
   "calibTambahAlatPeringatanJudul": "Baca dulu sebelum disimpan",
-  "calibTambahAlatPeringatanIsi": "Alat yang kamu tambah sendiri belum punya angka batas dari lampiran akreditasi lab. Sesinya tetap bisa jalan dan sertifikatnya tetap terbit — tapi angka \u00b1 yang keluar dihitung pakai jalur umum, dan bisa lebih KECIL daripada angka yang biasa kita cetak buat alat yang udah terdaftar. Nggak ada error yang bunyi; angkanya cuma kelihatan terlalu bagus. Tetap boleh lanjut, tapi kabarin admin biar alat ini didaftarin resmi.",
+  "calibTambahAlatPeringatanIsi": "Alat yang kamu tambah sendiri belum punya angka batas dari lampiran akreditasi lab. Sesinya tetap bisa jalan dan sertifikatnya tetap terbit — tapi angka ± yang keluar dihitung pakai jalur umum, dan bisa lebih KECIL daripada angka yang biasa kita cetak buat alat yang udah terdaftar. Nggak ada error yang bunyi; angkanya cuma kelihatan terlalu bagus. Tetap boleh lanjut, tapi kabarin admin biar alat ini didaftarin resmi.",
   "calibTambahAlatSimpan": "SIMPAN & PAKAI",
   "calibTambahAlatBatal": "BATAL",
   "calibTambahAlatBerhasil": "\"{nama}\" udah masuk daftar — langsung bisa dipilih.",
@@ -1198,11 +1198,11 @@
   },
   "lkPenentuAngkaKosong": "{field} belum dipilih. Tanpa itu server nggak bisa ngitung satu titik pun — semua baris pulang belum dihitung. Tetap kirim?",
   "@lkPenentuAngkaKosong": {
-      "placeholders": {
-          "field": {
-              "type": "String"
-          }
+    "placeholders": {
+      "field": {
+        "type": "String"
       }
+    }
   },
   "lkPindaiBelumDiukur": "Lembar ini belum punya berkas ukuran kotaknya, jadi pindainya belum bisa dipakai. Isi manual seperti biasa.",
   "lkPindaiBelumDiverifikasi": "Lembar cetaknya belum pernah diadu ke foto nyata, jadi pindainya masih ditahan. Isi manual seperti biasa.",
@@ -1618,7 +1618,6 @@
   "profChangePhotoSub": "Diambil dari galeri atau kamera kamu",
   "profTechnicianCode": "Kode teknisi",
   "profTechnicianCodeSub": "Kecetak di sertifikat yang kamu tanda tangani",
-
   "acHitung": "Hitung",
   "@acHitung": {
     "description": "Tombol pratinjau olah data Autoklaf — menghitung tanpa menyimpan sesi."
@@ -1659,27 +1658,27 @@
   "@acGagalMenyimpan": {
     "description": "Kegagalan simpan sesi Autoklaf, pesannya apa adanya dari server.",
     "placeholders": {
-        "pesan": {
-            "type": "String"
-        }
+      "pesan": {
+        "type": "String"
+      }
     }
   },
   "acGagalMenghitung": "Gagal menghitung: {pesan}",
   "@acGagalMenghitung": {
     "description": "Kegagalan pratinjau olah data.",
     "placeholders": {
-        "pesan": {
-            "type": "String"
-        }
+      "pesan": {
+        "type": "String"
+      }
     }
   },
   "acGagalMuatAlat": "Gagal muat daftar alat: {pesan}",
   "@acGagalMuatAlat": {
     "description": "Daftar alat nggak kebaca — teknisi belum bisa milih Equipment.",
     "placeholders": {
-        "pesan": {
-            "type": "String"
-        }
+      "pesan": {
+        "type": "String"
+      }
     }
   },
   "acDiLuarKertas": "Di luar kertas — unduhan Pressure Disk Logger",
@@ -1697,5 +1696,15 @@
   "acPetunjukPilihAlat": "pilih alat",
   "@acPetunjukPilihAlat": {
     "description": "Petunjuk di dropdown Equipment lembar Autoklaf."
+  },
+  "lkAlatBaru": "Alat baru",
+  "lkAlatKosongAjakan": "Belum ada alat untuk lembar ini. Daftarkan alatnya dulu — jenis & kategorinya sudah terisi.",
+  "lkAlatBaruTersimpan": "Alat \"{nama}\" tersimpan dan langsung dipakai di lembar ini.",
+  "@lkAlatBaruTersimpan": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
   }
 }

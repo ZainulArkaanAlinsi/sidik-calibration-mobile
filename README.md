@@ -40,6 +40,9 @@ Supaya URL-nya berhenti berubah sama sekali, lihat
 
 ## Membagikan Aplikasi
 
+Halaman unduhnya: **https://sidik-kalibrasi.web.app** — tiga tombol, Android /
+macOS / Windows.
+
 Untuk memasang aplikasi di HP teknisi, Mac, dan PC Windows tanpa laptop
 developer, lihat [`docs/deploy-firebase.md`](docs/deploy-firebase.md) — Android
 lewat Firebase App Distribution, desktop lewat halaman unduh di Firebase

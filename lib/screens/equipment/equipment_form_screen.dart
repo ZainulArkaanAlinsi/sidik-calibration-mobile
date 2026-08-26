@@ -23,9 +23,24 @@ import '../../widgets/sidik_loader.dart';
 /// tombol simpan/hapus — nulis cuma buat admin & teknisi
 /// ([UserRole.bisaInput]).
 class EquipmentFormScreen extends ConsumerStatefulWidget {
-  const EquipmentFormScreen({super.key, this.existing});
+  const EquipmentFormScreen({
+    super.key,
+    this.existing,
+    this.kategoriAwal,
+    this.namaAlatKemampuanAwal,
+  });
 
   final Equipment? existing;
+
+  /// Kategori & jenis alat yang sudah ditentukan pemanggil — dipakai waktu form
+  /// ini dibuka DARI lembar kerja.
+  ///
+  /// Teknisi di lapangan nggak boleh disuruh menebak dua kotak yang jawabannya
+  /// sudah ditentukan oleh lembar yang barusan dia buka. Salah tebak di situ
+  /// bukan cuma merepotkan: alat yang jenisnya meleset jatuh ke form generik,
+  /// dan lembar berikutnya yang dia buka bukan lembar alat itu.
+  final String? kategoriAwal;
+  final String? namaAlatKemampuanAwal;
 
   @override
   ConsumerState<EquipmentFormScreen> createState() =>
@@ -85,14 +100,15 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
   @override
   void initState() {
     super.initState();
-    _kategori = widget.existing?.kategori;
+    _kategori = widget.existing?.kategori ?? widget.kategoriAwal;
     _pelangganId = widget.existing?.pelangganId;
     _resolusiRentang.addAll([
       for (final r in widget.existing?.resolusiRentang ?? const <ResolusiTitik>[])
         _BarisResolusi.dari(r),
     ]);
     _pelangganNama = widget.existing?.pelangganNama;
-    _namaAlatKemampuan = widget.existing?.namaAlatKemampuan;
+    _namaAlatKemampuan =
+        widget.existing?.namaAlatKemampuan ?? widget.namaAlatKemampuanAwal;
 
     // `GET /equipments` bisa balikin `overdue`, tapi dropdown status cuma
     // punya `aktif`/`nonaktif` — kalau nilainya dibiarin `overdue`, Flutter
@@ -217,13 +233,19 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
     final messenger = ScaffoldMessenger.of(context);
 
     try {
-      if (widget.existing == null) {
-        await ref.read(equipmentProvider.notifier).tambah(data);
-      } else {
-        await ref.read(equipmentProvider.notifier).ubah(data);
-      }
+      final tersimpan = widget.existing == null
+          ? await ref.read(equipmentProvider.notifier).tambah(data)
+          : await ref.read(equipmentProvider.notifier).ubah(data);
+
       if (!mounted) return;
-      navigator.pop();
+
+      // Alat yang barusan disimpan dipulangkan ke pemanggil.
+      //
+      // Yang membuka form ini dari lembar kerja butuh alatnya LANGSUNG
+      // kepilih — kalau cuma di-pop kosong, teknisi balik ke dropdown yang
+      // baru saja dia isi dan harus mencarinya lagi di daftar. Layar Master
+      // Alat mengabaikan nilai baliknya, jadi nggak ada yang berubah di sana.
+      navigator.pop(tersimpan);
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(

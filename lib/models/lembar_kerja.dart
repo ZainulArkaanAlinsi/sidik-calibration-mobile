@@ -1061,6 +1061,7 @@ class LembarKerja {
     required this.bagian,
     this.gridSensor,
     this.fotoTabelDidukung = true,
+    this.alatBaru,
   });
 
   final String kodeDokumen;
@@ -1180,6 +1181,14 @@ class LembarKerja {
   bool bagianPertama(BagianLembarKerja b) =>
       bagian.isNotEmpty && bagian.first.kode == b.kode;
 
+  /// Bekal buat BIKIN ALAT BARU dari lembar ini — null kalau server versi
+  /// lama.
+  ///
+  /// Lihat [BekalAlatBaru]. Null bukan kesalahan: HP-nya tetap jalan, cuma
+  /// tombol "Alat baru" nggak digambar, dan teknisi kembali ke jalan lama lewat
+  /// menu Master Alat.
+  final BekalAlatBaru? alatBaru;
+
   factory LembarKerja.fromJson(Map<String, dynamic> json) => LembarKerja(
     kodeDokumen: json['kode_dokumen'] as String? ?? '',
     kodeMetode: json['kode_metode'] as String?,
@@ -1197,6 +1206,9 @@ class LembarKerja {
     semuaKolomOpsional: json['semua_kolom_opsional'] as bool? ?? true,
     catatanPengisian: json['catatan_pengisian'] as String? ?? '',
     bagian: parseListAman(json['bagian'], BagianLembarKerja.fromJson),
+    alatBaru: json['alat_baru'] is Map<String, dynamic>
+        ? BekalAlatBaru.fromJson(json['alat_baru'] as Map<String, dynamic>)
+        : null,
     gridSensor: json['grid_sensor'] is Map<String, dynamic>
         ? GridSensorBentuk.fromJson(json['grid_sensor'] as Map<String, dynamic>)
         : null,
@@ -1204,5 +1216,49 @@ class LembarKerja {
         ? (json['pindai_foto'] as Map<String, dynamic>)['didukung'] as bool? ??
               true
         : true,
+  );
+}
+
+/// Bekal yang dikirim server supaya teknisi bisa BIKIN ALAT BARU langsung dari
+/// lembar kerja yang lagi dia buka.
+///
+/// ## Kenapa ini ada
+///
+/// Dropdown "Pilih alat" disaring ke lembar yang lagi dibuka — dan itu benar:
+/// sebelum ada saringan, teknisi yang membuka lembar Refrigerator disodori
+/// SELURUH alat lab, dan salah pilih di situ nggak bikin error di mana pun.
+/// Sesinya tersimpan, lalu dihitung pakai aturan alat lain.
+///
+/// Tapi saringan itu bikin kategori yang belum punya satu alat pun jadi
+/// **buntu**: dropdown-nya mati ("Belum ada alat."), dan tombol kirim menahan
+/// sesi yang alatnya belum dipilih. Lembar Bath persis begitu — bisa dibuka,
+/// bisa dibaca, nggak bisa dipakai.
+///
+/// Jalan keluarnya nggak boleh "buka menu Master Alat, tebak kategorinya, balik
+/// lagi ke sini". Kategori & nama kemampuan itu properti LEMBAR, dan server
+/// yang tahu — jadi server yang mengirimnya, dan form alatnya kebuka dengan dua
+/// kotak teratas sudah terisi.
+class BekalAlatBaru {
+  const BekalAlatBaru({required this.namaAlatKemampuan, this.kategori});
+
+  /// Kode kategori alat (`suhu`, `instrumen-analitik`, …).
+  ///
+  /// Null kalau lab belum mendaftarkan kemampuan ini di master. Bukan error:
+  /// formnya tetap kebuka, teknisi memilih kategorinya sendiri — satu dropdown
+  /// yang harus diisi jauh lebih murah daripada lembar yang buntu.
+  final String? kategori;
+
+  /// Nama JENIS alat menurut lampiran akreditasi (`Bath`, `Temperature
+  /// Indicator tanpa Sensor`, …).
+  ///
+  /// Ini kunci yang dipakai server buat memilih profil, jadi ejaannya harus
+  /// mendarat apa adanya di alat yang baru dibikin. Alat yang jenisnya meleset
+  /// satu huruf jatuh ke form generik — persis masalah yang saringan tadi mau
+  /// cegah.
+  final String namaAlatKemampuan;
+
+  factory BekalAlatBaru.fromJson(Map<String, dynamic> json) => BekalAlatBaru(
+    kategori: json['kategori'] as String?,
+    namaAlatKemampuan: json['nama_alat_kemampuan'] as String? ?? '',
   );
 }

@@ -1,5 +1,24 @@
 # Deploy lewat Firebase — Android, macOS, Windows
 
+## Halaman unduhnya di sini
+
+**https://sidik-kalibrasi.web.app**
+
+Alamat kedua yang sama isinya: `https://sidik-kalibrasi.firebaseapp.com`.
+Firebase memberi dua domain untuk satu situs; dua-duanya sah, yang `.web.app`
+yang dipakai sehari-hari.
+
+Alamatnya ditulis di sini **apa adanya**, bukan sebagai `<project>.web.app`.
+Sebelum ini seluruh dokumen cuma memuat pola itu, jadi satu-satunya cara tahu
+alamat aslinya adalah membuka `.firebaserc` dan menyusunnya sendiri — dan orang
+yang cuma mau mengunduh aplikasinya tidak punya alasan membuka berkas itu.
+
+Kalau alamatnya berubah, yang menentukan tetap `.firebaserc`
+(`projects.default`) — perbarui baris di atas supaya keduanya tidak pernah
+bercerita beda.
+
+---
+
 Status: siap dijalankan, **nunggu `firebase login` + repository variable
 `API_BASE_URL`** · 15 Agustus 2026
 
@@ -277,7 +296,7 @@ Yang dibutuhkan cuma secret `FIREBASE_SERVICE_ACCOUNT` — secret yang **sama**
 dengan yang dipakai jalur APK buat App Distribution, jadi kalau yang itu sudah
 jalan, yang ini nggak perlu apa-apa lagi.
 
-Hasilnya satu URL `https://<project>.web.app` berisi tiga tombol: Android
+Hasilnya **https://sidik-kalibrasi.web.app** — berisi tiga tombol: Android
 (link App Distribution), macOS, Windows.
 
 Deploy tangan masih bisa dipakai kalau perlu — mis. mau nguji ubahan
