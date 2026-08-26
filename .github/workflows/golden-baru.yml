@@ -25,6 +25,10 @@
 # lahir. Nggak ada yang perlu diingat: yang nambah test golden langsung dapat
 # PNG-nya di push berikutnya.
 #
+# Berkas workflow ini sendiri ikut disaring, dan itu bukan kelebihan: tanpa
+# baris itu, perbaikan pada generatornya nggak pernah kepakai sampai ada yang
+# kebetulan menyentuh `screenshot_test.dart`.
+#
 # Pemicunya `push`, bukan `workflow_dispatch`, dan itu bukan selera:
 # `workflow_dispatch` cuma bisa dipanggil kalau berkas workflow-nya SUDAH ada di
 # branch default. Buat kemampuan yang justru dibutuhkan di branch fitur sebelum
@@ -47,16 +51,33 @@
 # gambar yang barusan dia bikin sendiri. Makanya branch `main` ditolak di
 # langkah pertama.
 #
-# ## Kenapa golden lain yang ikut berubah bikin GAGAL
+# ## Kenapa golden lama DIKEMBALIKAN, bukan ikut di-commit
 #
-# Rasterisasi macOS bisa bergeser antar versi runner. Kalau itu terjadi,
-# `--update-goldens` diam-diam ikut menimpa lima belas golden lama — dan
-# perubahan tampilan yang nggak disengaja ikut terkubur di dalamnya, lolos
-# review sebagai "cuma regenerasi golden". Jadi yang boleh lahir dari workflow
-# ini cuma berkas BARU. Golden lama yang berubah dilaporkan lalu jalannya
-# dihentikan; memperbaruinya tetap lewat jalur `_testImage.png` di
-# `periksa-pr.yml`, tempat bedanya kelihatan per piksel dan ada manusia yang
-# memutuskan.
+# `--update-goldens` dan comparator-nya punya ambang yang beda, dan bedanya
+# bukan detail:
+#
+#   - `_ComparatorToleransi` MEMAAFKAN beda di bawah 0,1% — itu derau
+#     antar-mesin, bukan perubahan tampilan.
+#   - `--update-goldens` nggak punya ambang sama sekali. Beda satu byte pun
+#     ditimpa.
+#
+# Jadi tiap kali workflow ini jalan, golden lama yang cuma beda derau ikut
+# ditulis ulang. Terbukti di jalan pertamanya: `detail-sesi.png` ikut berubah,
+# padahal job `Golden (macOS)` sendiri sudah lama melaporkannya "beda 0,0390% —
+# di bawah ambang, dianggap derau antar-mesin". Nggak ada yang rusak; yang
+# terjadi cuma rasterisasi ulang.
+#
+# Menerima tulisan ulang itu berbahaya: perubahan tampilan yang NGGAK disengaja
+# ikut terkubur di dalamnya dan lolos review sebagai "cuma regenerasi golden".
+# Jadi tiap golden lama yang berubah DIKEMBALIKAN ke isi yang tersimpan, dan
+# yang di-commit cuma berkas BARU.
+#
+# Yang menjaga supaya pengembalian itu nggak menyembunyikan regresi asli:
+# langkah verifikasi sesudahnya menjalankan pemeriksaan golden BIASA. Kalau
+# salah satu golden lama memang bergeser lewat ambang, dia gagal di situ —
+# dengan angka dan PNG bedanya, sama seperti di PR mana pun. Memperbaruinya
+# tetap lewat jalur `_testImage.png` di `periksa-pr.yml`, tempat ada manusia
+# yang memutuskan.
 name: Golden baru (macOS)
 
 on:
@@ -65,6 +86,7 @@ on:
       - main
     paths:
       - test/screenshot_test.dart
+      - .github/workflows/golden-baru.yml
   workflow_dispatch:
 
 permissions:
@@ -102,22 +124,22 @@ jobs:
       - name: flutter test --tags screenshot --update-goldens
         run: flutter test --tags screenshot --update-goldens
 
-      # Golden lama yang ikut berubah = berhenti. Lihat catatan di kepala
-      # berkas: yang boleh lahir dari sini cuma berkas BARU.
-      - name: Pastiin cuma golden BARU yang lahir
+      # Golden lama yang ikut berubah dikembalikan; yang baru disimpan.
+      # Alasan lengkapnya di kepala berkas — singkatnya, `--update-goldens`
+      # nggak punya ambang sedangkan comparator-nya punya.
+      - name: Kembalikan golden lama, simpan yang baru
         run: |
+          git ls-files --others --exclude-standard -- test/screenshots/ \
+            > /tmp/golden-baru.txt
           berubah=$(git diff --name-only -- test/screenshots/)
-          baru=$(git ls-files --others --exclude-standard -- test/screenshots/)
 
           if [ -n "$berubah" ]; then
-            echo "::error::Golden LAMA ikut berubah — dihentikan:"
+            echo "Golden lama ikut ditulis ulang — dikembalikan ke isi tersimpan:"
             echo "$berubah" | sed 's/^/  /'
-            echo "::error::Perbarui lewat _testImage.png di periksa-pr.yml,"
-            echo "::error::supaya bedanya kelihatan dan ada yang memutuskan."
-            exit 1
+            git checkout -- test/screenshots/
           fi
 
-          if [ -z "$baru" ]; then
+          if [ ! -s /tmp/golden-baru.txt ]; then
             echo "Nol golden baru — tiap test golden udah punya PNG-nya."
             echo "ADA_BARU=tidak" >> "$GITHUB_ENV"
             exit 0
@@ -125,11 +147,16 @@ jobs:
 
           echo "ADA_BARU=ya" >> "$GITHUB_ENV"
           echo "Golden baru:"
-          echo "$baru" | sed 's/^/  /'
+          sed 's/^/  /' /tmp/golden-baru.txt
 
-      # Dijalanin ULANG tanpa --update-goldens: yang barusan lahir mesti lolos
-      # pemeriksaan yang sama dengan yang bakal dihadapinya di PR. Tanpa langkah
-      # ini, workflow-nya cuma menjamin berkasnya ADA — bukan bahwa dia benar.
+      # Dijalanin ULANG tanpa --update-goldens, dan ini menanggung DUA hal:
+      #
+      #   1. Golden yang barusan lahir mesti lolos pemeriksaan yang sama dengan
+      #      yang bakal dihadapinya di PR. Tanpa langkah ini, workflow-nya cuma
+      #      menjamin berkasnya ADA — bukan bahwa dia benar.
+      #   2. Golden lama yang barusan DIKEMBALIKAN mesti tetap lolos. Di sinilah
+      #      bedanya "derau yang wajar dikembalikan" sama "regresi yang
+      #      disembunyikan": yang kedua gagal di langkah ini.
       - name: Buktiin golden barunya lolos pemeriksaan biasa
         if: env.ADA_BARU == 'ya'
         run: flutter test --tags screenshot
@@ -144,7 +171,7 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add test/screenshots/
+          tr '\n' '\0' < /tmp/golden-baru.txt | xargs -0 git add
           printf '%s\n' \
             "test(golden): baseline lembar baru, dirasterisasi di macOS" \
             "" \
