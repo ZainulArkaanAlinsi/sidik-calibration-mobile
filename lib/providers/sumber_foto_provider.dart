@@ -18,8 +18,9 @@ import '../services/photo_source.dart';
 /// Di test di-override pakai [MockSumberFoto] biar kameranya nggak kepanggil.
 ///
 /// Berkasnya sendiri: dulu numpang di `worksheet_vision_provider.dart` — file
-/// jalur AI Vision, yang bakal dicabut. Kamera nggak boleh mati gara-gara
-/// jalur lain dihapus, jadi providernya berdiri sendiri.
+/// jalur AI Vision cloud, yang sekarang SUDAH dicabut. Kamera nggak boleh mati
+/// gara-gara jalur lain dihapus, jadi providernya berdiri sendiri — dan itu
+/// yang bikin dia selamat waktu jalur itu beneran hilang.
 final sumberFotoProvider = Provider<SumberFoto>((ref) {
   if (Platform.isAndroid || Platform.isIOS) return const KameraSumberFoto();
 
