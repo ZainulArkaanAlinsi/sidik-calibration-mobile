@@ -1139,42 +1139,13 @@ void main() {
     expect(find.widgetWithText(TextField, '25,1'), findsWidgets);
   });
 
-  /// **Tombol pindai nggak boleh HILANG waktu templatenya gagal diambil.**
-  ///
-  /// Bug nyata, 14 Agt 2026. Layar ngirim nomor FORMULIR
-  /// (`SIDIK-IK-CAL-0508_Rev.4`) ke `GET /worksheet-templates/{kode}` yang mau
-  /// kode ALAT (`spectrophotometer`) — 404, providernya error, dan tombolnya
-  /// `SizedBox.shrink()`. Dari mata teknisi fiturnya kelihatan **nggak pernah
-  /// dibikin**: nggak ada tombol mati, nggak ada pesan, nggak ada apa pun.
-  ///
-  /// Dua yang dikunci di sini: kodenya yang benar yang dikirim, dan gagal
-  /// ambil template tetap ninggalin tombol (mati) plus alasannya.
-    testWidgets('yang diminta ke server kode ALAT, bukan nomor formulirnya', (
-    tester,
-  ) async {
-    _perbesarViewport(tester);
-    final pindai = MockWorksheetScanService(siapPindai: true);
-    await _muat(
-      tester,
-      _app(MockLembarKerjaService(), pindai: pindai, pindaiAktif: true),
-    );
-    await _keHalamanAkhir(tester);
+  // Tiga test tombol pindai yang dulu di sini ikut dicabut bersama tombolnya
+  // (26 Agt 2026): kode alat yang diminta ke server, tombol yang tetap
+  // digambar-tapi-mati waktu template gagal diambil, dan gerbang `siap_pindai`.
+  // Ketiganya menguji perilaku sebuah tombol yang sekarang nggak ada; yang
+  // menjaga ketidakhadirannya sekarang `pindai_ui_nyala_test`.
 
-    expect(
-      pindai.kodeDiminta,
-      contains('ph_meter'),
-      reason: 'Nomor formulir (`SIDIK-FM-CAL-…`) bikin endpointnya 404.',
-    );
-  });
-
-  /// **Tombol pindai ikut `siap_pindai` dari server, titik.**
-  ///
-  /// Sekarang keenam lembar masih `geometri_belum_diverifikasi`: koordinat
-  /// selnya belum diukur dari lembar CETAK asli. Koordinat tebakan berarti
-  /// angka mendarat di sel yang salah — persis kegagalan yang bikin fitur ini
-  /// dirancang. Nyalain paksa "biar bisa dites dulu" cuma bikin teknisi
-  /// percaya fitur yang belum boleh dipakai.
-      _testDropdownGagal();
+  _testDropdownGagal();
   _testTurbidimeter();
   _testChlorine();
   _testRefractometer();
