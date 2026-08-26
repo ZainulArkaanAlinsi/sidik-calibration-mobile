@@ -2759,6 +2759,11 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkStandarTitikGanti => 'Ganti';
 
   @override
+  String lkStandarSemuaTitikDipakai(String standar) {
+    return 'Semua titik — $standar';
+  }
+
+  @override
   String get lkStandarTitikTercetak => 'Sesuai lembar kerja';
 
   @override
@@ -3972,4 +3977,16 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get acPetunjukPilihAlat => 'pilih alat';
+
+  @override
+  String get lkAlatBaru => 'Alat baru';
+
+  @override
+  String get lkAlatKosongAjakan =>
+      'Belum ada alat untuk lembar ini. Daftarkan alatnya dulu — jenis & kategorinya sudah terisi.';
+
+  @override
+  String lkAlatBaruTersimpan(String nama) {
+    return 'Alat \"$nama\" tersimpan dan langsung dipakai di lembar ini.';
+  }
 }

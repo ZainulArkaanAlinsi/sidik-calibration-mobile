@@ -1039,6 +1039,14 @@
     }
   },
   "lkStandarTitikGanti": "Ganti",
+  "lkStandarSemuaTitikDipakai": "Semua titik — {standar}",
+  "@lkStandarSemuaTitikDipakai": {
+    "placeholders": {
+      "standar": {
+        "type": "String"
+      }
+    }
+  },
   "lkStandarTitikTercetak": "Sesuai lembar kerja",
   "antreanSemuaPt": "Semua PT ({jumlah})",
   "@antreanSemuaPt": {

@@ -306,4 +306,85 @@ void main() {
       expect(isian.pilihanPenentuAngkaKosong, isEmpty);
     });
   });
+
+  group('satu kalibrator buat semua titik', () {
+    Widget layar(String profil) => ProviderScope(
+      overrides: [
+        tokenStorageProvider.overrideWithValue(
+          InMemoryTokenStorage('mock-token-1'),
+        ),
+        authServiceProvider.overrideWithValue(MockAuthService()),
+        lembarKerjaServiceProvider.overrideWithValue(MockLembarKerjaService()),
+        standardServiceProvider.overrideWithValue(MockStandardService()),
+        roomServiceProvider.overrideWithValue(MockRoomService()),
+        equipmentLookupServiceProvider.overrideWithValue(
+          MockEquipmentLookupService(),
+        ),
+      ],
+      child: MaterialApp(
+        locale: const Locale('id'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: LembarKerjaScreen(profil: profil),
+      ),
+    );
+
+    Future<void> buka(WidgetTester tester, String profil) async {
+      tester.view.physicalSize = const Size(1400, 5200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(layar(profil));
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+    }
+
+    testWidgets('TITS: sembilan titik jadi SATU baris centang', (tester) async {
+      await buka(tester, 'tits');
+
+      // Sembilan baris yang bunyinya sama persis bikin pembaca ngira tiap
+      // titik punya kalibrator sendiri — padahal cuma ada satu.
+      expect(
+        find.textContaining('Semua titik — Temperature Calibrator Yokogawa'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Titik -20 °C —'), findsNothing);
+      expect(find.textContaining('Titik 1000 °C —'), findsNothing);
+    });
+
+    testWidgets('pH: tiga buffer beda tetap tiga baris', (tester) async {
+      await buka(tester, 'ph_meter');
+
+      // Di pH tiap titik memang punya larutannya sendiri — digabung berarti
+      // teknisi kehilangan cara nyatet buffer mana yang dia pakai per titik.
+      expect(find.textContaining('Semua titik —'), findsNothing);
+      expect(find.textContaining('Titik 4,00 —'), findsOneWidget);
+      expect(find.textContaining('Titik 7,00 —'), findsOneWidget);
+      expect(find.textContaining('Titik 10,01 —'), findsOneWidget);
+    });
+  });
+
+  group('kolom thermohygro', () {
+    test('bentuk TITS bawa pilihan unitnya, bukan daftar kosong', () {
+      final bentuk = contohBentukLembarKerjaTits();
+      final hasil = (bentuk['bagian'] as List)
+          .cast<Map<String, dynamic>>()
+          .firstWhere((b) => b['kode'] == 'hasil');
+
+      final kolom = (hasil['field'] as List)
+          .cast<Map<String, dynamic>>()
+          .firstWhere((f) => f['kode'] == 'thermohygro_standard_id');
+
+      // `pilihan` kosong bikin layar nggambarnya sebagai teks MATI "Belum ada
+      // unit thermohygro terdaftar" — sesinya jalan tanpa unit sama sekali.
+      expect(kolom['pilihan'], isNotEmpty);
+      expect(
+        (kolom['pilihan'] as List)
+            .cast<Map<String, dynamic>>()
+            .map((p) => p['grup'])
+            .toSet(),
+        {'Insitu', 'Inlab'},
+      );
+    });
+  });
 }

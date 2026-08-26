@@ -2400,8 +2400,20 @@ Map<String, dynamic> contohBentukLembarKerjaTits({bool untukAdmin = false}) {
         field('suhu_akhir', 'Env. Condition — End', 'angka', satuan: '°C'),
         field('kelembaban_akhir', 'Env. Condition — End', 'angka',
             satuan: '%RH'),
+        // `pilihan` WAJIB ikut, walau `sumber`-nya master. Layar nggambar
+        // kolom ini dari daftar yang dibawa BENTUK, bukan dari master standar
+        // — `pilihan` kosong bikin dia jadi teks mati "Belum ada unit
+        // thermohygro terdaftar", dropdown-nya nggak bisa dibuka sama sekali,
+        // dan sesinya jalan tanpa unit thermohygro. Backend ngisinya lewat
+        // `TitsProfile::isiPilihanThermohygro()`.
         field('thermohygro_standard_id', 'Environmental Meter Used', 'pilihan',
-            sumber: 'master_thermohygro'),
+            sumber: 'master_thermohygro',
+            pilihan: const [
+              {'nilai': '40', 'label': 'TH-2', 'grup': 'Insitu'},
+              {'nilai': '42', 'label': 'TH-6', 'grup': 'Insitu'},
+              {'nilai': '41', 'label': 'TH-4', 'grup': 'Inlab'},
+              {'nilai': '43', 'label': 'TH-7', 'grup': 'Inlab'},
+            ]),
       ],
       'tabel': [
         tabel('sebelum_adjustment', 'Before Adjustment Reading'),

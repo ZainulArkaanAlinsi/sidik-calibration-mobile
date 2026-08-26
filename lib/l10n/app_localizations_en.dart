@@ -2773,6 +2773,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkStandarTitikGanti => 'Change';
 
   @override
+  String lkStandarSemuaTitikDipakai(String standar) {
+    return 'All points — $standar';
+  }
+
+  @override
   String get lkStandarTitikTercetak => 'As printed on the worksheet';
 
   @override
@@ -4001,4 +4006,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get acPetunjukPilihAlat => 'select equipment';
+
+  @override
+  String get lkAlatBaru => 'New equipment';
+
+  @override
+  String get lkAlatKosongAjakan =>
+      'No equipment for this worksheet yet. Register it first — the type and category are already filled in.';
+
+  @override
+  String lkAlatBaruTersimpan(String nama) {
+    return 'Equipment \"$nama\" saved and selected for this worksheet.';
+  }
 }
