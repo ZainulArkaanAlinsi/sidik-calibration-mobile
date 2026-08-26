@@ -117,7 +117,7 @@ void main() {
     }
   }
 
-  testWidgets('saklar bawaan sekarang NYALA — dua tombolnya kegambar', (
+  testWidgets('saklar bawaan NYALA — dan yang tersisa cuma FOTO TABEL INI', (
     tester,
   ) async {
     // Bawaannya NYALA, dan itu bagian dari yang dijaga: begitu ada yang
@@ -132,13 +132,20 @@ void main() {
     perbesarViewport(tester);
     await bukaSampaiTabel(tester, app(pindaiAktif: true));
 
-    expect(find.text('PINDAI LEMBAR KERJA'), findsWidgets);
+    // DICABUT PERMANEN 26 Agt 2026 atas permintaan pemilik lab. Ini bukan
+    // "kebetulan lagi nggak kegambar" — baris ini yang menahan tombolnya
+    // balik lewat revert atau salin-tempel dari lembar lain.
+    expect(
+      find.text('PINDAI LEMBAR KERJA'),
+      findsNothing,
+      reason: 'Tombol pindai lembar penuh sudah dicabut permanen dari SEMUA lembar.',
+    );
 
     // Satu per TABEL, bukan satu per lembar — pH punya Before & After.
     expect(find.text('FOTO TABEL INI'), findsNWidgets(2));
   });
 
-  testWidgets('saklarnya masih SAKLAR — dimatiin, dua-duanya hilang', (
+  testWidgets('saklarnya masih SAKLAR — dimatiin, FOTO TABEL INI hilang', (
     tester,
   ) async {
     perbesarViewport(tester);
@@ -174,10 +181,13 @@ void main() {
             'angka ngawur yang kelihatan wajar.',
       );
 
-      // Tapi OCR template lokal TETAP ADA: dia gerbangnya beda
-      // (`siap_pindai` per template, bukan bentuk kertas), dan tombolnya
-      // sengaja digambar-tapi-mati berikut alasannya.
-      expect(find.text('PINDAI LEMBAR KERJA'), findsWidgets);
+      // Dulu di sini OCR template lokal TETAP ADA sebagai jalur cadangan —
+      // gerbangnya beda (`siap_pindai` per template, bukan bentuk kertas).
+      // Tombolnya sudah dicabut permanen, jadi kertas yang nggak muat di
+      // bentuk "titik x Repeat" sekarang NGGAK punya jalur kamera sama
+      // sekali. Konsekuensi yang ditanggung sadar; lihat komentar di
+      // `lembar_kerja_screen.dart`.
+      expect(find.text('PINDAI LEMBAR KERJA'), findsNothing);
     },
   );
 }

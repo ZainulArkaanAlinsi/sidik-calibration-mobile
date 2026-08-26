@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image/image.dart' as img;
 
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/angka.dart';
@@ -14,27 +13,19 @@ import '../../models/equipment_lookup.dart';
 import '../../models/lembar_kerja.dart';
 import '../../models/room.dart';
 import '../../models/standard.dart';
-import '../../models/worksheet_scan.dart' show SelDipakaiPindai;
-import '../../models/worksheet_template.dart';
 import '../../providers/autoclave_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/calibration_input_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../providers/jam_provider.dart';
 import '../../providers/lembar_kerja_provider.dart';
-import '../../providers/sumber_foto_provider.dart';
 import '../../providers/worksheet_scan_provider.dart';
 import '../../services/auth_service.dart' show AuthException;
-import '../../services/jalankan_pindai.dart';
-import '../../services/pembaca_sel.dart' show pngDari;
-import '../../services/pindai_lembar.dart';
-import '../../services/worksheet_scan_service.dart' show PindaiDitolak;
 import '../../widgets/autoclave_hasil_panel.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/sidik_loader.dart';
 import '../../widgets/tampil_masuk.dart';
 import 'lembar_kerja_state.dart';
-import 'pindai_review_screen.dart';
 import 'widgets/dropdown_gagal.dart';
 import 'widgets/lembar_kerja_grid.dart';
 import 'widgets/lembar_kerja_matriks.dart';
@@ -1610,22 +1601,24 @@ class _Bagian extends ConsumerWidget {
               ],
             ],
 
-            // Pindai lembar penuh (OCR lokal) — di atas tabelnya, karena dia
-            // ngisi SELURUH tabel sekaligus, bukan satu tabel.
+            // Tombol PINDAI LEMBAR KERJA DICABUT PERMANEN (26 Agt 2026, atas
+            // permintaan pemilik lab: "hapus dari semua alat, gk butuh, gk
+            // jelas juga").
             //
-            // Digantung di `--dart-define=PINDAI_LEMBAR` (default NYALA sejak
-            // 25 Agt 2026). Kalau dimatiin, yang mati cuma render-nya:
-            // `_TombolPindaiLembar` di bawah dan seluruh mesin geometrinya
-            // tetap dikompilasi & tetap dites. Lihat
-            // `AppConfig.pindaiLembarAktif` buat alasan lengkapnya.
-            if (pindaiAktif && bagian.tabel.isNotEmpty)
-              _TombolPindaiLembar(
-                profil: profil,
-                equipmentId: isian.alat?.id,
-                sesiId: sesiId,
-                isian: isian,
-                onBerubah: onBerubah,
-              ),
+            // Yang dicabut TAMPILANNYA. Mesin geometrinya
+            // (`services/pindai_lembar.dart` — deteksi marker + warp
+            // perspektif Dart murni), layar review per sel, dan seluruh
+            // test-nya dibiarkan utuh: dia satu-satunya kode di repo ini yang
+            // sudah terbukti bisa memetakan foto kertas ke sel, dan itu persis
+            // bahan yang dibutuhkan kalau `FOTO TABEL INI` suatu saat harus
+            // paham bentuk grid Enclosure. Menghapusnya berarti menulis
+            // ulangnya dari nol.
+            //
+            // Konsekuensi yang ditanggung sadar: Autoklaf, TIDS, dan kelima
+            // Enclosure sekarang NGGAK punya jalur kamera sama sekali —
+            // `FOTO TABEL INI` memang `didukung: false` di ketujuhnya karena
+            // kertasnya berbentuk matriks/grid. Sudah disampaikan ke pemilik
+            // lab sebelum dicabut.
 
             // Lembar ber-GRID (Enclosure) menggambar gridnya di sini, dan
             // memang nggak punya `tabel` maupun `matriks` buat digambar
@@ -1801,285 +1794,6 @@ class _CatatanIsi extends StatelessWidget {
 }
 
 
-/// Tombol pindai LEMBAR PENUH — satu-satunya jalur kamera yang dipakai app ini.
-///
-/// ANGKANYA dibaca DI HP (ML Kit on-device): nggak ada panggilan ke layanan AI
-/// pihak ketiga, nggak ada biaya per foto, dan pembacaannya jalan tanpa sinyal.
-/// Endpoint AI lama (`POST /raw-measurements/extract-from-photo`) masih hidup di
-/// server tapi app ini nggak pernah manggilnya lagi — jangan hidupkan lagi tanpa
-/// membaca ulang docblock-nya di backend.
-///
-/// **Yang dikirim ke server bukan cuma angkanya.** `POST /worksheet-scans` juga
-/// mengunggah citra lembar yang sudah diratakan; server menyimpannya dan
-/// menyajikannya lagi per sel supaya layar review bisa nampilin tulisan aslinya
-/// di sebelah angka tebakan. Jadi "dibaca di HP" bukan berarti fotonya nggak
-/// keluar HP — retensinya diatur `config/ocr.php` di backend. Ditulis terang di
-/// sini karena versi sebelumnya menjanjikan sebaliknya.
-///
-/// Syarat teknisnya satu: koordinat tiap sel harus sudah diukur dari formulir
-/// CETAK asli, dan formulirnya dicetak ulang pakai 4 penanda sudut + QR versi.
-///
-/// **`siap_pindai` dari server yang mutusin tombol ini hidup atau mati.** Per
-/// 20 Agu 2026 enam lembar sudah `terverifikasi` (pH, Turbidimeter, Chlorine,
-/// Refractometer, Conductivity, Spectrophotometer); Viscometer masih
-/// `geometri_belum_diverifikasi` dan Autoklaf masih menunggu geometrinya diadu
-/// ke lembar cetak. Koordinat tebakan berarti angka mendarat di sel yang salah,
-/// dan itu justru kegagalan yang mau dicegah fitur ini. Alasannya ditampilin apa
-/// adanya, bukan diterjemahin jadi "fitur belum tersedia": teknisi berhak tahu
-/// yang kurang itu apa, dan yang bisa nutup cuma lab (cetak ulang formulir +
-/// ukur).
-class _TombolPindaiLembar extends ConsumerStatefulWidget {
-  const _TombolPindaiLembar({
-    required this.profil,
-    required this.equipmentId,
-    required this.isian,
-    required this.onBerubah,
-    this.sesiId,
-  });
-
-  final String profil;
-  final int? equipmentId;
-
-  /// Sesi yang lagi dikerjakan. Boleh `null` — teknisi kadang memindai sebelum
-  /// sesinya dibikin, dan server memang menerima kiriman tanpa sesi.
-  final int? sesiId;
-
-  final LembarKerjaState isian;
-  final VoidCallback onBerubah;
-
-  @override
-  ConsumerState<_TombolPindaiLembar> createState() =>
-      _TombolPindaiLembarState();
-}
-
-class _TombolPindaiLembarState extends ConsumerState<_TombolPindaiLembar> {
-  bool _sibuk = false;
-
-  /// Foto → baca QR → ratakan → potong tiap sel → baca ML Kit → kirim → layar
-  /// review → angkanya masuk formulir.
-  ///
-  /// Urutannya ada di [JalankanPindai], bukan di sini: yang di layar cuma
-  /// ambil fotonya, tampilkan sibuknya, terjemahkan sebabnya kalau gagal, dan
-  /// nuang angka yang teknisi setujui.
-  Future<void> _pindai(WorksheetTemplate template) async {
-    final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
-
-    setState(() => _sibuk = true);
-
-    try {
-      // Lembar penuh, jadi resolusinya dipertahankan: yang dibaca ML Kit itu
-      // potongan sel selebar ~140 px di ruang template, dan tiap piksel yang
-      // dibuang di sini hilang dari angka yang dibaca.
-      final foto = await ref
-          .read(sumberFotoProvider)
-          .ambil(maxWidth: 4200, imageQuality: 100);
-
-      if (foto == null || !mounted) return;
-
-      final citra = img.decodeImage(await foto.readAsBytes());
-
-      if (citra == null) {
-        messenger.showSnackBar(SnackBar(content: Text(l10n.lkPindaiGagalFoto)));
-
-        return;
-      }
-
-      final pabrik = ref.read(pabrikPembacaPindaiProvider);
-      final pembaca = pabrik.sel();
-      final pembacaQr = pabrik.qr();
-
-      try {
-        final susunan = await JalankanPindai(
-          mesin: const PindaiLembar(),
-          pembaca: pembaca,
-          pembacaQr: pembacaQr,
-        ).susun(
-          citra,
-          template: template,
-          calibrationSessionId: widget.sesiId,
-          equipmentId: widget.equipmentId,
-        );
-
-        final token = await ref.read(tokenStorageProvider).read();
-        if (token == null || !mounted) return;
-
-        final hasil = await ref
-            .read(worksheetScanServiceProvider)
-            .kirim(
-              token,
-              susunan.body,
-              // Lampiran audit — dan sumber potongan sel di layar review.
-              // Boleh gagal naik; hasil bacanya nggak ikut batal.
-              citraWarp: pngDari(susunan.citraWarp),
-            );
-
-        if (!mounted) return;
-
-        final dipakai = await navigator.push<List<SelDipakaiPindai>>(
-          MaterialPageRoute<List<SelDipakaiPindai>>(
-            builder: (_) => PindaiReviewScreen(hasil: hasil),
-          ),
-        );
-
-        if (dipakai == null || dipakai.isEmpty || !mounted) return;
-
-        final terisi = widget.isian.terapkanHasilPindai(dipakai);
-        widget.onBerubah();
-
-        messenger.showSnackBar(
-          SnackBar(content: Text(l10n.lkPindaiTerpakai(terisi))),
-        );
-      } finally {
-        await pembaca.tutup();
-        await pembacaQr.tutup();
-      }
-    } on PindaiGagal catch (e) {
-      // Sebabnya ditampilkan, bukan "gagal memindai": sebagian besar sebab
-      // nggak akan membaik dengan mengulang jepretan, dan teknisi yang motret
-      // ulang lima kali buat lembar yang memang nggak ber-QR itu kerugian yang
-      // nggak kelihatan di mana pun.
-      messenger.showSnackBar(
-        SnackBar(
-          duration: const Duration(seconds: 6),
-          content: Text(switch (e.sebab) {
-            GagalPindai.belumSiap =>
-              l10n.lkPindaiBelumSiap(template.alasanBelumSiap ?? '—'),
-            GagalPindai.tanpaGeometri => l10n.lkPindaiTanpaGeometri,
-            GagalPindai.markerTidakKetemu => l10n.lkPindaiMarkerHilang,
-            GagalPindai.geometriMeleset => l10n.lkPindaiTerlaluMiring,
-            GagalPindai.qrTidakKebaca => l10n.lkPindaiQrHilang,
-            GagalPindai.qrLembarLain => l10n.lkPindaiQrLembarLain,
-            GagalPindai.mutuBuram => l10n.lkPindaiBuram,
-            GagalPindai.mutuGelap => l10n.lkPindaiGelap,
-            GagalPindai.mutuSilau => l10n.lkPindaiSilau,
-            GagalPindai.mutuPantulan => l10n.lkPindaiPantulan,
-            GagalPindai.mutuMiring => l10n.lkPindaiTerlaluMiring,
-            GagalPindai.mutuKejauhan => l10n.lkPindaiKejauhan,
-          }),
-        ),
-      );
-    } on PindaiDitolak catch (e) {
-      // Pesan server ditampilkan APA ADANYA — kalimatnya sudah ditulis buat
-      // teknisi yang lagi berdiri di depan alat pelanggan. Nggak ada satu
-      // angka pun yang dipakai dari lembar yang ditolak.
-      messenger.showSnackBar(
-        SnackBar(
-          duration: const Duration(seconds: 8),
-          content: Text(
-            e.bugAplikasi ? l10n.lkPindaiBugAplikasi(e.pesan) : e.pesan,
-          ),
-        ),
-      );
-    } catch (_) {
-      if (mounted) {
-        messenger.showSnackBar(SnackBar(content: Text(l10n.lkPindaiGagalFoto)));
-      }
-    } finally {
-      if (mounted) setState(() => _sibuk = false);
-    }
-  }
-
-  /// Kode alasan dari server → kalimat yang kebaca teknisi.
-  ///
-  /// Dulu di sini `l10n.lkPindaiBelumSiap(t.alasanBelumSiap ?? '—')` — dan
-  /// `alasanBelumSiap` itu KODE INTERNAL. Yang kebaca teknisi di lapangan:
-  ///
-  ///     Belum bisa dipindai: geometri_belum_diukur
-  ///
-  /// Itu bukan kalimat. Dan sejak UI pindai dinyalain lagi (25 Agt 2026),
-  /// tulisan itu muncul di 11 dari 17 lembar — termasuk SELURUH lembar suhu.
-  /// Dari mata teknisi, lembar yang sah kelihatan seperti aplikasi yang rusak.
-  ///
-  /// Yang penting bukan cuma bahasanya. Tiap alasan punya tindakan yang beda,
-  /// dan kode mentahnya nggak menyiratkan satu pun: yang belum diukur nunggu
-  /// berkas, yang belum diverifikasi nunggu satu foto, yang kurang kotak itu
-  /// berkasnya ada tapi nggak lengkap. Ketiganya sekarang bilang apa yang
-  /// terjadi DAN apa yang harus dilakukan teknisi sekarang — isi manual.
-  ///
-  /// Kode yang nggak dikenal tetap ditampilkan apa adanya. Kode baru yang
-  /// muncul dari server nggak boleh berubah jadi kalimat kosong yang menyembunyikan
-  /// keadaan yang belum pernah ditemui.
-  String _alasanTerbaca(AppLocalizations l10n, String? kode) => switch (kode) {
-    'geometri_belum_diukur' => l10n.lkPindaiBelumDiukur,
-    'geometri_belum_diverifikasi' => l10n.lkPindaiBelumDiverifikasi,
-    final String k when k.startsWith('geometri_kurang_') => l10n.lkPindaiKurangKotak(
-      int.tryParse(k.split('_').elementAtOrNull(2) ?? '') ?? 0,
-    ),
-    final String k => l10n.lkPindaiBelumSiap(k),
-    null => l10n.lkPindaiBelumSiap('—'),
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final template = ref.watch(
-      worksheetTemplateProvider((
-        kode: widget.profil,
-        equipmentId: widget.equipmentId,
-      )),
-    );
-
-    // Gagal narik template NGGAK ditampilin sebagai error: ini jalan pintas,
-    // bukan jalur kerja. Yang nggak boleh cuma satu — nampilin tombol aktif
-    // buat lembar yang belum boleh dipindai.
-    final data = template.value;
-
-    // **Tombolnya selalu digambar**, bahkan waktu templatenya gagal diambil.
-    //
-    // Dulu di sini `return const SizedBox.shrink()` — dan itu bikin satu
-    // kegagalan kecil di jaringan/URL berubah jadi FITURNYA HILANG DARI LAYAR
-    // tanpa satu pun pesan. Yang kejadian 14 Agt 2026: layar ngirim nomor
-    // formulir (`SIDIK-IK-CAL-0508_Rev.4`) ke endpoint yang mau kode alat, jadi
-    // 404 — dan dari mata teknisi, tombol pindainya kelihatan nggak pernah
-    // dibikin. Nggak ada error, nggak ada tombol mati, nggak ada apa-apa.
-    //
-    // Sekarang: gagal ambil template = tombol MATI + alasannya kelihatan.
-    // Nggak bisa dipakai tetap nggak bisa dipakai, tapi setidaknya kelihatan
-    // ADA dan kelihatan KENAPA.
-    final alasan = switch ((data, template)) {
-      (final WorksheetTemplate t, _) when !t.siapPindai =>
-        _alasanTerbaca(l10n, t.alasanBelumSiap),
-      (null, AsyncError(:final error)) => l10n.lkPindaiTemplateGagal('$error'),
-      (null, _) => l10n.lkPindaiTemplateMemuat,
-      _ => null,
-    };
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: (data?.siapPindai ?? false) && !_sibuk
-                ? () => _pindai(data!)
-                : null,
-            icon: _sibuk || template.isLoading
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.document_scanner_outlined, size: 18),
-            label: Text(l10n.lkPindaiLembar),
-          ),
-        ),
-        if (alasan != null) ...[
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            alasan,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-        const SizedBox(height: AppSpacing.md),
-      ],
-    );
-  }
-}
 
 /// Hasil hitung sementara dari `POST /calibrations/preview`.
 ///
