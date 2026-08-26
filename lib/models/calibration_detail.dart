@@ -75,6 +75,9 @@ class RawMeasurement {
     required this.isVerified,
     this.tahap = TahapPembacaan.sesudahAdjustment,
     this.suhu,
+    this.sensorKe,
+    this.peranSensor,
+    this.channel,
   });
 
   final int id;
@@ -101,6 +104,35 @@ class RawMeasurement {
   /// Suhu larutan waktu baris ini dibaca (khusus pH). Null buat alat lain.
   final double? suhu;
 
+  /// Nomor TERMOKOPEL baris ini di dalam grid Enclosure — koordinat baris.
+  ///
+  /// Null buat sepuluh lembar bertabel datar, DAN buat baris grid yang bukan
+  /// termokopel (Indikator & Suhu Ruang cuma punya satu deret, nggak bernomor).
+  /// Jadi `sensorKe == null` sendirian nggak berarti "bukan grid" — yang
+  /// menentukan itu [peranSensor].
+  ///
+  /// Bukan nomor urut baris di layar: nomor inilah yang menentukan koreksi mana
+  /// yang dipakai dan sensor mana jadi Sensor Acuan.
+  final int? sensorKe;
+
+  /// `termokopel` / `indikator` / `suhu_ruang` — koordinat KOLOM-nya, dalam
+  /// arti "baris ini duduk di tabel yang mana".
+  ///
+  /// Null = lembar bertabel datar; angkanya masuk ke kolom pembacaan biasa.
+  ///
+  /// Wajib dibedakan waktu memulihkan: grid Enclosure nggak cuma termokopel,
+  /// dan baris Suhu Ruang duduk di tabel yang sama dengan peran yang beda.
+  /// Menaruhnya di kotak termokopel bikin angka mendarat di sel yang salah —
+  /// bentuknya wajar, tempatnya salah, dan nggak ada yang meneriakkan apa pun.
+  final String? peranSensor;
+
+  /// Nomor kanal recorder (CH1..CH20). Cuma terisi kalau kalibratornya
+  /// Recorder — koreksi GL840 dibaca per kanal, bukan per tipe sensor.
+  final int? channel;
+
+  /// Baris ini bagian dari GRID sensor (Enclosure), bukan tabel datar.
+  bool get bagianGrid => peranSensor != null;
+
   /// `manual` / `ocr`.
   final String inputSource;
 
@@ -122,6 +154,13 @@ class RawMeasurement {
       pembacaan: (json['pembacaan'] as num).toDouble(),
       tahap: TahapPembacaan.fromJson(json['tahap'] as String?),
       suhu: (json['suhu'] as num?)?.toDouble(),
+      // Koordinat grid Enclosure. Absen di respons versi lama — dan absen itu
+      // sah, bukan cuma buat lembar datar: sesi Enclosure yang dikirim sebelum
+      // kunci ini ada memang nggak punya jalan pulang, dan itu nggak boleh
+      // bikin layarnya gagal dibuka.
+      sensorKe: (json['sensor_ke'] as num?)?.toInt(),
+      peranSensor: json['peran_sensor'] as String?,
+      channel: (json['channel'] as num?)?.toInt(),
       inputSource: json['input_source'] as String? ?? 'manual',
       isVerified: json['is_verified'] as bool? ?? true,
     );

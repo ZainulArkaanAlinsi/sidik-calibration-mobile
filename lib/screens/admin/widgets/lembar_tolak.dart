@@ -100,7 +100,7 @@ class _LembarTolakState extends State<LembarTolak> {
   String _susunCatatan(AppLocalizations l10n) {
     final baris = <String>[
       for (final t in widget.temuan)
-        if (_dipilih.contains('temuan:${t.kode}')) '• ${t.pesan}',
+        if (_dipilih.contains(_kunciTemuan(t))) '• ${t.pesan}',
       for (final a in _alasan(l10n))
         if (_dipilih.contains('alasan:${a.label}')) '• ${a.label}',
     ];
@@ -111,11 +111,37 @@ class _LembarTolakState extends State<LembarTolak> {
     return baris.join('\n');
   }
 
-  /// Kode kolom dari semua alasan yang dipilih, tanpa kembar.
+  /// Kode yang ikut dikirim: kolom dari alasan siap-pakai, PLUS kode sel dari
+  /// temuan yang diketuk.
+  ///
+  /// Kode selnya yang bikin penolakan berhenti jadi "ulangi tabelnya". Sebelum
+  /// ini temuan yang diketuk cuma nyumbang prosanya — jadi admin bisa bilang
+  /// "Titik ke-2 Repeat 3 komanya kegeser", tapi teknisi mesti nyari kotak itu
+  /// pakai mata di tabel berisi puluhan angka. Yang nggak nemu milih jalan
+  /// aman: ngosongin tabel, ngetik ulang semuanya, termasuk angka yang udah
+  /// bener — dan itu justru ngundang salah ketik BARU di sesi revisi.
+  ///
+  /// Temuan yang nggak punya kode sel (kolom identitas, atau pembacaan yang
+  /// titiknya kembar) cuma nyumbang prosanya, sama kayak sebelumnya.
   List<String> _fieldTerpilih(AppLocalizations l10n) => {
     for (final a in _alasan(l10n))
       if (_dipilih.contains('alasan:${a.label}')) ...a.field,
+    for (final t in widget.temuan)
+      if (_dipilih.contains(_kunciTemuan(t))) ?t.kodeSel,
   }.toList();
+
+  /// Kunci pilihan buat satu temuan.
+  ///
+  /// **Bukan `t.kode`.** Kode mesinnya sengaja sama buat temuan sejenis —
+  /// `pembacaan_di_luar_rentang` muncul sekali per pembacaan — jadi mengunci
+  /// pilihan ke kode bikin empat baris di layar nyala-mati barengan. Untuk
+  /// prosa itu cuma berisik; sejak temuan bisa nyumbang KODE SEL, itu bikin
+  /// admin yang mau nandain satu kotak diam-diam nandain empat, dan tiga di
+  /// antaranya angka yang justru sudah benar.
+  ///
+  /// Pesannya ikut jadi kunci karena di situ posisinya disebut ("Titik ke-2
+  /// Repeat 3"), jadi dua temuan yang beda selalu punya kunci yang beda.
+  String _kunciTemuan(Temuan t) => 'temuan:${t.kode}|${t.kodeSel ?? ''}|${t.pesan}';
 
   void _tukar(String kunci) => setState(() {
     _dipilih.contains(kunci) ? _dipilih.remove(kunci) : _dipilih.add(kunci);
@@ -209,8 +235,8 @@ class _LembarTolakState extends State<LembarTolak> {
                   for (final t in widget.temuan)
                     _BarisTemuan(
                       pesan: t.pesan,
-                      dipilih: _dipilih.contains('temuan:${t.kode}'),
-                      onTap: () => _tukar('temuan:${t.kode}'),
+                      dipilih: _dipilih.contains(_kunciTemuan(t)),
+                      onTap: () => _tukar(_kunciTemuan(t)),
                     ),
                   const SizedBox(height: AppSpacing.md),
                 ],

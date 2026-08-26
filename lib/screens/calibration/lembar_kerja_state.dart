@@ -29,6 +29,22 @@ String formatAngka(double nilai) => nilai == nilai.roundToDouble()
     ? nilai.toStringAsFixed(0)
     : '$nilai';
 
+/// Penanda yang nempel di satu sel tabel. Tiga keadaan, dua arti yang beda.
+enum TandaSel {
+  tidakAda,
+
+  /// Diisi hasil pindai dengan vonis server kuning/merah — **saran** buat
+  /// dicek. Nggak ngunci apa pun.
+  keyakinanRendah,
+
+  /// Admin minta sel INI dibetulin (kode sel di `revisi_field`) — **perintah**.
+  ///
+  /// Menang atas [keyakinanRendah] kalau dua-duanya kena sel yang sama: yang
+  /// satu tebakan mesin, yang satu keputusan orang yang mau nandatangani
+  /// sertifikatnya.
+  revisi,
+}
+
 /// Satu baris di layar konfirmasi sebelum kirim: larutan standar, berapa kotak
 /// yang keisi, dan rata-rata pembacaan After adjustment.
 ///
@@ -641,6 +657,14 @@ class LembarKerjaState {
       tujuan.tempelKotak(e.value);
     }
 
+    // Penanda sel dibangun dari KUNCI baris, dan kuncinya baru saja dibikin
+    // ulang. Tanpa disusun ulang di sini, penanda merah dari admin nyangkut di
+    // kunci lembar yang sudah nggak ada — persis di kasus yang paling butuh:
+    // lembar generik Conductivity nyusut begitu alatnya kepilih, dan `titik_ke`
+    // maupun kuncinya geser. Yang keliatan teknisi: lembar revisi tanpa satu
+    // pun kotak merah, padahal admin sudah nandain.
+    _susunSelRevisi();
+
     return kebuang;
   }
 
@@ -956,6 +980,22 @@ class LembarKerjaState {
   /// bagus di pindai berikutnya.
   final Set<String> selRendahKeyakinan = {};
 
+  /// Sel yang **admin** minta dibetulin — dibangun dari kode sel di
+  /// [revisiField]. Kuncinya [kunciSel], sama persis kayak
+  /// [selRendahKeyakinan], jadi tabelnya nggak perlu tau dua bentuk kunci.
+  ///
+  /// Dua penanda yang beda arti, dan sengaja dipisah:
+  /// [selRendahKeyakinan] itu "mesin nggak yakin, tolong dicek";
+  /// yang ini "admin bilang yang ini salah". Yang kedua lebih kuat, jadi
+  /// warnanya menang di [TandaSel].
+  ///
+  /// Ini yang bikin revisi berhenti jadi "ulangi tabelnya". Sebelumnya
+  /// `revisi_field` cuma bisa nunjuk KOLOM identitas, jadi angka yang salah di
+  /// tengah tabel cuma bisa diceritain lewat prosa — dan teknisi yang nggak
+  /// nemu kotaknya milih jalan aman: ngosongin tabel, ngetik ulang semuanya,
+  /// termasuk angka yang udah bener.
+  final Set<String> selRevisi = {};
+
   /// Slot cetak bersatuan dobel: kunci [kunciSlot] → index varian yang kepilih.
   ///
   /// Kertas Conductivity nyetak `1413 µS` dan `1.413 mS` berdampingan dengan
@@ -998,6 +1038,62 @@ class LembarKerjaState {
     final dipilih = pilihanSlot[kunciSlot(tahap, index)] ?? 0;
 
     return slot.titikUkur[dipilih.clamp(0, slot.titikUkur.length - 1)];
+  }
+
+  /// Prefiks kode sel di `revisi_field`. Sama persis dengan `KodeSelRevisi`
+  /// di backend — dua sisi mesti sepakat, dan yang nulis kontraknya di sana.
+  static const prefiksKodeSel = 'sel:';
+
+  /// Terjemahin kode sel dari [revisiField] jadi kunci [kunciSel].
+  ///
+  /// Bentuk kodenya: `sel:<tahap>:<titik_ukur>:<kolom>:<pembacaan_ke>`,
+  /// mis. `sel:sesudah_adjustment:1412:pembacaan:3`. `pembacaan_ke` 1-based
+  /// (sama kayak nomor Repeat yang tercetak di kertas); yang jadi index 0-based
+  /// cuma di sini, satu tempat.
+  ///
+  /// Kode yang bentuknya rusak DIABAIKAN, bukan bikin error. Yang ngirim ini
+  /// layar admin, dan versi HP bisa lebih tua dari versi admin yang ngirim —
+  /// nolak seluruh lembar gara-gara satu penanda yang nggak kebaca itu jauh
+  /// lebih merugikan daripada satu kotak yang nggak kesorot. Catatan prosanya
+  /// tetap nyampe apa adanya.
+  void _susunSelRevisi() {
+    selRevisi.clear();
+
+    for (final kode in revisiField) {
+      if (!kode.startsWith(prefiksKodeSel)) continue;
+
+      final bagian = kode.split(':');
+      if (bagian.length != 5) continue;
+
+      final tahap = bagian[1];
+      final titik = double.tryParse(bagian[2]);
+      final kolom = bagian[3];
+      final ulang = int.tryParse(bagian[4]);
+
+      if (tahap.isEmpty || kolom.isEmpty || titik == null) continue;
+      if (ulang == null || ulang < 1) continue;
+
+      // Titiknya dicocokin ke baris yang BENERAN ada di lembar ini, bukan
+      // dipakai apa adanya: `kunciSel` dibangun dari nilai titik milik bentuk
+      // lembar, dan angka yang sama bisa beda di digit terakhir sesudah
+      // bolak-balik lewat JSON & `decimal(20,8)`. Tanpa ini penandanya nyangkut
+      // di kunci yang nggak pernah kegambar.
+      final kunci = _kunciTitikTerdekat(titik);
+      if (kunci == null) continue;
+
+      selRevisi.add(kunciSel(kunci, tahap, kolom, ulang - 1));
+    }
+  }
+
+  /// Penanda yang berlaku buat satu sel. Permintaan admin menang atas keraguan
+  /// mesin: yang satu perintah, yang satu saran.
+  TandaSel tandaSel(double titikUkur, String tahap, String kolom, int index) {
+    final kunci = kunciSel(titikUkur, tahap, kolom, index);
+
+    if (selRevisi.contains(kunci)) return TandaSel.revisi;
+    if (selRendahKeyakinan.contains(kunci)) return TandaSel.keyakinanRendah;
+
+    return TandaSel.tidakAda;
   }
 
   /// Kunci penanda buat kolom non-tabel & baris usage check. Prefiks-nya bikin
@@ -1094,6 +1190,7 @@ class LembarKerjaState {
     revisiField
       ..clear()
       ..addAll(isi.revisiField);
+    _susunSelRevisi();
     catatanRevisi = isi.catatanRevisi;
 
     isi.standarDicek.forEach((standardId, baris) {
@@ -1271,7 +1368,20 @@ class LembarKerjaState {
   int terapkanPembacaan(Iterable<RawMeasurement> mentah) {
     var kebuang = 0;
 
+    // Baris ber-GRID dipisah duluan. Dia nggak punya kolom `pembacaan`/`suhu`
+    // buat ditaruhi — angkanya duduk di sel (sensor ke-N, repeat ke-M) di dalam
+    // grid termokopel — jadi menjalankannya lewat jalur di bawah bikin tiap
+    // baris dianggap kebuang, dan gridnya tetap kosong.
+    final bergrid = <RawMeasurement>[];
+    final datar = <RawMeasurement>[];
+
     for (final m in mentah) {
+      (m.bagianGrid ? bergrid : datar).add(m);
+    }
+
+    if (bergrid.isNotEmpty) kebuang += _terapkanGrid(bergrid);
+
+    for (final m in datar) {
       final tujuan = _titikTerdekat(m.titikUkur);
 
       if (tujuan == null) {
@@ -1314,6 +1424,197 @@ class LembarKerjaState {
     return kebuang;
   }
 
+  /// Isi GRID sensor (Enclosure) dari pembacaan yang udah tersimpan di server.
+  ///
+  /// Sepuluh lembar bertabel datar pulih lewat [terapkanPembacaan] sejak lama:
+  /// dicocokin per titik ukur, angkanya masuk ke kolom `pembacaan`/`suhu`.
+  /// Lembar Enclosure nggak punya kolom itu. Yang dipulihkan di sini SEL —
+  /// (set point, sensor ke-N, repeat ke-M) — dan yang membedakan satu baris
+  /// dari yang lain justru `sensor_ke` plus `peran_sensor`.
+  ///
+  /// Tanpa ini, teknisi yang lembarnya dikembalikan admin dapat grid KOSONG dan
+  /// ngetik ulang 9 termokopel x 5 repeat x tiap set point — 180 sel buat sesi
+  /// Inkubator 4 set point, termasuk angka yang udah bener. Bahayanya bukan
+  /// capeknya: yang kekirim balik ke admin cuma sisa yang sempat diketik ulang,
+  /// dan sel yang kelewat nggak ninggalin jejak apa pun.
+  ///
+  /// **Peran yang nggak dikenal DIBUANG, bukan ditaruh di kotak termokopel.**
+  /// Grid Enclosure nggak cuma termokopel — baris Suhu Ruang duduk di tabel
+  /// yang sama dengan peran yang beda. Menaruh angka yang perannya nggak
+  /// dikenali ke kotak termokopel bikin dia mendarat di sel yang salah:
+  /// bentuknya wajar, tempatnya salah, dan nggak ada yang bakal teriak. Lebih
+  /// baik dihitung kebuang — angkanya masih ada di server, dan teknisinya
+  /// diomongin.
+  ///
+  /// Balikin JUMLAH baris yang nggak ketemu selnya, ikut dijumlah ke hitungan
+  /// [terapkanPembacaan].
+  int _terapkanGrid(List<RawMeasurement> mentah) {
+    final g = grid;
+
+    // Lembar yang lagi kepasang nggak ber-grid, tapi barisnya ber-peran: nggak
+    // ada tempat yang jujur buat naruhnya. Kejadian kalau layarnya kebuka
+    // dengan profil yang beda dari sesinya — dan kalau itu kejadian, seluruh
+    // lembarnya emang salah, jadi diam bukan pilihan.
+    if (g == null) return mentah.length;
+
+    var kebuang = 0;
+
+    // Dikelompokin per SET POINT dulu. Nilainya bolak-balik lewat JSON dan
+    // `decimal(20,8)`, jadi dicocokin dengan toleransi yang sama kayak
+    // [_titikTerdekat] — bukan `==`.
+    final perTitik = <double, List<RawMeasurement>>{};
+
+    for (final m in mentah) {
+      final kunci = perTitik.keys.firstWhere(
+        (k) => _titikSama(k, m.titikUkur),
+        orElse: () => m.titikUkur,
+      );
+      (perTitik[kunci] ??= []).add(m);
+    }
+
+    final urut = perTitik.keys.toList()..sort();
+
+    for (final titikUkur in urut) {
+      final baris = perTitik[titikUkur]!
+        // Termokopel duluan dan urut nomor, biar baris kosong bawaan layar
+        // kepakai berurutan. Nomornya sendiri yang nentuin koreksi & Sensor
+        // Acuan — bukan posisinya — tapi grid yang urutannya acak bikin
+        // teknisi susah nyocokin sama kertas yang lagi dia pegang.
+        ..sort((a, b) {
+          final peran = _urutanPeran(a.peranSensor) - _urutanPeran(b.peranSensor);
+          if (peran != 0) return peran;
+          final no = (a.sensorKe ?? 0) - (b.sensorKe ?? 0);
+          return no != 0 ? no : a.pembacaanKe - b.pembacaanKe;
+        });
+
+      for (final m in baris) {
+        if (!_taruhSelGrid(g, titikUkur, m)) kebuang++;
+      }
+    }
+
+    // Kotak teksnya udah keisi, tapi `pembacaan`/`nilai` di baliknya belum —
+    // dan itu yang dibaca `sensorTerisi`, lencana Sensor Acuan, dan daftar
+    // peringatan pra-kirim. Tanpa ini teknisi ngeliat grid penuh angka sambil
+    // diomongin "belum ada termokopel yang diisi" sampai dia ngetuk satu sel.
+    g.bacaUlang();
+
+    return kebuang;
+  }
+
+  /// Termokopel dulu (0), baris deret belakangan (1).
+  static int _urutanPeran(String? peran) => peran == 'termokopel' ? 0 : 1;
+
+  /// Set point buat [titikUkur] — yang udah ada, yang masih kosong, atau baru.
+  SetPointGridState _setPointUntuk(GridSensorState g, double titikUkur) {
+    for (final sp in g.setPoint) {
+      final t = sp.titikUkur;
+      if (t != null && _titikSama(t, titikUkur)) return sp;
+    }
+
+    // Set point kosong bawaan layar dipakai ulang — bukan ditinggal jadi baris
+    // hampa di atas hasil pemulihan.
+    for (final sp in g.setPoint) {
+      if (sp.kosongSemua) {
+        sp.titikCtl.text = formatAngka(titikUkur);
+        return sp;
+      }
+    }
+
+    g.tambahSetPoint();
+    final sp = g.setPoint.last;
+    sp.titikCtl.text = formatAngka(titikUkur);
+    return sp;
+  }
+
+  /// Taruh satu baris mentah ke selnya. `false` = nggak ketemu tempatnya.
+  ///
+  /// Set point-nya dibikin BELAKANGAN, cuma kalau barisnya beneran mendarat.
+  /// Kalau dibikin di depan, satu baris yang ujungnya kebuang meninggalkan set
+  /// point kosong berlabel "30 °C" yang ikut kekirim ke server dan bikin
+  /// peringatan "belum ada termokopel yang diisi" — kebisingan yang dilahirkan
+  /// pemulihan itu sendiri, di layar yang justru sedang dipakai membetulkan.
+  ///
+  /// [_setPointUntuk] aman dipanggil berkali-kali: panggilan kedua ketemu set
+  /// point yang sama lewat nilai titiknya.
+  bool _taruhSelGrid(GridSensorState g, double titikUkur, RawMeasurement m) {
+    // `pembacaan_ke` dari server 1-based; kotaknya 0-based.
+    final index = m.pembacaanKe - 1;
+
+    // Diadu ke bentuknya, bukan ke panjang kotak satu baris — dua-duanya
+    // dibangun dari `bentuk.pengulangan`, jadi angkanya sama persis, dan yang
+    // ini kebaca tanpa perlu bikin barisnya dulu.
+    if (index < 0 || index >= g.bentuk.pengulangan.length) return false;
+
+    if (m.peranSensor == 'termokopel') {
+      final no = m.sensorKe;
+
+      // Termokopel tanpa nomor nggak bisa ditaruh: nomornya yang nentuin
+      // koreksi mana yang dipakai, jadi nebak posisinya = nebak koreksinya.
+      if (no == null) return false;
+
+      final baris = _barisSensorUntuk(_setPointUntuk(g, titikUkur), no);
+
+      _isiKalauKosong(baris.pembacaanCtl[index], m.pembacaan);
+
+      // Kanal recorder ikut pulih. Tanpa ini sesi Recorder yang dikembalikan
+      // bikin teknisi diteriakin "Channel wajib diisi" buat baris yang udah dia
+      // isi bener — dan kalau dia ngetik ulang salah, koreksi kanal lain yang
+      // kepakai tanpa satu pun error.
+      final kanal = m.channel;
+
+      if (kanal != null && baris.channelCtl.text.trim().isEmpty) {
+        baris.channelCtl.text = '$kanal';
+      }
+
+      return true;
+    }
+
+    // Peran yang HP versi ini belum kenal dibuang. Lihat docblock
+    // [_terapkanGrid] soal kenapa, bukan ditaruh di kotak terdekat.
+    if (m.peranSensor != 'indikator' && m.peranSensor != 'suhu_ruang') {
+      return false;
+    }
+
+    final sp = _setPointUntuk(g, titikUkur);
+    final deret = m.peranSensor == 'indikator' ? sp.indikator : sp.suhuRuang;
+
+    _isiKalauKosong(deret.ctl[index], m.pembacaan);
+
+    return true;
+  }
+
+  /// Baris termokopel bernomor [no] — yang udah ada, yang masih kosong, atau
+  /// baru.
+  ///
+  /// Nomornya yang dicari, BUKAN posisi barisnya: sembilan termokopel yang sama
+  /// dipindah ke set point berikutnya, dan urutan ngisinya bebas.
+  BarisSensorState _barisSensorUntuk(SetPointGridState sp, int no) {
+    for (final b in sp.sensor) {
+      if (b.no == no) return b;
+    }
+
+    for (final b in sp.sensor) {
+      if (b.kosongSemua) {
+        b.noCtl.text = '$no';
+        return b;
+      }
+    }
+
+    sp.tambahSensor();
+    final b = sp.sensor.last;
+    b.noCtl.text = '$no';
+    return b;
+  }
+
+  /// Sel yang teknisinya SUDAH ngetik nggak ditimpa — aturan yang sama dengan
+  /// [terapkanPembacaan] dan [muatDariSesi]. Layar ini bisa kebuka duluan
+  /// sebelum detail sesinya nyampe dari jaringan lelet, dan angka yang barusan
+  /// diketik ilang di depan mata itu kerusakan yang lebih besar daripada satu
+  /// sel yang nggak kepulihkan.
+  static void _isiKalauKosong(TextEditingController kotak, double nilai) {
+    if (kotak.text.trim().isEmpty) kotak.text = formatAngka(nilai);
+  }
+
   /// Cadangan buat sesi yang dikirim SEBELUM `raw_measurements.standard_id`
   /// ada: centang standarnya cuma kerekam di hasil hitung.
   ///
@@ -1340,13 +1641,35 @@ class LembarKerjaState {
     if (persis != null) return persis;
 
     for (final e in titik.entries) {
-      // Relatif, bukan absolut: titiknya berkisar dari 1,412 sampai 12880.
-      final toleransi = math.max(e.key.abs(), titikUkur.abs()) * 1e-6;
-      if ((e.key - titikUkur).abs() <= toleransi) return e.value;
+      if (_titikSama(e.key, titikUkur)) return e.value;
     }
 
     return null;
   }
+
+  /// Sama kayak [_titikTerdekat], tapi balikin KUNCI-nya.
+  ///
+  /// Kuncinya nggak selalu sama dengan nilai titiknya: tabel yang titiknya
+  /// kembar (matriks Autoklaf — delapan baris besaran dengan `titik_ukur` nol
+  /// semua) dikunci pakai INDEKS baris. Penanda sel dibangun dari kunci itu,
+  /// jadi yang dicari di sini kuncinya.
+  double? _kunciTitikTerdekat(double titikUkur) {
+    if (titik.containsKey(titikUkur)) return titikUkur;
+
+    for (final k in titik.keys) {
+      if (_titikSama(k, titikUkur)) return k;
+    }
+
+    return null;
+  }
+
+  /// Dua nilai titik ukur menunjuk baris yang sama?
+  ///
+  /// Toleransinya RELATIF, bukan absolut: titiknya berkisar dari 1,412 sampai
+  /// 12880, jadi satu ambang tetap bakal kelewat longgar di ujung bawah dan
+  /// kelewat ketat di ujung atas.
+  static bool _titikSama(double a, double b) =>
+      (a - b).abs() <= math.max(a.abs(), b.abs()) * 1e-6;
 
   /// Tempel balik salinan dari [salinIsianTitik] sesudah bentuk lembar diganti.
   ///

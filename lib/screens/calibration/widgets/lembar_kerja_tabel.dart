@@ -372,15 +372,15 @@ class LembarKerjaTabel extends StatelessWidget {
                                       kolom.kode,
                                       tabel.pengulangan.indexOf(r),
                                     ),
-                                // Sel yang diisi AI dengan keyakinan rendah
-                                // ditandai supaya dicek — bukan seluruh tabel.
-                                rendah: isian.selRendahKeyakinan.contains(
-                                  LembarKerjaState.kunciSel(
-                                    isian.kunciBaris(_baris, indexBaris),
-                                    tabel.tahap,
-                                    kolom.kode,
-                                    tabel.pengulangan.indexOf(r),
-                                  ),
+                                // Sel yang diminta admin dibetulin, atau yang
+                                // diisi pindai dengan keyakinan rendah —
+                                // ditandai supaya dicek yang itu saja, bukan
+                                // seluruh tabel.
+                                tanda: isian.tandaSel(
+                                  isian.kunciBaris(_baris, indexBaris),
+                                  tabel.tahap,
+                                  kolom.kode,
+                                  tabel.pengulangan.indexOf(r),
                                 ),
                               ),
                         ],
@@ -840,9 +840,7 @@ class _TabelKeBawahState extends State<_TabelKeBawah> {
       tinggi: _tinggiBaris,
       terkunci: !widget.isian.titikBisaDiisi(titik!),
       controller: state.kotak(_tabel.tahap, kolom.kode, urutan),
-      rendah: widget.isian.selRendahKeyakinan.contains(
-        LembarKerjaState.kunciSel(titik, _tabel.tahap, kolom.kode, urutan),
-      ),
+      tanda: widget.isian.tandaSel(titik, _tabel.tahap, kolom.kode, urutan),
     );
   }
 }
@@ -1243,7 +1241,7 @@ class _SelAngka extends StatelessWidget {
     required this.lebar,
     required this.tinggi,
     required this.controller,
-    this.rendah = false,
+    this.tanda = TandaSel.tidakAda,
     this.terkunci = false,
   });
 
@@ -1254,9 +1252,17 @@ class _SelAngka extends StatelessWidget {
   final double tinggi;
   final TextEditingController controller;
 
-  /// Sel ini diisi AI dengan keyakinan rendah — dikasih border kuning biar
-  /// teknisi ngecek angkanya. Bukan ngunci apa-apa, cuma pengingat visual.
-  final bool rendah;
+  /// Penanda yang nempel di sel ini. Bukan ngunci apa-apa — cuma pengingat
+  /// visual, dan selnya tetap bisa diketik.
+  ///
+  /// Dua warna buat dua arti yang beda, dan bedanya penting:
+  /// **kuning** = mesin nggak yakin waktu mindai, tolong dicek.
+  /// **merah** = admin bilang angka INI yang salah.
+  ///
+  /// Yang merah itu yang bikin revisi berhenti jadi "ulangi tabelnya": teknisi
+  /// lihat persis kotak mana yang diminta, dan sisa tabelnya — yang sudah dia
+  /// isi benar — tetap berdiri.
+  final TandaSel tanda;
 
   /// Baris pasangannya udah mulai diisi, jadi baris ini nggak boleh diisi.
   /// Tetap KELIHATAN — cuma nggak bisa diketik — supaya teknisi paham ini
@@ -1266,13 +1272,22 @@ class _SelAngka extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const warna = Color(0xFFB8860B); // amber gelap, kebaca di light & dark
 
-    final borderTanda = rendah
-        ? const OutlineInputBorder(
+    // Dua-duanya dipatok, bukan diambil dari skema tema: yang merah HARUS beda
+    // jelas dari yang kuning di layar HP di bawah lampu bengkel, dan
+    // `colorScheme.error` di tema terang ini terlalu dekat ke ambernya.
+    final warna = switch (tanda) {
+      TandaSel.tidakAda => null,
+      // Amber gelap, kebaca di light & dark.
+      TandaSel.keyakinanRendah => const Color(0xFFB8860B),
+      TandaSel.revisi => const Color(0xFFC62828),
+    };
+
+    final borderTanda = warna == null
+        ? null
+        : OutlineInputBorder(
             borderSide: BorderSide(color: warna, width: 1.5),
-          )
-        : null;
+          );
 
     return SizedBox(
       width: lebar,
@@ -1295,8 +1310,8 @@ class _SelAngka extends StatelessWidget {
           ],
           decoration: InputDecoration(
             isDense: true,
-            filled: rendah || terkunci,
-            fillColor: rendah
+            filled: warna != null || terkunci,
+            fillColor: warna != null
                 ? warna.withValues(alpha: 0.12)
                 : (terkunci
                     ? theme.colorScheme.onSurface.withValues(alpha: 0.05)
