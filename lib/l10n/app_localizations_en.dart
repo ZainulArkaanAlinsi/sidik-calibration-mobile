@@ -1141,6 +1141,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get detailSesudahAdjustment => 'After adjustment (certified)';
 
   @override
+  String get detailPembacaanStandar => 'Standard reading (lab probe)';
+
+  @override
+  String get detailPembacaanUut => 'UUT reading (customer instrument)';
+
+  @override
   String get detailAsFoundCatatan =>
       'Documents the state the instrument arrived in — not part of the certified result.';
 

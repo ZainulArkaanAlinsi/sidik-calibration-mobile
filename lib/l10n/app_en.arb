@@ -547,6 +547,8 @@
   "detailSuhuLarutan": "Solution temp.",
   "detailSebelumAdjustment": "Before adjustment (as found)",
   "detailSesudahAdjustment": "After adjustment (certified)",
+  "detailPembacaanStandar": "Standard reading (lab probe)",
+  "detailPembacaanUut": "UUT reading (customer instrument)",
   "detailAsFoundCatatan": "Documents the state the instrument arrived in — not part of the certified result.",
   "detailPerluVerifikasi": "Some OCR readings still need confirming — this session can't be approved yet.",
   "detailVerifikasiTombol": "I've checked these readings",

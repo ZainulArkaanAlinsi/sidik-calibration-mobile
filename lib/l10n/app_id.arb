@@ -427,6 +427,8 @@
   "detailSuhuLarutan": "Suhu larutan",
   "detailSebelumAdjustment": "Sebelum adjustment (as found)",
   "detailSesudahAdjustment": "Sesudah adjustment (disertifikasi)",
+  "detailPembacaanStandar": "Pembacaan standard (probe lab)",
+  "detailPembacaanUut": "Pembacaan UUT (alat pelanggan)",
   "detailAsFoundCatatan": "Dokumentasi kondisi alat waktu diterima — nggak ikut hasil yang disertifikasi.",
   "detailPerluVerifikasi": "Masih ada pembacaan OCR yang belum dikonfirmasi — sesi ini belum bisa di-approve.",
   "detailVerifikasiTombol": "Saya sudah cek angkanya",
