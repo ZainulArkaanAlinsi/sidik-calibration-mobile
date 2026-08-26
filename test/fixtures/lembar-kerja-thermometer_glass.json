@@ -1,0 +1,685 @@
+{
+    "kode_dokumen": null,
+    "kode_metode": "SIDIK-IK-CAL-0527_Rev.1",
+    "judul": "Calibration Worksheet - Thermometer Glass",
+    "jumlah_pengulangan": 5,
+    "larutan_standar": [
+        30,
+        50,
+        60,
+        80,
+        100
+    ],
+    "satuan": "°C",
+    "satuan_suhu": "°C",
+    "semua_kolom_opsional": true,
+    "catatan_pengisian": "Kolom yang belum bisa diisi di lapangan boleh dikosongin — lembar kerja tetap bisa dikirim. Khusus alat ini: OILBATH dan TIPE PENCELUPAN wajib dipilih, dan UJI TITIK ES diisi lebih dulu (Pre-Evaluation) karena rentangnya masuk budget. Tiap titik dibaca DUA deret: standar (detik ke-0, 20, 40, 60, 80) dan UUT (detik ke-10, 30, 50, 70, 90).",
+    "bagian": [
+        {
+            "kode": "identitas_alat",
+            "halaman": 1,
+            "judul": "EQUIPMENT IDENTITY AND CUSTOMER DATA",
+            "field": [
+                {
+                    "kode": "tanggal_terima",
+                    "label": "Received Date",
+                    "tipe": "tanggal",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "tanggal_kalibrasi",
+                    "label": "Calibration Date",
+                    "tipe": "tanggal",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "equipment_id",
+                    "label": "Equipment",
+                    "tipe": "pilihan",
+                    "wajib": false,
+                    "sumber": "master_alat",
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "equipment.nama_alat",
+                    "label": "1. Nama Alat",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": "otomatis",
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "alat_merk",
+                    "label": "2. Merk",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "alat_model",
+                    "label": "3. Type",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "alat_serial_number",
+                    "label": "4. No. Seri",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "spesifikasi_alat.rentang_ukur",
+                    "label": "5. Rentang Ukur",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "°C",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "spesifikasi_alat.kapasitas",
+                    "label": "6. Kapasitas Alat",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "°C",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "spesifikasi_alat.resolusi",
+                    "label": "7. Resolusi Alat (skala terkecil)",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "°C",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                }
+            ]
+        },
+        {
+            "kode": "pemilik",
+            "halaman": 1,
+            "judul": "IDENTITAS CUSTOMER",
+            "field": [
+                {
+                    "kode": "pemilik_nama",
+                    "label": "1. Nama Customer",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "pemilik_alamat",
+                    "label": "2. Alamat Customer",
+                    "tipe": "teks_panjang",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                }
+            ]
+        },
+        {
+            "kode": "usage_check",
+            "halaman": 1,
+            "judul": "STANDARD",
+            "baris": [
+                {
+                    "label": "Temperature Calibrator Constant 40T",
+                    "standard_id": 44,
+                    "merk": "Constant",
+                    "serial_number": "99875850",
+                    "no_sertifikat": "99875850",
+                    "tertelusur_ke": "LK-202-IDN",
+                    "terdaftar": true
+                },
+                {
+                    "label": "Temperature Calibrator Yokogawa CA 150 Handy Cal",
+                    "standard_id": 45,
+                    "merk": "Yokogawa",
+                    "serial_number": "23P1005",
+                    "no_sertifikat": "23P1005",
+                    "tertelusur_ke": "LK-202-IDN",
+                    "terdaftar": true
+                },
+                {
+                    "label": "PRT PT100",
+                    "standard_id": 47,
+                    "merk": null,
+                    "serial_number": "SH1/20",
+                    "no_sertifikat": "SH1/20",
+                    "tertelusur_ke": "SNSU-BSN",
+                    "terdaftar": true
+                }
+            ],
+            "field": [
+                {
+                    "kode": "standar_dicek.*.dipakai",
+                    "label": "Usage Check",
+                    "tipe": "centang",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "standar_dicek.*.keterangan",
+                    "label": "Keterangan",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                }
+            ]
+        },
+        {
+            "kode": "data_kalibrasi",
+            "halaman": 1,
+            "judul": "PENGERJAAN",
+            "field": [
+                {
+                    "kode": "tipe_pencelupan",
+                    "label": "Thermometer Type",
+                    "tipe": "pilihan",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [
+                        {
+                            "nilai": "Partial Immersion",
+                            "label": "Partial Immersion"
+                        },
+                        {
+                            "nilai": "Total Immersion",
+                            "label": "Total Immersion"
+                        },
+                        {
+                            "nilai": "Complete Immersion",
+                            "label": "Complete Immersion"
+                        }
+                    ],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "alat_bantu",
+                    "label": "Oilbath Used",
+                    "tipe": "pilihan",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [
+                        {
+                            "nilai": "satu",
+                            "label": "Oil Bath 1 (SIDIK/079/2022)"
+                        },
+                        {
+                            "nilai": "dua",
+                            "label": "Oil Bath 2 (SIDIK/080/2022)"
+                        }
+                    ],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "lokasi",
+                    "label": "Lokasi Kalibrasi",
+                    "tipe": "pilihan",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [
+                        {
+                            "nilai": "lab",
+                            "label": "Inlab"
+                        },
+                        {
+                            "nilai": "onsite",
+                            "label": "Insitu"
+                        }
+                    ],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "lokasi_nama",
+                    "label": "Nama Tempat (Insitu)",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": {
+                        "kode": "lokasi",
+                        "nilai": [
+                            "onsite"
+                        ]
+                    }
+                },
+                {
+                    "kode": "room_id",
+                    "label": "Ruangan (Inlab)",
+                    "tipe": "pilihan",
+                    "wajib": false,
+                    "sumber": "master_ruangan",
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": {
+                        "kode": "lokasi",
+                        "nilai": [
+                            "lab"
+                        ]
+                    }
+                },
+                {
+                    "kode": "calibration_method_id",
+                    "label": "Calibration Method",
+                    "tipe": "pilihan",
+                    "wajib": false,
+                    "sumber": "master_metode",
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": true,
+                    "tampil_kalau": null
+                }
+            ]
+        },
+        {
+            "kode": "pre_evaluasi",
+            "halaman": 1,
+            "judul": "1. Pre-Evaluation (UUT) — Ice Point 30 menit",
+            "field": [
+                {
+                    "kode": "titik_es_1",
+                    "label": "Ice Point X1",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "°C",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "titik_es_2",
+                    "label": "Ice Point X2",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "°C",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "titik_es_3",
+                    "label": "Ice Point X3",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "°C",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                }
+            ]
+        },
+        {
+            "kode": "hasil",
+            "halaman": 1,
+            "judul": "DATA HASIL KALIBRASI",
+            "field": [
+                {
+                    "kode": "suhu_awal",
+                    "label": "Suhu Ruangan — Awal",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "°C",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "suhu_akhir",
+                    "label": "Suhu Ruangan — Akhir",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "°C",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "kelembaban_awal",
+                    "label": "Kelembaban — Awal",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "%RH",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "kelembaban_akhir",
+                    "label": "Kelembaban — Akhir",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "%RH",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "thermohygro_standard_id",
+                    "label": "Environmental Meter Used",
+                    "tipe": "pilihan",
+                    "wajib": false,
+                    "sumber": "master_thermohygro",
+                    "satuan": null,
+                    "pilihan": [
+                        {
+                            "nilai": "1",
+                            "label": "TH-1",
+                            "grup": "Inlab"
+                        },
+                        {
+                            "nilai": "3",
+                            "label": "TH-3",
+                            "grup": "Inlab"
+                        },
+                        {
+                            "nilai": "4",
+                            "label": "TH-4",
+                            "grup": "Inlab"
+                        },
+                        {
+                            "nilai": "5",
+                            "label": "TH-5",
+                            "grup": "Inlab"
+                        },
+                        {
+                            "nilai": "7",
+                            "label": "TH-7",
+                            "grup": "Inlab"
+                        },
+                        {
+                            "nilai": "2",
+                            "label": "TH-2",
+                            "grup": "Insitu"
+                        },
+                        {
+                            "nilai": "6",
+                            "label": "TH-6",
+                            "grup": "Insitu"
+                        }
+                    ],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                }
+            ],
+            "tabel": [
+                {
+                    "tahap": "sesudah_adjustment",
+                    "grup": "standar",
+                    "peran": "standar",
+                    "judul": "2. Pembacaan Standard",
+                    "satuan": "°C",
+                    "judul_nilai": "Set Point",
+                    "judul_pengulangan": "Data Hasil Pengukuran/Pengulangan (PRT1…PRT5)",
+                    "pengulangan_arah": [
+                        {
+                            "ke": 1,
+                            "label": "0″"
+                        },
+                        {
+                            "ke": 2,
+                            "label": "20″"
+                        },
+                        {
+                            "ke": 3,
+                            "label": "40″"
+                        },
+                        {
+                            "ke": 4,
+                            "label": "60″"
+                        },
+                        {
+                            "ke": 5,
+                            "label": "80″"
+                        }
+                    ],
+                    "titik_bisa_diubah": true,
+                    "baris": [
+                        {
+                            "titik_ukur": 30,
+                            "label": "30 °C",
+                            "satuan": "°C",
+                            "standard_id": 45,
+                            "standard_nama": "Temperature Calibrator Yokogawa CA 150 Handy Cal"
+                        },
+                        {
+                            "titik_ukur": 50,
+                            "label": "50 °C",
+                            "satuan": "°C",
+                            "standard_id": 45,
+                            "standard_nama": "Temperature Calibrator Yokogawa CA 150 Handy Cal"
+                        },
+                        {
+                            "titik_ukur": 60,
+                            "label": "60 °C",
+                            "satuan": "°C",
+                            "standard_id": 45,
+                            "standard_nama": "Temperature Calibrator Yokogawa CA 150 Handy Cal"
+                        },
+                        {
+                            "titik_ukur": 80,
+                            "label": "80 °C",
+                            "satuan": "°C",
+                            "standard_id": 45,
+                            "standard_nama": "Temperature Calibrator Yokogawa CA 150 Handy Cal"
+                        },
+                        {
+                            "titik_ukur": 100,
+                            "label": "100 °C",
+                            "satuan": "°C",
+                            "standard_id": 45,
+                            "standard_nama": "Temperature Calibrator Yokogawa CA 150 Handy Cal"
+                        }
+                    ],
+                    "kolom": [
+                        {
+                            "kode": "pembacaan",
+                            "label": "°C",
+                            "tipe": "angka",
+                            "satuan": "°C"
+                        }
+                    ],
+                    "pengulangan": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ]
+                },
+                {
+                    "tahap": "sesudah_adjustment",
+                    "grup": "uut",
+                    "peran": "uut",
+                    "judul": "3. Pembacaan UUT",
+                    "satuan": "°C",
+                    "judul_nilai": "Set Point",
+                    "judul_pengulangan": "Data Hasil Pengukuran/Pengulangan (PRT1…PRT5)",
+                    "pengulangan_arah": [
+                        {
+                            "ke": 1,
+                            "label": "10″"
+                        },
+                        {
+                            "ke": 2,
+                            "label": "30″"
+                        },
+                        {
+                            "ke": 3,
+                            "label": "50″"
+                        },
+                        {
+                            "ke": 4,
+                            "label": "70″"
+                        },
+                        {
+                            "ke": 5,
+                            "label": "90″"
+                        }
+                    ],
+                    "titik_bisa_diubah": true,
+                    "baris": [
+                        {
+                            "titik_ukur": 30,
+                            "label": "30 °C",
+                            "satuan": "°C",
+                            "standard_id": 45,
+                            "standard_nama": "Temperature Calibrator Yokogawa CA 150 Handy Cal"
+                        },
+                        {
+                            "titik_ukur": 50,
+                            "label": "50 °C",
+                            "satuan": "°C",
+                            "standard_id": 45,
+                            "standard_nama": "Temperature Calibrator Yokogawa CA 150 Handy Cal"
+                        },
+                        {
+                            "titik_ukur": 60,
+                            "label": "60 °C",
+                            "satuan": "°C",
+                            "standard_id": 45,
+                            "standard_nama": "Temperature Calibrator Yokogawa CA 150 Handy Cal"
+                        },
+                        {
+                            "titik_ukur": 80,
+                            "label": "80 °C",
+                            "satuan": "°C",
+                            "standard_id": 45,
+                            "standard_nama": "Temperature Calibrator Yokogawa CA 150 Handy Cal"
+                        },
+                        {
+                            "titik_ukur": 100,
+                            "label": "100 °C",
+                            "satuan": "°C",
+                            "standard_id": 45,
+                            "standard_nama": "Temperature Calibrator Yokogawa CA 150 Handy Cal"
+                        }
+                    ],
+                    "kolom": [
+                        {
+                            "kode": "pembacaan",
+                            "label": "°C",
+                            "tipe": "angka",
+                            "satuan": "°C"
+                        }
+                    ],
+                    "pengulangan": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ]
+                }
+            ]
+        },
+        {
+            "kode": "penutup",
+            "halaman": 1,
+            "judul": "Catatan & Tanda Tangan",
+            "field": [
+                {
+                    "kode": "catatan_teknisi",
+                    "label": "Catatan",
+                    "tipe": "teks_panjang",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "teknisi.nama",
+                    "label": "Calculated by",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": "otomatis",
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "reviewer.nama",
+                    "label": "Signed by",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": "otomatis",
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                }
+            ]
+        }
+    ]
+}

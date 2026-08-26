@@ -1,0 +1,819 @@
+{
+    "kode_dokumen": null,
+    "kode_metode": "SIDIK-IK-CAL-0518_Rev.4",
+    "judul": "Calibration Worksheet - Temperatur & Kelembapan (Thermohygro)",
+    "jumlah_pengulangan": 5,
+    "larutan_standar": [
+        15,
+        25,
+        35,
+        45,
+        50
+    ],
+    "satuan": "°C",
+    "satuan_suhu": "°C",
+    "satuan_campuran": true,
+    "semua_kolom_opsional": true,
+    "catatan_pengisian": "Kolom yang belum bisa diisi di lapangan boleh dikosongin — lembar kerja tetap bisa dikirim. Alat ini punya DUA parameter: suhu (°C) dan kelembapan (%RH), masing-masing dengan tabel & U95 sendiri. Chamber kelembapan dipilih sistem dari set point-nya: ≥ 50 %RH BIOBASE, < 50 %RH GEA.",
+    "bagian": [
+        {
+            "kode": "identitas_alat",
+            "halaman": 1,
+            "judul": "EQUIPMENT IDENTITY AND CUSTOMER DATA",
+            "field": [
+                {
+                    "kode": "tanggal_terima",
+                    "label": "Received Date",
+                    "tipe": "tanggal",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "tanggal_kalibrasi",
+                    "label": "Calibration Date",
+                    "tipe": "tanggal",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "equipment_id",
+                    "label": "Equipment",
+                    "tipe": "pilihan",
+                    "wajib": false,
+                    "sumber": "master_alat",
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "equipment.nama_alat",
+                    "label": "1. Nama Alat",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": "otomatis",
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "alat_merk",
+                    "label": "2. Merk",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "alat_model",
+                    "label": "3. Type",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "alat_serial_number",
+                    "label": "4. No. Seri",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "spesifikasi_alat.rentang_ukur",
+                    "label": "5. Rentang Ukur Suhu",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "°C",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "spesifikasi_alat.kapasitas",
+                    "label": "6. Kapasitas Suhu",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "°C",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "spesifikasi_alat.resolusi",
+                    "label": "7. Resolusi Suhu",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "°C",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "spesifikasi_alat.rentang_ukur_kelembaban",
+                    "label": "8. Rentang Ukur Humi.",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "%RH",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "spesifikasi_alat.kapasitas_kelembaban",
+                    "label": "9. Kapasitas Humi.",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "%RH",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "spesifikasi_alat.resolusi_kelembaban",
+                    "label": "10. Resolusi Humi.",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "%RH",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                }
+            ]
+        },
+        {
+            "kode": "pemilik",
+            "halaman": 1,
+            "judul": "IDENTITAS CUSTOMER",
+            "field": [
+                {
+                    "kode": "pemilik_nama",
+                    "label": "1. Nama Customer",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "pemilik_alamat",
+                    "label": "2. Alamat Customer",
+                    "tipe": "teks_panjang",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                }
+            ]
+        },
+        {
+            "kode": "usage_check",
+            "halaman": 1,
+            "judul": "STANDARD",
+            "baris": [
+                {
+                    "label": "Temperature Humidity Meter",
+                    "standard_id": 50,
+                    "merk": null,
+                    "serial_number": "201701023483",
+                    "no_sertifikat": "201701023483",
+                    "tertelusur_ke": "LK-361-IDN",
+                    "terdaftar": true
+                }
+            ],
+            "field": [
+                {
+                    "kode": "standar_dicek.*.dipakai",
+                    "label": "Usage Check",
+                    "tipe": "centang",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "standar_dicek.*.keterangan",
+                    "label": "Keterangan",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                }
+            ]
+        },
+        {
+            "kode": "data_kalibrasi",
+            "halaman": 1,
+            "judul": "PENGERJAAN",
+            "field": [
+                {
+                    "kode": "lokasi",
+                    "label": "Lokasi Kalibrasi",
+                    "tipe": "pilihan",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [
+                        {
+                            "nilai": "lab",
+                            "label": "Inlab"
+                        },
+                        {
+                            "nilai": "onsite",
+                            "label": "Insitu"
+                        }
+                    ],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "lokasi_nama",
+                    "label": "Nama Tempat (Insitu)",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": {
+                        "kode": "lokasi",
+                        "nilai": [
+                            "onsite"
+                        ]
+                    }
+                },
+                {
+                    "kode": "room_id",
+                    "label": "Ruangan (Inlab)",
+                    "tipe": "pilihan",
+                    "wajib": false,
+                    "sumber": "master_ruangan",
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": {
+                        "kode": "lokasi",
+                        "nilai": [
+                            "lab"
+                        ]
+                    }
+                },
+                {
+                    "kode": "calibration_method_id",
+                    "label": "Calibration Method",
+                    "tipe": "pilihan",
+                    "wajib": false,
+                    "sumber": "master_metode",
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": true,
+                    "tampil_kalau": null
+                }
+            ]
+        },
+        {
+            "kode": "hasil_suhu",
+            "halaman": 1,
+            "judul": "1. KALIBRASI SUHU (TEMPERATURE)",
+            "field": [
+                {
+                    "kode": "suhu_awal",
+                    "label": "Suhu Ruangan — Awal",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "°C",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "suhu_akhir",
+                    "label": "Suhu Ruangan — Akhir",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "°C",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "kelembaban_awal",
+                    "label": "Kelembaban — Awal",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "%RH",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "kelembaban_akhir",
+                    "label": "Kelembaban — Akhir",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "%RH",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "thermohygro_standard_id",
+                    "label": "Environmental Meter Used",
+                    "tipe": "pilihan",
+                    "wajib": false,
+                    "sumber": "master_thermohygro",
+                    "satuan": null,
+                    "pilihan": [
+                        {
+                            "nilai": "1",
+                            "label": "TH-1",
+                            "grup": "Inlab"
+                        },
+                        {
+                            "nilai": "3",
+                            "label": "TH-3",
+                            "grup": "Inlab"
+                        },
+                        {
+                            "nilai": "4",
+                            "label": "TH-4",
+                            "grup": "Inlab"
+                        },
+                        {
+                            "nilai": "5",
+                            "label": "TH-5",
+                            "grup": "Inlab"
+                        },
+                        {
+                            "nilai": "7",
+                            "label": "TH-7",
+                            "grup": "Inlab"
+                        },
+                        {
+                            "nilai": "2",
+                            "label": "TH-2",
+                            "grup": "Insitu"
+                        },
+                        {
+                            "nilai": "6",
+                            "label": "TH-6",
+                            "grup": "Insitu"
+                        }
+                    ],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                }
+            ],
+            "tabel": [
+                {
+                    "tahap": "sesudah_adjustment",
+                    "grup": "suhu_standar",
+                    "peran": "standar",
+                    "judul": "Pembacaan Standard [CHAMBER BIOBASE]",
+                    "satuan": "°C",
+                    "judul_nilai": "Set Point",
+                    "judul_pengulangan": "Data Hasil Pengukuran/Pengulangan (X1…X5)",
+                    "pengulangan_arah": [
+                        {
+                            "ke": 1,
+                            "label": "X1"
+                        },
+                        {
+                            "ke": 2,
+                            "label": "X2"
+                        },
+                        {
+                            "ke": 3,
+                            "label": "X3"
+                        },
+                        {
+                            "ke": 4,
+                            "label": "X4"
+                        },
+                        {
+                            "ke": 5,
+                            "label": "X5"
+                        }
+                    ],
+                    "titik_bisa_diubah": true,
+                    "baris": [
+                        {
+                            "titik_ukur": 15,
+                            "label": "15 °C",
+                            "satuan": "°C",
+                            "standard_id": 50,
+                            "standard_nama": "Temperature Humidity Meter"
+                        },
+                        {
+                            "titik_ukur": 25,
+                            "label": "25 °C",
+                            "satuan": "°C",
+                            "standard_id": 50,
+                            "standard_nama": "Temperature Humidity Meter"
+                        },
+                        {
+                            "titik_ukur": 35,
+                            "label": "35 °C",
+                            "satuan": "°C",
+                            "standard_id": 50,
+                            "standard_nama": "Temperature Humidity Meter"
+                        },
+                        {
+                            "titik_ukur": 45,
+                            "label": "45 °C",
+                            "satuan": "°C",
+                            "standard_id": 50,
+                            "standard_nama": "Temperature Humidity Meter"
+                        },
+                        {
+                            "titik_ukur": 50,
+                            "label": "50 °C",
+                            "satuan": "°C",
+                            "standard_id": 50,
+                            "standard_nama": "Temperature Humidity Meter"
+                        }
+                    ],
+                    "kolom": [
+                        {
+                            "kode": "pembacaan",
+                            "label": "°C",
+                            "tipe": "angka",
+                            "satuan": "°C"
+                        }
+                    ],
+                    "pengulangan": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ],
+                    "parameter": "suhu"
+                },
+                {
+                    "tahap": "sesudah_adjustment",
+                    "grup": "suhu_uut",
+                    "peran": "uut",
+                    "judul": "Pembacaan UUT",
+                    "satuan": "°C",
+                    "judul_nilai": "Set Point",
+                    "judul_pengulangan": "Data Hasil Pengukuran/Pengulangan (X1…X5)",
+                    "pengulangan_arah": [
+                        {
+                            "ke": 1,
+                            "label": "X1"
+                        },
+                        {
+                            "ke": 2,
+                            "label": "X2"
+                        },
+                        {
+                            "ke": 3,
+                            "label": "X3"
+                        },
+                        {
+                            "ke": 4,
+                            "label": "X4"
+                        },
+                        {
+                            "ke": 5,
+                            "label": "X5"
+                        }
+                    ],
+                    "titik_bisa_diubah": true,
+                    "baris": [
+                        {
+                            "titik_ukur": 15,
+                            "label": "15 °C",
+                            "satuan": "°C",
+                            "standard_id": 50,
+                            "standard_nama": "Temperature Humidity Meter"
+                        },
+                        {
+                            "titik_ukur": 25,
+                            "label": "25 °C",
+                            "satuan": "°C",
+                            "standard_id": 50,
+                            "standard_nama": "Temperature Humidity Meter"
+                        },
+                        {
+                            "titik_ukur": 35,
+                            "label": "35 °C",
+                            "satuan": "°C",
+                            "standard_id": 50,
+                            "standard_nama": "Temperature Humidity Meter"
+                        },
+                        {
+                            "titik_ukur": 45,
+                            "label": "45 °C",
+                            "satuan": "°C",
+                            "standard_id": 50,
+                            "standard_nama": "Temperature Humidity Meter"
+                        },
+                        {
+                            "titik_ukur": 50,
+                            "label": "50 °C",
+                            "satuan": "°C",
+                            "standard_id": 50,
+                            "standard_nama": "Temperature Humidity Meter"
+                        }
+                    ],
+                    "kolom": [
+                        {
+                            "kode": "pembacaan",
+                            "label": "°C",
+                            "tipe": "angka",
+                            "satuan": "°C"
+                        }
+                    ],
+                    "pengulangan": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ],
+                    "parameter": "suhu"
+                }
+            ]
+        },
+        {
+            "kode": "hasil_kelembaban",
+            "halaman": 1,
+            "judul": "2. KALIBRASI KELEMBAPAN (HUMIDITY)",
+            "field": [],
+            "tabel": [
+                {
+                    "tahap": "sesudah_adjustment",
+                    "grup": "kelembaban_standar",
+                    "peran": "standar",
+                    "judul": "Pembacaan Standard",
+                    "satuan": "%RH",
+                    "judul_nilai": "Set Point",
+                    "judul_pengulangan": "Data Hasil Pengukuran/Pengulangan (X1…X5)",
+                    "pengulangan_arah": [
+                        {
+                            "ke": 1,
+                            "label": "X1"
+                        },
+                        {
+                            "ke": 2,
+                            "label": "X2"
+                        },
+                        {
+                            "ke": 3,
+                            "label": "X3"
+                        },
+                        {
+                            "ke": 4,
+                            "label": "X4"
+                        },
+                        {
+                            "ke": 5,
+                            "label": "X5"
+                        }
+                    ],
+                    "titik_bisa_diubah": true,
+                    "baris": [
+                        {
+                            "titik_ukur": 30,
+                            "label": "30 %RH",
+                            "satuan": "%RH",
+                            "standard_id": 50,
+                            "standard_nama": "Temperature Humidity Meter"
+                        },
+                        {
+                            "titik_ukur": 49,
+                            "label": "49 %RH",
+                            "satuan": "%RH",
+                            "standard_id": 50,
+                            "standard_nama": "Temperature Humidity Meter"
+                        },
+                        {
+                            "titik_ukur": 50,
+                            "label": "50 %RH",
+                            "satuan": "%RH",
+                            "standard_id": 50,
+                            "standard_nama": "Temperature Humidity Meter"
+                        },
+                        {
+                            "titik_ukur": 70,
+                            "label": "70 %RH",
+                            "satuan": "%RH",
+                            "standard_id": 50,
+                            "standard_nama": "Temperature Humidity Meter"
+                        },
+                        {
+                            "titik_ukur": 90,
+                            "label": "90 %RH",
+                            "satuan": "%RH",
+                            "standard_id": 50,
+                            "standard_nama": "Temperature Humidity Meter"
+                        }
+                    ],
+                    "kolom": [
+                        {
+                            "kode": "pembacaan",
+                            "label": "%RH",
+                            "tipe": "angka",
+                            "satuan": "%RH"
+                        }
+                    ],
+                    "pengulangan": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ],
+                    "parameter": "kelembaban",
+                    "chamber_per_baris": [
+                        {
+                            "titik_ukur": 30,
+                            "chamber": "gea"
+                        },
+                        {
+                            "titik_ukur": 49,
+                            "chamber": "gea"
+                        },
+                        {
+                            "titik_ukur": 50,
+                            "chamber": "biobase"
+                        },
+                        {
+                            "titik_ukur": 70,
+                            "chamber": "biobase"
+                        },
+                        {
+                            "titik_ukur": 90,
+                            "chamber": "biobase"
+                        }
+                    ]
+                },
+                {
+                    "tahap": "sesudah_adjustment",
+                    "grup": "kelembaban_uut",
+                    "peran": "uut",
+                    "judul": "Pembacaan UUT",
+                    "satuan": "%RH",
+                    "judul_nilai": "Set Point",
+                    "judul_pengulangan": "Data Hasil Pengukuran/Pengulangan (X1…X5)",
+                    "pengulangan_arah": [
+                        {
+                            "ke": 1,
+                            "label": "X1"
+                        },
+                        {
+                            "ke": 2,
+                            "label": "X2"
+                        },
+                        {
+                            "ke": 3,
+                            "label": "X3"
+                        },
+                        {
+                            "ke": 4,
+                            "label": "X4"
+                        },
+                        {
+                            "ke": 5,
+                            "label": "X5"
+                        }
+                    ],
+                    "titik_bisa_diubah": true,
+                    "baris": [
+                        {
+                            "titik_ukur": 30,
+                            "label": "30 %RH",
+                            "satuan": "%RH",
+                            "standard_id": 50,
+                            "standard_nama": "Temperature Humidity Meter"
+                        },
+                        {
+                            "titik_ukur": 49,
+                            "label": "49 %RH",
+                            "satuan": "%RH",
+                            "standard_id": 50,
+                            "standard_nama": "Temperature Humidity Meter"
+                        },
+                        {
+                            "titik_ukur": 50,
+                            "label": "50 %RH",
+                            "satuan": "%RH",
+                            "standard_id": 50,
+                            "standard_nama": "Temperature Humidity Meter"
+                        },
+                        {
+                            "titik_ukur": 70,
+                            "label": "70 %RH",
+                            "satuan": "%RH",
+                            "standard_id": 50,
+                            "standard_nama": "Temperature Humidity Meter"
+                        },
+                        {
+                            "titik_ukur": 90,
+                            "label": "90 %RH",
+                            "satuan": "%RH",
+                            "standard_id": 50,
+                            "standard_nama": "Temperature Humidity Meter"
+                        }
+                    ],
+                    "kolom": [
+                        {
+                            "kode": "pembacaan",
+                            "label": "%RH",
+                            "tipe": "angka",
+                            "satuan": "%RH"
+                        }
+                    ],
+                    "pengulangan": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ],
+                    "parameter": "kelembaban"
+                }
+            ]
+        },
+        {
+            "kode": "penutup",
+            "halaman": 1,
+            "judul": "Catatan & Tanda Tangan",
+            "field": [
+                {
+                    "kode": "catatan_teknisi",
+                    "label": "Catatan",
+                    "tipe": "teks_panjang",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "teknisi.nama",
+                    "label": "Calculated by",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": "otomatis",
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "reviewer.nama",
+                    "label": "Signed by",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": "otomatis",
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                }
+            ]
+        }
+    ]
+}

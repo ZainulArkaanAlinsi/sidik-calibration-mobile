@@ -426,6 +426,11 @@ class TabelHasil {
     this.judulPengulanganPerMode = const {},
     this.pengulanganArah = const {},
     this.titikBisaDiubah = false,
+    this.grup,
+    this.peran,
+    this.parameter,
+    this.chamberPerBaris = const {},
+    this.kolomBaris = const [],
   });
 
   /// `sebelum_adjustment` / `sesudah_adjustment`.
@@ -544,6 +549,82 @@ class TabelHasil {
   /// [pengulanganKeBawah]. Kosong = pakai [baris] seperti biasa.
   final List<SlotCetak> slotCetak;
 
+  /// Nama kelompok tabel — yang bikin dua tabel ber-[tahap] SAMA nggak saling
+  /// menimpa.
+  ///
+  /// Dipakai tiga alat suhu ber-pasangan (Thermocouple, Termometer Gelas,
+  /// Thermohygrometer) yang kedua tabelnya sama-sama `sesudah_adjustment` —
+  /// yang beda SIAPA yang membaca, bukan tahapnya. Spectrophotometer memakainya
+  /// lebih dulu buat tiga blok filter yang `tahap`-nya juga sama.
+  final String? grup;
+
+  /// Siapa yang membaca baris tabel ini: `standar` (probe acuan lab) atau
+  /// `uut` (alat pelanggan). Null = lembar datar biasa, satu deret per titik.
+  final String? peran;
+
+  /// Parameter yang diukur tabel ini: `suhu` / `kelembaban`.
+  ///
+  /// Cuma Thermohygrometer yang mengirimnya — satu lembar, dua besaran, dua
+  /// U95 sendiri-sendiri.
+  final String? parameter;
+
+  /// Kolom tambahan yang diisi PER BARIS, di luar kolom pembacaan.
+  ///
+  /// Sejauh ini cuma `no_probe` di tabel standar Thermocouple: probe standar
+  /// mana yang dicelup di set point itu. Bukan hiasan — nomor itu yang
+  /// menentukan koreksi probe mana yang dipakai, dan nomor yang nggak menunjuk
+  /// probe mana pun bikin server MENAHAN titiknya (bukan mengoreksinya nol).
+  ///
+  /// Pilihannya bawa `grup` = nama tipe sensornya, jadi layar menyaring dari
+  /// situ — bukan menulis ulang "Type N mulai dari 3" di HP. Daftar yang
+  /// ditulis tangan menyusut diam-diam waktu probe lab nambah.
+  final List<FieldLembarKerja> kolomBaris;
+
+  /// Chamber yang dipakai tiap set point, `{titik_ukur: nama_chamber}`.
+  ///
+  /// Ditentukan SERVER dari set point-nya (Biobase ≥ 50 %RH, GEA < 50 %RH),
+  /// bukan dipilih teknisi — satu sesi memakai dua-duanya sekaligus dan
+  /// masing-masing punya stabilitas & homogenitas sendiri. Digambar di sebelah
+  /// set point supaya teknisi tahu unit mana yang dipakai baris itu.
+  final Map<double, String> chamberPerBaris;
+
+  /// Kunci penyimpanan isian tabel ini di [LembarKerjaState].
+  ///
+  /// **Cuma lembar PASANGAN yang menyimpang dari [tahap]** — dan batas itu
+  /// penting, bukan kehati-hatian berlebihan.
+  ///
+  /// Yang butuh menyimpang: dua tabel lembar pasangan ber-`tahap` SAMA
+  /// (`sesudah_adjustment`) DAN berbaris titik ukur sama. Dikunci ke tahap,
+  /// keduanya menulis ke kotak yang sama — angka deret UUT mendarat di kotak
+  /// deret standar, dan yang kelihatan cuma satu tabel yang isinya berubah
+  /// sendiri waktu tabel satunya diketik.
+  ///
+  /// Yang TIDAK boleh ikut menyimpang: tiga tabel Spectrophotometer. `tahap`-nya
+  /// juga sama dan `grup`-nya juga beda, tapi BARIS titiknya beda — jadi
+  /// ketiganya sudah dipisah oleh `titik` map dan nggak pernah bentrok.
+  /// Memindahkannya ke `grup` bikin `TitikState.toSubmission()` — yang membaca
+  /// `sesudah_adjustment` apa adanya — pulang kosong, dan 24 titik yang sudah
+  /// diketik teknisi kekirim sebagai lembar kosong. Sudah kejadian sekali waktu
+  /// aturan ini ditulis terlalu longgar; dijaga
+  /// `spectrophotometer_lembar_kerja_test.dart`.
+  String get kunciTabel => berpasangan ? (grup ?? peran!) : tahap;
+
+  /// Lembar ini membaca DUA deret per titik (standar & UUT).
+  bool get berpasangan => peran != null;
+
+  bool get deretStandar => peran == 'standar';
+
+  /// Kolom `no_probe` tabel ini, atau null kalau lembarnya nggak punya.
+  FieldLembarKerja? get kolomNoProbe {
+    for (final f in kolomBaris) {
+      if (f.kode == 'no_probe') return f;
+    }
+
+    return null;
+  }
+
+  bool get deretUut => peran == 'uut';
+
   bool get pengulanganKeBawah => sumbuPengulangan == 'baris';
 
   bool get sebelumAdjustment => tahap == 'sebelum_adjustment';
@@ -590,7 +671,34 @@ class TabelHasil {
     judulPengulanganPerMode: _petaTeks(json['judul_pengulangan_per_mode']),
     pengulanganArah: _arahPengulangan(json['pengulangan_arah']),
     titikBisaDiubah: json['titik_bisa_diubah'] as bool? ?? false,
+    grup: json['grup'] as String?,
+    peran: json['peran'] as String?,
+    parameter: json['parameter'] as String?,
+    chamberPerBaris: _chamberPerBaris(json['chamber_per_baris']),
+    kolomBaris: parseListAman(json['kolom_baris'], FieldLembarKerja.fromJson),
   );
+}
+
+/// Peta `{titik_ukur: chamber}` yang tahan isi aneh.
+///
+/// Baris yang bentuknya nggak dikenal DIBUANG, bukan bikin seluruh lembar
+/// gagal: kunci ini baru dipakai satu alat, dan set point tanpa label chamber
+/// jauh lebih baik daripada layar kalibrasi yang kosong.
+Map<double, String> _chamberPerBaris(dynamic nilai) {
+  if (nilai is! List) return const {};
+
+  final hasil = <double, String>{};
+
+  for (final baris in nilai) {
+    if (baris is! Map) continue;
+    final titik = baris['titik_ukur'];
+    final chamber = baris['chamber'];
+    if (titik is num && chamber is String && chamber.isNotEmpty) {
+      hasil[titik.toDouble()] = chamber;
+    }
+  }
+
+  return hasil;
 }
 
 /// Peta `{mode: judul}` yang tahan isi aneh.
@@ -1166,6 +1274,16 @@ class LembarKerja {
   /// yang lupa dan melabeli 111 mS/cm sebagai µS/cm.
   String satuanUntuk(BarisTabelHasil baris) =>
       satuanCampuran ? (baris.satuan ?? satuan) : satuan;
+
+  /// Lembar ini membaca DUA deret per titik (standar & UUT).
+  ///
+  /// Tiga alat suhu: Thermocouple, Termometer Gelas, Thermohygrometer. Dibaca
+  /// dari BENTUK yang datang server (`tabel[].peran`), bukan dari daftar kode
+  /// profil yang ditulis di layar — daftar yang ditulis tangan menyusut
+  /// diam-diam waktu alat baru nambah, dan yang ketinggalan justru yang paling
+  /// baru.
+  bool get berpasangan =>
+      bagian.any((b) => b.tabel.any((t) => t.berpasangan));
 
   /// Bagian di satu halaman, urutannya ngikut backend.
   List<BagianLembarKerja> bagianDiHalaman(int nomor) =>

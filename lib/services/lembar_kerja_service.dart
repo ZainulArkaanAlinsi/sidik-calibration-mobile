@@ -4,6 +4,7 @@ import '../models/lembar_kerja_submission.dart';
 import '../models/pratinjau_hitung.dart';
 import 'api_client.dart';
 import 'equipment_lookup_service.dart';
+import 'contoh_lembar_kerja_suhu.dart';
 
 /// Lembar kerja teknisi: ambil bentuk formulirnya, kirim isiannya.
 abstract class LembarKerjaService {
@@ -218,6 +219,17 @@ class MockLembarKerjaService implements LembarKerjaService {
       'do_meter' => contohBentukLembarKerjaDo(untukAdmin: untukAdmin),
       'gas_detector' => contohBentukLembarKerjaGas(untukAdmin: untukAdmin),
       'tits' => contohBentukLembarKerjaTits(untukAdmin: untukAdmin),
+      // Tiga alat suhu ber-PASANGAN deret (alat ke-18..20). Bentuknya disalin
+      // apa adanya dari respons server — lihat `contoh_lembar_kerja_suhu.dart`.
+      'thermocouple' => contohBentukLembarKerjaThermocouple(
+        untukAdmin: untukAdmin,
+      ),
+      'thermometer_glass' => contohBentukLembarKerjaTermometerGelas(
+        untukAdmin: untukAdmin,
+      ),
+      'thermohygro' => contohBentukLembarKerjaThermohygro(
+        untukAdmin: untukAdmin,
+      ),
       // Profil kosong / nggak dikenal SENGAJA jatuh ke pH, bukan lempar error —
       // sama kayak janji kontraknya (`docs/kontrak-api.md` §4).
       _ => contohBentukLembarKerja(untukAdmin: untukAdmin),
