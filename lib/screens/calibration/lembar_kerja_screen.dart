@@ -364,6 +364,9 @@ class _FormState extends ConsumerState<_Form> {
     // ini submission yang sama dan balikin sesi yang udah ada — bukan bikin
     // sesi dobel buat satu kejadian kalibrasi.
     clientRequestId: generateUuidV4(),
+    // Kode lembar ikut masuk state supaya picker "Pilih alat" bisa menyaring
+    // ke alat lembar INI. Lihat `LembarKerjaState.profil`.
+    profil: widget.profil,
     // Lewat `jamProvider`, bukan `DateTime.now()` langsung — tanggal ini
     // kecetak ke golden lembar kerja, dan tanpa seam-nya golden itu merah tiap
     // ganti hari tanpa ada yang rusak.
@@ -3420,9 +3423,17 @@ class _PilihAlat extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    // pH Meter selalu di kategori instrumen-analitik; null = semua alat, biar
-    // lembar kerja ini bisa dipakai kategori lain waktu formulirnya nambah.
-    final alatAsync = ref.watch(equipmentLookupProvider(null));
+    // Disaring ke lembar yang lagi dibuka, bukan `null` (= seluruh alat lab).
+    //
+    // Sebelum 26 Agt 2026 baris ini `equipmentLookupProvider(null)` dengan
+    // alasan "biar lembar kerja ini bisa dipakai kategori lain". Akibatnya
+    // teknisi yang membuka lembar Refrigerator disodori SELURUH alat lab, dan
+    // nggak ada satu pun yang menandai mana yang sesuai lembarnya.
+    //
+    // Salah pilih di situ nggak bikin error di mana pun: sesinya tersimpan,
+    // lalu `untukAlat()` menghitungnya pakai aturan alat lain — jalurnya
+    // berhasil, angkanya salah.
+    final alatAsync = ref.watch(equipmentLookupProfilProvider(isian.profil));
 
     return alatAsync.when(
       skipLoadingOnReload: true,

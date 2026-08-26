@@ -172,6 +172,24 @@ final equipmentLookupProvider =
           .cari(token, kategori: kategori);
     }, retry: (retryCount, error) => null);
 
+/// Family-nya keyed by KODE LEMBAR KERJA (`tits`, `inkubator`, `ph_meter`).
+///
+/// Sengaja provider sendiri, bukan menambah kunci ke [equipmentLookupProvider]:
+/// yang itu dipakai layar Input Kalibrasi dengan sumbu penyaring yang beda
+/// (kategori), dan menggabungkan dua sumbu ke satu family bikin dua layar
+/// saling membatalkan cache tanpa alasan.
+///
+/// Kenapa perlu: kategori jauh lebih kasar daripada lembar kerja. "Suhu dan
+/// Kelembapan" memuat 11 jenis alat yang memetakan ke TUJUH lembar berbeda,
+/// jadi lembar TITS ikut menyodorkan Oven, Bath, Inkubator, Furnace,
+/// Refrigerator, dan TIDS. Salah pilih di situ nggak bikin error di mana pun —
+/// sesinya tersimpan, lalu `untukAlat()` menghitungnya pakai aturan alat lain.
+final equipmentLookupProfilProvider =
+    FutureProvider.family<List<EquipmentLookup>, String?>((ref, profil) async {
+      final token = await _token(ref);
+      return ref.read(equipmentLookupServiceProvider).cari(token, profil: profil);
+    }, retry: (retryCount, error) => null);
+
 /// Controller submit — nggak nyimpen state list, cuma nembak `POST` sekali
 /// dan balikin id sesi (atau lempar error yang layar tampilin).
 class CalibrationSubmitController extends Notifier<AsyncValue<int?>> {

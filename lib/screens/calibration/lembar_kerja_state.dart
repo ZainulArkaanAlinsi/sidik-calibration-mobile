@@ -377,6 +377,7 @@ class LembarKerjaState {
   LembarKerjaState({
     required this.bentuk,
     required this.clientRequestId,
+    this.profil,
     DateTime? tanggalKalibrasiAwal,
   }) {
     // Tanggal kalibrasi dikasih nilai awal HARI INI, bukan dibiarin kosong.
@@ -732,6 +733,15 @@ class LembarKerjaState {
   /// disusutin ke alat itu (Conductivity: 4 baris → 3). State-nya sengaja
   /// DIPERTAHANKAN, bukan dibikin ulang, supaya isian teknisi nggak ilang.
   LembarKerja bentuk;
+
+  /// Kode lembar kerja yang lagi dibuka (`tits`, `inkubator`, `ph_meter`, ...).
+  ///
+  /// Dibawa di state, bukan diturunkan lewat parameter widget, karena yang
+  /// membutuhkannya (`_PilihAlat`) duduk di dalam `_Field` — dan `_Field`
+  /// dibangun dari belasan tempat. Menambah satu parameter di sana berarti
+  /// menyentuh semuanya, dan satu yang kelupaan bikin picker-nya diam-diam
+  /// balik nggak tersaring.
+  final String? profil;
   final String clientRequestId;
 
   /// Dipasang layar buat tau ada ANGKA yang baru diketik di tabel hasil.

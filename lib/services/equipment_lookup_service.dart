@@ -5,7 +5,19 @@ import 'api_client.dart';
 /// Cuma buat picker "Alat" di layar Input Kalibrasi — bukan layanan CRUD
 /// Alat yang lengkap (itu domain layar Alat sendiri).
 abstract class EquipmentLookupService {
-  Future<List<EquipmentLookup>> cari(String token, {String? search, String? kategori});
+  /// [profil] = kode lembar kerja (`tits`, `inkubator`, `ph_meter`, ...).
+  ///
+  /// Kategori JAUH lebih kasar daripada lembar kerja: "Suhu dan Kelembapan"
+  /// memuat 11 jenis alat yang memetakan ke TUJUH lembar berbeda. Jadi teknisi
+  /// yang membuka lembar TITS ikut disodori Oven, Bath, Inkubator, Furnace,
+  /// Refrigerator, dan TIDS — dan salah pilih di situ nggak bikin error di mana
+  /// pun: sesinya tersimpan, lalu dihitung pakai aturan alat lain.
+  Future<List<EquipmentLookup>> cari(
+    String token, {
+    String? search,
+    String? kategori,
+    String? profil,
+  });
 }
 
 /// Nembak `GET /api/equipments` — live sejak 14 Jul (`docs/kontrak-api.md`
@@ -20,12 +32,19 @@ class ApiEquipmentLookupService implements EquipmentLookupService {
     String token, {
     String? search,
     String? kategori,
+    String? profil,
   }) async {
     final params = <String>[
       if (search != null && search.isNotEmpty)
         'search=${Uri.encodeQueryComponent(search)}',
       if (kategori != null && kategori.isNotEmpty)
         'category=${Uri.encodeQueryComponent(kategori)}',
+      // Server nolak kode lembar yang nggak dikenal dengan 422 — sengaja.
+      // `when()` yang jatuh ke "nggak nyaring apa-apa" bikin `?profil=tit`
+      // memulangkan SELURUH alat lab, persis daftar tak tersaring yang mau
+      // dihilangkan, tapi sekarang kelihatan seperti jawaban yang benar.
+      if (profil != null && profil.isNotEmpty)
+        'profil=${Uri.encodeQueryComponent(profil)}',
     ];
     final path = params.isEmpty ? '/equipments' : '/equipments?${params.join('&')}';
 
@@ -186,6 +205,11 @@ class MockEquipmentLookupService implements EquipmentLookupService {
     String token, {
     String? search,
     String? kategori,
+    // Sengaja DIABAIKAN: mock nggak punya peta nama-alat -> profil, dan
+    // menebaknya di sini bikin build mock berperilaku beda dari server tanpa
+    // ada yang tahu. Yang diuji penyaringannya ada di sisi server
+    // (`DaftarAlatPerLembarTest`).
+    String? profil,
   }) async {
     if (gagal) throw Exception('server nggak nyaut');
 
