@@ -474,7 +474,7 @@ Map<String, dynamic> contohBentukLembarKerjaThermocouple({bool untukAdmin = fals
             'judul': 'Pembacaan Standard',
             'satuan': '°C',
             'judul_nilai': 'Set Point',
-            'judul_pengulangan': 'Data Hasil Pengukuran/Pengulangan (PRT1…PRT5)',
+            'judul_pengulangan': 'Data Hasil Pengukuran',
             'pengulangan_arah': [
               {
                 'ke': 1,
@@ -715,7 +715,7 @@ Map<String, dynamic> contohBentukLembarKerjaThermocouple({bool untukAdmin = fals
             'judul': 'Pembacaan UUT',
             'satuan': '°C',
             'judul_nilai': 'Set Point',
-            'judul_pengulangan': 'Data Hasil Pengukuran/Pengulangan (PRT1…PRT5)',
+            'judul_pengulangan': 'Data Hasil Pengukuran',
             'pengulangan_arah': [
               {
                 'ke': 1,
@@ -1330,7 +1330,7 @@ Map<String, dynamic> contohBentukLembarKerjaTermometerGelas({bool untukAdmin = f
             'judul': '2. Pembacaan Standard',
             'satuan': '°C',
             'judul_nilai': 'Set Point',
-            'judul_pengulangan': 'Data Hasil Pengukuran/Pengulangan (PRT1…PRT5)',
+            'judul_pengulangan': 'Data Hasil Pengukuran',
             'pengulangan_arah': [
               {
                 'ke': 1,
@@ -1414,7 +1414,7 @@ Map<String, dynamic> contohBentukLembarKerjaTermometerGelas({bool untukAdmin = f
             'judul': '3. Pembacaan UUT',
             'satuan': '°C',
             'judul_nilai': 'Set Point',
-            'judul_pengulangan': 'Data Hasil Pengukuran/Pengulangan (PRT1…PRT5)',
+            'judul_pengulangan': 'Data Hasil Pengukuran',
             'pengulangan_arah': [
               {
                 'ke': 1,
@@ -1954,7 +1954,7 @@ Map<String, dynamic> contohBentukLembarKerjaThermohygro({bool untukAdmin = false
             'judul': 'Pembacaan Standard [CHAMBER BIOBASE]',
             'satuan': '°C',
             'judul_nilai': 'Set Point',
-            'judul_pengulangan': 'Data Hasil Pengukuran/Pengulangan (X1…X5)',
+            'judul_pengulangan': 'Data Hasil Pengukuran',
             'pengulangan_arah': [
               {
                 'ke': 1,
@@ -2039,7 +2039,7 @@ Map<String, dynamic> contohBentukLembarKerjaThermohygro({bool untukAdmin = false
             'judul': 'Pembacaan UUT',
             'satuan': '°C',
             'judul_nilai': 'Set Point',
-            'judul_pengulangan': 'Data Hasil Pengukuran/Pengulangan (X1…X5)',
+            'judul_pengulangan': 'Data Hasil Pengukuran',
             'pengulangan_arah': [
               {
                 'ke': 1,
@@ -2132,7 +2132,7 @@ Map<String, dynamic> contohBentukLembarKerjaThermohygro({bool untukAdmin = false
             'judul': 'Pembacaan Standard',
             'satuan': '%RH',
             'judul_nilai': 'Set Point',
-            'judul_pengulangan': 'Data Hasil Pengukuran/Pengulangan (X1…X5)',
+            'judul_pengulangan': 'Data Hasil Pengukuran',
             'pengulangan_arah': [
               {
                 'ke': 1,
@@ -2239,7 +2239,7 @@ Map<String, dynamic> contohBentukLembarKerjaThermohygro({bool untukAdmin = false
             'judul': 'Pembacaan UUT',
             'satuan': '%RH',
             'judul_nilai': 'Set Point',
-            'judul_pengulangan': 'Data Hasil Pengukuran/Pengulangan (X1…X5)',
+            'judul_pengulangan': 'Data Hasil Pengukuran',
             'pengulangan_arah': [
               {
                 'ke': 1,

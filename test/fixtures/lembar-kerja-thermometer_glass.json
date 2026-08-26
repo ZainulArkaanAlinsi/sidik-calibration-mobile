@@ -478,7 +478,7 @@
                     "judul": "2. Pembacaan Standard",
                     "satuan": "°C",
                     "judul_nilai": "Set Point",
-                    "judul_pengulangan": "Data Hasil Pengukuran/Pengulangan (PRT1…PRT5)",
+                    "judul_pengulangan": "Data Hasil Pengukuran",
                     "pengulangan_arah": [
                         {
                             "ke": 1,
@@ -562,7 +562,7 @@
                     "judul": "3. Pembacaan UUT",
                     "satuan": "°C",
                     "judul_nilai": "Set Point",
-                    "judul_pengulangan": "Data Hasil Pengukuran/Pengulangan (PRT1…PRT5)",
+                    "judul_pengulangan": "Data Hasil Pengukuran",
                     "pengulangan_arah": [
                         {
                             "ke": 1,

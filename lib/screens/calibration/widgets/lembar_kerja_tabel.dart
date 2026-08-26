@@ -1184,7 +1184,9 @@ class _SelKepala extends StatelessWidget {
   final double tinggi;
   final bool kiri;
 
-  /// Batas baris [teks]. Null = dihitung dari ada-tidaknya [catatan].
+  /// Batas baris [teks]. Null = nggak dibatasi sama sekali — persis kelakuan
+  /// sel kepala sebelum lembar suhu masuk, dan itu yang bikin golden empat
+  /// belas lembar lama tetap cocok.
   ///
   /// Disetel EKSPLISIT oleh kepala gabungan, yang jatah tingginya cuma 26 dp —
   /// muat satu baris, nggak muat dua. Lihat pemakaiannya.
@@ -1218,22 +1220,21 @@ class _SelKepala extends StatelessWidget {
           children: [
             Text(
               teks,
-              textAlign: kiri ? TextAlign.start : TextAlign.center,
-              // Dibatasi supaya kepala kolom NGGAK PERNAH meluber keluar
-              // kotaknya.
+              // Dibatasi HANYA kalau yang manggil minta dibatasi.
               //
-              // Tingginya dipatok [tinggi], jadi label yang membungkus lebih
-              // panjang dari jatahnya melempar `RenderFlex overflowed` — di
-              // debug itu pita kuning-hitam yang menutupi tabelnya, di rilis
-              // teks yang kepotong sembarangan. Kejadian waktu lembar
-              // Thermocouple mengirim label kolom bernomor detik
-              // (`0″ (PRT1)`), yang lebih panjang dari `X1` milik empat belas
-              // alat sebelumnya.
+              // Sempat dipasang batas bawaan `catatan == null ? 2 : 1` buat
+              // semua sel. Itu salah, dan salahnya nggak kelihatan dari lembar
+              // yang lagi dikerjain: sel kepala yang labelnya membungkus jadi
+              // ikut kena `textAlign: center`, dan golden
+              // `lembar-kerja-spectrophotometer.png` geser 0,15% (4923 px) —
+              // di atas ambang 0,10%. Empat belas lembar lain nggak kegeser
+              // cuma karena label kepalanya kebetulan muat satu baris.
               //
-              // Satu baris kalau ada catatan di bawahnya, dua kalau nggak —
-              // dua-duanya masih muat di jatah tingginya.
-              maxLines: maksBaris ?? (catatan == null ? 2 : 1),
-              overflow: TextOverflow.ellipsis,
+              // Jadi bawaannya dibalikin persis kayak sebelumnya: nggak ada
+              // batas baris, nggak ada ellipsis, nggak ada `textAlign`. Yang
+              // butuh dipangkas minta sendiri lewat [maksBaris].
+              maxLines: maksBaris,
+              overflow: maksBaris == null ? null : TextOverflow.ellipsis,
               style: theme.textTheme.labelMedium?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: catatan == null
