@@ -251,7 +251,7 @@ void main() {
       'konteks': {
         'titik_ke': 2,
         'pembacaan_ke': 3,
-        if (kodeSel != null) 'kode_sel': kodeSel,
+        'kode_sel': ?kodeSel,
       },
     });
 

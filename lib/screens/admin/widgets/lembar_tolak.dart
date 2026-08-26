@@ -127,7 +127,7 @@ class _LembarTolakState extends State<LembarTolak> {
     for (final a in _alasan(l10n))
       if (_dipilih.contains('alasan:${a.label}')) ...a.field,
     for (final t in widget.temuan)
-      if (_dipilih.contains(_kunciTemuan(t)) && t.kodeSel != null) t.kodeSel!,
+      if (_dipilih.contains(_kunciTemuan(t))) ?t.kodeSel,
   }.toList();
 
   /// Kunci pilihan buat satu temuan.
