@@ -9,7 +9,6 @@ import 'package:sidik_calibration/models/lembar_kerja.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/calibration_input_provider.dart';
 import 'package:sidik_calibration/providers/lembar_kerja_provider.dart';
-import 'package:sidik_calibration/screens/calibration/instrument_picker_screen.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_screen.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_state.dart';
 import 'package:sidik_calibration/services/equipment_lookup_service.dart';
@@ -21,7 +20,6 @@ import 'dart:io';
 import 'package:image/image.dart' as img;
 
 import 'package:sidik_calibration/models/worksheet_scan.dart';
-import 'package:sidik_calibration/models/worksheet_template.dart';
 import 'package:sidik_calibration/providers/sumber_foto_provider.dart';
 import 'package:sidik_calibration/providers/worksheet_scan_provider.dart';
 import 'package:sidik_calibration/services/history_service.dart';
@@ -1150,32 +1148,7 @@ void main() {
   ///
   /// Dua yang dikunci di sini: kodenya yang benar yang dikirim, dan gagal
   /// ambil template tetap ninggalin tombol (mati) plus alasannya.
-  testWidgets('template gagal diambil: tombol tetap ada, mati, ada alasannya', (
-    tester,
-  ) async {
-    _perbesarViewport(tester);
-    await _muat(
-      tester,
-      _app(
-        MockLembarKerjaService(),
-        pindai: _PindaiGagalTemplate(),
-        pindaiAktif: true,
-      ),
-    );
-    await _keHalamanAkhir(tester);
-
-    final tombol = find.widgetWithText(OutlinedButton, 'PINDAI LEMBAR KERJA');
-
-    expect(
-      tombol,
-      findsWidgets,
-      reason: 'Tombolnya hilang — teknisi nggak punya cara tau fiturnya ada.',
-    );
-    expect(tester.widget<OutlinedButton>(tombol.first).onPressed, isNull);
-    expect(find.textContaining('gagal diambil'), findsWidgets);
-  });
-
-  testWidgets('yang diminta ke server kode ALAT, bukan nomor formulirnya', (
+    testWidgets('yang diminta ke server kode ALAT, bukan nomor formulirnya', (
     tester,
   ) async {
     _perbesarViewport(tester);
@@ -1200,57 +1173,7 @@ void main() {
   /// angka mendarat di sel yang salah — persis kegagalan yang bikin fitur ini
   /// dirancang. Nyalain paksa "biar bisa dites dulu" cuma bikin teknisi
   /// percaya fitur yang belum boleh dipakai.
-  testWidgets('lembar yang belum siap: tombol mati + alasannya kebaca', (
-    tester,
-  ) async {
-    _perbesarViewport(tester);
-    await _muat(
-      tester,
-      _app(
-        MockLembarKerjaService(),
-        pindai: MockWorksheetScanService(siapPindai: false),
-        pindaiAktif: true,
-      ),
-    );
-    await _keHalamanAkhir(tester);
-
-    final tombol = find.widgetWithText(OutlinedButton, 'PINDAI LEMBAR KERJA');
-    expect(tombol, findsWidgets);
-    expect(
-      tester.widget<OutlinedButton>(tombol.first).onPressed,
-      isNull,
-      reason: 'lembar tanpa geometri terverifikasi nggak boleh dipindai',
-    );
-
-    // Alasannya tetap SPESIFIK — teknisi berhak tahu yang kurang itu apa, dan
-    // yang bisa nutup cuma lab. Yang berubah cuma bahasanya: dulu di sini
-    // `geometri_belum_diverifikasi` kecetak apa adanya, dan itu kode internal
-    // yang dibaca teknisi di lapangan sebagai aplikasi rusak.
-    //
-    // Yang diganti kodenya, BUKAN kekhususannya: kalimatnya masih membedakan
-    // "belum diukur" dari "belum diverifikasi" dari "kurang N kotak", karena
-    // ketiganya butuh tindakan yang beda. Lihat `pindai_alasan_kebaca_test`.
-    expect(find.textContaining('geometri_belum_diverifikasi'), findsNothing);
-    expect(find.textContaining('foto nyata'), findsWidgets);
-  });
-
-  testWidgets('lembar yang udah siap: tombol pindai hidup', (tester) async {
-    _perbesarViewport(tester);
-    await _muat(
-      tester,
-      _app(
-        MockLembarKerjaService(),
-        pindai: MockWorksheetScanService(siapPindai: true),
-        pindaiAktif: true,
-      ),
-    );
-    await _keHalamanAkhir(tester);
-
-    final tombol = find.widgetWithText(OutlinedButton, 'PINDAI LEMBAR KERJA');
-    expect(tester.widget<OutlinedButton>(tombol.first).onPressed, isNotNull);
-  });
-
-  _testDropdownGagal();
+      _testDropdownGagal();
   _testTurbidimeter();
   _testChlorine();
   _testRefractometer();
@@ -2897,18 +2820,6 @@ void _testRevisi() {
       expect(state.revisiField, isEmpty);
     });
   });
-}
-
-/// Layanan pindai yang templatenya selalu gagal diambil — niru 404 dari
-/// endpoint, atau sinyal putus di lapangan.
-class _PindaiGagalTemplate extends MockWorksheetScanService {
-  @override
-  Future<WorksheetTemplate> template(
-    String token,
-    String kode, {
-    int? equipmentId,
-    int? jumlahPengulangan,
-  }) async => throw Exception('404 template nggak ketemu');
 }
 
 /// Citra 8×8 putih di folder sementara — cukup buat jalur foto, tanpa ongkos

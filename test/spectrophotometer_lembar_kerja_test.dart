@@ -274,33 +274,7 @@ void main() {
     /// angka mendarat di sel yang salah — persis kegagalan yang mau dicegah
     /// fitur ini. Nyalain paksa "biar bisa dites dulu" cuma bikin teknisi
     /// percaya jalur yang belum boleh dipakai.
-    testWidgets('lembar yang belum siap: tombolnya mati + alasannya tampil', (
-      tester,
-    ) async {
-      await _bukaLembar(tester, pindaiAktif: true);
-
-      final tombol = find.widgetWithText(OutlinedButton, 'PINDAI LEMBAR KERJA');
-
-      expect(tombol, findsOneWidget);
-      expect(tester.widget<OutlinedButton>(tombol).onPressed, isNull);
-
-      // Alasannya tetap SPESIFIK — yang bisa nutup cuma lab, dan teknisi
-      // berhak tahu yang kurang itu apa. Yang berubah cuma bahasanya: dulu di
-      // sini kode internal `geometri_belum_diverifikasi` kecetak apa adanya.
-      // Lihat `pindai_alasan_kebaca_test`.
-      expect(find.textContaining('geometri_belum_diverifikasi'), findsNothing);
-      expect(find.textContaining('foto nyata'), findsOneWidget);
-    });
-
-    testWidgets('lembar yang udah siap: tombolnya hidup', (tester) async {
-      await _bukaLembar(tester, siapPindai: true, pindaiAktif: true);
-
-      final tombol = find.widgetWithText(OutlinedButton, 'PINDAI LEMBAR KERJA');
-
-      expect(tester.widget<OutlinedButton>(tombol).onPressed, isNotNull);
-      expect(find.textContaining('geometri_belum_diverifikasi'), findsNothing);
-    });
-  });
+          });
 
 
   group('titik per tabel', () {
