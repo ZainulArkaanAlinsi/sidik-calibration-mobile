@@ -120,6 +120,7 @@ class MockLembarKerjaService implements LembarKerjaService {
     this.gagalKirimSampaiPercobaanKe = 0,
     this.tanpaPasanganStandar = false,
     this.tanpaTampilKalau = false,
+    this.tanpaThermohygro = false,
     this.fotoTabelDidukung = true,
   });
 
@@ -140,6 +141,15 @@ class MockLembarKerjaService implements LembarKerjaService {
   /// kegambar sekaligus (label `(Inlab)`/`(Insitu)`-nya yang ngasih tau mana
   /// yang berlaku), dan nggak ada satu pun kotak yang ilang tanpa alasan.
   final bool tanpaTampilKalau;
+
+  /// Kosongkan daftar pilihan `thermohygro_standard_id` — niru lab yang belum
+  /// mendaftarkan satu pun unit thermohygro.
+  ///
+  /// Kolomnya TETAP ada; yang kosong isinya. Itu yang bikin saklar ini beda
+  /// dari sekadar membuang kolomnya, dan bedanya yang menentukan apakah
+  /// "Belum ada unit thermohygro terdaftar." muncul karena datanya memang
+  /// kosong atau karena kolomnya kelewat di-parse.
+  final bool tanpaThermohygro;
 
   /// Niru `pindai_foto.didukung` dari server. `false` = kertas alat ini nggak
   /// muat di bentuk "titik ukur x Repeat" (Autoklaf, TIDS), jadi tombol
@@ -244,9 +254,11 @@ class MockLembarKerjaService implements LembarKerjaService {
         ? _tanpaPasangan(dipakai)
         : dipakai;
 
-    final akhir = tanpaTampilKalau
-        ? _tanpaTampilKalau(tanpaPasangan)
+    final tanpaTh = tanpaThermohygro
+        ? _tanpaThermohygro(tanpaPasangan)
         : tanpaPasangan;
+
+    final akhir = tanpaTampilKalau ? _tanpaTampilKalau(tanpaTh) : tanpaTh;
 
     return LembarKerja.fromJson({
       ...akhir,
@@ -259,6 +271,38 @@ class MockLembarKerjaService implements LembarKerjaService {
   }
 
   /// Salinan bentuk tanpa `standard_id`/`standard_nama` di baris tabel hasil.
+  /// Salinan bentuk dengan daftar pilihan `thermohygro_standard_id`
+  /// DIKOSONGKAN — bukan kolomnya yang dibuang.
+  ///
+  /// Bedanya penting, dan itu yang bikin helper ini ada. Kolom yang hilang niru
+  /// server lama yang belum kenal thermohygro; daftar yang kosong niru lab yang
+  /// **belum mendaftarkan satu pun unit**. Cuma keadaan kedua yang boleh
+  /// menampilkan "Belum ada unit thermohygro terdaftar." — dan cuma dengan
+  /// membedakan keduanya, pesan itu bisa dibuktikan muncul karena datanya
+  /// memang kosong, bukan karena kolomnya kelewat di-parse.
+  static Map<String, dynamic> _tanpaThermohygro(Map<String, dynamic> bentuk) {
+    List<Map<String, dynamic>> kosongin(Object? daftar) => [
+      for (final f in (daftar is List ? daftar : const []).cast<Map<String, dynamic>>())
+        f['kode'] == 'thermohygro_standard_id'
+            ? {...f, 'pilihan': const <Map<String, dynamic>>[]}
+            : f,
+    ];
+
+    return {
+      ...bentuk,
+      'bagian': [
+        for (final bagian
+            in (bentuk['bagian'] as List).cast<Map<String, dynamic>>())
+          {
+            ...bagian,
+            'field': kosongin(bagian['field']),
+            if (bagian['field_di_luar_kertas'] != null)
+              'field_di_luar_kertas': kosongin(bagian['field_di_luar_kertas']),
+          },
+      ],
+    };
+  }
+
   /// Salinan bentuk tanpa kunci `tampil_kalau` sama sekali — bukan `null`,
   /// tapi kuncinya nggak ada. Bedanya penting: yang diuji jalur "server nggak
   /// pernah ngomongin syarat tampil", dan `null` yang ditulis eksplisit itu
@@ -1365,7 +1409,13 @@ Map<String, dynamic> contohBentukLembarKerjaSpectro({bool untukAdmin = false}) {
         field('alat_serial_number', '4. Serial Number/LPI', 'teks'),
         field('alat_merk', '5. Merk/Manufacture', 'teks'),
         field('thermohygro_standard_id', '6. Thermohygro used', 'pilihan',
-            sumber: 'master_thermohygro'),
+            sumber: 'master_thermohygro',
+            pilihan: const [
+              {'nilai': '40', 'label': 'TH-2', 'grup': 'Insitu'},
+              {'nilai': '42', 'label': 'TH-6', 'grup': 'Insitu'},
+              {'nilai': '43', 'label': 'TH-7', 'grup': 'Insitu'},
+              {'nilai': '41', 'label': 'TH-4', 'grup': 'Inlab'},
+            ]),
       ],
     },
     {
@@ -1645,7 +1695,13 @@ Map<String, dynamic> contohBentukLembarKerjaVisco({bool untukAdmin = false}) {
         field('alat_serial_number', '4. Serial Number/LPI', 'teks'),
         field('alat_merk', '5. Merk/Manufacture', 'teks'),
         field('thermohygro_standard_id', '6. Thermohygro used', 'pilihan',
-            sumber: 'master_thermohygro'),
+            sumber: 'master_thermohygro',
+            pilihan: const [
+              {'nilai': '40', 'label': 'TH-2', 'grup': 'Insitu'},
+              {'nilai': '42', 'label': 'TH-6', 'grup': 'Insitu'},
+              {'nilai': '43', 'label': 'TH-7', 'grup': 'Insitu'},
+              {'nilai': '41', 'label': 'TH-4', 'grup': 'Inlab'},
+            ]),
       ],
     },
     {
@@ -2178,7 +2234,13 @@ Map<String, dynamic> contohBentukLembarKerjaGas({bool untukAdmin = false}) {
         // Namanya "Environmental Meter", bukan "Thermohygro": alat yang
         // dipakai di sini juga membaca tekanan.
         field('thermohygro_standard_id', 'Environmental Meter Used', 'pilihan',
-            sumber: 'master_thermohygro'),
+            sumber: 'master_thermohygro',
+            pilihan: const [
+              {'nilai': '40', 'label': 'TH-2', 'grup': 'Insitu'},
+              {'nilai': '42', 'label': 'TH-6', 'grup': 'Insitu'},
+              {'nilai': '43', 'label': 'TH-7', 'grup': 'Insitu'},
+              {'nilai': '41', 'label': 'TH-4', 'grup': 'Inlab'},
+            ]),
       ],
       'tabel': [
         tabel('sebelum_adjustment', 'Before Adjustment Reading'),
