@@ -33,8 +33,11 @@
 # `workflow_dispatch` cuma bisa dipanggil kalau berkas workflow-nya SUDAH ada di
 # branch default. Buat kemampuan yang justru dibutuhkan di branch fitur sebelum
 # apa pun mendarat, itu ayam-telur. `push` jalan dari salinan branch-nya sendiri.
-# (`workflow_dispatch` tetap dipasang buat sekali-sekali, begitu berkas ini ada
-# di `main`.)
+# (`workflow_dispatch` tetap dipasang, dan sejak berkas ini ada di `main` dia
+# bukan lagi cadangan yang jarang kepakai: itu satu-satunya pemicu buat resep
+# memperbarui golden LAMA di bagian bawah, yang tandanya penghapusan berkas —
+# bukan sentuhan ke `screenshot_test.dart` — jadi saringan `paths` di atas
+# nggak pernah kena.)
 #
 # Saringan `paths` bukan penghematan receh: runner macOS dihitung 10x menit
 # Linux, dan tanpa saringan itu tiap push ke tiap branch bayar segitu buat
@@ -76,8 +79,51 @@
 # langkah verifikasi sesudahnya menjalankan pemeriksaan golden BIASA. Kalau
 # salah satu golden lama memang bergeser lewat ambang, dia gagal di situ —
 # dengan angka dan PNG bedanya, sama seperti di PR mana pun. Memperbaruinya
-# tetap lewat jalur `_testImage.png` di `periksa-pr.yml`, tempat ada manusia
-# yang memutuskan.
+# lewat jalur `_testImage.png` di `periksa-pr.yml`, tempat ada manusia yang
+# memutuskan — kecuali jalur itu lagi buntu; lihat bagian berikutnya.
+#
+# ## Kalau `_testImage.png` nggak bisa diunduh: memperbarui golden LAMA di sini
+#
+# Jalur biasa memperbarui baseline yang SUDAH ADA: unduh artifact
+# `golden-yang-gagal` dari job `Golden (macOS)` yang merah, ambil
+# `test/failures/<nama>_testImage.png`, salin jadi baseline barunya. Pikselnya
+# sama persis dengan hasil `--update-goldens` di runner itu.
+#
+# Jalur itu bisa BUNTU, dan bukan karena salah pakai: GitHub memulangkan URL
+# unduhannya ke `*.blob.core.windows.net`, dan lingkungan yang egress-nya
+# dibatasi kebijakan organisasi menolak host itu:
+#
+#     curl: (56) CONNECT tunnel failed, response 403
+#
+# Kejadian 27 Agt 2026 waktu golden Spectrophotometer mesti dibikin ulang.
+# Artifact-nya ADA dan sehat — 1,5 MB, 4 berkas; yang nggak ada cuma izin
+# mengambilnya. Kebijakan egress bukan sesuatu yang boleh dirutekan memutar,
+# jadi yang berubah jalannya, bukan aturannya.
+#
+# Workflow INI bisa menggantikan jalur itu, dengan satu langkah tambahan —
+# karena dia cuma commit berkas BARU, baseline lamanya dipensiunkan dulu:
+#
+#   1. `git rm test/screenshots/<nama>.png`, lalu commit. Tulis di pesan
+#      commit-nya KENAPA baseline itu nggak berlaku lagi. Sesudah ini dia cuma
+#      kelihatan sebagai berkas yang hilang lalu muncul lagi, dan alasannya
+#      nggak akan ketemu di tempat lain.
+#   2. Push, lalu jalankan workflow ini (`workflow_dispatch`) ke branch itu.
+#      Baseline-nya lahir sebagai berkas baru, jadi ikut ke-commit.
+#   3. Push dari `GITHUB_TOKEN` sengaja nggak memicu workflow lain — jalankan
+#      `periksa-pr.yml` manual sesudahnya buat mengadu ulang ketiga job.
+#
+# Yang ditukar cuma cara berkasnya sampai, BUKAN jaminannya: ketiga pagar tetap
+# berlaku, termasuk yang paling penting — verifikasi ulang sebelum commit.
+# Baseline yang barusan lahir tapi nggak lolos pemeriksaan biasa gagal di situ
+# dan nggak pernah ke-commit.
+#
+# Satu hal yang HILANG, dan pantas disadari sebelum memilih jalan ini: jalur
+# `_testImage.png` menaruh manusia di antara "golden bergeser" dan "baseline
+# diganti" — seseorang melihat gambar bedanya lebih dulu. Jalan ini nggak.
+# Keputusan bahwa baseline lama memang sudah nggak berlaku diambil di langkah 1,
+# waktu berkasnya dihapus. Di situ alasannya ditulis, dan cuma di situ reviewer
+# punya kesempatan menolaknya. Jadi jangan pernah gabungkan langkah 1 dengan
+# perubahan lain dalam satu commit.
 name: Golden baru (macOS)
 
 on:
