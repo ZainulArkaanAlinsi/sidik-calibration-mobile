@@ -46,6 +46,21 @@ class Temuan {
   final String pesan;
   final Map<String, dynamic> konteks;
 
+  /// Kode SEL yang ditunjuk temuan ini — `sel:<tahap>:<titik>:<kolom>:<repeat>`.
+  ///
+  /// Null buat temuan yang nggak nunjuk satu kotak tertentu (kolom identitas,
+  /// standar acuan, ketidakpastian), DAN buat pembacaan yang titiknya kembar
+  /// dalam satu lembar — di matriks Autoklaf delapan baris besaran ber-titik
+  /// nol semua, jadi satu kode bakal nunjuk delapan kotak sekaligus. Backend
+  /// yang mutusin; di sini cukup dibaca apa adanya.
+  ///
+  /// Ini yang bikin tombol "kembalikan ke teknisi" bisa nandain angka yang
+  /// salah, bukan cuma nyeritain posisinya lewat prosa.
+  String? get kodeSel {
+    final k = konteks['kode_sel'];
+    return k is String && k.isNotEmpty ? k : null;
+  }
+
   factory Temuan.fromJson(Map<String, dynamic> json) => Temuan(
     tingkat: TingkatTemuan.fromApi(json['tingkat'] as String?),
     kode: json['kode'] as String? ?? '',
