@@ -175,16 +175,38 @@
     <h2>macOS</h2>
     <p class="platform">Apple Silicon &amp; Intel · file .zip</p>
     <a class="tombol" href="sidik-macos.zip" download>Unduh untuk macOS</a>
-    <details>
-      <summary>macOS bilang aplikasinya rusak — ini normal</summary>
+    <details open>
+      <summary>Muncul &#8220;PTSidikCalibration Tidak Dibuka&#8221;? Baca ini dulu</summary>
       <p>
-        Aplikasinya belum ditandatangani sertifikat Apple berbayar, jadi
-        Gatekeeper nolak duluan tanpa pernah membukanya. Pindahkan dulu
-        aplikasinya ke folder <strong>Applications</strong>, lalu jalankan sekali
-        di Terminal:
+        Kotak yang muncul bunyinya <em>&#8220;Apple tidak dapat memverifikasi apakah
+        PTSidikCalibration bebas dari malware&#8221;</em>, dengan dua tombol:
+        <strong>Pindahkan ke Tong Sampah</strong> dan <strong>Selesai</strong>.
       </p>
-      <pre><code>xattr -dr com.apple.quarantine /Applications/PTSidikCalibration.app</code></pre>
-      <p>Sesudah itu tinggal dibuka biasa, nggak perlu diulang lagi.</p>
+      <p>
+        <strong>Klik Selesai.</strong> Jangan Tong Sampah &#8212; aplikasinya
+        nggak rusak dan nggak bervirus. Dia cuma belum ditandatangani sertifikat
+        Apple berbayar, jadi Gatekeeper nolak duluan tanpa pernah membukanya.
+        Ini muncul di SETIAP Mac, sekali per pemasangan.
+      </p>
+      <p>Sesudah klik Selesai, pilih salah satu &#8212; sekali saja, nggak perlu diulang:</p>
+      <p><strong>Pakai Terminal (paling cepat)</strong></p>
+      <pre><code>xattr -dr com.apple.quarantine ~/Downloads/PTSidikCalibration.app</code></pre>
+      <p>
+        Kalau aplikasinya sudah dipindah ke <strong>Applications</strong>, ganti
+        jalurnya jadi <code>/Applications/PTSidikCalibration.app</code>. Terminal
+        yang diam tanpa pesan apa pun itu tandanya berhasil.
+      </p>
+      <p><strong>Tanpa Terminal</strong></p>
+      <p>
+        Buka <strong>System Settings</strong> &#8594; <strong>Privacy &amp; Security</strong>,
+        gulung ke paling bawah. Di situ ada baris yang nyebut PTSidikCalibration
+        diblokir &#8212; klik <strong>Open Anyway</strong>, masukkan password Mac,
+        lalu buka aplikasinya lagi.
+      </p>
+      <p>
+        Trik lama klik-kanan &#8594; <strong>Open</strong> <em>sudah nggak jalan</em>
+        di macOS Sequoia ke atas. Dua cara di atas yang tersisa.
+      </p>
     </details>
   </section>
 
