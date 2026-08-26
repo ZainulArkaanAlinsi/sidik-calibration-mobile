@@ -237,6 +237,51 @@ void main() {
       ]);
 
       expect(kebuang, 1);
+      expect(isian.grid!.setPointTerisi, isEmpty);
+    });
+
+    test('baris yang kebuang nggak meninggalkan set point kosong', () {
+      // Set point cuma dibikin kalau ada yang beneran mendarat. Kalau dibikin
+      // di depan, satu baris yang ujungnya kebuang meninggalkan set point
+      // kosong berlabel "30 °C" — ikut kekirim ke server, dan bikin peringatan
+      // "belum ada termokopel yang diisi" di layar yang justru lagi dipakai
+      // membetulkan. Kebisingan yang dilahirkan pemulihan itu sendiri.
+      final isian = isianBaru();
+
+      final kebuang = isian.terapkanPembacaan([
+        grid(titikUkur: 30, peran: 'termokopel', pembacaanKe: 1, pembacaan: 30.1),
+        grid(titikUkur: 45, peran: 'kelembapan_chamber', pembacaanKe: 1, pembacaan: 61.2),
+      ]);
+
+      expect(kebuang, 2);
+
+      // Satu set point kosong bawaan layar, dan titiknya masih kosong.
+      expect(isian.grid!.setPoint.length, 1);
+      expect(isian.grid!.setPoint.first.titikUkur, isNull);
+      expect(isian.grid!.setPointTerisi, isEmpty);
+    });
+
+    test('satu baris rusak nggak menjatuhkan set point yang lain di titik sama', () {
+      final isian = isianBaru();
+
+      final kebuang = isian.terapkanPembacaan([
+        // Kebuang: nggak bernomor.
+        grid(titikUkur: 30, peran: 'termokopel', pembacaanKe: 1, pembacaan: 99.9),
+        // Mendarat.
+        grid(titikUkur: 30, peran: 'termokopel', sensorKe: 3, pembacaanKe: 1, pembacaan: 30.1),
+      ]);
+
+      expect(kebuang, 1);
+
+      final sp = isian.grid!.setPoint.first;
+
+      expect(sp.titikUkur, 30);
+      expect(baca(sensor(sp, 3)), ['30.1', '', '', '', '']);
+
+      // Angka yang kebuang nggak nyelinap ke baris mana pun.
+      for (final b in sp.sensor) {
+        expect(baca(b), isNot(contains('99.9')));
+      }
     });
 
     test('pulih lalu dikirim ulang = payload yang sama', () {

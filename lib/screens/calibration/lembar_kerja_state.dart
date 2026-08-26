@@ -1475,7 +1475,6 @@ class LembarKerjaState {
     final urut = perTitik.keys.toList()..sort();
 
     for (final titikUkur in urut) {
-      final sp = _setPointUntuk(g, titikUkur);
       final baris = perTitik[titikUkur]!
         // Termokopel duluan dan urut nomor, biar baris kosong bawaan layar
         // kepakai berurutan. Nomornya sendiri yang nentuin koreksi & Sensor
@@ -1489,7 +1488,7 @@ class LembarKerjaState {
         });
 
       for (final m in baris) {
-        if (!_taruhSelGrid(sp, m)) kebuang++;
+        if (!_taruhSelGrid(g, titikUkur, m)) kebuang++;
       }
     }
 
@@ -1528,9 +1527,23 @@ class LembarKerjaState {
   }
 
   /// Taruh satu baris mentah ke selnya. `false` = nggak ketemu tempatnya.
-  bool _taruhSelGrid(SetPointGridState sp, RawMeasurement m) {
+  ///
+  /// Set point-nya dibikin BELAKANGAN, cuma kalau barisnya beneran mendarat.
+  /// Kalau dibikin di depan, satu baris yang ujungnya kebuang meninggalkan set
+  /// point kosong berlabel "30 °C" yang ikut kekirim ke server dan bikin
+  /// peringatan "belum ada termokopel yang diisi" — kebisingan yang dilahirkan
+  /// pemulihan itu sendiri, di layar yang justru sedang dipakai membetulkan.
+  ///
+  /// [_setPointUntuk] aman dipanggil berkali-kali: panggilan kedua ketemu set
+  /// point yang sama lewat nilai titiknya.
+  bool _taruhSelGrid(GridSensorState g, double titikUkur, RawMeasurement m) {
     // `pembacaan_ke` dari server 1-based; kotaknya 0-based.
     final index = m.pembacaanKe - 1;
+
+    // Diadu ke bentuknya, bukan ke panjang kotak satu baris — dua-duanya
+    // dibangun dari `bentuk.pengulangan`, jadi angkanya sama persis, dan yang
+    // ini kebaca tanpa perlu bikin barisnya dulu.
+    if (index < 0 || index >= g.bentuk.pengulangan.length) return false;
 
     if (m.peranSensor == 'termokopel') {
       final no = m.sensorKe;
@@ -1539,9 +1552,7 @@ class LembarKerjaState {
       // koreksi mana yang dipakai, jadi nebak posisinya = nebak koreksinya.
       if (no == null) return false;
 
-      final baris = _barisSensorUntuk(sp, no);
-
-      if (index < 0 || index >= baris.pembacaanCtl.length) return false;
+      final baris = _barisSensorUntuk(_setPointUntuk(g, titikUkur), no);
 
       _isiKalauKosong(baris.pembacaanCtl[index], m.pembacaan);
 
@@ -1558,15 +1569,14 @@ class LembarKerjaState {
       return true;
     }
 
-    final deret = switch (m.peranSensor) {
-      'indikator' => sp.indikator,
-      'suhu_ruang' => sp.suhuRuang,
-      // Peran yang HP versi ini belum kenal. Lihat docblock [_terapkanGrid]
-      // soal kenapa dibuang, bukan ditaruh di kotak terdekat.
-      _ => null,
-    };
+    // Peran yang HP versi ini belum kenal dibuang. Lihat docblock
+    // [_terapkanGrid] soal kenapa, bukan ditaruh di kotak terdekat.
+    if (m.peranSensor != 'indikator' && m.peranSensor != 'suhu_ruang') {
+      return false;
+    }
 
-    if (deret == null || index < 0 || index >= deret.ctl.length) return false;
+    final sp = _setPointUntuk(g, titikUkur);
+    final deret = m.peranSensor == 'indikator' ? sp.indikator : sp.suhuRuang;
 
     _isiKalauKosong(deret.ctl[index], m.pembacaan);
 
