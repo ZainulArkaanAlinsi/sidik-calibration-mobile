@@ -2180,6 +2180,36 @@ abstract class AppLocalizations {
   /// **'After adjustment (certified)'**
   String get detailSesudahAdjustment;
 
+  /// No description provided for @detailAlatBantu.
+  ///
+  /// In en, this message translates to:
+  /// **'Heat source'**
+  String get detailAlatBantu;
+
+  /// No description provided for @detailTipePencelupan.
+  ///
+  /// In en, this message translates to:
+  /// **'Immersion type'**
+  String get detailTipePencelupan;
+
+  /// No description provided for @detailUjiTitikEs.
+  ///
+  /// In en, this message translates to:
+  /// **'Ice point test (30 min)'**
+  String get detailUjiTitikEs;
+
+  /// No description provided for @detailTitikEsKe.
+  ///
+  /// In en, this message translates to:
+  /// **'X{ke}'**
+  String detailTitikEsKe(Object ke);
+
+  /// No description provided for @detailRentangTitikEs.
+  ///
+  /// In en, this message translates to:
+  /// **'Range (Tmax − Tmin)'**
+  String get detailRentangTitikEs;
+
   /// No description provided for @detailPembacaanStandar.
   ///
   /// In en, this message translates to:

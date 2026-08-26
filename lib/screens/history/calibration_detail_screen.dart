@@ -261,6 +261,35 @@ class _Isi extends StatelessWidget {
                     label: l10n.detailThermohygro,
                     value: detail.kondisiLingkungan!.thermohygro!,
                   ),
+
+                // Unit pemanas & tipe pencelupan — tiga alat suhu ke-18…20.
+                //
+                // Ada di kartu KONDISI LINGKUNGAN karena itu memang yang
+                // keduanya jelaskan: dalam kondisi apa sesi ini diukur. Dan
+                // keduanya bukan keterangan pasif — dryblock/oilbath yang
+                // dipilih nentuin dua komponen budget, tipe pencelupan kecetak
+                // di sertifikat (`SERTIFIKAT!E19`). Admin di layar ini yang
+                // mutusin nerbitin, jadi dua-duanya mesti bisa diadu ke lembar
+                // cetak di mejanya.
+                //
+                // Namanya dipakai kalau server ngirim; kalau kodenya nggak
+                // dikenal profil, kodenya sendiri yang tampil. Sengaja BUKAN
+                // disembunyiin: kode mentah masih ngasih tau ada pilihan yang
+                // kebaca aneh, sedangkan baris yang hilang bikin sesi kelihatan
+                // seolah nggak pernah milih alat bantu sama sekali.
+                if (detail.isianTeknisi?.alatBantu != null)
+                  _InfoRow(
+                    label: l10n.detailAlatBantu,
+                    value:
+                        detail.isianTeknisi!.alatBantuLabel ??
+                        detail.isianTeknisi!.alatBantu!,
+                  ),
+                if (detail.isianTeknisi?.tipePencelupan != null)
+                  _InfoRow(
+                    label: l10n.detailTipePencelupan,
+                    value: detail.isianTeknisi!.tipePencelupan!,
+                  ),
+
                 if (detail.lokasi != null)
                   _InfoRow(
                     label: l10n.detailLokasi,
@@ -293,6 +322,9 @@ class _Isi extends StatelessWidget {
                     label: l10n.detailKelembaban,
                     value: '${_fmt(detail.kelembaban, decimals: 1)} %RH',
                   ),
+
+                if (detail.isianTeknisi?.titikEs.isNotEmpty ?? false)
+                  _TitikEsBlok(pembacaan: detail.isianTeknisi!.titikEs),
               ],
             ),
           ),
@@ -542,6 +574,72 @@ class _BesaranBlok extends StatelessWidget {
               label: l10n.detailU95Lingkungan,
               value: '± ${_fmt(besaran.u95, decimals: 4)} $satuan',
             ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Uji titik es 30 menit — cuma Termometer Gelas.
+///
+/// ## Kenapa RENTANG-nya ikut dihitung di sini
+///
+/// Yang masuk budget bukan ketiga angkanya melainkan sebarannya:
+/// `PERHITUNGAN U95%!N29 = ('PERHITUNGAN FC'!Q46)/2`, dan `Q46 = Tmaks − Tmin`.
+/// Tabel Type B di bawah sudah memajang hasil bagi itu sebagai komponen
+/// `stabilitas_titik_es` — tapi angka itu sendiri nggak bisa diadu ke lembar
+/// cetak tanpa tau tiga pembacaan asalnya.
+///
+/// Jadi baris ini yang menyambung keduanya: X1…X3 apa adanya, lalu rentangnya.
+/// Admin bisa menelusuri dari yang ditulis teknisi sampai angka yang masuk
+/// U95 tanpa membuka lembar kerjanya.
+///
+/// Rentangnya dihitung ULANG dari [pembacaan], bukan dibaca dari respons, dan
+/// itu bukan pengulangan kerja: server nggak memulangkan rentangnya sebagai
+/// field sendiri — dia hidup di dalam komponen budget yang sudah dibagi dua.
+/// Menampilkan `komponen × 2` bakal bikin pembulatan komponen ikut kelipatgandakan.
+class _TitikEsBlok extends StatelessWidget {
+  const _TitikEsBlok({required this.pembacaan});
+
+  final List<double> pembacaan;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    // Sesi cacat/setengah jadi bisa mengirim kurang dari tiga; yang ada
+    // ditampilkan apa adanya, dan rentangnya tetap sah buat berapa pun
+    // jumlahnya (satu angka -> rentang nol).
+    final maks = pembacaan.reduce((a, b) => a > b ? a : b);
+    final min = pembacaan.reduce((a, b) => a < b ? a : b);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.detailUjiTitikEs.toUpperCase(),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              letterSpacing: 0.6,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              for (var i = 0; i < pembacaan.length; i++)
+                _Kolom(
+                  label: l10n.detailTitikEsKe(i + 1),
+                  nilai: '${_fmt(pembacaan[i], decimals: 2)} °C',
+                ),
+            ],
+          ),
+          _InfoRow(
+            label: l10n.detailRentangTitikEs,
+            value: '${_fmt(maks - min, decimals: 2)} °C',
+          ),
         ],
       ),
     );

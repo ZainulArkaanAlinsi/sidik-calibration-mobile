@@ -1138,6 +1138,23 @@ class AppLocalizationsId extends AppLocalizations {
   String get detailSesudahAdjustment => 'Sesudah adjustment (disertifikasi)';
 
   @override
+  String get detailAlatBantu => 'Alat bantu';
+
+  @override
+  String get detailTipePencelupan => 'Tipe pencelupan';
+
+  @override
+  String get detailUjiTitikEs => 'Uji titik es (30 menit)';
+
+  @override
+  String detailTitikEsKe(Object ke) {
+    return 'X$ke';
+  }
+
+  @override
+  String get detailRentangTitikEs => 'Rentang (Tmaks − Tmin)';
+
+  @override
   String get detailPembacaanStandar => 'Pembacaan standard (probe lab)';
 
   @override

@@ -1141,6 +1141,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get detailSesudahAdjustment => 'After adjustment (certified)';
 
   @override
+  String get detailAlatBantu => 'Heat source';
+
+  @override
+  String get detailTipePencelupan => 'Immersion type';
+
+  @override
+  String get detailUjiTitikEs => 'Ice point test (30 min)';
+
+  @override
+  String detailTitikEsKe(Object ke) {
+    return 'X$ke';
+  }
+
+  @override
+  String get detailRentangTitikEs => 'Range (Tmax − Tmin)';
+
+  @override
   String get detailPembacaanStandar => 'Standard reading (lab probe)';
 
   @override

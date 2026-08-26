@@ -543,6 +543,10 @@ class IsianTeknisi {
     this.kelembabanAkhir,
     this.tekananAwal,
     this.tekananAkhir,
+    this.alatBantu,
+    this.alatBantuLabel,
+    this.tipePencelupan,
+    this.titikEs = const [],
     this.standarDicek = const {},
     this.revisiField = const {},
     this.catatanRevisi,
@@ -581,6 +585,40 @@ class IsianTeknisi {
   /// yang justru nentuin ketidakpastiannya.
   final double? tekananAwal;
   final double? tekananAkhir;
+
+  /// Unit pemanas yang dipakai sesi ini — KODE-nya (`A`, `B`, `satu`, `dua`).
+  ///
+  /// Cuma tiga alat suhu ke-18…20 yang punya, dan Thermohygro nggak termasuk:
+  /// chamber-nya diturunkan server dari set point karena satu sesi memakai dua
+  /// chamber sekaligus.
+  final String? alatBantu;
+
+  /// Nama unit itu, sudah diresolusi SERVER dari [alatBantu].
+  ///
+  /// Dipakai buat tampilan, dan sengaja nggak dipetakan sendiri di sini.
+  /// Kolomnya menyimpan kode yang cuma punya arti di daftar `pilihan` milik
+  /// profilnya — daftar yang bertambah begitu lab beli dryblock baru. Peta
+  /// kode→nama yang disalin ke HP bakal ketinggalan diam-diam: kode baru tampil
+  /// mentah, nol error, di layar yang justru dipakai memutuskan penerbitan
+  /// sertifikat.
+  ///
+  /// Null kalau [alatBantu] null ATAU kodenya nggak dikenal profilnya — lihat
+  /// `CalibrationProfile::labelAlatBantu()` di repo API.
+  final String? alatBantuLabel;
+
+  /// Partial / Total / Complete Immersion — cuma Termometer Gelas.
+  ///
+  /// Sudah berupa teks siap tampil, beda dari [alatBantu]: daftarnya disimpan
+  /// pakai labelnya sendiri sebagai nilai.
+  final String? tipePencelupan;
+
+  /// Tiga pembacaan uji titik es 30 menit — cuma Termometer Gelas.
+  ///
+  /// Yang disimpan ketiganya, bukan ringkasannya, karena RENTANG-nya
+  /// (`Tmaks − Tmin`) yang jadi komponen budget dan itu dihitung ulang tiap
+  /// sesi dibuka. Menyimpan hasil jadi berarti sesi lama nggak ikut berubah
+  /// waktu rumusnya dibetulkan.
+  final List<double> titikEs;
 
   /// `standard_id` → (dipakai, keterangan).
   final Map<int, ({bool dipakai, String? keterangan})> standarDicek;
@@ -645,6 +683,17 @@ class IsianTeknisi {
       kelembabanAkhir: (json['kelembaban_akhir'] as num?)?.toDouble(),
       tekananAwal: (json['tekanan_awal'] as num?)?.toDouble(),
       tekananAkhir: (json['tekanan_akhir'] as num?)?.toDouble(),
+      alatBantu: json['alat_bantu'] as String?,
+      alatBantuLabel: json['alat_bantu_label'] as String?,
+      tipePencelupan: json['tipe_pencelupan'] as String?,
+      // Item non-angka dilewat, bukan bikin seluruh sesi gagal di-parse —
+      // semangat yang sama dengan `parseListAman`. Yang dijaga di sini bukan
+      // kerapian: satu nilai cacat di `titik_es` nggak boleh mengosongkan
+      // layar detail yang 99% datanya sehat.
+      titikEs: [
+        for (final n in json['titik_es'] as List<dynamic>? ?? const [])
+          if (n is num) n.toDouble(),
+      ],
       standarDicek: dicek,
       revisiField: {
         for (final k in json['revisi_field'] as List<dynamic>? ?? const [])
