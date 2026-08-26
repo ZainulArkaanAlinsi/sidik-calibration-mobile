@@ -2180,6 +2180,18 @@ abstract class AppLocalizations {
   /// **'After adjustment (certified)'**
   String get detailSesudahAdjustment;
 
+  /// No description provided for @detailPembacaanStandar.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard reading (lab probe)'**
+  String get detailPembacaanStandar;
+
+  /// No description provided for @detailPembacaanUut.
+  ///
+  /// In en, this message translates to:
+  /// **'UUT reading (customer instrument)'**
+  String get detailPembacaanUut;
+
   /// No description provided for @detailAsFoundCatatan.
   ///
   /// In en, this message translates to:

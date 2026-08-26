@@ -599,6 +599,21 @@ class _TitikResultCard extends StatelessWidget {
   final MeasurementBefore? sebelum;
   final List<RawMeasurement> pembacaanSebelum;
 
+  /// Pembacaan yang punya peran standar/UUT. Kosong buat tujuh belas alat
+  /// lain, dan itu yang bikin cabang lama tetap jalan apa adanya.
+  ///
+  /// Sengaja BUKAN `peranSensor != null`: grid Enclosure juga memakai kolom
+  /// itu, dengan peran posisi (`atas_kiri` dst) yang bukan pasangan deret.
+  /// Ikut kepisah dua blok, lembar Enclosure bakal kehilangan lima belas
+  /// pembacaannya dari layar.
+  static List<RawMeasurement> _pasangan(List<RawMeasurement> semua) =>
+      semua.where((p) => p.bagianPasangan).toList();
+
+  static List<RawMeasurement> _peran(
+    List<RawMeasurement> semua,
+    String peran,
+  ) => semua.where((p) => p.peranSensor == peran).toList();
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -665,7 +680,34 @@ class _TitikResultCard extends StatelessWidget {
                 ),
               ),
             ],
-            if (pembacaan.isNotEmpty) ...[
+            // Alat ber-PASANGAN deret (Thermocouple, Termometer Gelas,
+            // Thermohygrometer) dipisah jadi DUA blok, dan itu bukan kerapian.
+            //
+            // Kedua deret punya `titik_ke` DAN `tahap` yang sama, jadi
+            // saringan di atas memulangkan keduanya sekaligus. Digambar satu
+            // blok, yang kebaca admin sepuluh angka beruntun tanpa penanda:
+            //
+            //     49,5 49,5 49,5 49,5 49,5 49,9 49,9 49,9 49,9 49,9
+            //
+            // Lima pertama probe lab, lima berikutnya alat pelanggan — dan
+            // selisih di antaranya justru yang jadi kolom `Correction`. Di
+            // layar yang dipakai memutuskan menerbitkan sertifikat, dua deret
+            // yang menyamar jadi satu itu bukan kurang rapi, itu salah baca
+            // yang nggak kelihatan salah.
+            if (_pasangan(pembacaan).isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.sm),
+              _TahapPembacaan(
+                judul: l10n.detailPembacaanStandar,
+                pembacaan: _peran(pembacaan, 'standar'),
+                tone: AppColors.statusInfo(context),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              _TahapPembacaan(
+                judul: l10n.detailPembacaanUut,
+                pembacaan: _peran(pembacaan, 'uut'),
+                tone: AppColors.statusSukses(context),
+              ),
+            ] else if (pembacaan.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.sm),
               _TahapPembacaan(
                 judul: l10n.detailSesudahAdjustment,

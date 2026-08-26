@@ -1138,6 +1138,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get detailSesudahAdjustment => 'Sesudah adjustment (disertifikasi)';
 
   @override
+  String get detailPembacaanStandar => 'Pembacaan standard (probe lab)';
+
+  @override
+  String get detailPembacaanUut => 'Pembacaan UUT (alat pelanggan)';
+
+  @override
   String get detailAsFoundCatatan =>
       'Dokumentasi kondisi alat waktu diterima — nggak ikut hasil yang disertifikasi.';
 
