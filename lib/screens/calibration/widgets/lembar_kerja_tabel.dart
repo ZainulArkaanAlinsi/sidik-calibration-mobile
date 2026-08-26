@@ -40,7 +40,7 @@ class LembarKerjaTabel extends StatelessWidget {
   final VoidCallback onBerubah;
 
   /// Saklar tombol `FOTO TABEL INI`. Default ngikut
-  /// [AppConfig.pindaiLembarAktif] — sekarang MATI.
+  /// [AppConfig.pindaiLembarAktif] — sekarang NYALA.
   ///
   /// Dibikin parameter, bukan dibaca langsung dari `AppConfig` di dalam
   /// `build`: nilai `const bool.fromEnvironment` nggak bisa disetel dari

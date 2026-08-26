@@ -1610,10 +1610,11 @@ class _Bagian extends ConsumerWidget {
             // Pindai lembar penuh (OCR lokal) — di atas tabelnya, karena dia
             // ngisi SELURUH tabel sekaligus, bukan satu tabel.
             //
-            // Digantung di `--dart-define=PINDAI_LEMBAR` (default MATI). Yang
-            // dimatiin cuma render-nya: `_TombolPindaiLembar` di bawah dan
-            // seluruh mesin geometrinya tetap dikompilasi & tetap dites.
-            // Lihat `AppConfig.pindaiLembarAktif` buat alasan lengkapnya.
+            // Digantung di `--dart-define=PINDAI_LEMBAR` (default NYALA sejak
+            // 25 Agt 2026). Kalau dimatiin, yang mati cuma render-nya:
+            // `_TombolPindaiLembar` di bawah dan seluruh mesin geometrinya
+            // tetap dikompilasi & tetap dites. Lihat
+            // `AppConfig.pindaiLembarAktif` buat alasan lengkapnya.
             if (pindaiAktif && bagian.tabel.isNotEmpty)
               _TombolPindaiLembar(
                 profil: profil,

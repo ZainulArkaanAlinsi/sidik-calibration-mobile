@@ -8,9 +8,12 @@ import '../core/utils/angka.dart';
 /// ilang tanpa jejak — dan yang masuk sertifikat justru angka mesin yang tadi
 /// salah.
 ///
-/// Dulu tinggal di `worksheet_vision.dart`. Jalur AI Vision-nya dicabut, tapi
-/// aturan ini nggak ikut mati: yang butuh justru sama — jalur pindai OCR lokal
-/// juga nuangin angka mesin ke kotak yang mungkin udah diisi tangan.
+/// Dulu tinggal di `worksheet_vision.dart`. Jalur AI Vision cloud-nya dicabut,
+/// tapi aturan ini nggak ikut mati: yang butuh justru sama. DUA jalur kamera
+/// yang tersisa — `PINDAI LEMBAR KERJA` (OCR template lokal) dan `FOTO TABEL
+/// INI` (ML Kit di perangkat) — sama-sama nuangin angka mesin ke kotak yang
+/// mungkin udah diisi tangan, dan sama-sama lewat sini
+/// (`lembar_kerja_state.dart`).
 class GabungTabel {
   const GabungTabel._();
 
