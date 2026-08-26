@@ -78,6 +78,7 @@ class RawMeasurement {
     this.sensorKe,
     this.peranSensor,
     this.channel,
+    this.satuan,
   });
 
   final int id;
@@ -115,8 +116,9 @@ class RawMeasurement {
   /// yang dipakai dan sensor mana jadi Sensor Acuan.
   final int? sensorKe;
 
-  /// `termokopel` / `indikator` / `suhu_ruang` — koordinat KOLOM-nya, dalam
-  /// arti "baris ini duduk di tabel yang mana".
+  /// `termokopel` / `indikator` / `suhu_ruang` (grid Enclosure) atau
+  /// `standar` / `uut` (lembar pasangan) — koordinat KOLOM-nya, dalam arti
+  /// "baris ini duduk di tabel yang mana".
   ///
   /// Null = lembar bertabel datar; angkanya masuk ke kolom pembacaan biasa.
   ///
@@ -126,12 +128,36 @@ class RawMeasurement {
   /// bentuknya wajar, tempatnya salah, dan nggak ada yang meneriakkan apa pun.
   final String? peranSensor;
 
+  /// Peran yang dipakai lembar PASANGAN (Thermocouple, Termometer Gelas,
+  /// Thermohygrometer) — dua deret per titik, bukan grid.
+  static const peranPasangan = {'standar', 'uut'};
+
+  /// Satuan pembacaan ini.
+  ///
+  /// Buat 19 alat bersatuan seragam isinya cuma mengulang `equipment.satuan`.
+  /// Yang butuh Thermohygrometer: satu lembar, dua besaran, dan set point `50`
+  /// ada di dua-duanya (50 °C dan 50 %RH). Tanpa satuan, angka blok kelembapan
+  /// mendarat di baris suhu waktu sesi yang dikembalikan admin dipulihkan.
+  ///
+  /// Null buat sesi yang tersimpan sebelum kolom ini ikut dikirim server.
+  final String? satuan;
+
   /// Nomor kanal recorder (CH1..CH20). Cuma terisi kalau kalibratornya
   /// Recorder — koreksi GL840 dibaca per kanal, bukan per tipe sensor.
   final int? channel;
 
-  /// Baris ini bagian dari GRID sensor (Enclosure), bukan tabel datar.
-  bool get bagianGrid => peranSensor != null;
+  /// Baris ini bagian dari lembar PASANGAN — deret standar atau deret UUT.
+  ///
+  /// Dipisah dari [bagianGrid] karena dua-duanya memakai kolom `peran_sensor`
+  /// yang sama. Tanpa pemisahan ini, tiap pembacaan lembar pasangan masuk jalur
+  /// pemulihan GRID, dianggap "nggak ketemu barisnya", dan teknisi yang
+  /// lembarnya dikembalikan admin dapat DUA tabel kosong berikut pesan bahwa
+  /// sekian pembacaan hilang.
+  bool get bagianPasangan => peranPasangan.contains(peranSensor);
+
+  /// Baris ini bagian dari GRID sensor (Enclosure), bukan tabel datar maupun
+  /// lembar pasangan.
+  bool get bagianGrid => peranSensor != null && !bagianPasangan;
 
   /// `manual` / `ocr`.
   final String inputSource;
@@ -160,6 +186,7 @@ class RawMeasurement {
       // bikin layarnya gagal dibuka.
       sensorKe: (json['sensor_ke'] as num?)?.toInt(),
       peranSensor: json['peran_sensor'] as String?,
+      satuan: json['satuan'] as String?,
       channel: (json['channel'] as num?)?.toInt(),
       inputSource: json['input_source'] as String? ?? 'manual',
       isVerified: json['is_verified'] as bool? ?? true,

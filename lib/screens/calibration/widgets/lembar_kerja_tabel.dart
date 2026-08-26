@@ -12,6 +12,7 @@ import '../../../providers/calibration_input_provider.dart';
 import '../../../providers/sumber_foto_provider.dart';
 import '../../../providers/worksheet_scan_provider.dart';
 import '../../../services/peta_tabel_foto.dart';
+import '../../../widgets/label_standar.dart';
 import '../lembar_kerja_state.dart';
 import 'dropdown_gagal.dart';
 
@@ -331,6 +332,11 @@ class LembarKerjaTabel extends StatelessWidget {
                         lebar: _lebarSel * tabel.kolom.length * potongan.first.length,
                         teks: judulPengulangan,
                         tinggi: _tinggiKepalaGabungan,
+                        // Jatahnya 26 dp — satu baris. Judul yang lebih panjang
+                        // dipotong berellipsis, BUKAN dibiarkan membungkus:
+                        // dua baris meluber keluar kotaknya dan di debug yang
+                        // kelihatan pita kuning-hitam menutupi tabel.
+                        maksBaris: 1,
                       ),
 
                     // Baris kepala: Repeat 1..n (atau X1..X3 buat lembar yang
@@ -369,7 +375,7 @@ class LembarKerjaTabel extends StatelessWidget {
                                 // Mati kalau standarnya belum dicentang ATAU pasangan
                                 // satuannya udah diisi. Lihat `titikBisaDiisi`.
                                 terkunci: !isian.titikBisaDiisi(
-                                  isian.kunciBaris(_baris, indexBaris),
+                                  isian.kunciBaris(_baris, indexBaris, tabel),
                                 ),
                                 // Index kotak diambil dari POSISI nomor
                                 // pengulangan di daftar aslinya, bukan dari
@@ -384,9 +390,9 @@ class LembarKerjaTabel extends StatelessWidget {
                                 // nunjuk ke controller yang SAMA dan yang
                                 // keliatan cuma satu baris keisi.
                                 controller: isian
-                                    .titik[isian.kunciBaris(_baris, indexBaris)]!
+                                    .titik[isian.kunciBaris(_baris, indexBaris, tabel)]!
                                     .kotak(
-                                      tabel.tahap,
+                                      tabel.kunciTabel,
                                       kolom.kode,
                                       tabel.pengulangan.indexOf(r),
                                     ),
@@ -395,8 +401,8 @@ class LembarKerjaTabel extends StatelessWidget {
                                 // ditandai supaya dicek yang itu saja, bukan
                                 // seluruh tabel.
                                 tanda: isian.tandaSel(
-                                  isian.kunciBaris(_baris, indexBaris),
-                                  tabel.tahap,
+                                  isian.kunciBaris(_baris, indexBaris, tabel),
+                                  tabel.kunciTabel,
                                   kolom.kode,
                                   tabel.pengulangan.indexOf(r),
                                 ),
@@ -704,7 +710,7 @@ class _TabelKeBawahState extends State<_TabelKeBawah> {
   /// [LembarKerjaState.titikAktifSlot], yang dipakai bareng sama tombol foto
   /// tabel.
   double? _titikAktif(int index, SlotCetak slot) =>
-      widget.isian.titikAktifSlot(_tabel.tahap, index, slot);
+      widget.isian.titikAktifSlot(_tabel.kunciTabel, index, slot);
 
   @override
   Widget build(BuildContext context) {
@@ -812,7 +818,7 @@ class _TabelKeBawahState extends State<_TabelKeBawah> {
                                   ? null
                                   : (pilih) => setState(() {
                                       widget.isian.pilihanSlot[LembarKerjaState
-                                              .kunciSlot(_tabel.tahap, i)] =
+                                              .kunciSlot(_tabel.kunciTabel, i)] =
                                           pilih;
                                     }),
                             ),
@@ -886,8 +892,8 @@ class _TabelKeBawahState extends State<_TabelKeBawah> {
       lebar: _lebarSel,
       tinggi: _tinggiBaris,
       terkunci: !widget.isian.titikBisaDiisi(titik!),
-      controller: state.kotak(_tabel.tahap, kolom.kode, urutan),
-      tanda: widget.isian.tandaSel(titik, _tabel.tahap, kolom.kode, urutan),
+      controller: state.kotak(_tabel.kunciTabel, kolom.kode, urutan),
+      tanda: widget.isian.tandaSel(titik, _tabel.kunciTabel, kolom.kode, urutan),
     );
   }
 }
@@ -1218,12 +1224,21 @@ class _SelKepala extends StatelessWidget {
     this.kiri = false,
     this.catatan,
     this.onKetuk,
+    this.maksBaris,
   });
 
   final double lebar;
   final String teks;
   final double tinggi;
   final bool kiri;
+
+  /// Batas baris [teks]. Null = nggak dibatasi sama sekali — persis kelakuan
+  /// sel kepala sebelum lembar suhu masuk, dan itu yang bikin golden empat
+  /// belas lembar lama tetap cocok.
+  ///
+  /// Disetel EKSPLISIT oleh kepala gabungan, yang jatah tingginya cuma 26 dp —
+  /// muat satu baris, nggak muat dua. Lihat pemakaiannya.
+  final int? maksBaris;
 
   /// Keterangan kecil di bawah label — dipakai buat bilang kenapa baris ini
   /// dikunci (alternatif satuan dari botol yang sama).
@@ -1253,6 +1268,21 @@ class _SelKepala extends StatelessWidget {
           children: [
             Text(
               teks,
+              // Dibatasi HANYA kalau yang manggil minta dibatasi.
+              //
+              // Sempat dipasang batas bawaan `catatan == null ? 2 : 1` buat
+              // semua sel. Itu salah, dan salahnya nggak kelihatan dari lembar
+              // yang lagi dikerjain: sel kepala yang labelnya membungkus jadi
+              // ikut kena `textAlign: center`, dan golden
+              // `lembar-kerja-spectrophotometer.png` geser 0,15% (4923 px) —
+              // di atas ambang 0,10%. Empat belas lembar lain nggak kegeser
+              // cuma karena label kepalanya kebetulan muat satu baris.
+              //
+              // Jadi bawaannya dibalikin persis kayak sebelumnya: nggak ada
+              // batas baris, nggak ada ellipsis, nggak ada `textAlign`. Yang
+              // butuh dipangkas minta sendiri lewat [maksBaris].
+              maxLines: maksBaris,
+              overflow: maksBaris == null ? null : TextOverflow.ellipsis,
               style: theme.textTheme.labelMedium?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: catatan == null
@@ -1542,23 +1572,24 @@ class _Dropdown extends ConsumerWidget {
         return DropdownButtonFormField<int>(
           initialValue: state.standardId,
           isExpanded: true,
+          // Tinggi baris menu ngikutin isinya: nama dua baris plus
+          // baris peringatan lewat dari jatah tetap 48 dp.
+          itemHeight: null,
           decoration: InputDecoration(
             isDense: true,
             labelText: '${l10n.lkStandarPerTitik} $label',
             border: const OutlineInputBorder(),
           ),
           hint: Text(l10n.lkPilih),
+          selectedItemBuilder: (_) => [
+            for (final Standard s in urut) LabelStandarDropdown.namaSaja(s),
+          ],
           items: [
             for (final Standard s in urut)
               DropdownMenuItem(
                 value: s.id,
                 enabled: s.masihBerlaku,
-                child: Text(
-                  s.masihBerlaku
-                      ? s.nama
-                      : '${s.nama} (${l10n.lkStandarKadaluarsa})',
-                  overflow: TextOverflow.ellipsis,
-                ),
+                child: LabelStandarDropdown(standard: s),
               ),
           ],
           onChanged: (value) {
@@ -1643,7 +1674,7 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
     for (var i = 0; i < widget.tabel.slotCetak.length; i++)
       (
         titikUkur: widget.isian.titikAktifSlot(
-          widget.tabel.tahap,
+          widget.tabel.kunciTabel,
           i,
           widget.tabel.slotCetak[i],
         ),
@@ -1786,7 +1817,7 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
 
       final terisi = widget.isian.terapkanHasilFotoTabel(
         hasil.sel,
-        tahap: widget.tabel.tahap,
+        tahap: widget.tabel.kunciTabel,
       );
 
       widget.onBerubah();

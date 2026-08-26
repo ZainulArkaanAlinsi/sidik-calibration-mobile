@@ -24,6 +24,7 @@ import '../../providers/worksheet_scan_provider.dart';
 import '../../services/auth_service.dart' show AuthException;
 import '../../widgets/autoclave_hasil_panel.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/label_standar.dart';
 import '../../widgets/sidik_loader.dart';
 import '../../widgets/tampil_masuk.dart';
 import 'lembar_kerja_state.dart';
@@ -1688,6 +1689,20 @@ class _Bagian extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.lg),
 
+              // No. Termokopel per set point — cuma tabel yang backend-nya
+              // bilang punya kolom itu (tabel STANDAR Thermocouple). Tabel UUT
+              // nggak punya: sisi UUT memakai probe bawaan alat pelanggan,
+              // yang justru sedang diukur penyimpangannya.
+              if (bagian.tabel[i].kolomNoProbe != null) ...[
+                _BarisNoProbe(
+                  field: bagian.tabel[i].kolomNoProbe!,
+                  tabel: bagian.tabel[i],
+                  isian: isian,
+                  onBerubah: onBerubah,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+              ],
+
               // Spindle/RPM/Resolusi tiap titik ditempel di sini, sesudah
               // tabel PERTAMA — persis posisinya di kertas: langsung di
               // bawah `Standard`/`UUT Reading` titik itu, bukan dikumpulin
@@ -2374,6 +2389,132 @@ class _BarisSpesifikasi extends StatelessWidget {
 /// Viscometer). Nilai kepilih ditulis ke [controller] apa adanya — kunci
 /// payloadnya udah lewat `kunciSpesifikasi`, bukan `f.kode`, jadi widget ini
 /// nggak perlu tahu bentuk payloadnya.
+/// Kolom `No. Termokopel` per set point — probe standar mana yang dicelup.
+///
+/// Digambar SESUDAH tabel standar, bukan di dalam barisnya: satu kolom
+/// tambahan di dalam tabel yang sudah 5 kolom bikin tabelnya melebihi lebar
+/// layar HP dan seluruh angka pembacaan ikut menyempit. Polanya sama dengan
+/// `_BarisSpesifikasi` (Spindle/RPM Viscometer), yang juga milik TITIK tapi
+/// digambar di bawah tabelnya.
+///
+/// **Daftar pilihannya disaring dari tipe sensor yang lagi dipilih**, dan
+/// penyaringnya `grup` yang dikirim server — bukan aturan "Type N mulai dari
+/// 3" yang ditulis ulang di sini. Aturan yang ditulis dua kali pelan-pelan
+/// berbeda, dan yang kalah nanti nomor probe yang nggak ada sertifikatnya.
+class _BarisNoProbe extends StatelessWidget {
+  const _BarisNoProbe({
+    required this.field,
+    required this.tabel,
+    required this.isian,
+    required this.onBerubah,
+  });
+
+  final FieldLembarKerja field;
+  final TabelHasil tabel;
+  final LembarKerjaState isian;
+  final VoidCallback onBerubah;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final tipeSensor = isian.kalimat('tipe_sensor');
+
+    // Sebelum tipe sensornya dipilih, SELURUH nomor ditawarkan — bukan daftar
+    // kosong. Teknisi yang mengisi tabel duluan tetap bisa jalan; server yang
+    // menolak pasangan yang nggak cocok, dengan alasan yang kebaca.
+    final pilihan = [
+      for (final p in field.pilihan)
+        if (tipeSensor == null || p.grup == null || p.grup == tipeSensor) p,
+    ];
+
+    final baris = isian.barisTabel(tabel);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          field.label,
+          style: theme.textTheme.labelMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        for (var i = 0; i < baris.length; i++) ...[
+          if (i > 0) const SizedBox(height: AppSpacing.xs),
+          Row(
+            children: [
+              SizedBox(
+                width: 96,
+                child: Text(
+                  baris[i].label,
+                  style: theme.textTheme.bodySmall,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: _DropdownNoProbe(
+                  pilihan: pilihan,
+                  controller: isian
+                      .titik[isian.kunciBaris(baris, i, tabel)]!
+                      .noProbeCtl,
+                  onBerubah: onBerubah,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// Dropdown satu baris [_BarisNoProbe].
+///
+/// Dipisah dari [_DropdownSpesifikasi] karena daftarnya SUDAH disaring dan
+/// nilainya bisa jatuh di luar daftar hasil saringan — mis. sesi tersimpan
+/// ber-probe Type N yang tipe sensornya baru diganti ke Type K. Yang begitu
+/// dibiarkan kosong, bukan dipaksa masuk: `DropdownButtonFormField` nge-assert
+/// kalau nilainya nggak cocok persis salah satu item, dan itu bikin layarnya
+/// mati total.
+class _DropdownNoProbe extends StatelessWidget {
+  const _DropdownNoProbe({
+    required this.pilihan,
+    required this.controller,
+    required this.onBerubah,
+  });
+
+  final List<PilihanField> pilihan;
+  final TextEditingController controller;
+  final VoidCallback onBerubah;
+
+  @override
+  Widget build(BuildContext context) {
+    final terpilih = pilihan.any((p) => p.nilai == controller.text)
+        ? controller.text
+        : null;
+
+    return DropdownButtonFormField<String>(
+      initialValue: terpilih,
+      isExpanded: true,
+      isDense: true,
+      decoration: const InputDecoration(
+        border: OutlineInputBorder(),
+        isDense: true,
+      ),
+      items: [
+        for (final p in pilihan)
+          DropdownMenuItem(value: p.nilai, child: Text(p.label)),
+      ],
+      onChanged: (value) {
+        if (value == null) return;
+        controller.text = value;
+        onBerubah();
+      },
+    );
+  }
+}
+
 class _DropdownSpesifikasi extends StatelessWidget {
   const _DropdownSpesifikasi({
     required this.field,
@@ -3353,11 +3494,20 @@ class _PilihStandar extends ConsumerWidget {
               ? isian.thermohygroStandardId
               : isian.standardId,
           isExpanded: true,
+          // Tinggi baris menu ngikutin isinya: nama dua baris plus
+          // baris peringatan lewat dari jatah tetap 48 dp.
+          itemHeight: null,
           decoration: InputDecoration(
             labelText: field.label,
             border: const OutlineInputBorder(),
           ),
           hint: Text(l10n.lkPilih),
+          // Tombol tertutup sengaja nama saja — biar tingginya nggak ikut
+          // tumbuh gara-gara item kadaluarsa di daftarnya. Lihat
+          // [LabelStandarDropdown].
+          selectedItemBuilder: (_) => [
+            for (final Standard s in pilihan) LabelStandarDropdown.namaSaja(s),
+          ],
           items: [
             for (final Standard s in pilihan)
               DropdownMenuItem(
@@ -3366,12 +3516,7 @@ class _PilihStandar extends ConsumerWidget {
                 // kalau disembunyiin, teknisi yang nyari standar yang biasa dia
                 // pakai bakal ngira datanya ilang.
                 enabled: s.masihBerlaku,
-                child: Text(
-                  s.masihBerlaku
-                      ? s.nama
-                      : '${s.nama} (${l10n.lkStandarKadaluarsa})',
-                  overflow: TextOverflow.ellipsis,
-                ),
+                child: LabelStandarDropdown(standard: s),
               ),
           ],
           onChanged: (value) {

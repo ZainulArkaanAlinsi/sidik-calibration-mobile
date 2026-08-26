@@ -103,7 +103,10 @@ class TitikState {
     this.standardNama,
     this.eksklusifDengan,
     this.onKetik,
+    this.parameter,
+    int? noProbeAwal,
   }) : standardId = standardIdTercetak,
+       noProbeCtl = TextEditingController(text: noProbeAwal?.toString() ?? ''),
        _kotak = {};
 
   /// Dipanggil tiap ANGKA di baris ini berubah.
@@ -115,6 +118,24 @@ class TitikState {
   final VoidCallback? onKetik;
 
   final double titikUkur;
+
+  /// Besaran yang diukur baris ini: `suhu` / `kelembaban`.
+  ///
+  /// Cuma Thermohygrometer yang punya — satu lembar, dua besaran. Ikut ke
+  /// `measurements[].parameter`, dan ikut jadi pembeda waktu memulihkan sesi:
+  /// set point `50` ada di DUA tabel lembar itu (50 °C dan 50 %RH), jadi angka
+  /// saja nggak cukup buat tahu baris mana yang dimaksud.
+  final String? parameter;
+
+  /// No. Termokopel probe standar yang dicelup di set point ini.
+  ///
+  /// Cuma Thermocouple. Penomorannya BEDA per tipe sensor dan itu dari
+  /// kertasnya sendiri: Type K 1–16, Type N MULAI DARI 3 (TCN3…TCN12), RTD
+  /// selalu 17. Nomor yang nggak menunjuk probe mana pun bikin backend menahan
+  /// titiknya — bukan mengoreksinya nol.
+  final TextEditingController noProbeCtl;
+
+  int? get noProbe => int.tryParse(noProbeCtl.text.trim());
 
   /// Jenis isian baris ini kalau BUKAN angka — sejauh ini cuma `jam`, baris
   /// `Time` di lembar Autoklaf. `null` = angka biasa, seperti seluruh baris di
@@ -358,7 +379,34 @@ class TitikState {
     return titik;
   }
 
+  /// Payload satu titik lembar PASANGAN — dua deret, bukan satu.
+  ///
+  /// Bentuknya `Map` biasa, bukan [TitikLembarKerja], karena kunci `standar` &
+  /// `uut` nggak ada di sana dan menambahkannya berarti tujuh belas alat lain
+  /// ikut mengirim dua kunci kosong tiap titik. Lewat jalur yang sama dengan
+  /// grid Enclosure (`measurementsGrid`).
+  ///
+  /// Sel kosong tetap `null` DI POSISINYA, sama seperti [toSubmission]: kalau
+  /// Repeat 2 kosong lalu dibuang, Repeat 3 naik jadi Repeat 2 dan seluruh
+  /// nomor pengulangan geser.
+  Map<String, dynamic> toSubmissionPasangan() => {
+    'titik_ukur': titikUkur,
+    if (satuan.isNotEmpty) 'satuan': satuan,
+    if (standardId != null) 'standard_id': standardId,
+    if (parameter != null) 'parameter': parameter,
+    if (noProbe != null) 'no_probe': noProbe,
+    'standar': _kolom('standar', 'pembacaan'),
+    'uut': _kolom('uut', 'pembacaan'),
+  };
+
+  /// Titik lembar pasangan yang sama sekali belum disentuh — nggak ikut
+  /// dikirim, sama seperti set point grid Enclosure yang kosong.
+  bool get pasanganKosong =>
+      _kolom('standar', 'pembacaan').every((n) => n == null) &&
+      _kolom('uut', 'pembacaan').every((n) => n == null);
+
   void dispose() {
+    noProbeCtl.dispose();
     for (final c in _kotak.values) {
       c.dispose();
     }
@@ -498,12 +546,70 @@ class LembarKerjaState {
   /// Indeksnya sejajar antar-tabel karena urutan baris Before & After selalu
   /// sama; kalau suatu hari nggak sama lagi, yang pecah tabelnya, bukan diam-
   /// diam salah pasang.
-  double kunciBaris(List<BarisTabelHasil> baris, int index) {
+  double kunciBaris(List<BarisTabelHasil> baris, int index, [TabelHasil? tabel]) {
+    // Lembar PASANGAN dikunci ke POSISI baris di dalam blok parameternya,
+    // bukan ke titik ukurnya.
+    //
+    // Sebabnya Thermohygrometer: set point `50` ada di DUA tabel lembar itu —
+    // 50 °C di blok suhu dan 50 %RH di blok kelembapan. Dikunci ke angka,
+    // dua baris itu berbagi satu `TitikState`, jadi barisnya tinggal sembilan
+    // (bukan sepuluh) dan baris RH mewarisi satuan °C milik tetangganya. Nol
+    // error; yang terbit sertifikat yang kehilangan satu titik.
+    //
+    // Deret standar & deret UUT SENGAJA berbagi kunci yang sama: dua-duanya
+    // memang set point yang sama, dibaca bergantian. Yang membedakan isian
+    // keduanya `TabelHasil.kunciTabel` di dalam `TitikState`, bukan kunci ini.
+    if (tabel != null && tabel.berpasangan) {
+      return (_offsetParameter(tabel.parameter) + index).toDouble();
+    }
+
     final titikUnik = baris.map((b) => b.titikUkur).toSet().length;
 
     return titikUnik == baris.length
         ? baris[index].titikUkur
         : index.toDouble();
+  }
+
+  /// Nomor kunci pertama buat satu blok parameter lembar pasangan.
+  ///
+  /// Dihitung dari BENTUK, bukan disimpan: blok bisa berubah waktu bentuknya
+  /// diganti, dan offset basi bikin dua blok tumpang tindih lagi.
+  int _offsetParameter(String? parameter) {
+    var offset = 0;
+
+    for (final p in _urutanParameter()) {
+      if (p == (parameter ?? '')) return offset;
+      offset += _jumlahBarisParameter(p);
+    }
+
+    return offset;
+  }
+
+  /// Parameter lembar ini, urut seperti tercetak di kertas.
+  List<String> _urutanParameter() {
+    final urut = <String>[];
+
+    for (final bagian in bentuk.bagian) {
+      for (final t in bagian.tabel) {
+        if (!t.berpasangan) continue;
+        final p = t.parameter ?? '';
+        if (!urut.contains(p)) urut.add(p);
+      }
+    }
+
+    return urut;
+  }
+
+  int _jumlahBarisParameter(String parameter) {
+    for (final bagian in bentuk.bagian) {
+      for (final t in bagian.tabel) {
+        if (t.berpasangan && (t.parameter ?? '') == parameter) {
+          return barisTabel(t).length;
+        }
+      }
+    }
+
+    return 0;
   }
 
   /// Titik ukur yang DIATUR TEKNISI, buat lembar yang `titik_bisa_diubah`.
@@ -617,7 +723,7 @@ class LembarKerjaState {
           final b = baris[i];
 
           titik.putIfAbsent(
-            kunciBaris(baris, i),
+            kunciBaris(baris, i, t),
             () => TitikState(
               titikUkur: b.titikUkur,
               tipe: b.tipe,
@@ -637,6 +743,9 @@ class LembarKerjaState {
               // teknisi tinggal nyentang, nggak milih ulang dari katalog.
               standardIdTercetak: b.standardId,
               standardNama: b.standardNama,
+              // Besaran baris ini — pembeda blok suhu & blok kelembapan di
+              // lembar Thermohygrometer. Null buat lembar lain.
+              parameter: t.parameter,
               onKetik: () => onIsianDiketik?.call(),
             ),
           );
@@ -739,7 +848,7 @@ class LembarKerjaState {
         // pakai `titikUkur` mentah, perbandingan set-nya bilang tabelnya
         // berubah padahal nggak.
         for (var i = 0; i < barisTabel(t, calon).length; i++)
-          kunciBaris(barisTabel(t, calon), i),
+          kunciBaris(barisTabel(t, calon), i, t),
   };
 
   /// Ganti satuan ke [calon] bakal **ngosongin** tabel yang udah diisi?
@@ -1382,11 +1491,24 @@ class LembarKerjaState {
     if (bergrid.isNotEmpty) kebuang += _terapkanGrid(bergrid);
 
     for (final m in datar) {
-      final tujuan = _titikTerdekat(m.titikUkur);
+      final tujuan = m.bagianPasangan
+          ? _titikPasangan(m.titikUkur, m.satuan)
+          : _titikTerdekat(m.titikUkur);
 
       if (tujuan == null) {
         kebuang++;
         continue;
+      }
+
+      // No. Termokopel ikut pulih — dia nempel ke deret STANDAR dan nentuin
+      // koreksi probe mana yang dipakai. Nggak dipulihkan, teknisi membuka
+      // lembar revisi dengan kolomnya kosong lalu memilih yang pertama di
+      // daftar, dan koreksi probe yang terpakai bukan milik probe yang beneran
+      // dicelup — nol error di sepanjang jalur itu.
+      final sensorKe = m.sensorKe;
+
+      if (sensorKe != null && tujuan.noProbeCtl.text.trim().isEmpty) {
+        tujuan.noProbeCtl.text = sensorKe.toString();
       }
 
       // Centang standar acuannya ikut pulih. Tanpa ini teknisi mesti nyentang
@@ -1403,9 +1525,22 @@ class LembarKerjaState {
         continue;
       }
 
-      final tahap = m.tahap == TahapPembacaan.sebelumAdjustment
-          ? 'sebelum_adjustment'
-          : 'sesudah_adjustment';
+      // Kunci kotaknya: PERAN dulu, baru tahap.
+      //
+      // Lembar pasangan (Thermocouple, Termometer Gelas, Thermohygrometer)
+      // menyimpan dua deret yang `tahap`-nya SAMA — yang membedakan
+      // `peran_sensor`. Dikunci ke tahap, kedua deret jatuh ke kotak yang sama:
+      // deret UUT menimpa deret standar, dan yang kelihatan cuma satu tabel
+      // yang isinya angka deret sebelah. Nol pesan error — angkanya wajar,
+      // tempatnya salah.
+      //
+      // Nilainya sama persis dengan `TabelHasil.kunciTabel` di sisi bentuk
+      // lembar kerja, dan itu yang bikin dua sisi ini ketemu.
+      final tahap = m.bagianPasangan
+          ? m.peranSensor!
+          : (m.tahap == TahapPembacaan.sebelumAdjustment
+                ? 'sebelum_adjustment'
+                : 'sesudah_adjustment');
 
       final kotakPembacaan = tujuan.kotak(tahap, 'pembacaan', index);
 
@@ -1647,6 +1782,34 @@ class LembarKerjaState {
     return null;
   }
 
+  /// Cari baris lembar PASANGAN dari titik ukur + satuannya.
+  ///
+  /// Nggak bisa lewat [_titikTerdekat]: di lembar pasangan kunci `titik` itu
+  /// POSISI baris (lihat [kunciBaris]), bukan titik ukurnya, jadi
+  /// `titik[50.0]` nggak pernah ketemu dan SELURUH pembacaan sesi yang
+  /// dikembalikan admin dianggap kebuang.
+  ///
+  /// Satuan ikut jadi kunci karena set point `50` ada di dua blok lembar
+  /// Thermohygrometer — 50 °C dan 50 %RH. Tanpa satuan, angka blok kelembapan
+  /// mendarat di baris suhu: bentuknya wajar, tempatnya salah.
+  TitikState? _titikPasangan(double titikUkur, String? satuan) {
+    TitikState? cadangan;
+
+    for (final t in titik.values) {
+      if (!_titikSama(t.titikUkur, titikUkur)) continue;
+
+      if (satuan == null || satuan.isEmpty || t.satuan == satuan) return t;
+
+      cadangan ??= t;
+    }
+
+    // Satuannya nggak cocok sama satu pun baris — dipakai yang titiknya sama.
+    // Sesi lama bisa tersimpan sebelum kolom satuan per baris ada, dan angka
+    // yang mendarat di baris yang benar TAPI satuannya nggak kecatat lebih
+    // baik daripada angka yang hilang.
+    return cadangan;
+  }
+
   /// Sama kayak [_titikTerdekat], tapi balikin KUNCI-nya.
   ///
   /// Kuncinya nggak selalu sama dengan nilai titiknya: tabel yang titiknya
@@ -1750,6 +1913,23 @@ class LembarKerjaState {
     // Lembar ber-GRID nggak punya `titik` sama sekali — bentuknya nggak
     // mengirim `tabel`, jadi `measurements` di atas selalu kosong. Set point-nya
     // disusun dari isian grid, dan yang benar-benar kosong dibuang di sana.
+    // Lembar PASANGAN lewat jalur `measurementsGrid` yang sama dengan
+    // Enclosure — bukan karena bentuknya mirip (nggak mirip sama sekali), tapi
+    // karena dua-duanya butuh mengirim kunci yang `TitikLembarKerja` nggak
+    // punya. Menambahkan `standar`/`uut` ke sana berarti 17 alat lain ikut
+    // mengirim dua kunci kosong tiap titik.
+    //
+    // Titik yang sama sekali belum disentuh DIBUANG, sama seperti set point
+    // grid yang kosong: backend memakai urutan `measurements` sebagai
+    // `titik_ke`, jadi baris kosong di tengah bikin nomor titik sesudahnya
+    // geser.
+    final measurementsPasangan = bentuk.berpasangan
+        ? [
+            for (final t in titik.values)
+              if (!t.pasanganKosong) t.toSubmissionPasangan(),
+          ]
+        : null;
+
     grid?.bacaUlang();
     final measurementsGrid = grid?.payload(
       satuan: bentuk.satuanSuhu,
@@ -1795,6 +1975,12 @@ class LembarKerjaState {
       // ngirim null, dan backend memang nerima itu.
       modeKalibrasi: kalimat('mode_kalibrasi'),
       tipeSensor: kalimat('tipe_sensor'),
+      alatBantu: kalimat('alat_bantu'),
+      tipePencelupan: kalimat('tipe_pencelupan'),
+      // Tiga kotak terpisah (`titik_es.0`..`.2`), bukan satu kotak berkoma:
+      // yang dibaca server rentangnya, dan rentang dari teks berkoma berarti
+      // satu typo memisahkan angka jadi dua nilai tanpa ada yang sadar.
+      titikEs: [for (var i = 1; i <= 3; i++) angka('titik_es_$i')],
       catatanTeknisi: kalimat('catatan_teknisi'),
       thermohygroStandardId: thermohygroStandardId,
       alatModel: kalimat('alat_model'),
@@ -1809,7 +1995,7 @@ class LembarKerjaState {
           .map((u) => u.toSubmission())
           .toList(),
       measurements: measurements,
-      measurementsGrid: measurementsGrid,
+      measurementsGrid: measurementsGrid ?? measurementsPasangan,
       inputMethod: adaIsianDariFoto ? MetodeInput.ocr : MetodeInput.manual,
     );
   }

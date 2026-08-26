@@ -129,6 +129,9 @@ class LembarKerjaSubmission {
     this.tekananAkhir,
     this.modeKalibrasi,
     this.tipeSensor,
+    this.alatBantu,
+    this.tipePencelupan,
+    this.titikEs = const [],
     this.catatanTeknisi,
     this.thermohygroStandardId,
     this.alatModel,
@@ -192,6 +195,30 @@ class LembarKerjaSubmission {
   /// Nentuin tabel koreksi kalibrator, drift-nya, dan baris CMC mana yang
   /// dipakai. Null buat alat selain TITS.
   final String? tipeSensor;
+
+  /// Unit sumber suhu yang dipakai sesi ini: dryblock `A`/`B` (Thermocouple)
+  /// atau oilbath `satu`/`dua` (Termometer Gelas).
+  ///
+  /// Nentuin DUA komponen budget — variasi aksial & antar-lubang buat dryblock,
+  /// variasi spasial & stabilitas buat oilbath — dan angkanya beda antar unit.
+  /// Salah pilih nggak memunculkan error, cuma U95 yang diturunkan dari unit
+  /// yang nggak dipakai.
+  ///
+  /// Thermohygrometer SENGAJA nggak punya ini: chamber-nya diturunkan server
+  /// dari set point, karena satu sesi memakai dua chamber sekaligus.
+  final String? alatBantu;
+
+  /// `Partial` / `Total` / `Complete Immersion` — cuma Termometer Gelas.
+  /// Tercetak di sertifikat persis di atas tabel hasil.
+  final String? tipePencelupan;
+
+  /// Tiga pembacaan uji titik es 30 menit — cuma Termometer Gelas.
+  ///
+  /// Yang dipakai server RENTANGNYA (Tmax − Tmin), bukan rata-ratanya, dan itu
+  /// komponen budget — bukan catatan. Di sesi master ketiganya nol jadi
+  /// komponennya hilang dari pandangan; termometer yang titik esnya melar
+  /// 0,4 °C menyumbang `u` 0,1155 °C.
+  final List<double?> titikEs;
 
   final String? catatanTeknisi;
 
@@ -305,6 +332,16 @@ class LembarKerjaSubmission {
     'tekanan_akhir': tekananAkhir,
     'mode_kalibrasi': modeKalibrasi,
     'tipe_sensor': tipeSensor,
+    'alat_bantu': alatBantu,
+    'tipe_pencelupan': tipePencelupan,
+    // Kuncinya DIHILANGKAN waktu kosong, bukan dikirim `[]`.
+    //
+    // Aturannya sama dengan `standard_id` & `tanggal_terima` di server: "nggak
+    // dikirim" nggak boleh berarti "kosongkan". Lembar Gelas bisa disimpan
+    // bertahap — uji titik es diisi belakangan — dan `[]` yang terkirim tiap
+    // simpan bakal menghapus tiga angka yang sudah diisi sebelumnya.
+    if (titikEs.any((n) => n != null))
+      'titik_es': titikEs,
     'catatan_teknisi': catatanTeknisi?.trim(),
     'alat_model': alatModel?.trim(),
     'alat_serial_number': alatSerialNumber?.trim(),
