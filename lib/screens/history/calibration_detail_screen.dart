@@ -175,9 +175,14 @@ class _Isi extends StatelessWidget {
         ),
 
         // Status sertifikat standar — di ATAS catatan revisi & tombol lanjut,
-        // karena ini yang paling mungkin membatalkan seluruh sesi. Menggambar
-        // nol piksel kalau semua standar masih berlaku.
-        const SizedBox(height: AppSpacing.md),
+        // karena ini yang paling mungkin membatalkan seluruh sesi.
+        //
+        // TANPA `SizedBox` di sini, dan itu bukan kelalaian: jaraknya dibawa
+        // sendiri oleh `margin` di dalam [BannerStatusStandar], jadi waktu
+        // banner-nya nggak jadi digambar (`pesan == null`) yang tersisa
+        // beneran NOL piksel. Versi pertama menaruh `SizedBox` di sini dan
+        // spasinya tetap makan tempat walau banner-nya hilang — seluruh isi
+        // layar bergeser 16 px, dan golden `detail-sesi.png` merah 10,63%.
         BannerStatusStandar(status: detail.statusStandar),
 
         if (detail.status == CalibrationStatus.perluRevisi &&
