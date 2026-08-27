@@ -213,7 +213,11 @@ void main() {
     final tabel = tabelHasil('sesudah_adjustment');
     final hasil = petakanSepertiLayar(fotoKertas(), tabel, isian);
 
-    final terisi = isian.terapkanHasilFotoTabel(hasil.sel, tahap: tabel.tahap);
+    final terisi = isian.terapkanHasilFotoTabel(
+      hasil.sel,
+      tahap: tabel.tahap,
+      pengulangan: tabel.pengulangan,
+    );
 
     expect(terisi, 29, reason: '30 sel kertas, satu rusak di master');
 
