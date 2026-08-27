@@ -431,6 +431,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: 'mg/L',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0530_Rev.2',
+        punyaToleransi: false,
       ),
       // Gas Detector (alat ke-10) — SATU baris buat empat gas, bukan empat.
       //
@@ -453,6 +454,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: 'ppm',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0536_Rev.0',
+        punyaToleransi: false,
       ),
     ];
 
@@ -686,6 +688,17 @@ class MockCategoryService implements CategoryService {
       //
       // Angkanya disalin dari `database/data/kemampuan-kalibrasi.json` di
       // backend (lampiran akreditasi LK-285-IDN), bukan dikarang.
+      //
+      // **Ketiganya bawa `profil` sendiri, dan itu wajib.** Penentu lembar di
+      // picker-nya `kemampuan.profil ?? profilLembarKerjaUntuk(namaAlat)`, dan
+      // penebak-dari-nama (`_profilKhusus`) NGGAK kenal ketiga nama ini —
+      // sengaja, karena tabel ejaan itu justru yang sedang dikecilkan (dia
+      // nangkring di HP orang, bukan di server). Tanpa `profil` di sini, di
+      // build `USE_MOCK=true` kartunya nongol tapi yang kebuka form GENERIK,
+      // bukan lembar suhunya — kelihatan jadi, padahal nggak.
+      //
+      // Baris mock lain belum bawa `profil` karena namanya kebetulan masih
+      // dikenal penebak lokal. Itu kebetulan, bukan rancangan.
 
       // Thermocouple — tiga golongan ketidakpastian, satu alat. Rentangnya
       // nyambung (-20-150, 150-400, 400-600), jadi alatnya rentang -20-600 °C.
@@ -699,6 +712,7 @@ class MockCategoryService implements CategoryService {
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0529_Rev.2',
         punyaToleransi: false,
+        profil: 'thermocouple',
       ),
       CalibrationCapability(
         namaAlat: 'Thermocouple',
@@ -710,6 +724,7 @@ class MockCategoryService implements CategoryService {
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0529_Rev.2',
         punyaToleransi: false,
+        profil: 'thermocouple',
       ),
       CalibrationCapability(
         namaAlat: 'Thermocouple',
@@ -721,6 +736,7 @@ class MockCategoryService implements CategoryService {
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0529_Rev.2',
         punyaToleransi: false,
+        profil: 'thermocouple',
       ),
 
       // Termometer Gelas — dua golongan, 0-100 & 100-200 °C.
@@ -734,6 +750,7 @@ class MockCategoryService implements CategoryService {
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0527_Rev.0',
         punyaToleransi: false,
+        profil: 'thermometer_glass',
       ),
       CalibrationCapability(
         namaAlat: 'Termometer Gelas',
@@ -745,6 +762,7 @@ class MockCategoryService implements CategoryService {
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0527_Rev.0',
         punyaToleransi: false,
+        profil: 'thermometer_glass',
       ),
 
       // Thermohygrometer — SATU alat, DUA besaran. Ini satu-satunya di
@@ -762,6 +780,7 @@ class MockCategoryService implements CategoryService {
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0518_Rev.4',
         punyaToleransi: false,
+        profil: 'thermohygro',
       ),
       CalibrationCapability(
         namaAlat: 'Thermohygrometer',
@@ -774,6 +793,7 @@ class MockCategoryService implements CategoryService {
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0518_Rev.4',
         punyaToleransi: false,
+        profil: 'thermohygro',
       ),
     ];
 

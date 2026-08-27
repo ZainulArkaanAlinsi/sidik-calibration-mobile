@@ -113,7 +113,17 @@ class _KartuPerusahaan extends StatelessWidget {
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) => FolderScreen(
-            alamat: AlamatFolder.perusahaan(perusahaan.id),
+            // Lewat PELANGGAN kalau folder ini nempel ke satu PT — rutenya
+            // `find-or-create`, jadi PT yang belum pernah punya berkas pun
+            // tetap kebuka. Kalau nggak nempel ke pelanggan mana pun, dibuka
+            // sebagai folder biasa pakai id folder.
+            //
+            // Yang NGGAK boleh: ngasih id folder ke jalur pelanggan. Rutenya
+            // ngiket ke `Customer`, jadi yang kebuka arsip PT lain yang id-nya
+            // kebetulan sama — status 200, nol error.
+            alamat: perusahaan.pelangganId == null
+                ? AlamatFolder.folder(perusahaan.id)
+                : AlamatFolder.perusahaan(perusahaan.pelangganId!),
             judul: perusahaan.nama,
           ),
         ),
