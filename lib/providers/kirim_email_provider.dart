@@ -18,6 +18,9 @@ final kirimEmailServiceProvider = Provider<KirimEmailService>((ref) {
 /// yang perlu disimpen cuma hasil ambilnya.
 final riwayatEmailProvider =
     FutureProvider.family<List<PercobaanEmail>, int>((ref, certificateId) async {
+      // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+      ref.watch(authProvider);
+
       final token = await ref.read(tokenStorageProvider).read();
       if (token == null) throw const TokenHilangException();
 

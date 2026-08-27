@@ -39,6 +39,9 @@ final tandaTanganProvider =
 class TandaTanganController extends AsyncNotifier<TandaTanganState> {
   @override
   Future<TandaTanganState> build() async {
+    // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+    ref.watch(authProvider);
+
     final token = await ref.read(tokenStorageProvider).read();
     if (token == null) throw const TokenHilangException();
 

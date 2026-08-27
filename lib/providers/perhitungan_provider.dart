@@ -23,6 +23,9 @@ final perhitunganProvider = FutureProvider.family<Perhitungan, int>((
   ref,
   calibrationId,
 ) async {
+  // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+  ref.watch(authProvider);
+
   final token = await _token(ref);
   return ref.read(perhitunganServiceProvider).ambil(token, calibrationId);
 }, retry: (retryCount, error) => null);

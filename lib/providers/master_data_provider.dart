@@ -41,6 +41,9 @@ final customerLookupServiceProvider = Provider<CustomerLookupService>((ref) {
 /// Pencariannya dikerjain server lewat `?search=`.
 final customerLookupProvider =
     FutureProvider.family<List<CustomerLookup>, String>((ref, search) async {
+      // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+      ref.watch(authProvider);
+
       final token = await ref.read(tokenStorageProvider).read();
       if (token == null) throw const TokenHilangException();
 
@@ -56,6 +59,9 @@ final organizationProvider =
 class OrganizationController extends AsyncNotifier<Organization> {
   @override
   Future<Organization> build() async {
+    // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+    ref.watch(authProvider);
+
     final token = await ref.read(tokenStorageProvider).read();
     if (token == null) throw const TokenHilangException();
 
@@ -90,6 +96,9 @@ class CustomerController extends AsyncNotifier<List<Customer>> {
 
   @override
   Future<List<Customer>> build() async {
+    // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+    ref.watch(authProvider);
+
     final token = await ref.read(tokenStorageProvider).read();
     if (token == null) throw const TokenHilangException();
 
@@ -159,6 +168,9 @@ class OrderListController extends AsyncNotifier<List<OrderKalibrasi>> {
 
   @override
   Future<List<OrderKalibrasi>> build() async {
+    // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+    ref.watch(authProvider);
+
     final token = await ref.read(tokenStorageProvider).read();
     if (token == null) throw const TokenHilangException();
 
@@ -201,6 +213,9 @@ class UserListController extends AsyncNotifier<List<User>> {
 
   @override
   Future<List<User>> build() async {
+    // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+    ref.watch(authProvider);
+
     final token = await ref.read(tokenStorageProvider).read();
     if (token == null) throw const TokenHilangException();
 

@@ -21,6 +21,9 @@ Future<String> _token(Ref ref) async {
 /// pencarian — ganti kata kunci = kueri baru.
 final arsipPerusahaanProvider =
     FutureProvider.family<List<ArsipPerusahaan>, String>((ref, cari) async {
+      // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+      ref.watch(authProvider);
+
       final token = await _token(ref);
       return ref.read(arsipServiceProvider).daftarPerusahaan(token, cari: cari);
     }, retry: (retryCount, error) => null);
@@ -50,6 +53,9 @@ class AlamatFolder {
 
 final arsipIsiFolderProvider =
     FutureProvider.family<ArsipIsiFolder, AlamatFolder>((ref, alamat) async {
+      // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+      ref.watch(authProvider);
+
       final token = await _token(ref);
       final service = ref.read(arsipServiceProvider);
 

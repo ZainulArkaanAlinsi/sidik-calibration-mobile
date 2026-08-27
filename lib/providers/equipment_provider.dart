@@ -30,6 +30,9 @@ final equipmentProvider =
 /// kejadian). Family di-key sama `status` biar tiap filter independen.
 final deviceOverviewProvider = FutureProvider.family<List<Equipment>, String?>(
   (ref, status) async {
+    // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+    ref.watch(authProvider);
+
     final token = await ref.read(tokenStorageProvider).read();
     if (token == null) throw const TokenHilangException();
 
@@ -51,6 +54,9 @@ class EquipmentController extends AsyncNotifier<List<Equipment>> {
 
   @override
   Future<List<Equipment>> build() async {
+    // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+    ref.watch(authProvider);
+
     final token = await ref.read(tokenStorageProvider).read();
     if (token == null) throw const TokenHilangException();
 
