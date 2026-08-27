@@ -103,14 +103,22 @@ void main() {
       final detail =
           await MockCategoryService().detail('mock-token-1', 'suhu-dan-kelembapan');
 
-      // Dua Temperatur Indikator disaring lewat [namaTemperaturIndikator],
-      // bukan dibandingin ke satu ejaan: kategori ini punya DUA nama alat TI
-      // dengan ejaan beda bahasa (lampiran akreditasi no. 1 Inggris, no. 2
-      // Indonesia), dan nyebut salah satunya bikin yang lain bocor ke peta CMC
-      // enclosure di bawah.
+      // Disaring ke KELIMA NAMA enclosure, bukan "semua yang bukan Temperatur
+      // Indikator".
+      //
+      // Bentuk saringan yang lama ("semua kecuali TI") sekaligus mengunci
+      // kategori ini cuma boleh berisi TI + enclosure — dan itu bukan yang
+      // dijaga test ini; kalimatnya sendiri bilang "enclosure NAMBAH, bukan
+      // menggusur". Waktu Thermocouple, Termometer Gelas, & Thermohygrometer
+      // masuk ke mock (alat ke-18, 19, 20 — sebelumnya kartunya nggak pernah
+      // nongol di build offline), yang merah justru test ini, bukan yang
+      // sebenernya rusak.
+      //
+      // Yang tetap kejaga: kelimanya ADA, dan CMC-nya persis angka lampiran.
+      const enclosure = {'Oven', 'Bath', 'Inkubator', 'Furnace', 'Refrigerator'};
       final cmc = {
         for (final k in detail.kemampuan)
-          if (!namaTemperaturIndikator(k.namaAlat))
+          if (enclosure.contains(k.namaAlat))
             k.namaAlat: k.ketidakpastianTerbaik,
       };
 
@@ -122,6 +130,14 @@ void main() {
         'Furnace': 3.0,
         'Refrigerator': 1.5,
       });
+
+      // Kelompok TI juga nggak boleh ikut kegusur — dua ejaan beda bahasa
+      // (lampiran no. 1 Inggris, no. 2 Indonesia), disaring lewat
+      // [namaTemperaturIndikator] biar nggak nyebut salah satu doang.
+      expect(
+        detail.kemampuan.where((k) => namaTemperaturIndikator(k.namaAlat)),
+        isNotEmpty,
+      );
     });
 
     test('Oven batas bawahnya teks "ambient", bukan angka nol', () async {

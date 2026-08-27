@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../core/utils/golongan_rentang.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/category.dart';
 import '../../models/customer_lookup.dart';
 import '../../models/equipment.dart';
 import '../../providers/auth_provider.dart';
@@ -87,6 +89,24 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
   String? _pelangganNama;
 
   String? _namaAlatKemampuan;
+
+  /// Baris kemampuan sekategori yang barusan dibaca dari server, ditaruh di
+  /// sini biar [_simpan] (yang jalan di luar `build`) bisa nanya tanpa ikut
+  /// berlangganan provider.
+  List<CalibrationCapability> _kemampuanKategori = const [];
+
+  /// Nama kemampuan yang rentangnya UDAH pernah diisikan otomatis. Penjaga
+  /// biar isian teknisi nggak ditimpa ulang tiap kali provider-nya ngeluarin
+  /// nilai baru (refresh, reconnect) — sekali per pilihan, bukan tiap rebuild.
+  String? _sudahIsiOtomatisUntuk;
+
+  /// Angka terakhir yang KITA taruh sendiri di tiap kotak. Dipakai buat
+  /// membedakan "kotak ini masih isian otomatis" dari "teknisi udah ngetik di
+  /// sini" — yang kedua nggak boleh ditimpa waktu pilihannya ganti.
+  String? _jejakRangeMin;
+  String? _jejakRangeMax;
+  String? _jejakSatuan;
+
   EquipmentStatus _status = EquipmentStatus.aktif;
 
   bool _menyimpan = false;
@@ -141,6 +161,72 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
     super.dispose();
   }
 
+  /// Baris kemampuan buat jenis alat yang lagi dipilih. Kosong = jenisnya
+  /// belum dipilih, atau namanya udah nggak ada lagi di daftar server.
+  List<CalibrationCapability> get _kemampuanTerpilih {
+    final nama = _namaAlatKemampuan;
+    if (nama == null) return const [];
+    return _kemampuanKategori.where((k) => k.namaAlat == nama).toList();
+  }
+
+  /// Apakah jenis alat yang dipilih DIVONIS PASS/FAIL — dituturkan server per
+  /// baris kemampuan, bukan ditebak di HP.
+  ///
+  /// Jatuh ke `true` waktu jawabannya belum ada (jenisnya belum dipilih,
+  /// datanya belum sampai, server lama nggak ngirim field-nya). Itu perilaku
+  /// lama — mewajibkan — dan sengaja dipilih sebagai bawaan: minta angka yang
+  /// nggak perlu jauh lebih ringan akibatnya daripada melewatkan angka yang
+  /// nentuin PASS/FAIL.
+  bool get _punyaToleransi {
+    final baris = _kemampuanTerpilih;
+    return baris.isEmpty || baris.any((k) => k.punyaToleransi);
+  }
+
+  /// Golongan rentang dari data master PT Sidik buat jenis alat yang dipilih.
+  List<GolonganRentang> get _golonganRentang =>
+      golonganRentangDari(_kemampuanTerpilih);
+
+  /// Isi rentang otomatis SEKALI per pilihan, dan cuma kalau golongannya
+  /// tunggal — golongan jamak (Thermohygro °C + %RH, Autoklaf °C + bar) nggak
+  /// boleh dipilihin sistem, itu ditawarin sebagai tombol.
+  void _isiOtomatisKalauPerlu() {
+    final nama = _namaAlatKemampuan;
+    if (nama == null || nama == _sudahIsiOtomatisUntuk) return;
+    final baris = _kemampuanTerpilih;
+    if (baris.isEmpty) return;
+
+    _sudahIsiOtomatisUntuk = nama;
+    final golongan = _golonganRentang;
+    if (golongan.length == 1) {
+      setState(() => _terapkanGolongan(golongan.first));
+    }
+  }
+
+  /// Tuliskan satu golongan ke kotak rentang. **Nggak nimpa yang udah diketik
+  /// teknisi** — cuma kotak kosong, atau kotak yang isinya persis angka yang
+  /// kita taruh sendiri terakhir kali.
+  void _terapkanGolongan(GolonganRentang g) {
+    _jejakRangeMin = _tulisKalauBoleh(_rangeMin, _jejakRangeMin, g.minTeks);
+    _jejakRangeMax = _tulisKalauBoleh(_rangeMax, _jejakRangeMax, g.maksTeks);
+    if (g.satuan.isNotEmpty) {
+      _jejakSatuan = _tulisKalauBoleh(_satuan, _jejakSatuan, g.satuan);
+    }
+  }
+
+  /// Pulangin jejak baru buat [kotak]: [isi] kalau beneran ditulis, [jejak]
+  /// lama kalau nggak jadi ditulis karena ada ketikan teknisi di situ.
+  String? _tulisKalauBoleh(
+    TextEditingController kotak,
+    String? jejak,
+    String isi,
+  ) {
+    final sekarang = kotak.text.trim();
+    if (sekarang.isNotEmpty && sekarang != jejak) return jejak;
+    if (isi.isEmpty) return jejak;
+    kotak.text = isi;
+    return isi;
+  }
+
   double? _parse(String text) {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return null;
@@ -156,12 +242,12 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
           _serialNumber.text.trim().isEmpty ? l10n.custFieldRequired : null;
       _errorKategori = _kategori == null ? l10n.custFieldRequired : null;
       _errorPelanggan = _pelangganId == null ? l10n.custFieldRequired : null;
-      // Backend masih ngebolehin `toleransi` kosong, tapi alat tanpa toleransi
-      // nggak bisa dikalibrasi sama sekali — PASS/FAIL-nya nggak bisa
-      // diputusin, jadi submit kalibrasinya ditolak 422 belakangan. Dicegat di
-      // sini biar ketahuannya sekarang, bukan pas teknisi udah kelar ngisi
-      // seluruh worksheet.
-      _errorToleransi = _parse(_toleransi.text) == null
+      // Cuma buat alat yang BENERAN divonis. Lima belas dari dua puluh profil
+      // nggak — masternya berhenti di `U95%` tanpa batas keberterimaan, dan
+      // validator server sengaja melewatinya. Mewajibkan di situ berarti
+      // menyuruh teknisi mengarang kriteria kelulusan buat alat yang nggak
+      // punya; mengisi kolom itu pernah mematikan seluruh sesi Conductivity.
+      _errorToleransi = _punyaToleransi && _parse(_toleransi.text) == null
           ? l10n.equipToleransiWajib
           : null;
 
@@ -262,6 +348,29 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
     final bisaInput = ref.watch(authProvider).value?.role.bisaInput ?? false;
     final kategoriList = ref.watch(categoryListProvider).value ?? const [];
 
+    // Kemampuan sekategori dibaca DI SINI, bukan cuma di dalam dropdown-nya:
+    // yang butuh angkanya bukan cuma daftar pilihan, tapi juga isian otomatis
+    // rentang, kalimat di bawah kolom toleransi, dan [_simpan].
+    final kategori = _kategori;
+    final detailKategori = kategori == null
+        ? null
+        : ref.watch(categoryDetailProvider(kategori));
+    _kemampuanKategori = detailKategori?.value?.kemampuan ?? const [];
+
+    // Form yang dibuka DARI lembar kerja udah bawa `namaAlatKemampuanAwal`,
+    // jadi pilihannya ada duluan dan datanya nyusul. Isian otomatisnya nunggu
+    // frame ini kelar — nulis ke controller di tengah `build` bikin TextField
+    // yang lagi kepasang minta rebuild pas dia sendiri lagi dibangun.
+    if (_namaAlatKemampuan != null &&
+        _namaAlatKemampuan != _sudahIsiOtomatisUntuk &&
+        _kemampuanKategori.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _isiOtomatisKalauPerlu();
+      });
+    }
+
+    final golonganRentang = _golonganRentang;
+
     return Scaffold(
       appBar: AppBar(title: Text(mengedit ? l10n.equipEdit : l10n.equipAdd)),
       body: ListView(
@@ -311,10 +420,19 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
             ),
             const SizedBox(height: AppSpacing.sm),
             _KemampuanDropdown(
-              kategori: _kategori!,
+              kemampuan: _kemampuanKategori,
+              memuat: detailKategori?.isLoading ?? false,
+              gagal: detailKategori?.hasError ?? false,
               value: _namaAlatKemampuan,
               enabled: bisaInput,
-              onChanged: (value) => setState(() => _namaAlatKemampuan = value),
+              onChanged: (value) => setState(() {
+                _namaAlatKemampuan = value;
+                // Jenisnya ganti → vonis PASS/FAIL-nya ikut ganti. Error
+                // toleransi yang nempel dari jenis sebelumnya nggak boleh
+                // tertinggal di layar buat jenis yang emang nggak divonis.
+                _errorToleransi = null;
+                _isiOtomatisKalauPerlu();
+              }),
             ),
             const SizedBox(height: AppSpacing.md),
           ],
@@ -379,6 +497,25 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
               ),
             ],
           ),
+
+          // Rentang & satuan dari lampiran akreditasi PT Sidik. Satu golongan
+          // → langsung keisi (lihat [_isiOtomatisKalauPerlu]); lebih dari satu
+          // → disodorkan sebagai tombol, karena kolom rentang alat cuma
+          // sepasang dan milihin salah satu berarti nebak besarannya.
+          if (golonganRentang.length == 1) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              l10n.equipRentangOtomatis,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ] else if (golonganRentang.length > 1 && bisaInput) ...[
+            const SizedBox(height: AppSpacing.sm),
+            _PilihanRentang(
+              golongan: golonganRentang,
+              onPilih: (g) => setState(() => _terapkanGolongan(g)),
+            ),
+          ],
+
           const SizedBox(height: AppSpacing.md),
           Row(
             children: [
@@ -423,8 +560,14 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
             enabled: bisaInput,
           ),
           const SizedBox(height: AppSpacing.xs),
+          // Kalimatnya ikut jenis alatnya. Yang lama berbunyi "alat tanpa
+          // toleransi nggak bisa dikalibrasi" buat SEMUA alat — dan itu bukan
+          // cuma nggak akurat, dia menyuruh: teknisi yang membacanya di layar
+          // Thermocouple bakal mengisi angka yang alatnya nggak punya.
           Text(
-            l10n.equipToleransiWajibHint,
+            _punyaToleransi
+                ? l10n.equipToleransiWajibHint
+                : l10n.equipToleransiTidakDivonisHint,
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: AppSpacing.md),
@@ -815,10 +958,8 @@ class _PelangganSheetState extends ConsumerState<_PelangganSheet> {
 
                     return ListView.builder(
                       itemCount: daftar.length,
-                      itemBuilder: (context, i) => ListTile(
-                        title: Text(daftar[i].nama),
-                        onTap: () => Navigator.of(context).pop(daftar[i]),
-                      ),
+                      itemBuilder: (context, i) =>
+                          _BarisPelanggan(pelanggan: daftar[i]),
                     );
                   },
                 ),
@@ -831,52 +972,150 @@ class _PelangganSheetState extends ConsumerState<_PelangganSheet> {
   }
 }
 
+/// Satu baris hasil pencarian pelanggan: **nama gede, alamat kecil di
+/// bawahnya, tinggal dipencet.**
+///
+/// Alamatnya bukan hiasan. Satu kawasan industri isinya belasan PT bernama
+/// mirip ("PT Maju Jaya" lawan "PT Maju Jaya Abadi"), dan yang dipegang teknisi
+/// alamat penjemputannya — tanpa itu dia milih dari nama yang nggak
+/// membedakan, dan alat pelanggan A kedaftar ke pelanggan B.
+class _BarisPelanggan extends StatelessWidget {
+  const _BarisPelanggan({required this.pelanggan});
+
+  final CustomerLookup pelanggan;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final alamat = pelanggan.alamat?.trim();
+
+    return ListTile(
+      title: Text(pelanggan.nama, style: theme.textTheme.titleMedium),
+      // Alamat yang kosong nggak jadi baris kosong: kolomnya boleh kosong di
+      // master, dan `Text('')` di situ nyisain jarak yang bikin barisnya
+      // kelihatan lebih tinggi dari tetangganya tanpa alasan.
+      subtitle: alamat == null || alamat.isEmpty
+          ? null
+          : Text(
+              alamat,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+      onTap: () => Navigator.of(context).pop(pelanggan),
+    );
+  }
+}
+
 /// Dropdown "Jenis Alat (Kemampuan Kalibrasi)" — nunjuk ke `nama_alat` di
 /// `GET /api/categories/{kode}`. Field ini OPSIONAL, tapi begitu di-set,
 /// sesi kalibrasi alat ini bakal kepasang CMC akreditasi resmi lab
 /// (`GumCalculator::kemampuanUntukTitik()`), bukan jalur generik.
-class _KemampuanDropdown extends ConsumerWidget {
+class _KemampuanDropdown extends StatelessWidget {
   const _KemampuanDropdown({
-    required this.kategori,
+    required this.kemampuan,
+    required this.memuat,
+    required this.gagal,
     required this.value,
     required this.enabled,
     required this.onChanged,
   });
 
-  final String kategori;
+  /// Baris kemampuan sekategori. Dioper dari induknya, bukan dibaca ulang di
+  /// sini: angka yang sama juga dipakai buat ngisi rentang otomatis, dan dua
+  /// pembacaan terpisah gampang jadi dua kebenaran yang beda.
+  final List<CalibrationCapability> kemampuan;
+  final bool memuat;
+  final bool gagal;
   final String? value;
   final bool enabled;
   final ValueChanged<String?> onChanged;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final detail = ref.watch(categoryDetailProvider(kategori));
 
-    return detail.when(
-      skipLoadingOnReload: true,
-      loading: () => const LinearProgressIndicator(),
-      error: (_, _) => Text(l10n.equipNamaAlatKemampuanGagal),
-      data: (data) {
-        // Nama alat kemampuan bisa dobel per rentang beda (mis. "Jangka
-        // Sorong" 0-150mm & 150-300mm) — dropdown-nya per NAMA, bukan per
-        // rentang, jadi disaring biar nggak ada entri kembar.
-        final namaUnik = data.kemampuan.map((k) => k.namaAlat).toSet().toList()..sort();
+    if (kemampuan.isEmpty) {
+      if (gagal) return Text(l10n.equipNamaAlatKemampuanGagal);
+      if (memuat) return const LinearProgressIndicator();
+    }
 
-        return DropdownButtonFormField<String>(
-          initialValue: namaUnik.contains(value) ? value : null,
-          isExpanded: true,
-          hint: Text(
-            namaUnik.isEmpty
-                ? l10n.equipNamaAlatKemampuanKosong
-                : l10n.equipNamaAlatKemampuanHint,
-          ),
-          items: namaUnik
-              .map((nama) => DropdownMenuItem(value: nama, child: Text(nama)))
-              .toList(),
-          onChanged: enabled && namaUnik.isNotEmpty ? onChanged : null,
-        );
-      },
+    // Nama alat kemampuan bisa dobel per rentang beda (mis. "Jangka
+    // Sorong" 0-150mm & 150-300mm) — dropdown-nya per NAMA, bukan per
+    // rentang, jadi disaring biar nggak ada entri kembar.
+    final namaUnik = kemampuan.map((k) => k.namaAlat).toSet().toList()..sort();
+
+    return DropdownButtonFormField<String>(
+      initialValue: namaUnik.contains(value) ? value : null,
+      isExpanded: true,
+      hint: Text(
+        namaUnik.isEmpty
+            ? l10n.equipNamaAlatKemampuanKosong
+            : l10n.equipNamaAlatKemampuanHint,
+      ),
+      items: namaUnik
+          .map((nama) => DropdownMenuItem(value: nama, child: Text(nama)))
+          .toList(),
+      onChanged: enabled && namaUnik.isNotEmpty ? onChanged : null,
+    );
+  }
+}
+
+/// Tombol-tombol rentang master buat jenis alat yang golongannya lebih dari
+/// satu — Thermohygrometer (°C dan %RH), Autoklaf (°C dan bar), Mesin UTM
+/// (kgf dan kN).
+///
+/// Di situ sistem NGGAK boleh milih sendiri: kolom `range_min`/`range_max`
+/// alat cuma sepasang, jadi milih salah satu berarti menebak besaran mana yang
+/// dimaksud lembar kerjanya. Angkanya tetap disodorkan — teknisi tinggal
+/// pencet yang sesuai alat pelanggannya.
+class _PilihanRentang extends StatelessWidget {
+  const _PilihanRentang({required this.golongan, required this.onPilih});
+
+  final List<GolonganRentang> golongan;
+  final ValueChanged<GolonganRentang> onPilih;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final teks = Theme.of(context).textTheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.equipRentangPilihan, style: teks.bodySmall),
+        const SizedBox(height: AppSpacing.xs),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.xs,
+          children: [
+            for (final g in golongan)
+              ActionChip(
+                label: Text(_label(l10n, g)),
+                onPressed: () => onPilih(g),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  String _label(AppLocalizations l10n, GolonganRentang g) {
+    // Batas yang kosong ditulis apa adanya (Oven: `range_min` kosong,
+    // catatannya "ambient") — bukan diisi nol, karena nol itu suhu, bukan
+    // "nggak ada angkanya".
+    final min = g.min == null ? (g.catatan ?? '?') : g.minTeks;
+    final parameter = g.parameter;
+    if (parameter == null) {
+      return l10n.equipRentangChip(min, g.maksTeks, g.satuan);
+    }
+    return l10n.equipRentangChipBerparameter(
+      parameter,
+      min,
+      g.maksTeks,
+      g.satuan,
     );
   }
 }

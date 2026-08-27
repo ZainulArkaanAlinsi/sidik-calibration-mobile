@@ -1448,6 +1448,35 @@ abstract class AppLocalizations {
   /// **'Unit'**
   String get equipSatuan;
 
+  /// No description provided for @equipRentangOtomatis.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled in from PT Sidik\'s master data. Edit it if the customer\'s unit differs.'**
+  String get equipRentangOtomatis;
+
+  /// No description provided for @equipRentangPilihan.
+  ///
+  /// In en, this message translates to:
+  /// **'Ranges from PT Sidik\'s master data — tap the one matching the customer\'s unit:'**
+  String get equipRentangPilihan;
+
+  /// No description provided for @equipRentangChip.
+  ///
+  /// In en, this message translates to:
+  /// **'{min}–{maks} {satuan}'**
+  String equipRentangChip(String min, String maks, String satuan);
+
+  /// No description provided for @equipRentangChipBerparameter.
+  ///
+  /// In en, this message translates to:
+  /// **'{parameter} · {min}–{maks} {satuan}'**
+  String equipRentangChipBerparameter(
+    String parameter,
+    String min,
+    String maks,
+    String satuan,
+  );
+
   /// No description provided for @equipResolusi.
   ///
   /// In en, this message translates to:
@@ -1543,6 +1572,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A device without a tolerance can\'t be calibrated — there\'s no way to decide PASS/FAIL.'**
   String get equipToleransiWajibHint;
+
+  /// No description provided for @equipToleransiTidakDivonisHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This device type gets no PASS/FAIL verdict — the master stops at U95%. Leaving it empty is fine.'**
+  String get equipToleransiTidakDivonisHint;
 
   /// No description provided for @equipLokasi.
   ///

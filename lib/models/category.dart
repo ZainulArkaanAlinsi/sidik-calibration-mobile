@@ -51,6 +51,7 @@ class CalibrationCapability {
     this.metode,
     this.profil,
     this.tanpaCmc = false,
+    this.punyaToleransi = true,
   });
 
   final String namaAlat;
@@ -89,6 +90,29 @@ class CalibrationCapability {
   /// kelihatan di kartu picker.
   final bool tanpaCmc;
 
+  /// `true` = jenis alat ini DIVONIS PASS/FAIL, jadi `toleransi` beneran
+  /// penentu dan wajib diisi. `false` = masternya memang nggak punya batas
+  /// keberterimaan sama sekali.
+  ///
+  /// ## Kenapa jawabannya datang dari server
+  ///
+  /// Form Tambah Alat dulu mewajibkan `toleransi` buat SEMUA alat, alasannya
+  /// "alat tanpa toleransi nggak bisa dikalibrasi — 422 belakangan". Alasan itu
+  /// keliru buat **15 dari 20** profil: Conductivity, Spectro, Autoklaf, DO,
+  /// Gas Detector, TITS, TIDS, kelima Enclosure, dan ketiga alat suhu berhenti
+  /// di `U95%` tanpa vonis. Validator server sengaja melewati mereka, jadi 422
+  /// yang ditakutkan itu nggak pernah datang.
+  ///
+  /// Yang datang justru sebaliknya: teknisi dipaksa MENGARANG angka toleransi
+  /// buat alat yang nggak divonis — mengarang kriteria kelulusan. Mengisi kolom
+  /// itu pernah mematikan seluruh sesi Conductivity.
+  ///
+  /// Bawaannya `true` supaya APK yang ketemu server lama berperilaku seperti
+  /// sebelumnya. Itu salah di sisi yang aman: minta angka yang nggak perlu
+  /// masih jauh lebih ringan daripada melewatkan angka yang menentukan
+  /// PASS/FAIL.
+  final bool punyaToleransi;
+
   factory CalibrationCapability.fromJson(Map<String, dynamic> json) {
     return CalibrationCapability(
       namaAlat: json['nama_alat'] as String,
@@ -103,7 +127,8 @@ class CalibrationCapability {
       faktorCakupan: (json['faktor_cakupan'] as num?)?.toDouble(),
       metode: json['metode'] as String?,
       profil: _bacaProfil(json['profil']),
-      tanpaCmc: _bacaTanpaCmc(json['tanpa_cmc']),
+      tanpaCmc: _bacaBool(json['tanpa_cmc'], bawaan: false),
+      punyaToleransi: _bacaBool(json['punya_toleransi'], bawaan: true),
     );
   }
 }
@@ -122,22 +147,25 @@ String? _bacaProfil(dynamic nilai) {
   return bersih.isEmpty ? null : bersih;
 }
 
-/// `tanpa_cmc` yang nggak ada = `false` — server lama nggak ngirim field ini
-/// sama sekali, dan itu nggak boleh mematikan layar.
+/// Penanda bool yang nggak ada dipulangin ke [bawaan] — server lama nggak
+/// ngirim field-field ini sama sekali, dan itu nggak boleh mematikan layar.
+/// [bawaan]-nya beda per field: `tanpa_cmc` jatuh ke `false`, `punya_toleransi`
+/// ke `true`, dua-duanya ke arah perilaku server lama.
 ///
 /// Sengaja nerima `1`/`0` & `"true"`/`"false"` juga, bukan cuma bool: kolom
 /// tinyint yang lupa di-`cast` di Eloquent nyampe ke sini sebagai `1`, dan
-/// `as bool?` bakal ngelempar di situ. Alasannya sama kayak [_bacaProfil] —
+/// `as bool?` bakal NGELEMPAR di situ. Alasannya sama kayak [_bacaProfil] —
 /// [parseListAman] nelen lemparannya dan kartu alatnya ikut hilang. Penanda
 /// yang meleset masih jauh lebih baik daripada kartu yang nggak ada.
-bool _bacaTanpaCmc(dynamic nilai) {
+bool _bacaBool(dynamic nilai, {required bool bawaan}) {
   if (nilai is bool) return nilai;
   if (nilai is num) return nilai != 0;
   if (nilai is String) {
     final n = nilai.trim().toLowerCase();
-    return n == 'true' || n == '1';
+    if (n == 'true' || n == '1') return true;
+    if (n == 'false' || n == '0') return false;
   }
-  return false;
+  return bawaan;
 }
 
 /// Respons `GET /api/categories/{kode}` — daftar penuh kemampuan kalibrasi

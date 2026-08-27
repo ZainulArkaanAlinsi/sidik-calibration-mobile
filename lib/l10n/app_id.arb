@@ -305,6 +305,25 @@
   "equipRangeMin": "Rentang min.",
   "equipRangeMax": "Rentang maks.",
   "equipSatuan": "Satuan",
+  "equipRentangOtomatis": "Terisi otomatis dari data PT Sidik. Ganti manual kalau alat pelanggannya beda.",
+  "equipRentangPilihan": "Rentang dari data PT Sidik — pencet yang sesuai alat pelanggannya:",
+  "equipRentangChip": "{min}–{maks} {satuan}",
+  "@equipRentangChip": {
+    "placeholders": {
+      "min": { "type": "String" },
+      "maks": { "type": "String" },
+      "satuan": { "type": "String" }
+    }
+  },
+  "equipRentangChipBerparameter": "{parameter} · {min}–{maks} {satuan}",
+  "@equipRentangChipBerparameter": {
+    "placeholders": {
+      "parameter": { "type": "String" },
+      "min": { "type": "String" },
+      "maks": { "type": "String" },
+      "satuan": { "type": "String" }
+    }
+  },
   "equipResolusi": "Resolusi",
   "equipResolusiRentang": "Resolusi per titik",
   "equipResolusiRentangHint": "Isi kalau alat ini TIDAK seragam — resolusi atau satuannya berubah antar titik. Kosongkan kalau resolusi tunggal di atas sudah mewakili. Isian ini yang nentuin satuan tiap baris lembar kerja dan jumlah desimal yang kecetak di sertifikat.",
@@ -321,6 +340,7 @@
   "equipToleransi": "Toleransi",
   "equipToleransiWajib": "Toleransi wajib diisi.",
   "equipToleransiWajibHint": "Alat tanpa toleransi nggak bisa dikalibrasi — PASS/FAIL-nya nggak bisa diputusin.",
+  "equipToleransiTidakDivonisHint": "Jenis alat ini nggak divonis PASS/FAIL — masternya berhenti di U95%. Boleh dikosongin.",
   "equipLokasi": "Lokasi",
   "equipStatus": "Status",
   "equipSave": "SIMPAN",
