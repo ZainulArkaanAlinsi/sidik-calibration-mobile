@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/models/lembar_kerja.dart';
 import 'package:sidik_calibration/screens/calibration/grid_sensor_state.dart';
 import 'package:sidik_calibration/screens/calibration/widgets/lembar_kerja_grid.dart';
@@ -33,15 +35,24 @@ void main() {
     final state = GridSensorState(bentuk: bentuk());
     addTearDown(state.dispose);
 
+    // `ProviderScope` + delegate l10n wajib: tiap kartu set point menggambar
+    // tombol `FOTO TABEL INI`, dan tombol itu ConsumerWidget yang labelnya dari
+    // l10n. Dipasang di sini, bukan dimatikan lewat `pindaiAktif: false` —
+    // yang diuji berkas ini grid seperti yang beneran dilihat teknisi.
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: SingleChildScrollView(
-            child: LembarKerjaGrid(
-              state: state,
-              satuanSuhu: '°C',
-              onBerubah: () {},
-              merkKalibrator: merk,
+      ProviderScope(
+        child: MaterialApp(
+          locale: const Locale('id'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: LembarKerjaGrid(
+                state: state,
+                satuanSuhu: '°C',
+                onBerubah: () {},
+                merkKalibrator: merk,
+              ),
             ),
           ),
         ),
@@ -127,7 +138,14 @@ void main() {
     final state = await pasang(tester, merk: 'Constant');
     expect(find.text('Set Point 2'), findsNothing);
 
-    await tester.tap(find.byKey(const Key('grid_tambah_set_point')));
+    // Tombolnya duduk di bawah kartu set point pertama, dan kartunya lebih
+    // tinggi sejak tiap blok punya tombol `FOTO TABEL INI` sendiri — di luar
+    // layar uji 800×600. Digulir dulu, alasan yang sama dengan tombol hapus di
+    // bawah: tap yang meleset bikin testnya gagal karena hal yang bukan bug.
+    final tambah = find.byKey(const Key('grid_tambah_set_point'));
+    await tester.ensureVisible(tambah);
+    await tester.pump();
+    await tester.tap(tambah);
     await tester.pump();
     expect(find.text('Set Point 2'), findsOneWidget);
     expect(state.setPoint, hasLength(2));

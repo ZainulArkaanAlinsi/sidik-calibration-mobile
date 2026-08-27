@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/config/app_config.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/jam_lembar.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/lembar_kerja.dart';
+import '../../../services/ambil_foto_tabel.dart';
+import '../../../services/peta_tabel_foto.dart';
 import '../lembar_kerja_state.dart';
 
 /// Tabel MATRIKS: satu baris = satu besaran, satu kolom = satu titik waktu.
@@ -32,6 +37,7 @@ class LembarKerjaMatriks extends StatelessWidget {
     required this.onBerubah,
     this.tabelTambahan,
     this.setPoint,
+    this.pindaiAktif = AppConfig.pindaiLembarAktif,
   });
 
   final MatriksHasil matriks;
@@ -45,6 +51,16 @@ class LembarKerjaMatriks extends StatelessWidget {
   /// `Set Point` duduk di pojok kiri-atas, sebaris sama banner kolom.
   final FieldLembarKerja? setPoint;
 
+  /// Tombol `FOTO TABEL INI` di atas matriks.
+  ///
+  /// **Sengaja TIDAK membaca `pindai_foto.didukung`.** Penanda itu menjawab
+  /// pertanyaan lain — "kertas alat ini muat di bentuk titik ukur × Repeat?" —
+  /// dan buat matriks jawabannya memang `false`: barisnya BESARAN yang
+  /// berbeda-beda, bukan level dari besaran yang sama. Jalur di sini nggak
+  /// memakai bentuk dua-penanda itu sama sekali; barisnya dijangkar TULISAN
+  /// yang tercetak di kolom kiri.
+  final bool pindaiAktif;
+
   static const _lebarLabel = 148.0;
   static const _lebarKolom = 96.0;
 
@@ -56,6 +72,18 @@ class LembarKerjaMatriks extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (pindaiAktif) ...[
+          SizedBox(
+            width: double.infinity,
+            child: _TombolFotoMatriks(
+              matriks: matriks,
+              isian: isian,
+              onBerubah: onBerubah,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+        ],
+
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Column(
@@ -190,11 +218,129 @@ class LembarKerjaMatriks extends StatelessWidget {
                         key: Key('matriks_${b.kodeData}_$t'),
                         controller: isian.kotakMatriks(b.kodeData, t),
                         onBerubah: onBerubah,
+                        dariFoto: isian.matriksDariFoto.contains(
+                          LembarKerjaState.kunciMatriks(b.kodeData, t),
+                        ),
                       ),
               ),
             ),
         ],
       ),
+    );
+  }
+}
+
+/// `FOTO TABEL INI` buat tabel MATRIKS (Autoklaf).
+///
+/// Aturannya sama dengan jalur tabel biasa — tiap angka wajib punya DUA jangkar
+/// sebelum ditaruh — cuma jangkar barisnya beda:
+///
+///  - **baris** dari TULISAN besaran di kolom kiri (`Temp. Disk 1`,
+///    `Indikator Pressure`). Bukan dari angka: baris matriks itu besaran, dan
+///    `titik_ukur`-nya nol semua. Lihat [MatriksHasil.penandaBarisFoto].
+///  - **kolom** dari kepala titik waktu yang tercetak di atasnya.
+///
+/// Baris yang tulisannya nggak kebaca nggak pernah keisi — dan itu justru
+/// penjagaannya. Salah salin SATU baris di lembar ini berarti bacaan manometer
+/// masuk ke kolom suhu, dan angka itu jalan terus sampai sertifikat tanpa satu
+/// pun error; sudah pernah kejadian 20 Agu 2026 waktu Autoklaf sempat dipaksa
+/// masuk bentuk lembar pH.
+class _TombolFotoMatriks extends ConsumerStatefulWidget {
+  const _TombolFotoMatriks({
+    required this.matriks,
+    required this.isian,
+    required this.onBerubah,
+  });
+
+  final MatriksHasil matriks;
+  final LembarKerjaState isian;
+  final VoidCallback onBerubah;
+
+  @override
+  ConsumerState<_TombolFotoMatriks> createState() => _TombolFotoMatriksState();
+}
+
+class _TombolFotoMatriksState extends ConsumerState<_TombolFotoMatriks> {
+  bool _sibuk = false;
+
+  Future<void> _foto() async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    void pesan(String teks, {int detik = 8}) => messenger.showSnackBar(
+      SnackBar(duration: Duration(seconds: detik), content: Text(teks)),
+    );
+
+    setState(() => _sibuk = true);
+
+    try {
+      final foto = await ambilDanBacaTabel(ref);
+
+      if (!mounted || foto.dibatalkan) return;
+
+      if (foto.terbaca == null) {
+        pesan(l10n.lkFotoTabelGagal, detik: 6);
+
+        return;
+      }
+
+      final penanda = widget.matriks.penandaBarisFoto();
+
+      final hasil = const PetaTabelFoto().petakan(
+        terbaca: foto.terbaca!,
+        titikUkur: penanda.penanda,
+        pengulangan: widget.matriks.titikWaktu,
+        fieldPerRepeat: const ['pembacaan'],
+        labelTercetak: penanda.label,
+      );
+
+      if (!mounted) return;
+
+      if (hasil.kosong) {
+        pesan(
+          hasil.titikKetemu.isNotEmpty && hasil.repeatKetemu.isNotEmpty
+              ? l10n.lkFotoTabelKosong
+              : l10n.lkMatriksFotoTanpaJangkar,
+        );
+
+        return;
+      }
+
+      final terisi = widget.isian.terapkanHasilFotoMatriks(
+        widget.matriks,
+        hasil.sel,
+      );
+
+      widget.onBerubah();
+
+      pesan(
+        hasil.angkaTakTerpetakan == 0
+            ? l10n.lkFotoTabelTerisi(terisi)
+            : l10n.lkFotoTabelSebagian(terisi, hasil.angkaTakTerpetakan),
+        detik: 6,
+      );
+    } catch (e) {
+      if (mounted) pesan(l10n.lkFotoTabelError('$e'), detik: 6);
+    } finally {
+      if (mounted) setState(() => _sibuk = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    return OutlinedButton.icon(
+      key: const Key('matriks_foto'),
+      onPressed: _sibuk ? null : _foto,
+      icon: _sibuk
+          ? const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.photo_camera_outlined, size: 18),
+      label: Text(l10n.lkFotoTabel),
     );
   }
 }
@@ -304,10 +450,15 @@ class _KotakAngka extends StatelessWidget {
     super.key,
     required this.controller,
     required this.onBerubah,
+    this.dariFoto = false,
   });
 
   final TextEditingController? controller;
   final VoidCallback onBerubah;
+
+  /// Isinya datang dari FOTO, belum diadu ke kertas. Kuningnya sama dengan
+  /// `TandaSel.keyakinanRendah` di jalur tabel, dan artinya sama: saran mesin.
+  final bool dariFoto;
 
   @override
   Widget build(BuildContext context) {
@@ -319,10 +470,15 @@ class _KotakAngka extends StatelessWidget {
       inputFormatters: [
         FilteringTextInputFormatter.allow(RegExp(r'[0-9.,\-]')),
       ],
-      decoration: const InputDecoration(
+      decoration: InputDecoration(
         isDense: true,
-        contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-        border: OutlineInputBorder(),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        border: const OutlineInputBorder(),
+        enabledBorder: dariFoto
+            ? const OutlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFFB8860B), width: 2),
+              )
+            : null,
       ),
       onChanged: (_) => onBerubah(),
     );

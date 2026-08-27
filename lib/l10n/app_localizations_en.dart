@@ -2737,6 +2737,23 @@ class AppLocalizationsEn extends AppLocalizations {
       'No reading could be placed with certainty. Make sure the standard-value column (left) and the repeat headers (numbers 1..5, or X1 / Repeat 1) are in frame — all of them, none cut off. You can still type the values manually.';
 
   @override
+  String get lkTabelBelumDisimpan =>
+      'The numbers in this table are recorded on the sheet but are NOT sent to the server yet — there is no column for them. Keep the paper.';
+
+  @override
+  String get lkMatriksFotoTanpaJangkar =>
+      'No reading could be placed with certainty. Make sure the left-hand column of quantity names (Temp. Disk 1, Indikator Pressure, …) and the time-point headers along the top are in frame — all of them, none cut off. A row whose name could not be read is never filled.';
+
+  @override
+  String get lkGridFotoTanpaJangkar =>
+      'No reading could be placed with certainty. Make sure the No. column (the thermocouple numbers, on the left) and the repeat headers along the top are in frame — all of them, none cut off. Rows whose number you have not typed in yet are never filled from a photo.';
+
+  @override
+  String lkGridFotoNomorKembar(String nomor) {
+    return 'This set point can\'t be photographed: thermocouple number $nomor is used on more than one row, so there is no way to tell which row a reading belongs to. Fix the duplicated number first.';
+  }
+
+  @override
   String lkFotoTabelKolomHilang(String kolom) {
     return 'The $kolom column header couldn\'t be read, so nothing was filled in — forcing it risks numbers landing in the neighbouring column unnoticed. Retake the photo with the unit row of the table header in frame.';
   }

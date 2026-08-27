@@ -172,6 +172,92 @@ class PetaTabelFoto {
     'Repeat $repeat',
   ];
 
+  /// Nomor baris yang KEBACA dari kolom paling kiri.
+  ///
+  /// ## Kenapa ada jalur yang menemukan penanda barisnya sendiri
+  ///
+  /// Di sepuluh lembar pertama, penanda baris sudah diketahui sebelum fotonya
+  /// dibaca — nilai standar yang tercetak di kertas, dan kita punya daftarnya
+  /// dari bentuk lembar. Grid Enclosure tidak: yang ada di kolom kiri **nomor
+  /// termokopel yang ditulis tangan teknisi di chamber**, dan berapa saja
+  /// nomornya baru ketahuan dari kertas itu sendiri.
+  ///
+  /// Pemilik lab memutuskan urutan kerjanya **motret dulu, nomornya belakangan**
+  /// (27 Agt 2026), jadi mencocokkan ke nomor yang sudah ada di layar bukan
+  /// pilihan: waktu tombolnya ditekan, layarnya memang masih kosong.
+  ///
+  /// ## Risikonya, dan kenapa dia bisa ditanggung
+  ///
+  /// Nomor yang salah baca (7 kebaca 1) memindahkan SELURUH baris ke termokopel
+  /// yang salah — dan nomor itu yang menentukan koreksi mana yang dipakai. Yang
+  /// bikin ini bisa ditanggung: **nomornya ikut ditaruh di kotaknya sendiri dan
+  /// ikut ditandai kuning**, jadi dia kelihatan dan bisa dibetulkan di satu
+  /// tempat. Membetulkan nomornya memindahkan barisnya utuh — pembacaannya
+  /// tetap menempel di baris yang sama seperti di kertas.
+  ///
+  /// Itu sebabnya barisnya dikenali dari POSISI di citra, bukan dari nomornya:
+  /// yang dijamin utuh kebersamaan satu baris, bukan ketepatan nomornya.
+  ///
+  /// ## Yang bikin kolomnya nggak salah tebak
+  ///
+  ///  - Cuma bilangan BULAT yang dihitung. Pembacaan chamber berkoma
+  ///    (`121,5`), jadi dia nggak pernah masuk daftar calon.
+  ///  - Dikelompokkan per KOLOM lewat tepi kiri, lalu yang dipakai kolom
+  ///    **paling kiri yang menaungi lebih dari satu baris**. Kepala kolom
+  ///    pengulangan (`1`..`5`) berjajar MENDATAR, jadi tiap nomornya jatuh di
+  ///    kolomnya sendiri-sendiri dan nggak pernah punya anggota kedua.
+  ///  - Di luar [batasNomor] dibuang: nomor termokopel lab ini paling banyak
+  ///    dua digit (`TCN3`..`TCN12`), dan angka bulat besar di kolom kiri jauh
+  ///    lebih mungkin pembacaan yang kebetulan bulat.
+  ///
+  /// Balik daftar nomornya URUT DARI ATAS, apa adanya — termasuk kalau ada yang
+  /// kembar. Yang memutuskan apa yang dilakukan atas kembar itu pemanggilnya;
+  /// di sini nggak ada yang dibuang diam-diam.
+  List<int> nomorBarisTerbaca(List<TeksTerbaca> terbaca) {
+    final calon = <({int no, TeksTerbaca t})>[];
+
+    for (final t in terbaca) {
+      final n = int.tryParse(t.teks.trim());
+
+      if (n == null || n < 1 || n > batasNomor) continue;
+
+      calon.add((no: n, t: t));
+    }
+
+    if (calon.length < 2) return const [];
+
+    final tinggi = calon
+        .map((c) => c.t.kotak.height)
+        .reduce((a, b) => a > b ? a : b);
+
+    final kolom = <List<({int no, TeksTerbaca t})>>[];
+
+    for (final c in [...calon]..sort(
+      (a, b) => a.t.kotak.left.compareTo(b.t.kotak.left),
+    )) {
+      final terakhir = kolom.isEmpty ? null : kolom.last;
+
+      if (terakhir != null &&
+          (c.t.kotak.left - terakhir.first.t.kotak.left).abs() <= tinggi) {
+        terakhir.add(c);
+      } else {
+        kolom.add([c]);
+      }
+    }
+
+    final berjamaah = kolom.where((k) => k.length > 1).toList();
+
+    if (berjamaah.isEmpty) return const [];
+
+    final pilih = berjamaah.first
+      ..sort((a, b) => a.t.kotak.top.compareTo(b.t.kotak.top));
+
+    return [for (final c in pilih) c.no];
+  }
+
+  /// Nomor baris terbesar yang masih masuk akal — lihat [nomorBarisTerbaca].
+  static const batasNomor = 99;
+
   /// Petakan hasil OCR satu tabel.
   ///
   /// [titikUkur] & [pengulangan] datang dari bentuk lembar — bukan dari foto.
@@ -219,7 +305,7 @@ class PetaTabelFoto {
       if (n != null) angka.add((nilai: n, t: t));
     }
 
-    final jangkarBaris = _jangkarBaris(angka, titikUkur, labelTercetak);
+    final jangkarBaris = _jangkarBaris(terbaca, titikUkur, labelTercetak);
 
     // --- jangkar KOLOM: kepala `X1`..`Xn` yang tercetak --------------------
     var jangkarKolom = _jangkarTeks(
@@ -693,23 +779,49 @@ class PetaTabelFoto {
   ///
   /// @param angka semua angka yang kebaca, berikut kotaknya.
   Map<double, TeksTerbaca> _jangkarBaris(
-    List<({double nilai, TeksTerbaca t})> angka,
+    List<TeksTerbaca> terbaca,
     List<double> titikUkur,
     Map<double, String> labelTercetak,
   ) {
     // Semua angka yang NILAINYA cocok ke salah satu titik — calon jangkar,
     // termasuk pembacaan yang kebetulan mirip. Atau, kalau labelnya beda dari
     // nilai (Viscometer), yang TEKS-nya persis sama dengan label tercetak.
+    //
+    // Yang disapu SELURUH teks yang kebaca, bukan cuma yang keparse jadi angka.
+    // Dulu di sini cuma yang keparse — dan itu diam-diam membatasi
+    // [labelTercetak] ke label yang kebetulan berupa ANGKA (`100`, `1000`).
+    // Label yang berupa kata (`Indikator`, `Suhu Ruang` di grid Enclosure)
+    // nggak pernah masuk daftar calon, jadi barisnya nggak pernah kejangkar
+    // sekali pun labelnya kebaca jelas di foto. Buat label berupa angka nggak
+    // ada yang berubah: elemen yang sama, jangkar yang sama.
+    //
+    // Frasanya ikut, TAPI cuma buat label yang memang BERSPASI — `Suhu Ruang`
+    // itu dua element di mata ML Kit, dan dicocokkan per element dia nggak
+    // akan pernah sama dengan labelnya.
+    //
+    // Frasa nggak boleh dipakai buat label satu kata, dan ini bukan kehati-
+    // hatian kosong: [_rapatkan] MEMBUANG spasi, jadi dua element `100` dan `0`
+    // yang kebetulan bersebelahan jadi frasa `100 0` yang rapat jadi `1000` —
+    // persis label slot Viscometer. Jangkar barisnya pindah ke tempat yang
+    // bukan barisnya, dan yang keluar bukan error tapi seluruh baris `1000`
+    // keisi angka milik baris lain.
+    final adaLabelBerspasi = labelTercetak.values.any(_berspasi);
     final calon = <({double titik, TeksTerbaca t})>[];
 
-    for (final a in angka) {
+    for (final t in adaLabelBerspasi ? _frasa(terbaca) : terbaca) {
+      final nilai = _angka(t.teks);
+      final iniFrasa = _berspasi(t.teks);
+
       for (final titik in titikUkur) {
-        final cocokAngka = (a.nilai - titik).abs() <= titik.abs() * _toleransiTitik;
+        final cocokAngka =
+            nilai != null && (nilai - titik).abs() <= titik.abs() * _toleransiTitik;
         final label = labelTercetak[titik];
-        final cocokLabel = label != null && _rapatkan(a.t.teks) == _rapatkan(label);
+        final cocokLabel = label != null &&
+            iniFrasa == _berspasi(label) &&
+            _rapatkan(t.teks) == _rapatkan(label);
 
         if (cocokAngka || cocokLabel) {
-          calon.add((titik: titik, t: a.t));
+          calon.add((titik: titik, t: t));
         }
       }
     }
@@ -1350,6 +1462,12 @@ class PetaTabelFoto {
 
     return double.tryParse(bersih.replaceAll(',', '.'));
   }
+
+  /// Teks ini terdiri dari lebih dari satu kata?
+  ///
+  /// Dipakai memisahkan calon FRASA dari element tunggal waktu mencocokkan
+  /// label baris — lihat alasannya di [_jangkarBaris].
+  static bool _berspasi(String teks) => teks.trim().contains(RegExp(r'\s'));
 
   /// Teks buat dibandingin: huruf kecil semua, tanpa spasi.
   ///
