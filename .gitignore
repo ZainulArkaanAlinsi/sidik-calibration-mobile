@@ -67,6 +67,9 @@ SIDIK-IK-*.pdf
 # yang di-commit cuma halaman unduhnya (`public/index.html`), bukan binernya.
 /public/*.zip
 /public/*.apk
+# Bundel web dirakit di runner (job `terbitkan`), bukan di-commit — sama
+# alasannya dengan zip di atas: hasil build, bukan sumber.
+/public/app/
 
 # Jejak Firebase CLI.
 .firebase/

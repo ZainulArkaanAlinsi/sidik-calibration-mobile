@@ -16,7 +16,7 @@
 # dari repository variable `API_BASE_URL` — sama persis kayak apk-rilis-cloud.yml.
 #   Settings → Secrets and variables → Actions → Variables → New repository
 #   variable → nama: API_BASE_URL, nilai: https://<url>.onrender.com
-name: Rilis desktop (nyambung server)
+name: Rilis desktop & web (nyambung server)
 
 # Ikut tiap push ke `main`, sejajar sama jalur APK.
 #
@@ -176,8 +176,76 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  # Bundel web, dilayani di SUBPATH `/app` situs yang sama.
+  #
+  # ## Kenapa numpang workflow ini, bukan workflow sendiri
+  #
+  # `firebase deploy` MENGGANTI seluruh isi situs. Dua workflow yang sama-sama
+  # men-deploy situs ini berarti yang jalan belakangan menghapus punya yang
+  # duluan — halaman unduh hilang waktu web terbit, atau sebaliknya, tergantung
+  # siapa yang selesai duluan. Jadi bundelnya dibangun di sini dan diterbitkan
+  # sekali lewat job `terbitkan` di bawah, bareng kedua zip desktop.
+  #
+  # ## Yang MATI di web, dan kenapa itu disengaja
+  #
+  # Pindai lembar (OCR + QR) jalan lewat ML Kit, dan ML Kit nggak punya
+  # implementasi web sama sekali — tombolnya bakal ada tapi meledak
+  # `MissingPluginException` begitu ditekan. Dimatikan lewat saklar yang memang
+  # sudah dirancang buat ini (`PINDAI_LEMBAR=false`), jadi tombolnya nggak
+  # digambar: lebih baik fiturnya nggak kelihatan daripada kelihatan lalu gagal.
+  #
+  # Yang lain jalan normal — `flutter_secure_storage`, Firebase, notifikasi,
+  # `file_picker`, `connectivity_plus`, dan `url_launcher` semuanya punya
+  # implementasi web terdaftar.
+  web:
+    runs-on: ubuntu-latest
+    name: web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Penjagaan yang SAMA persis dengan jalur desktop, dan alasannya sama:
+      # nilai kosong bikin `AppConfig` balik ke `10.0.2.2` (alamat emulator
+      # Android), yang dari browser nggak nyambung ke mana-mana.
+      - name: Pastiin URL server udah dipasang
+        env:
+          URL: ${{ vars.API_BASE_URL }}
+        run: |
+          if [ -z "$URL" ] || [[ "$URL" == *"<"* ]]; then
+            echo "::error::Repository variable API_BASE_URL belum dipasang atau masih placeholder. Settings -> Secrets and variables -> Actions -> Variables."
+            exit 1
+          fi
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+      - run: flutter gen-l10n
+
+      # `--base-href=/app/` WAJIB dan nggak boleh dilupa: tanpa itu semua aset
+      # dicari di akar situs (`/main.dart.js`), sementara berkasnya duduk di
+      # `/app/main.dart.js`. Hasilnya halaman putih tanpa satu pun pesan error
+      # yang nunjuk sebabnya.
+      - name: Build web
+        run: >
+          flutter build web --release
+          --base-href=/app/
+          --dart-define=APP_ENV=prod
+          --dart-define=API_BASE_URL=${{ vars.API_BASE_URL }}/api
+          --dart-define=PINDAI_LEMBAR=false
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sidik-web
+          path: build/web
+          if-no-files-found: error
+          retention-days: 30
+
   terbitkan:
-    needs: build
+    needs: [build, web]
     runs-on: ubuntu-latest
     name: terbitkan halaman unduh
 
@@ -214,11 +282,33 @@ jobs:
 
       # Zip rilis TIDAK di-commit (lihat .gitignore) — berkasnya cuma numpang
       # lewat di runner. Yang di-commit cuma halaman unduhnya.
-      - name: Kumpulin dua zip ke halaman unduh
+      - name: Kumpulin dua zip + bundel web ke situs
         run: |
           cp unduhan/sidik-desktop-windows/sidik-windows.zip public/
           cp unduhan/sidik-desktop-macos/sidik-macos.zip public/
+
+          # Web app duduk di SUBPATH `/app`, halaman unduh tetap di akar.
+          # Dirakit di sini, bukan di-deploy sendiri, karena `firebase deploy`
+          # mengganti seluruh isi situs — dua deploy terpisah bikin yang satu
+          # menghapus yang lain.
+          rm -rf public/app
+          mkdir -p public/app
+          cp -R unduhan/sidik-web/. public/app/
+
+          # Gagal keras kalau bundelnya nggak utuh. Tanpa cek ini situsnya
+          # tetap terbit dengan `/app` yang isinya separuh — halaman putih,
+          # nol pesan, dan yang bikin ketahuan cuma ada yang nyoba buka.
+          test -f public/app/index.html || {
+            echo "::error::Bundel web nggak lengkap: public/app/index.html nggak ada."
+            exit 1
+          }
+          grep -q '<base href="/app/">' public/app/index.html || {
+            echo "::error::base href bundel web bukan /app/ — asetnya bakal dicari di akar situs dan halamannya putih."
+            exit 1
+          }
+
           ls -lh public/
+          du -sh public/app
 
       # Android sengaja NGGAK ikut ke sini. APK-nya jalan lewat App
       # Distribution di `apk-rilis-cloud.yml`, yang ngirim notifikasi ke grup
