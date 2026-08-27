@@ -365,6 +365,29 @@ class PetaTabelFoto {
     final jarakKolom = _jarakAntarKolom(jangkarKolom.values);
     final mundur = jarakKolom.isFinite ? jarakKolom / 2 : tinggiBaris;
 
+    // Sejauh apa satu angka masih boleh diakui kolom terdekat — aturan yang
+    // sama persis dipakai jalur ke-bawah (`batasKolom` di [petakanKeBawah]).
+    //
+    // Dulu di sini nggak ada batasnya sama sekali, dan bawaan `_kolomTerdekat`
+    // memang tanpa batas. Alasannya ditulis di method itu: kolom Repeat selalu
+    // berdampingan rapat, jadi yang paling dekat memang pemiliknya. Premis itu
+    // cuma berlaku waktu SEMUA kolom kejangkar.
+    //
+    // Begitu sebagian kepalanya nggak kebaca, dia terbalik jadi berbahaya:
+    // angka di bawah kolom yang nggak punya jangkar ditarik ke jangkar
+    // terdekat SEJAUH APA PUN — di lembar TITS yang enam kolomnya cuma
+    // kejangkar tiga, itu berarti pembacaan DOWN mendarat di kolom UP. Nggak
+    // ada error, jumlah selnya wajar, angkanya wajar.
+    //
+    // Yang lebih jauh dari setengah lebar kolom sekarang DIBUANG dan ikut
+    // kehitung `angkaTakTerpetakan`, jadi teknisi diberitahu ada yang nggak
+    // keangkut — bukan dikasih angka yang pindah kolom diam-diam. Ini persis
+    // janji yang sudah tertulis di docblock [petakan]: kolom yang kepalanya
+    // nggak kebaca nggak pernah keisi.
+    final batasKolom = jarakKolom.isFinite
+        ? jarakKolom * _rasioBaris
+        : double.infinity;
+
     final batasKiri = jangkarKolom.values
             .map((j) => j.kotak.center.dx)
             .reduce((a, b) => a < b ? a : b) -
@@ -390,7 +413,7 @@ class PetaTabelFoto {
       if (a.t.kotak.center.dy < batasAtas) continue;
 
       final titik = _barisTerdekat(a.t, jangkarBaris, tinggiBaris);
-      final repeat = _kolomTerdekat(a.t, jangkarKolom);
+      final repeat = _kolomTerdekat(a.t, jangkarKolom, batas: batasKolom);
 
       if (titik == null || repeat == null) {
         terbuang++;
@@ -761,11 +784,14 @@ class PetaTabelFoto {
     Map<K, List<String>> kepala,
   ) {
     final hasil = <K, TeksTerbaca>{};
+    // Elemen apa adanya DITAMBAH gabungan elemen bersebelahan — kepala kolom
+    // yang di kertas dua kata nggak pernah datang sebagai satu potong.
+    final calon = _frasa(terbaca);
 
     for (final e in kepala.entries) {
       final cari = [for (final k in e.value) _rapatkan(k)];
 
-      for (final t in terbaca) {
+      for (final t in calon) {
         if (!cari.contains(_rapatkan(t.teks))) continue;
 
         final ada = hasil[e.key];
@@ -774,6 +800,119 @@ class PetaTabelFoto {
     }
 
     return hasil;
+  }
+
+  /// Berapa elemen bersebelahan yang paling banyak disambung jadi satu calon.
+  ///
+  /// Dua sudah cukup buat kepala kolom terpanjang yang kita punya (`DOWN X1`);
+  /// tiga disediakan supaya kepala slot bersatuan (`1413 µS/cm`) yang kebaca
+  /// terpecah tiga tetap kejangkar. Lebih dari itu cuma nambah calon tanpa
+  /// nambah kepala yang beneran ada di kertas.
+  static const _maksKataFrasa = 3;
+
+  /// Elemen OCR apa adanya, ditambah gabungan elemen yang BERSEBELAHAN di
+  /// baris yang sama.
+  ///
+  /// ## Kenapa perlu
+  ///
+  /// [MlKitPembacaHalaman] memulangkan per ELEMENT — kira-kira per kata. Jadi
+  /// kepala kolom yang di kertas ditulis dua kata nggak pernah sampai ke sini
+  /// utuh, dan yang tersisa cuma potongannya. Di lembar TITS potongan itu
+  /// `X1`, dan `X1` kecetak DUA KALI: sekali di bawah `UP`, sekali di bawah
+  /// `DOWN`. Yang menang jadi undian beberapa piksel, dan begitu yang menang
+  /// kolom DOWN, angka kolom UP mendarat di Repeat yang salah — tanpa satu pun
+  /// gejala, karena jumlah selnya tetap pas dan angkanya tetap wajar.
+  ///
+  /// ## Kenapa ini bukan "menebak dari urutan"
+  ///
+  /// Yang disambung cuma yang beneran bersebelahan DI CITRA: tumpang tindih
+  /// tegaknya lebih dari separuh tinggi huruf (jadi memang satu baris teks),
+  /// dan celah mendatarnya lebih sempit dari satu tinggi huruf (jadi memang
+  /// satu tulisan, bukan dua kolom yang berjauhan). Kotaknya gabungan kotak
+  /// keduanya, jadi jangkarnya duduk di TENGAH tulisan yang tercetak — bukan
+  /// di kata pertamanya.
+  ///
+  /// Elemen aslinya tetap ikut, jadi kepala satu kata (`X1`, `1413`) tetap
+  /// ketemu persis seperti sebelumnya.
+  static List<TeksTerbaca> _frasa(List<TeksTerbaca> terbaca) {
+    if (terbaca.length < 2) return terbaca;
+
+    final hasil = [...terbaca];
+
+    for (final baris in _perBaris(terbaca)) {
+      for (var i = 0; i < baris.length; i++) {
+        var gabung = baris[i];
+
+        for (var n = 1; n < _maksKataFrasa && i + n < baris.length; n++) {
+          final kanan = baris[i + n];
+          final tinggi = gabung.kotak.height < kanan.kotak.height
+              ? gabung.kotak.height
+              : kanan.kotak.height;
+
+          // Celah yang lebih lebar dari satu tinggi huruf itu batas antar
+          // KOLOM, bukan spasi antar kata. Berhenti di situ — nyambung terus
+          // bikin dua kepala kolom yang berjauhan jadi satu calon.
+          if (kanan.kotak.left - gabung.kotak.right > tinggi) break;
+
+          gabung = (
+            teks: '${gabung.teks} ${kanan.teks}',
+            kotak: gabung.kotak.expandToInclude(kanan.kotak),
+          );
+
+          hasil.add(gabung);
+        }
+      }
+    }
+
+    return hasil;
+  }
+
+  /// Elemen dikelompokkan jadi BARIS teks, tiap baris urut dari kiri.
+  ///
+  /// Bukan dari urutan hasil OCR — itu urutan blok ML Kit, dan blok bisa
+  /// meloncat. Yang dipakai posisinya: dua elemen sebaris kalau tumpang tindih
+  /// tegaknya lebih dari separuh tinggi huruf yang paling pendek di antara
+  /// keduanya. Kepala kolom tabel cetak selalu memenuhi itu; angka di baris
+  /// lain nggak pernah.
+  static List<List<TeksTerbaca>> _perBaris(List<TeksTerbaca> terbaca) {
+    final urut = [...terbaca]
+      ..sort((a, b) => a.kotak.top.compareTo(b.kotak.top));
+
+    final baris = <List<TeksTerbaca>>[];
+
+    for (final t in urut) {
+      var ketemu = false;
+
+      for (final b in baris) {
+        final acuan = b.first;
+        final tinggi = acuan.kotak.height < t.kotak.height
+            ? acuan.kotak.height
+            : t.kotak.height;
+
+        if (tinggi <= 0) continue;
+
+        final atas = acuan.kotak.top > t.kotak.top
+            ? acuan.kotak.top
+            : t.kotak.top;
+        final bawah = acuan.kotak.bottom < t.kotak.bottom
+            ? acuan.kotak.bottom
+            : t.kotak.bottom;
+
+        if (bawah - atas < tinggi * _rasioBaris) continue;
+
+        b.add(t);
+        ketemu = true;
+        break;
+      }
+
+      if (!ketemu) baris.add([t]);
+    }
+
+    for (final b in baris) {
+      b.sort((a, c) => a.kotak.left.compareTo(c.kotak.left));
+    }
+
+    return baris;
   }
 
   /// Kepala kolom yang di kertas ditulis NOMOR POLOS (`1`..`5`).
@@ -1213,8 +1352,20 @@ class PetaTabelFoto {
   }
 
   /// Teks buat dibandingin: huruf kecil semua, tanpa spasi.
-  static String _rapatkan(String teks) =>
-      teks.toLowerCase().replaceAll(RegExp(r'\s+'), '');
+  ///
+  /// Tanda inci/detik diseragamkan dulu. Kepala kolom ketiga lembar suhu
+  /// pasangan itu `0″`, `20″`, `40″` — server ngirimnya pakai DOUBLE
+  /// PRIME (U+2033), sementara yang kecetak di lembar master lab tanda kutip
+  /// biasa (`0"`), dan ML Kit balikin salah satu dari keduanya tergantung font.
+  /// Dicocokkan mentah, satu karakter yang bahkan bukan bagian dari angkanya
+  /// bikin SELURUH kolom nggak kejangkar.
+  ///
+  /// Nggak bisa bikin salah taruh: tanda-tanda ini nggak pernah muncul di
+  /// pembacaan — [_angka] cuma nerima digit, titik, dan koma.
+  static String _rapatkan(String teks) => teks
+      .toLowerCase()
+      .replaceAll(RegExp(r'[″”“′’‘`\u0027]'), '"')
+      .replaceAll(RegExp(r'\s+'), '');
 
   /// Label SATUAN kolom buat dibandingin — lebih longgar dari [_rapatkan].
   ///

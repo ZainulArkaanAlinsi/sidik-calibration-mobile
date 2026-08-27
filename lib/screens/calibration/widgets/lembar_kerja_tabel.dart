@@ -1646,23 +1646,59 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
 
   /// Tulisan kepala kolom pengulangan yang TERCETAK di kertas, per nomor.
   ///
-  /// Yang dari backend (`prefiks_pengulangan`, `X` bikin `X1`) ditaruh DULUAN
-  /// karena dia yang tahu bentuk kertas alatnya — tapi bawaan
-  /// [PetaTabelFoto.kepalaBawaan] tetap ikut di belakangnya.
+  /// Tiga sumber, dan yang mana yang menang menentukan benar-salahnya angka:
   ///
-  /// Ikut, bukan diganti: foto tabel ini justru diarahkan ke formulir LAMA lab
-  /// yang nggak bermarker, dan bentuk kertas itu belum dipastikan. Nerima
-  /// `Xn` maupun `Repeat n` sekaligus nggak nambah risiko salah taruh — dua
-  /// tulisan itu cuma ada di kepala kolom, nggak ada sel isian yang bisa
-  /// nyamar jadi salah satunya.
+  ///  1. **`pengulangan_arah[].label`** — tulisan yang SERVER bilang kecetak
+  ///     di atas kolom itu, dan tulisan yang sama persis digambar layar ini
+  ///     sebagai kepala kolomnya (`label:` di `_KepalaPengulangan`).
+  ///  2. `prefiks_pengulangan` (`X` bikin `X1`) — dikirim Spectrophotometer.
+  ///  3. Bawaan [PetaTabelFoto.kepalaBawaan] (`Xn` / `Repeat n`).
+  ///
+  /// **Begitu (1) menyebut sesuatu yang bukan `Xn`, dia SENDIRIAN.** Kepala
+  /// kolom TITS kecetak `UP X1` … `DOWN X3`, dan ML Kit membacanya per KATA —
+  /// jadi potongan `X1` muncul DUA kali, sekali di bawah `UP` dan sekali di
+  /// bawah `DOWN`. Selama `Xn` ikut jadi calon, jangkar Repeat 1 bisa mendarat
+  /// di kolom DOWN, dan yang masuk ke situ pembacaan arah sebaliknya. Nggak ada
+  /// error, jumlah selnya pas, angkanya wajar — persis bentuk kegagalan yang
+  /// paling mahal di fitur ini. Yang tahu bentuk kertasnya server; begitu dia
+  /// bicara, tebakan nggak boleh ikut bersuara.
+  ///
+  /// Kalau labelnya justru `Xn` itu sendiri (Thermohygro — `tabelPembacaan` di
+  /// server memberinya sebagai NILAI BAWAAN, bukan pernyataan soal kertasnya),
+  /// dia nggak menggantikan apa-apa: `Repeat n` tetap ikut diterima seperti
+  /// sebelumnya.
+  ///
+  /// Yang belum pernah kejangkar sama sekali sebelum ini: **TITS** (`UP X1`…)
+  /// dan **Thermocouple / Termometer Gelas** (`0″ 20″ 40″ 60″ 80″` di sisi
+  /// standar, `10″ 30″ 50″ 70″ 90″` di sisi UUT). Ketiganya nyetak kepala kolom
+  /// yang bukan `Xn`, bukan `Repeat n`, dan bukan nomor polos — jadi ketiga
+  /// jalur jangkar kolom yang ada semuanya lewat, dan tiap jepretan pulang NOL
+  /// SEL sebagus apa pun fotonya. Yang sampai ke teknisi bukan "kolomnya nggak
+  /// kebaca", tapi "tabelnya masih kosong" — nyuruh dia mengisi lembar yang
+  /// sudah penuh di tangannya.
   Map<int, List<String>> _kepalaPengulangan() {
     final prefiks = widget.tabel.prefiksPengulangan;
-    if (prefiks == null) return const {};
+    final arah = widget.tabel.pengulanganArah;
+
+    if (prefiks == null && arah.isEmpty) return const {};
 
     return {
-      for (final r in widget.tabel.pengulangan)
-        r: ['$prefiks$r', ...PetaTabelFoto.kepalaBawaan(r)],
+      for (final r in widget.tabel.pengulangan) r: _kepalaSatuKolom(r, prefiks),
     };
+  }
+
+  /// Calon tulisan kepala buat SATU kolom pengulangan — lihat
+  /// [_kepalaPengulangan] soal kenapa label kertas menang sendirian.
+  List<String> _kepalaSatuKolom(int r, String? prefiks) {
+    final label = widget.tabel.pengulanganArah[r];
+    final bawaan = [
+      if (prefiks != null) '$prefiks$r',
+      ...PetaTabelFoto.kepalaBawaan(r),
+    ];
+
+    if (label == null || label.isEmpty) return bawaan;
+
+    return bawaan.contains(label) ? bawaan : [label];
   }
 
   /// Slot larutan seperti TERCETAK, buat lembar yang Repeat-nya turun ke bawah.
