@@ -2,9 +2,10 @@
 #
 # Jalanin app tanpa pernah ngetik IP laptop manual.
 #
-#   ./tool/dev.sh mac    → macOS desktop, nembak localhost
-#   ./tool/dev.sh hp     → HP fisik lewat adb (port di-relay, tanpa IP sama sekali)
-#   ./tool/dev.sh mock   → tanpa server sama sekali
+#   ./tool/dev.sh mac      → macOS desktop, nembak localhost
+#   ./tool/dev.sh windows  → desktop Windows, nembak localhost
+#   ./tool/dev.sh hp       → HP fisik lewat adb (port di-relay, tanpa IP sama sekali)
+#   ./tool/dev.sh mock     → tanpa server sama sekali
 #
 # Kenapa ada skrip ini: IP LAN laptop ganti tiap pindah wifi, jadi
 # --dart-define=API_BASE_URL harus diedit terus.
@@ -31,14 +32,23 @@ MODE="${1:-}"
 PORT="${PORT:-8000}"
 
 usage() {
-  echo "pakai: ./tool/dev.sh {mac|hp|mock}" >&2
+  echo "pakai: ./tool/dev.sh {mac|windows|hp|mock}" >&2
   exit 64
 }
 
 # Backend selalu diadu ke 127.0.0.1 — buat HP pun, karena yang menerima
 # sambungan hasil relay adalah laptop ini juga.
+#
+# Pakai /dev/tcp bawaan bash, bukan `nc`. Alasannya: flag timeout netcat beda
+# per-sistem — `-G` cuma ada di BSD/macOS, dan Git Bash di Windows malah nggak
+# bawa `nc` sama sekali. Efeknya di Windows cek ini SELALU gagal, dan skripnya
+# nolak jalan sambil bilang "backend tidak menjawab" padahal backendnya hidup —
+# salah tuduh yang mahal, karena yang dicurigai jadi repo sebelah.
+#
+# Nggak perlu timeout: sambungan ke 127.0.0.1 langsung ketahuan diterima atau
+# ditolak, nggak ada perjalanan jaringan yang bisa nggantung.
 cek_backend() {
-  if ! nc -z -G 3 127.0.0.1 "$PORT" 2>/dev/null; then
+  if ! (exec 3<>"/dev/tcp/127.0.0.1/${PORT}") 2>/dev/null; then
     echo "!! Backend tidak menjawab di 127.0.0.1:${PORT}" >&2
     echo "   Di repo sidik-calibration-api jalankan:" >&2
     echo "     php artisan serve --port=${PORT}" >&2
@@ -60,6 +70,18 @@ case "$MODE" in
     [ -n "${API_URL:-}" ] || cek_backend
     echo "→ macOS · ${URL}"
     exec flutter run -d macos \
+      --dart-define=APP_ENV=dev \
+      --dart-define=API_BASE_URL="$URL"
+    ;;
+
+  # Kembaran persis mode `mac`, beda cuma target device-nya. Ditulis terpisah
+  # dan bukan dideteksi dari `uname`, karena satu-satunya yang tau mau jalan di
+  # mana itu orangnya — di Windows yang punya WSL, tebakan otomatis malah salah.
+  windows)
+    URL="${API_URL:-http://127.0.0.1:${PORT}/api}"
+    [ -n "${API_URL:-}" ] || cek_backend
+    echo "→ Windows · ${URL}"
+    exec flutter run -d windows \
       --dart-define=APP_ENV=dev \
       --dart-define=API_BASE_URL="$URL"
     ;;
