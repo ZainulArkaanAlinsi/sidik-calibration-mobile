@@ -148,6 +148,57 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+  web:
+    name: Build web
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - run: flutter gen-l10n
+        continue-on-error: true
+
+      # Kenapa web ikut diperiksa waktu PR, bukan cuma waktu rilis.
+      #
+      # Sejak bundel web ikut diterbitkan, job `terbitkan` di
+      # `rilis-desktop.yml` berbunyi `needs: [build, web]`. Artinya web yang
+      # gagal build nggak cuma bikin `/app` nggak terbit — dia MENAHAN SELURUH
+      # penerbitan situs, termasuk kedua zip desktop yang sebenarnya baik-baik
+      # saja. Halaman unduh bakal membeku di versi lama tanpa ada yang tahu
+      # kenapa, persis pola yang sudah pernah kejadian gara-gara satu PNG
+      # golden basi (lihat catatan di `rilis-desktop.yml`).
+      #
+      # Jadi gerbangnya ditaruh di sini, waktu PR — tempat yang mengubah masih
+      # pegang perubahannya dan belum ada yang nunggu paketnya.
+      #
+      # `--base-href` DIIKUTKAN, bukan dilewat: nilainya ikut ke `index.html`,
+      # jadi salah di sini ketahuan sekarang, bukan sesudah situsnya terbit
+      # putih.
+      - name: flutter build web
+        run: >
+          flutter build web --release
+          --base-href=/app/
+          --dart-define=PINDAI_LEMBAR=false
+
+      - name: Pastiin bundelnya utuh
+        run: |
+          test -f build/web/index.html || {
+            echo "::error::build/web/index.html nggak ada — bundelnya nggak utuh."
+            exit 1
+          }
+          grep -q '<base href="/app/">' build/web/index.html || {
+            echo "::error::base href bukan /app/ — asetnya bakal dicari di akar situs dan halamannya putih."
+            exit 1
+          }
+
   android:
     name: Build Android (debug)
     runs-on: ubuntu-latest
