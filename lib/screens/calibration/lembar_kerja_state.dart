@@ -34,6 +34,19 @@ String formatAngka(double nilai) => nilai == nilai.roundToDouble()
     ? nilai.toStringAsFixed(0)
     : '$nilai';
 
+/// Kuning "diisi kamera — PERIKSA".
+///
+/// SATU tempat buat tiga penggambar: sel tabel ([TandaSel.keyakinanRendah]),
+/// kotak grid Enclosure, dan sel matriks Autoklaf. Sengaja dipusatkan: warnanya
+/// itu satu-satunya yang membedakan angka yang diketik orang dari angka yang
+/// ditebak mesin, dan tiga nada kuning yang mirip-tapi-beda mengajari mata
+/// teknisi bahwa bedanya nggak berarti apa-apa.
+///
+/// Sempat disalin bertiga sebagai literal, lengkap dengan tiga komentar yang
+/// sama-sama mewanti "warnanya wajib persis sama" — persis risiko yang mereka
+/// peringatkan.
+const kuningPerluDicek = Color(0xFFB8860B);
+
 /// Penanda yang nempel di satu sel tabel. Tiga keadaan, dua arti yang beda.
 enum TandaSel {
   tidakAda,

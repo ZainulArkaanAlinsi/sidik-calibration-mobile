@@ -39,7 +39,17 @@ typedef HasilAmbilFoto = ({List<TeksTerbaca>? terbaca, bool dibatalkan});
 ///    panjang yang makin lambat lalu mati.
 ///
 /// Citranya ditulis ke folder sementara app, BUKAN galeri: isinya lembar kerja
-/// pelanggan. Dihapus lagi begitu selesai dibaca — lihat [MlKitPembacaHalaman].
+/// pelanggan. DUA berkas sementara lahir per jepretan, dan dua-duanya dihapus
+/// di sini:
+///
+///  - PNG yang ditulis buat ML Kit — dibuang [MlKitPembacaHalaman];
+///  - berkas yang dipulangkan pemilih foto — dibuang di bawah, begitu bitanya
+///    masuk memori.
+///
+/// Yang kedua sempat ketinggalan, dan janji "dihapus lagi begitu selesai
+/// dibaca" di docblock ini nggak berlaku buat dia: berkasnya menumpuk satu per
+/// jepretan di cache pemilih, isinya lembar kerja pelanggan, dan nggak ada
+/// satu pun yang membersihkannya sepanjang sesi.
 Future<HasilAmbilFoto> ambilDanBacaTabel(WidgetRef ref) async {
   final foto = await ref
       .read(sumberFotoProvider)
@@ -47,7 +57,19 @@ Future<HasilAmbilFoto> ambilDanBacaTabel(WidgetRef ref) async {
 
   if (foto == null) return (terbaca: null, dibatalkan: true);
 
-  final citra = img.decodeImage(await foto.readAsBytes());
+  final bita = await foto.readAsBytes();
+
+  // Bitanya sudah di memori — berkasnya nggak dibutuhkan lagi, termasuk kalau
+  // pembacaan di bawah gagal.
+  try {
+    await foto.delete();
+  } catch (_) {
+    // Gagal hapus bukan alasan membatalkan pembacaan: angkanya sudah di tangan
+    // teknisi, dan menolak memprosesnya karena sampah yang nggak kebuang jauh
+    // lebih mahal daripada sampahnya sendiri.
+  }
+
+  final citra = img.decodeImage(bita);
 
   if (citra == null) return (terbaca: null, dibatalkan: false);
 

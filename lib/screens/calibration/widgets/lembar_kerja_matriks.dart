@@ -501,7 +501,7 @@ class _KotakAngka extends StatelessWidget {
         border: const OutlineInputBorder(),
         enabledBorder: dariFoto
             ? const OutlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFFB8860B), width: 2),
+                borderSide: BorderSide(color: kuningPerluDicek, width: 2),
               )
             : null,
       ),

@@ -8,6 +8,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../services/ambil_foto_tabel.dart';
 import '../../../services/peta_tabel_foto.dart';
 import '../grid_sensor_state.dart';
+import '../lembar_kerja_state.dart' show kuningPerluDicek;
 
 /// Layar isian GRID SENSOR: satu set point = banyak termokopel × banyak
 /// pembacaan, plus baris Indikator & Suhu Ruang.
@@ -651,7 +652,7 @@ class _TombolFotoGridState extends ConsumerState<_TombolFotoGrid> {
 
 /// Kuning penanda "diisi mesin, belum diadu ke kertas" — nilainya disamakan
 /// dengan `TandaSel.keyakinanRendah` di `lembar_kerja_tabel.dart`.
-const _kuningPerluDicek = Color(0xFFB8860B);
+
 
 class _KotakAngka extends StatelessWidget {
   const _KotakAngka({
@@ -709,7 +710,7 @@ class _KotakAngka extends StatelessWidget {
               )
             : dariFoto
             ? const OutlineInputBorder(
-                borderSide: BorderSide(color: _kuningPerluDicek, width: 2),
+                borderSide: BorderSide(color: kuningPerluDicek, width: 2),
               )
             : null,
       ),

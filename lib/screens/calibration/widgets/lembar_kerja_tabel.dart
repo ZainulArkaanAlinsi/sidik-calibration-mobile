@@ -1380,7 +1380,7 @@ class _SelAngka extends StatelessWidget {
     final warna = switch (tanda) {
       TandaSel.tidakAda => null,
       // Amber gelap, kebaca di light & dark.
-      TandaSel.keyakinanRendah => const Color(0xFFB8860B),
+      TandaSel.keyakinanRendah => kuningPerluDicek,
       TandaSel.revisi => const Color(0xFFC62828),
     };
 
