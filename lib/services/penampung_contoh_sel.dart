@@ -1,8 +1,36 @@
 import 'potong_sel_foto.dart';
 import 'simpanan_contoh_sel.dart';
 
-/// Alamat satu sel — cukup buat mencocokkan potongan dengan angka finalnya.
-typedef KunciSel = ({double titikUkur, int repeatNo, String fieldId});
+/// Alamat satu sel, dalam bentuk yang BISA LANGSUNG dipakai membaca angka
+/// finalnya dari formulir.
+///
+/// ## Kenapa posisi, bukan nomor Repeat
+///
+/// Formulirnya menyimpan sel per POSISI kolom (`TitikState.kotak(tahap,
+/// kolom, index)`), sementara foto mengenali sel per NOMOR Repeat
+/// (`X1`, `X2`, …). Dua-duanya kelihatan sama selama daftar pengulangannya
+/// `[1, 2, 3]` — dan berhenti sama begitu ada lembar yang pengulangannya
+/// nggak mulai dari 1 atau nggak berurutan.
+///
+/// Repo ini sudah pernah kena bentuk bug yang persis sama: grid sensor
+/// memakai `repeatNo - 1` sebagai indeks, yang benar
+/// `pengulangan.indexOf(repeatNo)`. Akibatnya sunyi — angkanya mendarat di
+/// kolom yang salah tanpa satu pun error.
+///
+/// Makanya penerjemahannya dilakukan SEKALI, di [PenampungContohSel.tampung],
+/// di tempat yang memang memegang daftar pengulangan tabelnya. Yang keluar
+/// dari sini sudah berupa alamat formulir, jadi pemanggil nggak punya
+/// kesempatan menebaknya lagi.
+///
+/// [tahap] ikut dibawa karena satu lembar bisa punya tabel `sebelum` dan
+/// `sesudah` dengan titik dan kolom yang sama persis — tanpa dia, contoh dari
+/// dua tabel itu saling menimpa.
+typedef KunciSel = ({
+  String tahap,
+  double titikUkur,
+  int posisiRepeat,
+  String fieldId,
+});
 
 /// Hasil menyerahkan tampungan ke simpanan.
 ///
@@ -52,9 +80,30 @@ class PenampungContohSel {
   /// yang memanggil ini harus dialiri profil alatnya cuma buat diteruskan —
   /// tiga parameter baru yang nggak dipakai widgetnya sendiri. Diminta di
   /// [serahkan], yang menyebutnya cuma layar yang memang sudah tahu.
-  void tampung({required Iterable<PotonganSel> potongan}) {
+  ///
+  /// [pengulangan] dan [tahap] SEBALIKNYA memang milik tabel yang barusan
+  /// difoto, dan cuma pemanggil di sini yang memegangnya. Dua-duanya dipakai
+  /// menerjemahkan nomor Repeat jadi alamat formulir — lihat [KunciSel].
+  ///
+  /// Sel yang nomor Repeat-nya NGGAK ada di [pengulangan] dibuang: dia nggak
+  /// punya kolom di formulir, jadi nggak akan pernah punya angka final yang
+  /// bisa jadi labelnya. Ditahan, dia cuma jadi tampungan yang selalu
+  /// dihitung "tanpa label" tiap kali Simpan ditekan.
+  void tampung({
+    required Iterable<PotonganSel> potongan,
+    required List<int> pengulangan,
+    required String tahap,
+  }) {
     for (final p in potongan) {
-      _tertampung[_kunci(p)] = (
+      final posisi = pengulangan.indexOf(p.kotak.repeatNo);
+      if (posisi < 0) continue;
+
+      _tertampung[(
+        tahap: tahap,
+        titikUkur: p.kotak.titikUkur,
+        posisiRepeat: posisi,
+        fieldId: p.kotak.fieldId,
+      )] = (
         potongan: p,
         // Apa yang OCR baca waktu difoto. Boleh kosong, dan boleh beda dari
         // label finalnya — yang beda itu contoh paling berharga.
@@ -119,10 +168,4 @@ class PenampungContohSel {
 
     return (tersimpan: tersimpan, tanpaLabel: tanpaLabel);
   }
-
-  KunciSel _kunci(PotonganSel p) => (
-    titikUkur: p.kotak.titikUkur,
-    repeatNo: p.kotak.repeatNo,
-    fieldId: p.kotak.fieldId,
-  );
 }
