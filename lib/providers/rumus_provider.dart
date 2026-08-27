@@ -18,6 +18,9 @@ final daftarRumusProvider =
 class RumusController extends AsyncNotifier<List<Rumus>> {
   @override
   Future<List<Rumus>> build() async {
+    // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+    ref.watch(authProvider);
+
     final token = await ref.read(tokenStorageProvider).read();
     if (token == null) throw const TokenHilangException();
 
@@ -72,6 +75,9 @@ class RumusController extends AsyncNotifier<List<Rumus>> {
 /// Riwayat versi satu rumus — terbaru dulu.
 final versiRumusProvider =
     FutureProvider.family<List<VersiRumus>, int>((ref, formulaId) async {
+  // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+  ref.watch(authProvider);
+
   final token = await ref.read(tokenStorageProvider).read();
   if (token == null) throw const TokenHilangException();
 
@@ -86,6 +92,9 @@ final versiRumusProvider =
 final versiPadaTanggalProvider = FutureProvider.family<
     VersiRumus?,
     ({int formulaId, DateTime tanggal})>((ref, arg) async {
+  // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+  ref.watch(authProvider);
+
   final token = await ref.read(tokenStorageProvider).read();
   if (token == null) throw const TokenHilangException();
 

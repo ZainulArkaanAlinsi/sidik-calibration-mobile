@@ -8,6 +8,17 @@ import 'auth_service.dart';
 ///
 /// HAPUS file ini begitu `ApiAuthService` jalan.
 class MockAuthService implements AuthService {
+  /// [jeda] bisa dinolkan dari test yang **nggak** lagi menguji state loading.
+  ///
+  /// Sejak provider berdata akun ikut `ref.watch(authProvider)`, layar yang
+  /// dulu nggak nyentuh auth sama sekali sekarang ikut menyalakan [me] di
+  /// latar. `ref.watch` itu berlangganan, bukan menunggu — jadi jedanya nggak
+  /// pernah ikut ter-`await` sama test-nya, dan timernya hidup lebih lama dari
+  /// pohon widget yang lagi diuji. Yang muncul bukan assertion yang gagal,
+  /// tapi "A Timer is still pending even after the widget tree was disposed"
+  /// di test yang isinya nggak ada hubungannya sama auth.
+  MockAuthService({this.jeda = const Duration(milliseconds: 600)});
+
   /// Akun tes. Password semuanya `rahasia123`.
   static final List<Map<String, dynamic>> _akun = [
     {
@@ -69,14 +80,14 @@ class MockAuthService implements AuthService {
   static const _password = 'rahasia123';
 
   /// Jeda palsu — biar state `loading` di UI beneran keuji, bukan cuma teori.
-  static const _jeda = Duration(milliseconds: 600);
+  final Duration jeda;
 
   @override
   Future<AuthSession> login({
     required String identifier,
     required String password,
   }) async {
-    await Future<void>.delayed(_jeda);
+    await Future<void>.delayed(jeda);
 
     final key = identifier.trim().toLowerCase();
     final json = _akun.where((u) {
@@ -109,7 +120,7 @@ class MockAuthService implements AuthService {
 
   @override
   Future<void> register(RegisterData data) async {
-    await Future<void>.delayed(_jeda);
+    await Future<void>.delayed(jeda);
 
     final emailKepakai = _akun.any(
       (u) =>
@@ -145,7 +156,7 @@ class MockAuthService implements AuthService {
 
   @override
   Future<void> requestPasswordReset(String email) async {
-    await Future<void>.delayed(_jeda);
+    await Future<void>.delayed(jeda);
 
     if (_cariAkun(email) == null) {
       throw const AuthException('Email ini nggak terdaftar.');
@@ -157,7 +168,7 @@ class MockAuthService implements AuthService {
     required String email,
     required String newPassword,
   }) async {
-    await Future<void>.delayed(_jeda);
+    await Future<void>.delayed(jeda);
 
     final akun = _cariAkun(email);
     if (akun == null) {
@@ -177,7 +188,7 @@ class MockAuthService implements AuthService {
 
   @override
   Future<User> me(String token) async {
-    await Future<void>.delayed(_jeda);
+    await Future<void>.delayed(jeda);
 
     final json = _akun.firstWhere(
       (u) => token == 'mock-token-${u['id']}',
@@ -199,14 +210,14 @@ class MockAuthService implements AuthService {
 
   @override
   Future<void> logout(String token) async {
-    await Future<void>.delayed(_jeda);
+    await Future<void>.delayed(jeda);
   }
 
   /// Pura-puranya user ini lagi login di 3 perangkat (HP lama, HP baru, tablet
   /// lab) — biar angka "sesi dicabut" di UI ada yang diuji, bukan cuma 0.
   @override
   Future<int> logoutAll(String token) async {
-    await Future<void>.delayed(_jeda);
+    await Future<void>.delayed(jeda);
 
     if (gagalLogoutAll) {
       throw const AuthException('Server nggak nyaut. Coba lagi sebentar.');

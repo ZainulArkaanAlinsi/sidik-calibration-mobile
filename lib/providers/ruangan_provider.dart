@@ -19,6 +19,9 @@ final daftarRuanganProvider =
 class RuanganController extends AsyncNotifier<List<Ruangan>> {
   @override
   Future<List<Ruangan>> build() async {
+    // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+    ref.watch(authProvider);
+
     final token = await ref.read(tokenStorageProvider).read();
     if (token == null) throw const TokenHilangException();
 
@@ -63,6 +66,9 @@ final daftarMetodeProvider =
 class MetodeController extends AsyncNotifier<List<MetodeKalibrasi>> {
   @override
   Future<List<MetodeKalibrasi>> build() async {
+    // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+    ref.watch(authProvider);
+
     final token = await ref.read(tokenStorageProvider).read();
     if (token == null) throw const TokenHilangException();
 

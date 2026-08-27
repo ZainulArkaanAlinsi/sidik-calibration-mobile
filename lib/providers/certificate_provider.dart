@@ -15,6 +15,9 @@ final certificateServiceProvider = Provider<CertificateService>((ref) {
 /// sesi) — satu sesi bisa punya sertifikat revisi nanti.
 final certificateDetailProvider =
     FutureProvider.family<CertificateDetail, int>((ref, certificateId) async {
+      // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+      ref.watch(authProvider);
+
       final token = await ref.read(tokenStorageProvider).read();
       if (token == null) throw const TokenHilangException();
 

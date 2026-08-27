@@ -41,6 +41,9 @@ Future<String> _token(Ref ref) async {
 }
 
 final categoryListProvider = FutureProvider<List<Category>>((ref) async {
+  // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+  ref.watch(authProvider);
+
   final token = await _token(ref);
   return ref.read(categoryServiceProvider).daftar(token);
 }, retry: (retryCount, error) => null);
@@ -51,6 +54,9 @@ final categoryDetailProvider = FutureProvider.family<CategoryDetail, String>((
   ref,
   kode,
 ) async {
+  // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+  ref.watch(authProvider);
+
   final token = await _token(ref);
   return ref.read(categoryServiceProvider).detail(token, kode);
 }, retry: (retryCount, error) => null);
@@ -109,6 +115,9 @@ class TambahKemampuanController
 }
 
 final standardListProvider = FutureProvider<List<Standard>>((ref) async {
+  // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+  ref.watch(authProvider);
+
   final token = await _token(ref);
   return ref.read(standardServiceProvider).daftar(token);
 }, retry: (retryCount, error) => null);
@@ -125,6 +134,9 @@ final standardCrudProvider =
 class StandardCrudController extends AsyncNotifier<List<Standard>> {
   @override
   Future<List<Standard>> build() async {
+    // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+    ref.watch(authProvider);
+
     final token = await _token(ref);
     return ref.read(standardServiceProvider).daftar(token);
   }
@@ -166,6 +178,9 @@ final equipmentLookupProvider =
       ref,
       kategori,
     ) async {
+      // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+      ref.watch(authProvider);
+
       final token = await _token(ref);
       return ref
           .read(equipmentLookupServiceProvider)
@@ -186,6 +201,9 @@ final equipmentLookupProvider =
 /// sesinya tersimpan, lalu `untukAlat()` menghitungnya pakai aturan alat lain.
 final equipmentLookupProfilProvider =
     FutureProvider.family<List<EquipmentLookup>, String?>((ref, profil) async {
+      // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+      ref.watch(authProvider);
+
       final token = await _token(ref);
       return ref.read(equipmentLookupServiceProvider).cari(token, profil: profil);
     }, retry: (retryCount, error) => null);

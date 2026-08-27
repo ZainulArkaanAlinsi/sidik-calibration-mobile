@@ -43,7 +43,12 @@ void main() {
       tokenStorageProvider.overrideWithValue(
         InMemoryTokenStorage('mock-token-1'),
       ),
-      authServiceProvider.overrideWithValue(MockAuthService()),
+      authServiceProvider.overrideWithValue(
+        // Jeda dinolkan: test ini nggak nguji state loading auth, dan sejak
+        // provider datanya ikut `ref.watch(authProvider)`, jeda default bikin
+        // timer `me()` hidup lebih lama dari pohon widgetnya.
+        MockAuthService(jeda: Duration.zero),
+      ),
       categoryServiceProvider.overrideWithValue(
         _StubCategoryService(kemampuan),
       ),

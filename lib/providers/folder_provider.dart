@@ -25,6 +25,9 @@ final folderListProvider = FutureProvider.family<List<Folder>, int?>((
   ref,
   parentId,
 ) async {
+  // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+  ref.watch(authProvider);
+
   final token = await _token(ref);
   return ref.read(folderServiceProvider).daftar(token, parentId: parentId);
 }, retry: (retryCount, error) => null);
@@ -34,6 +37,9 @@ final folderDetailProvider = FutureProvider.family<Folder, int>((
   ref,
   id,
 ) async {
+  // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+  ref.watch(authProvider);
+
   final token = await _token(ref);
   return ref.read(folderServiceProvider).detail(token, id);
 }, retry: (retryCount, error) => null);
