@@ -66,7 +66,7 @@ void main() {
     // Teknisi yang membatalkan lembarnya nggak boleh meninggalkan jejak.
     final penampung = PenampungContohSel(simpanan);
 
-    penampung.tampung(potongan: [potongan()], lembar: 'ph');
+    penampung.tampung(potongan: [potongan()]);
 
     expect(penampung.jumlah, 1);
     expect((await simpanan.baca()).contoh, isEmpty);
@@ -77,12 +77,9 @@ void main() {
     // `7`. Yang boleh jadi label cuma `7`.
     final penampung = PenampungContohSel(simpanan);
 
-    penampung.tampung(
-      potongan: [potongan(teksOcr: '1')],
-      lembar: 'ph',
-    );
+    penampung.tampung(potongan: [potongan(teksOcr: '1')]);
 
-    final hasil = await penampung.serahkan((_) => '7');
+    final hasil = await penampung.serahkan((_) => '7', lembar: 'ph');
 
     expect(hasil.tersimpan, 1);
 
@@ -110,11 +107,11 @@ void main() {
         potongan(repeatNo: 2),
         potongan(repeatNo: 3),
       ],
-      lembar: 'ph',
     );
 
     final hasil = await penampung.serahkan(
       (k) => k.repeatNo == 2 ? null : '5,0',
+      lembar: 'ph',
     );
 
     expect(hasil.tersimpan, 2);
@@ -125,9 +122,9 @@ void main() {
   test('label yang isinya spasi doang dihitung tanpa label', () async {
     final penampung = PenampungContohSel(simpanan);
 
-    penampung.tampung(potongan: [potongan()], lembar: 'ph');
+    penampung.tampung(potongan: [potongan()]);
 
-    final hasil = await penampung.serahkan((_) => '   ');
+    final hasil = await penampung.serahkan((_) => '   ', lembar: 'ph');
 
     expect(hasil.tersimpan, 0);
     expect(hasil.tanpaLabel, 1);
@@ -140,18 +137,12 @@ void main() {
       // bukan contoh tambahan — dia contoh yang sudah ditolak teknisinya sendiri.
       final penampung = PenampungContohSel(simpanan);
 
-      penampung.tampung(
-        potongan: [potongan(warna: 10, teksOcr: 'buram')],
-        lembar: 'ph',
-      );
-      penampung.tampung(
-        potongan: [potongan(warna: 200, teksOcr: 'jelas')],
-        lembar: 'ph',
-      );
+      penampung.tampung(potongan: [potongan(warna: 10, teksOcr: 'buram')]);
+      penampung.tampung(potongan: [potongan(warna: 200, teksOcr: 'jelas')]);
 
       expect(penampung.jumlah, 1, reason: 'Satu sel, bukan dua.');
 
-      await penampung.serahkan((_) => '3,3');
+      await penampung.serahkan((_) => '3,3', lembar: 'ph');
 
       final isi = await simpanan.baca();
 
@@ -183,7 +174,6 @@ void main() {
         potongan(titikUkur: 100, repeatNo: 2, fieldId: 'pembacaan'),
         potongan(titikUkur: 200, repeatNo: 1, fieldId: 'pembacaan'),
       ],
-      lembar: 'viscometer',
     );
 
     expect(penampung.jumlah, 4);
@@ -196,10 +186,10 @@ void main() {
     // berkali-kali.
     final penampung = PenampungContohSel(simpanan);
 
-    penampung.tampung(potongan: [potongan()], lembar: 'ph');
+    penampung.tampung(potongan: [potongan()]);
 
-    final pertama = await penampung.serahkan((_) => '8,8');
-    final kedua = await penampung.serahkan((_) => '8,8');
+    final pertama = await penampung.serahkan((_) => '8,8', lembar: 'ph');
+    final kedua = await penampung.serahkan((_) => '8,8', lembar: 'ph');
 
     expect(pertama.tersimpan, 1);
     expect(kedua.tersimpan, 0);
@@ -209,12 +199,12 @@ void main() {
   test('dibuang: nggak ada yang tersimpan, tampungannya kosong', () async {
     final penampung = PenampungContohSel(simpanan);
 
-    penampung.tampung(potongan: [potongan()], lembar: 'ph');
+    penampung.tampung(potongan: [potongan()]);
     penampung.buang();
 
     expect(penampung.jumlah, 0);
 
-    final hasil = await penampung.serahkan((_) => '1,0');
+    final hasil = await penampung.serahkan((_) => '1,0', lembar: 'ph');
 
     expect(hasil.tersimpan, 0);
     expect((await simpanan.baca()).contoh, isEmpty);
@@ -225,8 +215,8 @@ void main() {
     // Tanpa penanda lembar, data latihnya nggak bisa diseimbangkan.
     final penampung = PenampungContohSel(simpanan);
 
-    penampung.tampung(potongan: [potongan()], lembar: 'conductivity');
-    await penampung.serahkan((_) => '1413');
+    penampung.tampung(potongan: [potongan()]);
+    await penampung.serahkan((_) => '1413', lembar: 'conductivity');
 
     expect((await simpanan.baca()).contoh.first.lembar, 'conductivity');
   });
@@ -237,12 +227,12 @@ void main() {
     // tabel terakhir yang pernah jadi data latih dan nggak ada yang tahu.
     final penampung = PenampungContohSel(simpanan);
 
-    penampung.tampung(potongan: [potongan(titikUkur: 100)], lembar: 'spektro');
-    penampung.tampung(potongan: [potongan(titikUkur: 200)], lembar: 'spektro');
+    penampung.tampung(potongan: [potongan(titikUkur: 100)]);
+    penampung.tampung(potongan: [potongan(titikUkur: 200)]);
 
     expect(penampung.jumlah, 2);
 
-    final hasil = await penampung.serahkan((_) => '0,5');
+    final hasil = await penampung.serahkan((_) => '0,5', lembar: 'spektro');
 
     expect(hasil.tersimpan, 2);
   });

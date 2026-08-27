@@ -37,8 +37,7 @@ class PenampungContohSel {
 
   final SimpananContohSel simpanan;
 
-  final _tertampung =
-      <KunciSel, ({PotonganSel potongan, String lembar, String? bacaanOcr})>{};
+  final _tertampung = <KunciSel, ({PotonganSel potongan, String? bacaanOcr})>{};
 
   int get jumlah => _tertampung.length;
 
@@ -47,14 +46,16 @@ class PenampungContohSel {
   /// Sel yang difoto ULANG menimpa yang lama: jepretan kedua dilakukan justru
   /// karena yang pertama jelek, jadi yang lama bukan contoh tambahan melainkan
   /// contoh yang sudah ditolak teknisinya sendiri.
-  void tampung({
-    required Iterable<PotonganSel> potongan,
-    required String lembar,
-  }) {
+  ///
+  /// Jenis lembarnya NGGAK diminta di sini, dan itu disengaja: dia sifat
+  /// seluruh lembar, bukan sifat tiap potongan. Diminta di sini, tiga widget
+  /// yang memanggil ini harus dialiri profil alatnya cuma buat diteruskan —
+  /// tiga parameter baru yang nggak dipakai widgetnya sendiri. Diminta di
+  /// [serahkan], yang menyebutnya cuma layar yang memang sudah tahu.
+  void tampung({required Iterable<PotonganSel> potongan}) {
     for (final p in potongan) {
       _tertampung[_kunci(p)] = (
         potongan: p,
-        lembar: lembar,
         // Apa yang OCR baca waktu difoto. Boleh kosong, dan boleh beda dari
         // label finalnya — yang beda itu contoh paling berharga.
         bacaanOcr: p.kotak.teks,
@@ -80,7 +81,10 @@ class PenampungContohSel {
   /// soal beban: satu lembar bisa seratusan sel, dan menembakkan seratus
   /// penulisan berkas sekaligus bikin HP tersendat persis waktu teknisi baru
   /// saja menekan Simpan.
-  Future<HasilSerah> serahkan(String? Function(KunciSel) labelAkhir) async {
+  Future<HasilSerah> serahkan(
+    String? Function(KunciSel) labelAkhir, {
+    required String lembar,
+  }) async {
     // Disalin dulu, lalu tampungannya dikosongkan SEBELUM menulis: kalau
     // penulisannya gagal di tengah, yang sudah tersimpan nggak ikut terserah
     // lagi di penekanan Simpan berikutnya.
@@ -101,7 +105,7 @@ class PenampungContohSel {
       final hasil = await simpanan.simpan(
         potongan: e.value.potongan,
         label: label,
-        lembar: e.value.lembar,
+        lembar: lembar,
         bacaanOcr: e.value.bacaanOcr,
       );
 

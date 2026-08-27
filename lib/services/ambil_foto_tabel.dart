@@ -21,7 +21,18 @@ typedef HasilAmbilFoto = ({
   bool dibatalkan,
   // Ukuran citra yang dibaca, buat [PetaTabelFoto.petakan] memangkas kotak sel
   // yang jatuh di luar fotonya. Kosong kalau citranya sendiri nggak kebuka.
+  //
+  // Selalu diturunkan dari [citra] yang sama, jadi dua-duanya nggak bisa
+  // berselisih.
   Size? ukuran,
+
+  // Citra yang sudah didekode — sumber buat memotong sel jadi contoh latih
+  // ([PotongSelFoto]). Kosong kalau berkasnya nggak bisa dibuka sebagai citra.
+  //
+  // Dipulangkan apa adanya, bukan disalin: dia sudah ada di memori buat
+  // dibaca OCR, dan menyalinnya cuma menggandakan citra 4200 piksel tanpa
+  // ada yang membutuhkan salinannya.
+  img.Image? citra,
 });
 
 /// Ambil satu foto tabel dari kamera/galeri lalu baca teksnya **di perangkat**.
@@ -63,7 +74,9 @@ Future<HasilAmbilFoto> ambilDanBacaTabel(WidgetRef ref) async {
       .read(sumberFotoProvider)
       .ambil(maxWidth: 4200, imageQuality: 100);
 
-  if (foto == null) return (terbaca: null, dibatalkan: true, ukuran: null);
+  if (foto == null) {
+    return (terbaca: null, dibatalkan: true, ukuran: null, citra: null);
+  }
 
   final bita = await foto.readAsBytes();
 
@@ -79,7 +92,9 @@ Future<HasilAmbilFoto> ambilDanBacaTabel(WidgetRef ref) async {
 
   final citra = img.decodeImage(bita);
 
-  if (citra == null) return (terbaca: null, dibatalkan: false, ukuran: null);
+  if (citra == null) {
+    return (terbaca: null, dibatalkan: false, ukuran: null, citra: null);
+  }
 
   final pembaca = ref.read(pabrikPembacaPindaiProvider).halaman();
 
@@ -88,6 +103,7 @@ Future<HasilAmbilFoto> ambilDanBacaTabel(WidgetRef ref) async {
       terbaca: await pembaca.baca(citra),
       dibatalkan: false,
       ukuran: Size(citra.width.toDouble(), citra.height.toDouble()),
+      citra: citra,
     );
   } finally {
     await pembaca.tutup();
