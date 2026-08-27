@@ -92,6 +92,23 @@ class SimpananContohSel {
   /// kelihatan seperti data.
   ///
   /// Balikin `null` kalau labelnya kosong — ditolak, bukan disimpan diam-diam.
+  ///
+  /// ## WAJIB dipanggil BERURUTAN, satu per satu
+  ///
+  /// `await` tiap panggilan sebelum memanggil lagi. **Jangan** `Future.wait`
+  /// atas sekumpulan sel sekaligus.
+  ///
+  /// Alasannya: [_pangkas] membaca indeks, menghitung yang lebih, lalu
+  /// menulis ULANG seluruh indeks. Dua panggilan yang jalan bersamaan
+  /// membaca indeks yang sama, lalu yang menulis belakangan menimpa baris
+  /// yang baru saja ditambahkan yang lain — contoh latihnya hilang, PNG-nya
+  /// jadi yatim, dan nggak ada yang merah.
+  ///
+  /// Sengaja NGGAK dikunci di dalam sini: satu foto menghasilkan puluhan sel
+  /// yang memang wajar ditulis berurutan, dan kunci di kelas ini cuma bikin
+  /// kelihatan aman padahal pemanggil masih bisa salah pakai. Yang menjaga
+  /// syarat ini pemanggilnya, dan syaratnya ditulis di sini supaya nggak
+  /// ketemu belakangan lewat data yang hilang.
   Future<ContohSel?> simpan({
     required PotonganSel potongan,
     required String label,
