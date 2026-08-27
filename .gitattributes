@@ -1,0 +1,41 @@
+# Semua berkas teks di-checkout dengan LF — termasuk di Windows.
+#
+# Git for Windows default-nya `core.autocrlf=true`: LF diubah jadi CRLF waktu
+# checkout. Buat berkas skrip akibatnya fatal, dan gagalnya menyesatkan. Baris
+# shebang `#!/usr/bin/env bash` berubah jadi `#!/usr/bin/env bash\r`, bash
+# mencari interpreter bernama `bash\r` yang tidak ada, lalu menjawab:
+#
+#     bash: ./tool/dev.sh: No such file or directory
+#
+# — pesan yang kelihatan persis seperti berkasnya tidak ada, padahal ada dan
+# `ls` pun menampilkannya. Orang yang kena ini mencari salahnya di tempat yang
+# salah, karena yang rusak justru berkas yang jelas-jelas ada di depan mata.
+#
+# Terbukti kejadian 27 Agt 2026 di checkout Windows yang baru: ketiga skrip di
+# `tool/` dan `.githooks/pre-push` mati total, sebelum satu baris kode pun
+# sempat dijalankan.
+#
+# Repo backend (sidik-calibration-api) sudah punya baris ini sejak lama, jadi
+# skripnya selamat. Repo ini yang belum — dan itu baru ketahuan waktu ada mesin
+# Windows kedua, karena macOS dan Linux tidak pernah melakukan konversi ini.
+*           text=auto eol=lf
+
+# Berkas biner — konversi baris tidak boleh menyentuhnya sama sekali.
+#
+# `text=auto` sebetulnya sudah bisa mendeteksi biner sendiri, tapi taruhannya
+# tidak sepadan: 18 golden di `test/screenshots/` dibandingkan piksel per
+# piksel, dan satu byte yang berubah membuat semuanya merah tanpa ada yang
+# salah di kode. Ditulis eksplisit supaya tidak bergantung pada deteksi.
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.webp      binary
+*.ico       binary
+*.ttf       binary
+*.otf       binary
+*.pdf       binary
+*.apk       binary
+*.aab       binary
+*.zip       binary
+*.jar       binary
+*.keystore  binary
