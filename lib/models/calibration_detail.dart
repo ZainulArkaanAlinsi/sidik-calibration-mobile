@@ -546,6 +546,7 @@ class IsianTeknisi {
     this.alatBantu,
     this.alatBantuLabel,
     this.tipePencelupan,
+    this.tipeSensor,
     this.titikEs = const [],
     this.standarDicek = const {},
     this.revisiField = const {},
@@ -611,6 +612,19 @@ class IsianTeknisi {
   /// Sudah berupa teks siap tampil, beda dari [alatBantu]: daftarnya disimpan
   /// pakai labelnya sendiri sebagai nilai.
   final String? tipePencelupan;
+
+  /// Sensor standar yang dipakai: `RTD`, `Type K`, atau `Type N`.
+  ///
+  /// Alasannya sama persis dengan [alatBantu], dan itu bukan kebetulan —
+  /// keduanya kolom sesi yang menggerakkan budget, bukan keterangan pasif.
+  /// Tipe sensor MEMILIH tabel koreksi yang dipakai, lalu menyumbang dua
+  /// komponen budget sendiri (`ketidakpastian_sensor` & `drift_sensor`).
+  /// Salah tipe berarti seluruh kolom Correction sertifikatnya salah, dan
+  /// angkanya tetap kelihatan wajar.
+  ///
+  /// Dipakai Thermocouple dan TITS. Null buat lembar yang sensornya nggak
+  /// bisa dipilih.
+  final String? tipeSensor;
 
   /// Tiga pembacaan uji titik es 30 menit — cuma Termometer Gelas.
   ///
@@ -686,6 +700,7 @@ class IsianTeknisi {
       alatBantu: json['alat_bantu'] as String?,
       alatBantuLabel: json['alat_bantu_label'] as String?,
       tipePencelupan: json['tipe_pencelupan'] as String?,
+      tipeSensor: json['tipe_sensor'] as String?,
       // Item non-angka dilewat, bukan bikin seluruh sesi gagal di-parse —
       // semangat yang sama dengan `parseListAman`. Yang dijaga di sini bukan
       // kerapian: satu nilai cacat di `titik_es` nggak boleh mengosongkan
@@ -702,6 +717,83 @@ class IsianTeknisi {
       catatanRevisi: json['catatan_revisi'] as String?,
     );
   }
+}
+
+/// Status sertifikat SATU standar yang kepakai di sesi.
+class StandarBerstatus {
+  const StandarBerstatus({
+    required this.id,
+    required this.status,
+    this.nama,
+    this.hariMenujuKadaluarsa,
+  });
+
+  final int id;
+  final String? nama;
+
+  /// `valid` · `warning` · `expired` — dari `Standard::STATUS_*` di repo API.
+  final String status;
+
+  /// Negatif = sudah lewat. Null kalau standarnya nggak punya tanggal habis.
+  final int? hariMenujuKadaluarsa;
+
+  factory StandarBerstatus.fromJson(Map<String, dynamic> json) =>
+      StandarBerstatus(
+        id: (json['id'] as num).toInt(),
+        nama: json['nama'] as String?,
+        status: json['status'] as String? ?? 'valid',
+        hariMenujuKadaluarsa: (json['hari_menuju_kadaluarsa'] as num?)?.toInt(),
+      );
+}
+
+/// Ringkasan status sertifikat SEMUA standar yang kepakai di satu sesi.
+///
+/// ## Kenapa ini bukan sesuatu yang disusun di HP
+///
+/// [pesan] datang jadi dari server dan dipakai APA ADANYA. Bukan gaya-gayaan:
+/// kalimat yang sama tercetak di lembar kerja fisik, dan admin mengadu layar
+/// ke kertas. Menyusunnya ulang di sini bikin dua kalimat yang berangkat dari
+/// satu keadaan lalu berbeda diam-diam begitu salah satunya diedit.
+///
+/// [ringkasan] itu status **TERBURUK** dari semua standar sesi — bukan status
+/// standar utamanya. Satu sertifikat kadaluarsa sudah cukup menahan
+/// penerbitan, jadi banner-nya nggak boleh kalem cuma karena standar lain
+/// masih hijau.
+///
+/// ## `pesan == null` artinya JANGAN gambar banner
+///
+/// Bukan "gambar banner kosong". Semua standar aman itu keadaan normal, dan
+/// pita berwarna yang selalu nongol berhenti dibaca orang — persis pola yang
+/// bikin peringatan sungguhan tenggelam.
+class StatusStandar {
+  const StatusStandar({
+    required this.ringkasan,
+    this.pesan,
+    this.standar = const [],
+  });
+
+  static const String valid = 'valid';
+  static const String warning = 'warning';
+  static const String expired = 'expired';
+
+  /// Status terburuk di antara [standar].
+  final String ringkasan;
+
+  /// Teks banner siap tampil. **Null = nggak usah nampilin banner.**
+  final String? pesan;
+
+  final List<StandarBerstatus> standar;
+
+  bool get perluBanner => pesan != null;
+
+  factory StatusStandar.fromJson(Map<String, dynamic> json) => StatusStandar(
+    ringkasan: json['ringkasan'] as String? ?? valid,
+    pesan: json['pesan'] as String?,
+    standar: [
+      for (final b in json['standar'] as List<dynamic>? ?? const [])
+        if (b is Map<String, dynamic>) StandarBerstatus.fromJson(b),
+    ],
+  );
 }
 
 class CalibrationDetail {
@@ -729,6 +821,7 @@ class CalibrationDetail {
     this.perluVerifikasi = false,
     this.isianTeknisi,
     this.autoclave,
+    this.statusStandar,
   });
 
   final int id;
@@ -810,6 +903,14 @@ class CalibrationDetail {
   /// mbranch ke sini biar sesi tersimpan bisa direview sebelum approve.
   final AutoclaveHasil? autoclave;
 
+  /// Status sertifikat semua standar yang kepakai sesi ini — banner kepala
+  /// lembar kerja & badge per baris.
+  ///
+  /// Null cuma kalau server nggak ngirimnya sama sekali (respons lama). Server
+  /// yang ngirim dengan `pesan: null` TETAP menghasilkan objek — bedanya
+  /// penting: "nggak tau statusnya" beda dari "sudah dicek, semuanya aman".
+  final StatusStandar? statusStandar;
+
   /// STDEV terbesar antar titik — kolom **MAX STDEV** di worksheet asli
   /// (`DATA HASIL KALIBRASI`), dihitung di sini karena backend nggak
   /// ngirimnya: dia cuma turunan `max()` dari `standar_deviasi` tiap titik,
@@ -877,6 +978,9 @@ class CalibrationDetail {
       autoclave: json['hasil_autoclave'] is Map<String, dynamic> &&
               (json['hasil_autoclave'] as Map).isNotEmpty
           ? AutoclaveHasil.fromJson(json['hasil_autoclave'] as Map<String, dynamic>)
+          : null,
+      statusStandar: json['status_standar'] is Map<String, dynamic>
+          ? StatusStandar.fromJson(json['status_standar'] as Map<String, dynamic>)
           : null,
     );
   }

@@ -2192,6 +2192,30 @@ abstract class AppLocalizations {
   /// **'Immersion type'**
   String get detailTipePencelupan;
 
+  /// No description provided for @detailTipeSensor.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard sensor type'**
+  String get detailTipeSensor;
+
+  /// No description provided for @bannerStandarTanpaNama.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed standard'**
+  String get bannerStandarTanpaNama;
+
+  /// No description provided for @bannerStandarLewat.
+  ///
+  /// In en, this message translates to:
+  /// **'{nama} — certificate expired {hari} days ago'**
+  String bannerStandarLewat(String nama, int hari);
+
+  /// No description provided for @bannerStandarSegera.
+  ///
+  /// In en, this message translates to:
+  /// **'{nama} — certificate expires in {hari} days'**
+  String bannerStandarSegera(String nama, int hari);
+
   /// No description provided for @detailUjiTitikEs.
   ///
   /// In en, this message translates to:

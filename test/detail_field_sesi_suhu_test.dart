@@ -110,13 +110,37 @@ void main() {
     expect(find.text('C'), findsOneWidget);
   });
 
-  testWidgets('alat tanpa ketiga field itu nggak dapat baris kosong', (
+  testWidgets('Thermocouple: tipe sensor standar kebaca admin', (
+    tester,
+  ) async {
+    await buka(tester, _HistoryThermocouple());
+
+    // Kolom keempat dari keluarga yang sama, dan yang paling gampang kelewat
+    // justru karena namanya kedengeran seperti metadata. Bukan: tipe sensor
+    // MEMILIH tabel koreksi, lalu nyumbang `ketidakpastian_sensor` &
+    // `drift_sensor` ke budget. Salah tipe bikin seluruh kolom Correction
+    // sertifikatnya salah, dengan angka yang tetap kelihatan wajar — jadi
+    // satu-satunya cara admin nangkepnya ya dengan mengadu baris ini ke
+    // lembar cetak di mejanya.
+    expect(find.text('Type K'), findsOneWidget);
+
+    // Dryblock-nya ikut, biar test ini nggak diam-diam jadi test satu baris
+    // kalau nanti kartu kondisi lingkungannya dirombak.
+    expect(find.text('A — Isotech Fast Cal Low (−20…150 °C)'), findsOneWidget);
+  });
+
+  testWidgets('alat tanpa keempat field itu nggak dapat baris kosong', (
     tester,
   ) async {
     await buka(tester, _HistoryDatar());
 
     expect(find.text('Alat bantu'), findsNothing);
     expect(find.text('Tipe pencelupan'), findsNothing);
+    expect(
+      find.text('Tipe sensor standar'),
+      findsNothing,
+      reason: 'Lembar pH sensornya nggak bisa dipilih; barisnya nggak boleh ada.',
+    );
     expect(
       find.text('UJI TITIK ES (30 MENIT)'),
       findsNothing,
@@ -173,7 +197,39 @@ class _HistoryKodeAsing extends MockHistoryService {
       );
 }
 
-/// Tujuh belas alat lain — ketiga field null.
+/// Thermocouple: dryblock + tipe sensor. `tipe_pencelupan` & `titik_es` null —
+/// dua itu cuma punya Termometer Gelas, jadi lembar ini sekaligus membuktikan
+/// baris yang nggak berlaku tetap nggak digambar.
+class _HistoryThermocouple extends MockHistoryService {
+  @override
+  Future<CalibrationDetail> ambilDetail(String token, int id) async =>
+      CalibrationDetail.fromJson({
+        'id': 72,
+        'nomor_sesi': 'DEMO-TC',
+        'tanggal_kalibrasi': '2024-12-03T00:00:00.000Z',
+        'status': 'disetujui',
+        'desimal': 2,
+        'equipment': {'nama_alat': 'Thermocouple Thermometer'},
+        'teknisi': {'nama': 'Teknisi Sidik'},
+        'hasil': {'keputusan': null},
+        'alat_bantu': 'A',
+        'alat_bantu_label': 'A — Isotech Fast Cal Low (−20…150 °C)',
+        'tipe_sensor': 'Type K',
+        'titik': [
+          {
+            'titik_ke': 1,
+            'titik_ukur': 50.0,
+            'satuan': '°C',
+            'desimal': 2,
+            'rata_rata': 49.9,
+            'u95': 0.84,
+          },
+        ],
+        'pembacaan_mentah': const <Map<String, dynamic>>[],
+      });
+}
+
+/// Tujuh belas alat lain — keempat field null.
 class _HistoryDatar extends MockHistoryService {
   @override
   Future<CalibrationDetail> ambilDetail(String token, int id) async =>

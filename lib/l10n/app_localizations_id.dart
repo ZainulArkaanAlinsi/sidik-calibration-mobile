@@ -1144,6 +1144,22 @@ class AppLocalizationsId extends AppLocalizations {
   String get detailTipePencelupan => 'Tipe pencelupan';
 
   @override
+  String get detailTipeSensor => 'Tipe sensor standar';
+
+  @override
+  String get bannerStandarTanpaNama => 'Standar tanpa nama';
+
+  @override
+  String bannerStandarLewat(String nama, int hari) {
+    return '$nama — sertifikatnya lewat $hari hari';
+  }
+
+  @override
+  String bannerStandarSegera(String nama, int hari) {
+    return '$nama — sertifikatnya habis $hari hari lagi';
+  }
+
+  @override
   String get detailUjiTitikEs => 'Uji titik es (30 menit)';
 
   @override

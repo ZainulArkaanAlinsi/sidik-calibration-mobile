@@ -23,6 +23,7 @@ import '../../providers/lembar_kerja_provider.dart';
 import '../../providers/worksheet_scan_provider.dart';
 import '../../services/auth_service.dart' show AuthException;
 import '../../widgets/autoclave_hasil_panel.dart';
+import '../../widgets/banner_status_standar.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/label_standar.dart';
 import '../../widgets/sidik_loader.dart';
@@ -410,6 +411,11 @@ class _FormState extends ConsumerState<_Form> {
       var kebuang = 0;
 
       setState(() {
+        // Status sertifikat standar sesi ini — dibawa dari respons yang SAMA,
+        // jadi banner-nya nggak nambah satu pun permintaan. Yang dijaga waktu
+        // teknisi: sertifikat standar yang lewat bikin sesinya ditolak nanti,
+        // dan itu sudah bisa diketahui sekarang, sebelum lembarnya diisi.
+        _isian.statusStandar = detail.statusStandar;
         if (isi != null) _isian.muatDariSesi(isi);
         kebuang = _isian.terapkanPembacaan(detail.pembacaanMentah);
         // Alat sesi lama ikut ngabarin ke atas, jadi lembar yang ditarik ulang
@@ -1195,6 +1201,10 @@ class _LembarSatuKolom extends StatelessWidget {
         if (halaman == 0) ...[
           _KopDokumen(bentuk: bentuk),
           const SizedBox(height: AppSpacing.md),
+          // Sertifikat standar yang lewat bikin sesinya ditolak nanti — dan
+          // itu sudah bisa diketahui SEKARANG, sebelum lembarnya diisi.
+          // Menggambar nol piksel kalau semua standar masih berlaku.
+          BannerStatusStandar(status: isian.statusStandar),
           if (isian.adaRevisi) ...[
             _BannerRevisi(
               jumlah: isian.revisiField.length,
