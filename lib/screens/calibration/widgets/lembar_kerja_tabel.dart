@@ -1989,6 +1989,7 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
       final terisi = widget.isian.terapkanHasilFotoTabel(
         hasil.sel,
         tahap: widget.tabel.kunciTabel,
+        pengulangan: widget.tabel.pengulangan,
       );
 
       widget.onBerubah();

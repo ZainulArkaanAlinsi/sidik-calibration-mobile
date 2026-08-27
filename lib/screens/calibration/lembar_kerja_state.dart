@@ -2384,9 +2384,24 @@ class LembarKerjaState {
   /// dari foto ditandai — bukan sebagian.
   ///
   /// Sel yang sudah ada isinya nggak pernah ditimpa, sama seperti jalur lain.
+  /// [pengulangan] daftar nomor Repeat tabelnya, URUT seperti kolomnya
+  /// tercetak — dipakai menerjemahkan nomor Repeat jadi posisi kolom.
+  ///
+  /// Dulu di sini `index = repeatNo - 1`, dan itu benar cuma selama daftarnya
+  /// `[1, 2, 3, …]`. Daftarnya datang dari server (`json['pengulangan']`),
+  /// jadi lembar yang Repeat-nya nggak mulai dari 1 atau nggak berurutan bikin
+  /// tiap angka hasil foto mendarat di kolom yang salah — tanpa satu pun
+  /// error, dengan tabel yang penuh dan wajar di layar.
+  ///
+  /// Bentuk bug yang SAMA sudah pernah menggigit `grid_sensor_state.dart` dan
+  /// diperbaiki di sana dengan `indexOf`. Yang di sini kelewat karena semua
+  /// lembar yang ada sekarang kebetulan `[1, 2, 3, …]` — jadi salahnya nggak
+  /// pernah kelihatan, dan bakal muncul pertama kali di lembar baru yang
+  /// nggak ada hubungannya dengan foto.
   int terapkanHasilFotoTabel(
     List<SelTabelFoto> sel, {
     required String tahap,
+    required List<int> pengulangan,
   }) {
     var terisi = 0;
 
@@ -2394,7 +2409,7 @@ class LembarKerjaState {
       final state = _titikTerdekat(s.titikUkur);
       if (state == null) continue;
 
-      final index = s.repeatNo - 1;
+      final index = pengulangan.indexOf(s.repeatNo);
       if (index < 0 || index >= state.jumlahPengulangan) continue;
 
       // Teksnya dibaca jadi angka DI SINI, bukan di pemetanya: yang di sana
