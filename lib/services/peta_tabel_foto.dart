@@ -1,4 +1,4 @@
-import 'dart:ui' show Rect;
+import 'dart:ui' show Offset, Rect;
 
 import 'pembaca_halaman.dart';
 
@@ -8,6 +8,25 @@ typedef SelTabelFoto = ({
   int repeatNo,
   String fieldId,
   String teks,
+});
+
+/// Letak satu sel di dalam citra — kotak yang bisa dipotong, bukan teksnya.
+///
+/// ## Kenapa ini dipisah dari [SelTabelFoto]
+///
+/// [SelTabelFoto] cuma lahir buat sel yang ADA angkanya kebaca. Yang dibutuhkan
+/// pelatihan model justru **kebalikannya**: sel yang OCR-nya gagal itu contoh
+/// paling berharga, dan sel itu nggak pernah muncul di `sel`.
+///
+/// Jadi yang di sini SELURUH sel yang jangkarnya lengkap — kebaca maupun
+/// nggak — berikut kotaknya di citra. [teks] null = pemeta nggak menaruh apa
+/// pun di sel ini.
+typedef KotakSelFoto = ({
+  double titikUkur,
+  int repeatNo,
+  String fieldId,
+  Rect kotak,
+  String? teks,
 });
 
 /// Satu slot larutan seperti TERCETAK di kepala tabel bentuk ke-bawah.
@@ -41,9 +60,21 @@ class HasilPetaTabel {
     required this.angkaTakTerpetakan,
     this.labelKolomKurang = const [],
     this.barisKembar = const [],
+    this.kotakSel = const [],
   });
 
   final List<SelTabelFoto> sel;
+
+  /// Letak TIAP sel yang jangkarnya lengkap, termasuk yang kosong.
+  ///
+  /// Dipakai buat memotong sel jadi citra sendiri — bahan latih model
+  /// pengenal angka, dan nanti masukan pembacanya. Lihat [KotakSelFoto].
+  ///
+  /// Kosong kalau jangkarnya nggak cukup buat menurunkan geometri (satu kolom
+  /// doang, atau satu baris doang): tanpa jarak antar baris/kolom, ukuran
+  /// kotaknya nggak bisa dipertanggungjawabkan, dan kotak karangan lebih buruk
+  /// daripada nggak ada kotak.
+  final List<KotakSelFoto> kotakSel;
 
   /// Nilai standar yang jangkarnya ketemu di foto. Kalau ini kosong, seluruh
   /// foto **tidak dipetakan sama sekali** — bukan dipetakan sebagian.
@@ -151,6 +182,14 @@ class PetaTabelFoto {
   /// antar baris itu batas alaminya: lewat dari situ, dia lebih dekat ke baris
   /// tetangga, dan menaruhnya di baris ini artinya menaruh di baris yang salah.
   static const _rasioBaris = 0.5;
+
+  /// Seberapa besar kotak sel dipotong, relatif terhadap satu petak penuh.
+  ///
+  /// Di bawah 1 dengan sengaja: potongan yang pas-pasan ikut menyeret garis
+  /// tabel dan ekor angka tetangga: buat model pengenal angka dua-duanya derau
+  /// yang bikin dia belajar hal yang salah. 0,8 menyisakan tepi aman tanpa
+  /// memotong angka yang ditulis agak keluar kotaknya.
+  static const _rapatKotak = 0.8;
 
   /// Kepala kolom pengulangan yang TERCETAK, kalau pemanggilnya nggak nyebut.
   ///
@@ -530,7 +569,131 @@ class PetaTabelFoto {
       titikKetemu: jangkarBaris.keys.toList(),
       repeatKetemu: jangkarKolom.keys.toList(),
       angkaTakTerpetakan: terbuang,
+      kotakSel: _kotakSel(
+        jangkarBaris: jangkarBaris,
+        jangkarKolom: jangkarKolom,
+        jangkarField: jangkarField,
+        fieldPerRepeat: fieldPerRepeat,
+        tinggiBaris: tinggiBaris,
+        jarakKolom: jarakKolom,
+        sel: bersih,
+      ),
     );
+  }
+
+  /// Turunkan kotak TIAP sel dari jangkar yang sudah ketemu.
+  ///
+  /// ## Kenapa dihitung, bukan dicari di citra
+  ///
+  /// Mencari garis kotak di foto itu masalahnya sendiri — kertas melengkung,
+  /// garisnya putus, dan sebagian lembar selnya memang nggak berkotak. Yang
+  /// sudah kita punya justru lebih kuat: jangkar baris memberi PUSAT tiap
+  /// baris, jangkar kolom memberi PUSAT tiap kolom, dan jarak antar keduanya
+  /// memberi ukurannya. Perpotongannya kotak selnya.
+  ///
+  /// Ukurannya sengaja **sedikit lebih kecil** dari satu petak penuh
+  /// ([_rapatKotak]): kotak yang pas-pasan ikut menyeret garis tabel dan ekor
+  /// angka tetangga, dan buat model pengenal angka dua-duanya derau.
+  ///
+  /// Balik KOSONG kalau geometrinya nggak bisa dipertanggungjawabkan — satu
+  /// baris doang, atau satu kolom doang. Kotak karangan lebih buruk daripada
+  /// nggak ada kotak: yang pertama diam-diam melatih model dengan potongan yang
+  /// salah, yang kedua kelihatan.
+  List<KotakSelFoto> _kotakSel({
+    required Map<double, TeksTerbaca> jangkarBaris,
+    required Map<int, TeksTerbaca> jangkarKolom,
+    required List<({String field, TeksTerbaca t})> jangkarField,
+    required List<String> fieldPerRepeat,
+    required double tinggiBaris,
+    required double jarakKolom,
+    required List<SelTabelFoto> sel,
+  }) {
+    if (!tinggiBaris.isFinite || !jarakKolom.isFinite) return const [];
+
+    final lebarSel = jarakKolom / fieldPerRepeat.length;
+
+    // Teks yang sudah kepetakan, dikunci sama seperti kunci sel.
+    final teks = {
+      for (final s in sel) '${s.titikUkur}|${s.repeatNo}|${s.fieldId}': s.teks,
+    };
+
+    final hasil = <KotakSelFoto>[];
+
+    for (final baris in jangkarBaris.entries) {
+      final y = baris.value.kotak.center.dy;
+
+      for (final kolom in jangkarKolom.entries) {
+        for (var i = 0; i < fieldPerRepeat.length; i++) {
+          final field = fieldPerRepeat[i];
+
+          // Satu field per Repeat: pusatnya kepala kolomnya sendiri. Lebih dari
+          // satu: dicari jangkar field yang paling dekat ke kolom ini, dan
+          // kalau nggak ada dibagi rata dari pusat kolomnya.
+          final x = fieldPerRepeat.length == 1
+              ? kolom.value.kotak.center.dx
+              : _pusatField(
+                  kolom.value,
+                  field,
+                  jangkarField,
+                  jarakKolom,
+                  urutan: i,
+                  jumlah: fieldPerRepeat.length,
+                );
+
+          hasil.add((
+            titikUkur: baris.key,
+            repeatNo: kolom.key,
+            fieldId: field,
+            kotak: Rect.fromCenter(
+              center: Offset(x, y),
+              width: lebarSel * _rapatKotak,
+              height: tinggiBaris * _rapatKotak,
+            ),
+            teks: teks['${baris.key}|${kolom.key}|$field'],
+          ));
+        }
+      }
+    }
+
+    return hasil;
+  }
+
+  /// Pusat mendatar satu field di dalam kolom Repeat [kolom].
+  ///
+  /// Label field yang tercetak (`cP`, `°C`) dipakai kalau ada — itu yang paling
+  /// dekat ke kebenaran. Yang nggak punya labelnya dibagi rata: field ke-[urutan]
+  /// dari [jumlah] menempati potongan ke-i dari lebar kolomnya.
+  double _pusatField(
+    TeksTerbaca kolom,
+    String field,
+    List<({String field, TeksTerbaca t})> jangkarField,
+    double jarakKolom, {
+    required int urutan,
+    required int jumlah,
+  }) {
+    final pusatKolom = kolom.kotak.center.dx;
+    final lebar = jarakKolom / jumlah;
+
+    TeksTerbaca? terbaik;
+    var jarakTerbaik = double.infinity;
+
+    for (final j in jangkarField) {
+      if (j.field != field) continue;
+
+      final jarak = (j.t.kotak.center.dx - pusatKolom).abs();
+
+      // Cuma label yang duduk DI DALAM kolom ini yang boleh dipakai; label
+      // milik Repeat sebelah lebih dekat ke pusatnya sendiri.
+      if (jarak <= jarakKolom / 2 && jarak < jarakTerbaik) {
+        terbaik = j.t;
+        jarakTerbaik = jarak;
+      }
+    }
+
+    if (terbaik != null) return terbaik.kotak.center.dx;
+
+    // Bagi rata: kolomnya membentang setengah lebar ke kiri & kanan pusatnya.
+    return pusatKolom - jarakKolom / 2 + lebar * (urutan + 0.5);
   }
 
   /// Petakan foto tabel yang Repeat-nya TURUN KE BAWAH.
