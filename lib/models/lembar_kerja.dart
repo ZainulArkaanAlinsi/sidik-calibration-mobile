@@ -391,10 +391,24 @@ class BarisTabelHasil {
   factory BarisTabelHasil.fromJson(Map<String, dynamic> json) {
     final titik = json['titik_ukur'];
 
-    if (titik is! num && !json.containsKey('titik_ukur')) {
+    if (!json.containsKey('titik_ukur')) {
       throw const FormatException(
         'Baris tabel tanpa kunci `titik_ukur` — baris cacat, bukan set point '
         'yang sengaja dikosongkan.',
+      );
+    }
+
+    // Kuncinya ADA tapi isinya bukan angka dan bukan null — itu bentuk yang
+    // rusak, bukan pernyataan "diisi teknisi".
+    //
+    // Dibedakan karena akibat menyamakannya mahal: barisnya lolos sebagai
+    // baris TIDS, kotak `Setpoint`-nya digambar KOSONG, dan set point yang
+    // dikirim server ke HP hilang tanpa satu pun tanda. Baris yang dibuang
+    // setidaknya kelihatan hilang.
+    if (titik != null && titik is! num) {
+      throw FormatException(
+        'Baris tabel `titik_ukur`-nya bukan angka (${titik.runtimeType}) — '
+        'baris cacat. Null yang disengaja tetap diterima.',
       );
     }
 
@@ -477,6 +491,7 @@ class TabelHasil {
     this.judulPengulanganPerMode = const {},
     this.pengulanganArah = const {},
     this.tanpaTempatSimpan = false,
+    this.simpanKe,
     this.titikBisaDiubah = false,
     this.grup,
     this.peran,
@@ -568,6 +583,21 @@ class TabelHasil {
   /// yang menolak angka yang sudah ada di tangannya lebih membingungkan
   /// daripada layar yang jujur. Yang ditambah keterangannya.
   final bool tanpaTempatSimpan;
+
+  /// KE MANA isi tabel ini disimpan di server — `measurements[].pembacaan`.
+  ///
+  /// Null berarti dua hal yang berbeda, dan [tanpaTempatSimpan] yang
+  /// membedakannya: kuncinya nggak dikirim (lembar biasa, tempatnya bawaan),
+  /// atau dikirim berisi null (tabel yang memang belum punya tempat).
+  ///
+  /// Dibaca, bukan cuma dicatat. Kunci sel di [LembarKerjaState] itu
+  /// [kunciTabel] — `pembacaan_uut` buat lembar TIDS — sementara payload-nya
+  /// dulu dirakit dari kunci MATI `sesudah_adjustment`. Dua sisi itu nggak
+  /// ketemu, dan yang terjadi bukan error: `measurements` terkirim berisi set
+  /// point yang benar dengan `pembacaan` NULL SEMUA. Lembarnya penuh di layar,
+  /// tombol kirimnya jalan, dan tiga puluh lima angka yang beneran diambil
+  /// teknisi di lapangan nggak pernah ada di server.
+  final String? simpanKe;
 
   /// Teknisi boleh menambah, menghapus, dan mengubah titik ukurnya.
   ///
@@ -672,10 +702,15 @@ class TabelHasil {
   /// juga sama dan `grup`-nya juga beda, tapi BARIS titiknya beda — jadi
   /// ketiganya sudah dipisah oleh `titik` map dan nggak pernah bentrok.
   /// Memindahkannya ke `grup` bikin `TitikState.toSubmission()` — yang membaca
-  /// `sesudah_adjustment` apa adanya — pulang kosong, dan 24 titik yang sudah
-  /// diketik teknisi kekirim sebagai lembar kosong. Sudah kejadian sekali waktu
-  /// aturan ini ditulis terlalu longgar; dijaga
+  /// SATU kunci utama saja — pulang kosong, dan 24 titik yang sudah diketik
+  /// teknisi kekirim sebagai lembar kosong. Sudah kejadian sekali waktu aturan
+  /// ini ditulis terlalu longgar; dijaga
   /// `spectrophotometer_lembar_kerja_test.dart`.
+  ///
+  /// Kunci utamanya sendiri sekarang datang dari [simpanKe]
+  /// (`LembarKerjaState.kunciTabelPembacaan`), bukan dipaku
+  /// `sesudah_adjustment`. Lembar TIDS kena persis lubang yang dijelaskan di
+  /// atas — `tahap`-nya `pembacaan_uut` — cuma tanpa `grup` sama sekali.
   String get kunciTabel => berpasangan ? (grup ?? peran!) : tahap;
 
   /// Lembar ini membaca DUA deret per titik (standar & UUT).
@@ -750,6 +785,7 @@ class TabelHasil {
     // Kunci yang ADA tapi berisi null — bukan kunci yang nggak dikirim.
     tanpaTempatSimpan:
         json.containsKey('simpan_ke') && json['simpan_ke'] == null,
+    simpanKe: json['simpan_ke'] as String?,
     titikBisaDiubah: json['titik_bisa_diubah'] as bool? ?? false,
     grup: json['grup'] as String?,
     peran: json['peran'] as String?,
@@ -1442,11 +1478,42 @@ class LembarKerja {
     gridSensor: json['grid_sensor'] is Map<String, dynamic>
         ? GridSensorBentuk.fromJson(json['grid_sensor'] as Map<String, dynamic>)
         : null,
-    fotoTabelDidukung: json['pindai_foto'] is Map<String, dynamic>
-        ? (json['pindai_foto'] as Map<String, dynamic>)['didukung'] as bool? ??
-              true
-        : true,
+    fotoTabelDidukung: _fotoTabelDidukung(json['pindai_foto']),
   );
+}
+
+/// Tombol `FOTO TABEL INI` boleh digambar buat lembar ini?
+///
+/// ## DUA penanda, dan yang dibaca di sini yang benar
+///
+/// `pindai_foto` membawa dua gerbang yang menjawab pertanyaan berbeda:
+///
+///  - **`lokal`** — "pemeta di HP bisa menjangkar baris & kolom kertas ini?"
+///    Itu yang menentukan tombol ini. Jalurnya ML Kit, **sepenuhnya di
+///    perangkat**; citra lembar kerja pelanggan tidak pernah keluar HP.
+///  - **`didukung`** — "kertas ini muat di bentuk `titik ukur × Repeat` yang
+///    bisa dituturkan ke pembaca foto CLOUD?" Itu menggerbangi endpoint
+///    `raw-measurements/extract-from-photo`, yang **mengirim fotonya ke layanan
+///    pihak ketiga**. Aplikasi ini tidak pernah memanggilnya lagi.
+///
+/// Membaca `didukung` di sini pernah memaksa keduanya jadi satu angka — dan
+/// menyalakan tombol lokal buat lembar TIDS berarti menaikkan `didukung`, yang
+/// diam-diam ikut melebarkan batas data ke luar. Gerbangnya sekarang terpisah;
+/// yang dibaca layar yang lokal.
+///
+/// Server lama yang cuma mengirim `didukung` tetap dimengerti: nilainya dipakai
+/// sebagai `lokal`, yaitu perilaku sebelum pemisahan ini. Tidak ada penanda
+/// sama sekali dibaca `true` — perilaku paling lama, dan salah di sisi yang
+/// aman (tombolnya muncul, jangkarnya yang menolak kalau kertasnya tidak cocok).
+bool _fotoTabelDidukung(dynamic pindaiFoto) {
+  if (pindaiFoto is! Map) return true;
+
+  final lokal = pindaiFoto['lokal'];
+  if (lokal is bool) return lokal;
+
+  final didukung = pindaiFoto['didukung'];
+
+  return didukung is bool ? didukung : true;
 }
 
 /// Bekal yang dikirim server supaya teknisi bisa BIKIN ALAT BARU langsung dari

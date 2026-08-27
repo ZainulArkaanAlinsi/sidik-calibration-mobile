@@ -6865,6 +6865,12 @@ abstract class AppLocalizations {
   /// **'Point {titik} has readings but its reference standard is not ticked — those numbers cannot be calculated. Tick the standard, or clear the row if this instrument does not use that point.'**
   String lkStandarBelumDicentang(String titik);
 
+  /// No description provided for @lkSetPointKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Point {titik} has readings but its Setpoint box is empty or not a valid number — the WHOLE row, including the readings already entered, will not be submitted. Fill in the setpoint, or clear the row if that point is not used.'**
+  String lkSetPointKosong(String titik);
+
   /// No description provided for @lkPembacaanTakTerpulih.
   ///
   /// In en, this message translates to:

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sidik_calibration/core/config/app_config.dart';
 import 'package:sidik_calibration/l10n/app_localizations.dart';
+import 'package:sidik_calibration/models/lembar_kerja.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/calibration_input_provider.dart';
 import 'package:sidik_calibration/providers/lembar_kerja_provider.dart';
@@ -44,11 +45,21 @@ import 'package:sidik_calibration/services/worksheet_scan_service.dart';
 ///  1. Bawaannya NYALA (`AppConfig.pindaiLembarAktif`), tanpa perlu
 ///     `--dart-define`.
 ///  2. Saklarnya masih SAKLAR — dimatiin, dua-duanya hilang lagi.
-///  3. `FOTO TABEL INI` ikut `pindai_foto.didukung` dari server. Lembar
-///     Autoklaf (matriks 7 besaran × 5 titik waktu) dan TIDS (dua tabel
-///     interval waktu) nggak muat di bentuk "titik ukur × Repeat", dan jalur
-///     AI Vision buat lembar itu nggak balik error — dia balik ANGKA NGAWUR
-///     YANG KELIHATAN WAJAR. Itu kegagalan yang paling mahal di fitur ini.
+///  3. `FOTO TABEL INI` ikut gerbang `pindai_foto` dari server. Lembar
+///     Autoklaf (matriks 7 besaran × 5 titik waktu) nggak muat di bentuk
+///     "titik ukur × Repeat", dan jalur AI Vision buat lembar itu nggak balik
+///     error — dia balik ANGKA NGAWUR YANG KELIHATAN WAJAR. Itu kegagalan
+///     yang paling mahal di fitur ini.
+///
+/// ## Yang berubah 27 Agt 2026: gerbangnya jadi DUA
+///
+/// `pindai_foto` sekarang membawa `didukung` (jalur cloud, fotonya keluar HP)
+/// dan `lokal` (tombol ini, ML Kit di perangkat) terpisah. Yang menentukan
+/// tombolnya `lokal`; `didukung` cuma jadi cadangan buat server lama yang
+/// belum kenal kuncinya. Grup test terakhir di berkas ini yang menjaga
+/// bedanya — dan bedanya bukan kosmetik: menyatukannya lagi berarti
+/// menyalakan tombol TIDS harus dibayar dengan mengizinkan fotonya dikirim
+/// ke penyedia AI pihak ketiga.
 ///
 void main() {
   /// Viewport dibikin raksasa biar SELURUH lembar ke-build sekaligus.
@@ -64,7 +75,7 @@ void main() {
     addTearDown(tester.view.reset);
   }
 
-  Widget app({required bool pindaiAktif, bool didukung = true}) =>
+  Widget app({required bool pindaiAktif, bool didukung = true, bool? lokal}) =>
       ProviderScope(
     overrides: [
       // Waktu NYALA, providernya sengaja NGGAK di-override sama sekali: yang
@@ -77,7 +88,10 @@ void main() {
       ),
       authServiceProvider.overrideWithValue(MockAuthService()),
       lembarKerjaServiceProvider.overrideWithValue(
-        MockLembarKerjaService(fotoTabelDidukung: didukung),
+        MockLembarKerjaService(
+          fotoTabelDidukung: didukung,
+          fotoTabelLokal: lokal,
+        ),
       ),
       standardServiceProvider.overrideWithValue(MockStandardService()),
       roomServiceProvider.overrideWithValue(MockRoomService()),
@@ -161,7 +175,7 @@ void main() {
   });
 
   testWidgets(
-    'kertas yang nggak muat: FOTO TABEL INI ilang walau saklarnya nyala',
+    'dua gerbang mati (server lama, didukung: false): FOTO TABEL INI ilang',
     (tester) async {
       perbesarViewport(tester);
       await bukaSampaiTabel(
@@ -176,9 +190,9 @@ void main() {
         find.text('FOTO TABEL INI'),
         findsNothing,
         reason:
-            'Autoklaf & TIDS kertasnya nggak muat di bentuk "titik x Repeat". '
-            'Jalur AI Vision buat lembar itu nggak balik error — dia balik '
-            'angka ngawur yang kelihatan wajar.',
+            'Kertas Autoklaf nggak muat di bentuk "titik x Repeat". Jalur AI '
+            'Vision buat lembar itu nggak balik error — dia balik angka '
+            'ngawur yang kelihatan wajar.',
       );
 
       // Dulu di sini OCR template lokal TETAP ADA sebagai jalur cadangan —
@@ -190,4 +204,107 @@ void main() {
       expect(find.text('PINDAI LEMBAR KERJA'), findsNothing);
     },
   );
+
+  /// **Dua gerbang, dan yang menyalakan tombol yang LOKAL.**
+  ///
+  /// Ini regresi yang beneran kejadian, bukan kasus karangan. Tombol TIDS
+  /// dinyalakan (27 Agt 2026) dengan menaikkan `didukung` — satu-satunya
+  /// gerbang yang ada waktu itu. Yang ikut kebawa: lembar TIDS jadi memenuhi
+  /// syarat dikirim ke `raw-measurements/extract-from-photo`, endpoint yang
+  /// MENGIRIM FOTO LEMBAR KERJA PELANGGAN KE LAYANAN PIHAK KETIGA, begitu
+  /// Vision di server nyala. Nggak ada yang berniat begitu; gerbangnya cuma
+  /// kebetulan satu.
+  ///
+  /// Sekarang server mengirim keduanya, dan TIDS hidup di kombinasi
+  /// `didukung: false` + `lokal: true`. Kalau layar balik membaca `didukung`,
+  /// yang jebol BUKAN keamanannya — yang jebol tombolnya, hilang dari lembar
+  /// TIDS tanpa satu pun error. Dua-duanya arah yang mahal, jadi dua-duanya
+  /// dijaga di sini.
+  group('gerbang lokal vs cloud', () {
+    testWidgets('didukung: false + lokal: true → tombolnya TETAP ADA', (
+      tester,
+    ) async {
+      perbesarViewport(tester);
+      await bukaSampaiTabel(
+        tester,
+        app(pindaiAktif: true, didukung: false, lokal: true),
+      );
+
+      expect(find.text('Before adjustment Reading'), findsOneWidget);
+
+      expect(
+        find.text('FOTO TABEL INI'),
+        findsNWidgets(2),
+        reason:
+            'Itu kombinasi TIDS. Layar yang masih baca `didukung` bikin '
+            'tombolnya ilang dari lembar itu tanpa satu pun error.',
+      );
+    });
+
+    testWidgets('didukung: true + lokal: false → tombolnya HILANG', (
+      tester,
+    ) async {
+      perbesarViewport(tester);
+      await bukaSampaiTabel(
+        tester,
+        app(pindaiAktif: true, didukung: true, lokal: false),
+      );
+
+      expect(find.text('Before adjustment Reading'), findsOneWidget);
+
+      expect(
+        find.text('FOTO TABEL INI'),
+        findsNothing,
+        reason:
+            'Arah sebaliknya, dan ini yang bikin `lokal` beneran gerbang: '
+            'kalau layar masih baca `didukung`, test ini yang jebol duluan.',
+      );
+    });
+
+    testWidgets('server lama (cuma kirim didukung) tetap dimengerti', (
+      tester,
+    ) async {
+      // APK baru ketemu server lama itu keadaan normal, bukan kasus pojok —
+      // lab nge-update HP-nya duluan. Tanpa jatuh balik ke `didukung`, SEMUA
+      // tombol foto ilang di lapangan begitu APK-nya naik.
+      perbesarViewport(tester);
+      await bukaSampaiTabel(tester, app(pindaiAktif: true, didukung: true));
+
+      expect(find.text('FOTO TABEL INI'), findsNWidgets(2));
+    });
+  });
+
+  /// Aturan parsing-nya sendiri, tanpa lewat layar.
+  ///
+  /// Yang di atas nguji lembar pH lewat `MockLembarKerjaService`, jadi dia
+  /// nggak bisa menyuapkan `pindai_foto` yang bentuknya rusak — dan justru di
+  /// situ bawaan yang salah paling mahal: `pindai_foto` yang bukan Map, atau
+  /// nilai yang bukan bool, nggak boleh bikin tombolnya ilang diam-diam.
+  group('bacaan penanda pindai_foto', () {
+    bool baca(Object? pindaiFoto) => LembarKerja.fromJson(<String, dynamic>{
+      'judul': 'uji',
+      'bagian': const <dynamic>[],
+      'pindai_foto': ?pindaiFoto,
+    }).fotoTabelDidukung;
+
+    test('`lokal` menang atas `didukung`, dua arah', () {
+      expect(baca(<String, dynamic>{'didukung': false, 'lokal': true}), isTrue);
+      expect(baca(<String, dynamic>{'didukung': true, 'lokal': false}), isFalse);
+    });
+
+    test('tanpa `lokal` → jatuh ke `didukung`', () {
+      expect(baca(<String, dynamic>{'didukung': false}), isFalse);
+      expect(baca(<String, dynamic>{'didukung': true}), isTrue);
+    });
+
+    test('penanda hilang atau cacat → NYALA, bukan mati', () {
+      // Salah di sisi yang aman: tombolnya muncul, dan jangkar `PetaTabelFoto`
+      // yang menolak kalau kertasnya emang nggak cocok. Mati diam-diam bikin
+      // teknisi kehilangan kamera tanpa satu pun keterangan.
+      expect(baca(null), isTrue);
+      expect(baca('bukan map'), isTrue);
+      expect(baca(const <String, dynamic>{}), isTrue);
+      expect(baca(<String, dynamic>{'lokal': 'ya', 'didukung': 1}), isTrue);
+    });
+  });
 }

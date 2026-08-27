@@ -448,7 +448,7 @@ class PetaTabelFoto {
     //
     // Setengah lebar kolom itu batas alaminya: di kirinya sudah wilayah kolom
     // label tabel, bukan kolom Repeat pertama.
-    final jarakKolom = _jarakAntarKolom(jangkarKolom.values);
+    final jarakKolom = _jarakAntarKolom(jangkarKolom, pengulangan);
     final mundur = jarakKolom.isFinite ? jarakKolom / 2 : tinggiBaris;
 
     // Sejauh apa satu angka masih boleh diakui kolom terdekat — aturan yang
@@ -631,7 +631,13 @@ class PetaTabelFoto {
     }
 
     final tinggiBaris = _jarakAntarBaris(jangkarBaris.values);
-    final batasKolom = _jarakAntarKolom(jangkarKolom.values) * _rasioBaris;
+    // Kuncinya di sini SUDAH posisi kolomnya (indeks slot), jadi urutannya
+    // tinggal 0..n-1.
+    final batasKolom =
+        _jarakAntarKolom(jangkarKolom, [
+          for (var i = 0; i < slot.length; i++) i,
+        ]) *
+        _rasioBaris;
 
     // Jangkar field dikelompokkan PER SLOT, bukan satu tumpukan buat seluruh
     // tabel: `µS/cm` tercetak sekali di tiap slot, dan yang mutusin kolom
@@ -1367,27 +1373,66 @@ class PetaTabelFoto {
     return terbaik;
   }
 
-  /// Jarak antar kolom slot, diambil dari jangkarnya sendiri.
+  /// Lebar SATU kolom, diturunkan dari jangkar yang kebaca.
   ///
-  /// **Yang dipakai jarak TERSEMPIT, bukan mediannya** — beda dari
+  /// [urutan] itu kunci kolom seperti TERCETAK, urut kiri ke kanan — yang
+  /// dipakai menghitung berapa kolom fisik dilompati antara dua jangkar.
+  ///
+  /// **Yang dipakai yang TERSEMPIT, bukan mediannya** — beda dari
   /// [_jarakAntarBaris], dan bedanya disengaja. Slot cetak cuma ada tiga-empat
   /// biji; satu kepala yang nggak kebaca langsung nggandain sebagian jaraknya
   /// dan median ikut ketarik. Toleransi yang ikut ketarik itu justru yang bikin
   /// angka di kolom tanpa jangkar ketarik ke slot sebelahnya — persis yang mau
-  /// dicegah. Jarak tersempit nggak bisa ketarik: kepala yang hilang cuma
-  /// bikin jarak lebih LEBAR, nggak pernah lebih sempit.
-  double _jarakAntarKolom(Iterable<TeksTerbaca> jangkar) {
-    final x = [for (final j in jangkar) j.kotak.center.dx]..sort();
+  /// dicegah.
+  ///
+  /// **Tiap selisih dibagi jarak POSISInya dulu**, dan tanpa itu "tersempit"
+  /// nggak menolong sama sekali. Kepala yang hilang di TENGAH bikin SEMUA
+  /// jarak yang tersisa lebih lebar sekaligus — `X1` & `X4` kejangkar
+  /// sementara `X2` & `X3` hilang berarti satu-satunya jarak yang ada tiga
+  /// kali lebar kolom. Batasnya ikut tiga kali lipat, angka di bawah `X2`
+  /// lolos, dan tersimpan sebagai `X1`: kolom tujuannya kosong di baris itu,
+  /// jadi [_buangSelKembar] nggak punya apa pun buat dibandingkan dan
+  /// `angkaTakTerpetakan` tetap nol. Tabel penuh, wajar, geser satu kolom.
+  /// Dijaga `test/foto_kolom_bolong_test.dart`.
+  double _jarakAntarKolom(Map<int, TeksTerbaca> jangkar, List<int> urutan) {
+    final urut = <({int posisi, double x})>[];
+
+    for (final e in jangkar.entries) {
+      final posisi = urutan.indexOf(e.key);
+      if (posisi < 0) continue;
+
+      urut.add((posisi: posisi, x: e.value.kotak.center.dx));
+    }
+
+    urut.sort((a, b) => a.x.compareTo(b.x));
 
     // Satu kolom doang: nggak ada jarak yang bisa diukur, jadi nggak ada
     // batas yang bisa dipertanggungjawabkan.
-    if (x.length < 2) return double.infinity;
+    if (urut.length < 2) return double.infinity;
 
     var sempit = double.infinity;
 
-    for (var i = 1; i < x.length; i++) {
-      final jarak = x[i] - x[i - 1];
-      if (jarak < sempit) sempit = jarak;
+    for (var i = 1; i < urut.length; i++) {
+      // Berapa kolom FISIK yang dilompati antara dua jangkar bertetangga —
+      // bukan diandaikan satu.
+      //
+      // Ini yang membedakan "jarak antar jangkar" dari "lebar satu kolom",
+      // dan bedanya cuma muncul waktu kepala di TENGAH nggak kebaca. Dengan
+      // `X1`, `X3`, `X5` kejangkar sementara `X2` & `X4` hilang, jarak antar
+      // jangkar dua kali lebar kolom — jadi `batasKolom` ikut dua kali lipat,
+      // dan angka yang duduk di bawah `X2` lolos pemeriksaan batas lalu
+      // disimpan sebagai `X1` atau `X3`.
+      //
+      // Yang bikin itu mahal: kolom tujuannya kosong di baris yang sama, jadi
+      // `_buangSelKembar` nggak punya apa pun buat dibandingkan dan
+      // `angkaTakTerpetakan` tetap nol. Teknisi diberi tabel yang penuh, wajar,
+      // dan salah kolom — persis kegagalan yang batas ini dipasang buat
+      // dicegah.
+      final lompat = urut[i].posisi - urut[i - 1].posisi;
+      if (lompat <= 0) continue;
+
+      final satuKolom = (urut[i].x - urut[i - 1].x) / lompat;
+      if (satuKolom < sempit) sempit = satuKolom;
     }
 
     return sempit;

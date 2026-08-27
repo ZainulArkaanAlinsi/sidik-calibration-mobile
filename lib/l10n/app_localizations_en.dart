@@ -3827,6 +3827,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String lkSetPointKosong(String titik) {
+    return 'Point $titik has readings but its Setpoint box is empty or not a valid number — the WHOLE row, including the readings already entered, will not be submitted. Fill in the setpoint, or clear the row if that point is not used.';
+  }
+
+  @override
   String lkPembacaanTakTerpulih(int jumlah) {
     return '$jumlah saved readings had no matching row on this sheet and were not restored. Check the table before submitting.';
   }

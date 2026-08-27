@@ -574,6 +574,31 @@ class _TombolFotoGridState extends ConsumerState<_TombolFotoGrid> {
 
       if (!mounted) return;
 
+      // Penanda baris yang KEMBAR disebut duluan, dan disebut beda.
+      //
+      // Ini satu-satunya sebab di daftar ini yang JEPRETAN ULANGNYA NGGAK
+      // NOLONG: dua baris berbagi satu penanda itu bentuk lembarnya, bukan
+      // fotonya. Ikut jatuh ke pesan "pastikan kepala kolomnya kefoto",
+      // teknisi menjepret lembar yang sama berkali-kali tanpa satu pun
+      // kemungkinan hasilnya berubah.
+      //
+      // Penandanya dibangun unik di `GridSensorState.penandaBarisFoto`,
+      // jadi cabang ini nggak punya jalan masuk hari ini. Tetap dipasang:
+      // yang dijaga bukan bug yang ada sekarang, tapi harga kalau cara
+      // membangun penandanya berubah — dan harganya teknisi yang terjebak
+      // motret selamanya.
+      if (hasil.barisKembar.isNotEmpty) {
+        pesan(
+          l10n.lkFotoTabelBarisKembar(
+            hasil.barisKembar
+                .map((b) => penanda.label[b] ?? '${b.round()}')
+                .join(', '),
+          ),
+        );
+
+        return;
+      }
+
       if (hasil.kosong) {
         pesan(
           hasil.titikKetemu.isNotEmpty && hasil.repeatKetemu.isNotEmpty

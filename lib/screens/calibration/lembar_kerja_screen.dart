@@ -658,6 +658,30 @@ class _FormState extends ConsumerState<_Form> {
         );
         return;
       }
+
+      // Baris TIDS yang angkanya keisi tapi kotak `Setpoint`-nya kosong atau
+      // nggak kebaca sebagai angka.
+      //
+      // MENAHAN, bukan bertanya — sejajar sama isian yatim di atas, dan
+      // sebabnya sama: yang hilang bukan dugaan soal kewajaran angka, tapi
+      // lima kotak pembacaan yang beneran ada di tangan teknisi dan beneran
+      // nggak jadi terkirim. Tanpa ini lembarnya kelihatan penuh di layar,
+      // tombol kirim jalan mulus, dan barisnya lenyap di perjalanan.
+      final tanpaSetPoint = _isian.titikTanpaSetPoint;
+
+      if (tanpaSetPoint.isNotEmpty) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              l10n.lkSetPointKosong(
+                tanpaSetPoint.map((t) => t.label).join(', '),
+              ),
+            ),
+            duration: const Duration(seconds: 8),
+          ),
+        );
+        return;
+      }
     }
 
     // Jam yang bentuknya nggak kebaca ditahan DI SINI, bukan dibiarin ditolak
@@ -1656,11 +1680,11 @@ class _Bagian extends ConsumerWidget {
                 onBerubah: onBerubah,
                 merkKalibrator: _merkStandar(ref, isian.standardId),
                 // Cuma saklarnya — `fotoTabelDidukung` SENGAJA nggak ikut di
-                // sini. Penanda itu menjawab "kertas alat ini muat di bentuk
-                // titik × Repeat?", dan buat grid jawabannya memang tidak.
-                // Kamera grid pakai mesin yang lain: sumbu ketiganya datang
-                // dari blok tempat tombolnya duduk. Lihat
-                // `LembarKerjaGrid.pindaiAktif`.
+                // sini. Penanda itu menjawab "pemeta TABEL di HP bisa
+                // menjangkar baris & kolom kertas ini?", dan buat grid
+                // jawabannya memang tidak. Kamera grid pakai mesin yang lain:
+                // sumbu ketiganya datang dari blok tempat tombolnya duduk.
+                // Lihat `LembarKerjaGrid.pindaiAktif`.
                 pindaiAktif: pindaiAktif,
               ),
               const SizedBox(height: AppSpacing.lg),
@@ -1684,9 +1708,9 @@ class _Bagian extends ConsumerWidget {
                 tabelTambahan: bagian.tabelTambahan,
                 setPoint: _fieldSetPoint(bagian),
                 // Cuma saklarnya, sama alasannya dengan grid di atas:
-                // `fotoTabelDidukung` menjawab pertanyaan bentuk titik ×
-                // Repeat, dan matriks memang bukan itu. Jangkar barisnya
-                // TULISAN besaran, bukan angka.
+                // `fotoTabelDidukung` menjawab pertanyaan pemeta TABEL, dan
+                // matriks memang bukan tabel. Jangkar barisnya TULISAN
+                // besaran, bukan angka.
                 pindaiAktif: pindaiAktif,
               ),
               const SizedBox(height: AppSpacing.lg),
@@ -1722,11 +1746,17 @@ class _Bagian extends ConsumerWidget {
                 isian: isian,
                 onBerubah: onBerubah,
                 // Saklar DAN bentuk kertasnya. Saklar bilang "fitur ini
-                // nyala"; `fotoTabelDidukung` bilang "kertas alat INI bisa
-                // dituturkan ke pembaca foto". Dua-duanya harus benar —
-                // saklar nyala doang bikin tombolnya muncul di lembar
-                // Autoklaf & TIDS, dan yang balik ke teknisi bukan error tapi
-                // angka ngawur yang kelihatan wajar.
+                // nyala"; `fotoTabelDidukung` bilang "pemeta di HP bisa
+                // menjangkar baris & kolom kertas INI". Dua-duanya harus
+                // benar — saklar nyala doang bikin tombolnya muncul di lembar
+                // yang jangkarnya nggak ada, dan tiap jepretan pulang nol sel.
+                //
+                // Isinya dibaca dari `pindai_foto.lokal`, BUKAN `didukung`.
+                // Yang kedua menggerbangi jalur CLOUD, yang mengirim foto
+                // lembar kerja pelanggan ke layanan pihak ketiga. Waktu
+                // keduanya masih satu penanda, menyalakan tombol buat satu
+                // lembar ikut melebarkan batas data itu tanpa ada yang
+                // berniat begitu. Lihat `_fotoTabelDidukung`.
                 pindaiAktif: pindaiAktif && isian.bentuk.fotoTabelDidukung,
               ),
               const SizedBox(height: AppSpacing.lg),

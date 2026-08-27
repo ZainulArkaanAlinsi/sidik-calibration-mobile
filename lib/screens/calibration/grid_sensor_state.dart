@@ -333,8 +333,17 @@ class SetPointGridState {
     var terisi = 0;
 
     for (final s in sel) {
-      final index = s.repeatNo - 1;
-      if (index < 0 || index >= bentuk.pengulangan.length) continue;
+      // Nomor pengulangan yang TERCETAK di kertas, diterjemahkan lewat
+      // `bentuk.pengulangan` — bukan `repeatNo - 1`.
+      //
+      // Pengurangan satu diam-diam mengandaikan deretnya selalu `1, 2, 3, …`.
+      // `GridSensorBentuk.fromJson` nerima deret apa pun, dan lembar yang
+      // kertasnya bernomor `2, 4, 6` bikin dua hal salah sekaligus: angka
+      // kolom `2` mendarat di kolom `4` (posisi 1), dan kolom `4` & `6`
+      // kebuang di pemeriksaan batas. Salah tempat itu yang lebih mahal —
+      // angkanya wajar, kolomnya bukan miliknya.
+      final index = bentuk.pengulangan.indexOf(s.repeatNo);
+      if (index < 0) continue;
 
       // Teksnya diurai di sini, bukan di pemetanya: yang di sana cuma menjawab
       // "tempatnya di mana". Yang nggak jadi angka dilewat — bukan ditulis

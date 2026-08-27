@@ -1741,7 +1741,16 @@ class _SelSetpoint extends StatelessWidget {
                 signed: true,
               ),
               inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[0-9.,\-]')),
+                // Batasan yang SAMA dengan sel pembacaan — bukan sekadar
+                // "karakternya boleh ini".
+                //
+                // Daftar karakter meloloskan `12..5`, `1-2`, `--3`. Bentuk
+                // begitu bikin `parseAngka` pulang null, `siapKirim` jadi
+                // false, dan SELURUH barisnya — lima kotak pembacaan yang
+                // sudah diisi sekalian — hilang dari yang dikirim tanpa satu
+                // pun tanda. Pola berjangkar begini cuma menerima awalan yang
+                // masih bisa jadi angka.
+                FilteringTextInputFormatter.allow(RegExp(r'^-?\d*[.,]?\d*')),
               ],
               decoration: InputDecoration(
                 isDense: true,

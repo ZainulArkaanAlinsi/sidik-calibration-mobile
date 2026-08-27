@@ -3798,6 +3798,11 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String lkSetPointKosong(String titik) {
+    return 'Titik $titik udah diisi angkanya tapi kotak Setpoint-nya masih kosong atau nggak kebaca sebagai angka — SELURUH barisnya, termasuk kotak pembacaan yang udah diisi, nggak bakal ikut terkirim. Isi Setpoint-nya dulu, atau kosongkan barisnya kalau titik itu emang nggak dipakai.';
+  }
+
+  @override
   String lkPembacaanTakTerpulih(int jumlah) {
     return '$jumlah pembacaan tersimpan nggak ketemu barisnya di lembar ini dan nggak ikut dipulihkan. Cek tabelnya sebelum dikirim.';
   }

@@ -427,4 +427,88 @@ void main() {
       );
     });
   });
+  /// **Nomor pengulangan yang TERCETAK, bukan posisinya.**
+  ///
+  /// `terapkanHasilFoto` dulu memakai `repeatNo - 1` sebagai posisi kolom —
+  /// pengandaian diam-diam bahwa deretnya selalu `1, 2, 3, …`.
+  /// `GridSensorBentuk.fromJson` nerima deret angka apa pun, jadi pengandaian
+  /// itu nggak dijamin siapa-siapa.
+  ///
+  /// Kertas bernomor `2, 4, 6` bikin DUA hal salah sekaligus, dan yang pertama
+  /// yang lebih mahal:
+  ///
+  ///  1. Angka kolom `2` mendarat di posisi 1 — itu kolom `4`. Angkanya wajar,
+  ///     kolomnya bukan miliknya, dan nggak ada yang gagal.
+  ///  2. Kolom `4` & `6` jatuh di luar batas lalu dilewat diam-diam.
+  ///
+  /// Sekarang posisinya dicari lewat `bentuk.pengulangan`, jadi yang menentukan
+  /// urutan TERCETAKnya.
+  group('nomor pengulangan yang nggak mulai dari 1', () {
+    SetPointGridState blokBernomor(List<int> pengulangan) => SetPointGridState(
+      bentuk: GridSensorBentuk.fromJson({
+        'jumlah_sensor_saran': 1,
+        'pengulangan': pengulangan,
+        'butuh_channel_untuk': 'recorder',
+        'baris_indikator': false,
+        'baris_suhu_ruang': false,
+        'catatan_sensor_acuan': '',
+      })!,
+      jumlahSensorAwal: 1,
+    );
+
+    List<SelTabelFoto> sel(List<int> repeat) => [
+      for (var i = 0; i < repeat.length; i++)
+        (
+          titikUkur: 7.0,
+          repeatNo: repeat[i],
+          fieldId: 'pembacaan',
+          teks: '120,${i + 1}',
+        ),
+    ];
+
+    test('deret `2, 4, 6`: ketiganya mendarat di kolomnya sendiri', () {
+      final sp = blokBernomor(const [2, 4, 6]);
+
+      expect(
+        sp.terapkanHasilFoto(sel(const [2, 4, 6])),
+        3,
+        reason:
+            'Dengan `repeatNo - 1`, cuma kolom `2` yang keisi — di posisi yang '
+            'salah — dan dua sisanya kebuang di pemeriksaan batas.',
+      );
+
+      expect(sp.sensor.first.pembacaanCtl.map((c) => c.text).toList(), [
+        '120,1',
+        '120,2',
+        '120,3',
+      ]);
+    });
+
+    test('deret `1..5` biasa nggak bergeser sedikit pun', () {
+      // Penjaga arah sebaliknya: sembilan belas lembar lain deretnya memang
+      // `1..5`, dan `indexOf` wajib memulangkan angka yang sama persis dengan
+      // pengurangan satu.
+      final sp = blokBernomor(const [1, 2, 3, 4, 5]);
+
+      expect(sp.terapkanHasilFoto(sel(const [1, 3, 5])), 3);
+
+      expect(sp.sensor.first.pembacaanCtl.map((c) => c.text).toList(), [
+        '120,1',
+        '',
+        '120,2',
+        '',
+        '120,3',
+      ]);
+    });
+
+    test('nomor yang nggak ada di kertasnya dilewat, bukan dipaksa masuk', () {
+      final sp = blokBernomor(const [2, 4, 6]);
+
+      expect(sp.terapkanHasilFoto(sel(const [3])), 0);
+      expect(
+        sp.sensor.first.pembacaanCtl.every((c) => c.text.isEmpty),
+        isTrue,
+      );
+    });
+  });
 }

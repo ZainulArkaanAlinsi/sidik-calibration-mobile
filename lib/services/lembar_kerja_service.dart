@@ -122,6 +122,7 @@ class MockLembarKerjaService implements LembarKerjaService {
     this.tanpaTampilKalau = false,
     this.tanpaThermohygro = false,
     this.fotoTabelDidukung = true,
+    this.fotoTabelLokal,
   });
 
   final bool gagal;
@@ -151,10 +152,21 @@ class MockLembarKerjaService implements LembarKerjaService {
   /// kosong atau karena kolomnya kelewat di-parse.
   final bool tanpaThermohygro;
 
-  /// Niru `pindai_foto.didukung` dari server. `false` = kertas alat ini nggak
-  /// muat di bentuk "titik ukur x Repeat" (Autoklaf, TIDS), jadi tombol
-  /// `FOTO TABEL INI` nggak boleh digambar walau saklar pindainya nyala.
+  /// Niru `pindai_foto.didukung` dari server — gerbang jalur CLOUD
+  /// (`raw-measurements/extract-from-photo`, yang mengirim fotonya ke layanan
+  /// pihak ketiga). `false` = kertas alat ini nggak muat di bentuk
+  /// "titik ukur x Repeat" yang bisa dituturkan ke pembaca cloud.
   final bool fotoTabelDidukung;
+
+  /// Niru `pindai_foto.lokal` — gerbang tombol `FOTO TABEL INI` (ML Kit, di
+  /// perangkat). `null` = kuncinya NGGAK DIKIRIM sama sekali, yaitu server
+  /// versi lama; layar wajib jatuh balik ke [fotoTabelDidukung].
+  ///
+  /// Dua saklar terpisah karena akibatnya beda: yang satu menentukan foto
+  /// pelanggan boleh keluar HP atau nggak, yang satu cuma menentukan tombolnya
+  /// digambar atau nggak. TIDS hidup di kombinasi `didukung: false` +
+  /// `lokal: true`, dan kombinasi itu yang paling gampang salah kebaca.
+  final bool? fotoTabelLokal;
 
   /// Bikin `kirim`/`perbarui` gagal sampai percobaan ke-n — buat niru sinyal
   /// putus di lapangan, dan mastiin retry-nya bawa `client_request_id` yang
@@ -266,6 +278,7 @@ class MockLembarKerjaService implements LembarKerjaService {
         'kolom_suhu': false,
         'standar_di_baris': true,
         'didukung': fotoTabelDidukung,
+        if (fotoTabelLokal != null) 'lokal': fotoTabelLokal,
       },
     });
   }
