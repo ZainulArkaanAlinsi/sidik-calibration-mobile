@@ -1961,6 +1961,39 @@ class LembarKerjaState {
   /// `decimal(20,8)` yang dibaca ulang dari DB. `111.193568` yang bolak-balik
   /// lewat JSON gampang meleset di digit terakhir, dan `Map` nggak peduli
   /// selisihnya sekecil apa — barisnya dianggap nggak ada, angkanya kebuang.
+  /// Angka FINAL di satu sel — label buat potongan yang ditahan sejak difoto.
+  ///
+  /// Alamatnya sudah berupa alamat FORMULIR (tahap, titik, POSISI kolom,
+  /// kolom), bukan nomor Repeat: penerjemahannya sudah dilakukan waktu
+  /// potongannya ditampung, di tempat yang memegang daftar pengulangan
+  /// tabelnya. Lihat `KunciSel`.
+  ///
+  /// Titiknya dicari lewat [titikCocok], BUKAN `titik[...]` — jalur foto
+  /// menempatkan angkanya dengan cara yang sama, dan dua cara yang beda bikin
+  /// labelnya meleset diam-diam di baris yang titiknya cuma cocok dalam
+  /// toleransi.
+  ///
+  /// Teksnya dibalikin APA ADANYA, bukan lewat `parseAngka`: yang dilatih
+  /// nantinya membaca coretan jadi TULISAN, dan `25,3` yang diketik teknisi
+  /// itu label yang benar — bukan `25.3` hasil bolak-balik lewat `double`.
+  ///
+  /// Balikin `null` kalau titiknya nggak ada atau posisinya di luar jangkauan;
+  /// pemanggil yang menghitungnya sebagai "tanpa label".
+  String? labelSelFoto({
+    required String tahap,
+    required double titikUkur,
+    required int posisiRepeat,
+    required String fieldId,
+  }) {
+    final t = titikCocok(titikUkur);
+
+    if (t == null || posisiRepeat < 0 || posisiRepeat >= t.jumlahPengulangan) {
+      return null;
+    }
+
+    return t.kotak(tahap, fieldId, posisiRepeat).text;
+  }
+
   /// [_titikTerdekat] buat pemanggil di luar kelas ini.
   ///
   /// Ada karena pengumpul contoh latih harus mencari titiknya dengan cara yang

@@ -804,24 +804,17 @@ class _FormState extends ConsumerState<_Form> {
     navigator.pop(hasil.id);
   }
 
-  /// Angka FINAL di satu sel — label buat potongan yang ditahan sejak difoto.
+  /// Label buat pengumpul contoh latih — diteruskan ke [LembarKerjaState].
   ///
-  /// [KunciSel] sudah berupa alamat formulir (tahap, titik, POSISI kolom,
-  /// kolom), jadi di sini nggak ada penerjemahan lagi yang bisa salah: nomor
-  /// Repeat sudah diterjemahkan jadi posisi waktu ditampung, di tempat yang
-  /// memang memegang daftar pengulangan tabelnya.
-  ///
-  /// Teksnya diambil APA ADANYA, bukan lewat `parseAngka`: yang dilatih
-  /// nantinya membaca coretan jadi TULISAN, dan `25,3` yang diketik teknisi
-  /// itu label yang benar — bukan `25.3` hasil bolak-balik lewat `double`.
-  String? _labelContohSel(KunciSel k) {
-    // `titikCocok`, BUKAN `titik[...]` — lihat docblock method itu.
-    final titik = _isian.titikCocok(k.titikUkur);
-
-    if (titik == null || k.posisiRepeat >= titik.jumlahPengulangan) return null;
-
-    return titik.kotak(k.tahap, k.fieldId, k.posisiRepeat).text;
-  }
+  /// Logikanya ada di sana, bukan di sini, supaya bisa diuji tanpa memompa
+  /// seluruh layar: yang dijaga bukan tombolnya, tapi label yang menempel di
+  /// potongan sel yang benar.
+  String? _labelContohSel(KunciSel k) => _isian.labelSelFoto(
+    tahap: k.tahap,
+    titikUkur: k.titikUkur,
+    posisiRepeat: k.posisiRepeat,
+    fieldId: k.fieldId,
+  );
 
   /// Kirim lembar bermatriks lewat endpoint alatnya sendiri.
   ///

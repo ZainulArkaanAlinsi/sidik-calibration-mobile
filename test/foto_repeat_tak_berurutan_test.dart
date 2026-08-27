@@ -207,4 +207,126 @@ void main() {
       );
     });
   });
+
+  group('label buat contoh latih', () {
+    // Celah yang sebelumnya nggak ketutup: pencari labelnya hidup di dalam
+    // layar, jadi satu-satunya cara mengujinya memompa seluruh layar. Dan
+    // justru di lem inilah bug pertama muncul — pencocokan titik yang beda
+    // dari yang dipakai jalur foto.
+    //
+    // Yang dijaga di sini bukan tombolnya, tapi janji intinya: label yang
+    // menempel di potongan sel adalah angka yang AKHIRNYA ada di sel itu.
+
+    ({LembarKerjaState isian, TabelHasil tabel}) terisi(List<int> pengulangan) {
+      final s = siapkan(pengulangan);
+
+      s.isian.terapkanHasilFotoTabel(
+        [sel(1018.0, pengulangan[1], '123,4')],
+        tahap: s.tabel.tahap,
+        pengulangan: s.tabel.pengulangan,
+      );
+
+      return s;
+    }
+
+    test('labelnya angka yang ADA di sel itu', () {
+      final s = terisi(const [1, 2, 3, 4, 5]);
+      addTearDown(s.isian.dispose);
+
+      expect(
+        s.isian.labelSelFoto(
+          tahap: 'sesudah_adjustment',
+          titikUkur: 1018.0,
+          posisiRepeat: 1,
+          fieldId: 'pembacaan',
+        ),
+        '123,4',
+      );
+    });
+
+    test('teknisi MENGOREKSI: labelnya yang baru, bukan yang lama', () {
+      // Inti seluruh fitur. Angka hasil foto dibetulkan teknisi, dan yang
+      // boleh jadi label cuma hasil koreksinya.
+      final s = terisi(const [1, 2, 3, 4, 5]);
+      addTearDown(s.isian.dispose);
+
+      s.isian.titik[1018.0]!.kotak('sesudah_adjustment', 'pembacaan', 1).text =
+          '987,6';
+
+      expect(
+        s.isian.labelSelFoto(
+          tahap: 'sesudah_adjustment',
+          titikUkur: 1018.0,
+          posisiRepeat: 1,
+          fieldId: 'pembacaan',
+        ),
+        '987,6',
+      );
+    });
+
+    test('titik bertoleransi tetap ketemu labelnya', () {
+      // Bug yang ketemu sebelum sempat mendarat: `titik[x]` meleset di sini,
+      // dan akibatnya tiap potongan dari baris ini dihitung "tanpa label".
+      final s = terisi(const [1, 2, 3, 4, 5]);
+      addTearDown(s.isian.dispose);
+
+      expect(
+        s.isian.labelSelFoto(
+          tahap: 'sesudah_adjustment',
+          titikUkur: 1018.0000000001,
+          posisiRepeat: 1,
+          fieldId: 'pembacaan',
+        ),
+        '123,4',
+      );
+    });
+
+    test('sel KOSONG balik null, bukan teks kosong yang kelihatan label', () {
+      final s = siapkan(const [1, 2, 3, 4, 5]);
+      addTearDown(s.isian.dispose);
+
+      expect(
+        s.isian.labelSelFoto(
+          tahap: 'sesudah_adjustment',
+          titikUkur: 1018.0,
+          posisiRepeat: 0,
+          fieldId: 'pembacaan',
+        ),
+        isEmpty,
+        reason:
+            'Kotaknya ada tapi kosong — `PenampungContohSel` yang menolaknya '
+            'sebagai label, dan itu memang tugasnya.',
+      );
+    });
+
+    test('posisi di luar jangkauan balik null, bukan meledak', () {
+      final s = siapkan(const [1, 2, 3, 4, 5]);
+      addTearDown(s.isian.dispose);
+
+      expect(
+        s.isian.labelSelFoto(
+          tahap: 'sesudah_adjustment',
+          titikUkur: 1018.0,
+          posisiRepeat: 99,
+          fieldId: 'pembacaan',
+        ),
+        isNull,
+      );
+    });
+
+    test('titik yang nggak ada di lembar balik null', () {
+      final s = siapkan(const [1, 2, 3, 4, 5]);
+      addTearDown(s.isian.dispose);
+
+      expect(
+        s.isian.labelSelFoto(
+          tahap: 'sesudah_adjustment',
+          titikUkur: 12345.0,
+          posisiRepeat: 0,
+          fieldId: 'pembacaan',
+        ),
+        isNull,
+      );
+    });
+  });
 }
