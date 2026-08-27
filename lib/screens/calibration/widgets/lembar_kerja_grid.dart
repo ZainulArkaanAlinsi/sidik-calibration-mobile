@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/config/app_config.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../services/ambil_foto_tabel.dart';
+import '../../../services/peta_tabel_foto.dart';
 import '../grid_sensor_state.dart';
+import '../lembar_kerja_state.dart' show kuningPerluDicek;
 
 /// Layar isian GRID SENSOR: satu set point = banyak termokopel × banyak
 /// pembacaan, plus baris Indikator & Suhu Ruang.
@@ -24,6 +30,7 @@ class LembarKerjaGrid extends StatefulWidget {
     required this.satuanSuhu,
     required this.onBerubah,
     this.merkKalibrator,
+    this.pindaiAktif = AppConfig.pindaiLembarAktif,
   });
 
   final GridSensorState state;
@@ -37,6 +44,17 @@ class LembarKerjaGrid extends StatefulWidget {
   /// nggak: koreksi Recorder (GL840) dibaca per kanal, Constant & Yokogawa
   /// nggak. Null = belum milih standar.
   final String? merkKalibrator;
+
+  /// Tombol `FOTO TABEL INI` di tiap blok set point.
+  ///
+  /// **Sengaja TIDAK membaca `pindai_foto.didukung` dari server.** Penanda itu
+  /// menjawab pertanyaan lain: "kertas alat ini muat di bentuk titik × Repeat
+  /// yang bisa dituturkan ke pembaca foto?" — dan buat lembar grid jawabannya
+  /// memang `false`, karena kertasnya bersumbu TIGA (set point × sensor ×
+  /// pengulangan). Yang dipakai di sini bukan bentuk dua-penanda itu: sumbu
+  /// ketiganya datang dari BLOK MANA tombolnya ditekan, bukan dari citra. Jadi
+  /// yang menggerbanginya keberadaan gridnya sendiri, plus saklar fitur.
+  final bool pindaiAktif;
 
   @override
   State<LembarKerjaGrid> createState() => _LembarKerjaGridState();
@@ -83,6 +101,7 @@ class _LembarKerjaGridState extends State<LembarKerjaGrid> {
             lebarKanal: _lebarKanal,
             lebarKolom: _lebarKolom,
             onBerubah: _berubah,
+            pindaiAktif: widget.pindaiAktif,
             bisaDihapus: widget.state.setPoint.length > 1,
             onHapus: () {
               setState(() => widget.state.hapusSetPoint(i));
@@ -135,6 +154,7 @@ class _KartuSetPoint extends StatelessWidget {
     required this.lebarKanal,
     required this.lebarKolom,
     required this.onBerubah,
+    required this.pindaiAktif,
     required this.bisaDihapus,
     required this.onHapus,
   });
@@ -148,6 +168,7 @@ class _KartuSetPoint extends StatelessWidget {
   final double lebarKanal;
   final double lebarKolom;
   final VoidCallback onBerubah;
+  final bool pindaiAktif;
   final bool bisaDihapus;
   final VoidCallback onHapus;
 
@@ -192,6 +213,27 @@ class _KartuSetPoint extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
+
+            // Tombolnya di dalam kartu set point, bukan satu buat seluruh
+            // lembar — dan letaknya itu yang membawa sumbu ketiga. Kertas grid
+            // bersumbu TIGA (set point × sensor × pengulangan), sementara foto
+            // cuma sanggup memberi dua. Sumbu yang ketiga karena itu diambil
+            // dari BLOK MANA tombolnya ditekan, bukan ditebak dari citra.
+            //
+            // Aturan yang sama sudah dipakai lembar Conductivity: slot yang
+            // bersatuan dobel menunjuk titik yang lagi dicentang teknisi,
+            // bukan ditebak dari angka yang kebaca.
+            if (pindaiAktif) ...[
+              SizedBox(
+                width: double.infinity,
+                child: _TombolFotoGrid(
+                  nomor: nomor,
+                  sp: sp,
+                  onBerubah: onBerubah,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+            ],
 
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -313,6 +355,10 @@ class _KartuSetPoint extends StatelessWidget {
                 onBerubah: onBerubah,
                 bulat: true,
                 galat: iniKembar,
+                // Nomor yang dibaca dari foto ditandai sama seperti
+                // pembacaannya. Ini kotak yang paling penting diadu ke kertas:
+                // salah baca di sini memindahkan SELURUH barisnya.
+                dariFoto: s.noDariFoto,
               ),
             ),
           ),
@@ -342,6 +388,7 @@ class _KartuSetPoint extends StatelessWidget {
                   key: Key('grid_baca_${nomor}_${index}_$k'),
                   controller: s.pembacaanCtl[k],
                   onBerubah: onBerubah,
+                  dariFoto: s.dariFoto.contains(k),
                 ),
               ),
             ),
@@ -426,6 +473,7 @@ class _KartuSetPoint extends StatelessWidget {
                   key: Key('${kunci}_$k'),
                   controller: b.ctl[k],
                   onBerubah: onBerubah,
+                  dariFoto: b.dariFoto.contains(k),
                 ),
               ),
             ),
@@ -436,6 +484,176 @@ class _KartuSetPoint extends StatelessWidget {
   }
 }
 
+/// `FOTO TABEL INI` buat SATU blok set point grid.
+///
+/// ## Jangkarnya apa
+///
+/// Sama aturannya dengan jalur tabel: tiap angka wajib punya DUA jangkar
+/// sebelum ditaruh, dan yang cuma punya satu dibuang.
+///
+///  - **baris** dari kolom `No.` — nomor termokopel, **dibaca dari fotonya**.
+///    Bukan dicocokkan ke nomor yang ada di layar: teknisi motret dulu,
+///    nomornya belakangan (keputusan pemilik lab, 27 Agt 2026), jadi waktu
+///    tombolnya ditekan layarnya memang masih kosong. Nomornya ikut ditaruh di
+///    kotaknya sendiri dan ikut ditandai kuning — lihat
+///    `PetaTabelFoto.nomorBarisTerbaca` soal kenapa itu yang bikin risikonya
+///    bisa ditanggung.
+///  - **kolom** dari kepala kolom pengulangan yang tercetak.
+///  - **set point** dari kartu tempat tombol ini duduk, bukan dari citra.
+///
+/// Dua baris deret (`Indikator`, `Suhu Ruang`) dijangkar TULISANNYA, lewat
+/// `labelTercetak` — jalur yang sama yang dipakai lembar Viscometer buat baris
+/// yang label kertasnya beda dari nilai hitungannya.
+class _TombolFotoGrid extends ConsumerStatefulWidget {
+  const _TombolFotoGrid({
+    required this.nomor,
+    required this.sp,
+    required this.onBerubah,
+  });
+
+  final int nomor;
+  final SetPointGridState sp;
+  final VoidCallback onBerubah;
+
+  @override
+  ConsumerState<_TombolFotoGrid> createState() => _TombolFotoGridState();
+}
+
+class _TombolFotoGridState extends ConsumerState<_TombolFotoGrid> {
+  bool _sibuk = false;
+
+  Future<void> _foto() async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    void pesan(String teks, {int detik = 8}) => messenger.showSnackBar(
+      SnackBar(duration: Duration(seconds: detik), content: Text(teks)),
+    );
+
+    setState(() => _sibuk = true);
+
+    try {
+      final foto = await ambilDanBacaTabel(ref);
+
+      if (!mounted || foto.dibatalkan) return;
+
+      if (foto.terbaca == null) {
+        pesan(l10n.lkFotoTabelGagal, detik: 6);
+
+        return;
+      }
+
+      // Nomor termokopelnya dibaca DARI FOTO, bukan dicocokkan ke layar —
+      // teknisi motret dulu, nomornya belakangan. Lihat
+      // `PetaTabelFoto.nomorBarisTerbaca` soal kenapa itu bisa ditanggung.
+      const peta = PetaTabelFoto();
+      final nomor = peta.nomorBarisTerbaca(foto.terbaca!);
+
+      final kembar = <int>{
+        for (final n in nomor)
+          if (nomor.where((x) => x == n).length > 1) n,
+      }.toList()..sort();
+
+      if (kembar.isNotEmpty) {
+        // Dua baris bernomor sama bikin pembacaannya nggak bisa dipastikan
+        // masuk termokopel yang mana — dan menggabungnya diam-diam justru
+        // membuang separuhnya. Ditolak utuh, sebabnya disebut.
+        pesan(l10n.lkGridFotoNomorKembar(kembar.join(', ')));
+
+        return;
+      }
+
+      final penanda = widget.sp.penandaBarisFoto(nomor);
+
+      final hasil = peta.petakan(
+        terbaca: foto.terbaca!,
+        titikUkur: penanda.penanda,
+        pengulangan: widget.sp.bentuk.pengulangan,
+        fieldPerRepeat: const ['pembacaan'],
+        labelTercetak: penanda.label,
+      );
+
+      if (!mounted) return;
+
+      // Penanda baris yang KEMBAR disebut duluan, dan disebut beda.
+      //
+      // Ini satu-satunya sebab di daftar ini yang JEPRETAN ULANGNYA NGGAK
+      // NOLONG: dua baris berbagi satu penanda itu bentuk lembarnya, bukan
+      // fotonya. Ikut jatuh ke pesan "pastikan kepala kolomnya kefoto",
+      // teknisi menjepret lembar yang sama berkali-kali tanpa satu pun
+      // kemungkinan hasilnya berubah.
+      //
+      // Penandanya dibangun unik di `GridSensorState.penandaBarisFoto`,
+      // jadi cabang ini nggak punya jalan masuk hari ini. Tetap dipasang:
+      // yang dijaga bukan bug yang ada sekarang, tapi harga kalau cara
+      // membangun penandanya berubah — dan harganya teknisi yang terjebak
+      // motret selamanya.
+      if (hasil.barisKembar.isNotEmpty) {
+        pesan(
+          l10n.lkFotoTabelBarisKembar(
+            hasil.barisKembar
+                .map((b) => penanda.label[b] ?? '${b.round()}')
+                .join(', '),
+          ),
+        );
+
+        return;
+      }
+
+      if (hasil.kosong) {
+        pesan(
+          hasil.titikKetemu.isNotEmpty && hasil.repeatKetemu.isNotEmpty
+              // Jangkarnya ketemu semua, badan tabelnya yang nggak ada
+              // angkanya — kertas yang difoto memang belum diisi. Menyuruh
+              // teknisi membetulkan framing di sini bikin dia menjepret ulang
+              // lembar yang sama berkali-kali.
+              ? l10n.lkFotoTabelKosong
+              : l10n.lkGridFotoTanpaJangkar,
+        );
+
+        return;
+      }
+
+      final terisi = widget.sp.terapkanHasilFoto(hasil.sel);
+
+      widget.onBerubah();
+
+      pesan(
+        hasil.angkaTakTerpetakan == 0
+            ? l10n.lkFotoTabelTerisi(terisi)
+            : l10n.lkFotoTabelSebagian(terisi, hasil.angkaTakTerpetakan),
+        detik: 6,
+      );
+    } catch (e) {
+      if (mounted) pesan(l10n.lkFotoTabelError('$e'), detik: 6);
+    } finally {
+      if (mounted) setState(() => _sibuk = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    return OutlinedButton.icon(
+      key: Key('grid_foto_${widget.nomor}'),
+      onPressed: _sibuk ? null : _foto,
+      icon: _sibuk
+          ? const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.photo_camera_outlined, size: 18),
+      label: Text(l10n.lkFotoTabel),
+    );
+  }
+}
+
+/// Kuning penanda "diisi mesin, belum diadu ke kertas" — nilainya disamakan
+/// dengan `TandaSel.keyakinanRendah` di `lembar_kerja_tabel.dart`.
+
+
 class _KotakAngka extends StatelessWidget {
   const _KotakAngka({
     super.key,
@@ -443,6 +661,7 @@ class _KotakAngka extends StatelessWidget {
     required this.onBerubah,
     this.bulat = false,
     this.galat = false,
+    this.dariFoto = false,
     this.hint,
   });
 
@@ -453,6 +672,12 @@ class _KotakAngka extends StatelessWidget {
   final bool bulat;
 
   final bool galat;
+
+  /// Isinya datang dari FOTO, belum diadu ke kertas. Ditandai kuning — warna
+  /// yang sama dipakai `TandaSel.keyakinanRendah` di jalur tabel, dan artinya
+  /// sama: saran mesin, bukan keputusan orang.
+  final bool dariFoto;
+
   final String? hint;
 
   @override
@@ -477,9 +702,15 @@ class _KotakAngka extends StatelessWidget {
         hintStyle: const TextStyle(fontSize: 11),
         contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
         border: const OutlineInputBorder(),
+        // Galat menang atas penanda foto: kotak yang salah harus kelihatan
+        // salah, bukan cuma "belum dicek".
         enabledBorder: galat
             ? OutlineInputBorder(
                 borderSide: BorderSide(color: theme.colorScheme.error),
+              )
+            : dariFoto
+            ? const OutlineInputBorder(
+                borderSide: BorderSide(color: kuningPerluDicek, width: 2),
               )
             : null,
       ),

@@ -2723,6 +2723,23 @@ class AppLocalizationsId extends AppLocalizations {
       'Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom nilai standar (kiri) dan kepala kolom Repeat (nomor 1..5, atau X1 / Repeat 1) ikut kefoto — semuanya, jangan ada yang kepotong. Kolomnya tetap bisa diketik manual.';
 
   @override
+  String get lkTabelBelumDisimpan =>
+      'Angka di tabel ini tercatat di lembar, tapi BELUM dikirim ke server — belum ada kolom yang menampungnya. Kertasnya jangan dibuang.';
+
+  @override
+  String get lkMatriksFotoTanpaJangkar =>
+      'Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom nama besaran di kiri (Temp. Disk 1, Indikator Pressure, …) dan kepala kolom titik waktu di atas ikut kefoto — semuanya, jangan ada yang kepotong. Baris yang namanya nggak kebaca nggak pernah keisi.';
+
+  @override
+  String get lkGridFotoTanpaJangkar =>
+      'Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom No. (nomor termokopel, di kiri) dan kepala kolom pengulangan di atas ikut kefoto — semuanya, jangan ada yang kepotong. Baris yang nomornya belum diketik nggak pernah keisi dari foto.';
+
+  @override
+  String lkGridFotoNomorKembar(String nomor) {
+    return 'Set point ini nggak bisa difoto: nomor termokopel $nomor kepakai di lebih dari satu baris, jadi angkanya nggak bisa dipastikan masuk baris yang mana. Betulin dulu nomor kembarnya.';
+  }
+
+  @override
   String lkFotoTabelKolomHilang(String kolom) {
     return 'Label kolom $kolom nggak kebaca di foto, jadi nggak ada yang diisi — kalau dipaksa, angkanya bisa mendarat di kolom sebelah tanpa ketahuan. Jepret ulang dengan baris satuan di kepala tabel ikut masuk frame.';
   }
@@ -3778,6 +3795,11 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String lkStandarBelumDicentang(String titik) {
     return 'Titik $titik udah diisi angkanya tapi standar acuannya belum dicentang — angkanya nggak bisa dihitung. Centang standarnya, atau kosongkan barisnya kalau alat ini emang nggak pakai titik itu.';
+  }
+
+  @override
+  String lkSetPointKosong(String titik) {
+    return 'Titik $titik udah diisi angkanya tapi kotak Setpoint-nya masih kosong atau nggak kebaca sebagai angka — SELURUH barisnya, termasuk kotak pembacaan yang udah diisi, nggak bakal ikut terkirim. Isi Setpoint-nya dulu, atau kosongkan barisnya kalau titik itu emang nggak dipakai.';
   }
 
   @override

@@ -34,6 +34,19 @@ String formatAngka(double nilai) => nilai == nilai.roundToDouble()
     ? nilai.toStringAsFixed(0)
     : '$nilai';
 
+/// Kuning "diisi kamera — PERIKSA".
+///
+/// SATU tempat buat tiga penggambar: sel tabel ([TandaSel.keyakinanRendah]),
+/// kotak grid Enclosure, dan sel matriks Autoklaf. Sengaja dipusatkan: warnanya
+/// itu satu-satunya yang membedakan angka yang diketik orang dari angka yang
+/// ditebak mesin, dan tiga nada kuning yang mirip-tapi-beda mengajari mata
+/// teknisi bahwa bedanya nggak berarti apa-apa.
+///
+/// Sempat disalin bertiga sebagai literal, lengkap dengan tiga komentar yang
+/// sama-sama mewanti "warnanya wajib persis sama" — persis risiko yang mereka
+/// peringatkan.
+const kuningPerluDicek = Color(0xFFB8860B);
+
 /// Penanda yang nempel di satu sel tabel. Tiga keadaan, dua arti yang beda.
 enum TandaSel {
   tidakAda,
@@ -109,9 +122,11 @@ class TitikState {
     this.eksklusifDengan,
     this.onKetik,
     this.parameter,
+    this.titikDitentukan = true,
     int? noProbeAwal,
   }) : standardId = standardIdTercetak,
        noProbeCtl = TextEditingController(text: noProbeAwal?.toString() ?? ''),
+       titikCtl = TextEditingController(),
        _kotak = {};
 
   /// Dipanggil tiap ANGKA di baris ini berubah.
@@ -123,6 +138,33 @@ class TitikState {
   final VoidCallback? onKetik;
 
   final double titikUkur;
+
+  /// [titikUkur] beneran set point, bukan cuma penanda posisi baris.
+  ///
+  /// `false` cuma di lembar TIDS: kertasnya mencetak tujuh baris `Setpoint`
+  /// KOSONG, dan angkanya ditulis teknisi di lapangan. Lihat
+  /// [BarisTabelHasil.titikDitentukan].
+  final bool titikDitentukan;
+
+  /// Kotak `Setpoint` baris ini — cuma dipakai waktu [titikDitentukan] `false`.
+  final TextEditingController titikCtl;
+
+  /// Set point yang BERLAKU buat baris ini. `null` = belum diisi teknisi.
+  ///
+  /// **Ini yang dikirim, bukan [titikUkur].** Buat sembilan belas lembar lain
+  /// keduanya sama; buat TIDS, [titikUkur] cuma nomor barisnya, dan
+  /// mengirimnya apa adanya menerbitkan set point "1 °C … 7 °C" — angka yang
+  /// nggak pernah diketik siapa pun dan nggak ditolak apa pun.
+  double? get titikUkurEfektif =>
+      titikDitentukan ? titikUkur : parseAngka(titikCtl.text);
+
+  /// Baris ini boleh ikut dikirim.
+  ///
+  /// Baris bawaan SELALU boleh — termasuk yang sama sekali belum disentuh:
+  /// backend menyimpan titiknya mentah, dan itu yang bikin lembar setengah jadi
+  /// tetap kebaca utuh sama admin. Yang ditahan cuma baris yang set point-nya
+  /// memang belum ada, karena baris begitu nggak punya identitas buat dihitung.
+  bool get siapKirim => titikUkurEfektif != null;
 
   /// Besaran yang diukur baris ini: `suhu` / `kelembaban`.
   ///
@@ -219,8 +261,18 @@ class TitikState {
   /// dikalibrasi dan hasilnya masih boleh jelek. Yang ditahan itu angka yang
   /// mustahil datang dari alat yang lagi diukur di titik ini.
   bool get adaPembacaanJauhDariTitik {
-    // Nominal 0 nggak punya orde — nggak ada yang bisa dibandingin.
-    if (titikUkur == 0) return false;
+    // [titikUkurEfektif], BUKAN [titikUkur]. Bedanya cuma kelihatan di lembar
+    // TIDS, dan di sana yang kedua nomor barisnya (1..7) — bukan set point.
+    //
+    // Dibandingkan ke nomor baris, teknisi yang mengetik set point 121,5 lalu
+    // membaca 121,5 kena rasio 121,5 dan barisnya DITOLAK sebelum kirim.
+    // Penjaga yang menahan angka sah persis kebalikan dari gunanya: yang dia
+    // latih bukan ketelitian, tapi kebiasaan menekan lanjut tanpa membaca.
+    final acuan = titikUkurEfektif;
+
+    // Belum diisi = belum ada yang bisa dibandingkan. Barisnya juga nggak ikut
+    // dikirim (lihat [siapKirim]), jadi nggak ada yang perlu ditahan.
+    if (acuan == null || acuan == 0) return false;
 
     for (final entry in _kotak.entries) {
       final bagian = entry.key.split('|');
@@ -229,7 +281,7 @@ class TitikState {
       final nilai = parseAngka(entry.value.text);
       if (nilai == null) continue;
 
-      final rasio = nilai.abs() / titikUkur.abs();
+      final rasio = nilai.abs() / acuan.abs();
       if (rasio >= 10 || rasio <= 0.1) return true;
     }
 
@@ -321,8 +373,15 @@ class TitikState {
       });
 
   /// Sudah ada isian apa pun di baris ini?
+  ///
+  /// [titikCtl] ikut dihitung: di lembar TIDS kotak `Setpoint` itu isian
+  /// teknisi, bukan bagian bentuk lembar. Nggak ikut, teknisi yang baru
+  /// mengetik ketujuh set point-nya lalu menekan back **kehilangan semuanya
+  /// tanpa satu pun konfirmasi** — layar mengira lembarnya masih perawan.
   bool get adaIsian =>
-      _kotak.values.any((c) => c.text.trim().isNotEmpty) || standardId != null;
+      _kotak.values.any((c) => c.text.trim().isNotEmpty) ||
+      titikCtl.text.trim().isNotEmpty ||
+      standardId != null;
 
   /// Ada ANGKA yang diketik di baris ini? Beda dari [adaIsian], dan bedanya
   /// penting: [adaIsian] ikut ngitung `standardId`, yang KEISI SEJAK AWAL dari
@@ -338,15 +397,31 @@ class TitikState {
   /// berubah (mis. teknisi milih alat, dan baris varian satuan menyusut).
   ///
   /// Yang kosong nggak ikut disalin — biar nempelnya nggak nimpa apa pun.
+  /// Isian yang perlu selamat waktu tabelnya dibangun ulang.
+  ///
+  /// Kotak `Setpoint` ikut lewat kunci bersandi (`titik||0`) — bentuk yang sama
+  /// dengan sel biasa supaya [tempelKotak] nggak butuh cabang kedua. Tanpa dia,
+  /// set point yang barusan diketik teknisi hilang tiap bentuknya disegarkan.
   Map<String, String> salinKotak() => {
     for (final e in _kotak.entries)
       if (e.value.text.trim().isNotEmpty) e.key: e.value.text,
+    if (!titikDitentukan && titikCtl.text.trim().isNotEmpty)
+      kunciSetpoint: titikCtl.text,
   };
+
+  /// Kunci sandi kotak `Setpoint` di dalam [salinKotak].
+  static const kunciSetpoint = 'titik||0';
 
   /// Kebalikan [salinKotak]. Kunci yang bentuknya nggak dikenal dilewat, bukan
   /// bikin crash — salinan bisa datang dari bentuk lembar yang beda.
   void tempelKotak(Map<String, String> dari) {
     for (final e in dari.entries) {
+      if (e.key == kunciSetpoint) {
+        titikCtl.text = e.value;
+
+        continue;
+      }
+
       final bagian = e.key.split('|');
       if (bagian.length != 3) continue;
       final index = int.tryParse(bagian[2]);
@@ -362,9 +437,20 @@ class TitikState {
     (i) => parseAngka(kotak(tahap, kolom, i).text),
   );
 
-  TitikLembarKerja toSubmission() {
+  /// [kunciUtama] itu kunci sel tabel yang isinya jadi
+  /// `measurements[].pembacaan` — lihat [LembarKerjaState.kunciTabelPembacaan].
+  ///
+  /// Dulu `sesudah_adjustment` MATI di sini. Sembilan belas lembar tabelnya
+  /// memang bertahap `sesudah_adjustment`, jadi nggak ada yang kelihatan salah
+  /// selama bertahun-tahun. Lembar TIDS tabelnya `pembacaan_uut`, dan
+  /// akibatnya sunyi total: payloadnya terkirim dengan set point yang benar
+  /// dan `pembacaan` NULL SEMUA — tiga puluh lima angka yang beneran diambil
+  /// teknisi di lapangan nggak pernah nyampe server, di lembar yang penuh di
+  /// layar dan tombol kirimnya jalan mulus.
+  TitikLembarKerja toSubmission({String kunciUtama = 'sesudah_adjustment'}) {
     final titik = TitikLembarKerja(
-      titikUkur: titikUkur,
+      // `titikUkurEfektif`, bukan `titikUkur` — lihat docblock getternya.
+      titikUkur: titikUkurEfektif ?? titikUkur,
       jumlahPengulangan: jumlahPengulangan,
       standardId: standardId,
       satuan: satuan.isEmpty ? null : satuan,
@@ -376,8 +462,8 @@ class TitikState {
       }
     }
 
-    salin(_kolom('sesudah_adjustment', 'pembacaan'), titik.pembacaan);
-    salin(_kolom('sesudah_adjustment', 'suhu'), titik.suhu);
+    salin(_kolom(kunciUtama, 'pembacaan'), titik.pembacaan);
+    salin(_kolom(kunciUtama, 'suhu'), titik.suhu);
     salin(_kolom('sebelum_adjustment', 'pembacaan'), titik.pembacaanSebelum);
     salin(_kolom('sebelum_adjustment', 'suhu'), titik.suhuSebelum);
 
@@ -412,6 +498,7 @@ class TitikState {
 
   void dispose() {
     noProbeCtl.dispose();
+    titikCtl.dispose();
     for (final c in _kotak.values) {
       c.dispose();
     }
@@ -628,6 +715,22 @@ class LembarKerjaState {
   /// milik bentuk.
   final List<double> titikKustom = [];
 
+  /// [TitikState] milik baris ke-[index] di [baris].
+  ///
+  /// Kuncinya WAJIB dihitung lewat [kunciBaris] — bukan dari `titikUkur`
+  /// langsung. Dua bentuk lembar bikin keduanya beda: lembar pasangan
+  /// (Thermohygro) mengunci ke posisi di dalam blok parameternya, dan tabel
+  /// yang penanda barisnya kembar jatuh ke mode indeks. Mengambil pintasan di
+  /// sini berarti kotak yang digambar dan kotak yang dikirim jadi dua objek
+  /// yang beda — dan bedanya nggak memunculkan error di mana pun.
+  ///
+  /// `null` cuma kalau tabelnya belum dibangun; layar menggambar kotak mati.
+  TitikState? titikUntukBaris(
+    List<BarisTabelHasil> baris,
+    int index,
+    TabelHasil tabel,
+  ) => titik[kunciBaris(baris, index, tabel)];
+
   /// Baris tabel yang BERLAKU sekarang — bawaan backend, atau hasil susunan
   /// teknisi kalau tabelnya boleh diubah.
   ///
@@ -731,6 +834,9 @@ class LembarKerjaState {
             kunciBaris(baris, i, t),
             () => TitikState(
               titikUkur: b.titikUkur,
+              // Baris yang set point-nya kosong di kertas dapat kotaknya
+              // sendiri — lihat `TitikState.titikDitentukan`.
+              titikDitentukan: b.titikDitentukan,
               tipe: b.tipe,
               label: b.label,
               jumlahPengulangan: t.pengulangan.length,
@@ -1045,6 +1151,56 @@ class LembarKerjaState {
       )
       .toList();
 
+  /// Kunci sel tabel yang isinya jadi `measurements[].pembacaan`.
+  ///
+  /// ## Kenapa nggak boleh dipaku ke `sesudah_adjustment`
+  ///
+  /// Kunci sel tiap tabel itu [TabelHasil.kunciTabel], dan isinya `tahap` yang
+  /// dikirim backend. Sembilan belas lembar mengirim `sesudah_adjustment`,
+  /// jadi kunci mati di [TitikState.toSubmission] kebetulan benar selama
+  /// bertahun-tahun. Lembar TIDS mengirim `pembacaan_uut`.
+  ///
+  /// Waktu dua sisi itu nggak ketemu, yang terjadi BUKAN error: kotaknya
+  /// kesimpen di `pembacaan_uut|pembacaan|i`, payloadnya dirakit dari
+  /// `sesudah_adjustment|pembacaan|i` yang memang nggak pernah ada, dan
+  /// `measurements` terkirim berisi set point yang benar dengan `pembacaan`
+  /// null semua. Kelas kegagalan yang sama dengan seluruh berkas ini: layar
+  /// penuh, tombol jalan, datanya hilang di perjalanan.
+  ///
+  /// Yang ditanya BACKEND, bukan daftar nama alat di sini: `simpan_ke`
+  /// menyatakan tujuannya eksplisit, jadi lembar ke-21 yang tahapnya beda lagi
+  /// ikut benar tanpa berkas ini disentuh.
+  ///
+  /// Bawaannya `sesudah_adjustment` — lembar yang nggak mengirim `simpan_ke`
+  /// sama sekali (semua yang sudah ada) nggak berubah perilakunya sedikit pun.
+  String get kunciTabelPembacaan {
+    for (final b in bentuk.bagian) {
+      for (final t in b.tabel) {
+        if (t.berpasangan || t.tanpaTempatSimpan) continue;
+        if (t.simpanKe == 'measurements[].pembacaan') return t.kunciTabel;
+      }
+    }
+
+    return 'sesudah_adjustment';
+  }
+
+  /// Baris yang ANGKANYA keisi tapi kotak `Setpoint`-nya kosong atau nggak
+  /// kebaca sebagai angka.
+  ///
+  /// Cuma lembar TIDS yang bisa kena — cuma di sana set point-nya diketik
+  /// teknisi. Dan di sana akibatnya sunyi: baris tanpa set point nggak punya
+  /// identitas buat dihitung, jadi [TitikState.siapKirim] MEMBUANG SELURUH
+  /// BARISNYA — kelima kotak pembacaan yang sudah diisi ikut hilang, tanpa
+  /// satu pun tanda, di lembar yang kelihatan penuh di layar.
+  ///
+  /// Itu kelas kerusakan yang paling mahal di berkas ini, jadi penjaganya
+  /// MENAHAN (bukan bertanya), sejajar sama [titikTerisiTanpaStandar]: yang
+  /// hilang bukan dugaan soal kewajaran angka, tapi angka yang beneran ada di
+  /// tangan teknisi dan beneran nggak jadi terkirim.
+  List<TitikState> get titikTanpaSetPoint => titik.values
+      .where((t) => !t.titikDitentukan && t.adaPembacaan && !t.siapKirim)
+      .toList();
+
   /// Lembar kerja ini punya kolom "7. Satuan Refracto"?
   ///
   /// Yang nentuin **bentuk dari backend**, bukan daftar nama alat di sini —
@@ -1071,6 +1227,12 @@ class LembarKerjaState {
   /// sama. Dipaksa masuk [titik], kedelapan barisnya berbagi satu `TitikState`
   /// dan saling nimpa.
   final Map<String, TextEditingController> matriks = {};
+
+  /// Sel matriks yang isinya datang dari FOTO, belum diadu ke kertas — keyed
+  /// sama dengan [matriks]. Ditandai kuning di layar, alasan yang sama dengan
+  /// [selRendahKeyakinan] di tabel biasa: hasil OCR itu saran, dan yang
+  /// menandatangani sertifikatnya manusia.
+  final Set<String> matriksDariFoto = {};
 
   /// Keyed by nilai larutan standar (4.00 / 7.00 / 10.01).
   final Map<double, TitikState> titik = {};
@@ -1492,6 +1654,7 @@ class LembarKerjaState {
   /// persis kerusakan yang lagi ditutup di sini.
   int terapkanPembacaan(Iterable<RawMeasurement> mentah) {
     var kebuang = 0;
+    final kunciUtama = kunciTabelPembacaan;
 
     // Baris ber-GRID dipisah duluan. Dia nggak punya kolom `pembacaan`/`suhu`
     // buat ditaruhi — angkanya duduk di sel (sensor ke-N, repeat ke-M) di dalam
@@ -1509,7 +1672,10 @@ class LembarKerjaState {
     for (final m in datar) {
       final tujuan = m.bagianPasangan
           ? _titikPasangan(m.titikUkur, m.satuan)
-          : _titikTerdekat(m.titikUkur);
+          // Baris yang set point-nya diketik teknisi (TIDS) NGGAK bisa ketemu
+          // lewat [_titikTerdekat] — lihat [_titikBelumDitentukan].
+          : (_titikTerdekat(m.titikUkur) ??
+                _titikBelumDitentukan(m.titikUkur));
 
       if (tujuan == null) {
         kebuang++;
@@ -1552,11 +1718,15 @@ class LembarKerjaState {
       //
       // Nilainya sama persis dengan `TabelHasil.kunciTabel` di sisi bentuk
       // lembar kerja, dan itu yang bikin dua sisi ini ketemu.
+      // Kunci utamanya dari BENTUK lembar ([kunciTabelPembacaan]), bukan
+      // dipaku — kembarannya di [TitikState.toSubmission]. Dua sisi ini wajib
+      // memakai kunci yang sama: yang dipulihkan ke kotak yang salah sama
+      // saja dengan nggak dipulihkan, cuma tanpa ada yang kehitung `kebuang`.
       final tahap = m.bagianPasangan
           ? m.peranSensor!
           : (m.tahap == TahapPembacaan.sebelumAdjustment
                 ? 'sebelum_adjustment'
-                : 'sesudah_adjustment');
+                : kunciUtama);
 
       final kotakPembacaan = tujuan.kotak(tahap, 'pembacaan', index);
 
@@ -1826,6 +1996,65 @@ class LembarKerjaState {
     return cadangan;
   }
 
+  /// Cari baris TIDS buat set point tersimpan [titikUkur] — dan tulis balik
+  /// angkanya ke kotak `Setpoint`-nya.
+  ///
+  /// ## Kenapa [_titikTerdekat] nggak bisa dipakai
+  ///
+  /// Di lembar TIDS kunci `titik` itu NOMOR BARIS (1..7): kertasnya mencetak
+  /// tujuh baris `Setpoint` kosong, jadi bentuk lembar dari server memang
+  /// nggak punya angka buat dikunci. Yang DIKIRIM waktu sesinya disimpan
+  /// [TitikState.titikUkurEfektif] — angka yang diketik teknisi, mis. `121,5`.
+  ///
+  /// Dua sisi itu nggak ketemu. `titik[121.5]` nggak ada, `_titikTerdekat`
+  /// pulang null, dan tiap baris kehitung `kebuang`: teknisi yang membuka lagi
+  /// draf TIDS-nya — atau lembar yang dikembalikan admin buat dibetulkan —
+  /// dapat tabel KOSONG, dan yang dia kirim balik cuma sisa yang sempat
+  /// diketik ulang dari kertas. Kelas kerusakan yang sama persis dengan yang
+  /// ditutup [terapkanPembacaan] sendiri, cuma di lembar yang lolos karena
+  /// barisnya nggak punya identitas angka.
+  ///
+  /// ## Aturannya, dan kenapa urutannya begitu
+  ///
+  ///  1. Baris yang kotak `Setpoint`-nya SUDAH berisi angka yang sama →
+  ///     itu barisnya. Ini yang bikin lima pembacaan satu set point mendarat
+  ///     di baris yang sama, bukan memakan lima baris.
+  ///  2. Belum ada → baris pertama yang kotaknya masih kosong, dan angkanya
+  ///     ditulis ke situ. Kotaknya diisi DULUAN, sebelum sel pembacaannya —
+  ///     baris tanpa set point nggak ikut dikirim ([TitikState.siapKirim]),
+  ///     jadi urutan terbalik memulihkan angka ke baris yang langsung dibuang
+  ///     lagi waktu disimpan.
+  ///  3. Kehabisan baris kosong → null, dan pemanggilnya menghitungnya
+  ///     `kebuang`. Sengaja nggak menambah baris: tujuh baris itu bentuk
+  ///     kertasnya, dan diam-diam menumbuhkannya menyembunyikan bahwa data
+  ///     tersimpannya nggak muat.
+  ///
+  /// Lembar yang SEMUA barisnya ber-set point tetap pulang null di baris
+  /// pertama loop — sembilan belas lembar lain nggak berubah perilakunya.
+  TitikState? _titikBelumDitentukan(double titikUkur) {
+    TitikState? kosong;
+
+    for (final t in titik.values) {
+      if (t.titikDitentukan) continue;
+
+      final terisi = parseAngka(t.titikCtl.text);
+
+      if (terisi != null) {
+        if (_titikSama(terisi, titikUkur)) return t;
+
+        continue;
+      }
+
+      kosong ??= t;
+    }
+
+    if (kosong == null) return null;
+
+    kosong.titikCtl.text = formatAngka(titikUkur);
+
+    return kosong;
+  }
+
   /// Sama kayak [_titikTerdekat], tapi balikin KUNCI-nya.
   ///
   /// Kuncinya nggak selalu sama dengan nilai titiknya: tabel yang titiknya
@@ -1924,7 +2153,16 @@ class LembarKerjaState {
     // titiknya mentah (nggak dihitung) dan itu yang bikin lembar kerja setengah
     // jadi tetap kebaca utuh sama admin — kolom mana yang kosong kelihatan,
     // bukan ilang dari tabel.
-    final measurements = titik.values.map((t) => t.toSubmission()).toList();
+    // `siapKirim` menahan SATU hal saja: baris yang set point-nya memang belum
+    // ada (tujuh baris kosong lembar TIDS). Baris bawaan yang belum disentuh
+    // tetap ikut — backend menyimpan titiknya mentah, dan itu yang bikin lembar
+    // setengah jadi tetap kebaca utuh sama admin.
+    final kunciUtama = kunciTabelPembacaan;
+
+    final measurements = titik.values
+        .where((t) => t.siapKirim)
+        .map((t) => t.toSubmission(kunciUtama: kunciUtama))
+        .toList();
 
     // Lembar ber-GRID nggak punya `titik` sama sekali — bentuknya nggak
     // mengirim `tabel`, jadi `measurements` di atas selalu kosong. Set point-nya
@@ -2025,9 +2263,13 @@ class LembarKerjaState {
   List<RingkasanTitik> ringkasanKirim() => [
     for (final t in titikUrut)
       () {
+        // Kunci yang sama dengan yang dirakit [TitikState.toSubmission] —
+        // ringkasan yang membaca kotak lain bilang "0 dari 5 terisi" di lembar
+        // yang penuh, atau lebih buruk, "5 dari 5" di lembar yang isinya nggak
+        // ikut terkirim.
         final isi = [
           for (var i = 0; i < t.jumlahPengulangan; i++)
-            parseAngka(t.kotak('sesudah_adjustment', 'pembacaan', i).text),
+            parseAngka(t.kotak(kunciTabelPembacaan, 'pembacaan', i).text),
         ].whereType<double>().toList();
 
         return RingkasanTitik(
@@ -2118,6 +2360,16 @@ class LembarKerjaState {
     if (terisi > 0) adaIsianDariFoto = true;
 
     return terisi;
+  }
+
+  /// Baris matriks yang penanda fotonya [penanda]. `null` = bukan penanda baris
+  /// mana pun di matriks ini.
+  static BarisMatriks? _barisMatriks(List<BarisMatriks> baris, double penanda) {
+    for (var i = 0; i < baris.length; i++) {
+      if (MatriksHasil.kunciBarisFoto(i) == penanda) return baris[i];
+    }
+
+    return null;
   }
   /// Tuang hasil FOTO SATU TABEL ke kotak isian tabel itu.
   ///
@@ -2424,6 +2676,46 @@ class LembarKerjaState {
         () => TextEditingController()
           ..addListener(() => onIsianDiketik?.call()),
       );
+
+  /// Tempelkan hasil foto matriks ke kotak-kotaknya. Balik berapa sel keisi.
+  ///
+  /// Penanda barisnya karangan ([MatriksHasil.kunciBarisFoto]) karena baris
+  /// matriks itu besaran, bukan titik ukur — jadi yang menerjemahkannya balik
+  /// ke `kodeData` cuma boleh method ini, dan urutan `semuaBaris` yang dipakai
+  /// wajib SAMA dengan yang dipakai waktu penandanya dibikin.
+  ///
+  /// Dua hal yang sengaja dilewat:
+  ///
+  ///  - **Baris `Time`.** Isinya jam (`HH:mm:ss`), bukan hasil ukur. Dia tetap
+  ///    ikut sebagai JANGKAR supaya angka yang kebetulan jatuh di barisnya
+  ///    diklaim lalu dibuang di sini — bukan melayang ke baris tetangganya.
+  ///  - **Kotak yang sudah ada isinya.** Angka yang sudah diketik orang
+  ///    keputusan orang; foto cuma jalan pintas.
+  int terapkanHasilFotoMatriks(MatriksHasil m, List<SelTabelFoto> sel) {
+    final baris = m.semuaBaris;
+    var terisi = 0;
+
+    for (final s in sel) {
+      if (!m.titikWaktu.contains(s.repeatNo)) continue;
+
+      final b = _barisMatriks(baris, s.titikUkur);
+      if (b == null || b.tipe == 'jam') continue;
+
+      final nilai = double.tryParse(s.teks.trim().replaceAll(',', '.'));
+      if (nilai == null) continue;
+
+      final kotak = kotakMatriks(b.kodeData, s.repeatNo);
+      if (kotak.text.trim().isNotEmpty) continue;
+
+      kotak.text = s.teks.trim();
+      matriksDariFoto.add(kunciMatriks(b.kodeData, s.repeatNo));
+      terisi++;
+    }
+
+    if (terisi > 0) adaIsianDariFoto = true;
+
+    return terisi;
+  }
 
 /// Rakit blok data ukur untuk lembar bertabel matriks (Autoklaf).
   ///

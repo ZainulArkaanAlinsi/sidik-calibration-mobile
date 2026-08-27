@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image/image.dart' as img;
 
 import '../../../core/config/app_config.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -9,8 +8,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../models/lembar_kerja.dart';
 import '../../../models/standard.dart';
 import '../../../providers/calibration_input_provider.dart';
-import '../../../providers/sumber_foto_provider.dart';
-import '../../../providers/worksheet_scan_provider.dart';
+import '../../../services/ambil_foto_tabel.dart';
 import '../../../services/peta_tabel_foto.dart';
 import '../../../widgets/label_standar.dart';
 import '../lembar_kerja_state.dart';
@@ -178,6 +176,11 @@ class LembarKerjaTabel extends StatelessWidget {
     final theme = Theme.of(context);
     final ukuran = _ukurKolomLabel(context);
 
+    // Dihitung SEKALI. `_baris` itu getter yang menyusun ulang daftarnya tiap
+    // dibaca; dipanggil di dalam perulangan kolom label, tabel sepuluh baris
+    // menyusunnya puluhan kali per frame.
+    final barisTabel = _baris;
+
     // Nomor pengulangan dipotong jadi baris-baris sesuai lembar cetaknya —
     // satu potongan buat alat biasa, dua buat blok %T (X1..X3 dua kali).
     final potongan = tabel.pengulanganPerBarisnya;
@@ -195,6 +198,14 @@ class LembarKerjaTabel extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
+
+        // Peringatan "isinya belum punya tempat" duduk DI ATAS tabelnya,
+        // bukan di bawah: teknisi yang membaca setelah mengisi 35 kotak sudah
+        // terlambat diberi tahu.
+        if (tabel.tanpaTempatSimpan) ...[
+          _CatatanTabel(teks: AppLocalizations.of(context).lkTabelBelumDisimpan),
+          const SizedBox(height: AppSpacing.sm),
+        ],
 
         // Tombolnya sengaja LEBAR & BERLABEL, bukan ikon kecil di pojok: ini
         // jalan pintas yang paling sering dipakai di lapangan, dan waktu cuma
@@ -281,7 +292,20 @@ class LembarKerjaTabel extends StatelessWidget {
                   teks: tabel.judulNilaiUntuk(isian.modeKalibrasi) ?? 'Standard',
                   tinggi: tinggiKepala,
                 ),
-                for (final baris in _baris)
+                for (var iBaris = 0; iBaris < barisTabel.length; iBaris++)
+                  if (!barisTabel[iBaris].titikDitentukan)
+                    // Kertas TIDS mencetak tujuh baris `Setpoint` KOSONG —
+                    // angkanya ditulis teknisi di lapangan, bukan dipatok
+                    // master seperti buffer pH. Jadi kolom kiri baris ini kotak
+                    // isian, bukan label mati.
+                    _SelSetpoint(
+                      lebar: ukuran.lebar,
+                      tinggi: ukuran.tinggi * potongan.length,
+                      state: isian.titikUntukBaris(barisTabel, iBaris, tabel),
+                      satuan: isian.bentuk.satuanUntuk(barisTabel[iBaris]),
+                      onBerubah: onBerubah,
+                    )
+                  else
                   _SelKepala(
                     lebar: ukuran.lebar,
                     // Satuannya ikut, persis sheet INPUT DATA yang nulis
@@ -290,15 +314,15 @@ class LembarKerjaTabel extends StatelessWidget {
                     // Satuan diambil PER BARIS lewat `satuanUntuk` — lembar
                     // Conductivity nyampur µS/cm & mS/cm, dan ngambil dari
                     // level lembar bikin 111 mS/cm kelabel µS/cm.
-                    teks: _labelBaris(baris),
+                    teks: _labelBaris(barisTabel[iBaris]),
                     // Keterangan singkat kenapa baris ini mati — tanpa itu
                     // teknisi lihat kotak abu tanpa sebab.
-                    catatan: isian.titikTerkunci(baris.titikUkur)
+                    catatan: isian.titikTerkunci(barisTabel[iBaris].titikUkur)
                         ? AppLocalizations.of(context).lkTitikAlternatifSatuan
                         : null,
                     // Diketuk = keluar penjelasan penuhnya, termasuk CARA
                     // mbukanya. Catatan sebarisnya nggak muat nampung itu.
-                    onKetuk: isian.titikTerkunci(baris.titikUkur)
+                    onKetuk: isian.titikTerkunci(barisTabel[iBaris].titikUkur)
                         ? () => ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
@@ -1356,7 +1380,7 @@ class _SelAngka extends StatelessWidget {
     final warna = switch (tanda) {
       TandaSel.tidakAda => null,
       // Amber gelap, kebaca di light & dark.
-      TandaSel.keyakinanRendah => const Color(0xFFB8860B),
+      TandaSel.keyakinanRendah => kuningPerluDicek,
       TandaSel.revisi => const Color(0xFFC62828),
     };
 
@@ -1626,6 +1650,124 @@ class _Dropdown extends ConsumerWidget {
 /// **Semua yang keisi ditandai perlu dicek.** Tanpa server, nggak ada yang
 /// mengadu angkanya ke rentang titik maupun resolusi alat; yang tersisa cuma
 /// mata teknisi.
+/// Keterangan sebaris di atas tabel — dipakai buat tabel yang isinya belum
+/// punya tempat di server ([TabelHasil.tanpaTempatSimpan]).
+class _CatatanTabel extends StatelessWidget {
+  const _CatatanTabel({required this.teks});
+
+  final String teks;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.info_outline,
+            size: 16,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          Expanded(
+            child: Text(
+              teks,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Kolom kiri buat baris yang set point-nya BELUM ditentukan — kotak isian,
+/// bukan label.
+///
+/// Cuma lembar TIDS yang punya (`SIDIK-FM-CAL-0506 Rev.4`): kertasnya mencetak
+/// tujuh baris `Setpoint` kosong. Sembilan belas lembar lain set point-nya
+/// tercetak, dan kolom ini tetap label mati seperti dulu.
+///
+/// **Baris yang kotaknya dibiarkan kosong nggak ikut dikirim.** Baris tanpa set
+/// point nggak punya identitas buat dihitung — lihat `TitikState.siapKirim`.
+class _SelSetpoint extends StatelessWidget {
+  const _SelSetpoint({
+    required this.lebar,
+    required this.tinggi,
+    required this.state,
+    required this.satuan,
+    required this.onBerubah,
+  });
+
+  final double lebar;
+  final double tinggi;
+  final TitikState? state;
+  final String satuan;
+  final VoidCallback onBerubah;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      width: lebar,
+      height: tinggi,
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        border: Border(
+          right: BorderSide(color: theme.dividerColor),
+          bottom: BorderSide(color: theme.dividerColor),
+        ),
+      ),
+      child: state == null
+          ? const SizedBox.shrink()
+          : TextField(
+              controller: state!.titikCtl,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+                signed: true,
+              ),
+              inputFormatters: [
+                // Batasan yang SAMA dengan sel pembacaan — bukan sekadar
+                // "karakternya boleh ini".
+                //
+                // Daftar karakter meloloskan `12..5`, `1-2`, `--3`. Bentuk
+                // begitu bikin `parseAngka` pulang null, `siapKirim` jadi
+                // false, dan SELURUH barisnya — lima kotak pembacaan yang
+                // sudah diisi sekalian — hilang dari yang dikirim tanpa satu
+                // pun tanda. Pola berjangkar begini cuma menerima awalan yang
+                // masih bisa jadi angka.
+                FilteringTextInputFormatter.allow(RegExp(r'^-?\d*[.,]?\d*')),
+              ],
+              decoration: InputDecoration(
+                isDense: true,
+                hintText: satuan,
+                hintStyle: const TextStyle(fontSize: 11),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 4,
+                  vertical: 8,
+                ),
+                border: const OutlineInputBorder(),
+              ),
+              onChanged: (_) => onBerubah(),
+            ),
+    );
+  }
+}
+
 class _TombolFotoTabel extends ConsumerStatefulWidget {
   const _TombolFotoTabel({
     required this.tabel,
@@ -1646,23 +1788,59 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
 
   /// Tulisan kepala kolom pengulangan yang TERCETAK di kertas, per nomor.
   ///
-  /// Yang dari backend (`prefiks_pengulangan`, `X` bikin `X1`) ditaruh DULUAN
-  /// karena dia yang tahu bentuk kertas alatnya — tapi bawaan
-  /// [PetaTabelFoto.kepalaBawaan] tetap ikut di belakangnya.
+  /// Tiga sumber, dan yang mana yang menang menentukan benar-salahnya angka:
   ///
-  /// Ikut, bukan diganti: foto tabel ini justru diarahkan ke formulir LAMA lab
-  /// yang nggak bermarker, dan bentuk kertas itu belum dipastikan. Nerima
-  /// `Xn` maupun `Repeat n` sekaligus nggak nambah risiko salah taruh — dua
-  /// tulisan itu cuma ada di kepala kolom, nggak ada sel isian yang bisa
-  /// nyamar jadi salah satunya.
+  ///  1. **`pengulangan_arah[].label`** — tulisan yang SERVER bilang kecetak
+  ///     di atas kolom itu, dan tulisan yang sama persis digambar layar ini
+  ///     sebagai kepala kolomnya (`label:` di `_KepalaPengulangan`).
+  ///  2. `prefiks_pengulangan` (`X` bikin `X1`) — dikirim Spectrophotometer.
+  ///  3. Bawaan [PetaTabelFoto.kepalaBawaan] (`Xn` / `Repeat n`).
+  ///
+  /// **Begitu (1) menyebut sesuatu yang bukan `Xn`, dia SENDIRIAN.** Kepala
+  /// kolom TITS kecetak `UP X1` … `DOWN X3`, dan ML Kit membacanya per KATA —
+  /// jadi potongan `X1` muncul DUA kali, sekali di bawah `UP` dan sekali di
+  /// bawah `DOWN`. Selama `Xn` ikut jadi calon, jangkar Repeat 1 bisa mendarat
+  /// di kolom DOWN, dan yang masuk ke situ pembacaan arah sebaliknya. Nggak ada
+  /// error, jumlah selnya pas, angkanya wajar — persis bentuk kegagalan yang
+  /// paling mahal di fitur ini. Yang tahu bentuk kertasnya server; begitu dia
+  /// bicara, tebakan nggak boleh ikut bersuara.
+  ///
+  /// Kalau labelnya justru `Xn` itu sendiri (Thermohygro — `tabelPembacaan` di
+  /// server memberinya sebagai NILAI BAWAAN, bukan pernyataan soal kertasnya),
+  /// dia nggak menggantikan apa-apa: `Repeat n` tetap ikut diterima seperti
+  /// sebelumnya.
+  ///
+  /// Yang belum pernah kejangkar sama sekali sebelum ini: **TITS** (`UP X1`…)
+  /// dan **Thermocouple / Termometer Gelas** (`0″ 20″ 40″ 60″ 80″` di sisi
+  /// standar, `10″ 30″ 50″ 70″ 90″` di sisi UUT). Ketiganya nyetak kepala kolom
+  /// yang bukan `Xn`, bukan `Repeat n`, dan bukan nomor polos — jadi ketiga
+  /// jalur jangkar kolom yang ada semuanya lewat, dan tiap jepretan pulang NOL
+  /// SEL sebagus apa pun fotonya. Yang sampai ke teknisi bukan "kolomnya nggak
+  /// kebaca", tapi "tabelnya masih kosong" — nyuruh dia mengisi lembar yang
+  /// sudah penuh di tangannya.
   Map<int, List<String>> _kepalaPengulangan() {
     final prefiks = widget.tabel.prefiksPengulangan;
-    if (prefiks == null) return const {};
+    final arah = widget.tabel.pengulanganArah;
+
+    if (prefiks == null && arah.isEmpty) return const {};
 
     return {
-      for (final r in widget.tabel.pengulangan)
-        r: ['$prefiks$r', ...PetaTabelFoto.kepalaBawaan(r)],
+      for (final r in widget.tabel.pengulangan) r: _kepalaSatuKolom(r, prefiks),
     };
+  }
+
+  /// Calon tulisan kepala buat SATU kolom pengulangan — lihat
+  /// [_kepalaPengulangan] soal kenapa label kertas menang sendirian.
+  List<String> _kepalaSatuKolom(int r, String? prefiks) {
+    final label = widget.tabel.pengulanganArah[r];
+    final bawaan = [
+      if (prefiks != null) '$prefiks$r',
+      ...PetaTabelFoto.kepalaBawaan(r),
+    ];
+
+    if (label == null || label.isEmpty) return bawaan;
+
+    return bawaan.contains(label) ? bawaan : [label];
   }
 
   /// Slot larutan seperti TERCETAK, buat lembar yang Repeat-nya turun ke bawah.
@@ -1699,30 +1877,24 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
     setState(() => _sibuk = true);
 
     try {
-      // Resolusinya dipertahankan: yang dibaca ML Kit angka setinggi beberapa
-      // puluh piksel, dan tiap piksel yang dibuang di sini hilang dari angka
-      // yang kebaca. Yang dibatasi UKURANNYA, bukan mutunya — artefak JPEG di
-      // garis tipis itu yang bikin `4,04` kebaca `404`.
-      final foto = await ref
-          .read(sumberFotoProvider)
-          .ambil(maxWidth: 4200, imageQuality: 100);
+      // Ambil & bacanya lewat helper bersama — tiga tombol memakainya sekarang
+      // (tabel di sini, grid Enclosure, matriks Autoklaf), dan dua angka di
+      // dalamnya punya alasan yang mahal kalau ikut disalin salah. Lihat
+      // `services/ambil_foto_tabel.dart`.
+      final foto = await ambilDanBacaTabel(ref);
 
-      if (foto == null || !mounted) return;
+      if (!mounted || foto.dibatalkan) return;
 
-      final citra = img.decodeImage(await foto.readAsBytes());
-
-      if (citra == null) {
+      if (foto.terbaca == null) {
         messenger.showSnackBar(SnackBar(content: Text(l10n.lkFotoTabelGagal)));
 
         return;
       }
 
-      final pembaca = ref.read(pabrikPembacaPindaiProvider).halaman();
-
       final HasilPetaTabel hasil;
 
-      try {
-        final terbaca = await pembaca.baca(citra);
+      {
+        final terbaca = foto.terbaca!;
 
         // Lembar yang Repeat-nya turun ke bawah (Conductivity) dipetakan lewat
         // jalur sendiri: di kertasnya nomor Repeat dan slot larutan ada di
@@ -1760,8 +1932,6 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
             kepalaPengulangan: _kepalaPengulangan(),
           );
         }
-      } finally {
-        await pembaca.tutup();
       }
 
       if (!mounted) return;

@@ -658,6 +658,30 @@ class _FormState extends ConsumerState<_Form> {
         );
         return;
       }
+
+      // Baris TIDS yang angkanya keisi tapi kotak `Setpoint`-nya kosong atau
+      // nggak kebaca sebagai angka.
+      //
+      // MENAHAN, bukan bertanya — sejajar sama isian yatim di atas, dan
+      // sebabnya sama: yang hilang bukan dugaan soal kewajaran angka, tapi
+      // lima kotak pembacaan yang beneran ada di tangan teknisi dan beneran
+      // nggak jadi terkirim. Tanpa ini lembarnya kelihatan penuh di layar,
+      // tombol kirim jalan mulus, dan barisnya lenyap di perjalanan.
+      final tanpaSetPoint = _isian.titikTanpaSetPoint;
+
+      if (tanpaSetPoint.isNotEmpty) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              l10n.lkSetPointKosong(
+                tanpaSetPoint.map((t) => t.label).join(', '),
+              ),
+            ),
+            duration: const Duration(seconds: 8),
+          ),
+        );
+        return;
+      }
     }
 
     // Jam yang bentuknya nggak kebaca ditahan DI SINI, bukan dibiarin ditolak
@@ -1627,11 +1651,22 @@ class _Bagian extends ConsumerWidget {
             // paham bentuk grid Enclosure. Menghapusnya berarti menulis
             // ulangnya dari nol.
             //
-            // Konsekuensi yang ditanggung sadar: Autoklaf, TIDS, dan kelima
-            // Enclosure sekarang NGGAK punya jalur kamera sama sekali —
+            // Konsekuensi yang ditanggung sadar waktu itu: Autoklaf, TIDS, dan
+            // kelima Enclosure jadi NGGAK punya jalur kamera sama sekali —
             // `FOTO TABEL INI` memang `didukung: false` di ketujuhnya karena
             // kertasnya berbentuk matriks/grid. Sudah disampaikan ke pemilik
             // lab sebelum dicabut.
+            //
+            // Enclosure & Autoklaf sudah keluar dari daftar itu (27 Agt 2026):
+            // grid punya tombol fotonya sendiri satu per blok set point
+            // (`LembarKerjaGrid`), matriks punya satu di atas tabelnya
+            // (`LembarKerjaMatriks`). Dua-duanya menjangkar baris lewat jalan
+            // yang beda dari lembar titik × Repeat, jadi dua penanda bentuk
+            // dari server nggak dipakai di sana.
+            //
+            // Yang masih belum punya jalur kamera cuma TIDS — dan yang menahan
+            // bukan pemetanya: baris lembarnya sendiri belum sampai ke layar.
+            // Lihat `tids_baris_tanpa_titik_test.dart`.
 
             // Lembar ber-GRID (Enclosure) menggambar gridnya di sini, dan
             // memang nggak punya `tabel` maupun `matriks` buat digambar
@@ -1644,6 +1679,13 @@ class _Bagian extends ConsumerWidget {
                 satuanSuhu: isian.bentuk.satuanSuhu,
                 onBerubah: onBerubah,
                 merkKalibrator: _merkStandar(ref, isian.standardId),
+                // Cuma saklarnya — `fotoTabelDidukung` SENGAJA nggak ikut di
+                // sini. Penanda itu menjawab "pemeta TABEL di HP bisa
+                // menjangkar baris & kolom kertas ini?", dan buat grid
+                // jawabannya memang tidak. Kamera grid pakai mesin yang lain:
+                // sumbu ketiganya datang dari blok tempat tombolnya duduk.
+                // Lihat `LembarKerjaGrid.pindaiAktif`.
+                pindaiAktif: pindaiAktif,
               ),
               const SizedBox(height: AppSpacing.lg),
               if (isian.bentuk.catatanPengisian.isNotEmpty)
@@ -1665,6 +1707,11 @@ class _Bagian extends ConsumerWidget {
                 onBerubah: onBerubah,
                 tabelTambahan: bagian.tabelTambahan,
                 setPoint: _fieldSetPoint(bagian),
+                // Cuma saklarnya, sama alasannya dengan grid di atas:
+                // `fotoTabelDidukung` menjawab pertanyaan pemeta TABEL, dan
+                // matriks memang bukan tabel. Jangkar barisnya TULISAN
+                // besaran, bukan angka.
+                pindaiAktif: pindaiAktif,
               ),
               const SizedBox(height: AppSpacing.lg),
               if (bagian.fieldDiLuarKertas.isNotEmpty) ...[
@@ -1681,7 +1728,16 @@ class _Bagian extends ConsumerWidget {
               // tabel: satu daftar berlaku buat Before & After sekaligus.
               // Cuma muncul di lembar yang backend-nya bilang titiknya boleh
               // diubah (TITS); sepuluh alat lain nggak berubah tampilannya.
-              if (i == 0 && bagian.tabel[i].titikBisaDiubah) ...[
+              // Lembar yang set point-nya belum ditentukan (TIDS) TIDAK
+              // dapat pengatur ini: tiap barisnya sudah punya kotak
+              // `Setpoint`-nya sendiri di kolom kiri, dan dua jalan buat
+              // mengisi satu hal yang sama bikin teknisi nggak tahu yang mana
+              // yang berlaku. Dibaca dari bentuk MENTAH, bukan `barisTabel`:
+              // begitu teknisi menyusun titik sendiri, barisnya jadi
+              // `titikDitentukan` semua dan syaratnya bakal berbalik.
+              if (i == 0 &&
+                  bagian.tabel[i].titikBisaDiubah &&
+                  bagian.tabel[i].baris.every((b) => b.titikDitentukan)) ...[
                 PengaturTitik(isian: isian, onBerubah: onBerubah),
                 const SizedBox(height: AppSpacing.lg),
               ],
@@ -1690,11 +1746,17 @@ class _Bagian extends ConsumerWidget {
                 isian: isian,
                 onBerubah: onBerubah,
                 // Saklar DAN bentuk kertasnya. Saklar bilang "fitur ini
-                // nyala"; `fotoTabelDidukung` bilang "kertas alat INI bisa
-                // dituturkan ke pembaca foto". Dua-duanya harus benar —
-                // saklar nyala doang bikin tombolnya muncul di lembar
-                // Autoklaf & TIDS, dan yang balik ke teknisi bukan error tapi
-                // angka ngawur yang kelihatan wajar.
+                // nyala"; `fotoTabelDidukung` bilang "pemeta di HP bisa
+                // menjangkar baris & kolom kertas INI". Dua-duanya harus
+                // benar — saklar nyala doang bikin tombolnya muncul di lembar
+                // yang jangkarnya nggak ada, dan tiap jepretan pulang nol sel.
+                //
+                // Isinya dibaca dari `pindai_foto.lokal`, BUKAN `didukung`.
+                // Yang kedua menggerbangi jalur CLOUD, yang mengirim foto
+                // lembar kerja pelanggan ke layanan pihak ketiga. Waktu
+                // keduanya masih satu penanda, menyalakan tombol buat satu
+                // lembar ikut melebarkan batas data itu tanpa ada yang
+                // berniat begitu. Lihat `_fotoTabelDidukung`.
                 pindaiAktif: pindaiAktif && isian.bentuk.fotoTabelDidukung,
               ),
               const SizedBox(height: AppSpacing.lg),

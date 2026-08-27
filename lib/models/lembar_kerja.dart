@@ -259,6 +259,7 @@ class BarisTabelHasil {
   const BarisTabelHasil({
     required this.titikUkur,
     required this.label,
+    this.titikDitentukan = true,
     this.desimal,
     this.resolusi,
     this.standardId,
@@ -284,6 +285,9 @@ class BarisTabelHasil {
   BarisTabelHasil salinDenganTitik(double titik, String labelBaru) =>
       BarisTabelHasil(
         titikUkur: titik,
+        // Angka yang diketik teknisi itu set point beneran, bukan penanda
+        // posisi — apa pun asal barisnya.
+        titikDitentukan: true,
         label: labelBaru,
         desimal: desimal,
         resolusi: resolusi,
@@ -350,9 +354,69 @@ class BarisTabelHasil {
   final int? desimal;
   final double? resolusi;
 
-  factory BarisTabelHasil.fromJson(Map<String, dynamic> json) =>
-      BarisTabelHasil(
-        titikUkur: (json['titik_ukur'] as num).toDouble(),
+  /// Set point baris ini SUDAH ditentukan bentuknya.
+  ///
+  /// `false` = kertasnya mencetak baris itu KOSONG, dan angkanya ditulis
+  /// teknisi di lapangan. Sejauh ini cuma lembar TIDS
+  /// (`SIDIK-FM-CAL-0506 Rev.4`): tujuh baris `Setpoint` tanpa satu angka pun
+  /// tercetak, beda dari lembar pH (4/7/10) atau Turbidimeter (1/100/1000).
+  ///
+  /// ## Kenapa ini nggak cukup dijawab `titikUkur` yang nullable
+  ///
+  /// Baris tanpa set point tetap butuh IDENTITAS — dia kotak isian yang harus
+  /// bisa dibedakan dari enam baris lain di tabel yang sama. Jadi [titikUkur]
+  /// tetap berisi (nomor barisnya, dari `nomor`), dan penanda ini yang bilang
+  /// angka itu **penanda posisi, bukan set point**.
+  ///
+  /// Yang membaca ini wajib memakai `TitikState.titikUkurEfektif` waktu
+  /// menyusun payload. Mengirim [titikUkur] apa adanya menerbitkan set point
+  /// "1 °C … 7 °C" — angka yang nggak pernah diketik siapa pun, dan nggak
+  /// ditolak apa pun.
+  final bool titikDitentukan;
+
+  /// Kunci `titik_ukur` yang ADA tapi berisi `null` beda artinya dari kunci
+  /// yang NGGAK DIKIRIM sama sekali, dan bedanya menentukan:
+  ///
+  ///  - **Ada, berisi null** — pernyataan sengaja: "set point baris ini
+  ///    ditentukan teknisi". Cuma lembar TIDS yang begitu. Barisnya dipakai,
+  ///    ditandai [titikDitentukan] `false`.
+  ///  - **Nggak ada** — baris cacat. Dilempar, dan `parseListAman` membuang
+  ///    barisnya sambil membiarkan tabel lainnya tetap tampil. Perilaku ini
+  ///    sudah dijaga `lembar_kerja_test.dart`, dan sengaja dipertahankan:
+  ///    bentuk yang rusak sebagian nggak boleh menjatuhkan seluruh formulir.
+  ///
+  /// Cast keras di sini dulu membuang SELURUH baris lembar TIDS — ketujuhnya,
+  /// di dua tabel sekaligus — dan lembarnya terbuka dengan dua kepala tabel
+  /// tanpa satu pun kotak isian, tanpa satu pun error.
+  factory BarisTabelHasil.fromJson(Map<String, dynamic> json) {
+    final titik = json['titik_ukur'];
+
+    if (!json.containsKey('titik_ukur')) {
+      throw const FormatException(
+        'Baris tabel tanpa kunci `titik_ukur` — baris cacat, bukan set point '
+        'yang sengaja dikosongkan.',
+      );
+    }
+
+    // Kuncinya ADA tapi isinya bukan angka dan bukan null — itu bentuk yang
+    // rusak, bukan pernyataan "diisi teknisi".
+    //
+    // Dibedakan karena akibat menyamakannya mahal: barisnya lolos sebagai
+    // baris TIDS, kotak `Setpoint`-nya digambar KOSONG, dan set point yang
+    // dikirim server ke HP hilang tanpa satu pun tanda. Baris yang dibuang
+    // setidaknya kelihatan hilang.
+    if (titik != null && titik is! num) {
+      throw FormatException(
+        'Baris tabel `titik_ukur`-nya bukan angka (${titik.runtimeType}) — '
+        'baris cacat. Null yang disengaja tetap diterima.',
+      );
+    }
+
+    return BarisTabelHasil(
+        titikUkur: titik is num
+            ? titik.toDouble()
+            : ((json['nomor'] as num?)?.toDouble() ?? 0),
+        titikDitentukan: titik is num,
         label: json['label'] as String? ?? '${json['titik_ukur']}',
         desimal: (json['desimal'] as num?)?.toInt(),
         resolusi: (json['resolusi'] as num?)?.toDouble(),
@@ -361,7 +425,8 @@ class BarisTabelHasil {
         satuan: json['satuan'] as String?,
         eksklusifDengan: (json['eksklusif_dengan'] as num?)?.toDouble(),
         tipe: json['tipe'] as String?,
-      );
+    );
+  }
 }
 
 /// Satu kolom di dalam sel tabel hasil. Tiap sel isinya DUA angka (pH & °C),
@@ -425,6 +490,8 @@ class TabelHasil {
     this.judulNilaiPerMode = const {},
     this.judulPengulanganPerMode = const {},
     this.pengulanganArah = const {},
+    this.tanpaTempatSimpan = false,
+    this.simpanKe,
     this.titikBisaDiubah = false,
     this.grup,
     this.peran,
@@ -499,6 +566,38 @@ class TabelHasil {
   ///
   /// Kosong = kepala kolom pakai `Repeat n` / prefiks seperti alat lain.
   final Map<int, String> pengulanganArah;
+
+  /// Tabel ini digambar di layar tapi isinya **belum punya tempat di server**.
+  ///
+  /// Backend menyatakannya eksplisit lewat `simpan_ke: null` — kunci yang
+  /// SENGAJA dikirim berisi null, bukan dihilangkan, supaya bedanya dari
+  /// "tabel biasa" bisa dibaca. Tabel `Pembacaan Standard` lembar TIDS begitu:
+  /// `raw_measurements.tahap` artinya as-found/as-left, bukan standar/UUT, jadi
+  /// deret standarnya nggak ada kolomnya.
+  ///
+  /// Docblock backend-nya mewanti persis: *"Layar HP wajib membaca kunci ini
+  /// sebelum menyalakan tombol kirim untuk tabel ini — kalau tidak, teknisi
+  /// mengisi 35 kotak yang hilang tanpa pesan apa pun."*
+  ///
+  /// Kotaknya TIDAK dimatikan: teknisi memang mencatatnya di kertas, dan layar
+  /// yang menolak angka yang sudah ada di tangannya lebih membingungkan
+  /// daripada layar yang jujur. Yang ditambah keterangannya.
+  final bool tanpaTempatSimpan;
+
+  /// KE MANA isi tabel ini disimpan di server — `measurements[].pembacaan`.
+  ///
+  /// Null berarti dua hal yang berbeda, dan [tanpaTempatSimpan] yang
+  /// membedakannya: kuncinya nggak dikirim (lembar biasa, tempatnya bawaan),
+  /// atau dikirim berisi null (tabel yang memang belum punya tempat).
+  ///
+  /// Dibaca, bukan cuma dicatat. Kunci sel di [LembarKerjaState] itu
+  /// [kunciTabel] — `pembacaan_uut` buat lembar TIDS — sementara payload-nya
+  /// dulu dirakit dari kunci MATI `sesudah_adjustment`. Dua sisi itu nggak
+  /// ketemu, dan yang terjadi bukan error: `measurements` terkirim berisi set
+  /// point yang benar dengan `pembacaan` NULL SEMUA. Lembarnya penuh di layar,
+  /// tombol kirimnya jalan, dan tiga puluh lima angka yang beneran diambil
+  /// teknisi di lapangan nggak pernah ada di server.
+  final String? simpanKe;
 
   /// Teknisi boleh menambah, menghapus, dan mengubah titik ukurnya.
   ///
@@ -603,10 +702,15 @@ class TabelHasil {
   /// juga sama dan `grup`-nya juga beda, tapi BARIS titiknya beda — jadi
   /// ketiganya sudah dipisah oleh `titik` map dan nggak pernah bentrok.
   /// Memindahkannya ke `grup` bikin `TitikState.toSubmission()` — yang membaca
-  /// `sesudah_adjustment` apa adanya — pulang kosong, dan 24 titik yang sudah
-  /// diketik teknisi kekirim sebagai lembar kosong. Sudah kejadian sekali waktu
-  /// aturan ini ditulis terlalu longgar; dijaga
+  /// SATU kunci utama saja — pulang kosong, dan 24 titik yang sudah diketik
+  /// teknisi kekirim sebagai lembar kosong. Sudah kejadian sekali waktu aturan
+  /// ini ditulis terlalu longgar; dijaga
   /// `spectrophotometer_lembar_kerja_test.dart`.
+  ///
+  /// Kunci utamanya sendiri sekarang datang dari [simpanKe]
+  /// (`LembarKerjaState.kunciTabelPembacaan`), bukan dipaku
+  /// `sesudah_adjustment`. Lembar TIDS kena persis lubang yang dijelaskan di
+  /// atas — `tahap`-nya `pembacaan_uut` — cuma tanpa `grup` sama sekali.
   String get kunciTabel => berpasangan ? (grup ?? peran!) : tahap;
 
   /// Lembar ini membaca DUA deret per titik (standar & UUT).
@@ -669,7 +773,19 @@ class TabelHasil {
         .toList(),
     judulNilaiPerMode: _petaTeks(json['judul_nilai_per_mode']),
     judulPengulanganPerMode: _petaTeks(json['judul_pengulangan_per_mode']),
-    pengulanganArah: _arahPengulangan(json['pengulangan_arah']),
+    // `pengulangan_uut` isinya konsep yang SAMA — tulisan yang tercetak di atas
+    // tiap kolom pengulangan — cuma nama kuncinya beda karena lembar TIDS
+    // kolomnya UUT, bukan ulangan. Dibaca ke peta yang sama supaya jangkar
+    // kolom fotonya ikut hidup; dibiarkan terpisah, kertas TIDS yang nyetak
+    // `0" (UUT1)` nggak akan pernah kejangkar dan tiap jepretan pulang nol sel.
+    pengulanganArah: {
+      ..._arahPengulangan(json['pengulangan_uut']),
+      ..._arahPengulangan(json['pengulangan_arah']),
+    },
+    // Kunci yang ADA tapi berisi null — bukan kunci yang nggak dikirim.
+    tanpaTempatSimpan:
+        json.containsKey('simpan_ke') && json['simpan_ke'] == null,
+    simpanKe: json['simpan_ke'] as String?,
     titikBisaDiubah: json['titik_bisa_diubah'] as bool? ?? false,
     grup: json['grup'] as String?,
     peran: json['peran'] as String?,
@@ -918,6 +1034,38 @@ class MatriksHasil {
 
   /// Semua baris yang punya kotak isian, `Time` duluan persis kayak kertasnya.
   List<BarisMatriks> get semuaBaris => [?barisWaktu, ...baris];
+
+  /// Penanda baris + tulisan tercetaknya, buat memetakan FOTO matriks ini.
+  ///
+  /// ## Kenapa penandanya dikarang, bukan diambil dari `titik_ukur`
+  ///
+  /// Backend mengirim matriks ini juga sebagai `tabel` (buat pipeline OCR), dan
+  /// di situ `titik_ukur` kedelapan barisnya **nol semua** — memang begitu:
+  /// baris matriks itu BESARAN (`Temp. Disk 1`, `Indikator Pressure`), bukan
+  /// titik ukur. Dipakai apa adanya, kedelapan baris berbagi satu penanda, dan
+  /// [PetaTabelFoto] menolak seluruh tabel yang penanda barisnya kembar —
+  /// dengan benar, karena angkanya memang nggak bisa dipastikan masuk baris
+  /// yang mana.
+  ///
+  /// Jadi tiap baris diberi penanda karangan yang **mustahil jadi pembacaan**,
+  /// dan yang beneran menjangkarnya TULISAN di kolom kiri kertas. Jaraknya
+  /// dibikin lebar supaya toleransi 0,5% yang relatif itu nggak bikin dua
+  /// penanda saling rebut.
+  ({List<double> penanda, Map<double, String> label}) penandaBarisFoto() {
+    final penanda = <double>[];
+    final label = <double, String>{};
+
+    for (var i = 0; i < semuaBaris.length; i++) {
+      final kunci = kunciBarisFoto(i);
+      penanda.add(kunci);
+      label[kunci] = semuaBaris[i].label;
+    }
+
+    return (penanda: penanda, label: label);
+  }
+
+  /// Penanda baris ke-[i] — lihat [penandaBarisFoto].
+  static double kunciBarisFoto(int i) => -1000000.0 - i * 1000;
 
   static MatriksHasil? fromJson(Map<String, dynamic> json) {
     final baris = parseListAman(json['baris'], BarisMatriks.fromJson);
@@ -1330,11 +1478,42 @@ class LembarKerja {
     gridSensor: json['grid_sensor'] is Map<String, dynamic>
         ? GridSensorBentuk.fromJson(json['grid_sensor'] as Map<String, dynamic>)
         : null,
-    fotoTabelDidukung: json['pindai_foto'] is Map<String, dynamic>
-        ? (json['pindai_foto'] as Map<String, dynamic>)['didukung'] as bool? ??
-              true
-        : true,
+    fotoTabelDidukung: _fotoTabelDidukung(json['pindai_foto']),
   );
+}
+
+/// Tombol `FOTO TABEL INI` boleh digambar buat lembar ini?
+///
+/// ## DUA penanda, dan yang dibaca di sini yang benar
+///
+/// `pindai_foto` membawa dua gerbang yang menjawab pertanyaan berbeda:
+///
+///  - **`lokal`** — "pemeta di HP bisa menjangkar baris & kolom kertas ini?"
+///    Itu yang menentukan tombol ini. Jalurnya ML Kit, **sepenuhnya di
+///    perangkat**; citra lembar kerja pelanggan tidak pernah keluar HP.
+///  - **`didukung`** — "kertas ini muat di bentuk `titik ukur × Repeat` yang
+///    bisa dituturkan ke pembaca foto CLOUD?" Itu menggerbangi endpoint
+///    `raw-measurements/extract-from-photo`, yang **mengirim fotonya ke layanan
+///    pihak ketiga**. Aplikasi ini tidak pernah memanggilnya lagi.
+///
+/// Membaca `didukung` di sini pernah memaksa keduanya jadi satu angka — dan
+/// menyalakan tombol lokal buat lembar TIDS berarti menaikkan `didukung`, yang
+/// diam-diam ikut melebarkan batas data ke luar. Gerbangnya sekarang terpisah;
+/// yang dibaca layar yang lokal.
+///
+/// Server lama yang cuma mengirim `didukung` tetap dimengerti: nilainya dipakai
+/// sebagai `lokal`, yaitu perilaku sebelum pemisahan ini. Tidak ada penanda
+/// sama sekali dibaca `true` — perilaku paling lama, dan salah di sisi yang
+/// aman (tombolnya muncul, jangkarnya yang menolak kalau kertasnya tidak cocok).
+bool _fotoTabelDidukung(dynamic pindaiFoto) {
+  if (pindaiFoto is! Map) return true;
+
+  final lokal = pindaiFoto['lokal'];
+  if (lokal is bool) return lokal;
+
+  final didukung = pindaiFoto['didukung'];
+
+  return didukung is bool ? didukung : true;
 }
 
 /// Bekal yang dikirim server supaya teknisi bisa BIKIN ALAT BARU langsung dari

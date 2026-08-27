@@ -5017,6 +5017,30 @@ abstract class AppLocalizations {
   /// **'No reading could be placed with certainty. Make sure the standard-value column (left) and the repeat headers (numbers 1..5, or X1 / Repeat 1) are in frame — all of them, none cut off. You can still type the values manually.'**
   String get lkFotoTabelTanpaJangkar;
 
+  /// Tabel yang backend-nya menyatakan `simpan_ke: null` (Pembacaan Standard lembar TIDS).
+  ///
+  /// In en, this message translates to:
+  /// **'The numbers in this table are recorded on the sheet but are NOT sent to the server yet — there is no column for them. Keep the paper.'**
+  String get lkTabelBelumDisimpan;
+
+  /// Matriks Autoklaf: nggak ada jangkar baris/kolom yang ketemu di foto.
+  ///
+  /// In en, this message translates to:
+  /// **'No reading could be placed with certainty. Make sure the left-hand column of quantity names (Temp. Disk 1, Indikator Pressure, …) and the time-point headers along the top are in frame — all of them, none cut off. A row whose name could not be read is never filled.'**
+  String get lkMatriksFotoTanpaJangkar;
+
+  /// Grid Enclosure: foto satu blok set point, tapi nggak ada jangkar baris/kolom yang ketemu.
+  ///
+  /// In en, this message translates to:
+  /// **'No reading could be placed with certainty. Make sure the No. column (the thermocouple numbers, on the left) and the repeat headers along the top are in frame — all of them, none cut off. Rows whose number you have not typed in yet are never filled from a photo.'**
+  String get lkGridFotoTanpaJangkar;
+
+  /// No description provided for @lkGridFotoNomorKembar.
+  ///
+  /// In en, this message translates to:
+  /// **'This set point can\'t be photographed: thermocouple number {nomor} is used on more than one row, so there is no way to tell which row a reading belongs to. Fix the duplicated number first.'**
+  String lkGridFotoNomorKembar(String nomor);
+
   /// Foto tabel gagal karena label sub-kolom (mis. cP / °C) nggak kebaca. Sengaja nolak semua, bukan naruh sebagian.
   ///
   /// In en, this message translates to:
@@ -6840,6 +6864,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Point {titik} has readings but its reference standard is not ticked — those numbers cannot be calculated. Tick the standard, or clear the row if this instrument does not use that point.'**
   String lkStandarBelumDicentang(String titik);
+
+  /// No description provided for @lkSetPointKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Point {titik} has readings but its Setpoint box is empty or not a valid number — the WHOLE row, including the readings already entered, will not be submitted. Fill in the setpoint, or clear the row if that point is not used.'**
+  String lkSetPointKosong(String titik);
 
   /// No description provided for @lkPembacaanTakTerpulih.
   ///
