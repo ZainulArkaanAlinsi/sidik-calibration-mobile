@@ -1930,6 +1930,7 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
               for (final t in titik) t.titikUkur: t.label,
             },
             kepalaPengulangan: _kepalaPengulangan(),
+            ukuranCitra: foto.ukuran,
           );
         }
       }

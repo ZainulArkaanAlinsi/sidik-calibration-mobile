@@ -571,6 +571,7 @@ class _TombolFotoGridState extends ConsumerState<_TombolFotoGrid> {
         pengulangan: widget.sp.bentuk.pengulangan,
         fieldPerRepeat: const ['pembacaan'],
         labelTercetak: penanda.label,
+        ukuranCitra: foto.ukuran,
       );
 
       if (!mounted) return;
