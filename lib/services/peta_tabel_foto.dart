@@ -61,6 +61,7 @@ class HasilPetaTabel {
     this.labelKolomKurang = const [],
     this.barisKembar = const [],
     this.kotakSel = const [],
+    this.kotakSelDibuang = 0,
   });
 
   final List<SelTabelFoto> sel;
@@ -75,6 +76,27 @@ class HasilPetaTabel {
   /// kotaknya nggak bisa dipertanggungjawabkan, dan kotak karangan lebih buruk
   /// daripada nggak ada kotak.
   final List<KotakSelFoto> kotakSel;
+
+  /// Kotak yang geometrinya SUDAH ketemu tapi tetap ditolak — kembarannya
+  /// [angkaTakTerpetakan] buat sumbu kotak, dan ada karena alasan yang sama:
+  /// yang dibuang diam-diam bikin tingkat penolakan mustahil diukur.
+  ///
+  /// Dua sebabnya, dan dua-duanya nggak kelihatan dari [kotakSel] yang cuma
+  /// tinggal lebih pendek:
+  ///
+  ///  - kotaknya melewati tepi citra — teknisi memotret dengan bingkai terlalu
+  ///    rapat, dan sel terluar kehabisan ruang walau coretan angkanya sendiri
+  ///    masih utuh;
+  ///  - dua pusat berimpit, jadi ruang yang tersisa nol.
+  ///
+  /// Yang pertama yang perlu diukur di lapangan: kalau angkanya tinggi, yang
+  /// salah cara memotretnya — dan itu dijawab dengan petunjuk bingkai, bukan
+  /// dengan melonggarkan penjagaannya.
+  ///
+  /// **Nol waktu [kotakSel] kosong**, dan itu disengaja: jangkar yang nggak
+  /// cukup bukan "kotak yang dibuang", melainkan geometri yang nggak pernah
+  /// ada. Dihitung di sini, dua keadaan yang obatnya beda jadi kelihatan sama.
+  final int kotakSelDibuang;
 
   /// Nilai standar yang jangkarnya ketemu di foto. Kalau ini kosong, seluruh
   /// foto **tidak dipetakan sama sekali** — bukan dipetakan sebagian.
@@ -572,21 +594,24 @@ class PetaTabelFoto {
 
     final bersih = _buangSelKembar(sel, (n) => terbuang += n);
 
+    final kotak = _kotakSel(
+      jangkarBaris: jangkarBaris,
+      jangkarKolom: jangkarKolom,
+      jangkarField: jangkarField,
+      fieldPerRepeat: fieldPerRepeat,
+      tinggiBaris: tinggiBaris,
+      jarakKolom: jarakKolom,
+      sel: bersih,
+      ukuranCitra: ukuranCitra,
+    );
+
     return HasilPetaTabel(
       sel: bersih,
       titikKetemu: jangkarBaris.keys.toList(),
       repeatKetemu: jangkarKolom.keys.toList(),
       angkaTakTerpetakan: terbuang,
-      kotakSel: _kotakSel(
-        jangkarBaris: jangkarBaris,
-        jangkarKolom: jangkarKolom,
-        jangkarField: jangkarField,
-        fieldPerRepeat: fieldPerRepeat,
-        tinggiBaris: tinggiBaris,
-        jarakKolom: jarakKolom,
-        sel: bersih,
-        ukuranCitra: ukuranCitra,
-      ),
+      kotakSel: kotak.kotak,
+      kotakSelDibuang: kotak.dibuang,
     );
   }
 
@@ -608,7 +633,7 @@ class PetaTabelFoto {
   /// baris doang, atau satu kolom doang. Kotak karangan lebih buruk daripada
   /// nggak ada kotak: yang pertama diam-diam melatih model dengan potongan yang
   /// salah, yang kedua kelihatan.
-  List<KotakSelFoto> _kotakSel({
+  ({List<KotakSelFoto> kotak, int dibuang}) _kotakSel({
     required Map<double, TeksTerbaca> jangkarBaris,
     required Map<int, TeksTerbaca> jangkarKolom,
     required List<({String field, TeksTerbaca t})> jangkarField,
@@ -630,9 +655,11 @@ class PetaTabelFoto {
     //
     // Kolomnya kebalikannya: [_jarakAntarKolom] memang balik `infinity` waktu
     // jangkarnya kurang, jadi di sumbu itu `isFinite` sudah cukup.
-    if (jangkarBaris.length < 2) return const [];
+    if (jangkarBaris.length < 2) return (kotak: const [], dibuang: 0);
 
-    if (!tinggiBaris.isFinite || !jarakKolom.isFinite) return const [];
+    if (!tinggiBaris.isFinite || !jarakKolom.isFinite) {
+      return (kotak: const [], dibuang: 0);
+    }
 
     // Teks yang sudah kepetakan, dikunci sama seperti kunci sel.
     final teks = {
@@ -669,6 +696,7 @@ class PetaTabelFoto {
     final tinggi = _muatAntarTetangga(pusatY, tinggiBaris);
 
     final hasil = <KotakSelFoto>[];
+    var dibuang = 0;
 
     for (final baris in jangkarBaris.entries) {
       for (final kolom in jangkarKolom.entries) {
@@ -680,7 +708,10 @@ class PetaTabelFoto {
 
           // Dua pusat yang berimpit nggak menyisakan ruang sama sekali. Kotak
           // selebar nol bukan sel.
-          if (lebarnya <= 0 || tingginya <= 0) continue;
+          if (lebarnya <= 0 || tingginya <= 0) {
+            dibuang++;
+            continue;
+          }
 
           final kotak = Rect.fromCenter(
             center: Offset(pusatX[kunci]!, pusatY[baris.key]!),
@@ -701,6 +732,7 @@ class PetaTabelFoto {
                   kotak.top < 0 ||
                   kotak.right > ukuranCitra.width ||
                   kotak.bottom > ukuranCitra.height)) {
+            dibuang++;
             continue;
           }
 
@@ -715,7 +747,7 @@ class PetaTabelFoto {
       }
     }
 
-    return hasil;
+    return (kotak: hasil, dibuang: dibuang);
   }
 
   /// Berapa lebar yang MUAT di tiap pusat tanpa menyenggol tetangganya.

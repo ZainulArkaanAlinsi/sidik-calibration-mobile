@@ -256,4 +256,105 @@ void main() {
       expect(hasil.kotakSel, hasLength(9));
     });
   });
+
+  group('yang dibuang dilaporkan', () {
+    // Usulan review CodeRabbit atas PR ini, dan usulannya benar: aturan tepi
+    // punya keadaan lapangan yang wajar di mana dia membuang sel yang
+    // coretannya sebenarnya masih utuh — teknisi memotret dengan bingkai
+    // terlalu rapat. Frekuensinya nggak bisa dihitung dari kode; repo ini
+    // nggak punya satu pun korpus foto.
+    //
+    // Jadi yang bisa dilakukan bukan menebak frekuensinya, tapi membuatnya
+    // BISA DIUKUR. Kalau angkanya nanti tinggi di lapangan, yang salah cara
+    // memotretnya — dan itu dijawab dengan petunjuk bingkai, bukan dengan
+    // melonggarkan penjagaan yang baru saja dipasang.
+    //
+    // Polanya sudah ada di kelas ini: `angkaTakTerpetakan` persis begini.
+    test('kotak yang dibuang karena tepi citra ikut dihitung', () {
+      final terbaca = <TeksTerbaca>[
+        for (var k = 0; k < 3; k++)
+          kata('X${k + 1}', 20.0 + k * lebarKolom, yKepala),
+        for (var b = 0; b < titik.length; b++) ...[
+          kata(
+            titik[b].toStringAsFixed(1).replaceAll('.', ','),
+            0,
+            200.0 + b * 60,
+          ),
+          for (var k = 0; k < 3; k++)
+            kata('9$b${k}0,5', 20.0 + k * lebarKolom, 200.0 + b * 60),
+        ],
+      ];
+
+      final hasil = const PetaTabelFoto().petakan(
+        terbaca: terbaca,
+        titikUkur: titik,
+        pengulangan: const [1, 2, 3],
+        fieldPerRepeat: const ['pembacaan'],
+        ukuranCitra: const Size(1200, 600),
+      );
+
+      expect(
+        hasil.kotakSelDibuang,
+        greaterThan(0),
+        reason:
+            'Kolom pertama duduk di tepi kiri, jadi ada yang dibuang. Dibuang '
+            'diam-diam bikin tingkat penolakan mustahil diukur di lapangan.',
+      );
+    });
+
+    test('foto yang rapi: nggak ada yang dibuang', () {
+      // Penjaga arah. Tanpa ini, penghitung yang selalu naik pun kelihatan
+      // benar, dan angkanya berhenti berarti apa-apa.
+      final terbaca = <TeksTerbaca>[
+        for (var k = 0; k < 3; k++) kata('X${k + 1}', xKolom(k), yKepala),
+        for (var b = 0; b < titik.length; b++) ...[
+          kata(
+            titik[b].toStringAsFixed(1).replaceAll('.', ','),
+            xStandar,
+            200.0 + b * 60,
+          ),
+          for (var k = 0; k < 3; k++)
+            kata('9$b${k}0,5', xKolom(k), 200.0 + b * 60),
+        ],
+      ];
+
+      final hasil = const PetaTabelFoto().petakan(
+        terbaca: terbaca,
+        titikUkur: titik,
+        pengulangan: const [1, 2, 3],
+        fieldPerRepeat: const ['pembacaan'],
+        ukuranCitra: const Size(2000, 900),
+      );
+
+      expect(hasil.kotakSel, hasLength(9));
+      expect(hasil.kotakSelDibuang, 0);
+    });
+
+    test('jangkar kurang: NOL, bukan dihitung sebagai dibuang', () {
+      // Bedanya menentukan obatnya. Jangkar yang nggak cukup itu geometri yang
+      // NGGAK PERNAH ADA — jepretan ulang yang benar, bukan bingkai yang beda.
+      // Dihitung sebagai "dibuang", dua keadaan yang obatnya beda jadi
+      // kelihatan sama, dan angkanya berhenti bisa dipakai memutuskan apa pun.
+      final terbaca = <TeksTerbaca>[
+        for (var k = 0; k < 3; k++) kata('X${k + 1}', xKolom(k), yKepala),
+        kata('100,0', xStandar, 200),
+        for (var k = 0; k < 3; k++) kata('9${k}0,5', xKolom(k), 200),
+      ];
+
+      final hasil = const PetaTabelFoto().petakan(
+        terbaca: terbaca,
+        titikUkur: const [100.0],
+        pengulangan: const [1, 2, 3],
+        fieldPerRepeat: const ['pembacaan'],
+        ukuranCitra: const Size(2000, 900),
+      );
+
+      expect(
+        hasil.kotakSel,
+        isEmpty,
+        reason: 'Prasyarat: jangkar barisnya satu.',
+      );
+      expect(hasil.kotakSelDibuang, 0);
+    });
+  });
 }
