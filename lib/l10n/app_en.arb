@@ -347,6 +347,25 @@
   "equipRangeMin": "Range min.",
   "equipRangeMax": "Range max.",
   "equipSatuan": "Unit",
+  "equipRentangOtomatis": "Filled in from PT Sidik's master data. Edit it if the customer's unit differs.",
+  "equipRentangPilihan": "Ranges from PT Sidik's master data — tap the one matching the customer's unit:",
+  "equipRentangChip": "{min}–{maks} {satuan}",
+  "@equipRentangChip": {
+    "placeholders": {
+      "min": { "type": "String" },
+      "maks": { "type": "String" },
+      "satuan": { "type": "String" }
+    }
+  },
+  "equipRentangChipBerparameter": "{parameter} · {min}–{maks} {satuan}",
+  "@equipRentangChipBerparameter": {
+    "placeholders": {
+      "parameter": { "type": "String" },
+      "min": { "type": "String" },
+      "maks": { "type": "String" },
+      "satuan": { "type": "String" }
+    }
+  },
   "equipResolusi": "Resolution",
   "equipResolusiRentang": "Resolution per point",
   "equipResolusiRentangHint": "Fill this in when the device is NOT uniform — the resolution or the unit changes between points. Leave it empty when the single resolution above already says everything. This decides the unit on each worksheet row and the decimals printed on the certificate.",
@@ -363,6 +382,7 @@
   "equipToleransi": "Tolerance",
   "equipToleransiWajib": "Tolerance is required.",
   "equipToleransiWajibHint": "A device without a tolerance can't be calibrated — there's no way to decide PASS/FAIL.",
+  "equipToleransiTidakDivonisHint": "This device type gets no PASS/FAIL verdict — the master stops at U95%. Leaving it empty is fine.",
   "equipLokasi": "Location",
   "equipStatus": "Status",
   "equipSave": "SAVE",

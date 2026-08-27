@@ -214,6 +214,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: 'µS/cm',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0507_Rev.6',
+        punyaToleransi: false,
       ),
       // 2 titik Chlorin Meter — angkanya dari lampiran akreditasi LK-285-IDN
       // no. 42 (`docs/Rekap-Data-Kemampuan-Kalibrasi.md`), dan sama persis sama
@@ -354,6 +355,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: 'nm',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0508_Rev.4',
+        punyaToleransi: false,
       ),
       CalibrationCapability(
         namaAlat: 'Spectrophotometer',
@@ -364,6 +366,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: 'nm',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0508_Rev.4',
+        punyaToleransi: false,
       ),
       CalibrationCapability(
         namaAlat: 'Spectrophotometer',
@@ -374,6 +377,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: '%T',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0508_Rev.4',
+        punyaToleransi: false,
       ),
       // 3 titik Viscometer (alat ke-7) — angkanya dari lampiran akreditasi
       // LK-285-IDN no. 44 (`docs/Rekap-Data-Kemampuan-Kalibrasi.md`). Sama
@@ -477,6 +481,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: '°C',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0502_Rev.3',
+        punyaToleransi: false,
       ),
       CalibrationCapability(
         namaAlat: 'Temperature Indicator tanpa Sensor',
@@ -488,6 +493,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: '°C',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0502_Rev.3',
+        punyaToleransi: false,
       ),
       CalibrationCapability(
         namaAlat: 'Temperature Indicator tanpa Sensor',
@@ -499,6 +505,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: '°C',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0502_Rev.3',
+        punyaToleransi: false,
       ),
       CalibrationCapability(
         namaAlat: 'Temperature Indicator tanpa Sensor',
@@ -510,6 +517,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: '°C',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0502_Rev.3',
+        punyaToleransi: false,
       ),
       CalibrationCapability(
         namaAlat: 'Temperature Indicator tanpa Sensor',
@@ -521,6 +529,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: '°C',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0502_Rev.3',
+        punyaToleransi: false,
       ),
       CalibrationCapability(
         namaAlat: 'Temperature Indicator tanpa Sensor',
@@ -532,6 +541,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: '°C',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0502_Rev.3',
+        punyaToleransi: false,
       ),
       CalibrationCapability(
         namaAlat: 'Temperature Indicator tanpa Sensor',
@@ -543,6 +553,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: '°C',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0502_Rev.3',
+        punyaToleransi: false,
       ),
 
       // TIDS — Temperatur Indikator DENGAN Sensor, lampiran akreditasi
@@ -570,6 +581,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: '°C',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0503_Rev.6',
+        punyaToleransi: false,
       ),
       CalibrationCapability(
         namaAlat: 'Temperatur Indikator dengan Sensor',
@@ -580,6 +592,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: '°C',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0503_Rev.6',
+        punyaToleransi: false,
       ),
       CalibrationCapability(
         namaAlat: 'Temperatur Indikator dengan Sensor',
@@ -590,6 +603,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: '°C',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0503_Rev.6',
+        punyaToleransi: false,
       ),
 
       // ENCLOSURE — lima jenis, alat ke-12, dan masalahnya persis sama dengan
@@ -616,6 +630,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: '°C',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0501_Rev.6',
+        punyaToleransi: false,
       ),
       CalibrationCapability(
         namaAlat: 'Bath',
@@ -626,6 +641,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: '°C',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0501_Rev.6',
+        punyaToleransi: false,
       ),
       CalibrationCapability(
         namaAlat: 'Inkubator',
@@ -636,6 +652,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: '°C',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0501_Rev.6',
+        punyaToleransi: false,
       ),
       CalibrationCapability(
         namaAlat: 'Furnace',
@@ -646,6 +663,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: '°C',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0501_Rev.6',
+        punyaToleransi: false,
       ),
       CalibrationCapability(
         namaAlat: 'Refrigerator',
@@ -656,6 +674,106 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: '°C',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0501_Rev.6',
+        punyaToleransi: false,
+      ),
+
+      // TIGA ALAT SUHU TERAKHIR (ke-18, 19, 20). Lembar kerjanya udah jadi &
+      // teruji — contohnya ada utuh di `contoh_lembar_kerja_suhu.dart` — tapi
+      // baris kemampuannya belum pernah ada di sini, dan itu artinya sama
+      // persis kayak yang dulu kejadian di Viscometer, Spectrophotometer, &
+      // TITS: di build `USE_MOCK=true` kartunya nggak nongol di picker, jadi
+      // ketiga lembarnya nggak bisa dibuka lewat jalur mana pun.
+      //
+      // Angkanya disalin dari `database/data/kemampuan-kalibrasi.json` di
+      // backend (lampiran akreditasi LK-285-IDN), bukan dikarang.
+
+      // Thermocouple — tiga golongan ketidakpastian, satu alat. Rentangnya
+      // nyambung (-20-150, 150-400, 400-600), jadi alatnya rentang -20-600 °C.
+      CalibrationCapability(
+        namaAlat: 'Thermocouple',
+        rangeMin: -20,
+        rangeMax: 150,
+        satuan: '°C',
+        ketidakpastianTerbaik: 0.84,
+        satuanKetidakpastian: '°C',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0529_Rev.2',
+        punyaToleransi: false,
+      ),
+      CalibrationCapability(
+        namaAlat: 'Thermocouple',
+        rangeMin: 150,
+        rangeMax: 400,
+        satuan: '°C',
+        ketidakpastianTerbaik: 1.5,
+        satuanKetidakpastian: '°C',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0529_Rev.2',
+        punyaToleransi: false,
+      ),
+      CalibrationCapability(
+        namaAlat: 'Thermocouple',
+        rangeMin: 400,
+        rangeMax: 600,
+        satuan: '°C',
+        ketidakpastianTerbaik: 3.3,
+        satuanKetidakpastian: '°C',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0529_Rev.2',
+        punyaToleransi: false,
+      ),
+
+      // Termometer Gelas — dua golongan, 0-100 & 100-200 °C.
+      CalibrationCapability(
+        namaAlat: 'Termometer Gelas',
+        rangeMin: 0,
+        rangeMax: 100,
+        satuan: '°C',
+        ketidakpastianTerbaik: 0.58,
+        satuanKetidakpastian: '°C',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0527_Rev.0',
+        punyaToleransi: false,
+      ),
+      CalibrationCapability(
+        namaAlat: 'Termometer Gelas',
+        rangeMin: 100,
+        rangeMax: 200,
+        satuan: '°C',
+        ketidakpastianTerbaik: 1.0,
+        satuanKetidakpastian: '°C',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0527_Rev.0',
+        punyaToleransi: false,
+      ),
+
+      // Thermohygrometer — SATU alat, DUA besaran. Ini satu-satunya di
+      // kategori ini yang satuannya beda antar baris, dan bedanya bukan
+      // kosmetik: rentangnya nggak boleh digabung jadi "15-90" (lihat
+      // `golonganRentangDari`).
+      CalibrationCapability(
+        namaAlat: 'Thermohygrometer',
+        parameter: 'Suhu',
+        rangeMin: 15,
+        rangeMax: 50,
+        satuan: '°C',
+        ketidakpastianTerbaik: 1.7,
+        satuanKetidakpastian: '°C',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0518_Rev.4',
+        punyaToleransi: false,
+      ),
+      CalibrationCapability(
+        namaAlat: 'Thermohygrometer',
+        parameter: 'Kelembapan',
+        rangeMin: 30,
+        rangeMax: 90,
+        satuan: '%RH',
+        ketidakpastianTerbaik: 4.8,
+        satuanKetidakpastian: '%RH',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0518_Rev.4',
+        punyaToleransi: false,
       ),
     ];
 

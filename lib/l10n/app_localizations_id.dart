@@ -740,6 +740,29 @@ class AppLocalizationsId extends AppLocalizations {
   String get equipSatuan => 'Satuan';
 
   @override
+  String get equipRentangOtomatis =>
+      'Terisi otomatis dari data PT Sidik. Ganti manual kalau alat pelanggannya beda.';
+
+  @override
+  String get equipRentangPilihan =>
+      'Rentang dari data PT Sidik — pencet yang sesuai alat pelanggannya:';
+
+  @override
+  String equipRentangChip(String min, String maks, String satuan) {
+    return '$min–$maks $satuan';
+  }
+
+  @override
+  String equipRentangChipBerparameter(
+    String parameter,
+    String min,
+    String maks,
+    String satuan,
+  ) {
+    return '$parameter · $min–$maks $satuan';
+  }
+
+  @override
   String get equipResolusi => 'Resolusi';
 
   @override
@@ -789,6 +812,10 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get equipToleransiWajibHint =>
       'Alat tanpa toleransi nggak bisa dikalibrasi — PASS/FAIL-nya nggak bisa diputusin.';
+
+  @override
+  String get equipToleransiTidakDivonisHint =>
+      'Jenis alat ini nggak divonis PASS/FAIL — masternya berhenti di U95%. Boleh dikosongin.';
 
   @override
   String get equipLokasi => 'Lokasi';

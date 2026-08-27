@@ -741,6 +741,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipSatuan => 'Unit';
 
   @override
+  String get equipRentangOtomatis =>
+      'Filled in from PT Sidik\'s master data. Edit it if the customer\'s unit differs.';
+
+  @override
+  String get equipRentangPilihan =>
+      'Ranges from PT Sidik\'s master data — tap the one matching the customer\'s unit:';
+
+  @override
+  String equipRentangChip(String min, String maks, String satuan) {
+    return '$min–$maks $satuan';
+  }
+
+  @override
+  String equipRentangChipBerparameter(
+    String parameter,
+    String min,
+    String maks,
+    String satuan,
+  ) {
+    return '$parameter · $min–$maks $satuan';
+  }
+
+  @override
   String get equipResolusi => 'Resolution';
 
   @override
@@ -790,6 +813,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get equipToleransiWajibHint =>
       'A device without a tolerance can\'t be calibrated — there\'s no way to decide PASS/FAIL.';
+
+  @override
+  String get equipToleransiTidakDivonisHint =>
+      'This device type gets no PASS/FAIL verdict — the master stops at U95%. Leaving it empty is fine.';
 
   @override
   String get equipLokasi => 'Location';
