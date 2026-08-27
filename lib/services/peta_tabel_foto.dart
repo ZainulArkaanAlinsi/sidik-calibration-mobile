@@ -1,4 +1,4 @@
-import 'dart:ui' show Offset, Rect;
+import 'dart:ui' show Offset, Rect, Size;
 
 import 'pembaca_halaman.dart';
 
@@ -61,6 +61,7 @@ class HasilPetaTabel {
     this.labelKolomKurang = const [],
     this.barisKembar = const [],
     this.kotakSel = const [],
+    this.kotakSelDibuang = 0,
   });
 
   final List<SelTabelFoto> sel;
@@ -75,6 +76,27 @@ class HasilPetaTabel {
   /// kotaknya nggak bisa dipertanggungjawabkan, dan kotak karangan lebih buruk
   /// daripada nggak ada kotak.
   final List<KotakSelFoto> kotakSel;
+
+  /// Kotak yang geometrinya SUDAH ketemu tapi tetap ditolak — kembarannya
+  /// [angkaTakTerpetakan] buat sumbu kotak, dan ada karena alasan yang sama:
+  /// yang dibuang diam-diam bikin tingkat penolakan mustahil diukur.
+  ///
+  /// Dua sebabnya, dan dua-duanya nggak kelihatan dari [kotakSel] yang cuma
+  /// tinggal lebih pendek:
+  ///
+  ///  - kotaknya melewati tepi citra — teknisi memotret dengan bingkai terlalu
+  ///    rapat, dan sel terluar kehabisan ruang walau coretan angkanya sendiri
+  ///    masih utuh;
+  ///  - dua pusat berimpit, jadi ruang yang tersisa nol.
+  ///
+  /// Yang pertama yang perlu diukur di lapangan: kalau angkanya tinggi, yang
+  /// salah cara memotretnya — dan itu dijawab dengan petunjuk bingkai, bukan
+  /// dengan melonggarkan penjagaannya.
+  ///
+  /// **Nol waktu [kotakSel] kosong**, dan itu disengaja: jangkar yang nggak
+  /// cukup bukan "kotak yang dibuang", melainkan geometri yang nggak pernah
+  /// ada. Dihitung di sini, dua keadaan yang obatnya beda jadi kelihatan sama.
+  final int kotakSelDibuang;
 
   /// Nilai standar yang jangkarnya ketemu di foto. Kalau ini kosong, seluruh
   /// foto **tidak dipetakan sama sekali** — bukan dipetakan sebagian.
@@ -321,6 +343,14 @@ class PetaTabelFoto {
     // kayak jangkar kolom `Xn` — bukan dilonggarkan toleransinya (itu yang
     // bikin 453,6 & 460,0 di lembar spektro bisa saling rebut).
     Map<double, String> labelTercetak = const {},
+    // Ukuran citra yang difoto, buat memangkas kotak sel yang jatuh di luarnya.
+    //
+    // Boleh kosong, dan yang mengosongkannya nggak berubah perilakunya —
+    // penjagaan tepi cuma bisa jalan kalau batasnya diberitahu. Yang memanggil
+    // dari aplikasi WAJIB mengisinya: kotak yang melewati tepi citra baru
+    // meledak (atau diam-diam digeser) di tahap potong citra nanti, jauh dari
+    // sini, dan di sana sebabnya sudah nggak kelihatan lagi.
+    Size? ukuranCitra,
   }) {
     final kembar = _titikKembar(titikUkur);
 
@@ -564,20 +594,24 @@ class PetaTabelFoto {
 
     final bersih = _buangSelKembar(sel, (n) => terbuang += n);
 
+    final kotak = _kotakSel(
+      jangkarBaris: jangkarBaris,
+      jangkarKolom: jangkarKolom,
+      jangkarField: jangkarField,
+      fieldPerRepeat: fieldPerRepeat,
+      tinggiBaris: tinggiBaris,
+      jarakKolom: jarakKolom,
+      sel: bersih,
+      ukuranCitra: ukuranCitra,
+    );
+
     return HasilPetaTabel(
       sel: bersih,
       titikKetemu: jangkarBaris.keys.toList(),
       repeatKetemu: jangkarKolom.keys.toList(),
       angkaTakTerpetakan: terbuang,
-      kotakSel: _kotakSel(
-        jangkarBaris: jangkarBaris,
-        jangkarKolom: jangkarKolom,
-        jangkarField: jangkarField,
-        fieldPerRepeat: fieldPerRepeat,
-        tinggiBaris: tinggiBaris,
-        jarakKolom: jarakKolom,
-        sel: bersih,
-      ),
+      kotakSel: kotak.kotak,
+      kotakSelDibuang: kotak.dibuang,
     );
   }
 
@@ -599,7 +633,7 @@ class PetaTabelFoto {
   /// baris doang, atau satu kolom doang. Kotak karangan lebih buruk daripada
   /// nggak ada kotak: yang pertama diam-diam melatih model dengan potongan yang
   /// salah, yang kedua kelihatan.
-  List<KotakSelFoto> _kotakSel({
+  ({List<KotakSelFoto> kotak, int dibuang}) _kotakSel({
     required Map<double, TeksTerbaca> jangkarBaris,
     required Map<int, TeksTerbaca> jangkarKolom,
     required List<({String field, TeksTerbaca t})> jangkarField,
@@ -607,52 +641,166 @@ class PetaTabelFoto {
     required double tinggiBaris,
     required double jarakKolom,
     required List<SelTabelFoto> sel,
+    Size? ukuranCitra,
   }) {
-    if (!tinggiBaris.isFinite || !jarakKolom.isFinite) return const [];
+    // Satu jangkar baris nggak memberi SATU PUN jarak antar baris yang bisa
+    // diukur, jadi tinggi selnya nggak punya dasar sama sekali.
+    //
+    // Diperiksa dari JUMLAH jangkarnya, bukan dari hasil turunannya, karena
+    // turunannya nggak pernah menandakan keadaan ini: [_jarakAntarBaris] balik
+    // tinggi huruf dikali dua waktu jangkarnya cuma satu — angka terhingga,
+    // jadi pemeriksaan `isFinite` di bawah lewat begitu saja dan kotaknya
+    // terbit dengan tinggi yang diturunkan dari tinggi HURUF. Itu persis
+    // definisi kotak karangan yang docblock di atas menolaknya.
+    //
+    // Kolomnya kebalikannya: [_jarakAntarKolom] memang balik `infinity` waktu
+    // jangkarnya kurang, jadi di sumbu itu `isFinite` sudah cukup.
+    if (jangkarBaris.length < 2) return (kotak: const [], dibuang: 0);
 
-    final lebarSel = jarakKolom / fieldPerRepeat.length;
+    if (!tinggiBaris.isFinite || !jarakKolom.isFinite) {
+      return (kotak: const [], dibuang: 0);
+    }
 
     // Teks yang sudah kepetakan, dikunci sama seperti kunci sel.
     final teks = {
       for (final s in sel) '${s.titikUkur}|${s.repeatNo}|${s.fieldId}': s.teks,
     };
 
+    // Pusat MENDATAR tiap (Repeat, field) — nggak bergantung barisnya, jadi
+    // dihitung sekali di luar perulangan baris.
+    final pusatX = <String, double>{};
+
+    for (final kolom in jangkarKolom.entries) {
+      for (var i = 0; i < fieldPerRepeat.length; i++) {
+        // Satu field per Repeat: pusatnya kepala kolomnya sendiri. Lebih dari
+        // satu: dicari jangkar field yang paling dekat ke kolom ini, dan
+        // kalau nggak ada dibagi rata dari pusat kolomnya.
+        pusatX['${kolom.key}|${fieldPerRepeat[i]}'] = fieldPerRepeat.length == 1
+            ? kolom.value.kotak.center.dx
+            : _pusatField(
+                kolom.value,
+                fieldPerRepeat[i],
+                jangkarField,
+                jarakKolom,
+                urutan: i,
+                jumlah: fieldPerRepeat.length,
+              );
+      }
+    }
+
+    final pusatY = {
+      for (final b in jangkarBaris.entries) b.key: b.value.kotak.center.dy,
+    };
+
+    final lebar = _muatAntarTetangga(pusatX, jarakKolom / fieldPerRepeat.length);
+    final tinggi = _muatAntarTetangga(pusatY, tinggiBaris);
+
     final hasil = <KotakSelFoto>[];
+    var dibuang = 0;
 
     for (final baris in jangkarBaris.entries) {
-      final y = baris.value.kotak.center.dy;
-
       for (final kolom in jangkarKolom.entries) {
-        for (var i = 0; i < fieldPerRepeat.length; i++) {
-          final field = fieldPerRepeat[i];
+        for (final field in fieldPerRepeat) {
+          final kunci = '${kolom.key}|$field';
 
-          // Satu field per Repeat: pusatnya kepala kolomnya sendiri. Lebih dari
-          // satu: dicari jangkar field yang paling dekat ke kolom ini, dan
-          // kalau nggak ada dibagi rata dari pusat kolomnya.
-          final x = fieldPerRepeat.length == 1
-              ? kolom.value.kotak.center.dx
-              : _pusatField(
-                  kolom.value,
-                  field,
-                  jangkarField,
-                  jarakKolom,
-                  urutan: i,
-                  jumlah: fieldPerRepeat.length,
-                );
+          final lebarnya = lebar[kunci]! * _rapatKotak;
+          final tingginya = tinggi[baris.key]! * _rapatKotak;
+
+          // Dua pusat yang berimpit nggak menyisakan ruang sama sekali. Kotak
+          // selebar nol bukan sel.
+          if (lebarnya <= 0 || tingginya <= 0) {
+            dibuang++;
+            continue;
+          }
+
+          final kotak = Rect.fromCenter(
+            center: Offset(pusatX[kunci]!, pusatY[baris.key]!),
+            width: lebarnya,
+            height: tingginya,
+          );
+
+          // Yang melewati tepi citra DIBUANG, bukan dipangkas.
+          //
+          // Dipangkas kelihatan lebih ramah dan sebenarnya lebih berbahaya:
+          // potongannya memuat angka yang kepotong separuh, lalu dilabeli
+          // angka UTUH yang diketik teknisi. Model belajar bahwa separuh "8"
+          // itu bernama "8", dan bentuk itu nggak pernah muncul lagi di foto
+          // mana pun. Selnya sendiri memang berada di tepi foto — yang benar
+          // minta jepret ulang, bukan menambal.
+          if (ukuranCitra != null &&
+              (kotak.left < 0 ||
+                  kotak.top < 0 ||
+                  kotak.right > ukuranCitra.width ||
+                  kotak.bottom > ukuranCitra.height)) {
+            dibuang++;
+            continue;
+          }
 
           hasil.add((
             titikUkur: baris.key,
             repeatNo: kolom.key,
             fieldId: field,
-            kotak: Rect.fromCenter(
-              center: Offset(x, y),
-              width: lebarSel * _rapatKotak,
-              height: tinggiBaris * _rapatKotak,
-            ),
+            kotak: kotak,
             teks: teks['${baris.key}|${kolom.key}|$field'],
           ));
         }
       }
+    }
+
+    return (kotak: hasil, dibuang: dibuang);
+  }
+
+  /// Berapa lebar yang MUAT di tiap pusat tanpa menyenggol tetangganya.
+  ///
+  /// ## Kenapa perlu, padahal ukuran petaknya sudah dihitung
+  ///
+  /// [bawaan] itu ukuran petak yang diturunkan dari SELURUH tabel — median
+  /// jarak baris, atau lebar satu kolom. Ukuran begitu benar buat tabel yang
+  /// jaraknya rata, dan diam-diam salah begitu ada sepasang jangkar yang lebih
+  /// rapat dari sisanya:
+  ///
+  ///  - dua jangkar baris berdempetan — satu angka nyasar yang kebetulan masuk
+  ///    toleransi titik ukur ikut kepilih jadi jangkar — tetap dikasih tinggi
+  ///    median, jadi kotaknya saling menelan;
+  ///  - dua label field yang tercetak berdekatan tetap dikasih lebar sepetak,
+  ///    jadi kotak `pembacaan` dan kotak suhu berbagi angka yang sama.
+  ///
+  /// Yang kedua paling licin, karena [_pusatField] mencampur DUA sistem
+  /// koordinat dalam satu Repeat: field yang labelnya ketemu memakai posisi
+  /// label ASLI, field yang nggak ketemu dibagi rata dari pusat kolom. Nggak
+  /// ada apa pun yang menjamin dua sistem itu nggak bertabrakan.
+  ///
+  /// Akibat dua-duanya sama: satu potongan citra memuat angka TETANGGA, lalu
+  /// dipasangkan dengan angka sel ini sebagai labelnya. Itu bukan derau — itu
+  /// label yang salah, dan `angkaTakTerpetakan` tetap nol sepanjang kejadian.
+  ///
+  /// Jaraknya diukur ke tetangga terdekat di sumbu yang sama, TERMASUK
+  /// tetangga milik Repeat sebelah: kotak yang melar melewati batas Repeat
+  /// sama merusaknya dengan yang melar melewati batas field.
+  ///
+  /// Dipakai apa adanya, tanpa dibagi dua: yang dipulangkan jarak antar pusat,
+  /// dan pemanggil masih mengalikannya dengan [_rapatKotak] — dua kotak
+  /// bertetangga jadi menyisakan celah, bukan bersentuhan.
+  Map<K, double> _muatAntarTetangga<K>(Map<K, double> pusat, double bawaan) {
+    final urut = pusat.entries.toList()
+      ..sort((a, b) => a.value.compareTo(b.value));
+
+    final hasil = <K, double>{};
+
+    for (var i = 0; i < urut.length; i++) {
+      var muat = bawaan;
+
+      if (i > 0) {
+        final jarak = urut[i].value - urut[i - 1].value;
+        if (jarak < muat) muat = jarak;
+      }
+
+      if (i < urut.length - 1) {
+        final jarak = urut[i + 1].value - urut[i].value;
+        if (jarak < muat) muat = jarak;
+      }
+
+      hasil[urut[i].key] = muat;
     }
 
     return hasil;

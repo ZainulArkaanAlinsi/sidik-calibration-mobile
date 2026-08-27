@@ -292,6 +292,7 @@ class _TombolFotoMatriksState extends ConsumerState<_TombolFotoMatriks> {
         pengulangan: widget.matriks.titikWaktu,
         fieldPerRepeat: const ['pembacaan'],
         labelTercetak: penanda.label,
+        ukuranCitra: foto.ukuran,
       );
 
       if (!mounted) return;

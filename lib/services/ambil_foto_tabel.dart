@@ -1,3 +1,5 @@
+import 'dart:ui' show Size;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image/image.dart' as img;
 
@@ -14,7 +16,13 @@ import 'pembaca_halaman.dart';
 ///    sebagai citra. Yang benar minta jepret ulang.
 ///  - `terbaca` berisi — OCR-nya jalan. Daftarnya boleh KOSONG, dan itu bukan
 ///    kegagalan: kertas yang belum diisi memang nggak punya teks buat dibaca.
-typedef HasilAmbilFoto = ({List<TeksTerbaca>? terbaca, bool dibatalkan});
+typedef HasilAmbilFoto = ({
+  List<TeksTerbaca>? terbaca,
+  bool dibatalkan,
+  // Ukuran citra yang dibaca, buat [PetaTabelFoto.petakan] memangkas kotak sel
+  // yang jatuh di luar fotonya. Kosong kalau citranya sendiri nggak kebuka.
+  Size? ukuran,
+});
 
 /// Ambil satu foto tabel dari kamera/galeri lalu baca teksnya **di perangkat**.
 ///
@@ -55,7 +63,7 @@ Future<HasilAmbilFoto> ambilDanBacaTabel(WidgetRef ref) async {
       .read(sumberFotoProvider)
       .ambil(maxWidth: 4200, imageQuality: 100);
 
-  if (foto == null) return (terbaca: null, dibatalkan: true);
+  if (foto == null) return (terbaca: null, dibatalkan: true, ukuran: null);
 
   final bita = await foto.readAsBytes();
 
@@ -71,12 +79,16 @@ Future<HasilAmbilFoto> ambilDanBacaTabel(WidgetRef ref) async {
 
   final citra = img.decodeImage(bita);
 
-  if (citra == null) return (terbaca: null, dibatalkan: false);
+  if (citra == null) return (terbaca: null, dibatalkan: false, ukuran: null);
 
   final pembaca = ref.read(pabrikPembacaPindaiProvider).halaman();
 
   try {
-    return (terbaca: await pembaca.baca(citra), dibatalkan: false);
+    return (
+      terbaca: await pembaca.baca(citra),
+      dibatalkan: false,
+      ukuran: Size(citra.width.toDouble(), citra.height.toDouble()),
+    );
   } finally {
     await pembaca.tutup();
   }
