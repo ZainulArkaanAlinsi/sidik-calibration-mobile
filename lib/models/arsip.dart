@@ -3,6 +3,9 @@ import '../core/utils/parse_list.dart';
 
 /// Satu folder perusahaan di daftar akar Arsip
 /// (`GET /api/arsip/perusahaan`).
+///
+/// **Endpoint ini ngelist FOLDER, bukan pelanggan** — dan dua id yang datang
+/// dari situ beda arti. Lihat [id] dan [pelangganId].
 class ArsipPerusahaan {
   const ArsipPerusahaan({
     required this.id,
@@ -10,23 +13,48 @@ class ArsipPerusahaan {
     required this.alamat,
     required this.jumlahAlat,
     required this.jumlahSertifikat,
+    this.pelangganId,
     this.terakhirKalibrasi,
   });
 
+  /// **Id FOLDER**, bukan id pelanggan. Dipakai buat `GET /arsip/folders/{id}`.
   final int id;
+
+  /// **Id PELANGGAN** — `json['pelanggan']['id']`, dan ini yang dipakai buat
+  /// `GET /arsip/perusahaan/{customer}/folder`.
+  ///
+  /// Dulu jalur itu dikasih [id] (id folder), dan itu bug yang paling sepi
+  /// bentuknya: rutenya ngiket ke `Customer`, jadi id folder 3 membuka arsip
+  /// pelanggan id 3 — **PT yang beda**, status 200, nol error. Folder akar PT
+  /// dibikin belakangan dan urutannya nggak ikut urutan pelanggan, jadi dua id
+  /// itu sering beda; di uji tiga PT, dua di antaranya kebuka arsip PT lain.
+  ///
+  /// `null` = folder akar yang nggak nempel ke pelanggan mana pun
+  /// (`folders.customer_id` boleh kosong). Di situ yang benar dibuka lewat
+  /// [id] sebagai folder biasa — bukan ditebak ke pelanggan.
+  final int? pelangganId;
+
   final String nama;
+
+  /// Alamat pelanggannya, dibaca dari `json['pelanggan']['alamat']` —
+  /// **bukan** `json['alamat']` di tingkat atas, yang nggak pernah ada.
+  /// Selama itu dibaca dari tingkat atas, alamat di kartu PT selalu kosong dan
+  /// baris kecil di bawah namanya nggak pernah kelihatan.
   final String alamat;
+
   final int jumlahAlat;
   final int jumlahSertifikat;
   final DateTime? terakhirKalibrasi;
 
   factory ArsipPerusahaan.fromJson(Map<String, dynamic> json) {
     final terakhir = json['terakhir_kalibrasi'] as String?;
+    final pelanggan = json['pelanggan'] as Map<String, dynamic>?;
 
     return ArsipPerusahaan(
       id: (json['id'] as num).toInt(),
+      pelangganId: (pelanggan?['id'] as num?)?.toInt(),
       nama: json['nama'] as String? ?? '—',
-      alamat: json['alamat'] as String? ?? '',
+      alamat: (pelanggan?['alamat'] as String?) ?? '',
       jumlahAlat: (json['jumlah_alat'] as num?)?.toInt() ?? 0,
       jumlahSertifikat: (json['jumlah_sertifikat'] as num?)?.toInt() ?? 0,
       terakhirKalibrasi: terakhir == null ? null : DateTime.tryParse(terakhir),

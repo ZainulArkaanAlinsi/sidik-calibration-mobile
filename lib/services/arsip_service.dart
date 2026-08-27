@@ -137,9 +137,14 @@ class MockArsipService implements ArsipService {
   Future<List<ArsipPerusahaan>> daftarPerusahaan(String token, {String? cari}) async {
     _cek();
 
+    // `id` (folder) sengaja BEDA dari `pelangganId` di sini, dan bukan buat
+    // gaya-gayaan: waktu dua-duanya kebetulan sama, jalur yang salah kirim id
+    // folder ke rute pelanggan kelihatan jalan mulus. Folder akar PT memang
+    // dibikin belakangan dan urutannya nggak ikut urutan pelanggan.
     const semua = [
       ArsipPerusahaan(
         id: 1,
+        pelangganId: 2,
         nama: 'PT Tirta Gracia',
         alamat: 'Cicalengka, Kab. Bandung',
         jumlahAlat: 2,
@@ -147,6 +152,7 @@ class MockArsipService implements ArsipService {
       ),
       ArsipPerusahaan(
         id: 2,
+        pelangganId: 1,
         nama: 'PT Contoh Sejahtera',
         alamat: 'Bandung',
         jumlahAlat: 1,
