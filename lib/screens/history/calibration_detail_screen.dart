@@ -14,6 +14,7 @@ import '../../providers/history_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/autoclave_hasil_panel.dart';
 import '../../widgets/skeleton.dart';
+import '../../widgets/banner_status_standar.dart';
 import '../../widgets/status_badge.dart';
 import '../calibration/lembar_kerja_screen.dart';
 import '../calibration/instrument_picker_screen.dart';
@@ -173,6 +174,12 @@ class _Isi extends StatelessWidget {
           ],
         ),
 
+        // Status sertifikat standar — di ATAS catatan revisi & tombol lanjut,
+        // karena ini yang paling mungkin membatalkan seluruh sesi. Menggambar
+        // nol piksel kalau semua standar masih berlaku.
+        const SizedBox(height: AppSpacing.md),
+        BannerStatusStandar(status: detail.statusStandar),
+
         if (detail.status == CalibrationStatus.perluRevisi &&
             detail.catatanRevisi != null) ...[
           const SizedBox(height: AppSpacing.md),
@@ -288,6 +295,21 @@ class _Isi extends StatelessWidget {
                   _InfoRow(
                     label: l10n.detailTipePencelupan,
                     value: detail.isianTeknisi!.tipePencelupan!,
+                  ),
+
+                // Tipe sensor standar — alasannya sama persis dengan dua baris
+                // di atas, dan itu yang bikin dia ikut ke sini: bukan
+                // keterangan pasif. Tipe sensor MEMILIH tabel koreksi yang
+                // dipakai, lalu menyumbang dua komponen budget sendiri
+                // (`ketidakpastian_sensor` & `drift_sensor`). Salah tipe
+                // bikin seluruh kolom Correction sertifikatnya salah — dengan
+                // angka yang tetap kelihatan wajar.
+                //
+                // Ikut kepakai lembar TITS, bukan cuma Thermocouple.
+                if (detail.isianTeknisi?.tipeSensor != null)
+                  _InfoRow(
+                    label: l10n.detailTipeSensor,
+                    value: detail.isianTeknisi!.tipeSensor!,
                   ),
 
                 if (detail.lokasi != null)

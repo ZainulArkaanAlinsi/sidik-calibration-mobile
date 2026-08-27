@@ -5,7 +5,12 @@ import 'package:flutter/widgets.dart';
 
 import '../../core/utils/angka.dart';
 import '../../models/calibration_detail.dart'
-    show IsianTeknisi, MeasurementResult, RawMeasurement, TahapPembacaan;
+    show
+        IsianTeknisi,
+        MeasurementResult,
+        RawMeasurement,
+        StatusStandar,
+        TahapPembacaan;
 import '../../models/calibration_draft.dart' show LokasiKalibrasi;
 import '../../models/equipment_lookup.dart';
 import '../../core/utils/jam_lembar.dart';
@@ -1227,6 +1232,17 @@ class LembarKerjaState {
   ///
   /// Bisa null: admin boleh nolak dengan catatan tanpa nandain kolom.
   String? catatanRevisi;
+
+  /// Status sertifikat standar sesi yang dibuka lagi — banner kepala lembar.
+  ///
+  /// Ditaruh di sini, bukan dioper turun lewat konstruktor, karena persis
+  /// itu yang sudah dilakukan [catatanRevisi] & [revisiField] buat banner di
+  /// sebelahnya: dua tata letak (satu & dua kolom) sama-sama menerima `isian`,
+  /// jadi menambah satu parameter berarti menambahnya di empat tempat.
+  ///
+  /// Null buat lembar BARU — sesinya belum ada, jadi belum ada standar yang
+  /// bisa dicek statusnya.
+  StatusStandar? statusStandar;
 
   /// Lembar ini dikembalikan admin — entah lewat kolom yang ditandai, catatan,
   /// atau dua-duanya.

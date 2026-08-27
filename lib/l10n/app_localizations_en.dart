@@ -1147,6 +1147,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get detailTipePencelupan => 'Immersion type';
 
   @override
+  String get detailTipeSensor => 'Standard sensor type';
+
+  @override
+  String get bannerStandarTanpaNama => 'Unnamed standard';
+
+  @override
+  String bannerStandarLewat(String nama, int hari) {
+    return '$nama — certificate expired $hari days ago';
+  }
+
+  @override
+  String bannerStandarSegera(String nama, int hari) {
+    return '$nama — certificate expires in $hari days';
+  }
+
+  @override
   String get detailUjiTitikEs => 'Ice point test (30 min)';
 
   @override

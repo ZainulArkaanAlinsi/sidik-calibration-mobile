@@ -1,3 +1,42 @@
+<!--
+  ============================================================================
+  SALINAN. Yang kanonik ada di repo API: `sidik-calibration-api/docs/kontrak-api.md`.
+  ============================================================================
+
+  Berkas ini pernah bercabang diam-diam selama sebulan lebih, dan itu alasan
+  blok ini ada.
+
+  Sampai 27 Agt 2026 salinan di repo mobile berhenti di 737 baris (terakhir
+  disentuh PR #50) sementara yang di repo API tumbuh jadi 2.030 — TIGA BELAS
+  section yang nggak pernah nyampe ke sini, termasuk bentuk lembar kerja per
+  jenis alat, `status_standar`, endpoint preview, laporan, dan audit log.
+  Dua-duanya menulis kalimat yang sama di kepala: "satu sumber kebenaran".
+
+  Yang bikin ini mahal bukan dokumennya beda. Yang mahal: orang yang buka
+  salinan ini nggak punya cara tahu dia lagi baca versi basi — dan dokumen
+  basi yang mengaku sumber kebenaran lebih menyesatkan daripada nggak ada
+  dokumen sama sekali.
+
+  ## Cara ngecek salinan ini masih sama
+
+      diff <(tail -n +40 sidik-calibration-mobile/docs/kontrak-api.md) \
+           sidik-calibration-api/docs/kontrak-api.md
+
+  Nol keluaran = sama persis. Angka 40 itu jumlah baris blok ini plus satu.
+
+  ## Kalau beda
+
+  Yang MENANG salinan di repo API — di situ backend menulisnya waktu
+  endpoint-nya dibikin. Timpa berkas ini, jangan gabungkan tangan: gabungan
+  tangan itu justru yang bikin dua berkas ini pelan-pelan jadi dua dokumen
+  berbeda.
+
+      tail -n +40 <berkas ini> > /tmp/kepala && \
+        cat /tmp/kepala sidik-calibration-api/docs/kontrak-api.md > ...
+
+  (Atau lebih gampang: salin ulang, lalu tempel balik blok komentar ini.)
+-->
+
 # Kontrak API — apa yang dibutuhin Mobile
 
 Dokumen ini buat @raihannazhiif (backend, [`sidik-calibration-api`](https://github.com/ZainulArkaanAlinsi/sidik-calibration-api)). Isinya daftar endpoint yang app Flutter panggil, plus bentuk JSON yang diharapkan — biar nggak ada tebak-tebakan nama field.
@@ -59,7 +98,7 @@ Bikin ini duluan, hari ini juga kalau bisa. Kecil, tapi begitu ada, mobile bisa 
 { "status": "ok", "app": "sidik-calibration-api", "time": "2026-07-14T09:30:00Z" }
 ```
 
-> ✅ **Live sejak 14 Jul.** Satu bedanya: `app` isinya ambil dari `APP_NAME` backend, sekarang nilainya `"ASMO API"` (bukan `"sidik-calibration-api"`). Kalau mobile nggak nge-assert field itu, aman.
+> ✅ **Live sejak 14 Jul.** Satu bedanya: `app` isinya ambil dari `APP_NAME` backend, sekarang nilainya `"SIDIK Calibration"` (bukan `"sidik-calibration-api"`). Kalau mobile nggak nge-assert field itu, aman.
 
 ---
 
@@ -71,7 +110,7 @@ Bikin ini duluan, hari ini juga kalau bisa. Kecil, tapi begitu ada, mobile bisa 
 > - **`429 Too Many Requests`** bisa muncul: login dibatesin **10 percobaan/menit per IP**, register **5/menit**. Siapin pesan "coba lagi sebentar" di UI.
 > - Akun **`nonaktif`** ditolak `403` juga, pesannya `"Akun ini nonaktif. Hubungi admin."` (beda dari pesan `pending`).
 > - **`organization_id` masih `null`** buat akun hasil register — tabel `organizations` belum ada (baru dirancang di ERD hari ini). Jangan dianggap wajib int dulu di sisi Dart, biar nggak crash pas parsing.
-> - Akun dev buat nyoba: `SDK-0001` (admin) · `SDK-0002` (teknisi) · `SDK-0003` (viewer) · `SDK-0099` (sengaja `pending`, buat nyobain layar "belum disetujui"). Password semua `rahasia123`.
+> - Akun dev buat nyoba: `SDK-0001` (admin) · `SDK-0002` (teknisi) · `SDK-0003` (viewer) · `SDK-0099` (sengaja `pending`, buat nyobain layar "belum disetujui"). Password semua `rahasia123` — **di laptop doang**. Di server sandinya dari `SEED_ADMIN_PASSWORD`, atau acak kalau variabel itu kosong.
 
 ### `POST /api/login`
 
@@ -123,7 +162,7 @@ Request:
   "nama": "Eko Prasetyo",
   "employee_id": "SDK-0099",
   "department": "Kalibrasi",
-  "email": "eko@ptasmo.com",
+  "email": "eko@ptsidik.com",
   "password": "rahasia123"
 }
 ```
@@ -175,6 +214,68 @@ Request — **`email` ikut dikirim**, ya:
 
 ### `GET /api/me`
 Buat validasi token yang tersimpan waktu app dibuka (splash). Response: objek `user` yang sama kayak di atas.
+
+### `GET /api/me/permissions` — matriks peran (live 26 Jul)
+
+Yang bikin tombol bisa **disembunyiin sebelum ditekan**, bukan dipajang lalu kena
+`403`. Panggil sekali sehabis login, simpen di state.
+
+```json
+{
+  "data": {
+    "role": "teknisi",
+    "boleh": [
+      "alat.lihat", "alat.tambah", "alat.ubah", "alat.hapus",
+      "kalibrasi.lihat", "kalibrasi.buat", "kalibrasi.ubah",
+      "kalibrasi.hitung-preview", "kalibrasi.pindai-foto",
+      "kalibrasi.verifikasi-pindai",
+      "sertifikat.lihat", "sertifikat.unduh",
+      "laporan.lihat", "laporan.export",
+      "arsip.lihat", "arsip.berkas.unduh",
+      "pelanggan.dropdown", "standar.lihat", "ruangan.lihat",
+      "metode.lihat", "kategori.lihat",
+      "dashboard.lihat", "notifikasi.lihat"
+    ],
+    "batasan": {
+      "kalibrasi": "sendiri",
+      "sertifikat": "sendiri",
+      "laporan": "sendiri",
+      "dashboard": "sendiri"
+    }
+  }
+}
+```
+
+Jumlah izin sekarang: **admin 44 · teknisi 23 · viewer 15.**
+
+- **`boleh` itu daftar putih.** Nama izin yang nggak ada di situ = ditolak. Jangan
+  nebak dari `role` lagi — itu yang bikin bug "mulus di admin, mentok di teknisi".
+- **`batasan` beda dari `boleh`.** `boleh` jawab "layarnya kebuka apa nggak";
+  `batasan` jawab "isinya sebanyak apa". Teknisi **boleh** buka `/calibrations`,
+  cuma dapat pekerjaannya sendiri. Nilainya `sendiri` atau `semua`.
+- **Ini alat TAMPILAN, bukan penjagaan.** Penjagaannya tetap di server: kalau
+  mobile ngeyel manggil, tetap `403`. Jangan dipakai buat mutusin hal yang
+  sifatnya keamanan.
+- **Nama izinnya STABIL** — aman di-hardcode di mobile. Yang bisa berubah itu
+  isi `boleh` per role.
+
+> **Kenapa ini nggak bisa basi.** Daftarnya nggak ditulis tangan — dihitung dari
+> middleware `role:` di rute yang beneran terdaftar (`app/Services/MatriksIzin.php`).
+> Jadi begitu ada yang mindahin rute masuk/keluar blok `role:admin`, jawaban
+> endpoint ini ikut berubah di request berikutnya. `MeIzinTest` manggil **semua**
+> endpoint yang dipetakan pakai ketiga role dan mastiin `403`-nya kejadian persis
+> kalau izinnya nggak ada — jadi daftar ini nggak bisa bohong tanpa test-nya merah.
+
+**Jawaban tiga pertanyaan di `permintaan-endpoint-fase-2.md` §1:**
+
+1. **Viewer boleh lihat arsip & sertifikat?** **Boleh** — baca semua, nulis nggak
+   ada sama sekali. Persis kayak asumsi mobile sekarang.
+2. **Teknisi boleh lihat sesi teknisi lain?** **Nggak.** `batasan.kalibrasi:
+   "sendiri"`. Kalau nebak ID lewat `GET /calibrations/{id}` punya orang lain,
+   dapat `404` (bukan `403` — biar nggak jadi cara ngintip ID mana yang ada).
+3. **Ada rencana role keempat?** **Nggak.** Penanda tangan sertifikat diputusin
+   jadi **atribut**, bukan role (keputusan 26 Jul), jadi `UserRole` di mobile tetap
+   tiga.
 
 ### `POST /api/logout`
 Response `200`: `{ "message": "Berhasil logout." }`
@@ -347,6 +448,41 @@ Mobile butuh ini buat isi dropdown kategori + nyiapin worksheet dinamis (kolom t
 > ### Soal `?mine=true`
 > Teknisi **selalu** cuma dapat sesi miliknya sendiri — nggak peduli query param-nya diisi apa. `mine=false` bukan pintu belakang. Param `mine=true` cuma berfungsi buat **admin & viewer** yang mau nyaring punya sendiri. Ada testnya.
 
+### `GET /api/calibrations/lembar-kerja?profil=...` — bentuk per jenis alat
+
+✅ **Live (Turbidimeter, Agu).** Bentuk lembar kerja beda per jenis alat.
+`?profil=turbidimeter` (atau `?instrumen=Turbidimeter`) balikin lembar NTU
+(titik 1/100/1000, resolusi per-titik di `bagian[].tabel[].baris[].desimal`).
+Tanpa param = pH (default — mobile lama nggak berubah). Detail rumus & arsitektur
+profil: `docs/SPEC-turbidimeter-profile.md`.
+
+### `status_standar` di respons sesi — banner kepala lembar kerja
+
+✅ **Live 25 Jul.** Ikut di `GET /api/calibrations` & `GET /api/calibrations/{id}`.
+
+```json
+"status_standar": {
+  "ringkasan": "expired",
+  "pesan": "ONE OR MORE STANDARD EXPIRED",
+  "standar": [
+    { "id": 10, "nama": "pH Buffer Solution 7", "status": "valid", "hari_menuju_kadaluarsa": 190 },
+    { "id": 12, "nama": "Termometer & Sensor Std.", "status": "expired", "hari_menuju_kadaluarsa": -3 }
+  ]
+}
+```
+
+- **`ringkasan` itu status TERBURUK** dari semua standar yang kepakai di sesi itu:
+  standar default sesi, thermohygro, standar per titik ukur (buffer 4/7/10
+  masing-masing punya sertifikat sendiri), dan baris Usage Check. Satu yang
+  kadaluarsa udah cukup nahan penerbitan sertifikat, jadi banner-nya nggak boleh
+  kalem cuma karena standar lain masih valid.
+- **`pesan` udah siap tampil** — jangan disusun ulang di mobile, biar kalimatnya
+  sama sama yang tercetak di lembar kerja. **`null` = nggak usah nampilin banner
+  sama sekali.**
+- **`standar[]`** buat badge per baris di bagian PENGERJAAN. Standar yang kepakai
+  dari dua jalur (mis. standar default sesi juga kepakai di titik pertama) cukup
+  muncul sekali.
+
 ### `GET /api/standards` — isi dropdown "Standar Acuan"
 
 ✅ **Live sejak 14 Jul.** Baca: semua role (termasuk viewer). Nggak pakai paginasi — daftar standar lab itu pendek, jadi langsung kekirim semua (sama kayak `/categories`).
@@ -362,7 +498,7 @@ Mobile butuh ini buat isi dropdown kategori + nyiapin worksheet dinamis (kolom t
       "serial_number": "GB-STD-001",
       "no_sertifikat": "SNSU/2025/P-0142",
       "tertelusur_ke": "SNSU-BSN",
-      "berlaku_sampai": "2027-07-13T17:00:00Z",
+      "berlaku_sampai": "2027-07-13",
       "masih_berlaku": true,
       "ketidakpastian": 0.0004,
       "satuan_ketidakpastian": "mm",
@@ -373,6 +509,30 @@ Mobile butuh ini buat isi dropdown kategori + nyiapin worksheet dinamis (kolom t
 }
 ```
 
+> ## ✅ 25 Jul — `status_kalibrasi` & `hari_menuju_kadaluarsa` (worksheet-ph §2.1)
+>
+> `masih_berlaku` (bool) nggak cukup buat kepala lembar kerja: worksheet-nya punya
+> state **TENGAH** — "mau kadaluarsa". Sekarang tiap standar ikut bawa:
+>
+> ```json
+> "status_kalibrasi": "valid",          // valid | warning | expired
+> "hari_menuju_kadaluarsa": 23
+> ```
+>
+> - **`hari_menuju_kadaluarsa` BERTANDA**: positif = sisa hari, `0` = habis hari
+>   ini, **negatif = udah lewat** (`-12` artinya kadaluarsa 12 hari lalu). `null`
+>   kalau standar itu nggak punya tanggal berlaku — beda artinya dari `0`.
+> - **Ambang `warning` ditentukan BACKEND**, per organisasi
+>   (`organization.settings.reminder_hari_sebelum`, default **30 hari**) — knob yang
+>   sama dipakai reminder alat jatuh tempo. Sengaja satu sumber: kalau mobile
+>   nentuin ambangnya sendiri, dia bisa nampilin VALID buat standar yang nanti
+>   ditolak backend waktu approve, dan teknisi baru tahu setelah kerjaannya kelar.
+> - ⚠️ **`status_kalibrasi` yang jadi pegangan, BUKAN `hari_menuju_kadaluarsa`.**
+>   Standar yang habis HARI INI balik `hari_menuju_kadaluarsa: 0` tapi
+>   `status_kalibrasi: "expired"` — konsisten sama `masih_berlaku` dan sama aturan
+>   yang nolak `POST /calibrations` dengan `422`. Jangan nurunin status sendiri
+>   dari angka harinya; pakai angkanya buat teks doang ("lewat 12 hari").
+
 > **Pakai `masih_berlaku`, jangan banding-bandingin `berlaku_sampai` sendiri** — gampang salah zona waktu. Standar yang `masih_berlaku: false` **ditolak `422`** kalau dipakai kalibrasi (ketertelusurannya putus), jadi jangan dibikin bisa dipilih di dropdown.
 >
 > Standar kadaluarsa **tetap ikut kekirim**, sengaja — kalau disembunyiin, teknisi yang nyari standar yang biasa dia pakai bakal ngira datanya kehapus, padahal cuma perlu dikalibrasi ulang. Kalau mau yang bersih aja: **`GET /api/standards?berlaku_saja=true`**.
@@ -382,44 +542,6 @@ Mobile butuh ini buat isi dropdown kategori + nyiapin worksheet dinamis (kolom t
 > Ada juga **`GET /api/standards/{id}`** kalau butuh satu objek.
 >
 > **✅ 18 Jul — `POST`/`PUT`/`DELETE /api/standards` ternyata udah ada** (admin doang, dijaga `role:admin`) — dokumen ini ketinggalan, mobile baru sadar pas ngecek `StandardController.php` langsung. Layar kelola Standar Acuan (list + form CRUD) sekarang ada di app (Profil → Standar Acuan admin), dan field `model` yang sebelumnya kelewat di model mobile sekarang ikut ditangkep.
-
-### `GET /api/calibrations/lembar-kerja?profil=` — bentuk form per JENIS ALAT
-
-> **⚠️ 5 Agt — endpoint ini belum pernah masuk dokumen ini sama sekali.** Bentuknya cuma ada di `docs/permintaan-backend-2026-07-24.md` §1 (24 Jul, cuma pH), dan parameter `profil` **nggak ada di dokumen mana pun** padahal udah kepakai di produksi buat Turbidimeter. Selama cuma 2 jenis alat, itu ketahanan; begitu jadi 5, orang backend nggak punya rujukan.
-
-Balikin **bentuk formulir**, bukan data — mobile mem-parse ini jadi form. Jenis alat yang punya lembar kerja sendiri dipilih lewat query `profil`:
-
-| `profil` | Dokumen | Titik ukur | Satuan |
-|---|---|---|---|
-| `ph_meter` (default) | `SIDIK-FM-CAL-0509_Rev.4` | 4,00 / 7,00 / 10,01 | `pH` |
-| `turbidimeter` | `SIDIK-FM-CAL-0530_Rev.2` | 1 / 100 / 1000 | `NTU` |
-| `chlorine_meter` | `SIDIK-FM-CAL-0531_Rev.2` | 1,74 / 1,83 | `mg/L` |
-
-> **⚠️ Chlorin Meter — lembar cetaknya beda dari lingkup akreditasi, jangan ikut yang dicetak.**
-> `SIDIK-FM-CAL-0531_Rev.2` yang dipegang teknisi nulis `Solution Standard 0.40` & `4.00`, baris STANDARD-nya "Chlorine Std. Solutions 0.4 / 4 mg/l". Tiga sumber yang lebih baru bilang **1,74 & 1,83 mg/L**: lampiran akreditasi LK-285-IDN no. 42 (CMC 0,091 & 0,08), `Chlorine_Meter_CSV/DATABASE.csv` (snapshot 19 Des 2025, standar fisiknya "Chlorine Standard Solution 1.74 mg/L" U95 0,09 & "Chlorine Standar Cuvettes 1.83 mg/L" U95 0,06), dan sesi asli 0189-CAL-624. `FORM_VALIDASI.csv` rev #6 (3 Apr 2024) nyatet set standarnya sempat diubah — lembar cetaknya ketinggalan.
-> **Backend wajib pakai 1,74 & 1,83.** Kalibrasi di titik luar lampiran nggak bisa jadi sertifikat berakreditasi. Diputusin 5 Agt 2026. Kalau lab mau balik ke 0,4/4, yang mesti diurus dulu lampiran akreditasinya, bukan kodenya.
-
-Nama alatnya di lampiran ditulis **"Chlorin Meter"** (tanpa 'e'), di lembar kerja **"Chlorine Meter"**. Mobile ngenalin dua-duanya (`InstrumentPickerScreen.profilUntuk`, cocokinnya case-insensitive) — backend bebas ngirim yang mana pun.
-
-**`profil` kosong / nggak dikenal → JATUH KE pH, jangan `404`.** Mobile masih punya tautan lama yang nggak nempelin query-nya sama sekali (`ApiLembarKerjaService.ambilBentuk`), dan `404` di situ bikin teknisi mendarat di layar "gagal muat" tanpa sebab yang kelihatan.
-
-Field wajib non-null, penyaringan `hanya_admin` per role, dan bentuk `bagian[]` **sama persis** kayak `permintaan-backend-2026-07-24.md` §1 — nggak diulang di sini. Tiga hal yang ditambahin sesudah dokumen itu ditulis:
-
-**1. `bagian[].halaman`** — nomor halaman kertasnya (`1`-based). pH kebagi 2 halaman, Turbidimeter selembar (semua bagian `halaman: 1`). Boleh nggak dikirim: mobile nganggep semuanya halaman 1, form tetap kebentuk.
-
-**2. `tabel.baris[].resolusi` + `baris[].desimal`** — resolusi **PER BARIS**, bukan satu angka buat seluruh tabel:
-```json
-"baris": [
-  {"titik_ukur": 1.0,    "label": "1",    "resolusi": 0.01, "desimal": 2},
-  {"titik_ukur": 100.0,  "label": "100",  "resolusi": 0.1,  "desimal": 1},
-  {"titik_ukur": 1000.0, "label": "1000", "resolusi": 1.0,  "desimal": 0}
-]
-```
-Turbidimeter dibaca sampai 0,01 di bawah 10 NTU tapi bulat di atas 100. **Dipaksa satu angka buat semuanya, titik 100 kecetak `101,00` di sertifikat** — itu cacat angka penting di dokumen berakreditasi, bukan cuma jelek dilihat. `null` = resolusinya seragam (jalur pH); jangan diisi `0` buat "nggak ada".
-
-**3. `bagian[].baris[]` di `usage_check`** — baris STANDARD yang **tercetak di formulir**, bukan katalog standar lab. Baris yang standarnya belum kedaftar di master dikirim dengan `standard_id: null`, `terdaftar: false` — **tetap dikirim**, jangan dibuang. Kalau barisnya hilang, teknisi nggak bakal sadar ada standar yang nggak kecatat.
-
-Nambah jenis alat ke-3: satu profil baru di backend + satu baris di `_profilKhusus` (`lib/screens/calibration/instrument_picker_screen.dart`). Jenis alat yang nggak punya profil tetap lewat form generik, jadi nggak ada yang rusak selama transisi.
 
 ### `POST /api/calibrations`
 Bikin sesi kalibrasi + kirim data mentah sekaligus. **Data dari input manual dan dari hasil scan kamera masuk ke endpoint yang sama persis** — nggak usah bikin endpoint terpisah buat OCR. Bedanya cuma di field `input_method` (buat statistik, bukan buat logic beda).
@@ -441,6 +563,165 @@ Bikin sesi kalibrasi + kirim data mentah sekaligus. **Data dari input manual dan
 `input_method`: `manual` atau `ocr`.
 
 Response `201` — balikin sesi yang udah kehitung (lihat bentuknya di bawah).
+
+> ## ✅ 26 Agt — bentuk PASANGAN buat 3 alat suhu baru
+>
+> **Thermocouple · Termometer Gelas · Thermohygrometer** (alat ke-18, 19, 20) TIDAK
+> memakai `measurements[].pembacaan`. Ketiganya membaca **dua deret per titik** —
+> probe standar lab dan UUT dicelup bersamaan ke dryblock/oilbath/chamber yang
+> sama, lalu dibaca bergantian tiap 10 detik dalam satu sapuan 90 detik:
+>
+> ```
+> 0″ standar · 10″ UUT · 20″ standar · 30″ UUT · … · 80″ standar · 90″ UUT
+> ```
+>
+> Jadi nilai standarnya **data sesi**, bukan konstanta dari master `standards`
+> seperti buffer pH 4,01. Kirim dua-duanya:
+>
+> ```json
+> {
+>   "equipment_id": 31,
+>   "standard_id": 7,
+>   "tipe_sensor": "Type K",
+>   "alat_bantu": "A",
+>   "measurements": [
+>     { "titik_ukur": 50,  "no_probe": 1, "standar": [49.5, 49.5, 49.5, 49.5, 49.5], "uut": [49.9, 49.9, 49.9, 49.9, 49.9] },
+>     { "titik_ukur": 100, "no_probe": 2, "standar": [99, 99, 99, 99, 99],           "uut": [99.9, 99.9, 99.9, 99.9, 99.9] }
+>   ]
+> }
+> ```
+>
+> **Cara tahu lembar mana yang begini:** `GET /api/calibrations/lembar-kerja`
+> memulangkan `bagian[].tabel[]` yang tiap elemennya punya **`peran`**
+> (`standar` / `uut`) dan **`grup`** sendiri. Lembar datar tidak punya `peran`.
+> Jangan hardcode daftar kode profil — baca `peran`.
+>
+> ### Field per alat
+>
+> | Field | Alat | Isi | Kalau kosong |
+> |---|---|---|---|
+> | `tipe_sensor` | Thermocouple | `RTD` · `Type K` · `Type N` | angkanya DITAHAN, alasannya di `belum_dihitung` |
+> | `alat_bantu` | Thermocouple | `A` (Isotech, −20…150 °C) · `B` (Techne, 150…600 °C) | idem |
+> | `alat_bantu` | Termometer Gelas | `satu` · `dua` (dua oilbath) | idem |
+> | `measurements[].no_probe` | Thermocouple | Type K → 1–16 · Type N → **3–12** · RTD → 17 | titik itu diblokir |
+> | `tipe_pencelupan` | Termometer Gelas | `Partial` / `Total` / `Complete Immersion` | cuma peringatan (tercetak di sertifikat) |
+> | `titik_es` | Termometer Gelas | array 3 angka, uji titik es 30 menit | komponen budget-nya dihitung nol |
+> | `measurements[].parameter` | Thermohygro | `suhu` / `kelembaban` | dianggap `suhu` |
+>
+> **`no_probe` penomorannya BEDA per tipe** dan itu dari kertasnya sendiri: *"If
+> using Thermocouple Type N, No. Thermocouple START FROM 3. If using PRT PT100
+> (RTD), No. Thermocouple ALL 17."* Dropdown-nya sudah dikirim bentuk lembar kerja
+> lengkap dengan `grup` = nama tipe sensornya, jadi saring dari situ — jangan
+> ditulis ulang di HP.
+>
+> **Thermohygro tidak punya `alat_bantu`.** Chamber-nya (Biobase ≥ 50 %RH / GEA
+> < 50 %RH) diturunkan SERVER dari set point, karena satu sesi memakai dua-duanya
+> sekaligus dan masing-masing punya U95 sendiri. Tabel standar kelembapan membawa
+> `chamber_per_baris` supaya HP bisa menuliskannya di sebelah set point.
+>
+> ### Yang balik di `GET /api/calibrations/{id}`
+>
+> `alat_bantu`, `tipe_pencelupan`, `titik_es`, dan `pembacaan_mentah[].peran_sensor`
+> + `.sensor_ke` semuanya ikut. Itu yang bikin sesi yang dikembalikan admin pulang
+> UTUH — tanpa `peran_sensor`, HP tidak punya cara tahu angka mana milik deret yang
+> mana, dan teknisi mengetik ulang dua tabel penuh.
+>
+> Plus **`alat_bantu_label`** — nama unitnya, bukan kodenya:
+>
+> ```json
+> { "alat_bantu": "A", "alat_bantu_label": "A — Isotech Fast Cal Low (−20…150 °C)" }
+> ```
+>
+> Ada karena dua pembaca respons ini butuh hal berbeda. Lembar kerja yang dibuka
+> lagi butuh `alat_bantu` mentah — dropdown-nya mencocokkan `nilai`, dan nama tiap
+> pilihan sudah datang bareng `GET /api/calibrations/lembar-kerja`. Layar detail
+> admin tidak memuat template itu, jadi di sana `A` tetap `A`.
+>
+> **Jangan salin peta kode→nama ke HP.** Daftarnya bertambah begitu lab membeli
+> dryblock baru, dan peta yang tertinggal menampilkan kode mentah tanpa satu pun
+> error — di layar yang justru dipakai memutuskan penerbitan sertifikat. `null`
+> untuk alat yang tidak punya alat bantu (termasuk Thermohygro) dan untuk kode
+> yang tidak dikenal profilnya.
+>
+> **U95-nya SATU per sesi** (Thermohygro: satu per grup parameter+chamber), dicetak
+> sebagai baris di bawah tabel — bukan kolom per titik. `desimal_u95` tetap dibaca
+> dari respons seperti biasa.
+
+### 4a. `POST /api/calibrations/preview` — hitung sambil ngetik
+
+✅ **Live 25 Jul.** Diminta di `permintaan-worksheet-ph.md` §4. Admin & teknisi;
+viewer `403`. Rate limit **120/menit per IP** (dipanggil tiap selesai satu baris,
+bukan sekali per sesi).
+
+**Body-nya SAMA PERSIS kayak `POST /api/calibrations`** — kirim aja draft yang
+sedang diisi. Nggak perlu payload kedua, nggak perlu field tambahan.
+`client_request_id` boleh ikut, diabaikan (preview bukan submit).
+
+**Nggak nyimpen apa pun**: nggak ada baris sesi/pembacaan/hitungan, nggak makan
+nomor sesi, nggak ngirim notifikasi, nggak nyiarin sinyal realtime. Aman dipanggil
+tiap ketukan.
+
+Response `200`:
+
+```json
+{
+  "data": {
+    "keputusan": "PASS",
+    "hasil": {
+      "rata_rata": 7.03, "error": 0.03,
+      "ketidakpastian_gabungan": 0.01055448,
+      "faktor_cakupan_k": 2, "ketidakpastian_diperluas": 0.02110895,
+      "keputusan": "PASS"
+    },
+    "titik": [ { "titik_ke": 1, "rata_rata": 7.03, "error": 0.03, "koreksi": -0.03, "…": "…" } ],
+    "lembar_perhitungan": [
+      { "tahap": "sebelum_adjustment", "judul": "Before Adjustment Reading",
+        "titik": [ { "titik_ke": 1, "standard": 7.0021, "average": 7.11, "correction": 0.1079, "stdev": 0.01414, "…": "…" } ],
+        "max_stdev": 0.01414 },
+      { "tahap": "sesudah_adjustment", "judul": "After Adjustment Reading", "titik": [ "…" ], "max_stdev": 0.01 }
+    ],
+    "kondisi_lingkungan": {
+      "suhu": { "awal": 22.2, "akhir": 22.4, "average": 22.3, "delta": 0.2, "u95_sertifikat": 0.2, "nilai_terkoreksi": 22.3, "satuan": "°C" },
+      "kelembaban": { "…": "…" },
+      "thermohygro": null, "thermohygro_serial": null
+    },
+    "belum_dihitung": [
+      { "titik_ke": 3, "alasan": "Baru 1 pembacaan terisi, minimal 2 — standar deviasi nggak bisa dihitung dari satu angka." }
+    ]
+  }
+}
+```
+
+**Yang penting dipahami soal bentuknya:**
+
+- **`hasil` & `titik` sama arti + sama bentuk kayak di `GET /api/calibrations/{id}`.**
+  Dua-duanya lewat helper yang sama di backend, jadi **parser yang udah ada bisa
+  dipakai ulang apa adanya**. `hasil` = ringkasan titik penentu (yang paling mepet
+  batas toleransi), bukan gabungan semua titik.
+- **`lembar_perhitungan` = `data.hasil`-nya `GET /api/calibrations/{id}/perhitungan`**,
+  byte-per-byte. Namanya beda **sengaja**: di detail sesi, key `hasil` artinya
+  ringkasan titik penentu. Satu nama dua arti itu jebakan, jadi di sini dipisah.
+  Isinya dua tabel (Before/After adjustment) lengkap sama baris Average,
+  Correction, STDEV, dan MAX STDEV — persis kolom yang dihitung Excel-nya lab.
+- **`belum_dihitung`** ngasih tahu KENAPA satu titik belum keluar angkanya. Tanpa
+  ini, titik yang nggak muncul di `titik` kelihatan kayak bug. Alasannya sudah
+  berupa kalimat siap tampil — jangan disusun ulang di mobile.
+- **`keputusan` di top-level** sama nilainya sama `hasil.keputusan`. Ada di luar
+  supaya tetap kebaca waktu `hasil` masih `null` (belum ada titik yang kehitung).
+- `titik` **cuma berisi titik yang bisa dihitung**. Titik yang belum cukup datanya
+  pindah ke `belum_dihitung`, jadi `titik` bisa lebih pendek dari `measurements`.
+
+> **Angkanya dijamin identik sama yang nanti tersimpan** — bukan "mirip". Preview
+> dan submit mutar fungsi yang sama, dan pembulatan ke presisi kolom DB dilakuin
+> sebelum keduanya, jadi nggak ada selisih di desimal jauh. Ada test yang ngirim
+> payload sama ke `/preview` dan ke `/calibrations` terus ngebandingin field per
+> field (`CalibrationPreviewTest`). Ini yang bikin aman nampilin angkanya ke
+> teknisi: yang di layar sama sama yang bakal tercetak di sertifikat.
+>
+> Makanya **jangan hitung Average/Correction/STDEV sendiri di mobile** walau
+> rumusnya kelihatan sepele. Bukan soal susah — soal `standard` di lembar
+> perhitungan itu nilai buffer pada SUHU LARUTAN saat itu (4,0092252 di 22,2 °C),
+> bukan nominal 4,00, dan diturunkan dari persamaan di sertifikat buffer.
 
 ### `GET /api/calibrations` · `GET /api/calibrations/{id}`
 ```json
@@ -469,6 +750,89 @@ Response `201` — balikin sesi yang udah kehitung (lihat bentuknya di bawah).
 > **`keputusan`: `PASS` atau `FAIL`** (huruf besar). Ingat: **FAIL tetap boleh terbit sertifikat**, statusnya aja beda — jangan diblokir di backend.
 > Perhitungan GUM (Type A + Type B → gabungan → `U = k × u_c`) dan keputusan ILAC-G8 **dihitung di backend**, mobile cuma nampilin. Mobile nggak ngitung apa pun.
 
+> ## ✅ 25 Jul — objek embed digemukin (permintaan-endpoint.md §5c–5e)
+>
+> Layar pencocokan sertifikat dulu kepaksa nembak tiga endpoint tambahan cuma
+> buat ngisi kepala dokumen. Sekarang ikut di `GET /api/calibrations/{id}`:
+>
+> ```json
+> "teknisi": {
+>   "id": 4, "nama": "Dwi Rahayu",
+>   "employee_id": "SDK-2001",     // buat login
+>   "kode_teknisi": "DR",          // <- INI yang dicetak di kolom "Technician ID"
+>   "department": "Kalibrasi"
+> },
+> "reviewer": { "id": 1, "nama": "Alex Misramto", "kode_teknisi": "AM" },
+> "standar_acuan": {
+>   "id": 10, "nama": "pH Buffer Solution 7", "no_sertifikat": "HC46341939",
+>   "merk": "Supelco", "model": "Merck",
+>   "merk_type": "Supelco/Merck",   // kolom "Merk/Type" digabung backend
+>   "serial_number": "HC46341939",
+>   "tertelusur_ke": "Merck KGaA"
+> },
+> "sertifikat": {
+>   "id": 9, "nomor": "012-CAL-524", "status": "terbit", "pdf_url": "...",
+>   "diterbitkan_pada": "2024-05-30",
+>   "berlaku_sampai": "2025-05-29",
+>   "qr_token": "DEMOQR123",
+>   "qr_payload": "https://.../verify/DEMOQR123"
+> }
+> ```
+>
+> - ⚠️ **Kolom "Technician ID" di lembar kerja & sertifikat isinya `kode_teknisi`
+>   (`DR`), BUKAN `employee_id` (`SDK-2001`).** Contoh di `permintaan-endpoint.md`
+>   §5c nulis `"employee_id": "DR"` — itu ketuker. Kalau `kode_teknisi` belum
+>   diisi, backend jatuh ke inisial nama; lebih baik inisial daripada kolom kosong
+>   di dokumen resmi.
+> - **`reviewer` = "Checked by"** — admin yang approve/reject sesi. `null` selama
+>   sesinya belum diperiksa.
+> - **`merk_type` digabung di backend** (`merk` + `model`, dipisah `/`, yang kosong
+>   dilewat) supaya dua klien nggak bikin dua gaya penulisan buat satu kolom di
+>   dokumen resmi. Bagian mentahnya tetap ikut kalau mau dirender sendiri.
+> - **`standar_acuan` bentuknya SAMA di level sesi dan di tiap `titik[]`** — satu
+>   parser cukup.
+> - **`qr_payload` udah URL siap di-render** jadi QR; jangan nyusun URL sendiri
+>   dari `qr_token`, biar domainnya nggak bisa salah.
+> - **Penanda tangan sertifikat BELUM ada** — masih nunggu keputusan apakah
+>   "Manajer Teknis" itu role keempat atau atribut di user.
+>
+> ### 🔄 PERUBAHAN 26 Jul: semua field tanggal jadi TANGGAL POLOS
+>
+> **Yang berubah:** field bertipe tanggal sekarang keluar sebagai `"2024-05-30"`,
+> **bukan lagi** `"2024-05-29T17:00:00Z"`.
+>
+> **Kenapa:** kolomnya cast `date` (nggak ada jamnya) dan `APP_TIMEZONE`-nya
+> `Asia/Jakarta` — begitu diserialisasi ke UTC dia mundur 7 jam, ke jam 17:00
+> **hari sebelumnya**. Jadi `diterbitkan_pada: "2024-05-29T17:00:00Z"` itu
+> sebenernya **tanggal 30 Mei**. Konsumen yang ngambil 10 karakter pertama dapat
+> tanggal salah sehari, dan nilainya nggak bisa dipakai balik jadi penyaring
+> tanggal. Di sertifikat, tanggal terbit yang salah sehari itu cacat dokumen
+> terkendali.
+>
+> **Field yang kena:**
+>
+> | Endpoint | Field |
+> |---|---|
+> | `GET /calibrations`, `/{id}` | `tanggal_kalibrasi`, `tanggal_terima` |
+> | `GET /certificates/{id}` & embed `sertifikat` | `diterbitkan_pada`, `berlaku_sampai` |
+> | `GET /equipments` | `tanggal_kalibrasi_terakhir`, `tanggal_jatuh_tempo` |
+> | `GET /standards` | `berlaku_sampai` |
+> | `GET /organization` | `akreditasi_mulai`, `akreditasi_berakhir` |
+> | `GET /calibration-methods` | `berlaku_mulai` |
+> | `GET /verify/{qr_token}` | `diterbitkan_pada`, `berlaku_sampai`, `tanggal_kalibrasi` |
+> | `GET /laporan/kalibrasi` | `tanggal_kalibrasi` |
+>
+> **Yang TIDAK berubah:** `created_at`/`dibuat_pada`/`dibaca_pada` — itu `datetime`
+> asli, jamnya beneran berarti, jadi tetap ISO `2026-07-26T09:10:00Z`.
+>
+> **Dampak buat mobile:** kecil. `DateTime.parse("2024-05-30")` di Dart tetap
+> jalan, dan sekarang hasilnya **bener** tanpa perlu konversi zona waktu. Kode
+> yang motong 10 karakter pertama juga jadi bener sendiri. Yang perlu diperiksa
+> cuma kode yang menganggap string-nya **pasti** ada `T`/`Z`-nya (mis. regex ISO
+> ketat, atau `substring(11)` buat ngambil jam).
+>
+> Dijaga `tests/Feature/FormatTanggalApiTest.php` biar nggak balik ke ISO.
+
 ### Riwayat
 `GET /api/calibrations?mine=true` — teknisi cuma lihat kalibrasi miliknya sendiri; **admin lihat semua**. Filter ini penting, jangan sampai teknisi bisa lihat punya orang lain.
 
@@ -478,6 +842,41 @@ Response `201` — balikin sesi yang udah kehitung (lihat bentuknya di bawah).
 
 ### `POST /api/calibrations/{id}/approve` — **admin doang**, teknisi/viewer → `403`.
 Response: sesi dengan `status: "disetujui"`. Generate sertifikat jalan di **queue** (async), jadi `certificate_id` boleh masih `null` sesaat.
+
+Body-nya opsional semua:
+
+```json
+{ "berlaku_sampai": "2029-02-28", "abaikan_peringatan": false }
+```
+
+**`berlaku_sampai` — masa berlaku sertifikat, ditentukan admin (baru 26 Jul).**
+Interval kalibrasi itu keputusan teknis: beda per jenis alat, seberapa sering
+dipakai, dan permintaan pelanggan. Jadi angkanya milik admin, bukan dipaku di kode.
+
+Tiga lapis, dari yang paling spesifik:
+
+1. `berlaku_sampai` dikirim → dipakai apa adanya
+2. nggak dikirim → **default organisasi**, `settings.masa_berlaku_sertifikat_bulan`
+   (bisa disetel di panel: Pengaturan Organisasi → Penerbitan sertifikat)
+3. organisasi belum nyetel → **12 bulan**
+
+- **Dihitung dari `tanggal_kalibrasi`, bukan tanggal terbit.** Sertifikat bisa
+  terbit beberapa hari sesudah alat dikerjain (contoh Tirta Gracia: kalibrasi
+  26 Mei, terbit 30 Mei). Kalau dihitung dari tanggal terbit, masa berlakunya
+  diam-diam kepanjangan dan alat lewat jatuh tempo tanpa ada yang sadar.
+- Harus **sesudah** `tanggal_kalibrasi` → kalau nggak, `422`.
+- Maksimal **10 tahun** dari sekarang → nahan salah ketik tahun (2035 → 2350).
+- Kalau validasinya gagal, **sesinya nggak keburu disetujui** — statusnya tetap
+  `menunggu_approval`.
+- **Sesudah sertifikat terbit, masa berlakunya nggak bisa diubah lagi.** Aturan
+  yang sama kayak `PATCH /calibrations/{id}/admin`: sertifikat yang udah terbit
+  itu dokumen terkendali. Kalau salah, jalannya lewat reject → revisi → approve
+  ulang, biar ada jejaknya.
+
+**Buat UI:** taruh date-picker `berlaku_sampai` di dialog "Setujui", **prefilled**
+pakai default organisasi (`tanggal_kalibrasi` + N bulan) supaya admin nggak perlu
+ngetik tiap kali — ngetik tanggal manual berulang itu justru sumber salah ketik di
+kolom yang nentuin kapan alat harus dikalibrasi lagi.
 
 ### `POST /api/calibrations/{id}/reject`
 ```json
@@ -531,23 +930,135 @@ Response: status jadi `perlu_revisi` + `catatan_revisi` keisi. Mobile bakal namp
 ## 6. Notifikasi (dibutuhin Minggu 9)
 
 ### `GET /api/notifications`
+
+> ## ⛔ KOREKSI 25 Juli 2026 — tiga nama field di versi lama SALAH
+>
+> Bentuk yang dulu ditulis di sini nggak pernah cocok sama yang backend kirim.
+> Yang salah: `tipe` → sebenarnya **`kategori`**, `pesan` → **`isi`**,
+> `created_at` → **`dibuat_pada`**. Kalau parser dibikin ngikutin versi lama,
+> judul & isi notifikasinya **kosong di layar** tanpa error apa pun.
+>
+> Bentuk di bawah dicek langsung ke `app/Http/Resources/NotificationResource.php`.
+
 ```json
 {
   "data": [
     {
-      "id": 5,
-      "tipe": "jatuh_tempo",
-      "judul": "3 alat mendekati jatuh tempo",
-      "pesan": "Jangka Sorong Mitutoyo jatuh tempo 20 Jul 2026.",
+      "id": "9f1c...-uuid",
+      "kategori": "sesi_menunggu_approval",
+      "judul": "Sesi KAL/2026/07/0012 menunggu persetujuan",
+      "isi": "pH Meter Mettler Toledo · teknisi Dwi Rahayu",
+      "ikon": "heroicon-o-inbox-arrow-down",
+      "warna": "info",
+      "tautan": { "tipe": "calibration", "id": 12 },
       "dibaca": false,
-      "created_at": "2026-07-14T08:00:00Z"
+      "dibaca_pada": null,
+      "dibuat_pada": "2026-07-14T08:00:00Z"
     }
   ]
 }
 ```
-`tipe`: `jatuh_tempo` / `approval` / `revisi`.
 
-### `POST /api/notifications/{id}/read`
+Catatan yang bikin beda dari dugaan:
+
+- **`id` itu UUID string**, bukan integer — barisnya `DatabaseNotification`
+  bawaan Laravel. Jangan di-parse jadi `int`.
+- **`kategori`**, nilai yang beneran dipakai (dari `app/Notifications/`):
+  `jatuh_tempo` · `sesi_menunggu_approval` · `sesi_disetujui` ·
+  `sesi_perlu_revisi` · `sertifikat_terbit` · **`akun.menunggu_persetujuan`** ·
+  **`sertifikat.gagal`** · **`standar.kadaluarsa`** · `umum` (fallback).
+- **`tautan`** bentuknya `{ "tipe": ..., "id": ... }` — dipakai buat langsung
+  buka layar yang dimaksud waktu notifikasinya diketuk. Bisa `null`.
+- **`ikon`** itu nama ikon Heroicon (dipakai lonceng panel admin). Mobile boleh
+  abaikan dan pakai ikon sendiri berdasarkan `kategori`.
+- `warna` isinya token Filament (`info`, `warning`, `danger`, `success`).
+
+### Endpoint notifikasi yang tersedia
+
+```
+GET    /api/notifications
+GET    /api/notifications/unread-count
+POST   /api/notifications/{id}/read        ← `/read`, BUKAN `/baca`
+POST   /api/notifications/read-all
+DELETE /api/notifications/{id}
+```
+
+> Dokumen lain sempat nyebut `POST /notifications/{id}/baca`. Itu nggak ada —
+> yang bener `/read`.
+
+### Tiga kejadian baru yang sekarang nyampe ke admin (live 26 Jul)
+
+Nutup `permintaan-endpoint-fase-2.md` §2 — *"kalo ada sesuatu dan yang dibutuhkan
+sama admin maka semuanya dikirim ke bagian admin."* Tiga yang tadinya nggak
+dikabarin ke siapa pun:
+
+| `kategori` | Kapan | `tautan` | Warna |
+|---|---|---|---|
+| `akun.menunggu_persetujuan` | ada yang `POST /register` | `{tipe: "users", filter: "pending", id}` | `warning` |
+| `sertifikat.gagal` | PDF sertifikat gagal dibuat | `{tipe: "certificates", id}` | `danger` |
+| `standar.kadaluarsa` | scheduler harian nemu standar mendekati/lewat habis | `{tipe: "standards", filter: "expired"\|"warning", standar: [...]}` | `danger`/`warning` |
+
+Yang dikabarin: **admin `aktif` di organisasi itu**. `pending`/`nonaktif` nggak —
+mereka nggak bisa login, jadi notifikasinya cuma numpuk. Teknisi & viewer juga
+nggak: tiganya cuma bisa ditindak admin.
+
+**`standar.kadaluarsa` bawa daftar rincian di `tautan.standar`**, jadi tap-nya bisa
+langsung nampilin standar mana aja yang kena tanpa request tambahan:
+
+```json
+"tautan": {
+  "tipe": "standards",
+  "filter": "expired",
+  "standar": [
+    {
+      "id": 5, "nama": "TH-5", "no_sertifikat": "LK-285-IDN",
+      "berlaku_sampai": "2024-06-18",
+      "hari_menuju_kadaluarsa": -768,
+      "status_kalibrasi": "expired"
+    }
+  ]
+}
+```
+
+- **`hari_menuju_kadaluarsa` bertanda:** negatif = udah lewat segitu hari.
+- **Ambangnya sama** dengan badge `warning` di `GET /standards`:
+  `organization.settings.reminder_hari_sebelum` (default 30). Sengaja satu angka —
+  kalau ambang notifikasi beda dari ambang badge, admin bisa lihat badge kuning
+  tanpa pernah dikabarin, atau sebaliknya.
+
+> ### Anti-spam: isi yang sama nggak diulang tiap pagi
+>
+> `standar.kadaluarsa` dipicu scheduler **harian** dan ambangnya **30 hari**. Tanpa
+> penjaga, admin dapat baris yang persis sama 30 kali berturut-turut — dan sesudah
+> minggu pertama nggak ada yang buka loncengnya lagi.
+>
+> Aturannya dua:
+>
+> 1. **Isi sama** → dilewat selama **7 hari**, terus diingetin lagi.
+> 2. **Isi berubah** (standar baru masuk jendela, atau satu berubah dari `warning`
+>    jadi `expired`) → dikirim **saat itu juga**, nggak nunggu masa tenang. Itu
+>    justru kabar yang paling nggak boleh telat.
+>
+> Efeknya buat mobile: **nggak ada.** Ini murni di sisi server; yang berubah cuma
+> jumlah baris yang masuk. Tapi berguna diketahui waktu nyoba manual — kalau
+> command-nya dijalanin dua kali dan yang kedua nggak nambah notifikasi, itu
+> perilaku yang benar, bukan bug.
+>
+> `akun.menunggu_persetujuan` & `sertifikat.gagal` **nggak** kena penjaga ini: tiap
+> kejadiannya beneran beda, dan nahan salah satunya berarti ada kabar yang nggak
+> nyampe. Sertifikat yang gagal lagi sesudah retry tetap dikabarin — kegagalan
+> kedua itu kabar baru (berarti bukan gangguan sesaat).
+
+**Yang jalan otomatis** (butuh `php artisan schedule:work` di dev, atau cron ke
+`schedule:run` di prod):
+
+```
+07:00  alat:cek-jatuh-tempo        alat mendekati/lewat jatuh tempo
+07:05  standar:cek-kadaluarsa      sertifikat standar acuan
+```
+
+Bisa juga dipanggil manual: `php artisan standar:cek-kadaluarsa --hari=45`
+(`--hari` maksa ambang yang sama ke semua organisasi, buat nyoba).
 
 ---
 
@@ -601,14 +1112,91 @@ Isinya beda tergantung role — teknisi dapat ringkasan miliknya, admin dapat li
 >
 > Jadi di layar teknisi wajar muncul "Kalibrasi selesai: 2" bareng "Sertifikat: 137". Dashboard misahin dua kelompok ini secara visual (kartu hero berlabel "SE-LAB" vs seksi "KALIBRASI SAYA") — jangan digabung jadi satu deret kartu tanpa keterangan, nanti kebaca kayak datanya ngaco.
 
+### `GET /api/dashboard/tren` — grafik rentang bebas (live 26 Jul)
+
+Buat grafik yang periodenya dipilih user, bukan dipatok 6 bulan kayak
+`grafik_pekerjaan`. **Semua role**; teknisi cuma dapat pekerjaannya sendiri.
+
+```
+GET /api/dashboard/tren?dari=2026-05-01&sampai=2026-07-31&satuan=bulan
+```
+
+| Penyaring | Isi | Bawaan kalau nggak dikirim |
+|---|---|---|
+| `satuan` | `hari` · `minggu` · `bulan` | `bulan` |
+| `sampai` | `YYYY-MM-DD` | hari ini |
+| `dari` | `YYYY-MM-DD` | `hari` → 30 hari · `minggu` → 12 minggu · `bulan` → 6 bulan |
+
+```json
+{
+  "data": [
+    { "periode": "2026-05", "label": "Mei 2026", "masuk": 14, "selesai": 11 },
+    { "periode": "2026-06", "label": "Jun 2026", "masuk": 9,  "selesai": 9  },
+    { "periode": "2026-07", "label": "Jul 2026", "masuk": 6,  "selesai": 3  }
+  ],
+  "penyaring": { "dari": "2026-05-01", "sampai": "2026-07-31", "satuan": "bulan" }
+}
+```
+
+- **Urutannya lama → baru**, bisa langsung digambar tanpa nyortir.
+- **Periode kosong tetap keluar dengan nilai `0`, nggak dilewat** — kalau dilewat,
+  grafiknya bohong: jeda kosong ketutup dan tren naik-turunnya kelihatan lebih
+  mulus dari kenyataan.
+- `masuk` = sesi yang **tanggal kalibrasinya** jatuh di periode itu.
+  `selesai` = yang **di-approve** di periode itu (`reviewed_at`), bukan tanggal
+  sertifikat terbit — generate PDF jalan di queue, jadi sesi yang baru di-approve
+  bakal kehitung "belum selesai" kalau worker lagi ngantre.
+- `label` udah siap tempel ke sumbu X. `hari`/`minggu` → `"23 Jul"`,
+  `bulan` → `"Jul 2026"`. Minggu dilabeli tanggal **mulai**nya — `"W30"` nggak
+  berarti apa-apa buat yang lihat grafik.
+- **Kunci `periode` buat `minggu` pakai tahun-minggu ISO**: `"2026-W01"`. Perhatiin
+  di pergantian tahun — 29 Des 2025 itu minggu ke-1 tahun **2026** menurut ISO,
+  jadi jangan diasumsikan 4 karakter pertamanya sama dengan tahun tanggalnya.
+- **`dari`/`sampai` dinormalisasi ke batas periode.** `dari=2026-01-31&satuan=bulan`
+  tetap mulai dari `2026-01`, bukan ngelewatin Januari.
+
+> ⚠️ **Nama kuncinya `periode`, BUKAN `bulan`.** Sebaliknya `grafik_pekerjaan` di
+> `GET /dashboard` pakai `bulan`, bukan `periode`. Dua-duanya sengaja beda dan
+> **nggak** dibikin alias — mobile pernah kena bug nyata gara-gara ketuker (sumbu X
+> Dashboard kosong melompong padahal semua test ijo). Satu endpoint, satu nama.
+
+**Batas: maksimal 400 periode.** Lebih dari itu `422`, bukan hasil yang dipotong —
+hasil yang dipotong sepi-sepi bikin orang salah baca tren, dan 400+ batang di layar
+HP itu garis abu-abu, bukan grafik. Kalau kena, sempitin rentangnya atau naikin
+`satuan` (`hari` → `minggu` → `bulan`). `satuan` ngawur & `sampai` lebih awal dari
+`dari` juga `422`.
+
+> **Angkanya dijamin sama dengan `grafik_pekerjaan`.** Dua-duanya narik dari satu
+> service (`TrenPekerjaan`), dan ada test yang ngebandingin keluaran keduanya bulan
+> per bulan. Jadi `/dashboard/tren?satuan=bulan` yang dibuka tanpa penyaring bakal
+> ngasih angka identik dengan grafik di Dashboard — kalau beda, itu bug, bukan beda
+> definisi.
+
 ---
 
 ## 8. Master Data PT & Pelanggan — **admin doang** (live 14 Jul)
 
 Belum ada di kontrak versi kamu, tapi udah jalan di backend. Dibutuhin buat layar Pengaturan (admin).
 
-- **`GET /api/organization`** · **`PUT /api/organization`** — data PT: `nama`, `alamat`, `telepon`, `email`, `no_akreditasi`. Ini yang bakal dicetak di kop sertifikat. *Nggak ada create/delete* — satu instalasi = satu PT.
+- **`GET /api/organization`** · **`PUT /api/organization`** — data PT: `nama`, `alamat`, `telepon`, `email`, `no_akreditasi`, plus **`logo_url`** (read-only, diisi lewat endpoint di bawah). Ini yang bakal dicetak di kop sertifikat. *Nggak ada create/delete* — satu instalasi = satu PT.
   > **✅ 18 Jul — response-nya lebih gemuk dari yang didokumentasiin, mobile baru nyusul makainya**: `standar_akreditasi`, `akreditasi_mulai`, `akreditasi_berakhir`, dan `akreditasi_masih_berlaku` (dihitung backend, read-only — jangan dikirim balik waktu `PUT`). Ini yang nentuin akreditasi lab (LK-285-IDN) masih sah apa nggak; sebelumnya nggak ada di layar mana pun. `settings` (array) juga ada di response tapi mobile sengaja belum kasih UI buat itu — bentuknya belum didokumentasiin.
+- **`POST /api/organization/logo`** · **`DELETE /api/organization/logo`** — ✅ live 25 Jul.
+  Logo yang dicetak di kop sertifikat. Multipart, field **`logo`**, admin doang.
+  > **PNG atau JPG doang, maks 2 MB.** WEBP ditolak `422` walau itu gambar sah:
+  > logonya berakhir di PDF lewat dompdf yang nggak bisa render WEBP, dan mime-nya
+  > ditebak dari ekstensi — WEBP bakal dilabeli JPEG dan kop sertifikatnya rusak
+  > tanpa error apa pun.
+  >
+  > Balikannya objek organisasi lengkap (sama kayak `GET /organization`), jadi
+  > `logo_url` yang baru langsung kepakai tanpa request ulang.
+  >
+  > `logo_url` **`null`** artinya org ini belum ngunggah logo — **bukan** berarti
+  > sertifikatnya bakal tanpa logo. PDF jatuh ke logo bawaan
+  > (`public/images/logo-sidik.png`); kalau itu juga nggak ada, kop-nya jadi teks
+  > doang dan PDF tetap kebuat.
+  >
+  > Ganti logo otomatis ngehapus yang lama. `DELETE` idempoten — aman dipanggil
+  > walau belum ada logonya.
 - **`GET /api/customers?search=&page=`** · **`POST`** · **`GET/PUT/DELETE /api/customers/{id}`** — CRUD pelanggan. Field: `nama`, `alamat`, `contact_person`, `telepon`, `email` (+ `jumlah_alat` di response).
 - **Pelanggan yang masih punya alat nggak bisa dihapus** → `422`. Kalau dipaksa, alat & riwayat kalibrasinya jadi yatim. Mobile: tampilin pesannya apa adanya.
 
@@ -621,6 +1209,153 @@ Teknisi & viewer yang nembak endpoint ini dapat `403`.
 > Pakai **`GET /api/arsip/perusahaan?search=`** (kebuka semua role) — balikannya `data[].id` & `data[].nama`, `id`-nya yang dipakai jadi `pelanggan_id`. Di mobile ini `CustomerLookupService`, kepisah dari `CustomerService` yang buat layar CRUD Pelanggan.
 >
 > Daftarnya **dipaginasi 15/halaman**, jadi pencariannya dilempar ke server lewat `?search=` — nyaring di sisi mobile cuma nyaring halaman pertama, dan pelanggan ke-16 dst. jadi nggak kejangkau.
+
+> ## ⛔ KOREKSI 25 Juli 2026 — saran di atas SALAH, jangan diikutin
+>
+> Dicek ke `FolderController@index`. Empat hal keliru, dan yang pertama bisa
+> nyimpen data ke pelanggan yang salah:
+>
+> | Klaim di atas | Kenyataan |
+> |---|---|
+> | `data[].id` dipakai jadi `pelanggan_id` | ⛔ **`id` itu id FOLDER, bukan pelanggan.** Id pelanggan ada di **`data[].pelanggan.id`**. Ngirim id folder sebagai `pelanggan_id` bakal ditolak `422` — atau lebih buruk, nyantol ke pelanggan lain yang id-nya kebetulan sama |
+> | `?search=` | Param yang kebaca **`?q=`**. `search` diabaikan diam-diam, jadi daftarnya balik utuh dan kelihatan kayak filternya nggak jalan |
+> | "dipaginasi 15/halaman" | **Nggak dipaginasi sama sekali** — `->get()`, semua baris balik |
+> | "kebuka semua role" | Kebuka, **tapi isinya disaring per role.** Buat teknisi cuma folder yang ada isinya buat DIA |
+>
+> **Yang terakhir itu yang bikin saran ini nggak nyelesaiin masalahnya.** Endpoint
+> ini ngelist FOLDER, dan folder cuma ada buat PT yang udah pernah punya
+> sertifikat. Jadi buat teknisi yang mau nyimpen alat milik pelanggan **baru**,
+> PT-nya nggak akan nongol — persis dead-end yang mau dihindarin.
+>
+> **Pakai ini:** ✅ **`GET /api/customers/lookup`** (live 25 Jul, kebuka semua
+> role) — dibikin persis buat kasus ini. Bentuknya di bawah.
+
+### `GET /api/customers/lookup` — dropdown pelanggan, semua role
+
+✅ **Live 25 Jul.** Ini yang dipakai picker pelanggan di form Alat, **bukan**
+`/arsip/perusahaan` (lihat koreksi di atas) dan bukan `/customers` (admin-only).
+
+```
+GET /api/customers/lookup?search=tirta&page=1
+```
+
+```json
+{
+  "data": [
+    { "id": 3, "nama": "PT TIRTA GRACIA SEMESTA MANDIRI", "alamat": "Jl. Arteri Primer A-10 ..." }
+  ],
+  "meta": { "current_page": 1, "last_page": 1, "per_page": 15, "total": 1 }
+}
+```
+
+- **`data[].id` itu id PELANGGAN** — langsung kepakai jadi `pelanggan_id` waktu
+  `POST`/`PUT /equipments`. Nggak perlu diturunin dari apa pun.
+- **Pelanggan baru yang belum punya sertifikat TETAP nongol.** Ini bedanya paling
+  penting dari `/arsip/perusahaan`, yang cuma ngelist PT yang udah punya arsip.
+- **Dipaginasi 15/halaman**, jadi pencariannya dilempar ke server lewat `?search=`
+  — nyaring di sisi mobile cuma nyaring halaman pertama, dan pelanggan ke-16 dst.
+  jadi nggak kejangkau. `?q=` diterima juga sebagai alias.
+- **Cuma `id`, `nama`, `alamat`.** `contact_person`/`telepon`/`email` sengaja
+  nggak ikut: ini dropdown, bukan layar CRUD — role yang nggak boleh ngelola
+  pelanggan nggak perlu megang kontaknya. `alamat` ikut karena blok OWNER di
+  lembar kerja butuh (dan itu udah kekirim lewat `EquipmentResource.pelanggan`).
+- CRUD pelanggan **tetap admin-only** — endpoint ini bukan pintu belakang ke situ.
+
+---
+
+## 8a. Folder Manager — buka folder satu PT (live 25 Jul)
+
+### `GET /api/arsip/perusahaan/{customer}/folder`
+
+Tap PT → lihat isinya. `{customer}` itu **id PELANGGAN**, bukan id folder (lihat
+koreksi di §8 — ini beda yang gampang kebalik).
+
+Balikannya **bentuk yang sama persis** kayak `GET /api/arsip/folders/{id}`
+(breadcrumb + `sub_folder[]` + `file[]`), karena handler-nya memang yang sama.
+Jadi **parser folder yang udah ada bisa dipakai apa adanya.**
+
+Bedanya sama `GET /api/arsip/folders/{id}`: yang ini **find-or-create** — PT yang
+belum pernah punya sertifikat pun tetap kebuka, folder akarnya dibikin saat itu.
+Tanpa ini tap PT mentok `404` padahal PT-nya jelas ada.
+
+**Siapa yang bisa apa** — beda per role, dan ini bukan kebetulan:
+
+| Role | Folder belum ada | Folder udah ada |
+|---|---|---|
+| admin | **dibikin**, balik `200` | `200` |
+| teknisi | `404` (nggak dibikin) | `200` **kalau ada berkas yang dia boleh lihat**, kalau nggak `404` |
+| viewer | `404` (nggak dibikin) | `200` |
+
+- **Cuma admin yang bikin.** `POST`/`PUT`/`DELETE /folders` semuanya admin-only,
+  jadi endpoint ini nggak boleh jadi celah nulis buat role yang di tempat lain
+  ditolak. Viewer itu role baca-saja — bikin baris sebagai efek samping `GET`
+  bikin klaim itu berhenti benar.
+- **Teknisi dapat `404` buat PT yang dia nggak punya kerjaan di situ**, bukan
+  folder kosong. Ini aturan privasi Folder Manager yang udah lama jalan: folder
+  kosong yang ditampilin ngasih tahu "PT ini ada arsipnya, cuma bukan urusanmu",
+  dan menu ini ada di navbar teknisi. Di alur normal nggak kerasa — daftar PT
+  yang teknisi lihat udah tersaring, jadi yang bisa dia tap selalu ada isinya.
+- PT milik lab lain → `404` (bukan `403`), dan nggak ninggalin folder apa pun.
+
+### `PUT /api/arsip/folders/{id}/pindah` — pindah folder (live 27 Jul)
+
+**Admin doang.** Kepisah dari `PUT /arsip/folders/{id}` yang cuma rename, karena
+yang ini nyentuh struktur pohonnya.
+
+```json
+{ "parent_id": 12 }
+```
+
+- **`parent_id` WAJIB dikirim**, tapi boleh `null` — `null` artinya jadiin folder
+  akar. Kalau nggak dikirim sama sekali → `422` (biar "lupa ngirim" nggak diam-diam
+  kebaca sebagai "pindahin ke akar").
+- Balikannya objek folder, bentuknya sama kayak `PUT /arsip/folders/{id}`.
+- **Drag ke induk yang sama → `200`**, bukan error. Biar UI drag-drop nggak
+  nampilin merah cuma gara-gara user naruh balik di tempat asalnya.
+
+**Empat penolakan `422`, dan tiga di antaranya perlu dipatuhi UI:**
+
+| Kasus | Kenapa |
+|---|---|
+| Folder bertipe **`sistem`** | `FolderOrganizer` nemuin folder akar PT dari `parent_id = null` dan folder tahun dari `parent_id = akar->id`. Begitu dipindah, kriterianya nggak nyocok, sertifikat berikutnya bikin folder **baru**, dan arsip satu PT **kepecah dua**. Aturan yang sama yang udah nolak rename folder sistem |
+| Dipindah ke **dirinya sendiri** | — |
+| Dipindah ke **keturunannya sendiri** | Bikin siklus: folder-nya lepas dari pohon dan **ilang dari semua layar** tanpa error. Barisnya masih di DB, tapi nggak bisa dijangkau |
+| **Nama bentrok** di folder tujuan | Nama folder harus unik dalam satu induk — aturan yang sama kayak rename & create |
+
+> **Buat UI:** folder yang `tipe`-nya `sistem` jangan dibikin bisa di-drag sama
+> sekali. `tipe` udah ikut di respons `/folders`, jadi ini bisa dicegah sebelum
+> user nyoba dan kena `422`.
+
+### `PUT /api/arsip/berkas/{sesiId}/pindah` — pindah berkas (live 27 Jul)
+
+**Admin doang.** `{sesiId}` itu **id SESI KALIBRASI**, bukan id `folder_files` —
+itu yang dipegang mobile di layar arsip.
+
+```json
+{ "folder_id": 12 }
+```
+
+- `folder_id` **wajib**, nggak boleh `null` (berkas harus ada di suatu folder).
+- Balikannya objek berkas, bentuknya sama kayak `PUT /api/folder-files/{id}`.
+- Drag ke folder yang sama → `200`.
+
+| Kasus | Status |
+|---|---|
+| Sesi belum punya sertifikat | `404` — belum ada berkasnya di arsip |
+| Sertifikatnya belum pernah ditautkan ke folder | `404` |
+| Sertifikat tertaut di **lebih dari satu** folder | `422` + daftar kandidatnya di `data` |
+| Sertifikat udah ada di folder tujuan | `422` |
+| Sesi / folder tujuan milik lab lain | `404` / `422` |
+
+> **Soal yang `422` "tertaut di lebih dari satu folder":** unique index-nya
+> `(folder_id, certificate_id)`, bukan `certificate_id` sendiri — jadi satu
+> sertifikat **bisa** nyangkut di dua folder. Kalau kejadian, backend **nanya**
+> bukan nebak, dan daftar kandidatnya ikut dikirim di `data` biar admin bisa milih
+> tanpa nyari lagi. Pindahin yang dipilih pakai `PUT /api/folder-files/{id}` dengan
+> id berkasnya langsung.
+>
+> Kenapa nggak ditebak aja: yang salah kepindah **nggak keliatan sebagai error** —
+> cuma sebagai berkas yang ilang dari folder yang orangnya lihat.
 
 ---
 
@@ -691,6 +1426,603 @@ Beda sama `lokasi` di sesi kalibrasi. Field itu enum `lab`/`onsite`, cuma misahi
 - **Teknisi yang punya riwayat kalibrasi nggak bisa dihapus** → `422`. Namanya nempel di sertifikat yang udah terbit; hapus dia = putus ketertelusuran yang justru dicari asesor waktu audit. `jumlah_kalibrasi` di response ada persis buat ini — pakai buat nge-disable tombol hapus + jelasin kenapa. Jalan keluarnya: `PUT` jadi `nonaktif`.
 - `search` nyari di `nama` atau `employee_id`. `status` isinya `aktif`/`nonaktif`.
 - ID yang bukan teknisi (admin/viewer) balik **`404`**, bukan `403` — endpoint ini nggak boleh jadi jalan pintas ngintip atau ngehapus akun admin lewat URL yang kedengarannya nggak berbahaya.
+
+---
+
+## 10. Laporan Kalibrasi + Export (live 26 Jul)
+
+### `GET /api/laporan/kalibrasi`
+
+**Semua role boleh.** Tapi **teknisi cuma dapat pekerjaannya sendiri** — aturan
+yang sama kayak `/calibrations?mine=true`. Kalau di sini dilonggarin, penyaringan
+di layar Riwayat jadi nggak ada artinya: tinggal buka Laporan buat ngintip.
+
+```
+GET /api/laporan/kalibrasi?dari=2026-07-01&sampai=2026-07-31
+    &pelanggan_id=3&teknisi_id=5&kategori=instrumen-analitik
+    &status=disetujui&keputusan=PASS&page=1
+```
+
+| Penyaring | Isi | Catatan |
+|---|---|---|
+| `dari` / `sampai` | `YYYY-MM-DD` | **Dua ujungnya INKLUSIF.** "1–31 Juli" ikut tanggal 31 |
+| `pelanggan_id` | id dari `GET /customers/lookup` | |
+| `teknisi_id` | id dari `GET /technicians` | |
+| `kategori` | **KODE** kategori (`instrumen-analitik`), bukan id | Sama gayanya kayak penyaring `/equipments` |
+| `status` | `draft` · `menunggu_approval` · `disetujui` · `perlu_revisi` | Nilai lain → `422` |
+| `keputusan` | `PASS` · `FAIL` | |
+
+Semua opsional. `sampai` lebih awal dari `dari` → `422`.
+
+```json
+{
+  "data": [
+    {
+      "id": 2,
+      "nomor_sesi": "2405.13.A",
+      "tanggal_kalibrasi": "2024-05-26",
+      "pelanggan": { "id": 3, "nama": "PT TIRTA GRACIA SEMESTA MANDIRI" },
+      "alat": { "id": 6, "nama_alat": "pH Meter", "serial_number": "B628755900" },
+      "kategori": { "kode": "instrumen-analitik", "nama": "Instrumen Analitik" },
+      "teknisi": { "id": 5, "nama": "Dwi Rahayu", "kode_teknisi": "DR" },
+      "status": "disetujui",
+      "keputusan": "PASS",
+      "ketidakpastian_diperluas": 0.0303272,
+      "sertifikat": { "id": 2, "nomor": "012-CAL-524", "status": "terbit" }
+    }
+  ],
+  "ringkasan": {
+    "total": 4, "pass": 3, "fail": 0,
+    "belum_ada_keputusan": 1, "disetujui": 3
+  },
+  "penyaring": {
+    "Dari tanggal": "2026-07-01", "Sampai tanggal": "2026-07-31",
+    "Pelanggan": "PT Tirta Gracia", "Teknisi": null,
+    "Kategori": "Instrumen Analitik", "Status": "disetujui", "Keputusan": "PASS"
+  },
+  "meta": { "current_page": 1, "last_page": 1, "per_page": 15, "total": 4 }
+}
+```
+
+> ### ⚠️ `tanggal_kalibrasi` di sini TANGGAL POLOS — beda dari endpoint lain
+>
+> `"2024-05-26"`, bukan `"2024-05-25T17:00:00Z"`. Ini **sengaja beda** dari field
+> `date` di endpoint lain (lihat peringatan di §4 soal `diterbitkan_pada`), karena
+> dua alasan:
+>
+> 1. Tanggalnya harus **sama** dengan yang dicetak di PDF/Excel. Satu sesi nggak
+>    boleh punya dua tanggal beda tergantung dilihat di mana.
+> 2. Nilainya harus bisa **dipakai balik jadi penyaring** `dari`/`sampai`. Kalau
+>    dikirim sebagai ISO, tombol "filter tanggal sesi ini" balik kosong, dan
+>    date-picker "1–31 Juli" diam-diam ngebuang sesi tanggal 1.
+>
+> Jadi di endpoint ini **boleh** dipakai apa adanya buat ditampilin & buat
+> penyaring — nggak usah di-`DateTime.parse()`.
+
+- **`ringkasan` dihitung dari SELURUH hasil penyaring, bukan dari halaman yang
+  kebuka.** `ringkasan.total` == `meta.total`. Angka "total 15" yang ternyata cuma
+  berarti "15 di halaman ini" itu menyesatkan di dokumen yang dikirim ke asesor.
+- **`ringkasan.belum_ada_keputusan`** = sesi yang belum lewat perhitungan (draft /
+  datanya belum cukup). Dipisah biar `total` nggak kelihatan nggak nyambung sama
+  `pass + fail`.
+- **`penyaring` itu penyaring versi manusia** — pakai buat nampilin "sedang
+  disaring: …" di kepala layar. `null` artinya "Semua". Id dari lab lain
+  di-resolve jadi `null`, bukan nama PT orang.
+- **`ketidakpastian_diperluas` diambil dari titik PENENTU** (yang paling mepet
+  batas toleransi) — **angka yang sama** yang muncul di `hasil` detail sesi, bukan
+  rata-rata semua titik. `null` kalau sesinya belum dihitung.
+- **Barisnya sengaja RINGKAS.** Nggak ada `titik[]`, `pembacaan_mentah`,
+  `type_b_components`, atau `status_standar` — laporan itu tabel, dan bawa semua
+  itu per baris bikin HP keabisan memori di lab yang datanya setahun. Butuh
+  rinciannya? `GET /calibrations/{id}`.
+- Urutannya `tanggal_kalibrasi` naik, lalu `id`. 15 baris/halaman.
+
+### `GET /api/laporan/kalibrasi/export?format=pdf|xlsx`
+
+`format` **wajib** (`pdf` atau `xlsx`; lain → `422`). **Semua penyaring di atas
+jalan sama persis di sini** — query-nya dipegang satu service yang sama, jadi file
+yang kedownload isinya sama dengan yang dilihat di layar.
+
+- Balikannya **file download** (`Content-Disposition: attachment`), nama
+  `Laporan-Kalibrasi-YYYY-MM-DD.pdf|xlsx`. Bukan JSON.
+- **Nggak ada baris yang cocok → `404`**, bukan file kosong. File 11 kolom tanpa
+  isi itu kelihatan kayak "nggak ada data" padahal bisa jadi penyaringnya salah.
+- PDF-nya **A4 landscape** — 11 kolom nggak masuk di portrait.
+- **Penyaring & ringkasannya ikut dicetak di kepala file.** File yang udah nyebar
+  harus bisa dijelasin isinya periode/pelanggan mana; itu pertanyaan pertama
+  asesor waktu lihat rekap.
+- Maksimal **5000 baris** per export. Lebih dari itu, sempitin rentang tanggalnya.
+- Throttle **`20/menit`** khusus buat `/export` (endpoint layar-nya nggak
+  dithrottle) — bikin file dari 5000 baris jauh lebih berat dari baca biasa.
+  Kalau kena, respons `429`. Jadi jangan panggil `/export` tiap penyaring diubah;
+  panggil waktu tombol "Unduh" ditekan aja.
+
+---
+
+## 11. Riwayat Perubahan Data / Audit (live 27 Jul)
+
+**Admin doang, dan baca-saja.** Nggak ada `POST`/`PUT`/`DELETE` — baris audit lahir
+dari perubahan datanya sendiri, bukan dari request. Riwayat yang bisa ditulis tangan
+berhenti jadi bukti.
+
+Kenapa ini ada: ISO/IEC 17025 minta rekaman bisa ditelusuri — siapa ngubah apa,
+kapan, dari nilai berapa ke berapa. Menu "Kelola Data" di desktop ngasih admin
+keleluasaan kayak phpMyAdmin, dan phpMyAdmin nggak nyatet apa pun
+(`arsitektur-desktop-database.md` Keputusan 4).
+
+### `GET /api/audit-logs`
+
+```
+GET /api/audit-logs?entity_type=standards&entity_id=1&action=diubah
+    &changed_by=5&dari=2026-07-01&sampai=2026-07-31&page=1
+```
+
+| Penyaring | Isi |
+|---|---|
+| `entity_type` | **nama TABEL**, mis. `standards`, `equipment`, `calibration_sessions` |
+| `entity_id` | id baris yang diubah |
+| `action` | `dibikin` · `diubah` · `dihapus` · `dipulihkan` (lain → `422`) |
+| `changed_by` | id user pelakunya |
+| `dari` / `sampai` | `YYYY-MM-DD`, **dua ujungnya inklusif** — aturan yang sama kayak `/laporan/kalibrasi` |
+
+```json
+{
+  "data": [
+    {
+      "id": 812,
+      "entitas": { "tipe": "standards", "id": 1 },
+      "aksi": "diubah",
+      "perubahan": {
+        "nama": { "lama": "TH-1", "baru": "TH-1 (kalibrasi ulang)" }
+      },
+      "pelaku": { "id": 1, "nama": "Alex Misramto", "role": "admin" },
+      "oleh_sistem": false,
+      "catatan": null,
+      "dicatat_pada": "2026-07-27T10:17:43Z"
+    }
+  ],
+  "penyaring": { "entity_type": "standards", "entity_id": 1 },
+  "meta": { "current_page": 1, "last_page": 1, "per_page": 25, "total": 1 }
+}
+```
+
+- **`entity_type` itu nama TABEL, bukan nama kelas PHP.** Nama kelas bisa berubah
+  kalau kodenya di-refactor, dan riwayat lama nggak boleh ikut basi gara-gara itu.
+- **`perubahan` disusun per kolom** (`lama` → `baru`), bukan dua objek utuh yang
+  harus dibandingin sendiri di layar. Yang dicari asesor "apa yang berubah", bukan
+  seluruh isi baris.
+- **Cuma kolom yang BERUBAH yang kecatat.** Snapshot penuh tiap update bikin
+  riwayatnya nggak kebaca manusia. `updated_at` sengaja nggak ikut — dia berubah di
+  setiap update, jadi kalau ikut, tiap baris punya "perubahan" palsu.
+- **`aksi: "dihapus"` / `"dipulihkan"` `perubahan`-nya kosong `{}`** — yang penting
+  di situ kejadiannya, bukan nilainya. Isi barisnya masih bisa dilihat dari riwayat
+  `dibikin`/`diubah` sebelumnya.
+- **`oleh_sistem: true` (dan `pelaku: null`)** artinya perubahannya BUKAN dari orang
+  yang login — job di queue (`GenerateCertificate`), command artisan, atau seeder.
+  Itu bukan data hilang; dibiarin `null` lebih jujur daripada dituduhin ke user acak.
+- Urutannya **terbaru dulu**, 25 baris/halaman.
+
+> ### `password` nggak pernah masuk riwayat
+>
+> Nilainya diganti `"[disensor]"`, tapi **nama kolomnya tetap kecatat** — jadi masih
+> kelihatan "password diubah", tanpa nyimpen isinya. Alasannya bukan kerapian:
+> `password` itu hash, dan hash yang kesimpen di tabel lain berarti satu kebocoran
+> jadi dua. Sama perlakuannya buat `remember_token`.
+
+### `GET /api/audit-logs/export` — CSV
+
+Penyaringnya **sama persis** kayak `index`. Balikannya file CSV (`text/csv`,
+`Content-Disposition: attachment`), nama `Riwayat-Perubahan-YYYY-MM-DD.csv`.
+
+```
+Waktu,Entitas,ID,Aksi,Pelaku,Role,Kolom,Nilai Lama,Nilai Baru,Catatan
+2026-07-27 10:17:43,standards,1,diubah,Alex Misramto,admin,nama,TH-1,TH-1 (kalibrasi ulang),
+```
+
+- **Satu baris per KOLOM yang berubah**, bukan satu baris dengan sel berisi JSON.
+  CSV yang selnya JSON nggak bisa disaring atau di-pivot di Excel — dan itu
+  satu-satunya alasan orang mau CSV-nya.
+- Ada **BOM UTF-8**. Tanpa itu, Excel di Windows nampilin nama PT yang ada karakter
+  non-ASCII jadi kacau, dan itu yang dibaca asesor.
+- Pelaku `null` ditulis `(sistem)`.
+- Maksimal **10.000 baris**, di-stream (nggak numpuk di memori). Throttle `20/menit`.
+
+### Yang perlu diketahui frontend
+
+- **Pencatatannya OTOMATIS lewat model event**, bukan ditempel per endpoint. Jadi
+  semua jalur ikut kecatat: API, panel Filament, command artisan, job di queue.
+  Nggak ada yang perlu dipanggil dari sisi klien.
+- **Entitas yang diaudit:** `equipment`, `customers`, `standards`, `users`,
+  `calibration_sessions`, `certificates`, `folders`, `folder_files`,
+  `organizations`, `rooms`, `calibration_methods`, `equipment_categories`.
+- **Riwayat lab lain nggak kebaca** — di-scope `organization_id`. Ini justru tabel
+  yang paling nggak boleh kebuka lebar: isinya nilai sebelum & sesudah dari seluruh
+  data lab, termasuk data pelanggan dan angka kalibrasi. Itu juga alasan
+  teknisi/viewer dapat `403`, bukan daftar kosong.
+
+---
+
+## 12. Rumus Kalibrasi Berversi (live 27 Jul — fondasi)
+
+**Admin doang.** Salah ngetik di sini ngubah angka yang masuk sertifikat
+terakreditasi — ini menu paling berbahaya di seluruh aplikasi
+(`arsitektur-desktop-database.md` Keputusan 5).
+
+> ### ⚠️ Yang UDAH ada vs yang BELUM
+>
+> **Udah:** pencatatan versi + stempel versi di tiap hasil hitung + validasi rentang
+> berlaku. Ini fondasi ketertelusurannya, dan **inilah bagian yang bikin rumus boleh
+> diubah nanti**: tanpa stempel, ngubah rumus bikin seluruh riwayat kalibrasi nggak
+> bisa dipertanggungjawabkan.
+>
+> **Belum:** evaluator ekspresinya. Jadi ngubah versi rumus **belum ngubah cara
+> ngitungnya sama sekali** — dia baru nyatet "dihitung pakai aturan versi berapa".
+> `sumber: "database"` ditolak `422` selama evaluatornya belum ada, sengaja: versi
+> yang tercatat "dihitung dari database" padahal angkanya tetap dari kode itu riwayat
+> yang bohong, dan itu lebih berbahaya daripada fiturnya belum ada.
+
+### `GET /api/formulas`
+
+```json
+{
+  "data": [
+    {
+      "id": 2, "kode": "gum-ph", "nama": "Ketidakpastian GUM (jalur pH)",
+      "besaran": "ph", "jumlah_versi": 1,
+      "versi_berlaku": {
+        "id": 2, "nomor_versi": 1, "sumber": "kode", "status": "aktif",
+        "berlaku_dari": "2000-01-01", "berlaku_sampai": null,
+        "parameter": { "faktor_cakupan_k": 2, "dihitung_oleh": "App\\Services\\GumCalculator" },
+        "ekspresi": null, "pembuat": null, "oleh_sistem": true
+      }
+    }
+  ]
+}
+```
+
+- **Versi 1 dibikin OTOMATIS** waktu organisasinya pertama buka endpoint ini atau
+  pertama nyimpen kalibrasi. Nggak ada langkah setup — lab yang udah jalan sebelum
+  fitur ini ada nggak boleh dipaksa nyetel rumus dulu sebelum bisa nyimpen kalibrasi.
+- **`sumber: "kode"`** artinya angkanya dihitung program (`GumCalculator`), dan
+  `parameter` nyatet nilai yang beneran dipakai. Ini jujur: rumus yang sekarang jalan
+  MEMANG ada di kode.
+- **`berlaku_dari` versi 1 dipatok `2000-01-01`**, bukan hari ini. Kalau dipatok hari
+  ini, sesi lama yang di-revisi nggak nemu versi yang berlaku di tanggalnya.
+- `berlaku_sampai: null` = masih berlaku sampai sekarang.
+
+### Arti `status` — beda dari bacaan naifnya, dan ini penting
+
+Keputusan 5 nulis "versi lama diarsipkan". Kalau itu dibaca sebagai "statusnya jadi
+`arsip`", fiturnya justru **rusak**: pencarian versi per-tanggal cuma ngambil yang
+`aktif`, jadi sesi tahun lalu nggak nemu versinya lagi.
+
+Yang nentuin versi mana berlaku buat suatu tanggal itu **rentang tanggalnya**, bukan
+statusnya:
+
+| Status | Arti |
+|---|---|
+| `aktif` | Bagian dari garis waktu yang sah. Versi yang udah **digantikan tetap `aktif`**, cuma `berlaku_sampai`-nya ditutup — dia masih jawaban yang BENAR buat tanggal di rentangnya |
+| `draft` | Belum masuk garis waktu. Boleh ada beberapa sekaligus; admin bisa nyiapin calon sebelum milih |
+| `arsip` | **Dibatalkan**, jangan dipakai buat tanggal apa pun. Buat versi yang kebikin karena salah — **bukan** buat versi yang digantikan secara wajar |
+
+### `GET /api/formulas/{id}/versions`
+
+Riwayat versi, terbaru dulu. Sesudah nerbitin versi 2:
+
+```
+v2: aktif  2026-08-01 → sekarang
+v1: aktif  2000-01-01 → 2026-07-31
+```
+
+### `GET /api/formulas/{id}/versi-berlaku?tanggal=2024-05-26`
+
+**Pertanyaan yang bikin fitur ini ada:** *"sesi 26 Mei dihitung pakai aturan yang
+mana?"* — beda dari "aturan apa yang dipakai sekarang". `tanggal` opsional (bawaan:
+hari ini). Balikannya satu objek versi, atau `null` kalau nggak ada yang berlaku.
+
+### `POST /api/formulas/{id}/versions` — terbitin versi baru
+
+```json
+{
+  "sumber": "kode",
+  "berlaku_dari": "2026-08-01",
+  "parameter": { "faktor_cakupan_k": 2 },
+  "catatan": "Ikut IK Rev.7",
+  "langsung_aktif": true
+}
+```
+
+- **`langsung_aktif: true` bikin DUA hal dalam satu transaksi**: versi baru dibikin
+  `aktif`, dan rentang versi sebelumnya **ditutup sehari sebelum** versi baru mulai.
+  Dua langkah itu satu operasi — kalau dipisah, ada jeda di mana dua versi sama-sama
+  berlaku buat satu tanggal, dan di jeda itu "sesi ini pakai versi mana" nggak punya
+  jawaban.
+- **Tanpa `langsung_aktif` → jadi `draft`**, dan ini yang disarankan. Keputusan 5
+  minta "uji coba sebelum disimpan", dan draft yang belum masuk garis waktu itu
+  tempat paling aman buat nyoba.
+- `sumber: "database"` → `422` (evaluator belum ada, lihat peringatan di atas).
+- Rentang yang tumpang tindih sama versi aktif lain → `422` dengan pesan yang nyebut
+  versi mana yang nabrak.
+
+### `PATCH /api/formula-versions/{id}`
+
+Cuma `status` (→ `aktif` / `arsip`) dan `catatan`.
+
+- **Rentang tanggalnya SENGAJA nggak bisa diubah.** Ngubah rentang versi yang udah
+  dipakai berarti ngubah jawaban dari "sesi ini dihitung pakai versi apa" — secara
+  retroaktif, buat sesi yang sertifikatnya udah terbit. Kalau aturannya salah,
+  jalannya terbitin versi baru.
+- **Versi yang udah kepakai di hasil hitung nggak bisa diarsipin** → `422`. Kalau
+  diarsipin, angka yang udah terbit nggak bisa dijelasin lagi — kebalikan dari
+  gunanya fitur ini.
+- Ngaktifin `draft` yang rentangnya nabrak → `422`.
+
+### Stempel di hasil hitung
+
+`uncertainty_calculations.formula_version_id` — versi yang **menghasilkan** angka di
+baris itu. Distempel dari versi yang berlaku di **tanggal kalibrasi** sesi, bukan
+"yang aktif sekarang".
+
+Bedanya bikin atau nggak: sesi 26 Mei yang di-revisi hari ini harus tetap kestempel
+versi yang berlaku 26 Mei. Kalau pakai "yang aktif sekarang", angkanya dihitung
+aturan lama tapi kecatat aturan baru — dan itu **lebih menyesatkan daripada nggak
+distempel sama sekali**.
+
+`null` cuma buat baris yang udah ada sebelum fitur ini dipasang. Itu jujur: versinya
+beneran nggak diketahui, dan nebak lebih buruk.
+
+> **Semua perubahan versi rumus kecatat di `audit_logs`** (§11) — Keputusan 5 minta
+> itu eksplisit. Termasuk penutupan rentang versi lama, jadi satu operasi "terbitin
+> versi baru" ninggalin jejak lengkap: siapa, kapan, versi mana yang ditutup.
+
+---
+
+## 13. Kirim Sertifikat ke Email Pelanggan (live 27 Jul)
+
+**Admin doang.** Nutup `permintaan-endpoint-fase-2.md` §3d.
+
+Kenapa di backend dan bukan di mobile — dua alasan dari permintaannya:
+alamat pengirim harus domain lab (bukan Gmail teknisi), dan **pengirimannya wajib
+tercatat buat audit**: siapa ngirim sertifikat ke siapa, kapan.
+
+### `POST /api/certificates/{id}/kirim-email`
+
+```json
+{ "ke": ["pic@pelanggan.co.id"], "cc": ["manajer@pelanggan.co.id"] }
+```
+
+| Field | Aturan |
+|---|---|
+| `ke` | **wajib**, array, 1–10 alamat, format email valid |
+| `cc` | opsional, array, maks 10 |
+
+```json
+{
+  "message": "Sertifikat terkirim ke pic@pelanggan.co.id.",
+  "data": {
+    "id": 7,
+    "ke": ["pic@pelanggan.co.id"],
+    "cc": ["manajer@pelanggan.co.id"],
+    "status": "terkirim",
+    "error": null,
+    "dikirim_oleh": { "id": 1, "nama": "Alex Misramto" },
+    "dikirim_pada": "2026-07-27T04:31:24Z"
+  }
+}
+```
+
+- **PDF-nya DILAMPIRKAN**, bukan dikirim sebagai tautan unduh. Tautan ke disk privat
+  butuh login dan pelanggan nggak punya akun; tautan publik berarti sertifikat bisa
+  diakses siapa pun yang dapat URL-nya. Nama lampirannya `Sertifikat-{nomor}.pdf`.
+- **Dikirim SINKRON**, bukan lewat queue. Admin yang mencet "Kirim" perlu tahu
+  hasilnya saat itu juga — kiriman yang di-queue lalu gagal diam-diam berarti
+  pelanggan nggak pernah nerima dan nggak ada yang sadar sampai ditanya. Jadi
+  responsnya baru balik sesudah email-nya beneran keluar.
+- Alamat yang dobel digabung otomatis.
+- Throttle **`20/menit`** — ini ngirim dokumen resmi ke luar, bukan baca data.
+
+**Status yang mungkin:**
+
+| Kode | Kapan |
+|---|---|
+| `200` | Terkirim |
+| `502` | **Gagal kirim** (SMTP nolak/mati). Percobaannya **tetap tercatat**, dan `data.error` bawa pesan aslinya |
+| `422` | Sertifikat belum terbit · sertifikat belum punya PDF · PDF-nya raib dari penyimpanan · alamat nggak valid · lebih dari 10 alamat |
+| `403` | Teknisi / viewer |
+| `404` | Sertifikat lab lain |
+
+> **`422`-nya dipisah per sebab.** "Belum terbit" dan "belum punya PDF" itu dua
+> masalah beda dengan dua tindakan beda, jadi pesannya nggak digabung — pesan
+> gabungan bikin admin baca "harus terbit & punya PDF, yang ini statusnya `terbit`"
+> dan nyangka backend-nya ngaco.
+
+### `GET /api/certificates/{id}/riwayat-email`
+
+Riwayat pengiriman sertifikat itu, **terbaru dulu**. Bentuk barisnya sama kayak
+`data` di atas.
+
+- **Semua percobaan tercatat, termasuk yang GAGAL.** "Kami udah nyoba kirim tapi
+  alamatnya nolak" itu justru informasi yang dicari waktu pelanggan ngaku nggak
+  nerima. Kalau cuma yang sukses dicatat, riwayatnya bohong lewat kelalaian.
+- **Riwayatnya tabel terpisah, bukan kolom `dikirim_pada` di sertifikat.** Kirim
+  ulang itu kejadian normal (pelanggan kehilangan filenya, ganti PIC, alamatnya
+  salah ketik), dan kolom tunggal cuma nyimpen yang terakhir — "kapan kita ngirim ke
+  PIC yang lama" jadi nggak bisa dijawab.
+- Barisnya **nggak bisa diubah** (ditolak di level model), sama alasannya kayak
+  `audit_logs`.
+
+### Soal alamat pengirim — dan kenapa `From`-nya bukan email lab
+
+Permintaannya: *"alamat pengirim harus domain lab (bukan Gmail teknisi)."* Itu
+dipenuhi lewat **`MAIL_FROM_ADDRESS` di `.env`**, yang disetel ke domain lab.
+
+Email organisasi (`organization.email`) ditaruh di **`Reply-To`**, **bukan** `From`.
+Ini bukan kelalaian: `From` yang domainnya beda dari domain yang beneran ngirim bikin
+**SPF/DKIM gagal**, dan email-nya masuk spam atau ditolak server penerima. Jadi
+`From` = domain pengirim yang sah, dan balasan pelanggan tetap nyampe ke lab lewat
+`Reply-To`.
+
+> ### Yang masih perlu dari sisi operasional
+>
+> Kodenya **selesai dan udah diuji**, termasuk lampiran PDF-nya. Yang belum: **isi
+> `MAIL_*` di `.env` produksi**. Sekarang `MAIL_MAILER=log`, jadi email-nya kerender
+> lengkap tapi masuk `storage/logs/laravel.log`, bukan ke internet — dan itu memang
+> perilaku yang bener buat dev.
+>
+> Begitu SMTP-nya diisi, **nggak ada kode yang perlu diubah**. Yang perlu disetel:
+>
+> ```
+> MAIL_MAILER=smtp
+> MAIL_HOST=…
+> MAIL_PORT=587
+> MAIL_USERNAME=…
+> MAIL_PASSWORD=…
+> MAIL_FROM_ADDRESS="sertifikat@domain-lab.com"   ← WAJIB domain lab
+> MAIL_FROM_NAME="PT Sidik Kalibrasi"
+> ```
+
+---
+
+## 14. Tanda Tangan di Sertifikat (live 27 Jul)
+
+**Admin doang.** Nutup `permintaan-endpoint-fase-2.md` §3c — bagian terakhir dari
+"Pelengkap sertifikat" (logo & QR udah live duluan di §8).
+
+Gambar tanda tangan penanggung jawab teknis, dicetak **di atas garis tanda tangan**
+di footer sertifikat. Nama & jabatannya tetap dari `settings.penandatangan_nama` /
+`settings.penandatangan_jabatan` yang udah ada — yang baru di sini cuma gambarnya.
+
+> **Gambarnya disimpen di disk PRIVAT, dan itu keputusan keamanan.** Logo ada di disk
+> publik karena itu identitas yang memang dipajang. Tanda tangan **nggak boleh**:
+> gambar tanda tangan yang URL-nya bisa diakses siapa pun berarti siapa pun bisa
+> nempelin ke dokumen palsu. Konsekuensinya buat mobile: **responsnya nggak bawa
+> `tanda_tangan_url`** — nggak akan pernah ada. Yang ada cuma penanda
+> `punya_tanda_tangan`, dan pratinjaunya lewat endpoint yang ngecek hak akses.
+
+### Yang nambah di objek organisasi
+
+Muncul di semua respons yang bawa organisasi (`GET /organization`, dst):
+
+```json
+{
+  "punya_tanda_tangan": true,
+  "tanda_tangan": { "geser_x_mm": -8.5, "geser_y_mm": 4, "lebar_mm": 42 }
+}
+```
+
+`tanda_tangan` **selalu ada dan selalu lengkap**, walaupun gambarnya belum diunggah —
+isinya nilai bawaan. Mobile nggak perlu nyiapin cabang buat `null`.
+
+### Yang nambah di objek `sertifikat`
+
+Muncul di `GET /calibrations/{id}` (objek `sertifikat` yang di-embed) **dan** di
+respons sertifikat sendiri:
+
+```json
+"penanda_tangan": { "nama": "Alex Misramto", "jabatan": "Technical Manager" }
+```
+
+- **Nilainya BEKU dari snapshot sertifikat**, bukan dibaca live dari pengaturan
+  organisasi. Ganti penandatangan di pengaturan **nggak ngubah sertifikat yang udah
+  terbit** — kalau berubah, sertifikat lama bakal nampilin nama yang beda dari yang
+  kecetak di PDF-nya sendiri, dan yang lihat nggak punya cara buat tahu mana yang
+  bener.
+- `null` kalau sertifikatnya belum terbit / belum punya snapshot.
+- **Nggak ada `ttd_url`** di sini, sama alasannya kayak di atas.
+
+### `POST /api/organization/tanda-tangan`
+
+Multipart, field **`tanda_tangan`**.
+
+| Field | Aturan |
+|---|---|
+| `tanda_tangan` | **wajib**, gambar, **PNG doang**, maks **2 MB** |
+
+> **PNG doang — bukan PNG/JPG kayak logo.** JPG nggak punya latar transparan, jadi
+> tanda tangannya kecetak sebagai **kotak putih** yang nutupin garis tanda tangan &
+> nama di bawahnya. Rusaknya **sunyi**: nggak ada error, ketahuannya baru waktu ada
+> yang buka PDF-nya. Jadi ditolak di pintu masuk, dan pesan `422`-nya nyebut alasannya
+> — tampilkan apa adanya ke admin, jangan diganti "format tidak didukung".
+
+Balikannya objek organisasi dengan `punya_tanda_tangan: true`. Gambar lama otomatis
+kehapus — tapi **sesudah** yang baru kesimpen, biar unggahan yang gagal nggak bikin
+sertifikat berikutnya terbit tanpa tanda tangan tanpa ada yang sadar.
+
+### `GET /api/organization/tanda-tangan`
+
+Nge-stream gambarnya (`Content-Type: image/png`) — **bukan JSON**. Ini yang dipakai
+buat nampilin pratinjau di layar pengaturan & nanti di UI drag-and-drop.
+
+Ada karena file-nya di disk privat, jadi nggak bisa dipanggil lewat URL storage.
+Butuh header `Authorization` kayak endpoint lain — di Flutter berarti lewat
+`Image.memory` dari respons `http`, **bukan** `Image.network`.
+
+`404` kalau belum ada gambarnya.
+
+### `DELETE /api/organization/tanda-tangan`
+
+Hapus gambarnya. Sertifikat balik nyetak **garis kosong buat tanda tangan basah** —
+itu state yang sah, bukan sertifikat rusak.
+
+### `PATCH /api/organization/tanda-tangan/posisi`
+
+Posisi & ukuran cetaknya. Semua field opsional — kirim yang berubah aja.
+
+```json
+{ "geser_x_mm": -8.5, "geser_y_mm": 4, "lebar_mm": 42 }
+```
+
+| Field | Aturan | Bawaan |
+|---|---|---|
+| `geser_x_mm` | numerik, **−40 … 40**. Negatif = ke kiri | `0` |
+| `geser_y_mm` | numerik, **−40 … 40**. **POSITIF = NAIK** | `0` |
+| `lebar_mm` | numerik, **10 … 80**. Tingginya ngikut, rasio dijaga | `35` |
+
+- **Kirim `null`** di suatu field = balikin ke bawaan (kuncinya dibuang, bukan
+  disimpen `null`).
+- Setelan lain di `settings` (penandatangan, kode dokumen, ambang reminder, masa
+  berlaku) **nggak keinjek** — yang dikirim digabung, bukan nimpa seluruh objek.
+- Nilai di luar batas → `422`. Nilai ngawur yang masuk lewat jalur lain
+  (`PUT /organization` yang nerima `settings` bebas, atau panel admin) **tetap
+  dibatasin waktu dibaca**, jadi API nggak akan pernah balikin angka di luar rentang.
+
+> **`geser_y_mm` POSITIF = NAIK.** Ini kebalikan dari koordinat layar, jadi gampang
+> kebalik waktu bikin UI drag. Kalau drag ke atas malah bikin tanda tangannya turun,
+> yang salah tanda di sisi UI — backend-nya udah dites buat arah ini.
+
+> **Geserannya RELATIF ke blok tanda tangan, bukan koordinat absolut halaman.** Tinggi
+> isi sertifikat berubah-ubah (jumlah titik ukur & standar beda tiap sesi), jadi blok
+> tanda tangannya naik-turun. Koordinat absolut yang pas di satu sertifikat bakal
+> nimpa tabel di sertifikat lain — dan itu baru ketahuan sesudah PDF-nya nyampe
+> pelanggan.
+
+### Kenapa posisinya disimpen SEKALI, bukan per sertifikat
+
+Sertifikat yang udah terbit itu **dokumen terkendali**. Kalau posisi tanda tangan
+disimpen per sertifikat, berarti sertifikat yang udah dikirim ke pelanggan bisa
+diubah — dan dua orang bisa punya PDF beda dengan nomor sertifikat yang sama. Dengan
+disimpen di tingkat template, admin geser **sekali** dan semua sertifikat konsisten.
+
+Ini juga alasan tinggi blok tanda tangannya **dipatok**, nggak ikut tinggi gambar: dua
+sertifikat dengan format resmi yang sama nggak boleh beda tata letak cuma gara-gara
+yang satu diunggahin gambar TTD.
+
+**Status yang mungkin** (berlaku buat keempat endpoint):
+
+| Kode | Kapan |
+|---|---|
+| `200` | Beres |
+| `422` | Bukan PNG · lebih dari 2 MB · nggak ada file · nilai posisi di luar batas |
+| `403` | Teknisi / viewer — **nggak boleh nyentuh sama sekali**, termasuk pratinjau |
+| `404` | `GET` waktu gambarnya belum ada |
+| `401` | Tanpa token |
+
+> ### Yang masih perlu dari sisi operasional
+>
+> Kodenya **selesai dan udah diuji** end-to-end sampai PDF-nya (22 test), pakai PNG
+> placeholder. Yang belum: **file PNG tanda tangan asli + jabatan resminya** dari lab.
+> Nggak ada kode yang perlu diubah waktu file aslinya masuk — admin tinggal unggah
+> lewat panel atau endpoint di atas.
 
 ---
 
