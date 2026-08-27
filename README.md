@@ -14,10 +14,16 @@ Aplikasi mobile (Flutter, satu APK) untuk kalibrasi alat ukur & sertifikat digit
 git clone <url-repo>
 cd sidik-calibration-mobile
 flutter pub get
-./tool/dev.sh mac    # atau: hp (HP fisik) · mock (tanpa server)
+./tool/dev.sh mac    # atau: windows · hp (HP fisik) · mock (tanpa server)
 ```
 
 Pastikan `flutter doctor` bersih (tanpa silang merah) sebelum run pertama kali.
+
+Menyiapkan mesin kedua (laptop Windows) supaya isinya sama persis dengan Mac —
+termasuk versi Flutter yang dipatok CI, berkas yang tidak ikut git, dan aturan
+golden test di luar macOS: lihat
+[`docs/sinkron-laptop-windows.md`](docs/sinkron-laptop-windows.md).
+Untuk membuktikan dua mesin sudah sama: `./tool/cek-sinkron.sh`.
 
 ### Konfigurasi environment
 Tidak ada URL yang di-hardcode. Semua lewat `--dart-define` (lihat `lib/core/config/app_config.dart`):
