@@ -154,4 +154,57 @@ void main() {
     expect(titik.kotak('sesudah_adjustment', 'pembacaan', 0).text, '10,0');
     expect(titik.kotak('sesudah_adjustment', 'pembacaan', 4).text, '50,0');
   });
+
+  group('titik yang cocoknya cuma dalam toleransi', () {
+    // `terapkanHasilFotoTabel` mencari titiknya lewat `_titikTerdekat`, yang
+    // menerima selisih sangat kecil (pembulatan `double` dari server, misalnya
+    // 1018,0000000001). Pencari label contoh latih HARUS memakai cara yang
+    // sama.
+    //
+    // Lewat `titik[x]` biasa, baris begitu balik kosong: angkanya masuk
+    // formulir dengan benar, tapi labelnya nggak pernah ketemu — dan tiap
+    // potongan sel dari baris itu dihitung "tanpa label" tanpa ada yang tahu
+    // kenapa. Data latihnya menyusut diam-diam, persis di baris yang datanya
+    // paling wajar.
+    test('`titik[x]` MELESET, `titikCocok` ketemu', () {
+      final s = siapkan(const [1, 2, 3, 4, 5]);
+      addTearDown(s.isian.dispose);
+
+      // Selisihnya di bawah toleransi 1e-6 relatif.
+      const geser = 1018.0000000001;
+
+      expect(
+        s.isian.titik[geser],
+        isNull,
+        reason:
+            'Prasyarat: pencarian peta biasa memang meleset buat angka ini. '
+            'Kalau ini ketemu, test-nya berhenti menguji apa pun.',
+      );
+
+      expect(
+        s.isian.titikCocok(geser),
+        same(s.isian.titik[1018.0]),
+        reason: 'Yang dipakai jalur foto ketemu, dan titiknya yang itu juga.',
+      );
+    });
+
+    test('angka fotonya sendiri tetap mendarat di baris itu', () {
+      // Penjaga arah: kalau `terapkanHasilFotoTabel` berhenti menerima titik
+      // bertoleransi, test di atas berhenti berarti apa-apa.
+      final s = siapkan(const [1, 2, 3, 4, 5]);
+      addTearDown(s.isian.dispose);
+
+      final terisi = s.isian.terapkanHasilFotoTabel(
+        [sel(1018.0000000001, 1, '77,7')],
+        tahap: s.tabel.tahap,
+        pengulangan: s.tabel.pengulangan,
+      );
+
+      expect(terisi, 1);
+      expect(
+        s.isian.titik[1018.0]!.kotak('sesudah_adjustment', 'pembacaan', 0).text,
+        '77,7',
+      );
+    });
+  });
 }

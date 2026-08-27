@@ -30,9 +30,8 @@ double? parseAngka(String teks) =>
 /// Balikin angka ke bentuk yang enak diketik ulang: `22.5`, bukan `22.500000`
 /// — dan bilangan bulat tanpa `.0` yang bikin teknisi ngira ada desimal
 /// tersembunyi.
-String formatAngka(double nilai) => nilai == nilai.roundToDouble()
-    ? nilai.toStringAsFixed(0)
-    : '$nilai';
+String formatAngka(double nilai) =>
+    nilai == nilai.roundToDouble() ? nilai.toStringAsFixed(0) : '$nilai';
 
 /// Kuning "diisi kamera — PERIKSA".
 ///
@@ -288,7 +287,6 @@ class TitikState {
     return false;
   }
 
-
   /// Satu Repeat yang jauh menyimpang dari Repeat LAIN di baris yang sama.
   ///
   /// Beda dari [adaPembacaanJauhDariTitik], dan bedanya menentukan: yang itu
@@ -390,8 +388,7 @@ class TitikState {
   /// Dipakai buat ngunci baris pasangan. Kalau pakai [adaIsian], dua varian
   /// satuan langsung saling ngunci begitu lembarnya kebuka — sebelum teknisi
   /// ngetik apa pun — dan nyentang standar malah MEMATIKAN barisnya.
-  bool get adaPembacaan =>
-      _kotak.values.any((c) => c.text.trim().isNotEmpty);
+  bool get adaPembacaan => _kotak.values.any((c) => c.text.trim().isNotEmpty);
 
   /// Salinan isian sel baris ini, buat diselamatkan waktu BENTUK lembar
   /// berubah (mis. teknisi milih alat, dan baris varian satuan menyusut).
@@ -638,7 +635,11 @@ class LembarKerjaState {
   /// Indeksnya sejajar antar-tabel karena urutan baris Before & After selalu
   /// sama; kalau suatu hari nggak sama lagi, yang pecah tabelnya, bukan diam-
   /// diam salah pasang.
-  double kunciBaris(List<BarisTabelHasil> baris, int index, [TabelHasil? tabel]) {
+  double kunciBaris(
+    List<BarisTabelHasil> baris,
+    int index, [
+    TabelHasil? tabel,
+  ]) {
     // Lembar PASANGAN dikunci ke POSISI baris di dalam blok parameternya,
     // bukan ke titik ukurnya.
     //
@@ -802,9 +803,8 @@ class LembarKerjaState {
   }
 
   /// Lembar ini titiknya boleh diatur teknisi?
-  bool get titikBisaDiubah => bentuk.bagian.any(
-    (bagian) => bagian.tabel.any((t) => t.titikBisaDiubah),
-  );
+  bool get titikBisaDiubah =>
+      bentuk.bagian.any((bagian) => bagian.tabel.any((t) => t.titikBisaDiubah));
 
   int _bangunTitik({bool pertahankanIsian = false}) {
     // Isian sel disalin DULU, sebelum yang lama dibuang. Yang disalin cuma
@@ -1103,7 +1103,9 @@ class LembarKerjaState {
   /// ini bukan formalitas.
   List<TitikState> get titikSuhuBelumLengkap => bentuk.suhuWajib
       ? titik.values
-            .where((t) => !titikTerkunci(t.titikUkur) && t.adaPembacaanTanpaSuhu)
+            .where(
+              (t) => !titikTerkunci(t.titikUkur) && t.adaPembacaanTanpaSuhu,
+            )
             .toList()
       : const [];
 
@@ -1113,9 +1115,7 @@ class LembarKerjaState {
   /// Lihat [TitikState.adaPembacaanJauhDariTitik] soal kenapa ini ditahan di HP
   /// dan bukan dibiarin jadi peringatan di admin.
   List<TitikState> get titikPembacaanJauh => titik.values
-      .where(
-        (t) => !titikTerkunci(t.titikUkur) && t.adaPembacaanJauhDariTitik,
-      )
+      .where((t) => !titikTerkunci(t.titikUkur) && t.adaPembacaanJauhDariTitik)
       .toList();
 
   /// Baris yang satu Repeat-nya jauh menyimpang dari Repeat lain SEBARIS.
@@ -1289,8 +1289,12 @@ class LembarKerjaState {
 
   /// Kunci satu sel tabel — sama persis dengan yang dibangun widget tabel biar
   /// penandaan keyakinan-rendah nyambung ke kotak yang benar.
-  static String kunciSel(double titikUkur, String tahap, String kolom, int index) =>
-      '$titikUkur|$tahap|$kolom|$index';
+  static String kunciSel(
+    double titikUkur,
+    String tahap,
+    String kolom,
+    int index,
+  ) => '$titikUkur|$tahap|$kolom|$index';
 
   /// Titik yang lagi aktif buat satu slot cetak — jawaban yang sama buat tabel
   /// yang digambar dan buat tombol foto tabel.
@@ -1674,8 +1678,7 @@ class LembarKerjaState {
           ? _titikPasangan(m.titikUkur, m.satuan)
           // Baris yang set point-nya diketik teknisi (TIDS) NGGAK bisa ketemu
           // lewat [_titikTerdekat] — lihat [_titikBelumDitentukan].
-          : (_titikTerdekat(m.titikUkur) ??
-                _titikBelumDitentukan(m.titikUkur));
+          : (_titikTerdekat(m.titikUkur) ?? _titikBelumDitentukan(m.titikUkur));
 
       if (tujuan == null) {
         kebuang++;
@@ -1802,7 +1805,8 @@ class LembarKerjaState {
         // Acuan — bukan posisinya — tapi grid yang urutannya acak bikin
         // teknisi susah nyocokin sama kertas yang lagi dia pegang.
         ..sort((a, b) {
-          final peran = _urutanPeran(a.peranSensor) - _urutanPeran(b.peranSensor);
+          final peran =
+              _urutanPeran(a.peranSensor) - _urutanPeran(b.peranSensor);
           if (peran != 0) return peran;
           final no = (a.sensorKe ?? 0) - (b.sensorKe ?? 0);
           return no != 0 ? no : a.pembacaanKe - b.pembacaanKe;
@@ -1957,6 +1961,16 @@ class LembarKerjaState {
   /// `decimal(20,8)` yang dibaca ulang dari DB. `111.193568` yang bolak-balik
   /// lewat JSON gampang meleset di digit terakhir, dan `Map` nggak peduli
   /// selisihnya sekecil apa — barisnya dianggap nggak ada, angkanya kebuang.
+  /// [_titikTerdekat] buat pemanggil di luar kelas ini.
+  ///
+  /// Ada karena pengumpul contoh latih harus mencari titiknya dengan cara yang
+  /// SAMA PERSIS seperti waktu angka fotonya ditempatkan. Lewat `titik[x]`
+  /// biasa, titik yang cuma cocok dalam toleransi ([_titikSama]) balik kosong
+  /// — angkanya masuk formulir tapi labelnya nggak pernah ketemu, dan tiap
+  /// potongan sel dari baris itu dihitung "tanpa label" tanpa ada yang tahu
+  /// kenapa.
+  TitikState? titikCocok(double titikUkur) => _titikTerdekat(titikUkur);
+
   TitikState? _titikTerdekat(double titikUkur) {
     final persis = titik[titikUkur];
     if (persis != null) return persis;
@@ -2116,7 +2130,8 @@ class LembarKerjaState {
   Map<String, String> get spesifikasiAlat => {
     for (final bagian in bentuk.bagian)
       for (final f in bagian.field)
-        if (f.spesifikasiAlat && (teks[f.kode]?.text.trim().isNotEmpty ?? false))
+        if (f.spesifikasiAlat &&
+            (teks[f.kode]?.text.trim().isNotEmpty ?? false))
           f.kunciSpesifikasi: teks[f.kode]!.text.trim(),
   };
 
@@ -2194,7 +2209,6 @@ class LembarKerjaState {
       // sudah diketik teknisi.
       pakaiChannel: true,
     );
-
 
     return LembarKerjaSubmission(
       equipmentId: alat!.id,
@@ -2308,9 +2322,7 @@ class LembarKerjaState {
   ///
   /// Alat satu-tabel lewat sini juga dan hasilnya sama persis kayak dulu.
   List<TitikState> titikTabel(TabelHasil tabel) {
-    final punyaTabel = {
-      for (final b in barisTabel(tabel)) b.titikUkur,
-    };
+    final punyaTabel = {for (final b in barisTabel(tabel)) b.titikUkur};
 
     return [
       for (final t in titikUrut)
@@ -2325,10 +2337,9 @@ class LembarKerjaState {
 
   /// Versi [selPerTabel] yang ngitung SATU tabel — dipakai pesan "x dari y sel"
   /// sesudah foto, biar angkanya nggak ngitung tabel yang nggak difoto.
-  int selPerTabelIni(TabelHasil tabel) => titikTabel(tabel).fold(
-    0,
-    (jumlah, t) => jumlah + t.jumlahPengulangan * tabel.kolom.length,
-  );
+  int selPerTabelIni(TabelHasil tabel) => titikTabel(
+    tabel,
+  ).fold(0, (jumlah, t) => jumlah + t.jumlahPengulangan * tabel.kolom.length);
 
   /// Tuang angka hasil pindai yang UDAH lewat layar review ke kotak isian.
   /// Balikin jumlah sel yang beneran keisi.
@@ -2354,7 +2365,14 @@ class LembarKerjaState {
       final index = s.repeatNo - 1;
       if (index < 0 || index >= state.jumlahPengulangan) continue;
 
-      terisi += _isiSel(state, s.tahap, s.fieldId, index, s.nilai, s.perluDicek);
+      terisi += _isiSel(
+        state,
+        s.tahap,
+        s.fieldId,
+        index,
+        s.nilai,
+        s.perluDicek,
+      );
     }
 
     if (terisi > 0) adaIsianDariFoto = true;
@@ -2371,6 +2389,7 @@ class LembarKerjaState {
 
     return null;
   }
+
   /// Tuang hasil FOTO SATU TABEL ke kotak isian tabel itu.
   ///
   /// Bedanya dari [terapkanHasilPindai]: yang ini nggak lewat server. Fotonya
@@ -2688,8 +2707,8 @@ class LembarKerjaState {
   TextEditingController kotakMatriks(String kodeData, int titikWaktu) =>
       matriks.putIfAbsent(
         kunciMatriks(kodeData, titikWaktu),
-        () => TextEditingController()
-          ..addListener(() => onIsianDiketik?.call()),
+        () =>
+            TextEditingController()..addListener(() => onIsianDiketik?.call()),
       );
 
   /// Tempelkan hasil foto matriks ke kotak-kotaknya. Balik berapa sel keisi.
@@ -2732,7 +2751,7 @@ class LembarKerjaState {
     return terisi;
   }
 
-/// Rakit blok data ukur untuk lembar bertabel matriks (Autoklaf).
+  /// Rakit blok data ukur untuk lembar bertabel matriks (Autoklaf).
   ///
   /// Angkanya ditulis ke jalur yang DITENTUKAN BACKEND (`BarisMatriks.kodeData`
   /// — `suhu.disk.0`, `tekanan.indikator_pressure`), bukan ke jalur yang
@@ -2748,7 +2767,10 @@ class LembarKerjaState {
   /// kolomnya sama, itu yang kepakai; kalau beda, kirimannya ditolak dengan
   /// pesan jelas. Merata-rata di layar bikin angka yang nggak pernah ditulis
   /// siapa pun ikut ke sertifikat.
-  Map<String, dynamic> payloadMatriks(MatriksHasil m, TabelSatuBaris? tambahan) {
+  Map<String, dynamic> payloadMatriks(
+    MatriksHasil m,
+    TabelSatuBaris? tambahan,
+  ) {
     final hasil = <String, dynamic>{};
 
     void tulis(String jalur, List<dynamic> nilai) {
@@ -2783,7 +2805,8 @@ class LembarKerjaState {
       tulis(tambahan.kodeData, [
         for (final t in tambahan.pengulangan)
           parseAngka(
-            matriks[LembarKerjaState.kunciMatriks(tambahan.kodeData, t)]?.text ??
+            matriks[LembarKerjaState.kunciMatriks(tambahan.kodeData, t)]
+                    ?.text ??
                 '',
           ),
       ]);
@@ -2853,7 +2876,8 @@ class LembarKerjaState {
     for (final b in m.semuaBaris.where((b) => b.jam)) {
       for (final t in m.titikWaktu) {
         final teksSel =
-            matriks[LembarKerjaState.kunciMatriks(b.kodeData, t)]?.text.trim() ??
+            matriks[LembarKerjaState.kunciMatriks(b.kodeData, t)]?.text
+                .trim() ??
             '';
         if (teksSel.isEmpty) continue;
         if (normalisasiJam(teksSel) == null) ngawur.add(t);
@@ -2871,9 +2895,8 @@ class LembarKerjaState {
       final nomor = isi.keys.map(int.tryParse).toList();
 
       if (nomor.isNotEmpty && nomor.every((n) => n != null)) {
-        final urut = [...isi.keys]..sort(
-          (a, b) => int.parse(a).compareTo(int.parse(b)),
-        );
+        final urut = [...isi.keys]
+          ..sort((a, b) => int.parse(a).compareTo(int.parse(b)));
         wadah[kunci] = [for (final k in urut) isi[k]];
       } else {
         _ratakanWadahBernomor(isi);
@@ -2881,7 +2904,7 @@ class LembarKerjaState {
     }
   }
 
-/// Bagian yang punya tabel matriks. Null buat sembilan alat lain.
+  /// Bagian yang punya tabel matriks. Null buat sembilan alat lain.
   BagianLembarKerja? get bagianMatriks {
     for (final b in bentuk.bagian) {
       if (b.matriks != null) return b;
@@ -2919,7 +2942,10 @@ class LembarKerjaState {
       // `set_point` & tanggal kalibrasi belum keisi.
       if (draft) 'status': 'draft',
       if (tanggalKalibrasi != null)
-        'tanggal_kalibrasi': tanggalKalibrasi.toIso8601String().substring(0, 10),
+        'tanggal_kalibrasi': tanggalKalibrasi.toIso8601String().substring(
+          0,
+          10,
+        ),
       if (tanggalTerima != null)
         'tanggal_terima': tanggalTerima.toIso8601String().substring(0, 10),
       'lokasi': lokasi.name,
