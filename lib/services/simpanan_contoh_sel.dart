@@ -65,13 +65,29 @@ typedef IsiSimpanan = ({List<ContohSel> contoh, int barisRusak});
 /// lab mengizinkan potongan diekspor buat pelatihan, yang keluar sudah berupa
 /// coretan angka tanpa konteks — bukan lembar kerja pelanggan.
 ///
+/// **Yang nggak bisa dijamin kelas ini, dan jadi kewajiban pemanggil:** tiga
+/// masukannya datang dari luar, jadi tipe-tipenya nggak bisa menegakkan klaim
+/// di atas.
+///
+///  - `lembar` — isi dengan jenis alatnya (`viscometer`, `ph`), JANGAN nama
+///    pelanggan, nomor sertifikat, atau nomor seri;
+///  - `fieldId` — datang dari `PotonganSel.kotak`, dan itu kode kolom
+///    (`pembacaan`, `suhu`), bukan tulisan bebas;
+///  - `potongan` — HARUS berasal dari `HasilPetaTabel.kotakSel`, yang kotaknya
+///    diturunkan dari jangkar baris & kolom sehingga cuma memuat sel
+///    pengukuran. Potongan dari sumber lain bisa saja memuat kop surat atau
+///    kolom identitas, dan simpanan ini nggak punya cara memeriksanya.
+///
+/// Ditulis di sini karena review menunjuknya dengan benar: sampai integrasinya
+/// ada, yang menjaga klaim de-identifikasi itu disiplin pemanggil, bukan tipe.
+///
 /// ## Kenapa dibatasi
 ///
 /// Simpanan yang tumbuh tanpa batas itu HP teknisi yang penuh diam-diam, dan
 /// citra pelanggan yang menumpuk makin lama makin banyak kalau perangkatnya
 /// hilang. [maksimum] menjaga dua-duanya. Yang paling tua dibuang duluan.
 class SimpananContohSel {
-  const SimpananContohSel(this.folder, {this.maksimum = 5000});
+  SimpananContohSel(this.folder, {this.maksimum = 5000});
 
   /// Folder tempat PNG dan indeksnya ditulis. Disuntik dari luar supaya bisa
   /// diuji tanpa perangkat — `path_provider` nggak jalan di test.
@@ -83,7 +99,38 @@ class SimpananContohSel {
 
   static const _namaIndeks = 'indeks.jsonl';
 
+  /// Antrean tulis — tiap operasi menunggu yang sebelumnya selesai.
+  ///
+  /// Kenapa perlu, padahal syaratnya sudah ditulis di docblock: menulis satu
+  /// contoh itu urutan `buat folder → pilih nama → tulis PNG → tambah baris
+  /// indeks → pangkas`, dan pemangkasan MENULIS ULANG seluruh indeks. Dua
+  /// panggilan yang jalan bersamaan membaca indeks yang sama, lalu yang
+  /// menulis belakangan menimpa baris yang baru saja ditambahkan yang lain.
+  /// Contoh latihnya hilang, PNG-nya jadi yatim, dan nggak ada yang merah.
+  ///
+  /// Sempat cuma didokumentasikan, dengan alasan "kunci bikin kelihatan aman
+  /// padahal pemanggil masih bisa salah pakai". Itu keliru, dan review
+  /// membantahnya dengan benar: `Future.wait` atas sel-sel satu foto itu
+  /// bentuk pemakaian yang WAJAR — justru yang paling mungkin ditulis PR
+  /// penyambungan nanti — dan dokumentasi cuma menjaga selama yang menulis
+  /// membacanya duluan. Yang nggak bisa dijaga antrean ini cuma satu hal, dan
+  /// itu yang pantas didokumentasikan: dua instance yang menunjuk folder yang
+  /// sama.
+  Future<void> _antre = Future<void>.value();
+
   File get _indeks => File('${folder.path}/$_namaIndeks');
+
+  /// Jalankan [kerja] sesudah semua yang sudah antre selesai.
+  Future<T> _berurutan<T>(Future<T> Function() kerja) {
+    final hasil = _antre.then((_) => kerja());
+
+    // Kegagalan satu tulisan NGGAK boleh mematikan antreannya: `_antre` yang
+    // membawa error bikin tiap panggilan berikutnya ikut gagal, dan satu
+    // berkas yang nggak bisa ditulis berubah jadi seluruh simpanan mati.
+    _antre = hasil.then((_) {}, onError: (_) {});
+
+    return hasil;
+  }
 
   /// Simpan satu potongan berikut angka yang diketik teknisi.
   ///
@@ -93,31 +140,43 @@ class SimpananContohSel {
   ///
   /// Balikin `null` kalau labelnya kosong — ditolak, bukan disimpan diam-diam.
   ///
-  /// ## WAJIB dipanggil BERURUTAN, satu per satu
+  /// Aman dipanggil bersamaan — `Future.wait` atas sel-sel satu foto nggak
+  /// akan menghilangkan contoh, karena tulisannya diantrekan lewat [_antre].
   ///
-  /// `await` tiap panggilan sebelum memanggil lagi. **Jangan** `Future.wait`
-  /// atas sekumpulan sel sekaligus.
-  ///
-  /// Alasannya: [_pangkas] membaca indeks, menghitung yang lebih, lalu
-  /// menulis ULANG seluruh indeks. Dua panggilan yang jalan bersamaan
-  /// membaca indeks yang sama, lalu yang menulis belakangan menimpa baris
-  /// yang baru saja ditambahkan yang lain — contoh latihnya hilang, PNG-nya
-  /// jadi yatim, dan nggak ada yang merah.
-  ///
-  /// Sengaja NGGAK dikunci di dalam sini: satu foto menghasilkan puluhan sel
-  /// yang memang wajar ditulis berurutan, dan kunci di kelas ini cuma bikin
-  /// kelihatan aman padahal pemanggil masih bisa salah pakai. Yang menjaga
-  /// syarat ini pemanggilnya, dan syaratnya ditulis di sini supaya nggak
-  /// ketemu belakangan lewat data yang hilang.
+  /// **Yang tetap harus dijaga pemanggil: satu folder cuma boleh dipegang
+  /// SATU [SimpananContohSel] yang hidup.** Antreannya per-instance, jadi dua
+  /// instance yang menunjuk folder sama tetap bisa saling menimpa indeksnya.
+  /// Sediakan satu instance bersama lewat provider, jangan bikin baru tiap
+  /// kali menyimpan.
   Future<ContohSel?> simpan({
     required PotonganSel potongan,
     required String label,
     required String lembar,
     String? bacaanOcr,
     DateTime? waktu,
-  }) async {
-    if (label.trim().isEmpty) return null;
+  }) {
+    // Diperiksa SEBELUM antre: nggak menyentuh berkas apa pun, jadi nggak ada
+    // gunanya menahan antrean buat menolaknya.
+    if (label.trim().isEmpty) return Future.value(null);
 
+    return _berurutan(
+      () => _simpanSatu(
+        potongan: potongan,
+        label: label,
+        lembar: lembar,
+        bacaanOcr: bacaanOcr,
+        waktu: waktu,
+      ),
+    );
+  }
+
+  Future<ContohSel?> _simpanSatu({
+    required PotonganSel potongan,
+    required String label,
+    required String lembar,
+    String? bacaanOcr,
+    DateTime? waktu,
+  }) async {
     await folder.create(recursive: true);
 
     final saat = waktu ?? DateTime.now();
@@ -147,7 +206,18 @@ class SimpananContohSel {
   }
 
   /// Semua contoh yang tersimpan, urut dari yang paling tua.
-  Future<IsiSimpanan> baca() async {
+  ///
+  /// Ikut diantrekan supaya nggak pernah membaca indeks yang lagi ditulis
+  /// ulang [_pangkas] — di tengah penulisan ulang, indeksnya bisa kebaca
+  /// separuh.
+  Future<IsiSimpanan> baca() => _berurutan(_bacaLangsung);
+
+  /// Isi [baca] tanpa antre.
+  ///
+  /// Dipakai dari DALAM operasi yang sudah mengantre ([_pangkas]). Memanggil
+  /// [baca] dari sana bikin dia menunggu operasi yang sedang menjalankannya
+  /// sendiri — antreannya mengunci diri dan nggak pernah selesai.
+  Future<IsiSimpanan> _bacaLangsung() async {
     if (!await _indeks.exists()) {
       return (contoh: const <ContohSel>[], barisRusak: 0);
     }
@@ -172,9 +242,9 @@ class SimpananContohSel {
   }
 
   /// Buang seluruh simpanan — berkas PNG berikut indeksnya.
-  Future<void> kosongkan() async {
+  Future<void> kosongkan() => _berurutan(() async {
     if (await folder.exists()) await folder.delete(recursive: true);
-  }
+  });
 
   /// Nama berkas yang dijamin belum dipakai.
   ///
@@ -193,7 +263,7 @@ class SimpananContohSel {
 
   /// Buang yang paling tua sampai jumlahnya kembali di bawah [maksimum].
   Future<void> _pangkas() async {
-    final isi = await baca();
+    final isi = await _bacaLangsung();
 
     final lebih = isi.contoh.length - maksimum;
     if (lebih <= 0) return;

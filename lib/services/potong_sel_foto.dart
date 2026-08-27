@@ -60,6 +60,25 @@ class PotongSelFoto {
   ///
   /// Yang kotaknya nggak muat utuh di dalam [citra], atau yang ukurannya
   /// menyusut jadi nol, nggak ikut dipulangkan dan dihitung di `gagal`.
+  ///
+  /// ## Syarat: [kotak] HARUS datang dari [PetaTabelFoto]
+  ///
+  /// Dipotong pas ukuran kotaknya, tanpa margin — dan itu cuma benar kalau
+  /// penyusutannya sudah terjadi di hulu. `HasilPetaTabel.kotakSel` selalu
+  /// mengecilkan tiap kotak jadi 0,8 petak (`_rapatKotak`) sebelum sampai ke
+  /// sini.
+  ///
+  /// Kotak yang dirakit sendiri seukuran petak PENUH bakal dipotong penuh
+  /// juga, dan potongannya membawa garis tabel berikut ekor angka tetangga —
+  /// dua-duanya derau yang bikin model belajar hal yang salah. Kalau suatu
+  /// saat ada sumber kotak lain, dia yang harus menyusutkan duluan, bukan
+  /// method ini yang menambah margin (menambah di sini bikin yang dari
+  /// [PetaTabelFoto] menyusut dua kali dan angkanya sendiri kepotong).
+  ///
+  /// Nggak ditegakkan tipe: `KotakSelFoto` itu record, dan bisa dirakit siapa
+  /// saja — test di repo ini pun merakitnya langsung, dan itu memang yang
+  /// bikin geometrinya bisa diuji tanpa foto. Jadi syaratnya ditulis, bukan
+  /// dipaksakan.
   HasilPotongSel potong({
     required img.Image citra,
     required List<KotakSelFoto> kotak,

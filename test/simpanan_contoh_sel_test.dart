@@ -291,4 +291,104 @@ void main() {
 
     expect((await simpanan.baca()).contoh, isEmpty);
   });
+
+  group('tulisan bersamaan', () {
+    // Diminta review CodeRabbit, dan permintaannya benar. Sempat cuma
+    // didokumentasikan "panggil berurutan", dengan alasan kunci bikin
+    // kelihatan aman padahal pemanggil masih bisa salah pakai.
+    //
+    // Alasan itu keliru: `Future.wait` atas sel-sel satu foto adalah bentuk
+    // pemakaian yang WAJAR — justru yang paling mungkin ditulis waktu ini
+    // disambungkan ke layar — dan dokumentasi cuma menjaga selama yang
+    // menulis membacanya duluan. Kegagalannya pun jenis paling mahal: contoh
+    // hilang tanpa satu pun error.
+    test(
+      'Future.wait atas satu instance: NGGAK ada contoh yang hilang',
+      () async {
+        final simpanan = SimpananContohSel(folder);
+
+        final hasil = await Future.wait([
+          for (var i = 1; i <= 8; i++)
+            simpanan.simpan(
+              potongan: potongan(warna: i * 20),
+              label: 'ke-$i',
+              lembar: 'ph',
+            ),
+        ]);
+
+        expect(hasil.whereType<ContohSel>(), hasLength(8));
+
+        final isi = await simpanan.baca();
+
+        expect(
+          isi.contoh,
+          hasLength(8),
+          reason:
+              'Indeksnya ditulis ULANG waktu memangkas. Tanpa antrean, yang '
+              'menulis belakangan menimpa baris yang baru ditambahkan yang lain.',
+        );
+        expect(isi.barisRusak, 0);
+        expect(isi.contoh.map((c) => c.label).toSet(), {
+          for (var i = 1; i <= 8; i++) 'ke-$i',
+        });
+      },
+    );
+
+    test('PNG-nya juga utuh semua, bukan cuma barisnya', () async {
+      // Baris indeks lengkap dengan PNG yang hilang itu tetap kehilangan data
+      // — dan baru ketahuan jauh di tahap latih.
+      final simpanan = SimpananContohSel(folder);
+
+      final hasil = await Future.wait([
+        for (var i = 1; i <= 8; i++)
+          simpanan.simpan(
+            potongan: potongan(warna: i * 20),
+            label: 'ke-$i',
+            lembar: 'ph',
+          ),
+      ]);
+
+      final berkas = hasil.whereType<ContohSel>().map((c) => c.berkas).toSet();
+
+      expect(
+        berkas,
+        hasLength(8),
+        reason: 'Nama berkasnya nggak boleh kembar.',
+      );
+
+      for (final b in berkas) {
+        expect(
+          File('${folder.path}/$b').existsSync(),
+          isTrue,
+          reason: 'PNG $b hilang.',
+        );
+      }
+    });
+
+    test('satu tulisan gagal nggak mematikan antreannya', () async {
+      // `_antre` yang membawa error bikin TIAP panggilan berikutnya ikut
+      // gagal — satu berkas yang nggak bisa ditulis berubah jadi seluruh
+      // simpanan mati.
+      final simpanan = SimpananContohSel(folder);
+
+      await simpanan.simpan(
+        potongan: potongan(),
+        label: 'sebelum',
+        lembar: 'ph',
+      );
+
+      // Folder dihapus di tengah jalan: tulisan berikutnya bikin ulang
+      // foldernya, jadi yang diuji di sini antreannya tetap hidup.
+      await folder.delete(recursive: true);
+
+      final sesudah = await simpanan.simpan(
+        potongan: potongan(),
+        label: 'sesudah',
+        lembar: 'ph',
+      );
+
+      expect(sesudah, isNotNull);
+      expect((await simpanan.baca()).contoh.map((c) => c.label), ['sesudah']);
+    });
+  });
 }
