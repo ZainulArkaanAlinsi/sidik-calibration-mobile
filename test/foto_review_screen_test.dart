@@ -231,6 +231,72 @@ void main() {
     );
   });
 
+  testWidgets('sel kuning yang DIKOSONGKAN tetap ikut pulang, teksnya kosong', (
+    tester,
+  ) async {
+    // Temuan review CodeRabbit di PR #132. Dulu `_selesai()` menyaring sel
+    // berteks kosong, jadi sel yang teknisi kosongkan HILANG tanpa jejak dari
+    // daftar yang dipulangkan — dan yang membaca kodenya nanti harus menebak
+    // kenapa.
+    //
+    // Sekarang semua sel pulang, dan keputusan "kosong = jangan taruh apa-apa"
+    // cuma ada di `terapkanHasilFotoTabel`. Perilaku akhirnya nggak berubah
+    // (`parseAngka('')` null → dilewat), tapi alasannya jadi tertulis di satu
+    // tempat, bukan tersebar di dua.
+    List<SelTabelFoto>? hasil;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('id'),
+        home: Builder(
+          builder: (context) => ElevatedButton(
+            onPressed: () async {
+              hasil = await Navigator.of(context).push<List<SelTabelFoto>>(
+                MaterialPageRoute(
+                  builder: (_) => FotoReviewScreen(
+                    baris: [
+                      baris('7,02', keyakinan: 0.82),
+                      baris('7,05', keyakinan: 0.82, repeatNo: 2),
+                    ],
+                  ),
+                ),
+              );
+            },
+            child: const Text('buka'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('buka'));
+    await tester.pumpAndSettle();
+
+    // Sel pertama dikosongkan teknisi — dia memang nggak mau angka itu masuk.
+    await tester.enterText(find.byType(TextField).first, '');
+    await tester.pump();
+
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNotNull,
+      reason: 'Mengosongkan sel KUNING bukan pelanggaran — yang wajib diisi '
+          'cuma sel merah, yang kotaknya dikosongkan sistem.',
+    );
+
+    await tester.tap(find.byType(FilledButton));
+    await tester.pumpAndSettle();
+
+    expect(
+      hasil,
+      hasLength(2),
+      reason: 'Dua-duanya pulang. Sel yang dikosongkan nggak boleh lenyap '
+          'diam-diam dari daftar.',
+    );
+    expect(hasil!.firstWhere((s) => s.repeatNo == 1).teks, isEmpty);
+    expect(hasil!.firstWhere((s) => s.repeatNo == 2).teks, '7,05');
+  });
+
   testWidgets('yang paling butuh diperiksa ditaruh DULUAN', (tester) async {
     final urut = susunReviewFoto(
       sel: [

@@ -2518,6 +2518,15 @@ class LembarKerjaState {
       // Teksnya dibaca jadi angka DI SINI, bukan di pemetanya: yang di sana
       // cuma menjawab "tempatnya di mana", dan mencampur dua urusan itu bikin
       // aturan angka tersebar di dua tempat.
+      //
+      // Teks KOSONG ikut lewat sini, dan itu disengaja. `FotoReviewScreen`
+      // memulangkan SELURUH sel — termasuk yang teknisi kosongkan — supaya
+      // keputusan "kosong = nggak usah ditaruh" cuma ada di satu tempat, yaitu
+      // baris ini. Kosong berarti **jangan taruh apa-apa**, BUKAN "hapus isi
+      // kotaknya": sel yang sudah ada isinya nggak pernah disentuh jalur foto
+      // (lihat `GabungTabel.nilaiBaru` di `_isiSel`), jadi mengosongkan di
+      // layar review nggak bisa dan nggak boleh menghapus angka yang sudah
+      // diketik teknisi sebelumnya.
       final nilai = parseAngka(s.teks);
       if (nilai == null) continue;
 

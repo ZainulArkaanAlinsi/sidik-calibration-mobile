@@ -64,26 +64,35 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
 
   /// Sel merah yang kotaknya masih kosong — penghalang tombol Masukkan.
   List<BarisReviewFoto> get _belumDiisi => [
-    for (final b in widget.baris)
-      if (wajibDiisi(b) && _isian[_kunci(b)]!.text.trim().isEmpty) b,
-  ];
+        for (final b in widget.baris)
+          if (wajibDiisi(b) && _isian[_kunci(b)]!.text.trim().isEmpty) b,
+      ];
 
   void _selesai() {
+    // SEMUA sel dipulangkan, termasuk yang teknisi kosongkan — bukan cuma yang
+    // ada isinya.
+    //
+    // Menyaringnya di sini bikin sel yang dikosongkan HILANG tanpa jejak, dan
+    // yang membaca kode ini nanti harus menebak kenapa. Keputusan "teks kosong
+    // = nggak usah ditaruh" cuma boleh ada di SATU tempat, dan tempatnya
+    // `terapkanHasilFotoTabel` — di situ dia tertulis, teruji, dan sejalan
+    // dengan aturannya sendiri bahwa sel yang sudah ada isinya nggak pernah
+    // ditimpa. Ini juga menyamakan kontraknya dengan `PindaiReviewScreen`,
+    // yang memang memulangkan semua sel.
     final hasil = <SelTabelFoto>[
       for (final b in widget.baris)
-        if (_isian[_kunci(b)]!.text.trim().isNotEmpty)
-          (
-            titikUkur: b.titikUkur,
-            repeatNo: b.repeatNo,
-            fieldId: b.fieldId,
-            teks: _isian[_kunci(b)]!.text.trim(),
-            // Yang dipulangkan keyakinan OCR ASLINYA, bukan keyakinan sesudah
-            // dikoreksi. Sel yang diketik ulang teknisi memang nggak punya
-            // keyakinan OCR — dan menaikkannya jadi 1.0 di sini bikin
-            // pengumpul data latih nggak bisa lagi membedakan mana yang
-            // dibaca mesin dan mana yang diketik orang.
-            keyakinan: b.keyakinan,
-          ),
+        (
+          titikUkur: b.titikUkur,
+          repeatNo: b.repeatNo,
+          fieldId: b.fieldId,
+          teks: _isian[_kunci(b)]!.text.trim(),
+          // Yang dipulangkan keyakinan OCR ASLINYA, bukan keyakinan sesudah
+          // dikoreksi. Sel yang diketik ulang teknisi memang nggak punya
+          // keyakinan OCR — dan menaikkannya jadi 1.0 di sini bikin
+          // pengumpul data latih nggak bisa lagi membedakan mana yang
+          // dibaca mesin dan mana yang diketik orang.
+          keyakinan: b.keyakinan,
+        ),
     ];
 
     Navigator.of(context).pop(hasil);
