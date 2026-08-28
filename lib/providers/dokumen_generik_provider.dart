@@ -31,9 +31,12 @@ class SedangMembaca extends KeadaanBacaDokumen {
 }
 
 class DokumenTerbaca extends KeadaanBacaDokumen {
-  const DokumenTerbaca(this.skema, this.foto);
+  const DokumenTerbaca(this.skema, this.foto, this.bacaanId);
 
   final SkemaDinamis skema;
+
+  /// Id baris `dokumen_bacaan` di server. Dipakai buat ngirim koreksi.
+  final int bacaanId;
 
   /// Fotonya ditahan buat layar keterlacakan — teknisi harus bisa lihat asal
   /// tiap angka di gambar aslinya.
@@ -53,6 +56,51 @@ class BacaDokumenGagal extends KeadaanBacaDokumen {
       sebab == GagalBacaDokumen.takTerbaca ||
       sebab == GagalBacaDokumen.jaringan;
 }
+
+/// Hasil terakhir menekan Simpan. `null` = belum pernah ditekan.
+class KeadaanSimpanKoreksi {
+  const KeadaanSimpanKoreksi({
+    required this.sedang,
+    this.tersimpan,
+    this.gagal,
+  });
+
+  final bool sedang;
+
+  /// Berapa koreksi yang benar-benar mendarat di server.
+  final int? tersimpan;
+
+  final String? gagal;
+}
+
+class PengendaliSimpanKoreksi extends Notifier<KeadaanSimpanKoreksi> {
+  @override
+  KeadaanSimpanKoreksi build() => const KeadaanSimpanKoreksi(sedang: false);
+
+  Future<void> simpan(int bacaanId) async {
+    final nilai = ref.read(koreksiDokumenProvider);
+
+    state = const KeadaanSimpanKoreksi(sedang: true);
+
+    final token = await ref.read(tokenStorageProvider).read();
+
+    final hasil = await ref
+        .read(dokumenGenerikServiceProvider)
+        .koreksi(bacaanId: bacaanId, nilai: nilai, token: token);
+
+    state = hasil.berhasil
+        ? KeadaanSimpanKoreksi(
+            sedang: false,
+            tersimpan: hasil.cocok + hasil.meleset,
+          )
+        : KeadaanSimpanKoreksi(sedang: false, gagal: hasil.pesan);
+  }
+}
+
+final simpanKoreksiProvider =
+    NotifierProvider<PengendaliSimpanKoreksi, KeadaanSimpanKoreksi>(
+      PengendaliSimpanKoreksi.new,
+    );
 
 class PengendaliBacaDokumen extends Notifier<KeadaanBacaDokumen> {
   @override
@@ -83,7 +131,7 @@ class PengendaliBacaDokumen extends Notifier<KeadaanBacaDokumen> {
         .baca(foto: foto, namaAlat: namaAlat, token: token);
 
     state = hasil.berhasil
-        ? DokumenTerbaca(hasil.skema!, foto)
+        ? DokumenTerbaca(hasil.skema!, foto, hasil.bacaanId!)
         : BacaDokumenGagal(
             hasil.gagal ?? GagalBacaDokumen.jaringan,
             hasil.pesan ?? 'Gagal membaca lembar.',

@@ -4131,4 +4131,18 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get dokBacaNamaAlatBantuan =>
       'Cuma petunjuk buat AI. Kalau isi lembarnya beda, yang dipakai lembarnya.';
+
+  @override
+  String get dokSimpanTombol => 'Simpan koreksi';
+
+  @override
+  String get dokSimpanSedang => 'Menyimpan…';
+
+  @override
+  String dokSimpanBerhasil(int jumlah) {
+    return '$jumlah koreksi tersimpan';
+  }
+
+  @override
+  String get dokSimpanBelumAda => 'Belum ada yang dikoreksi';
 }

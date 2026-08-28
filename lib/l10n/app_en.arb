@@ -2414,5 +2414,14 @@
   "dokBacaUlangFoto": "Retake photo",
   "dokBacaMulaiLagi": "Start over",
   "dokBacaNamaAlatLabel": "Equipment name (optional)",
-  "dokBacaNamaAlatBantuan": "Only a hint for the AI. If the sheet says otherwise, the sheet wins."
+  "dokBacaNamaAlatBantuan": "Only a hint for the AI. If the sheet says otherwise, the sheet wins.",
+  "dokSimpanTombol": "Save corrections",
+  "dokSimpanSedang": "Saving…",
+  "dokSimpanBerhasil": "{jumlah} corrections saved",
+  "dokSimpanBelumAda": "Nothing corrected yet",
+  "@dokSimpanBerhasil": {
+    "placeholders": {
+      "jumlah": { "type": "int" }
+    }
+  }
 }

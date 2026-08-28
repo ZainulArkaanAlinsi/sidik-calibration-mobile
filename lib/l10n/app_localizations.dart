@@ -7422,6 +7422,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Only a hint for the AI. If the sheet says otherwise, the sheet wins.'**
   String get dokBacaNamaAlatBantuan;
+
+  /// No description provided for @dokSimpanTombol.
+  ///
+  /// In en, this message translates to:
+  /// **'Save corrections'**
+  String get dokSimpanTombol;
+
+  /// No description provided for @dokSimpanSedang.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving…'**
+  String get dokSimpanSedang;
+
+  /// No description provided for @dokSimpanBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} corrections saved'**
+  String dokSimpanBerhasil(int jumlah);
+
+  /// No description provided for @dokSimpanBelumAda.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing corrected yet'**
+  String get dokSimpanBelumAda;
 }
 
 class _AppLocalizationsDelegate

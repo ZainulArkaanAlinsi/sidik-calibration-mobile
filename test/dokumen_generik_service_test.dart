@@ -168,4 +168,93 @@ void main() {
     expect(hasil.berhasil, isFalse);
     expect(hasil.gagal, GagalBacaDokumen.takTerbaca);
   });
+
+  group('kirim koreksi', () {
+    test('cuma yang diketik teknisi yang dikirim', () async {
+      String? badanTerkirim;
+
+      final s = layanan((badan) {
+        badanTerkirim = badan;
+        return http.Response(
+          jsonEncode({'cocok': 1, 'meleset': 2, 'kunci_tidak_dikenal': []}),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final hasil = await s.koreksi(
+        bacaanId: 7,
+        nilai: {
+          'bagian-0.field-0': 'S-62',
+          'bagian-0.tabel-0.sel-0-1': '998,7',
+        },
+      );
+
+      expect(hasil.berhasil, isTrue);
+      expect(hasil.cocok, 1);
+      expect(hasil.meleset, 2);
+      expect(badanTerkirim, contains('bagian-0.tabel-0.sel-0-1'));
+      expect(badanTerkirim, contains('998,7'));
+    });
+
+    test('peta kosong TIDAK menembak server sama sekali', () async {
+      var kena = false;
+
+      final s = layanan((_) {
+        kena = true;
+        return http.Response(
+          '{}',
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final hasil = await s.koreksi(bacaanId: 7, nilai: const {});
+
+      expect(hasil.berhasil, isTrue);
+      expect(
+        kena,
+        isFalse,
+        reason:
+            'ngirim peta kosong bakal nandain lembar "sudah dikoreksi" '
+            'padahal teknisi belum nyentuh apa-apa',
+      );
+    });
+
+    test('kunci yang servernya nggak kenal ikut dibawa balik', () async {
+      final s = layanan(
+        (_) => http.Response(
+          jsonEncode({
+            'cocok': 0,
+            'meleset': 0,
+            'kunci_tidak_dikenal': ['bagian-9.field-9'],
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        ),
+      );
+
+      final hasil = await s.koreksi(
+        bacaanId: 7,
+        nilai: {'bagian-9.field-9': '1'},
+      );
+
+      expect(hasil.kunciTidakDikenal, ['bagian-9.field-9']);
+    });
+
+    test('bacaan lab lain ditolak, dan pesannya dibawa apa adanya', () async {
+      final s = layanan(
+        (_) => http.Response(
+          jsonEncode({'message': 'Hasil baca nggak ketemu.'}),
+          404,
+          headers: {'content-type': 'application/json'},
+        ),
+      );
+
+      final hasil = await s.koreksi(bacaanId: 999, nilai: {'a': '1'});
+
+      expect(hasil.berhasil, isFalse);
+      expect(hasil.pesan, isNotNull);
+    });
+  });
 }

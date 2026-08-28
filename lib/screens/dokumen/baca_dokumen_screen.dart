@@ -71,6 +71,64 @@ class _BacaDokumenScreenState extends ConsumerState<BacaDokumenScreen> {
               ref.read(koreksiDokumenProvider.notifier).ubah(kunci, nilai),
         ),
       },
+      floatingActionButton: switch (keadaan) {
+        DokumenTerbaca(:final bacaanId) => _TombolSimpan(bacaanId: bacaanId),
+        _ => null,
+      },
+    );
+  }
+}
+
+/// Tombol simpan koreksi.
+///
+/// Cuma muncul waktu dokumennya sudah terbaca — nggak ada gunanya menawarkan
+/// simpan waktu belum ada yang bisa disimpan.
+class _TombolSimpan extends ConsumerWidget {
+  const _TombolSimpan({required this.bacaanId});
+
+  final int bacaanId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final simpan = ref.watch(simpanKoreksiProvider);
+    final adaKoreksi = ref.watch(koreksiDokumenProvider).isNotEmpty;
+
+    ref.listen(simpanKoreksiProvider, (_, baru) {
+      final pesan =
+          baru.gagal ??
+          (baru.tersimpan == null
+              ? null
+              : l10n.dokSimpanBerhasil(baru.tersimpan!));
+
+      if (pesan == null || !context.mounted) return;
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(pesan)));
+    });
+
+    return FloatingActionButton.extended(
+      // Dimatikan waktu belum ada yang diketik: mengirim peta kosong bakal
+      // menandai lembar "sudah dikoreksi" padahal teknisi belum menyentuh
+      // apa-apa.
+      onPressed: simpan.sedang || !adaKoreksi
+          ? null
+          : () => ref.read(simpanKoreksiProvider.notifier).simpan(bacaanId),
+      icon: simpan.sedang
+          ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.save),
+      label: Text(
+        simpan.sedang
+            ? l10n.dokSimpanSedang
+            : adaKoreksi
+            ? l10n.dokSimpanTombol
+            : l10n.dokSimpanBelumAda,
+      ),
     );
   }
 }

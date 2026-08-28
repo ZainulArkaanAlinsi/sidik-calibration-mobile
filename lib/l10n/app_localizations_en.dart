@@ -4160,4 +4160,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dokBacaNamaAlatBantuan =>
       'Only a hint for the AI. If the sheet says otherwise, the sheet wins.';
+
+  @override
+  String get dokSimpanTombol => 'Save corrections';
+
+  @override
+  String get dokSimpanSedang => 'Saving…';
+
+  @override
+  String dokSimpanBerhasil(int jumlah) {
+    return '$jumlah corrections saved';
+  }
+
+  @override
+  String get dokSimpanBelumAda => 'Nothing corrected yet';
 }

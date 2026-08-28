@@ -1785,5 +1785,14 @@
   "dokBacaUlangFoto": "Foto ulang",
   "dokBacaMulaiLagi": "Mulai lagi",
   "dokBacaNamaAlatLabel": "Nama alat (opsional)",
-  "dokBacaNamaAlatBantuan": "Cuma petunjuk buat AI. Kalau isi lembarnya beda, yang dipakai lembarnya."
+  "dokBacaNamaAlatBantuan": "Cuma petunjuk buat AI. Kalau isi lembarnya beda, yang dipakai lembarnya.",
+  "dokSimpanTombol": "Simpan koreksi",
+  "dokSimpanSedang": "Menyimpan…",
+  "dokSimpanBerhasil": "{jumlah} koreksi tersimpan",
+  "dokSimpanBelumAda": "Belum ada yang dikoreksi",
+  "@dokSimpanBerhasil": {
+    "placeholders": {
+      "jumlah": { "type": "int" }
+    }
+  }
 }

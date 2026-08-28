@@ -37,6 +37,25 @@ class _LayananPalsu extends DokumenGenerikService {
   int dipanggil = 0;
   String? namaAlatTerakhir;
 
+  int? bacaanIdKoreksi;
+  Map<String, String>? koreksiTerkirim;
+  HasilKirimKoreksi jawabKoreksi = const HasilKirimKoreksi.berhasil(
+    cocok: 1,
+    meleset: 1,
+    kunciTidakDikenal: [],
+  );
+
+  @override
+  Future<HasilKirimKoreksi> koreksi({
+    required int bacaanId,
+    required Map<String, String> nilai,
+    String? token,
+  }) async {
+    bacaanIdKoreksi = bacaanId;
+    koreksiTerkirim = Map.of(nilai);
+    return jawabKoreksi;
+  }
+
   @override
   Future<HasilBacaDokumen> baca({
     required File foto,
@@ -167,7 +186,7 @@ void main() {
   ) async {
     final sumber = _FotoPalsu(foto);
     final layanan = _LayananPalsu(
-      () => HasilBacaDokumen.berhasil(_skemaViscometer()),
+      () => HasilBacaDokumen.berhasil(_skemaViscometer(), 42),
     );
 
     await t.pumpWidget(bungkus(sumber: sumber, layanan: layanan));
@@ -198,7 +217,7 @@ void main() {
 
   testWidgets('nama alat diteruskan sebagai konteks', (t) async {
     final layanan = _LayananPalsu(
-      () => HasilBacaDokumen.berhasil(_skemaViscometer()),
+      () => HasilBacaDokumen.berhasil(_skemaViscometer(), 42),
     );
 
     await t.pumpWidget(bungkus(sumber: _FotoPalsu(foto), layanan: layanan));
@@ -215,7 +234,7 @@ void main() {
   ) async {
     final sumber = _FotoPalsu(null);
     final layanan = _LayananPalsu(
-      () => HasilBacaDokumen.berhasil(_skemaViscometer()),
+      () => HasilBacaDokumen.berhasil(_skemaViscometer(), 42),
     );
 
     await t.pumpWidget(bungkus(sumber: sumber, layanan: layanan));
@@ -328,7 +347,7 @@ void main() {
     t,
   ) async {
     final layanan = _LayananPalsu(
-      () => HasilBacaDokumen.berhasil(_skemaViscometer()),
+      () => HasilBacaDokumen.berhasil(_skemaViscometer(), 42),
     );
 
     await t.pumpWidget(bungkus(sumber: _FotoPalsu(foto), layanan: layanan));
@@ -354,5 +373,71 @@ void main() {
 
     expect(find.text('99'), findsOneWidget, reason: 'balik ke hasil baca');
     expect(find.text('77,7'), findsNothing);
+  });
+
+  testWidgets('tombol simpan mati sebelum ada yang dikoreksi', (t) async {
+    final layanan = _LayananPalsu(
+      () => HasilBacaDokumen.berhasil(_skemaViscometer(), 42),
+    );
+
+    await t.pumpWidget(bungkus(sumber: _FotoPalsu(foto), layanan: layanan));
+    await t.tap(find.text('Foto lembar'));
+    await t.pumpAndSettle();
+
+    expect(find.text('Belum ada yang dikoreksi'), findsOneWidget);
+
+    final tombol = t.widget<FloatingActionButton>(
+      find.byType(FloatingActionButton),
+    );
+    expect(
+      tombol.onPressed,
+      isNull,
+      reason: 'ngirim peta kosong bakal nandain lembar sudah dikoreksi',
+    );
+  });
+
+  testWidgets('simpan mengirim persis yang diketik teknisi', (t) async {
+    final layanan = _LayananPalsu(
+      () => HasilBacaDokumen.berhasil(_skemaViscometer(), 42),
+    );
+
+    await t.pumpWidget(bungkus(sumber: _FotoPalsu(foto), layanan: layanan));
+    await t.tap(find.text('Foto lembar'));
+    await t.pumpAndSettle();
+
+    await t.enterText(find.widgetWithText(TextFormField, '99'), '99,4');
+    await t.pumpAndSettle();
+
+    await t.tap(find.text('Simpan koreksi'));
+    await t.pumpAndSettle();
+
+    expect(layanan.bacaanIdKoreksi, 42);
+    expect(layanan.koreksiTerkirim, {'bagian-0.tabel-0.sel-0-1': '99,4'});
+    // Yang NGGAK disentuh teknisi nggak ikut terkirim.
+    expect(layanan.koreksiTerkirim!.containsKey('bagian-0.field-0'), isFalse);
+
+    expect(find.text('2 koreksi tersimpan'), findsOneWidget);
+  });
+
+  testWidgets('gagal simpan dikabarkan, bukan didiamkan', (t) async {
+    final layanan =
+        _LayananPalsu(() => HasilBacaDokumen.berhasil(_skemaViscometer(), 42))
+          ..jawabKoreksi = const HasilKirimKoreksi.gagal(
+            'Nggak bisa nyambung ke server. Koreksinya belum tersimpan.',
+          );
+
+    await t.pumpWidget(bungkus(sumber: _FotoPalsu(foto), layanan: layanan));
+    await t.tap(find.text('Foto lembar'));
+    await t.pumpAndSettle();
+
+    await t.enterText(find.widgetWithText(TextFormField, '99'), '99,4');
+    await t.pumpAndSettle();
+
+    await t.tap(find.text('Simpan koreksi'));
+    await t.pumpAndSettle();
+
+    // Teknisi HARUS tahu koreksinya belum mendarat — didiamkan, dia ninggalin
+    // layar percaya sudah tersimpan.
+    expect(find.textContaining('belum tersimpan'), findsOneWidget);
   });
 }
