@@ -180,6 +180,42 @@ class AnalisisDokumen {
     return hasil;
   }
 
+  /// Baca dokumen sekali jalan: baris → pasangan label→nilai → tabel.
+  ///
+  /// ## Kenapa ini ada, bukan memanggil ketiganya sendiri-sendiri
+  ///
+  /// Deretan baris `label : nilai` **secara bentuk tidak bisa dibedakan** dari
+  /// tabel dua kolom: sama-sama beberapa baris berturut-turut dengan kepingan
+  /// di posisi mendatar yang mirip. Dipanggil terpisah, isi yang sama diklaim
+  /// dua-duanya — dan di layar review nanti muncul dua kali, sekali sebagai
+  /// isian dan sekali sebagai baris tabel. Teknisi mengisinya dua kali, atau
+  /// lebih buruk: mengisi salah satunya dan mengira sudah selesai.
+  ///
+  /// Yang memutuskan: **titik dua menang.** Dia bukti yang lebih kuat — tabel
+  /// dikenali dari keteraturan posisi (bisa kebetulan), pasangan dikenali dari
+  /// tanda baca yang memang dicetak untuk itu. Jadi baris yang sudah
+  /// menghasilkan pasangan tidak ikut ditawarkan ke pendeteksi tabel.
+  ({List<PasanganLabel> pasangan, List<TabelDokumen> tabel}) bacaDokumen(
+    List<TeksTerbaca> terbaca,
+  ) {
+    final baris = kelompokkanBaris(terbaca);
+
+    final pasangan = <PasanganLabel>[];
+    final sisa = <BarisDokumen>[];
+
+    for (final b in baris) {
+      final p = deteksiPasangan([b]);
+
+      if (p.isEmpty) {
+        sisa.add(b);
+      } else {
+        pasangan.addAll(p);
+      }
+    }
+
+    return (pasangan: pasangan, tabel: deteksiTabel(sisa));
+  }
+
   /// Cari tabel dari **keteraturan kolomnya**, bukan dari garis kotaknya.
   ///
   /// ## Kenapa bukan garis
