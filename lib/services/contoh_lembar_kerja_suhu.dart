@@ -6,10 +6,13 @@
 /// membuktikan layar sepakat dengan dirinya sendiri, dan kontrak yang bergeser
 /// di server nggak akan pernah memerahkannya.
 ///
-/// Yang bikin ketiganya beda dari empat belas bentuk mock lain: tiap bagian
-/// hasil punya DUA tabel ber-`tahap` sama (`sesudah_adjustment`) yang
-/// dibedakan `peran` (`standar` / `uut`) dan `grup`. Lihat
+/// Yang bikin keempatnya beda dari empat belas bentuk mock lain: tiap bagian
+/// hasil punya DUA tabel yang dibedakan `peran` (`standar` / `uut`). Lihat
 /// `ProfilSuhuPasangan` di repo API.
+///
+/// TIDS (`contohBentukLembarKerjaTids`, di paling bawah) menyusul 28 Agt 2026 —
+/// bentuk pasangan juga, tapi identitas tabelnya dipegang `tahap`, bukan `grup`.
+/// Alasannya di docblock fungsinya.
 library;
 
 /// Thermocouple (alat ke-18) — `SIDIK-IK-CAL-0529_Rev.2`, sesi master
@@ -2361,6 +2364,1062 @@ Map<String, dynamic> contohBentukLembarKerjaThermohygro({bool untukAdmin = false
       },
     ],
   };
+
+  return bentuk;
+}
+
+/// TIDS — Temperatur Indikator dengan Sensor (alat ke-17),
+/// `SIDIK-IK-CAL-0503_Rev.6`, lembar `SIDIK-FM-CAL-0506 Rev.4`.
+///
+/// Masuk ke berkas ini 28 Agt 2026, waktu dua workbook master TIDS turun dari
+/// lab dan lembarnya pindah dari jalur DATAR ke jalur PASANGAN. Sebelum itu
+/// `MockLembarKerjaService` nggak punya bentuk TIDS sama sekali dan diam-diam
+/// jatuh ke bentuk pH — dan justru ketiadaan itu yang bikin satu bug bentuk
+/// TIDS lolos sampai ke lapangan (lihat `docs/permintaan-user-7.md` §12 K18):
+/// satu-satunya sumber bentuknya server, dan nggak ada test yang menyuapkan
+/// bentuk aslinya ke parser.
+///
+/// Tiga hal yang bikin bentuk ini beda dari tiga saudaranya di berkas ini:
+///
+///  1. **Tabel standarnya `grup`-nya NULL** — identitas tabelnya dipegang
+///     `tahap` (`pembacaan_standard` / `pembacaan_uut`), bukan `grup`. Itu
+///     disengaja: kunci sel berkas geometri OCR TIDS yang sudah tercetak
+///     dibangun dari `tahap`, dan mengisinya `grup` bikin kertas yang sudah ada
+///     nggak kebaca lagi tanpa satu pun error.
+///  2. **Kepala kolomnya `pengulangan_uut`**, bukan `pengulangan_arah` — dua
+///     kunci yang dibaca ke peta yang sama di `LembarKerja.fromJson`. Cuma satu
+///     yang dikirim; mengirim dua-duanya bikin penjaga keunikan label melihat
+///     sepuluh kolom dengan lima nama kembar.
+///  3. **`sumbu_uut`** — kunci yang cuma dipunyai lembar ini. Isinya lima
+///     ulangan (`keputusan_skema: 'lima_ulangan'`), berikut label cetak (`UUT1`)
+///     dan label master (`PRT1`) yang berbeda untuk kolom yang sama.
+Map<String, dynamic> contohBentukLembarKerjaTids({bool untukAdmin = false}) {
+  final bentuk = <String, dynamic>{
+    'kode_dokumen': 'SIDIK-FM-CAL-0506_Rev.4',
+    'kode_metode': 'SIDIK-IK-CAL-0503_Rev.6',
+    'nomor_lingkup': 'LK-285-IDN',
+    'judul': 'Calibration Work Sheet - Temperature Indikator With Sensors',
+    'jumlah_pengulangan': 5,
+    'satuan': '°C',
+    'satuan_suhu': '°C',
+    'semua_kolom_opsional': true,
+    'catatan_pengisian': 'Tiap SET POINT dibaca lima kali bergantian per 10 detik: 0" standar, 10" alat, 20" standar, 30" alat, dan seterusnya sampai 90". Jadi satu baris = satu set point, dan lima kolomnya lima ULANGAN — bukan lima alat. Kolom yang belum bisa diisi di lapangan boleh dikosongin, KECUALI tiga ini yang nentuin ANGKA: TIPE SENSOR STANDAR, DRYBLOCK (A Isotech / B Techne), dan NO. TERMOKOPEL tiap baris. Uji titik es 0 °C juga diisi — selisih Awal–Akhir jadi komponen budget Drift UUT.',
+    'budget_ketidakpastian': {
+      'tersedia': true,
+      'sumber': 'Master_Olah_Data_Suhu_TIDS — Recorder Graptech & Yokogawa K,N (28 Agt 2026)',
+      'catatan': 'Dua belas komponen, satu budget untuk seluruh sesi, lantai CMC 0,86 / 1,4 / 3,1 °C. Keluarga standar (Recorder / Constant / Yokogawa) nentuin tabel koreksinya. Empat penyimpangan master ditiru apa adanya dan dilaporkan lewat peringatan sesi.',
+    },
+    'sumbu_uut': {
+      'jumlah': 5,
+      'daftar': [
+        {
+          'kode': 'uut_1',
+          'nomor': 1,
+          'label': 'UUT1',
+          'label_master': 'PRT1',
+          'detik_standard': 0,
+          'detik_uut': 10,
+        },
+        {
+          'kode': 'uut_2',
+          'nomor': 2,
+          'label': 'UUT2',
+          'label_master': 'PRT2',
+          'detik_standard': 20,
+          'detik_uut': 30,
+        },
+        {
+          'kode': 'uut_3',
+          'nomor': 3,
+          'label': 'UUT3',
+          'label_master': 'PRT3',
+          'detik_standard': 40,
+          'detik_uut': 50,
+        },
+        {
+          'kode': 'uut_4',
+          'nomor': 4,
+          'label': 'UUT4',
+          'label_master': 'PRT4',
+          'detik_standard': 60,
+          'detik_uut': 70,
+        },
+        {
+          'kode': 'uut_5',
+          'nomor': 5,
+          'label': 'UUT5',
+          'label_master': 'PRT5',
+          'detik_standard': 80,
+          'detik_uut': 90,
+        },
+      ],
+      'keputusan_skema': 'lima_ulangan',
+      'catatan': 'DIJAWAB 28 Agt 2026 oleh workbook master, bukan oleh lab: lima kolom ini lima ULANGAN atas satu alat, bukan lima alat. Dua workbook TIDS menamai kolom yang sama `PRT1`…`PRT5` lalu memakainya sebagai AVERAGE + STDEV per baris, dan satu baris = satu set point. Jadi pertanyaan lama "1 sesi 5 UUT vs 5 sesi terpisah" gugur — nggak pernah ada lima UUT. Yang bikin tafsir lama masuk akal: kertasnya sendiri cuma punya SATU blok identitas alat untuk lima kolom itu; ternyata memang cuma satu alat.',
+    },
+    'bagian': [
+      {
+        'kode': 'identitas_alat',
+        'halaman': 1,
+        'judul': 'Identitas Alat dan Data Customer',
+        'field': [
+          {
+            'kode': 'equipment_id',
+            'label': 'Nama Alat',
+            'tipe': 'pilihan',
+            'wajib': false,
+            'sumber': 'master_alat',
+            'satuan': null,
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'equipment.nama_alat',
+            'label': 'Nama Alat',
+            'tipe': 'teks',
+            'wajib': false,
+            'sumber': 'otomatis',
+            'satuan': null,
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'alat_merk',
+            'label': 'Merk',
+            'tipe': 'teks',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'alat_model',
+            'label': 'Type',
+            'tipe': 'teks',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'alat_serial_number',
+            'label': 'No. Seri',
+            'tipe': 'teks',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'spesifikasi_alat.rentang_ukur',
+            'label': 'Rentang Ukur',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': null,
+            'satuan': '°C',
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'spesifikasi_alat.kapasitas',
+            'label': 'Kapasitas Alat',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': null,
+            'satuan': '°C',
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'spesifikasi_alat.resolusi',
+            'label': 'Resolusi Alat',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': null,
+            'satuan': '°C',
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'tanggal_terima',
+            'label': 'Tgl. Diterima',
+            'tipe': 'tanggal',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'tanggal_kalibrasi',
+            'label': 'Tgl. Kalibrasi',
+            'tipe': 'tanggal',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'suhu_awal',
+            'label': 'Suhu Ruangan — awal',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': null,
+            'satuan': '°C',
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'suhu_akhir',
+            'label': 'Suhu Ruangan — akhir',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': null,
+            'satuan': '°C',
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'kelembaban_awal',
+            'label': 'Kelembapan — awal',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': null,
+            'satuan': '%RH',
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'kelembaban_akhir',
+            'label': 'Kelembapan — akhir',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': null,
+            'satuan': '%RH',
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'lokasi',
+            'label': 'Lokasi Kalibrasi',
+            'tipe': 'pilihan',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': [
+              {
+                'nilai': 'lab',
+                'label': 'Inlab',
+              },
+              {
+                'nilai': 'onsite',
+                'label': 'Insitu',
+              },
+            ],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'room_id',
+            'label': 'Ruangan (Inlab)',
+            'tipe': 'pilihan',
+            'wajib': false,
+            'sumber': 'master_ruangan',
+            'satuan': null,
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': {
+              'kode': 'lokasi',
+              'nilai': [
+                'lab',
+              ],
+            },
+          },
+          {
+            'kode': 'lokasi_nama',
+            'label': 'Nama Tempat (Insitu)',
+            'tipe': 'teks',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': {
+              'kode': 'lokasi',
+              'nilai': [
+                'onsite',
+              ],
+            },
+          },
+          {
+            'kode': 'thermohygro_standard_id',
+            'label': 'Thermohygro Used',
+            'tipe': 'pilihan',
+            'wajib': false,
+            'sumber': 'master_thermohygro',
+            'satuan': null,
+            'pilihan': [
+              {
+                'nilai': '1',
+                'label': 'TH-1',
+                'grup': 'Inlab',
+              },
+              {
+                'nilai': '3',
+                'label': 'TH-3',
+                'grup': 'Inlab',
+              },
+              {
+                'nilai': '4',
+                'label': 'TH-4',
+                'grup': 'Inlab',
+              },
+              {
+                'nilai': '5',
+                'label': 'TH-5',
+                'grup': 'Inlab',
+              },
+              {
+                'nilai': '2',
+                'label': 'TH-2',
+                'grup': 'Insitu',
+              },
+              {
+                'nilai': '6',
+                'label': 'TH-6',
+                'grup': 'Insitu',
+              },
+              {
+                'nilai': '7',
+                'label': 'TH-7',
+                'grup': 'Insitu',
+              },
+            ],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'calibration_method_id',
+            'label': 'Calibration Methode',
+            'tipe': 'pilihan',
+            'wajib': false,
+            'sumber': 'master_metode',
+            'satuan': null,
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+        ],
+        'baris_thermohygro': [
+          {
+            'label': 'TH-4',
+            'lokasi': 'Inlab',
+            'standard_id': 4,
+            'no_sertifikat': 'LK-285-IDN',
+            'terdaftar': true,
+          },
+          {
+            'label': 'TH-2',
+            'lokasi': 'Insitu',
+            'standard_id': 2,
+            'no_sertifikat': 'LK-285-IDN',
+            'terdaftar': true,
+          },
+          {
+            'label': 'TH-6',
+            'lokasi': 'Insitu',
+            'standard_id': 6,
+            'no_sertifikat': 'LK-285-IDN',
+            'terdaftar': true,
+          },
+          {
+            'label': 'TH-7',
+            'lokasi': 'Insitu',
+            'standard_id': 7,
+            'no_sertifikat': 'LK-285-IDN',
+            'terdaftar': true,
+          },
+        ],
+      },
+      {
+        'kode': 'pemilik',
+        'halaman': 1,
+        'judul': 'Data Customer',
+        'field': [
+          {
+            'kode': 'pemilik_nama',
+            'label': 'Nama Customer',
+            'tipe': 'teks',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'pemilik_alamat',
+            'label': 'Alamat Customer',
+            'tipe': 'teks_panjang',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+        ],
+      },
+      {
+        'kode': 'usage_check',
+        'halaman': 1,
+        'judul': 'Standard used',
+        'baris': [
+          {
+            'label': 'Temperature Calibrator/Constant/40T/99875850',
+            'standard_id': 44,
+            'merk': 'Constant',
+            'serial_number': '99875850',
+            'no_sertifikat': '99875850',
+            'tertelusur_ke': 'LK-202-IDN',
+            'terdaftar': true,
+          },
+          {
+            'label': 'Temperature Calibrator/Yokogawa/CA150 Handy Cal/23P1005',
+            'standard_id': 45,
+            'merk': 'Yokogawa',
+            'serial_number': '23P1005',
+            'no_sertifikat': '23P1005',
+            'tertelusur_ke': 'LK-202-IDN',
+            'terdaftar': true,
+          },
+          {
+            'label': 'Temperature Recorder/Graptech/GL840/C305B1470',
+            'standard_id': 46,
+            'merk': 'Graphtech',
+            'serial_number': 'C305B1470',
+            'no_sertifikat': 'C305B1470',
+            'tertelusur_ke': 'LK-285-IDN',
+            'terdaftar': true,
+          },
+        ],
+        'baris_sensor_standar': [
+          {
+            'label': 'Thermocouple Type-K',
+            'terdaftar': false,
+          },
+          {
+            'label': 'Thermocouple Type-N',
+            'terdaftar': false,
+          },
+          {
+            'label': 'Sensor RTD/PT 100',
+            'terdaftar': false,
+          },
+        ],
+        'field': [
+          {
+            'kode': 'standar_dicek.*.dipakai',
+            'label': 'Usage Check',
+            'tipe': 'centang',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'standar_dicek.*.keterangan',
+            'label': 'Keterangan',
+            'tipe': 'teks',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'tipe_sensor',
+            'label': 'Sensor Standard',
+            'tipe': 'pilihan',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': [
+              {
+                'nilai': 'Type K',
+                'label': 'Thermocouple Type-K',
+              },
+              {
+                'nilai': 'Type N',
+                'label': 'Thermocouple Type-N',
+              },
+              {
+                'nilai': 'RTD',
+                'label': 'Sensor RTD/PT 100',
+              },
+            ],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'spesifikasi_alat.sensor_standar',
+            'label': 'Sensor Standard (lama)',
+            'tipe': 'pilihan',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': [
+              {
+                'nilai': 'Thermocouple Type-K',
+                'label': 'Thermocouple Type-K',
+              },
+              {
+                'nilai': 'Thermocouple Type-N',
+                'label': 'Thermocouple Type-N',
+              },
+              {
+                'nilai': 'Sensor RTD/PT 100',
+                'label': 'Sensor RTD/PT 100',
+              },
+            ],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+        ],
+      },
+      {
+        'kode': 'dryblock',
+        'halaman': 1,
+        'judul': 'Dryblock Used',
+        'field': [
+          {
+            'kode': 'spesifikasi_alat.dryblock',
+            'label': 'Dryblock Used',
+            'tipe': 'pilihan',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': [
+              {
+                'nilai': 'isotech',
+                'label': 'A (Isotech)',
+              },
+              {
+                'nilai': 'techne',
+                'label': 'B (Techne)',
+              },
+            ],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+        ],
+      },
+      {
+        'kode': 'titik_es',
+        'halaman': 1,
+        'judul': 'Pengujian di titik es 0˚C',
+        'field': [
+          {
+            'kode': 'titik_es_1',
+            'label': 'Awal',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': null,
+            'satuan': '°C',
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'titik_es_2',
+            'label': 'Akhir',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': null,
+            'satuan': '°C',
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+        ],
+        'catatan': 'Selisih Awal–Akhir jadi komponen budget `Drift UUT` (½ × selisih, distribusi persegi, ÷√3) — `O35 = 0.5 * ABS(awal − akhir)` di kedua workbook master. Dikosongkan, komponennya jadi NOL, dan nol di situ artinya "alat ini nggak drift sama sekali".',
+      },
+      {
+        'kode': 'hasil',
+        'halaman': 1,
+        'judul': 'Data Kalibrasi',
+        'field': const [],
+        'tabel': [
+          {
+            'tahap': 'pembacaan_standard',
+            'peran': 'standar',
+            'judul': 'Pembacaan Standard',
+            'satuan': '°C',
+            'judul_nilai': 'Setpoint',
+            'judul_pengulangan': 'Data Kalibrasi/Ulangan (oC)',
+            'titik_bisa_diubah': true,
+            'baris': [
+              {
+                'nomor': 1,
+                'titik_ukur': null,
+                'label': 'Set point 1',
+                'satuan': '°C',
+              },
+              {
+                'nomor': 2,
+                'titik_ukur': null,
+                'label': 'Set point 2',
+                'satuan': '°C',
+              },
+              {
+                'nomor': 3,
+                'titik_ukur': null,
+                'label': 'Set point 3',
+                'satuan': '°C',
+              },
+              {
+                'nomor': 4,
+                'titik_ukur': null,
+                'label': 'Set point 4',
+                'satuan': '°C',
+              },
+              {
+                'nomor': 5,
+                'titik_ukur': null,
+                'label': 'Set point 5',
+                'satuan': '°C',
+              },
+              {
+                'nomor': 6,
+                'titik_ukur': null,
+                'label': 'Set point 6',
+                'satuan': '°C',
+              },
+              {
+                'nomor': 7,
+                'titik_ukur': null,
+                'label': 'Set point 7',
+                'satuan': '°C',
+              },
+            ],
+            'kolom': [
+              {
+                'kode': 'pembacaan',
+                'label': '°C',
+                'tipe': 'angka',
+                'satuan': '°C',
+              },
+            ],
+            'pengulangan': [
+              1,
+              2,
+              3,
+              4,
+              5,
+            ],
+            'pengulangan_uut': [
+              {
+                'ke': 1,
+                'uut': 'UUT1',
+                'detik': 0,
+                'label': '0" (UUT1)',
+              },
+              {
+                'ke': 2,
+                'uut': 'UUT2',
+                'detik': 20,
+                'label': '20" (UUT2)',
+              },
+              {
+                'ke': 3,
+                'uut': 'UUT3',
+                'detik': 40,
+                'label': '40" (UUT3)',
+              },
+              {
+                'ke': 4,
+                'uut': 'UUT4',
+                'detik': 60,
+                'label': '60" (UUT4)',
+              },
+              {
+                'ke': 5,
+                'uut': 'UUT5',
+                'detik': 80,
+                'label': '80" (UUT5)',
+              },
+            ],
+            'simpan_ke': 'measurements[].standar',
+            'kolom_baris': [
+              {
+                'kode': 'no_probe',
+                'label': 'No. Termokopel',
+                'tipe': 'pilihan',
+                'wajib': false,
+                'sumber': null,
+                'satuan': null,
+                'pilihan': [
+                  {
+                    'nilai': '17',
+                    'label': '17 — PRT PT100',
+                    'grup': 'RTD',
+                  },
+                  {
+                    'nilai': '1',
+                    'label': '1 — Type K No. 1',
+                    'grup': 'Type K',
+                  },
+                  {
+                    'nilai': '2',
+                    'label': '2 — Type K No. 2',
+                    'grup': 'Type K',
+                  },
+                  {
+                    'nilai': '3',
+                    'label': '3 — Type K No. 3',
+                    'grup': 'Type K',
+                  },
+                  {
+                    'nilai': '4',
+                    'label': '4 — Type K No. 4',
+                    'grup': 'Type K',
+                  },
+                  {
+                    'nilai': '5',
+                    'label': '5 — Type K No. 5',
+                    'grup': 'Type K',
+                  },
+                  {
+                    'nilai': '6',
+                    'label': '6 — Type K No. 6',
+                    'grup': 'Type K',
+                  },
+                  {
+                    'nilai': '7',
+                    'label': '7 — Type K No. 7',
+                    'grup': 'Type K',
+                  },
+                  {
+                    'nilai': '8',
+                    'label': '8 — Type K No. 8',
+                    'grup': 'Type K',
+                  },
+                  {
+                    'nilai': '9',
+                    'label': '9 — Type K No. 9',
+                    'grup': 'Type K',
+                  },
+                  {
+                    'nilai': '10',
+                    'label': '10 — Type K No. 10',
+                    'grup': 'Type K',
+                  },
+                  {
+                    'nilai': '11',
+                    'label': '11 — Type K No. 11',
+                    'grup': 'Type K',
+                  },
+                  {
+                    'nilai': '12',
+                    'label': '12 — Type K No. 12',
+                    'grup': 'Type K',
+                  },
+                  {
+                    'nilai': '13',
+                    'label': '13 — Type K No. 13',
+                    'grup': 'Type K',
+                  },
+                  {
+                    'nilai': '14',
+                    'label': '14 — Type K No. 14',
+                    'grup': 'Type K',
+                  },
+                  {
+                    'nilai': '15',
+                    'label': '15 — Type K No. 15',
+                    'grup': 'Type K',
+                  },
+                  {
+                    'nilai': '16',
+                    'label': '16 — Type K No. 16',
+                    'grup': 'Type K',
+                  },
+                  {
+                    'nilai': '3',
+                    'label': '3 — Type N No. 3',
+                    'grup': 'Type N',
+                  },
+                  {
+                    'nilai': '4',
+                    'label': '4 — Type N No. 4',
+                    'grup': 'Type N',
+                  },
+                  {
+                    'nilai': '5',
+                    'label': '5 — Type N No. 5',
+                    'grup': 'Type N',
+                  },
+                  {
+                    'nilai': '6',
+                    'label': '6 — Type N No. 6',
+                    'grup': 'Type N',
+                  },
+                  {
+                    'nilai': '7',
+                    'label': '7 — Type N No. 7',
+                    'grup': 'Type N',
+                  },
+                  {
+                    'nilai': '8',
+                    'label': '8 — Type N No. 8',
+                    'grup': 'Type N',
+                  },
+                  {
+                    'nilai': '9',
+                    'label': '9 — Type N No. 9',
+                    'grup': 'Type N',
+                  },
+                  {
+                    'nilai': '10',
+                    'label': '10 — Type N No. 10',
+                    'grup': 'Type N',
+                  },
+                  {
+                    'nilai': '11',
+                    'label': '11 — Type N No. 11',
+                    'grup': 'Type N',
+                  },
+                  {
+                    'nilai': '12',
+                    'label': '12 — Type N No. 12',
+                    'grup': 'Type N',
+                  },
+                ],
+                'hanya_admin': false,
+                'tampil_kalau': null,
+              },
+            ],
+            'catatan': 'Type N mulai dari nomor 3 (TCN3…TCN12); Type K nomor 1..16 (TCK-01…TCK-16); PRT PT100 (RTD) selalu nomor 17. Nomornya nentuin kolom tabel koreksi, jadi salah nomor = salah koreksi, bukan cuma salah catatan.',
+          },
+          {
+            'tahap': 'pembacaan_uut',
+            'peran': 'uut',
+            'judul': 'Pembacaan Alat yang Dikalibrasi',
+            'satuan': '°C',
+            'judul_nilai': 'Setpoint',
+            'judul_pengulangan': 'Data Kalibrasi/Ulangan (oC)',
+            'titik_bisa_diubah': true,
+            'baris': [
+              {
+                'nomor': 1,
+                'titik_ukur': null,
+                'label': 'Set point 1',
+                'satuan': '°C',
+              },
+              {
+                'nomor': 2,
+                'titik_ukur': null,
+                'label': 'Set point 2',
+                'satuan': '°C',
+              },
+              {
+                'nomor': 3,
+                'titik_ukur': null,
+                'label': 'Set point 3',
+                'satuan': '°C',
+              },
+              {
+                'nomor': 4,
+                'titik_ukur': null,
+                'label': 'Set point 4',
+                'satuan': '°C',
+              },
+              {
+                'nomor': 5,
+                'titik_ukur': null,
+                'label': 'Set point 5',
+                'satuan': '°C',
+              },
+              {
+                'nomor': 6,
+                'titik_ukur': null,
+                'label': 'Set point 6',
+                'satuan': '°C',
+              },
+              {
+                'nomor': 7,
+                'titik_ukur': null,
+                'label': 'Set point 7',
+                'satuan': '°C',
+              },
+            ],
+            'kolom': [
+              {
+                'kode': 'pembacaan',
+                'label': '°C',
+                'tipe': 'angka',
+                'satuan': '°C',
+              },
+            ],
+            'pengulangan': [
+              1,
+              2,
+              3,
+              4,
+              5,
+            ],
+            'pengulangan_uut': [
+              {
+                'ke': 1,
+                'uut': 'UUT1',
+                'detik': 10,
+                'label': '10" (UUT1)',
+              },
+              {
+                'ke': 2,
+                'uut': 'UUT2',
+                'detik': 30,
+                'label': '30" (UUT2)',
+              },
+              {
+                'ke': 3,
+                'uut': 'UUT3',
+                'detik': 50,
+                'label': '50" (UUT3)',
+              },
+              {
+                'ke': 4,
+                'uut': 'UUT4',
+                'detik': 70,
+                'label': '70" (UUT4)',
+              },
+              {
+                'ke': 5,
+                'uut': 'UUT5',
+                'detik': 90,
+                'label': '90" (UUT5)',
+              },
+            ],
+            'simpan_ke': 'measurements[].uut',
+          },
+        ],
+      },
+      {
+        'kode': 'penutup',
+        'halaman': 1,
+        'judul': 'Catatan & Tanda Tangan',
+        'field': [
+          {
+            'kode': 'catatan_teknisi',
+            'label': 'Catatan',
+            'tipe': 'teks_panjang',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'teknisi.nama',
+            'label': 'Dikalibrasi Oleh',
+            'tipe': 'teks',
+            'wajib': false,
+            'sumber': 'otomatis',
+            'satuan': null,
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'reviewer.nama',
+            'label': 'Diperiksa Oleh',
+            'tipe': 'teks',
+            'wajib': false,
+            'sumber': 'otomatis',
+            'satuan': null,
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+        ],
+      },
+    ],
+  };
+
+  if (untukAdmin) {
+    (bentuk['bagian'] as List<dynamic>).add({
+        'kode': 'administratif',
+        'halaman': 1,
+        'judul': 'Data Administratif (Admin)',
+        'field': [
+          {
+            'kode': 'nomor_order',
+            'label': 'Order Number',
+            'tipe': 'teks',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': const [],
+            'hanya_admin': true,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'certificate.nomor',
+            'label': 'Certificate Number',
+            'tipe': 'teks',
+            'wajib': false,
+            'sumber': 'otomatis',
+            'satuan': null,
+            'pilihan': const [],
+            'hanya_admin': true,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'suhu_ketidakpastian',
+            'label': 'U95% Suhu',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': 'otomatis',
+            'satuan': '°C',
+            'pilihan': const [],
+            'hanya_admin': true,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'kelembaban_ketidakpastian',
+            'label': 'U95% Kelembaban',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': 'otomatis',
+            'satuan': '%RH',
+            'pilihan': const [],
+            'hanya_admin': true,
+            'tampil_kalau': null,
+          },
+        ],
+      });
+  }
 
   return bentuk;
 }

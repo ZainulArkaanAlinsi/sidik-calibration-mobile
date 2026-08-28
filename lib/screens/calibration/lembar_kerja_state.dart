@@ -478,7 +478,16 @@ class TitikState {
   /// Repeat 2 kosong lalu dibuang, Repeat 3 naik jadi Repeat 2 dan seluruh
   /// nomor pengulangan geser.
   Map<String, dynamic> toSubmissionPasangan() => {
-    'titik_ukur': titikUkur,
+    // `titikUkurEfektif`, bukan `titikUkur` — sama seperti [toSubmission].
+    //
+    // Buat tiga lembar pasangan pertama (Thermocouple, Gelas, Thermohygro)
+    // keduanya SELALU sama: set point-nya tercetak di kertas, jadi `titikUkur`
+    // memang set point. Lembar TIDS nggak: kertasnya nyetak tujuh baris
+    // Setpoint KOSONG, dan `titikUkur` di situ cuma nomor barisnya (1..7).
+    // Dibiarkan mentah, tiap sesi TIDS terkirim dengan set point 1, 2, 3…
+    // — angkanya lengkap, kolom `Correction` terbit, dan yang salah cuma
+    // titik yang diklaim sertifikat. Nggak ada satu pun error di jalur itu.
+    'titik_ukur': titikUkurEfektif ?? titikUkur,
     if (satuan.isNotEmpty) 'satuan': satuan,
     if (standardId != null) 'standard_id': standardId,
     if (parameter != null) 'parameter': parameter,
