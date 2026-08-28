@@ -291,13 +291,34 @@ void main() {
 
     test('baris yang belum disentuh nggak ikut dikirim', () {
       final b = bentukDariFixture();
-      final state = LembarKerjaState(bentuk: b, clientRequestId: 'uji');
+      final state = LembarKerjaState(bentuk: b, clientRequestId: 'uji')
+        ..alat = daftarAlatMock.first;
 
       expect(
         state.titik.values.every((t) => t.pasanganKosong),
         isTrue,
         reason: 'Lembar baru dibuka: belum ada satu sel pun terisi.',
       );
+
+      // Dan yang diadu ke penyaring SUNGGUHAN, bukan cuma ke `pasanganKosong`:
+      // tanpa ini regresi di cabang pasangan `toSubmission()` tetap hijau di
+      // sini, karena yang diperiksa cuma keadaan titiknya — bukan apa yang
+      // beneran terkirim.
+      final standar = tabelDari(b).firstWhere((t) => t.deretStandar);
+      final baris = state.barisTabel(standar);
+      final titik = state.titik[state.kunciBaris(baris, 0, standar)]!;
+
+      titik.titikCtl.text = '60';
+      titik.kotak('standar', 'pembacaan', 0).text = '60.1';
+
+      final terkirim = state.toSubmission(draft: true).measurementsGrid ?? [];
+
+      expect(
+        terkirim,
+        hasLength(1),
+        reason: 'Satu baris diisi, enam sisanya kosong — yang terkirim satu.',
+      );
+      expect(terkirim.single['titik_ukur'], 60.0);
     });
   });
 
