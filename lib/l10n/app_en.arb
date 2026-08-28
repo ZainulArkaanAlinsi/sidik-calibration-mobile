@@ -352,18 +352,32 @@
   "equipRentangChip": "{min}–{maks} {satuan}",
   "@equipRentangChip": {
     "placeholders": {
-      "min": { "type": "String" },
-      "maks": { "type": "String" },
-      "satuan": { "type": "String" }
+      "min": {
+        "type": "String"
+      },
+      "maks": {
+        "type": "String"
+      },
+      "satuan": {
+        "type": "String"
+      }
     }
   },
   "equipRentangChipBerparameter": "{parameter} · {min}–{maks} {satuan}",
   "@equipRentangChipBerparameter": {
     "placeholders": {
-      "parameter": { "type": "String" },
-      "min": { "type": "String" },
-      "maks": { "type": "String" },
-      "satuan": { "type": "String" }
+      "parameter": {
+        "type": "String"
+      },
+      "min": {
+        "type": "String"
+      },
+      "maks": {
+        "type": "String"
+      },
+      "satuan": {
+        "type": "String"
+      }
     }
   },
   "equipResolusi": "Resolution",
@@ -572,9 +586,27 @@
   "detailTipeSensor": "Standard sensor type",
   "bannerStandarTanpaNama": "Unnamed standard",
   "bannerStandarLewat": "{nama} — certificate expired {hari} days ago",
-  "@bannerStandarLewat": {"placeholders": {"nama": {"type": "String"}, "hari": {"type": "int"}}},
+  "@bannerStandarLewat": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      },
+      "hari": {
+        "type": "int"
+      }
+    }
+  },
   "bannerStandarSegera": "{nama} — certificate expires in {hari} days",
-  "@bannerStandarSegera": {"placeholders": {"nama": {"type": "String"}, "hari": {"type": "int"}}},
+  "@bannerStandarSegera": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      },
+      "hari": {
+        "type": "int"
+      }
+    }
+  },
   "detailUjiTitikEs": "Ice point test (30 min)",
   "detailTitikEsKe": "X{ke}",
   "detailRentangTitikEs": "Range (Tmax − Tmin)",
@@ -2386,6 +2418,34 @@
     "placeholders": {
       "nama": {
         "type": "String"
+      }
+    }
+  },
+  "fotoReviewJudul": "Check {jumlah} readings",
+  "@fotoReviewJudul": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "fotoReviewPengantar": "The readings below were taken from the photo and are not in the sheet yet. Compare each one against its image crop, fix what is wrong, then tap Insert. Handwriting is never treated as certain — however high the percentage.",
+  "fotoReviewMasukkan": "INSERT INTO SHEET",
+  "fotoReviewKetikSendiri": "Type it yourself — the reading cannot be trusted",
+  "fotoReviewKeyakinan": "Confidence {persen}%",
+  "@fotoReviewKeyakinan": {
+    "placeholders": {
+      "persen": {
+        "type": "int"
+      }
+    }
+  },
+  "fotoReviewKeyakinanTakAda": "Confidence not reported",
+  "fotoReviewMasihKosong": "{jumlah} cells are still empty and must be filled.",
+  "@fotoReviewMasihKosong": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
       }
     }
   }

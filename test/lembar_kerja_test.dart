@@ -28,6 +28,7 @@ import 'package:sidik_calibration/services/mock_store.dart';
 import 'package:sidik_calibration/services/photo_source.dart';
 import 'package:sidik_calibration/services/room_service.dart';
 import 'package:sidik_calibration/services/standard_service.dart';
+import 'package:sidik_calibration/screens/calibration/foto_review_screen.dart';
 import 'package:sidik_calibration/services/pembaca_halaman.dart';
 import 'package:sidik_calibration/services/pembaca_qr.dart';
 import 'package:sidik_calibration/services/pembaca_sel.dart';
@@ -1132,10 +1133,48 @@ void main() {
 
     for (var i = 0; i < 40; i++) {
       await tester.pump(const Duration(milliseconds: 50));
-      if (find.widgetWithText(TextField, '4,01').evaluate().isNotEmpty) break;
+      if (find.byType(FotoReviewScreen).evaluate().isNotEmpty) break;
     }
 
-    // Angkanya mendarat di kotaknya — bukan di baris sebelah.
+    // Hasil OCR sekarang berhenti di layar review dulu — dia USULAN, bukan
+    // data. Sebelum 28 Agt 2026 dia ditulis langsung ke form, dan test ini
+    // memeriksa form-nya persis di titik ini.
+    expect(
+      find.byType(FotoReviewScreen),
+      findsOneWidget,
+      reason: 'Tanpa penahan ini, angka hasil OCR mendarat di lembar tanpa '
+          'pernah dilihat teknisi — dan sel yang salah baca cuma ketahuan '
+          'kalau dia kebetulan memeriksanya sendiri.',
+    );
+
+    // Transisi rutenya diselesaikan dulu supaya daftar review kelar dilayout.
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+
+    // Di dalam `runAsync` lagi, sama seperti tap pertama: `_foto()` sedang
+    // MENUNGGU hasil layar review, dan kelanjutannya (yang menaruh angka ke
+    // lembar) cuma jalan di zona async yang sama. Di-tap di luar, layarnya
+    // memang tertutup tapi angkanya nggak pernah mendarat — dan test-nya
+    // menuduh kodenya yang salah.
+    await tester.runAsync(() async {
+      await tester.tap(find.text('MASUKKAN KE LEMBAR'));
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+    });
+
+    // Pump berbatas, BUKAN `pumpAndSettle`: begitu angkanya masuk, layarnya
+    // memunculkan SnackBar berdurasi 6 detik yang terus beranimasi — dan
+    // `pumpAndSettle` nungguin animasi itu sampai timeout. Alasan yang sama
+    // dengan loop di atas.
+    for (var i = 0; i < 40; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+      if (find.byType(FotoReviewScreen).evaluate().isEmpty) break;
+    }
+
+    expect(find.byType(FotoReviewScreen), findsNothing);
+
+    // Baru sekarang angkanya ada di lembar — dan mendarat di kotaknya, bukan
+    // di baris sebelah.
     expect(find.widgetWithText(TextField, '4,01'), findsWidgets);
     expect(find.widgetWithText(TextField, '7,03'), findsWidgets);
     expect(find.widgetWithText(TextField, '4,02'), findsWidgets);

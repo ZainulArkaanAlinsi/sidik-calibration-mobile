@@ -4106,4 +4106,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String lkAlatBaruTersimpan(String nama) {
     return 'Equipment \"$nama\" saved and selected for this worksheet.';
   }
+
+  @override
+  String fotoReviewJudul(int jumlah) {
+    return 'Check $jumlah readings';
+  }
+
+  @override
+  String get fotoReviewPengantar =>
+      'The readings below were taken from the photo and are not in the sheet yet. Compare each one against its image crop, fix what is wrong, then tap Insert. Handwriting is never treated as certain — however high the percentage.';
+
+  @override
+  String get fotoReviewMasukkan => 'INSERT INTO SHEET';
+
+  @override
+  String get fotoReviewKetikSendiri =>
+      'Type it yourself — the reading cannot be trusted';
+
+  @override
+  String fotoReviewKeyakinan(int persen) {
+    return 'Confidence $persen%';
+  }
+
+  @override
+  String get fotoReviewKeyakinanTakAda => 'Confidence not reported';
+
+  @override
+  String fotoReviewMasihKosong(int jumlah) {
+    return '$jumlah cells are still empty and must be filled.';
+  }
 }

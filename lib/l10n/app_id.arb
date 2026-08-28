@@ -310,18 +310,32 @@
   "equipRentangChip": "{min}–{maks} {satuan}",
   "@equipRentangChip": {
     "placeholders": {
-      "min": { "type": "String" },
-      "maks": { "type": "String" },
-      "satuan": { "type": "String" }
+      "min": {
+        "type": "String"
+      },
+      "maks": {
+        "type": "String"
+      },
+      "satuan": {
+        "type": "String"
+      }
     }
   },
   "equipRentangChipBerparameter": "{parameter} · {min}–{maks} {satuan}",
   "@equipRentangChipBerparameter": {
     "placeholders": {
-      "parameter": { "type": "String" },
-      "min": { "type": "String" },
-      "maks": { "type": "String" },
-      "satuan": { "type": "String" }
+      "parameter": {
+        "type": "String"
+      },
+      "min": {
+        "type": "String"
+      },
+      "maks": {
+        "type": "String"
+      },
+      "satuan": {
+        "type": "String"
+      }
     }
   },
   "equipResolusi": "Resolusi",
@@ -452,9 +466,27 @@
   "detailTipeSensor": "Tipe sensor standar",
   "bannerStandarTanpaNama": "Standar tanpa nama",
   "bannerStandarLewat": "{nama} — sertifikatnya lewat {hari} hari",
-  "@bannerStandarLewat": {"placeholders": {"nama": {"type": "String"}, "hari": {"type": "int"}}},
+  "@bannerStandarLewat": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      },
+      "hari": {
+        "type": "int"
+      }
+    }
+  },
   "bannerStandarSegera": "{nama} — sertifikatnya habis {hari} hari lagi",
-  "@bannerStandarSegera": {"placeholders": {"nama": {"type": "String"}, "hari": {"type": "int"}}},
+  "@bannerStandarSegera": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      },
+      "hari": {
+        "type": "int"
+      }
+    }
+  },
   "detailUjiTitikEs": "Uji titik es (30 menit)",
   "detailTitikEsKe": "X{ke}",
   "detailRentangTitikEs": "Rentang (Tmaks − Tmin)",
@@ -1757,6 +1789,34 @@
     "placeholders": {
       "nama": {
         "type": "String"
+      }
+    }
+  },
+  "fotoReviewJudul": "Periksa {jumlah} angka",
+  "@fotoReviewJudul": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "fotoReviewPengantar": "Angka di bawah dibaca dari foto, belum masuk lembar. Adu tiap angka ke potongan gambarnya, betulkan yang meleset, baru tekan Masukkan. Tulisan tangan tidak pernah dianggap pasti — sekalipun persentasenya tinggi.",
+  "fotoReviewMasukkan": "MASUKKAN KE LEMBAR",
+  "fotoReviewKetikSendiri": "Ketik sendiri — bacaannya tidak bisa dipercaya",
+  "fotoReviewKeyakinan": "Keyakinan {persen}%",
+  "@fotoReviewKeyakinan": {
+    "placeholders": {
+      "persen": {
+        "type": "int"
+      }
+    }
+  },
+  "fotoReviewKeyakinanTakAda": "Keyakinan tidak dilaporkan",
+  "fotoReviewMasihKosong": "{jumlah} sel masih kosong dan wajib diisi.",
+  "@fotoReviewMasihKosong": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
       }
     }
   }

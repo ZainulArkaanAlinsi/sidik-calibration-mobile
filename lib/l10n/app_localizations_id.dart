@@ -4077,4 +4077,33 @@ class AppLocalizationsId extends AppLocalizations {
   String lkAlatBaruTersimpan(String nama) {
     return 'Alat \"$nama\" tersimpan dan langsung dipakai di lembar ini.';
   }
+
+  @override
+  String fotoReviewJudul(int jumlah) {
+    return 'Periksa $jumlah angka';
+  }
+
+  @override
+  String get fotoReviewPengantar =>
+      'Angka di bawah dibaca dari foto, belum masuk lembar. Adu tiap angka ke potongan gambarnya, betulkan yang meleset, baru tekan Masukkan. Tulisan tangan tidak pernah dianggap pasti — sekalipun persentasenya tinggi.';
+
+  @override
+  String get fotoReviewMasukkan => 'MASUKKAN KE LEMBAR';
+
+  @override
+  String get fotoReviewKetikSendiri =>
+      'Ketik sendiri — bacaannya tidak bisa dipercaya';
+
+  @override
+  String fotoReviewKeyakinan(int persen) {
+    return 'Keyakinan $persen%';
+  }
+
+  @override
+  String get fotoReviewKeyakinanTakAda => 'Keyakinan tidak dilaporkan';
+
+  @override
+  String fotoReviewMasihKosong(int jumlah) {
+    return '$jumlah sel masih kosong dan wajib diisi.';
+  }
 }

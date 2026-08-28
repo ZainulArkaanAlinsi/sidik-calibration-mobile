@@ -7326,6 +7326,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equipment \"{nama}\" saved and selected for this worksheet.'**
   String lkAlatBaruTersimpan(String nama);
+
+  /// No description provided for @fotoReviewJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Check {jumlah} readings'**
+  String fotoReviewJudul(int jumlah);
+
+  /// No description provided for @fotoReviewPengantar.
+  ///
+  /// In en, this message translates to:
+  /// **'The readings below were taken from the photo and are not in the sheet yet. Compare each one against its image crop, fix what is wrong, then tap Insert. Handwriting is never treated as certain — however high the percentage.'**
+  String get fotoReviewPengantar;
+
+  /// No description provided for @fotoReviewMasukkan.
+  ///
+  /// In en, this message translates to:
+  /// **'INSERT INTO SHEET'**
+  String get fotoReviewMasukkan;
+
+  /// No description provided for @fotoReviewKetikSendiri.
+  ///
+  /// In en, this message translates to:
+  /// **'Type it yourself — the reading cannot be trusted'**
+  String get fotoReviewKetikSendiri;
+
+  /// No description provided for @fotoReviewKeyakinan.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence {persen}%'**
+  String fotoReviewKeyakinan(int persen);
+
+  /// No description provided for @fotoReviewKeyakinanTakAda.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence not reported'**
+  String get fotoReviewKeyakinanTakAda;
+
+  /// No description provided for @fotoReviewMasihKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} cells are still empty and must be filled.'**
+  String fotoReviewMasihKosong(int jumlah);
 }
 
 class _AppLocalizationsDelegate
