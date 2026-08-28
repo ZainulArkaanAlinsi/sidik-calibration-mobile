@@ -543,6 +543,52 @@ void main() {
       expect(d.tabel.single.kepala, ['Waktu:', 'Hasil']);
     });
 
+    test('pasangan RINGKAS bertitik dua berdiri sendiri tetap jadi pasangan', () {
+      // Bentuk yang diminta review: `Suhu`, `:`, `25,4` — tiga kepingan, titik
+      // duanya berdiri sendiri. Beda dari `Status:` yang titik duanya nempel,
+      // dan beda dari `Nama Alat : Tohnichi` yang labelnya dua kata.
+      //
+      // Yang menahannya di sini bukan jumlah kepingan tapi ISI: `25,4` angka,
+      // jadi barisnya nggak lolos `_bisaJadiKepala` dan nggak pernah ditawar
+      // jadi kepala tabel.
+      final berkepala = analisis.bacaDokumen([
+        kata('Suhu', 100, 20),
+        kata(':', 200, 20),
+        kata('25,4', 300, 20),
+        kata('Waktu', 100, 60),
+        kata('Hasil', 300, 60),
+        kata('10', 100, 100),
+        kata('49,8', 300, 100),
+        kata('20', 100, 140),
+        kata('99,5', 300, 140),
+      ]);
+
+      expect({for (final x in berkepala.pasangan) x.label: x.nilai}, {
+        'Suhu': '25,4',
+      });
+      expect(berkepala.tabel.single.kepala, ['Waktu', 'Hasil']);
+
+      // Dan tetap pasangan walau tabel di bawahnya NGGAK punya kepala —
+      // di sini yang menahan murni "nilainya angka".
+      final tanpaKepala = analisis.bacaDokumen([
+        kata('Suhu', 100, 20),
+        kata(':', 200, 20),
+        kata('25,4', 300, 20),
+        kata('10', 100, 60),
+        kata('49,8', 300, 60),
+        kata('20', 100, 100),
+        kata('99,5', 300, 100),
+      ]);
+
+      expect({for (final x in tanpaKepala.pasangan) x.label: x.nilai}, {
+        'Suhu': '25,4',
+      });
+      expect(tanpaKepala.tabel.single.baris, [
+        ['10', '49,8'],
+        ['20', '99,5'],
+      ]);
+    });
+
     test('BATAS YANG DIKETAHUI: pasangan di atas tabel TANPA kepala keserap', () {
       // Ini sengaja dipatok, bukan kelewat. Bentuknya IDENTIK dengan temuan
       // asli yang harus diperbaiki (`Waktu:` + `Hasil` di atas data polos) —
