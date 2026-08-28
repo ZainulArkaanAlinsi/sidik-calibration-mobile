@@ -35,8 +35,11 @@ void main() {
   const yBarisPertama = 200.0;
   const tinggiBaris = 60.0;
 
-  TeksTerbaca kata(String teks, double x, double y) =>
-      (teks: teks, kotak: Rect.fromLTWH(x, y, teks.length * 14, 24));
+  TeksTerbaca kata(String teks, double x, double y, {double? keyakinan}) => (
+    teks: teks,
+    kotak: Rect.fromLTWH(x, y, teks.length * 14, 24),
+    keyakinan: keyakinan,
+  );
 
   double xKolom(int k) => 420.0 + k * lebarKolom;
 
@@ -474,6 +477,7 @@ void main() {
           repeatNo: repeat[i],
           fieldId: 'pembacaan',
           teks: '120,${i + 1}',
+          keyakinan: null,
         ),
     ];
 

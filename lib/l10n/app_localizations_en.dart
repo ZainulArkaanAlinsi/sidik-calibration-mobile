@@ -1974,6 +1974,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'The sensor IS calibrated. Sensor and indicator are checked as one chain — the sensor goes into the medium alongside the reference thermometer, so the reading covers the whole chain.';
 
   @override
+  String calibTiRentang(String rentang) {
+    return 'Measuring range $rentang';
+  }
+
+  @override
+  String calibTiCmc(String cmc, int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah capability rows',
+      one: '1 capability row',
+    );
+    return 'CMC $cmc · $_temp0';
+  }
+
+  @override
   String get calibTiBelumSiap => 'Not on this server yet';
 
   @override
@@ -4106,4 +4122,78 @@ class AppLocalizationsEn extends AppLocalizations {
   String lkAlatBaruTersimpan(String nama) {
     return 'Equipment \"$nama\" saved and selected for this worksheet.';
   }
+
+  @override
+  String fotoReviewJudul(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah readings',
+      one: '1 reading',
+    );
+    return 'Check $_temp0';
+  }
+
+  @override
+  String get fotoReviewPengantar =>
+      'The readings below were taken from the photo and are not in the sheet yet. Compare each one against its image crop, fix what is wrong, then tap Insert. Handwriting is never treated as certain — however high the percentage.';
+
+  @override
+  String get fotoReviewMasukkan => 'INSERT INTO SHEET';
+
+  @override
+  String get fotoReviewKetikSendiri =>
+      'Type it yourself — the reading cannot be trusted';
+
+  @override
+  String fotoReviewKeyakinan(int persen) {
+    return 'Confidence $persen%';
+  }
+
+  @override
+  String get fotoReviewKeyakinanTakAda => 'Confidence not reported';
+
+  @override
+  String fotoReviewMasihKosong(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah cells are still empty and must be filled.',
+      one: '1 cell is still empty and must be filled.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get skemaDinamisJudul => 'Unrecognised sheet';
+
+  @override
+  String get skemaDinamisPengantar =>
+      'This sheet has no fixed shape in the app yet, so its contents were read straight from the photo. Check every field before saving — nothing here is treated as certain.';
+
+  @override
+  String get skemaDinamisTanpaSatuan => 'no unit';
+
+  @override
+  String skemaDinamisTabel(int nomor) {
+    return 'Table $nomor';
+  }
+
+  @override
+  String get skemaDinamisSimpan => 'SAVE WHAT WAS READ';
+
+  @override
+  String skemaDinamisMasihKosong(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah red-verdict fields are still empty and must be filled.',
+      one: '1 red-verdict field is still empty and must be filled.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get skemaDinamisKosong =>
+      'No fields or tables were read from this photo. Try again with the whole sheet in frame.';
 }

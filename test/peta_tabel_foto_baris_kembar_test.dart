@@ -16,8 +16,11 @@ import 'package:sidik_calibration/services/peta_tabel_foto.dart';
 /// lima sel itu MENDARAT, di baris yang belum tentu benar. Itu bukan "gagal",
 /// itu salah taruh diam-diam.
 void main() {
-  TeksTerbaca kata(String teks, double x, double y) =>
-      (teks: teks, kotak: Rect.fromLTWH(x, y, teks.length * 14, 24));
+  TeksTerbaca kata(String teks, double x, double y, {double? keyakinan}) => (
+    teks: teks,
+    kotak: Rect.fromLTWH(x, y, teks.length * 14, 24),
+    keyakinan: keyakinan,
+  );
 
   /// Tabel dengan penanda baris kembar (`0` delapan kali), terisi penuh.
   List<TeksTerbaca> tabelAutoclave() {

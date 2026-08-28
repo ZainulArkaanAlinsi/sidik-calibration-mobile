@@ -21,9 +21,10 @@ import 'package:sidik_calibration/services/peta_tabel_foto.dart';
 /// titik yang dihitung `1412`: kertas `Rev.5` (Des 2023) masih nominal botol
 /// lama, master pindah ke `25 / 1412 / 111` pada April 2024.
 void main() {
-  TeksTerbaca kata(String teks, double x, double y) => (
+  TeksTerbaca kata(String teks, double x, double y, {double? keyakinan}) => (
     teks: teks,
     kotak: Rect.fromLTWH(x, y, teks.length * 14, 24),
+    keyakinan: keyakinan,
   );
 
   // Tata letak tabelnya, dalam piksel citra.
@@ -185,7 +186,7 @@ void main() {
     final terbaca = [
       for (final t in tabel())
         if (t.teks == '1413 µS')
-          (teks: '1.413 mS', kotak: t.kotak)
+          (teks: '1.413 mS', kotak: t.kotak, keyakinan: t.keyakinan)
         else
           t,
     ];

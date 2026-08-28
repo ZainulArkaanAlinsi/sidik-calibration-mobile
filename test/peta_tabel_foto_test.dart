@@ -41,9 +41,10 @@ void main() {
   const yBarisPertama = 200.0;
   const tinggiBaris = 60.0;
 
-  TeksTerbaca kata(String teks, double x, double y) => (
+  TeksTerbaca kata(String teks, double x, double y, {double? keyakinan}) => (
     teks: teks,
     kotak: Rect.fromLTWH(x, y, teks.length * 14, 24),
+    keyakinan: keyakinan,
   );
 
   /// Susun hasil OCR tabel utuh. [rusak] menghapus teks tertentu — dipakai buat
@@ -92,7 +93,11 @@ void main() {
     final terbaca = [
       for (final t in tabel())
         if (RegExp(r'^X\d$').hasMatch(t.teks))
-          (teks: 'Repeat ${t.teks.substring(1)}', kotak: t.kotak)
+          (
+            teks: 'Repeat ${t.teks.substring(1)}',
+            kotak: t.kotak,
+            keyakinan: t.keyakinan,
+          )
         else
           t,
     ];

@@ -3631,6 +3631,18 @@ abstract class AppLocalizations {
   /// **'The sensor IS calibrated. Sensor and indicator are checked as one chain — the sensor goes into the medium alongside the reference thermometer, so the reading covers the whole chain.'**
   String get calibTiDenganSensorKeterangan;
 
+  /// No description provided for @calibTiRentang.
+  ///
+  /// In en, this message translates to:
+  /// **'Measuring range {rentang}'**
+  String calibTiRentang(String rentang);
+
+  /// No description provided for @calibTiCmc.
+  ///
+  /// In en, this message translates to:
+  /// **'CMC {cmc} · {jumlah, plural, =1{1 capability row} other{{jumlah} capability rows}}'**
+  String calibTiCmc(String cmc, int jumlah);
+
   /// No description provided for @calibTiBelumSiap.
   ///
   /// In en, this message translates to:
@@ -7326,6 +7338,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equipment \"{nama}\" saved and selected for this worksheet.'**
   String lkAlatBaruTersimpan(String nama);
+
+  /// No description provided for @fotoReviewJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Check {jumlah, plural, =1{1 reading} other{{jumlah} readings}}'**
+  String fotoReviewJudul(int jumlah);
+
+  /// No description provided for @fotoReviewPengantar.
+  ///
+  /// In en, this message translates to:
+  /// **'The readings below were taken from the photo and are not in the sheet yet. Compare each one against its image crop, fix what is wrong, then tap Insert. Handwriting is never treated as certain — however high the percentage.'**
+  String get fotoReviewPengantar;
+
+  /// No description provided for @fotoReviewMasukkan.
+  ///
+  /// In en, this message translates to:
+  /// **'INSERT INTO SHEET'**
+  String get fotoReviewMasukkan;
+
+  /// No description provided for @fotoReviewKetikSendiri.
+  ///
+  /// In en, this message translates to:
+  /// **'Type it yourself — the reading cannot be trusted'**
+  String get fotoReviewKetikSendiri;
+
+  /// No description provided for @fotoReviewKeyakinan.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence {persen}%'**
+  String fotoReviewKeyakinan(int persen);
+
+  /// No description provided for @fotoReviewKeyakinanTakAda.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence not reported'**
+  String get fotoReviewKeyakinanTakAda;
+
+  /// No description provided for @fotoReviewMasihKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah, plural, =1{1 cell is still empty and must be filled.} other{{jumlah} cells are still empty and must be filled.}}'**
+  String fotoReviewMasihKosong(int jumlah);
+
+  /// No description provided for @skemaDinamisJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Unrecognised sheet'**
+  String get skemaDinamisJudul;
+
+  /// No description provided for @skemaDinamisPengantar.
+  ///
+  /// In en, this message translates to:
+  /// **'This sheet has no fixed shape in the app yet, so its contents were read straight from the photo. Check every field before saving — nothing here is treated as certain.'**
+  String get skemaDinamisPengantar;
+
+  /// No description provided for @skemaDinamisTanpaSatuan.
+  ///
+  /// In en, this message translates to:
+  /// **'no unit'**
+  String get skemaDinamisTanpaSatuan;
+
+  /// No description provided for @skemaDinamisTabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Table {nomor}'**
+  String skemaDinamisTabel(int nomor);
+
+  /// No description provided for @skemaDinamisSimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE WHAT WAS READ'**
+  String get skemaDinamisSimpan;
+
+  /// No description provided for @skemaDinamisMasihKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah, plural, =1{1 red-verdict field is still empty and must be filled.} other{{jumlah} red-verdict fields are still empty and must be filled.}}'**
+  String skemaDinamisMasihKosong(int jumlah);
+
+  /// No description provided for @skemaDinamisKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No fields or tables were read from this photo. Try again with the whole sheet in frame.'**
+  String get skemaDinamisKosong;
 }
 
 class _AppLocalizationsDelegate

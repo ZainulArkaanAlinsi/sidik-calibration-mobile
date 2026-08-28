@@ -6,7 +6,16 @@ import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 
 /// Satu potongan teks hasil OCR berikut kotaknya di citra.
-typedef TeksTerbaca = ({String teks, Rect kotak});
+///
+/// [keyakinan] `null` = **pengenalnya nggak memberi tahu**, bukan "yakin" dan
+/// bukan "nggak yakin". ML Kit menyetel `confidence` per elemen cuma di
+/// sebagian versi & perangkat; di sisanya dia pulang null. Bedanya penting:
+/// null diperlakukan sebagai TIDAK DIKETAHUI oleh yang menilai, dan sel yang
+/// keyakinannya tidak diketahui tidak boleh dinaikkan jadi "aman" — lihat
+/// `VonisSelFoto`. Mengisi null dengan 1.0 (atau 0.0) berarti mengarang
+/// keyakinan, dan itu persis yang bikin teknisi percaya angka yang belum
+/// diperiksa.
+typedef TeksTerbaca = ({String teks, Rect kotak, double? keyakinan});
 
 /// Baca SELURUH citra tabel sekaligus, lengkap dengan posisi tiap teksnya.
 ///
@@ -66,6 +75,11 @@ class MlKitPembacaHalaman implements PembacaHalaman {
                 e.boundingBox.right.toDouble(),
                 e.boundingBox.bottom.toDouble(),
               ),
+              // Dibawa apa adanya, termasuk `null`-nya. ML Kit menyetelnya per
+              // elemen cuma di sebagian versi & perangkat, dan yang null WAJIB
+              // tetap null sampai ke layar review — di situ dia ditampilkan
+              // sebagai "tidak diketahui", bukan disamarkan jadi angka.
+              keyakinan: e.confidence,
             ));
           }
         }

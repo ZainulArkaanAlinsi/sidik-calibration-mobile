@@ -1964,6 +1964,16 @@ class AppLocalizationsId extends AppLocalizations {
       'Sensornya IKUT dikalibrasi. Sensor & indikator diperiksa sebagai satu rangkaian — sensornya dicelup bareng termometer acuan, jadi yang keluar bacaan rangkaian utuhnya.';
 
   @override
+  String calibTiRentang(String rentang) {
+    return 'Rentang ukur $rentang';
+  }
+
+  @override
+  String calibTiCmc(String cmc, int jumlah) {
+    return 'CMC $cmc · $jumlah baris kemampuan';
+  }
+
+  @override
   String get calibTiBelumSiap => 'Belum ada di server ini';
 
   @override
@@ -4077,4 +4087,60 @@ class AppLocalizationsId extends AppLocalizations {
   String lkAlatBaruTersimpan(String nama) {
     return 'Alat \"$nama\" tersimpan dan langsung dipakai di lembar ini.';
   }
+
+  @override
+  String fotoReviewJudul(int jumlah) {
+    return 'Periksa $jumlah angka';
+  }
+
+  @override
+  String get fotoReviewPengantar =>
+      'Angka di bawah dibaca dari foto, belum masuk lembar. Adu tiap angka ke potongan gambarnya, betulkan yang meleset, baru tekan Masukkan. Tulisan tangan tidak pernah dianggap pasti — sekalipun persentasenya tinggi.';
+
+  @override
+  String get fotoReviewMasukkan => 'MASUKKAN KE LEMBAR';
+
+  @override
+  String get fotoReviewKetikSendiri =>
+      'Ketik sendiri — bacaannya tidak bisa dipercaya';
+
+  @override
+  String fotoReviewKeyakinan(int persen) {
+    return 'Keyakinan $persen%';
+  }
+
+  @override
+  String get fotoReviewKeyakinanTakAda => 'Keyakinan tidak dilaporkan';
+
+  @override
+  String fotoReviewMasihKosong(int jumlah) {
+    return '$jumlah sel masih kosong dan wajib diisi.';
+  }
+
+  @override
+  String get skemaDinamisJudul => 'Lembar tidak dikenal';
+
+  @override
+  String get skemaDinamisPengantar =>
+      'Lembar ini belum punya bentuk baku di aplikasi, jadi isinya dibaca langsung dari foto. Periksa tiap isian sebelum disimpan — tidak ada satu pun yang dianggap pasti.';
+
+  @override
+  String get skemaDinamisTanpaSatuan => 'tanpa satuan';
+
+  @override
+  String skemaDinamisTabel(int nomor) {
+    return 'Tabel $nomor';
+  }
+
+  @override
+  String get skemaDinamisSimpan => 'SIMPAN HASIL BACAAN';
+
+  @override
+  String skemaDinamisMasihKosong(int jumlah) {
+    return '$jumlah isian bervonis merah masih kosong dan wajib diisi.';
+  }
+
+  @override
+  String get skemaDinamisKosong =>
+      'Tidak ada isian maupun tabel yang terbaca dari foto ini. Coba jepret ulang dengan seluruh lembar masuk frame.';
 }

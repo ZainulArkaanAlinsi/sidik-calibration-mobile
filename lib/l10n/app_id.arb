@@ -310,18 +310,32 @@
   "equipRentangChip": "{min}–{maks} {satuan}",
   "@equipRentangChip": {
     "placeholders": {
-      "min": { "type": "String" },
-      "maks": { "type": "String" },
-      "satuan": { "type": "String" }
+      "min": {
+        "type": "String"
+      },
+      "maks": {
+        "type": "String"
+      },
+      "satuan": {
+        "type": "String"
+      }
     }
   },
   "equipRentangChipBerparameter": "{parameter} · {min}–{maks} {satuan}",
   "@equipRentangChipBerparameter": {
     "placeholders": {
-      "parameter": { "type": "String" },
-      "min": { "type": "String" },
-      "maks": { "type": "String" },
-      "satuan": { "type": "String" }
+      "parameter": {
+        "type": "String"
+      },
+      "min": {
+        "type": "String"
+      },
+      "maks": {
+        "type": "String"
+      },
+      "satuan": {
+        "type": "String"
+      }
     }
   },
   "equipResolusi": "Resolusi",
@@ -452,9 +466,27 @@
   "detailTipeSensor": "Tipe sensor standar",
   "bannerStandarTanpaNama": "Standar tanpa nama",
   "bannerStandarLewat": "{nama} — sertifikatnya lewat {hari} hari",
-  "@bannerStandarLewat": {"placeholders": {"nama": {"type": "String"}, "hari": {"type": "int"}}},
+  "@bannerStandarLewat": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      },
+      "hari": {
+        "type": "int"
+      }
+    }
+  },
   "bannerStandarSegera": "{nama} — sertifikatnya habis {hari} hari lagi",
-  "@bannerStandarSegera": {"placeholders": {"nama": {"type": "String"}, "hari": {"type": "int"}}},
+  "@bannerStandarSegera": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      },
+      "hari": {
+        "type": "int"
+      }
+    }
+  },
   "detailUjiTitikEs": "Uji titik es (30 menit)",
   "detailTitikEsKe": "X{ke}",
   "detailRentangTitikEs": "Rentang (Tmaks − Tmin)",
@@ -692,6 +724,25 @@
   "calibTiTanpaSensorKeterangan": "Sensornya NGGAK ikut dikalibrasi. Kalibrator disambung ke terminal indikator dan berperan jadi sensor tiruan, jadi yang diperiksa cuma bacaan indikatornya.",
   "calibTiDenganSensorJudul": "Dengan Sensor",
   "calibTiDenganSensorKeterangan": "Sensornya IKUT dikalibrasi. Sensor & indikator diperiksa sebagai satu rangkaian — sensornya dicelup bareng termometer acuan, jadi yang keluar bacaan rangkaian utuhnya.",
+  "calibTiRentang": "Rentang ukur {rentang}",
+  "@calibTiRentang": {
+    "placeholders": {
+      "rentang": {
+        "type": "String"
+      }
+    }
+  },
+  "calibTiCmc": "CMC {cmc} · {jumlah} baris kemampuan",
+  "@calibTiCmc": {
+    "placeholders": {
+      "cmc": {
+        "type": "String"
+      },
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "calibTiBelumSiap": "Belum ada di server ini",
   "calibTiBelumSiapPesan": "Lembar kerja \"{varian}\" belum ada di server yang lagi dipakai. Kabarin admin dulu — kalau dipaksa buka sekarang, yang kebuka lembar alat lain dan nggak ada satu pun error yang bunyi.",
   "phCalibTitle": "Kalibrasi pH Meter",
@@ -1759,5 +1810,54 @@
         "type": "String"
       }
     }
-  }
+  },
+  "fotoReviewJudul": "Periksa {jumlah} angka",
+  "@fotoReviewJudul": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "fotoReviewPengantar": "Angka di bawah dibaca dari foto, belum masuk lembar. Adu tiap angka ke potongan gambarnya, betulkan yang meleset, baru tekan Masukkan. Tulisan tangan tidak pernah dianggap pasti — sekalipun persentasenya tinggi.",
+  "fotoReviewMasukkan": "MASUKKAN KE LEMBAR",
+  "fotoReviewKetikSendiri": "Ketik sendiri — bacaannya tidak bisa dipercaya",
+  "fotoReviewKeyakinan": "Keyakinan {persen}%",
+  "@fotoReviewKeyakinan": {
+    "placeholders": {
+      "persen": {
+        "type": "int"
+      }
+    }
+  },
+  "fotoReviewKeyakinanTakAda": "Keyakinan tidak dilaporkan",
+  "fotoReviewMasihKosong": "{jumlah} sel masih kosong dan wajib diisi.",
+  "@fotoReviewMasihKosong": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "skemaDinamisJudul": "Lembar tidak dikenal",
+  "skemaDinamisPengantar": "Lembar ini belum punya bentuk baku di aplikasi, jadi isinya dibaca langsung dari foto. Periksa tiap isian sebelum disimpan — tidak ada satu pun yang dianggap pasti.",
+  "skemaDinamisTanpaSatuan": "tanpa satuan",
+  "skemaDinamisTabel": "Tabel {nomor}",
+  "@skemaDinamisTabel": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
+  "skemaDinamisSimpan": "SIMPAN HASIL BACAAN",
+  "skemaDinamisMasihKosong": "{jumlah} isian bervonis merah masih kosong dan wajib diisi.",
+  "@skemaDinamisMasihKosong": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "skemaDinamisKosong": "Tidak ada isian maupun tabel yang terbaca dari foto ini. Coba jepret ulang dengan seluruh lembar masuk frame."
 }
