@@ -48,6 +48,7 @@ void main() {
           home: Scaffold(
             body: SingleChildScrollView(
               child: LembarKerjaGrid(
+              pemilik: 'uji',
                 state: state,
                 satuanSuhu: '°C',
                 onBerubah: () {},

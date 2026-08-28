@@ -67,8 +67,7 @@ class BarisSensorState {
   /// Berapa sel pembacaan yang benar-benar terisi.
   int get jumlahTerisi => pembacaan.where((n) => n != null).length;
 
-  bool get kosongSemua =>
-      no == null && channel == null && jumlahTerisi == 0;
+  bool get kosongSemua => no == null && channel == null && jumlahTerisi == 0;
 
   /// Baris ini bakal ditolak hitung backend karena pembacaannya kurang dari 4.
   ///
@@ -148,7 +147,9 @@ class SetPointGridState {
        ) {
     final n = jumlahSensorAwal ?? bentuk.jumlahSensorSaran;
     for (var i = 0; i < n; i++) {
-      sensor.add(BarisSensorState(jumlahPengulangan: bentuk.pengulangan.length));
+      sensor.add(
+        BarisSensorState(jumlahPengulangan: bentuk.pengulangan.length),
+      );
     }
   }
 
@@ -225,7 +226,9 @@ class SetPointGridState {
 
     final terisi = sensorTerisi;
     if (terisi.isEmpty) {
-      pesan.add('Belum ada termokopel yang diisi — set point ini nggak dihitung.');
+      pesan.add(
+        'Belum ada termokopel yang diisi — set point ini nggak dihitung.',
+      );
     } else if (terisi.length < 2) {
       pesan.add(
         'Baru 1 termokopel. Keseragaman & Variasi itu selisih antar-posisi — '
@@ -240,13 +243,17 @@ class SetPointGridState {
 
     final kurang = sensorPembacaanKurang;
     if (kurang.isNotEmpty) {
-      final daftar = kurang.map((s) => 'no. ${s.no} (${s.jumlahTerisi}×)').join(', ');
+      final daftar = kurang
+          .map((s) => 'no. ${s.no} (${s.jumlahTerisi}×)')
+          .join(', ');
       pesan.add('Pembacaan kurang dari 4: $daftar.');
     }
 
     final kembar = nomorKembar;
     if (kembar.isNotEmpty) {
-      pesan.add('Nomor termokopel kembar: ${kembar.join(", ")}. Ditolak server.');
+      pesan.add(
+        'Nomor termokopel kembar: ${kembar.join(", ")}. Ditolak server.',
+      );
     }
 
     if (bentuk.butuhChannel(merkKalibrator)) {
@@ -364,6 +371,22 @@ class SetPointGridState {
     return terisi;
   }
 
+  /// Angka FINAL satu sel — label buat potongan yang ditahan sejak difoto.
+  ///
+  /// Nomor pengulangannya diterjemahkan lewat `bentuk.pengulangan` yang SAMA
+  /// PERSIS dipakai [terapkanHasilFoto]. Dua cara yang beda bikin labelnya
+  /// menempel di potongan sel yang salah — dan di data latih, salah alamat
+  /// nggak pernah kelihatan.
+  ///
+  /// Balikin `null` kalau nomor Repeat-nya nggak ada di lembar ini, atau
+  /// selnya memang nggak ada (baris indikator yang dimatikan, misalnya).
+  String? labelSelFoto(double penanda, int repeatNo) {
+    final index = bentuk.pengulangan.indexOf(repeatNo);
+    if (index < 0) return null;
+
+    return _kotakFoto(penanda, index)?.text;
+  }
+
   /// Kotak isian buat satu (penanda baris, index pengulangan).
   ///
   /// Baris termokopel yang belum ada **dibikin di sini** — lihat aturan di
@@ -431,8 +454,9 @@ class SetPointGridState {
     suhuRuang.bacaUlang();
   }
 
-  void tambahSensor() =>
-      sensor.add(BarisSensorState(jumlahPengulangan: bentuk.pengulangan.length));
+  void tambahSensor() => sensor.add(
+    BarisSensorState(jumlahPengulangan: bentuk.pengulangan.length),
+  );
 
   void hapusSensor(int index) {
     if (index < 0 || index >= sensor.length) return;

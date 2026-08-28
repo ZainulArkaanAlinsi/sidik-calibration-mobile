@@ -2036,13 +2036,27 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
       final citra = foto.citra;
 
       if (citra != null && hasil.kotakSel.isNotEmpty) {
+        // Disalin ke lokal, bukan dibaca lewat `widget.` di dalam closure:
+        // closure-nya hidup sampai teknisi menekan Simpan, dan `widget`
+        // ditukar tiap rebuild.
+        final tabel = widget.tabel;
+        final isian = widget.isian;
+
         try {
           (await ref.read(penampungContohSelProvider.future)).tampung(
             potongan: const PotongSelFoto()
                 .potong(citra: citra, kotak: hasil.kotakSel)
                 .potongan,
-            pengulangan: widget.tabel.pengulangan,
-            tahap: widget.tabel.kunciTabel,
+            penanda: (k) =>
+                '${tabel.kunciTabel}|${k.titikUkur}|${k.repeatNo}|${k.fieldId}',
+            pemilik: isian.clientRequestId,
+            labelAkhir: (k) => isian.labelSelFoto(
+              tahap: tabel.kunciTabel,
+              titikUkur: k.titikUkur,
+              repeatNo: k.repeatNo,
+              pengulangan: tabel.pengulangan,
+              fieldId: k.fieldId,
+            ),
           );
         } catch (_) {
           // Sengaja ditelan — lihat di atas.

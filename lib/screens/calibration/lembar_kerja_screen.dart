@@ -382,9 +382,23 @@ class _FormState extends ConsumerState<_Form> {
   /// kerja alat lain bisa punya penomoran yang beda.
   int _halaman = 0;
 
+  /// Penampung contoh latih, diambil duluan supaya [dispose] bisa membuang
+  /// tampungan sesi ini tanpa menyentuh `ref`.
+  ///
+  /// `null` selama providernya belum selesai — kalau layarnya ditutup secepat
+  /// itu, belum ada satu pun potongan yang sempat ditampung, jadi nggak ada
+  /// yang perlu dibuang.
+  PenampungContohSel? _penampung;
+
   @override
   void initState() {
     super.initState();
+
+    // Diambil di sini, bukan waktu dibutuhkan, supaya `dispose` punya
+    // pegangannya tanpa menyentuh `ref` — lihat docblock [_penampung].
+    ref.read(penampungContohSelProvider.future).then((p) {
+      if (mounted) _penampung = p;
+    }).ignore();
 
     // Angka yang diketik di tabel hasil nggak lewat `_isianBerubah` — selnya
     // sengaja nggak nge-rebuild formulir tiap ketukan tombol. Pratinjaunya
@@ -542,6 +556,22 @@ class _FormState extends ConsumerState<_Form> {
   @override
   void dispose() {
     _pratinjauTertunda?.cancel();
+
+    // Tampungan contoh latih milik sesi ini dibuang — teknisi yang memotret
+    // lalu MENUTUP lembarnya tanpa menyimpan meninggalkan potongan di
+    // penampung yang hidup selama aplikasi jalan. Dibiarkan, potongan lembar
+    // ini ikut tersimpan waktu lembar BERIKUTNYA dikirim: nama lembarnya
+    // salah, dan `labelAkhir`-nya membaca `_isian` yang barusan di-dispose.
+    //
+    // Dipakai dari FIELD, bukan `ref.read` — Riverpod melarang `ref` dipakai
+    // waktu widgetnya sedang dilepas ("Using ref when a widget is about to or
+    // has been unmounted is unsafe"), dan seluruh suite widget jatuh gara-gara
+    // itu. Penampungnya karena itu diambil duluan di [initState].
+    //
+    // Cuma milik sesi ini — layar lain yang masih hidup nggak boleh kehilangan
+    // tampungannya gara-gara layar ini ditutup.
+    _penampung?.buang(_isian.clientRequestId);
+
     _isian.dispose();
     super.dispose();
   }
@@ -758,7 +788,7 @@ class _FormState extends ConsumerState<_Form> {
       try {
         await (await ref.read(
           penampungContohSelProvider.future,
-        )).serahkan(_labelContohSel, lembar: widget.profil);
+        )).serahkan(lembar: widget.profil, pemilik: _isian.clientRequestId);
       } catch (_) {
         // Sengaja ditelan — lihat di atas.
       }
@@ -804,18 +834,6 @@ class _FormState extends ConsumerState<_Form> {
     navigator.pop(hasil.id);
   }
 
-  /// Label buat pengumpul contoh latih — diteruskan ke [LembarKerjaState].
-  ///
-  /// Logikanya ada di sana, bukan di sini, supaya bisa diuji tanpa memompa
-  /// seluruh layar: yang dijaga bukan tombolnya, tapi label yang menempel di
-  /// potongan sel yang benar.
-  String? _labelContohSel(KunciSel k) => _isian.labelSelFoto(
-    tahap: k.tahap,
-    titikUkur: k.titikUkur,
-    posisiRepeat: k.posisiRepeat,
-    fieldId: k.fieldId,
-  );
-
   /// Kirim lembar bermatriks lewat endpoint alatnya sendiri.
   ///
   /// Kepisah dari jalur `measurements[]` bukan karena rapi-rapian: bentuk
@@ -852,6 +870,23 @@ class _FormState extends ConsumerState<_Form> {
       // disimpen absen dari layar Draf sementara draf pH nongol — beda perilaku
       // buat tombol yang tulisannya sama persis.
       ref.invalidate(drafProvider);
+
+      // Kembarannya di `_submit` — jalur matriks (Autoklaf) `return` SEBELUM
+      // sampai ke sana, jadi tanpa baris ini foto matriks ditampung tapi
+      // nggak pernah tersimpan. Fiturnya mati diam-diam persis di lembar yang
+      // paling banyak selnya.
+      //
+      // Draft dilewat dan kegagalannya diam — alasannya sama seperti di
+      // `_submit`.
+      if (!draft) {
+        try {
+          await (await ref.read(
+            penampungContohSelProvider.future,
+          )).serahkan(lembar: widget.profil, pemilik: _isian.clientRequestId);
+        } catch (_) {
+          // Sengaja ditelan — pengumpul data latih, bukan bagian kalibrasinya.
+        }
+      }
 
       if (!mounted) return;
       setState(() => _mengirim = false);
@@ -1722,6 +1757,7 @@ class _Bagian extends ConsumerWidget {
                 // sumbu ketiganya datang dari blok tempat tombolnya duduk.
                 // Lihat `LembarKerjaGrid.pindaiAktif`.
                 pindaiAktif: pindaiAktif,
+                pemilik: isian.clientRequestId,
               ),
               const SizedBox(height: AppSpacing.lg),
               if (isian.bentuk.catatanPengisian.isNotEmpty)

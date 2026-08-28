@@ -7,6 +7,8 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/jam_lembar.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/lembar_kerja.dart';
+import '../../../providers/contoh_sel_provider.dart';
+import '../../../services/potong_sel_foto.dart';
 import '../../../services/ambil_foto_tabel.dart';
 import '../../../services/peta_tabel_foto.dart';
 import '../lembar_kerja_state.dart';
@@ -157,10 +159,7 @@ class LembarKerjaMatriks extends StatelessWidget {
             Container(
               width: _lebarKolom * sisa,
               alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 6,
-                vertical: 10,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
               color: theme.colorScheme.surfaceContainerHighest,
               child: Text(
                 matriks.judulKolom,
@@ -268,7 +267,10 @@ class _TombolFotoMatriksState extends ConsumerState<_TombolFotoMatriks> {
     final messenger = ScaffoldMessenger.of(context);
 
     void pesan(String teks, {int detik = 8}) => messenger.showSnackBar(
-      SnackBar(duration: Duration(seconds: detik), content: Text(teks)),
+      SnackBar(
+        duration: Duration(seconds: detik),
+        content: Text(teks),
+      ),
     );
 
     setState(() => _sibuk = true);
@@ -330,6 +332,38 @@ class _TombolFotoMatriksState extends ConsumerState<_TombolFotoMatriks> {
         );
 
         return;
+      }
+
+      // Potongan selnya DITAHAN sampai teknisi menekan Simpan — labelnya angka
+      // final, bukan yang dibaca OCR sekarang. Lihat [PenampungContohSel].
+      //
+      // Alamat sel matriks BEDA dari lembar bertabel: barisnya besaran
+      // (`suhu.disk.0`), bukan titik ukur. Makanya pembaca labelnya disediakan
+      // di sini, di tempat yang tahu bentuk formulirnya.
+      //
+      // Kegagalannya sengaja DIAM: ini pengumpul data latih, bukan bagian
+      // kalibrasinya.
+      final citra = foto.citra;
+
+      if (citra != null && hasil.kotakSel.isNotEmpty) {
+        // Disalin ke lokal — closure-nya hidup sampai Simpan, dan `widget`
+        // ditukar tiap rebuild.
+        final matriks = widget.matriks;
+        final isian = widget.isian;
+
+        try {
+          (await ref.read(penampungContohSelProvider.future)).tampung(
+            potongan: const PotongSelFoto()
+                .potong(citra: citra, kotak: hasil.kotakSel)
+                .potongan,
+            penanda: (k) => 'matriks|${k.titikUkur}|${k.repeatNo}',
+            pemilik: isian.clientRequestId,
+            labelAkhir: (k) =>
+                isian.labelSelMatriks(matriks, k.titikUkur, k.repeatNo),
+          );
+        } catch (_) {
+          // Sengaja ditelan — lihat di atas.
+        }
       }
 
       final terisi = widget.isian.terapkanHasilFotoMatriks(
@@ -446,10 +480,7 @@ class _TabelTambahan extends StatelessWidget {
                   // sini bikin "Pressure Disk Logger — hasil unduh (Bar) (Bar)"
                   // — judul bloknya di atas SUDAH menyebut satuannya, dan
                   // backend nulis satuan itu di dua tempat.
-                  child: Text(
-                    tabel.label,
-                    style: theme.textTheme.bodySmall,
-                  ),
+                  child: Text(tabel.label, style: theme.textTheme.bodySmall),
                 ),
                 for (final n in tabel.pengulangan)
                   SizedBox(

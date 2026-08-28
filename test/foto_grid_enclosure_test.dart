@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -36,10 +35,8 @@ void main() {
   const yBarisPertama = 200.0;
   const tinggiBaris = 60.0;
 
-  TeksTerbaca kata(String teks, double x, double y) => (
-    teks: teks,
-    kotak: Rect.fromLTWH(x, y, teks.length * 14, 24),
-  );
+  TeksTerbaca kata(String teks, double x, double y) =>
+      (teks: teks, kotak: Rect.fromLTWH(x, y, teks.length * 14, 24));
 
   double xKolom(int k) => 420.0 + k * lebarKolom;
 
@@ -216,31 +213,40 @@ void main() {
       };
 
       for (var k = 0; k < 5; k++) {
-        expect(peta['${SetPointGridState.kunciIndikator}|${k + 1}'], bacaan(3, k));
-        expect(peta['${SetPointGridState.kunciSuhuRuang}|${k + 1}'], bacaan(4, k));
+        expect(
+          peta['${SetPointGridState.kunciIndikator}|${k + 1}'],
+          bacaan(3, k),
+        );
+        expect(
+          peta['${SetPointGridState.kunciSuhuRuang}|${k + 1}'],
+          bacaan(4, k),
+        );
       }
     });
 
-    test('termokopel yang cuma ada di kertas ikut kebaca, barisnya ditambah', () {
-      // Kertas memuat empat termokopel, layar cuma disediakan tiga baris.
-      // Barisnya ditambah — bukan angkanya dibuang, dan bukan ditarik ke baris
-      // terdekat (yang bikin dia mendarat di termokopel yang salah).
-      final sp = blok();
-      addTearDown(sp.dispose);
+    test(
+      'termokopel yang cuma ada di kertas ikut kebaca, barisnya ditambah',
+      () {
+        // Kertas memuat empat termokopel, layar cuma disediakan tiga baris.
+        // Barisnya ditambah — bukan angkanya dibuang, dan bukan ditarik ke baris
+        // terdekat (yang bikin dia mendarat di termokopel yang salah).
+        final sp = blok();
+        addTearDown(sp.dispose);
 
-      final terbaca = fotoGrid(nomor: const [7, 3, 5, 9]);
+        final terbaca = fotoGrid(nomor: const [7, 3, 5, 9]);
 
-      expect(
-        const PetaTabelFoto().nomorBarisTerbaca(terbaca),
-        const [7, 3, 5, 9],
-        reason: 'urut dari ATAS, apa adanya — bukan diurutkan naik',
-      );
+        expect(
+          const PetaTabelFoto().nomorBarisTerbaca(terbaca),
+          const [7, 3, 5, 9],
+          reason: 'urut dari ATAS, apa adanya — bukan diurutkan naik',
+        );
 
-      sp.terapkanHasilFoto(petakan(sp, terbaca).sel);
+        sp.terapkanHasilFoto(petakan(sp, terbaca).sel);
 
-      expect(sp.sensor, hasLength(4));
-      expect(sp.sensorTerisi.map((s) => s.no).toList()..sort(), [3, 5, 7, 9]);
-    });
+        expect(sp.sensor, hasLength(4));
+        expect(sp.sensorTerisi.map((s) => s.no).toList()..sort(), [3, 5, 7, 9]);
+      },
+    );
 
     test('kepala kolom yang kepotong nggak nyedot kolom sebelahnya', () {
       final sp = blok();
@@ -354,6 +360,7 @@ void main() {
             home: Scaffold(
               body: SingleChildScrollView(
                 child: LembarKerjaGrid(
+              pemilik: 'uji',
                   state: state,
                   satuanSuhu: '°C',
                   onBerubah: () {},
@@ -398,6 +405,7 @@ void main() {
             home: Scaffold(
               body: SingleChildScrollView(
                 child: LembarKerjaGrid(
+              pemilik: 'uji',
                   state: state,
                   satuanSuhu: '°C',
                   onBerubah: () {},
@@ -422,11 +430,14 @@ void main() {
 
       expect(state.setPoint.first.sensorTerisi, isEmpty);
       expect(
-        tester.widget<OutlinedButton>(find.byKey(const Key('grid_foto_1'))).onPressed,
+        tester
+            .widget<OutlinedButton>(find.byKey(const Key('grid_foto_1')))
+            .onPressed,
         isNotNull,
       );
     });
   });
+
   /// **Nomor pengulangan yang TERCETAK, bukan posisinya.**
   ///
   /// `terapkanHasilFoto` dulu memakai `repeatNo - 1` sebagai posisi kolom —
@@ -505,9 +516,36 @@ void main() {
       final sp = blokBernomor(const [2, 4, 6]);
 
       expect(sp.terapkanHasilFoto(sel(const [3])), 0);
+      expect(sp.sensor.first.pembacaanCtl.every((c) => c.text.isEmpty), isTrue);
+    });
+  });
+
+  group('label buat contoh latih grid', () {
+    // Nomor pengulangannya diterjemahkan lewat `bentuk.pengulangan` yang SAMA
+    // dipakai `terapkanHasilFoto`. Dua cara yang beda bikin labelnya menempel
+    // di potongan sel yang salah — jenis kesalahan yang nggak pernah
+    // kelihatan, karena yang salah cuma data latihnya.
+
+    test('labelnya angka yang beneran ada di sel itu', () {
+      final sp = blok();
+
+      sp.terapkanHasilFoto(petakan(sp, fotoGrid()).sel);
+
+      for (final s in petakan(sp, fotoGrid()).sel) {
+        expect(
+          sp.labelSelFoto(s.titikUkur, s.repeatNo),
+          s.teks,
+          reason: 'titik ${s.titikUkur} Repeat ${s.repeatNo}',
+        );
+      }
+    });
+
+    test('Repeat yang nggak ada di daftar pengulangan balik null', () {
+      final sp = blok();
+
       expect(
-        sp.sensor.first.pembacaanCtl.every((c) => c.text.isEmpty),
-        isTrue,
+        sp.labelSelFoto(petakan(sp, fotoGrid()).sel.first.titikUkur, 9999),
+        isNull,
       );
     });
   });
