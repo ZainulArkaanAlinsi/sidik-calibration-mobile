@@ -234,6 +234,113 @@ void main() {
     });
   });
 
+
+  group('tabel dikenali dari keteraturan kolomnya', () {
+    /// Satu tabel 3 kolom × 3 baris + kepala, tanpa satu pun garis kotak —
+    /// karena OCR itu pengenal TEKS, dan garis tabel sering nggak kebaca sama
+    /// sekali.
+    List<TeksTerbaca> tabelTiga() => [
+      kata('No', 100, 100),
+      kata('Standard', 300, 100),
+      kata('Reading', 500, 100),
+      kata('1', 100, 140),
+      kata('4,01', 300, 140),
+      kata('4,02', 500, 140),
+      kata('2', 100, 180),
+      kata('7,00', 300, 180),
+      kata('7,03', 500, 180),
+    ];
+
+    test('tabel tanpa garis tetap kedeteksi', () {
+      final t = analisis.deteksiTabel(analisis.kelompokkanBaris(tabelTiga()));
+
+      expect(t, hasLength(1));
+      expect(t.single.kepala, ['No', 'Standard', 'Reading']);
+      expect(t.single.baris, [
+        ['1', '4,01', '4,02'],
+        ['2', '7,00', '7,03'],
+      ]);
+    });
+
+    test('sel KOSONG tetap di posisinya, kolom sesudahnya nggak geser', () {
+      final t = analisis.deteksiTabel(
+        analisis.kelompokkanBaris([
+          ...tabelTiga(),
+          // Baris ketiga: kolom tengah bolong, teknisi belum mengisinya.
+          kata('3', 100, 220),
+          kata('9,05', 500, 220),
+        ]),
+      );
+
+      expect(
+        t.single.baris.last,
+        ['3', '', '9,05'],
+        reason: 'Sel yang digeser bikin `9,05` mendarat di kolom Standard. '
+            'Angkanya lengkap, tabelnya wajar, dan yang salah cuma kolom mana '
+            'yang dimaksud — nggak ada satu pun error di jalurnya.',
+      );
+    });
+
+    test('tabel yang LANGSUNG mulai dari data nggak kehilangan baris pertama', () {
+      final t = analisis.deteksiTabel(
+        analisis.kelompokkanBaris([
+          kata('1', 100, 100),
+          kata('4,01', 300, 100),
+          kata('2', 100, 140),
+          kata('7,00', 300, 140),
+        ]),
+      );
+
+      expect(t.single.kepala, isEmpty);
+      expect(
+        t.single.baris,
+        [
+          ['1', '4,01'],
+          ['2', '7,00'],
+        ],
+        reason: 'Baris pertama cuma jadi kepala kalau nggak satu pun selnya '
+            'angka. Lembar tanpa baris kepala nggak boleh kehilangan datanya.',
+      );
+    });
+
+    test('dua kata dalam satu sel digabung, bukan saling menimpa', () {
+      final t = analisis.deteksiTabel(
+        analisis.kelompokkanBaris([
+          kata('Nama', 100, 100),
+          kata('Nilai', 400, 100),
+          kata('PT', 100, 140),
+          kata('Gracia', 140, 140),
+          kata('7,00', 400, 140),
+        ]),
+      );
+
+      expect(t.single.baris.single.first, 'PT Gracia');
+    });
+
+    test('teks biasa yang bukan tabel nggak dianggap tabel', () {
+      final t = analisis.deteksiTabel(
+        analisis.kelompokkanBaris([
+          kata('Nama', 100, 100),
+          kata(':', 160, 100),
+          kata('Fluke', 190, 100),
+        ]),
+      );
+
+      expect(
+        t,
+        isEmpty,
+        reason: 'Satu baris doang bukan tabel — butuh keteraturan yang '
+            'BERULANG, minimal dua baris.',
+      );
+    });
+
+    test('kolom yang berjauhan nggak saling ditelan', () {
+      final t = analisis.deteksiTabel(analisis.kelompokkanBaris(tabelTiga()));
+
+      expect(t.single.pusatKolom, hasLength(3));
+    });
+  });
+
   test('lembar yang belum pernah ada tetap kebaca strukturnya', () {
     // Bukan lembar mana pun yang dikenal aplikasi ini — justru itu intinya.
     // Nggak ada profil, nggak ada geometri, nggak ada parser.

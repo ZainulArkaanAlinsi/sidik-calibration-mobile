@@ -24,6 +24,24 @@ typedef PasanganLabel = ({
   double? keyakinan,
 });
 
+/// Satu tabel yang terdeteksi dari susunan teksnya sendiri.
+///
+/// [kepala] boleh kosong: banyak lembar kerja menaruh tabel tanpa baris kepala,
+/// dan tabel tanpa nama kolom tetap tabel. Yang menandainya keteraturan
+/// kolomnya, bukan ada-tidaknya judul.
+///
+/// [baris] berukuran seragam sepanjang jumlah kolom. Sel yang tidak ada isinya
+/// diisi string kosong **di posisinya**, bukan dilewat: sel yang digeser bikin
+/// seluruh kolom sesudahnya meleset, dan itu kelas kesalahan yang paling mahal
+/// di berkas ini — angkanya lengkap, tabelnya wajar, dan yang salah cuma kolom
+/// mana yang dimaksud.
+typedef TabelDokumen = ({
+  List<String> kepala,
+  List<List<String>> baris,
+  List<double> pusatKolom,
+  Rect kotak,
+});
+
 /// Membaca STRUKTUR dokumen dari kepingan OCR, tanpa tahu lembar apa yang
 /// difoto.
 ///
@@ -161,6 +179,177 @@ class AnalisisDokumen {
 
     return hasil;
   }
+
+  /// Cari tabel dari **keteraturan kolomnya**, bukan dari garis kotaknya.
+  ///
+  /// ## Kenapa bukan garis
+  ///
+  /// Banyak lembar kerja mencetak tabel tanpa garis penuh, dan yang bergaris
+  /// pun garisnya sering tidak terbaca OCR (dia pengenal TEKS). Yang selalu ada
+  /// justru **kolom yang berulang di beberapa baris berturut-turut** — dan itu
+  /// yang dicari di sini.
+  ///
+  /// Aturannya: baris-baris yang berdekatan tegak, sama-sama punya minimal
+  /// [minKolom] kepingan, dan kepingannya jatuh di sekitar posisi mendatar yang
+  /// sama. Deret sepanjang minimal [minBaris] dianggap tabel.
+  ///
+  /// Yang SENGAJA tidak dilakukan di sini: menebak arti kolomnya. Kepala kolom
+  /// dipulangkan apa adanya kalau ada, dan yang memutuskan `Standard` itu
+  /// artinya apa bukan berkas ini — di sini cuma bentuknya.
+  List<TabelDokumen> deteksiTabel(
+    List<BarisDokumen> baris, {
+    int minKolom = 2,
+    int minBaris = 2,
+  }) {
+    final hasil = <TabelDokumen>[];
+    var i = 0;
+
+    while (i < baris.length) {
+      if (baris[i].elemen.length < minKolom) {
+        i++;
+        continue;
+      }
+
+      // Kolom dipatok dari baris pertama deret ini sebagai RENTANG mendatar,
+      // bukan titik pusat. Sel berisi dua kata (`PT Gracia`) punya kata kedua
+      // yang pusatnya melenceng jauh dari pusat kolom — diadu ke titik, baris
+      // itu ditolak seluruhnya dan tabelnya hilang tanpa jejak.
+      //
+      // Dipatok dari baris pertama saja, bukan dihitung ulang tiap baris:
+      // tabel yang satu selnya kosong menggeser kolomnya dan deretnya putus.
+      final pusat = [
+        for (final e in baris[i].elemen) (e.kotak.left, e.kotak.right),
+      ];
+      final tinggi = _tinggiTengah(baris[i].elemen);
+
+      final deret = <BarisDokumen>[baris[i]];
+      var j = i + 1;
+
+      while (j < baris.length && _cocokKolom(baris[j], pusat, tinggi)) {
+        deret.add(baris[j]);
+        j++;
+      }
+
+      if (deret.length >= minBaris) {
+        hasil.add(_rakitTabel(deret, pusat));
+        i = j;
+      } else {
+        i++;
+      }
+    }
+
+    return hasil;
+  }
+
+  /// Baris ini jatuh di kolom yang sama?
+  ///
+  /// Tidak menuntut SEMUA kolom terisi — sel kosong di tengah tabel itu hal
+  /// biasa di lembar yang belum selesai diisi. Yang dituntut: tiap kepingan
+  /// yang ADA harus dekat ke salah satu kolom, dan minimal separuh kolomnya
+  /// kena. Menuntut semuanya bikin deretnya putus di baris pertama yang
+  /// selnya bolong.
+  bool _cocokKolom(
+    BarisDokumen b,
+    List<(double, double)> pusat,
+    double tinggi,
+  ) {
+    if (b.elemen.isEmpty) return false;
+
+    final kena = <int>{};
+
+    for (final e in b.elemen) {
+      final k = _kolomTerdekat(e.kotak, pusat, tinggi);
+      if (k == null) return false;
+      kena.add(k);
+    }
+
+    return kena.length * 2 >= pusat.length;
+  }
+
+  /// Kolom terdekat, atau null kalau tidak ada yang cukup dekat.
+  ///
+  /// Toleransinya dua kali tinggi huruf: cukup longgar buat angka yang
+  /// panjangnya beda-beda (`4,01` vs `120,45` tidak pernah persis sepusat),
+  /// cukup ketat buat tidak menelan kolom sebelah.
+  int? _kolomTerdekat(Rect kotak, List<(double, double)> pusat, double tinggi) {
+    // Bertumpang tindih mendatar menang duluan: itu bukti paling kuat bahwa
+    // kepingan ini memang di kolom itu, dan dia yang bikin sel berisi dua kata
+    // tetap utuh.
+    for (var k = 0; k < pusat.length; k++) {
+      if (kotak.right >= pusat[k].$1 && kotak.left <= pusat[k].$2) return k;
+    }
+
+    // Nggak bertumpang tindih — jatuh ke jarak ke tepi kolom terdekat.
+    // Toleransinya dua kali tinggi huruf: cukup longgar buat angka yang
+    // panjangnya beda-beda, cukup ketat buat nggak menelan kolom sebelah.
+    var terdekat = -1;
+    var jarak = double.infinity;
+
+    for (var k = 0; k < pusat.length; k++) {
+      final d = math.min(
+        (pusat[k].$1 - kotak.right).abs(),
+        (pusat[k].$2 - kotak.left).abs(),
+      );
+
+      if (d < jarak) {
+        jarak = d;
+        terdekat = k;
+      }
+    }
+
+    return jarak <= tinggi * 2 ? terdekat : null;
+  }
+
+  TabelDokumen _rakitTabel(
+    List<BarisDokumen> deret,
+    List<(double, double)> pusat,
+  ) {
+    final tinggi = _tinggiTengah(deret.first.elemen);
+
+    List<String> selBaris(BarisDokumen b) {
+      final sel = List.filled(pusat.length, '');
+
+      for (final e in b.elemen) {
+        final k = _kolomTerdekat(e.kotak, pusat, tinggi);
+        if (k == null) continue;
+
+        // Digabung, bukan ditimpa: dua kata di satu sel (`PT Gracia`) datang
+        // sebagai dua kepingan, dan yang belakangan menimpa yang duluan bikin
+        // selnya kehilangan separuh isinya tanpa ada yang kelihatan hilang.
+        sel[k] = sel[k].isEmpty ? e.teks.trim() : '${sel[k]} ${e.teks.trim()}';
+      }
+
+      return sel;
+    }
+
+    // Baris pertama dianggap KEPALA cuma kalau tidak satu pun selnya angka.
+    // Tabel yang langsung mulai dari data (lembar tanpa baris kepala) tidak
+    // boleh kehilangan baris pertamanya jadi "judul".
+    final pertama = selBaris(deret.first);
+    final kepala = pertama.every((s) => s.isEmpty || !_miripAngka(s))
+        ? pertama
+        : <String>[];
+
+    return (
+      kepala: kepala,
+      baris: [
+        for (final b in kepala.isEmpty ? deret : deret.skip(1)) selBaris(b),
+      ],
+      pusatKolom: [for (final r in pusat) (r.$1 + r.$2) / 2],
+      kotak: deret
+          .map((b) => b.kotak)
+          .reduce((a, c) => a.expandToInclude(c)),
+    );
+  }
+
+  /// Teks ini terbaca sebagai angka?
+  ///
+  /// Koma DAN titik dua-duanya dianggap pemisah desimal: lembar kerja lab
+  /// dicetak dengan koma (`4,01`), tapi teknisi kadang menulis titik, dan OCR
+  /// juga sering menukar keduanya. Yang dijawab di sini cuma "ini angka atau
+  /// bukan" — mengubahnya jadi `double` urusan pemanggil.
+  bool _miripAngka(String s) =>
+      RegExp(r'^[-+]?\d+([.,]\d+)?$').hasMatch(s.trim());
 
   bool _sebaris(List<TeksTerbaca> baris, TeksTerbaca t) {
     final tinggi = math.min(_tinggiTengah(baris), t.kotak.height);
