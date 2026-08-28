@@ -43,19 +43,16 @@ import tensorflow as tf
 
 from data_sel import (
     ALFABET,
+    BLANK,
+    KELAS,
     LEBAR,
     TINGGI,
     ContohLatih,
     SumberAsli,
     SumberSintetis,
-    dari_indeks,
     ke_indeks,
+    pecahkan,
 )
-
-# Kelas keluaran: tiap huruf alfabet, plus satu "blank" milik CTC.
-KELAS = len(ALFABET) + 1
-BLANK = len(ALFABET)
-
 
 def bangun_model() -> keras.Model:
     """CNN yang memampatkan tinggi jadi 1 dan menyisakan lebar sebagai waktu.
@@ -99,6 +96,20 @@ class ModelCtc(keras.Model):
         super().__init__()
         self.inti = inti
 
+        # WAJIB lewat pelacak, bukan cuma dikembalikan dari `train_step`.
+        # Keras mengambil angka per-epoch dari `get_metrics_result()`, BUKAN
+        # dari dict yang dikembalikan train_step — jadi tanpa pelacak ini
+        # `fit` melaporkan `loss: 0.0000e+00` sepanjang latihan meski modelnya
+        # benar-benar belajar. Itu bukan cuma jelek dilihat: loss satu-satunya
+        # tanda apakah latihan menyatu, dan angka nol palsu bikin orang yang
+        # melatih dari data asli buta total.
+        self._pelacak_rugi = keras.metrics.Mean(name="loss")
+
+    @property
+    def metrics(self):
+        # Didaftarkan supaya Keras mereset-nya tiap awal epoch.
+        return [self._pelacak_rugi]
+
     def call(self, x, training=False):
         return self.inti(x, training=training)
 
@@ -137,12 +148,18 @@ class ModelCtc(keras.Model):
             zip(tape.gradient(rugi, self.trainable_variables), self.trainable_variables)
         )
 
-        return {"loss": rugi}
+        self._pelacak_rugi.update_state(rugi)
+
+        return {"loss": self._pelacak_rugi.result()}
 
     def test_step(self, data):
         citra, (label, panjang) = data
 
-        return {"loss": self._rugi(label, panjang, self(citra, training=False))}
+        self._pelacak_rugi.update_state(
+            self._rugi(label, panjang, self(citra, training=False))
+        )
+
+        return {"loss": self._pelacak_rugi.result()}
 
 
 def _siapkan(contoh: list[ContohLatih]) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -161,23 +178,6 @@ def _siapkan(contoh: list[ContohLatih]) -> tuple[np.ndarray, np.ndarray, np.ndar
         padded[i, : len(urut)] = urut
 
     return citra, padded, panjang
-
-
-def pecahkan(ramalan: np.ndarray) -> list[str]:
-    """Keluaran model → teks, lewat penguraian CTC greedy."""
-    hasil = []
-
-    for baris in ramalan:
-        urut, sebelumnya = [], -1
-
-        for t in baris.argmax(axis=-1):
-            if t != sebelumnya and t != BLANK:
-                urut.append(int(t))
-            sebelumnya = int(t)
-
-        hasil.append(dari_indeks(urut))
-
-    return hasil
 
 
 def nilai(model: keras.Model, contoh: list[ContohLatih]) -> dict[str, float]:
@@ -240,10 +240,14 @@ def main() -> None:
         p.error("pilih SALAH SATU: --sintetis atau --dari")
 
     if a.sintetis:
-        sumber = SumberSintetis(seed=7)
-        contoh = sumber.ambil(a.jumlah)
-        asal = sumber.asal
-        print(f"Data SINTETIS: {len(contoh)} contoh — BUKAN buat produksi.")
+        asal = SumberSintetis.asal
+
+        # Dua sumber terpisah, masing-masing dari belahan MNIST-nya sendiri —
+        # bukan satu kumpulan yang dibelah 90/10. Lihat docblock SumberSintetis.
+        latih = SumberSintetis(seed=7, bagian="latih").ambil(a.jumlah)
+        uji = SumberSintetis(seed=99, bagian="uji").ambil(max(1, a.jumlah // 10))
+
+        print(f"Data SINTETIS: {len(latih)} latih / {len(uji)} uji — BUKAN buat produksi.")
     else:
         sumber = SumberAsli(a.dari)
         contoh, lewat = sumber.muat()
@@ -253,9 +257,9 @@ def main() -> None:
         if not contoh:
             raise SystemExit("Nggak ada contoh yang bisa dipakai.")
 
-    random.Random(7).shuffle(contoh)
-    batas = max(1, int(len(contoh) * 0.9))
-    latih, uji = contoh[:batas], contoh[batas:]
+        random.Random(7).shuffle(contoh)
+        batas = max(1, int(len(contoh) * 0.9))
+        latih, uji = contoh[:batas], contoh[batas:]
 
     inti = bangun_model()
     model = ModelCtc(inti)

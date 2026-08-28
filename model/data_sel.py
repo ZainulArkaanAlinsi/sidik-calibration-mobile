@@ -72,6 +72,38 @@ def dari_indeks(indeks) -> str:
     return "".join(ALFABET[i] for i in indeks if 0 <= i < len(ALFABET))
 
 
+# Kelas keluaran model: tiap huruf alfabet, plus satu "blank" milik CTC.
+#
+# Blank-nya ditaruh di INDEKS TERAKHIR, bukan 0. Kalau di 0, dia bentrok dengan
+# `"0"` yang karakter sah — dan TensorFlow juga cuma melewati jalur tanpa remap
+# waktu blank-nya persis di `jumlah_kelas - 1`.
+BLANK = len(ALFABET)
+KELAS = len(ALFABET) + 1
+
+
+def pecahkan(ramalan) -> list[str]:
+    """Keluaran model → teks, lewat penguraian CTC greedy.
+
+    Dua aturan CTC yang gampang salah, dan dua-duanya dijaga uji_pecahkan.py:
+    langkah kembar BERURUTAN dilebur jadi satu (`[1,1]` → `"1"`), tapi blank di
+    antaranya membatalkan peleburan itu (`[1,blank,1]` → `"11"`). Tanpa aturan
+    kedua, angka seperti `11` mustahil dibaca.
+    """
+    hasil = []
+
+    for baris in ramalan:
+        urut, sebelumnya = [], -1
+
+        for t in baris.argmax(axis=-1):
+            if t != sebelumnya and t != BLANK:
+                urut.append(int(t))
+            sebelumnya = int(t)
+
+        hasil.append(dari_indeks(urut))
+
+    return hasil
+
+
 def _muat_ke_kanvas(potongan: np.ndarray) -> np.ndarray:
     """Taruh potongan ke kanvas [TINGGI, LEBAR] tanpa merusak rasio.
 
@@ -107,10 +139,20 @@ class SumberSintetis:
 
     asal = "sintetis"
 
-    def __init__(self, seed: int = 0) -> None:
+    def __init__(self, seed: int = 0, bagian: str = "latih") -> None:
+        """`bagian` memilih belahan MNIST yang goresannya diambil.
+
+        Data uji WAJIB diambil dari belahan `uji`. Kalau dua-duanya menimba
+        dari belahan yang sama, glifnya beririsan: 20 ribu angka × ~3,5
+        karakter itu ~70 ribu tarikan dari 60 ribu gambar, jadi goresan yang
+        sama pasti muncul di latih maupun uji. Rangkaiannya memang beda, tapi
+        tulisannya tidak — dan skornya jadi mengaku lebih pintar dari
+        sebenarnya.
+        """
         import tensorflow as tf
 
-        (citra, label), _ = tf.keras.datasets.mnist.load_data()
+        latih, uji = tf.keras.datasets.mnist.load_data()
+        citra, label = {"latih": latih, "uji": uji}[bagian]
 
         self._per_digit = {d: citra[label == d] for d in range(10)}
         self._koma = self._bikin_koma()
