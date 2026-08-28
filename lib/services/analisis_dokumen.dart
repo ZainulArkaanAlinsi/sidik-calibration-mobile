@@ -180,9 +180,9 @@ class AnalisisDokumen {
     return hasil;
   }
 
-  /// Baca dokumen sekali jalan: baris → pasangan label→nilai → tabel.
+  /// Baca dokumen sekali jalan: baris → tabel → pasangan label→nilai.
   ///
-  /// ## Kenapa ini ada, bukan memanggil ketiganya sendiri-sendiri
+  /// ## Kenapa ini ada, bukan memanggil keduanya sendiri-sendiri
   ///
   /// Deretan baris `label : nilai` **secara bentuk tidak bisa dibedakan** dari
   /// tabel dua kolom: sama-sama beberapa baris berturut-turut dengan kepingan
@@ -191,30 +191,63 @@ class AnalisisDokumen {
   /// isian dan sekali sebagai baris tabel. Teknisi mengisinya dua kali, atau
   /// lebih buruk: mengisi salah satunya dan mengira sudah selesai.
   ///
-  /// Yang memutuskan: **titik dua menang.** Dia bukti yang lebih kuat — tabel
-  /// dikenali dari keteraturan posisi (bisa kebetulan), pasangan dikenali dari
-  /// tanda baca yang memang dicetak untuk itu. Jadi baris yang sudah
-  /// menghasilkan pasangan tidak ikut ditawarkan ke pendeteksi tabel.
+  /// ## Yang memutuskan: titik dua di SETIAP baris, bukan di salah satunya
+  ///
+  /// Aturan pertama di sini "titik dua menang" tanpa syarat — baris yang
+  /// menghasilkan pasangan tidak ditawarkan lagi ke pendeteksi tabel. Itu
+  /// salah, dan salahnya diam: **kepala tabel boleh bertitik dua.** Lembar yang
+  /// menulis `Waktu:` di kepala kolomnya kehilangan baris kepalanya — dan kalau
+  /// tabelnya cuma kepala + satu baris data, deretnya jadi terlalu pendek dan
+  /// SELURUH tabel lenyap. Yang pulang cuma pasangan `Waktu → Hasil`: satu
+  /// isian yang terlihat wajar, tanpa satu pun tanda bahwa ada tabel yang
+  /// hilang.
+  ///
+  /// Pembedanya bukan ADA-tidaknya titik dua, tapi **peran barisnya**: yang
+  /// menentukan bentuk sebuah tabel itu BARIS DATANYA, bukan baris yang
+  /// kebetulan ada di atasnya. Jadi kolomnya dipatok dari baris tanpa titik dua
+  /// — baris yang tidak mungkin prosa — lalu deretnya dipanjangkan ke ATAS buat
+  /// memungut kepala yang cocok kolomnya, bertitik dua atau tidak.
+  ///
+  /// Itu sekalian menjaga dua hal yang gampang rusak kalau tabelnya dicari dari
+  /// semua baris tanpa pandang bulu:
+  ///
+  ///  - deretan `label : nilai` murni tidak punya satu pun baris jangkar, jadi
+  ///    tidak pernah jadi tabel — pasangannya menang, seperti aturan lama;
+  ///  - baris identitas di ATAS tabel (`Nama Alat : Tohnichi`) tidak ikut
+  ///    tertelan cuma karena kata pertamanya sejajar kolom pertama. Dia ditawar
+  ///    ke deret dan ditolak karena kepingannya tidak jatuh di kolom mana pun —
+  ///    penolakan yang cuma bisa terjadi kalau kolomnya dipatok dari data.
+  ///
+  /// Baris yang akhirnya dipakai tabel berhenti ditawarkan ke pendeteksi
+  /// pasangan, supaya isinya tidak diklaim dua kali.
   ({List<PasanganLabel> pasangan, List<TabelDokumen> tabel}) bacaDokumen(
     List<TeksTerbaca> terbaca,
   ) {
     final baris = kelompokkanBaris(terbaca);
 
-    final pasangan = <PasanganLabel>[];
-    final sisa = <BarisDokumen>[];
+    final tabel = <TabelDokumen>[];
+    final dipakaiTabel = <int>{};
 
-    for (final b in baris) {
-      final p = deteksiPasangan([b]);
-
-      if (p.isEmpty) {
-        sisa.add(b);
-      } else {
-        pasangan.addAll(p);
-      }
+    for (final calon in _tabelBerasal(
+      baris,
+      bolehJangkar: (b) => !_adaTitikDua(b),
+    )) {
+      tabel.add(calon.tabel);
+      dipakaiTabel.addAll(calon.indeks);
     }
 
-    return (pasangan: pasangan, tabel: deteksiTabel(sisa));
+    final pasangan = <PasanganLabel>[];
+
+    for (var i = 0; i < baris.length; i++) {
+      if (dipakaiTabel.contains(i)) continue;
+      pasangan.addAll(deteksiPasangan([baris[i]]));
+    }
+
+    return (pasangan: pasangan, tabel: tabel);
   }
+
+  /// Baris ini membawa titik dua di salah satu kepingannya?
+  bool _adaTitikDua(BarisDokumen b) => b.elemen.any((e) => _titikDua(e.teks));
 
   /// Cari tabel dari **keteraturan kolomnya**, bukan dari garis kotaknya.
   ///
@@ -236,12 +269,39 @@ class AnalisisDokumen {
     List<BarisDokumen> baris, {
     int minKolom = 2,
     int minBaris = 2,
+  }) => [
+    for (final t in _tabelBerasal(baris, minKolom: minKolom, minBaris: minBaris))
+      t.tabel,
+  ];
+
+  /// [deteksiTabel] plus **baris mana saja yang dipakai tiap tabel**.
+  ///
+  /// Cuma [bacaDokumen] yang butuh itu: dia harus tahu baris mana yang sudah
+  /// jadi tabel supaya tidak menawarkannya lagi ke pendeteksi pasangan, dan
+  /// mana yang tiap barisnya bertitik dua supaya tabel palsunya bisa dilepas.
+  /// Indeks, bukan barisnya sendiri: [BarisDokumen] itu record berisi List, dan
+  /// menyamakannya lewat `==` menggantungkan kebenaran ke identitas objek yang
+  /// kebetulan masih sama.
+  ///
+  /// [bolehJangkar] menyaring baris mana yang boleh MEMATOK kolom sebuah deret.
+  /// Baris yang ditolaknya tetap bisa ikut ke dalam tabel — dia cuma tidak
+  /// boleh jadi yang menentukan bentuknya.
+  List<({TabelDokumen tabel, List<int> indeks})> _tabelBerasal(
+    List<BarisDokumen> baris, {
+    int minKolom = 2,
+    int minBaris = 2,
+    bool Function(BarisDokumen)? bolehJangkar,
   }) {
-    final hasil = <TabelDokumen>[];
+    final hasil = <({TabelDokumen tabel, List<int> indeks})>[];
     var i = 0;
 
+    // Baris di bawah [batas] sudah dipakai tabel sebelumnya — pemanjangan ke
+    // atas tidak boleh mencurinya balik.
+    var batas = 0;
+
     while (i < baris.length) {
-      if (baris[i].elemen.length < minKolom) {
+      if (baris[i].elemen.length < minKolom ||
+          (bolehJangkar != null && !bolehJangkar(baris[i]))) {
         i++;
         continue;
       }
@@ -258,17 +318,27 @@ class AnalisisDokumen {
       ];
       final tinggi = _tinggiTengah(baris[i].elemen);
 
-      final deret = <BarisDokumen>[baris[i]];
-      var j = i + 1;
+      // Ke ATAS dulu: baris kepala tidak pernah jadi jangkar (dia teks cetak,
+      // sering bertitik dua) tapi wajib bisa ikut. Diadu ke kolom yang sudah
+      // dipatok data, kepala yang beneran kepala lolos dan baris identitas yang
+      // kebetulan sejajar tidak.
+      var mulai = i;
+      while (mulai > batas && _cocokKolom(baris[mulai - 1], pusat, tinggi)) {
+        mulai--;
+      }
 
+      var j = i + 1;
       while (j < baris.length && _cocokKolom(baris[j], pusat, tinggi)) {
-        deret.add(baris[j]);
         j++;
       }
 
-      if (deret.length >= minBaris) {
-        hasil.add(_rakitTabel(deret, pusat));
+      if (j - mulai >= minBaris) {
+        hasil.add((
+          tabel: _rakitTabel(baris.sublist(mulai, j), pusat),
+          indeks: [for (var k = mulai; k < j; k++) k],
+        ));
         i = j;
+        batas = j;
       } else {
         i++;
       }

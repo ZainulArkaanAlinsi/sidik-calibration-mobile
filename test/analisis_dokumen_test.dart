@@ -341,6 +341,98 @@ void main() {
     });
   });
 
+  group('titik dua di kepala tabel nggak boleh menelan tabelnya', () {
+    /// Tabel yang kepala kolomnya bertitik dua — bentuk yang beneran dicetak
+    /// lembar kerja (`Waktu:`, `Keterangan:`), dan yang dulu bikin tabelnya
+    /// hilang tanpa gejala.
+    List<TeksTerbaca> tabelKepalaTitikDua({int barisData = 2}) => [
+      kata('Waktu:', 100, 100),
+      kata('Hasil', 300, 100),
+      for (var b = 0; b < barisData; b++) ...[
+        kata('${(b + 1) * 10}', 100, 140 + b * 40),
+        kata('${49 + b},8', 300, 140 + b * 40),
+      ],
+    ];
+
+    test('kepalanya tetap jadi kepala, bukan pasangan label→nilai', () {
+      final d = analisis.bacaDokumen(tabelKepalaTitikDua());
+
+      expect(
+        d.tabel.single.kepala,
+        ['Waktu:', 'Hasil'],
+        reason: 'Dulu `Waktu:` bikin barisnya diklaim pendeteksi pasangan, dan '
+            'tabelnya pulang TANPA kepala — kolomnya jadi "1" dan "2", dan '
+            'nggak ada yang kelihatan gagal.',
+      );
+      expect(d.tabel.single.baris, [
+        ['10', '49,8'],
+        ['20', '50,8'],
+      ]);
+      expect(
+        d.pasangan,
+        isEmpty,
+        reason: 'Kepala tabel bukan isian. Diklaim dua-duanya, teknisi lihat '
+            '`Waktu → Hasil` sebagai satu isian di samping tabel yang sama.',
+      );
+    });
+
+    test('TABEL PENDEK: kepala + satu baris data nggak lenyap seluruhnya', () {
+      // Yang paling mahal dari keduanya. Kepalanya diambil pendeteksi
+      // pasangan, sisa deretnya tinggal SATU baris — di bawah `minBaris`, jadi
+      // tabelnya nggak pernah terbentuk. Yang pulang cuma pasangan
+      // `Waktu → Hasil`: satu isian yang kelihatan wajar, dan angka datanya
+      // hilang tanpa satu pun tanda.
+      final d = analisis.bacaDokumen(tabelKepalaTitikDua(barisData: 1));
+
+      expect(d.tabel, hasLength(1));
+      expect(d.tabel.single.kepala, ['Waktu:', 'Hasil']);
+      expect(d.tabel.single.baris, [
+        ['10', '49,8'],
+      ]);
+    });
+
+    test('yang milih JUMLAH barisnya, bukan ada-tidaknya titik dua', () {
+      // Pembedanya di sini. Deretan `label : nilai` bertitik dua di SETIAP
+      // barisnya — itu yang bikin dia deretan. Tabel berkepala titik dua cuma
+      // di kepalanya. Jadi aturannya bukan "ada titik dua → pasangan", tapi
+      // "titik dua di semua baris → pasangan".
+      final deretan = analisis.bacaDokumen([
+        kata('Merk', 100, 100),
+        kata(':', 200, 100),
+        kata('Fluke', 240, 100),
+        kata('Tipe', 100, 140),
+        kata(':', 200, 140),
+        kata('87V', 240, 140),
+      ]);
+
+      expect(deretan.tabel, isEmpty);
+      expect({for (final x in deretan.pasangan) x.label: x.nilai}, {
+        'Merk': 'Fluke',
+        'Tipe': '87V',
+      });
+    });
+
+    test('pasangan di LUAR tabel tetap pulang, tabelnya nggak menelan halaman', () {
+      final d = analisis.bacaDokumen([
+        kata('Nama', 100, 100),
+        kata('Alat', 160, 100),
+        kata(':', 240, 100),
+        kata('Tohnichi', 270, 100),
+        kata('Waktu:', 100, 220),
+        kata('Hasil', 300, 220),
+        kata('10', 100, 260),
+        kata('49,8', 300, 260),
+        kata('20', 100, 300),
+        kata('99,5', 300, 300),
+      ]);
+
+      expect({for (final x in d.pasangan) x.label: x.nilai}, {
+        'Nama Alat': 'Tohnichi',
+      });
+      expect(d.tabel.single.kepala, ['Waktu:', 'Hasil']);
+    });
+  });
+
   test('lembar yang belum pernah ada tetap kebaca strukturnya', () {
     // Bukan lembar mana pun yang dikenal aplikasi ini — justru itu intinya.
     // Nggak ada profil, nggak ada geometri, nggak ada parser.
