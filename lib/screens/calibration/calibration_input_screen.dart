@@ -285,6 +285,12 @@ class _FormState extends ConsumerState<_Form> {
   /// Diambil yang pertama diam-diam, lembar yang tabel identitasnya kebaca
   /// duluan bakal dipetakan sebagai titik ukur — dan yang salah nggak
   /// kelihatan sampai angkanya sudah masuk.
+  ///
+  /// Judulnya punya kunci SENDIRI, bukan menumpang judul layar peta kolom.
+  /// Dua pertanyaan ini beda dan berurutan: yang di sini "tabel yang mana",
+  /// yang di sana "kolomnya berarti apa". Menumpang, teknisi membaca
+  /// "Kolom mana artinya apa" di atas dialog yang isinya cuma daftar tabel —
+  /// pertanyaan yang belum ditanyakan, di layar yang belum sampai ke situ.
   Future<TabelSkema?> _pilihTabel(
     List<TabelSkema> tabel,
     AppLocalizations l10n,
@@ -294,8 +300,15 @@ class _FormState extends ConsumerState<_Form> {
     return showDialog<TabelSkema>(
       context: context,
       builder: (context) => SimpleDialog(
-        title: Text(l10n.petaKolomJudul),
+        title: Text(l10n.pilihTabelJudul),
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+            child: Text(
+              l10n.pilihTabelPengantar,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
           for (var i = 0; i < tabel.length; i++)
             SimpleDialogOption(
               onPressed: () => Navigator.of(context).pop(tabel[i]),

@@ -7542,6 +7542,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{jumlah, plural, =1{1 measurement point was filled in from the photo} other{{jumlah} measurement points were filled in from the photo}}. Check the numbers before submitting.'**
   String calibBacaFotoSelesai(int jumlah);
+
+  /// No description provided for @pilihTabelJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Which table should be used?'**
+  String get pilihTabelJudul;
+
+  /// No description provided for @pilihTabelPengantar.
+  ///
+  /// In en, this message translates to:
+  /// **'This photo has more than one table. Pick the one holding the measurement points — not the instrument identity table.'**
+  String get pilihTabelPengantar;
 }
 
 class _AppLocalizationsDelegate

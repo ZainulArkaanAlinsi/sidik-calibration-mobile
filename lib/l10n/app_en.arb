@@ -2550,5 +2550,7 @@
         "type": "int"
       }
     }
-  }
+  },
+  "pilihTabelJudul": "Which table should be used?",
+  "pilihTabelPengantar": "This photo has more than one table. Pick the one holding the measurement points — not the instrument identity table."
 }

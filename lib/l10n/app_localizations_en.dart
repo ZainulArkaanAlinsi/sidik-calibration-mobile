@@ -4292,4 +4292,11 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0. Check the numbers before submitting.';
   }
+
+  @override
+  String get pilihTabelJudul => 'Which table should be used?';
+
+  @override
+  String get pilihTabelPengantar =>
+      'This photo has more than one table. Pick the one holding the measurement points — not the instrument identity table.';
 }

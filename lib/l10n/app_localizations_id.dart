@@ -4221,4 +4221,11 @@ class AppLocalizationsId extends AppLocalizations {
   String calibBacaFotoSelesai(int jumlah) {
     return '$jumlah titik ukur diisi dari foto. Periksa angkanya sebelum kirim.';
   }
+
+  @override
+  String get pilihTabelJudul => 'Pakai tabel yang mana?';
+
+  @override
+  String get pilihTabelPengantar =>
+      'Foto ini punya lebih dari satu tabel. Pilih yang berisi titik ukur — bukan tabel identitas alat.';
 }

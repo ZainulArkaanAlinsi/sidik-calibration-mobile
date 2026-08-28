@@ -1921,5 +1921,7 @@
         "type": "int"
       }
     }
-  }
+  },
+  "pilihTabelJudul": "Pakai tabel yang mana?",
+  "pilihTabelPengantar": "Foto ini punya lebih dari satu tabel. Pilih yang berisi titik ukur — bukan tabel identitas alat."
 }
