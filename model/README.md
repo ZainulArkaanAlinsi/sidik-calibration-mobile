@@ -14,9 +14,45 @@ pelatihan, ekspor TFLite, dan pengukuran. Semuanya sudah dibuktikan jalan
 dari ujung ke ujung — memakai data **sintetis**, yaitu digit MNIST yang
 dirangkai jadi angka bergaya lembar kerja (`9000,5`).
 
+Buktinya, dari latihan 15 epoch atas 20 ribu contoh:
+
+| yang diukur | skor |
+|---|---|
+| Keras, 2000 sel uji | 92,6% sama persis |
+| **TFLite terkuantisasi, 500 sel segar** | **92,8% sama persis** |
+
+Angka kedua yang berarti: itu **berkas 255 KB yang benar-benar ditanam di HP**,
+sudah lewat kuantisasi, diuji pada sel yang goresannya belum pernah dilihat
+sama sekali. Kuantisasi ternyata tidak memakan ketelitian.
+
+> Angka ini pernah terbaca 96,2%. Itu salah, dan sebabnya layak diingat: data
+> latih dan uji sama-sama menimba goresan dari belahan MNIST yang sama. Dua
+> puluh ribu angka × ~3,5 karakter itu ~70 ribu tarikan dari 60 ribu gambar,
+> jadi goresan yang sama pasti muncul di kedua sisi. Rangkaiannya beda,
+> tulisannya tidak. Kebocoran itu menghadiahi 3,6 poin gratis.
+
+### Salahnya di mana
+
+Hampir semuanya **karakter yang hilang**, bukan karakter yang ketukar:
+
+    761,6   -> 76,6        55,06 -> 5,06        2,5   -> ,5
+    513,62  -> 51,62       32,8  -> 3,8        -52,4  -> -5,4
+
+`55,06 -> 5,06` itu kegagalan CTC yang paling khas: karakter kembar yang
+berdempetan butuh blank di antaranya, dan kalau modelnya tidak mengeluarkan
+blank itu, keduanya melebur jadi satu. Makin panjang angkanya makin sering
+salah — 4% di tiga karakter, 11% di tujuh.
+
+Yang perlu digarisbawahi: sel yang salah baca begini **kelihatan wajar**.
+`513,62` yang terbaca `51,62` bukan angka rusak, dia angka yang sah tapi keliru.
+Itu sebabnya rencana di bawah menaruh ambang keyakinan yang MENGOSONGKAN sel
+waktu ragu, bukan menebak.
+
 Model dari data sintetis **tidak bisa membaca lembar kerja Anda.** MNIST itu
-tulisan tangan orang lain, ditulis di kondisi lain, dengan gaya lain. Yang
-dibuktikan cuma bahwa jalurnya benar — bukan bahwa pembacaannya benar.
+tulisan tangan orang lain, ditulis di kondisi lain, dengan gaya lain. 92,8% di
+atas mengukur seberapa baik model membaca **digit MNIST yang dirangkai** — dan
+itu bukan ramalan sama sekali buat angka tulisan teknisi di kertas berfoto.
+Yang dibuktikan cuma bahwa jalurnya benar — bukan bahwa pembacaannya benar.
 
 Karena itu tiap model membawa `asal_data` di `meta.json`, dan sisi aplikasi
 **menolak memakai model bertanda `sintetis`** kecuali dinyalakan eksplisit.
@@ -63,8 +99,17 @@ Keluarannya di `keluaran/`:
 
 | berkas | isinya |
 |---|---|
-| `pengenal_angka.tflite` | modelnya, siap ditanam |
+| `pengenal_angka.tflite` | modelnya, siap ditanam (~255 KB) |
 | `meta.json` | alfabet, ukuran masukan, `asal_data`, dan skor ujinya |
+
+Uji penguraian CTC-nya jalan sendiri, tanpa TensorFlow, dalam hitungan detik:
+
+```bash
+python3 uji_pecahkan.py
+```
+
+Selama dia hijau, skor 0% berarti modelnya yang belum belajar — bukan
+pembacanya yang rusak. Dua gejala itu kelihatan sama persis dari luar.
 
 ## Bentuk modelnya, dan kenapa begitu
 
