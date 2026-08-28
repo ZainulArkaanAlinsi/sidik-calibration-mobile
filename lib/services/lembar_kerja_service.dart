@@ -252,6 +252,10 @@ class MockLembarKerjaService implements LembarKerjaService {
       'thermohygro' => contohBentukLembarKerjaThermohygro(
         untukAdmin: untukAdmin,
       ),
+      // TIDS ikut jalur pasangan sejak 28 Agt 2026. Sebelum baris ini, `tids`
+      // jatuh ke cabang `_` di bawah dan mode mock memajang bentuk pH buat
+      // lembar TIDS — nggak ada error, cuma lembar yang salah.
+      'tids' => contohBentukLembarKerjaTids(untukAdmin: untukAdmin),
       // Profil kosong / nggak dikenal SENGAJA jatuh ke pH, bukan lempar error —
       // sama kayak janji kontraknya (`docs/kontrak-api.md` §4).
       _ => contohBentukLembarKerja(untukAdmin: untukAdmin),

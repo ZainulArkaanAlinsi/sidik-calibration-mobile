@@ -478,7 +478,16 @@ class TitikState {
   /// Repeat 2 kosong lalu dibuang, Repeat 3 naik jadi Repeat 2 dan seluruh
   /// nomor pengulangan geser.
   Map<String, dynamic> toSubmissionPasangan() => {
-    'titik_ukur': titikUkur,
+    // `titikUkurEfektif`, bukan `titikUkur` — sama seperti [toSubmission].
+    //
+    // Buat tiga lembar pasangan pertama (Thermocouple, Gelas, Thermohygro)
+    // keduanya SELALU sama: set point-nya tercetak di kertas, jadi `titikUkur`
+    // memang set point. Lembar TIDS nggak: kertasnya nyetak tujuh baris
+    // Setpoint KOSONG, dan `titikUkur` di situ cuma nomor barisnya (1..7).
+    // Dibiarkan mentah, tiap sesi TIDS terkirim dengan set point 1, 2, 3…
+    // — angkanya lengkap, kolom `Correction` terbit, dan yang salah cuma
+    // titik yang diklaim sertifikat. Nggak ada satu pun error di jalur itu.
+    'titik_ukur': titikUkurEfektif ?? titikUkur,
     if (satuan.isNotEmpty) 'satuan': satuan,
     if (standardId != null) 'standard_id': standardId,
     if (parameter != null) 'parameter': parameter,
@@ -2247,10 +2256,30 @@ class LembarKerjaState {
     // grid yang kosong: backend memakai urutan `measurements` sebagai
     // `titik_ke`, jadi baris kosong di tengah bikin nomor titik sesudahnya
     // geser.
+    //
+    // `siapKirim` ikut menyaring DI SINI, sejajar dengan jalur datar di atas —
+    // dan tanpa itu baris yang angkanya keisi tapi kotak `Setpoint`-nya kosong
+    // lolos dengan set point KARANGAN. Rantainya:
+    //
+    //  1. `pasanganKosong` false (angkanya memang ada), jadi barisnya ikut.
+    //  2. `toSubmissionPasangan()` jatuh ke cadangan `?? titikUkur` — di TIDS
+    //     itu nomor barisnya (1..7).
+    //  3. Penjaga `titikTanpaSetPoint` cuma jalan di `if (!draft)`, jadi
+    //     SIMPAN DRAFT lewat tanpa ditahan.
+    //  4. Draftnya dibuka lagi: `_titikBelumDitentukan()` menulis angka itu
+    //     ke kotak `Setpoint` yang tadinya kosong.
+    //  5. Sekarang kotaknya KEISI, `siapKirim` jadi true, dan penjaga di
+    //     langkah 3 nggak bunyi lagi. Sertifikatnya terbit dengan set point 3
+    //     buat pembacaan yang diambil di 121,5.
+    //
+    // Nomor baris nggak pernah boleh menyamar jadi set point; baris tanpa
+    // identitas lebih baik nggak terkirim, persis seperti sembilan belas
+    // lembar lain. Yang menjaga teknisi nggak kehilangan angkanya diam-diam
+    // tetap `titikTanpaSetPoint`, yang MENAHAN kiriman sungguhan.
     final measurementsPasangan = bentuk.berpasangan
         ? [
             for (final t in titik.values)
-              if (!t.pasanganKosong) t.toSubmissionPasangan(),
+              if (!t.pasanganKosong && t.siapKirim) t.toSubmissionPasangan(),
           ]
         : null;
 
