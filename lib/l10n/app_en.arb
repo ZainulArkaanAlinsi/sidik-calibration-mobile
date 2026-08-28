@@ -2488,5 +2488,67 @@
       }
     }
   },
-  "skemaDinamisKosong": "No fields or tables were read from this photo. Try again with the whole sheet in frame."
+  "skemaDinamisKosong": "No fields or tables were read from this photo. Try again with the whole sheet in frame.",
+  "petaKolomJudul": "What each column means",
+  "petaKolomPengantar": "The app can see how many columns the sheet has, but it cannot know which one is the reference value and which are instrument readings. That is your call. Getting it backwards flips the sign of the correction on the certificate, with numbers that still look reasonable.",
+  "petaKolomAbaikan": "Ignore",
+  "petaKolomNilaiAcuan": "Reference value",
+  "petaKolomPembacaan": "Reading",
+  "petaKolomSatuan": "Unit",
+  "petaKolomSatuanBantu": "Typed, not read off the sheet — a wrong unit changes what every number means.",
+  "petaKolomSatuanWajib": "The unit is still empty.",
+  "petaKolomKolomKe": "Column {nomor}",
+  "@petaKolomKolomKe": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
+  "petaKolomContoh": "sample: {nilai}",
+  "@petaKolomContoh": {
+    "placeholders": {
+      "nilai": {
+        "type": "String"
+      }
+    }
+  },
+  "petaKolomTanpaAcuan": "No column has been marked as the reference value yet.",
+  "petaKolomAcuanDobel": "Two columns are marked as the reference value. A measurement point has only one.",
+  "petaKolomPembacaanKurang": "At least {jumlah} reading columns are needed — a single number has no spread to compute.",
+  "@petaKolomPembacaanKurang": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "petaKolomRingkas": "{jumlah, plural, =1{1 measurement point will be filled in} other{{jumlah} measurement points will be filled in}}.",
+  "@petaKolomRingkas": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "petaKolomDilewat": "{jumlah, plural, =1{1 row was skipped because its reference value is empty} other{{jumlah} rows were skipped because their reference value is empty}}.",
+  "@petaKolomDilewat": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "petaKolomTerapkan": "FILL MEASUREMENT POINTS",
+  "calibBacaFoto": "READ FROM SHEET PHOTO",
+  "calibBacaFotoGagal": "That photo could not be read. Try again with the whole sheet in frame.",
+  "calibBacaFotoTanpaTabel": "No table was read from this photo. Measurement points come from the table on the sheet, so make sure the table is in frame.",
+  "calibBacaFotoSelesai": "{jumlah, plural, =1{1 measurement point was filled in from the photo} other{{jumlah} measurement points were filled in from the photo}}. Check the numbers before submitting.",
+  "@calibBacaFotoSelesai": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  }
 }

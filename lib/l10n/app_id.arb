@@ -1859,5 +1859,67 @@
       }
     }
   },
-  "skemaDinamisKosong": "Tidak ada isian maupun tabel yang terbaca dari foto ini. Coba jepret ulang dengan seluruh lembar masuk frame."
+  "skemaDinamisKosong": "Tidak ada isian maupun tabel yang terbaca dari foto ini. Coba jepret ulang dengan seluruh lembar masuk frame.",
+  "petaKolomJudul": "Kolom mana artinya apa",
+  "petaKolomPengantar": "Aplikasi bisa lihat kertasnya punya berapa kolom, tapi tidak bisa tahu kolom mana nilai acuan dan mana pembacaan alat. Kamu yang menentukan. Salah tunjuk bikin koreksi di sertifikat kebalik tandanya, dengan angka yang tetap kelihatan wajar.",
+  "petaKolomAbaikan": "Abaikan",
+  "petaKolomNilaiAcuan": "Nilai acuan",
+  "petaKolomPembacaan": "Pembacaan",
+  "petaKolomSatuan": "Satuan",
+  "petaKolomSatuanBantu": "Diketik, bukan dibaca dari kertas — satuan yang salah mengubah arti seluruh angkanya.",
+  "petaKolomSatuanWajib": "Satuannya belum diisi.",
+  "petaKolomKolomKe": "Kolom {nomor}",
+  "@petaKolomKolomKe": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
+  "petaKolomContoh": "contoh isi: {nilai}",
+  "@petaKolomContoh": {
+    "placeholders": {
+      "nilai": {
+        "type": "String"
+      }
+    }
+  },
+  "petaKolomTanpaAcuan": "Belum ada kolom yang ditunjuk sebagai nilai acuan.",
+  "petaKolomAcuanDobel": "Dua kolom ditunjuk jadi nilai acuan. Satu titik ukur cuma punya satu.",
+  "petaKolomPembacaanKurang": "Butuh minimal {jumlah} kolom pembacaan — sebaran tidak bisa dihitung dari satu angka.",
+  "@petaKolomPembacaanKurang": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "petaKolomRingkas": "{jumlah} titik ukur akan diisi ke form.",
+  "@petaKolomRingkas": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "petaKolomDilewat": "{jumlah} baris dilewat karena nilai acuannya kosong.",
+  "@petaKolomDilewat": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "petaKolomTerapkan": "ISI TITIK UKUR",
+  "calibBacaFoto": "BACA DARI FOTO LEMBAR",
+  "calibBacaFotoGagal": "Fotonya tidak bisa dibaca. Coba jepret ulang dengan seluruh lembar masuk frame.",
+  "calibBacaFotoTanpaTabel": "Tidak ada tabel yang terbaca dari foto ini. Titik ukur diambil dari tabel di kertasnya, jadi pastikan tabelnya ikut kefoto.",
+  "calibBacaFotoSelesai": "{jumlah} titik ukur diisi dari foto. Periksa angkanya sebelum kirim.",
+  "@calibBacaFotoSelesai": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  }
 }

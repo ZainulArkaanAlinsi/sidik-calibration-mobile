@@ -8,10 +8,15 @@ import '../../models/calibration_draft.dart';
 import '../../models/category.dart';
 import '../../models/equipment_lookup.dart';
 import '../../models/standard.dart';
+import '../../models/skema_dokumen.dart';
 import '../../providers/calibration_input_provider.dart';
+import '../../services/ambil_foto_tabel.dart';
+import '../../services/analisis_dokumen.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/sidik_loader.dart';
+import 'peta_kolom_screen.dart';
+import 'skema_dinamis_screen.dart';
 
 /// Form input kalibrasi — kategori → alat → standar acuan, lalu titik ukur
 /// (target + pembacaan berulang) yang dinamis. Nggak nyoba nyaingin worksheet
@@ -104,6 +109,21 @@ class _Titik {
     TextEditingController(),
   ];
 
+  /// Isi pembacaan dari kertas, menumbuhkan kotaknya kalau pengulangannya
+  /// lebih banyak dari dua bawaan.
+  ///
+  /// Yang lebih dari kotak yang ada NGGAK boleh dibuang: pengulangan ke-5 yang
+  /// hilang bikin sebaran Type A dihitung dari empat angka padahal kertasnya
+  /// punya lima, dan hasilnya beda tanpa ada yang kelihatan salah.
+  void isiPembacaan(List<String> nilai) {
+    while (pembacaan.length < nilai.length) {
+      pembacaan.add(TextEditingController());
+    }
+    for (var i = 0; i < nilai.length; i++) {
+      pembacaan[i].text = nilai[i];
+    }
+  }
+
   void dispose() {
     nilaiTarget.dispose();
     satuan.dispose();
@@ -167,6 +187,150 @@ class _FormState extends ConsumerState<_Form> {
 
   void _tambahPembacaan(_Titik titik) =>
       setState(() => titik.pembacaan.add(TextEditingController()));
+
+  bool _membaca = false;
+
+  /// Foto lembar yang **belum dikenal aplikasi** → titik ukur terisi.
+  ///
+  /// ## Kenapa jalurnya mendarat di sini
+  ///
+  /// Layar ini yang dibuka waktu alatnya nggak punya profil lembar kerja
+  /// (`InstrumentPickerScreen` menjatuhkannya ke sini persis di cabang
+  /// `profil == null`). Jadi teknisi yang berdiri di layar ini adalah teknisi
+  /// yang memegang kertas yang aplikasinya nggak punya bentuknya — populasi
+  /// yang sama persis dengan yang dilayani jalur generik. Sebelum ini, satu-
+  /// satunya pilihannya mengetik ulang seluruh tabel dari kertas.
+  ///
+  /// ## Rantainya, dan di mana manusia masuk
+  ///
+  ///   kamera → OCR di perangkat → `AnalisisDokumen` (baris → pasangan &
+  ///   tabel) → `PembuatSkema` → **teknisi mengoreksi bacaannya** →
+  ///   **teknisi menetapkan arti kolom** → titik ukur terisi → backend hitung
+  ///
+  /// Dua langkah manusia itu nggak boleh dihapus buat "mempercepat". Yang
+  /// pertama karena OCR tulisan tangan nggak pernah dianggap pasti di repo ini;
+  /// yang kedua karena arti kolom mustahil ditebak tanpa menanam daftar ejaan
+  /// kepala kolom — dan menebaknya terbalik bikin koreksi di sertifikat kebalik
+  /// tandanya.
+  ///
+  /// Yang mendarat di form tetap **bacaan mentah**. Perhitungan GUM,
+  /// ketidakpastian, dan keputusan PASS/FAIL tetap punya backend dengan profil
+  /// alat yang sah — jalur ini nggak bisa menerbitkan sertifikat lewat pintu
+  /// belakang.
+  Future<void> _bacaDariFoto() async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    setState(() => _membaca = true);
+
+    try {
+      final foto = await ambilDanBacaTabel(ref);
+      if (!mounted || foto.dibatalkan) return;
+
+      if (foto.terbaca == null) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.calibBacaFotoGagal)),
+        );
+        return;
+      }
+
+      final dibaca = const AnalisisDokumen().bacaDokumen(foto.terbaca!);
+      final skema = const PembuatSkema().susun(
+        pasangan: dibaca.pasangan,
+        tabel: dibaca.tabel,
+      );
+
+      // Layar review-nya dibuka SEKALIPUN tabelnya nggak ketemu. Teknisi
+      // berhak lihat apa yang sebenarnya kebaca dari kertasnya sebelum
+      // disuruh jepret ulang — pesan "nggak ada tabel" tanpa buktinya bikin
+      // dia mengulang jepretan yang sama.
+      final dikoreksi = await navigator.push<SkemaDokumen>(
+        MaterialPageRoute(builder: (_) => SkemaDinamisScreen(skema: skema)),
+      );
+
+      if (!mounted || dikoreksi == null) return;
+
+      if (dikoreksi.tabel.isEmpty) {
+        messenger.showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 8),
+            content: Text(l10n.calibBacaFotoTanpaTabel),
+          ),
+        );
+        return;
+      }
+
+      final tabel = await _pilihTabel(dikoreksi.tabel, l10n);
+      if (!mounted || tabel == null) return;
+
+      final peta = await navigator.push<PetaKolomTerpakai>(
+        MaterialPageRoute(builder: (_) => PetaKolomScreen(tabel: tabel)),
+      );
+
+      if (!mounted || peta == null || peta.titik.isEmpty) return;
+
+      _isiTitik(peta);
+
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.calibBacaFotoSelesai(peta.titik.length))),
+      );
+    } finally {
+      if (mounted) setState(() => _membaca = false);
+    }
+  }
+
+  /// Dokumen boleh punya beberapa tabel; yang milih teknisi, bukan urutan.
+  ///
+  /// Diambil yang pertama diam-diam, lembar yang tabel identitasnya kebaca
+  /// duluan bakal dipetakan sebagai titik ukur — dan yang salah nggak
+  /// kelihatan sampai angkanya sudah masuk.
+  Future<TabelSkema?> _pilihTabel(
+    List<TabelSkema> tabel,
+    AppLocalizations l10n,
+  ) async {
+    if (tabel.length == 1) return tabel.single;
+
+    return showDialog<TabelSkema>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(l10n.petaKolomJudul),
+        children: [
+          for (var i = 0; i < tabel.length; i++)
+            SimpleDialogOption(
+              onPressed: () => Navigator.of(context).pop(tabel[i]),
+              child: Text(
+                tabel[i].kepala.isEmpty
+                    ? l10n.skemaDinamisTabel(i + 1)
+                    : tabel[i].kepala.where((k) => k.trim().isNotEmpty).join(' · '),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Ganti isi form dengan titik yang dipetakan dari kertas.
+  ///
+  /// MENGGANTI, bukan menambah: yang ada sebelumnya baris kosong bawaan layar,
+  /// dan menyisakannya bikin submit ditolak karena ada titik tanpa nilai —
+  /// dengan pesan yang nunjuk ke isian kosong, bukan ke fotonya.
+  void _isiTitik(PetaKolomTerpakai peta) {
+    setState(() {
+      for (final t in _titikList) {
+        t.dispose();
+      }
+      _titikList
+        ..clear()
+        ..addAll([
+          for (final d in peta.titik)
+            _Titik()
+              ..nilaiTarget.text = d.nilaiAcuan
+              ..satuan.text = peta.satuan
+              ..isiPembacaan(d.pembacaan),
+        ]);
+    });
+  }
 
   double? _parse(String text) => double.tryParse(text.trim().replaceAll(',', '.'));
 
@@ -384,6 +548,15 @@ class _FormState extends ConsumerState<_Form> {
           ],
         ),
         const SizedBox(height: AppSpacing.lg),
+
+        AppButton(
+          label: l10n.calibBacaFoto,
+          icon: Icons.document_scanner_outlined,
+          variant: AppButtonVariant.secondary,
+          isLoading: _membaca,
+          onPressed: _membaca ? null : _bacaDariFoto,
+        ),
+        const SizedBox(height: AppSpacing.md),
 
         for (var i = 0; i < _titikList.length; i++) ...[
           _TitikCard(

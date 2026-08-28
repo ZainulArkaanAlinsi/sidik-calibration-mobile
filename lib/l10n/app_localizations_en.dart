@@ -4196,4 +4196,100 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get skemaDinamisKosong =>
       'No fields or tables were read from this photo. Try again with the whole sheet in frame.';
+
+  @override
+  String get petaKolomJudul => 'What each column means';
+
+  @override
+  String get petaKolomPengantar =>
+      'The app can see how many columns the sheet has, but it cannot know which one is the reference value and which are instrument readings. That is your call. Getting it backwards flips the sign of the correction on the certificate, with numbers that still look reasonable.';
+
+  @override
+  String get petaKolomAbaikan => 'Ignore';
+
+  @override
+  String get petaKolomNilaiAcuan => 'Reference value';
+
+  @override
+  String get petaKolomPembacaan => 'Reading';
+
+  @override
+  String get petaKolomSatuan => 'Unit';
+
+  @override
+  String get petaKolomSatuanBantu =>
+      'Typed, not read off the sheet — a wrong unit changes what every number means.';
+
+  @override
+  String get petaKolomSatuanWajib => 'The unit is still empty.';
+
+  @override
+  String petaKolomKolomKe(int nomor) {
+    return 'Column $nomor';
+  }
+
+  @override
+  String petaKolomContoh(String nilai) {
+    return 'sample: $nilai';
+  }
+
+  @override
+  String get petaKolomTanpaAcuan =>
+      'No column has been marked as the reference value yet.';
+
+  @override
+  String get petaKolomAcuanDobel =>
+      'Two columns are marked as the reference value. A measurement point has only one.';
+
+  @override
+  String petaKolomPembacaanKurang(int jumlah) {
+    return 'At least $jumlah reading columns are needed — a single number has no spread to compute.';
+  }
+
+  @override
+  String petaKolomRingkas(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah measurement points will be filled in',
+      one: '1 measurement point will be filled in',
+    );
+    return '$_temp0.';
+  }
+
+  @override
+  String petaKolomDilewat(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah rows were skipped because their reference value is empty',
+      one: '1 row was skipped because its reference value is empty',
+    );
+    return '$_temp0.';
+  }
+
+  @override
+  String get petaKolomTerapkan => 'FILL MEASUREMENT POINTS';
+
+  @override
+  String get calibBacaFoto => 'READ FROM SHEET PHOTO';
+
+  @override
+  String get calibBacaFotoGagal =>
+      'That photo could not be read. Try again with the whole sheet in frame.';
+
+  @override
+  String get calibBacaFotoTanpaTabel =>
+      'No table was read from this photo. Measurement points come from the table on the sheet, so make sure the table is in frame.';
+
+  @override
+  String calibBacaFotoSelesai(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah measurement points were filled in from the photo',
+      one: '1 measurement point was filled in from the photo',
+    );
+    return '$_temp0. Check the numbers before submitting.';
+  }
 }
