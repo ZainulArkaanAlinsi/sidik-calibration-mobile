@@ -1071,7 +1071,7 @@
       }
     }
   },
-  "calibTiCmc": "CMC {cmc} · {jumlah} capability rows",
+  "calibTiCmc": "CMC {cmc} · {jumlah, plural, =1{1 capability row} other{{jumlah} capability rows}}",
   "@calibTiCmc": {
     "placeholders": {
       "cmc": {
@@ -2440,7 +2440,7 @@
       }
     }
   },
-  "fotoReviewJudul": "Check {jumlah} readings",
+  "fotoReviewJudul": "Check {jumlah, plural, =1{1 reading} other{{jumlah} readings}}",
   "@fotoReviewJudul": {
     "placeholders": {
       "jumlah": {
@@ -2460,7 +2460,7 @@
     }
   },
   "fotoReviewKeyakinanTakAda": "Confidence not reported",
-  "fotoReviewMasihKosong": "{jumlah} cells are still empty and must be filled.",
+  "fotoReviewMasihKosong": "{jumlah, plural, =1{1 cell is still empty and must be filled.} other{{jumlah} cells are still empty and must be filled.}}",
   "@fotoReviewMasihKosong": {
     "placeholders": {
       "jumlah": {
@@ -2480,7 +2480,7 @@
     }
   },
   "skemaDinamisSimpan": "SAVE WHAT WAS READ",
-  "skemaDinamisMasihKosong": "{jumlah} red-verdict fields are still empty and must be filled.",
+  "skemaDinamisMasihKosong": "{jumlah, plural, =1{1 red-verdict field is still empty and must be filled.} other{{jumlah} red-verdict fields are still empty and must be filled.}}",
   "@skemaDinamisMasihKosong": {
     "placeholders": {
       "jumlah": {

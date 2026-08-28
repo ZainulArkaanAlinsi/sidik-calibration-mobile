@@ -3640,7 +3640,7 @@ abstract class AppLocalizations {
   /// No description provided for @calibTiCmc.
   ///
   /// In en, this message translates to:
-  /// **'CMC {cmc} · {jumlah} capability rows'**
+  /// **'CMC {cmc} · {jumlah, plural, =1{1 capability row} other{{jumlah} capability rows}}'**
   String calibTiCmc(String cmc, int jumlah);
 
   /// No description provided for @calibTiBelumSiap.
@@ -7342,7 +7342,7 @@ abstract class AppLocalizations {
   /// No description provided for @fotoReviewJudul.
   ///
   /// In en, this message translates to:
-  /// **'Check {jumlah} readings'**
+  /// **'Check {jumlah, plural, =1{1 reading} other{{jumlah} readings}}'**
   String fotoReviewJudul(int jumlah);
 
   /// No description provided for @fotoReviewPengantar.
@@ -7378,7 +7378,7 @@ abstract class AppLocalizations {
   /// No description provided for @fotoReviewMasihKosong.
   ///
   /// In en, this message translates to:
-  /// **'{jumlah} cells are still empty and must be filled.'**
+  /// **'{jumlah, plural, =1{1 cell is still empty and must be filled.} other{{jumlah} cells are still empty and must be filled.}}'**
   String fotoReviewMasihKosong(int jumlah);
 
   /// No description provided for @skemaDinamisJudul.
@@ -7414,7 +7414,7 @@ abstract class AppLocalizations {
   /// No description provided for @skemaDinamisMasihKosong.
   ///
   /// In en, this message translates to:
-  /// **'{jumlah} red-verdict fields are still empty and must be filled.'**
+  /// **'{jumlah, plural, =1{1 red-verdict field is still empty and must be filled.} other{{jumlah} red-verdict fields are still empty and must be filled.}}'**
   String skemaDinamisMasihKosong(int jumlah);
 
   /// No description provided for @skemaDinamisKosong.

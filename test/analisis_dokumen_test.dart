@@ -341,6 +341,82 @@ void main() {
     });
   });
 
+  group('kata nyasar di sekitar tabel bukan baris tabel', () {
+    test('kata sekata di bawah tabel nggak jadi baris hantu', () {
+      // Temuan review. "Minimal separuh kolom kena" bocor di tabel DUA kolom:
+      // satu kepingan kena satu kolom sudah lolos. Lembar kerja penuh baris
+      // sekata di sekitar tabelnya — `Catatan`, `Halaman`, nama penandatangan.
+      //
+      // Dan ini bukan cuma jelek dilihat: `SkemaDinamisScreen` menggambar tiap
+      // sel tabel sebagai kotak isian, jadi baris hantu MENGUNDANG teknisi
+      // ngetik angka ke baris yang dokumennya sendiri nggak punya.
+      final d = analisis.bacaDokumen([
+        kata('Waktu', 100, 20),
+        kata('Hasil', 300, 20),
+        kata('10', 100, 60),
+        kata('49,8', 300, 60),
+        kata('20', 100, 100),
+        kata('99,5', 300, 100),
+        kata('Catatan', 100, 140),
+      ]);
+
+      expect(d.tabel.single.baris, [
+        ['10', '49,8'],
+        ['20', '99,5'],
+      ]);
+    });
+
+    test('HARGA YANG DIBAYAR: baris 2 kolom yang cuma satu selnya keisi ikut ditolak', () {
+      // Dipatok, bukan kelewat. Dari geometri doang, `20` tanpa hasil nggak
+      // bisa dibedain dari `Catatan` nyasar — dua-duanya satu kepingan kena
+      // satu kolom.
+      //
+      // Dipilih ditolak karena baris sekata di sekitar tabel jauh lebih sering
+      // daripada baris data yang separuh jadi, dan bedanya di akibat: yang satu
+      // ngundang angka karangan, yang satunya cuma ngilangin satu sel yang
+      // belum berisi apa-apa.
+      final d = analisis.bacaDokumen([
+        kata('Waktu', 100, 20),
+        kata('Hasil', 300, 20),
+        kata('10', 100, 60),
+        kata('49,8', 300, 60),
+        kata('20', 100, 100),
+      ]);
+
+      expect(d.tabel.single.baris, [
+        ['10', '49,8'],
+      ]);
+    });
+
+    test('tabel LEBAR tetap boleh bolong — aturannya nggak ikut mengetat', () {
+      // Di tabel 4 kolom, "separuh" sudah menuntut dua kolom, jadi syarat baru
+      // ini nggak nambah apa-apa. Sel bolong di tengah lembar yang belum
+      // selesai diisi tetap lolos, persis seperti sebelumnya.
+      final d = analisis.bacaDokumen([
+        kata('No', 100, 20),
+        kata('Set', 250, 20),
+        kata('Baca', 400, 20),
+        kata('Koreksi', 550, 20),
+        kata('1', 100, 60),
+        kata('50', 250, 60),
+        kata('49,8', 400, 60),
+        kata('0,2', 550, 60),
+        kata('2', 100, 100),
+        kata('100', 250, 100),
+      ]);
+
+      expect(
+        d.tabel.single.baris,
+        [
+          ['1', '50', '49,8', '0,2'],
+          ['2', '100', '', ''],
+        ],
+        reason: 'Baris yang separuh jadi di tabel lebar itu lembar yang lagi '
+            'diisi, dan dua kolom kena udah bukti cukup dia baris tabel.',
+      );
+    });
+  });
+
   group('titik dua di kepala tabel nggak boleh menelan tabelnya', () {
     /// Tabel yang kepala kolomnya bertitik dua — bentuk yang beneran dicetak
     /// lembar kerja (`Waktu:`, `Keterangan:`), dan yang dulu bikin tabelnya

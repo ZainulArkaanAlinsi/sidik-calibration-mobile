@@ -1980,7 +1980,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String calibTiCmc(String cmc, int jumlah) {
-    return 'CMC $cmc · $jumlah capability rows';
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah capability rows',
+      one: '1 capability row',
+    );
+    return 'CMC $cmc · $_temp0';
   }
 
   @override
@@ -4119,7 +4125,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String fotoReviewJudul(int jumlah) {
-    return 'Check $jumlah readings';
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah readings',
+      one: '1 reading',
+    );
+    return 'Check $_temp0';
   }
 
   @override
@@ -4143,7 +4155,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String fotoReviewMasihKosong(int jumlah) {
-    return '$jumlah cells are still empty and must be filled.';
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah cells are still empty and must be filled.',
+      one: '1 cell is still empty and must be filled.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -4166,7 +4184,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String skemaDinamisMasihKosong(int jumlah) {
-    return '$jumlah red-verdict fields are still empty and must be filled.';
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah red-verdict fields are still empty and must be filled.',
+      one: '1 red-verdict field is still empty and must be filled.',
+    );
+    return '$_temp0';
   }
 
   @override

@@ -375,6 +375,25 @@ class AnalisisDokumen {
   /// yang ADA harus dekat ke salah satu kolom, dan minimal separuh kolomnya
   /// kena. Menuntut semuanya bikin deretnya putus di baris pertama yang
   /// selnya bolong.
+  ///
+  /// ## Kenapa minimal DUA kolom, bukan cukup separuh
+  ///
+  /// "Separuh" sendirian bocor di tabel dua kolom: satu kepingan kena satu
+  /// kolom sudah lolos. Lembar kerja penuh baris sekata di sekitar tabelnya —
+  /// `Catatan`, `Halaman`, nama penandatangan — dan yang kebetulan sejajar
+  /// kolom pertama ikut masuk sebagai baris `['Catatan', '']`.
+  ///
+  /// Itu bukan cuma baris nyasar yang jelek dilihat. `SkemaDinamisScreen`
+  /// menggambar tiap sel tabel sebagai kotak isian, jadi baris hantu itu
+  /// **mengundang teknisi mengetik angka ke baris yang dokumennya sendiri
+  /// tidak punya** — pengukuran yang lahir dari ketiadaan.
+  ///
+  /// Harganya dibayar sadar: baris tabel dua kolom yang cuma satu selnya
+  /// terisi ikut ditolak. Itu kehilangan, dan ada test-nya
+  /// (`HARGA YANG DIBAYAR`) supaya kelihatan. Dipilih begitu karena baris
+  /// sekata di sekitar tabel jauh lebih sering daripada baris data yang
+  /// separuh jadi, dan yang satu mengundang angka karangan sementara yang
+  /// satunya cuma menghilangkan satu sel yang belum berisi apa-apa.
   bool _cocokKolom(
     BarisDokumen b,
     List<(double, double)> pusat,
@@ -390,7 +409,7 @@ class AnalisisDokumen {
       kena.add(k);
     }
 
-    return kena.length * 2 >= pusat.length;
+    return kena.length >= 2 && kena.length * 2 >= pusat.length;
   }
 
   /// Kolom terdekat, atau null kalau tidak ada yang cukup dekat.
