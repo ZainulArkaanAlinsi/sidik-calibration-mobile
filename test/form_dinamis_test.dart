@@ -98,7 +98,7 @@ void main() {
       ),
     );
 
-    await t.pumpWidget(_bungkus(skema, {}, (_, __) {}));
+    await t.pumpWidget(_bungkus(skema, {}, (_, _) {}));
 
     expect(find.text('Before adjustment Reading'), findsOneWidget);
     expect(find.text('SIDIK-FM-CAL-0510 · Rev.5'), findsOneWidget);
@@ -124,7 +124,7 @@ void main() {
       ),
     );
 
-    await t.pumpWidget(_bungkus(skema, {}, (_, __) {}));
+    await t.pumpWidget(_bungkus(skema, {}, (_, _) {}));
 
     expect(find.text('Effect of Tare'), findsOneWidget);
     expect(find.text('Position'), findsOneWidget);
@@ -175,7 +175,7 @@ void main() {
       ),
     );
 
-    await t.pumpWidget(_bungkus(skema, {}, (_, __) {}));
+    await t.pumpWidget(_bungkus(skema, {}, (_, _) {}));
 
     expect(
       find.text('5?'),
@@ -207,7 +207,7 @@ void main() {
       ),
     );
 
-    await t.pumpWidget(_bungkus(skema, {}, (_, __) {}));
+    await t.pumpWidget(_bungkus(skema, {}, (_, _) {}));
 
     expect(find.text('Victor 123'), findsOneWidget);
     expect(find.text('Tercetak'), findsOneWidget);
@@ -226,7 +226,7 @@ void main() {
       ),
     );
 
-    await t.pumpWidget(_bungkus(skema, {}, (_, __) {}));
+    await t.pumpWidget(_bungkus(skema, {}, (_, _) {}));
 
     expect(find.textContaining('Turbidimeter'), findsOneWidget);
   });
@@ -264,7 +264,7 @@ void main() {
       'ringkasan': const {},
     });
 
-    await t.pumpWidget(_bungkus(skema, {}, (_, __) {}));
+    await t.pumpWidget(_bungkus(skema, {}, (_, _) {}));
 
     // Tiga kotak: yang tengah kosong tapi ADA, jadi angka ketiga nggak naik.
     expect(find.byType(TextFormField), findsNWidgets(3));
@@ -301,7 +301,7 @@ void main() {
       'ringkasan': const {},
     });
 
-    await t.pumpWidget(_bungkus(skema, {}, (_, __) {}));
+    await t.pumpWidget(_bungkus(skema, {}, (_, _) {}));
 
     // `pumpWidget` NGGAK melempar waktu build gagal — errornya ditangkap
     // framework, jadi yang diperiksa `takeException`.
