@@ -2423,5 +2423,7 @@
     "placeholders": {
       "jumlah": { "type": "int" }
     }
-  }
+  },
+  "dokReviewTakBisaDitunjuk": "Can't point to where this value came from",
+  "dokReviewKetukUntukSorot": "Tap a value to see where it came from"
 }

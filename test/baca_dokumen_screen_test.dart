@@ -11,6 +11,7 @@ import 'package:sidik_calibration/screens/dokumen/baca_dokumen_screen.dart';
 import 'package:sidik_calibration/services/api_client.dart';
 import 'package:sidik_calibration/services/dokumen_generik_service.dart';
 import 'package:sidik_calibration/services/photo_source.dart';
+import 'package:sidik_calibration/widgets/dinamis/sorot_kotak_foto.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 
 /// Alur layar: tekan tombol foto -> kamera -> layanan -> form yang bentuknya
@@ -142,6 +143,7 @@ SkemaDinamis _skemaViscometer() => SkemaDinamis.fromJson({
                 'status': 'REVIEW_REQUIRED',
                 'sumber': 'handwriting',
                 'keyakinan': 0.42,
+                'bbox': {'x': 100, 'y': 200, 'width': 60, 'height': 24},
               },
             ],
           ],
@@ -439,5 +441,84 @@ void main() {
     // Teknisi HARUS tahu koreksinya belum mendarat — didiamkan, dia ninggalin
     // layar percaya sudah tersimpan.
     expect(find.textContaining('belum tersimpan'), findsOneWidget);
+  });
+
+  testWidgets('foto aslinya ikut tampil di layar review', (t) async {
+    final layanan = _LayananPalsu(
+      () => HasilBacaDokumen.berhasil(_skemaViscometer(), 42),
+    );
+
+    await t.pumpWidget(bungkus(sumber: _FotoPalsu(foto), layanan: layanan));
+    await t.tap(find.text('Foto lembar'));
+    await t.pumpAndSettle();
+
+    // Foto DAN data di layar yang sama — kalau teknisi harus pindah layar buat
+    // lihat coretan aslinya, dia bakal berhenti membandingkan.
+    expect(find.byType(SorotKotakFoto), findsOneWidget);
+    expect(find.text('Spindle Measurement'), findsOneWidget);
+    expect(
+      find.text('Ketuk nilainya buat lihat asalnya di foto'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('ketuk sel bertkotak -> kotaknya diteruskan ke penyorot', (
+    t,
+  ) async {
+    await t.binding.setSurfaceSize(const Size(900, 1400));
+    addTearDown(() => t.binding.setSurfaceSize(null));
+
+    final layanan = _LayananPalsu(
+      () => HasilBacaDokumen.berhasil(_skemaViscometer(), 42),
+    );
+
+    await t.pumpWidget(bungkus(sumber: _FotoPalsu(foto), layanan: layanan));
+    await t.tap(find.text('Foto lembar'));
+    await t.pumpAndSettle();
+
+    final sel = find.widgetWithText(TextFormField, '99');
+    await t.ensureVisible(sel);
+    await t.pumpAndSettle();
+    await t.tap(sel);
+    await t.pumpAndSettle();
+
+    final sorot = t.widget<SorotKotakFoto>(find.byType(SorotKotakFoto));
+
+    expect(sorot.kotak, isNotNull);
+    expect(sorot.kotak!.x, 100);
+    expect(sorot.kotak!.y, 200);
+    // Ajakan awalnya ilang begitu ada yang disorot.
+    expect(
+      find.text('Ketuk nilainya buat lihat asalnya di foto'),
+      findsNothing,
+    );
+  });
+
+  testWidgets('nilai tanpa kotak asal: dikasih tau, bukan didiamkan', (
+    t,
+  ) async {
+    await t.binding.setSurfaceSize(const Size(900, 1400));
+    addTearDown(() => t.binding.setSurfaceSize(null));
+
+    final layanan = _LayananPalsu(
+      () => HasilBacaDokumen.berhasil(_skemaViscometer(), 42),
+    );
+
+    await t.pumpWidget(bungkus(sumber: _FotoPalsu(foto), layanan: layanan));
+    await t.tap(find.text('Foto lembar'));
+    await t.pumpAndSettle();
+
+    // Sel kolom 0 sengaja nggak punya bbox di fixture.
+    final sel = find.widgetWithText(TextFormField, '10');
+    await t.ensureVisible(sel);
+    await t.pumpAndSettle();
+    await t.tap(sel);
+    await t.pumpAndSettle();
+
+    // Diketuk lalu nggak kelihatan apa-apa bikin teknisi ngira layarnya rusak.
+    expect(
+      find.text("Asal nilai ini nggak bisa ditunjuk di foto"),
+      findsOneWidget,
+    );
   });
 }

@@ -4145,4 +4145,12 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get dokSimpanBelumAda => 'Belum ada yang dikoreksi';
+
+  @override
+  String get dokReviewTakBisaDitunjuk =>
+      'Asal nilai ini nggak bisa ditunjuk di foto';
+
+  @override
+  String get dokReviewKetukUntukSorot =>
+      'Ketuk nilainya buat lihat asalnya di foto';
 }

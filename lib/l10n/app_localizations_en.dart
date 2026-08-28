@@ -4174,4 +4174,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dokSimpanBelumAda => 'Nothing corrected yet';
+
+  @override
+  String get dokReviewTakBisaDitunjuk =>
+      'Can\'t point to where this value came from';
+
+  @override
+  String get dokReviewKetukUntukSorot =>
+      'Tap a value to see where it came from';
 }

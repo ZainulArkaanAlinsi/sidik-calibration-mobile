@@ -297,9 +297,13 @@ class SelDinamisView extends StatelessWidget {
         signed: true,
       ),
       onChanged: (v) => onUbah(sel.kunci, v),
-      onTap: sel.bbox == null || onSorot == null
-          ? null
-          : () => onSorot!(sel.bbox, sel.halaman),
+      // Dipanggil JUGA waktu selnya nggak punya kotak asal (`bbox` null).
+      //
+      // Beda dari tombol di field tunggal, yang absennya sudah menjelaskan
+      // sendiri: sel tabel nggak punya penanda apa pun, jadi mengetuk lalu
+      // nggak terjadi apa-apa bikin teknisi ngira layarnya rusak. Yang
+      // menerima yang memutuskan mau bilang apa soal `null` itu.
+      onTap: onSorot == null ? null : () => onSorot!(sel.bbox, sel.halaman),
       decoration: InputDecoration(
         isDense: true,
         border: const OutlineInputBorder(),

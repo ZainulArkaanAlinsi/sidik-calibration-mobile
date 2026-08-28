@@ -15,12 +15,16 @@
 /// - Batal ambil foto bukan error, jadi nggak ada pesan gagal buat kasus itu.
 library;
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../models/skema_dinamis.dart';
 import '../../providers/dokumen_generik_provider.dart';
 import '../../widgets/dinamis/form_dinamis.dart';
+import '../../widgets/dinamis/sorot_kotak_foto.dart';
 
 class BacaDokumenScreen extends ConsumerStatefulWidget {
   const BacaDokumenScreen({super.key});
@@ -64,11 +68,9 @@ class _BacaDokumenScreenState extends ConsumerState<BacaDokumenScreen> {
           onMulaiLagi: () =>
               ref.read(bacaDokumenProvider.notifier).ulangDariAwal(),
         ),
-        DokumenTerbaca(:final skema) => FormDinamis(
+        DokumenTerbaca(:final skema, :final foto) => _LayarReview(
           skema: skema,
-          nilai: ref.watch(koreksiDokumenProvider),
-          onUbah: (kunci, nilai) =>
-              ref.read(koreksiDokumenProvider.notifier).ubah(kunci, nilai),
+          foto: foto,
         ),
       },
       floatingActionButton: switch (keadaan) {
@@ -229,6 +231,107 @@ class _Gagal extends StatelessWidget {
             child: Text(l10n.dokBacaMulaiLagi),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Layar review: foto aslinya di atas, data hasil baca di bawah.
+///
+/// Dua-duanya di layar yang SAMA, dan itu inti gunanya. Kalau teknisi harus
+/// pindah layar buat melihat coretan aslinya, membandingkan jadi mahal dan dia
+/// bakal berhenti membandingkan — lalu angka hasil baca lolos tanpa diperiksa
+/// siapa pun.
+class _LayarReview extends ConsumerStatefulWidget {
+  const _LayarReview({required this.skema, required this.foto});
+
+  final SkemaDinamis skema;
+  final File foto;
+
+  @override
+  ConsumerState<_LayarReview> createState() => _LayarReviewState();
+}
+
+class _LayarReviewState extends ConsumerState<_LayarReview> {
+  /// Kotak yang lagi disorot. Keadaan LAYAR, bukan keadaan domain — nggak
+  /// perlu ikut provider, dan nggak boleh ikut tersimpan ke mana pun.
+  KotakBatas? _sorot;
+
+  /// Nilai yang barusan diketuk tapi nggak punya kotak asal.
+  bool _takBisaDitunjuk = false;
+
+  void _sorotkan(KotakBatas? kotak, int halaman) {
+    setState(() {
+      _sorot = kotak;
+      // Dibedakan dari "belum ada yang diketuk": teknisi yang mengetuk lalu
+      // nggak melihat apa-apa pantas dikasih tahu kenapa, bukan dibiarkan
+      // mengira layarnya rusak.
+      _takBisaDitunjuk = kotak == null;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    return Column(
+      children: [
+        SizedBox(
+          // Sepertiga layar: cukup buat melihat DI MANA sorotannya, tanpa
+          // menggencet formnya yang justru harus bisa diketik.
+          height: MediaQuery.sizeOf(context).height / 3,
+          width: double.infinity,
+          child: Stack(
+            children: [
+              SorotKotakFoto(foto: widget.foto, kotak: _sorot),
+              Positioned(
+                left: 8,
+                right: 8,
+                bottom: 8,
+                child: _KeteranganSorot(
+                  pesan: _takBisaDitunjuk
+                      ? l10n.dokReviewTakBisaDitunjuk
+                      : (_sorot == null ? l10n.dokReviewKetukUntukSorot : null),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: FormDinamis(
+            skema: widget.skema,
+            nilai: ref.watch(koreksiDokumenProvider),
+            onUbah: (kunci, nilai) =>
+                ref.read(koreksiDokumenProvider.notifier).ubah(kunci, nilai),
+            onSorot: _sorotkan,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _KeteranganSorot extends StatelessWidget {
+  const _KeteranganSorot({required this.pesan});
+
+  /// `null` = ada sorotan aktif, jadi nggak perlu keterangan apa pun.
+  final String? pesan;
+
+  @override
+  Widget build(BuildContext context) {
+    if (pesan == null) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        pesan!,
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.bodySmall,
       ),
     );
   }

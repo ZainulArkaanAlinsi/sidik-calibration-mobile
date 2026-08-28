@@ -7446,6 +7446,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nothing corrected yet'**
   String get dokSimpanBelumAda;
+
+  /// No description provided for @dokReviewTakBisaDitunjuk.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t point to where this value came from'**
+  String get dokReviewTakBisaDitunjuk;
+
+  /// No description provided for @dokReviewKetukUntukSorot.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a value to see where it came from'**
+  String get dokReviewKetukUntukSorot;
 }
 
 class _AppLocalizationsDelegate
