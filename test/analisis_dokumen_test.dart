@@ -412,6 +412,87 @@ void main() {
       });
     });
 
+    test('pasangan RINGKAS di atas tabel berkepala nggak ikut terserap', () {
+      // Temuan review, dan regresi dari perbaikan sebelumnya. `Status:` dan
+      // `Lulus` jatuh PAS di dua kolom tabel di bawahnya. Dipanjangkan ke atas
+      // asal geometrinya cocok, dia keserap jadi kepala — dan yang rusak dua
+      // hal sekaligus: pasangan `Status → Lulus` hilang, DAN `Waktu`/`Hasil`
+      // yang kepala beneran turun pangkat jadi baris data.
+      //
+      // Bedanya dari `Nama Alat : Tohnichi` yang sudah ketahan: yang itu
+      // ditolak karena labelnya beberapa kepingan sehingga ada yang nggak
+      // jatuh di kolom mana pun. Pasangan sekepingan kayak `Status:` nggak
+      // ketahan sama penjagaan itu.
+      final d = analisis.bacaDokumen([
+        kata('Status:', 100, 60),
+        kata('Lulus', 300, 60),
+        kata('Waktu', 100, 100),
+        kata('Hasil', 300, 100),
+        kata('10', 100, 140),
+        kata('49,8', 300, 140),
+        kata('20', 100, 180),
+        kata('99,5', 300, 180),
+      ]);
+
+      expect({for (final x in d.pasangan) x.label: x.nilai}, {'Status': 'Lulus'});
+      expect(
+        d.tabel.single.kepala,
+        ['Waktu', 'Hasil'],
+        reason: 'Deretnya SUDAH punya kepala. Nggak ada yang perlu dipungut '
+            'dari atas, dan mungut tetap bikin kepalanya salah sebaris.',
+      );
+      expect(d.tabel.single.baris, [
+        ['10', '49,8'],
+        ['20', '99,5'],
+      ]);
+    });
+
+    test('mungut ke atas maksimal SEBARIS — satu tabel satu kepala', () {
+      final d = analisis.bacaDokumen([
+        kata('Merk:', 100, 20),
+        kata('Fluke', 300, 20),
+        kata('Waktu:', 100, 60),
+        kata('Hasil', 300, 60),
+        kata('10', 100, 100),
+        kata('49,8', 300, 100),
+      ]);
+
+      expect(
+        {for (final x in d.pasangan) x.label: x.nilai},
+        {'Merk': 'Fluke'},
+        reason: 'Baris di atas kepala itu isi halaman, bukan tabel. Dibiarkan '
+            'memanjang terus, seluruh blok identitas di atas tabel bisa '
+            'kesedot sebaris demi sebaris.',
+      );
+      expect(d.tabel.single.kepala, ['Waktu:', 'Hasil']);
+    });
+
+    test('BATAS YANG DIKETAHUI: pasangan di atas tabel TANPA kepala keserap', () {
+      // Ini sengaja dipatok, bukan kelewat. Bentuknya IDENTIK dengan temuan
+      // asli yang harus diperbaiki (`Waktu:` + `Hasil` di atas data polos) —
+      // sama-sama satu baris bertitik dua di atas tabel yang nggak punya
+      // kepala lain. Nggak ada aturan dari geometri & tanda baca yang bisa
+      // misahin "ini kepala" dari "ini isian" di situ; yang bisa cuma arti
+      // katanya.
+      //
+      // Yang dipilih: DISERAP jadi kepala. Alasannya lembar kerja lab hampir
+      // selalu nyetak kepala kolom, jadi baris bertitik dua tepat di atas data
+      // polos lebih mungkin kepala daripada isian. Dan kalaupun tebakannya
+      // meleset, teknisi masih lihat teksnya di kepala tabel — beda dari
+      // sebaliknya, yang bikin tabelnya lenyap tanpa jejak.
+      final d = analisis.bacaDokumen([
+        kata('Status:', 100, 60),
+        kata('Lulus', 300, 60),
+        kata('10', 100, 100),
+        kata('49,8', 300, 100),
+        kata('20', 100, 140),
+        kata('99,5', 300, 140),
+      ]);
+
+      expect(d.tabel.single.kepala, ['Status:', 'Lulus']);
+      expect(d.pasangan, isEmpty);
+    });
+
     test('pasangan di LUAR tabel tetap pulang, tabelnya nggak menelan halaman', () {
       final d = analisis.bacaDokumen([
         kata('Nama', 100, 100),

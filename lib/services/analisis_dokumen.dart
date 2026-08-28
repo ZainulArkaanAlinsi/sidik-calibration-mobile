@@ -318,18 +318,39 @@ class AnalisisDokumen {
       ];
       final tinggi = _tinggiTengah(baris[i].elemen);
 
-      // Ke ATAS dulu: baris kepala tidak pernah jadi jangkar (dia teks cetak,
-      // sering bertitik dua) tapi wajib bisa ikut. Diadu ke kolom yang sudah
-      // dipatok data, kepala yang beneran kepala lolos dan baris identitas yang
-      // kebetulan sejajar tidak.
-      var mulai = i;
-      while (mulai > batas && _cocokKolom(baris[mulai - 1], pusat, tinggi)) {
-        mulai--;
-      }
-
       var j = i + 1;
       while (j < baris.length && _cocokKolom(baris[j], pusat, tinggi)) {
         j++;
+      }
+
+      // Ke ATAS: cuma buat MELENGKAPI kepala yang belum ada, sebaris saja.
+      //
+      // Pemanjangan ini ada karena kepala kolom tidak pernah boleh jadi jangkar
+      // (dia teks cetak, sering bertitik dua) padahal wajib bisa ikut. Tapi
+      // memanjang selama geometrinya cocok saja SALAH, dan salahnya makan dua
+      // hal sekaligus:
+      //
+      //     Status:   Lulus        ← pasangan, bukan kepala
+      //     Waktu     Hasil        ← kepala yang sebenarnya
+      //     10        49,8
+      //
+      // `Status:` dan `Lulus` jatuh pas di dua kolom yang sama. Diserap, dia
+      // jadi kepala, `Waktu`/`Hasil` turun pangkat jadi baris data, dan
+      // pasangan `Status → Lulus` hilang sama sekali. Yang tersisa tabel yang
+      // kelihatan wajar dengan kepala yang salah.
+      //
+      // Jadi syaratnya diikat ke ALASAN pemanjangannya: deretnya belum punya
+      // kepala. Begitu baris pertama deret sudah terbaca sebagai kepala,
+      // tidak ada yang perlu dipungut — dan baris di atasnya dibiarkan jadi
+      // pasangan, seperti seharusnya. Maksimal SEBARIS, karena satu tabel cuma
+      // punya satu kepala; baris di atas kepala itu isi halaman, bukan tabel.
+      var mulai = i;
+
+      if (!_bisaJadiKepala(baris[i], pusat, tinggi) &&
+          mulai > batas &&
+          _cocokKolom(baris[mulai - 1], pusat, tinggi) &&
+          _bisaJadiKepala(baris[mulai - 1], pusat, tinggi)) {
+        mulai--;
       }
 
       if (j - mulai >= minBaris) {
@@ -406,34 +427,52 @@ class AnalisisDokumen {
     return jarak <= tinggi * 2 ? terdekat : null;
   }
 
+  /// Isi satu baris, ditaruh di kolomnya masing-masing.
+  List<String> _selBaris(
+    BarisDokumen b,
+    List<(double, double)> pusat,
+    double tinggi,
+  ) {
+    final sel = List.filled(pusat.length, '');
+
+    for (final e in b.elemen) {
+      final k = _kolomTerdekat(e.kotak, pusat, tinggi);
+      if (k == null) continue;
+
+      // Digabung, bukan ditimpa: dua kata di satu sel (`PT Gracia`) datang
+      // sebagai dua kepingan, dan yang belakangan menimpa yang duluan bikin
+      // selnya kehilangan separuh isinya tanpa ada yang kelihatan hilang.
+      sel[k] = sel[k].isEmpty ? e.teks.trim() : '${sel[k]} ${e.teks.trim()}';
+    }
+
+    return sel;
+  }
+
+  /// Baris ini terbaca sebagai KEPALA kolom — tidak satu pun selnya angka.
+  ///
+  /// Satu-satunya penentu "ini kepala apa bukan", dipakai [_rakitTabel] waktu
+  /// merakit DAN [_tabelBerasal] waktu memutuskan perlu-tidaknya memanjang ke
+  /// atas. Dua salinan aturan ini bisa beda diam-diam, dan bedanya bakal
+  /// muncul sebagai tabel yang kepalanya digeser sebaris.
+  bool _bisaJadiKepala(
+    BarisDokumen b,
+    List<(double, double)> pusat,
+    double tinggi,
+  ) => _selBaris(b, pusat, tinggi).every((s) => s.isEmpty || !_miripAngka(s));
+
   TabelDokumen _rakitTabel(
     List<BarisDokumen> deret,
     List<(double, double)> pusat,
   ) {
     final tinggi = _tinggiTengah(deret.first.elemen);
 
-    List<String> selBaris(BarisDokumen b) {
-      final sel = List.filled(pusat.length, '');
-
-      for (final e in b.elemen) {
-        final k = _kolomTerdekat(e.kotak, pusat, tinggi);
-        if (k == null) continue;
-
-        // Digabung, bukan ditimpa: dua kata di satu sel (`PT Gracia`) datang
-        // sebagai dua kepingan, dan yang belakangan menimpa yang duluan bikin
-        // selnya kehilangan separuh isinya tanpa ada yang kelihatan hilang.
-        sel[k] = sel[k].isEmpty ? e.teks.trim() : '${sel[k]} ${e.teks.trim()}';
-      }
-
-      return sel;
-    }
+    List<String> selBaris(BarisDokumen b) => _selBaris(b, pusat, tinggi);
 
     // Baris pertama dianggap KEPALA cuma kalau tidak satu pun selnya angka.
     // Tabel yang langsung mulai dari data (lembar tanpa baris kepala) tidak
     // boleh kehilangan baris pertamanya jadi "judul".
-    final pertama = selBaris(deret.first);
-    final kepala = pertama.every((s) => s.isEmpty || !_miripAngka(s))
-        ? pertama
+    final kepala = _bisaJadiKepala(deret.first, pusat, tinggi)
+        ? selBaris(deret.first)
         : <String>[];
 
     return (
