@@ -724,6 +724,25 @@
   "calibTiTanpaSensorKeterangan": "Sensornya NGGAK ikut dikalibrasi. Kalibrator disambung ke terminal indikator dan berperan jadi sensor tiruan, jadi yang diperiksa cuma bacaan indikatornya.",
   "calibTiDenganSensorJudul": "Dengan Sensor",
   "calibTiDenganSensorKeterangan": "Sensornya IKUT dikalibrasi. Sensor & indikator diperiksa sebagai satu rangkaian — sensornya dicelup bareng termometer acuan, jadi yang keluar bacaan rangkaian utuhnya.",
+  "calibTiRentang": "Rentang ukur {rentang}",
+  "@calibTiRentang": {
+    "placeholders": {
+      "rentang": {
+        "type": "String"
+      }
+    }
+  },
+  "calibTiCmc": "CMC {cmc} · {jumlah} baris kemampuan",
+  "@calibTiCmc": {
+    "placeholders": {
+      "cmc": {
+        "type": "String"
+      },
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "calibTiBelumSiap": "Belum ada di server ini",
   "calibTiBelumSiapPesan": "Lembar kerja \"{varian}\" belum ada di server yang lagi dipakai. Kabarin admin dulu — kalau dipaksa buka sekarang, yang kebuka lembar alat lain dan nggak ada satu pun error yang bunyi.",
   "phCalibTitle": "Kalibrasi pH Meter",
@@ -1832,5 +1851,13 @@
     }
   },
   "skemaDinamisSimpan": "SIMPAN HASIL BACAAN",
+  "skemaDinamisMasihKosong": "{jumlah} isian bervonis merah masih kosong dan wajib diisi.",
+  "@skemaDinamisMasihKosong": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "skemaDinamisKosong": "Tidak ada isian maupun tabel yang terbaca dari foto ini. Coba jepret ulang dengan seluruh lembar masuk frame."
 }

@@ -67,6 +67,25 @@ class _SkemaDinamisScreenState extends State<SkemaDinamisScreen> {
     super.dispose();
   }
 
+  /// Kolom merah yang kotaknya masih kosong — penghalang tombol Simpan.
+  ///
+  /// Aturan yang SAMA dengan `FotoReviewScreen`, dan disamakan dengan sengaja.
+  /// Layar ini mengosongkan nilai bervonis merah (lihat `_kolom`), jadi tanpa
+  /// penghalang ini teknisi bisa menyimpan persis apa yang dikosongkannya —
+  /// bacaan yang divonis tidak bisa dipercaya pulang sebagai isian KOSONG, dan
+  /// yang membacanya nanti tidak punya cara membedakannya dari kolom yang
+  /// dokumennya sendiri memang tidak mengisinya.
+  ///
+  /// Merah saja, sama seperti di sana: kuning & tidak-diketahui cukup DILIHAT.
+  /// Menuntut teknisi mengetik ulang setiap sel yang bacaannya sudah benar
+  /// bikin dia berhenti memakai fiturnya.
+  List<int> get _belumDiisi => [
+    for (var i = 0; i < widget.skema.kolom.length; i++)
+      if (widget.skema.kolom[i].vonis == VonisFoto.merah &&
+          _kolom[i].text.trim().isEmpty)
+        i,
+  ];
+
   void _simpan() {
     final skema = widget.skema;
 
@@ -108,6 +127,7 @@ class _SkemaDinamisScreenState extends State<SkemaDinamisScreen> {
     final l10n = AppLocalizations.of(context);
     final s = widget.skema;
     final kosong = s.kolom.isEmpty && s.tabel.isEmpty;
+    final belum = _belumDiisi;
 
     return Scaffold(
       appBar: AppBar(title: Text(s.judul ?? l10n.skemaDinamisJudul)),
@@ -151,8 +171,16 @@ class _SkemaDinamisScreenState extends State<SkemaDinamisScreen> {
           ],
 
           const SizedBox(height: 24),
+          if (belum.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                l10n.skemaDinamisMasihKosong(belum.length),
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
           FilledButton(
-            onPressed: kosong ? null : _simpan,
+            onPressed: kosong || belum.isNotEmpty ? null : _simpan,
             child: Text(l10n.skemaDinamisSimpan),
           ),
         ],
@@ -192,6 +220,10 @@ class _SkemaDinamisScreenState extends State<SkemaDinamisScreen> {
           const SizedBox(height: 4),
           TextField(
             controller: _kolom[i],
+            // Mengetik harus MENGGAMBAR ULANG layarnya: tanpa ini tombol
+            // Simpan tetap mati sesudah kolom merah terakhir diisi, dan yang
+            // kelihatan teknisi cuma tombol yang rusak.
+            onChanged: (_) => setState(() {}),
             keyboardType: k.jenis == JenisIsi.angka
                 ? const TextInputType.numberWithOptions(
                     decimal: true,

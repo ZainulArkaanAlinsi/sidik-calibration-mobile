@@ -343,10 +343,147 @@ void main() {
     });
   });
 
+  group('dukungan yang beneran ada dipajang, layarnya berhenti diam', () {
+    /// Tiga baris TIDS persis lampiran akreditasi LK-285-IDN no. 2 — CMC naik
+    /// ngikutin rentang. Ini yang kudu kelihatan di kartunya.
+    const tigaBarisTids = [
+      CalibrationCapability(
+        namaAlat: namaTids,
+        profil: 'tids',
+        rangeMin: -20,
+        rangeMax: 150,
+        satuan: '°C',
+        ketidakpastianTerbaik: 0.86,
+        satuanKetidakpastian: '°C',
+        metode: 'SIDIK-IK-CAL-0503_Rev.6',
+      ),
+      CalibrationCapability(
+        namaAlat: namaTids,
+        profil: 'tids',
+        rangeMin: 150,
+        rangeMax: 400,
+        satuan: '°C',
+        ketidakpastianTerbaik: 1.4,
+        satuanKetidakpastian: '°C',
+        metode: 'SIDIK-IK-CAL-0503_Rev.6',
+      ),
+      CalibrationCapability(
+        namaAlat: namaTids,
+        profil: 'tids',
+        rangeMin: 400,
+        rangeMax: 600,
+        satuan: '°C',
+        ketidakpastianTerbaik: 3.1,
+        satuanKetidakpastian: '°C',
+        metode: 'SIDIK-IK-CAL-0503_Rev.6',
+      ),
+    ];
+
+    test('rentangnya GABUNGAN semua baris, bukan baris pertama doang', () {
+      final d = dukunganVarian(
+        tigaBarisTids,
+        VarianTemperaturIndikator.denganSensor,
+      );
+
+      expect(
+        d.rentang,
+        '-20 … 600 °C',
+        reason: 'Tiga baris TIDS bersambung (-20…150, 150…400, 400…600) itu '
+            'SATU rentang ukur dibagi tiga kelas CMC. Dipajang baris '
+            'pertamanya doang, alat yang kepakai sampai 600 °C keliatan cuma '
+            'sampai 150.',
+      );
+      expect(
+        d.cmc,
+        '0.86–3.1 °C',
+        reason: 'Separatornya TITIK, ngikut `formatNilai` — konvensi yang sama '
+            'dipakai lembar perhitungan & PDF sertifikat. Dikomain di sini '
+            'doang, angka layar beda dari angka yang tercetak.',
+      );
+      expect(d.jumlahBaris, 3);
+      expect(d.metode, 'SIDIK-IK-CAL-0503_Rev.6');
+    });
+
+    test('CMC yang cuma satu angka nggak ditulis sebagai rentang', () {
+      final d = dukunganVarian(const [
+        CalibrationCapability(
+          namaAlat: namaTids,
+          profil: 'tids',
+          ketidakpastianTerbaik: 1,
+          satuanKetidakpastian: '°C',
+        ),
+      ], VarianTemperaturIndikator.denganSensor);
+
+      expect(d.cmc, '1 °C', reason: '"1–1 °C" cuma bikin bingung.');
+    });
+
+    test('yang belum punya angkanya pulang null, bukan nol', () {
+      final d = dukunganVarian(const [
+        CalibrationCapability(namaAlat: namaTids, profil: 'tids'),
+      ], VarianTemperaturIndikator.denganSensor);
+
+      expect(d.rentang, isNull);
+      expect(
+        d.cmc,
+        isNull,
+        reason: 'Baris tanpa CMC itu hal biasa. Dipulangkan 0, kartunya bilang '
+            '"CMC 0 °C" — ketidakpastian nol, klaim paling mustahil di lab '
+            'kalibrasi mana pun.',
+      );
+      expect(d.jumlahBaris, 1);
+    });
+
+    testWidgets('angkanya kelihatan di kartunya', (tester) async {
+      layarPanjang(tester);
+      await tester.pumpWidget(
+        app(const [
+          CalibrationCapability(namaAlat: namaTits, profil: 'tits'),
+          ...tigaBarisTids,
+        ]),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Temperatur Indikator'));
+      await tester.pumpAndSettle();
+
+      // Inilah yang bikin pemilik proyek tau ada yang ketambah tanpa mesti
+      // mbuka lembarnya: sebelum `TidsProfile` mendarat, kartu ini bertanda
+      // "Belum ada di server ini" dan nggak ada satu pun angka di bawahnya.
+      expect(find.text('SIDIK-IK-CAL-0503_Rev.6'), findsOneWidget);
+      expect(find.text('Rentang ukur -20 … 600 °C'), findsOneWidget);
+      expect(find.text('CMC 0.86–3.1 °C · 3 baris kemampuan'), findsOneWidget);
+      expect(find.text('Belum ada di server ini'), findsNothing);
+    });
+
+    testWidgets('yang belum siap nggak dikasih angka karangan', (tester) async {
+      layarPanjang(tester);
+      await tester.pumpWidget(
+        app(const [
+          CalibrationCapability(namaAlat: namaTits, profil: 'tits'),
+          CalibrationCapability(namaAlat: namaTids),
+        ]),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Temperatur Indikator'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Belum ada di server ini'), findsOneWidget);
+      expect(
+        find.textContaining('CMC'),
+        findsNothing,
+        reason: 'Varian yang lembarnya belum ada nggak boleh kelihatan lebih '
+            'siap daripada kenyataannya.',
+      );
+    });
+  });
+
   group('varian yang lembarnya belum ada di server', () {
     testWidgets('ditandai, bukan disembunyiin', (tester) async {
-      // Keadaan hari ini di backend: baris kemampuannya udah ada di lampiran
-      // akreditasi, tapi `TidsProfile` belum jadi — jadi `profil`-nya null.
+      // Server yang belum punya `TidsProfile`. Sejak 28 Agt 2026 itu BUKAN
+      // lagi keadaan backend hari ini (profilnya udah mendarat, dan mock-nya
+      // ikut nyetel `profil: 'tids'`) — yang dijaga di sini APK yang ketemu
+      // server versi lama. Kasusnya nggak boleh ikut hilang cuma karena
+      // servernya udah nyusul: HP di lapangan nggak selalu sepasang sama
+      // server terbaru.
       await tester.pumpWidget(
         app(const [
           CalibrationCapability(namaAlat: namaTits, profil: 'tits'),

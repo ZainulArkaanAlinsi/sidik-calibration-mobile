@@ -3631,6 +3631,18 @@ abstract class AppLocalizations {
   /// **'The sensor IS calibrated. Sensor and indicator are checked as one chain — the sensor goes into the medium alongside the reference thermometer, so the reading covers the whole chain.'**
   String get calibTiDenganSensorKeterangan;
 
+  /// No description provided for @calibTiRentang.
+  ///
+  /// In en, this message translates to:
+  /// **'Measuring range {rentang}'**
+  String calibTiRentang(String rentang);
+
+  /// No description provided for @calibTiCmc.
+  ///
+  /// In en, this message translates to:
+  /// **'CMC {cmc} · {jumlah} capability rows'**
+  String calibTiCmc(String cmc, int jumlah);
+
   /// No description provided for @calibTiBelumSiap.
   ///
   /// In en, this message translates to:
@@ -7398,6 +7410,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'SAVE WHAT WAS READ'**
   String get skemaDinamisSimpan;
+
+  /// No description provided for @skemaDinamisMasihKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} red-verdict fields are still empty and must be filled.'**
+  String skemaDinamisMasihKosong(int jumlah);
 
   /// No description provided for @skemaDinamisKosong.
   ///

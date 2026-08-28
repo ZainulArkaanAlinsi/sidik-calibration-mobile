@@ -1063,6 +1063,25 @@
   "calibTiTanpaSensorKeterangan": "The sensor is NOT calibrated. The calibrator is wired into the indicator terminals and stands in for the sensor, so only the indicator reading is checked.",
   "calibTiDenganSensorJudul": "With Sensor",
   "calibTiDenganSensorKeterangan": "The sensor IS calibrated. Sensor and indicator are checked as one chain — the sensor goes into the medium alongside the reference thermometer, so the reading covers the whole chain.",
+  "calibTiRentang": "Measuring range {rentang}",
+  "@calibTiRentang": {
+    "placeholders": {
+      "rentang": {
+        "type": "String"
+      }
+    }
+  },
+  "calibTiCmc": "CMC {cmc} · {jumlah} capability rows",
+  "@calibTiCmc": {
+    "placeholders": {
+      "cmc": {
+        "type": "String"
+      },
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "calibTiBelumSiap": "Not on this server yet",
   "calibTiBelumSiapPesan": "The \"{varian}\" worksheet is not on the server in use yet. Tell an admin first — forcing it open now would hand you another instrument's sheet, and nothing would error out.",
   "@calibTiBelumSiapPesan": {
@@ -2461,5 +2480,13 @@
     }
   },
   "skemaDinamisSimpan": "SAVE WHAT WAS READ",
+  "skemaDinamisMasihKosong": "{jumlah} red-verdict fields are still empty and must be filled.",
+  "@skemaDinamisMasihKosong": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "skemaDinamisKosong": "No fields or tables were read from this photo. Try again with the whole sheet in frame."
 }

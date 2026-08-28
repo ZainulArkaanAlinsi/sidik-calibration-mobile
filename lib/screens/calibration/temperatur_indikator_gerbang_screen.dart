@@ -1,7 +1,10 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../core/utils/angka.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/category.dart';
 import '../../providers/calibration_input_provider.dart';
@@ -184,6 +187,100 @@ String? profilVarian(
   return baris.profil ?? profilLembarKerjaUntuk(baris.namaAlat);
 }
 
+/// Dukungan NYATA satu varian, dirangkai dari baris kemampuannya sendiri.
+///
+/// ## Kenapa dihitung, bukan ditulis
+///
+/// Yang ditanya pemilik proyek sederhana: "alat baru yang udah ketambah apa
+/// aja?" — dan sebelum ini layar suhu tidak menjawabnya sama sekali. Dua kartu
+/// yang sama persis bunyinya sebelum & sesudah `TidsProfile` mendarat, jadi
+/// satu-satunya cara tahu ada yang berubah itu membuka lembarnya.
+///
+/// Godaannya menempelkan label "BARU" di kartunya. Itu tidak dilakukan, dan
+/// alasannya bukan selera: label begitu ditulis tangan sekali lalu **tidak
+/// pernah dicabut**, dan enam bulan lagi dia menunjuk alat yang sudah lama ada
+/// sementara yang benar-benar baru lewat tanpa tanda. Yang dipajang di sini
+/// keadaan yang dihitung ulang tiap layarnya dibuka — metode, rentang, dan CMC
+/// dari baris kemampuan yang dikirim server. Alat yang dukungannya masuk
+/// kelihatan karena angkanya muncul; yang belum, kosong dan bertanda.
+///
+/// [jumlahBaris] ikut dipajang karena satu alat bisa punya beberapa baris CMC
+/// yang naik mengikuti rentang (TIDS: 0,86 / 1,4 / 3,1 °C), dan "3 baris" itu
+/// keterangan yang membedakan dukungan yang lengkap dari yang baru sebagian.
+typedef DukunganVarian = ({
+  String? metode,
+  String? rentang,
+  String? cmc,
+  int jumlahBaris,
+});
+
+/// Rangkum baris kemampuan [varian] jadi [DukunganVarian].
+///
+/// Semua bagiannya boleh `null` sendiri-sendiri: baris kemampuan yang belum
+/// punya CMC itu hal biasa (`tanpa_cmc` di kontrak), dan yang kosong DITULIS
+/// kosong — bukan diisi tanda hubung yang kelihatan seperti angka.
+DukunganVarian dukunganVarian(
+  List<CalibrationCapability> kemampuan,
+  VarianTemperaturIndikator varian,
+) {
+  final baris = [
+    for (final k in kemampuan)
+      if (varianTemperaturIndikator(k.namaAlat) == varian) k,
+  ];
+
+  if (baris.isEmpty) {
+    return (metode: null, rentang: null, cmc: null, jumlahBaris: 0);
+  }
+
+  T? pertama<T>(T? Function(CalibrationCapability) ambil) {
+    for (final k in baris) {
+      final v = ambil(k);
+      if (v != null && !(v is String && v.trim().isEmpty)) return v;
+    }
+    return null;
+  }
+
+  List<double> semua(double? Function(CalibrationCapability) ambil) => [
+    for (final k in baris)
+      if (ambil(k) != null) ambil(k)!,
+  ];
+
+  String satuankan(String angka, String? satuan) =>
+      satuan == null || satuan.isEmpty ? angka : '$angka $satuan';
+
+  // Rentangnya GABUNGAN semua baris: tiga baris TIDS yang bersambung
+  // (-20…150, 150…400, 400…600) itu satu rentang ukur -20…600 °C dibagi tiga
+  // kelas CMC, bukan tiga rentang terpisah.
+  final min = semua((k) => k.rangeMin);
+  final max = semua((k) => k.rangeMax);
+
+  final rentang = min.isEmpty || max.isEmpty
+      ? null
+      : satuankan(
+          '${formatNilai(min.reduce(math.min))} … '
+          '${formatNilai(max.reduce(math.max))}',
+          pertama((k) => k.satuan),
+        );
+
+  final u = semua((k) => k.ketidakpastianTerbaik);
+  final cmc = u.isEmpty
+      ? null
+      : satuankan(
+          u.reduce(math.min) == u.reduce(math.max)
+              ? formatNilai(u.first)
+              : '${formatNilai(u.reduce(math.min))}–'
+                    '${formatNilai(u.reduce(math.max))}',
+          pertama((k) => k.satuanKetidakpastian),
+        );
+
+  return (
+    metode: pertama((k) => k.metode),
+    rentang: rentang,
+    cmc: cmc,
+    jumlahBaris: baris.length,
+  );
+}
+
 class _PilihanCard extends StatelessWidget {
   const _PilihanCard({
     required this.kategori,
@@ -302,6 +399,16 @@ class _PilihanCard extends StatelessWidget {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
+              // Dukungan yang beneran ada di server ini, dipajang APA ADANYA.
+              // Ini yang bikin layarnya berhenti diam: kartu yang lembarnya
+              // baru mendarat langsung kelihatan bedanya — metode, rentang, dan
+              // CMC-nya muncul — tanpa ada satu pun label "BARU" yang ditulis
+              // tangan dan nggak pernah dicabut.
+              if (siap) ...[
+                const SizedBox(height: AppSpacing.md),
+                _Dukungan(dukungan: dukunganVarian(kemampuan, varian)),
+              ],
+
               if (!siap) ...[
                 const SizedBox(height: AppSpacing.md),
                 StatusBadge(
@@ -314,6 +421,58 @@ class _PilihanCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Tiga keterangan pendek yang bikin kartu suhu berhenti diam.
+///
+/// Sengaja BUKAN tabel dan bukan kartu kedua: yang dijawab di sini cuma "alat
+/// ini didukung sampai mana", dan jawabannya muat di tiga baris. Yang mau
+/// angkanya lengkap membuka lembarnya.
+class _Dukungan extends StatelessWidget {
+  const _Dukungan({required this.dukungan});
+
+  final DukunganVarian dukungan;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    final gaya = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+
+    Widget baris(IconData ikon, String teks) => Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.xs),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(ikon, size: 14, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(child: Text(teks, style: gaya)),
+        ],
+      ),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Yang null DILEWAT, bukan digambar bertanda hubung. Baris kemampuan
+        // yang belum punya CMC itu hal biasa, dan "—" di sebelah label CMC
+        // kebaca sebagai angka yang kebetulan kosong, bukan sebagai keterangan
+        // yang memang belum diturunkan.
+        if (dukungan.metode != null)
+          baris(Icons.description_outlined, dukungan.metode!),
+        if (dukungan.rentang != null)
+          baris(Icons.straighten, l10n.calibTiRentang(dukungan.rentang!)),
+        if (dukungan.cmc != null)
+          baris(
+            Icons.rule,
+            l10n.calibTiCmc(dukungan.cmc!, dukungan.jumlahBaris),
+          ),
+      ],
     );
   }
 }

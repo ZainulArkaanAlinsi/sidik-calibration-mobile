@@ -213,6 +213,72 @@ void main() {
     );
   });
 
+  testWidgets('tombol simpan MATI selama nilai merah masih kosong', (
+    tester,
+  ) async {
+    await buka(
+      tester,
+      skemaDari([
+        kata('Suhu', 100, 100, keyakinan: 0.99),
+        kata(':', 160, 100, keyakinan: 0.99),
+        kata('25,4', 190, 100, keyakinan: 0.11),
+      ]),
+    );
+
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNull,
+      reason: 'Layar ini sendiri yang mengosongkan kotaknya. Dibiarin bisa '
+          'disimpan, bacaan yang divonis nggak bisa dipercaya pulang sebagai '
+          'isian KOSONG — dan yang baca nanti nggak bisa bedain itu dari kolom '
+          'yang dokumennya sendiri emang nggak ngisi.',
+    );
+  });
+
+  testWidgets('tombol simpan HIDUP begitu nilai merahnya diisi', (
+    tester,
+  ) async {
+    await buka(
+      tester,
+      skemaDari([
+        kata('Suhu', 100, 100, keyakinan: 0.99),
+        kata(':', 160, 100, keyakinan: 0.99),
+        kata('25,4', 190, 100, keyakinan: 0.11),
+      ]),
+    );
+
+    await tester.enterText(find.byType(TextField), '25,4');
+    await tester.pump();
+
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNotNull,
+      reason: 'Penghalangnya buat maksa teknisi MENGETIK, bukan buat bikin '
+          'layarnya buntu.',
+    );
+  });
+
+  testWidgets('yang kuning nggak ikut menghalangi — cukup dilihat', (
+    tester,
+  ) async {
+    await buka(
+      tester,
+      skemaDari([
+        kata('Merk', 100, 100, keyakinan: 0.99),
+        kata(':', 160, 100, keyakinan: 0.99),
+        kata('Fluke', 190, 100, keyakinan: 0.99),
+      ]),
+    );
+
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNotNull,
+      reason: 'Aturannya sama persis dengan FotoReviewScreen: merah doang. '
+          'Maksa ngetik ulang tiap sel yang bacaannya udah bener bikin '
+          'teknisi berhenti make fiturnya.',
+    );
+  });
+
   test('vonis di jalur generik ikut aturan yang sama', () {
     final s = skemaDari([
       kata('Suhu', 100, 100, keyakinan: 0.99),

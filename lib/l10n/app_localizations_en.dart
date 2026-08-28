@@ -1974,6 +1974,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'The sensor IS calibrated. Sensor and indicator are checked as one chain — the sensor goes into the medium alongside the reference thermometer, so the reading covers the whole chain.';
 
   @override
+  String calibTiRentang(String rentang) {
+    return 'Measuring range $rentang';
+  }
+
+  @override
+  String calibTiCmc(String cmc, int jumlah) {
+    return 'CMC $cmc · $jumlah capability rows';
+  }
+
+  @override
   String get calibTiBelumSiap => 'Not on this server yet';
 
   @override
@@ -4153,6 +4163,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get skemaDinamisSimpan => 'SAVE WHAT WAS READ';
+
+  @override
+  String skemaDinamisMasihKosong(int jumlah) {
+    return '$jumlah red-verdict fields are still empty and must be filled.';
+  }
 
   @override
   String get skemaDinamisKosong =>

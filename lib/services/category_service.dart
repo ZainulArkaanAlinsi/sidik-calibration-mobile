@@ -566,12 +566,21 @@ class MockCategoryService implements CategoryService {
       // Justru dua ejaan inilah yang bikin gerbang Temperatur Indikator
       // nyocokin BENTUK nama, bukan daftar ejaan.
       //
-      // `profil` sengaja NGGAK diisi. Backend baru punya `TitsProfile`; profil
-      // `tids` masih dibangun, dan `kodeProfilDariNama()` di sana emang
-      // mulangin null buat nama yang belum punya profil. Ngisi `'tids'` di
-      // mock bikin build offline kelihatan lebih jadi daripada kenyataannya —
-      // dan yang ketutup justru satu-satunya penanda yang ngasih tau lembarnya
-      // belum ada.
+      // `profil: 'tids'` — diisi 28 Agt 2026, waktu `TidsProfile` beneran
+      // mendarat di backend (dua workbook master turun dari lab, budget U95-nya
+      // kebuka). Sebelum itu baris-baris ini sengaja NGGAK berprofil, karena
+      // `kodeProfilDariNama()` di sana emang mulangin null buat nama yang belum
+      // punya profil, dan ngisinya bakal bikin build offline kelihatan lebih
+      // jadi daripada kenyataannya.
+      //
+      // Sekarang kebalikannya yang bohong: `CategoryController` nyetel
+      // `'profil' => $registry->kodeProfilDariNama($c->nama_alat)`, dan
+      // `TidsProfile::namaAlatKemampuan()` berbunyi persis 'Temperatur
+      // Indikator dengan Sensor' — jadi server ASLI sekarang mulangin `tids`
+      // buat ketiga baris ini. Dibiarin null, mode mock nunjukin kartu TIDS
+      // bertanda "Belum ada di server ini" buat alat yang lembarnya udah jadi:
+      // satu-satunya penanda yang harusnya ngasih tau ada yang belum siap
+      // malah nunjuk ke yang udah.
       //
       // Tiga baris, CMC-nya naik ikut rentang: 0,86 / 1,4 / 3,1 °C.
       CalibrationCapability(
@@ -583,6 +592,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: '°C',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0503_Rev.6',
+        profil: 'tids',
         punyaToleransi: false,
       ),
       CalibrationCapability(
@@ -594,6 +604,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: '°C',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0503_Rev.6',
+        profil: 'tids',
         punyaToleransi: false,
       ),
       CalibrationCapability(
@@ -605,6 +616,7 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: '°C',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0503_Rev.6',
+        profil: 'tids',
         punyaToleransi: false,
       ),
 

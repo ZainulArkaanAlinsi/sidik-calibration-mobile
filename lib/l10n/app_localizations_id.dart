@@ -1964,6 +1964,16 @@ class AppLocalizationsId extends AppLocalizations {
       'Sensornya IKUT dikalibrasi. Sensor & indikator diperiksa sebagai satu rangkaian — sensornya dicelup bareng termometer acuan, jadi yang keluar bacaan rangkaian utuhnya.';
 
   @override
+  String calibTiRentang(String rentang) {
+    return 'Rentang ukur $rentang';
+  }
+
+  @override
+  String calibTiCmc(String cmc, int jumlah) {
+    return 'CMC $cmc · $jumlah baris kemampuan';
+  }
+
+  @override
   String get calibTiBelumSiap => 'Belum ada di server ini';
 
   @override
@@ -4124,6 +4134,11 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get skemaDinamisSimpan => 'SIMPAN HASIL BACAAN';
+
+  @override
+  String skemaDinamisMasihKosong(int jumlah) {
+    return '$jumlah isian bervonis merah masih kosong dan wajib diisi.';
+  }
 
   @override
   String get skemaDinamisKosong =>
