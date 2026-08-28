@@ -1,36 +1,39 @@
+import 'peta_tabel_foto.dart';
 import 'potong_sel_foto.dart';
 import 'simpanan_contoh_sel.dart';
 
-/// Alamat satu sel, dalam bentuk yang BISA LANGSUNG dipakai membaca angka
-/// finalnya dari formulir.
+/// Cara membaca angka FINAL satu sel dari formulir.
 ///
-/// ## Kenapa posisi, bukan nomor Repeat
+/// ## Kenapa pemanggil yang menyediakannya
 ///
-/// Formulirnya menyimpan sel per POSISI kolom (`TitikState.kotak(tahap,
-/// kolom, index)`), sementara foto mengenali sel per NOMOR Repeat
-/// (`X1`, `X2`, …). Dua-duanya kelihatan sama selama daftar pengulangannya
-/// `[1, 2, 3]` — dan berhenti sama begitu ada lembar yang pengulangannya
-/// nggak mulai dari 1 atau nggak berurutan.
+/// Tiga jalur foto menyimpan selnya di tempat yang beda-beda, dan alamatnya
+/// nggak bisa dipaksa jadi satu bentuk:
 ///
-/// Repo ini sudah pernah kena bentuk bug yang persis sama: grid sensor
-/// memakai `repeatNo - 1` sebagai indeks, yang benar
-/// `pengulangan.indexOf(repeatNo)`. Akibatnya sunyi — angkanya mendarat di
-/// kolom yang salah tanpa satu pun error.
+/// | jalur | alamat selnya |
+/// |---|---|
+/// | tabel | `(tahap, titikUkur, POSISI kolom, fieldId)` |
+/// | matriks (Autoklaf) | `(kodeData, nomor titik waktu)` |
+/// | grid (Enclosure) | `(penanda baris, POSISI kolom)` |
 ///
-/// Makanya penerjemahannya dilakukan SEKALI, di [PenampungContohSel.tampung],
-/// di tempat yang memang memegang daftar pengulangan tabelnya. Yang keluar
-/// dari sini sudah berupa alamat formulir, jadi pemanggil nggak punya
-/// kesempatan menebaknya lagi.
+/// Versi pertama kelas ini mengandaikan bentuk TABEL berlaku buat semuanya.
+/// Itu salah, dan ketahuannya waktu menyambung jalur kedua. Memaksakan satu
+/// bentuk berarti dua jalur lain dialamatkan lewat kunci yang bukan miliknya —
+/// dan salah alamat di sini artinya label menempel di potongan sel yang salah.
 ///
-/// [tahap] ikut dibawa karena satu lembar bisa punya tabel `sebelum` dan
-/// `sesudah` dengan titik dan kolom yang sama persis — tanpa dia, contoh dari
-/// dua tabel itu saling menimpa.
-typedef KunciSel = ({
-  String tahap,
-  double titikUkur,
-  int posisiRepeat,
-  String fieldId,
-});
+/// Sekarang penampungnya nggak tahu apa-apa soal alamat: yang tahu formulirnya
+/// yang menyediakan cara membacanya. Fungsinya dipanggil BELAKANGAN, waktu
+/// [PenampungContohSel.serahkan] jalan — itu yang bikin labelnya angka final
+/// teknisi, bukan bacaan OCR waktu memotret.
+///
+/// Balikin `null` kalau selnya nggak ada atau nggak punya angka.
+typedef PembacaLabel = String? Function(KotakSelFoto);
+
+/// Cara mengenali sel yang SAMA antar jepretan.
+///
+/// Dipakai membuang tampungan lama waktu sel yang sama difoto ulang. Wajib
+/// unik per sel di dalam satu lembar — kunci yang kekasar bikin dua sel beda
+/// saling menimpa dan separuh data latihnya lenyap tanpa jejak.
+typedef PenandaSel = String Function(KotakSelFoto);
 
 /// Hasil menyerahkan tampungan ke simpanan.
 ///
@@ -65,7 +68,8 @@ class PenampungContohSel {
 
   final SimpananContohSel simpanan;
 
-  final _tertampung = <KunciSel, ({PotonganSel potongan, String? bacaanOcr})>{};
+  final _tertampung =
+      <String, ({PotonganSel potongan, PembacaLabel labelAkhir})>{};
 
   int get jumlah => _tertampung.length;
 
@@ -73,42 +77,22 @@ class PenampungContohSel {
   ///
   /// Sel yang difoto ULANG menimpa yang lama: jepretan kedua dilakukan justru
   /// karena yang pertama jelek, jadi yang lama bukan contoh tambahan melainkan
-  /// contoh yang sudah ditolak teknisinya sendiri.
+  /// contoh yang sudah ditolak teknisinya sendiri. [penanda] yang menentukan
+  /// "sel yang sama".
   ///
-  /// Jenis lembarnya NGGAK diminta di sini, dan itu disengaja: dia sifat
-  /// seluruh lembar, bukan sifat tiap potongan. Diminta di sini, tiga widget
-  /// yang memanggil ini harus dialiri profil alatnya cuma buat diteruskan —
-  /// tiga parameter baru yang nggak dipakai widgetnya sendiri. Diminta di
-  /// [serahkan], yang menyebutnya cuma layar yang memang sudah tahu.
+  /// [labelAkhir] disimpan, BUKAN dipanggil sekarang. Dia baru dijalankan
+  /// waktu [serahkan] — itu seluruh alasan penampung ini ada.
   ///
-  /// [pengulangan] dan [tahap] SEBALIKNYA memang milik tabel yang barusan
-  /// difoto, dan cuma pemanggil di sini yang memegangnya. Dua-duanya dipakai
-  /// menerjemahkan nomor Repeat jadi alamat formulir — lihat [KunciSel].
-  ///
-  /// Sel yang nomor Repeat-nya NGGAK ada di [pengulangan] dibuang: dia nggak
-  /// punya kolom di formulir, jadi nggak akan pernah punya angka final yang
-  /// bisa jadi labelnya. Ditahan, dia cuma jadi tampungan yang selalu
-  /// dihitung "tanpa label" tiap kali Simpan ditekan.
+  /// Jenis lembarnya nggak diminta di sini: dia sifat seluruh lembar, bukan
+  /// sifat tiap potongan, dan yang tahu profil alatnya cuma layar. Diminta di
+  /// [serahkan].
   void tampung({
     required Iterable<PotonganSel> potongan,
-    required List<int> pengulangan,
-    required String tahap,
+    required PenandaSel penanda,
+    required PembacaLabel labelAkhir,
   }) {
     for (final p in potongan) {
-      final posisi = pengulangan.indexOf(p.kotak.repeatNo);
-      if (posisi < 0) continue;
-
-      _tertampung[(
-        tahap: tahap,
-        titikUkur: p.kotak.titikUkur,
-        posisiRepeat: posisi,
-        fieldId: p.kotak.fieldId,
-      )] = (
-        potongan: p,
-        // Apa yang OCR baca waktu difoto. Boleh kosong, dan boleh beda dari
-        // label finalnya — yang beda itu contoh paling berharga.
-        bacaanOcr: p.kotak.teks,
-      );
+      _tertampung[penanda(p.kotak)] = (potongan: p, labelAkhir: labelAkhir);
     }
   }
 
@@ -117,9 +101,12 @@ class PenampungContohSel {
 
   /// Serahkan tampungan ke [simpanan], dengan label dari [labelAkhir].
   ///
-  /// [labelAkhir] balikin angka yang AKHIRNYA ada di sel itu, atau `null`
-  /// kalau selnya kosong. Yang `null` atau kosong nggak disimpan — contoh
-  /// tanpa label nggak bisa melatih apa pun — tapi tetap dihitung di
+  /// Tiap tampungan dibaca lewat [PembacaLabel] yang disertakan waktu
+  /// [tampung] — dipanggil SEKARANG, bukan waktu itu, supaya yang terbaca
+  /// angka yang akhirnya diketik teknisi.
+  ///
+  /// Sel yang labelnya `null` atau kosong nggak disimpan — contoh tanpa label
+  /// nggak bisa melatih apa pun — tapi tetap dihitung di
   /// [HasilSerah.tanpaLabel].
   ///
   /// Tampungannya dikosongkan sesudah ini, jadi menekan Simpan dua kali nggak
@@ -130,10 +117,7 @@ class PenampungContohSel {
   /// soal beban: satu lembar bisa seratusan sel, dan menembakkan seratus
   /// penulisan berkas sekaligus bikin HP tersendat persis waktu teknisi baru
   /// saja menekan Simpan.
-  Future<HasilSerah> serahkan(
-    String? Function(KunciSel) labelAkhir, {
-    required String lembar,
-  }) async {
+  Future<HasilSerah> serahkan({required String lembar}) async {
     // Disalin dulu, lalu tampungannya dikosongkan SEBELUM menulis: kalau
     // penulisannya gagal di tengah, yang sudah tersimpan nggak ikut terserah
     // lagi di penekanan Simpan berikutnya.
@@ -143,8 +127,8 @@ class PenampungContohSel {
     var tersimpan = 0;
     var tanpaLabel = 0;
 
-    for (final e in isi.entries) {
-      final label = labelAkhir(e.key);
+    for (final e in isi.values) {
+      final label = e.labelAkhir(e.potongan.kotak);
 
       if (label == null || label.trim().isEmpty) {
         tanpaLabel++;
@@ -152,10 +136,12 @@ class PenampungContohSel {
       }
 
       final hasil = await simpanan.simpan(
-        potongan: e.value.potongan,
+        potongan: e.potongan,
         label: label,
         lembar: lembar,
-        bacaanOcr: e.value.bacaanOcr,
+        // Apa yang OCR baca waktu difoto. Boleh kosong, dan boleh beda dari
+        // labelnya — yang beda itu contoh paling berharga.
+        bacaanOcr: e.potongan.kotak.teks,
       );
 
       if (hasil == null) {

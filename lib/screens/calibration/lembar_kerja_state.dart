@@ -1961,12 +1961,33 @@ class LembarKerjaState {
   /// `decimal(20,8)` yang dibaca ulang dari DB. `111.193568` yang bolak-balik
   /// lewat JSON gampang meleset di digit terakhir, dan `Map` nggak peduli
   /// selisihnya sekecil apa — barisnya dianggap nggak ada, angkanya kebuang.
+  /// Angka FINAL satu sel MATRIKS (Autoklaf) — label buat potongan fotonya.
+  ///
+  /// Alamatnya beda dari lembar bertabel: baris matriks itu BESARAN
+  /// (`suhu.disk.0`), bukan titik ukur, dan penanda barisnya karangan
+  /// ([MatriksHasil.kunciBarisFoto]). Makanya penerjemahannya harus lewat
+  /// [_barisMatriks], persis seperti waktu angkanya ditempatkan — dua cara
+  /// yang beda bikin labelnya meleset diam-diam.
+  ///
+  /// Balikin `null` kalau barisnya nggak ketemu, barisnya kolom jam (bukan
+  /// angka ukur), atau titik waktunya nggak ada di lembar itu.
+  String? labelSelMatriks(MatriksHasil m, double penanda, int titikWaktu) {
+    if (!m.titikWaktu.contains(titikWaktu)) return null;
+
+    final b = _barisMatriks(m.semuaBaris, penanda);
+    if (b == null || b.tipe == 'jam') return null;
+
+    return kotakMatriks(b.kodeData, titikWaktu).text;
+  }
+
   /// Angka FINAL di satu sel — label buat potongan yang ditahan sejak difoto.
   ///
-  /// Alamatnya sudah berupa alamat FORMULIR (tahap, titik, POSISI kolom,
-  /// kolom), bukan nomor Repeat: penerjemahannya sudah dilakukan waktu
-  /// potongannya ditampung, di tempat yang memegang daftar pengulangan
-  /// tabelnya. Lihat `KunciSel`.
+  /// [repeatNo] diterjemahkan jadi posisi kolom lewat [pengulangan] DI SINI,
+  /// bukan di pemanggil — tanda tangannya sengaja dibikin sama dengan
+  /// [terapkanHasilFotoTabel] supaya dua-duanya nggak bisa berselisih.
+  ///
+  /// Ditaruh di pemanggil, penerjemahannya jadi lem yang nggak diuji, dan
+  /// kelas bug `repeatNo - 1` punya tempat baru buat muncul.
   ///
   /// Titiknya dicari lewat [titikCocok], BUKAN `titik[...]` — jalur foto
   /// menempatkan angkanya dengan cara yang sama, dan dua cara yang beda bikin
@@ -1982,16 +2003,17 @@ class LembarKerjaState {
   String? labelSelFoto({
     required String tahap,
     required double titikUkur,
-    required int posisiRepeat,
+    required int repeatNo,
+    required List<int> pengulangan,
     required String fieldId,
   }) {
     final t = titikCocok(titikUkur);
+    if (t == null) return null;
 
-    if (t == null || posisiRepeat < 0 || posisiRepeat >= t.jumlahPengulangan) {
-      return null;
-    }
+    final posisi = pengulangan.indexOf(repeatNo);
+    if (posisi < 0 || posisi >= t.jumlahPengulangan) return null;
 
-    return t.kotak(tahap, fieldId, posisiRepeat).text;
+    return t.kotak(tahap, fieldId, posisi).text;
   }
 
   /// [_titikTerdekat] buat pemanggil di luar kelas ini.

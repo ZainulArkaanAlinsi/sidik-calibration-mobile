@@ -237,7 +237,8 @@ void main() {
         s.isian.labelSelFoto(
           tahap: 'sesudah_adjustment',
           titikUkur: 1018.0,
-          posisiRepeat: 1,
+          repeatNo: 2,
+          pengulangan: const [1, 2, 3, 4, 5],
           fieldId: 'pembacaan',
         ),
         '123,4',
@@ -257,7 +258,8 @@ void main() {
         s.isian.labelSelFoto(
           tahap: 'sesudah_adjustment',
           titikUkur: 1018.0,
-          posisiRepeat: 1,
+          repeatNo: 2,
+          pengulangan: const [1, 2, 3, 4, 5],
           fieldId: 'pembacaan',
         ),
         '987,6',
@@ -274,7 +276,8 @@ void main() {
         s.isian.labelSelFoto(
           tahap: 'sesudah_adjustment',
           titikUkur: 1018.0000000001,
-          posisiRepeat: 1,
+          repeatNo: 2,
+          pengulangan: const [1, 2, 3, 4, 5],
           fieldId: 'pembacaan',
         ),
         '123,4',
@@ -289,7 +292,8 @@ void main() {
         s.isian.labelSelFoto(
           tahap: 'sesudah_adjustment',
           titikUkur: 1018.0,
-          posisiRepeat: 0,
+          repeatNo: 1,
+          pengulangan: const [1, 2, 3, 4, 5],
           fieldId: 'pembacaan',
         ),
         isEmpty,
@@ -307,7 +311,8 @@ void main() {
         s.isian.labelSelFoto(
           tahap: 'sesudah_adjustment',
           titikUkur: 1018.0,
-          posisiRepeat: 99,
+          repeatNo: 99,
+          pengulangan: const [1, 2, 3, 4, 5],
           fieldId: 'pembacaan',
         ),
         isNull,
@@ -322,7 +327,60 @@ void main() {
         s.isian.labelSelFoto(
           tahap: 'sesudah_adjustment',
           titikUkur: 12345.0,
-          posisiRepeat: 0,
+          repeatNo: 1,
+          pengulangan: const [1, 2, 3, 4, 5],
+          fieldId: 'pembacaan',
+        ),
+        isNull,
+      );
+    });
+  });
+
+  group('label ikut daftar pengulangan yang SAMA dengan pengisinya', () {
+    // Penerjemahan `repeatNo` -> posisi kolom sekarang hidup DI DALAM
+    // `labelSelFoto`, bukan di pemanggilnya. Alasannya: ditaruh di pemanggil
+    // (closure widget), dia jadi lem yang nggak diuji — dan kelas bug
+    // `repeatNo - 1` punya tempat baru buat muncul, di tempat yang lebih sulit
+    // dilihat daripada yang barusan diperbaiki.
+    //
+    // Yang dijaga di sini: pengisi formulir dan pencari label WAJIB memakai
+    // daftar yang sama. Kalau berselisih, angkanya benar di layar tapi
+    // labelnya menempel di potongan sel yang salah.
+    test('pengulangan [2, 4, 6, 8, 10]: label Repeat 4 = angka kolom kedua', () {
+      final s = siapkan(const [2, 4, 6, 8, 10]);
+      addTearDown(s.isian.dispose);
+
+      s.isian.terapkanHasilFotoTabel(
+        [sel(1018.0, 4, '123,4')],
+        tahap: s.tabel.tahap,
+        pengulangan: s.tabel.pengulangan,
+      );
+
+      expect(
+        s.isian.labelSelFoto(
+          tahap: 'sesudah_adjustment',
+          titikUkur: 1018.0,
+          repeatNo: 4,
+          pengulangan: s.tabel.pengulangan,
+          fieldId: 'pembacaan',
+        ),
+        '123,4',
+        reason:
+            'Pengisi menaruhnya di indeks 1; pencari label harus menemukannya '
+            'di indeks 1 juga, bukan di 3.',
+      );
+    });
+
+    test('Repeat yang nggak ada di daftar balik null', () {
+      final s = siapkan(const [2, 4, 6, 8, 10]);
+      addTearDown(s.isian.dispose);
+
+      expect(
+        s.isian.labelSelFoto(
+          tahap: 'sesudah_adjustment',
+          titikUkur: 1018.0,
+          repeatNo: 5,
+          pengulangan: s.tabel.pengulangan,
           fieldId: 'pembacaan',
         ),
         isNull,

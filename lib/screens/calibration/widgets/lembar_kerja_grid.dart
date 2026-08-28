@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../providers/contoh_sel_provider.dart';
+import '../../../services/potong_sel_foto.dart';
 import '../../../services/ambil_foto_tabel.dart';
 import '../../../services/peta_tabel_foto.dart';
 import '../grid_sensor_state.dart';
@@ -65,7 +67,8 @@ class _LembarKerjaGridState extends State<LembarKerjaGrid> {
   static const _lebarKanal = 62.0;
   static const _lebarKolom = 78.0;
 
-  bool get _pakaiKanal => widget.state.bentuk.butuhChannel(widget.merkKalibrator);
+  bool get _pakaiKanal =>
+      widget.state.bentuk.butuhChannel(widget.merkKalibrator);
 
   /// Sekali sentuh = hitung ulang Sensor Acuan, nomor kembar, dan peringatan.
   ///
@@ -301,20 +304,24 @@ class _KartuSetPoint extends StatelessWidget {
     );
   }
 
-  Widget _sel(ThemeData theme, String teks, double lebar, {bool tebal = false}) =>
-      Container(
-        width: lebar,
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
-        alignment: Alignment.center,
-        color: theme.colorScheme.surfaceContainerHighest,
-        child: Text(
-          teks,
-          textAlign: TextAlign.center,
-          style: theme.textTheme.bodySmall?.copyWith(
-            fontWeight: tebal ? FontWeight.w600 : null,
-          ),
-        ),
-      );
+  Widget _sel(
+    ThemeData theme,
+    String teks,
+    double lebar, {
+    bool tebal = false,
+  }) => Container(
+    width: lebar,
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+    alignment: Alignment.center,
+    color: theme.colorScheme.surfaceContainerHighest,
+    child: Text(
+      teks,
+      textAlign: TextAlign.center,
+      style: theme.textTheme.bodySmall?.copyWith(
+        fontWeight: tebal ? FontWeight.w600 : null,
+      ),
+    ),
+  );
 
   Widget _kepala(ThemeData theme) => IntrinsicHeight(
     child: Row(
@@ -527,7 +534,10 @@ class _TombolFotoGridState extends ConsumerState<_TombolFotoGrid> {
     final messenger = ScaffoldMessenger.of(context);
 
     void pesan(String teks, {int detik = 8}) => messenger.showSnackBar(
-      SnackBar(duration: Duration(seconds: detik), content: Text(teks)),
+      SnackBar(
+        duration: Duration(seconds: detik),
+        content: Text(teks),
+      ),
     );
 
     setState(() => _sibuk = true);
@@ -615,6 +625,35 @@ class _TombolFotoGridState extends ConsumerState<_TombolFotoGrid> {
         return;
       }
 
+      // Potongan selnya DITAHAN sampai teknisi menekan Simpan — labelnya angka
+      // final, bukan yang dibaca OCR sekarang. Lihat [PenampungContohSel].
+      //
+      // Penandanya memuat nomor sensor: satu lembar Enclosure punya beberapa
+      // grid dengan penanda baris yang sama persis, dan tanpa nomornya contoh
+      // dari sensor berbeda saling menimpa.
+      //
+      // Kegagalannya sengaja DIAM: ini pengumpul data latih, bukan bagian
+      // kalibrasinya.
+      final citra = foto.citra;
+
+      if (citra != null && hasil.kotakSel.isNotEmpty) {
+        // Disalin ke lokal — closure-nya hidup sampai Simpan, dan `widget`
+        // ditukar tiap rebuild.
+        final sp = widget.sp;
+
+        try {
+          (await ref.read(penampungContohSelProvider.future)).tampung(
+            potongan: const PotongSelFoto()
+                .potong(citra: citra, kotak: hasil.kotakSel)
+                .potongan,
+            penanda: (k) => 'grid|$nomor|${k.titikUkur}|${k.repeatNo}',
+            labelAkhir: (k) => sp.labelSelFoto(k.titikUkur, k.repeatNo),
+          );
+        } catch (_) {
+          // Sengaja ditelan — lihat di atas.
+        }
+      }
+
       final terisi = widget.sp.terapkanHasilFoto(hasil.sel);
 
       widget.onBerubah();
@@ -653,7 +692,6 @@ class _TombolFotoGridState extends ConsumerState<_TombolFotoGrid> {
 
 /// Kuning penanda "diisi mesin, belum diadu ke kertas" — nilainya disamakan
 /// dengan `TandaSel.keyakinanRendah` di `lembar_kerja_tabel.dart`.
-
 
 class _KotakAngka extends StatelessWidget {
   const _KotakAngka({
@@ -741,9 +779,7 @@ class _Catatan extends StatelessWidget {
         children: [
           Icon(Icons.star, size: 16, color: theme.colorScheme.primary),
           const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(teks, style: theme.textTheme.bodySmall),
-          ),
+          Expanded(child: Text(teks, style: theme.textTheme.bodySmall)),
         ],
       ),
     );

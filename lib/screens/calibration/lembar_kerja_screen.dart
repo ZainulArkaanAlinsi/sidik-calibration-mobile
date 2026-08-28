@@ -23,7 +23,6 @@ import '../../providers/jam_provider.dart';
 import '../../providers/lembar_kerja_provider.dart';
 import '../../providers/worksheet_scan_provider.dart';
 import '../../services/auth_service.dart' show AuthException;
-import '../../services/penampung_contoh_sel.dart';
 import '../../widgets/autoclave_hasil_panel.dart';
 import '../../widgets/banner_status_standar.dart';
 import '../../widgets/app_button.dart';
@@ -758,7 +757,7 @@ class _FormState extends ConsumerState<_Form> {
       try {
         await (await ref.read(
           penampungContohSelProvider.future,
-        )).serahkan(_labelContohSel, lembar: widget.profil);
+        )).serahkan(lembar: widget.profil);
       } catch (_) {
         // Sengaja ditelan — lihat di atas.
       }
@@ -803,18 +802,6 @@ class _FormState extends ConsumerState<_Form> {
     );
     navigator.pop(hasil.id);
   }
-
-  /// Label buat pengumpul contoh latih — diteruskan ke [LembarKerjaState].
-  ///
-  /// Logikanya ada di sana, bukan di sini, supaya bisa diuji tanpa memompa
-  /// seluruh layar: yang dijaga bukan tombolnya, tapi label yang menempel di
-  /// potongan sel yang benar.
-  String? _labelContohSel(KunciSel k) => _isian.labelSelFoto(
-    tahap: k.tahap,
-    titikUkur: k.titikUkur,
-    posisiRepeat: k.posisiRepeat,
-    fieldId: k.fieldId,
-  );
 
   /// Kirim lembar bermatriks lewat endpoint alatnya sendiri.
   ///
