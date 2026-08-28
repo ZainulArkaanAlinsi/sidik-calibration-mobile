@@ -31,6 +31,7 @@ class LembarKerjaGrid extends StatefulWidget {
     required this.state,
     required this.satuanSuhu,
     required this.onBerubah,
+    required this.pemilik,
     this.merkKalibrator,
     this.pindaiAktif = AppConfig.pindaiLembarAktif,
   });
@@ -41,6 +42,12 @@ class LembarKerjaGrid extends StatefulWidget {
   final String satuanSuhu;
 
   final VoidCallback onBerubah;
+
+  /// Penanda sesi lembar ini — `LembarKerjaState.clientRequestId`.
+  ///
+  /// Diteruskan ke [PenampungContohSel] supaya tampungan contoh latihnya bisa
+  /// dibuang waktu lembarnya ditutup, tanpa ikut membuang milik layar lain.
+  final String pemilik;
 
   /// Merk standar yang dicentang teknisi. Menentukan kolom Channel muncul atau
   /// nggak: koreksi Recorder (GL840) dibaca per kanal, Constant & Yokogawa
@@ -103,6 +110,7 @@ class _LembarKerjaGridState extends State<LembarKerjaGrid> {
             lebarNo: _lebarNo,
             lebarKanal: _lebarKanal,
             lebarKolom: _lebarKolom,
+            pemilik: widget.pemilik,
             onBerubah: _berubah,
             pindaiAktif: widget.pindaiAktif,
             bisaDihapus: widget.state.setPoint.length > 1,
@@ -160,6 +168,7 @@ class _KartuSetPoint extends StatelessWidget {
     required this.pindaiAktif,
     required this.bisaDihapus,
     required this.onHapus,
+    required this.pemilik,
   });
 
   final int nomor;
@@ -174,6 +183,7 @@ class _KartuSetPoint extends StatelessWidget {
   final bool pindaiAktif;
   final bool bisaDihapus;
   final VoidCallback onHapus;
+  final String pemilik;
 
   @override
   Widget build(BuildContext context) {
@@ -233,6 +243,7 @@ class _KartuSetPoint extends StatelessWidget {
                   nomor: nomor,
                   sp: sp,
                   onBerubah: onBerubah,
+                  pemilik: pemilik,
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
@@ -516,11 +527,13 @@ class _TombolFotoGrid extends ConsumerStatefulWidget {
     required this.nomor,
     required this.sp,
     required this.onBerubah,
+    required this.pemilik,
   });
 
   final int nomor;
   final SetPointGridState sp;
   final VoidCallback onBerubah;
+  final String pemilik;
 
   @override
   ConsumerState<_TombolFotoGrid> createState() => _TombolFotoGridState();
@@ -647,6 +660,7 @@ class _TombolFotoGridState extends ConsumerState<_TombolFotoGrid> {
                 .potong(citra: citra, kotak: hasil.kotakSel)
                 .potongan,
             penanda: (k) => 'grid|$nomor|${k.titikUkur}|${k.repeatNo}',
+            pemilik: widget.pemilik,
             labelAkhir: (k) => sp.labelSelFoto(k.titikUkur, k.repeatNo),
           );
         } catch (_) {

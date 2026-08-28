@@ -357,6 +357,7 @@ class _TombolFotoMatriksState extends ConsumerState<_TombolFotoMatriks> {
                 .potong(citra: citra, kotak: hasil.kotakSel)
                 .potongan,
             penanda: (k) => 'matriks|${k.titikUkur}|${k.repeatNo}',
+            pemilik: isian.clientRequestId,
             labelAkhir: (k) =>
                 isian.labelSelMatriks(matriks, k.titikUkur, k.repeatNo),
           );

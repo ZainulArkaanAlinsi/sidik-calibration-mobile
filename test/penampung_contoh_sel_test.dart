@@ -57,7 +57,7 @@ void main() {
   ) async {
     label['*'] = nilai;
 
-    return p.serahkan(lembar: lembar);
+    return p.serahkan(lembar: lembar, pemilik: 'uji');
   }
 
   PotonganSel potongan({
@@ -95,6 +95,7 @@ void main() {
       potongan: [potongan()],
       penanda: penandaBiasa,
       labelAkhir: labelDari(label),
+      pemilik: 'uji',
     );
 
     expect(penampung.jumlah, 1);
@@ -110,6 +111,7 @@ void main() {
       potongan: [potongan(teksOcr: '1')],
       penanda: penandaBiasa,
       labelAkhir: labelDari(label),
+      pemilik: 'uji',
     );
 
     final hasil = await serah(penampung, '7', 'ph');
@@ -143,9 +145,10 @@ void main() {
       penanda: penandaBiasa,
       // Repeat 2 dikosongkan teknisi.
       labelAkhir: (k) => k.repeatNo == 2 ? null : '5,0',
+      pemilik: 'uji',
     );
 
-    final hasil = await penampung.serahkan(lembar: 'ph');
+    final hasil = await penampung.serahkan(lembar: 'ph', pemilik: 'uji');
 
     expect(hasil.tersimpan, 2);
     expect(hasil.tanpaLabel, 1);
@@ -159,6 +162,7 @@ void main() {
       potongan: [potongan()],
       penanda: penandaBiasa,
       labelAkhir: labelDari(label),
+      pemilik: 'uji',
     );
 
     final hasil = await serah(penampung, '   ', 'ph');
@@ -178,11 +182,13 @@ void main() {
         potongan: [potongan(warna: 10, teksOcr: 'buram')],
         penanda: penandaBiasa,
         labelAkhir: labelDari(label),
+        pemilik: 'uji',
       );
       penampung.tampung(
         potongan: [potongan(warna: 200, teksOcr: 'jelas')],
         penanda: penandaBiasa,
         labelAkhir: labelDari(label),
+        pemilik: 'uji',
       );
 
       expect(penampung.jumlah, 1, reason: 'Satu sel, bukan dua.');
@@ -221,6 +227,7 @@ void main() {
       ],
       penanda: penandaBiasa,
       labelAkhir: labelDari(label),
+      pemilik: 'uji',
     );
 
     expect(penampung.jumlah, 4);
@@ -237,6 +244,7 @@ void main() {
       potongan: [potongan()],
       penanda: penandaBiasa,
       labelAkhir: labelDari(label),
+      pemilik: 'uji',
     );
 
     final pertama = await serah(penampung, '8,8', 'ph');
@@ -254,8 +262,9 @@ void main() {
       potongan: [potongan()],
       penanda: penandaBiasa,
       labelAkhir: labelDari(label),
+      pemilik: 'uji',
     );
-    penampung.buang();
+    penampung.buang('uji');
 
     expect(penampung.jumlah, 0);
 
@@ -274,6 +283,7 @@ void main() {
       potongan: [potongan()],
       penanda: penandaBiasa,
       labelAkhir: labelDari(label),
+      pemilik: 'uji',
     );
     await serah(penampung, '1413', 'conductivity');
 
@@ -290,11 +300,13 @@ void main() {
       potongan: [potongan(titikUkur: 100)],
       penanda: penandaBiasa,
       labelAkhir: labelDari(label),
+      pemilik: 'uji',
     );
     penampung.tampung(
       potongan: [potongan(titikUkur: 200)],
       penanda: penandaBiasa,
       labelAkhir: labelDari(label),
+      pemilik: 'uji',
     );
 
     expect(penampung.jumlah, 2);
@@ -323,6 +335,7 @@ void main() {
         potongan: [potongan(repeatNo: 1), potongan(repeatNo: 9)],
         penanda: (_) => 'tetap',
         labelAkhir: labelDari(label),
+        pemilik: 'uji',
       );
 
       expect(penampung.jumlah, 1);
@@ -335,6 +348,7 @@ void main() {
         potongan: [potongan(repeatNo: 1), potongan(repeatNo: 9)],
         penanda: (k) => 'r${k.repeatNo}',
         labelAkhir: labelDari(label),
+        pemilik: 'uji',
       );
 
       expect(penampung.jumlah, 2);
@@ -350,11 +364,13 @@ void main() {
         potongan: [potongan()],
         penanda: (_) => 'tabel-1',
         labelAkhir: labelDari(label),
+        pemilik: 'uji',
       );
       penampung.tampung(
         potongan: [potongan()],
         penanda: (_) => 'tabel-2',
         labelAkhir: labelDari(label),
+        pemilik: 'uji',
       );
 
       expect(penampung.jumlah, 2);
@@ -374,11 +390,12 @@ void main() {
         potongan: [potongan()],
         penanda: penandaBiasa,
         labelAkhir: (_) => angka,
+        pemilik: 'uji',
       );
 
       angka = 'sesudah-dikoreksi';
 
-      final hasil = await penampung.serahkan(lembar: 'ph');
+      final hasil = await penampung.serahkan(lembar: 'ph', pemilik: 'uji');
 
       expect(hasil.tersimpan, 1);
       expect(
@@ -401,9 +418,117 @@ void main() {
           dipanggil++;
           return '1,0';
         },
+        pemilik: 'uji',
       );
 
       expect(dipanggil, 0);
+    });
+  });
+
+  group('kepemilikan antar sesi lembar', () {
+    // Temuan review CodeRabbit, dan temuannya benar. Penampungnya SATU buat
+    // seluruh aplikasi, jadi tanpa penanda kepemilikan dia mencampur dua sesi.
+    //
+    // Kejadian nyatanya: teknisi memotret, lalu MENUTUP lembarnya tanpa
+    // menyimpan. Potongannya tertinggal di sini. Waktu lembar BERIKUTNYA
+    // dikirim, potongan lembar lama ikut tersimpan dengan nama lembar yang
+    // salah — dan `labelAkhir`-nya membaca formulir yang sudah di-dispose,
+    // yang di Flutter berarti melempar dan mematikan seluruh penyerahan.
+
+    test('serahkan cuma menyerahkan milik pemiliknya sendiri', () async {
+      final penampung = PenampungContohSel(simpanan);
+
+      penampung.tampung(
+        potongan: [potongan(repeatNo: 1)],
+        penanda: penandaBiasa,
+        labelAkhir: (_) => 'lembar-lama',
+        pemilik: 'sesi-A',
+      );
+      penampung.tampung(
+        potongan: [potongan(repeatNo: 2)],
+        penanda: penandaBiasa,
+        labelAkhir: (_) => 'lembar-baru',
+        pemilik: 'sesi-B',
+      );
+
+      final hasil = await penampung.serahkan(lembar: 'ph', pemilik: 'sesi-B');
+
+      expect(hasil.tersimpan, 1);
+
+      final isi = await simpanan.baca();
+
+      expect(
+        isi.contoh.map((c) => c.label),
+        ['lembar-baru'],
+        reason:
+            'Potongan sesi A NGGAK boleh ikut tersimpan dengan nama lembar '
+            'milik sesi B.',
+      );
+    });
+
+    test('yang bukan miliknya TETAP tertahan, bukan ikut kebuang', () async {
+      final penampung = PenampungContohSel(simpanan);
+
+      penampung.tampung(
+        potongan: [potongan(repeatNo: 1)],
+        penanda: penandaBiasa,
+        labelAkhir: (_) => '1,0',
+        pemilik: 'sesi-A',
+      );
+      penampung.tampung(
+        potongan: [potongan(repeatNo: 2)],
+        penanda: penandaBiasa,
+        labelAkhir: (_) => '2,0',
+        pemilik: 'sesi-B',
+      );
+
+      await penampung.serahkan(lembar: 'ph', pemilik: 'sesi-B');
+
+      expect(
+        penampung.jumlahMilik('sesi-A'),
+        1,
+        reason: 'Layar lain yang masih hidup nggak boleh kehilangan tampungan.',
+      );
+    });
+
+    test('buang cuma membuang milik yang menutup lembarnya', () {
+      final penampung = PenampungContohSel(simpanan);
+
+      penampung.tampung(
+        potongan: [potongan(repeatNo: 1)],
+        penanda: penandaBiasa,
+        labelAkhir: (_) => '1,0',
+        pemilik: 'sesi-A',
+      );
+      penampung.tampung(
+        potongan: [potongan(repeatNo: 2)],
+        penanda: penandaBiasa,
+        labelAkhir: (_) => '2,0',
+        pemilik: 'sesi-B',
+      );
+
+      penampung.buang('sesi-A');
+
+      expect(penampung.jumlahMilik('sesi-A'), 0);
+      expect(penampung.jumlahMilik('sesi-B'), 1);
+    });
+
+    test('penanda SAMA dari sesi BEDA nggak saling menimpa', () {
+      // Dua lembar berturut-turut punya titik & Repeat yang sama persis —
+      // itu keadaan biasa, bukan luar biasa. Tanpa pemilik di kuncinya,
+      // lembar kedua menimpa tampungan lembar pertama.
+      final penampung = PenampungContohSel(simpanan);
+
+      for (final sesi in ['sesi-A', 'sesi-B']) {
+        penampung.tampung(
+          potongan: [potongan()],
+          penanda: penandaBiasa,
+          labelAkhir: (_) => '1,0',
+          pemilik: sesi,
+        );
+      }
+
+      expect(penampung.jumlah, 2);
     });
   });
 }

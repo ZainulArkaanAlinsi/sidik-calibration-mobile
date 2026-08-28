@@ -2049,6 +2049,7 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
                 .potongan,
             penanda: (k) =>
                 '${tabel.kunciTabel}|${k.titikUkur}|${k.repeatNo}|${k.fieldId}',
+            pemilik: isian.clientRequestId,
             labelAkhir: (k) => isian.labelSelFoto(
               tahap: tabel.kunciTabel,
               titikUkur: k.titikUkur,

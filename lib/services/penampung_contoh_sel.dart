@@ -69,9 +69,16 @@ class PenampungContohSel {
   final SimpananContohSel simpanan;
 
   final _tertampung =
-      <String, ({PotonganSel potongan, PembacaLabel labelAkhir})>{};
+      <
+        String,
+        ({String pemilik, PotonganSel potongan, PembacaLabel labelAkhir})
+      >{};
 
   int get jumlah => _tertampung.length;
+
+  /// Berapa tampungan milik [pemilik] — buat test dan penjagaan.
+  int jumlahMilik(String pemilik) =>
+      _tertampung.values.where((v) => v.pemilik == pemilik).length;
 
   /// Tahan potongan hasil satu jepretan.
   ///
@@ -86,18 +93,45 @@ class PenampungContohSel {
   /// Jenis lembarnya nggak diminta di sini: dia sifat seluruh lembar, bukan
   /// sifat tiap potongan, dan yang tahu profil alatnya cuma layar. Diminta di
   /// [serahkan].
+  ///
+  /// ## Kenapa [pemilik] wajib
+  ///
+  /// Penampungnya SATU buat seluruh aplikasi, jadi tanpa penanda kepemilikan
+  /// dia gampang mencampur dua sesi lembar. Teknisi yang memotret lalu MENUTUP
+  /// lembarnya tanpa menyimpan meninggalkan potongan di sini — dan waktu
+  /// lembar BERIKUTNYA dikirim, potongan lembar lama ikut tersimpan dengan
+  /// nama lembar yang salah, sementara [labelAkhir]-nya membaca formulir yang
+  /// sudah di-dispose.
+  ///
+  /// Isi [pemilik] dengan sesuatu yang unik per sesi lembar
+  /// (`LembarKerjaState.clientRequestId`). [serahkan] cuma menyerahkan
+  /// tampungan milik pemilik yang menyerahkannya, dan [buang] cuma membuang
+  /// miliknya sendiri.
   void tampung({
     required Iterable<PotonganSel> potongan,
     required PenandaSel penanda,
     required PembacaLabel labelAkhir,
+    required String pemilik,
   }) {
     for (final p in potongan) {
-      _tertampung[penanda(p.kotak)] = (potongan: p, labelAkhir: labelAkhir);
+      _tertampung['$pemilik|${penanda(p.kotak)}'] = (
+        pemilik: pemilik,
+        potongan: p,
+        labelAkhir: labelAkhir,
+      );
     }
   }
 
-  /// Buang tampungan tanpa menyimpan apa pun.
-  void buang() => _tertampung.clear();
+  /// Buang tampungan milik [pemilik] tanpa menyimpan apa pun.
+  ///
+  /// WAJIB dipanggil waktu sesi lembar berakhir tanpa dikirim — lembar yang
+  /// ditutup sesudah difoto meninggalkan potongan berikut closure yang
+  /// menangkap formulir yang sudah di-dispose.
+  ///
+  /// Cuma miliknya sendiri yang dibuang: layar lain yang kebetulan masih
+  /// hidup nggak boleh kehilangan tampungannya gara-gara layar ini ditutup.
+  void buang(String pemilik) =>
+      _tertampung.removeWhere((_, v) => v.pemilik == pemilik);
 
   /// Serahkan tampungan ke [simpanan], dengan label dari [labelAkhir].
   ///
@@ -117,17 +151,24 @@ class PenampungContohSel {
   /// soal beban: satu lembar bisa seratusan sel, dan menembakkan seratus
   /// penulisan berkas sekaligus bikin HP tersendat persis waktu teknisi baru
   /// saja menekan Simpan.
-  Future<HasilSerah> serahkan({required String lembar}) async {
+  Future<HasilSerah> serahkan({
+    required String lembar,
+    required String pemilik,
+  }) async {
     // Disalin dulu, lalu tampungannya dikosongkan SEBELUM menulis: kalau
     // penulisannya gagal di tengah, yang sudah tersimpan nggak ikut terserah
     // lagi di penekanan Simpan berikutnya.
-    final isi = Map.of(_tertampung);
-    _tertampung.clear();
+    final isi = [
+      for (final e in _tertampung.values)
+        if (e.pemilik == pemilik) e,
+    ];
+
+    _tertampung.removeWhere((_, v) => v.pemilik == pemilik);
 
     var tersimpan = 0;
     var tanpaLabel = 0;
 
-    for (final e in isi.values) {
+    for (final e in isi) {
       final label = e.labelAkhir(e.potongan.kotak);
 
       if (label == null || label.trim().isEmpty) {
