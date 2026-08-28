@@ -4135,4 +4135,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String fotoReviewMasihKosong(int jumlah) {
     return '$jumlah cells are still empty and must be filled.';
   }
+
+  @override
+  String get skemaDinamisJudul => 'Unrecognised sheet';
+
+  @override
+  String get skemaDinamisPengantar =>
+      'This sheet has no fixed shape in the app yet, so its contents were read straight from the photo. Check every field before saving — nothing here is treated as certain.';
+
+  @override
+  String get skemaDinamisTanpaSatuan => 'no unit';
+
+  @override
+  String skemaDinamisTabel(int nomor) {
+    return 'Table $nomor';
+  }
+
+  @override
+  String get skemaDinamisSimpan => 'SAVE WHAT WAS READ';
+
+  @override
+  String get skemaDinamisKosong =>
+      'No fields or tables were read from this photo. Try again with the whole sheet in frame.';
 }

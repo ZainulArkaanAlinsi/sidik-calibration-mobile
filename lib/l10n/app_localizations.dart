@@ -7368,6 +7368,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{jumlah} cells are still empty and must be filled.'**
   String fotoReviewMasihKosong(int jumlah);
+
+  /// No description provided for @skemaDinamisJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Unrecognised sheet'**
+  String get skemaDinamisJudul;
+
+  /// No description provided for @skemaDinamisPengantar.
+  ///
+  /// In en, this message translates to:
+  /// **'This sheet has no fixed shape in the app yet, so its contents were read straight from the photo. Check every field before saving — nothing here is treated as certain.'**
+  String get skemaDinamisPengantar;
+
+  /// No description provided for @skemaDinamisTanpaSatuan.
+  ///
+  /// In en, this message translates to:
+  /// **'no unit'**
+  String get skemaDinamisTanpaSatuan;
+
+  /// No description provided for @skemaDinamisTabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Table {nomor}'**
+  String skemaDinamisTabel(int nomor);
+
+  /// No description provided for @skemaDinamisSimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE WHAT WAS READ'**
+  String get skemaDinamisSimpan;
+
+  /// No description provided for @skemaDinamisKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No fields or tables were read from this photo. Try again with the whole sheet in frame.'**
+  String get skemaDinamisKosong;
 }
 
 class _AppLocalizationsDelegate

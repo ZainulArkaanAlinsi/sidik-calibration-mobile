@@ -1819,5 +1819,18 @@
         "type": "int"
       }
     }
-  }
+  },
+  "skemaDinamisJudul": "Lembar tidak dikenal",
+  "skemaDinamisPengantar": "Lembar ini belum punya bentuk baku di aplikasi, jadi isinya dibaca langsung dari foto. Periksa tiap isian sebelum disimpan — tidak ada satu pun yang dianggap pasti.",
+  "skemaDinamisTanpaSatuan": "tanpa satuan",
+  "skemaDinamisTabel": "Tabel {nomor}",
+  "@skemaDinamisTabel": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
+  "skemaDinamisSimpan": "SIMPAN HASIL BACAAN",
+  "skemaDinamisKosong": "Tidak ada isian maupun tabel yang terbaca dari foto ini. Coba jepret ulang dengan seluruh lembar masuk frame."
 }

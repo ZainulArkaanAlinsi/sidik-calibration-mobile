@@ -2448,5 +2448,18 @@
         "type": "int"
       }
     }
-  }
+  },
+  "skemaDinamisJudul": "Unrecognised sheet",
+  "skemaDinamisPengantar": "This sheet has no fixed shape in the app yet, so its contents were read straight from the photo. Check every field before saving — nothing here is treated as certain.",
+  "skemaDinamisTanpaSatuan": "no unit",
+  "skemaDinamisTabel": "Table {nomor}",
+  "@skemaDinamisTabel": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
+  "skemaDinamisSimpan": "SAVE WHAT WAS READ",
+  "skemaDinamisKosong": "No fields or tables were read from this photo. Try again with the whole sheet in frame."
 }

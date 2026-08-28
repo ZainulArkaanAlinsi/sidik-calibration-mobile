@@ -4106,4 +4106,26 @@ class AppLocalizationsId extends AppLocalizations {
   String fotoReviewMasihKosong(int jumlah) {
     return '$jumlah sel masih kosong dan wajib diisi.';
   }
+
+  @override
+  String get skemaDinamisJudul => 'Lembar tidak dikenal';
+
+  @override
+  String get skemaDinamisPengantar =>
+      'Lembar ini belum punya bentuk baku di aplikasi, jadi isinya dibaca langsung dari foto. Periksa tiap isian sebelum disimpan — tidak ada satu pun yang dianggap pasti.';
+
+  @override
+  String get skemaDinamisTanpaSatuan => 'tanpa satuan';
+
+  @override
+  String skemaDinamisTabel(int nomor) {
+    return 'Tabel $nomor';
+  }
+
+  @override
+  String get skemaDinamisSimpan => 'SIMPAN HASIL BACAAN';
+
+  @override
+  String get skemaDinamisKosong =>
+      'Tidak ada isian maupun tabel yang terbaca dari foto ini. Coba jepret ulang dengan seluruh lembar masuk frame.';
 }
