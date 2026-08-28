@@ -31,9 +31,10 @@ void main() {
 
   double xKolom(int k) => 420.0 + k * lebarKolom;
 
-  TeksTerbaca kata(String teks, double x, double y) => (
+  TeksTerbaca kata(String teks, double x, double y, {double? keyakinan}) => (
     teks: teks,
     kotak: Rect.fromLTWH(x, y, teks.length * 14, 24),
+    keyakinan: keyakinan,
   );
 
   /// Foto tabel 3 baris × 3 kolom. [kosong] = sel yang angkanya NGGAK kebaca,

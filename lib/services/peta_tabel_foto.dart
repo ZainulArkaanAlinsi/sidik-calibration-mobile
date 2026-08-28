@@ -8,6 +8,10 @@ typedef SelTabelFoto = ({
   int repeatNo,
   String fieldId,
   String teks,
+
+  /// Keyakinan OCR buat teks di sel ini. `null` = pengenalnya nggak memberi
+  /// tahu — lihat [TeksTerbaca.keyakinan]. JANGAN diisi angka pengganti.
+  double? keyakinan,
 });
 
 /// Letak satu sel di dalam citra — kotak yang bisa dipotong, bukan teksnya.
@@ -589,6 +593,7 @@ class PetaTabelFoto {
         repeatNo: repeat,
         fieldId: field,
         teks: a.t.teks,
+        keyakinan: a.t.keyakinan,
       ));
     }
 
@@ -1011,6 +1016,7 @@ class PetaTabelFoto {
         repeatNo: repeat,
         fieldId: field,
         teks: a.t.teks,
+        keyakinan: a.t.keyakinan,
       ));
     }
 
@@ -1286,6 +1292,17 @@ class PetaTabelFoto {
           gabung = (
             teks: '${gabung.teks} ${kanan.teks}',
             kotak: gabung.kotak.expandToInclude(kanan.kotak),
+            // Frasa gabungan cuma sekuat potongan TERLEMAHNYA: `UP X1` yang
+            // separuhnya kebaca ragu tetap frasa yang ragu. Ambil yang
+            // terkecil, dan kalau salah satunya nggak diketahui (null) maka
+            // gabungannya juga nggak diketahui — bukan diambil dari yang
+            // kebetulan punya angka.
+            keyakinan:
+                (gabung.keyakinan == null || kanan.keyakinan == null)
+                ? null
+                : (gabung.keyakinan! < kanan.keyakinan!
+                      ? gabung.keyakinan
+                      : kanan.keyakinan),
           );
 
           hasil.add(gabung);
@@ -1531,6 +1548,10 @@ class PetaTabelFoto {
           field: f,
           t: (
             teks: '',
+            // Jangkar BUATAN — kotaknya dihitung, bukan dibaca dari citra.
+            // Nggak ada teks yang dikenali di sini, jadi nggak ada keyakinan
+            // yang bisa dilaporkan.
+            keyakinan: null,
             kotak: Rect.fromLTWH(
               kotak.left + rata,
               kotak.top,
@@ -1615,6 +1636,8 @@ class PetaTabelFoto {
 
         hasil[urut[i]] = (
           teks: cocok[i].teks,
+          // Yang digeser cuma KOTAKNYA; teks & keyakinannya elemen yang sama.
+          keyakinan: cocok[i].keyakinan,
           // Digeser ke tengah span kolomnya — lihat alasannya di dokumentasi
           // method ini.
           kotak: Rect.fromLTWH(

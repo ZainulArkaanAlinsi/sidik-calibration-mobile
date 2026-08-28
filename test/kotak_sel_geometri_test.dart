@@ -27,8 +27,11 @@ void main() {
 
   double xKolom(int k) => 420.0 + k * lebarKolom;
 
-  TeksTerbaca kata(String teks, double x, double y) =>
-      (teks: teks, kotak: Rect.fromLTWH(x, y, teks.length * 14, 24));
+  TeksTerbaca kata(String teks, double x, double y, {double? keyakinan}) => (
+    teks: teks,
+    kotak: Rect.fromLTWH(x, y, teks.length * 14, 24),
+    keyakinan: keyakinan,
+  );
 
   /// Semua pasangan kotak yang tumpang tindih — bentuk yang bikin
   /// kegagalannya kelihatan waktu test-nya merah.

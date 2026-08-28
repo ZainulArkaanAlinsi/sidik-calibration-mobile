@@ -1083,8 +1083,11 @@ void main() {
     _perbesarViewport(tester);
 
     // Hasil OCR tabel pH: nilai standar di kolom kiri, dua Repeat di kanan.
-    TeksTerbaca kata(String t, double x, double y) =>
-        (teks: t, kotak: Rect.fromLTWH(x, y, t.length * 14, 24));
+    TeksTerbaca kata(String t, double x, double y, {double? keyakinan}) => (
+      teks: t,
+      kotak: Rect.fromLTWH(x, y, t.length * 14, 24),
+      keyakinan: keyakinan,
+    );
 
     await _muat(
       tester,

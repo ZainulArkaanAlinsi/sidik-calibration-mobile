@@ -45,9 +45,10 @@ void main() {
   /// Dipisah per kata, bukan per baris, karena begitu memang
   /// `MlKitPembacaHalaman` memulangkannya. Kepala `UP X1` karena itu datang
   /// sebagai DUA potong, dan itu justru yang bikin bug-nya lahir.
-  TeksTerbaca kata(String teks, double x, double y) => (
+  TeksTerbaca kata(String teks, double x, double y, {double? keyakinan}) => (
     teks: teks,
     kotak: Rect.fromLTWH(x, y, teks.length * 14, 24),
+    keyakinan: keyakinan,
   );
 
   double xKolom(int k) => 420.0 + k * lebarKolom;

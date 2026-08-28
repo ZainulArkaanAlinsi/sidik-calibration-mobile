@@ -62,11 +62,17 @@ void main() {
     );
   }
 
-  SelTabelFoto sel(double titikUkur, int repeatNo, String teks) => (
+  SelTabelFoto sel(
+    double titikUkur,
+    int repeatNo,
+    String teks, {
+    double? keyakinan,
+  }) => (
     titikUkur: titikUkur,
     repeatNo: repeatNo,
     fieldId: 'pembacaan',
     teks: teks,
+    keyakinan: keyakinan,
   );
 
   test('pengulangan [2, 4, 6, 8, 10]: Repeat 4 mendarat di kolom KEDUA', () {
