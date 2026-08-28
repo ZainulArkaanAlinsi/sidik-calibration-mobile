@@ -7422,6 +7422,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No fields or tables were read from this photo. Try again with the whole sheet in frame.'**
   String get skemaDinamisKosong;
+
+  /// No description provided for @petaKolomJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'What each column means'**
+  String get petaKolomJudul;
+
+  /// No description provided for @petaKolomPengantar.
+  ///
+  /// In en, this message translates to:
+  /// **'The app can see how many columns the sheet has, but it cannot know which one is the reference value and which are instrument readings. That is your call. Getting it backwards flips the sign of the correction on the certificate, with numbers that still look reasonable.'**
+  String get petaKolomPengantar;
+
+  /// No description provided for @petaKolomAbaikan.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignore'**
+  String get petaKolomAbaikan;
+
+  /// No description provided for @petaKolomNilaiAcuan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference value'**
+  String get petaKolomNilaiAcuan;
+
+  /// No description provided for @petaKolomPembacaan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading'**
+  String get petaKolomPembacaan;
+
+  /// No description provided for @petaKolomSatuan.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get petaKolomSatuan;
+
+  /// No description provided for @petaKolomSatuanBantu.
+  ///
+  /// In en, this message translates to:
+  /// **'Typed, not read off the sheet — a wrong unit changes what every number means.'**
+  String get petaKolomSatuanBantu;
+
+  /// No description provided for @petaKolomSatuanWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'The unit is still empty.'**
+  String get petaKolomSatuanWajib;
+
+  /// No description provided for @petaKolomKolomKe.
+  ///
+  /// In en, this message translates to:
+  /// **'Column {nomor}'**
+  String petaKolomKolomKe(int nomor);
+
+  /// No description provided for @petaKolomContoh.
+  ///
+  /// In en, this message translates to:
+  /// **'sample: {nilai}'**
+  String petaKolomContoh(String nilai);
+
+  /// No description provided for @petaKolomTanpaAcuan.
+  ///
+  /// In en, this message translates to:
+  /// **'No column has been marked as the reference value yet.'**
+  String get petaKolomTanpaAcuan;
+
+  /// No description provided for @petaKolomAcuanDobel.
+  ///
+  /// In en, this message translates to:
+  /// **'Two columns are marked as the reference value. A measurement point has only one.'**
+  String get petaKolomAcuanDobel;
+
+  /// No description provided for @petaKolomPembacaanKurang.
+  ///
+  /// In en, this message translates to:
+  /// **'At least {jumlah} reading columns are needed — a single number has no spread to compute.'**
+  String petaKolomPembacaanKurang(int jumlah);
+
+  /// No description provided for @petaKolomRingkas.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah, plural, =1{1 measurement point will be filled in} other{{jumlah} measurement points will be filled in}}.'**
+  String petaKolomRingkas(int jumlah);
+
+  /// No description provided for @petaKolomDilewat.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah, plural, =1{1 row was skipped because its reference value is empty} other{{jumlah} rows were skipped because their reference value is empty}}.'**
+  String petaKolomDilewat(int jumlah);
+
+  /// No description provided for @petaKolomTerapkan.
+  ///
+  /// In en, this message translates to:
+  /// **'FILL MEASUREMENT POINTS'**
+  String get petaKolomTerapkan;
+
+  /// No description provided for @calibBacaFoto.
+  ///
+  /// In en, this message translates to:
+  /// **'READ FROM SHEET PHOTO'**
+  String get calibBacaFoto;
+
+  /// No description provided for @calibBacaFotoGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'That photo could not be read. Try again with the whole sheet in frame.'**
+  String get calibBacaFotoGagal;
+
+  /// No description provided for @calibBacaFotoTanpaTabel.
+  ///
+  /// In en, this message translates to:
+  /// **'No table was read from this photo. Measurement points come from the table on the sheet, so make sure the table is in frame.'**
+  String get calibBacaFotoTanpaTabel;
+
+  /// No description provided for @calibBacaFotoSelesai.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah, plural, =1{1 measurement point was filled in from the photo} other{{jumlah} measurement points were filled in from the photo}}. Check the numbers before submitting.'**
+  String calibBacaFotoSelesai(int jumlah);
+
+  /// No description provided for @pilihTabelJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Which table should be used?'**
+  String get pilihTabelJudul;
+
+  /// No description provided for @pilihTabelPengantar.
+  ///
+  /// In en, this message translates to:
+  /// **'This photo has more than one table. Pick the one holding the measurement points — not the instrument identity table.'**
+  String get pilihTabelPengantar;
 }
 
 class _AppLocalizationsDelegate

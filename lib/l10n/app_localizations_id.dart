@@ -4143,4 +4143,89 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get skemaDinamisKosong =>
       'Tidak ada isian maupun tabel yang terbaca dari foto ini. Coba jepret ulang dengan seluruh lembar masuk frame.';
+
+  @override
+  String get petaKolomJudul => 'Kolom mana artinya apa';
+
+  @override
+  String get petaKolomPengantar =>
+      'Aplikasi bisa lihat kertasnya punya berapa kolom, tapi tidak bisa tahu kolom mana nilai acuan dan mana pembacaan alat. Kamu yang menentukan. Salah tunjuk bikin koreksi di sertifikat kebalik tandanya, dengan angka yang tetap kelihatan wajar.';
+
+  @override
+  String get petaKolomAbaikan => 'Abaikan';
+
+  @override
+  String get petaKolomNilaiAcuan => 'Nilai acuan';
+
+  @override
+  String get petaKolomPembacaan => 'Pembacaan';
+
+  @override
+  String get petaKolomSatuan => 'Satuan';
+
+  @override
+  String get petaKolomSatuanBantu =>
+      'Diketik, bukan dibaca dari kertas — satuan yang salah mengubah arti seluruh angkanya.';
+
+  @override
+  String get petaKolomSatuanWajib => 'Satuannya belum diisi.';
+
+  @override
+  String petaKolomKolomKe(int nomor) {
+    return 'Kolom $nomor';
+  }
+
+  @override
+  String petaKolomContoh(String nilai) {
+    return 'contoh isi: $nilai';
+  }
+
+  @override
+  String get petaKolomTanpaAcuan =>
+      'Belum ada kolom yang ditunjuk sebagai nilai acuan.';
+
+  @override
+  String get petaKolomAcuanDobel =>
+      'Dua kolom ditunjuk jadi nilai acuan. Satu titik ukur cuma punya satu.';
+
+  @override
+  String petaKolomPembacaanKurang(int jumlah) {
+    return 'Butuh minimal $jumlah kolom pembacaan — sebaran tidak bisa dihitung dari satu angka.';
+  }
+
+  @override
+  String petaKolomRingkas(int jumlah) {
+    return '$jumlah titik ukur akan diisi ke form.';
+  }
+
+  @override
+  String petaKolomDilewat(int jumlah) {
+    return '$jumlah baris dilewat karena nilai acuannya kosong.';
+  }
+
+  @override
+  String get petaKolomTerapkan => 'ISI TITIK UKUR';
+
+  @override
+  String get calibBacaFoto => 'BACA DARI FOTO LEMBAR';
+
+  @override
+  String get calibBacaFotoGagal =>
+      'Fotonya tidak bisa dibaca. Coba jepret ulang dengan seluruh lembar masuk frame.';
+
+  @override
+  String get calibBacaFotoTanpaTabel =>
+      'Tidak ada tabel yang terbaca dari foto ini. Titik ukur diambil dari tabel di kertasnya, jadi pastikan tabelnya ikut kefoto.';
+
+  @override
+  String calibBacaFotoSelesai(int jumlah) {
+    return '$jumlah titik ukur diisi dari foto. Periksa angkanya sebelum kirim.';
+  }
+
+  @override
+  String get pilihTabelJudul => 'Pakai tabel yang mana?';
+
+  @override
+  String get pilihTabelPengantar =>
+      'Foto ini punya lebih dari satu tabel. Pilih yang berisi titik ukur — bukan tabel identitas alat.';
 }
