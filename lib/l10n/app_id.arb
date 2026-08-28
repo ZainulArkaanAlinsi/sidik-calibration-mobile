@@ -1759,5 +1759,23 @@
         "type": "String"
       }
     }
-  }
+  },
+  "dinamisPerluDiperiksa": "Perlu diperiksa",
+  "dinamisPerluDiperiksaKeyakinan": "Perlu diperiksa \u2014 keyakinan {persen}%",
+  "@dinamisPerluDiperiksaKeyakinan": {
+    "placeholders": {
+      "persen": { "type": "int" }
+    }
+  },
+  "dinamisPerluDiperiksaJumlah": "{count} nilai perlu diperiksa sebelum disimpan",
+  "@dinamisPerluDiperiksaJumlah": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dinamisTercetak": "Tercetak",
+  "dinamisBelumTerbaca": "Belum terbaca",
+  "dinamisTanpaLabel": "Tanpa label",
+  "dinamisTanpaJudulKolom": "Kolom",
+  "dinamisLihatAsal": "Lihat asalnya di foto"
 }

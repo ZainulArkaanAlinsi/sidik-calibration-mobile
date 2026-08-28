@@ -2388,5 +2388,23 @@
         "type": "String"
       }
     }
-  }
+  },
+  "dinamisPerluDiperiksa": "Needs checking",
+  "dinamisPerluDiperiksaKeyakinan": "Needs checking \u2014 {persen}% confidence",
+  "@dinamisPerluDiperiksaKeyakinan": {
+    "placeholders": {
+      "persen": { "type": "int" }
+    }
+  },
+  "dinamisPerluDiperiksaJumlah": "{count} values need checking before saving",
+  "@dinamisPerluDiperiksaJumlah": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dinamisTercetak": "Pre-printed",
+  "dinamisBelumTerbaca": "Not read",
+  "dinamisTanpaLabel": "No label",
+  "dinamisTanpaJudulKolom": "Column",
+  "dinamisLihatAsal": "Show where this came from"
 }

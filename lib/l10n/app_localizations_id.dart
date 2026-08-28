@@ -4077,4 +4077,32 @@ class AppLocalizationsId extends AppLocalizations {
   String lkAlatBaruTersimpan(String nama) {
     return 'Alat \"$nama\" tersimpan dan langsung dipakai di lembar ini.';
   }
+
+  @override
+  String get dinamisPerluDiperiksa => 'Perlu diperiksa';
+
+  @override
+  String dinamisPerluDiperiksaKeyakinan(int persen) {
+    return 'Perlu diperiksa — keyakinan $persen%';
+  }
+
+  @override
+  String dinamisPerluDiperiksaJumlah(int count) {
+    return '$count nilai perlu diperiksa sebelum disimpan';
+  }
+
+  @override
+  String get dinamisTercetak => 'Tercetak';
+
+  @override
+  String get dinamisBelumTerbaca => 'Belum terbaca';
+
+  @override
+  String get dinamisTanpaLabel => 'Tanpa label';
+
+  @override
+  String get dinamisTanpaJudulKolom => 'Kolom';
+
+  @override
+  String get dinamisLihatAsal => 'Lihat asalnya di foto';
 }

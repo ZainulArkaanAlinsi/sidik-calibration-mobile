@@ -4106,4 +4106,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String lkAlatBaruTersimpan(String nama) {
     return 'Equipment \"$nama\" saved and selected for this worksheet.';
   }
+
+  @override
+  String get dinamisPerluDiperiksa => 'Needs checking';
+
+  @override
+  String dinamisPerluDiperiksaKeyakinan(int persen) {
+    return 'Needs checking — $persen% confidence';
+  }
+
+  @override
+  String dinamisPerluDiperiksaJumlah(int count) {
+    return '$count values need checking before saving';
+  }
+
+  @override
+  String get dinamisTercetak => 'Pre-printed';
+
+  @override
+  String get dinamisBelumTerbaca => 'Not read';
+
+  @override
+  String get dinamisTanpaLabel => 'No label';
+
+  @override
+  String get dinamisTanpaJudulKolom => 'Column';
+
+  @override
+  String get dinamisLihatAsal => 'Show where this came from';
 }

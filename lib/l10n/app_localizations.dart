@@ -7326,6 +7326,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equipment \"{nama}\" saved and selected for this worksheet.'**
   String lkAlatBaruTersimpan(String nama);
+
+  /// No description provided for @dinamisPerluDiperiksa.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs checking'**
+  String get dinamisPerluDiperiksa;
+
+  /// No description provided for @dinamisPerluDiperiksaKeyakinan.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs checking — {persen}% confidence'**
+  String dinamisPerluDiperiksaKeyakinan(int persen);
+
+  /// No description provided for @dinamisPerluDiperiksaJumlah.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} values need checking before saving'**
+  String dinamisPerluDiperiksaJumlah(int count);
+
+  /// No description provided for @dinamisTercetak.
+  ///
+  /// In en, this message translates to:
+  /// **'Pre-printed'**
+  String get dinamisTercetak;
+
+  /// No description provided for @dinamisBelumTerbaca.
+  ///
+  /// In en, this message translates to:
+  /// **'Not read'**
+  String get dinamisBelumTerbaca;
+
+  /// No description provided for @dinamisTanpaLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'No label'**
+  String get dinamisTanpaLabel;
+
+  /// No description provided for @dinamisTanpaJudulKolom.
+  ///
+  /// In en, this message translates to:
+  /// **'Column'**
+  String get dinamisTanpaJudulKolom;
+
+  /// No description provided for @dinamisLihatAsal.
+  ///
+  /// In en, this message translates to:
+  /// **'Show where this came from'**
+  String get dinamisLihatAsal;
 }
 
 class _AppLocalizationsDelegate
