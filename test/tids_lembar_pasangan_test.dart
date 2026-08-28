@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sidik_calibration/models/lembar_kerja.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_state.dart';
 import 'package:sidik_calibration/services/contoh_lembar_kerja_suhu.dart';
+import 'package:sidik_calibration/services/equipment_lookup_service.dart';
 import 'package:sidik_calibration/services/lembar_kerja_service.dart';
 
 /// TIDS — Temperatur Indikator dengan Sensor — sesudah pindah ke jalur
@@ -227,6 +228,65 @@ void main() {
       // ke deret `uut` kalau pasangannya kosong, jadi mengirim dua-duanya
       // berarti satu deret nimpa deret lainnya.
       expect(payload.containsKey('pembacaan'), isFalse);
+    });
+
+    test('angka tanpa set point nggak terkirim bernomor baris karangan', () {
+      // Rantai yang ditutup di sini. Tiap langkahnya DIAM, dan ujungnya
+      // sertifikat yang mengklaim titik yang salah:
+      //
+      //  1. Teknisi mengisi pembacaannya, kotak `Setpoint`-nya kelewat kosong.
+      //  2. `pasanganKosong` false — angkanya memang ada — jadi barisnya ikut.
+      //  3. `toSubmissionPasangan()` jatuh ke cadangan `?? titikUkur`, dan di
+      //     TIDS itu nomor barisnya.
+      //  4. Penjaga `titikTanpaSetPoint` cuma jalan di `if (!draft)`, jadi
+      //     SIMPAN DRAFT lewat tanpa ditahan.
+      //  5. Draftnya dibuka lagi: `_titikBelumDitentukan()` menulis angka itu
+      //     ke kotak `Setpoint` yang tadinya kosong. Sekarang barisnya
+      //     kelihatan sah, `siapKirim` true, dan penjaga di langkah 4 nggak
+      //     bunyi lagi waktu teknisi menekan kirim beneran.
+      //
+      // `tids_baris_tanpa_titik_test.dart` nggak menangkap ini: bentuk TIDS di
+      // sana masih yang DATAR (`simpan_ke: measurements[].pembacaan`), jadi
+      // yang diperiksanya `measurements` — dan lembar pasangan nggak lewat
+      // situ, dia lewat `measurementsGrid`.
+      final b = bentukDariFixture();
+      final state = LembarKerjaState(bentuk: b, clientRequestId: 'uji')
+        ..alat = daftarAlatMock.first;
+      final standar = tabelDari(b).firstWhere((t) => t.deretStandar);
+      final baris = state.barisTabel(standar);
+
+      // Baris ke-3 → `titikUkur` 3. Kotak Setpoint sengaja dibiarkan kosong.
+      final titik = state.titik[state.kunciBaris(baris, 2, standar)]!;
+
+      for (var i = 0; i < 5; i++) {
+        titik.kotak('standar', 'pembacaan', i).text = '121,${i + 1}';
+        titik.kotak('uut', 'pembacaan', i).text = '121,${i + 4}';
+      }
+
+      expect(titik.pasanganKosong, isFalse, reason: 'Angkanya memang ada.');
+      expect(titik.siapKirim, isFalse, reason: 'Set point-nya yang belum ada.');
+
+      final terkirim = state.toSubmission(draft: true).measurementsGrid ?? [];
+
+      expect(
+        terkirim.map((m) => m['titik_ukur']).toList(),
+        isNot(contains(titik.titikUkur)),
+        reason:
+            'Nomor baris nggak boleh menyamar jadi set point. Sekali angka itu '
+            'tersimpan, draft yang dibuka lagi menuliskannya ke kotak Setpoint '
+            'dan penjaga sebelum kirim berhenti bunyi.',
+      );
+
+      expect(
+        terkirim,
+        isEmpty,
+        reason: 'Baris tanpa set point nggak punya identitas buat dihitung — '
+            'sama seperti jalur datar, dia nggak ikut dikirim.',
+      );
+
+      // Dan yang menjaga angkanya nggak hilang DIAM-DIAM tetap penjaga sebelum
+      // kirim: dia MENAHAN kiriman sungguhan sambil menyebut barisnya.
+      expect(state.titikTanpaSetPoint, hasLength(1));
     });
 
     test('baris yang belum disentuh nggak ikut dikirim', () {
