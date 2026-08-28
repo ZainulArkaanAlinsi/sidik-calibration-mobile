@@ -1777,5 +1777,13 @@
   "dinamisBelumTerbaca": "Belum terbaca",
   "dinamisTanpaLabel": "Tanpa label",
   "dinamisTanpaJudulKolom": "Kolom",
-  "dinamisLihatAsal": "Lihat asalnya di foto"
+  "dinamisLihatAsal": "Lihat asalnya di foto",
+  "dokBacaJudul": "Baca lembar kerja",
+  "dokBacaAjakan": "Foto lembar kerjanya. Bentuk formnya ngikutin isi lembar — nggak perlu template.",
+  "dokBacaTombolFoto": "Foto lembar",
+  "dokBacaSedang": "Lagi membaca lembarnya…",
+  "dokBacaUlangFoto": "Foto ulang",
+  "dokBacaMulaiLagi": "Mulai lagi",
+  "dokBacaNamaAlatLabel": "Nama alat (opsional)",
+  "dokBacaNamaAlatBantuan": "Cuma petunjuk buat AI. Kalau isi lembarnya beda, yang dipakai lembarnya."
 }

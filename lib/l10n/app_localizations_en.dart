@@ -4134,4 +4134,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dinamisLihatAsal => 'Show where this came from';
+
+  @override
+  String get dokBacaJudul => 'Read worksheet';
+
+  @override
+  String get dokBacaAjakan =>
+      'Photograph the worksheet. The form follows what\'s on the sheet — no template needed.';
+
+  @override
+  String get dokBacaTombolFoto => 'Photograph sheet';
+
+  @override
+  String get dokBacaSedang => 'Reading the sheet…';
+
+  @override
+  String get dokBacaUlangFoto => 'Retake photo';
+
+  @override
+  String get dokBacaMulaiLagi => 'Start over';
+
+  @override
+  String get dokBacaNamaAlatLabel => 'Equipment name (optional)';
+
+  @override
+  String get dokBacaNamaAlatBantuan =>
+      'Only a hint for the AI. If the sheet says otherwise, the sheet wins.';
 }

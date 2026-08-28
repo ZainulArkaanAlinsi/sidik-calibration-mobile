@@ -7374,6 +7374,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show where this came from'**
   String get dinamisLihatAsal;
+
+  /// No description provided for @dokBacaJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Read worksheet'**
+  String get dokBacaJudul;
+
+  /// No description provided for @dokBacaAjakan.
+  ///
+  /// In en, this message translates to:
+  /// **'Photograph the worksheet. The form follows what\'s on the sheet — no template needed.'**
+  String get dokBacaAjakan;
+
+  /// No description provided for @dokBacaTombolFoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Photograph sheet'**
+  String get dokBacaTombolFoto;
+
+  /// No description provided for @dokBacaSedang.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading the sheet…'**
+  String get dokBacaSedang;
+
+  /// No description provided for @dokBacaUlangFoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake photo'**
+  String get dokBacaUlangFoto;
+
+  /// No description provided for @dokBacaMulaiLagi.
+  ///
+  /// In en, this message translates to:
+  /// **'Start over'**
+  String get dokBacaMulaiLagi;
+
+  /// No description provided for @dokBacaNamaAlatLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment name (optional)'**
+  String get dokBacaNamaAlatLabel;
+
+  /// No description provided for @dokBacaNamaAlatBantuan.
+  ///
+  /// In en, this message translates to:
+  /// **'Only a hint for the AI. If the sheet says otherwise, the sheet wins.'**
+  String get dokBacaNamaAlatBantuan;
 }
 
 class _AppLocalizationsDelegate

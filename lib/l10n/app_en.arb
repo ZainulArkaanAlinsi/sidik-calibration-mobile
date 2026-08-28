@@ -2406,5 +2406,13 @@
   "dinamisBelumTerbaca": "Not read",
   "dinamisTanpaLabel": "No label",
   "dinamisTanpaJudulKolom": "Column",
-  "dinamisLihatAsal": "Show where this came from"
+  "dinamisLihatAsal": "Show where this came from",
+  "dokBacaJudul": "Read worksheet",
+  "dokBacaAjakan": "Photograph the worksheet. The form follows what's on the sheet — no template needed.",
+  "dokBacaTombolFoto": "Photograph sheet",
+  "dokBacaSedang": "Reading the sheet…",
+  "dokBacaUlangFoto": "Retake photo",
+  "dokBacaMulaiLagi": "Start over",
+  "dokBacaNamaAlatLabel": "Equipment name (optional)",
+  "dokBacaNamaAlatBantuan": "Only a hint for the AI. If the sheet says otherwise, the sheet wins."
 }

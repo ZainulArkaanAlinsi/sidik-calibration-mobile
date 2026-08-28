@@ -4105,4 +4105,30 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get dinamisLihatAsal => 'Lihat asalnya di foto';
+
+  @override
+  String get dokBacaJudul => 'Baca lembar kerja';
+
+  @override
+  String get dokBacaAjakan =>
+      'Foto lembar kerjanya. Bentuk formnya ngikutin isi lembar — nggak perlu template.';
+
+  @override
+  String get dokBacaTombolFoto => 'Foto lembar';
+
+  @override
+  String get dokBacaSedang => 'Lagi membaca lembarnya…';
+
+  @override
+  String get dokBacaUlangFoto => 'Foto ulang';
+
+  @override
+  String get dokBacaMulaiLagi => 'Mulai lagi';
+
+  @override
+  String get dokBacaNamaAlatLabel => 'Nama alat (opsional)';
+
+  @override
+  String get dokBacaNamaAlatBantuan =>
+      'Cuma petunjuk buat AI. Kalau isi lembarnya beda, yang dipakai lembarnya.';
 }
