@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/models/customer_lookup.dart';
+import 'package:sidik_calibration/models/perusahaan_direktori.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/master_data_provider.dart'
     show customerLookupServiceProvider;
@@ -345,6 +346,30 @@ void main() {
     );
   });
 
+  testWidgets('NAMA DIREKTORI BERSPASI tetap bawa ref-nya', (tester) async {
+    layarPanjang(tester);
+    final mata = _MataMata(namaBerspasi: true);
+    await buka(tester, mata, kataKunci: 'Sinar');
+
+    await tester.tap(find.text('CARI DI DIREKTORI'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('PT Sinar Rejeki Manufaktur'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(tombolDaftarkan());
+    await tester.pumpAndSettle();
+
+    expect(
+      mata.refTerakhir,
+      'tempat-sinar-rejeki',
+      reason: 'Menyetel `_nama.text` memicu listener-nya SEKETIKA, dan listener '
+          'itu mengadu teks ter-trim ke nama direktori yang belum di-trim. '
+          'Nama berspasi bikin adunya gagal di detik itu juga, ref-nya lepas, '
+          'dan server kehilangan pencocokan tempat yang persis — padahal '
+          'teknisi baru saja memilihnya dari direktori.',
+    );
+  });
+
   testWidgets('MEMBETULKAN ALAMAT nggak melepas ref-nya', (tester) async {
     layarPanjang(tester);
     final mata = _MataMata();
@@ -374,7 +399,27 @@ void main() {
 /// Perlu karena `direktori_ref` nggak kelihatan di layar sama sekali: dia cuma
 /// ada di badan request, dan justru di situ salahnya berakibat.
 class _MataMata extends MockCustomerLookupService {
+  _MataMata({this.namaBerspasi = false});
+
+  /// Menirukan direktori yang memulangkan nama dengan spasi di ujung. Nyata:
+  /// nama tempat di direktori diketik manusia, dan spasi ekor itu hal biasa.
+  final bool namaBerspasi;
+
   String? refTerakhir;
+
+  @override
+  Future<List<PerusahaanDirektori>> cariDirektori(
+    String token, {
+    required String search,
+  }) async {
+    final hasil = await super.cariDirektori(token, search: search);
+    if (!namaBerspasi) return hasil;
+
+    return [
+      for (final d in hasil)
+        PerusahaanDirektori(ref: d.ref, nama: '  ${d.nama}  ', alamat: d.alamat),
+    ];
+  }
 
   @override
   Future<CustomerLookup> daftarkan(

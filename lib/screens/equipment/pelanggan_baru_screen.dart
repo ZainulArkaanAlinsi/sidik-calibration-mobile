@@ -181,11 +181,23 @@ class _PelangganBaruScreenState extends ConsumerState<PelangganBaruScreen> {
   }
 
   void _pakaiDariDirektori(PerusahaanDirektori perusahaan) {
+    // Di-trim SEBELUM dipakai, dan dua-duanya dari nilai yang sama.
+    //
+    // Menyetel `_nama.text` memicu [_namaBerubah] seketika, dan listener itu
+    // mengadu `_nama.text.trim()` ke [_namaDariDirektori]. Disimpan mentah
+    // sementara yang diadu sudah ter-trim, nama direktori yang punya spasi di
+    // ujung bikin adunya gagal di detik itu juga — `_ref` lepas persis sesudah
+    // teknisi memilihnya, dan server kehilangan pencocokan tempat yang persis
+    // tanpa ada yang kelihatan berubah di layar.
+    //
+    // Spasi ekor bukan hal langka: nama tempat di direktori diketik manusia.
+    final nama = perusahaan.nama.trim();
+
     setState(() {
       _ref = perusahaan.ref;
-      _namaDariDirektori = perusahaan.nama;
-      _nama.text = perusahaan.nama;
-      _alamat.text = perusahaan.alamat ?? '';
+      _namaDariDirektori = nama;
+      _nama.text = nama;
+      _alamat.text = perusahaan.alamat?.trim() ?? '';
       _hasilDirektori = null;
       // Tabrakan dari percobaan sebelumnya nggak boleh nempel ke pilihan baru —
       // kandidat yang tertinggal di layar bikin teknisi mengira PT yang baru
