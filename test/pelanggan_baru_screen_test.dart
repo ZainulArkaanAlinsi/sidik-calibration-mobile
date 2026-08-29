@@ -289,6 +289,35 @@ void main() {
     );
   });
 
+  testWidgets('KANDIDAT BASI hilang begitu namanya diganti', (tester) async {
+    layarPanjang(tester);
+    await buka(tester, MockCustomerLookupService(), kataKunci: 'PT. Maju Jaya');
+
+    await tester.tap(tombolDaftarkan());
+    await tester.pumpAndSettle();
+    expect(find.text('PT Maju Jaya'), findsOneWidget);
+
+    // Teknisi sadar salah orang, lalu mengetik perusahaan yang BEDA.
+    await tester.enterText(find.byType(TextField).first, 'PT Sinar Rejeki');
+    await tester.pump();
+
+    expect(
+      find.text('PT Maju Jaya'),
+      findsNothing,
+      reason: 'Kandidat dari nama SEBELUMNYA masih bisa diketuk, dan sekali '
+          'ketuk layarnya pulang membawa PT Maju Jaya — padahal yang diketik '
+          'teknisi sekarang perusahaan lain. Alatnya mendarat di pelanggan '
+          'yang salah, tanpa satu pun error.',
+    );
+    expect(
+      find.text('PERUSAHAAN LAIN — TETAP DAFTARKAN'),
+      findsNothing,
+      reason: 'Tombol tembus yang tertinggal mengirim `tetap_buat: true` buat '
+          'nama yang belum pernah diperiksa — kembar lahir tanpa kandidatnya '
+          'pernah ditunjukkan.',
+    );
+  });
+
   testWidgets('MENYUNTING NAMA sesudah pilih direktori melepas ref-nya', (
     tester,
   ) async {

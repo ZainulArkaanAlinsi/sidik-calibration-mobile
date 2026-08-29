@@ -78,6 +78,10 @@ class _PelangganBaruScreenState extends ConsumerState<PelangganBaruScreen> {
   bool _bolehTetapBuat = false;
   String? _pesanGagal;
 
+  /// Nama yang bikin server memulangkan [_kandidat]. Dipakai buat tahu kapan
+  /// kandidatnya jadi basi — lihat [_namaBerubah].
+  String? _namaSaatTabrakan;
+
   @override
   void initState() {
     super.initState();
@@ -104,11 +108,41 @@ class _PelangganBaruScreenState extends ConsumerState<PelangganBaruScreen> {
   /// perusahaan lain mengirim id tempat yang nunjuk ke perusahaan yang salah,
   /// dan penjaga kembar di server jadi mencocokkan hal yang keliru.
   void _namaBerubah() {
-    if (_ref != null && _nama.text.trim() != _namaDariDirektori) {
+    final sekarang = _nama.text.trim();
+
+    if (_ref != null && sekarang != _namaDariDirektori) {
       _ref = null;
       _namaDariDirektori = null;
     }
+
+    // Kandidat itu jawaban server buat nama YANG ITU. Begitu namanya berubah,
+    // dia jawaban buat pertanyaan yang sudah nggak ditanyakan lagi — tapi
+    // tile-nya masih kepajang dan masih bisa diketuk, memulangkan PT yang sama
+    // sekali beda dari yang lagi diketik. Alatnya mendarat di pelanggan yang
+    // salah, tanpa satu pun error muncul di sepanjang jalur.
+    //
+    // `_bolehTetapBuat` bahaya lewat jalan lain: dia mengirim `tetap_buat:
+    // true` buat nama yang BELUM pernah diperiksa server, jadi kembar bisa
+    // lahir tanpa kandidatnya pernah ditunjukkan sekali pun — persis penjagaan
+    // yang bikin tombol itu ada.
+    //
+    // Diadu ke nama saat tabrakan, bukan "ada perubahan apa pun": listener
+    // controller juga nyala waktu kursor pindah, dan membersihkan di situ bikin
+    // kandidatnya kedip hilang tanpa teknisi mengetik apa-apa.
+    if (_namaSaatTabrakan != null && sekarang != _namaSaatTabrakan) {
+      _lupakanTabrakan();
+    }
+
     setState(() {});
+  }
+
+  /// Buang keadaan tabrakan. Ketiganya sekaligus — ketinggalan satu bikin
+  /// separuh keadaan lama nempel ke nama baru.
+  void _lupakanTabrakan() {
+    _kandidat = const [];
+    _bolehTetapBuat = false;
+    _pesanGagal = null;
+    _namaSaatTabrakan = null;
   }
 
   Future<String> _token() async {
@@ -156,8 +190,7 @@ class _PelangganBaruScreenState extends ConsumerState<PelangganBaruScreen> {
       // Tabrakan dari percobaan sebelumnya nggak boleh nempel ke pilihan baru —
       // kandidat yang tertinggal di layar bikin teknisi mengira PT yang baru
       // dia pilih ini yang kembar.
-      _kandidat = const [];
-      _pesanGagal = null;
+      _lupakanTabrakan();
     });
   }
 
@@ -167,7 +200,10 @@ class _PelangganBaruScreenState extends ConsumerState<PelangganBaruScreen> {
     setState(() {
       _menyimpan = true;
       _pesanGagal = null;
-      if (!tetapBuat) _kandidat = const [];
+      // Percobaan BARU mulai dari bersih. Yang tembus sengaja nggak: dia
+      // lanjutan dari tabrakan yang lagi dipajang, dan membuangnya di sini
+      // bikin tombolnya hilang persis waktu ditekan.
+      if (!tetapBuat) _lupakanTabrakan();
     });
 
     try {
@@ -192,6 +228,7 @@ class _PelangganBaruScreenState extends ConsumerState<PelangganBaruScreen> {
         _kandidat = e.kandidat;
         _bolehTetapBuat = !e.namaPersisSudahAda;
         _pesanGagal = e.pesan;
+        _namaSaatTabrakan = _nama.text.trim();
       });
     } catch (_) {
       if (!mounted) return;
