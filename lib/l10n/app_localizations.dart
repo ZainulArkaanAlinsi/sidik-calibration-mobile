@@ -7554,6 +7554,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This photo has more than one table. Pick the one holding the measurement points — not the instrument identity table.'**
   String get pilihTabelPengantar;
+
+  /// No description provided for @equipPelangganTidakKetemu.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in the lab\'s customer list?'**
+  String get equipPelangganTidakKetemu;
+
+  /// No description provided for @equipPelangganDaftarBaru.
+  ///
+  /// In en, this message translates to:
+  /// **'REGISTER A NEW COMPANY'**
+  String get equipPelangganDaftarBaru;
+
+  /// No description provided for @pelangganBaruJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'New customer'**
+  String get pelangganBaruJudul;
+
+  /// No description provided for @pelangganBaruPengantar.
+  ///
+  /// In en, this message translates to:
+  /// **'Search the company directory, or type the name and address by hand. Whatever you save here is used straight away — it doesn\'t wait for an admin.'**
+  String get pelangganBaruPengantar;
+
+  /// No description provided for @pelangganBaruNama.
+  ///
+  /// In en, this message translates to:
+  /// **'Company name'**
+  String get pelangganBaruNama;
+
+  /// No description provided for @pelangganBaruAlamat.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get pelangganBaruAlamat;
+
+  /// No description provided for @pelangganBaruAlamatBantu.
+  ///
+  /// In en, this message translates to:
+  /// **'Printed in the OWNER block of the certificate.'**
+  String get pelangganBaruAlamatBantu;
+
+  /// No description provided for @pelangganBaruCariDirektori.
+  ///
+  /// In en, this message translates to:
+  /// **'SEARCH THE DIRECTORY'**
+  String get pelangganBaruCariDirektori;
+
+  /// No description provided for @pelangganBaruDirektoriJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Directory results'**
+  String get pelangganBaruDirektoriJudul;
+
+  /// No description provided for @pelangganBaruDirektoriKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No company in the directory matches that. Type the name and address by hand.'**
+  String get pelangganBaruDirektoriKosong;
+
+  /// No description provided for @pelangganBaruDirektoriCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'The directory lists businesses as they appear on the map, not as they appear on the deed. Check it against the customer\'s order form before saving.'**
+  String get pelangganBaruDirektoriCatatan;
+
+  /// No description provided for @pelangganBaruDaftarkan.
+  ///
+  /// In en, this message translates to:
+  /// **'REGISTER'**
+  String get pelangganBaruDaftarkan;
+
+  /// No description provided for @pelangganBaruNamaWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Company name is required.'**
+  String get pelangganBaruNamaWajib;
+
+  /// No description provided for @pelangganBaruMiripJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in the list — did you mean one of these?'**
+  String get pelangganBaruMiripJudul;
+
+  /// No description provided for @pelangganBaruMiripPilih.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap one to use it instead.'**
+  String get pelangganBaruMiripPilih;
+
+  /// No description provided for @pelangganBaruTetapBuat.
+  ///
+  /// In en, this message translates to:
+  /// **'DIFFERENT COMPANY — REGISTER ANYWAY'**
+  String get pelangganBaruTetapBuat;
+
+  /// No description provided for @pelangganBaruGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t register the customer.'**
+  String get pelangganBaruGagal;
 }
 
 class _AppLocalizationsDelegate

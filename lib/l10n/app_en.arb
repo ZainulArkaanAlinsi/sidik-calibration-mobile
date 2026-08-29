@@ -2552,5 +2552,22 @@
     }
   },
   "pilihTabelJudul": "Which table should be used?",
-  "pilihTabelPengantar": "This photo has more than one table. Pick the one holding the measurement points — not the instrument identity table."
+  "pilihTabelPengantar": "This photo has more than one table. Pick the one holding the measurement points — not the instrument identity table.",
+  "equipPelangganTidakKetemu": "Not in the lab's customer list?",
+  "equipPelangganDaftarBaru": "REGISTER A NEW COMPANY",
+  "pelangganBaruJudul": "New customer",
+  "pelangganBaruPengantar": "Search the company directory, or type the name and address by hand. Whatever you save here is used straight away — it doesn't wait for an admin.",
+  "pelangganBaruNama": "Company name",
+  "pelangganBaruAlamat": "Address",
+  "pelangganBaruAlamatBantu": "Printed in the OWNER block of the certificate.",
+  "pelangganBaruCariDirektori": "SEARCH THE DIRECTORY",
+  "pelangganBaruDirektoriJudul": "Directory results",
+  "pelangganBaruDirektoriKosong": "No company in the directory matches that. Type the name and address by hand.",
+  "pelangganBaruDirektoriCatatan": "The directory lists businesses as they appear on the map, not as they appear on the deed. Check it against the customer's order form before saving.",
+  "pelangganBaruDaftarkan": "REGISTER",
+  "pelangganBaruNamaWajib": "Company name is required.",
+  "pelangganBaruMiripJudul": "Already in the list — did you mean one of these?",
+  "pelangganBaruMiripPilih": "Tap one to use it instead.",
+  "pelangganBaruTetapBuat": "DIFFERENT COMPANY — REGISTER ANYWAY",
+  "pelangganBaruGagal": "Couldn't register the customer."
 }

@@ -1923,5 +1923,22 @@
     }
   },
   "pilihTabelJudul": "Pakai tabel yang mana?",
-  "pilihTabelPengantar": "Foto ini punya lebih dari satu tabel. Pilih yang berisi titik ukur — bukan tabel identitas alat."
+  "pilihTabelPengantar": "Foto ini punya lebih dari satu tabel. Pilih yang berisi titik ukur — bukan tabel identitas alat.",
+  "equipPelangganTidakKetemu": "Nggak ada di daftar pelanggan lab?",
+  "equipPelangganDaftarBaru": "DAFTARKAN PT BARU",
+  "pelangganBaruJudul": "PT baru",
+  "pelangganBaruPengantar": "Cari di direktori perusahaan, atau ketik nama & alamatnya sendiri. Yang tersimpan di sini langsung kepakai — nggak nunggu admin.",
+  "pelangganBaruNama": "Nama PT",
+  "pelangganBaruAlamat": "Alamat",
+  "pelangganBaruAlamatBantu": "Tercetak di blok OWNER sertifikat.",
+  "pelangganBaruCariDirektori": "CARI DI DIREKTORI",
+  "pelangganBaruDirektoriJudul": "Hasil direktori",
+  "pelangganBaruDirektoriKosong": "Nggak ada perusahaan yang cocok di direktori. Ketik nama & alamatnya manual.",
+  "pelangganBaruDirektoriCatatan": "Direktori memuat perusahaan sebagaimana dia muncul di peta, bukan sebagaimana tertulis di akta. Adu dulu ke surat pesanan pelanggan sebelum disimpan.",
+  "pelangganBaruDaftarkan": "DAFTARKAN",
+  "pelangganBaruNamaWajib": "Nama PT wajib diisi.",
+  "pelangganBaruMiripJudul": "Sudah ada di daftar — maksudmu yang ini?",
+  "pelangganBaruMiripPilih": "Ketuk salah satu buat memakainya.",
+  "pelangganBaruTetapBuat": "PERUSAHAAN LAIN — TETAP DAFTARKAN",
+  "pelangganBaruGagal": "Gagal mendaftarkan pelanggan."
 }

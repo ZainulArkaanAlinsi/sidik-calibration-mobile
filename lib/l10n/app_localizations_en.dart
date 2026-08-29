@@ -4299,4 +4299,60 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get pilihTabelPengantar =>
       'This photo has more than one table. Pick the one holding the measurement points — not the instrument identity table.';
+
+  @override
+  String get equipPelangganTidakKetemu => 'Not in the lab\'s customer list?';
+
+  @override
+  String get equipPelangganDaftarBaru => 'REGISTER A NEW COMPANY';
+
+  @override
+  String get pelangganBaruJudul => 'New customer';
+
+  @override
+  String get pelangganBaruPengantar =>
+      'Search the company directory, or type the name and address by hand. Whatever you save here is used straight away — it doesn\'t wait for an admin.';
+
+  @override
+  String get pelangganBaruNama => 'Company name';
+
+  @override
+  String get pelangganBaruAlamat => 'Address';
+
+  @override
+  String get pelangganBaruAlamatBantu =>
+      'Printed in the OWNER block of the certificate.';
+
+  @override
+  String get pelangganBaruCariDirektori => 'SEARCH THE DIRECTORY';
+
+  @override
+  String get pelangganBaruDirektoriJudul => 'Directory results';
+
+  @override
+  String get pelangganBaruDirektoriKosong =>
+      'No company in the directory matches that. Type the name and address by hand.';
+
+  @override
+  String get pelangganBaruDirektoriCatatan =>
+      'The directory lists businesses as they appear on the map, not as they appear on the deed. Check it against the customer\'s order form before saving.';
+
+  @override
+  String get pelangganBaruDaftarkan => 'REGISTER';
+
+  @override
+  String get pelangganBaruNamaWajib => 'Company name is required.';
+
+  @override
+  String get pelangganBaruMiripJudul =>
+      'Already in the list — did you mean one of these?';
+
+  @override
+  String get pelangganBaruMiripPilih => 'Tap one to use it instead.';
+
+  @override
+  String get pelangganBaruTetapBuat => 'DIFFERENT COMPANY — REGISTER ANYWAY';
+
+  @override
+  String get pelangganBaruGagal => 'Couldn\'t register the customer.';
 }

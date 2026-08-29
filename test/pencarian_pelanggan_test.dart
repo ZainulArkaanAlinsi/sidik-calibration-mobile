@@ -211,6 +211,51 @@ void main() {
       expect(find.text('CV Sentosa Abadi'), findsOneWidget);
     });
 
+    testWidgets('jalan keluar PT baru SELALU kelihatan, bukan cuma pas nol hasil', (
+      tester,
+    ) async {
+      await bukaPemilih(tester);
+
+      // Daftarnya lagi penuh — tiga pelanggan kepajang.
+      expect(find.text('PT Maju Jaya'), findsOneWidget);
+
+      expect(
+        find.text('DAFTARKAN PT BARU'),
+        findsOneWidget,
+        reason: 'Teknisi yang pelanggannya nggak ketemu belum tentu melihat '
+            'daftar kosong: dia bisa melihat tiga PT bernama mirip yang nggak '
+            'satu pun miliknya. Tombol yang cuma nongol di keadaan kosong bikin '
+            'dia mengira satu-satunya pilihan memilih yang salah — dan alat '
+            'pelanggan A kedaftar ke pelanggan B.',
+      );
+    });
+
+    testWidgets('PT baru kebuka bawa kata kunci yang sudah diketik', (
+      tester,
+    ) async {
+      await bukaPemilih(tester);
+
+      // Kolom pencarian DI SHEET-nya, bukan `TextField` pertama di pohon:
+      // form Alat di belakang sheet punya belasan kolom sendiri, dan `.first`
+      // mendarat di salah satunya.
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Cari nama perusahaan'),
+        'PT Belum Ada',
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('DAFTARKAN PT BARU'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('PT Belum Ada'),
+        findsOneWidget,
+        reason: 'Ngetik ulang nama yang barusan dicari itu tempat salah ketik '
+            'lahir, dan yang salah ketik di sini nama PT di sertifikat.',
+      );
+    });
+
     testWidgets('dicari lewat ALAMAT juga ketemu', (tester) async {
       // Begini cara teknisi mengingat pelanggannya: satu kawasan industri
       // isinya belasan PT bernama mirip, dan yang dia pegang alamat
