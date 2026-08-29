@@ -1,0 +1,368 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../core/theme/app_spacing.dart';
+import '../../l10n/app_localizations.dart';
+import '../../models/customer_lookup.dart';
+import '../../models/perusahaan_direktori.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/master_data_provider.dart'
+    show customerLookupProvider, customerLookupServiceProvider;
+import '../../services/customer_lookup_service.dart';
+
+/// Teknisi mendaftarkan PT yang belum ada di master lab, dari lapangan.
+///
+/// ## Kenapa layar ini ada
+///
+/// `pelanggan_id` itu **wajib** waktu alat disimpan. Sebelum ini, pelanggan yang
+/// belum kedaftar bikin kerjaan teknisi berhenti total: dia nggak bisa milih
+/// pelanggan, nggak bisa nyimpen alat, dan nggak ada jalan keluar dari layar itu
+/// sampai ada admin yang buka laptop. Keputusan pemilik proyek — sejalan dengan
+/// yang sudah berlaku buat nama alat baru — pelanggan dari teknisi **langsung
+/// kepakai**, tanpa antrean persetujuan.
+///
+/// ## Dua jalan masuk, dan kenapa dua-duanya perlu
+///
+///  1. **Direktori perusahaan.** Nama & alamat datang dari direktori tempat
+///     usaha, bukan dari ingatan orang yang lagi berdiri di gerbang pabrik.
+///     Alamat yang salah ketik di sini mendarat di blok OWNER sertifikat.
+///  2. **Ketik tangan.** Pabrik yang nggak pernah didaftarkan ke peta nggak
+///     akan ketemu di direktori, dan itu bukan kerusakan. Jalur ini yang bikin
+///     teknisi tetap bisa lanjut.
+///
+/// ## Harga yang dibayar, dan penebusnya
+///
+/// Yang ditukar: kembar. Folder arsip, sertifikat, dan daftar alat semuanya
+/// nempel ke baris pelanggan, jadi satu perusahaan yang kedaftar dua kali punya
+/// riwayat kalibrasi yang terbelah — dan yang kelihatan di layar cuma
+/// separuhnya. Penebusnya: server menunjukkan yang MIRIP sebelum barisnya lahir,
+/// dan layar ini memajangnya sebagai pilihan yang tinggal diketuk. Kembar tetap
+/// mungkin, tapi jadi tindakan sadar.
+class PelangganBaruScreen extends ConsumerStatefulWidget {
+  const PelangganBaruScreen({super.key, this.kataKunci = ''});
+
+  /// Kata kunci yang sudah diketik teknisi di sheet pencarian. Diisikan duluan
+  /// ke kolom nama supaya dia nggak mengetik hal yang sama dua kali.
+  final String kataKunci;
+
+  @override
+  ConsumerState<PelangganBaruScreen> createState() =>
+      _PelangganBaruScreenState();
+}
+
+class _PelangganBaruScreenState extends ConsumerState<PelangganBaruScreen> {
+  late final _nama = TextEditingController(text: widget.kataKunci);
+  final _alamat = TextEditingController();
+
+  /// Id tempat dari direktori, kalau barisnya dipilih dari sana.
+  String? _ref;
+
+  /// Nama persis yang dipilih dari direktori. Dipakai buat tahu kapan [_ref]
+  /// berhenti berlaku — lihat [_namaBerubah].
+  String? _namaDariDirektori;
+
+  List<PerusahaanDirektori>? _hasilDirektori;
+
+  /// Sebab direktorinya nggak bisa dipakai, apa adanya dari server.
+  ///
+  /// Sengaja dipajang sebagai kalimat, BUKAN diratakan jadi daftar kosong.
+  /// Daftar kosong kebaca "PT-nya nggak ada di direktori", dan teknisi yang
+  /// percaya itu mendaftarkan ulang perusahaan yang sebenarnya ada di sana.
+  String? _pesanDirektori;
+
+  bool _mencari = false;
+  bool _menyimpan = false;
+
+  /// Kandidat mirip dari server. Kosong = belum ada tabrakan.
+  List<CustomerLookup> _kandidat = const [];
+  bool _bolehTetapBuat = false;
+  String? _pesanGagal;
+
+  @override
+  void initState() {
+    super.initState();
+    _nama.addListener(_namaBerubah);
+    _alamat.addListener(_gambarUlang);
+  }
+
+  @override
+  void dispose() {
+    _nama.removeListener(_namaBerubah);
+    _alamat.removeListener(_gambarUlang);
+    _nama.dispose();
+    _alamat.dispose();
+    super.dispose();
+  }
+
+  void _gambarUlang() => setState(() {});
+
+  /// Namanya disunting sesudah dipilih dari direktori → [_ref] dilepas.
+  ///
+  /// Alamat boleh dibetulkan tanpa melepas ref: yang dituju ref itu PERUSAHAAN
+  /// mana, dan alamat cuma keterangannya. Nama beda urusan — dia identitasnya.
+  /// Kalau ref-nya nempel terus, teknisi yang menimpa hasil direktori dengan
+  /// perusahaan lain mengirim id tempat yang nunjuk ke perusahaan yang salah,
+  /// dan penjaga kembar di server jadi mencocokkan hal yang keliru.
+  void _namaBerubah() {
+    if (_ref != null && _nama.text.trim() != _namaDariDirektori) {
+      _ref = null;
+      _namaDariDirektori = null;
+    }
+    setState(() {});
+  }
+
+  Future<String> _token() async {
+    final token = await ref.read(tokenStorageProvider).read();
+    if (token == null) throw Exception('token hilang');
+    return token;
+  }
+
+  Future<void> _cariDirektori() async {
+    final kata = _nama.text.trim();
+    if (kata.length < 3 || _mencari) return;
+
+    setState(() {
+      _mencari = true;
+      _pesanDirektori = null;
+      _hasilDirektori = null;
+    });
+
+    try {
+      final hasil = await ref
+          .read(customerLookupServiceProvider)
+          .cariDirektori(await _token(), search: kata);
+      if (!mounted) return;
+      setState(() => _hasilDirektori = hasil);
+    } on DirektoriTidakSiapException catch (e) {
+      if (!mounted) return;
+      setState(() => _pesanDirektori = e.pesan);
+    } catch (_) {
+      if (!mounted) return;
+      setState(
+        () => _pesanDirektori = AppLocalizations.of(context).equipPelangganGagal,
+      );
+    } finally {
+      if (mounted) setState(() => _mencari = false);
+    }
+  }
+
+  void _pakaiDariDirektori(PerusahaanDirektori perusahaan) {
+    setState(() {
+      _ref = perusahaan.ref;
+      _namaDariDirektori = perusahaan.nama;
+      _nama.text = perusahaan.nama;
+      _alamat.text = perusahaan.alamat ?? '';
+      _hasilDirektori = null;
+      // Tabrakan dari percobaan sebelumnya nggak boleh nempel ke pilihan baru —
+      // kandidat yang tertinggal di layar bikin teknisi mengira PT yang baru
+      // dia pilih ini yang kembar.
+      _kandidat = const [];
+      _pesanGagal = null;
+    });
+  }
+
+  Future<void> _daftarkan({bool tetapBuat = false}) async {
+    if (_nama.text.trim().isEmpty || _menyimpan) return;
+
+    setState(() {
+      _menyimpan = true;
+      _pesanGagal = null;
+      if (!tetapBuat) _kandidat = const [];
+    });
+
+    try {
+      final pelanggan = await ref
+          .read(customerLookupServiceProvider)
+          .daftarkan(
+            await _token(),
+            nama: _nama.text.trim(),
+            alamat: _alamat.text.trim(),
+            direktoriRef: _ref,
+            tetapBuat: tetapBuat,
+          );
+
+      // Daftar pelanggan di sheet pencarian sudah basi begitu baris ini lahir.
+      ref.invalidate(customerLookupProvider);
+
+      if (!mounted) return;
+      Navigator.of(context).pop<CustomerLookup>(pelanggan);
+    } on PelangganMiripException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _kandidat = e.kandidat;
+        _bolehTetapBuat = !e.namaPersisSudahAda;
+        _pesanGagal = e.pesan;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(
+        () => _pesanGagal = AppLocalizations.of(context).pelangganBaruGagal,
+      );
+    } finally {
+      if (mounted) setState(() => _menyimpan = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final namaKosong = _nama.text.trim().isEmpty;
+
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.pelangganBaruJudul)),
+      body: ListView(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        children: [
+          Text(l10n.pelangganBaruPengantar, style: theme.textTheme.bodySmall),
+          const SizedBox(height: AppSpacing.md),
+
+          TextField(
+            controller: _nama,
+            autofocus: true,
+            textCapitalization: TextCapitalization.words,
+            decoration: InputDecoration(
+              labelText: l10n.pelangganBaruNama,
+              border: const OutlineInputBorder(),
+              errorText: namaKosong ? l10n.pelangganBaruNamaWajib : null,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+
+          // Dicari pakai isi kolom nama, bukan kolom pencarian sendiri: yang mau
+          // dicocokkan teknisi ke direktori itu nama yang bakal dia simpan.
+          OutlinedButton.icon(
+            onPressed: _nama.text.trim().length < 3 || _mencari
+                ? null
+                : _cariDirektori,
+            icon: const Icon(Icons.travel_explore),
+            label: Text(l10n.pelangganBaruCariDirektori),
+          ),
+
+          if (_mencari)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+
+          if (_pesanDirektori != null)
+            _catatan(Icons.info_outline, _pesanDirektori!, theme, theme.colorScheme.error),
+
+          if (_hasilDirektori != null) ..._bagianDirektori(l10n, theme),
+
+          const SizedBox(height: AppSpacing.md),
+          TextField(
+            controller: _alamat,
+            textCapitalization: TextCapitalization.words,
+            maxLines: 2,
+            decoration: InputDecoration(
+              labelText: l10n.pelangganBaruAlamat,
+              helperText: l10n.pelangganBaruAlamatBantu,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+
+          if (_kandidat.isNotEmpty) ..._bagianKandidat(l10n, theme),
+
+          if (_pesanGagal != null && _kandidat.isEmpty)
+            _catatan(Icons.error_outline, _pesanGagal!, theme, theme.colorScheme.error),
+
+          const SizedBox(height: AppSpacing.lg),
+          FilledButton(
+            onPressed: namaKosong || _menyimpan ? null : () => _daftarkan(),
+            child: Text(l10n.pelangganBaruDaftarkan),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _bagianDirektori(AppLocalizations l10n, ThemeData theme) {
+    final hasil = _hasilDirektori!;
+
+    if (hasil.isEmpty) {
+      return [
+        _catatan(
+          Icons.search_off,
+          l10n.pelangganBaruDirektoriKosong,
+          theme,
+          theme.colorScheme.onSurfaceVariant,
+        ),
+      ];
+    }
+
+    return [
+      const SizedBox(height: AppSpacing.md),
+      Text(l10n.pelangganBaruDirektoriJudul, style: theme.textTheme.labelLarge),
+      // Batas sumbernya ditulis DI LAYAR, bukan cuma di dokumen: yang dipilih
+      // di sini mendarat di blok OWNER sertifikat, dan direktori tempat usaha
+      // bukan salinan akta.
+      _catatan(
+        Icons.info_outline,
+        l10n.pelangganBaruDirektoriCatatan,
+        theme,
+        theme.colorScheme.onSurfaceVariant,
+      ),
+      for (final perusahaan in hasil)
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(perusahaan.nama, style: theme.textTheme.titleMedium),
+          subtitle: perusahaan.alamat == null
+              ? null
+              : Text(perusahaan.alamat!, style: theme.textTheme.bodySmall),
+          trailing: const Icon(Icons.arrow_forward),
+          onTap: () => _pakaiDariDirektori(perusahaan),
+        ),
+    ];
+  }
+
+  List<Widget> _bagianKandidat(AppLocalizations l10n, ThemeData theme) => [
+    const SizedBox(height: AppSpacing.md),
+    _catatan(
+      Icons.copy_all_outlined,
+      l10n.pelangganBaruMiripJudul,
+      theme,
+      theme.colorScheme.error,
+    ),
+    Text(l10n.pelangganBaruMiripPilih, style: theme.textTheme.bodySmall),
+    for (final ada in _kandidat)
+      ListTile(
+        contentPadding: EdgeInsets.zero,
+        title: Text(ada.nama, style: theme.textTheme.titleMedium),
+        subtitle: ada.alamat == null || ada.alamat!.isEmpty
+            ? null
+            : Text(ada.alamat!, style: theme.textTheme.bodySmall),
+        trailing: const Icon(Icons.arrow_forward),
+        // Memilih yang sudah ada itu jalan keluar yang DIHARAPKAN dari layar
+        // ini, jadi dia satu ketukan — bukan disembunyikan di balik "batal"
+        // lalu mencari ulang.
+        onTap: () => Navigator.of(context).pop<CustomerLookup>(ada),
+      ),
+    // Cuma muncul kalau kemiripannya beneran bisa ditembus. Nama yang PERSIS
+    // sama ditahan unique index di database, dan tombol di situ cuma bikin
+    // teknisi menabrak penolakan yang sama berkali-kali.
+    if (_bolehTetapBuat)
+      TextButton(
+        onPressed: _menyimpan ? null : () => _daftarkan(tetapBuat: true),
+        child: Text(l10n.pelangganBaruTetapBuat),
+      ),
+  ];
+
+  Widget _catatan(IconData ikon, String teks, ThemeData theme, Color warna) =>
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(ikon, size: 18, color: warna),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(
+                teks,
+                style: theme.textTheme.bodySmall?.copyWith(color: warna),
+              ),
+            ),
+          ],
+        ),
+      );
+}

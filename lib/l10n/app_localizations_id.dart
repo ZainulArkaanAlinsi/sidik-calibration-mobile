@@ -4228,4 +4228,59 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get pilihTabelPengantar =>
       'Foto ini punya lebih dari satu tabel. Pilih yang berisi titik ukur — bukan tabel identitas alat.';
+
+  @override
+  String get equipPelangganTidakKetemu => 'Nggak ada di daftar pelanggan lab?';
+
+  @override
+  String get equipPelangganDaftarBaru => 'DAFTARKAN PT BARU';
+
+  @override
+  String get pelangganBaruJudul => 'PT baru';
+
+  @override
+  String get pelangganBaruPengantar =>
+      'Cari di direktori perusahaan, atau ketik nama & alamatnya sendiri. Yang tersimpan di sini langsung kepakai — nggak nunggu admin.';
+
+  @override
+  String get pelangganBaruNama => 'Nama PT';
+
+  @override
+  String get pelangganBaruAlamat => 'Alamat';
+
+  @override
+  String get pelangganBaruAlamatBantu => 'Tercetak di blok OWNER sertifikat.';
+
+  @override
+  String get pelangganBaruCariDirektori => 'CARI DI DIREKTORI';
+
+  @override
+  String get pelangganBaruDirektoriJudul => 'Hasil direktori';
+
+  @override
+  String get pelangganBaruDirektoriKosong =>
+      'Nggak ada perusahaan yang cocok di direktori. Ketik nama & alamatnya manual.';
+
+  @override
+  String get pelangganBaruDirektoriCatatan =>
+      'Direktori memuat perusahaan sebagaimana dia muncul di peta, bukan sebagaimana tertulis di akta. Adu dulu ke surat pesanan pelanggan sebelum disimpan.';
+
+  @override
+  String get pelangganBaruDaftarkan => 'DAFTARKAN';
+
+  @override
+  String get pelangganBaruNamaWajib => 'Nama PT wajib diisi.';
+
+  @override
+  String get pelangganBaruMiripJudul =>
+      'Sudah ada di daftar — maksudmu yang ini?';
+
+  @override
+  String get pelangganBaruMiripPilih => 'Ketuk salah satu buat memakainya.';
+
+  @override
+  String get pelangganBaruTetapBuat => 'PERUSAHAAN LAIN — TETAP DAFTARKAN';
+
+  @override
+  String get pelangganBaruGagal => 'Gagal mendaftarkan pelanggan.';
 }

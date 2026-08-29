@@ -14,6 +14,7 @@ import '../../providers/calibration_input_provider.dart'
     show categoryDetailProvider, categoryListProvider;
 import '../../providers/equipment_provider.dart';
 import '../../providers/master_data_provider.dart' show customerLookupProvider;
+import 'pelanggan_baru_screen.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/sidik_loader.dart';
@@ -910,6 +911,22 @@ class _PelangganSheetState extends ConsumerState<_PelangganSheet> {
     });
   }
 
+  /// Buka layar PT baru, dan kalau pelanggannya jadi didaftarkan (atau teknisi
+  /// memilih kandidat yang mirip di sana), sheet ini ikut ditutup membawa
+  /// hasilnya — jadi form Alat langsung terisi tanpa mencari ulang.
+  Future<void> _daftarkanBaru(BuildContext context) async {
+    final navigator = Navigator.of(context);
+
+    final pelanggan = await navigator.push<CustomerLookup>(
+      MaterialPageRoute(
+        builder: (_) => PelangganBaruScreen(kataKunci: _kunci.text.trim()),
+      ),
+    );
+
+    if (!mounted || pelanggan == null) return;
+    navigator.pop(pelanggan);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -963,6 +980,26 @@ class _PelangganSheetState extends ConsumerState<_PelangganSheet> {
                     );
                   },
                 ),
+              ),
+
+              // Jalan keluar dari sheet ini, dan sengaja SELALU kelihatan —
+              // bukan cuma waktu hasilnya nol.
+              //
+              // Teknisi yang pelanggannya nggak ketemu belum tentu melihat
+              // daftar kosong: dia bisa saja melihat tiga PT bernama mirip yang
+              // nggak satu pun miliknya. Tombol yang cuma nongol di keadaan
+              // kosong bikin dia mengira satu-satunya pilihan memilih yang
+              // salah — dan alat pelanggan A kedaftar ke pelanggan B.
+              const Divider(height: AppSpacing.lg),
+              Text(
+                l10n.equipPelangganTidakKetemu,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              OutlinedButton.icon(
+                onPressed: () => _daftarkanBaru(context),
+                icon: const Icon(Icons.add_business_outlined),
+                label: Text(l10n.equipPelangganDaftarBaru),
               ),
             ],
           ),
