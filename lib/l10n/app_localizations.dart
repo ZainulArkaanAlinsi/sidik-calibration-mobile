@@ -7656,6 +7656,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t register the customer.'**
   String get pelangganBaruGagal;
+
+  /// No description provided for @pelangganBaruDirektoriTiadaLab.
+  ///
+  /// In en, this message translates to:
+  /// **'Company directory isn\'t available for this lab. Type the name and address below.'**
+  String get pelangganBaruDirektoriTiadaLab;
+
+  /// No description provided for @pelangganBaruDirektoriMati.
+  ///
+  /// In en, this message translates to:
+  /// **'The directory can\'t be reached right now. Type the name and address below, or try again later.'**
+  String get pelangganBaruDirektoriMati;
 }
 
 class _AppLocalizationsDelegate

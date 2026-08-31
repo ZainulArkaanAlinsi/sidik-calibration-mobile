@@ -1940,5 +1940,7 @@
   "pelangganBaruMiripJudul": "Sudah ada di daftar — maksudmu yang ini?",
   "pelangganBaruMiripPilih": "Ketuk salah satu buat memakainya.",
   "pelangganBaruTetapBuat": "PERUSAHAAN LAIN — TETAP DAFTARKAN",
-  "pelangganBaruGagal": "Gagal mendaftarkan pelanggan."
+  "pelangganBaruGagal": "Gagal mendaftarkan pelanggan.",
+  "pelangganBaruDirektoriTiadaLab": "Direktori perusahaan nggak tersedia di lab ini. Ketik nama & alamatnya di bawah.",
+  "pelangganBaruDirektoriMati": "Direktori lagi nggak bisa diakses. Ketik nama & alamatnya di bawah, atau coba lagi nanti."
 }
