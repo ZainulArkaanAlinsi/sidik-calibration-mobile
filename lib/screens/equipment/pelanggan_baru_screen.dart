@@ -39,11 +39,37 @@ import '../../services/customer_lookup_service.dart';
 /// dan layar ini memajangnya sebagai pilihan yang tinggal diketuk. Kembar tetap
 /// mungkin, tapi jadi tindakan sadar.
 class PelangganBaruScreen extends ConsumerStatefulWidget {
-  const PelangganBaruScreen({super.key, this.kataKunci = ''});
+  const PelangganBaruScreen({
+    super.key,
+    this.kataKunci = '',
+    this.alamatAwal,
+    this.refAwal,
+    this.tabrakanAwal,
+  });
 
   /// Kata kunci yang sudah diketik teknisi di sheet pencarian. Diisikan duluan
   /// ke kolom nama supaya dia nggak mengetik hal yang sama dua kali.
+  ///
+  /// Juga dipakai waktu barisnya datang dari direktori: yang dikirim ke sini
+  /// nama persis dari direktori, berpasangan dengan [alamatAwal] & [refAwal].
   final String kataKunci;
+
+  /// Alamat dari direktori, kalau layar ini dibuka membawa satu baris utuh.
+  final String? alamatAwal;
+
+  /// Id tempat dari direktori. Dibawa masuk supaya pendaftaran dari layar ini
+  /// tetap tercatat sebagai berasal dari direktori — bukan turun jadi ketikan
+  /// tangan cuma karena sempat mampir ke sini buat menyelesaikan tabrakan nama.
+  final String? refAwal;
+
+  /// Tabrakan nama yang SUDAH ketahuan sebelum layar ini dibuka.
+  ///
+  /// Dipakai waktu teknisi mengetuk baris direktori dari sheet pencarian dan
+  /// servernya menemukan PT mirip. Tanpa ini, dia mendarat di layar asing tanpa
+  /// satu pun keterangan kenapa — lalu menekan "Daftarkan" cuma buat
+  /// memunculkan penolakan yang sebenarnya SUDAH diketahui satu langkah
+  /// sebelumnya.
+  final PelangganMiripException? tabrakanAwal;
 
   @override
   ConsumerState<PelangganBaruScreen> createState() =>
@@ -52,7 +78,7 @@ class PelangganBaruScreen extends ConsumerStatefulWidget {
 
 class _PelangganBaruScreenState extends ConsumerState<PelangganBaruScreen> {
   late final _nama = TextEditingController(text: widget.kataKunci);
-  final _alamat = TextEditingController();
+  late final _alamat = TextEditingController(text: widget.alamatAwal ?? '');
 
   /// Id tempat dari direktori, kalau barisnya dipilih dari sana.
   String? _ref;
@@ -97,6 +123,30 @@ class _PelangganBaruScreenState extends ConsumerState<PelangganBaruScreen> {
   @override
   void initState() {
     super.initState();
+
+    // Dipasang SEBELUM listener-nya, dan dua-duanya dari nilai yang sudah
+    // ter-trim.
+    //
+    // [_namaBerubah] mengadu `_nama.text.trim()` ke [_namaDariDirektori] dan
+    // melepas `_ref` kalau nggak sama. Kalau `_ref` diisi tanpa
+    // `_namaDariDirektori`, listener pertama yang nyala — dan dia nyala bahkan
+    // cuma karena kursor pindah — langsung membuangnya, jadi asal-usul
+    // direktorinya hilang tanpa ada yang kelihatan berubah di layar.
+    if (widget.refAwal != null) {
+      _ref = widget.refAwal;
+      _namaDariDirektori = widget.kataKunci.trim();
+    }
+
+    // Tabrakan yang sudah ketahuan dipajang SEKETIKA, bukan menunggu teknisi
+    // menekan "Daftarkan" dulu buat memunculkan penolakan yang sama.
+    final tabrakan = widget.tabrakanAwal;
+    if (tabrakan != null) {
+      _kandidat = tabrakan.kandidat;
+      _bolehTetapBuat = !tabrakan.namaPersisSudahAda;
+      _pesanGagal = tabrakan.pesan;
+      _namaSaatTabrakan = widget.kataKunci.trim();
+    }
+
     _nama.addListener(_namaBerubah);
     _alamat.addListener(_gambarUlang);
   }
@@ -193,7 +243,8 @@ class _PelangganBaruScreenState extends ConsumerState<PelangganBaruScreen> {
     } catch (_) {
       if (!mounted) return;
       setState(
-        () => _pesanDirektori = AppLocalizations.of(context).equipPelangganGagal,
+        () =>
+            _pesanDirektori = AppLocalizations.of(context).equipPelangganGagal,
       );
     } finally {
       if (mounted) setState(() => _mencari = false);
@@ -346,7 +397,12 @@ class _PelangganBaruScreenState extends ConsumerState<PelangganBaruScreen> {
           if (_kandidat.isNotEmpty) ..._bagianKandidat(l10n, theme),
 
           if (_pesanGagal != null && _kandidat.isEmpty)
-            _catatan(Icons.error_outline, _pesanGagal!, theme, theme.colorScheme.error),
+            _catatan(
+              Icons.error_outline,
+              _pesanGagal!,
+              theme,
+              theme.colorScheme.error,
+            ),
 
           const SizedBox(height: AppSpacing.lg),
           FilledButton(
