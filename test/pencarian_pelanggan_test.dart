@@ -22,6 +22,7 @@ import 'package:sidik_calibration/services/customer_lookup_service.dart';
 import 'package:sidik_calibration/services/equipment_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
+import 'support/simpanan_tiruan.dart';
 
 /// Pemilih pelanggan di form Tambah Alat — *"nama pt nya gede terus bawah nya
 /// alamat nya kecil terus tinggal di pencet aja"*.
@@ -59,6 +60,8 @@ http.Response _json(Object body) => http.Response(
 );
 
 void main() {
+  pasangSimpananTiruan();
+
   group('jalur HTTP-nya nunjuk ke endpoint pelanggan, bukan endpoint folder', () {
     test('/customers/lookup yang dipanggil, bukan /arsip/perusahaan', () async {
       final diminta = <String>[];

@@ -12,6 +12,7 @@ import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/screens/profile/profile_screen.dart';
 import 'support/lewati_onboarding.dart';
+import 'support/simpanan_tiruan.dart';
 
 /// Test alur UI pakai `MockAuthService` — nggak nembak jaringan.
 /// Sambungan ke API asli diuji terpisah di `api_auth_service_test.dart`
@@ -90,6 +91,8 @@ Future<void> _isiLogin(
 }
 
 void main() {
+  pasangSimpananTiruan();
+
   group('login', () {
     testWidgets('belum ada token → mendarat di layar Login', (tester) async {
       await tester.pumpWidget(_app(InMemoryTokenStorage()));

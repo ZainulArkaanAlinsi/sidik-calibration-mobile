@@ -16,6 +16,7 @@ import 'package:sidik_calibration/services/customer_lookup_service.dart';
 import 'package:sidik_calibration/services/equipment_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
+import 'support/simpanan_tiruan.dart';
 import 'package:sidik_calibration/widgets/app_text_field.dart';
 
 /// Form Tambah Alat, dua hal yang menghambat teknisi di lapangan:
@@ -61,6 +62,8 @@ class _EquipmentServicePerekam implements EquipmentService {
 }
 
 void main() {
+  pasangSimpananTiruan();
+
   Widget app(
     _EquipmentServicePerekam perekam, {
     String? kategori,

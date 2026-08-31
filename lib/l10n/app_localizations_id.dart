@@ -4291,4 +4291,8 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get pelangganBaruDirektoriMati =>
       'Direktori lagi nggak bisa diakses. Ketik nama & alamatnya di bawah, atau coba lagi nanti.';
+
+  @override
+  String get equipPelangganDariSimpanan =>
+      'Lagi offline — ini salinan yang tersimpan di HP. Pelanggan yang baru didaftarkan bisa saja belum ada.';
 }

@@ -7668,6 +7668,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The directory can\'t be reached right now. Type the name and address below, or try again later.'**
   String get pelangganBaruDirektoriMati;
+
+  /// No description provided for @equipPelangganDariSimpanan.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline — showing the copy saved on this phone. Customers added recently may be missing.'**
+  String get equipPelangganDariSimpanan;
 }
 
 class _AppLocalizationsDelegate

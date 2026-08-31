@@ -4363,4 +4363,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get pelangganBaruDirektoriMati =>
       'The directory can\'t be reached right now. Type the name and address below, or try again later.';
+
+  @override
+  String get equipPelangganDariSimpanan =>
+      'Offline — showing the copy saved on this phone. Customers added recently may be missing.';
 }

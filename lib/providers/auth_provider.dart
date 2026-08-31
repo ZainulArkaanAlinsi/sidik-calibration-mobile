@@ -9,6 +9,7 @@ import '../services/mock_auth_service.dart';
 import '../services/token_storage.dart';
 import 'pendaftaran_push_provider.dart';
 import 'navigation_provider.dart';
+import 'simpanan_pelanggan_provider.dart';
 
 final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
 
@@ -155,7 +156,36 @@ class AuthController extends AsyncNotifier<User?> {
     // user baru.
     ref.invalidate(selectedTabProvider);
 
+    await _buangSimpananAkun();
+
     state = const AsyncValue.data(null);
+  }
+
+  /// Buang data akun yang tersimpan DI DISK.
+  ///
+  /// Provider Riverpod ikut mati sendiri waktu pohon widget pindah ke layar
+  /// login (auto-dispose), tapi isi SharedPreferences **nggak ikut sama
+  /// sekali**: dia bertahan melewati logout, melewati aplikasi ditutup,
+  /// melewati HP dimatikan.
+  ///
+  /// Satu APK dipakai teknisi dan admin, dan HP lab dipakai gantian — jadi
+  /// tanpa ini, nama pelanggan lab sebelumnya muncul di layar orang berikutnya.
+  /// Kebocoran antar pelanggan yang nggak ninggalin satu pun error, dan yang
+  /// nggak akan ketahuan siapa pun yang mengetes cuma dengan satu akun.
+  ///
+  /// Dipanggil dari DUA jalur — [logout] dan [logoutAll]. Ketinggalan di salah
+  /// satunya bikin "keluarkan sesi saya di semua perangkat" justru meninggalkan
+  /// lebih banyak sisa daripada logout biasa.
+  ///
+  /// Gagalnya didiamkan, sama alasannya dengan pencabutan token push: orang
+  /// yang menekan logout harus beneran keluar, apa pun kata penyimpanan
+  /// lokalnya.
+  Future<void> _buangSimpananAkun() async {
+    try {
+      await ref.read(simpananPelangganProvider).bersihkan();
+    } catch (_) {
+      // Lihat docblock: logout nggak boleh gagal gara-gara ini.
+    }
   }
 
   /// Cabut pendaftaran push perangkat ini.
@@ -202,6 +232,9 @@ class AuthController extends AsyncNotifier<User?> {
     // Token yang lagi dipakai ikut mati juga di server, jadi buang di sini.
     await _storage.clear();
     ref.invalidate(selectedTabProvider);
+
+    await _buangSimpananAkun();
+
     state = const AsyncValue.data(null);
 
     return dicabut;
