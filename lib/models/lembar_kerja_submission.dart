@@ -36,6 +36,19 @@ class TitikLembarKerja {
   final List<double?> pembacaanSebelum;
   final List<double?> suhuSebelum;
 
+  /// Kotak tambahan yang duduk di baris ini, di luar deret pengulangan —
+  /// datang dari `tabel.kolom_baris` dan dikirim apa adanya sebagai kunci
+  /// `measurements[]`.
+  ///
+  /// Isinya sengaja `dynamic`: `no_probe` itu satu angka, `nominal` lembar
+  /// Timbangan satu DAFTAR angka (keping `20+20+10` yang ditumpuk di titik
+  /// itu). Memaksanya jadi satu tipe berarti salah satunya harus diselundupkan
+  /// sebagai teks, dan yang membacanya di server harus menebak formatnya.
+  ///
+  /// Kosong buat sembilan belas lembar yang nggak punya `kolom_baris` — kunci
+  /// yang nggak ada nggak pernah ikut ke payload.
+  final Map<String, dynamic> kolomBaris = {};
+
   /// Baris yang sama sekali belum disentuh. Dipakai buat mutusin baris ini
   /// perlu ikut dikirim apa nggak — bukan buat nahan tombol kirim.
   bool get kosongSemua =>
@@ -54,6 +67,11 @@ class TitikLembarKerja {
     'suhu': suhu,
     'pembacaan_sebelum': pembacaanSebelum,
     'suhu_sebelum': suhuSebelum,
+    // Ditaruh SESUDAH empat deret di atas, dan itu bukan kosmetik: kunci
+    // bernama menang di server kalau namanya bentrok, jadi urutan di sini
+    // nggak menentukan apa-apa — tapi kotak tambahan yang kebetulan bernama
+    // `pembacaan` bakal menimpa deretnya kalau ditaruh duluan.
+    ...kolomBaris,
   };
 }
 
@@ -141,7 +159,7 @@ class LembarKerjaSubmission {
     this.pemilikAlamat,
     this.equipmentSatuan,
     this.standarDicek = const [],
-    this.spesifikasiAlat = const {},
+    this.spesifikasiAlat = const <String, dynamic>{},
     this.measurements = const [],
     this.measurementsGrid,
     this.sertakanMeasurements = true,
@@ -181,6 +199,7 @@ class LembarKerjaSubmission {
   /// `toJson` di bawah nggak mengirim kunci yang nilainya null.
   final double? tekananAwal;
   final double? tekananAkhir;
+
   /// Mode kalibrasi TITS — `measure` atau `source`. Null buat sepuluh alat
   /// lain, yang lembarnya nggak punya kotak ini.
   ///
@@ -262,7 +281,14 @@ class LembarKerjaSubmission {
   ///
   /// Nilainya TEKS apa adanya (`0-100`, `0,001`) — yang tercetak di sertifikat
   /// juga teks, bukan hasil hitung, dan `0-100` emang bukan angka.
-  final Map<String, String> spesifikasiAlat;
+  ///
+  /// `dynamic`, bukan `String`, sejak lembar Timbangan: lima kuncinya isinya
+  /// BLOK, bukan teks pendek (`eksentrisitas` lima posisi, `histeresis` dua
+  /// deret delapan angka, `keterulangan` dua kapasitas × sepuluh pengulangan).
+  /// Kelimanya besaran tingkat-SESI yang nggak punya `titik_ke`, jadi nggak
+  /// bisa lewat `measurements`. Lihat [LembarKerjaState.spesifikasiAlat] soal
+  /// bagaimana kode bertitik jadi peta bersarang.
+  final Map<String, dynamic> spesifikasiAlat;
 
   /// Nama tempat kalibrasi buat sesi `onsite`, mis. `PT. LDC`.
   final String? lokasiNama;

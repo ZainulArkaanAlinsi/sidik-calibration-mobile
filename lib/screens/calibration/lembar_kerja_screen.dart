@@ -1847,6 +1847,21 @@ class _Bagian extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.lg),
                 ],
 
+                // Kotak tambahan per baris selain `no_probe` — sejauh ini cuma
+                // `nominal` lembar Timbangan. Digambar TEPAT di bawah tabelnya,
+                // bukan dikumpulin di bagian lain: isinya milik baris, dan
+                // teknisi mengisinya sambil membaca baris yang sama.
+                for (final f in bagian.tabel[i].kolomBaris)
+                  if (f.kode != 'no_probe') ...[
+                    _BarisKotakTambahan(
+                      field: f,
+                      tabel: bagian.tabel[i],
+                      isian: isian,
+                      onBerubah: onBerubah,
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
+
                 // Spindle/RPM/Resolusi tiap titik ditempel di sini, sesudah
                 // tabel PERTAMA — persis posisinya di kertas: langsung di
                 // bawah `Standard`/`UUT Reading` titik itu, bukan dikumpulin
@@ -2564,6 +2579,90 @@ class _BarisSpesifikasi extends StatelessWidget {
 /// penyaringnya `grup` yang dikirim server — bukan aturan "Type N mulai dari
 /// 3" yang ditulis ulang di sini. Aturan yang ditulis dua kali pelan-pelan
 /// berbeda, dan yang kalah nanti nomor probe yang nggak ada sertifikatnya.
+/// Satu kotak tambahan per baris tabel — `tabel.kolom_baris` yang bukan
+/// `no_probe`.
+///
+/// Lembar Timbangan yang pertama memakainya: kotak `Nominal keping`, berisi
+/// susunan anak timbangan yang ditumpuk di titik itu (`20+20+10`). Server yang
+/// MENJUMLAHKANNYA jadi `titik_ukur`, jadi kotak ini bukan pelengkap — titik
+/// tanpa isinya bernilai nol, dan koreksi yang lahir dari situ nggak berarti
+/// apa-apa.
+///
+/// Digambar sebagai daftar `label baris → kotak`, bukan kolom kelima di dalam
+/// tabelnya: tabel Accuracy sudah empat kolom (`z`, `m`, `m'`, `z'`) di layar
+/// HP, dan kolom kelima yang isinya bisa `20+20+20+10` bikin semuanya menyusut
+/// sampai nggak kebaca.
+class _BarisKotakTambahan extends StatelessWidget {
+  const _BarisKotakTambahan({
+    required this.field,
+    required this.tabel,
+    required this.isian,
+    required this.onBerubah,
+  });
+
+  final FieldLembarKerja field;
+  final TabelHasil tabel;
+  final LembarKerjaState isian;
+  final VoidCallback onBerubah;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final baris = isian.barisTabel(tabel);
+    final satuan = field.satuan ?? '';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          satuan.isEmpty ? field.label : '${field.label} — $satuan',
+          style: theme.textTheme.labelMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        for (var i = 0; i < baris.length; i++) ...[
+          if (i > 0) const SizedBox(height: AppSpacing.xs),
+          Row(
+            children: [
+              SizedBox(
+                width: 96,
+                child: Text(
+                  baris[i].label,
+                  style: theme.textTheme.bodySmall,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: TextField(
+                  // Kunci sel yang sama dengan yang dibaca waktu payload
+                  // disusun (`TitikState.kotakBarisCtl`). Mengambil controller
+                  // dari tempat lain berarti kotak yang digambar dan kotak yang
+                  // dikirim jadi dua objek yang beda — dan bedanya nggak
+                  // memunculkan error di mana pun.
+                  controller: isian.titik[isian.kunciBaris(baris, i, tabel)]
+                      ?.kotakBarisCtl(tabel.kunciTabel, field.kode),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  style: theme.textTheme.bodyMedium,
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                    hintText: '20+20+10',
+                  ),
+                  onChanged: (_) => onBerubah(),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class _BarisNoProbe extends StatelessWidget {
   const _BarisNoProbe({
     required this.field,
