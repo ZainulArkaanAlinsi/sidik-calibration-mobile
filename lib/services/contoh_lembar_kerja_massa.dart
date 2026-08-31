@@ -602,6 +602,17 @@ Map<String, dynamic> contohBentukLembarKerjaTimbangan({
             'hanya_admin': false,
             'tampil_kalau': null,
           },
+          {
+            'kode': 'spesifikasi_alat.scale_observation.sd_tahun_lalu',
+            'label': 'Standar deviasi tahun lalu (s)',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
         ],
       },
       {
@@ -748,6 +759,8 @@ Map<String, dynamic> contohBentukLembarKerjaTimbangan({
               {
                 'label': 'Maximum Capacity',
                 'titik_ukur': [100],
+                // Kertas lab mengejanya begitu. Jangkar kedua, bukan koreksi.
+                'varian': 'Miximum Capacity',
               },
             ],
             'pindai_foto': true,
@@ -1003,7 +1016,7 @@ Map<String, dynamic> contohBentukLembarKerjaTimbangan({
           },
           {
             'kode': 'spesifikasi_alat.histeresis.baca2.0',
-            'label': 'Reading 2 — M(p1)',
+            'label': 'Reading 2 — M(p3)',
             'tipe': 'angka',
             'wajib': false,
             'sumber': null,
@@ -1025,7 +1038,7 @@ Map<String, dynamic> contohBentukLembarKerjaTimbangan({
           },
           {
             'kode': 'spesifikasi_alat.histeresis.baca2.2',
-            'label': 'Reading 2 — M(q1)',
+            'label': 'Reading 2 — M(q3)',
             'tipe': 'angka',
             'wajib': false,
             'sumber': null,
@@ -1058,7 +1071,7 @@ Map<String, dynamic> contohBentukLembarKerjaTimbangan({
           },
           {
             'kode': 'spesifikasi_alat.histeresis.baca2.5',
-            'label': 'Reading 2 — M(q2)',
+            'label': 'Reading 2 — M(q4)',
             'tipe': 'angka',
             'wajib': false,
             'sumber': null,
@@ -1080,7 +1093,7 @@ Map<String, dynamic> contohBentukLembarKerjaTimbangan({
           },
           {
             'kode': 'spesifikasi_alat.histeresis.baca2.7',
-            'label': 'Reading 2 — M(p2)',
+            'label': 'Reading 2 — M(p4)',
             'tipe': 'angka',
             'wajib': false,
             'sumber': null,
