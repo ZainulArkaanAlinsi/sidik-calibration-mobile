@@ -5,6 +5,7 @@ import '../models/customer.dart';
 import '../models/customer_lookup.dart';
 import '../models/order.dart';
 import '../models/organization.dart';
+import '../models/perusahaan_direktori.dart';
 import '../models/user.dart';
 import '../services/customer_lookup_service.dart';
 import '../services/customer_service.dart';
@@ -117,6 +118,34 @@ final customerLookupProvider = FutureProvider.family<HasilPelanggan, String>(
   // Lebih jujur: tampilin gagalnya, dan biarkan dia lanjut jalan.
   retry: (retryCount, error) => null,
 );
+
+/// Hasil pencarian direktori LUAR, di-key kata kuncinya.
+///
+/// Dipisah dari [customerLookupProvider] dan sengaja **bukan** digabung jadi
+/// satu daftar di server: dua-duanya jawaban atas pertanyaan yang berbeda, dan
+/// yang di sini jauh lebih mahal. Master lab itu query ke basis data sendiri —
+/// murah, instan, boleh ditembak tiap ketikan. Direktori luar itu panggilan ke
+/// layanan pihak ketiga yang punya kuota dan kebijakan pemakaian.
+///
+/// Karena itu layar yang memakainya cuma me-`watch` provider ini kalau master
+/// lab sudah menjawab NOL — bukan tiap huruf. Riverpod nggak membangun provider
+/// yang nggak di-`watch`, jadi penjagaan itu cukup dilakukan di sisi layar.
+///
+/// `retry: null` sama alasannya dengan tetangganya, dan di sini lebih penting:
+/// mencoba ulang otomatis ke direktori yang lagi mati itu menggempur layanan
+/// yang membatasi permintaan — dan yang diblokir alamat IP server lab.
+final direktoriPerusahaanProvider =
+    FutureProvider.family<List<PerusahaanDirektori>, String>((ref, kata) async {
+      // Ikut akun yang login: ganti akun → hasil lab sebelumnya nggak ikut.
+      ref.watch(authProvider);
+
+      final token = await ref.read(tokenStorageProvider).read();
+      if (token == null) throw const TokenHilangException();
+
+      return ref
+          .read(customerLookupServiceProvider)
+          .cariDirektori(token, search: kata);
+    }, retry: (retryCount, error) => null);
 
 final organizationProvider =
     AsyncNotifierProvider<OrganizationController, Organization>(
