@@ -515,6 +515,7 @@ class TabelHasil {
     this.chamberPerBaris = const {},
     this.kolomBaris = const [],
     this.offsetKunci,
+    this.pindaiFoto,
   });
 
   /// `sebelum_adjustment` / `sesudah_adjustment`.
@@ -562,6 +563,34 @@ class TabelHasil {
   /// punya arti — cukup nggak bertabrakan. Yang dikirim ke server tetap
   /// `titik_ukur` aslinya; kunci ini cuma hidup di dalam layar.
   final int? offsetKunci;
+
+  /// Tombol `FOTO TABEL INI` boleh digambar di atas tabel INI?
+  ///
+  /// Null = server nggak menyebut apa-apa buat tabel ini, dan itu keadaan
+  /// normal buat dua puluh lembar yang lain: gerbangnya balik ke penanda
+  /// tingkat-lembar (`pindai_foto.lokal`), persis kayak sebelum kunci ini ada.
+  ///
+  /// Penanda ini cuma bisa MENYEMPITKAN, nggak pernah melebarkan. `true` di
+  /// sini nggak menyalakan tombol di lembar yang `pindai_foto.lokal`-nya mati
+  /// — dia cuma berhenti mematikannya. Arahnya sengaja satu: kalau suatu saat
+  /// lembar dimatikan di tingkat lembar, nggak ada satu tabel pun yang
+  /// diam-diam kebal.
+  ///
+  /// Lembar TIMBANGAN yang bikin ini perlu, dan bedanya ada di KERTASNYA:
+  ///
+  ///  - blok **Repeatability** grid sempurna — nomor `1`..`10` turun di kolom
+  ///    `No.`, dua kapasitas berjajar ke samping, masing-masing dengan
+  ///    sub-kolom `Zero (kg)` & `Reading (kg)`. Ketiga jangkarnya tercetak.
+  ///  - blok **Accuracy** BUKAN grid — di kertas dia daftar menurun:
+  ///    `z1`, `m1`, `m1'`, `z2`, `m2`, `m2'`, `z3`, … Pembedanya TULISAN per
+  ///    baris, bukan nomor kolom, jadi pemeta yang ada nggak punya sumbu buat
+  ///    menjangkarnya.
+  ///
+  /// Menyalakan dua-duanya nggak balik error: yang muncul persis gejala yang
+  /// dicatat §12 permintaan 7 — *"tabelnya dikenali, tapi selnya masih
+  /// kosong"* — dan teknisi menyangka fotonya yang kurang terang, lalu
+  /// mengulang jepretan sampai menyerah.
+  final bool? pindaiFoto;
 
   /// Nomor Repeat yang tercetak di lembar kerja, biasanya 1..5.
   final List<int> pengulangan;
@@ -830,6 +859,7 @@ class TabelHasil {
     chamberPerBaris: _chamberPerBaris(json['chamber_per_baris']),
     kolomBaris: parseListAman(json['kolom_baris'], FieldLembarKerja.fromJson),
     offsetKunci: (json['offset_kunci'] as num?)?.toInt(),
+    pindaiFoto: json['pindai_foto'] is bool ? json['pindai_foto'] as bool : null,
   );
 }
 

@@ -43,15 +43,11 @@ Map<String, dynamic> contohBentukLembarKerjaTimbangan({
     'judul': 'KALIBRASI MASSA / TIMBANGAN',
     'kode_dokumen': null,
     'metode': 'NMI Monograph 4 (CSIRO 2010)',
-    // Salinan `TimbanganProfile::bentukPindaiFoto()`. Ikut di sini, bukan
-    // diserahkan ke bawaan `MockLembarKerjaService`: bawaan itu menyalakan
-    // jalur cloud, dan lembar ini justru satu-satunya yang mematikan
-    // dua-duanya. Alasannya ada di docblock metode itu — ringkasnya lab belum
-    // pernah menerbitkan kertas lembar ini.
     'pindai_foto': {
       'kolom_suhu': false,
       'standar_di_baris': false,
       'didukung': false,
+      'lokal': true,
     },
     'alat_baru': {
       'kode_kategori': 'massa',
@@ -694,6 +690,7 @@ Map<String, dynamic> contohBentukLembarKerjaTimbangan({
             ],
             'tahap': 'sesudah_adjustment',
             'grup': 'akurasi',
+            'pindai_foto': false,
             'judul': 'Accuracy — pembebanan bertingkat',
             'satuan': 'kg',
             'judul_nilai': 'Nominal',
@@ -742,8 +739,32 @@ Map<String, dynamic> contohBentukLembarKerjaTimbangan({
             'satuan': 'kg',
             'offset_kunci': 1000,
             'simpan_ke': 'spesifikasi_alat.keterulangan',
+            'sumbu_pengulangan': 'baris',
+            'slot_cetak': [
+              {
+                'label': 'Middle Capacity',
+                'titik_ukur': [50],
+              },
+              {
+                'label': 'Maximum Capacity',
+                'titik_ukur': [100],
+              },
+            ],
+            'pindai_foto': true,
+            'pengulangan_arah': [
+              {'ke': 1, 'label': '1'},
+              {'ke': 2, 'label': '2'},
+              {'ke': 3, 'label': '3'},
+              {'ke': 4, 'label': '4'},
+              {'ke': 5, 'label': '5'},
+              {'ke': 6, 'label': '6'},
+              {'ke': 7, 'label': '7'},
+              {'ke': 8, 'label': '8'},
+              {'ke': 9, 'label': '9'},
+              {'ke': 10, 'label': '10'},
+            ],
             'judul_nilai': 'Kapasitas',
-            'judul_pengulangan': 'Pengulangan ke-',
+            'judul_pengulangan': 'No.',
             'titik_bisa_diubah': false,
             'baris': [
               {'titik_ukur': 50, 'label': 'Middle Capacity', 'satuan': 'kg'},
@@ -752,13 +773,13 @@ Map<String, dynamic> contohBentukLembarKerjaTimbangan({
             'kolom': [
               {
                 'kode': 'zero',
-                'label': 'Zero (zi)',
+                'label': 'Zero (kg)',
                 'tipe': 'angka',
                 'satuan': 'kg',
               },
               {
                 'kode': 'pembacaan',
-                'label': 'Reading (mi)',
+                'label': 'Reading (kg)',
                 'tipe': 'angka',
                 'satuan': 'kg',
               },
@@ -767,7 +788,30 @@ Map<String, dynamic> contohBentukLembarKerjaTimbangan({
             'pengulangan': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
           },
         ],
-        'field': const [],
+        'field': [
+          {
+            'kode': 'spesifikasi_alat.keterulangan.mid.nominal',
+            'label': 'Middle Capacity — beban yang dipakai',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': null,
+            'satuan': 'kg',
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'spesifikasi_alat.keterulangan.maks.nominal',
+            'label': 'Maximum Capacity — beban yang dipakai',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': null,
+            'satuan': 'kg',
+            'pilihan': const [],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+        ],
       },
       {
         'kode': 'eksentrisitas',

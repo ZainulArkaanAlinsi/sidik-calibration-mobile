@@ -1446,6 +1446,37 @@ class LembarKerjaState {
     return slot.titikUkur[dipilih.clamp(0, slot.titikUkur.length - 1)];
   }
 
+  /// Kunci `TitikState` buat satu SLOT CETAK — bukan nilai titik ukurnya
+  /// langsung.
+  ///
+  /// ## Kenapa dua hal ini bisa berbeda
+  ///
+  /// Di lembar Conductivity keduanya sama: slot menunjuk baris lewat
+  /// `titik_ukur`, dan kunci barisnya memang nilai itu. Lembar TIMBANGAN
+  /// memakai `offset_kunci` — baris Repeatability dikunci `1000`/`1001` supaya
+  /// tidak rebutan dengan titik Accuracy 50 kg & 100 kg yang nilainya
+  /// kebetulan sama.
+  ///
+  /// Dibiarkan mencari `titik[50]`, yang ketemu **null** dan seluruh empat
+  /// puluh selnya digambar MATI: kotaknya ada, garisnya ada, teknisi mengetik
+  /// dan tidak ada satu pun karakter yang masuk. Tanpa error, dan tanpa cara
+  /// menebak sebabnya dari layar.
+  ///
+  /// Tabel yang menyebut `offset_kunci` dipasangkan lewat URUTAN — slot ke-i
+  /// milik baris ke-i. Itu janji yang dinyatakan bentuknya (`slotKeterulangan`
+  /// mengirim Middle dulu, Maximum kedua, sejajar dengan `baris`), dan cuma
+  /// berlaku di situ: Conductivity yang slotnya tidak sejajar baris tetap
+  /// lewat jalur lama, persis seperti sebelumnya.
+  double? kunciTitikSlot(TabelHasil tabel, int index, SlotCetak slot) {
+    if (tabel.offsetKunci == null) return titikAktifSlot(tabel.kunciTabel, index, slot);
+
+    final baris = barisTabel(tabel);
+
+    if (index < 0 || index >= baris.length) return null;
+
+    return kunciBaris(baris, index, tabel);
+  }
+
   /// Prefiks kode sel di `revisi_field`. Sama persis dengan `KodeSelRevisi`
   /// di backend — dua sisi mesti sepakat, dan yang nulis kontraknya di sana.
   static const prefiksKodeSel = 'sel:';

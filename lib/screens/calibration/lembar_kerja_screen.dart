@@ -1829,7 +1829,19 @@ class _Bagian extends ConsumerWidget {
                   // keduanya masih satu penanda, menyalakan tombol buat satu
                   // lembar ikut melebarkan batas data itu tanpa ada yang
                   // berniat begitu. Lihat `_fotoTabelDidukung`.
-                  pindaiAktif: pindaiAktif && isian.bentuk.fotoTabelDidukung,
+                  //
+                  // Faktor KETIGA `tabel.pindaiFoto` cuma bisa menyempitkan:
+                  // null (dua puluh lembar yang lain) nggak mengubah apa pun,
+                  // dan `true` nggak bisa menghidupkan tombol di lembar yang
+                  // gerbang lembarnya mati. Lembar TIMBANGAN memakainya buat
+                  // mematikan blok Accuracy sendirian — di kertas blok itu
+                  // daftar menurun, bukan grid yang bisa dijangkar pemeta,
+                  // sementara blok Repeatability di lembar yang SAMA justru
+                  // grid sempurna. Lihat `TabelHasil.pindaiFoto`.
+                  pindaiAktif:
+                      pindaiAktif &&
+                      isian.bentuk.fotoTabelDidukung &&
+                      (bagian.tabel[i].pindaiFoto ?? true),
                 ),
                 const SizedBox(height: AppSpacing.lg),
 

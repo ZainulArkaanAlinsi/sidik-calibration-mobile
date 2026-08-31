@@ -139,27 +139,73 @@ void main() {
       );
     }
 
-    // Repeatability: dua sub-kolom per pengulangan.
-    expect(find.text('Zero (zi)'), findsWidgets);
-    expect(find.text('Reading (mi)'), findsWidgets);
+    // Repeatability: dua sub-kolom per kapasitas, dan LABELNYA MEMBAWA
+    // SATUAN — persis seperti tercetak di master. Itu bukan kosmetik: pemeta
+    // foto memakai tulisan ini sebagai jangkar sub-kolom, jadi kertas gram
+    // (`Zero (g)`) nggak bisa mendarat di sesi kilogram.
+    expect(find.text('Zero (kg)'), findsWidgets);
+    expect(find.text('Reading (kg)'), findsWidgets);
 
-    // Dua barisnya kapasitas, bukan titik ukur.
+    // Dua kapasitasnya berjajar KE SAMPING sebagai kepala slot — bentuk
+    // kertasnya, bukan transposed.
     expect(find.text('Middle Capacity'), findsWidgets);
     expect(find.text('Maximum Capacity'), findsWidgets);
   });
 
-  testWidgets('nggak ada tombol kamera di lembar ini', (tester) async {
+  testWidgets('kapasitas uji punya kotak isian sendiri — bukan diturunkan', (
+    tester,
+  ) async {
     perbesarViewport(tester);
     await bukaSemuaHalaman(tester);
 
-    // `bentukPindaiFoto()` mengunci dua-duanya `false`, dan alasannya bukan
-    // kelupaan: lab belum pernah menerbitkan kertas lembar ini
-    // (`kode_dokumen` null), tabel Repeatability nggak mengirim kepala kolom
-    // yang bisa dijangkar pemeta (bawaannya `X1` / `Repeat 1`), dan blok
-    // Accuracy di kertas master itu daftar MENURUN, bukan grid. Tombol yang
-    // nyala di lembar begini balik NOL sel tiap jepretan — dan yang sampai ke
-    // teknisi "tabelnya dikenali, tapi selnya masih kosong".
-    expect(find.text('FOTO TABEL INI'), findsNothing);
+    // Master GRAM yang membuktikan kenapa: alatnya berkapasitas 54 g dan
+    // keterulangannya diambil di 25 g & 50 g, bukan 27 g & 54 g. Diturunkan
+    // dari rentang alat, `deviasiKurangiNominal` menggeser kesepuluh
+    // deviasinya — dan itu nyala di varian gram DAN substitusi.
+    // `textContaining`, bukan teks persis: satuan ditempel penggambar
+    // kolomnya sendiri, dan bentuk tempelannya bukan bagian dari yang diuji
+    // di sini. Yang diuji kotaknya ADA.
+    expect(
+      find.textContaining('Middle Capacity — beban yang dipakai'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('Maximum Capacity — beban yang dipakai'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('tombol kamera cuma SATU, dan duduk di blok Repeatability', (
+    tester,
+  ) async {
+    perbesarViewport(tester);
+    await bukaSemuaHalaman(tester);
+
+    // SATU, bukan dua. Blok Accuracy sengaja dimatikan sendirian: di kertas
+    // master dia daftar MENURUN (`z1`, `m1`, `m1'`, `z2`, …), bukan grid yang
+    // bisa dijangkar pemeta. Tombol yang nyala di situ balik NOL sel tiap
+    // jepretan — dan yang sampai ke teknisi bukan "kolomnya nggak kebaca",
+    // melainkan "tabelnya dikenali, tapi selnya masih kosong".
+    expect(find.text('FOTO TABEL INI'), findsOneWidget);
+
+    // Dan pembuktian bahwa yang nyala tabel yang BENAR: tombolnya harus
+    // duduk di bawah judul `4. REPEATABILITY`, bukan di antara `3. ACCURACY`
+    // dan judul itu. Tanpa perbandingan posisi, gerbang yang kebalik pun
+    // tetap hijau — jumlahnya sama-sama satu.
+    final yAkurasi = tester.getTopLeft(find.text('3. ACCURACY')).dy;
+    final yKeterulangan = tester.getTopLeft(find.text('4. REPEATABILITY')).dy;
+    final yTombol = tester.getTopLeft(find.text('FOTO TABEL INI')).dy;
+
+    expect(yKeterulangan, greaterThan(yAkurasi));
+    expect(
+      yTombol,
+      greaterThan(yKeterulangan),
+      reason:
+          'Tombolnya di atas judul Repeatability berarti dia milik blok '
+          'Accuracy — gerbang per-tabelnya kebalik.',
+    );
+
+    // Jalur PINDAI LEMBAR PENUH sudah dicabut permanen dari semua lembar.
     expect(find.text('PINDAI LEMBAR KERJA'), findsNothing);
   });
 }
