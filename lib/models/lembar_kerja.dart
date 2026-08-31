@@ -19,7 +19,22 @@ enum TipeField {
   angka,
   tanggal,
   pilihan,
-  centang;
+  centang,
+
+  /// Satu kotak, BEBERAPA angka — dikirim sebagai daftar, bukan teks.
+  ///
+  /// Lembar Timbangan yang pertama memakainya: tiap titik akurasi ditimbang
+  /// dengan susunan keping yang berbeda (`20`, `20+20`, `20+20+10`), dan
+  /// urutannya MENGIKAT — slot pertama dapat `ci` = 10 di varian substitusi
+  /// dan jadi satu-satunya sumber `u` standar, jadi keping yang mendarat di
+  /// slot yang salah menggeser budget tanpa satu pun error.
+  ///
+  /// Enam kotak terpisah per baris (Mass 1..6 seperti master) sudah dicoba dan
+  /// dibuang: enam puluh kotak yang lima per enamnya kosong, di layar HP.
+  ///
+  /// Isinya dipecah `pecahDaftarAngka` — dan koma di situ koma DESIMAL, bukan
+  /// pemisah.
+  daftarAngka;
 
   static TipeField fromApi(String value) => switch (value) {
     'teks' => TipeField.teks,
@@ -28,6 +43,7 @@ enum TipeField {
     'tanggal' => TipeField.tanggal,
     'pilihan' => TipeField.pilihan,
     'centang' => TipeField.centang,
+    'daftar_angka' => TipeField.daftarAngka,
     _ => TipeField.teks,
   };
 }
@@ -498,6 +514,8 @@ class TabelHasil {
     this.parameter,
     this.chamberPerBaris = const {},
     this.kolomBaris = const [],
+    this.offsetKunci,
+    this.pindaiFoto,
   });
 
   /// `sebelum_adjustment` / `sesudah_adjustment`.
@@ -525,6 +543,54 @@ class TabelHasil {
   /// bukan bikin tabel kosong. Alat satu satuan lewat sini juga.
   List<BarisTabelHasil> barisUntuk(String satuan) =>
       barisPerSatuan[satuan] ?? baris;
+
+  /// Geser kunci baris tabel ini supaya nggak rebutan dengan tabel lain di
+  /// lembar yang sama. Null = kunci biasa (nilai titik ukurnya).
+  ///
+  /// Lembar TIMBANGAN yang bikin ini perlu, dan tabrakannya nyata bukan
+  /// teoretis: blok Accuracy sesi contoh memuat titik 50 kg & 100 kg,
+  /// sementara blok Repeatability memuat Middle 50 kg & Maximum 100 kg. Dua
+  /// tabel, empat baris, DUA kunci — jadi baris keterulangan dan baris akurasi
+  /// berbagi satu `TitikState`, dan angka yang diketik di salah satunya muncul
+  /// di kotak satunya lagi.
+  ///
+  /// Kelas kegagalan yang sama sudah pernah kejadian di Thermohygrometer (set
+  /// point `50` ada di blok suhu DAN blok kelembapan), dan di sana ditutup
+  /// dengan offset yang dihitung dari urutan parameter. Yang itu terikat ke
+  /// `berpasangan`; ini bentuk umumnya — tabel yang menyebut offsetnya sendiri.
+  ///
+  /// Kuncinya jadi `offsetKunci + indeks baris`, jadi nilainya nggak perlu
+  /// punya arti — cukup nggak bertabrakan. Yang dikirim ke server tetap
+  /// `titik_ukur` aslinya; kunci ini cuma hidup di dalam layar.
+  final int? offsetKunci;
+
+  /// Tombol `FOTO TABEL INI` boleh digambar di atas tabel INI?
+  ///
+  /// Null = server nggak menyebut apa-apa buat tabel ini, dan itu keadaan
+  /// normal buat dua puluh lembar yang lain: gerbangnya balik ke penanda
+  /// tingkat-lembar (`pindai_foto.lokal`), persis kayak sebelum kunci ini ada.
+  ///
+  /// Penanda ini cuma bisa MENYEMPITKAN, nggak pernah melebarkan. `true` di
+  /// sini nggak menyalakan tombol di lembar yang `pindai_foto.lokal`-nya mati
+  /// — dia cuma berhenti mematikannya. Arahnya sengaja satu: kalau suatu saat
+  /// lembar dimatikan di tingkat lembar, nggak ada satu tabel pun yang
+  /// diam-diam kebal.
+  ///
+  /// Lembar TIMBANGAN yang bikin ini perlu, dan bedanya ada di KERTASNYA:
+  ///
+  ///  - blok **Repeatability** grid sempurna — nomor `1`..`10` turun di kolom
+  ///    `No.`, dua kapasitas berjajar ke samping, masing-masing dengan
+  ///    sub-kolom `Zero (kg)` & `Reading (kg)`. Ketiga jangkarnya tercetak.
+  ///  - blok **Accuracy** BUKAN grid — di kertas dia daftar menurun:
+  ///    `z1`, `m1`, `m1'`, `z2`, `m2`, `m2'`, `z3`, … Pembedanya TULISAN per
+  ///    baris, bukan nomor kolom, jadi pemeta yang ada nggak punya sumbu buat
+  ///    menjangkarnya.
+  ///
+  /// Menyalakan dua-duanya nggak balik error: yang muncul persis gejala yang
+  /// dicatat §12 permintaan 7 — *"tabelnya dikenali, tapi selnya masih
+  /// kosong"* — dan teknisi menyangka fotonya yang kurang terang, lalu
+  /// mengulang jepretan sampai menyerah.
+  final bool? pindaiFoto;
 
   /// Nomor Repeat yang tercetak di lembar kerja, biasanya 1..5.
   final List<int> pengulangan;
@@ -792,6 +858,8 @@ class TabelHasil {
     parameter: json['parameter'] as String?,
     chamberPerBaris: _chamberPerBaris(json['chamber_per_baris']),
     kolomBaris: parseListAman(json['kolom_baris'], FieldLembarKerja.fromJson),
+    offsetKunci: (json['offset_kunci'] as num?)?.toInt(),
+    pindaiFoto: json['pindai_foto'] is bool ? json['pindai_foto'] as bool : null,
   );
 }
 

@@ -941,7 +941,11 @@ class _TabelKeBawahState extends State<_TabelKeBawah> {
       : l10n.lkResolusiNilai(_angkaTampil(slot.resolusi!), slot.satuan ?? '');
 
   Widget _selAngka(SlotCetak slot, int index, KolomTabelHasil kolom, int r) {
-    final titik = _titikAktif(index, slot);
+    // Kunci `TitikState`-nya lewat `kunciTitikSlot`, BUKAN nilai titik ukur
+    // slotnya — tabel yang menyebut `offset_kunci` kunci barisnya digeser.
+    // Lihat docblock method itu; salah di sini bikin seluruh sel digambar mati
+    // tanpa satu pun error.
+    final titik = widget.isian.kunciTitikSlot(_tabel, index, slot);
     final state = titik == null ? null : widget.isian.titik[titik];
 
     // Slot mati (`80000 µS` — dicentang di master tapi baris DATABASE-nya

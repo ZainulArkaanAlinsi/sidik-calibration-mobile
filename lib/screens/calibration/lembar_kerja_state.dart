@@ -27,6 +27,26 @@ import '../../services/peta_tabel_foto.dart';
 double? parseAngka(String teks) =>
     double.tryParse(teks.trim().replaceAll(',', '.'));
 
+/// Pecah isi kotak [TipeField.daftarAngka] jadi daftar angka.
+///
+/// Pemisah utamanya `+` — itu yang ditulis teknisi karena itu yang dia lakukan
+/// (menumpuk keping anak timbangan: `20+20+10`). Titik-koma dan spasi ikut
+/// diterima; kertas masternya sendiri menulisnya campur, dan menolak salah
+/// satunya cuma bikin isian yang benar hilang di lapangan.
+///
+/// **Koma BUKAN pemisah** di sini, dan itu bukan kelalaian: koma itu koma
+/// desimal ([parseAngka] menerimanya), jadi `20,5+10` wajib jadi `[20.5, 10]`.
+/// Dibaca sebagai pemisah, dia jadi `[20, 5, 10]` — tiga keping bukan dua,
+/// jumlah nominalnya melar 14,5 jadi 35, dan slot Mass-nya geser semua. Nggak
+/// ada satu pun error di jalur itu; yang salah cuma seluruh titiknya.
+///
+/// Potongan yang nggak kebaca sebagai angka dibuang, bukan bikin seluruh
+/// kotaknya gagal.
+List<double> pecahDaftarAngka(String isi) => [
+  for (final bagian in isi.split(RegExp(r'[+;\s]+')))
+    if (parseAngka(bagian) case final double n) n,
+];
+
 /// Balikin angka ke bentuk yang enak diketik ulang: `22.5`, bukan `22.500000`
 /// — dan bilangan bulat tanpa `.0` yang bikin teknisi ngira ada desimal
 /// tersembunyi.
@@ -427,6 +447,15 @@ class TitikState {
     }
   }
 
+  /// Controller satu kotak tambahan baris ini.
+  ///
+  /// Nebeng [kotak] supaya ikut dapat semua yang sudah ada di sana sekaligus:
+  /// listener pengetikan, pemulihan draft (`tahap|kolom|index`), dan
+  /// pembuangan controller waktu layarnya ditutup. Awalan `kolombaris:`
+  /// menjaganya nggak pernah bentrok dengan kode kolom tabel beneran.
+  TextEditingController kotakBarisCtl(String tahap, String kode) =>
+      kotak(tahap, 'kolombaris:$kode', 0);
+
   List<double?> _kolom(String tahap, String kolom) => List<double?>.generate(
     jumlahPengulangan,
     // Sel yang belum diisi jadi null, BUKAN dibuang — nomor Repeat-nya nggak
@@ -444,7 +473,10 @@ class TitikState {
   /// dan `pembacaan` NULL SEMUA — tiga puluh lima angka yang beneran diambil
   /// teknisi di lapangan nggak pernah nyampe server, di lembar yang penuh di
   /// layar dan tombol kirimnya jalan mulus.
-  TitikLembarKerja toSubmission({String kunciUtama = 'sesudah_adjustment'}) {
+  TitikLembarKerja toSubmission({
+    String kunciUtama = 'sesudah_adjustment',
+    List<FieldLembarKerja> kotakBaris = const [],
+  }) {
     final titik = TitikLembarKerja(
       // `titikUkurEfektif`, bukan `titikUkur` — lihat docblock getternya.
       titikUkur: titikUkurEfektif ?? titikUkur,
@@ -452,6 +484,15 @@ class TitikState {
       standardId: standardId,
       satuan: satuan.isEmpty ? null : satuan,
     );
+
+    for (final f in kotakBaris) {
+      final isi = kotakBarisCtl(kunciUtama, f.kode).text.trim();
+      if (isi.isEmpty) continue;
+
+      titik.kolomBaris[f.kode] = f.tipe == TipeField.daftarAngka
+          ? pecahDaftarAngka(isi)
+          : isi;
+    }
 
     void salin(List<double?> dari, List<double?> ke) {
       for (var i = 0; i < ke.length && i < dari.length; i++) {
@@ -663,6 +704,14 @@ class LembarKerjaState {
     // keduanya `TabelHasil.kunciTabel` di dalam `TitikState`, bukan kunci ini.
     if (tabel != null && tabel.berpasangan) {
       return (_offsetParameter(tabel.parameter) + index).toDouble();
+    }
+
+    // Tabel yang menyebut offsetnya sendiri — lihat `TabelHasil.offsetKunci`.
+    // Dipakai lembar Timbangan supaya baris Repeatability (Middle 50 kg,
+    // Maximum 100 kg) nggak berbagi `TitikState` dengan titik Accuracy 50 kg
+    // & 100 kg yang nilainya kebetulan sama.
+    if (tabel?.offsetKunci != null) {
+      return (tabel!.offsetKunci! + index).toDouble();
     }
 
     final titikUnik = baris.map((b) => b.titikUkur).toSet().length;
@@ -1193,6 +1242,74 @@ class LembarKerjaState {
     return 'sesudah_adjustment';
   }
 
+  /// Kotak tambahan per baris (`tabel.kolom_baris`) yang isinya ikut ke
+  /// `measurements[]` — di luar `no_probe`, yang punya jalur gambarnya sendiri.
+  ///
+  /// Cuma lembar Timbangan yang punya sejauh ini: kotak `nominal`, berisi
+  /// susunan keping yang ditumpuk di titik itu (`20+20+10`). Server yang
+  /// menjumlahkannya jadi `titik_ukur`, jadi kotak ini bukan pelengkap —
+  /// tanpa dia titiknya bernilai nol dan seluruh koreksinya nggak berarti.
+  ///
+  /// Diambil dari tabel PEMBACAAN saja: kotak baris di tabel yang isinya
+  /// mendarat di `spesifikasi_alat` nggak punya `measurements[]` buat
+  /// ditumpangi.
+  List<FieldLembarKerja> get kotakBarisPembacaan {
+    for (final b in bentuk.bagian) {
+      for (final t in b.tabel) {
+        if (t.berpasangan || t.tanpaTempatSimpan) continue;
+        if (t.simpanKe != null && t.simpanKe!.startsWith('spesifikasi_alat.')) {
+          continue;
+        }
+        if (t.kolomBaris.isEmpty) continue;
+
+        return [
+          for (final f in t.kolomBaris)
+            if (f.kode != 'no_probe') f,
+        ];
+      }
+    }
+
+    return const [];
+  }
+
+  /// Kunci baris yang isinya mendarat di `spesifikasi_alat`, BUKAN di
+  /// `measurements[]`.
+  ///
+  /// `titik` itu satu peta datar buat seluruh lembar — semua tabel menaruh
+  /// barisnya di situ, dibedakan kuncinya. Bagus buat sembilan belas lembar
+  /// yang semua tabelnya memang tabel titik; salah buat lembar Timbangan,
+  /// yang tabel Repeatability-nya berisi KAPASITAS (Middle & Maximum), bukan
+  /// titik yang dikoreksi.
+  ///
+  /// Dibiarkan lolos, sertifikatnya terbit dengan dua baris titik tambahan
+  /// yang nggak pernah diminta siapa pun — 50 kg & 100 kg yang isinya sepuluh
+  /// pengulangan, bukan satu pembacaan. Nggak ada error di jalur itu: dua
+  /// baris itu punya set point yang sah dan angka yang sah.
+  ///
+  /// Kunci yang JUGA dipakai tabel pembacaan biasa nggak ikut dibuang —
+  /// membuang baris yang dipakai bersama berarti kehilangan titik beneran.
+  /// Sejauh ini nggak pernah terjadi (`offset_kunci` yang menjaganya), tapi
+  /// murah dijaga di sini juga.
+  Set<double> get kunciTitikSpesifikasi {
+    const awalan = 'spesifikasi_alat.';
+    final milikSpek = <double>{};
+    final milikTitik = <double>{};
+
+    for (final bagian in bentuk.bagian) {
+      for (final tabel in bagian.tabel) {
+        final baris = barisTabel(tabel);
+        final tujuan = tabel.simpanKe;
+        final keSpek = tujuan != null && tujuan.startsWith(awalan);
+
+        for (var i = 0; i < baris.length; i++) {
+          (keSpek ? milikSpek : milikTitik).add(kunciBaris(baris, i, tabel));
+        }
+      }
+    }
+
+    return milikSpek.difference(milikTitik);
+  }
+
   /// Baris yang ANGKANYA keisi tapi kotak `Setpoint`-nya kosong atau nggak
   /// kebaca sebagai angka.
   ///
@@ -1327,6 +1444,37 @@ class LembarKerjaState {
     final dipilih = pilihanSlot[kunciSlot(tahap, index)] ?? 0;
 
     return slot.titikUkur[dipilih.clamp(0, slot.titikUkur.length - 1)];
+  }
+
+  /// Kunci `TitikState` buat satu SLOT CETAK — bukan nilai titik ukurnya
+  /// langsung.
+  ///
+  /// ## Kenapa dua hal ini bisa berbeda
+  ///
+  /// Di lembar Conductivity keduanya sama: slot menunjuk baris lewat
+  /// `titik_ukur`, dan kunci barisnya memang nilai itu. Lembar TIMBANGAN
+  /// memakai `offset_kunci` — baris Repeatability dikunci `1000`/`1001` supaya
+  /// tidak rebutan dengan titik Accuracy 50 kg & 100 kg yang nilainya
+  /// kebetulan sama.
+  ///
+  /// Dibiarkan mencari `titik[50]`, yang ketemu **null** dan seluruh empat
+  /// puluh selnya digambar MATI: kotaknya ada, garisnya ada, teknisi mengetik
+  /// dan tidak ada satu pun karakter yang masuk. Tanpa error, dan tanpa cara
+  /// menebak sebabnya dari layar.
+  ///
+  /// Tabel yang menyebut `offset_kunci` dipasangkan lewat URUTAN — slot ke-i
+  /// milik baris ke-i. Itu janji yang dinyatakan bentuknya (`slotKeterulangan`
+  /// mengirim Middle dulu, Maximum kedua, sejajar dengan `baris`), dan cuma
+  /// berlaku di situ: Conductivity yang slotnya tidak sejajar baris tetap
+  /// lewat jalur lama, persis seperti sebelumnya.
+  double? kunciTitikSlot(TabelHasil tabel, int index, SlotCetak slot) {
+    if (tabel.offsetKunci == null) return titikAktifSlot(tabel.kunciTabel, index, slot);
+
+    final baris = barisTabel(tabel);
+
+    if (index < 0 || index >= baris.length) return null;
+
+    return kunciBaris(baris, index, tabel);
   }
 
   /// Prefiks kode sel di `revisi_field`. Sama persis dengan `KodeSelRevisi`
@@ -2191,13 +2339,147 @@ class LembarKerjaState {
   ///
   /// Yang kosong nggak ikut — biar `PUT` draft bertahap nggak ngosongin yang
   /// udah keisi sebelumnya.
-  Map<String, String> get spesifikasiAlat => {
-    for (final bagian in bentuk.bagian)
-      for (final f in bagian.field)
-        if (f.spesifikasiAlat &&
-            (teks[f.kode]?.text.trim().isNotEmpty ?? false))
-          f.kunciSpesifikasi: teks[f.kode]!.text.trim(),
-  };
+  Map<String, dynamic> get spesifikasiAlat {
+    final hasil = <String, dynamic>{};
+
+    for (final bagian in bentuk.bagian) {
+      for (final f in bagian.field) {
+        if (!f.spesifikasiAlat) continue;
+
+        final isi = teks[f.kode]?.text.trim() ?? '';
+        if (isi.isEmpty) continue;
+
+        _tanamSpesifikasi(hasil, f.kunciSpesifikasi.split('.'), isi);
+      }
+    }
+
+    _tanamTabelSpesifikasi(hasil);
+
+    return hasil;
+  }
+
+  /// Tanam satu nilai ke [induk] mengikuti [jalur] — `['eksentrisitas',
+  /// 'baca', 'center']` jadi `{eksentrisitas: {baca: {center: …}}}`.
+  ///
+  /// ## Kenapa titik di dalam `spesifikasi_alat.*` artinya BERSARANG
+  ///
+  /// Di kode kolom biasa, titik artinya "kolom turunan" — read-only, diisi
+  /// sistem dari alat yang dipilih, dan nggak pernah ikut payload
+  /// (`FieldLembarKerja.turunan`). `spesifikasi_alat.*` sudah dikecualikan dari
+  /// aturan itu sejak Refractometer: di sana titiknya PENGELOMPOKAN.
+  ///
+  /// Lembar Timbangan yang bikin pengelompokan itu perlu lebih dari satu
+  /// tingkat. Lima bloknya dibaca backend sebagai objek bersarang
+  /// (`eksentrisitas.baca.center`, `histeresis.baca1.0`), dan yang mengirimkan
+  /// mereka sebagai kunci DATAR bertuliskan titik bakal lolos validasi tanpa
+  /// error — `spesifikasi_alat` itu kolom JSON tanpa skema — lalu dibaca nol
+  /// oleh kalkulatornya. Komponen Eccentricity-nya nol di setiap sesi, dan
+  /// nggak ada satu pun tanda di layar maupun di sertifikat.
+  ///
+  /// Segmen yang seluruhnya angka tetap jadi kunci teks (`"0"`, `"7"`);
+  /// PHP membaca `{"0": …, "7": …}` sebagai array berindeks, jadi
+  /// `count($b) >= 8` dan `$b[0]` di sisi sana tetap benar.
+  ///
+  /// Kalau satu jalur menabrak nilai yang sudah ada (`a.b` dan `a.b.c`
+  /// dua-duanya dikirim), yang DULUAN menang dan yang belakangan dibuang —
+  /// bukan bentuknya yang ditimpa. Bentuk begitu cuma bisa lahir dari lembar
+  /// yang kodenya salah tulis, dan menimpa berarti kehilangan kotak yang
+  /// teknisi memang isi.
+  static void _tanamSpesifikasi(
+    Map<String, dynamic> induk,
+    List<String> jalur,
+    String nilai,
+  ) {
+    if (jalur.isEmpty) return;
+
+    if (jalur.length == 1) {
+      induk.putIfAbsent(jalur.first, () => nilai);
+
+      return;
+    }
+
+    final anak = induk[jalur.first];
+
+    if (anak != null && anak is! Map<String, dynamic>) return;
+
+    final peta = (anak as Map<String, dynamic>?) ?? <String, dynamic>{};
+    induk[jalur.first] = peta;
+
+    _tanamSpesifikasi(peta, jalur.sublist(1), nilai);
+  }
+
+  /// Tabel yang `simpan_ke`-nya nunjuk ke dalam `spesifikasi_alat` dikirim
+  /// sebagai **cerminan tabelnya**, bukan sebagai titik ukur.
+  ///
+  /// Tabel Repeatability lembar Timbangan begitu: dua barisnya KAPASITAS
+  /// (Middle & Maximum), bukan dua titik yang dikoreksi — besaran satu per
+  /// sesi, jadi nggak punya `titik_ke` dan nggak bisa lewat `measurements`.
+  ///
+  /// Bentuk yang dikirim sengaja nggak menyebut "mid" maupun "maks":
+  ///
+  ///     {baris: [{titik_ukur, <kode kolom>: [nilai per ulangan]}, …]}
+  ///
+  /// Nama slot itu kosakata master alatnya, dan menaruhnya di layar yang
+  /// menggambar dua puluh lembar berarti daftar tulis-tangan yang menyusut
+  /// diam-diam tiap ada alat baru — persis pola yang dijaga docblock
+  /// [LembarKerja.berpasangan]. Yang menerjemahkannya profil alat di server.
+  ///
+  /// Baris yang sama sekali kosong tetap ikut DI POSISINYA: urutan barislah
+  /// yang menentukan mana Middle dan mana Maximum di sisi sana.
+  void _tanamTabelSpesifikasi(Map<String, dynamic> hasil) {
+    const awalan = 'spesifikasi_alat.';
+
+    for (final bagian in bentuk.bagian) {
+      for (final tabel in bagian.tabel) {
+        final tujuan = tabel.simpanKe;
+
+        if (tujuan == null || !tujuan.startsWith(awalan)) continue;
+
+        final baris = barisTabel(tabel);
+        final isi = <Map<String, dynamic>>[];
+
+        for (var i = 0; i < baris.length; i++) {
+          final t = titikUntukBaris(baris, i, tabel);
+
+          isi.add({
+            'titik_ukur': t?.titikUkurEfektif ?? baris[i].titikUkur,
+            // Indeksnya POSISI (0-based), bukan nomor Repeat yang tercetak —
+            // sama persis dengan kunci yang dipakai kotaknya waktu digambar
+            // (`tahap|kolom|index`). Memakai nomor tercetak di sini bikin
+            // sepuluh kotak dibaca dari kunci yang nggak pernah ada, dan yang
+            // terkirim sepuluh null tanpa satu pun error.
+            for (final kolom in tabel.kolom)
+              kolom.kode: [
+                for (var r = 0; r < tabel.pengulangan.length; r++)
+                  parseAngka(
+                    t?.kotak(tabel.kunciTabel, kolom.kode, r).text ?? '',
+                  ),
+              ],
+          });
+        }
+
+        if (isi.isEmpty) continue;
+
+        _tanamSpesifikasi(
+          hasil,
+          tujuan.substring(awalan.length).split('.'),
+          '',
+        );
+
+        // Ditulis lewat jalur yang sama supaya kunci bersarang
+        // (`a.b.keterulangan`) tetap jalan, lalu nilainya diganti — `_tanam`
+        // cuma tahu teks.
+        var induk = hasil;
+        final jalur = tujuan.substring(awalan.length).split('.');
+
+        for (var i = 0; i < jalur.length - 1; i++) {
+          induk = induk[jalur[i]] as Map<String, dynamic>;
+        }
+
+        induk[jalur.last] = {'baris': isi};
+      }
+    }
+  }
 
   /// Susun payload. **Nggak ada validasi di sini** — apa pun kondisinya, isian
   /// yang ada dikirim apa adanya. Yang nahan sertifikat terbit itu pemeriksaan
@@ -2238,9 +2520,17 @@ class LembarKerjaState {
     // setengah jadi tetap kebaca utuh sama admin.
     final kunciUtama = kunciTabelPembacaan;
 
-    final measurements = titik.values
-        .where((t) => t.siapKirim)
-        .map((t) => t.toSubmission(kunciUtama: kunciUtama))
+    final kotakBaris = kotakBarisPembacaan;
+    final bukanTitik = kunciTitikSpesifikasi;
+
+    final measurements = titik.entries
+        .where((e) => !bukanTitik.contains(e.key) && e.value.siapKirim)
+        .map(
+          (e) => e.value.toSubmission(
+            kunciUtama: kunciUtama,
+            kotakBaris: kotakBaris,
+          ),
+        )
         .toList();
 
     // Lembar ber-GRID nggak punya `titik` sama sekali — bentuknya nggak
