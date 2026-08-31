@@ -135,7 +135,12 @@ void main() {
   });
 
   /// Butir terpenting di berkas ini.
-  testWidgets('DIREKTORI BELUM DISETEL: sebabnya disebut, bukan nol hasil', (
+  ///
+  /// "Key belum disetel" itu urusan ADMIN. Teknisi di gerbang pabrik nggak bisa
+  /// berbuat apa-apa soal itu — dipajang apa adanya, yang dia lihat cuma
+  /// aplikasi yang kelihatan rusak di tengah kerjaan, lalu dia berhenti dan
+  /// menelepon padahal jalur ketik tangan di bawahnya jalan sempurna.
+  testWidgets('DIREKTORI TIADA: tombolnya HILANG, dan nggak ada jargon server', (
     tester,
   ) async {
     layarPanjang(tester);
@@ -148,17 +153,38 @@ void main() {
     await tester.tap(find.text('CARI DI DIREKTORI'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('belum disetel'), findsOneWidget);
+    expect(
+      find.text('CARI DI DIREKTORI'),
+      findsNothing,
+      reason: 'Tombol yang tiap ditekan memulangkan hal yang sama itu bukan '
+          'pilihan — dia jebakan yang bikin teknisi mengira ada yang rusak.',
+    );
+    expect(find.textContaining('nggak tersedia di lab ini'), findsOneWidget);
+
+    for (final jargon in ['disetel', 'server', 'API', 'key']) {
+      expect(
+        find.textContaining(jargon),
+        findsNothing,
+        reason: 'Kalimat buat teknisi nggak boleh memuat "$jargon" — itu bahasa '
+            'orang yang memasang server, bukan orang yang lagi berdiri di depan '
+            'pelanggan.',
+      );
+    }
+
     expect(
       find.textContaining('Nggak ada perusahaan yang cocok'),
       findsNothing,
-      reason: 'Diratakan jadi "nggak ada yang cocok", teknisi membacanya sebagai '
-          'PT-nya nggak ada di direktori lalu mendaftarkan ulang perusahaan '
-          'yang sebenarnya ada di sana.',
+      reason: 'Tetap nggak boleh kebaca sebagai "PT-nya nggak ada di direktori" '
+          '— itu bikin dia mendaftarkan ulang perusahaan yang sebenarnya ada.',
     );
   });
 
-  testWidgets('DIREKTORI MATI: dibedakan dari belum disetel', (tester) async {
+  /// Direktorinya dipasang, cuma lagi mati — ini SEMENTARA, jadi tombolnya
+  /// TETAP ADA. Menyembunyikannya bikin teknisi kehilangan jalur yang lima
+  /// menit lagi jalan sendiri.
+  testWidgets('DIREKTORI MATI: tombolnya TETAP ada, kalimatnya menawarkan ulang', (
+    tester,
+  ) async {
     layarPanjang(tester);
     await buka(
       tester,
@@ -169,7 +195,8 @@ void main() {
     await tester.tap(find.text('CARI DI DIREKTORI'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('nggak bisa dihubungi'), findsOneWidget);
+    expect(find.text('CARI DI DIREKTORI'), findsOneWidget);
+    expect(find.textContaining('coba lagi nanti'), findsOneWidget);
   });
 
   testWidgets('nihil BENERAN tetap bilang nihil — itu keadaan yang sah', (

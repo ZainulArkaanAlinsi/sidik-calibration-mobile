@@ -19,6 +19,7 @@ import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/widgets/app_text_field.dart';
 import 'package:sidik_calibration/widgets/floating_nav_bar.dart';
 import 'support/lewati_onboarding.dart';
+import 'support/simpanan_tiruan.dart';
 
 /// Dibungkus `SidikApp` (bukan langsung `EquipmentListScreen`) — layar ini
 /// nge-watch `authProvider`, dan kalau dibuka lepas dari `AuthGate`,
@@ -111,6 +112,8 @@ Finder _kolom(WidgetTester tester, String label) {
 }
 
 void main() {
+  pasangSimpananTiruan();
+
   testWidgets('nampilin daftar alat dengan badge status', (tester) async {
     await _bukaTabAlat(tester);
 

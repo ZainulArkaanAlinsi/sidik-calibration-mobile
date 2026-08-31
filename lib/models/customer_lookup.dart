@@ -33,4 +33,12 @@ class CustomerLookup {
     nama: json['nama'] as String? ?? '',
     alamat: json['alamat'] as String?,
   );
+
+  /// Bentuk yang sama dengan yang datang dari server.
+  ///
+  /// Sengaja identik supaya isi simpanan di HP bisa dibaca lewat [fromJson]
+  /// yang itu-itu juga — dua bentuk yang beda tipis buat hal yang sama itu
+  /// tempat lahirnya bug yang cuma muncul waktu offline, yaitu waktu yang
+  /// paling nggak enak buat menemukannya.
+  Map<String, dynamic> toJson() => {'id': id, 'nama': nama, 'alamat': alamat};
 }

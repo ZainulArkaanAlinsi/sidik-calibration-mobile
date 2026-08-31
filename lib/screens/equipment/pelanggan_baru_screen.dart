@@ -70,6 +70,18 @@ class _PelangganBaruScreenState extends ConsumerState<PelangganBaruScreen> {
   /// percaya itu mendaftarkan ulang perusahaan yang sebenarnya ada di sana.
   String? _pesanDirektori;
 
+  /// Direktorinya memang nggak dipasang di lab ini → tombolnya disembunyikan.
+  ///
+  /// "Key belum disetel" itu urusan ADMIN, dan teknisi di gerbang pabrik nggak
+  /// bisa berbuat apa-apa soal itu. Dipajang apa adanya, yang dia lihat cuma
+  /// aplikasi yang kelihatan rusak di tengah kerjaan — lalu dia berhenti dan
+  /// menelepon, padahal jalur ketik tangan di bawahnya jalan sempurna.
+  ///
+  /// Jadi buat dia, keadaan ini bukan error: fiturnya sekadar nggak ada di sini.
+  /// Yang butuh tahu bedanya (admin) melihatnya di `GET /api/health`, bukan di
+  /// layar ini.
+  bool _direktoriTiada = false;
+
   bool _mencari = false;
   bool _menyimpan = false;
 
@@ -169,7 +181,15 @@ class _PelangganBaruScreenState extends ConsumerState<PelangganBaruScreen> {
       setState(() => _hasilDirektori = hasil);
     } on DirektoriTidakSiapException catch (e) {
       if (!mounted) return;
-      setState(() => _pesanDirektori = e.pesan);
+      final l10n = AppLocalizations.of(context);
+      setState(() {
+        // Pesan servernya SENGAJA nggak diteruskan apa adanya. Dia ditulis buat
+        // yang memasang server, bukan buat yang lagi berdiri di depan pelanggan.
+        _direktoriTiada = e.belumDisetel;
+        _pesanDirektori = e.belumDisetel
+            ? l10n.pelangganBaruDirektoriTiadaLab
+            : l10n.pelangganBaruDirektoriMati;
+      });
     } catch (_) {
       if (!mounted) return;
       setState(
@@ -280,13 +300,17 @@ class _PelangganBaruScreenState extends ConsumerState<PelangganBaruScreen> {
 
           // Dicari pakai isi kolom nama, bukan kolom pencarian sendiri: yang mau
           // dicocokkan teknisi ke direktori itu nama yang bakal dia simpan.
-          OutlinedButton.icon(
-            onPressed: _nama.text.trim().length < 3 || _mencari
-                ? null
-                : _cariDirektori,
-            icon: const Icon(Icons.travel_explore),
-            label: Text(l10n.pelangganBaruCariDirektori),
-          ),
+          // Hilang sama sekali kalau direktorinya nggak dipasang di lab ini.
+          // Tombol yang tiap ditekan memulangkan hal yang sama itu bukan
+          // pilihan — dia cuma jebakan yang bikin teknisi mengira ada yang rusak.
+          if (!_direktoriTiada)
+            OutlinedButton.icon(
+              onPressed: _nama.text.trim().length < 3 || _mencari
+                  ? null
+                  : _cariDirektori,
+              icon: const Icon(Icons.travel_explore),
+              label: Text(l10n.pelangganBaruCariDirektori),
+            ),
 
           if (_mencari)
             const Padding(
@@ -294,8 +318,16 @@ class _PelangganBaruScreenState extends ConsumerState<PelangganBaruScreen> {
               child: Center(child: CircularProgressIndicator()),
             ),
 
+          // Warnanya netral, bukan merah: buat teknisi ini bukan kegagalan —
+          // jalur ketik tangan di bawahnya jalan penuh, dan itu yang ditunjuk
+          // kalimatnya.
           if (_pesanDirektori != null)
-            _catatan(Icons.info_outline, _pesanDirektori!, theme, theme.colorScheme.error),
+            _catatan(
+              Icons.info_outline,
+              _pesanDirektori!,
+              theme,
+              theme.colorScheme.onSurfaceVariant,
+            ),
 
           if (_hasilDirektori != null) ..._bagianDirektori(l10n, theme),
 

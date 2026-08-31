@@ -4283,4 +4283,16 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get pelangganBaruGagal => 'Gagal mendaftarkan pelanggan.';
+
+  @override
+  String get pelangganBaruDirektoriTiadaLab =>
+      'Direktori perusahaan nggak tersedia di lab ini. Ketik nama & alamatnya di bawah.';
+
+  @override
+  String get pelangganBaruDirektoriMati =>
+      'Direktori lagi nggak bisa diakses. Ketik nama & alamatnya di bawah, atau coba lagi nanti.';
+
+  @override
+  String get equipPelangganDariSimpanan =>
+      'Lagi offline — ini salinan yang tersimpan di HP. Pelanggan yang baru didaftarkan bisa saja belum ada.';
 }

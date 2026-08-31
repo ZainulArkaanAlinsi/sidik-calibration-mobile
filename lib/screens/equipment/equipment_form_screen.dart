@@ -124,7 +124,8 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
     _kategori = widget.existing?.kategori ?? widget.kategoriAwal;
     _pelangganId = widget.existing?.pelangganId;
     _resolusiRentang.addAll([
-      for (final r in widget.existing?.resolusiRentang ?? const <ResolusiTitik>[])
+      for (final r
+          in widget.existing?.resolusiRentang ?? const <ResolusiTitik>[])
         _BarisResolusi.dari(r),
     ]);
     _pelangganNama = widget.existing?.pelangganNama;
@@ -238,9 +239,12 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
     final l10n = AppLocalizations.of(context);
 
     setState(() {
-      _errorNama = _namaAlat.text.trim().isEmpty ? l10n.custFieldRequired : null;
-      _errorSerial =
-          _serialNumber.text.trim().isEmpty ? l10n.custFieldRequired : null;
+      _errorNama = _namaAlat.text.trim().isEmpty
+          ? l10n.custFieldRequired
+          : null;
+      _errorSerial = _serialNumber.text.trim().isEmpty
+          ? l10n.custFieldRequired
+          : null;
       _errorKategori = _kategori == null ? l10n.custFieldRequired : null;
       _errorPelanggan = _pelangganId == null ? l10n.custFieldRequired : null;
       // Cuma buat alat yang BENERAN divonis. Lima belas dari dua puluh profil
@@ -392,14 +396,19 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
           ),
           const SizedBox(height: AppSpacing.md),
 
-          Text(l10n.equipKategori.toUpperCase(), style: Theme.of(context).textTheme.labelLarge),
+          Text(
+            l10n.equipKategori.toUpperCase(),
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
           const SizedBox(height: AppSpacing.sm),
           DropdownButtonFormField<String>(
             initialValue: _kategori,
             isExpanded: true,
             hint: Text(l10n.equipKategoriHint),
             items: kategoriList
-                .map((k) => DropdownMenuItem(value: k.kode, child: Text(k.nama)))
+                .map(
+                  (k) => DropdownMenuItem(value: k.kode, child: Text(k.nama)),
+                )
                 .toList(),
             onChanged: bisaInput
                 ? (value) => setState(() {
@@ -438,7 +447,10 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
             const SizedBox(height: AppSpacing.md),
           ],
 
-          Text(l10n.equipPelanggan.toUpperCase(), style: Theme.of(context).textTheme.labelLarge),
+          Text(
+            l10n.equipPelanggan.toUpperCase(),
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
           const SizedBox(height: AppSpacing.sm),
           _PelangganField(
             nama: _pelangganNama,
@@ -545,7 +557,9 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
             error: _errorResolusiRentang,
             onUbah: () => setState(() {}),
             onTambah: () => setState(
-              () => _resolusiRentang.add(_BarisResolusi.kosong(_satuan.text.trim())),
+              () => _resolusiRentang.add(
+                _BarisResolusi.kosong(_satuan.text.trim()),
+              ),
             ),
             onHapus: (index) => setState(() {
               _resolusiRentang.removeAt(index).dispose();
@@ -585,7 +599,10 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
           ),
           const SizedBox(height: AppSpacing.md),
 
-          Text(l10n.equipStatus.toUpperCase(), style: Theme.of(context).textTheme.labelLarge),
+          Text(
+            l10n.equipStatus.toUpperCase(),
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
           const SizedBox(height: AppSpacing.sm),
           DropdownButtonFormField<EquipmentStatus>(
             initialValue: _status,
@@ -633,9 +650,9 @@ class _BarisResolusi {
     required String satuan,
     required String resolusi,
     required this.pakaiMaks,
-  })  : nilai = TextEditingController(text: nilai),
-        satuan = TextEditingController(text: satuan),
-        resolusi = TextEditingController(text: resolusi);
+  }) : nilai = TextEditingController(text: nilai),
+       satuan = TextEditingController(text: satuan),
+       resolusi = TextEditingController(text: resolusi);
 
   factory _BarisResolusi.dari(ResolusiTitik r) => _BarisResolusi(
     nilai: _teksAngka(r.pakaiMaks ? r.maks : r.titik),
@@ -673,9 +690,7 @@ class _BarisResolusi {
   static String _teksAngka(double? nilai) {
     if (nilai == null) return '';
 
-    return nilai == nilai.roundToDouble()
-        ? nilai.toStringAsFixed(0)
-        : '$nilai';
+    return nilai == nilai.roundToDouble() ? nilai.toStringAsFixed(0) : '$nilai';
   }
 }
 
@@ -716,10 +731,7 @@ class _BlokResolusiRentang extends StatelessWidget {
           style: theme.textTheme.labelLarge,
         ),
         const SizedBox(height: AppSpacing.xs),
-        Text(
-          l10n.equipResolusiRentangHint,
-          style: theme.textTheme.bodySmall,
-        ),
+        Text(l10n.equipResolusiRentangHint, style: theme.textTheme.bodySmall),
         if (error != null) ...[
           const SizedBox(height: AppSpacing.xs),
           Text(
@@ -945,7 +957,10 @@ class _PelangganSheetState extends ConsumerState<_PelangganSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(l10n.equipPelanggan, style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                l10n.equipPelanggan,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               const SizedBox(height: AppSpacing.md),
               TextField(
                 controller: _kunci,
@@ -968,15 +983,57 @@ class _PelangganSheetState extends ConsumerState<_PelangganSheet> {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  data: (daftar) {
-                    if (daftar.isEmpty) {
+                  data: (hasil) {
+                    if (hasil.daftar.isEmpty) {
                       return Center(child: Text(l10n.equipPelangganKosong));
                     }
 
                     return ListView.builder(
-                      itemCount: daftar.length,
-                      itemBuilder: (context, i) =>
-                          _BarisPelanggan(pelanggan: daftar[i]),
+                      // Satu baris ekstra di atas waktu daftarnya datang dari
+                      // salinan di HP. Teknisi berhak tahu yang dia lihat
+                      // mungkin ketinggalan — tanpa itu, "nggak ketemu" waktu
+                      // offline kebaca sama persis dengan "beneran nggak ada",
+                      // dan dia mendaftarkan ulang pelanggan yang sudah ada.
+                      itemCount:
+                          hasil.daftar.length + (hasil.dariSimpanan ? 1 : 0),
+                      itemBuilder: (context, i) {
+                        if (hasil.dariSimpanan && i == 0) {
+                          return Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: AppSpacing.sm,
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.cloud_off,
+                                  size: 18,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                Expanded(
+                                  child: Text(
+                                    l10n.equipPelangganDariSimpanan,
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        final pelanggan =
+                            hasil.daftar[i - (hasil.dariSimpanan ? 1 : 0)];
+
+                        return _BarisPelanggan(pelanggan: pelanggan);
+                      },
                     );
                   },
                 ),
