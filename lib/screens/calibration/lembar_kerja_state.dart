@@ -2268,7 +2268,7 @@ class LembarKerjaState {
   /// Ditaruh di pemanggil, penerjemahannya jadi lem yang nggak diuji, dan
   /// kelas bug `repeatNo - 1` punya tempat baru buat muncul.
   ///
-  /// Titiknya dicari lewat [titikCocok], BUKAN `titik[...]` — jalur foto
+  /// Titiknya dicari lewat [titikBarisTabel], BUKAN `titik[...]` — jalur foto
   /// menempatkan angkanya dengan cara yang sama, dan dua cara yang beda bikin
   /// labelnya meleset diam-diam di baris yang titiknya cuma cocok dalam
   /// toleransi.
@@ -2280,30 +2280,54 @@ class LembarKerjaState {
   /// Balikin `null` kalau titiknya nggak ada atau posisinya di luar jangkauan;
   /// pemanggil yang menghitungnya sebagai "tanpa label".
   String? labelSelFoto({
-    required String tahap,
+    required TabelHasil tabel,
     required double titikUkur,
     required int repeatNo,
-    required List<int> pengulangan,
     required String fieldId,
   }) {
-    final t = titikCocok(titikUkur);
+    final t = titikBarisTabel(tabel, titikUkur);
     if (t == null) return null;
 
-    final posisi = pengulangan.indexOf(repeatNo);
+    final posisi = tabel.pengulangan.indexOf(repeatNo);
     if (posisi < 0 || posisi >= t.jumlahPengulangan) return null;
 
-    return t.kotak(tahap, fieldId, posisi).text;
+    return t.kotak(tabel.kunciTabel, fieldId, posisi).text;
   }
 
-  /// [_titikTerdekat] buat pemanggil di luar kelas ini.
+  /// Baris TABEL INI yang titik ukurnya [titikUkur]. `null` = nggak ada.
   ///
-  /// Ada karena pengumpul contoh latih harus mencari titiknya dengan cara yang
-  /// SAMA PERSIS seperti waktu angka fotonya ditempatkan. Lewat `titik[x]`
-  /// biasa, titik yang cuma cocok dalam toleransi ([_titikSama]) balik kosong
-  /// — angkanya masuk formulir tapi labelnya nggak pernah ketemu, dan tiap
-  /// potongan sel dari baris itu dihitung "tanpa label" tanpa ada yang tahu
-  /// kenapa.
-  TitikState? titikCocok(double titikUkur) => _titikTerdekat(titikUkur);
+  /// ## Kenapa nggak lewat `titik[x]` atau [_titikTerdekat]
+  ///
+  /// Kunci peta [titik] itu [kunciBaris], dan di lembar BERPASANGAN isinya
+  /// POSISI baris (0, 1, 2, …), bukan titik ukurnya — dua deret memang berbagi
+  /// satu baris. Jadi `titik[60.0]` di lembar Timer dicari di antara kunci
+  /// 0.0/1.0/2.0 dan nggak pernah ketemu, sementara angka yang datang dari
+  /// foto SELALU titik ukur asli (pemetanya dikasih
+  /// `[for (final t in titikTabel(tabel)) t.titikUkur]`).
+  ///
+  /// Akibatnya diukur, bukan dikira-kira: sebelum 1 Sep 2026 tombol "FOTO
+  /// TABEL INI" mengisi NOL sel di lembar Timer, Thermohygrometer,
+  /// Thermocouple, dan Termometer Gelas — dan di TIDS malah melaporkan "1 sel
+  /// terisi" sambil meninggalkan kotaknya kosong, karena angkanya mendarat di
+  /// baris lain yang kebetulan kuncinya cocok.
+  ///
+  /// Dibatasi ke baris TABEL INI, bukan seluruh lembar: set point `50` ada di
+  /// dua blok Thermohygrometer (50 °C dan 50 %RH), jadi pencarian se-lembar
+  /// bisa menaruh angka kelembapan di baris suhu. Alasan yang sama sudah
+  /// dipakai [titikTabel] waktu memberi makan pemeta fotonya.
+  ///
+  /// [_titikSama], bukan `==`: `double` dari server bisa pulang sebagai
+  /// 1018,0000000001, dan pembulatan itu bukan baris yang berbeda.
+  TitikState? titikBarisTabel(TabelHasil tabel, double titikUkur) {
+    final baris = barisTabel(tabel);
+
+    for (var i = 0; i < baris.length; i++) {
+      final t = titik[kunciBaris(baris, i, tabel)];
+      if (t != null && _titikSama(t.titikUkur, titikUkur)) return t;
+    }
+
+    return null;
+  }
 
   TitikState? _titikTerdekat(double titikUkur) {
     final persis = titik[titikUkur];
@@ -2847,16 +2871,24 @@ class LembarKerjaState {
   /// kuning & merah sama potongan citranya. Hasil pindai itu USULAN — yang
   /// bikin dia jadi data cuma persetujuan orang.
   ///
-  /// **Selnya dicari lewat titik ukur + tahap + nomor Repeat, bukan urutan
-  /// array.** Aturannya sama kayak kunci sel di sisi server: begitu ada satu
-  /// tahap yang ngandelin urutan, angka bisa mendarat di baris sebelah tanpa
-  /// satu pun error muncul. Sel yang titik ukurnya nggak ada di lembar ini
-  /// DIBUANG, bukan dipaksa masuk ke baris terdekat.
+  /// **Selnya dicari lewat titik ukur + kunci tabel + nomor Repeat, bukan
+  /// urutan array.** Aturannya sama kayak kunci sel di sisi server: begitu ada
+  /// satu tahap yang ngandelin urutan, angka bisa mendarat di baris sebelah
+  /// tanpa satu pun error muncul. Sel yang titik ukurnya nggak ada di lembar
+  /// ini DIBUANG, bukan dipaksa masuk ke baris terdekat.
   int terapkanHasilPindai(List<SelDipakaiPindai> sel) {
     var terisi = 0;
 
     for (final s in sel) {
-      final state = _titikTerdekat(s.titikUkur);
+      // Tabelnya diresolusi SEKALI, lalu dipakai buat dua hal yang harus
+      // sejalan: cara nyari barisnya dan alamat kotaknya. Dihitung
+      // sendiri-sendiri, yang satu bisa bilang "baris ke-3 blok kelembapan"
+      // sementara yang lain nulis ke kunci blok suhu.
+      final tabel = _tabelPindai(s.tabelId);
+
+      final state = tabel != null
+          ? titikBarisTabel(tabel, s.titikUkur)
+          : _titikTerdekat(s.titikUkur);
       if (state == null) continue;
 
       // `repeat_no` di server 1-based, index kotak di sini 0-based.
@@ -2865,7 +2897,7 @@ class LembarKerjaState {
 
       terisi += _isiSel(
         state,
-        s.tahap,
+        tabel?.kunciTabel ?? s.tahap,
         s.fieldId,
         index,
         s.nilai,
@@ -2876,6 +2908,51 @@ class LembarKerjaState {
     if (terisi > 0) adaIsianDariFoto = true;
 
     return terisi;
+  }
+
+  /// Tabel lembar yang identitas servernya [tabelId] (`grup ?? tahap` — lihat
+  /// `TemplateLembarKerja::tabel`). `null` = nggak ada yang cocok.
+  ///
+  /// ## Kenapa nggak boleh pakai `tahap` langsung
+  ///
+  /// Server dan HP menamai tabel yang sama dengan cara yang beda:
+  ///
+  /// | lembar        | `tahap` server       | kunci kotak di HP |
+  /// |---------------|----------------------|-------------------|
+  /// | pH Meter      | `sesudah_adjustment` | `sesudah_adjustment` |
+  /// | TIDS          | `pembacaan_uut`      | `uut`             |
+  /// | Thermohygro   | `sesudah_adjustment` | `suhu_standar`, `suhu_uut`, `kelembaban_standar`, `kelembaban_uut` |
+  /// | Timer         | `sesudah_adjustment` | `waktu_standar`, `waktu_uut` |
+  ///
+  /// Buat sembilan belas lembar yang satu tahap = satu tabel keduanya
+  /// kebetulan sama, jadi menuang pakai `tahap` benar selama bertahun-tahun.
+  /// Buat lima lembar BERPASANGAN dia salah dua kali sekaligus: kuncinya beda
+  /// (angka mendarat di controller yang nggak digambar siapa-siapa), dan empat
+  /// tabel Thermohygro punya `tahap` yang SAMA — jadi kalaupun kuncinya benar,
+  /// suhu dan kelembapan bakal saling menimpa.
+  ///
+  /// Gagalnya diam, dan itu yang bikin dia mahal: `_isiSel` tetap balik 1
+  /// karena controller barunya memang kosong, jadi teknisi dikasih tahu "x sel
+  /// terisi dari foto" dan `input_method` sesinya jadi `ocr` — di atas lembar
+  /// yang sebenarnya masih kosong.
+  ///
+  /// Dicocokin ke BENTUK lembar, bukan ke daftar nama alat: `TabelHasil` sudah
+  /// tau kedua namanya, jadi lembar berikutnya yang tahapnya beda lagi ikut
+  /// benar tanpa berkas ini disentuh.
+  ///
+  /// Nggak ketemu = pemanggilnya balik ke perilaku lama (`tahap` +
+  /// [_titikTerdekat]) — respons server lama yang belum ngirim `tabel_id`, dan
+  /// di lembar satu-tahap dua-duanya memang sama.
+  TabelHasil? _tabelPindai(String tabelId) {
+    if (tabelId.isEmpty) return null;
+
+    for (final bagian in bentuk.bagian) {
+      for (final t in bagian.tabel) {
+        if ((t.grup ?? t.tahap) == tabelId) return t;
+      }
+    }
+
+    return null;
   }
 
   /// Baris matriks yang penanda fotonya [penanda]. `null` = bukan penanda baris
@@ -2901,8 +2978,8 @@ class LembarKerjaState {
   /// dari foto ditandai — bukan sebagian.
   ///
   /// Sel yang sudah ada isinya nggak pernah ditimpa, sama seperti jalur lain.
-  /// [pengulangan] daftar nomor Repeat tabelnya, URUT seperti kolomnya
-  /// tercetak — dipakai menerjemahkan nomor Repeat jadi posisi kolom.
+  /// Nomor Repeat diterjemahkan jadi posisi kolom lewat `tabel.pengulangan`,
+  /// URUT seperti kolomnya tercetak.
   ///
   /// Dulu di sini `index = repeatNo - 1`, dan itu benar cuma selama daftarnya
   /// `[1, 2, 3, …]`. Daftarnya datang dari server (`json['pengulangan']`),
@@ -2917,16 +2994,18 @@ class LembarKerjaState {
   /// nggak ada hubungannya dengan foto.
   int terapkanHasilFotoTabel(
     List<SelTabelFoto> sel, {
-    required String tahap,
-    required List<int> pengulangan,
+    required TabelHasil tabel,
   }) {
     var terisi = 0;
 
     for (final s in sel) {
-      final state = _titikTerdekat(s.titikUkur);
+      // Tabelnya sendiri yang jadi ruang cari, bukan seluruh lembar — lihat
+      // [titikBarisTabel]. Sebelum ini `_titikTerdekat`, dan itu yang bikin
+      // tombol foto lima lembar berpasangan mengisi nol sel.
+      final state = titikBarisTabel(tabel, s.titikUkur);
       if (state == null) continue;
 
-      final index = pengulangan.indexOf(s.repeatNo);
+      final index = tabel.pengulangan.indexOf(s.repeatNo);
       if (index < 0 || index >= state.jumlahPengulangan) continue;
 
       // Teksnya dibaca jadi angka DI SINI, bukan di pemetanya: yang di sana
@@ -2944,7 +3023,7 @@ class LembarKerjaState {
       final nilai = parseAngka(s.teks);
       if (nilai == null) continue;
 
-      terisi += _isiSel(state, tahap, s.fieldId, index, nilai, true);
+      terisi += _isiSel(state, tabel.kunciTabel, s.fieldId, index, nilai, true);
     }
 
     if (terisi > 0) adaIsianDariFoto = true;

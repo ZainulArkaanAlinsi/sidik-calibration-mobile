@@ -865,6 +865,7 @@ void main() {
           ])
             for (var r = 0; r < nilai.length; r++) ...[
               (
+                tabelId: tahap,
                 tahap: tahap,
                 titikUkur: titik,
                 repeatNo: r + 1,
@@ -873,6 +874,7 @@ void main() {
                 perluDicek: true,
               ),
               (
+                tabelId: tahap,
                 tahap: tahap,
                 titikUkur: titik,
                 repeatNo: r + 1,
@@ -948,6 +950,7 @@ void main() {
 
       isian.terapkanHasilPindai([
         (
+          tabelId: 'sesudah_adjustment',
           tahap: 'sesudah_adjustment',
           titikUkur: 4.00,
           repeatNo: 1,
@@ -956,6 +959,7 @@ void main() {
           perluDicek: true,
         ),
         (
+          tabelId: 'sesudah_adjustment',
           tahap: 'sesudah_adjustment',
           titikUkur: 7.00,
           repeatNo: 1,
@@ -987,6 +991,7 @@ void main() {
 
       final terisi = isian.terapkanHasilPindai([
         (
+          tabelId: 'sesudah_adjustment',
           tahap: 'sesudah_adjustment',
           titikUkur: 1412.0,
           repeatNo: 1,
@@ -1008,6 +1013,7 @@ void main() {
 
       final terisi = isian.terapkanHasilPindai([
         (
+          tabelId: 'sesudah_adjustment',
           tahap: 'sesudah_adjustment',
           titikUkur: 4.00,
           repeatNo: 99,
@@ -1527,6 +1533,7 @@ void _testRefractometer() {
             (1.39986, 1.3986),
           ]) ...[
             (
+              tabelId: 'sesudah_adjustment',
               tahap: 'sesudah_adjustment',
               titikUkur: titik,
               repeatNo: r,
@@ -1535,6 +1542,7 @@ void _testRefractometer() {
               perluDicek: true,
             ),
             (
+              tabelId: 'sesudah_adjustment',
               tahap: 'sesudah_adjustment',
               titikUkur: titik,
               repeatNo: r,
@@ -1682,6 +1690,7 @@ void _testRefractometer() {
 
       isian.terapkanHasilPindai([
         (
+          tabelId: 'sesudah_adjustment',
           tahap: 'sesudah_adjustment',
           titikUkur: 1.33659,
           repeatNo: 1,
