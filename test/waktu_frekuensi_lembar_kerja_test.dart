@@ -98,6 +98,74 @@ void main() {
     });
   });
 
+  group('kolom kedua sisi lembar pasangan', () {
+    test('tiap sisi dibaca pakai kolomnya SENDIRI', () {
+      // Kelima lembar pasangan yang ada sekarang mencetak kolom yang sama di
+      // kedua sisi, jadi memakai daftar milik satu sisi buat sisi lain
+      // kebetulan benar. Test ini menggeser fixture Timer supaya sisi UUT
+      // punya SATU kolom (`pembacaan`) sementara sisi standar tetap empat —
+      // bentuk yang belum ada di lembar mana pun, dan justru itu gunanya:
+      // lembar begitu nggak boleh lahir dalam keadaan sudah rusak.
+      //
+      // Dibaca pakai kolom sisi seberang, `waktu_uut|jam|0` dst. nggak pernah
+      // digambar tabelnya, jadi seluruh deret UUT pulang null dan titiknya
+      // dibuang sebelum dikirim. Nol error — bentuk kegagalan yang sama persis
+      // dengan lembar Thermohygro yang terkirim kosong.
+      final mentah =
+          jsonDecode(
+                File(
+                  'test/fixtures/lembar-kerja-timer_stopwatch.json',
+                ).readAsStringSync(),
+              )
+              as Map<String, dynamic>;
+
+      for (final bagian in mentah['bagian'] as List<dynamic>) {
+        final tabel = (bagian as Map<String, dynamic>)['tabel'];
+        if (tabel is! List<dynamic>) continue;
+
+        for (final t in tabel) {
+          final peta = t as Map<String, dynamic>;
+          if (peta['peran'] != 'uut') continue;
+
+          peta['kolom'] = [
+            {'kode': 'pembacaan', 'label': 'Pembacaan', 'tipe': 'angka'},
+          ];
+        }
+      }
+
+      final b = LembarKerja.fromJson(mentah);
+      final state = LembarKerjaState(bentuk: b, clientRequestId: 'uji');
+      final tabel = tabelDari(b);
+      final standar = tabel.firstWhere((t) => t.deretStandar);
+      final uut = tabel.firstWhere((t) => t.deretUut);
+
+      expect(standar.kolom.map((k) => k.kode), [
+        'jam',
+        'menit',
+        'detik',
+        'milidetik',
+      ]);
+      expect(uut.kolom.map((k) => k.kode), ['pembacaan']);
+
+      final titik = state.titik[state
+          .kunciBaris(state.barisTabel(standar), 0, standar)]!;
+
+      titik.kotak(standar.kunciTabel, 'menit', 0).text = '1';
+      titik.kotak(uut.kunciTabel, 'pembacaan', 0).text = '60,1';
+
+      final deret = state.deretPasangan(titik.parameter)!;
+      expect(deret.kolomStandar, hasLength(4));
+      expect(deret.kolomUut, ['pembacaan']);
+
+      final kirim = titik.toSubmissionPasangan(deret);
+
+      // Sisi standar tetap objek empat kotak; sisi UUT jadi angka datar,
+      // ikut bentuk kolomnya sendiri.
+      expect((kirim['standar'] as List<dynamic>).first, {'menit': 1.0});
+      expect((kirim['uut'] as List<dynamic>).first, 60.1);
+    });
+  });
+
   group('payload Timer', () {
     /// Satu titik penuh, angkanya persis contoh §5 dokumen serah-terima.
     test('empat kotak jadi objek J/M/S/ms, bukan angka datar', () {

@@ -575,14 +575,18 @@ class TitikState {
   /// kotaknya kosong — objek kosong bikin lembar setengah jadi kena 422 di
   /// ulangan yang memang sengaja dilewati.
   List<dynamic> _deret(DeretPasangan bentuk, String kunci) {
-    if (bentuk.satuKolom) {
-      return _kolom(kunci, bentuk.kolom.first);
+    // Kolom milik SISI INI, bukan kolom pasangannya — lihat
+    // [DeretPasangan.kolomUut].
+    final kolom = bentuk.kolomUntuk(kunci);
+
+    if (kolom.length == 1) {
+      return _kolom(kunci, kolom.first);
     }
 
     return List<Map<String, double>?>.generate(jumlahPengulangan, (i) {
       final isi = <String, double>{};
 
-      for (final kode in bentuk.kolom) {
+      for (final kode in kolom) {
         final nilai = parseAngka(kotak(kunci, kode, i).text);
         if (nilai != null) isi[kode] = nilai;
       }
@@ -622,7 +626,8 @@ class DeretPasangan {
   const DeretPasangan({
     required this.kunciStandar,
     required this.kunciUut,
-    required this.kolom,
+    required this.kolomStandar,
+    required this.kolomUut,
   });
 
   /// [TabelHasil.kunciTabel] tabel sisi standar — `standar`, `suhu_standar`,
@@ -631,12 +636,27 @@ class DeretPasangan {
 
   final String kunciUut;
 
-  /// Kode kolom per ulangan, urut seperti tercetak. `['pembacaan']` buat
-  /// ketiga alat suhu; `['jam','menit','detik','milidetik']` buat Timer.
-  final List<String> kolom;
+  /// Kode kolom per ulangan sisi STANDAR, urut seperti tercetak.
+  /// `['pembacaan']` buat ketiga alat suhu; `['jam','menit','detik',
+  /// 'milidetik']` buat Timer.
+  final List<String> kolomStandar;
 
-  /// Satu kotak per ulangan — bentuk daftar angka biasa.
-  bool get satuKolom => kolom.length == 1;
+  /// Kode kolom sisi UUT. Kelima lembar pasangan yang ada sekarang mencetak
+  /// kolom yang SAMA di kedua sisi, jadi isinya selalu sama dengan
+  /// [kolomStandar] — tapi disimpan terpisah, bukan dianggap sama.
+  ///
+  /// Sebabnya bukan kerapian. Kalau suatu saat ada lembar yang kedua sisinya
+  /// beda kolom, memakai daftar milik satu sisi buat sisi lain berarti membaca
+  /// kunci sel yang nggak pernah digambar tabelnya: seluruh deret itu pulang
+  /// `null`, `pasanganKosong` menyatakan titiknya belum disentuh, dan titiknya
+  /// dibuang sebelum dikirim. Nol error — kegagalan yang bentuknya SAMA PERSIS
+  /// dengan yang ditutup [TitikState.toSubmissionPasangan], cuma lewat sumbu
+  /// kolom bukan sumbu kunci tabel.
+  final List<String> kolomUut;
+
+  /// Kode kolom sisi yang kunci selnya [kunci].
+  List<String> kolomUntuk(String kunci) =>
+      kunci == kunciStandar ? kolomStandar : kolomUut;
 }
 
 /// Isian satu baris "Usage Check".
@@ -821,7 +841,8 @@ class LembarKerjaState {
   DeretPasangan? deretPasangan(String? parameter) {
     String? standar;
     String? uut;
-    List<String>? kolom;
+    List<String>? kolomStandar;
+    List<String>? kolomUut;
 
     for (final bagian in bentuk.bagian) {
       for (final t in bagian.tabel) {
@@ -829,18 +850,37 @@ class LembarKerjaState {
           continue;
         }
 
-        kolom ??= [for (final k in t.kolom) k.kode];
+        // Kolom diambil dari tabel SISINYA masing-masing. Dulu dari tabel mana
+        // pun yang ketemu duluan lalu dipakai buat dua-duanya — benar buat
+        // kelima lembar yang ada, tapi diam-diam mengikat keduanya harus sama.
+        // Lihat [DeretPasangan.kolomUut].
+        if (t.deretStandar) {
+          standar ??= t.kunciTabel;
+          kolomStandar ??= [for (final k in t.kolom) k.kode];
+        }
 
-        if (t.deretStandar) standar ??= t.kunciTabel;
-        if (t.deretUut) uut ??= t.kunciTabel;
+        if (t.deretUut) {
+          uut ??= t.kunciTabel;
+          kolomUut ??= [for (final k in t.kolom) k.kode];
+        }
       }
     }
 
-    if (standar == null || uut == null || kolom == null || kolom.isEmpty) {
+    if (standar == null ||
+        uut == null ||
+        kolomStandar == null ||
+        kolomStandar.isEmpty ||
+        kolomUut == null ||
+        kolomUut.isEmpty) {
       return null;
     }
 
-    return DeretPasangan(kunciStandar: standar, kunciUut: uut, kolom: kolom);
+    return DeretPasangan(
+      kunciStandar: standar,
+      kunciUut: uut,
+      kolomStandar: kolomStandar,
+      kolomUut: kolomUut,
+    );
   }
 
   /// Nomor kunci pertama buat satu blok parameter lembar pasangan.
