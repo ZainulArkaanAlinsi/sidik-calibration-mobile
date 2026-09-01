@@ -179,6 +179,65 @@ void main() {
           baris.kotak(uut.kunciTabel, uut.kolom.first.kode, 0).text, '22');
     });
 
+    test('nomor Repeat yang nggak mulai dari 1 mendarat di kolom yang benar', () {
+      // Kelas bug yang sudah ditutup dua kali di berkas lain
+      // (`grid_sensor_state.dart`, lalu `terapkanHasilFotoTabel`): `repeatNo - 1`
+      // benar CUMA selama daftarnya [1, 2, 3, …]. Daftarnya datang dari server,
+      // jadi lembar pertama yang Repeat-nya loncat bikin tiap angka mendarat di
+      // kolom sebelah — tanpa error, dengan tabel yang penuh dan wajar.
+      //
+      // Belum ada lembar sungguhan yang begitu, jadi fixture-nya digeser di sini
+      // — persis supaya lembar begitu nggak lahir dalam keadaan sudah rusak.
+      final mentah =
+          jsonDecode(
+                File(
+                  'test/fixtures/lembar-kerja-centrifuge.json',
+                ).readAsStringSync(),
+              )
+              as Map<String, dynamic>;
+
+      // Cuma bagian "Data Hasil Kalibrasi" yang punya `tabel`; empat bagian
+      // lainnya isinya field identitas.
+      for (final bagian in mentah['bagian'] as List<dynamic>) {
+        final tabel = (bagian as Map<String, dynamic>)['tabel'];
+        if (tabel is! List<dynamic>) continue;
+
+        for (final t in tabel) {
+          (t as Map<String, dynamic>)['pengulangan'] = [2, 4, 6];
+        }
+      }
+
+      final b = LembarKerja.fromJson(mentah);
+      final s = LembarKerjaState(bentuk: b, clientRequestId: 'uji');
+      addTearDown(s.dispose);
+
+      final tabel = tabelDari(b).first;
+      expect(tabel.pengulangan, [2, 4, 6]);
+
+      final titik = titikBaris(s, tabel, 0);
+      final kolom = tabel.kolom.first.kode;
+
+      // Repeat 6 = kolom KETIGA (index 2). Lewat `repeatNo - 1` dia jadi
+      // index 5 — di luar jangkauan, jadi selnya dibuang diam-diam.
+      final terisi = s.terapkanHasilPindai([
+        (
+          tabelId: tabel.grup ?? tabel.tahap,
+          tahap: tabel.tahap,
+          titikUkur: titik,
+          repeatNo: 6,
+          fieldId: kolom,
+          nilai: 1234,
+          perluDicek: false,
+        ),
+      ]);
+
+      expect(terisi, 1);
+
+      final baris = s.titikBarisTabel(tabel, titik)!;
+      expect(baris.kotak(tabel.kunciTabel, kolom, 2).text, isNotEmpty);
+      expect(baris.kotak(tabel.kunciTabel, kolom, 0).text, isEmpty);
+    });
+
     test('respons server lama (tanpa tabel_id) tetap jalan di lembar datar', () {
       // Gerbang mundurnya: `tabel_id` kosong = balik ke perilaku lama, dan di
       // lembar satu-tahap `tahap` memang alamat kotak yang benar.

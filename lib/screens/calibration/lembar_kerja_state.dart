@@ -2891,8 +2891,20 @@ class LembarKerjaState {
           : _titikTerdekat(s.titikUkur);
       if (state == null) continue;
 
-      // `repeat_no` di server 1-based, index kotak di sini 0-based.
-      final index = s.repeatNo - 1;
+      // `repeat_no` di server 1-based, index kotak di sini 0-based —
+      // diterjemahkan lewat `pengulangan` TABELNYA, bukan `repeatNo - 1`.
+      //
+      // Dua-duanya sama selama daftarnya `[1, 2, 3, …]`, dan semua lembar yang
+      // ada sekarang memang begitu. Tapi daftarnya datang dari server, dan
+      // lembar yang Repeat-nya nggak mulai dari 1 bikin tiap angka mendarat di
+      // kolom sebelah — tanpa satu pun error, dengan tabel yang penuh dan wajar
+      // di layar. Kelas bug yang sama sudah ditutup di `grid_sensor_state.dart`
+      // lalu di [terapkanHasilFotoTabel]; ini sisa terakhirnya.
+      //
+      // Tabel nggak ketemu (server lama) = balik ke perilaku lama.
+      final index = tabel != null
+          ? tabel.pengulangan.indexOf(s.repeatNo)
+          : s.repeatNo - 1;
       if (index < 0 || index >= state.jumlahPengulangan) continue;
 
       terisi += _isiSel(
