@@ -452,7 +452,14 @@ class _TabelLaporan extends StatelessWidget {
                           ),
                           DataCell(
                             Text(
-                              formatSertifikat(t.ketidakpastianDiperluas, d),
+                              // Kolom U95 punya desimalnya SENDIRI — lihat
+                              // `MeasurementResult.desimalU95`. Dipukul rata
+                              // dengan kolom hasil, U95 Gas Detector `5,05`
+                              // runtuh jadi `5` sementara PDF-nya `5,1`.
+                              formatSertifikat(
+                                t.ketidakpastianDiperluas,
+                                t.desimalU95Efektif(desimal),
+                              ),
                               style: gayaAngka,
                             ),
                           ),

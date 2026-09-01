@@ -107,15 +107,20 @@ class _PindaiReviewScreenState extends ConsumerState<PindaiReviewScreen> {
     setState(() => _mengirim = false);
 
     // Yang dibalikin ke layar lembar kerja bukan peta berkunci sel, tapi
-    // alamat kotaknya: tahap + titik ukur + Repeat + kolom. Kunci sel itu
-    // bahasa server, dan nerjemahinnya di layar tujuan berarti mecah string
+    // alamat kotaknya: identitas tabel + titik ukur + Repeat + kolom. Kunci sel
+    // itu bahasa server, dan nerjemahinnya di layar tujuan berarti mecah string
     // lalu nebak `baris_ke` itu titik yang mana.
+    //
+    // `tabelId` ikut, bukan `tahap` doang: di lembar berpasangan empat tabel
+    // bisa sama-sama `sesudah_adjustment`, dan tahap sendirian nggak cukup
+    // buat nunjuk yang mana. Lihat [SelDipakaiPindai].
     navigator.pop(<SelDipakaiPindai>[
       for (final t in widget.hasil.tabel)
         for (final b in t.baris)
           for (final s in b.sel)
             if (_angka(_isian[s.kunci]?.text) case final double n)
               (
+                tabelId: t.tabelId,
                 tahap: t.tahap,
                 titikUkur: b.titikUkur,
                 repeatNo: s.repeatNo,

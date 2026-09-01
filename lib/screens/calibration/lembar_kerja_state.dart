@@ -518,7 +518,31 @@ class TitikState {
   /// Sel kosong tetap `null` DI POSISINYA, sama seperti [toSubmission]: kalau
   /// Repeat 2 kosong lalu dibuang, Repeat 3 naik jadi Repeat 2 dan seluruh
   /// nomor pengulangan geser.
-  Map<String, dynamic> toSubmissionPasangan() => {
+  ///
+  /// ## Kunci selnya DATANG DARI BENTUK, nggak boleh dipatok
+  ///
+  /// Dulu method ini membaca `_kolom('standar', …)` & `_kolom('uut', …)` —
+  /// dua string mati. Itu benar cuma karena kebetulan: Thermocouple dan
+  /// Termometer Gelas memang ber-`grup` `standar`/`uut`, jadi
+  /// [TabelHasil.kunciTabel] mereka sama persis dengan string yang dipatok.
+  ///
+  /// **Thermohygrometer tidak.** Lembarnya empat tabel — `suhu_standar`,
+  /// `suhu_uut`, `kelembaban_standar`, `kelembaban_uut` — karena satu lembar
+  /// memuat DUA parameter, dan tanpa `grup` yang berbeda keempatnya bakal
+  /// berebut satu kunci sel. Akibatnya seratus sel yang diketik teknisi dibaca
+  /// dari kunci yang tidak pernah ada:
+  ///
+  ///     sel diisi 100  →  payload berisi 0, KOSONG 100
+  ///
+  /// Dan karena [pasanganKosong] membaca kunci yang sama, tiap titiknya
+  /// dianggap belum disentuh lalu **dibuang** dari `measurements` — jadi yang
+  /// berangkat ke server bukan sekadar deret null, tapi lembar tanpa satu pun
+  /// titik. Nol error di kedua sisi; lembarnya penuh di layar dan tombol
+  /// kirimnya jalan mulus. Persis kelas kegagalan yang sudah dicatat dua kali
+  /// di berkas ini.
+  ///
+  /// Jadi [deret] wajib dipasok pemanggil, dari bentuk lembarnya sendiri.
+  Map<String, dynamic> toSubmissionPasangan(DeretPasangan deret) => {
     // `titikUkurEfektif`, bukan `titikUkur` — sama seperti [toSubmission].
     //
     // Buat tiga lembar pasangan pertama (Thermocouple, Gelas, Thermohygro)
@@ -533,15 +557,53 @@ class TitikState {
     if (standardId != null) 'standard_id': standardId,
     if (parameter != null) 'parameter': parameter,
     if (noProbe != null) 'no_probe': noProbe,
-    'standar': _kolom('standar', 'pembacaan'),
-    'uut': _kolom('uut', 'pembacaan'),
+    'standar': _deret(deret, deret.kunciStandar),
+    'uut': _deret(deret, deret.kunciUut),
   };
+
+  /// Satu deret pembacaan, bentuknya ikut JUMLAH KOLOM tabelnya.
+  ///
+  ///  - **Satu kolom** (ketiga alat suhu): daftar angka apa adanya —
+  ///    `[100.1, 100.2, null]`. Bentuk yang sudah dipakai sejak alat ke-18.
+  ///  - **Banyak kolom** (Timer/Stopwatch): daftar OBJEK berkunci kode kolom —
+  ///    `[{jam: 0, menit: 1, detik: 0, milidetik: 123}, …]`, karena satu
+  ///    penunjukan stopwatch ditulis di empat kotak dan keempatnya satu angka.
+  ///
+  /// Ulangan yang keempat kotaknya kosong dikirim `null`, BUKAN objek kosong.
+  /// Dua alasannya sama-sama mengikat: posisinya harus tetap (lihat docblock di
+  /// atas), dan aturan `PenunjukanWaktu` di server MENOLAK objek yang keempat
+  /// kotaknya kosong — objek kosong bikin lembar setengah jadi kena 422 di
+  /// ulangan yang memang sengaja dilewati.
+  List<dynamic> _deret(DeretPasangan bentuk, String kunci) {
+    // Kolom milik SISI INI, bukan kolom pasangannya — lihat
+    // [DeretPasangan.kolomUut].
+    final kolom = bentuk.kolomUntuk(kunci);
+
+    if (kolom.length == 1) {
+      return _kolom(kunci, kolom.first);
+    }
+
+    return List<Map<String, double>?>.generate(jumlahPengulangan, (i) {
+      final isi = <String, double>{};
+
+      for (final kode in kolom) {
+        final nilai = parseAngka(kotak(kunci, kode, i).text);
+        if (nilai != null) isi[kode] = nilai;
+      }
+
+      return isi.isEmpty ? null : isi;
+    });
+  }
 
   /// Titik lembar pasangan yang sama sekali belum disentuh — nggak ikut
   /// dikirim, sama seperti set point grid Enclosure yang kosong.
-  bool get pasanganKosong =>
-      _kolom('standar', 'pembacaan').every((n) => n == null) &&
-      _kolom('uut', 'pembacaan').every((n) => n == null);
+  ///
+  /// Kuncinya lewat [deret] dengan alasan yang sama seperti
+  /// [toSubmissionPasangan]: kunci yang dipatok bikin SETIAP titik Thermohygro
+  /// kelihatan kosong, dan seluruh lembarnya dibuang sebelum dikirim.
+  bool pasanganKosong(DeretPasangan deret) =>
+      _deret(deret, deret.kunciStandar).every((n) => n == null) &&
+      _deret(deret, deret.kunciUut).every((n) => n == null);
 
   void dispose() {
     noProbeCtl.dispose();
@@ -550,6 +612,51 @@ class TitikState {
       c.dispose();
     }
   }
+}
+
+/// Kunci sel & kolom KEDUA tabel deret satu blok parameter lembar pasangan.
+///
+/// Ada supaya [TitikState.toSubmissionPasangan] nggak perlu tahu bentuk
+/// lembarnya, dan supaya kunci selnya nggak dipatok jadi string mati — lihat
+/// docblock method itu untuk kegagalan yang lahir dari mematoknya.
+///
+/// Satu blok parameter = satu pasang tabel. Thermohygrometer punya DUA blok
+/// (`suhu` & `kelembaban`), jadi dua [DeretPasangan]; sisanya satu.
+class DeretPasangan {
+  const DeretPasangan({
+    required this.kunciStandar,
+    required this.kunciUut,
+    required this.kolomStandar,
+    required this.kolomUut,
+  });
+
+  /// [TabelHasil.kunciTabel] tabel sisi standar — `standar`, `suhu_standar`,
+  /// atau `waktu_standar`, tergantung `grup` yang dikirim server.
+  final String kunciStandar;
+
+  final String kunciUut;
+
+  /// Kode kolom per ulangan sisi STANDAR, urut seperti tercetak.
+  /// `['pembacaan']` buat ketiga alat suhu; `['jam','menit','detik',
+  /// 'milidetik']` buat Timer.
+  final List<String> kolomStandar;
+
+  /// Kode kolom sisi UUT. Kelima lembar pasangan yang ada sekarang mencetak
+  /// kolom yang SAMA di kedua sisi, jadi isinya selalu sama dengan
+  /// [kolomStandar] — tapi disimpan terpisah, bukan dianggap sama.
+  ///
+  /// Sebabnya bukan kerapian. Kalau suatu saat ada lembar yang kedua sisinya
+  /// beda kolom, memakai daftar milik satu sisi buat sisi lain berarti membaca
+  /// kunci sel yang nggak pernah digambar tabelnya: seluruh deret itu pulang
+  /// `null`, `pasanganKosong` menyatakan titiknya belum disentuh, dan titiknya
+  /// dibuang sebelum dikirim. Nol error — kegagalan yang bentuknya SAMA PERSIS
+  /// dengan yang ditutup [TitikState.toSubmissionPasangan], cuma lewat sumbu
+  /// kolom bukan sumbu kunci tabel.
+  final List<String> kolomUut;
+
+  /// Kode kolom sisi yang kunci selnya [kunci].
+  List<String> kolomUntuk(String kunci) =>
+      kunci == kunciStandar ? kolomStandar : kolomUut;
 }
 
 /// Isian satu baris "Usage Check".
@@ -719,6 +826,61 @@ class LembarKerjaState {
     return titikUnik == baris.length
         ? baris[index].titikUkur
         : index.toDouble();
+  }
+
+  /// Kunci sel & kolom kedua tabel deret buat blok [parameter].
+  ///
+  /// Dibaca dari BENTUK tiap kali, bukan disimpan: bentuk lembar bisa diganti
+  /// (mis. jumlah kolom pengulangan disetel ulang), dan deskriptor basi bikin
+  /// payload dibaca dari kunci yang sudah nggak ada — kelas kegagalan yang
+  /// persis sama dengan yang ditutup [TitikState.toSubmissionPasangan].
+  ///
+  /// `null` = lembar ini nggak punya blok pasangan untuk parameter itu. Titik
+  /// yang jatuh ke situ nggak ikut dikirim, dan itu jawaban yang benar: tanpa
+  /// tabel, nggak ada satu pun sel yang bisa dibaca.
+  DeretPasangan? deretPasangan(String? parameter) {
+    String? standar;
+    String? uut;
+    List<String>? kolomStandar;
+    List<String>? kolomUut;
+
+    for (final bagian in bentuk.bagian) {
+      for (final t in bagian.tabel) {
+        if (!t.berpasangan || (t.parameter ?? '') != (parameter ?? '')) {
+          continue;
+        }
+
+        // Kolom diambil dari tabel SISINYA masing-masing. Dulu dari tabel mana
+        // pun yang ketemu duluan lalu dipakai buat dua-duanya — benar buat
+        // kelima lembar yang ada, tapi diam-diam mengikat keduanya harus sama.
+        // Lihat [DeretPasangan.kolomUut].
+        if (t.deretStandar) {
+          standar ??= t.kunciTabel;
+          kolomStandar ??= [for (final k in t.kolom) k.kode];
+        }
+
+        if (t.deretUut) {
+          uut ??= t.kunciTabel;
+          kolomUut ??= [for (final k in t.kolom) k.kode];
+        }
+      }
+    }
+
+    if (standar == null ||
+        uut == null ||
+        kolomStandar == null ||
+        kolomStandar.isEmpty ||
+        kolomUut == null ||
+        kolomUut.isEmpty) {
+      return null;
+    }
+
+    return DeretPasangan(
+      kunciStandar: standar,
+      kunciUut: uut,
+      kolomStandar: kolomStandar,
+      kolomUut: kolomUut,
+    );
   }
 
   /// Nomor kunci pertama buat satu blok parameter lembar pasangan.
@@ -2146,7 +2308,7 @@ class LembarKerjaState {
   /// Ditaruh di pemanggil, penerjemahannya jadi lem yang nggak diuji, dan
   /// kelas bug `repeatNo - 1` punya tempat baru buat muncul.
   ///
-  /// Titiknya dicari lewat [titikCocok], BUKAN `titik[...]` — jalur foto
+  /// Titiknya dicari lewat [titikBarisTabel], BUKAN `titik[...]` — jalur foto
   /// menempatkan angkanya dengan cara yang sama, dan dua cara yang beda bikin
   /// labelnya meleset diam-diam di baris yang titiknya cuma cocok dalam
   /// toleransi.
@@ -2158,30 +2320,54 @@ class LembarKerjaState {
   /// Balikin `null` kalau titiknya nggak ada atau posisinya di luar jangkauan;
   /// pemanggil yang menghitungnya sebagai "tanpa label".
   String? labelSelFoto({
-    required String tahap,
+    required TabelHasil tabel,
     required double titikUkur,
     required int repeatNo,
-    required List<int> pengulangan,
     required String fieldId,
   }) {
-    final t = titikCocok(titikUkur);
+    final t = titikBarisTabel(tabel, titikUkur);
     if (t == null) return null;
 
-    final posisi = pengulangan.indexOf(repeatNo);
+    final posisi = tabel.pengulangan.indexOf(repeatNo);
     if (posisi < 0 || posisi >= t.jumlahPengulangan) return null;
 
-    return t.kotak(tahap, fieldId, posisi).text;
+    return t.kotak(tabel.kunciTabel, fieldId, posisi).text;
   }
 
-  /// [_titikTerdekat] buat pemanggil di luar kelas ini.
+  /// Baris TABEL INI yang titik ukurnya [titikUkur]. `null` = nggak ada.
   ///
-  /// Ada karena pengumpul contoh latih harus mencari titiknya dengan cara yang
-  /// SAMA PERSIS seperti waktu angka fotonya ditempatkan. Lewat `titik[x]`
-  /// biasa, titik yang cuma cocok dalam toleransi ([_titikSama]) balik kosong
-  /// — angkanya masuk formulir tapi labelnya nggak pernah ketemu, dan tiap
-  /// potongan sel dari baris itu dihitung "tanpa label" tanpa ada yang tahu
-  /// kenapa.
-  TitikState? titikCocok(double titikUkur) => _titikTerdekat(titikUkur);
+  /// ## Kenapa nggak lewat `titik[x]` atau [_titikTerdekat]
+  ///
+  /// Kunci peta [titik] itu [kunciBaris], dan di lembar BERPASANGAN isinya
+  /// POSISI baris (0, 1, 2, …), bukan titik ukurnya — dua deret memang berbagi
+  /// satu baris. Jadi `titik[60.0]` di lembar Timer dicari di antara kunci
+  /// 0.0/1.0/2.0 dan nggak pernah ketemu, sementara angka yang datang dari
+  /// foto SELALU titik ukur asli (pemetanya dikasih
+  /// `[for (final t in titikTabel(tabel)) t.titikUkur]`).
+  ///
+  /// Akibatnya diukur, bukan dikira-kira: sebelum 1 Sep 2026 tombol "FOTO
+  /// TABEL INI" mengisi NOL sel di lembar Timer, Thermohygrometer,
+  /// Thermocouple, dan Termometer Gelas — dan di TIDS malah melaporkan "1 sel
+  /// terisi" sambil meninggalkan kotaknya kosong, karena angkanya mendarat di
+  /// baris lain yang kebetulan kuncinya cocok.
+  ///
+  /// Dibatasi ke baris TABEL INI, bukan seluruh lembar: set point `50` ada di
+  /// dua blok Thermohygrometer (50 °C dan 50 %RH), jadi pencarian se-lembar
+  /// bisa menaruh angka kelembapan di baris suhu. Alasan yang sama sudah
+  /// dipakai [titikTabel] waktu memberi makan pemeta fotonya.
+  ///
+  /// [_titikSama], bukan `==`: `double` dari server bisa pulang sebagai
+  /// 1018,0000000001, dan pembulatan itu bukan baris yang berbeda.
+  TitikState? titikBarisTabel(TabelHasil tabel, double titikUkur) {
+    final baris = barisTabel(tabel);
+
+    for (var i = 0; i < baris.length; i++) {
+      final t = titik[kunciBaris(baris, i, tabel)];
+      if (t != null && _titikSama(t.titikUkur, titikUkur)) return t;
+    }
+
+    return null;
+  }
 
   TitikState? _titikTerdekat(double titikUkur) {
     final persis = titik[titikUkur];
@@ -2569,7 +2755,9 @@ class LembarKerjaState {
     final measurementsPasangan = bentuk.berpasangan
         ? [
             for (final t in titik.values)
-              if (!t.pasanganKosong && t.siapKirim) t.toSubmissionPasangan(),
+              if (deretPasangan(t.parameter) case final d?)
+                if (!t.pasanganKosong(d) && t.siapKirim)
+                  t.toSubmissionPasangan(d),
           ]
         : null;
 
@@ -2723,25 +2911,45 @@ class LembarKerjaState {
   /// kuning & merah sama potongan citranya. Hasil pindai itu USULAN — yang
   /// bikin dia jadi data cuma persetujuan orang.
   ///
-  /// **Selnya dicari lewat titik ukur + tahap + nomor Repeat, bukan urutan
-  /// array.** Aturannya sama kayak kunci sel di sisi server: begitu ada satu
-  /// tahap yang ngandelin urutan, angka bisa mendarat di baris sebelah tanpa
-  /// satu pun error muncul. Sel yang titik ukurnya nggak ada di lembar ini
-  /// DIBUANG, bukan dipaksa masuk ke baris terdekat.
+  /// **Selnya dicari lewat titik ukur + kunci tabel + nomor Repeat, bukan
+  /// urutan array.** Aturannya sama kayak kunci sel di sisi server: begitu ada
+  /// satu tahap yang ngandelin urutan, angka bisa mendarat di baris sebelah
+  /// tanpa satu pun error muncul. Sel yang titik ukurnya nggak ada di lembar
+  /// ini DIBUANG, bukan dipaksa masuk ke baris terdekat.
   int terapkanHasilPindai(List<SelDipakaiPindai> sel) {
     var terisi = 0;
 
     for (final s in sel) {
-      final state = _titikTerdekat(s.titikUkur);
+      // Tabelnya diresolusi SEKALI, lalu dipakai buat dua hal yang harus
+      // sejalan: cara nyari barisnya dan alamat kotaknya. Dihitung
+      // sendiri-sendiri, yang satu bisa bilang "baris ke-3 blok kelembapan"
+      // sementara yang lain nulis ke kunci blok suhu.
+      final tabel = _tabelPindai(s.tabelId);
+
+      final state = tabel != null
+          ? titikBarisTabel(tabel, s.titikUkur)
+          : _titikTerdekat(s.titikUkur);
       if (state == null) continue;
 
-      // `repeat_no` di server 1-based, index kotak di sini 0-based.
-      final index = s.repeatNo - 1;
+      // `repeat_no` di server 1-based, index kotak di sini 0-based —
+      // diterjemahkan lewat `pengulangan` TABELNYA, bukan `repeatNo - 1`.
+      //
+      // Dua-duanya sama selama daftarnya `[1, 2, 3, …]`, dan semua lembar yang
+      // ada sekarang memang begitu. Tapi daftarnya datang dari server, dan
+      // lembar yang Repeat-nya nggak mulai dari 1 bikin tiap angka mendarat di
+      // kolom sebelah — tanpa satu pun error, dengan tabel yang penuh dan wajar
+      // di layar. Kelas bug yang sama sudah ditutup di `grid_sensor_state.dart`
+      // lalu di [terapkanHasilFotoTabel]; ini sisa terakhirnya.
+      //
+      // Tabel nggak ketemu (server lama) = balik ke perilaku lama.
+      final index = tabel != null
+          ? tabel.pengulangan.indexOf(s.repeatNo)
+          : s.repeatNo - 1;
       if (index < 0 || index >= state.jumlahPengulangan) continue;
 
       terisi += _isiSel(
         state,
-        s.tahap,
+        tabel?.kunciTabel ?? s.tahap,
         s.fieldId,
         index,
         s.nilai,
@@ -2752,6 +2960,51 @@ class LembarKerjaState {
     if (terisi > 0) adaIsianDariFoto = true;
 
     return terisi;
+  }
+
+  /// Tabel lembar yang identitas servernya [tabelId] (`grup ?? tahap` — lihat
+  /// `TemplateLembarKerja::tabel`). `null` = nggak ada yang cocok.
+  ///
+  /// ## Kenapa nggak boleh pakai `tahap` langsung
+  ///
+  /// Server dan HP menamai tabel yang sama dengan cara yang beda:
+  ///
+  /// | lembar        | `tahap` server       | kunci kotak di HP |
+  /// |---------------|----------------------|-------------------|
+  /// | pH Meter      | `sesudah_adjustment` | `sesudah_adjustment` |
+  /// | TIDS          | `pembacaan_uut`      | `uut`             |
+  /// | Thermohygro   | `sesudah_adjustment` | `suhu_standar`, `suhu_uut`, `kelembaban_standar`, `kelembaban_uut` |
+  /// | Timer         | `sesudah_adjustment` | `waktu_standar`, `waktu_uut` |
+  ///
+  /// Buat sembilan belas lembar yang satu tahap = satu tabel keduanya
+  /// kebetulan sama, jadi menuang pakai `tahap` benar selama bertahun-tahun.
+  /// Buat lima lembar BERPASANGAN dia salah dua kali sekaligus: kuncinya beda
+  /// (angka mendarat di controller yang nggak digambar siapa-siapa), dan empat
+  /// tabel Thermohygro punya `tahap` yang SAMA — jadi kalaupun kuncinya benar,
+  /// suhu dan kelembapan bakal saling menimpa.
+  ///
+  /// Gagalnya diam, dan itu yang bikin dia mahal: `_isiSel` tetap balik 1
+  /// karena controller barunya memang kosong, jadi teknisi dikasih tahu "x sel
+  /// terisi dari foto" dan `input_method` sesinya jadi `ocr` — di atas lembar
+  /// yang sebenarnya masih kosong.
+  ///
+  /// Dicocokin ke BENTUK lembar, bukan ke daftar nama alat: `TabelHasil` sudah
+  /// tau kedua namanya, jadi lembar berikutnya yang tahapnya beda lagi ikut
+  /// benar tanpa berkas ini disentuh.
+  ///
+  /// Nggak ketemu = pemanggilnya balik ke perilaku lama (`tahap` +
+  /// [_titikTerdekat]) — respons server lama yang belum ngirim `tabel_id`, dan
+  /// di lembar satu-tahap dua-duanya memang sama.
+  TabelHasil? _tabelPindai(String tabelId) {
+    if (tabelId.isEmpty) return null;
+
+    for (final bagian in bentuk.bagian) {
+      for (final t in bagian.tabel) {
+        if ((t.grup ?? t.tahap) == tabelId) return t;
+      }
+    }
+
+    return null;
   }
 
   /// Baris matriks yang penanda fotonya [penanda]. `null` = bukan penanda baris
@@ -2777,8 +3030,8 @@ class LembarKerjaState {
   /// dari foto ditandai — bukan sebagian.
   ///
   /// Sel yang sudah ada isinya nggak pernah ditimpa, sama seperti jalur lain.
-  /// [pengulangan] daftar nomor Repeat tabelnya, URUT seperti kolomnya
-  /// tercetak — dipakai menerjemahkan nomor Repeat jadi posisi kolom.
+  /// Nomor Repeat diterjemahkan jadi posisi kolom lewat `tabel.pengulangan`,
+  /// URUT seperti kolomnya tercetak.
   ///
   /// Dulu di sini `index = repeatNo - 1`, dan itu benar cuma selama daftarnya
   /// `[1, 2, 3, …]`. Daftarnya datang dari server (`json['pengulangan']`),
@@ -2793,16 +3046,18 @@ class LembarKerjaState {
   /// nggak ada hubungannya dengan foto.
   int terapkanHasilFotoTabel(
     List<SelTabelFoto> sel, {
-    required String tahap,
-    required List<int> pengulangan,
+    required TabelHasil tabel,
   }) {
     var terisi = 0;
 
     for (final s in sel) {
-      final state = _titikTerdekat(s.titikUkur);
+      // Tabelnya sendiri yang jadi ruang cari, bukan seluruh lembar — lihat
+      // [titikBarisTabel]. Sebelum ini `_titikTerdekat`, dan itu yang bikin
+      // tombol foto lima lembar berpasangan mengisi nol sel.
+      final state = titikBarisTabel(tabel, s.titikUkur);
       if (state == null) continue;
 
-      final index = pengulangan.indexOf(s.repeatNo);
+      final index = tabel.pengulangan.indexOf(s.repeatNo);
       if (index < 0 || index >= state.jumlahPengulangan) continue;
 
       // Teksnya dibaca jadi angka DI SINI, bukan di pemetanya: yang di sana
@@ -2820,7 +3075,7 @@ class LembarKerjaState {
       final nilai = parseAngka(s.teks);
       if (nilai == null) continue;
 
-      terisi += _isiSel(state, tahap, s.fieldId, index, nilai, true);
+      terisi += _isiSel(state, tabel.kunciTabel, s.fieldId, index, nilai, true);
     }
 
     if (terisi > 0) adaIsianDariFoto = true;

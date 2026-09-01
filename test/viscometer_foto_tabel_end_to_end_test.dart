@@ -216,8 +216,7 @@ void main() {
 
     final terisi = isian.terapkanHasilFotoTabel(
       hasil.sel,
-      tahap: tabel.tahap,
-      pengulangan: tabel.pengulangan,
+      tabel: tabel,
     );
 
     expect(terisi, 29, reason: '30 sel kertas, satu rusak di master');

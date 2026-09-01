@@ -63,7 +63,10 @@ void main() {
       final kunci = tabel.map((t) => t.kunciTabel).toList();
       expect(kunci, ['standar', 'uut']);
       expect(kunci.toSet(), hasLength(2));
-      expect(tabel.map((t) => t.tahap), ['pembacaan_standard', 'pembacaan_uut']);
+      expect(tabel.map((t) => t.tahap), [
+        'pembacaan_standard',
+        'pembacaan_uut',
+      ]);
       expect(tabel.every((t) => t.grup == null), isTrue);
 
       for (final t in tabel) {
@@ -78,7 +81,8 @@ void main() {
       expect(
         tabel.firstWhere((t) => t.deretStandar).simpanKe,
         'measurements[].standar',
-        reason: 'Penjaga nomor 1: `null` di sini artinya 35 kotak yang diisi '
+        reason:
+            'Penjaga nomor 1: `null` di sini artinya 35 kotak yang diisi '
             'teknisi nggak pernah nyampe server, dan `Correction` terbit '
             'diadu ke nol.',
       );
@@ -125,7 +129,8 @@ void main() {
       expect(
         kolom.map((f) => f.kode),
         ['no_probe'],
-        reason: 'Nomornya nentuin kolom tabel koreksi — salah nomor bukan '
+        reason:
+            'Nomornya nentuin kolom tabel koreksi — salah nomor bukan '
             'salah catatan, tapi salah koreksi.',
       );
       expect(tabel.firstWhere((t) => t.deretUut).kolomBaris, isEmpty);
@@ -139,13 +144,16 @@ void main() {
       expect(
         pilihan.map((p) => p.grup).toSet(),
         {'RTD', 'Type K', 'Type N'},
-        reason: 'Penyaringnya `grup` yang dikirim server — aturan "Type N '
+        reason:
+            'Penyaringnya `grup` yang dikirim server — aturan "Type N '
             'mulai dari 3" sengaja NGGAK ditulis ulang di HP.',
       );
 
       // Penomorannya beda per tipe, dan itu dari kertasnya sendiri.
-      List<String> nomor(String tipe) =>
-          [for (final p in pilihan) if (p.grup == tipe) p.nilai];
+      List<String> nomor(String tipe) => [
+        for (final p in pilihan)
+          if (p.grup == tipe) p.nilai,
+      ];
 
       expect(nomor('RTD'), ['17']);
       expect(nomor('Type K'), hasLength(16));
@@ -162,7 +170,8 @@ void main() {
       // Penjaga nomor 3. Kertasnya nyetak tujuh baris kosong; dikunci ke NILAI
       // set point (yang semuanya null), ketujuhnya jadi satu baris.
       expect(
-        state.titik, hasLength(7),
+        state.titik,
+        hasLength(7),
         reason: 'Tujuh baris Setpoint kosong nggak boleh saling menelan.',
       );
     });
@@ -178,7 +187,8 @@ void main() {
         expect(
           state.kunciBaris(state.barisTabel(standar), i, standar),
           state.kunciBaris(state.barisTabel(uut), i, uut),
-          reason: 'Dua deret itu SET POINT YANG SAMA, dibaca bergantian tiap '
+          reason:
+              'Dua deret itu SET POINT YANG SAMA, dibaca bergantian tiap '
               '10 detik — kalau kuncinya beda, `Correction` diadu ke titik '
               'yang salah.',
         );
@@ -205,18 +215,23 @@ void main() {
       const deretStandar = ['60.1', '60.1', '60.1', '60.2', '60.2'];
       const deretUut = ['60.3', '60.34', '60.45', '60.47', '60.41'];
 
+      // Kunci selnya dari TABELNYA, bukan string yang diketik di sini — lihat
+      // alasannya di `suhu_pasangan_lembar_kerja_test.dart`.
+      final deret = state.deretPasangan(titik.parameter)!;
+
       for (var i = 0; i < 5; i++) {
-        titik.kotak('standar', 'pembacaan', i).text = deretStandar[i];
-        titik.kotak('uut', 'pembacaan', i).text = deretUut[i];
+        titik.kotak(deret.kunciStandar, 'pembacaan', i).text = deretStandar[i];
+        titik.kotak(deret.kunciUut, 'pembacaan', i).text = deretUut[i];
       }
       titik.noProbeCtl.text = '2';
 
-      final payload = titik.toSubmissionPasangan();
+      final payload = titik.toSubmissionPasangan(deret);
 
       expect(
         payload['titik_ukur'],
         60.0,
-        reason: 'Yang terkirim WAJIB set point yang diketik, bukan nomor '
+        reason:
+            'Yang terkirim WAJIB set point yang diketik, bukan nomor '
             'baris. Terkirim `2`, sertifikatnya mengklaim titik yang salah '
             'tanpa satu pun error di jalurnya.',
       );
@@ -258,12 +273,18 @@ void main() {
       // Baris ke-3 → `titikUkur` 3. Kotak Setpoint sengaja dibiarkan kosong.
       final titik = state.titik[state.kunciBaris(baris, 2, standar)]!;
 
+      final deret = state.deretPasangan(titik.parameter)!;
+
       for (var i = 0; i < 5; i++) {
-        titik.kotak('standar', 'pembacaan', i).text = '121,${i + 1}';
-        titik.kotak('uut', 'pembacaan', i).text = '121,${i + 4}';
+        titik.kotak(deret.kunciStandar, 'pembacaan', i).text = '121,${i + 1}';
+        titik.kotak(deret.kunciUut, 'pembacaan', i).text = '121,${i + 4}';
       }
 
-      expect(titik.pasanganKosong, isFalse, reason: 'Angkanya memang ada.');
+      expect(
+        titik.pasanganKosong(deret),
+        isFalse,
+        reason: 'Angkanya memang ada.',
+      );
       expect(titik.siapKirim, isFalse, reason: 'Set point-nya yang belum ada.');
 
       final terkirim = state.toSubmission(draft: true).measurementsGrid ?? [];
@@ -280,7 +301,8 @@ void main() {
       expect(
         terkirim,
         isEmpty,
-        reason: 'Baris tanpa set point nggak punya identitas buat dihitung — '
+        reason:
+            'Baris tanpa set point nggak punya identitas buat dihitung — '
             'sama seperti jalur datar, dia nggak ikut dikirim.',
       );
 
@@ -295,7 +317,9 @@ void main() {
         ..alat = daftarAlatMock.first;
 
       expect(
-        state.titik.values.every((t) => t.pasanganKosong),
+        state.titik.values.every(
+          (t) => t.pasanganKosong(state.deretPasangan(t.parameter)!),
+        ),
         isTrue,
         reason: 'Lembar baru dibuka: belum ada satu sel pun terisi.',
       );
@@ -337,14 +361,18 @@ void main() {
     });
 
     test('profil `tids` dapat bentuk TIDS, bukan jatuh ke pH', () async {
-      final b = await MockLembarKerjaService().ambilBentuk('token', profil: 'tids');
+      final b = await MockLembarKerjaService().ambilBentuk(
+        'token',
+        profil: 'tids',
+      );
 
       expect(b.kodeDokumen, 'SIDIK-FM-CAL-0506_Rev.4');
       expect(b.berpasangan, isTrue);
       expect(
         tabelDari(b).map((t) => t.tahap),
         ['pembacaan_standard', 'pembacaan_uut'],
-        reason: 'Sebelum 28 Agt 2026 mode mock memajang lembar pH buat TIDS — '
+        reason:
+            'Sebelum 28 Agt 2026 mode mock memajang lembar pH buat TIDS — '
             'nggak ada error, cuma lembar yang salah.',
       );
     });

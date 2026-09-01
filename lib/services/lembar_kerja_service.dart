@@ -5,6 +5,7 @@ import '../models/pratinjau_hitung.dart';
 import 'api_client.dart';
 import 'equipment_lookup_service.dart';
 import 'contoh_lembar_kerja_massa.dart';
+import 'contoh_lembar_kerja_waktu.dart';
 import 'contoh_lembar_kerja_suhu.dart';
 
 /// Lembar kerja teknisi: ambil bentuk formulirnya, kirim isiannya.
@@ -263,6 +264,16 @@ class MockLembarKerjaService implements LembarKerjaService {
       // mode mock memajang lembar pH untuk alat Massa: nggak ada error, cuma
       // lembar yang salah — persis yang kejadian di TIDS sebelum 28 Agt 2026.
       'timbangan' => contohBentukLembarKerjaTimbangan(untukAdmin: untukAdmin),
+      // Kelompok WAKTU DAN FREKUENSI (alat ke-22..24). Timer bentuknya beda
+      // sendiri — dua tabel deret, tiap ulangan EMPAT kotak — jadi tanpa
+      // cabangnya sendiri di sini mode mock memajang lembar pH untuk lembar
+      // stopwatch. Dua alat rpm bentuknya tabel datar biasa, tapi tetap butuh
+      // cabangnya: set point mereka penunjukan ALAT PELANGGAN sementara kolom
+      // pembacaannya bacaan tachometer STANDAR, dan lembar pH nggak menyatakan
+      // itu di mana pun.
+      'timer_stopwatch' => contohBentukLembarKerjaTimer(untukAdmin: untukAdmin),
+      'centrifuge' => contohBentukLembarKerjaCentrifuge(untukAdmin: untukAdmin),
+      'tachometer' => contohBentukLembarKerjaTachometer(untukAdmin: untukAdmin),
       // Profil kosong / nggak dikenal SENGAJA jatuh ke pH, bukan lempar error —
       // sama kayak janji kontraknya (`docs/kontrak-api.md` §4).
       _ => contohBentukLembarKerja(untukAdmin: untukAdmin),

@@ -2058,10 +2058,9 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
                 '${tabel.kunciTabel}|${k.titikUkur}|${k.repeatNo}|${k.fieldId}',
             pemilik: isian.clientRequestId,
             labelAkhir: (k) => isian.labelSelFoto(
-              tahap: tabel.kunciTabel,
+              tabel: tabel,
               titikUkur: k.titikUkur,
               repeatNo: k.repeatNo,
-              pengulangan: tabel.pengulangan,
               fieldId: k.fieldId,
             ),
           );
@@ -2083,8 +2082,7 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
 
       final terisi = widget.isian.terapkanHasilFotoTabel(
         disetujui,
-        tahap: widget.tabel.kunciTabel,
-        pengulangan: widget.tabel.pengulangan,
+        tabel: widget.tabel,
       );
 
       widget.onBerubah();
