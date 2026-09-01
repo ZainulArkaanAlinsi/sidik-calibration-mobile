@@ -2053,6 +2053,24 @@ class _PanelPratinjau extends ConsumerWidget {
         : formatSertifikat(nilai, desimal, tandaNol: titik.tandaNol);
   }
 
+  /// Sama seperti [_tulis], tapi buat kolom **U95%** — yang sebagian alat
+  /// mencetaknya dengan desimal BEDA dari kolom hasil di sebelahnya.
+  ///
+  /// Lihat `MeasurementResult.desimalU95`. Tanpa jalur sendiri, pratinjau ini
+  /// menulis U95 Timer `0,810` sementara sertifikatnya `0,81`, dan U95 Gas
+  /// Detector `5` sementara sertifikatnya `5,1` — di layar yang dipakai teknisi
+  /// memeriksa hasilnya sendiri sebelum minta approve.
+  String _tulisU95(MeasurementResult titik, double nilai) {
+    final desimal =
+        titik.desimalU95 ??
+        titik.desimal ??
+        isian.titik[titik.titikUkur]?.desimal;
+
+    return desimal == null
+        ? formatNilai(nilai)
+        : formatSertifikat(nilai, desimal, tandaNol: titik.tandaNol);
+  }
+
   /// Label baris di lembar buat titik ke-[titikKe] (1-based, urutan kiriman).
   ///
   /// `belum_dihitung` cuma bawa nomor urut, dan "Titik ke-13" nggak nolong
@@ -2143,6 +2161,7 @@ class _PanelPratinjau extends ConsumerWidget {
             _TabelPratinjau(
               titik: e.value,
               tulis: _tulis,
+              tulisU95: _tulisU95,
               satuanTitik: (t) =>
                   t.satuan ?? isian.titik[t.titikUkur]?.satuan ?? '',
             ),
@@ -2182,11 +2201,15 @@ class _TabelPratinjau extends StatelessWidget {
   const _TabelPratinjau({
     required this.titik,
     required this.tulis,
+    required this.tulisU95,
     required this.satuanTitik,
   });
 
   final List<MeasurementResult> titik;
   final String Function(MeasurementResult, double) tulis;
+
+  /// Kolom U95 punya desimalnya sendiri — lihat [_LembarKerjaScreenState._tulisU95].
+  final String Function(MeasurementResult, double) tulisU95;
   final String Function(MeasurementResult) satuanTitik;
 
   @override
@@ -2250,7 +2273,7 @@ class _TabelPratinjau extends StatelessWidget {
               textAlign: TextAlign.right,
             ),
             Text(
-              tulis(t, t.ketidakpastianDiperluas),
+              tulisU95(t, t.ketidakpastianDiperluas),
               style: gayaAngka,
               textAlign: TextAlign.right,
             ),

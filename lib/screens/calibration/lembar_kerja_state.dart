@@ -518,7 +518,31 @@ class TitikState {
   /// Sel kosong tetap `null` DI POSISINYA, sama seperti [toSubmission]: kalau
   /// Repeat 2 kosong lalu dibuang, Repeat 3 naik jadi Repeat 2 dan seluruh
   /// nomor pengulangan geser.
-  Map<String, dynamic> toSubmissionPasangan() => {
+  ///
+  /// ## Kunci selnya DATANG DARI BENTUK, nggak boleh dipatok
+  ///
+  /// Dulu method ini membaca `_kolom('standar', …)` & `_kolom('uut', …)` —
+  /// dua string mati. Itu benar cuma karena kebetulan: Thermocouple dan
+  /// Termometer Gelas memang ber-`grup` `standar`/`uut`, jadi
+  /// [TabelHasil.kunciTabel] mereka sama persis dengan string yang dipatok.
+  ///
+  /// **Thermohygrometer tidak.** Lembarnya empat tabel — `suhu_standar`,
+  /// `suhu_uut`, `kelembaban_standar`, `kelembaban_uut` — karena satu lembar
+  /// memuat DUA parameter, dan tanpa `grup` yang berbeda keempatnya bakal
+  /// berebut satu kunci sel. Akibatnya seratus sel yang diketik teknisi dibaca
+  /// dari kunci yang tidak pernah ada:
+  ///
+  ///     sel diisi 100  →  payload berisi 0, KOSONG 100
+  ///
+  /// Dan karena [pasanganKosong] membaca kunci yang sama, tiap titiknya
+  /// dianggap belum disentuh lalu **dibuang** dari `measurements` — jadi yang
+  /// berangkat ke server bukan sekadar deret null, tapi lembar tanpa satu pun
+  /// titik. Nol error di kedua sisi; lembarnya penuh di layar dan tombol
+  /// kirimnya jalan mulus. Persis kelas kegagalan yang sudah dicatat dua kali
+  /// di berkas ini.
+  ///
+  /// Jadi [deret] wajib dipasok pemanggil, dari bentuk lembarnya sendiri.
+  Map<String, dynamic> toSubmissionPasangan(DeretPasangan deret) => {
     // `titikUkurEfektif`, bukan `titikUkur` — sama seperti [toSubmission].
     //
     // Buat tiga lembar pasangan pertama (Thermocouple, Gelas, Thermohygro)
@@ -533,15 +557,49 @@ class TitikState {
     if (standardId != null) 'standard_id': standardId,
     if (parameter != null) 'parameter': parameter,
     if (noProbe != null) 'no_probe': noProbe,
-    'standar': _kolom('standar', 'pembacaan'),
-    'uut': _kolom('uut', 'pembacaan'),
+    'standar': _deret(deret, deret.kunciStandar),
+    'uut': _deret(deret, deret.kunciUut),
   };
+
+  /// Satu deret pembacaan, bentuknya ikut JUMLAH KOLOM tabelnya.
+  ///
+  ///  - **Satu kolom** (ketiga alat suhu): daftar angka apa adanya —
+  ///    `[100.1, 100.2, null]`. Bentuk yang sudah dipakai sejak alat ke-18.
+  ///  - **Banyak kolom** (Timer/Stopwatch): daftar OBJEK berkunci kode kolom —
+  ///    `[{jam: 0, menit: 1, detik: 0, milidetik: 123}, …]`, karena satu
+  ///    penunjukan stopwatch ditulis di empat kotak dan keempatnya satu angka.
+  ///
+  /// Ulangan yang keempat kotaknya kosong dikirim `null`, BUKAN objek kosong.
+  /// Dua alasannya sama-sama mengikat: posisinya harus tetap (lihat docblock di
+  /// atas), dan aturan `PenunjukanWaktu` di server MENOLAK objek yang keempat
+  /// kotaknya kosong — objek kosong bikin lembar setengah jadi kena 422 di
+  /// ulangan yang memang sengaja dilewati.
+  List<dynamic> _deret(DeretPasangan bentuk, String kunci) {
+    if (bentuk.satuKolom) {
+      return _kolom(kunci, bentuk.kolom.first);
+    }
+
+    return List<Map<String, double>?>.generate(jumlahPengulangan, (i) {
+      final isi = <String, double>{};
+
+      for (final kode in bentuk.kolom) {
+        final nilai = parseAngka(kotak(kunci, kode, i).text);
+        if (nilai != null) isi[kode] = nilai;
+      }
+
+      return isi.isEmpty ? null : isi;
+    });
+  }
 
   /// Titik lembar pasangan yang sama sekali belum disentuh — nggak ikut
   /// dikirim, sama seperti set point grid Enclosure yang kosong.
-  bool get pasanganKosong =>
-      _kolom('standar', 'pembacaan').every((n) => n == null) &&
-      _kolom('uut', 'pembacaan').every((n) => n == null);
+  ///
+  /// Kuncinya lewat [deret] dengan alasan yang sama seperti
+  /// [toSubmissionPasangan]: kunci yang dipatok bikin SETIAP titik Thermohygro
+  /// kelihatan kosong, dan seluruh lembarnya dibuang sebelum dikirim.
+  bool pasanganKosong(DeretPasangan deret) =>
+      _deret(deret, deret.kunciStandar).every((n) => n == null) &&
+      _deret(deret, deret.kunciUut).every((n) => n == null);
 
   void dispose() {
     noProbeCtl.dispose();
@@ -550,6 +608,35 @@ class TitikState {
       c.dispose();
     }
   }
+}
+
+/// Kunci sel & kolom KEDUA tabel deret satu blok parameter lembar pasangan.
+///
+/// Ada supaya [TitikState.toSubmissionPasangan] nggak perlu tahu bentuk
+/// lembarnya, dan supaya kunci selnya nggak dipatok jadi string mati — lihat
+/// docblock method itu untuk kegagalan yang lahir dari mematoknya.
+///
+/// Satu blok parameter = satu pasang tabel. Thermohygrometer punya DUA blok
+/// (`suhu` & `kelembaban`), jadi dua [DeretPasangan]; sisanya satu.
+class DeretPasangan {
+  const DeretPasangan({
+    required this.kunciStandar,
+    required this.kunciUut,
+    required this.kolom,
+  });
+
+  /// [TabelHasil.kunciTabel] tabel sisi standar — `standar`, `suhu_standar`,
+  /// atau `waktu_standar`, tergantung `grup` yang dikirim server.
+  final String kunciStandar;
+
+  final String kunciUut;
+
+  /// Kode kolom per ulangan, urut seperti tercetak. `['pembacaan']` buat
+  /// ketiga alat suhu; `['jam','menit','detik','milidetik']` buat Timer.
+  final List<String> kolom;
+
+  /// Satu kotak per ulangan — bentuk daftar angka biasa.
+  bool get satuKolom => kolom.length == 1;
 }
 
 /// Isian satu baris "Usage Check".
@@ -719,6 +806,41 @@ class LembarKerjaState {
     return titikUnik == baris.length
         ? baris[index].titikUkur
         : index.toDouble();
+  }
+
+  /// Kunci sel & kolom kedua tabel deret buat blok [parameter].
+  ///
+  /// Dibaca dari BENTUK tiap kali, bukan disimpan: bentuk lembar bisa diganti
+  /// (mis. jumlah kolom pengulangan disetel ulang), dan deskriptor basi bikin
+  /// payload dibaca dari kunci yang sudah nggak ada — kelas kegagalan yang
+  /// persis sama dengan yang ditutup [TitikState.toSubmissionPasangan].
+  ///
+  /// `null` = lembar ini nggak punya blok pasangan untuk parameter itu. Titik
+  /// yang jatuh ke situ nggak ikut dikirim, dan itu jawaban yang benar: tanpa
+  /// tabel, nggak ada satu pun sel yang bisa dibaca.
+  DeretPasangan? deretPasangan(String? parameter) {
+    String? standar;
+    String? uut;
+    List<String>? kolom;
+
+    for (final bagian in bentuk.bagian) {
+      for (final t in bagian.tabel) {
+        if (!t.berpasangan || (t.parameter ?? '') != (parameter ?? '')) {
+          continue;
+        }
+
+        kolom ??= [for (final k in t.kolom) k.kode];
+
+        if (t.deretStandar) standar ??= t.kunciTabel;
+        if (t.deretUut) uut ??= t.kunciTabel;
+      }
+    }
+
+    if (standar == null || uut == null || kolom == null || kolom.isEmpty) {
+      return null;
+    }
+
+    return DeretPasangan(kunciStandar: standar, kunciUut: uut, kolom: kolom);
   }
 
   /// Nomor kunci pertama buat satu blok parameter lembar pasangan.
@@ -2569,7 +2691,9 @@ class LembarKerjaState {
     final measurementsPasangan = bentuk.berpasangan
         ? [
             for (final t in titik.values)
-              if (!t.pasanganKosong && t.siapKirim) t.toSubmissionPasangan(),
+              if (deretPasangan(t.parameter) case final d?)
+                if (!t.pasanganKosong(d) && t.siapKirim)
+                  t.toSubmissionPasangan(d),
           ]
         : null;
 

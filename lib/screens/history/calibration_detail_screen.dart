@@ -1025,9 +1025,13 @@ class _RingkasanKelompok extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
+                      // Kolom U95 punya jalur desimalnya SENDIRI — lihat
+                      // `MeasurementResult.desimalU95`. Dipukul rata dengan
+                      // kolom hasil, U95 Gas Detector `5,05` runtuh jadi `5`
+                      // di layar sementara sertifikatnya mencetak `5,1`.
                       formatSertifikat(
                         t.ketidakpastianDiperluas,
-                        t.desimalEfektif(desimalSesi),
+                        t.desimalU95Efektif(desimalSesi),
                       ),
                       style: gayaAngka,
                       textAlign: TextAlign.right,
@@ -1500,7 +1504,8 @@ class _TombolLanjutkanLembar extends ConsumerWidget {
             // dan buat TITS tebakannya nggak pernah bisa kena: alatnya
             // terdaftar "Temperature Calibrator" / "Temperature Recorder
             // Controller".
-            profil: detail.profil ??
+            profil:
+                detail.profil ??
                 profilLembarKerjaUntuk(detail.namaAlat) ??
                 'ph_meter',
           ),
