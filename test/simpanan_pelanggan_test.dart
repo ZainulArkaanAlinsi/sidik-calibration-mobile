@@ -37,10 +37,10 @@ class _LookupPenghitung implements CustomerLookupService {
   }
 
   @override
-  Future<List<PerusahaanDirektori>> cariDirektori(
+  Future<HasilDirektori> cariDirektori(
     String token, {
     required String search,
-  }) async => const [];
+  }) async => (daftar: const <PerusahaanDirektori>[], atribusi: null);
 
   @override
   Future<CustomerLookup> daftarkan(

@@ -435,17 +435,24 @@ class _MataMata extends MockCustomerLookupService {
   String? refTerakhir;
 
   @override
-  Future<List<PerusahaanDirektori>> cariDirektori(
+  Future<HasilDirektori> cariDirektori(
     String token, {
     required String search,
   }) async {
     final hasil = await super.cariDirektori(token, search: search);
     if (!namaBerspasi) return hasil;
 
-    return [
-      for (final d in hasil)
-        PerusahaanDirektori(ref: d.ref, nama: '  ${d.nama}  ', alamat: d.alamat),
-    ];
+    return (
+      daftar: [
+        for (final d in hasil.daftar)
+          PerusahaanDirektori(
+            ref: d.ref,
+            nama: '  ${d.nama}  ',
+            alamat: d.alamat,
+          ),
+      ],
+      atribusi: hasil.atribusi,
+    );
   }
 
   @override

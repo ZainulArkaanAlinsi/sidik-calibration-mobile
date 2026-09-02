@@ -968,15 +968,21 @@ class _PelangganSheetState extends ConsumerState<_PelangganSheet> {
             ? l10n.pelangganBaruDirektoriTiadaLab
             : l10n.pelangganBaruDirektoriMati,
       ),
-      data: (perusahaan) {
-        if (perusahaan.isEmpty) return catatan(l10n.equipPelangganKosong);
+      data: (hasil) {
+        final daftar = hasil.daftar;
+        if (daftar.isEmpty) return catatan(l10n.equipPelangganKosong);
+
+        // Atribusi sumbernya jadi baris EKOR — kewajiban lisensi (ODbL buat
+        // OpenStreetMap, yang jadi sumber bawaan), bukan hiasan. Kalimatnya
+        // datang utuh dari server; lihat [HasilDirektori].
+        final atribusi = hasil.atribusi;
 
         return ListView.builder(
           // Satu baris kepala di atas: dari mana daftar ini datang, dan
           // batasnya. Tanpa itu, hasil direktori kebaca sama otoritatifnya
           // dengan master lab — padahal yang dipilih di sini mendarat di blok
           // OWNER sertifikat, dan direktori tempat usaha bukan salinan akta.
-          itemCount: perusahaan.length + 1,
+          itemCount: daftar.length + 1 + (atribusi == null ? 0 : 1),
           itemBuilder: (context, i) {
             if (i == 0) {
               return Padding(
@@ -999,7 +1005,19 @@ class _PelangganSheetState extends ConsumerState<_PelangganSheet> {
               );
             }
 
-            final satu = perusahaan[i - 1];
+            if (atribusi != null && i == daftar.length + 1) {
+              return Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.sm),
+                child: Text(
+                  atribusi,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              );
+            }
+
+            final satu = daftar[i - 1];
 
             return ListTile(
               contentPadding: EdgeInsets.zero,

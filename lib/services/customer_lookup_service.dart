@@ -58,10 +58,7 @@ abstract class CustomerLookupService {
   ///
   /// Melempar [DirektoriTidakSiapException] kalau direktorinya belum disetel
   /// atau lagi mati — sengaja BUKAN daftar kosong.
-  Future<List<PerusahaanDirektori>> cariDirektori(
-    String token, {
-    required String search,
-  });
+  Future<HasilDirektori> cariDirektori(String token, {required String search});
 
   /// Daftarkan pelanggan baru dari lapangan. Langsung kepakai, tanpa antrean
   /// persetujuan admin.
@@ -120,7 +117,7 @@ class ApiCustomerLookupService implements CustomerLookupService {
   }
 
   @override
-  Future<List<PerusahaanDirektori>> cariDirektori(
+  Future<HasilDirektori> cariDirektori(
     String token, {
     required String search,
   }) async {
@@ -131,7 +128,17 @@ class ApiCustomerLookupService implements CustomerLookupService {
       );
       final data = (json['data'] as List<dynamic>? ?? const []);
 
-      return parseListAman(data, PerusahaanDirektori.fromJson);
+      return (
+        daftar: parseListAman(data, PerusahaanDirektori.fromJson),
+
+        // Dibaca dari amplop, BUKAN dari tiap baris — dan bukan dikarang di
+        // sini. Lihat docblock [HasilDirektori]: ini kewajiban lisensi yang
+        // hilangnya nggak ninggalin error.
+        //
+        // `as String?` yang longgar disengaja: server memulangkan `null` kalau
+        // penyedianya nggak mensyaratkan apa-apa, dan itu bukan kerusakan.
+        atribusi: json['atribusi'] as String?,
+      );
     } on ApiException catch (e) {
       // 503 = key-nya belum disetel di server; 502 = direktorinya nggak nyaut.
       // Keduanya dipisah dari nol hasil, dan dipisah satu sama lain: yang
@@ -241,7 +248,7 @@ class MockCustomerLookupService implements CustomerLookupService {
   }
 
   @override
-  Future<List<PerusahaanDirektori>> cariDirektori(
+  Future<HasilDirektori> cariDirektori(
     String token, {
     required String search,
   }) async {
@@ -277,13 +284,22 @@ class MockCustomerLookupService implements CustomerLookupService {
     ];
 
     final q = search.toLowerCase();
-    return direktori
-        .where(
-          (d) =>
-              d.nama.toLowerCase().contains(q) ||
-              (d.alamat ?? '').toLowerCase().contains(q),
-        )
-        .toList();
+
+    return (
+      daftar: direktori
+          .where(
+            (d) =>
+                d.nama.toLowerCase().contains(q) ||
+                (d.alamat ?? '').toLowerCase().contains(q),
+          )
+          .toList(),
+
+      // Mock-nya ikut memajang atribusi, dan sengaja atribusi OSM: itu yang
+      // dipulangkan server dengan setelan bawaannya. Mock yang memulangkan
+      // `null` bikin build offline kelihatan benar padahal barisnya hilang —
+      // dan barisnya yang justru diwajibkan lisensi.
+      atribusi: '© OpenStreetMap contributors',
+    );
   }
 
   @override

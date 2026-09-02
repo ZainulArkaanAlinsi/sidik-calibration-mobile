@@ -87,7 +87,7 @@ class _PelangganBaruScreenState extends ConsumerState<PelangganBaruScreen> {
   /// berhenti berlaku — lihat [_namaBerubah].
   String? _namaDariDirektori;
 
-  List<PerusahaanDirektori>? _hasilDirektori;
+  HasilDirektori? _hasilDirektori;
 
   /// Sebab direktorinya nggak bisa dipakai, apa adanya dari server.
   ///
@@ -417,7 +417,7 @@ class _PelangganBaruScreenState extends ConsumerState<PelangganBaruScreen> {
   List<Widget> _bagianDirektori(AppLocalizations l10n, ThemeData theme) {
     final hasil = _hasilDirektori!;
 
-    if (hasil.isEmpty) {
+    if (hasil.daftar.isEmpty) {
       return [
         _catatan(
           Icons.search_off,
@@ -440,7 +440,7 @@ class _PelangganBaruScreenState extends ConsumerState<PelangganBaruScreen> {
         theme,
         theme.colorScheme.onSurfaceVariant,
       ),
-      for (final perusahaan in hasil)
+      for (final perusahaan in hasil.daftar)
         ListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(perusahaan.nama, style: theme.textTheme.titleMedium),
@@ -449,6 +449,21 @@ class _PelangganBaruScreenState extends ConsumerState<PelangganBaruScreen> {
               : Text(perusahaan.alamat!, style: theme.textTheme.bodySmall),
           trailing: const Icon(Icons.arrow_forward),
           onTap: () => _pakaiDariDirektori(perusahaan),
+        ),
+      // Atribusi sumbernya, DI BAWAH daftarnya dan apa adanya dari server.
+      //
+      // Bukan hiasan: sumber bawaannya OpenStreetMap dan ODbL mewajibkan
+      // sumbernya disebut di tempat hasilnya dipajang. Kalimatnya nggak
+      // diterjemahkan dan nggak dikarang di sini — lihat [HasilDirektori].
+      if (hasil.atribusi != null)
+        Padding(
+          padding: const EdgeInsets.only(top: AppSpacing.sm),
+          child: Text(
+            hasil.atribusi!,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
         ),
     ];
   }

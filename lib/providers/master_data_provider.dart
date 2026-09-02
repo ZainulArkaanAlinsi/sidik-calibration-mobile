@@ -135,7 +135,7 @@ final customerLookupProvider = FutureProvider.family<HasilPelanggan, String>(
 /// mencoba ulang otomatis ke direktori yang lagi mati itu menggempur layanan
 /// yang membatasi permintaan — dan yang diblokir alamat IP server lab.
 final direktoriPerusahaanProvider =
-    FutureProvider.family<List<PerusahaanDirektori>, String>((ref, kata) async {
+    FutureProvider.family<HasilDirektori, String>((ref, kata) async {
       // Ikut akun yang login: ganti akun → hasil lab sebelumnya nggak ikut.
       ref.watch(authProvider);
 

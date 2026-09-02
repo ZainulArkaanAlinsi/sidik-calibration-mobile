@@ -30,3 +30,28 @@ class PerusahaanDirektori {
         alamat: json['alamat'] as String?,
       );
 }
+
+/// Hasil pencarian direktori luar, berikut **atribusi sumbernya**.
+///
+/// Amplop sendiri, bukan `atribusi` yang ditempel ke tiap [PerusahaanDirektori]:
+/// atribusi itu sifat SUMBERNYA, bukan sifat satu perusahaan. Ditempel per
+/// baris, dia ikut tersalin waktu satu baris dipilih dan dibawa ke layar lain —
+/// dan di situ dia berhenti berarti apa-apa.
+///
+/// ## Kenapa [atribusi] wajib sampai ke layar
+///
+/// Ini kewajiban LISENSI, bukan hiasan. Sumber bawaan sekarang OpenStreetMap,
+/// dan ODbL mewajibkan sumbernya disebut di tempat hasilnya dipajang. Sebelum
+/// berkas ini punya [atribusi], server sudah mengirimnya di badan respons dan
+/// sisi HP **membuangnya** — nol error, nol log, dan yang hilang cuma kalimat
+/// yang justru diwajibkan.
+///
+/// Kalimatnya datang UTUH dari server dan dipajang apa adanya: dia **tidak
+/// diterjemahkan** dan tidak dikarang di sini. Penyedianya bisa ditukar lewat
+/// satu setelan di server (`DIREKTORI_PERUSAHAAN_DRIVER`), jadi kalimat yang
+/// ditulis di sisi HP bakal memajang atribusi penyedia LAMA sesudah setelannya
+/// diganti — pelanggaran lisensi yang nggak ninggalin satu pun error.
+///
+/// [atribusi] boleh `null`: penyedia yang nggak mensyaratkan apa-apa memulangkan
+/// `null`, dan layarnya cuma nggak memajang barisnya.
+typedef HasilDirektori = ({List<PerusahaanDirektori> daftar, String? atribusi});
