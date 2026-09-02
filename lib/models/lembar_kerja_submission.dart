@@ -1,5 +1,53 @@
 import 'calibration_draft.dart' show LokasiKalibrasi;
 
+/// Tebakan mesin buat SATU pembacaan, disimpan apa adanya di samping angka
+/// yang akhirnya dikirim.
+///
+/// ## Kenapa ini harus ikut terkirim
+///
+/// Teknisi mengoreksi angka hasil foto **di kotak yang sama**. Begitu dia
+/// mengetik ulang, tebakan mesinnya tertimpa dan hilang selamanya — yang sampai
+/// server cuma angka akhir. Akibatnya akurasi kamera tidak bisa dihitung sama
+/// sekali: tidak ada pembanding, cuma hasil.
+///
+/// Yang paling mahal dari ketiadaan itu **hijau palsu** — sel yang keisi
+/// otomatis dengan keyakinan tinggi padahal salah. Itu satu-satunya kegagalan
+/// yang tidak ada yang lihat sampai sertifikatnya terbit, dan tanpa pasangan
+/// (tebakan, angka final) dia tidak bisa dihitung maupun dibantah.
+///
+/// Kolom penampungnya sudah lama ada di server (`raw_measurements.ocr_raw_text`
+/// & `.ocr_confidence`, diisi `CalibrationRequest` lewat
+/// `measurements[].ocr[]`) — yang belum ada cuma pengirimnya.
+class BacaanMesin {
+  const BacaanMesin({required this.teksMentah, this.keyakinan});
+
+  /// Teks APA ADANYA dari pengenal, sebelum dijadikan angka. Termasuk yang
+  /// jelas ngawur — justru itu yang paling berguna waktu dicari polanya.
+  final String teksMentah;
+
+  /// `null` = **pengenalnya nggak memberi tahu**, bukan "nggak yakin". ML Kit
+  /// cuma menyetel `confidence` di sebagian versi & perangkat. Yang tidak
+  /// diketahui dikirim null, bukan diisi angka karangan — server sudah punya
+  /// aturannya sendiri buat pembacaan tanpa skor.
+  final double? keyakinan;
+
+  /// Bentuknya dipatok `CalibrationRequest` (`measurements.*.ocr.*`):
+  /// `raw_text` maksimal 255 karakter, `confidence` numerik 0..1.
+  ///
+  /// `photo_path` sengaja TIDAK dikirim: jalur foto tabel tidak mengunggah
+  /// citranya ke server, dan mengarang path buat kunci yang divalidasi regex
+  /// cuma bikin seluruh kiriman ditolak 422.
+  Map<String, dynamic> toJson() => {
+    // Dipotong di sini, bukan dibiarkan server menolaknya: satu sel yang
+    // kebaca kepanjangan tidak boleh menggagalkan SELURUH lembar kerja yang
+    // sudah diisi teknisi.
+    'raw_text': teksMentah.length > 255
+        ? teksMentah.substring(0, 255)
+        : teksMentah,
+    if (keyakinan != null) 'confidence': keyakinan,
+  };
+}
+
 /// Satu baris tabel hasil siap kirim: satu titik ukur dengan pembacaan
 /// Repeat 1..n untuk **dua tahap** sekaligus (before & after adjustment).
 ///
@@ -17,7 +65,8 @@ class TitikLembarKerja {
   }) : pembacaan = List<double?>.filled(jumlahPengulangan, null),
        suhu = List<double?>.filled(jumlahPengulangan, null),
        pembacaanSebelum = List<double?>.filled(jumlahPengulangan, null),
-       suhuSebelum = List<double?>.filled(jumlahPengulangan, null);
+       suhuSebelum = List<double?>.filled(jumlahPengulangan, null),
+       ocr = List<BacaanMesin?>.filled(jumlahPengulangan, null);
 
   final double titikUkur;
   final int jumlahPengulangan;
@@ -35,6 +84,19 @@ class TitikLembarKerja {
   /// Before adjustment (as-found) — dokumentasi kondisi alat, nggak ikut GUM.
   final List<double?> pembacaanSebelum;
   final List<double?> suhuSebelum;
+
+  /// Tebakan mesin per pembacaan After adjustment, **sejajar indeks** dengan
+  /// [pembacaan]. `null` = pembacaan itu diketik teknisi, bukan dari foto.
+  ///
+  /// Kesejajaran indeksnya WAJIB, bukan kerapian: server membaca
+  /// `$ocr[$urutan]` dengan `$urutan` yang sama persis dengan indeks
+  /// `pembacaan` (`CalibrationController`), jadi satu elemen yang digeser bikin
+  /// tebakan Repeat 2 tercatat sebagai tebakan Repeat 1 — dan angka yang
+  /// dibandingkan jadi pasangan yang salah, tanpa satu pun error.
+  ///
+  /// As-found sengaja tidak punya padanan: belum ada jalur foto buat tahap itu,
+  /// dan server memang selalu menulisnya `manual` + terverifikasi.
+  final List<BacaanMesin?> ocr;
 
   /// Kotak tambahan yang duduk di baris ini, di luar deret pengulangan —
   /// datang dari `tabel.kolom_baris` dan dikirim apa adanya sebagai kunci
@@ -67,6 +129,14 @@ class TitikLembarKerja {
     'suhu': suhu,
     'pembacaan_sebelum': pembacaanSebelum,
     'suhu_sebelum': suhuSebelum,
+    // Cuma dikirim kalau ADA yang dari foto. Lembar yang seluruhnya diketik
+    // tangan tidak boleh membawa deret null: server memakai `$meta !== null`
+    // buat memutuskan barisnya lahir `is_verified: false`, jadi kunci kosong
+    // yang ikut terkirim cuma nambah beban tanpa mengubah apa pun — sementara
+    // deret yang ADA isinya harus utuh sepanjang `pembacaan` supaya indeksnya
+    // tetap sejajar.
+    if (ocr.any((b) => b != null))
+      'ocr': [for (final b in ocr) b?.toJson()],
     // Ditaruh SESUDAH empat deret di atas, dan itu bukan kosmetik: kunci
     // bernama menang di server kalau namanya bentrok, jadi urutan di sini
     // nggak menentukan apa-apa — tapi kotak tambahan yang kebetulan bernama

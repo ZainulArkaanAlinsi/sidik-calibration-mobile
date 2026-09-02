@@ -1544,6 +1544,20 @@ class LembarKerjaState {
   /// bagus di pindai berikutnya.
   final Set<String> selRendahKeyakinan = {};
 
+  /// Tebakan mesin per sel yang keisi dari foto. Kuncinya [kunciSel], sama
+  /// persis kayak [selRendahKeyakinan].
+  ///
+  /// **Sengaja nggak pernah dihapus waktu teknisi mengetik ulang.** Itu bukan
+  /// kelalaian: pasangan (tebakan mesin, angka yang akhirnya dikirim) justru
+  /// SATU-SATUNYA bahan buat menghitung akurasi kamera. Sebelum ini teknisi
+  /// mengoreksi di kotak yang sama, tebakannya tertimpa, dan yang sampai server
+  /// cuma hasil akhir — jadi tidak ada yang bisa menjawab "kameranya sering
+  /// salah atau nggak", termasuk buat metrik yang paling menentukan: sel yang
+  /// keisi otomatis dengan keyakinan tinggi padahal salah.
+  ///
+  /// Dikirim lewat `measurements[].ocr[]`; lihat [BacaanMesin].
+  final Map<String, BacaanMesin> bacaanMesinSel = {};
+
   /// Sel yang **admin** minta dibetulin — dibangun dari kode sel di
   /// [revisiField]. Kuncinya [kunciSel], sama persis kayak
   /// [selRendahKeyakinan], jadi tabelnya nggak perlu tau dua bentuk kunci.
@@ -2711,12 +2725,15 @@ class LembarKerjaState {
 
     final measurements = titik.entries
         .where((e) => !bukanTitik.contains(e.key) && e.value.siapKirim)
-        .map(
-          (e) => e.value.toSubmission(
+        .map((e) {
+          final payload = e.value.toSubmission(
             kunciUtama: kunciUtama,
             kotakBaris: kotakBaris,
-          ),
-        )
+          );
+          _lampirkanBacaanMesin(payload, e.value, kunciUtama);
+
+          return payload;
+        })
         .toList();
 
     // Lembar ber-GRID nggak punya `titik` sama sekali — bentuknya nggak
@@ -3075,12 +3092,54 @@ class LembarKerjaState {
       final nilai = parseAngka(s.teks);
       if (nilai == null) continue;
 
-      terisi += _isiSel(state, tabel.kunciTabel, s.fieldId, index, nilai, true);
+      terisi += _isiSel(
+        state,
+        tabel.kunciTabel,
+        s.fieldId,
+        index,
+        nilai,
+        true,
+        // Teks APA ADANYA, bukan `nilai` yang sudah jadi angka: yang mau diukur
+        // nanti persis apa yang dilihat pengenalnya, termasuk waktu dia salah.
+        bacaanMesin: BacaanMesin(teksMentah: s.teks, keyakinan: s.keyakinan),
+      );
     }
 
     if (terisi > 0) adaIsianDariFoto = true;
 
     return terisi;
+  }
+
+  /// Tempelin tebakan mesin ke deret `ocr` payload, sejajar indeks sama
+  /// `pembacaan`.
+  ///
+  /// Dua hal di sini gampang salah dan dua-duanya gagal TANPA error:
+  ///
+  ///  - Kuncinya dibangun dari [TitikState.titikUkur], **bukan**
+  ///    `titikUkurEfektif` yang dipakai payload. Yang dipakai [_isiSel] waktu
+  ///    menyimpan yang pertama, dan di lembar yang titiknya bervarian dua nilai
+  ///    itu beda — memakai yang salah bikin seluruh tebakan hilang diam-diam.
+  ///  - Tahapnya [kunciTabelPembacaan], bukan tabel mana pun yang kebetulan
+  ///    difoto. Foto tabel As-found nggak punya padanan di `measurements[].ocr`
+  ///    (server memang selalu nulis tahap itu manual), jadi dia memang harus
+  ///    nggak nempel — bukan nempel di deret yang salah.
+  void _lampirkanBacaanMesin(
+    TitikLembarKerja payload,
+    TitikState state,
+    String kunciUtama,
+  ) {
+    for (var i = 0; i < payload.ocr.length; i++) {
+      // Cuma buat sel yang angkanya beneran ikut terkirim. Tebakan buat sel
+      // yang akhirnya dikosongkan teknisi nggak punya pasangan buat diadu, dan
+      // server juga melewatinya — `pembacaan` null berarti barisnya nggak lahir
+      // sama sekali.
+      if (payload.pembacaan[i] == null) continue;
+
+      final bacaan =
+          bacaanMesinSel[kunciSel(state.titikUkur, kunciUtama, 'pembacaan', i)];
+
+      if (bacaan != null) payload.ocr[i] = bacaan;
+    }
   }
 
   void _tandai(String kunci, bool perluDicek) {
@@ -3097,8 +3156,9 @@ class LembarKerjaState {
     String kolom,
     int index,
     double? nilai,
-    bool perluDicek,
-  ) {
+    bool perluDicek, {
+    BacaanMesin? bacaanMesin,
+  }) {
     final kotak = state.kotak(tahap, kolom, index);
     // Pembacaan dipad ke resolusi titiknya (4,60), suhu nggak.
     //
@@ -3113,9 +3173,15 @@ class LembarKerjaState {
 
     kotak.text = baru;
 
+    final kunci = kunciSel(state.titikUkur, tahap, kolom, index);
+
     // Sel yang vonis servernya kuning/merah ditandai; kalau pindai ulang
     // mengisinya dengan vonis bagus, tandanya dilepas.
-    _tandai(kunciSel(state.titikUkur, tahap, kolom, index), perluDicek);
+    _tandai(kunci, perluDicek);
+
+    // Disimpan TERPISAH dari kotaknya — lihat [bacaanMesinSel] soal kenapa dia
+    // harus selamat waktu teknisi mengetik ulang isinya.
+    if (bacaanMesin != null) bacaanMesinSel[kunci] = bacaanMesin;
 
     return 1;
   }
