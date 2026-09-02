@@ -241,8 +241,9 @@ void main() {
           temuan: const [
             Temuan(
               tingkat: TingkatTemuan.peringatan,
-              kode: 'hitung_ulang_beda',
-              pesan: 'Hasil hitung ulang beda dari yang tersimpan.',
+              kode: 'standar_titik_hilang',
+              pesan: 'Titik ke-2: standar acuannya nggak ketemu, hitung ulang '
+                  'dilewati.',
             ),
           ],
         ),
@@ -253,7 +254,24 @@ void main() {
       await tester.pumpAndSettle();
 
       // Percobaan pertama HARUS ditolak dengan dialog konfirmasi.
-      expect(find.text('Hasil hitung ulang beda. Lanjut?'), findsOneWidget);
+      expect(find.text('Ada peringatan. Lanjut?'), findsOneWidget);
+
+      // Dan dialognya nyebut peringatan yang BENERAN nyala. Judul dialog dulu
+      // "Hasil hitung ulang beda. Lanjut?" buat peringatan apa pun — padahal
+      // yang nahan sesi ini standar acuan yang nggak ketemu, dan hitung
+      // ulangnya nggak pernah menghasilkan selisih satu pun.
+      //
+      // Dicari DI DALAM dialognya, bukan di seluruh layar. Versi pertama test
+      // ini nyari ke mana saja dan tetap hijau waktu cacatnya dikembalikan —
+      // yang kena teks yang sama di panel temuan di belakang dialog, jadi yang
+      // sebetulnya diuji cuma "panelnya kegambar".
+      expect(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.textContaining('standar acuannya nggak ketemu'),
+        ),
+        findsOneWidget,
+      );
       expect(service.aksi, contains(('setujui', false)));
 
       await tester.tap(find.text('TETAP SETUJUI'));
@@ -290,7 +308,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(service.aksi, contains(('setujui', false)));
-      expect(find.text('Hasil hitung ulang beda. Lanjut?'), findsNothing);
+      expect(find.text('Ada peringatan. Lanjut?'), findsNothing);
     });
   });
 

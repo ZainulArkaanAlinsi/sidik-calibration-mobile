@@ -3543,11 +3543,11 @@ class AppLocalizationsId extends AppLocalizations {
       'Ada temuan yang nahan penerbitan. Tombol setujui dimatiin.';
 
   @override
-  String get perhitKonfirmasiJudul => 'Hasil hitung ulang beda. Lanjut?';
+  String get perhitKonfirmasiJudul => 'Ada peringatan. Lanjut?';
 
   @override
   String get perhitKonfirmasiBody =>
-      'Angka hasil hitung ulang beda dari yang tersimpan. Kalau tetap disetujui, sertifikatnya terbit pakai angka yang tersimpan.';
+      'Kalau tetap disetujui, sertifikatnya terbit pakai angka yang tersimpan.';
 
   @override
   String get perhitKonfirmasiBatal => 'PERIKSA LAGI';
