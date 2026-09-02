@@ -164,6 +164,33 @@ void main() {
     expect(find.text('Hasil direktori'), findsOneWidget);
   });
 
+  /// Atribusi sumbernya ikut dipajang DI SHEET INI juga, bukan cuma di layar
+  /// PT baru.
+  ///
+  /// Dua tempat memajang hasil direktori, dan kewajiban ODbL melekat ke
+  /// TEMPAT HASILNYA DIPAJANG — jadi memperbaiki satu layar saja menyisakan
+  /// pelanggaran yang sama persis di layar satunya. Sheet ini justru yang
+  /// paling sering dilihat teknisi: dia jalur satu-ketukan, sementara layar PT
+  /// baru cuma dibuka waktu ada tabrakan nama.
+  ///
+  /// Kalimatnya datang dari server dan dipajang apa adanya — lihat
+  /// `test/atribusi_direktori_test.dart` buat penjagaan bahwa dia nggak boleh
+  /// ditulis mati di sisi HP.
+  testWidgets('atribusi sumbernya ikut dipajang di sheet pemilih', (
+    tester,
+  ) async {
+    await _bukaPemilih(tester, _LookupPencatat());
+    await _ketik(tester, 'Sinar');
+
+    expect(find.text('PT Sinar Rejeki Manufaktur'), findsOneWidget);
+    expect(
+      find.text('© OpenStreetMap contributors'),
+      findsOneWidget,
+      reason: 'Hasil direktori dipajang tanpa menyebut sumbernya — ODbL '
+          'mewajibkannya, dan hilangnya nggak ninggalin satu pun error.',
+    );
+  });
+
   testWidgets('satu ketukan → nama DAN alamat dua-duanya terkirim', (
     tester,
   ) async {
