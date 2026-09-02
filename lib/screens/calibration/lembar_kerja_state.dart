@@ -2666,8 +2666,7 @@ class LembarKerjaState {
             // Tebakan mesin per kolom, sejajar indeks sama deret nilainya.
             // Cuma ikut kalau ADA yang datang dari foto.
             for (final kolom in tabel.kolom)
-              if (_ocrKolomSpesifikasi(t, tabel, kolom.kode) case final o?)
-                '${kolom.kode}_ocr': o,
+              '${kolom.kode}_ocr': ?_ocrKolomSpesifikasi(t, tabel, kolom.kode),
           });
         }
 
