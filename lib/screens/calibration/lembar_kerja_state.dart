@@ -2663,6 +2663,11 @@ class LembarKerjaState {
                     t?.kotak(tabel.kunciTabel, kolom.kode, r).text ?? '',
                   ),
               ],
+            // Tebakan mesin per kolom, sejajar indeks sama deret nilainya.
+            // Cuma ikut kalau ADA yang datang dari foto.
+            for (final kolom in tabel.kolom)
+              if (_ocrKolomSpesifikasi(t, tabel, kolom.kode) case final o?)
+                '${kolom.kode}_ocr': o,
           });
         }
 
@@ -2687,6 +2692,43 @@ class LembarKerjaState {
         induk[jalur.last] = {'baris': isi};
       }
     }
+  }
+
+  /// Deret tebakan mesin buat satu kolom tabel yang disimpan ke
+  /// `spesifikasi_alat` — blok keterulangan / eksentrisitas / histeresis
+  /// lembar Timbangan.
+  ///
+  /// ## Kenapa tabel ini nggak lewat `measurements`
+  ///
+  /// Kamera lembar Timbangan mendarat di blok-blok ini, BUKAN di deret
+  /// pembacaan. Angkanya disimpan sebagai JSON di `spesifikasi_alat`, jadi
+  /// `raw_measurements.ocr_raw_text` — tempat tebakan dua puluh alat lain —
+  /// nggak pernah kesentuh sama sekali.
+  ///
+  /// Kalau blok ini nggak ikut membawa tebakannya, seluruh lembar Timbangan
+  /// hilang dari pengukuran akurasi, dan diamnya bakal kebaca sebagai
+  /// "kameranya bagus di Timbangan" — padahal artinya nol data.
+  ///
+  /// Balik `null`, bukan deret berisi null, kalau nggak ada satu pun sel yang
+  /// datang dari foto: kunci kosong bikin pembacanya mengira ada jalur kamera
+  /// di kolom itu.
+  List<Map<String, dynamic>?>? _ocrKolomSpesifikasi(
+    TitikState? t,
+    TabelHasil tabel,
+    String kolom,
+  ) {
+    if (t == null) return null;
+
+    // Indeksnya POSISI, sama persis dengan kunci yang dipakai deret nilainya
+    // di atas. Memakai nomor Repeat tercetak bikin tebakannya dibaca dari
+    // kunci yang nggak pernah ada.
+    final bacaan = [
+      for (var r = 0; r < tabel.pengulangan.length; r++)
+        bacaanMesinSel[kunciSel(t.titikUkur, tabel.kunciTabel, kolom, r)]
+            ?.toJson(),
+    ];
+
+    return bacaan.any((b) => b != null) ? bacaan : null;
   }
 
   /// Susun payload. **Nggak ada validasi di sini** — apa pun kondisinya, isian
@@ -2782,7 +2824,7 @@ class LembarKerjaState {
             for (final t in titik.values)
               if (deretPasangan(t.parameter) case final d?)
                 if (!t.pasanganKosong(d) && t.siapKirim)
-                  t.toSubmissionPasangan(d),
+                  _lampirkanBacaanMesinPasangan(t.toSubmissionPasangan(d), t, d),
           ]
         : null;
 
@@ -3116,6 +3158,60 @@ class LembarKerjaState {
     if (terisi > 0) adaIsianDariFoto = true;
 
     return terisi;
+  }
+
+  /// Tempelin tebakan mesin ke payload lembar BERPASANGAN (`standar_ocr` &
+  /// `uut_ocr`), sejajar indeks sama deret sisinya masing-masing.
+  ///
+  /// ## Kenapa dua sisi dipisah
+  ///
+  /// Sisi standar dan sisi UUT punya tebakan yang beda, dan menukarnya bikin
+  /// kolom `Correction` — selisih dua sisi itu — bergeser tanpa satu pun
+  /// error. Kuncinya karena itu dibangun dari [DeretPasangan.kunciStandar] /
+  /// [DeretPasangan.kunciUut], bukan dari satu kunci yang dipakai dua kali.
+  ///
+  /// ## Yang SENGAJA dilewati: lembar berkolom banyak
+  ///
+  /// Lembar Timer/Stopwatch menulis satu penunjukan di EMPAT kotak
+  /// (jam/menit/detik/milidetik), dan server menyimpannya sebagai SATU baris
+  /// dalam milidetik. Jadi empat tebakan mesin nggak punya satu kolom pun buat
+  /// ditaruh, dan menggabungkannya jadi satu teks berarti mengarang bacaan
+  /// yang nggak pernah dilihat pengenalnya. Dilewat di sini, bukan ditambal —
+  /// lihat `docs/temuan-gerbang0-ocr-model-lokal.md`.
+  Map<String, dynamic> _lampirkanBacaanMesinPasangan(
+    Map<String, dynamic> payload,
+    TitikState state,
+    DeretPasangan deret,
+  ) {
+    for (final (kunci, nama) in [
+      (deret.kunciStandar, 'standar'),
+      (deret.kunciUut, 'uut'),
+    ]) {
+      final kolom = deret.kolomUntuk(kunci);
+      if (kolom.length != 1) continue;
+
+      final nilai = payload[nama] as List<dynamic>;
+      final bacaan = <Map<String, dynamic>?>[];
+
+      for (var i = 0; i < nilai.length; i++) {
+        // Cuma buat sel yang angkanya beneran ikut terkirim — tebakan tanpa
+        // angka final nggak punya pasangan buat diadu.
+        bacaan.add(
+          nilai[i] == null
+              ? null
+              : bacaanMesinSel[kunciSel(
+                  state.titikUkur,
+                  kunci,
+                  kolom.first,
+                  i,
+                )]?.toJson(),
+        );
+      }
+
+      if (bacaan.any((b) => b != null)) payload['${nama}_ocr'] = bacaan;
+    }
+
+    return payload;
   }
 
   /// Tempelin tebakan mesin ke deret `ocr` payload, sejajar indeks sama
