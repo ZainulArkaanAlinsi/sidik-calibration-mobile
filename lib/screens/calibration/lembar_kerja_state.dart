@@ -1522,6 +1522,14 @@ class LembarKerjaState {
   /// menandatangani sertifikatnya manusia.
   final Set<String> matriksDariFoto = {};
 
+  /// Tebakan mesin per sel matriks yang keisi dari foto. Kuncinya
+  /// [kunciMatriks], sama persis kayak [matriksDariFoto].
+  ///
+  /// Sengaja nggak pernah dihapus waktu teknisi mengetik ulang — lihat
+  /// [bacaanMesinSel] soal kenapa pasangan (tebakan, angka final) itu
+  /// satu-satunya bahan buat mengukur akurasi kamera.
+  final Map<String, BacaanMesin> bacaanMesinMatriks = {};
+
   /// Keyed by nilai larutan standar (4.00 / 7.00 / 10.01).
   final Map<double, TitikState> titik = {};
 
@@ -3446,7 +3454,14 @@ class LembarKerjaState {
       if (kotak.text.trim().isNotEmpty) continue;
 
       kotak.text = s.teks.trim();
-      matriksDariFoto.add(kunciMatriks(b.kodeData, s.repeatNo));
+
+      final kunci = kunciMatriks(b.kodeData, s.repeatNo);
+      matriksDariFoto.add(kunci);
+      // Teks APA ADANYA, bukan `nilai` yang sudah jadi angka.
+      bacaanMesinMatriks[kunci] = BacaanMesin(
+        teksMentah: s.teks,
+        keyakinan: s.keyakinan,
+      );
       terisi++;
     }
 
@@ -3502,6 +3517,20 @@ class LembarKerjaState {
       tulis(b.kodeData, [
         for (final t in m.titikWaktu)
           _nilaiSelMatriks(b, LembarKerjaState.kunciMatriks(b.kodeData, t)),
+      ]);
+
+      // Tebakan mesin ditulis ke jalur yang SAMA, cuma berawalan `ocr.` —
+      // jadi pasangannya di server ketemu lewat jalur yang identik, bukan
+      // lewat kunci datar yang harus diurai ulang.
+      //
+      // `tulis` melewati deret yang isinya null semua, jadi baris yang nggak
+      // difoto nggak menitip kunci kosong.
+      tulis('ocr.${b.kodeData}', [
+        for (final t in m.titikWaktu)
+          bacaanMesinMatriks[LembarKerjaState.kunciMatriks(
+            b.kodeData,
+            t,
+          )]?.toJson(),
       ]);
     }
 
