@@ -17,12 +17,15 @@ import 'package:sidik_calibration/services/peta_tabel_foto.dart';
 /// cuma salah alamat: dia bikin selisih yang diukur bergeser, dan geserannya
 /// nggak ngasih gejala apa pun karena kedua angkanya tetap wajar.
 ///
-/// ## Lembar Timer/Stopwatch sengaja dilewati
+/// ## Lembar Timer/Stopwatch bentuknya beda
 ///
 /// Satu penunjukan di sana ditulis di EMPAT kotak (jam/menit/detik/milidetik)
-/// dan server menyimpannya sebagai SATU baris milidetik. Empat tebakan nggak
-/// punya satu kolom pun buat ditaruh, dan menggabungkannya jadi satu teks
-/// berarti mengarang bacaan yang nggak pernah dilihat pengenalnya.
+/// dan server menyimpannya sebagai SATU baris milidetik. Jadi tebakannya
+/// dikirim PER KOTAK, dan yang menyusunnya jadi satu penunjukan server —
+/// lewat `waktuKeMilidetik` yang sama dengan yang menyusun nilai finalnya.
+///
+/// Kalau layar yang menyusunnya, dua sisi memakai jalan yang beda; begitu
+/// salah satunya berubah, yang diadu bukan lagi dua besaran yang sama.
 void main() {
   LembarKerja bentuk(String kode) => LembarKerja.fromJson(
     jsonDecode(File('test/fixtures/lembar-kerja-$kode.json').readAsStringSync())
@@ -133,7 +136,7 @@ void main() {
     expect(baris.containsKey('uut_ocr'), isFalse);
   });
 
-  test('Timer/Stopwatch nggak mengirim kunci ocr — empat kotak, satu baris', () {
+  test('Timer/Stopwatch mengirim tebakan PER KOTAK, bukan satu teks gabungan', () {
     final b = bentuk('timer_stopwatch');
     final s = LembarKerjaState(bentuk: b, clientRequestId: 'uji-waktu')
       ..alat = const EquipmentLookup(
@@ -147,6 +150,13 @@ void main() {
     addTearDown(s.dispose);
 
     final standar = tabelDari(b).firstWhere((t) => t.deretStandar);
+    final kolomPertama = standar.kolom.first.kode;
+
+    expect(
+      standar.kolom.length,
+      greaterThan(1),
+      reason: 'Prasyarat: lembar ini memang berkolom banyak.',
+    );
 
     s.terapkanHasilFotoTabel(
       [sel(standar, titikBaris(s, standar, 0), '12')],
@@ -156,13 +166,26 @@ void main() {
     final measurements =
         s.toSubmission(draft: true).toJson()['measurements'] as List<dynamic>;
 
-    for (final m in measurements.cast<Map<String, dynamic>>()) {
-      expect(
-        m.containsKey('standar_ocr') || m.containsKey('uut_ocr'),
-        isFalse,
-        reason: 'Menggabungkan empat tebakan jadi satu teks itu mengarang '
-            'bacaan yang nggak pernah dilihat pengenalnya.',
-      );
-    }
+    final baris = measurements.cast<Map<String, dynamic>>().firstWhere(
+      (m) => m.containsKey('standar_ocr'),
+      orElse: () => throw StateError('Nggak ada baris yang membawa standar_ocr.'),
+    );
+
+    final tebakan = (baris['standar_ocr'] as List<dynamic>)
+        .firstWhere((b) => b != null) as Map<String, dynamic>;
+
+    // Berkunci KODE KOTAK, bukan `raw_text` di tingkat atas. Bentuk datar di
+    // sini berarti empat kotak diperas jadi satu bacaan yang nggak pernah
+    // dilihat pengenalnya.
+    expect(
+      tebakan.containsKey('raw_text'),
+      isFalse,
+      reason: 'Bentuk datar cuma buat lembar satu kolom.',
+    );
+    expect(tebakan.keys.first, kolomPertama);
+    expect(
+      (tebakan[kolomPertama] as Map<String, dynamic>)['raw_text'],
+      '12',
+    );
   });
 }

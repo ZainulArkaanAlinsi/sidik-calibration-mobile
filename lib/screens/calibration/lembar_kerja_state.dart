@@ -3169,14 +3169,16 @@ class LembarKerjaState {
   /// error. Kuncinya karena itu dibangun dari [DeretPasangan.kunciStandar] /
   /// [DeretPasangan.kunciUut], bukan dari satu kunci yang dipakai dua kali.
   ///
-  /// ## Yang SENGAJA dilewati: lembar berkolom banyak
+  /// ## Dua bentuk, ikut deret nilainya
   ///
-  /// Lembar Timer/Stopwatch menulis satu penunjukan di EMPAT kotak
-  /// (jam/menit/detik/milidetik), dan server menyimpannya sebagai SATU baris
-  /// dalam milidetik. Jadi empat tebakan mesin nggak punya satu kolom pun buat
-  /// ditaruh, dan menggabungkannya jadi satu teks berarti mengarang bacaan
-  /// yang nggak pernah dilihat pengenalnya. Dilewat di sini, bukan ditambal —
-  /// lihat `docs/temuan-gerbang0-ocr-model-lokal.md`.
+  ///  - **Satu kolom** (ketiga alat suhu): satu tebakan per ulangan.
+  ///  - **Banyak kolom** (Timer/Stopwatch): satu penunjukan ditulis di EMPAT
+  ///    kotak, jadi tebakannya juga PER KOTAK — `{jam: {…}, menit: {…}, …}`.
+  ///
+  /// Yang menyusun empat kotak jadi satu penunjukan **server**, lewat
+  /// `waktuKeMilidetik` yang sama dengan yang menyusun nilai finalnya. Kalau
+  /// layar yang menyusunnya, dua sisi memakai jalan yang beda — dan begitu
+  /// salah satunya berubah, yang diadu bukan lagi dua besaran yang sama.
   Map<String, dynamic> _lampirkanBacaanMesinPasangan(
     Map<String, dynamic> payload,
     TitikState state,
@@ -3187,24 +3189,36 @@ class LembarKerjaState {
       (deret.kunciUut, 'uut'),
     ]) {
       final kolom = deret.kolomUntuk(kunci);
-      if (kolom.length != 1) continue;
-
       final nilai = payload[nama] as List<dynamic>;
       final bacaan = <Map<String, dynamic>?>[];
 
       for (var i = 0; i < nilai.length; i++) {
         // Cuma buat sel yang angkanya beneran ikut terkirim — tebakan tanpa
         // angka final nggak punya pasangan buat diadu.
-        bacaan.add(
-          nilai[i] == null
-              ? null
-              : bacaanMesinSel[kunciSel(
-                  state.titikUkur,
-                  kunci,
-                  kolom.first,
-                  i,
-                )]?.toJson(),
-        );
+        if (nilai[i] == null) {
+          bacaan.add(null);
+
+          continue;
+        }
+
+        if (kolom.length == 1) {
+          bacaan.add(
+            bacaanMesinSel[kunciSel(state.titikUkur, kunci, kolom.first, i)]
+                ?.toJson(),
+          );
+
+          continue;
+        }
+
+        final perKotak = <String, dynamic>{};
+
+        for (final kode in kolom) {
+          final b = bacaanMesinSel[kunciSel(state.titikUkur, kunci, kode, i)];
+          if (b != null) perKotak[kode] = b.toJson();
+        }
+
+        // Kosong = nggak ada satu kotak pun yang datang dari foto.
+        bacaan.add(perKotak.isEmpty ? null : perKotak);
       }
 
       if (bacaan.any((b) => b != null)) payload['${nama}_ocr'] = bacaan;
