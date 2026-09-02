@@ -1522,6 +1522,14 @@ class LembarKerjaState {
   /// menandatangani sertifikatnya manusia.
   final Set<String> matriksDariFoto = {};
 
+  /// Tebakan mesin per sel matriks yang keisi dari foto. Kuncinya
+  /// [kunciMatriks], sama persis kayak [matriksDariFoto].
+  ///
+  /// Sengaja nggak pernah dihapus waktu teknisi mengetik ulang — lihat
+  /// [bacaanMesinSel] soal kenapa pasangan (tebakan, angka final) itu
+  /// satu-satunya bahan buat mengukur akurasi kamera.
+  final Map<String, BacaanMesin> bacaanMesinMatriks = {};
+
   /// Keyed by nilai larutan standar (4.00 / 7.00 / 10.01).
   final Map<double, TitikState> titik = {};
 
@@ -1543,6 +1551,20 @@ class LembarKerjaState {
   /// Kuncinya [kunciSel]. Dibersihin kalau selnya diisi ulang dengan vonis
   /// bagus di pindai berikutnya.
   final Set<String> selRendahKeyakinan = {};
+
+  /// Tebakan mesin per sel yang keisi dari foto. Kuncinya [kunciSel], sama
+  /// persis kayak [selRendahKeyakinan].
+  ///
+  /// **Sengaja nggak pernah dihapus waktu teknisi mengetik ulang.** Itu bukan
+  /// kelalaian: pasangan (tebakan mesin, angka yang akhirnya dikirim) justru
+  /// SATU-SATUNYA bahan buat menghitung akurasi kamera. Sebelum ini teknisi
+  /// mengoreksi di kotak yang sama, tebakannya tertimpa, dan yang sampai server
+  /// cuma hasil akhir — jadi tidak ada yang bisa menjawab "kameranya sering
+  /// salah atau nggak", termasuk buat metrik yang paling menentukan: sel yang
+  /// keisi otomatis dengan keyakinan tinggi padahal salah.
+  ///
+  /// Dikirim lewat `measurements[].ocr[]`; lihat [BacaanMesin].
+  final Map<String, BacaanMesin> bacaanMesinSel = {};
 
   /// Sel yang **admin** minta dibetulin — dibangun dari kode sel di
   /// [revisiField]. Kuncinya [kunciSel], sama persis kayak
@@ -2641,6 +2663,10 @@ class LembarKerjaState {
                     t?.kotak(tabel.kunciTabel, kolom.kode, r).text ?? '',
                   ),
               ],
+            // Tebakan mesin per kolom, sejajar indeks sama deret nilainya.
+            // Cuma ikut kalau ADA yang datang dari foto.
+            for (final kolom in tabel.kolom)
+              '${kolom.kode}_ocr': ?_ocrKolomSpesifikasi(t, tabel, kolom.kode),
           });
         }
 
@@ -2665,6 +2691,43 @@ class LembarKerjaState {
         induk[jalur.last] = {'baris': isi};
       }
     }
+  }
+
+  /// Deret tebakan mesin buat satu kolom tabel yang disimpan ke
+  /// `spesifikasi_alat` — blok keterulangan / eksentrisitas / histeresis
+  /// lembar Timbangan.
+  ///
+  /// ## Kenapa tabel ini nggak lewat `measurements`
+  ///
+  /// Kamera lembar Timbangan mendarat di blok-blok ini, BUKAN di deret
+  /// pembacaan. Angkanya disimpan sebagai JSON di `spesifikasi_alat`, jadi
+  /// `raw_measurements.ocr_raw_text` — tempat tebakan dua puluh alat lain —
+  /// nggak pernah kesentuh sama sekali.
+  ///
+  /// Kalau blok ini nggak ikut membawa tebakannya, seluruh lembar Timbangan
+  /// hilang dari pengukuran akurasi, dan diamnya bakal kebaca sebagai
+  /// "kameranya bagus di Timbangan" — padahal artinya nol data.
+  ///
+  /// Balik `null`, bukan deret berisi null, kalau nggak ada satu pun sel yang
+  /// datang dari foto: kunci kosong bikin pembacanya mengira ada jalur kamera
+  /// di kolom itu.
+  List<Map<String, dynamic>?>? _ocrKolomSpesifikasi(
+    TitikState? t,
+    TabelHasil tabel,
+    String kolom,
+  ) {
+    if (t == null) return null;
+
+    // Indeksnya POSISI, sama persis dengan kunci yang dipakai deret nilainya
+    // di atas. Memakai nomor Repeat tercetak bikin tebakannya dibaca dari
+    // kunci yang nggak pernah ada.
+    final bacaan = [
+      for (var r = 0; r < tabel.pengulangan.length; r++)
+        bacaanMesinSel[kunciSel(t.titikUkur, tabel.kunciTabel, kolom, r)]
+            ?.toJson(),
+    ];
+
+    return bacaan.any((b) => b != null) ? bacaan : null;
   }
 
   /// Susun payload. **Nggak ada validasi di sini** — apa pun kondisinya, isian
@@ -2711,12 +2774,15 @@ class LembarKerjaState {
 
     final measurements = titik.entries
         .where((e) => !bukanTitik.contains(e.key) && e.value.siapKirim)
-        .map(
-          (e) => e.value.toSubmission(
+        .map((e) {
+          final payload = e.value.toSubmission(
             kunciUtama: kunciUtama,
             kotakBaris: kotakBaris,
-          ),
-        )
+          );
+          _lampirkanBacaanMesin(payload, e.value, kunciUtama);
+
+          return payload;
+        })
         .toList();
 
     // Lembar ber-GRID nggak punya `titik` sama sekali — bentuknya nggak
@@ -2757,7 +2823,7 @@ class LembarKerjaState {
             for (final t in titik.values)
               if (deretPasangan(t.parameter) case final d?)
                 if (!t.pasanganKosong(d) && t.siapKirim)
-                  t.toSubmissionPasangan(d),
+                  _lampirkanBacaanMesinPasangan(t.toSubmissionPasangan(d), t, d),
           ]
         : null;
 
@@ -3075,12 +3141,122 @@ class LembarKerjaState {
       final nilai = parseAngka(s.teks);
       if (nilai == null) continue;
 
-      terisi += _isiSel(state, tabel.kunciTabel, s.fieldId, index, nilai, true);
+      terisi += _isiSel(
+        state,
+        tabel.kunciTabel,
+        s.fieldId,
+        index,
+        nilai,
+        true,
+        // Teks APA ADANYA, bukan `nilai` yang sudah jadi angka: yang mau diukur
+        // nanti persis apa yang dilihat pengenalnya, termasuk waktu dia salah.
+        bacaanMesin: BacaanMesin(teksMentah: s.teks, keyakinan: s.keyakinan),
+      );
     }
 
     if (terisi > 0) adaIsianDariFoto = true;
 
     return terisi;
+  }
+
+  /// Tempelin tebakan mesin ke payload lembar BERPASANGAN (`standar_ocr` &
+  /// `uut_ocr`), sejajar indeks sama deret sisinya masing-masing.
+  ///
+  /// ## Kenapa dua sisi dipisah
+  ///
+  /// Sisi standar dan sisi UUT punya tebakan yang beda, dan menukarnya bikin
+  /// kolom `Correction` — selisih dua sisi itu — bergeser tanpa satu pun
+  /// error. Kuncinya karena itu dibangun dari [DeretPasangan.kunciStandar] /
+  /// [DeretPasangan.kunciUut], bukan dari satu kunci yang dipakai dua kali.
+  ///
+  /// ## Dua bentuk, ikut deret nilainya
+  ///
+  ///  - **Satu kolom** (ketiga alat suhu): satu tebakan per ulangan.
+  ///  - **Banyak kolom** (Timer/Stopwatch): satu penunjukan ditulis di EMPAT
+  ///    kotak, jadi tebakannya juga PER KOTAK — `{jam: {…}, menit: {…}, …}`.
+  ///
+  /// Yang menyusun empat kotak jadi satu penunjukan **server**, lewat
+  /// `waktuKeMilidetik` yang sama dengan yang menyusun nilai finalnya. Kalau
+  /// layar yang menyusunnya, dua sisi memakai jalan yang beda — dan begitu
+  /// salah satunya berubah, yang diadu bukan lagi dua besaran yang sama.
+  Map<String, dynamic> _lampirkanBacaanMesinPasangan(
+    Map<String, dynamic> payload,
+    TitikState state,
+    DeretPasangan deret,
+  ) {
+    for (final (kunci, nama) in [
+      (deret.kunciStandar, 'standar'),
+      (deret.kunciUut, 'uut'),
+    ]) {
+      final kolom = deret.kolomUntuk(kunci);
+      final nilai = payload[nama] as List<dynamic>;
+      final bacaan = <Map<String, dynamic>?>[];
+
+      for (var i = 0; i < nilai.length; i++) {
+        // Cuma buat sel yang angkanya beneran ikut terkirim — tebakan tanpa
+        // angka final nggak punya pasangan buat diadu.
+        if (nilai[i] == null) {
+          bacaan.add(null);
+
+          continue;
+        }
+
+        if (kolom.length == 1) {
+          bacaan.add(
+            bacaanMesinSel[kunciSel(state.titikUkur, kunci, kolom.first, i)]
+                ?.toJson(),
+          );
+
+          continue;
+        }
+
+        final perKotak = <String, dynamic>{};
+
+        for (final kode in kolom) {
+          final b = bacaanMesinSel[kunciSel(state.titikUkur, kunci, kode, i)];
+          if (b != null) perKotak[kode] = b.toJson();
+        }
+
+        // Kosong = nggak ada satu kotak pun yang datang dari foto.
+        bacaan.add(perKotak.isEmpty ? null : perKotak);
+      }
+
+      if (bacaan.any((b) => b != null)) payload['${nama}_ocr'] = bacaan;
+    }
+
+    return payload;
+  }
+
+  /// Tempelin tebakan mesin ke deret `ocr` payload, sejajar indeks sama
+  /// `pembacaan`.
+  ///
+  /// Dua hal di sini gampang salah dan dua-duanya gagal TANPA error:
+  ///
+  ///  - Kuncinya dibangun dari [TitikState.titikUkur], **bukan**
+  ///    `titikUkurEfektif` yang dipakai payload. Yang dipakai [_isiSel] waktu
+  ///    menyimpan yang pertama, dan di lembar yang titiknya bervarian dua nilai
+  ///    itu beda — memakai yang salah bikin seluruh tebakan hilang diam-diam.
+  ///  - Tahapnya [kunciTabelPembacaan], bukan tabel mana pun yang kebetulan
+  ///    difoto. Foto tabel As-found nggak punya padanan di `measurements[].ocr`
+  ///    (server memang selalu nulis tahap itu manual), jadi dia memang harus
+  ///    nggak nempel — bukan nempel di deret yang salah.
+  void _lampirkanBacaanMesin(
+    TitikLembarKerja payload,
+    TitikState state,
+    String kunciUtama,
+  ) {
+    for (var i = 0; i < payload.ocr.length; i++) {
+      // Cuma buat sel yang angkanya beneran ikut terkirim. Tebakan buat sel
+      // yang akhirnya dikosongkan teknisi nggak punya pasangan buat diadu, dan
+      // server juga melewatinya — `pembacaan` null berarti barisnya nggak lahir
+      // sama sekali.
+      if (payload.pembacaan[i] == null) continue;
+
+      final bacaan =
+          bacaanMesinSel[kunciSel(state.titikUkur, kunciUtama, 'pembacaan', i)];
+
+      if (bacaan != null) payload.ocr[i] = bacaan;
+    }
   }
 
   void _tandai(String kunci, bool perluDicek) {
@@ -3097,8 +3273,9 @@ class LembarKerjaState {
     String kolom,
     int index,
     double? nilai,
-    bool perluDicek,
-  ) {
+    bool perluDicek, {
+    BacaanMesin? bacaanMesin,
+  }) {
     final kotak = state.kotak(tahap, kolom, index);
     // Pembacaan dipad ke resolusi titiknya (4,60), suhu nggak.
     //
@@ -3113,9 +3290,15 @@ class LembarKerjaState {
 
     kotak.text = baru;
 
+    final kunci = kunciSel(state.titikUkur, tahap, kolom, index);
+
     // Sel yang vonis servernya kuning/merah ditandai; kalau pindai ulang
     // mengisinya dengan vonis bagus, tandanya dilepas.
-    _tandai(kunciSel(state.titikUkur, tahap, kolom, index), perluDicek);
+    _tandai(kunci, perluDicek);
+
+    // Disimpan TERPISAH dari kotaknya — lihat [bacaanMesinSel] soal kenapa dia
+    // harus selamat waktu teknisi mengetik ulang isinya.
+    if (bacaanMesin != null) bacaanMesinSel[kunci] = bacaanMesin;
 
     return 1;
   }
@@ -3380,7 +3563,14 @@ class LembarKerjaState {
       if (kotak.text.trim().isNotEmpty) continue;
 
       kotak.text = s.teks.trim();
-      matriksDariFoto.add(kunciMatriks(b.kodeData, s.repeatNo));
+
+      final kunci = kunciMatriks(b.kodeData, s.repeatNo);
+      matriksDariFoto.add(kunci);
+      // Teks APA ADANYA, bukan `nilai` yang sudah jadi angka.
+      bacaanMesinMatriks[kunci] = BacaanMesin(
+        teksMentah: s.teks,
+        keyakinan: s.keyakinan,
+      );
       terisi++;
     }
 
@@ -3411,8 +3601,11 @@ class LembarKerjaState {
   ) {
     final hasil = <String, dynamic>{};
 
-    void tulis(String jalur, List<dynamic> nilai) {
-      if (nilai.every((v) => v == null)) return;
+    void tulis(String jalur, List<dynamic> nilai, {bool paksa = false}) {
+      // `paksa` cuma dipakai deret `ocr`, dan alasannya bukan kenyamanan —
+      // lihat komentar di pemanggilnya. Deret nilai yang kosong semua tetap
+      // dibuang seperti biasa.
+      if (!paksa && nilai.every((v) => v == null)) return;
 
       final bagian = jalur.split('.');
       dynamic wadah = hasil;
@@ -3430,13 +3623,50 @@ class LembarKerjaState {
       (wadah as Map<String, dynamic>)[bagian.last] = nilai;
     }
 
+    // Blok `ocr` cuma ada kalau memang ada yang difoto — lembar yang seluruhnya
+    // diketik tangan nggak menitip kunci kosong.
+    final adaFoto = bacaanMesinMatriks.isNotEmpty;
+
     for (final b in m.semuaBaris) {
       if (b.kodeData.isEmpty) continue;
 
-      tulis(b.kodeData, [
+      final nilai = [
         for (final t in m.titikWaktu)
           _nilaiSelMatriks(b, LembarKerjaState.kunciMatriks(b.kodeData, t)),
-      ]);
+      ];
+
+      // Baris yang sama sekali kosong nggak dikirim — dan karena itu, deret
+      // `ocr`-nya juga nggak boleh dikirim. Lihat di bawah kenapa itu penting.
+      if (nilai.every((v) => v == null)) continue;
+
+      tulis(b.kodeData, nilai);
+
+      if (!adaFoto) continue;
+
+      /*
+       * Tebakan mesin ditulis ke jalur yang SAMA, cuma berawalan `ocr.` — jadi
+       * pasangannya di server ketemu lewat jalur yang identik, bukan lewat
+       * kunci datar yang harus diurai ulang.
+       *
+       * `paksa: true`, dan ini BUKAN kelalaian. `_ratakanWadahBernomor`
+       * meratakan wadah bernomor (`suhu.disk`) jadi List **menurut urutan
+       * kunci yang ada**, bukan menurut nomornya. Jadi kalau cuma Temp Disk 3
+       * yang difoto sementara ketiga disknya terisi, deret `ocr` yang cuma
+       * berisi satu kunci bakal mendarat di indeks 0 — dan tebakan Disk 3
+       * tercatat sebagai tebakan Disk 1.
+       *
+       * Salah pasangan begitu nggak pernah kelihatan: angkanya wajar,
+       * jumlahnya pas, dan yang bohong cuma pasangannya. Dengan `paksa`, deret
+       * `ocr` punya kunci yang SAMA PERSIS dengan deret nilainya, jadi
+       * dua-duanya rata jadi List dengan panjang & urutan yang sama.
+       */
+      tulis('ocr.${b.kodeData}', [
+        for (final t in m.titikWaktu)
+          bacaanMesinMatriks[LembarKerjaState.kunciMatriks(
+            b.kodeData,
+            t,
+          )]?.toJson(),
+      ], paksa: true);
     }
 
     if (tambahan != null && tambahan.kodeData.isNotEmpty) {

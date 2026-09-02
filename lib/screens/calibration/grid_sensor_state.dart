@@ -11,6 +11,7 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../models/lembar_kerja.dart';
+import '../../models/lembar_kerja_submission.dart';
 import '../../services/peta_tabel_foto.dart';
 
 /// Satu baris termokopel di dalam satu set point.
@@ -51,6 +52,13 @@ class BarisSensorState {
   /// di jalur tabel: angka hasil OCR itu **saran**, dan yang menandatangani
   /// sertifikatnya manusia.
   final Set<int> dariFoto = {};
+
+  /// Tebakan mesin per index pengulangan, buat sel yang keisi dari foto.
+  ///
+  /// Sengaja TERPISAH dari [pembacaanCtl] dan nggak pernah dihapus waktu
+  /// teknisi mengetik ulang: pasangan (tebakan, angka final) itu satu-satunya
+  /// bahan buat mengukur akurasi kamera. Lihat [BacaanMesin].
+  final Map<int, BacaanMesin> bacaanMesin = {};
 
   /// Nomor termokopelnya sendiri datang dari FOTO.
   ///
@@ -111,6 +119,9 @@ class BarisDeretState {
   /// Index pengulangan yang isinya datang dari FOTO — lihat
   /// [BarisSensorState.dariFoto].
   final Set<int> dariFoto = {};
+
+  /// Tebakan mesin per index — lihat [BarisSensorState.bacaanMesin].
+  final Map<int, BacaanMesin> bacaanMesin = {};
 
   int get jumlahTerisi => nilai.where((n) => n != null).length;
   bool get kosongSemua => jumlahTerisi == 0;
@@ -362,7 +373,13 @@ class SetPointGridState {
       if (ctl == null || ctl.text.trim().isNotEmpty) continue;
 
       ctl.text = s.teks.trim();
-      _tandaiFoto(s.titikUkur, index);
+      // Teks APA ADANYA, bukan `nilai` yang sudah jadi angka: yang mau diukur
+      // nanti persis apa yang dilihat pengenalnya, termasuk waktu dia salah.
+      _tandaiFoto(
+        s.titikUkur,
+        index,
+        BacaanMesin(teksMentah: s.teks, keyakinan: s.keyakinan),
+      );
       terisi++;
     }
 
@@ -430,20 +447,24 @@ class SetPointGridState {
     return sensor.last;
   }
 
-  void _tandaiFoto(double penanda, int index) {
+  void _tandaiFoto(double penanda, int index, BacaanMesin bacaan) {
     if (penanda == kunciIndikator) {
       indikator.dariFoto.add(index);
+      indikator.bacaanMesin[index] = bacaan;
 
       return;
     }
 
     if (penanda == kunciSuhuRuang) {
       suhuRuang.dariFoto.add(index);
+      suhuRuang.bacaanMesin[index] = bacaan;
 
       return;
     }
 
-    _barisNomor(penanda).dariFoto.add(index);
+    final baris = _barisNomor(penanda);
+    baris.dariFoto.add(index);
+    baris.bacaanMesin[index] = bacaan;
   }
 
   void bacaUlang() {
@@ -535,6 +556,29 @@ class GridSensorState {
   /// berpengaruh justru bikin hasil aplikasi beda dari hitungan lab di kertas.
   /// Yang kecetak di sertifikat itu Suhu Ruangan awal/akhir di blok Kondisi
   /// Lingkungan; nama mirip, hal beda.
+  /// Deret tebakan mesin siap kirim, sejajar indeks sama deret angkanya.
+  ///
+  /// Balikin `null` — bukan deret berisi null — kalau nggak ada satu pun sel
+  /// yang datang dari foto. Kunci kosong yang tetap terkirim bikin pembacanya
+  /// mengira ada jalur kamera di baris itu, dan buat baris grid yang jumlahnya
+  /// sampai 40 per set point, itu juga beban yang nggak dibayar apa pun.
+  ///
+  /// Panjangnya SELALU sepanjang deret angkanya. Server membaca
+  /// `$deret[$urutan]` dengan indeks yang sama persis, jadi deret yang
+  /// dirapatkan bikin tebakan Repeat 3 tercatat sebagai tebakan Repeat 1 —
+  /// pasangan yang salah, tanpa satu pun error.
+  Map<String, dynamic>? _ocr(
+    String kunci,
+    Map<int, BacaanMesin> bacaan,
+    int panjang,
+  ) {
+    if (bacaan.isEmpty) return null;
+
+    return {
+      kunci: [for (var i = 0; i < panjang; i++) bacaan[i]?.toJson()],
+    };
+  }
+
   List<Map<String, dynamic>> payload({
     required String satuan,
     required bool pakaiChannel,
@@ -550,6 +594,7 @@ class GridSensorState {
           // Dikirim penuh sepanjang kolom, termasuk null-nya. Backend yang
           // menyaring; layar nggak boleh menggeser nomor pengulangan.
           'pembacaan': s.pembacaan,
+          ...?_ocr('ocr', s.bacaanMesin, s.pembacaan.length),
         });
       }
 
@@ -558,7 +603,19 @@ class GridSensorState {
         'satuan': satuan,
         if (grid.isNotEmpty) 'sensor_grid': grid,
         if (!sp.indikator.kosongSemua) 'indikator': sp.indikator.nilai,
+        if (!sp.indikator.kosongSemua)
+          ...?_ocr(
+            'indikator_ocr',
+            sp.indikator.bacaanMesin,
+            sp.indikator.nilai.length,
+          ),
         if (!sp.suhuRuang.kosongSemua) 'suhu_ruang': sp.suhuRuang.nilai,
+        if (!sp.suhuRuang.kosongSemua)
+          ...?_ocr(
+            'suhu_ruang_ocr',
+            sp.suhuRuang.bacaanMesin,
+            sp.suhuRuang.nilai.length,
+          ),
       });
     }
 
