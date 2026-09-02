@@ -46,7 +46,12 @@ void main() {
   test('sel yang DIKETIK ULANG teknisi tetap membawa tebakan aslinya', () {
     final s = GridSensorState(bentuk: bentuk());
 
-    s.setPoint.first.terapkanHasilFoto([sel(3, 1, '1S,1', skor: 0.88)]);
+    // Tebakannya ANGKA yang salah, bukan teks ngawur: jalur grid membuang teks
+    // yang nggak jadi angka sebelum sel mana pun kesentuh
+    // (`terapkanHasilFoto`), jadi bacaan seperti `1S,1` memang nggak pernah
+    // mendarat — dan karena nggak mendarat, dia juga nggak punya angka final
+    // buat diadu. Perilaku lama, sengaja nggak diubah di sini.
+    s.setPoint.first.terapkanHasilFoto([sel(3, 1, '15,7', skor: 0.88)]);
 
     // Teknisi melihat angkanya salah dan membetulkannya di kotak yang sama.
     s.setPoint.first.sensor.first.pembacaanCtl[0].text = '15,1';
@@ -58,7 +63,7 @@ void main() {
     final ocr = (baris['ocr'] as List<dynamic>)[0] as Map<String, dynamic>;
     expect(
       ocr['raw_text'],
-      '1S,1',
+      '15,7',
       reason:
           'Tanpa baris ini, tebakan yang KETAHUAN salah justru yang hilang.',
     );

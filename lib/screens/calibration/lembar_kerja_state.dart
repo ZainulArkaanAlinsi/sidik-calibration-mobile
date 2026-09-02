@@ -3492,8 +3492,11 @@ class LembarKerjaState {
   ) {
     final hasil = <String, dynamic>{};
 
-    void tulis(String jalur, List<dynamic> nilai) {
-      if (nilai.every((v) => v == null)) return;
+    void tulis(String jalur, List<dynamic> nilai, {bool paksa = false}) {
+      // `paksa` cuma dipakai deret `ocr`, dan alasannya bukan kenyamanan —
+      // lihat komentar di pemanggilnya. Deret nilai yang kosong semua tetap
+      // dibuang seperti biasa.
+      if (!paksa && nilai.every((v) => v == null)) return;
 
       final bagian = jalur.split('.');
       dynamic wadah = hasil;
@@ -3511,27 +3514,50 @@ class LembarKerjaState {
       (wadah as Map<String, dynamic>)[bagian.last] = nilai;
     }
 
+    // Blok `ocr` cuma ada kalau memang ada yang difoto — lembar yang seluruhnya
+    // diketik tangan nggak menitip kunci kosong.
+    final adaFoto = bacaanMesinMatriks.isNotEmpty;
+
     for (final b in m.semuaBaris) {
       if (b.kodeData.isEmpty) continue;
 
-      tulis(b.kodeData, [
+      final nilai = [
         for (final t in m.titikWaktu)
           _nilaiSelMatriks(b, LembarKerjaState.kunciMatriks(b.kodeData, t)),
-      ]);
+      ];
 
-      // Tebakan mesin ditulis ke jalur yang SAMA, cuma berawalan `ocr.` —
-      // jadi pasangannya di server ketemu lewat jalur yang identik, bukan
-      // lewat kunci datar yang harus diurai ulang.
-      //
-      // `tulis` melewati deret yang isinya null semua, jadi baris yang nggak
-      // difoto nggak menitip kunci kosong.
+      // Baris yang sama sekali kosong nggak dikirim — dan karena itu, deret
+      // `ocr`-nya juga nggak boleh dikirim. Lihat di bawah kenapa itu penting.
+      if (nilai.every((v) => v == null)) continue;
+
+      tulis(b.kodeData, nilai);
+
+      if (!adaFoto) continue;
+
+      /*
+       * Tebakan mesin ditulis ke jalur yang SAMA, cuma berawalan `ocr.` — jadi
+       * pasangannya di server ketemu lewat jalur yang identik, bukan lewat
+       * kunci datar yang harus diurai ulang.
+       *
+       * `paksa: true`, dan ini BUKAN kelalaian. `_ratakanWadahBernomor`
+       * meratakan wadah bernomor (`suhu.disk`) jadi List **menurut urutan
+       * kunci yang ada**, bukan menurut nomornya. Jadi kalau cuma Temp Disk 3
+       * yang difoto sementara ketiga disknya terisi, deret `ocr` yang cuma
+       * berisi satu kunci bakal mendarat di indeks 0 — dan tebakan Disk 3
+       * tercatat sebagai tebakan Disk 1.
+       *
+       * Salah pasangan begitu nggak pernah kelihatan: angkanya wajar,
+       * jumlahnya pas, dan yang bohong cuma pasangannya. Dengan `paksa`, deret
+       * `ocr` punya kunci yang SAMA PERSIS dengan deret nilainya, jadi
+       * dua-duanya rata jadi List dengan panjang & urutan yang sama.
+       */
       tulis('ocr.${b.kodeData}', [
         for (final t in m.titikWaktu)
           bacaanMesinMatriks[LembarKerjaState.kunciMatriks(
             b.kodeData,
             t,
           )]?.toJson(),
-      ]);
+      ], paksa: true);
     }
 
     if (tambahan != null && tambahan.kodeData.isNotEmpty) {

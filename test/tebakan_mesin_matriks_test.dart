@@ -28,6 +28,8 @@ void main() {
     },
     'baris': [
       {'kode': 'disk_1', 'label': 'Temp. Disk 1', 'kode_data': 'suhu.disk.0'},
+      {'kode': 'disk_2', 'label': 'Temp. Disk 2', 'kode_data': 'suhu.disk.1'},
+      {'kode': 'disk_3', 'label': 'Temp. Disk 3', 'kode_data': 'suhu.disk.2'},
       {
         'kode': 'indikator_pressure',
         'label': 'Indikator Pressure',
@@ -87,9 +89,9 @@ void main() {
 
     final p = s.payloadMatriks(m, null);
 
-    expect((p['suhu']['disk']['0'] as List<dynamic>)[0], 121.10);
+    expect((p['suhu']['disk'][0] as List<dynamic>)[0], 121.10);
 
-    final ocr = p['ocr']['suhu']['disk']['0'] as List<dynamic>;
+    final ocr = p['ocr']['suhu']['disk'][0] as List<dynamic>;
     expect(
       (ocr[0] as Map<String, dynamic>)['raw_text'],
       '12I,10',
@@ -142,13 +144,46 @@ void main() {
       sel(penanda(m, 'suhu.disk.0'), 2, '121,20'),
     ]);
 
-    final ocr = s.payloadMatriks(m, null)['ocr']['suhu']['disk']['0'] as List<dynamic>;
+    final ocr = s.payloadMatriks(m, null)['ocr']['suhu']['disk'][0] as List<dynamic>;
 
     expect((ocr[1] as Map<String, dynamic>)['raw_text'], '121,20');
     expect(
       (ocr[1] as Map<String, dynamic>).containsKey('confidence'),
       isFalse,
       reason: 'Skor karangan persis yang bikin sel salah divonis hijau.',
+    );
+  });
+
+  test('tebakan Disk 3 nggak boleh mendarat sebagai tebakan Disk 1', () {
+    final s = state();
+    addTearDown(s.dispose);
+    final m = matriks();
+
+    // Ketiga disk terisi, TAPI cuma Disk 3 yang difoto.
+    //
+    // `_ratakanWadahBernomor` meratakan `suhu.disk` jadi List menurut urutan
+    // kunci yang ada, bukan menurut nomornya. Deret `ocr` yang cuma berisi satu
+    // kunci karena itu bakal mendarat di indeks 0 — dan tebakan Disk 3 tercatat
+    // sebagai tebakan Disk 1. Angkanya wajar, jumlahnya pas, dan yang bohong
+    // cuma pasangannya.
+    for (final d in ['suhu.disk.0', 'suhu.disk.1', 'suhu.disk.2']) {
+      for (final t in [1, 2, 3]) {
+        s.kotakMatriks(d, t).text = '121,10';
+      }
+    }
+
+    s.terapkanHasilFotoMatriks(m, [
+      sel(penanda(m, 'suhu.disk.2'), 2, '121,20'),
+    ]);
+
+    final ocr = s.payloadMatriks(m, null)['ocr']['suhu']['disk'] as List<dynamic>;
+
+    expect(ocr.length, 3, reason: 'Sepanjang deret disknya, bukan cuma yang difoto.');
+    expect(ocr[0], everyElement(isNull), reason: 'Disk 1 nggak difoto.');
+    expect(ocr[1], everyElement(isNull), reason: 'Disk 2 nggak difoto.');
+    expect(
+      ((ocr[2] as List<dynamic>)[1] as Map<String, dynamic>)['raw_text'],
+      '121,20',
     );
   });
 }
