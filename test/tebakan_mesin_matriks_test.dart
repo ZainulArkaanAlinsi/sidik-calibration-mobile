@@ -79,8 +79,13 @@ void main() {
     addTearDown(s.dispose);
     final m = matriks();
 
+    // Tebakannya ANGKA yang salah, bukan teks ngawur: jalur matriks membuang
+    // teks yang nggak jadi angka sebelum sel mana pun kesentuh
+    // (`terapkanHasilFotoMatriks`), jadi bacaan seperti `12I,10` memang nggak
+    // pernah mendarat — dan yang nggak mendarat nggak punya angka final buat
+    // diadu. Perilaku lama, sengaja nggak diubah di sini.
     s.terapkanHasilFotoMatriks(m, [
-      sel(penanda(m, 'suhu.disk.0'), 1, '12I,10', skor: 0.81),
+      sel(penanda(m, 'suhu.disk.0'), 1, '121,70', skor: 0.81),
     ]);
 
     // Teknisi membetulkannya di kotak yang sama — jalur yang dulu menghapus
@@ -94,7 +99,7 @@ void main() {
     final ocr = p['ocr']['suhu']['disk'][0] as List<dynamic>;
     expect(
       (ocr[0] as Map<String, dynamic>)['raw_text'],
-      '12I,10',
+      '121,70',
       reason: 'Tebakan yang KETAHUAN salah justru yang paling berharga.',
     );
     expect((ocr[0] as Map<String, dynamic>)['confidence'], 0.81);
@@ -166,15 +171,18 @@ void main() {
     // kunci karena itu bakal mendarat di indeks 0 — dan tebakan Disk 3 tercatat
     // sebagai tebakan Disk 1. Angkanya wajar, jumlahnya pas, dan yang bohong
     // cuma pasangannya.
-    for (final d in ['suhu.disk.0', 'suhu.disk.1', 'suhu.disk.2']) {
-      for (final t in [1, 2, 3]) {
-        s.kotakMatriks(d, t).text = '121,10';
-      }
-    }
-
+    // Difoto DULU: jalur foto nggak pernah menimpa sel yang sudah ada isinya —
+    // angka yang sudah diketik orang adalah keputusan orang.
     s.terapkanHasilFotoMatriks(m, [
       sel(penanda(m, 'suhu.disk.2'), 2, '121,20'),
     ]);
+
+    for (final d in ['suhu.disk.0', 'suhu.disk.1', 'suhu.disk.2']) {
+      for (final t in [1, 2, 3]) {
+        final kotak = s.kotakMatriks(d, t);
+        if (kotak.text.trim().isEmpty) kotak.text = '121,10';
+      }
+    }
 
     final ocr = s.payloadMatriks(m, null)['ocr']['suhu']['disk'] as List<dynamic>;
 
