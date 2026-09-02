@@ -3579,11 +3579,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'There are findings that block issuance. Approve is disabled.';
 
   @override
-  String get perhitKonfirmasiJudul => 'Recalculation differs. Continue?';
+  String get perhitKonfirmasiJudul => 'Warnings found. Continue?';
 
   @override
   String get perhitKonfirmasiBody =>
-      'The recalculated numbers differ from what was saved. Approving anyway issues the certificate with the saved numbers.';
+      'Approving anyway issues the certificate with the saved numbers.';
 
   @override
   String get perhitKonfirmasiBatal => 'CHECK AGAIN';

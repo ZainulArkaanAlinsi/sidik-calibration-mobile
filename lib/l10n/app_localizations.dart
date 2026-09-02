@@ -6406,13 +6406,13 @@ abstract class AppLocalizations {
   /// No description provided for @perhitKonfirmasiJudul.
   ///
   /// In en, this message translates to:
-  /// **'Recalculation differs. Continue?'**
+  /// **'Warnings found. Continue?'**
   String get perhitKonfirmasiJudul;
 
   /// No description provided for @perhitKonfirmasiBody.
   ///
   /// In en, this message translates to:
-  /// **'The recalculated numbers differ from what was saved. Approving anyway issues the certificate with the saved numbers.'**
+  /// **'Approving anyway issues the certificate with the saved numbers.'**
   String get perhitKonfirmasiBody;
 
   /// No description provided for @perhitKonfirmasiBatal.

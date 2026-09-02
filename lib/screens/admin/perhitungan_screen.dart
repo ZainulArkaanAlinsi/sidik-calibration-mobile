@@ -118,11 +118,39 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
     // Peringatan nahan SEKALI. Admin lihat temuannya, lalu lanjut secara
     // sadar — bukan tombol yang diam-diam ngirim ulang sendiri.
     if (hasil!.butuhKonfirmasi) {
+      // Peringatan yang BENERAN nyala ikut disebut, bukan cuma kalimat umum.
+      //
+      // Dulu dialog ini nulis "Hasil hitung ulang beda. Lanjut?" untuk SEMUA
+      // peringatan, padahal backend punya lima belas kode dan selisih hitung
+      // ulang cuma salah satunya. Admin yang membacanya, membuka datanya, lalu
+      // menemukan hitung ulangnya baik-baik saja belajar bahwa peringatan di
+      // sini bohong — dan sesudah itu "TETAP SETUJUI" ditekan tanpa dibaca,
+      // termasuk waktu peringatannya benar.
+      //
+      // Yang dipakai temuan dari `validasi`, BUKAN `hasil.pesan`: pesan backend
+      // ditutup kalimat "kirim ulang dengan `abaikan_peringatan: true`" yang
+      // ditujukan ke pemanggil API, bukan ke admin yang di depannya sudah ada
+      // tombolnya.
+      final peringatan = (hasil!.validasi ?? _validasi)
+              ?.pada(TingkatTemuan.peringatan) ??
+          const <Temuan>[];
+
       final lanjut = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
           title: Text(l10n.perhitKonfirmasiJudul),
-          content: Text(l10n.perhitKonfirmasiBody),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final t in peringatan)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text('• ${t.pesan}'),
+                ),
+              Text(l10n.perhitKonfirmasiBody),
+            ],
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
