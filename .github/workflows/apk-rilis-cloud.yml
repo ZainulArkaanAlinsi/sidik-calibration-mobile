@@ -145,6 +145,34 @@ jobs:
           echo "::error::Secret ANDROID_KEYSTORE_BASE64 belum dipasang. Tanpa dia APK-nya bakal ditandatangani kunci DEBUG yang beda tiap run, dan tiap teknisi yang menekan Update ditolak Android. Cara bikin keystore + masang keempat secretnya ada di docs/rilis-tanda-tangan-apk.md."
           exit 1
 
+      # "Ada kunci" dan "kunci YANG BENAR" itu dua hal berbeda, dan penjagaan
+      # di atas cuma menjawab yang pertama.
+      #
+      # Secret keystore-nya bisa tergantikan tanpa ada yang menyadarinya:
+      # keystore hilang lalu dibuat lagi, satu orang memasang punyanya sendiri,
+      # atau `gh secret set` salah repo. Semua kunci itu SAH — bukan debug,
+      # lolos apksigner, APK-nya terbit dengan tenang. Yang gagal baru teknisi
+      # di lapangan, dan gagalnya permanen: Android menolak memasang rilis yang
+      # sertifikatnya beda, dan satu-satunya jalan keluar buat dia uninstall
+      # manual — yang menghapus token login dan foto profilnya.
+      #
+      # Sidik jarinya sendiri BUKAN rahasia: dia tercetak di tiap APK yang
+      # sudah terpasang di HP mana pun. Jadi variable, bukan secret — alasannya
+      # sama dengan API_BASE_URL: menyensornya di log nggak nambah aman, cuma
+      # bikin nggak kebaca waktu nyari sebab error.
+      #
+      # Ngambil nilainya dari keystore yang sudah ada, tanpa perlu jalanin CI:
+      #   keytool -list -v -keystore sidik-rilis.jks -alias <alias> \
+      #     | grep 'SHA256:'
+      - name: Pastiin sidik jari penanda tangan udah dipatok
+        env:
+          SHA_HARAPAN: ${{ vars.APK_SHA256 }}
+        run: |
+          if [ -z "${SHA_HARAPAN:-}" ]; then
+            echo "::error::Repository variable APK_SHA256 belum diisi. Tanpa dia workflow ini cuma bisa memastikan APK-nya bukan ditandatangani kunci debug — bukan bahwa dia ditandatangani kunci yang SAMA dengan rilis sebelumnya. Cara ngambil nilainya ada di komentar di atas langkah ini dan di docs/rilis-tanda-tangan-apk.md."
+            exit 1
+          fi
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -361,12 +389,22 @@ jobs:
       # APK yang tetap terbit, tetap terpasang, dan baru ketahuan rusak di
       # tangan teknisi berminggu-minggu kemudian.
       #
-      # Sidik jarinya ikut ditulis ke ringkasan run, dan ITU yang menjawab
-      # pemeriksaan yang dulu cuma bisa ditulis sebagai saran di laporan audit:
-      # bandingkan SHA-256 dua rilis beruntun — kalau beda, update-sendiri
-      # bakal ditolak. Sekarang angkanya tercatat sendiri tiap rilis, jadi
-      # tidak ada yang perlu mengingat untuk memeriksanya.
-      - name: Pastiin APK-nya bukan ditandatangani kunci debug
+      # Dua hal diperiksa di sini, dan yang kedua yang menutup lubangnya:
+      #
+      #   1. Sertifikatnya bukan kunci debug — menangkap rantai yang putus.
+      #   2. Sidik jarinya SAMA PERSIS dengan `APK_SHA256` — menangkap kunci
+      #      rilis lain yang sah, yang lolos pemeriksaan pertama tanpa gejala.
+      #
+      # Yang kedua dulu cuma saran di laporan audit ("bandingkan SHA-256 dua
+      # rilis beruntun"), lalu jadi angka yang dicetak ke ringkasan run. Dua-
+      # duanya bergantung pada ada yang INGAT membacanya — dan penjagaan yang
+      # bergantung pada ingatan itu penjagaan yang sudah gagal, cuma belum
+      # ketahuan kapan. Sekarang yang membandingkan CI, dan rilis yang tidak
+      # cocok berhenti SEBELUM langkah penerbitan (GitHub Release & Firebase
+      # App Distribution dua-duanya di bawah langkah ini).
+      - name: Pastiin APK-nya ditandatangani kunci rilis yang benar
+        env:
+          SHA_HARAPAN: ${{ vars.APK_SHA256 }}
         run: |
           set -euo pipefail
 
@@ -403,12 +441,31 @@ jobs:
             exit 1
           fi
 
+          # Inti langkah ini. Menolak `CN=Android Debug` cuma menutup SATU kunci
+          # salah; kunci rilis lain yang sah lolos begitu saja — dan justru itu
+          # yang bikin rusaknya senyap, karena semua tandanya kelihatan benar.
+          #
+          # Dinormalkan dua-duanya sebelum diadu: `keytool` menulis sidik jarinya
+          # dengan titik dua dan huruf besar, `apksigner` tanpa titik dua dan
+          # huruf kecil. Membandingkannya mentah-mentah bikin nilai yang BENAR
+          # ditolak, dan penjagaan yang salah menolak bakal dimatikan orang
+          # berikutnya — itu cara paling cepat kehilangan penjagaan ini.
+          rapikan() { printf '%s' "$1" | tr 'A-Z' 'a-z' | tr -d ' :'; }
+
+          AKTUAL=$(rapikan "$SHA")
+          HARAPAN=$(rapikan "${SHA_HARAPAN:-}")
+
+          if [ "$AKTUAL" != "$HARAPAN" ]; then
+            echo "::error::Sidik jari penanda tangan BEDA dari yang dipatok. Dipatok: $SHA_HARAPAN — terpakai: $SHA. Salah satu dari dua: secret keystore-nya tergantikan (dan rilis ini bakal ditolak Android di HP yang sudah terpasang), atau kuncinya memang sengaja diganti dan variable APK_SHA256 belum ikut diperbarui. Jangan lanjutkan tanpa tahu yang mana — lihat docs/rilis-tanda-tangan-apk.md bagian 'Kalau kuncinya memang diganti'."
+            exit 1
+          fi
+
           {
             echo "Penanda tangan: $DN"
             echo ""
-            echo "SHA-256: \`$SHA\`"
+            echo "SHA-256: \`$SHA\` — cocok dengan \`APK_SHA256\`."
             echo ""
-            echo "Angka itu HARUS sama dengan rilis sebelumnya. Kalau beda, tiap teknisi yang menekan \"Update\" bakal ditolak Android sampai dia uninstall manual."
+            echo "Kecocokan itu diperiksa CI, bukan mata: rilis dengan sidik jari lain nggak akan sampai ke langkah penerbitan."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4

@@ -252,6 +252,64 @@ void main() {
       );
     });
 
+    /// Angka yang SALAH KETIK juga hilang — dan dulu dia hilang tanpa
+    /// dilaporkan sama sekali.
+    ///
+    /// `50x` gagal di-parse, jadi nilai acuannya null dan barisnya dilewat
+    /// seperti baris tanpa acuan. Bedanya: sebelum diperbaiki, penghitung
+    /// baris-dilewat memeriksa HASIL parse-nya. Satuan kosong dan pembacaan
+    /// yang juga gagal di-parse membuat baris ini terbaca sebagai baris kosong
+    /// melompong — jadi yang muncul pesan sukses biasa, padahal ada yang
+    /// diketik dan dibuang.
+    ///
+    /// Ini bentuk kehilangan yang paling mahal: teknisi melihat konfirmasi
+    /// berhasil, menutup layarnya, dan angkanya tidak pernah ada.
+    testWidgets('baris yang angkanya salah ketik tetap dilaporkan', (
+      tester,
+    ) async {
+      perbesarViewport(tester);
+      final perekam = _PerekamKalibrasi();
+      await tester.pumpWidget(_app(perekam));
+      await tester.pumpAndSettle();
+      await bukaLayar(tester);
+
+      await pilihIdentitas(tester);
+      // Cuma nilai acuannya yang diisi, dan isinya bukan angka. Satuan &
+      // pembacaan sengaja dibiarkan kosong — itu keadaan yang dulu lolos.
+      await tester.enterText(find.byType(TextField).at(2), '50x');
+      await tekan(tester, 'SIMPAN DRAFT');
+
+      expect(perekam.panggilan, 1);
+      expect(perekam.terakhir!.measurements, isEmpty);
+      expect(
+        find.textContaining('1 baris'),
+        findsOneWidget,
+        reason: 'Angka salah ketik dibuang diam-diam, layarnya bilang sukses.',
+      );
+    });
+
+    /// JANGAN kebablasan: baris yang benar-benar kosong tetap TIDAK dilaporkan.
+    ///
+    /// Penjagaan di atas gampang diperbaiki kebablasan jadi "hitung semua baris
+    /// yang dilewat", dan hasilnya peringatan di tiap draft kosong. Peringatan
+    /// yang isinya tidak benar melatih orang mengabaikan yang asli — dan yang
+    /// asli di sini yang menahan angka hilang.
+    testWidgets('baris kosong melompong tetap nggak dilaporkan', (
+      tester,
+    ) async {
+      perbesarViewport(tester);
+      final perekam = _PerekamKalibrasi();
+      await tester.pumpWidget(_app(perekam));
+      await tester.pumpAndSettle();
+      await bukaLayar(tester);
+
+      await pilihIdentitas(tester);
+      await tekan(tester, 'SIMPAN DRAFT');
+
+      expect(find.text('Draft kalibrasi disimpan.'), findsOneWidget);
+      expect(find.textContaining('baris'), findsNothing);
+    });
+
     /// Identitas tetap wajib, bahkan buat draft.
     testWidgets('tanpa kategori tetap ditahan', (tester) async {
       perbesarViewport(tester);

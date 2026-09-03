@@ -77,6 +77,28 @@ class AvatarNotifier extends Notifier<String?> {
   /// Pemilik laci yang sedang dibaca/ditulis. Null = belum login.
   int? _idPengguna;
 
+  /// Nomor perpindahan keadaan terakhir. Naik tiap kali ADA yang menentukan
+  /// foto mana yang berlaku — `build()` maupun [setPath].
+  ///
+  /// Identitas akun saja tidak cukup buat menjaganya. Bacaan disk yang telat
+  /// selesai masih milik akun yang SAMA, jadi penjagaan `idPengguna` melewatkan
+  /// urutan ini: teknisi memilih foto baru selagi bacaan awal masih di jalan →
+  /// bacaan itu pulang membawa path LAMA → foto yang barusan dipilih terganti
+  /// sendiri di layar, tanpa ada yang menyentuh apa pun.
+  ///
+  /// Yang tersimpan di disk tetap yang baru, dan itu justru yang bikin gejalanya
+  /// membingungkan: fotonya balik lagi sesudah aplikasi dibuka ulang.
+  int _generasi = 0;
+
+  /// Antrean tulis ke disk — satu rantai, dijalankan menurut urutan panggilan.
+  ///
+  /// `SharedPreferences.setString`/`remove` itu dua panggilan async terpisah.
+  /// Dua [setPath] yang tumpang tindih bikin dua-duanya melayang bersamaan, dan
+  /// yang SELESAI belakangan yang menang — belum tentu yang DIPANGGIL
+  /// belakangan. Hasilnya kunci per-orang menyimpan pilihan yang sudah
+  /// ditinggalkan, sementara layarnya menampilkan yang benar.
+  Future<void> _antreanTulis = Future<void>.value();
+
   @override
   String? build() {
     // `ref.watch`, bukan `ref.read`. Yang dibeli bukan kebenaran datanya —
@@ -86,24 +108,27 @@ class AvatarNotifier extends Notifier<String?> {
     final pengguna = ref.watch(authProvider).value;
     _idPengguna = pengguna?.id;
 
-    _muat(_idPengguna);
+    _muat(_idPengguna, ++_generasi);
 
     return null;
   }
 
   String _kunci(int idPengguna) => '$_awalanAvatar$idPengguna';
 
-  Future<void> _muat(int? idPengguna) async {
+  Future<void> _muat(int? idPengguna, int generasi) async {
     if (idPengguna == null) return;
 
     try {
       final prefs = await SharedPreferences.getInstance();
       final path = prefs.getString(_kunci(idPengguna));
 
-      // Akunnya keburu ganti selagi baca disk. Tanpa penjagaan ini, foto orang
-      // sebelumnya masih bisa mendarat di layar orang yang sekarang lewat
-      // pembacaan yang telat selesai — kebocoran yang sama, cuma lewat waktu.
-      if (idPengguna != _idPengguna) return;
+      // DUA syarat, dan keduanya perlu:
+      //
+      //  - akun berubah  → foto orang sebelumnya mendarat di layar orang
+      //    sekarang lewat bacaan yang telat selesai;
+      //  - generasi berubah, akun tetap → pilihan yang lebih baru ketimpa
+      //    bacaan disk yang lebih tua.
+      if (idPengguna != _idPengguna || generasi != _generasi) return;
 
       if (path != null && path.isNotEmpty) state = path;
     } catch (_) {
@@ -113,21 +138,36 @@ class AvatarNotifier extends Notifier<String?> {
 
   Future<void> setPath(String? path) async {
     final idPengguna = _idPengguna;
+    final nilai = (path != null && path.isNotEmpty) ? path : null;
 
-    state = (path != null && path.isNotEmpty) ? path : null;
+    _generasi++;
+    state = nilai;
 
     // Belum login berarti nggak ada laci yang boleh ditulis. Menyimpannya ke
     // laci bersama bikin foto itu muncul di layar siapa pun yang login
     // berikutnya — persis yang dicegah berkas ini.
     if (idPengguna == null) return;
 
+    // `nilai` yang DITANGKAP di sini, bukan `state` yang dibaca nanti. Bedanya
+    // kelihatan waktu akunnya keluar selagi simpanan masih di jalan: `build()`
+    // memulangkan state ke null, dan tulisan yang membaca `state` belakangan
+    // bakal MENGHAPUS foto pemilik laci ini — bukan menyimpannya.
+    _antreanTulis = _antreanTulis.then((_) => _tulis(idPengguna, nilai));
+
+    await _antreanTulis;
+  }
+
+  /// Nggak pernah melempar: kegagalan menyimpan bukan alasan buat memutus
+  /// antreannya, dan rantai [_antreanTulis] cuma jalan terus kalau tiap
+  /// mata rantainya selesai normal.
+  Future<void> _tulis(int idPengguna, String? nilai) async {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      if (state == null) {
+      if (nilai == null) {
         await prefs.remove(_kunci(idPengguna));
       } else {
-        await prefs.setString(_kunci(idPengguna), state!);
+        await prefs.setString(_kunci(idPengguna), nilai);
       }
     } catch (_) {
       // Gagal nyimpen bukan alasan buat nggak ganti foto di sesi ini.

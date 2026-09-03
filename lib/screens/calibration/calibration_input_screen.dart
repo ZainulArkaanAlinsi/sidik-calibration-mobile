@@ -435,7 +435,18 @@ class _FormState extends ConsumerState<_Form> {
         // melompong tidak kehilangan apa pun, dan melaporkannya bikin
         // peringatan yang isinya tidak benar — dan peringatan palsu melatih
         // orang mengabaikan yang asli.
-        if (satuan.isNotEmpty || pembacaan.isNotEmpty) titikTanpaAcuan++;
+        //
+        // Yang diperiksa TEKS MENTAHnya, bukan hasil parse-nya. Bedanya persis
+        // pada baris yang paling perlu dilaporkan: target `50x` dan pembacaan
+        // yang salah ketik dua-duanya jadi null sesudah di-parse, jadi
+        // pemeriksaan berbasis hasil parse membacanya sebagai baris kosong —
+        // barisnya dibuang, dan layarnya bilang semuanya tersimpan.
+        final adaYangDiketik =
+            titik.nilaiTarget.text.trim().isNotEmpty ||
+            satuan.isNotEmpty ||
+            titik.pembacaan.any((c) => c.text.trim().isNotEmpty);
+
+        if (adaYangDiketik) titikTanpaAcuan++;
         continue;
       }
 

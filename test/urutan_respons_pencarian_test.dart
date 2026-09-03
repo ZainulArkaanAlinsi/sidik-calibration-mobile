@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:sidik_calibration/models/equipment.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/equipment_provider.dart';
 import 'package:sidik_calibration/providers/master_data_provider.dart';
 import 'package:sidik_calibration/providers/penjaga_urutan_muat.dart';
+import 'package:sidik_calibration/services/equipment_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 
@@ -199,6 +201,82 @@ void main() {
     });
   });
 
+  /// Yang dibawa pulang sebuah permintaan bukan cuma `state`.
+  ///
+  /// `EquipmentController` menyimpan nomor halaman terakhirnya di FIELD, dan
+  /// dulu field itu ditulis di dalam `build()` — sebelum penjaganya sempat
+  /// menolak hasilnya. Jadi `state` dijaga, `_lastPage` tidak: pencarian lama
+  /// yang pulang belakangan meninggalkan `lastPage` milik kata kunci yang sudah
+  /// tidak ada di kotaknya, dan "muat lebih banyak" berikutnya meminta halaman
+  /// yang bukan miliknya lalu menempelkannya ke daftar yang salah.
+  ///
+  /// Di sini controller ASLINYA yang diuji, bukan notifier tiruan — yang harus
+  /// dibuktikan justru field milik controller itu. Determinismenya dijaga
+  /// dengan cara lain: layanannya menahan tiap balasan sampai test-nya yang
+  /// melepas, dan jumlah permintaan yang sudah berangkat ikut diperiksa di tiap
+  /// langkah supaya build tak terduga bikin test-nya MERAH, bukan salah hitung
+  /// diam-diam.
+  group('metadata halaman ikut dijaga urutannya', () {
+    test('pencarian lama nggak meninggalkan lastPage-nya', () async {
+      final layanan = _LayananBertahap();
+
+      final w = ProviderContainer(
+        overrides: [
+          tokenStorageProvider.overrideWithValue(InMemoryTokenStorage()),
+          authServiceProvider.overrideWithValue(
+            MockAuthService(jeda: Duration.zero),
+          ),
+          equipmentServiceProvider.overrideWithValue(layanan),
+        ],
+      );
+      addTearDown(w.dispose);
+
+      await w
+          .read(authProvider.notifier)
+          .login(identifier: 'SDK-0001', password: 'rahasia123');
+
+      w.listen(equipmentProvider, (_, _) {});
+      await putar();
+
+      // Build pertama: satu halaman saja.
+      expect(layanan.antrean, hasLength(1));
+      layanan.jawab(0, lastPage: 1);
+      await putar();
+
+      final notifier = w.read(equipmentProvider.notifier);
+      expect(notifier.bisaMuatLagi, isFalse);
+
+      // Teknisi mengetik "jang", lalu melanjutkannya jadi "jangka".
+      unawaited(notifier.cari('jang'));
+      await putar();
+      unawaited(notifier.cari('jangka'));
+      await putar();
+
+      expect(
+        layanan.antrean,
+        hasLength(3),
+        reason: 'Jumlah permintaannya bukan yang diatur test — hasilnya bukan '
+            'bukti balapan, cuma kebetulan.',
+      );
+
+      // "jangka" pulang duluan: satu halaman.
+      layanan.jawab(2, lastPage: 1);
+      await putar();
+
+      // "jang" pulang belakangan: sembilan halaman. Hasilnya ketinggalan, jadi
+      // NOMOR HALAMANNYA pun harus ikut dibuang.
+      layanan.jawab(1, lastPage: 9);
+      await putar();
+
+      expect(
+        notifier.bisaMuatLagi,
+        isFalse,
+        reason: 'lastPage punya pencarian lama ketinggalan di controller — '
+            '"muat lebih banyak" bakal minta halaman 2 milik kata kunci lain.',
+      );
+    });
+  });
+
   /// Yang tidak dibuktikan grup di atas: lima pintu aslinya benar-benar
   /// memakai penjaganya.
   ///
@@ -228,4 +306,43 @@ void main() {
       expect(wadah.read(equipmentProvider.notifier), isA<PenjagaUrutanMuat>());
     });
   });
+}
+
+/// Layanan alat yang tiap balasannya ditahan sampai test-nya melepas.
+///
+/// Bedanya dari `MockEquipmentService`: yang itu menjawab langsung, jadi tidak
+/// pernah ada dua permintaan yang sedang di jalan bersamaan — dan balapan yang
+/// tidak pernah terjadi tidak membuktikan apa pun.
+class _LayananBertahap implements EquipmentService {
+  final antrean = <Completer<EquipmentPage>>[];
+
+  void jawab(int ke, {required int lastPage}) {
+    antrean[ke].complete(
+      EquipmentPage(items: const [], currentPage: 1, lastPage: lastPage),
+    );
+  }
+
+  @override
+  Future<EquipmentPage> daftar(
+    String token, {
+    String? search,
+    String? kategori,
+    String? status,
+    int page = 1,
+  }) {
+    final penunggu = Completer<EquipmentPage>();
+    antrean.add(penunggu);
+    return penunggu.future;
+  }
+
+  @override
+  Future<Equipment> simpan(String token, Equipment data) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Equipment> ubah(String token, Equipment data) =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> hapus(String token, int id) => throw UnimplementedError();
 }

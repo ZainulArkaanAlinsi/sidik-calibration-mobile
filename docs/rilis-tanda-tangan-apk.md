@@ -1,8 +1,18 @@
 # Kunci penanda tangan APK rilis
 
 Status: **belum dipasang** — workflow "APK rilis (nyambung server)" gagal di
-detik pertama sampai keempat secret di bawah ada. Itu disengaja; alasannya di
-bagian terakhir.
+detik pertama sampai keempat secret **dan** satu variable di bawah ada. Itu
+disengaja; alasannya di bagian terakhir.
+
+Lima hal yang harus dipasang, dan lima-limanya wajib:
+
+| Nama | Jenis | Menjawab |
+|---|---|---|
+| `ANDROID_KEYSTORE_BASE64` | Secret | keystore-nya sendiri |
+| `ANDROID_KEYSTORE_PASSWORD` | Secret | password keystore |
+| `ANDROID_KEY_ALIAS` | Secret | alias kunci di dalamnya |
+| `ANDROID_KEY_PASSWORD` | Secret | password kunci |
+| `APK_SHA256` | **Variable** | kunci yang mana — lihat "Patok sidik jarinya" |
 
 ## Kenapa aplikasi ini butuh kunci yang tetap
 
@@ -114,6 +124,56 @@ sama dengan `FIREBASE_SERVICE_ACCOUNT`: nilainya tidak ikut tertanam ke dalam
 APK, dan bocornya berarti orang lain bisa membangun APK yang Android terima
 sebagai pembaruan sah aplikasi ini.
 
+## Patok sidik jarinya — langkah kelima, dan bukan opsional
+
+Empat secret di atas menjawab *"ada kunci"*. Yang belum dijawab: **kunci yang
+MANA.**
+
+Secret keystore bisa tergantikan tanpa ada yang menyadarinya — keystore hilang
+lalu dibuat lagi, satu orang memasang punyanya sendiri, `gh secret set` salah
+repo. Semua kunci itu sah: bukan debug, lolos `apksigner`, APK-nya terbit
+dengan tenang. Yang gagal baru teknisi di lapangan, dan gagalnya permanen.
+
+Ambil sidik jarinya dari keystore yang tadi dibuat:
+
+```bash
+keytool -list -v -keystore sidik-rilis.jks -alias sidik-rilis | grep 'SHA256:'
+# SHA256: 3F:2A:...:0C
+```
+
+Lalu patok sebagai **repository variable** (bukan secret):
+
+```bash
+gh variable set APK_SHA256    # tempel nilai SHA256 di atas
+```
+
+**Variable, bukan Secret.** Sidik jari sertifikat tercetak di tiap APK yang
+sudah terpasang di HP mana pun — menyembunyikannya tidak menambah keamanan apa
+pun, dan menyensornya jadi `***` di log justru bikin tidak kebaca waktu mencari
+sebab kegagalan. Alasan yang sama dengan `API_BASE_URL`.
+
+Titik dua dan huruf besarnya boleh ikut. Workflow menormalkan kedua bentuk
+sebelum membandingkan, karena `keytool` menulisnya `3F:2A:…` sementara
+`apksigner` menulisnya `3f2a…` — dan penjagaan yang menolak nilai yang benar
+adalah penjagaan yang akan dimatikan orang berikutnya.
+
+### Kalau kuncinya memang diganti
+
+Ganti `APK_SHA256` **dalam commit/aksi yang sama** dengan penggantian keystore-
+nya. Kalau CI menggagalkan rilis karena sidik jarinya beda, jawab dulu yang
+mana dari dua ini sebelum menyentuh variable-nya:
+
+- **Keystore-nya tergantikan tanpa disengaja** → jangan perbarui variable-nya.
+  Kembalikan keystore aslinya dari cadangan; rilis ini memang tidak boleh
+  terbit.
+- **Kuncinya sengaja diganti** → perbarui variable-nya, dan sadari ongkosnya:
+  seluruh teknisi harus uninstall-pasang manual sekali, sama seperti "Ongkos
+  sekali di awal" di atas.
+
+Yang tidak boleh: memperbarui `APK_SHA256` supaya CI-nya hijau, tanpa tahu
+kenapa dia berubah. Itu mematikan penjagaannya sambil kelihatan seperti
+memperbaikinya.
+
 ## Build lokal
 
 `android/key.properties` tidak ada di checkout bersih, dan itu **sengaja**:
@@ -165,20 +225,36 @@ yang salah jalur, satu properti yang kosong, atau blok signing yang tidak
 tersambung ke `buildTypes` — ketiganya menghasilkan APK yang tetap terbit dan
 tetap terpasang.
 
-Karena itu ada langkah **"Pastiin APK-nya bukan ditandatangani kunci debug"**
-sesudah build. Dia menjalankan `apksigner verify --print-certs`, menggagalkan
-run kalau penanda tangannya `CN=Android Debug`, dan menulis sidik jari SHA-256
-ke ringkasan run.
+Karena itu ada langkah **"Pastiin APK-nya ditandatangani kunci rilis yang
+benar"** sesudah build. Dia menjalankan `apksigner verify --print-certs`, lalu
+menggagalkan run kalau salah satu dari dua ini kena:
 
-Angka itu yang dibandingkan antar rilis:
+| Yang diperiksa | Yang ketangkep |
+|---|---|
+| Penanda tangannya bukan `CN=Android Debug` | rantai `key.properties` → `signingConfigs` → `buildTypes` yang putus |
+| Sidik jarinya sama persis dengan `APK_SHA256` | kunci rilis LAIN yang sah — lolos pemeriksaan pertama tanpa gejala |
+
+Baris kedua yang menutup lubangnya. Menolak kunci debug cuma menutup satu kunci
+salah; keystore pengganti yang sah lolos begitu saja, dan semua tandanya
+kelihatan benar sampai teknisi menekan "Update".
+
+Perbandingannya **dikerjakan CI, bukan mata**. Sebelumnya angkanya cuma dicetak
+ke ringkasan run dengan catatan "harus sama dengan rilis sebelumnya" — dan
+penjagaan yang bergantung pada ada yang ingat membacanya adalah penjagaan yang
+sudah gagal, cuma belum ketahuan kapan.
+
+Rilis yang sidik jarinya tidak cocok berhenti **sebelum** langkah penerbitan:
+GitHub Release dan Firebase App Distribution dua-duanya di bawah langkah ini,
+jadi APK yang salah kunci tidak pernah sampai ke tangan siapa pun.
+
+Memeriksa manual dua APK yang sudah terbit tetap bisa, dan rumusnya sama:
 
 ```bash
 apksigner verify --print-certs sidik-kalibrasi-1.0.41.apk | grep SHA-256
 apksigner verify --print-certs sidik-kalibrasi-1.0.42.apk | grep SHA-256
 ```
 
-Sama = update-sendiri jalan. Beda = tidak. Sekarang tercatat sendiri tiap rilis,
-jadi tidak ada yang perlu ingat memeriksanya.
+Sama = update-sendiri jalan. Beda = tidak.
 
 ## Rujukan
 

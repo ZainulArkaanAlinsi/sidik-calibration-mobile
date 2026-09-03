@@ -153,6 +153,68 @@ void main() {
     });
   });
 
+  group('balapan di dalam satu akun', () {
+    /// Bacaan disk yang telat selesai nggak boleh menimpa pilihan yang lebih
+    /// baru — walau akunnya sama.
+    ///
+    /// Penjagaan `idPengguna` nggak menangkap urutan ini: dua-duanya milik
+    /// akun yang sama, jadi syaratnya terpenuhi dan foto lama tetap mendarat.
+    /// Yang terlihat teknisi: dia memilih foto, fotonya muncul sebentar, lalu
+    /// berganti sendiri jadi yang lama tanpa ada yang menyentuh apa pun.
+    ///
+    /// Urutan di test ini deterministik, bukan kebetulan: `w.listen` menjalankan
+    /// `build()` sampai `_muat` menggantung di bacaan disknya, dan `setPath`
+    /// di baris berikutnya jalan SEBELUM bacaan itu pulang.
+    test('pilihan baru nggak ketimpa bacaan disk yang lebih tua', () async {
+      SharedPreferences.setMockInitialValues({'avatar.v1.1': '/foto/lama.jpg'});
+
+      final w = wadah();
+      await login(w, 'SDK-0001');
+
+      // Sengaja TANPA pump: bacaan awalnya ditinggal menggantung.
+      w.listen(avatarPathProvider, (_, _) {});
+      await w.read(avatarPathProvider.notifier).setPath('/foto/baru.jpg');
+
+      expect(
+        await avatar(w),
+        '/foto/baru.jpg',
+        reason: 'Bacaan disk yang lebih tua menimpa foto yang barusan dipilih.',
+      );
+    });
+
+    /// Simpanan yang masih di jalan menyimpan nilai yang DIBAWANYA SENDIRI,
+    /// bukan `state` yang dibaca belakangan.
+    ///
+    /// Bedanya kelihatan waktu akunnya keluar sebelum simpanannya mendarat:
+    /// `build()` memulangkan state ke null, dan tulisan yang membaca `state`
+    /// belakangan bakal MENGHAPUS laci pemiliknya — foto yang barusan dipilih
+    /// hilang permanen, karena dia nggak punya salinan di server.
+    ///
+    /// Catatan jujur soal test ini: dia mengunci perilaku yang benar, tapi
+    /// merahnya pada kode lama bergantung siapa yang menang balapan. Yang
+    /// dijamin cuma satu arah — dengan nilai yang ditangkap, dia hijau
+    /// SELALU, bukan kadang-kadang.
+    test('simpanan yang masih di jalan nggak kehapus waktu akunnya keluar',
+        () async {
+      final w = wadah();
+      await login(w, 'SDK-0001');
+      w.listen(avatarPathProvider, (_, _) {});
+
+      // Sengaja nggak di-`await`: itu persis yang terjadi waktu teknisi
+      // menekan "keluar" sedetik sesudah memilih foto.
+      final simpan = w.read(avatarPathProvider.notifier).setPath('/foto/budi.jpg');
+      await logout(w);
+      await simpan;
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(
+        prefs.getString('avatar.v1.1'),
+        '/foto/budi.jpg',
+        reason: 'Logout di tengah simpanan justru menghapus foto pemiliknya.',
+      );
+    });
+  });
+
   group('kunci global lama', () {
     test('nggak pernah dibaca, jadi nggak diwariskan ke siapa pun', () async {
       SharedPreferences.setMockInitialValues({
