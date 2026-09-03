@@ -58,6 +58,28 @@ enum TahapPembacaan {
       : TahapPembacaan.sesudahAdjustment;
 }
 
+/// Angka dari JSON yang bisa datang sebagai `num` **atau** `String`.
+///
+/// Kolom `decimal(20,8)` MySQL dipulangkan driver sebagai string di sebagian
+/// konfigurasi, dan sebagai angka di sebagian lain. Yang menentukan bukan kode
+/// kita — jadi dua-duanya diterima di sini, sekali, alih-alih ditebak per
+/// pemanggil.
+///
+/// Hari ini jalur normalnya aman: `RawMeasurement::casts()` di backend
+/// meng-cast `titik_ukur` ke `'float'`, jadi JSON-nya selalu angka. Fungsi ini
+/// tetap ada karena cast itu satu baris di repo lain yang bisa hilang tanpa
+/// menerbitkan error di sini — yang terjadi cuma barisnya raib dari daftar,
+/// diam-diam, lewat `catch (_)` di `parseListAman`.
+///
+/// `null` kalau memang tidak ada nilainya ATAU tidak bisa dibaca sebagai
+/// angka. Pemanggil yang menentukan artinya — jangan dijadikan 0 di sini:
+/// nol itu angka yang sah di sebagian kolom.
+double? _angkaLuwes(Object? nilai) => switch (nilai) {
+  num n => n.toDouble(),
+  String s => double.tryParse(s.trim()),
+  _ => null,
+};
+
 /// Satu pembacaan mentah (`pembacaan_mentah` di response) — baris asli yang
 /// diinput teknisi, sebelum diringkas jadi rata-rata di [MeasurementResult].
 /// Cuma ikut di response detail sesi (`GET /api/calibrations/{id}`), nggak di
@@ -170,10 +192,24 @@ class RawMeasurement {
       id: (json['id'] as num).toInt(),
       titikKe: (json['titik_ke'] as num).toInt(),
       // Backend ngirim decimal(20,8) — bisa nyampe sebagai angka atau string.
-      titikUkur:
-          (json['titik_ukur'] as num?)?.toDouble() ??
-          double.tryParse('${json['titik_ukur']}') ??
-          0,
+      //
+      // Sebelumnya perlindungan itu ditulis begini:
+      //
+      //     (json['titik_ukur'] as num?)?.toDouble()
+      //         ?? double.tryParse('${json['titik_ukur']}') ?? 0
+      //
+      // dan baris keduanya TIDAK PERNAH tercapai. `as num?` cuma lolos buat
+      // `null` atau `num`; begitu nilainya String — persis kasus yang disebut
+      // komentarnya sendiri — ekspresi pertamanya sudah melempar `TypeError`
+      // di situ juga. Jadi yang tertulis sebagai penjaga sebenarnya jalur yang
+      // menjatuhkan barisnya.
+      //
+      // Akibatnya tidak kelihatan sama sekali: exception-nya ditelan
+      // `parseListAman` (`catch (_)`), barisnya hilang dari daftar tanpa
+      // jejak, dan penjaga `kebuang` di `lembar_kerja_screen` — yang justru
+      // dibangun supaya "angka yang nggak ketemu barisnya HARUS diomongin" —
+      // bekerja SESUDAH parsing, jadi tidak pernah melihatnya.
+      titikUkur: _angkaLuwes(json['titik_ukur']) ?? 0,
       standardId: (json['standard_id'] as num?)?.toInt(),
       pembacaanKe: (json['pembacaan_ke'] as num).toInt(),
       pembacaan: (json['pembacaan'] as num).toDouble(),

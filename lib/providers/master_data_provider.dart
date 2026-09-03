@@ -14,6 +14,7 @@ import '../services/organization_service.dart';
 import '../services/user_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
+import 'penjaga_urutan_muat.dart';
 import 'simpanan_pelanggan_provider.dart';
 
 /// Live sejak 14 Jul (`docs/kontrak-api.md` §8) — admin doang.
@@ -153,7 +154,8 @@ final organizationProvider =
       retry: (retryCount, error) => null,
     );
 
-class OrganizationController extends AsyncNotifier<Organization> {
+class OrganizationController extends AsyncNotifier<Organization>
+    with PenjagaUrutanMuat<Organization> {
   @override
   Future<Organization> build() async {
     // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
@@ -166,8 +168,7 @@ class OrganizationController extends AsyncNotifier<Organization> {
   }
 
   Future<void> muatUlang() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build());
+    await muatDenganPenjaga(build);
   }
 
   Future<void> simpan(Organization data) async {
@@ -190,7 +191,8 @@ final customerProvider =
       retry: (retryCount, error) => null,
     );
 
-class CustomerController extends AsyncNotifier<List<Customer>> {
+class CustomerController extends AsyncNotifier<List<Customer>>
+    with PenjagaUrutanMuat<List<Customer>> {
   String _search = '';
 
   @override
@@ -206,13 +208,11 @@ class CustomerController extends AsyncNotifier<List<Customer>> {
 
   Future<void> cari(String query) async {
     _search = query;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build());
+    await muatDenganPenjaga(build);
   }
 
   Future<void> muatUlang() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build());
+    await muatDenganPenjaga(build);
   }
 
   Future<void> tambah(Customer data) async {
@@ -259,7 +259,8 @@ final orderListProvider =
       retry: (retryCount, error) => null,
     );
 
-class OrderListController extends AsyncNotifier<List<OrderKalibrasi>> {
+class OrderListController extends AsyncNotifier<List<OrderKalibrasi>>
+    with PenjagaUrutanMuat<List<OrderKalibrasi>> {
   String? _teknisiId;
   String _search = '';
 
@@ -280,19 +281,16 @@ class OrderListController extends AsyncNotifier<List<OrderKalibrasi>> {
 
   Future<void> saring({String? teknisiId}) async {
     _teknisiId = teknisiId;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build());
+    await muatDenganPenjaga(build);
   }
 
   Future<void> cari(String query) async {
     _search = query;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build());
+    await muatDenganPenjaga(build);
   }
 
   Future<void> muatUlang() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build());
+    await muatDenganPenjaga(build);
   }
 }
 
@@ -305,7 +303,8 @@ final userListProvider = AsyncNotifierProvider<UserListController, List<User>>(
   retry: (retryCount, error) => null,
 );
 
-class UserListController extends AsyncNotifier<List<User>> {
+class UserListController extends AsyncNotifier<List<User>>
+    with PenjagaUrutanMuat<List<User>> {
   String? _status;
 
   String? get statusAktif => _status;
@@ -323,13 +322,11 @@ class UserListController extends AsyncNotifier<List<User>> {
 
   Future<void> saring(String? status) async {
     _status = status;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build());
+    await muatDenganPenjaga(build);
   }
 
   Future<void> muatUlang() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build());
+    await muatDenganPenjaga(build);
   }
 
   Future<void> setujui(int id, UserRole role) async {

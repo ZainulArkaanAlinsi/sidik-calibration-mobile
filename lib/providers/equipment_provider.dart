@@ -4,6 +4,7 @@ import '../core/config/app_config.dart';
 import '../models/equipment.dart';
 import '../services/equipment_service.dart';
 import 'auth_provider.dart';
+import 'penjaga_urutan_muat.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
 
 /// Live sejak 14 Jul (`docs/kontrak-api.md` §3) — sama endpoint yang dipakai
@@ -43,7 +44,8 @@ final deviceOverviewProvider = FutureProvider.family<List<Equipment>, String?>(
   },
 );
 
-class EquipmentController extends AsyncNotifier<List<Equipment>> {
+class EquipmentController extends AsyncNotifier<List<Equipment>>
+    with PenjagaUrutanMuat<List<Equipment>> {
   String _search = '';
   String? _kategori;
   String? _status;
@@ -76,20 +78,17 @@ class EquipmentController extends AsyncNotifier<List<Equipment>> {
 
   Future<void> cari(String query) async {
     _search = query;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build());
+    await muatDenganPenjaga(build);
   }
 
   Future<void> filter({String? kategori, String? status}) async {
     _kategori = kategori;
     _status = status;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build());
+    await muatDenganPenjaga(build);
   }
 
   Future<void> muatUlang() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build());
+    await muatDenganPenjaga(build);
   }
 
   /// Nambahin halaman berikutnya ke daftar yang udah ada — bukan
