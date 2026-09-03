@@ -2,11 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sidik_calibration/core/theme/app_theme.dart';
+import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/widgets/app_button.dart';
 import 'package:sidik_calibration/widgets/status_badge.dart';
 
-Widget _wrap(Widget child) =>
-    MaterialApp(theme: AppTheme.light, home: Scaffold(body: child));
+/// Locale-nya DIPATOK `id`, dan delegate-nya wajib ikut.
+///
+/// `StatusBadge` sekarang menyelesaikan labelnya lewat `AppLocalizations` —
+/// jadi pembungkus tanpa delegate bikin dia melempar, bukan diam-diam
+/// menampilkan bahasa yang salah. Itu memang yang benar: badge yang muncul
+/// tanpa lokalisasi terpasang berarti ada layar yang lupa memasangnya, dan itu
+/// harus kelihatan.
+Widget _wrap(Widget child) => MaterialApp(
+  theme: AppTheme.light,
+  locale: const Locale('id'),
+  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  supportedLocales: AppLocalizations.supportedLocales,
+  home: Scaffold(body: child),
+);
 
 void main() {
   group('StatusBadge.fromApi', () {

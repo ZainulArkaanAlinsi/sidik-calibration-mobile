@@ -891,6 +891,30 @@ class AppLocalizationsId extends AppLocalizations {
   String get historyStatusPerluRevisi => 'Perlu revisi';
 
   @override
+  String get statusAktif => 'Aktif';
+
+  @override
+  String get statusOverdue => 'Jatuh tempo';
+
+  @override
+  String get statusNonaktif => 'Nonaktif';
+
+  @override
+  String get statusDisetujui => 'Disetujui';
+
+  @override
+  String get statusBaru => 'Baru';
+
+  @override
+  String get statusDiproses => 'Diproses';
+
+  @override
+  String get statusSelesai => 'Selesai';
+
+  @override
+  String get statusDibatalkan => 'Dibatalkan';
+
+  @override
   String get historyApprove => 'SETUJUI';
 
   @override

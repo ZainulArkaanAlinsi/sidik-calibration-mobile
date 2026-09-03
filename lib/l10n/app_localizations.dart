@@ -1711,6 +1711,54 @@ abstract class AppLocalizations {
   /// **'Needs revision'**
   String get historyStatusPerluRevisi;
 
+  /// No description provided for @statusAktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get statusAktif;
+
+  /// No description provided for @statusOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get statusOverdue;
+
+  /// No description provided for @statusNonaktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get statusNonaktif;
+
+  /// No description provided for @statusDisetujui.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get statusDisetujui;
+
+  /// No description provided for @statusBaru.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get statusBaru;
+
+  /// No description provided for @statusDiproses.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get statusDiproses;
+
+  /// No description provided for @statusSelesai.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get statusSelesai;
+
+  /// No description provided for @statusDibatalkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get statusDibatalkan;
+
   /// No description provided for @historyApprove.
   ///
   /// In en, this message translates to:
