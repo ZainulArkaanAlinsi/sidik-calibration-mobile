@@ -7,6 +7,7 @@ import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import '../services/mock_auth_service.dart';
 import '../services/token_storage.dart';
+import 'avatar_provider.dart';
 import 'pendaftaran_push_provider.dart';
 import 'navigation_provider.dart';
 import 'simpanan_pelanggan_provider.dart';
@@ -183,6 +184,22 @@ class AuthController extends AsyncNotifier<User?> {
   Future<void> _buangSimpananAkun() async {
     try {
       await ref.read(simpananPelangganProvider).bersihkan();
+    } catch (_) {
+      // Lihat docblock: logout nggak boleh gagal gara-gara ini.
+    }
+
+    // Kunci avatar GLOBAL yang lama disapu di sini — cuma yang lama.
+    //
+    // Laci per-orang (`avatar.v1.<id>`) sengaja TIDAK dibuang: beda dari
+    // simpanan pelanggan yang bisa diambil ulang dari server, foto profil nggak
+    // punya salinan di mana pun. Membuangnya tiap logout bikin teknisi
+    // kehilangan fotonya permanen tiap ganti shift. Kebocorannya sudah ditutup
+    // bentuk kuncinya — lihat `sapuKunciAvatarLama`.
+    //
+    // Dipisah try/catch sendiri, bukan digabung ke atas: kalau pembersihan
+    // pelanggan gagal, sapuan ini tetap harus jalan.
+    try {
+      await sapuKunciAvatarLama();
     } catch (_) {
       // Lihat docblock: logout nggak boleh gagal gara-gara ini.
     }

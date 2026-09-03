@@ -232,8 +232,15 @@ class _IsiState extends ConsumerState<_Isi> {
   }
 }
 
+/// Separatornya KOMA, lewat [formatSertifikat] — bukan `toStringAsFixed`
+/// langsung.
+///
+/// Layar ini sebelumnya menampilkan dua gaya angka sekaligus: "21,0 mm" di
+/// tabel hasil (yang memang lewat `formatSertifikat`) dan "21.0 °C ± 1.7 °C"
+/// di blok Kondisi Lingkungan tepat di atasnya. Aturannya sudah ditulis di
+/// `angka.dart`: layar sertifikat pakai koma.
 String _angka(double? v, {int desimal = 2}) =>
-    v == null ? '—' : v.toStringAsFixed(desimal);
+    v == null ? '—' : formatSertifikat(v, desimal);
 
 /// "21,0 °C ± 1,7 °C". Kalau U95%-nya belum ada (sesi yang cuma ngirim satu
 /// angka suhu), bagian "±" dibuang — bukan ditulis "± —", yang kebaca kayak
@@ -623,12 +630,18 @@ class _Ringkasan extends StatelessWidget {
                     label: l10n.detailStandarAcuan,
                     value: detail.standarAcuan!.nama,
                   ),
+                // Lewat [_angka] (koma), bukan `toStringAsFixed` (titik).
+                // Instans KEDUA dari bug yang sama: baris ini dan blok Kondisi
+                // Lingkungan di `_IdentitasSesi` sama-sama mencetak besaran
+                // yang sama, di layar yang sama, dengan dua gaya angka yang
+                // berbeda — sementara tabel hasil di antara keduanya memakai
+                // koma.
                 if (detail.suhuRuang != null && detail.kelembaban != null)
                   _RingkasanRow(
                     label: l10n.detailKondisiLingkungan,
                     value:
-                        '${detail.suhuRuang!.toStringAsFixed(1)} °C · '
-                        '${detail.kelembaban!.toStringAsFixed(1)} %RH',
+                        '${_angka(detail.suhuRuang, desimal: 1)} °C · '
+                        '${_angka(detail.kelembaban, desimal: 1)} %RH',
                   ),
               ],
             ),

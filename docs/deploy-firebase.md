@@ -242,11 +242,18 @@ Efek samping yang bagus: begitu APK release terpasang permanen, urusan pairing
 `adb` dan bentrok debug keystore hilang dari pemakaian sehari-hari. Yang masih
 kena cuma sesi `flutter run`.
 
-> APK release ini masih ditandatangani debug key (lihat
-> `android/app/build.gradle.kts`). Cukup untuk uji internal. Sebelum dipasang di
-> HP pelanggan, kunci rilis sendiri harus dibuat dulu — kalau tidak, aplikasinya
-> tidak akan pernah bisa di-update oleh siapa pun yang tidak punya debug key
-> laptop ini.
+> **Kunci penanda tangan wajib dipasang dulu — lihat
+> [`rilis-tanda-tangan-apk.md`](rilis-tanda-tangan-apk.md).** Workflow "APK
+> rilis (nyambung server)" sekarang gagal di detik pertama sampai keempat
+> secretnya ada.
+>
+> Catatan lama di tempat ini menulis bahwa APK-nya "tidak akan bisa di-update
+> oleh siapa pun yang tidak punya debug key laptop ini". Itu keliru, dan
+> kelirunya ke arah yang meremehkan: debug key laptop tidak pernah terlibat
+> sama sekali. Runner CI mulai dari VM bersih tiap run dan membuat
+> `debug.keystore` BARU di situ — alias & passwordnya tetap, tapi key
+> material-nya acak. Jadi bukan cuma orang lain yang tidak bisa memperbarui;
+> **dua rilis CI beruntun pun tidak bisa saling menimpa.**
 
 ## macOS & Windows — build
 

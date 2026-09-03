@@ -689,6 +689,14 @@
   "calibValidasiPembacaan": "Tiap titik ukur minimal 2 pembacaan angka.",
   "calibSimpanDraft": "SIMPAN DRAFT",
   "calibKirimApproval": "KIRIM UNTUK APPROVAL",
+  "calibDraftTitikDilewat": "Draft disimpan, tapi {jumlah} baris nggak ikut kesimpen karena nilai acuannya belum diisi. Isi dulu kolom nilai acuannya kalau angka di baris itu mau ikut kebawa.",
+  "@calibDraftTitikDilewat": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "calibBerhasilDraft": "Draft kalibrasi disimpan.",
   "calibBerhasilApproval": "Sesi kalibrasi dikirim untuk approval.",
   "calibGagal": "Gagal menyimpan: {pesan}",

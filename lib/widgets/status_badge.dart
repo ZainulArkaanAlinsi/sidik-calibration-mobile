@@ -84,6 +84,39 @@ class StatusBadge extends StatelessWidget {
         tone: BadgeTone.warning,
         icon: Icons.edit_outlined,
       ),
+      // Status Order (`Order::STATUS_*` di backend). Empat-empatnya sempat
+      // jatuh ke cabang default: teknisi melihat teks mentah `dibatalkan`
+      // dalam pil abu-abu, sama datarnya dengan `baru` — padahal status alat
+      // dan status sesi kalibrasi semuanya sudah berwarna. Fallback-nya
+      // memang aman (tidak crash), dan justru itu sebabnya tidak ada yang
+      // menyadarinya.
+      'baru' => StatusBadge(
+        key: key,
+        label: 'Baru',
+        tone: BadgeTone.info,
+        icon: Icons.fiber_new_outlined,
+      ),
+      'diproses' => StatusBadge(
+        key: key,
+        label: 'Diproses',
+        tone: BadgeTone.warning,
+        icon: Icons.autorenew,
+      ),
+      'selesai' => StatusBadge(
+        key: key,
+        label: 'Selesai',
+        tone: BadgeTone.success,
+        icon: Icons.task_alt,
+      ),
+      // Ikonnya sengaja BUKAN `cancel_outlined` yang dipakai FAIL. Order yang
+      // dibatalkan itu pekerjaan yang tidak jadi; FAIL itu alat yang tidak
+      // lolos. Dua hal yang tidak boleh terbaca sama sekilas.
+      'dibatalkan' => StatusBadge(
+        key: key,
+        label: 'Dibatalkan',
+        tone: BadgeTone.danger,
+        icon: Icons.do_not_disturb_on_outlined,
+      ),
       // Status yang belum dikenal tetap ditampilkan apa adanya, bukan bikin
       // app crash — kalau backend nambah status baru, kelihatan di UI.
       _ => StatusBadge(key: key, label: value, tone: BadgeTone.neutral),

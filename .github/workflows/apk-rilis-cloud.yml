@@ -75,6 +75,10 @@ jobs:
       # keadaan yang sah.
       PUNYA_GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES_JSON != '' }}
 
+      # Beda dari dua di atas: yang ini TIDAK boleh absen. Alasannya di
+      # langkah "Pastiin kunci penanda tangan udah dipasang" di bawah.
+      PUNYA_KUNCI_TANDA_TANGAN: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -109,6 +113,65 @@ jobs:
               echo "::error::API_BASE_URL jangan pakai /api di belakang — workflow ini yang nambahin sendiri."
               exit 1 ;;
           esac
+
+      # Gagal di detik pertama, sama seperti penjagaan URL di atas — dan
+      # sengaja TIDAK "dilewat dengan catatan" seperti dua langkah Firebase di
+      # bawah. Bedanya bukan selera:
+      #
+      #   - Firebase absen → APK-nya jalan penuh, cuma push notification mati.
+      #     Itu keadaan yang sah.
+      #   - Kunci penanda tangan absen → APK-nya kelihatan BAIK-BAIK SAJA. Dia
+      #     terpasang, dipakai, dan baru gagal berminggu-minggu kemudian, di
+      #     tangan teknisi, waktu dia menekan "Update".
+      #
+      # Sebabnya: tanpa `android/key.properties`, Gradle jatuh ke kunci debug,
+      # dan runner CI membuat `debug.keystore` BARU tiap run (key material-nya
+      # acak walau alias & passwordnya tetap). Jadi tiap rilis bersertifikat
+      # beda, dan Android menolak memasang rilis N+1 di atas rilis N —
+      # "App not installed", tanpa sebab yang kebaca. Satu-satunya jalan keluar
+      # buat teknisi: uninstall manual, yang menghapus token login dan foto
+      # profilnya.
+      #
+      # Aplikasi ini memasang pembaruannya sendiri (`REQUEST_INSTALL_PACKAGES` +
+      # `lib/services/pengunduh_apk.dart`), jadi APK yang tidak bisa memperbarui
+      # dirinya sendiri membatalkan seluruh nilai fitur itu. Lebih baik tidak
+      # ada rilis sama sekali daripada rilis yang mengajari teknisi bahwa
+      # tombol "Update" itu rusak.
+      #
+      # Masangnya sekali — lihat docs/rilis-tanda-tangan-apk.md.
+      - name: Pastiin kunci penanda tangan udah dipasang
+        if: env.PUNYA_KUNCI_TANDA_TANGAN != 'true'
+        run: |
+          echo "::error::Secret ANDROID_KEYSTORE_BASE64 belum dipasang. Tanpa dia APK-nya bakal ditandatangani kunci DEBUG yang beda tiap run, dan tiap teknisi yang menekan Update ditolak Android. Cara bikin keystore + masang keempat secretnya ada di docs/rilis-tanda-tangan-apk.md."
+          exit 1
+
+      # "Ada kunci" dan "kunci YANG BENAR" itu dua hal berbeda, dan penjagaan
+      # di atas cuma menjawab yang pertama.
+      #
+      # Secret keystore-nya bisa tergantikan tanpa ada yang menyadarinya:
+      # keystore hilang lalu dibuat lagi, satu orang memasang punyanya sendiri,
+      # atau `gh secret set` salah repo. Semua kunci itu SAH — bukan debug,
+      # lolos apksigner, APK-nya terbit dengan tenang. Yang gagal baru teknisi
+      # di lapangan, dan gagalnya permanen: Android menolak memasang rilis yang
+      # sertifikatnya beda, dan satu-satunya jalan keluar buat dia uninstall
+      # manual — yang menghapus token login dan foto profilnya.
+      #
+      # Sidik jarinya sendiri BUKAN rahasia: dia tercetak di tiap APK yang
+      # sudah terpasang di HP mana pun. Jadi variable, bukan secret — alasannya
+      # sama dengan API_BASE_URL: menyensornya di log nggak nambah aman, cuma
+      # bikin nggak kebaca waktu nyari sebab error.
+      #
+      # Ngambil nilainya dari keystore yang sudah ada, tanpa perlu jalanin CI:
+      #   keytool -list -v -keystore sidik-rilis.jks -alias <alias> \
+      #     | grep 'SHA256:'
+      - name: Pastiin sidik jari penanda tangan udah dipatok
+        env:
+          SHA_HARAPAN: ${{ vars.APK_SHA256 }}
+        run: |
+          if [ -z "${SHA_HARAPAN:-}" ]; then
+            echo "::error::Repository variable APK_SHA256 belum diisi. Tanpa dia workflow ini cuma bisa memastikan APK-nya bukan ditandatangani kunci debug — bukan bahwa dia ditandatangani kunci yang SAMA dengan rilis sebelumnya. Cara ngambil nilainya ada di komentar di atas langkah ini dan di docs/rilis-tanda-tangan-apk.md."
+            exit 1
+          fi
 
       - uses: actions/setup-java@v4
         with:
@@ -232,6 +295,53 @@ jobs:
       # Jadi versinya selalu naik tanpa ada yang perlu diingat, tapi lompatan
       # besarnya tetap bisa disengaja. Dan karena PATCH memakai angka yang sama
       # dengan build number, dua-duanya tidak akan pernah saling bertentangan.
+      # Keystore-nya ditulis ke berkas di luar pohon sumber, dan
+      # `key.properties` menunjuk ke situ dengan jalur mutlak. Dua-duanya
+      # sengaja TIDAK ditaruh di dalam repo checkout: nggak ada langkah di
+      # bawah yang mengunggah pohon sumber, tapi jalur di luar repo bikin itu
+      # benar karena STRUKTURNYA, bukan karena kebetulan urutan langkahnya.
+      #
+      # `base64 -d` tanpa `-w`: nilai secret multi-baris tetap terbaca, dan
+      # GitHub sendiri yang menyensor isinya di log.
+      - name: Pasang kunci penanda tangan
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          BERKAS_KUNCI: ${{ runner.temp }}/sidik-rilis.jks
+        run: |
+          set -euo pipefail
+
+          # Tiga secret sisanya diperiksa DI SINI, bukan di penjagaan atas:
+          # `secrets` nggak bisa dibaca dari `if:` sebuah step, dan
+          # menurunkannya satu per satu lewat `env` cuma buat dicek keberadaan
+          # bikin empat baris yang mengatakan hal yang sama.
+          for nama in STORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!nama}" ]; then
+              echo "::error::Secret ANDROID_${nama} belum dipasang. Keempatnya wajib — lihat docs/rilis-tanda-tangan-apk.md."
+              exit 1
+            fi
+          done
+
+          printf '%s' "$KEYSTORE_B64" | base64 -d > "$BERKAS_KUNCI"
+
+          # Gagal di sini kalau base64-nya kepotong waktu disalin. Tanpa
+          # penjagaan ini Gradle yang gagal, dengan pesan soal keystore yang
+          # nggak nyebut bahwa berkasnya memang rusak sejak awal.
+          keytool -list -keystore "$BERKAS_KUNCI" -storepass "$STORE_PASSWORD" >/dev/null \
+            || { echo "::error::ANDROID_KEYSTORE_BASE64 bukan keystore yang sah, atau ANDROID_KEYSTORE_PASSWORD salah. Pasang ulang: base64 -w0 sidik-rilis.jks | gh secret set ANDROID_KEYSTORE_BASE64"; exit 1; }
+
+          # `printf '%s=%s\n'` dengan argumen, bukan heredoc: heredoc di dalam
+          # `run:` ikut terindentasi YAML, dan nilai yang memuat `%` bakal
+          # ditelan kalau ditempel ke format string.
+          {
+            printf '%s=%s\n' storeFile "$BERKAS_KUNCI"
+            printf '%s=%s\n' storePassword "$STORE_PASSWORD"
+            printf '%s=%s\n' keyAlias "$KEY_ALIAS"
+            printf '%s=%s\n' keyPassword "$KEY_PASSWORD"
+          } > android/key.properties
+
       - name: Susun nomor versi
         id: versi
         env:
@@ -270,6 +380,93 @@ jobs:
           # kerasa sama teknisi yang unduhnya lewat data lapangan.
           UKURAN=$(du -m build/app/outputs/flutter-apk/app-release.apk | cut -f1)
           echo "APK arm64: ${UKURAN} MB (build $NOMOR_BUILD)" >> "$GITHUB_STEP_SUMMARY"
+
+      # Penjagaan di atas memastikan kuncinya ADA. Langkah ini memastikan
+      # kunci itu yang BENERAN DIPAKAI — dua hal berbeda, dan yang kedua yang
+      # gagal diam-diam. `key.properties` yang salah jalur, `adaKunciRilis`
+      # yang tidak terpenuhi karena satu properti kosong, atau blok signing
+      # yang tidak pernah tersambung ke `buildTypes`: ketiganya menghasilkan
+      # APK yang tetap terbit, tetap terpasang, dan baru ketahuan rusak di
+      # tangan teknisi berminggu-minggu kemudian.
+      #
+      # Dua hal diperiksa di sini, dan yang kedua yang menutup lubangnya:
+      #
+      #   1. Sertifikatnya bukan kunci debug — menangkap rantai yang putus.
+      #   2. Sidik jarinya SAMA PERSIS dengan `APK_SHA256` — menangkap kunci
+      #      rilis lain yang sah, yang lolos pemeriksaan pertama tanpa gejala.
+      #
+      # Yang kedua dulu cuma saran di laporan audit ("bandingkan SHA-256 dua
+      # rilis beruntun"), lalu jadi angka yang dicetak ke ringkasan run. Dua-
+      # duanya bergantung pada ada yang INGAT membacanya — dan penjagaan yang
+      # bergantung pada ingatan itu penjagaan yang sudah gagal, cuma belum
+      # ketahuan kapan. Sekarang yang membandingkan CI, dan rilis yang tidak
+      # cocok berhenti SEBELUM langkah penerbitan (GitHub Release & Firebase
+      # App Distribution dua-duanya di bawah langkah ini).
+      - name: Pastiin APK-nya ditandatangani kunci rilis yang benar
+        env:
+          SHA_HARAPAN: ${{ vars.APK_SHA256 }}
+        run: |
+          set -euo pipefail
+
+          # `:-` dan `|| true` bukan kerapian: dengan `set -euo pipefail`,
+          # ANDROID_HOME yang kosong atau `ls` yang nggak nemu apa-apa bikin
+          # langkah ini mati SEBELUM sempat mencetak pesan yang menjelaskan
+          # apa yang harus dibetulkan.
+          APKSIGNER=$(ls "${ANDROID_HOME:-}"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -1 || true)
+          if [ -z "$APKSIGNER" ]; then
+            echo "::error::apksigner nggak ketemu di \$ANDROID_HOME/build-tools. Runner-nya berubah — jangan lewati langkah ini, betulkan pencarinya."
+            exit 1
+          fi
+
+          CETAK=$("$APKSIGNER" verify --print-certs build/app/outputs/flutter-apk/app-release.apk)
+
+          # `|| true` dengan alasan yang sama: `grep` yang nggak nemu
+          # memulangkan 1, dan kalau dia yang mematikan langkah ini, yang
+          # muncul di log cuma keluar-tanpa-pesan. Bolongnya diperiksa
+          # sendiri di bawah.
+          DN=$(printf '%s\n' "$CETAK" | grep -m1 'certificate DN:' | sed 's/.*certificate DN: //' || true)
+          SHA=$(printf '%s\n' "$CETAK" | grep -m1 'certificate SHA-256 digest:' | awk '{print $NF}' || true)
+
+          # `CN=Android Debug` itu nama yang dipakai Android Gradle Plugin waktu
+          # dia membuat `debug.keystore` sendiri. Kalau nama itu yang keluar,
+          # artinya seluruh rantai di atas tidak nyambung.
+          case "$DN" in
+            *"Android Debug"*)
+              echo "::error::APK-nya ditandatangani kunci DEBUG ($DN) padahal secret keystore-nya ada. Berarti android/key.properties nggak kebaca Gradle — periksa langkah 'Pasang kunci penanda tangan' dan blok signingConfigs di android/app/build.gradle.kts."
+              exit 1 ;;
+          esac
+
+          if [ -z "$SHA" ]; then
+            echo "::error::apksigner nggak memulangkan sidik jari SHA-256. APK-nya kemungkinan nggak tertandatangani sama sekali."
+            exit 1
+          fi
+
+          # Inti langkah ini. Menolak `CN=Android Debug` cuma menutup SATU kunci
+          # salah; kunci rilis lain yang sah lolos begitu saja — dan justru itu
+          # yang bikin rusaknya senyap, karena semua tandanya kelihatan benar.
+          #
+          # Dinormalkan dua-duanya sebelum diadu: `keytool` menulis sidik jarinya
+          # dengan titik dua dan huruf besar, `apksigner` tanpa titik dua dan
+          # huruf kecil. Membandingkannya mentah-mentah bikin nilai yang BENAR
+          # ditolak, dan penjagaan yang salah menolak bakal dimatikan orang
+          # berikutnya — itu cara paling cepat kehilangan penjagaan ini.
+          rapikan() { printf '%s' "$1" | tr 'A-Z' 'a-z' | tr -d ' :'; }
+
+          AKTUAL=$(rapikan "$SHA")
+          HARAPAN=$(rapikan "${SHA_HARAPAN:-}")
+
+          if [ "$AKTUAL" != "$HARAPAN" ]; then
+            echo "::error::Sidik jari penanda tangan BEDA dari yang dipatok. Dipatok: $SHA_HARAPAN — terpakai: $SHA. Salah satu dari dua: secret keystore-nya tergantikan (dan rilis ini bakal ditolak Android di HP yang sudah terpasang), atau kuncinya memang sengaja diganti dan variable APK_SHA256 belum ikut diperbarui. Jangan lanjutkan tanpa tahu yang mana — lihat docs/rilis-tanda-tangan-apk.md bagian 'Kalau kuncinya memang diganti'."
+            exit 1
+          fi
+
+          {
+            echo "Penanda tangan: $DN"
+            echo ""
+            echo "SHA-256: \`$SHA\` — cocok dengan \`APK_SHA256\`."
+            echo ""
+            echo "Kecocokan itu diperiksa CI, bukan mata: rilis dengan sidik jari lain nggak akan sampai ke langkah penerbitan."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
         with:
