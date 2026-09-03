@@ -89,8 +89,25 @@ jobs:
       # nomor versi diambil dari jumlah commit, dan checkout bawaan cuma
       # menarik satu. Job `web` dan `terbitkan` nggak butuh ini: dua-duanya
       # nggak menyusun nomor versi.
+      # `ref` WAJIB disebut, dan ini bukan kehati-hatian berlebihan.
+      #
+      # Waktu workflow dipicu `workflow_run`, GitHub menyetel `GITHUB_SHA` ke
+      # commit TERAKHIR di branch bawaan — bukan ke commit yang dibangun jalur
+      # APK. `actions/checkout` memakai nilai itu kalau `ref` dikosongkan. Jadi
+      # kalau ada yang mendarat di `main` selagi build APK jalan, paket desktop
+      # kebangun dari commit yang BEDA dari APK-nya.
+      #
+      # Akibatnya persis membatalkan alasan berkas ini diubah: hitungan commit
+      # ikut beda, jadi APK dan paket desktop yang terbit bareng justru bernomor
+      # beda — kebalikan dari yang mau dijamin. Dan nggak ada yang merah:
+      # keduanya sukses, cuma isinya nggak sepasang.
+      #
+      # Bentuk `A && B || C` itu ternary-nya GitHub Actions. Aman di sini karena
+      # `head_sha` selalu terisi pada event `workflow_run`; yang lewat push atau
+      # dispatch jatuh ke `github.sha` seperti sebelumnya.
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
           fetch-depth: 0
 
       # Gagal di sini, di detik pertama, dengan sebab yang jelas. Tanpa
@@ -293,7 +310,12 @@ jobs:
     name: web
 
     steps:
+      # `ref` disamakan dengan job `build` — alasannya ditulis di sana. Bundel
+      # web ikut diterbitkan ke situs yang sama, jadi dia harus lahir dari
+      # commit yang sama dengan kedua paket desktop.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
       # Penjagaan yang SAMA persis dengan jalur desktop, dan alasannya sama:
       # nilai kosong bikin `AppConfig` balik ke `10.0.2.2` (alamat emulator
@@ -352,7 +374,12 @@ jobs:
     # satunya jadi 404 — halaman kelihatan normal, tombolnya yang mati. Lebih
     # baik yang lama tetap tayang sampai perbaikannya mendarat.
     steps:
+      # `ref` disamakan dengan dua job di atas. Yang di-checkout di sini isi
+      # `public/` — halaman unduh yang benar-benar terbit — jadi commit yang
+      # salah di sini menerbitkan halaman versi lain berikut ketiga tombolnya.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
       # Dicek duluan, sebelum ngunduh apa-apa: kalau rahasianya belum dipasang,
       # bilang cara masangnya — jangan biarin action Firebase-nya gagal dengan
