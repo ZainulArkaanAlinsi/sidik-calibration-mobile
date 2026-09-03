@@ -80,7 +80,13 @@ jobs:
       PUNYA_KUNCI_TANDA_TANGAN: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
 
     steps:
+      # `fetch-depth: 0` WAJIB, dan bukan optimasi: nomor versi diambil dari
+      # JUMLAH COMMIT (lihat langkah "Susun nomor versi"), sementara checkout
+      # bawaan cuma menarik satu commit — hitungannya jadi 1. Penjagaan di
+      # langkah itu yang menangkap kalau baris ini kehapus.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # Gagal di sini, di detik pertama, dengan sebab yang jelas. Tanpa
       # penjagaan ini APK-nya tetap kebangun tapi API_BASE_URL-nya kosong —
@@ -253,9 +259,24 @@ jobs:
       #     di bawah judul yang sama kayak yang lama. Teknisi lihat "sudah
       #     terpasang", nutup aplikasinya, dan tetap megang versi kemarin.
       #
-      # `github.run_number` naik sendiri tiap workflow ini jalan, jadi nggak ada
-      # yang perlu inget naikkin manual — dan itu justru intinya: yang mesti
-      # diinget tiap rilis pasti kelupaan suatu hari.
+      # Angkanya diambil dari JUMLAH COMMIT (`git rev-list --count HEAD`), naik
+      # sendiri tiap ada yang mendarat di `main` — nggak ada yang perlu inget
+      # naikkin manual, dan itu justru intinya: yang mesti diinget tiap rilis
+      # pasti kelupaan suatu hari.
+      #
+      # Dulu ini `github.run_number`. Diganti karena angka itu PER-WORKFLOW:
+      # jalur APK dan jalur desktop menghitung sendiri-sendiri, jadi commit yang
+      # sama terbit sebagai `1.0.84` di HP dan `1.0.0` di Windows. Waktu teknisi
+      # lapor "punyaku versi sekian", nggak ada yang bisa diadu antar-platform.
+      # Jumlah commit sama di mana pun dia dihitung, jadi dua jalur rilis
+      # menghasilkan angka yang identik tanpa perlu saling nunggu.
+      #
+      # Syaratnya satu, dan sudah terpenuhi waktu ini ditulis: angkanya nggak
+      # boleh TURUN. Riwayat `main` di sini lurus dan cuma nambah (semua PR
+      # mendarat sebagai satu commit), dan waktu penggantian ini dibuat
+      # hitungannya 521 lawan run_number 84 — naik, bukan turun. Yang bisa
+      # merusaknya cuma penulisan ulang riwayat `main`; kalau suatu hari itu
+      # terpaksa dilakukan, nomor versi ikut jadi taruhannya.
       #
       # `version:` di pubspec sengaja DIBIARIN di `+2`. Itu bikin build lokal
       # selalu berangka lebih kecil daripada build CI, jadi APK hasil coba-coba
@@ -290,7 +311,10 @@ jobs:
       #   - MAJOR.MINOR diambil dari `version:` di pubspec, dan itu tetap
       #     URUSAN MANUSIA. Dinaikkan waktu memang ada tonggak (alat baru,
       #     perubahan alur), bukan tiap merge.
-      #   - PATCH = `github.run_number`, naik sendiri tiap workflow jalan.
+      #   - PATCH = jumlah commit di riwayat, naik sendiri tiap ada yang
+      #     mendarat — dan angkanya sama persis dengan yang dipakai
+      #     `rilis-desktop.yml`, jadi APK & paket desktop dari commit yang sama
+      #     bernomor sama.
       #
       # Jadi versinya selalu naik tanpa ada yang perlu diingat, tapi lompatan
       # besarnya tetap bisa disengaja. Dan karena PATCH memakai angka yang sama
@@ -344,8 +368,6 @@ jobs:
 
       - name: Susun nomor versi
         id: versi
-        env:
-          NOMOR_BUILD: ${{ github.run_number }}
         run: |
           set -euo pipefail
 
@@ -358,14 +380,29 @@ jobs:
             exit 1
           fi
 
+
+          NOMOR_BUILD=$(git rev-list --count HEAD)
+
+          # Penjagaan buat fetch-depth yang kelupaan. Checkout bawaan cuma
+          # menarik SATU commit, jadi hitungannya jadi 1 — dan angka 1 lolos
+          # semua langkah di bawah tanpa satu pun keluhan. Yang merah baru HP
+          # teknisi: Android nolak masang APK yang versionCode-nya turun dari
+          # 500-an ke 1, dengan pesan "App not installed" yang nggak nyebut
+          # sebabnya sama sekali.
+          if [ "$NOMOR_BUILD" -lt 100 ]; then
+            echo "::error::Jumlah commit kebaca $NOMOR_BUILD — kekecilan, hampir pasti checkout-nya dangkal. Pastikan fetch-depth: 0 masih terpasang di langkah checkout."
+            exit 1
+          fi
+
           NAMA_VERSI="${MAYOR_MINOR}.${NOMOR_BUILD}"
           echo "nama=$NAMA_VERSI" >> "$GITHUB_OUTPUT"
+          echo "build=$NOMOR_BUILD" >> "$GITHUB_OUTPUT"
           echo "tag=v${NAMA_VERSI}+${NOMOR_BUILD}" >> "$GITHUB_OUTPUT"
           echo "Versi rilis ini: $NAMA_VERSI (build $NOMOR_BUILD)" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build APK
         env:
-          NOMOR_BUILD: ${{ github.run_number }}
+          NOMOR_BUILD: ${{ steps.versi.outputs.build }}
           NAMA_VERSI: ${{ steps.versi.outputs.nama }}
         run: |
           flutter build apk --release \
@@ -502,7 +539,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.versi.outputs.tag }}
           NAMA_VERSI: ${{ steps.versi.outputs.nama }}
-          NOMOR_BUILD: ${{ github.run_number }}
+          NOMOR_BUILD: ${{ steps.versi.outputs.build }}
           # Lewat `env`, bukan ditempel ke `run:`. Pesan commit bisa memuat
           # tanda kutip atau `;`, dan yang ditempel `${{ }}` disalin mentah jadi
           # teks skrip sebelum shell-nya jalan — alasan yang sama dengan
@@ -514,7 +551,8 @@ jobs:
           BERKAS="sidik-kalibrasi-${NAMA_VERSI}.apk"
           cp build/app/outputs/flutter-apk/app-release.apk "$BERKAS"
 
-          # Re-run memakai `run_number` yang SAMA, jadi tag-nya bentrok dan
+          # Re-run jalan di commit yang SAMA, jadi hitungannya sama, tag-nya
+          # bentrok dan
           # `gh release create` gagal. Itu bukan kasus teoretis — riwayat
           # workflow ini sudah memuat `run_attempt: 2`. Gagal di langkah
           # terakhir sesudah sepuluh menit build itu mahal, dan gagalnya cuma
@@ -569,7 +607,7 @@ jobs:
           # teknisi lapor "punyaku masih yang lama" nggak ada yang bisa dipakai
           # buat mastiin dia megang yang mana. Angka ini yang bisa diadu.
           CATATAN_RILIS: >-
-            build ${{ github.run_number }} ·
+            build ${{ steps.versi.outputs.build }} ·
             ${{ github.event.head_commit.message || github.sha }}
         run: |
           # Kuncinya ditulis ke berkas, bukan dioper sebagai argumen: argumen

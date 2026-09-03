@@ -34,6 +34,23 @@ on:
       - main
   workflow_dispatch:
 
+  # Jalur APK boleh dipicu MANUAL, dan komentar di `apk-rilis-cloud.yml` sendiri
+  # yang nyebut kasusnya: "abis ganti URL server tanpa ganti kode". Pas itu
+  # kejadian nggak ada push ke `main`, jadi workflow ini nggak ikut jalan — dan
+  # zip Windows/macOS di halaman unduh tetap bawa API_BASE_URL yang LAMA.
+  #
+  # Gagalnya diam-diam, dan itu yang bikin mahal: halaman unduhnya kelihatan
+  # normal, tombolnya jalan, aplikasinya kebuka — cuma nembak alamat yang udah
+  # nggak dipakai. Yang kena teknisi di lokasi, bukan orang yang ngeganti URL.
+  #
+  # Dibatasi ke dispatch yang SUKSES dan berangkat dari `main` (lihat `if:` di
+  # tiap job). Yang lewat push sengaja NGGAK diikutin dari sini: `push: main` di
+  # atas sudah menjalankan workflow ini langsung, dan ngikutin dua-duanya bikin
+  # tiap merge kebangun dobel.
+  workflow_run:
+    workflows: ["APK rilis (nyambung server)"]
+    types: [completed]
+
 env:
   # Samain persis sama yang dipakai lokal; Flutter beda minor sering ganti
   # perilaku build desktop.
@@ -41,6 +58,19 @@ env:
 
 jobs:
   build:
+    # Lihat `workflow_run` di atas. Yang datang lewat push dilewati di sini,
+    # karena `push: main` sudah memicu workflow ini secara langsung.
+    #
+    # `head_branch` ikut dicek: dispatch dari UI boleh dipilih ref-nya, tapi
+    # `workflow_run` selalu menjalankan berkas workflow versi branch bawaan dan
+    # checkout-nya pun ke sana. Tanpa cek ini, dispatch dari branch lain bakal
+    # ngemas kode `main` lalu MENERBITKANNYA — hasilnya bukan yang dimaksud, dan
+    # nggak ada yang kelihatan salah di halaman unduh.
+    if: >-
+      github.event_name != 'workflow_run'
+      || (github.event.workflow_run.event == 'workflow_dispatch'
+          && github.event.workflow_run.conclusion == 'success'
+          && github.event.workflow_run.head_branch == 'main')
     strategy:
       # Jangan batalin platform lain cuma gara-gara satu gagal.
       fail-fast: false
@@ -55,7 +85,30 @@ jobs:
     name: ${{ matrix.nama }}
 
     steps:
+      # `fetch-depth: 0` WAJIB — sama alasannya dengan `apk-rilis-cloud.yml`:
+      # nomor versi diambil dari jumlah commit, dan checkout bawaan cuma
+      # menarik satu. Job `web` dan `terbitkan` nggak butuh ini: dua-duanya
+      # nggak menyusun nomor versi.
+      # `ref` WAJIB disebut, dan ini bukan kehati-hatian berlebihan.
+      #
+      # Waktu workflow dipicu `workflow_run`, GitHub menyetel `GITHUB_SHA` ke
+      # commit TERAKHIR di branch bawaan — bukan ke commit yang dibangun jalur
+      # APK. `actions/checkout` memakai nilai itu kalau `ref` dikosongkan. Jadi
+      # kalau ada yang mendarat di `main` selagi build APK jalan, paket desktop
+      # kebangun dari commit yang BEDA dari APK-nya.
+      #
+      # Akibatnya persis membatalkan alasan berkas ini diubah: hitungan commit
+      # ikut beda, jadi APK dan paket desktop yang terbit bareng justru bernomor
+      # beda — kebalikan dari yang mau dijamin. Dan nggak ada yang merah:
+      # keduanya sukses, cuma isinya nggak sepasang.
+      #
+      # Bentuk `A && B || C` itu ternary-nya GitHub Actions. Aman di sini karena
+      # `head_sha` selalu terisi pada event `workflow_run`; yang lewat push atau
+      # dispatch jatuh ke `github.sha` seperti sebelumnya.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
 
       # Gagal di sini, di detik pertama, dengan sebab yang jelas. Tanpa
       # penjagaan ini paketnya tetap kebangun tapi API_BASE_URL-nya kosong —
@@ -133,11 +186,59 @@ jobs:
       # yang menahan paket tinggal test perilaku.
       - run: flutter test --exclude-tags screenshot
 
+      # Nomornya disusun dari sumber yang SAMA dengan jalur APK — jumlah commit
+      # — dan itu satu-satunya alasan langkah ini ada.
+      #
+      # `github.run_number` nggak bisa dipakai buat ini: angkanya per-workflow,
+      # jadi commit yang sama dapat angka beda di dua jalur. Sampai sebelum ini
+      # akibatnya kelihatan telanjang — APK terbit sebagai `1.0.84` sementara
+      # paket Windows dari commit yang sama tetap bernama `1.0.0`, karena di
+      # sini cuma `--build-number` yang diset dan `--build-name` nggak pernah.
+      # Waktu teknisi lapor "punyaku versi sekian", nggak ada yang bisa diadu.
+      #
+      # Angkanya DIHITUNG ULANG di sini, bukan dioper dari jalur APK. Dioper
+      # berarti jalur ini nunggu jalur APK selesai, padahal dua-duanya sengaja
+      # berangkat berbarengan dari `push: main`. Jumlah commit nggak perlu
+      # dioper — dia sudah ada di checkout ini sendiri, dan hasilnya identik.
+      #
+      # `shell: bash` disebut eksplisit: bawaan runner Windows itu PowerShell,
+      # dan `grep`/`cut`/`<<<` di bawah nggak ada di sana.
+      - name: Susun nomor versi
+        id: versi
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # `version: 1.0.0+2` → `1.0.0` → `1.0`
+          DASAR=$(grep -m1 '^version:' pubspec.yaml | sed 's/^version:[[:space:]]*//' | cut -d'+' -f1)
+          MAYOR_MINOR=$(cut -d'.' -f1,2 <<<"$DASAR")
+
+          if [ -z "$MAYOR_MINOR" ]; then
+            echo "::error::Gagal membaca 'version:' dari pubspec.yaml."
+            exit 1
+          fi
+
+          NOMOR_BUILD=$(git rev-list --count HEAD)
+
+          # Kembaran penjagaan di `apk-rilis-cloud.yml`. Checkout dangkal
+          # memulangkan 1, dan angka 1 lolos tanpa keluhan sampai ada yang
+          # membandingkan versi desktop dengan versi APK — persis kebingungan
+          # yang langkah ini dibuat buat menghabisi.
+          if [ "$NOMOR_BUILD" -lt 100 ]; then
+            echo "::error::Jumlah commit kebaca $NOMOR_BUILD — kekecilan, hampir pasti checkout-nya dangkal. Pastikan fetch-depth: 0 masih terpasang di langkah checkout."
+            exit 1
+          fi
+
+          echo "nama=${MAYOR_MINOR}.${NOMOR_BUILD}" >> "$GITHUB_OUTPUT"
+          echo "build=$NOMOR_BUILD" >> "$GITHUB_OUTPUT"
+          echo "Versi paket ${{ matrix.nama }}: ${MAYOR_MINOR}.${NOMOR_BUILD} (build ${NOMOR_BUILD})" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Build windows
         if: matrix.nama == 'windows'
         run: >
           flutter build windows --release
-          --build-number=${{ github.run_number }}
+          --build-name=${{ steps.versi.outputs.nama }}
+          --build-number=${{ steps.versi.outputs.build }}
           --dart-define=APP_ENV=prod
           --dart-define=API_BASE_URL=${{ vars.API_BASE_URL }}/api
 
@@ -145,7 +246,8 @@ jobs:
         if: matrix.nama == 'macos'
         run: >
           flutter build macos --release
-          --build-number=${{ github.run_number }}
+          --build-name=${{ steps.versi.outputs.nama }}
+          --build-number=${{ steps.versi.outputs.build }}
           --dart-define=APP_ENV=prod
           --dart-define=API_BASE_URL=${{ vars.API_BASE_URL }}/api
 
@@ -198,11 +300,22 @@ jobs:
   # `file_picker`, `connectivity_plus`, dan `url_launcher` semuanya punya
   # implementasi web terdaftar.
   web:
+    # Syarat yang sama persis dengan job `build` — alasannya ditulis di sana.
+    if: >-
+      github.event_name != 'workflow_run'
+      || (github.event.workflow_run.event == 'workflow_dispatch'
+          && github.event.workflow_run.conclusion == 'success'
+          && github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     name: web
 
     steps:
+      # `ref` disamakan dengan job `build` — alasannya ditulis di sana. Bundel
+      # web ikut diterbitkan ke situs yang sama, jadi dia harus lahir dari
+      # commit yang sama dengan kedua paket desktop.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
       # Penjagaan yang SAMA persis dengan jalur desktop, dan alasannya sama:
       # nilai kosong bikin `AppConfig` balik ke `10.0.2.2` (alamat emulator
@@ -245,6 +358,8 @@ jobs:
           retention-days: 30
 
   terbitkan:
+    # Nggak perlu `if:` sendiri: begitu `build` dan `web` dilewati, job ini ikut
+    # dilewati — itu perilaku bawaan `needs`.
     needs: [build, web]
     runs-on: ubuntu-latest
     name: terbitkan halaman unduh
@@ -259,7 +374,12 @@ jobs:
     # satunya jadi 404 — halaman kelihatan normal, tombolnya yang mati. Lebih
     # baik yang lama tetap tayang sampai perbaikannya mendarat.
     steps:
+      # `ref` disamakan dengan dua job di atas. Yang di-checkout di sini isi
+      # `public/` — halaman unduh yang benar-benar terbit — jadi commit yang
+      # salah di sini menerbitkan halaman versi lain berikut ketiga tombolnya.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
       # Dicek duluan, sebelum ngunduh apa-apa: kalau rahasianya belum dipasang,
       # bilang cara masangnya — jangan biarin action Firebase-nya gagal dengan
