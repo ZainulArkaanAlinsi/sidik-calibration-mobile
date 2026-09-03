@@ -436,11 +436,17 @@ class _FormState extends ConsumerState<_Form> {
         // peringatan yang isinya tidak benar — dan peringatan palsu melatih
         // orang mengabaikan yang asli.
         //
-        // Yang diperiksa TEKS MENTAHnya, bukan hasil parse-nya. Bedanya persis
-        // pada baris yang paling perlu dilaporkan: target `50x` dan pembacaan
-        // yang salah ketik dua-duanya jadi null sesudah di-parse, jadi
-        // pemeriksaan berbasis hasil parse membacanya sebagai baris kosong —
-        // barisnya dibuang, dan layarnya bilang semuanya tersimpan.
+        // Yang diperiksa TEKS MENTAHnya, bukan hasil parse-nya.
+        //
+        // Bedanya kelihatan pada isian yang SETENGAH KETIK. Kolom ini disaring
+        // `AppTextField.measurement` (`^-?\d*[.,]?\d*`), jadi huruf memang
+        // tidak bisa masuk — tapi `-` sendirian (mulai mengetik nilai negatif
+        // lalu berhenti) dan `,` sendirian (mulai mengetik `0,5`) dua-duanya
+        // lolos filternya dan tetap `null` sesudah di-parse.
+        //
+        // Pemeriksaan berbasis hasil parse membaca baris begitu sebagai baris
+        // kosong melompong: barisnya dibuang, dan layarnya bilang semuanya
+        // tersimpan.
         final adaYangDiketik =
             titik.nilaiTarget.text.trim().isNotEmpty ||
             satuan.isNotEmpty ||

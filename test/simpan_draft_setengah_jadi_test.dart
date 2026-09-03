@@ -252,41 +252,58 @@ void main() {
       );
     });
 
-    /// Angka yang SALAH KETIK juga hilang — dan dulu dia hilang tanpa
-    /// dilaporkan sama sekali.
-    ///
-    /// `50x` gagal di-parse, jadi nilai acuannya null dan barisnya dilewat
-    /// seperti baris tanpa acuan. Bedanya: sebelum diperbaiki, penghitung
-    /// baris-dilewat memeriksa HASIL parse-nya. Satuan kosong dan pembacaan
-    /// yang juga gagal di-parse membuat baris ini terbaca sebagai baris kosong
-    /// melompong — jadi yang muncul pesan sukses biasa, padahal ada yang
-    /// diketik dan dibuang.
-    ///
-    /// Ini bentuk kehilangan yang paling mahal: teknisi melihat konfirmasi
-    /// berhasil, menutup layarnya, dan angkanya tidak pernah ada.
-    testWidgets('baris yang angkanya salah ketik tetap dilaporkan', (
-      tester,
-    ) async {
-      perbesarViewport(tester);
-      final perekam = _PerekamKalibrasi();
-      await tester.pumpWidget(_app(perekam));
-      await tester.pumpAndSettle();
-      await bukaLayar(tester);
+    // Angka SETENGAH KETIK juga hilang — dan dulu dia hilang tanpa
+    // dilaporkan sama sekali.
+    //
+    // ## Kenapa `-` dan `,`, bukan `50x`
+    //
+    // Kolom nilai acuan pakai `AppTextField.measurement`, dan dia menyaring
+    // karakter di tempat: `FilteringTextInputFormatter.allow(RegExp(r'^-?\d*[.,]?\d*'))`.
+    // Huruf **tidak bisa masuk sama sekali** — `50x` mendarat sebagai `50`,
+    // yaitu titik yang sah. Jadi contoh itu bukan bug yang bisa terjadi, dan
+    // test yang memakainya menguji sesuatu yang tidak ada.
+    //
+    // Yang BISA terjadi: nilai yang lolos filternya tapi tetap bukan angka.
+    // `-` sendirian (teknisi mulai mengetik nilai negatif lalu berhenti) dan
+    // `,` sendirian (mulai mengetik `0,5` dari koma) dua-duanya lolos, dan
+    // dua-duanya `null` sesudah di-parse.
+    //
+    // Sebelum diperbaiki, penghitung baris-dilewat memeriksa HASIL parse-nya.
+    // Dengan satuan dan pembacaan kosong, baris begitu terbaca sebagai baris
+    // kosong melompong — jadi yang muncul pesan sukses biasa, padahal ada yang
+    // diketik dan dibuang.
+    //
+    // Ini bentuk kehilangan yang paling mahal: teknisi melihat konfirmasi
+    // berhasil, menutup layarnya, dan angkanya tidak pernah ada.
+    for (final setengah in ['-', ',']) {
+      testWidgets('baris setengah ketik "$setengah" tetap dilaporkan', (
+        tester,
+      ) async {
+        perbesarViewport(tester);
+        final perekam = _PerekamKalibrasi();
+        await tester.pumpWidget(_app(perekam));
+        await tester.pumpAndSettle();
+        await bukaLayar(tester);
 
-      await pilihIdentitas(tester);
-      // Cuma nilai acuannya yang diisi, dan isinya bukan angka. Satuan &
-      // pembacaan sengaja dibiarkan kosong — itu keadaan yang dulu lolos.
-      await tester.enterText(find.byType(TextField).at(2), '50x');
-      await tekan(tester, 'SIMPAN DRAFT');
+        await pilihIdentitas(tester);
+        // Cuma nilai acuannya yang disentuh. Satuan & pembacaan sengaja
+        // dibiarkan kosong — itu keadaan yang dulu lolos tanpa dilaporkan.
+        await tester.enterText(find.byType(TextField).at(2), setengah);
+        await tekan(tester, 'SIMPAN DRAFT');
 
-      expect(perekam.panggilan, 1);
-      expect(perekam.terakhir!.measurements, isEmpty);
-      expect(
-        find.textContaining('1 baris'),
-        findsOneWidget,
-        reason: 'Angka salah ketik dibuang diam-diam, layarnya bilang sukses.',
-      );
-    });
+        expect(perekam.panggilan, 1);
+        expect(
+          perekam.terakhir!.measurements,
+          isEmpty,
+          reason: '"$setengah" nggak seharusnya jadi titik ukur.',
+        );
+        expect(
+          find.textContaining('1 baris'),
+          findsOneWidget,
+          reason: 'Angka setengah ketik dibuang diam-diam, layarnya bilang sukses.',
+        );
+      });
+    }
 
     /// JANGAN kebablasan: baris yang benar-benar kosong tetap TIDAK dilaporkan.
     ///
