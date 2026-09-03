@@ -134,14 +134,34 @@ class StatusBadge extends StatelessWidget {
         _ => value,
       };
 
-  BadgeTone get tone => _tone ?? artiApi(_kodeApi!).nada;
+  /// Yang menentukan dari mana nada/ikon/label dibaca itu **[_kodeApi]**, bukan
+  /// null-nya masing-masing field.
+  ///
+  /// Bedanya kelihatan cuma di satu tempat, dan tempat itu nyata: `icon` boleh
+  /// null di konstruktor eksplisit — tiga pemanggil memang tidak mengirimnya
+  /// (`profile_screen`, `history_screen`, `calibration_detail_screen`). Menulis
+  /// `_icon ?? artiApi(_kodeApi!).ikon` membaca wajar, tapi buat badge itu
+  /// artinya "tidak ada ikon" jatuh ke jalur kode-API dan `_kodeApi!` meledak.
+  ///
+  /// Yang bikin ini mahal: `flutter analyze` diam saja (tipenya sah), `flutter
+  /// build` lolos, dan yang merah cuma golden — sebagai kotak error 100000px
+  /// di layar yang kelihatannya tidak berhubungan.
+  BadgeTone get tone {
+    final kode = _kodeApi;
+    return kode == null ? _tone! : artiApi(kode).nada;
+  }
 
-  IconData? get icon => _icon ?? artiApi(_kodeApi!).ikon;
+  IconData? get icon {
+    final kode = _kodeApi;
+    return kode == null ? _icon : artiApi(kode).ikon;
+  }
 
   /// Label yang benar-benar tercetak. Butuh [l10n] karena badge dari
   /// [StatusBadge.fromApi] baru tahu kata-katanya waktu bahasanya diketahui.
-  String labelUntuk(AppLocalizations l10n) =>
-      _label ?? labelApi(_kodeApi!, l10n);
+  String labelUntuk(AppLocalizations l10n) {
+    final kode = _kodeApi;
+    return kode == null ? _label! : labelApi(kode, l10n);
+  }
 
   Color _color(BuildContext context, ColorScheme scheme) => switch (tone) {
     BadgeTone.success => AppColors.statusSukses(context),

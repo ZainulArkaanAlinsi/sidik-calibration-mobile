@@ -179,4 +179,87 @@ void main() {
       );
     });
   });
+
+  /// Konstruktor eksplisit — jalur yang **nol test**-nya sampai PR ini, dan
+  /// yang bikin empat golden merah.
+  ///
+  /// Waktu labelnya dipindah ke l10n, ketiga getter-nya ditulis dengan `??`:
+  ///
+  /// ```dart
+  /// IconData? get icon => _icon ?? artiApi(_kodeApi!).ikon;
+  /// ```
+  ///
+  /// Buat `StatusBadge.fromApi` itu benar. Buat konstruktor eksplisit `icon`
+  /// memang BOLEH null — tiga pemanggil tidak mengirimnya — dan di situ `??`
+  /// membaca "tidak ada ikon" sebagai "berarti pakai jalur kode API", lalu
+  /// `_kodeApi!` meledak di tengah `build()`.
+  ///
+  /// Yang mahal bukan bug-nya, tapi bagaimana dia muncul: `flutter analyze`
+  /// diam (tipenya sah), `flutter build web` hijau (dia cuma mengompilasi),
+  /// dan yang merah cuma golden — sebagai `RenderErrorBox` 100000px di
+  /// `profile_screen`, layar yang tidak disentuh PR ini sama sekali. Butuh
+  /// pembacaan jejak layout buat sampai ke `status_badge.dart`.
+  ///
+  /// Jadi yang dijaga di sini bukan "labelnya benar", tapi **kedua konstruktor
+  /// itu dua jalur, dan yang menentukan jalurnya kode API — bukan null-nya
+  /// masing-masing field.**
+  group('konstruktor eksplisit', () {
+    /// Persis bentuk `profile_screen.dart:1385`, `history_screen.dart:266` dan
+    /// `calibration_detail_screen.dart:96`: label + nada, tanpa ikon.
+    test('tanpa ikon: kebaca null, bukan meledak', () {
+      const badge = StatusBadge(label: 'Aktif', tone: BadgeTone.success);
+
+      expect(badge.icon, isNull);
+      expect(badge.tone, BadgeTone.success);
+      expect(badge.labelUntuk(id), 'Aktif');
+      expect(badge.labelUntuk(en), 'Aktif');
+    });
+
+    test('dengan ikon: ikonnya kepakai apa adanya', () {
+      const badge = StatusBadge(
+        label: 'Selesai',
+        tone: BadgeTone.info,
+        icon: Icons.task_alt,
+      );
+
+      expect(badge.icon, Icons.task_alt);
+      expect(badge.tone, BadgeTone.info);
+    });
+
+    /// Labelnya eksplisit, jadi dia TIDAK boleh ikut bahasa — pemanggilnya
+    /// sudah menerjemahkan sendiri (`l10n.historyStatusFail` dan kawan-kawan).
+    /// Kalau suatu saat `labelUntuk` mulai melirik `_kodeApi` duluan, yang
+    /// tercetak jadi kode mentah dan test ini yang merah.
+    test('label eksplisit nggak ikut ditimpa bahasa', () {
+      const badge = StatusBadge(label: 'Tidak lolos', tone: BadgeTone.danger);
+
+      expect(badge.labelUntuk(id), 'Tidak lolos');
+      expect(badge.labelUntuk(en), 'Tidak lolos');
+    });
+
+    /// Yang benar-benar diadu golden: badge tanpa ikon harus **ter-render**,
+    /// bukan cuma getter-nya tidak melempar. `pumpWidget` menelan exception
+    /// dari `build()` dan menggantinya dengan `ErrorWidget`, jadi tanpa
+    /// `takeException()` test ini bisa hijau sambil layarnya merah.
+    testWidgets('tanpa ikon: ke-render, bukan kotak error', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          locale: Locale('id'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Center(
+              child: StatusBadge(label: 'Aktif', tone: BadgeTone.success),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(ErrorWidget), findsNothing);
+      expect(find.text('Aktif'), findsOneWidget);
+      expect(find.byType(Icon), findsNothing);
+    });
+  });
+
 }
