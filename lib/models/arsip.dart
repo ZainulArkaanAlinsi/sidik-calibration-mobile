@@ -116,8 +116,22 @@ class ArsipFolder {
       parentId: (json['parent_id'] as num?)?.toInt(),
       isRoot: json['is_root'] as bool? ?? false,
       tipe: json['tipe'] as String? ?? 'manual',
-      jumlahSubfolder: (json['jumlah_subfolder'] as num?)?.toInt() ?? 0,
-      jumlahBerkas: (json['jumlah_berkas'] as num?)?.toInt() ?? 0,
+      // Kuncinya `jumlah_folder`/`jumlah_file` — itu yang ditulis
+      // `FolderResource` di server dan yang tercatat di
+      // `docs/kontrak-api.md`. Sampai 3 Sep 2026 di sini terbaca
+      // `jumlah_subfolder`/`jumlah_berkas`, dua nama yang TIDAK PERNAH dikirim
+      // siapa pun.
+      //
+      // Gagalnya sunyi total, dan `?? 0` yang menyunyikannya: tiap folder di
+      // layar Arsip menulis "0 folder · 0 berkas" apa pun isinya, dan `kosong`
+      // di bawah ikut selalu true — jadi menu Hapus menyala buat folder yang
+      // masih ada isinya, persis yang penjaga itu dibikin buat mencegah.
+      //
+      // Yang bikin ini bertahan lama: `MockArsipService` menyusun objeknya
+      // LANGSUNG lewat konstruktor, bukan lewat `fromJson`. Jadi di mode mock
+      // angkanya benar dan seluruh test hijau — cuma jalur API asli yang salah.
+      jumlahSubfolder: (json['jumlah_folder'] as num?)?.toInt() ?? 0,
+      jumlahBerkas: (json['jumlah_file'] as num?)?.toInt() ?? 0,
       // UTC dari backend → waktu lokal; tanpa ini jamnya mundur 7 jam.
       dibuatPada: switch (json['dibuat_pada']) {
         String s => DateTime.tryParse(s)?.toLocal(),
