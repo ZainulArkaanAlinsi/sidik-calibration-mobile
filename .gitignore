@@ -88,3 +88,17 @@ firebase-debug.*.log
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
 macos/Runner/GoogleService-Info.plist
+
+# Kunci penanda tangan APK rilis. Ini rahasia yang BEDA KELAS dari yang di
+# atas: `google-services.json` bocor cuma bikin repot, keystore bocor bikin
+# siapa pun bisa membangun APK yang Android terima sebagai pembaruan sah
+# aplikasi ini — dan aplikasi ini memang memasang pembaruannya sendiri.
+#
+# Kebalikannya sama gawatnya: keystore HILANG artinya tidak ada lagi APK yang
+# bisa dipasang di atas yang sudah terpasang. Setiap teknisi harus uninstall
+# manual, dan itu menghapus token login serta foto profilnya. Jadi berkas ini
+# tidak di-commit, TAPI wajib punya salinan cadangan di luar repo.
+# Selengkapnya: docs/rilis-tanda-tangan-apk.md
+android/key.properties
+*.jks
+*.keystore
