@@ -1840,6 +1840,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calibKirimApproval => 'SUBMIT FOR APPROVAL';
 
   @override
+  String calibDraftTitikDilewat(int jumlah) {
+    return 'Draft saved, but $jumlah rows were not saved because their reference value is still empty. Fill the reference value in if the readings on those rows should be kept.';
+  }
+
+  @override
   String get calibBerhasilDraft => 'Calibration draft saved.';
 
   @override

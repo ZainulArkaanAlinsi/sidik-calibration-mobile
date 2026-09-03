@@ -1837,6 +1837,11 @@ class AppLocalizationsId extends AppLocalizations {
   String get calibKirimApproval => 'KIRIM UNTUK APPROVAL';
 
   @override
+  String calibDraftTitikDilewat(int jumlah) {
+    return 'Draft disimpan, tapi $jumlah baris nggak ikut kesimpen karena nilai acuannya belum diisi. Isi dulu kolom nilai acuannya kalau angka di baris itu mau ikut kebawa.';
+  }
+
+  @override
   String get calibBerhasilDraft => 'Draft kalibrasi disimpan.';
 
   @override

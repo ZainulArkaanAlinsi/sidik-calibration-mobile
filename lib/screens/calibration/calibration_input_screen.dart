@@ -364,35 +364,85 @@ class _FormState extends ConsumerState<_Form> {
       return;
     }
 
+    // Mulai dari sini penjagaannya BERSYARAT — dan `draft` yang jadi syaratnya.
+    //
+    // Sebelum ini seluruh blok di bawah berjalan tanpa syarat, dan `draft` baru
+    // dibaca jauh di bawah waktu menyusun `CalibrationDraft`. Artinya tombol
+    // "Simpan Draft" menuntut lembar yang LENGKAP — persis yang tidak
+    // dijanjikannya. Teknisi yang baru mengukur sebagian titik (baterai
+    // menipis, alat pelanggan belum siap) cuma punya dua pilihan: tunggu
+    // sampai lengkap, atau kehilangan seluruh isian.
+    //
+    // Layar lembar kerja utama sudah benar sejak awal — `lembar_kerja_screen`
+    // membungkus penjagaannya dengan `if (!draft)` dan menulis alasannya di
+    // tempat: *"Draft tetap boleh disimpan setengah jadi."* Model ini juga
+    // sudah menyatakan niat yang sama: `simpanSebagaiDraft` didokumentasikan
+    // sebagai *"simpan dulu, lanjut nanti"*.
+    //
+    // Backend pun sudah siap: `suhu_ruang`/`kelembaban` `nullable`,
+    // `measurements` `sometimes`, `pembacaan` `nullable`. Jadi yang bolong cuma
+    // layar ini.
+    //
+    // Tiga penjagaan di atas TIDAK ikut dilonggarkan. Kategori, alat dan
+    // standar bukan "kolom wajib" — tanpa ketiganya tidak ada yang bisa
+    // dikirim sama sekali, dan `CalibrationDraft` sendiri menuntutnya
+    // non-null. Sama seperti alat di lembar kerja utama.
     final suhu = _parse(_suhuRuang.text);
     final lembab = _parse(_kelembaban.text);
-    if (suhu == null || lembab == null) {
+    if (!draft && (suhu == null || lembab == null)) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.calibValidasiAngka)));
       return;
     }
 
     final measurements = <MeasurementPoint>[];
+
+    // Baris yang tidak bisa ikut tersimpan — dihitung, bukan didiamkan. Lihat
+    // di bawah loop.
+    var titikTanpaAcuan = 0;
+
     for (final titik in _titikList) {
       final target = _parse(titik.nilaiTarget.text);
-      if (target == null || titik.satuan.text.trim().isEmpty) {
-        messenger.showSnackBar(SnackBar(content: Text(l10n.calibValidasiAngka)));
-        return;
-      }
+      final satuan = titik.satuan.text.trim();
 
       final pembacaan = <double>[];
       for (final c in titik.pembacaan) {
         final nilai = _parse(c.text);
         if (nilai != null) pembacaan.add(nilai);
       }
-      if (pembacaan.length < 2) {
-        messenger.showSnackBar(SnackBar(content: Text(l10n.calibValidasiPembacaan)));
-        return;
+
+      if (!draft) {
+        if (target == null || satuan.isEmpty) {
+          messenger.showSnackBar(SnackBar(content: Text(l10n.calibValidasiAngka)));
+          return;
+        }
+        if (pembacaan.length < 2) {
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.calibValidasiPembacaan)),
+          );
+          return;
+        }
+      }
+
+      // Satu hal yang TIDAK bisa dilonggarkan walau ini draft:
+      // `measurements.*.titik_ukur` `required` di backend, jadi baris tanpa
+      // nilai acuan bakal ditolak seluruh request-nya — bukan cuma barisnya.
+      // Jadi barisnya dilewat di sini.
+      //
+      // Waktu `draft` false, cabang ini tidak pernah kena: penjagaan di atas
+      // sudah memulangkan lebih dulu.
+      if (target == null) {
+        // Dihitung CUMA kalau memang ada yang hilang. Baris yang kosong
+        // melompong tidak kehilangan apa pun, dan melaporkannya bikin
+        // peringatan yang isinya tidak benar — dan peringatan palsu melatih
+        // orang mengabaikan yang asli.
+        if (satuan.isNotEmpty || pembacaan.isNotEmpty) titikTanpaAcuan++;
+        continue;
       }
 
       measurements.add(
         MeasurementPoint(
           titikUkur: target,
-          satuan: titik.satuan.text.trim(),
+          satuan: satuan,
           pembacaan: pembacaan,
         ),
       );
@@ -419,9 +469,25 @@ class _FormState extends ConsumerState<_Form> {
     setState(() => _mengirim = false);
 
     if (hasil != null) {
+      // Baris yang dilewat HARUS diomongin — draft yang balik dengan tabel
+      // bolong tanpa ada yang bilang itu persis cara sesi kekirim ke admin
+      // dengan titik yang ilang diam-diam. Aturan yang sama sudah dipegang
+      // penjaga `kebuang` di `lembar_kerja_screen`, berikut durasi 8 detiknya:
+      // pesan yang lewat dalam empat detik sama saja dengan tidak ada.
+      //
+      // Digabung ke pesan sukses, bukan ditampilkan sebelumnya: SnackBar
+      // berikutnya menggusur yang sedang tampil, jadi peringatan yang
+      // ditampilkan lebih dulu justru yang paling mungkin tidak terbaca.
+      final adaYangDilewat = draft && titikTanpaAcuan > 0;
+
       messenger.showSnackBar(
         SnackBar(
-          content: Text(draft ? l10n.calibBerhasilDraft : l10n.calibBerhasilApproval),
+          content: Text(
+            adaYangDilewat
+                ? l10n.calibDraftTitikDilewat(titikTanpaAcuan)
+                : (draft ? l10n.calibBerhasilDraft : l10n.calibBerhasilApproval),
+          ),
+          duration: Duration(seconds: adaYangDilewat ? 8 : 4),
         ),
       );
       Navigator.of(context).pop();

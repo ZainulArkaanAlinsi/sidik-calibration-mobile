@@ -3421,6 +3421,12 @@ abstract class AppLocalizations {
   /// **'SUBMIT FOR APPROVAL'**
   String get calibKirimApproval;
 
+  /// No description provided for @calibDraftTitikDilewat.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft saved, but {jumlah} rows were not saved because their reference value is still empty. Fill the reference value in if the readings on those rows should be kept.'**
+  String calibDraftTitikDilewat(int jumlah);
+
   /// No description provided for @calibBerhasilDraft.
   ///
   /// In en, this message translates to:
