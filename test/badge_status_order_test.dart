@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/widgets/status_badge.dart';
 
 /// Empat status Order punya warna & ikonnya sendiri (BUG-011).
@@ -15,9 +16,18 @@ import 'package:sidik_calibration/widgets/status_badge.dart';
 /// Yang diuji di sini nada warnanya (`BadgeTone`), bukan kode warnanya —
 /// paletnya boleh diganti, artinya tidak boleh.
 void main() {
+  // Labelnya sekarang butuh bahasa yang sedang berlaku — `fromApi` cuma
+  // menyimpan kodenya, dan kata-katanya diselesaikan di `build()`. Yang diuji
+  // di berkas ini tetap perilaku Indonesia-nya, jadi locale-nya dipatok.
+  late AppLocalizations id;
+
+  setUpAll(() async {
+    id = await AppLocalizations.delegate.load(const Locale('id'));
+  });
+
   ({String label, BadgeTone tone, IconData? icon}) badge(String api) {
     final b = StatusBadge.fromApi(api);
-    return (label: b.label, tone: b.tone, icon: b.icon);
+    return (label: b.labelUntuk(id), tone: b.tone, icon: b.icon);
   }
 
   group('status Order dikenali', () {
@@ -94,7 +104,7 @@ void main() {
     /// ditampilkan apa adanya, bukan bikin app crash.
     test('status yang belum dikenal tetap tampil apa adanya', () {
       final b = StatusBadge.fromApi('status_yang_belum_ada');
-      expect(b.label, 'status_yang_belum_ada');
+      expect(b.labelUntuk(id), 'status_yang_belum_ada');
       expect(b.tone, BadgeTone.neutral);
     });
   });

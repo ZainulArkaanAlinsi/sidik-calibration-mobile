@@ -893,6 +893,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historyStatusPerluRevisi => 'Needs revision';
 
   @override
+  String get statusAktif => 'Active';
+
+  @override
+  String get statusOverdue => 'Overdue';
+
+  @override
+  String get statusNonaktif => 'Inactive';
+
+  @override
+  String get statusDisetujui => 'Approved';
+
+  @override
+  String get statusBaru => 'New';
+
+  @override
+  String get statusDiproses => 'In progress';
+
+  @override
+  String get statusSelesai => 'Done';
+
+  @override
+  String get statusDibatalkan => 'Cancelled';
+
+  @override
   String get historyApprove => 'APPROVE';
 
   @override
