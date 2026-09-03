@@ -34,6 +34,23 @@ on:
       - main
   workflow_dispatch:
 
+  # Jalur APK boleh dipicu MANUAL, dan komentar di `apk-rilis-cloud.yml` sendiri
+  # yang nyebut kasusnya: "abis ganti URL server tanpa ganti kode". Pas itu
+  # kejadian nggak ada push ke `main`, jadi workflow ini nggak ikut jalan — dan
+  # zip Windows/macOS di halaman unduh tetap bawa API_BASE_URL yang LAMA.
+  #
+  # Gagalnya diam-diam, dan itu yang bikin mahal: halaman unduhnya kelihatan
+  # normal, tombolnya jalan, aplikasinya kebuka — cuma nembak alamat yang udah
+  # nggak dipakai. Yang kena teknisi di lokasi, bukan orang yang ngeganti URL.
+  #
+  # Dibatasi ke dispatch yang SUKSES dan berangkat dari `main` (lihat `if:` di
+  # tiap job). Yang lewat push sengaja NGGAK diikutin dari sini: `push: main` di
+  # atas sudah menjalankan workflow ini langsung, dan ngikutin dua-duanya bikin
+  # tiap merge kebangun dobel.
+  workflow_run:
+    workflows: ["APK rilis (nyambung server)"]
+    types: [completed]
+
 env:
   # Samain persis sama yang dipakai lokal; Flutter beda minor sering ganti
   # perilaku build desktop.
@@ -41,6 +58,19 @@ env:
 
 jobs:
   build:
+    # Lihat `workflow_run` di atas. Yang datang lewat push dilewati di sini,
+    # karena `push: main` sudah memicu workflow ini secara langsung.
+    #
+    # `head_branch` ikut dicek: dispatch dari UI boleh dipilih ref-nya, tapi
+    # `workflow_run` selalu menjalankan berkas workflow versi branch bawaan dan
+    # checkout-nya pun ke sana. Tanpa cek ini, dispatch dari branch lain bakal
+    # ngemas kode `main` lalu MENERBITKANNYA — hasilnya bukan yang dimaksud, dan
+    # nggak ada yang kelihatan salah di halaman unduh.
+    if: >-
+      github.event_name != 'workflow_run'
+      || (github.event.workflow_run.event == 'workflow_dispatch'
+          && github.event.workflow_run.conclusion == 'success'
+          && github.event.workflow_run.head_branch == 'main')
     strategy:
       # Jangan batalin platform lain cuma gara-gara satu gagal.
       fail-fast: false
@@ -198,6 +228,12 @@ jobs:
   # `file_picker`, `connectivity_plus`, dan `url_launcher` semuanya punya
   # implementasi web terdaftar.
   web:
+    # Syarat yang sama persis dengan job `build` — alasannya ditulis di sana.
+    if: >-
+      github.event_name != 'workflow_run'
+      || (github.event.workflow_run.event == 'workflow_dispatch'
+          && github.event.workflow_run.conclusion == 'success'
+          && github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     name: web
 
@@ -245,6 +281,8 @@ jobs:
           retention-days: 30
 
   terbitkan:
+    # Nggak perlu `if:` sendiri: begitu `build` dan `web` dilewati, job ini ikut
+    # dilewati — itu perilaku bawaan `needs`.
     needs: [build, web]
     runs-on: ubuntu-latest
     name: terbitkan halaman unduh
