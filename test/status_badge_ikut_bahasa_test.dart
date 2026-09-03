@@ -64,6 +64,23 @@ void main() {
     'dibatalkan',
   ];
 
+  /// `PASS` dan `FAIL` sengaja dikecualikan dari pemeriksaan "label != kode".
+  ///
+  /// Labelnya memang **"PASS"** dan **"FAIL"** — sama persis dengan kodenya, di
+  /// kedua bahasa — karena keduanya tercetak apa adanya di sertifikat.
+  ///
+  /// Jadi buat dua kode ini "label == kode" bukan tanda jatuh ke fallback, dan
+  /// tidak ada test kotak-hitam yang bisa membedakan keduanya: cabang yang
+  /// benar dan cabang `_ => value` sama-sama memulangkan string yang sama.
+  /// Memaksa keduanya berbeda berarti menerjemahkan istilah yang tidak boleh
+  /// diterjemahkan.
+  ///
+  /// Yang menjaga dua kode ini test berikutnya — diadu langsung ke
+  /// `l10n.historyStatusPass`/`Fail`. Itu pemeriksaan yang memang bisa
+  /// membedakan: kalau cabangnya hilang, hasilnya tetap "PASS" tapi bukan lagi
+  /// nilai yang dibaca dari ARB.
+  const labelnyaMemangSamaDenganKode = {'PASS', 'FAIL'};
+
   group('semua status punya kata-katanya', () {
     test('nggak ada yang jatuh ke kode mentah, di dua-dua bahasa', () {
       for (final kode in semuaKode) {
@@ -75,6 +92,9 @@ void main() {
             isNotEmpty,
             reason: 'Status `$kode` labelnya kosong di locale $nama.',
           );
+
+          if (labelnyaMemangSamaDenganKode.contains(kode)) continue;
+
           expect(
             label,
             isNot(kode),
