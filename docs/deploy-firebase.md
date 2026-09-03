@@ -354,10 +354,30 @@ backend berarti membangun ulang ketiga platform — tidak ada cara mengubahnya
 dari sisi Hosting atau dari sisi aplikasi yang sudah terpasang. Jadi pastikan
 URL backend sudah final sebelum mulai membagikan.
 
-Nomor versi **untuk build CI sudah otomatis**. Workflow "APK rilis (nyambung
-server)" mengoper `--build-number=${{ github.run_number }}`, angka yang naik
-sendiri setiap workflow itu jalan, dan nomornya ikut ditulis di catatan rilis
-App Distribution ("build 25 · …") supaya bisa diadu waktu teknisi lapor.
+Nomor versi **untuk build CI sudah otomatis, dan sama di ketiga platform**.
+Kedua workflow rilis — "APK rilis (nyambung server)" dan "Rilis desktop & web
+(nyambung server)" — menyusun nomornya dari sumber yang sama: jumlah commit
+(`git rev-list --count HEAD`), angka yang naik sendiri setiap ada yang mendarat
+di `main`. Nomornya ikut ditulis di catatan rilis App Distribution
+("build 521 · …") supaya bisa diadu waktu teknisi lapor.
+
+Sumbernya jumlah commit, bukan `github.run_number`, karena angka itu
+**per-workflow**: dua jalur rilis menghitung sendiri-sendiri, jadi commit yang
+sama pernah terbit sebagai `1.0.84` di HP sementara paket Windows dari commit
+itu juga tetap bernama `1.0.0`. Jumlah commit sama di mana pun dia dihitung,
+jadi APK, Windows, dan macOS dari satu commit selalu bernomor sama — tanpa
+kedua workflow perlu saling menunggu.
+
+Konsekuensinya satu, dan sudah dibayar sekali waktu penggantian ini mendarat:
+penomorannya melompat dari `1.0.84` ke `1.0.521`. Lompatan itu **naik**, jadi
+aman untuk `versionCode` maupun untuk pemberitahuan "ada versi baru" —
+perbandingannya numerik per segmen (`bandingkanVersi` di
+`lib/models/versi_aplikasi.dart`), bukan teks.
+
+Kedua workflow memasang `fetch-depth: 0` di langkah checkout. Itu **wajib**:
+checkout bawaan hanya menarik satu commit, hitungannya jadi 1, dan angka 1
+lolos seluruh build tanpa keluhan — yang merah baru HP teknisi. Masing-masing
+workflow menjaga dirinya dengan menolak hitungan di bawah 100.
 
 Ini bukan kosmetik. Android menolak memasang APK dengan `versionCode` yang
 tidak lebih besar dari yang sudah terpasang, dan gagalnya cuma muncul sebagai
@@ -369,7 +389,8 @@ yang lama — teknisi melihat "sudah terpasang" lalu tetap memegang versi kemari
 selalu berangka lebih kecil daripada build CI, jadi APK hasil coba-coba di
 laptop tidak bisa menimpa rilis yang dipegang teknisi — kebalikannya yang
 berbahaya, dan diam-diam. Kalau memang perlu membagikan build lokal, oper
-`--build-number` sendiri dengan angka di atas nomor run CI terakhir.
+`--build-number` sendiri dengan angka di atas hitungan commit terakhir
+(`git rev-list --count HEAD`).
 
 ## Kenapa bukan Flutter Web
 

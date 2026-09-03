@@ -85,7 +85,13 @@ jobs:
     name: ${{ matrix.nama }}
 
     steps:
+      # `fetch-depth: 0` WAJIB — sama alasannya dengan `apk-rilis-cloud.yml`:
+      # nomor versi diambil dari jumlah commit, dan checkout bawaan cuma
+      # menarik satu. Job `web` dan `terbitkan` nggak butuh ini: dua-duanya
+      # nggak menyusun nomor versi.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # Gagal di sini, di detik pertama, dengan sebab yang jelas. Tanpa
       # penjagaan ini paketnya tetap kebangun tapi API_BASE_URL-nya kosong —
@@ -163,11 +169,59 @@ jobs:
       # yang menahan paket tinggal test perilaku.
       - run: flutter test --exclude-tags screenshot
 
+      # Nomornya disusun dari sumber yang SAMA dengan jalur APK — jumlah commit
+      # — dan itu satu-satunya alasan langkah ini ada.
+      #
+      # `github.run_number` nggak bisa dipakai buat ini: angkanya per-workflow,
+      # jadi commit yang sama dapat angka beda di dua jalur. Sampai sebelum ini
+      # akibatnya kelihatan telanjang — APK terbit sebagai `1.0.84` sementara
+      # paket Windows dari commit yang sama tetap bernama `1.0.0`, karena di
+      # sini cuma `--build-number` yang diset dan `--build-name` nggak pernah.
+      # Waktu teknisi lapor "punyaku versi sekian", nggak ada yang bisa diadu.
+      #
+      # Angkanya DIHITUNG ULANG di sini, bukan dioper dari jalur APK. Dioper
+      # berarti jalur ini nunggu jalur APK selesai, padahal dua-duanya sengaja
+      # berangkat berbarengan dari `push: main`. Jumlah commit nggak perlu
+      # dioper — dia sudah ada di checkout ini sendiri, dan hasilnya identik.
+      #
+      # `shell: bash` disebut eksplisit: bawaan runner Windows itu PowerShell,
+      # dan `grep`/`cut`/`<<<` di bawah nggak ada di sana.
+      - name: Susun nomor versi
+        id: versi
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # `version: 1.0.0+2` → `1.0.0` → `1.0`
+          DASAR=$(grep -m1 '^version:' pubspec.yaml | sed 's/^version:[[:space:]]*//' | cut -d'+' -f1)
+          MAYOR_MINOR=$(cut -d'.' -f1,2 <<<"$DASAR")
+
+          if [ -z "$MAYOR_MINOR" ]; then
+            echo "::error::Gagal membaca 'version:' dari pubspec.yaml."
+            exit 1
+          fi
+
+          NOMOR_BUILD=$(git rev-list --count HEAD)
+
+          # Kembaran penjagaan di `apk-rilis-cloud.yml`. Checkout dangkal
+          # memulangkan 1, dan angka 1 lolos tanpa keluhan sampai ada yang
+          # membandingkan versi desktop dengan versi APK — persis kebingungan
+          # yang langkah ini dibuat buat menghabisi.
+          if [ "$NOMOR_BUILD" -lt 100 ]; then
+            echo "::error::Jumlah commit kebaca $NOMOR_BUILD — kekecilan, hampir pasti checkout-nya dangkal. Pastikan fetch-depth: 0 masih terpasang di langkah checkout."
+            exit 1
+          fi
+
+          echo "nama=${MAYOR_MINOR}.${NOMOR_BUILD}" >> "$GITHUB_OUTPUT"
+          echo "build=$NOMOR_BUILD" >> "$GITHUB_OUTPUT"
+          echo "Versi paket ${{ matrix.nama }}: ${MAYOR_MINOR}.${NOMOR_BUILD} (build ${NOMOR_BUILD})" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Build windows
         if: matrix.nama == 'windows'
         run: >
           flutter build windows --release
-          --build-number=${{ github.run_number }}
+          --build-name=${{ steps.versi.outputs.nama }}
+          --build-number=${{ steps.versi.outputs.build }}
           --dart-define=APP_ENV=prod
           --dart-define=API_BASE_URL=${{ vars.API_BASE_URL }}/api
 
@@ -175,7 +229,8 @@ jobs:
         if: matrix.nama == 'macos'
         run: >
           flutter build macos --release
-          --build-number=${{ github.run_number }}
+          --build-name=${{ steps.versi.outputs.nama }}
+          --build-number=${{ steps.versi.outputs.build }}
           --dart-define=APP_ENV=prod
           --dart-define=API_BASE_URL=${{ vars.API_BASE_URL }}/api
 
