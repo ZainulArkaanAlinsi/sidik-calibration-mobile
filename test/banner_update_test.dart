@@ -257,7 +257,21 @@ void main() {
 
       expect(find.byType(Dialog), findsNothing);
       expect(find.byType(AlertDialog), findsNothing);
-      expect(find.byType(ModalBarrier), findsNothing);
+
+      // `findsOneWidget`, BUKAN `findsNothing` — dan angka satu itu yang
+      // penting.
+      //
+      // Versi pertama test ini menulis `findsNothing` dan merah di CI: setiap
+      // `ModalRoute` di `Navigator` membuat satu `ModalBarrier`, termasuk route
+      // home `MaterialApp` yang tidak menghalangi apa pun. Jadi nol itu keadaan
+      // yang mustahil, dan assertion-nya menguji hal yang salah.
+      //
+      // Yang benar menghitungnya: `showDialog` mendorong route baru, dan route
+      // itu membawa barrier KEDUA. Satu = cuma route dasar; dua = ada dialog
+      // yang menghalangi. Bentuk ini tetap menangkap `PopScope(canPop: false)`
+      // yang dibungkus dialog, dan tidak bisa lolos cuma karena dialognya bukan
+      // `AlertDialog`.
+      expect(find.byType(ModalBarrier), findsOneWidget);
 
       // Dan tombol pasangnya tetap ada — wajib bukan berarti buntu.
       expect(find.byKey(const Key('banner_update_pasang')), findsOneWidget);
