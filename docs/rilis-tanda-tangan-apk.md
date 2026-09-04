@@ -71,7 +71,18 @@ uninstall lagi, bukan mengurangi.
 ## Bikin keystore-nya
 
 Sekali seumur aplikasi. Jalankan di komputer yang kamu pegang sendiri, **bukan
-di CI**:
+di CI**.
+
+> **Ada jalan satu perintah:** `./tool/bikin-keystore-rilis.sh` menjalankan
+> seluruh SOP di bawah — bikin keystore, tahan sampai cadangannya benar-benar
+> tersimpan, pasang keempat secret, lalu paku `APK_SHA256`. Dia menolak jalan
+> di CI, menolak menimpa keystore yang sudah ada, dan tidak pernah menerima
+> password lewat argumen (argumen mendarat di riwayat shell DAN di `ps`).
+>
+> Langkah manual di bawah tetap ditulis lengkap: kalau skripnya suatu hari
+> berbeda dari dokumen ini, yang benar dokumennya.
+
+Manualnya:
 
 ```bash
 keytool -genkeypair -v \
