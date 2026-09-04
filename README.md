@@ -25,6 +25,11 @@ golden test di luar macOS: lihat
 [`docs/sinkron-laptop-windows.md`](docs/sinkron-laptop-windows.md).
 Untuk membuktikan dua mesin sudah sama: `./tool/cek-sinkron.sh`.
 
+Prompt terminal yang nunjukin lagi di branch apa, kerjaan yang belum di-commit,
+dan versi Flutter yang benar-benar aktif — sekali pasang, jalan di shell mana
+pun: `./tool/pasang-terminal.sh` (Windows: `.\tool\pasang-terminal.ps1`).
+Lihat [`docs/terminal-cantik.md`](docs/terminal-cantik.md).
+
 ### Konfigurasi environment
 Tidak ada URL yang di-hardcode. Semua lewat `--dart-define` (lihat `lib/core/config/app_config.dart`):
 
