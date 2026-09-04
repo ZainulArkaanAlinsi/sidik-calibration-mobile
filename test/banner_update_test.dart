@@ -93,12 +93,16 @@ class _PenyiapPalsu implements PenyiapUpdate {
 }
 
 void main() {
-  VersiAplikasi rilis({String versi = '1.0.60', int? ukuran = 52428800}) =>
-      VersiAplikasi(
-        versi: versi,
-        urlUnduh: 'https://github.com/x/y/releases/download/v$versi/app.apk',
-        ukuran: ukuran,
-      );
+  VersiAplikasi rilis({
+    String versi = '1.0.60',
+    int? ukuran = 52428800,
+    bool wajib = false,
+  }) => VersiAplikasi(
+    versi: versi,
+    urlUnduh: 'https://github.com/x/y/releases/download/v$versi/app.apk',
+    ukuran: ukuran,
+    wajib: wajib,
+  );
 
   Future<void> pasang(
     WidgetTester tester, {
@@ -192,6 +196,71 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.textContaining('sudah tersedia'), findsNothing);
+    });
+  });
+
+  /// Rilis wajib — jalur yang penandanya sudah ada di model sejak awal tapi
+  /// tidak pernah mengubah apa pun di layar.
+  ///
+  /// Yang dijaga di sini DUA arah sekaligus, dan arah keduanya yang gampang
+  /// hilang waktu orang berikutnya "menyempurnakan" fitur ini:
+  ///
+  ///   1. Rilis wajib benar-benar tidak bisa dilewati.
+  ///   2. Rilis wajib TIDAK mengunci aplikasi.
+  ///
+  /// Nomor dua itu bukan kelalaian yang belum sempat dikerjakan. Teknisi di
+  /// lokasi pelanggan tanpa sinyal cukup untuk 68 MB akan kehilangan seluruh
+  /// kemampuan mencatat kalibrasi kalau aplikasinya dikunci — datanya balik ke
+  /// kertas atau hilang. Untuk data yang masuk sertifikat terakreditasi, itu
+  /// lebih mahal daripada satu sesi jalan di versi lama.
+  group('rilis wajib', () {
+    testWidgets('tombol tutup TIDAK digambar', (tester) async {
+      await pasang(
+        tester,
+        layanan: MockVersiService(
+          terpasang: '1.0.58',
+          terbaru: rilis(wajib: true),
+        ),
+      );
+
+      expect(find.textContaining('WAJIB dipasang'), findsOneWidget);
+      expect(find.byKey(const Key('banner_update_tutup')), findsNothing);
+    });
+
+    testWidgets('rilis biasa TETAP punya tombol tutup', (tester) async {
+      await pasang(
+        tester,
+        layanan: MockVersiService(terpasang: '1.0.58', terbaru: rilis()),
+      );
+
+      expect(find.byKey(const Key('banner_update_tutup')), findsOneWidget);
+      expect(find.textContaining('WAJIB'), findsNothing);
+    });
+
+    /// Rilis wajib TIDAK mengunci aplikasi — tidak ada dialog penghalang.
+    ///
+    /// Diadu ke `ModalBarrier`/`Dialog` supaya yang tertangkap perubahan
+    /// perilakunya, bukan namanya: siapa pun yang nanti menambahkan
+    /// `showDialog(barrierDismissible: false)` atau `PopScope(canPop: false)`
+    /// ke jalur ini bakal merah di sini, dan komentar di atas yang menjelaskan
+    /// kenapa itu keputusan yang salah buat aplikasi lapangan.
+    testWidgets('TIDAK mengunci aplikasi: nol dialog penghalang', (
+      tester,
+    ) async {
+      await pasang(
+        tester,
+        layanan: MockVersiService(
+          terpasang: '1.0.58',
+          terbaru: rilis(wajib: true),
+        ),
+      );
+
+      expect(find.byType(Dialog), findsNothing);
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.byType(ModalBarrier), findsNothing);
+
+      // Dan tombol pasangnya tetap ada — wajib bukan berarti buntu.
+      expect(find.byKey(const Key('banner_update_pasang')), findsOneWidget);
     });
   });
 
