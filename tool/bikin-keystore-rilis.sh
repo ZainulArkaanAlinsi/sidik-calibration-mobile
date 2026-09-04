@@ -56,13 +56,20 @@ done
 # dan itu kegagalan yang baru ketahuan berbulan-bulan kemudian waktu ada
 # teknisi menekan Update. Nggak ada flag buat memaksa: kalau memang mau ganti
 # kunci, pindahkan berkas lamanya sendiri supaya keputusannya sadar.
+#
+# Tapi menolak jalan sama sekali juga salah, dan itu bug yang sempat ada di
+# sini: langkah cadangan di bawah sengaja menyuruh berhenti lalu menjalankan
+# skrip ini lagi, dan jalan ulang itu mendarat persis di baris ini lalu keluar
+# dengan status 1 — keystore sudah ada di disk, nol secret terpasang di GitHub,
+# dan satu-satunya jalan maju ditutup oleh skripnya sendiri. Persis di titik
+# paling genting: kunci sudah lahir tapi belum tercatat di mana pun.
+#
+# Jadi berkas yang sudah ada artinya LANJUTKAN dari langkah 3, bukan ulangi
+# dari langkah 1. Yang dijaga tetap sama — langkah pembuatan kunci dilewati,
+# jadi tidak ada jalan menimpa kunci lama tanpa memindahkannya lebih dulu.
+LANJUTAN=0
 if [ -e "$BERKAS" ]; then
-    merah "!! \`$BERKAS\` sudah ada — skrip ini tidak akan menimpanya."
-    merah "   Kalau ini kunci yang berlaku, kamu tidak perlu menjalankan skrip ini lagi."
-    merah "   Kalau memang mau ganti kunci, pindahkan berkas lamanya dulu, dan baca"
-    merah "   bagian \"Kalau kuncinya memang diganti\" di docs/rilis-tanda-tangan-apk.md —"
-    merah "   ongkosnya: SELURUH teknisi uninstall-pasang manual sekali."
-    exit 1
+    LANJUTAN=1
 fi
 
 gh auth status >/dev/null 2>&1 || {
@@ -72,9 +79,23 @@ gh auth status >/dev/null 2>&1 || {
 
 REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
 
-info "Kunci akan dibuat untuk repo: ${REPO}"
-echo "Berkas : ${BERKAS}"
-echo "Alias  : ${ALIAS}"
+if [ "$LANJUTAN" -eq 1 ]; then
+    info "Melanjutkan pemasangan secret untuk repo: ${REPO}"
+    echo "Berkas : ${BERKAS}  (sudah ada — TIDAK akan disentuh)"
+    echo "Alias  : ${ALIAS}"
+    echo
+    echo "Kunci barunya tidak dibuat lagi. Yang dikerjakan cuma langkah 3 dan 4:"
+    echo "memasang empat secret dan sidik jarinya ke GitHub."
+    echo
+    echo "Kalau yang kamu mau justru kunci BARU, batalkan di sini, pindahkan"
+    echo "${BERKAS} ke tempat lain dulu, baru jalankan lagi — dan baca bagian"
+    echo "\"Kalau kuncinya memang diganti\" di docs/rilis-tanda-tangan-apk.md,"
+    echo "ongkosnya SELURUH teknisi uninstall-pasang manual sekali."
+else
+    info "Kunci akan dibuat untuk repo: ${REPO}"
+    echo "Berkas : ${BERKAS}"
+    echo "Alias  : ${ALIAS}"
+fi
 echo
 read -r -p "Betul? [y/N] " jawab
 # `case`, bukan `${jawab,,}`: ekspansi huruf-kecil itu bash 4+, sementara macOS
@@ -86,24 +107,29 @@ esac
 
 # ------------------------------------------------------------ bikin keystore
 
-info "1/4 · Membuat keystore"
-echo "Isian yang disarankan (docs/rilis-tanda-tangan-apk.md):"
-echo "  First and last name (CN) : PT Sidik Kalibrasi"
-echo "  Organizational unit      : Rilis"
-echo "  Country code             : ID"
-echo "Password: panjang & acak. Simpan di password manager SEKARANG."
-echo
+if [ "$LANJUTAN" -eq 1 ]; then
+    info "1/4 · Dilewati — keystore sudah ada"
+    echo "\`${BERKAS}\` tidak dibaca, tidak ditulis, tidak ditimpa."
+else
+    info "1/4 · Membuat keystore"
+    echo "Isian yang disarankan (docs/rilis-tanda-tangan-apk.md):"
+    echo "  First and last name (CN) : PT Sidik Kalibrasi"
+    echo "  Organizational unit      : Rilis"
+    echo "  Country code             : ID"
+    echo "Password: panjang & acak. Simpan di password manager SEKARANG."
+    echo
 
-# `-validity 10000` ≈ 27 tahun. Sertifikat yang kedaluwarsa menghadirkan persis
-# masalah yang dokumen ini tutup, bertahun kemudian, waktu tidak ada lagi yang
-# ingat sebabnya.
-keytool -genkeypair -v \
-    -keystore "$BERKAS" \
-    -keyalg RSA -keysize 4096 -validity 10000 \
-    -alias "$ALIAS"
+    # `-validity 10000` ≈ 27 tahun. Sertifikat yang kedaluwarsa menghadirkan
+    # persis masalah yang dokumen ini tutup, bertahun kemudian, waktu tidak ada
+    # lagi yang ingat sebabnya.
+    keytool -genkeypair -v \
+        -keystore "$BERKAS" \
+        -keyalg RSA -keysize 4096 -validity 10000 \
+        -alias "$ALIAS"
 
-chmod 600 "$BERKAS"
-hijau "✓ ${BERKAS} dibuat (mode 600)."
+    chmod 600 "$BERKAS"
+    hijau "✓ ${BERKAS} dibuat (mode 600)."
+fi
 
 # ------------------------------------------------------------------ cadangan
 
@@ -122,8 +148,14 @@ case "$cadang" in [yY]) sudah=1 ;; *) sudah=0 ;; esac
 if [ "$sudah" -ne 1 ]; then
     echo
     echo "Oke, berhenti di sini. Keystore-nya sudah ada di ${BERKAS} dan masih utuh."
-    echo "Selesaikan cadangannya, lalu jalankan skrip ini lagi — dia bakal lanjut"
-    echo "dari langkah pemasangan secret, bukan bikin kunci baru."
+    echo
+    echo "Selesaikan cadangannya, lalu jalankan perintah yang sama lagi:"
+    echo
+    echo "    $0"
+    echo
+    echo "Karena ${BERKAS} sudah ada, jalan kedua itu melewati pembuatan kunci"
+    echo "dan langsung lanjut ke pemasangan secret. Kunci yang sekarang tidak"
+    echo "ditimpa, dan tidak ada kunci baru yang dibuat."
     exit 0
 fi
 
