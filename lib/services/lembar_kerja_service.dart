@@ -5,6 +5,7 @@ import '../models/pratinjau_hitung.dart';
 import 'api_client.dart';
 import 'equipment_lookup_service.dart';
 import 'contoh_lembar_kerja_massa.dart';
+import 'contoh_lembar_kerja_panjang.dart';
 import 'contoh_lembar_kerja_waktu.dart';
 import 'contoh_lembar_kerja_suhu.dart';
 
@@ -274,6 +275,16 @@ class MockLembarKerjaService implements LembarKerjaService {
       'timer_stopwatch' => contohBentukLembarKerjaTimer(untukAdmin: untukAdmin),
       'centrifuge' => contohBentukLembarKerjaCentrifuge(untukAdmin: untukAdmin),
       'tachometer' => contohBentukLembarKerjaTachometer(untukAdmin: untukAdmin),
+      // Kelompok PANJANG (alat ke-25). Bentuknya beda dari dua puluh empat
+      // yang lain di satu hal yang bikin lembar pH kelihatan "jalan" padahal
+      // salah: tabel `hasil`-nya BARIS-TERKUNCI (`titik_bisa_diubah: false`)
+      // dengan sebelas nominal balok ukur yang sudah tercetak di kertas. Tanpa
+      // cabang ini `micrometer` jatuh ke `_` dan mode mock memajang lembar pH
+      // tiga titik buffer — nggak ada error, cuma lembar yang salah, persis
+      // yang kejadian di TIDS sebelum 28 Agt 2026 dan di Timbangan.
+      'micrometer' => contohBentukLembarKerjaMicrometer(
+        untukAdmin: untukAdmin,
+      ),
       // Profil kosong / nggak dikenal SENGAJA jatuh ke pH, bukan lempar error —
       // sama kayak janji kontraknya (`docs/kontrak-api.md` §4).
       _ => contohBentukLembarKerja(untukAdmin: untukAdmin),

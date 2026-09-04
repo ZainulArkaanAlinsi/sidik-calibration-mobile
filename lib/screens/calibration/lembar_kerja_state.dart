@@ -1931,16 +1931,29 @@ class LembarKerjaState {
   /// Kode field yang nentuin ANGKA, bukan catatan — kalau kosong, hitungannya
   /// nggak jalan sama sekali.
   ///
-  /// Sejauh ini cuma dua, dan dua-duanya milik TITS. Backend nandainya
-  /// `wajib: false` (lembar setengah jadi tetap boleh dikirim dari lapangan),
-  /// tapi tanpa keduanya SELURUH titik pulang di `belum_dihitung`: arah
-  /// perhitungan koreksi berbalik antara mode measure & source, dan koreksi
-  /// kalibrator beda per tipe sensor — jadi backend menolak nebak.
+  /// Dua yang pertama milik TITS. Backend nandainya `wajib: false` (lembar
+  /// setengah jadi tetap boleh dikirim dari lapangan), tapi tanpa keduanya
+  /// SELURUH titik pulang di `belum_dihitung`: arah perhitungan koreksi
+  /// berbalik antara mode measure & source, dan koreksi kalibrator beda per
+  /// tipe sensor — jadi backend menolak nebak.
+  ///
+  /// Yang ketiga milik Micrometer, dan bahayanya BEDA — lebih sunyi. Satuan
+  /// alat mengalikan SETIAP pembacaan lembar itu (mm ×1, inch ×25,4, µm
+  /// ×0,001), dan yang kosong nggak bikin titiknya masuk `belum_dihitung`:
+  /// server jatuh ke `mm`. Jadi mikrometer berskala inch yang satuannya
+  /// kelupaan dipilih menghitung mulus, terbit mulus, dan salah 25,4×. Master
+  /// lab sendiri kena bentuk kebalikannya — satuan `inch` dengan angka
+  /// milimeter — dan yang tercetak koreksi −61 mm pada balok ukur 2,5 mm,
+  /// tanpa satu pun sel memprotes.
   ///
   /// Daftar kode, bukan daftar nama alat: yang nentuin lembar ini nanya atau
   /// nggak tetap BENTUK dari backend ([pilihanPenentuAngkaKosong] cuma lihat
-  /// field yang beneran ada), jadi sepuluh alat lain nggak kesenggol.
-  static const _kodePenentuAngka = {'mode_kalibrasi', 'tipe_sensor'};
+  /// field yang beneran ada), jadi lembar lain nggak kesenggol.
+  static const _kodePenentuAngka = {
+    'mode_kalibrasi',
+    'tipe_sensor',
+    'spesifikasi_alat.micrometer.satuan',
+  };
 
   /// Field penentu angka yang ada di lembar ini tapi belum dipilih.
   ///
