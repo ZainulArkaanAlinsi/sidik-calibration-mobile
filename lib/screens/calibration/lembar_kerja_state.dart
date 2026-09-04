@@ -1931,16 +1931,40 @@ class LembarKerjaState {
   /// Kode field yang nentuin ANGKA, bukan catatan — kalau kosong, hitungannya
   /// nggak jalan sama sekali.
   ///
-  /// Sejauh ini cuma dua, dan dua-duanya milik TITS. Backend nandainya
-  /// `wajib: false` (lembar setengah jadi tetap boleh dikirim dari lapangan),
-  /// tapi tanpa keduanya SELURUH titik pulang di `belum_dihitung`: arah
-  /// perhitungan koreksi berbalik antara mode measure & source, dan koreksi
-  /// kalibrator beda per tipe sensor — jadi backend menolak nebak.
+  /// Dua yang pertama milik TITS. Backend nandainya `wajib: false` (lembar
+  /// setengah jadi tetap boleh dikirim dari lapangan), tapi tanpa keduanya
+  /// SELURUH titik pulang di `belum_dihitung`: arah perhitungan koreksi
+  /// berbalik antara mode measure & source, dan koreksi kalibrator beda per
+  /// tipe sensor — jadi backend menolak nebak.
+  ///
+  /// Yang ketiga milik Micrometer, dan bahayanya BEDA — lebih sunyi. Satuan
+  /// alat mengalikan SETIAP pembacaan lembar itu (mm ×1, inch ×25,4, µm
+  /// ×0,001), dan yang kosong nggak bikin titiknya masuk `belum_dihitung`:
+  /// server jatuh ke `mm`. Jadi mikrometer berskala inch yang satuannya
+  /// kelupaan dipilih menghitung mulus, terbit mulus, dan salah 25,4×. Master
+  /// lab sendiri kena bentuk kebalikannya — satuan `inch` dengan angka
+  /// milimeter — dan yang tercetak koreksi −61 mm pada balok ukur 2,5 mm,
+  /// tanpa satu pun sel memprotes.
   ///
   /// Daftar kode, bukan daftar nama alat: yang nentuin lembar ini nanya atau
   /// nggak tetap BENTUK dari backend ([pilihanPenentuAngkaKosong] cuma lihat
-  /// field yang beneran ada), jadi sepuluh alat lain nggak kesenggol.
-  static const _kodePenentuAngka = {'mode_kalibrasi', 'tipe_sensor'};
+  /// field yang beneran ada), jadi lembar lain nggak kesenggol.
+  /// Yang KEEMPAT milik Micrometer juga, dan bahayanya paling licin dari
+  /// semuanya: kotak resolusi yang kosong terbaca NOL di server, jadi komponen
+  /// resolusi budget ikut nol. Pada sesi 25-50 mm U95 turun dari 0,8722 µm ke
+  /// 0,6638 µm — lalu **ditutupi lantai CMC 0,87 µm**, sehingga yang tercetak
+  /// 0,8700 dan selisihnya cuma 0,25 %. Lantai yang seharusnya jadi penjaga
+  /// malah menyamarkan komponen yang hilang.
+  ///
+  /// Server sekarang MEMBLOKIR sesi begitu, jadi teknisi yang nggak ditanya di
+  /// sini baru tau lembarnya nggak keitung sesudah sampai admin — dan waktu itu
+  /// dia udah nggak di depan alatnya.
+  static const _kodePenentuAngka = {
+    'mode_kalibrasi',
+    'tipe_sensor',
+    'spesifikasi_alat.micrometer.satuan',
+    'spesifikasi_alat.micrometer.resolusi_mm',
+  };
 
   /// Field penentu angka yang ada di lembar ini tapi belum dipilih.
   ///
