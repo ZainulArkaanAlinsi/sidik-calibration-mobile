@@ -19,8 +19,11 @@ bercerita beda.
 
 ---
 
-Status: siap dijalankan, **nunggu `firebase login` + repository variable
-`API_BASE_URL`** · 15 Agustus 2026
+Status: **jalan penuh** · diperbarui 4 September 2026
+
+Rilis bertanda tangan pertama `v1.0.529+529` terbit hari itu — dibangun,
+diverifikasi sidik jarinya, diterbitkan ke GitHub Release, dan dikirim ke
+Firebase App Distribution, semuanya dalam satu run yang hijau.
 
 Tujuannya satu: app-nya bisa dipasang orang lain tanpa laptop developer, di
 tiga tempat sekaligus — HP teknisi, Mac, dan PC Windows.
@@ -38,26 +41,28 @@ sekarang.
 | Aplikasi Android terdaftar | ✅ App ID di bawah |
 | Grup tester `teknisi` | ⚠️ dibuat, **belum ada anggotanya** — APK terkirim ke grup kosong sampai email tester didaftarkan |
 | Paket **uji offline** (mock) Windows/macOS/Android | ✅ bisa dibagikan sekarang |
-| Paket **nyambung server** | ⛔ terhalang — backend belum berdiri |
+| Paket **nyambung server** | ✅ terbit — `v1.0.529+529`, 4 Sep 2026 |
+| Kunci penanda tangan rilis | ✅ terpasang — lihat [`rilis-tanda-tangan-apk.md`](rilis-tanda-tangan-apk.md) |
+| `google-services.json` (push notification) | ✅ terpasang sebagai secret `GOOGLE_SERVICES_JSON` |
 
-Yang menghalangi versi nyambung-server cuma satu: layanan Render di
-`render.yaml` (repo `sidik-calibration-api`) **belum pernah dideploy**.
-`https://sidik-calibration-api.onrender.com/up` tidak menjawab sama sekali —
-TCP-nya tersambung tapi nol byte selama 240 detik, dan itu bukan pola cold
-start. Tiga run terakhir workflow "APK rilis (nyambung server)" juga semuanya
-gagal dalam 8–10 detik di penjagaan `API_BASE_URL`.
+Sampai 4 Sep 2026 bagian ini menulis bahwa versi nyambung-server terhalang
+karena layanan Render **belum pernah dideploy**. Itu sudah tidak berlaku:
+layanannya dideploy dan menjawab, `API_BASE_URL` terpasang, dan penjagaan
+URL di kedua workflow rilis lolos — sesuatu yang tidak mungkin terjadi kalau
+variable-nya masih kosong atau masih berisi contoh dari dokumentasi.
 
-Membereskannya butuh akun Aiven + Render dan penempelan rahasia (`APP_KEY`,
-password database, `GEMINI_API_KEY`) — langkah yang di
-`sidik-calibration-api/docs/deploy-gratis-render.md` memang sudah ditandai
-"cuma bisa kamu yang ngerjain". Sesudah layanannya hidup, yang perlu diubah di
-sini cuma satu baris:
+Yang dulu jadi daftar pekerjaan di sini — akun Aiven + Render, penempelan
+`APP_KEY`, password database, `GEMINI_API_KEY` — sudah selesai. Langkahnya
+tetap ditulis di `sidik-calibration-api/docs/deploy-gratis-render.md` kalau
+suatu saat harus diulang di layanan baru.
 
-```bash
-gh variable set API_BASE_URL --body "https://<yang-asli>.onrender.com"
-```
-
-lalu jalankan ulang kedua workflow rilis.
+> **Dokumen ini snapshot, bukan pemantau.** Baris di atas mencatat bahwa
+> jalurnya pernah jalan utuh, bukan bahwa servernya hidup detik ini. Kalau
+> rilis mendadak gagal, jangan percaya tabel ini — cek langsung:
+>
+> ```bash
+> curl -sS -o /dev/null -w '%{http_code}\n' https://sidik-calibration-api.onrender.com/up
+> ```
 
 ### Jalan pintas: APK nyambung backend laptop (quick tunnel)
 
