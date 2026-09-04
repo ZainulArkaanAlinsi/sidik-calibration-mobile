@@ -565,6 +565,35 @@ jobs:
           BERKAS="sidik-kalibrasi-${NAMA_VERSI}.apk"
           cp build/app/outputs/flutter-apk/app-release.apk "$BERKAS"
 
+          # Salinan KEDUA, namanya tetap. Isinya sama persis dengan yang di
+          # atas — yang beda cuma namanya, dan itu yang bikin dia berguna.
+          #
+          # ## Kenapa perlu ada dua
+          #
+          # Nama bernomor versi bagus buat arsip: berkas yang sudah terunduh
+          # ketahuan versinya tanpa dibuka. Tapi dia bikin tiap rilis punya
+          # alamat unduh yang BERBEDA, jadi tidak ada satu pun tautan yang
+          # boleh disebar sekali lalu ditinggal.
+          #
+          # Akibatnya nyata dan sudah kejadian: tautan v1.0.529 disebar ke
+          # orang-orang, lalu v1.0.530 terbit — dan semua yang membuka tautan
+          # itu tetap mendapat 529. Tidak ada yang error, tidak ada yang
+          # kelihatan salah; mereka cuma memasang versi lama dan mengira itu
+          # yang terbaru.
+          #
+          # Dengan nama tetap, GitHub memberi satu alamat yang selalu menunjuk
+          # rilis terbaru:
+          #
+          #   https://github.com/<owner>/<repo>/releases/latest/download/sidik-kalibrasi.apk
+          #
+          # Itu tautan yang boleh dicetak di dokumen, ditempel di grup, dan
+          # tidak pernah perlu diganti.
+          #
+          # `--latest` di `gh release create` di bawah yang menjaga
+          # `/releases/latest` menunjuk ke rilis ini.
+          BERKAS_TETAP="sidik-kalibrasi.apk"
+          cp build/app/outputs/flutter-apk/app-release.apk "$BERKAS_TETAP"
+
           # Re-run jalan di commit yang SAMA, jadi hitungannya sama, tag-nya
           # bentrok dan
           # `gh release create` gagal. Itu bukan kasus teoretis — riwayat
@@ -572,15 +601,27 @@ jobs:
           # terakhir sesudah sepuluh menit build itu mahal, dan gagalnya cuma
           # karena hal yang seharusnya boleh diulang.
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$BERKAS" --clobber
+            gh release upload "$TAG" "$BERKAS" "$BERKAS_TETAP" --clobber
             echo "Release $TAG sudah ada — APK-nya ditimpa." >> "$GITHUB_STEP_SUMMARY"
           else
-            gh release create "$TAG" "$BERKAS" \
+            gh release create "$TAG" "$BERKAS" "$BERKAS_TETAP" \
               --title "$NAMA_VERSI (build $NOMOR_BUILD)" \
               --notes "$PESAN" \
               --latest
             echo "Release $TAG terbit dengan $BERKAS" >> "$GITHUB_STEP_SUMMARY"
           fi
+
+          # Tautan permanennya dicetak ke ringkasan run, bukan cuma disimpan di
+          # kepala orang yang menulis langkah ini. Yang membuka tab Actions
+          # sesudah rilis biasanya justru orang yang mau menyebarkannya.
+          {
+            echo ""
+            echo "**Tautan tetap (selalu versi terbaru):**"
+            echo ""
+            echo "\`\`\`"
+            echo "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/latest/download/${BERKAS_TETAP}"
+            echo "\`\`\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       # Sampai sini APK-nya cuma jadi artifact: harus ada yang buka tab
       # Actions, unduh zip-nya, ekstrak, lalu kirim manual ke tiap teknisi.
