@@ -170,22 +170,51 @@
 
   <section class="kartu">
     <h2>Android</h2>
-    <p class="platform">HP teknisi · lewat Firebase App Distribution</p>
+    <p class="platform">HP teknisi &middot; unduh langsung, atau lewat App Distribution</p>
     <a class="tombol"
-       href="https://appdistribution.firebase.google.com/testerapps/1:573275146800:android:6b5ffb7202167a0ccb3bf5">Buka
-      halaman tester</a>
+       href="https://github.com/ZainulArkaanAlinsi/sidik-calibration-mobile/releases/latest/download/sidik-kalibrasi.apk">Unduh
+      APK terbaru</a>
+    <details open>
+      <summary>Tautan ini permanen &mdash; boleh disebar sekali lalu ditinggal</summary>
+      <p>
+        Alamatnya <strong>tidak</strong> memuat nomor versi, jadi dia selalu
+        memberi rilis terbaru. Tempel di grup, cetak di dokumen, kirim ke orang
+        baru enam bulan lagi &mdash; tetap benar.
+      </p>
+      <p>
+        Jangan pakai tautan yang bernomor (<code>&hellip;-1.0.529.apk</code>).
+        Itu berguna buat arsip, tapi kalau disebar dia mengunci orang di versi
+        itu selamanya, tanpa ada yang kelihatan salah.
+      </p>
+    </details>
+    <details>
+      <summary>Lewat Firebase App Distribution</summary>
+      <p>
+        Alternatifnya, teknisi yang emailnya sudah didaftarkan di grup
+        <code>teknisi</code> bisa lewat
+        <a href="https://appdistribution.firebase.google.com/testerapps/1:573275146800:android:6b5ffb7202167a0ccb3bf5">halaman
+        tester</a>. Tiap build baru masuk sendiri ke aplikasi App Tester.
+      </p>
+    </details>
     <details>
       <summary>Cara pasang</summary>
       <p>
-        Buka link di atas dari HP, login pakai email yang sudah didaftarkan di
-        grup tester, lalu pasang aplikasi <strong>App Tester</strong> waktu
-        diminta. Setiap build baru masuk sendiri ke situ — nggak perlu balik ke
-        halaman ini.
+        Buka tombol di atas dari HP, tunggu unduhannya selesai (68 MB), lalu
+        buka berkasnya.
       </p>
       <p>
-        Kalau halamannya bilang nggak punya akses, berarti emailmu belum
-        didaftarkan. Minta ke Raihan atau Arkaan buat ditambahkan ke grup
-        <code>teknisi</code>.
+        <strong>Android bakal memperingatkan dulu</strong> &mdash; &#8220;Blocked
+        by Play Protect&#8221; atau &#8220;demi keamanan&#8221;. Itu normal:
+        aplikasinya nggak lewat Play Store, jadi Android selalu bertanya sekali.
+        Pilih <em>Setelan</em> lalu izinkan pemasangan dari sumber itu, atau
+        <em>Tetap pasang</em>. Cuma di pemasangan pertama.
+      </p>
+      <p>
+        Sesudah terpasang, aplikasinya memeriksa versi baru sendiri dan
+        mengunduhnya di latar waktu kena Wi-Fi &mdash; jadi nggak perlu balik ke
+        halaman ini. Yang tersisa cuma satu ketukan waktu Android minta
+        konfirmasi pemasangan; layar itu nggak bisa dilewati aplikasi mana pun
+        di luar Play Store.
       </p>
       <p>
         Kalau HP-nya pernah dipakai buat <code>flutter run</code>, copot dulu
