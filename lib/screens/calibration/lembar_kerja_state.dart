@@ -1949,10 +1949,21 @@ class LembarKerjaState {
   /// Daftar kode, bukan daftar nama alat: yang nentuin lembar ini nanya atau
   /// nggak tetap BENTUK dari backend ([pilihanPenentuAngkaKosong] cuma lihat
   /// field yang beneran ada), jadi lembar lain nggak kesenggol.
+  /// Yang KEEMPAT milik Micrometer juga, dan bahayanya paling licin dari
+  /// semuanya: kotak resolusi yang kosong terbaca NOL di server, jadi komponen
+  /// resolusi budget ikut nol. Pada sesi 25-50 mm U95 turun dari 0,8722 µm ke
+  /// 0,6638 µm — lalu **ditutupi lantai CMC 0,87 µm**, sehingga yang tercetak
+  /// 0,8700 dan selisihnya cuma 0,25 %. Lantai yang seharusnya jadi penjaga
+  /// malah menyamarkan komponen yang hilang.
+  ///
+  /// Server sekarang MEMBLOKIR sesi begitu, jadi teknisi yang nggak ditanya di
+  /// sini baru tau lembarnya nggak keitung sesudah sampai admin — dan waktu itu
+  /// dia udah nggak di depan alatnya.
   static const _kodePenentuAngka = {
     'mode_kalibrasi',
     'tipe_sensor',
     'spesifikasi_alat.micrometer.satuan',
+    'spesifikasi_alat.micrometer.resolusi_mm',
   };
 
   /// Field penentu angka yang ada di lembar ini tapi belum dipilih.

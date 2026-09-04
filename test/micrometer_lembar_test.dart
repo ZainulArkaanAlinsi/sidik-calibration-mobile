@@ -212,15 +212,25 @@ void main() {
       );
     });
 
+    test('resolusi kosong juga ditanyakan', () {
+      final isian = buatIsian();
+
+      // Sekelas dengan satuan, dan lebih licin: server MEMBLOKIR sesi yang
+      // resolusinya kosong, karena tanpa itu U95 turun lalu ditutupi lantai
+      // CMC sehingga tampak wajar.
+      expect(
+        isian.pilihanPenentuAngkaKosong.map((f) => f.kode),
+        contains('spesifikasi_alat.micrometer.resolusi_mm'),
+      );
+    });
+
     test('sudah dipilih → nggak ditanya lagi', () {
       final isian = buatIsian();
 
       isian.teks['spesifikasi_alat.micrometer.satuan']!.text = 'inch';
+      isian.teks['spesifikasi_alat.micrometer.resolusi_mm']!.text = '0.001';
 
-      expect(
-        isian.pilihanPenentuAngkaKosong.map((f) => f.kode),
-        isNot(contains('spesifikasi_alat.micrometer.satuan')),
-      );
+      expect(isian.pilihanPenentuAngkaKosong, isEmpty);
     });
   });
 
