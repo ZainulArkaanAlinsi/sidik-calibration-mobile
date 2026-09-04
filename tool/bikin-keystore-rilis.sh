@@ -109,7 +109,8 @@ esac
 
 if [ "$LANJUTAN" -eq 1 ]; then
     info "1/4 · Dilewati — keystore sudah ada"
-    echo "\`${BERKAS}\` tidak dibaca, tidak ditulis, tidak ditimpa."
+    echo "\`${BERKAS}\` tidak ditulis dan tidak ditimpa. Langkah 3 dan 4 membacanya"
+    echo "(buat base64 dan sidik jarinya), tapi isinya tidak berubah."
 else
     info "1/4 · Membuat keystore"
     echo "Isian yang disarankan (docs/rilis-tanda-tangan-apk.md):"
