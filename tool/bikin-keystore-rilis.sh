@@ -1,0 +1,198 @@
+#!/usr/bin/env bash
+#
+# Bikin kunci penanda tangan APK rilis, sekali seumur aplikasi.
+#
+#   ./tool/bikin-keystore-rilis.sh
+#
+# Ini SOP di docs/rilis-tanda-tangan-apk.md yang dijadikan satu perintah —
+# bukan jalan pintasnya. Urutan, parameter, dan pembagian Secret/Variable-nya
+# sama persis; yang hilang cuma kesempatan salah ketik.
+#
+# ## Kenapa harus di komputermu sendiri
+#
+# Kunci ini SATU-SATUNYA benda yang bisa menerbitkan pembaruan buat aplikasi
+# yang sudah terpasang di HP teknisi. Hilang = tiap teknisi harus uninstall
+# manual lagi dan kehilangan token login serta foto profilnya. Bocor = orang
+# lain bisa membangun APK yang Android terima sebagai pembaruan sah.
+#
+# Karena itu skrip ini menolak jalan di CI, dan kunci privatnya tidak pernah
+# dicetak ke layar. Yang naik ke GitHub cuma bentuk base64-nya lewat `gh`,
+# langsung dari berkas ke secret, tanpa mampir ke variabel shell.
+#
+# ## Password TIDAK diterima lewat argumen
+#
+# Argumen mendarat di riwayat shell DAN di daftar proses (`ps`), yang kebaca
+# pengguna lain di mesin yang sama. Skrip ini membiarkan `keytool` bertanya
+# sendiri, lalu `gh secret set` membacanya dari stdin.
+
+set -euo pipefail
+
+BERKAS="${BERKAS_KEYSTORE:-sidik-rilis.jks}"
+ALIAS="${ALIAS_KUNCI:-sidik-rilis}"
+
+merah() { printf '\033[31m%s\033[0m\n' "$*" >&2; }
+hijau() { printf '\033[32m%s\033[0m\n' "$*"; }
+info()  { printf '\n\033[1m%s\033[0m\n' "$*"; }
+
+# ---------------------------------------------------------------- penjagaan
+
+if [ -n "${CI:-}" ] || [ -n "${GITHUB_ACTIONS:-}" ]; then
+    merah "!! Skrip ini menolak jalan di CI."
+    merah "   Runner dibuang tiap run, jadi kuncinya ikut hilang — dan kunci"
+    merah "   yang hilang tidak bisa dibuat ulang. Jalankan di komputermu."
+    exit 1
+fi
+
+for perlu in keytool gh base64; do
+    command -v "$perlu" >/dev/null || {
+        merah "!! \`$perlu\` tidak ada di PATH."
+        [ "$perlu" = keytool ] && merah "   Dia ikut JDK — pasang Android Studio atau Temurin."
+        [ "$perlu" = gh ] && merah "   Pasang GitHub CLI: https://cli.github.com"
+        exit 1
+    }
+done
+
+# Menimpa keystore yang sudah ada = kehilangan kunci lama tanpa peringatan,
+# dan itu kegagalan yang baru ketahuan berbulan-bulan kemudian waktu ada
+# teknisi menekan Update. Nggak ada flag buat memaksa: kalau memang mau ganti
+# kunci, pindahkan berkas lamanya sendiri supaya keputusannya sadar.
+if [ -e "$BERKAS" ]; then
+    merah "!! \`$BERKAS\` sudah ada — skrip ini tidak akan menimpanya."
+    merah "   Kalau ini kunci yang berlaku, kamu tidak perlu menjalankan skrip ini lagi."
+    merah "   Kalau memang mau ganti kunci, pindahkan berkas lamanya dulu, dan baca"
+    merah "   bagian \"Kalau kuncinya memang diganti\" di docs/rilis-tanda-tangan-apk.md —"
+    merah "   ongkosnya: SELURUH teknisi uninstall-pasang manual sekali."
+    exit 1
+fi
+
+gh auth status >/dev/null 2>&1 || {
+    merah "!! \`gh\` belum login. Jalankan: gh auth login"
+    exit 1
+}
+
+REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
+
+info "Kunci akan dibuat untuk repo: ${REPO}"
+echo "Berkas : ${BERKAS}"
+echo "Alias  : ${ALIAS}"
+echo
+read -r -p "Betul? [y/N] " jawab
+# `case`, bukan `${jawab,,}`: ekspansi huruf-kecil itu bash 4+, sementara macOS
+# masih mengapalkan bash 3.2 — di situ dia error sintaks, bukan sekadar salah.
+case "$jawab" in
+    [yY]) ;;
+    *) echo "Dibatalkan."; exit 0 ;;
+esac
+
+# ------------------------------------------------------------ bikin keystore
+
+info "1/4 · Membuat keystore"
+echo "Isian yang disarankan (docs/rilis-tanda-tangan-apk.md):"
+echo "  First and last name (CN) : PT Sidik Kalibrasi"
+echo "  Organizational unit      : Rilis"
+echo "  Country code             : ID"
+echo "Password: panjang & acak. Simpan di password manager SEKARANG."
+echo
+
+# `-validity 10000` ≈ 27 tahun. Sertifikat yang kedaluwarsa menghadirkan persis
+# masalah yang dokumen ini tutup, bertahun kemudian, waktu tidak ada lagi yang
+# ingat sebabnya.
+keytool -genkeypair -v \
+    -keystore "$BERKAS" \
+    -keyalg RSA -keysize 4096 -validity 10000 \
+    -alias "$ALIAS"
+
+chmod 600 "$BERKAS"
+hijau "✓ ${BERKAS} dibuat (mode 600)."
+
+# ------------------------------------------------------------------ cadangan
+
+info "2/4 · Cadangan — berhenti di sini sampai beneran selesai"
+cat <<'CATATAN'
+Keystore yang hilang TIDAK BISA dibuat ulang. Tidak ada pemulihan, tidak ada
+dukungan yang bisa dimintai. Hilang berarti setiap teknisi harus uninstall
+manual lagi, dan semuanya kehilangan token serta foto profilnya lagi.
+
+Salin ke MINIMAL DUA tempat di luar repo — misalnya password manager dan drive
+terenkripsi. Passwordnya ikut, di tempat yang sama.
+CATATAN
+echo
+read -r -p "Cadangannya sudah benar-benar tersimpan di dua tempat? [y/N] " cadang
+case "$cadang" in [yY]) sudah=1 ;; *) sudah=0 ;; esac
+if [ "$sudah" -ne 1 ]; then
+    echo
+    echo "Oke, berhenti di sini. Keystore-nya sudah ada di ${BERKAS} dan masih utuh."
+    echo "Selesaikan cadangannya, lalu jalankan skrip ini lagi — dia bakal lanjut"
+    echo "dari langkah pemasangan secret, bukan bikin kunci baru."
+    exit 0
+fi
+
+# -------------------------------------------------------------------- secret
+
+info "3/4 · Memasang empat secret ke ${REPO}"
+
+# macOS tidak punya `-w0`; bawaannya sudah satu baris.
+# Diuji dengan MENJALANKANNYA, bukan membaca `--help`: di macOS `base64
+# --help` keluar dengan status error dan teksnya beda bentuk, jadi grep ke situ
+# memilih cabang yang salah tanpa ada yang tahu sampai secretnya isinya rusak.
+if base64 -w0 </dev/null >/dev/null 2>&1; then
+    base64 -w0 "$BERKAS" | gh secret set ANDROID_KEYSTORE_BASE64
+else
+    base64 -i "$BERKAS" | gh secret set ANDROID_KEYSTORE_BASE64
+fi
+hijau "✓ ANDROID_KEYSTORE_BASE64"
+
+printf '%s' "$ALIAS" | gh secret set ANDROID_KEY_ALIAS
+hijau "✓ ANDROID_KEY_ALIAS (${ALIAS})"
+
+echo
+echo "Dua password berikut dibaca tanpa ditampilkan, dan tidak disimpan di mana pun."
+gh secret set ANDROID_KEYSTORE_PASSWORD
+hijau "✓ ANDROID_KEYSTORE_PASSWORD"
+gh secret set ANDROID_KEY_PASSWORD
+hijau "✓ ANDROID_KEY_PASSWORD"
+
+# ------------------------------------------------------------------ variable
+
+info "4/4 · Memaku sidik jarinya"
+echo "Empat secret di atas menjawab \"ada kunci\". Yang ini menjawab \"kunci yang MANA\"."
+echo
+
+# Password keystore diminta sekali lagi oleh keytool di sini. Sengaja tidak
+# disimpan dari langkah sebelumnya: menahannya di variabel shell berarti dia
+# ikut ke `set -x`, ke core dump, dan ke tiap proses anak.
+SIDIK="$(keytool -list -v -keystore "$BERKAS" -alias "$ALIAS" \
+    | grep -m1 'SHA256:' | sed 's/.*SHA256: *//' | tr -d '[:space:]')"
+
+if [ -z "$SIDIK" ]; then
+    merah "!! Sidik jari SHA256 tidak terbaca dari keystore."
+    merah "   Keempat secret sudah terpasang, tapi APK_SHA256 belum — dan tanpa dia"
+    merah "   workflow rilis tetap menolak jalan. Pasang manual:"
+    merah "     keytool -list -v -keystore ${BERKAS} -alias ${ALIAS} | grep SHA256:"
+    merah "     gh variable set APK_SHA256"
+    exit 1
+fi
+
+# Variable, BUKAN Secret. Sidik jari sertifikat tercetak di tiap APK yang sudah
+# terpasang di HP mana pun — menyembunyikannya tidak menambah keamanan, dan
+# menyensornya jadi `***` di log bikin tidak kebaca waktu mencari sebab gagal.
+printf '%s' "$SIDIK" | gh variable set APK_SHA256
+hijau "✓ APK_SHA256 = ${SIDIK}"
+
+# ------------------------------------------------------------------- penutup
+
+info "Selesai — dan satu hal yang harus direncanakan SEBELUM rilis"
+cat <<'CATATAN'
+Rilis pertama dengan kunci ini TIDAK BISA menimpa APK yang sekarang terpasang
+di HP teknisi. Yang sekarang ditandatangani kunci debug acak, jadi Android
+menolaknya dengan "App not installed" tanpa menyebut sebab.
+
+Semua teknisi harus uninstall manual SEKALI — dan itu menghapus token login
+serta foto profil lokal mereka. Kabari dulu, jangan sampai mereka mengalaminya
+tanpa peringatan lalu mengira aplikasinya rusak.
+
+Sesudah itu selesai selamanya: rilis kedua dan seterusnya memakai kunci yang
+sama, dan tombol "Update" bekerja seperti seharusnya.
+
+Rilisnya: tab Actions → "APK rilis (nyambung server)" → Run workflow.
+CATATAN
