@@ -120,15 +120,50 @@ elseif (Get-Command winget -ErrorAction SilentlyContinue) {
     }
 }
 else {
-    Write-Info 'winget tidak ada - memasang lewat skrip resmi...'
+    # Sengaja TIDAK memakai skrip resmi ohmyposh.dev: skrip itu memasang paket
+    # MSIX, dan MSIX bisa ditolak Windows dengan 0x80073CF6 /
+    # "cannot create the AppContainer profile" — gagal yang tidak ada
+    # hubungannya dengan oh-my-posh dan tidak bisa dibetulkan dari sini.
+    #
+    # Binary mandiri dari GitHub Releases melewati seluruh mesin MSIX: satu
+    # berkas .exe, ditaruh di folder milik user, tanpa admin dan tanpa
+    # AppContainer.
+    Write-Info 'winget tidak ada - mengunduh binary mandiri...'
+
+    $arsitektur = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'amd64' }
+    $unduhDari  = "https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-windows-$arsitektur.exe"
+    $dirBin     = Join-Path $env:LOCALAPPDATA 'Programs\oh-my-posh\bin'
+    $exe        = Join-Path $dirBin 'oh-my-posh.exe'
+
     try {
-        Set-ExecutionPolicy Bypass -Scope Process -Force
-        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://ohmyposh.dev/install.ps1'))
-        Update-PathDariRegistry
-        Write-Ok "terpasang - $(oh-my-posh version)"
+        New-Item -ItemType Directory -Force -Path $dirBin | Out-Null
+        # TLS 1.2 dipaksa: Windows PowerShell 5.1 masih default ke SSL3/TLS1,
+        # dan GitHub menolaknya — gagalnya muncul sebagai "connection closed".
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        $lamaProgres = $ProgressPreference
+        $ProgressPreference = 'SilentlyContinue'   # tanpa ini unduhan jadi lambat sekali
+        Invoke-WebRequest -Uri $unduhDari -OutFile $exe -UseBasicParsing
+        $ProgressPreference = $lamaProgres
+
+        # Pastikan yang terunduh benar-benar program, bukan halaman error yang
+        # kesimpan jadi .exe — kalau dibiarkan, gagalnya baru muncul nanti
+        # sebagai prompt yang diam saja.
+        $awal = [System.IO.File]::ReadAllBytes($exe)[0..1]
+        if (-not ($awal[0] -eq 0x4D -and $awal[1] -eq 0x5A)) {
+            throw "berkas yang terunduh bukan program Windows yang sah"
+        }
+
+        # Daftarkan ke PATH milik user (bukan mesin): tidak butuh admin.
+        $pathUser = [Environment]::GetEnvironmentVariable('Path', 'User')
+        if ($pathUser -notlike "*$dirBin*") {
+            [Environment]::SetEnvironmentVariable('Path', "$dirBin;$pathUser", 'User')
+        }
+        $env:Path = "$dirBin;$env:Path"
+
+        Write-Ok "terpasang di $dirBin - $(& $exe version)"
     } catch {
         Write-Gagal "pemasangan gagal: $($_.Exception.Message)"
-        Write-Info 'Coba manual: https://ohmyposh.dev/docs/installation/windows'
+        Write-Info "Unduh manual $unduhDari lalu simpan sebagai $exe"
         return
     }
 }

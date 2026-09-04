@@ -146,6 +146,8 @@ Kalau PT Sidik ganti warna brand, `app_colors.dart` dan blok `palette` di
 | Versi Flutter di prompt beda dari `flutter --version` | Ada dua SDK di PATH, atau `fvm` aktif | `which -a flutter` (Windows: `where.exe flutter`) |
 | Versi Flutter telat berubah setelah ganti SDK | Versinya di-cache 24 jam per folder | `oh-my-posh cache clear` |
 | Prompt terasa lambat | Ada segmen yang menunggu proses lain | `oh-my-posh debug --config ~/.config/oh-my-posh/sidik.omp.json` — dia nunjukin segmen mana yang lama |
+| Windows: `0x80073CF6` / `cannot create the AppContainer profile` | Pemasangan MSIX ditolak Windows — tidak ada hubungannya dengan oh-my-posh | Skrip ini sudah tidak memakai MSIX; pastikan kamu di versi terbaru (`git pull`) lalu jalankan lagi. Dia bakal mengunduh binary mandiri ke `%LOCALAPPDATA%\Programs\oh-my-posh\bin` |
+| Windows: `winget tidak ada` | App Installer belum terpasang / belum di PATH | Tidak perlu dibetulkan — skripnya otomatis pindah ke jalur binary mandiri |
 | Windows: `.ps1 cannot be loaded` | Execution policy | `Set-ExecutionPolicy -Scope Process Bypass` lalu jalankan lagi |
 
 ---
