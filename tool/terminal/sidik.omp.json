@@ -25,7 +25,7 @@
           "type": "os",
           "style": "diamond",
           "leading_diamond": "",
-          "trailing_diamond": "",
+          "trailing_diamond": "",
           "background": "p:ink-elevated",
           "foreground": "p:ivory",
           "template": " {{ .Icon }} "
