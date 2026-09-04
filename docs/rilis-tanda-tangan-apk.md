@@ -76,8 +76,15 @@ di CI**.
 > **Ada jalan satu perintah:** `./tool/bikin-keystore-rilis.sh` menjalankan
 > seluruh SOP di bawah — bikin keystore, tahan sampai cadangannya benar-benar
 > tersimpan, pasang keempat secret, lalu paku `APK_SHA256`. Dia menolak jalan
-> di CI, menolak menimpa keystore yang sudah ada, dan tidak pernah menerima
-> password lewat argumen (argumen mendarat di riwayat shell DAN di `ps`).
+> di CI, tidak pernah menimpa keystore yang sudah ada, dan tidak pernah
+> menerima password lewat argumen (argumen mendarat di riwayat shell DAN
+> di `ps`).
+>
+> **Boleh dijalankan dua kali.** Kalau `sidik-rilis.jks` sudah ada, jalan
+> berikutnya melewati pembuatan kunci dan langsung lanjut ke pemasangan
+> secret — jadi berhenti di langkah cadangan itu aman, tinggal jalankan
+> lagi setelah cadangannya beres. Kunci BARU cuma lahir kalau berkas lama
+> dipindahkan sendiri lebih dulu.
 >
 > Langkah manual di bawah tetap ditulis lengkap: kalau skripnya suatu hari
 > berbeda dari dokumen ini, yang benar dokumennya.
