@@ -23,13 +23,26 @@ pun. Temanya ada di [`tool/terminal/sidik.omp.json`](../tool/terminal/sidik.omp.
 ./tool/pasang-terminal.sh
 ```
 
-**Windows (PowerShell):**
+**Windows — pakai PowerShell, bukan Command Prompt:**
 
 ```powershell
 .\tool\pasang-terminal.ps1
 ```
 
 Lalu **buka terminal baru**. Selesai.
+
+> **`cmd.exe` tidak didukung.** Bukan karena belum dikerjakan — oh-my-posh
+> menyetel prompt cmd lewat skrip **Lua**, dan Lua cuma bisa jalan di cmd kalau
+> ada [Clink](https://chrisant996.github.io/clink/). Buktinya bisa dilihat
+> sendiri: `oh-my-posh init cmd` mengeluarkan `os.setenv(...)`, bukan perintah
+> cmd. Jadi di Windows bukalah **PowerShell** (tekan tombol Windows, ketik
+> "PowerShell") atau **Windows Terminal**. Kalau memang harus di cmd, pasang
+> Clink dulu — skrip ini tidak mengurusnya.
+
+Ingat juga cmd dan PowerShell beda cara baca variabel: `$POSH_CONFIG` cuma jalan
+di PowerShell (`$env:POSH_CONFIG`), sedangkan cmd memakai `%POSH_CONFIG%`. Dan
+tanda sambung baris `\` itu milik bash — di PowerShell pemisahnya backtick
+`` ` ``, di cmd `^`.
 
 Skripnya boleh dijalanin berkali-kali — blok yang lama diganti, bukan ditumpuk.
 Yang dia kerjakan: pasang oh-my-posh kalau belum ada, pasang Nerd Font, salin
@@ -128,6 +141,8 @@ Kalau PT Sidik ganti warna brand, `app_colors.dart` dan blok `palette` di
 | Prompt tidak berubah sama sekali | Terminalnya belum dibuka ulang | Tutup & buka lagi, atau `exec $SHELL` |
 | `oh-my-posh: command not found` tiap buka shell | Binary-nya terpasang tapi belum di PATH | Jalankan ulang skripnya — blok yang ditulis sudah menyertakan `~/.local/bin` |
 | Windows: sudah `winget install` tapi tidak kebaca | PATH sesi lama belum ikut baru | Tutup & buka PowerShell, jalankan skripnya sekali lagi |
+| `'oh-my-posh' is not recognized` | Belum terpasang di mesin itu — atau kamu di `cmd.exe`, yang memang tidak didukung | Buka **PowerShell**, lalu jalankan `.\tool\pasang-terminal.ps1` dari dalam folder repo |
+| `echo $POSH_CONFIG` malah mencetak `$POSH_CONFIG` | Itu sintaks bash. cmd/PowerShell beda | PowerShell: `$env:POSH_CONFIG` · cmd: `%POSH_CONFIG%` |
 | Versi Flutter di prompt beda dari `flutter --version` | Ada dua SDK di PATH, atau `fvm` aktif | `which -a flutter` (Windows: `where.exe flutter`) |
 | Versi Flutter telat berubah setelah ganti SDK | Versinya di-cache 24 jam per folder | `oh-my-posh cache clear` |
 | Prompt terasa lambat | Ada segmen yang menunggu proses lain | `oh-my-posh debug --config ~/.config/oh-my-posh/sidik.omp.json` — dia nunjukin segmen mana yang lama |
