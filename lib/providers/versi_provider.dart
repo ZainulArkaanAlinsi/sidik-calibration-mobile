@@ -115,3 +115,37 @@ final updateSiapProvider = FutureProvider<bool>((ref) async {
 final kirimTertahanRilisWajibProvider = Provider<bool>((ref) {
   return ref.watch(updateTersediaProvider).value?.wajib ?? false;
 });
+
+/// Penjaga supaya pemasang cuma dibuka SENDIRI sekali seumur proses aplikasi.
+///
+/// ## Kenapa bukan `bool` di dalam state widget
+///
+/// Dashboard dibongkar-pasang terus: pindah tab, balik dari layar lain, tarik
+/// buat muat ulang, ganti akun. Kalau penjaganya ikut umur widget, tiap
+/// pemasangan ulang membuka pemasang lagi — dan teknisi yang menekan "Batal"
+/// di layar pemasang akan disambut layar yang sama begitu dia balik ke
+/// dashboard, berulang, tanpa cara keluar selain menerima pemasangannya.
+///
+/// Menolak pemutakhiran harus tetap mungkin. Penjaga setingkat proses bikin
+/// jawaban "tidak sekarang" bertahan sampai aplikasinya benar-benar ditutup.
+class GiliranPemasangOtomatis {
+  bool _sudah = false;
+
+  /// `true` cuma sekali. Panggilan berikutnya selalu `false`.
+  bool ambil() {
+    if (_sudah) return false;
+    _sudah = true;
+
+    return true;
+  }
+}
+
+/// Sengaja `Provider` biasa, BUKAN `autoDispose`.
+///
+/// Yang auto-dispose hilang begitu tidak ada yang membaca — dan tidak ada yang
+/// membacanya persis waktu dashboard dilepas, yaitu keadaan yang penjaga ini
+/// ada buat menanganinya. Umurnya harus umur `ProviderScope` di akar, jadi satu
+/// penolakan bertahan sampai aplikasinya ditutup.
+final giliranPemasangOtomatisProvider = Provider<GiliranPemasangOtomatis>(
+  (ref) => GiliranPemasangOtomatis(),
+);

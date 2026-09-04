@@ -53,6 +53,14 @@ abstract class PengunduhApk {
   /// yang diunduh di latar TIDAK boleh langsung membuka pemasang — teknisi
   /// yang tiba-tiba dilempar ke layar pemasang di tengah mengisi lembar kerja
   /// akan kehilangan konteks, dan itu persis gangguan yang mau dihindari.
+  ///
+  /// **Sejak 4 Sep 2026 pemasangnya memang bisa terbuka sendiri — dan aturan
+  /// di atas tetap berlaku utuh.** Yang membukanya `PemasangOtomatis`, di
+  /// waktu yang sama sekali lain: waktu aplikasi baru dibuka dan dashboard
+  /// jadi layar yang sedang dilihat, buat berkas yang unduhannya SUDAH
+  /// selesai entah kapan sebelumnya. Bukan di sini, dan bukan waktu
+  /// unduhannya kelar. Selesainya unduhan tidak pernah jadi alasan
+  /// memindahkan layar siapa pun.
   Future<File?> unduh(
     String url, {
     required String namaBerkas,
