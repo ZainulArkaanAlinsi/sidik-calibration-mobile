@@ -10,6 +10,7 @@ import '../../models/equipment_lookup.dart';
 import '../../models/standard.dart';
 import '../../models/skema_dokumen.dart';
 import '../../providers/calibration_input_provider.dart';
+import '../../providers/versi_provider.dart';
 import '../../services/ambil_foto_tabel.dart';
 import '../../services/analisis_dokumen.dart';
 import '../../widgets/app_button.dart';
@@ -364,6 +365,24 @@ class _FormState extends ConsumerState<_Form> {
       return;
     }
 
+    // Rilis WAJIB menahan pengiriman, tapi TIDAK menahan draft. Alasannya
+    // ditulis di `kirimTertahanRilisWajibProvider`: yang berbahaya bukan
+    // teknisi mengetik, tapi angka dari versi yang diketahui salah masuk jalur
+    // approval lalu tercetak di sertifikat.
+    //
+    // Ditaruh SEBELUM validasi kolom di bawah, bukan sesudah: menyuruh teknisi
+    // melengkapi suhu & pembacaan untuk kiriman yang toh akan ditolak itu
+    // membuang waktunya dua kali.
+    if (!draft && ref.read(kirimTertahanRilisWajibProvider)) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.kirimTertahanRilisWajib),
+          duration: const Duration(seconds: 8),
+        ),
+      );
+      return;
+    }
+
     // Mulai dari sini penjagaannya BERSYARAT — dan `draft` yang jadi syaratnya.
     //
     // Sebelum ini seluruh blok di bawah berjalan tanpa syarat, dan `draft` baru
@@ -521,6 +540,19 @@ class _FormState extends ConsumerState<_Form> {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final equipmentAsync = ref.watch(equipmentLookupProvider(_kategori));
+
+    // Di-`watch`, bukan cuma di-`read` waktu tombol ditekan.
+    // `updateTersediaProvider` itu FutureProvider yang auto-dispose (bawaan
+    // Riverpod 3): tanpa ada yang berlangganan selama layar ini terbuka,
+    // `.value` masih null waktu tombol ditekan — dan penjaganya DIAM tanpa
+    // satu pun error. Berlangganan di sini bikin nilainya sudah matang
+    // sebelum dibutuhkan.
+    //
+    // Nilainya sengaja tidak dipakai menonaktifkan tombolnya: tombol mati tanpa
+    // penjelasan bikin teknisi menyimpulkan aplikasinya rusak. Tombolnya tetap
+    // hidup, dan yang menjelaskan pesan di `_submit` — pola yang sama dengan
+    // penjagaan kategori/alat/standar di sekitarnya.
+    ref.watch(kirimTertahanRilisWajibProvider);
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),

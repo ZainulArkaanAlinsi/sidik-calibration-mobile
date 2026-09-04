@@ -32,10 +32,14 @@ import '../services/pengunduh_apk.dart';
 /// sertifikat terakreditasi, memaksa berhenti bekerja lebih mahal daripada
 /// membiarkan satu sesi jalan di versi lama.
 ///
-/// Apakah rilis wajib seharusnya juga memblokir INPUT kalibrasi — bukan seluruh
-/// aplikasi, cuma layar isiannya — itu keputusan pemilik lab, dan **belum
-/// diputuskan**. Ditulis di sini supaya yang berikutnya tahu bahwa ketiadaannya
-/// pilihan, bukan kelalaian.
+/// **Diputuskan 4 Sep 2026: layar isiannya TIDAK diblokir — yang ditahan
+/// pengirimannya.** Penjaganya `kirimTertahanRilisWajibProvider`, dipakai kedua layar
+/// isian (`calibration_input_screen` dan `lembar_kerja_screen`). Teknisi tetap
+/// bisa mengisi dan tetap bisa "Simpan Draft"; yang ditolak cuma "Kirim".
+///
+/// Alasan lengkapnya ada di provider itu. Ringkasnya: `wajib` didefinisikan
+/// sebagai *"versi lama diam-diam mengirim data yang salah"*, jadi yang harus
+/// ditahan langkah yang tidak bisa ditarik balik — bukan pekerjaannya.
 class BannerUpdate extends ConsumerStatefulWidget {
   const BannerUpdate({super.key, this.pengunduh});
 

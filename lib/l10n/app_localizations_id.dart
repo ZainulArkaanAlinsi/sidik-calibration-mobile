@@ -1872,6 +1872,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get calibBerhasilApproval => 'Sesi kalibrasi dikirim untuk approval.';
 
   @override
+  String get kirimTertahanRilisWajib =>
+      'Versi baru WAJIB dipasang sebelum sesi bisa dikirim. Simpan Draft dulu — isianmu tidak hilang.';
+
+  @override
   String calibGagal(String pesan) {
     return 'Gagal menyimpan: $pesan';
   }

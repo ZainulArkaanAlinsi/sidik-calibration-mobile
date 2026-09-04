@@ -21,6 +21,7 @@ import '../../providers/calibration_input_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../providers/jam_provider.dart';
 import '../../providers/lembar_kerja_provider.dart';
+import '../../providers/versi_provider.dart';
 import '../../providers/worksheet_scan_provider.dart';
 import '../../services/auth_service.dart' show AuthException;
 import '../../services/penampung_contoh_sel.dart';
@@ -588,6 +589,24 @@ class _FormState extends ConsumerState<_Form> {
       return;
     }
 
+    // Rilis WAJIB menahan pengiriman, tapi TIDAK menahan draft — sama persis
+    // dengan `calibration_input_screen`, dan sengaja lewat provider yang SAMA
+    // supaya dua pintu ini tidak bisa berbeda pendapat. Alasannya ditulis di
+    // `kirimTertahanRilisWajibProvider`.
+    //
+    // Pintu ini gampang terlewat: penjagaan di layar isian satunya tidak
+    // menyentuhnya sama sekali karena jalur kirimnya beda provider
+    // (`kirimLembarKerjaProvider`, bukan `calibrationSubmitProvider`).
+    if (!draft && ref.read(kirimTertahanRilisWajibProvider)) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.kirimTertahanRilisWajib),
+          duration: const Duration(seconds: 8),
+        ),
+      );
+      return;
+    }
+
     // Pembacaan tanpa suhu ditahan SEBELUM konfirmasi angka — biar teknisi
     // tau di lapangan, bukan sesudah kirim.
     //
@@ -1061,6 +1080,19 @@ class _FormState extends ConsumerState<_Form> {
     // Diambil sebelum `await` — sesudahnya `context` punya build ini udah
     // nggak dijamin kepasang lagi.
     final navigator = Navigator.of(context);
+
+    // Di-`watch`, bukan cuma di-`read` waktu tombol ditekan.
+    // `updateTersediaProvider` itu FutureProvider yang auto-dispose (bawaan
+    // Riverpod 3): tanpa ada yang berlangganan selama layar ini terbuka,
+    // `.value` masih null waktu tombol ditekan — dan penjaganya DIAM tanpa
+    // satu pun error. Berlangganan di sini bikin nilainya sudah matang
+    // sebelum dibutuhkan.
+    //
+    // Nilainya sengaja tidak dipakai menonaktifkan tombolnya: tombol mati tanpa
+    // penjelasan bikin teknisi menyimpulkan aplikasinya rusak. Tombolnya tetap
+    // hidup, dan yang menjelaskan pesan di `_submit` — pola yang sama dengan
+    // penjagaan kategori/alat/standar di sekitarnya.
+    ref.watch(kirimTertahanRilisWajibProvider);
 
     return PopScope(
       canPop: false,
