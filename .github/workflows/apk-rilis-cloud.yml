@@ -1,5 +1,21 @@
-# Tiap ada perubahan yang masuk, APK-nya kebangun ulang sendiri — nggak perlu
-# ada yang inget buat build manual.
+# Dipicu MANUAL: Actions → "APK rilis (nyambung server)" → Run workflow.
+#
+# Dulu dia jalan tiap push ke `main`, dan itu benar selama APK-nya cuma dipakai
+# uji coba internal. Yang mengubahnya: 4 Sep 2026, APK-nya mulai ditandatangani
+# kunci rilis sungguhan dan terpasang di HP teknisi. Sejak itu tiap merge
+# menerbitkan versi baru, dan tiap versi baru memunculkan banner "ada versi
+# baru" di HP mereka — termasuk buat perbaikan sebaris yang nggak mengubah
+# apa pun buat teknisi. Ongkosnya nyata: 68 MB lewat data seluler, di lokasi
+# pelanggan.
+#
+# Dan yang lebih mahal daripada kuotanya: banner yang muncul terlalu sering
+# berhenti dibaca. Begitu teknisi belajar mengabaikannya, rilis yang memang
+# penting ikut diabaikan — persis kegagalan yang penanda `wajib` dan seluruh
+# jalur pemutakhiran ini dibangun buat mencegah.
+#
+# Jadi yang menentukan kapan teknisi ditawari versi baru sekarang orang, bukan
+# setiap merge. `periksa-pr.yml` tetap jalan tiap PR, jadi yang hilang cuma
+# penerbitannya — bukan pemeriksaannya.
 #
 # Bedanya sama "Paket tes (mock, tanpa server)": yang itu offline dan datanya
 # palsu, buat nyoba tampilan. Yang ini nyambung ke server Render beneran, buat
@@ -15,18 +31,14 @@
 name: APK rilis (nyambung server)
 
 on:
-  push:
-    branches:
-      - main
-      - chore/apk-rilis-cloud
-  # Biar bisa dipicu manual juga, mis. abis ganti URL server tanpa ganti kode.
+  # Satu-satunya pemicu. Alasannya di kepala berkas ini.
   workflow_dispatch:
 
 env:
   FLUTTER_VERSION: 3.44.6
 
-# Dua merge yang berdekatan memicu DUA build sekaligus, dan itu bukan cuma
-# boros — dua-duanya menerbitkan Release dengan `--latest`, jadi yang SELESAI
+# Dua rilis yang dipicu berdekatan menjalankan DUA build sekaligus, dan itu
+# bukan cuma boros — dua-duanya menerbitkan Release dengan `--latest`, jadi yang SELESAI
 # BELAKANGAN yang menang. Build commit lama sering selesai belakangan (ukuran
 # APK-nya beda-beda), dan begitu dia menang, `GET /releases/latest` — yang
 # dibaca `/api/app/versi-terbaru` — memulangkan versi yang lebih TUA daripada
@@ -37,9 +49,11 @@ env:
 # apa-apa lagi walau masih ketinggalan satu rilis.
 #
 # Ketahuan 24 Agu 2026 waktu merge #93 dan #94 berselang semenit dan run 36 &
-# 37 jalan berbarengan. Aturannya sama dengan `periksa-pr.yml`: yang penting
-# commit TERAKHIR — build yang lama dibatalkan, dan kodenya toh sudah termuat
-# di build yang baru.
+# 37 jalan berbarengan — waktu itu pemicunya masih `push`. Sekarang pemicunya
+# manual, tapi dua klik "Run workflow" yang berdekatan melahirkan lomba yang
+# sama persis, jadi penjagaannya tetap. Aturannya sama dengan `periksa-pr.yml`:
+# yang penting commit TERAKHIR — build yang lama dibatalkan, dan kodenya toh
+# sudah termuat di build yang baru.
 concurrency:
   group: apk-rilis-${{ github.ref }}
   cancel-in-progress: true

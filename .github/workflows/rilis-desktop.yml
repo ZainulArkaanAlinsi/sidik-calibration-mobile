@@ -34,10 +34,14 @@ on:
       - main
   workflow_dispatch:
 
-  # Jalur APK boleh dipicu MANUAL, dan komentar di `apk-rilis-cloud.yml` sendiri
-  # yang nyebut kasusnya: "abis ganti URL server tanpa ganti kode". Pas itu
-  # kejadian nggak ada push ke `main`, jadi workflow ini nggak ikut jalan — dan
-  # zip Windows/macOS di halaman unduh tetap bawa API_BASE_URL yang LAMA.
+  # Jalur APK dipicu MANUAL — sejak 4 Sep 2026 itu SATU-SATUNYA pemicunya,
+  # karena tiap rilis memunculkan banner "ada versi baru" di HP teknisi
+  # (alasan lengkapnya di kepala `apk-rilis-cloud.yml`). Dulu kasusnya cuma
+  # sesekali, mis. ganti URL server tanpa ganti kode; sekarang selalu.
+  #
+  # Waktu itu terjadi nggak ada push ke `main`, jadi workflow ini nggak ikut
+  # jalan — dan zip Windows/macOS di halaman unduh tetap bawa API_BASE_URL
+  # yang LAMA.
   #
   # Gagalnya diam-diam, dan itu yang bikin mahal: halaman unduhnya kelihatan
   # normal, tombolnya jalan, aplikasinya kebuka — cuma nembak alamat yang udah

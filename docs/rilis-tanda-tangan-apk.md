@@ -1,8 +1,13 @@
 # Kunci penanda tangan APK rilis
 
-Status: **belum dipasang** — workflow "APK rilis (nyambung server)" gagal di
-detik pertama sampai keempat secret **dan** satu variable di bawah ada. Itu
-disengaja; alasannya di bagian terakhir.
+Status: **sudah terpasang** sejak 4 Sep 2026. Rilis bertanda tangan pertama
+`v1.0.529+529` terbit hari itu juga, dan langkah "Pastiin APK-nya
+ditandatangani kunci rilis yang benar" hijau — artinya sidik jari APK-nya
+memang cocok dengan `APK_SHA256`, bukan cuma "ada kunci".
+
+Dokumen ini tetap berlaku penuh: dia yang dipakai kalau kuncinya suatu hari
+harus diganti, dan dia yang menjelaskan kenapa workflow rilis gagal di detik
+pertama kalau salah satu dari lima nilai di bawah hilang.
 
 Lima hal yang harus dipasang, dan lima-limanya wajib:
 
