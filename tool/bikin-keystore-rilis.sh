@@ -81,7 +81,7 @@ REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
 
 if [ "$LANJUTAN" -eq 1 ]; then
     info "Melanjutkan pemasangan secret untuk repo: ${REPO}"
-    echo "Berkas : ${BERKAS}  (sudah ada — TIDAK akan disentuh)"
+    echo "Berkas : ${BERKAS}  (sudah ada — tidak ditulis atau ditimpa)"
     echo "Alias  : ${ALIAS}"
     echo
     echo "Kunci barunya tidak dibuat lagi. Yang dikerjakan cuma langkah 3 dan 4:"
@@ -109,8 +109,16 @@ esac
 
 if [ "$LANJUTAN" -eq 1 ]; then
     info "1/4 · Dilewati — keystore sudah ada"
-    echo "\`${BERKAS}\` tidak ditulis dan tidak ditimpa. Langkah 3 dan 4 membacanya"
+    echo "\`${BERKAS}\` tidak ditulis dan tidak ditimpa. Langkah 3 membacanya"
     echo "(buat base64 dan sidik jarinya), tapi isinya tidak berubah."
+
+    # Izin berkasnya tetap dipaksa, meski isinya tidak. Kunci yang dipulihkan
+    # dari cadangan hampir selalu mendarat dengan izin bawaan tar/unzip/salin
+    # — 644 — dan di mesin yang dipakai lebih dari satu orang itu artinya kunci
+    # penanda tangan rilis kebaca pengguna lain. Jalur pembuatan di bawah sudah
+    # melakukannya; jalur lanjutan dulu tidak, jadi justru kunci yang paling
+    # mungkin salah izin yang paling luput.
+    chmod 600 "$BERKAS"
 else
     info "1/4 · Membuat keystore"
     echo "Isian yang disarankan (docs/rilis-tanda-tangan-apk.md):"
@@ -162,7 +170,41 @@ fi
 
 # -------------------------------------------------------------------- secret
 
-info "3/4 · Memasang empat secret ke ${REPO}"
+info "3/4 · Memeriksa kunci, lalu memasang empat secret ke ${REPO}"
+
+# Pemeriksaan ini berdiri SEBELUM satu pun secret ditulis, dan urutannya bukan
+# selera. `[ -e "$BERKAS" ]` di atas menerima berkas apa saja yang kebetulan
+# bernama sama: unduhan yang terpotong, salinan cadangan yang gagal separuh,
+# berkas lain yang salah nama. Dulu pemeriksaannya jatuh di langkah 4 — sesudah
+# unggahan — jadi berkas semacam itu sudah terlanjur menimpa
+# ANDROID_KEYSTORE_BASE64 yang tadinya benar, dan rusaknya baru ketahuan
+# berbulan kemudian waktu rilis gagal ditandatangani.
+#
+# Satu `keytool -list` menjawab dua pertanyaan sekaligus: berkasnya keystore
+# beneran, dan alias yang dicari memang ada di dalamnya. Hasilnya (sidik jari)
+# dipakai lagi di langkah 4, jadi passwordnya cukup diminta sekali di sini.
+echo "Password keystore diminta sekarang, untuk membuktikan berkasnya benar"
+echo "sebelum ada satu pun secret yang ditimpa."
+echo
+
+# Sidik jarinya boleh ditahan di variabel — dia tercetak di tiap APK yang sudah
+# terpasang, jadi bukan rahasia. Passwordnya TIDAK, dan tetap tidak: `keytool`
+# yang menanyakannya sendiri, dan nilainya tidak pernah mampir ke shell.
+SIDIK="$(keytool -list -v -keystore "$BERKAS" -alias "$ALIAS" \
+    | grep -m1 'SHA256:' | sed 's/.*SHA256: *//' | tr -d '[:space:]')" || SIDIK=""
+
+if [ -z "$SIDIK" ]; then
+    merah "!! \`${BERKAS}\` tidak terbaca sebagai keystore berisi alias \`${ALIAS}\`."
+    merah "   Sebabnya salah satu dari: passwordnya salah, berkasnya bukan keystore,"
+    merah "   berkasnya rusak/terpotong, atau aliasnya memang beda."
+    merah ""
+    merah "   Tidak ada secret yang diubah — yang terpasang sekarang masih yang lama."
+    merah "   Periksa dulu dengan:"
+    merah "     keytool -list -v -keystore ${BERKAS}"
+    exit 1
+fi
+hijau "✓ ${BERKAS} terbaca, alias ${ALIAS} ada."
+echo
 
 # macOS tidak punya `-w0`; bawaannya sudah satu baris.
 # Diuji dengan MENJALANKANNYA, bukan membaca `--help`: di macOS `base64
@@ -190,21 +232,6 @@ hijau "✓ ANDROID_KEY_PASSWORD"
 info "4/4 · Memaku sidik jarinya"
 echo "Empat secret di atas menjawab \"ada kunci\". Yang ini menjawab \"kunci yang MANA\"."
 echo
-
-# Password keystore diminta sekali lagi oleh keytool di sini. Sengaja tidak
-# disimpan dari langkah sebelumnya: menahannya di variabel shell berarti dia
-# ikut ke `set -x`, ke core dump, dan ke tiap proses anak.
-SIDIK="$(keytool -list -v -keystore "$BERKAS" -alias "$ALIAS" \
-    | grep -m1 'SHA256:' | sed 's/.*SHA256: *//' | tr -d '[:space:]')"
-
-if [ -z "$SIDIK" ]; then
-    merah "!! Sidik jari SHA256 tidak terbaca dari keystore."
-    merah "   Keempat secret sudah terpasang, tapi APK_SHA256 belum — dan tanpa dia"
-    merah "   workflow rilis tetap menolak jalan. Pasang manual:"
-    merah "     keytool -list -v -keystore ${BERKAS} -alias ${ALIAS} | grep SHA256:"
-    merah "     gh variable set APK_SHA256"
-    exit 1
-fi
 
 # Variable, BUKAN Secret. Sidik jari sertifikat tercetak di tiap APK yang sudah
 # terpasang di HP mana pun — menyembunyikannya tidak menambah keamanan, dan

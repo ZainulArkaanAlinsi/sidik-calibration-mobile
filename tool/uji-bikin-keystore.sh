@@ -57,15 +57,31 @@ STUB
 cat > "$RUANG/stub/keytool" <<'STUB'
 #!/usr/bin/env bash
 echo "keytool $1" >> "$REKAM"
+
+prev=""
+for a in "$@"; do
+    [ "$prev" = "-keystore" ] && berkas="$a"
+    prev="$a"
+done
+
 if [ "$1" = "-genkeypair" ]; then
-    prev=""
-    for a in "$@"; do
-        [ "$prev" = "-keystore" ] && berkas="$a"
-        prev="$a"
-    done
-    echo "kunci-tiruan-$(date +%s%N)" > "$berkas"
+    echo "kunci-tiruan-$(date +%s)" > "$berkas"
+    exit 0
 fi
-[ "$1" = "-list" ] && echo "         SHA256: AA:BB:CC:DD:EE:FF"
+
+# `keytool -list` beneran gagal (status bukan nol) kalau berkasnya bukan
+# keystore, rusak, passwordnya salah, atau aliasnya nggak ada. Stub ini
+# menirukan itu lewat isi berkas: yang diawali "kunci-" dianggap sah. Tanpa
+# tiruan kegagalan ini, kasus "berkas asing bernama sama" nggak bisa diuji
+# sama sekali — dan justru itu yang jadi temuan review.
+if [ "$1" = "-list" ]; then
+    if head -c 6 "$berkas" 2>/dev/null | grep -q '^kunci-'; then
+        echo "         SHA256: AA:BB:CC:DD:EE:FF"
+        exit 0
+    fi
+    echo "keytool error: java.io.IOException: Invalid keystore format" >&2
+    exit 1
+fi
 exit 0
 STUB
 
@@ -95,6 +111,22 @@ jalankan() {
 }
 
 punya() { grep -q "$1" "$REKAM"; }
+
+# Urutan itu inti temuan review: pemeriksaan kunci HARUS mendahului unggahan,
+# supaya berkas yang salah nggak sempat menimpa secret yang tadinya benar.
+sebelum() {
+    local dulu belakangan
+    dulu="$(grep -n "$1" "$REKAM" | head -1 | cut -d: -f1)"
+    belakangan="$(grep -n "$2" "$REKAM" | head -1 | cut -d: -f1)"
+    [ -n "$dulu" ] && [ -n "$belakangan" ] && [ "$dulu" -lt "$belakangan" ]
+}
+
+# `stat` beda bendera di GNU dan BSD, dan di Git Bash izinnya sering nggak
+# tercermin sama sekali. Kalau nggak kebaca, kasusnya dilewat — bukan dianggap
+# gagal, karena yang gagal cuma alat ukurnya.
+izin() {
+    stat -c '%a' "$1" 2>/dev/null || stat -f '%Lp' "$1" 2>/dev/null || echo "?"
+}
 
 # ------------------------------------------------------------------- kasus
 
@@ -129,6 +161,50 @@ sandi
 punya 'keytool -genkeypair' && tekor "genkeypair DIPANGGIL — kunci lama ditimpa!" || lolos "genkeypair tidak dipanggil"
 [ "$(cat "$KERJA/sidik-rilis.jks")" = "$CAP_AWAL" ] && lolos "isi kunci utuh" || tekor "isi kunci BERUBAH"
 punya 'variable set APK_SHA256' && lolos "kelima nilai tetap terpasang" || tekor "APK_SHA256 TIDAK terpasang"
+sebelum 'keytool -list' 'secret set' \
+    && lolos "kunci diperiksa SEBELUM secret diunggah" \
+    || tekor "secret diunggah sebelum kunci diperiksa"
+IZIN_KINI="$(izin "$KERJA/sidik-rilis.jks")"
+if [ "$IZIN_KINI" = "600" ] || [ "$IZIN_KINI" = "?" ]; then
+    lolos "izin dipaksa 600 (kebaca: ${IZIN_KINI})"
+else
+    tekor "izin ${IZIN_KINI}, harusnya 600"
+fi
+
+echo
+echo "2b. Jalan kedua — berkas asing yang kebetulan bernama sama"
+jalankan asing ''
+printf 'ini-bukan-keystore' > "$KERJA/sidik-rilis.jks"
+jalankan asing 'y
+y
+sandi
+sandi
+'
+[ "$STATUS" -eq 1 ] && lolos "ditolak (keluar 1)" || tekor "keluar $STATUS, harusnya 1"
+punya 'secret set' && tekor "SECRET TERTIMPA oleh berkas asing!" || lolos "nol secret disentuh"
+punya 'variable set' && tekor "APK_SHA256 tertimpa" || lolos "APK_SHA256 tidak disentuh"
+grep -q 'tidak terbaca sebagai keystore' "$KERJA/keluaran.txt" \
+    && lolos "sebabnya dijelaskan" || tekor "sebabnya tidak dijelaskan"
+
+echo
+echo "2c. Jalan kedua — kunci sah tapi izinnya longgar (dipulihkan dari cadangan)"
+jalankan longgar ''
+printf 'kunci-dari-cadangan' > "$KERJA/sidik-rilis.jks"
+chmod 644 "$KERJA/sidik-rilis.jks" 2>/dev/null || true
+AWAL_IZIN="$(izin "$KERJA/sidik-rilis.jks")"
+jalankan longgar 'y
+y
+sandi
+sandi
+'
+[ "$STATUS" -eq 0 ] && lolos "keluar 0" || tekor "keluar $STATUS, harusnya 0"
+if [ "$AWAL_IZIN" = "?" ] || [ "$AWAL_IZIN" = "600" ]; then
+    lolos "izin tidak terukur di platform ini — kasus dilewat"
+else
+    [ "$(izin "$KERJA/sidik-rilis.jks")" = "600" ] \
+        && lolos "izin $AWAL_IZIN dirapatkan jadi 600" \
+        || tekor "izin masih $(izin "$KERJA/sidik-rilis.jks"), harusnya 600"
+fi
 
 echo
 echo "3. Jawab 'n' di langkah cadangan — berhenti, tapi tidak merusak"
