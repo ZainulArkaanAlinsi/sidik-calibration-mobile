@@ -1,0 +1,230 @@
+{
+  "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+  "version": 4,
+  "final_space": true,
+  "console_title_template": "{{ .Folder }}{{ if .Root }} (admin){{ end }}",
+  "palette": {
+    "crimson": "#D91E41",
+    "cobalt": "#2962FF",
+    "cobalt-light": "#86A5FF",
+    "mint": "#9FF5E4",
+    "mint-deep": "#0B7A67",
+    "mint-ink": "#05473B",
+    "ivory": "#FDFDF6",
+    "ink": "#1A1A1A",
+    "ink-elevated": "#262626",
+    "ink-muted": "#B4B4AE"
+  },
+  "blocks": [
+    {
+      "type": "prompt",
+      "alignment": "left",
+      "newline": true,
+      "segments": [
+        {
+          "type": "os",
+          "style": "diamond",
+          "leading_diamond": "",
+          "trailing_diamond": "",
+          "background": "p:ink-elevated",
+          "foreground": "p:ivory",
+          "template": " {{ .Icon }} "
+        },
+        {
+          "type": "path",
+          "style": "powerline",
+          "powerline_symbol": "",
+          "background": "p:cobalt",
+          "foreground": "p:ivory",
+          "template": " {{ .Path }} ",
+          "options": {
+            "style": "agnoster_short",
+            "max_depth": 2,
+            "folder_separator_icon": "  ",
+            "home_icon": "~"
+          }
+        },
+        {
+          "type": "git",
+          "style": "powerline",
+          "powerline_symbol": "",
+          "background": "p:mint",
+          "foreground": "p:ink",
+          "background_templates": [
+            "{{ if or (.Working.Changed) (.Staging.Changed) }}p:mint-deep{{ end }}",
+            "{{ if and (gt .Ahead 0) (gt .Behind 0) }}p:mint-ink{{ end }}",
+            "{{ if gt .Ahead 0 }}p:mint-ink{{ end }}",
+            "{{ if gt .Behind 0 }}p:mint-ink{{ end }}"
+          ],
+          "foreground_templates": [
+            "{{ if or (.Working.Changed) (.Staging.Changed) }}p:ivory{{ end }}",
+            "{{ if and (gt .Ahead 0) (gt .Behind 0) }}p:mint{{ end }}",
+            "{{ if gt .Ahead 0 }}p:mint{{ end }}",
+            "{{ if gt .Behind 0 }}p:mint{{ end }}"
+          ],
+          "template": " {{ .UpstreamIcon }}{{ .HEAD }}{{ if .BranchStatus }} {{ .BranchStatus }}{{ end }}{{ if .Working.Changed }}  {{ .Working.String }}{{ end }}{{ if .Staging.Changed }}  {{ .Staging.String }}{{ end }} ",
+          "options": {
+            "branch_template": "{{ trunc 24 .Branch }}",
+            "branch_icon": " "
+          }
+        },
+        {
+          "type": "flutter",
+          "style": "powerline",
+          "powerline_symbol": "",
+          "background": "p:ink-elevated",
+          "foreground": "p:cobalt-light",
+          "template": " {{ if .Full }} {{ .Full }} {{ end }}",
+          "cache": {
+            "duration": "24h",
+            "strategy": "folder"
+          }
+        },
+        {
+          "type": "php",
+          "style": "powerline",
+          "powerline_symbol": "",
+          "background": "p:ink-elevated",
+          "foreground": "p:cobalt-light",
+          "template": " {{ if .Full }} {{ .Full }} {{ end }}",
+          "cache": {
+            "duration": "24h",
+            "strategy": "folder"
+          }
+        },
+        {
+          "type": "node",
+          "style": "powerline",
+          "powerline_symbol": "",
+          "background": "p:ink-elevated",
+          "foreground": "p:cobalt-light",
+          "template": " {{ if .Full }} {{ .Full }} {{ end }}",
+          "cache": {
+            "duration": "24h",
+            "strategy": "folder"
+          }
+        },
+        {
+          "type": "python",
+          "style": "powerline",
+          "powerline_symbol": "",
+          "background": "p:ink-elevated",
+          "foreground": "p:cobalt-light",
+          "template": " {{ if .Full }} {{ .Full }} {{ end }}",
+          "cache": {
+            "duration": "24h",
+            "strategy": "folder"
+          }
+        },
+        {
+          "type": "root",
+          "style": "powerline",
+          "powerline_symbol": "",
+          "background": "p:crimson",
+          "foreground": "p:ivory",
+          "template": "  "
+        }
+      ]
+    },
+    {
+      "type": "rprompt",
+      "overflow": "hide",
+      "segments": [
+        {
+          "type": "executiontime",
+          "style": "plain",
+          "foreground": "p:ink-muted",
+          "template": "  {{ .FormattedMs }} ",
+          "options": {
+            "threshold": 2000,
+            "style": "austin"
+          }
+        },
+        {
+          "type": "battery",
+          "style": "plain",
+          "foreground": "p:ink-muted",
+          "foreground_templates": [
+            "{{ if lt .Percentage 20 }}p:crimson{{ end }}"
+          ],
+          "template": "{{ if not .Error }} {{ .Icon }}{{ .Percentage }}% {{ end }}",
+          "options": {
+            "charging_icon": " ",
+            "discharging_icon": " ",
+            "charged_icon": " "
+          }
+        },
+        {
+          "type": "time",
+          "style": "plain",
+          "foreground": "p:ink-muted",
+          "template": " {{ .CurrentDate | date .Format }} ",
+          "options": {
+            "time_format": "15:04"
+          }
+        }
+      ]
+    },
+    {
+      "type": "prompt",
+      "alignment": "left",
+      "newline": true,
+      "segments": [
+        {
+          "type": "status",
+          "style": "plain",
+          "foreground": "p:mint-deep",
+          "foreground_templates": [
+            "{{ if gt .Code 0 }}p:crimson{{ end }}"
+          ],
+          "template": "❯ ",
+          "options": {
+            "always_enabled": true
+          }
+        }
+      ]
+    }
+  ],
+  "transient_prompt": {
+    "foreground": "p:mint-deep",
+    "foreground_templates": [
+      "{{ if gt .Code 0 }}p:crimson{{ end }}"
+    ],
+    "background": "transparent",
+    "template": "❯ "
+  },
+  "secondary_prompt": {
+    "foreground": "p:ink-muted",
+    "background": "transparent",
+    "template": "❯❯ "
+  },
+  "tooltips": [
+    {
+      "type": "git",
+      "tips": [
+        "git",
+        "g"
+      ],
+      "style": "diamond",
+      "leading_diamond": "",
+      "trailing_diamond": "",
+      "background": "p:mint",
+      "foreground": "p:ink",
+      "template": " {{ .UpstreamIcon }}{{ .HEAD }}{{ if .BranchStatus }} {{ .BranchStatus }}{{ end }}{{ if .Working.Changed }}  {{ .Working.String }}{{ end }}{{ if .Staging.Changed }}  {{ .Staging.String }}{{ end }} "
+    },
+    {
+      "type": "flutter",
+      "tips": [
+        "flutter",
+        "dart",
+        "fvm"
+      ],
+      "style": "diamond",
+      "leading_diamond": "",
+      "trailing_diamond": "",
+      "background": "p:ink-elevated",
+      "foreground": "p:cobalt-light",
+      "template": " {{ if .Full }} {{ .Full }} {{ end }}"
+    }
+  ]
+}
