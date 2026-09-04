@@ -23,6 +23,13 @@ import 'package:sidik_calibration/widgets/pemasang_otomatis.dart';
 ///   - orangnya sudah pindah ke lembar kerja → ditarik keluar di tengah kerja;
 ///   - tidak ada pemutakhiran → giliran habis buat hal yang tidak ada.
 class _PengunduhPalsu implements PengunduhApk {
+  _PengunduhPalsu({this.lempar = false});
+
+  /// `pasang` melempar, meniru `OpenFilex.open` yang gagal di platform
+  /// channel. Bukan kasus karangan: itu satu-satunya cara jalur ini bisa
+  /// melempar, dan jalur ini jalan `unawaited`.
+  final bool lempar;
+
   int panggilanPasang = 0;
   File? berkasDipasang;
   String? urlDiminta;
@@ -42,6 +49,7 @@ class _PengunduhPalsu implements PengunduhApk {
   Future<HasilPasang> pasang(File berkas) async {
     panggilanPasang++;
     berkasDipasang = berkas;
+    if (lempar) throw Exception('pemasang meledak di platform channel');
 
     return HasilPasang.pemasangDibuka;
   }
@@ -55,6 +63,28 @@ class _PengunduhPalsu implements PengunduhApk {
     urlDiminta = url;
 
     return pasang(File('/palsu/$namaBerkas'));
+  }
+}
+
+/// Layanan versi yang MENGGANTUNG sampai test melepasnya — buat menaruh
+/// kejadian lain (mis. dashboard ditutup) di dalam jeda `await`-nya.
+class _LayananTertahan implements VersiService {
+  _LayananTertahan(this.tahan, {this.terbaru});
+
+  final Completer<void> tahan;
+  final VersiAplikasi? terbaru;
+
+  @override
+  Future<String> versiTerpasang() async => '1.0.58';
+
+  @override
+  Future<String> buildTerpasang() async => '58';
+
+  @override
+  Future<VersiAplikasi?> versiTerbaru() async {
+    await tahan.future;
+
+    return terbaru;
   }
 }
 
@@ -310,6 +340,67 @@ void main() {
 
       expect(find.text('lembar kerja'), findsOneWidget);
       expect(pengunduh.panggilanPasang, 0);
+    });
+  });
+
+  /// Jalur ini jalan `unawaited` dari `initState`. Apa pun yang dilemparnya
+  /// jadi galat asinkron tanpa penangkap — dan itu bertentangan langsung dengan
+  /// janji kelasnya sendiri: "gagalnya diam".
+  group('gagalnya harus diam', () {
+    testWidgets('dashboard ditutup di tengah pemeriksaan versi', (
+      tester,
+    ) async {
+      // Logout, atau rute yang diganti, sementara jawaban server belum datang.
+      // Sesudah widget-nya dilepas, `ref` tidak boleh disentuh lagi —
+      // flutter_riverpod menolaknya dengan "Cannot use 'ref' after the widget
+      // was disposed", dan tidak ada yang menangkapnya.
+      final tahan = Completer<void>();
+      final pengunduh = _PengunduhPalsu();
+      final c = ProviderContainer(
+        overrides: [
+          versiServiceProvider.overrideWithValue(
+            _LayananTertahan(tahan, terbaru: rilis()),
+          ),
+          penyiapUpdateProvider.overrideWithValue(_PenyiapPalsu(siap: true)),
+        ],
+      );
+      addTearDown(c.dispose);
+
+      await pasang(tester, container: c, pengunduh: pengunduh);
+      await tester.pump();
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: c,
+          child: const MaterialApp(home: Scaffold(body: Text('layar masuk'))),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Baru sesudah dashboard-nya hilang, jawabannya datang.
+      tahan.complete();
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(pengunduh.panggilanPasang, 0);
+    });
+
+    testWidgets('pemasang Android melempar', (tester) async {
+      final pengunduh = _PengunduhPalsu(lempar: true);
+
+      await pasang(
+        tester,
+        container: wadah(
+          layanan: MockVersiService(terpasang: '1.0.58', terbaru: rilis()),
+          penyiap: _PenyiapPalsu(siap: true),
+        ),
+        pengunduh: pengunduh,
+      );
+      await tester.pumpAndSettle();
+
+      // Dicoba — tapi ledakannya tidak keluar ke mana-mana.
+      expect(pengunduh.panggilanPasang, 1);
+      expect(tester.takeException(), isNull);
     });
   });
 

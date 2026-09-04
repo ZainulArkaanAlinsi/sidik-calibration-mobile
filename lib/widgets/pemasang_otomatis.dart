@@ -74,6 +74,14 @@ class _PemasangOtomatisState extends ConsumerState<PemasangOtomatis> {
     final rilis = await ref.read(updateTersediaProvider.future);
     if (rilis == null) return;
 
+    // `ref` tidak boleh disentuh lagi sesudah widget-nya dilepas —
+    // flutter_riverpod menolaknya dengan "Cannot use 'ref' after the widget was
+    // disposed". Jeda di atas cukup lebar buat itu kejadian: pemeriksaan versi
+    // menunggu jawaban server, dan logout atau pindah rute selama menunggu itu
+    // hal biasa. Karena jalur ini jalan `unawaited`, lemparannya jadi galat
+    // asinkron yang tidak tertangkap siapa pun.
+    if (!mounted) return;
+
     // Sengaja `apkSiap`, BUKAN `updateSiapProvider`.
     //
     // `updateSiapProvider` menunggu unduhan latar selesai kalau belum — dan
@@ -100,7 +108,16 @@ class _PemasangOtomatisState extends ConsumerState<PemasangOtomatis> {
     // ditutup.
     if (!ref.read(giliranPemasangOtomatisProvider).ambil()) return;
 
-    await (widget.pengunduh ?? PengunduhApkAsli()).pasang(berkas);
+    // Dibungkus karena `pasang` menembus platform channel dan bisa melempar,
+    // sementara jalur ini jalan `unawaited`. Janji "gagalnya diam" di atas cuma
+    // benar kalau memang ada yang menelannya; tanpa ini, kegagalan pemasang
+    // mendarat sebagai galat asinkron yang justru muncul ke layar.
+    try {
+      await (widget.pengunduh ?? PengunduhApkAsli()).pasang(berkas);
+    } catch (_) {
+      // Bannernya masih di layar dan tombol Pasang-nya punya pesan galat yang
+      // lengkap — termasuk yang menyuruh menyalakan "Install unknown apps".
+    }
   }
 
   @override
