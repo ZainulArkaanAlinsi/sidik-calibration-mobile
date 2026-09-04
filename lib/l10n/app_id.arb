@@ -707,6 +707,7 @@
   },
   "calibBerhasilDraft": "Draft kalibrasi disimpan.",
   "calibBerhasilApproval": "Sesi kalibrasi dikirim untuk approval.",
+  "kirimTertahanRilisWajib": "Versi baru WAJIB dipasang sebelum sesi bisa dikirim. Simpan Draft dulu — isianmu tidak hilang.",
   "calibGagal": "Gagal menyimpan: {pesan}",
   "calibLoadPilihanGagal": "Gagal memuat pilihan kategori/standar.",
   "calibRetry": "COBA LAGI",

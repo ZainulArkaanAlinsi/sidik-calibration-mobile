@@ -1876,6 +1876,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Calibration session submitted for approval.';
 
   @override
+  String get kirimTertahanRilisWajib =>
+      'A mandatory update must be installed before this session can be sent. Save a draft first — your entries are kept.';
+
+  @override
   String calibGagal(String pesan) {
     return 'Couldn\'t save: $pesan';
   }

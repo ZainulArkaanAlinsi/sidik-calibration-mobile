@@ -3487,6 +3487,12 @@ abstract class AppLocalizations {
   /// **'Calibration session submitted for approval.'**
   String get calibBerhasilApproval;
 
+  /// Ditampilkan waktu teknisi menekan Kirim sementara ada rilis wajib. Menyebut Simpan Draft supaya jalan keluarnya kelihatan, bukan cuma penolakannya.
+  ///
+  /// In en, this message translates to:
+  /// **'A mandatory update must be installed before this session can be sent. Save a draft first — your entries are kept.'**
+  String get kirimTertahanRilisWajib;
+
   /// No description provided for @calibGagal.
   ///
   /// In en, this message translates to:

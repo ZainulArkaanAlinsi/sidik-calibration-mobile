@@ -1004,6 +1004,10 @@
   },
   "calibBerhasilDraft": "Calibration draft saved.",
   "calibBerhasilApproval": "Calibration session submitted for approval.",
+  "kirimTertahanRilisWajib": "A mandatory update must be installed before this session can be sent. Save a draft first — your entries are kept.",
+  "@kirimTertahanRilisWajib": {
+    "description": "Ditampilkan waktu teknisi menekan Kirim sementara ada rilis wajib. Menyebut Simpan Draft supaya jalan keluarnya kelihatan, bukan cuma penolakannya."
+  },
   "calibGagal": "Couldn't save: {pesan}",
   "@calibGagal": {
     "placeholders": {
