@@ -1,0 +1,64 @@
+{
+    "data": {
+        "id": 1,
+        "nama": "PT Alfa",
+        "tipe": "sistem",
+        "parent_id": null,
+        "keterangan": null,
+        "pelanggan": {
+            "id": 1,
+            "nama": "PT Alfa",
+            "alamat": "Jl. Alfa 1"
+        },
+        "dibuat_pada": "2026-08-27T06:59:01Z",
+        "breadcrumb": [
+            {
+                "id": 1,
+                "nama": "PT Alfa",
+                "is_root": true
+            }
+        ],
+        "sub_folder": [
+            {
+                "id": 2,
+                "nama": "2026",
+                "tipe": "sistem",
+                "parent_id": 1,
+                "keterangan": null,
+                "pelanggan": {
+                    "id": 1,
+                    "nama": "PT Alfa",
+                    "alamat": "Jl. Alfa 1"
+                },
+                "jumlah_folder": 1,
+                "jumlah_file": 1,
+                "dibuat_pada": "2026-08-27T06:59:01Z"
+            }
+        ],
+        "file": [],
+        "alat": [
+            {
+                "id": 1,
+                "nama_alat": "Jangka Sorong",
+                "merk": "Memmert",
+                "model": null,
+                "serial_number": "KX-1659-84",
+                "status": "aktif",
+                "tanggal_kalibrasi_terakhir": "2026-02-27",
+                "tanggal_jatuh_tempo": "2027-02-27",
+                "jumlah_kalibrasi": 4
+            },
+            {
+                "id": 2,
+                "nama_alat": "Thermocouple Fluke 51-II",
+                "merk": "Ohaus",
+                "model": null,
+                "serial_number": "NC-6339-62",
+                "status": "aktif",
+                "tanggal_kalibrasi_terakhir": "2026-02-27",
+                "tanggal_jatuh_tempo": "2027-02-27",
+                "jumlah_kalibrasi": 1
+            }
+        ]
+    }
+}
