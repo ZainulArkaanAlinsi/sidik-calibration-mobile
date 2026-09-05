@@ -68,6 +68,15 @@ $Tema      = Join-Path $TujuanDir 'sidik.omp.json'
 # pun pesan error.
 #
 # profile.ps1 (CurrentUserAllHosts) dibaca SEMUA host, jadi itu yang dipakai.
+#
+# "Semua host" itu berlaku PER EDISI, bukan lintas edisi: Windows PowerShell 5.1
+# dan PowerShell 7 punya profile.ps1 sendiri-sendiri di folder yang berbeda
+#   5.1 -> Documents\WindowsPowerShell\profile.ps1
+#   7.x -> Documents\PowerShell\profile.ps1
+# jadi memasang dari jendela 5.1 sementara VS Code disetel ke pwsh 7 mengulang
+# gagal senyap yang sama. Sisa jurang itu DILAPORKAN di akhir skrip, bukan
+# ditambal diam-diam: menulis ke profil edisi lain berarti mengarang folder yang
+# belum tentu dipakai, dan gagalnya bakal lebih susah dilacak daripada pesannya.
 $Profil = $PROFILE.CurrentUserAllHosts
 
 # Berkas per-host tetap dibersihkan: versi skrip sebelumnya menulis ke situ, dan
@@ -349,6 +358,15 @@ $blok = @(
 )
 Add-Content -Path $Profil -Value $blok -Encoding UTF8
 Write-Ok "blok init ditulis ke $Profil"
+
+$edisi = if ($PSVersionTable.PSEdition -eq 'Desktop') {
+    'Windows PowerShell 5.1'
+} else {
+    "PowerShell $($PSVersionTable.PSVersion.Major) (pwsh)"
+}
+Write-Info "profil itu milik $edisi - edisi PowerShell lain punya profile.ps1 sendiri."
+Write-Info 'Kalau prompt di terminal VS Code tetap bawaan sesudah dibuka ulang, edisinya beda:'
+Write-Info 'jalankan skrip ini SEKALI LAGI dari dalam terminal VS Code itu sendiri.'
 
 # ------------------------------------------------------------------ tutup
 Write-Bagian 'selesai'
