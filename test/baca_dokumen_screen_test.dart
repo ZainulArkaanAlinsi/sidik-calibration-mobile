@@ -164,7 +164,25 @@ void main() {
   });
 
   tearDown(() {
-    if (foto.existsSync()) foto.deleteSync();
+    // Windows mengunci berkas yang masih dipegang proses; Linux dan macOS
+    // tidak. Layar review menggambar fotonya lewat `Image.file`, dan pembacaan
+    // itu asinkron — dia bisa masih berjalan waktu uji selesai. Di Linux
+    // penghapusannya tetap lolos, di Windows melempar PathAccessException.
+    //
+    // Yang bikin ini mahal: badan ujinya SUDAH hijau waktu itu terjadi. Yang
+    // gagal cuma pembersihannya, tapi tearDown yang melempar tetap memerahkan
+    // ujinya — keempat belas uji di berkas ini merah begitu di job `windows`
+    // milik "Rilis desktop & web", sementara `flutter test` di Linux hijau.
+    // Jadi PR-nya lolos dan `main` yang merah.
+    //
+    // Ditangkap `FileSystemException` saja, bukan semua: fixture ini duduk di
+    // direktori temp sistem dan OS yang membersihkannya, tapi kesalahan jenis
+    // lain di sini tetap harus kelihatan.
+    try {
+      if (foto.existsSync()) foto.deleteSync();
+    } on FileSystemException {
+      // sengaja dibiarkan - lihat alasannya di atas
+    }
   });
 
   Widget bungkus({required SumberFoto sumber, required _LayananPalsu layanan}) {
