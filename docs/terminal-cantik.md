@@ -154,6 +154,8 @@ Kalau PT Sidik ganti warna brand, `app_colors.dart` dan blok `palette` di
 |---|---|---|
 | Ikonnya kotak-kotak `▯` | Font terminal belum diganti | §2 di atas |
 | Prompt tidak berubah sama sekali | Terminalnya belum dibuka ulang | Tutup & buka lagi, atau `exec $SHELL` |
+| Prompt berubah di PowerShell biasa, tapi **tidak di terminal VS Code** | Dua sebab: terminalnya sudah kebuka sebelum dipasang, atau kamu masih pakai skrip versi lama yang menulis ke profil per-host (`Microsoft.PowerShell_profile.ps1`) — VS Code membaca `Microsoft.VSCode_profile.ps1` | `git pull` lalu jalankan skripnya lagi (versi sekarang menulis ke `profile.ps1` yang dibaca semua host), **tutup terminal VS Code-nya**, buka yang baru |
+| `echo $env:POSH_CONFIG` kosong padahal sudah dipasang | Blok init tidak kebaca di shell itu | Itu memang cara mendeteksinya. Lihat baris di atas |
 | `oh-my-posh: command not found` tiap buka shell | Binary-nya terpasang tapi belum di PATH | Jalankan ulang skripnya — blok yang ditulis sudah menyertakan `~/.local/bin` |
 | Windows: sudah `winget install` tapi tidak kebaca | PATH sesi lama belum ikut baru | Tutup & buka PowerShell, jalankan skripnya sekali lagi |
 | `'oh-my-posh' is not recognized` | Belum terpasang di mesin itu — atau kamu di `cmd.exe`, yang memang tidak didukung | Buka **PowerShell**, lalu jalankan `.\tool\pasang-terminal.ps1` dari dalam folder repo |
