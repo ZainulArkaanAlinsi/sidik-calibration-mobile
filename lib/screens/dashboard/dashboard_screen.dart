@@ -11,6 +11,7 @@ import '../../providers/auth_provider.dart';
 import '../shell/main_shell.dart' show bukaMenuUtama;
 import '../../providers/dashboard_provider.dart';
 import '../../widgets/banner_update.dart';
+import '../../widgets/pemasang_otomatis.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/readable_width.dart';
@@ -93,7 +94,13 @@ class DashboardScreen extends ConsumerWidget {
           onRefresh: () => ref.read(dashboardProvider.notifier).muatUlang(),
           // Di DALAM Container, biar gradasi latarnya tetap penuh selebar
           // jendela — yang dibatasi cuma isinya.
-          child: ReadableWidth(child: isi),
+          //
+          // `PemasangOtomatis` memulangkan anaknya apa adanya; dia nggak
+          // menggambar apa-apa dan nggak mengubah tata letak. Yang
+          // dikerjakannya cuma satu: membuka layar pemasang Android sendiri
+          // waktu aplikasi dibuka, kalau APK pemutakhirannya memang sudah
+          // terunduh di latar. Syarat lengkapnya ada di kelasnya.
+          child: PemasangOtomatis(child: ReadableWidth(child: isi)),
         ),
       ),
     );

@@ -12,12 +12,34 @@ import '../services/pengunduh_apk.dart';
 /// manual, cari berkasnya di folder Download, baru pasang. Di sini teknisi
 /// menekan satu tombol dan menunggu.
 ///
-/// **Tidak memaksa.** Bannernya bisa ditutup, dan aplikasinya tetap jalan
-/// penuh dengan versi lama. Itu disengaja: teknisi yang sedang di lokasi
-/// pelanggan dengan sinyal seadanya tidak boleh dipaksa mengunduh 68 MB
-/// sebelum boleh bekerja. Rilis yang memang WAJIB punya penandanya sendiri
-/// ([VersiAplikasi.wajib]) — dan bahkan itu belum dipakai sampai ada rilis
-/// yang benar-benar membutuhkannya.
+/// **Rilis biasa tidak memaksa.** Bannernya bisa ditutup, dan aplikasinya
+/// tetap jalan penuh dengan versi lama. Itu disengaja: teknisi yang sedang di
+/// lokasi pelanggan dengan sinyal seadanya tidak boleh dipaksa mengunduh 68 MB
+/// sebelum boleh bekerja.
+///
+/// ## Rilis wajib ([VersiAplikasi.wajib])
+///
+/// Bannernya **tidak bisa ditutup** — tombol tutupnya tidak digambar, dan
+/// `_ditutup` sengaja diabaikan supaya jalur penutup baru yang ditambahkan
+/// nanti tidak diam-diam melewatinya. Warnanya pindah ke nada bahaya dan
+/// kata-katanya menyebut WAJIB.
+///
+/// **Yang TIDAK dilakukan: mengunci aplikasi.** Tidak ada dialog yang tidak
+/// bisa ditutup, tidak ada `PopScope(canPop: false)`. Taruhannya lebih tinggi
+/// daripada kenyamanan: teknisi di lokasi pelanggan tanpa sinyal cukup untuk
+/// mengunduh 68 MB akan kehilangan SELURUH kemampuan mencatat kalibrasi —
+/// datanya balik ke kertas atau hilang. Untuk aplikasi yang datanya masuk
+/// sertifikat terakreditasi, memaksa berhenti bekerja lebih mahal daripada
+/// membiarkan satu sesi jalan di versi lama.
+///
+/// **Diputuskan 4 Sep 2026: layar isiannya TIDAK diblokir — yang ditahan
+/// pengirimannya.** Penjaganya `kirimTertahanRilisWajibProvider`, dipakai kedua layar
+/// isian (`calibration_input_screen` dan `lembar_kerja_screen`). Teknisi tetap
+/// bisa mengisi dan tetap bisa "Simpan Draft"; yang ditolak cuma "Kirim".
+///
+/// Alasan lengkapnya ada di provider itu. Ringkasnya: `wajib` didefinisikan
+/// sebagai *"versi lama diam-diam mengirim data yang salah"*, jadi yang harus
+/// ditahan langkah yang tidak bisa ditarik balik — bukan pekerjaannya.
 class BannerUpdate extends ConsumerStatefulWidget {
   const BannerUpdate({super.key, this.pengunduh});
 
@@ -79,13 +101,28 @@ class _BannerUpdateState extends ConsumerState<BannerUpdate> {
 
   @override
   Widget build(BuildContext context) {
-    if (_ditutup) return const SizedBox.shrink();
-
     final rilis = ref.watch(updateTersediaProvider).value;
     if (rilis == null) return const SizedBox.shrink();
 
+    // `_ditutup` diperiksa SESUDAH rilisnya dibaca, dan sengaja diabaikan
+    // waktu wajib. Tombol tutupnya memang sudah tidak digambar di bawah, tapi
+    // penjagaan di sini yang bikin penutup baru — gesek, tombol lain, apa pun
+    // yang ditambahkan nanti — tidak diam-diam melewati rilis wajib.
+    if (_ditutup && !rilis.wajib) return const SizedBox.shrink();
+
     final theme = Theme.of(context);
     final ukuran = rilis.ukuranMb;
+    final wajib = rilis.wajib;
+
+    // Nada bahaya buat rilis wajib. Teks galat ikut pindah ke `warnaIsi`:
+    // `colorScheme.error` di atas `errorContainer` itu merah di atas merah —
+    // pesan yang tidak terbaca sama saja dengan tidak ada pesan.
+    final warnaLatar = wajib
+        ? theme.colorScheme.errorContainer
+        : theme.colorScheme.primaryContainer;
+    final warnaIsi = wajib
+        ? theme.colorScheme.onErrorContainer
+        : theme.colorScheme.onPrimaryContainer;
 
     // `false` selama unduhan latar masih jalan ATAU memang tidak jalan (di
     // seluler). Dua-duanya berujung tombol lama yang menyebut ukuran — yang
@@ -103,7 +140,7 @@ class _BannerUpdateState extends ConsumerState<BannerUpdate> {
       ),
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer,
+        color: warnaLatar,
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
       ),
       child: Column(
@@ -112,23 +149,25 @@ class _BannerUpdateState extends ConsumerState<BannerUpdate> {
           Row(
             children: [
               Icon(
-                Icons.system_update,
+                wajib ? Icons.warning_amber_rounded : Icons.system_update,
                 size: 20,
-                color: theme.colorScheme.onPrimaryContainer,
+                color: warnaIsi,
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
-                  siap
+                  wajib
+                      ? 'Versi ${rilis.versi} WAJIB dipasang'
+                      : siap
                       ? 'Versi ${rilis.versi} siap dipasang'
                       : 'Versi ${rilis.versi} sudah tersedia',
                   style: theme.textTheme.titleSmall?.copyWith(
-                    color: theme.colorScheme.onPrimaryContainer,
+                    color: warnaIsi,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-              if (!_sedangUnduh)
+              if (!_sedangUnduh && !wajib)
                 IconButton(
                   key: const Key('banner_update_tutup'),
                   tooltip: 'Nanti saja',
@@ -137,7 +176,7 @@ class _BannerUpdateState extends ConsumerState<BannerUpdate> {
                   icon: Icon(
                     Icons.close,
                     size: 18,
-                    color: theme.colorScheme.onPrimaryContainer,
+                    color: warnaIsi,
                   ),
                 ),
             ],
@@ -155,7 +194,7 @@ class _BannerUpdateState extends ConsumerState<BannerUpdate> {
                   ? 'Mengunduh…'
                   : 'Mengunduh… ${(_progres! * 100).round()}%',
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onPrimaryContainer,
+                color: warnaIsi,
               ),
             ),
           ] else ...[
@@ -165,7 +204,7 @@ class _BannerUpdateState extends ConsumerState<BannerUpdate> {
                 _galat!,
                 key: const Key('banner_update_galat'),
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.error,
+                  color: wajib ? warnaIsi : theme.colorScheme.error,
                 ),
               ),
             ],

@@ -116,8 +116,22 @@ class ArsipFolder {
       parentId: (json['parent_id'] as num?)?.toInt(),
       isRoot: json['is_root'] as bool? ?? false,
       tipe: json['tipe'] as String? ?? 'manual',
-      jumlahSubfolder: (json['jumlah_subfolder'] as num?)?.toInt() ?? 0,
-      jumlahBerkas: (json['jumlah_berkas'] as num?)?.toInt() ?? 0,
+      // Kuncinya `jumlah_folder`/`jumlah_file` — itu yang ditulis
+      // `FolderResource` di server dan yang tercatat di
+      // `docs/kontrak-api.md`. Sampai 3 Sep 2026 di sini terbaca
+      // `jumlah_subfolder`/`jumlah_berkas`, dua nama yang TIDAK PERNAH dikirim
+      // siapa pun.
+      //
+      // Gagalnya sunyi total, dan `?? 0` yang menyunyikannya: tiap folder di
+      // layar Arsip menulis "0 folder · 0 berkas" apa pun isinya, dan `kosong`
+      // di bawah ikut selalu true — jadi menu Hapus menyala buat folder yang
+      // masih ada isinya, persis yang penjaga itu dibikin buat mencegah.
+      //
+      // Yang bikin ini bertahan lama: `MockArsipService` menyusun objeknya
+      // LANGSUNG lewat konstruktor, bukan lewat `fromJson`. Jadi di mode mock
+      // angkanya benar dan seluruh test hijau — cuma jalur API asli yang salah.
+      jumlahSubfolder: (json['jumlah_folder'] as num?)?.toInt() ?? 0,
+      jumlahBerkas: (json['jumlah_file'] as num?)?.toInt() ?? 0,
       // UTC dari backend → waktu lokal; tanpa ini jamnya mundur 7 jam.
       dibuatPada: switch (json['dibuat_pada']) {
         String s => DateTime.tryParse(s)?.toLocal(),
@@ -174,22 +188,48 @@ class ArsipBerkas {
   /// Cuma keisi kalau sertifikatnya udah `terbit`.
   final String? pdfUrl;
 
+  /// Bentuknya satu baris `file[]` dari `GET /arsip/folders/{id}`.
+  ///
+  /// **`id` di sini id SESI KALIBRASI, bukan id baris `folder_files`.** Dua
+  /// alasannya, dan dua-duanya mengikat:
+  ///
+  /// 1. Layar ini membuka `CalibrationDetailScreen(calibrationId: berkas.id)`.
+  ///    Diberi id berkas, yang kebuka sesi orang lain yang nomornya kebetulan
+  ///    sama — status 200, nol error.
+  /// 2. `PUT /arsip/berkas/{sesiId}/pindah` juga minta id sesi; kontraknya
+  ///    menyebut "itu yang dipegang mobile di layar arsip".
+  ///
+  /// Baris yang bukan lembar kerja (sertifikat unggahan, berkas manual) nggak
+  /// punya sesi sama sekali, jadi **dilempar** — `parseListAman` yang
+  /// membuangnya. Menyimpannya dengan id berkas justru bentuk kegagalan yang
+  /// lagi dicegah: kartunya kelihatan bisa dipencet, lalu membuka sesi yang
+  /// salah.
   factory ArsipBerkas.fromJson(Map<String, dynamic> json) {
     final sertifikat = json['sertifikat'] as Map<String, dynamic>?;
-    final equipment = json['equipment'] as Map<String, dynamic>?;
-    final teknisi = json['teknisi'] as Map<String, dynamic>?;
-    final tanggal = json['tanggal_kalibrasi'] as String?;
+    final lembar = json['lembar_kerja'] as Map<String, dynamic>?;
+    final idSesi = (lembar?['calibration_session_id'] as num?)?.toInt();
+
+    if (idSesi == null) {
+      throw const FormatException(
+        'baris arsip tanpa `lembar_kerja.calibration_session_id` — '
+        'nggak punya sesi buat dibuka',
+      );
+    }
+
+    final equipment = lembar?['equipment'] as Map<String, dynamic>?;
+    final teknisi = lembar?['teknisi'] as Map<String, dynamic>?;
+    final tanggal = lembar?['tanggal_kalibrasi'] as String?;
 
     return ArsipBerkas(
-      id: (json['id'] as num).toInt(),
+      id: idSesi,
       status: CalibrationStatusJson.fromJson(
-        json['status'] as String? ?? 'draft',
+        lembar?['status'] as String? ?? 'draft',
       ),
-      nomorSesi: json['nomor_sesi'] as String?,
+      nomorSesi: lembar?['nomor_sesi'] as String?,
       namaAlat: equipment?['nama_alat'] as String?,
       namaTeknisi: teknisi?['nama'] as String?,
       tanggalKalibrasi: tanggal == null ? null : DateTime.tryParse(tanggal),
-      keputusan: switch (json['keputusan']) {
+      keputusan: switch (lembar?['keputusan']) {
         'PASS' => Keputusan.pass,
         'FAIL' => Keputusan.fail,
         _ => null,
@@ -226,18 +266,32 @@ class ArsipIsiFolder {
 
   bool get kosong => subfolder.isEmpty && berkas.isEmpty;
 
+  /// Bentuknya `{ "data": { ...folder, breadcrumb[], sub_folder[], file[] } }`.
+  ///
+  /// **Sempat dibaca dengan bentuk yang beda sama sekali** — `json['folder']`,
+  /// `json['subfolder']`, dan `json['data']` sebagai daftar berkas. Nggak satu
+  /// pun kunci itu ada di respons server, dan `json['data']` yang sebenarnya
+  /// objek bikin `as List` NGELEMPAR: tiap folder yang dibuka lawan server asli
+  /// gagal, dan layarnya berhenti di pesan error.
+  ///
+  /// Nggak ketahuan karena seluruh test arsip lewat `MockArsipService` yang
+  /// bikin objeknya langsung — parser ini nggak pernah sekali pun diadu ke
+  /// payload sungguhan. Sekarang ada `arsip_bentuk_asli_test.dart` yang
+  /// nyuapin JSON hasil rekam dari server.
   factory ArsipIsiFolder.fromJson(Map<String, dynamic> json) {
-    final folder = json['folder'] as Map<String, dynamic>? ?? const {};
-    final perusahaan = folder['perusahaan'] as Map<String, dynamic>?;
+    final folder = json['data'] as Map<String, dynamic>? ?? const {};
+    final pelanggan = folder['pelanggan'] as Map<String, dynamic>?;
     final crumbs = folder['breadcrumb'] as List<dynamic>? ?? const [];
-    final subfolder = json['subfolder'] as List<dynamic>? ?? const [];
-    final berkas = json['data'] as List<dynamic>? ?? const [];
+    final subfolder = folder['sub_folder'] as List<dynamic>? ?? const [];
+    final berkas = folder['file'] as List<dynamic>? ?? const [];
 
     return ArsipIsiFolder(
       folderId: (folder['id'] as num?)?.toInt() ?? 0,
       namaFolder: folder['nama'] as String? ?? '—',
-      isRoot: folder['is_root'] as bool? ?? false,
-      namaPerusahaan: perusahaan?['nama'] as String?,
+      // Diturunkan, bukan diminta ke server: folder akar itu yang induknya
+      // kosong, dan `parent_id` udah ikut di tiap baris.
+      isRoot: folder['parent_id'] == null,
+      namaPerusahaan: pelanggan?['nama'] as String?,
       breadcrumb: parseListAman(crumbs, ArsipBreadcrumb.fromJson),
       subfolder: parseListAman(subfolder, ArsipFolder.fromJson),
       berkas: parseListAman(berkas, ArsipBerkas.fromJson),

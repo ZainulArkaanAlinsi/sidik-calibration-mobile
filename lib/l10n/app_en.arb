@@ -352,18 +352,32 @@
   "equipRentangChip": "{min}–{maks} {satuan}",
   "@equipRentangChip": {
     "placeholders": {
-      "min": { "type": "String" },
-      "maks": { "type": "String" },
-      "satuan": { "type": "String" }
+      "min": {
+        "type": "String"
+      },
+      "maks": {
+        "type": "String"
+      },
+      "satuan": {
+        "type": "String"
+      }
     }
   },
   "equipRentangChipBerparameter": "{parameter} · {min}–{maks} {satuan}",
   "@equipRentangChipBerparameter": {
     "placeholders": {
-      "parameter": { "type": "String" },
-      "min": { "type": "String" },
-      "maks": { "type": "String" },
-      "satuan": { "type": "String" }
+      "parameter": {
+        "type": "String"
+      },
+      "min": {
+        "type": "String"
+      },
+      "maks": {
+        "type": "String"
+      },
+      "satuan": {
+        "type": "String"
+      }
     }
   },
   "equipResolusi": "Resolution",
@@ -425,6 +439,14 @@
   "historyStatusDraft": "Draft",
   "historyStatusMenungguApproval": "Pending approval",
   "historyStatusPerluRevisi": "Needs revision",
+  "statusAktif": "Active",
+  "statusOverdue": "Overdue",
+  "statusNonaktif": "Inactive",
+  "statusDisetujui": "Approved",
+  "statusBaru": "New",
+  "statusDiproses": "In progress",
+  "statusSelesai": "Done",
+  "statusDibatalkan": "Cancelled",
   "historyApprove": "APPROVE",
   "historyReject": "REJECT",
   "historyApproveFailed": "Couldn't approve: {pesan}",
@@ -572,9 +594,27 @@
   "detailTipeSensor": "Standard sensor type",
   "bannerStandarTanpaNama": "Unnamed standard",
   "bannerStandarLewat": "{nama} — certificate expired {hari} days ago",
-  "@bannerStandarLewat": {"placeholders": {"nama": {"type": "String"}, "hari": {"type": "int"}}},
+  "@bannerStandarLewat": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      },
+      "hari": {
+        "type": "int"
+      }
+    }
+  },
   "bannerStandarSegera": "{nama} — certificate expires in {hari} days",
-  "@bannerStandarSegera": {"placeholders": {"nama": {"type": "String"}, "hari": {"type": "int"}}},
+  "@bannerStandarSegera": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      },
+      "hari": {
+        "type": "int"
+      }
+    }
+  },
   "detailUjiTitikEs": "Ice point test (30 min)",
   "detailTitikEsKe": "X{ke}",
   "detailRentangTitikEs": "Range (Tmax − Tmin)",
@@ -954,8 +994,20 @@
   "calibValidasiPembacaan": "Each measurement point needs at least 2 numeric readings.",
   "calibSimpanDraft": "SAVE DRAFT",
   "calibKirimApproval": "SUBMIT FOR APPROVAL",
+  "calibDraftTitikDilewat": "Draft saved, but {jumlah} rows were not saved because their reference value is still empty. Fill the reference value in if the readings on those rows should be kept.",
+  "@calibDraftTitikDilewat": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "calibBerhasilDraft": "Calibration draft saved.",
   "calibBerhasilApproval": "Calibration session submitted for approval.",
+  "kirimTertahanRilisWajib": "A mandatory update must be installed before this session can be sent. Save a draft first — your entries are kept.",
+  "@kirimTertahanRilisWajib": {
+    "description": "Ditampilkan waktu teknisi menekan Kirim sementara ada rilis wajib. Menyebut Simpan Draft supaya jalan keluarnya kelihatan, bukan cuma penolakannya."
+  },
   "calibGagal": "Couldn't save: {pesan}",
   "@calibGagal": {
     "placeholders": {
@@ -1031,6 +1083,25 @@
   "calibTiTanpaSensorKeterangan": "The sensor is NOT calibrated. The calibrator is wired into the indicator terminals and stands in for the sensor, so only the indicator reading is checked.",
   "calibTiDenganSensorJudul": "With Sensor",
   "calibTiDenganSensorKeterangan": "The sensor IS calibrated. Sensor and indicator are checked as one chain — the sensor goes into the medium alongside the reference thermometer, so the reading covers the whole chain.",
+  "calibTiRentang": "Measuring range {rentang}",
+  "@calibTiRentang": {
+    "placeholders": {
+      "rentang": {
+        "type": "String"
+      }
+    }
+  },
+  "calibTiCmc": "CMC {cmc} · {jumlah, plural, =1{1 capability row} other{{jumlah} capability rows}}",
+  "@calibTiCmc": {
+    "placeholders": {
+      "cmc": {
+        "type": "String"
+      },
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "calibTiBelumSiap": "Not on this server yet",
   "calibTiBelumSiapPesan": "The \"{varian}\" worksheet is not on the server in use yet. Tell an admin first — forcing it open now would hand you another instrument's sheet, and nothing would error out.",
   "@calibTiBelumSiapPesan": {
@@ -1959,8 +2030,8 @@
   "perhitTingkatPeringatan": "Needs confirmation",
   "perhitTingkatInfo": "Info",
   "perhitApproveDiblokir": "There are findings that block issuance. Approve is disabled.",
-  "perhitKonfirmasiJudul": "Recalculation differs. Continue?",
-  "perhitKonfirmasiBody": "The recalculated numbers differ from what was saved. Approving anyway issues the certificate with the saved numbers.",
+  "perhitKonfirmasiJudul": "Warnings found. Continue?",
+  "perhitKonfirmasiBody": "Approving anyway issues the certificate with the saved numbers.",
   "perhitKonfirmasiBatal": "CHECK AGAIN",
   "perhitKonfirmasiLanjut": "APPROVE ANYWAY",
   "perhitTolakJudul": "Send back for revision",
@@ -2425,5 +2496,137 @@
     }
   },
   "dokReviewTakBisaDitunjuk": "Can't point to where this value came from",
-  "dokReviewKetukUntukSorot": "Tap a value to see where it came from"
-}
+  "dokReviewKetukUntukSorot": "Tap a value to see where it came from",
+  "fotoReviewJudul": "Check {jumlah, plural, =1{1 reading} other{{jumlah} readings}}",
+  "@fotoReviewJudul": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "fotoReviewPengantar": "The readings below were taken from the photo and are not in the sheet yet. Compare each one against its image crop, fix what is wrong, then tap Insert. Handwriting is never treated as certain — however high the percentage.",
+  "fotoReviewMasukkan": "INSERT INTO SHEET",
+  "fotoReviewKetikSendiri": "Type it yourself — the reading cannot be trusted",
+  "fotoReviewKeyakinan": "Confidence {persen}%",
+  "@fotoReviewKeyakinan": {
+    "placeholders": {
+      "persen": {
+        "type": "int"
+      }
+    }
+  },
+  "fotoReviewKeyakinanTakAda": "Confidence not reported",
+  "fotoReviewMasihKosong": "{jumlah, plural, =1{1 cell is still empty and must be filled.} other{{jumlah} cells are still empty and must be filled.}}",
+  "@fotoReviewMasihKosong": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "skemaDinamisJudul": "Unrecognised sheet",
+  "skemaDinamisPengantar": "This sheet has no fixed shape in the app yet, so its contents were read straight from the photo. Check every field before saving — nothing here is treated as certain.",
+  "skemaDinamisTanpaSatuan": "no unit",
+  "skemaDinamisTabel": "Table {nomor}",
+  "@skemaDinamisTabel": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
+  "skemaDinamisSimpan": "SAVE WHAT WAS READ",
+  "skemaDinamisMasihKosong": "{jumlah, plural, =1{1 red-verdict field is still empty and must be filled.} other{{jumlah} red-verdict fields are still empty and must be filled.}}",
+  "@skemaDinamisMasihKosong": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "skemaDinamisKosong": "No fields or tables were read from this photo. Try again with the whole sheet in frame.",
+  "petaKolomJudul": "What each column means",
+  "petaKolomPengantar": "The app can see how many columns the sheet has, but it cannot know which one is the reference value and which are instrument readings. That is your call. Getting it backwards flips the sign of the correction on the certificate, with numbers that still look reasonable.",
+  "petaKolomAbaikan": "Ignore",
+  "petaKolomNilaiAcuan": "Reference value",
+  "petaKolomPembacaan": "Reading",
+  "petaKolomSatuan": "Unit",
+  "petaKolomSatuanBantu": "Typed, not read off the sheet — a wrong unit changes what every number means.",
+  "petaKolomSatuanWajib": "The unit is still empty.",
+  "petaKolomKolomKe": "Column {nomor}",
+  "@petaKolomKolomKe": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
+  "petaKolomContoh": "sample: {nilai}",
+  "@petaKolomContoh": {
+    "placeholders": {
+      "nilai": {
+        "type": "String"
+      }
+    }
+  },
+  "petaKolomTanpaAcuan": "No column has been marked as the reference value yet.",
+  "petaKolomAcuanDobel": "Two columns are marked as the reference value. A measurement point has only one.",
+  "petaKolomPembacaanKurang": "At least {jumlah} reading columns are needed — a single number has no spread to compute.",
+  "@petaKolomPembacaanKurang": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "petaKolomRingkas": "{jumlah, plural, =1{1 measurement point will be filled in} other{{jumlah} measurement points will be filled in}}.",
+  "@petaKolomRingkas": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "petaKolomDilewat": "{jumlah, plural, =1{1 row was skipped because its reference value is empty} other{{jumlah} rows were skipped because their reference value is empty}}.",
+  "@petaKolomDilewat": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "petaKolomTerapkan": "FILL MEASUREMENT POINTS",
+  "calibBacaFoto": "READ FROM SHEET PHOTO",
+  "calibBacaFotoGagal": "That photo could not be read. Try again with the whole sheet in frame.",
+  "calibBacaFotoTanpaTabel": "No table was read from this photo. Measurement points come from the table on the sheet, so make sure the table is in frame.",
+  "calibBacaFotoSelesai": "{jumlah, plural, =1{1 measurement point was filled in from the photo} other{{jumlah} measurement points were filled in from the photo}}. Check the numbers before submitting.",
+  "@calibBacaFotoSelesai": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "pilihTabelJudul": "Which table should be used?",
+  "pilihTabelPengantar": "This photo has more than one table. Pick the one holding the measurement points — not the instrument identity table.",
+  "equipPelangganTidakKetemu": "Not in the lab's customer list?",
+  "equipPelangganDaftarBaru": "REGISTER A NEW COMPANY",
+  "pelangganBaruJudul": "New customer",
+  "pelangganBaruPengantar": "Search the company directory, or type the name and address by hand. Whatever you save here is used straight away — it doesn't wait for an admin.",
+  "pelangganBaruNama": "Company name",
+  "pelangganBaruAlamat": "Address",
+  "pelangganBaruAlamatBantu": "Printed in the OWNER block of the certificate.",
+  "pelangganBaruCariDirektori": "SEARCH THE DIRECTORY",
+  "pelangganBaruDirektoriJudul": "Directory results",
+  "pelangganBaruDirektoriKosong": "No company in the directory matches that. Type the name and address by hand.",
+  "pelangganBaruDirektoriCatatan": "The directory lists businesses as they appear on the map, not as they appear on the deed. Check it against the customer's order form before saving.",
+  "pelangganBaruDaftarkan": "REGISTER",
+  "pelangganBaruNamaWajib": "Company name is required.",
+  "pelangganBaruMiripJudul": "Already in the list — did you mean one of these?",
+  "pelangganBaruMiripPilih": "Tap one to use it instead.",
+  "pelangganBaruTetapBuat": "DIFFERENT COMPANY — REGISTER ANYWAY",
+  "pelangganBaruGagal": "Couldn't register the customer.",
+  "pelangganBaruDirektoriTiadaLab": "Company directory isn't available for this lab. Type the name and address below.",
+  "pelangganBaruDirektoriMati": "The directory can't be reached right now. Type the name and address below, or try again later.",
+  "equipPelangganDariSimpanan": "Offline — showing the copy saved on this phone. Customers added recently may be missing."}

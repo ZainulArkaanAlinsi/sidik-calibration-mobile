@@ -43,8 +43,13 @@ class _ApprovalPeringatan implements ApprovalService {
     panggilan.add(abaikanPeringatan);
 
     if (!abaikanPeringatan) {
+      // Bentuk pesan yang backend kirim SEKARANG: dua kode peringatan berbeda,
+      // jadi yang disebut cacahnya. Fixture ini dulu memakai "Hasil hitung
+      // ulang beda dari yang tersimpan." padahal kedua temuannya soal
+      // kelembaban — meniru kalimat tetap yang sudah dibuang dari backend.
       throw const ApiException(
-        'Hasil hitung ulang beda dari yang tersimpan.',
+        'Ada 2 peringatan dari 2 hal berbeda di sesi ini. Periksa dulu; '
+        'kalau memang mau lanjut, kirim ulang dengan `abaikan_peringatan: true`.',
         status: 422,
         body: {
           'butuh_konfirmasi': true,

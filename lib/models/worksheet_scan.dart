@@ -110,10 +110,19 @@ class TabelPindai {
   /// `grup ?? tahap` — identitas tabel di kunci sel.
   final String tabelId;
 
-  /// `sebelum_adjustment` / `sesudah_adjustment`. **Ini yang dipakai buat
-  /// nuang angkanya balik ke formulir**, bukan [tabelId]: kotak isian di layar
-  /// lembar kerja dikunci per tahap, dan Spectrophotometer punya tiga tabel
-  /// dengan tahap yang sama tapi `tabel_id` beda-beda.
+  /// `sebelum_adjustment` / `sesudah_adjustment`.
+  ///
+  /// **Bukan alamat kotak isian.** Sampai 1 Sep 2026 baris ini tertulis "ini
+  /// yang dipakai buat nuang angkanya balik ke formulir", dan itu benar cuma
+  /// buat sembilan belas lembar yang satu tahap = satu tabel. Lembar
+  /// BERPASANGAN mengunci kotaknya pakai `TabelHasil.kunciTabel` — `standar` /
+  /// `suhu_uut` / `waktu_standar` — jadi angka yang dituang pakai `tahap`
+  /// mendarat di controller yang nggak digambar siapa-siapa: layar tetap
+  /// kosong, tapi jumlah "x sel terisi" tetap kehitung dan `input_method`
+  /// tetap jadi `ocr`. Lima lembar kena: TIDS, Thermocouple, Termometer Gelas,
+  /// Thermohygrometer, Timer/Stopwatch.
+  ///
+  /// Yang dipakai sekarang [tabelId]; ini tinggal cadangan buat respons lama.
   final String tahap;
 
   /// Pembeda tabel yang tahap-nya sama (tiga blok Spectrophotometer). `null` di
@@ -278,12 +287,20 @@ class SelPindai {
 ///
 /// Bentuknya sengaja bukan `Map<String, double>` berkunci sel: kunci sel itu
 /// bahasa server (`{tabel_id}|{baris_ke}|{repeat_no}|{field_id}`), sementara
-/// kotak isian di layar lembar kerja dialamati pakai tahap + titik ukur +
+/// kotak isian di layar lembar kerja dialamati pakai kunci tabel + titik ukur +
 /// nomor Repeat + kolom. Nerjemahin kunci jadi alamat kotak dengan mecah
 /// stringnya berarti nebak `baris_ke` itu titik yang mana — dan tebakan itu
 /// persis cara angka mendarat di baris sebelah. Di sini terjemahannya diambil
 /// dari respons server, yang emang ngirim `titik_ukur` per baris.
+///
+/// [tabelId] dan [tahap] DUA-DUANYA dibawa, dan itu bukan mubazir:
+/// [LembarKerjaState.terapkanHasilPindai] mencari tabel lembar yang identitas
+/// servernya sama dengan [tabelId], lalu memakai `TabelHasil.kunciTabel`
+/// miliknya sebagai alamat kotak. [tahap] yang dipakai kalau tabelnya nggak
+/// ketemu — respons server lama yang belum ngirim `tabel_id`.
 typedef SelDipakaiPindai = ({
+  /// `grup ?? tahap` di sisi server — identitas tabel, bukan alamat kotak.
+  String tabelId,
   String tahap,
   double titikUkur,
   int repeatNo,

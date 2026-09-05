@@ -9,11 +9,19 @@ import '../../l10n/app_localizations.dart';
 import '../../models/category.dart';
 import '../../models/customer_lookup.dart';
 import '../../models/equipment.dart';
+import '../../models/perusahaan_direktori.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/calibration_input_provider.dart'
     show categoryDetailProvider, categoryListProvider;
 import '../../providers/equipment_provider.dart';
-import '../../providers/master_data_provider.dart' show customerLookupProvider;
+import '../../providers/dashboard_provider.dart' show TokenHilangException;
+import '../../providers/master_data_provider.dart'
+    show
+        customerLookupProvider,
+        customerLookupServiceProvider,
+        direktoriPerusahaanProvider;
+import '../../services/customer_lookup_service.dart';
+import 'pelanggan_baru_screen.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/sidik_loader.dart';
@@ -123,7 +131,8 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
     _kategori = widget.existing?.kategori ?? widget.kategoriAwal;
     _pelangganId = widget.existing?.pelangganId;
     _resolusiRentang.addAll([
-      for (final r in widget.existing?.resolusiRentang ?? const <ResolusiTitik>[])
+      for (final r
+          in widget.existing?.resolusiRentang ?? const <ResolusiTitik>[])
         _BarisResolusi.dari(r),
     ]);
     _pelangganNama = widget.existing?.pelangganNama;
@@ -237,9 +246,12 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
     final l10n = AppLocalizations.of(context);
 
     setState(() {
-      _errorNama = _namaAlat.text.trim().isEmpty ? l10n.custFieldRequired : null;
-      _errorSerial =
-          _serialNumber.text.trim().isEmpty ? l10n.custFieldRequired : null;
+      _errorNama = _namaAlat.text.trim().isEmpty
+          ? l10n.custFieldRequired
+          : null;
+      _errorSerial = _serialNumber.text.trim().isEmpty
+          ? l10n.custFieldRequired
+          : null;
       _errorKategori = _kategori == null ? l10n.custFieldRequired : null;
       _errorPelanggan = _pelangganId == null ? l10n.custFieldRequired : null;
       // Cuma buat alat yang BENERAN divonis. Lima belas dari dua puluh profil
@@ -391,14 +403,19 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
           ),
           const SizedBox(height: AppSpacing.md),
 
-          Text(l10n.equipKategori.toUpperCase(), style: Theme.of(context).textTheme.labelLarge),
+          Text(
+            l10n.equipKategori.toUpperCase(),
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
           const SizedBox(height: AppSpacing.sm),
           DropdownButtonFormField<String>(
             initialValue: _kategori,
             isExpanded: true,
             hint: Text(l10n.equipKategoriHint),
             items: kategoriList
-                .map((k) => DropdownMenuItem(value: k.kode, child: Text(k.nama)))
+                .map(
+                  (k) => DropdownMenuItem(value: k.kode, child: Text(k.nama)),
+                )
                 .toList(),
             onChanged: bisaInput
                 ? (value) => setState(() {
@@ -437,7 +454,10 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
             const SizedBox(height: AppSpacing.md),
           ],
 
-          Text(l10n.equipPelanggan.toUpperCase(), style: Theme.of(context).textTheme.labelLarge),
+          Text(
+            l10n.equipPelanggan.toUpperCase(),
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
           const SizedBox(height: AppSpacing.sm),
           _PelangganField(
             nama: _pelangganNama,
@@ -544,7 +564,9 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
             error: _errorResolusiRentang,
             onUbah: () => setState(() {}),
             onTambah: () => setState(
-              () => _resolusiRentang.add(_BarisResolusi.kosong(_satuan.text.trim())),
+              () => _resolusiRentang.add(
+                _BarisResolusi.kosong(_satuan.text.trim()),
+              ),
             ),
             onHapus: (index) => setState(() {
               _resolusiRentang.removeAt(index).dispose();
@@ -584,7 +606,10 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
           ),
           const SizedBox(height: AppSpacing.md),
 
-          Text(l10n.equipStatus.toUpperCase(), style: Theme.of(context).textTheme.labelLarge),
+          Text(
+            l10n.equipStatus.toUpperCase(),
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
           const SizedBox(height: AppSpacing.sm),
           DropdownButtonFormField<EquipmentStatus>(
             initialValue: _status,
@@ -632,9 +657,9 @@ class _BarisResolusi {
     required String satuan,
     required String resolusi,
     required this.pakaiMaks,
-  })  : nilai = TextEditingController(text: nilai),
-        satuan = TextEditingController(text: satuan),
-        resolusi = TextEditingController(text: resolusi);
+  }) : nilai = TextEditingController(text: nilai),
+       satuan = TextEditingController(text: satuan),
+       resolusi = TextEditingController(text: resolusi);
 
   factory _BarisResolusi.dari(ResolusiTitik r) => _BarisResolusi(
     nilai: _teksAngka(r.pakaiMaks ? r.maks : r.titik),
@@ -672,9 +697,7 @@ class _BarisResolusi {
   static String _teksAngka(double? nilai) {
     if (nilai == null) return '';
 
-    return nilai == nilai.roundToDouble()
-        ? nilai.toStringAsFixed(0)
-        : '$nilai';
+    return nilai == nilai.roundToDouble() ? nilai.toStringAsFixed(0) : '$nilai';
   }
 }
 
@@ -715,10 +738,7 @@ class _BlokResolusiRentang extends StatelessWidget {
           style: theme.textTheme.labelLarge,
         ),
         const SizedBox(height: AppSpacing.xs),
-        Text(
-          l10n.equipResolusiRentangHint,
-          style: theme.textTheme.bodySmall,
-        ),
+        Text(l10n.equipResolusiRentangHint, style: theme.textTheme.bodySmall),
         if (error != null) ...[
           const SizedBox(height: AppSpacing.xs),
           Text(
@@ -910,6 +930,215 @@ class _PelangganSheetState extends ConsumerState<_PelangganSheet> {
     });
   }
 
+  /// Bagian hasil direktori luar, dipajang di TEMPAT daftar master yang kosong.
+  ///
+  /// Warnanya sengaja bukan merah dan kalimatnya bukan "gagal": buat teknisi
+  /// yang berdiri di gerbang pabrik, direktori yang nggak menjawab bukan
+  /// kerusakan — tombol "DAFTARKAN PT BARU" di bawah sheet ini tetap jalan
+  /// penuh, dan itu yang jadi jalan keluarnya.
+  Widget _hasilDirektori(
+    BuildContext context,
+    AppLocalizations l10n,
+    String kata,
+  ) {
+    final theme = Theme.of(context);
+    final hasil = ref.watch(direktoriPerusahaanProvider(kata));
+
+    Widget catatan(String teks) => Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Text(
+          teks,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ),
+    );
+
+    return hasil.when(
+      skipLoadingOnReload: true,
+      loading: () => const Center(child: SidikLoader(size: 88)),
+      error: (e, _) => catatan(
+        // "Belum disetel" itu urusan admin, dan teknisi nggak bisa berbuat
+        // apa-apa soal itu — jadi buat dia bunyinya sama saja: pakai jalur
+        // ketik tangan. Yang butuh tahu bedanya melihatnya di `/api/health`.
+        e is DirektoriTidakSiapException && e.belumDisetel
+            ? l10n.pelangganBaruDirektoriTiadaLab
+            : l10n.pelangganBaruDirektoriMati,
+      ),
+      data: (hasil) {
+        final daftar = hasil.daftar;
+        if (daftar.isEmpty) return catatan(l10n.equipPelangganKosong);
+
+        // Atribusi sumbernya jadi baris EKOR — kewajiban lisensi (ODbL buat
+        // OpenStreetMap, yang jadi sumber bawaan), bukan hiasan. Kalimatnya
+        // datang utuh dari server; lihat [HasilDirektori].
+        final atribusi = hasil.atribusi;
+
+        return ListView.builder(
+          // Satu baris kepala di atas: dari mana daftar ini datang, dan
+          // batasnya. Tanpa itu, hasil direktori kebaca sama otoritatifnya
+          // dengan master lab — padahal yang dipilih di sini mendarat di blok
+          // OWNER sertifikat, dan direktori tempat usaha bukan salinan akta.
+          itemCount: daftar.length + 1 + (atribusi == null ? 0 : 1),
+          itemBuilder: (context, i) {
+            if (i == 0) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.pelangganBaruDirektoriJudul,
+                      style: theme.textTheme.labelLarge,
+                    ),
+                    Text(
+                      l10n.pelangganBaruDirektoriCatatan,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            if (atribusi != null && i == daftar.length + 1) {
+              return Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.sm),
+                child: Text(
+                  atribusi,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              );
+            }
+
+            final satu = daftar[i - 1];
+
+            return ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(satu.nama, style: theme.textTheme.titleMedium),
+              subtitle: satu.alamat == null
+                  ? null
+                  : Text(satu.alamat!, style: theme.textTheme.bodySmall),
+              // Ketukannya dimatikan selama pendaftaran jalan, bukan cuma
+              // diabaikan di handler-nya: baris yang masih kelihatan bisa
+              // diketuk bikin teknisi mengira ketukan pertamanya nggak masuk.
+              trailing: _mendaftar
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.add),
+              onTap: _mendaftar ? null : () => _pakaiDirektori(satu),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  /// Lagi mendaftarkan baris direktori. Menahan ketukan kedua.
+  ///
+  /// Tanpa ini, dua ketukan cepat di baris yang sama mengirim dua
+  /// `POST /customers/cepat` — dan yang kedua lahir sebagai PT kembar, persis
+  /// hal yang penjaga kemiripan di server dipasang buat mencegah.
+  bool _mendaftar = false;
+
+  /// Ketuk satu baris direktori → PT-nya langsung didaftarkan, sheet ditutup,
+  /// dan form Alat terisi nama BERIKUT alamatnya.
+  ///
+  /// Ini jalur yang bikin fiturnya kepakai. Sebelumnya teknisi harus menempuh
+  /// tujuh langkah — cari, "PT baru", layar lain, tekan "cari di direktori",
+  /// pilih, "Daftarkan" — dan pencarian direktorinya sendiri sembunyi di balik
+  /// tombol terpisah di layar yang belum tentu dia buka. Yang di lapangan
+  /// terjadi: dia mengetik nama & alamat manual, yaitu persis pekerjaan yang
+  /// fitur ini dipasang buat menghapus.
+  ///
+  /// Tabrakan nama TIDAK diselesaikan di sini. Dia butuh keputusan manusia
+  /// (pakai yang sudah ada, atau tegaskan ini perusahaan lain), dan layar PT
+  /// baru sudah punya seluruh tampilannya — lengkap dengan pembedaan "mirip"
+  /// lawan "persis sama" yang nggak bisa ditembus. Menyalinnya ke sheet ini
+  /// berarti dua tempat yang harus benar bersamaan.
+  Future<void> _pakaiDirektori(PerusahaanDirektori perusahaan) async {
+    if (_mendaftar) return;
+
+    final navigator = Navigator.of(context);
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    setState(() => _mendaftar = true);
+
+    try {
+      final token = await ref.read(tokenStorageProvider).read();
+      if (token == null) throw const TokenHilangException();
+
+      final pelanggan = await ref
+          .read(customerLookupServiceProvider)
+          .daftarkan(
+            token,
+            nama: perusahaan.nama,
+            alamat: perusahaan.alamat,
+            direktoriRef: perusahaan.ref,
+          );
+
+      // Daftar master sudah basi begitu baris ini lahir.
+      ref.invalidate(customerLookupProvider);
+
+      if (!mounted) return;
+      navigator.pop(pelanggan);
+    } on PelangganMiripException catch (tabrakan) {
+      if (!mounted) return;
+
+      // Bawa SEMUANYA — nama, alamat, ref direktori, DAN tabrakannya.
+      //
+      // Dua yang gampang ketinggalan, dan dua-duanya bikin langkah ini terasa
+      // rusak: tanpa alamat & ref, hasil direktori turun jadi ketikan tangan;
+      // tanpa tabrakannya, teknisi mendarat di layar asing tanpa keterangan
+      // apa pun lalu menekan "Daftarkan" cuma buat memunculkan penolakan yang
+      // sudah diketahui satu langkah sebelumnya.
+      final pelanggan = await navigator.push<CustomerLookup>(
+        MaterialPageRoute(
+          builder: (_) => PelangganBaruScreen(
+            kataKunci: perusahaan.nama,
+            alamatAwal: perusahaan.alamat,
+            refAwal: perusahaan.ref,
+            tabrakanAwal: tabrakan,
+          ),
+        ),
+      );
+
+      if (!mounted || pelanggan == null) return;
+      navigator.pop(pelanggan);
+    } catch (_) {
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text(l10n.pelangganBaruGagal)));
+    } finally {
+      if (mounted) setState(() => _mendaftar = false);
+    }
+  }
+
+  /// Buka layar PT baru, dan kalau pelanggannya jadi didaftarkan (atau teknisi
+  /// memilih kandidat yang mirip di sana), sheet ini ikut ditutup membawa
+  /// hasilnya — jadi form Alat langsung terisi tanpa mencari ulang.
+  Future<void> _daftarkanBaru(BuildContext context) async {
+    final navigator = Navigator.of(context);
+
+    final pelanggan = await navigator.push<CustomerLookup>(
+      MaterialPageRoute(
+        builder: (_) => PelangganBaruScreen(kataKunci: _kunci.text.trim()),
+      ),
+    );
+
+    if (!mounted || pelanggan == null) return;
+    navigator.pop(pelanggan);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -928,7 +1157,10 @@ class _PelangganSheetState extends ConsumerState<_PelangganSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(l10n.equipPelanggan, style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                l10n.equipPelanggan,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               const SizedBox(height: AppSpacing.md),
               TextField(
                 controller: _kunci,
@@ -951,18 +1183,104 @@ class _PelangganSheetState extends ConsumerState<_PelangganSheet> {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  data: (daftar) {
-                    if (daftar.isEmpty) {
+                  data: (hasil) {
+                    // Direktori luar cuma ditembak kalau master lab NGGAK
+                    // punya jawaban, dan kata kuncinya sudah cukup panjang.
+                    //
+                    // Dua penjagaan, dua alasan berbeda:
+                    //
+                    //  - Master lab dulu, selalu. PT yang sudah terdaftar
+                    //    harus dipilih, bukan didaftarkan ulang dari
+                    //    direktori — kembar di situ membelah riwayat
+                    //    kalibrasi satu perusahaan.
+                    //  - Panggilan ke direktori itu mahal (kuota & kebijakan
+                    //    pemakaian penyedianya). Provider yang nggak
+                    //    di-`watch` nggak dibangun Riverpod, jadi `if` di
+                    //    bawah ini yang jadi penjaganya — bukan tiap huruf
+                    //    yang diketik.
+                    final kata = _query.trim();
+                    final cariDirektori =
+                        hasil.daftar.isEmpty &&
+                        kata.length >= 3 &&
+                        !hasil.dariSimpanan;
+
+                    if (cariDirektori) {
+                      return _hasilDirektori(context, l10n, kata);
+                    }
+
+                    if (hasil.daftar.isEmpty) {
                       return Center(child: Text(l10n.equipPelangganKosong));
                     }
 
                     return ListView.builder(
-                      itemCount: daftar.length,
-                      itemBuilder: (context, i) =>
-                          _BarisPelanggan(pelanggan: daftar[i]),
+                      // Satu baris ekstra di atas waktu daftarnya datang dari
+                      // salinan di HP. Teknisi berhak tahu yang dia lihat
+                      // mungkin ketinggalan — tanpa itu, "nggak ketemu" waktu
+                      // offline kebaca sama persis dengan "beneran nggak ada",
+                      // dan dia mendaftarkan ulang pelanggan yang sudah ada.
+                      itemCount:
+                          hasil.daftar.length + (hasil.dariSimpanan ? 1 : 0),
+                      itemBuilder: (context, i) {
+                        if (hasil.dariSimpanan && i == 0) {
+                          return Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: AppSpacing.sm,
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.cloud_off,
+                                  size: 18,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                Expanded(
+                                  child: Text(
+                                    l10n.equipPelangganDariSimpanan,
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        final pelanggan =
+                            hasil.daftar[i - (hasil.dariSimpanan ? 1 : 0)];
+
+                        return _BarisPelanggan(pelanggan: pelanggan);
+                      },
                     );
                   },
                 ),
+              ),
+
+              // Jalan keluar dari sheet ini, dan sengaja SELALU kelihatan —
+              // bukan cuma waktu hasilnya nol.
+              //
+              // Teknisi yang pelanggannya nggak ketemu belum tentu melihat
+              // daftar kosong: dia bisa saja melihat tiga PT bernama mirip yang
+              // nggak satu pun miliknya. Tombol yang cuma nongol di keadaan
+              // kosong bikin dia mengira satu-satunya pilihan memilih yang
+              // salah — dan alat pelanggan A kedaftar ke pelanggan B.
+              const Divider(height: AppSpacing.lg),
+              Text(
+                l10n.equipPelangganTidakKetemu,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              OutlinedButton.icon(
+                onPressed: () => _daftarkanBaru(context),
+                icon: const Icon(Icons.add_business_outlined),
+                label: Text(l10n.equipPelangganDaftarBaru),
               ),
             ],
           ),

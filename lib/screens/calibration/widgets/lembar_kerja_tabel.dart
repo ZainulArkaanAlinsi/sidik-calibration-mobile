@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image/image.dart' as img;
 
 import '../../../core/config/app_config.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/lembar_kerja.dart';
+import '../../../models/review_foto.dart';
 import '../../../models/standard.dart';
 import '../../../providers/calibration_input_provider.dart';
 import '../../../providers/contoh_sel_provider.dart';
@@ -13,6 +15,7 @@ import '../../../services/potong_sel_foto.dart';
 import '../../../services/ambil_foto_tabel.dart';
 import '../../../services/peta_tabel_foto.dart';
 import '../../../widgets/label_standar.dart';
+import '../foto_review_screen.dart';
 import '../lembar_kerja_state.dart';
 import 'dropdown_gagal.dart';
 
@@ -938,7 +941,11 @@ class _TabelKeBawahState extends State<_TabelKeBawah> {
       : l10n.lkResolusiNilai(_angkaTampil(slot.resolusi!), slot.satuan ?? '');
 
   Widget _selAngka(SlotCetak slot, int index, KolomTabelHasil kolom, int r) {
-    final titik = _titikAktif(index, slot);
+    // Kunci `TitikState`-nya lewat `kunciTitikSlot`, BUKAN nilai titik ukur
+    // slotnya — tabel yang menyebut `offset_kunci` kunci barisnya digeser.
+    // Lihat docblock method itu; salah di sini bikin seluruh sel digambar mati
+    // tanpa satu pun error.
+    final titik = widget.isian.kunciTitikSlot(_tabel, index, slot);
     final state = titik == null ? null : widget.isian.titik[titik];
 
     // Slot mati (`80000 µS` — dicentang di master tapi baris DATABASE-nya
@@ -2051,10 +2058,9 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
                 '${tabel.kunciTabel}|${k.titikUkur}|${k.repeatNo}|${k.fieldId}',
             pemilik: isian.clientRequestId,
             labelAkhir: (k) => isian.labelSelFoto(
-              tahap: tabel.kunciTabel,
+              tabel: tabel,
               titikUkur: k.titikUkur,
               repeatNo: k.repeatNo,
-              pengulangan: tabel.pengulangan,
               fieldId: k.fieldId,
             ),
           );
@@ -2063,10 +2069,20 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
         }
       }
 
+      // Hasil OCR itu USULAN, bukan data. Sebelum 28 Agt 2026 dia ditulis
+      // LANGSUNG ke form di baris ini — tanpa review, tanpa satu pun angka
+      // keyakinan — dan sel yang salah baca cuma ketahuan kalau teknisi
+      // kebetulan memeriksanya sendiri, di lembar yang baru saja kelihatan
+      // "otomatis terisi", yaitu saat dia paling nggak curiga.
+      final disetujui = await _reviewDulu(hasil, foto.citra);
+
+      // Dibatalkan di layar review = nggak ada yang masuk. Lembarnya
+      // ditinggalkan persis seperti sebelum tombol foto ditekan.
+      if (disetujui == null || !mounted) return;
+
       final terisi = widget.isian.terapkanHasilFotoTabel(
-        hasil.sel,
-        tahap: widget.tabel.kunciTabel,
-        pengulangan: widget.tabel.pengulangan,
+        disetujui,
+        tabel: widget.tabel,
       );
 
       widget.onBerubah();
@@ -2090,6 +2106,57 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
     } finally {
       if (mounted) setState(() => _sibuk = false);
     }
+  }
+
+  /// Sodorkan hasil bacaan ke teknisi dulu; pulangkan yang dia setujui.
+  ///
+  /// `null` = dibatalkan, dan waktu itu **nol** angka masuk ke lembar.
+  ///
+  /// Potongan citranya dibuat DI SINI juga, bukan dipinjam dari pengumpul data
+  /// latih di atas: yang itu sengaja gagal-diam (dia boleh gagal), sedangkan
+  /// yang ini alat bantu teknisi memutuskan. Menyambungkannya bikin kegagalan
+  /// yang tadinya boleh diam berubah jadi layar review tanpa gambar, tanpa ada
+  /// yang tahu kenapa.
+  Future<List<SelTabelFoto>?> _reviewDulu(
+    HasilPetaTabel hasil,
+    img.Image? citra,
+  ) async {
+    final potongan = <String, Uint8List>{};
+
+    if (citra != null && hasil.kotakSel.isNotEmpty) {
+      for (final p in const PotongSelFoto()
+          .potong(citra: citra, kotak: hasil.kotakSel)
+          .potongan) {
+        potongan[kunciSelFoto(
+              p.kotak.titikUkur,
+              p.kotak.repeatNo,
+              p.kotak.fieldId,
+            )] =
+            Uint8List.fromList(img.encodePng(p.potongan));
+      }
+    }
+
+    final labelKolom = {for (final k in widget.tabel.kolom) k.kode: k.label};
+    final labelBaris = {
+      for (final t in widget.isian.titikTabel(widget.tabel))
+        t.titikUkur: t.label,
+    };
+
+    final baris = susunReviewFoto(
+      sel: hasil.sel,
+      potongan: potongan,
+      judul: (s) => [
+        labelBaris[s.titikUkur] ?? _angkaTampil(s.titikUkur),
+        'Repeat ${s.repeatNo}',
+        labelKolom[s.fieldId] ?? s.fieldId,
+      ].join(' · '),
+    );
+
+    if (!mounted) return null;
+
+    return Navigator.of(context).push<List<SelTabelFoto>>(
+      MaterialPageRoute(builder: (_) => FotoReviewScreen(baris: baris)),
+    );
   }
 
   @override

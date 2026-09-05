@@ -1449,7 +1449,14 @@ class _BarisStatistik extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: _Statistik(label: l10n.employeeIdLabel, nilai: employeeId),
+          child: _Statistik(
+            label: l10n.employeeIdLabel,
+            // Kosong = akun lama dari sebelum kolomnya diwajibkan. Ditulis
+            // apa adanya, bukan dibiarkan jadi kotak kosong yang kebaca
+            // seperti layar gagal muat. Padanan yang sama sudah dipakai di
+            // `technician_list_screen`.
+            nilai: employeeId.isEmpty ? l10n.teknisiTanpaEmployeeId : employeeId,
+          ),
         ),
         const _PemisahVertikal(),
         Expanded(

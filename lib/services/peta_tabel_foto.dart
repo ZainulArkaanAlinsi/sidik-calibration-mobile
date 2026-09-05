@@ -8,6 +8,10 @@ typedef SelTabelFoto = ({
   int repeatNo,
   String fieldId,
   String teks,
+
+  /// Keyakinan OCR buat teks di sel ini. `null` = pengenalnya nggak memberi
+  /// tahu — lihat [TeksTerbaca.keyakinan]. JANGAN diisi angka pengganti.
+  double? keyakinan,
 });
 
 /// Letak satu sel di dalam citra — kotak yang bisa dipotong, bukan teksnya.
@@ -589,6 +593,7 @@ class PetaTabelFoto {
         repeatNo: repeat,
         fieldId: field,
         teks: a.t.teks,
+        keyakinan: a.t.keyakinan,
       ));
     }
 
@@ -901,16 +906,61 @@ class PetaTabelFoto {
       if (n != null) angka.add((nilai: n, t: t));
     }
 
-    // --- jangkar BARIS: kepala Repeat di kolom kiri ------------------------
-    final jangkarBaris = _jangkarTeks(
-      terbaca,
-      {for (final r in pengulangan) r: kepalaPengulangan[r] ?? kepalaBawaan(r)},
-    );
-
     // --- jangkar KOLOM: tulisan kepala slot di baris atas ------------------
+    //
+    // Dihitung DULUAN, sebelum jangkar baris. Kolom nggak bergantung pada
+    // baris, sementara jalur nomor-polos di bawah butuh tahu di mana kolom
+    // data paling kiri berdiri — itu yang memisahkan kolom `No.` dari isi.
     final jangkarKolom = _jangkarTeks(terbaca, {
       for (var i = 0; i < slot.length; i++) i: slot[i].kepala,
     });
+
+    // --- jangkar BARIS: kepala Repeat di kolom kiri ------------------------
+    //
+    // Kertas yang menomori barisnya ANGKA POLOS (`1`..`10`) lewat jalur
+    // sendiri, dan jalur itu dicoba DULUAN — bukan sebagai cadangan.
+    //
+    // Sebabnya [_jangkarTeks] memilih kemunculan paling ATAS, dan di kertas
+    // bernomor polos yang paling atas hampir tidak pernah baris datanya.
+    // Master Timbangan mencetak baris penomoran sub-kolom `1 | 2 | 1 | 2`
+    // TEPAT DI ATAS isi tabel; dijangkar dari situ, seluruh grid barisnya
+    // bergeser satu baris ke atas. Yang keluar bukan error — kesepuluh
+    // pengulangan tetap terisi, cuma isinya milik baris tetangganya.
+    //
+    // Bahayanya justru karena jangkarnya LENGKAP: `1` dan `2` ketemu di baris
+    // penomoran, `3`..`10` ketemu di kolom `No.`, jadi jumlahnya pas sepuluh
+    // dan tidak ada satu pun penjagaan yang berbunyi.
+    // Jalur ketat itu cuma dipakai kalau LEMBARNYA menyatakan penomoran polos
+    // — bukan setiap kali kebetulan ada angka di kiri.
+    //
+    // Bedanya sengaja. Kertas yang tidak menyebut apa-apa memakai `X1`/`Repeat
+    // 1` bawaan, dan di situ nomor polos memang TIDAK boleh dipercaya: `1` di
+    // kolom kiri bisa pembacaan, bisa nomor urut yang bukan pengulangan. Itu
+    // keputusan lama yang tetap berlaku, dan `peta_tabel_foto_kebawah_test`
+    // menjaganya — nol sel lebih baik daripada jangkar yang direbut angka lain.
+    //
+    // Yang berubah cuma buat lembar yang menyatakannya eksplisit lewat
+    // `pengulangan_arah`. Di situ nomor polos memang penomoran barisnya, dan
+    // keempat syarat [_jangkarNomorPolosBaris] yang membuktikannya.
+    final nomorPolosDinyatakan = pengulangan.every((r) {
+      final k = kepalaPengulangan[r];
+
+      return k != null && k.length == 1 && k.first.trim() == '$r';
+    });
+
+    // Yang menyatakan penomoran polos TIDAK punya jalan mundur ke
+    // [_jangkarTeks], dan itu disengaja: di kertas begitu, pencarian teks biasa
+    // memulangkan himpunan yang LENGKAP TAPI SALAH — `1` & `2` diambil dari
+    // baris penomoran sub-kolom yang duduk di atas isi, sisanya dari kolom
+    // `No.`. Jumlahnya pas, tidak ada yang berbunyi, dan seluruh grid bergeser
+    // satu baris. Gagal jadi nol sel jauh lebih murah.
+    final jangkarBaris = nomorPolosDinyatakan
+        ? (_jangkarNomorPolosBaris(terbaca, pengulangan, jangkarKolom) ??
+              const <int, TeksTerbaca>{})
+        : _jangkarTeks(terbaca, {
+            for (final r in pengulangan)
+              r: kepalaPengulangan[r] ?? kepalaBawaan(r),
+          });
 
     final titikKetemu = [
       for (final i in jangkarKolom.keys)
@@ -986,8 +1036,27 @@ class PetaTabelFoto {
     final sel = <SelTabelFoto>[];
     var terbuang = 0;
 
+    // Angka yang duduk SELURUHNYA di atas baris pertama itu kepala tabel,
+    // bukan pembacaan yang hilang.
+    //
+    // [batasAtas] di atas memakai margin satu tinggi baris, dan itu meleset
+    // buat kepala yang menempel rapat ke isinya: master Timbangan mencetak
+    // baris penomoran sub-kolom (`1 | 2 | 1 | 2`) persis di atas baris data,
+    // lebih dekat dari satu tinggi baris. Keempatnya lolos batas itu, tidak
+    // ketemu jangkar (memang bukan pembacaan), lalu dilaporkan "nggak
+    // keangkut" — empat peringatan palsu di tiap jepretan yang sempurna.
+    //
+    // Peringatan palsu itu mahal: dia melatih teknisi mengabaikan angka yang
+    // BENERAN hilang. Batas tambahan ini geometri murni, bukan margin
+    // tebakan — yang bawahnya masih di atas puncak baris pertama tidak
+    // mungkin isi baris mana pun.
+    final puncakBaris = jangkarBaris.values
+        .map((j) => j.kotak.top)
+        .reduce((a, b) => a < b ? a : b);
+
     for (final a in angka) {
       if (a.t.kotak.center.dy < batasAtas) continue;
+      if (a.t.kotak.bottom <= puncakBaris) continue;
       if (a.t.kotak.center.dx < batasKiri) continue;
 
       final repeat = _barisTerdekat(a.t, jangkarBaris, tinggiBaris);
@@ -1011,6 +1080,7 @@ class PetaTabelFoto {
         repeatNo: repeat,
         fieldId: field,
         teks: a.t.teks,
+        keyakinan: a.t.keyakinan,
       ));
     }
 
@@ -1286,6 +1356,17 @@ class PetaTabelFoto {
           gabung = (
             teks: '${gabung.teks} ${kanan.teks}',
             kotak: gabung.kotak.expandToInclude(kanan.kotak),
+            // Frasa gabungan cuma sekuat potongan TERLEMAHNYA: `UP X1` yang
+            // separuhnya kebaca ragu tetap frasa yang ragu. Ambil yang
+            // terkecil, dan kalau salah satunya nggak diketahui (null) maka
+            // gabungannya juga nggak diketahui — bukan diambil dari yang
+            // kebetulan punya angka.
+            keyakinan:
+                (gabung.keyakinan == null || kanan.keyakinan == null)
+                ? null
+                : (gabung.keyakinan! < kanan.keyakinan!
+                      ? gabung.keyakinan
+                      : kanan.keyakinan),
           );
 
           hasil.add(gabung);
@@ -1342,6 +1423,105 @@ class PetaTabelFoto {
     }
 
     return baris;
+  }
+
+  /// Nomor BARIS yang di kertas ditulis angka polos (`1`..`10`) di kolom kiri.
+  ///
+  /// Kembaran tegak dari [_jangkarNomorPolos], dan alasannya sama: nomor polos
+  /// sendirian tidak bisa dipercaya — `1` juga bisa jadi pembacaan, nomor
+  /// sub-kolom, atau bagian dari kepala tabel. Yang dipercaya **DERETNYA**.
+  ///
+  /// Empat syarat, transpose dari yang mendatar:
+  ///
+  ///  1. SELURUH nomor pengulangan harus ada. Kurang satu → batal, bukan
+  ///     dipakai sebagian.
+  ///  2. Semuanya setegak lurus dalam satu kolom (dalam satu lebar kotaknya).
+  ///  3. `y`-nya menurun persis mengikuti nomornya (1 di atas 2, 2 di atas 3).
+  ///  4. Kolomnya ADA DI KIRI kolom data paling kiri. Kolom `No.` selalu di
+  ///     luar grid; ini yang bikin angka pembacaan tidak pernah lolos, dan
+  ///     yang membuang baris penomoran sub-kolom (`1 | 2 | 1 | 2`) yang
+  ///     duduk TEPAT DI ATAS isi tabel dengan `x` milik kolom data.
+  ///
+  /// Balik `null` kalau salah satu syarat tidak terpenuhi — sengaja, karena
+  /// jangkar baris yang meleset satu baris itu persis cara sepuluh pembacaan
+  /// mendarat di pengulangan yang salah tanpa memberi gejala apa pun.
+  Map<int, TeksTerbaca>? _jangkarNomorPolosBaris(
+    List<TeksTerbaca> terbaca,
+    List<int> pengulangan,
+    Map<int, TeksTerbaca> jangkarKolom,
+  ) {
+    // Tanpa jangkar kolom tidak ada acuan "di kiri isi tabel", jadi syarat
+    // ke-4 tidak bisa ditegakkan sama sekali.
+    if (jangkarKolom.isEmpty || pengulangan.isEmpty) return null;
+
+    final kiriIsi = jangkarKolom.values
+        .map((j) => j.kotak.left)
+        .reduce((a, b) => a < b ? a : b);
+
+    final calon = <({int no, TeksTerbaca t})>[];
+
+    for (final t in terbaca) {
+      final n = int.tryParse(t.teks.trim());
+
+      if (n == null || !pengulangan.contains(n)) continue;
+      // Syarat 4: yang sejajar atau di kanan kolom data itu ISI tabel.
+      if (t.kotak.right > kiriIsi) continue;
+
+      calon.add((no: n, t: t));
+    }
+
+    if (calon.isEmpty) return null;
+
+    final lebarKotak = calon
+        .map((c) => c.t.kotak.width)
+        .reduce((a, b) => a > b ? a : b);
+
+    // Syarat 2: dikelompokkan per kolom tegak.
+    calon.sort((a, b) => a.t.kotak.center.dx.compareTo(b.t.kotak.center.dx));
+
+    final klaster = <List<({int no, TeksTerbaca t})>>[];
+
+    for (final c in calon) {
+      final akhir = klaster.isEmpty ? null : klaster.last;
+
+      if (akhir != null &&
+          (c.t.kotak.center.dx - akhir.first.t.kotak.center.dx).abs() <=
+              lebarKotak) {
+        akhir.add(c);
+      } else {
+        klaster.add([c]);
+      }
+    }
+
+    final urut = [...pengulangan]..sort();
+
+    for (final k in klaster) {
+      final perNomor = <int, TeksTerbaca>{};
+
+      for (final c in k) {
+        final ada = perNomor[c.no];
+        if (ada == null || c.t.kotak.top < ada.kotak.top) {
+          perNomor[c.no] = c.t;
+        }
+      }
+
+      // Syarat 1: lengkap.
+      if (perNomor.length != urut.length) continue;
+
+      // Syarat 3: menurun sesuai nomornya.
+      var menurun = true;
+
+      for (var i = 1; i < urut.length; i++) {
+        if (perNomor[urut[i]]!.kotak.top <= perNomor[urut[i - 1]]!.kotak.top) {
+          menurun = false;
+          break;
+        }
+      }
+
+      if (menurun) return perNomor;
+    }
+
+    return null;
   }
 
   /// Kepala kolom yang di kertas ditulis NOMOR POLOS (`1`..`5`).
@@ -1531,6 +1711,10 @@ class PetaTabelFoto {
           field: f,
           t: (
             teks: '',
+            // Jangkar BUATAN — kotaknya dihitung, bukan dibaca dari citra.
+            // Nggak ada teks yang dikenali di sini, jadi nggak ada keyakinan
+            // yang bisa dilaporkan.
+            keyakinan: null,
             kotak: Rect.fromLTWH(
               kotak.left + rata,
               kotak.top,
@@ -1615,6 +1799,8 @@ class PetaTabelFoto {
 
         hasil[urut[i]] = (
           teks: cocok[i].teks,
+          // Yang digeser cuma KOTAKNYA; teks & keyakinannya elemen yang sama.
+          keyakinan: cocok[i].keyakinan,
           // Digeser ke tengah span kolomnya — lihat alasannya di dokumentasi
           // method ini.
           kotak: Rect.fromLTWH(

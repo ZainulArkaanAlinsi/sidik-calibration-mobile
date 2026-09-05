@@ -63,6 +63,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Ditaruh SEBELUM Flutter dipasang: dia cuma butuh bash, jalannya
+      # sedetik, dan kalau merah nggak ada gunanya nunggu toolchain lima menit.
+      #
+      # Yang dijaga: `bikin-keystore-rilis.sh` pernah melahirkan bug yang nggak
+      # menghasilkan error — langkah cadangannya menyuruh menjalankan ulang,
+      # sementara penjaga "berkas sudah ada" menolak jalan kedua. Kunci sudah
+      # lahir di disk, nol secret terpasang, jalan maju ditutup. Perilaku
+      # semacam itu nggak boleh dijaga sama ingatan siapa pun.
+      - name: Uji skrip keystore
+        run: ./tool/uji-bikin-keystore.sh
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}

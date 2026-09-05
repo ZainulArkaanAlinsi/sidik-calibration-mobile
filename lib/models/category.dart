@@ -98,10 +98,19 @@ class CalibrationCapability {
   ///
   /// Form Tambah Alat dulu mewajibkan `toleransi` buat SEMUA alat, alasannya
   /// "alat tanpa toleransi nggak bisa dikalibrasi — 422 belakangan". Alasan itu
-  /// keliru buat **15 dari 20** profil: Conductivity, Spectro, Autoklaf, DO,
-  /// Gas Detector, TITS, TIDS, kelima Enclosure, dan ketiga alat suhu berhenti
-  /// di `U95%` tanpa vonis. Validator server sengaja melewati mereka, jadi 422
-  /// yang ditakutkan itu nggak pernah datang.
+  /// keliru buat **19 dari 24** profil: Conductivity, Spectro, Autoklaf, DO,
+  /// Gas Detector, TITS, TIDS, Timbangan, kelima Enclosure, ketiga alat suhu,
+  /// dan ketiga alat Waktu & Frekuensi berhenti di `U95%` tanpa vonis.
+  /// Validator server sengaja melewati mereka, jadi 422 yang ditakutkan itu
+  /// nggak pernah datang.
+  ///
+  /// Yang DIVONIS justru minoritas — cuma pH Meter, Turbidimeter, Chlorine
+  /// Meter, Refractometer, dan Viscometer. Angkanya jangan dipakai buat
+  /// mengambil keputusan: yang benar tetap `punya_toleransi` dari server
+  /// (`CalibrationProfileRegistry`), jadi profil ke-25 ikut kejawab tanpa rilis
+  /// APK baru. Daftar di sini cuma buat pembaca — dan pernah basi sekali,
+  /// waktu `docs/kontrak-api.md` dinaikkan ke 24 profil sementara baris ini
+  /// ketinggalan di 20.
   ///
   /// Yang datang justru sebaliknya: teknisi dipaksa MENGARANG angka toleransi
   /// buat alat yang nggak divonis — mengarang kriteria kelulusan. Mengisi kolom

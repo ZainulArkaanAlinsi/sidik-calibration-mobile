@@ -19,8 +19,11 @@ bercerita beda.
 
 ---
 
-Status: siap dijalankan, **nunggu `firebase login` + repository variable
-`API_BASE_URL`** · 15 Agustus 2026
+Status: **jalan penuh** · diperbarui 4 September 2026
+
+Rilis bertanda tangan pertama `v1.0.529+529` terbit hari itu — dibangun,
+diverifikasi sidik jarinya, diterbitkan ke GitHub Release, dan dikirim ke
+Firebase App Distribution, semuanya dalam satu run yang hijau.
 
 Tujuannya satu: app-nya bisa dipasang orang lain tanpa laptop developer, di
 tiga tempat sekaligus — HP teknisi, Mac, dan PC Windows.
@@ -38,26 +41,28 @@ sekarang.
 | Aplikasi Android terdaftar | ✅ App ID di bawah |
 | Grup tester `teknisi` | ⚠️ dibuat, **belum ada anggotanya** — APK terkirim ke grup kosong sampai email tester didaftarkan |
 | Paket **uji offline** (mock) Windows/macOS/Android | ✅ bisa dibagikan sekarang |
-| Paket **nyambung server** | ⛔ terhalang — backend belum berdiri |
+| Paket **nyambung server** | ✅ terbit — `v1.0.529+529`, 4 Sep 2026 |
+| Kunci penanda tangan rilis | ✅ terpasang — lihat [`rilis-tanda-tangan-apk.md`](rilis-tanda-tangan-apk.md) |
+| `google-services.json` (push notification) | ✅ terpasang sebagai secret `GOOGLE_SERVICES_JSON` |
 
-Yang menghalangi versi nyambung-server cuma satu: layanan Render di
-`render.yaml` (repo `sidik-calibration-api`) **belum pernah dideploy**.
-`https://sidik-calibration-api.onrender.com/up` tidak menjawab sama sekali —
-TCP-nya tersambung tapi nol byte selama 240 detik, dan itu bukan pola cold
-start. Tiga run terakhir workflow "APK rilis (nyambung server)" juga semuanya
-gagal dalam 8–10 detik di penjagaan `API_BASE_URL`.
+Sampai 4 Sep 2026 bagian ini menulis bahwa versi nyambung-server terhalang
+karena layanan Render **belum pernah dideploy**. Itu sudah tidak berlaku:
+layanannya dideploy dan menjawab, `API_BASE_URL` terpasang, dan penjagaan
+URL di kedua workflow rilis lolos — sesuatu yang tidak mungkin terjadi kalau
+variable-nya masih kosong atau masih berisi contoh dari dokumentasi.
 
-Membereskannya butuh akun Aiven + Render dan penempelan rahasia (`APP_KEY`,
-password database, `GEMINI_API_KEY`) — langkah yang di
-`sidik-calibration-api/docs/deploy-gratis-render.md` memang sudah ditandai
-"cuma bisa kamu yang ngerjain". Sesudah layanannya hidup, yang perlu diubah di
-sini cuma satu baris:
+Yang dulu jadi daftar pekerjaan di sini — akun Aiven + Render, penempelan
+`APP_KEY`, password database, `GEMINI_API_KEY` — sudah selesai. Langkahnya
+tetap ditulis di `sidik-calibration-api/docs/deploy-gratis-render.md` kalau
+suatu saat harus diulang di layanan baru.
 
-```bash
-gh variable set API_BASE_URL --body "https://<yang-asli>.onrender.com"
-```
-
-lalu jalankan ulang kedua workflow rilis.
+> **Dokumen ini snapshot, bukan pemantau.** Baris di atas mencatat bahwa
+> jalurnya pernah jalan utuh, bukan bahwa servernya hidup detik ini. Kalau
+> rilis mendadak gagal, jangan percaya tabel ini — cek langsung:
+>
+> ```bash
+> curl -sS -o /dev/null -w '%{http_code}\n' https://sidik-calibration-api.onrender.com/up
+> ```
 
 ### Jalan pintas: APK nyambung backend laptop (quick tunnel)
 
@@ -242,11 +247,18 @@ Efek samping yang bagus: begitu APK release terpasang permanen, urusan pairing
 `adb` dan bentrok debug keystore hilang dari pemakaian sehari-hari. Yang masih
 kena cuma sesi `flutter run`.
 
-> APK release ini masih ditandatangani debug key (lihat
-> `android/app/build.gradle.kts`). Cukup untuk uji internal. Sebelum dipasang di
-> HP pelanggan, kunci rilis sendiri harus dibuat dulu — kalau tidak, aplikasinya
-> tidak akan pernah bisa di-update oleh siapa pun yang tidak punya debug key
-> laptop ini.
+> **Kunci penanda tangan wajib dipasang dulu — lihat
+> [`rilis-tanda-tangan-apk.md`](rilis-tanda-tangan-apk.md).** Workflow "APK
+> rilis (nyambung server)" sekarang gagal di detik pertama sampai keempat
+> secretnya ada.
+>
+> Catatan lama di tempat ini menulis bahwa APK-nya "tidak akan bisa di-update
+> oleh siapa pun yang tidak punya debug key laptop ini". Itu keliru, dan
+> kelirunya ke arah yang meremehkan: debug key laptop tidak pernah terlibat
+> sama sekali. Runner CI mulai dari VM bersih tiap run dan membuat
+> `debug.keystore` BARU di situ — alias & passwordnya tetap, tapi key
+> material-nya acak. Jadi bukan cuma orang lain yang tidak bisa memperbarui;
+> **dua rilis CI beruntun pun tidak bisa saling menimpa.**
 
 ## macOS & Windows — build
 
@@ -354,10 +366,30 @@ backend berarti membangun ulang ketiga platform — tidak ada cara mengubahnya
 dari sisi Hosting atau dari sisi aplikasi yang sudah terpasang. Jadi pastikan
 URL backend sudah final sebelum mulai membagikan.
 
-Nomor versi **untuk build CI sudah otomatis**. Workflow "APK rilis (nyambung
-server)" mengoper `--build-number=${{ github.run_number }}`, angka yang naik
-sendiri setiap workflow itu jalan, dan nomornya ikut ditulis di catatan rilis
-App Distribution ("build 25 · …") supaya bisa diadu waktu teknisi lapor.
+Nomor versi **untuk build CI sudah otomatis, dan sama di ketiga platform**.
+Kedua workflow rilis — "APK rilis (nyambung server)" dan "Rilis desktop & web
+(nyambung server)" — menyusun nomornya dari sumber yang sama: jumlah commit
+(`git rev-list --count HEAD`), angka yang naik sendiri setiap ada yang mendarat
+di `main`. Nomornya ikut ditulis di catatan rilis App Distribution
+("build 521 · …") supaya bisa diadu waktu teknisi lapor.
+
+Sumbernya jumlah commit, bukan `github.run_number`, karena angka itu
+**per-workflow**: dua jalur rilis menghitung sendiri-sendiri, jadi commit yang
+sama pernah terbit sebagai `1.0.84` di HP sementara paket Windows dari commit
+itu juga tetap bernama `1.0.0`. Jumlah commit sama di mana pun dia dihitung,
+jadi APK, Windows, dan macOS dari satu commit selalu bernomor sama — tanpa
+kedua workflow perlu saling menunggu.
+
+Konsekuensinya satu, dan sudah dibayar sekali waktu penggantian ini mendarat:
+penomorannya melompat dari `1.0.84` ke `1.0.521`. Lompatan itu **naik**, jadi
+aman untuk `versionCode` maupun untuk pemberitahuan "ada versi baru" —
+perbandingannya numerik per segmen (`bandingkanVersi` di
+`lib/models/versi_aplikasi.dart`), bukan teks.
+
+Kedua workflow memasang `fetch-depth: 0` di langkah checkout. Itu **wajib**:
+checkout bawaan hanya menarik satu commit, hitungannya jadi 1, dan angka 1
+lolos seluruh build tanpa keluhan — yang merah baru HP teknisi. Masing-masing
+workflow menjaga dirinya dengan menolak hitungan di bawah 100.
 
 Ini bukan kosmetik. Android menolak memasang APK dengan `versionCode` yang
 tidak lebih besar dari yang sudah terpasang, dan gagalnya cuma muncul sebagai
@@ -369,7 +401,8 @@ yang lama — teknisi melihat "sudah terpasang" lalu tetap memegang versi kemari
 selalu berangka lebih kecil daripada build CI, jadi APK hasil coba-coba di
 laptop tidak bisa menimpa rilis yang dipegang teknisi — kebalikannya yang
 berbahaya, dan diam-diam. Kalau memang perlu membagikan build lokal, oper
-`--build-number` sendiri dengan angka di atas nomor run CI terakhir.
+`--build-number` sendiri dengan angka di atas hitungan commit terakhir
+(`git rev-list --count HEAD`).
 
 ## Kenapa bukan Flutter Web
 

@@ -181,8 +181,7 @@ void main() {
     // Angkanya masuk kotak isian formulir, bukan cuma terpetakan.
     final terisi = isian.terapkanHasilFotoTabel(
       hasil.sel,
-      tahap: tabel.tahap,
-      pengulangan: tabel.pengulangan,
+      tabel: tabel,
     );
     expect(terisi, 30);
 

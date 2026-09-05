@@ -68,9 +68,10 @@ void main() {
   const yNomor = 110.0;
   const ySatuan = 150.0;
 
-  TeksTerbaca kata(String teks, double x, double y) => (
+  TeksTerbaca kata(String teks, double x, double y, {double? keyakinan}) => (
     teks: teks,
     kotak: Rect.fromLTWH(x, y, teks.length * 14, 24),
+    keyakinan: keyakinan,
   );
 
   double xBacaan(int r) => 320.0 + r * 300.0;
@@ -215,8 +216,7 @@ void main() {
 
     final terisi = isian.terapkanHasilFotoTabel(
       hasil.sel,
-      tahap: tabel.tahap,
-      pengulangan: tabel.pengulangan,
+      tabel: tabel,
     );
 
     expect(terisi, 29, reason: '30 sel kertas, satu rusak di master');

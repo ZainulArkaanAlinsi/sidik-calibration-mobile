@@ -62,11 +62,17 @@ void main() {
     );
   }
 
-  SelTabelFoto sel(double titikUkur, int repeatNo, String teks) => (
+  SelTabelFoto sel(
+    double titikUkur,
+    int repeatNo,
+    String teks, {
+    double? keyakinan,
+  }) => (
     titikUkur: titikUkur,
     repeatNo: repeatNo,
     fieldId: 'pembacaan',
     teks: teks,
+    keyakinan: keyakinan,
   );
 
   test('pengulangan [2, 4, 6, 8, 10]: Repeat 4 mendarat di kolom KEDUA', () {
@@ -75,8 +81,7 @@ void main() {
 
     final terisi = s.isian.terapkanHasilFotoTabel(
       [sel(1018.0, 4, '123,4')],
-      tahap: s.tabel.tahap,
-      pengulangan: s.tabel.pengulangan,
+      tabel: s.tabel,
     );
 
     expect(terisi, 1, reason: 'Prasyarat: selnya memang keisi.');
@@ -104,8 +109,7 @@ void main() {
 
     s.isian.terapkanHasilFotoTabel(
       [sel(1018.0, 3, '50,0')],
-      tahap: s.tabel.tahap,
-      pengulangan: s.tabel.pengulangan,
+      tabel: s.tabel,
     );
 
     expect(
@@ -122,8 +126,7 @@ void main() {
 
     final terisi = s.isian.terapkanHasilFotoTabel(
       [sel(1018.0, 5, '99,9')],
-      tahap: s.tabel.tahap,
-      pengulangan: s.tabel.pengulangan,
+      tabel: s.tabel,
     );
 
     expect(terisi, 0, reason: 'Repeat 5 nggak punya kolom di lembar ini.');
@@ -145,8 +148,7 @@ void main() {
 
     s.isian.terapkanHasilFotoTabel(
       [sel(1018.0, 1, '10,0'), sel(1018.0, 5, '50,0')],
-      tahap: s.tabel.tahap,
-      pengulangan: s.tabel.pengulangan,
+      tabel: s.tabel,
     );
 
     final titik = s.isian.titik[1018.0]!;
@@ -156,7 +158,7 @@ void main() {
   });
 
   group('titik yang cocoknya cuma dalam toleransi', () {
-    // `terapkanHasilFotoTabel` mencari titiknya lewat `_titikTerdekat`, yang
+    // `terapkanHasilFotoTabel` mencari titiknya lewat `titikBarisTabel`, yang
     // menerima selisih sangat kecil (pembulatan `double` dari server, misalnya
     // 1018,0000000001). Pencari label contoh latih HARUS memakai cara yang
     // sama.
@@ -166,7 +168,7 @@ void main() {
     // potongan sel dari baris itu dihitung "tanpa label" tanpa ada yang tahu
     // kenapa. Data latihnya menyusut diam-diam, persis di baris yang datanya
     // paling wajar.
-    test('`titik[x]` MELESET, `titikCocok` ketemu', () {
+    test('`titik[x]` MELESET, `titikBarisTabel` ketemu', () {
       final s = siapkan(const [1, 2, 3, 4, 5]);
       addTearDown(s.isian.dispose);
 
@@ -182,7 +184,7 @@ void main() {
       );
 
       expect(
-        s.isian.titikCocok(geser),
+        s.isian.titikBarisTabel(s.tabel, geser),
         same(s.isian.titik[1018.0]),
         reason: 'Yang dipakai jalur foto ketemu, dan titiknya yang itu juga.',
       );
@@ -196,8 +198,7 @@ void main() {
 
       final terisi = s.isian.terapkanHasilFotoTabel(
         [sel(1018.0000000001, 1, '77,7')],
-        tahap: s.tabel.tahap,
-        pengulangan: s.tabel.pengulangan,
+        tabel: s.tabel,
       );
 
       expect(terisi, 1);
@@ -222,8 +223,7 @@ void main() {
 
       s.isian.terapkanHasilFotoTabel(
         [sel(1018.0, pengulangan[1], '123,4')],
-        tahap: s.tabel.tahap,
-        pengulangan: s.tabel.pengulangan,
+        tabel: s.tabel,
       );
 
       return s;
@@ -235,10 +235,9 @@ void main() {
 
       expect(
         s.isian.labelSelFoto(
-          tahap: 'sesudah_adjustment',
+          tabel: s.tabel,
           titikUkur: 1018.0,
           repeatNo: 2,
-          pengulangan: const [1, 2, 3, 4, 5],
           fieldId: 'pembacaan',
         ),
         '123,4',
@@ -256,10 +255,9 @@ void main() {
 
       expect(
         s.isian.labelSelFoto(
-          tahap: 'sesudah_adjustment',
+          tabel: s.tabel,
           titikUkur: 1018.0,
           repeatNo: 2,
-          pengulangan: const [1, 2, 3, 4, 5],
           fieldId: 'pembacaan',
         ),
         '987,6',
@@ -274,10 +272,9 @@ void main() {
 
       expect(
         s.isian.labelSelFoto(
-          tahap: 'sesudah_adjustment',
+          tabel: s.tabel,
           titikUkur: 1018.0000000001,
           repeatNo: 2,
-          pengulangan: const [1, 2, 3, 4, 5],
           fieldId: 'pembacaan',
         ),
         '123,4',
@@ -290,10 +287,9 @@ void main() {
 
       expect(
         s.isian.labelSelFoto(
-          tahap: 'sesudah_adjustment',
+          tabel: s.tabel,
           titikUkur: 1018.0,
           repeatNo: 1,
-          pengulangan: const [1, 2, 3, 4, 5],
           fieldId: 'pembacaan',
         ),
         isEmpty,
@@ -309,10 +305,9 @@ void main() {
 
       expect(
         s.isian.labelSelFoto(
-          tahap: 'sesudah_adjustment',
+          tabel: s.tabel,
           titikUkur: 1018.0,
           repeatNo: 99,
-          pengulangan: const [1, 2, 3, 4, 5],
           fieldId: 'pembacaan',
         ),
         isNull,
@@ -325,10 +320,9 @@ void main() {
 
       expect(
         s.isian.labelSelFoto(
-          tahap: 'sesudah_adjustment',
+          tabel: s.tabel,
           titikUkur: 12345.0,
           repeatNo: 1,
-          pengulangan: const [1, 2, 3, 4, 5],
           fieldId: 'pembacaan',
         ),
         isNull,
@@ -352,16 +346,14 @@ void main() {
 
       s.isian.terapkanHasilFotoTabel(
         [sel(1018.0, 4, '123,4')],
-        tahap: s.tabel.tahap,
-        pengulangan: s.tabel.pengulangan,
+        tabel: s.tabel,
       );
 
       expect(
         s.isian.labelSelFoto(
-          tahap: 'sesudah_adjustment',
+          tabel: s.tabel,
           titikUkur: 1018.0,
           repeatNo: 4,
-          pengulangan: s.tabel.pengulangan,
           fieldId: 'pembacaan',
         ),
         '123,4',
@@ -377,10 +369,9 @@ void main() {
 
       expect(
         s.isian.labelSelFoto(
-          tahap: 'sesudah_adjustment',
+          tabel: s.tabel,
           titikUkur: 1018.0,
           repeatNo: 5,
-          pengulangan: s.tabel.pengulangan,
           fieldId: 'pembacaan',
         ),
         isNull,

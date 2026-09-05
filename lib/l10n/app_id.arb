@@ -310,18 +310,32 @@
   "equipRentangChip": "{min}–{maks} {satuan}",
   "@equipRentangChip": {
     "placeholders": {
-      "min": { "type": "String" },
-      "maks": { "type": "String" },
-      "satuan": { "type": "String" }
+      "min": {
+        "type": "String"
+      },
+      "maks": {
+        "type": "String"
+      },
+      "satuan": {
+        "type": "String"
+      }
     }
   },
   "equipRentangChipBerparameter": "{parameter} · {min}–{maks} {satuan}",
   "@equipRentangChipBerparameter": {
     "placeholders": {
-      "parameter": { "type": "String" },
-      "min": { "type": "String" },
-      "maks": { "type": "String" },
-      "satuan": { "type": "String" }
+      "parameter": {
+        "type": "String"
+      },
+      "min": {
+        "type": "String"
+      },
+      "maks": {
+        "type": "String"
+      },
+      "satuan": {
+        "type": "String"
+      }
     }
   },
   "equipResolusi": "Resolusi",
@@ -363,6 +377,14 @@
   "historyStatusDraft": "Draft",
   "historyStatusMenungguApproval": "Menunggu approval",
   "historyStatusPerluRevisi": "Perlu revisi",
+  "statusAktif": "Aktif",
+  "statusOverdue": "Jatuh tempo",
+  "statusNonaktif": "Nonaktif",
+  "statusDisetujui": "Disetujui",
+  "statusBaru": "Baru",
+  "statusDiproses": "Diproses",
+  "statusSelesai": "Selesai",
+  "statusDibatalkan": "Dibatalkan",
   "historyApprove": "SETUJUI",
   "historyReject": "TOLAK",
   "historyApproveFailed": "Gagal nyetujui: {pesan}",
@@ -452,9 +474,27 @@
   "detailTipeSensor": "Tipe sensor standar",
   "bannerStandarTanpaNama": "Standar tanpa nama",
   "bannerStandarLewat": "{nama} — sertifikatnya lewat {hari} hari",
-  "@bannerStandarLewat": {"placeholders": {"nama": {"type": "String"}, "hari": {"type": "int"}}},
+  "@bannerStandarLewat": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      },
+      "hari": {
+        "type": "int"
+      }
+    }
+  },
   "bannerStandarSegera": "{nama} — sertifikatnya habis {hari} hari lagi",
-  "@bannerStandarSegera": {"placeholders": {"nama": {"type": "String"}, "hari": {"type": "int"}}},
+  "@bannerStandarSegera": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      },
+      "hari": {
+        "type": "int"
+      }
+    }
+  },
   "detailUjiTitikEs": "Uji titik es (30 menit)",
   "detailTitikEsKe": "X{ke}",
   "detailRentangTitikEs": "Rentang (Tmaks − Tmin)",
@@ -657,8 +697,17 @@
   "calibValidasiPembacaan": "Tiap titik ukur minimal 2 pembacaan angka.",
   "calibSimpanDraft": "SIMPAN DRAFT",
   "calibKirimApproval": "KIRIM UNTUK APPROVAL",
+  "calibDraftTitikDilewat": "Draft disimpan, tapi {jumlah} baris nggak ikut kesimpen karena nilai acuannya belum diisi. Isi dulu kolom nilai acuannya kalau angka di baris itu mau ikut kebawa.",
+  "@calibDraftTitikDilewat": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "calibBerhasilDraft": "Draft kalibrasi disimpan.",
   "calibBerhasilApproval": "Sesi kalibrasi dikirim untuk approval.",
+  "kirimTertahanRilisWajib": "Versi baru WAJIB dipasang sebelum sesi bisa dikirim. Simpan Draft dulu — isianmu tidak hilang.",
   "calibGagal": "Gagal menyimpan: {pesan}",
   "calibLoadPilihanGagal": "Gagal memuat pilihan kategori/standar.",
   "calibRetry": "COBA LAGI",
@@ -692,6 +741,25 @@
   "calibTiTanpaSensorKeterangan": "Sensornya NGGAK ikut dikalibrasi. Kalibrator disambung ke terminal indikator dan berperan jadi sensor tiruan, jadi yang diperiksa cuma bacaan indikatornya.",
   "calibTiDenganSensorJudul": "Dengan Sensor",
   "calibTiDenganSensorKeterangan": "Sensornya IKUT dikalibrasi. Sensor & indikator diperiksa sebagai satu rangkaian — sensornya dicelup bareng termometer acuan, jadi yang keluar bacaan rangkaian utuhnya.",
+  "calibTiRentang": "Rentang ukur {rentang}",
+  "@calibTiRentang": {
+    "placeholders": {
+      "rentang": {
+        "type": "String"
+      }
+    }
+  },
+  "calibTiCmc": "CMC {cmc} · {jumlah} baris kemampuan",
+  "@calibTiCmc": {
+    "placeholders": {
+      "cmc": {
+        "type": "String"
+      },
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "calibTiBelumSiap": "Belum ada di server ini",
   "calibTiBelumSiapPesan": "Lembar kerja \"{varian}\" belum ada di server yang lagi dipakai. Kabarin admin dulu — kalau dipaksa buka sekarang, yang kebuka lembar alat lain dan nggak ada satu pun error yang bunyi.",
   "phCalibTitle": "Kalibrasi pH Meter",
@@ -1393,8 +1461,8 @@
   "perhitTingkatPeringatan": "Butuh konfirmasi",
   "perhitTingkatInfo": "Info",
   "perhitApproveDiblokir": "Ada temuan yang nahan penerbitan. Tombol setujui dimatiin.",
-  "perhitKonfirmasiJudul": "Hasil hitung ulang beda. Lanjut?",
-  "perhitKonfirmasiBody": "Angka hasil hitung ulang beda dari yang tersimpan. Kalau tetap disetujui, sertifikatnya terbit pakai angka yang tersimpan.",
+  "perhitKonfirmasiJudul": "Ada peringatan. Lanjut?",
+  "perhitKonfirmasiBody": "Kalau tetap disetujui, sertifikatnya terbit pakai angka yang tersimpan.",
   "perhitKonfirmasiBatal": "PERIKSA LAGI",
   "perhitKonfirmasiLanjut": "TETAP SETUJUI",
   "perhitTolakJudul": "Kembalikan buat direvisi",
@@ -1796,5 +1864,137 @@
     }
   },
   "dokReviewTakBisaDitunjuk": "Asal nilai ini nggak bisa ditunjuk di foto",
-  "dokReviewKetukUntukSorot": "Ketuk nilainya buat lihat asalnya di foto"
-}
+  "dokReviewKetukUntukSorot": "Ketuk nilainya buat lihat asalnya di foto",
+  "fotoReviewJudul": "Periksa {jumlah} angka",
+  "@fotoReviewJudul": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "fotoReviewPengantar": "Angka di bawah dibaca dari foto, belum masuk lembar. Adu tiap angka ke potongan gambarnya, betulkan yang meleset, baru tekan Masukkan. Tulisan tangan tidak pernah dianggap pasti — sekalipun persentasenya tinggi.",
+  "fotoReviewMasukkan": "MASUKKAN KE LEMBAR",
+  "fotoReviewKetikSendiri": "Ketik sendiri — bacaannya tidak bisa dipercaya",
+  "fotoReviewKeyakinan": "Keyakinan {persen}%",
+  "@fotoReviewKeyakinan": {
+    "placeholders": {
+      "persen": {
+        "type": "int"
+      }
+    }
+  },
+  "fotoReviewKeyakinanTakAda": "Keyakinan tidak dilaporkan",
+  "fotoReviewMasihKosong": "{jumlah} sel masih kosong dan wajib diisi.",
+  "@fotoReviewMasihKosong": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "skemaDinamisJudul": "Lembar tidak dikenal",
+  "skemaDinamisPengantar": "Lembar ini belum punya bentuk baku di aplikasi, jadi isinya dibaca langsung dari foto. Periksa tiap isian sebelum disimpan — tidak ada satu pun yang dianggap pasti.",
+  "skemaDinamisTanpaSatuan": "tanpa satuan",
+  "skemaDinamisTabel": "Tabel {nomor}",
+  "@skemaDinamisTabel": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
+  "skemaDinamisSimpan": "SIMPAN HASIL BACAAN",
+  "skemaDinamisMasihKosong": "{jumlah} isian bervonis merah masih kosong dan wajib diisi.",
+  "@skemaDinamisMasihKosong": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "skemaDinamisKosong": "Tidak ada isian maupun tabel yang terbaca dari foto ini. Coba jepret ulang dengan seluruh lembar masuk frame.",
+  "petaKolomJudul": "Kolom mana artinya apa",
+  "petaKolomPengantar": "Aplikasi bisa lihat kertasnya punya berapa kolom, tapi tidak bisa tahu kolom mana nilai acuan dan mana pembacaan alat. Kamu yang menentukan. Salah tunjuk bikin koreksi di sertifikat kebalik tandanya, dengan angka yang tetap kelihatan wajar.",
+  "petaKolomAbaikan": "Abaikan",
+  "petaKolomNilaiAcuan": "Nilai acuan",
+  "petaKolomPembacaan": "Pembacaan",
+  "petaKolomSatuan": "Satuan",
+  "petaKolomSatuanBantu": "Diketik, bukan dibaca dari kertas — satuan yang salah mengubah arti seluruh angkanya.",
+  "petaKolomSatuanWajib": "Satuannya belum diisi.",
+  "petaKolomKolomKe": "Kolom {nomor}",
+  "@petaKolomKolomKe": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
+  "petaKolomContoh": "contoh isi: {nilai}",
+  "@petaKolomContoh": {
+    "placeholders": {
+      "nilai": {
+        "type": "String"
+      }
+    }
+  },
+  "petaKolomTanpaAcuan": "Belum ada kolom yang ditunjuk sebagai nilai acuan.",
+  "petaKolomAcuanDobel": "Dua kolom ditunjuk jadi nilai acuan. Satu titik ukur cuma punya satu.",
+  "petaKolomPembacaanKurang": "Butuh minimal {jumlah} kolom pembacaan — sebaran tidak bisa dihitung dari satu angka.",
+  "@petaKolomPembacaanKurang": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "petaKolomRingkas": "{jumlah} titik ukur akan diisi ke form.",
+  "@petaKolomRingkas": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "petaKolomDilewat": "{jumlah} baris dilewat karena nilai acuannya kosong.",
+  "@petaKolomDilewat": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "petaKolomTerapkan": "ISI TITIK UKUR",
+  "calibBacaFoto": "BACA DARI FOTO LEMBAR",
+  "calibBacaFotoGagal": "Fotonya tidak bisa dibaca. Coba jepret ulang dengan seluruh lembar masuk frame.",
+  "calibBacaFotoTanpaTabel": "Tidak ada tabel yang terbaca dari foto ini. Titik ukur diambil dari tabel di kertasnya, jadi pastikan tabelnya ikut kefoto.",
+  "calibBacaFotoSelesai": "{jumlah} titik ukur diisi dari foto. Periksa angkanya sebelum kirim.",
+  "@calibBacaFotoSelesai": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "pilihTabelJudul": "Pakai tabel yang mana?",
+  "pilihTabelPengantar": "Foto ini punya lebih dari satu tabel. Pilih yang berisi titik ukur — bukan tabel identitas alat.",
+  "equipPelangganTidakKetemu": "Nggak ada di daftar pelanggan lab?",
+  "equipPelangganDaftarBaru": "DAFTARKAN PT BARU",
+  "pelangganBaruJudul": "PT baru",
+  "pelangganBaruPengantar": "Cari di direktori perusahaan, atau ketik nama & alamatnya sendiri. Yang tersimpan di sini langsung kepakai — nggak nunggu admin.",
+  "pelangganBaruNama": "Nama PT",
+  "pelangganBaruAlamat": "Alamat",
+  "pelangganBaruAlamatBantu": "Tercetak di blok OWNER sertifikat.",
+  "pelangganBaruCariDirektori": "CARI DI DIREKTORI",
+  "pelangganBaruDirektoriJudul": "Hasil direktori",
+  "pelangganBaruDirektoriKosong": "Nggak ada perusahaan yang cocok di direktori. Ketik nama & alamatnya manual.",
+  "pelangganBaruDirektoriCatatan": "Direktori memuat perusahaan sebagaimana dia muncul di peta, bukan sebagaimana tertulis di akta. Adu dulu ke surat pesanan pelanggan sebelum disimpan.",
+  "pelangganBaruDaftarkan": "DAFTARKAN",
+  "pelangganBaruNamaWajib": "Nama PT wajib diisi.",
+  "pelangganBaruMiripJudul": "Sudah ada di daftar — maksudmu yang ini?",
+  "pelangganBaruMiripPilih": "Ketuk salah satu buat memakainya.",
+  "pelangganBaruTetapBuat": "PERUSAHAAN LAIN — TETAP DAFTARKAN",
+  "pelangganBaruGagal": "Gagal mendaftarkan pelanggan.",
+  "pelangganBaruDirektoriTiadaLab": "Direktori perusahaan nggak tersedia di lab ini. Ketik nama & alamatnya di bawah.",
+  "pelangganBaruDirektoriMati": "Direktori lagi nggak bisa diakses. Ketik nama & alamatnya di bawah, atau coba lagi nanti.",
+  "equipPelangganDariSimpanan": "Lagi offline — ini salinan yang tersimpan di HP. Pelanggan yang baru didaftarkan bisa saja belum ada."}
