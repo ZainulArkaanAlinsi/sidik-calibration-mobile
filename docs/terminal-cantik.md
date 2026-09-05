@@ -48,6 +48,21 @@ Skripnya boleh dijalanin berkali-kali — blok yang lama diganti, bukan ditumpuk
 Yang dia kerjakan: pasang oh-my-posh kalau belum ada, pasang Nerd Font, salin
 tema ke `~/.config/oh-my-posh/`, dan tambah satu blok bertanda ke berkas rc/profil.
 
+> **Di Windows, binary yang diunduh diperiksa dulu.** Waktu `winget` tidak ada,
+> skripnya menarik `.exe` mandiri dari GitHub Releases — dan sebelum berkas itu
+> dipakai atau didaftarkan ke PATH, SHA256-nya diadu ke `checksums.txt` milik
+> rilis yang sama.
+>
+> Yang penting soal cara gagalnya: kalau `checksums.txt` tidak bisa diunduh atau
+> nama asetnya tidak terdaftar di situ, **pemasangan berhenti** — bukan lanjut
+> tanpa diperiksa. Pemeriksaan yang diam-diam berubah jadi "tidak diperiksa"
+> lebih buruk daripada tidak ada pemeriksaan sama sekali, karena dia terbaca
+> sebagai sudah diverifikasi. Berkas yang ditolak juga langsung dihapus, supaya
+> tidak nangkring di folder yang sebentar lagi masuk PATH.
+>
+> Jalur `winget` dan jalur Homebrew/`install.sh` di macOS-Linux tidak diperiksa
+> di sini — verifikasinya sudah jadi urusan package manager masing-masing.
+
 | Opsi | Gunanya |
 |---|---|
 | `--tanpa-font` / `-TanpaFont` | Lewati pemasangan font (font-nya sudah ada) |
@@ -148,6 +163,8 @@ Kalau PT Sidik ganti warna brand, `app_colors.dart` dan blok `palette` di
 | Prompt terasa lambat | Ada segmen yang menunggu proses lain | `oh-my-posh debug --config ~/.config/oh-my-posh/sidik.omp.json` — dia nunjukin segmen mana yang lama |
 | Windows: `0x80073CF6` / `cannot create the AppContainer profile` | Pemasangan MSIX ditolak Windows — tidak ada hubungannya dengan oh-my-posh | Skrip ini sudah tidak memakai MSIX; pastikan kamu di versi terbaru (`git pull`) lalu jalankan lagi. Dia bakal mengunduh binary mandiri ke `%LOCALAPPDATA%\Programs\oh-my-posh\bin` |
 | Windows: `winget tidak ada` | App Installer belum terpasang / belum di PATH | Tidak perlu dibetulkan — skripnya otomatis pindah ke jalur binary mandiri |
+| Windows: `checksum nggak cocok` | Unduhan rusak di tengah jalan, atau rilis baru terbit persis waktu skrip lagi jalan | Jalankan skripnya sekali lagi. Berkas yang ditolak sudah dihapus sendiri, jadi tidak ada sisa yang bisa kejalan |
+| Windows: `checksum buat ... nggak ada di ...` | `checksums.txt` gagal diunduh (proxy/kantor memblokir), atau nama asetnya berubah di rilis baru | Pemasangan sengaja DIHENTIKAN, bukan diteruskan tanpa verifikasi. Cek koneksi ke `github.com`, lalu ulangi |
 | Windows: `.ps1 cannot be loaded` | Execution policy | `Set-ExecutionPolicy -Scope Process Bypass` lalu jalankan lagi |
 
 ---

@@ -131,7 +131,10 @@ else {
     Write-Info 'winget tidak ada - mengunduh binary mandiri...'
 
     $arsitektur = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'amd64' }
-    $unduhDari  = "https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-windows-$arsitektur.exe"
+    $namaAset   = "posh-windows-$arsitektur.exe"
+    $rilis      = 'https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download'
+    $unduhDari  = "$rilis/$namaAset"
+    $unduhSum   = "$rilis/checksums.txt"
     $dirBin     = Join-Path $env:LOCALAPPDATA 'Programs\oh-my-posh\bin'
     $exe        = Join-Path $dirBin 'oh-my-posh.exe'
 
@@ -142,16 +145,69 @@ else {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         $lamaProgres = $ProgressPreference
         $ProgressPreference = 'SilentlyContinue'   # tanpa ini unduhan jadi lambat sekali
+
+        # checksums.txt DULUAN, baru binary-nya. Urutannya disengaja: kalau rilis
+        # baru terbit persis di tengah dua unduhan ini, yang kepegang checksum
+        # LAMA dan binary BARU — dan itu mendarat sebagai "tidak cocok", bukan
+        # lolos diam-diam. Jendelanya beberapa detik dan akibatnya cuma gagal
+        # palsu yang bisa diulang; kebalikannya jauh lebih mahal.
+        #
+        # Diunduh ke berkas lalu dibaca, BUKAN diambil dari `.Content`: GitHub
+        # menyajikan checksums.txt sebagai `application/octet-stream`, dan untuk
+        # tipe itu PowerShell 7 memulangkan `Byte[]`, bukan teks. Regex di bawah
+        # jadi mengadu string "52 98 51 ..." dan TIDAK PERNAH cocok — penjaganya
+        # berubah jadi penolak SEMUA pemasangan, bukan penolak yang jahat saja.
+        # Ketahuan waktu diadu ke berkas rilis sungguhan, bukan waktu dibaca.
+        $berkasSum = Join-Path ([System.IO.Path]::GetTempPath()) "posh-checksums-$PID.txt"
+        Invoke-WebRequest -Uri $unduhSum -OutFile $berkasSum -UseBasicParsing
+        $daftarSum = Get-Content -Path $berkasSum -Raw
+        Remove-Item $berkasSum -Force -ErrorAction SilentlyContinue
+
         Invoke-WebRequest -Uri $unduhDari -OutFile $exe -UseBasicParsing
         $ProgressPreference = $lamaProgres
 
-        # Pastikan yang terunduh benar-benar program, bukan halaman error yang
-        # kesimpan jadi .exe — kalau dibiarkan, gagalnya baru muncul nanti
-        # sebagai prompt yang diam saja.
+        # Penjaga pertama: header MZ. Dia TIDAK menggantikan checksum di bawah —
+        # gunanya cuma bikin kegagalan yang paling sering jadi kebaca. Yang
+        # biasanya mendarat di sini halaman login wifi/proxy yang kesimpan jadi
+        # .exe, dan "bukan program Windows" jauh lebih menolong buat yang baca
+        # daripada "hash-nya beda".
         $awal = [System.IO.File]::ReadAllBytes($exe)[0..1]
         if (-not ($awal[0] -eq 0x4D -and $awal[1] -eq 0x5A)) {
+            Remove-Item $exe -Force -ErrorAction SilentlyContinue
             throw "berkas yang terunduh bukan program Windows yang sah"
         }
+
+        # Penjaga kedua, dan ini yang sebenarnya menjaga: SHA256 diadu ke
+        # checksums.txt milik rilis yang sama.
+        #
+        # Barisnya dicari lewat NAMA berkas, bukan nomor baris — urutan isi
+        # checksums.txt bukan janji apa pun. `\*?` ikut ditoleransi karena
+        # format sha256sum menandai mode biner dengan bintang.
+        $polaSum = '(?m)^([0-9a-fA-F]{64})\s+\*?' + [regex]::Escape($namaAset) + '\s*$'
+        $cocok   = [regex]::Match($daftarSum, $polaSum)
+
+        # GAGAL TERTUTUP. checksums.txt tidak keunduh, atau asetnya tidak
+        # terdaftar di situ → pemasangan DIHENTIKAN, bukan diteruskan tanpa
+        # verifikasi. Pemeriksaan yang diam-diam berubah jadi "tidak diperiksa"
+        # lebih buruk daripada tidak ada pemeriksaan sama sekali: yang pertama
+        # terbaca sebagai sudah diverifikasi.
+        if (-not $cocok.Success) {
+            Remove-Item $exe -Force -ErrorAction SilentlyContinue
+            throw "checksum buat $namaAset nggak ada di $unduhSum - pemasangan dihentikan"
+        }
+
+        $sumHarap = $cocok.Groups[1].Value.ToLowerInvariant()
+        $sumNyata = (Get-FileHash -Path $exe -Algorithm SHA256).Hash.ToLowerInvariant()
+
+        if ($sumNyata -ne $sumHarap) {
+            # Berkasnya DIHAPUS, bukan ditinggal. Folder ini sebentar lagi
+            # didaftarkan ke PATH, dan .exe yang sudah ditolak nggak boleh
+            # nangkring di sana buat kejalan belakangan.
+            Remove-Item $exe -Force -ErrorAction SilentlyContinue
+            throw "checksum nggak cocok. Harusnya $sumHarap, yang terunduh $sumNyata - berkasnya dihapus"
+        }
+
+        Write-Ok "checksum SHA256 cocok - $($sumHarap.Substring(0, 16))..."
 
         # Daftarkan ke PATH milik user (bukan mesin): tidak butuh admin.
         $pathUser = [Environment]::GetEnvironmentVariable('Path', 'User')
@@ -163,7 +219,13 @@ else {
         Write-Ok "terpasang di $dirBin - $(& $exe version)"
     } catch {
         Write-Gagal "pemasangan gagal: $($_.Exception.Message)"
-        Write-Info "Unduh manual $unduhDari lalu simpan sebagai $exe"
+        # Sengaja TIDAK bilang "unduh manual lalu simpan sebagai .exe" begitu
+        # saja: kalau yang barusan gagal justru checksum-nya, saran itu menyuruh
+        # orang melewati satu-satunya penjagaan yang ada.
+        Write-Info 'Kalau yang gagal checksum-nya: bisa jadi rilis baru terbit pas unduhan lagi jalan.'
+        Write-Info 'Jalankan skrip ini sekali lagi dulu.'
+        Write-Info "Kalau tetap gagal, JANGAN pakai berkas tadi. Unduh $unduhDari dan $unduhSum,"
+        Write-Info "cocokkan sendiri (Get-FileHash <berkas> -Algorithm SHA256), baru simpan sebagai $exe"
         return
     }
 }
