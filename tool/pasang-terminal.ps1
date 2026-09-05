@@ -60,17 +60,44 @@ $RepoRoot  = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path
 $TemaAsal  = Join-Path $RepoRoot 'tool\terminal\sidik.omp.json'
 $TujuanDir = Join-Path $HOME '.config\oh-my-posh'
 $Tema      = Join-Path $TujuanDir 'sidik.omp.json'
-$Profil    = $PROFILE.CurrentUserCurrentHost
+# $PROFILE.CurrentUserCurrentHost NAMANYA IKUT NAMA HOST:
+#   PowerShell biasa (ConsoleHost)          -> Microsoft.PowerShell_profile.ps1
+#   PowerShell Integrated Console di VS Code -> Microsoft.VSCode_profile.ps1
+# Jadi blok yang ditulis dari jendela PowerShell biasa TIDAK pernah kebaca di
+# terminal VS Code, dan gagalnya senyap: prompt di situ tetap bawaan tanpa satu
+# pun pesan error.
+#
+# profile.ps1 (CurrentUserAllHosts) dibaca SEMUA host, jadi itu yang dipakai.
+#
+# "Semua host" itu berlaku PER EDISI, bukan lintas edisi: Windows PowerShell 5.1
+# dan PowerShell 7 punya profile.ps1 sendiri-sendiri di folder yang berbeda
+#   5.1 -> Documents\WindowsPowerShell\profile.ps1
+#   7.x -> Documents\PowerShell\profile.ps1
+# jadi memasang dari jendela 5.1 sementara VS Code disetel ke pwsh 7 mengulang
+# gagal senyap yang sama. Sisa jurang itu DILAPORKAN di akhir skrip, bukan
+# ditambal diam-diam: menulis ke profil edisi lain berarti mengarang folder yang
+# belum tentu dipakai, dan gagalnya bakal lebih susah dilacak daripada pesannya.
+$Profil = $PROFILE.CurrentUserAllHosts
+
+# Berkas per-host tetap dibersihkan: versi skrip sebelumnya menulis ke situ, dan
+# kalau ditinggal, prompt-nya diinisialisasi dua kali.
+$DirProfil  = Split-Path -Parent $Profil
+$ProfilLama = @(
+    $PROFILE.CurrentUserCurrentHost
+    Join-Path $DirProfil 'Microsoft.PowerShell_profile.ps1'
+    Join-Path $DirProfil 'Microsoft.VSCode_profile.ps1'
+) | Where-Object { $_ -and $_ -ne $Profil } | Select-Object -Unique
 
 Write-Host "=== Prompt terminal - sidik-calibration-mobile ===" -ForegroundColor White
 
-# Buang blok lama dari profil. Dipakai dua-duanya: waktu cabut, dan waktu pasang
-# ulang (supaya tidak dobel).
-function Remove-BlokSidik {
-    if (-not (Test-Path $Profil)) { return }
-    $isi = Get-Content $Profil -ErrorAction SilentlyContinue
-    if ($null -eq $isi) { return }
-    if (-not ($isi -contains $Mulai)) { return }
+# Buang blok bertanda dari SATU berkas. Mengembalikan $true kalau ada yang dibuang.
+function Remove-BlokDari {
+    param([Parameter(Mandatory)][string]$Berkas)
+
+    if (-not (Test-Path $Berkas)) { return $false }
+    $isi = Get-Content $Berkas -ErrorAction SilentlyContinue
+    if ($null -eq $isi) { return $false }
+    if (-not ($isi -contains $Mulai)) { return $false }
 
     $baru = New-Object System.Collections.Generic.List[string]
     $didalam = $false
@@ -79,14 +106,29 @@ function Remove-BlokSidik {
         if ($baris -eq $Akhir) { $didalam = $false; continue }
         if (-not $didalam) { $baru.Add($baris) }
     }
-    Set-Content -Path $Profil -Value $baru -Encoding UTF8
+    Set-Content -Path $Berkas -Value $baru -Encoding UTF8
+    return $true
+}
+
+# Bersihkan profil semua-host DAN berkas per-host peninggalan versi lama.
+# Dipakai waktu cabut maupun waktu pasang ulang (supaya tidak dobel).
+function Remove-BlokSidik {
+    $dibersihkan = @()
+    foreach ($berkas in (@($Profil) + $ProfilLama)) {
+        if (Remove-BlokDari -Berkas $berkas) { $dibersihkan += $berkas }
+    }
+    return $dibersihkan
 }
 
 # ------------------------------------------------------------------ cabut
 if ($Cabut) {
     Write-Bagian 'cabut'
-    Remove-BlokSidik
-    Write-Ok "blok oh-my-posh dihapus dari $Profil"
+    $dibersihkan = Remove-BlokSidik
+    if ($dibersihkan) {
+        foreach ($berkas in $dibersihkan) { Write-Ok "blok oh-my-posh dihapus dari $berkas" }
+    } else {
+        Write-Info 'tidak ada blok oh-my-posh di profil mana pun - tidak ada yang perlu dicabut'
+    }
     if (Test-Path $Tema) { Remove-Item $Tema -Force; Write-Ok "tema dihapus dari $Tema" }
     Write-Info 'binary oh-my-posh & font-nya sengaja dibiarkan - dipakai project lain juga.'
     Write-Info 'Buka terminal baru buat lihat hasilnya.'
@@ -293,7 +335,12 @@ else {
 # ------------------------------------------------------------------ profil
 Write-Bagian 'profil PowerShell'
 
-Remove-BlokSidik   # buang blok lama dulu, biar tidak dobel waktu dijalanin ulang
+# Buang dulu dari profil semua-host DAN berkas per-host versi lama, supaya
+# prompt tidak diinisialisasi dua kali.
+$dibersihkan = Remove-BlokSidik
+foreach ($berkas in $dibersihkan) {
+    if ($berkas -ne $Profil) { Write-Info "blok versi lama dibuang dari $berkas" }
+}
 
 $dirProfil = Split-Path -Parent $Profil
 if (-not (Test-Path $dirProfil)) { New-Item -ItemType Directory -Force -Path $dirProfil | Out-Null }
@@ -312,9 +359,20 @@ $blok = @(
 Add-Content -Path $Profil -Value $blok -Encoding UTF8
 Write-Ok "blok init ditulis ke $Profil"
 
+$edisi = if ($PSVersionTable.PSEdition -eq 'Desktop') {
+    'Windows PowerShell 5.1'
+} else {
+    "PowerShell $($PSVersionTable.PSVersion.Major) (pwsh)"
+}
+Write-Info "profil itu milik $edisi - edisi PowerShell lain punya profile.ps1 sendiri."
+Write-Info 'Kalau prompt di terminal VS Code tetap bawaan sesudah dibuka ulang, edisinya beda:'
+Write-Info 'jalankan skrip ini SEKALI LAGI dari dalam terminal VS Code itu sendiri.'
+
 # ------------------------------------------------------------------ tutup
 Write-Bagian 'selesai'
 Write-Info 'Buka PowerShell BARU buat lihat hasilnya.'
+Write-Info 'Terminal yang sudah terlanjur kebuka (termasuk di VS Code) tidak ikut'
+Write-Info 'berubah - profil cuma dibaca waktu shell start. Tutup, buka lagi.'
 Write-Info 'Kalau ikonnya masih kotak-kotak, font terminalnya belum diganti -'
 Write-Info 'langkahnya per-aplikasi ada di docs/terminal-cantik.md'
 Write-Host ""
