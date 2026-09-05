@@ -4157,6 +4157,82 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get dinamisPerluDiperiksa => 'Needs checking';
+
+  @override
+  String dinamisPerluDiperiksaKeyakinan(int persen) {
+    return 'Needs checking — $persen% confidence';
+  }
+
+  @override
+  String dinamisPerluDiperiksaJumlah(int count) {
+    return '$count values need checking before saving';
+  }
+
+  @override
+  String get dinamisTercetak => 'Pre-printed';
+
+  @override
+  String get dinamisBelumTerbaca => 'Not read';
+
+  @override
+  String get dinamisTanpaLabel => 'No label';
+
+  @override
+  String get dinamisTanpaJudulKolom => 'Column';
+
+  @override
+  String get dinamisLihatAsal => 'Show where this came from';
+
+  @override
+  String get dokBacaJudul => 'Read worksheet';
+
+  @override
+  String get dokBacaAjakan =>
+      'Photograph the worksheet. The form follows what\'s on the sheet — no template needed.';
+
+  @override
+  String get dokBacaTombolFoto => 'Photograph sheet';
+
+  @override
+  String get dokBacaSedang => 'Reading the sheet…';
+
+  @override
+  String get dokBacaUlangFoto => 'Retake photo';
+
+  @override
+  String get dokBacaMulaiLagi => 'Start over';
+
+  @override
+  String get dokBacaNamaAlatLabel => 'Equipment name (optional)';
+
+  @override
+  String get dokBacaNamaAlatBantuan =>
+      'Only a hint for the AI. If the sheet says otherwise, the sheet wins.';
+
+  @override
+  String get dokSimpanTombol => 'Save corrections';
+
+  @override
+  String get dokSimpanSedang => 'Saving…';
+
+  @override
+  String dokSimpanBerhasil(int jumlah) {
+    return '$jumlah corrections saved';
+  }
+
+  @override
+  String get dokSimpanBelumAda => 'Nothing corrected yet';
+
+  @override
+  String get dokReviewTakBisaDitunjuk =>
+      'Can\'t point to where this value came from';
+
+  @override
+  String get dokReviewKetukUntukSorot =>
+      'Tap a value to see where it came from';
+
+  @override
   String fotoReviewJudul(int jumlah) {
     String _temp0 = intl.Intl.pluralLogic(
       jumlah,

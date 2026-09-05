@@ -2460,6 +2460,43 @@
       }
     }
   },
+  "dinamisPerluDiperiksa": "Needs checking",
+  "dinamisPerluDiperiksaKeyakinan": "Needs checking \u2014 {persen}% confidence",
+  "@dinamisPerluDiperiksaKeyakinan": {
+    "placeholders": {
+      "persen": { "type": "int" }
+    }
+  },
+  "dinamisPerluDiperiksaJumlah": "{count} values need checking before saving",
+  "@dinamisPerluDiperiksaJumlah": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dinamisTercetak": "Pre-printed",
+  "dinamisBelumTerbaca": "Not read",
+  "dinamisTanpaLabel": "No label",
+  "dinamisTanpaJudulKolom": "Column",
+  "dinamisLihatAsal": "Show where this came from",
+  "dokBacaJudul": "Read worksheet",
+  "dokBacaAjakan": "Photograph the worksheet. The form follows what's on the sheet — no template needed.",
+  "dokBacaTombolFoto": "Photograph sheet",
+  "dokBacaSedang": "Reading the sheet…",
+  "dokBacaUlangFoto": "Retake photo",
+  "dokBacaMulaiLagi": "Start over",
+  "dokBacaNamaAlatLabel": "Equipment name (optional)",
+  "dokBacaNamaAlatBantuan": "Only a hint for the AI. If the sheet says otherwise, the sheet wins.",
+  "dokSimpanTombol": "Save corrections",
+  "dokSimpanSedang": "Saving…",
+  "dokSimpanBerhasil": "{jumlah} corrections saved",
+  "dokSimpanBelumAda": "Nothing corrected yet",
+  "@dokSimpanBerhasil": {
+    "placeholders": {
+      "jumlah": { "type": "int" }
+    }
+  },
+  "dokReviewTakBisaDitunjuk": "Can't point to where this value came from",
+  "dokReviewKetukUntukSorot": "Tap a value to see where it came from",
   "fotoReviewJudul": "Check {jumlah, plural, =1{1 reading} other{{jumlah} readings}}",
   "@fotoReviewJudul": {
     "placeholders": {
@@ -2592,5 +2629,4 @@
   "pelangganBaruGagal": "Couldn't register the customer.",
   "pelangganBaruDirektoriTiadaLab": "Company directory isn't available for this lab. Type the name and address below.",
   "pelangganBaruDirektoriMati": "The directory can't be reached right now. Type the name and address below, or try again later.",
-  "equipPelangganDariSimpanan": "Offline — showing the copy saved on this phone. Customers added recently may be missing."
-}
+  "equipPelangganDariSimpanan": "Offline — showing the copy saved on this phone. Customers added recently may be missing."}

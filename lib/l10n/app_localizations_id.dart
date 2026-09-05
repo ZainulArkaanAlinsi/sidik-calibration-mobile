@@ -4122,6 +4122,82 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String get dinamisPerluDiperiksa => 'Perlu diperiksa';
+
+  @override
+  String dinamisPerluDiperiksaKeyakinan(int persen) {
+    return 'Perlu diperiksa — keyakinan $persen%';
+  }
+
+  @override
+  String dinamisPerluDiperiksaJumlah(int count) {
+    return '$count nilai perlu diperiksa sebelum disimpan';
+  }
+
+  @override
+  String get dinamisTercetak => 'Tercetak';
+
+  @override
+  String get dinamisBelumTerbaca => 'Belum terbaca';
+
+  @override
+  String get dinamisTanpaLabel => 'Tanpa label';
+
+  @override
+  String get dinamisTanpaJudulKolom => 'Kolom';
+
+  @override
+  String get dinamisLihatAsal => 'Lihat asalnya di foto';
+
+  @override
+  String get dokBacaJudul => 'Baca lembar kerja';
+
+  @override
+  String get dokBacaAjakan =>
+      'Foto lembar kerjanya. Bentuk formnya ngikutin isi lembar — nggak perlu template.';
+
+  @override
+  String get dokBacaTombolFoto => 'Foto lembar';
+
+  @override
+  String get dokBacaSedang => 'Lagi membaca lembarnya…';
+
+  @override
+  String get dokBacaUlangFoto => 'Foto ulang';
+
+  @override
+  String get dokBacaMulaiLagi => 'Mulai lagi';
+
+  @override
+  String get dokBacaNamaAlatLabel => 'Nama alat (opsional)';
+
+  @override
+  String get dokBacaNamaAlatBantuan =>
+      'Cuma petunjuk buat AI. Kalau isi lembarnya beda, yang dipakai lembarnya.';
+
+  @override
+  String get dokSimpanTombol => 'Simpan koreksi';
+
+  @override
+  String get dokSimpanSedang => 'Menyimpan…';
+
+  @override
+  String dokSimpanBerhasil(int jumlah) {
+    return '$jumlah koreksi tersimpan';
+  }
+
+  @override
+  String get dokSimpanBelumAda => 'Belum ada yang dikoreksi';
+
+  @override
+  String get dokReviewTakBisaDitunjuk =>
+      'Asal nilai ini nggak bisa ditunjuk di foto';
+
+  @override
+  String get dokReviewKetukUntukSorot =>
+      'Ketuk nilainya buat lihat asalnya di foto';
+
+  @override
   String fotoReviewJudul(int jumlah) {
     return 'Periksa $jumlah angka';
   }
