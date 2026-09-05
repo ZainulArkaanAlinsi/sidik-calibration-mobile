@@ -891,6 +891,30 @@ class AppLocalizationsId extends AppLocalizations {
   String get historyStatusPerluRevisi => 'Perlu revisi';
 
   @override
+  String get statusAktif => 'Aktif';
+
+  @override
+  String get statusOverdue => 'Jatuh tempo';
+
+  @override
+  String get statusNonaktif => 'Nonaktif';
+
+  @override
+  String get statusDisetujui => 'Disetujui';
+
+  @override
+  String get statusBaru => 'Baru';
+
+  @override
+  String get statusDiproses => 'Diproses';
+
+  @override
+  String get statusSelesai => 'Selesai';
+
+  @override
+  String get statusDibatalkan => 'Dibatalkan';
+
+  @override
   String get historyApprove => 'SETUJUI';
 
   @override
@@ -1837,10 +1861,19 @@ class AppLocalizationsId extends AppLocalizations {
   String get calibKirimApproval => 'KIRIM UNTUK APPROVAL';
 
   @override
+  String calibDraftTitikDilewat(int jumlah) {
+    return 'Draft disimpan, tapi $jumlah baris nggak ikut kesimpen karena nilai acuannya belum diisi. Isi dulu kolom nilai acuannya kalau angka di baris itu mau ikut kebawa.';
+  }
+
+  @override
   String get calibBerhasilDraft => 'Draft kalibrasi disimpan.';
 
   @override
   String get calibBerhasilApproval => 'Sesi kalibrasi dikirim untuk approval.';
+
+  @override
+  String get kirimTertahanRilisWajib =>
+      'Versi baru WAJIB dipasang sebelum sesi bisa dikirim. Simpan Draft dulu — isianmu tidak hilang.';
 
   @override
   String calibGagal(String pesan) {
@@ -1962,6 +1995,16 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get calibTiDenganSensorKeterangan =>
       'Sensornya IKUT dikalibrasi. Sensor & indikator diperiksa sebagai satu rangkaian — sensornya dicelup bareng termometer acuan, jadi yang keluar bacaan rangkaian utuhnya.';
+
+  @override
+  String calibTiRentang(String rentang) {
+    return 'Rentang ukur $rentang';
+  }
+
+  @override
+  String calibTiCmc(String cmc, int jumlah) {
+    return 'CMC $cmc · $jumlah baris kemampuan';
+  }
 
   @override
   String get calibTiBelumSiap => 'Belum ada di server ini';
@@ -2721,6 +2764,23 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get lkFotoTabelTanpaJangkar =>
       'Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom nilai standar (kiri) dan kepala kolom Repeat (nomor 1..5, atau X1 / Repeat 1) ikut kefoto — semuanya, jangan ada yang kepotong. Kolomnya tetap bisa diketik manual.';
+
+  @override
+  String get lkTabelBelumDisimpan =>
+      'Angka di tabel ini tercatat di lembar, tapi BELUM dikirim ke server — belum ada kolom yang menampungnya. Kertasnya jangan dibuang.';
+
+  @override
+  String get lkMatriksFotoTanpaJangkar =>
+      'Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom nama besaran di kiri (Temp. Disk 1, Indikator Pressure, …) dan kepala kolom titik waktu di atas ikut kefoto — semuanya, jangan ada yang kepotong. Baris yang namanya nggak kebaca nggak pernah keisi.';
+
+  @override
+  String get lkGridFotoTanpaJangkar =>
+      'Nggak ada angka yang bisa dipastikan tempatnya. Pastikan kolom No. (nomor termokopel, di kiri) dan kepala kolom pengulangan di atas ikut kefoto — semuanya, jangan ada yang kepotong. Baris yang nomornya belum diketik nggak pernah keisi dari foto.';
+
+  @override
+  String lkGridFotoNomorKembar(String nomor) {
+    return 'Set point ini nggak bisa difoto: nomor termokopel $nomor kepakai di lebih dari satu baris, jadi angkanya nggak bisa dipastikan masuk baris yang mana. Betulin dulu nomor kembarnya.';
+  }
 
   @override
   String lkFotoTabelKolomHilang(String kolom) {
@@ -3516,11 +3576,11 @@ class AppLocalizationsId extends AppLocalizations {
       'Ada temuan yang nahan penerbitan. Tombol setujui dimatiin.';
 
   @override
-  String get perhitKonfirmasiJudul => 'Hasil hitung ulang beda. Lanjut?';
+  String get perhitKonfirmasiJudul => 'Ada peringatan. Lanjut?';
 
   @override
   String get perhitKonfirmasiBody =>
-      'Angka hasil hitung ulang beda dari yang tersimpan. Kalau tetap disetujui, sertifikatnya terbit pakai angka yang tersimpan.';
+      'Kalau tetap disetujui, sertifikatnya terbit pakai angka yang tersimpan.';
 
   @override
   String get perhitKonfirmasiBatal => 'PERIKSA LAGI';
@@ -3778,6 +3838,11 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String lkStandarBelumDicentang(String titik) {
     return 'Titik $titik udah diisi angkanya tapi standar acuannya belum dicentang — angkanya nggak bisa dihitung. Centang standarnya, atau kosongkan barisnya kalau alat ini emang nggak pakai titik itu.';
+  }
+
+  @override
+  String lkSetPointKosong(String titik) {
+    return 'Titik $titik udah diisi angkanya tapi kotak Setpoint-nya masih kosong atau nggak kebaca sebagai angka — SELURUH barisnya, termasuk kotak pembacaan yang udah diisi, nggak bakal ikut terkirim. Isi Setpoint-nya dulu, atau kosongkan barisnya kalau titik itu emang nggak dipakai.';
   }
 
   @override
@@ -4055,4 +4120,212 @@ class AppLocalizationsId extends AppLocalizations {
   String lkAlatBaruTersimpan(String nama) {
     return 'Alat \"$nama\" tersimpan dan langsung dipakai di lembar ini.';
   }
+
+  @override
+  String fotoReviewJudul(int jumlah) {
+    return 'Periksa $jumlah angka';
+  }
+
+  @override
+  String get fotoReviewPengantar =>
+      'Angka di bawah dibaca dari foto, belum masuk lembar. Adu tiap angka ke potongan gambarnya, betulkan yang meleset, baru tekan Masukkan. Tulisan tangan tidak pernah dianggap pasti — sekalipun persentasenya tinggi.';
+
+  @override
+  String get fotoReviewMasukkan => 'MASUKKAN KE LEMBAR';
+
+  @override
+  String get fotoReviewKetikSendiri =>
+      'Ketik sendiri — bacaannya tidak bisa dipercaya';
+
+  @override
+  String fotoReviewKeyakinan(int persen) {
+    return 'Keyakinan $persen%';
+  }
+
+  @override
+  String get fotoReviewKeyakinanTakAda => 'Keyakinan tidak dilaporkan';
+
+  @override
+  String fotoReviewMasihKosong(int jumlah) {
+    return '$jumlah sel masih kosong dan wajib diisi.';
+  }
+
+  @override
+  String get skemaDinamisJudul => 'Lembar tidak dikenal';
+
+  @override
+  String get skemaDinamisPengantar =>
+      'Lembar ini belum punya bentuk baku di aplikasi, jadi isinya dibaca langsung dari foto. Periksa tiap isian sebelum disimpan — tidak ada satu pun yang dianggap pasti.';
+
+  @override
+  String get skemaDinamisTanpaSatuan => 'tanpa satuan';
+
+  @override
+  String skemaDinamisTabel(int nomor) {
+    return 'Tabel $nomor';
+  }
+
+  @override
+  String get skemaDinamisSimpan => 'SIMPAN HASIL BACAAN';
+
+  @override
+  String skemaDinamisMasihKosong(int jumlah) {
+    return '$jumlah isian bervonis merah masih kosong dan wajib diisi.';
+  }
+
+  @override
+  String get skemaDinamisKosong =>
+      'Tidak ada isian maupun tabel yang terbaca dari foto ini. Coba jepret ulang dengan seluruh lembar masuk frame.';
+
+  @override
+  String get petaKolomJudul => 'Kolom mana artinya apa';
+
+  @override
+  String get petaKolomPengantar =>
+      'Aplikasi bisa lihat kertasnya punya berapa kolom, tapi tidak bisa tahu kolom mana nilai acuan dan mana pembacaan alat. Kamu yang menentukan. Salah tunjuk bikin koreksi di sertifikat kebalik tandanya, dengan angka yang tetap kelihatan wajar.';
+
+  @override
+  String get petaKolomAbaikan => 'Abaikan';
+
+  @override
+  String get petaKolomNilaiAcuan => 'Nilai acuan';
+
+  @override
+  String get petaKolomPembacaan => 'Pembacaan';
+
+  @override
+  String get petaKolomSatuan => 'Satuan';
+
+  @override
+  String get petaKolomSatuanBantu =>
+      'Diketik, bukan dibaca dari kertas — satuan yang salah mengubah arti seluruh angkanya.';
+
+  @override
+  String get petaKolomSatuanWajib => 'Satuannya belum diisi.';
+
+  @override
+  String petaKolomKolomKe(int nomor) {
+    return 'Kolom $nomor';
+  }
+
+  @override
+  String petaKolomContoh(String nilai) {
+    return 'contoh isi: $nilai';
+  }
+
+  @override
+  String get petaKolomTanpaAcuan =>
+      'Belum ada kolom yang ditunjuk sebagai nilai acuan.';
+
+  @override
+  String get petaKolomAcuanDobel =>
+      'Dua kolom ditunjuk jadi nilai acuan. Satu titik ukur cuma punya satu.';
+
+  @override
+  String petaKolomPembacaanKurang(int jumlah) {
+    return 'Butuh minimal $jumlah kolom pembacaan — sebaran tidak bisa dihitung dari satu angka.';
+  }
+
+  @override
+  String petaKolomRingkas(int jumlah) {
+    return '$jumlah titik ukur akan diisi ke form.';
+  }
+
+  @override
+  String petaKolomDilewat(int jumlah) {
+    return '$jumlah baris dilewat karena nilai acuannya kosong.';
+  }
+
+  @override
+  String get petaKolomTerapkan => 'ISI TITIK UKUR';
+
+  @override
+  String get calibBacaFoto => 'BACA DARI FOTO LEMBAR';
+
+  @override
+  String get calibBacaFotoGagal =>
+      'Fotonya tidak bisa dibaca. Coba jepret ulang dengan seluruh lembar masuk frame.';
+
+  @override
+  String get calibBacaFotoTanpaTabel =>
+      'Tidak ada tabel yang terbaca dari foto ini. Titik ukur diambil dari tabel di kertasnya, jadi pastikan tabelnya ikut kefoto.';
+
+  @override
+  String calibBacaFotoSelesai(int jumlah) {
+    return '$jumlah titik ukur diisi dari foto. Periksa angkanya sebelum kirim.';
+  }
+
+  @override
+  String get pilihTabelJudul => 'Pakai tabel yang mana?';
+
+  @override
+  String get pilihTabelPengantar =>
+      'Foto ini punya lebih dari satu tabel. Pilih yang berisi titik ukur — bukan tabel identitas alat.';
+
+  @override
+  String get equipPelangganTidakKetemu => 'Nggak ada di daftar pelanggan lab?';
+
+  @override
+  String get equipPelangganDaftarBaru => 'DAFTARKAN PT BARU';
+
+  @override
+  String get pelangganBaruJudul => 'PT baru';
+
+  @override
+  String get pelangganBaruPengantar =>
+      'Cari di direktori perusahaan, atau ketik nama & alamatnya sendiri. Yang tersimpan di sini langsung kepakai — nggak nunggu admin.';
+
+  @override
+  String get pelangganBaruNama => 'Nama PT';
+
+  @override
+  String get pelangganBaruAlamat => 'Alamat';
+
+  @override
+  String get pelangganBaruAlamatBantu => 'Tercetak di blok OWNER sertifikat.';
+
+  @override
+  String get pelangganBaruCariDirektori => 'CARI DI DIREKTORI';
+
+  @override
+  String get pelangganBaruDirektoriJudul => 'Hasil direktori';
+
+  @override
+  String get pelangganBaruDirektoriKosong =>
+      'Nggak ada perusahaan yang cocok di direktori. Ketik nama & alamatnya manual.';
+
+  @override
+  String get pelangganBaruDirektoriCatatan =>
+      'Direktori memuat perusahaan sebagaimana dia muncul di peta, bukan sebagaimana tertulis di akta. Adu dulu ke surat pesanan pelanggan sebelum disimpan.';
+
+  @override
+  String get pelangganBaruDaftarkan => 'DAFTARKAN';
+
+  @override
+  String get pelangganBaruNamaWajib => 'Nama PT wajib diisi.';
+
+  @override
+  String get pelangganBaruMiripJudul =>
+      'Sudah ada di daftar — maksudmu yang ini?';
+
+  @override
+  String get pelangganBaruMiripPilih => 'Ketuk salah satu buat memakainya.';
+
+  @override
+  String get pelangganBaruTetapBuat => 'PERUSAHAAN LAIN — TETAP DAFTARKAN';
+
+  @override
+  String get pelangganBaruGagal => 'Gagal mendaftarkan pelanggan.';
+
+  @override
+  String get pelangganBaruDirektoriTiadaLab =>
+      'Direktori perusahaan nggak tersedia di lab ini. Ketik nama & alamatnya di bawah.';
+
+  @override
+  String get pelangganBaruDirektoriMati =>
+      'Direktori lagi nggak bisa diakses. Ketik nama & alamatnya di bawah, atau coba lagi nanti.';
+
+  @override
+  String get equipPelangganDariSimpanan =>
+      'Lagi offline — ini salinan yang tersimpan di HP. Pelanggan yang baru didaftarkan bisa saja belum ada.';
 }

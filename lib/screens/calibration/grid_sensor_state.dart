@@ -11,6 +11,8 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../models/lembar_kerja.dart';
+import '../../models/lembar_kerja_submission.dart';
+import '../../services/peta_tabel_foto.dart';
 
 /// Satu baris termokopel di dalam satu set point.
 class BarisSensorState {
@@ -44,14 +46,36 @@ class BarisSensorState {
   /// Repeat 2 dan seluruh nomor pengulangan geser.
   final List<double?> pembacaan;
 
+  /// Index pengulangan yang isinya datang dari FOTO, bukan diketik.
+  ///
+  /// Ditandai kuning di layar, alasan yang sama dengan `TandaSel.keyakinanRendah`
+  /// di jalur tabel: angka hasil OCR itu **saran**, dan yang menandatangani
+  /// sertifikatnya manusia.
+  final Set<int> dariFoto = {};
+
+  /// Tebakan mesin per index pengulangan, buat sel yang keisi dari foto.
+  ///
+  /// Sengaja TERPISAH dari [pembacaanCtl] dan nggak pernah dihapus waktu
+  /// teknisi mengetik ulang: pasangan (tebakan, angka final) itu satu-satunya
+  /// bahan buat mengukur akurasi kamera. Lihat [BacaanMesin].
+  final Map<int, BacaanMesin> bacaanMesin = {};
+
+  /// Nomor termokopelnya sendiri datang dari FOTO.
+  ///
+  /// Ini yang paling penting ditandai di seluruh baris. Nomor yang salah baca
+  /// memindahkan SELURUH baris ke termokopel yang salah — dan nomor itu yang
+  /// menentukan koreksi mana yang dipakai serta sensor mana jadi Sensor Acuan.
+  /// Ditandai kuning, dia kelihatan dan bisa dibetulkan di satu tempat;
+  /// membetulkannya memindahkan barisnya utuh, pembacaannya ikut.
+  bool noDariFoto = false;
+
   int? get no => int.tryParse(noCtl.text.trim());
   int? get channel => int.tryParse(channelCtl.text.trim());
 
   /// Berapa sel pembacaan yang benar-benar terisi.
   int get jumlahTerisi => pembacaan.where((n) => n != null).length;
 
-  bool get kosongSemua =>
-      no == null && channel == null && jumlahTerisi == 0;
+  bool get kosongSemua => no == null && channel == null && jumlahTerisi == 0;
 
   /// Baris ini bakal ditolak hitung backend karena pembacaannya kurang dari 4.
   ///
@@ -92,6 +116,13 @@ class BarisDeretState {
   final List<double?> nilai;
   final List<TextEditingController> ctl;
 
+  /// Index pengulangan yang isinya datang dari FOTO — lihat
+  /// [BarisSensorState.dariFoto].
+  final Set<int> dariFoto = {};
+
+  /// Tebakan mesin per index — lihat [BarisSensorState.bacaanMesin].
+  final Map<int, BacaanMesin> bacaanMesin = {};
+
   int get jumlahTerisi => nilai.where((n) => n != null).length;
   bool get kosongSemua => jumlahTerisi == 0;
 
@@ -127,7 +158,9 @@ class SetPointGridState {
        ) {
     final n = jumlahSensorAwal ?? bentuk.jumlahSensorSaran;
     for (var i = 0; i < n; i++) {
-      sensor.add(BarisSensorState(jumlahPengulangan: bentuk.pengulangan.length));
+      sensor.add(
+        BarisSensorState(jumlahPengulangan: bentuk.pengulangan.length),
+      );
     }
   }
 
@@ -204,7 +237,9 @@ class SetPointGridState {
 
     final terisi = sensorTerisi;
     if (terisi.isEmpty) {
-      pesan.add('Belum ada termokopel yang diisi — set point ini nggak dihitung.');
+      pesan.add(
+        'Belum ada termokopel yang diisi — set point ini nggak dihitung.',
+      );
     } else if (terisi.length < 2) {
       pesan.add(
         'Baru 1 termokopel. Keseragaman & Variasi itu selisih antar-posisi — '
@@ -219,13 +254,17 @@ class SetPointGridState {
 
     final kurang = sensorPembacaanKurang;
     if (kurang.isNotEmpty) {
-      final daftar = kurang.map((s) => 'no. ${s.no} (${s.jumlahTerisi}×)').join(', ');
+      final daftar = kurang
+          .map((s) => 'no. ${s.no} (${s.jumlahTerisi}×)')
+          .join(', ');
       pesan.add('Pembacaan kurang dari 4: $daftar.');
     }
 
     final kembar = nomorKembar;
     if (kembar.isNotEmpty) {
-      pesan.add('Nomor termokopel kembar: ${kembar.join(", ")}. Ditolak server.');
+      pesan.add(
+        'Nomor termokopel kembar: ${kembar.join(", ")}. Ditolak server.',
+      );
     }
 
     if (bentuk.butuhChannel(merkKalibrator)) {
@@ -241,6 +280,193 @@ class SetPointGridState {
     return pesan;
   }
 
+  /// Label baris deret seperti digambar layar — dan tulisan yang dicari di FOTO
+  /// buat menjangkar kedua baris itu. Satu sumber, dipakai dua-duanya: label
+  /// yang digambar beda dari label yang dicari berarti barisnya nggak pernah
+  /// kejangkar, dan nggak ada yang memberitahu.
+  static const labelIndikator = 'Indikator';
+  static const labelSuhuRuang = 'Suhu Ruang';
+
+  /// Penanda baris buat kedua baris deret.
+  ///
+  /// [PetaTabelFoto] menjangkar baris lewat ANGKA di kolom kiri, sementara dua
+  /// baris ini di kertas ditandai TULISAN. Jalur `labelTercetak` yang sudah ada
+  /// (dibikin buat Viscometer) mencocokkan teks, tapi tetap butuh angka sebagai
+  /// kuncinya — jadi keduanya diberi angka yang **mustahil jadi pembacaan**.
+  ///
+  /// Bukan `-1` / `-2`: toleransi jangkar baris itu 0,5% RELATIF, jadi di dekat
+  /// nol dia praktis jadi kecocokan persis — dan lembar Refrigerator memang
+  /// mencatat suhu −1 °C. Sejuta menjauhkan keduanya dari rentang mana pun yang
+  /// bisa muncul di chamber.
+  static const kunciIndikator = -1000001.0;
+  static const kunciSuhuRuang = -1000002.0;
+
+  /// Penanda baris + tulisan tercetaknya, buat memetakan foto blok INI.
+  ///
+  /// [nomorTerbaca] nomor termokopel yang KEBACA DI FOTO
+  /// ([PetaTabelFoto.nomorBarisTerbaca]), bukan yang ada di layar. Urutan
+  /// kerjanya memang begitu — pemilik lab memutuskan teknisi **motret dulu,
+  /// nomornya belakangan** (27 Agt 2026), jadi waktu tombolnya ditekan layarnya
+  /// masih kosong dan nggak ada yang bisa dicocokkan.
+  ///
+  /// Dua baris deret ikut dengan penanda karangan, dijangkar TULISANNYA.
+  ({List<double> penanda, Map<double, String> label}) penandaBarisFoto(
+    List<int> nomorTerbaca,
+  ) {
+    final penanda = [for (final n in nomorTerbaca) n.toDouble()];
+    final label = <double, String>{};
+
+    if (bentuk.barisIndikator) {
+      penanda.add(kunciIndikator);
+      label[kunciIndikator] = labelIndikator;
+    }
+
+    if (bentuk.barisSuhuRuang) {
+      penanda.add(kunciSuhuRuang);
+      label[kunciSuhuRuang] = labelSuhuRuang;
+    }
+
+    return (penanda: penanda, label: label);
+  }
+
+  /// Tempelkan hasil foto ke kotak-kotaknya. Balik berapa sel yang keisi.
+  ///
+  /// ## Barisnya DICARIKAN tempat, bukan dicocokkan ke yang sudah ada
+  ///
+  /// Karena nomornya datang dari foto (lihat [penandaBarisFoto]), baris
+  /// tujuannya belum tentu ada di layar. Aturannya satu, dan dia melayani dua
+  /// urutan kerja sekaligus:
+  ///
+  ///  1. Sudah ada baris bernomor sama → yang diisi cuma kotak KOSONG-nya, dan
+  ///     nomornya nggak disentuh: itu angka yang diketik orang.
+  ///  2. Belum ada → dipakai baris pertama yang masih kosong SAMA SEKALI,
+  ///     nomornya ikut ditulis dan ditandai kuning. Kalau nggak ada baris
+  ///     kosong tersisa, barisnya ditambah.
+  ///
+  /// Kotak yang sudah ada isinya tidak pernah ditimpa. Foto itu jalan pintas;
+  /// angka yang sudah diketik orang adalah keputusan orang, dan menimpanya
+  /// diam-diam menghapus koreksi yang baru saja dia betulkan tanpa satu pun
+  /// tanda.
+  int terapkanHasilFoto(List<SelTabelFoto> sel) {
+    var terisi = 0;
+
+    for (final s in sel) {
+      // Nomor pengulangan yang TERCETAK di kertas, diterjemahkan lewat
+      // `bentuk.pengulangan` — bukan `repeatNo - 1`.
+      //
+      // Pengurangan satu diam-diam mengandaikan deretnya selalu `1, 2, 3, …`.
+      // `GridSensorBentuk.fromJson` nerima deret apa pun, dan lembar yang
+      // kertasnya bernomor `2, 4, 6` bikin dua hal salah sekaligus: angka
+      // kolom `2` mendarat di kolom `4` (posisi 1), dan kolom `4` & `6`
+      // kebuang di pemeriksaan batas. Salah tempat itu yang lebih mahal —
+      // angkanya wajar, kolomnya bukan miliknya.
+      final index = bentuk.pengulangan.indexOf(s.repeatNo);
+      if (index < 0) continue;
+
+      // Teksnya diurai di sini, bukan di pemetanya: yang di sana cuma menjawab
+      // "tempatnya di mana". Yang nggak jadi angka dilewat — bukan ditulis
+      // mentah ke kotak yang cuma nerima angka.
+      final nilai = double.tryParse(s.teks.trim().replaceAll(',', '.'));
+      if (nilai == null) continue;
+
+      final ctl = _kotakFoto(s.titikUkur, index);
+      if (ctl == null || ctl.text.trim().isNotEmpty) continue;
+
+      ctl.text = s.teks.trim();
+      // Teks APA ADANYA, bukan `nilai` yang sudah jadi angka: yang mau diukur
+      // nanti persis apa yang dilihat pengenalnya, termasuk waktu dia salah.
+      _tandaiFoto(
+        s.titikUkur,
+        index,
+        BacaanMesin(teksMentah: s.teks, keyakinan: s.keyakinan),
+      );
+      terisi++;
+    }
+
+    if (terisi > 0) bacaUlang();
+
+    return terisi;
+  }
+
+  /// Angka FINAL satu sel — label buat potongan yang ditahan sejak difoto.
+  ///
+  /// Nomor pengulangannya diterjemahkan lewat `bentuk.pengulangan` yang SAMA
+  /// PERSIS dipakai [terapkanHasilFoto]. Dua cara yang beda bikin labelnya
+  /// menempel di potongan sel yang salah — dan di data latih, salah alamat
+  /// nggak pernah kelihatan.
+  ///
+  /// Balikin `null` kalau nomor Repeat-nya nggak ada di lembar ini, atau
+  /// selnya memang nggak ada (baris indikator yang dimatikan, misalnya).
+  String? labelSelFoto(double penanda, int repeatNo) {
+    final index = bentuk.pengulangan.indexOf(repeatNo);
+    if (index < 0) return null;
+
+    return _kotakFoto(penanda, index)?.text;
+  }
+
+  /// Kotak isian buat satu (penanda baris, index pengulangan).
+  ///
+  /// Baris termokopel yang belum ada **dibikin di sini** — lihat aturan di
+  /// [terapkanHasilFoto]. `null` cuma buat baris deret yang lembar ini memang
+  /// nggak punya.
+  TextEditingController? _kotakFoto(double penanda, int index) {
+    if (penanda == kunciIndikator) {
+      return bentuk.barisIndikator ? indikator.ctl[index] : null;
+    }
+
+    if (penanda == kunciSuhuRuang) {
+      return bentuk.barisSuhuRuang ? suhuRuang.ctl[index] : null;
+    }
+
+    return _barisNomor(penanda).pembacaanCtl[index];
+  }
+
+  /// Baris termokopel bernomor [penanda] — dicari, atau dibikin.
+  BarisSensorState _barisNomor(double penanda) {
+    final no = penanda.round();
+
+    for (final s in sensor) {
+      if (s.no == no) return s;
+    }
+
+    // Baris pertama yang masih kosong SAMA SEKALI. Baris yang sudah dipakai
+    // teknisi (nomornya diketik, atau angkanya sudah masuk) nggak diambil alih.
+    for (final s in sensor) {
+      if (s.kosongSemua) {
+        s.noCtl.text = '$no';
+        s.noDariFoto = true;
+
+        return s;
+      }
+    }
+
+    tambahSensor();
+    sensor.last.noCtl.text = '$no';
+    sensor.last.noDariFoto = true;
+
+    return sensor.last;
+  }
+
+  void _tandaiFoto(double penanda, int index, BacaanMesin bacaan) {
+    if (penanda == kunciIndikator) {
+      indikator.dariFoto.add(index);
+      indikator.bacaanMesin[index] = bacaan;
+
+      return;
+    }
+
+    if (penanda == kunciSuhuRuang) {
+      suhuRuang.dariFoto.add(index);
+      suhuRuang.bacaanMesin[index] = bacaan;
+
+      return;
+    }
+
+    final baris = _barisNomor(penanda);
+    baris.dariFoto.add(index);
+    baris.bacaanMesin[index] = bacaan;
+  }
+
   void bacaUlang() {
     for (final s in sensor) {
       s.bacaUlang();
@@ -249,8 +475,9 @@ class SetPointGridState {
     suhuRuang.bacaUlang();
   }
 
-  void tambahSensor() =>
-      sensor.add(BarisSensorState(jumlahPengulangan: bentuk.pengulangan.length));
+  void tambahSensor() => sensor.add(
+    BarisSensorState(jumlahPengulangan: bentuk.pengulangan.length),
+  );
 
   void hapusSensor(int index) {
     if (index < 0 || index >= sensor.length) return;
@@ -329,6 +556,29 @@ class GridSensorState {
   /// berpengaruh justru bikin hasil aplikasi beda dari hitungan lab di kertas.
   /// Yang kecetak di sertifikat itu Suhu Ruangan awal/akhir di blok Kondisi
   /// Lingkungan; nama mirip, hal beda.
+  /// Deret tebakan mesin siap kirim, sejajar indeks sama deret angkanya.
+  ///
+  /// Balikin `null` — bukan deret berisi null — kalau nggak ada satu pun sel
+  /// yang datang dari foto. Kunci kosong yang tetap terkirim bikin pembacanya
+  /// mengira ada jalur kamera di baris itu, dan buat baris grid yang jumlahnya
+  /// sampai 40 per set point, itu juga beban yang nggak dibayar apa pun.
+  ///
+  /// Panjangnya SELALU sepanjang deret angkanya. Server membaca
+  /// `$deret[$urutan]` dengan indeks yang sama persis, jadi deret yang
+  /// dirapatkan bikin tebakan Repeat 3 tercatat sebagai tebakan Repeat 1 —
+  /// pasangan yang salah, tanpa satu pun error.
+  Map<String, dynamic>? _ocr(
+    String kunci,
+    Map<int, BacaanMesin> bacaan,
+    int panjang,
+  ) {
+    if (bacaan.isEmpty) return null;
+
+    return {
+      kunci: [for (var i = 0; i < panjang; i++) bacaan[i]?.toJson()],
+    };
+  }
+
   List<Map<String, dynamic>> payload({
     required String satuan,
     required bool pakaiChannel,
@@ -344,6 +594,7 @@ class GridSensorState {
           // Dikirim penuh sepanjang kolom, termasuk null-nya. Backend yang
           // menyaring; layar nggak boleh menggeser nomor pengulangan.
           'pembacaan': s.pembacaan,
+          ...?_ocr('ocr', s.bacaanMesin, s.pembacaan.length),
         });
       }
 
@@ -352,7 +603,19 @@ class GridSensorState {
         'satuan': satuan,
         if (grid.isNotEmpty) 'sensor_grid': grid,
         if (!sp.indikator.kosongSemua) 'indikator': sp.indikator.nilai,
+        if (!sp.indikator.kosongSemua)
+          ...?_ocr(
+            'indikator_ocr',
+            sp.indikator.bacaanMesin,
+            sp.indikator.nilai.length,
+          ),
         if (!sp.suhuRuang.kosongSemua) 'suhu_ruang': sp.suhuRuang.nilai,
+        if (!sp.suhuRuang.kosongSemua)
+          ...?_ocr(
+            'suhu_ruang_ocr',
+            sp.suhuRuang.bacaanMesin,
+            sp.suhuRuang.nilai.length,
+          ),
       });
     }
 

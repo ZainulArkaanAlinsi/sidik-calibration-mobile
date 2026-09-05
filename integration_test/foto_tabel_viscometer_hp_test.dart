@@ -179,7 +179,10 @@ void main() {
     expect(hasil.sel, hasLength(30), reason: '3 titik × 5 Repeat × 2 kolom');
 
     // Angkanya masuk kotak isian formulir, bukan cuma terpetakan.
-    final terisi = isian.terapkanHasilFotoTabel(hasil.sel, tahap: tabel.tahap);
+    final terisi = isian.terapkanHasilFotoTabel(
+      hasil.sel,
+      tabel: tabel,
+    );
     expect(terisi, 30);
 
     // Beberapa sel diadu ke angka sesi master yang dirender di gambarnya.

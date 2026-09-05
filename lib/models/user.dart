@@ -93,7 +93,23 @@ class User {
       id: json['id'] as int,
       nama: json['nama'] as String,
       email: json['email'] as String,
-      employeeId: json['employee_id'] as String,
+      // `as String?`, bukan `as String`. Kolomnya `nullable` di DB —
+      // migrasi 2026_07_14_110000 sengaja bikin begitu buat baris lama — dan
+      // `UserResource` meneruskannya apa adanya tanpa `?? ''`.
+      //
+      // Cast keras di sini bikin akun seperti itu HILANG DIAM-DIAM dari layar
+      // admin: `TypeError`-nya ditelan `parseListAman` (`catch (_)`), barisnya
+      // dilewat, dan tidak ada error di mana pun. Admin tidak bisa approve
+      // atau reset password akun yang tidak pernah dia lihat. Di jalur login
+      // akibatnya beda tapi sama buruknya — `TypeError` yang muncul sebagai
+      // pesan gagal generik.
+      //
+      // Dijadikan string kosong, bukan `String?`: satu-satunya layar yang
+      // peduli sudah menanganinya (`technician_list_screen` menampilkan
+      // `teknisiTanpaEmployeeId` kalau kosong), jadi tipe non-null di sini
+      // menghindari perubahan yang merembet ke belasan pemanggil tanpa
+      // menambah satu pun perlindungan.
+      employeeId: json['employee_id'] as String? ?? '',
       kodeTeknisi: json['kode_teknisi'] as String?,
       role: UserRole.fromApi(json['role'] as String),
       // Backend lama yang belum ngirim `status` dianggap aktif — biar app

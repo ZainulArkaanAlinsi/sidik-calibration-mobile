@@ -62,10 +62,32 @@ class AppConfig {
   ///    nggak bermarker, satu jepretan per tabel, dan jangkarnya tulisan yang
   ///    memang tercetak di kertas (titik ukur + kepala kolom pengulangan).
   ///    Jadi dia NGGAK butuh lembar bermarker maupun `terverifikasi`.
-  ///    Digerbangi `pindai_foto.didukung` dari server, yang `false` buat
-  ///    Autoklaf, TIDS, dan kelima Enclosure — kertas mereka berbentuk matriks
-  ///    / dua tabel interval / grid sensor, dan dua penanda bentuk yang
-  ///    dikirim server nggak sanggup menggambarkannya.
+  ///
+  /// ### Tiga bentuk kertas, tiga jangkar baris yang beda
+  ///
+  /// Tombol kedua itu satu nama buat tiga jalur, dan yang membedakan **apa yang
+  /// menjangkar barisnya**:
+  ///
+  ///  1. **Titik ukur × Repeat** (13 lembar) — baris dijangkar NILAI standar
+  ///     yang tercetak di kolom kiri. Digerbangi `pindai_foto.didukung` dari
+  ///     server, dan dua penanda bentuk yang menyertainya cuma sanggup
+  ///     menggambarkan bentuk ini.
+  ///  2. **Grid sensor** (kelima Enclosure) — baris dijangkar NOMOR TERMOKOPEL
+  ///     yang sudah diketik teknisi; sumbu ketiganya (set point) datang dari
+  ///     blok tempat tombolnya ditekan, bukan dari citra. Tombolnya di
+  ///     `LembarKerjaGrid`, satu per blok.
+  ///  3. **Matriks** (Autoklaf) — baris dijangkar TULISAN nama besaran
+  ///     (`Temp. Disk 1`, `Indikator Pressure`) di kolom kiri. Tombolnya di
+  ///     `LembarKerjaMatriks`.
+  ///
+  /// Dua yang terakhir SENGAJA nggak membaca `pindai_foto.didukung`: penanda
+  /// itu `false` buat mereka, dan itu benar — kertasnya memang nggak muat di
+  /// bentuk titik × Repeat. Yang menggerbanginya keberadaan grid/matriksnya
+  /// sendiri, plus saklar ini.
+  ///
+  /// **Yang masih belum punya jalur kamera cuma TIDS**, dan yang menahan bukan
+  /// pemetanya: baris lembarnya sendiri belum sampai ke layar (K18 — lihat
+  /// `test/tids_baris_tanpa_titik_test.dart`).
   ///
   /// Jalur AI Vision **cloud** yang dulu memberi makan tombol kedua sudah
   /// dicabut; jangan baca "FOTO TABEL INI" sebagai jalur cloud.

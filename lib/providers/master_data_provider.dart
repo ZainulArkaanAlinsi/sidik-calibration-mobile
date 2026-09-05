@@ -5,6 +5,7 @@ import '../models/customer.dart';
 import '../models/customer_lookup.dart';
 import '../models/order.dart';
 import '../models/organization.dart';
+import '../models/perusahaan_direktori.dart';
 import '../models/user.dart';
 import '../services/customer_lookup_service.dart';
 import '../services/customer_service.dart';
@@ -13,6 +14,8 @@ import '../services/organization_service.dart';
 import '../services/user_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
+import 'penjaga_urutan_muat.dart';
+import 'simpanan_pelanggan_provider.dart';
 
 /// Live sejak 14 Jul (`docs/kontrak-api.md` §8) — admin doang.
 final organizationServiceProvider = Provider<OrganizationService>((ref) {
@@ -30,6 +33,19 @@ final customerLookupServiceProvider = Provider<CustomerLookupService>((ref) {
   return ApiCustomerLookupService(ref.watch(apiClientProvider));
 });
 
+/// Hasil pencarian pelanggan, berikut dari mana dia datang.
+///
+/// [dariSimpanan] ikut karena teknisi berhak tahu daftar yang dia lihat
+/// mungkin ketinggalan — pelanggan yang baru didaftarkan admin sejam lalu
+/// belum ada di situ. Tanpa penanda ini, "nggak ketemu" waktu offline kebaca
+/// sama persis dengan "beneran nggak ada", dan dia mendaftarkan ulang
+/// perusahaan yang sebenarnya sudah terdaftar.
+typedef HasilPelanggan = ({
+  List<CustomerLookup> daftar,
+  bool dariSimpanan,
+  DateTime? diambil,
+});
+
 /// Isi picker pelanggan di form Alat. **Jangan diganti [customerProvider]**
 /// walaupun isinya mirip: yang itu narik `GET /customers` yang admin-only,
 /// jadi daftarnya bakal kosong di akun teknisi — padahal teknisi boleh nambah
@@ -39,16 +55,98 @@ final customerLookupServiceProvider = Provider<CustomerLookupService>((ref) {
 /// dipaginasi 15/halaman di backend, jadi lab yang pelanggannya lebih dari itu
 /// nggak bakal nemu sebagian pelanggannya kalau nyarinya cuma di sisi mobile.
 /// Pencariannya dikerjain server lewat `?search=`.
-final customerLookupProvider =
-    FutureProvider.family<List<CustomerLookup>, String>((ref, search) async {
-      // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+final customerLookupProvider = FutureProvider.family<HasilPelanggan, String>(
+  (ref, search) async {
+    // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+    final akun = ref.watch(authProvider).value;
+
+    final simpanan = ref.read(simpananPelangganProvider);
+    final token = await ref.read(tokenStorageProvider).read();
+
+    if (token == null) throw const TokenHilangException();
+
+    try {
+      final daftar = await ref
+          .read(customerLookupServiceProvider)
+          .cari(token, search: search);
+
+      // Cuma daftar UTUH yang disimpan, bukan hasil pencarian.
+      //
+      // Menyimpan hasil `?search=` bikin isi simpanan bergantung pada apa
+      // yang kebetulan terakhir dicari — dan waktu offline, teknisi cuma
+      // menemukan pelanggan yang pernah dia ketik namanya. Daftar utuh
+      // memang lebih besar, tapi itulah yang bikin jalur offline berguna.
+      if (search.trim().isEmpty) {
+        await simpanan.simpan(akun?.organizationId, daftar);
+      }
+
+      return (daftar: daftar, dariSimpanan: false, diambil: null);
+    } catch (_) {
+      // Server nggak bisa dihubungi → pakai salinan di HP.
+      //
+      // Teknisi berdiri di dalam pabrik: beton, mesin, dan sering nol
+      // sinyal. Kalau pemilih pelanggan cuma jalan waktu server bisa
+      // dihubungi, dia mentok persis di tempat yang paling sering dia
+      // datangi.
+      final isi = await simpanan.baca(akun?.organizationId);
+
+      // Nggak ada salinan sama sekali → biarkan gagalnya naik apa adanya.
+      // Memulangkan daftar kosong di sini bikin layarnya bilang "pelanggan
+      // nggak ketemu" padahal yang terjadi servernya mati — dan teknisi
+      // yang percaya itu mendaftarkan ulang pelanggan yang sudah ada.
+      if (isi == null) rethrow;
+
+      return (
+        daftar: simpanan.saring(isi.daftar, search),
+        dariSimpanan: true,
+        diambil: isi.diambil,
+      );
+    }
+  },
+  // `retry: null` = **matiin retry otomatis bawaan Riverpod 3**, sama
+  // kayak provider tetangganya di berkas ini.
+  //
+  // Ini yang KETINGGALAN dari awal, dan akibatnya justru paling parah di
+  // layar ini. Providernya gagal cuma waktu server nggak kejangkau DAN
+  // nggak ada salinan di HP — yaitu teknisi yang lagi di dalam pabrik,
+  // baterainya dipakai seharian, sinyalnya nol. Dengan retry bawaan,
+  // keadaan gagal nggak pernah sampai ke layar sama sekali: state-nya
+  // nyangkut di `AsyncLoading(retrying)`, jadi yang dia lihat pemuat yang
+  // muter terus — sementara HP-nya nembak server mati berulang-ulang
+  // dengan jeda yang makin lebar, dan nggak ada satu pun jalan buat
+  // ngetik nama PT-nya manual.
+  //
+  // Lebih jujur: tampilin gagalnya, dan biarkan dia lanjut jalan.
+  retry: (retryCount, error) => null,
+);
+
+/// Hasil pencarian direktori LUAR, di-key kata kuncinya.
+///
+/// Dipisah dari [customerLookupProvider] dan sengaja **bukan** digabung jadi
+/// satu daftar di server: dua-duanya jawaban atas pertanyaan yang berbeda, dan
+/// yang di sini jauh lebih mahal. Master lab itu query ke basis data sendiri —
+/// murah, instan, boleh ditembak tiap ketikan. Direktori luar itu panggilan ke
+/// layanan pihak ketiga yang punya kuota dan kebijakan pemakaian.
+///
+/// Karena itu layar yang memakainya cuma me-`watch` provider ini kalau master
+/// lab sudah menjawab NOL — bukan tiap huruf. Riverpod nggak membangun provider
+/// yang nggak di-`watch`, jadi penjagaan itu cukup dilakukan di sisi layar.
+///
+/// `retry: null` sama alasannya dengan tetangganya, dan di sini lebih penting:
+/// mencoba ulang otomatis ke direktori yang lagi mati itu menggempur layanan
+/// yang membatasi permintaan — dan yang diblokir alamat IP server lab.
+final direktoriPerusahaanProvider =
+    FutureProvider.family<HasilDirektori, String>((ref, kata) async {
+      // Ikut akun yang login: ganti akun → hasil lab sebelumnya nggak ikut.
       ref.watch(authProvider);
 
       final token = await ref.read(tokenStorageProvider).read();
       if (token == null) throw const TokenHilangException();
 
-      return ref.read(customerLookupServiceProvider).cari(token, search: search);
-    });
+      return ref
+          .read(customerLookupServiceProvider)
+          .cariDirektori(token, search: kata);
+    }, retry: (retryCount, error) => null);
 
 final organizationProvider =
     AsyncNotifierProvider<OrganizationController, Organization>(
@@ -56,7 +154,8 @@ final organizationProvider =
       retry: (retryCount, error) => null,
     );
 
-class OrganizationController extends AsyncNotifier<Organization> {
+class OrganizationController extends AsyncNotifier<Organization>
+    with PenjagaUrutanMuat<Organization> {
   @override
   Future<Organization> build() async {
     // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
@@ -69,15 +168,16 @@ class OrganizationController extends AsyncNotifier<Organization> {
   }
 
   Future<void> muatUlang() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build());
+    await muatDenganPenjaga(build);
   }
 
   Future<void> simpan(Organization data) async {
     final token = await ref.read(tokenStorageProvider).read();
     if (token == null) return;
 
-    final hasil = await ref.read(organizationServiceProvider).simpan(token, data);
+    final hasil = await ref
+        .read(organizationServiceProvider)
+        .simpan(token, data);
     state = AsyncValue.data(hasil);
   }
 }
@@ -91,7 +191,8 @@ final customerProvider =
       retry: (retryCount, error) => null,
     );
 
-class CustomerController extends AsyncNotifier<List<Customer>> {
+class CustomerController extends AsyncNotifier<List<Customer>>
+    with PenjagaUrutanMuat<List<Customer>> {
   String _search = '';
 
   @override
@@ -107,13 +208,11 @@ class CustomerController extends AsyncNotifier<List<Customer>> {
 
   Future<void> cari(String query) async {
     _search = query;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build());
+    await muatDenganPenjaga(build);
   }
 
   Future<void> muatUlang() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build());
+    await muatDenganPenjaga(build);
   }
 
   Future<void> tambah(Customer data) async {
@@ -160,7 +259,8 @@ final orderListProvider =
       retry: (retryCount, error) => null,
     );
 
-class OrderListController extends AsyncNotifier<List<OrderKalibrasi>> {
+class OrderListController extends AsyncNotifier<List<OrderKalibrasi>>
+    with PenjagaUrutanMuat<List<OrderKalibrasi>> {
   String? _teknisiId;
   String _search = '';
 
@@ -181,19 +281,16 @@ class OrderListController extends AsyncNotifier<List<OrderKalibrasi>> {
 
   Future<void> saring({String? teknisiId}) async {
     _teknisiId = teknisiId;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build());
+    await muatDenganPenjaga(build);
   }
 
   Future<void> cari(String query) async {
     _search = query;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build());
+    await muatDenganPenjaga(build);
   }
 
   Future<void> muatUlang() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build());
+    await muatDenganPenjaga(build);
   }
 }
 
@@ -206,7 +303,8 @@ final userListProvider = AsyncNotifierProvider<UserListController, List<User>>(
   retry: (retryCount, error) => null,
 );
 
-class UserListController extends AsyncNotifier<List<User>> {
+class UserListController extends AsyncNotifier<List<User>>
+    with PenjagaUrutanMuat<List<User>> {
   String? _status;
 
   String? get statusAktif => _status;
@@ -224,13 +322,11 @@ class UserListController extends AsyncNotifier<List<User>> {
 
   Future<void> saring(String? status) async {
     _status = status;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build());
+    await muatDenganPenjaga(build);
   }
 
   Future<void> muatUlang() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build());
+    await muatDenganPenjaga(build);
   }
 
   Future<void> setujui(int id, UserRole role) async {

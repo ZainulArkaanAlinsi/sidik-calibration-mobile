@@ -358,7 +358,7 @@ class MockPerhitunganService implements PerhitunganService {
         disetujui: false,
         butuhKonfirmasi: true,
         validasi: v,
-        pesan: 'Hasil hitung ulang beda dari yang tersimpan.',
+        pesan: _judulPeringatan(v),
       );
     }
 
@@ -393,4 +393,41 @@ class MockPerhitunganService implements PerhitunganService {
     if (gagal) throw Exception('server nggak nyaut');
     aksi.add(('kolomAdmin', thermohygroStandardId ?? nomorOrder));
   }
+}
+
+/// Tiruan `CalibrationValidator::judulPeringatan()` di backend, buat mock.
+///
+/// Mock-nya dulu memasang satu kalimat tetap, "Hasil hitung ulang beda dari
+/// yang tersimpan.", untuk peringatan apa pun. Itu menyalin cacat yang justru
+/// baru dibuang dari backend: cabangnya nyala buat lima belas kode peringatan
+/// dan selisih hitung ulang cuma salah satunya. Mock yang bohong bikin demo
+/// offline mengajarkan perilaku yang nggak pernah ada di server.
+///
+/// Yang SENGAJA nggak ditiru: pemotongan panjang judul. Di backend itu ada
+/// karena judul notifikasi Filament satu baris; di sini nggak ada tata letak
+/// yang memotongnya, dan menyalinnya cuma nambah aturan yang bisa melenceng
+/// diam-diam dari aslinya tanpa ada yang dijaga.
+String _judulPeringatan(HasilValidasi v) {
+  final peringatan = v.pada(TingkatTemuan.peringatan);
+
+  if (peringatan.isEmpty) {
+    return 'Ada peringatan di sesi ini yang perlu diperiksa dulu.';
+  }
+
+  final kode = peringatan.map((t) => t.kode).toSet();
+
+  // Beda jenis: nggak ada satu pesan yang jujur mewakili semuanya, dan memilih
+  // salah satunya bakal menyembunyikan sisanya.
+  if (kode.length > 1) {
+    return 'Ada ${peringatan.length} peringatan dari ${kode.length} hal '
+        'berbeda di sesi ini.';
+  }
+
+  final judul = peringatan.first.pesan;
+
+  // Satu jenis di banyak titik: tanpa ekor ini pembacanya mengira cuma titik
+  // pertama yang bermasalah.
+  return peringatan.length > 1
+      ? '$judul (+${peringatan.length - 1} titik lain yang sama)'
+      : judul;
 }

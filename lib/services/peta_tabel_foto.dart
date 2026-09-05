@@ -1,4 +1,4 @@
-import 'dart:ui' show Rect;
+import 'dart:ui' show Offset, Rect, Size;
 
 import 'pembaca_halaman.dart';
 
@@ -8,6 +8,29 @@ typedef SelTabelFoto = ({
   int repeatNo,
   String fieldId,
   String teks,
+
+  /// Keyakinan OCR buat teks di sel ini. `null` = pengenalnya nggak memberi
+  /// tahu — lihat [TeksTerbaca.keyakinan]. JANGAN diisi angka pengganti.
+  double? keyakinan,
+});
+
+/// Letak satu sel di dalam citra — kotak yang bisa dipotong, bukan teksnya.
+///
+/// ## Kenapa ini dipisah dari [SelTabelFoto]
+///
+/// [SelTabelFoto] cuma lahir buat sel yang ADA angkanya kebaca. Yang dibutuhkan
+/// pelatihan model justru **kebalikannya**: sel yang OCR-nya gagal itu contoh
+/// paling berharga, dan sel itu nggak pernah muncul di `sel`.
+///
+/// Jadi yang di sini SELURUH sel yang jangkarnya lengkap — kebaca maupun
+/// nggak — berikut kotaknya di citra. [teks] null = pemeta nggak menaruh apa
+/// pun di sel ini.
+typedef KotakSelFoto = ({
+  double titikUkur,
+  int repeatNo,
+  String fieldId,
+  Rect kotak,
+  String? teks,
 });
 
 /// Satu slot larutan seperti TERCETAK di kepala tabel bentuk ke-bawah.
@@ -41,9 +64,43 @@ class HasilPetaTabel {
     required this.angkaTakTerpetakan,
     this.labelKolomKurang = const [],
     this.barisKembar = const [],
+    this.kotakSel = const [],
+    this.kotakSelDibuang = 0,
   });
 
   final List<SelTabelFoto> sel;
+
+  /// Letak TIAP sel yang jangkarnya lengkap, termasuk yang kosong.
+  ///
+  /// Dipakai buat memotong sel jadi citra sendiri — bahan latih model
+  /// pengenal angka, dan nanti masukan pembacanya. Lihat [KotakSelFoto].
+  ///
+  /// Kosong kalau jangkarnya nggak cukup buat menurunkan geometri (satu kolom
+  /// doang, atau satu baris doang): tanpa jarak antar baris/kolom, ukuran
+  /// kotaknya nggak bisa dipertanggungjawabkan, dan kotak karangan lebih buruk
+  /// daripada nggak ada kotak.
+  final List<KotakSelFoto> kotakSel;
+
+  /// Kotak yang geometrinya SUDAH ketemu tapi tetap ditolak — kembarannya
+  /// [angkaTakTerpetakan] buat sumbu kotak, dan ada karena alasan yang sama:
+  /// yang dibuang diam-diam bikin tingkat penolakan mustahil diukur.
+  ///
+  /// Dua sebabnya, dan dua-duanya nggak kelihatan dari [kotakSel] yang cuma
+  /// tinggal lebih pendek:
+  ///
+  ///  - kotaknya melewati tepi citra — teknisi memotret dengan bingkai terlalu
+  ///    rapat, dan sel terluar kehabisan ruang walau coretan angkanya sendiri
+  ///    masih utuh;
+  ///  - dua pusat berimpit, jadi ruang yang tersisa nol.
+  ///
+  /// Yang pertama yang perlu diukur di lapangan: kalau angkanya tinggi, yang
+  /// salah cara memotretnya — dan itu dijawab dengan petunjuk bingkai, bukan
+  /// dengan melonggarkan penjagaannya.
+  ///
+  /// **Nol waktu [kotakSel] kosong**, dan itu disengaja: jangkar yang nggak
+  /// cukup bukan "kotak yang dibuang", melainkan geometri yang nggak pernah
+  /// ada. Dihitung di sini, dua keadaan yang obatnya beda jadi kelihatan sama.
+  final int kotakSelDibuang;
 
   /// Nilai standar yang jangkarnya ketemu di foto. Kalau ini kosong, seluruh
   /// foto **tidak dipetakan sama sekali** — bukan dipetakan sebagian.
@@ -152,6 +209,14 @@ class PetaTabelFoto {
   /// tetangga, dan menaruhnya di baris ini artinya menaruh di baris yang salah.
   static const _rasioBaris = 0.5;
 
+  /// Seberapa besar kotak sel dipotong, relatif terhadap satu petak penuh.
+  ///
+  /// Di bawah 1 dengan sengaja: potongan yang pas-pasan ikut menyeret garis
+  /// tabel dan ekor angka tetangga: buat model pengenal angka dua-duanya derau
+  /// yang bikin dia belajar hal yang salah. 0,8 menyisakan tepi aman tanpa
+  /// memotong angka yang ditulis agak keluar kotaknya.
+  static const _rapatKotak = 0.8;
+
   /// Kepala kolom pengulangan yang TERCETAK, kalau pemanggilnya nggak nyebut.
   ///
   /// Dua bentuk diterima sekaligus, dan itu bukan tebakan yang dibiarin
@@ -171,6 +236,92 @@ class PetaTabelFoto {
     'X$repeat',
     'Repeat $repeat',
   ];
+
+  /// Nomor baris yang KEBACA dari kolom paling kiri.
+  ///
+  /// ## Kenapa ada jalur yang menemukan penanda barisnya sendiri
+  ///
+  /// Di sepuluh lembar pertama, penanda baris sudah diketahui sebelum fotonya
+  /// dibaca — nilai standar yang tercetak di kertas, dan kita punya daftarnya
+  /// dari bentuk lembar. Grid Enclosure tidak: yang ada di kolom kiri **nomor
+  /// termokopel yang ditulis tangan teknisi di chamber**, dan berapa saja
+  /// nomornya baru ketahuan dari kertas itu sendiri.
+  ///
+  /// Pemilik lab memutuskan urutan kerjanya **motret dulu, nomornya belakangan**
+  /// (27 Agt 2026), jadi mencocokkan ke nomor yang sudah ada di layar bukan
+  /// pilihan: waktu tombolnya ditekan, layarnya memang masih kosong.
+  ///
+  /// ## Risikonya, dan kenapa dia bisa ditanggung
+  ///
+  /// Nomor yang salah baca (7 kebaca 1) memindahkan SELURUH baris ke termokopel
+  /// yang salah — dan nomor itu yang menentukan koreksi mana yang dipakai. Yang
+  /// bikin ini bisa ditanggung: **nomornya ikut ditaruh di kotaknya sendiri dan
+  /// ikut ditandai kuning**, jadi dia kelihatan dan bisa dibetulkan di satu
+  /// tempat. Membetulkan nomornya memindahkan barisnya utuh — pembacaannya
+  /// tetap menempel di baris yang sama seperti di kertas.
+  ///
+  /// Itu sebabnya barisnya dikenali dari POSISI di citra, bukan dari nomornya:
+  /// yang dijamin utuh kebersamaan satu baris, bukan ketepatan nomornya.
+  ///
+  /// ## Yang bikin kolomnya nggak salah tebak
+  ///
+  ///  - Cuma bilangan BULAT yang dihitung. Pembacaan chamber berkoma
+  ///    (`121,5`), jadi dia nggak pernah masuk daftar calon.
+  ///  - Dikelompokkan per KOLOM lewat tepi kiri, lalu yang dipakai kolom
+  ///    **paling kiri yang menaungi lebih dari satu baris**. Kepala kolom
+  ///    pengulangan (`1`..`5`) berjajar MENDATAR, jadi tiap nomornya jatuh di
+  ///    kolomnya sendiri-sendiri dan nggak pernah punya anggota kedua.
+  ///  - Di luar [batasNomor] dibuang: nomor termokopel lab ini paling banyak
+  ///    dua digit (`TCN3`..`TCN12`), dan angka bulat besar di kolom kiri jauh
+  ///    lebih mungkin pembacaan yang kebetulan bulat.
+  ///
+  /// Balik daftar nomornya URUT DARI ATAS, apa adanya — termasuk kalau ada yang
+  /// kembar. Yang memutuskan apa yang dilakukan atas kembar itu pemanggilnya;
+  /// di sini nggak ada yang dibuang diam-diam.
+  List<int> nomorBarisTerbaca(List<TeksTerbaca> terbaca) {
+    final calon = <({int no, TeksTerbaca t})>[];
+
+    for (final t in terbaca) {
+      final n = int.tryParse(t.teks.trim());
+
+      if (n == null || n < 1 || n > batasNomor) continue;
+
+      calon.add((no: n, t: t));
+    }
+
+    if (calon.length < 2) return const [];
+
+    final tinggi = calon
+        .map((c) => c.t.kotak.height)
+        .reduce((a, b) => a > b ? a : b);
+
+    final kolom = <List<({int no, TeksTerbaca t})>>[];
+
+    for (final c in [...calon]..sort(
+      (a, b) => a.t.kotak.left.compareTo(b.t.kotak.left),
+    )) {
+      final terakhir = kolom.isEmpty ? null : kolom.last;
+
+      if (terakhir != null &&
+          (c.t.kotak.left - terakhir.first.t.kotak.left).abs() <= tinggi) {
+        terakhir.add(c);
+      } else {
+        kolom.add([c]);
+      }
+    }
+
+    final berjamaah = kolom.where((k) => k.length > 1).toList();
+
+    if (berjamaah.isEmpty) return const [];
+
+    final pilih = berjamaah.first
+      ..sort((a, b) => a.t.kotak.top.compareTo(b.t.kotak.top));
+
+    return [for (final c in pilih) c.no];
+  }
+
+  /// Nomor baris terbesar yang masih masuk akal — lihat [nomorBarisTerbaca].
+  static const batasNomor = 99;
 
   /// Petakan hasil OCR satu tabel.
   ///
@@ -196,6 +347,14 @@ class PetaTabelFoto {
     // kayak jangkar kolom `Xn` — bukan dilonggarkan toleransinya (itu yang
     // bikin 453,6 & 460,0 di lembar spektro bisa saling rebut).
     Map<double, String> labelTercetak = const {},
+    // Ukuran citra yang difoto, buat memangkas kotak sel yang jatuh di luarnya.
+    //
+    // Boleh kosong, dan yang mengosongkannya nggak berubah perilakunya —
+    // penjagaan tepi cuma bisa jalan kalau batasnya diberitahu. Yang memanggil
+    // dari aplikasi WAJIB mengisinya: kotak yang melewati tepi citra baru
+    // meledak (atau diam-diam digeser) di tahap potong citra nanti, jauh dari
+    // sini, dan di sana sebabnya sudah nggak kelihatan lagi.
+    Size? ukuranCitra,
   }) {
     final kembar = _titikKembar(titikUkur);
 
@@ -219,7 +378,7 @@ class PetaTabelFoto {
       if (n != null) angka.add((nilai: n, t: t));
     }
 
-    final jangkarBaris = _jangkarBaris(angka, titikUkur, labelTercetak);
+    final jangkarBaris = _jangkarBaris(terbaca, titikUkur, labelTercetak);
 
     // --- jangkar KOLOM: kepala `X1`..`Xn` yang tercetak --------------------
     var jangkarKolom = _jangkarTeks(
@@ -362,8 +521,31 @@ class PetaTabelFoto {
     //
     // Setengah lebar kolom itu batas alaminya: di kirinya sudah wilayah kolom
     // label tabel, bukan kolom Repeat pertama.
-    final jarakKolom = _jarakAntarKolom(jangkarKolom.values);
+    final jarakKolom = _jarakAntarKolom(jangkarKolom, pengulangan);
     final mundur = jarakKolom.isFinite ? jarakKolom / 2 : tinggiBaris;
+
+    // Sejauh apa satu angka masih boleh diakui kolom terdekat — aturan yang
+    // sama persis dipakai jalur ke-bawah (`batasKolom` di [petakanKeBawah]).
+    //
+    // Dulu di sini nggak ada batasnya sama sekali, dan bawaan `_kolomTerdekat`
+    // memang tanpa batas. Alasannya ditulis di method itu: kolom Repeat selalu
+    // berdampingan rapat, jadi yang paling dekat memang pemiliknya. Premis itu
+    // cuma berlaku waktu SEMUA kolom kejangkar.
+    //
+    // Begitu sebagian kepalanya nggak kebaca, dia terbalik jadi berbahaya:
+    // angka di bawah kolom yang nggak punya jangkar ditarik ke jangkar
+    // terdekat SEJAUH APA PUN — di lembar TITS yang enam kolomnya cuma
+    // kejangkar tiga, itu berarti pembacaan DOWN mendarat di kolom UP. Nggak
+    // ada error, jumlah selnya wajar, angkanya wajar.
+    //
+    // Yang lebih jauh dari setengah lebar kolom sekarang DIBUANG dan ikut
+    // kehitung `angkaTakTerpetakan`, jadi teknisi diberitahu ada yang nggak
+    // keangkut — bukan dikasih angka yang pindah kolom diam-diam. Ini persis
+    // janji yang sudah tertulis di docblock [petakan]: kolom yang kepalanya
+    // nggak kebaca nggak pernah keisi.
+    final batasKolom = jarakKolom.isFinite
+        ? jarakKolom * _rasioBaris
+        : double.infinity;
 
     final batasKiri = jangkarKolom.values
             .map((j) => j.kotak.center.dx)
@@ -390,7 +572,7 @@ class PetaTabelFoto {
       if (a.t.kotak.center.dy < batasAtas) continue;
 
       final titik = _barisTerdekat(a.t, jangkarBaris, tinggiBaris);
-      final repeat = _kolomTerdekat(a.t, jangkarKolom);
+      final repeat = _kolomTerdekat(a.t, jangkarKolom, batas: batasKolom);
 
       if (titik == null || repeat == null) {
         terbuang++;
@@ -411,17 +593,260 @@ class PetaTabelFoto {
         repeatNo: repeat,
         fieldId: field,
         teks: a.t.teks,
+        keyakinan: a.t.keyakinan,
       ));
     }
 
     final bersih = _buangSelKembar(sel, (n) => terbuang += n);
+
+    final kotak = _kotakSel(
+      jangkarBaris: jangkarBaris,
+      jangkarKolom: jangkarKolom,
+      jangkarField: jangkarField,
+      fieldPerRepeat: fieldPerRepeat,
+      tinggiBaris: tinggiBaris,
+      jarakKolom: jarakKolom,
+      sel: bersih,
+      ukuranCitra: ukuranCitra,
+    );
 
     return HasilPetaTabel(
       sel: bersih,
       titikKetemu: jangkarBaris.keys.toList(),
       repeatKetemu: jangkarKolom.keys.toList(),
       angkaTakTerpetakan: terbuang,
+      kotakSel: kotak.kotak,
+      kotakSelDibuang: kotak.dibuang,
     );
+  }
+
+  /// Turunkan kotak TIAP sel dari jangkar yang sudah ketemu.
+  ///
+  /// ## Kenapa dihitung, bukan dicari di citra
+  ///
+  /// Mencari garis kotak di foto itu masalahnya sendiri — kertas melengkung,
+  /// garisnya putus, dan sebagian lembar selnya memang nggak berkotak. Yang
+  /// sudah kita punya justru lebih kuat: jangkar baris memberi PUSAT tiap
+  /// baris, jangkar kolom memberi PUSAT tiap kolom, dan jarak antar keduanya
+  /// memberi ukurannya. Perpotongannya kotak selnya.
+  ///
+  /// Ukurannya sengaja **sedikit lebih kecil** dari satu petak penuh
+  /// ([_rapatKotak]): kotak yang pas-pasan ikut menyeret garis tabel dan ekor
+  /// angka tetangga, dan buat model pengenal angka dua-duanya derau.
+  ///
+  /// Balik KOSONG kalau geometrinya nggak bisa dipertanggungjawabkan — satu
+  /// baris doang, atau satu kolom doang. Kotak karangan lebih buruk daripada
+  /// nggak ada kotak: yang pertama diam-diam melatih model dengan potongan yang
+  /// salah, yang kedua kelihatan.
+  ({List<KotakSelFoto> kotak, int dibuang}) _kotakSel({
+    required Map<double, TeksTerbaca> jangkarBaris,
+    required Map<int, TeksTerbaca> jangkarKolom,
+    required List<({String field, TeksTerbaca t})> jangkarField,
+    required List<String> fieldPerRepeat,
+    required double tinggiBaris,
+    required double jarakKolom,
+    required List<SelTabelFoto> sel,
+    Size? ukuranCitra,
+  }) {
+    // Satu jangkar baris nggak memberi SATU PUN jarak antar baris yang bisa
+    // diukur, jadi tinggi selnya nggak punya dasar sama sekali.
+    //
+    // Diperiksa dari JUMLAH jangkarnya, bukan dari hasil turunannya, karena
+    // turunannya nggak pernah menandakan keadaan ini: [_jarakAntarBaris] balik
+    // tinggi huruf dikali dua waktu jangkarnya cuma satu — angka terhingga,
+    // jadi pemeriksaan `isFinite` di bawah lewat begitu saja dan kotaknya
+    // terbit dengan tinggi yang diturunkan dari tinggi HURUF. Itu persis
+    // definisi kotak karangan yang docblock di atas menolaknya.
+    //
+    // Kolomnya kebalikannya: [_jarakAntarKolom] memang balik `infinity` waktu
+    // jangkarnya kurang, jadi di sumbu itu `isFinite` sudah cukup.
+    if (jangkarBaris.length < 2) return (kotak: const [], dibuang: 0);
+
+    if (!tinggiBaris.isFinite || !jarakKolom.isFinite) {
+      return (kotak: const [], dibuang: 0);
+    }
+
+    // Teks yang sudah kepetakan, dikunci sama seperti kunci sel.
+    final teks = {
+      for (final s in sel) '${s.titikUkur}|${s.repeatNo}|${s.fieldId}': s.teks,
+    };
+
+    // Pusat MENDATAR tiap (Repeat, field) — nggak bergantung barisnya, jadi
+    // dihitung sekali di luar perulangan baris.
+    final pusatX = <String, double>{};
+
+    for (final kolom in jangkarKolom.entries) {
+      for (var i = 0; i < fieldPerRepeat.length; i++) {
+        // Satu field per Repeat: pusatnya kepala kolomnya sendiri. Lebih dari
+        // satu: dicari jangkar field yang paling dekat ke kolom ini, dan
+        // kalau nggak ada dibagi rata dari pusat kolomnya.
+        pusatX['${kolom.key}|${fieldPerRepeat[i]}'] = fieldPerRepeat.length == 1
+            ? kolom.value.kotak.center.dx
+            : _pusatField(
+                kolom.value,
+                fieldPerRepeat[i],
+                jangkarField,
+                jarakKolom,
+                urutan: i,
+                jumlah: fieldPerRepeat.length,
+              );
+      }
+    }
+
+    final pusatY = {
+      for (final b in jangkarBaris.entries) b.key: b.value.kotak.center.dy,
+    };
+
+    final lebar = _muatAntarTetangga(pusatX, jarakKolom / fieldPerRepeat.length);
+    final tinggi = _muatAntarTetangga(pusatY, tinggiBaris);
+
+    final hasil = <KotakSelFoto>[];
+    var dibuang = 0;
+
+    for (final baris in jangkarBaris.entries) {
+      for (final kolom in jangkarKolom.entries) {
+        for (final field in fieldPerRepeat) {
+          final kunci = '${kolom.key}|$field';
+
+          final lebarnya = lebar[kunci]! * _rapatKotak;
+          final tingginya = tinggi[baris.key]! * _rapatKotak;
+
+          // Dua pusat yang berimpit nggak menyisakan ruang sama sekali. Kotak
+          // selebar nol bukan sel.
+          if (lebarnya <= 0 || tingginya <= 0) {
+            dibuang++;
+            continue;
+          }
+
+          final kotak = Rect.fromCenter(
+            center: Offset(pusatX[kunci]!, pusatY[baris.key]!),
+            width: lebarnya,
+            height: tingginya,
+          );
+
+          // Yang melewati tepi citra DIBUANG, bukan dipangkas.
+          //
+          // Dipangkas kelihatan lebih ramah dan sebenarnya lebih berbahaya:
+          // potongannya memuat angka yang kepotong separuh, lalu dilabeli
+          // angka UTUH yang diketik teknisi. Model belajar bahwa separuh "8"
+          // itu bernama "8", dan bentuk itu nggak pernah muncul lagi di foto
+          // mana pun. Selnya sendiri memang berada di tepi foto — yang benar
+          // minta jepret ulang, bukan menambal.
+          if (ukuranCitra != null &&
+              (kotak.left < 0 ||
+                  kotak.top < 0 ||
+                  kotak.right > ukuranCitra.width ||
+                  kotak.bottom > ukuranCitra.height)) {
+            dibuang++;
+            continue;
+          }
+
+          hasil.add((
+            titikUkur: baris.key,
+            repeatNo: kolom.key,
+            fieldId: field,
+            kotak: kotak,
+            teks: teks['${baris.key}|${kolom.key}|$field'],
+          ));
+        }
+      }
+    }
+
+    return (kotak: hasil, dibuang: dibuang);
+  }
+
+  /// Berapa lebar yang MUAT di tiap pusat tanpa menyenggol tetangganya.
+  ///
+  /// ## Kenapa perlu, padahal ukuran petaknya sudah dihitung
+  ///
+  /// [bawaan] itu ukuran petak yang diturunkan dari SELURUH tabel — median
+  /// jarak baris, atau lebar satu kolom. Ukuran begitu benar buat tabel yang
+  /// jaraknya rata, dan diam-diam salah begitu ada sepasang jangkar yang lebih
+  /// rapat dari sisanya:
+  ///
+  ///  - dua jangkar baris berdempetan — satu angka nyasar yang kebetulan masuk
+  ///    toleransi titik ukur ikut kepilih jadi jangkar — tetap dikasih tinggi
+  ///    median, jadi kotaknya saling menelan;
+  ///  - dua label field yang tercetak berdekatan tetap dikasih lebar sepetak,
+  ///    jadi kotak `pembacaan` dan kotak suhu berbagi angka yang sama.
+  ///
+  /// Yang kedua paling licin, karena [_pusatField] mencampur DUA sistem
+  /// koordinat dalam satu Repeat: field yang labelnya ketemu memakai posisi
+  /// label ASLI, field yang nggak ketemu dibagi rata dari pusat kolom. Nggak
+  /// ada apa pun yang menjamin dua sistem itu nggak bertabrakan.
+  ///
+  /// Akibat dua-duanya sama: satu potongan citra memuat angka TETANGGA, lalu
+  /// dipasangkan dengan angka sel ini sebagai labelnya. Itu bukan derau — itu
+  /// label yang salah, dan `angkaTakTerpetakan` tetap nol sepanjang kejadian.
+  ///
+  /// Jaraknya diukur ke tetangga terdekat di sumbu yang sama, TERMASUK
+  /// tetangga milik Repeat sebelah: kotak yang melar melewati batas Repeat
+  /// sama merusaknya dengan yang melar melewati batas field.
+  ///
+  /// Dipakai apa adanya, tanpa dibagi dua: yang dipulangkan jarak antar pusat,
+  /// dan pemanggil masih mengalikannya dengan [_rapatKotak] — dua kotak
+  /// bertetangga jadi menyisakan celah, bukan bersentuhan.
+  Map<K, double> _muatAntarTetangga<K>(Map<K, double> pusat, double bawaan) {
+    final urut = pusat.entries.toList()
+      ..sort((a, b) => a.value.compareTo(b.value));
+
+    final hasil = <K, double>{};
+
+    for (var i = 0; i < urut.length; i++) {
+      var muat = bawaan;
+
+      if (i > 0) {
+        final jarak = urut[i].value - urut[i - 1].value;
+        if (jarak < muat) muat = jarak;
+      }
+
+      if (i < urut.length - 1) {
+        final jarak = urut[i + 1].value - urut[i].value;
+        if (jarak < muat) muat = jarak;
+      }
+
+      hasil[urut[i].key] = muat;
+    }
+
+    return hasil;
+  }
+
+  /// Pusat mendatar satu field di dalam kolom Repeat [kolom].
+  ///
+  /// Label field yang tercetak (`cP`, `°C`) dipakai kalau ada — itu yang paling
+  /// dekat ke kebenaran. Yang nggak punya labelnya dibagi rata: field ke-[urutan]
+  /// dari [jumlah] menempati potongan ke-i dari lebar kolomnya.
+  double _pusatField(
+    TeksTerbaca kolom,
+    String field,
+    List<({String field, TeksTerbaca t})> jangkarField,
+    double jarakKolom, {
+    required int urutan,
+    required int jumlah,
+  }) {
+    final pusatKolom = kolom.kotak.center.dx;
+    final lebar = jarakKolom / jumlah;
+
+    TeksTerbaca? terbaik;
+    var jarakTerbaik = double.infinity;
+
+    for (final j in jangkarField) {
+      if (j.field != field) continue;
+
+      final jarak = (j.t.kotak.center.dx - pusatKolom).abs();
+
+      // Cuma label yang duduk DI DALAM kolom ini yang boleh dipakai; label
+      // milik Repeat sebelah lebih dekat ke pusatnya sendiri.
+      if (jarak <= jarakKolom / 2 && jarak < jarakTerbaik) {
+        terbaik = j.t;
+        jarakTerbaik = jarak;
+      }
+    }
+
+    if (terbaik != null) return terbaik.kotak.center.dx;
+
+    // Bagi rata: kolomnya membentang setengah lebar ke kiri & kanan pusatnya.
+    return pusatKolom - jarakKolom / 2 + lebar * (urutan + 0.5);
   }
 
   /// Petakan foto tabel yang Repeat-nya TURUN KE BAWAH.
@@ -481,16 +906,61 @@ class PetaTabelFoto {
       if (n != null) angka.add((nilai: n, t: t));
     }
 
-    // --- jangkar BARIS: kepala Repeat di kolom kiri ------------------------
-    final jangkarBaris = _jangkarTeks(
-      terbaca,
-      {for (final r in pengulangan) r: kepalaPengulangan[r] ?? kepalaBawaan(r)},
-    );
-
     // --- jangkar KOLOM: tulisan kepala slot di baris atas ------------------
+    //
+    // Dihitung DULUAN, sebelum jangkar baris. Kolom nggak bergantung pada
+    // baris, sementara jalur nomor-polos di bawah butuh tahu di mana kolom
+    // data paling kiri berdiri — itu yang memisahkan kolom `No.` dari isi.
     final jangkarKolom = _jangkarTeks(terbaca, {
       for (var i = 0; i < slot.length; i++) i: slot[i].kepala,
     });
+
+    // --- jangkar BARIS: kepala Repeat di kolom kiri ------------------------
+    //
+    // Kertas yang menomori barisnya ANGKA POLOS (`1`..`10`) lewat jalur
+    // sendiri, dan jalur itu dicoba DULUAN — bukan sebagai cadangan.
+    //
+    // Sebabnya [_jangkarTeks] memilih kemunculan paling ATAS, dan di kertas
+    // bernomor polos yang paling atas hampir tidak pernah baris datanya.
+    // Master Timbangan mencetak baris penomoran sub-kolom `1 | 2 | 1 | 2`
+    // TEPAT DI ATAS isi tabel; dijangkar dari situ, seluruh grid barisnya
+    // bergeser satu baris ke atas. Yang keluar bukan error — kesepuluh
+    // pengulangan tetap terisi, cuma isinya milik baris tetangganya.
+    //
+    // Bahayanya justru karena jangkarnya LENGKAP: `1` dan `2` ketemu di baris
+    // penomoran, `3`..`10` ketemu di kolom `No.`, jadi jumlahnya pas sepuluh
+    // dan tidak ada satu pun penjagaan yang berbunyi.
+    // Jalur ketat itu cuma dipakai kalau LEMBARNYA menyatakan penomoran polos
+    // — bukan setiap kali kebetulan ada angka di kiri.
+    //
+    // Bedanya sengaja. Kertas yang tidak menyebut apa-apa memakai `X1`/`Repeat
+    // 1` bawaan, dan di situ nomor polos memang TIDAK boleh dipercaya: `1` di
+    // kolom kiri bisa pembacaan, bisa nomor urut yang bukan pengulangan. Itu
+    // keputusan lama yang tetap berlaku, dan `peta_tabel_foto_kebawah_test`
+    // menjaganya — nol sel lebih baik daripada jangkar yang direbut angka lain.
+    //
+    // Yang berubah cuma buat lembar yang menyatakannya eksplisit lewat
+    // `pengulangan_arah`. Di situ nomor polos memang penomoran barisnya, dan
+    // keempat syarat [_jangkarNomorPolosBaris] yang membuktikannya.
+    final nomorPolosDinyatakan = pengulangan.every((r) {
+      final k = kepalaPengulangan[r];
+
+      return k != null && k.length == 1 && k.first.trim() == '$r';
+    });
+
+    // Yang menyatakan penomoran polos TIDAK punya jalan mundur ke
+    // [_jangkarTeks], dan itu disengaja: di kertas begitu, pencarian teks biasa
+    // memulangkan himpunan yang LENGKAP TAPI SALAH — `1` & `2` diambil dari
+    // baris penomoran sub-kolom yang duduk di atas isi, sisanya dari kolom
+    // `No.`. Jumlahnya pas, tidak ada yang berbunyi, dan seluruh grid bergeser
+    // satu baris. Gagal jadi nol sel jauh lebih murah.
+    final jangkarBaris = nomorPolosDinyatakan
+        ? (_jangkarNomorPolosBaris(terbaca, pengulangan, jangkarKolom) ??
+              const <int, TeksTerbaca>{})
+        : _jangkarTeks(terbaca, {
+            for (final r in pengulangan)
+              r: kepalaPengulangan[r] ?? kepalaBawaan(r),
+          });
 
     final titikKetemu = [
       for (final i in jangkarKolom.keys)
@@ -522,7 +992,13 @@ class PetaTabelFoto {
     }
 
     final tinggiBaris = _jarakAntarBaris(jangkarBaris.values);
-    final batasKolom = _jarakAntarKolom(jangkarKolom.values) * _rasioBaris;
+    // Kuncinya di sini SUDAH posisi kolomnya (indeks slot), jadi urutannya
+    // tinggal 0..n-1.
+    final batasKolom =
+        _jarakAntarKolom(jangkarKolom, [
+          for (var i = 0; i < slot.length; i++) i,
+        ]) *
+        _rasioBaris;
 
     // Jangkar field dikelompokkan PER SLOT, bukan satu tumpukan buat seluruh
     // tabel: `µS/cm` tercetak sekali di tiap slot, dan yang mutusin kolom
@@ -560,8 +1036,27 @@ class PetaTabelFoto {
     final sel = <SelTabelFoto>[];
     var terbuang = 0;
 
+    // Angka yang duduk SELURUHNYA di atas baris pertama itu kepala tabel,
+    // bukan pembacaan yang hilang.
+    //
+    // [batasAtas] di atas memakai margin satu tinggi baris, dan itu meleset
+    // buat kepala yang menempel rapat ke isinya: master Timbangan mencetak
+    // baris penomoran sub-kolom (`1 | 2 | 1 | 2`) persis di atas baris data,
+    // lebih dekat dari satu tinggi baris. Keempatnya lolos batas itu, tidak
+    // ketemu jangkar (memang bukan pembacaan), lalu dilaporkan "nggak
+    // keangkut" — empat peringatan palsu di tiap jepretan yang sempurna.
+    //
+    // Peringatan palsu itu mahal: dia melatih teknisi mengabaikan angka yang
+    // BENERAN hilang. Batas tambahan ini geometri murni, bukan margin
+    // tebakan — yang bawahnya masih di atas puncak baris pertama tidak
+    // mungkin isi baris mana pun.
+    final puncakBaris = jangkarBaris.values
+        .map((j) => j.kotak.top)
+        .reduce((a, b) => a < b ? a : b);
+
     for (final a in angka) {
       if (a.t.kotak.center.dy < batasAtas) continue;
+      if (a.t.kotak.bottom <= puncakBaris) continue;
       if (a.t.kotak.center.dx < batasKiri) continue;
 
       final repeat = _barisTerdekat(a.t, jangkarBaris, tinggiBaris);
@@ -585,6 +1080,7 @@ class PetaTabelFoto {
         repeatNo: repeat,
         fieldId: field,
         teks: a.t.teks,
+        keyakinan: a.t.keyakinan,
       ));
     }
 
@@ -670,23 +1166,49 @@ class PetaTabelFoto {
   ///
   /// @param angka semua angka yang kebaca, berikut kotaknya.
   Map<double, TeksTerbaca> _jangkarBaris(
-    List<({double nilai, TeksTerbaca t})> angka,
+    List<TeksTerbaca> terbaca,
     List<double> titikUkur,
     Map<double, String> labelTercetak,
   ) {
     // Semua angka yang NILAINYA cocok ke salah satu titik — calon jangkar,
     // termasuk pembacaan yang kebetulan mirip. Atau, kalau labelnya beda dari
     // nilai (Viscometer), yang TEKS-nya persis sama dengan label tercetak.
+    //
+    // Yang disapu SELURUH teks yang kebaca, bukan cuma yang keparse jadi angka.
+    // Dulu di sini cuma yang keparse — dan itu diam-diam membatasi
+    // [labelTercetak] ke label yang kebetulan berupa ANGKA (`100`, `1000`).
+    // Label yang berupa kata (`Indikator`, `Suhu Ruang` di grid Enclosure)
+    // nggak pernah masuk daftar calon, jadi barisnya nggak pernah kejangkar
+    // sekali pun labelnya kebaca jelas di foto. Buat label berupa angka nggak
+    // ada yang berubah: elemen yang sama, jangkar yang sama.
+    //
+    // Frasanya ikut, TAPI cuma buat label yang memang BERSPASI — `Suhu Ruang`
+    // itu dua element di mata ML Kit, dan dicocokkan per element dia nggak
+    // akan pernah sama dengan labelnya.
+    //
+    // Frasa nggak boleh dipakai buat label satu kata, dan ini bukan kehati-
+    // hatian kosong: [_rapatkan] MEMBUANG spasi, jadi dua element `100` dan `0`
+    // yang kebetulan bersebelahan jadi frasa `100 0` yang rapat jadi `1000` —
+    // persis label slot Viscometer. Jangkar barisnya pindah ke tempat yang
+    // bukan barisnya, dan yang keluar bukan error tapi seluruh baris `1000`
+    // keisi angka milik baris lain.
+    final adaLabelBerspasi = labelTercetak.values.any(_berspasi);
     final calon = <({double titik, TeksTerbaca t})>[];
 
-    for (final a in angka) {
+    for (final t in adaLabelBerspasi ? _frasa(terbaca) : terbaca) {
+      final nilai = _angka(t.teks);
+      final iniFrasa = _berspasi(t.teks);
+
       for (final titik in titikUkur) {
-        final cocokAngka = (a.nilai - titik).abs() <= titik.abs() * _toleransiTitik;
+        final cocokAngka =
+            nilai != null && (nilai - titik).abs() <= titik.abs() * _toleransiTitik;
         final label = labelTercetak[titik];
-        final cocokLabel = label != null && _rapatkan(a.t.teks) == _rapatkan(label);
+        final cocokLabel = label != null &&
+            iniFrasa == _berspasi(label) &&
+            _rapatkan(t.teks) == _rapatkan(label);
 
         if (cocokAngka || cocokLabel) {
-          calon.add((titik: titik, t: a.t));
+          calon.add((titik: titik, t: t));
         }
       }
     }
@@ -761,11 +1283,14 @@ class PetaTabelFoto {
     Map<K, List<String>> kepala,
   ) {
     final hasil = <K, TeksTerbaca>{};
+    // Elemen apa adanya DITAMBAH gabungan elemen bersebelahan — kepala kolom
+    // yang di kertas dua kata nggak pernah datang sebagai satu potong.
+    final calon = _frasa(terbaca);
 
     for (final e in kepala.entries) {
       final cari = [for (final k in e.value) _rapatkan(k)];
 
-      for (final t in terbaca) {
+      for (final t in calon) {
         if (!cari.contains(_rapatkan(t.teks))) continue;
 
         final ada = hasil[e.key];
@@ -774,6 +1299,229 @@ class PetaTabelFoto {
     }
 
     return hasil;
+  }
+
+  /// Berapa elemen bersebelahan yang paling banyak disambung jadi satu calon.
+  ///
+  /// Dua sudah cukup buat kepala kolom terpanjang yang kita punya (`DOWN X1`);
+  /// tiga disediakan supaya kepala slot bersatuan (`1413 µS/cm`) yang kebaca
+  /// terpecah tiga tetap kejangkar. Lebih dari itu cuma nambah calon tanpa
+  /// nambah kepala yang beneran ada di kertas.
+  static const _maksKataFrasa = 3;
+
+  /// Elemen OCR apa adanya, ditambah gabungan elemen yang BERSEBELAHAN di
+  /// baris yang sama.
+  ///
+  /// ## Kenapa perlu
+  ///
+  /// [MlKitPembacaHalaman] memulangkan per ELEMENT — kira-kira per kata. Jadi
+  /// kepala kolom yang di kertas ditulis dua kata nggak pernah sampai ke sini
+  /// utuh, dan yang tersisa cuma potongannya. Di lembar TITS potongan itu
+  /// `X1`, dan `X1` kecetak DUA KALI: sekali di bawah `UP`, sekali di bawah
+  /// `DOWN`. Yang menang jadi undian beberapa piksel, dan begitu yang menang
+  /// kolom DOWN, angka kolom UP mendarat di Repeat yang salah — tanpa satu pun
+  /// gejala, karena jumlah selnya tetap pas dan angkanya tetap wajar.
+  ///
+  /// ## Kenapa ini bukan "menebak dari urutan"
+  ///
+  /// Yang disambung cuma yang beneran bersebelahan DI CITRA: tumpang tindih
+  /// tegaknya lebih dari separuh tinggi huruf (jadi memang satu baris teks),
+  /// dan celah mendatarnya lebih sempit dari satu tinggi huruf (jadi memang
+  /// satu tulisan, bukan dua kolom yang berjauhan). Kotaknya gabungan kotak
+  /// keduanya, jadi jangkarnya duduk di TENGAH tulisan yang tercetak — bukan
+  /// di kata pertamanya.
+  ///
+  /// Elemen aslinya tetap ikut, jadi kepala satu kata (`X1`, `1413`) tetap
+  /// ketemu persis seperti sebelumnya.
+  static List<TeksTerbaca> _frasa(List<TeksTerbaca> terbaca) {
+    if (terbaca.length < 2) return terbaca;
+
+    final hasil = [...terbaca];
+
+    for (final baris in _perBaris(terbaca)) {
+      for (var i = 0; i < baris.length; i++) {
+        var gabung = baris[i];
+
+        for (var n = 1; n < _maksKataFrasa && i + n < baris.length; n++) {
+          final kanan = baris[i + n];
+          final tinggi = gabung.kotak.height < kanan.kotak.height
+              ? gabung.kotak.height
+              : kanan.kotak.height;
+
+          // Celah yang lebih lebar dari satu tinggi huruf itu batas antar
+          // KOLOM, bukan spasi antar kata. Berhenti di situ — nyambung terus
+          // bikin dua kepala kolom yang berjauhan jadi satu calon.
+          if (kanan.kotak.left - gabung.kotak.right > tinggi) break;
+
+          gabung = (
+            teks: '${gabung.teks} ${kanan.teks}',
+            kotak: gabung.kotak.expandToInclude(kanan.kotak),
+            // Frasa gabungan cuma sekuat potongan TERLEMAHNYA: `UP X1` yang
+            // separuhnya kebaca ragu tetap frasa yang ragu. Ambil yang
+            // terkecil, dan kalau salah satunya nggak diketahui (null) maka
+            // gabungannya juga nggak diketahui — bukan diambil dari yang
+            // kebetulan punya angka.
+            keyakinan:
+                (gabung.keyakinan == null || kanan.keyakinan == null)
+                ? null
+                : (gabung.keyakinan! < kanan.keyakinan!
+                      ? gabung.keyakinan
+                      : kanan.keyakinan),
+          );
+
+          hasil.add(gabung);
+        }
+      }
+    }
+
+    return hasil;
+  }
+
+  /// Elemen dikelompokkan jadi BARIS teks, tiap baris urut dari kiri.
+  ///
+  /// Bukan dari urutan hasil OCR — itu urutan blok ML Kit, dan blok bisa
+  /// meloncat. Yang dipakai posisinya: dua elemen sebaris kalau tumpang tindih
+  /// tegaknya lebih dari separuh tinggi huruf yang paling pendek di antara
+  /// keduanya. Kepala kolom tabel cetak selalu memenuhi itu; angka di baris
+  /// lain nggak pernah.
+  static List<List<TeksTerbaca>> _perBaris(List<TeksTerbaca> terbaca) {
+    final urut = [...terbaca]
+      ..sort((a, b) => a.kotak.top.compareTo(b.kotak.top));
+
+    final baris = <List<TeksTerbaca>>[];
+
+    for (final t in urut) {
+      var ketemu = false;
+
+      for (final b in baris) {
+        final acuan = b.first;
+        final tinggi = acuan.kotak.height < t.kotak.height
+            ? acuan.kotak.height
+            : t.kotak.height;
+
+        if (tinggi <= 0) continue;
+
+        final atas = acuan.kotak.top > t.kotak.top
+            ? acuan.kotak.top
+            : t.kotak.top;
+        final bawah = acuan.kotak.bottom < t.kotak.bottom
+            ? acuan.kotak.bottom
+            : t.kotak.bottom;
+
+        if (bawah - atas < tinggi * _rasioBaris) continue;
+
+        b.add(t);
+        ketemu = true;
+        break;
+      }
+
+      if (!ketemu) baris.add([t]);
+    }
+
+    for (final b in baris) {
+      b.sort((a, c) => a.kotak.left.compareTo(c.kotak.left));
+    }
+
+    return baris;
+  }
+
+  /// Nomor BARIS yang di kertas ditulis angka polos (`1`..`10`) di kolom kiri.
+  ///
+  /// Kembaran tegak dari [_jangkarNomorPolos], dan alasannya sama: nomor polos
+  /// sendirian tidak bisa dipercaya — `1` juga bisa jadi pembacaan, nomor
+  /// sub-kolom, atau bagian dari kepala tabel. Yang dipercaya **DERETNYA**.
+  ///
+  /// Empat syarat, transpose dari yang mendatar:
+  ///
+  ///  1. SELURUH nomor pengulangan harus ada. Kurang satu → batal, bukan
+  ///     dipakai sebagian.
+  ///  2. Semuanya setegak lurus dalam satu kolom (dalam satu lebar kotaknya).
+  ///  3. `y`-nya menurun persis mengikuti nomornya (1 di atas 2, 2 di atas 3).
+  ///  4. Kolomnya ADA DI KIRI kolom data paling kiri. Kolom `No.` selalu di
+  ///     luar grid; ini yang bikin angka pembacaan tidak pernah lolos, dan
+  ///     yang membuang baris penomoran sub-kolom (`1 | 2 | 1 | 2`) yang
+  ///     duduk TEPAT DI ATAS isi tabel dengan `x` milik kolom data.
+  ///
+  /// Balik `null` kalau salah satu syarat tidak terpenuhi — sengaja, karena
+  /// jangkar baris yang meleset satu baris itu persis cara sepuluh pembacaan
+  /// mendarat di pengulangan yang salah tanpa memberi gejala apa pun.
+  Map<int, TeksTerbaca>? _jangkarNomorPolosBaris(
+    List<TeksTerbaca> terbaca,
+    List<int> pengulangan,
+    Map<int, TeksTerbaca> jangkarKolom,
+  ) {
+    // Tanpa jangkar kolom tidak ada acuan "di kiri isi tabel", jadi syarat
+    // ke-4 tidak bisa ditegakkan sama sekali.
+    if (jangkarKolom.isEmpty || pengulangan.isEmpty) return null;
+
+    final kiriIsi = jangkarKolom.values
+        .map((j) => j.kotak.left)
+        .reduce((a, b) => a < b ? a : b);
+
+    final calon = <({int no, TeksTerbaca t})>[];
+
+    for (final t in terbaca) {
+      final n = int.tryParse(t.teks.trim());
+
+      if (n == null || !pengulangan.contains(n)) continue;
+      // Syarat 4: yang sejajar atau di kanan kolom data itu ISI tabel.
+      if (t.kotak.right > kiriIsi) continue;
+
+      calon.add((no: n, t: t));
+    }
+
+    if (calon.isEmpty) return null;
+
+    final lebarKotak = calon
+        .map((c) => c.t.kotak.width)
+        .reduce((a, b) => a > b ? a : b);
+
+    // Syarat 2: dikelompokkan per kolom tegak.
+    calon.sort((a, b) => a.t.kotak.center.dx.compareTo(b.t.kotak.center.dx));
+
+    final klaster = <List<({int no, TeksTerbaca t})>>[];
+
+    for (final c in calon) {
+      final akhir = klaster.isEmpty ? null : klaster.last;
+
+      if (akhir != null &&
+          (c.t.kotak.center.dx - akhir.first.t.kotak.center.dx).abs() <=
+              lebarKotak) {
+        akhir.add(c);
+      } else {
+        klaster.add([c]);
+      }
+    }
+
+    final urut = [...pengulangan]..sort();
+
+    for (final k in klaster) {
+      final perNomor = <int, TeksTerbaca>{};
+
+      for (final c in k) {
+        final ada = perNomor[c.no];
+        if (ada == null || c.t.kotak.top < ada.kotak.top) {
+          perNomor[c.no] = c.t;
+        }
+      }
+
+      // Syarat 1: lengkap.
+      if (perNomor.length != urut.length) continue;
+
+      // Syarat 3: menurun sesuai nomornya.
+      var menurun = true;
+
+      for (var i = 1; i < urut.length; i++) {
+        if (perNomor[urut[i]]!.kotak.top <= perNomor[urut[i - 1]]!.kotak.top) {
+          menurun = false;
+          break;
+        }
+      }
+
+      if (menurun) return perNomor;
+    }
+
+    return null;
   }
 
   /// Kepala kolom yang di kertas ditulis NOMOR POLOS (`1`..`5`).
@@ -963,6 +1711,10 @@ class PetaTabelFoto {
           field: f,
           t: (
             teks: '',
+            // Jangkar BUATAN — kotaknya dihitung, bukan dibaca dari citra.
+            // Nggak ada teks yang dikenali di sini, jadi nggak ada keyakinan
+            // yang bisa dilaporkan.
+            keyakinan: null,
             kotak: Rect.fromLTWH(
               kotak.left + rata,
               kotak.top,
@@ -1047,6 +1799,8 @@ class PetaTabelFoto {
 
         hasil[urut[i]] = (
           teks: cocok[i].teks,
+          // Yang digeser cuma KOTAKNYA; teks & keyakinannya elemen yang sama.
+          keyakinan: cocok[i].keyakinan,
           // Digeser ke tengah span kolomnya — lihat alasannya di dokumentasi
           // method ini.
           kotak: Rect.fromLTWH(
@@ -1116,27 +1870,66 @@ class PetaTabelFoto {
     return terbaik;
   }
 
-  /// Jarak antar kolom slot, diambil dari jangkarnya sendiri.
+  /// Lebar SATU kolom, diturunkan dari jangkar yang kebaca.
   ///
-  /// **Yang dipakai jarak TERSEMPIT, bukan mediannya** — beda dari
+  /// [urutan] itu kunci kolom seperti TERCETAK, urut kiri ke kanan — yang
+  /// dipakai menghitung berapa kolom fisik dilompati antara dua jangkar.
+  ///
+  /// **Yang dipakai yang TERSEMPIT, bukan mediannya** — beda dari
   /// [_jarakAntarBaris], dan bedanya disengaja. Slot cetak cuma ada tiga-empat
   /// biji; satu kepala yang nggak kebaca langsung nggandain sebagian jaraknya
   /// dan median ikut ketarik. Toleransi yang ikut ketarik itu justru yang bikin
   /// angka di kolom tanpa jangkar ketarik ke slot sebelahnya — persis yang mau
-  /// dicegah. Jarak tersempit nggak bisa ketarik: kepala yang hilang cuma
-  /// bikin jarak lebih LEBAR, nggak pernah lebih sempit.
-  double _jarakAntarKolom(Iterable<TeksTerbaca> jangkar) {
-    final x = [for (final j in jangkar) j.kotak.center.dx]..sort();
+  /// dicegah.
+  ///
+  /// **Tiap selisih dibagi jarak POSISInya dulu**, dan tanpa itu "tersempit"
+  /// nggak menolong sama sekali. Kepala yang hilang di TENGAH bikin SEMUA
+  /// jarak yang tersisa lebih lebar sekaligus — `X1` & `X4` kejangkar
+  /// sementara `X2` & `X3` hilang berarti satu-satunya jarak yang ada tiga
+  /// kali lebar kolom. Batasnya ikut tiga kali lipat, angka di bawah `X2`
+  /// lolos, dan tersimpan sebagai `X1`: kolom tujuannya kosong di baris itu,
+  /// jadi [_buangSelKembar] nggak punya apa pun buat dibandingkan dan
+  /// `angkaTakTerpetakan` tetap nol. Tabel penuh, wajar, geser satu kolom.
+  /// Dijaga `test/foto_kolom_bolong_test.dart`.
+  double _jarakAntarKolom(Map<int, TeksTerbaca> jangkar, List<int> urutan) {
+    final urut = <({int posisi, double x})>[];
+
+    for (final e in jangkar.entries) {
+      final posisi = urutan.indexOf(e.key);
+      if (posisi < 0) continue;
+
+      urut.add((posisi: posisi, x: e.value.kotak.center.dx));
+    }
+
+    urut.sort((a, b) => a.x.compareTo(b.x));
 
     // Satu kolom doang: nggak ada jarak yang bisa diukur, jadi nggak ada
     // batas yang bisa dipertanggungjawabkan.
-    if (x.length < 2) return double.infinity;
+    if (urut.length < 2) return double.infinity;
 
     var sempit = double.infinity;
 
-    for (var i = 1; i < x.length; i++) {
-      final jarak = x[i] - x[i - 1];
-      if (jarak < sempit) sempit = jarak;
+    for (var i = 1; i < urut.length; i++) {
+      // Berapa kolom FISIK yang dilompati antara dua jangkar bertetangga —
+      // bukan diandaikan satu.
+      //
+      // Ini yang membedakan "jarak antar jangkar" dari "lebar satu kolom",
+      // dan bedanya cuma muncul waktu kepala di TENGAH nggak kebaca. Dengan
+      // `X1`, `X3`, `X5` kejangkar sementara `X2` & `X4` hilang, jarak antar
+      // jangkar dua kali lebar kolom — jadi `batasKolom` ikut dua kali lipat,
+      // dan angka yang duduk di bawah `X2` lolos pemeriksaan batas lalu
+      // disimpan sebagai `X1` atau `X3`.
+      //
+      // Yang bikin itu mahal: kolom tujuannya kosong di baris yang sama, jadi
+      // `_buangSelKembar` nggak punya apa pun buat dibandingkan dan
+      // `angkaTakTerpetakan` tetap nol. Teknisi diberi tabel yang penuh, wajar,
+      // dan salah kolom — persis kegagalan yang batas ini dipasang buat
+      // dicegah.
+      final lompat = urut[i].posisi - urut[i - 1].posisi;
+      if (lompat <= 0) continue;
+
+      final satuKolom = (urut[i].x - urut[i - 1].x) / lompat;
+      if (satuKolom < sempit) sempit = satuKolom;
     }
 
     return sempit;
@@ -1212,9 +2005,27 @@ class PetaTabelFoto {
     return double.tryParse(bersih.replaceAll(',', '.'));
   }
 
+  /// Teks ini terdiri dari lebih dari satu kata?
+  ///
+  /// Dipakai memisahkan calon FRASA dari element tunggal waktu mencocokkan
+  /// label baris — lihat alasannya di [_jangkarBaris].
+  static bool _berspasi(String teks) => teks.trim().contains(RegExp(r'\s'));
+
   /// Teks buat dibandingin: huruf kecil semua, tanpa spasi.
-  static String _rapatkan(String teks) =>
-      teks.toLowerCase().replaceAll(RegExp(r'\s+'), '');
+  ///
+  /// Tanda inci/detik diseragamkan dulu. Kepala kolom ketiga lembar suhu
+  /// pasangan itu `0″`, `20″`, `40″` — server ngirimnya pakai DOUBLE
+  /// PRIME (U+2033), sementara yang kecetak di lembar master lab tanda kutip
+  /// biasa (`0"`), dan ML Kit balikin salah satu dari keduanya tergantung font.
+  /// Dicocokkan mentah, satu karakter yang bahkan bukan bagian dari angkanya
+  /// bikin SELURUH kolom nggak kejangkar.
+  ///
+  /// Nggak bisa bikin salah taruh: tanda-tanda ini nggak pernah muncul di
+  /// pembacaan — [_angka] cuma nerima digit, titik, dan koma.
+  static String _rapatkan(String teks) => teks
+      .toLowerCase()
+      .replaceAll(RegExp(r'[″”“′’‘`\u0027]'), '"')
+      .replaceAll(RegExp(r'\s+'), '');
 
   /// Label SATUAN kolom buat dibandingin — lebih longgar dari [_rapatkan].
   ///

@@ -53,11 +53,32 @@ enum TahapPembacaan {
   sebelumAdjustment,
   sesudahAdjustment;
 
-  static TahapPembacaan fromJson(String? value) =>
-      value == 'sebelum_adjustment'
+  static TahapPembacaan fromJson(String? value) => value == 'sebelum_adjustment'
       ? TahapPembacaan.sebelumAdjustment
       : TahapPembacaan.sesudahAdjustment;
 }
+
+/// Angka dari JSON yang bisa datang sebagai `num` **atau** `String`.
+///
+/// Kolom `decimal(20,8)` MySQL dipulangkan driver sebagai string di sebagian
+/// konfigurasi, dan sebagai angka di sebagian lain. Yang menentukan bukan kode
+/// kita — jadi dua-duanya diterima di sini, sekali, alih-alih ditebak per
+/// pemanggil.
+///
+/// Hari ini jalur normalnya aman: `RawMeasurement::casts()` di backend
+/// meng-cast `titik_ukur` ke `'float'`, jadi JSON-nya selalu angka. Fungsi ini
+/// tetap ada karena cast itu satu baris di repo lain yang bisa hilang tanpa
+/// menerbitkan error di sini — yang terjadi cuma barisnya raib dari daftar,
+/// diam-diam, lewat `catch (_)` di `parseListAman`.
+///
+/// `null` kalau memang tidak ada nilainya ATAU tidak bisa dibaca sebagai
+/// angka. Pemanggil yang menentukan artinya — jangan dijadikan 0 di sini:
+/// nol itu angka yang sah di sebagian kolom.
+double? _angkaLuwes(Object? nilai) => switch (nilai) {
+  num n => n.toDouble(),
+  String s => double.tryParse(s.trim()),
+  _ => null,
+};
 
 /// Satu pembacaan mentah (`pembacaan_mentah` di response) — baris asli yang
 /// diinput teknisi, sebelum diringkas jadi rata-rata di [MeasurementResult].
@@ -171,10 +192,24 @@ class RawMeasurement {
       id: (json['id'] as num).toInt(),
       titikKe: (json['titik_ke'] as num).toInt(),
       // Backend ngirim decimal(20,8) — bisa nyampe sebagai angka atau string.
-      titikUkur:
-          (json['titik_ukur'] as num?)?.toDouble() ??
-          double.tryParse('${json['titik_ukur']}') ??
-          0,
+      //
+      // Sebelumnya perlindungan itu ditulis begini:
+      //
+      //     (json['titik_ukur'] as num?)?.toDouble()
+      //         ?? double.tryParse('${json['titik_ukur']}') ?? 0
+      //
+      // dan baris keduanya TIDAK PERNAH tercapai. `as num?` cuma lolos buat
+      // `null` atau `num`; begitu nilainya String — persis kasus yang disebut
+      // komentarnya sendiri — ekspresi pertamanya sudah melempar `TypeError`
+      // di situ juga. Jadi yang tertulis sebagai penjaga sebenarnya jalur yang
+      // menjatuhkan barisnya.
+      //
+      // Akibatnya tidak kelihatan sama sekali: exception-nya ditelan
+      // `parseListAman` (`catch (_)`), barisnya hilang dari daftar tanpa
+      // jejak, dan penjaga `kebuang` di `lembar_kerja_screen` — yang justru
+      // dibangun supaya "angka yang nggak ketemu barisnya HARUS diomongin" —
+      // bekerja SESUDAH parsing, jadi tidak pernah melihatnya.
+      titikUkur: _angkaLuwes(json['titik_ukur']) ?? 0,
       standardId: (json['standard_id'] as num?)?.toInt(),
       pembacaanKe: (json['pembacaan_ke'] as num).toInt(),
       pembacaan: (json['pembacaan'] as num).toDouble(),
@@ -313,6 +348,7 @@ class MeasurementResult {
     this.standarAcuan,
     this.metode,
     this.desimal,
+    this.desimalU95,
     this.satuan,
     this.tandaNol = true,
     this.remark,
@@ -374,6 +410,25 @@ class MeasurementResult {
   /// per-baris di [CertificateSnapshot], dan aturan jatuh-baliknya sama.
   final int? desimal;
 
+  /// Berapa desimal kolom **U95%** titik ini ditulis — buat alat yang
+  /// mencetaknya BEDA dari kolom hasil di sebelahnya.
+  ///
+  /// Bukan kerapian. Master Spectrophotometer menulis `0,43 nm` (dua desimal)
+  /// sementara Standard/UUT/Correction di tabel yang sama cuma satu (`333,7`);
+  /// Gas Detector menulis hasilnya bilangan bulat tapi U95 oksigennya satu
+  /// desimal. Dipukul rata, U95 `5,05` runtuh jadi **`5`** di layar sementara
+  /// sertifikatnya mencetak `5,1` — dan yang menemukan bedanya paling mungkin
+  /// teknisi yang sedang memeriksa hasilnya sendiri sebelum minta approve.
+  ///
+  /// Kelompok Waktu dan Frekuensi ikut memakainya: Timer hasil 3 desimal & U95
+  /// 2; kedua alat rpm hasil 2 & U95 1.
+  ///
+  /// `null` = alat ini nyetak U95 sama seperti kolom hasilnya; layar jatuh ke
+  /// [desimalEfektif] persis seperti sebelum kunci ini dibaca. Padanan
+  /// `desimal_u95` per-baris di [CertificateSnapshot], dan aturan jatuh-baliknya
+  /// sama.
+  final int? desimalU95;
+
   /// Satuan titik INI, buat alat yang nyampur satuan dalam satu lembar
   /// (Conductivity: 25 & 1412 µS/cm, 111 mS/cm).
   ///
@@ -426,6 +481,11 @@ class MeasurementResult {
   /// angka khusus buat titik ini.
   int desimalEfektif(int desimalSesi) => desimal ?? desimalSesi;
 
+  /// Desimal kolom U95% titik ini — [desimalU95] kalau alatnya menyebutnya,
+  /// kalau nggak ikut kolom hasil seperti biasa.
+  int desimalU95Efektif(int desimalSesi) =>
+      desimalU95 ?? desimalEfektif(desimalSesi);
+
   factory MeasurementResult.fromJson(Map<String, dynamic> json) {
     final komponen = json['type_b_components'] as List<dynamic>? ?? const [];
     final standar = json['standar_acuan'] as Map<String, dynamic>?;
@@ -456,11 +516,12 @@ class MeasurementResult {
       standarAcuan: standar == null ? null : StandardRef.fromJson(standar),
       metode: json['metode'] as String?,
       desimal: (json['desimal'] as num?)?.toInt(),
+      desimalU95: (json['desimal_u95'] as num?)?.toInt(),
       satuan: json['satuan'] as String?,
       tandaNol: json['tanda_nol'] as bool? ?? true,
       remark: json['remark'] as String?,
-      derajatKebebasanEfektif:
-          (json['derajat_kebebasan_efektif'] as num?)?.toDouble(),
+      derajatKebebasanEfektif: (json['derajat_kebebasan_efektif'] as num?)
+          ?.toDouble(),
     );
   }
 }
@@ -681,9 +742,10 @@ class IsianTeknisi {
       lokasiNama: json['lokasi_nama'] as String?,
       catatanTeknisi: json['catatan_teknisi'] as String?,
       spesifikasiAlat: {
-        for (final e in (json['spesifikasi_alat'] as Map<String, dynamic>? ??
-                const <String, dynamic>{})
-            .entries)
+        for (final e
+            in (json['spesifikasi_alat'] as Map<String, dynamic>? ??
+                    const <String, dynamic>{})
+                .entries)
           if (e.value != null) e.key: '${e.value}',
       },
       alatModel: json['alat_model'] as String?,
@@ -940,7 +1002,8 @@ class CalibrationDetail {
     final lingkungan = json['kondisi_lingkungan'] as Map<String, dynamic>?;
     final titikJson = json['titik'] as List<dynamic>? ?? const [];
     final sebelumJson = json['titik_sebelum'] as List<dynamic>? ?? const [];
-    final pembacaanJson = json['pembacaan_mentah'] as List<dynamic>? ?? const [];
+    final pembacaanJson =
+        json['pembacaan_mentah'] as List<dynamic>? ?? const [];
 
     // `is String`, bukan `as String?` — lihat alasannya di
     // `CalibrationHistoryItem.fromJson`.
@@ -967,7 +1030,9 @@ class CalibrationDetail {
       kelembaban: (json['kelembaban'] as num?)?.toDouble(),
       lokasi: json['lokasi'] as String?,
       isianTeknisi: IsianTeknisi.fromJson(json),
-      sertifikat: sertifikat == null ? null : CertificateRef.fromJson(sertifikat),
+      sertifikat: sertifikat == null
+          ? null
+          : CertificateRef.fromJson(sertifikat),
       kondisiLingkungan: lingkungan == null
           ? null
           : KondisiLingkungan.fromJson(lingkungan),
@@ -975,12 +1040,17 @@ class CalibrationDetail {
       titikSebelum: parseListAman(sebelumJson, MeasurementBefore.fromJson),
       pembacaanMentah: parseListAman(pembacaanJson, RawMeasurement.fromJson),
       perluVerifikasi: json['perlu_verifikasi'] as bool? ?? false,
-      autoclave: json['hasil_autoclave'] is Map<String, dynamic> &&
+      autoclave:
+          json['hasil_autoclave'] is Map<String, dynamic> &&
               (json['hasil_autoclave'] as Map).isNotEmpty
-          ? AutoclaveHasil.fromJson(json['hasil_autoclave'] as Map<String, dynamic>)
+          ? AutoclaveHasil.fromJson(
+              json['hasil_autoclave'] as Map<String, dynamic>,
+            )
           : null,
       statusStandar: json['status_standar'] is Map<String, dynamic>
-          ? StatusStandar.fromJson(json['status_standar'] as Map<String, dynamic>)
+          ? StatusStandar.fromJson(
+              json['status_standar'] as Map<String, dynamic>,
+            )
           : null,
     );
   }

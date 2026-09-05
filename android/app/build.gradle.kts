@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -37,6 +39,68 @@ if (berkasGoogleServices.exists()) {
     )
 }
 
+// Kunci penanda tangan rilis — dibaca dari `android/key.properties`.
+//
+// ## Kenapa ini nggak boleh tetap pakai kunci debug
+//
+// Sampai sebelum ini blok `release` di bawah masih memakai TODO bawaan Flutter
+// (`signingConfig = signingConfigs.getByName("debug")`). Yang bikin itu
+// berbahaya khusus di aplikasi ini: `AndroidManifest.xml` mendeklarasikan
+// `REQUEST_INSTALL_PACKAGES` karena aplikasinya TIDAK diedarkan lewat Play
+// Store — dia mengunduh penggantinya sendiri lalu memanggil pemasang Android
+// (`lib/services/pengunduh_apk.dart` + `penyiap_update.dart`).
+//
+// Android hanya mengizinkan pemasangan di atas aplikasi yang sudah ada kalau
+// SERTIFIKAT PENANDA TANGANNYA SAMA. Runner CI mulai dari VM bersih tiap run,
+// dan Android Gradle Plugin membuat `debug.keystore` baru di situ: alias dan
+// passwordnya memang selalu sama, tapi key material-nya acak tiap kali dibuat.
+// Jadi tiap rilis bersertifikat beda dari rilis sebelumnya, dan tiap teknisi
+// yang menekan "Update" ditolak dengan konflik signature. Yang kelihatan buat
+// dia: aplikasinya rusak. Jalan keluarnya cuma uninstall manual — yang
+// menghapus token di secure storage dan foto profil lokal.
+//
+// ## Kenapa absennya kunci TIDAK menggagalkan build di sini
+//
+// Karena berkas ini juga dipakai jalur yang memang nggak butuh kunci produksi:
+//
+//   - `flutter run --release` di laptop, yang justru dilindungi TODO aslinya;
+//   - `build-tes-mock.yml`, yang membangun `flutter build apk --release
+//     --dart-define=USE_MOCK=true` — paket uji coba berdata palsu.
+//
+// Paket mock itu malah TIDAK BOLEH ditandatangani kunci produksi: kalau iya,
+// APK berdata palsu bisa menimpa aplikasi asli di HP teknisi tanpa perlawanan
+// apa pun dari Android.
+//
+// Penjagaannya karena itu ditaruh di tempat yang tahu bedanya, yaitu workflow
+// `apk-rilis-cloud.yml` — dia GAGAL di detik pertama kalau secret keystore-nya
+// belum dipasang, dan memverifikasi sidik jari sertifikat APK-nya sesudah
+// dibangun. Pola yang sama persis dengan penjagaan `API_BASE_URL` di sana.
+val berkasKunciRilis = rootProject.file("key.properties")
+
+val kunciRilis =
+    Properties().apply {
+        if (berkasKunciRilis.exists()) {
+            berkasKunciRilis.inputStream().use { load(it) }
+        }
+    }
+
+// Semua-atau-tidak-sama-sekali. `key.properties` yang terisi separuh bikin
+// Gradle gagal jauh di dalam `:app:packageRelease` dengan pesan soal keystore
+// yang nggak nyebut kunci mana yang bolong.
+val adaKunciRilis =
+    berkasKunciRilis.exists() &&
+        listOf("storeFile", "storePassword", "keyAlias", "keyPassword").all {
+            !kunciRilis.getProperty(it).isNullOrBlank()
+        }
+
+if (!adaKunciRilis) {
+    logger.lifecycle(
+        "[sidik] android/key.properties nggak ada — build release jatuh ke kunci DEBUG. " +
+            "Sah buat run lokal & paket mock; JANGAN dibagikan ke teknisi, " +
+            "update-sendiri bakal ditolak Android. Lihat docs/rilis-tanda-tangan-apk.md.",
+    )
+}
+
 android {
     namespace = "com.ptsidik.kalibrasi"
     compileSdk = flutter.compileSdkVersion
@@ -67,11 +131,35 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        // Dibuat cuma kalau kuncinya memang ada. Signing config kosong bikin
+        // Gradle gagal walau jalur yang dipakai nggak pernah menyentuhnya.
+        if (adaKunciRilis) {
+            create("rilis") {
+                // Jalurnya diselesaikan relatif ke `android/`, tempat
+                // `key.properties` sendiri duduk — bukan ke `android/app/`.
+                // Jalur mutlak juga dilewatkan apa adanya oleh `file()`.
+                storeFile = rootProject.file(kunciRilis.getProperty("storeFile"))
+                storePassword = kunciRilis.getProperty("storePassword")
+                keyAlias = kunciRilis.getProperty("keyAlias")
+                keyPassword = kunciRilis.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Kunci produksi kalau ada; kalau nggak, jatuh ke debug supaya
+            // `flutter run --release` dan paket mock tetap bisa dibangun.
+            // Alasan lengkap kenapa absennya nggak digagalin DI SINI ada di
+            // komentar `berkasKunciRilis` di atas — penjagaannya di
+            // `apk-rilis-cloud.yml`, yang tahu bedanya rilis dan uji coba.
+            signingConfig =
+                if (adaKunciRilis) {
+                    signingConfigs.getByName("rilis")
+                } else {
+                    signingConfigs.getByName("debug")
+                }
 
             // Tanpa baris ini `flutter build apk --release` GAGAL TOTAL di
             // `:app:minifyReleaseWithR8` — R8 nemu rujukan menggantung ke

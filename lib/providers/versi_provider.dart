@@ -81,3 +81,71 @@ final updateSiapProvider = FutureProvider<bool>((ref) async {
     return false;
   }
 });
+
+/// Pengiriman kalibrasi sedang ditahan karena ada rilis WAJIB yang menunggu.
+///
+/// ## Keputusan 4 Sep 2026 — yang ditahan pengirimannya, BUKAN layarnya
+///
+/// Pertanyaannya lama terbuka di `banner_update.dart`: rilis wajib seharusnya
+/// juga memblokir layar isian kalibrasi, atau tidak. Jawabannya: **tidak** —
+/// yang diblokir cuma langkah kirimnya, dan "Simpan Draft" tetap jalan.
+///
+/// Yang menentukan itu definisi `wajib` di modelnya sendiri: *"bentuk payload
+/// berubah dan versi lama diam-diam mengirim data yang salah."* Jadi yang
+/// berbahaya bukan teknisi mengetik — yang berbahaya angka salah masuk jalur
+/// approval lalu tercetak di sertifikat terakreditasi. Menahan pengetikannya
+/// tidak menutup apa pun dan justru mengambil satu-satunya cara teknisi
+/// menyelamatkan pekerjaannya.
+///
+/// Draft memang lahir dari versi yang sama dan bisa ikut cacat. Bedanya:
+/// **draft itu ruang tunggu, bukan dokumen.** Dia bisa dibuka, diperiksa dan
+/// dikirim ulang dari versi yang sudah benar. Sesi yang terlanjur masuk
+/// approval bisa jadi sertifikat. Yang ditahan langkah yang tidak bisa ditarik
+/// balik, bukan pekerjaannya — pola yang sama dengan penjagaan lain di repo
+/// ini.
+///
+/// Yang TETAP tidak dilakukan, dan alasannya tidak berubah sejak
+/// `banner_update.dart` menuliskannya: mengunci aplikasi. Teknisi di lokasi
+/// pelanggan tanpa sinyal cukup untuk 68 MB harus tetap bisa mencatat.
+///
+/// **Dibaca dari `.value`, jadi "belum tahu" = tidak menahan.** Itu disengaja.
+/// Pemeriksaan versi gagal diam-diam waktu tidak ada sinyal, dan menahan
+/// pengiriman karena TIDAK TAHU akan menghukum justru teknisi yang paling tidak
+/// bisa memperbaiki keadaannya.
+final kirimTertahanRilisWajibProvider = Provider<bool>((ref) {
+  return ref.watch(updateTersediaProvider).value?.wajib ?? false;
+});
+
+/// Penjaga supaya pemasang cuma dibuka SENDIRI sekali seumur proses aplikasi.
+///
+/// ## Kenapa bukan `bool` di dalam state widget
+///
+/// Dashboard dibongkar-pasang terus: pindah tab, balik dari layar lain, tarik
+/// buat muat ulang, ganti akun. Kalau penjaganya ikut umur widget, tiap
+/// pemasangan ulang membuka pemasang lagi — dan teknisi yang menekan "Batal"
+/// di layar pemasang akan disambut layar yang sama begitu dia balik ke
+/// dashboard, berulang, tanpa cara keluar selain menerima pemasangannya.
+///
+/// Menolak pemutakhiran harus tetap mungkin. Penjaga setingkat proses bikin
+/// jawaban "tidak sekarang" bertahan sampai aplikasinya benar-benar ditutup.
+class GiliranPemasangOtomatis {
+  bool _sudah = false;
+
+  /// `true` cuma sekali. Panggilan berikutnya selalu `false`.
+  bool ambil() {
+    if (_sudah) return false;
+    _sudah = true;
+
+    return true;
+  }
+}
+
+/// Sengaja `Provider` biasa, BUKAN `autoDispose`.
+///
+/// Yang auto-dispose hilang begitu tidak ada yang membaca — dan tidak ada yang
+/// membacanya persis waktu dashboard dilepas, yaitu keadaan yang penjaga ini
+/// ada buat menanganinya. Umurnya harus umur `ProviderScope` di akar, jadi satu
+/// penolakan bertahan sampai aplikasinya ditutup.
+final giliranPemasangOtomatisProvider = Provider<GiliranPemasangOtomatis>(
+  (ref) => GiliranPemasangOtomatis(),
+);

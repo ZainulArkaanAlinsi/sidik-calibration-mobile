@@ -8,10 +8,16 @@ import '../../models/calibration_draft.dart';
 import '../../models/category.dart';
 import '../../models/equipment_lookup.dart';
 import '../../models/standard.dart';
+import '../../models/skema_dokumen.dart';
 import '../../providers/calibration_input_provider.dart';
+import '../../providers/versi_provider.dart';
+import '../../services/ambil_foto_tabel.dart';
+import '../../services/analisis_dokumen.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/sidik_loader.dart';
+import 'peta_kolom_screen.dart';
+import 'skema_dinamis_screen.dart';
 
 /// Form input kalibrasi — kategori → alat → standar acuan, lalu titik ukur
 /// (target + pembacaan berulang) yang dinamis. Nggak nyoba nyaingin worksheet
@@ -104,6 +110,21 @@ class _Titik {
     TextEditingController(),
   ];
 
+  /// Isi pembacaan dari kertas, menumbuhkan kotaknya kalau pengulangannya
+  /// lebih banyak dari dua bawaan.
+  ///
+  /// Yang lebih dari kotak yang ada NGGAK boleh dibuang: pengulangan ke-5 yang
+  /// hilang bikin sebaran Type A dihitung dari empat angka padahal kertasnya
+  /// punya lima, dan hasilnya beda tanpa ada yang kelihatan salah.
+  void isiPembacaan(List<String> nilai) {
+    while (pembacaan.length < nilai.length) {
+      pembacaan.add(TextEditingController());
+    }
+    for (var i = 0; i < nilai.length; i++) {
+      pembacaan[i].text = nilai[i];
+    }
+  }
+
   void dispose() {
     nilaiTarget.dispose();
     satuan.dispose();
@@ -168,6 +189,163 @@ class _FormState extends ConsumerState<_Form> {
   void _tambahPembacaan(_Titik titik) =>
       setState(() => titik.pembacaan.add(TextEditingController()));
 
+  bool _membaca = false;
+
+  /// Foto lembar yang **belum dikenal aplikasi** → titik ukur terisi.
+  ///
+  /// ## Kenapa jalurnya mendarat di sini
+  ///
+  /// Layar ini yang dibuka waktu alatnya nggak punya profil lembar kerja
+  /// (`InstrumentPickerScreen` menjatuhkannya ke sini persis di cabang
+  /// `profil == null`). Jadi teknisi yang berdiri di layar ini adalah teknisi
+  /// yang memegang kertas yang aplikasinya nggak punya bentuknya — populasi
+  /// yang sama persis dengan yang dilayani jalur generik. Sebelum ini, satu-
+  /// satunya pilihannya mengetik ulang seluruh tabel dari kertas.
+  ///
+  /// ## Rantainya, dan di mana manusia masuk
+  ///
+  ///   kamera → OCR di perangkat → `AnalisisDokumen` (baris → pasangan &
+  ///   tabel) → `PembuatSkema` → **teknisi mengoreksi bacaannya** →
+  ///   **teknisi menetapkan arti kolom** → titik ukur terisi → backend hitung
+  ///
+  /// Dua langkah manusia itu nggak boleh dihapus buat "mempercepat". Yang
+  /// pertama karena OCR tulisan tangan nggak pernah dianggap pasti di repo ini;
+  /// yang kedua karena arti kolom mustahil ditebak tanpa menanam daftar ejaan
+  /// kepala kolom — dan menebaknya terbalik bikin koreksi di sertifikat kebalik
+  /// tandanya.
+  ///
+  /// Yang mendarat di form tetap **bacaan mentah**. Perhitungan GUM,
+  /// ketidakpastian, dan keputusan PASS/FAIL tetap punya backend dengan profil
+  /// alat yang sah — jalur ini nggak bisa menerbitkan sertifikat lewat pintu
+  /// belakang.
+  Future<void> _bacaDariFoto() async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    setState(() => _membaca = true);
+
+    try {
+      final foto = await ambilDanBacaTabel(ref);
+      if (!mounted || foto.dibatalkan) return;
+
+      if (foto.terbaca == null) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.calibBacaFotoGagal)),
+        );
+        return;
+      }
+
+      final dibaca = const AnalisisDokumen().bacaDokumen(foto.terbaca!);
+      final skema = const PembuatSkema().susun(
+        pasangan: dibaca.pasangan,
+        tabel: dibaca.tabel,
+      );
+
+      // Layar review-nya dibuka SEKALIPUN tabelnya nggak ketemu. Teknisi
+      // berhak lihat apa yang sebenarnya kebaca dari kertasnya sebelum
+      // disuruh jepret ulang — pesan "nggak ada tabel" tanpa buktinya bikin
+      // dia mengulang jepretan yang sama.
+      final dikoreksi = await navigator.push<SkemaDokumen>(
+        MaterialPageRoute(builder: (_) => SkemaDinamisScreen(skema: skema)),
+      );
+
+      if (!mounted || dikoreksi == null) return;
+
+      if (dikoreksi.tabel.isEmpty) {
+        messenger.showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 8),
+            content: Text(l10n.calibBacaFotoTanpaTabel),
+          ),
+        );
+        return;
+      }
+
+      final tabel = await _pilihTabel(dikoreksi.tabel, l10n);
+      if (!mounted || tabel == null) return;
+
+      final peta = await navigator.push<PetaKolomTerpakai>(
+        MaterialPageRoute(builder: (_) => PetaKolomScreen(tabel: tabel)),
+      );
+
+      if (!mounted || peta == null || peta.titik.isEmpty) return;
+
+      _isiTitik(peta);
+
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.calibBacaFotoSelesai(peta.titik.length))),
+      );
+    } finally {
+      if (mounted) setState(() => _membaca = false);
+    }
+  }
+
+  /// Dokumen boleh punya beberapa tabel; yang milih teknisi, bukan urutan.
+  ///
+  /// Diambil yang pertama diam-diam, lembar yang tabel identitasnya kebaca
+  /// duluan bakal dipetakan sebagai titik ukur — dan yang salah nggak
+  /// kelihatan sampai angkanya sudah masuk.
+  ///
+  /// Judulnya punya kunci SENDIRI, bukan menumpang judul layar peta kolom.
+  /// Dua pertanyaan ini beda dan berurutan: yang di sini "tabel yang mana",
+  /// yang di sana "kolomnya berarti apa". Menumpang, teknisi membaca
+  /// "Kolom mana artinya apa" di atas dialog yang isinya cuma daftar tabel —
+  /// pertanyaan yang belum ditanyakan, di layar yang belum sampai ke situ.
+  Future<TabelSkema?> _pilihTabel(
+    List<TabelSkema> tabel,
+    AppLocalizations l10n,
+  ) async {
+    if (tabel.length == 1) return tabel.single;
+
+    return showDialog<TabelSkema>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(l10n.pilihTabelJudul),
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+            child: Text(
+              l10n.pilihTabelPengantar,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+          for (var i = 0; i < tabel.length; i++)
+            SimpleDialogOption(
+              onPressed: () => Navigator.of(context).pop(tabel[i]),
+              child: Text(
+                tabel[i].kepala.isEmpty
+                    ? l10n.skemaDinamisTabel(i + 1)
+                    : tabel[i].kepala.where((k) => k.trim().isNotEmpty).join(' · '),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Ganti isi form dengan titik yang dipetakan dari kertas.
+  ///
+  /// MENGGANTI, bukan menambah: yang ada sebelumnya baris kosong bawaan layar,
+  /// dan menyisakannya bikin submit ditolak karena ada titik tanpa nilai —
+  /// dengan pesan yang nunjuk ke isian kosong, bukan ke fotonya.
+  void _isiTitik(PetaKolomTerpakai peta) {
+    setState(() {
+      for (final t in _titikList) {
+        t.dispose();
+      }
+      _titikList
+        ..clear()
+        ..addAll([
+          for (final d in peta.titik)
+            _Titik()
+              ..nilaiTarget.text = d.nilaiAcuan
+              ..satuan.text = peta.satuan
+              ..isiPembacaan(d.pembacaan),
+        ]);
+    });
+  }
+
   double? _parse(String text) => double.tryParse(text.trim().replaceAll(',', '.'));
 
   Future<void> _submit({required bool draft}) async {
@@ -187,35 +365,120 @@ class _FormState extends ConsumerState<_Form> {
       return;
     }
 
+    // Rilis WAJIB menahan pengiriman, tapi TIDAK menahan draft. Alasannya
+    // ditulis di `kirimTertahanRilisWajibProvider`: yang berbahaya bukan
+    // teknisi mengetik, tapi angka dari versi yang diketahui salah masuk jalur
+    // approval lalu tercetak di sertifikat.
+    //
+    // Ditaruh SEBELUM validasi kolom di bawah, bukan sesudah: menyuruh teknisi
+    // melengkapi suhu & pembacaan untuk kiriman yang toh akan ditolak itu
+    // membuang waktunya dua kali.
+    if (!draft && ref.read(kirimTertahanRilisWajibProvider)) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.kirimTertahanRilisWajib),
+          duration: const Duration(seconds: 8),
+        ),
+      );
+      return;
+    }
+
+    // Mulai dari sini penjagaannya BERSYARAT — dan `draft` yang jadi syaratnya.
+    //
+    // Sebelum ini seluruh blok di bawah berjalan tanpa syarat, dan `draft` baru
+    // dibaca jauh di bawah waktu menyusun `CalibrationDraft`. Artinya tombol
+    // "Simpan Draft" menuntut lembar yang LENGKAP — persis yang tidak
+    // dijanjikannya. Teknisi yang baru mengukur sebagian titik (baterai
+    // menipis, alat pelanggan belum siap) cuma punya dua pilihan: tunggu
+    // sampai lengkap, atau kehilangan seluruh isian.
+    //
+    // Layar lembar kerja utama sudah benar sejak awal — `lembar_kerja_screen`
+    // membungkus penjagaannya dengan `if (!draft)` dan menulis alasannya di
+    // tempat: *"Draft tetap boleh disimpan setengah jadi."* Model ini juga
+    // sudah menyatakan niat yang sama: `simpanSebagaiDraft` didokumentasikan
+    // sebagai *"simpan dulu, lanjut nanti"*.
+    //
+    // Backend pun sudah siap: `suhu_ruang`/`kelembaban` `nullable`,
+    // `measurements` `sometimes`, `pembacaan` `nullable`. Jadi yang bolong cuma
+    // layar ini.
+    //
+    // Tiga penjagaan di atas TIDAK ikut dilonggarkan. Kategori, alat dan
+    // standar bukan "kolom wajib" — tanpa ketiganya tidak ada yang bisa
+    // dikirim sama sekali, dan `CalibrationDraft` sendiri menuntutnya
+    // non-null. Sama seperti alat di lembar kerja utama.
     final suhu = _parse(_suhuRuang.text);
     final lembab = _parse(_kelembaban.text);
-    if (suhu == null || lembab == null) {
+    if (!draft && (suhu == null || lembab == null)) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.calibValidasiAngka)));
       return;
     }
 
     final measurements = <MeasurementPoint>[];
+
+    // Baris yang tidak bisa ikut tersimpan — dihitung, bukan didiamkan. Lihat
+    // di bawah loop.
+    var titikTanpaAcuan = 0;
+
     for (final titik in _titikList) {
       final target = _parse(titik.nilaiTarget.text);
-      if (target == null || titik.satuan.text.trim().isEmpty) {
-        messenger.showSnackBar(SnackBar(content: Text(l10n.calibValidasiAngka)));
-        return;
-      }
+      final satuan = titik.satuan.text.trim();
 
       final pembacaan = <double>[];
       for (final c in titik.pembacaan) {
         final nilai = _parse(c.text);
         if (nilai != null) pembacaan.add(nilai);
       }
-      if (pembacaan.length < 2) {
-        messenger.showSnackBar(SnackBar(content: Text(l10n.calibValidasiPembacaan)));
-        return;
+
+      if (!draft) {
+        if (target == null || satuan.isEmpty) {
+          messenger.showSnackBar(SnackBar(content: Text(l10n.calibValidasiAngka)));
+          return;
+        }
+        if (pembacaan.length < 2) {
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.calibValidasiPembacaan)),
+          );
+          return;
+        }
+      }
+
+      // Satu hal yang TIDAK bisa dilonggarkan walau ini draft:
+      // `measurements.*.titik_ukur` `required` di backend, jadi baris tanpa
+      // nilai acuan bakal ditolak seluruh request-nya — bukan cuma barisnya.
+      // Jadi barisnya dilewat di sini.
+      //
+      // Waktu `draft` false, cabang ini tidak pernah kena: penjagaan di atas
+      // sudah memulangkan lebih dulu.
+      if (target == null) {
+        // Dihitung CUMA kalau memang ada yang hilang. Baris yang kosong
+        // melompong tidak kehilangan apa pun, dan melaporkannya bikin
+        // peringatan yang isinya tidak benar — dan peringatan palsu melatih
+        // orang mengabaikan yang asli.
+        //
+        // Yang diperiksa TEKS MENTAHnya, bukan hasil parse-nya.
+        //
+        // Bedanya kelihatan pada isian yang SETENGAH KETIK. Kolom ini disaring
+        // `AppTextField.measurement` (`^-?\d*[.,]?\d*`), jadi huruf memang
+        // tidak bisa masuk — tapi `-` sendirian (mulai mengetik nilai negatif
+        // lalu berhenti) dan `,` sendirian (mulai mengetik `0,5`) dua-duanya
+        // lolos filternya dan tetap `null` sesudah di-parse.
+        //
+        // Pemeriksaan berbasis hasil parse membaca baris begitu sebagai baris
+        // kosong melompong: barisnya dibuang, dan layarnya bilang semuanya
+        // tersimpan.
+        final adaYangDiketik =
+            titik.nilaiTarget.text.trim().isNotEmpty ||
+            satuan.isNotEmpty ||
+            titik.pembacaan.any((c) => c.text.trim().isNotEmpty);
+
+        if (adaYangDiketik) titikTanpaAcuan++;
+        continue;
       }
 
       measurements.add(
         MeasurementPoint(
           titikUkur: target,
-          satuan: titik.satuan.text.trim(),
+          satuan: satuan,
           pembacaan: pembacaan,
         ),
       );
@@ -242,9 +505,25 @@ class _FormState extends ConsumerState<_Form> {
     setState(() => _mengirim = false);
 
     if (hasil != null) {
+      // Baris yang dilewat HARUS diomongin — draft yang balik dengan tabel
+      // bolong tanpa ada yang bilang itu persis cara sesi kekirim ke admin
+      // dengan titik yang ilang diam-diam. Aturan yang sama sudah dipegang
+      // penjaga `kebuang` di `lembar_kerja_screen`, berikut durasi 8 detiknya:
+      // pesan yang lewat dalam empat detik sama saja dengan tidak ada.
+      //
+      // Digabung ke pesan sukses, bukan ditampilkan sebelumnya: SnackBar
+      // berikutnya menggusur yang sedang tampil, jadi peringatan yang
+      // ditampilkan lebih dulu justru yang paling mungkin tidak terbaca.
+      final adaYangDilewat = draft && titikTanpaAcuan > 0;
+
       messenger.showSnackBar(
         SnackBar(
-          content: Text(draft ? l10n.calibBerhasilDraft : l10n.calibBerhasilApproval),
+          content: Text(
+            adaYangDilewat
+                ? l10n.calibDraftTitikDilewat(titikTanpaAcuan)
+                : (draft ? l10n.calibBerhasilDraft : l10n.calibBerhasilApproval),
+          ),
+          duration: Duration(seconds: adaYangDilewat ? 8 : 4),
         ),
       );
       Navigator.of(context).pop();
@@ -261,6 +540,19 @@ class _FormState extends ConsumerState<_Form> {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final equipmentAsync = ref.watch(equipmentLookupProvider(_kategori));
+
+    // Di-`watch`, bukan cuma di-`read` waktu tombol ditekan.
+    // `updateTersediaProvider` itu FutureProvider yang auto-dispose (bawaan
+    // Riverpod 3): tanpa ada yang berlangganan selama layar ini terbuka,
+    // `.value` masih null waktu tombol ditekan — dan penjaganya DIAM tanpa
+    // satu pun error. Berlangganan di sini bikin nilainya sudah matang
+    // sebelum dibutuhkan.
+    //
+    // Nilainya sengaja tidak dipakai menonaktifkan tombolnya: tombol mati tanpa
+    // penjelasan bikin teknisi menyimpulkan aplikasinya rusak. Tombolnya tetap
+    // hidup, dan yang menjelaskan pesan di `_submit` — pola yang sama dengan
+    // penjagaan kategori/alat/standar di sekitarnya.
+    ref.watch(kirimTertahanRilisWajibProvider);
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -384,6 +676,15 @@ class _FormState extends ConsumerState<_Form> {
           ],
         ),
         const SizedBox(height: AppSpacing.lg),
+
+        AppButton(
+          label: l10n.calibBacaFoto,
+          icon: Icons.document_scanner_outlined,
+          variant: AppButtonVariant.secondary,
+          isLoading: _membaca,
+          onPressed: _membaca ? null : _bacaDariFoto,
+        ),
+        const SizedBox(height: AppSpacing.md),
 
         for (var i = 0; i < _titikList.length; i++) ...[
           _TitikCard(

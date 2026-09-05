@@ -893,6 +893,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historyStatusPerluRevisi => 'Needs revision';
 
   @override
+  String get statusAktif => 'Active';
+
+  @override
+  String get statusOverdue => 'Overdue';
+
+  @override
+  String get statusNonaktif => 'Inactive';
+
+  @override
+  String get statusDisetujui => 'Approved';
+
+  @override
+  String get statusBaru => 'New';
+
+  @override
+  String get statusDiproses => 'In progress';
+
+  @override
+  String get statusSelesai => 'Done';
+
+  @override
+  String get statusDibatalkan => 'Cancelled';
+
+  @override
   String get historyApprove => 'APPROVE';
 
   @override
@@ -1840,11 +1864,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calibKirimApproval => 'SUBMIT FOR APPROVAL';
 
   @override
+  String calibDraftTitikDilewat(int jumlah) {
+    return 'Draft saved, but $jumlah rows were not saved because their reference value is still empty. Fill the reference value in if the readings on those rows should be kept.';
+  }
+
+  @override
   String get calibBerhasilDraft => 'Calibration draft saved.';
 
   @override
   String get calibBerhasilApproval =>
       'Calibration session submitted for approval.';
+
+  @override
+  String get kirimTertahanRilisWajib =>
+      'A mandatory update must be installed before this session can be sent. Save a draft first — your entries are kept.';
 
   @override
   String calibGagal(String pesan) {
@@ -1972,6 +2005,22 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get calibTiDenganSensorKeterangan =>
       'The sensor IS calibrated. Sensor and indicator are checked as one chain — the sensor goes into the medium alongside the reference thermometer, so the reading covers the whole chain.';
+
+  @override
+  String calibTiRentang(String rentang) {
+    return 'Measuring range $rentang';
+  }
+
+  @override
+  String calibTiCmc(String cmc, int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah capability rows',
+      one: '1 capability row',
+    );
+    return 'CMC $cmc · $_temp0';
+  }
 
   @override
   String get calibTiBelumSiap => 'Not on this server yet';
@@ -2735,6 +2784,23 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get lkFotoTabelTanpaJangkar =>
       'No reading could be placed with certainty. Make sure the standard-value column (left) and the repeat headers (numbers 1..5, or X1 / Repeat 1) are in frame — all of them, none cut off. You can still type the values manually.';
+
+  @override
+  String get lkTabelBelumDisimpan =>
+      'The numbers in this table are recorded on the sheet but are NOT sent to the server yet — there is no column for them. Keep the paper.';
+
+  @override
+  String get lkMatriksFotoTanpaJangkar =>
+      'No reading could be placed with certainty. Make sure the left-hand column of quantity names (Temp. Disk 1, Indikator Pressure, …) and the time-point headers along the top are in frame — all of them, none cut off. A row whose name could not be read is never filled.';
+
+  @override
+  String get lkGridFotoTanpaJangkar =>
+      'No reading could be placed with certainty. Make sure the No. column (the thermocouple numbers, on the left) and the repeat headers along the top are in frame — all of them, none cut off. Rows whose number you have not typed in yet are never filled from a photo.';
+
+  @override
+  String lkGridFotoNomorKembar(String nomor) {
+    return 'This set point can\'t be photographed: thermocouple number $nomor is used on more than one row, so there is no way to tell which row a reading belongs to. Fix the duplicated number first.';
+  }
 
   @override
   String lkFotoTabelKolomHilang(String kolom) {
@@ -3546,11 +3612,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'There are findings that block issuance. Approve is disabled.';
 
   @override
-  String get perhitKonfirmasiJudul => 'Recalculation differs. Continue?';
+  String get perhitKonfirmasiJudul => 'Warnings found. Continue?';
 
   @override
   String get perhitKonfirmasiBody =>
-      'The recalculated numbers differ from what was saved. Approving anyway issues the certificate with the saved numbers.';
+      'Approving anyway issues the certificate with the saved numbers.';
 
   @override
   String get perhitKonfirmasiBatal => 'CHECK AGAIN';
@@ -3807,6 +3873,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String lkStandarBelumDicentang(String titik) {
     return 'Point $titik has readings but its reference standard is not ticked — those numbers cannot be calculated. Tick the standard, or clear the row if this instrument does not use that point.';
+  }
+
+  @override
+  String lkSetPointKosong(String titik) {
+    return 'Point $titik has readings but its Setpoint box is empty or not a valid number — the WHOLE row, including the readings already entered, will not be submitted. Fill in the setpoint, or clear the row if that point is not used.';
   }
 
   @override
@@ -4084,4 +4155,249 @@ class AppLocalizationsEn extends AppLocalizations {
   String lkAlatBaruTersimpan(String nama) {
     return 'Equipment \"$nama\" saved and selected for this worksheet.';
   }
+
+  @override
+  String fotoReviewJudul(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah readings',
+      one: '1 reading',
+    );
+    return 'Check $_temp0';
+  }
+
+  @override
+  String get fotoReviewPengantar =>
+      'The readings below were taken from the photo and are not in the sheet yet. Compare each one against its image crop, fix what is wrong, then tap Insert. Handwriting is never treated as certain — however high the percentage.';
+
+  @override
+  String get fotoReviewMasukkan => 'INSERT INTO SHEET';
+
+  @override
+  String get fotoReviewKetikSendiri =>
+      'Type it yourself — the reading cannot be trusted';
+
+  @override
+  String fotoReviewKeyakinan(int persen) {
+    return 'Confidence $persen%';
+  }
+
+  @override
+  String get fotoReviewKeyakinanTakAda => 'Confidence not reported';
+
+  @override
+  String fotoReviewMasihKosong(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah cells are still empty and must be filled.',
+      one: '1 cell is still empty and must be filled.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get skemaDinamisJudul => 'Unrecognised sheet';
+
+  @override
+  String get skemaDinamisPengantar =>
+      'This sheet has no fixed shape in the app yet, so its contents were read straight from the photo. Check every field before saving — nothing here is treated as certain.';
+
+  @override
+  String get skemaDinamisTanpaSatuan => 'no unit';
+
+  @override
+  String skemaDinamisTabel(int nomor) {
+    return 'Table $nomor';
+  }
+
+  @override
+  String get skemaDinamisSimpan => 'SAVE WHAT WAS READ';
+
+  @override
+  String skemaDinamisMasihKosong(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah red-verdict fields are still empty and must be filled.',
+      one: '1 red-verdict field is still empty and must be filled.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get skemaDinamisKosong =>
+      'No fields or tables were read from this photo. Try again with the whole sheet in frame.';
+
+  @override
+  String get petaKolomJudul => 'What each column means';
+
+  @override
+  String get petaKolomPengantar =>
+      'The app can see how many columns the sheet has, but it cannot know which one is the reference value and which are instrument readings. That is your call. Getting it backwards flips the sign of the correction on the certificate, with numbers that still look reasonable.';
+
+  @override
+  String get petaKolomAbaikan => 'Ignore';
+
+  @override
+  String get petaKolomNilaiAcuan => 'Reference value';
+
+  @override
+  String get petaKolomPembacaan => 'Reading';
+
+  @override
+  String get petaKolomSatuan => 'Unit';
+
+  @override
+  String get petaKolomSatuanBantu =>
+      'Typed, not read off the sheet — a wrong unit changes what every number means.';
+
+  @override
+  String get petaKolomSatuanWajib => 'The unit is still empty.';
+
+  @override
+  String petaKolomKolomKe(int nomor) {
+    return 'Column $nomor';
+  }
+
+  @override
+  String petaKolomContoh(String nilai) {
+    return 'sample: $nilai';
+  }
+
+  @override
+  String get petaKolomTanpaAcuan =>
+      'No column has been marked as the reference value yet.';
+
+  @override
+  String get petaKolomAcuanDobel =>
+      'Two columns are marked as the reference value. A measurement point has only one.';
+
+  @override
+  String petaKolomPembacaanKurang(int jumlah) {
+    return 'At least $jumlah reading columns are needed — a single number has no spread to compute.';
+  }
+
+  @override
+  String petaKolomRingkas(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah measurement points will be filled in',
+      one: '1 measurement point will be filled in',
+    );
+    return '$_temp0.';
+  }
+
+  @override
+  String petaKolomDilewat(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah rows were skipped because their reference value is empty',
+      one: '1 row was skipped because its reference value is empty',
+    );
+    return '$_temp0.';
+  }
+
+  @override
+  String get petaKolomTerapkan => 'FILL MEASUREMENT POINTS';
+
+  @override
+  String get calibBacaFoto => 'READ FROM SHEET PHOTO';
+
+  @override
+  String get calibBacaFotoGagal =>
+      'That photo could not be read. Try again with the whole sheet in frame.';
+
+  @override
+  String get calibBacaFotoTanpaTabel =>
+      'No table was read from this photo. Measurement points come from the table on the sheet, so make sure the table is in frame.';
+
+  @override
+  String calibBacaFotoSelesai(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah measurement points were filled in from the photo',
+      one: '1 measurement point was filled in from the photo',
+    );
+    return '$_temp0. Check the numbers before submitting.';
+  }
+
+  @override
+  String get pilihTabelJudul => 'Which table should be used?';
+
+  @override
+  String get pilihTabelPengantar =>
+      'This photo has more than one table. Pick the one holding the measurement points — not the instrument identity table.';
+
+  @override
+  String get equipPelangganTidakKetemu => 'Not in the lab\'s customer list?';
+
+  @override
+  String get equipPelangganDaftarBaru => 'REGISTER A NEW COMPANY';
+
+  @override
+  String get pelangganBaruJudul => 'New customer';
+
+  @override
+  String get pelangganBaruPengantar =>
+      'Search the company directory, or type the name and address by hand. Whatever you save here is used straight away — it doesn\'t wait for an admin.';
+
+  @override
+  String get pelangganBaruNama => 'Company name';
+
+  @override
+  String get pelangganBaruAlamat => 'Address';
+
+  @override
+  String get pelangganBaruAlamatBantu =>
+      'Printed in the OWNER block of the certificate.';
+
+  @override
+  String get pelangganBaruCariDirektori => 'SEARCH THE DIRECTORY';
+
+  @override
+  String get pelangganBaruDirektoriJudul => 'Directory results';
+
+  @override
+  String get pelangganBaruDirektoriKosong =>
+      'No company in the directory matches that. Type the name and address by hand.';
+
+  @override
+  String get pelangganBaruDirektoriCatatan =>
+      'The directory lists businesses as they appear on the map, not as they appear on the deed. Check it against the customer\'s order form before saving.';
+
+  @override
+  String get pelangganBaruDaftarkan => 'REGISTER';
+
+  @override
+  String get pelangganBaruNamaWajib => 'Company name is required.';
+
+  @override
+  String get pelangganBaruMiripJudul =>
+      'Already in the list — did you mean one of these?';
+
+  @override
+  String get pelangganBaruMiripPilih => 'Tap one to use it instead.';
+
+  @override
+  String get pelangganBaruTetapBuat => 'DIFFERENT COMPANY — REGISTER ANYWAY';
+
+  @override
+  String get pelangganBaruGagal => 'Couldn\'t register the customer.';
+
+  @override
+  String get pelangganBaruDirektoriTiadaLab =>
+      'Company directory isn\'t available for this lab. Type the name and address below.';
+
+  @override
+  String get pelangganBaruDirektoriMati =>
+      'The directory can\'t be reached right now. Type the name and address below, or try again later.';
+
+  @override
+  String get equipPelangganDariSimpanan =>
+      'Offline — showing the copy saved on this phone. Customers added recently may be missing.';
 }

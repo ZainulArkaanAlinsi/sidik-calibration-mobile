@@ -4,6 +4,9 @@ import '../models/lembar_kerja_submission.dart';
 import '../models/pratinjau_hitung.dart';
 import 'api_client.dart';
 import 'equipment_lookup_service.dart';
+import 'contoh_lembar_kerja_massa.dart';
+import 'contoh_lembar_kerja_panjang.dart';
+import 'contoh_lembar_kerja_waktu.dart';
 import 'contoh_lembar_kerja_suhu.dart';
 
 /// Lembar kerja teknisi: ambil bentuk formulirnya, kirim isiannya.
@@ -122,6 +125,7 @@ class MockLembarKerjaService implements LembarKerjaService {
     this.tanpaTampilKalau = false,
     this.tanpaThermohygro = false,
     this.fotoTabelDidukung = true,
+    this.fotoTabelLokal,
   });
 
   final bool gagal;
@@ -151,10 +155,21 @@ class MockLembarKerjaService implements LembarKerjaService {
   /// kosong atau karena kolomnya kelewat di-parse.
   final bool tanpaThermohygro;
 
-  /// Niru `pindai_foto.didukung` dari server. `false` = kertas alat ini nggak
-  /// muat di bentuk "titik ukur x Repeat" (Autoklaf, TIDS), jadi tombol
-  /// `FOTO TABEL INI` nggak boleh digambar walau saklar pindainya nyala.
+  /// Niru `pindai_foto.didukung` dari server — gerbang jalur CLOUD
+  /// (`raw-measurements/extract-from-photo`, yang mengirim fotonya ke layanan
+  /// pihak ketiga). `false` = kertas alat ini nggak muat di bentuk
+  /// "titik ukur x Repeat" yang bisa dituturkan ke pembaca cloud.
   final bool fotoTabelDidukung;
+
+  /// Niru `pindai_foto.lokal` — gerbang tombol `FOTO TABEL INI` (ML Kit, di
+  /// perangkat). `null` = kuncinya NGGAK DIKIRIM sama sekali, yaitu server
+  /// versi lama; layar wajib jatuh balik ke [fotoTabelDidukung].
+  ///
+  /// Dua saklar terpisah karena akibatnya beda: yang satu menentukan foto
+  /// pelanggan boleh keluar HP atau nggak, yang satu cuma menentukan tombolnya
+  /// digambar atau nggak. TIDS hidup di kombinasi `didukung: false` +
+  /// `lokal: true`, dan kombinasi itu yang paling gampang salah kebaca.
+  final bool? fotoTabelLokal;
 
   /// Bikin `kirim`/`perbarui` gagal sampai percobaan ke-n — buat niru sinyal
   /// putus di lapangan, dan mastiin retry-nya bawa `client_request_id` yang
@@ -240,6 +255,36 @@ class MockLembarKerjaService implements LembarKerjaService {
       'thermohygro' => contohBentukLembarKerjaThermohygro(
         untukAdmin: untukAdmin,
       ),
+      // TIDS ikut jalur pasangan sejak 28 Agt 2026. Sebelum baris ini, `tids`
+      // jatuh ke cabang `_` di bawah dan mode mock memajang bentuk pH buat
+      // lembar TIDS — nggak ada error, cuma lembar yang salah.
+      'tids' => contohBentukLembarKerjaTids(untukAdmin: untukAdmin),
+      // Lembar ke-21, kelompok MASSA — bentuknya beda dari dua puluh yang lain
+      // (tujuh blok, dua di antaranya tabel), jadi dia wajib punya cabangnya
+      // sendiri di sini. Tanpa baris ini `timbangan` jatuh ke cabang `_` dan
+      // mode mock memajang lembar pH untuk alat Massa: nggak ada error, cuma
+      // lembar yang salah — persis yang kejadian di TIDS sebelum 28 Agt 2026.
+      'timbangan' => contohBentukLembarKerjaTimbangan(untukAdmin: untukAdmin),
+      // Kelompok WAKTU DAN FREKUENSI (alat ke-22..24). Timer bentuknya beda
+      // sendiri — dua tabel deret, tiap ulangan EMPAT kotak — jadi tanpa
+      // cabangnya sendiri di sini mode mock memajang lembar pH untuk lembar
+      // stopwatch. Dua alat rpm bentuknya tabel datar biasa, tapi tetap butuh
+      // cabangnya: set point mereka penunjukan ALAT PELANGGAN sementara kolom
+      // pembacaannya bacaan tachometer STANDAR, dan lembar pH nggak menyatakan
+      // itu di mana pun.
+      'timer_stopwatch' => contohBentukLembarKerjaTimer(untukAdmin: untukAdmin),
+      'centrifuge' => contohBentukLembarKerjaCentrifuge(untukAdmin: untukAdmin),
+      'tachometer' => contohBentukLembarKerjaTachometer(untukAdmin: untukAdmin),
+      // Kelompok PANJANG (alat ke-25). Bentuknya beda dari dua puluh empat
+      // yang lain di satu hal yang bikin lembar pH kelihatan "jalan" padahal
+      // salah: tabel `hasil`-nya BARIS-TERKUNCI (`titik_bisa_diubah: false`)
+      // dengan sebelas nominal balok ukur yang sudah tercetak di kertas. Tanpa
+      // cabang ini `micrometer` jatuh ke `_` dan mode mock memajang lembar pH
+      // tiga titik buffer — nggak ada error, cuma lembar yang salah, persis
+      // yang kejadian di TIDS sebelum 28 Agt 2026 dan di Timbangan.
+      'micrometer' => contohBentukLembarKerjaMicrometer(
+        untukAdmin: untukAdmin,
+      ),
       // Profil kosong / nggak dikenal SENGAJA jatuh ke pH, bukan lempar error —
       // sama kayak janji kontraknya (`docs/kontrak-api.md` §4).
       _ => contohBentukLembarKerja(untukAdmin: untukAdmin),
@@ -262,11 +307,25 @@ class MockLembarKerjaService implements LembarKerjaService {
 
     return LembarKerja.fromJson({
       ...akhir,
-      'pindai_foto': {
-        'kolom_suhu': false,
-        'standar_di_baris': true,
-        'didukung': fotoTabelDidukung,
-      },
+      // Bentuk yang sudah membawa `pindai_foto`-nya SENDIRI dibiarkan —
+      // penanda itu properti lembarnya, dan menimpanya di sini bikin mock
+      // menyalakan tombol kamera di lembar yang aslinya mematikannya.
+      //
+      // Lembar Timbangan yang bikin ini ketahuan: `bentukPindaiFoto()`-nya
+      // mengunci dua-duanya `false` (lab belum menerbitkan kertasnya), tapi
+      // mock tetap memajang tombol `FOTO TABEL INI` — dan test layar yang
+      // seharusnya menjaga itu jadi hijau bohongan sebaliknya.
+      //
+      // Bawaan di bawah tetap dipakai sembilan belas lembar lain, dan dua
+      // saklar test (`fotoTabelDidukung`/`fotoTabelLokal`) tetap jalan buat
+      // mereka.
+      if (!akhir.containsKey('pindai_foto'))
+        'pindai_foto': {
+          'kolom_suhu': false,
+          'standar_di_baris': true,
+          'didukung': fotoTabelDidukung,
+          if (fotoTabelLokal != null) 'lokal': fotoTabelLokal,
+        },
     });
   }
 

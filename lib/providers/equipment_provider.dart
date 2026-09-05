@@ -4,6 +4,7 @@ import '../core/config/app_config.dart';
 import '../models/equipment.dart';
 import '../services/equipment_service.dart';
 import 'auth_provider.dart';
+import 'penjaga_urutan_muat.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
 
 /// Live sejak 14 Jul (`docs/kontrak-api.md` §3) — sama endpoint yang dipakai
@@ -43,7 +44,8 @@ final deviceOverviewProvider = FutureProvider.family<List<Equipment>, String?>(
   },
 );
 
-class EquipmentController extends AsyncNotifier<List<Equipment>> {
+class EquipmentController extends AsyncNotifier<List<Equipment>>
+    with PenjagaUrutanMuat<List<Equipment>> {
   String _search = '';
   String? _kategori;
   String? _status;
@@ -57,47 +59,93 @@ class EquipmentController extends AsyncNotifier<List<Equipment>> {
     // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
     ref.watch(authProvider);
 
+    _page = 1;
+    final hasil = await _ambil(1);
+
+    // `build()` yang dipanggil Riverpod sendiri selalu yang terbaru — nggak ada
+    // permintaan lain yang bisa mendahuluinya, jadi metadatanya dipasang
+    // langsung. Yang lewat penjaga cuma [_muatUlangTerjaga] di bawah.
+    _lastPage = hasil.lastPage;
+
+    return hasil.items;
+  }
+
+  /// Satu permintaan daftar — item DAN metadata halamannya, dibawa bersama.
+  ///
+  /// Dipisah dari `build()` supaya pemanggilnya bisa memilih KAPAN metadatanya
+  /// dipasang. Waktu masih tertanam di dalam `build()`, `_lastPage` tertulis
+  /// sebelum penjaga urutan sempat menolak hasilnya.
+  Future<EquipmentPage> _ambil(int page) async {
     final token = await ref.read(tokenStorageProvider).read();
     if (token == null) throw const TokenHilangException();
 
-    _page = 1;
-    final hasil = await ref
+    return ref
         .read(equipmentServiceProvider)
         .daftar(
           token,
           search: _search,
           kategori: _kategori,
           status: _status,
-          page: 1,
+          page: page,
         );
-    _lastPage = hasil.lastPage;
-    return hasil.items;
+  }
+
+  /// Muat ulang halaman pertama lewat penjaga urutan — daftar dan metadata
+  /// halamannya dipasang sebagai satu kesatuan, atau dibuang dua-duanya.
+  Future<void> _muatUlangTerjaga() async {
+    // Lokal per panggilan, jadi dua pencarian yang tumpang tindih nggak saling
+    // menimpa hasilnya sebelum penjaganya sempat memutuskan.
+    EquipmentPage? hasil;
+
+    await muatDenganPenjaga(
+      () async {
+        hasil = await _ambil(1);
+        return hasil!.items;
+      },
+      saatTerbaru: () {
+        _page = 1;
+        _lastPage = hasil!.lastPage;
+      },
+    );
   }
 
   Future<void> cari(String query) async {
     _search = query;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build());
+    await _muatUlangTerjaga();
   }
 
   Future<void> filter({String? kategori, String? status}) async {
     _kategori = kategori;
     _status = status;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build());
+    await _muatUlangTerjaga();
   }
 
   Future<void> muatUlang() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => build());
+    await _muatUlangTerjaga();
   }
 
   /// Nambahin halaman berikutnya ke daftar yang udah ada — bukan
   /// `muatUlang()`, biar scroll position teknisi nggak keloncat ke atas.
+  ///
+  /// Ikut penjaga urutan yang sama, tapi TANPA `loading`: mengosongkan daftar
+  /// jadi spinner bikin scroll teknisi loncat ke atas, dan itu persis yang
+  /// dihindari pintu ini. Yang dibeli penjaganya: pencarian baru yang berangkat
+  /// selagi halaman ini di jalan bikin hasil halaman ini dibuang, bukan
+  /// ditempel ke daftar kata kunci yang lain.
   Future<void> muatLebihBanyak() async {
     final sebelum = state.value;
     if (sebelum == null || !bisaMuatLagi) return;
 
+    // Nomornya diambil SEBELUM `await` pertama. Kalau diambil sesudahnya,
+    // pencarian yang berangkat di sela-sela justru dapat nomor yang lebih
+    // kecil — dan halaman 2 milik kata kunci LAMA menang, lalu ditempel ke
+    // daftar kata kunci yang baru.
+    final nomor = mulaiPermintaan();
+    final halaman = _page + 1;
+
+    // Token dibaca di sini, bukan lewat `_ambil`, supaya perilakunya persis
+    // seperti sebelumnya: token hilang di tengah scroll berhenti diam-diam,
+    // bukan memerahkan daftar yang sudah kelihatan.
     final token = await ref.read(tokenStorageProvider).read();
     if (token == null) return;
 
@@ -108,9 +156,12 @@ class EquipmentController extends AsyncNotifier<List<Equipment>> {
           search: _search,
           kategori: _kategori,
           status: _status,
-          page: _page + 1,
+          page: halaman,
         );
-    _page += 1;
+
+    if (!masihTerbaru(nomor)) return;
+
+    _page = halaman;
     _lastPage = hasil.lastPage;
     state = AsyncValue.data([...sebelum, ...hasil.items]);
   }

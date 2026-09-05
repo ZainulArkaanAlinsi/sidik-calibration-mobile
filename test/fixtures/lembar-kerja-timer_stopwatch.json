@@ -1,0 +1,661 @@
+{
+    "kode_dokumen": null,
+    "kode_metode": "SIDIK-IK-CAL-0509_Rev.6",
+    "nomor_lingkup": "LK-285-IDN",
+    "judul": "Calibration Work Sheet - Stopwatch / Timer",
+    "jumlah_pengulangan": 3,
+    "satuan": "s",
+    "satuan_suhu": "°C",
+    "semua_kolom_opsional": true,
+    "catatan_pengisian": "Tiap SET POINT ditekan tiga kali: stopwatch standar dan alat pelanggan dijalankan BERBARENGAN, lalu dua-duanya dicatat. Isi jam/menit/detik/milidetik apa adanya seperti yang tampil di layar masing-masing. Set point yang nggak dipakai dikosongin — jangan diisi nol, karena baris nol tetap melahirkan koreksi sebesar koreksi standarnya dan tercetak seperti titik sungguhan.",
+    "budget_ketidakpastian": {
+        "tersedia": true,
+        "sumber": "Master Olda Timer dan Stopwatch.xlsm (16 Apr 2026)",
+        "catatan": "Enam komponen per titik termasuk dua human reaction, lantai CMC 0,81 s. Tiga penyimpangan master dihitung benar dan dilaporkan lewat peringatan sesi."
+    },
+    "bagian": [
+        {
+            "kode": "identitas_alat",
+            "halaman": 1,
+            "judul": "Identitas Alat dan Data Customer",
+            "field": [
+                {
+                    "kode": "equipment_id",
+                    "label": "Nama Alat",
+                    "tipe": "pilihan",
+                    "wajib": false,
+                    "sumber": "master_alat",
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "equipment.nama_alat",
+                    "label": "Nama Alat",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": "otomatis",
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "alat_merk",
+                    "label": "Merk",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "alat_model",
+                    "label": "Type",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "alat_serial_number",
+                    "label": "No. Seri",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "spesifikasi_alat.rentang_ukur",
+                    "label": "Rentang Ukur",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "min",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "spesifikasi_alat.kapasitas",
+                    "label": "Kapasitas Max.",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "min",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "spesifikasi_alat.resolusi",
+                    "label": "Resolusi Alat",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "s",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "tanggal_terima",
+                    "label": "Tgl. Diterima",
+                    "tipe": "tanggal",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "tanggal_kalibrasi",
+                    "label": "Tgl. Kalibrasi",
+                    "tipe": "tanggal",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "suhu_awal",
+                    "label": "Suhu Ruangan — awal",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "°C",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "suhu_akhir",
+                    "label": "Suhu Ruangan — akhir",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "°C",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "kelembaban_awal",
+                    "label": "Kelembapan — awal",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "%RH",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "kelembaban_akhir",
+                    "label": "Kelembapan — akhir",
+                    "tipe": "angka",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": "%RH",
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "lokasi",
+                    "label": "Lokasi Kalibrasi",
+                    "tipe": "pilihan",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [
+                        {
+                            "nilai": "lab",
+                            "label": "Inlab"
+                        },
+                        {
+                            "nilai": "onsite",
+                            "label": "Insitu"
+                        }
+                    ],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "room_id",
+                    "label": "Ruangan (Inlab)",
+                    "tipe": "pilihan",
+                    "wajib": false,
+                    "sumber": "master_ruangan",
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": {
+                        "kode": "lokasi",
+                        "nilai": [
+                            "lab"
+                        ]
+                    }
+                },
+                {
+                    "kode": "lokasi_nama",
+                    "label": "Nama Tempat (Insitu)",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": {
+                        "kode": "lokasi",
+                        "nilai": [
+                            "onsite"
+                        ]
+                    }
+                },
+                {
+                    "kode": "thermohygro_standard_id",
+                    "label": "Environmental Meter Used",
+                    "tipe": "pilihan",
+                    "wajib": false,
+                    "sumber": "master_thermohygro",
+                    "satuan": null,
+                    "pilihan": [
+                        {
+                            "nilai": "1",
+                            "label": "TH-1",
+                            "grup": "Thermohygro lab"
+                        },
+                        {
+                            "nilai": "2",
+                            "label": "TH-2",
+                            "grup": "Thermohygro lab"
+                        },
+                        {
+                            "nilai": "3",
+                            "label": "TH-3",
+                            "grup": "Thermohygro lab"
+                        },
+                        {
+                            "nilai": "4",
+                            "label": "TH-4",
+                            "grup": "Thermohygro lab"
+                        },
+                        {
+                            "nilai": "5",
+                            "label": "TH-5",
+                            "grup": "Thermohygro lab"
+                        },
+                        {
+                            "nilai": "6",
+                            "label": "TH-6",
+                            "grup": "Thermohygro lab"
+                        },
+                        {
+                            "nilai": "7",
+                            "label": "TH-7",
+                            "grup": "Thermohygro lab"
+                        }
+                    ],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                }
+            ]
+        },
+        {
+            "kode": "pemilik",
+            "halaman": 1,
+            "judul": "Data Customer",
+            "field": [
+                {
+                    "kode": "pemilik_nama",
+                    "label": "Nama Customer",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "pemilik_alamat",
+                    "label": "Alamat Customer",
+                    "tipe": "teks_panjang",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "nomor_order",
+                    "label": "Order Number",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                }
+            ]
+        },
+        {
+            "kode": "usage_check",
+            "halaman": 1,
+            "judul": "Standard Used",
+            "baris": [
+                {
+                    "label": "Stopwatch/CASIO/Digital/SW-1",
+                    "standard_id": 59,
+                    "serial_number": "SW-1",
+                    "no_sertifikat": "SW-1",
+                    "tertelusur_ke": "LK-361-IDN",
+                    "terdaftar": true
+                }
+            ],
+            "field": [
+                {
+                    "kode": "standar_dicek.*.dipakai",
+                    "label": "Usage Check",
+                    "tipe": "centang",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "standar_dicek.*.keterangan",
+                    "label": "Keterangan",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                }
+            ]
+        },
+        {
+            "kode": "hasil",
+            "halaman": 1,
+            "judul": "Data Hasil Kalibrasi",
+            "field": [],
+            "tabel": [
+                {
+                    "tahap": "sesudah_adjustment",
+                    "peran": "standar",
+                    "grup": "waktu_standar",
+                    "judul": "Pembacaan Stopwatch Standar",
+                    "satuan": "s",
+                    "judul_nilai": "Set Point",
+                    "judul_pengulangan": "Ulangan (jam:menit:detik,ms)",
+                    "titik_bisa_diubah": true,
+                    "baris": [
+                        {
+                            "nomor": 1,
+                            "titik_ukur": 60,
+                            "label": "Set point 1",
+                            "satuan": "s",
+                            "standard_id": 59,
+                            "standard_nama": "Stopwatch SW-1"
+                        },
+                        {
+                            "nomor": 2,
+                            "titik_ukur": 300,
+                            "label": "Set point 2",
+                            "satuan": "s",
+                            "standard_id": 59,
+                            "standard_nama": "Stopwatch SW-1"
+                        },
+                        {
+                            "nomor": 3,
+                            "titik_ukur": 600,
+                            "label": "Set point 3",
+                            "satuan": "s",
+                            "standard_id": 59,
+                            "standard_nama": "Stopwatch SW-1"
+                        },
+                        {
+                            "nomor": 4,
+                            "titik_ukur": 900,
+                            "label": "Set point 4",
+                            "satuan": "s",
+                            "standard_id": 59,
+                            "standard_nama": "Stopwatch SW-1"
+                        },
+                        {
+                            "nomor": 5,
+                            "titik_ukur": 1800,
+                            "label": "Set point 5",
+                            "satuan": "s",
+                            "standard_id": 59,
+                            "standard_nama": "Stopwatch SW-1"
+                        },
+                        {
+                            "nomor": 6,
+                            "titik_ukur": 2400,
+                            "label": "Set point 6",
+                            "satuan": "s",
+                            "standard_id": 59,
+                            "standard_nama": "Stopwatch SW-1"
+                        },
+                        {
+                            "nomor": 7,
+                            "titik_ukur": 3600,
+                            "label": "Set point 7",
+                            "satuan": "s",
+                            "standard_id": 59,
+                            "standard_nama": "Stopwatch SW-1"
+                        },
+                        {
+                            "nomor": 8,
+                            "titik_ukur": 120,
+                            "label": "Set point 8",
+                            "satuan": "s",
+                            "standard_id": 59,
+                            "standard_nama": "Stopwatch SW-1"
+                        },
+                        {
+                            "nomor": 9,
+                            "titik_ukur": 180,
+                            "label": "Set point 9",
+                            "satuan": "s",
+                            "standard_id": 59,
+                            "standard_nama": "Stopwatch SW-1"
+                        },
+                        {
+                            "nomor": 10,
+                            "titik_ukur": 240,
+                            "label": "Set point 10",
+                            "satuan": "s",
+                            "standard_id": 59,
+                            "standard_nama": "Stopwatch SW-1"
+                        }
+                    ],
+                    "kolom": [
+                        {
+                            "kode": "jam",
+                            "label": "J",
+                            "tipe": "angka",
+                            "satuan": "jam"
+                        },
+                        {
+                            "kode": "menit",
+                            "label": "M",
+                            "tipe": "angka",
+                            "satuan": "min"
+                        },
+                        {
+                            "kode": "detik",
+                            "label": "S",
+                            "tipe": "angka",
+                            "satuan": "s"
+                        },
+                        {
+                            "kode": "milidetik",
+                            "label": "0.001 S",
+                            "tipe": "angka",
+                            "satuan": "ms"
+                        }
+                    ],
+                    "pengulangan": [
+                        1,
+                        2,
+                        3
+                    ]
+                },
+                {
+                    "tahap": "sesudah_adjustment",
+                    "peran": "uut",
+                    "grup": "waktu_uut",
+                    "judul": "Pembacaan Alat yang Dikalibrasi",
+                    "satuan": "s",
+                    "judul_nilai": "Set Point",
+                    "judul_pengulangan": "Ulangan (jam:menit:detik,ms)",
+                    "titik_bisa_diubah": true,
+                    "baris": [
+                        {
+                            "nomor": 1,
+                            "titik_ukur": 60,
+                            "label": "Set point 1",
+                            "satuan": "s",
+                            "standard_id": 59,
+                            "standard_nama": "Stopwatch SW-1"
+                        },
+                        {
+                            "nomor": 2,
+                            "titik_ukur": 300,
+                            "label": "Set point 2",
+                            "satuan": "s",
+                            "standard_id": 59,
+                            "standard_nama": "Stopwatch SW-1"
+                        },
+                        {
+                            "nomor": 3,
+                            "titik_ukur": 600,
+                            "label": "Set point 3",
+                            "satuan": "s",
+                            "standard_id": 59,
+                            "standard_nama": "Stopwatch SW-1"
+                        },
+                        {
+                            "nomor": 4,
+                            "titik_ukur": 900,
+                            "label": "Set point 4",
+                            "satuan": "s",
+                            "standard_id": 59,
+                            "standard_nama": "Stopwatch SW-1"
+                        },
+                        {
+                            "nomor": 5,
+                            "titik_ukur": 1800,
+                            "label": "Set point 5",
+                            "satuan": "s",
+                            "standard_id": 59,
+                            "standard_nama": "Stopwatch SW-1"
+                        },
+                        {
+                            "nomor": 6,
+                            "titik_ukur": 2400,
+                            "label": "Set point 6",
+                            "satuan": "s",
+                            "standard_id": 59,
+                            "standard_nama": "Stopwatch SW-1"
+                        },
+                        {
+                            "nomor": 7,
+                            "titik_ukur": 3600,
+                            "label": "Set point 7",
+                            "satuan": "s",
+                            "standard_id": 59,
+                            "standard_nama": "Stopwatch SW-1"
+                        },
+                        {
+                            "nomor": 8,
+                            "titik_ukur": 120,
+                            "label": "Set point 8",
+                            "satuan": "s",
+                            "standard_id": 59,
+                            "standard_nama": "Stopwatch SW-1"
+                        },
+                        {
+                            "nomor": 9,
+                            "titik_ukur": 180,
+                            "label": "Set point 9",
+                            "satuan": "s",
+                            "standard_id": 59,
+                            "standard_nama": "Stopwatch SW-1"
+                        },
+                        {
+                            "nomor": 10,
+                            "titik_ukur": 240,
+                            "label": "Set point 10",
+                            "satuan": "s",
+                            "standard_id": 59,
+                            "standard_nama": "Stopwatch SW-1"
+                        }
+                    ],
+                    "kolom": [
+                        {
+                            "kode": "jam",
+                            "label": "J",
+                            "tipe": "angka",
+                            "satuan": "jam"
+                        },
+                        {
+                            "kode": "menit",
+                            "label": "M",
+                            "tipe": "angka",
+                            "satuan": "min"
+                        },
+                        {
+                            "kode": "detik",
+                            "label": "S",
+                            "tipe": "angka",
+                            "satuan": "s"
+                        },
+                        {
+                            "kode": "milidetik",
+                            "label": "0.001 S",
+                            "tipe": "angka",
+                            "satuan": "ms"
+                        }
+                    ],
+                    "pengulangan": [
+                        1,
+                        2,
+                        3
+                    ]
+                }
+            ]
+        },
+        {
+            "kode": "penutup",
+            "halaman": 1,
+            "judul": "Catatan & Tanda Tangan",
+            "field": [
+                {
+                    "kode": "catatan_teknisi",
+                    "label": "Catatan",
+                    "tipe": "teks_panjang",
+                    "wajib": false,
+                    "sumber": null,
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "teknisi.nama",
+                    "label": "Dikalibrasi Oleh",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": "otomatis",
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                },
+                {
+                    "kode": "reviewer.nama",
+                    "label": "Diperiksa Oleh",
+                    "tipe": "teks",
+                    "wajib": false,
+                    "sumber": "otomatis",
+                    "satuan": null,
+                    "pilihan": [],
+                    "hanya_admin": false,
+                    "tampil_kalau": null
+                }
+            ]
+        }
+    ],
+    "alat_baru": {
+        "kategori": "waktu-dan-frekuensi",
+        "nama_alat_kemampuan": "Timer/Stopwatch"
+    },
+    "pindai_foto": {
+        "kolom_suhu": false,
+        "standar_di_baris": false,
+        "didukung": false,
+        "lokal": true
+    }
+}

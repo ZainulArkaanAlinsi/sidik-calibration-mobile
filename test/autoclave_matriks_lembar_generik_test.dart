@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/models/lembar_kerja.dart';
 import 'package:sidik_calibration/screens/calibration/instrument_picker_screen.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_state.dart';
@@ -188,15 +190,25 @@ void main() {
     final b = bentuk.bagian.single;
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: SingleChildScrollView(
-            child: LembarKerjaMatriks(
+      // `ProviderScope` + delegate l10n wajib: matriks sekarang menggambar
+      // tombol `FOTO TABEL INI` di atasnya, dan tombol itu ConsumerWidget yang
+      // labelnya dari l10n. Dipasang di sini, bukan dimatikan lewat
+      // `pindaiAktif: false` — yang diuji berkas ini matriks seperti yang
+      // beneran dilihat teknisi.
+      ProviderScope(
+        child: MaterialApp(
+          locale: const Locale('id'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: LembarKerjaMatriks(
               matriks: b.matriks!,
               isian: isian,
               onBerubah: () {},
               tabelTambahan: b.tabelTambahan,
               setPoint: b.field.first,
+              ),
             ),
           ),
         ),
@@ -246,15 +258,25 @@ void main() {
     final b = bentuk.bagian.single;
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: SingleChildScrollView(
-            child: LembarKerjaMatriks(
+      // `ProviderScope` + delegate l10n wajib: matriks sekarang menggambar
+      // tombol `FOTO TABEL INI` di atasnya, dan tombol itu ConsumerWidget yang
+      // labelnya dari l10n. Dipasang di sini, bukan dimatikan lewat
+      // `pindaiAktif: false` — yang diuji berkas ini matriks seperti yang
+      // beneran dilihat teknisi.
+      ProviderScope(
+        child: MaterialApp(
+          locale: const Locale('id'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: LembarKerjaMatriks(
               matriks: b.matriks!,
               isian: isian,
               onBerubah: () {},
               tabelTambahan: b.tabelTambahan,
               setPoint: b.field.first,
+              ),
             ),
           ),
         ),
@@ -297,14 +319,24 @@ void main() {
     final b = bentuk.bagian.single;
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: SingleChildScrollView(
-            child: LembarKerjaMatriks(
+      // `ProviderScope` + delegate l10n wajib: matriks sekarang menggambar
+      // tombol `FOTO TABEL INI` di atasnya, dan tombol itu ConsumerWidget yang
+      // labelnya dari l10n. Dipasang di sini, bukan dimatikan lewat
+      // `pindaiAktif: false` — yang diuji berkas ini matriks seperti yang
+      // beneran dilihat teknisi.
+      ProviderScope(
+        child: MaterialApp(
+          locale: const Locale('id'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: LembarKerjaMatriks(
               matriks: b.matriks!,
               isian: isian,
               onBerubah: () {},
               tabelTambahan: b.tabelTambahan,
+              ),
             ),
           ),
         ),

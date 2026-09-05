@@ -15,13 +15,16 @@ import '../../models/lembar_kerja.dart';
 import '../../models/room.dart';
 import '../../models/standard.dart';
 import '../../providers/autoclave_provider.dart';
+import '../../providers/contoh_sel_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/calibration_input_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../providers/jam_provider.dart';
 import '../../providers/lembar_kerja_provider.dart';
+import '../../providers/versi_provider.dart';
 import '../../providers/worksheet_scan_provider.dart';
 import '../../services/auth_service.dart' show AuthException;
+import '../../services/penampung_contoh_sel.dart';
 import '../../widgets/autoclave_hasil_panel.dart';
 import '../../widgets/banner_status_standar.dart';
 import '../../widgets/app_button.dart';
@@ -380,9 +383,23 @@ class _FormState extends ConsumerState<_Form> {
   /// kerja alat lain bisa punya penomoran yang beda.
   int _halaman = 0;
 
+  /// Penampung contoh latih, diambil duluan supaya [dispose] bisa membuang
+  /// tampungan sesi ini tanpa menyentuh `ref`.
+  ///
+  /// `null` selama providernya belum selesai — kalau layarnya ditutup secepat
+  /// itu, belum ada satu pun potongan yang sempat ditampung, jadi nggak ada
+  /// yang perlu dibuang.
+  PenampungContohSel? _penampung;
+
   @override
   void initState() {
     super.initState();
+
+    // Diambil di sini, bukan waktu dibutuhkan, supaya `dispose` punya
+    // pegangannya tanpa menyentuh `ref` — lihat docblock [_penampung].
+    ref.read(penampungContohSelProvider.future).then((p) {
+      if (mounted) _penampung = p;
+    }).ignore();
 
     // Angka yang diketik di tabel hasil nggak lewat `_isianBerubah` — selnya
     // sengaja nggak nge-rebuild formulir tiap ketukan tombol. Pratinjaunya
@@ -433,7 +450,9 @@ class _FormState extends ConsumerState<_Form> {
       if (kebuang > 0 && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context).lkPembacaanTakTerpulih(kebuang)),
+            content: Text(
+              AppLocalizations.of(context).lkPembacaanTakTerpulih(kebuang),
+            ),
             duration: const Duration(seconds: 8),
           ),
         );
@@ -489,7 +508,9 @@ class _FormState extends ConsumerState<_Form> {
         if (!mounted) return;
         ref
             .read(autoclavePratinjauProvider.notifier)
-            .hitung(_isian.payloadMatriks(bagian.matriks!, bagian.tabelTambahan));
+            .hitung(
+              _isian.payloadMatriks(bagian.matriks!, bagian.tabelTambahan),
+            );
       });
 
       return;
@@ -536,6 +557,22 @@ class _FormState extends ConsumerState<_Form> {
   @override
   void dispose() {
     _pratinjauTertunda?.cancel();
+
+    // Tampungan contoh latih milik sesi ini dibuang — teknisi yang memotret
+    // lalu MENUTUP lembarnya tanpa menyimpan meninggalkan potongan di
+    // penampung yang hidup selama aplikasi jalan. Dibiarkan, potongan lembar
+    // ini ikut tersimpan waktu lembar BERIKUTNYA dikirim: nama lembarnya
+    // salah, dan `labelAkhir`-nya membaca `_isian` yang barusan di-dispose.
+    //
+    // Dipakai dari FIELD, bukan `ref.read` — Riverpod melarang `ref` dipakai
+    // waktu widgetnya sedang dilepas ("Using ref when a widget is about to or
+    // has been unmounted is unsafe"), dan seluruh suite widget jatuh gara-gara
+    // itu. Penampungnya karena itu diambil duluan di [initState].
+    //
+    // Cuma milik sesi ini — layar lain yang masih hidup nggak boleh kehilangan
+    // tampungannya gara-gara layar ini ditutup.
+    _penampung?.buang(_isian.clientRequestId);
+
     _isian.dispose();
     super.dispose();
   }
@@ -549,6 +586,24 @@ class _FormState extends ConsumerState<_Form> {
     // bisa dikirim sama sekali — bukan "kolom wajib", tapi identitas barangnya.
     if (_isian.alat == null) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.lkBelumPilihAlat)));
+      return;
+    }
+
+    // Rilis WAJIB menahan pengiriman, tapi TIDAK menahan draft — sama persis
+    // dengan `calibration_input_screen`, dan sengaja lewat provider yang SAMA
+    // supaya dua pintu ini tidak bisa berbeda pendapat. Alasannya ditulis di
+    // `kirimTertahanRilisWajibProvider`.
+    //
+    // Pintu ini gampang terlewat: penjagaan di layar isian satunya tidak
+    // menyentuhnya sama sekali karena jalur kirimnya beda provider
+    // (`kirimLembarKerjaProvider`, bukan `calibrationSubmitProvider`).
+    if (!draft && ref.read(kirimTertahanRilisWajibProvider)) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.kirimTertahanRilisWajib),
+          duration: const Duration(seconds: 8),
+        ),
+      );
       return;
     }
 
@@ -658,6 +713,30 @@ class _FormState extends ConsumerState<_Form> {
         );
         return;
       }
+
+      // Baris TIDS yang angkanya keisi tapi kotak `Setpoint`-nya kosong atau
+      // nggak kebaca sebagai angka.
+      //
+      // MENAHAN, bukan bertanya — sejajar sama isian yatim di atas, dan
+      // sebabnya sama: yang hilang bukan dugaan soal kewajaran angka, tapi
+      // lima kotak pembacaan yang beneran ada di tangan teknisi dan beneran
+      // nggak jadi terkirim. Tanpa ini lembarnya kelihatan penuh di layar,
+      // tombol kirim jalan mulus, dan barisnya lenyap di perjalanan.
+      final tanpaSetPoint = _isian.titikTanpaSetPoint;
+
+      if (tanpaSetPoint.isNotEmpty) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              l10n.lkSetPointKosong(
+                tanpaSetPoint.map((t) => t.label).join(', '),
+              ),
+            ),
+            duration: const Duration(seconds: 8),
+          ),
+        );
+        return;
+      }
     }
 
     // Jam yang bentuknya nggak kebaca ditahan DI SINI, bukan dibiarin ditolak
@@ -711,6 +790,27 @@ class _FormState extends ConsumerState<_Form> {
         SnackBar(content: Text(l10n.lkGagalKirim('$error'))),
       );
       return;
+    }
+
+    // Potongan sel yang ditahan sejak difoto diserahkan SEKARANG — labelnya
+    // angka yang barusan teknisi kirimkan, bukan yang dibaca OCR waktu
+    // memotret. Itu seluruh alasan penundaannya ada.
+    //
+    // Draft dilewat: draft berarti teknisi belum selesai dan angkanya masih
+    // bisa berubah. Tampungannya sengaja NGGAK dibuang di situ — dia bertahan
+    // sampai lembarnya dikirim final di sesi layar yang sama.
+    //
+    // Kegagalannya diam: ini pengumpul data latih, bukan bagian kalibrasinya.
+    // Kirimannya sudah sukses, dan bikin teknisi ngira sesinya gagal gara-gara
+    // pengumpul data itu harga yang salah.
+    if (!draft) {
+      try {
+        await (await ref.read(
+          penampungContohSelProvider.future,
+        )).serahkan(lembar: widget.profil, pemilik: _isian.clientRequestId);
+      } catch (_) {
+        // Sengaja ditelan — lihat di atas.
+      }
     }
 
     // Teknisi baru aja nyatain di dialog konfirmasi bahwa angka hasil foto
@@ -790,6 +890,23 @@ class _FormState extends ConsumerState<_Form> {
       // buat tombol yang tulisannya sama persis.
       ref.invalidate(drafProvider);
 
+      // Kembarannya di `_submit` — jalur matriks (Autoklaf) `return` SEBELUM
+      // sampai ke sana, jadi tanpa baris ini foto matriks ditampung tapi
+      // nggak pernah tersimpan. Fiturnya mati diam-diam persis di lembar yang
+      // paling banyak selnya.
+      //
+      // Draft dilewat dan kegagalannya diam — alasannya sama seperti di
+      // `_submit`.
+      if (!draft) {
+        try {
+          await (await ref.read(
+            penampungContohSelProvider.future,
+          )).serahkan(lembar: widget.profil, pemilik: _isian.clientRequestId);
+        } catch (_) {
+          // Sengaja ditelan — pengumpul data latih, bukan bagian kalibrasinya.
+        }
+      }
+
       if (!mounted) return;
       setState(() => _mengirim = false);
 
@@ -802,9 +919,7 @@ class _FormState extends ConsumerState<_Form> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _mengirim = false);
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.lkGagalKirim('$e'))),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(l10n.lkGagalKirim('$e'))));
     }
   }
 
@@ -899,9 +1014,9 @@ class _FormState extends ConsumerState<_Form> {
               const SizedBox(height: AppSpacing.sm),
               Text(
                 l10n.lkKonfirmasiDariFoto,
-                style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                style: Theme.of(
+                  ctx,
+                ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
               ),
             ],
 
@@ -965,6 +1080,19 @@ class _FormState extends ConsumerState<_Form> {
     // Diambil sebelum `await` — sesudahnya `context` punya build ini udah
     // nggak dijamin kepasang lagi.
     final navigator = Navigator.of(context);
+
+    // Di-`watch`, bukan cuma di-`read` waktu tombol ditekan.
+    // `updateTersediaProvider` itu FutureProvider yang auto-dispose (bawaan
+    // Riverpod 3): tanpa ada yang berlangganan selama layar ini terbuka,
+    // `.value` masih null waktu tombol ditekan — dan penjaganya DIAM tanpa
+    // satu pun error. Berlangganan di sini bikin nilainya sudah matang
+    // sebelum dibutuhkan.
+    //
+    // Nilainya sengaja tidak dipakai menonaktifkan tombolnya: tombol mati tanpa
+    // penjelasan bikin teknisi menyimpulkan aplikasinya rusak. Tombolnya tetap
+    // hidup, dan yang menjelaskan pesan di `_submit` — pola yang sama dengan
+    // penjagaan kategori/alat/standar di sekitarnya.
+    ref.watch(kirimTertahanRilisWajibProvider);
 
     return PopScope(
       canPop: false,
@@ -1131,7 +1259,9 @@ class _BannerRevisi extends StatelessWidget {
                 child: Text(
                   // Tanpa kolom ditandai, kalimat "kolom yang ditandai di
                   // bawah" nunjuk ke sesuatu yang nggak ada.
-                  jumlah > 0 ? l10n.lkBannerRevisi : l10n.lkBannerRevisiTanpaKolom,
+                  jumlah > 0
+                      ? l10n.lkBannerRevisi
+                      : l10n.lkBannerRevisiTanpaKolom,
                   style: theme.textTheme.bodySmall?.copyWith(color: fg),
                 ),
               ),
@@ -1149,10 +1279,7 @@ class _BannerRevisi extends StatelessWidget {
             const SizedBox(height: 2),
             // Apa adanya, nggak dipotong: catatan revisi yang kepotong bikin
             // teknisi ngerjain separuh permintaan.
-            Text(
-              teks,
-              style: theme.textTheme.bodyMedium?.copyWith(color: fg),
-            ),
+            Text(teks, style: theme.textTheme.bodyMedium?.copyWith(color: fg)),
           ],
           if (jumlah > 0) ...[
             const SizedBox(height: AppSpacing.xs),
@@ -1409,10 +1536,10 @@ class _KopDokumen extends StatelessWidget {
               // null`), dan merangkai buta bikin kop-nya mulai dengan pemisah
               // menggantung — " · SIDIK-IK-CAL-0502_Rev.3" — yang kebaca kayak
               // nomor formulirnya gagal dimuat, bukan kayak memang belum ada.
-              [bentuk.kodeDokumen, bentuk.kodeMetode]
-                  .whereType<String>()
-                  .where((s) => s.isNotEmpty)
-                  .join(' · '),
+              [
+                bentuk.kodeDokumen,
+                bentuk.kodeMetode,
+              ].whereType<String>().where((s) => s.isNotEmpty).join(' · '),
               style: theme.textTheme.labelSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -1627,11 +1754,22 @@ class _Bagian extends ConsumerWidget {
             // paham bentuk grid Enclosure. Menghapusnya berarti menulis
             // ulangnya dari nol.
             //
-            // Konsekuensi yang ditanggung sadar: Autoklaf, TIDS, dan kelima
-            // Enclosure sekarang NGGAK punya jalur kamera sama sekali —
+            // Konsekuensi yang ditanggung sadar waktu itu: Autoklaf, TIDS, dan
+            // kelima Enclosure jadi NGGAK punya jalur kamera sama sekali —
             // `FOTO TABEL INI` memang `didukung: false` di ketujuhnya karena
             // kertasnya berbentuk matriks/grid. Sudah disampaikan ke pemilik
             // lab sebelum dicabut.
+            //
+            // Enclosure & Autoklaf sudah keluar dari daftar itu (27 Agt 2026):
+            // grid punya tombol fotonya sendiri satu per blok set point
+            // (`LembarKerjaGrid`), matriks punya satu di atas tabelnya
+            // (`LembarKerjaMatriks`). Dua-duanya menjangkar baris lewat jalan
+            // yang beda dari lembar titik × Repeat, jadi dua penanda bentuk
+            // dari server nggak dipakai di sana.
+            //
+            // Yang masih belum punya jalur kamera cuma TIDS — dan yang menahan
+            // bukan pemetanya: baris lembarnya sendiri belum sampai ke layar.
+            // Lihat `tids_baris_tanpa_titik_test.dart`.
 
             // Lembar ber-GRID (Enclosure) menggambar gridnya di sini, dan
             // memang nggak punya `tabel` maupun `matriks` buat digambar
@@ -1644,6 +1782,14 @@ class _Bagian extends ConsumerWidget {
                 satuanSuhu: isian.bentuk.satuanSuhu,
                 onBerubah: onBerubah,
                 merkKalibrator: _merkStandar(ref, isian.standardId),
+                // Cuma saklarnya — `fotoTabelDidukung` SENGAJA nggak ikut di
+                // sini. Penanda itu menjawab "pemeta TABEL di HP bisa
+                // menjangkar baris & kolom kertas ini?", dan buat grid
+                // jawabannya memang tidak. Kamera grid pakai mesin yang lain:
+                // sumbu ketiganya datang dari blok tempat tombolnya duduk.
+                // Lihat `LembarKerjaGrid.pindaiAktif`.
+                pindaiAktif: pindaiAktif,
+                pemilik: isian.clientRequestId,
               ),
               const SizedBox(height: AppSpacing.lg),
               if (isian.bentuk.catatanPengisian.isNotEmpty)
@@ -1665,6 +1811,11 @@ class _Bagian extends ConsumerWidget {
                 onBerubah: onBerubah,
                 tabelTambahan: bagian.tabelTambahan,
                 setPoint: _fieldSetPoint(bagian),
+                // Cuma saklarnya, sama alasannya dengan grid di atas:
+                // `fotoTabelDidukung` menjawab pertanyaan pemeta TABEL, dan
+                // matriks memang bukan tabel. Jangkar barisnya TULISAN
+                // besaran, bukan angka.
+                pindaiAktif: pindaiAktif,
               ),
               const SizedBox(height: AppSpacing.lg),
               if (bagian.fieldDiLuarKertas.isNotEmpty) ...[
@@ -1676,64 +1827,106 @@ class _Bagian extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.lg),
               ],
             ] else
-            for (var i = 0; i < bagian.tabel.length; i++) ...[
-              // Daftar titik diatur SEKALI di atas tabel pertama, bukan per
-              // tabel: satu daftar berlaku buat Before & After sekaligus.
-              // Cuma muncul di lembar yang backend-nya bilang titiknya boleh
-              // diubah (TITS); sepuluh alat lain nggak berubah tampilannya.
-              if (i == 0 && bagian.tabel[i].titikBisaDiubah) ...[
-                PengaturTitik(isian: isian, onBerubah: onBerubah),
-                const SizedBox(height: AppSpacing.lg),
-              ],
-              LembarKerjaTabel(
-                tabel: bagian.tabel[i],
-                isian: isian,
-                onBerubah: onBerubah,
-                // Saklar DAN bentuk kertasnya. Saklar bilang "fitur ini
-                // nyala"; `fotoTabelDidukung` bilang "kertas alat INI bisa
-                // dituturkan ke pembaca foto". Dua-duanya harus benar —
-                // saklar nyala doang bikin tombolnya muncul di lembar
-                // Autoklaf & TIDS, dan yang balik ke teknisi bukan error tapi
-                // angka ngawur yang kelihatan wajar.
-                pindaiAktif: pindaiAktif && isian.bentuk.fotoTabelDidukung,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-
-              // No. Termokopel per set point — cuma tabel yang backend-nya
-              // bilang punya kolom itu (tabel STANDAR Thermocouple). Tabel UUT
-              // nggak punya: sisi UUT memakai probe bawaan alat pelanggan,
-              // yang justru sedang diukur penyimpangannya.
-              if (bagian.tabel[i].kolomNoProbe != null) ...[
-                _BarisNoProbe(
-                  field: bagian.tabel[i].kolomNoProbe!,
+              for (var i = 0; i < bagian.tabel.length; i++) ...[
+                // Daftar titik diatur SEKALI di atas tabel pertama, bukan per
+                // tabel: satu daftar berlaku buat Before & After sekaligus.
+                // Cuma muncul di lembar yang backend-nya bilang titiknya boleh
+                // diubah (TITS); sepuluh alat lain nggak berubah tampilannya.
+                // Lembar yang set point-nya belum ditentukan (TIDS) TIDAK
+                // dapat pengatur ini: tiap barisnya sudah punya kotak
+                // `Setpoint`-nya sendiri di kolom kiri, dan dua jalan buat
+                // mengisi satu hal yang sama bikin teknisi nggak tahu yang mana
+                // yang berlaku. Dibaca dari bentuk MENTAH, bukan `barisTabel`:
+                // begitu teknisi menyusun titik sendiri, barisnya jadi
+                // `titikDitentukan` semua dan syaratnya bakal berbalik.
+                if (i == 0 &&
+                    bagian.tabel[i].titikBisaDiubah &&
+                    bagian.tabel[i].baris.every((b) => b.titikDitentukan)) ...[
+                  PengaturTitik(isian: isian, onBerubah: onBerubah),
+                  const SizedBox(height: AppSpacing.lg),
+                ],
+                LembarKerjaTabel(
                   tabel: bagian.tabel[i],
                   isian: isian,
                   onBerubah: onBerubah,
+                  // Saklar DAN bentuk kertasnya. Saklar bilang "fitur ini
+                  // nyala"; `fotoTabelDidukung` bilang "pemeta di HP bisa
+                  // menjangkar baris & kolom kertas INI". Dua-duanya harus
+                  // benar — saklar nyala doang bikin tombolnya muncul di lembar
+                  // yang jangkarnya nggak ada, dan tiap jepretan pulang nol sel.
+                  //
+                  // Isinya dibaca dari `pindai_foto.lokal`, BUKAN `didukung`.
+                  // Yang kedua menggerbangi jalur CLOUD, yang mengirim foto
+                  // lembar kerja pelanggan ke layanan pihak ketiga. Waktu
+                  // keduanya masih satu penanda, menyalakan tombol buat satu
+                  // lembar ikut melebarkan batas data itu tanpa ada yang
+                  // berniat begitu. Lihat `_fotoTabelDidukung`.
+                  //
+                  // Faktor KETIGA `tabel.pindaiFoto` cuma bisa menyempitkan:
+                  // null (dua puluh lembar yang lain) nggak mengubah apa pun,
+                  // dan `true` nggak bisa menghidupkan tombol di lembar yang
+                  // gerbang lembarnya mati. Lembar TIMBANGAN memakainya buat
+                  // mematikan blok Accuracy sendirian — di kertas blok itu
+                  // daftar menurun, bukan grid yang bisa dijangkar pemeta,
+                  // sementara blok Repeatability di lembar yang SAMA justru
+                  // grid sempurna. Lihat `TabelHasil.pindaiFoto`.
+                  pindaiAktif:
+                      pindaiAktif &&
+                      isian.bentuk.fotoTabelDidukung &&
+                      (bagian.tabel[i].pindaiFoto ?? true),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-              ],
 
-              // Spindle/RPM/Resolusi tiap titik ditempel di sini, sesudah
-              // tabel PERTAMA — persis posisinya di kertas: langsung di
-              // bawah `Standard`/`UUT Reading` titik itu, bukan dikumpulin
-              // jauh di atas kedua tabel. Sekali aja (nggak diulang lagi
-              // sesudah tabel After Adjustment): datanya milik titik, bukan
-              // milik tahap — spindle & RPM yang dipakai sama buat before
-              // maupun after.
-              if (i == 0 && urutanTitik.isNotEmpty) ...[
-                for (final indeks in urutanTitik) ...[
-                  for (final grup in grupTitik[indeks]!) ...[
-                    _BarisSpesifikasi(
-                      field: grup,
+                // No. Termokopel per set point — cuma tabel yang backend-nya
+                // bilang punya kolom itu (tabel STANDAR Thermocouple). Tabel UUT
+                // nggak punya: sisi UUT memakai probe bawaan alat pelanggan,
+                // yang justru sedang diukur penyimpangannya.
+                if (bagian.tabel[i].kolomNoProbe != null) ...[
+                  _BarisNoProbe(
+                    field: bagian.tabel[i].kolomNoProbe!,
+                    tabel: bagian.tabel[i],
+                    isian: isian,
+                    onBerubah: onBerubah,
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                ],
+
+                // Kotak tambahan per baris selain `no_probe` — sejauh ini cuma
+                // `nominal` lembar Timbangan. Digambar TEPAT di bawah tabelnya,
+                // bukan dikumpulin di bagian lain: isinya milik baris, dan
+                // teknisi mengisinya sambil membaca baris yang sama.
+                for (final f in bagian.tabel[i].kolomBaris)
+                  if (f.kode != 'no_probe') ...[
+                    _BarisKotakTambahan(
+                      field: f,
+                      tabel: bagian.tabel[i],
                       isian: isian,
                       onBerubah: onBerubah,
                     ),
-                    const SizedBox(height: AppSpacing.md),
+                    const SizedBox(height: AppSpacing.lg),
                   ],
+
+                // Spindle/RPM/Resolusi tiap titik ditempel di sini, sesudah
+                // tabel PERTAMA — persis posisinya di kertas: langsung di
+                // bawah `Standard`/`UUT Reading` titik itu, bukan dikumpulin
+                // jauh di atas kedua tabel. Sekali aja (nggak diulang lagi
+                // sesudah tabel After Adjustment): datanya milik titik, bukan
+                // milik tahap — spindle & RPM yang dipakai sama buat before
+                // maupun after.
+                if (i == 0 && urutanTitik.isNotEmpty) ...[
+                  for (final indeks in urutanTitik) ...[
+                    for (final grup in grupTitik[indeks]!) ...[
+                      _BarisSpesifikasi(
+                        field: grup,
+                        isian: isian,
+                        onBerubah: onBerubah,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                    ],
+                  ],
+                  const SizedBox(height: AppSpacing.sm),
                 ],
-                const SizedBox(height: AppSpacing.sm),
               ],
-            ],
 
             // Catatan pengisian diulang di bawah tabel, bukan cuma di kop
             // dokumen. Kopnya ada di paling atas; waktu teknisi lagi ngisi
@@ -1745,7 +1938,8 @@ class _Bagian extends ConsumerWidget {
             // Kalimatnya diambil dari backend (`catatan_pengisian`), jadi tiap
             // alat dapat catatannya sendiri dan layar ini nggak perlu tahu alat
             // mana yang suhunya ikut dihitung.
-            if (bagian.tabel.isNotEmpty && isian.bentuk.catatanPengisian.isNotEmpty)
+            if (bagian.tabel.isNotEmpty &&
+                isian.bentuk.catatanPengisian.isNotEmpty)
               _CatatanIsi(catatan: isian.bentuk.catatanPengisian),
 
             // Jaraknya ikut di dalam panel, bukan di sini: panel yang lagi
@@ -1820,8 +2014,6 @@ class _CatatanIsi extends StatelessWidget {
   }
 }
 
-
-
 /// Hasil hitung sementara dari `POST /calibrations/preview`.
 ///
 /// Ada supaya teknisi lihat angkanya SEBELUM lembarnya masuk antrean approval.
@@ -1868,8 +2060,7 @@ class _PanelHasilMatriks extends ConsumerWidget {
                 color: theme.colorScheme.error,
               ),
             ),
-          if (status.hasil != null)
-            AutoclaveHasilPanel(hasil: status.hasil!),
+          if (status.hasil != null) AutoclaveHasilPanel(hasil: status.hasil!),
         ],
       ),
     );
@@ -1888,6 +2079,24 @@ class _PanelPratinjau extends ConsumerWidget {
   /// mriksa hasil itu kebalikan dari gunanya panel ini.
   String _tulis(MeasurementResult titik, double nilai) {
     final desimal = titik.desimal ?? isian.titik[titik.titikUkur]?.desimal;
+
+    return desimal == null
+        ? formatNilai(nilai)
+        : formatSertifikat(nilai, desimal, tandaNol: titik.tandaNol);
+  }
+
+  /// Sama seperti [_tulis], tapi buat kolom **U95%** — yang sebagian alat
+  /// mencetaknya dengan desimal BEDA dari kolom hasil di sebelahnya.
+  ///
+  /// Lihat `MeasurementResult.desimalU95`. Tanpa jalur sendiri, pratinjau ini
+  /// menulis U95 Timer `0,810` sementara sertifikatnya `0,81`, dan U95 Gas
+  /// Detector `5` sementara sertifikatnya `5,1` — di layar yang dipakai teknisi
+  /// memeriksa hasilnya sendiri sebelum minta approve.
+  String _tulisU95(MeasurementResult titik, double nilai) {
+    final desimal =
+        titik.desimalU95 ??
+        titik.desimal ??
+        isian.titik[titik.titikUkur]?.desimal;
 
     return desimal == null
         ? formatNilai(nilai)
@@ -1984,7 +2193,9 @@ class _PanelPratinjau extends ConsumerWidget {
             _TabelPratinjau(
               titik: e.value,
               tulis: _tulis,
-              satuanTitik: (t) => t.satuan ?? isian.titik[t.titikUkur]?.satuan ?? '',
+              tulisU95: _tulisU95,
+              satuanTitik: (t) =>
+                  t.satuan ?? isian.titik[t.titikUkur]?.satuan ?? '',
             ),
           ],
 
@@ -2022,11 +2233,15 @@ class _TabelPratinjau extends StatelessWidget {
   const _TabelPratinjau({
     required this.titik,
     required this.tulis,
+    required this.tulisU95,
     required this.satuanTitik,
   });
 
   final List<MeasurementResult> titik;
   final String Function(MeasurementResult, double) tulis;
+
+  /// Kolom U95 punya desimalnya sendiri — lihat [_LembarKerjaScreenState._tulisU95].
+  final String Function(MeasurementResult, double) tulisU95;
   final String Function(MeasurementResult) satuanTitik;
 
   @override
@@ -2040,13 +2255,12 @@ class _TabelPratinjau extends StatelessWidget {
       fontFeatures: const [FontFeature.tabularFigures()],
     );
 
-    TableRow baris(List<Widget> sel) => TableRow(children: [
-      for (final s in sel)
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2),
-          child: s,
-        ),
-    ]);
+    TableRow baris(List<Widget> sel) => TableRow(
+      children: [
+        for (final s in sel)
+          Padding(padding: const EdgeInsets.symmetric(vertical: 2), child: s),
+      ],
+    );
 
     return Table(
       columnWidths: const {
@@ -2058,9 +2272,21 @@ class _TabelPratinjau extends StatelessWidget {
       children: [
         baris([
           Text(l10n.lkPratinjauKolomTitik, style: gayaKepala),
-          Text(l10n.lkPratinjauKolomRata, style: gayaKepala, textAlign: TextAlign.right),
-          Text(l10n.lkPratinjauKolomKoreksi, style: gayaKepala, textAlign: TextAlign.right),
-          Text(l10n.lkPratinjauKolomU95, style: gayaKepala, textAlign: TextAlign.right),
+          Text(
+            l10n.lkPratinjauKolomRata,
+            style: gayaKepala,
+            textAlign: TextAlign.right,
+          ),
+          Text(
+            l10n.lkPratinjauKolomKoreksi,
+            style: gayaKepala,
+            textAlign: TextAlign.right,
+          ),
+          Text(
+            l10n.lkPratinjauKolomU95,
+            style: gayaKepala,
+            textAlign: TextAlign.right,
+          ),
         ]),
         for (final t in titik)
           baris([
@@ -2068,10 +2294,18 @@ class _TabelPratinjau extends StatelessWidget {
               '${tulis(t, t.titikUkur)} ${satuanTitik(t)}'.trim(),
               style: gayaAngka,
             ),
-            Text(tulis(t, t.rataRata), style: gayaAngka, textAlign: TextAlign.right),
-            Text(tulis(t, t.koreksi), style: gayaAngka, textAlign: TextAlign.right),
             Text(
-              tulis(t, t.ketidakpastianDiperluas),
+              tulis(t, t.rataRata),
+              style: gayaAngka,
+              textAlign: TextAlign.right,
+            ),
+            Text(
+              tulis(t, t.koreksi),
+              style: gayaAngka,
+              textAlign: TextAlign.right,
+            ),
+            Text(
+              tulisU95(t, t.ketidakpastianDiperluas),
               style: gayaAngka,
               textAlign: TextAlign.right,
             ),
@@ -2144,7 +2378,6 @@ class _BagianTanpaInput extends StatelessWidget {
   }
 }
 
-
 /// Kolom yang di lembar cetak digambar SEBARIS dikelompokkan di sini.
 ///
 /// Cuma berlaku buat `spesifikasi_alat.*` yang labelnya sama & berurutan —
@@ -2184,7 +2417,8 @@ const _kodeKondisiLingkungan = {
   FieldLembarKerja kelembabanAkhir,
   FieldLembarKerja? tekananAwal,
   FieldLembarKerja? tekananAkhir,
-})? _kondisiLingkungan(List<FieldLembarKerja> field) {
+})?
+_kondisiLingkungan(List<FieldLembarKerja> field) {
   FieldLembarKerja? cari(String kode) {
     for (final f in field) {
       if (f.kode == kode) return f;
@@ -2241,7 +2475,8 @@ List<List<FieldLembarKerja>> _kelompokkanField(List<FieldLembarKerja> field) {
 
   for (final f in field) {
     final akhir = hasil.isEmpty ? null : hasil.last;
-    final gabung = akhir != null &&
+    final gabung =
+        akhir != null &&
         f.spesifikasiAlat &&
         akhir.first.spesifikasiAlat &&
         akhir.first.label == f.label;
@@ -2411,6 +2646,90 @@ class _BarisSpesifikasi extends StatelessWidget {
 /// penyaringnya `grup` yang dikirim server — bukan aturan "Type N mulai dari
 /// 3" yang ditulis ulang di sini. Aturan yang ditulis dua kali pelan-pelan
 /// berbeda, dan yang kalah nanti nomor probe yang nggak ada sertifikatnya.
+/// Satu kotak tambahan per baris tabel — `tabel.kolom_baris` yang bukan
+/// `no_probe`.
+///
+/// Lembar Timbangan yang pertama memakainya: kotak `Nominal keping`, berisi
+/// susunan anak timbangan yang ditumpuk di titik itu (`20+20+10`). Server yang
+/// MENJUMLAHKANNYA jadi `titik_ukur`, jadi kotak ini bukan pelengkap — titik
+/// tanpa isinya bernilai nol, dan koreksi yang lahir dari situ nggak berarti
+/// apa-apa.
+///
+/// Digambar sebagai daftar `label baris → kotak`, bukan kolom kelima di dalam
+/// tabelnya: tabel Accuracy sudah empat kolom (`z`, `m`, `m'`, `z'`) di layar
+/// HP, dan kolom kelima yang isinya bisa `20+20+20+10` bikin semuanya menyusut
+/// sampai nggak kebaca.
+class _BarisKotakTambahan extends StatelessWidget {
+  const _BarisKotakTambahan({
+    required this.field,
+    required this.tabel,
+    required this.isian,
+    required this.onBerubah,
+  });
+
+  final FieldLembarKerja field;
+  final TabelHasil tabel;
+  final LembarKerjaState isian;
+  final VoidCallback onBerubah;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final baris = isian.barisTabel(tabel);
+    final satuan = field.satuan ?? '';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          satuan.isEmpty ? field.label : '${field.label} — $satuan',
+          style: theme.textTheme.labelMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        for (var i = 0; i < baris.length; i++) ...[
+          if (i > 0) const SizedBox(height: AppSpacing.xs),
+          Row(
+            children: [
+              SizedBox(
+                width: 96,
+                child: Text(
+                  baris[i].label,
+                  style: theme.textTheme.bodySmall,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: TextField(
+                  // Kunci sel yang sama dengan yang dibaca waktu payload
+                  // disusun (`TitikState.kotakBarisCtl`). Mengambil controller
+                  // dari tempat lain berarti kotak yang digambar dan kotak yang
+                  // dikirim jadi dua objek yang beda — dan bedanya nggak
+                  // memunculkan error di mana pun.
+                  controller: isian.titik[isian.kunciBaris(baris, i, tabel)]
+                      ?.kotakBarisCtl(tabel.kunciTabel, field.kode),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  style: theme.textTheme.bodyMedium,
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                    hintText: '20+20+10',
+                  ),
+                  onChanged: (_) => onBerubah(),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class _BarisNoProbe extends StatelessWidget {
   const _BarisNoProbe({
     required this.field,
@@ -3074,11 +3393,7 @@ class _PilihanTetap extends StatelessWidget {
     if (field.kode != 'lokasi') {
       if (field.pilihan.isEmpty) return const SizedBox.shrink();
 
-      return _PilihanUmum(
-        field: field,
-        isian: isian,
-        onBerubah: onBerubah,
-      );
+      return _PilihanUmum(field: field, isian: isian, onBerubah: onBerubah);
     }
 
     return DropdownButtonFormField<LokasiKalibrasi>(

@@ -1,5 +1,53 @@
 import 'calibration_draft.dart' show LokasiKalibrasi;
 
+/// Tebakan mesin buat SATU pembacaan, disimpan apa adanya di samping angka
+/// yang akhirnya dikirim.
+///
+/// ## Kenapa ini harus ikut terkirim
+///
+/// Teknisi mengoreksi angka hasil foto **di kotak yang sama**. Begitu dia
+/// mengetik ulang, tebakan mesinnya tertimpa dan hilang selamanya — yang sampai
+/// server cuma angka akhir. Akibatnya akurasi kamera tidak bisa dihitung sama
+/// sekali: tidak ada pembanding, cuma hasil.
+///
+/// Yang paling mahal dari ketiadaan itu **hijau palsu** — sel yang keisi
+/// otomatis dengan keyakinan tinggi padahal salah. Itu satu-satunya kegagalan
+/// yang tidak ada yang lihat sampai sertifikatnya terbit, dan tanpa pasangan
+/// (tebakan, angka final) dia tidak bisa dihitung maupun dibantah.
+///
+/// Kolom penampungnya sudah lama ada di server (`raw_measurements.ocr_raw_text`
+/// & `.ocr_confidence`, diisi `CalibrationRequest` lewat
+/// `measurements[].ocr[]`) — yang belum ada cuma pengirimnya.
+class BacaanMesin {
+  const BacaanMesin({required this.teksMentah, this.keyakinan});
+
+  /// Teks APA ADANYA dari pengenal, sebelum dijadikan angka. Termasuk yang
+  /// jelas ngawur — justru itu yang paling berguna waktu dicari polanya.
+  final String teksMentah;
+
+  /// `null` = **pengenalnya nggak memberi tahu**, bukan "nggak yakin". ML Kit
+  /// cuma menyetel `confidence` di sebagian versi & perangkat. Yang tidak
+  /// diketahui dikirim null, bukan diisi angka karangan — server sudah punya
+  /// aturannya sendiri buat pembacaan tanpa skor.
+  final double? keyakinan;
+
+  /// Bentuknya dipatok `CalibrationRequest` (`measurements.*.ocr.*`):
+  /// `raw_text` maksimal 255 karakter, `confidence` numerik 0..1.
+  ///
+  /// `photo_path` sengaja TIDAK dikirim: jalur foto tabel tidak mengunggah
+  /// citranya ke server, dan mengarang path buat kunci yang divalidasi regex
+  /// cuma bikin seluruh kiriman ditolak 422.
+  Map<String, dynamic> toJson() => {
+    // Dipotong di sini, bukan dibiarkan server menolaknya: satu sel yang
+    // kebaca kepanjangan tidak boleh menggagalkan SELURUH lembar kerja yang
+    // sudah diisi teknisi.
+    'raw_text': teksMentah.length > 255
+        ? teksMentah.substring(0, 255)
+        : teksMentah,
+    if (keyakinan != null) 'confidence': keyakinan,
+  };
+}
+
 /// Satu baris tabel hasil siap kirim: satu titik ukur dengan pembacaan
 /// Repeat 1..n untuk **dua tahap** sekaligus (before & after adjustment).
 ///
@@ -17,7 +65,8 @@ class TitikLembarKerja {
   }) : pembacaan = List<double?>.filled(jumlahPengulangan, null),
        suhu = List<double?>.filled(jumlahPengulangan, null),
        pembacaanSebelum = List<double?>.filled(jumlahPengulangan, null),
-       suhuSebelum = List<double?>.filled(jumlahPengulangan, null);
+       suhuSebelum = List<double?>.filled(jumlahPengulangan, null),
+       ocr = List<BacaanMesin?>.filled(jumlahPengulangan, null);
 
   final double titikUkur;
   final int jumlahPengulangan;
@@ -35,6 +84,32 @@ class TitikLembarKerja {
   /// Before adjustment (as-found) — dokumentasi kondisi alat, nggak ikut GUM.
   final List<double?> pembacaanSebelum;
   final List<double?> suhuSebelum;
+
+  /// Tebakan mesin per pembacaan After adjustment, **sejajar indeks** dengan
+  /// [pembacaan]. `null` = pembacaan itu diketik teknisi, bukan dari foto.
+  ///
+  /// Kesejajaran indeksnya WAJIB, bukan kerapian: server membaca
+  /// `$ocr[$urutan]` dengan `$urutan` yang sama persis dengan indeks
+  /// `pembacaan` (`CalibrationController`), jadi satu elemen yang digeser bikin
+  /// tebakan Repeat 2 tercatat sebagai tebakan Repeat 1 — dan angka yang
+  /// dibandingkan jadi pasangan yang salah, tanpa satu pun error.
+  ///
+  /// As-found sengaja tidak punya padanan: belum ada jalur foto buat tahap itu,
+  /// dan server memang selalu menulisnya `manual` + terverifikasi.
+  final List<BacaanMesin?> ocr;
+
+  /// Kotak tambahan yang duduk di baris ini, di luar deret pengulangan —
+  /// datang dari `tabel.kolom_baris` dan dikirim apa adanya sebagai kunci
+  /// `measurements[]`.
+  ///
+  /// Isinya sengaja `dynamic`: `no_probe` itu satu angka, `nominal` lembar
+  /// Timbangan satu DAFTAR angka (keping `20+20+10` yang ditumpuk di titik
+  /// itu). Memaksanya jadi satu tipe berarti salah satunya harus diselundupkan
+  /// sebagai teks, dan yang membacanya di server harus menebak formatnya.
+  ///
+  /// Kosong buat sembilan belas lembar yang nggak punya `kolom_baris` — kunci
+  /// yang nggak ada nggak pernah ikut ke payload.
+  final Map<String, dynamic> kolomBaris = {};
 
   /// Baris yang sama sekali belum disentuh. Dipakai buat mutusin baris ini
   /// perlu ikut dikirim apa nggak — bukan buat nahan tombol kirim.
@@ -54,6 +129,19 @@ class TitikLembarKerja {
     'suhu': suhu,
     'pembacaan_sebelum': pembacaanSebelum,
     'suhu_sebelum': suhuSebelum,
+    // Cuma dikirim kalau ADA yang dari foto. Lembar yang seluruhnya diketik
+    // tangan tidak boleh membawa deret null: server memakai `$meta !== null`
+    // buat memutuskan barisnya lahir `is_verified: false`, jadi kunci kosong
+    // yang ikut terkirim cuma nambah beban tanpa mengubah apa pun — sementara
+    // deret yang ADA isinya harus utuh sepanjang `pembacaan` supaya indeksnya
+    // tetap sejajar.
+    if (ocr.any((b) => b != null))
+      'ocr': [for (final b in ocr) b?.toJson()],
+    // Ditaruh SESUDAH empat deret di atas, dan itu bukan kosmetik: kunci
+    // bernama menang di server kalau namanya bentrok, jadi urutan di sini
+    // nggak menentukan apa-apa — tapi kotak tambahan yang kebetulan bernama
+    // `pembacaan` bakal menimpa deretnya kalau ditaruh duluan.
+    ...kolomBaris,
   };
 }
 
@@ -141,7 +229,7 @@ class LembarKerjaSubmission {
     this.pemilikAlamat,
     this.equipmentSatuan,
     this.standarDicek = const [],
-    this.spesifikasiAlat = const {},
+    this.spesifikasiAlat = const <String, dynamic>{},
     this.measurements = const [],
     this.measurementsGrid,
     this.sertakanMeasurements = true,
@@ -181,6 +269,7 @@ class LembarKerjaSubmission {
   /// `toJson` di bawah nggak mengirim kunci yang nilainya null.
   final double? tekananAwal;
   final double? tekananAkhir;
+
   /// Mode kalibrasi TITS — `measure` atau `source`. Null buat sepuluh alat
   /// lain, yang lembarnya nggak punya kotak ini.
   ///
@@ -262,7 +351,14 @@ class LembarKerjaSubmission {
   ///
   /// Nilainya TEKS apa adanya (`0-100`, `0,001`) — yang tercetak di sertifikat
   /// juga teks, bukan hasil hitung, dan `0-100` emang bukan angka.
-  final Map<String, String> spesifikasiAlat;
+  ///
+  /// `dynamic`, bukan `String`, sejak lembar Timbangan: lima kuncinya isinya
+  /// BLOK, bukan teks pendek (`eksentrisitas` lima posisi, `histeresis` dua
+  /// deret delapan angka, `keterulangan` dua kapasitas × sepuluh pengulangan).
+  /// Kelimanya besaran tingkat-SESI yang nggak punya `titik_ke`, jadi nggak
+  /// bisa lewat `measurements`. Lihat [LembarKerjaState.spesifikasiAlat] soal
+  /// bagaimana kode bertitik jadi peta bersarang.
+  final Map<String, dynamic> spesifikasiAlat;
 
   /// Nama tempat kalibrasi buat sesi `onsite`, mis. `PT. LDC`.
   final String? lokasiNama;
