@@ -1828,6 +1828,43 @@
       }
     }
   },
+  "dinamisPerluDiperiksa": "Perlu diperiksa",
+  "dinamisPerluDiperiksaKeyakinan": "Perlu diperiksa \u2014 keyakinan {persen}%",
+  "@dinamisPerluDiperiksaKeyakinan": {
+    "placeholders": {
+      "persen": { "type": "int" }
+    }
+  },
+  "dinamisPerluDiperiksaJumlah": "{count} nilai perlu diperiksa sebelum disimpan",
+  "@dinamisPerluDiperiksaJumlah": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dinamisTercetak": "Tercetak",
+  "dinamisBelumTerbaca": "Belum terbaca",
+  "dinamisTanpaLabel": "Tanpa label",
+  "dinamisTanpaJudulKolom": "Kolom",
+  "dinamisLihatAsal": "Lihat asalnya di foto",
+  "dokBacaJudul": "Baca lembar kerja",
+  "dokBacaAjakan": "Foto lembar kerjanya. Bentuk formnya ngikutin isi lembar — nggak perlu template.",
+  "dokBacaTombolFoto": "Foto lembar",
+  "dokBacaSedang": "Lagi membaca lembarnya…",
+  "dokBacaUlangFoto": "Foto ulang",
+  "dokBacaMulaiLagi": "Mulai lagi",
+  "dokBacaNamaAlatLabel": "Nama alat (opsional)",
+  "dokBacaNamaAlatBantuan": "Cuma petunjuk buat AI. Kalau isi lembarnya beda, yang dipakai lembarnya.",
+  "dokSimpanTombol": "Simpan koreksi",
+  "dokSimpanSedang": "Menyimpan…",
+  "dokSimpanBerhasil": "{jumlah} koreksi tersimpan",
+  "dokSimpanBelumAda": "Belum ada yang dikoreksi",
+  "@dokSimpanBerhasil": {
+    "placeholders": {
+      "jumlah": { "type": "int" }
+    }
+  },
+  "dokReviewTakBisaDitunjuk": "Asal nilai ini nggak bisa ditunjuk di foto",
+  "dokReviewKetukUntukSorot": "Ketuk nilainya buat lihat asalnya di foto",
   "fotoReviewJudul": "Periksa {jumlah} angka",
   "@fotoReviewJudul": {
     "placeholders": {
@@ -1960,5 +1997,4 @@
   "pelangganBaruGagal": "Gagal mendaftarkan pelanggan.",
   "pelangganBaruDirektoriTiadaLab": "Direktori perusahaan nggak tersedia di lab ini. Ketik nama & alamatnya di bawah.",
   "pelangganBaruDirektoriMati": "Direktori lagi nggak bisa diakses. Ketik nama & alamatnya di bawah, atau coba lagi nanti.",
-  "equipPelangganDariSimpanan": "Lagi offline — ini salinan yang tersimpan di HP. Pelanggan yang baru didaftarkan bisa saja belum ada."
-}
+  "equipPelangganDariSimpanan": "Lagi offline — ini salinan yang tersimpan di HP. Pelanggan yang baru didaftarkan bisa saja belum ada."}

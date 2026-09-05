@@ -7399,6 +7399,138 @@ abstract class AppLocalizations {
   /// **'Equipment \"{nama}\" saved and selected for this worksheet.'**
   String lkAlatBaruTersimpan(String nama);
 
+  /// No description provided for @dinamisPerluDiperiksa.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs checking'**
+  String get dinamisPerluDiperiksa;
+
+  /// No description provided for @dinamisPerluDiperiksaKeyakinan.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs checking — {persen}% confidence'**
+  String dinamisPerluDiperiksaKeyakinan(int persen);
+
+  /// No description provided for @dinamisPerluDiperiksaJumlah.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} values need checking before saving'**
+  String dinamisPerluDiperiksaJumlah(int count);
+
+  /// No description provided for @dinamisTercetak.
+  ///
+  /// In en, this message translates to:
+  /// **'Pre-printed'**
+  String get dinamisTercetak;
+
+  /// No description provided for @dinamisBelumTerbaca.
+  ///
+  /// In en, this message translates to:
+  /// **'Not read'**
+  String get dinamisBelumTerbaca;
+
+  /// No description provided for @dinamisTanpaLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'No label'**
+  String get dinamisTanpaLabel;
+
+  /// No description provided for @dinamisTanpaJudulKolom.
+  ///
+  /// In en, this message translates to:
+  /// **'Column'**
+  String get dinamisTanpaJudulKolom;
+
+  /// No description provided for @dinamisLihatAsal.
+  ///
+  /// In en, this message translates to:
+  /// **'Show where this came from'**
+  String get dinamisLihatAsal;
+
+  /// No description provided for @dokBacaJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Read worksheet'**
+  String get dokBacaJudul;
+
+  /// No description provided for @dokBacaAjakan.
+  ///
+  /// In en, this message translates to:
+  /// **'Photograph the worksheet. The form follows what\'s on the sheet — no template needed.'**
+  String get dokBacaAjakan;
+
+  /// No description provided for @dokBacaTombolFoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Photograph sheet'**
+  String get dokBacaTombolFoto;
+
+  /// No description provided for @dokBacaSedang.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading the sheet…'**
+  String get dokBacaSedang;
+
+  /// No description provided for @dokBacaUlangFoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake photo'**
+  String get dokBacaUlangFoto;
+
+  /// No description provided for @dokBacaMulaiLagi.
+  ///
+  /// In en, this message translates to:
+  /// **'Start over'**
+  String get dokBacaMulaiLagi;
+
+  /// No description provided for @dokBacaNamaAlatLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment name (optional)'**
+  String get dokBacaNamaAlatLabel;
+
+  /// No description provided for @dokBacaNamaAlatBantuan.
+  ///
+  /// In en, this message translates to:
+  /// **'Only a hint for the AI. If the sheet says otherwise, the sheet wins.'**
+  String get dokBacaNamaAlatBantuan;
+
+  /// No description provided for @dokSimpanTombol.
+  ///
+  /// In en, this message translates to:
+  /// **'Save corrections'**
+  String get dokSimpanTombol;
+
+  /// No description provided for @dokSimpanSedang.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving…'**
+  String get dokSimpanSedang;
+
+  /// No description provided for @dokSimpanBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} corrections saved'**
+  String dokSimpanBerhasil(int jumlah);
+
+  /// No description provided for @dokSimpanBelumAda.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing corrected yet'**
+  String get dokSimpanBelumAda;
+
+  /// No description provided for @dokReviewTakBisaDitunjuk.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t point to where this value came from'**
+  String get dokReviewTakBisaDitunjuk;
+
+  /// No description provided for @dokReviewKetukUntukSorot.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a value to see where it came from'**
+  String get dokReviewKetukUntukSorot;
+
   /// No description provided for @fotoReviewJudul.
   ///
   /// In en, this message translates to:

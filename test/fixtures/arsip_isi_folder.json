@@ -1,0 +1,72 @@
+{
+    "data": {
+        "id": 2,
+        "nama": "2026",
+        "tipe": "sistem",
+        "parent_id": 1,
+        "keterangan": null,
+        "pelanggan": {
+            "id": 1,
+            "nama": "PT Alfa",
+            "alamat": "Jl. Alfa 1"
+        },
+        "dibuat_pada": "2026-08-27T07:00:21Z",
+        "breadcrumb": [
+            {
+                "id": 1,
+                "nama": "PT Alfa",
+                "is_root": true
+            },
+            {
+                "id": 2,
+                "nama": "2026",
+                "is_root": false
+            }
+        ],
+        "sub_folder": [
+            {
+                "id": 3,
+                "nama": "Revisi",
+                "tipe": "manual",
+                "parent_id": 2,
+                "keterangan": null,
+                "pelanggan": {
+                    "id": 1,
+                    "nama": "PT Alfa",
+                    "alamat": "Jl. Alfa 1"
+                },
+                "jumlah_folder": 0,
+                "jumlah_file": 0,
+                "dibuat_pada": "2026-08-27T07:00:21Z"
+            }
+        ],
+        "file": [
+            {
+                "id": 1,
+                "folder_id": 2,
+                "nama": "Lembar kerja",
+                "sumber": "lembar_kerja",
+                "mime": null,
+                "ukuran": null,
+                "keterangan": null,
+                "sertifikat": null,
+                "lembar_kerja": {
+                    "calibration_session_id": 5,
+                    "nomor_sesi": null,
+                    "status": "disetujui",
+                    "keputusan": "PASS",
+                    "tanggal_kalibrasi": "2026-08-26",
+                    "equipment": {
+                        "nama_alat": "Thermocouple Fluke 51-II"
+                    },
+                    "teknisi": {
+                        "nama": "Budi Teknisi"
+                    }
+                },
+                "download_url": null,
+                "diunggah_oleh": "Budi Teknisi",
+                "dibuat_pada": "2026-08-27T07:00:21Z"
+            }
+        ]
+    }
+}

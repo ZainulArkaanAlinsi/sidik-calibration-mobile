@@ -1,0 +1,10 @@
+# Buah pelatihan, bukan sumber. Model `.tflite` yang dipakai aplikasi nanti
+# masuk lewat `assets/`, sesudah dilatih dari data ASLI dan lulus ukur —
+# bukan diseret dari sini.
+keluaran/
+*.tflite
+*.keras
+*.weights.h5
+
+venv/
+__pycache__/
