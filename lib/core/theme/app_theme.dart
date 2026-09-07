@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../motion/transisi_halaman.dart';
@@ -75,14 +76,55 @@ class AppTheme {
     ),
   );
 
+  /// Platform meja: jendela dilihat dari jarak ~60 cm pakai tetikus, bukan
+  /// digenggam dan dicolok jari. Ukuran kontrol yang pas di HP kebaca
+  /// kegedean di situ — bukan selera, tapi jarak pandang dan alat tunjuk yang
+  /// beda.
+  ///
+  /// Dibaca dari `defaultTargetPlatform`, bukan dari lebar jendela: yang
+  /// nentuin ukuran kontrol itu ALAT TUNJUKNYA. HP yang dicolok ke layar
+  /// gede tetap butuh sasaran sentuh 48 dp; jendela laptop yang dikecilin
+  /// tetap ditunjuk pakai kursor yang presisinya satu piksel.
+  ///
+  /// Di `flutter test` nilainya `android`, jadi semua test & golden yang ada
+  /// tetap ngerender ukuran HP — nggak ada baseline yang bergeser gara-gara
+  /// perubahan ini.
+  static bool get _meja => switch (defaultTargetPlatform) {
+    TargetPlatform.windows ||
+    TargetPlatform.macOS ||
+    TargetPlatform.linux => true,
+    _ => false,
+  };
+
   static ThemeData _build(Brightness brightness, ColorScheme scheme) {
-    final text = AppTypography.textTheme(
+    // Skala hurufnya diturunkan 10% di meja.
+    //
+    // Ukuran di `AppTypography` dipilih buat HP: layar sejengkal, dilihat dari
+    // ~30 cm, sering sambil jalan di lab. Angka yang sama di monitor yang
+    // dilihat dari ~60 cm kebaca kegedean — judul halaman jadi sebesar
+    // spanduk dan angka di kartu ringkasan makan setengah kartunya.
+    //
+    // 10%, bukan lebih: di bawah itu teksnya mulai kekecilan buat dibaca
+    // sambil berdiri di depan meja kalibrasi, dan layar ini juga dipakai
+    // begitu — bukan cuma sambil duduk.
+    //
+    // `fontSizeFactor` dipakai supaya SELURUH skalanya turun sebanding.
+    // Menurunkan sebagiannya saja merusak jenjang ukuran antar-gaya, dan
+    // jenjang itu yang bikin orang tahu mana judul mana keterangan.
+    final skala = AppTypography.textTheme(
       scheme.onSurface,
       scheme.onSurfaceVariant,
     );
+    final text = _meja ? skala.apply(fontSizeFactor: 0.9) : skala;
     final isLight = brightness == Brightness.light;
 
     return ThemeData(
+      // Satu saklar yang memadatkan SEMUA kontrol Material sekaligus —
+      // ListTile, checkbox, radio, tombol, chip. Di platform meja dia jadi
+      // `compact`, di HP tetap `standard`. Ini yang bikin layar desktop
+      // berhenti kebaca sebagai tampilan HP yang dibesarkan, tanpa perlu
+      // nyetel tinggi tiap widget satu-satu.
+      visualDensity: VisualDensity.adaptivePlatformDensity,
       useMaterial3: true,
       brightness: brightness,
       colorScheme: scheme,
@@ -116,7 +158,7 @@ class AppTheme {
         scrolledUnderElevation: 0,
         centerTitle: false,
         titleTextStyle: text.titleLarge,
-        toolbarHeight: 68,
+        toolbarHeight: _meja ? 52 : 68,
         iconTheme: IconThemeData(color: scheme.onSurfaceVariant),
       ),
 
@@ -146,9 +188,10 @@ class AppTheme {
       // termasuk alasan kenapa label SELALU ditulis putih di dua-duanya.
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          // 52dp — desain minta tombol tebal, dan teknisi sering mencet sambil
-          // pegang alat / pakai sarung tangan.
-          minimumSize: const Size.fromHeight(52),
+          // 52 dp di HP — desain minta tombol tebal, dan teknisi sering mencet
+          // sambil pegang alat / pakai sarung tangan. Di meja nggak ada jari
+          // yang perlu diakomodasi, dan 52 dp di situ kebaca kayak spanduk.
+          minimumSize: Size.fromHeight(_meja ? 40 : 52),
           // Dibalik di tema gelap. Pil hitam di atas ground yang juga nyaris
           // hitam kebaca sama persis kayak tombol hantu di sebelahnya —
           // hierarki "mana aksi utama" ilang. Yang dijaga bukan warnanya,
@@ -193,7 +236,7 @@ class AppTheme {
       // dan mana "Batal".
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size.fromHeight(52),
+          minimumSize: Size.fromHeight(_meja ? 40 : 52),
           foregroundColor: AppColors.white,
           backgroundColor: Colors.transparent,
           side: BorderSide(color: scheme.onSurface, width: 2),
