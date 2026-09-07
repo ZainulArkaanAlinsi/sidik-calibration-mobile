@@ -226,7 +226,10 @@ class _KartuAkun extends ConsumerWidget {
                 // tiap kali layarnya dibuka. Kalau pakai angka acak biasa,
                 // langitnya ganti tiap scroll.
                 benih: akun.id,
-                tinggi: 104,
+                // Lebih pendek di layar lebar: kartunya di situ dua kali lebih
+                // lebar, dan pita setinggi 104 jadi blok warna yang menguasai
+                // kartu — aksen yang berubah jadi isi utama.
+                tinggi: ringkas ? 76 : 104,
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(
@@ -378,7 +381,7 @@ class _KartuAkun extends ConsumerWidget {
           // tanpa geser semua yang di bawahnya.
           Positioned(
             left: AppSpacing.md,
-            top: 104 - 29,
+            top: (ringkas ? 76 : 104) - 29,
             child: _AvatarAkun(akun: akun),
           ),
         ],
