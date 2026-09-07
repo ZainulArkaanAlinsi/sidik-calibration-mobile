@@ -73,7 +73,7 @@ void main() {
         _wrap(AppButton(label: 'Simpan', onPressed: () => taps++)),
       );
 
-      await tester.tap(find.text('Simpan'));
+      await tester.tap(find.text('SIMPAN'));
       expect(taps, 1);
     });
 

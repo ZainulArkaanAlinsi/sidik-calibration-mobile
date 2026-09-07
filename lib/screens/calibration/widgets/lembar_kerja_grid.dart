@@ -131,7 +131,7 @@ class _LembarKerjaGridState extends State<LembarKerjaGrid> {
               widget.onBerubah();
             },
             icon: const Icon(Icons.add),
-            label: const Text('Tambah Set Point'),
+            label: const Text('TAMBAH SET POINT'),
           ),
         ),
 
@@ -699,7 +699,7 @@ class _TombolFotoGridState extends ConsumerState<_TombolFotoGrid> {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           : const Icon(Icons.photo_camera_outlined, size: 18),
-      label: Text(l10n.lkFotoTabel),
+      label: Text(l10n.lkFotoTabel.toUpperCase()),
     );
   }
 }

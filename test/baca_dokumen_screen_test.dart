@@ -212,10 +212,10 @@ void main() {
     await t.pumpWidget(bungkus(sumber: sumber, layanan: layanan));
 
     // Awalnya cuma ajakan foto — belum ada form.
-    expect(find.text('Foto lembar'), findsOneWidget);
+    expect(find.text('FOTO LEMBAR'), findsOneWidget);
     expect(find.text('Spindle Measurement'), findsNothing);
 
-    await t.tap(find.text('Foto lembar'));
+    await t.tap(find.text('FOTO LEMBAR'));
     await t.pumpAndSettle();
 
     expect(sumber.dipanggil, 1, reason: 'kameranya beneran dibuka');
@@ -243,7 +243,7 @@ void main() {
     await t.pumpWidget(bungkus(sumber: _FotoPalsu(foto), layanan: layanan));
 
     await t.enterText(find.byType(TextField).first, 'pH Meter');
-    await t.tap(find.text('Foto lembar'));
+    await t.tap(find.text('FOTO LEMBAR'));
     await t.pumpAndSettle();
 
     expect(layanan.namaAlatTerakhir, 'pH Meter');
@@ -259,7 +259,7 @@ void main() {
 
     await t.pumpWidget(bungkus(sumber: sumber, layanan: layanan));
 
-    await t.tap(find.text('Foto lembar'));
+    await t.tap(find.text('FOTO LEMBAR'));
     await t.pumpAndSettle();
 
     expect(sumber.dipanggil, 1);
@@ -269,7 +269,7 @@ void main() {
       reason: 'nggak ada foto, nggak ada yang dibaca',
     );
     // Tetap di layar ajakan, tanpa pesan gagal apa pun.
-    expect(find.text('Foto lembar'), findsOneWidget);
+    expect(find.text('FOTO LEMBAR'), findsOneWidget);
     expect(find.byIcon(Icons.error_outline), findsNothing);
   });
 
@@ -286,12 +286,12 @@ void main() {
       ),
     );
 
-    await t.tap(find.text('Foto lembar'));
+    await t.tap(find.text('FOTO LEMBAR'));
     await t.pumpAndSettle();
 
     expect(find.textContaining('dimatikan di server'), findsOneWidget);
     expect(
-      find.text('Foto ulang'),
+      find.text('FOTO ULANG'),
       findsNothing,
       reason: 'foto ulang nggak bakal nolong kalau jalurnya ditutup lab',
     );
@@ -312,12 +312,12 @@ void main() {
       ),
     );
 
-    await t.tap(find.text('Foto lembar'));
+    await t.tap(find.text('FOTO LEMBAR'));
     await t.pumpAndSettle();
 
     expect(find.textContaining('nggak perlu diulang'), findsOneWidget);
     expect(
-      find.text('Foto ulang'),
+      find.text('FOTO ULANG'),
       findsNothing,
       reason: 'motret ulang mustahil nolong sampai beban penyedianya turun',
     );
@@ -338,10 +338,10 @@ void main() {
       ),
     );
 
-    await t.tap(find.text('Foto lembar'));
+    await t.tap(find.text('FOTO LEMBAR'));
     await t.pumpAndSettle();
 
-    expect(find.text('Foto ulang'), findsNothing);
+    expect(find.text('FOTO ULANG'), findsNothing);
   });
 
   testWidgets('foto buram: DITAWARI foto ulang', (t) async {
@@ -357,10 +357,10 @@ void main() {
       ),
     );
 
-    await t.tap(find.text('Foto lembar'));
+    await t.tap(find.text('FOTO LEMBAR'));
     await t.pumpAndSettle();
 
-    expect(find.text('Foto ulang'), findsOneWidget);
+    expect(find.text('FOTO ULANG'), findsOneWidget);
   });
 
   testWidgets('koreksi lembar lama nggak nempel ke lembar berikutnya', (
@@ -372,7 +372,7 @@ void main() {
 
     await t.pumpWidget(bungkus(sumber: _FotoPalsu(foto), layanan: layanan));
 
-    await t.tap(find.text('Foto lembar'));
+    await t.tap(find.text('FOTO LEMBAR'));
     await t.pumpAndSettle();
 
     await t.enterText(find.widgetWithText(TextFormField, '99'), '77,7');
@@ -388,7 +388,7 @@ void main() {
     layar.ref.read(bacaDokumenProvider.notifier).ulangDariAwal();
     await t.pumpAndSettle();
 
-    await t.tap(find.text('Foto lembar'));
+    await t.tap(find.text('FOTO LEMBAR'));
     await t.pumpAndSettle();
 
     expect(find.text('99'), findsOneWidget, reason: 'balik ke hasil baca');
@@ -401,7 +401,7 @@ void main() {
     );
 
     await t.pumpWidget(bungkus(sumber: _FotoPalsu(foto), layanan: layanan));
-    await t.tap(find.text('Foto lembar'));
+    await t.tap(find.text('FOTO LEMBAR'));
     await t.pumpAndSettle();
 
     expect(find.text('Belum ada yang dikoreksi'), findsOneWidget);
@@ -422,7 +422,7 @@ void main() {
     );
 
     await t.pumpWidget(bungkus(sumber: _FotoPalsu(foto), layanan: layanan));
-    await t.tap(find.text('Foto lembar'));
+    await t.tap(find.text('FOTO LEMBAR'));
     await t.pumpAndSettle();
 
     await t.enterText(find.widgetWithText(TextFormField, '99'), '99,4');
@@ -447,7 +447,7 @@ void main() {
           );
 
     await t.pumpWidget(bungkus(sumber: _FotoPalsu(foto), layanan: layanan));
-    await t.tap(find.text('Foto lembar'));
+    await t.tap(find.text('FOTO LEMBAR'));
     await t.pumpAndSettle();
 
     await t.enterText(find.widgetWithText(TextFormField, '99'), '99,4');
@@ -467,7 +467,7 @@ void main() {
     );
 
     await t.pumpWidget(bungkus(sumber: _FotoPalsu(foto), layanan: layanan));
-    await t.tap(find.text('Foto lembar'));
+    await t.tap(find.text('FOTO LEMBAR'));
     await t.pumpAndSettle();
 
     // Foto DAN data di layar yang sama — kalau teknisi harus pindah layar buat
@@ -491,7 +491,7 @@ void main() {
     );
 
     await t.pumpWidget(bungkus(sumber: _FotoPalsu(foto), layanan: layanan));
-    await t.tap(find.text('Foto lembar'));
+    await t.tap(find.text('FOTO LEMBAR'));
     await t.pumpAndSettle();
 
     final sel = find.widgetWithText(TextFormField, '99');
@@ -523,7 +523,7 @@ void main() {
     );
 
     await t.pumpWidget(bungkus(sumber: _FotoPalsu(foto), layanan: layanan));
-    await t.tap(find.text('Foto lembar'));
+    await t.tap(find.text('FOTO LEMBAR'));
     await t.pumpAndSettle();
 
     // Sel kolom 0 sengaja nggak punya bbox di fixture.

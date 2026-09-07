@@ -2172,7 +2172,7 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           : const Icon(Icons.photo_camera_outlined, size: 18),
-      label: Text(l10n.lkFotoTabel),
+      label: Text(l10n.lkFotoTabel.toUpperCase()),
     );
   }
 }

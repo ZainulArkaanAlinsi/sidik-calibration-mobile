@@ -10,8 +10,8 @@ import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../providers/izin_provider.dart';
 import '../../providers/realtime_provider.dart';
-import '../../providers/theme_mode_provider.dart';
 import '../../widgets/notification_bell.dart';
+import '../../widgets/sakelar_tema.dart';
 import '../admin/antrean_approval_screen.dart';
 import '../settings/metode_list_screen.dart';
 import '../settings/ruangan_list_screen.dart';
@@ -573,10 +573,7 @@ class _BilahAtas extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context);
     final user = ref.watch(authProvider).value;
-    final gelap = theme.brightness == Brightness.dark;
 
     return SizedBox(
       height: 60,
@@ -588,13 +585,7 @@ class _BilahAtas extends ConsumerWidget {
             const _PilSinkron(),
             const SizedBox(width: AppSpacing.sm),
             const NotificationBell(),
-            IconButton(
-              tooltip: l10n.panelTema,
-              icon: Icon(gelap ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
-              onPressed: () => ref
-                  .read(themeModeProvider.notifier)
-                  .toggle(gelapSekarang: gelap),
-            ),
+            const SakelarTema(),
             const SizedBox(width: AppSpacing.xs),
             _Avatar(nama: user?.nama ?? '?'),
           ],

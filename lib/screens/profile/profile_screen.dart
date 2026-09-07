@@ -23,6 +23,7 @@ import '../../widgets/liquid_glass.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/readable_width.dart';
+import '../../widgets/sakelar_tema.dart';
 import '../../widgets/status_badge.dart';
 import '../arsip/arsip_screen.dart';
 import '../design_system/design_system_screen.dart';
@@ -1655,28 +1656,23 @@ class _PilihTema extends ConsumerWidget {
         ThemeMode.dark => l10n.profTemaGelap,
         ThemeMode.system => l10n.profTemaSistem,
       },
-      kontrol: SegmentedButton<ThemeMode>(
-        showSelectedIcon: false,
-        segments: [
-          ButtonSegment(
-            value: ThemeMode.light,
-            icon: const Icon(Icons.light_mode_outlined),
-            tooltip: l10n.profTemaTerang,
-          ),
-          ButtonSegment(
-            value: ThemeMode.dark,
-            icon: const Icon(Icons.dark_mode_outlined),
-            tooltip: l10n.profTemaGelap,
-          ),
-          ButtonSegment(
-            value: ThemeMode.system,
-            icon: const Icon(Icons.brightness_auto_outlined),
+      // Sakelar sun & moon buat terang↔gelap, plus satu tombol kecil balik
+      // ke "ikut sistem" — sakelar dua posisi nggak punya tempat buat pilihan
+      // ketiga, dan pilihan itu nggak boleh ilang cuma gara-gara kontrolnya
+      // diganti.
+      kontrol: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SakelarTema(),
+          IconButton(
             tooltip: l10n.profTemaSistem,
+            visualDensity: VisualDensity.compact,
+            isSelected: mode == ThemeMode.system,
+            icon: const Icon(Icons.brightness_auto_outlined),
+            onPressed: () =>
+                ref.read(themeModeProvider.notifier).setMode(ThemeMode.system),
           ),
         ],
-        selected: {mode},
-        onSelectionChanged: (p) =>
-            ref.read(themeModeProvider.notifier).setMode(p.first),
       ),
     );
   }

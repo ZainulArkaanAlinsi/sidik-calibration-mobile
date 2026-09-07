@@ -191,7 +191,7 @@ void main() {
     testWidgets('hapus minta konfirmasi + jelasin dampaknya', (tester) async {
       await _pasang(tester, _app(MockTandaTanganService(adaTtd: true)));
 
-      await tester.tap(find.text('Hapus'));
+      await tester.tap(find.text('HAPUS'));
       await tester.pumpAndSettle();
 
       expect(find.byType(AlertDialog), findsOneWidget);

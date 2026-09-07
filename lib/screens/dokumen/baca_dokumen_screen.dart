@@ -163,7 +163,7 @@ class _Ajakan extends StatelessWidget {
         FilledButton.icon(
           onPressed: onFoto,
           icon: const Icon(Icons.photo_camera),
-          label: Text(l10n.dokBacaTombolFoto),
+          label: Text(l10n.dokBacaTombolFoto.toUpperCase()),
         ),
       ],
     );
@@ -224,7 +224,7 @@ class _Gagal extends StatelessWidget {
             FilledButton.icon(
               onPressed: onUlang,
               icon: const Icon(Icons.photo_camera),
-              label: Text(l10n.dokBacaUlangFoto),
+              label: Text(l10n.dokBacaUlangFoto.toUpperCase()),
             ),
           TextButton(
             onPressed: onMulaiLagi,

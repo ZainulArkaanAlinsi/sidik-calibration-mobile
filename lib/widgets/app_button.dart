@@ -62,9 +62,17 @@ class _Content extends StatelessWidget {
   final IconData? icon;
   final IconData? trailingIcon;
 
+  /// HURUF BESAR semua — `text-transform: uppercase` di desain acuannya.
+  ///
+  /// Dikerjakan di sini, bukan di `ThemeData`: Flutter nggak punya padanan
+  /// `text-transform`, satu-satunya jalan ya mengubah string-nya. Konsekuensinya
+  /// nyata dan sengaja diterima — `find.text('Simpan')` di test nggak lagi
+  /// ketemu, jadi test yang nunjuk tombol lewat labelnya ikut disesuaikan.
+  String get _teks => label.toUpperCase();
+
   @override
   Widget build(BuildContext context) {
-    if (icon == null && trailingIcon == null) return Text(label);
+    if (icon == null && trailingIcon == null) return Text(_teks);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -75,7 +83,7 @@ class _Content extends StatelessWidget {
         // (setengah layar, atau layar HP 390px) langsung overflow — error
         // merah, bukan teks kepotong. Udah kejadian dua kali di form pH.
         Flexible(
-          child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+          child: Text(_teks, maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
         if (trailingIcon != null) ...[
           const SizedBox(width: AppSpacing.sm),

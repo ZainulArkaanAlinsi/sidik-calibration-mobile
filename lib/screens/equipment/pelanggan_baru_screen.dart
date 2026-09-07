@@ -360,7 +360,7 @@ class _PelangganBaruScreenState extends ConsumerState<PelangganBaruScreen> {
                   ? null
                   : _cariDirektori,
               icon: const Icon(Icons.travel_explore),
-              label: Text(l10n.pelangganBaruCariDirektori),
+              label: Text(l10n.pelangganBaruCariDirektori.toUpperCase()),
             ),
 
           if (_mencari)

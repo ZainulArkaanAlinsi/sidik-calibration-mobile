@@ -179,7 +179,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                 ? Icons.check_rounded
                                 : Icons.arrow_forward_rounded,
                           ),
-                          label: Text(terakhir ? l10n.onbEnter : l10n.onbNext),
+                          label: Text((terakhir ? l10n.onbEnter : l10n.onbNext).toUpperCase()),
                         ),
                       ),
                     ],

@@ -835,7 +835,7 @@ class _BlokResolusiRentang extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: onTambah,
             icon: const Icon(Icons.add),
-            label: Text(l10n.equipResolusiTambahBaris),
+            label: Text(l10n.equipResolusiTambahBaris.toUpperCase()),
           ),
       ],
     );
@@ -1280,7 +1280,7 @@ class _PelangganSheetState extends ConsumerState<_PelangganSheet> {
               OutlinedButton.icon(
                 onPressed: () => _daftarkanBaru(context),
                 icon: const Icon(Icons.add_business_outlined),
-                label: Text(l10n.equipPelangganDaftarBaru),
+                label: Text(l10n.equipPelangganDaftarBaru.toUpperCase()),
               ),
             ],
           ),

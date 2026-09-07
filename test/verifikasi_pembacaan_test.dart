@@ -69,9 +69,9 @@ void main() {
     await tester.pumpAndSettle();
 
     // Peringatannya tampil, DAN ada jalan keluarnya.
-    expect(find.text('Saya sudah cek angkanya'), findsOneWidget);
+    expect(find.text('SAYA SUDAH CEK ANGKANYA'), findsOneWidget);
 
-    await tester.tap(find.text('Saya sudah cek angkanya'));
+    await tester.tap(find.text('SAYA SUDAH CEK ANGKANYA'));
     await tester.pumpAndSettle();
 
     // Inti test: endpoint-nya beneran dipanggil buat sesi yang benar.

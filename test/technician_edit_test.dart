@@ -49,7 +49,7 @@ Future<void> _bukaEdit(WidgetTester tester, String nama) async {
     matching: find.byType(Card),
   );
   await tester.tap(
-    find.descendant(of: kartu, matching: find.text('Edit akun')),
+    find.descendant(of: kartu, matching: find.text('EDIT AKUN')),
   );
   await tester.pumpAndSettle();
 }
@@ -174,7 +174,7 @@ void main() {
         matching: find.byType(Card),
       );
       expect(
-        find.descendant(of: kartuPending, matching: find.text('Edit akun')),
+        find.descendant(of: kartuPending, matching: find.text('EDIT AKUN')),
         findsOneWidget,
       );
     });
