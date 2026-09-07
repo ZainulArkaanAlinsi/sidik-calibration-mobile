@@ -35,6 +35,11 @@ class PanoramaKartu extends StatelessWidget {
   /// Pengacak posisi bintang & pohon. Pakai sesuatu yang stabil per kartu
   /// (mis. id akun) supaya panoramanya nggak berubah tiap rebuild.
   final int benih;
+
+  /// Tinggi panorama. Di kartu selebar layar HP, 104 itu pas; di kartu desktop
+  /// yang lebarnya dua kali lipat, pita setinggi itu jadi blok warna yang
+  /// menguasai kartunya — yang harusnya jadi aksen malah jadi isi utama.
+  /// Pemanggilnya yang nurunin angka ini di layar lebar.
   final double tinggi;
   final Widget? anak;
 

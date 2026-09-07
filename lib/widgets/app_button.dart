@@ -82,11 +82,19 @@ class AppButton extends StatelessWidget {
       ),
     };
 
-    // Dikiri-ratakan waktu ringkas: tombol seukuran isinya yang mengambang di
-    // tengah ruang lebar kelihatan kayak kelepasan dari tata letaknya.
-    return ringkas
-        ? Align(alignment: Alignment.centerLeft, child: tombol)
-        : tombol;
+    // Dibalikin apa adanya, TANPA `Align`.
+    //
+    // Versi pertama membungkusnya `Align(centerLeft)` biar tombol ringkas
+    // nggak ngambang di tengah ruang lebar. Itu salah: `Align` memakan
+    // SELURUH lebar yang tersedia, jadi di dalam `Wrap` tiap tombol menguasai
+    // satu baris penuh dan nggak pernah mengalir bersebelahan. Di kartu Data
+    // Teknisi hasilnya tiga tombol bertumpuk ke bawah dengan separuh kartu
+    // kosong di kanannya.
+    //
+    // Tanpa pembungkus, tombolnya seukuran isinya — mengalir bersebelahan di
+    // `Wrap`, dan tetap rata kiri di `Column` yang `crossAxisAlignment`-nya
+    // `start` (yang dipakai semua pemanggil di app ini).
+    return tombol;
   }
 }
 
