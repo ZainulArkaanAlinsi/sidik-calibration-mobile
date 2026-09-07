@@ -7,6 +7,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/ruangan.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/ruangan_provider.dart';
+import '../../widgets/daftar_kartu_adaptif.dart';
 import '../../widgets/skeleton.dart';
 
 /// Master Metode Kalibrasi (Instruksi Kerja / IK).
@@ -65,15 +66,15 @@ class MetodeListScreen extends ConsumerWidget {
                     Text(l10n.metodeKosong, textAlign: TextAlign.center),
                   ],
                 )
-              : ListView.builder(
+              : DaftarKartuAdaptif(
                   padding: const EdgeInsets.fromLTRB(
                     AppSpacing.md,
                     AppSpacing.md,
                     AppSpacing.md,
                     80,
                   ),
-                  itemCount: list.length,
-                  itemBuilder: (_, i) => _Kartu(
+                  jumlah: list.length,
+                  bangun: (_, i) => _Kartu(
                     metode: list[i],
                     bisaUbah: admin,
                     onUbah: () => _form(context, ref, list[i]),

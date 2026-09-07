@@ -14,14 +14,10 @@ import '../../providers/izin_provider.dart';
 import '../../providers/master_data_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
+import '../../widgets/daftar_kartu_adaptif.dart';
 import '../../widgets/panorama_kartu.dart';
-import '../../widgets/readable_width.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/sidik_loader.dart';
-
-/// Ambang lebar buat pecah jadi dua kolom. Sama dengan ambang di
-/// `MasterDetailPane` — satu angka buat satu app.
-const _ambangDuaKolom = 900.0;
 
 /// Data Teknisi — kelola akun (setujui pendaftar, tetapkan role, nonaktifkan,
 /// reset password).
@@ -133,22 +129,9 @@ class _Isi extends ConsumerWidget {
         // bolak-balik. Di atas ambang, isinya dibatasi lebarnya lalu dipecah
         // jadi dua kolom; di HP dua-duanya nggak kepakai dan tata letaknya
         // persis kayak sebelumnya.
-        child: LayoutBuilder(
-          builder: (context, batas) {
-            final duaKolom = batas.maxWidth >= _ambangDuaKolom;
-
-            return ReadableWidth(
-              child: duaKolom
-                  ? _DuaKolom(akun: value)
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      itemCount: value.length,
-                      separatorBuilder: (_, _) =>
-                          const SizedBox(height: AppSpacing.sm),
-                      itemBuilder: (_, i) => _KartuAkun(akun: value[i]),
-                    ),
-            );
-          },
+        child: DaftarKartuAdaptif(
+          jumlah: value.length,
+          bangun: (_, i) => _KartuAkun(akun: value[i]),
         ),
       ),
       AsyncError() => _Pesan(
@@ -221,7 +204,7 @@ class _KartuAkun extends ConsumerWidget {
     // Tombol melar penuh itu benar di HP (sasaran sentuh gede buat teknisi
     // yang mencet sambil pegang alat), salah di jendela laptop — di situ dia
     // jadi spanduk selebar setengah layar.
-    final ringkas = MediaQuery.sizeOf(context).width >= _ambangDuaKolom;
+    final ringkas = DaftarKartuAdaptif.lebar(context);
 
     return Card(
       // Panorama dilukis sampai mepet tepi, jadi kartunya yang motong — bukan
@@ -828,59 +811,6 @@ class _AvatarAkun extends ConsumerWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
-    );
-  }
-}
-
-/// Dua kolom kartu di layar lebar.
-///
-/// ## Kenapa bukan GridView
-///
-/// `GridView` nuntut tinggi sel yang seragam, dan kartu di sini **nggak**
-/// seragam: akun pending punya empat tombol, akun nonaktif cuma satu. Dipatok
-/// ke yang paling tinggi, kartu pendek nyisain lubang; dipatok ke yang paling
-/// pendek, kartu panjang kepotong — dan itu persis yang kejadian waktu
-/// tingginya ditulis 330 (kepotong 14px).
-///
-/// Jadi kolomnya dirakit tangan: kartu ganjil-genap dibagi ke dua Column, dan
-/// masing-masing kartu tetap setinggi isinya sendiri.
-///
-/// Konsekuensinya kartunya dibangun semua sekaligus, nggak malas kayak
-/// `ListView.builder`. Itu ditanggung sadar: daftar ini isinya akun satu lab —
-/// puluhan, bukan ribuan — dan semuanya toh sudah ada di memori dari satu
-/// `GET /users`. Kalau suatu saat daftarnya jadi ratusan, ini yang pertama
-/// harus dibalik lagi jadi malas.
-class _DuaKolom extends StatelessWidget {
-  const _DuaKolom({required this.akun});
-
-  final List<User> akun;
-
-  @override
-  Widget build(BuildContext context) {
-    final kiri = <Widget>[];
-    final kanan = <Widget>[];
-
-    for (var i = 0; i < akun.length; i++) {
-      final kartu = Padding(
-        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-        child: _KartuAkun(akun: akun[i]),
-      );
-      (i.isEven ? kiri : kanan).add(kartu);
-    }
-
-    return SingleChildScrollView(
-      // Tetap bisa ditarik walau isinya belum penuh selayar — kalau nggak,
-      // tarik-buat-segarkan mati di daftar yang cuma berisi dua akun.
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(child: Column(children: kiri)),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(child: Column(children: kanan)),
-        ],
-      ),
     );
   }
 }
