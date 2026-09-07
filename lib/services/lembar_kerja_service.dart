@@ -285,6 +285,12 @@ class MockLembarKerjaService implements LembarKerjaService {
       'micrometer' => contohBentukLembarKerjaMicrometer(
         untukAdmin: untukAdmin,
       ),
+      // Height Gauge (alat ke-26) — kelompok Panjang, sama seperti Micrometer
+      // di atas, tapi TIGA tabel dan tanpa lantai CMC. Tanpa cabang ini mode
+      // mock memajang lembar pH tiga titik buffer.
+      'height_gauge' => contohBentukLembarKerjaHeightGauge(
+        untukAdmin: untukAdmin,
+      ),
       // Profil kosong / nggak dikenal SENGAJA jatuh ke pH, bukan lempar error —
       // sama kayak janji kontraknya (`docs/kontrak-api.md` §4).
       _ => contohBentukLembarKerja(untukAdmin: untukAdmin),
