@@ -9,6 +9,7 @@ import '../../models/notification_item.dart';
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../providers/notification_provider.dart';
 import '../history/calibration_detail_screen.dart';
+import '../../widgets/tampil_masuk.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
 
@@ -71,28 +72,47 @@ class NotificationScreen extends ConsumerWidget {
   }
 }
 
-class _Isi extends ConsumerWidget {
+/// Daftar notifikasi yang **numpuk lalu membuka** waktu layarnya kebuka.
+///
+/// `StatefulWidget` semata-mata buat megang [JejakMasuk]. Tanpa catatan itu,
+/// animasinya jalan LAGI tiap kartu digulir balik — `ListView.separated`
+/// mbuang item yang keluar layar dan mbangun ulang waktu balik, dan daftar yang
+/// berkedip tiap discroll bikin scroll terasa berat padahal yang berat cuma
+/// matanya.
+class _Isi extends ConsumerStatefulWidget {
   const _Isi({required this.items});
 
   final List<NotificationItem> items;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_Isi> createState() => _IsiState();
+}
+
+class _IsiState extends ConsumerState<_Isi> {
+  final _jejak = JejakMasuk();
+
+  @override
+  Widget build(BuildContext context) {
     return ListView.separated(
       padding: const EdgeInsets.all(AppSpacing.md),
-      itemCount: items.length,
+      itemCount: widget.items.length,
       separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
       itemBuilder: (context, index) {
-        final item = items[index];
+        final item = widget.items[index];
 
-        return _NotificationCard(
-          item: item,
-          onTap: () {
-            if (!item.dibaca) {
-              ref.read(notificationProvider.notifier).tandaiDibaca(item.id);
-            }
-            bukaTautanNotifikasi(context, item.tautan);
-          },
+        return TampilMasuk(
+          indeks: index,
+          jejak: _jejak,
+          gaya: GayaMasuk.tumpuk,
+          child: _NotificationCard(
+            item: item,
+            onTap: () {
+              if (!item.dibaca) {
+                ref.read(notificationProvider.notifier).tandaiDibaca(item.id);
+              }
+              bukaTautanNotifikasi(context, item.tautan);
+            },
+          ),
         );
       },
     );

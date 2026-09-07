@@ -19,6 +19,26 @@ class JejakMasuk {
   bool klaim(int indeks) => _sudah.add(indeks);
 }
 
+/// Bentuk gerakan masuknya.
+enum GayaMasuk {
+  /// Meredup sambil naik 12 px. Bawaan, dan yang dipakai hampir semua layar.
+  halus,
+
+  /// Numpuk lalu membuka — kartunya mulai lebih rendah dan sedikit lebih
+  /// kecil, jadi serombongan kartu kebaca sebagai setumpuk yang membuka, bukan
+  /// sebagai kartu-kartu yang kebetulan muncul barengan.
+  ///
+  /// Acuan desainnya "Notification List" (arhamkhnz, dari gagasan Alexander
+  /// Avdeev). Dipakai di daftar notifikasi.
+  ///
+  /// Di acuannya tumpukan itu mekar waktu **disentuh**. Di sini ketukan sudah
+  /// ada pemiliknya: satu ketuk di kartu notifikasi menandainya terbaca lalu
+  /// lompat ke layar tujuannya. Menyerobot ketukan buat lipat-buka berarti
+  /// orang yang mau membuka notifikasinya malah cuma merapikan tumpukan. Jadi
+  /// yang diambil bagian yang nggak berebut: gerakan membukanya.
+  tumpuk,
+}
+
 /// Kartu/bagian yang muncul dengan meredup-naik waktu layarnya kebuka.
 ///
 /// [indeks] bikin benda yang bersebelahan datang berurutan, bukan serempak.
@@ -41,6 +61,7 @@ class TampilMasuk extends StatefulWidget {
     required this.child,
     this.indeks = 0,
     this.jejak,
+    this.gaya = GayaMasuk.halus,
   });
 
   final Widget child;
@@ -50,6 +71,9 @@ class TampilMasuk extends StatefulWidget {
 
   /// Catatan bersama punya layarnya. Wajib buat daftar yang recycle.
   final JejakMasuk? jejak;
+
+  /// Bentuk gerakannya. Lihat [GayaMasuk].
+  final GayaMasuk gaya;
 
   @override
   State<TampilMasuk> createState() => _TampilMasukState();
@@ -75,6 +99,7 @@ class _TampilMasukState extends State<TampilMasuk> {
       return widget.child;
     }
 
+    final gaya = widget.gaya;
     final tunda = AppMotion.tunda(context, widget.indeks);
     final total = AppMotion.sedang + tunda;
     final mulai = tunda.inMicroseconds / total.inMicroseconds;
@@ -83,12 +108,27 @@ class _TampilMasukState extends State<TampilMasuk> {
       tween: Tween(begin: 0, end: 1),
       duration: total,
       curve: Interval(mulai, 1, curve: AppMotion.masuk),
-      builder: (context, t, anak) => Opacity(
-        opacity: t,
-        // 12 px, arah bawah ke atas. Sengaja kecil: kartu yang naik jauh
-        // kebaca kayak elemen yang salah posisi terus dibetulin.
-        child: Transform.translate(offset: Offset(0, 12 * (1 - t)), child: anak),
-      ),
+      builder: (context, t, anak) {
+        // `halus`: 12 px, arah bawah ke atas. Sengaja kecil — kartu yang naik
+        // jauh kebaca kayak elemen yang salah posisi terus dibetulin.
+        //
+        // `tumpuk`: naiknya lebih jauh DAN ada skala, dua-duanya perlu. Geser
+        // doang cuma bikin kartunya melintas; skala yang bikin kartu di
+        // belakang kebaca "lebih jauh", dan itu yang bikin serombongan kartu
+        // kebaca sebagai tumpukan.
+        final tumpuk = gaya == GayaMasuk.tumpuk;
+        final naik = (tumpuk ? 26.0 : 12.0) * (1 - t);
+
+        Widget isi = Transform.translate(
+          offset: Offset(0, naik),
+          child: anak,
+        );
+        if (tumpuk) {
+          isi = Transform.scale(scale: 0.94 + 0.06 * t, child: isi);
+        }
+
+        return Opacity(opacity: t, child: isi);
+      },
       child: widget.child,
     );
   }
