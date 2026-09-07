@@ -28,7 +28,13 @@ class ReadableWidth extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    // `topCenter`, bukan `center`. Isi yang lebih pendek dari layar — daftar
+    // dua kolom yang cuma berisi dua kartu, misalnya — kalau ditengahkan
+    // vertikal bakal ngambang di tengah dengan lubang kosong di atasnya.
+    // Buat isi yang setinggi layar (kebanyakan pemakai widget ini pakai
+    // `ListView`), dua-duanya sama saja.
+    return Align(
+      alignment: Alignment.topCenter,
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maksimum),
         child: child,
