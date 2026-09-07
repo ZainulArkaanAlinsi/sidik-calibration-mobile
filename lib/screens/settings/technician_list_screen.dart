@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/izin.dart';
@@ -213,95 +214,121 @@ class _KartuAkun extends ConsumerWidget {
       child: Stack(
         children: [
           Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          PanoramaKartu(
-            // Benihnya id akun: panorama tiap orang beda tapi tetap sama tiap
-            // kali layarnya dibuka. Kalau pakai angka acak biasa, langitnya
-            // ganti tiap scroll.
-            benih: akun.id,
-            tinggi: 104,
-            anak: Padding(
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              child: Align(
-                alignment: Alignment.topRight,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    StatusBadge(
-                      label: akun.status.label,
-                      tone: switch (akun.status) {
-                        UserStatus.aktif => BadgeTone.success,
-                        UserStatus.pending => BadgeTone.warning,
-                        UserStatus.nonaktif => BadgeTone.neutral,
-                      },
-                      icon: switch (akun.status) {
-                        UserStatus.aktif => Icons.check_circle_outline,
-                        UserStatus.pending => Icons.hourglass_empty,
-                        UserStatus.nonaktif => Icons.block_outlined,
-                      },
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    StatusBadge(
-                      label: akun.role.label,
-                      tone: akun.role.isAdmin
-                          ? BadgeTone.info
-                          : BadgeTone.neutral,
-                      icon: Icons.badge_outlined,
-                    ),
-                  ],
-                ),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Langitnya dibiarkan BERSIH. Badge status sempat ditempel di
+              // sini, dan hasilnya dua pil pastel ngambang di atas gradasi
+              // senja: kontrasnya tipis, dan panoramanya jadi kayak papan
+              // pengumuman. Badge-nya sekarang duduk di baris nama, tempat dia
+              // sebaris sama data yang dia jelaskan.
+              PanoramaKartu(
+                // Benihnya id akun: panorama tiap orang beda tapi tetap sama
+                // tiap kali layarnya dibuka. Kalau pakai angka acak biasa,
+                // langitnya ganti tiap scroll.
+                benih: akun.id,
+                tinggi: 104,
               ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              0,
-              AppSpacing.md,
-              AppSpacing.md,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Ruang buat avatar yang nyempil dari panorama. Nama & email
-                // sengaja NGGAK ikut naik: teks gelap di atas laut yang terang
-                // itu batas kontras yang nggak perlu diambil, dan garis lukisan
-                // yang motong tengah baris bikin namanya susah dibaca.
-                Padding(
-                  padding: const EdgeInsets.only(left: 74, top: AppSpacing.xs),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        akun.nama,
-                        style: theme.textTheme.titleSmall,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        akun.email,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        akun.employeeId.isEmpty
-                            ? l10n.teknisiTanpaEmployeeId
-                            : akun.employeeId,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.xs,
+                  AppSpacing.md,
+                  AppSpacing.md,
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                Wrap(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Ruang buat avatar yang nyempil dari panorama. Angkanya
+                        // = lebar avatar (58) + jaraknya, dipatok manual karena
+                        // avatarnya melayang di Stack dan nggak ikut ngatur
+                        // lebar baris ini.
+                        const SizedBox(width: 74),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                akun.nama,
+                                style: theme.textTheme.titleSmall,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                akun.email,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                akun.employeeId.isEmpty
+                                    ? l10n.teknisiTanpaEmployeeId
+                                    : akun.employeeId,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  // Angka rata lebar: id pegawai kebaca sebagai
+                                  // kode, bukan kalimat, dan kolomnya sejajar
+                                  // antar-kartu.
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            StatusBadge(
+                              label: akun.status.label,
+                              tone: switch (akun.status) {
+                                UserStatus.aktif => BadgeTone.success,
+                                UserStatus.pending => BadgeTone.warning,
+                                UserStatus.nonaktif => BadgeTone.neutral,
+                              },
+                              icon: switch (akun.status) {
+                                UserStatus.aktif => Icons.check_circle_outline,
+                                UserStatus.pending => Icons.hourglass_empty,
+                                UserStatus.nonaktif => Icons.block_outlined,
+                              },
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            StatusBadge(
+                              label: akun.role.label,
+                              tone: akun.role.isAdmin
+                                  ? BadgeTone.info
+                                  : BadgeTone.neutral,
+                              icon: Icons.badge_outlined,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    // Garis pemisah tipis: yang di atas itu SIAPA, yang di
+                    // bawah APA YANG BISA DILAKUKAN ke dia. Tanpa pemisah,
+                    // tombolnya kebaca nempel ke id pegawai.
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppSpacing.sm,
+                      ),
+                      child: Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: theme.colorScheme.outlineVariant.withValues(
+                          alpha: 0.6,
+                        ),
+                      ),
+                    ),
+                                Wrap(
               spacing: AppSpacing.sm,
               runSpacing: AppSpacing.xs,
               children: [
@@ -793,11 +820,21 @@ class _AvatarAkun extends ConsumerWidget {
         shape: BoxShape.circle,
         color: warna,
         // Cincin sewarna kartu: ini yang misahin avatar dari panorama di
-        // belakangnya tanpa perlu bayangan.
+        // belakangnya.
         border: Border.all(
           color: theme.cardTheme.color ?? theme.colorScheme.surface,
           width: 3,
         ),
+        // Bayangan tipis di bawah cincin — bikin avatarnya kebaca melayang di
+        // atas panorama, bukan ditempel rata. Lebar & tipis, sesuai arah
+        // desain kartu di app ini (lihat `cardTheme` di app_theme.dart).
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.ink.withValues(alpha: 0.18),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
         image: berkas == null
             ? null
             : DecorationImage(image: FileImage(berkas), fit: BoxFit.cover),

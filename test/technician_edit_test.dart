@@ -43,14 +43,23 @@ Future<void> _pasang(WidgetTester tester, MockUserService service) async {
 }
 
 /// Buka dialog edit buat akun yang namanya [nama].
+///
+/// Digulung ke tombolnya dulu, baru diketuk. Layar uji cuma 800x600, dan
+/// kartu akun tumbuh tiap kali tampilannya berubah — waktu kartunya dikasih
+/// garis pemisah, tombol kartu KEDUA mendarat di y=606 dan ketukannya jatuh di
+/// luar layar. Yang bikin test ini rapuh bukan tinggi kartunya, tapi
+/// anggapan diam-diam bahwa semuanya muat tanpa digulung.
 Future<void> _bukaEdit(WidgetTester tester, String nama) async {
   final kartu = find.ancestor(
     of: find.text(nama),
     matching: find.byType(Card),
   );
-  await tester.tap(
-    find.descendant(of: kartu, matching: find.text('EDIT AKUN')),
-  );
+  final tombol = find.descendant(of: kartu, matching: find.text('EDIT AKUN'));
+
+  await tester.ensureVisible(tombol);
+  await tester.pumpAndSettle();
+
+  await tester.tap(tombol);
   await tester.pumpAndSettle();
 }
 
