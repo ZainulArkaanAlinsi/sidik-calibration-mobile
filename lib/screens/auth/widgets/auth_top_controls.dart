@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../providers/locale_provider.dart';
-import '../../../providers/theme_mode_provider.dart';
+import '../../../widgets/sakelar_tema.dart';
 import 'neu.dart';
 
 /// Baris kontrol di atas layar auth: pemilih bahasa + toggle dark mode —
@@ -14,7 +14,6 @@ class AuthTopControls extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = NeuColors.of(context);
     final locale = ref.watch(localeProvider);
-    final gelap = Theme.of(context).brightness == Brightness.dark;
     final isId = locale.languageCode == 'id';
 
     return Row(
@@ -40,30 +39,21 @@ class AuthTopControls extends ConsumerWidget {
             ],
           ),
         ),
-        const SizedBox(width: 12),
-        // Toggle dark mode.
-        _Pill(
-          circle: true,
-          onTap: () => ref
-              .read(themeModeProvider.notifier)
-              .toggle(gelapSekarang: gelap),
-          child: Icon(
-            gelap ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
-            size: 18,
-            color: c.text,
-          ),
-        ),
+        const SizedBox(width: 4),
+        // Toggle dark mode. Sengaja nggak dibungkus NeuRaised: treknya udah
+        // punya bentuk sendiri, bayangan neumorphism di atasnya cuma bikin
+        // pinggirannya kotor.
+        const SakelarTema(),
       ],
     );
   }
 }
 
 class _Pill extends StatelessWidget {
-  const _Pill({required this.child, required this.onTap, this.circle = false});
+  const _Pill({required this.child, required this.onTap});
 
   final Widget child;
   final VoidCallback onTap;
-  final bool circle;
 
   @override
   Widget build(BuildContext context) {
@@ -71,13 +61,10 @@ class _Pill extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: NeuRaised(
-        circle: circle,
         radius: 20,
         distance: 3,
         blur: 7,
-        padding: circle
-            ? const EdgeInsets.all(9)
-            : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: child,
       ),
     );

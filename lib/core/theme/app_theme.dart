@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../motion/transisi_halaman.dart';
 import 'app_colors.dart';
+import 'tombol_bergaris.dart';
 import 'app_spacing.dart';
 import 'app_typography.dart';
 
@@ -140,33 +141,73 @@ class AppTheme {
         ),
       ),
 
+      // Tombol aksi bergaya btn-12: pil hitam bertepi tebal, batang putih
+      // meluncur masuk waktu disentuh. Mekaniknya di `TombolBergaris` —
+      // termasuk alasan kenapa label SELALU ditulis putih di dua-duanya.
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           // 52dp — desain minta tombol tebal, dan teknisi sering mencet sambil
           // pegang alat / pakai sarung tangan.
           minimumSize: const Size.fromHeight(52),
-          backgroundColor: scheme.primary,
-          foregroundColor: scheme.onPrimary,
+          // Dibalik di tema gelap. Pil hitam di atas ground yang juga nyaris
+          // hitam kebaca sama persis kayak tombol hantu di sebelahnya —
+          // hierarki "mana aksi utama" ilang. Yang dijaga bukan warnanya,
+          // tapi kontrasnya: aksi utama SELALU kebalikan dari latar.
+          backgroundColor: isLight ? AppColors.ink : AppColors.white,
+          foregroundColor: AppColors.white,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          disabledBackgroundColor: scheme.onSurface.withValues(alpha: 0.12),
-          textStyle: text.labelLarge?.copyWith(letterSpacing: 1.0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+          // 3rem di CSS acuannya. Pil selebar layar nggak butuh sebanyak itu,
+          // tapi tombol yang ngikut isinya (mis. di dialog) butuh biar nggak
+          // kebaca sempit.
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          // Tepinya sewarna dasar waktu diam, jadi nggak kelihatan — dan baru
+          // muncul waktu tombolnya kebalik ketiban batang. Tanpa ini, pil
+          // putih hasil tekanan lenyap di atas kertas krem (tema terang) dan
+          // pil hitamnya lenyap di ground gelap.
+          side: BorderSide(
+            color: isLight ? AppColors.ink : AppColors.white,
+            width: 2,
           ),
+          disabledBackgroundColor: scheme.onSurface.withValues(alpha: 0.12),
+          disabledForegroundColor: scheme.onSurface.withValues(alpha: 0.38),
+          textStyle: text.labelLarge?.copyWith(
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.0,
+          ),
+          shape: const StadiumBorder(),
+        ).copyWith(
+          // Percikan ripple dimatikan: dia dilukis DI ATAS batang dan bikin
+          // noda kelabu yang ngotorin polanya. Umpan balik tekanannya udah
+          // dikerjain batang itu sendiri — jauh lebih kebaca daripada ripple.
+          overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+          backgroundBuilder: TombolBergaris.latar(
+            isLight ? AppColors.white : AppColors.ink,
+          ),
+          foregroundBuilder: TombolBergaris.labelBerbalik,
         ),
       ),
 
+      // Kembaran versi hantu: dasarnya tembus pandang, batangnya `onSurface`.
+      // Ini yang bikin hierarki aksi utama vs pendamping nggak ilang — kalau
+      // dua-duanya pil hitam pekat, nggak ada lagi yang nunjukin mana "Simpan"
+      // dan mana "Batal".
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: const Size.fromHeight(52),
-          foregroundColor: scheme.onSurface,
-          side: BorderSide(color: scheme.outlineVariant),
-          backgroundColor: isLight ? AppColors.white : AppColors.inkSurface,
-          textStyle: text.labelLarge?.copyWith(letterSpacing: 1.0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+          foregroundColor: AppColors.white,
+          backgroundColor: Colors.transparent,
+          side: BorderSide(color: scheme.onSurface, width: 2),
+          disabledForegroundColor: scheme.onSurface.withValues(alpha: 0.38),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          textStyle: text.labelLarge?.copyWith(
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.0,
           ),
+          shape: const StadiumBorder(),
+        ).copyWith(
+          overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+          backgroundBuilder: TombolBergaris.latar(scheme.onSurface),
+          foregroundBuilder: TombolBergaris.labelBerbalik,
         ),
       ),
 

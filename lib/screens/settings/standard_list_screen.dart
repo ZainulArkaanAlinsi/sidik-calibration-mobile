@@ -10,6 +10,8 @@ import '../../providers/izin_provider.dart';
 import '../../providers/calibration_input_provider.dart' show standardCrudProvider;
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../widgets/app_button.dart';
+import '../../widgets/daftar_kartu_adaptif.dart';
+import '../../widgets/readable_width.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/status_badge.dart';
 import 'standard_form_screen.dart';
@@ -58,19 +60,26 @@ class StandardListScreen extends ConsumerWidget {
           if (isAdmin)
             SafeArea(
               top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.md,
-                  0,
-                  AppSpacing.md,
-                  AppSpacing.md,
-                ),
-                child: AppButton(
-                  label: l10n.standarAdd,
-                  icon: Icons.add,
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const StandardFormScreen(),
+              // Dibatasi lebar bacanya juga, biar tombolnya sebaris sama tepi
+              // kiri kolom kartu di atasnya. Tanpa ini dia nyangkut di pojok
+              // layar sementara kartunya di tengah — kebaca lepas dari
+              // daftarnya.
+              child: ReadableWidth(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    0,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                  ),
+                  child: AppButton(
+                    label: l10n.standarAdd,
+                    ringkas: DaftarKartuAdaptif.lebar(context),
+                    icon: Icons.add,
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const StandardFormScreen(),
+                      ),
                     ),
                   ),
                 ),
@@ -90,11 +99,9 @@ class _Isi extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      itemCount: items.length,
-      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-      itemBuilder: (context, index) =>
+    return DaftarKartuAdaptif(
+      jumlah: items.length,
+      bangun: (context, index) =>
           _StandardCard(item: items[index], isAdmin: isAdmin),
     );
   }

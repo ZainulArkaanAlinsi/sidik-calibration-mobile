@@ -6,6 +6,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/ruangan.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/ruangan_provider.dart';
+import '../../widgets/daftar_kartu_adaptif.dart';
 import '../../widgets/skeleton.dart';
 
 /// Master Ruangan lab.
@@ -45,15 +46,17 @@ class RuanganListScreen extends ConsumerWidget {
           ),
           data: (list) => list.isEmpty
               ? _Kosong(pesan: l10n.ruanganKosong)
-              : ListView.builder(
+              : DaftarKartuAdaptif(
+                  // Bawahnya dikasih 80: tombol tambah yang mengambang nutupin
+                  // kartu terakhir kalau nggak dikasih ruang.
                   padding: const EdgeInsets.fromLTRB(
                     AppSpacing.md,
                     AppSpacing.md,
                     AppSpacing.md,
                     80,
                   ),
-                  itemCount: list.length,
-                  itemBuilder: (_, i) => _KartuRuangan(
+                  jumlah: list.length,
+                  bangun: (_, i) => _KartuRuangan(
                     ruangan: list[i],
                     bisaUbah: admin,
                     onUbah: () => _formRuangan(context, ref, list[i]),

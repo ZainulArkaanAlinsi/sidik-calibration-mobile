@@ -132,7 +132,7 @@ void main() {
       );
 
       expect(find.text('Versi 1.0.60 sudah tersedia'), findsOneWidget);
-      expect(find.text('Pasang (50 MB)'), findsOneWidget);
+      expect(find.text('PASANG (50 MB)'), findsOneWidget);
     });
 
     testWidgets('TIDAK nongol kalau sudah paling baru', (tester) async {
@@ -180,7 +180,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Pasang sekarang'), findsOneWidget);
+      expect(find.text('PASANG SEKARANG'), findsOneWidget);
     });
   });
 
@@ -421,8 +421,8 @@ void main() {
         penyiap: _PenyiapPalsu(siap: true),
       );
 
-      expect(find.text('Pasang sekarang'), findsOneWidget);
-      expect(find.text('Pasang (50 MB)'), findsNothing);
+      expect(find.text('PASANG SEKARANG'), findsOneWidget);
+      expect(find.text('PASANG (50 MB)'), findsNothing);
     });
 
     testWidgets('menekan Pasang langsung ke pemasang, tanpa mengunduh ulang', (
@@ -461,7 +461,7 @@ void main() {
         penyiap: _PenyiapPalsu(siap: false),
       );
 
-      expect(find.text('Pasang (50 MB)'), findsOneWidget);
+      expect(find.text('PASANG (50 MB)'), findsOneWidget);
 
       await tester.tap(find.byKey(const Key('banner_update_pasang')));
       await tester.pumpAndSettle();

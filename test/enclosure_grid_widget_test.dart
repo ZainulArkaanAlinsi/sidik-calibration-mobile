@@ -72,7 +72,7 @@ void main() {
     expect(find.text('Indikator'), findsOneWidget);
     expect(find.text('Suhu Ruang'), findsOneWidget);
     expect(find.text('Tambah termokopel'), findsOneWidget);
-    expect(find.text('Tambah Set Point'), findsOneWidget);
+    expect(find.text('TAMBAH SET POINT'), findsOneWidget);
 
     // Aturan Sensor Acuan ditampilkan apa adanya dari backend.
     expect(find.textContaining('TERKECIL'), findsOneWidget);

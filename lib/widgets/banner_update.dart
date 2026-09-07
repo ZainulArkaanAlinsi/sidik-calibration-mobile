@@ -220,10 +220,10 @@ class _BannerUpdateState extends ConsumerState<BannerUpdate> {
                     // Sudah siap = tidak ada yang diunduh, jadi menulis "68 MB"
                     // justru bohong dan bikin ragu menekan.
                     siap
-                        ? 'Pasang sekarang'
+                        ? 'PASANG SEKARANG'
                         : ukuran == null
-                        ? 'Pasang sekarang'
-                        : 'Pasang ($ukuran)',
+                        ? 'PASANG SEKARANG'
+                        : 'PASANG ($ukuran)',
                   ),
                 ),
               ],

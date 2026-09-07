@@ -19,6 +19,7 @@ class AppButton extends StatelessWidget {
     this.icon,
     this.trailingIcon,
     this.isLoading = false,
+    this.ringkas = false,
   });
 
   final String label;
@@ -29,6 +30,21 @@ class AppButton extends StatelessWidget {
   /// Ikon di kanan label — mis. panah "→" di tombol SIGN IN (desain Titanium).
   final IconData? trailingIcon;
   final bool isLoading;
+
+  /// Tombol seukuran isinya, bukan melar selebar ruang yang ada.
+  ///
+  /// Dipilih PER LAYAR, bukan ditebak sendiri dari lebar jendela, dan itu
+  /// belajar dari kesalahan: versi pertama membungkus tombolnya dengan
+  /// `LayoutBuilder` biar bisa mengukur ruangnya sendiri. Itu memecahkan 15
+  /// tes dengan `LayoutBuilder does not support returning intrinsic
+  /// dimensions` — `LayoutBuilder` bikin widget berhenti bisa ditanya lebar
+  /// intrinsiknya, dan tabel sertifikat justru nanya.
+  ///
+  /// Menebak dari lebar jendela saja juga salah: tombol di formulir Login yang
+  /// lebarnya dipatok ~400px bakal ikut nyusut jadi seuprit di tengah
+  /// formulir, padahal di situ melar itu benar. Yang tahu bedanya cuma
+  /// layarnya.
+  final bool ringkas;
 
   @override
   Widget build(BuildContext context) {
@@ -42,16 +58,35 @@ class AppButton extends StatelessWidget {
           )
         : _Content(label: label, icon: icon, trailingIcon: trailingIcon);
 
-    return switch (variant) {
+    // `minimumSize: Size.fromHeight(52)` di tema itu Size(**infinity**, 52) —
+    // tombolnya selalu melar selebar ruang yang ada. [ringkas] mematahkan itu.
+    final gaya = ringkas
+        ? const ButtonStyle(
+            minimumSize: WidgetStatePropertyAll(Size(0, 48)),
+            padding: WidgetStatePropertyAll(
+              EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            ),
+          )
+        : null;
+
+    final tombol = switch (variant) {
       AppButtonVariant.primary => FilledButton(
+        style: gaya,
         onPressed: effectiveOnPressed,
         child: child,
       ),
       AppButtonVariant.secondary => OutlinedButton(
+        style: gaya,
         onPressed: effectiveOnPressed,
         child: child,
       ),
     };
+
+    // Dikiri-ratakan waktu ringkas: tombol seukuran isinya yang mengambang di
+    // tengah ruang lebar kelihatan kayak kelepasan dari tata letaknya.
+    return ringkas
+        ? Align(alignment: Alignment.centerLeft, child: tombol)
+        : tombol;
   }
 }
 
@@ -62,9 +97,17 @@ class _Content extends StatelessWidget {
   final IconData? icon;
   final IconData? trailingIcon;
 
+  /// HURUF BESAR semua — `text-transform: uppercase` di desain acuannya.
+  ///
+  /// Dikerjakan di sini, bukan di `ThemeData`: Flutter nggak punya padanan
+  /// `text-transform`, satu-satunya jalan ya mengubah string-nya. Konsekuensinya
+  /// nyata dan sengaja diterima — `find.text('Simpan')` di test nggak lagi
+  /// ketemu, jadi test yang nunjuk tombol lewat labelnya ikut disesuaikan.
+  String get _teks => label.toUpperCase();
+
   @override
   Widget build(BuildContext context) {
-    if (icon == null && trailingIcon == null) return Text(label);
+    if (icon == null && trailingIcon == null) return Text(_teks);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -75,7 +118,7 @@ class _Content extends StatelessWidget {
         // (setengah layar, atau layar HP 390px) langsung overflow — error
         // merah, bukan teks kepotong. Udah kejadian dua kali di form pH.
         Flexible(
-          child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+          child: Text(_teks, maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
         if (trailingIcon != null) ...[
           const SizedBox(width: AppSpacing.sm),

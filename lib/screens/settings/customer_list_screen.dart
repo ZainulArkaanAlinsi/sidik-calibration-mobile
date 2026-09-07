@@ -8,6 +8,8 @@ import '../../l10n/app_localizations.dart';
 import '../../models/customer.dart';
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../providers/master_data_provider.dart';
+import '../../widgets/daftar_kartu_adaptif.dart';
+import '../../widgets/readable_width.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
 import 'customer_form_screen.dart';
@@ -16,8 +18,7 @@ class CustomerListScreen extends ConsumerStatefulWidget {
   const CustomerListScreen({super.key});
 
   @override
-  ConsumerState<CustomerListScreen> createState() =>
-      _CustomerListScreenState();
+  ConsumerState<CustomerListScreen> createState() => _CustomerListScreenState();
 }
 
 class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
@@ -84,19 +85,25 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
           ),
           SafeArea(
             top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                0,
-                AppSpacing.md,
-                AppSpacing.md,
-              ),
-              child: AppButton(
-                label: l10n.custAdd,
-                icon: Icons.add,
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const CustomerFormScreen(),
+            // Dibatasi lebar bacanya juga, biar tombolnya sebaris sama tepi
+            // kiri kolom kartu di atasnya. Tanpa ini dia nyangkut di pojok
+            // layar sementara kartunya di tengah — kebaca lepas dari daftarnya.
+            child: ReadableWidth(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  0,
+                  AppSpacing.md,
+                  AppSpacing.md,
+                ),
+                child: AppButton(
+                  label: l10n.custAdd,
+                  icon: Icons.add,
+                  ringkas: DaftarKartuAdaptif.lebar(context),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const CustomerFormScreen(),
+                    ),
                   ),
                 ),
               ),
@@ -115,11 +122,10 @@ class _Isi extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
+    return DaftarKartuAdaptif(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      itemCount: items.length,
-      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-      itemBuilder: (context, index) => _CustomerCard(item: items[index]),
+      jumlah: items.length,
+      bangun: (context, index) => _CustomerCard(item: items[index]),
     );
   }
 }
