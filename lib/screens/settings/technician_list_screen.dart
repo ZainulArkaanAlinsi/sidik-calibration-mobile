@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,11 +7,14 @@ import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/izin.dart';
 import '../../models/user.dart';
+import '../../core/utils/inisial_nama.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/avatar_provider.dart';
 import '../../providers/izin_provider.dart';
 import '../../providers/master_data_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
+import '../../widgets/panorama_kartu.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/sidik_loader.dart';
 
@@ -194,40 +199,27 @@ class _KartuAkun extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
 
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(akun.nama, style: theme.textTheme.titleSmall),
-                      const SizedBox(height: 2),
-                      Text(
-                        akun.email,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      Text(
-                        akun.employeeId.isEmpty
-                            ? l10n.teknisiTanpaEmployeeId
-                            : akun.employeeId,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Column(
+      // Panorama dilukis sampai mepet tepi, jadi kartunya yang motong — bukan
+      // panoramanya yang dikasih radius sendiri.
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          PanoramaKartu(
+            // Benihnya id akun: panorama tiap orang beda tapi tetap sama tiap
+            // kali layarnya dibuka. Kalau pakai angka acak biasa, langitnya
+            // ganti tiap scroll.
+            benih: akun.id,
+            tinggi: 104,
+            anak: Padding(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              child: Align(
+                alignment: Alignment.topRight,
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     StatusBadge(
                       label: akun.status.label,
@@ -252,10 +244,56 @@ class _KartuAkun extends ConsumerWidget {
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
-            const SizedBox(height: AppSpacing.md),
-            Wrap(
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              0,
+              AppSpacing.md,
+              AppSpacing.md,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Ruang buat avatar yang nyempil dari panorama. Nama & email
+                // sengaja NGGAK ikut naik: teks gelap di atas laut yang terang
+                // itu batas kontras yang nggak perlu diambil, dan garis lukisan
+                // yang motong tengah baris bikin namanya susah dibaca.
+                Padding(
+                  padding: const EdgeInsets.only(left: 74, top: AppSpacing.xs),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        akun.nama,
+                        style: theme.textTheme.titleSmall,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        akun.email,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        akun.employeeId.isEmpty
+                            ? l10n.teknisiTanpaEmployeeId
+                            : akun.employeeId,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Wrap(
               spacing: AppSpacing.sm,
               runSpacing: AppSpacing.xs,
               children: [
@@ -290,9 +328,21 @@ class _KartuAkun extends ConsumerWidget {
                   onPressed: () => _edit(context, ref),
                 ),
               ],
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
+          ),
+          // Avatar dipasang melayang, bukan di dalam Column: dia harus nembus
+          // batas panorama, dan anak Column nggak bisa keluar dari jatahnya
+          // tanpa geser semua yang di bawahnya.
+          Positioned(
+            left: AppSpacing.md,
+            top: 104 - 29,
+            child: _AvatarAkun(akun: akun),
+          ),
+        ],
       ),
     );
   }
@@ -675,6 +725,80 @@ class _ResetPasswordDialogState extends State<_ResetPasswordDialog> {
           child: Text(l10n.teknisiResetPassword),
         ),
       ],
+    );
+  }
+}
+
+/// Avatar bulat di kartu akun.
+///
+/// ## Kenapa cuma foto SENDIRI yang tampil
+///
+/// Foto profil di app ini disimpan **lokal per perangkat** dan nggak pernah
+/// diunggah ke server — lihat catatan panjang di `providers/avatar_provider.dart`.
+/// Artinya di HP admin, satu-satunya foto yang ada ya foto admin itu sendiri;
+/// foto teknisi lain nggak pernah nyampe ke sini.
+///
+/// Jadi yang lain dapat inisial berwarna, dan warnanya diturunkan dari id akun
+/// biar tiap orang punya warna tetap yang sama tiap kali layarnya dibuka —
+/// pengenal yang lumayan, bukan sekadar abu seragam.
+///
+/// Begitu backend punya kolom foto, yang perlu diubah cuma sumber gambarnya di
+/// sini.
+class _AvatarAkun extends ConsumerWidget {
+  const _AvatarAkun({required this.akun});
+
+  final User akun;
+
+  static const _palet = [
+    Color(0xFF3B5BDB),
+    Color(0xFF0B7285),
+    Color(0xFF9C36B5),
+    Color(0xFFC2255C),
+    Color(0xFF2B8A3E),
+    Color(0xFFE8590C),
+  ];
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final sendiri = ref.watch(authProvider).value?.id == akun.id;
+    final path = sendiri ? ref.watch(avatarPathProvider) : null;
+
+    // `existsSync` dipanggil cuma buat SATU kartu (punya sendiri), bukan tiap
+    // baris daftar. Tanpa penjagaan ini, path yang fotonya udah dihapus dari
+    // galeri bikin petak merah di tengah kartu.
+    final berkas = (path != null && path.isNotEmpty && File(path).existsSync())
+        ? File(path)
+        : null;
+
+    final warna = _palet[akun.id.abs() % _palet.length];
+
+    return Container(
+      width: 58,
+      height: 58,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: warna,
+        // Cincin sewarna kartu: ini yang misahin avatar dari panorama di
+        // belakangnya tanpa perlu bayangan.
+        border: Border.all(
+          color: theme.cardTheme.color ?? theme.colorScheme.surface,
+          width: 3,
+        ),
+        image: berkas == null
+            ? null
+            : DecorationImage(image: FileImage(berkas), fit: BoxFit.cover),
+      ),
+      child: berkas != null
+          ? null
+          : Text(
+              inisialNama(akun.nama),
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
     );
   }
 }
