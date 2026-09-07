@@ -331,6 +331,19 @@ class AppTheme {
         backgroundColor: scheme.surface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        // Lebar dialog DIBATASI, dan ini yang paling kerasa di jendela laptop.
+        //
+        // `Dialog` bawaan Material ukurannya ngikut isinya sampai mentok lebar
+        // layar dikurangi `insetPadding`. Di HP itu nggak pernah kelihatan
+        // karena layarnya sempit. Di jendela 1920, dialog konfirmasi yang
+        // isinya paragraf panjang membentang nyaris selebar jendela — satu
+        // baris teks jadi 200-an karakter, dan mata kehilangan awal baris
+        // berikutnya. Persis alasan `ReadableWidth` ada buat isi halaman.
+        //
+        // 560 dp: cukup buat paragraf peringatan lima baris tanpa jadi sempit,
+        // dan masih di bawah lebar layar HP terkecil yang kami dukung, jadi di
+        // HP batas ini nggak pernah kena sama sekali.
+        constraints: const BoxConstraints(minWidth: 280, maxWidth: 560),
       ),
 
       chipTheme: ChipThemeData(
