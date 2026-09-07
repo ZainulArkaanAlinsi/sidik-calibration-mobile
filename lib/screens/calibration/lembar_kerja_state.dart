@@ -1964,6 +1964,17 @@ class LembarKerjaState {
     'tipe_sensor',
     'spesifikasi_alat.micrometer.satuan',
     'spesifikasi_alat.micrometer.resolusi_mm',
+    // Height Gauge — alasannya sama dengan Micrometer di atas, tapi AKIBATNYA
+    // lebih berat: alat ini di luar lampiran akreditasi, jadi U95-nya TIDAK
+    // punya lantai CMC.
+    //
+    // Di Micrometer, satuan yang kelupaan dipilih atau resolusi yang kosong
+    // masih mendarat di lantai CMC — angkanya salah, tapi tertampung. Di sini
+    // tidak ada yang menampung: satuan yang jatuh ke `mm` bikin sesi berskala
+    // inch salah 25,4x, dan resolusi kosong menghapus satu komponen budget.
+    // Dua-duanya terbit tanpa satu pun angka yang terlihat ganjil.
+    'spesifikasi_alat.height_gauge.satuan',
+    'spesifikasi_alat.height_gauge.resolusi_mm',
   };
 
   /// Field penentu angka yang ada di lembar ini tapi belum dipilih.

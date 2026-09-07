@@ -27,7 +27,13 @@ import 'package:sidik_calibration/services/category_service.dart';
 /// ```
 void main() {
   /// Diadu ke `CalibrationProfileRegistry` di
-  /// `sidik-calibration-api`, 27 Agt 2026.
+  /// `sidik-calibration-api`, **7 Sep 2026** (sebelumnya 27 Agt 2026).
+  ///
+  /// Pengaduan ulang 7 Sep menemukan tabel ini sudah BASI untuk `Micrometer`:
+  /// dia ditulis `true` waktu alat itu masih jatuh ke `ProfilGenerik`, dan
+  /// tidak ikut berubah waktu `MicrometerProfile` lahir 4 Sep. Test-nya tetap
+  /// hijau karena mock-nya basi ke arah yang sama — dua salinan tulis tangan
+  /// yang salah bareng saling membenarkan.
   ///
   /// `false` = masternya berhenti di `Correction` + `U95%` tanpa batas
   /// keberterimaan. 15 dari 20 profil begitu, dan `CalibrationValidator`
@@ -36,7 +42,6 @@ void main() {
   const vonis = <String, bool>{
     // Divonis PASS/FAIL — toleransinya beneran penentu.
     'Jangka Sorong': true,
-    'Micrometer': true,
     'pH Meter': true,
     'Turbidimeter': true,
     'Chlorin Meter': true,
@@ -44,6 +49,8 @@ void main() {
     'Viscometer': true,
 
     // Nggak divonis — masternya berhenti di U95%.
+    'Micrometer': false,
+    'Height Gauge': false,
     'Conductivity Meter': false,
     'Spectrophotometer': false,
     'DO Meter': false,

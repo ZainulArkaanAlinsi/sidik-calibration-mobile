@@ -163,6 +163,38 @@ class MockCategoryService implements CategoryService {
         satuanKetidakpastian: 'mm',
         faktorCakupan: 2,
         metode: 'SIDIK-IK-CAL-0515_Rev.3',
+        // DITAMBAH 7 Sep 2026, dan ini pembetulan — bukan baris baru.
+        //
+        // Bawaan `punyaToleransi` itu `true`, dan baris ini dibuat waktu
+        // Micrometer masih jatuh ke `ProfilGenerik`. Begitu `MicrometerProfile`
+        // lahir (4 Sep 2026) server berbalik ke `false`, tapi mock-nya nggak
+        // ikut — jadi di build `USE_MOCK=true` Micrometer MEMAKSA teknisi
+        // mengisi toleransi yang masternya nggak punya. Persis kegagalan yang
+        // bikin test `vonis_toleransi_mock_test.dart` ada, dan dia nggak
+        // menangkapnya karena tabel vonisnya ikut basi.
+        punyaToleransi: false,
+      ),
+      // Height Gauge (alat ke-26) — `ketidakpastianTerbaik` sengaja NULL,
+      // bukan angka.
+      //
+      // Dia satu-satunya baris di daftar ini yang alatnya DI LUAR lampiran
+      // akreditasi LK-285-IDN, jadi lab belum punya klaim CMC untuknya. Server
+      // memang mengirim `0` (baris kemampuannya dibuat ber-CMC nol supaya jalur
+      // budget penuh tetap jalan), dan `0` yang ditampilkan apa adanya terbaca
+      // "0,000 mm" — klaim SEMPURNA, kebalikan dari maksudnya. Null bikin
+      // layarnya jatuh ke tampilan "belum ada", bukan angka.
+      CalibrationCapability(
+        namaAlat: 'Height Gauge',
+        rangeMin: 0,
+        rangeMax: 600,
+        satuan: 'mm',
+        ketidakpastianTerbaik: null,
+        satuanKetidakpastian: 'mm',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0539_Rev.0',
+        // Masternya berhenti di `Correction` + `U95%`; nggak ada satu pun batas
+        // keberterimaan per titik.
+        punyaToleransi: false,
       ),
     ];
 

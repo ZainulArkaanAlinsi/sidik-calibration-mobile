@@ -466,7 +466,12 @@ class _InstrumenCard extends StatelessWidget {
         Icons.compress_outlined,
       _ when n.contains('flow') => Icons.waves_outlined,
       _ when n.contains('hydrometer') => Icons.blur_on_outlined,
-      _ when n.contains('caliper') || n.contains('micrometer') || n.contains('dial') =>
+      _ when n.contains('caliper') ||
+          n.contains('micrometer') ||
+          n.contains('dial') ||
+          // Height Gauge (alat ke-26), kelompok Panjang — ikon yang sama
+          // dengan tiga saudaranya di kelompok itu.
+          n.contains('height') =>
         Icons.straighten_outlined,
       _ when n.contains('timer') || n.contains('stopwatch') || n.contains('tachometer') =>
         Icons.timer_outlined,
