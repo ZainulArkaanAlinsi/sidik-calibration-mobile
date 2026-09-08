@@ -1,11 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'dart:math' as math;
 
-/// Gaya tombol "btn-12" (acuan desain Uiverse karya doniaskima): pil hitam
-/// bertepi 2 dp, dan waktu disentuh empat batang putih meluncur masuk —
-/// dua dari bawah, dua dari atas, saling selang-seling sampai treknya ketutup
-/// penuh. Labelnya nggak ganti warna: dia dilukis dengan blend `difference`,
-/// jadi dia BALIK sendiri jadi hitam persis di bagian yang ketiban batang.
+import 'package:flutter/material.dart';
+
+/// Gaya tombol "animated-button" (acuan desain Uiverse karya ryota1231):
+/// waktu disentuh, satu lingkaran mekar dari tengah sampai memenuhi tombolnya,
+/// dan pilnya sekalian berubah jadi kotak membulat.
 ///
 /// ## Kenapa lewat `backgroundBuilder`, bukan widget tombol baru
 ///
@@ -16,54 +15,103 @@ import 'package:flutter/rendering.dart';
 /// `ThemeData` — jadi semua tombol dapat gaya ini tanpa satu pun call site
 /// diubah.
 ///
-/// ## Kenapa warna batangnya beda antara primary dan secondary
+/// ## Panah di acuannya SENGAJA nggak dibawa
 ///
-/// `difference` cuma rapi kalau lawannya hitam/putih murni. Labelnya SELALU
-/// ditulis putih; yang nentuin dia kebaca hitam atau putih itu apa yang ada di
-/// belakangnya. Jadi:
+/// Tombol acuannya punya panah yang bertukar sisi waktu disentuh. Panah itu
+/// berarti "lanjut/maju" — dan tombol di app ini nggak semuanya begitu.
+/// Memasang panah di **HAPUS** atau **NONAKTIFKAN** bukan hiasan yang salah
+/// tempat, tapi janji yang salah: orang membaca panah sebagai "ini membawaku
+/// ke langkah berikutnya", bukan "ini menghapus".
 ///
-///  - primary — dasar hitam, batang PUTIH. Label putih di atas hitam tetap
-///    putih; begitu ketiban batang putih dia jadi hitam.
-///  - secondary — dasar tembus pandang, batang `onSurface` (hitam di tema
-///    terang, putih di tema gelap). Label putih di atas latar terang jadi
-///    nyaris hitam, di atas batang gelap balik jadi putih. Satu aturan, dua
-///    tema, nggak ada warna yang dihardcode per-tema.
-class TombolBergaris {
-  const TombolBergaris._();
+/// Tombol yang memang berarti maju sudah punya jalannya sendiri —
+/// `AppButton(trailingIcon: ...)`, yang dipakai mis. di tombol masuk.
+///
+/// ## Warna label
+///
+/// Dioper terang-terangan lewat [label] — dua warna, satu buat diam satu buat
+/// disentuh. Lihat catatan di situ soal kenapa trik `difference` yang lebih
+/// ringkas justru salah begitu lingkarannya berwarna.
+class TombolLingkar {
+  const TombolLingkar._();
 
-  /// Lama batang meluncur. `transition: transform .2s ease` di CSS acuannya.
-  static const durasi = Duration(milliseconds: 200);
+  /// Lama lingkaran mekar. Di CSS acuannya `.8s cubic-bezier(.23,1,.32,1)` —
+  /// kurva yang lari cepat di awal lalu mendarat pelan.
+  static const durasi = Duration(milliseconds: 520);
 
-  /// Lapisan batang. Pasang ke [ButtonStyle.backgroundBuilder].
+  /// Padanan `cubic-bezier(0.23, 1, 0.32, 1)`.
+  static const kurva = Curves.easeOutExpo;
+
+  /// Bentuk waktu diam: pil.
+  static const bentukDiam = StadiumBorder();
+
+  /// Bentuk waktu disentuh: kotak membulat — `border-radius: 100px` jadi
+  /// `12px` di CSS acuannya. Peralihannya dianimasikan sendiri oleh `Material`
+  /// (`_MaterialInterior`), jadi cukup dibedakan per-keadaan di `ButtonStyle`.
+  static final bentukSentuh = RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(12),
+  );
+
+  /// Apakah keadaan ini dianggap "lagi disentuh".
+  ///
+  /// Tekan ikut dihitung, bukan cuma hover: di HP nggak ada hover sama sekali,
+  /// dan HP adalah perangkat yang paling banyak dipakai teknisi. Kalau cuma
+  /// `hovered` yang dipantau, seluruh gerakan ini nggak akan pernah kelihatan
+  /// di sana.
+  static bool disentuh(Set<WidgetState> states) =>
+      !states.contains(WidgetState.disabled) &&
+      (states.contains(WidgetState.hovered) ||
+          states.contains(WidgetState.pressed) ||
+          states.contains(WidgetState.focused));
+
+  /// Lapisan lingkaran. Pasang ke [ButtonStyle.backgroundBuilder].
   static Widget Function(BuildContext, Set<WidgetState>, Widget?) latar(
-    Color warnaBatang,
+    Color warnaLingkar,
   ) {
-    return (context, states, child) {
-      // Di HP nggak ada hover — kalau cuma `hovered` yang dipantau, animasinya
-      // nggak pernah kelihatan sama sekali di perangkat yang justru paling
-      // banyak dipakai teknisi. Jadi tekan ikut memicu.
-      final aktif =
-          !states.contains(WidgetState.disabled) &&
-          (states.contains(WidgetState.hovered) ||
-              states.contains(WidgetState.pressed) ||
-              states.contains(WidgetState.focused));
-
-      return _Batang(maju: aktif, warna: warnaBatang, child: child);
-    };
+    return (context, states, child) =>
+        _Lingkaran(maju: disentuh(states), warna: warnaLingkar, child: child);
   }
 
-  /// Pembalik warna label + HURUF BESAR. Pasang ke
-  /// [ButtonStyle.foregroundBuilder].
-  static Widget Function(BuildContext, Set<WidgetState>, Widget?)
-  get labelBerbalik {
+  /// Warna label + HURUF BESAR. Pasang ke [ButtonStyle.foregroundBuilder].
+  ///
+  /// [diam] dipakai waktu tombolnya belum disentuh, [sentuh] waktu lingkaran
+  /// sudah menutupinya. Peralihannya dianimasikan dengan kurva & durasi yang
+  /// sama dengan lingkarannya.
+  ///
+  /// Versi pertama nggak pakai warna sama sekali — labelnya ditulis putih lalu
+  /// dilukis dengan blend `difference`, biar satu aturan cukup buat semua
+  /// keadaan. Itu rapi di atas hitam-putih, tapi salah begitu lingkarannya
+  /// berwarna: putih di atas mint jadi (96, 10, 27) — MERAH TUA, bukan gelap
+  /// netral. Warna eksplisit lebih panjang ditulis, tapi dia yang benar.
+  static Widget Function(BuildContext, Set<WidgetState>, Widget?) label(
+    Color diam,
+    Color sentuh,
+  ) {
     return (context, states, child) {
       final isi = _hurufBesar(child);
 
-      // Tombol mati nggak ikut dibalik: `difference` bikin warna redup jadi
-      // terang lagi, dan tombol yang nggak bisa dipencet malah keliatan nyala.
+      // Tombol mati warnanya diurus `disabledForegroundColor` di tema; jangan
+      // ditimpa dari sini, nanti yang nggak bisa dipencet malah keliatan
+      // nyala.
       if (states.contains(WidgetState.disabled)) return isi;
 
-      return _CampurBeda(child: isi);
+      final tujuan = disentuh(states) ? sentuh : diam;
+      final durasi = MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : TombolLingkar.durasi;
+
+      return TweenAnimationBuilder<Color?>(
+        tween: ColorTween(end: tujuan),
+        duration: durasi,
+        curve: TombolLingkar.kurva,
+        child: isi,
+        builder: (context, warna, anak) => DefaultTextStyle.merge(
+          style: TextStyle(color: warna),
+          child: IconTheme.merge(
+            data: IconThemeData(color: warna),
+            child: anak!,
+          ),
+        ),
+      );
     };
   }
 
@@ -95,8 +143,8 @@ class TombolBergaris {
   }
 }
 
-class _Batang extends StatelessWidget {
-  const _Batang({required this.maju, required this.warna, this.child});
+class _Lingkaran extends StatelessWidget {
+  const _Lingkaran({required this.maju, required this.warna, this.child});
 
   final bool maju;
   final Color warna;
@@ -104,84 +152,65 @@ class _Batang extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Hormati "kurangi gerak": batangnya tetap muncul, cuma nggak meluncur.
+    // Hormati "kurangi gerak": lingkarannya tetap muncul, cuma nggak mekar.
     final durasi = MediaQuery.disableAnimationsOf(context)
         ? Duration.zero
-        : TombolBergaris.durasi;
+        : TombolLingkar.durasi;
 
     return TweenAnimationBuilder<double>(
       tween: Tween(end: maju ? 1.0 : 0.0),
       duration: durasi,
-      curve: Curves.easeOut,
+      curve: TombolLingkar.kurva,
+      // Anaknya dibangun SEKALI dan dioper lewat `child`: yang berubah tiap
+      // frame cuma lukisan lingkarannya, bukan isi tombolnya.
+      child: child,
       builder: (context, t, isi) => CustomPaint(
-        painter: t == 0 ? null : _PelukisBatang(t: t, warna: warna),
+        painter: t == 0 ? null : _PelukisLingkaran(t: t, warna: warna),
         child: isi,
       ),
-      child: child,
     );
   }
 }
 
-class _PelukisBatang extends CustomPainter {
-  _PelukisBatang({required this.t, required this.warna});
+class _PelukisLingkaran extends CustomPainter {
+  _PelukisLingkaran({required this.t, required this.warna});
 
   final double t;
   final Color warna;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final kotak = Offset.zero & size;
     canvas.save();
-    // Dipotong mengikuti pil, bukan persegi — di CSS ini `overflow: hidden`
-    // di atas `border-radius: 99rem`.
-    canvas.clipPath(const StadiumBorder().getOuterPath(kotak));
+    // Dipotong mengikuti bentuk tombol yang SEDANG berlaku, bukan kotak.
+    //
+    // Sempat cuma `clipRect` dengan alasan "bentuk membulatnya kan diurus
+    // Material lewat `shape`". Ternyata potongan Material nggak sampai ke
+    // lapisan ini: hasilnya lingkaran mint bersudut siku di ujung tombol yang
+    // pilnya membulat. Jari-jarinya dilerp pakai `t` yang sama dengan
+    // lingkarannya, jadi potongannya selalu pas sama bentuk yang lagi
+    // dianimasikan Material.
+    final radius = Radius.circular(
+      (size.height / 2) + (12 - size.height / 2) * t,
+    );
+    canvas.clipRRect(
+      RRect.fromRectAndRadius(Offset.zero & size, radius),
+    );
 
-    final cat = Paint()..color = warna;
-    final lebarBatang = size.width / 4;
-    final naik = size.height * (1 - t);
+    // Jari-jari akhir = setengah diagonal, supaya lingkarannya benar-benar
+    // menutup pojok terjauh. Dihitung dari ukuran nyata, bukan dipatok 220 px
+    // seperti CSS acuannya: tombol di app ini lebarnya dari 90 sampai 600 dp,
+    // dan angka mati bikin yang lebar nggak pernah ketutup penuh.
+    final rMaks = math.sqrt(size.width * size.width + size.height * size.height) / 2;
 
-    // Dua batang dari bawah (`::before`) dan dua dari atas (`::after`),
-    // posisinya selang-seling supaya waktu dua-duanya nyampe pil ketutup rata.
-    for (final (indeks, geser) in [(0, naik), (1, -naik), (2, naik), (3, -naik)]) {
-      // Tiap batang dilebihin setengah piksel ke kiri-kanan. Tanpa itu,
-      // batas antar-batang jatuh di koordinat pecahan dan antialias ninggalin
-      // garis jahitan tipis waktu pilnya ketutup penuh — kelihatan jelas di
-      // layar Windows. Kelebihannya nggak kelihatan: warnanya sama.
-      canvas.drawRect(
-        Rect.fromLTWH(
-          indeks * lebarBatang - 0.5,
-          geser,
-          lebarBatang + 1,
-          size.height,
-        ),
-        cat,
-      );
-    }
+    canvas.drawCircle(
+      Offset(size.width / 2, size.height / 2),
+      t * rMaks,
+      Paint()..color = warna,
+    );
 
     canvas.restore();
   }
 
   @override
-  bool shouldRepaint(_PelukisBatang old) => old.t != t || old.warna != warna;
-}
-
-/// Melukis [child] dengan blend `difference` terhadap apa pun di bawahnya —
-/// padanan `mix-blend-mode: difference` di CSS.
-class _CampurBeda extends SingleChildRenderObjectWidget {
-  const _CampurBeda({required Widget child}) : super(child: child);
-
-  @override
-  RenderObject createRenderObject(BuildContext context) => _RenderCampurBeda();
-}
-
-class _RenderCampurBeda extends RenderProxyBox {
-  @override
-  void paint(PaintingContext context, Offset offset) {
-    context.canvas.saveLayer(
-      offset & size,
-      Paint()..blendMode = BlendMode.difference,
-    );
-    super.paint(context, offset);
-    context.canvas.restore();
-  }
+  bool shouldRepaint(_PelukisLingkaran old) => old.t != t || old.warna != warna;
 }
