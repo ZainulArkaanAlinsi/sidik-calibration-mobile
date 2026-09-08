@@ -11,9 +11,9 @@ import '../../providers/calibration_input_provider.dart' show standardCrudProvid
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../widgets/app_button.dart';
 import '../../widgets/daftar_kartu_adaptif.dart';
+import '../../widgets/kartu_gradien.dart';
 import '../../widgets/readable_width.dart';
 import '../../widgets/skeleton.dart';
-import '../../widgets/status_badge.dart';
 import 'standard_form_screen.dart';
 
 /// Layar kelola Standar Acuan — beda sama dropdown di layar kalibrasi
@@ -155,70 +155,42 @@ class _StandardCard extends ConsumerWidget {
       item.model,
     ].where((s) => s.isNotEmpty).join(' · ');
 
-    return Card(
-      child: InkWell(
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => StandardFormScreen(existing: item),
-          ),
-        ),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.nama,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    if (subjudul.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        subjudul,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 2),
-                    Text(
-                      '± ${item.ketidakpastian} ${item.satuanKetidakpastian} '
-                      '(k=${item.faktorCakupan.toStringAsFixed(0)})',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              StatusBadge(
-                label: item.masihBerlaku
-                    ? l10n.standarBerlaku
-                    : l10n.standarKadaluarsa,
-                tone: item.masihBerlaku ? BadgeTone.success : BadgeTone.danger,
-                icon: item.masihBerlaku
-                    ? Icons.check_circle_outline
-                    : Icons.warning_amber_outlined,
-              ),
-              if (isAdmin)
-                IconButton(
-                  icon: Icon(
-                    Icons.delete_outline,
-                    color: theme.colorScheme.error,
-                  ),
-                  onPressed: () => _hapus(context, ref),
-                ),
-            ],
-          ),
+    return KartuGradien(
+      judul: item.nama,
+      ikon: Icons.science_outlined,
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => StandardFormScreen(existing: item),
         ),
       ),
+      butir: [
+        // Merek/model sengaja di kolom pertama: itu yang dipakai teknisi buat
+        // memastikan dia megang standar yang benar, bukan nomor sertifikatnya.
+        if (subjudul.isNotEmpty) ButirKartu(utama: subjudul),
+        ButirKartu(
+          utama:
+              '± ${item.ketidakpastian} ${item.satuanKetidakpastian}',
+          keterangan: 'k=${item.faktorCakupan.toStringAsFixed(0)}',
+        ),
+        ButirKartu(
+          utama: item.masihBerlaku
+              ? l10n.standarBerlaku
+              : l10n.standarKadaluarsa,
+          warna: item.masihBerlaku ? null : theme.colorScheme.error,
+        ),
+      ],
+      aksi: [
+        // Status TIDAK ditaruh di sini sebagai badge. Dia sudah jadi kolom
+        // ketiga di bawah, dan badge berwarna di atas pita gradien itu dua
+        // bidang warna yang saling berebut — kontrasnya nggak terjamin di
+        // sepanjang gradiennya.
+        if (isAdmin)
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            icon: Icon(Icons.delete_outline, color: theme.colorScheme.error),
+            onPressed: () => _hapus(context, ref),
+          ),
+      ],
     );
   }
 }

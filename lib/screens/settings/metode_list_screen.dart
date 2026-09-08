@@ -8,6 +8,7 @@ import '../../models/ruangan.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/ruangan_provider.dart';
 import '../../widgets/daftar_kartu_adaptif.dart';
+import '../../widgets/kartu_gradien.dart';
 import '../../widgets/skeleton.dart';
 
 /// Master Metode Kalibrasi (Instruksi Kerja / IK).
@@ -126,43 +127,39 @@ class _Kartu extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: ListTile(
-        title: Row(
-          children: [
-            Expanded(child: Text(metode.nama, style: theme.textTheme.titleSmall)),
-            if (!metode.aktif)
-              Chip(
-                visualDensity: VisualDensity.compact,
-                label: Text(l10n.ruanganNonaktif),
-              ),
-          ],
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            // Kode + revisi ditulis nyatu persis kayak di sertifikat, biar
-            // gampang dicocokin sama lembar yang dipegang.
-            Text(metode.kodeLengkap, style: theme.textTheme.bodyMedium),
-            if (metode.berlakuMulai != null) ...[
-              const SizedBox(height: 2),
-              Text(
-                l10n.metodeBerlakuMulai(
-                  DateFormat('d MMM yyyy').format(metode.berlakuMulai!),
-                ),
-                style: theme.textTheme.bodySmall,
-              ),
-            ],
-          ],
-        ),
-        trailing: bisaUbah
-            ? IconButton(
-                icon: const Icon(Icons.edit_outlined),
-                onPressed: onUbah,
-              )
-            : null,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: KartuGradien(
+        judul: metode.nama,
+        ikon: Icons.menu_book_outlined,
+        onTap: bisaUbah ? onUbah : null,
+        butir: [
+          // Kode + revisi ditulis nyatu persis kayak di sertifikat, biar
+          // gampang dicocokin sama lembar yang dipegang.
+          ButirKartu(utama: metode.kodeLengkap),
+          if (metode.berlakuMulai != null)
+            // Tanggalnya saja, tanpa keterangan: `metodeBerlakuMulai` itu
+            // kalimat utuh yang sudah memuat tanggalnya, dan dipanggil dengan
+            // tanggal kosong cuma buat diambil kata depannya itu memakai
+            // terjemahan di luar maksudnya — gampang jadi janggal di bahasa
+            // yang urutan katanya beda.
+            ButirKartu(
+              utama: DateFormat('d MMM yyyy').format(metode.berlakuMulai!),
+            ),
+          if (!metode.aktif)
+            ButirKartu(
+              utama: l10n.ruanganNonaktif,
+              warna: theme.colorScheme.onSurfaceVariant,
+            ),
+        ],
+        aksi: [
+          if (bisaUbah)
+            IconButton(
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.edit_outlined),
+              onPressed: onUbah,
+            ),
+        ],
       ),
     );
   }
