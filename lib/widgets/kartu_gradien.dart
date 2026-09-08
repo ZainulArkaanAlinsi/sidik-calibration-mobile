@@ -64,18 +64,6 @@ class KartuGradien extends StatelessWidget {
 
   final VoidCallback? onTap;
 
-  /// Tinggi pita gradien.
-  ///
-  /// Sempat 52. Di daftar dua puluhan baris, pita setebal itu jadi bidang
-  /// warna besar yang isinya cuma ikon dan satu tombol — warnanya nuntut
-  /// perhatian tapi nggak membawa informasi apa-apa. 40 cukup buat menampung
-  /// takik dan tombolnya, dan di situ dia kebaca sebagai AKSEN, bukan panel.
-  static const _tinggiPita = 40.0;
-
-  /// Ukuran takik. Ikonnya duduk di sini.
-  static const _lebarTakik = 44.0;
-  static const _tinggiTakik = 26.0;
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -94,73 +82,60 @@ class KartuGradien extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(
-                height: _tinggiPita,
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: ClipPath(
-                        clipper: const _PemotongTakik(
-                          lebarTakik: _lebarTakik,
-                          tinggiTakik: _tinggiTakik,
-                        ),
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.bottomLeft,
-                              end: Alignment.topRight,
-                              colors: gelap
-                                  ? const [AppColors.cobalt, AppColors.mint]
-                                  : const [
-                                      AppColors.cobalt,
-                                      AppColors.mintDeep,
-                                    ],
-                            ),
+              // Pita gradien memuat ikon, JUDUL, dan tombolnya.
+              //
+              // Versi pertama cuma memuat ikon dan satu tombol, dan judulnya
+              // ditaruh di bawah pita — persis acuannya. Hasilnya di app
+              // beneran: bidang warna selebar kartu yang isinya nyaris kosong,
+              // menuntut perhatian tanpa membawa informasi apa pun. Judulnya
+              // dipindah ke sini supaya pitanya PUNYA ISI, dan sekaligus
+              // kartunya jadi lebih pendek.
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  // Dua ujungnya sama-sama gelap. Versi pertama berujung mint
+                  // cerah, dan teks/ikon putih di ujung itu nyaris nggak
+                  // kebaca — tombol hapusnya cuma kelihatan sebagai bayangan
+                  // merah di atas hijau.
+                  gradient: LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: gelap
+                        ? const [Color(0xFF1B3A6B), Color(0xFF0B5F55)]
+                        : const [AppColors.cobalt, AppColors.mintDeep],
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
+                  child: Row(
+                    children: [
+                      Icon(ikon, size: 18, color: Colors.white),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          judul,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
-                    ),
-                    // Ikon duduk DI TAKIK — di atas warna badan kartu, bukan di
-                    // atas gradiennya. Itu inti bentuknya: takiknya kebaca
-                    // sebagai lubang tempat ikonnya nongol.
-                    Positioned(
-                      left: 4,
-                      top: 0,
-                      width: _lebarTakik,
-                      height: _tinggiTakik,
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Icon(
-                          ikon,
-                          size: 19,
-                          color: theme.colorScheme.onSurfaceVariant,
+                      if (aksi.isNotEmpty)
+                        // Ikon aksinya dipaksa putih lewat IconTheme, bukan
+                        // diserahkan ke warna bawaan tiap tombol: merah error
+                        // di atas gradien ini kebaca sebagai noda, bukan
+                        // tombol.
+                        IconTheme.merge(
+                          data: const IconThemeData(color: Colors.white),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: aksi,
+                          ),
                         ),
-                      ),
-                    ),
-                    if (aksi.isNotEmpty)
-                      Positioned(
-                        right: 2,
-                        top: 0,
-                        bottom: 0,
-                        child: Row(mainAxisSize: MainAxisSize.min, children: aksi),
-                      ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.sm,
-                  AppSpacing.sm,
-                  AppSpacing.sm,
-                  4,
-                ),
-                child: Text(
-                  judul,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
+                    ],
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               if (butir.isNotEmpty)
@@ -235,36 +210,4 @@ class _Butir extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Memotong pita gradien: bentuk membulat dikurangi takik di pojok kiri atas.
-class _PemotongTakik extends CustomClipper<Path> {
-  const _PemotongTakik({required this.lebarTakik, required this.tinggiTakik});
-
-  final double lebarTakik;
-  final double tinggiTakik;
-
-  @override
-  Path getClip(Size size) {
-    final panel = Path()
-      ..addRRect(
-        RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(15)),
-      );
-
-    // Takiknya membulat di pojok kanan-bawahnya — itu yang bikin potongannya
-    // kebaca sebagai lekukan, bukan gigitan persegi.
-    final takik = Path()
-      ..addRRect(
-        RRect.fromRectAndCorners(
-          Rect.fromLTWH(0, 0, lebarTakik, tinggiTakik),
-          bottomRight: const Radius.circular(12),
-        ),
-      );
-
-    return Path.combine(PathOperation.difference, panel, takik);
-  }
-
-  @override
-  bool shouldReclip(_PemotongTakik old) =>
-      old.lebarTakik != lebarTakik || old.tinggiTakik != tinggiTakik;
 }

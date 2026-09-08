@@ -167,11 +167,18 @@ class _StandardCard extends ConsumerWidget {
         // Merek/model sengaja di kolom pertama: itu yang dipakai teknisi buat
         // memastikan dia megang standar yang benar, bukan nomor sertifikatnya.
         if (subjudul.isNotEmpty) ButirKartu(utama: subjudul),
-        ButirKartu(
-          utama:
-              '± ${item.ketidakpastian} ${item.satuanKetidakpastian}',
-          keterangan: 'k=${item.faktorCakupan.toStringAsFixed(0)}',
-        ),
+        // Ketidakpastiannya `double?`, dan kolom ini DILEWATI kalau kosong.
+        //
+        // Sebelum ini dia dicetak langsung ke string, jadi standar yang
+        // ketidakpastiannya belum diisi menampilkan "± null g" ke muka
+        // pengguna. Bug lama, bukan bawaan tata letak baru ini — tapi
+        // kelihatan jelas begitu angkanya naik jadi kolom sendiri, jadi
+        // sekalian dibetulkan di sini.
+        if (item.ketidakpastian != null)
+          ButirKartu(
+            utama: '± ${item.ketidakpastian} ${item.satuanKetidakpastian}',
+            keterangan: 'k=${item.faktorCakupan.toStringAsFixed(0)}',
+          ),
         ButirKartu(
           utama: item.masihBerlaku
               ? l10n.standarBerlaku
@@ -187,7 +194,11 @@ class _StandardCard extends ConsumerWidget {
         if (isAdmin)
           IconButton(
             visualDensity: VisualDensity.compact,
-            icon: Icon(Icons.delete_outline, color: theme.colorScheme.error),
+            // Warnanya SENGAJA nggak diset di sini. Di atas pita gradien,
+            // merah error kebaca sebagai noda, bukan tombol — `KartuGradien`
+            // yang memaksanya putih lewat IconTheme, dan warna eksplisit di
+            // sini bakal menang atas itu.
+            icon: const Icon(Icons.delete_outline),
             onPressed: () => _hapus(context, ref),
           ),
       ],
