@@ -7,6 +7,7 @@ import '../../core/utils/waktu_tampil.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/arsip.dart';
 import '../../providers/arsip_provider.dart';
+import '../../widgets/folder_kertas.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/glass_surface.dart';
@@ -1011,15 +1012,15 @@ class _IkonFolder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 40,
+    // Folder kertas, bukan ikon Material.
+    //
+    // Kotak berwarna di belakangnya dibuang: `FolderKertas` sudah punya
+    // bentuk dan warnanya sendiri, dan menaruhnya di atas kotak berona warna
+    // status bikin dua bahasa warna bertumpuk di satu benda kecil.
+    return const SizedBox(
+      width: 44,
       height: 40,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: warna.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-      ),
-      child: Icon(Icons.folder_rounded, color: warna, size: 22),
+      child: Center(child: FolderKertas(ukuran: 40)),
     );
   }
 }
