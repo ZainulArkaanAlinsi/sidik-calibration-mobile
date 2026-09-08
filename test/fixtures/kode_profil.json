@@ -1,0 +1,119 @@
+{
+    "_sumber": "CalibrationProfileRegistry::daftarProfil() di repo sidik-calibration-api. DIGENERATE docs/skrip/gen-kode-profil-mobile.php — jangan disunting tangan.",
+    "_dipakai": "test/bentuk_mock_semua_profil_test.dart — menuntut tiap kode punya bentuk mock-nya sendiri, atau terdaftar di TANPA_BENTUK_MOCK berikut alasannya.",
+    "jumlah": 28,
+    "profil": [
+        {
+            "kode": "autoclave",
+            "nama_alat_kemampuan": "Autoklaf"
+        },
+        {
+            "kode": "bath",
+            "nama_alat_kemampuan": "Bath"
+        },
+        {
+            "kode": "centrifuge",
+            "nama_alat_kemampuan": "Centrifuge"
+        },
+        {
+            "kode": "chlorine_meter",
+            "nama_alat_kemampuan": "Chlorin Meter"
+        },
+        {
+            "kode": "conductivity_meter",
+            "nama_alat_kemampuan": "Conductivitymeter"
+        },
+        {
+            "kode": "do_meter",
+            "nama_alat_kemampuan": "DO Meter"
+        },
+        {
+            "kode": "flowmeter_flowrate",
+            "nama_alat_kemampuan": "Flow Meter Cairan (Flowrate)"
+        },
+        {
+            "kode": "flowmeter_totalizer",
+            "nama_alat_kemampuan": "Flow Meter Cairan (Totalizer)"
+        },
+        {
+            "kode": "furnace",
+            "nama_alat_kemampuan": "Furnace"
+        },
+        {
+            "kode": "gas_detector",
+            "nama_alat_kemampuan": "Gas Detector"
+        },
+        {
+            "kode": "height_gauge",
+            "nama_alat_kemampuan": "Height Gauge"
+        },
+        {
+            "kode": "inkubator",
+            "nama_alat_kemampuan": "Inkubator"
+        },
+        {
+            "kode": "micrometer",
+            "nama_alat_kemampuan": "Micrometer"
+        },
+        {
+            "kode": "oven",
+            "nama_alat_kemampuan": "Oven"
+        },
+        {
+            "kode": "ph_meter",
+            "nama_alat_kemampuan": "pH Meter"
+        },
+        {
+            "kode": "refractometer",
+            "nama_alat_kemampuan": "Refractometer"
+        },
+        {
+            "kode": "refrigerator",
+            "nama_alat_kemampuan": "Refrigerator"
+        },
+        {
+            "kode": "spectrophotometer",
+            "nama_alat_kemampuan": "Spectrophotometer"
+        },
+        {
+            "kode": "tachometer",
+            "nama_alat_kemampuan": "Infrared Tachometer"
+        },
+        {
+            "kode": "thermocouple",
+            "nama_alat_kemampuan": "Thermocouple"
+        },
+        {
+            "kode": "thermohygro",
+            "nama_alat_kemampuan": "Thermohygrometer"
+        },
+        {
+            "kode": "thermometer_glass",
+            "nama_alat_kemampuan": "Termometer Gelas"
+        },
+        {
+            "kode": "tids",
+            "nama_alat_kemampuan": "Temperatur Indikator dengan Sensor"
+        },
+        {
+            "kode": "timbangan",
+            "nama_alat_kemampuan": "Timbangan (Elektronik, mekanik)"
+        },
+        {
+            "kode": "timer_stopwatch",
+            "nama_alat_kemampuan": "Timer/Stopwatch"
+        },
+        {
+            "kode": "tits",
+            "nama_alat_kemampuan": "Temperature Indicator tanpa Sensor"
+        },
+        {
+            "kode": "turbidimeter",
+            "nama_alat_kemampuan": "Turbidimeter"
+        },
+        {
+            "kode": "viscometer",
+            "nama_alat_kemampuan": "Viscometer"
+        }
+    ]
+}
