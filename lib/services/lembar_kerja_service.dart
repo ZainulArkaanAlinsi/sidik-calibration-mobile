@@ -4,6 +4,7 @@ import '../models/lembar_kerja_submission.dart';
 import '../models/pratinjau_hitung.dart';
 import 'api_client.dart';
 import 'equipment_lookup_service.dart';
+import 'contoh_lembar_kerja_aliran.dart';
 import 'contoh_lembar_kerja_massa.dart';
 import 'contoh_lembar_kerja_panjang.dart';
 import 'contoh_lembar_kerja_waktu.dart';
@@ -289,6 +290,19 @@ class MockLembarKerjaService implements LembarKerjaService {
       // di atas, tapi TIGA tabel dan tanpa lantai CMC. Tanpa cabang ini mode
       // mock memajang lembar pH tiga titik buffer.
       'height_gauge' => contohBentukLembarKerjaHeightGauge(
+        untukAdmin: untukAdmin,
+      ),
+      // Flowmeter Ultrasonic (alat ke-27 & ke-28) — kelompok Aliran. DUA
+      // cabang, bukan satu: satuannya beda (L vs Lpm), pita CMC-nya beda, dan
+      // varian Flowrate punya tiga kolom durasi (20"/40"/60") yang Totalizer
+      // nggak punya sama sekali.
+      //
+      // Tanpa cabang ini mode mock memajang lembar pH tiga titik buffer —
+      // nggak ada error, cuma lembar yang salah.
+      'flowmeter_totalizer' => contohBentukLembarKerjaFlowmeterTotalizer(
+        untukAdmin: untukAdmin,
+      ),
+      'flowmeter_flowrate' => contohBentukLembarKerjaFlowmeterFlowrate(
         untukAdmin: untukAdmin,
       ),
       // Profil kosong / nggak dikenal SENGAJA jatuh ke pH, bukan lempar error —

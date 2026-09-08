@@ -196,6 +196,66 @@ class MockCategoryService implements CategoryService {
         // keberterimaan per titik.
         punyaToleransi: false,
       ),
+      // Flowmeter Ultrasonic (alat ke-27 & ke-28), kelompok Aliran — lampiran
+      // akreditasi LK-285-IDN no. 30 & 31.
+      //
+      // EMPAT baris untuk DUA alat: masing-masing punya dua pita CMC, dan
+      // pitanya beda BESARAN (0,76 % vs 1,2 % of reading) bukan cuma beda
+      // rentang. Digabung jadi satu baris per alat, kartu di layar bakal
+      // mengklaim satu angka untuk dua pita — dan yang tercetak angka pita yang
+      // salah buat separuh rentangnya.
+      //
+      // Beda dari Height Gauge di atas: keduanya DI DALAM lampiran, jadi
+      // `ketidakpastianTerbaik` diisi angkanya, bukan null.
+      //
+      // Satuannya `% of reading`, bukan L/Lpm: lampirannya menulis begitu, dan
+      // menyalinnya jadi satuan absolut bikin lantai 1,2 pada bacaan 310 Lpm
+      // terbaca 1,2 Lpm — sepertiga dari yang seharusnya, dan angkanya masih
+      // terlihat masuk akal.
+      CalibrationCapability(
+        namaAlat: 'Flow Meter Cairan (Totalizer)',
+        rangeMin: 10,
+        rangeMax: 78,
+        satuan: 'L',
+        ketidakpastianTerbaik: 0.76,
+        satuanKetidakpastian: '% of reading',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0528_Rev.4',
+        punyaToleransi: false,
+      ),
+      CalibrationCapability(
+        namaAlat: 'Flow Meter Cairan (Totalizer)',
+        rangeMin: 78,
+        rangeMax: 1991,
+        satuan: 'L',
+        ketidakpastianTerbaik: 1.2,
+        satuanKetidakpastian: '% of reading',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0528_Rev.4',
+        punyaToleransi: false,
+      ),
+      CalibrationCapability(
+        namaAlat: 'Flow Meter Cairan (Flowrate)',
+        rangeMin: 75,
+        rangeMax: 191,
+        satuan: 'Lpm',
+        ketidakpastianTerbaik: 0.76,
+        satuanKetidakpastian: '% of reading',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0528_Rev.4',
+        punyaToleransi: false,
+      ),
+      CalibrationCapability(
+        namaAlat: 'Flow Meter Cairan (Flowrate)',
+        rangeMin: 190.6,
+        rangeMax: 519.4,
+        satuan: 'Lpm',
+        ketidakpastianTerbaik: 1.2,
+        satuanKetidakpastian: '% of reading',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0528_Rev.4',
+        punyaToleransi: false,
+      ),
     ];
 
     // 3 baris pH (titik 4/7/10) + 1 alat lain — persis kasus nyata di

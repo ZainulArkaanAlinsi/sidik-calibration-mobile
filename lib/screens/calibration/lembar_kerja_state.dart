@@ -1975,6 +1975,27 @@ class LembarKerjaState {
     // Dua-duanya terbit tanpa satu pun angka yang terlihat ganjil.
     'spesifikasi_alat.height_gauge.satuan',
     'spesifikasi_alat.height_gauge.resolusi_mm',
+    // Flowmeter Ultrasonic (alat ke-27 & ke-28) — LIMA kode, dan taruhannya
+    // paling tinggi dari seluruh lembar.
+    //
+    // `mode` menentukan budgetnya 8 komponen (Totalizer) atau 9 (Flowrate);
+    // salah mode, angkanya tetap keluar dan tetap terlihat wajar. `satuan`
+    // mengalikan SELURUH pembacaan — `m3/h` vs `LPM` beda 16,67x. `resolusi`
+    // kosong bikin komponen resolusi nol.
+    //
+    // Dan yang paling gampang kelupaan: `diameter_pipa_mm` dan
+    // `ketebalan_pipa_mm`. Dari keduanya lahir `u_A`, dan salah satunya kosong
+    // bikin DUA komponen budget lenyap sekaligus — bukan satu.
+    //
+    // Server memang MEMBLOKIR titiknya kalau resolusi atau geometri pipa
+    // kosong, jadi angka yang salah nggak bakal terbit. Yang dicegah di sini
+    // hal lain: teknisi menyelesaikan seluruh lembar, mengirim, lalu baru tahu
+    // titiknya nggak terbit.
+    'spesifikasi_alat.flowmeter.mode',
+    'spesifikasi_alat.flowmeter.satuan',
+    'spesifikasi_alat.flowmeter.resolusi',
+    'spesifikasi_alat.flowmeter.diameter_pipa_mm',
+    'spesifikasi_alat.flowmeter.ketebalan_pipa_mm',
   };
 
   /// Field penentu angka yang ada di lembar ini tapi belum dipilih.

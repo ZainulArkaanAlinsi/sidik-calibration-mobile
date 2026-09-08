@@ -51,6 +51,12 @@ void main() {
     // Nggak divonis — masternya berhenti di U95%.
     'Micrometer': false,
     'Height Gauge': false,
+    // Flowmeter Ultrasonic (alat ke-27 & ke-28). Kedua master berhenti di
+    // `Correction` + `U95%` — nggak ada satu pun batas keberterimaan per titik,
+    // jadi sesinya nggak divonis PASS/FAIL. Sama dengan
+    // `FlowmeterProfile::punyaToleransi()` di server.
+    'Flow Meter Cairan (Totalizer)': false,
+    'Flow Meter Cairan (Flowrate)': false,
     'Conductivity Meter': false,
     'Spectrophotometer': false,
     'DO Meter': false,
