@@ -170,6 +170,9 @@ flutter:
   # Logo resmi PT Sidik (dipakai di badge brand layar auth).
   assets:
     - assets/images/logo_pt_sidik.png
+    # Latar kepala kartu akun (Data Teknisi). 45 KB, satu-satunya gambar
+    # dekoratif di app ini — sisanya digambar canvas.
+    - assets/background-card.jpg
     # Lembar cetak bermarker buat uji di perangkat (`integration_test`).
     # Ikut dibundel karena aset uji cuma bisa dibaca lewat `rootBundle` waktu
     # jalan di HP. ~140 KB, dan berkasnya SATU — yang dipakai `flutter test`
