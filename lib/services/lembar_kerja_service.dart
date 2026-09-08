@@ -5,6 +5,7 @@ import '../models/pratinjau_hitung.dart';
 import 'api_client.dart';
 import 'equipment_lookup_service.dart';
 import 'contoh_lembar_kerja_aliran.dart';
+import 'contoh_lembar_kerja_enclosure.dart';
 import 'contoh_lembar_kerja_massa.dart';
 import 'contoh_lembar_kerja_panjang.dart';
 import 'contoh_lembar_kerja_waktu.dart';
@@ -303,6 +304,25 @@ class MockLembarKerjaService implements LembarKerjaService {
         untukAdmin: untukAdmin,
       ),
       'flowmeter_flowrate' => contohBentukLembarKerjaFlowmeterFlowrate(
+        untukAdmin: untukAdmin,
+      ),
+      // Kelima Enclosure. Sampai 9 Sep 2026 kelimanya jatuh ke cabang bawaan
+      // di bawah, dan nggak ada yang sadar — yang kegambar lembar pH tiga titik
+      // buffer, tanpa error di mana pun.
+      //
+      // Kelimanya yang paling jauh dari bentuk pH di seluruh registry:
+      // lembarnya GRID (`grid_sensor` di tingkat atas, 9 termokopel x set
+      // point), jadi bukan "sebagian kotaknya salah" — nggak ada satu pun kotak
+      // yang cocok.
+      //
+      // Bentuknya nyaris identik satu sama lain, dan itu memang benar: kelimanya
+      // SATU kertas (`SIDIK-FM-CAL-0504_Rev.3`) dan SATU mesin hitung
+      // (`EnclosureCalculator`). Yang beda cuma judul & labelnya.
+      'oven' => contohBentukLembarKerjaOven(untukAdmin: untukAdmin),
+      'furnace' => contohBentukLembarKerjaFurnace(untukAdmin: untukAdmin),
+      'bath' => contohBentukLembarKerjaBath(untukAdmin: untukAdmin),
+      'inkubator' => contohBentukLembarKerjaInkubator(untukAdmin: untukAdmin),
+      'refrigerator' => contohBentukLembarKerjaRefrigerator(
         untukAdmin: untukAdmin,
       ),
       // Profil kosong / nggak dikenal SENGAJA jatuh ke pH, bukan lempar error —

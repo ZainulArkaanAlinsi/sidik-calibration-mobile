@@ -53,20 +53,11 @@ void main() {
     'conductivity_meter':
         'Satu-satunya lembar instrumen analitik yang belum punya bentuk mock, '
         'padahal dia DIVONIS PASS/FAIL — vonisnya nggak pernah teruji di HP.',
-    // Kelima Enclosure paling berbahaya di daftar ini: lembarnya GRID
-    // (9 termokopel x 5 set point), dan bentuk pH tiga titik buffer nggak punya
-    // satu pun kotak yang cocok. Yang kegambar lembar yang sama sekali lain,
-    // dan nggak ada error di mana pun.
-    'oven':
-        'Lembar GRID 9 termokopel x set point; bentuk pH tiga titik buffer '
-        'nggak punya satu pun kotak yang cocok.',
-    'furnace':
-        'Lembar GRID, sama seperti Oven — bentuk pH nggak punya kotaknya.',
-    'bath': 'Lembar GRID, sama seperti Oven — bentuk pH nggak punya kotaknya.',
-    'inkubator':
-        'Lembar GRID, sama seperti Oven — bentuk pH nggak punya kotaknya.',
-    'refrigerator':
-        'Lembar GRID, sama seperti Oven — bentuk pH nggak punya kotaknya.',
+    // Kelima Enclosure DILUNASI 9 Sep 2026 — bentuk mock-nya ada di
+    // `contoh_lembar_kerja_enclosure.dart`, digenerate dari bentuk yang
+    // beneran dikirim server. Mereka dulu yang paling berbahaya di daftar ini:
+    // lembarnya GRID (9 termokopel x set point), dan bentuk pH tiga titik
+    // buffer nggak punya satu pun kotak yang cocok.
   };
 
   late List<Map<String, dynamic>> profil;

@@ -1,15 +1,10 @@
 /// Bentuk lembar kerja contoh **Flowmeter Ultrasonic** (kelompok Aliran, alat
 /// ke-27 & ke-28).
 ///
-/// ## Kenapa berkas ini ada, dan kenapa isinya nggak diketik tangan
-///
-/// Isinya salinan APA ADANYA dari respons
+/// DIGENERATE `docs/skrip/gen-contoh-lembar-kerja.php` di repo API — jangan
+/// disunting tangan. Isinya salinan APA ADANYA respons
 /// `GET /api/calibrations/lembar-kerja?equipment_id=…` untuk alat contoh
-/// ter-seed `FM-TOT-DEMO-01` dan `FM-FLW-DEMO-01`. Digenerate dari bentuk yang
-/// beneran dikirim server (`docs/skrip/gen-contoh-lembar-kerja-flowmeter.php`
-/// di repo API), bukan disusun ulang di sini: bentuk yang diketik tangan bakal
-/// menyimpang diam-diam begitu backendnya direvisi, dan test yang jalan di atas
-/// bentuk basi memberi rasa aman yang salah.
+/// ter-seed `FM-TOT-DEMO-01` dan `FM-FLW-DEMO-01`.
 ///
 /// ## Yang cuma ada di lembar ini
 ///
@@ -36,9 +31,6 @@ library;
 /// Bentuk lembar kerja contoh **Flow Meter Cairan (Totalizer)**.
 ///
 /// Kode profil `flowmeter_totalizer`, satuan `L`, kertas `SIDIK-FM-CAL-0538_Rev.0`.
-///
-/// DIGENERATE `docs/skrip/gen-contoh-lembar-kerja-flowmeter.php` di repo API —
-/// jangan disunting tangan.
 Map<String, dynamic> contohBentukLembarKerjaFlowmeterTotalizer({
   bool untukAdmin = false,
 }) {
@@ -892,9 +884,6 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterTotalizer({
 /// Bentuk lembar kerja contoh **Flow Meter Cairan (Flowrate)**.
 ///
 /// Kode profil `flowmeter_flowrate`, satuan `Lpm`, kertas `SIDIK-FM-CAL-0538_Rev.0`.
-///
-/// DIGENERATE `docs/skrip/gen-contoh-lembar-kerja-flowmeter.php` di repo API —
-/// jangan disunting tangan.
 Map<String, dynamic> contohBentukLembarKerjaFlowmeterFlowrate({
   bool untukAdmin = false,
 }) {
