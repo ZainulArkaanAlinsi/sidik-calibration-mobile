@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../motion/transisi_halaman.dart';
 import 'app_colors.dart';
-import 'tombol_bergaris.dart';
+import 'tombol_lingkar.dart';
 import 'app_spacing.dart';
 import 'app_typography.dart';
 
@@ -183,9 +183,11 @@ class AppTheme {
         ),
       ),
 
-      // Tombol aksi bergaya btn-12: pil hitam bertepi tebal, batang putih
-      // meluncur masuk waktu disentuh. Mekaniknya di `TombolBergaris` —
-      // termasuk alasan kenapa label SELALU ditulis putih di dua-duanya.
+      // Tombol aksi: pil bertepi tebal yang, waktu disentuh, keisi lingkaran
+      // yang mekar dari tengah sambil bentuknya berubah jadi kotak membulat.
+      // Mekaniknya di `TombolLingkar` — termasuk alasan kenapa label SELALU
+      // ditulis putih di dua-duanya, dan kenapa panah di desain acuannya
+      // nggak dibawa.
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           // 52 dp di HP — desain minta tombol tebal, dan teknisi sering mencet
@@ -217,16 +219,29 @@ class AppTheme {
             fontWeight: FontWeight.w900,
             letterSpacing: 1.0,
           ),
-          shape: const StadiumBorder(),
         ).copyWith(
-          // Percikan ripple dimatikan: dia dilukis DI ATAS batang dan bikin
-          // noda kelabu yang ngotorin polanya. Umpan balik tekanannya udah
-          // dikerjain batang itu sendiri — jauh lebih kebaca daripada ripple.
-          overlayColor: const WidgetStatePropertyAll(Colors.transparent),
-          backgroundBuilder: TombolBergaris.latar(
-            isLight ? AppColors.white : AppColors.ink,
+          // Pil waktu diam, kotak membulat waktu disentuh. `Material` yang
+          // menganimasikan peralihannya, jadi cukup dibedakan per-keadaan.
+          shape: WidgetStateProperty.resolveWith(
+            (states) => TombolLingkar.disentuh(states)
+                ? TombolLingkar.bentukSentuh
+                : TombolLingkar.bentukDiam,
           ),
-          foregroundBuilder: TombolBergaris.labelBerbalik,
+          // Percikan ripple dimatikan: dia dilukis DI ATAS lingkaran dan bikin
+          // noda kelabu yang ngotorin bidangnya. Umpan balik tekanannya udah
+          // dikerjain lingkaran itu sendiri — jauh lebih kebaca daripada ripple.
+          overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+          // Mint, sesuai desain acuannya. Di tema gelap dasarnya sudah putih,
+          // jadi lingkarannya yang gelap — yang dijaga bukan warnanya, tapi
+          // kontrasnya: lingkaran harus selalu jadi LAWAN dari dasarnya, kalau
+          // nggak dia nggak kebaca mekar sama sekali.
+          backgroundBuilder: TombolLingkar.latar(
+            isLight ? AppColors.mint : AppColors.mintDeep,
+          ),
+          foregroundBuilder: TombolLingkar.label(
+            isLight ? AppColors.white : AppColors.ink,
+            isLight ? AppColors.ink : AppColors.white,
+          ),
         ),
       ),
 
@@ -246,11 +261,20 @@ class AppTheme {
             fontWeight: FontWeight.w900,
             letterSpacing: 1.0,
           ),
-          shape: const StadiumBorder(),
         ).copyWith(
+          // Pil waktu diam, kotak membulat waktu disentuh. `Material` yang
+          // menganimasikan peralihannya, jadi cukup dibedakan per-keadaan.
+          shape: WidgetStateProperty.resolveWith(
+            (states) => TombolLingkar.disentuh(states)
+                ? TombolLingkar.bentukSentuh
+                : TombolLingkar.bentukDiam,
+          ),
           overlayColor: const WidgetStatePropertyAll(Colors.transparent),
-          backgroundBuilder: TombolBergaris.latar(scheme.onSurface),
-          foregroundBuilder: TombolBergaris.labelBerbalik,
+          backgroundBuilder: TombolLingkar.latar(scheme.onSurface),
+          foregroundBuilder: TombolLingkar.label(
+            scheme.onSurface,
+            scheme.surface,
+          ),
         ),
       ),
 
