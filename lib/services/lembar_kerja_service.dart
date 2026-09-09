@@ -5,6 +5,7 @@ import '../models/pratinjau_hitung.dart';
 import 'api_client.dart';
 import 'equipment_lookup_service.dart';
 import 'contoh_lembar_kerja_aliran.dart';
+import 'contoh_lembar_kerja_analitik.dart';
 import 'contoh_lembar_kerja_enclosure.dart';
 import 'contoh_lembar_kerja_massa.dart';
 import 'contoh_lembar_kerja_panjang.dart';
@@ -304,6 +305,14 @@ class MockLembarKerjaService implements LembarKerjaService {
         untukAdmin: untukAdmin,
       ),
       'flowmeter_flowrate' => contohBentukLembarKerjaFlowmeterFlowrate(
+        untukAdmin: untukAdmin,
+      ),
+      // Conductivitymeter. Sampai 9 Sep 2026 dia satu-satunya profil instrumen
+      // analitik yang jatuh ke cabang bawaan di bawah — dan karena bawaannya
+      // pH, yang kegambar lembar pH tiga titik buffer: mirip cukup untuk nggak
+      // kelihatan salah, padahal lembarnya punya `larutan_standar`,
+      // `satuan_campuran`, dan `suhu_wajib` sendiri.
+      'conductivity_meter' => contohBentukLembarKerjaConductivity(
         untukAdmin: untukAdmin,
       ),
       // Kelima Enclosure. Sampai 9 Sep 2026 kelimanya jatuh ke cabang bawaan

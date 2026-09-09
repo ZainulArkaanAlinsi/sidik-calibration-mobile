@@ -50,9 +50,14 @@ void main() {
     'autoclave':
         'Lembar Autoklaf TIGA bagian (Sebaran Suhu, Kinerja, Tekanan) yang '
         'bentuknya beda satu sama lain; dipaksa ke bentuk pH, ketiganya hilang.',
-    'conductivity_meter':
-        'Satu-satunya lembar instrumen analitik yang belum punya bentuk mock, '
-        'padahal dia DIVONIS PASS/FAIL — vonisnya nggak pernah teruji di HP.',
+    // `conductivity_meter` DILUNASI 9 Sep 2026 — bentuknya di
+    // `contoh_lembar_kerja_analitik.dart`.
+    //
+    // Alasan utang yang pertama ditulis di sini menyebut dia "DIVONIS
+    // PASS/FAIL"; itu KELIRU. `ConductivityProfile::punyaToleransi()`
+    // memulangkan `false`, dan `docs/kontrak-api.md` maupun tabel vonis mock
+    // sama-sama sudah menempatkannya di kelompok yang berhenti di `U95%`.
+    // Dicatat supaya keliru itu nggak dipungut ulang dari riwayat.
     // Kelima Enclosure DILUNASI 9 Sep 2026 — bentuk mock-nya ada di
     // `contoh_lembar_kerja_enclosure.dart`, digenerate dari bentuk yang
     // beneran dikirim server. Mereka dulu yang paling berbahaya di daftar ini:
