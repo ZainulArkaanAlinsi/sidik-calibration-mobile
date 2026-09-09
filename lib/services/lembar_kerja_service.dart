@@ -6,6 +6,7 @@ import 'api_client.dart';
 import 'equipment_lookup_service.dart';
 import 'contoh_lembar_kerja_aliran.dart';
 import 'contoh_lembar_kerja_analitik.dart';
+import 'contoh_lembar_kerja_autoclave.dart';
 import 'contoh_lembar_kerja_enclosure.dart';
 import 'contoh_lembar_kerja_massa.dart';
 import 'contoh_lembar_kerja_panjang.dart';
@@ -307,6 +308,14 @@ class MockLembarKerjaService implements LembarKerjaService {
       'flowmeter_flowrate' => contohBentukLembarKerjaFlowmeterFlowrate(
         untukAdmin: untukAdmin,
       ),
+      // Autoklaf — utang bentuk mock TERAKHIR, lunas 9 Sep 2026.
+      //
+      // Dia ditinggal paling belakang karena sertifikatnya TIGA bagian yang
+      // nggak sebangun (Sebaran Suhu, Kinerja, Tekanan), dan bentuk pH nggak
+      // punya satu pun di antaranya. Lembarnya juga bawa kunci tingkat-atas
+      // yang nggak dipunyai lembar mana pun: `jumlah_disk`,
+      // `jumlah_titik_waktu`, `jumlah_pembacaan_tekanan`.
+      'autoclave' => contohBentukLembarKerjaAutoklaf(untukAdmin: untukAdmin),
       // Conductivitymeter. Sampai 9 Sep 2026 dia satu-satunya profil instrumen
       // analitik yang jatuh ke cabang bawaan di bawah — dan karena bawaannya
       // pH, yang kegambar lembar pH tiga titik buffer: mirip cukup untuk nggak

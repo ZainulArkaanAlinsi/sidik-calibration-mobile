@@ -46,10 +46,15 @@ void main() {
   /// Tiap entri wajib menyebut AKIBATNYA kalau dibiarkan, bukan cuma "belum
   /// dibuat". Daftar yang isinya alasan kosong berubah jadi tempat sampah, dan
   /// penjaga yang daftarnya penuh berhenti menjaga apa pun.
+  /// **KOSONG sejak 9 Sep 2026 — ketujuh utangnya lunas.**
+  ///
+  /// Dibiarkan ada, bukan dihapus: petanya tempat utang BERIKUTNYA mendarat,
+  /// dan ketiga test di bawah menggantung padanya. Dihapus, profil ke-29 yang
+  /// belum punya bentuk mock nggak punya jalan mendarat selain bikin
+  /// sapuannya merah tanpa tempat mencatat alasannya — dan yang biasanya
+  /// terjadi berikutnya bukan bentuk mock-nya dibuat, tapi sapuannya
+  /// dilonggarkan.
   const tanpaBentukMock = <String, String>{
-    'autoclave':
-        'Lembar Autoklaf TIGA bagian (Sebaran Suhu, Kinerja, Tekanan) yang '
-        'bentuknya beda satu sama lain; dipaksa ke bentuk pH, ketiganya hilang.',
     // `conductivity_meter` DILUNASI 9 Sep 2026 — bentuknya di
     // `contoh_lembar_kerja_analitik.dart`.
     //
