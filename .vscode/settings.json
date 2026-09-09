@@ -1,0 +1,40 @@
+{
+    // ---------------------------------------------------------------------
+    // Beban indexing. Ditulis 9 Sep 2026, sesudah VS Code kedapatan berat.
+    // ---------------------------------------------------------------------
+    //
+    // Repo ini punya masalah yang jauh lebih parah dari sisi API: `build/`
+    // sempat menumpuk sampai **11 GB** — 9,8 GB di antaranya `build/windows`
+    // dari target desktop, plus dua berkas `.cache.dill.track.dill` 89 MB
+    // sebiji dan `build/test_cache` 81 MB. Ditambah `.dart_tool/` 272 MB.
+    //
+    // Isinya nol berkas tracked (`/build/` diabaikan di .gitignore baris 33,
+    // `.dart_tool/` baris 29), tapi VS Code tetap memasang file watcher dan
+    // mengindeksnya seperti berkas sumber. Menghapusnya sekali TIDAK cukup —
+    // `flutter build windows` menumpuknya lagi dari nol.
+    //
+    // Makanya yang dipatok setelannya, bukan sekadar disapu sekali.
+    "files.watcherExclude": {
+        "**/build/**": true,
+        "**/.dart_tool/**": true,
+        "**/android/.gradle/**": true,
+        "**/ios/Pods/**": true,
+        "**/.git/objects/**": true
+    },
+    "search.exclude": {
+        "**/build": true,
+        "**/.dart_tool": true,
+        "**/android/.gradle": true,
+        "**/ios/Pods": true
+    },
+
+    // `build/` dan `.dart_tool/` disembunyiin dari daftar berkas juga. Beda
+    // sama repo API — di sana `vendor/` sengaja DIBIARIN kelihatan karena
+    // sesekali perlu diintip. Di sini nggak ada alasan itu: dua direktori ini
+    // isinya keluaran compiler, dan yang mau baca sumber paket Flutter
+    // bacanya dari pub cache (`~/.pub-cache`), bukan dari sini.
+    "files.exclude": {
+        "**/build": true,
+        "**/.dart_tool": true
+    }
+}
