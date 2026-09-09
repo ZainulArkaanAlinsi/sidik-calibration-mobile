@@ -627,6 +627,7 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterTotalizer({
             'titik_bisa_diubah': true,
             'pita_cetak': 2,
             'offset_kunci': 0,
+            'simpan_ke': 'measurements[].flow_uut_pembacaan',
             'baris': [
               {
                 'nomor': 1,
@@ -671,6 +672,7 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterTotalizer({
             'titik_bisa_diubah': true,
             'pita_cetak': 3,
             'offset_kunci': 1000,
+            'simpan_ke': 'measurements[].flow_std_pembacaan',
             'baris': [
               {
                 'nomor': 1,
@@ -715,6 +717,7 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterTotalizer({
             'titik_bisa_diubah': true,
             'pita_cetak': 4,
             'offset_kunci': 2000,
+            'simpan_ke': 'measurements[].flow_suhu_awal',
             'baris': [
               {
                 'nomor': 1,
@@ -759,6 +762,7 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterTotalizer({
             'titik_bisa_diubah': true,
             'pita_cetak': 4,
             'offset_kunci': 3000,
+            'simpan_ke': 'measurements[].flow_suhu_akhir',
             'baris': [
               {
                 'nomor': 1,
@@ -803,6 +807,7 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterTotalizer({
             'titik_bisa_diubah': true,
             'pita_cetak': 4,
             'offset_kunci': 4000,
+            'simpan_ke': 'measurements[].flow_densitas_uut',
             'baris': [
               {
                 'nomor': 1,
@@ -1484,6 +1489,7 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterFlowrate({
             'titik_bisa_diubah': true,
             'pita_cetak': 2,
             'offset_kunci': 0,
+            'simpan_ke': 'measurements[].flow_uut_pembacaan',
             'baris': [
               {
                 'nomor': 1,
@@ -1540,6 +1546,7 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterFlowrate({
             'titik_bisa_diubah': true,
             'pita_cetak': 3,
             'offset_kunci': 1000,
+            'simpan_ke': 'measurements[].flow_std_pembacaan',
             'baris': [
               {
                 'nomor': 1,
@@ -1584,6 +1591,7 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterFlowrate({
             'titik_bisa_diubah': true,
             'pita_cetak': 4,
             'offset_kunci': 2000,
+            'simpan_ke': 'measurements[].flow_suhu_awal',
             'baris': [
               {
                 'nomor': 1,
@@ -1628,6 +1636,7 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterFlowrate({
             'titik_bisa_diubah': true,
             'pita_cetak': 4,
             'offset_kunci': 3000,
+            'simpan_ke': 'measurements[].flow_suhu_akhir',
             'baris': [
               {
                 'nomor': 1,
@@ -1672,6 +1681,7 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterFlowrate({
             'titik_bisa_diubah': true,
             'pita_cetak': 4,
             'offset_kunci': 4000,
+            'simpan_ke': 'measurements[].flow_densitas_uut',
             'baris': [
               {
                 'nomor': 1,

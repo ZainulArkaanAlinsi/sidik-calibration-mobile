@@ -199,32 +199,25 @@ void main() {
     });
   });
 
-  /// ## CACAT YANG DITEMUKAN TEST INI — belum diperbaiki
+  /// ## CACAT YANG DITEMUKAN GRUP INI — sudah diperbaiki
   ///
-  /// `toSubmission()` **nggak menghasilkan kunci `flow_uut_pembacaan` maupun
-  /// `flow_std_pembacaan` sama sekali**, padahal
-  /// `CalibrationController::susunBlokFlowmeter()` di server justru membaca
-  /// kunci itu.
+  /// Waktu ketiga test di bawah pertama ditulis, `toSubmission()` **nggak
+  /// menghasilkan kunci `flow_uut_pembacaan` maupun `flow_std_pembacaan` sama
+  /// sekali**. Lembarnya tergambar rapi, teknisi bisa mengisinya sampai penuh,
+  /// lalu payloadnya sampai ke server dengan `measurements` **KOSONG** — nol
+  /// baris `raw_measurements`, nol hitungan, tanpa error di kedua sisi.
   ///
-  /// Akibatnya: lembar Flowmeter tergambar rapi di HP, teknisi bisa mengisinya
-  /// sampai penuh, lalu payload-nya sampai ke server **tanpa satu pun
-  /// pembacaan** — nol baris `raw_measurements`, nol hitungan, dan nggak ada
-  /// error di kedua sisi.
+  /// Sebabnya: kelima tabel `hasil` nggak menyatakan `simpan_ke`, jadi HP
+  /// nggak tahu ke mana angkanya harus dikirim dan membuang barisnya sebagai
+  /// "kosong". Kejadian KEEMPAT dari pola yang sama — TIDS, Timbangan,
+  /// Micrometer, sekarang Flowmeter — dan keempatnya baru ketahuan waktu
+  /// payload HP asli diadu ke bentuk lembarnya, persis yang dilakukan grup ini.
   ///
-  /// Ini kejadian KEEMPAT dari pola yang sama: TIDS, Timbangan, Micrometer,
-  /// sekarang Flowmeter. Ketiganya juga baru ketahuan waktu payload HP asli
-  /// diadu ke bentuk lembarnya — persis yang dilakukan grup ini.
-  ///
-  /// Kedua test di bawah di-`skip`, BUKAN dihapus: begitu jalur payload-nya
-  /// dibuat, cabut `skip`-nya dan keduanya langsung jadi penjaga. Dihapus,
-  /// yang tersisa cuma ingatan.
+  /// Diperbaiki dari DUA sisi: server menyatakan tujuan tiap tabel
+  /// (`FlowmeterProfile`), dan HP menyusun `measurements[]` dari tabel yang
+  /// menyebut tujuannya (`LembarKerjaState.tabelDeretBernama`).
   group('payload', () {
-    const belumAdaJalur =
-        'BELUM DIPERBAIKI: toSubmission() nggak mengeluarkan kunci flow_* yang '
-        'dibaca susunBlokFlowmeter() di server. Cabut skip ini begitu jalur '
-        'payload-nya dibuat.';
-
-    test('deret UUT Flowrate terkirim BERSARANG per ulangan', skip: belumAdaJalur, () {
+    test('deret UUT Flowrate terkirim BERSARANG per ulangan', () {
       final isian = buatFlowrate();
       final uut = tabelBagian(isian, 'hasil').first;
       final baris = isian.barisTabel(uut);
@@ -267,8 +260,7 @@ void main() {
       );
     });
 
-    test('pembacaan standar terkirim di deretnya SENDIRI, bukan tercampur UUT',
-        skip: belumAdaJalur, () {
+    test('pembacaan standar terkirim di deretnya SENDIRI, bukan tercampur UUT', () {
       final isian = buatFlowrate();
       final tabel = tabelBagian(isian, 'hasil');
       final uut = tabel.first;

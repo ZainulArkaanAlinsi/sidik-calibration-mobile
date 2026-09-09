@@ -1472,6 +1472,135 @@ class LembarKerjaState {
     return milikSpek.difference(milikTitik);
   }
 
+  /// Tabel yang isinya mendarat di `measurements[]` lewat kunci BERNAMA —
+  /// `simpan_ke: 'measurements[].<kunci>'`.
+  ///
+  /// ## Kenapa jalur ini ada
+  ///
+  /// Dua puluh enam lembar punya SATU tabel pembacaan: isinya jadi
+  /// `measurements[].pembacaan`, dan tabel lain (kalau ada) mendarat di
+  /// `spesifikasi_alat`. Lembar **Flowmeter** yang pertama memecahkannya —
+  /// satu titiknya punya LIMA deret sejajar yang semuanya per-titik: pembacaan
+  /// UUT, pembacaan totalizer standar, suhu air awal & akhir, dan densitas
+  /// fluida.
+  ///
+  /// Sampai jalur ini ada, kelima tabel itu nggak menyebut tujuannya, jadi
+  /// `kunciTabelPembacaan` jatuh ke bawaan dan [TitikState.toSubmission]
+  /// mencari kolom bernama `pembacaan` yang di tabel UUT Flowrate memang nggak
+  /// ada (kolomnya `durasi_1..3`). Hasilnya: tiap baris `kosongSemua`,
+  /// seluruhnya dibuang, dan payloadnya terkirim dengan `measurements` KOSONG
+  /// — di lembar yang penuh di layar dan tombol kirimnya jalan mulus.
+  ///
+  /// Kelas kegagalan yang sama persis dengan TIDS, Timbangan, dan Micrometer.
+  /// Kejadian KEEMPAT.
+  ///
+  /// ## Bentuk deretnya diturunkan dari TABELNYA, bukan dari nama alat
+  ///
+  /// Tabel berkolom SATU keluar datar (`[a, b, c]`); tabel berkolom banyak
+  /// keluar BERSARANG per ulangan (`[[d1,d2,d3], …]`). Itu yang dibutuhkan
+  /// varian Flowrate, yang tiap ulangannya berisi tiga durasi — dan simpangan
+  /// bakunya dihitung atas ketiga durasi ulangan ITU. Diratakan, komponen
+  /// budgetnya berubah jadi sebaran antar-ulangan dan keluar jauh lebih besar
+  /// tanpa satu pun error.
+  ///
+  /// Kosong buat dua puluh enam lembar lain — dan waktu kosong, seluruh jalur
+  /// lama di [toSubmission] jalan persis seperti sebelumnya.
+  List<TabelHasil> get tabelDeretBernama {
+    const awalan = 'measurements[].';
+
+    return [
+      for (final bagian in bentuk.bagian)
+        for (final t in bagian.tabel)
+          if (!t.berpasangan && !t.tanpaTempatSimpan)
+            if (t.simpanKe != null &&
+                t.simpanKe!.startsWith(awalan) &&
+                t.simpanKe! != '${awalan}pembacaan')
+              t,
+    ];
+  }
+
+  /// Susun `measurements[]` dari tabel ber-kunci-bernama, digabung per NOMOR
+  /// BARIS.
+  ///
+  /// Kelima tabel Flowmeter kunci barisnya sengaja dipisah `offset_kunci`
+  /// (0/1000/2000/3000/4000) supaya kotaknya nggak bertabrakan di layar — jadi
+  /// "Titik 1" hidup sebagai LIMA [TitikState] yang berbeda. Yang menyatukannya
+  /// kembali POSISI barisnya, bukan kuncinya.
+  ///
+  /// Deret yang seluruhnya kosong nggak ikut jadi kunci: server membedakan
+  /// "belum diisi" dari "diisi nol", dan deret berisi null semua bikin dua hal
+  /// itu kelihatan sama.
+  List<TitikLembarKerja> _measurementsDeretBernama(List<TabelHasil> tabel) {
+    const awalan = 'measurements[].';
+
+    var jumlahBaris = 0;
+    for (final t in tabel) {
+      final n = barisTabel(t).length;
+      if (n > jumlahBaris) jumlahBaris = n;
+    }
+
+    final hasil = <TitikLembarKerja>[];
+
+    for (var i = 0; i < jumlahBaris; i++) {
+      final isi = <String, dynamic>{};
+      TitikState? acuan;
+
+      for (final t in tabel) {
+        final baris = barisTabel(t);
+        if (i >= baris.length) continue;
+
+        final ts = titikUntukBaris(baris, i, t);
+        if (ts == null) continue;
+
+        // Acuan identitas titiknya dari tabel PERTAMA yang punya baris ini — di
+        // Flowmeter itu tabel UUT, dan `titik_ukur`-nya memang lahir dari
+        // pembacaan UUT.
+        acuan ??= ts;
+
+        final kunci = t.simpanKe!.substring(awalan.length);
+        final kolom = [for (final k in t.kolom) k.kode];
+        final n = t.pengulangan.length;
+
+        if (kolom.length == 1) {
+          final deret = [
+            for (var r = 0; r < n; r++)
+              parseAngka(ts.kotak(t.kunciTabel, kolom.first, r).text),
+          ];
+
+          if (deret.any((x) => x != null)) isi[kunci] = deret;
+        } else {
+          final deret = [
+            for (var r = 0; r < n; r++)
+              [
+                for (final k in kolom)
+                  parseAngka(ts.kotak(t.kunciTabel, k, r).text),
+              ],
+          ];
+
+          if (deret.any((u) => u.any((x) => x != null))) isi[kunci] = deret;
+        }
+      }
+
+      if (acuan == null || isi.isEmpty) continue;
+
+      final kirim = TitikLembarKerja(
+        titikUkur: acuan.titikUkurEfektif ?? acuan.titikUkur,
+        jumlahPengulangan: acuan.jumlahPengulangan,
+        standardId: acuan.standardId,
+        satuan: acuan.satuan.isEmpty ? null : acuan.satuan,
+      );
+
+      // Lewat `kolomBaris`, yang di `TitikLembarKerja.toJson()` disebar apa
+      // adanya (`...kolomBaris`). Dia memang pembawa "kunci tambahan per
+      // titik"; menambahkan lima medan baru ke kelasnya berarti dua puluh enam
+      // lembar lain ikut mengirim lima kunci kosong tiap titik.
+      kirim.kolomBaris.addAll(isi);
+      hasil.add(kirim);
+    }
+
+    return hasil;
+  }
+
   /// Baris yang ANGKANYA keisi tapi kotak `Setpoint`-nya kosong atau nggak
   /// kebaca sebagai angka.
   ///
@@ -2828,18 +2957,27 @@ class LembarKerjaState {
     final kotakBaris = kotakBarisPembacaan;
     final bukanTitik = kunciTitikSpesifikasi;
 
-    final measurements = titik.entries
-        .where((e) => !bukanTitik.contains(e.key) && e.value.siapKirim)
-        .map((e) {
-          final payload = e.value.toSubmission(
-            kunciUtama: kunciUtama,
-            kotakBaris: kotakBaris,
-          );
-          _lampirkanBacaanMesin(payload, e.value, kunciUtama);
+    // Lembar yang tabelnya MENYEBUT tujuannya (`measurements[].<kunci>`) lewat
+    // jalur sendiri — sejauh ini cuma Flowmeter, yang satu titiknya punya LIMA
+    // deret sejajar. Lihat [tabelDeretBernama]; kosong buat dua puluh enam
+    // lembar lain, dan waktu kosong jalur di bawah jalan persis seperti
+    // sebelumnya.
+    final deretBernama = tabelDeretBernama;
 
-          return payload;
-        })
-        .toList();
+    final measurements = deretBernama.isNotEmpty
+        ? _measurementsDeretBernama(deretBernama)
+        : titik.entries
+              .where((e) => !bukanTitik.contains(e.key) && e.value.siapKirim)
+              .map((e) {
+                final payload = e.value.toSubmission(
+                  kunciUtama: kunciUtama,
+                  kotakBaris: kotakBaris,
+                );
+                _lampirkanBacaanMesin(payload, e.value, kunciUtama);
+
+                return payload;
+              })
+              .toList();
 
     // Lembar ber-GRID nggak punya `titik` sama sekali — bentuknya nggak
     // mengirim `tabel`, jadi `measurements` di atas selalu kosong. Set point-nya
