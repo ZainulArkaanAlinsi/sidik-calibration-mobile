@@ -2125,6 +2125,32 @@ class LembarKerjaState {
     'spesifikasi_alat.flowmeter.resolusi',
     'spesifikasi_alat.flowmeter.diameter_pipa_mm',
     'spesifikasi_alat.flowmeter.ketebalan_pipa_mm',
+    // Varian metode (10 Sep 2026) — dan ini yang paling menentukan dari
+    // ketujuhnya, karena dia memilih RANTAI HITUNGNYA, bukan cuma satu angka.
+    //
+    // `ufm` = perbandingan langsung dengan Krohne UFC300, 8/9 komponen budget,
+    // dan yang dibaca `flow_std_pembacaan`. `gravimetri` = penimbangan statis
+    // ISO 4185, 9/11 komponen, dan yang dibaca `flow_berat_isi` /
+    // `flow_berat_kosong` / `flow_waktu_menit`. Dua metode, dua kertas
+    // (`SIDIK-FM-CAL-0538_Rev.0` lawan `0538.A/B_Rev.3`), dua kotak isian yang
+    // sama sekali berbeda — tapi SATU nama alat. Jadi cabangnya HARUS dipilih
+    // dari kode ini, bukan dari nama alat.
+    //
+    // Bawaannya `gravimetri`, sejak masternya yang divalidasi Technical Manager
+    // 21 Mei 2026; workbook UFM kolom VALIDATION-nya masih kosong.
+    //
+    // `kode_timbangan` cuma hidup di varian gravimetri, dan sekali dipilih dia
+    // menentukan tabel koreksi, U95, kestabilan, DAN drift sekaligus. Kode 1
+    // (Dini Argeo) ber-U95 0,52 kg; kode 3 (Mettler) ber-U95 0,00017 kg — tiga
+    // ribu kali lebih kecil. Salah pilih, angkanya tetap keluar dan tetap
+    // terlihat wajar.
+    //
+    // Server memblokir sesi yang variannya tidak dikenal dan sesi gravimetri
+    // yang kode timbangannya kosong. Yang dicegah di sini sama seperti lima
+    // kode di atas: teknisi menyelesaikan seluruh lembar, mengirim, lalu baru
+    // tahu titiknya nggak terbit — dan waktu itu dia udah nggak di depan alatnya.
+    'spesifikasi_alat.flowmeter.varian_metode',
+    'spesifikasi_alat.flowmeter.kode_timbangan',
   };
 
   /// Field penentu angka yang ada di lembar ini tapi belum dipilih.
