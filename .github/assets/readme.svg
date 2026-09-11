@@ -1,24 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 660" width="1200" height="660" role="img" aria-label="SIDIK Kalibrasi Mobile — aplikasi Flutter untuk kalibrasi alat ukur di lapangan. Tiga layar: memindai lembar kerja, review wajib sebelum simpan, lalu kirim ke API.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-label="SIDIK Kalibrasi Mobile — aplikasi Flutter untuk kalibrasi alat ukur di lapangan. Tiga layar: memindai lembar kerja, review wajib sebelum simpan, lalu kirim ke API.">
   <title>SIDIK Kalibrasi — Mobile</title>
-  <desc>Tiga layar berurutan. Satu: kamera memindai lembar kerja, sel yang terbaca dikotaki biru, satu sel amber karena keyakinannya tidak diketahui. Dua: review wajib, tombol lanjut mati selama masih ada sel kosong. Tiga: kirim ke API. Di bawahnya empat prinsip yang menahan alur itu.</desc>
+  <desc>Tiga layar berurutan. Satu: kamera memindai lembar kerja, sel yang terbaca dikotaki biru, satu sel amber karena keyakinannya tidak diketahui. Dua: review wajib — satu sel masih kosong, dan tombol lanjut mati. Tiga: semua lengkap, tombol kirim hidup.</desc>
 
   <defs>
     <style>
       /* ══════════════════════════════════════════════════════════════════
          PALET — SATU-SATUNYA TEMPAT WARNA DITENTUKAN DI BERKAS INI.
          Mau ganti tampilan? Ubah di sini saja, jangan di bawah.
-         Sengaja dibuat kembar dengan .github/assets/readme.svg di repo
-         sidik-calibration-api, supaya dua repo satu proyek terlihat sekeluarga.
+         Sengaja kembar dengan .github/assets/readme.svg di repo
+         sidik-calibration-api, supaya dua repo satu proyek sekeluarga.
 
-           latar      kertas
-           judul      teks paling gelap
-           data       angka, kode, nama berkas
-           teks       keterangan
-           samar      keterangan tingkat dua
-           redup      nomor urut dan label kecil
-           titik      biru instrumen: rangka, sel terbaca, tindakan utama
-           aksen      amber: yang menahan, yang belum pasti
-           lolos      hijau: yang sudah lengkap
+         UKURAN TEKS — jangan diperkecil tanpa menghitung.
+         GitHub merender README selebar sekitar 818px, sedangkan viewBox ini
+         1200, jadi semua menyusut ke 0,68x. font-size 8 tampil 5,4px dan tidak
+         terbaca; versi pertama berkas ini jatuh persis di lubang itu. Angka
+         terkecil yang dipakai sekarang 13 (tampil 8,8px).
          ══════════════════════════════════════════════════════════════════ */
       .latar   { fill: #f7f5ef; }
       .judul   { fill: #12171f; }
@@ -46,13 +42,11 @@
       .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
 
       /* Gerak di berkas ini HIASAN semua. Tidak ada satu pun teks, angka, atau
-         bidang yang baru terlihat karena animasi — aturan yang lahir waktu
-         animasi masuk dari opacity 0 sempat menghilangkan SELURUH teks banner
-         di repo sebelahnya, diam-diam, tanpa error. */
+         bidang yang baru terlihat karena animasi. */
       @keyframes pindai { 0% { transform: translateY(0); opacity: 0; }
                          12% { opacity: 1; }
                          88% { opacity: 1; }
-                        100% { transform: translateY(214px); opacity: 0; } }
+                        100% { transform: translateY(430px); opacity: 0; } }
       @keyframes tera   { 0%,100% { opacity: .45; } 50% { opacity: 1; } }
 
       .pindai { animation: pindai 4.5s cubic-bezier(.45,0,.55,1) infinite; }
@@ -74,178 +68,155 @@
     <linearGradient id="berkas" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%"   stop-color="#3f6ea8" stop-opacity="0"/>
       <stop offset="70%"  stop-color="#3f6ea8" stop-opacity="0.10"/>
-      <stop offset="100%" stop-color="#3f6ea8" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#3f6ea8" stop-opacity="0.5"/>
     </linearGradient>
 
-    <clipPath id="layar1"><rect x="10" y="96" width="130" height="238" rx="6"/></clipPath>
+    <clipPath id="layarPindai"><rect x="18" y="52" width="264" height="476" rx="18"/></clipPath>
   </defs>
 
-  <rect class="latar" width="1200" height="660"/>
-  <rect width="1200" height="660" fill="url(#milimeter)"/>
-  <rect width="1200" height="660" fill="url(#milimeterBesar)"/>
+  <rect class="latar" width="1200" height="900"/>
+  <rect width="1200" height="900" fill="url(#milimeter)"/>
+  <rect width="1200" height="900" fill="url(#milimeterBesar)"/>
 
   <!-- ═══════════════════ identitas ═══════════════════ -->
-  <g transform="translate(64, 132)">
-    <text class="mono aksen" x="0" y="0" font-size="11.5" letter-spacing="3.2">LK-285-IDN</text>
-    <line class="g-aksen" x1="98" y1="-4" x2="150" y2="-4" stroke-opacity="0.4"/>
-    <text class="mono samar" x="160" y="0" font-size="11.5" letter-spacing="1.6">SATU APK, TEKNISI DAN ADMIN</text>
+  <g transform="translate(90, 96)">
+    <text class="mono aksen" x="0" y="0" font-size="13" letter-spacing="3.2">LK-285-IDN</text>
+    <line class="g-aksen" x1="110" y1="-5" x2="164" y2="-5" stroke-opacity="0.4"/>
+    <text class="mono samar" x="176" y="0" font-size="13" letter-spacing="1.6">SATU APK, TEKNISI DAN ADMIN</text>
 
-    <text class="sans judul" x="-2" y="52" font-size="43" font-weight="650" letter-spacing="-0.9">SIDIK Kalibrasi</text>
-    <text class="sans judul" x="-2" y="96" font-size="43" font-weight="650" letter-spacing="-0.9" fill-opacity="0.42">Mobile</text>
+    <text class="sans judul" x="-2" y="56" font-size="46" font-weight="650" letter-spacing="-1">SIDIK Kalibrasi Mobile</text>
+    <text class="sans teks"  x="0"  y="92" font-size="17">Aplikasi lapangan: pindai lembar kerja, review, kirim ke API</text>
 
-    <text class="sans teks" x="0" y="130" font-size="15.5">Aplikasi lapangan: pindai lembar kerja, review, kirim ke API</text>
+    <line class="g-halus" x1="0" y1="122" x2="1020" y2="122"/>
 
-    <line class="g-halus" x1="0" y1="158" x2="470" y2="158"/>
-
-    <text class="mono samar" x="0" y="180" font-size="12.5">
+    <text class="mono samar" x="0" y="148" font-size="14">
       <tspan class="data">Flutter 3.44.6</tspan><tspan fill="#a8a293">   ·   </tspan>Dart 3.11<tspan fill="#a8a293">   ·   </tspan>Riverpod 3<tspan fill="#a8a293">   ·   </tspan>ML Kit di perangkat
     </text>
   </g>
 
-  <!-- ═══════════════════ 01 — pindai lembar kerja ═══════════════════ -->
-  <g transform="translate(654, 0)">
-    <rect class="tebal" x="8" y="78" width="150" height="300" rx="16"/>
-    <rect class="badan" x="0" y="70" width="150" height="300" rx="16"/>
-    <rect class="g-garis" x="0.5" y="70.5" width="149" height="299" rx="16" fill="none"/>
-    <rect class="isi-samar" x="58" y="80" width="34" height="4" rx="2"/>
-    <rect class="layar" x="10" y="96" width="130" height="238" rx="6"/>
-    <rect class="g-halus" x="10.5" y="96.5" width="129" height="237" rx="6" fill="none"/>
+  <!-- ═══════════════════ 01 — pindai ═══════════════════ -->
+  <g transform="translate(90, 306)">
+    <text class="mono redup"  x="0"  y="-44" font-size="14">01</text>
+    <text class="sans judul"  x="30" y="-44" font-size="17" font-weight="600">Pindai lembar kerja</text>
+    <text class="sans samar"  x="0"  y="-20" font-size="14">ML Kit jalan di perangkat, bukan dikirim ke server</text>
 
-    <g clip-path="url(#layar1)">
+    <rect class="tebal" x="12" y="12" width="300" height="560" rx="32"/>
+    <rect class="badan" x="0" y="0" width="300" height="560" rx="32"/>
+    <rect class="g-garis" x="0.5" y="0.5" width="299" height="559" rx="32" fill="none"/>
+    <rect class="isi-samar" x="120" y="26" width="60" height="7" rx="3.5"/>
+    <rect class="layar" x="18" y="52" width="264" height="476" rx="18"/>
+    <rect class="g-halus" x="18.5" y="52.5" width="263" height="475" rx="18" fill="none"/>
+
+    <g clip-path="url(#layarPindai)">
       <g class="g-halus">
-        <line x1="22" y1="128" x2="128" y2="128"/><line x1="22" y1="160" x2="128" y2="160"/>
-        <line x1="22" y1="192" x2="128" y2="192"/><line x1="22" y1="224" x2="128" y2="224"/>
-        <line x1="22" y1="256" x2="128" y2="256"/><line x1="22" y1="288" x2="128" y2="288"/>
-        <line x1="58" y1="112" x2="58" y2="304"/><line x1="94" y1="112" x2="94" y2="304"/>
+        <line x1="40" y1="110" x2="270" y2="110"/><line x1="40" y1="174" x2="270" y2="174"/>
+        <line x1="40" y1="238" x2="270" y2="238"/><line x1="40" y1="302" x2="270" y2="302"/>
+        <line x1="40" y1="366" x2="270" y2="366"/><line x1="40" y1="430" x2="270" y2="430"/>
+        <line x1="118" y1="86" x2="118" y2="470"/><line x1="196" y1="86" x2="196" y2="470"/>
       </g>
-      <text class="mono redup" x="22" y="122" font-size="6.5">TITIK</text>
-      <text class="mono redup" x="60" y="122" font-size="6.5">STD</text>
-      <text class="mono redup" x="96" y="122" font-size="6.5">UUT</text>
-
-      <g class="g-titik" fill="none" stroke-width="1.2">
-        <rect x="60" y="134" width="32" height="20" rx="2"/>
-        <rect x="96" y="134" width="30" height="20" rx="2"/>
-        <rect x="60" y="166" width="32" height="20" rx="2"/>
-        <rect x="96" y="198" width="30" height="20" rx="2"/>
-        <rect x="60" y="230" width="32" height="20" rx="2"/>
-      </g>
-      <g class="mono data" font-size="8">
-        <text x="63" y="148">7.01</text><text x="99" y="148">7.03</text>
-        <text x="63" y="180">4.00</text><text x="99" y="212">4.02</text>
-        <text x="63" y="244">10.0</text>
+      <g class="mono redup" font-size="13">
+        <text x="46" y="100">TITIK</text><text x="126" y="100">STD</text><text x="204" y="100">UUT</text>
       </g>
 
-      <rect class="g-aksen tera" x="96" y="166" width="30" height="20" rx="2" fill="none" stroke-width="1.4"/>
-      <text class="mono aksen" x="99" y="180" font-size="8">4.0?</text>
+      <g class="mono samar" font-size="15">
+        <text x="46" y="146">1</text><text x="46" y="210">2</text>
+        <text x="46" y="274">3</text><text x="46" y="338">4</text>
+      </g>
 
-      <rect class="pindai" x="10" y="104" width="130" height="26" fill="url(#berkas)"/>
+      <g class="g-titik" fill="none" stroke-width="1.6">
+        <rect x="122" y="118" width="70" height="40" rx="4"/>
+        <rect x="200" y="118" width="66" height="40" rx="4"/>
+        <rect x="122" y="182" width="70" height="40" rx="4"/>
+        <rect x="200" y="246" width="66" height="40" rx="4"/>
+        <rect x="122" y="310" width="70" height="40" rx="4"/>
+      </g>
+      <g class="mono data" font-size="16">
+        <text x="130" y="145">7.01</text><text x="208" y="145">7.03</text>
+        <text x="130" y="209">4.00</text><text x="208" y="273">4.02</text>
+        <text x="130" y="337">10.01</text>
+      </g>
+
+      <rect class="g-aksen tera" x="200" y="182" width="66" height="40" rx="4" fill="none" stroke-width="2"/>
+      <text class="mono aksen" x="208" y="209" font-size="16">4.0?</text>
+
+      <rect class="pindai" x="18" y="60" width="264" height="48" fill="url(#berkas)"/>
+
+      <g class="g-titik" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-opacity="0.65">
+        <path d="M38 86 v-18 h18"/><path d="M272 86 v-18 h-18"/>
+        <path d="M38 470 v18 h18"/><path d="M272 470 v18 h-18"/>
+      </g>
     </g>
 
-    <rect class="isi-samar" x="52" y="344" width="46" height="4" rx="2"/>
-
-    <text class="mono redup" x="0"  y="398" font-size="10">01</text>
-    <text class="mono judul" x="26" y="398" font-size="12.5" font-weight="600">Pindai</text>
-    <text class="sans samar" x="0"  y="416" font-size="11">ML Kit jalan di perangkat</text>
+    <text class="mono aksen" x="30" y="556" font-size="14">1 sel keyakinannya tidak diketahui</text>
   </g>
 
   <!-- ═══════════════════ 02 — review wajib ═══════════════════ -->
-  <g transform="translate(824, 0)">
-    <rect class="tebal" x="8" y="78" width="150" height="300" rx="16"/>
-    <rect class="badan" x="0" y="70" width="150" height="300" rx="16"/>
-    <rect class="g-garis" x="0.5" y="70.5" width="149" height="299" rx="16" fill="none"/>
-    <rect class="isi-samar" x="58" y="80" width="34" height="4" rx="2"/>
-    <rect class="layar" x="10" y="96" width="130" height="238" rx="6"/>
-    <rect class="g-halus" x="10.5" y="96.5" width="129" height="237" rx="6" fill="none"/>
+  <g transform="translate(450, 306)">
+    <text class="mono redup"  x="0"  y="-44" font-size="14">02</text>
+    <text class="sans judul"  x="30" y="-44" font-size="17" font-weight="600">Review wajib</text>
+    <text class="sans samar"  x="0"  y="-20" font-size="14">tombol mati selama masih ada sel kosong</text>
 
-    <text class="mono judul" x="22" y="118" font-size="8.5" font-weight="600">Review sebelum simpan</text>
-    <line class="g-halus" x1="22" y1="126" x2="128" y2="126"/>
+    <rect class="tebal" x="12" y="12" width="300" height="560" rx="32"/>
+    <rect class="badan" x="0" y="0" width="300" height="560" rx="32"/>
+    <rect class="g-garis" x="0.5" y="0.5" width="299" height="559" rx="32" fill="none"/>
+    <rect class="isi-samar" x="120" y="26" width="60" height="7" rx="3.5"/>
+    <rect class="layar" x="18" y="52" width="264" height="476" rx="18"/>
+    <rect class="g-halus" x="18.5" y="52.5" width="263" height="475" rx="18" fill="none"/>
 
-    <g class="mono" font-size="8">
-      <text class="samar" x="22" y="144">Titik 1</text><text class="data" x="96" y="144">7.01 / 7.03</text>
-      <text class="samar" x="22" y="164">Titik 2</text><text class="data" x="96" y="164">4.00 / 4.02</text>
-      <text class="samar" x="22" y="184">Titik 3</text><text class="aksen" x="96" y="184">10.0 / —</text>
-      <text class="samar" x="22" y="204">Suhu</text><text class="data" x="96" y="204">24.6 °C</text>
-      <text class="samar" x="22" y="224">Lembap</text><text class="data" x="96" y="224">58 %RH</text>
+    <text class="sans judul" x="40" y="94" font-size="16" font-weight="600">Review sebelum simpan</text>
+    <line class="g-halus" x1="40" y1="110" x2="260" y2="110"/>
+
+    <g class="mono" font-size="15">
+      <text class="samar" x="40" y="146">Titik 1</text><text class="data" x="172" y="146">7.01 / 7.03</text>
+      <text class="samar" x="40" y="186">Titik 2</text><text class="data" x="172" y="186">4.00 / 4.02</text>
+      <text class="samar" x="40" y="226">Titik 3</text><text class="aksen" x="172" y="226">10.01 / —</text>
+      <text class="samar" x="40" y="266">Suhu</text><text class="data" x="172" y="266">24.6 °C</text>
+      <text class="samar" x="40" y="306">Lembap</text><text class="data" x="172" y="306">58 %RH</text>
     </g>
 
-    <rect class="g-aksen" x="18" y="174" width="112" height="16" rx="3" fill="none" stroke-opacity="0.75"/>
-    <circle class="aksen tera" cx="126" cy="182" r="2.6"/>
+    <rect class="g-aksen" x="32" y="208" width="236" height="28" rx="5" fill="none" stroke-opacity="0.8" stroke-width="1.6"/>
+    <circle class="aksen tera" cx="258" cy="222" r="4"/>
 
-    <text class="mono aksen" x="22" y="252" font-size="7.5">1 sel belum terisi</text>
+    <text class="mono aksen" x="40" y="360" font-size="14">1 sel belum terisi</text>
 
-    <rect class="isi-samar" x="22" y="288" width="106" height="24" rx="6"/>
-    <text class="mono redup" x="75" y="303" font-size="9" text-anchor="middle">Lanjut</text>
+    <rect class="isi-samar" x="40" y="430" width="220" height="52" rx="12"/>
+    <text class="sans redup" x="150" y="462" font-size="16" text-anchor="middle">Lanjut</text>
 
-    <text class="mono redup" x="0"  y="398" font-size="10">02</text>
-    <text class="mono judul" x="26" y="398" font-size="12.5" font-weight="600">Review wajib</text>
-    <text class="sans samar" x="0"  y="416" font-size="11">tombol mati sampai lengkap</text>
+    <text class="sans samar" x="30" y="556" font-size="14">manusia yang memutuskan, bukan OCR</text>
   </g>
 
   <!-- ═══════════════════ 03 — kirim ═══════════════════ -->
-  <g transform="translate(994, 0)">
-    <rect class="tebal" x="8" y="78" width="150" height="300" rx="16"/>
-    <rect class="badan" x="0" y="70" width="150" height="300" rx="16"/>
-    <rect class="g-garis" x="0.5" y="70.5" width="149" height="299" rx="16" fill="none"/>
-    <rect class="isi-samar" x="58" y="80" width="34" height="4" rx="2"/>
-    <rect class="layar" x="10" y="96" width="130" height="238" rx="6"/>
-    <rect class="g-halus" x="10.5" y="96.5" width="129" height="237" rx="6" fill="none"/>
+  <g transform="translate(810, 306)">
+    <text class="mono redup"  x="0"  y="-44" font-size="14">03</text>
+    <text class="sans judul"  x="30" y="-44" font-size="17" font-weight="600">Kirim ke API</text>
+    <text class="sans samar"  x="0"  y="-20" font-size="14">satu pipeline dengan input manual</text>
 
-    <text class="mono judul" x="22" y="118" font-size="8.5" font-weight="600">Siap dikirim</text>
-    <line class="g-halus" x1="22" y1="126" x2="128" y2="126"/>
+    <rect class="tebal" x="12" y="12" width="300" height="560" rx="32"/>
+    <rect class="badan" x="0" y="0" width="300" height="560" rx="32"/>
+    <rect class="g-garis" x="0.5" y="0.5" width="299" height="559" rx="32" fill="none"/>
+    <rect class="isi-samar" x="120" y="26" width="60" height="7" rx="3.5"/>
+    <rect class="layar" x="18" y="52" width="264" height="476" rx="18"/>
+    <rect class="g-halus" x="18.5" y="52.5" width="263" height="475" rx="18" fill="none"/>
 
-    <g class="mono samar" font-size="8">
-      <text x="34" y="146">Titik 1</text><text x="34" y="166">Titik 2</text>
-      <text x="34" y="186">Titik 3</text><text x="34" y="206">Lingkungan</text>
-      <text x="34" y="226">Identitas alat</text>
+    <text class="sans judul" x="40" y="94" font-size="16" font-weight="600">Siap dikirim</text>
+    <line class="g-halus" x1="40" y1="110" x2="260" y2="110"/>
+
+    <g class="mono samar" font-size="15">
+      <text x="72" y="150">Titik 1</text><text x="72" y="192">Titik 2</text>
+      <text x="72" y="234">Titik 3</text><text x="72" y="276">Lingkungan</text>
+      <text x="72" y="318">Identitas alat</text>
     </g>
-    <g class="g-lolos" fill="none" stroke-width="1.5" stroke-linecap="round">
-      <path d="M22 143 l3 3 l5 -6"/><path d="M22 163 l3 3 l5 -6"/>
-      <path d="M22 183 l3 3 l5 -6"/><path d="M22 203 l3 3 l5 -6"/>
-      <path d="M22 223 l3 3 l5 -6"/>
-    </g>
-
-    <text class="mono samar" x="22" y="252" font-size="7.5">POST lewat token Sanctum</text>
-
-    <rect class="f-titik" x="22" y="288" width="106" height="24" rx="6"/>
-    <text class="mono" x="75" y="303" font-size="9" fill="#ffffff" text-anchor="middle">Kirim</text>
-
-    <text class="mono redup" x="0"  y="398" font-size="10">03</text>
-    <text class="mono judul" x="26" y="398" font-size="12.5" font-weight="600">Kirim ke API</text>
-    <text class="sans samar" x="0"  y="416" font-size="11">satu pipeline dengan input manual</text>
-  </g>
-
-  <!-- ═══════════════════ yang menahan alur di atas ═══════════════════ -->
-  <line class="g-halus" x1="64" y1="472" x2="1136" y2="472"/>
-
-  <g transform="translate(64, 508)">
-    <text class="mono redup" x="0" y="0" font-size="10.5" letter-spacing="2.6">YANG MENAHAN ALUR DI ATAS</text>
-
-    <g transform="translate(0, 34)">
-      <line class="g-aksen" x1="0" y1="-14" x2="0" y2="46" stroke-width="2"/>
-      <text class="sans judul" x="16" y="0"  font-size="13" font-weight="600">Hasil pindai tidak pernah langsung tersimpan</text>
-      <text class="sans teks"  x="16" y="20" font-size="11.5">Wajib direview dan dikonfirmasi. Tombol lanjut mati selama masih ada sel</text>
-      <text class="sans teks"  x="16" y="37" font-size="11.5">kosong — termasuk sel yang keyakinannya tidak diketahui pengenal teks.</text>
+    <g class="g-lolos" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M42 145 l6 6 l10 -12"/><path d="M42 187 l6 6 l10 -12"/>
+      <path d="M42 229 l6 6 l10 -12"/><path d="M42 271 l6 6 l10 -12"/>
+      <path d="M42 313 l6 6 l10 -12"/>
     </g>
 
-    <g transform="translate(0, 114)">
-      <line class="g-titik" x1="0" y1="-14" x2="0" y2="46" stroke-width="2"/>
-      <text class="sans judul" x="16" y="0"  font-size="13" font-weight="600">Input manual selalu tersedia</text>
-      <text class="sans teks"  x="16" y="20" font-size="11.5">OCR mempercepat, bukan menggantikan. Manual dan hasil pindai masuk lewat</text>
-      <text class="sans teks"  x="16" y="37" font-size="11.5">pipeline yang sama, jadi tidak ada jalur kedua yang diam-diam berbeda.</text>
-    </g>
+    <text class="mono samar" x="40" y="372" font-size="14">POST lewat token Sanctum</text>
 
-    <g transform="translate(596, 34)">
-      <line class="g-lolos" x1="0" y1="-14" x2="0" y2="46" stroke-width="2"/>
-      <text class="sans judul" x="16" y="0"  font-size="13" font-weight="600">Satu APK, dibedakan role</text>
-      <text class="sans teks"  x="16" y="20" font-size="11.5">Teknisi dan admin memakai aplikasi yang sama. Menu admin disembunyikan</text>
-      <text class="sans teks"  x="16" y="37" font-size="11.5">total dari non-admin, bukan sekadar dinonaktifkan.</text>
-    </g>
+    <rect class="f-titik" x="40" y="430" width="220" height="52" rx="12"/>
+    <text class="sans" x="150" y="462" font-size="16" fill="#ffffff" text-anchor="middle">Kirim</text>
 
-    <g transform="translate(596, 114)">
-      <line class="g-garis" x1="0" y1="-14" x2="0" y2="46" stroke-width="2"/>
-      <text class="sans judul" x="16" y="0"  font-size="13" font-weight="600">Tidak ada URL yang ditanam di kode</text>
-      <text class="sans teks"  x="16" y="20" font-size="11.5">Semua lewat --dart-define. Untuk HP fisik dipakai adb reverse, bukan IP LAN</text>
-      <text class="sans teks"  x="16" y="37" font-size="11.5">yang basi tiap ganti wifi dan menyamar jadi "backend mati".</text>
-    </g>
+    <text class="sans samar" x="30" y="556" font-size="14">angkanya dihitung ulang di server</text>
   </g>
 </svg>
