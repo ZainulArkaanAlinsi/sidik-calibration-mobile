@@ -2151,6 +2151,32 @@ class LembarKerjaState {
     // tahu titiknya nggak terbit — dan waktu itu dia udah nggak di depan alatnya.
     'spesifikasi_alat.flowmeter.varian_metode',
     'spesifikasi_alat.flowmeter.kode_timbangan',
+    // Anak Timbangan (alat ke-29) — TIGA kode, dan dua di antaranya nentuin
+    // BARIS TABEL MANA yang dibaca server, bukan cuma satu angka di budget.
+    //
+    // `kelas_uut` kepake dua kali: milih KOLOM di tabel densitas OIML R111
+    // (E1…M3 punya kolomnya sendiri-sendiri) dan milih BARIS di tabel MPE.
+    // `kelas_standar` masuk ke sisi lain rumus apung yang sama —
+    // `b = (rho_udara - 1,2) * (1/rho_UUT - 1/rho_std) * ms` — jadi dua densitas,
+    // dua kelas, dan yang satu nggak bisa nutupin yang lain.
+    //
+    // `timbangan` masok DUA dari enam komponen budget: keterulangan neraca dan
+    // resolusinya. Di lembar ini keterulangan komponen TERBESAR (0,0464 mg dari
+    // uc 0,0639 mg), jadi neraca yang salah pilih nggeser U95 seluruh sesi.
+    //
+    // Server memblokir SESINYA, bukan titiknya: ketiga kotak ini prasyarat
+    // tingkat sesi di `AnakTimbanganCalculator::hitungSesi()`, dan satu pun yang
+    // kosong bikin `boleh_terbit` false dengan SEMUA titik masuk `ditolak`.
+    // Alasannya densitas udara masuk ke setiap keping dan neraca masok dua
+    // komponen ke setiap keping — nggak ada yang bisa dihitung sebagian.
+    //
+    // Jadi yang dicegah di sini sama seperti Flowmeter di atas, cuma taruhannya
+    // lebih besar: bukan satu titik yang nggak terbit, tapi seluruh lembar —
+    // sepuluh keping, empat tabel, tiga ulangan — dan teknisi baru tahu sesudah
+    // dia nggak di depan neraca lagi.
+    'spesifikasi_alat.anak_timbangan.kelas_uut',
+    'spesifikasi_alat.anak_timbangan.kelas_standar',
+    'spesifikasi_alat.anak_timbangan.timbangan',
   };
 
   /// Field penentu angka yang ada di lembar ini tapi belum dipilih.

@@ -67,8 +67,25 @@ void main() {
 
   group('bentuk lembarnya sendiri', () {
     test('kedua varian kebaca utuh, dan bukan lembar pH', () {
-      for (final isian in [buatTotalizer(), buatFlowrate()]) {
-        expect(isian.bentuk.kodeDokumen, 'SIDIK-FM-CAL-0538_Rev.0');
+      // Angka-angka di bawah disetel 11 Sep 2026, waktu fixture-nya
+      // diregenerasi dari server. Yang lama (`_Rev.0`, lima tabel) bentuk
+      // SEBELUM varian gravimetri ISO 4185 mendarat — fixture-nya nggak pernah
+      // ikut diregenerasi, jadi test ini berbulan-bulan menjaga bentuk yang
+      // server sendiri sudah nggak kirim lagi. Persis rasa aman palsu yang
+      // bikin `gen-contoh-lembar-kerja.php` ada.
+      //
+      // Kedua varian sekarang beda kertas DAN beda jumlah tabel, jadi nggak
+      // bisa lagi diperiksa dalam satu loop bernilai sama.
+      final totalizer = buatTotalizer();
+      final flowrate = buatFlowrate();
+
+      // Bawaannya `gravimetri` (master yang divalidasi Technical Manager
+      // 21 Mei 2026), jadi yang tercetak `.B`/`.A_Rev.3` — bukan `_Rev.0`
+      // milik varian UFM.
+      expect(totalizer.bentuk.kodeDokumen, 'SIDIK-FM-CAL-0538.B_Rev.3');
+      expect(flowrate.bentuk.kodeDokumen, 'SIDIK-FM-CAL-0538.A_Rev.3');
+
+      for (final isian in [totalizer, flowrate]) {
         expect(isian.bentuk.bagian.map((b) => b.kode).toList(), [
           'identitas_alat',
           'pemilik',
@@ -78,12 +95,16 @@ void main() {
           'penutup',
         ]);
 
-        // LIMA tabel di `hasil` + DUA di `pipa`. Kalau salah satunya hilang,
+        // DUA tabel di `pipa` buat kedua varian. Kalau salah satunya hilang,
         // deret yang dibawanya nggak punya kotak sama sekali — dan lembarnya
         // tetap kebuka rapi.
-        expect(tabelBagian(isian, 'hasil'), hasLength(5));
         expect(tabelBagian(isian, 'pipa'), hasLength(2));
       }
+
+      // `hasil`-nya BEDA: gravimetri menambah deret berat isi, berat kosong,
+      // dan waktu, dan Flowrate punya satu deret lagi daripada Totalizer.
+      expect(tabelBagian(totalizer, 'hasil'), hasLength(7));
+      expect(tabelBagian(flowrate, 'hasil'), hasLength(8));
     });
 
     test('Flowrate punya tiga kolom durasi, Totalizer satu', () {
@@ -113,17 +134,19 @@ void main() {
     });
   });
 
-  group('kunci baris nggak bentrok antar KETUJUH tabel', () {
-    test('ketujuhnya sekunci tapi kotaknya lepas', () {
+  group('kunci baris nggak bentrok antar SEPULUH tabel', () {
+    test('kesepuluhnya sekunci tapi kotaknya lepas', () {
       final isian = buatFlowrate();
       final semua = [
         ...tabelBagian(isian, 'hasil'),
         ...tabelBagian(isian, 'pipa'),
       ];
 
-      expect(semua, hasLength(7));
+      // Delapan di `hasil` + dua di `pipa`. Dulu tujuh; varian gravimetri
+      // menambah tiga deret (berat isi, berat kosong, waktu).
+      expect(semua, hasLength(10));
 
-      // Bentroknya BUKAN teoretis: ketujuh tabel ber-`tahap` sama, jadi
+      // Bentroknya BUKAN teoretis: kesepuluh tabel ber-`tahap` sama, jadi
       // `kunciTabel`-nya jatuh ke nilai yang sama persis.
       for (final t in semua) {
         expect(t.kunciTabel, semua.first.kunciTabel);

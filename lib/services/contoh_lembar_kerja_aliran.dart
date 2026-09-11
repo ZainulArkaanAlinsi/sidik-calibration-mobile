@@ -30,12 +30,16 @@ library;
 
 /// Bentuk lembar kerja contoh **Flow Meter Cairan (Totalizer)**.
 ///
-/// Kode profil `flowmeter_totalizer`, satuan `L`, kertas `SIDIK-FM-CAL-0538_Rev.0`.
+/// Kode profil `flowmeter_totalizer`, satuan `L`, kertas `SIDIK-FM-CAL-0538.B_Rev.3`.
 Map<String, dynamic> contohBentukLembarKerjaFlowmeterTotalizer({
   bool untukAdmin = false,
 }) {
   return {
-    'kode_dokumen': 'SIDIK-FM-CAL-0538_Rev.0',
+    'kode_dokumen': 'SIDIK-FM-CAL-0538.B_Rev.3',
+    'kode_dokumen_varian': {
+      'ufm': 'SIDIK-FM-CAL-0538_Rev.0',
+      'gravimetri': 'SIDIK-FM-CAL-0538.B_Rev.3',
+    },
     'kode_metode': 'SIDIK-IK-CAL-0528_Rev.4',
     'nomor_lingkup': 'LK-285-IDN',
     'judul': 'Calibration Work Sheet - Flow Meter Cairan (Totalizer)',
@@ -125,6 +129,59 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterTotalizer({
             ],
             'hanya_admin': false,
             'tampil_kalau': null,
+          },
+          {
+            'kode': 'spesifikasi_alat.flowmeter.varian_metode',
+            'label': 'Metode Kalibrasi',
+            'tipe': 'pilihan',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': [
+              {
+                'nilai': 'ufm',
+                'label': 'Perbandingan langsung UFM (Krohne UFC300) — master BELUM divalidasi',
+              },
+              {
+                'nilai': 'gravimetri',
+                'label': 'Penimbangan statis gravimetri (ISO 4185)',
+              },
+            ],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'spesifikasi_alat.flowmeter.kode_timbangan',
+            'label': 'Timbangan Standar',
+            'tipe': 'pilihan',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': [
+              {
+                'nilai': 1,
+                'label': '1 — Dini Argeo DFWLB-3 (U95 0.52 kg)',
+              },
+              {
+                'nilai': 2,
+                'label': '2 — Sartorius 150GF (U95 0.033 kg)',
+              },
+              {
+                'nilai': 3,
+                'label': '3 — Mettler DJ Series / di kertas: Excellent (U95 0.00017 kg)',
+              },
+              {
+                'nilai': 4,
+                'label': '4 — Fujitsu FSR-A (U95 1.6E-5 kg)',
+              },
+            ],
+            'hanya_admin': false,
+            'tampil_kalau': {
+              'kode': 'spesifikasi_alat.flowmeter.varian_metode',
+              'nilai': [
+                'gravimetri',
+              ],
+            },
           },
           {
             'kode': 'spesifikasi_alat.flowmeter.satuan',
@@ -706,6 +763,114 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterTotalizer({
               2,
               3,
             ],
+            'tampil_kalau': {
+              'kode': 'spesifikasi_alat.flowmeter.varian_metode',
+              'nilai': [
+                'ufm',
+              ],
+            },
+          },
+          {
+            'tahap': 'sesudah_adjustment',
+            'grup': 'flow_berat_isi',
+            'judul': 'Berat Isi (air tertimbang)',
+            'satuan': 'kg',
+            'judul_nilai': 'Titik',
+            'judul_pengulangan': 'Pembacaan',
+            'titik_bisa_diubah': true,
+            'pita_cetak': 3,
+            'offset_kunci': 6000,
+            'simpan_ke': 'measurements[].flow_berat_isi',
+            'baris': [
+              {
+                'nomor': 1,
+                'titik_ukur': null,
+                'label': 'Titik 1',
+                'satuan': 'L',
+              },
+              {
+                'nomor': 2,
+                'titik_ukur': null,
+                'label': 'Titik 2',
+                'satuan': 'L',
+              },
+              {
+                'nomor': 3,
+                'titik_ukur': null,
+                'label': 'Titik 3',
+                'satuan': 'L',
+              },
+            ],
+            'kolom': [
+              {
+                'kode': 'pembacaan',
+                'label': 'Nilai',
+                'tipe': 'angka',
+                'satuan': 'kg',
+              },
+            ],
+            'pengulangan': [
+              1,
+              2,
+              3,
+            ],
+            'tampil_kalau': {
+              'kode': 'spesifikasi_alat.flowmeter.varian_metode',
+              'nilai': [
+                'gravimetri',
+              ],
+            },
+          },
+          {
+            'tahap': 'sesudah_adjustment',
+            'grup': 'flow_berat_kosong',
+            'judul': 'Berat Wadah Kosong (tara)',
+            'satuan': 'kg',
+            'judul_nilai': 'Titik',
+            'judul_pengulangan': 'Pembacaan',
+            'titik_bisa_diubah': true,
+            'pita_cetak': 3,
+            'offset_kunci': 7000,
+            'simpan_ke': 'measurements[].flow_berat_kosong',
+            'baris': [
+              {
+                'nomor': 1,
+                'titik_ukur': null,
+                'label': 'Titik 1',
+                'satuan': 'L',
+              },
+              {
+                'nomor': 2,
+                'titik_ukur': null,
+                'label': 'Titik 2',
+                'satuan': 'L',
+              },
+              {
+                'nomor': 3,
+                'titik_ukur': null,
+                'label': 'Titik 3',
+                'satuan': 'L',
+              },
+            ],
+            'kolom': [
+              {
+                'kode': 'pembacaan',
+                'label': 'Nilai',
+                'tipe': 'angka',
+                'satuan': 'kg',
+              },
+            ],
+            'pengulangan': [
+              1,
+              2,
+              3,
+            ],
+            'tampil_kalau': {
+              'kode': 'spesifikasi_alat.flowmeter.varian_metode',
+              'nilai': [
+                'gravimetri',
+              ],
+            },
           },
           {
             'tahap': 'sesudah_adjustment',
@@ -839,6 +1004,12 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterTotalizer({
             'pengulangan': [
               1,
             ],
+            'tampil_kalau': {
+              'kode': 'spesifikasi_alat.flowmeter.varian_metode',
+              'nilai': [
+                'ufm',
+              ],
+            },
           },
         ],
       },
@@ -888,12 +1059,16 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterTotalizer({
 
 /// Bentuk lembar kerja contoh **Flow Meter Cairan (Flowrate)**.
 ///
-/// Kode profil `flowmeter_flowrate`, satuan `Lpm`, kertas `SIDIK-FM-CAL-0538_Rev.0`.
+/// Kode profil `flowmeter_flowrate`, satuan `Lpm`, kertas `SIDIK-FM-CAL-0538.A_Rev.3`.
 Map<String, dynamic> contohBentukLembarKerjaFlowmeterFlowrate({
   bool untukAdmin = false,
 }) {
   return {
-    'kode_dokumen': 'SIDIK-FM-CAL-0538_Rev.0',
+    'kode_dokumen': 'SIDIK-FM-CAL-0538.A_Rev.3',
+    'kode_dokumen_varian': {
+      'ufm': 'SIDIK-FM-CAL-0538_Rev.0',
+      'gravimetri': 'SIDIK-FM-CAL-0538.A_Rev.3',
+    },
     'kode_metode': 'SIDIK-IK-CAL-0528_Rev.4',
     'nomor_lingkup': 'LK-285-IDN',
     'judul': 'Calibration Work Sheet - Flow Meter Cairan (Flowrate)',
@@ -983,6 +1158,55 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterFlowrate({
             ],
             'hanya_admin': false,
             'tampil_kalau': null,
+          },
+          {
+            'kode': 'spesifikasi_alat.flowmeter.varian_metode',
+            'label': 'Metode Kalibrasi',
+            'tipe': 'pilihan',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': [
+              {
+                'nilai': 'ufm',
+                'label': 'Perbandingan langsung UFM (Krohne UFC300) — master BELUM divalidasi',
+              },
+              {
+                'nilai': 'gravimetri',
+                'label': 'Penimbangan statis gravimetri (ISO 4185)',
+              },
+            ],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'spesifikasi_alat.flowmeter.kode_timbangan',
+            'label': 'Timbangan Standar',
+            'tipe': 'pilihan',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': [
+              {
+                'nilai': 1,
+                'label': '1 — Dini Argeo DFWLB-3 (U95 0.52 kg)',
+              },
+              {
+                'nilai': 2,
+                'label': '2 — Sartorius 150GF (U95 0.033 kg)',
+              },
+              {
+                'nilai': 3,
+                'label': '3 — Mettler DFWLB-3 / di kertas: Excellent (U95 0.00017 kg)',
+              },
+            ],
+            'hanya_admin': false,
+            'tampil_kalau': {
+              'kode': 'spesifikasi_alat.flowmeter.varian_metode',
+              'nilai': [
+                'gravimetri',
+              ],
+            },
           },
           {
             'kode': 'spesifikasi_alat.flowmeter.satuan',
@@ -1580,6 +1804,114 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterFlowrate({
               2,
               3,
             ],
+            'tampil_kalau': {
+              'kode': 'spesifikasi_alat.flowmeter.varian_metode',
+              'nilai': [
+                'ufm',
+              ],
+            },
+          },
+          {
+            'tahap': 'sesudah_adjustment',
+            'grup': 'flow_berat_isi',
+            'judul': 'Berat Isi (air tertimbang)',
+            'satuan': 'kg',
+            'judul_nilai': 'Titik',
+            'judul_pengulangan': 'Pembacaan',
+            'titik_bisa_diubah': true,
+            'pita_cetak': 3,
+            'offset_kunci': 6000,
+            'simpan_ke': 'measurements[].flow_berat_isi',
+            'baris': [
+              {
+                'nomor': 1,
+                'titik_ukur': null,
+                'label': 'Titik 1',
+                'satuan': 'Lpm',
+              },
+              {
+                'nomor': 2,
+                'titik_ukur': null,
+                'label': 'Titik 2',
+                'satuan': 'Lpm',
+              },
+              {
+                'nomor': 3,
+                'titik_ukur': null,
+                'label': 'Titik 3',
+                'satuan': 'Lpm',
+              },
+            ],
+            'kolom': [
+              {
+                'kode': 'pembacaan',
+                'label': 'Nilai',
+                'tipe': 'angka',
+                'satuan': 'kg',
+              },
+            ],
+            'pengulangan': [
+              1,
+              2,
+              3,
+            ],
+            'tampil_kalau': {
+              'kode': 'spesifikasi_alat.flowmeter.varian_metode',
+              'nilai': [
+                'gravimetri',
+              ],
+            },
+          },
+          {
+            'tahap': 'sesudah_adjustment',
+            'grup': 'flow_berat_kosong',
+            'judul': 'Berat Wadah Kosong (tara)',
+            'satuan': 'kg',
+            'judul_nilai': 'Titik',
+            'judul_pengulangan': 'Pembacaan',
+            'titik_bisa_diubah': true,
+            'pita_cetak': 3,
+            'offset_kunci': 7000,
+            'simpan_ke': 'measurements[].flow_berat_kosong',
+            'baris': [
+              {
+                'nomor': 1,
+                'titik_ukur': null,
+                'label': 'Titik 1',
+                'satuan': 'Lpm',
+              },
+              {
+                'nomor': 2,
+                'titik_ukur': null,
+                'label': 'Titik 2',
+                'satuan': 'Lpm',
+              },
+              {
+                'nomor': 3,
+                'titik_ukur': null,
+                'label': 'Titik 3',
+                'satuan': 'Lpm',
+              },
+            ],
+            'kolom': [
+              {
+                'kode': 'pembacaan',
+                'label': 'Nilai',
+                'tipe': 'angka',
+                'satuan': 'kg',
+              },
+            ],
+            'pengulangan': [
+              1,
+              2,
+              3,
+            ],
+            'tampil_kalau': {
+              'kode': 'spesifikasi_alat.flowmeter.varian_metode',
+              'nilai': [
+                'gravimetri',
+              ],
+            },
           },
           {
             'tahap': 'sesudah_adjustment',
@@ -1713,6 +2045,63 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterFlowrate({
             'pengulangan': [
               1,
             ],
+            'tampil_kalau': {
+              'kode': 'spesifikasi_alat.flowmeter.varian_metode',
+              'nilai': [
+                'ufm',
+              ],
+            },
+          },
+          {
+            'tahap': 'sesudah_adjustment',
+            'grup': 'flow_waktu_menit',
+            'judul': 'Durasi Penimbangan',
+            'satuan': 'menit',
+            'judul_nilai': 'Titik',
+            'judul_pengulangan': 'Pembacaan',
+            'titik_bisa_diubah': true,
+            'pita_cetak': 4,
+            'offset_kunci': 8000,
+            'simpan_ke': 'measurements[].flow_waktu_menit',
+            'baris': [
+              {
+                'nomor': 1,
+                'titik_ukur': null,
+                'label': 'Titik 1',
+                'satuan': 'Lpm',
+              },
+              {
+                'nomor': 2,
+                'titik_ukur': null,
+                'label': 'Titik 2',
+                'satuan': 'Lpm',
+              },
+              {
+                'nomor': 3,
+                'titik_ukur': null,
+                'label': 'Titik 3',
+                'satuan': 'Lpm',
+              },
+            ],
+            'kolom': [
+              {
+                'kode': 'pembacaan',
+                'label': 'Nilai',
+                'tipe': 'angka',
+                'satuan': 'menit',
+              },
+            ],
+            'pengulangan': [
+              1,
+              2,
+              3,
+            ],
+            'tampil_kalau': {
+              'kode': 'spesifikasi_alat.flowmeter.varian_metode',
+              'nilai': [
+                'gravimetri',
+              ],
+            },
           },
         ],
       },

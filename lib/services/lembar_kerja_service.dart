@@ -4,6 +4,7 @@ import '../models/lembar_kerja_submission.dart';
 import '../models/pratinjau_hitung.dart';
 import 'api_client.dart';
 import 'equipment_lookup_service.dart';
+import 'contoh_lembar_kerja_anak_timbangan.dart';
 import 'contoh_lembar_kerja_aliran.dart';
 import 'contoh_lembar_kerja_analitik.dart';
 import 'contoh_lembar_kerja_autoclave.dart';
@@ -269,6 +270,17 @@ class MockLembarKerjaService implements LembarKerjaService {
       // mode mock memajang lembar pH untuk alat Massa: nggak ada error, cuma
       // lembar yang salah — persis yang kejadian di TIDS sebelum 28 Agt 2026.
       'timbangan' => contohBentukLembarKerjaTimbangan(untukAdmin: untukAdmin),
+      // Anak Timbangan (alat ke-29) — kelompok Massa juga, tapi fixture-nya
+      // berkas SENDIRI: bentuk Timbangan lahir dari alat contoh `TB-100`,
+      // sementara yang ini tanpa alat, jadi menyatukannya bikin salah satu
+      // tertimpa bentuk yang bukan miliknya.
+      //
+      // Tanpa cabang ini `anak_timbangan` jatuh ke `_` dan mode mock memajang
+      // lembar pH tiga titik buffer untuk lembar yang tabelnya EMPAT — nggak
+      // ada error, cuma lembar yang salah.
+      'anak_timbangan' => contohBentukLembarKerjaAnakTimbangan(
+        untukAdmin: untukAdmin,
+      ),
       // Kelompok WAKTU DAN FREKUENSI (alat ke-22..24). Timer bentuknya beda
       // sendiri — dua tabel deret, tiap ulangan EMPAT kotak — jadi tanpa
       // cabangnya sendiri di sini mode mock memajang lembar pH untuk lembar

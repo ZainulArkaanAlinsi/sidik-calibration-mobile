@@ -1,0 +1,1026 @@
+/// Bentuk lembar kerja contoh **Anak Timbangan** (kelompok Massa, alat ke-29).
+///
+/// Berkas SENDIRI, bukan menumpang `contoh_lembar_kerja_massa.dart` yang memuat
+/// Timbangan (alat ke-21). Bentuk Timbangan lahir dari alat contoh `TB-100`
+/// (kapasitas 100 kg, resolusi 0,02 kg) — dia butuh Equipment, dan generator ini
+/// memanggil `bentukLembarKerja()` tanpa alat. Digabung, fixture Timbangan
+/// tertimpa bentuk yang bukan miliknya.
+///
+/// DIGENERATE `docs/skrip/gen-contoh-lembar-kerja.php` di repo API — jangan
+/// disunting tangan. Isinya salinan APA ADANYA respons
+/// `GET /api/calibrations/lembar-kerja?equipment_id=…`.
+///
+/// ## Yang cuma ada di lembar ini
+///
+///  1. **EMPAT tabel ber-`tahap` sama, satu per peran ABBA.** `at_s1`, `at_t1`,
+///     `at_t2`, `at_s2` — dan urutannya MENGIKAT, karena
+///     `de = (T1 − S1 − S2 + T2)/2` memberi tanda yang berbeda ke tiap suku.
+///     Baris yang mendarat di peran yang salah membalikkan ARAH koreksi
+///     kepingnya, tanpa satu pun error.
+///  2. **Kunci barisnya dipisah `offset_kunci`** (0 / 1000 / 2000 / 3000).
+///     Tanpa itu angka yang diketik di satu tabel muncul di tabel lain.
+///  3. **Keempatnya menyatakan `simpan_ke`** (`measurements[].at_*`). Sampai
+///     itu ada, payload dari HP berangkat tanpa satu pun kunci peran dan
+///     SELURUH titik pulang "belum dihitung" — lembar penuh di layar, nol titik
+///     terbit. Lihat `AlurPenuhAnakTimbanganTest` di repo API.
+///  4. **Tiga kotak yang MENGGERAKKAN ANGKA** di `identitas_alat`:
+///     `kelas_uut` dan `kelas_standar` memilih kolom tabel densitas OIML R111
+///     dan baris tabel MPE; `timbangan` memasok dua dari enam komponen budget.
+///     Ketiganya prasyarat tingkat-SESI — satu pun kosong, seluruh sesi ditolak.
+///  5. **Tekanan udara tetap diminta** walau kertas Rev.0 tidak punya kolomnya.
+///     Tanpa tekanan, densitas udara tidak bisa dihitung dan koreksi apung
+///     seluruh keping hilang.
+///
+/// Dropdown bersumber master (`master_alat`, `master_ruangan`,
+/// `master_thermohygro`) sengaja kosong di sini — sama seperti berkas contoh
+/// alat lain, mode mock memang nggak punya masternya.
+library;
+
+/// Bentuk lembar kerja contoh **Anak Timbangan**.
+///
+/// Kode profil `anak_timbangan`, satuan `g`, kertas `SIDIK-FM-CAL-0541_Rev.0`.
+Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
+  bool untukAdmin = false,
+}) {
+  return {
+    'kode_dokumen': 'SIDIK-FM-CAL-0541_Rev.0',
+    'kode_metode': 'SIDIK-IK-CAL-0535_Rev.0',
+    'judul': 'Calibration Work Sheet - Anak Timbangan',
+    'jumlah_pengulangan': 3,
+    'satuan': 'g',
+    'satuan_suhu': '°C',
+    'semua_kolom_opsional': true,
+    'catatan_pengisian': 'Urutan penimbangan ABBA WAJIB diisi sesuai perannya: Standard, UUT, UUT, Standard. Keempatnya punya TANDA yang berbeda di rumus `de = (T1 − S1 − S2 + T2)/2`, jadi baris yang tertukar membalik arah koreksi kepingnya tanpa satu pun error. TEKANAN UDARA wajib diisi walau kertas Rev.0 belum punya kolomnya — tanpa tekanan, densitas udara tidak bisa dihitung dan koreksi apung seluruh keping hilang. Keping yang nominalnya KEMBAR (dua 200 g, dua 20 g, dua 2 g, dua 0,2 g, dua 0,02 g) wajib diberi No. Identitas — tanpa itu pelanggan tidak bisa memetakan sertifikat ke keping fisiknya, dan titiknya tidak akan diterbitkan.',
+    'budget_ketidakpastian': {
+      'tersedia': true,
+      'sumber': '1.1 Anak Timbangan F1 1mg-500 g 202501022 imp.xlsx',
+      'catatan': 'Enam komponen per keping dalam miligram, mengikuti OIML R111. TANPA lantai CMC — kalibrasi anak timbangan di luar lampiran LK-285-IDN, dan sel lantai masternya memang kosong di kedua puluh blok. Titik yang densitasnya tidak ada di tabel, yang |de|-nya melebihi 10x MPE, atau yang keping kembarnya belum diberi No. Identitas TIDAK diterbitkan.',
+    },
+    'bagian': [
+      {
+        'kode': 'identitas_alat',
+        'halaman': 1,
+        'judul': 'Identitas Alat',
+        'field': [
+          {
+            'kode': 'equipment_id',
+            'label': 'Nama Alat',
+            'tipe': 'pilihan',
+            'wajib': false,
+            'sumber': 'master_alat',
+            'satuan': null,
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'equipment.nama_alat',
+            'label': 'Nama Alat',
+            'tipe': 'teks',
+            'wajib': false,
+            'sumber': 'otomatis',
+            'satuan': null,
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'alat_merk',
+            'label': 'Merk',
+            'tipe': 'teks',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'spesifikasi_alat.anak_timbangan.kelas_uut',
+            'label': 'Class (UUT)',
+            'tipe': 'pilihan',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': [
+              {
+                'nilai': 'E1',
+                'label': 'E1',
+              },
+              {
+                'nilai': 'E2',
+                'label': 'E2',
+              },
+              {
+                'nilai': 'F1',
+                'label': 'F1',
+              },
+              {
+                'nilai': 'F2',
+                'label': 'F2',
+              },
+              {
+                'nilai': 'M1',
+                'label': 'M1',
+              },
+              {
+                'nilai': 'M2',
+                'label': 'M2',
+              },
+              {
+                'nilai': 'M3',
+                'label': 'M3',
+              },
+            ],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'spesifikasi_alat.anak_timbangan.kelas_standar',
+            'label': 'Class (Standar)',
+            'tipe': 'pilihan',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': [
+              {
+                'nilai': 'E1',
+                'label': 'E1',
+              },
+              {
+                'nilai': 'E2',
+                'label': 'E2',
+              },
+              {
+                'nilai': 'F1',
+                'label': 'F1',
+              },
+              {
+                'nilai': 'F2',
+                'label': 'F2',
+              },
+              {
+                'nilai': 'M1',
+                'label': 'M1',
+              },
+              {
+                'nilai': 'M2',
+                'label': 'M2',
+              },
+              {
+                'nilai': 'M3',
+                'label': 'M3',
+              },
+            ],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'alat_serial_number',
+            'label': 'No. Seri',
+            'tipe': 'teks',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'spesifikasi_alat.anak_timbangan.kapasitas_g',
+            'label': 'Kapasitas Alat',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': null,
+            'satuan': 'g',
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'tanggal_terima',
+            'label': 'Tgl. Diterima',
+            'tipe': 'tanggal',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'tanggal_kalibrasi',
+            'label': 'Tgl. Kalibrasi',
+            'tipe': 'tanggal',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'spesifikasi_alat.anak_timbangan.timbangan',
+            'label': 'Timbangan yang Dipakai',
+            'tipe': 'pilihan',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': [
+              {
+                'nilai': 'Semi Micro Balance',
+                'label': 'Semi Micro Balance — OHAUS PIONEER/PX85 (maks 80 g, res 0,00001 g)',
+              },
+              {
+                'nilai': 'Analytical Balance',
+                'label': 'Analytical Balance — Mettler Toledo/XS204 (maks 220 g, res 0,0001 g)',
+              },
+              {
+                'nilai': 'Electronic Balance Fujitsu',
+                'label': 'Electronic Balance Fujitsu — Fujitsu/FSR-A (maks 1.200 g, res 0,001 g)',
+              },
+              {
+                'nilai': 'Electronic Balance Excellent',
+                'label': 'Electronic Balance Excellent — Excellent/DJ (maks 3.100 g, res 0,01 g)',
+              },
+              {
+                'nilai': 'Electronic Balance  Mettler',
+                'label': 'Electronic Balance  Mettler — Mettler Toledo/IND690 (maks 30.000 g, res 0,01 g)',
+              },
+            ],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'thermohygro_standard_id',
+            'label': 'Environmental Meter Used',
+            'tipe': 'pilihan',
+            'wajib': false,
+            'sumber': 'master_thermohygro',
+            'satuan': null,
+            'pilihan': [
+              {
+                'nilai': '1',
+                'label': 'TH-1',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '2',
+                'label': 'TH-2',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '3',
+                'label': 'TH-3',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '4',
+                'label': 'TH-4',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '5',
+                'label': 'TH-5',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '6',
+                'label': 'TH-6',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '7',
+                'label': 'TH-7',
+                'grup': 'Thermohygro lab',
+              },
+            ],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'spesifikasi_alat.anak_timbangan.meter_lingkungan',
+            'label': 'TH Used',
+            'tipe': 'pilihan',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': [
+              {
+                'nilai': 'Thermobarometer',
+                'label': 'Thermobarometer',
+              },
+              {
+                'nilai': 'TH-1',
+                'label': 'TH-1',
+              },
+              {
+                'nilai': 'TH-2',
+                'label': 'TH-2',
+              },
+              {
+                'nilai': 'TH-3',
+                'label': 'TH-3',
+              },
+              {
+                'nilai': 'TH-4',
+                'label': 'TH-4',
+              },
+              {
+                'nilai': 'TH-5',
+                'label': 'TH-5',
+              },
+              {
+                'nilai': 'TH-6',
+                'label': 'TH-6',
+              },
+              {
+                'nilai': 'TH-7',
+                'label': 'TH-7',
+              },
+            ],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'spesifikasi_alat.anak_timbangan.suhu_awal',
+            'label': 'Suhu Ruangan — awal',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': null,
+            'satuan': '°C',
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'spesifikasi_alat.anak_timbangan.suhu_akhir',
+            'label': 'Suhu Ruangan — akhir',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': null,
+            'satuan': '°C',
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'spesifikasi_alat.anak_timbangan.kelembaban_awal',
+            'label': 'Kelembapan — awal',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': null,
+            'satuan': '%RH',
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'spesifikasi_alat.anak_timbangan.kelembaban_akhir',
+            'label': 'Kelembapan — akhir',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': null,
+            'satuan': '%RH',
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'spesifikasi_alat.anak_timbangan.tekanan_awal',
+            'label': 'Tekanan Udara — awal',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': null,
+            'satuan': 'hPa',
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'spesifikasi_alat.anak_timbangan.tekanan_akhir',
+            'label': 'Tekanan Udara — akhir',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': null,
+            'satuan': 'hPa',
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'lokasi',
+            'label': 'Lokasi Kalibrasi',
+            'tipe': 'pilihan',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': [
+              {
+                'nilai': 'lab',
+                'label': 'Inlab',
+              },
+              {
+                'nilai': 'onsite',
+                'label': 'Insitu',
+              },
+            ],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'room_id',
+            'label': 'Ruangan (Inlab)',
+            'tipe': 'pilihan',
+            'wajib': false,
+            'sumber': 'master_ruangan',
+            'satuan': null,
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': {
+              'kode': 'lokasi',
+              'nilai': [
+                'lab',
+              ],
+            },
+          },
+          {
+            'kode': 'lokasi_nama',
+            'label': 'Nama Tempat (Insitu)',
+            'tipe': 'teks',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': {
+              'kode': 'lokasi',
+              'nilai': [
+                'onsite',
+              ],
+            },
+          },
+        ],
+      },
+      {
+        'kode': 'pemilik',
+        'halaman': 1,
+        'judul': 'Identitas Customer',
+        'field': [
+          {
+            'kode': 'pemilik_nama',
+            'label': 'Nama Customer',
+            'tipe': 'teks',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'pemilik_alamat',
+            'label': 'Alamat Customer',
+            'tipe': 'teks_panjang',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'nomor_order',
+            'label': 'Order Number',
+            'tipe': 'teks',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+        ],
+      },
+      {
+        'kode': 'usage_check',
+        'halaman': 1,
+        'judul': 'Standard Used',
+        'baris': [
+          {
+            'label': 'Semi Micro Balance — OHAUS PIONEER/PX85',
+            'standard_id': null,
+            'serial_number': null,
+            'no_sertifikat': null,
+            'tertelusur_ke': null,
+            'terdaftar': false,
+          },
+          {
+            'label': 'Analytical Balance — Mettler Toledo/XS204',
+            'standard_id': null,
+            'serial_number': null,
+            'no_sertifikat': null,
+            'tertelusur_ke': null,
+            'terdaftar': false,
+          },
+          {
+            'label': 'Electronic Balance Fujitsu — Fujitsu/FSR-A',
+            'standard_id': null,
+            'serial_number': null,
+            'no_sertifikat': null,
+            'tertelusur_ke': null,
+            'terdaftar': false,
+          },
+          {
+            'label': 'Electronic Balance Excellent — Excellent/DJ',
+            'standard_id': null,
+            'serial_number': null,
+            'no_sertifikat': null,
+            'tertelusur_ke': null,
+            'terdaftar': false,
+          },
+          {
+            'label': 'Electronic Balance Mettler — Mettler Toledo/IND690',
+            'standard_id': null,
+            'serial_number': null,
+            'no_sertifikat': null,
+            'tertelusur_ke': null,
+            'terdaftar': false,
+          },
+          {
+            'label': 'Anak Timbangan E2 200 g — Accurate/Stainless',
+            'standard_id': null,
+            'serial_number': null,
+            'no_sertifikat': null,
+            'tertelusur_ke': null,
+            'terdaftar': false,
+          },
+          {
+            'label': 'Anak Timbangan E2 500 g — Accurate/Stainless',
+            'standard_id': null,
+            'serial_number': null,
+            'no_sertifikat': null,
+            'tertelusur_ke': null,
+            'terdaftar': false,
+          },
+          {
+            'label': 'Anak Timbangan E2 1 kg — Want Ballance/E2',
+            'standard_id': null,
+            'serial_number': null,
+            'no_sertifikat': null,
+            'tertelusur_ke': null,
+            'terdaftar': false,
+          },
+          {
+            'label': 'Anak Timbangan F1-2 — Accurate/F1',
+            'standard_id': null,
+            'serial_number': null,
+            'no_sertifikat': null,
+            'tertelusur_ke': null,
+            'terdaftar': false,
+          },
+          {
+            'label': 'Anak Timbangan F1-5 — Accurate/F1',
+            'standard_id': null,
+            'serial_number': null,
+            'no_sertifikat': null,
+            'tertelusur_ke': null,
+            'terdaftar': false,
+          },
+          {
+            'label': 'Anak Timbangan F1-10 — Excellent/F1',
+            'standard_id': 57,
+            'serial_number': '4321',
+            'no_sertifikat': '4321',
+            'tertelusur_ke': 'LK-279-IDN',
+            'terdaftar': true,
+          },
+          {
+            'label': 'Anak Timbangan F1-20 — Want Ballance/F1',
+            'standard_id': null,
+            'serial_number': null,
+            'no_sertifikat': null,
+            'tertelusur_ke': null,
+            'terdaftar': false,
+          },
+        ],
+        'field': [
+          {
+            'kode': 'standar_dicek.*.dipakai',
+            'label': 'Usage Check',
+            'tipe': 'centang',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'standar_dicek.*.keterangan',
+            'label': 'Keterangan',
+            'tipe': 'teks',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+        ],
+      },
+      {
+        'kode': 'hasil',
+        'halaman': 1,
+        'judul': 'Data Hasil Kalibrasi',
+        'field': <dynamic>[],
+        'tabel': [
+          {
+            'tahap': 'sesudah_adjustment',
+            'grup': 'at_s1',
+            'judul': 'Standard (S1) — penimbangan standar, pertama',
+            'satuan': 'g',
+            'judul_nilai': 'Nominal AT',
+            'judul_pengulangan': 'Pembacaan',
+            'titik_bisa_diubah': true,
+            'offset_kunci': 0,
+            'simpan_ke': 'measurements[].at_s1',
+            'baris': [
+              {
+                'nomor': 1,
+                'titik_ukur': null,
+                'label': 'Keping 1',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 2,
+                'titik_ukur': null,
+                'label': 'Keping 2',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 3,
+                'titik_ukur': null,
+                'label': 'Keping 3',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 4,
+                'titik_ukur': null,
+                'label': 'Keping 4',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 5,
+                'titik_ukur': null,
+                'label': 'Keping 5',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 6,
+                'titik_ukur': null,
+                'label': 'Keping 6',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 7,
+                'titik_ukur': null,
+                'label': 'Keping 7',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 8,
+                'titik_ukur': null,
+                'label': 'Keping 8',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 9,
+                'titik_ukur': null,
+                'label': 'Keping 9',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 10,
+                'titik_ukur': null,
+                'label': 'Keping 10',
+                'satuan': 'g',
+              },
+            ],
+            'kolom': [
+              {
+                'kode': 'pembacaan',
+                'label': 'Nilai',
+                'tipe': 'angka',
+                'satuan': 'g',
+              },
+            ],
+            'pengulangan': [
+              1,
+              2,
+              3,
+            ],
+          },
+          {
+            'tahap': 'sesudah_adjustment',
+            'grup': 'at_t1',
+            'judul': 'UUT (T1) — penimbangan alat, pertama',
+            'satuan': 'g',
+            'judul_nilai': 'Nominal AT',
+            'judul_pengulangan': 'Pembacaan',
+            'titik_bisa_diubah': true,
+            'offset_kunci': 1000,
+            'simpan_ke': 'measurements[].at_t1',
+            'baris': [
+              {
+                'nomor': 1,
+                'titik_ukur': null,
+                'label': 'Keping 1',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 2,
+                'titik_ukur': null,
+                'label': 'Keping 2',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 3,
+                'titik_ukur': null,
+                'label': 'Keping 3',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 4,
+                'titik_ukur': null,
+                'label': 'Keping 4',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 5,
+                'titik_ukur': null,
+                'label': 'Keping 5',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 6,
+                'titik_ukur': null,
+                'label': 'Keping 6',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 7,
+                'titik_ukur': null,
+                'label': 'Keping 7',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 8,
+                'titik_ukur': null,
+                'label': 'Keping 8',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 9,
+                'titik_ukur': null,
+                'label': 'Keping 9',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 10,
+                'titik_ukur': null,
+                'label': 'Keping 10',
+                'satuan': 'g',
+              },
+            ],
+            'kolom': [
+              {
+                'kode': 'pembacaan',
+                'label': 'Nilai',
+                'tipe': 'angka',
+                'satuan': 'g',
+              },
+            ],
+            'pengulangan': [
+              1,
+              2,
+              3,
+            ],
+          },
+          {
+            'tahap': 'sesudah_adjustment',
+            'grup': 'at_t2',
+            'judul': 'UUT (T2) — penimbangan alat, kedua',
+            'satuan': 'g',
+            'judul_nilai': 'Nominal AT',
+            'judul_pengulangan': 'Pembacaan',
+            'titik_bisa_diubah': true,
+            'offset_kunci': 2000,
+            'simpan_ke': 'measurements[].at_t2',
+            'baris': [
+              {
+                'nomor': 1,
+                'titik_ukur': null,
+                'label': 'Keping 1',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 2,
+                'titik_ukur': null,
+                'label': 'Keping 2',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 3,
+                'titik_ukur': null,
+                'label': 'Keping 3',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 4,
+                'titik_ukur': null,
+                'label': 'Keping 4',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 5,
+                'titik_ukur': null,
+                'label': 'Keping 5',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 6,
+                'titik_ukur': null,
+                'label': 'Keping 6',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 7,
+                'titik_ukur': null,
+                'label': 'Keping 7',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 8,
+                'titik_ukur': null,
+                'label': 'Keping 8',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 9,
+                'titik_ukur': null,
+                'label': 'Keping 9',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 10,
+                'titik_ukur': null,
+                'label': 'Keping 10',
+                'satuan': 'g',
+              },
+            ],
+            'kolom': [
+              {
+                'kode': 'pembacaan',
+                'label': 'Nilai',
+                'tipe': 'angka',
+                'satuan': 'g',
+              },
+            ],
+            'pengulangan': [
+              1,
+              2,
+              3,
+            ],
+          },
+          {
+            'tahap': 'sesudah_adjustment',
+            'grup': 'at_s2',
+            'judul': 'Standard (S2) — penimbangan standar, kedua',
+            'satuan': 'g',
+            'judul_nilai': 'Nominal AT',
+            'judul_pengulangan': 'Pembacaan',
+            'titik_bisa_diubah': true,
+            'offset_kunci': 3000,
+            'simpan_ke': 'measurements[].at_s2',
+            'baris': [
+              {
+                'nomor': 1,
+                'titik_ukur': null,
+                'label': 'Keping 1',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 2,
+                'titik_ukur': null,
+                'label': 'Keping 2',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 3,
+                'titik_ukur': null,
+                'label': 'Keping 3',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 4,
+                'titik_ukur': null,
+                'label': 'Keping 4',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 5,
+                'titik_ukur': null,
+                'label': 'Keping 5',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 6,
+                'titik_ukur': null,
+                'label': 'Keping 6',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 7,
+                'titik_ukur': null,
+                'label': 'Keping 7',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 8,
+                'titik_ukur': null,
+                'label': 'Keping 8',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 9,
+                'titik_ukur': null,
+                'label': 'Keping 9',
+                'satuan': 'g',
+              },
+              {
+                'nomor': 10,
+                'titik_ukur': null,
+                'label': 'Keping 10',
+                'satuan': 'g',
+              },
+            ],
+            'kolom': [
+              {
+                'kode': 'pembacaan',
+                'label': 'Nilai',
+                'tipe': 'angka',
+                'satuan': 'g',
+              },
+            ],
+            'pengulangan': [
+              1,
+              2,
+              3,
+            ],
+          },
+        ],
+      },
+      {
+        'kode': 'penutup',
+        'halaman': 1,
+        'judul': 'Catatan & Tanda Tangan',
+        'field': [
+          {
+            'kode': 'catatan_teknisi',
+            'label': 'Catatan',
+            'tipe': 'teks_panjang',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'teknisi.nama',
+            'label': 'Dikalibrasi Oleh',
+            'tipe': 'teks',
+            'wajib': false,
+            'sumber': 'otomatis',
+            'satuan': null,
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
+            'kode': 'reviewer.nama',
+            'label': 'Diperiksa Oleh',
+            'tipe': 'teks',
+            'wajib': false,
+            'sumber': 'otomatis',
+            'satuan': null,
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+        ],
+      },
+    ],
+  };
+}
