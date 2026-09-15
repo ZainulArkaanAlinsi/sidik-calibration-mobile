@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sidik_calibration/models/versi_aplikasi.dart';
 import 'package:sidik_calibration/providers/versi_provider.dart';
+import 'package:sidik_calibration/services/pemasang_sesi.dart';
 import 'package:sidik_calibration/services/pengunduh_apk.dart';
 import 'package:sidik_calibration/services/penyiap_update.dart';
 import 'package:sidik_calibration/services/versi_service.dart';
@@ -488,4 +489,137 @@ void main() {
       expect(pengunduh.panggilanPasang, 1);
     });
   });
+
+  /// Android 12+: sesudah aplikasi ini tercatat sebagai pemasangnya sendiri,
+  /// rilis berikutnya dipasang TANPA ketukan — tapi memasang mematikan proses
+  /// aplikasi, jadi waktunya harus benar.
+  group('pemutakhiran tanpa ketukan', () {
+    ProviderContainer wadahDiam(_SesiPalsu sesi, {bool siap = true}) {
+      final c = ProviderContainer(
+        overrides: [
+          versiServiceProvider.overrideWithValue(
+            MockVersiService(terpasang: '1.0.58', terbaru: rilis()),
+          ),
+          penyiapUpdateProvider.overrideWithValue(_PenyiapPalsu(siap: siap)),
+          pemasangSesiProvider.overrideWithValue(sesi),
+        ],
+      );
+      addTearDown(c.dispose);
+
+      return c;
+    }
+
+    Future<void> tinggalkanAplikasi(WidgetTester tester) async {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pumpAndSettle();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('ditinggal dari dashboard + APK siap + Android mengizinkan: '
+        'dipasang diam-diam', (tester) async {
+      final sesi = _SesiPalsu(bisa: true);
+
+      await pasang(
+        tester,
+        container: wadahDiam(sesi),
+        pengunduh: _PengunduhPalsu(),
+      );
+      await tester.pumpAndSettle();
+      await tinggalkanAplikasi(tester);
+
+      expect(sesi.dipasang, ['/palsu/sidik-kalibrasi-1.0.60.apk']);
+      expect(sesi.diam, [true]);
+    });
+
+    testWidgets('Android belum mengizinkan (pemasangan pertama / Android 11-): '
+        'tidak dipasang diam-diam', (tester) async {
+      final sesi = _SesiPalsu(bisa: false);
+
+      await pasang(
+        tester,
+        container: wadahDiam(sesi),
+        pengunduh: _PengunduhPalsu(),
+      );
+      await tester.pumpAndSettle();
+      await tinggalkanAplikasi(tester);
+
+      expect(sesi.dipasang, isEmpty);
+    });
+
+    testWidgets('ada lembar kerja terbuka di atas dashboard: TIDAK dipasang — '
+        'prosesnya mati dan isian hilang', (tester) async {
+      final sesi = _SesiPalsu(bisa: true);
+      final nav = GlobalKey<NavigatorState>();
+
+      await pasang(
+        tester,
+        container: wadahDiam(sesi),
+        pengunduh: _PengunduhPalsu(),
+        navigator: nav,
+      );
+      await tester.pumpAndSettle();
+
+      nav.currentState!.push(
+        MaterialPageRoute<void>(
+          builder: (_) => const Scaffold(body: Text('lembar kerja')),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Mis. teknisi pindah ke aplikasi kamera buat memotret lembar.
+      await tinggalkanAplikasi(tester);
+
+      expect(sesi.dipasang, isEmpty);
+    });
+
+    testWidgets('APK belum terunduh: tidak dipasang', (tester) async {
+      final sesi = _SesiPalsu(bisa: true);
+
+      await pasang(
+        tester,
+        container: wadahDiam(sesi, siap: false),
+        pengunduh: _PengunduhPalsu(),
+      );
+      await tester.pumpAndSettle();
+      await tinggalkanAplikasi(tester);
+
+      expect(sesi.dipasang, isEmpty);
+    });
+
+    testWidgets('ditinggal berkali-kali: dicoba sekali saja', (tester) async {
+      final sesi = _SesiPalsu(bisa: true);
+
+      await pasang(
+        tester,
+        container: wadahDiam(sesi),
+        pengunduh: _PengunduhPalsu(),
+      );
+      await tester.pumpAndSettle();
+      await tinggalkanAplikasi(tester);
+      await tinggalkanAplikasi(tester);
+      await tinggalkanAplikasi(tester);
+
+      expect(sesi.dipasang, hasLength(1));
+    });
+  });
+}
+
+class _SesiPalsu implements PemasangSesi {
+  _SesiPalsu({required this.bisa});
+
+  final bool bisa;
+  final dipasang = <String>[];
+  final diam = <bool>[];
+
+  @override
+  Future<bool> bisaTanpaKetukan() async => bisa;
+
+  @override
+  Future<String?> pasang(String jalur, {required bool diam}) async {
+    dipasang.add(jalur);
+    this.diam.add(diam);
+
+    return 'dimulai';
+  }
 }

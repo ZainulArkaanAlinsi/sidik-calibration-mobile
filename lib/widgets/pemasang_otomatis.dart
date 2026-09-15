@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/versi_provider.dart';
+import '../services/pemasang_sesi.dart';
 import '../services/pengunduh_apk.dart';
 
 /// Membuka layar pemasang Android SENDIRI waktu aplikasi dibuka, kalau APK-nya
@@ -24,11 +25,15 @@ import '../services/pengunduh_apk.dart';
 /// hal yang sama. Jadi dia cuma pintu yang harus dibuka buat sampai ke pintu
 /// yang sebenarnya.
 ///
-/// Sekarang tinggal ketukan Android-nya. **Itu batasnya, dan tidak bisa
-/// dikurangi lagi:** pemasangan diam-diam butuh izin `INSTALL_PACKAGES` yang
-/// bertingkat `signature|privileged` — cuma buat aplikasi yang ditandatangani
-/// kunci sistem. Play Store bisa karena dia bagian dari sistem, bukan karena
-/// dia punya izin yang bisa kita minta juga.
+/// Sekarang tinggal ketukan Android-nya — dan sejak 15 Sep 2026 itu pun bisa
+/// hilang. Komentar lama di sini menulis batas ini "tidak bisa dikurangi lagi"
+/// karena `INSTALL_PACKAGES` cuma untuk aplikasi sistem; itu benar untuk
+/// memasang aplikasi LAIN, tapi Android 12+ punya jalur terpisah untuk
+/// memperbarui DIRI SENDIRI (`USER_ACTION_NOT_REQUIRED`) asal aplikasi ini yang
+/// tercatat sebagai pemasangnya. Ketukan di sini lewat `PemasangSesi` yang
+/// membuat catatan itu; sesudahnya [_mungkinPasangDiam] memasang rilis
+/// berikutnya tanpa layar, waktu aplikasi ditinggalkan dari dashboard.
+/// Android 11 ke bawah tetap butuh ketukan.
 ///
 /// ## Empat syarat, dan kenapa tidak satu pun boleh dilepas
 ///
@@ -58,16 +63,69 @@ class PemasangOtomatis extends ConsumerStatefulWidget {
   ConsumerState<PemasangOtomatis> createState() => _PemasangOtomatisState();
 }
 
-class _PemasangOtomatisState extends ConsumerState<PemasangOtomatis> {
+class _PemasangOtomatisState extends ConsumerState<PemasangOtomatis>
+    with WidgetsBindingObserver {
+  /// Pemasangan diam cukup dicoba sekali per proses: kalau berhasil, prosesnya
+  /// memang dimatikan Android; kalau gagal, mengulang tiap kali aplikasi
+  /// ditinggal cuma menulis 68 MB berulang ke sesi yang ditolak.
+  bool _diamSudahDicoba = false;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     // Di `initState`, bukan `build`. Membuka pemasang itu efek samping, dan
     // `build` dipanggil tiap kali angka dashboard berubah — puluhan kali per
     // sesi. Penjaga giliran memang menahannya, tapi menaruh efek samping di
     // `build` berarti benar-tidaknya bergantung pada penjaga itu saja.
     unawaited(_mungkinBuka());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState keadaan) {
+    if (keadaan == AppLifecycleState.paused ||
+        keadaan == AppLifecycleState.hidden) {
+      unawaited(_mungkinPasangDiam());
+    }
+  }
+
+  /// Pemutakhiran TANPA ketukan (Android 12+, sesudah aplikasi ini tercatat
+  /// sebagai pemasangnya sendiri — lihat `PemasangSesi`).
+  ///
+  /// ## Kenapa waktu aplikasi DITINGGALKAN, dan cuma dari dashboard
+  ///
+  /// Memasang pembaruan mematikan proses aplikasi. Dilakukan waktu dipakai,
+  /// layar tertutup sendiri di depan teknisi. Dilakukan waktu teknisi sedang di
+  /// lembar kerja — termasuk saat dia pindah ke aplikasi kamera buat memotret
+  /// lembar, yang juga membuat aplikasi ini "ditinggalkan" — isian yang belum
+  /// dikirim ikut hilang. Jadi syaratnya: aplikasi masuk latar DAN yang terakhir
+  /// dilihat dashboard (tidak ada layar lain yang menumpuk di atasnya).
+  /// Dibuka lagi berikutnya, versinya sudah baru.
+  Future<void> _mungkinPasangDiam() async {
+    if (_diamSudahDicoba || !mounted) return;
+    if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
+
+    final rilis = ref.read(updateTersediaProvider).value;
+    if (rilis == null) return;
+
+    final sesi = ref.read(pemasangSesiProvider);
+    final berkas = await ref.read(penyiapUpdateProvider).apkSiap(rilis.versi);
+    if (berkas == null || !mounted) return;
+    if (!await sesi.bisaTanpaKetukan()) return;
+
+    _diamSudahDicoba = true;
+    try {
+      await sesi.pasang(berkas.path, diam: true);
+    } catch (_) {
+      // Diam: pembukaan berikutnya tetap membuka pemasang biasa.
+    }
   }
 
   Future<void> _mungkinBuka() async {

@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'pemasang_sesi.dart';
+
 /// Hasil akhir usaha memasang pemutakhiran.
 enum HasilPasang {
   /// Pemasang Android terbuka. Yang menekan "Install" tetap penggunanya —
@@ -80,9 +82,12 @@ abstract class PengunduhApk {
 }
 
 class PengunduhApkAsli implements PengunduhApk {
-  PengunduhApkAsli({http.Client? client}) : _client = client ?? http.Client();
+  PengunduhApkAsli({http.Client? client, PemasangSesi? sesi})
+    : _client = client ?? http.Client(),
+      _sesi = sesi ?? PemasangSesiAndroid();
 
   final http.Client _client;
+  final PemasangSesi _sesi;
 
   @override
   Future<File?> unduh(
@@ -99,6 +104,15 @@ class PengunduhApkAsli implements PengunduhApk {
 
   @override
   Future<HasilPasang> pasang(File berkas) async {
+    // Lewat sesi PackageInstaller DULU. Ketukan "Install" di sini yang
+    // mencatat aplikasi ini sebagai pemasangnya sendiri — syarat Android 12+
+    // buat rilis berikutnya masuk tanpa ketukan (lihat `PemasangOtomatis`).
+    final sesi = await _sesi.pasang(berkas.path, diam: false);
+    if (sesi == 'dimulai') return HasilPasang.pemasangDibuka;
+    if (sesi == 'izin') return HasilPasang.ditolakSistem;
+
+    // `null` (kanal native tidak ada) atau gagal: jalur lama tetap dicoba,
+    // supaya pemutakhiran tidak pernah lebih buruk dari sebelum sesi ada.
     final hasil = await OpenFilex.open(
       berkas.path,
       type: 'application/vnd.android.package-archive',

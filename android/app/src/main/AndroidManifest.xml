@@ -47,9 +47,12 @@
          aplikasi ini masuk Play Store, baris inilah yang pertama harus
          dicabut, dan pemutakhirannya pindah ke mekanisme Play.
 
-         Izin ini TIDAK memberi hak memasang diam-diam: Android tetap membuka
-         layar konfirmasi pemasang, dan di Android 8+ pengguna masih harus
-         mengizinkan "Install unknown apps" buat aplikasi ini sekali. -->
+         Izin ini sendiri TIDAK memberi hak memasang diam-diam, dan di Android
+         8+ pengguna masih harus mengizinkan "Install unknown apps" sekali.
+         Sejak 15 Sep 2026 pemasangan lewat `PemasangSesi` (PackageInstaller):
+         di Android 12+ pemutakhiran KEDUA dan seterusnya bisa masuk tanpa layar
+         konfirmasi, karena aplikasi ini sudah tercatat sebagai pemasangnya
+         sendiri. Pemasangan pertama & Android 11 ke bawah tetap minta ketukan. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
 
     <application
@@ -79,6 +82,11 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- Hasil sesi PackageInstaller dari `PemasangSesi`. Tidak diekspor:
+             yang mengirim cuma PendingIntent milik aplikasi ini sendiri. -->
+        <receiver
+            android:name=".PenerimaHasilPasang"
+            android:exported="false"/>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
