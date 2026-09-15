@@ -8,6 +8,7 @@ import 'contoh_lembar_kerja_anak_timbangan.dart';
 import 'contoh_lembar_kerja_aliran.dart';
 import 'contoh_lembar_kerja_analitik.dart';
 import 'contoh_lembar_kerja_autoclave.dart';
+import 'contoh_lembar_kerja_dimensi.dart';
 import 'contoh_lembar_kerja_enclosure.dart';
 import 'contoh_lembar_kerja_massa.dart';
 import 'contoh_lembar_kerja_panjang.dart';
@@ -305,6 +306,19 @@ class MockLembarKerjaService implements LembarKerjaService {
       // di atas, tapi TIGA tabel dan tanpa lantai CMC. Tanpa cabang ini mode
       // mock memajang lembar pH tiga titik buffer.
       'height_gauge' => contohBentukLembarKerjaHeightGauge(
+        untukAdmin: untukAdmin,
+      ),
+      // Dial Indicator, Jangka Sorong, Sieve Mesh (alat ke-30..32) — kelompok
+      // Panjang. Bentuknya DIGENERATE dari server
+      // (`contoh_lembar_kerja_dimensi.dart`). Tanpa cabang ini ketiganya jatuh
+      // ke `_` dan mode mock memajang lembar pH tiga titik buffer.
+      'dial_indicator' => contohBentukLembarKerjaDialIndicator(
+        untukAdmin: untukAdmin,
+      ),
+      'jangka_sorong' => contohBentukLembarKerjaJangkaSorong(
+        untukAdmin: untukAdmin,
+      ),
+      'sieve' => contohBentukLembarKerjaSieve(
         untukAdmin: untukAdmin,
       ),
       // Flowmeter Ultrasonic (alat ke-27 & ke-28) — kelompok Aliran. DUA

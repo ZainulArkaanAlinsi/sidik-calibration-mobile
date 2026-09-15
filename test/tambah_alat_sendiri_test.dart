@@ -69,28 +69,35 @@ void main() {
       await svc.tambahKemampuan('token', 'instrumen-analitik', 'Anemometer');
       final panjang = await svc.detail('token', 'panjang');
 
-      expect(panjang.kemampuan.map((k) => k.namaAlat), isNot(contains('Anemometer')));
+      expect(
+        panjang.kemampuan.map((k) => k.namaAlat),
+        isNot(contains('Anemometer')),
+      );
     });
 
-    test('nama kembar ditolak — beda huruf besar & spasi tetap kembar', () async {
-      final svc = MockCategoryService();
+    test(
+      'nama kembar ditolak — beda huruf besar & spasi tetap kembar',
+      () async {
+        final svc = MockCategoryService();
 
-      // "pH Meter" udah ada di lampiran akreditasi. Tiga ejaan di bawah ini
-      // satu alat yang sama buat orang yang megang, jadi ketiganya mesti
-      // ditolak — backend bandinginnya juga nggak peka huruf.
-      for (final nama in ['pH Meter', 'ph meter', 'PH  METER ']) {
-        expect(
-          () => svc.tambahKemampuan('token', 'instrumen-analitik', nama),
-          throwsA(isA<NamaAlatKembarException>()),
-          reason: nama,
-        );
-      }
-    });
+        // "pH Meter" udah ada di lampiran akreditasi. Tiga ejaan di bawah ini
+        // satu alat yang sama buat orang yang megang, jadi ketiganya mesti
+        // ditolak — backend bandinginnya juga nggak peka huruf.
+        for (final nama in ['pH Meter', 'ph meter', 'PH  METER ']) {
+          expect(
+            () => svc.tambahKemampuan('token', 'instrumen-analitik', nama),
+            throwsA(isA<NamaAlatKembarException>()),
+            reason: nama,
+          );
+        }
+      },
+    );
   });
 
   group('layanan API — 422 nama kembar dibedain dari gagal lain', () {
-    ApiCategoryService layanan(_ServerPalsu server) =>
-        ApiCategoryService(ApiClient(client: server, baseUrl: 'http://uji/api'));
+    ApiCategoryService layanan(_ServerPalsu server) => ApiCategoryService(
+      ApiClient(client: server, baseUrl: 'http://uji/api'),
+    );
 
     test('201 mulangin baris kemampuan apa adanya', () async {
       final server = _ServerPalsu(
@@ -115,7 +122,9 @@ void main() {
       );
 
       await expectLater(
-        layanan(server).tambahKemampuan('token', 'instrumen-analitik', 'pH Meter'),
+        layanan(
+          server,
+        ).tambahKemampuan('token', 'instrumen-analitik', 'pH Meter'),
         throwsA(
           isA<NamaAlatKembarException>().having(
             (e) => e.namaAlat,
@@ -126,26 +135,36 @@ void main() {
       );
     });
 
-    test('422 yang BUKAN soal nama alat nggak dipalsuin jadi "udah ada"', () async {
-      // Kalau semua 422 dianggap kembar, teknisi disuruh nyari kartu yang
-      // nggak akan pernah dia temuin — sementara sebab aslinya (mis. batas
-      // percobaan) nggak pernah kelihatan.
-      final server = _ServerPalsu(422, '{"message":"Kebanyakan percobaan."}');
+    test(
+      '422 yang BUKAN soal nama alat nggak dipalsuin jadi "udah ada"',
+      () async {
+        // Kalau semua 422 dianggap kembar, teknisi disuruh nyari kartu yang
+        // nggak akan pernah dia temuin — sementara sebab aslinya (mis. batas
+        // percobaan) nggak pernah kelihatan.
+        final server = _ServerPalsu(422, '{"message":"Kebanyakan percobaan."}');
 
-      await expectLater(
-        layanan(server).tambahKemampuan('token', 'instrumen-analitik', 'Anemometer'),
-        throwsA(isA<ApiException>()),
-      );
-    });
+        await expectLater(
+          layanan(
+            server,
+          ).tambahKemampuan('token', 'instrumen-analitik', 'Anemometer'),
+          throwsA(isA<ApiException>()),
+        );
+      },
+    );
 
-    test('server lama yang belum punya endpoint-nya (404) diterusin apa adanya', () async {
-      final server = _ServerPalsu(404, '{"message":"Data nggak ketemu."}');
+    test(
+      'server lama yang belum punya endpoint-nya (404) diterusin apa adanya',
+      () async {
+        final server = _ServerPalsu(404, '{"message":"Data nggak ketemu."}');
 
-      await expectLater(
-        layanan(server).tambahKemampuan('token', 'instrumen-analitik', 'Anemometer'),
-        throwsA(isA<ApiException>()),
-      );
-    });
+        await expectLater(
+          layanan(
+            server,
+          ).tambahKemampuan('token', 'instrumen-analitik', 'Anemometer'),
+          throwsA(isA<ApiException>()),
+        );
+      },
+    );
   });
 
   group('layar pilih alat', () {
@@ -226,7 +245,9 @@ void main() {
       // error yang bunyi. Dua kalimat itu yang bikin peringatannya berguna.
       final peringatan = tester
           .widget<Text>(
-            find.textContaining('belum punya angka batas dari lampiran akreditasi'),
+            find.textContaining(
+              'belum punya angka batas dari lampiran akreditasi',
+            ),
           )
           .data!;
       expect(peringatan, contains('lebih KECIL'));
@@ -306,9 +327,15 @@ void main() {
     testWidgets('kategori kecil tanpa kolom cari tetap punya jalan nambah', (
       tester,
     ) async {
-      // "Panjang" cuma 2 alat di mock, jadi kolom carinya nggak digambar sama
-      // sekali (`_ambangCari`). Tanpa tombol di ekor daftar, kategori kecil
-      // nggak punya satu pun jalan masuk ke fitur ini.
+      // Kategori KECIL — kolom carinya nggak digambar sama sekali
+      // (`_ambangCari`). Tanpa tombol di ekor daftar, kategori kecil nggak
+      // punya satu pun jalan masuk ke fitur ini.
+      //
+      // Dipangkas EKSPLISIT jadi dua alat, bukan bertumpu pada isi mock
+      // "Panjang": sejak 15 Sep 2026 kategori itu memuat Dial Indicator, Jangka
+      // Sorong, dan Sieve juga (tujuh alat, lewat ambang) dan test ini diam-diam
+      // berubah jadi menguji kategori besar.
+      layanan = _KategoriKecil();
       layarTinggi(tester);
       await tester.pumpWidget(
         app(const Category(kode: 'panjang', nama: 'Panjang', satuan: 'mm')),
@@ -316,7 +343,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(TextField), findsNothing);
-      expect(find.text('ALATNYA NGGAK ADA DI DAFTAR? TAMBAH SENDIRI.'), findsOneWidget);
+      expect(
+        find.text('ALATNYA NGGAK ADA DI DAFTAR? TAMBAH SENDIRI.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('kategori yang KOSONG nggak buntu lagi', (tester) async {
@@ -334,7 +364,9 @@ void main() {
         findsOneWidget,
       );
 
-      await tester.tap(find.text('ALATNYA NGGAK ADA DI DAFTAR? TAMBAH SENDIRI.'));
+      await tester.tap(
+        find.text('ALATNYA NGGAK ADA DI DAFTAR? TAMBAH SENDIRI.'),
+      );
       await tester.pumpAndSettle();
 
       await tester.enterText(
@@ -359,7 +391,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('ALATNYA NGGAK ADA DI DAFTAR? TAMBAH SENDIRI.'));
+      await tester.tap(
+        find.text('ALATNYA NGGAK ADA DI DAFTAR? TAMBAH SENDIRI.'),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('SIMPAN & PAKAI'));
@@ -386,9 +420,21 @@ class _ServerPalsu extends http.BaseClient {
     jalur = request.url.path;
     kiriman = request is http.Request ? request.body : null;
 
-    return http.StreamedResponse(
-      Stream.value(utf8.encode(badan)),
-      status,
+    return http.StreamedResponse(Stream.value(utf8.encode(badan)), status);
+  }
+}
+
+/// Mock yang kategori "Panjang"-nya dipangkas jadi dua alat — lihat test
+/// "kategori kecil tanpa kolom cari".
+class _KategoriKecil extends MockCategoryService {
+  @override
+  Future<CategoryDetail> detail(String token, String kode) async {
+    final asli = await super.detail(token, kode);
+
+    return CategoryDetail(
+      kode: asli.kode,
+      nama: asli.nama,
+      kemampuan: asli.kemampuan.take(2).toList(),
     );
   }
 }

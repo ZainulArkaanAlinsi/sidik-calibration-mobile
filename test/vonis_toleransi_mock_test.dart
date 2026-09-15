@@ -41,7 +41,6 @@ void main() {
   /// mengarang kriteria kelulusan.
   const vonis = <String, bool>{
     // Divonis PASS/FAIL — toleransinya beneran penentu.
-    'Jangka Sorong': true,
     'pH Meter': true,
     'Turbidimeter': true,
     'Chlorin Meter': true,
@@ -51,6 +50,12 @@ void main() {
     // Nggak divonis — masternya berhenti di U95%.
     'Micrometer': false,
     'Height Gauge': false,
+    // Alat ke-30..32 (15 Sep 2026). Jangka Sorong PINDAH dari `true`: dulu
+    // generik, sekarang `JangkaSorongProfile::punyaToleransi()` = false. Sieve
+    // divonis dari Tabel MPE di server, bukan dari toleransi alat.
+    'Jangka Sorong': false,
+    'Dial Indicator': false,
+    'Sieve': false,
     // Flowmeter Ultrasonic (alat ke-27 & ke-28). Kedua master berhenti di
     // `Correction` + `U95%` — nggak ada satu pun batas keberterimaan per titik,
     // jadi sesinya nggak divonis PASS/FAIL. Sama dengan

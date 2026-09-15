@@ -144,15 +144,50 @@ class MockCategoryService implements CategoryService {
     if (gagal) throw Exception('server nggak nyaut');
 
     const kemampuanPanjang = [
+      // Jangka Sorong (alat ke-31) — lampiran no. 35 "Vernier Caliper",
+      // 0-300 mm, CMC 0,015 mm. DIUBAH 15 Sep 2026: sampai `JangkaSorongProfile`
+      // lahir baris ini generik (`punyaToleransi` bawaan `true`, CMC 0,02); server
+      // sekarang tidak memvonis PASS/FAIL dan lembarnya tiga tabel sendiri.
       CalibrationCapability(
         namaAlat: 'Jangka Sorong',
         rangeMin: 0,
-        rangeMax: 150,
+        rangeMax: 300,
         satuan: 'mm',
-        ketidakpastianTerbaik: 0.02,
+        ketidakpastianTerbaik: 0.015,
         satuanKetidakpastian: 'mm',
         faktorCakupan: 2,
-        metode: 'SIDIK-IK-CAL-0515_Rev.3',
+        metode: 'SIDIK-IK-CAL-0520_Rev.2',
+        punyaToleransi: false,
+        profil: 'jangka_sorong',
+      ),
+      // Dial Indicator (alat ke-30) — lampiran no. 36, pita 0-25 mm 6,5 µm.
+      // Master berhenti di `Correction` + `U95%`.
+      CalibrationCapability(
+        namaAlat: 'Dial Indicator',
+        rangeMin: 0,
+        rangeMax: 25,
+        satuan: 'mm',
+        ketidakpastianTerbaik: 0.0065,
+        satuanKetidakpastian: 'mm',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0519_Rev.2',
+        punyaToleransi: false,
+        profil: 'dial_indicator',
+      ),
+      // Sieve Mesh (alat ke-32) — lampiran no. 33, 45-4000 µm U 4,33 µm.
+      // Vonisnya dari Tabel MPE ASTM E11 di server, bukan toleransi alat —
+      // jadi form Tambah Alat tidak boleh meminta toleransi.
+      CalibrationCapability(
+        namaAlat: 'Sieve',
+        rangeMin: 0.045,
+        rangeMax: 4,
+        satuan: 'mm',
+        ketidakpastianTerbaik: 0.00433,
+        satuanKetidakpastian: 'mm',
+        faktorCakupan: 2,
+        metode: 'SIDIK-IK-CAL-0526_Rev.3',
+        punyaToleransi: false,
+        profil: 'sieve',
       ),
       CalibrationCapability(
         namaAlat: 'Micrometer',
