@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:flutter/foundation.dart' show debugPrint, visibleForTesting;
 import 'package:http/http.dart' as http;
 
 import '../core/config/app_config.dart';
@@ -294,8 +294,28 @@ class ApiClient {
       throw const AuthException(
         'Nggak bisa nyambung ke server. Cek koneksi kamu.',
       );
-    } catch (_) {
+    } on TimeoutException {
       throw const AuthException('Server nggak nyaut. Coba lagi sebentar.');
+    } on HandshakeException catch (e) {
+      debugPrint('ApiClient: TLS gagal: $e');
+      throw const AuthException(
+        'Koneksi aman ke server gagal (sertifikat). Cek jam & tanggal perangkat.',
+      );
+    } on http.ClientException catch (e) {
+      debugPrint('ApiClient: koneksi terputus: $e');
+      throw AuthException('Koneksi ke server terputus: ${e.message}');
+    } catch (e, st) {
+      // DULU semua jatuh ke "Server nggak nyaut" — termasuk galat yang
+      // lahir di APLIKASI sendiri sebelum satu byte pun terkirim (mis. isian
+      // yang gagal di-`jsonEncode`). 15 Sep 2026 laporan "semua tombol error,
+      // server nggak nyaut" datang dari laptop yang koneksi Dart-nya ke server
+      // terbukti sehat — pesan yang menyamaratakan itu membuat akar sebabnya
+      // tidak bisa dilacak dari layar. Jenis galatnya sekarang ikut tertulis.
+      debugPrint('ApiClient: galat tak terduga: $e\n$st');
+      throw AuthException(
+        'Permintaan gagal sebelum dijawab server (${e.runtimeType}). '
+        'Kirim tangkapan layar pesan ini ke admin.',
+      );
     }
 
     final json = _decode(res);

@@ -162,13 +162,42 @@ void main() {
       ).terapkanKalauSiap();
 
       expect(diterapkan, isTrue);
-      expect(dijalankan.single, endsWith('pasang.cmd'));
+      expect(dijalankan.single, endsWith('pasang.ps1'));
 
       final skrip = await File(dijalankan.single).readAsString();
-      expect(skrip, contains('PID eq 4242'),
+      expect(skrip, contains('Get-Process -Id 4242'),
           reason: 'menunggu proses ini mati sebelum menimpa DLL');
       expect(skrip, contains(exe.parent.path));
       expect(skrip, contains('sidik-windows-1.0.600.zip'));
+    });
+
+    test('skrip yang pernah dijalankan tapi aplikasinya masih versi lama: '
+        'TIDAK dijalankan lagi, versinya dicatat gagal', () async {
+      // 15 Sep 2026: skrip macet dan tiap pembukaan aplikasi menyalakannya
+      // lagi — jendela konsol menumpuk. Pembukaan KEDUA harus berhenti.
+      await pembaru(client: server()).siapkan();
+
+      final pertama = <String>[];
+      expect(
+        await pembaru(client: server(), skripDijalankan: pertama)
+            .terapkanKalauSiap(),
+        isTrue,
+      );
+
+      // Aplikasi dibuka lagi, masih 1.0.566 — skrip tadi tidak sampai selesai.
+      final kedua = <String>[];
+      expect(
+        await pembaru(client: server(), skripDijalankan: kedua)
+            .terapkanKalauSiap(),
+        isFalse,
+      );
+
+      expect(kedua, isEmpty);
+      expect(await berkas('siap.json').exists(), isFalse);
+      expect(await berkas('gagal.txt').readAsString(), contains('1.0.600'));
+
+      // Dan versi itu tidak diunduh-pasang ulang.
+      expect(await pembaru(client: server()).siapkan(), isFalse);
     });
 
     test('tanpa penanda: tidak menjalankan apa pun', () async {
@@ -200,44 +229,115 @@ void main() {
     });
   });
 
-  group('isi pasang.cmd', () {
+  group('isi pasang.ps1', () {
     final skrip = PembaruWindows.susunSkrip(
       pid: 77,
       zip: r'C:\data\pembaruan\sidik-windows-1.0.600.zip',
       folderKerja: r'C:\data\pembaruan',
-      folderInstalasi: r'C:\SIDIK',
-      exe: r'C:\SIDIK\sidik_calibration.exe',
+      folderInstalasi: r"C:\Lab O'Neil\SIDIK",
+      exe: r"C:\Lab O'Neil\SIDIK\sidik_calibration.exe",
       versi: '1.0.600',
     );
 
     test('ekstrak ke folder sementara SEBELUM menyalin ke instalasi', () {
-      final ekstrak = skrip.indexOf('tar.exe');
-      final salin = skrip.indexOf('Robocopy.exe');
+      final ekstrak = skrip.indexOf('Expand-Archive');
+      final salin = skrip.indexOf('Copy-Item');
 
       expect(ekstrak, greaterThan(0));
       expect(salin, greaterThan(ekstrak),
           reason: 'zip rusak harus berhenti sebelum folder instalasi tersentuh');
-      expect(
-        skrip,
-        contains(
-          r'if not exist "C:\data\pembaruan\ekstrak\sidik_calibration.exe" goto gagal',
-        ),
-      );
+      expect(skrip, contains('isi zip tidak lengkap'));
+    });
+
+    test('tidak memanggil program konsol apa pun — penyebab jendela & macet',
+        () {
+      for (final dilarang in ['find.exe', 'tasklist', 'tar.exe', 'Robocopy', 'cmd.exe', 'PING']) {
+        expect(skrip, isNot(contains(dilarang)), reason: dilarang);
+      }
+    });
+
+    test('penungguan proses punya batas waktu, tidak menunggu selamanya', () {
+      expect(skrip, contains('WaitForExit(120000)'));
     });
 
     test('jalur gagal mencabut penanda dan mencatat versinya', () {
-      final gagal = skrip.substring(skrip.indexOf(':gagal'));
+      final gagal = skrip.substring(skrip.indexOf('} catch {'));
 
-      expect(gagal, contains(r'del /q "C:\data\pembaruan\siap.json"'));
-      expect(gagal, contains(r'>>"C:\data\pembaruan\gagal.txt" echo 1.0.600'));
-      expect(gagal, contains(r'start "" "C:\SIDIK\sidik_calibration.exe"'),
+      expect(gagal, contains(r"Remove-Item -LiteralPath 'C:\data\pembaruan\siap.json'"));
+      expect(gagal, contains(r"Add-Content -LiteralPath 'C:\data\pembaruan\gagal.txt' -Value '1.0.600'"));
+      expect(gagal, contains('Start-Process'),
           reason: 'gagal pun aplikasinya tetap dinyalakan lagi');
     });
 
-    test('baris CRLF — cmd.exe salah membaca label goto di berkas LF-saja', () {
-      expect(skrip, contains('\r\n'));
-      expect(skrip.replaceAll('\r\n', ''), isNot(contains('\n')));
+    test('kutip tunggal di jalur digandakan — tidak memutus literal', () {
+      expect(skrip, contains(r"'C:\Lab O''Neil\SIDIK\sidik_calibration.exe'"));
     });
+  });
+
+  group('dijalankan SUNGGUHAN, persis cara aplikasi', () {
+    // Versi batch lolos semua test di atas DAN lolos uji manual lewat
+    // PowerShell, lalu macet di laptop nyata karena aplikasi menjalankannya
+    // dengan `Process.start(detached)`. Test ini memakai jalur yang sama.
+    test('menunggu proses mati, menimpa instalasi, membersihkan penanda',
+        () async {
+      final paket = await Directory('${akar.path}\\paket\\data').create(recursive: true);
+      await File('${paket.parent.path}\\sidik_calibration.exe').writeAsString('BARU');
+      await File('${paket.parent.path}\\data.txt').writeAsString('BARU');
+      await File('${paket.path}\\aset.txt').writeAsString('aset-baru');
+      await File('${exe.parent.path}\\data.txt').writeAsString('LAMA');
+      await kerja.create(recursive: true);
+
+      final zip = '${kerja.path}\\sidik-windows-1.0.600.zip';
+      final kompres = await Process.run('powershell.exe', [
+        '-NoProfile',
+        '-Command',
+        "Compress-Archive -Path '${paket.parent.path}\\*' -DestinationPath '$zip'",
+      ]);
+      expect(kompres.exitCode, 0, reason: '${kompres.stderr}');
+      await File('${kerja.path}\\siap.json').writeAsString('{}');
+
+      // "Aplikasi" yang masih hidup ~3 detik.
+      final aplikasi = await Process.start(
+        'powershell.exe',
+        ['-NoProfile', '-Command', 'Start-Sleep -Seconds 3'],
+      );
+
+      final skrip = File('${kerja.path}\\pasang.ps1');
+      await skrip.writeAsString(
+        PembaruWindows.susunSkrip(
+          pid: aplikasi.pid,
+          zip: zip,
+          folderKerja: kerja.path,
+          folderInstalasi: exe.parent.path,
+          // Exe yang dinyalakan lagi di akhir sengaja TIDAK ADA, supaya test
+          // tidak membuka program apa pun. Start-Process-nya gagal sesudah
+          // penyalinan selesai, dan itu tidak boleh membatalkan hasil salin.
+          exe: '${akar.path}\\tidak-ada\\tidak-ada.exe',
+          versi: '1.0.600',
+        ).replaceAll(
+          // Pengecekan kelengkapan zip tetap mencari exe yang ada di paket.
+          "'tidak-ada.exe'",
+          "'sidik_calibration.exe'",
+        ),
+      );
+
+      final mulai = DateTime.now();
+      await PembaruWindows.jalankanTerlepasUntukTest(skrip.path);
+
+      // Tunggu hasilnya: penanda hilang = skrip sampai ke ujung.
+      final penanda = File('${kerja.path}\\siap.json');
+      for (var i = 0; i < 60 && await penanda.exists(); i++) {
+        await Future<void>.delayed(const Duration(seconds: 1));
+      }
+
+      expect(await penanda.exists(), isFalse, reason: 'skrip tidak selesai dalam 60 s');
+      expect(await aplikasi.exitCode, 0);
+      expect(DateTime.now().difference(mulai).inSeconds, greaterThanOrEqualTo(2),
+          reason: 'harus menunggu "aplikasi" mati dulu');
+      expect(await File('${exe.parent.path}\\data.txt').readAsString(), 'BARU');
+      expect(await File('${exe.parent.path}\\data\\aset.txt').readAsString(), 'aset-baru');
+      expect(await File(zip).exists(), isFalse);
+    }, skip: !Platform.isWindows, timeout: const Timeout(Duration(minutes: 2)));
   });
 
   group('jalur APK tidak berlaku di desktop', () {

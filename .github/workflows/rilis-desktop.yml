@@ -431,9 +431,19 @@ jobs:
           # Terbit di deploy yang SAMA dengan zip-nya: manifest yang menyebut
           # versi baru sementara zip-nya masih lama berarti aplikasi mengunduh
           # zip lama, ukurannya tidak cocok, dan pembaruannya ditolak diam-diam.
-          cp unduhan/sidik-desktop-windows/versi-windows.json public/
-          python3 -c "import json,sys; d=json.load(open('public/versi-windows.json')); assert d['versi'] and d['ukuran']>0, d" || {
-            echo "::error::versi-windows.json nggak valid — aplikasi Windows yang terpasang nggak bakal bisa update."
+          #
+          # Terbit sebagai `versi-windows-v2.json`, dan nama LAMA sengaja tidak
+          # diterbitkan lagi (`firebase deploy` mengganti seluruh situs, jadi
+          # berkas lamanya ikut hilang). Aplikasi 1.0.567–1.0.570 membaca nama
+          # lama dan membawa pemasang batch yang macet (15 Sep 2026: jendela
+          # find.exe menumpuk). Tanpa manifest, mereka tidak mencoba apa-apa.
+          cp unduhan/sidik-desktop-windows/versi-windows.json public/versi-windows-v2.json
+          test ! -e public/versi-windows.json || {
+            echo "::error::public/versi-windows.json masih ada — aplikasi Windows 1.0.567–1.0.570 bakal memasang pakai skrip lama yang macet."
+            exit 1
+          }
+          python3 -c "import json,sys; d=json.load(open('public/versi-windows-v2.json')); assert d['versi'] and d['ukuran']>0, d" || {
+            echo "::error::versi-windows-v2.json nggak valid — aplikasi Windows yang terpasang nggak bakal bisa update."
             exit 1
           }
 
