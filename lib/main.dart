@@ -9,6 +9,7 @@ import 'app.dart';
 import 'core/config/app_config.dart';
 import 'services/ketukan_push.dart';
 import 'services/mock_store.dart';
+import 'services/pembaru_windows.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,7 +38,28 @@ Future<void> main() async {
   // sudah dikabari lewat websocket Reverb selama aplikasinya kebuka.
   await _nyalakanFirebase();
 
+  // Pembaruan Windows yang sudah diunduh di pembukaan sebelumnya dipasang di
+  // sini, SEBELUM jendela digambar: skrip pemasangnya menunggu proses ini mati
+  // lalu menimpa folder instalasi. Lihat [PembaruWindows].
+  final pembaru = await _pembaruWindows();
+  if (pembaru != null && await pembaru.terapkanKalauSiap()) exit(0);
+
   runApp(const ProviderScope(child: SidikApp()));
+
+  pembaru?.mulaiCekBerkala();
+}
+
+Future<PembaruWindows?> _pembaruWindows() async {
+  if (AppConfig.useMock || kIsWeb || !Platform.isWindows) return null;
+
+  try {
+    return await PembaruWindows.untukAplikasiIni();
+  } catch (e) {
+    // Aplikasi kalibrasi tetap harus bisa dibuka walau pembaruannya gagal
+    // disiapkan — alasan yang sama dengan Firebase di atas.
+    debugPrint('Pembaru Windows nggak nyala: $e');
+    return null;
+  }
 }
 
 Future<void> _nyalakanFirebase() async {

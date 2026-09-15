@@ -265,6 +265,19 @@ jobs:
           Compress-Archive -Path build/windows/x64/runner/Release/* `
                            -DestinationPath sidik-windows.zip
 
+          # Manifest yang dibaca `PembaruWindows` di aplikasi yang SUDAH
+          # terpasang. Tanpa berkas ini laptop lab tertahan di versi yang
+          # pertama kali diekstrak. `ukuran` dihitung dari zip yang sama persis
+          # yang terbit, supaya unduhan terpotong ketahuan sebelum dipasang.
+          # `utf8NoBOM`: BOM membuat `jsonDecode` di aplikasi menolak isinya.
+          [ordered]@{
+            versi     = '${{ steps.versi.outputs.nama }}'
+            build     = [int]'${{ steps.versi.outputs.build }}'
+            ukuran    = (Get-Item sidik-windows.zip).Length
+            url_unduh = 'sidik-windows.zip'
+          } | ConvertTo-Json | Set-Content -Encoding utf8NoBOM versi-windows.json
+          Get-Content versi-windows.json
+
       # `ditto`, bukan `zip` biasa dan bukan upload-artifact langsung ke .app:
       # bundel .app isinya symlink & bit executable, dan dua cara itu ngerusak
       # keduanya — hasil unduhannya nggak bisa dibuka di Mac tujuan.
@@ -278,7 +291,11 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: sidik-desktop-${{ matrix.nama }}
-          path: sidik-${{ matrix.nama }}.zip
+          # `versi-windows.json` cuma ada di matriks windows; di macos baris
+          # keduanya tidak menemukan apa-apa dan itu tidak dianggap gagal.
+          path: |
+            sidik-${{ matrix.nama }}.zip
+            versi-${{ matrix.nama }}.json
           if-no-files-found: error
           retention-days: 30
 
@@ -410,6 +427,15 @@ jobs:
         run: |
           cp unduhan/sidik-desktop-windows/sidik-windows.zip public/
           cp unduhan/sidik-desktop-macos/sidik-macos.zip public/
+
+          # Terbit di deploy yang SAMA dengan zip-nya: manifest yang menyebut
+          # versi baru sementara zip-nya masih lama berarti aplikasi mengunduh
+          # zip lama, ukurannya tidak cocok, dan pembaruannya ditolak diam-diam.
+          cp unduhan/sidik-desktop-windows/versi-windows.json public/
+          python3 -c "import json,sys; d=json.load(open('public/versi-windows.json')); assert d['versi'] and d['ukuran']>0, d" || {
+            echo "::error::versi-windows.json nggak valid — aplikasi Windows yang terpasang nggak bakal bisa update."
+            exit 1
+          }
 
           # Web app duduk di SUBPATH `/app`, halaman unduh tetap di akar.
           # Dirakit di sini, bukan di-deploy sendiri, karena `firebase deploy`

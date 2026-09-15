@@ -1,3 +1,6 @@
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/config/app_config.dart';
@@ -10,6 +13,17 @@ final versiServiceProvider = Provider<VersiService>((ref) {
   if (AppConfig.useMock) return MockVersiService();
 
   return ApiVersiService(ref.watch(apiClientProvider));
+});
+
+/// Apakah pemutakhiran lewat APK berlaku di perangkat ini.
+///
+/// Di bawah `flutter test` selalu `true`, supaya test jalur APK tetap menguji
+/// hal yang sama di mesin CI Linux/macOS. Test yang menguji desktop menimpanya.
+final jalurApkProvider = Provider<bool>((ref) {
+  if (kIsWeb) return false;
+  if (Platform.environment.containsKey('FLUTTER_TEST')) return true;
+
+  return Platform.isAndroid;
 });
 
 /// Versi + build yang terpasang di HP ini, mis. `1.0.58 (build 58)`.
@@ -34,6 +48,13 @@ final versiTerpasangProvider = FutureProvider<String>((ref) async {
 /// keadaan yang perlu ditampilkan, apalagi bikin layar error. Jawabannya cukup
 /// "belum tahu", yang bentuknya sama dengan "sudah paling baru": null.
 final updateTersediaProvider = FutureProvider<VersiAplikasi?>((ref) async {
+  // Rilis yang dibaca di sini APK. Di Windows/macOS/web jawabannya selalu
+  // null: membandingkan versi paket desktop dengan versi APK bikin laptop yang
+  // tertinggal mengunduh `.apk` di latar, memajang tombol pasang yang tidak
+  // bisa apa-apa, dan — kalau rilisnya `wajib` — MENAHAN tombol kirim lembar
+  // kerja. Desktop punya jalurnya sendiri: `PembaruWindows`.
+  if (!ref.watch(jalurApkProvider)) return null;
+
   final layanan = ref.watch(versiServiceProvider);
 
   final VersiAplikasi? terbaru;
