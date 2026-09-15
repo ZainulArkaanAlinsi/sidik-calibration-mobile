@@ -57,11 +57,11 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterTotalizer({
       {
         'kode': 'identitas_alat',
         'halaman': 1,
-        'judul': 'Identitas Alat dan Data Customer',
+        'judul': 'Identitas Alat',
         'field': [
           {
             'kode': 'equipment_id',
-            'label': 'Nama Alat',
+            'label': 'Pilih Alat',
             'tipe': 'pilihan',
             'wajib': false,
             'sumber': 'master_alat',
@@ -175,6 +175,22 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterTotalizer({
                 'label': '4 — Fujitsu FSR-A (U95 1.6E-5 kg)',
               },
             ],
+            'hanya_admin': false,
+            'tampil_kalau': {
+              'kode': 'spesifikasi_alat.flowmeter.varian_metode',
+              'nilai': [
+                'gravimetri',
+              ],
+            },
+          },
+          {
+            'kode': 'spesifikasi_alat.flowmeter.volume_pipa_l',
+            'label': 'Volume Pipa dari Std. ke UUT (V)',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': null,
+            'satuan': 'L',
+            'pilihan': <dynamic>[],
             'hanya_admin': false,
             'tampil_kalau': {
               'kode': 'spesifikasi_alat.flowmeter.varian_metode',
@@ -530,11 +546,11 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterTotalizer({
         'baris': [
           {
             'label': 'Ultrasonic Flowmeter/Krohne/UFC300',
-            'standard_id': null,
-            'serial_number': null,
-            'no_sertifikat': null,
-            'tertelusur_ke': null,
-            'terdaftar': false,
+            'standard_id': 66,
+            'serial_number': 'A18P045140',
+            'no_sertifikat': 'A18P045140',
+            'tertelusur_ke': 'LK-285-IDN',
+            'terdaftar': true,
           },
           {
             'label': 'Temperature Calibrator/Yokogawa/CA 150 Handy Cal',
@@ -546,7 +562,7 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterTotalizer({
           },
           {
             'label': 'Thermocouple Type K',
-            'standard_id': 48,
+            'standard_id': 49,
             'serial_number': 'TC-01,02',
             'no_sertifikat': 'TC-01,02',
             'tertelusur_ke': 'LK-064-IDN',
@@ -554,19 +570,19 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterTotalizer({
           },
           {
             'label': 'Digital Caliper/Tesa/Cal-IP67',
-            'standard_id': null,
-            'serial_number': null,
-            'no_sertifikat': null,
-            'tertelusur_ke': null,
-            'terdaftar': false,
+            'standard_id': 63,
+            'serial_number': 'LPI-0368',
+            'no_sertifikat': 'LPI-0368',
+            'tertelusur_ke': 'LK-285-IDN',
+            'terdaftar': true,
           },
           {
             'label': 'Ultrasonic Thickness Gauge/TM-8812',
-            'standard_id': null,
-            'serial_number': null,
-            'no_sertifikat': null,
+            'standard_id': 65,
+            'serial_number': 'N889479',
+            'no_sertifikat': 'N889479',
             'tertelusur_ke': null,
-            'terdaftar': false,
+            'terdaftar': true,
           },
         ],
         'field': [
@@ -1086,11 +1102,11 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterFlowrate({
       {
         'kode': 'identitas_alat',
         'halaman': 1,
-        'judul': 'Identitas Alat dan Data Customer',
+        'judul': 'Identitas Alat',
         'field': [
           {
             'kode': 'equipment_id',
-            'label': 'Nama Alat',
+            'label': 'Pilih Alat',
             'tipe': 'pilihan',
             'wajib': false,
             'sumber': 'master_alat',
@@ -1200,6 +1216,22 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterFlowrate({
                 'label': '3 — Mettler DFWLB-3 / di kertas: Excellent (U95 0.00017 kg)',
               },
             ],
+            'hanya_admin': false,
+            'tampil_kalau': {
+              'kode': 'spesifikasi_alat.flowmeter.varian_metode',
+              'nilai': [
+                'gravimetri',
+              ],
+            },
+          },
+          {
+            'kode': 'spesifikasi_alat.flowmeter.volume_pipa_l',
+            'label': 'Volume Pipa dari Std. ke UUT (V)',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': null,
+            'satuan': 'L',
+            'pilihan': <dynamic>[],
             'hanya_admin': false,
             'tampil_kalau': {
               'kode': 'spesifikasi_alat.flowmeter.varian_metode',
@@ -1559,11 +1591,11 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterFlowrate({
         'baris': [
           {
             'label': 'Ultrasonic Flowmeter/Krohne/UFC300',
-            'standard_id': null,
-            'serial_number': null,
-            'no_sertifikat': null,
-            'tertelusur_ke': null,
-            'terdaftar': false,
+            'standard_id': 66,
+            'serial_number': 'A18P045140',
+            'no_sertifikat': 'A18P045140',
+            'tertelusur_ke': 'LK-285-IDN',
+            'terdaftar': true,
           },
           {
             'label': 'Temperature Calibrator/Yokogawa/CA 150 Handy Cal',
@@ -1575,7 +1607,7 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterFlowrate({
           },
           {
             'label': 'Thermocouple Type K',
-            'standard_id': 48,
+            'standard_id': 49,
             'serial_number': 'TC-01,02',
             'no_sertifikat': 'TC-01,02',
             'tertelusur_ke': 'LK-064-IDN',
@@ -1583,19 +1615,19 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterFlowrate({
           },
           {
             'label': 'Digital Caliper/Tesa/Cal-IP67',
-            'standard_id': null,
-            'serial_number': null,
-            'no_sertifikat': null,
-            'tertelusur_ke': null,
-            'terdaftar': false,
+            'standard_id': 63,
+            'serial_number': 'LPI-0368',
+            'no_sertifikat': 'LPI-0368',
+            'tertelusur_ke': 'LK-285-IDN',
+            'terdaftar': true,
           },
           {
             'label': 'Ultrasonic Thickness Gauge/TM-8812',
-            'standard_id': null,
-            'serial_number': null,
-            'no_sertifikat': null,
+            'standard_id': 65,
+            'serial_number': 'N889479',
+            'no_sertifikat': 'N889479',
             'tertelusur_ke': null,
-            'terdaftar': false,
+            'terdaftar': true,
           },
         ],
         'field': [

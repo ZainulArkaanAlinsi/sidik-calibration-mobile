@@ -117,7 +117,7 @@ void main() {
     // Sepuluh kotak, satu per baris tangga 10 %–100 %.
     expect(
       find.byWidgetPredicate(
-        (w) => w is TextField && w.decoration?.hintText == '20+20+10',
+        (w) => w is TextField && w.decoration?.hintText == 'Pisahkan tiap keping dengan +',
       ),
       findsNWidgets(10),
     );

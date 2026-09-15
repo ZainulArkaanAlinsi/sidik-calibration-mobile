@@ -2714,10 +2714,13 @@ class _BarisKotakTambahan extends StatelessWidget {
                     decimal: true,
                   ),
                   style: theme.textTheme.bodyMedium,
+                  // Petunjuk netral satuan: kotak ini dipakai keping anak
+                  // timbangan (gram) DAN tumpukan balok ukur Dial Indicator
+                  // (mm) — contoh `20+20+10` menyesatkan di yang kedua.
                   decoration: const InputDecoration(
                     isDense: true,
                     border: OutlineInputBorder(),
-                    hintText: '20+20+10',
+                    hintText: 'Pisahkan tiap keping dengan +',
                   ),
                   onChanged: (_) => onBerubah(),
                 ),
