@@ -12,7 +12,10 @@ import 'pendaftaran_push_provider.dart';
 import 'navigation_provider.dart';
 import 'simpanan_pelanggan_provider.dart';
 
-final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
+/// `bangunkanDulu` nyala: server produksi di Render paket gratis, yang tidur
+/// sesudah ~15 menit nganggur. Lihat `ApiClient._pastikanBangun`.
+final apiClientProvider =
+    Provider<ApiClient>((ref) => ApiClient(bangunkanDulu: true));
 
 /// Sekarang **nembak API asli** (endpoint auth-nya udah live sejak 14 Jul).
 ///

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/config/app_config.dart';
@@ -17,6 +19,11 @@ final realtimeServiceProvider = Provider<RealtimeService>((ref) {
   return service;
 });
 
+/// Jeda tarik ulang waktu realtime mati. Satu menit: ritme kerja lab menitan,
+/// dan tiap tarikan juga menjaga server Render gratis tetap bangun selama ada
+/// satu perangkat yang membuka aplikasinya.
+const jedaTarikTanpaRealtime = Duration(seconds: 60);
+
 /// Nyambungin realtime ke daur hidup auth: begitu user login (+ token) → konek
 /// & subscribe channel org/user; tiap peristiwa → refresh provider terkait;
 /// logout → putus. Ditahan hidup dengan di-`watch` dari shell utama.
@@ -25,6 +32,22 @@ final realtimeSyncProvider = Provider<void>((ref) {
   final user = ref.watch(authProvider).value;
 
   if (user == null) return; // belum login → nggak usah konek
+
+  // Selama Reverb mati di produksi (`render.yaml`: `BROADCAST_CONNECTION=log`)
+  // tidak ada sinyal apa pun dari perangkat lain: sesi yang dikirim dari HP
+  // tidak muncul di antrean approval Windows, dan tolakan dari Windows tidak
+  // sampai ke HP, sampai layarnya ditutup-buka. Tarik ulang berkala
+  // menggantikan sinyal itu lewat jalur yang sama persis — invalidate tetap
+  // lazy, jadi yang benar-benar ditarik cuma layar yang sedang ditonton.
+  //
+  // Mode mock dikecualikan: tidak ada perangkat lain untuk disusul.
+  if (!AppConfig.realtimeAktif && !AppConfig.useMock) {
+    final timer = Timer.periodic(jedaTarikTanpaRealtime, (_) {
+      _tangani(ref, const DataBerubah(jenis: 'berkala', aksi: 'tarik'));
+      _tangani(ref, const NotifikasiMasuk());
+    });
+    ref.onDispose(timer.cancel);
+  }
 
   final sub = service.peristiwa.listen((p) => _tangani(ref, p));
 

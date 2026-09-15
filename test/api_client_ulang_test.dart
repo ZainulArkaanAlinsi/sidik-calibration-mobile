@@ -56,6 +56,32 @@ class _ServerGoyah extends http.BaseClient {
   }
 }
 
+/// Server yang mencatat URUTAN jalur yang diketuk, dan menjawab 503 untuk
+/// [tidurBerapaKali] permintaan pertama — persis Render yang sedang bangun.
+class _ServerTercatat extends http.BaseClient {
+  _ServerTercatat({required this.tidurBerapaKali});
+
+  final int tidurBerapaKali;
+  final jalur = <String>[];
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    jalur.add('${request.method} ${request.url.path}');
+
+    if (jalur.length <= tidurBerapaKali) {
+      return http.StreamedResponse(
+        Stream.value('{"message":"sedang bangun"}'.codeUnits),
+        503,
+      );
+    }
+
+    return http.StreamedResponse(
+      Stream.value('{"data":{"ok":true}}'.codeUnits),
+      200,
+    );
+  }
+}
+
 void main() {
   group('yang AMAN diulang', () {
     test('GET nembus 503 beruntun — layar nggak lihat kegagalan sama sekali',
@@ -144,6 +170,77 @@ void main() {
       await expectLater(api.get('/dashboard'), throwsA(isA<AuthException>()));
 
       expect(server.panggilan, 1);
+    });
+  });
+
+  group('server Render gratis yang tertidur — bangunkan dulu, kirim sekali',
+      () {
+    test('POST tanpa kunci: /health dipanaskan sampai bangun, kirimannya '
+        'berangkat SEKALI dan berhasil', () async {
+      final server = _ServerTercatat(tidurBerapaKali: 2);
+      final api = ApiClient(
+        client: server,
+        baseUrl: 'http://uji/api',
+        bangunkanDulu: true,
+      );
+
+      final hasil = await api.post(
+        '/calibrations/7/approve',
+        body: {'abaikan_peringatan': false},
+      );
+
+      expect(hasil['data'], {'ok': true});
+      expect(server.jalur, [
+        'GET /api/health',
+        'GET /api/health',
+        'GET /api/health',
+        'POST /api/calibrations/7/approve',
+      ], reason: 'yang diulang cuma pembacaan /health; approve-nya sekali');
+    });
+
+    test('server yang barusan menjawab tidak dipanaskan lagi', () async {
+      final server = _ServerTercatat(tidurBerapaKali: 0);
+      final api = ApiClient(
+        client: server,
+        baseUrl: 'http://uji/api',
+        bangunkanDulu: true,
+      );
+
+      await api.get('/dashboard');
+      await api.post('/customers', body: {'nama': 'PT Contoh'});
+
+      expect(server.jalur, ['GET /api/dashboard', 'POST /api/customers']);
+    });
+
+    test('pemanasan gagal total tidak menelan kirimannya — pesan gagalnya '
+        'tetap datang dari kiriman asli', () async {
+      final server = _ServerTercatat(tidurBerapaKali: 999);
+      final api = ApiClient(
+        client: server,
+        baseUrl: 'http://uji/api',
+        bangunkanDulu: true,
+      );
+
+      await expectLater(
+        api.post('/customers', body: {'nama': 'PT Contoh'}),
+        throwsA(isA<AuthException>()),
+      );
+
+      expect(
+        server.jalur.where((j) => j.startsWith('POST')).length,
+        1,
+        reason: 'kiriman tanpa kunci idempotensi tetap tidak boleh diulang',
+      );
+    });
+
+    test('bawaan mati: client yang disuntik test tidak menambah panggilan',
+        () async {
+      final server = _ServerTercatat(tidurBerapaKali: 0);
+      final api = ApiClient(client: server, baseUrl: 'http://uji/api');
+
+      await api.post('/customers', body: {'nama': 'PT Contoh'});
+
+      expect(server.jalur, ['POST /api/customers']);
     });
   });
 

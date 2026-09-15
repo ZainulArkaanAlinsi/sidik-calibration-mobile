@@ -15,12 +15,29 @@ import 'auth_service.dart';
 /// dan **nerjemahin error HTTP jadi pesan yang layak dibaca manusia**.
 /// Layar nggak boleh lihat status code mentah — itu tugas file ini.
 class ApiClient {
-  ApiClient({http.Client? client, String? baseUrl})
+  ApiClient({http.Client? client, String? baseUrl, bool bangunkanDulu = false})
     : _client = client ?? http.Client(),
-      _baseUrl = baseUrl ?? AppConfig.apiBaseUrl;
+      _baseUrl = baseUrl ?? AppConfig.apiBaseUrl,
+      _bangunkanDulu = bangunkanDulu;
 
   final http.Client _client;
   final String _baseUrl;
+
+  /// Bangunkan server lewat `GET /health` sebelum kiriman yang TIDAK boleh
+  /// diulang. Lihat [_pastikanBangun].
+  ///
+  /// Bawaan `false` supaya client yang disuntik di test tetap menghitung
+  /// panggilan persis seperti dulu; produksi menyalakannya di
+  /// `apiClientProvider`.
+  final bool _bangunkanDulu;
+
+  /// Terakhir kali server benar-benar menjawab (bukan 502/503/504 dari
+  /// proxy Render yang servernya belum siap).
+  DateTime? _terakhirTersambung;
+
+  /// Render paket gratis menidurkan layanan sesudah ~15 menit nganggur. Di
+  /// bawah 10 menit servernya pasti masih bangun, jadi pemanasan dilewati.
+  static const _anggapMasihBangun = Duration(minutes: 10);
 
   Uri _uri(String path, [Map<String, String>? query]) =>
       Uri.parse('$_baseUrl$path').replace(queryParameters: query);
@@ -267,6 +284,8 @@ class ApiClient {
   }) async {
     final http.Response res;
 
+    if (!bolehUlang && _bangunkanDulu) await _pastikanBangun();
+
     try {
       res = await _dengarUlang(request, timeout: timeout, bolehUlang: bolehUlang);
     } on SocketException {
@@ -335,7 +354,11 @@ class ApiClient {
       try {
         final res = await request().timeout(batas);
 
-        if (bolehLagi && _kodeServerBelumSiap.contains(res.statusCode)) {
+        final belumSiap = _kodeServerBelumSiap.contains(res.statusCode);
+
+        if (!belumSiap) _terakhirTersambung = DateTime.now();
+
+        if (bolehLagi && belumSiap) {
           await Future<void>.delayed(_jedaUlang[percobaan]);
           continue;
         }
@@ -348,6 +371,40 @@ class ApiClient {
         if (!bolehLagi) rethrow;
         await Future<void>.delayed(_jedaUlang[percobaan]);
       }
+    }
+  }
+
+  /// Pastikan server bangun SEBELUM kiriman yang tidak boleh diulang.
+  ///
+  /// ## Kenapa ini ada
+  ///
+  /// Kiriman `POST` tanpa `client_request_id` (approve, tolak, simpan
+  /// pelanggan, kirim email) sengaja tidak diulang — lihat [_dengarUlang].
+  /// Akibatnya kiriman pertama sesudah server Render gratis tertidur mati di
+  /// batas 20 detik, padahal bangunnya butuh 30–60 detik: teknisi menekan
+  /// tombol, dapat "Server nggak nyaut", dan isiannya kelihatan mental balik.
+  ///
+  /// Yang dipanaskan di sini `GET /health` — pembacaan, jadi AMAN diulang
+  /// sampai servernya bangun. Kiriman aslinya baru berangkat sesudah itu,
+  /// tetap sekali saja.
+  ///
+  /// Gagal memanaskan sengaja ditelan: kalau servernya memang tidak
+  /// terjangkau, kiriman aslinya yang melaporkan dengan pesannya sendiri.
+  Future<void> _pastikanBangun() async {
+    final terakhir = _terakhirTersambung;
+    if (terakhir != null &&
+        DateTime.now().difference(terakhir) < _anggapMasihBangun) {
+      return;
+    }
+
+    try {
+      await _dengarUlang(
+        () => _client.get(_uri('/health'), headers: _headers(null)),
+        timeout: const Duration(seconds: 30),
+        bolehUlang: true,
+      );
+    } catch (_) {
+      // Lihat docblock.
     }
   }
 
