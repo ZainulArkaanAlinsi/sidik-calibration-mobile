@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/config/app_config.dart';
+import '../core/latar_depan.dart';
 import '../services/realtime_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart';
@@ -19,10 +20,14 @@ final realtimeServiceProvider = Provider<RealtimeService>((ref) {
   return service;
 });
 
-/// Jeda tarik ulang waktu realtime mati. Satu menit: ritme kerja lab menitan,
-/// dan tiap tarikan juga menjaga server Render gratis tetap bangun selama ada
-/// satu perangkat yang membuka aplikasinya.
-const jedaTarikTanpaRealtime = Duration(seconds: 60);
+/// Jeda tarik ulang waktu realtime mati.
+///
+/// Tiga menit, bukan satu. Versi satu menit (15 Sep 2026 pagi) membuat server
+/// Render gratis nyaris tak pernah menganggur: satu tarikan admin = riwayat +
+/// antrean + draf = 5 halaman × ~3,7 s kerja server, dikali jumlah perangkat
+/// yang terbuka — dan tombol kirim ikut antre sampai "Server nggak nyaut".
+/// Membangunkan server sudah diurus cron-job.org, bukan tugas tarikan ini.
+const jedaTarikTanpaRealtime = Duration(minutes: 3);
 
 /// Nyambungin realtime ke daur hidup auth: begitu user login (+ token) → konek
 /// & subscribe channel org/user; tiap peristiwa → refresh provider terkait;
@@ -43,6 +48,9 @@ final realtimeSyncProvider = Provider<void>((ref) {
   // Mode mock dikecualikan: tidak ada perangkat lain untuk disusul.
   if (!AppConfig.realtimeAktif && !AppConfig.useMock) {
     final timer = Timer.periodic(jedaTarikTanpaRealtime, (_) {
+      // HP di saku / jendela diminimalkan tidak ikut membebani server.
+      if (!aplikasiDiLayarDepan()) return;
+
       _tangani(ref, const DataBerubah(jenis: 'berkala', aksi: 'tarik'));
       _tangani(ref, const NotifikasiMasuk());
     });

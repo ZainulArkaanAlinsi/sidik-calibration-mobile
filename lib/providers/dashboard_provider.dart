@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/config/app_config.dart';
+import '../core/latar_depan.dart';
 import '../models/dashboard_summary.dart';
 import '../services/dashboard_service.dart';
 
@@ -42,7 +43,12 @@ class DashboardController extends AsyncNotifier<DashboardSummary> {
   ///
   /// 30 detik: cukup cepat buat kerja lab  yang ritmenya menitan, cukup jarang
   /// biar nggak nguras baterai HP teknisi yang seharian di lapangan.
-  static const Duration jedaSegar = Duration(seconds: 30);
+  ///
+  /// Dinaikkan ke 60 detik 15 Sep 2026: `/dashboard` makan ~3,2 s kerja di
+  /// server Render gratis, dan dengan HP + laptop terbuka tarikan 30 detik ikut
+  /// mengantrekan tombol kirim sampai "Server nggak nyaut". Perangkat yang
+  /// tidak di layar depan tidak menarik sama sekali — lihat [segarkanDiamDiam].
+  static const Duration jedaSegar = Duration(seconds: 60);
 
   Timer? _timer;
 
@@ -78,6 +84,8 @@ class DashboardController extends AsyncNotifier<DashboardSummary> {
   /// angka lama yang masih kelihatan jauh lebih berguna daripada layar error
   /// gara-gara satu permintaan meleset waktu WiFi lab ngadat sedetik.
   Future<void> segarkanDiamDiam() async {
+    if (!aplikasiDiLayarDepan()) return;
+
     final token = await ref.read(tokenStorageProvider).read();
     if (token == null) return;
 

@@ -121,7 +121,16 @@ class ApiHistoryService implements HistoryService {
     final pemisah = path.contains('?') ? '&' : '?';
 
     for (var halaman = 1; halaman <= _maksHalaman; halaman++) {
-      final json = await _api.get('$path${pemisah}page=$halaman', token: token);
+      // `ringkas=1`: server tidak mengirim `titik` per sesi — ~23 KB dari
+      // ~26 KB tiap baris, dan [CalibrationHistoryItem] tidak pernah
+      // membacanya (detail diambil segar dari `/calibrations/{id}`). Diukur di
+      // produksi 15 Sep 2026: satu halaman 3,7 s di server gratis, dan satu
+      // tarikan admin = 5 halaman; tanpa ini tombol kirim ikut antre sampai
+      // aplikasi menyerah dengan "Server nggak nyaut".
+      final json = await _api.get(
+        '$path${pemisah}ringkas=1&page=$halaman',
+        token: token,
+      );
       hasil.addAll(
         parseListAman(json['data'], CalibrationHistoryItem.fromJson),
       );

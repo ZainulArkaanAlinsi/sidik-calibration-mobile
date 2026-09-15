@@ -346,7 +346,18 @@ class ApiClient {
     Duration? timeout,
     required bool bolehUlang,
   }) async {
-    final batas = timeout ?? const Duration(seconds: 20);
+    // Bawaan dibedakan per jenis. Diukur di produksi 15 Sep 2026: server Render
+    // gratis mengantre permintaan — 12 sekaligus menunggu sampai 13,7 detik —
+    // jadi batas 20 detik lama menyerah di tengah antrean singkat.
+    //
+    // - Yang boleh diulang (baca): 30 detik, karena sesudahnya masih dicoba lagi.
+    // - Yang TIDAK boleh diulang (kirim lembar kerja, approve, email): 60 detik.
+    //   Menyerah terlalu cepat di sini paling mahal — servernya mungkin sudah
+    //   menyimpan, sementara teknisi melihat "gagal" dan mengirim ulang.
+    final batas = timeout ??
+        (bolehUlang
+            ? const Duration(seconds: 30)
+            : const Duration(seconds: 60));
 
     for (var percobaan = 0; ; percobaan++) {
       final bolehLagi = bolehUlang && percobaan < _jedaUlang.length;
