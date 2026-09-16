@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../core/theme/app_colors.dart';
-import '../core/theme/app_spacing.dart';
 
 /// Satu butir data di baris bawah kartu.
 class ButirKartu {
@@ -74,10 +73,11 @@ class KartuGradien extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          // 5 px di acuannya — bingkai tipis warna badan yang mengelilingi
-          // panel gradien. Itu yang bikin panelnya kebaca "di dalam" kartu,
-          // bukan menempel di tepinya.
-          padding: const EdgeInsets.all(5),
+          // Nol, bukan 5. Bingkai 5 px itu bikin pita gradiennya berhenti
+          // sebelum tepi kartu — dari layar hasilnya bukan "panel di dalam
+          // kartu" melainkan kotak biru yang melayang di atas kotak putih yang
+          // lebarnya beda (16 Sep 2026). Pita sekarang menempel rapat ke tepi.
+          padding: EdgeInsets.zero,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -92,7 +92,9 @@ class KartuGradien extends StatelessWidget {
               // kartunya jadi lebih pendek.
               DecoratedBox(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15),
+                  // Tanpa sudut sendiri: kartunya sudah `clipBehavior:
+                  // antiAlias`, jadi sudut atas pita mengikuti sudut kartu dan
+                  // sudut bawahnya lurus — batas rapi ke isi di bawahnya.
                   // Dua ujungnya sama-sama gelap. Versi pertama berujung mint
                   // cerah, dan teks/ikon putih di ujung itu nyaris nggak
                   // kebaca — tombol hapusnya cuma kelihatan sebagai bayangan
@@ -106,7 +108,11 @@ class KartuGradien extends StatelessWidget {
                   ),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
+                  // Tinggi pita dikunci lewat padding yang sama di semua
+                  // kartu; tombol aksi dipaksa masuk ke tinggi itu (lihat
+                  // `aksi`), jadi kartu bertombol dan tanpa tombol tidak lagi
+                  // punya kepala setinggi beda.
+                  padding: EdgeInsets.fromLTRB(14, 12, aksi.isEmpty ? 14 : 6, 12),
                   child: Row(
                     children: [
                       Icon(ikon, size: 18, color: Colors.white),
@@ -140,26 +146,20 @@ class KartuGradien extends StatelessWidget {
               ),
               if (butir.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.xs,
-                    0,
-                    AppSpacing.xs,
-                    AppSpacing.xs,
-                  ),
-                  child: Row(
+                  // Isi kartu: rata KIRI dan mengalir ke bawah, bukan dibagi
+                  // kolom selebar sama yang dipisah garis tegak. Pembagian
+                  // kolom itu yang bikin layar Standar Acuan tidak kebaca —
+                  // merk terpotong jadi "Metrology · CMG-9…" dan "k=2" jatuh
+                  // sendirian di baris berikutnya, sementara kolom "Berlaku"
+                  // di sebelahnya kosong melompong (16 Sep 2026).
+                  padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       for (var i = 0; i < butir.length; i++) ...[
-                        if (i > 0)
-                          Container(
-                            width: 1,
-                            height: 26,
-                            margin: const EdgeInsets.symmetric(horizontal: 2),
-                            color: theme.colorScheme.outlineVariant.withValues(
-                              alpha: 0.7,
-                            ),
-                          ),
-                        Expanded(child: _Butir(butir: butir[i])),
+                        if (i > 0) const SizedBox(height: 4),
+                        _Butir(butir: butir[i]),
                       ],
                     ],
                   ),
@@ -181,33 +181,36 @@ class _Butir extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
+    // Keterangan menempel di baris yang SAMA, dipisah titik tengah: "± 4,1 µm
+    // · k=2" kebaca sebagai satu keterangan, sementara dua baris terpisah
+    // kebaca sebagai dua data yang tidak berhubungan.
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        Flexible(
+          child: Text(
             butir.utama,
-            textAlign: TextAlign.center,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelMedium?.copyWith(
+            style: theme.textTheme.bodySmall?.copyWith(
               fontWeight: FontWeight.w600,
               color: butir.warna,
             ),
           ),
-          if (butir.keterangan != null)
-            Text(
-              butir.keterangan!,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+        ),
+        if (butir.keterangan != null) ...[
+          const SizedBox(width: 6),
+          Text(
+            '· ${butir.keterangan!}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
+          ),
         ],
-      ),
+      ],
     );
   }
 }

@@ -226,10 +226,12 @@ class _KartuAkun extends ConsumerWidget {
                 // tiap kali layarnya dibuka. Kalau pakai angka acak biasa,
                 // langitnya ganti tiap scroll.
                 benih: akun.id,
-                // Lebih pendek di layar lebar: kartunya di situ dua kali lebih
-                // lebar, dan pita setinggi 104 jadi blok warna yang menguasai
-                // kartu — aksen yang berubah jadi isi utama.
-                tinggi: ringkas ? 76 : 104,
+                // 16 Sep 2026 dipangkas dari 76/104 jadi 48/56. Di jendela
+                // laptop pita setinggi 104 memakan lebih dari sepertiga kartu:
+                // yang paling besar di layar Data Teknisi jadi gambar
+                // gelombang, bukan nama orangnya — dan kartu yang tombolnya
+                // beda jumlah jadi tinggi-rendah tak karuan di sebelahnya.
+                tinggi: ringkas ? 48 : 56,
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(
@@ -331,21 +333,25 @@ class _KartuAkun extends ConsumerWidget {
                         ),
                       ),
                     ),
-                                Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.xs,
-              children: [
+                    // `ringkas: true` dipaksa untuk SEMUA tombol di sini, tidak
+                    // ikut lebar layar: di dua kolom, tombol ukuran penuh
+                    // ("NONAKTIFKAN", "RESET PASSWORD", "EDIT AKUN") pecah jadi
+                    // tiga baris dan tinggi tiap kartu jadi beda-beda.
+                    Wrap(
+                      spacing: AppSpacing.xs,
+                      runSpacing: AppSpacing.xs,
+                      children: [
                 if (akun.status == UserStatus.pending)
                   AppButton(
                     label: l10n.teknisiSetujui,
-                    ringkas: ringkas,
+                    ringkas: true,
                     icon: Icons.check,
                     onPressed: () => _setujui(context, ref),
                   ),
                 if (akun.status != UserStatus.nonaktif)
                   AppButton(
                     label: l10n.teknisiTolak,
-                    ringkas: ringkas,
+                    ringkas: true,
                     icon: Icons.block_outlined,
                     variant: AppButtonVariant.secondary,
                     onPressed: () => _tolak(context, ref),
@@ -353,7 +359,7 @@ class _KartuAkun extends ConsumerWidget {
                 if (akun.status == UserStatus.aktif)
                   AppButton(
                     label: l10n.teknisiResetPassword,
-                    ringkas: ringkas,
+                    ringkas: true,
                     icon: Icons.lock_reset,
                     variant: AppButtonVariant.secondary,
                     onPressed: () => _resetPassword(context, ref),
@@ -364,7 +370,7 @@ class _KartuAkun extends ConsumerWidget {
                 // yang paling butuh dibetulin malah nggak bisa disentuh.
                 AppButton(
                   label: l10n.teknisiEdit,
-                  ringkas: ringkas,
+                  ringkas: true,
                   icon: Icons.edit_outlined,
                   variant: AppButtonVariant.secondary,
                   onPressed: () => _edit(context, ref),
@@ -381,7 +387,7 @@ class _KartuAkun extends ConsumerWidget {
           // tanpa geser semua yang di bawahnya.
           Positioned(
             left: AppSpacing.md,
-            top: (ringkas ? 76 : 104) - 29,
+            top: (ringkas ? 48 : 56) - 29,
             child: _AvatarAkun(akun: akun),
           ),
         ],

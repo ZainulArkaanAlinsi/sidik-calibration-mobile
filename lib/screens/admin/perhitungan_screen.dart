@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/calibration_history_item.dart';
 import '../../models/perhitungan.dart';
 import '../../models/validasi.dart';
 import '../../providers/history_provider.dart';
@@ -30,7 +31,21 @@ import '../../widgets/sidik_loader.dart';
 /// Alur keputusannya: **Periksa** (hitung ulang tanpa nyetujuin) → lihat
 /// temuan → **Setujui** / **Tolak**.
 class PerhitunganScreen extends ConsumerStatefulWidget {
-  const PerhitunganScreen({super.key, required this.calibrationId});
+  const PerhitunganScreen({
+    super.key,
+    required this.calibrationId,
+    this.statusSesi,
+  });
+
+  /// Status sesi waktu layar ini dibuka. `null` = tidak diketahui (pemanggil
+  /// lama) dan bilah aksinya tetap lengkap seperti sebelumnya.
+  ///
+  /// Dipakai menyembunyikan TOLAK/SETUJUI untuk sesi yang memang tidak bisa
+  /// disetujui lagi. 16 Sep 2026: sesi yang sudah disetujui tetap memajang
+  /// tombol SETUJUI, dan menekannya cuma memunculkan penolakan server "Cuma
+  /// sesi yang statusnya `menunggu_approval` yang bisa disetujui." — tombol
+  /// yang satu-satunya hasilnya pesan galat.
+  final CalibrationStatus? statusSesi;
 
   final int calibrationId;
 
@@ -242,6 +257,7 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
           ? _BilahAksi(
               sibuk: _sibuk,
               validasi: _validasi,
+              statusSesi: widget.statusSesi,
               onPeriksa: _periksa,
               onSetujui: _setujui,
               onTolak: _tolak,
@@ -478,6 +494,7 @@ class _BilahAksi extends StatelessWidget {
   const _BilahAksi({
     required this.sibuk,
     required this.validasi,
+    required this.statusSesi,
     required this.onPeriksa,
     required this.onSetujui,
     required this.onTolak,
@@ -485,6 +502,7 @@ class _BilahAksi extends StatelessWidget {
 
   final bool sibuk;
   final HasilValidasi? validasi;
+  final CalibrationStatus? statusSesi;
   final VoidCallback onPeriksa;
   final VoidCallback onSetujui;
   final VoidCallback onTolak;
@@ -497,6 +515,16 @@ class _BilahAksi extends StatelessWidget {
     // cuma dikasih peringatan. Peringatan (kuning) beda: tombolnya tetap
     // hidup, tapi server bakal minta konfirmasi sekali.
     final diblokir = validasi != null && !validasi!.bolehTerbit;
+
+    // `null` = pemanggil tidak menyebut statusnya: bilahnya tetap lengkap.
+    final bisaDiputuskan =
+        statusSesi == null || statusSesi == CalibrationStatus.menungguApproval;
+    final keterangan = switch (statusSesi) {
+      CalibrationStatus.disetujui => 'Sesi ini sudah disetujui.',
+      CalibrationStatus.perluRevisi => 'Sesi ini sudah ditolak dan menunggu revisi teknisi.',
+      CalibrationStatus.draft => 'Masih draf teknisi — belum dikirim buat diperiksa.',
+      _ => '',
+    };
 
     final c = NeuColors.of(context);
 
@@ -538,35 +566,59 @@ class _BilahAksi extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.sm),
               ],
-              Row(
-                children: [
-                  Expanded(
-                    child: AppButton(
-                      label: l10n.perhitPeriksa,
-                      icon: Icons.fact_check_outlined,
-                      variant: AppButtonVariant.secondary,
-                      isLoading: sibuk,
-                      onPressed: onPeriksa,
-                    ),
+              // Sesi yang statusnya bukan `menunggu_approval` tidak bisa
+              // disetujui/ditolak lagi — server menolaknya. Tombolnya dicabut,
+              // bukan dibiarkan memajang janji yang pasti gagal; PERIKSA tetap
+              // ada karena hitung ulang boleh dijalankan kapan saja.
+              if (!bisaDiputuskan) ...[
+                Text(
+                  keterangan,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: AppButton(
-                      label: l10n.perhitTolak,
-                      variant: AppButtonVariant.secondary,
-                      isLoading: sibuk,
-                      onPressed: onTolak,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                AppButton(
+                  label: l10n.perhitPeriksa,
+                  icon: Icons.fact_check_outlined,
+                  variant: AppButtonVariant.secondary,
+                  isLoading: sibuk,
+                  onPressed: onPeriksa,
+                ),
+              ] else ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppButton(
+                        label: l10n.perhitPeriksa,
+                        icon: Icons.fact_check_outlined,
+                        variant: AppButtonVariant.secondary,
+                        isLoading: sibuk,
+                        onPressed: onPeriksa,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              AppButton(
-                label: l10n.perhitSetujui,
-                icon: Icons.verified_outlined,
-                isLoading: sibuk,
-                onPressed: diblokir ? null : onSetujui,
-              ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: AppButton(
+                        label: l10n.perhitTolak,
+                        variant: AppButtonVariant.secondary,
+                        isLoading: sibuk,
+                        onPressed: onTolak,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                AppButton(
+                  label: l10n.perhitSetujui,
+                  icon: Icons.verified_outlined,
+                  isLoading: sibuk,
+                  onPressed: diblokir ? null : onSetujui,
+                ),
+              ],
             ],
           ),
         ),

@@ -109,64 +109,27 @@ void main() {
     });
   });
 
-  group('approval (admin doang)', () {
-    testWidgets('admin lihat tombol SETUJUI/TOLAK', (tester) async {
-      await tester.pumpWidget(_app());
-      await tester.pumpAndSettle();
-      await _bukaTabRiwayat(tester);
-      expect(find.text('SETUJUI'), findsOneWidget);
-      expect(find.text('TOLAK'), findsOneWidget);
-    });
-
-    testWidgets('teknisi nggak lihat tombol SETUJUI/TOLAK', (tester) async {
-      await tester.pumpWidget(_app(token: 'mock-token-2'));
-      await tester.pumpAndSettle();
-      await _bukaTabRiwayat(tester);
-      expect(find.text('SETUJUI'), findsNothing);
-      expect(find.text('TOLAK'), findsNothing);
-    });
-
-    testWidgets('tap SETUJUI → status berubah jadi PASS/FAIL', (tester) async {
+  /// Riwayat = daftar bacaan. Tombol keputusan pindah ke Antrean Approval
+  /// (keputusan pemilik proyek 16 Sep 2026): menyetujui dari daftar berarti
+  /// memutuskan tanpa melihat angka perhitungannya.
+  group('riwayat tidak memutuskan apa pun', () {
+    testWidgets('admin pun TIDAK lihat tombol SETUJUI/TOLAK', (tester) async {
       await tester.pumpWidget(_app());
       await tester.pumpAndSettle();
       await _bukaTabRiwayat(tester);
 
       expect(find.text('Menunggu approval'), findsOneWidget);
-
-      await tester.tap(find.text('SETUJUI'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Menunggu approval'), findsNothing);
       expect(find.text('SETUJUI'), findsNothing);
+      expect(find.text('TOLAK'), findsNothing);
     });
 
-    testWidgets('tap TOLAK → kosong ditolak, diisi → jadi Perlu revisi', (
-      tester,
-    ) async {
-      await tester.pumpWidget(_app());
+    testWidgets('teknisi juga tidak', (tester) async {
+      await tester.pumpWidget(_app(token: 'mock-token-2'));
       await tester.pumpAndSettle();
       await _bukaTabRiwayat(tester);
 
-      await tester.tap(find.text('TOLAK'));
-      await tester.pumpAndSettle();
-
-      // Kosong ditolak lokal — dialog nggak nutup.
-      await tester.tap(find.text('TOLAK SESI'));
-      await tester.pumpAndSettle();
-      expect(find.text('Tolak sesi kalibrasi?'), findsOneWidget);
-
-      await tester.enterText(
-        find.byType(TextField),
-        'Titik ukur kurang dari 3 pembacaan.',
-      );
-      await tester.tap(find.text('TOLAK SESI'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Tolak sesi kalibrasi?'), findsNothing);
-      expect(
-        find.textContaining('Titik ukur kurang dari 3 pembacaan.'),
-        findsOneWidget,
-      );
+      expect(find.text('SETUJUI'), findsNothing);
+      expect(find.text('TOLAK'), findsNothing);
     });
   });
 }

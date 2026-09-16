@@ -4,17 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../certificate/sertifikat_sukses_sheet.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/waktu_tampil.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_history_item.dart';
-import '../../models/validasi.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../providers/history_provider.dart';
-import '../../services/auth_service.dart' show ApiException;
 import '../../widgets/app_button.dart';
 import '../../widgets/master_detail_pane.dart';
 import '../../widgets/readable_width.dart';
@@ -22,7 +19,6 @@ import '../../widgets/skeleton.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/tampil_masuk.dart';
 import '../../widgets/notification_bell.dart';
-import '../admin/widgets/panel_temuan.dart';
 import 'calibration_detail_screen.dart';
 
 /// Riwayat kalibrasi — sama pola 4-state-nya kayak Dashboard
@@ -390,11 +386,12 @@ class _HistoryCard extends StatelessWidget {
                   ),
                 ),
               ],
-              if (isAdmin &&
-                  item.status == CalibrationStatus.menungguApproval) ...[
-                const SizedBox(height: AppSpacing.sm),
-                _ApprovalActions(item: item),
-              ],
+              // TIDAK ada tombol approval di sini. Riwayat menjawab "apa saja
+              // yang pernah dikerjakan" — daftar bacaan, bukan tempat
+              // memutuskan. Yang memutuskan layar Antrean Approval, dan
+              // menaruh tombol yang sama di dua tempat bikin admin menyetujui
+              // dari daftar yang tidak menampilkan angka perhitungannya.
+              // Keputusan pemilik proyek, 16 Sep 2026.
             ],
           ),
         ),
@@ -444,254 +441,6 @@ class _IkonAlat extends StatelessWidget {
     );
   }
 }
-
-/// Tombol setujui/tolak — komponen sendiri (bukan langsung di `_HistoryCard`)
-/// biar bisa nyimpen state `_busy` lokal: dua tombol ini harus nonaktif
-/// bareng begitu salah satu dipencet, daripada admin nggak sabar mencet dua
-/// kali dan approve-nya dobel keproses.
-class _ApprovalActions extends ConsumerStatefulWidget {
-  const _ApprovalActions({required this.item});
-
-  final CalibrationHistoryItem item;
-
-  @override
-  ConsumerState<_ApprovalActions> createState() => _ApprovalActionsState();
-}
-
-class _ApprovalActionsState extends ConsumerState<_ApprovalActions> {
-  bool _busy = false;
-
-  /// Dipegang State, BUKAN dibikin ulang tiap `_tolak()`.
-  ///
-  /// Dulu dibikin lokal di dalam `_tolak()` dan nggak pernah di-dispose sama
-  /// sekali — tiap penolakan nyisain satu controller hidup selama app jalan,
-  /// dan admin nekan tombol ini puluhan kali sehari.
-  ///
-  /// Mem-dispose-nya di ujung `_tolak()` BUKAN jalan keluarnya: `showDialog`
-  /// kelar begitu route-nya di-pop, sementara `TextField`-nya masih kepasang
-  /// selama animasi nutup — controller yang udah dibuang kepakai lagi di situ
-  /// dan Flutter langsung ngelempar "A TextEditingController was used after
-  /// being disposed". Ditaruh di State: sekali bikin, dibuang waktu layarnya
-  /// ilang, dan isinya dikosongin tiap dialog dibuka.
-  final _catatanTolak = TextEditingController();
-
-  @override
-  void dispose() {
-    _catatanTolak.dispose();
-    super.dispose();
-  }
-
-  /// Setujui sesi ini.
-  ///
-  /// [abaikanPeringatan] cuma `true` kalau admin barusan lihat daftar
-  /// temuannya di [_konfirmasiPeringatan] dan tetap mutusin lanjut.
-  Future<void> _setujui({bool abaikanPeringatan = false}) async {
-    final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    setState(() => _busy = true);
-
-    try {
-      await ref
-          .read(historyProvider.notifier)
-          .approve(widget.item.id, abaikanPeringatan: abaikanPeringatan);
-
-      if (!mounted) return;
-
-      // Begitu disetujui, sertifikatnya langsung dikeluarin di sini —
-      // unduh/QR/tautan/kirim ada di satu lembar, nggak usah dicari lagi ke
-      // menu lain. Sheet-nya cuma dibuka kalau nomornya emang udah balik:
-      // pembuatan PDF-nya job antrean backend, dan kadang belum kelar persis
-      // waktu approve balik. Kalau belum, Alur Kerja yang nunjukin statusnya.
-      final terbaru = ref
-          .read(historyProvider)
-          .value
-          ?.where((s) => s.id == widget.item.id)
-          .firstOrNull;
-
-      // Syaratnya CUMA id. `approve` balikinnya `certificate_id` doang —
-      // nomornya nggak ikut, jadi nunggu nomor di sini bikin popup-nya nggak
-      // pernah muncul sama sekali. Sheet-nya yang narik nomor + token sendiri.
-      final certId = terbaru?.certificateId;
-
-      if (certId != null) {
-        await tampilkanSertifikatSukses(
-          context,
-          certificateId: certId,
-          nomor: terbaru?.nomorSertifikat,
-        );
-      }
-    } on ApiException catch (e) {
-      if (!mounted) return;
-
-      // Backend nolak sekali dengan 422 + `butuh_konfirmasi` waktu ada
-      // PERINGATAN (bukan error): dia minta admin lihat temuannya dulu.
-      //
-      // Dulu di sini semua kegagalan diperlakukan sama, jadi yang muncul cuma
-      // snackbar berisi teks exception mentah. Akibatnya, dari layar ini admin
-      // nggak bisa tau apa peringatannya — apalagi mutusin. Sesi Turbidimeter
-      // `KAL/2026/08/0031` lolos dengan `kelembaban_awal = 2 %RH` (52 kepencet
-      // jadi 2) dan sertifikatnya kecetak `%RH: 27% ± 53,2%` — ketidakpastian
-      // dua kali nilainya sendiri, di dokumen terakreditasi.
-      //
-      // Validatornya sendiri udah bener dan udah teriak dua kali. Yang bolong
-      // jalannya ke mata admin.
-      final validasi = _peringatanDari(e);
-
-      if (validasi != null) {
-        setState(() => _busy = false);
-
-        if (await _konfirmasiPeringatan(validasi) && mounted) {
-          await _setujui(abaikanPeringatan: true);
-        }
-
-        return;
-      }
-
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.historyApproveFailed(e.message))),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.historyApproveFailed(e.toString()))),
-      );
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  /// Temuan di balik penolakan 422, atau null kalau gagalnya karena hal lain
-  /// (jaringan, sesi habis, sesi udah disetujui orang lain).
-  HasilValidasi? _peringatanDari(ApiException e) {
-    if (e.status != 422 || !e.butuhKonfirmasi) return null;
-
-    final validasi = e.body['validasi'];
-    if (validasi is! Map<String, dynamic>) return null;
-
-    return HasilValidasi.fromJson(validasi);
-  }
-
-  /// Daftar temuannya ditampilin apa adanya, lalu admin mutusin.
-  ///
-  /// Tombol lanjutnya sengaja BUKAN "OK": yang diputuskan di sini itu
-  /// nerbitin sertifikat terakreditasi di atas data yang sistemnya sendiri
-  /// bilang janggal, jadi tulisannya mesti nyebut itu.
-  Future<bool> _konfirmasiPeringatan(HasilValidasi validasi) async {
-    final l10n = AppLocalizations.of(context);
-
-    final lanjut = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.historyPeringatanJudul),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(l10n.historyPeringatanBody),
-              const SizedBox(height: AppSpacing.md),
-              PanelTemuan(validasi: validasi),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(l10n.historyPeringatanBatal),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(l10n.historyPeringatanLanjut),
-          ),
-        ],
-      ),
-    );
-
-    return lanjut ?? false;
-  }
-
-  Future<void> _tolak() async {
-    final l10n = AppLocalizations.of(context);
-    final controller = _catatanTolak..clear();
-
-    final catatan = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.historyRejectDialogTitle),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLines: 3,
-          decoration: InputDecoration(hintText: l10n.historyRejectDialogHint),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(l10n.historyRejectDialogCancel),
-          ),
-          TextButton(
-            onPressed: () {
-              final teks = controller.text.trim();
-              if (teks.isEmpty) return;
-              Navigator.of(dialogContext).pop(teks);
-            },
-            child: Text(l10n.historyRejectDialogSubmit),
-          ),
-        ],
-      ),
-    );
-
-    if (!mounted) return;
-    if (catatan == null) return; // dibatalin
-    if (catatan.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.historyRejectDialogEmpty)));
-      return;
-    }
-
-    final messenger = ScaffoldMessenger.of(context);
-    setState(() => _busy = true);
-
-    try {
-      await ref.read(historyProvider.notifier).reject(widget.item.id, catatan);
-    } catch (e) {
-      if (!mounted) return;
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.historyRejectFailed(e.toString()))),
-      );
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
-    return Row(
-      children: [
-        Expanded(
-          child: AppButton(
-            label: l10n.historyReject,
-            variant: AppButtonVariant.secondary,
-            isLoading: _busy,
-            onPressed: _busy ? null : _tolak,
-          ),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: AppButton(
-            label: l10n.historyApprove,
-            isLoading: _busy,
-            onPressed: _busy ? null : _setujui,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _Kosong extends StatelessWidget {
   const _Kosong();
 

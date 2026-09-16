@@ -624,7 +624,12 @@ class _TombolLangkah extends ConsumerWidget {
           l10n.alurBukaPerhitungan,
           Icons.calculate_outlined,
           bolehSetujui
-              ? () => buka(PerhitunganScreen(calibrationId: sesi.id))
+              ? () => buka(
+                  PerhitunganScreen(
+                    calibrationId: sesi.id,
+                    statusSesi: sesi.status,
+                  ),
+                )
               : null,
         ),
       _Tahap.sertifikat => (

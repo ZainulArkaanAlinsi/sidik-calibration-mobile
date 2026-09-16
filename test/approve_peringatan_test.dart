@@ -7,7 +7,7 @@ import 'package:sidik_calibration/models/calibration_detail.dart';
 import 'package:sidik_calibration/models/calibration_history_item.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/history_provider.dart';
-import 'package:sidik_calibration/screens/history/history_screen.dart';
+import 'package:sidik_calibration/screens/admin/antrean_approval_screen.dart';
 import 'package:sidik_calibration/services/approval_service.dart';
 import 'package:sidik_calibration/services/auth_service.dart';
 import 'package:sidik_calibration/services/history_service.dart';
@@ -130,7 +130,7 @@ Widget _app(ApprovalService approval) {
       locale: const Locale('id'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: const HistoryScreen(),
+      home: const AntreanApprovalScreen(),
     ),
   );
 }
@@ -169,7 +169,11 @@ void main() {
     await tester.pumpAndSettle(const Duration(seconds: 2));
 
     await tester.tap(find.text('SETUJUI TETAP'));
-    await tester.pumpAndSettle(const Duration(seconds: 2));
+    // `pump` berjangka: sesudah disetujui, antrean di belakang ditarik ulang
+    // dan loader-nya berputar terus, jadi `pumpAndSettle` menunggu selamanya.
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 1));
 
     // Dua panggilan: yang pertama ditolak backend, yang kedua sadar.
     expect(approval.panggilan, [false, true]);

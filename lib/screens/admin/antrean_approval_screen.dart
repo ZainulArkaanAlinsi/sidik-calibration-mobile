@@ -7,6 +7,7 @@ import '../../core/utils/waktu_tampil.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_history_item.dart';
 import '../../providers/history_provider.dart';
+import '../../widgets/aksi_approval.dart';
 import '../../widgets/notification_bell.dart';
 import '../auth/widgets/neu.dart';
 import 'perhitungan_screen.dart';
@@ -275,14 +276,18 @@ class _Kartu extends StatelessWidget {
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute<void>(
-          builder: (_) => PerhitunganScreen(calibrationId: item.id),
+          builder: (_) =>
+              PerhitunganScreen(calibrationId: item.id, statusSesi: item.status),
         ),
       ),
       child: NeuRaised(
         radius: 20,
         padding: const EdgeInsets.all(AppSpacing.md),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Row(
+              children: [
             NeuRaised(
               circle: true,
               distance: 3,
@@ -352,7 +357,14 @@ class _Kartu extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
-            Icon(Icons.chevron_right, color: c.textMuted),
+                Icon(Icons.chevron_right, color: c.textMuted),
+              ],
+            ),
+            // Tombol keputusan duduk DI SINI, bukan di Riwayat: layar ini yang
+            // memang bertugas memutuskan, dan ketukan pada kartunya membuka
+            // lembar perhitungan buat yang mau lihat angkanya dulu.
+            const SizedBox(height: AppSpacing.sm),
+            AksiApproval(item: item),
           ],
         ),
       ),

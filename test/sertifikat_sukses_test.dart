@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:sidik_calibration/app.dart';
+import 'package:sidik_calibration/l10n/app_localizations.dart';
+import 'package:sidik_calibration/screens/admin/antrean_approval_screen.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/certificate_provider.dart';
 import 'package:sidik_calibration/providers/dashboard_provider.dart';
@@ -30,14 +31,19 @@ Widget _app() {
       approvalServiceProvider.overrideWithValue(MockApprovalService()),
       certificateServiceProvider.overrideWithValue(MockCertificateService()),
     ],
-    child: const SidikApp(),
+    child: MaterialApp(
+      locale: const Locale('id'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: const AntreanApprovalScreen(),
+    ),
   );
 }
 
-Future<void> _sampaiRiwayat(WidgetTester tester) async {
+/// Tombol SETUJUI hidup di Antrean Approval, BUKAN di Riwayat (keputusan
+/// pemilik proyek 16 Sep 2026: riwayat itu daftar bacaan).
+Future<void> _sampaiAntrean(WidgetTester tester) async {
   await tester.pumpWidget(_app());
-  await tester.pumpAndSettle();
-  await tester.tap(find.text('Riwayat'));
   await tester.pumpAndSettle();
 }
 
@@ -46,10 +52,15 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(500, 1000));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await _sampaiRiwayat(tester);
+    await _sampaiAntrean(tester);
 
     await tester.tap(find.text('SETUJUI').first);
-    await tester.pumpAndSettle();
+    // `pump` berjangka, BUKAN `pumpAndSettle`: sesudah disetujui, antreannya
+    // ditarik ulang dan loader-nya berputar terus — `pumpAndSettle` menunggu
+    // animasi yang memang tidak pernah berhenti.
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 1));
 
     expect(find.text('Sertifikat berhasil dibuat'), findsOneWidget);
   });
@@ -60,9 +71,14 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(500, 1000));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await _sampaiRiwayat(tester);
+    await _sampaiAntrean(tester);
     await tester.tap(find.text('SETUJUI').first);
-    await tester.pumpAndSettle();
+    // `pump` berjangka, BUKAN `pumpAndSettle`: sesudah disetujui, antreannya
+    // ditarik ulang dan loader-nya berputar terus — `pumpAndSettle` menunggu
+    // animasi yang memang tidak pernah berhenti.
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 1));
 
     for (final aksi in [
       'Unduh PDF',
@@ -82,9 +98,14 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(500, 1000));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await _sampaiRiwayat(tester);
+    await _sampaiAntrean(tester);
     await tester.tap(find.text('SETUJUI').first);
-    await tester.pumpAndSettle();
+    // `pump` berjangka, BUKAN `pumpAndSettle`: sesudah disetujui, antreannya
+    // ditarik ulang dan loader-nya berputar terus — `pumpAndSettle` menunggu
+    // animasi yang memang tidak pernah berhenti.
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 1));
 
     // Ini yang dulu bikin popup-nya nggak pernah muncul: `approve` balikinnya
     // `certificate_id` doang, nomor sertifikatnya NGGAK ikut. Jadi sheet-nya
@@ -96,12 +117,19 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(500, 1000));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await _sampaiRiwayat(tester);
+    await _sampaiAntrean(tester);
     await tester.tap(find.text('SETUJUI').first);
-    await tester.pumpAndSettle();
+    // `pump` berjangka, BUKAN `pumpAndSettle`: sesudah disetujui, antreannya
+    // ditarik ulang dan loader-nya berputar terus — `pumpAndSettle` menunggu
+    // animasi yang memang tidak pernah berhenti.
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 1));
 
     await tester.tap(find.text('Kode QR'));
-    await tester.pumpAndSettle();
+    // Alasan sama dengan di atas: loader antrean di belakang tidak pernah diam.
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     expect(find.text('QR Sertifikat'), findsOneWidget);
     expect(find.text('Simpan PNG'), findsOneWidget);
