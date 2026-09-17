@@ -1747,12 +1747,27 @@ class _Bagian extends ConsumerWidget {
             //
             // Yang dicabut TAMPILANNYA. Mesin geometrinya
             // (`services/pindai_lembar.dart` — deteksi marker + warp
-            // perspektif Dart murni), layar review per sel, dan seluruh
-            // test-nya dibiarkan utuh: dia satu-satunya kode di repo ini yang
-            // sudah terbukti bisa memetakan foto kertas ke sel, dan itu persis
-            // bahan yang dibutuhkan kalau `FOTO TABEL INI` suatu saat harus
-            // paham bentuk grid Enclosure. Menghapusnya berarti menulis
-            // ulangnya dari nol.
+            // perspektif Dart murni), LEM-nya ke server
+            // (`services/jalankan_pindai.dart`), layar review per sel, dan
+            // seluruh test-nya dibiarkan utuh: dia satu-satunya kode di repo
+            // ini yang sudah terbukti bisa memetakan foto kertas ke sel, dan
+            // itu persis bahan yang dibutuhkan kalau `FOTO TABEL INI` suatu
+            // saat harus paham bentuk grid Enclosure. Menghapusnya berarti
+            // menulis ulangnya dari nol.
+            //
+            // `jalankan_pindai.dart` ikut disebut di sini sejak 17 Sep 2026
+            // karena dia yang paling gampang kena bersih-bersih: satu-satunya
+            // yang nyebut `JalankanPindai` di seluruh repo itu test-nya
+            // sendiri, jadi cari-referensi ngasih nol hasil di `lib/` dan
+            // berkasnya kebaca sebagai sisa yang kelupaan. Dia NGGAK kelupaan —
+            // dia nganggur sengaja, nunggu tampilannya dipasang balik.
+            //
+            // Bukan kekhawatiran teoretis: `cece462` (17 Sep, sapuan "berkas
+            // yang nggak di-import siapa pun") nyabut TUJUH berkas, dan
+            // `jalankan_pindai.dart` cuma selamat karena punya test sendiri —
+            // `my_tasks_screen.dart` yang nggak punya ikut kecabut. Yang
+            // nyelametin berkas ini test-nya, bukan komentar ini; komentar ini
+            // yang nyelametin ALASANNYA.
             //
             // Konsekuensi yang ditanggung sadar waktu itu: Autoklaf, TIDS, dan
             // kelima Enclosure jadi NGGAK punya jalur kamera sama sekali —

@@ -154,20 +154,45 @@ void main() {
     expect(find.text('SISTEM'), findsNothing);
   });
 
-  testWidgets('"Tugas Saya" NGGAK ada di mana pun — /orders dibatalin', (
+  testWidgets('"Tugas Saya" NGGAK ada di mana pun — belum diputusin', (
     tester,
   ) async {
     await _jendelaDesktop(tester);
     await _sampaiPanel(tester, token: 'mock-token-2');
 
-    // Backend nutup branch Order Kalibrasi & penugasan teknisi permanen
-    // (handoff 31 Jul §6) — `/orders` nol route. `MyTasksScreen` nembak
-    // `GET /orders?teknisi_id=saya`, jadi menunya pasti 404.
-    //
     // Test ini sengaja ngunci ABSENNYA: sebelumnya gw nambahin menu ini ke
     // sidebar karena audit paritas bilang timpang, dan itu bener PADA
     // WAKTUNYA — tapi jadi salah begitu fiturnya dibatalin. Tanpa test ini,
     // "paritas" gampang bikin orang masangnya balik.
+    //
+    // ## Alasannya diralat 17 Sep 2026 — BACA SEBELUM NGAPUS TEST INI
+    //
+    // Komentar lama di sini bilang backend nutup Order & penugasan teknisi
+    // PERMANEN dan `/orders` nol route, ngutip handoff 31 Jul §6. **Itu udah
+    // nggak bener.** Dicek langsung ke `routes/api.php` repo API:
+    //
+    //   GET/POST/PUT/DELETE /orders  ·  GET /orders/{order}
+    //   POST /orders/{order}/penugasan
+    //
+    // dan `OrderController::index()` nerima `teknisi_id=saya` — literal `saya`,
+    // diterjemahin dari token di server, persis kontrak yang `MyTasksScreen`
+    // pake. Jadi menunya nggak bakal 404 lagi.
+    //
+    // Yang NGGAK berubah: absennya menu ini tetep dikunci, karena naro menu
+    // balik itu keputusan produk, bukan akibat otomatis dari rutenya hidup.
+    // Yang diralat cuma FAKTA yang jadi dasarnya — alasan yang salah bikin
+    // orang mutusin dari premis yang salah.
+    //
+    // Dan premis yang salah itu udah kepake: `lib/screens/order/
+    // my_tasks_screen.dart` (243 baris, lengkap) DICABUT di `cece462` hari yang
+    // sama, lewat sapuan "berkas yang nggak di-import siapa pun". Sapuannya
+    // bener — nol yang ngerujuk dia — tapi alasan dia nggak dirujuk itu justru
+    // kalimat basi di atas. Kalau menunya jadi dipasang balik, layarnya
+    // dibalikin dari riwayat:
+    //
+    //   git show cece462^:lib/screens/order/my_tasks_screen.dart
+    //
+    // bukan ditulis ulang dari nol.
     expect(find.text('Tugas Saya'), findsNothing);
   });
 
