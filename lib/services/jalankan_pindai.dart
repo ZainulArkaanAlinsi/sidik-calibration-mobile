@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:image/image.dart' as img;
 
-import '../models/worksheet_scan.dart';
 import '../models/worksheet_template.dart';
 import 'pembaca_qr.dart';
 import 'pembaca_sel.dart';
@@ -381,6 +380,3 @@ class HasilSusunPindai {
   /// dari awal.
   final img.Image citraWarp;
 }
-
-/// Hasil pindai yang sudah dibaca server, buat layar review.
-typedef HasilKirimPindai = HasilPindai;
