@@ -74,6 +74,14 @@ jobs:
       - name: Uji skrip keystore
         run: ./tool/uji-bikin-keystore.sh
 
+      # Sama alasannya dengan langkah di atas: cuma butuh bash, sedetik.
+      #
+      # `flutter analyze` tidak melihat berkas utuh yang tidak disambung ke
+      # mana pun — tujuh berkas seperti itu lolos sampai 17 Sep 2026 dengan
+      # analyzer bersih. Penjelasan lengkapnya di kepala skripnya.
+      - name: Cek berkas yatim di lib/
+        run: ./tool/cek-berkas-yatim.sh
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
