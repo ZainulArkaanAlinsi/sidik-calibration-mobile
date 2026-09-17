@@ -1762,6 +1762,13 @@ class _Bagian extends ConsumerWidget {
             // berkasnya kebaca sebagai sisa yang kelupaan. Dia NGGAK kelupaan —
             // dia nganggur sengaja, nunggu tampilannya dipasang balik.
             //
+            // Bukan kekhawatiran teoretis: `cece462` (17 Sep, sapuan "berkas
+            // yang nggak di-import siapa pun") nyabut TUJUH berkas, dan
+            // `jalankan_pindai.dart` cuma selamat karena punya test sendiri —
+            // `my_tasks_screen.dart` yang nggak punya ikut kecabut. Yang
+            // nyelametin berkas ini test-nya, bukan komentar ini; komentar ini
+            // yang nyelametin ALASANNYA.
+            //
             // Konsekuensi yang ditanggung sadar waktu itu: Autoklaf, TIDS, dan
             // kelima Enclosure jadi NGGAK punya jalur kamera sama sekali —
             // `FOTO TABEL INI` memang `didukung: false` di ketujuhnya karena

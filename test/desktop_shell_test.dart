@@ -181,8 +181,18 @@ void main() {
     // Yang NGGAK berubah: absennya menu ini tetep dikunci, karena naro menu
     // balik itu keputusan produk, bukan akibat otomatis dari rutenya hidup.
     // Yang diralat cuma FAKTA yang jadi dasarnya — alasan yang salah bikin
-    // orang mutusin dari premis yang salah, dan `MyTasksScreen` udah nganggur
-    // tujuh minggu gara-gara itu.
+    // orang mutusin dari premis yang salah.
+    //
+    // Dan premis yang salah itu udah kepake: `lib/screens/order/
+    // my_tasks_screen.dart` (243 baris, lengkap) DICABUT di `cece462` hari yang
+    // sama, lewat sapuan "berkas yang nggak di-import siapa pun". Sapuannya
+    // bener — nol yang ngerujuk dia — tapi alasan dia nggak dirujuk itu justru
+    // kalimat basi di atas. Kalau menunya jadi dipasang balik, layarnya
+    // dibalikin dari riwayat:
+    //
+    //   git show cece462^:lib/screens/order/my_tasks_screen.dart
+    //
+    // bukan ditulis ulang dari nol.
     expect(find.text('Tugas Saya'), findsNothing);
   });
 
