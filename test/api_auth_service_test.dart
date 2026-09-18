@@ -137,36 +137,6 @@ void main() {
     });
   });
 
-  group('register', () {
-    test('NGGAK ngirim `role` — role ditentukan admin, bukan pendaftar', () async {
-      late http.Request terkirim;
-
-      final service = _service((req) async {
-        terkirim = req;
-        return _json({'message': 'Pendaftaran terkirim.'}, 201);
-      });
-
-      await service.register(
-        const RegisterData(
-          nama: 'Eko Prasetyo',
-          employeeId: 'SDK-0099',
-          department: 'Kalibrasi',
-          email: 'eko@pt-sidik.com',
-          password: 'rahasia123',
-        ),
-      );
-
-      final body = jsonDecode(terkirim.body) as Map<String, dynamic>;
-      expect(terkirim.url.toString(), '$_baseUrl/register');
-      expect(body['employee_id'], 'SDK-0099');
-      expect(
-        body.containsKey('role'),
-        isFalse,
-        reason: 'kalau client bisa ngirim role, orang bisa daftar jadi admin',
-      );
-    });
-  });
-
   group('me & logout', () {
     test('token dikirim sebagai Bearer di header', () async {
       late http.Request terkirim;

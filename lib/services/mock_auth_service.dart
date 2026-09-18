@@ -118,41 +118,8 @@ class MockAuthService implements AuthService {
     return AuthSession(token: 'mock-token-${json['id']}', user: user);
   }
 
-  @override
-  Future<void> register(RegisterData data) async {
-    await Future<void>.delayed(jeda);
-
-    final emailKepakai = _akun.any(
-      (u) =>
-          (u['email'] as String).toLowerCase() == data.email.trim().toLowerCase(),
-    );
-    if (emailKepakai) {
-      throw const AuthException('Email ini sudah terdaftar.');
-    }
-
-    final idKepakai = _akun.any(
-      (u) =>
-          (u['employee_id'] as String).toLowerCase() ==
-          data.employeeId.trim().toLowerCase(),
-    );
-    if (idKepakai) {
-      throw const AuthException('ID pegawai ini sudah terdaftar.');
-    }
-
-    // Akun baru selalu `pending` + role default `teknisi`. Role sebenarnya
-    // ditentukan admin waktu nyetujuin — user nggak bisa milih role sendiri.
-    _akun.add({
-      'id': _akun.length + 1,
-      'nama': data.nama.trim(),
-      'email': data.email.trim(),
-      'employee_id': data.employeeId.trim(),
-      'role': 'teknisi',
-      'status': 'pending',
-      'department': data.department,
-      'organization_id': 1,
-      'password': data.password,
-    });
-  }
+  // Nggak ada `register()` — lihat `auth_service.dart`. Mock-nya ikut dicabut
+  // supaya dia nggak terus menjanjikan alur yang servernya sendiri sudah tolak.
 
   @override
   Future<void> requestPasswordReset(String email) async {

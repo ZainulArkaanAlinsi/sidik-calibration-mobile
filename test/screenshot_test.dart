@@ -16,7 +16,6 @@ import 'package:sidik_calibration/providers/history_provider.dart';
 import 'package:sidik_calibration/models/user.dart';
 import 'package:sidik_calibration/screens/auth/login_screen.dart';
 import 'package:sidik_calibration/screens/auth/onboarding_screen.dart';
-import 'package:sidik_calibration/screens/auth/register_screen.dart';
 import 'package:sidik_calibration/screens/auth/splash_screen.dart';
 import 'package:sidik_calibration/screens/profile/profile_screen.dart';
 import 'package:sidik_calibration/providers/perhitungan_provider.dart';
@@ -183,19 +182,6 @@ void main() {
     await expectLater(
       find.byType(LoginScreen),
       matchesGoldenFile('screenshots/login-gelap.png'),
-    );
-  });
-
-  testWidgets('register', (tester) async {
-    pasangUkuranHp(tester);
-    await _pumpLayar(
-      tester,
-      _bungkus(const RegisterScreen(), mode: Brightness.light),
-    );
-
-    await expectLater(
-      find.byType(RegisterScreen),
-      matchesGoldenFile('screenshots/register.png'),
     );
   });
 

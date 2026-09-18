@@ -8,23 +8,6 @@ class AuthSession {
   final User user;
 }
 
-/// Data yang diisi user di layar Register.
-class RegisterData {
-  const RegisterData({
-    required this.nama,
-    required this.employeeId,
-    required this.department,
-    required this.email,
-    required this.password,
-  });
-
-  final String nama;
-  final String employeeId;
-  final String department;
-  final String email;
-  final String password;
-}
-
 /// Error yang pesannya layak ditampilin ke user apa adanya.
 /// Beda dari exception teknis (timeout, parsing) yang mesti disembunyiin.
 class AuthException implements Exception {
@@ -72,9 +55,9 @@ abstract class AuthService {
     required String password,
   });
 
-  /// Daftar akun baru. **Nggak langsung bisa login** — akunnya berstatus
-  /// `pending` sampai admin nyetujuin & ngasih role.
-  Future<void> register(RegisterData data);
+  // Nggak ada `register()`. Akun dibuat admin di panel, bukan didaftarkan
+  // sendiri lewat aplikasi — backend menjawab 404 buat `POST /register`.
+  // Alasannya di AGENTS.md repo backend, §Akun Lahir dari Undangan.
 
   /// Minta link reset password dikirim ke email.
   ///

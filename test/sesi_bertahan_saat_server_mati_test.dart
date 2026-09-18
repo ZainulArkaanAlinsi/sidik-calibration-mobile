@@ -45,7 +45,6 @@ class _AuthGagalJaringan implements AuthService {
   }) => throw UnimplementedError();
 
   @override
-  Future<void> register(RegisterData data) => throw UnimplementedError();
 
   @override
   Future<void> requestPasswordReset(String email) => throw UnimplementedError();

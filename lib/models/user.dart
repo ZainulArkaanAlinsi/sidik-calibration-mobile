@@ -27,10 +27,12 @@ enum UserRole {
 
 /// Status akun.
 ///
-/// `pending` = udah daftar sendiri lewat layar Register, **tapi belum
-/// disetujui admin**. Akun pending nggak boleh masuk app: role & hak aksesnya
-/// ditentukan admin, bukan diisi sendiri waktu daftar. Ini yang bikin orang
-/// luar nggak bisa bikin akun terus ngintip data kalibrasi pelanggan.
+/// `pending` = **belum disetujui admin**, jadi nggak boleh masuk app.
+///
+/// Statusnya nggak lahir dari pendaftaran mandiri lagi: layar Register dan
+/// `POST /register` dicabut 18 Sep 2026, akun sekarang dibuat admin di panel.
+/// Nilai ini tetap ada karena baris lama di server masih bisa memakainya, dan
+/// jalur setuju/tolaknya masih jalan.
 enum UserStatus {
   aktif,
   pending,
@@ -82,8 +84,8 @@ class User {
   final UserStatus status;
 
   /// **Bisa null.** Backend bilang (14 Jul) tabel `organizations` belum ada,
-  /// jadi akun hasil register organisasinya masih kosong. Kalau ini dipaksa
-  /// non-null, app-nya crash waktu parsing — bukan sekadar nampilin strip.
+  /// jadi akun lama organisasinya masih kosong. Kalau ini dipaksa non-null,
+  /// app-nya crash waktu parsing — bukan sekadar nampilin strip.
   final int? organizationId;
 
   final String? department;

@@ -1189,8 +1189,11 @@ Catatan yang bikin beda dari dugaan:
   bawaan Laravel. Jangan di-parse jadi `int`.
 - **`kategori`**, nilai yang beneran dipakai (dari `app/Notifications/`):
   `jatuh_tempo` · `sesi_menunggu_approval` · `sesi_disetujui` ·
-  `sesi_perlu_revisi` · `sertifikat_terbit` · **`akun.menunggu_persetujuan`** ·
-  **`sertifikat.gagal`** · **`standar.kadaluarsa`** · `umum` (fallback).
+  `sesi_perlu_revisi` · `sertifikat_terbit` · **`sertifikat.gagal`** ·
+  **`standar.kadaluarsa`** · `umum` (fallback).
+  `akun.menunggu_persetujuan` dicabut 18 Sep 2026 bareng `POST /register`;
+  baris lama di tabel notifikasi masih bisa memakainya, jadi `umum` tetap
+  harus jadi jaring terakhir.
 - **`tautan`** bentuknya `{ "tipe": ..., "id": ... }` — dipakai buat langsung
   buka layar yang dimaksud waktu notifikasinya diketuk. Bisa `null`.
 - **`ikon`** itu nama ikon Heroicon (dipakai lonceng panel admin). Mobile boleh
@@ -1218,7 +1221,7 @@ dikabarin ke siapa pun:
 
 | `kategori` | Kapan | `tautan` | Warna |
 |---|---|---|---|
-| `akun.menunggu_persetujuan` | ada yang `POST /register` | `{tipe: "users", filter: "pending", id}` | `warning` |
+| ~~`akun.menunggu_persetujuan`~~ | DICABUT bareng `POST /register` (18 Sep 2026) | — | — |
 | `sertifikat.gagal` | PDF sertifikat gagal dibuat | `{tipe: "certificates", id}` | `danger` |
 | `standar.kadaluarsa` | scheduler harian nemu standar mendekati/lewat habis | `{tipe: "standards", filter: "expired"\|"warning", standar: [...]}` | `danger`/`warning` |
 
