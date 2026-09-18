@@ -107,9 +107,10 @@ void main() {
     );
   });
 
-  /// Ketiga tabel lembar ini ber-`tahap` sama dan `titik_ukur` bawaannya 0,0.
-  /// Tanpa `offset_kunci` yang berbeda, ketiganya berbagi satu
-  /// `Map<double, TitikState>` — angka yang diketik di tabel massa muncul di
+  /// Ketiga tabel lembar ini ber-`tahap` sama, dan barisnya lahir tanpa
+  /// `titik_ukur` — jadi `kunciBaris` jatuh ke `nomor`, yang sama-sama 1 di
+  /// ketiganya. Tanpa `offset_kunci` yang berbeda mereka berbagi satu
+  /// `Map<double, TitikState>`: angka yang diketik di tabel massa muncul di
   /// kotak suhu, dan yang terkirim salah satunya saja. Nol error di kedua sisi.
   test('kotak massa, suhu, dan diameter stem tidak berbagi kotak isian', () {
     final isian = isianDari(contohBentukLembarKerjaHydrometer());
