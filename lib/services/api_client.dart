@@ -503,7 +503,7 @@ class ApiClient {
       401 => 'ID pegawai / email atau password salah.',
       403 => 'Kamu nggak punya akses ke sini.',
       404 => 'Data nggak ketemu.',
-      // Rate limit Sanctum: login 10x/menit, register 5x/menit.
+      // Rate limit Sanctum: login 10x/menit, reset sandi 5x/menit.
       429 => 'Kebanyakan percobaan. Tunggu sebentar terus coba lagi.',
       422 => 'Data yang dikirim nggak valid.',
       >= 500 => 'Server lagi bermasalah. Coba lagi sebentar.',

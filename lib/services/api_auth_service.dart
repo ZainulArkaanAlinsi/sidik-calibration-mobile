@@ -29,21 +29,7 @@ class ApiAuthService implements AuthService {
     );
   }
 
-  @override
-  Future<void> register(RegisterData data) async {
-    await _api.post(
-      '/register',
-      body: {
-        'nama': data.nama.trim(),
-        'employee_id': data.employeeId.trim(),
-        'department': data.department,
-        'email': data.email.trim(),
-        'password': data.password,
-        // Sengaja NGGAK ngirim `role` — role ditentukan admin waktu approve.
-        // Backend juga ngabaikan field ini kalau dikirim (udah dites).
-      },
-    );
-  }
+  // Nggak ada `register()` — lihat `auth_service.dart`.
 
   @override
   Future<void> requestPasswordReset(String email) async {

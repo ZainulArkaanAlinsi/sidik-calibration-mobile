@@ -233,122 +233,19 @@ void main() {
     });
   });
 
-  group('register', () {
-    Future<void> bukaRegister(WidgetTester tester) async {
+  group('pendaftaran mandiri dicabut', () {
+    // Layar Register dan link "Daftar" ikut hilang waktu backend nutup
+    // `POST /register` (404). Test ini menjaga link-nya nggak balik lagi:
+    // tombol yang ngarah ke jalan buntu lebih buruk daripada nggak ada tombol,
+    // karena orangnya nyalahin aplikasinya, bukan tahu dia memang harus minta
+    // akun ke admin.
+    testWidgets('layar login nggak punya link Daftar', (tester) async {
       await tester.pumpWidget(_app(InMemoryTokenStorage()));
       await tester.pumpAndSettle();
 
-      await _tapTeks(tester, 'Daftar');
-      await tester.pumpAndSettle();
-    }
-
-    Future<void> isiForm(
-      WidgetTester tester, {
-      required String nama,
-      required String employeeId,
-      required String email,
-      required String password,
-      String departemen = 'Kalibrasi',
-    }) async {
-      final fields = find.byType(TextField);
-      await tester.enterText(fields.at(0), nama);
-      await tester.enterText(fields.at(1), employeeId);
-
-      final dropdown = find.byType(DropdownButtonFormField<String>);
-      await tester.ensureVisible(dropdown);
-      await tester.pumpAndSettle();
-      await tester.tap(dropdown);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text(departemen).last);
-      await tester.pumpAndSettle();
-
-      // Dropdown bukan TextField, jadi email & password geser indeksnya.
-      final fieldsLagi = find.byType(TextField);
-      await tester.enterText(fieldsLagi.at(2), email);
-      await tester.enterText(fieldsLagi.at(3), password);
-
-      await _tapTeks(tester, 'DAFTAR');
-    }
-
-    testWidgets('daftar sukses → akun PENDING, NGGAK langsung masuk app', (
-      tester,
-    ) async {
-      await bukaRegister(tester);
-
-      await isiForm(
-        tester,
-        nama: 'Eko Prasetyo',
-        employeeId: 'SDK-0099',
-        email: 'eko@pt-sidik.com',
-        password: 'rahasia123',
-      );
-      await tester.pumpAndSettle();
-
-      // Ini inti keamanannya: daftar ≠ boleh masuk.
-      expect(find.text('Pendaftaran terkirim'), findsOneWidget);
-      expect(find.textContaining('menunggu persetujuan admin'), findsOneWidget);
-      expect(find.byType(FloatingNavBar), findsNothing);
-    });
-
-    testWidgets('setelah tutup dialog sukses → balik ke layar Login', (
-      tester,
-    ) async {
-      await bukaRegister(tester);
-
-      await isiForm(
-        tester,
-        nama: 'Eko Prasetyo',
-        employeeId: 'SDK-0098',
-        email: 'eko2@pt-sidik.com',
-        password: 'rahasia123',
-      );
-      await tester.pumpAndSettle();
-
-      await _tapTeks(tester, 'MENGERTI');
-      await tester.pumpAndSettle();
-
       expect(find.text('MASUK'), findsOneWidget);
-    });
-
-    testWidgets('email udah kepakai → ditolak dengan pesan jelas', (
-      tester,
-    ) async {
-      await bukaRegister(tester);
-
-      await isiForm(
-        tester,
-        nama: 'Budi Kembar',
-        employeeId: 'SDK-0097',
-        email: 'admin@pt-sidik.com', // udah ada
-        password: 'rahasia123',
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Email ini sudah terdaftar.'), findsOneWidget);
-    });
-
-    testWidgets('validasi lokal: field kosong, email ngawur, password pendek', (
-      tester,
-    ) async {
-      await bukaRegister(tester);
-
-      await _tapTeks(tester, 'DAFTAR');
-      await tester.pumpAndSettle();
-
-      expect(find.text('Nama wajib diisi.'), findsOneWidget);
-      expect(find.text('ID pegawai wajib diisi.'), findsOneWidget);
-      expect(find.text('Pilih departemen dulu.'), findsOneWidget);
-      expect(find.text('Email wajib diisi.'), findsOneWidget);
-      expect(find.text('Password wajib diisi.'), findsOneWidget);
-
-      final fields = find.byType(TextField);
-      await tester.enterText(fields.at(2), 'bukan-email');
-      await tester.enterText(fields.at(3), '123');
-      await _tapTeks(tester, 'DAFTAR');
-      await tester.pumpAndSettle();
-
-      expect(find.text('Format email nggak valid.'), findsOneWidget);
-      expect(find.text('Password minimal 8 karakter.'), findsOneWidget);
+      expect(find.text('Daftar'), findsNothing);
+      expect(find.text('Lupa Password?'), findsOneWidget);
     });
   });
 

@@ -5,7 +5,6 @@ import '../../core/config/app_config.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
 import 'forgot_password_screen.dart';
-import 'register_screen.dart';
 import 'widgets/auth_brand_header.dart';
 import 'widgets/neu.dart';
 
@@ -88,10 +87,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _bukaLupaPassword() => Navigator.of(context).push(
     MaterialPageRoute<void>(builder: (_) => const ForgotPasswordScreen()),
-  );
-
-  void _bukaRegister() => Navigator.of(context).push(
-    MaterialPageRoute<void>(builder: (_) => const RegisterScreen()),
   );
 
   @override
@@ -192,21 +187,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              // Tanpa link "Daftar": akun dibuat admin, bukan
+                              // didaftarkan sendiri. Backend menjawab 404 buat
+                              // `POST /register`, jadi tombolnya cuma bakal
+                              // nganterin orang ke jalan buntu.
                               NeuTextLink(
                                 label: 'Lupa Password?',
                                 onTap: loading ? null : _bukaLupaPassword,
-                              ),
-                              Text(
-                                '  atau  ',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: c.textMuted,
-                                ),
-                              ),
-                              NeuTextLink(
-                                label: 'Daftar',
-                                strong: true,
-                                onTap: loading ? null : _bukaRegister,
                               ),
                             ],
                           ),

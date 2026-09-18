@@ -5,10 +5,11 @@ import 'api_client.dart';
 /// Kelola akun (Data Teknisi) — admin doang.
 ///
 /// Beda dari CRUD master data lain: **nggak ada `simpan()` dan `hapus()`.**
-/// `/users` sengaja nggak nyediain `POST` maupun `DELETE` — akun lahir dari
-/// orang yang daftar sendiri lewat `POST /register` dengan status `pending`,
-/// lalu admin nyetujui sambil nentuin role-nya. Nonaktifin akun lewat [tolak],
-/// bukan dihapus, biar sesi kalibrasi lama tetap punya jejak siapa tekniknya.
+/// `/users` sengaja nggak nyediain `POST` maupun `DELETE`. Sejak 18 Sep 2026
+/// akun orang lab dibuat admin lewat panel Filament, bukan didaftarkan sendiri
+/// — `POST /register` dicabut dan sekarang menjawab 404. Nonaktifin akun lewat
+/// [tolak], bukan dihapus, biar sesi kalibrasi lama tetap punya jejak siapa
+/// tekniknya.
 ///
 /// Sejak 20 Jul backend punya `/api/technicians` yang **memang** ada create &
 /// delete-nya, khusus akun role `teknisi`. Service ini belum makai itu.

@@ -108,16 +108,11 @@ class AuthController extends AsyncNotifier<User?> {
     });
   }
 
-  /// Daftar akun baru. Sengaja **nggak** ngubah `state` jadi logged-in:
-  /// akunnya masih `pending` nunggu approval admin, jadi user tetap di luar.
-  /// Lempar [AuthException] kalau gagal — layar Register yang nampilin.
-  Future<void> register(RegisterData data) async {
-    await _auth.register(data);
-  }
+  // Nggak ada `register()` — lihat `auth_service.dart`.
 
-  /// Minta link reset password. Sama kayak register: nggak nyentuh `state`
-  /// auth, karena user tetap belum login. Layar Reset Password yang nanganin
-  /// loading/sukses/error-nya sendiri.
+  /// Minta link reset password. Nggak nyentuh `state` auth, karena user tetap
+  /// belum login. Layar Reset Password yang nanganin loading/sukses/error-nya
+  /// sendiri.
   Future<void> requestPasswordReset(String email) async {
     await _auth.requestPasswordReset(email);
   }
