@@ -1,21 +1,43 @@
-# Dipicu MANUAL: Actions → "APK rilis (nyambung server)" → Run workflow.
+# Dipicu OTOMATIS tiap merge ke `main` yang menyentuh kode aplikasi, plus manual
+# lewat Actions → "APK rilis (nyambung server)" → Run workflow.
 #
-# Dulu dia jalan tiap push ke `main`, dan itu benar selama APK-nya cuma dipakai
-# uji coba internal. Yang mengubahnya: 4 Sep 2026, APK-nya mulai ditandatangani
-# kunci rilis sungguhan dan terpasang di HP teknisi. Sejak itu tiap merge
-# menerbitkan versi baru, dan tiap versi baru memunculkan banner "ada versi
-# baru" di HP mereka — termasuk buat perbaikan sebaris yang nggak mengubah
-# apa pun buat teknisi. Ongkosnya nyata: 68 MB lewat data seluler, di lokasi
-# pelanggan.
+# ## Riwayat pemicunya, dan kenapa berubah dua kali
 #
-# Dan yang lebih mahal daripada kuotanya: banner yang muncul terlalu sering
-# berhenti dibaca. Begitu teknisi belajar mengabaikannya, rilis yang memang
-# penting ikut diabaikan — persis kegagalan yang penanda `wajib` dan seluruh
-# jalur pemutakhiran ini dibangun buat mencegah.
+# Dulu jalan tiap push ke `main`. Itu benar selama APK-nya cuma uji coba
+# internal. Yang mengubahnya: 4 Sep 2026, APK-nya mulai ditandatangani kunci
+# rilis sungguhan dan terpasang di HP teknisi. Sejak itu tiap merge menerbitkan
+# versi baru, dan tiap versi baru memunculkan banner "ada versi baru" — termasuk
+# buat perbaikan sebaris yang nggak mengubah apa pun buat teknisi. Dua ongkosnya
+# nyata: 68 MB lewat data seluler di lokasi pelanggan, dan — yang lebih mahal —
+# banner yang muncul terlalu sering berhenti dibaca. Begitu teknisi belajar
+# mengabaikannya, rilis yang memang penting ikut diabaikan. Jadi pemicunya
+# dimatikan, diganti manual.
 #
-# Jadi yang menentukan kapan teknisi ditawari versi baru sekarang orang, bukan
-# setiap merge. `periksa-pr.yml` tetap jalan tiap PR, jadi yang hilang cuma
-# penerbitannya — bukan pemeriksaannya.
+# 18 Sep 2026 pemilik proyek minta otomatis lagi: "kalo udah ke-merge otomatis
+# langsung masuk ke apk, gk perlu gw mencet-mencet". DUA hal berubah sejak
+# keputusan 4 Sep, dan itu yang bikin permintaannya bukan sekadar mengulang
+# kesalahan lama:
+#
+# 1. **Pemasangan diam-diam mendarat 15 Sep**, sesudahnya. Di Android 12+ APK
+#    baru dipasang lewat `PackageInstaller` tanpa satu ketukan pun
+#    (`PemasangSesi.kt`). Buat perangkat itu, "banner yang diabaikan" bukan lagi
+#    kegagalannya — nggak ada banner yang perlu ditekan.
+# 2. **Saringan `paths` di bawah** menahan merge yang nggak mengubah apa pun
+#    buat teknisi. Dulu dokumen, workflow backend, dan berkas panduan
+#    sama-sama melahirkan rilis; sekarang nggak.
+#
+# ## Yang TIDAK hilang oleh dua hal itu — disebut supaya keputusannya sadar
+#
+# - **Android 11 ke bawah tetap minta ketukan.** Buat perangkat itu argumen
+#   banner-fatigue masih berlaku utuh.
+# - **68 MB-nya tetap 68 MB.** Saringan `paths` mengurangi JUMLAH rilis, bukan
+#   ukurannya. Merge kode yang beruntun tetap melahirkan beberapa unduhan.
+#
+# Kalau teknisi mulai mengeluh, yang dicabut cukup blok `push:` di bawah —
+# `workflow_dispatch` tetap ada dan perilakunya balik persis seperti 4 Sep–18 Sep.
+#
+# `periksa-pr.yml` tetap jalan tiap PR, jadi yang berubah cuma penerbitannya —
+# bukan pemeriksaannya.
 #
 # Bedanya sama "Paket tes (mock, tanpa server)": yang itu offline dan datanya
 # palsu, buat nyoba tampilan. Yang ini nyambung ke server Render beneran, buat
@@ -31,7 +53,25 @@
 name: APK rilis (nyambung server)
 
 on:
-  # Satu-satunya pemicu. Alasannya di kepala berkas ini.
+  # Otomatis HANYA kalau yang berubah memang ikut ke dalam APK. Daftar ini
+  # sengaja ditulis eksplisit, bukan "semua kecuali docs": berkas baru yang
+  # belum terpikir lebih baik TIDAK melahirkan rilis sampai ada yang sadar
+  # menambahkannya ke sini, daripada diam-diam melahirkan rilis yang nggak
+  # seorang pun berniat menerbitkannya.
+  push:
+    branches:
+      - main
+    paths:
+      - 'lib/**'
+      - 'android/**'
+      - 'assets/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - 'l10n.yaml'
+      - '.github/workflows/apk-rilis-cloud.yml'
+
+  # Tetap ada, dan bukan cuma cadangan: dipakai waktu yang berubah di LUAR repo
+  # ini — mis. `API_BASE_URL` diganti tanpa satu baris kode pun berubah.
   workflow_dispatch:
 
 env:
