@@ -151,8 +151,15 @@ abstract final class NamaIzin {
   // dapat 403 begitu diketuk. Itu persis kegagalan yang matriks peran ini ada
   // buat mencegahnya, cuma sekarang sumbernya nama yang salah pasang.
   static const pelangganKelola = 'pelanggan.kelola';
-  static const ruanganKelola = 'ruangan.kelola';
-  static const metodeKelola = 'metode.kelola';
+
+  // Ruangan & Metode digerbangi izin BACA, bukan kelola: menunya membuka layar
+  // DAFTAR, dan `GET api/rooms` / `GET api/calibration-methods` memang terbuka
+  // buat teknisi & viewer. Tombol tulis di dalamnya punya penjaganya sendiri
+  // (`role.isAdmin` di kedua layar), jadi menggerbangi menunya dengan
+  // `*.kelola` cuma menyembunyikan layar baca yang sah — bukan tombol yang
+  // bakal 403.
+  static const ruanganLihat = 'ruangan.lihat';
+  static const metodeLihat = 'metode.lihat';
   static const teknisiKelola = 'teknisi.kelola';
   static const imporExcel = 'impor.excel';
   static const organisasiUbah = 'organisasi.ubah';
