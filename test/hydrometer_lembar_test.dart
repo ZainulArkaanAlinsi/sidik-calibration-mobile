@@ -200,25 +200,25 @@ void main() {
     );
   });
 
-  /// Baris yang ANGKANYA terisi tapi `Point of Calibration`-nya kosong TIDAK
-  /// berangkat.
+  /// Baris yang angkanya terisi tapi `Point of Calibration`-nya kosong TETAP
+  /// berangkat — dan itu memang tidak bisa dibereskan di sini.
   ///
-  /// Beda dari test "lima slot" di atas, yang barisnya sama sekali tidak
-  /// disentuh — itu gugur karena `isi.isEmpty`, bukan karena `siapKirim`, jadi
-  /// dia tetap hijau walau `siapKirim` dihapus seluruhnya. Yang diuji DI SINI
-  /// mekanismenya.
+  /// `titik_ukur` baris itu jatuh ke `json['nomor']` (1..5), jadi yang sampai
+  /// server bernominal mis. 4,0 g/ml. Di Hydrometer itu jelas salah, tapi
+  /// menyaringnya di `_measurementsDeretBernama()` ikut membuang baris
+  /// **Flowmeter** yang sah: di sana set point-nya memang tidak diketik siapa
+  /// pun, nomor barisnya identitasnya, dan kelima deret sejajarnya dicocokkan
+  /// per posisi. Sudah dibuktikan — `siapKirim` sempat dipasang di jalur itu
+  /// dan dua test payload Flowmeter langsung merah (`Bad state: No element`).
   ///
-  /// Tanpa saringan itu: `titik_ukur: null` bikin `BarisTabelHasil` jatuh ke
-  /// `json['nomor']` (1..5) sebagai `titikUkur`, jadi barisnya berangkat dengan
-  /// `titik_ukur: 4.0` — nomor baris yang menyamar jadi set point. Server
-  /// menerimanya (`required|numeric` lolos) dan menghitung densitas pada
-  /// nominal **4,0 g/ml**. Nol error di kedua sisi.
+  /// Yang bisa membedakan keduanya cuma sisi yang tahu fisikanya. Di sana
+  /// penjaganya ada: `HydrometerProfile::peringatanKoreksiTidakMasukAkal()`
+  /// mengadu densitas terbit ke lebar skala alat, dan baris bernominal 4,0
+  /// g/ml di alat 0,600-0,650 muncul sebagai koreksi **6792%** lebar skala.
   ///
-  /// Lembar ini yang paling kena justru karena slotnya sengaja dilebihkan jadi
-  /// lima: ada dua slot yang normal dibiarkan kosong, dan teknisi yang mengetik
-  /// angkanya duluan sebelum mengisi `Point of Calibration` masuk persis ke
-  /// jalur ini.
-  test('baris berangka tanpa Point of Calibration tidak ikut terkirim', () {
+  /// Test ini mengunci BENTUKNYA, supaya kalau suatu saat ada yang memasang
+  /// saringan di jalur ini lagi, dia ketemu catatan ini duluan.
+  test('baris tanpa Point of Calibration berangkat bernomor baris', () {
     final isian = isianDari(contohBentukLembarKerjaHydrometer());
     final massa = tabel(isian, 'hasil', 0);
     final suhu = tabel(isian, 'hasil', 1);
@@ -226,26 +226,14 @@ void main() {
     final barisMassa = isian.barisTabel(massa);
     final barisSuhu = isian.barisTabel(suhu);
 
-    // Titik 1 diisi LENGKAP berikut Point of Calibration-nya.
-    final tm0 = isian.titikUntukBaris(barisMassa, 0, massa)!;
-    tm0.titikCtl.text = '0,610';
+    // Slot ke-4: angkanya diketik duluan, Point of Calibration dibiarkan kosong.
+    final tm = isian.titikUntukBaris(barisMassa, 3, massa)!;
     for (var r = 0; r < 3; r++) {
-      tm0.kotak(massa.kunciTabel, 'pembacaan', r).text = '21,2727';
+      tm.kotak(massa.kunciTabel, 'pembacaan', r).text = '25,4602';
     }
-    final ts0 = isian.titikUntukBaris(barisSuhu, 0, suhu)!;
-    ts0.titikCtl.text = '0,610';
+    final ts = isian.titikUntukBaris(barisSuhu, 3, suhu)!;
     for (var r = 0; r < 3; r++) {
-      ts0.kotak(suhu.kunciTabel, 'pembacaan', r).text = '20,6';
-    }
-
-    // Titik 4 — angkanya diketik duluan, Point of Calibration DIBIARKAN kosong.
-    final tm3 = isian.titikUntukBaris(barisMassa, 3, massa)!;
-    for (var r = 0; r < 3; r++) {
-      tm3.kotak(massa.kunciTabel, 'pembacaan', r).text = '25,4602';
-    }
-    final ts3 = isian.titikUntukBaris(barisSuhu, 3, suhu)!;
-    for (var r = 0; r < 3; r++) {
-      ts3.kotak(suhu.kunciTabel, 'pembacaan', r).text = '20,7';
+      ts.kotak(suhu.kunciTabel, 'pembacaan', r).text = '20,7';
     }
 
     final json = isian
@@ -255,13 +243,13 @@ void main() {
         .where((m) => m.containsKey('hydro_massa'))
         .toList();
 
+    expect(json, hasLength(1));
     expect(
-      json,
-      hasLength(1),
-      reason: 'baris tanpa Point of Calibration ikut berangkat — set point-nya '
-          'bakal jadi NOMOR BARIS, dan server ngitung densitas di nominal itu',
+      json.single['titik_ukur'],
+      closeTo(4.0, 1e-9),
+      reason: 'kalau ini berubah, penjaganya pindah — pastikan gerbang koreksi '
+          'di server masih menangkap nominal yang mustahil',
     );
-    expect(json.single['titik_ukur'], closeTo(0.610, 1e-9));
   });
 
   /// Tabel "D Stem" TIDAK boleh menahan pengiriman.

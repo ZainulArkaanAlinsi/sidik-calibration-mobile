@@ -1583,28 +1583,25 @@ class LembarKerjaState {
 
       if (acuan == null || isi.isEmpty) continue;
 
-      // `siapKirim` menyaring DI SINI juga, sejajar sama jalur datar — dan
-      // tanpa itu baris yang angkanya keisi tapi `Point of Calibration`-nya
-      // kosong berangkat dengan set point KARANGAN.
+      // TIDAK disaring `siapKirim` di sini, dan itu keputusan — bukan
+      // kelalaian.
       //
-      // Rantainya: `titik_ukur: null` di bentuk bikin `BarisTabelHasil`
-      // jatuh ke `json['nomor']` (1..5) sebagai `titikUkur`, jadi
-      // `acuan.titikUkur` BUKAN null — dia nomor baris. Kalau barisnya lolos
-      // ke sini, `titikUkurEfektif ?? titikUkur` memulangkan nomor itu, dan
-      // server menghitung densitas pada nominal **4,0 g/ml** buat baris
-      // keempat. Lolos `measurements.*.titik_ukur => required|numeric`, nol
-      // error di kedua sisi.
+      // Baris tanpa `Point of Calibration` yang diketik memang berangkat dengan
+      // `titik_ukur` dari `json['nomor']` (1..5). Di Flowmeter itu BENAR: set
+      // point-nya tidak diketik siapa pun, nomor barisnya memang identitasnya,
+      // dan kelima deret sejajarnya dicocokkan per posisi.
       //
-      // Kena justru di lembar yang slotnya sengaja dilebihkan: Hydrometer
-      // mengirim lima baris supaya alat bertanda lima skala kebagian, jadi ada
-      // dua slot yang normal dibiarkan kosong — dan teknisi yang mengetik
-      // angkanya duluan sebelum mengisi `Point of Calibration` bikin barisnya
-      // berangkat bernominal nomor baris.
+      // Di Hydrometer itu salah — nomor baris 4 jadi nominal 4,0 g/ml — tapi
+      // menyaringnya DI SINI ikut membuang baris Flowmeter yang sah, dan itu
+      // sudah dibuktikan: `siapKirim` sempat dipasang di sini dan dua test
+      // payload Flowmeter langsung merah (`Bad state: No element`).
       //
-      // Buat lembar deret-bernama yang set point-nya DIPATOK kertas (kelima
-      // tabel Flowmeter), `titikDitentukan` true, jadi `siapKirim` selalu true
-      // dan saringan ini tidak mengubah apa pun.
-      if (!acuan.siapKirim) continue;
+      // Yang bisa membedakan keduanya cuma sisi yang tahu FISIKANYA, dan di
+      // sana penjaganya sudah ada: `HydrometerProfile::
+      // peringatanKoreksiTidakMasukAkal()` mengadu densitas terbit ke lebar
+      // skala alat, dan baris bernominal 4,0 g/ml di alat 0,600-0,650 muncul
+      // sebagai koreksi 6792% lebar skala. Nomor baris yang menyamar jadi set
+      // point tidak bisa lolos dari situ.
 
       final kirim = TitikLembarKerja(
         titikUkur: acuan.titikUkurEfektif ?? acuan.titikUkur,
