@@ -157,7 +157,7 @@ class _StandardFormScreenState extends ConsumerState<StandardFormScreen> {
     final locale = Localizations.localeOf(context).languageCode;
     final mengedit = widget.existing != null;
     final isAdmin = ref.bolehkah(
-      NamaIzin.masterDataUbah,
+      NamaIzin.standarKelola,
       cadangan: ref.watch(authProvider).value?.role.adminSaja ?? false,
     );
 

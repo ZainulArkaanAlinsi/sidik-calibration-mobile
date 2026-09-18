@@ -132,11 +132,11 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
       cadangan: peran.adminSaja,
     );
     final bolehMasterData = ref.bolehkah(
-      NamaIzin.masterDataUbah,
+      NamaIzin.standarKelola,
       cadangan: peran.adminSaja,
     );
     final bolehAkun = ref.bolehkah(
-      NamaIzin.akunKelola,
+      NamaIzin.penggunaKelola,
       cadangan: peran.adminSaja,
     );
     final bolehTtd = ref.bolehkah(
@@ -219,7 +219,19 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
                 bangun: StandardListScreen.new,
               ),
             ],
-            if (bolehAkun)
+            // `...[ ]`, BUKAN `if` telanjang. Sebelum ini keempat menu ini
+            // ditulis dengan indentasi seolah-olah keempatnya ikut
+            // `if (bolehAkun)`, padahal collection-if tanpa spread cuma
+            // mengikat SATU elemen berikutnya — jadi Ruangan, Metode, dan
+            // Teknisi sebenarnya tampil tanpa syarat.
+            //
+            // Belum sempat kelihatan cuma karena `standar.kelola` dan
+            // `pengguna.kelola` kebetulan sama-sama admin-only, jadi kedua
+            // penjaganya selalu bernilai sama. Begitu keduanya berbeda —
+            // satu role baru, atau satu rute pindah blok — tiga menu master
+            // data muncul buat orang yang bakal ditolak 403 waktu menekannya.
+            // Indentasinya bohong, dan compiler nggak punya alasan protes.
+            if (bolehAkun) ...[
               _Menu(
                 id: 'rumus',
                 ikon: Icons.functions_outlined,
@@ -244,6 +256,7 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
                 label: l10n.teknisiTitle,
                 bangun: TechnicianListScreen.new,
               ),
+            ],
           ],
         ),
       if (bolehMasterData || bolehTtd)

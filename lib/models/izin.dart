@@ -120,9 +120,19 @@ abstract final class NamaIzin {
   static const kalibrasiBuat = 'kalibrasi.buat';
   static const kalibrasiSetujui = 'kalibrasi.setujui';
 
-  static const masterDataUbah = 'master-data.ubah';
-  static const akunKelola = 'akun.kelola';
+  // Keempat nama di bawah SEBELUMNYA ditebak (`master-data.ubah`,
+  // `akun.kelola`, `folder.tulis`) dan nggak pernah ada di `MatriksIzin::PETA`
+  // punya server. Akibatnya nggak keliatan di mana-mana: `bolehkah` jatuh ke
+  // cadangan aturan peran hardcode buat nama yang nggak dikenal, jadi
+  // tombolnya tetap jalan — cuma pakai aturan yang matriks peran ini ada buat
+  // menggantikannya. Lima dari sebelas nama mati begitu.
+  //
+  // Sekarang disamain sama nama di server, dan dijaga dua arah:
+  // `MeIzinTest::test_nama_izin_yang_ditanya_mobile_ada_semua` di repo API, dan
+  // `test/nama_izin_test.dart` di sini.
+  static const standarKelola = 'standar.kelola';
+  static const penggunaKelola = 'pengguna.kelola';
   static const sertifikatKirim = 'sertifikat.kirim';
   static const tandaTanganKelola = 'tanda-tangan.kelola';
-  static const folderTulis = 'folder.tulis';
+  static const arsipFolderKelola = 'arsip.folder.kelola';
 }
