@@ -152,14 +152,21 @@ abstract final class NamaIzin {
   // buat mencegahnya, cuma sekarang sumbernya nama yang salah pasang.
   static const pelangganKelola = 'pelanggan.kelola';
 
-  // Ruangan & Metode digerbangi izin BACA, bukan kelola: menunya membuka layar
-  // DAFTAR, dan `GET api/rooms` / `GET api/calibration-methods` memang terbuka
-  // buat teknisi & viewer. Tombol tulis di dalamnya punya penjaganya sendiri
-  // (`role.isAdmin` di kedua layar), jadi menggerbangi menunya dengan
-  // `*.kelola` cuma menyembunyikan layar baca yang sah — bukan tombol yang
-  // bakal 403.
-  static const ruanganLihat = 'ruangan.lihat';
-  static const metodeLihat = 'metode.lihat';
+  // Ruangan & Metode pakai izin KELOLA, bukan `*.lihat` — walau endpoint
+  // bacanya (`GET api/rooms`, `GET api/calibration-methods`) memang terbuka
+  // buat ketiga role.
+  //
+  // Itu keputusan produk yang sudah dikunci test: `desktop_shell_test.dart`
+  // menuntut teknisi TIDAK dapat seksi "Master Data" di panel desktop sama
+  // sekali. Sempat gw longgarkan ke `*.lihat` karena review menyebut teknisi
+  // "kehilangan layar baca yang sah" — dan test itu langsung merah, karena
+  // membuka satu menu saja sudah memunculkan judul seksinya.
+  //
+  // Yang dilanggar bukan izin server, tapi bentuk panelnya: seksi Master Data
+  // itu ruang kerja admin. Teknisi tetap bisa membaca ruangan & metode dari
+  // tempat yang memang menyediakannya (lembar kerja, layar pilih alat).
+  static const ruanganKelola = 'ruangan.kelola';
+  static const metodeKelola = 'metode.kelola';
   static const teknisiKelola = 'teknisi.kelola';
   static const imporExcel = 'impor.excel';
   static const organisasiUbah = 'organisasi.ubah';

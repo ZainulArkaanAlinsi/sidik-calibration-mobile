@@ -139,8 +139,8 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
     // blok bikin tiga menu admin-only nyala buat orang yang bakal kena 403.
     final bolehStandar = ref.bolehkah(NamaIzin.standarKelola, cadangan: peran.adminSaja);
     final bolehPelanggan = ref.bolehkah(NamaIzin.pelangganKelola, cadangan: peran.adminSaja);
-    final bolehRuangan = ref.bolehkah(NamaIzin.ruanganLihat, cadangan: true);
-    final bolehMetode = ref.bolehkah(NamaIzin.metodeLihat, cadangan: true);
+    final bolehRuangan = ref.bolehkah(NamaIzin.ruanganKelola, cadangan: peran.adminSaja);
+    final bolehMetode = ref.bolehkah(NamaIzin.metodeKelola, cadangan: peran.adminSaja);
     final bolehTeknisi = ref.bolehkah(NamaIzin.teknisiKelola, cadangan: peran.adminSaja);
     final bolehImpor = ref.bolehkah(NamaIzin.imporExcel, cadangan: peran.adminSaja);
     final bolehOrganisasi = ref.bolehkah(NamaIzin.organisasiUbah, cadangan: peran.adminSaja);
