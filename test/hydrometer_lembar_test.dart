@@ -139,27 +139,64 @@ void main() {
     );
   });
 
-  /// Titik yang ditambah teknisi hidup di SATU daftar milik seluruh lembar
-  /// (`titikKustom`), jadi dua tabel yang sama-sama `titik_bisa_diubah: true`
-  /// tumbuh berbarengan. Kalau salah satunya `false`, tabel suhu berhenti di
-  /// tiga baris bawaan sementara tabel massa tumbuh — dan baris massa ke-4
-  /// sampai ke server tanpa pasangan suhunya, lalu ditolak.
-  test('menambah titik menumbuhkan KEDUA tabel bersamaan', () {
+  /// Kelima slot titik dikirim SEJAK AWAL, dan yang tidak diisi gugur sendiri.
+  ///
+  /// Lembar ini tidak bisa memakai `titik_bisa_diubah`: panel `PengaturTitik`
+  /// cuma dirender kalau `baris.every((b) => b.titikDitentukan)`, sementara
+  /// semua baris di sini `titik_ukur: null` — memang harus, karena `Point of
+  /// Calibration` diketik teknisi. Dua kunci itu saling meniadakan, dan tidak
+  /// ada satu pun yang memberi tahu: kontraknya bilang titiknya bisa ditambah,
+  /// panelnya tidak pernah muncul, dan lembarnya mentok di tiga baris bawaan.
+  /// Hydrometer bertanda lima skala cuma bisa dikalibrasi tiga titik.
+  ///
+  /// Jadi barisnya dikirim sebanyak `TITIK_MAKS` dan `titik_bisa_diubah`
+  /// dimatikan. Yang menjaga lembarnya tidak berangkat dengan dua titik kosong:
+  /// `TitikState.siapKirim`, yang membuang baris tanpa `Point of Calibration`.
+  test('lima slot titik dikirim, yang tidak diisi gugur dari payload', () {
     final isian = isianDari(contohBentukLembarKerjaHydrometer());
     final massa = tabel(isian, 'hasil', 0);
     final suhu = tabel(isian, 'hasil', 1);
 
-    expect(massa.titikBisaDiubah, isTrue);
-    expect(suhu.titikBisaDiubah, isTrue,
-        reason: 'tabel suhu harus ikut bisa diubah, kalau tidak dia tertinggal');
+    expect(massa.titikBisaDiubah, isFalse,
+        reason: 'panel PengaturTitik nggak akan pernah muncul di lembar ini — '
+            'kuncinya cuma janji yang nggak pernah ditepati');
+    expect(suhu.titikBisaDiubah, isFalse,
+        reason: 'kedua tabel harus sama, kalau nggak jumlah barisnya bisa menyimpang');
 
-    isian.aturTitik([0.610, 0.625, 0.650, 0.675]);
+    expect(isian.barisTabel(massa), hasLength(5));
+    expect(isian.barisTabel(suhu), hasLength(5),
+        reason: 'tabel suhu harus punya slot sebanyak tabel massa');
 
-    expect(isian.barisTabel(massa), hasLength(4));
+    // Teknisi cuma mengisi TIGA dari lima, seperti kedua master contoh.
+    final barisMassa = isian.barisTabel(massa);
+    final barisSuhu = isian.barisTabel(suhu);
+
+    for (var i = 0; i < 3; i++) {
+      final tm = isian.titikUntukBaris(barisMassa, i, massa)!;
+      tm.titikCtl.text = ['0,610', '0,625', '0,650'][i];
+      for (var r = 0; r < 3; r++) {
+        tm.kotak(massa.kunciTabel, 'pembacaan', r).text = '21,2727';
+      }
+
+      final ts = isian.titikUntukBaris(barisSuhu, i, suhu)!;
+      ts.titikCtl.text = ['0,610', '0,625', '0,650'][i];
+      for (var r = 0; r < 3; r++) {
+        ts.kotak(suhu.kunciTabel, 'pembacaan', r).text = '20,6';
+      }
+    }
+
+    final titik = isian
+        .toSubmission(draft: true)
+        .measurements
+        .map((m) => m.toJson())
+        .where((m) => m.containsKey('hydro_massa'))
+        .toList();
+
     expect(
-      isian.barisTabel(suhu),
-      hasLength(4),
-      reason: 'tabel suhu tidak ikut tumbuh — titik keempat bakal berangkat tanpa suhu',
+      titik,
+      hasLength(3),
+      reason: 'dua slot yang dibiarkan kosong ikut berangkat — server bakal '
+          'melihat titik tanpa satu pun pembacaan',
     );
   });
 

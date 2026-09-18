@@ -132,7 +132,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
             'tipe': 'angka',
             'wajib': false,
             'sumber': null,
-            'satuan': 'g/ml',
+            'satuan': null,
             'pilihan': <dynamic>[],
             'hanya_admin': false,
             'tampil_kalau': null,
@@ -635,7 +635,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
             'satuan': 'g',
             'judul_nilai': 'Point of Calibration',
             'judul_pengulangan': 'Timbang ke',
-            'titik_bisa_diubah': true,
+            'titik_bisa_diubah': false,
             'simpan_ke': 'measurements[].hydro_massa',
             'baris': [
               {
@@ -656,6 +656,20 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
                 'nomor': 3,
                 'titik_ukur': null,
                 'label': 'Titik 3',
+                'satuan': 'g/ml',
+                'desimal': 4,
+              },
+              {
+                'nomor': 4,
+                'titik_ukur': null,
+                'label': 'Titik 4',
+                'satuan': 'g/ml',
+                'desimal': 4,
+              },
+              {
+                'nomor': 5,
+                'titik_ukur': null,
+                'label': 'Titik 5',
                 'satuan': 'g/ml',
                 'desimal': 4,
               },
@@ -682,7 +696,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
             'satuan': '°C',
             'judul_nilai': 'Point of Calibration',
             'judul_pengulangan': 'Baca ke',
-            'titik_bisa_diubah': true,
+            'titik_bisa_diubah': false,
             'simpan_ke': 'measurements[].hydro_suhu',
             'baris': [
               {
@@ -703,6 +717,20 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
                 'nomor': 3,
                 'titik_ukur': null,
                 'label': 'Titik 3',
+                'satuan': 'g/ml',
+                'desimal': 1,
+              },
+              {
+                'nomor': 4,
+                'titik_ukur': null,
+                'label': 'Titik 4',
+                'satuan': 'g/ml',
+                'desimal': 1,
+              },
+              {
+                'nomor': 5,
+                'titik_ukur': null,
+                'label': 'Titik 5',
                 'satuan': 'g/ml',
                 'desimal': 1,
               },
