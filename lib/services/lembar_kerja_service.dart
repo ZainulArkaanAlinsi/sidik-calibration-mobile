@@ -12,6 +12,7 @@ import 'contoh_lembar_kerja_dimensi.dart';
 import 'contoh_lembar_kerja_enclosure.dart';
 import 'contoh_lembar_kerja_massa.dart';
 import 'contoh_lembar_kerja_panjang.dart';
+import 'contoh_lembar_kerja_volumetrik.dart';
 import 'contoh_lembar_kerja_waktu.dart';
 import 'contoh_lembar_kerja_suhu.dart';
 
@@ -319,6 +320,23 @@ class MockLembarKerjaService implements LembarKerjaService {
         untukAdmin: untukAdmin,
       ),
       'sieve' => contohBentukLembarKerjaSieve(
+        untukAdmin: untukAdmin,
+      ),
+      // Hydrometer (alat ke-33) — kelompok VOLUMETRIK, penghuni pertamanya.
+      // Bentuknya DIGENERATE dari server
+      // (`contoh_lembar_kerja_volumetrik.dart`).
+      //
+      // Tanpa cabang ini `hydrometer` jatuh ke `_` dan mode mock memajang
+      // lembar pH tiga titik buffer — nggak ada error, cuma lembar yang salah,
+      // persis yang kejadian di TIDS, Timbangan, dan Micrometer.
+      //
+      // Di alat INI akibatnya paling mahal: lembar pH minta teknisi mengetik
+      // PEMBACAAN, sementara yang sebenarnya dipungut kertas Hydrometer massa
+      // hasil timbang (gram) dan suhu air (°C). Densitas yang dicetak
+      // sertifikat nggak pernah diketik siapa pun — dia hasil metode Cuckow di
+      // server — jadi angka yang salah nggak punya pembanding sekilas di lembar
+      // kertas.
+      'hydrometer' => contohBentukLembarKerjaHydrometer(
         untukAdmin: untukAdmin,
       ),
       // Flowmeter Ultrasonic (alat ke-27 & ke-28) — kelompok Aliran. DUA

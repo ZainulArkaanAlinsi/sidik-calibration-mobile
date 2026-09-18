@@ -27,7 +27,7 @@ class StandardListScreen extends ConsumerWidget {
     final standar = ref.watch(standardCrudProvider);
     final l10n = AppLocalizations.of(context);
     final isAdmin = ref.bolehkah(
-      NamaIzin.masterDataUbah,
+      NamaIzin.standarKelola,
       cadangan: ref.watch(authProvider).value?.role.adminSaja ?? false,
     );
 

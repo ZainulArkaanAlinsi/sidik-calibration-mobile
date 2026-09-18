@@ -120,9 +120,54 @@ abstract final class NamaIzin {
   static const kalibrasiBuat = 'kalibrasi.buat';
   static const kalibrasiSetujui = 'kalibrasi.setujui';
 
-  static const masterDataUbah = 'master-data.ubah';
-  static const akunKelola = 'akun.kelola';
+  // Keempat nama di bawah SEBELUMNYA ditebak (`master-data.ubah`,
+  // `akun.kelola`, `folder.tulis`) dan nggak pernah ada di `MatriksIzin::PETA`
+  // punya server. Akibatnya nggak keliatan di mana-mana: `bolehkah` jatuh ke
+  // cadangan aturan peran hardcode buat nama yang nggak dikenal, jadi
+  // tombolnya tetap jalan — cuma pakai aturan yang matriks peran ini ada buat
+  // menggantikannya. Lima dari sebelas nama mati begitu.
+  //
+  // Sekarang disamain sama nama di server, dan dijaga dua arah:
+  // `MeIzinTest::test_nama_izin_yang_ditanya_mobile_ada_semua` di repo API, dan
+  // `test/nama_izin_test.dart` di sini.
+  static const standarKelola = 'standar.kelola';
+  static const penggunaKelola = 'pengguna.kelola';
   static const sertifikatKirim = 'sertifikat.kirim';
   static const tandaTanganKelola = 'tanda-tangan.kelola';
-  static const folderTulis = 'folder.tulis';
+  static const arsipFolderKelola = 'arsip.folder.kelola';
+
+  // Satu izin per MENU, bukan satu payung buat empat menu.
+  //
+  // Nama lama `master-data.ubah` itu payung yang nggak pernah ada di server,
+  // jadi dia SELALU jatuh ke cadangan `role.isAdmin` — dan selama jawabannya
+  // selalu "admin doang", payung sama izin-per-menu kelihatan sama saja.
+  //
+  // Begitu namanya disamain jadi `standar.kelola`, payungnya berubah jadi
+  // JAWABAN NYATA dari server, dan artinya nggak lagi sama: satu rute pindah
+  // blok — `POST /standards` keluar dari `role:admin`, persis jenis perubahan
+  // yang MatriksIzin ada buat nyebarinnya otomatis — bikin teknisi kebagian
+  // `standar.kelola`, lalu menu Pelanggan, Impor Excel, dan Organisasi ikut
+  // nyala di sidebar-nya. Ketiganya tetap admin-only di server, jadi yang dia
+  // dapat 403 begitu diketuk. Itu persis kegagalan yang matriks peran ini ada
+  // buat mencegahnya, cuma sekarang sumbernya nama yang salah pasang.
+  static const pelangganKelola = 'pelanggan.kelola';
+
+  // Ruangan & Metode pakai izin KELOLA, bukan `*.lihat` — walau endpoint
+  // bacanya (`GET api/rooms`, `GET api/calibration-methods`) memang terbuka
+  // buat ketiga role.
+  //
+  // Itu keputusan produk yang sudah dikunci test: `desktop_shell_test.dart`
+  // menuntut teknisi TIDAK dapat seksi "Master Data" di panel desktop sama
+  // sekali. Sempat gw longgarkan ke `*.lihat` karena review menyebut teknisi
+  // "kehilangan layar baca yang sah" — dan test itu langsung merah, karena
+  // membuka satu menu saja sudah memunculkan judul seksinya.
+  //
+  // Yang dilanggar bukan izin server, tapi bentuk panelnya: seksi Master Data
+  // itu ruang kerja admin. Teknisi tetap bisa membaca ruangan & metode dari
+  // tempat yang memang menyediakannya (lembar kerja, layar pilih alat).
+  static const ruanganKelola = 'ruangan.kelola';
+  static const metodeKelola = 'metode.kelola';
+  static const teknisiKelola = 'teknisi.kelola';
+  static const imporExcel = 'impor.excel';
+  static const organisasiUbah = 'organisasi.ubah';
 }

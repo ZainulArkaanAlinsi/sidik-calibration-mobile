@@ -50,7 +50,7 @@ class FolderManagerScreen extends ConsumerWidget {
     // Tombolnya disembunyiin biar teknisi nggak nyoba lalu ditolak, tapi yang
     // beneran njagain tetap backend, bukan `if` ini.
     final admin = ref.bolehkah(
-      NamaIzin.folderTulis,
+      NamaIzin.arsipFolderKelola,
       cadangan: ref.watch(authProvider).value?.role.adminSaja ?? false,
     );
 
