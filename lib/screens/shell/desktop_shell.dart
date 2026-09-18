@@ -131,18 +131,21 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
       NamaIzin.kalibrasiSetujui,
       cadangan: peran.adminSaja,
     );
-    final bolehMasterData = ref.bolehkah(
-      NamaIzin.standarKelola,
-      cadangan: peran.adminSaja,
-    );
-    final bolehAkun = ref.bolehkah(
-      NamaIzin.penggunaKelola,
-      cadangan: peran.adminSaja,
-    );
-    final bolehTtd = ref.bolehkah(
-      NamaIzin.tandaTanganKelola,
-      cadangan: peran.adminSaja,
-    );
+    // SATU izin per menu. Sebelumnya `bolehMasterData` (dulu payung
+    // `master-data.ubah`, lalu `standar.kelola`) menggerbangi EMPAT menu
+    // sekaligus: Pelanggan, Standar, Impor Excel, Organisasi. Selama payungnya
+    // nggak pernah dijawab server dia selalu jatuh ke `adminSaja` dan keempatnya
+    // kebetulan bener — tapi begitu namanya jadi izin NYATA, satu rute pindah
+    // blok bikin tiga menu admin-only nyala buat orang yang bakal kena 403.
+    final bolehStandar = ref.bolehkah(NamaIzin.standarKelola, cadangan: peran.adminSaja);
+    final bolehPelanggan = ref.bolehkah(NamaIzin.pelangganKelola, cadangan: peran.adminSaja);
+    final bolehRuangan = ref.bolehkah(NamaIzin.ruanganKelola, cadangan: peran.adminSaja);
+    final bolehMetode = ref.bolehkah(NamaIzin.metodeKelola, cadangan: peran.adminSaja);
+    final bolehTeknisi = ref.bolehkah(NamaIzin.teknisiKelola, cadangan: peran.adminSaja);
+    final bolehImpor = ref.bolehkah(NamaIzin.imporExcel, cadangan: peran.adminSaja);
+    final bolehOrganisasi = ref.bolehkah(NamaIzin.organisasiUbah, cadangan: peran.adminSaja);
+    final bolehAkun = ref.bolehkah(NamaIzin.penggunaKelola, cadangan: peran.adminSaja);
+    final bolehTtd = ref.bolehkah(NamaIzin.tandaTanganKelola, cadangan: peran.adminSaja);
 
     return [
       _Seksi(
@@ -201,24 +204,29 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
           ),
         ],
       ),
-      if (bolehMasterData || bolehAkun)
+      if (bolehPelanggan ||
+          bolehStandar ||
+          bolehAkun ||
+          bolehRuangan ||
+          bolehMetode ||
+          bolehTeknisi)
         _Seksi(
           judul: l10n.menuMasterData,
           menu: [
-            if (bolehMasterData) ...[
+            if (bolehPelanggan)
               _Menu(
                 id: 'pelanggan',
                 ikon: Icons.people_outline,
                 label: l10n.profCustomers,
                 bangun: CustomerListScreen.new,
               ),
+            if (bolehStandar)
               _Menu(
                 id: 'standar',
                 ikon: Icons.science_outlined,
                 label: l10n.standarTitle,
                 bangun: StandardListScreen.new,
               ),
-            ],
             // `...[ ]`, BUKAN `if` telanjang. Sebelum ini keempat menu ini
             // ditulis dengan indentasi seolah-olah keempatnya ikut
             // `if (bolehAkun)`, padahal collection-if tanpa spread cuma
@@ -231,52 +239,57 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
             // satu role baru, atau satu rute pindah blok — tiga menu master
             // data muncul buat orang yang bakal ditolak 403 waktu menekannya.
             // Indentasinya bohong, dan compiler nggak punya alasan protes.
-            if (bolehAkun) ...[
+            // Rumus nebeng `pengguna.kelola`: dia layar pengaturan lab yang
+            // PETA server belum punya entri sendirinya. Sisanya pakai izinnya
+            // masing-masing.
+            if (bolehAkun)
               _Menu(
                 id: 'rumus',
                 ikon: Icons.functions_outlined,
                 label: l10n.rumusTitle,
                 bangun: RumusListScreen.new,
               ),
+            if (bolehRuangan)
               _Menu(
                 id: 'ruangan',
                 ikon: Icons.meeting_room_outlined,
                 label: l10n.ruanganTitle,
                 bangun: RuanganListScreen.new,
               ),
+            if (bolehMetode)
               _Menu(
                 id: 'metode',
                 ikon: Icons.menu_book_outlined,
                 label: l10n.metodeTitle,
                 bangun: MetodeListScreen.new,
               ),
+            if (bolehTeknisi)
               _Menu(
                 id: 'teknisi',
                 ikon: Icons.badge_outlined,
                 label: l10n.teknisiTitle,
                 bangun: TechnicianListScreen.new,
               ),
-            ],
           ],
         ),
-      if (bolehMasterData || bolehTtd)
+      if (bolehImpor || bolehOrganisasi || bolehTtd)
         _Seksi(
           judul: l10n.panelSeksiSistem,
           menu: [
-            if (bolehMasterData) ...[
+            if (bolehImpor)
               _Menu(
                 id: 'impor',
                 ikon: Icons.upload_file_outlined,
                 label: l10n.importTitle,
                 bangun: ImportExcelScreen.new,
               ),
+            if (bolehOrganisasi)
               _Menu(
                 id: 'organisasi',
                 ikon: Icons.apartment_outlined,
                 label: l10n.orgTitle,
                 bangun: OrganizationScreen.new,
               ),
-            ],
             if (bolehTtd)
               _Menu(
                 id: 'ttd',

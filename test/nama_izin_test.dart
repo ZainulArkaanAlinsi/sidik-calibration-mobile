@@ -34,24 +34,38 @@ void main() {
     izinServer = (json['izin'] as List).map((e) => '$e').toSet();
   });
 
-  /// Disalin tangan dari `NamaIzin` — Dart tidak punya refleksi konstanta di
-  /// `flutter test`. Menambah konstanta tanpa menambahnya ke sini bikin test
-  /// `jumlahnya cocok` di bawah merah, jadi daftar ini tidak bisa ketinggalan
-  /// diam-diam.
-  const dipakaiMobile = <String>{
-    NamaIzin.alatTambah,
-    NamaIzin.alatUbah,
-    NamaIzin.alatHapus,
-    NamaIzin.kalibrasiBuat,
-    NamaIzin.kalibrasiSetujui,
-    NamaIzin.standarKelola,
-    NamaIzin.penggunaKelola,
-    NamaIzin.sertifikatKirim,
-    NamaIzin.tandaTanganKelola,
-    NamaIzin.arsipFolderKelola,
-  };
+  /// Nilai konstanta `NamaIzin` DIBACA dari sumbernya, bukan disalin tangan.
+  ///
+  /// Versi pertama test ini menyalin daftarnya ke sini lalu mengadu
+  /// panjangnya ke sebuah konstanta `jumlahKonstanta = 10` di berkas yang sama
+  /// — dua literal yang ditulis berdampingan, nol-nya membaca `NamaIzin`. Jadi
+  /// dia cuma mengukur dirinya sendiri: menambah konstanta baru yang salah
+  /// ketik ke `izin.dart` TIDAK pernah membuatnya merah, padahal docblock-nya
+  /// mengklaim sebaliknya. Klaim itu yang bikin lubangnya berbahaya — kontrak
+  /// nama izin dianggap "dijaga dua arah" padahal satu arahnya kosong.
+  ///
+  /// Dart tidak punya refleksi konstanta di `flutter test`, jadi sumbernya
+  /// dibaca sebagai TEKS. Itu bukan kerapian: yang dijaga di sini justru nama
+  /// yang belum pernah dipakai siapa pun, dan satu-satunya tempat nama itu
+  /// pasti muncul adalah berkas deklarasinya.
+  Set<String> bacaNamaIzin() {
+    final sumber = File('lib/models/izin.dart').readAsStringSync();
+    final kelas = sumber.substring(sumber.indexOf('abstract final class NamaIzin'));
+    final pola = RegExp(r"static const \w+ = '([^']+)';");
+
+    return pola.allMatches(kelas).map((m) => m.group(1)!).toSet();
+  }
 
   test('tiap nama izin yang ditanya mobile dikenal server', () {
+    final dipakaiMobile = bacaNamaIzin();
+
+    expect(
+      dipakaiMobile,
+      isNotEmpty,
+      reason: 'nol konstanta kebaca dari izin.dart — polanya yang rusak, '
+          'bukan kontraknya',
+    );
+
     final asing = dipakaiMobile.difference(izinServer).toList()..sort();
 
     expect(
@@ -64,17 +78,23 @@ void main() {
     );
   });
 
-  /// Konstanta yang ditambah tapi lupa didaftarkan di [dipakaiMobile] di atas
-  /// bikin test ini merah — kalau tidak, daftar penjaganya sendiri yang basi.
-  test('daftar di test ini tidak ketinggalan dari NamaIzin', () {
-    const jumlahKonstanta = 10;
+  /// Dan polanya beneran menangkap — kalau `bacaNamaIzin()` suatu saat
+  /// memulangkan himpunan kosong (mis. formatnya berubah), test di atas lolos
+  /// dengan hampa. Angkanya sengaja TIDAK dipatok literal: yang dijaga bahwa
+  /// yang kebaca sama banyaknya dengan yang beneran ditulis di berkasnya.
+  test('pembacaan konstanta tidak melewatkan satu pun', () {
+    final sumber = File('lib/models/izin.dart').readAsStringSync();
+    final kelas = sumber.substring(sumber.indexOf('abstract final class NamaIzin'));
+
+    final jumlahBaris = RegExp(r'^\s*static const \w+ = ', multiLine: true)
+        .allMatches(kelas)
+        .length;
 
     expect(
-      dipakaiMobile,
-      hasLength(jumlahKonstanta),
-      reason:
-          'Ada konstanta NamaIzin yang belum masuk daftar di test ini (atau '
-          'jumlahnya berubah). Tambahkan, lalu perbarui angkanya.',
+      bacaNamaIzin(),
+      hasLength(jumlahBaris),
+      reason: 'ada baris `static const` di NamaIzin yang nggak kebaca pola — '
+          'nama itu nggak ikut diadu ke server',
     );
   });
 }

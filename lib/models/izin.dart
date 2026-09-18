@@ -135,4 +135,25 @@ abstract final class NamaIzin {
   static const sertifikatKirim = 'sertifikat.kirim';
   static const tandaTanganKelola = 'tanda-tangan.kelola';
   static const arsipFolderKelola = 'arsip.folder.kelola';
+
+  // Satu izin per MENU, bukan satu payung buat empat menu.
+  //
+  // Nama lama `master-data.ubah` itu payung yang nggak pernah ada di server,
+  // jadi dia SELALU jatuh ke cadangan `role.isAdmin` — dan selama jawabannya
+  // selalu "admin doang", payung sama izin-per-menu kelihatan sama saja.
+  //
+  // Begitu namanya disamain jadi `standar.kelola`, payungnya berubah jadi
+  // JAWABAN NYATA dari server, dan artinya nggak lagi sama: satu rute pindah
+  // blok — `POST /standards` keluar dari `role:admin`, persis jenis perubahan
+  // yang MatriksIzin ada buat nyebarinnya otomatis — bikin teknisi kebagian
+  // `standar.kelola`, lalu menu Pelanggan, Impor Excel, dan Organisasi ikut
+  // nyala di sidebar-nya. Ketiganya tetap admin-only di server, jadi yang dia
+  // dapat 403 begitu diketuk. Itu persis kegagalan yang matriks peran ini ada
+  // buat mencegahnya, cuma sekarang sumbernya nama yang salah pasang.
+  static const pelangganKelola = 'pelanggan.kelola';
+  static const ruanganKelola = 'ruangan.kelola';
+  static const metodeKelola = 'metode.kelola';
+  static const teknisiKelola = 'teknisi.kelola';
+  static const imporExcel = 'impor.excel';
+  static const organisasiUbah = 'organisasi.ubah';
 }
