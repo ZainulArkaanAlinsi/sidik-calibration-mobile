@@ -1583,6 +1583,29 @@ class LembarKerjaState {
 
       if (acuan == null || isi.isEmpty) continue;
 
+      // `siapKirim` menyaring DI SINI juga, sejajar sama jalur datar — dan
+      // tanpa itu baris yang angkanya keisi tapi `Point of Calibration`-nya
+      // kosong berangkat dengan set point KARANGAN.
+      //
+      // Rantainya: `titik_ukur: null` di bentuk bikin `BarisTabelHasil`
+      // jatuh ke `json['nomor']` (1..5) sebagai `titikUkur`, jadi
+      // `acuan.titikUkur` BUKAN null — dia nomor baris. Kalau barisnya lolos
+      // ke sini, `titikUkurEfektif ?? titikUkur` memulangkan nomor itu, dan
+      // server menghitung densitas pada nominal **4,0 g/ml** buat baris
+      // keempat. Lolos `measurements.*.titik_ukur => required|numeric`, nol
+      // error di kedua sisi.
+      //
+      // Kena justru di lembar yang slotnya sengaja dilebihkan: Hydrometer
+      // mengirim lima baris supaya alat bertanda lima skala kebagian, jadi ada
+      // dua slot yang normal dibiarkan kosong — dan teknisi yang mengetik
+      // angkanya duluan sebelum mengisi `Point of Calibration` bikin barisnya
+      // berangkat bernominal nomor baris.
+      //
+      // Buat lembar deret-bernama yang set point-nya DIPATOK kertas (kelima
+      // tabel Flowmeter), `titikDitentukan` true, jadi `siapKirim` selalu true
+      // dan saringan ini tidak mengubah apa pun.
+      if (!acuan.siapKirim) continue;
+
       final kirim = TitikLembarKerja(
         titikUkur: acuan.titikUkurEfektif ?? acuan.titikUkur,
         jumlahPengulangan: acuan.jumlahPengulangan,
@@ -1604,19 +1627,46 @@ class LembarKerjaState {
   /// Baris yang ANGKANYA keisi tapi kotak `Setpoint`-nya kosong atau nggak
   /// kebaca sebagai angka.
   ///
-  /// Cuma lembar TIDS yang bisa kena — cuma di sana set point-nya diketik
-  /// teknisi. Dan di sana akibatnya sunyi: baris tanpa set point nggak punya
+  /// Kena di lembar yang set point-nya diketik teknisi — TIDS, dan sejak alat
+  /// ke-33 juga Hydrometer. Akibatnya sunyi: baris tanpa set point nggak punya
   /// identitas buat dihitung, jadi [TitikState.siapKirim] MEMBUANG SELURUH
-  /// BARISNYA — kelima kotak pembacaan yang sudah diisi ikut hilang, tanpa
-  /// satu pun tanda, di lembar yang kelihatan penuh di layar.
+  /// BARISNYA — kotak pembacaan yang sudah diisi ikut hilang, tanpa satu pun
+  /// tanda, di lembar yang kelihatan penuh di layar.
   ///
   /// Itu kelas kerusakan yang paling mahal di berkas ini, jadi penjaganya
   /// MENAHAN (bukan bertanya), sejajar sama [titikTerisiTanpaStandar]: yang
   /// hilang bukan dugaan soal kewajaran angka, tapi angka yang beneran ada di
   /// tangan teknisi dan beneran nggak jadi terkirim.
-  List<TitikState> get titikTanpaSetPoint => titik.values
-      .where((t) => !t.titikDitentukan && t.adaPembacaan && !t.siapKirim)
-      .toList();
+  ///
+  /// ## Baris tabel-SPEK dikecualikan
+  ///
+  /// [kunciTitikSpesifikasi] dibuang lebih dulu, dan tanpa itu lembar
+  /// Hydrometer NGGAK BISA DIKIRIM sama sekali. Tabel "D Stem" ada di
+  /// `pre_condition` dan menyatakan `simpan_ke:
+  /// spesifikasi_alat.hydrometer.diameter_stem` — dia bukan titik ukur, cuma
+  /// blok spesifikasi yang kebetulan digambar sebagai tabel. Barisnya
+  /// `titik_ukur: null` (jadi `titikDitentukan == false`), ketiga selnya terisi
+  /// (`adaPembacaan == true`), dan kotak set point kirinya memang dibiarkan
+  /// kosong karena nggak ada angka yang masuk akal di situ — jadi
+  /// `siapKirim == false` dan penjaga ini menahan seluruh sesinya dengan pesan
+  /// "Set Point kosong: D Stem".
+  ///
+  /// Satu-satunya jalan keluar teknisi bakal mengetik angka karangan di kotak
+  /// yang nggak dibaca siapa pun — `_tanamTabelSpesifikasi` mengirimnya sebagai
+  /// `titik_ukur`, dan server cuma membaca `pembacaan`.
+  ///
+  /// Dibuang lewat [kunciTitikSpesifikasi] yang SAMA dengan yang dipakai jalur
+  /// payload (lihat pemakaiannya di [toSubmission]), bukan lewat daftar nama
+  /// tabel: satu sumber kebenaran buat "baris ini blok spek, bukan titik".
+  List<TitikState> get titikTanpaSetPoint {
+    final bukanTitik = kunciTitikSpesifikasi;
+
+    return titik.entries
+        .where((e) => !bukanTitik.contains(e.key))
+        .map((e) => e.value)
+        .where((t) => !t.titikDitentukan && t.adaPembacaan && !t.siapKirim)
+        .toList();
+  }
 
   /// Lembar kerja ini punya kolom "7. Satuan Refracto"?
   ///

@@ -200,6 +200,102 @@ void main() {
     );
   });
 
+  /// Baris yang ANGKANYA terisi tapi `Point of Calibration`-nya kosong TIDAK
+  /// berangkat.
+  ///
+  /// Beda dari test "lima slot" di atas, yang barisnya sama sekali tidak
+  /// disentuh — itu gugur karena `isi.isEmpty`, bukan karena `siapKirim`, jadi
+  /// dia tetap hijau walau `siapKirim` dihapus seluruhnya. Yang diuji DI SINI
+  /// mekanismenya.
+  ///
+  /// Tanpa saringan itu: `titik_ukur: null` bikin `BarisTabelHasil` jatuh ke
+  /// `json['nomor']` (1..5) sebagai `titikUkur`, jadi barisnya berangkat dengan
+  /// `titik_ukur: 4.0` — nomor baris yang menyamar jadi set point. Server
+  /// menerimanya (`required|numeric` lolos) dan menghitung densitas pada
+  /// nominal **4,0 g/ml**. Nol error di kedua sisi.
+  ///
+  /// Lembar ini yang paling kena justru karena slotnya sengaja dilebihkan jadi
+  /// lima: ada dua slot yang normal dibiarkan kosong, dan teknisi yang mengetik
+  /// angkanya duluan sebelum mengisi `Point of Calibration` masuk persis ke
+  /// jalur ini.
+  test('baris berangka tanpa Point of Calibration tidak ikut terkirim', () {
+    final isian = isianDari(contohBentukLembarKerjaHydrometer());
+    final massa = tabel(isian, 'hasil', 0);
+    final suhu = tabel(isian, 'hasil', 1);
+
+    final barisMassa = isian.barisTabel(massa);
+    final barisSuhu = isian.barisTabel(suhu);
+
+    // Titik 1 diisi LENGKAP berikut Point of Calibration-nya.
+    final tm0 = isian.titikUntukBaris(barisMassa, 0, massa)!;
+    tm0.titikCtl.text = '0,610';
+    for (var r = 0; r < 3; r++) {
+      tm0.kotak(massa.kunciTabel, 'pembacaan', r).text = '21,2727';
+    }
+    final ts0 = isian.titikUntukBaris(barisSuhu, 0, suhu)!;
+    ts0.titikCtl.text = '0,610';
+    for (var r = 0; r < 3; r++) {
+      ts0.kotak(suhu.kunciTabel, 'pembacaan', r).text = '20,6';
+    }
+
+    // Titik 4 — angkanya diketik duluan, Point of Calibration DIBIARKAN kosong.
+    final tm3 = isian.titikUntukBaris(barisMassa, 3, massa)!;
+    for (var r = 0; r < 3; r++) {
+      tm3.kotak(massa.kunciTabel, 'pembacaan', r).text = '25,4602';
+    }
+    final ts3 = isian.titikUntukBaris(barisSuhu, 3, suhu)!;
+    for (var r = 0; r < 3; r++) {
+      ts3.kotak(suhu.kunciTabel, 'pembacaan', r).text = '20,7';
+    }
+
+    final json = isian
+        .toSubmission(draft: true)
+        .measurements
+        .map((m) => m.toJson())
+        .where((m) => m.containsKey('hydro_massa'))
+        .toList();
+
+    expect(
+      json,
+      hasLength(1),
+      reason: 'baris tanpa Point of Calibration ikut berangkat — set point-nya '
+          'bakal jadi NOMOR BARIS, dan server ngitung densitas di nominal itu',
+    );
+    expect(json.single['titik_ukur'], closeTo(0.610, 1e-9));
+  });
+
+  /// Tabel "D Stem" TIDAK boleh menahan pengiriman.
+  ///
+  /// Dia ada di `pre_condition` dan menyatakan `simpan_ke:
+  /// spesifikasi_alat.hydrometer.diameter_stem` — bukan titik ukur, cuma blok
+  /// spesifikasi yang kebetulan digambar sebagai tabel. Barisnya `titik_ukur:
+  /// null` (jadi `titikDitentukan == false`), ketiga selnya terisi, dan kotak
+  /// set point kirinya memang dibiarkan kosong karena nggak ada angka yang
+  /// masuk akal di situ.
+  ///
+  /// Tanpa pengecualian di `titikTanpaSetPoint`, penjaga pra-kirim menahan
+  /// SELURUH sesi dengan pesan "Set Point kosong: D Stem", dan satu-satunya
+  /// jalan keluar teknisi mengetik angka karangan di kotak yang nggak dibaca
+  /// siapa pun. Lembar Hydrometer jadi nggak bisa dikirim sama sekali.
+  test('tabel D Stem tidak menahan pengiriman walau set point-nya kosong', () {
+    final isian = isianDari(contohBentukLembarKerjaHydrometer());
+    final stem = tabel(isian, 'pre_condition', 0);
+
+    // Teknisi mengisi ketiga ukuran diameter, dan MEMBIARKAN kotak set point
+    // kiri tabel itu kosong — persis yang terjadi di lapangan.
+    final tStem = isian.titikUntukBaris(isian.barisTabel(stem), 0, stem)!;
+    for (var r = 0; r < 3; r++) {
+      tStem.kotak(stem.kunciTabel, 'pembacaan', r).text = ['0,708', '0,710', '0,709'][r];
+    }
+
+    expect(
+      isian.titikTanpaSetPoint.map((t) => t.label),
+      isEmpty,
+      reason: 'baris D Stem ikut ketahan penjaga pra-kirim — lembarnya nggak '
+          'akan pernah bisa dikirim',
+    );
+  });
+
   /// Kotak `Sl` cuma muncul kalau toggle beban tambahan menyala. Itu yang
   /// membuat "kosong karena tidak perlu" tidak tertukar dengan "kosong karena
   /// lupa" — dan bedanya bukan kerapian: rumus varian yang salah memulangkan
