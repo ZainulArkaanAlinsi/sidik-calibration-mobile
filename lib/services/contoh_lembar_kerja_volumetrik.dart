@@ -65,7 +65,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
     'budget_ketidakpastian': {
       'tersedia': true,
       'sumber': 'Master Olah Data Hydrometer 0.600-0.650 & 1.800-2.000 (.xlsm)',
-      'catatan': 'Sebelas komponen PER TITIK skala dalam g/ml, k dari t-Student (v_eff dipotong ke bawah), lantai CMC per pita densitas. Sesi yang titiknya di luar pita CMC, ulangannya bukan tiga, diameter stem-nya bukan tiga ukuran, atau tekanan udaranya kosong TIDAK diterbitkan.',
+      'catatan': 'Sebelas komponen PER TITIK skala dalam g/ml, k dari t-Student (v_eff dipotong ke bawah), lantai CMC dari pita lampiran akreditasi yang memuat titiknya (0,60-1,00 → 0,00051; 1,10-1,70 → 0,00070). Titik di luar kedua pita tetap terbit dengan U95 telanjang, tapi sesinya tidak membawa klaim akreditasi. Sesi yang ulangannya bukan tiga, diameter stem-nya bukan tiga ukuran, atau tekanan udaranya kosong TIDAK diterbitkan.',
     },
     'bagian': [
       {
