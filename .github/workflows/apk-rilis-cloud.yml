@@ -559,7 +559,23 @@ jobs:
             echo "Kecocokan itu diperiksa CI, bukan mata: rilis dengan sidik jari lain nggak akan sampai ke langkah penerbitan."
           } >> "$GITHUB_STEP_SUMMARY"
 
+      # Salinan tambahan buat yang mau mengunduh dari halaman run. BUKAN jalur
+      # pengiriman ke teknisi — itu GitHub Release di bawah, dan itu juga yang
+      # dibaca `GET /api/app/versi-terbaru`.
+      #
+      # `continue-on-error` DIPASANG dengan sebab, bukan buat merapikan log.
+      # 22 Sep 2026 langkah ini gagal dengan "Artifact storage quota has been
+      # hit" (389 artifact, 8,1 GB menumpuk), job-nya berhenti di situ, dan
+      # langkah Release di bawah TIDAK PERNAH JALAN — jadi APK-nya sudah
+      # terbangun dan tertandatangani, tapi tidak pernah sampai ke satu pun HP
+      # teknisi. Kuotanya sendiri sudah dibereskan (sisa 5 artifact), tapi yang
+      # menahan rilis bukan kuotanya melainkan URUTAN: hal sekunder tidak boleh
+      # menggagalkan yang utama.
+      #
+      # `if-no-files-found` tetap `error` — biar tetap kedengaran kalau APK-nya
+      # tidak ada sama sekali; bedanya sekarang itu tidak ikut menahan rilis.
       - uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: sidik-cloud-apk
           path: build/app/outputs/flutter-apk/app-release.apk
