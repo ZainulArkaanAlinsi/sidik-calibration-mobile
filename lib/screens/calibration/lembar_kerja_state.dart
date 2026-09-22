@@ -1657,12 +1657,51 @@ class LembarKerjaState {
   /// tabel: satu sumber kebenaran buat "baris ini blok spek, bukan titik".
   List<TitikState> get titikTanpaSetPoint {
     final bukanTitik = kunciTitikSpesifikasi;
+    final ikutAcuan = _barisIkutNominalAcuan;
 
     return titik.entries
         .where((e) => !bukanTitik.contains(e.key))
         .map((e) => e.value)
+        .where((t) => !ikutAcuan.contains(t))
         .where((t) => !t.titikDitentukan && t.adaPembacaan && !t.siapKirim)
         .toList();
+  }
+
+  /// Baris tabel deret-bernama KEDUA dan seterusnya yang baris sejajarnya di
+  /// tabel PERTAMA sudah punya nominal.
+  ///
+  /// [_measurementsDeretBernama] mengambil `titik_ukur` dari tabel pertama
+  /// (`acuan ??= ts`) dan menggabung tabel lain per POSISI baris — nominal yang
+  /// diketik di tabel kedua & ketiga tidak pernah dibaca. Tanpa pengecualian
+  /// ini, penjaga di atas menahan baris-baris itu dan teknisi Hydrometer
+  /// (dua tabel) dan Volumetric Glassware (tiga tabel) dipaksa mengetik
+  /// nominal yang SAMA berkali-kali — dan salah ketik di salah satunya tidak
+  /// pernah ketahuan, karena yang dikirim cuma yang pertama.
+  ///
+  /// Cuma MELONGGARKAN untuk baris yang identitasnya memang sudah ada. Baris
+  /// yang tabel pertamanya juga tanpa nominal tetap ditahan.
+  Set<TitikState> get _barisIkutNominalAcuan {
+    final tabel = tabelDeretBernama;
+    if (tabel.length < 2) return const {};
+
+    final acuan = tabel.first;
+    final barisAcuan = barisTabel(acuan);
+    final hasil = <TitikState>{};
+
+    for (var i = 0; i < barisAcuan.length; i++) {
+      final ta = titikUntukBaris(barisAcuan, i, acuan);
+      if (ta == null || !ta.siapKirim) continue;
+
+      for (final t in tabel.skip(1)) {
+        final baris = barisTabel(t);
+        if (i >= baris.length) continue;
+
+        final ts = titikUntukBaris(baris, i, t);
+        if (ts != null) hasil.add(ts);
+      }
+    }
+
+    return hasil;
   }
 
   /// Lembar kerja ini punya kolom "7. Satuan Refracto"?

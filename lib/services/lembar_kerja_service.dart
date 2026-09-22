@@ -12,6 +12,7 @@ import 'contoh_lembar_kerja_dimensi.dart';
 import 'contoh_lembar_kerja_enclosure.dart';
 import 'contoh_lembar_kerja_massa.dart';
 import 'contoh_lembar_kerja_panjang.dart';
+import 'contoh_lembar_kerja_volumetric_glassware.dart';
 import 'contoh_lembar_kerja_volumetrik.dart';
 import 'contoh_lembar_kerja_waktu.dart';
 import 'contoh_lembar_kerja_suhu.dart';
@@ -339,6 +340,21 @@ class MockLembarKerjaService implements LembarKerjaService {
       'hydrometer' => contohBentukLembarKerjaHydrometer(
         untukAdmin: untukAdmin,
       ),
+      // Volumetric Glassware (alat ke-34..39) — enam alat lampiran, dua
+      // keluarga. Bentuknya DIGENERATE dari server
+      // (`contoh_lembar_kerja_volumetric_glassware.dart`).
+      //
+      // Alasannya sama dengan Hydrometer: yang dipungut BUKAN volume, tapi
+      // berat kosong, berat isi (g), dan suhu air (°C) — V20 yang dicetak
+      // lahir di server. Jatuh ke `_`, mode mock memajang lembar pH.
+      'labu_ukur' => contohBentukLembarKerjaLabuUkur(untukAdmin: untukAdmin),
+      'pipet_volume' => contohBentukLembarKerjaPipetVolume(
+        untukAdmin: untukAdmin,
+      ),
+      'picnometer' => contohBentukLembarKerjaPicnometer(untukAdmin: untukAdmin),
+      'buret' => contohBentukLembarKerjaBuret(untukAdmin: untukAdmin),
+      'gelas_ukur' => contohBentukLembarKerjaGelasUkur(untukAdmin: untukAdmin),
+      'pipet_ukur' => contohBentukLembarKerjaPipetUkur(untukAdmin: untukAdmin),
       // Flowmeter Ultrasonic (alat ke-27 & ke-28) — kelompok Aliran. DUA
       // cabang, bukan satu: satuannya beda (L vs Lpm), pita CMC-nya beda, dan
       // varian Flowrate punya tiga kolom durasi (20"/40"/60") yang Totalizer
