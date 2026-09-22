@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:sidik_calibration/models/calibration_detail.dart';
 import 'package:sidik_calibration/models/equipment_lookup.dart';
 import 'package:sidik_calibration/models/lembar_kerja.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_state.dart';
@@ -192,6 +193,80 @@ void main() {
 
     expect(isian.titikTanpaSetPoint, hasLength(3),
         reason: 'ketiga tabel baris itu mestinya ditahan — nominalnya belum ada di mana pun');
+  });
+
+  /// Draft dibuka ulang (atau lembar dikembalikan admin): baris ber-peran
+  /// `vol_*` dari server wajib kembali ke TABELNYA masing-masing.
+  ///
+  /// Sebelumnya baris ber-`peran_sensor` yang bukan standar/UUT digolongkan
+  /// sebagai grid Enclosure, dan di lembar tanpa grid seluruhnya dihitung
+  /// "tidak bisa dipulihkan" — teknisi mengetik ulang semua angka dari kertas.
+  /// Yang diuji ROUND-TRIP: kirim → pulihkan ke lembar baru → kirim lagi harus
+  /// memberi payload yang sama persis.
+  test('draft dibuka ulang: ketiga deret pulih ke tabelnya, payload sama', () {
+    final asal = isianDari(contohBentukLembarKerjaGelasUkur());
+    const deret = [
+      [
+        ['60,234', '60,24', '60,243'],
+        ['70,7791', '70,7965', '70,8854'],
+        ['25,4', '25,3', '25,4'],
+      ],
+      [
+        ['60,255', '60,258', '60,263'],
+        ['110,944', '110,9023', '111,0863'],
+        ['25,4', '25,3', '25,5'],
+      ],
+    ];
+    for (var i = 0; i < 2; i++) {
+      isiBaris(asal, i, ['10', '50'][i], deret[i], nominalDiSemua: false);
+    }
+    final kirimAsal = kiriman(asal);
+
+    // Susun baris `raw_measurements` persis seperti yang disimpan server
+    // (`CalibrationController::susunBlokVolumetric`).
+    final mentah = <RawMeasurement>[];
+    var id = 1;
+    for (var k = 0; k < kirimAsal.length; k++) {
+      final m = kirimAsal[k];
+      for (final peran in ['vol_kosong', 'vol_isi', 'vol_suhu']) {
+        final nilai = (m[peran] as List).cast<double>();
+        for (var r = 0; r < nilai.length; r++) {
+          mentah.add(RawMeasurement(
+            id: id++,
+            titikKe: k + 1,
+            titikUkur: (m['titik_ukur'] as num).toDouble(),
+            pembacaanKe: r + 1,
+            sensorKe: r + 1,
+            pembacaan: nilai[r],
+            peranSensor: peran,
+            inputSource: 'manual',
+            isVerified: true,
+          ));
+        }
+      }
+    }
+
+    final pulih = isianDari(contohBentukLembarKerjaGelasUkur());
+    final kebuang = pulih.terapkanPembacaan(mentah);
+
+    expect(kebuang, 0, reason: 'ada pembacaan Volumetric yang nggak ketemu tabelnya');
+    expect(kiriman(pulih), kirimAsal,
+        reason: 'lembar yang dipulihkan mengirim payload yang beda dari aslinya');
+  });
+
+  /// Berat wadah (g, sering 0 karena ditara) dibandingkan ke nominal (mL)
+  /// SELALU "meleset satu orde" — dialognya muncul di tiap sesi yang benar.
+  test('berat tara nol tidak memunculkan peringatan pembacaan jauh', () {
+    final isian = isianDari(contohBentukLembarKerjaPipetVolume());
+
+    // Angka master `Fixed_Volumetric_Glassware_2026`: wadah ditara (0 g).
+    isiBaris(isian, 0, '1', [
+      ['0', '0', '0'],
+      ['0,9998', '0,9997', '0,9996'],
+      ['27', '27', '27'],
+    ]);
+
+    expect(isian.titikPembacaanJauh, isEmpty);
   });
 
   test('blok sesi: kapasitas, kelas A/B, toleransi, neraca per keluarga, tekanan hPa', () {

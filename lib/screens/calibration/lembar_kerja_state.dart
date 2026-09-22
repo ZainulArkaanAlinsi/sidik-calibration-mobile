@@ -1334,9 +1334,39 @@ class LembarKerjaState {
   ///
   /// Lihat [TitikState.adaPembacaanJauhDariTitik] soal kenapa ini ditahan di HP
   /// dan bukan dibiarin jadi peringatan di admin.
-  List<TitikState> get titikPembacaanJauh => titik.values
-      .where((t) => !titikTerkunci(t.titikUkur) && t.adaPembacaanJauhDariTitik)
-      .toList();
+  ///
+  /// ## Tabel deret-bernama dikecualikan
+  ///
+  /// Penjaga ini mengandaikan isi kotak dan nominal baris SATU satuan. Di
+  /// tabel `simpan_ke: measurements[].<deret>` itu tidak berlaku: Hydrometer
+  /// menimbang MASSA (21 g) di baris bernominal densitas (0,61 g/ml), dan
+  /// Volumetric Glassware menimbang berat wadah (g, sering 0 karena ditara) di
+  /// baris bernominal volume (mL). Dialognya muncul di SETIAP sesi yang benar
+  /// — dan peringatan yang selalu muncul melatih teknisi menekan lanjut tanpa
+  /// membaca, persis kebiasaan yang mau dicegah.
+  List<TitikState> get titikPembacaanJauh {
+    final deretBernama = _titikTabelDeretBernama;
+
+    return titik.values
+        .where((t) => !deretBernama.contains(t))
+        .where((t) => !titikTerkunci(t.titikUkur) && t.adaPembacaanJauhDariTitik)
+        .toList();
+  }
+
+  /// Semua [TitikState] milik tabel deret-bernama ([tabelDeretBernama]).
+  Set<TitikState> get _titikTabelDeretBernama {
+    final hasil = <TitikState>{};
+
+    for (final t in tabelDeretBernama) {
+      final baris = barisTabel(t);
+      for (var i = 0; i < baris.length; i++) {
+        final ts = titikUntukBaris(baris, i, t);
+        if (ts != null) hasil.add(ts);
+      }
+    }
+
+    return hasil;
+  }
 
   /// Baris yang satu Repeat-nya jauh menyimpang dari Repeat lain SEBARIS.
   ///
@@ -2330,11 +2360,21 @@ class LembarKerjaState {
     // baris dianggap kebuang, dan gridnya tetap kosong.
     final bergrid = <RawMeasurement>[];
     final datar = <RawMeasurement>[];
+    final bernama = <RawMeasurement>[];
+    final kunciBernama = {
+      for (final t in tabelDeretBernama)
+        if (t.kolom.length == 1) t.simpanKe!.substring('measurements[].'.length): t,
+    };
 
     for (final m in mentah) {
-      (m.bagianGrid ? bergrid : datar).add(m);
+      if (m.peranSensor != null && kunciBernama.containsKey(m.peranSensor)) {
+        bernama.add(m);
+      } else {
+        (m.bagianGrid ? bergrid : datar).add(m);
+      }
     }
 
+    if (bernama.isNotEmpty) kebuang += _terapkanDeretBernama(bernama, kunciBernama);
     if (bergrid.isNotEmpty) kebuang += _terapkanGrid(bergrid);
 
     for (final m in datar) {
@@ -2436,6 +2476,62 @@ class LembarKerjaState {
   ///
   /// Balikin JUMLAH baris yang nggak ketemu selnya, ikut dijumlah ke hitungan
   /// [terapkanPembacaan].
+  int _terapkanDeretBernama(
+    List<RawMeasurement> mentah,
+    Map<String, TabelHasil> kunciBernama,
+  ) {
+    var kebuang = 0;
+    final acuan = tabelDeretBernama.first;
+
+    // Urutan `titik_ke` PER DERET → posisi baris. Per deret, bukan gabungan:
+    // tabel Jangka Sorong menyimpan `titik_ke`-nya di rentang terpisah
+    // (1.., 101.., 201..), sementara Hydrometer & Volumetric berbagi 1..n.
+    final urutan = <String, List<int>>{};
+    for (final m in mentah) {
+      final daftar = urutan.putIfAbsent(m.peranSensor!, () => []);
+      if (!daftar.contains(m.titikKe)) daftar.add(m.titikKe);
+    }
+    for (final daftar in urutan.values) {
+      daftar.sort();
+    }
+
+    for (final m in mentah) {
+      final t = kunciBernama[m.peranSensor]!;
+      final baris = barisTabel(t);
+
+      // Baris bernominal CETAK dicocokkan per nominal; baris yang nominalnya
+      // diketik teknisi (`titik_ukur: null`) per urutan — urutan yang sama
+      // dengan waktu [_measurementsDeretBernama] merakitnya.
+      var posisi = -1;
+      if (baris.isNotEmpty && baris.every((b) => b.titikDitentukan)) {
+        posisi = baris.indexWhere((b) => _titikSama(b.titikUkur, m.titikUkur));
+      } else {
+        posisi = urutan[m.peranSensor]!.indexOf(m.titikKe);
+      }
+
+      final ts = posisi < 0 || posisi >= baris.length ? null : titikUntukBaris(baris, posisi, t);
+      final index = m.pembacaanKe - 1;
+
+      if (ts == null || index < 0 || index >= t.pengulangan.length) {
+        kebuang++;
+        continue;
+      }
+
+      // Nominal ketikan dipulihkan ke tabel ACUAN saja — cuma itu yang
+      // dibaca payload (lihat [_barisIkutNominalAcuan]).
+      if (identical(t, acuan) && ts.titikCtl.text.trim().isEmpty && !baris[posisi].titikDitentukan) {
+        ts.titikCtl.text = formatAngka(m.titikUkur);
+      }
+
+      ts.standardId ??= m.standardId;
+
+      final kotak = ts.kotak(t.kunciTabel, t.kolom.first.kode, index);
+      if (kotak.text.trim().isEmpty) kotak.text = formatAngka(m.pembacaan);
+    }
+
+    return kebuang;
+  }
+
   int _terapkanGrid(List<RawMeasurement> mentah) {
     final g = grid;
 
