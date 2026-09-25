@@ -1734,6 +1734,28 @@ class LembarKerjaState {
     return hasil;
   }
 
+  /// Baris ke-[index] tabel PERTAMA deret-bernama — acuan nominal baris yang
+  /// sama di [tabel]. `null` kalau [tabel] sendiri acuannya, atau bukan tabel
+  /// deret-bernama sama sekali.
+  ///
+  /// Kembaran tampilan dari [_barisIkutNominalAcuan]. Yang dikirim cuma
+  /// nominal tabel pertama ([_measurementsDeretBernama], `acuan ??= ts`), jadi
+  /// kotak Nominal tabel kedua dst. dulu menerima ketikan yang TIDAK PERNAH
+  /// dibaca siapa pun: empat kotak per titik di lembar Gaya, dan angka yang
+  /// beda di salah satunya hilang tanpa tanda. Sekarang kotaknya menampilkan
+  /// nominal acuan, bukan kotak isian (chaos review 25 Sep 2026).
+  TitikState? acuanNominal(TabelHasil tabel, int index) {
+    final semua = tabelDeretBernama;
+    if (semua.length < 2 || identical(semua.first, tabel)) return null;
+    if (!semua.any((t) => identical(t, tabel))) return null;
+
+    final acuan = semua.first;
+    final baris = barisTabel(acuan);
+    if (index >= baris.length) return null;
+
+    return titikUntukBaris(baris, index, acuan);
+  }
+
   /// Lembar kerja ini punya kolom "7. Satuan Refracto"?
   ///
   /// Yang nentuin **bentuk dari backend**, bukan daftar nama alat di sini —

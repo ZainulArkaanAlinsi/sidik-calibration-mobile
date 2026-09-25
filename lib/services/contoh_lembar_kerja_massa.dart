@@ -749,7 +749,11 @@ Map<String, dynamic> contohBentukLembarKerjaTimbangan({
             'judul': 'Repeatability — 10 pengulangan',
             'satuan': 'kg',
             'offset_kunci': 1000,
-            'simpan_ke': 'spesifikasi_alat.keterulangan',
+            // Disamakan dengan `TimbanganProfile` 25 Sep 2026 (sub-kunci
+            // `tabel`, supaya kotak "beban yang dipakai" tidak tertimpa).
+            // Satu-satunya baris yang disunting: berkas ini tidak punya
+            // generator karena bentuknya butuh alat `TB-100` dari database.
+            'simpan_ke': 'spesifikasi_alat.keterulangan.tabel',
             'sumbu_pengulangan': 'baris',
             'slot_cetak': [
               {
