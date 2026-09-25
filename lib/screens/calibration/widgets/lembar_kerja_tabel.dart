@@ -313,6 +313,10 @@ class LembarKerjaTabel extends StatelessWidget {
                         state: isian.titikUntukBaris(barisTabel, iBaris, tabel),
                         satuan: isian.bentuk.satuanUntuk(barisTabel[iBaris]),
                         onBerubah: onBerubah,
+                        // Tabel kedua dst. di lembar ber-deret-bernama (posisi
+                        // Gaya, UP/DOWN Proving Ring, Hydrometer, Volumetric):
+                        // nominalnya ikut tabel pertama.
+                        acuan: isian.acuanNominal(tabel, iBaris),
                       )
                     else
                       _SelKepala(
@@ -1757,6 +1761,7 @@ class _SelSetpoint extends StatelessWidget {
     required this.state,
     required this.satuan,
     required this.onBerubah,
+    this.acuan,
   });
 
   final double lebar;
@@ -1765,21 +1770,41 @@ class _SelSetpoint extends StatelessWidget {
   final String satuan;
   final VoidCallback onBerubah;
 
+  /// Baris tabel PERTAMA yang nominalnya dipakai baris ini — lihat
+  /// `LembarKerjaState.acuanNominal`. Kalau ada, kotaknya jadi tampilan, bukan
+  /// isian: yang dikirim memang cuma nominal acuan.
+  final TitikState? acuan;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final ikut = acuan;
 
     return Container(
       width: lebar,
       height: tinggi,
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
+        color: ikut == null ? null : theme.colorScheme.surfaceContainerHighest,
         border: Border(
           right: BorderSide(color: theme.dividerColor),
           bottom: BorderSide(color: theme.dividerColor),
         ),
       ),
-      child: state == null
+      child: ikut != null
+          ? ValueListenableBuilder<TextEditingValue>(
+              valueListenable: ikut.titikCtl,
+              builder: (context, nilai, _) => Center(
+                child: Text(
+                  nilai.text.trim().isEmpty ? '—' : nilai.text.trim(),
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            )
+          : state == null
           ? const SizedBox.shrink()
           : TextField(
               controller: state!.titikCtl,

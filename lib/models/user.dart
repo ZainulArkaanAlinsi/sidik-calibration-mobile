@@ -1,27 +1,48 @@
 /// Role user. Nilainya persis kayak yang dikirim API
-/// (lihat `docs/kontrak-api.md`): `admin` / `teknisi` / `viewer`.
+/// (lihat `docs/kontrak-api.md`): `admin` / `teknisi` / `viewer` /
+/// `super_admin`.
 enum UserRole {
   admin,
   teknisi,
-  viewer;
+  viewer,
+
+  /// Baca semua, tulis nol — sama persis dengan izinnya di server
+  /// (`EnsureUserHasRole::lolosBacaSuperAdmin`). Dulu jatuh ke `viewer` dan
+  /// berlabel "Viewer", jadi super admin yang login lewat HP melihat dirinya
+  /// sebagai viewer.
+  superAdmin;
 
   /// Role asing dari backend nggak bikin app crash — dianggap `viewer`
   /// (paling nggak berbahaya: read-only).
   static UserRole fromApi(String value) => switch (value) {
     'admin' => UserRole.admin,
     'teknisi' => UserRole.teknisi,
+    'super_admin' => UserRole.superAdmin,
     _ => UserRole.viewer,
+  };
+
+  /// Role yang boleh DIBERIKAN admin ke orang lain — sejajar `User::roles()`
+  /// di server. `superAdmin` sengaja tidak ada: satu-satunya pintunya
+  /// `php artisan akun:super-admin`, dan server menolak yang lewat sini.
+  static const bisaDiberikan = [admin, teknisi, viewer];
+
+  /// Nilai persis yang dikirim ke API. BUKAN `name`: `superAdmin.name` itu
+  /// `superAdmin`, sedangkan server mengenal `super_admin`.
+  String get api => switch (this) {
+    UserRole.superAdmin => 'super_admin',
+    _ => name,
   };
 
   bool get isAdmin => this == UserRole.admin;
 
-  /// Boleh input alat & kalibrasi. Viewer read-only.
+  /// Boleh input alat & kalibrasi. Viewer & super admin read-only.
   bool get bisaInput => this == UserRole.admin || this == UserRole.teknisi;
 
   String get label => switch (this) {
     UserRole.admin => 'Admin',
     UserRole.teknisi => 'Teknisi',
     UserRole.viewer => 'Viewer',
+    UserRole.superAdmin => 'Super Admin',
   };
 }
 

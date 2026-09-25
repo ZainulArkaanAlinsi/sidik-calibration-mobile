@@ -75,7 +75,7 @@ class ApiUserService implements UserService {
     final json = await _api.post(
       '/users/$id/approve',
       token: token,
-      body: {'role': role.name},
+      body: {'role': role.api},
     );
     final result = (json['data'] ?? json) as Map<String, dynamic>;
     return User.fromJson(result);
@@ -120,7 +120,7 @@ class ApiUserService implements UserService {
       'email': ?email,
       'employee_id': ?employeeId,
       'department': ?department,
-      'role': ?role?.name,
+      'role': ?role?.api,
     };
 
     final json = await _api.put('/users/$id', token: token, body: body);

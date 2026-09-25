@@ -408,7 +408,7 @@ class _KartuAkun extends ConsumerWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            for (final r in UserRole.values)
+            for (final r in UserRole.bisaDiberikan)
               ListTile(
                 leading: const Icon(Icons.badge_outlined),
                 title: Text(r.label),
@@ -680,7 +680,7 @@ class _EditAkunDialogState extends State<_EditAkunDialog> {
                 border: const OutlineInputBorder(),
               ),
               items: [
-                for (final r in UserRole.values)
+                for (final r in UserRole.bisaDiberikan)
                   DropdownMenuItem(value: r, child: Text(r.label)),
               ],
               onChanged: (value) {
