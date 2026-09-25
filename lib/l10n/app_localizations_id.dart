@@ -3851,6 +3851,23 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String get lkSesiLamaGagalDimuat =>
+      'Isian lembar ini yang sudah tersimpan belum berhasil dimuat. Yang tampil sekarang BELUM termasuk angka & catatan lama.';
+
+  @override
+  String get lkMuatUlangSesiLama => 'Muat ulang';
+
+  @override
+  String get lkTimpaSesiLamaJudul => 'Isian lama belum termuat';
+
+  @override
+  String get lkTimpaSesiLamaIsi =>
+      'Menyimpan sekarang menimpa isian yang sudah tersimpan di server dengan isi layar ini — angka & catatan lama yang belum termuat bakal hilang. Muat ulang dulu.';
+
+  @override
+  String get lkSimpanTetap => 'Simpan tetap';
+
+  @override
   String lkPembacaanJauhDariTitik(String titik) {
     return 'Pembacaan di titik $titik melesetnya lebih dari 10× dari nilai titiknya — cek satuannya, atau posisi komanya. Kalau angkanya emang segitu, pindah ke baris satuan yang benar dulu.';
   }

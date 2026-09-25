@@ -3886,6 +3886,23 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get lkSesiLamaGagalDimuat =>
+      'This sheet\'s saved entries couldn\'t be loaded. What you see does NOT include the earlier readings and notes yet.';
+
+  @override
+  String get lkMuatUlangSesiLama => 'Reload';
+
+  @override
+  String get lkTimpaSesiLamaJudul => 'Saved entries not loaded';
+
+  @override
+  String get lkTimpaSesiLamaIsi =>
+      'Saving now replaces what is already stored on the server with what is on this screen — earlier readings and notes that didn\'t load will be lost. Reload first.';
+
+  @override
+  String get lkSimpanTetap => 'Save anyway';
+
+  @override
   String lkPembacaanJauhDariTitik(String titik) {
     return 'Readings at point $titik are more than 10× off the point value — check the unit, or the decimal place. If the reading really is that value, switch to the row with the correct unit first.';
   }

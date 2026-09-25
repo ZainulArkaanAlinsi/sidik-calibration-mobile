@@ -379,6 +379,10 @@ class _FormState extends ConsumerState<_Form> {
 
   bool _mengirim = false;
 
+  /// Sesi lama yang dibuka ulang GAGAL dimuat — formulirnya kosong, bukan
+  /// isian yang tersimpan. Lihat docblock [_muatSesiLama].
+  bool _sesiLamaGagalDimuat = false;
+
   /// Index ke [LembarKerja.halaman], bukan nomor halamannya sendiri — lembar
   /// kerja alat lain bisa punya penomoran yang beda.
   int _halaman = 0;
@@ -413,10 +417,21 @@ class _FormState extends ConsumerState<_Form> {
   /// Isi ulang formulir dari sesi yang dibuka lagi (lanjut draft / perbaiki
   /// yang dikembalikan admin).
   ///
-  /// Gagalnya sengaja didiemin: formulirnya tetap kebuka dan tetap bisa diisi
-  /// manual. Nampilin error di sini malah nutup jalan kerja teknisi cuma
-  /// gara-gara satu permintaan meleset.
+  /// Gagalnya TIDAK menutup formulir: tetap kebuka dan tetap bisa diisi
+  /// manual — nutup jalan kerja teknisi cuma gara-gara satu permintaan
+  /// meleset itu yang dihindari sejak awal.
+  ///
+  /// Tapi sampai chaos review 25 Sep 2026 gagalnya juga DIDIEMIN, dan itu
+  /// yang mahal: formulir kosong kelihatan persis seperti draft yang memang
+  /// kosong. Simpan dari situ menimpa isian di server — PUT sengaja mengirim
+  /// `null` eksplisit supaya kolom bisa dikosongkan, jadi catatan, merk, nomor
+  /// seri, dan pemilik ikut kosong. Sekarang ada banner dengan tombol muat
+  /// ulang, dan simpan minta konfirmasi sadar ([_konfirmasiTimpaSesiLama]).
   Future<void> _muatSesiLama(int id) async {
+    // Providernya bukan autoDispose: galat percobaan sebelumnya masih
+    // tersimpan, dan tanpa ini "muat ulang" cuma memulangkan galat yang sama.
+    if (_sesiLamaGagalDimuat) ref.invalidate(calibrationDetailProvider(id));
+
     try {
       final detail = await ref.read(calibrationDetailProvider(id).future);
       final isi = detail.isianTeknisi;
@@ -428,6 +443,7 @@ class _FormState extends ConsumerState<_Form> {
       var kebuang = 0;
 
       setState(() {
+        _sesiLamaGagalDimuat = false;
         // Status sertifikat standar sesi ini — dibawa dari respons yang SAMA,
         // jadi banner-nya nggak nambah satu pun permintaan. Yang dijaga waktu
         // teknisi: sertifikat standar yang lewat bikin sesinya ditolak nanti,
@@ -458,7 +474,9 @@ class _FormState extends ConsumerState<_Form> {
         );
       }
     } catch (_) {
-      // Lihat docblock.
+      // Lihat docblock: formulirnya tetap bisa diisi, tapi keadaannya
+      // KELIHATAN.
+      if (mounted) setState(() => _sesiLamaGagalDimuat = true);
     }
   }
 
@@ -581,6 +599,12 @@ class _FormState extends ConsumerState<_Form> {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
+
+    // Duluan dari "alat belum dipilih": waktu sesi lama gagal dimuat, alatnya
+    // juga belum kepulihkan, dan pesan itu nyuruh teknisi milih alat — lalu
+    // menimpa isian yang tersimpan tanpa pernah tahu formulirnya kosong.
+    if (_sesiLamaGagalDimuat && !await _konfirmasiTimpaSesiLama()) return;
+    if (!mounted) return;
 
     // Satu-satunya yang ditahan: alat belum dipilih. Tanpa itu nggak ada yang
     // bisa dikirim sama sekali — bukan "kolom wajib", tapi identitas barangnya.
@@ -975,6 +999,44 @@ class _FormState extends ConsumerState<_Form> {
   /// Cuma buat KIRIM KE ADMIN. Draft sengaja lolos: draft itu justru dipakai
   /// buat nyimpen kerjaan setengah jadi, dan nanyain "yakin angkanya?" tiap kali
   /// teknisi nyimpen di tengah jalan cuma bikin dialognya diklik tanpa dibaca.
+  /// Konfirmasi sadar sebelum menimpa sesi yang gagal dimuat.
+  ///
+  /// Bukan blokir: formulir yang diisi ulang dari kertas itu jalan kerja yang
+  /// sah, dan menutupnya persis yang dihindari [_muatSesiLama]. Yang ditahan
+  /// cuma menimpa TANPA TAHU. "Muat ulang" mencoba lagi dan membatalkan
+  /// simpannya.
+  Future<bool> _konfirmasiTimpaSesiLama() async {
+    final l10n = AppLocalizations.of(context);
+
+    final lanjut = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        scrollable: true,
+        title: Text(l10n.lkTimpaSesiLamaJudul),
+        content: Text(l10n.lkTimpaSesiLamaIsi),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.lkSimpanTetap),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.lkMuatUlangSesiLama),
+          ),
+        ],
+      ),
+    );
+
+    if (lanjut == true) return true;
+
+    // Ditutup lewat "Muat ulang" ATAU diketuk di luar dialog — dua-duanya
+    // bukan izin menimpa. Yang pertama sekalian mencoba lagi.
+    final id = widget.sesiId;
+    if (lanjut == false && id != null && mounted) _muatSesiLama(id);
+
+    return false;
+  }
+
   Future<bool> _konfirmasiAngka() async {
     final l10n = AppLocalizations.of(context);
     final ringkasan = _isian.ringkasanKirim();
@@ -1115,6 +1177,24 @@ class _FormState extends ConsumerState<_Form> {
 
           return Column(
             children: [
+              // Di atas lembar, bukan di dalamnya: tetap kelihatan di halaman
+              // mana pun dan di dua tata letak — formulir kosong yang kelihatan
+              // persis seperti draft kosong itu yang mau dicegah.
+              if (_sesiLamaGagalDimuat)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    0,
+                  ),
+                  child: _BannerSesiLamaGagal(
+                    onMuatUlang: () {
+                      final id = widget.sesiId;
+                      if (id != null) _muatSesiLama(id);
+                    },
+                  ),
+                ),
               Expanded(
                 child: duaKolom
                     ? _LembarDuaKolom(
@@ -1225,6 +1305,47 @@ class _FormState extends ConsumerState<_Form> {
 /// diapain". Sebelumnya catatan itu cuma ada di notifikasi (dipotong 120
 /// karakter) dan layar detail sesi — bukan di layar tempat teknisi ngerjain
 /// betulannya, jadi dia mesti mundur-mundur atau ngira-ngira.
+/// Sesi lama yang dibuka ulang gagal dimuat — lihat docblock
+/// [_LembarKerjaScreenState._muatSesiLama].
+class _BannerSesiLamaGagal extends StatelessWidget {
+  const _BannerSesiLamaGagal({required this.onMuatUlang});
+
+  final VoidCallback onMuatUlang;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final fg = theme.colorScheme.onErrorContainer;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.cloud_off_outlined, color: fg),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              l10n.lkSesiLamaGagalDimuat,
+              style: theme.textTheme.bodySmall?.copyWith(color: fg),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          TextButton(
+            onPressed: onMuatUlang,
+            child: Text(l10n.lkMuatUlangSesiLama),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _BannerRevisi extends StatelessWidget {
   const _BannerRevisi({required this.jumlah, this.catatan});
 
