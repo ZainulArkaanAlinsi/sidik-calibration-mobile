@@ -249,8 +249,11 @@ void main() {
       }
 
       final kiriman = isian.toSubmission(draft: true);
+      // Sub-kunci `tabel` sejak 25 Sep 2026 — lihat
+      // `spesifikasi_tidak_tertimpa_tabel_test.dart`.
       final blok = kiriman.spesifikasiAlat['keterulangan'] as Map;
-      final isi = (blok['baris'] as List).cast<Map<String, dynamic>>();
+      final isi = ((blok['tabel'] as Map)['baris'] as List)
+          .cast<Map<String, dynamic>>();
 
       expect(isi, hasLength(2));
       expect(isi[0]['titik_ukur'], 50);
