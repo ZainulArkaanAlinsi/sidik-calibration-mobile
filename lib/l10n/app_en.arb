@@ -2196,6 +2196,11 @@
       }
     }
   },
+  "lkSesiLamaGagalDimuat": "This sheet's saved entries couldn't be loaded. What you see does NOT include the earlier readings and notes yet.",
+  "lkMuatUlangSesiLama": "Reload",
+  "lkTimpaSesiLamaJudul": "Saved entries not loaded",
+  "lkTimpaSesiLamaIsi": "Saving now replaces what is already stored on the server with what is on this screen — earlier readings and notes that didn't load will be lost. Reload first.",
+  "lkSimpanTetap": "Save anyway",
   "lkPembacaanJauhDariTitik": "Readings at point {titik} are more than 10× off the point value — check the unit, or the decimal place. If the reading really is that value, switch to the row with the correct unit first.",
   "@lkPembacaanJauhDariTitik": {
     "placeholders": {

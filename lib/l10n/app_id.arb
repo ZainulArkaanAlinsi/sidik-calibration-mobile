@@ -1598,6 +1598,11 @@
       }
     }
   },
+  "lkSesiLamaGagalDimuat": "Isian lembar ini yang sudah tersimpan belum berhasil dimuat. Yang tampil sekarang BELUM termasuk angka & catatan lama.",
+  "lkMuatUlangSesiLama": "Muat ulang",
+  "lkTimpaSesiLamaJudul": "Isian lama belum termuat",
+  "lkTimpaSesiLamaIsi": "Menyimpan sekarang menimpa isian yang sudah tersimpan di server dengan isi layar ini — angka & catatan lama yang belum termuat bakal hilang. Muat ulang dulu.",
+  "lkSimpanTetap": "Simpan tetap",
   "lkPembacaanJauhDariTitik": "Pembacaan di titik {titik} melesetnya lebih dari 10× dari nilai titiknya — cek satuannya, atau posisi komanya. Kalau angkanya emang segitu, pindah ke baris satuan yang benar dulu.",
   "@lkPembacaanJauhDariTitik": {
     "placeholders": {

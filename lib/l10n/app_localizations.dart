@@ -6949,6 +6949,36 @@ abstract class AppLocalizations {
   /// **'{jumlah} saved readings had no matching row on this sheet and were not restored. Check the table before submitting.'**
   String lkPembacaanTakTerpulih(int jumlah);
 
+  /// No description provided for @lkSesiLamaGagalDimuat.
+  ///
+  /// In en, this message translates to:
+  /// **'This sheet\'s saved entries couldn\'t be loaded. What you see does NOT include the earlier readings and notes yet.'**
+  String get lkSesiLamaGagalDimuat;
+
+  /// No description provided for @lkMuatUlangSesiLama.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload'**
+  String get lkMuatUlangSesiLama;
+
+  /// No description provided for @lkTimpaSesiLamaJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved entries not loaded'**
+  String get lkTimpaSesiLamaJudul;
+
+  /// No description provided for @lkTimpaSesiLamaIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving now replaces what is already stored on the server with what is on this screen — earlier readings and notes that didn\'t load will be lost. Reload first.'**
+  String get lkTimpaSesiLamaIsi;
+
+  /// No description provided for @lkSimpanTetap.
+  ///
+  /// In en, this message translates to:
+  /// **'Save anyway'**
+  String get lkSimpanTetap;
+
   /// No description provided for @lkPembacaanJauhDariTitik.
   ///
   /// In en, this message translates to:
