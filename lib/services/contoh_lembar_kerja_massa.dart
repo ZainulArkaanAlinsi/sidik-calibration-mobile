@@ -487,7 +487,7 @@ Map<String, dynamic> contohBentukLembarKerjaTimbangan({
       },
       {
         'kode': 'scale_observation',
-        'halaman': 1,
+        'halaman': 2,
         'judul': '1. SCALE OBSERVATION',
         'field': [
           {
@@ -617,7 +617,7 @@ Map<String, dynamic> contohBentukLembarKerjaTimbangan({
       },
       {
         'kode': 'effect_of_tare',
-        'halaman': 1,
+        'halaman': 2,
         'judul': '2. EFFECT OF TARE',
         'field': [
           {
@@ -682,7 +682,7 @@ Map<String, dynamic> contohBentukLembarKerjaTimbangan({
       },
       {
         'kode': 'akurasi',
-        'halaman': 1,
+        'halaman': 2,
         'judul': '3. ACCURACY',
         'tabel': [
           {
@@ -740,7 +740,7 @@ Map<String, dynamic> contohBentukLembarKerjaTimbangan({
       },
       {
         'kode': 'keterulangan',
-        'halaman': 1,
+        'halaman': 2,
         'judul': '4. REPEATABILITY',
         'tabel': [
           {
@@ -832,7 +832,7 @@ Map<String, dynamic> contohBentukLembarKerjaTimbangan({
       },
       {
         'kode': 'eksentrisitas',
-        'halaman': 1,
+        'halaman': 2,
         'judul': '5. LOADING INFLUENCE ON EACH POSITION',
         'field': [
           {
@@ -905,7 +905,7 @@ Map<String, dynamic> contohBentukLembarKerjaTimbangan({
       },
       {
         'kode': 'histeresis',
-        'halaman': 1,
+        'halaman': 2,
         'judul': '6. HYSTERISIS',
         'field': [
           {
@@ -1110,7 +1110,7 @@ Map<String, dynamic> contohBentukLembarKerjaTimbangan({
       },
       {
         'kode': 'penutup',
-        'halaman': 1,
+        'halaman': 2,
         'judul': 'Catatan & Tanda Tangan',
         'field': [
           {
@@ -1162,7 +1162,9 @@ Map<String, dynamic> contohBentukLembarKerjaTimbangan({
 /// salinan yang harus dirawat berbarengan.
 Map<String, dynamic> _bagianAdmin() => {
   'kode': 'administratif',
-  'halaman': 1,
+  // Menempel di ujung lembar, jadi ikut halaman 2 — sama kayak server
+  // (`CalibrationProfile::susunDuaHalaman`).
+  'halaman': 2,
   'judul': 'Data Administratif (Admin)',
   'field': [
     {

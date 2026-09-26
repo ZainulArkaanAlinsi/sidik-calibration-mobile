@@ -19,6 +19,8 @@ import 'package:sidik_calibration/services/room_service.dart';
 import 'package:sidik_calibration/services/standard_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 
+import 'support/halaman_lembar.dart';
+
 
 /// Bentuk lembar kerja Spectrophotometer (alat ke-6, `SIDIK-IK-CAL-0508_Rev.4`)
 /// — tiga tabel dalam satu bagian, satuan campur, dan satu bagian yang tampil
@@ -121,6 +123,7 @@ void main() {
     /// datanya — teknisi ngisi sambil megang kertas yang sama.
     testWidgets('kepala tabel ngikut lembar cetak', (tester) async {
       await _bukaLembar(tester);
+      await keHalamanAkhir(tester);
 
       // Dua tabel panjang gelombang: `No.` + `Std Value (λ1)`.
       expect(find.text('No.'), findsNWidgets(2));
@@ -156,6 +159,7 @@ void main() {
     /// kertasnya — bukan satu baris enam kolom.
     testWidgets('%T digambar dua baris per nilai standar', (tester) async {
       await _bukaLembar(tester);
+      await keHalamanAkhir(tester);
 
       final tabelT = find.byType(LembarKerjaTabel).at(2);
       final kotak = find.descendant(of: tabelT, matching: find.byType(TextField));
@@ -337,6 +341,7 @@ void main() {
     ) async {
       final service = await _bukaLembar(tester);
       await _pilihAlat(tester);
+      await keHalamanAkhir(tester);
 
       final bentuk = LembarKerja.fromJson(contohBentukLembarKerjaSpectro());
       final tabel = bentuk.bagianHasil!.tabel;
@@ -407,6 +412,7 @@ void main() {
       tester,
     ) async {
       await _bukaLembar(tester);
+      await keHalamanAkhir(tester);
 
       // Tiga tabel di satu bagian: 10 baris × 3 + 9 × 3 + 5 × 6 = 87 kotak.
       // Waktu kolomnya diambil dari `jumlah_pengulangan` level lembar, yang
@@ -425,6 +431,7 @@ void main() {
       tester,
     ) async {
       await _bukaLembar(tester);
+      await keHalamanAkhir(tester);
 
       expect(find.text('SRE (STRAY RADIANT ENERGY)'), findsOneWidget);
       expect(find.text('BELUM BISA DIISI'), findsOneWidget);

@@ -176,8 +176,12 @@ void main() {
       expect(find.text('CALIBRATION DATA'), findsOneWidget);
       expect(find.text('SIDIK-FM-CAL-0509_Rev.4'), findsOneWidget);
 
-      // Satu halaman: tabel hasilnya langsung kelihatan, nggak perlu dibalik.
-      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsNothing);
+      // Dua halaman sejak 26 Sep 2026 (`CalibrationProfile::susunDuaHalaman`
+      // di server): halaman 1 persiapan, tabel hasil di halaman 2.
+      expect(find.text('CALIBRATION RESULT'), findsNothing);
+      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsOneWidget);
+
+      await _keHalamanAkhir(tester);
 
       expect(find.text('CALIBRATION RESULT'), findsOneWidget);
       expect(find.text('Before adjustment Reading'), findsOneWidget);
@@ -201,6 +205,12 @@ void main() {
       expect(find.text('6. Thermohygro used'), findsOneWidget);
       expect(find.text('TH-2'), findsOneWidget);
       expect(find.text('Insitu'), findsOneWidget);
+
+      // Blok administratif — kalau bocor — nempel di ujung lembar, di halaman
+      // 2. Tanpa membalik halaman, "nggak ketemu" di atas lolos sendiri.
+      await _keHalamanAkhir(tester);
+      expect(find.textContaining('Order Number'), findsNothing);
+      expect(find.text('Data Administratif (Admin)'), findsNothing);
     });
 
     testWidgets('kolom otomatis keisi dari alat & jadi read-only', (
@@ -644,19 +654,24 @@ void main() {
     });
   });
 
-  group('lembar kerja SATU halaman — sama kayak backend', () {
-    /// Dulu bentuk pH di mock dipecah dua halaman, padahal backend udah nggak
-    /// sejak `3ab1d09` ("satu gulungan"). Bedanya kelihatan: build mock
-    /// nampilin tombol "LANJUT KE HALAMAN BERIKUTNYA" yang di build asli nggak
-    /// ada sama sekali. Diadu langsung ke `?profil=ph_meter` dari API hidup
-    /// 5 Agt 2026.
-    test('semua bagian di satu halaman, urutannya ngikut kertas', () {
+  group('lembar kerja DUA halaman — sama kayak backend', () {
+    /// Sejak 26 Sep 2026 server membelah SEMUA lembar jadi persiapan |
+    /// pengukuran (`CalibrationProfile::susunDuaHalaman`), membalik "satu
+    /// gulungan" `3ab1d09` atas permintaan pemilik proyek. Mock-nya wajib ikut:
+    /// dulu, waktu mock & backend beda arah, build mock nampilin tombol halaman
+    /// yang di build asli nggak ada — yang ini jangan terulang ke arah
+    /// sebaliknya.
+    test('persiapan di halaman 1, pengukuran di halaman 2', () {
       final bentuk = LembarKerja.fromJson(contohBentukLembarKerja());
 
-      expect(bentuk.halaman, [1]);
+      expect(bentuk.halaman, [1, 2]);
       expect(
         bentuk.bagianDiHalaman(1).map((b) => b.kode),
-        ['identitas_alat', 'pemilik', 'usage_check', 'data_kalibrasi', 'hasil', 'penutup'],
+        ['identitas_alat', 'pemilik', 'usage_check', 'data_kalibrasi'],
+      );
+      expect(
+        bentuk.bagianDiHalaman(2).map((b) => b.kode),
+        ['hasil', 'penutup'],
       );
     });
 
@@ -1230,6 +1245,7 @@ void _testRefractometer() {
       await _muat(tester, _app(service, profil: 'refractometer'));
 
       await _pilihAlat(tester, alat: 'Refractometer · C12345');
+      await _keHalamanAkhir(tester);
 
       final tabelAfter = find.ancestor(
         of: find.text('After adjustment Reading'),
@@ -1278,6 +1294,7 @@ void _testRefractometer() {
       await _muat(tester, _app(service, profil: 'refractometer'));
 
       await _pilihAlat(tester, alat: 'Refractometer · C12345');
+      await _keHalamanAkhir(tester);
 
       final kotak = find.descendant(
         of: find
@@ -1304,7 +1321,7 @@ void _testRefractometer() {
       ]);
     });
 
-    testWidgets('lembarnya satu halaman & titiknya dua, bukan tiga', (
+    testWidgets('lembarnya dua halaman & titiknya dua, bukan tiga', (
       tester,
     ) async {
       _perbesarViewport(tester);
@@ -1314,7 +1331,9 @@ void _testRefractometer() {
       );
 
       expect(find.text('SIDIK-FM-CAL-0523_Rev.2'), findsOneWidget);
-      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsNothing);
+      // Kertasnya satu halaman (`Page 1 of 1`), layarnya dua: persiapan |
+      // pengukuran (server, 26 Sep 2026).
+      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsOneWidget);
 
       // Larutan standarnya empat baris walau titik yang dikalibrasi cuma dua:
       // satu botol fisik dipakai buat dua satuan sekaligus.
@@ -1337,6 +1356,7 @@ void _testRefractometer() {
       );
 
       await _pilihAlat(tester, alat: 'Refractometer · C12345');
+      await _keHalamanAkhir(tester);
       await _kirimKeAdmin(tester);
 
       expect(MockStore.instance.sesi.first.namaAlat, 'Refractometer (sesi baru)');
@@ -1359,6 +1379,7 @@ void _testRefractometer() {
 
       await _pilihAlat(tester, alat: 'Refractometer · C12345');
 
+      // Satuan dipilih di halaman 1 (identitas); tabelnya di halaman 2.
       await tester.tap(
         find.ancestor(
           of: find.text('7. Satuan Refracto'),
@@ -1368,6 +1389,7 @@ void _testRefractometer() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('°Brix').last);
       await tester.pumpAndSettle();
+      await _keHalamanAkhir(tester);
 
       final kotak = find.descendant(
         of: find
@@ -1439,6 +1461,8 @@ void _testRefractometer() {
       );
       expect(tester.widget<DropdownButton<String>>(dropdown).value, '°Brix');
 
+      // Satuannya di halaman 1; tombol kirim di halaman terakhir.
+      await _keHalamanAkhir(tester);
       await _kirimKeAdmin(tester);
       expect(service.payloadTerakhir!['equipment_satuan'], '°Brix');
     });
@@ -1803,8 +1827,10 @@ void _testChlorine() {
       expect(standar.baris.last.standardId, isNull);
     });
 
-    test('satu halaman — `Page 1 of 1` di kertasnya', () {
-      expect(bentukChlorine().halaman, [1]);
+    test('dua halaman di layar, walau kertasnya `Page 1 of 1`', () {
+      // Server membelah semua lembar jadi persiapan | pengukuran sejak 26 Sep
+      // 2026 (`CalibrationProfile::susunDuaHalaman`).
+      expect(bentukChlorine().halaman, [1, 2]);
     });
 
     test('kolom admin tetap disaring sama kayak dua alat sebelumnya', () {
@@ -1862,7 +1888,11 @@ void _testChlorine() {
 
       expect(find.text('SIDIK-FM-CAL-0531_Rev.2'), findsOneWidget);
       expect(find.text('Chlorine Standard Solution 1.74 mg/L'), findsOneWidget);
-      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsNothing);
+      // Dua halaman: persiapan | pengukuran (server, 26 Sep 2026).
+      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsOneWidget);
+
+      await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+      await _keHalamanAkhir(tester);
 
       // Label baris tabel bawa SATUANNYA, persis sheet INPUT DATA yang nulis
       // "1,74 mg/L". Tanpa itu angka standarnya kebaca telanjang dan gampang
@@ -1870,8 +1900,6 @@ void _testChlorine() {
       // jadi tiap label muncul dua kali.
       expect(find.text('1,74 mg/L'), findsNWidgets(2));
       expect(find.text('1,83 mg/L'), findsNWidgets(2));
-
-      await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
 
       final tabelAfter = find.ancestor(
         of: find.text('After adjustment Reading'),
@@ -1913,6 +1941,7 @@ void _testChlorine() {
       );
 
       await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+      await _keHalamanAkhir(tester);
       await _kirimKeAdmin(tester);
 
       expect(
@@ -1942,6 +1971,7 @@ void _testChlorine() {
       await _muat(tester, _app(service, profil: 'chlorine_meter'));
 
       await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+      await _keHalamanAkhir(tester);
 
       // Angka master `Chlorine_Meter_CSV/INPUT_DATA.csv` baris 44–48: titik
       // 1,74 kebaca 1,76 (Repeat 5 turun ke 1,75), titik 1,83 kebaca 1,86 rata.
@@ -2052,6 +2082,12 @@ void _testDropdownGagal() {
     ) async {
       _perbesarViewport(tester);
       await _muat(tester, _app(MockLembarKerjaService()));
+
+      // Diperiksa di KEDUA halaman: kotak ruangan ada di halaman 1 (data
+      // kalibrasi), standar per titik di halaman 2.
+      expect(find.text('Gagal memuat standar acuan.'), findsNothing);
+      expect(find.text('Gagal memuat daftar ruangan.'), findsNothing);
+
       await _keHalamanAkhir(tester);
 
       expect(find.text('Gagal memuat standar acuan.'), findsNothing);
@@ -2174,9 +2210,9 @@ void _testTurbidimeter() {
       expect(tabel.kolom.first.satuan, 'NTU');
     });
 
-    test('satu halaman — sama kayak pH & Chlorine sekarang', () {
-      expect(bentukTurbidi().halaman, [1]);
-      expect(LembarKerja.fromJson(contohBentukLembarKerja()).halaman, [1]);
+    test('dua halaman — sama kayak pH & Chlorine', () {
+      expect(bentukTurbidi().halaman, [1, 2]);
+      expect(LembarKerja.fromJson(contohBentukLembarKerja()).halaman, [1, 2]);
     });
 
     test('kolom admin tetap disaring sama kayak pH', () {
@@ -2192,7 +2228,7 @@ void _testTurbidimeter() {
   });
 
   group('Turbidimeter di layar', () {
-    testWidgets('tabel hasil langsung kelihatan, nggak ada balik halaman', (
+    testWidgets('tabel hasil di halaman 2, tombol kirim di halaman terakhir', (
       tester,
     ) async {
       _perbesarViewport(tester);
@@ -2204,11 +2240,17 @@ void _testTurbidimeter() {
       expect(find.text('SIDIK-FM-CAL-0530_Rev.2'), findsOneWidget);
       expect(find.text('Turbidity Standard 1 NTU'), findsOneWidget);
 
-      // Beda paling kerasa dari pH: nggak ada halaman 2, jadi tombol lanjutnya
-      // nggak boleh nongol sama sekali.
-      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsNothing);
+      // Halaman 1 = persiapan. Tombol kirim BELUM ada di sini — teknisi
+      // gampang ngirim lembar yang tabel hasilnya belum pernah dia lihat.
+      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsOneWidget);
+      expect(find.text('Before adjustment Reading'), findsNothing);
+      expect(find.text('KIRIM KE ADMIN'), findsNothing);
+
+      await _keHalamanAkhir(tester);
+
       expect(find.text('Before adjustment Reading'), findsOneWidget);
       expect(find.text('KIRIM KE ADMIN'), findsOneWidget);
+      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsNothing);
     });
 
     testWidgets('tiga titik NTU ikut terkirim, sel kosong tetap null', (
@@ -2219,6 +2261,7 @@ void _testTurbidimeter() {
       await _muat(tester, _app(service, profil: 'turbidimeter'));
 
       await _pilihAlat(tester, alat: 'Turbidimeter Hach · HC-2100Q-114');
+      await _keHalamanAkhir(tester);
 
       final tabelAfter = find.ancestor(
         of: find.text('After adjustment Reading'),
@@ -2272,6 +2315,7 @@ void _testTurbidimeter() {
       await _muat(tester, _app(service, profil: 'turbidimeter'));
 
       await _pilihAlat(tester, alat: 'Turbidimeter Hach · HC-2100Q-114');
+      await _keHalamanAkhir(tester);
 
       // Angka master `Master Data TurbidiMeter_CSV/INPUT_DATA.csv`:
       // Before baris 38–42, After baris 47–51. Rata-rata After-nya yang jadi
@@ -2365,6 +2409,7 @@ void _testTurbidimeter() {
       );
 
       await _pilihAlat(tester, alat: 'Turbidimeter Hach · HC-2100Q-114');
+      await _keHalamanAkhir(tester);
       await _kirimKeAdmin(tester);
 
       // Nama sesi di USE_MOCK dulu dipatok 'pH Meter (sesi baru)' — admin yang
@@ -2406,6 +2451,7 @@ void _testKonfirmasiKirim() {
       await _muat(tester, _app(service, profil: 'chlorine_meter'));
 
       await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+      await _keHalamanAkhir(tester);
 
       // Persis angka yang lolos 6 Agt: titik 1,83 kebaca 1,90 rata.
       final kotak = kotakAfter();
@@ -2445,6 +2491,7 @@ void _testKonfirmasiKirim() {
       await _muat(tester, _app(service, profil: 'chlorine_meter'));
 
       await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+      await _keHalamanAkhir(tester);
       await tester.enterText(kotakAfter().at(10), '1,90');
       await tester.pumpAndSettle();
 
@@ -2470,6 +2517,7 @@ void _testKonfirmasiKirim() {
       await _muat(tester, _app(service, profil: 'chlorine_meter'));
 
       await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+      await _keHalamanAkhir(tester);
       await tester.enterText(kotakAfter().at(10), '1,90');
       await tester.pumpAndSettle();
 
@@ -2503,6 +2551,7 @@ void _testKonfirmasiKirim() {
       );
 
       await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+      await _keHalamanAkhir(tester);
 
       final kotakBefore = find.descendant(
         of: find
@@ -2543,6 +2592,7 @@ void _testKonfirmasiKirim() {
       );
 
       await _pilihAlat(tester, alat: 'Turbidimeter Hach · HC-2100Q-114');
+      await _keHalamanAkhir(tester);
 
       // Satu baris = 5 Repeat × 2 kotak, urutannya 1 / 100 / 1000 NTU.
       final kotak = kotakAfter();
@@ -2586,6 +2636,7 @@ void _testKonfirmasiKirim() {
       await _muat(tester, _app(service, profil: 'chlorine_meter'));
 
       await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+      await _keHalamanAkhir(tester);
       await tester.tap(find.text('KIRIM KE ADMIN'));
       await tester.pumpAndSettle();
 
@@ -2604,6 +2655,7 @@ void _testKonfirmasiKirim() {
       await _muat(tester, _app(service, profil: 'chlorine_meter'));
 
       await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
+      await _keHalamanAkhir(tester);
       await tester.enterText(kotakAfter().at(10), '1,90');
       await tester.pumpAndSettle();
 

@@ -37,6 +37,8 @@ import 'package:sidik_calibration/services/room_service.dart';
 import 'package:sidik_calibration/services/standard_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 
+import 'support/halaman_lembar.dart';
+
 /// Bikin screenshot layar-layar utama ke `test/screenshots/*.png`.
 ///
 /// Jalanin: `flutter test test/screenshot_test.dart --update-goldens`
@@ -304,8 +306,9 @@ void main() {
   /// dan gampang "hijau di test tapi jelek di layar". PNG-nya bisa diadu sama
   /// PDF kertasnya tanpa perlu nyalain HP.
   testWidgets('lembar kerja chlorine', (tester) async {
-    // Lebih tinggi dari HP beneran: lembarnya satu halaman & panjang, dan yang
-    // mau dilihat justru bagian tabel hasilnya, bukan cuma kepala formulir.
+    // Lebih tinggi dari HP beneran: yang mau dilihat justru bagian tabel
+    // hasilnya, bukan cuma kepala formulir. Sejak lembarnya dua halaman
+    // (26 Sep 2026) tabelnya di halaman 2, jadi halaman itu yang dipotret.
     tester.view.physicalSize = const Size(1200, 7600);
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -323,6 +326,8 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 700));
     await tester.pumpAndSettle();
+    // Halaman PENGUKURAN — tabel yang dijaga gambar ini ada di sana.
+    await keHalamanAkhir(tester);
 
     await expectLater(
       find.byType(LembarKerjaScreen),
@@ -354,6 +359,8 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 700));
     await tester.pumpAndSettle();
+    // Halaman PENGUKURAN — tabel yang dijaga gambar ini ada di sana.
+    await keHalamanAkhir(tester);
 
     await expectLater(
       find.byType(LembarKerjaScreen),
@@ -396,6 +403,8 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 700));
     await tester.pumpAndSettle();
+    // Halaman PENGUKURAN — tabel yang dijaga gambar ini ada di sana.
+    await keHalamanAkhir(tester);
 
     await expectLater(
       find.byType(LembarKerjaScreen),
@@ -424,6 +433,8 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 700));
     await tester.pumpAndSettle();
+    // Halaman PENGUKURAN — tabel yang dijaga gambar ini ada di sana.
+    await keHalamanAkhir(tester);
 
     await expectLater(
       find.byType(LembarKerjaScreen),
@@ -453,6 +464,8 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 700));
     await tester.pumpAndSettle();
+    // Halaman PENGUKURAN — tabel yang dijaga gambar ini ada di sana.
+    await keHalamanAkhir(tester);
 
     await expectLater(
       find.byType(LembarKerjaScreen),

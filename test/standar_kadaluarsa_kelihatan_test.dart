@@ -16,6 +16,8 @@ import 'package:sidik_calibration/services/standard_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/services/worksheet_scan_service.dart';
 
+import 'support/halaman_lembar.dart';
+
 /// **Peringatan "sertifikat kadaluarsa" sampai ke mata teknisi, utuh.**
 ///
 /// ## Yang rusak sebelum ini
@@ -99,11 +101,6 @@ void main() {
       await bukaLembar(tester, profil);
 
       final dropdown = find.byType(DropdownButtonFormField<int>);
-      expect(
-        dropdown,
-        findsAtLeast(1),
-        reason: 'Lembar ini mestinya punya dropdown standar.',
-      );
 
       // Dibuka SATU-SATU, bukan cuma yang pertama. Di Gas Detector dropdown
       // paling atas isinya botol gas Rigas — kalibrator suhu yang kadaluarsa
@@ -112,47 +109,65 @@ void main() {
       var ketemuPeringatan = false;
       var ketemuNama = false;
 
-      for (var i = 0; i < dropdown.evaluate().length; i++) {
-        await tester.ensureVisible(dropdown.at(i));
-        await tester.pumpAndSettle();
-        await tester.tap(dropdown.at(i));
-        await tester.pumpAndSettle();
+      // Dropdown standar ada di KEDUA halaman (pemilihan di halaman 1,
+      // kalibrator per titik di halaman pengukuran), jadi tiap halaman
+      // dibuka satu-satu juga.
+      var jumlahDropdown = 0;
 
-        for (final p in paragrafOnstage(tester, 'sertifikat kadaluarsa')) {
-          ketemuPeringatan = true;
+      Future<void> bukaSemuaDropdown() async {
+        jumlahDropdown += dropdown.evaluate().length;
+        for (var i = 0; i < dropdown.evaluate().length; i++) {
+          await tester.ensureVisible(dropdown.at(i));
+          await tester.pumpAndSettle();
+          await tester.tap(dropdown.at(i));
+          await tester.pumpAndSettle();
 
-          expect(
-            p.text.toPlainText(),
-            'sertifikat kadaluarsa',
-            reason: 'Digabung ke nama, peringatannya jadi buntut — dan buntut '
-                'itu yang pertama dibuang waktu kolomnya kurang lebar.',
-          );
-          expect(
-            p.didExceedMaxLines,
-            isFalse,
-            reason: 'Peringatan yang kepotong sama nggak bergunanya dengan '
-                'peringatan yang nggak ada.',
-          );
+          for (final p in paragrafOnstage(tester, 'sertifikat kadaluarsa')) {
+            ketemuPeringatan = true;
+
+            expect(
+              p.text.toPlainText(),
+              'sertifikat kadaluarsa',
+              reason: 'Digabung ke nama, peringatannya jadi buntut — dan buntut '
+                  'itu yang pertama dibuang waktu kolomnya kurang lebar.',
+            );
+            expect(
+              p.didExceedMaxLines,
+              isFalse,
+              reason: 'Peringatan yang kepotong sama nggak bergunanya dengan '
+                  'peringatan yang nggak ada.',
+            );
+          }
+
+          // Nama kalibratornya juga kebaca utuh di daftar — di tombol tertutup
+          // dia memang dipangkas satu baris, dan daftar inilah jalan keluarnya.
+          for (final p in paragrafOnstage(tester, 'Temperature Calibrator')) {
+            ketemuNama = true;
+
+            expect(
+              p.didExceedMaxLines,
+              isFalse,
+              reason: 'Nama "${p.text.toPlainText()}" kepotong di daftar yang '
+                  'terbuka. Kalau di sini pun terpangkas, nama itu nggak pernah '
+                  'kebaca utuh di mana pun.',
+            );
+          }
+
+          // Tutup lagi sebelum buka yang berikutnya.
+          await tester.tapAt(const Offset(2, 2));
+          await tester.pumpAndSettle();
         }
-
-        // Nama kalibratornya juga kebaca utuh di daftar — di tombol tertutup
-        // dia memang dipangkas satu baris, dan daftar inilah jalan keluarnya.
-        for (final p in paragrafOnstage(tester, 'Temperature Calibrator')) {
-          ketemuNama = true;
-
-          expect(
-            p.didExceedMaxLines,
-            isFalse,
-            reason: 'Nama "${p.text.toPlainText()}" kepotong di daftar yang '
-                'terbuka. Kalau di sini pun terpangkas, nama itu nggak pernah '
-                'kebaca utuh di mana pun.',
-          );
-        }
-
-        // Tutup lagi sebelum buka yang berikutnya.
-        await tester.tapAt(const Offset(2, 2));
-        await tester.pumpAndSettle();
       }
+
+      await bukaSemuaDropdown();
+      await keHalamanAkhir(tester);
+      await bukaSemuaDropdown();
+
+      expect(
+        jumlahDropdown,
+        greaterThanOrEqualTo(1),
+        reason: 'Lembar ini mestinya punya dropdown standar.',
+      );
 
       expect(
         ketemuNama,

@@ -20,6 +20,8 @@ import 'package:sidik_calibration/services/standard_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/services/worksheet_scan_service.dart';
 
+import 'support/halaman_lembar.dart';
+
 /// Draft Viscometer yang dibuka lagi harus NAMPILIN Spindle & Model yang udah
 /// kepilih, bukan kotak kosong.
 ///
@@ -113,8 +115,12 @@ void main() {
 
     // Labelnya, bukan nilai mentahnya: yang teknisi baca di kotak itu
     // `HA7 (SMC 400)`, dan itu yang hilang waktu dropdown-nya nggak sinkron.
-    expect(find.text('HA7 (SMC 400)'), findsOneWidget);
+    // Model di halaman 1 (persiapan); Spindle per titik ikut tabel hasil di
+    // halaman 2.
     expect(find.text('DV2THA / HA (TK 2)'), findsOneWidget);
+
+    await keHalamanAkhir(tester);
+    expect(find.text('HA7 (SMC 400)'), findsOneWidget);
   });
 
   testWidgets('sesi tanpa spesifikasi tetap ngasih dropdown kosong', (
@@ -129,7 +135,11 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     await tester.pumpAndSettle();
 
-    expect(find.text('HA7 (SMC 400)'), findsNothing);
+    // Masing-masing diperiksa di halaman TEMPATNYA — di halaman lain
+    // "nggak ketemu" lolos dengan sendirinya.
     expect(find.text('DV2THA / HA (TK 2)'), findsNothing);
+
+    await keHalamanAkhir(tester);
+    expect(find.text('HA7 (SMC 400)'), findsNothing);
   });
 }

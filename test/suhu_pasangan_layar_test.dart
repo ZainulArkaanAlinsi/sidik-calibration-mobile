@@ -16,6 +16,8 @@ import 'package:sidik_calibration/services/standard_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/services/worksheet_scan_service.dart';
 
+import 'support/halaman_lembar.dart';
+
 /// Layar lembar kerja tiga alat suhu ber-PASANGAN deret — DIGAMBAR, bukan cuma
 /// dihitung.
 ///
@@ -74,6 +76,7 @@ void main() {
       tester,
     ) async {
       await buka(tester, 'thermocouple');
+      await keHalamanAkhir(tester);
 
       final tabel = find.byType(LembarKerjaTabel);
       expect(tabel, findsNWidgets(2));
@@ -113,6 +116,13 @@ void main() {
     ) async {
       await buka(tester, 'thermometer_glass');
 
+      // Oilbath & tipe pencelupan nentuin angka; dua-duanya wajib kegambar —
+      // di halaman 1, bagian persiapan.
+      expect(find.text('Oilbath Used'), findsOneWidget);
+      expect(find.text('Thermometer Type'), findsOneWidget);
+
+      await keHalamanAkhir(tester);
+
       expect(find.byType(LembarKerjaTabel), findsNWidgets(2));
       expect(find.text('2. Pembacaan Standard'), findsOneWidget);
       expect(find.text('3. Pembacaan UUT'), findsOneWidget);
@@ -121,16 +131,13 @@ void main() {
       expect(find.text('Ice Point X1'), findsOneWidget);
       expect(find.text('Ice Point X2'), findsOneWidget);
       expect(find.text('Ice Point X3'), findsOneWidget);
-
-      // Oilbath & tipe pencelupan nentuin angka; dua-duanya wajib kegambar.
-      expect(find.text('Oilbath Used'), findsOneWidget);
-      expect(find.text('Thermometer Type'), findsOneWidget);
     });
 
     testWidgets('Thermohygro: EMPAT tabel — dua besaran, masing-masing sepasang', (
       tester,
     ) async {
       await buka(tester, 'thermohygro');
+      await keHalamanAkhir(tester);
 
       expect(
         find.byType(LembarKerjaTabel),
@@ -152,6 +159,7 @@ void main() {
       tester,
     ) async {
       await buka(tester, 'thermocouple');
+      await keHalamanAkhir(tester);
 
       // Satu blok, bukan dua: sisi UUT memakai probe bawaan alat pelanggan —
       // yang justru sedang diukur penyimpangannya.
@@ -173,7 +181,10 @@ void main() {
     testWidgets('nggak digambar di lembar yang nggak punya kolomnya', (
       tester,
     ) async {
+      // Diperiksa di halaman PENGUKURAN, tempat bloknya bakal muncul kalau
+      // ada — di halaman 1 "nggak ketemu" lolos dengan sendirinya.
       await buka(tester, 'thermometer_glass');
+      await keHalamanAkhir(tester);
 
       expect(
         find.text('No. Termokopel'),
@@ -183,6 +194,7 @@ void main() {
       );
 
       await buka(tester, 'thermohygro');
+      await keHalamanAkhir(tester);
       expect(find.text('No. Termokopel'), findsNothing);
     });
   });

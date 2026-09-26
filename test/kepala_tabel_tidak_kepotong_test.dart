@@ -16,6 +16,8 @@ import 'package:sidik_calibration/services/standard_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/services/worksheet_scan_service.dart';
 
+import 'support/halaman_lembar.dart';
+
 /// **Nggak ada satu pun teks di lembar kerja yang kepotong ellipsis.**
 ///
 /// ## Kenapa berkas ini ada
@@ -132,6 +134,12 @@ void main() {
         o.visitChildren(jelajah);
       }
 
+      // Kedua halaman dipindai: layar cuma membangun halaman yang lagi
+      // dibuka, jadi tanpa membalik halaman, kepala tabel di halaman
+      // pengukuran nggak pernah kesentuh — dan test ini hijau tanpa
+      // memeriksa apa pun di sana.
+      jelajah(tester.binding.rootElement!.renderObject!);
+      await keHalamanAkhir(tester);
       jelajah(tester.binding.rootElement!.renderObject!);
 
       expect(

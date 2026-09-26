@@ -17,6 +17,8 @@ import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/services/worksheet_scan_service.dart';
 import 'package:sidik_calibration/widgets/tampil_masuk.dart';
 
+import 'support/halaman_lembar.dart';
+
 /// Kartu bagian lembar kerja yang punya TABEL sengaja nggak dianimasikan.
 ///
 /// Bukan kelewat. `Opacity` memaksa Flutter merender subtree-nya ke lapisan
@@ -52,13 +54,37 @@ void main() {
 
   /// Berapa bagian yang MESTINYA dianimasikan, dihitung dari bentuk lembarnya
   /// sendiri — bukan angka mati yang ikut basi tiap bentuk mock berubah.
-  Future<int> bagianTanpaTabel(String profil) async {
+  ///
+  /// Per HALAMAN: layar cuma membangun halaman yang lagi dibuka, jadi yang
+  /// kelihatan di halaman 1 cuma bagian halaman 1 (lembar dua halaman sejak
+  /// 26 Sep 2026). [halaman] null = seluruh lembar.
+  Future<int> bagianTanpaTabel(String profil, {int? halaman}) async {
     final bentuk = await MockLembarKerjaService().ambilBentuk(
       'mock-token-1',
       profil: profil,
     );
 
-    return bentuk.bagian.where((b) => b.tabel.isEmpty).length;
+    return bentuk.bagian
+        .where((b) => b.tabel.isEmpty)
+        .where((b) => halaman == null || b.halaman == halaman)
+        .length;
+  }
+
+  /// Hitungan animasi diadu di KEDUA halaman, satu-satu.
+  Future<void> periksaTiapHalaman(WidgetTester tester, String profil) async {
+    expect(
+      find.byType(TampilMasuk),
+      findsNWidgets(await bagianTanpaTabel(profil, halaman: 1)),
+      reason: 'halaman 1',
+    );
+
+    await keHalamanAkhir(tester);
+
+    expect(
+      find.byType(TampilMasuk),
+      findsNWidgets(await bagianTanpaTabel(profil, halaman: 2)),
+      reason: 'halaman 2',
+    );
   }
 
   Future<void> buka(WidgetTester tester, String profil) async {
@@ -77,10 +103,7 @@ void main() {
   ) async {
     await buka(tester, 'ph_meter');
 
-    expect(
-      find.byType(TampilMasuk),
-      findsNWidgets(await bagianTanpaTabel('ph_meter')),
-    );
+    await periksaTiapHalaman(tester, 'ph_meter');
   });
 
   /// Viscometer punya DUA tabel di satu bagian — lembar terberat yang app ini
@@ -92,7 +115,7 @@ void main() {
 
     final diharapkan = await bagianTanpaTabel('viscometer');
 
-    expect(find.byType(TampilMasuk), findsNWidgets(diharapkan));
+    await periksaTiapHalaman(tester, 'viscometer');
     // Penjaga arah: kalau SEMUA bagian ikut dibungkus, angka di atas bakal
     // sama dengan jumlah bagian seluruhnya dan testnya lolos tanpa arti.
     final bentuk = await MockLembarKerjaService().ambilBentuk(

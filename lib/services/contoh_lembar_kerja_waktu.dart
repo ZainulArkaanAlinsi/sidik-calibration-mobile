@@ -361,7 +361,7 @@ Map<String, dynamic> contohBentukLembarKerjaTimer({bool untukAdmin = false}) {
       },
       {
         'kode': 'hasil',
-        'halaman': 1,
+        'halaman': 2,
         'judul': 'Data Hasil Kalibrasi',
         'field': const [],
         'tabel': [
@@ -577,7 +577,7 @@ Map<String, dynamic> contohBentukLembarKerjaTimer({bool untukAdmin = false}) {
       },
       {
         'kode': 'penutup',
-        'halaman': 1,
+        'halaman': 2,
         'judul': 'Catatan & Tanda Tangan',
         'field': [
           {
@@ -965,7 +965,7 @@ Map<String, dynamic> contohBentukLembarKerjaCentrifuge({
       },
       {
         'kode': 'hasil',
-        'halaman': 1,
+        'halaman': 2,
         'judul': 'Data Hasil Kalibrasi',
         'field': const [],
         'tabel': [
@@ -1139,7 +1139,7 @@ Map<String, dynamic> contohBentukLembarKerjaCentrifuge({
       },
       {
         'kode': 'penutup',
-        'halaman': 1,
+        'halaman': 2,
         'judul': 'Catatan & Tanda Tangan',
         'field': [
           {
@@ -1527,7 +1527,7 @@ Map<String, dynamic> contohBentukLembarKerjaTachometer({
       },
       {
         'kode': 'hasil',
-        'halaman': 1,
+        'halaman': 2,
         'judul': 'Data Hasil Kalibrasi',
         'field': const [],
         'tabel': [
@@ -1701,7 +1701,7 @@ Map<String, dynamic> contohBentukLembarKerjaTachometer({
       },
       {
         'kode': 'penutup',
-        'halaman': 1,
+        'halaman': 2,
         'judul': 'Catatan & Tanda Tangan',
         'field': [
           {

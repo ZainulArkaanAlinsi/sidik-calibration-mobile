@@ -307,7 +307,7 @@
         },
         {
             "kode": "hasil_suhu",
-            "halaman": 1,
+            "halaman": 2,
             "judul": "1. KALIBRASI SUHU (TEMPERATURE)",
             "field": [
                 {
@@ -577,7 +577,7 @@
         },
         {
             "kode": "hasil_kelembaban",
-            "halaman": 1,
+            "halaman": 2,
             "judul": "2. KALIBRASI KELEMBAPAN (HUMIDITY)",
             "field": [],
             "tabel": [
@@ -777,7 +777,7 @@
         },
         {
             "kode": "penutup",
-            "halaman": 1,
+            "halaman": 2,
             "judul": "Catatan & Tanda Tangan",
             "field": [
                 {
