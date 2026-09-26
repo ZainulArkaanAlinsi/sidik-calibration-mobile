@@ -1506,14 +1506,22 @@ class LembarKerja {
   List<BagianLembarKerja> bagianDiHalaman(int nomor) =>
       bagian.where((b) => b.halaman == nomor).toList();
 
-  /// [b] itu bagian PERTAMA lembar ini?
+  /// [b] itu bagian yang menggambar GRID sensor lembar ini?
   ///
-  /// Dipakai buat memilih satu bagian yang menggambar GRID sensor — gridnya
-  /// milik lembar, bukan milik bagian, jadi tanpa penanda begini dia kegambar
-  /// sekali per bagian. Dibandingkan lewat `kode` (bukan `identical`) karena
-  /// dua tata letak halaman membangun daftar bagiannya masing-masing.
-  bool bagianPertama(BagianLembarKerja b) =>
-      bagian.isNotEmpty && bagian.first.kode == b.kode;
+  /// Gridnya milik lembar, bukan milik bagian, jadi tanpa penanda begini dia
+  /// kegambar sekali per bagian. Pemiliknya bagian PERTAMA di halaman
+  /// TERAKHIR: sejak server membelah semua lembar jadi persiapan | pengukuran
+  /// (26 Sep 2026, `CalibrationProfile::susunDuaHalaman`), grid pengukuran
+  /// Enclosure ikut halaman pengukuran — bukan nempel di identitas alat di
+  /// halaman 1. Lembar satu halaman (server lama) tetap persis seperti dulu:
+  /// halaman terakhirnya ya halaman 1, bagian pertamanya ya bagian pertama.
+  ///
+  /// Dibandingkan lewat `kode` (bukan `identical`) karena dua tata letak
+  /// halaman membangun daftar bagiannya masing-masing.
+  bool pemilikGrid(BagianLembarKerja b) {
+    final akhir = bagianDiHalaman(halaman.last);
+    return akhir.isNotEmpty && akhir.first.kode == b.kode;
+  }
 
   /// Bekal buat BIKIN ALAT BARU dari lembar ini — null kalau server versi
   /// lama.

@@ -15,6 +15,8 @@ import 'package:sidik_calibration/services/room_service.dart';
 import 'package:sidik_calibration/services/standard_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 
+import 'support/halaman_lembar.dart';
+
 
 /// Pratinjau hitung (`POST /api/calibrations/preview`) buat Spectrophotometer.
 ///
@@ -78,6 +80,7 @@ void main() {
 
       await _bukaLembar(tester, service: service);
       await _pilihAlat(tester);
+      await keHalamanAkhir(tester);
 
       // Satu baris Holmium: tiga kotak pertama di tabel pertama. Dicari lewat
       // tabelnya, bukan lewat urutan `TextField` di layar — kolom formulir di

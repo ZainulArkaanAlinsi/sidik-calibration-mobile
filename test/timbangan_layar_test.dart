@@ -82,11 +82,14 @@ void main() {
 
   testWidgets('tujuh bloknya kegambar, bukan lembar pH', (tester) async {
     perbesarViewport(tester);
-    await bukaSemuaHalaman(tester);
+    await buka(tester);
 
     // Judulnya duluan: tanpa jangkar ini, `findsOneWidget` di bawah bisa hijau
-    // gara-gara mock jatuh ke cabang `_` dan memajang lembar pH.
+    // gara-gara mock jatuh ke cabang `_` dan memajang lembar pH. Kop judul
+    // cuma digambar di halaman 1; blok-bloknya di halaman pengukuran.
     expect(find.text('KALIBRASI MASSA / TIMBANGAN'), findsOneWidget);
+
+    await bukaSemuaHalaman(tester);
 
     for (final judul in [
       '1. SCALE OBSERVATION',

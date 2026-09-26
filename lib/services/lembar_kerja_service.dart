@@ -782,11 +782,13 @@ Map<String, dynamic> contohBentukLembarKerja({bool untukAdmin = false}) {
     },
     {
       'kode': 'hasil',
-      // SATU halaman, sama kayak Turbidimeter & Chlorine. Backend udah nggak
-      // mecah dua sejak `3ab1d09` ("satu gulungan"), mobile-nya ketinggalan —
-      // jadi build mock nampilin tombol "LANJUT KE HALAMAN BERIKUTNYA" yang di
-      // build asli nggak ada sama sekali.
-      'halaman': 1,
+      // Halaman 2, sama kayak server: sejak 26 Sep 2026 endpoint lembar kerja
+      // membelah SEMUA lembar jadi persiapan | pengukuran
+      // (`CalibrationProfile::susunDuaHalaman`, membalik "satu gulungan"
+      // `3ab1d09`). Mock yang ketinggalan satu halaman bikin build mock beda
+      // dari build asli — persis kesalahan yang dulu dibetulkan ke arah
+      // sebaliknya.
+      'halaman': 2,
       'judul': 'CALIBRATION RESULT',
       'field': [
         field('suhu_awal', 'Env. Condition — First', 'angka', satuan: '°C'),
@@ -801,7 +803,7 @@ Map<String, dynamic> contohBentukLembarKerja({bool untukAdmin = false}) {
     },
     {
       'kode': 'penutup',
-      'halaman': 1,
+      'halaman': 2,
       'judul': 'Catatan & Tanda Tangan',
       'field': [
         field('catatan_teknisi', 'Catatan', 'teks_panjang'),
@@ -967,7 +969,7 @@ Map<String, dynamic> contohBentukLembarKerjaTurbidi({bool untukAdmin = false}) {
     },
     {
       'kode': 'hasil',
-      'halaman': 1,
+      'halaman': 2,
       'judul': 'CALIBRATION RESULT',
       'field': [
         field('suhu_awal', 'Env. Condition — First', 'angka', satuan: '°C'),
@@ -982,7 +984,7 @@ Map<String, dynamic> contohBentukLembarKerjaTurbidi({bool untukAdmin = false}) {
     },
     {
       'kode': 'penutup',
-      'halaman': 1,
+      'halaman': 2,
       'judul': 'Catatan & Tanda Tangan',
       'field': [
         field('catatan_teknisi', 'Catatan', 'teks_panjang'),
@@ -1172,7 +1174,7 @@ Map<String, dynamic> contohBentukLembarKerjaChlorine({bool untukAdmin = false}) 
     },
     {
       'kode': 'hasil',
-      'halaman': 1,
+      'halaman': 2,
       'judul': 'CALIBRATION RESULT',
       'field': [
         field('suhu_awal', 'Env. Condition — First', 'angka', satuan: '°C'),
@@ -1187,7 +1189,7 @@ Map<String, dynamic> contohBentukLembarKerjaChlorine({bool untukAdmin = false}) 
     },
     {
       'kode': 'penutup',
-      'halaman': 1,
+      'halaman': 2,
       'judul': 'Catatan & Tanda Tangan',
       'field': [
         field('catatan_teknisi', 'Catatan', 'teks_panjang'),
@@ -1412,7 +1414,7 @@ Map<String, dynamic> contohBentukLembarKerjaRefractometer({
     },
     {
       'kode': 'hasil',
-      'halaman': 1,
+      'halaman': 2,
       'judul': 'CALIBRATION RESULT',
       'field': [
         field('suhu_awal', 'Env. Condition — First', 'angka', satuan: '°C'),
@@ -1427,7 +1429,7 @@ Map<String, dynamic> contohBentukLembarKerjaRefractometer({
     },
     {
       'kode': 'penutup',
-      'halaman': 1,
+      'halaman': 2,
       'judul': 'Catatan & Tanda Tangan',
       'field': [
         field('catatan_teknisi', 'Catatan', 'teks_panjang'),
@@ -1661,7 +1663,7 @@ Map<String, dynamic> contohBentukLembarKerjaSpectro({bool untukAdmin = false}) {
     },
     {
       'kode': 'hasil',
-      'halaman': 1,
+      'halaman': 2,
       'judul': 'CALIBRATION RESULT',
       'field': [
         field('suhu_awal', 'Env. Condition — First', 'angka', satuan: '°C'),
@@ -1712,7 +1714,7 @@ Map<String, dynamic> contohBentukLembarKerjaSpectro({bool untukAdmin = false}) {
     },
     {
       'kode': 'sre',
-      'halaman': 1,
+      'halaman': 2,
       'judul': 'SRE (Stray Radiant Energy)',
       'status': 'sumber_belum_ada',
       'catatan':
@@ -1725,7 +1727,7 @@ Map<String, dynamic> contohBentukLembarKerjaSpectro({bool untukAdmin = false}) {
     },
     {
       'kode': 'penutup',
-      'halaman': 1,
+      'halaman': 2,
       'judul': 'Catatan & Tanda Tangan',
       'field': [
         field('catatan_teknisi', 'Catatan', 'teks_panjang'),
@@ -1955,7 +1957,7 @@ Map<String, dynamic> contohBentukLembarKerjaVisco({bool untukAdmin = false}) {
     },
     {
       'kode': 'hasil',
-      'halaman': 1,
+      'halaman': 2,
       'judul': 'Data Result',
       'field': [
         field('suhu_awal', 'T awal', 'angka', satuan: '°C'),
@@ -1994,7 +1996,7 @@ Map<String, dynamic> contohBentukLembarKerjaVisco({bool untukAdmin = false}) {
     },
     {
       'kode': 'penutup',
-      'halaman': 1,
+      'halaman': 2,
       'judul': 'Catatan & Tanda Tangan',
       'field': [
         field('catatan_teknisi', 'Catatan', 'teks_panjang'),
@@ -2172,7 +2174,7 @@ Map<String, dynamic> contohBentukLembarKerjaDo({bool untukAdmin = false}) {
     },
     {
       'kode': 'hasil',
-      'halaman': 1,
+      'halaman': 2,
       'judul': 'CALIBRATION RESULT',
       'field': [
         field('suhu_awal', 'Env. Condition — First', 'angka', satuan: '°C'),
@@ -2197,7 +2199,7 @@ Map<String, dynamic> contohBentukLembarKerjaDo({bool untukAdmin = false}) {
     },
     {
       'kode': 'penutup',
-      'halaman': 1,
+      'halaman': 2,
       'judul': 'Catatan & Tanda Tangan',
       'field': [
         field('catatan_teknisi', 'Catatan', 'teks_panjang'),
@@ -2397,7 +2399,7 @@ Map<String, dynamic> contohBentukLembarKerjaGas({bool untukAdmin = false}) {
     },
     {
       'kode': 'hasil',
-      'halaman': 1,
+      'halaman': 2,
       'judul': 'CALIBRATION RESULT',
       'field': [
         field('suhu_awal', 'Env. Condition \u2014 First', 'angka', satuan: '\u00B0C'),
@@ -2426,7 +2428,7 @@ Map<String, dynamic> contohBentukLembarKerjaGas({bool untukAdmin = false}) {
     },
     {
       'kode': 'penutup',
-      'halaman': 1,
+      'halaman': 2,
       'judul': 'Catatan & Tanda Tangan',
       'field': [
         field('catatan_teknisi', 'Catatan', 'teks_panjang'),
@@ -2642,7 +2644,7 @@ Map<String, dynamic> contohBentukLembarKerjaTits({bool untukAdmin = false}) {
     },
     {
       'kode': 'hasil',
-      'halaman': 1,
+      'halaman': 2,
       'judul': 'CALIBRATION RESULT',
       'field': [
         field('suhu_awal', 'Env. Condition — First', 'angka', satuan: '°C'),
@@ -2673,7 +2675,7 @@ Map<String, dynamic> contohBentukLembarKerjaTits({bool untukAdmin = false}) {
     },
     {
       'kode': 'penutup',
-      'halaman': 1,
+      'halaman': 2,
       'judul': 'Catatan & Tanda Tangan',
       'field': [
         field('catatan_teknisi', 'Catatan', 'teks_panjang'),

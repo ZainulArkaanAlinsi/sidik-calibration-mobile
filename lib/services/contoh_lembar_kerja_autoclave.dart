@@ -558,7 +558,7 @@ Map<String, dynamic> contohBentukLembarKerjaAutoklaf({
       {
         'kode': 'hasil_pengukuran',
         'grup': 'Data Result',
-        'halaman': 1,
+        'halaman': 2,
         'judul': 'Calibration Result for Temperature & Pressure',
         'field': [
           {
@@ -803,7 +803,7 @@ Map<String, dynamic> contohBentukLembarKerjaAutoklaf({
       {
         'kode': 'penutup',
         'grup': 'Data Result',
-        'halaman': 1,
+        'halaman': 2,
         'judul': 'Catatan:',
         'field': [
           {

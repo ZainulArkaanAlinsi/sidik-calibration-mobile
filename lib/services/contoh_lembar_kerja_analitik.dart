@@ -369,7 +369,7 @@ Map<String, dynamic> contohBentukLembarKerjaConductivity({
       },
       {
         'kode': 'hasil',
-        'halaman': 1,
+        'halaman': 2,
         'judul': 'CALIBRATION RESULT',
         'field': [
           {
@@ -673,7 +673,7 @@ Map<String, dynamic> contohBentukLembarKerjaConductivity({
       },
       {
         'kode': 'penutup',
-        'halaman': 1,
+        'halaman': 2,
         'judul': 'Catatan & Tanda Tangan',
         'field': [
           {

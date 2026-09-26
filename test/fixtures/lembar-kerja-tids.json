@@ -540,7 +540,7 @@
     },
     {
       "kode": "titik_es",
-      "halaman": 1,
+      "halaman": 2,
       "judul": "Pengujian di titik es 0˚C",
       "field": [
         {
@@ -570,7 +570,7 @@
     },
     {
       "kode": "hasil",
-      "halaman": 1,
+      "halaman": 2,
       "judul": "Data Kalibrasi",
       "field": [],
       "tabel": [
@@ -930,7 +930,7 @@
     },
     {
       "kode": "penutup",
-      "halaman": 1,
+      "halaman": 2,
       "judul": "Catatan & Tanda Tangan",
       "field": [
         {

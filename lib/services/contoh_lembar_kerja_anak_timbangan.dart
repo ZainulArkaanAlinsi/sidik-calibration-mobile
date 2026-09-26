@@ -631,7 +631,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
       },
       {
         'kode': 'hasil',
-        'halaman': 1,
+        'halaman': 2,
         'judul': 'Data Hasil Kalibrasi',
         'field': <dynamic>[],
         'tabel': [
@@ -983,7 +983,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
       },
       {
         'kode': 'penutup',
-        'halaman': 1,
+        'halaman': 2,
         'judul': 'Catatan & Tanda Tangan',
         'field': [
           {

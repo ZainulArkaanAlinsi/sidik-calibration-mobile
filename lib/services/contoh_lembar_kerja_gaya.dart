@@ -23,7 +23,9 @@ library;
 /// Bentuk lembar kerja contoh **Mesin UTM**.
 ///
 /// Kode profil `utm`, satuan `-`, kertas `SIDIK-FM-CAL-0519_Rev.3`.
-Map<String, dynamic> contohBentukLembarKerjaUtm({bool untukAdmin = false}) {
+Map<String, dynamic> contohBentukLembarKerjaUtm({
+  bool untukAdmin = false,
+}) {
   return {
     'kode_dokumen': 'SIDIK-FM-CAL-0519_Rev.3',
     'kode_metode': 'SIDIK-IK-CAL-0513_Rev.3',
@@ -31,18 +33,14 @@ Map<String, dynamic> contohBentukLembarKerjaUtm({bool untukAdmin = false}) {
     'judul': 'Lembar Kerja Kalibrasi Mesin UTM',
     'jumlah_pengulangan': 3,
     'semua_kolom_opsional': false,
-    'catatan_pengisian':
-        'Tiap titik beban diisi DUA BELAS kali: empat posisi (0°, 90°, 180°, 270°) x tiga replikat. Empat posisi bukan pengulangan biasa — kalau load cell standar tidak tepat di sumbu piringan, kesalahannya cuma kelihatan waktu alat dihadapkan ke arah berbeda. Preload (zero & kapasitas maks) dan empat pengukuran misalignment diisi sekali per sesi, bukan per titik.',
+    'catatan_pengisian': 'Tiap titik beban diisi DUA BELAS kali: empat posisi (0°, 90°, 180°, 270°) x tiga replikat. Empat posisi bukan pengulangan biasa — kalau load cell standar tidak tepat di sumbu piringan, kesalahannya cuma kelihatan waktu alat dihadapkan ke arah berbeda. Preload (zero & kapasitas maks) dan empat pengukuran misalignment diisi sekali per sesi, bukan per titik.',
     'budget_ketidakpastian': {
       'tersedia': true,
-      'sumber':
-          'Master Olah Data Gaya — UTM (.xlsm, PERHITUNGAN FC & PERHITUNGAN U95%)',
-      'catatan':
-          'Delapan komponen dalam PERSEN (kesalahan load cell proporsional, bukan absolut), k dari t-Student dengan v_eff dipotong ke bawah, lalu dikonversi ke kN dan diadu ke lantai CMC dari lampiran akreditasi. Dua penyimpangan master direplikasi apa adanya dan tercatat di jejak sesi: baris drift tidak dibagi divisornya, dan Correction memakai nilai sebelum koreksi termal sementara sertifikat mencetak yang sesudahnya.',
+      'sumber': 'Master Olah Data Gaya — UTM (.xlsm, PERHITUNGAN FC & PERHITUNGAN U95%)',
+      'catatan': 'Delapan komponen dalam PERSEN (kesalahan load cell proporsional, bukan absolut), k dari t-Student dengan v_eff dipotong ke bawah, lalu dikonversi ke kN dan diadu ke lantai CMC dari lampiran akreditasi. Dua penyimpangan master direplikasi apa adanya dan tercatat di jejak sesi: baris drift tidak dibagi divisornya, dan Correction memakai nilai sebelum koreksi termal sementara sertifikat mencetak yang sesudahnya.',
     },
     'tanpa_keputusan': {
-      'alasan':
-          'Sertifikat gaya tidak menyatakan lulus/tidak lulus. Lab melaporkan seberapa meleset; pelanggan yang menilai apakah itu cukup baik untuk pemakaiannya. ISO/IEC 17025 klausul 7.8.6.1 — pernyataan kesesuaian butuh aturan keputusan yang disepakati.',
+      'alasan': 'Sertifikat gaya tidak menyatakan lulus/tidak lulus. Lab melaporkan seberapa meleset; pelanggan yang menilai apakah itu cukup baik untuk pemakaiannya. ISO/IEC 17025 klausul 7.8.6.1 — pernyataan kesesuaian butuh aturan keputusan yang disepakati.',
     },
     'bagian': [
       {
@@ -112,7 +110,13 @@ Map<String, dynamic> contohBentukLembarKerjaUtm({bool untukAdmin = false}) {
             'wajib': false,
             'sumber': null,
             'satuan': null,
-            'pilihan': ['kN', 'N', 'lbf', 'kgf', 'tnf'],
+            'pilihan': [
+              'kN',
+              'N',
+              'lbf',
+              'kgf',
+              'tnf',
+            ],
             'hanya_admin': false,
             'tampil_kalau': null,
           },
@@ -134,7 +138,10 @@ Map<String, dynamic> contohBentukLembarKerjaUtm({bool untukAdmin = false}) {
             'wajib': false,
             'sumber': null,
             'satuan': null,
-            'pilihan': ['Push', 'Pull'],
+            'pilihan': [
+              'Push',
+              'Pull',
+            ],
             'hanya_admin': false,
             'tampil_kalau': null,
           },
@@ -219,8 +226,14 @@ Map<String, dynamic> contohBentukLembarKerjaUtm({bool untukAdmin = false}) {
             'sumber': null,
             'satuan': null,
             'pilihan': [
-              {'nilai': 'lab', 'label': 'Inlab'},
-              {'nilai': 'onsite', 'label': 'Insitu'},
+              {
+                'nilai': 'lab',
+                'label': 'Inlab',
+              },
+              {
+                'nilai': 'onsite',
+                'label': 'Insitu',
+              },
             ],
             'hanya_admin': false,
             'tampil_kalau': null,
@@ -236,7 +249,9 @@ Map<String, dynamic> contohBentukLembarKerjaUtm({bool untukAdmin = false}) {
             'hanya_admin': false,
             'tampil_kalau': {
               'kode': 'lokasi',
-              'nilai': ['lab'],
+              'nilai': [
+                'lab',
+              ],
             },
           },
           {
@@ -250,7 +265,9 @@ Map<String, dynamic> contohBentukLembarKerjaUtm({bool untukAdmin = false}) {
             'hanya_admin': false,
             'tampil_kalau': {
               'kode': 'lokasi',
-              'nilai': ['onsite'],
+              'nilai': [
+                'onsite',
+              ],
             },
           },
           {
@@ -261,13 +278,41 @@ Map<String, dynamic> contohBentukLembarKerjaUtm({bool untukAdmin = false}) {
             'sumber': 'master_thermohygro',
             'satuan': null,
             'pilihan': [
-              {'nilai': '1', 'label': 'TH-1', 'grup': 'Thermohygro lab'},
-              {'nilai': '2', 'label': 'TH-2', 'grup': 'Thermohygro lab'},
-              {'nilai': '3', 'label': 'TH-3', 'grup': 'Thermohygro lab'},
-              {'nilai': '4', 'label': 'TH-4', 'grup': 'Thermohygro lab'},
-              {'nilai': '5', 'label': 'TH-5', 'grup': 'Thermohygro lab'},
-              {'nilai': '6', 'label': 'TH-6', 'grup': 'Thermohygro lab'},
-              {'nilai': '7', 'label': 'TH-7', 'grup': 'Thermohygro lab'},
+              {
+                'nilai': '1',
+                'label': 'TH-1',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '2',
+                'label': 'TH-2',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '3',
+                'label': 'TH-3',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '4',
+                'label': 'TH-4',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '5',
+                'label': 'TH-5',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '6',
+                'label': 'TH-6',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '7',
+                'label': 'TH-7',
+                'grup': 'Thermohygro lab',
+              },
             ],
             'hanya_admin': false,
             'tampil_kalau': null,
@@ -281,27 +326,27 @@ Map<String, dynamic> contohBentukLembarKerjaUtm({bool untukAdmin = false}) {
         'baris': [
           {
             'label': 'Load Cell 5 kN',
-            'standard_id': null,
-            'serial_number': null,
+            'standard_id': 81,
+            'serial_number': 'LC-01-SDK',
             'no_sertifikat': null,
-            'tertelusur_ke': null,
-            'terdaftar': false,
+            'tertelusur_ke': 'LK-057-IDN',
+            'terdaftar': true,
           },
           {
             'label': 'Load Cell 100 kN',
-            'standard_id': null,
-            'serial_number': null,
+            'standard_id': 82,
+            'serial_number': 'J10CC13283',
             'no_sertifikat': null,
-            'tertelusur_ke': null,
-            'terdaftar': false,
+            'tertelusur_ke': 'LK-057-IDN',
+            'terdaftar': true,
           },
           {
             'label': 'Load Cell 3000 kN',
-            'standard_id': null,
-            'serial_number': null,
+            'standard_id': 83,
+            'serial_number': 'C-140-BZ/0008',
             'no_sertifikat': null,
-            'tertelusur_ke': null,
-            'terdaftar': false,
+            'tertelusur_ke': 'LK-013-IDN',
+            'terdaftar': true,
           },
         ],
         'field': [
@@ -312,7 +357,11 @@ Map<String, dynamic> contohBentukLembarKerjaUtm({bool untukAdmin = false}) {
             'wajib': false,
             'sumber': null,
             'satuan': null,
-            'pilihan': ['5kN', '100kN', '3000kN'],
+            'pilihan': [
+              '5kN',
+              '100kN',
+              '3000kN',
+            ],
             'hanya_admin': false,
             'tampil_kalau': null,
           },
@@ -375,9 +424,17 @@ Map<String, dynamic> contohBentukLembarKerjaUtm({bool untukAdmin = false}) {
               },
             ],
             'kolom': [
-              {'kode': 'pembacaan', 'label': 'Pembacaan', 'tipe': 'angka'},
+              {
+                'kode': 'pembacaan',
+                'label': 'Pembacaan',
+                'tipe': 'angka',
+              },
             ],
-            'pengulangan': [1, 2, 3],
+            'pengulangan': [
+              1,
+              2,
+              3,
+            ],
           },
         ],
       },
@@ -448,25 +505,89 @@ Map<String, dynamic> contohBentukLembarKerjaUtm({bool untukAdmin = false}) {
             'titik_bisa_diubah': false,
             'simpan_ke': 'measurements[].gaya_pos_0',
             'baris': [
-              {'nomor': 1, 'titik_ukur': null, 'label': 'Titik 1'},
-              {'nomor': 2, 'titik_ukur': null, 'label': 'Titik 2'},
-              {'nomor': 3, 'titik_ukur': null, 'label': 'Titik 3'},
-              {'nomor': 4, 'titik_ukur': null, 'label': 'Titik 4'},
-              {'nomor': 5, 'titik_ukur': null, 'label': 'Titik 5'},
-              {'nomor': 6, 'titik_ukur': null, 'label': 'Titik 6'},
-              {'nomor': 7, 'titik_ukur': null, 'label': 'Titik 7'},
-              {'nomor': 8, 'titik_ukur': null, 'label': 'Titik 8'},
-              {'nomor': 9, 'titik_ukur': null, 'label': 'Titik 9'},
-              {'nomor': 10, 'titik_ukur': null, 'label': 'Titik 10'},
-              {'nomor': 11, 'titik_ukur': null, 'label': 'Titik 11'},
-              {'nomor': 12, 'titik_ukur': null, 'label': 'Titik 12'},
-              {'nomor': 13, 'titik_ukur': null, 'label': 'Titik 13'},
-              {'nomor': 14, 'titik_ukur': null, 'label': 'Titik 14'},
+              {
+                'nomor': 1,
+                'titik_ukur': null,
+                'label': 'Titik 1',
+              },
+              {
+                'nomor': 2,
+                'titik_ukur': null,
+                'label': 'Titik 2',
+              },
+              {
+                'nomor': 3,
+                'titik_ukur': null,
+                'label': 'Titik 3',
+              },
+              {
+                'nomor': 4,
+                'titik_ukur': null,
+                'label': 'Titik 4',
+              },
+              {
+                'nomor': 5,
+                'titik_ukur': null,
+                'label': 'Titik 5',
+              },
+              {
+                'nomor': 6,
+                'titik_ukur': null,
+                'label': 'Titik 6',
+              },
+              {
+                'nomor': 7,
+                'titik_ukur': null,
+                'label': 'Titik 7',
+              },
+              {
+                'nomor': 8,
+                'titik_ukur': null,
+                'label': 'Titik 8',
+              },
+              {
+                'nomor': 9,
+                'titik_ukur': null,
+                'label': 'Titik 9',
+              },
+              {
+                'nomor': 10,
+                'titik_ukur': null,
+                'label': 'Titik 10',
+              },
+              {
+                'nomor': 11,
+                'titik_ukur': null,
+                'label': 'Titik 11',
+              },
+              {
+                'nomor': 12,
+                'titik_ukur': null,
+                'label': 'Titik 12',
+              },
+              {
+                'nomor': 13,
+                'titik_ukur': null,
+                'label': 'Titik 13',
+              },
+              {
+                'nomor': 14,
+                'titik_ukur': null,
+                'label': 'Titik 14',
+              },
             ],
             'kolom': [
-              {'kode': 'pembacaan', 'label': 'Pembacaan UUT', 'tipe': 'angka'},
+              {
+                'kode': 'pembacaan',
+                'label': 'Pembacaan UUT',
+                'tipe': 'angka',
+              },
             ],
-            'pengulangan': [1, 2, 3],
+            'pengulangan': [
+              1,
+              2,
+              3,
+            ],
           },
           {
             'tahap': 'sesudah_adjustment',
@@ -478,25 +599,89 @@ Map<String, dynamic> contohBentukLembarKerjaUtm({bool untukAdmin = false}) {
             'titik_bisa_diubah': false,
             'simpan_ke': 'measurements[].gaya_pos_90',
             'baris': [
-              {'nomor': 1, 'titik_ukur': null, 'label': 'Titik 1'},
-              {'nomor': 2, 'titik_ukur': null, 'label': 'Titik 2'},
-              {'nomor': 3, 'titik_ukur': null, 'label': 'Titik 3'},
-              {'nomor': 4, 'titik_ukur': null, 'label': 'Titik 4'},
-              {'nomor': 5, 'titik_ukur': null, 'label': 'Titik 5'},
-              {'nomor': 6, 'titik_ukur': null, 'label': 'Titik 6'},
-              {'nomor': 7, 'titik_ukur': null, 'label': 'Titik 7'},
-              {'nomor': 8, 'titik_ukur': null, 'label': 'Titik 8'},
-              {'nomor': 9, 'titik_ukur': null, 'label': 'Titik 9'},
-              {'nomor': 10, 'titik_ukur': null, 'label': 'Titik 10'},
-              {'nomor': 11, 'titik_ukur': null, 'label': 'Titik 11'},
-              {'nomor': 12, 'titik_ukur': null, 'label': 'Titik 12'},
-              {'nomor': 13, 'titik_ukur': null, 'label': 'Titik 13'},
-              {'nomor': 14, 'titik_ukur': null, 'label': 'Titik 14'},
+              {
+                'nomor': 1,
+                'titik_ukur': null,
+                'label': 'Titik 1',
+              },
+              {
+                'nomor': 2,
+                'titik_ukur': null,
+                'label': 'Titik 2',
+              },
+              {
+                'nomor': 3,
+                'titik_ukur': null,
+                'label': 'Titik 3',
+              },
+              {
+                'nomor': 4,
+                'titik_ukur': null,
+                'label': 'Titik 4',
+              },
+              {
+                'nomor': 5,
+                'titik_ukur': null,
+                'label': 'Titik 5',
+              },
+              {
+                'nomor': 6,
+                'titik_ukur': null,
+                'label': 'Titik 6',
+              },
+              {
+                'nomor': 7,
+                'titik_ukur': null,
+                'label': 'Titik 7',
+              },
+              {
+                'nomor': 8,
+                'titik_ukur': null,
+                'label': 'Titik 8',
+              },
+              {
+                'nomor': 9,
+                'titik_ukur': null,
+                'label': 'Titik 9',
+              },
+              {
+                'nomor': 10,
+                'titik_ukur': null,
+                'label': 'Titik 10',
+              },
+              {
+                'nomor': 11,
+                'titik_ukur': null,
+                'label': 'Titik 11',
+              },
+              {
+                'nomor': 12,
+                'titik_ukur': null,
+                'label': 'Titik 12',
+              },
+              {
+                'nomor': 13,
+                'titik_ukur': null,
+                'label': 'Titik 13',
+              },
+              {
+                'nomor': 14,
+                'titik_ukur': null,
+                'label': 'Titik 14',
+              },
             ],
             'kolom': [
-              {'kode': 'pembacaan', 'label': 'Pembacaan UUT', 'tipe': 'angka'},
+              {
+                'kode': 'pembacaan',
+                'label': 'Pembacaan UUT',
+                'tipe': 'angka',
+              },
             ],
-            'pengulangan': [1, 2, 3],
+            'pengulangan': [
+              1,
+              2,
+              3,
+            ],
           },
           {
             'tahap': 'sesudah_adjustment',
@@ -508,25 +693,89 @@ Map<String, dynamic> contohBentukLembarKerjaUtm({bool untukAdmin = false}) {
             'titik_bisa_diubah': false,
             'simpan_ke': 'measurements[].gaya_pos_180',
             'baris': [
-              {'nomor': 1, 'titik_ukur': null, 'label': 'Titik 1'},
-              {'nomor': 2, 'titik_ukur': null, 'label': 'Titik 2'},
-              {'nomor': 3, 'titik_ukur': null, 'label': 'Titik 3'},
-              {'nomor': 4, 'titik_ukur': null, 'label': 'Titik 4'},
-              {'nomor': 5, 'titik_ukur': null, 'label': 'Titik 5'},
-              {'nomor': 6, 'titik_ukur': null, 'label': 'Titik 6'},
-              {'nomor': 7, 'titik_ukur': null, 'label': 'Titik 7'},
-              {'nomor': 8, 'titik_ukur': null, 'label': 'Titik 8'},
-              {'nomor': 9, 'titik_ukur': null, 'label': 'Titik 9'},
-              {'nomor': 10, 'titik_ukur': null, 'label': 'Titik 10'},
-              {'nomor': 11, 'titik_ukur': null, 'label': 'Titik 11'},
-              {'nomor': 12, 'titik_ukur': null, 'label': 'Titik 12'},
-              {'nomor': 13, 'titik_ukur': null, 'label': 'Titik 13'},
-              {'nomor': 14, 'titik_ukur': null, 'label': 'Titik 14'},
+              {
+                'nomor': 1,
+                'titik_ukur': null,
+                'label': 'Titik 1',
+              },
+              {
+                'nomor': 2,
+                'titik_ukur': null,
+                'label': 'Titik 2',
+              },
+              {
+                'nomor': 3,
+                'titik_ukur': null,
+                'label': 'Titik 3',
+              },
+              {
+                'nomor': 4,
+                'titik_ukur': null,
+                'label': 'Titik 4',
+              },
+              {
+                'nomor': 5,
+                'titik_ukur': null,
+                'label': 'Titik 5',
+              },
+              {
+                'nomor': 6,
+                'titik_ukur': null,
+                'label': 'Titik 6',
+              },
+              {
+                'nomor': 7,
+                'titik_ukur': null,
+                'label': 'Titik 7',
+              },
+              {
+                'nomor': 8,
+                'titik_ukur': null,
+                'label': 'Titik 8',
+              },
+              {
+                'nomor': 9,
+                'titik_ukur': null,
+                'label': 'Titik 9',
+              },
+              {
+                'nomor': 10,
+                'titik_ukur': null,
+                'label': 'Titik 10',
+              },
+              {
+                'nomor': 11,
+                'titik_ukur': null,
+                'label': 'Titik 11',
+              },
+              {
+                'nomor': 12,
+                'titik_ukur': null,
+                'label': 'Titik 12',
+              },
+              {
+                'nomor': 13,
+                'titik_ukur': null,
+                'label': 'Titik 13',
+              },
+              {
+                'nomor': 14,
+                'titik_ukur': null,
+                'label': 'Titik 14',
+              },
             ],
             'kolom': [
-              {'kode': 'pembacaan', 'label': 'Pembacaan UUT', 'tipe': 'angka'},
+              {
+                'kode': 'pembacaan',
+                'label': 'Pembacaan UUT',
+                'tipe': 'angka',
+              },
             ],
-            'pengulangan': [1, 2, 3],
+            'pengulangan': [
+              1,
+              2,
+              3,
+            ],
           },
           {
             'tahap': 'sesudah_adjustment',
@@ -538,25 +787,89 @@ Map<String, dynamic> contohBentukLembarKerjaUtm({bool untukAdmin = false}) {
             'titik_bisa_diubah': false,
             'simpan_ke': 'measurements[].gaya_pos_270',
             'baris': [
-              {'nomor': 1, 'titik_ukur': null, 'label': 'Titik 1'},
-              {'nomor': 2, 'titik_ukur': null, 'label': 'Titik 2'},
-              {'nomor': 3, 'titik_ukur': null, 'label': 'Titik 3'},
-              {'nomor': 4, 'titik_ukur': null, 'label': 'Titik 4'},
-              {'nomor': 5, 'titik_ukur': null, 'label': 'Titik 5'},
-              {'nomor': 6, 'titik_ukur': null, 'label': 'Titik 6'},
-              {'nomor': 7, 'titik_ukur': null, 'label': 'Titik 7'},
-              {'nomor': 8, 'titik_ukur': null, 'label': 'Titik 8'},
-              {'nomor': 9, 'titik_ukur': null, 'label': 'Titik 9'},
-              {'nomor': 10, 'titik_ukur': null, 'label': 'Titik 10'},
-              {'nomor': 11, 'titik_ukur': null, 'label': 'Titik 11'},
-              {'nomor': 12, 'titik_ukur': null, 'label': 'Titik 12'},
-              {'nomor': 13, 'titik_ukur': null, 'label': 'Titik 13'},
-              {'nomor': 14, 'titik_ukur': null, 'label': 'Titik 14'},
+              {
+                'nomor': 1,
+                'titik_ukur': null,
+                'label': 'Titik 1',
+              },
+              {
+                'nomor': 2,
+                'titik_ukur': null,
+                'label': 'Titik 2',
+              },
+              {
+                'nomor': 3,
+                'titik_ukur': null,
+                'label': 'Titik 3',
+              },
+              {
+                'nomor': 4,
+                'titik_ukur': null,
+                'label': 'Titik 4',
+              },
+              {
+                'nomor': 5,
+                'titik_ukur': null,
+                'label': 'Titik 5',
+              },
+              {
+                'nomor': 6,
+                'titik_ukur': null,
+                'label': 'Titik 6',
+              },
+              {
+                'nomor': 7,
+                'titik_ukur': null,
+                'label': 'Titik 7',
+              },
+              {
+                'nomor': 8,
+                'titik_ukur': null,
+                'label': 'Titik 8',
+              },
+              {
+                'nomor': 9,
+                'titik_ukur': null,
+                'label': 'Titik 9',
+              },
+              {
+                'nomor': 10,
+                'titik_ukur': null,
+                'label': 'Titik 10',
+              },
+              {
+                'nomor': 11,
+                'titik_ukur': null,
+                'label': 'Titik 11',
+              },
+              {
+                'nomor': 12,
+                'titik_ukur': null,
+                'label': 'Titik 12',
+              },
+              {
+                'nomor': 13,
+                'titik_ukur': null,
+                'label': 'Titik 13',
+              },
+              {
+                'nomor': 14,
+                'titik_ukur': null,
+                'label': 'Titik 14',
+              },
             ],
             'kolom': [
-              {'kode': 'pembacaan', 'label': 'Pembacaan UUT', 'tipe': 'angka'},
+              {
+                'kode': 'pembacaan',
+                'label': 'Pembacaan UUT',
+                'tipe': 'angka',
+              },
             ],
-            'pengulangan': [1, 2, 3],
+            'pengulangan': [
+              1,
+              2,
+              3,
+            ],
           },
         ],
       },
@@ -617,18 +930,14 @@ Map<String, dynamic> contohBentukLembarKerjaLoadCell({
     'judul': 'Lembar Kerja Kalibrasi Load Cell',
     'jumlah_pengulangan': 3,
     'semua_kolom_opsional': false,
-    'catatan_pengisian':
-        'Tiap titik beban diisi DUA BELAS kali: empat posisi (0°, 90°, 180°, 270°) x tiga replikat. Empat posisi bukan pengulangan biasa — kalau load cell standar tidak tepat di sumbu piringan, kesalahannya cuma kelihatan waktu alat dihadapkan ke arah berbeda. Preload (zero & kapasitas maks) dan empat pengukuran misalignment diisi sekali per sesi, bukan per titik.',
+    'catatan_pengisian': 'Tiap titik beban diisi DUA BELAS kali: empat posisi (0°, 90°, 180°, 270°) x tiga replikat. Empat posisi bukan pengulangan biasa — kalau load cell standar tidak tepat di sumbu piringan, kesalahannya cuma kelihatan waktu alat dihadapkan ke arah berbeda. Preload (zero & kapasitas maks) dan empat pengukuran misalignment diisi sekali per sesi, bukan per titik.',
     'budget_ketidakpastian': {
       'tersedia': true,
-      'sumber':
-          'Master Olah Data Gaya — Load Cell (.xlsm, PERHITUNGAN FC & PERHITUNGAN U95%)',
-      'catatan':
-          'Delapan komponen dalam PERSEN (kesalahan load cell proporsional, bukan absolut), k dari t-Student dengan v_eff dipotong ke bawah, lalu dikonversi ke kN dan diadu ke lantai CMC dari lampiran akreditasi. Dua penyimpangan master direplikasi apa adanya dan tercatat di jejak sesi: baris drift tidak dibagi divisornya, dan Correction memakai nilai sebelum koreksi termal sementara sertifikat mencetak yang sesudahnya.',
+      'sumber': 'Master Olah Data Gaya — Load Cell (.xlsm, PERHITUNGAN FC & PERHITUNGAN U95%)',
+      'catatan': 'Delapan komponen dalam PERSEN (kesalahan load cell proporsional, bukan absolut), k dari t-Student dengan v_eff dipotong ke bawah, lalu dikonversi ke kN dan diadu ke lantai CMC dari lampiran akreditasi. Dua penyimpangan master direplikasi apa adanya dan tercatat di jejak sesi: baris drift tidak dibagi divisornya, dan Correction memakai nilai sebelum koreksi termal sementara sertifikat mencetak yang sesudahnya.',
     },
     'tanpa_keputusan': {
-      'alasan':
-          'Sertifikat gaya tidak menyatakan lulus/tidak lulus. Lab melaporkan seberapa meleset; pelanggan yang menilai apakah itu cukup baik untuk pemakaiannya. ISO/IEC 17025 klausul 7.8.6.1 — pernyataan kesesuaian butuh aturan keputusan yang disepakati.',
+      'alasan': 'Sertifikat gaya tidak menyatakan lulus/tidak lulus. Lab melaporkan seberapa meleset; pelanggan yang menilai apakah itu cukup baik untuk pemakaiannya. ISO/IEC 17025 klausul 7.8.6.1 — pernyataan kesesuaian butuh aturan keputusan yang disepakati.',
     },
     'bagian': [
       {
@@ -698,7 +1007,13 @@ Map<String, dynamic> contohBentukLembarKerjaLoadCell({
             'wajib': false,
             'sumber': null,
             'satuan': null,
-            'pilihan': ['kN', 'N', 'lbf', 'kgf', 'tnf'],
+            'pilihan': [
+              'kN',
+              'N',
+              'lbf',
+              'kgf',
+              'tnf',
+            ],
             'hanya_admin': false,
             'tampil_kalau': null,
           },
@@ -720,7 +1035,10 @@ Map<String, dynamic> contohBentukLembarKerjaLoadCell({
             'wajib': false,
             'sumber': null,
             'satuan': null,
-            'pilihan': ['Push', 'Pull'],
+            'pilihan': [
+              'Push',
+              'Pull',
+            ],
             'hanya_admin': false,
             'tampil_kalau': null,
           },
@@ -805,8 +1123,14 @@ Map<String, dynamic> contohBentukLembarKerjaLoadCell({
             'sumber': null,
             'satuan': null,
             'pilihan': [
-              {'nilai': 'lab', 'label': 'Inlab'},
-              {'nilai': 'onsite', 'label': 'Insitu'},
+              {
+                'nilai': 'lab',
+                'label': 'Inlab',
+              },
+              {
+                'nilai': 'onsite',
+                'label': 'Insitu',
+              },
             ],
             'hanya_admin': false,
             'tampil_kalau': null,
@@ -822,7 +1146,9 @@ Map<String, dynamic> contohBentukLembarKerjaLoadCell({
             'hanya_admin': false,
             'tampil_kalau': {
               'kode': 'lokasi',
-              'nilai': ['lab'],
+              'nilai': [
+                'lab',
+              ],
             },
           },
           {
@@ -836,7 +1162,9 @@ Map<String, dynamic> contohBentukLembarKerjaLoadCell({
             'hanya_admin': false,
             'tampil_kalau': {
               'kode': 'lokasi',
-              'nilai': ['onsite'],
+              'nilai': [
+                'onsite',
+              ],
             },
           },
           {
@@ -847,13 +1175,41 @@ Map<String, dynamic> contohBentukLembarKerjaLoadCell({
             'sumber': 'master_thermohygro',
             'satuan': null,
             'pilihan': [
-              {'nilai': '1', 'label': 'TH-1', 'grup': 'Thermohygro lab'},
-              {'nilai': '2', 'label': 'TH-2', 'grup': 'Thermohygro lab'},
-              {'nilai': '3', 'label': 'TH-3', 'grup': 'Thermohygro lab'},
-              {'nilai': '4', 'label': 'TH-4', 'grup': 'Thermohygro lab'},
-              {'nilai': '5', 'label': 'TH-5', 'grup': 'Thermohygro lab'},
-              {'nilai': '6', 'label': 'TH-6', 'grup': 'Thermohygro lab'},
-              {'nilai': '7', 'label': 'TH-7', 'grup': 'Thermohygro lab'},
+              {
+                'nilai': '1',
+                'label': 'TH-1',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '2',
+                'label': 'TH-2',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '3',
+                'label': 'TH-3',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '4',
+                'label': 'TH-4',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '5',
+                'label': 'TH-5',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '6',
+                'label': 'TH-6',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '7',
+                'label': 'TH-7',
+                'grup': 'Thermohygro lab',
+              },
             ],
             'hanya_admin': false,
             'tampil_kalau': null,
@@ -867,27 +1223,27 @@ Map<String, dynamic> contohBentukLembarKerjaLoadCell({
         'baris': [
           {
             'label': 'Load Cell 5 kN',
-            'standard_id': null,
-            'serial_number': null,
+            'standard_id': 81,
+            'serial_number': 'LC-01-SDK',
             'no_sertifikat': null,
-            'tertelusur_ke': null,
-            'terdaftar': false,
+            'tertelusur_ke': 'LK-057-IDN',
+            'terdaftar': true,
           },
           {
             'label': 'Load Cell 100 kN',
-            'standard_id': null,
-            'serial_number': null,
+            'standard_id': 82,
+            'serial_number': 'J10CC13283',
             'no_sertifikat': null,
-            'tertelusur_ke': null,
-            'terdaftar': false,
+            'tertelusur_ke': 'LK-057-IDN',
+            'terdaftar': true,
           },
           {
             'label': 'Load Cell 3000 kN',
-            'standard_id': null,
-            'serial_number': null,
+            'standard_id': 83,
+            'serial_number': 'C-140-BZ/0008',
             'no_sertifikat': null,
-            'tertelusur_ke': null,
-            'terdaftar': false,
+            'tertelusur_ke': 'LK-013-IDN',
+            'terdaftar': true,
           },
         ],
         'field': [
@@ -898,7 +1254,11 @@ Map<String, dynamic> contohBentukLembarKerjaLoadCell({
             'wajib': false,
             'sumber': null,
             'satuan': null,
-            'pilihan': ['5kN', '100kN', '3000kN'],
+            'pilihan': [
+              '5kN',
+              '100kN',
+              '3000kN',
+            ],
             'hanya_admin': false,
             'tampil_kalau': null,
           },
@@ -961,9 +1321,17 @@ Map<String, dynamic> contohBentukLembarKerjaLoadCell({
               },
             ],
             'kolom': [
-              {'kode': 'pembacaan', 'label': 'Pembacaan', 'tipe': 'angka'},
+              {
+                'kode': 'pembacaan',
+                'label': 'Pembacaan',
+                'tipe': 'angka',
+              },
             ],
-            'pengulangan': [1, 2, 3],
+            'pengulangan': [
+              1,
+              2,
+              3,
+            ],
           },
         ],
       },
@@ -1034,25 +1402,89 @@ Map<String, dynamic> contohBentukLembarKerjaLoadCell({
             'titik_bisa_diubah': false,
             'simpan_ke': 'measurements[].gaya_pos_0',
             'baris': [
-              {'nomor': 1, 'titik_ukur': null, 'label': 'Titik 1'},
-              {'nomor': 2, 'titik_ukur': null, 'label': 'Titik 2'},
-              {'nomor': 3, 'titik_ukur': null, 'label': 'Titik 3'},
-              {'nomor': 4, 'titik_ukur': null, 'label': 'Titik 4'},
-              {'nomor': 5, 'titik_ukur': null, 'label': 'Titik 5'},
-              {'nomor': 6, 'titik_ukur': null, 'label': 'Titik 6'},
-              {'nomor': 7, 'titik_ukur': null, 'label': 'Titik 7'},
-              {'nomor': 8, 'titik_ukur': null, 'label': 'Titik 8'},
-              {'nomor': 9, 'titik_ukur': null, 'label': 'Titik 9'},
-              {'nomor': 10, 'titik_ukur': null, 'label': 'Titik 10'},
-              {'nomor': 11, 'titik_ukur': null, 'label': 'Titik 11'},
-              {'nomor': 12, 'titik_ukur': null, 'label': 'Titik 12'},
-              {'nomor': 13, 'titik_ukur': null, 'label': 'Titik 13'},
-              {'nomor': 14, 'titik_ukur': null, 'label': 'Titik 14'},
+              {
+                'nomor': 1,
+                'titik_ukur': null,
+                'label': 'Titik 1',
+              },
+              {
+                'nomor': 2,
+                'titik_ukur': null,
+                'label': 'Titik 2',
+              },
+              {
+                'nomor': 3,
+                'titik_ukur': null,
+                'label': 'Titik 3',
+              },
+              {
+                'nomor': 4,
+                'titik_ukur': null,
+                'label': 'Titik 4',
+              },
+              {
+                'nomor': 5,
+                'titik_ukur': null,
+                'label': 'Titik 5',
+              },
+              {
+                'nomor': 6,
+                'titik_ukur': null,
+                'label': 'Titik 6',
+              },
+              {
+                'nomor': 7,
+                'titik_ukur': null,
+                'label': 'Titik 7',
+              },
+              {
+                'nomor': 8,
+                'titik_ukur': null,
+                'label': 'Titik 8',
+              },
+              {
+                'nomor': 9,
+                'titik_ukur': null,
+                'label': 'Titik 9',
+              },
+              {
+                'nomor': 10,
+                'titik_ukur': null,
+                'label': 'Titik 10',
+              },
+              {
+                'nomor': 11,
+                'titik_ukur': null,
+                'label': 'Titik 11',
+              },
+              {
+                'nomor': 12,
+                'titik_ukur': null,
+                'label': 'Titik 12',
+              },
+              {
+                'nomor': 13,
+                'titik_ukur': null,
+                'label': 'Titik 13',
+              },
+              {
+                'nomor': 14,
+                'titik_ukur': null,
+                'label': 'Titik 14',
+              },
             ],
             'kolom': [
-              {'kode': 'pembacaan', 'label': 'Pembacaan UUT', 'tipe': 'angka'},
+              {
+                'kode': 'pembacaan',
+                'label': 'Pembacaan UUT',
+                'tipe': 'angka',
+              },
             ],
-            'pengulangan': [1, 2, 3],
+            'pengulangan': [
+              1,
+              2,
+              3,
+            ],
           },
           {
             'tahap': 'sesudah_adjustment',
@@ -1064,25 +1496,89 @@ Map<String, dynamic> contohBentukLembarKerjaLoadCell({
             'titik_bisa_diubah': false,
             'simpan_ke': 'measurements[].gaya_pos_90',
             'baris': [
-              {'nomor': 1, 'titik_ukur': null, 'label': 'Titik 1'},
-              {'nomor': 2, 'titik_ukur': null, 'label': 'Titik 2'},
-              {'nomor': 3, 'titik_ukur': null, 'label': 'Titik 3'},
-              {'nomor': 4, 'titik_ukur': null, 'label': 'Titik 4'},
-              {'nomor': 5, 'titik_ukur': null, 'label': 'Titik 5'},
-              {'nomor': 6, 'titik_ukur': null, 'label': 'Titik 6'},
-              {'nomor': 7, 'titik_ukur': null, 'label': 'Titik 7'},
-              {'nomor': 8, 'titik_ukur': null, 'label': 'Titik 8'},
-              {'nomor': 9, 'titik_ukur': null, 'label': 'Titik 9'},
-              {'nomor': 10, 'titik_ukur': null, 'label': 'Titik 10'},
-              {'nomor': 11, 'titik_ukur': null, 'label': 'Titik 11'},
-              {'nomor': 12, 'titik_ukur': null, 'label': 'Titik 12'},
-              {'nomor': 13, 'titik_ukur': null, 'label': 'Titik 13'},
-              {'nomor': 14, 'titik_ukur': null, 'label': 'Titik 14'},
+              {
+                'nomor': 1,
+                'titik_ukur': null,
+                'label': 'Titik 1',
+              },
+              {
+                'nomor': 2,
+                'titik_ukur': null,
+                'label': 'Titik 2',
+              },
+              {
+                'nomor': 3,
+                'titik_ukur': null,
+                'label': 'Titik 3',
+              },
+              {
+                'nomor': 4,
+                'titik_ukur': null,
+                'label': 'Titik 4',
+              },
+              {
+                'nomor': 5,
+                'titik_ukur': null,
+                'label': 'Titik 5',
+              },
+              {
+                'nomor': 6,
+                'titik_ukur': null,
+                'label': 'Titik 6',
+              },
+              {
+                'nomor': 7,
+                'titik_ukur': null,
+                'label': 'Titik 7',
+              },
+              {
+                'nomor': 8,
+                'titik_ukur': null,
+                'label': 'Titik 8',
+              },
+              {
+                'nomor': 9,
+                'titik_ukur': null,
+                'label': 'Titik 9',
+              },
+              {
+                'nomor': 10,
+                'titik_ukur': null,
+                'label': 'Titik 10',
+              },
+              {
+                'nomor': 11,
+                'titik_ukur': null,
+                'label': 'Titik 11',
+              },
+              {
+                'nomor': 12,
+                'titik_ukur': null,
+                'label': 'Titik 12',
+              },
+              {
+                'nomor': 13,
+                'titik_ukur': null,
+                'label': 'Titik 13',
+              },
+              {
+                'nomor': 14,
+                'titik_ukur': null,
+                'label': 'Titik 14',
+              },
             ],
             'kolom': [
-              {'kode': 'pembacaan', 'label': 'Pembacaan UUT', 'tipe': 'angka'},
+              {
+                'kode': 'pembacaan',
+                'label': 'Pembacaan UUT',
+                'tipe': 'angka',
+              },
             ],
-            'pengulangan': [1, 2, 3],
+            'pengulangan': [
+              1,
+              2,
+              3,
+            ],
           },
           {
             'tahap': 'sesudah_adjustment',
@@ -1094,25 +1590,89 @@ Map<String, dynamic> contohBentukLembarKerjaLoadCell({
             'titik_bisa_diubah': false,
             'simpan_ke': 'measurements[].gaya_pos_180',
             'baris': [
-              {'nomor': 1, 'titik_ukur': null, 'label': 'Titik 1'},
-              {'nomor': 2, 'titik_ukur': null, 'label': 'Titik 2'},
-              {'nomor': 3, 'titik_ukur': null, 'label': 'Titik 3'},
-              {'nomor': 4, 'titik_ukur': null, 'label': 'Titik 4'},
-              {'nomor': 5, 'titik_ukur': null, 'label': 'Titik 5'},
-              {'nomor': 6, 'titik_ukur': null, 'label': 'Titik 6'},
-              {'nomor': 7, 'titik_ukur': null, 'label': 'Titik 7'},
-              {'nomor': 8, 'titik_ukur': null, 'label': 'Titik 8'},
-              {'nomor': 9, 'titik_ukur': null, 'label': 'Titik 9'},
-              {'nomor': 10, 'titik_ukur': null, 'label': 'Titik 10'},
-              {'nomor': 11, 'titik_ukur': null, 'label': 'Titik 11'},
-              {'nomor': 12, 'titik_ukur': null, 'label': 'Titik 12'},
-              {'nomor': 13, 'titik_ukur': null, 'label': 'Titik 13'},
-              {'nomor': 14, 'titik_ukur': null, 'label': 'Titik 14'},
+              {
+                'nomor': 1,
+                'titik_ukur': null,
+                'label': 'Titik 1',
+              },
+              {
+                'nomor': 2,
+                'titik_ukur': null,
+                'label': 'Titik 2',
+              },
+              {
+                'nomor': 3,
+                'titik_ukur': null,
+                'label': 'Titik 3',
+              },
+              {
+                'nomor': 4,
+                'titik_ukur': null,
+                'label': 'Titik 4',
+              },
+              {
+                'nomor': 5,
+                'titik_ukur': null,
+                'label': 'Titik 5',
+              },
+              {
+                'nomor': 6,
+                'titik_ukur': null,
+                'label': 'Titik 6',
+              },
+              {
+                'nomor': 7,
+                'titik_ukur': null,
+                'label': 'Titik 7',
+              },
+              {
+                'nomor': 8,
+                'titik_ukur': null,
+                'label': 'Titik 8',
+              },
+              {
+                'nomor': 9,
+                'titik_ukur': null,
+                'label': 'Titik 9',
+              },
+              {
+                'nomor': 10,
+                'titik_ukur': null,
+                'label': 'Titik 10',
+              },
+              {
+                'nomor': 11,
+                'titik_ukur': null,
+                'label': 'Titik 11',
+              },
+              {
+                'nomor': 12,
+                'titik_ukur': null,
+                'label': 'Titik 12',
+              },
+              {
+                'nomor': 13,
+                'titik_ukur': null,
+                'label': 'Titik 13',
+              },
+              {
+                'nomor': 14,
+                'titik_ukur': null,
+                'label': 'Titik 14',
+              },
             ],
             'kolom': [
-              {'kode': 'pembacaan', 'label': 'Pembacaan UUT', 'tipe': 'angka'},
+              {
+                'kode': 'pembacaan',
+                'label': 'Pembacaan UUT',
+                'tipe': 'angka',
+              },
             ],
-            'pengulangan': [1, 2, 3],
+            'pengulangan': [
+              1,
+              2,
+              3,
+            ],
           },
           {
             'tahap': 'sesudah_adjustment',
@@ -1124,25 +1684,89 @@ Map<String, dynamic> contohBentukLembarKerjaLoadCell({
             'titik_bisa_diubah': false,
             'simpan_ke': 'measurements[].gaya_pos_270',
             'baris': [
-              {'nomor': 1, 'titik_ukur': null, 'label': 'Titik 1'},
-              {'nomor': 2, 'titik_ukur': null, 'label': 'Titik 2'},
-              {'nomor': 3, 'titik_ukur': null, 'label': 'Titik 3'},
-              {'nomor': 4, 'titik_ukur': null, 'label': 'Titik 4'},
-              {'nomor': 5, 'titik_ukur': null, 'label': 'Titik 5'},
-              {'nomor': 6, 'titik_ukur': null, 'label': 'Titik 6'},
-              {'nomor': 7, 'titik_ukur': null, 'label': 'Titik 7'},
-              {'nomor': 8, 'titik_ukur': null, 'label': 'Titik 8'},
-              {'nomor': 9, 'titik_ukur': null, 'label': 'Titik 9'},
-              {'nomor': 10, 'titik_ukur': null, 'label': 'Titik 10'},
-              {'nomor': 11, 'titik_ukur': null, 'label': 'Titik 11'},
-              {'nomor': 12, 'titik_ukur': null, 'label': 'Titik 12'},
-              {'nomor': 13, 'titik_ukur': null, 'label': 'Titik 13'},
-              {'nomor': 14, 'titik_ukur': null, 'label': 'Titik 14'},
+              {
+                'nomor': 1,
+                'titik_ukur': null,
+                'label': 'Titik 1',
+              },
+              {
+                'nomor': 2,
+                'titik_ukur': null,
+                'label': 'Titik 2',
+              },
+              {
+                'nomor': 3,
+                'titik_ukur': null,
+                'label': 'Titik 3',
+              },
+              {
+                'nomor': 4,
+                'titik_ukur': null,
+                'label': 'Titik 4',
+              },
+              {
+                'nomor': 5,
+                'titik_ukur': null,
+                'label': 'Titik 5',
+              },
+              {
+                'nomor': 6,
+                'titik_ukur': null,
+                'label': 'Titik 6',
+              },
+              {
+                'nomor': 7,
+                'titik_ukur': null,
+                'label': 'Titik 7',
+              },
+              {
+                'nomor': 8,
+                'titik_ukur': null,
+                'label': 'Titik 8',
+              },
+              {
+                'nomor': 9,
+                'titik_ukur': null,
+                'label': 'Titik 9',
+              },
+              {
+                'nomor': 10,
+                'titik_ukur': null,
+                'label': 'Titik 10',
+              },
+              {
+                'nomor': 11,
+                'titik_ukur': null,
+                'label': 'Titik 11',
+              },
+              {
+                'nomor': 12,
+                'titik_ukur': null,
+                'label': 'Titik 12',
+              },
+              {
+                'nomor': 13,
+                'titik_ukur': null,
+                'label': 'Titik 13',
+              },
+              {
+                'nomor': 14,
+                'titik_ukur': null,
+                'label': 'Titik 14',
+              },
             ],
             'kolom': [
-              {'kode': 'pembacaan', 'label': 'Pembacaan UUT', 'tipe': 'angka'},
+              {
+                'kode': 'pembacaan',
+                'label': 'Pembacaan UUT',
+                'tipe': 'angka',
+              },
             ],
-            'pengulangan': [1, 2, 3],
+            'pengulangan': [
+              1,
+              2,
+              3,
+            ],
           },
         ],
       },
@@ -1203,18 +1827,14 @@ Map<String, dynamic> contohBentukLembarKerjaProvingRing({
     'judul': 'Lembar Kerja Kalibrasi Proving Ring',
     'jumlah_pengulangan': 3,
     'semua_kolom_opsional': false,
-    'catatan_pengisian':
-        'Tiap titik beban diisi ENAM kali: UP tiga kali lalu DOWN tiga kali. Arahnya bukan pengulangan biasa — cincin baja punya histeresis, jadi bacaan saat beban NAIK memang berbeda dari saat TURUN, dan perbedaannya itu yang diukur. Pembacaan diisi dalam DIVISI dial, bukan kgf. Preload dan empat pengukuran misalignment diisi sekali per sesi.',
+    'catatan_pengisian': 'Tiap titik beban diisi ENAM kali: UP tiga kali lalu DOWN tiga kali. Arahnya bukan pengulangan biasa — cincin baja punya histeresis, jadi bacaan saat beban NAIK memang berbeda dari saat TURUN, dan perbedaannya itu yang diukur. Pembacaan diisi dalam DIVISI dial, bukan kgf. Preload dan empat pengukuran misalignment diisi sekali per sesi.',
     'budget_ketidakpastian': {
       'tersedia': true,
-      'sumber':
-          'Master Olah Data Gaya — Proving Ring (.xlsm, PERHITUNGAN FC & PERHITUNGAN U95%)',
-      'catatan':
-          'Delapan komponen dalam PERSEN (kesalahan load cell proporsional, bukan absolut), k dari t-Student dengan v_eff dipotong ke bawah, lalu dikonversi ke kN dan diadu ke lantai CMC dari lampiran akreditasi. Dua penyimpangan master direplikasi apa adanya dan tercatat di jejak sesi: baris drift tidak dibagi divisornya, dan Correction memakai nilai sebelum koreksi termal sementara sertifikat mencetak yang sesudahnya.',
+      'sumber': 'Master Olah Data Gaya — Proving Ring (.xlsm, PERHITUNGAN FC & PERHITUNGAN U95%)',
+      'catatan': 'Delapan komponen dalam PERSEN (kesalahan load cell proporsional, bukan absolut), k dari t-Student dengan v_eff dipotong ke bawah, lalu dikonversi ke kN dan diadu ke lantai CMC dari lampiran akreditasi. Dua penyimpangan master direplikasi apa adanya dan tercatat di jejak sesi: baris drift tidak dibagi divisornya, dan Correction memakai nilai sebelum koreksi termal sementara sertifikat mencetak yang sesudahnya.',
     },
     'tanpa_keputusan': {
-      'alasan':
-          'Sertifikat gaya tidak menyatakan lulus/tidak lulus. Lab melaporkan seberapa meleset; pelanggan yang menilai apakah itu cukup baik untuk pemakaiannya. ISO/IEC 17025 klausul 7.8.6.1 — pernyataan kesesuaian butuh aturan keputusan yang disepakati.',
+      'alasan': 'Sertifikat gaya tidak menyatakan lulus/tidak lulus. Lab melaporkan seberapa meleset; pelanggan yang menilai apakah itu cukup baik untuk pemakaiannya. ISO/IEC 17025 klausul 7.8.6.1 — pernyataan kesesuaian butuh aturan keputusan yang disepakati.',
     },
     'bagian': [
       {
@@ -1284,7 +1904,13 @@ Map<String, dynamic> contohBentukLembarKerjaProvingRing({
             'wajib': false,
             'sumber': null,
             'satuan': null,
-            'pilihan': ['kN', 'N', 'lbf', 'kgf', 'tnf'],
+            'pilihan': [
+              'kN',
+              'N',
+              'lbf',
+              'kgf',
+              'tnf',
+            ],
             'hanya_admin': false,
             'tampil_kalau': null,
           },
@@ -1295,7 +1921,10 @@ Map<String, dynamic> contohBentukLembarKerjaProvingRing({
             'wajib': false,
             'sumber': null,
             'satuan': null,
-            'pilihan': ['Push', 'Pull'],
+            'pilihan': [
+              'Push',
+              'Pull',
+            ],
             'hanya_admin': false,
             'tampil_kalau': null,
           },
@@ -1402,8 +2031,14 @@ Map<String, dynamic> contohBentukLembarKerjaProvingRing({
             'sumber': null,
             'satuan': null,
             'pilihan': [
-              {'nilai': 'lab', 'label': 'Inlab'},
-              {'nilai': 'onsite', 'label': 'Insitu'},
+              {
+                'nilai': 'lab',
+                'label': 'Inlab',
+              },
+              {
+                'nilai': 'onsite',
+                'label': 'Insitu',
+              },
             ],
             'hanya_admin': false,
             'tampil_kalau': null,
@@ -1419,7 +2054,9 @@ Map<String, dynamic> contohBentukLembarKerjaProvingRing({
             'hanya_admin': false,
             'tampil_kalau': {
               'kode': 'lokasi',
-              'nilai': ['lab'],
+              'nilai': [
+                'lab',
+              ],
             },
           },
           {
@@ -1433,7 +2070,9 @@ Map<String, dynamic> contohBentukLembarKerjaProvingRing({
             'hanya_admin': false,
             'tampil_kalau': {
               'kode': 'lokasi',
-              'nilai': ['onsite'],
+              'nilai': [
+                'onsite',
+              ],
             },
           },
           {
@@ -1444,13 +2083,41 @@ Map<String, dynamic> contohBentukLembarKerjaProvingRing({
             'sumber': 'master_thermohygro',
             'satuan': null,
             'pilihan': [
-              {'nilai': '1', 'label': 'TH-1', 'grup': 'Thermohygro lab'},
-              {'nilai': '2', 'label': 'TH-2', 'grup': 'Thermohygro lab'},
-              {'nilai': '3', 'label': 'TH-3', 'grup': 'Thermohygro lab'},
-              {'nilai': '4', 'label': 'TH-4', 'grup': 'Thermohygro lab'},
-              {'nilai': '5', 'label': 'TH-5', 'grup': 'Thermohygro lab'},
-              {'nilai': '6', 'label': 'TH-6', 'grup': 'Thermohygro lab'},
-              {'nilai': '7', 'label': 'TH-7', 'grup': 'Thermohygro lab'},
+              {
+                'nilai': '1',
+                'label': 'TH-1',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '2',
+                'label': 'TH-2',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '3',
+                'label': 'TH-3',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '4',
+                'label': 'TH-4',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '5',
+                'label': 'TH-5',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '6',
+                'label': 'TH-6',
+                'grup': 'Thermohygro lab',
+              },
+              {
+                'nilai': '7',
+                'label': 'TH-7',
+                'grup': 'Thermohygro lab',
+              },
             ],
             'hanya_admin': false,
             'tampil_kalau': null,
@@ -1464,27 +2131,27 @@ Map<String, dynamic> contohBentukLembarKerjaProvingRing({
         'baris': [
           {
             'label': 'Load Cell 5 kN',
-            'standard_id': null,
-            'serial_number': null,
+            'standard_id': 81,
+            'serial_number': 'LC-01-SDK',
             'no_sertifikat': null,
-            'tertelusur_ke': null,
-            'terdaftar': false,
+            'tertelusur_ke': 'LK-057-IDN',
+            'terdaftar': true,
           },
           {
             'label': 'Load Cell 100 kN',
-            'standard_id': null,
-            'serial_number': null,
+            'standard_id': 82,
+            'serial_number': 'J10CC13283',
             'no_sertifikat': null,
-            'tertelusur_ke': null,
-            'terdaftar': false,
+            'tertelusur_ke': 'LK-057-IDN',
+            'terdaftar': true,
           },
           {
             'label': 'Load Cell 3000 kN',
-            'standard_id': null,
-            'serial_number': null,
+            'standard_id': 83,
+            'serial_number': 'C-140-BZ/0008',
             'no_sertifikat': null,
-            'tertelusur_ke': null,
-            'terdaftar': false,
+            'tertelusur_ke': 'LK-013-IDN',
+            'terdaftar': true,
           },
         ],
         'field': [
@@ -1495,7 +2162,11 @@ Map<String, dynamic> contohBentukLembarKerjaProvingRing({
             'wajib': false,
             'sumber': null,
             'satuan': null,
-            'pilihan': ['5kN', '100kN', '3000kN'],
+            'pilihan': [
+              '5kN',
+              '100kN',
+              '3000kN',
+            ],
             'hanya_admin': false,
             'tampil_kalau': null,
           },
@@ -1558,9 +2229,17 @@ Map<String, dynamic> contohBentukLembarKerjaProvingRing({
               },
             ],
             'kolom': [
-              {'kode': 'pembacaan', 'label': 'Pembacaan', 'tipe': 'angka'},
+              {
+                'kode': 'pembacaan',
+                'label': 'Pembacaan',
+                'tipe': 'angka',
+              },
             ],
-            'pengulangan': [1, 2, 3],
+            'pengulangan': [
+              1,
+              2,
+              3,
+            ],
           },
         ],
       },
@@ -1631,20 +2310,76 @@ Map<String, dynamic> contohBentukLembarKerjaProvingRing({
             'titik_bisa_diubah': false,
             'simpan_ke': 'measurements[].gaya_up',
             'baris': [
-              {'nomor': 1, 'titik_ukur': null, 'label': 'Titik 1'},
-              {'nomor': 2, 'titik_ukur': null, 'label': 'Titik 2'},
-              {'nomor': 3, 'titik_ukur': null, 'label': 'Titik 3'},
-              {'nomor': 4, 'titik_ukur': null, 'label': 'Titik 4'},
-              {'nomor': 5, 'titik_ukur': null, 'label': 'Titik 5'},
-              {'nomor': 6, 'titik_ukur': null, 'label': 'Titik 6'},
-              {'nomor': 7, 'titik_ukur': null, 'label': 'Titik 7'},
-              {'nomor': 8, 'titik_ukur': null, 'label': 'Titik 8'},
-              {'nomor': 9, 'titik_ukur': null, 'label': 'Titik 9'},
-              {'nomor': 10, 'titik_ukur': null, 'label': 'Titik 10'},
-              {'nomor': 11, 'titik_ukur': null, 'label': 'Titik 11'},
-              {'nomor': 12, 'titik_ukur': null, 'label': 'Titik 12'},
-              {'nomor': 13, 'titik_ukur': null, 'label': 'Titik 13'},
-              {'nomor': 14, 'titik_ukur': null, 'label': 'Titik 14'},
+              {
+                'nomor': 1,
+                'titik_ukur': null,
+                'label': 'Titik 1',
+              },
+              {
+                'nomor': 2,
+                'titik_ukur': null,
+                'label': 'Titik 2',
+              },
+              {
+                'nomor': 3,
+                'titik_ukur': null,
+                'label': 'Titik 3',
+              },
+              {
+                'nomor': 4,
+                'titik_ukur': null,
+                'label': 'Titik 4',
+              },
+              {
+                'nomor': 5,
+                'titik_ukur': null,
+                'label': 'Titik 5',
+              },
+              {
+                'nomor': 6,
+                'titik_ukur': null,
+                'label': 'Titik 6',
+              },
+              {
+                'nomor': 7,
+                'titik_ukur': null,
+                'label': 'Titik 7',
+              },
+              {
+                'nomor': 8,
+                'titik_ukur': null,
+                'label': 'Titik 8',
+              },
+              {
+                'nomor': 9,
+                'titik_ukur': null,
+                'label': 'Titik 9',
+              },
+              {
+                'nomor': 10,
+                'titik_ukur': null,
+                'label': 'Titik 10',
+              },
+              {
+                'nomor': 11,
+                'titik_ukur': null,
+                'label': 'Titik 11',
+              },
+              {
+                'nomor': 12,
+                'titik_ukur': null,
+                'label': 'Titik 12',
+              },
+              {
+                'nomor': 13,
+                'titik_ukur': null,
+                'label': 'Titik 13',
+              },
+              {
+                'nomor': 14,
+                'titik_ukur': null,
+                'label': 'Titik 14',
+              },
             ],
             'kolom': [
               {
@@ -1653,7 +2388,11 @@ Map<String, dynamic> contohBentukLembarKerjaProvingRing({
                 'tipe': 'angka',
               },
             ],
-            'pengulangan': [1, 2, 3],
+            'pengulangan': [
+              1,
+              2,
+              3,
+            ],
           },
           {
             'tahap': 'sesudah_adjustment',
@@ -1665,20 +2404,76 @@ Map<String, dynamic> contohBentukLembarKerjaProvingRing({
             'titik_bisa_diubah': false,
             'simpan_ke': 'measurements[].gaya_down',
             'baris': [
-              {'nomor': 1, 'titik_ukur': null, 'label': 'Titik 1'},
-              {'nomor': 2, 'titik_ukur': null, 'label': 'Titik 2'},
-              {'nomor': 3, 'titik_ukur': null, 'label': 'Titik 3'},
-              {'nomor': 4, 'titik_ukur': null, 'label': 'Titik 4'},
-              {'nomor': 5, 'titik_ukur': null, 'label': 'Titik 5'},
-              {'nomor': 6, 'titik_ukur': null, 'label': 'Titik 6'},
-              {'nomor': 7, 'titik_ukur': null, 'label': 'Titik 7'},
-              {'nomor': 8, 'titik_ukur': null, 'label': 'Titik 8'},
-              {'nomor': 9, 'titik_ukur': null, 'label': 'Titik 9'},
-              {'nomor': 10, 'titik_ukur': null, 'label': 'Titik 10'},
-              {'nomor': 11, 'titik_ukur': null, 'label': 'Titik 11'},
-              {'nomor': 12, 'titik_ukur': null, 'label': 'Titik 12'},
-              {'nomor': 13, 'titik_ukur': null, 'label': 'Titik 13'},
-              {'nomor': 14, 'titik_ukur': null, 'label': 'Titik 14'},
+              {
+                'nomor': 1,
+                'titik_ukur': null,
+                'label': 'Titik 1',
+              },
+              {
+                'nomor': 2,
+                'titik_ukur': null,
+                'label': 'Titik 2',
+              },
+              {
+                'nomor': 3,
+                'titik_ukur': null,
+                'label': 'Titik 3',
+              },
+              {
+                'nomor': 4,
+                'titik_ukur': null,
+                'label': 'Titik 4',
+              },
+              {
+                'nomor': 5,
+                'titik_ukur': null,
+                'label': 'Titik 5',
+              },
+              {
+                'nomor': 6,
+                'titik_ukur': null,
+                'label': 'Titik 6',
+              },
+              {
+                'nomor': 7,
+                'titik_ukur': null,
+                'label': 'Titik 7',
+              },
+              {
+                'nomor': 8,
+                'titik_ukur': null,
+                'label': 'Titik 8',
+              },
+              {
+                'nomor': 9,
+                'titik_ukur': null,
+                'label': 'Titik 9',
+              },
+              {
+                'nomor': 10,
+                'titik_ukur': null,
+                'label': 'Titik 10',
+              },
+              {
+                'nomor': 11,
+                'titik_ukur': null,
+                'label': 'Titik 11',
+              },
+              {
+                'nomor': 12,
+                'titik_ukur': null,
+                'label': 'Titik 12',
+              },
+              {
+                'nomor': 13,
+                'titik_ukur': null,
+                'label': 'Titik 13',
+              },
+              {
+                'nomor': 14,
+                'titik_ukur': null,
+                'label': 'Titik 14',
+              },
             ],
             'kolom': [
               {
@@ -1687,7 +2482,11 @@ Map<String, dynamic> contohBentukLembarKerjaProvingRing({
                 'tipe': 'angka',
               },
             ],
-            'pengulangan': [1, 2, 3],
+            'pengulangan': [
+              1,
+              2,
+              3,
+            ],
           },
         ],
       },

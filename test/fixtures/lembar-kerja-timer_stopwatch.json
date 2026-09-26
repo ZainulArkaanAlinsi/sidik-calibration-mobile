@@ -355,7 +355,7 @@
         },
         {
             "kode": "hasil",
-            "halaman": 1,
+            "halaman": 2,
             "judul": "Data Hasil Kalibrasi",
             "field": [],
             "tabel": [
@@ -609,7 +609,7 @@
         },
         {
             "kode": "penutup",
-            "halaman": 1,
+            "halaman": 2,
             "judul": "Catatan & Tanda Tangan",
             "field": [
                 {

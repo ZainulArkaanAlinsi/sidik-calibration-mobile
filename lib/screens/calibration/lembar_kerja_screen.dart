@@ -1478,7 +1478,7 @@ class _LembarSatuKolom extends StatelessWidget {
             onBerubah: onBerubah,
             sesiId: sesiId,
             profil: profil,
-            gambarGrid: bentuk.bagianPertama(bagian),
+            gambarGrid: bentuk.pemilikGrid(bagian),
           ),
         ),
 
@@ -1538,7 +1538,7 @@ class _LembarDuaKolom extends StatelessWidget {
         onBerubah: onBerubah,
         sesiId: sesiId,
         profil: profil,
-        gambarGrid: bentuk.bagianPertama(bagian),
+        gambarGrid: bentuk.pemilikGrid(bagian),
       ),
     ),
     const SizedBox(height: AppSpacing.lg),
@@ -1559,6 +1559,16 @@ class _LembarDuaKolom extends StatelessWidget {
           child: Column(
             children: [
               _KopDokumen(bentuk: bentuk),
+              // Sama kayak jalur satu kolom. Dulu cuma di sana, jadi di tablet
+              // peringatan standar kadaluarsa nggak pernah muncul — mula-mula
+              // cuma di lembar Gaya (satu-satunya yang dua halaman), lalu di
+              // SEMUA lembar begitu server membelah semuanya jadi dua halaman
+              // (26 Sep 2026). Jaraknya ikut hanya kalau bannernya tampil,
+              // supaya lembar tanpa peringatan nggak bergeser.
+              if (isian.statusStandar?.perluBanner ?? false) ...[
+                const SizedBox(height: AppSpacing.md),
+                BannerStatusStandar(status: isian.statusStandar),
+              ],
               if (isian.adaRevisi) ...[
                 const SizedBox(height: AppSpacing.md),
                 _BannerRevisi(
