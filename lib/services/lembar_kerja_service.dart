@@ -12,6 +12,8 @@ import 'contoh_lembar_kerja_dimensi.dart';
 import 'contoh_lembar_kerja_enclosure.dart';
 import 'contoh_lembar_kerja_massa.dart';
 import 'contoh_lembar_kerja_panjang.dart';
+import 'contoh_lembar_kerja_piston.dart';
+import 'contoh_lembar_kerja_tekanan.dart';
 import 'contoh_lembar_kerja_volumetric_glassware.dart';
 import 'contoh_lembar_kerja_volumetrik.dart';
 import 'contoh_lembar_kerja_waktu.dart';
@@ -401,6 +403,27 @@ class MockLembarKerjaService implements LembarKerjaService {
       'bath' => contohBentukLembarKerjaBath(untukAdmin: untukAdmin),
       'inkubator' => contohBentukLembarKerjaInkubator(untukAdmin: untukAdmin),
       'refrigerator' => contohBentukLembarKerjaRefrigerator(
+        untukAdmin: untukAdmin,
+      ),
+      // Keluarga TEKANAN (alat ke-43..45, kertas SIDIK-FM-CAL-0507). Dua tabel
+      // deret UP/DOWN yang barisnya sinkron — tanpa cabang ini mode mock
+      // memajang lembar pH untuk pressure gauge, tanpa error.
+      'pressure_gauge' => contohBentukLembarKerjaPressureGauge(
+        untukAdmin: untukAdmin,
+      ),
+      'vacuum_gauge' => contohBentukLembarKerjaVacuumGauge(
+        untukAdmin: untukAdmin,
+      ),
+      'differential_pressure' => contohBentukLembarKerjaDifferentialPressure(
+        untukAdmin: untukAdmin,
+      ),
+      // Keluarga PISTON VOLUME (alat ke-46..48). Tabel massa KUMULATIF M0..M10
+      // (`kumulatif: true`) + tabel suhu air.
+      'piston_pipette' => contohBentukLembarKerjaPistonPipette(
+        untukAdmin: untukAdmin,
+      ),
+      'dispensett' => contohBentukLembarKerjaDispensett(untukAdmin: untukAdmin),
+      'buret_digital' => contohBentukLembarKerjaBuretDigital(
         untukAdmin: untukAdmin,
       ),
       // Profil kosong / nggak dikenal SENGAJA jatuh ke pH, bukan lempar error —
