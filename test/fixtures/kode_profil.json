@@ -1,7 +1,7 @@
 {
     "_sumber": "CalibrationProfileRegistry::daftarProfil() di repo sidik-calibration-api. DIGENERATE docs/skrip/gen-kode-profil-mobile.php — jangan disunting tangan.",
     "_dipakai": "test/bentuk_mock_semua_profil_test.dart — menuntut tiap kode punya bentuk mock-nya sendiri, atau terdaftar di TANPA_BENTUK_MOCK berikut alasannya.",
-    "jumlah": 39,
+    "jumlah": 48,
     "profil": [
         {
             "kode": "anak_timbangan",
@@ -20,6 +20,10 @@
             "nama_alat_kemampuan": "Buret"
         },
         {
+            "kode": "buret_digital",
+            "nama_alat_kemampuan": "Buret Digital"
+        },
+        {
             "kode": "centrifuge",
             "nama_alat_kemampuan": "Centrifuge"
         },
@@ -34,6 +38,14 @@
         {
             "kode": "dial_indicator",
             "nama_alat_kemampuan": "Dial Indicator"
+        },
+        {
+            "kode": "differential_pressure",
+            "nama_alat_kemampuan": "Differential Pressure"
+        },
+        {
+            "kode": "dispensett",
+            "nama_alat_kemampuan": "Dispensett"
         },
         {
             "kode": "do_meter",
@@ -80,6 +92,10 @@
             "nama_alat_kemampuan": "Labu Ukur"
         },
         {
+            "kode": "load_cell",
+            "nama_alat_kemampuan": "Load Cell"
+        },
+        {
             "kode": "micrometer",
             "nama_alat_kemampuan": "Micrometer"
         },
@@ -102,6 +118,18 @@
         {
             "kode": "pipet_volume",
             "nama_alat_kemampuan": "Pipet Volume"
+        },
+        {
+            "kode": "piston_pipette",
+            "nama_alat_kemampuan": "Piston Pipette"
+        },
+        {
+            "kode": "pressure_gauge",
+            "nama_alat_kemampuan": "Pressure Gauge"
+        },
+        {
+            "kode": "proving_ring",
+            "nama_alat_kemampuan": "Proving Ring"
         },
         {
             "kode": "refractometer",
@@ -154,6 +182,14 @@
         {
             "kode": "turbidimeter",
             "nama_alat_kemampuan": "Turbidimeter"
+        },
+        {
+            "kode": "utm",
+            "nama_alat_kemampuan": "Mesin UTM"
+        },
+        {
+            "kode": "vacuum_gauge",
+            "nama_alat_kemampuan": "Vacuum Gauge"
         },
         {
             "kode": "viscometer",

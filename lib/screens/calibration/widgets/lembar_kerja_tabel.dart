@@ -151,6 +151,10 @@ class LembarKerjaTabel extends StatelessWidget {
       if (perlu > tinggi) tinggi = perlu;
     }
 
+    // Tabel kumulatif menggambar satu baris selisih di bawah tiap kotak. Sel
+    // label di kiri ikut setinggi itu, atau barisnya lari dari sel angkanya.
+    if (tabel.kumulatif) tinggi += ukur('Δ 0', gayaCatatan, double.infinity, 1);
+
     return (lebar: lebar, tinggi: tinggi);
   }
 
@@ -466,6 +470,12 @@ class LembarKerjaTabel extends StatelessWidget {
                                       kolom.kode,
                                       tabel.pengulangan.indexOf(r),
                                     ),
+                                    kumulatif: tabel.kumulatif,
+                                    sebelumnya: _kotakSebelumnya(
+                                      indexBaris,
+                                      kolom.kode,
+                                      r,
+                                    ),
                                   ),
                             ],
                           ),
@@ -534,6 +544,24 @@ class LembarKerjaTabel extends StatelessWidget {
               ),
         ],
       ],
+    );
+  }
+
+  /// Kotak di kiri kotak [r] pada baris yang sama — pembanding selisih tabel
+  /// kumulatif. Null di luar tabel kumulatif dan di kotak pertama (`M0`), yang
+  /// memang tidak punya pendahulu.
+  TextEditingController? _kotakSebelumnya(
+    int indexBaris,
+    String kodeKolom,
+    int r,
+  ) {
+    final urutan = tabel.pengulangan.indexOf(r);
+    if (!tabel.kumulatif || urutan <= 0) return null;
+
+    return isian.titik[isian.kunciBaris(_baris, indexBaris, tabel)]!.kotak(
+      tabel.kunciTabel,
+      kodeKolom,
+      urutan - 1,
     );
   }
 
@@ -1397,6 +1425,8 @@ class _SelAngka extends StatelessWidget {
     required this.controller,
     this.tanda = TandaSel.tidakAda,
     this.terkunci = false,
+    this.kumulatif = false,
+    this.sebelumnya,
   });
 
   final double lebar;
@@ -1423,6 +1453,14 @@ class _SelAngka extends StatelessWidget {
   /// alternatif satuan dari botol yang sama, bukan titik yang hilang.
   final bool terkunci;
 
+  /// Sel tabel kumulatif — di bawah kotaknya digambar selisih terhadap
+  /// [sebelumnya]. Lihat [TabelHasil.kumulatif].
+  final bool kumulatif;
+
+  /// Kotak di kirinya. Null di kotak pertama (`M0`): barisnya tetap
+  /// digambar kosong supaya semua kotak sebaris tetap sama tinggi.
+  final TextEditingController? sebelumnya;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -1441,43 +1479,112 @@ class _SelAngka extends StatelessWidget {
         ? null
         : OutlineInputBorder(borderSide: BorderSide(color: warna, width: 1.5));
 
+    final kotak = TextField(
+      controller: controller,
+      enabled: !terkunci,
+      textAlign: TextAlign.center,
+      style: theme.textTheme.bodySmall,
+      keyboardType: const TextInputType.numberWithOptions(
+        decimal: true,
+        signed: true,
+      ),
+      inputFormatters: [
+        // Koma diterima juga — formulir kertasnya pakai koma desimal, dan
+        // teknisi ngetik sesuai yang dia lihat. Dikonversi waktu parsing.
+        FilteringTextInputFormatter.allow(RegExp(r'^-?\d*[.,]?\d*')),
+      ],
+      decoration: InputDecoration(
+        isDense: true,
+        filled: warna != null || terkunci,
+        fillColor: warna != null
+            ? warna.withValues(alpha: 0.12)
+            : (terkunci
+                  ? theme.colorScheme.onSurface.withValues(alpha: 0.05)
+                  : null),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        border: const OutlineInputBorder(),
+        enabledBorder: borderTanda,
+        focusedBorder: borderTanda,
+      ),
+    );
+
     return SizedBox(
       width: lebar,
       height: tinggi,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
-        child: TextField(
-          controller: controller,
-          enabled: !terkunci,
-          textAlign: TextAlign.center,
-          style: theme.textTheme.bodySmall,
-          keyboardType: const TextInputType.numberWithOptions(
-            decimal: true,
-            signed: true,
-          ),
-          inputFormatters: [
-            // Koma diterima juga — formulir kertasnya pakai koma desimal, dan
-            // teknisi ngetik sesuai yang dia lihat. Dikonversi waktu parsing.
-            FilteringTextInputFormatter.allow(RegExp(r'^-?\d*[.,]?\d*')),
-          ],
-          decoration: InputDecoration(
-            isDense: true,
-            filled: warna != null || terkunci,
-            fillColor: warna != null
-                ? warna.withValues(alpha: 0.12)
-                : (terkunci
-                      ? theme.colorScheme.onSurface.withValues(alpha: 0.05)
-                      : null),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 4,
-              vertical: 8,
-            ),
-            border: const OutlineInputBorder(),
-            enabledBorder: borderTanda,
-            focusedBorder: borderTanda,
-          ),
-        ),
+        child: kumulatif
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(child: kotak),
+                  _SelisihKumulatif(kini: controller, sebelumnya: sebelumnya),
+                ],
+              )
+            : kotak,
       ),
+    );
+  }
+}
+
+/// Selisih `M_i − M_{i−1}` di bawah satu kotak tabel kumulatif.
+///
+/// Mendengarkan DUA kotak: mengetik ulang kotak kiri juga harus menggeser
+/// selisih kotak ini, bukan cuma selisih kotaknya sendiri.
+///
+/// Selisih negatif digambar merah. Massa kumulatif yang turun hampir selalu
+/// salah ketik, dan server menolaknya — kecuali tara ulang di atas 200 g pada
+/// `M4`/`M7` lembar graduated, yang tetap ditandai merah supaya dilihat dulu.
+class _SelisihKumulatif extends StatelessWidget {
+  const _SelisihKumulatif({required this.kini, required this.sebelumnya});
+
+  final TextEditingController kini;
+  final TextEditingController? sebelumnya;
+
+  /// Jumlah angka di belakang pemisah desimal yang DIKETIK. Selisihnya
+  /// ditampilkan sepresisi masukan yang paling teliti — `toString()` mentah
+  /// membawa ekor `…0000001` dari aritmetika biner.
+  static int _desimal(String teks) {
+    final t = teks.trim().replaceAll(',', '.');
+    final titik = t.indexOf('.');
+
+    return titik < 0 ? 0 : t.length - titik - 1;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final gaya = theme.textTheme.labelSmall;
+    final kiri = sebelumnya;
+
+    if (kiri == null) return Text('', style: gaya);
+
+    return ListenableBuilder(
+      listenable: Listenable.merge([kiri, kini]),
+      builder: (context, _) {
+        final a = parseAngka(kiri.text);
+        final b = parseAngka(kini.text);
+
+        if (a == null || b == null) return Text('', style: gaya);
+
+        final desimal = [
+          _desimal(kiri.text),
+          _desimal(kini.text),
+        ].reduce((x, y) => x > y ? x : y);
+        final selisih = b - a;
+
+        return Text(
+          'Δ ${selisih.toStringAsFixed(desimal).replaceAll('.', ',')}',
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: gaya?.copyWith(
+            color: selisih < 0
+                ? const Color(0xFFC62828)
+                : theme.colorScheme.onSurfaceVariant,
+          ),
+        );
+      },
     );
   }
 }

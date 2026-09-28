@@ -516,6 +516,7 @@ class TabelHasil {
     this.kolomBaris = const [],
     this.offsetKunci,
     this.pindaiFoto,
+    this.kumulatif = false,
   });
 
   /// `sebelum_adjustment` / `sesudah_adjustment`.
@@ -591,6 +592,18 @@ class TabelHasil {
   /// kosong"* — dan teknisi menyangka fotonya yang kurang terang, lalu
   /// mengulang jepretan sampai menyerah.
   final bool? pindaiFoto;
+
+  /// Angka yang diketik itu massa KUMULATIF di timbangan (`M0`..`M10`,
+  /// lembar piston volume `SIDIK-FM-CAL-0528`/`0529`) — bukan sepuluh
+  /// pembacaan yang berdiri sendiri.
+  ///
+  /// Yang dihitung server adalah selisihnya, `M_i − M_{i−1}`. Satu digit salah
+  /// ketik di M1..M9 (30,1368 → 30,7368) tidak menggeser rata-rata sama
+  /// sekali — selisih berurutan saling meniadakan — jadi tidak ada yang
+  /// kelihatan janggal di layar, padahal dua selisih di kiri-kanannya
+  /// melenceng 0,6 g ke arah berlawanan. Karena itu layar WAJIB menggambar
+  /// selisihnya di bawah tiap kotak.
+  final bool kumulatif;
 
   /// Nomor Repeat yang tercetak di lembar kerja, biasanya 1..5.
   final List<int> pengulangan;
@@ -860,6 +873,7 @@ class TabelHasil {
     kolomBaris: parseListAman(json['kolom_baris'], FieldLembarKerja.fromJson),
     offsetKunci: (json['offset_kunci'] as num?)?.toInt(),
     pindaiFoto: json['pindai_foto'] is bool ? json['pindai_foto'] as bool : null,
+    kumulatif: json['kumulatif'] == true,
   );
 }
 

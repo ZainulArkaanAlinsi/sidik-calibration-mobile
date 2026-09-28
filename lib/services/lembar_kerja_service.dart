@@ -10,8 +10,11 @@ import 'contoh_lembar_kerja_analitik.dart';
 import 'contoh_lembar_kerja_autoclave.dart';
 import 'contoh_lembar_kerja_dimensi.dart';
 import 'contoh_lembar_kerja_enclosure.dart';
+import 'contoh_lembar_kerja_gaya.dart';
 import 'contoh_lembar_kerja_massa.dart';
 import 'contoh_lembar_kerja_panjang.dart';
+import 'contoh_lembar_kerja_piston.dart';
+import 'contoh_lembar_kerja_tekanan.dart';
 import 'contoh_lembar_kerja_volumetric_glassware.dart';
 import 'contoh_lembar_kerja_volumetrik.dart';
 import 'contoh_lembar_kerja_waktu.dart';
@@ -401,6 +404,37 @@ class MockLembarKerjaService implements LembarKerjaService {
       'bath' => contohBentukLembarKerjaBath(untukAdmin: untukAdmin),
       'inkubator' => contohBentukLembarKerjaInkubator(untukAdmin: untukAdmin),
       'refrigerator' => contohBentukLembarKerjaRefrigerator(
+        untukAdmin: untukAdmin,
+      ),
+      // Keluarga GAYA (alat ke-40..42). Fixture-nya sudah ada sejak 25 Sep
+      // 2026 tapi tidak pernah disambung ke sini — ketahuan 28 Sep waktu
+      // `test/fixtures/kode_profil.json` digenerate ulang (39 → 48 profil):
+      // daftar yang basi membuat sapuan mock tidak pernah menanyakan ketiganya,
+      // dan mode mock memajang lembar pH untuk UTM, Load Cell & Proving Ring.
+      'utm' => contohBentukLembarKerjaUtm(untukAdmin: untukAdmin),
+      'load_cell' => contohBentukLembarKerjaLoadCell(untukAdmin: untukAdmin),
+      'proving_ring' => contohBentukLembarKerjaProvingRing(
+        untukAdmin: untukAdmin,
+      ),
+      // Keluarga TEKANAN (alat ke-43..45, kertas SIDIK-FM-CAL-0507). Dua tabel
+      // deret UP/DOWN yang barisnya sinkron — tanpa cabang ini mode mock
+      // memajang lembar pH untuk pressure gauge, tanpa error.
+      'pressure_gauge' => contohBentukLembarKerjaPressureGauge(
+        untukAdmin: untukAdmin,
+      ),
+      'vacuum_gauge' => contohBentukLembarKerjaVacuumGauge(
+        untukAdmin: untukAdmin,
+      ),
+      'differential_pressure' => contohBentukLembarKerjaDifferentialPressure(
+        untukAdmin: untukAdmin,
+      ),
+      // Keluarga PISTON VOLUME (alat ke-46..48). Tabel massa KUMULATIF M0..M10
+      // (`kumulatif: true`) + tabel suhu air.
+      'piston_pipette' => contohBentukLembarKerjaPistonPipette(
+        untukAdmin: untukAdmin,
+      ),
+      'dispensett' => contohBentukLembarKerjaDispensett(untukAdmin: untukAdmin),
+      'buret_digital' => contohBentukLembarKerjaBuretDigital(
         untukAdmin: untukAdmin,
       ),
       // Profil kosong / nggak dikenal SENGAJA jatuh ke pH, bukan lempar error —
