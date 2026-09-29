@@ -12,6 +12,9 @@ import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../providers/pengendalian_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/readable_width.dart';
+import '../../widgets/sidik/sidik_lembar.dart';
+import '../../widgets/sidik/sidik_permukaan.dart';
+import '../../widgets/sidik/sidik_status.dart';
 import '../pengesahan/antrean_pengesahan_screen.dart' show tanggalPendek;
 import 'penugasan_buat_screen.dart';
 
@@ -44,7 +47,9 @@ class PenugasanScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.md),
                 Text(
-                  bolehBagi ? l10n.penugasanKosongPembagi : l10n.penugasanKosongTeknisi,
+                  bolehBagi
+                      ? l10n.penugasanKosongPembagi
+                      : l10n.penugasanKosongTeknisi,
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -118,71 +123,59 @@ class _KartuPenugasan extends StatelessWidget {
     final m = SidikMaterial.of(context);
     final p = penugasan;
 
-    return Card(
-      child: InkWell(
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => DetailPenugasanScreen(penugasanId: p.id),
-          ),
+    return Kertas(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => DetailPenugasanScreen(penugasanId: p.id),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      ),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Icon(
-                    p.grup ? Icons.groups_outlined : Icons.person_outline,
-                    size: 18,
-                    color: m.tinta2,
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  Expanded(
-                    child: Text(p.judul, style: theme.textTheme.titleSmall),
-                  ),
-                  Text(
-                    '${p.persenTuntas}%',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
-                  ),
-                ],
+              Icon(
+                p.grup ? Icons.groups_outlined : Icons.person_outline,
+                size: 18,
+                color: m.tinta2,
               ),
-              const SizedBox(height: AppSpacing.sm),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(3),
-                child: LinearProgressIndicator(
-                  value: p.persenTuntas / 100,
-                  minHeight: 8,
-                  backgroundColor: m.kertas2,
-                  color: m.lulus,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(child: Text(p.judul, style: theme.textTheme.titleSmall)),
               Text(
-                p.baris.map((b) => '${b.jumlah} ${b.jenisAlat}').join(' · '),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                [
-                  if (p.tanggalTarget != null)
-                    l10n.penugasanTarget(tanggalPendek(p.tanggalTarget)),
-                  p.teknisi
-                      .map((t) => t.kode ?? t.nama)
-                      .join(', '),
-                ].where((s) => s.isNotEmpty).join(' · '),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: p.terlambat ? AppColors.statusPeringatan(context) : null,
-                  fontWeight: p.terlambat ? FontWeight.w700 : null,
+                '${p.persenTuntas}%',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: AppSpacing.sm),
+          SidikMeter(
+            nilai: p.persenTuntas / 100,
+            nada: m.lulus,
+            label: '${p.judul}: ${p.persenTuntas}%',
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            p.baris.map((b) => '${b.jumlah} ${b.jenisAlat}').join(' · '),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            [
+              if (p.tanggalTarget != null)
+                l10n.penugasanTarget(tanggalPendek(p.tanggalTarget)),
+              p.teknisi.map((t) => t.kode ?? t.nama).join(', '),
+            ].where((s) => s.isNotEmpty).join(' · '),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: p.terlambat ? AppColors.statusPeringatan(context) : null,
+              fontWeight: p.terlambat ? FontWeight.w700 : null,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -249,58 +242,81 @@ class _DetailPenugasanScreenState extends ConsumerState<DetailPenugasanScreen> {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: CircleAvatar(
-                  child: Text(t.kode ?? (t.nama.isEmpty ? '?' : t.nama.substring(0, 1))),
+                  child: Text(
+                    t.kode ?? (t.nama.isEmpty ? '?' : t.nama.substring(0, 1)),
+                  ),
                 ),
                 title: Text(t.nama),
                 subtitle: Text(
                   t.dilihatPada == null
                       ? l10n.penugasanBelumDilihat
-                      : l10n.penugasanSudahDilihat(tanggalPendek(t.dilihatPada)),
+                      : l10n.penugasanSudahDilihat(
+                          tanggalPendek(t.dilihatPada),
+                        ),
                 ),
                 trailing: t.peran == 'ketua'
-                    ? Chip(label: Text(l10n.penugasanKetua))
+                    ? SidikLencana(
+                        StatusSidik(
+                          l10n.penugasanKetua,
+                          NadaStatus.draf,
+                          Icons.flag_outlined,
+                        ),
+                      )
                     : null,
               ),
             const SizedBox(height: AppSpacing.md),
             Text(l10n.penugasanRincian, style: theme.textTheme.titleSmall),
             const SizedBox(height: AppSpacing.xs),
             for (final b in p.baris)
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(b.jenisAlat, style: theme.textTheme.titleSmall),
-                            Text(
-                              l10n.penugasanSelesaiDari(b.jumlahSelesai, b.jumlah),
-                              style: theme.textTheme.bodySmall,
+              Kertas(
+                margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(b.jenisAlat, style: theme.textTheme.titleSmall),
+                          Text(
+                            l10n.penugasanSelesaiDari(
+                              b.jumlahSelesai,
+                              b.jumlah,
                             ),
-                          ],
-                        ),
+                            style: theme.textTheme.bodySmall,
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
+                          SidikMeter(
+                            nilai: b.jumlah == 0
+                                ? 0
+                                : b.jumlahSelesai / b.jumlah,
+                            tinggi: 6,
+                            label: l10n.penugasanSelesaiDari(
+                              b.jumlahSelesai,
+                              b.jumlah,
+                            ),
+                          ),
+                        ],
                       ),
-                      // Pencacah −/+ bukan kolom ketik: teknisi melapor dengan
-                      // sarung tangan di lab, dan dua tombol besar lebih jarang
-                      // salah daripada papan ketik angka.
-                      if (bolehLapor && p.aktif && b.id != null) ...[
-                        IconButton(
-                          tooltip: l10n.penugasanKurangi,
-                          icon: const Icon(Icons.remove_circle_outline),
-                          onPressed: b.jumlahSelesai == 0
-                              ? null
-                              : () => _lapor(b.id!, b.jumlahSelesai - 1),
-                        ),
-                        IconButton(
-                          tooltip: l10n.penugasanTambah,
-                          icon: const Icon(Icons.add_circle_outline),
-                          onPressed: () => _lapor(b.id!, b.jumlahSelesai + 1),
-                        ),
-                      ],
+                    ),
+                    // Pencacah −/+ bukan kolom ketik: teknisi melapor dengan
+                    // sarung tangan di lab, dan dua tombol besar lebih jarang
+                    // salah daripada papan ketik angka.
+                    if (bolehLapor && p.aktif && b.id != null) ...[
+                      IconButton(
+                        tooltip: l10n.penugasanKurangi,
+                        icon: const Icon(Icons.remove_circle_outline),
+                        onPressed: b.jumlahSelesai == 0
+                            ? null
+                            : () => _lapor(b.id!, b.jumlahSelesai - 1),
+                      ),
+                      IconButton(
+                        tooltip: l10n.penugasanTambah,
+                        icon: const Icon(Icons.add_circle_outline),
+                        onPressed: () => _lapor(b.id!, b.jumlahSelesai + 1),
+                      ),
                     ],
-                  ),
+                  ],
                 ),
               ),
           ],
@@ -312,7 +328,9 @@ class _DetailPenugasanScreenState extends ConsumerState<DetailPenugasanScreen> {
   Future<void> _lapor(int barisId, int jumlah) async {
     final messenger = ScaffoldMessenger.of(context);
     try {
-      await ref.read(daftarPenugasanProvider.notifier).laporProgres(barisId, jumlah);
+      await ref
+          .read(daftarPenugasanProvider.notifier)
+          .laporProgres(barisId, jumlah);
     } catch (e) {
       messenger.showSnackBar(
         SnackBar(content: Text('$e'.replaceFirst('Exception: ', ''))),

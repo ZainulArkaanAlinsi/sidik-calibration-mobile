@@ -8062,7 +8062,7 @@ abstract class AppLocalizations {
   /// No description provided for @pengesahanGagalMuat.
   ///
   /// In en, this message translates to:
-  /// **'Couldn't load the sign-off queue.'**
+  /// **'Couldn\'t load the sign-off queue.'**
   String get pengesahanGagalMuat;
 
   /// No description provided for @pelacakanJudul.
@@ -8092,7 +8092,7 @@ abstract class AppLocalizations {
   /// No description provided for @pelacakanGagalMuat.
   ///
   /// In en, this message translates to:
-  /// **'Couldn't load orders.'**
+  /// **'Couldn\'t load orders.'**
   String get pelacakanGagalMuat;
 
   /// No description provided for @pelacakanSelesaiDari.
@@ -8182,7 +8182,7 @@ abstract class AppLocalizations {
   /// No description provided for @penugasanGagalMuat.
   ///
   /// In en, this message translates to:
-  /// **'Couldn't load assignments.'**
+  /// **'Couldn\'t load assignments.'**
   String get penugasanGagalMuat;
 
   /// No description provided for @penugasanTarget.

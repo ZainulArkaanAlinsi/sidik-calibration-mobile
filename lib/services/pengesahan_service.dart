@@ -57,7 +57,7 @@ class ApiPengesahanService implements PengesahanService {
         token: token,
         body: {
           if (abaikanPeringatan) 'abaikan_peringatan': true,
-          if (berlakuSampai != null) 'berlaku_sampai': berlakuSampai,
+          'berlaku_sampai': ?berlakuSampai,
         },
       );
       return json['message'] as String? ?? '';

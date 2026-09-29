@@ -4553,13 +4553,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pengesahanTarik => 'Withdraw';
 
   @override
-  String get pengesahanBerhasil => 'Signed off. The certificate is being issued.';
+  String get pengesahanBerhasil =>
+      'Signed off. The certificate is being issued.';
 
   @override
   String get pengesahanWewenangJudul => 'Separation of duties';
 
   @override
-  String get pengesahanWewenangCatat => 'If you continue, this is recorded in the audit trail.';
+  String get pengesahanWewenangCatat =>
+      'If you continue, this is recorded in the audit trail.';
 
   @override
   String get pengesahanTetapSahkan => 'Sign off anyway';
@@ -4582,10 +4584,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pengesahanKosong => 'The queue is empty';
 
   @override
-  String get pengesahanKosongPengesah => 'Nothing is waiting for your sign-off.';
+  String get pengesahanKosongPengesah =>
+      'Nothing is waiting for your sign-off.';
 
   @override
-  String get pengesahanKosongAdmin => 'None of your approvals are waiting for sign-off.';
+  String get pengesahanKosongAdmin =>
+      'None of your approvals are waiting for sign-off.';
 
   @override
   String get pengesahanGagalMuat => 'Couldn\'t load the sign-off queue.';
@@ -4652,7 +4656,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get penugasanTugaskan => 'Assign';
 
   @override
-  String get penugasanKosongPembagi => 'No assignments yet. Tap Assign to split the work among technicians.';
+  String get penugasanKosongPembagi =>
+      'No assignments yet. Tap Assign to split the work among technicians.';
 
   @override
   String get penugasanKosongTeknisi => 'No tasks for you right now.';
@@ -4706,7 +4711,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get penugasanPilihTeknisi => 'Technicians';
 
   @override
-  String get penugasanKetuaPertama => 'The first one you pick becomes the lead.';
+  String get penugasanKetuaPertama =>
+      'The first one you pick becomes the lead.';
 
   @override
   String get penugasanTeknisiKosong => 'No active technicians yet.';
@@ -4736,7 +4742,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get penugasanGalatTeknisi => 'Pick at least one technician.';
 
   @override
-  String get penugasanGalatBaris => 'Add at least one instrument type with a quantity.';
+  String get penugasanGalatBaris =>
+      'Add at least one instrument type with a quantity.';
 
   @override
   String get kelolaJudul => 'Manage lab';
@@ -4769,11 +4776,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kelolaSemua => 'All lab settings';
 
   @override
-  String get kelolaSemuaSub => 'Customers, standards, technicians, methods, formulas, rooms, signatures, organization, Excel import';
+  String get kelolaSemuaSub =>
+      'Customers, standards, technicians, methods, formulas, rooms, signatures, organization, Excel import';
 
   @override
-  String get menuCatatanSuperAdmin => 'Signs off certificates before they are issued. Does not approve sessions or edit worksheets.';
+  String get menuCatatanSuperAdmin =>
+      'Signs off certificates before they are issued. Does not approve sessions or edit worksheets.';
 
   @override
-  String get menuCatatanViewer => 'This account can only view. Need to fill in or review? Ask an admin to change your role.';
+  String get menuCatatanViewer =>
+      'This account can only view. Need to fill in or review? Ask an admin to change your role.';
 }

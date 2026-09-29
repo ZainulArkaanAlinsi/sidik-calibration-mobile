@@ -25,6 +25,40 @@ Future<String> _token(Ref ref) async {
   return token;
 }
 
+/// Kata cari & saringan layar disimpan di provider sendiri, BUKAN di field
+/// controller.
+///
+/// Riverpod 3 membuat ulang `Notifier` tiap kali provider-nya di-invalidate —
+/// dan `realtimeSyncProvider` meng-invalidate ketiga daftar di bawah begitu ada
+/// perubahan dari perangkat lain. Kalau saringannya field, admin yang sedang
+/// menyaring "terlambat" mendadak melihat daftar penuh begitu HP lain menandai
+/// satu serah terima. Ikut `authProvider`: ganti akun → saringan kembali kosong.
+class _Saringan<T> extends Notifier<T> {
+  _Saringan(this._awal);
+
+  final T _awal;
+
+  @override
+  T build() {
+    ref.watch(authProvider);
+    return _awal;
+  }
+
+  void setel(T nilai) => state = nilai;
+}
+
+final _cariPengesahanProvider = NotifierProvider<_Saringan<String>, String>(
+  () => _Saringan(''),
+);
+
+final _cariPaketProvider = NotifierProvider<_Saringan<String>, String>(
+  () => _Saringan(''),
+);
+
+final _paketTerlambatProvider = NotifierProvider<_Saringan<bool>, bool>(
+  () => _Saringan(false),
+);
+
 // ── Pengesahan ──────────────────────────────────────────────────────────────
 
 final pengesahanServiceProvider = Provider<PengesahanService>((ref) {
@@ -40,18 +74,16 @@ final antreanPengesahanProvider =
 
 class AntreanPengesahanController extends AsyncNotifier<List<ItemPengesahan>>
     with PenjagaUrutanMuat<List<ItemPengesahan>> {
-  String _cari = '';
-
   @override
   Future<List<ItemPengesahan>> build() async {
     ref.watch(authProvider);
     return ref
         .read(pengesahanServiceProvider)
-        .antrean(await _token(ref), cari: _cari);
+        .antrean(await _token(ref), cari: ref.read(_cariPengesahanProvider));
   }
 
   Future<void> cari(String q) async {
-    _cari = q;
+    ref.read(_cariPengesahanProvider.notifier).setel(q);
     await muatDenganPenjaga(build);
   }
 
@@ -62,7 +94,11 @@ class AntreanPengesahanController extends AsyncNotifier<List<ItemPengesahan>>
   Future<String> sahkan(int sesiId, {bool abaikanPeringatan = false}) async {
     final pesan = await ref
         .read(pengesahanServiceProvider)
-        .sahkan(await _token(ref), sesiId, abaikanPeringatan: abaikanPeringatan);
+        .sahkan(
+          await _token(ref),
+          sesiId,
+          abaikanPeringatan: abaikanPeringatan,
+        );
     await muatUlang();
     return pesan;
   }
@@ -99,26 +135,27 @@ final daftarPaketProvider =
 
 class DaftarPaketController extends AsyncNotifier<List<PaketLacak>>
     with PenjagaUrutanMuat<List<PaketLacak>> {
-  String _cari = '';
-  bool _terlambat = false;
-
-  bool get cumaTerlambat => _terlambat;
+  bool get cumaTerlambat => ref.read(_paketTerlambatProvider);
 
   @override
   Future<List<PaketLacak>> build() async {
     ref.watch(authProvider);
     return ref
         .read(pelacakanServiceProvider)
-        .daftar(await _token(ref), cari: _cari, terlambat: _terlambat);
+        .daftar(
+          await _token(ref),
+          cari: ref.read(_cariPaketProvider),
+          terlambat: ref.read(_paketTerlambatProvider),
+        );
   }
 
   Future<void> cari(String q) async {
-    _cari = q;
+    ref.read(_cariPaketProvider.notifier).setel(q);
     await muatDenganPenjaga(build);
   }
 
   Future<void> saringTerlambat(bool nyala) async {
-    _terlambat = nyala;
+    ref.read(_paketTerlambatProvider.notifier).setel(nyala);
     await muatDenganPenjaga(build);
   }
 
@@ -188,7 +225,9 @@ class DaftarPenugasanController extends AsyncNotifier<List<Penugasan>>
   /// dilihat", dan layar kosong karena itu jauh lebih merugikan.
   Future<void> tandaiDilihat(int id) async {
     try {
-      await ref.read(penugasanServiceProvider).tandaiDilihat(await _token(ref), id);
+      await ref
+          .read(penugasanServiceProvider)
+          .tandaiDilihat(await _token(ref), id);
     } catch (_) {}
   }
 }

@@ -4442,7 +4442,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get ttdPratinjauCetak => 'Pratinjau di sertifikat';
 
   @override
-  String get ttdPratinjauGaris => 'Nama & jabatan penandatangan tercetak di sini';
+  String get ttdPratinjauGaris =>
+      'Nama & jabatan penandatangan tercetak di sini';
 
   @override
   String get pengesahanJudul => 'Pengesahan sertifikat';
@@ -4487,7 +4488,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get pengesahanWewenangJudul => 'Pemisahan wewenang';
 
   @override
-  String get pengesahanWewenangCatat => 'Kalau dilanjutkan, ini tercatat di riwayat audit.';
+  String get pengesahanWewenangCatat =>
+      'Kalau dilanjutkan, ini tercatat di riwayat audit.';
 
   @override
   String get pengesahanTetapSahkan => 'Tetap sahkan';
@@ -4510,10 +4512,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get pengesahanKosong => 'Antrean kosong';
 
   @override
-  String get pengesahanKosongPengesah => 'Tidak ada yang menunggu pengesahan Anda.';
+  String get pengesahanKosongPengesah =>
+      'Tidak ada yang menunggu pengesahan Anda.';
 
   @override
-  String get pengesahanKosongAdmin => 'Tidak ada approval Anda yang sedang menunggu pengesahan.';
+  String get pengesahanKosongAdmin =>
+      'Tidak ada approval Anda yang sedang menunggu pengesahan.';
 
   @override
   String get pengesahanGagalMuat => 'Antrean pengesahan gagal dimuat.';
@@ -4580,7 +4584,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get penugasanTugaskan => 'Tugaskan';
 
   @override
-  String get penugasanKosongPembagi => 'Belum ada penugasan. Ketuk Tugaskan untuk membagi pekerjaan ke teknisi.';
+  String get penugasanKosongPembagi =>
+      'Belum ada penugasan. Ketuk Tugaskan untuk membagi pekerjaan ke teknisi.';
 
   @override
   String get penugasanKosongTeknisi => 'Belum ada tugas untuk Anda.';
@@ -4664,7 +4669,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get penugasanGalatTeknisi => 'Pilih minimal satu teknisi.';
 
   @override
-  String get penugasanGalatBaris => 'Isi minimal satu jenis alat beserta jumlahnya.';
+  String get penugasanGalatBaris =>
+      'Isi minimal satu jenis alat beserta jumlahnya.';
 
   @override
   String get kelolaJudul => 'Kelola lab';
@@ -4697,11 +4703,14 @@ class AppLocalizationsId extends AppLocalizations {
   String get kelolaSemua => 'Semua pengaturan lab';
 
   @override
-  String get kelolaSemuaSub => 'Pelanggan, standar, teknisi, metode, rumus, ruangan, tanda tangan, organisasi, impor Excel';
+  String get kelolaSemuaSub =>
+      'Pelanggan, standar, teknisi, metode, rumus, ruangan, tanda tangan, organisasi, impor Excel';
 
   @override
-  String get menuCatatanSuperAdmin => 'Mengesahkan sertifikat sebelum terbit. Tidak menyetujui sesi dan tidak mengedit lembar kerja.';
+  String get menuCatatanSuperAdmin =>
+      'Mengesahkan sertifikat sebelum terbit. Tidak menyetujui sesi dan tidak mengedit lembar kerja.';
 
   @override
-  String get menuCatatanViewer => 'Akun ini cuma bisa melihat. Perlu mengisi atau memeriksa? Minta admin mengganti peranmu.';
+  String get menuCatatanViewer =>
+      'Akun ini cuma bisa melihat. Perlu mengisi atau memeriksa? Minta admin mengganti peranmu.';
 }

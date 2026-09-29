@@ -37,7 +37,9 @@ class ApiPenugasanService implements PenugasanService {
 
   @override
   Future<List<Penugasan>> daftar(String token, {String? status}) async {
-    final q = status == null ? '' : '?status=${Uri.encodeQueryComponent(status)}';
+    final q = status == null
+        ? ''
+        : '?status=${Uri.encodeQueryComponent(status)}';
     final json = await _api.get('/penugasan$q', token: token);
     final data = json['data'] as List<dynamic>? ?? const [];
     return [
@@ -70,7 +72,8 @@ class ApiPenugasanService implements PenugasanService {
         'item': [for (final b in baris) b.keJson()],
         if (tanggalTarget != null)
           'tanggal_target': tanggalTarget.toIso8601String().substring(0, 10),
-        if (catatan != null && catatan.trim().isNotEmpty) 'catatan': catatan.trim(),
+        if (catatan != null && catatan.trim().isNotEmpty)
+          'catatan': catatan.trim(),
       },
     );
     return Penugasan.fromJson(json['data'] as Map<String, dynamic>);
@@ -86,10 +89,7 @@ class ApiPenugasanService implements PenugasanService {
     final json = await _api.patch(
       '/penugasan/item/$barisId',
       token: token,
-      body: {
-        'jumlah_selesai': jumlahSelesai,
-        if (catatan != null) 'catatan': catatan,
-      },
+      body: {'jumlah_selesai': jumlahSelesai, 'catatan': ?catatan},
     );
     return Penugasan.fromJson(json['data'] as Map<String, dynamic>);
   }
@@ -112,12 +112,32 @@ class MockPenugasanService implements PenugasanService {
       persenTuntas: 43,
       dibuatOleh: 'Alex Mursito',
       teknisi: const [
-        AnggotaPenugasan(id: 2, nama: 'Rizky Pratama', kode: 'RZP', peran: 'ketua'),
-        AnggotaPenugasan(id: 5, nama: 'Hana Wijayanti', kode: 'HWJ', peran: 'anggota'),
+        AnggotaPenugasan(
+          id: 2,
+          nama: 'Rizky Pratama',
+          kode: 'RZP',
+          peran: 'ketua',
+        ),
+        AnggotaPenugasan(
+          id: 5,
+          nama: 'Hana Wijayanti',
+          kode: 'HWJ',
+          peran: 'anggota',
+        ),
       ],
       baris: const [
-        BarisPenugasan(id: 1, jenisAlat: 'Autoklaf', jumlah: 4, jumlahSelesai: 2),
-        BarisPenugasan(id: 2, jenisAlat: 'Timbangan analitik', jumlah: 3, jumlahSelesai: 1),
+        BarisPenugasan(
+          id: 1,
+          jenisAlat: 'Autoklaf',
+          jumlah: 4,
+          jumlahSelesai: 2,
+        ),
+        BarisPenugasan(
+          id: 2,
+          jenisAlat: 'Timbangan analitik',
+          jumlah: 3,
+          jumlahSelesai: 1,
+        ),
       ],
     ),
   ];

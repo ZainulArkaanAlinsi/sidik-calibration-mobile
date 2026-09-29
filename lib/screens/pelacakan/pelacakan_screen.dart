@@ -14,6 +14,7 @@ import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../providers/pengendalian_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/readable_width.dart';
+import '../../widgets/sidik/sidik_lembar.dart';
 import '../../widgets/skeleton.dart';
 import '../pengesahan/antrean_pengesahan_screen.dart' show tanggalPendek;
 
@@ -117,7 +118,10 @@ class _PelacakanScreenState extends ConsumerState<PelacakanScreen> {
               ),
             ),
             Expanded(
-              child: RefreshIndicator(onRefresh: notifier.muatUlang, child: isi),
+              child: RefreshIndicator(
+                onRefresh: notifier.muatUlang,
+                child: isi,
+              ),
             ),
           ],
         ),
@@ -152,7 +156,10 @@ class _KartuPaket extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Text(paket.nomor, style: theme.textTheme.labelMedium),
+                    child: Text(
+                      paket.nomor,
+                      style: theme.textTheme.labelMedium,
+                    ),
                   ),
                   if (paket.terlambatHari != null)
                     Text(
@@ -173,14 +180,14 @@ class _KartuPaket extends StatelessWidget {
                   style: theme.textTheme.titleSmall,
                 ),
               const SizedBox(height: AppSpacing.sm),
-              // Meteran kemajuan: bilah cekung di kertas, isinya satu warna.
-              ClipRRect(
-                borderRadius: BorderRadius.circular(3),
-                child: LinearProgressIndicator(
-                  value: paket.persenSelesai,
-                  minHeight: 8,
-                  backgroundColor: m.kertas2,
-                  color: m.lulus,
+              // Meteran kemajuan: meteran vernier yang sama dengan penugasan,
+              // supaya "berapa persen selesai" terbaca sama di seluruh app.
+              SidikMeter(
+                nilai: paket.persenSelesai,
+                nada: m.lulus,
+                label: l10n.pelacakanSelesaiDari(
+                  paket.jumlahSelesai,
+                  paket.jumlahAlat,
                 ),
               ),
               const SizedBox(height: AppSpacing.xs),
@@ -326,7 +333,9 @@ class _GarisWaktu extends StatelessWidget {
                             Expanded(
                               child: Container(
                                 width: 2,
-                                color: langkah[i].lewat ? m.lulus : m.kertasTepi,
+                                color: langkah[i].lewat
+                                    ? m.lulus
+                                    : m.kertasTepi,
                               ),
                             ),
                         ],
@@ -400,10 +409,7 @@ class _BarisAlat extends ConsumerWidget {
               ),
             ),
             if (alat.nomorSertifikat != null)
-              Text(
-                alat.nomorSertifikat!,
-                style: theme.textTheme.bodySmall,
-              ),
+              Text(alat.nomorSertifikat!, style: theme.textTheme.bodySmall),
             if (alat.diserahkanKepada != null)
               Text(
                 l10n.pelacakanDiserahkanKepada(alat.diserahkanKepada!),
@@ -495,7 +501,11 @@ class _Pesan extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.xl),
       children: [
-        Icon(ikon, size: 48, color: Theme.of(context).colorScheme.onSurfaceVariant),
+        Icon(
+          ikon,
+          size: 48,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
         const SizedBox(height: AppSpacing.md),
         Text(teks, textAlign: TextAlign.center),
         if (onCobaLagi != null) ...[

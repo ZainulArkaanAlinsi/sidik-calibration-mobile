@@ -7,8 +7,8 @@ import '../../models/penugasan.dart';
 import '../../models/user.dart';
 import '../../providers/master_data_provider.dart';
 import '../../providers/pengendalian_provider.dart';
-import '../../widgets/app_button.dart';
 import '../../widgets/readable_width.dart';
+import '../../widgets/sidik/sidik_tombol.dart';
 import '../pengesahan/antrean_pengesahan_screen.dart' show tanggalPendek;
 
 /// Tugaskan teknisi — personal atau grup, dengan baris "+" jenis alat &
@@ -55,7 +55,8 @@ class _PenugasanBuatScreenState extends ConsumerState<PenugasanBuatScreen> {
 
   List<BarisPenugasan> get _barisValid => [
     for (final b in _baris)
-      if (b.jenis.text.trim().isNotEmpty && (int.tryParse(b.jumlah.text) ?? 0) > 0)
+      if (b.jenis.text.trim().isNotEmpty &&
+          (int.tryParse(b.jumlah.text) ?? 0) > 0)
         BarisPenugasan(
           jenisAlat: b.jenis.text.trim(),
           jumlah: int.parse(b.jumlah.text),
@@ -106,7 +107,9 @@ class _PenugasanBuatScreenState extends ConsumerState<PenugasanBuatScreen> {
     final theme = Theme.of(context);
     final pengguna = ref.watch(userListProvider).value ?? const <User>[];
     final teknisi = pengguna
-        .where((u) => u.role == UserRole.teknisi && u.status == UserStatus.aktif)
+        .where(
+          (u) => u.role == UserRole.teknisi && u.status == UserStatus.aktif,
+        )
         .toList();
 
     return Scaffold(
@@ -147,7 +150,10 @@ class _PenugasanBuatScreenState extends ConsumerState<PenugasanBuatScreen> {
             Text(l10n.penugasanKetuaPertama, style: theme.textTheme.bodySmall),
             const SizedBox(height: AppSpacing.sm),
             if (teknisi.isEmpty)
-              Text(l10n.penugasanTeknisiKosong, style: theme.textTheme.bodySmall)
+              Text(
+                l10n.penugasanTeknisiKosong,
+                style: theme.textTheme.bodySmall,
+              )
             else
               Wrap(
                 spacing: AppSpacing.sm,
@@ -231,11 +237,14 @@ class _PenugasanBuatScreenState extends ConsumerState<PenugasanBuatScreen> {
               Text(_galat!, style: TextStyle(color: theme.colorScheme.error)),
             ],
             const SizedBox(height: AppSpacing.lg),
-            AppButton(
+            // Satu-satunya aksi utama layar ini — ragam `utama` dipakai sekali.
+            SidikTombol(
               label: l10n.penugasanKirim,
-              icon: Icons.send_outlined,
-              isLoading: _sibuk,
-              onPressed: _sibuk ? null : _simpan,
+              ikon: Icons.send_outlined,
+              ragam: RagamTombol.utama,
+              penuh: true,
+              sibuk: _sibuk,
+              onPressed: _simpan,
             ),
           ],
         ),

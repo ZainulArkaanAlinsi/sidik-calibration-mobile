@@ -80,9 +80,9 @@ class SelLembar extends StatelessWidget {
 
     return Semantics(
       label: [
-        if (label != null) label,
+        ?label,
         if (kosong) 'kosong' else nilai,
-        if (keterangan != null) keterangan,
+        ?keterangan,
       ].whereType<String>().join(', '),
       excludeSemantics: true,
       button: onTap != null,
@@ -274,10 +274,7 @@ class SidikMeter extends StatelessWidget {
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [
-                          Color.lerp(warna, Colors.white, 0.28)!,
-                          warna,
-                        ],
+                        colors: [Color.lerp(warna, Colors.white, 0.28)!, warna],
                       ),
                     ),
                   ),
