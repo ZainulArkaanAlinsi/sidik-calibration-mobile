@@ -241,6 +241,12 @@ class _IsiState extends ConsumerState<_Isi> {
           ),
           const SizedBox(height: AppSpacing.md),
 
+          // Pratinjau CETAK yang ikut bergerak waktu slider digeser. Dulu admin
+          // menggeser milimeter "buta" lalu harus menerbitkan sertifikat untuk
+          // melihat hasilnya — dan sertifikat yang terbit tidak bisa ditarik.
+          _PratinjauCetak(gambar: data.gambar, posisi: posisi),
+          const SizedBox(height: AppSpacing.md),
+
           _Geser(
             label: l10n.ttdGeserX(posisi.geserXMm.toStringAsFixed(1)),
             catatan: l10n.ttdArahX,
@@ -278,6 +284,111 @@ class _IsiState extends ConsumerState<_Isi> {
                 : () => _simpanPosisi(posisi),
           ),
         ],
+      ],
+    );
+  }
+}
+
+/// Pratinjau letak tanda tangan DI SERTIFIKAT, skala sebenarnya.
+///
+/// Geometrinya disalin dari `resources/views/sertifikat/pdf.blade.php` di repo
+/// API — bukan dikarang:
+/// - kotak `.ruang-ttd` setinggi 86 px CSS = 22,76 mm (96 dpi), dipatok dan
+///   dijaga `UkuranTandaTanganTest`;
+/// - garis tanda tangan terukur 10,76 → 82,06 mm = 71,3 mm di sertifikat
+///   012-CAL-524;
+/// - gambar DITENGAHKAN di atas garis, jangkarnya di BAWAH kotak; `geser_x`
+///   relatif dari tengah (+ = kanan), `geser_y` + = NAIK;
+/// - tinggi gambar dijepit ke kotak (gambar tidak boleh meluber ke tabel di
+///   atasnya), jadi di sini pakai `BoxFit.contain` dalam kotak selebar
+///   `lebarMm` × setinggi kotak.
+///
+/// Ini pratinjau, bukan render dompdf. Yang dijamin sama: arah & besar geser,
+/// lebar, dan batas kotak — tiga hal yang diatur slider di bawahnya.
+class _PratinjauCetak extends StatelessWidget {
+  const _PratinjauCetak({required this.gambar, required this.posisi});
+
+  final dynamic gambar;
+  final TandaTanganPosisi posisi;
+
+  static const _lebarGarisMm = 71.3;
+  static const _tinggiKotakMm = 22.76;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.ttdPratinjauCetak, style: theme.textTheme.titleSmall),
+        const SizedBox(height: AppSpacing.xs),
+        // Latar PUTIH dipaksa di dua tema: ini cermin kertas sertifikat, dan
+        // sertifikat tidak ikut tema gelap.
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: theme.dividerColor),
+          ),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+          child: LayoutBuilder(
+            builder: (context, batas) {
+              // Skala mm → px layar dari lebar yang tersedia.
+              final skala = batas.maxWidth / _lebarGarisMm;
+              final tinggiKotak = _tinggiKotakMm * skala;
+              final lebarGambar = posisi.lebarMm * skala;
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(
+                    height: tinggiKotak,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        // Batas kotak, putus-putus tipis: di luar garis ini
+                        // gambar tidak akan tercetak.
+                        Positioned.fill(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: const Color(0x33000000),
+                                width: 0.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (gambar != null)
+                          Positioned(
+                            // Tengah + geser. Kiri dihitung dari tengah kotak.
+                            left: (batas.maxWidth - lebarGambar) / 2 +
+                                posisi.geserXMm * skala,
+                            bottom: posisi.geserYMm * skala,
+                            width: lebarGambar,
+                            height: tinggiKotak,
+                            child: Image.memory(
+                              gambar,
+                              fit: BoxFit.contain,
+                              alignment: Alignment.bottomCenter,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const Divider(color: Color(0xFF333333), height: 1, thickness: 1),
+                  const SizedBox(height: 3),
+                  Text(
+                    l10n.ttdPratinjauGaris,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Color(0xFF333333), fontSize: 11),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
       ],
     );
   }

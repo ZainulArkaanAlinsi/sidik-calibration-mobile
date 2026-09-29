@@ -35,6 +35,10 @@ enum UserRole {
 
   bool get isAdmin => this == UserRole.admin;
 
+  /// Pengesah sertifikat (keputusan 26 Sep §1). Baca semua; tulisnya cuma
+  /// pengesahan, pengembalian dari pengesahan, dan penugasan.
+  bool get isSuperAdmin => this == UserRole.superAdmin;
+
   /// Boleh input alat & kalibrasi. Viewer & super admin read-only.
   bool get bisaInput => this == UserRole.admin || this == UserRole.teknisi;
 

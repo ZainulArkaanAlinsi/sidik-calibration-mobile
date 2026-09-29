@@ -72,10 +72,13 @@ void main() {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
-    // PT Maju Jaya (jumlahAlat: 3) — tombol hapus pertama di list.
-    await tester.tap(find.byIcon(Icons.delete_outline).first);
+    // PT Maju Jaya (jumlahAlat: 3) — hapus sekarang di balik menu ⋮ baris
+    // pertama, bukan ikon tong sampah telanjang (redesign "Meja Kerja Lab").
+    await tester.tap(find.byIcon(Icons.more_vert).first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Hapus'));
+    await tester.tap(find.text('Hapus')); // item menu
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Hapus')); // tombol di dialog konfirmasi
     await tester.pumpAndSettle();
 
     expect(

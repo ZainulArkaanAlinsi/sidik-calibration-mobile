@@ -28,7 +28,10 @@ class RuanganListScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(l10n.ruanganTitle)),
       // Tombol tambah cuma buat admin — backend nolak yang lain dengan 403,
       // jadi nawarin tombolnya cuma bikin orang nabrak dinding.
-      floatingActionButton: admin
+      // FAB cuma muncul kalau daftarnya SUDAH berisi. Waktu kosong, tombolnya
+      // ada di tengah keadaan kosong itu sendiri — satu ajakan, di tempat mata
+      // sedang membaca, bukan dua tombol yang sama di dua pojok layar.
+      floatingActionButton: admin && (daftar.value?.isNotEmpty ?? false)
           ? FloatingActionButton.extended(
               onPressed: () => _formRuangan(context, ref, null),
               icon: const Icon(Icons.add),
@@ -45,7 +48,11 @@ class RuanganListScreen extends ConsumerWidget {
                 ref.read(daftarRuanganProvider.notifier).muatUlang(),
           ),
           data: (list) => list.isEmpty
-              ? _Kosong(pesan: l10n.ruanganKosong)
+              ? _Kosong(
+                  pesan: l10n.ruanganKosong,
+                  labelTambah: admin ? l10n.ruanganTambah : null,
+                  onTambah: admin ? () => _formRuangan(context, ref, null) : null,
+                )
               : DaftarKartuAdaptif(
                   // Bawahnya dikasih 80: tombol tambah yang mengambang nutupin
                   // kartu terakhir kalau nggak dikasih ruang.
@@ -367,19 +374,41 @@ class _Memuat extends StatelessWidget {
 }
 
 class _Kosong extends StatelessWidget {
-  const _Kosong({required this.pesan});
+  const _Kosong({required this.pesan, this.labelTambah, this.onTambah});
 
   final String pesan;
+  final String? labelTambah;
+  final VoidCallback? onTambah;
 
   @override
-  Widget build(BuildContext context) => ListView(
-    padding: const EdgeInsets.all(AppSpacing.xl),
-    children: [
-      const Icon(Icons.meeting_room_outlined, size: 48),
-      const SizedBox(height: AppSpacing.md),
-      Text(pesan, textAlign: TextAlign.center),
-    ],
-  );
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ListView(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      children: [
+        Icon(
+          Icons.meeting_room_outlined,
+          size: 48,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        // Kalimatnya menjelaskan AKIBAT kosong (kondisi lingkungan sesi tidak
+        // bisa dicek terhadap syarat ruangan) — itu yang membuat orang mau
+        // mengisinya, bukan "Belum ada data".
+        Text(pesan, textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
+        if (onTambah != null && labelTambah != null) ...[
+          const SizedBox(height: AppSpacing.lg),
+          Center(
+            child: FilledButton.icon(
+              onPressed: onTambah,
+              icon: const Icon(Icons.add),
+              label: Text(labelTambah!),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
 }
 
 class _Gagal extends StatelessWidget {

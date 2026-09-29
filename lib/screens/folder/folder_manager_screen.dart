@@ -213,7 +213,14 @@ class _IsiFolder extends ConsumerWidget {
           value.subFolder.isEmpty && value.file.isEmpty
               ? _Kosong(pesan: l10n.folderIsiKosong)
               : ListView(
-                  padding: const EdgeInsets.all(AppSpacing.md),
+                  // Bawah 96: FAB "Folder baru" (56 + margin) nutupin baris
+                  // terakhir kalau nggak dikasih ruang.
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    96,
+                  ),
                   children: [
                     for (final f in value.subFolder) ...[
                       _KartuFolder(folder: f),
@@ -242,7 +249,12 @@ class _DaftarFolder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
+        96,
+      ),
       itemCount: folder.length,
       separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
       itemBuilder: (context, i) => _KartuFolder(folder: folder[i]),
@@ -284,7 +296,10 @@ class _KartuFolder extends ConsumerWidget {
           folder.folderSistem ? Icons.folder_special_outlined : Icons.folder_outlined,
           color: theme.colorScheme.primary,
         ),
-        title: Text(folder.nama, overflow: TextOverflow.ellipsis),
+        // Dua baris, bukan satu: nama PT itu yang dicari di layar ini, dan
+        // "Laboratorium Bah…" tidak bisa dibedakan dari PT lain yang namanya
+        // juga diawali "Laboratorium".
+        title: Text(folder.nama, maxLines: 2, overflow: TextOverflow.ellipsis),
         subtitle: Text(
           rincian.isEmpty ? l10n.folderIsiKosong : rincian,
           style: theme.textTheme.labelSmall,
@@ -292,11 +307,10 @@ class _KartuFolder extends ConsumerWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (admin)
-              _MenuFolder(folder: folder)
-            else
-              const SizedBox.shrink(),
-            const Icon(Icons.chevron_right),
+            // Satu penanda di ujung baris: menu ⋮ untuk admin, panah untuk
+            // yang lain. Dua-duanya sekaligus membuat baris punya dua sasaran
+            // ketuk bersebelahan yang artinya beda.
+            if (admin) _MenuFolder(folder: folder) else const Icon(Icons.chevron_right),
           ],
         ),
         onTap: () {

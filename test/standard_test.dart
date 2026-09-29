@@ -94,7 +94,8 @@ void main() {
   testWidgets('admin bisa lihat tombol tambah & hapus', (tester) async {
     await _bukaLayarStandar(tester);
     expect(find.text('TAMBAH STANDAR'), findsOneWidget);
-    expect(find.byIcon(Icons.delete_outline), findsWidgets);
+    // Hapus di balik menu ⋮ tiap kartu (redesign "Meja Kerja Lab").
+    expect(find.byIcon(Icons.more_vert), findsWidgets);
   });
 
   testWidgets('viewer nggak lihat menu "Standar Acuan" di Profil sama sekali', (
@@ -154,9 +155,11 @@ void main() {
   ) async {
     await _bukaLayarStandar(tester);
 
-    await tester.tap(find.byIcon(Icons.delete_outline).first);
+    await tester.tap(find.byIcon(Icons.more_vert).first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Hapus'));
+    await tester.tap(find.text('Hapus')); // item menu
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Hapus')); // tombol di dialog konfirmasi
     await tester.pumpAndSettle();
 
     expect(find.text('Gauge Block Set Grade 0'), findsNothing);

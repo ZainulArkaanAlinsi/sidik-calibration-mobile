@@ -214,12 +214,28 @@ class _CustomerCard extends ConsumerWidget {
                   ],
                 ),
               ),
-              IconButton(
-                icon: Icon(
-                  Icons.delete_outline,
-                  color: theme.colorScheme.error,
-                ),
-                onPressed: () => _hapus(context, ref),
+              // Hapus di balik menu ⋮, bukan tong sampah merah di SETIAP baris:
+              // ikon merah berulang di daftar 30 PT itu yang paling menarik
+              // mata di layar ini, padahal aksi yang paling jarang & paling
+              // merusak. Satu ketukan meleset = dialog hapus untuk PT yang
+              // salah. Dialog konfirmasinya tetap sama.
+              PopupMenuButton<String>(
+                tooltip: l10n.aksiLainnya,
+                icon: const Icon(Icons.more_vert),
+                onSelected: (_) => _hapus(context, ref),
+                itemBuilder: (_) => [
+                  PopupMenuItem<String>(
+                    value: 'hapus',
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(
+                        Icons.delete_outline,
+                        color: theme.colorScheme.error,
+                      ),
+                      title: Text(l10n.custDelete),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

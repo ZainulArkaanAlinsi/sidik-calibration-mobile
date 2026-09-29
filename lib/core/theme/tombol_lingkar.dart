@@ -125,6 +125,11 @@ class TombolLingkar {
   /// Cuma anak yang memang [Text] polos yang disentuh; bentuk lain (Row
   /// beserta ikonnya, indikator loading) dibiarkan apa adanya. `semanticsLabel`
   /// tetap teks aslinya — pembaca layar nggak perlu ikut teriak.
+  /// Pintu publik ke [_hurufBesar] — dipakai tema "Meja Kerja Lab" supaya
+  /// label tombol tetap sama persis dengan tema lama sampai commit sentence
+  /// case menyusul. Satu implementasi, bukan salinan.
+  static Widget hurufBesar(Widget? child) => _hurufBesar(child);
+
   static Widget _hurufBesar(Widget? child) {
     if (child is! Text) return child ?? const SizedBox();
 

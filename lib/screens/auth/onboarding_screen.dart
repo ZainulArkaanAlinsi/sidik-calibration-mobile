@@ -78,16 +78,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         judul: l10n.onbStep1Title,
         isi: l10n.onbStep1Body,
         mesh: Alat3D.anakTimbangan(),
-        warna: AppColors.cobalt,
-        warnaDua: AppColors.cobaltDeep,
+        warna: AppColorsTitanium.cobalt,
+        warnaDua: AppColorsTitanium.cobaltDeep,
         kamera: const Kamera3D(jarak: 4.4, pitch: 0.26),
       ),
       _Adegan(
         judul: l10n.onbStep2Title,
         isi: l10n.onbStep2Body,
         mesh: Alat3D.lembarKerja(),
-        warna: AppColors.mintDeep,
-        warnaDua: AppColors.mintInk,
+        warna: AppColorsTitanium.mintDeep,
+        warnaDua: AppColorsTitanium.mintInk,
         kamera: const Kamera3D(jarak: 5.4, pitch: 0.50),
         pusat: const Vek3(0, -0.6, 0),
       ),
@@ -95,8 +95,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         judul: l10n.onbStep3Title,
         isi: l10n.onbStep3Body,
         mesh: Alat3D.sertifikat(),
-        warna: AppColors.crimson,
-        warnaDua: AppColors.crimsonDeep,
+        warna: AppColorsTitanium.crimson,
+        warnaDua: AppColorsTitanium.crimsonDeep,
         kamera: const Kamera3D(jarak: 4.8, pitch: 0.20),
       ),
     ];
@@ -137,7 +137,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       TextButton(
                         onPressed: _selesai,
                         style: TextButton.styleFrom(
-                          foregroundColor: AppColors.ivory,
+                          foregroundColor: AppColorsTitanium.ivory,
                         ),
                         child: Text(l10n.onbSkip),
                       ),
@@ -315,11 +315,11 @@ class _Merek extends StatelessWidget {
           height: 30,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(9),
-            color: AppColors.ivory,
+            color: AppColorsTitanium.ivory,
           ),
           child: const Icon(
             Icons.straighten,
-            color: AppColors.ink,
+            color: AppColorsTitanium.ink,
             size: 17,
           ),
         ),
@@ -327,7 +327,7 @@ class _Merek extends StatelessWidget {
         Text(
           'SIDIK',
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            color: AppColors.ivory,
+            color: AppColorsTitanium.ivory,
             letterSpacing: 2.2,
             fontWeight: FontWeight.w700,
           ),
@@ -396,7 +396,7 @@ class _LatarGelombang extends CustomPainter {
 
     canvas.drawRect(
       Offset.zero & size,
-      Paint()..color = gelap ? AppColors.inkDeep : AppColors.ivory,
+      Paint()..color = gelap ? AppColorsTitanium.inkDeep : AppColorsTitanium.ivory,
     );
 
     final geser = -posisi * size.width * 0.18;
@@ -431,7 +431,7 @@ class _LatarGelombang extends CustomPainter {
     // Bulatan kecil yang ikut geser lebih cepat dari gelombang — lapisan
     // paling depan di paralaks. Ivory pekat, jadi kebaca sebagai lubang di
     // bidang warna, bukan sebagai warna ketiga.
-    final titik = Paint()..color = AppColors.ivory;
+    final titik = Paint()..color = AppColorsTitanium.ivory;
     canvas.drawCircle(
       Offset(size.width * 0.82 + geser * 1.6, size.height * 0.16),
       7,

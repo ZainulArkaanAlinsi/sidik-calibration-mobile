@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/izin.dart';
@@ -146,9 +148,26 @@ class _StandardCard extends ConsumerWidget {
     }
   }
 
+  /// Sisa hari sampai masa berlaku habis. Null kalau tanggalnya tidak ada.
+  int? get _sisaHari {
+    final sampai = item.berlakuSampai;
+    if (sampai == null) return null;
+    final hariIni = DateUtils.dateOnly(DateTime.now());
+    return DateUtils.dateOnly(sampai).difference(hariIni).inDays;
+  }
+
+  String? _keteranganBerlaku(AppLocalizations l10n) {
+    final sampai = item.berlakuSampai;
+    if (sampai == null) return null;
+    final sisa = _sisaHari;
+    if (item.masihBerlaku && sisa != null && sisa <= 30) {
+      return l10n.standarHabisHari(sisa);
+    }
+    return l10n.standarSampai(DateFormat('d MMM yyyy').format(sampai));
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final subjudul = [
       item.merk,
@@ -179,27 +198,45 @@ class _StandardCard extends ConsumerWidget {
             utama: '± ${item.ketidakpastian} ${item.satuanKetidakpastian}',
             keterangan: 'k=${item.faktorCakupan.toStringAsFixed(0)}',
           ),
+        // Masa berlaku = informasi PALING PENTING di layar ini: standar yang
+        // habis bikin sertifikat yang memakainya tidak tertelusur. Dulu cuma
+        // tertulis "Berlaku" tanpa tanggal, jadi standar yang habis besok
+        // terlihat sama amannya dengan yang habis tahun depan.
         ButirKartu(
           utama: item.masihBerlaku
               ? l10n.standarBerlaku
               : l10n.standarKadaluarsa,
-          warna: item.masihBerlaku ? null : theme.colorScheme.error,
+          keterangan: _keteranganBerlaku(l10n),
+          warna: !item.masihBerlaku
+              ? AppColors.statusBahaya(context)
+              : (_sisaHari != null && _sisaHari! <= 30
+                    ? AppColors.statusPeringatan(context)
+                    : null),
         ),
       ],
       aksi: [
-        // Status TIDAK ditaruh di sini sebagai badge. Dia sudah jadi kolom
-        // ketiga di bawah, dan badge berwarna di atas pita gradien itu dua
-        // bidang warna yang saling berebut — kontrasnya nggak terjamin di
-        // sepanjang gradiennya.
+        // Hapus TIDAK lagi berupa ikon tong sampah telanjang di tiap kartu.
+        // Satu ketukan meleset di daftar dua puluhan standar = dialog hapus
+        // untuk standar yang salah. Sekarang di balik menu ⋮, tetap diikuti
+        // dialog konfirmasi yang sama.
         if (isAdmin)
-          IconButton(
-            visualDensity: VisualDensity.compact,
-            // Warnanya SENGAJA nggak diset di sini. Di atas pita gradien,
-            // merah error kebaca sebagai noda, bukan tombol — `KartuGradien`
-            // yang memaksanya putih lewat IconTheme, dan warna eksplisit di
-            // sini bakal menang atas itu.
-            icon: const Icon(Icons.delete_outline),
-            onPressed: () => _hapus(context, ref),
+          PopupMenuButton<String>(
+            tooltip: l10n.aksiLainnya,
+            icon: const Icon(Icons.more_vert),
+            onSelected: (_) => _hapus(context, ref),
+            itemBuilder: (_) => [
+              PopupMenuItem<String>(
+                value: 'hapus',
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(
+                    Icons.delete_outline,
+                    color: AppColors.statusBahaya(context),
+                  ),
+                  title: Text(l10n.custDelete),
+                ),
+              ),
+            ],
           ),
       ],
     );

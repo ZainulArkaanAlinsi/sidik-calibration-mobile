@@ -1,94 +1,104 @@
 import 'package:flutter/material.dart';
 
-/// Palet "Cobalt" — lima warna inti dari palet resmi.
+/// Palet "Meja Kerja Lab" — di bawah NAMA-NAMA LAMA palet "Cobalt".
 ///
-/// Aturan pakainya cuma satu, tapi keras: **warna inti dipakai rata, tidak
-/// pernah dicampur satu sama lain.** Tidak ada gradasi crimson-ke-cobalt,
-/// tidak ada halo mint yang menimpa amber. Kalau butuh tingkatan, yang boleh
-/// dilakukan adalah menggelapkan/menerangkan satu warna yang sama (turunan di
-/// bawah) — bukan meleburkan dua warna berbeda.
+/// ## Kenapa namanya tidak diganti
 ///
-/// Pembagian perannya:
-/// - **Ivory** bidang dasar terang, **Ink** bidang dasar gelap + semua teks.
-/// - **Cobalt** satu-satunya warna interaktif: tombol utama, tautan, penanda
-///   aktif. Tidak pernah berarti status.
-/// - **Mint** aksen sekunder + status lolos.
-/// - **Crimson** status gagal dan error. Dipakai paling irit supaya tetap
-///   punya bobot waktu muncul.
+/// 33 berkas di luar `core/theme` memanggil `AppColors.xxx` langsung. Mengganti
+/// nama berarti menyentuh 33 berkas layar yang logikanya sudah benar — dan
+/// pemilik proyek minta tugas ini cuma mengganti tampilan. Jadi yang berubah
+/// cuma NILAINYA: tiap nama lama dipetakan ke peran yang sama di sistem baru,
+/// dan setiap layar yang memakainya ikut berganti tanpa satu baris logika pun
+/// disentuh.
 ///
-/// Kalau PT Sidik ganti warna brand, cukup ganti di file ini — tidak boleh ada
-/// `Color(0x...)` yang ditulis langsung di widget.
+/// Petanya (nama lama → peran baru):
+///
+/// | Nama lama | Peran di "Meja Kerja Lab" |
+/// |---|---|
+/// | `ivory` | MEJA — latar layar |
+/// | `white` | KERTAS — kartu & isian |
+/// | `ivoryDim` / `hairline` | kertas tingkat dua / tepi kertas |
+/// | `ink` / `textMuted` | tinta pulpen / tinta keterangan |
+/// | `cobalt*` | biru anodisasi — satu-satunya warna interaktif |
+/// | `mintDeep` / `mintSoft` | tinta cap LULUS + dasarnya |
+/// | `crimson*` | tinta cap GAGAL + dasarnya |
+/// | `mint` | hijau LCD — cuma di atas permukaan gelap/kaca |
+/// | `ink*` (tema gelap) | meja & kertas versi gelap |
+///
+/// Sumber kebenaran nilainya `SidikMaterial` (lihat `sidik_material.dart`);
+/// angka di sini disalin dari sana, dan `test/tema/kontras_sidik_test.dart`
+/// menjaga kontrasnya. Kalau salah satu digeser, geser dua-duanya.
+///
+/// Aturan yang tetap sama dari palet lama: **tidak ada gradasi dua rona
+/// berbeda.** Kedalaman datang dari bayangan & gradien satu-nada material.
 class AppColors {
   const AppColors._();
 
-  // ── Palet inti ──────────────────────────────────────────────────────────
-  static const Color crimson = Color(0xFFD91E41); // Crimson Red
-  static const Color ink = Color(0xFF1A1A1A); // Jet Black
-  static const Color mint = Color(0xFF9FF5E4); // Arctic Mint
-  static const Color ivory = Color(0xFFFDFDF6); // Bright Ivory
-  static const Color cobalt = Color(0xFF2962FF); // Cobalt Blue
+  // ── Inti ────────────────────────────────────────────────────────────────
+  static const Color crimson = Color(0xFFA81B33); // tinta cap GAGAL, 6,5:1 di kertas
+  static const Color ink = Color(0xFF1A1F26); // tinta pulpen, 14,7:1 di kertas
+  static const Color mint = Color(0xFF7FE3A8); // hijau LCD — di atas gelap saja
+  static const Color ivory = Color(0xFFD6D2C8); // MEJA: latar layar tema terang
+  static const Color cobalt = Color(0xFF1D4292); // biru anodisasi, 8,3:1 di kertas
 
-  // ── Turunan ─────────────────────────────────────────────────────────────
-  // Masing-masing cuma versi lebih gelap/terang dari satu warna inti, dipakai
-  // waktu warna intinya sendiri nggak cukup kontras di posisi itu.
-  static const Color cobaltDeep = Color(0xFF0A2C9E); // teks di atas cobaltSoft
-  static const Color cobaltSoft = Color(0xFFE4EAFF); // isian kontainer terang
-  static const Color cobaltLight = Color(0xFF86A5FF); // cobalt di tema gelap
+  // ── Turunan (satu rona, beda terang) ────────────────────────────────────
+  static const Color cobaltDeep = Color(0xFF14306E);
+  static const Color cobaltSoft = Color(0xFFDFE7F8);
+  static const Color cobaltLight = Color(0xFF8FB0FF); // biru di tema gelap, 7,0:1
 
-  // Mint aslinya terlalu terang buat jadi teks di atas bidang putih; versi
-  // gelapnya yang dipakai kalau mint harus kebaca sebagai huruf, bukan bidang.
-  static const Color mintDeep = Color(0xFF0B7A67);
-  static const Color mintSoft = Color(0xFFDDFAF3);
-  static const Color mintInk = Color(
-    0xFF05473B,
-  ); // isian kontainer di tema gelap
+  static const Color mintDeep = Color(0xFF125739); // LULUS, 7,6:1 di kertas
+  static const Color mintSoft = Color(0xFFDCEBE0);
+  static const Color mintInk = Color(0xFF16301F); // dasar LULUS tema gelap
 
-  static const Color crimsonDeep = Color(0xFF8C0C26);
-  static const Color crimsonSoft = Color(0xFFFFE2E7);
-  static const Color crimsonLight = Color(0xFFFF97A9); // crimson di tema gelap
+  static const Color crimsonDeep = Color(0xFF7E1426);
+  static const Color crimsonSoft = Color(0xFFF6DEE2);
+  static const Color crimsonLight = Color(0xFFFF8092); // GAGAL tema gelap, 6,2:1
 
   // ── Netral terang ───────────────────────────────────────────────────────
-  static const Color white = Color(0xFFFFFFFF); // kartu, di atas ground ivory
-  static const Color ivoryDim = Color(0xFFF2F2EA); // permukaan tingkat dua
-  static const Color hairline = Color(0xFFE3E3DA); // garis & border
-  static const Color textMuted = Color(0xFF55555B);
-  static const Color outline = Color(0xFF77777D);
+  // `white` sekarang KERTAS krem, bukan putih murni. Namanya dipertahankan
+  // karena artinya di kode lama memang "permukaan kartu di atas ground".
+  // Tempat yang BENAR-BENAR butuh putih (latar QR, kanvas tanda tangan)
+  // sudah memakai `Colors.white` langsung dan tidak terpengaruh.
+  static const Color white = Color(0xFFF5F1E7);
+  static const Color ivoryDim = Color(0xFFEAE5D8); // kertas tingkat dua / baki
+  static const Color hairline = Color(0xFFD9D2C0); // tepi kertas
+  static const Color textMuted = Color(0xFF4A5059); // 7,2:1 di kertas · 5,4:1 di meja
+  // Garis komponen (isian, sakelar) — 3:1 di kertas, ambang WCAG 1.4.11.
+  // `logamTepi` #9C998F cuma 2,6:1 dan terlalu pucat untuk batas isian.
+  static const Color outline = Color(0xFF7A776F);
 
   // ── Netral gelap ────────────────────────────────────────────────────────
-  // Ground sengaja lebih gelap dari Jet Black, biar permukaan #1A1A1A yang asli
-  // kebaca timbul di atasnya tanpa perlu garis pemisah.
-  static const Color inkDeep = Color(0xFF0F0F0F);
-  static const Color inkSurface = ink;
-  static const Color inkElevated = Color(0xFF262626);
-  static const Color inkOutline = Color(0xFF3A3A3A);
-  static const Color inkTextMuted = Color(0xFFB4B4AE);
+  static const Color inkDeep = Color(0xFF0F1114); // meja gelap
+  // Dulu alias `ink`. Sekarang berdiri sendiri: `ink` adalah TINTA di tema
+  // terang, dan menjadikannya permukaan gelap sekaligus membuat satu warna
+  // punya dua arti yang berlawanan.
+  static const Color inkSurface = Color(0xFF24272D); // kertas gelap
+  static const Color inkElevated = Color(0xFF2C3037);
+  static const Color inkOutline = Color(0xFF33373E);
+  static const Color inkTextMuted = Color(0xFFA6A9B1); // 6,4:1 di kertas gelap
 
-  // ── Semantik ────────────────────────────────────────────────────────────
-  // Status hasil kalibrasi & alat. Selalu dipasangkan sama ikon + teks, nggak
-  // pernah warna doang. Empat status = empat rona yang beda jelas, supaya
-  // teknisi nggak perlu baca dulu buat tahu mana yang bermasalah.
+  // ── Semantik status ─────────────────────────────────────────────────────
   static const Color success = mintDeep; // PASS / disetujui
   static const Color danger = crimson; // FAIL / ditolak
-  // Overdue / perlu revisi = "butuh dilihat", bukan "gagal". Dulu amber, dan
-  // amber di atas ivory selalu kebaca coklat kusam — warna kelima yang bukan
-  // bagian palet. Cobalt bedanya jelas dari crimson tanpa nambah rona baru;
-  // yang bikin dia nggak ketuker sama tombol adalah badge selalu bawa ikon +
-  // teks, sementara tombol selalu bidang pekat.
-  static const Color warning = cobalt;
-  static const Color info = textMuted; // menunggu approval / draft
+  // Overdue / perlu revisi = "butuh dilihat". Di palet Cobalt dulu dipakai
+  // biru karena amber lama terbaca coklat kusam di atas ivory. Amber di sini
+  // (#8C5C0A) disetel ulang: 5,1:1 di kertas, dan TERANGNYA dijauhkan dari
+  // hijau & merah (beda luminans ≥ 0,02) supaya tetap kebeda di fotokopi
+  // hitam-putih dan buat mata buta warna merah-hijau. Biru sekarang kembali
+  // ke satu arti saja: "bisa dipencet".
+  static const Color warning = Color(0xFF8C5C0A);
+  static const Color info = Color(0xFF474D55); // menunggu approval / draft
 
-  // Versi tema gelap. Nggak ada satu nilai pun yang bisa kebaca sekaligus di
-  // atas putih dan di atas Jet Black — kalau cukup gelap buat latar terang, dia
-  // ketelen sama latar gelap, dan sebaliknya. Jadi tiap status punya dua nilai
-  // dan dipilih lewat [statusSukses] dkk.
-  static const Color successDark = mint;
+  static const Color successDark = Color(0xFF5DCE93);
   static const Color dangerDark = crimsonLight;
-  static const Color warningDark = cobaltLight;
-  static const Color infoDark = inkTextMuted;
+  static const Color warningDark = Color(0xFFF2B655);
+  static const Color infoDark = Color(0xFFB6BAC4);
 
   static bool _gelap(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;
 
+  // Pemilih sadar-tema: panggil ini, bukan konstanta mentah, supaya warna status
+  // tetap kebaca di dua tema.
   static Color statusSukses(BuildContext context) =>
       _gelap(context) ? successDark : success;
   static Color statusBahaya(BuildContext context) =>
@@ -98,12 +108,32 @@ class AppColors {
   static Color statusInfo(BuildContext context) =>
       _gelap(context) ? infoDark : info;
 
-  /// Warna bidang dasar layar. Rata, satu warna — bukan gradasi.
-  ///
-  /// Kedalaman digambar sama bayangan kartu, bukan sama latar yang melandai:
-  /// ground ivory di belakang kartu putih sudah cukup bikin kartunya kebaca
-  /// timbul, dan bidang rata bikin warna aksen di atasnya kelihatan bersih.
+  /// Latar layar = permukaan MEJA.
   static Color warnaLatar(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark ? inkDeep : ivory;
   }
+}
+
+/// Palet "Cobalt" lama, DIBEKUKAN — khusus onboarding.
+///
+/// Pemilik proyek minta onboarding (tiga adegan 3D) dan sakelar tema
+/// matahari/bulan TIDAK diubah. Onboarding memanggil `AppColors` untuk warna
+/// tiap adegannya; tanpa kelas ini, mengganti nilai `AppColors` di atas ikut
+/// mengubah adegan itu diam-diam. Jadi onboarding memakai salinan beku ini,
+/// dan nilainya sama persis dengan sebelum redesign.
+///
+/// Jangan dipakai di layar lain. Layar baru pakai `AppColors` atau
+/// `SidikMaterial.of(context)`.
+class AppColorsTitanium {
+  const AppColorsTitanium._();
+
+  static const Color crimson = Color(0xFFD91E41);
+  static const Color crimsonDeep = Color(0xFF8C0C26);
+  static const Color ink = Color(0xFF1A1A1A);
+  static const Color inkDeep = Color(0xFF0F0F0F);
+  static const Color ivory = Color(0xFFFDFDF6);
+  static const Color cobalt = Color(0xFF2962FF);
+  static const Color cobaltDeep = Color(0xFF0A2C9E);
+  static const Color mintDeep = Color(0xFF0B7A67);
+  static const Color mintInk = Color(0xFF05473B);
 }

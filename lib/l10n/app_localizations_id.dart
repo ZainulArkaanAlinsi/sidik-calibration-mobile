@@ -4421,4 +4421,287 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get equipPelangganDariSimpanan =>
       'Lagi offline — ini salinan yang tersimpan di HP. Pelanggan yang baru didaftarkan bisa saja belum ada.';
+
+  @override
+  String get statusMenungguPengesahan => 'Menunggu pengesahan';
+
+  @override
+  String get aksiLainnya => 'Aksi lainnya';
+
+  @override
+  String standarSampai(String tanggal) {
+    return 's.d. $tanggal';
+  }
+
+  @override
+  String standarHabisHari(int hari) {
+    return 'habis $hari hari lagi';
+  }
+
+  @override
+  String get ttdPratinjauCetak => 'Pratinjau di sertifikat';
+
+  @override
+  String get ttdPratinjauGaris => 'Nama & jabatan penandatangan tercetak di sini';
+
+  @override
+  String get pengesahanJudul => 'Pengesahan sertifikat';
+
+  @override
+  String get pengesahanCari => 'Cari nomor, alat, atau pelanggan';
+
+  @override
+  String pengesahanRingkas(int jumlah) {
+    return '$jumlah menunggu pengesahan';
+  }
+
+  @override
+  String get pengesahanHariIni => 'Diajukan hari ini';
+
+  @override
+  String pengesahanMenungguHari(int hari) {
+    return 'Menunggu $hari hari';
+  }
+
+  @override
+  String pengesahanDiajukanOleh(String nama) {
+    return 'Diajukan oleh $nama';
+  }
+
+  @override
+  String get pengesahanLihatDetail => 'Lihat detail';
+
+  @override
+  String get pengesahanSahkan => 'Sahkan';
+
+  @override
+  String get pengesahanKembalikan => 'Kembalikan';
+
+  @override
+  String get pengesahanTarik => 'Tarik pengajuan';
+
+  @override
+  String get pengesahanBerhasil => 'Disahkan. Sertifikat sedang diterbitkan.';
+
+  @override
+  String get pengesahanWewenangJudul => 'Pemisahan wewenang';
+
+  @override
+  String get pengesahanWewenangCatat => 'Kalau dilanjutkan, ini tercatat di riwayat audit.';
+
+  @override
+  String get pengesahanTetapSahkan => 'Tetap sahkan';
+
+  @override
+  String get pengesahanAlasanKembalikan => 'Alasan dikembalikan';
+
+  @override
+  String get pengesahanAlasanTarik => 'Alasan menarik pengajuan';
+
+  @override
+  String pengesahanAlasanMinimal(int minimal) {
+    return 'Minimal $minimal karakter';
+  }
+
+  @override
+  String get pengesahanKirim => 'Kirim';
+
+  @override
+  String get pengesahanKosong => 'Antrean kosong';
+
+  @override
+  String get pengesahanKosongPengesah => 'Tidak ada yang menunggu pengesahan Anda.';
+
+  @override
+  String get pengesahanKosongAdmin => 'Tidak ada approval Anda yang sedang menunggu pengesahan.';
+
+  @override
+  String get pengesahanGagalMuat => 'Antrean pengesahan gagal dimuat.';
+
+  @override
+  String get pelacakanJudul => 'Pelacakan paket';
+
+  @override
+  String get pelacakanCari => 'Cari nomor order atau pelanggan';
+
+  @override
+  String get pelacakanCumaTerlambat => 'Hanya yang terlambat';
+
+  @override
+  String get pelacakanKosong => 'Belum ada paket untuk dilacak.';
+
+  @override
+  String get pelacakanGagalMuat => 'Data paket gagal dimuat.';
+
+  @override
+  String pelacakanSelesaiDari(int selesai, int total) {
+    return '$selesai dari $total selesai';
+  }
+
+  @override
+  String pelacakanTerlambat(int hari) {
+    return 'Terlambat $hari hari';
+  }
+
+  @override
+  String pelacakanJanji(String tanggal) {
+    return 'Janji selesai $tanggal';
+  }
+
+  @override
+  String pelacakanAlatDalamPaket(int jumlah) {
+    return 'Alat dalam paket ($jumlah)';
+  }
+
+  @override
+  String pelacakanDiserahkanKepada(String nama) {
+    return 'Diserahkan kepada $nama';
+  }
+
+  @override
+  String get pelacakanTandaiDiserahkan => 'Tandai sudah diserahkan';
+
+  @override
+  String get pelacakanNamaPenerima => 'Nama penerima';
+
+  @override
+  String get pelacakanNamaPenerimaContoh => 'mis. Budi (QC, PT Maju)';
+
+  @override
+  String get pelacakanSimpanSerahTerima => 'Simpan serah terima';
+
+  @override
+  String get penugasanJudul => 'Penugasan';
+
+  @override
+  String get penugasanTugasSaya => 'Tugas saya';
+
+  @override
+  String get penugasanTugaskan => 'Tugaskan';
+
+  @override
+  String get penugasanKosongPembagi => 'Belum ada penugasan. Ketuk Tugaskan untuk membagi pekerjaan ke teknisi.';
+
+  @override
+  String get penugasanKosongTeknisi => 'Belum ada tugas untuk Anda.';
+
+  @override
+  String get penugasanGagalMuat => 'Penugasan gagal dimuat.';
+
+  @override
+  String penugasanTarget(String tanggal) {
+    return 'Target $tanggal';
+  }
+
+  @override
+  String get penugasanTim => 'Tim';
+
+  @override
+  String get penugasanBelumDilihat => 'Belum dibuka';
+
+  @override
+  String penugasanSudahDilihat(String tanggal) {
+    return 'Dibuka $tanggal';
+  }
+
+  @override
+  String get penugasanKetua => 'Ketua';
+
+  @override
+  String get penugasanRincian => 'Rincian pekerjaan';
+
+  @override
+  String penugasanSelesaiDari(int selesai, int jumlah) {
+    return '$selesai dari $jumlah selesai';
+  }
+
+  @override
+  String get penugasanKurangi => 'Kurangi';
+
+  @override
+  String get penugasanTambah => 'Tambah';
+
+  @override
+  String get penugasanJudulIsian => 'Judul';
+
+  @override
+  String get penugasanJudulContoh => 'mis. Order PT Maju, 12 jangka sorong';
+
+  @override
+  String get penugasanPilihTarget => 'Pilih target selesai (opsional)';
+
+  @override
+  String get penugasanPilihTeknisi => 'Teknisi';
+
+  @override
+  String get penugasanKetuaPertama => 'Yang dipilih pertama jadi ketua.';
+
+  @override
+  String get penugasanTeknisiKosong => 'Belum ada teknisi aktif.';
+
+  @override
+  String get penugasanJenisAlat => 'Jenis alat';
+
+  @override
+  String get penugasanJumlah => 'Jumlah';
+
+  @override
+  String get penugasanHapusBaris => 'Hapus baris';
+
+  @override
+  String get penugasanTambahBaris => 'Tambah jenis alat';
+
+  @override
+  String get penugasanCatatan => 'Catatan (opsional)';
+
+  @override
+  String get penugasanKirim => 'Kirim penugasan';
+
+  @override
+  String get penugasanGalatJudul => 'Isi judul penugasan.';
+
+  @override
+  String get penugasanGalatTeknisi => 'Pilih minimal satu teknisi.';
+
+  @override
+  String get penugasanGalatBaris => 'Isi minimal satu jenis alat beserta jumlahnya.';
+
+  @override
+  String get kelolaJudul => 'Kelola lab';
+
+  @override
+  String get kelolaGrupDataMaster => 'Data master';
+
+  @override
+  String get kelolaGrupMetode => 'Metode & ruangan';
+
+  @override
+  String get kelolaGrupDokumen => 'Dokumen & sistem';
+
+  @override
+  String get kelolaPenggunaSub => 'Akun teknisi, peran, dan kode';
+
+  @override
+  String get kelolaImportSub => 'Masukkan data lama dari workbook Excel';
+
+  @override
+  String get menuKerjaHarian => 'Kerja harian';
+
+  @override
+  String get menuPantau => 'Pantau (baca saja)';
+
+  @override
+  String get menuArsip => 'Arsip & data';
+
+  @override
+  String get kelolaSemua => 'Semua pengaturan lab';
+
+  @override
+  String get kelolaSemuaSub => 'Pelanggan, standar, teknisi, metode, rumus, ruangan, tanda tangan, organisasi, impor Excel';
+
+  @override
+  String get menuCatatanSuperAdmin => 'Mengesahkan sertifikat sebelum terbit. Tidak menyetujui sesi dan tidak mengedit lembar kerja.';
+
+  @override
+  String get menuCatatanViewer => 'Akun ini cuma bisa melihat. Perlu mengisi atau memeriksa? Minta admin mengganti peranmu.';
 }
