@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sidik_calibration/core/theme/sidik_material.dart';
+import 'package:sidik_calibration/core/theme/sidik_theme.dart';
 
 /// Penjaga kontras token tema "Meja Kerja Lab".
 ///
@@ -129,6 +130,27 @@ void main() {
           }
         }
       });
+    });
+  }
+
+  // `colorScheme.outline` dipakai sebagai warna TEKS redup di 21 tempat.
+  // Reskin pertama memetakannya ke tepi kertas (1,34:1) dan keterangan kecil
+  // di dashboard hilang dari pandangan tanpa satu test pun merah.
+  for (final (nama, tema, m) in <(String, ThemeData, SidikMaterial)>[
+    ('terang', SidikTheme.terang, SidikMaterial.terangDefault),
+    ('gelap', SidikTheme.gelap, SidikMaterial.gelapDefault),
+  ]) {
+    test('outline tema $nama kebaca sebagai teks di kertas & baki', () {
+      for (final (apa, latar) in [('kertas', m.kertas), ('baki', m.kertas2)]) {
+        final r = _rasio(tema.colorScheme.outline, latar);
+        expect(
+          r,
+          greaterThanOrEqualTo(4.5),
+          reason:
+              'colorScheme.outline/$apa di tema $nama cuma '
+              '${r.toStringAsFixed(2)}:1',
+        );
+      }
     });
   }
 

@@ -100,7 +100,14 @@ class SidikTheme {
       surfaceContainer: m.kertas2,
       surfaceContainerHigh: m.kertas2,
       surfaceContainerHighest: m.meja2,
-      outline: m.kertasTepi,
+      // BUKAN `m.kertasTepi`. Tepi kertas cuma 1,3:1 di atas kertas — pas untuk
+      // garis dekoratif yang dilukis `SidikMaterial` sendiri, tapi `outline`
+      // dipakai 21 tempat di app sebagai TEKS & ikon redup (keterangan
+      // "12 bulan ini", ikon keadaan kosong, label arsip). Dengan tepi kertas,
+      // semuanya nyaris tak terbaca. Nada tengah ini ≥4,5:1 di kertas kedua
+      // tema, dan sekaligus memenuhi syarat Material 3 (≥3:1) untuk garis
+      // bawaan widget yang bersandar pada `outline`.
+      outline: terang ? const Color(0xFF666359) : const Color(0xFF9095A0),
       outlineVariant: m.garis,
       shadow: Colors.black,
       scrim: Colors.black,
@@ -188,9 +195,13 @@ class SidikTheme {
           padding: const EdgeInsets.symmetric(horizontal: 18),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(SidikMaterial.sudutLogam),
-            side: BorderSide(color: terang ? const Color(0xFF12275C) : m.logamTepi),
+            side: BorderSide(
+              color: terang ? const Color(0xFF12275C) : m.logamTepi,
+            ),
           ),
-          textStyle: teksSkala.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          textStyle: teksSkala.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ).copyWith(foregroundBuilder: _labelTombol),
       ),
 
@@ -205,14 +216,18 @@ class SidikTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(SidikMaterial.sudutLogam),
           ),
-          textStyle: teksSkala.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          textStyle: teksSkala.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ).copyWith(foregroundBuilder: _labelTombol),
       ),
 
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: m.biruTinta,
-          textStyle: teksSkala.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          textStyle: teksSkala.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
 
@@ -228,7 +243,10 @@ class SidikTheme {
         filled: true,
         fillColor: m.kertas2,
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 14,
+        ),
         hintStyle: teksSkala.bodyMedium?.copyWith(
           color: m.tinta2.withValues(alpha: 0.75),
         ),
@@ -356,9 +374,7 @@ class SidikTheme {
           color: Colors.white,
           fontWeight: FontWeight.w600,
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
 
       listTileTheme: ListTileThemeData(
@@ -439,37 +455,64 @@ class SidikTheme {
   static TextTheme _teks(SidikMaterial m) {
     return TextTheme(
       displaySmall: TextStyle(
-        fontSize: 28, height: 34 / 28, fontWeight: FontWeight.w700,
-        letterSpacing: -0.56, color: m.tinta,
+        fontSize: 28,
+        height: 34 / 28,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.56,
+        color: m.tinta,
       ),
       headlineMedium: TextStyle(
-        fontSize: 24, height: 30 / 24, fontWeight: FontWeight.w600,
-        letterSpacing: -0.24, color: m.tinta,
+        fontSize: 24,
+        height: 30 / 24,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.24,
+        color: m.tinta,
       ),
       headlineSmall: TextStyle(
-        fontSize: 22, height: 28 / 22, fontWeight: FontWeight.w600,
-        letterSpacing: -0.22, color: m.tinta,
+        fontSize: 22,
+        height: 28 / 22,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.22,
+        color: m.tinta,
       ),
       titleLarge: TextStyle(
-        fontSize: 19, height: 25 / 19, fontWeight: FontWeight.w600, color: m.tinta,
+        fontSize: 19,
+        height: 25 / 19,
+        fontWeight: FontWeight.w600,
+        color: m.tinta,
       ),
       titleMedium: TextStyle(
-        fontSize: 15, height: 22 / 15, fontWeight: FontWeight.w600, color: m.tinta,
+        fontSize: 15,
+        height: 22 / 15,
+        fontWeight: FontWeight.w600,
+        color: m.tinta,
       ),
       titleSmall: TextStyle(
-        fontSize: 13, height: 18 / 13, fontWeight: FontWeight.w600, color: m.tinta2,
+        fontSize: 13,
+        height: 18 / 13,
+        fontWeight: FontWeight.w600,
+        color: m.tinta2,
       ),
       bodyLarge: TextStyle(fontSize: 17, height: 26 / 17, color: m.tinta),
       bodyMedium: TextStyle(fontSize: 15, height: 22 / 15, color: m.tinta),
       bodySmall: TextStyle(fontSize: 13, height: 18 / 13, color: m.tinta2),
       labelLarge: TextStyle(
-        fontSize: 14, height: 20 / 14, fontWeight: FontWeight.w600, color: m.tinta,
+        fontSize: 14,
+        height: 20 / 14,
+        fontWeight: FontWeight.w600,
+        color: m.tinta,
       ),
       labelMedium: TextStyle(
-        fontSize: 12, height: 16 / 12, fontWeight: FontWeight.w600, color: m.tinta2,
+        fontSize: 12,
+        height: 16 / 12,
+        fontWeight: FontWeight.w600,
+        color: m.tinta2,
       ),
       labelSmall: TextStyle(
-        fontSize: 12, height: 16 / 12, fontWeight: FontWeight.w600, color: m.tinta2,
+        fontSize: 12,
+        height: 16 / 12,
+        fontWeight: FontWeight.w600,
+        color: m.tinta2,
       ),
     );
   }
