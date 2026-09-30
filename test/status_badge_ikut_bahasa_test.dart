@@ -46,8 +46,9 @@ void main() {
     en = await AppLocalizations.delegate.load(const Locale('en'));
   });
 
-  /// Ketiga belas kode yang dikenali `fromApi`, apa adanya dari
-  /// `docs/kontrak-api.md`.
+  /// Keempat belas kode yang dikenali `fromApi`, apa adanya dari
+  /// `docs/kontrak-api.md` — termasuk `menunggu_pengesahan` dari gerbang
+  /// pengesahan (26 Sep 2026).
   const semuaKode = [
     'PASS',
     'FAIL',
@@ -56,6 +57,7 @@ void main() {
     'nonaktif',
     'draft',
     'menunggu_approval',
+    'menunggu_pengesahan',
     'disetujui',
     'perlu_revisi',
     'baru',

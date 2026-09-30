@@ -10,6 +10,7 @@ import 'dashboard_provider.dart';
 import 'history_provider.dart';
 import 'notifikasi_perangkat_provider.dart';
 import 'notification_provider.dart';
+import 'pengendalian_provider.dart';
 
 /// Sambungan realtime. **Mock (no-op)** kalau realtime nonaktif (kunci Reverb
 /// kosong) atau mode mock — jadi dev & test nggak pernah nyoba buka websocket.
@@ -100,6 +101,14 @@ void _tangani(Ref ref, PeristiwaRealtime p) {
       ref.invalidate(dashboardProvider);
       ref.invalidate(historyProvider);
       ref.invalidate(antreanApprovalProvider);
+      // Pengesahan, pelacakan, penugasan: super admin yang mengesahkan dari
+      // satu HP, meja depan yang menandai serah terima dari laptop, teknisi
+      // yang melapor progres — perangkat lain di lab yang sama ikut menyusul.
+      // Saringan layarnya tidak hilang (lihat `_Saringan`).
+      ref.invalidate(antreanPengesahanProvider);
+      ref.invalidate(daftarPaketProvider);
+      ref.invalidate(detailPaketProvider);
+      ref.invalidate(daftarPenugasanProvider);
     case NotifikasiMasuk():
       // Badge lonceng selalu di-refresh (nyala barengan HP↔desktop); daftar
       // notifikasi refetch lazy saat layarnya dibuka.

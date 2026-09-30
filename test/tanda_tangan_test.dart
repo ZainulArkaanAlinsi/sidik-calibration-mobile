@@ -31,7 +31,20 @@ Widget _app(MockTandaTanganService service, {String token = 'mock-token-1'}) {
 /// `MockAuthService` sengaja punya jeda 600 ms. `pumpAndSettle()` nggak majuin
 /// timer, jadi harus dilewatin manual — kalau nggak, `authProvider` masih null
 /// dan layar nampilin gerbang "cuma admin", bukan isinya.
-Future<void> _pasang(WidgetTester tester, Widget app) async {
+///
+/// [layarTinggi]: sejak pratinjau CETAK ikut tampil di atas slider (reskin
+/// 29 Sep 2026), ketiga slider posisi jatuh di bawah lipatan layar tes bawaan
+/// 800×600 dan belum dibangun `ListView`. Layar tinggi membangun semuanya —
+/// yang diuji di sini isi layarnya, bukan cara menggulirnya.
+Future<void> _pasang(
+  WidgetTester tester,
+  Widget app, {
+  bool layarTinggi = false,
+}) async {
+  if (layarTinggi) {
+    await tester.binding.setSurfaceSize(const Size(800, 2400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+  }
   await tester.pumpWidget(app);
   await tester.pump(const Duration(milliseconds: 700));
   await tester.pumpAndSettle();
@@ -126,13 +139,21 @@ void main() {
 
     testWidgets('udah ada → slider posisi muncul, lengkap 3 sumbu',
         (tester) async {
-      await _pasang(tester, _app(MockTandaTanganService(adaTtd: true)));
+      await _pasang(
+        tester,
+        _app(MockTandaTanganService(adaTtd: true)),
+        layarTinggi: true,
+      );
 
       expect(find.byType(Slider), findsNWidgets(3));
     });
 
     testWidgets('arah tegak ditulis di layar: positif = NAIK', (tester) async {
-      await _pasang(tester, _app(MockTandaTanganService(adaTtd: true)));
+      await _pasang(
+        tester,
+        _app(MockTandaTanganService(adaTtd: true)),
+        layarTinggi: true,
+      );
 
       // Ini kebalikan koordinat layar. Kalau nggak ditulis, admin bakal
       // ngegeser ke arah yang salah dan nyalahin hasil cetaknya.
@@ -143,7 +164,7 @@ void main() {
     testWidgets('geser slider nggak langsung nembak API — nunggu Simpan',
         (tester) async {
       final service = MockTandaTanganService(adaTtd: true);
-      await _pasang(tester, _app(service));
+      await _pasang(tester, _app(service), layarTinggi: true);
 
       await tester.drag(find.byType(Slider).first, const Offset(60, 0));
       await tester.pumpAndSettle();
@@ -154,11 +175,11 @@ void main() {
       // Tombolnya di bawah tiga slider — di layar tes yang pendek dia keluar
       // viewport, jadi harus digulirin dulu.
       await tester.scrollUntilVisible(
-        find.text('SIMPAN POSISI'),
+        find.text('Simpan posisi'),
         200,
         scrollable: find.byType(Scrollable).first,
       );
-      await tester.tap(find.text('SIMPAN POSISI'));
+      await tester.tap(find.text('Simpan posisi'));
       await tester.pumpAndSettle();
 
       expect(
@@ -191,7 +212,7 @@ void main() {
     testWidgets('hapus minta konfirmasi + jelasin dampaknya', (tester) async {
       await _pasang(tester, _app(MockTandaTanganService(adaTtd: true)));
 
-      await tester.tap(find.text('HAPUS'));
+      await tester.tap(find.text('Hapus'));
       await tester.pumpAndSettle();
 
       expect(find.byType(AlertDialog), findsOneWidget);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/config/lab_profile.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/sidik_material.dart';
 
 /// Kit "soft UI" / neumorphism — **khusus layar auth** (Login & Register).
 ///
@@ -44,10 +45,14 @@ class NeuColors {
   // Dua warna bayangannya cuma versi lebih terang / lebih gelap dari dasar
   // yang sama — itu yang bikin permukaannya kebaca timbul, dan itu bukan
   // pencampuran warna palet.
+  // "Meja Kerja Lab": base = MEJA, bayangan terang = KERTAS, bayangan gelap =
+  // sisi bawah LOGAM. Dulu `darkShadow` #DBDBD0 — sekarang base-nya meja
+  // (#D6D2C8), dan bayangan yang lebih TERANG dari dasarnya bikin kotak
+  // terlihat rusak, bukan terangkat.
   static const light = NeuColors(
     base: AppColors.ivory,
     lightShadow: AppColors.white,
-    darkShadow: Color(0xFFDBDBD0),
+    darkShadow: Color(0xFFB3B0A8),
     text: AppColors.ink,
     textMuted: AppColors.textMuted,
     accent: AppColors.cobalt,
@@ -56,13 +61,15 @@ class NeuColors {
   );
 
   static const dark = NeuColors(
-    base: AppColors.ink,
-    lightShadow: Color(0xFF2E2E2E),
-    darkShadow: Color(0xFF080808),
-    text: AppColors.ivory,
+    base: AppColors.inkDeep,
+    lightShadow: AppColors.inkElevated,
+    darkShadow: Color(0xFF05070A),
+    // Tinta tema gelap (SidikMaterial.gelapDefault.tinta). `AppColors.ivory`
+    // yang dulu di sini sekarang berarti MEJA TERANG, bukan teks.
+    text: Color(0xFFEAE6DC),
     textMuted: AppColors.inkTextMuted,
     accent: AppColors.cobaltLight,
-    onAccent: AppColors.ink,
+    onAccent: AppColors.inkDeep,
     danger: AppColors.crimsonLight,
   );
 }
@@ -93,49 +100,36 @@ class NeuRaised extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = NeuColors.of(context);
-
-    // RepaintBoundary: dua BoxShadow blur di sini masih mahal buat di-rasterize,
-    // dan tanpa ini widget-nya kena render ulang tiap frame pas scroll (dia
-    // duduk di dalam SingleChildScrollView di login/register) — kerasa berat
-    // di HP kentang meski nggak lagi ada CustomPaint. Dengan boundary, hasil
-    // paint-nya di-cache jadi satu layer dan pas discroll tinggal digeser.
+    // Bukan neumorfisme lagi: kotak "timbul dari bahan yang sama" itu justru
+    // yang membuat layar Masuk, Antrean, dan Perhitungan tidak punya bidang
+    // yang jelas untuk dibaca. Di sistem "Meja Kerja Lab" yang terangkat dari
+    // meja adalah LEMBAR KERTAS; yang bulat (tombol ikon) adalah benda LOGAM.
+    // `distance` & `blur` tetap diterima supaya pemanggil lama terkompilasi.
+    final m = SidikMaterial.of(context);
+    final BoxDecoration dekor;
+    if (circle) {
+      // Dibangun utuh, bukan `copyWith` dari logamTimbul(): copyWith tidak bisa
+      // MENGHAPUS borderRadius, dan BoxShape.circle + borderRadius = assert.
+      final dasar = m.logamTimbul();
+      dekor = BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        gradient: color == null ? dasar.gradient : null,
+        border: dasar.border,
+        boxShadow: dasar.boxShadow,
+      );
+    } else {
+      dekor = m.kertasLembar(
+        radius: radius <= 12 ? radius : SidikMaterial.sudutKertas + 3,
+        warna: color,
+      );
+    }
     return RepaintBoundary(
-      child: Container(
-        padding: padding,
-        decoration: BoxDecoration(
-          color: color ?? c.base.withValues(alpha: 0.86),
-          shape: circle ? BoxShape.circle : BoxShape.rectangle,
-          borderRadius: circle ? null : BorderRadius.circular(radius),
-          border: Border.all(
-            color: Colors.white.withValues(
-              alpha: Theme.of(context).brightness == Brightness.dark
-                  ? 0.10
-                  : 0.64,
-            ),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: c.darkShadow,
-              offset: Offset(distance, distance),
-              blurRadius: blur,
-            ),
-            BoxShadow(
-              color: c.lightShadow,
-              offset: Offset(-distance, -distance),
-              blurRadius: blur,
-            ),
-          ],
-        ),
-        child: child,
-      ),
+      child: Container(padding: padding, decoration: dekor, child: child),
     );
   }
 }
 
-/// Permukaan yang **tenggelam** (kolom input) — bayangan digambar di sisi
-/// DALAM. Flutter nggak punya inner-shadow bawaan, jadi dipaint manual lewat
-/// selisih path.
 class NeuInset extends StatelessWidget {
   const NeuInset({
     super.key,
@@ -150,81 +144,20 @@ class NeuInset extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = NeuColors.of(context);
-
-    return CustomPaint(
-      foregroundPainter: _InsetPainter(
-        light: c.lightShadow,
-        dark: c.darkShadow,
-        radius: radius,
+    // Cekung = ISIAN di atas kertas: sedikit masuk, dengan garis isian tebal
+    // di bawahnya seperti kolom formulir cetak. Menggantikan pelukis bayangan
+    // dalam (`MaskFilter.blur`) yang dulu bikin ngelag tiap kali orang mengetik.
+    final m = SidikMaterial.of(context);
+    return Container(
+      padding: padding,
+      decoration: m.isian().copyWith(
+        borderRadius: BorderRadius.circular(radius <= 8 ? radius : 6),
       ),
-      child: Container(
-        padding: padding,
-        decoration: BoxDecoration(
-          color: c.base,
-          borderRadius: BorderRadius.circular(radius),
-        ),
-        child: child,
-      ),
+      child: child,
     );
   }
 }
 
-class _InsetPainter extends CustomPainter {
-  _InsetPainter({
-    required this.light,
-    required this.dark,
-    required this.radius,
-  });
-
-  final Color light;
-  final Color dark;
-  final double radius;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rrect = RRect.fromRectAndRadius(
-      Offset.zero & size,
-      Radius.circular(radius),
-    );
-    canvas.save();
-    canvas.clipRRect(rrect);
-    // Gelap masuk dari kiri-atas, terang dari kanan-bawah — kebalikan arah
-    // permukaan timbul, jadi kolomnya kebaca "cekung".
-    _inner(canvas, size, rrect, dark, const Offset(3, 3));
-    _inner(canvas, size, rrect, light, const Offset(-3, -3));
-    canvas.restore();
-  }
-
-  void _inner(Canvas canvas, Size size, RRect rrect, Color color, Offset o) {
-    final paint = Paint()
-      ..color = color
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-    final outer = Path()
-      ..addRect(
-        Rect.fromLTRB(
-          -size.width,
-          -size.height,
-          size.width * 2,
-          size.height * 2,
-        ),
-      );
-    final inner = Path()..addRRect(rrect.shift(o));
-    canvas.drawPath(
-      Path.combine(PathOperation.difference, outer, inner),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _InsetPainter old) =>
-      old.light != light || old.dark != dark || old.radius != radius;
-}
-
-/// Kolom input soft: pill cekung, ikon di kiri, placeholder di dalam (bukan
-/// label di atas — ngikutin gambar acuan). Error/helper muncul di bawahnya.
-///
-/// Tetap membungkus [TextField] asli, jadi autofill, toggle password, dan test
 /// yang nyari `TextField` semuanya masih jalan.
 class NeuTextField extends StatefulWidget {
   const NeuTextField({

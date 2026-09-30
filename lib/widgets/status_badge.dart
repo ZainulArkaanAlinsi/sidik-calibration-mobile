@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_spacing.dart';
+import '../core/theme/sidik_material.dart';
 import '../l10n/app_localizations.dart';
 
 /// Nada warna badge. Nggak nyebut warna langsung ("hijau"), tapi maknanya —
@@ -88,6 +89,13 @@ class StatusBadge extends StatelessWidget {
           nada: BadgeTone.info,
           ikon: Icons.hourglass_empty,
         ),
+        // Gerbang pengesahan (26 Sep): sudah diperiksa admin, belum sah.
+        // Nada `info` (abu), bukan `warning`: tidak ada yang salah dengan
+        // sesinya — dia cuma menunggu giliran di meja orang lain.
+        'menunggu_pengesahan' => (
+          nada: BadgeTone.info,
+          ikon: Icons.verified_user_outlined,
+        ),
         'disetujui' => (nada: BadgeTone.success, ikon: Icons.verified_outlined),
         'perlu_revisi' => (nada: BadgeTone.warning, ikon: Icons.edit_outlined),
         // Status Order (`Order::STATUS_*` di backend).
@@ -124,6 +132,7 @@ class StatusBadge extends StatelessWidget {
         'aktif' => l10n.statusAktif,
         'overdue' => l10n.statusOverdue,
         'nonaktif' => l10n.statusNonaktif,
+        'menunggu_pengesahan' => l10n.statusMenungguPengesahan,
         'disetujui' => l10n.statusDisetujui,
         'baru' => l10n.statusBaru,
         'diproses' => l10n.statusDiproses,
@@ -175,6 +184,19 @@ class StatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final color = _color(context, theme.colorScheme);
+    final m = SidikMaterial.of(context);
+
+    // CAP TINTA di atas dasar tipisnya sendiri, bukan pil ber-halo. Dasarnya
+    // dari `SidikMaterial` (sudah diuji kontrasnya ≥ 4,5:1 terhadap tintanya),
+    // bukan warna yang sama dengan alpha 12% — yang itu kontrasnya bergantung
+    // pada apa pun yang ada di belakang lencana.
+    final dasar = switch (tone) {
+      BadgeTone.success => m.lulusTipis,
+      BadgeTone.danger => m.gagalTipis,
+      BadgeTone.warning => m.awasTipis,
+      BadgeTone.info => m.tungguTipis,
+      BadgeTone.neutral => m.kertas2,
+    };
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -182,16 +204,9 @@ class StatusBadge extends StatelessWidget {
         vertical: AppSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: 0.42)),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        color: dasar,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withValues(alpha: 0.55), width: 1.2),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

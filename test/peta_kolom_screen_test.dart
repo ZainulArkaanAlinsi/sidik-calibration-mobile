@@ -71,7 +71,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Finder tombolTerapkan() => find.widgetWithText(FilledButton, 'ISI TITIK UKUR');
+  Finder tombolTerapkan() => find.widgetWithText(FilledButton, 'Isi titik ukur');
 
   testWidgets('kepala kolom dari KERTASNYA yang dipajang', (tester) async {
     layarPanjang(tester);

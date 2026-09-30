@@ -105,13 +105,13 @@ class _Content extends StatelessWidget {
   final IconData? icon;
   final IconData? trailingIcon;
 
-  /// HURUF BESAR semua — `text-transform: uppercase` di desain acuannya.
+  /// Label apa adanya dari ARB — sentence case (keputusan desain 26 Sep 2026).
   ///
-  /// Dikerjakan di sini, bukan di `ThemeData`: Flutter nggak punya padanan
-  /// `text-transform`, satu-satunya jalan ya mengubah string-nya. Konsekuensinya
-  /// nyata dan sengaja diterima — `find.text('Simpan')` di test nggak lagi
-  /// ketemu, jadi test yang nunjuk tombol lewat labelnya ikut disesuaikan.
-  String get _teks => label.toUpperCase();
+  /// Dulu `toUpperCase()` meniru `text-transform: uppercase` desain Titanium.
+  /// Sistem "Meja Kerja Lab" menyimpan huruf besar untuk label terukir di logam
+  /// saja (`SidikMaterial.gayaEtsa`); tombol memakai kalimat biasa supaya
+  /// terbaca lebih cepat dan sama persis dengan teks di pesan & dokumen.
+  String get _teks => label;
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +120,10 @@ class _Content extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (icon != null) ...[Icon(icon, size: 18), const SizedBox(width: AppSpacing.sm)],
+        if (icon != null) ...[
+          Icon(icon, size: 18),
+          const SizedBox(width: AppSpacing.sm),
+        ],
         // Flexible, bukan Text polos: `mainAxisSize.min` bikin Row minta lebar
         // sesuai isinya, dan label panjang di tombol yang lebarnya dibatesin
         // (setengah layar, atau layar HP 390px) langsung overflow — error

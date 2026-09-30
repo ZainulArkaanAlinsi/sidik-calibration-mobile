@@ -217,8 +217,8 @@ class MockPerhitunganService implements PerhitunganService {
         satuan: 'pH',
       ),
       identitasCustomer: const IdentitasCustomer(
-        nama: 'PT TIRTA GRACIA SEMESTA MANDIRI',
-        alamat: 'Jl. Arteri Primer A-10 RT. 01 RW.12 Nyalindung Kec. '
+        nama: 'PT TIRTA CONTOH MANDIRI',
+        alamat: 'Jl. Contoh Primer A-10, Kec. '
             'Cicalengka, Kab. Bandung, Jawa Barat',
         tanggalTerima: '2024-05-26',
         tanggalKalibrasi: '2024-05-26',

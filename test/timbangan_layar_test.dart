@@ -73,7 +73,7 @@ void main() {
   Future<void> bukaSemuaHalaman(WidgetTester tester) async {
     await buka(tester);
 
-    final lanjut = find.text('LANJUT KE HALAMAN BERIKUTNYA');
+    final lanjut = find.text('Lanjut ke halaman berikutnya');
     while (lanjut.evaluate().isNotEmpty) {
       await tester.tap(lanjut);
       await tester.pumpAndSettle();
@@ -189,7 +189,7 @@ void main() {
     // bisa dijangkar pemeta. Tombol yang nyala di situ balik NOL sel tiap
     // jepretan — dan yang sampai ke teknisi bukan "kolomnya nggak kebaca",
     // melainkan "tabelnya dikenali, tapi selnya masih kosong".
-    expect(find.text('FOTO TABEL INI'), findsOneWidget);
+    expect(find.text('Foto tabel ini'), findsOneWidget);
 
     // Dan pembuktian bahwa yang nyala tabel yang BENAR: tombolnya harus
     // duduk di bawah judul `4. REPEATABILITY`, bukan di antara `3. ACCURACY`
@@ -197,7 +197,7 @@ void main() {
     // tetap hijau — jumlahnya sama-sama satu.
     final yAkurasi = tester.getTopLeft(find.text('3. ACCURACY')).dy;
     final yKeterulangan = tester.getTopLeft(find.text('4. REPEATABILITY')).dy;
-    final yTombol = tester.getTopLeft(find.text('FOTO TABEL INI')).dy;
+    final yTombol = tester.getTopLeft(find.text('Foto tabel ini')).dy;
 
     expect(yKeterulangan, greaterThan(yAkurasi));
     expect(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../core/theme/app_colors.dart';
+import '../core/theme/sidik_material.dart';
 
 /// Satu butir data di baris bawah kartu.
 class ButirKartu {
@@ -17,30 +17,23 @@ class ButirKartu {
   final Color? warna;
 }
 
-/// Kartu berpanel gradien bertakik — acuan desain Uiverse karya Smit-Prajapati.
+/// Kartu daftar master data: LEMBAR KERTAS dengan PELAT LOGAM di kepalanya.
 ///
-/// Bentuknya: pita gradien di atas dengan **takik** di pojok kiri tempat
-/// ikonnya duduk; lalu judul; lalu sebaris butir data yang dipisah garis tegak.
+/// Nama kelasnya peninggalan (dulu pita gradien cobalt→mint bertakik, acuan
+/// Uiverse). Dipertahankan karena Metode Kalibrasi & Standar Acuan memanggilnya
+/// — yang berubah cuma rupanya, bukan kontraknya.
 ///
-/// ## Yang diubah dari acuannya, dan kenapa
+/// ## Kenapa gradiennya dibuang
 ///
-/// Panel gradien di acuannya setinggi 150 px, dan itu benar buat kartu tunggal
-/// yang berdiri sendiri. Layar Standar Acuan isinya **dua puluhan baris**;
-/// panel setinggi itu per baris bikin satu layar cuma muat dua kartu, dan yang
-/// dicari orang di situ — nama standarnya — kalah besar sama hiasannya. Jadi
-/// panelnya jadi pita tipis: takiknya tetap, gradiennya tetap, porsinya yang
-/// disesuaikan sama isi layarnya.
+/// Gradien dua rona (biru → hijau) itu yang dikeluhkan pemilik proyek sebagai
+/// "AI banget": bidang warna selebar kartu yang tidak berarti apa-apa, dan
+/// hijaunya bertabrakan dengan hijau status LULUS di baris bawahnya — di
+/// layar Standar Acuan dua hijau berbeda arti duduk di satu kartu.
 ///
-/// Gradiennya juga diganti dari sian-terang acuannya ke cobalt→mint milik app
-/// ini. Sian terang di atas kertas krem tema terang nggak punya tempat
-/// berpijak — dia melayang seperti stiker yang ketempel.
-///
-/// ## Takiknya dipotong, bukan ditempel
-///
-/// Takik di acuannya dirakit dari elemen ter-skew plus tiga `box-shadow` yang
-/// saling menutupi. Di Flutter itu dikerjakan sekali lewat [Path.combine]:
-/// bentuk panel dikurangi bentuk takik. Satu path, nol widget bertumpuk, dan
-/// hasilnya tetap benar di lebar berapa pun.
+/// Gantinya pelat nama logam, persis label yang dipaku di laci arsip lab:
+/// satu rona, timbul lewat terang-gelap, teks terukir. Judul tetap di pelat
+/// (keputusan 16 Sep: pita tanpa isi cuma menuntut perhatian), dan boleh dua
+/// baris supaya nama standar tidak terpotong.
 class KartuGradien extends StatelessWidget {
   const KartuGradien({
     super.key,
@@ -58,7 +51,8 @@ class KartuGradien extends StatelessWidget {
   /// dibaca di layar HP.
   final List<ButirKartu> butir;
 
-  /// Tombol di kanan pita gradien.
+  /// Tombol di kanan pelat. Satu saja idealnya — aksi merusak (hapus) sebaiknya
+  /// di menu ⋮ atau di layar detail, bukan ikon telanjang di setiap baris.
   final List<Widget> aksi;
 
   final VoidCallback? onTap;
@@ -66,106 +60,80 @@ class KartuGradien extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final gelap = theme.brightness == Brightness.dark;
+    final m = SidikMaterial.of(context);
 
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        child: Padding(
-          // Nol, bukan 5. Bingkai 5 px itu bikin pita gradiennya berhenti
-          // sebelum tepi kartu — dari layar hasilnya bukan "panel di dalam
-          // kartu" melainkan kotak biru yang melayang di atas kotak putih yang
-          // lebarnya beda (16 Sep 2026). Pita sekarang menempel rapat ke tepi.
-          padding: EdgeInsets.zero,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Pita gradien memuat ikon, JUDUL, dan tombolnya.
-              //
-              // Versi pertama cuma memuat ikon dan satu tombol, dan judulnya
-              // ditaruh di bawah pita — persis acuannya. Hasilnya di app
-              // beneran: bidang warna selebar kartu yang isinya nyaris kosong,
-              // menuntut perhatian tanpa membawa informasi apa pun. Judulnya
-              // dipindah ke sini supaya pitanya PUNYA ISI, dan sekaligus
-              // kartunya jadi lebih pendek.
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  // Tanpa sudut sendiri: kartunya sudah `clipBehavior:
-                  // antiAlias`, jadi sudut atas pita mengikuti sudut kartu dan
-                  // sudut bawahnya lurus — batas rapi ke isi di bawahnya.
-                  // Dua ujungnya sama-sama gelap. Versi pertama berujung mint
-                  // cerah, dan teks/ikon putih di ujung itu nyaris nggak
-                  // kebaca — tombol hapusnya cuma kelihatan sebagai bayangan
-                  // merah di atas hijau.
-                  gradient: LinearGradient(
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                    colors: gelap
-                        ? const [Color(0xFF1B3A6B), Color(0xFF0B5F55)]
-                        : const [AppColors.cobalt, AppColors.mintDeep],
-                  ),
-                ),
-                child: Padding(
-                  // Tinggi pita dikunci lewat padding yang sama di semua
-                  // kartu; tombol aksi dipaksa masuk ke tinggi itu (lihat
-                  // `aksi`), jadi kartu bertombol dan tanpa tombol tidak lagi
-                  // punya kepala setinggi beda.
-                  padding: EdgeInsets.fromLTRB(14, 12, aksi.isEmpty ? 14 : 6, 12),
-                  child: Row(
-                    children: [
-                      Icon(ikon, size: 18, color: Colors.white),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          judul,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            DecoratedBox(
+              decoration: m.logamPanel(
+                border: Border(bottom: BorderSide(color: m.logamTepi)),
+              ),
+              child: Padding(
+                // Tinggi pelat dikunci lewat padding yang sama di semua kartu;
+                // kartu bertombol & tanpa tombol punya kepala setinggi sama.
+                padding: EdgeInsets.fromLTRB(10, 8, aksi.isEmpty ? 14 : 4, 8),
+                child: Row(
+                  children: [
+                    // Ubin ikon: benda logam kecil yang timbul di pelat.
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: m.logamTimbul(radius: 7),
+                      alignment: Alignment.center,
+                      child: Icon(ikon, size: 18, color: m.etsa),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        judul,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: m.etsa,
+                          fontWeight: FontWeight.w700,
+                          shadows: [
+                            Shadow(
+                              color: m.terang
+                                  ? Colors.white.withValues(alpha: 0.5)
+                                  : Colors.black.withValues(alpha: 0.6),
+                              offset: Offset(0, m.terang ? 1 : -1),
+                            ),
+                          ],
                         ),
                       ),
-                      if (aksi.isNotEmpty)
-                        // Ikon aksinya dipaksa putih lewat IconTheme, bukan
-                        // diserahkan ke warna bawaan tiap tombol: merah error
-                        // di atas gradien ini kebaca sebagai noda, bukan
-                        // tombol.
-                        IconTheme.merge(
-                          data: const IconThemeData(color: Colors.white),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: aksi,
-                          ),
-                        ),
-                    ],
-                  ),
+                    ),
+                    if (aksi.isNotEmpty)
+                      IconTheme.merge(
+                        data: IconThemeData(color: m.etsa),
+                        child: Row(mainAxisSize: MainAxisSize.min, children: aksi),
+                      ),
+                  ],
                 ),
               ),
-              if (butir.isNotEmpty)
-                Padding(
-                  // Isi kartu: rata KIRI dan mengalir ke bawah, bukan dibagi
-                  // kolom selebar sama yang dipisah garis tegak. Pembagian
-                  // kolom itu yang bikin layar Standar Acuan tidak kebaca —
-                  // merk terpotong jadi "Metrology · CMG-9…" dan "k=2" jatuh
-                  // sendirian di baris berikutnya, sementara kolom "Berlaku"
-                  // di sebelahnya kosong melompong (16 Sep 2026).
-                  padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      for (var i = 0; i < butir.length; i++) ...[
-                        if (i > 0) const SizedBox(height: 4),
-                        _Butir(butir: butir[i]),
-                      ],
+            ),
+            if (butir.isNotEmpty)
+              Padding(
+                // Isi rata KIRI dan mengalir ke bawah — pembagian kolom selebar
+                // sama bikin merk terpotong "Metrology · CMG-9…" (16 Sep 2026).
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (var i = 0; i < butir.length; i++) ...[
+                      if (i > 0) const SizedBox(height: 4),
+                      _Butir(butir: butir[i]),
                     ],
-                  ),
+                  ],
                 ),
-            ],
-          ),
+              ),
+          ],
         ),
       ),
     );

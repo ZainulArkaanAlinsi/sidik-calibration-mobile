@@ -40,7 +40,7 @@ void main() {
       // Belum milih file = tombolnya mati. Nggak ada jalan pintas ke server.
       final tombol = tester.widget<InkWell>(
         find
-            .ancestor(of: find.text('UJI COBA'), matching: find.byType(InkWell))
+            .ancestor(of: find.text('Uji coba'), matching: find.byType(InkWell))
             .first,
       );
       expect(tombol.onTap, isNull);
@@ -55,7 +55,7 @@ void main() {
 
       // Ini penjagaan intinya: nulis ke master data dari file Excel orang lain
       // nggak boleh bisa dilakukan tanpa lihat ringkasannya dulu.
-      expect(find.text('TERAPKAN SEKARANG'), findsNothing);
+      expect(find.text('Terapkan sekarang'), findsNothing);
     });
   });
 

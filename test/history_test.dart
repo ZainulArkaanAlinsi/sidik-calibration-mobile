@@ -74,7 +74,11 @@ void main() {
       expect(find.text('Jangka Sorong Mitutoyo'), findsOneWidget);
       expect(find.text('PASS'), findsOneWidget);
       expect(find.text('FAIL'), findsOneWidget);
-      expect(find.text('Menunggu approval'), findsOneWidget);
+      // `findsWidgets`, bukan `findsOneWidget`: mock punya DUA sesi menunggu
+      // approval, dan kartu versi reskin (29 Sep 2026) cukup ringkas sampai
+      // yang kedua ikut terbangun di viewport tes. Yang dijaga tetap sama —
+      // statusnya kerender sebagai lencana.
+      expect(find.text('Menunggu approval'), findsWidgets);
       expect(find.text('Perlu revisi'), findsOneWidget);
 
       // Kartu admin punya tombol setujui/tolak tambahan (menunggu_approval),
@@ -105,7 +109,7 @@ void main() {
       await _bukaTabRiwayat(tester);
 
       expect(find.text('Gagal memuat riwayat.'), findsOneWidget);
-      expect(find.text('COBA LAGI'), findsOneWidget);
+      expect(find.text('Coba lagi'), findsOneWidget);
     });
   });
 
@@ -118,9 +122,9 @@ void main() {
       await tester.pumpAndSettle();
       await _bukaTabRiwayat(tester);
 
-      expect(find.text('Menunggu approval'), findsOneWidget);
-      expect(find.text('SETUJUI'), findsNothing);
-      expect(find.text('TOLAK'), findsNothing);
+      expect(find.text('Menunggu approval'), findsWidgets);
+      expect(find.text('Setujui'), findsNothing);
+      expect(find.text('Tolak'), findsNothing);
     });
 
     testWidgets('teknisi juga tidak', (tester) async {
@@ -128,8 +132,8 @@ void main() {
       await tester.pumpAndSettle();
       await _bukaTabRiwayat(tester);
 
-      expect(find.text('SETUJUI'), findsNothing);
-      expect(find.text('TOLAK'), findsNothing);
+      expect(find.text('Setujui'), findsNothing);
+      expect(find.text('Tolak'), findsNothing);
     });
   });
 }

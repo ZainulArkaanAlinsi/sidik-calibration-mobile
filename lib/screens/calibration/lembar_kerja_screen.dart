@@ -3353,7 +3353,7 @@ String? _helperSatuan(String? satuan, [String? tambahan]) {
 /// "Nama Tempat (Insitu)" itu istilah sistem; yang bikin teknisi langsung
 /// ngerti apa yang diminta ya CONTOHnya — nama pelanggan yang beneran dia
 /// datangi, karena persis itu yang kecetak di sertifikat sebagai
-/// `Calibration Location : Insitu (PT. LDC)`. Sebelum ada contohnya, kotak itu
+/// `Calibration Location : Insitu (PT. Niaga Contoh)`. Sebelum ada contohnya, kotak itu
 /// keisi macam-macam ("Insitu", "luar", nama kota), dan yang kena dokumen
 /// resmi.
 ///

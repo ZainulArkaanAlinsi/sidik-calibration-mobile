@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../core/config/app_config.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/sidik_material.dart';
 import '../../core/utils/inisial_nama.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/user.dart';
@@ -29,6 +30,7 @@ import '../arsip/arsip_screen.dart';
 import '../design_system/design_system_screen.dart';
 import '../settings/customer_list_screen.dart';
 import '../settings/organization_screen.dart';
+import '../settings/kelola_lab_screen.dart';
 import '../settings/tanda_tangan_screen.dart';
 import '../settings/metode_list_screen.dart';
 import '../settings/ruangan_list_screen.dart';
@@ -496,22 +498,37 @@ class _MobileProfileCarouselState extends State<_MobileProfileCarousel> {
         bangun: (context, jarak) =>
             _AdeganPreferensi(user: widget.user, jarak: jarak),
       ),
+      // SATU halaman admin, bukan dua ("Menu Admin" + "Pengaturan lab").
+      // Dua halaman geser berarti menu Rumus/Ruangan/Metode cuma ketemu oleh
+      // orang yang tahu harus menggeser DUA kali. Di sini empat yang paling
+      // sering disentuh, lalu satu pintu ke "Kelola lab" yang memuat
+      // kesembilannya (juga ada di menu samping).
       if (admin)
         _Bagian(
-          label: l10n.profAdminMenu,
+          label: l10n.kelolaJudul,
           bangun: (context, jarak) => _AdeganPintasan(
             eyebrow: l10n.profSectionWorkspace,
-            judul: l10n.profAdminMenu,
+            judul: l10n.kelolaJudul,
             subjudul: l10n.profAdminMenuSub,
             jarak: jarak,
             item: [
               _Pintasan(
-                Icons.apartment_outlined,
-                l10n.profOrgData,
-                l10n.profOrgDataSub,
+                Icons.people_outline,
+                l10n.profCustomers,
+                l10n.profCustomersSub,
                 () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
-                    builder: (_) => const OrganizationScreen(),
+                    builder: (_) => const CustomerListScreen(),
+                  ),
+                ),
+              ),
+              _Pintasan(
+                Icons.science_outlined,
+                l10n.profStandards,
+                l10n.profStandardsSub,
+                () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const StandardListScreen(),
                   ),
                 ),
               ),
@@ -526,64 +543,12 @@ class _MobileProfileCarouselState extends State<_MobileProfileCarousel> {
                 ),
               ),
               _Pintasan(
-                Icons.people_outline,
-                l10n.profCustomers,
-                l10n.profCustomersSub,
+                Icons.tune,
+                l10n.kelolaSemua,
+                l10n.kelolaSemuaSub,
                 () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
-                    builder: (_) => const CustomerListScreen(),
-                  ),
-                ),
-              ),
-              _Pintasan(
-                Icons.straighten_outlined,
-                l10n.profStandards,
-                l10n.profStandardsSub,
-                () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const StandardListScreen(),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      if (admin)
-        _Bagian(
-          label: l10n.profLabSettings,
-          bangun: (context, jarak) => _AdeganPintasan(
-            eyebrow: l10n.profSectionWorkspace,
-            judul: l10n.profLabSettings,
-            subjudul: l10n.profLabSettingsSub,
-            jarak: jarak,
-            item: [
-              _Pintasan(
-                Icons.functions_outlined,
-                l10n.profRumus,
-                l10n.profRumusSub,
-                () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const RumusListScreen(),
-                  ),
-                ),
-              ),
-              _Pintasan(
-                Icons.meeting_room_outlined,
-                l10n.profRuangan,
-                l10n.profRuanganSub,
-                () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const RuanganListScreen(),
-                  ),
-                ),
-              ),
-              _Pintasan(
-                Icons.menu_book_outlined,
-                l10n.profMetode,
-                l10n.profMetodeSub,
-                () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const MetodeListScreen(),
+                    builder: (_) => const KelolaLabScreen(),
                   ),
                 ),
               ),
@@ -1030,9 +995,8 @@ class _AdeganPreferensi extends StatelessWidget {
   }
 }
 
-/// Adegan pintasan — petak kartu. Perbandingan sisi kartunya dihitung dari
-/// ruang yang tersisa, jadi empat kartu SELALU muat tanpa scroll, baik di HP
-/// pendek maupun jangkung.
+/// Adegan pintasan — daftar baris selebar layar (dulu petak dua kolom yang
+/// memotong keterangannya).
 class _AdeganPintasan extends StatelessWidget {
   const _AdeganPintasan({
     required this.eyebrow,
@@ -1055,38 +1019,16 @@ class _AdeganPintasan extends StatelessWidget {
       judul: judul,
       subjudul: subjudul,
       jarak: jarak,
-      child: LayoutBuilder(
-        builder: (context, batas) {
-          const jeda = AppSpacing.sm;
-          final baris = (item.length / 2).ceil();
-          final lebarKartu = (batas.maxWidth - jeda) / 2;
-
-          // Kartu boleh manjang buat ngisi layar, TAPI ada batasnya: kartu
-          // yang tingginya lebih dari 1,15x lebarnya isinya jadi ngambang di
-          // tengah kolom kosong. Sisa ruangnya dibiarin jadi napas di bawah,
-          // bukan dipaksa ditelen kartu.
-          final muat = (batas.maxHeight - jeda * (baris - 1)) / baris;
-          final tinggiKartu = muat.clamp(96.0, lebarKartu * 1.15);
-
-          return Align(
-            alignment: Alignment.topCenter,
-            child: SizedBox(
-              height: tinggiKartu * baris + jeda * (baris - 1),
-              child: GridView.builder(
-                padding: EdgeInsets.zero,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: item.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: jeda,
-                  crossAxisSpacing: jeda,
-                  childAspectRatio: lebarKartu / tinggiKartu,
-                ),
-                itemBuilder: (context, i) => _KartuPintasan(item: item[i]),
-              ),
-            ),
-          );
-        },
+      // DAFTAR baris selebar layar, bukan petak dua kolom. Petak dengan tinggi
+      // dihitung dari sisa layar memotong keterangannya jadi "Daftar ruangan
+      // & syarat kondi…" dan "Parameter & riwayat versi …" — padahal justru
+      // keterangan itu yang menjelaskan kenapa orang perlu membuka menunya.
+      // Baris boleh dua baris keterangan, dan bisa digulir kalau HP pendek.
+      child: ListView.separated(
+        padding: EdgeInsets.zero,
+        itemCount: item.length,
+        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+        itemBuilder: (context, i) => _KartuPintasan(item: item[i]),
       ),
     );
   }
@@ -1240,29 +1182,35 @@ class _KartuPintasan extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return LiquidGlass(
-      radius: 20,
-      padding: const EdgeInsets.all(AppSpacing.md),
+      radius: 8,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: 12,
+      ),
       onTap: item.onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
           _IkonPetak(icon: item.icon),
-          const Spacer(),
-          Text(
-            item.title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.titleSmall,
-          ),
-          const SizedBox(height: 3),
-          Text(
-            item.subtitle,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(item.title, style: theme.textTheme.titleSmall),
+                const SizedBox(height: 2),
+                Text(
+                  item.subtitle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ),
           ),
+          Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
         ],
       ),
     );
@@ -1799,19 +1747,14 @@ class _IkonPetak extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    // Ubin ikon = benda LOGAM kecil yang timbul (sistem "Meja Kerja Lab"),
+    // bukan kotak bertinta primer 10% yang dulu terbaca sebagai hiasan.
+    final m = SidikMaterial.of(context);
     return Container(
       height: 42,
       width: 42,
-      decoration: BoxDecoration(
-        color: (color ?? theme.colorScheme.primary).withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(13),
-      ),
-      child: Icon(
-        icon,
-        size: 21,
-        color: color ?? theme.colorScheme.onSurfaceVariant,
-      ),
+      decoration: m.logamTimbul(radius: 9),
+      child: Icon(icon, size: 21, color: color ?? m.etsa),
     );
   }
 }

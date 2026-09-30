@@ -88,13 +88,14 @@ void main() {
     await _bukaLayarStandar(tester, gagal: true);
 
     expect(find.text('Gagal memuat standar acuan.'), findsOneWidget);
-    expect(find.text('COBA LAGI'), findsOneWidget);
+    expect(find.text('Coba lagi'), findsOneWidget);
   });
 
   testWidgets('admin bisa lihat tombol tambah & hapus', (tester) async {
     await _bukaLayarStandar(tester);
-    expect(find.text('TAMBAH STANDAR'), findsOneWidget);
-    expect(find.byIcon(Icons.delete_outline), findsWidgets);
+    expect(find.text('Tambah standar'), findsOneWidget);
+    // Hapus di balik menu ⋮ tiap kartu (redesign "Meja Kerja Lab").
+    expect(find.byIcon(Icons.more_vert), findsWidgets);
   });
 
   testWidgets('viewer nggak lihat menu "Standar Acuan" di Profil sama sekali', (
@@ -120,7 +121,7 @@ void main() {
     _perbesarViewport(tester);
     await _bukaLayarStandar(tester);
 
-    await tester.tap(find.text('TAMBAH STANDAR'));
+    await tester.tap(find.text('Tambah standar'));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -132,7 +133,7 @@ void main() {
     // field pertama sesudah date picker yang bukan TextField).
     await tester.enterText(find.byType(TextField).at(6), '0.05');
 
-    await tester.tap(find.text('SIMPAN'));
+    await tester.tap(find.text('Simpan'));
     await tester.pumpAndSettle();
 
     // Digulung dulu, bukan diharap langsung kelihatan: standar baru masuk di
@@ -154,9 +155,11 @@ void main() {
   ) async {
     await _bukaLayarStandar(tester);
 
-    await tester.tap(find.byIcon(Icons.delete_outline).first);
+    await tester.tap(find.byIcon(Icons.more_vert).first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Hapus'));
+    await tester.tap(find.text('Hapus')); // item menu
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Hapus')); // tombol di dialog konfirmasi
     await tester.pumpAndSettle();
 
     expect(find.text('Gauge Block Set Grade 0'), findsNothing);

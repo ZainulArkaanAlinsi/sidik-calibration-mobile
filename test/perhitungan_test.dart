@@ -8,10 +8,19 @@ import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/calibration_input_provider.dart';
 import 'package:sidik_calibration/providers/perhitungan_provider.dart';
 import 'package:sidik_calibration/screens/admin/perhitungan_screen.dart';
+import 'package:sidik_calibration/screens/auth/widgets/neu.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/perhitungan_service.dart';
 import 'package:sidik_calibration/services/standard_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
+
+/// Tombol kirim di lembar tolak. Sejak sentence case (30 Sep 2026) judul
+/// lembarnya dan label tombolnya sama-sama "Kembalikan ke teknisi" — dulu cuma
+/// dibedakan huruf besar. Jadi tombolnya dicari lewat `NeuButton`, bukan teks.
+Finder get _tombolKirimTolak => find.descendant(
+  of: find.byType(NeuButton),
+  matching: find.text('Kembalikan ke teknisi'),
+);
 
 HasilValidasi _validasi({
   int error = 0,
@@ -29,10 +38,7 @@ HasilValidasi _validasi({
   },
 );
 
-Widget _app(
-  MockPerhitunganService service, {
-  MockStandardService? standar,
-}) {
+Widget _app(MockPerhitunganService service, {MockStandardService? standar}) {
   return ProviderScope(
     overrides: [
       tokenStorageProvider.overrideWithValue(
@@ -132,10 +138,7 @@ void main() {
       // Koreksi 0 itu hasil pengukuran; koreksi kosong itu data sertifikat
       // thermohygro yang belum diisi. Dua hal beda.
       expect(find.text('—'), findsWidgets);
-      expect(
-        find.textContaining('Belum dipilih'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('Belum dipilih'), findsOneWidget);
     });
   });
 
@@ -156,7 +159,7 @@ void main() {
       );
       await _muat(tester, _app(service));
 
-      await tester.tap(find.text('PERIKSA'));
+      await tester.tap(find.text('Periksa'));
       await tester.pumpAndSettle();
 
       expect(find.text('Order Number belum diisi.'), findsOneWidget);
@@ -194,7 +197,7 @@ void main() {
       expect(find.text('Order Number belum diisi.'), findsOneWidget);
 
       // Tombolnya TETAP ada — admin masih bisa ngulang kapan pun.
-      expect(find.text('PERIKSA'), findsOneWidget);
+      expect(find.text('Periksa'), findsOneWidget);
     });
 
     testWidgets('temuan error mematikan tombol Setujui', (tester) async {
@@ -213,7 +216,7 @@ void main() {
       );
       await _muat(tester, _app(service));
 
-      await tester.tap(find.text('PERIKSA'));
+      await tester.tap(find.text('Periksa'));
       await tester.pumpAndSettle();
 
       expect(find.textContaining('nahan penerbitan'), findsWidgets);
@@ -222,10 +225,7 @@ void main() {
       // dikasih peringatan.
       final tombol = tester.widget<InkWell>(
         find
-            .ancestor(
-              of: find.text('SETUJUI'),
-              matching: find.byType(InkWell),
-            )
+            .ancestor(of: find.text('Setujui'), matching: find.byType(InkWell))
             .first,
       );
       expect(tombol.onTap, isNull);
@@ -242,7 +242,8 @@ void main() {
             Temuan(
               tingkat: TingkatTemuan.peringatan,
               kode: 'standar_titik_hilang',
-              pesan: 'Titik ke-2: standar acuannya nggak ketemu, hitung ulang '
+              pesan:
+                  'Titik ke-2: standar acuannya nggak ketemu, hitung ulang '
                   'dilewati.',
             ),
           ],
@@ -250,7 +251,7 @@ void main() {
       );
       await _muat(tester, _app(service));
 
-      await tester.tap(find.text('SETUJUI'));
+      await tester.tap(find.text('Setujui'));
       await tester.pumpAndSettle();
 
       // Percobaan pertama HARUS ditolak dengan dialog konfirmasi.
@@ -274,7 +275,7 @@ void main() {
       );
       expect(service.aksi, contains(('setujui', false)));
 
-      await tester.tap(find.text('TETAP SETUJUI'));
+      await tester.tap(find.text('Tetap setujui'));
       await tester.pumpAndSettle();
 
       // Percobaan kedua bawa abaikan_peringatan: true.
@@ -290,9 +291,9 @@ void main() {
       );
       await _muat(tester, _app(service));
 
-      await tester.tap(find.text('SETUJUI'));
+      await tester.tap(find.text('Setujui'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('PERIKSA LAGI'));
+      await tester.tap(find.text('Periksa lagi'));
       await tester.pumpAndSettle();
 
       expect(service.aksi, contains(('setujui', false)));
@@ -304,7 +305,7 @@ void main() {
       final service = MockPerhitunganService();
       await _muat(tester, _app(service));
 
-      await tester.tap(find.text('SETUJUI'));
+      await tester.tap(find.text('Setujui'));
       await tester.pumpAndSettle();
 
       expect(service.aksi, contains(('setujui', false)));
@@ -320,16 +321,15 @@ void main() {
       final service = MockPerhitunganService();
       await _muat(tester, _app(service));
 
-      await tester.tap(find.text('TOLAK'));
+      await tester.tap(find.text('Tolak'));
       await tester.pumpAndSettle();
 
       // `NeuButton` matiin tombolnya lewat `InkWell.onTap` null, bukan lewat
       // widget tombol Material — jadi yang diperiksa InkWell-nya.
       final tombol = tester.widget<InkWell>(
-        find.ancestor(
-          of: find.text('KEMBALIKAN KE TEKNISI'),
-          matching: find.byType(InkWell),
-        ).first,
+        find
+            .ancestor(of: _tombolKirimTolak, matching: find.byType(InkWell))
+            .first,
       );
       expect(tombol.onTap, isNull);
       expect(service.aksi.any((a) => a.$1 == 'tolak'), isFalse);
@@ -340,14 +340,14 @@ void main() {
       final service = MockPerhitunganService();
       await _muat(tester, _app(service));
 
-      await tester.tap(find.text('TOLAK'));
+      await tester.tap(find.text('Tolak'));
       await tester.pumpAndSettle();
       await tester.enterText(
         find.widgetWithText(TextField, 'Catatan tambahan (opsional)'),
         'Buffer 7 cuma 2 bacaan.',
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('KEMBALIKAN KE TEKNISI'));
+      await tester.tap(_tombolKirimTolak);
       await tester.pumpAndSettle();
 
       expect(service.aksi, contains(('tolak', 'Buffer 7 cuma 2 bacaan.')));
@@ -363,17 +363,14 @@ void main() {
       final service = MockPerhitunganService();
       await _muat(tester, _app(service));
 
-      await tester.tap(find.text('TOLAK'));
+      await tester.tap(find.text('Tolak'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Serial number nggak cocok'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('KEMBALIKAN KE TEKNISI'));
+      await tester.tap(_tombolKirimTolak);
       await tester.pumpAndSettle();
 
-      expect(
-        service.aksi,
-        contains(('tolak', '• Serial number nggak cocok')),
-      );
+      expect(service.aksi, contains(('tolak', '• Serial number nggak cocok')));
       expect(service.fieldTerakhir, ['alat_serial_number']);
     });
 
@@ -389,13 +386,12 @@ void main() {
 
       await _muat(tester, _app(MockPerhitunganService()));
 
-      await tester.tap(find.text('TOLAK'));
+      await tester.tap(find.text('Tolak'));
       await tester.pumpAndSettle();
 
-      final tombol = find.ancestor(
-        of: find.text('KEMBALIKAN KE TEKNISI'),
-        matching: find.byType(InkWell),
-      ).first;
+      final tombol = find
+          .ancestor(of: _tombolKirimTolak, matching: find.byType(InkWell))
+          .first;
       final batasKeyboard =
           tester.view.physicalSize.height / tester.view.devicePixelRatio -
           tinggiKeyboard;
@@ -423,7 +419,7 @@ void main() {
       );
 
       expect(find.text('Gagal memuat standar acuan.'), findsOneWidget);
-      expect(find.text('COBA LAGI'), findsWidgets);
+      expect(find.text('Coba lagi'), findsWidgets);
 
       // Peringatannya tetap ada — yang salah dulu bukan peringatannya, tapi
       // hilangnya jalan keluar.
@@ -451,12 +447,12 @@ void main() {
       await _muat(tester, _app(MockPerhitunganService(gagal: true)));
 
       expect(find.text('Gagal memuat lembar perhitungan.'), findsOneWidget);
-      expect(find.text('COBA LAGI'), findsOneWidget);
+      expect(find.text('Coba lagi'), findsOneWidget);
 
       // Bilah aksi nggak boleh ikut kegambar waktu datanya nggak ada — tombol
       // SETUJUI di atas layar error itu tombol yang nggak tau lagi nyetujuin
       // apa.
-      expect(find.text('SETUJUI'), findsNothing);
+      expect(find.text('Setujui'), findsNothing);
     });
   });
 

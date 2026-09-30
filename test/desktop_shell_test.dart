@@ -238,8 +238,9 @@ void main() {
     expect(find.byType(ProfileScreen), findsOneWidget);
 
     // Di HP, profil itu carousel geser-samping (bukan `ListView` lagi):
-    // adegan 0 = Akun, 1 = Preferensi, 2 = Menu Admin. Digeser dua kali biar
-    // sampai di adegan admin.
+    // adegan 0 = Akun, 1 = Preferensi, 2 = Kelola lab. Digeser dua kali biar
+    // sampai di adegan admin. (Sejak 29 Sep 2026 "Menu Admin" dan
+    // "Pengaturan lab" dilebur jadi satu adegan "Kelola lab".)
     await tester.drag(find.byType(PageView), const Offset(-400, 0));
     await tester.pumpAndSettle();
     await tester.drag(find.byType(PageView), const Offset(-400, 0));
@@ -248,6 +249,9 @@ void main() {
     // Di HP ini SATU-SATUNYA jalan ke master data, jadi ngilangin blok ini
     // bakal mutus aksesnya sama sekali. Muncul dua kali (judul adegan +
     // label kaki carousel) — makanya `findsWidgets`, bukan `findsOneWidget`.
-    expect(find.text('Menu Admin'), findsWidgets);
+    expect(find.text('Kelola lab'), findsWidgets);
+    // Dan pintunya ke kesembilan pengaturan benar-benar ada di adegan itu,
+    // bukan cuma judulnya.
+    expect(find.text('Semua pengaturan lab'), findsOneWidget);
   });
 }

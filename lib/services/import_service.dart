@@ -77,7 +77,7 @@ class MockImportService implements ImportService {
         'dilewati': 0,
       },
       'baris': [
-        {'baris': 2, 'tindakan': 'dibuat', 'nama': 'PT TIRTA GRACIA'},
+        {'baris': 2, 'tindakan': 'dibuat', 'nama': 'PT TIRTA CONTOH'},
         {'baris': 3, 'tindakan': 'dibuat', 'nama': 'PT ANEKA SARANA'},
         {'baris': 4, 'tindakan': 'diperbarui', 'nama': 'PT SIDIK'},
       ],

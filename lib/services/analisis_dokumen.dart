@@ -307,7 +307,7 @@ class AnalisisDokumen {
       }
 
       // Kolom dipatok dari baris pertama deret ini sebagai RENTANG mendatar,
-      // bukan titik pusat. Sel berisi dua kata (`PT Gracia`) punya kata kedua
+      // bukan titik pusat. Sel berisi dua kata (`PT Contoh`) punya kata kedua
       // yang pusatnya melenceng jauh dari pusat kolom — diadu ke titik, baris
       // itu ditolak seluruhnya dan tabelnya hilang tanpa jejak.
       //
@@ -458,7 +458,7 @@ class AnalisisDokumen {
       final k = _kolomTerdekat(e.kotak, pusat, tinggi);
       if (k == null) continue;
 
-      // Digabung, bukan ditimpa: dua kata di satu sel (`PT Gracia`) datang
+      // Digabung, bukan ditimpa: dua kata di satu sel (`PT Contoh`) datang
       // sebagai dua kepingan, dan yang belakangan menimpa yang duluan bikin
       // selnya kehilangan separuh isinya tanpa ada yang kelihatan hilang.
       sel[k] = sel[k].isEmpty ? e.teks.trim() : '${sel[k]} ${e.teks.trim()}';

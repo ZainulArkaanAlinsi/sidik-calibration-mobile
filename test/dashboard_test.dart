@@ -110,7 +110,7 @@ void main() {
       expect(find.text('Belum ada data'), findsOneWidget);
       expect(find.byType(StatCard), findsNothing);
       // Teknisi/admin dikasih jalan keluar, bukan cuma dikasih tahu kosong.
-      expect(find.text('TAMBAH ALAT'), findsOneWidget);
+      expect(find.text('Tambah alat'), findsOneWidget);
     });
 
     testWidgets('ERROR: gagal muat → pesan + tombol coba lagi', (tester) async {
@@ -118,7 +118,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Gagal memuat dashboard.'), findsOneWidget);
-      expect(find.text('COBA LAGI'), findsOneWidget);
+      expect(find.text('Coba lagi'), findsOneWidget);
     });
   });
 
@@ -161,8 +161,8 @@ void main() {
 
       // Viewer read-only: bukan tombolnya di-disable, tapi memang nggak ada.
       expect(find.text('AKSI CEPAT'), findsNothing);
-      expect(find.text('MULAI KALIBRASI'), findsNothing);
-      expect(find.text('TAMBAH ALAT'), findsNothing);
+      expect(find.text('Mulai kalibrasi'), findsNothing);
+      expect(find.text('Tambah alat'), findsNothing);
       // Tapi tetap bisa lihat angkanya.
       expect(find.byType(StatCard), findsNWidgets(2));
       expect(find.text('42'), findsOneWidget);
@@ -197,7 +197,7 @@ void main() {
       await tester.pumpWidget(_app());
       await tester.pumpAndSettle();
 
-      final tombol = find.text('TAMBAH ALAT');
+      final tombol = find.text('Tambah alat');
       await tester.scrollUntilVisible(
         tombol,
         200,
@@ -210,7 +210,7 @@ void main() {
 
       // Form-nya beneran ke-push — dulu tombol ini cuma munculin snackbar
       // "Tambah alat digarap minggu 3".
-      expect(find.widgetWithText(AppBar, 'TAMBAH ALAT'), findsOneWidget);
+      expect(find.widgetWithText(AppBar, 'Tambah alat'), findsOneWidget);
       expect(find.text('NOMOR SERI'), findsOneWidget);
     },
   );

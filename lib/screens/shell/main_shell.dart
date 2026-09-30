@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/sidik_material.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/navigation_provider.dart';
 import '../../providers/realtime_provider.dart';
@@ -16,13 +17,12 @@ import '../history/history_screen.dart';
 import '../admin/antrean_approval_screen.dart';
 import '../alur/alur_kerja_screen.dart';
 import '../../widgets/pemantau_antrean.dart';
-import '../admin/import_excel_screen.dart';
 import '../notification/notification_screen.dart';
+import '../pelacakan/pelacakan_screen.dart';
+import '../pengesahan/antrean_pengesahan_screen.dart';
+import '../penugasan/penugasan_screen.dart';
 import '../profile/profile_screen.dart';
-import '../settings/customer_list_screen.dart';
-import '../settings/organization_screen.dart';
-import '../settings/standard_list_screen.dart';
-import '../settings/technician_list_screen.dart';
+import '../settings/kelola_lab_screen.dart';
 
 /// Dipegang di level library, bukan lewat `Scaffold.of()`, karena tiap tab
 /// punya `Scaffold` sendiri — `Scaffold.of()` dari dalam tab bakal nemu
@@ -208,10 +208,34 @@ class _RailSamping extends StatelessWidget {
   }
 }
 
-/// Menu samping. **Cuma berisi tujuan yang layarnya udah ada.** Bagian spec
-/// yang belum digarap (Order Kalibrasi, Perhitungan, Laporan, Data Ruangan)
-/// sengaja nggak dipasang di sini — menu yang mengarah ke layar kosong lebih
-/// bikin bingung daripada menu yang belum lengkap.
+/// Satu baris menu samping. `tab` diisi kalau tujuannya tab navbar (supaya
+/// barisnya bisa ikut menyala saat tab itu aktif); selain itu `layar`.
+class _Tujuan {
+  const _Tujuan(this.ikon, this.judul, {this.tab, this.layar});
+
+  final IconData ikon;
+  final String judul;
+  final int? tab;
+  final Widget Function()? layar;
+}
+
+/// Menu samping — **isinya beda per peran**, karena pekerjaan hariannya beda.
+///
+/// Dulu satu daftar yang sama buat semua orang, disaring `if (admin)` di
+/// sana-sini: super admin melihat menu teknisi (Draf) yang tidak bisa dia isi,
+/// dan teknisi tidak punya jalan ke "Tugas saya" sama sekali. Sekarang tiap
+/// peran dapat urutan yang dimulai dari pekerjaan UTAMANYA:
+///
+/// - **Super admin** — Pengesahan sertifikat di paling atas; sisanya seksi
+///   "Pantau (baca saja)" supaya dia tidak mencari tombol yang memang tidak
+///   ada untuknya.
+/// - **Admin** — Antrean approval, Pengesahan (status & tarik), Alur kerja,
+///   Pelacakan, Penugasan; semua pengaturan di SATU pintu "Kelola lab".
+/// - **Teknisi** — Tugas saya & Draf dulu, baru arsip.
+/// - **Viewer** — arsip & pelacakan saja.
+///
+/// Izin tetap dijaga server; menu ini cuma tidak menawarkan pintu yang pasti
+/// dijawab 403. **Cuma berisi tujuan yang layarnya sudah ada.**
 class _MenuUtama extends ConsumerWidget {
   const _MenuUtama();
 
@@ -219,199 +243,161 @@ class _MenuUtama extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final m = SidikMaterial.of(context);
     final user = ref.watch(authProvider).value;
-    final admin = user?.role.isAdmin ?? false;
+    final peran = user?.role ?? UserRole.viewer;
+    final tabAktif = ref.watch(selectedTabProvider);
 
-    void keTab(int index) {
-      ref.read(selectedTabProvider.notifier).select(index);
-      Navigator.of(context).pop();
-    }
+    final beranda = _Tujuan(Icons.space_dashboard_outlined, l10n.navDashboard, tab: 0);
+    final alat = _Tujuan(Icons.straighten_outlined, l10n.navEquipment, tab: 1);
+    final riwayat = _Tujuan(Icons.history_outlined, l10n.navHistory, tab: 2);
+    final folder = _Tujuan(Icons.folder_outlined, l10n.navFolderManager, tab: 3);
+    final profil = _Tujuan(Icons.person_outline, l10n.navProfile, tab: 4);
+    final notifikasi = _Tujuan(Icons.notifications_none, l10n.navNotifications,
+        layar: () => const NotificationScreen());
+    final pengesahan = _Tujuan(Icons.verified_outlined, l10n.pengesahanJudul,
+        layar: () => const AntreanPengesahanScreen());
+    final pelacakan = _Tujuan(Icons.local_shipping_outlined, l10n.pelacakanJudul,
+        layar: () => const PelacakanScreen());
+    final penugasan = _Tujuan(Icons.assignment_ind_outlined, l10n.penugasanJudul,
+        layar: () => const PenugasanScreen());
+    final alur = _Tujuan(Icons.account_tree_outlined, l10n.alurTitle,
+        layar: () => const AlurKerjaScreen());
+    final draf = _Tujuan(Icons.edit_note, l10n.drafTitle,
+        layar: () => const DrafScreen());
 
-    void keLayar(Widget layar) {
+    final List<(String?, List<_Tujuan>)> seksi = switch (peran) {
+      UserRole.superAdmin => [
+        (l10n.menuKerjaHarian, [beranda, pengesahan, penugasan, pelacakan]),
+        (l10n.menuPantau, [alur, riwayat, alat, folder]),
+        (null, [notifikasi, profil]),
+      ],
+      UserRole.admin => [
+        (l10n.menuKerjaHarian, [
+          beranda,
+          _Tujuan(Icons.inbox_outlined, l10n.antreanTitle,
+              layar: () => const AntreanApprovalScreen()),
+          pengesahan,
+          alur,
+          penugasan,
+          pelacakan,
+          draf,
+        ]),
+        (l10n.menuArsip, [riwayat, alat, folder, notifikasi]),
+        (l10n.menuPengaturan, [
+          _Tujuan(Icons.tune, l10n.kelolaJudul,
+              layar: () => const KelolaLabScreen()),
+          profil,
+        ]),
+      ],
+      UserRole.teknisi => [
+        (l10n.menuKerjaHarian, [
+          beranda,
+          _Tujuan(Icons.assignment_ind_outlined, l10n.penugasanTugasSaya,
+              layar: () => const PenugasanScreen()),
+          draf,
+          riwayat,
+        ]),
+        (l10n.menuArsip, [alat, pelacakan, folder, notifikasi]),
+        (null, [profil]),
+      ],
+      UserRole.viewer => [
+        (l10n.menuArsip, [beranda, riwayat, alat, pelacakan, folder]),
+        (null, [notifikasi, profil]),
+      ],
+    };
+
+    void buka(_Tujuan t) {
       Navigator.of(context).pop();
-      Navigator.of(
-        context,
-      ).push(MaterialPageRoute<void>(builder: (_) => layar));
+      if (t.tab != null) {
+        ref.read(selectedTabProvider.notifier).select(t.tab!);
+      } else if (t.layar != null) {
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => t.layar!()),
+        );
+      }
     }
 
     return Drawer(
-      backgroundColor: Colors.transparent,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.warnaLatar(context),
-          border: Border(
-            right: BorderSide(color: Colors.white.withValues(alpha: 0.50)),
-          ),
-        ),
-        child: SafeArea(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
+      backgroundColor: m.kertas,
+      shape: const RoundedRectangleBorder(),
+      child: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+          children: [
+            // Kepala menu: pelat LOGAM (bingkai), bukan petak berpendar —
+            // isinya siapa yang sedang masuk dan sebagai apa, supaya orang
+            // yang pinjam HP rekannya langsung sadar menunya milik siapa.
+            Container(
+              margin: const EdgeInsets.all(AppSpacing.md),
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: m.logamTimbul(radius: SidikMaterial.sudutLogam),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: m.logamTertekan(radius: 9),
+                    child: Icon(Icons.biotech_outlined, color: m.etsa, size: 21),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user?.nama ?? l10n.menuUtama,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: m.tinta,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          peran.label.toUpperCase(),
+                          style: m.gayaEtsa(ukuran: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Dua peran yang TIDAK bisa mengisi data dapat satu kalimat yang
+            // bilang apa yang bisa & tidak — supaya mereka tidak mencari
+            // tombol yang memang tidak ada untuknya (artboard Menu_*).
+            if (peran == UserRole.superAdmin || peran == UserRole.viewer)
               Padding(
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.lg,
+                  0,
                   AppSpacing.lg,
-                  AppSpacing.lg,
-                  AppSpacing.md,
+                  AppSpacing.sm,
                 ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
-                        color: theme.colorScheme.primary,
-                        boxShadow: [
-                          BoxShadow(
-                            color: theme.colorScheme.primary.withValues(
-                              alpha: 0.24,
-                            ),
-                            blurRadius: 14,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.tune_rounded,
-                        color: theme.colorScheme.onPrimary,
-                        size: 21,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.menuUtama,
-                            style: theme.textTheme.titleMedium,
-                          ),
-                          if (user != null) ...[
-                            const SizedBox(height: AppSpacing.xs),
-                            Text(
-                              user.nama,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  peran == UserRole.superAdmin
+                      ? l10n.menuCatatanSuperAdmin
+                      : l10n.menuCatatanViewer,
+                  style: theme.textTheme.bodySmall,
                 ),
               ),
-              const Divider(height: 1),
-
-              ListTile(
-                leading: const Icon(Icons.space_dashboard_outlined),
-                title: Text(l10n.navDashboard),
-                onTap: () => keTab(0),
-              ),
-              ListTile(
-                leading: const Icon(Icons.history_outlined),
-                title: Text(l10n.navHistory),
-                onTap: () => keTab(2),
-              ),
-              // Draf sejajar Alur Kerja — layar kerja, bukan pengaturan — tapi
-              // SENGAJA tanpa `if (admin)`. Yang paling butuh justru teknisi:
-              // draf itu lembarnya sendiri yang belum kekirim, dan sebelum ini
-              // satu-satunya jalan nemuinnya nyisir Riwayat yang isinya campur
-              // sesi selesai.
-              //
-              // Masuknya lewat menu samping, bukan navbar bawah: navbar udah
-              // penuh 5 tujuan, dan nambah slot ke-6 bikin kelimanya nyempit
-              // demi layar yang nggak dibuka tiap menit.
-              ListTile(
-                leading: const Icon(Icons.edit_note),
-                title: Text(l10n.drafTitle),
-                onTap: () => keLayar(const DrafScreen()),
-              ),
-              // Antrean approval = layar kerja harian admin, sejajar sama
-              // "Tugas Saya" punya teknisi — bukan pengaturan.
-              if (admin)
+            for (final (judul, isi) in seksi) ...[
+              if (judul != null) _LabelSeksi(judul) else const Divider(),
+              for (final t in isi)
                 ListTile(
-                  leading: const Icon(Icons.inbox_outlined),
-                  title: Text(l10n.antreanTitle),
-                  onTap: () => keLayar(const AntreanApprovalScreen()),
+                  leading: Icon(t.ikon),
+                  title: Text(t.judul),
+                  selected: t.tab != null && t.tab == tabAktif,
+                  // Tinta, bukan `primary`: di tema gelap biru di atas
+                  // biru-tipis cuma 1,9:1 — baris aktif malah jadi yang
+                  // paling susah dibaca. Penandanya latar, bukan warna teks.
+                  selectedColor: m.tinta,
+                  selectedTileColor: m.biruTipis,
+                  onTap: () => buka(t),
                 ),
-              // Alur Kerja tadinya cuma ada di panel Windows, jadi admin yang
-              // pegang HP nggak bisa lihat sesi yang sedang jalan sama sekali —
-              // dia cuma lihat yang udah masuk antrean approval. Padahal yang
-              // nyangkut di tengah itu justru yang perlu ditengok.
-              if (admin)
-                ListTile(
-                  leading: const Icon(Icons.account_tree_outlined),
-                  title: Text(l10n.alurTitle),
-                  onTap: () => keLayar(const AlurKerjaScreen()),
-                ),
-              ListTile(
-                leading: const Icon(Icons.folder_outlined),
-                title: Text(l10n.navFolderManager),
-                onTap: () => keTab(3),
-              ),
-              // Notifikasi udah bukan tab: dia halaman sendiri yang dibuka dari
-              // lonceng di app bar (spesifikasi poin 4). Di menu samping tetap
-              // dikasih pintu, tapi lewat `keLayar` — `keTab(3)` sekarang
-              // ngarah ke Folder Manager.
-              ListTile(
-                leading: const Icon(Icons.notifications_none),
-                title: Text(l10n.navNotifications),
-                onTap: () => keLayar(const NotificationScreen()),
-              ),
-
-              const Divider(),
-              _LabelSeksi(l10n.menuMasterData),
-              ListTile(
-                leading: const Icon(Icons.straighten_outlined),
-                title: Text(l10n.navEquipment),
-                onTap: () => keTab(1),
-              ),
-              // Pelanggan, standar, dan akun cuma bisa diubah admin — backend
-              // nolak dengan 403 kalau role lain nembak, jadi nggak usah
-              // ditampilin buat teknisi/viewer.
-              if (admin) ...[
-                ListTile(
-                  leading: const Icon(Icons.people_outline),
-                  title: Text(l10n.profCustomers),
-                  onTap: () => keLayar(const CustomerListScreen()),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.science_outlined),
-                  title: Text(l10n.standarTitle),
-                  onTap: () => keLayar(const StandardListScreen()),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.badge_outlined),
-                  title: Text(l10n.teknisiTitle),
-                  onTap: () => keLayar(const TechnicianListScreen()),
-                ),
-              ],
-
-              const Divider(),
-              _LabelSeksi(l10n.menuPengaturan),
-              if (admin) ...[
-                ListTile(
-                  leading: const Icon(Icons.apartment_outlined),
-                  title: Text(l10n.orgTitle),
-                  onTap: () => keLayar(const OrganizationScreen()),
-                ),
-                // Import Excel = alat masa transisi, bukan kerja harian —
-                // makanya ditaruh di Pengaturan, bukan di navbar.
-                ListTile(
-                  leading: const Icon(Icons.upload_file_outlined),
-                  title: Text(l10n.importTitle),
-                  onTap: () => keLayar(const ImportExcelScreen()),
-                ),
-              ],
-              ListTile(
-                leading: const Icon(Icons.person_outline),
-                title: Text(l10n.navProfile),
-                onTap: () => keTab(4),
-              ),
             ],
-          ),
+          ],
         ),
       ),
     );
@@ -425,21 +411,16 @@ class _LabelSeksi extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final m = SidikMaterial.of(context);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.lg,
-        AppSpacing.sm,
+        AppSpacing.md,
         AppSpacing.lg,
         AppSpacing.xs,
       ),
-      child: Text(
-        teks.toUpperCase(),
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-      ),
+      child: Text(teks.toUpperCase(), style: m.gayaEtsa(ukuran: 11)),
     );
   }
 }

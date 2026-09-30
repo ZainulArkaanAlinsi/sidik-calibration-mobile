@@ -220,7 +220,7 @@ class _HistorySpectro extends MockHistoryService {
   Future<CalibrationDetail> ambilDetail(String token, int id) async =>
       CalibrationDetail.fromJson({
         'id': 58,
-        'nomor_sesi': 'DEMO-SPECTRO-LDC',
+        'nomor_sesi': 'DEMO-SPECTRO-NIAGA',
         'tanggal_kalibrasi': '2023-07-21T00:00:00.000Z',
         'status': 'disetujui',
         'desimal': 2,

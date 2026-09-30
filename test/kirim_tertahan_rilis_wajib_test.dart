@@ -200,7 +200,7 @@ void main() {
       final service = _ServicePencatat();
       await _siapkan(tester, service: service, rilis: _rilis(wajib: true));
 
-      await _tekan(tester, 'KIRIM UNTUK APPROVAL');
+      await _tekan(tester, 'Kirim untuk approval');
 
       expect(
         find.textContaining('WAJIB dipasang sebelum sesi bisa dikirim'),
@@ -221,7 +221,7 @@ void main() {
       final service = _ServicePencatat();
       await _siapkan(tester, service: service, rilis: _rilis(wajib: true));
 
-      await _tekan(tester, 'SIMPAN DRAFT');
+      await _tekan(tester, 'Simpan draft');
 
       expect(service.panggilan, 1);
       expect(service.draftTerakhir, isTrue);
@@ -231,7 +231,7 @@ void main() {
       final service = _ServicePencatat();
       await _siapkan(tester, service: service, rilis: _rilis());
 
-      await _tekan(tester, 'KIRIM UNTUK APPROVAL');
+      await _tekan(tester, 'Kirim untuk approval');
 
       expect(service.panggilan, 1);
       expect(service.draftTerakhir, isFalse);
@@ -244,7 +244,7 @@ void main() {
       final service = _ServicePencatat();
       await _siapkan(tester, service: service);
 
-      await _tekan(tester, 'KIRIM UNTUK APPROVAL');
+      await _tekan(tester, 'Kirim untuk approval');
 
       expect(service.panggilan, 1);
     });

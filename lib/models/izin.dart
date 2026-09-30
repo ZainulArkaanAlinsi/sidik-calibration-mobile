@@ -170,4 +170,18 @@ abstract final class NamaIzin {
   static const teknisiKelola = 'teknisi.kelola';
   static const imporExcel = 'impor.excel';
   static const organisasiUbah = 'organisasi.ubah';
+
+  // Gerbang pengesahan, pelacakan & penugasan (keputusan 26 Sep). Tiga izin
+  // pengesahan sengaja dipisah: di layar antrean yang sama, admin dapat
+  // "Tarik pengajuan" tapi TIDAK dapat "Sahkan".
+  static const kalibrasiSahkan = 'kalibrasi.sahkan';
+  static const kalibrasiKembalikanDariPengesahan =
+      'kalibrasi.kembalikan-dari-pengesahan';
+  static const kalibrasiTarikPengajuan = 'kalibrasi.tarik-pengajuan';
+  static const pengesahanAntrean = 'pengesahan.antrean';
+  static const pelacakanLihat = 'pelacakan.lihat';
+  static const pelacakanSerahTerima = 'pelacakan.serah-terima';
+  static const penugasanLihat = 'penugasan.lihat';
+  static const penugasanBuat = 'penugasan.buat';
+  static const penugasanLaporProgres = 'penugasan.lapor-progres';
 }

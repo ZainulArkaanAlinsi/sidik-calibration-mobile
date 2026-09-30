@@ -136,7 +136,7 @@ void main() {
 
       await tester.tap(find.text('buka'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('CARI DI DIREKTORI'));
+      await tester.tap(find.text('Cari di direktori'));
       await tester.pumpAndSettle();
     }
 

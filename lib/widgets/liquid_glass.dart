@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
 
-import '../core/theme/app_colors.dart';
+import '../core/theme/sidik_material.dart';
 
-/// Kaca cair — lempeng kaca yang punya **sapuan cahaya** yang bisa digeser,
-/// plus gurat halus ala panel instrumen.
+/// Panel bidang besar — sekarang dua rupa "Meja Kerja Lab".
 ///
-/// Bedanya sama [GlassSurface] yang udah ada: `GlassSurface` itu permukaan
-/// kartu yang tenang buat isi bacaan. `LiquidGlass` dipakai buat bidang yang
-/// **ikut gerak** — halaman profil yang digeser samping, panel hero di
-/// dashboard. Sapuan cahayanya diikat ke posisi geseran, jadi pas jari
-/// gerak, kacanya kelihatan mantulin cahaya, bukan cuma ikut translasi.
+/// Nama kelasnya peninggalan (dulu "kaca cair" dengan sapuan cahaya). Dipakai
+/// halaman profil & panel teknisi; kontraknya tidak berubah.
 ///
-/// Nol `BackdropFilter`. Semua lapisannya gradient statis di dalam satu
-/// `DecoratedBox` — jadi biaya rasternya sama aja kayak kotak biasa, dan
-/// panelnya aman ditumpuk banyak dalam satu layar. (Alasan panjangnya kenapa
-/// blur dijatah ada di `glass_surface.dart`.)
+/// - `panelGelap: true` → **KACA LCD**: layar readout cekung yang selalu gelap
+///   di dua tema, dengan gurat instrumen. Tempat angka hidup dilirik (panel
+///   teknisi: draf, menunggu, selesai).
+/// - selain itu → **LEMBAR KERTAS**: tempat membaca.
+///
+/// Nol `BackdropFilter`, sama seperti sebelumnya.
 class LiquidGlass extends StatelessWidget {
   const LiquidGlass({
     super.key,
@@ -47,75 +45,50 @@ class LiquidGlass extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gelapTema = Theme.of(context).brightness == Brightness.dark;
+    // "Meja Kerja Lab": panel gelap = KACA LCD (layar readout cekung, gelap di
+    // dua tema — tempat angka hidup dilirik); selain itu = LEMBAR KERTAS.
+    // Kontraknya sama; `tinggiBayangan` 0 tetap mematikan bayangan.
+    final m = SidikMaterial.of(context);
+    final sudut = panelGelap
+        ? SidikMaterial.sudutKaca
+        : (radius <= 12 ? radius : SidikMaterial.sudutKertas + 3);
 
-    // Bidang panelnya satu warna rata. Yang dulu di sini — dasar tiga warna
-    // buat panel gelap, dan dasar terang yang di-`lerp` sama aksen — bikin
-    // warna aksen kelebur jadi semburat, jadi cobalt/mint nggak pernah kebaca
-    // sebagai warnanya sendiri. Sekarang aksen cuma muncul di isi panel.
-    final Color dasar;
-    final Color tepi;
+    final BoxDecoration dekor;
     if (panelGelap) {
-      // Panel hero tetap gelap walau temanya terang: itu yang bikin dia kebaca
-      // sebagai "layar alat", bukan kartu biasa.
-      dasar = AppColors.ink;
-      tepi = AppColors.inkOutline;
-    } else if (gelapTema) {
-      dasar = AppColors.inkElevated;
-      tepi = AppColors.inkOutline;
+      dekor = m.kacaCekung(radius: sudut);
     } else {
-      dasar = AppColors.white;
-      tepi = AppColors.hairline;
+      final lembar = m.kertasLembar(radius: sudut);
+      dekor = tinggiBayangan <= 0 ? lembar.copyWith(boxShadow: const []) : lembar;
     }
 
-    // Tepi digambar lewat Container 1,2px yang isinya ditempel di dalam —
-    // sama seperti sebelumnya, cuma warnanya sekarang rata, bukan gradasi.
     final kotak = Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(radius),
-        color: tepi,
-        boxShadow: tinggiBayangan <= 0
-            ? null
-            : [
-                BoxShadow(
-                  color: AppColors.ink.withValues(
-                    alpha:
-                        (panelGelap || gelapTema ? 0.36 : 0.12) *
-                        tinggiBayangan,
-                  ),
-                  blurRadius: 30 * tinggiBayangan,
-                  offset: Offset(0, 14 * tinggiBayangan),
-                ),
-              ],
-      ),
-      padding: const EdgeInsets.all(1.2),
+      decoration: dekor,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(radius - 1.2),
-        child: DecoratedBox(
-          decoration: BoxDecoration(color: dasar),
-          child: Stack(
-            children: [
-              // Gurat cuma di panel gelap. Di bidang terang, garis-garis ini
-              // dulu ketutup gradasi & pantulan; sekarang permukaannya rata,
-              // jadi mereka kebaca jelas dan kartunya kelihatan kayak kertas
-              // bergaris — bukan panel instrumen.
-              if (gurat && panelGelap)
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: CustomPaint(
-                      painter: _GuratInstrumen(
-                        warna:
-                            (panelGelap || gelapTema
-                                    ? Colors.white
-                                    : AppColors.ink)
-                                .withValues(alpha: panelGelap ? 0.045 : 0.030),
-                      ),
+        borderRadius: BorderRadius.circular(sudut),
+        child: Stack(
+          children: [
+            if (gurat && panelGelap)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    painter: _GuratInstrumen(
+                      warna: Colors.white.withValues(alpha: 0.045),
                     ),
                   ),
                 ),
+              ),
+            // Teks di atas kaca harus terang di dua tema: kaca selalu gelap.
+            if (panelGelap)
+              DefaultTextStyle.merge(
+                style: TextStyle(color: m.lcdTeks),
+                child: IconTheme.merge(
+                  data: IconThemeData(color: m.lcdTeks),
+                  child: Padding(padding: padding, child: child),
+                ),
+              )
+            else
               Padding(padding: padding, child: child),
-            ],
-          ),
+          ],
         ),
       ),
     );
@@ -125,7 +98,9 @@ class LiquidGlass extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(radius),
+        borderRadius: BorderRadius.circular(
+          panelGelap ? SidikMaterial.sudutKaca : (radius <= 12 ? radius : SidikMaterial.sudutKertas + 3),
+        ),
         child: kotak,
       ),
     );

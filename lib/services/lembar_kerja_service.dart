@@ -1675,7 +1675,7 @@ Map<String, dynamic> contohBentukLembarKerjaSpectro({bool untukAdmin = false}) {
           {'nilai': 'lab', 'label': 'Inlab'},
           {'nilai': 'onsite', 'label': 'Insitu'},
         ]),
-        // Sertifikat nulis `Insitu (PT. LDC)` — nama tempatnya diketik teknisi.
+        // Sertifikat nulis `Insitu (PT. Niaga Contoh)` — nama tempatnya diketik teknisi.
         field(
           'lokasi_nama',
           'Nama Tempat (Insitu)',

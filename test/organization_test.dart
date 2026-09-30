@@ -58,7 +58,7 @@ void main() {
     );
 
     await tester.enterText(find.byType(TextField).first, 'PT Sidik Baru');
-    await tester.tap(find.text('SIMPAN'));
+    await tester.tap(find.text('Simpan'));
     await tester.pumpAndSettle();
 
     expect(find.text('Data organisasi disimpan.'), findsOneWidget);
@@ -69,6 +69,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Gagal memuat data organisasi.'), findsOneWidget);
-    expect(find.text('COBA LAGI'), findsOneWidget);
+    expect(find.text('Coba lagi'), findsOneWidget);
   });
 }

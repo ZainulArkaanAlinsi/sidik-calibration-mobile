@@ -49,18 +49,18 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Gagal memuat pelanggan.'), findsOneWidget);
-    expect(find.text('COBA LAGI'), findsOneWidget);
+    expect(find.text('Coba lagi'), findsOneWidget);
   });
 
   testWidgets('tambah pelanggan baru → muncul di list', (tester) async {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('TAMBAH PELANGGAN'));
+    await tester.tap(find.text('Tambah pelanggan'));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField).first, 'PT Baru Sekali');
-    await tester.tap(find.text('SIMPAN'));
+    await tester.tap(find.text('Simpan'));
     await tester.pumpAndSettle();
 
     expect(find.text('PT Baru Sekali'), findsOneWidget);
@@ -72,10 +72,13 @@ void main() {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
-    // PT Maju Jaya (jumlahAlat: 3) — tombol hapus pertama di list.
-    await tester.tap(find.byIcon(Icons.delete_outline).first);
+    // PT Maju Jaya (jumlahAlat: 3) — hapus sekarang di balik menu ⋮ baris
+    // pertama, bukan ikon tong sampah telanjang (redesign "Meja Kerja Lab").
+    await tester.tap(find.byIcon(Icons.more_vert).first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Hapus'));
+    await tester.tap(find.text('Hapus')); // item menu
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Hapus')); // tombol di dialog konfirmasi
     await tester.pumpAndSettle();
 
     expect(

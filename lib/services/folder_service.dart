@@ -149,7 +149,7 @@ class MockFolderService implements FolderService {
   static const _akar = [
     Folder(
       id: 1,
-      nama: 'PT TIRTA GRACIA SEMESTA MANDIRI',
+      nama: 'PT TIRTA CONTOH MANDIRI',
       tipe: 'sistem',
       parentId: null,
       jumlahFolder: 2,
@@ -197,7 +197,7 @@ class MockFolderService implements FolderService {
 
     return Folder(
       id: id,
-      nama: id == 11 ? '2026' : 'PT TIRTA GRACIA SEMESTA MANDIRI',
+      nama: id == 11 ? '2026' : 'PT TIRTA CONTOH MANDIRI',
       tipe: 'sistem',
       parentId: id == 11 ? 1 : null,
       jumlahFolder: id == 11 ? 0 : 1,

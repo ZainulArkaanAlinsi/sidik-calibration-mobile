@@ -58,7 +58,7 @@ void main() {
     // Tombolnya ada di dasar layar, di bawah tabel Laporan Kalibrasi &
     // Standar yang Dipakai — jadi di viewport test (600px) dia belum kebangun
     // sampai di-scroll, persis kayak yang dialami user.
-    final tombol = find.text('LIHAT PDF');
+    final tombol = find.text('Lihat PDF');
     await tester.scrollUntilVisible(
       tombol,
       200,
@@ -74,6 +74,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Gagal memuat sertifikat.'), findsOneWidget);
-    expect(find.text('COBA LAGI'), findsOneWidget);
+    expect(find.text('Coba lagi'), findsOneWidget);
   });
 }
