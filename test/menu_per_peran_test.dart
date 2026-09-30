@@ -9,6 +9,8 @@ import 'package:sidik_calibration/providers/izin_provider.dart';
 import 'package:sidik_calibration/providers/notification_provider.dart';
 import 'package:sidik_calibration/providers/pengendalian_provider.dart';
 import 'package:sidik_calibration/providers/platform_provider.dart';
+import 'package:sidik_calibration/screens/jatuh_tempo/layar_jatuh_tempo.dart';
+import 'package:sidik_calibration/screens/pelanggan/pusat_pelanggan_screen.dart';
 import 'package:sidik_calibration/screens/pengesahan/antrean_pengesahan_screen.dart';
 import 'package:sidik_calibration/screens/penugasan/penugasan_screen.dart';
 import 'package:sidik_calibration/screens/shell/main_shell.dart';
@@ -95,6 +97,8 @@ void main() {
   const tugasSaya = 'Tugas saya';
   const pelacakan = 'Pelacakan paket';
   const kelolaLab = 'Kelola lab';
+  const pusat = 'Pusat pelanggan';
+  const jadwal = 'Jadwal kalibrasi ulang';
   const antreanApproval = 'Antrean Approval';
   const draf = 'Draf';
 
@@ -104,7 +108,14 @@ void main() {
     await _bukaMenu(tester, 'mock-token-5');
 
     // Judul seksi dicetak gaya etsa (huruf besar).
-    _ada([pengesahan, penugasan, pelacakan, 'PANTAU (BACA SAJA)']);
+    _ada([
+      pengesahan,
+      penugasan,
+      pelacakan,
+      pusat,
+      jadwal,
+      'PANTAU (BACA SAJA)',
+    ]);
     // Kalimat yang menjelaskan kenapa tombol isi-data tidak ada untuknya.
     expect(
       find.textContaining('Mengesahkan sertifikat sebelum terbit'),
@@ -125,6 +136,23 @@ void main() {
     expect(find.byType(AntreanPengesahanScreen), findsOneWidget);
   });
 
+  testWidgets('super admin: menu pusat pelanggan & jadwal membuka layarnya', (
+    tester,
+  ) async {
+    await _bukaMenu(tester, 'mock-token-5');
+    await tester.tap(_diMenu(pusat));
+    await tester.pumpAndSettle();
+    expect(find.byType(PusatPelangganScreen), findsOneWidget);
+
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    bukaMenuUtama();
+    await tester.pumpAndSettle();
+    await tester.tap(_diMenu(jadwal));
+    await tester.pumpAndSettle();
+    expect(find.byType(JadwalKalibrasiScreen), findsOneWidget);
+  });
+
   testWidgets('admin: kerja harian lengkap + satu pintu Kelola lab', (
     tester,
   ) async {
@@ -138,6 +166,8 @@ void main() {
       pelacakan,
       draf,
       kelolaLab,
+      pusat,
+      jadwal,
     ]);
     _tiada([tugasSaya]);
     expect(
@@ -152,7 +182,14 @@ void main() {
       await _bukaMenu(tester, 'mock-token-2');
 
       _ada([tugasSaya, draf, pelacakan]);
-      _tiada([pengesahan, kelolaLab, antreanApproval, penugasan]);
+      _tiada([
+        pengesahan,
+        kelolaLab,
+        antreanApproval,
+        penugasan,
+        pusat,
+        jadwal,
+      ]);
     },
   );
 
@@ -185,6 +222,8 @@ void main() {
       draf,
       kelolaLab,
       antreanApproval,
+      pusat,
+      jadwal,
     ]);
   });
 }
