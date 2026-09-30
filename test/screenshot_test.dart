@@ -47,6 +47,15 @@ import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/providers/master_data_provider.dart';
 import 'package:sidik_calibration/providers/pengendalian_provider.dart';
 import 'package:sidik_calibration/providers/permintaan_provider.dart';
+import 'package:sidik_calibration/providers/certificate_provider.dart';
+import 'package:sidik_calibration/providers/koreksi_provider.dart';
+import 'package:sidik_calibration/models/revisi_sertifikat.dart';
+import 'package:sidik_calibration/screens/certificate/revisi_sertifikat_screen.dart';
+import 'package:sidik_calibration/screens/certificate/sertifikat_screen.dart';
+import 'package:sidik_calibration/screens/koreksi/antrean_koreksi_screen.dart';
+import 'package:sidik_calibration/screens/koreksi/detail_koreksi_screen.dart';
+import 'package:sidik_calibration/services/certificate_service.dart';
+import 'package:sidik_calibration/services/koreksi_service.dart';
 import 'package:sidik_calibration/providers/izin_provider.dart';
 import 'package:sidik_calibration/screens/pelacakan/pelacakan_screen.dart';
 import 'package:sidik_calibration/screens/permintaan/antrean_permintaan_screen.dart';
@@ -160,6 +169,10 @@ Widget _bungkus(
   DateTime? jam,
   List<Equipment>? alat,
   List<Customer>? pelanggan,
+  // Revisi/batal sertifikat, koreksi pelanggan, dan perjalanan permintaan
+  // (1 Okt). Diisi HANYA oleh golden barunya; yang lain memakai bawaan mock.
+  CertificateService? sertifikat,
+  PermintaanService? permintaan,
 }) {
   return ProviderScope(
     overrides: [
@@ -203,8 +216,14 @@ Widget _bungkus(
       userServiceProvider.overrideWithValue(MockUserService()),
       // Permintaan pelanggan (1 Okt): antrean & detail. Izin tiruan supaya
       // layar detail tidak menembak `/me/permissions` asli di golden.
-      permintaanServiceProvider.overrideWithValue(MockPermintaanService()),
+      permintaanServiceProvider.overrideWithValue(
+        permintaan ?? MockPermintaanService(),
+      ),
       izinServiceProvider.overrideWithValue(MockIzinService()),
+      koreksiServiceProvider.overrideWithValue(MockKoreksiService()),
+      certificateServiceProvider.overrideWithValue(
+        sertifikat ?? MockCertificateService(),
+      ),
     ],
     child: MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -1029,6 +1048,192 @@ void main() {
     await expectLater(
       find.byType(DetailPaketScreen),
       matchesGoldenFile('screenshots/pelacakan-detail-siap-diambil.png'),
+    );
+  });
+
+  // ── Revisi & pembatalan sertifikat, koreksi pelanggan, perjalanan alat ────
+  // (1 Okt 2026). Semua memakai mock sintetis; token 1 = admin.
+
+  /// Sertifikat yang sudah digantikan: lencana Digantikan + tautan ke revisi
+  /// yang masih dirender.
+  testWidgets('sertifikat digantikan', (tester) async {
+    pasangUkuranHp(tester);
+    final dasar = await MockCertificateService().detail('t', 1);
+    await _pumpLayarBerakun(
+      tester,
+      _bungkus(
+        const SertifikatScreen(certificateId: 1),
+        mode: Brightness.light,
+        sertifikat: MockCertificateService(
+          khusus: {
+            1: dasar.salin(
+              statusDokumenKode: 'digantikan',
+              digantikanOleh: const RujukanSertifikat(
+                id: 900,
+                nomor: '012-CAL-524-R1',
+                status: 'menunggu_generate',
+              ),
+            ),
+          },
+        ),
+      ),
+    );
+    await expectLater(
+      find.byType(SertifikatScreen),
+      matchesGoldenFile('screenshots/sertifikat-digantikan.png'),
+    );
+  });
+
+  /// Sertifikat dibatalkan: tanggal, oleh, alasan internal, dan catatan untuk
+  /// pelanggan; bilah unduh tetap ada (arsip lab).
+  testWidgets('sertifikat dibatalkan', (tester) async {
+    pasangUkuranHp(tester);
+    final dasar = await MockCertificateService().detail('t', 1);
+    await _pumpLayarBerakun(
+      tester,
+      _bungkus(
+        const SertifikatScreen(certificateId: 1),
+        mode: Brightness.light,
+        sertifikat: MockCertificateService(
+          khusus: {
+            1: dasar.salin(
+              status: 'dibatalkan',
+              statusDokumenKode: 'dibatalkan',
+              dibatalkanPada: DateTime.utc(2026, 10, 1, 5),
+              dibatalkanOleh: 'Hendra Wijaya',
+              alasanPembatalan: 'Data alat keliru saat input.',
+              catatanPelanggan: 'Mohon abaikan sertifikat ini.',
+            ),
+          },
+        ),
+      ),
+    );
+    await expectLater(
+      find.byType(SertifikatScreen),
+      matchesGoldenFile('screenshots/sertifikat-dibatalkan.png'),
+    );
+  });
+
+  /// Formulir revisi: delapan isian dari `data_cetak`, alasan & catatan.
+  testWidgets('sertifikat formulir revisi', (tester) async {
+    tester.view.physicalSize = const Size(1080, 3000);
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final dasar = await MockCertificateService(bolehAksi: true).detail('t', 1);
+    await _pumpLayarBerakun(
+      tester,
+      _bungkus(
+        RevisiSertifikatScreen(sertifikat: dasar),
+        mode: Brightness.light,
+      ),
+    );
+    await expectLater(
+      find.byType(RevisiSertifikatScreen),
+      matchesGoldenFile('screenshots/sertifikat-revisi-formulir.png'),
+    );
+  });
+
+  /// Dialog batal: gaya merusak + peringatan jadwal dikosongkan.
+  testWidgets('sertifikat dialog batal', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayarBerakun(
+      tester,
+      _bungkus(
+        const SertifikatScreen(certificateId: 1),
+        mode: Brightness.light,
+        sertifikat: MockCertificateService(
+          bolehAksi: true,
+          dampak: const DampakPembatalan(jadwalDikosongkan: true),
+        ),
+      ),
+    );
+    final tombol = find.byKey(const ValueKey('tombol-batal-sertifikat'));
+    await tester.ensureVisible(tombol);
+    await tester.tap(tombol);
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byKey(const ValueKey('dialog-batal-sertifikat')),
+      matchesGoldenFile('screenshots/sertifikat-dialog-batal.png'),
+    );
+  });
+
+  /// Antrean koreksi, tab Menunggu: jenis alat & sertifikat, hitungan.
+  testWidgets('koreksi pelanggan antrean', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayarBerakun(
+      tester,
+      _bungkus(const AntreanKoreksiScreen(), mode: Brightness.light),
+    );
+    await expectLater(
+      find.byType(AntreanKoreksiScreen),
+      matchesGoldenFile('screenshots/koreksi-antrean.png'),
+    );
+  });
+
+  /// Detail koreksi alat: lama → baru, catatan, foto, Tolak/Terima.
+  testWidgets('koreksi pelanggan detail', (tester) async {
+    tester.view.physicalSize = const Size(1200, 2600);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await _pumpLayarBerakun(
+      tester,
+      _bungkus(
+        const DetailKoreksiScreen(koreksiId: 7),
+        mode: Brightness.light,
+      ),
+    );
+    await expectLater(
+      find.byType(DetailKoreksiScreen),
+      matchesGoldenFile('screenshots/koreksi-detail.png'),
+    );
+  });
+
+  /// Permintaan diantar sendiri: tahap, resi, progres, foto pelat nama, dan
+  /// tombol Tandai alat tiba.
+  testWidgets('permintaan pelanggan detail perjalanan', (tester) async {
+    tester.view.physicalSize = const Size(1200, 3000);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await _pumpLayarBerakun(
+      tester,
+      _bungkus(
+        const DetailPermintaanScreen(permintaanId: 14),
+        mode: Brightness.light,
+        jam: DateTime(2026, 10, 1, 10),
+        permintaan: MockPermintaanService(
+          awal: MockPermintaanService.contohPerjalanan,
+        ),
+      ),
+    );
+    await expectLater(
+      find.byType(DetailPermintaanScreen),
+      matchesGoldenFile('screenshots/permintaan-detail-perjalanan.png'),
+    );
+  });
+
+  /// Permintaan diambil lab yang sudah dijadwalkan.
+  testWidgets('permintaan pelanggan detail jadwal', (tester) async {
+    tester.view.physicalSize = const Size(1200, 2400);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await _pumpLayarBerakun(
+      tester,
+      _bungkus(
+        const DetailPermintaanScreen(permintaanId: 16),
+        mode: Brightness.light,
+        jam: DateTime(2026, 10, 1, 10),
+        permintaan: MockPermintaanService(
+          awal: MockPermintaanService.contohPerjalanan,
+        ),
+      ),
+    );
+    await expectLater(
+      find.byType(DetailPermintaanScreen),
+      matchesGoldenFile('screenshots/permintaan-detail-jadwal.png'),
     );
   });
 }
