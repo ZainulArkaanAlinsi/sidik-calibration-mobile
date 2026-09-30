@@ -8,9 +8,11 @@ import '../services/realtime_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart';
 import 'history_provider.dart';
+import 'jatuh_tempo_provider.dart';
 import 'notifikasi_perangkat_provider.dart';
 import 'notification_provider.dart';
 import 'pengendalian_provider.dart';
+import 'pusat_pelanggan_provider.dart';
 
 /// Sambungan realtime. **Mock (no-op)** kalau realtime nonaktif (kunci Reverb
 /// kosong) atau mode mock — jadi dev & test nggak pernah nyoba buka websocket.
@@ -109,6 +111,15 @@ void _tangani(Ref ref, PeristiwaRealtime p) {
       ref.invalidate(daftarPaketProvider);
       ref.invalidate(detailPaketProvider);
       ref.invalidate(daftarPenugasanProvider);
+      // Layar super admin/admin turunan dari data yang sama: jatuh tempo &
+      // jadwal (alat baru, tanggal diubah, sesi disahkan memajukan jatuh
+      // tempo), Pusat pelanggan, dan paket berjalan di beranda. Kata cari
+      // Pusat pelanggan hidup di provider terpisah, jadi tidak ikut hilang.
+      ref.invalidate(jatuhTempoProvider);
+      ref.invalidate(pusatPelangganProvider);
+      ref.invalidate(detailPelangganProvider);
+      ref.invalidate(paketBerjalanProvider);
+      ref.invalidate(antreanBerandaProvider);
     case NotifikasiMasuk():
       // Badge lonceng selalu di-refresh (nyala barengan HP↔desktop); daftar
       // notifikasi refetch lazy saat layarnya dibuka.
