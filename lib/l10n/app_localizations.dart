@@ -8125,6 +8125,12 @@ abstract class AppLocalizations {
   /// **'Handed to {nama}'**
   String pelacakanDiserahkanKepada(String nama);
 
+  /// No description provided for @pelacakanTandaiSiapDiambil.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as ready for pickup'**
+  String get pelacakanTandaiSiapDiambil;
+
   /// No description provided for @pelacakanTandaiDiserahkan.
   ///
   /// In en, this message translates to:
@@ -8406,6 +8412,414 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This account can only view. Need to fill in or review? Ask an admin to change your role.'**
   String get menuCatatanViewer;
+
+  /// No description provided for @jatuhTempoJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Due dates'**
+  String get jatuhTempoJudul;
+
+  /// No description provided for @jatuhTempoRingkas.
+  ///
+  /// In en, this message translates to:
+  /// **'{lewat} overdue · {dekat} due within 30 days'**
+  String jatuhTempoRingkas(int lewat, int dekat);
+
+  /// No description provided for @jatuhTempoPeringatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment past its due date can no longer vouch for its readings.'**
+  String get jatuhTempoPeringatan;
+
+  /// No description provided for @jatuhTempoTabLewat.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get jatuhTempoTabLewat;
+
+  /// No description provided for @jatuhTempoTab30.
+  ///
+  /// In en, this message translates to:
+  /// **'Next 30 days'**
+  String get jatuhTempoTab30;
+
+  /// No description provided for @jatuhTempoUrutLama.
+  ///
+  /// In en, this message translates to:
+  /// **'Longest overdue first'**
+  String get jatuhTempoUrutLama;
+
+  /// No description provided for @jatuhTempoUrutDekat.
+  ///
+  /// In en, this message translates to:
+  /// **'Soonest first'**
+  String get jatuhTempoUrutDekat;
+
+  /// No description provided for @jatuhTempoPer.
+  ///
+  /// In en, this message translates to:
+  /// **'As of {tanggal}'**
+  String jatuhTempoPer(String tanggal);
+
+  /// No description provided for @jatuhTempoLewatHari.
+  ///
+  /// In en, this message translates to:
+  /// **'{hari} d overdue'**
+  String jatuhTempoLewatHari(int hari);
+
+  /// No description provided for @jatuhTempoLewatJadwal.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get jatuhTempoLewatJadwal;
+
+  /// No description provided for @jatuhTempoHariIni.
+  ///
+  /// In en, this message translates to:
+  /// **'Due today'**
+  String get jatuhTempoHariIni;
+
+  /// No description provided for @jatuhTempoHariLagi.
+  ///
+  /// In en, this message translates to:
+  /// **'In {hari} d'**
+  String jatuhTempoHariLagi(int hari);
+
+  /// No description provided for @jatuhTempoTanggalKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No date set'**
+  String get jatuhTempoTanggalKosong;
+
+  /// No description provided for @jatuhTempoKosongLewat.
+  ///
+  /// In en, this message translates to:
+  /// **'No equipment is overdue.'**
+  String get jatuhTempoKosongLewat;
+
+  /// No description provided for @jatuhTempoKosongDekat.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing falls due in the next {hari} days.'**
+  String jatuhTempoKosongDekat(int hari);
+
+  /// No description provided for @jatuhTempoGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the due-date list.'**
+  String get jatuhTempoGagal;
+
+  /// No description provided for @jatuhTempoKetuk.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap an item to see details and schedule recalibration.'**
+  String get jatuhTempoKetuk;
+
+  /// No description provided for @jatuhTempoSn.
+  ///
+  /// In en, this message translates to:
+  /// **'SN {sn}'**
+  String jatuhTempoSn(String sn);
+
+  /// No description provided for @jadwalJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Recalibration schedule'**
+  String get jadwalJudul;
+
+  /// No description provided for @jadwalSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer equipment due for calibration again'**
+  String get jadwalSub;
+
+  /// No description provided for @jadwalTabLewat.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get jadwalTabLewat;
+
+  /// No description provided for @jadwalTab30.
+  ///
+  /// In en, this message translates to:
+  /// **'30 days'**
+  String get jadwalTab30;
+
+  /// No description provided for @jadwalTab90.
+  ///
+  /// In en, this message translates to:
+  /// **'90 days'**
+  String get jadwalTab90;
+
+  /// No description provided for @jadwalInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Change an item\'s due date in its equipment form. Tap the row.'**
+  String get jadwalInfo;
+
+  /// No description provided for @pusatJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer hub'**
+  String get pusatJudul;
+
+  /// No description provided for @pusatSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything the lab knows about one customer'**
+  String get pusatSub;
+
+  /// No description provided for @pusatCari.
+  ///
+  /// In en, this message translates to:
+  /// **'Search customers'**
+  String get pusatCari;
+
+  /// No description provided for @pusatHasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Results'**
+  String get pusatHasil;
+
+  /// No description provided for @pusatCocok.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} customers found'**
+  String pusatCocok(int jumlah);
+
+  /// No description provided for @pusatKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No customers yet.'**
+  String get pusatKosong;
+
+  /// No description provided for @pusatKosongCari.
+  ///
+  /// In en, this message translates to:
+  /// **'No customer matches.'**
+  String get pusatKosongCari;
+
+  /// No description provided for @pusatGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load customers.'**
+  String get pusatGagal;
+
+  /// No description provided for @pusatAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} devices'**
+  String pusatAlat(int jumlah);
+
+  /// No description provided for @pusatLewatJadwal.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} overdue'**
+  String pusatLewatJadwal(int jumlah);
+
+  /// No description provided for @pusatPic.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact {nama}'**
+  String pusatPic(String nama);
+
+  /// No description provided for @pusatTanpaPic.
+  ///
+  /// In en, this message translates to:
+  /// **'No contact person'**
+  String get pusatTanpaPic;
+
+  /// No description provided for @pelangganDetailJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get pelangganDetailJudul;
+
+  /// No description provided for @pelangganAlamat.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get pelangganAlamat;
+
+  /// No description provided for @pelangganPic.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer contact'**
+  String get pelangganPic;
+
+  /// No description provided for @pelangganTelepon.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get pelangganTelepon;
+
+  /// No description provided for @pelangganEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get pelangganEmail;
+
+  /// No description provided for @pelangganAlatPerlu.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment due for recalibration'**
+  String get pelangganAlatPerlu;
+
+  /// No description provided for @pelangganAlatBersih.
+  ///
+  /// In en, this message translates to:
+  /// **'No equipment is overdue or close to its due date.'**
+  String get pelangganAlatBersih;
+
+  /// No description provided for @pelangganPaket.
+  ///
+  /// In en, this message translates to:
+  /// **'Packages in progress'**
+  String get pelangganPaket;
+
+  /// No description provided for @pelangganPaketKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No packages in progress.'**
+  String get pelangganPaketKosong;
+
+  /// No description provided for @pelangganGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this customer.'**
+  String get pelangganGagal;
+
+  /// No description provided for @pelangganPaketJalan.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} packages in progress'**
+  String pelangganPaketJalan(int jumlah);
+
+  /// No description provided for @berandaSaSapaan.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello, {nama}'**
+  String berandaSaSapaan(String nama);
+
+  /// No description provided for @berandaSaPeran.
+  ///
+  /// In en, this message translates to:
+  /// **'Super admin · overseer & approver'**
+  String get berandaSaPeran;
+
+  /// No description provided for @berandaSaMenunggu.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for your approval'**
+  String get berandaSaMenunggu;
+
+  /// No description provided for @berandaSaSiapDisahkan.
+  ///
+  /// In en, this message translates to:
+  /// **'worksheets ready to approve'**
+  String get berandaSaSiapDisahkan;
+
+  /// No description provided for @berandaSaTertua.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest: {alat}'**
+  String berandaSaTertua(String alat);
+
+  /// No description provided for @berandaSaHariLalu.
+  ///
+  /// In en, this message translates to:
+  /// **'{hari} d ago'**
+  String berandaSaHariLalu(int hari);
+
+  /// No description provided for @berandaSaKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is waiting for approval.'**
+  String get berandaSaKosong;
+
+  /// No description provided for @berandaSaBukaGerbang.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the certificate gate'**
+  String get berandaSaBukaGerbang;
+
+  /// No description provided for @berandaSaNomorCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'A certificate number is only allocated when you approve, so there are never gaps.'**
+  String get berandaSaNomorCatatan;
+
+  /// No description provided for @berandaSaPaket.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer packages in progress'**
+  String get berandaSaPaket;
+
+  /// No description provided for @berandaSaSemuaPaket.
+  ///
+  /// In en, this message translates to:
+  /// **'All packages'**
+  String get berandaSaSemuaPaket;
+
+  /// No description provided for @berandaSaPaketKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No packages in progress.'**
+  String get berandaSaPaketKosong;
+
+  /// No description provided for @berandaSaPerhatian.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get berandaSaPerhatian;
+
+  /// No description provided for @berandaSaAlatLewat.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} customer devices overdue for calibration'**
+  String berandaSaAlatLewat(int jumlah);
+
+  /// No description provided for @berandaSaAlatLewatTerlama.
+  ///
+  /// In en, this message translates to:
+  /// **'Longest {hari} days.'**
+  String berandaSaAlatLewatTerlama(int hari);
+
+  /// No description provided for @berandaSaAlatDekat.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} devices due within 30 days'**
+  String berandaSaAlatDekat(int jumlah);
+
+  /// No description provided for @berandaSaPaketTerlambat.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} packages past their promised date'**
+  String berandaSaPaketTerlambat(int jumlah);
+
+  /// No description provided for @berandaSaAman.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing needs attention right now.'**
+  String get berandaSaAman;
+
+  /// No description provided for @berandaSaAksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick actions'**
+  String get berandaSaAksi;
+
+  /// No description provided for @berandaSaTugaskan.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign a technician'**
+  String get berandaSaTugaskan;
+
+  /// No description provided for @berandaSaGagalBagian.
+  ///
+  /// In en, this message translates to:
+  /// **'This section could not be loaded.'**
+  String get berandaSaGagalBagian;
 }
 
 class _AppLocalizationsDelegate

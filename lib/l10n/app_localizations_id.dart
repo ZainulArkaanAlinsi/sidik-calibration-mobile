@@ -4563,6 +4563,9 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String get pelacakanTandaiSiapDiambil => 'Tandai siap diambil';
+
+  @override
   String get pelacakanTandaiDiserahkan => 'Tandai sudah diserahkan';
 
   @override
@@ -4713,4 +4716,249 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get menuCatatanViewer =>
       'Akun ini cuma bisa melihat. Perlu mengisi atau memeriksa? Minta admin mengganti peranmu.';
+
+  @override
+  String get jatuhTempoJudul => 'Jatuh tempo';
+
+  @override
+  String jatuhTempoRingkas(int lewat, int dekat) {
+    return '$lewat alat lewat · $dekat dalam 30 hari';
+  }
+
+  @override
+  String get jatuhTempoPeringatan =>
+      'Alat yang lewat jatuh tempo hasil ukurnya tidak bisa dipertanggungjawabkan.';
+
+  @override
+  String get jatuhTempoTabLewat => 'Sudah lewat';
+
+  @override
+  String get jatuhTempoTab30 => '30 hari ke depan';
+
+  @override
+  String get jatuhTempoUrutLama => 'Paling lama duluan';
+
+  @override
+  String get jatuhTempoUrutDekat => 'Paling dekat duluan';
+
+  @override
+  String jatuhTempoPer(String tanggal) {
+    return 'Per $tanggal';
+  }
+
+  @override
+  String jatuhTempoLewatHari(int hari) {
+    return 'Lewat $hari hari';
+  }
+
+  @override
+  String get jatuhTempoLewatJadwal => 'Lewat jadwal';
+
+  @override
+  String get jatuhTempoHariIni => 'Jatuh tempo hari ini';
+
+  @override
+  String jatuhTempoHariLagi(int hari) {
+    return '$hari hari lagi';
+  }
+
+  @override
+  String get jatuhTempoTanggalKosong => 'Tanggal belum diisi';
+
+  @override
+  String get jatuhTempoKosongLewat => 'Tidak ada alat yang lewat jatuh tempo.';
+
+  @override
+  String jatuhTempoKosongDekat(int hari) {
+    return 'Tidak ada alat yang jatuh tempo dalam $hari hari ke depan.';
+  }
+
+  @override
+  String get jatuhTempoGagal => 'Daftar jatuh tempo gagal dimuat.';
+
+  @override
+  String get jatuhTempoKetuk =>
+      'Ketuk alat untuk melihat detail dan menjadwalkan kalibrasi ulang.';
+
+  @override
+  String jatuhTempoSn(String sn) {
+    return 'SN $sn';
+  }
+
+  @override
+  String get jadwalJudul => 'Jadwal kalibrasi ulang';
+
+  @override
+  String get jadwalSub => 'Alat pelanggan yang harus dikalibrasi lagi';
+
+  @override
+  String get jadwalTabLewat => 'Lewat jadwal';
+
+  @override
+  String get jadwalTab30 => '30 hari';
+
+  @override
+  String get jadwalTab90 => '90 hari';
+
+  @override
+  String get jadwalInfo =>
+      'Tanggal jatuh tempo tiap alat diubah lewat form alat. Ketuk barisnya.';
+
+  @override
+  String get pusatJudul => 'Pusat pelanggan';
+
+  @override
+  String get pusatSub => 'Semua yang lab tahu tentang satu pelanggan';
+
+  @override
+  String get pusatCari => 'Cari pelanggan';
+
+  @override
+  String get pusatHasil => 'Hasil';
+
+  @override
+  String pusatCocok(int jumlah) {
+    return '$jumlah pelanggan cocok';
+  }
+
+  @override
+  String get pusatKosong => 'Belum ada pelanggan.';
+
+  @override
+  String get pusatKosongCari => 'Tidak ada pelanggan yang cocok.';
+
+  @override
+  String get pusatGagal => 'Daftar pelanggan gagal dimuat.';
+
+  @override
+  String pusatAlat(int jumlah) {
+    return '$jumlah alat';
+  }
+
+  @override
+  String pusatLewatJadwal(int jumlah) {
+    return '$jumlah lewat jadwal';
+  }
+
+  @override
+  String pusatPic(String nama) {
+    return 'PIC $nama';
+  }
+
+  @override
+  String get pusatTanpaPic => 'PIC belum diisi';
+
+  @override
+  String get pelangganDetailJudul => 'Pelanggan';
+
+  @override
+  String get pelangganAlamat => 'Alamat';
+
+  @override
+  String get pelangganPic => 'PIC pelanggan';
+
+  @override
+  String get pelangganTelepon => 'Telepon';
+
+  @override
+  String get pelangganEmail => 'Email';
+
+  @override
+  String get pelangganAlatPerlu => 'Alat yang perlu kalibrasi ulang';
+
+  @override
+  String get pelangganAlatBersih =>
+      'Tidak ada alat yang lewat atau mendekati jatuh tempo.';
+
+  @override
+  String get pelangganPaket => 'Paket berjalan';
+
+  @override
+  String get pelangganPaketKosong => 'Tidak ada paket yang sedang berjalan.';
+
+  @override
+  String get pelangganGagal => 'Data pelanggan gagal dimuat.';
+
+  @override
+  String pelangganPaketJalan(int jumlah) {
+    return '$jumlah paket jalan';
+  }
+
+  @override
+  String berandaSaSapaan(String nama) {
+    return 'Halo, $nama';
+  }
+
+  @override
+  String get berandaSaPeran => 'Super admin · pengawas & pengesah';
+
+  @override
+  String get berandaSaMenunggu => 'Menunggu pengesahan kamu';
+
+  @override
+  String get berandaSaSiapDisahkan => 'lembar kerja siap disahkan';
+
+  @override
+  String berandaSaTertua(String alat) {
+    return 'Tertua: $alat';
+  }
+
+  @override
+  String berandaSaHariLalu(int hari) {
+    return '$hari hari lalu';
+  }
+
+  @override
+  String get berandaSaKosong => 'Tidak ada yang menunggu pengesahan.';
+
+  @override
+  String get berandaSaBukaGerbang => 'Buka gerbang sertifikat';
+
+  @override
+  String get berandaSaNomorCatatan =>
+      'Nomor sertifikat baru dialokasikan saat kamu mengesahkan, jadi tidak pernah ada nomor bolong.';
+
+  @override
+  String get berandaSaPaket => 'Paket pelanggan berjalan';
+
+  @override
+  String get berandaSaSemuaPaket => 'Semua paket';
+
+  @override
+  String get berandaSaPaketKosong => 'Belum ada paket yang berjalan.';
+
+  @override
+  String get berandaSaPerhatian => 'Perlu diperhatikan';
+
+  @override
+  String berandaSaAlatLewat(int jumlah) {
+    return '$jumlah alat pelanggan lewat jadwal kalibrasi';
+  }
+
+  @override
+  String berandaSaAlatLewatTerlama(int hari) {
+    return 'Paling lama $hari hari.';
+  }
+
+  @override
+  String berandaSaAlatDekat(int jumlah) {
+    return '$jumlah alat jatuh tempo dalam 30 hari';
+  }
+
+  @override
+  String berandaSaPaketTerlambat(int jumlah) {
+    return '$jumlah paket melewati janji selesai';
+  }
+
+  @override
+  String get berandaSaAman => 'Tidak ada yang perlu diperhatikan sekarang.';
+
+  @override
+  String get berandaSaAksi => 'Aksi cepat';
+
+  @override
+  String get berandaSaTugaskan => 'Tugaskan teknisi';
+
+  @override
+  String get berandaSaGagalBagian => 'Bagian ini gagal dimuat.';
 }
