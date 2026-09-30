@@ -584,5 +584,15 @@ class _Kerangka extends StatelessWidget {
 }
 
 /// Format tanggal pendek — dipakai di beberapa layar pengendalian.
-String tanggalPendek(DateTime? t) =>
-    t == null ? '—' : DateFormat('d MMM yyyy').format(t);
+/// Tanggal pendek mengikuti bahasa app ("2 Okt 2026" / "2 Oct 2026").
+///
+/// Locale-nya diambil dari `context`, bukan dibiarkan kosong: `Intl.defaultLocale`
+/// tidak pernah disetel di app ini, jadi `DateFormat` tanpa locale selalu
+/// mencetak nama bulan Inggris — "Target 2 Oct 2026" di layar berbahasa
+/// Indonesia. Polanya sama dengan riwayat & antrean approval.
+String tanggalPendek(BuildContext context, DateTime? t) => t == null
+    ? '—'
+    : DateFormat(
+        'd MMM yyyy',
+        Localizations.localeOf(context).languageCode,
+      ).format(t);

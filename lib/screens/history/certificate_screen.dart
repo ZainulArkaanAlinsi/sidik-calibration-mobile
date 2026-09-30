@@ -300,7 +300,10 @@ class _IdentitasSesi extends StatelessWidget {
                   label: l10n.certTanggalKalibrasi,
                   value: tglKalibrasi == null
                       ? l10n.tanggalKosong
-                      : DateFormat('d MMM yyyy').format(tglKalibrasi),
+                      : DateFormat(
+                          'd MMM yyyy',
+                          Localizations.localeOf(context).languageCode,
+                        ).format(tglKalibrasi),
                 ),
                 _RingkasanRow(
                   label: l10n.certTeknisi,

@@ -212,7 +212,9 @@ class _KartuPaket extends StatelessWidget {
               ),
               if (paket.tanggalJanjiSelesai != null)
                 Text(
-                  l10n.pelacakanJanji(tanggalPendek(paket.tanggalJanjiSelesai)),
+                  l10n.pelacakanJanji(
+                    tanggalPendek(context, paket.tanggalJanjiSelesai),
+                  ),
                   style: theme.textTheme.bodySmall,
                 ),
             ],

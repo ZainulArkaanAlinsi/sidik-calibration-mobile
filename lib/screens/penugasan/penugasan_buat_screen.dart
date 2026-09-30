@@ -131,7 +131,7 @@ class _PenugasanBuatScreenState extends ConsumerState<PenugasanBuatScreen> {
               label: Text(
                 _target == null
                     ? l10n.penugasanPilihTarget
-                    : l10n.penugasanTarget(tanggalPendek(_target)),
+                    : l10n.penugasanTarget(tanggalPendek(context, _target)),
               ),
               onPressed: () async {
                 final hariIni = DateUtils.dateOnly(DateTime.now());

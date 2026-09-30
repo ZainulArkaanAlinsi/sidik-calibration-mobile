@@ -165,6 +165,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(PenugasanScreen), findsOneWidget);
+
+    // Tanggal ikut bahasa app. `Intl.defaultLocale` tidak pernah disetel, jadi
+    // `DateFormat` tanpa locale dulu mencetak "Target 2 Oct 2026" di layar
+    // berbahasa Indonesia (ketahuan dari golden detail penugasan, 30 Sep 2026).
+    expect(find.textContaining('Okt 2026'), findsWidgets);
+    expect(find.textContaining('Oct 2026'), findsNothing);
   });
 
   testWidgets('viewer: baca saja, dan dikasih tahu kenapa', (tester) async {

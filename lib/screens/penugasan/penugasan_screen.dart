@@ -167,7 +167,7 @@ class _KartuPenugasan extends StatelessWidget {
           Text(
             [
               if (p.tanggalTarget != null)
-                l10n.penugasanTarget(tanggalPendek(p.tanggalTarget)),
+                l10n.penugasanTarget(tanggalPendek(context, p.tanggalTarget)),
               p.teknisi.map((t) => t.kode ?? t.nama).join(', '),
             ].where((s) => s.isNotEmpty).join(' · '),
             style: theme.textTheme.bodySmall?.copyWith(
@@ -228,7 +228,7 @@ class _DetailPenugasanScreenState extends ConsumerState<DetailPenugasanScreen> {
           children: [
             if (p.tanggalTarget != null)
               Text(
-                l10n.penugasanTarget(tanggalPendek(p.tanggalTarget)),
+                l10n.penugasanTarget(tanggalPendek(context, p.tanggalTarget)),
                 style: theme.textTheme.bodyMedium,
               ),
             if (p.catatan != null && p.catatan!.isNotEmpty) ...[
@@ -251,7 +251,7 @@ class _DetailPenugasanScreenState extends ConsumerState<DetailPenugasanScreen> {
                   t.dilihatPada == null
                       ? l10n.penugasanBelumDilihat
                       : l10n.penugasanSudahDilihat(
-                          tanggalPendek(t.dilihatPada),
+                          tanggalPendek(context, t.dilihatPada),
                         ),
                 ),
                 trailing: t.peran == 'ketua'

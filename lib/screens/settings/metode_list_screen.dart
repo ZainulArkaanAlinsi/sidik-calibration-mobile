@@ -144,7 +144,10 @@ class _Kartu extends StatelessWidget {
             // terjemahan di luar maksudnya — gampang jadi janggal di bahasa
             // yang urutan katanya beda.
             ButirKartu(
-              utama: DateFormat('d MMM yyyy').format(metode.berlakuMulai!),
+              utama: DateFormat(
+                'd MMM yyyy',
+                Localizations.localeOf(context).languageCode,
+              ).format(metode.berlakuMulai!),
             ),
           if (!metode.aktif)
             ButirKartu(
