@@ -9,6 +9,9 @@ import 'auth_service.dart' show AuthException;
 abstract class CustomerService {
   Future<List<Customer>> daftar(String token, {String? search});
 
+  /// Satu pelanggan lengkap (`GET /customers/{id}`) — dipakai Pusat pelanggan.
+  Future<Customer> detail(String token, int id);
+
   Future<Customer> simpan(String token, Customer data);
 
   Future<Customer> ubah(String token, Customer data);
@@ -32,6 +35,12 @@ class ApiCustomerService implements CustomerService {
     final data = (json['data'] as List<dynamic>? ?? const []);
 
     return parseListAman(data, Customer.fromJson);
+  }
+
+  @override
+  Future<Customer> detail(String token, int id) async {
+    final json = await _api.get('/customers/$id', token: token);
+    return Customer.fromJson((json['data'] ?? json) as Map<String, dynamic>);
   }
 
   @override
@@ -64,7 +73,15 @@ class ApiCustomerService implements CustomerService {
 
 /// Data tiruan buat test.
 class MockCustomerService implements CustomerService {
-  MockCustomerService({this.gagal = false});
+  /// [awal] mengganti daftar bawaan (test & golden yang butuh pelanggan
+  /// tertentu) tanpa menyentuh data yang dipakai puluhan test lain.
+  MockCustomerService({this.gagal = false, List<Customer>? awal}) {
+    if (awal != null) {
+      _data
+        ..clear()
+        ..addAll(awal);
+    }
+  }
 
   final bool gagal;
 
@@ -99,10 +116,20 @@ class MockCustomerService implements CustomerService {
   }
 
   @override
+  Future<Customer> detail(String token, int id) async {
+    if (gagal) throw Exception('server nggak nyaut');
+    return _data.firstWhere((c) => c.id == id);
+  }
+
+  @override
   Future<Customer> simpan(String token, Customer data) async {
     if (gagal) throw Exception('server nggak nyaut');
     final baru = Customer(
-      id: (_data.isEmpty ? 0 : _data.map((c) => c.id).reduce((a, b) => a > b ? a : b)) + 1,
+      id:
+          (_data.isEmpty
+              ? 0
+              : _data.map((c) => c.id).reduce((a, b) => a > b ? a : b)) +
+          1,
       nama: data.nama,
       alamat: data.alamat,
       contactPerson: data.contactPerson,
