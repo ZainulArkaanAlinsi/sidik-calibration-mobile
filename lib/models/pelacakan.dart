@@ -52,8 +52,9 @@ class PaketLacak {
     jumlahAlat: (json['jumlah_alat'] as num?)?.toInt() ?? 0,
     jumlahSelesai: (json['jumlah_selesai'] as num?)?.toInt() ?? 0,
     alat: [
-      for (final a in (json['alat'] as List<dynamic>? ?? const [])
-          .whereType<Map<String, dynamic>>())
+      for (final a
+          in (json['alat'] as List<dynamic>? ?? const [])
+              .whereType<Map<String, dynamic>>())
         AlatDalamPaket.fromJson(a),
     ],
   );
@@ -91,6 +92,12 @@ class AlatDalamPaket {
   bool get sudahDiserahkan => tahap == 'diserahkan';
   bool get bisaDiserahkan =>
       tahap == 'sertifikat_terbit' || tahap == 'siap_diambil';
+
+  /// Baru boleh ditandai "siap diambil" sesudah sertifikatnya terbit, dan
+  /// cuma SEKALI: begitu tahapnya sudah `siap_diambil` (atau lebih jauh,
+  /// `diserahkan`) tombolnya hilang — server pun menolak memundurkan alat
+  /// yang sudah diserahkan, jadi menawarkannya cuma memancing 422.
+  bool get bisaDitandaiSiap => tahap == 'sertifikat_terbit';
 
   factory AlatDalamPaket.fromJson(Map<String, dynamic> json) {
     final sertifikat = json['sertifikat'] as Map<String, dynamic>?;

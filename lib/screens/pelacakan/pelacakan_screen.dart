@@ -419,18 +419,54 @@ class _BarisAlat extends ConsumerWidget {
               ),
             if (bolehSerahkan && alat.bisaDiserahkan) ...[
               const SizedBox(height: AppSpacing.sm),
-              AppButton(
-                label: l10n.pelacakanTandaiDiserahkan,
-                icon: Icons.handshake_outlined,
-                variant: AppButtonVariant.secondary,
-                ringkas: true,
-                onPressed: () => _serahkan(context, ref),
+              // Dua langkah fisik yang berurutan: "siap diambil" (alat sudah
+              // di rak meja depan, pelanggan boleh dikabari) lalu
+              // "diserahkan" (ada nama penerimanya). Tombol pertama hilang
+              // begitu tahapnya lewat, supaya urutan ini tidak bisa dibalik
+              // dari layar.
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  if (alat.bisaDitandaiSiap)
+                    AppButton(
+                      label: l10n.pelacakanTandaiSiapDiambil,
+                      icon: Icons.inventory_2_outlined,
+                      variant: AppButtonVariant.secondary,
+                      ringkas: true,
+                      onPressed: () => _tandaiSiap(context, ref),
+                    ),
+                  AppButton(
+                    label: l10n.pelacakanTandaiDiserahkan,
+                    icon: Icons.handshake_outlined,
+                    variant: AppButtonVariant.secondary,
+                    ringkas: true,
+                    onPressed: () => _serahkan(context, ref),
+                  ),
+                ],
               ),
             ],
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _tandaiSiap(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final token = await ref.read(tokenStorageProvider).read();
+      if (token == null) throw const TokenHilangException();
+      await ref
+          .read(pelacakanServiceProvider)
+          .tandaiTahapFisik(token, alat.itemId, tahap: 'siap_diambil');
+      onBerubah();
+      ref.invalidate(daftarPaketProvider);
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('$e'.replaceFirst('Exception: ', ''))),
+      );
+    }
   }
 
   Future<void> _serahkan(BuildContext context, WidgetRef ref) async {
