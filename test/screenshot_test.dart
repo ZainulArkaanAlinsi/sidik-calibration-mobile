@@ -74,6 +74,15 @@ Future<void> _muatFont() async {
   }
   await inter.load();
 
+  // Font angka (`SidikTheme.gayaAngka`). Tanpa ini angka & serial di golden
+  // kerender jadi kotak, jadi perubahan angka tidak pernah tertangkap.
+  final mono = FontLoader('IBMPlexMono');
+  for (final b in ['Regular', 'Medium', 'SemiBold', 'Bold']) {
+    final bytes = File('assets/fonts/IBMPlexMono-$b.ttf').readAsBytesSync();
+    mono.addFont(Future.value(bytes.buffer.asByteData()));
+  }
+  await mono.load();
+
   // Font ikon Material juga nggak ke-load sendiri — tanpa ini semua ikon
   // kerender jadi kotak kosong. Itu bikin screenshot-nya nyaris nggak ada
   // gunanya: separuh bahasa desain kita ikon, dan aturan "status nggak boleh

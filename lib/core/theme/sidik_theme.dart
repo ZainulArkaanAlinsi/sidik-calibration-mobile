@@ -38,9 +38,9 @@ class SidikTheme {
 
   /// Huruf angka ukur, nomor sertifikat, dan serial.
   ///
-  /// Selama Plex Mono belum dibundel, dia jatuh ke monospace bawaan sistem.
-  /// `fontFeatures` tabular tetap dipasang di [gayaAngka] supaya kolom angka
-  /// di lembar kerja tetap lurus apa pun fontnya.
+  /// Dibundel di `assets/fonts/IBMPlexMono-*.ttf` (30 Sep 2026) — sama di
+  /// Android, iOS, desktop, dan golden. `fontFeatures` tabular tetap dipasang
+  /// di [gayaAngka] sebagai jaring kalau font gagal dimuat.
   static const String keluargaMono = 'IBMPlexMono';
 
   static ThemeData get terang => _bangun(SidikMaterial.terangDefault);
