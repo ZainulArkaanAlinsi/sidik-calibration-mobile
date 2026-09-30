@@ -18,7 +18,9 @@ import '../admin/antrean_approval_screen.dart';
 import '../alur/alur_kerja_screen.dart';
 import '../../widgets/pemantau_antrean.dart';
 import '../notification/notification_screen.dart';
+import '../jatuh_tempo/layar_jatuh_tempo.dart';
 import '../pelacakan/pelacakan_screen.dart';
+import '../pelanggan/pusat_pelanggan_screen.dart';
 import '../pengesahan/antrean_pengesahan_screen.dart';
 import '../penugasan/penugasan_screen.dart';
 import '../profile/profile_screen.dart';
@@ -261,6 +263,10 @@ class _MenuUtama extends ConsumerWidget {
         layar: () => const PelacakanScreen());
     final penugasan = _Tujuan(Icons.assignment_ind_outlined, l10n.penugasanJudul,
         layar: () => const PenugasanScreen());
+    final pusat = _Tujuan(Icons.apartment_outlined, l10n.pusatJudul,
+        layar: () => const PusatPelangganScreen());
+    final jadwal = _Tujuan(Icons.event_repeat_outlined, l10n.jadwalJudul,
+        layar: () => const JadwalKalibrasiScreen());
     final alur = _Tujuan(Icons.account_tree_outlined, l10n.alurTitle,
         layar: () => const AlurKerjaScreen());
     final draf = _Tujuan(Icons.edit_note, l10n.drafTitle,
@@ -269,7 +275,7 @@ class _MenuUtama extends ConsumerWidget {
     final List<(String?, List<_Tujuan>)> seksi = switch (peran) {
       UserRole.superAdmin => [
         (l10n.menuKerjaHarian, [beranda, pengesahan, penugasan, pelacakan]),
-        (l10n.menuPantau, [alur, riwayat, alat, folder]),
+        (l10n.menuPantau, [jadwal, pusat, alur, riwayat, alat, folder]),
         (null, [notifikasi, profil]),
       ],
       UserRole.admin => [
@@ -283,7 +289,7 @@ class _MenuUtama extends ConsumerWidget {
           pelacakan,
           draf,
         ]),
-        (l10n.menuArsip, [riwayat, alat, folder, notifikasi]),
+        (l10n.menuArsip, [riwayat, alat, pusat, jadwal, folder, notifikasi]),
         (l10n.menuPengaturan, [
           _Tujuan(Icons.tune, l10n.kelolaJudul,
               layar: () => const KelolaLabScreen()),

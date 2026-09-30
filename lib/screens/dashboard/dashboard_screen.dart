@@ -25,6 +25,8 @@ import '../../widgets/notification_bell.dart';
 import '../calibration/category_picker_screen.dart';
 import '../draf/draf_screen.dart';
 import '../equipment/equipment_form_screen.dart';
+import '../jatuh_tempo/layar_jatuh_tempo.dart';
+import 'beranda_super_admin.dart';
 import 'device_overview_screen.dart';
 
 /// Dashboard — 4 state sesuai task 21 Jul:
@@ -39,9 +41,15 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ringkasan = ref.watch(dashboardProvider);
     final user = ref.watch(authProvider).value;
     final l10n = AppLocalizations.of(context);
+
+    // Super admin punya beranda sendiri ([BerandaSuperAdmin]): yang dia awasi
+    // (pengesahan, paket, jatuh tempo) bukan angka sesi yang disajikan
+    // `GET /dashboard`. Ringkasan umum tetap ditarik — `PemantauAntrean` di
+    // shell memakainya untuk badge — tapi tidak digambar untuknya.
+    final superAdmin = user?.role == UserRole.superAdmin;
+    final ringkasan = ref.watch(dashboardProvider);
 
     // JANGAN pattern-match `AsyncLoading()` duluan di sini.
     //
@@ -54,7 +62,9 @@ class DashboardScreen extends ConsumerWidget {
     final data = ringkasan.value;
 
     final Widget isi;
-    if (data != null) {
+    if (superAdmin) {
+      isi = const BerandaSuperAdmin();
+    } else if (data != null) {
       isi = data.kosong ? _Kosong(user: user) : _Isi(data: data, user: user);
     } else if (ringkasan.hasError) {
       isi = _Gagal(
@@ -91,7 +101,9 @@ class DashboardScreen extends ConsumerWidget {
       body: Container(
         decoration: BoxDecoration(color: AppColors.warnaLatar(context)),
         child: RefreshIndicator(
-          onRefresh: () => ref.read(dashboardProvider.notifier).muatUlang(),
+          onRefresh: () => superAdmin
+              ? segarkanBerandaSuperAdmin(ref)
+              : ref.read(dashboardProvider.notifier).muatUlang(),
           // Di DALAM Container, biar gradasi latarnya tetap penuh selebar
           // jendela — yang dibatasi cuma isinya.
           //
@@ -154,9 +166,9 @@ class _Isi extends ConsumerWidget {
             // Angka draf dulu cuma angka mati. Teknisi yang lihat "3" di sini
             // nggak punya jalan dari situ ke tiga lembarnya — dia mesti buka
             // menu samping, atau nyisir Riwayat yang campur sesi selesai.
-            onDraftTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const DrafScreen()),
-            ),
+            onDraftTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute<void>(builder: (_) => const DrafScreen())),
             onStart: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
                 builder: (_) => const CategoryPickerScreen(),
@@ -368,10 +380,7 @@ class _KartuHero extends StatelessWidget {
                       : null,
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
-                      builder: (_) => DeviceOverviewScreen(
-                        title: l10n.dashOverdue,
-                        statusFilter: 'overdue',
-                      ),
+                      builder: (_) => const DaftarJatuhTempoScreen(),
                     ),
                   ),
                 ),
@@ -436,10 +445,7 @@ class _RingkasanLab extends StatelessWidget {
                   : null,
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (_) => DeviceOverviewScreen(
-                    title: l10n.dashOverdue,
-                    statusFilter: 'overdue',
-                  ),
+                  builder: (_) => const DaftarJatuhTempoScreen(),
                 ),
               ),
             ),
@@ -670,12 +676,7 @@ class _PeringatanOverdue extends StatelessWidget {
     // latarnya ganti.
     return InkWell(
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => DeviceOverviewScreen(
-            title: l10n.dashOverdue,
-            statusFilter: 'overdue',
-          ),
-        ),
+        MaterialPageRoute<void>(builder: (_) => const DaftarJatuhTempoScreen()),
       ),
       borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
       child: Container(

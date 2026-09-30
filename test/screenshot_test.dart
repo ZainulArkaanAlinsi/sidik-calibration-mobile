@@ -13,7 +13,15 @@ import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/dashboard_provider.dart';
 import 'package:sidik_calibration/providers/history_provider.dart';
+import 'package:sidik_calibration/models/customer.dart';
+import 'package:sidik_calibration/models/equipment.dart';
 import 'package:sidik_calibration/models/user.dart';
+import 'package:sidik_calibration/providers/equipment_provider.dart';
+import 'package:sidik_calibration/screens/dashboard/dashboard_screen.dart';
+import 'package:sidik_calibration/screens/jatuh_tempo/layar_jatuh_tempo.dart';
+import 'package:sidik_calibration/screens/pelanggan/pusat_pelanggan_screen.dart';
+import 'package:sidik_calibration/services/customer_service.dart';
+import 'package:sidik_calibration/services/equipment_service.dart';
 import 'package:sidik_calibration/screens/auth/login_screen.dart';
 import 'package:sidik_calibration/screens/auth/onboarding_screen.dart';
 import 'package:sidik_calibration/screens/auth/splash_screen.dart';
@@ -65,6 +73,15 @@ Future<void> _muatFont() async {
     inter.addFont(Future.value(bytes.buffer.asByteData()));
   }
   await inter.load();
+
+  // Font angka (`SidikTheme.gayaAngka`). Tanpa ini angka & serial di golden
+  // kerender jadi kotak, jadi perubahan angka tidak pernah tertangkap.
+  final mono = FontLoader('IBMPlexMono');
+  for (final b in ['Regular', 'Medium', 'SemiBold', 'Bold']) {
+    final bytes = File('assets/fonts/IBMPlexMono-$b.ttf').readAsBytesSync();
+    mono.addFont(Future.value(bytes.buffer.asByteData()));
+  }
+  await mono.load();
 
   // Font ikon Material juga nggak ke-load sendiri — tanpa ini semua ikon
   // kerender jadi kotak kosong. Itu bikin screenshot-nya nyaris nggak ada
@@ -131,6 +148,12 @@ Widget _bungkus(
   // Dua-duanya dipotret: layar teknisi dan layar admin sekarang beda isi,
   // jadi satu golden aja nutupin separuh app yang berubah.
   String token = 'mock-token-1',
+  // Patokan "hari ini" & data tiruan untuk layar jatuh tempo/pelanggan.
+  // Diisi HANYA oleh golden paket-lab: golden lain tetap memakai
+  // [_tanggalGolden] dan daftar bawaan, jadi tidak ada yang bergeser.
+  DateTime? jam,
+  List<Equipment>? alat,
+  List<Customer>? pelanggan,
 }) {
   return ProviderScope(
     overrides: [
@@ -157,7 +180,15 @@ Widget _bungkus(
       // TIAP GANTI HARI padahal nggak ada yang rusak — dan tes yang merahnya
       // nggak nyambung sama perubahan kode itu lama-lama diabaikan orang,
       // termasuk waktu dia beneran nangkep bug. Kejadian 10 Agt 2026.
-      jamProvider.overrideWithValue(() => _tanggalGolden),
+      jamProvider.overrideWithValue(() => jam ?? _tanggalGolden),
+      if (alat != null)
+        equipmentServiceProvider.overrideWithValue(
+          MockEquipmentService(awal: alat),
+        ),
+      if (pelanggan != null)
+        customerServiceProvider.overrideWithValue(
+          MockCustomerService(awal: pelanggan),
+        ),
       // Layar paket 29 Sep (pengesahan, pelacakan, penugasan). Tanpa mock-nya
       // ketiganya menembak API asli di golden dan cuma memotret pesan galat.
       pengesahanServiceProvider.overrideWithValue(MockPengesahanService()),
@@ -741,6 +772,213 @@ void main() {
     await expectLater(
       find.byType(KelolaLabScreen),
       matchesGoldenFile('screenshots/kelola-lab.png'),
+    );
+  });
+
+  // ── Sisa paket lab (30 Sep 2026): jatuh tempo, jadwal, pusat pelanggan,
+  // beranda super admin, dan tombol "siap diambil" di detail paket. ────────
+  //
+  // Jam dipatok ke 26 Sep 2026 (tanggal artboard) supaya "lewat 12 hari" tidak
+  // berubah tiap hari — golden lain tetap memakai [_tanggalGolden].
+
+  final hariGoldenLab = DateTime(2026, 9, 26);
+
+  Equipment alatLab(
+    int id,
+    String nama,
+    String sn,
+    String pelanggan,
+    int pelangganId,
+    DateTime tempo, {
+    EquipmentStatus status = EquipmentStatus.aktif,
+  }) => Equipment(
+    id: id,
+    namaAlat: nama,
+    serialNumber: sn,
+    kategori: 'suhu',
+    status: status,
+    pelangganId: pelangganId,
+    pelangganNama: pelanggan,
+    tanggalJatuhTempo: tempo,
+  );
+
+  const tirta = 'PT Tirta Mandiri Laboratorium';
+  final alatGoldenLab = [
+    alatLab(
+      1,
+      'Timbangan Elektronik Ohaus PX224',
+      'C3349',
+      'PT Bumi Farma Sejahtera',
+      3,
+      DateTime(2026, 9, 14),
+      status: EquipmentStatus.overdue,
+    ),
+    alatLab(
+      2,
+      'Thermohygrometer Lutron HT-3007',
+      'L-3007-118',
+      tirta,
+      1,
+      DateTime(2026, 9, 18),
+      status: EquipmentStatus.overdue,
+    ),
+    alatLab(
+      3,
+      'Viscometer Brookfield DV2T',
+      '8820415',
+      'CV Anugerah Kimia Utama',
+      2,
+      DateTime(2026, 9, 21),
+      status: EquipmentStatus.overdue,
+    ),
+    alatLab(
+      4,
+      'Micrometer Mitutoyo 293-240',
+      '61203847',
+      'RS Harapan Medika',
+      4,
+      DateTime(2026, 9, 24),
+      status: EquipmentStatus.overdue,
+    ),
+    alatLab(
+      5,
+      'pH Meter Hanna HI2211',
+      'HI2211-0419',
+      tirta,
+      1,
+      DateTime(2026, 10, 14),
+    ),
+    alatLab(
+      6,
+      'Oven Memmert UN55',
+      'B415.0923',
+      'PT Sinar Pangan Nusantara',
+      5,
+      DateTime(2026, 11, 20),
+    ),
+  ];
+  const pelangganGoldenLab = [
+    Customer(
+      id: 1,
+      nama: tirta,
+      alamat: 'Jl. Industri Selatan 4 Blok GG-2, Cikarang',
+      contactPerson: 'Budi Santoso',
+      telepon: '0812 1156 4470',
+      email: 'budi@tirtamandiri.example',
+      jumlahAlat: 12,
+    ),
+    Customer(
+      id: 2,
+      nama: 'CV Anugerah Kimia Utama',
+      alamat: 'Jl. Soekarno-Hatta 219, Kota Bandung',
+      contactPerson: 'Maya Ratnasari',
+      telepon: '022 5550 1122',
+      email: 'maya@anugerah.example',
+      jumlahAlat: 8,
+    ),
+  ];
+
+  testWidgets('daftar jatuh tempo', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayarBerakun(
+      tester,
+      _bungkus(
+        const DaftarJatuhTempoScreen(),
+        mode: Brightness.light,
+        jam: hariGoldenLab,
+        alat: alatGoldenLab,
+      ),
+    );
+    await expectLater(
+      find.byType(DaftarJatuhTempoScreen),
+      matchesGoldenFile('screenshots/daftar-jatuh-tempo.png'),
+    );
+  });
+
+  testWidgets('jadwal kalibrasi ulang', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayarBerakun(
+      tester,
+      _bungkus(
+        const JadwalKalibrasiScreen(),
+        mode: Brightness.light,
+        jam: hariGoldenLab,
+        alat: alatGoldenLab,
+      ),
+    );
+    await expectLater(
+      find.byType(JadwalKalibrasiScreen),
+      matchesGoldenFile('screenshots/jadwal-kalibrasi-ulang.png'),
+    );
+  });
+
+  testWidgets('pusat pelanggan', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayarBerakun(
+      tester,
+      _bungkus(
+        const PusatPelangganScreen(),
+        mode: Brightness.light,
+        token: 'mock-token-5',
+        jam: hariGoldenLab,
+        alat: alatGoldenLab,
+        pelanggan: pelangganGoldenLab,
+      ),
+    );
+    await expectLater(
+      find.byType(PusatPelangganScreen),
+      matchesGoldenFile('screenshots/pusat-pelanggan.png'),
+    );
+  });
+
+  testWidgets('detail pelanggan', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayarBerakun(
+      tester,
+      _bungkus(
+        DetailPelangganScreen(pelanggan: pelangganGoldenLab.first),
+        mode: Brightness.light,
+        token: 'mock-token-5',
+        jam: hariGoldenLab,
+        alat: alatGoldenLab,
+        pelanggan: pelangganGoldenLab,
+      ),
+    );
+    await expectLater(
+      find.byType(DetailPelangganScreen),
+      matchesGoldenFile('screenshots/detail-pelanggan.png'),
+    );
+  });
+
+  testWidgets('beranda super admin', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayarBerakun(
+      tester,
+      _bungkus(
+        const DashboardScreen(),
+        mode: Brightness.light,
+        token: 'mock-token-5',
+        jam: hariGoldenLab,
+        alat: alatGoldenLab,
+      ),
+    );
+    await expectLater(
+      find.byType(DashboardScreen),
+      matchesGoldenFile('screenshots/beranda-super-admin.png'),
+    );
+  });
+
+  /// Detail paket dengan alat yang baru bersertifikat: dua tombol fisik
+  /// ("siap diambil" lalu "diserahkan") berdampingan.
+  testWidgets('pelacakan detail siap diambil', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayarBerakun(
+      tester,
+      _bungkus(const DetailPaketScreen(paketId: 34), mode: Brightness.light),
+    );
+    await expectLater(
+      find.byType(DetailPaketScreen),
+      matchesGoldenFile('screenshots/pelacakan-detail-siap-diambil.png'),
     );
   });
 }

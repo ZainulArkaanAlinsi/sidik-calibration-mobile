@@ -4635,6 +4635,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get pelacakanTandaiSiapDiambil => 'Mark as ready for pickup';
+
+  @override
   String get pelacakanTandaiDiserahkan => 'Mark as handed over';
 
   @override
@@ -4786,4 +4789,249 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get menuCatatanViewer =>
       'This account can only view. Need to fill in or review? Ask an admin to change your role.';
+
+  @override
+  String get jatuhTempoJudul => 'Due dates';
+
+  @override
+  String jatuhTempoRingkas(int lewat, int dekat) {
+    return '$lewat overdue · $dekat due within 30 days';
+  }
+
+  @override
+  String get jatuhTempoPeringatan =>
+      'Equipment past its due date can no longer vouch for its readings.';
+
+  @override
+  String get jatuhTempoTabLewat => 'Overdue';
+
+  @override
+  String get jatuhTempoTab30 => 'Next 30 days';
+
+  @override
+  String get jatuhTempoUrutLama => 'Longest overdue first';
+
+  @override
+  String get jatuhTempoUrutDekat => 'Soonest first';
+
+  @override
+  String jatuhTempoPer(String tanggal) {
+    return 'As of $tanggal';
+  }
+
+  @override
+  String jatuhTempoLewatHari(int hari) {
+    return '$hari d overdue';
+  }
+
+  @override
+  String get jatuhTempoLewatJadwal => 'Overdue';
+
+  @override
+  String get jatuhTempoHariIni => 'Due today';
+
+  @override
+  String jatuhTempoHariLagi(int hari) {
+    return 'In $hari d';
+  }
+
+  @override
+  String get jatuhTempoTanggalKosong => 'No date set';
+
+  @override
+  String get jatuhTempoKosongLewat => 'No equipment is overdue.';
+
+  @override
+  String jatuhTempoKosongDekat(int hari) {
+    return 'Nothing falls due in the next $hari days.';
+  }
+
+  @override
+  String get jatuhTempoGagal => 'Could not load the due-date list.';
+
+  @override
+  String get jatuhTempoKetuk =>
+      'Tap an item to see details and schedule recalibration.';
+
+  @override
+  String jatuhTempoSn(String sn) {
+    return 'SN $sn';
+  }
+
+  @override
+  String get jadwalJudul => 'Recalibration schedule';
+
+  @override
+  String get jadwalSub => 'Customer equipment due for calibration again';
+
+  @override
+  String get jadwalTabLewat => 'Overdue';
+
+  @override
+  String get jadwalTab30 => '30 days';
+
+  @override
+  String get jadwalTab90 => '90 days';
+
+  @override
+  String get jadwalInfo =>
+      'Change an item\'s due date in its equipment form. Tap the row.';
+
+  @override
+  String get pusatJudul => 'Customer hub';
+
+  @override
+  String get pusatSub => 'Everything the lab knows about one customer';
+
+  @override
+  String get pusatCari => 'Search customers';
+
+  @override
+  String get pusatHasil => 'Results';
+
+  @override
+  String pusatCocok(int jumlah) {
+    return '$jumlah customers found';
+  }
+
+  @override
+  String get pusatKosong => 'No customers yet.';
+
+  @override
+  String get pusatKosongCari => 'No customer matches.';
+
+  @override
+  String get pusatGagal => 'Could not load customers.';
+
+  @override
+  String pusatAlat(int jumlah) {
+    return '$jumlah devices';
+  }
+
+  @override
+  String pusatLewatJadwal(int jumlah) {
+    return '$jumlah overdue';
+  }
+
+  @override
+  String pusatPic(String nama) {
+    return 'Contact $nama';
+  }
+
+  @override
+  String get pusatTanpaPic => 'No contact person';
+
+  @override
+  String get pelangganDetailJudul => 'Customer';
+
+  @override
+  String get pelangganAlamat => 'Address';
+
+  @override
+  String get pelangganPic => 'Customer contact';
+
+  @override
+  String get pelangganTelepon => 'Phone';
+
+  @override
+  String get pelangganEmail => 'Email';
+
+  @override
+  String get pelangganAlatPerlu => 'Equipment due for recalibration';
+
+  @override
+  String get pelangganAlatBersih =>
+      'No equipment is overdue or close to its due date.';
+
+  @override
+  String get pelangganPaket => 'Packages in progress';
+
+  @override
+  String get pelangganPaketKosong => 'No packages in progress.';
+
+  @override
+  String get pelangganGagal => 'Could not load this customer.';
+
+  @override
+  String pelangganPaketJalan(int jumlah) {
+    return '$jumlah packages in progress';
+  }
+
+  @override
+  String berandaSaSapaan(String nama) {
+    return 'Hello, $nama';
+  }
+
+  @override
+  String get berandaSaPeran => 'Super admin · overseer & approver';
+
+  @override
+  String get berandaSaMenunggu => 'Waiting for your approval';
+
+  @override
+  String get berandaSaSiapDisahkan => 'worksheets ready to approve';
+
+  @override
+  String berandaSaTertua(String alat) {
+    return 'Oldest: $alat';
+  }
+
+  @override
+  String berandaSaHariLalu(int hari) {
+    return '$hari d ago';
+  }
+
+  @override
+  String get berandaSaKosong => 'Nothing is waiting for approval.';
+
+  @override
+  String get berandaSaBukaGerbang => 'Open the certificate gate';
+
+  @override
+  String get berandaSaNomorCatatan =>
+      'A certificate number is only allocated when you approve, so there are never gaps.';
+
+  @override
+  String get berandaSaPaket => 'Customer packages in progress';
+
+  @override
+  String get berandaSaSemuaPaket => 'All packages';
+
+  @override
+  String get berandaSaPaketKosong => 'No packages in progress.';
+
+  @override
+  String get berandaSaPerhatian => 'Needs attention';
+
+  @override
+  String berandaSaAlatLewat(int jumlah) {
+    return '$jumlah customer devices overdue for calibration';
+  }
+
+  @override
+  String berandaSaAlatLewatTerlama(int hari) {
+    return 'Longest $hari days.';
+  }
+
+  @override
+  String berandaSaAlatDekat(int jumlah) {
+    return '$jumlah devices due within 30 days';
+  }
+
+  @override
+  String berandaSaPaketTerlambat(int jumlah) {
+    return '$jumlah packages past their promised date';
+  }
+
+  @override
+  String get berandaSaAman => 'Nothing needs attention right now.';
+
+  @override
+  String get berandaSaAksi => 'Quick actions';
+
+  @override
+  String get berandaSaTugaskan => 'Assign a technician';
+
+  @override
+  String get berandaSaGagalBagian => 'This section could not be loaded.';
 }

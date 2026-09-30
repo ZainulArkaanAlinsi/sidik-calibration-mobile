@@ -45,7 +45,10 @@ class ApiEquipmentService implements EquipmentService {
         'status=${Uri.encodeQueryComponent(status)}',
       'page=$page',
     ];
-    final json = await _api.get('/equipments?${params.join('&')}', token: token);
+    final json = await _api.get(
+      '/equipments?${params.join('&')}',
+      token: token,
+    );
     return EquipmentPage.fromJson(json);
   }
 
@@ -79,7 +82,16 @@ class ApiEquipmentService implements EquipmentService {
 
 /// Data tiruan buat test.
 class MockEquipmentService implements EquipmentService {
-  MockEquipmentService({this.gagal = false});
+  /// [awal] mengganti daftar bawaan — dipakai test & golden yang butuh alat
+  /// dengan tanggal jatuh tempo tertentu tanpa mengubah data bawaan yang
+  /// diandalkan puluhan test lain.
+  MockEquipmentService({this.gagal = false, List<Equipment>? awal}) {
+    if (awal != null) {
+      _data
+        ..clear()
+        ..addAll(awal);
+    }
+  }
 
   final bool gagal;
 
@@ -146,7 +158,8 @@ class MockEquipmentService implements EquipmentService {
     if (gagal) throw Exception('server nggak nyaut');
 
     final hasil = _data.where((e) {
-      final cocokSearch = search == null ||
+      final cocokSearch =
+          search == null ||
           search.isEmpty ||
           e.namaAlat.toLowerCase().contains(search.toLowerCase());
       final cocokKategori =

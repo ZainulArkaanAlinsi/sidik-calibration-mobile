@@ -166,6 +166,20 @@ flutter:
           weight: 600
         - asset: assets/fonts/Inter-Bold.ttf
           weight: 700
+    # Angka ukur, nomor sertifikat, serial (`SidikTheme.gayaAngka`). Dulu cuma
+    # dinamai tanpa dibundel: Android jatuh ke monospace sistem, iOS & desktop ke
+    # font biasa (kolom angka tidak rata), dan golden merender kotak — regresi
+    # angka tidak pernah kelihatan. Lisensi SIL OFL (LICENSE-IBMPlexMono.txt).
+    - family: IBMPlexMono
+      fonts:
+        - asset: assets/fonts/IBMPlexMono-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/IBMPlexMono-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/IBMPlexMono-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/IBMPlexMono-Bold.ttf
+          weight: 700
 
   # Logo resmi PT Sidik (dipakai di badge brand layar auth).
   assets:
