@@ -212,7 +212,9 @@ class _KartuPaket extends StatelessWidget {
               ),
               if (paket.tanggalJanjiSelesai != null)
                 Text(
-                  l10n.pelacakanJanji(tanggalPendek(paket.tanggalJanjiSelesai)),
+                  l10n.pelacakanJanji(
+                    tanggalPendek(context, paket.tanggalJanjiSelesai),
+                  ),
                   style: theme.textTheme.bodySmall,
                 ),
             ],
@@ -432,41 +434,13 @@ class _BarisAlat extends ConsumerWidget {
   }
 
   Future<void> _serahkan(BuildContext context, WidgetRef ref) async {
-    final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    final teks = TextEditingController();
     // Nama penerima WAJIB: tanpa itu "sudah diserahkan" tidak bisa
     // dipertanggungjawabkan kalau pelanggan bilang alatnya belum sampai.
     final kepada = await showDialog<String>(
       context: context,
-      builder: (d) => StatefulBuilder(
-        builder: (d, setState) => AlertDialog(
-          title: Text(l10n.pelacakanTandaiDiserahkan),
-          content: TextField(
-            controller: teks,
-            autofocus: true,
-            onChanged: (_) => setState(() {}),
-            decoration: InputDecoration(
-              labelText: l10n.pelacakanNamaPenerima,
-              hintText: l10n.pelacakanNamaPenerimaContoh,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(d).pop(),
-              child: Text(l10n.custCancel),
-            ),
-            TextButton(
-              onPressed: teks.text.trim().isEmpty
-                  ? null
-                  : () => Navigator.of(d).pop(teks.text.trim()),
-              child: Text(l10n.pelacakanSimpanSerahTerima),
-            ),
-          ],
-        ),
-      ),
+      builder: (_) => const _DialogSerahTerima(),
     );
-    teks.dispose();
     if (kepada == null) return;
     try {
       final token = await ref.read(tokenStorageProvider).read();
@@ -486,6 +460,59 @@ class _BarisAlat extends ConsumerWidget {
         SnackBar(content: Text('$e'.replaceFirst('Exception: ', ''))),
       );
     }
+  }
+}
+
+/// Dialog nama penerima serah terima.
+///
+/// Controller-nya milik State dialog ini, bukan fungsi pemanggil. Versi
+/// pertama membuangnya persis setelah `showDialog` selesai — padahal animasi
+/// penutup dialog masih membangun `TextField`-nya, jadi tepat waktu admin
+/// menyimpan serah terima app melempar "TextEditingController was used after
+/// being disposed". State dialog baru dibuang sesudah dialognya benar-benar
+/// hilang dari pohon widget.
+class _DialogSerahTerima extends StatefulWidget {
+  const _DialogSerahTerima();
+
+  @override
+  State<_DialogSerahTerima> createState() => _DialogSerahTerimaState();
+}
+
+class _DialogSerahTerimaState extends State<_DialogSerahTerima> {
+  final _teks = TextEditingController();
+
+  @override
+  void dispose() {
+    _teks.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final isi = _teks.text.trim();
+    return AlertDialog(
+      title: Text(l10n.pelacakanTandaiDiserahkan),
+      content: TextField(
+        controller: _teks,
+        autofocus: true,
+        onChanged: (_) => setState(() {}),
+        decoration: InputDecoration(
+          labelText: l10n.pelacakanNamaPenerima,
+          hintText: l10n.pelacakanNamaPenerimaContoh,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.custCancel),
+        ),
+        TextButton(
+          onPressed: isi.isEmpty ? null : () => Navigator.of(context).pop(isi),
+          child: Text(l10n.pelacakanSimpanSerahTerima),
+        ),
+      ],
+    );
   }
 }
 

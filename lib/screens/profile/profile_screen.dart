@@ -1404,7 +1404,9 @@ class _BarisStatistik extends StatelessWidget {
             // apa adanya, bukan dibiarkan jadi kotak kosong yang kebaca
             // seperti layar gagal muat. Padanan yang sama sudah dipakai di
             // `technician_list_screen`.
-            nilai: employeeId.isEmpty ? l10n.teknisiTanpaEmployeeId : employeeId,
+            nilai: employeeId.isEmpty
+                ? l10n.teknisiTanpaEmployeeId
+                : employeeId,
           ),
         ),
         const _PemisahVertikal(),
@@ -1431,9 +1433,12 @@ class _Statistik extends StatelessWidget {
     final theme = Theme.of(context);
     return Column(
       children: [
+        // Dua baris, bukan satu: kolomnya sepertiga lebar HP, dan departemen
+        // yang wajar ("Quality Control") terpotong jadi "Quality Con…" —
+        // nilai yang justru dicari orang di kartu identitas ini.
         Text(
           nilai,
-          maxLines: 1,
+          maxLines: 2,
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
           style: theme.textTheme.titleSmall?.copyWith(
