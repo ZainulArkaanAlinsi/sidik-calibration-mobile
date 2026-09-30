@@ -40,6 +40,10 @@ class _EquipmentServiceKosong implements EquipmentService {
     String? search,
     String? kategori,
     String? status,
+    int? pelangganId,
+    int? jatuhTempoDalam,
+    bool termasukLewat = false,
+    String? urut,
     int page = 1,
   }) async => const EquipmentPage(items: [], currentPage: 1, lastPage: 1);
 

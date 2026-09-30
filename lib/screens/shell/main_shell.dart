@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/sidik_material.dart';
+import '../../core/theme/sidik_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/navigation_provider.dart';
+import '../../providers/permintaan_provider.dart';
 import '../../providers/realtime_provider.dart';
 import '../../widgets/floating_nav_bar.dart';
 import '../dashboard/dashboard_screen.dart';
@@ -21,6 +23,7 @@ import '../notification/notification_screen.dart';
 import '../jatuh_tempo/layar_jatuh_tempo.dart';
 import '../pelacakan/pelacakan_screen.dart';
 import '../pelanggan/pusat_pelanggan_screen.dart';
+import '../permintaan/antrean_permintaan_screen.dart';
 import '../pengesahan/antrean_pengesahan_screen.dart';
 import '../penugasan/penugasan_screen.dart';
 import '../profile/profile_screen.dart';
@@ -213,12 +216,52 @@ class _RailSamping extends StatelessWidget {
 /// Satu baris menu samping. `tab` diisi kalau tujuannya tab navbar (supaya
 /// barisnya bisa ikut menyala saat tab itu aktif); selain itu `layar`.
 class _Tujuan {
-  const _Tujuan(this.ikon, this.judul, {this.tab, this.layar});
+  const _Tujuan(this.ikon, this.judul, {this.tab, this.layar, this.lencana});
 
   final IconData ikon;
   final String judul;
   final int? tab;
   final Widget Function()? layar;
+
+  /// Angka kecil di ujung baris (mis. permintaan baru). Widget sendiri supaya
+  /// yang menonton provider-nya cuma baris ini, bukan seluruh drawer.
+  final Widget? lencana;
+}
+
+/// Jumlah permintaan pelanggan yang menunggu keputusan. Kosong (tanpa angka)
+/// kalau nol atau belum termuat — angka dekorasi tidak boleh menahan menu.
+class _LencanaPermintaan extends ConsumerWidget {
+  const _LencanaPermintaan();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final n = ref.watch(jumlahPermintaanBaruProvider).value ?? 0;
+    if (n <= 0) return const SizedBox.shrink();
+
+    final m = SidikMaterial.of(context);
+    final l10n = AppLocalizations.of(context);
+    return Semantics(
+      label: l10n.permintaanBadge(n),
+      excludeSemantics: true,
+      child: Container(
+        key: const ValueKey('lencana-permintaan'),
+        constraints: const BoxConstraints(minWidth: 22),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: m.biru,
+          borderRadius: BorderRadius.circular(11),
+        ),
+        child: Text(
+          n > 99 ? '99+' : '$n',
+          textAlign: TextAlign.center,
+          style: SidikTheme.gayaAngka(
+            ukuran: 11,
+            warna: Theme.of(context).colorScheme.onPrimary,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 /// Menu samping — **isinya beda per peran**, karena pekerjaan hariannya beda.
@@ -257,6 +300,9 @@ class _MenuUtama extends ConsumerWidget {
     final profil = _Tujuan(Icons.person_outline, l10n.navProfile, tab: 4);
     final notifikasi = _Tujuan(Icons.notifications_none, l10n.navNotifications,
         layar: () => const NotificationScreen());
+    final permintaan = _Tujuan(Icons.move_to_inbox_outlined, l10n.permintaanJudul,
+        layar: () => const AntreanPermintaanScreen(),
+        lencana: const _LencanaPermintaan());
     final pengesahan = _Tujuan(Icons.verified_outlined, l10n.pengesahanJudul,
         layar: () => const AntreanPengesahanScreen());
     final pelacakan = _Tujuan(Icons.local_shipping_outlined, l10n.pelacakanJudul,
@@ -275,7 +321,7 @@ class _MenuUtama extends ConsumerWidget {
     final List<(String?, List<_Tujuan>)> seksi = switch (peran) {
       UserRole.superAdmin => [
         (l10n.menuKerjaHarian, [beranda, pengesahan, penugasan, pelacakan]),
-        (l10n.menuPantau, [jadwal, pusat, alur, riwayat, alat, folder]),
+        (l10n.menuPantau, [permintaan, jadwal, pusat, alur, riwayat, alat, folder]),
         (null, [notifikasi, profil]),
       ],
       UserRole.admin => [
@@ -283,6 +329,7 @@ class _MenuUtama extends ConsumerWidget {
           beranda,
           _Tujuan(Icons.inbox_outlined, l10n.antreanTitle,
               layar: () => const AntreanApprovalScreen()),
+          permintaan,
           pengesahan,
           alur,
           penugasan,
@@ -394,6 +441,7 @@ class _MenuUtama extends ConsumerWidget {
                 ListTile(
                   leading: Icon(t.ikon),
                   title: Text(t.judul),
+                  trailing: t.lencana,
                   selected: t.tab != null && t.tab == tabAktif,
                   // Tinta, bukan `primary`: di tema gelap biru di atas
                   // biru-tipis cuma 1,9:1 — baris aktif malah jadi yang

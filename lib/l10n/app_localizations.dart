@@ -8820,6 +8820,444 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This section could not be loaded.'**
   String get berandaSaGagalBagian;
+
+  /// No description provided for @permintaanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer requests'**
+  String get permintaanJudul;
+
+  /// No description provided for @permintaanCari.
+  ///
+  /// In en, this message translates to:
+  /// **'Search number or company'**
+  String get permintaanCari;
+
+  /// No description provided for @permintaanStatusBaru.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get permintaanStatusBaru;
+
+  /// No description provided for @permintaanStatusDiterima.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get permintaanStatusDiterima;
+
+  /// No description provided for @permintaanStatusDitolak.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get permintaanStatusDitolak;
+
+  /// No description provided for @permintaanStatusDibatalkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get permintaanStatusDibatalkan;
+
+  /// No description provided for @permintaanTabSemua.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get permintaanTabSemua;
+
+  /// No description provided for @permintaanKosongBaru.
+  ///
+  /// In en, this message translates to:
+  /// **'No new requests. Requests from the customer app will show up here.'**
+  String get permintaanKosongBaru;
+
+  /// No description provided for @permintaanKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No requests in this tab yet.'**
+  String get permintaanKosong;
+
+  /// No description provided for @permintaanKosongCari.
+  ///
+  /// In en, this message translates to:
+  /// **'No requests match your search.'**
+  String get permintaanKosongCari;
+
+  /// No description provided for @permintaanGagalMuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer requests could not be loaded.'**
+  String get permintaanGagalMuat;
+
+  /// No description provided for @permintaanRingkas.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} requests'**
+  String permintaanRingkas(int jumlah);
+
+  /// No description provided for @permintaanJumlahAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} instruments'**
+  String permintaanJumlahAlat(int jumlah);
+
+  /// No description provided for @permintaanMenungguHari.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting {hari} d'**
+  String permintaanMenungguHari(int hari);
+
+  /// No description provided for @permintaanMasukHariIni.
+  ///
+  /// In en, this message translates to:
+  /// **'Received today'**
+  String get permintaanMasukHariIni;
+
+  /// No description provided for @permintaanBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} new requests'**
+  String permintaanBadge(int jumlah);
+
+  /// No description provided for @permintaanBacaSaja.
+  ///
+  /// In en, this message translates to:
+  /// **'Super admin can view only. Admins accept, reject and reply.'**
+  String get permintaanBacaSaja;
+
+  /// No description provided for @permintaanTabRincian.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get permintaanTabRincian;
+
+  /// No description provided for @permintaanTabPesan.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get permintaanTabPesan;
+
+  /// No description provided for @permintaanTabPesanJumlah.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages ({jumlah})'**
+  String permintaanTabPesanJumlah(int jumlah);
+
+  /// No description provided for @permintaanGagalDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'This request was not found or could not be loaded.'**
+  String get permintaanGagalDetail;
+
+  /// No description provided for @permintaanPemohon.
+  ///
+  /// In en, this message translates to:
+  /// **'Requester'**
+  String get permintaanPemohon;
+
+  /// No description provided for @permintaanPengantaran.
+  ///
+  /// In en, this message translates to:
+  /// **'Instrument delivery'**
+  String get permintaanPengantaran;
+
+  /// No description provided for @permintaanDiantarSendiri.
+  ///
+  /// In en, this message translates to:
+  /// **'Brought in by the customer'**
+  String get permintaanDiantarSendiri;
+
+  /// No description provided for @permintaanDiambilLab.
+  ///
+  /// In en, this message translates to:
+  /// **'Picked up by the lab'**
+  String get permintaanDiambilLab;
+
+  /// No description provided for @permintaanTanggalDiinginkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferred dates'**
+  String get permintaanTanggalDiinginkan;
+
+  /// No description provided for @permintaanTanggalHanyaKeinginan.
+  ///
+  /// In en, this message translates to:
+  /// **'The customer\'s wish, not a promise. The lab sets the actual date.'**
+  String get permintaanTanggalHanyaKeinginan;
+
+  /// No description provided for @permintaanTanggalRentang.
+  ///
+  /// In en, this message translates to:
+  /// **'{dari} – {sampai}'**
+  String permintaanTanggalRentang(String dari, String sampai);
+
+  /// No description provided for @permintaanTanggalSejak.
+  ///
+  /// In en, this message translates to:
+  /// **'From {dari}'**
+  String permintaanTanggalSejak(String dari);
+
+  /// No description provided for @permintaanTanggalSampaiSaja.
+  ///
+  /// In en, this message translates to:
+  /// **'By {sampai}'**
+  String permintaanTanggalSampaiSaja(String sampai);
+
+  /// No description provided for @permintaanCatatanPelanggan.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer note'**
+  String get permintaanCatatanPelanggan;
+
+  /// No description provided for @permintaanAlasanPenolakan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason for rejection'**
+  String get permintaanAlasanPenolakan;
+
+  /// No description provided for @permintaanOrderLahir.
+  ///
+  /// In en, this message translates to:
+  /// **'Order'**
+  String get permintaanOrderLahir;
+
+  /// No description provided for @permintaanDiputuskanOleh.
+  ///
+  /// In en, this message translates to:
+  /// **'Decided by {nama}'**
+  String permintaanDiputuskanOleh(String nama);
+
+  /// No description provided for @permintaanAlatDaftar.
+  ///
+  /// In en, this message translates to:
+  /// **'Instruments ({jumlah})'**
+  String permintaanAlatDaftar(int jumlah);
+
+  /// No description provided for @permintaanAlatTerdaftar.
+  ///
+  /// In en, this message translates to:
+  /// **'Registered'**
+  String get permintaanAlatTerdaftar;
+
+  /// No description provided for @permintaanAlatBaru.
+  ///
+  /// In en, this message translates to:
+  /// **'New instrument'**
+  String get permintaanAlatBaru;
+
+  /// No description provided for @permintaanSerial.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number'**
+  String get permintaanSerial;
+
+  /// No description provided for @permintaanSerialKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number not provided'**
+  String get permintaanSerialKosong;
+
+  /// No description provided for @permintaanNoIdentifikasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Identification no.'**
+  String get permintaanNoIdentifikasi;
+
+  /// No description provided for @permintaanRentang.
+  ///
+  /// In en, this message translates to:
+  /// **'Measuring range'**
+  String get permintaanRentang;
+
+  /// No description provided for @permintaanResolusi.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolution'**
+  String get permintaanResolusi;
+
+  /// No description provided for @permintaanLokasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get permintaanLokasi;
+
+  /// No description provided for @permintaanCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get permintaanCatatan;
+
+  /// No description provided for @permintaanPerluDilengkapi.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete when accepting'**
+  String get permintaanPerluDilengkapi;
+
+  /// No description provided for @permintaanTerima.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get permintaanTerima;
+
+  /// No description provided for @permintaanTolak.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get permintaanTolak;
+
+  /// No description provided for @permintaanTerimaJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept request'**
+  String get permintaanTerimaJudul;
+
+  /// No description provided for @permintaanTerimaInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'An order is created from this request, and new instruments are registered under the customer\'s company.'**
+  String get permintaanTerimaInfo;
+
+  /// No description provided for @permintaanLengkapiAlatBaru.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete new instruments'**
+  String get permintaanLengkapiAlatBaru;
+
+  /// No description provided for @permintaanKategori.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get permintaanKategori;
+
+  /// No description provided for @permintaanKategoriWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a category'**
+  String get permintaanKategoriWajib;
+
+  /// No description provided for @permintaanKategoriGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The category list could not be loaded.'**
+  String get permintaanKategoriGagal;
+
+  /// No description provided for @permintaanKategoriIdKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories cannot be chosen yet: the server did not send category ids.'**
+  String get permintaanKategoriIdKosong;
+
+  /// No description provided for @permintaanSerialWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the serial number'**
+  String get permintaanSerialWajib;
+
+  /// No description provided for @permintaanSerialBentrokSaran.
+  ///
+  /// In en, this message translates to:
+  /// **'Change the serial number, or reject this request and ask the customer to pick the instrument from their list.'**
+  String get permintaanSerialBentrokSaran;
+
+  /// No description provided for @permintaanTanggalMasuk.
+  ///
+  /// In en, this message translates to:
+  /// **'Received on'**
+  String get permintaanTanggalMasuk;
+
+  /// No description provided for @permintaanJanjiSelesai.
+  ///
+  /// In en, this message translates to:
+  /// **'Promised by (optional)'**
+  String get permintaanJanjiSelesai;
+
+  /// No description provided for @permintaanCatatanOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Note for the order (optional)'**
+  String get permintaanCatatanOrder;
+
+  /// No description provided for @permintaanTerimaKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept and create order'**
+  String get permintaanTerimaKirim;
+
+  /// No description provided for @permintaanGalatLain.
+  ///
+  /// In en, this message translates to:
+  /// **'The request could not be accepted. Check the form.'**
+  String get permintaanGalatLain;
+
+  /// No description provided for @permintaanDiterimaToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Request accepted. Order {nomor} created.'**
+  String permintaanDiterimaToast(String nomor);
+
+  /// No description provided for @permintaanDitolakToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Request rejected. The reason was sent to the customer.'**
+  String get permintaanDitolakToast;
+
+  /// No description provided for @permintaanTolakJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject request'**
+  String get permintaanTolakJudul;
+
+  /// No description provided for @permintaanTolakPetunjuk.
+  ///
+  /// In en, this message translates to:
+  /// **'Write for the customer, not an internal note'**
+  String get permintaanTolakPetunjuk;
+
+  /// No description provided for @permintaanTolakHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'The customer reads this as written. At least {minimal} characters.'**
+  String permintaanTolakHelper(int minimal);
+
+  /// No description provided for @permintaanTolakKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject request'**
+  String get permintaanTolakKirim;
+
+  /// No description provided for @permintaanPesanKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet.'**
+  String get permintaanPesanKosong;
+
+  /// No description provided for @permintaanPesanTulis.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a message to the customer'**
+  String get permintaanPesanTulis;
+
+  /// No description provided for @permintaanPesanKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get permintaanPesanKirim;
+
+  /// No description provided for @permintaanPesanDitutup.
+  ///
+  /// In en, this message translates to:
+  /// **'The conversation is closed because this request was rejected or cancelled.'**
+  String get permintaanPesanDitutup;
+
+  /// No description provided for @permintaanPesanGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages could not be loaded.'**
+  String get permintaanPesanGagal;
+
+  /// No description provided for @permintaanPesanKamu.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get permintaanPesanKamu;
 }
 
 class _AppLocalizationsDelegate

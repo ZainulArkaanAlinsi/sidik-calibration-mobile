@@ -21,12 +21,12 @@ class AlatJatuhTempo {
 ///
 /// ## Kenapa dikelompokkan di sini
 ///
-/// `GET /equipments` cuma bisa disaring `status=overdue|aktif`; tidak ada
-/// saringan "jatuh tempo dalam N hari" dan tidak ada urutan menurut tanggal.
-/// Jadi pengelompokan & urutan dikerjakan di sini dari SEMUA halaman yang
-/// dimuat — bukan dari halaman pertama saja, karena halaman pertama diurut
-/// menurut id, bukan menurut yang paling mendesak. Kalau nanti server punya
-/// saringannya, cukup [susunJatuhTempo] yang diganti.
+/// Server sudah menyaring dan mengurutkan (`jatuh_tempo_dalam`,
+/// `termasuk_lewat`, `urut=jatuh_tempo`), jadi yang ditarik cuma alat yang
+/// relevan. Yang TETAP dikerjakan di sini adalah memotong menjadi lewat / 30 /
+/// 90 hari, karena "hari ini" milik `jamProvider` (bisa dipatok di test & golden)
+/// dan bukan milik server — dan alat berstatus `overdue` tanpa tanggal perlu
+/// dibedakan dari yang tanggalnya diketahui.
 class RingkasanJatuhTempo {
   const RingkasanJatuhTempo({
     this.lewat = const [],

@@ -274,7 +274,7 @@ class DetailPelangganScreen extends ConsumerWidget {
         child: RefreshIndicator(
           onRefresh: () async {
             ref.invalidate(paketBerjalanProvider);
-            ref.invalidate(jatuhTempoProvider);
+            ref.invalidate(jatuhTempoPelangganProvider(pelanggan.id));
             ref.invalidate(detailPelangganProvider(pelanggan.id));
             await ref.read(detailPelangganProvider(pelanggan.id).future);
           },
@@ -349,10 +349,9 @@ class _Identitas extends StatelessWidget {
 
 /// Alat pelanggan ini yang lewat jadwal atau jatuh tempo dalam 90 hari.
 ///
-/// Bukan seluruh alatnya: `GET /equipments` belum bisa disaring per pelanggan,
-/// jadi yang tersedia tanpa menarik ratusan alat cuma yang sudah ada di
-/// [jatuhTempoProvider]. Untuk pertanyaan yang benar-benar diajukan layar ini
-/// ("mana yang perlu dikalibrasi ulang?") itu justru yang tepat.
+/// Bukan seluruh alatnya, dan itu yang tepat untuk pertanyaan yang diajukan
+/// layar ini ("mana yang perlu dikalibrasi ulang?"). Disaring di server lewat
+/// `customer_id` ([jatuhTempoPelangganProvider]).
 class _BagianAlat extends ConsumerWidget {
   const _BagianAlat({required this.pelanggan});
 
@@ -362,15 +361,12 @@ class _BagianAlat extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final async = ref.watch(jatuhTempoProvider);
+    final async = ref.watch(jatuhTempoPelangganProvider(pelanggan.id));
     final data = async.value;
 
     final Widget isi;
     if (data != null) {
-      final milik = [
-        for (final a in [...data.lewat, ...data.dalam90])
-          if (a.alat.pelangganId == pelanggan.id) a,
-      ];
+      final milik = [...data.lewat, ...data.dalam90];
       isi = milik.isEmpty
           ? Text(l10n.pelangganAlatBersih, style: theme.textTheme.bodySmall)
           : Column(

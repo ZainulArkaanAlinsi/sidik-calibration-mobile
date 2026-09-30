@@ -184,4 +184,10 @@ abstract final class NamaIzin {
   static const penugasanLihat = 'penugasan.lihat';
   static const penugasanBuat = 'penugasan.buat';
   static const penugasanLaporProgres = 'penugasan.lapor-progres';
+
+  // Permintaan kalibrasi pelanggan, sisi lab (30 Sep 2026). `putuskan` =
+  // terima/tolak, `balas` = kirim pesan. Super admin hanya mendapat `lihat`.
+  static const permintaanLihat = 'permintaan.lihat';
+  static const permintaanPutuskan = 'permintaan.putuskan';
+  static const permintaanBalas = 'permintaan.balas';
 }

@@ -15,7 +15,7 @@ import 'pengendalian_provider.dart'
 /// di-invalidate `realtimeSyncProvider` tiap ada perubahan dari perangkat lain,
 /// dan saringan yang ikut hilang membuat super admin yang sedang mengetik
 /// "tirta" tiba-tiba melihat semua pelanggan (alasan yang sama dengan
-/// `_Saringan` di `pengendalian_provider.dart`). Ikut `authProvider`: ganti
+/// `Saringan` di `pengendalian_provider.dart`). Ikut `authProvider`: ganti
 /// akun → kotak cari kembali kosong.
 final kataCariPelangganProvider = NotifierProvider<KataCariPelanggan, String>(
   KataCariPelanggan.new,
