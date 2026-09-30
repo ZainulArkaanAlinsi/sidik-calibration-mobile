@@ -8,6 +8,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/navigation_provider.dart';
+import '../../providers/koreksi_provider.dart';
 import '../../providers/permintaan_provider.dart';
 import '../../providers/realtime_provider.dart';
 import '../../widgets/floating_nav_bar.dart';
@@ -23,6 +24,7 @@ import '../notification/notification_screen.dart';
 import '../jatuh_tempo/layar_jatuh_tempo.dart';
 import '../pelacakan/pelacakan_screen.dart';
 import '../pelanggan/pusat_pelanggan_screen.dart';
+import '../koreksi/antrean_koreksi_screen.dart';
 import '../permintaan/antrean_permintaan_screen.dart';
 import '../pengesahan/antrean_pengesahan_screen.dart';
 import '../penugasan/penugasan_screen.dart';
@@ -236,15 +238,50 @@ class _LencanaPermintaan extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final n = ref.watch(jumlahPermintaanBaruProvider).value ?? 0;
+    return _LencanaAngka(
+      n: n,
+      kunci: const ValueKey('lencana-permintaan'),
+      label: AppLocalizations.of(context).permintaanBadge(n),
+    );
+  }
+}
+
+/// Jumlah koreksi pelanggan yang menunggu keputusan (`meta.jumlah.menunggu`).
+class _LencanaKoreksi extends ConsumerWidget {
+  const _LencanaKoreksi();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final n = ref.watch(jumlahKoreksiMenungguProvider).value ?? 0;
+    return _LencanaAngka(
+      n: n,
+      kunci: const ValueKey('lencana-koreksi'),
+      label: AppLocalizations.of(context).koreksiBadge(n),
+    );
+  }
+}
+
+class _LencanaAngka extends StatelessWidget {
+  const _LencanaAngka({
+    required this.n,
+    required this.kunci,
+    required this.label,
+  });
+
+  final int n;
+  final Key kunci;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
     if (n <= 0) return const SizedBox.shrink();
 
     final m = SidikMaterial.of(context);
-    final l10n = AppLocalizations.of(context);
     return Semantics(
-      label: l10n.permintaanBadge(n),
+      label: label,
       excludeSemantics: true,
       child: Container(
-        key: const ValueKey('lencana-permintaan'),
+        key: kunci,
         constraints: const BoxConstraints(minWidth: 22),
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
@@ -303,6 +340,9 @@ class _MenuUtama extends ConsumerWidget {
     final permintaan = _Tujuan(Icons.move_to_inbox_outlined, l10n.permintaanJudul,
         layar: () => const AntreanPermintaanScreen(),
         lencana: const _LencanaPermintaan());
+    final koreksi = _Tujuan(Icons.rule_folder_outlined, l10n.koreksiJudul,
+        layar: () => const AntreanKoreksiScreen(),
+        lencana: const _LencanaKoreksi());
     final pengesahan = _Tujuan(Icons.verified_outlined, l10n.pengesahanJudul,
         layar: () => const AntreanPengesahanScreen());
     final pelacakan = _Tujuan(Icons.local_shipping_outlined, l10n.pelacakanJudul,
@@ -321,7 +361,7 @@ class _MenuUtama extends ConsumerWidget {
     final List<(String?, List<_Tujuan>)> seksi = switch (peran) {
       UserRole.superAdmin => [
         (l10n.menuKerjaHarian, [beranda, pengesahan, penugasan, pelacakan]),
-        (l10n.menuPantau, [permintaan, jadwal, pusat, alur, riwayat, alat, folder]),
+        (l10n.menuPantau, [permintaan, koreksi, jadwal, pusat, alur, riwayat, alat, folder]),
         (null, [notifikasi, profil]),
       ],
       UserRole.admin => [
@@ -330,6 +370,7 @@ class _MenuUtama extends ConsumerWidget {
           _Tujuan(Icons.inbox_outlined, l10n.antreanTitle,
               layar: () => const AntreanApprovalScreen()),
           permintaan,
+          koreksi,
           pengesahan,
           alur,
           penugasan,
