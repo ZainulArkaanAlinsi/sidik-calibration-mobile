@@ -153,6 +153,35 @@ class PermintaanAksi {
     return hasil;
   }
 
+  /// Jadwalkan teknisi (permintaan `diterima` + `diambil_lab`).
+  Future<PermintaanPelanggan> jadwalkan(
+    int id, {
+    required DateTime jadwalPada,
+    String? lokasi,
+    String? catatan,
+  }) async {
+    final hasil = await _ref
+        .read(permintaanServiceProvider)
+        .jadwalkan(
+          await _token(_ref),
+          id,
+          jadwalPada: jadwalPada,
+          lokasi: lokasi,
+          catatan: catatan,
+        );
+    _segarkan(id);
+    return hasil;
+  }
+
+  /// Tandai alat sudah tiba di lab.
+  Future<PermintaanPelanggan> alatTiba(int id) async {
+    final hasil = await _ref
+        .read(permintaanServiceProvider)
+        .alatTiba(await _token(_ref), id);
+    _segarkan(id);
+    return hasil;
+  }
+
   Future<PesanPermintaan> kirimPesan(int id, String isi) async {
     final hasil = await _ref
         .read(permintaanServiceProvider)

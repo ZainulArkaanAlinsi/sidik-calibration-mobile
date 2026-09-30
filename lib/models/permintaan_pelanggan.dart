@@ -6,6 +6,8 @@
 /// menolak dengan alasan. Tidak pernah otomatis.
 library;
 
+import 'koreksi_pelanggan.dart' show FotoPelanggan;
+
 /// Empat status yang dikenal server. Nilai lain (server lebih baru dari
 /// aplikasi) jatuh ke [StatusPermintaan.lainnya] — kartunya tetap tampil,
 /// tombol putusnya tidak.
@@ -68,6 +70,7 @@ class AlatPermintaan {
     this.catatan,
     this.perluKategori = false,
     this.perluNomorSeri = false,
+    this.foto = const [],
   });
 
   final int id;
@@ -92,6 +95,9 @@ class AlatPermintaan {
   /// yang sudah didaftarkan (permintaan diterima) tidak lagi memerlukannya.
   final bool perluKategori;
   final bool perluNomorSeri;
+
+  /// Foto pelat nama alat BARU (`alat[].foto`); kosong di server lama.
+  final List<FotoPelanggan> foto;
 
   /// "0 – 14 pH"; `null` kalau pelanggan tidak mengisi rentang.
   String? get rentang {
@@ -122,7 +128,88 @@ class AlatPermintaan {
     catatan: j['catatan'] as String?,
     perluKategori: j['perlu_kategori'] == true,
     perluNomorSeri: j['perlu_nomor_seri'] == true,
+    foto: FotoPelanggan.daftar(j['foto']),
   );
+}
+
+/// Tahap perjalanan permintaan (`tahap`). Kode asing → [lainnya]; layar tetap
+/// menampilkan `tahap_label` dari server.
+enum TahapPermintaan {
+  diajukan('diajukan'),
+  ditolak('ditolak'),
+  dibatalkan('dibatalkan'),
+  menungguAlat('menunggu_alat'),
+  dalamPengiriman('dalam_pengiriman'),
+  menungguJadwal('menunggu_jadwal'),
+  teknisiDijadwalkan('teknisi_dijadwalkan'),
+  alatDiLab('alat_di_lab'),
+  sedangDikalibrasi('sedang_dikalibrasi'),
+  selesai('selesai'),
+  lainnya('');
+
+  const TahapPermintaan(this.kode);
+
+  final String kode;
+
+  static TahapPermintaan? dariApi(String? kode) {
+    if (kode == null || kode.isEmpty) return null;
+    for (final t in values) {
+      if (t.kode == kode && t != lainnya) return t;
+    }
+    return lainnya;
+  }
+}
+
+/// `resi` — diisi pelanggan yang mengantar sendiri.
+class ResiPermintaan {
+  const ResiPermintaan({this.kurir, this.nomor, this.diisiPada});
+
+  final String? kurir;
+  final String? nomor;
+  final DateTime? diisiPada;
+
+  static ResiPermintaan? dariJson(Object? raw) {
+    if (raw is! Map) return null;
+    return ResiPermintaan(
+      kurir: raw['kurir'] as String?,
+      nomor: raw['nomor'] as String?,
+      diisiPada: DateTime.tryParse(raw['diisi_pada'] as String? ?? ''),
+    );
+  }
+}
+
+/// `jadwal` — diisi admin untuk permintaan `diambil_lab`.
+class JadwalPermintaan {
+  const JadwalPermintaan({this.pada, this.lokasi, this.catatan});
+
+  final DateTime? pada;
+  final String? lokasi;
+  final String? catatan;
+
+  static JadwalPermintaan? dariJson(Object? raw) {
+    if (raw is! Map) return null;
+    return JadwalPermintaan(
+      pada: DateTime.tryParse(raw['pada'] as String? ?? ''),
+      lokasi: raw['lokasi'] as String?,
+      catatan: raw['catatan'] as String?,
+    );
+  }
+}
+
+/// `progres` — dari paket: `{selesai, total}`.
+class ProgresPermintaan {
+  const ProgresPermintaan({required this.selesai, required this.total});
+
+  final int selesai;
+  final int total;
+
+  static ProgresPermintaan? dariJson(Object? raw) {
+    if (raw is! Map) return null;
+    return ProgresPermintaan(
+      selesai: (raw['selesai'] as num?)?.toInt() ?? 0,
+      total: (raw['total'] as num?)?.toInt() ?? 0,
+    );
+  }
 }
 
 /// Permintaan lengkap. Bentuk antrean (3.1) dan detail (3.2) SAMA, jadi satu
@@ -151,6 +238,12 @@ class PermintaanPelanggan {
     this.jumlahPesan = 0,
     this.alat = const [],
     this.dibuatPada,
+    this.tahap,
+    this.tahapLabel,
+    this.resi,
+    this.jadwal,
+    this.alatTibaPada,
+    this.progres,
   });
 
   final int id;
@@ -183,6 +276,70 @@ class PermintaanPelanggan {
   final int jumlahPesan;
   final List<AlatPermintaan> alat;
   final DateTime? dibuatPada;
+
+  /// Perjalanan sesudah diterima (kontrak A5). Semua `null` di server lama —
+  /// layar yang membacanya tidak menampilkan apa-apa, bukan baris kosong.
+  final TahapPermintaan? tahap;
+
+  /// Label siap tampil dari server; dipakai apa adanya.
+  final String? tahapLabel;
+  final ResiPermintaan? resi;
+  final JadwalPermintaan? jadwal;
+  final DateTime? alatTibaPada;
+  final ProgresPermintaan? progres;
+
+  /// Ada yang perlu ditampilkan di kartu "Perjalanan alat".
+  bool get adaPerjalanan =>
+      tahapLabel != null ||
+      resi != null ||
+      jadwal != null ||
+      alatTibaPada != null ||
+      (progres != null && progres!.total > 0);
+
+  /// Tombol "Jadwalkan teknisi": `diterima` + `diambil_lab` (kontrak A5).
+  bool get bisaDijadwalkan =>
+      status == StatusPermintaan.diterima &&
+      metode == MetodePengantaran.diambilLab;
+
+  /// Tombol "Tandai alat tiba": `diterima` dan belum ditandai.
+  bool get bisaDitandaiTiba =>
+      status == StatusPermintaan.diterima && alatTibaPada == null;
+
+  PermintaanPelanggan salin({
+    JadwalPermintaan? jadwal,
+    DateTime? alatTibaPada,
+    TahapPermintaan? tahap,
+    String? tahapLabel,
+  }) => PermintaanPelanggan(
+    id: id,
+    nomor: nomor,
+    status: status,
+    pelangganId: pelangganId,
+    pelangganNama: pelangganNama,
+    pemohonNama: pemohonNama,
+    pemohonEmail: pemohonEmail,
+    pemohonTelepon: pemohonTelepon,
+    metode: metode,
+    tanggalDari: tanggalDari,
+    tanggalSampai: tanggalSampai,
+    catatan: catatan,
+    alasanPenolakan: alasanPenolakan,
+    diputuskanOleh: diputuskanOleh,
+    diputuskanPada: diputuskanPada,
+    dibatalkanPada: dibatalkanPada,
+    orderId: orderId,
+    orderNomor: orderNomor,
+    jumlahAlat: jumlahAlat,
+    jumlahPesan: jumlahPesan,
+    alat: alat,
+    dibuatPada: dibuatPada,
+    tahap: tahap ?? this.tahap,
+    tahapLabel: tahapLabel ?? this.tahapLabel,
+    resi: resi,
+    jadwal: jadwal ?? this.jadwal,
+    alatTibaPada: alatTibaPada ?? this.alatTibaPada,
+    progres: progres,
+  );
 
   /// Berapa hari sudah menunggu — [hariIni] DIOPER pemanggil (bukan
   /// `DateTime.now()`), supaya layar & golden bisa dipatok ke jam yang sama.
@@ -235,6 +392,14 @@ class PermintaanPelanggan {
           if (a is Map<String, dynamic>) AlatPermintaan.fromJson(a),
       ],
       dibuatPada: DateTime.tryParse(j['dibuat_pada'] as String? ?? ''),
+      tahap: TahapPermintaan.dariApi(j['tahap'] as String?),
+      tahapLabel: (j['tahap_label'] as String?)?.trim().isEmpty ?? true
+          ? null
+          : j['tahap_label'] as String,
+      resi: ResiPermintaan.dariJson(j['resi']),
+      jadwal: JadwalPermintaan.dariJson(j['jadwal']),
+      alatTibaPada: DateTime.tryParse(j['alat_tiba_pada'] as String? ?? ''),
+      progres: ProgresPermintaan.dariJson(j['progres']),
     );
   }
 }
