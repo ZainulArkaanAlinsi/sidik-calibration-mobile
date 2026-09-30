@@ -9,13 +9,19 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/certificate_snapshot.dart';
+import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/autoclave_hasil_panel.dart';
 import '../../providers/certificate_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../services/pdf_downloader.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/sidik/sidik_permukaan.dart';
+import '../../widgets/sidik/sidik_tombol.dart';
 import '../../widgets/sidik_loader.dart';
+import 'batal_sertifikat_dialog.dart';
+import 'info_dokumen_sertifikat.dart';
+import 'revisi_sertifikat_screen.dart';
 
 /// Pratinjau sertifikat (spesifikasi poin 9), plus unduh PDF/Excel & QR
 /// (poin 10 & 13).
@@ -37,56 +43,80 @@ class SertifikatScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.sertPratinjau)),
       body: switch (async) {
-        AsyncData(:final value) => _Isi(sertifikat: value),
+        AsyncData(:final value) => _Isi(
+          sertifikat: value,
+          onBuka: (id) => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => SertifikatScreen(certificateId: id),
+            ),
+          ),
+        ),
         AsyncError() => _Gagal(
           onCobaLagi: () =>
               ref.invalidate(certificateDetailProvider(certificateId)),
         ),
         _ => const Center(child: SidikLoader(size: 88)),
       },
-      bottomNavigationBar: async.value?.siap ?? false
+      // Yang dibatalkan tetap bisa diunduh: arsip lab, bukan lembar pelanggan.
+      bottomNavigationBar: async.value?.bisaUnduh ?? false
           ? _BilahUnduh(sertifikat: async.value!)
           : null,
     );
   }
 }
 
-class _Isi extends StatelessWidget {
-  const _Isi({required this.sertifikat});
+class _Isi extends ConsumerWidget {
+  const _Isi({required this.sertifikat, required this.onBuka});
 
   final CertificateDetail sertifikat;
+  final ValueChanged<int> onBuka;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final snap = sertifikat.snapshot;
 
+    // Status dokumen + tombol admin di paling atas. Server lama (tanpa field
+    // baru) menghasilkan kartu berlencana "Berlaku" tanpa tombol apa pun.
+    final peran = ref.watch(authProvider).value?.role;
+    final atas = <Widget>[
+      InfoDokumenSertifikat(sertifikat: sertifikat, onBuka: onBuka),
+      const SizedBox(height: AppSpacing.md),
+      // Hanya admin yang boleh menulis. Super admin membaca saja (server
+      // menjawab 403), teknisi & viewer tidak punya pintunya sama sekali.
+      if (peran == UserRole.admin &&
+          (sertifikat.bisaDirevisi || sertifikat.bisaDibatalkan)) ...[
+        _TindakanAdmin(sertifikat: sertifikat),
+        const SizedBox(height: AppSpacing.md),
+      ],
+    ];
+
     if (snap == null) {
       // PDF-nya belum jadi = snapshot-nya juga belum ada. Isinya dibekukan
       // waktu terbit, jadi nggak ada yang bisa ditampilin selain statusnya.
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.hourglass_empty,
-                size: 56,
-                color: theme.colorScheme.outline,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Text(l10n.sertBelumTerbit, textAlign: TextAlign.center),
-            ],
+      return ListView(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        children: [
+          ...atas,
+          const SizedBox(height: AppSpacing.lg),
+          Center(
+            child: Icon(
+              Icons.hourglass_empty,
+              size: 56,
+              color: theme.colorScheme.outline,
+            ),
           ),
-        ),
+          const SizedBox(height: AppSpacing.md),
+          Text(l10n.sertBelumTerbit, textAlign: TextAlign.center),
+        ],
       );
     }
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
+        ...atas,
         if (snap.gagal) ...[_PitaFail(), const SizedBox(height: AppSpacing.md)],
 
         // Header — 16 field, urutannya persis sertifikat cetak.
@@ -176,6 +206,73 @@ class _Isi extends StatelessWidget {
         const SizedBox(height: AppSpacing.xl),
       ],
     );
+  }
+}
+
+/// Tombol admin di detail sertifikat: Revisi & Batalkan. Dipajang hanya kalau
+/// server bilang boleh (`bisa_direvisi` / `bisa_dibatalkan`) DAN perannya admin
+/// — keputusan itu ada di pemanggil; server tetap penjaganya (403).
+class _TindakanAdmin extends ConsumerWidget {
+  const _TindakanAdmin({required this.sertifikat});
+
+  final CertificateDetail sertifikat;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final s = sertifikat;
+    // Sertifikat lama (snapshot kosong) tidak punya `data_cetak`: server
+    // menolak revisinya, jadi tombolnya tidak ditawarkan.
+    final bisaRevisi = s.bisaDirevisi && s.dataCetak != null;
+
+    return Kertas(
+      key: const ValueKey('tindakan-admin-sertifikat'),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (bisaRevisi)
+            SidikTombol(
+              key: const ValueKey('tombol-revisi-sertifikat'),
+              label: l10n.sertRevisi,
+              ikon: Icons.edit_document,
+              ragam: RagamTombol.biasa,
+              penuh: true,
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => RevisiSertifikatScreen(sertifikat: s),
+                ),
+              ),
+            )
+          else if (s.bisaDirevisi)
+            Text(l10n.sertRevisiTanpaData, style: theme.textTheme.bodySmall),
+          if (s.bisaDibatalkan) ...[
+            if (s.bisaDirevisi) const SizedBox(height: AppSpacing.sm),
+            SidikTombol(
+              key: const ValueKey('tombol-batal-sertifikat'),
+              label: l10n.sertBatalkan,
+              ikon: Icons.block,
+              ragam: RagamTombol.bahayaGaris,
+              penuh: true,
+              onPressed: () => _batalkan(context, ref),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _batalkan(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => BatalSertifikatDialog(sertifikat: sertifikat),
+    );
+    if (ok == true) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.batalBerhasil)));
+    }
   }
 }
 
