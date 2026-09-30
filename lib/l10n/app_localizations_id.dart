@@ -5216,4 +5216,402 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get permintaanPesanKamu => 'Anda';
+
+  @override
+  String get sertDokStatus => 'Status dokumen';
+
+  @override
+  String get sertDokBerlaku => 'Berlaku';
+
+  @override
+  String get sertDokDigantikan => 'Digantikan';
+
+  @override
+  String get sertDokDibatalkan => 'Dibatalkan';
+
+  @override
+  String get sertDokBelumTerbit => 'Belum terbit';
+
+  @override
+  String sertDokRevisiKe(int n) {
+    return 'Revisi ke-$n';
+  }
+
+  @override
+  String get sertDokMenggantikan => 'menggantikan';
+
+  @override
+  String get sertDokAlasanRevisi => 'Alasan revisi (internal)';
+
+  @override
+  String get sertDokDigantikanOleh => 'Digantikan oleh';
+
+  @override
+  String get sertDokDibatalkanPada => 'Dibatalkan pada';
+
+  @override
+  String get sertDokDibatalkanOleh => 'Dibatalkan oleh';
+
+  @override
+  String get sertDokAlasanInternal => 'Alasan (internal)';
+
+  @override
+  String get sertDokCatatanPelanggan => 'Catatan untuk pelanggan';
+
+  @override
+  String get sertRevisi => 'Revisi sertifikat';
+
+  @override
+  String get sertBatalkan => 'Batalkan sertifikat';
+
+  @override
+  String get sertRevisiTanpaData =>
+      'Sertifikat ini terbit sebelum data cetaknya disimpan, jadi belum bisa direvisi dari aplikasi.';
+
+  @override
+  String get revisiJudul => 'Revisi sertifikat';
+
+  @override
+  String get revisiPetunjuk =>
+      'Isian awal adalah nilai yang tercetak di sertifikat ini. Ubah yang salah saja; sertifikat lama tidak diubah, sebuah revisi baru diterbitkan.';
+
+  @override
+  String get revisiFieldPemilik => 'Pemilik';
+
+  @override
+  String get revisiFieldAlamat => 'Alamat';
+
+  @override
+  String get revisiFieldMerk => 'Merek';
+
+  @override
+  String get revisiFieldTipe => 'Tipe';
+
+  @override
+  String get revisiFieldNomorSeri => 'Nomor seri';
+
+  @override
+  String get revisiFieldLokasi => 'Lokasi kalibrasi';
+
+  @override
+  String get revisiFieldTanggalKalibrasi => 'Tanggal kalibrasi';
+
+  @override
+  String get revisiFieldBerlakuSampai => 'Berlaku sampai';
+
+  @override
+  String get revisiAlasan => 'Alasan revisi';
+
+  @override
+  String get revisiAlasanHelper => 'Internal, tidak dilihat pelanggan.';
+
+  @override
+  String get revisiCatatan => 'Catatan untuk pelanggan (opsional)';
+
+  @override
+  String get revisiCatatanHelper =>
+      'Dibaca pelanggan apa adanya di sertifikat revisi.';
+
+  @override
+  String get revisiKirim => 'Terbitkan revisi';
+
+  @override
+  String get revisiAlasanWajib => 'Alasan revisi wajib diisi.';
+
+  @override
+  String get revisiIsianWajib => 'Isian ini tidak boleh dikosongkan.';
+
+  @override
+  String get revisiTidakAdaPerubahan =>
+      'Tidak ada yang berubah. Ubah minimal satu isian.';
+
+  @override
+  String get revisiBerlakuSesudah => 'Harus sesudah tanggal kalibrasi.';
+
+  @override
+  String get revisiPeriksaIsian => 'Periksa isian yang ditandai.';
+
+  @override
+  String revisiTerkirim(String nomor) {
+    return 'Revisi $nomor sedang diterbitkan.';
+  }
+
+  @override
+  String batalJudul(String nomor) {
+    return 'Batalkan $nomor?';
+  }
+
+  @override
+  String get batalPenjelasan =>
+      'Pembatalan bersifat final dan tidak bisa dibatalkan lagi. Sertifikat sebelumnya yang sudah digantikan tidak ikut berlaku kembali.';
+
+  @override
+  String get batalJadwalDikosongkan =>
+      'Ini satu-satunya sertifikat sah alat ini. Jadwal kalibrasi ulangnya akan dikosongkan.';
+
+  @override
+  String batalJatuhKe(String nomor, String tanggal) {
+    return 'Jadwal kalibrasi ulang alat akan kembali mengikuti $nomor (berlaku sampai $tanggal).';
+  }
+
+  @override
+  String get batalAlasan => 'Alasan pembatalan';
+
+  @override
+  String get batalAlasanHelper => 'Internal, tidak dilihat pelanggan.';
+
+  @override
+  String get batalCatatan => 'Catatan untuk pelanggan (opsional)';
+
+  @override
+  String get batalCatatanHelper =>
+      'Dibaca pelanggan apa adanya di aplikasinya.';
+
+  @override
+  String get batalKirim => 'Batalkan sertifikat';
+
+  @override
+  String get batalAlasanWajib => 'Alasan pembatalan wajib diisi.';
+
+  @override
+  String get batalBerhasil => 'Sertifikat dibatalkan.';
+
+  @override
+  String get fotoPelangganBuka => 'Buka foto';
+
+  @override
+  String get koreksiJudul => 'Koreksi pelanggan';
+
+  @override
+  String koreksiBadge(int jumlah) {
+    return '$jumlah koreksi menunggu';
+  }
+
+  @override
+  String get koreksiTabMenunggu => 'Menunggu';
+
+  @override
+  String get koreksiTabDiterima => 'Diterima';
+
+  @override
+  String get koreksiTabDitolak => 'Ditolak';
+
+  @override
+  String get koreksiTabSemua => 'Semua';
+
+  @override
+  String get koreksiStatusMenunggu => 'Menunggu';
+
+  @override
+  String get koreksiStatusDiterima => 'Diterima';
+
+  @override
+  String get koreksiStatusDitolak => 'Ditolak';
+
+  @override
+  String get koreksiKosongMenunggu => 'Tidak ada koreksi yang menunggu.';
+
+  @override
+  String get koreksiKosong => 'Belum ada koreksi di sini.';
+
+  @override
+  String get koreksiGagalMuat => 'Koreksi gagal dimuat.';
+
+  @override
+  String get koreksiGagalDetail =>
+      'Koreksi ini tidak ditemukan atau gagal dimuat.';
+
+  @override
+  String get koreksiJenisAlat => 'Koreksi alat';
+
+  @override
+  String get koreksiJenisSertifikat => 'Koreksi sertifikat';
+
+  @override
+  String koreksiJumlahPerubahan(int n) {
+    return '$n perubahan';
+  }
+
+  @override
+  String koreksiJumlahFoto(int n) {
+    return '$n foto';
+  }
+
+  @override
+  String koreksiDetailJudul(int id) {
+    return 'Koreksi #$id';
+  }
+
+  @override
+  String get koreksiDiajukan => 'Diajukan';
+
+  @override
+  String get koreksiTargetAlat => 'Alat';
+
+  @override
+  String get koreksiTargetSertifikat => 'Sertifikat';
+
+  @override
+  String koreksiPerubahanJudul(int n) {
+    return 'Perubahan diminta ($n)';
+  }
+
+  @override
+  String get koreksiNilaiLama => 'Nilai lama';
+
+  @override
+  String get koreksiNilaiBaru => 'Nilai baru';
+
+  @override
+  String get koreksiCatatanPelanggan => 'Catatan pelanggan';
+
+  @override
+  String koreksiFoto(int n) {
+    return 'Foto ($n)';
+  }
+
+  @override
+  String get koreksiTanggapan => 'Tanggapan';
+
+  @override
+  String get koreksiDitinjau => 'Ditinjau';
+
+  @override
+  String get koreksiRevisiLahir => 'Sertifikat pengganti';
+
+  @override
+  String get koreksiTerima => 'Terima';
+
+  @override
+  String get koreksiTolak => 'Tolak';
+
+  @override
+  String get koreksiBacaSaja =>
+      'Super admin hanya dapat melihat. Yang menerima dan menolak koreksi adalah admin.';
+
+  @override
+  String get koreksiDiterimaToast => 'Koreksi diterima dan diterapkan.';
+
+  @override
+  String koreksiDiterimaRevisiToast(String nomor) {
+    return 'Koreksi diterima. Revisi $nomor sedang diterbitkan.';
+  }
+
+  @override
+  String get koreksiDitolakToast => 'Koreksi ditolak.';
+
+  @override
+  String get koreksiTerimaJudul => 'Terima koreksi';
+
+  @override
+  String get koreksiTerimaPenjelasanAlat =>
+      'Data alat akan langsung diubah dan tercatat di riwayat alat. Betulkan nilainya di bawah bila perlu.';
+
+  @override
+  String get koreksiTerimaPenjelasanSertifikat =>
+      'Sebuah revisi sertifikat akan diterbitkan dengan nilai di bawah. Betulkan nilainya bila perlu.';
+
+  @override
+  String koreksiNilaiDiminta(String nilai) {
+    return 'Diminta pelanggan: $nilai';
+  }
+
+  @override
+  String get koreksiNilaiWajib => 'Nilai tidak boleh kosong.';
+
+  @override
+  String get koreksiAlasanRevisi => 'Alasan revisi (opsional)';
+
+  @override
+  String koreksiAlasanRevisiHelper(int id) {
+    return 'Kosong = \"Koreksi dari pelanggan #$id\".';
+  }
+
+  @override
+  String get koreksiTanggapanOpsional => 'Tanggapan untuk pelanggan (opsional)';
+
+  @override
+  String get koreksiTanggapanHelper => 'Dibaca pelanggan apa adanya.';
+
+  @override
+  String get koreksiTerimaKirim => 'Terima koreksi';
+
+  @override
+  String get koreksiTanggapanWajib => 'Tanggapan wajib diisi.';
+
+  @override
+  String get koreksiTolakJudul => 'Tolak koreksi';
+
+  @override
+  String get koreksiTolakPetunjuk => 'Tulis alasan penolakan untuk pelanggan';
+
+  @override
+  String get koreksiTolakHelper => 'Wajib diisi. Dibaca pelanggan apa adanya.';
+
+  @override
+  String get koreksiTolakKirim => 'Tolak';
+
+  @override
+  String get permintaanPerjalanan => 'Perjalanan alat';
+
+  @override
+  String permintaanProgres(int selesai, int total) {
+    return '$selesai dari $total alat selesai';
+  }
+
+  @override
+  String get permintaanResi => 'Resi pengiriman';
+
+  @override
+  String permintaanResiDiisi(String waktu) {
+    return 'Diisi $waktu';
+  }
+
+  @override
+  String get permintaanJadwal => 'Jadwal teknisi';
+
+  @override
+  String get permintaanAlatTiba => 'Alat tiba di lab';
+
+  @override
+  String permintaanFotoAlat(int n) {
+    return 'Foto pelat nama ($n)';
+  }
+
+  @override
+  String get permintaanJadwalkan => 'Jadwalkan teknisi';
+
+  @override
+  String get permintaanAlatTibaTombol => 'Tandai alat tiba';
+
+  @override
+  String get alatTibaToast => 'Alat ditandai sudah tiba.';
+
+  @override
+  String get jadwalToast => 'Jadwal teknisi tersimpan.';
+
+  @override
+  String get jadwalJudul2 => 'Jadwalkan teknisi';
+
+  @override
+  String get jadwalPenjelasan =>
+      'Teknisi akan mengambil alat di lokasi pelanggan. Pelanggan diberi tahu lewat aplikasinya.';
+
+  @override
+  String get jadwalTanggal => 'Tanggal';
+
+  @override
+  String get jadwalJam => 'Jam';
+
+  @override
+  String get jadwalLokasi => 'Lokasi (opsional)';
+
+  @override
+  String get jadwalCatatan => 'Catatan (opsional)';
+
+  @override
+  String get jadwalSimpan => 'Simpan jadwal';
+
+  @override
+  String get jadwalWaktuWajib => 'Pilih tanggal dan jam dulu.';
 }
