@@ -89,9 +89,9 @@ void main() {
       token: 'mock-token-2',
     );
 
-    expect(find.text('LANJUTKAN DRAFT'), findsOneWidget);
+    expect(find.text('Lanjutkan draft'), findsOneWidget);
 
-    await tester.tap(find.text('LANJUTKAN DRAFT'));
+    await tester.tap(find.text('Lanjutkan draft'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 700));
 
@@ -111,7 +111,7 @@ void main() {
       token: 'mock-token-1',
     );
 
-    expect(find.text('LANJUTKAN DRAFT'), findsOneWidget);
+    expect(find.text('Lanjutkan draft'), findsOneWidget);
   });
 
   testWidgets('teknisi TETAP nggak dikasih tombol di menunggu_approval', (
@@ -125,7 +125,7 @@ void main() {
 
     // Bukan kelalaian: backend nolak teknisi di status ini dengan 422, dan
     // mancing orang ke tombol yang pasti ditolak bikin dia ngira app-nya rusak.
-    expect(find.text('EDIT LEMBAR'), findsNothing);
-    expect(find.text('LANJUTKAN DRAFT'), findsNothing);
+    expect(find.text('Edit lembar'), findsNothing);
+    expect(find.text('Lanjutkan draft'), findsNothing);
   });
 }

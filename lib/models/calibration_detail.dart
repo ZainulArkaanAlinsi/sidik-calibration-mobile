@@ -622,7 +622,7 @@ class IsianTeknisi {
   final DateTime? tanggalTerima;
   final String? lokasi;
 
-  /// Nama tempat buat sesi `onsite` — `PT. LDC` di `Insitu (PT. LDC)`.
+  /// Nama tempat buat sesi `onsite` — `PT. Niaga Contoh` di `Insitu (PT. Niaga Contoh)`.
   final String? lokasiNama;
   final String? catatanTeknisi;
 

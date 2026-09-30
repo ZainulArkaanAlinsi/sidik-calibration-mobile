@@ -146,7 +146,7 @@ void main() {
       final service = MockKirimEmailService();
       await _pasang(tester, _app(service));
 
-      await tester.tap(find.text('KIRIM SEKARANG'));
+      await tester.tap(find.text('Kirim sekarang'));
       await tester.pumpAndSettle();
 
       expect(find.textContaining('minimal satu penerima'), findsOneWidget);
@@ -158,7 +158,7 @@ void main() {
       await _pasang(tester, _app(service));
 
       await _isiKe(tester, 'bukan-email');
-      await tester.tap(find.text('KIRIM SEKARANG'));
+      await tester.tap(find.text('Kirim sekarang'));
       await tester.pumpAndSettle();
 
       // Alamat mana yang salah ikut disebut — kalau ada 8 alamat, "ada yang
@@ -177,7 +177,7 @@ void main() {
 
       final banyak = List.generate(11, (i) => 'orang$i@pt-sidik.com').join(',');
       await _isiKe(tester, banyak);
-      await tester.tap(find.text('KIRIM SEKARANG'));
+      await tester.tap(find.text('Kirim sekarang'));
       await tester.pumpAndSettle();
 
       // Teks persis: keterangan di bawah kolom juga nyebut "Maks 10".
@@ -190,7 +190,7 @@ void main() {
       await _pasang(tester, _app(service));
 
       await _isiKe(tester, 'pelanggan@pt-maju.com');
-      await tester.tap(find.text('KIRIM SEKARANG'));
+      await tester.tap(find.text('Kirim sekarang'));
       await tester.pumpAndSettle();
 
       expect(find.text('Sertifikat terkirim.'), findsOneWidget);
@@ -204,7 +204,7 @@ void main() {
       await _pasang(tester, _app(service));
 
       await _isiKe(tester, 'pelanggan@pt-maju.com');
-      await tester.tap(find.text('KIRIM SEKARANG'));
+      await tester.tap(find.text('Kirim sekarang'));
       await tester.pumpAndSettle();
 
       // Ini inti §2d: `502` BUKAN "nggak terjadi apa-apa". Riwayatnya nambah
@@ -225,7 +225,7 @@ void main() {
       await _pasang(tester, _app(service));
 
       await _isiKe(tester, 'pelanggan@pt-maju.com');
-      await tester.tap(find.text('KIRIM SEKARANG'));
+      await tester.tap(find.text('Kirim sekarang'));
       await tester.pumpAndSettle();
 
       // Muncul di dua tempat, dan dua-duanya perlu: snackbar buat yang lagi
@@ -261,7 +261,7 @@ void main() {
       await _pasang(tester, _app(service));
 
       await _isiKe(tester, 'pelanggan@pt-maju.com');
-      await tester.tap(find.text('KIRIM SEKARANG'));
+      await tester.tap(find.text('Kirim sekarang'));
       await tester.pumpAndSettle();
 
       final riwayat = await service.riwayat('t', 7);
@@ -276,7 +276,7 @@ void main() {
       await tester.tap(find.text('Tautan'));
       await tester.pumpAndSettle();
       await _isiKe(tester, 'pelanggan@pt-maju.com');
-      await tester.tap(find.text('KIRIM SEKARANG'));
+      await tester.tap(find.text('Kirim sekarang'));
       await tester.pumpAndSettle();
 
       final riwayat = await service.riwayat('t', 7);
@@ -347,7 +347,7 @@ void main() {
       await tester.tap(find.text('Excel'));
       await tester.pumpAndSettle();
       await _isiKe(tester, 'pelanggan@pt-maju.com');
-      await tester.tap(find.text('KIRIM SEKARANG'));
+      await tester.tap(find.text('Kirim sekarang'));
       await tester.pumpAndSettle();
 
       expect((await service.riwayat('t', 7)).single.format, FormatKirim.xlsx);
@@ -374,7 +374,7 @@ void main() {
       await tester.tap(find.text('Excel'));
       await tester.pumpAndSettle();
       await _isiKe(tester, 'pelanggan@pt-maju.com');
-      await tester.tap(find.text('KIRIM SEKARANG'));
+      await tester.tap(find.text('Kirim sekarang'));
       await tester.pumpAndSettle();
 
       // Dua baris "Terkirim" bisa berarti hal beda — yang satu pelanggan
@@ -395,7 +395,7 @@ void main() {
       // admin ngira ada yang ikut dikirimin padahal nggak.
       expect(find.widgetWithText(TextField, 'Cc (opsional)'), findsNothing);
       expect(find.widgetWithText(TextField, 'Nomor WhatsApp'), findsOneWidget);
-      expect(find.text('BUKA WHATSAPP'), findsOneWidget);
+      expect(find.text('Buka WhatsApp'), findsOneWidget);
     });
 
     testWidgets('lewat WA, keterangannya jujur: yang dikirim TAUTAN', (
@@ -431,7 +431,7 @@ void main() {
         '08123456789',
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('BUKA WHATSAPP'));
+      await tester.tap(find.text('Buka WhatsApp'));
       await tester.pumpAndSettle();
 
       // "Sertifikat ini udah dikirim ke siapa aja" harus kejawab dari SATU
@@ -477,7 +477,7 @@ void main() {
 
       final chip = find.widgetWithText(ActionChip, 'pic@tirta.co.id');
       expect(chip, findsOneWidget, reason: 'kontak pelanggan mestinya ditawarin');
-      expect(find.textContaining('TIRTA GRACIA'), findsWidgets);
+      expect(find.textContaining('TIRTA CONTOH'), findsWidgets);
 
       await tester.tap(chip);
       await tester.pumpAndSettle();

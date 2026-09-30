@@ -136,7 +136,7 @@ Future<void> _pilihAlat(
 /// Lembar kerjanya sekarang 2 halaman (ngikut kertasnya). Tabel hasil & tombol
 /// kirim ada di halaman terakhir, jadi hampir semua test butuh ini dulu.
 Future<void> _keHalamanAkhir(WidgetTester tester) async {
-  final lanjut = find.text('LANJUT KE HALAMAN BERIKUTNYA');
+  final lanjut = find.text('Lanjut ke halaman berikutnya');
   while (lanjut.evaluate().isNotEmpty) {
     await tester.tap(lanjut);
     await tester.pumpAndSettle();
@@ -149,7 +149,7 @@ Future<void> _keHalamanAkhir(WidgetTester tester) async {
 /// `_konfirmasiAngka` di layar), jadi test yang ngirim lembar kosong tetap
 /// lewat sini tanpa perlu tau bedanya.
 Future<void> _kirimKeAdmin(WidgetTester tester) async {
-  await tester.tap(find.text('KIRIM KE ADMIN'));
+  await tester.tap(find.text('Kirim ke admin'));
   await tester.pumpAndSettle();
 
   final konfirmasi = find.text('Kirim sekarang');
@@ -179,7 +179,7 @@ void main() {
       // Dua halaman sejak 26 Sep 2026 (`CalibrationProfile::susunDuaHalaman`
       // di server): halaman 1 persiapan, tabel hasil di halaman 2.
       expect(find.text('CALIBRATION RESULT'), findsNothing);
-      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsOneWidget);
+      expect(find.text('Lanjut ke halaman berikutnya'), findsOneWidget);
 
       await _keHalamanAkhir(tester);
 
@@ -266,7 +266,7 @@ void main() {
 
       await _pilihAlat(tester);
       await _keHalamanAkhir(tester);
-      await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
+      await tester.tap(find.text('Simpan sebagai draft'));
       await tester.pumpAndSettle();
 
       expect(service.payloadTerakhir!['status'], 'draft');
@@ -502,7 +502,7 @@ void main() {
       await _kirimKeAdmin(tester);
 
       // Gagal → layarnya TETAP kebuka, isian nggak ilang, teknisi bisa coba lagi.
-      expect(find.text('KIRIM KE ADMIN'), findsOneWidget);
+      expect(find.text('Kirim ke admin'), findsOneWidget);
 
       await _keHalamanAkhir(tester);
       await _kirimKeAdmin(tester);
@@ -522,7 +522,7 @@ void main() {
       await _muat(tester, _app(a));
       await _pilihAlat(tester);
       await _keHalamanAkhir(tester);
-      await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
+      await tester.tap(find.text('Simpan sebagai draft'));
       await tester.pumpAndSettle();
 
       // Layar dibuang beneran dulu. Tanpa ini Flutter cuma memperbarui element
@@ -536,7 +536,7 @@ void main() {
       await _muat(tester, _app(b));
       await _pilihAlat(tester);
       await _keHalamanAkhir(tester);
-      await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
+      await tester.tap(find.text('Simpan sebagai draft'));
       await tester.pumpAndSettle();
 
       // Dua kejadian kalibrasi yang beda harus kebaca beda di server —
@@ -555,7 +555,7 @@ void main() {
       await _muat(tester, _app(MockLembarKerjaService(gagal: true)));
 
       expect(find.text('Gagal memuat bentuk lembar kerja.'), findsOneWidget);
-      expect(find.text('COBA LAGI'), findsOneWidget);
+      expect(find.text('Coba lagi'), findsOneWidget);
     });
   });
 
@@ -571,7 +571,7 @@ void main() {
       await _pilihAlat(tester);
       await _keHalamanAkhir(tester);
 
-      await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
+      await tester.tap(find.text('Simpan sebagai draft'));
       await tester.pumpAndSettle();
 
       final titik = (service.payloadTerakhir!['measurements'] as List)
@@ -617,7 +617,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
+      await tester.tap(find.text('Simpan sebagai draft'));
       await tester.pumpAndSettle();
 
       final titik = (service.payloadTerakhir!['measurements'] as List)
@@ -649,8 +649,8 @@ void main() {
       expect(find.text('Before adjustment Reading'), findsOneWidget);
 
       // Nggak ada yang perlu dibalik halaman — semuanya udah kelihatan.
-      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsNothing);
-      expect(find.text('KIRIM KE ADMIN'), findsOneWidget);
+      expect(find.text('Lanjut ke halaman berikutnya'), findsNothing);
+      expect(find.text('Kirim ke admin'), findsOneWidget);
     });
   });
 
@@ -1141,14 +1141,14 @@ void main() {
     );
     await _keHalamanAkhir(tester);
 
-    await tester.ensureVisible(find.text('FOTO TABEL INI').first);
+    await tester.ensureVisible(find.text('Foto tabel ini').first);
     await tester.pump();
 
     // `runAsync` WAJIB: di widget test I/O aslinya dipalsukan, jadi
     // `File.readAsBytes()` (fotonya) nggak pernah selesai di dalam `pump`
     // biasa — dan tombolnya nyangkut di spinner selamanya.
     await tester.runAsync(() async {
-      await tester.tap(find.text('FOTO TABEL INI').first);
+      await tester.tap(find.text('Foto tabel ini').first);
       await Future<void>.delayed(const Duration(milliseconds: 400));
     });
 
@@ -1179,7 +1179,7 @@ void main() {
     // memang tertutup tapi angkanya nggak pernah mendarat — dan test-nya
     // menuduh kodenya yang salah.
     await tester.runAsync(() async {
-      await tester.tap(find.text('MASUKKAN KE LEMBAR'));
+      await tester.tap(find.text('Masukkan ke lembar'));
       await Future<void>.delayed(const Duration(milliseconds: 400));
     });
 
@@ -1333,7 +1333,7 @@ void _testRefractometer() {
       expect(find.text('SIDIK-FM-CAL-0523_Rev.2'), findsOneWidget);
       // Kertasnya satu halaman (`Page 1 of 1`), layarnya dua: persiapan |
       // pengukuran (server, 26 Sep 2026).
-      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsOneWidget);
+      expect(find.text('Lanjut ke halaman berikutnya'), findsOneWidget);
 
       // Larutan standarnya empat baris walau titik yang dikalibrasi cuma dua:
       // satu botol fisik dipakai buat dua satuan sekaligus.
@@ -1889,7 +1889,7 @@ void _testChlorine() {
       expect(find.text('SIDIK-FM-CAL-0531_Rev.2'), findsOneWidget);
       expect(find.text('Chlorine Standard Solution 1.74 mg/L'), findsOneWidget);
       // Dua halaman: persiapan | pengukuran (server, 26 Sep 2026).
-      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsOneWidget);
+      expect(find.text('Lanjut ke halaman berikutnya'), findsOneWidget);
 
       await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
       await _keHalamanAkhir(tester);
@@ -2062,7 +2062,7 @@ void _testDropdownGagal() {
       await _keHalamanAkhir(tester);
 
       expect(find.text('Gagal memuat standar acuan.'), findsNWidgets(3));
-      expect(find.text('COBA LAGI'), findsNWidgets(3));
+      expect(find.text('Coba lagi'), findsNWidgets(3));
     });
 
     testWidgets('ruangan: gagal muat beda dari "belum ada ruangan"', (
@@ -2242,15 +2242,15 @@ void _testTurbidimeter() {
 
       // Halaman 1 = persiapan. Tombol kirim BELUM ada di sini — teknisi
       // gampang ngirim lembar yang tabel hasilnya belum pernah dia lihat.
-      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsOneWidget);
+      expect(find.text('Lanjut ke halaman berikutnya'), findsOneWidget);
       expect(find.text('Before adjustment Reading'), findsNothing);
-      expect(find.text('KIRIM KE ADMIN'), findsNothing);
+      expect(find.text('Kirim ke admin'), findsNothing);
 
       await _keHalamanAkhir(tester);
 
       expect(find.text('Before adjustment Reading'), findsOneWidget);
-      expect(find.text('KIRIM KE ADMIN'), findsOneWidget);
-      expect(find.text('LANJUT KE HALAMAN BERIKUTNYA'), findsNothing);
+      expect(find.text('Kirim ke admin'), findsOneWidget);
+      expect(find.text('Lanjut ke halaman berikutnya'), findsNothing);
     });
 
     testWidgets('tiga titik NTU ikut terkirim, sel kosong tetap null', (
@@ -2461,7 +2461,7 @@ void _testKonfirmasiKirim() {
       }
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.tap(find.text('Kirim ke admin'));
       await tester.pumpAndSettle();
 
       // Larutan standar & rata-ratanya berdampingan — yang salah ketik
@@ -2495,7 +2495,7 @@ void _testKonfirmasiKirim() {
       await tester.enterText(kotakAfter().at(10), '1,90');
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.tap(find.text('Kirim ke admin'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Periksa lagi'));
       await tester.pumpAndSettle();
@@ -2504,7 +2504,7 @@ void _testKonfirmasiKirim() {
 
       // Balik ke formulir yang sama, bukan formulir kosong — teknisi mundur
       // buat MBENERIN satu angka, bukan buat ngetik ulang semuanya.
-      expect(find.text('KIRIM KE ADMIN'), findsOneWidget);
+      expect(find.text('Kirim ke admin'), findsOneWidget);
       expect(
         (tester.widget(kotakAfter().at(10)) as TextField).controller!.text,
         '1,90',
@@ -2521,7 +2521,7 @@ void _testKonfirmasiKirim() {
       await tester.enterText(kotakAfter().at(10), '1,90');
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.tap(find.text('Kirim ke admin'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Kirim sekarang'));
       await tester.pumpAndSettle();
@@ -2569,7 +2569,7 @@ void _testKonfirmasiKirim() {
       await tester.enterText(kotakAfter().at(12), '1,88');
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.tap(find.text('Kirim ke admin'));
       await tester.pumpAndSettle();
 
       expect(find.text('2 dari 5 kotak · rata-rata 1,87'), findsOneWidget);
@@ -2603,7 +2603,7 @@ void _testKonfirmasiKirim() {
       await tester.enterText(kotak.at(22), '1004');
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.tap(find.text('Kirim ke admin'));
       await tester.pumpAndSettle();
 
       // Diruncingin ke isi dialog: label titik di lembar kerjanya sendiri
@@ -2637,7 +2637,7 @@ void _testKonfirmasiKirim() {
 
       await _pilihAlat(tester, alat: 'Chlorine Meter Hanna · 905320134111');
       await _keHalamanAkhir(tester);
-      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.tap(find.text('Kirim ke admin'));
       await tester.pumpAndSettle();
 
       // Nggak ada angka yang perlu dicek ulang — dialognya cuma jadi satu
@@ -2659,7 +2659,7 @@ void _testKonfirmasiKirim() {
       await tester.enterText(kotakAfter().at(10), '1,90');
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
+      await tester.tap(find.text('Simpan sebagai draft'));
       await tester.pumpAndSettle();
 
       expect(find.text('Cek dulu angkanya sebelum dikirim'), findsNothing);
@@ -2706,7 +2706,7 @@ void _testKonfirmasiKirim() {
       await tester.enterText(kotak.first, '4,01');
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.tap(find.text('Kirim ke admin'));
       await tester.pumpAndSettle();
 
       tester.view.physicalSize = const Size(360, 640);

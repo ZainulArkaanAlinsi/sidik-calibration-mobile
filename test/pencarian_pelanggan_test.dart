@@ -223,7 +223,7 @@ void main() {
       expect(find.text('PT Maju Jaya'), findsOneWidget);
 
       expect(
-        find.text('DAFTARKAN PT BARU'),
+        find.text('Daftarkan PT baru'),
         findsOneWidget,
         reason: 'Teknisi yang pelanggannya nggak ketemu belum tentu melihat '
             'daftar kosong: dia bisa melihat tiga PT bernama mirip yang nggak '
@@ -248,7 +248,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('DAFTARKAN PT BARU'));
+      await tester.tap(find.text('Daftarkan PT baru'));
       await tester.pumpAndSettle();
 
       expect(

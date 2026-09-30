@@ -360,7 +360,7 @@ class LembarKerjaSubmission {
   /// bagaimana kode bertitik jadi peta bersarang.
   final Map<String, dynamic> spesifikasiAlat;
 
-  /// Nama tempat kalibrasi buat sesi `onsite`, mis. `PT. LDC`.
+  /// Nama tempat kalibrasi buat sesi `onsite`, mis. `PT. Niaga Contoh`.
   final String? lokasiNama;
 
   final List<StandarDicek> standarDicek;
@@ -398,7 +398,7 @@ class LembarKerjaSubmission {
     'client_request_id': clientRequestId,
     'input_method': inputMethod.api,
     'lokasi': lokasi.toApi(),
-    // Nama tempat buat sesi Insitu — yang tercetak `Insitu (PT. LDC)` di
+    // Nama tempat buat sesi Insitu — yang tercetak `Insitu (PT. Niaga Contoh)` di
     // sertifikat. Dikirim eksplisit (termasuk null) biar `PUT` bisa
     // ngosongin waktu sesinya dipindah balik ke lab.
     'lokasi_nama': lokasiNama,

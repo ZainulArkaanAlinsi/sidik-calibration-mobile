@@ -86,14 +86,14 @@ void main() {
         kata('Pelanggan', 100, 100),
         kata(':', 220, 100),
         kata('PT', 250, 100),
-        kata('Gracia', 290, 100),
+        kata('Contoh', 290, 100),
         kata('m', 380, 100),
       ]);
 
       expect(
         s.kolom.single.satuan,
         isNull,
-        reason: 'Yang dipisah cuma kalau sisanya beneran angka. `PT Gracia m` '
+        reason: 'Yang dipisah cuma kalau sisanya beneran angka. `PT Contoh m` '
             'nggak boleh kehilangan `m`-nya cuma karena `m` kebetulan satuan '
             'panjang.',
       );

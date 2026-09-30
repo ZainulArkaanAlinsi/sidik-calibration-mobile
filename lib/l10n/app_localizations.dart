@@ -131,7 +131,7 @@ abstract class AppLocalizations {
   /// No description provided for @loginSubmit.
   ///
   /// In en, this message translates to:
-  /// **'SIGN IN'**
+  /// **'Sign in'**
   String get loginSubmit;
 
   /// No description provided for @loginNoAccount.
@@ -227,7 +227,7 @@ abstract class AppLocalizations {
   /// No description provided for @registerSubmit.
   ///
   /// In en, this message translates to:
-  /// **'REGISTER'**
+  /// **'Register'**
   String get registerSubmit;
 
   /// No description provided for @registerHaveAccount.
@@ -293,7 +293,7 @@ abstract class AppLocalizations {
   /// No description provided for @registerSuccessDismiss.
   ///
   /// In en, this message translates to:
-  /// **'GOT IT'**
+  /// **'Got it'**
   String get registerSuccessDismiss;
 
   /// No description provided for @forgotTitle.
@@ -317,7 +317,7 @@ abstract class AppLocalizations {
   /// No description provided for @forgotSubmit.
   ///
   /// In en, this message translates to:
-  /// **'CONTINUE'**
+  /// **'Continue'**
   String get forgotSubmit;
 
   /// No description provided for @backToLogin.
@@ -359,7 +359,7 @@ abstract class AppLocalizations {
   /// No description provided for @resetSubmit.
   ///
   /// In en, this message translates to:
-  /// **'SAVE NEW PASSWORD'**
+  /// **'Save new password'**
   String get resetSubmit;
 
   /// No description provided for @resetDoneTitle.
@@ -377,7 +377,7 @@ abstract class AppLocalizations {
   /// No description provided for @backToLoginCaps.
   ///
   /// In en, this message translates to:
-  /// **'BACK TO LOGIN'**
+  /// **'Back to login'**
   String get backToLoginCaps;
 
   /// No description provided for @languageLabel.
@@ -509,19 +509,19 @@ abstract class AppLocalizations {
   /// No description provided for @dashStartCalibration.
   ///
   /// In en, this message translates to:
-  /// **'START CALIBRATION'**
+  /// **'Start calibration'**
   String get dashStartCalibration;
 
   /// No description provided for @dashAddDevice.
   ///
   /// In en, this message translates to:
-  /// **'ADD DEVICE'**
+  /// **'Add device'**
   String get dashAddDevice;
 
   /// No description provided for @dashRetry.
   ///
   /// In en, this message translates to:
-  /// **'TRY AGAIN'**
+  /// **'Try again'**
   String get dashRetry;
 
   /// No description provided for @dashSessionExpired.
@@ -821,7 +821,7 @@ abstract class AppLocalizations {
   /// No description provided for @rumusTerbitkan.
   ///
   /// In en, this message translates to:
-  /// **'PUBLISH'**
+  /// **'Publish'**
   String get rumusTerbitkan;
 
   /// No description provided for @rumusBatal.
@@ -1019,7 +1019,7 @@ abstract class AppLocalizations {
   /// No description provided for @ruanganSimpan.
   ///
   /// In en, this message translates to:
-  /// **'SAVE'**
+  /// **'Save'**
   String get ruanganSimpan;
 
   /// No description provided for @metodeTitle.
@@ -1289,13 +1289,13 @@ abstract class AppLocalizations {
   /// No description provided for @equipRetry.
   ///
   /// In en, this message translates to:
-  /// **'RETRY'**
+  /// **'Retry'**
   String get equipRetry;
 
   /// No description provided for @equipAdd.
   ///
   /// In en, this message translates to:
-  /// **'ADD DEVICE'**
+  /// **'Add device'**
   String get equipAdd;
 
   /// No description provided for @equipEdit.
@@ -1307,7 +1307,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipMuatLebihBanyak.
   ///
   /// In en, this message translates to:
-  /// **'LOAD MORE'**
+  /// **'Load more'**
   String get equipMuatLebihBanyak;
 
   /// No description provided for @equipDeleteConfirmTitle.
@@ -1528,7 +1528,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipResolusiTambahBaris.
   ///
   /// In en, this message translates to:
-  /// **'ADD RESOLUTION ROW'**
+  /// **'Add resolution row'**
   String get equipResolusiTambahBaris;
 
   /// No description provided for @equipResolusiHapusBaris.
@@ -1594,7 +1594,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipSave.
   ///
   /// In en, this message translates to:
-  /// **'SAVE'**
+  /// **'Save'**
   String get equipSave;
 
   /// No description provided for @equipSaveFailed.
@@ -1642,7 +1642,7 @@ abstract class AppLocalizations {
   /// No description provided for @historyRetry.
   ///
   /// In en, this message translates to:
-  /// **'RETRY'**
+  /// **'Retry'**
   String get historyRetry;
 
   /// No description provided for @historySegarkan.
@@ -1666,13 +1666,13 @@ abstract class AppLocalizations {
   /// No description provided for @historyPeringatanBatal.
   ///
   /// In en, this message translates to:
-  /// **'CHECK AGAIN'**
+  /// **'Check again'**
   String get historyPeringatanBatal;
 
   /// No description provided for @historyPeringatanLanjut.
   ///
   /// In en, this message translates to:
-  /// **'APPROVE ANYWAY'**
+  /// **'Approve anyway'**
   String get historyPeringatanLanjut;
 
   /// No description provided for @historyCertNumber.
@@ -1762,13 +1762,13 @@ abstract class AppLocalizations {
   /// No description provided for @historyApprove.
   ///
   /// In en, this message translates to:
-  /// **'APPROVE'**
+  /// **'Approve'**
   String get historyApprove;
 
   /// No description provided for @historyReject.
   ///
   /// In en, this message translates to:
-  /// **'REJECT'**
+  /// **'Reject'**
   String get historyReject;
 
   /// No description provided for @historyApproveFailed.
@@ -1792,7 +1792,7 @@ abstract class AppLocalizations {
   /// No description provided for @historyRejectDialogSubmit.
   ///
   /// In en, this message translates to:
-  /// **'REJECT SESSION'**
+  /// **'Reject session'**
   String get historyRejectDialogSubmit;
 
   /// No description provided for @historyRejectDialogCancel.
@@ -1852,13 +1852,13 @@ abstract class AppLocalizations {
   /// No description provided for @certRetry.
   ///
   /// In en, this message translates to:
-  /// **'RETRY GENERATE'**
+  /// **'Retry generate'**
   String get certRetry;
 
   /// No description provided for @certOpenPdf.
   ///
   /// In en, this message translates to:
-  /// **'VIEW PDF'**
+  /// **'View PDF'**
   String get certOpenPdf;
 
   /// Section on the certificate screen showing a scannable QR that resolves to the public verification page.
@@ -1984,7 +1984,7 @@ abstract class AppLocalizations {
   /// No description provided for @certLihatDetail.
   ///
   /// In en, this message translates to:
-  /// **'VIEW CALCULATION DETAIL'**
+  /// **'View calculation detail'**
   String get certLihatDetail;
 
   /// No description provided for @detailTitle.
@@ -2074,7 +2074,7 @@ abstract class AppLocalizations {
   /// No description provided for @detailLihatSertifikat.
   ///
   /// In en, this message translates to:
-  /// **'VIEW CERTIFICATE'**
+  /// **'View certificate'**
   String get detailLihatSertifikat;
 
   /// No description provided for @detailTitikLabel.
@@ -2392,7 +2392,7 @@ abstract class AppLocalizations {
   /// No description provided for @arsipRetry.
   ///
   /// In en, this message translates to:
-  /// **'RETRY'**
+  /// **'Retry'**
   String get arsipRetry;
 
   /// No description provided for @arsipRingkasPerusahaan.
@@ -2428,19 +2428,19 @@ abstract class AppLocalizations {
   /// No description provided for @arsipBuat.
   ///
   /// In en, this message translates to:
-  /// **'CREATE'**
+  /// **'Create'**
   String get arsipBuat;
 
   /// No description provided for @arsipBatal.
   ///
   /// In en, this message translates to:
-  /// **'CANCEL'**
+  /// **'Cancel'**
   String get arsipBatal;
 
   /// No description provided for @arsipSimpan.
   ///
   /// In en, this message translates to:
-  /// **'SAVE'**
+  /// **'Save'**
   String get arsipSimpan;
 
   /// No description provided for @arsipGantiNama.
@@ -2950,7 +2950,7 @@ abstract class AppLocalizations {
   /// No description provided for @orgSave.
   ///
   /// In en, this message translates to:
-  /// **'SAVE'**
+  /// **'Save'**
   String get orgSave;
 
   /// No description provided for @orgSaved.
@@ -2974,7 +2974,7 @@ abstract class AppLocalizations {
   /// No description provided for @orgRetry.
   ///
   /// In en, this message translates to:
-  /// **'RETRY'**
+  /// **'Retry'**
   String get orgRetry;
 
   /// No description provided for @standarTitle.
@@ -2992,7 +2992,7 @@ abstract class AppLocalizations {
   /// No description provided for @standarAdd.
   ///
   /// In en, this message translates to:
-  /// **'ADD STANDARD'**
+  /// **'Add standard'**
   String get standarAdd;
 
   /// No description provided for @standarEdit.
@@ -3016,7 +3016,7 @@ abstract class AppLocalizations {
   /// No description provided for @standarRetry.
   ///
   /// In en, this message translates to:
-  /// **'RETRY'**
+  /// **'Retry'**
   String get standarRetry;
 
   /// No description provided for @standarBerlaku.
@@ -3142,7 +3142,7 @@ abstract class AppLocalizations {
   /// No description provided for @standarSave.
   ///
   /// In en, this message translates to:
-  /// **'SAVE'**
+  /// **'Save'**
   String get standarSave;
 
   /// No description provided for @custTitle.
@@ -3178,13 +3178,13 @@ abstract class AppLocalizations {
   /// No description provided for @custRetry.
   ///
   /// In en, this message translates to:
-  /// **'RETRY'**
+  /// **'Retry'**
   String get custRetry;
 
   /// No description provided for @custAdd.
   ///
   /// In en, this message translates to:
-  /// **'ADD CUSTOMER'**
+  /// **'Add customer'**
   String get custAdd;
 
   /// No description provided for @custEdit.
@@ -3226,7 +3226,7 @@ abstract class AppLocalizations {
   /// No description provided for @custSave.
   ///
   /// In en, this message translates to:
-  /// **'SAVE'**
+  /// **'Save'**
   String get custSave;
 
   /// No description provided for @custCancel.
@@ -3412,7 +3412,7 @@ abstract class AppLocalizations {
   /// No description provided for @calibTambahTitik.
   ///
   /// In en, this message translates to:
-  /// **'ADD MEASUREMENT POINT'**
+  /// **'Add measurement point'**
   String get calibTambahTitik;
 
   /// No description provided for @calibHapusTitik.
@@ -3460,13 +3460,13 @@ abstract class AppLocalizations {
   /// No description provided for @calibSimpanDraft.
   ///
   /// In en, this message translates to:
-  /// **'SAVE DRAFT'**
+  /// **'Save draft'**
   String get calibSimpanDraft;
 
   /// No description provided for @calibKirimApproval.
   ///
   /// In en, this message translates to:
-  /// **'SUBMIT FOR APPROVAL'**
+  /// **'Submit for approval'**
   String get calibKirimApproval;
 
   /// No description provided for @calibDraftTitikDilewat.
@@ -3508,7 +3508,7 @@ abstract class AppLocalizations {
   /// No description provided for @calibRetry.
   ///
   /// In en, this message translates to:
-  /// **'RETRY'**
+  /// **'Retry'**
   String get calibRetry;
 
   /// No description provided for @calibPilihKategoriTitle.
@@ -3616,13 +3616,13 @@ abstract class AppLocalizations {
   /// No description provided for @calibTambahAlatSimpan.
   ///
   /// In en, this message translates to:
-  /// **'SAVE & USE'**
+  /// **'Save & use'**
   String get calibTambahAlatSimpan;
 
   /// No description provided for @calibTambahAlatBatal.
   ///
   /// In en, this message translates to:
-  /// **'CANCEL'**
+  /// **'Cancel'**
   String get calibTambahAlatBatal;
 
   /// No description provided for @calibTambahAlatBerhasil.
@@ -3976,7 +3976,7 @@ abstract class AppLocalizations {
   /// No description provided for @phCalibLivePakai.
   ///
   /// In en, this message translates to:
-  /// **'USE THESE NUMBERS'**
+  /// **'Use these numbers'**
   String get phCalibLivePakai;
 
   /// No description provided for @phCalibLiveTanpaKamera.
@@ -4042,7 +4042,7 @@ abstract class AppLocalizations {
   /// No description provided for @phCalibOcrKonfirmasi.
   ///
   /// In en, this message translates to:
-  /// **'CONFIRM'**
+  /// **'Confirm'**
   String get phCalibOcrKonfirmasi;
 
   /// No description provided for @phCalibPembacaanKe.
@@ -4144,13 +4144,13 @@ abstract class AppLocalizations {
   /// No description provided for @phCalibLanjutkan.
   ///
   /// In en, this message translates to:
-  /// **'CONTINUE'**
+  /// **'Continue'**
   String get phCalibLanjutkan;
 
   /// No description provided for @phCalibKembali.
   ///
   /// In en, this message translates to:
-  /// **'BACK'**
+  /// **'Back'**
   String get phCalibKembali;
 
   /// No description provided for @phCalibDisertifikasi.
@@ -4204,7 +4204,7 @@ abstract class AppLocalizations {
   /// No description provided for @notifRetry.
   ///
   /// In en, this message translates to:
-  /// **'RETRY'**
+  /// **'Retry'**
   String get notifRetry;
 
   /// No description provided for @notifMarkedRead.
@@ -4294,7 +4294,7 @@ abstract class AppLocalizations {
   /// No description provided for @certKirimEmail.
   ///
   /// In en, this message translates to:
-  /// **'SEND TO CUSTOMER'**
+  /// **'Send to customer'**
   String get certKirimEmail;
 
   /// No description provided for @emailTitle.
@@ -4336,7 +4336,7 @@ abstract class AppLocalizations {
   /// No description provided for @emailKirim.
   ///
   /// In en, this message translates to:
-  /// **'SEND NOW'**
+  /// **'Send now'**
   String get emailKirim;
 
   /// Shown while POST /certificates/{id}/kirim-email is in flight. The call is synchronous on purpose, so this can take a while.
@@ -4408,7 +4408,7 @@ abstract class AppLocalizations {
   /// No description provided for @emailRetry.
   ///
   /// In en, this message translates to:
-  /// **'TRY AGAIN'**
+  /// **'Try again'**
   String get emailRetry;
 
   /// No description provided for @emailFormatJudul.
@@ -4480,7 +4480,7 @@ abstract class AppLocalizations {
   /// No description provided for @ttdUnggah.
   ///
   /// In en, this message translates to:
-  /// **'UPLOAD SIGNATURE'**
+  /// **'Upload signature'**
   String get ttdUnggah;
 
   /// No description provided for @ttdGanti.
@@ -4558,7 +4558,7 @@ abstract class AppLocalizations {
   /// No description provided for @ttdSimpanPosisi.
   ///
   /// In en, this message translates to:
-  /// **'SAVE POSITION'**
+  /// **'Save position'**
   String get ttdSimpanPosisi;
 
   /// No description provided for @ttdPosisiTersimpan.
@@ -4588,7 +4588,7 @@ abstract class AppLocalizations {
   /// No description provided for @ttdRetry.
   ///
   /// In en, this message translates to:
-  /// **'TRY AGAIN'**
+  /// **'Try again'**
   String get ttdRetry;
 
   /// No description provided for @teknisiResetPassword.
@@ -4786,13 +4786,13 @@ abstract class AppLocalizations {
   /// No description provided for @sheetTutup.
   ///
   /// In en, this message translates to:
-  /// **'CLOSE'**
+  /// **'Close'**
   String get sheetTutup;
 
   /// No description provided for @sheetCobaLagi.
   ///
   /// In en, this message translates to:
-  /// **'TRY AGAIN'**
+  /// **'Try again'**
   String get sheetCobaLagi;
 
   /// No description provided for @sheetKirimBerhasil.
@@ -4864,7 +4864,7 @@ abstract class AppLocalizations {
   /// No description provided for @tugasRetry.
   ///
   /// In en, this message translates to:
-  /// **'TRY AGAIN'**
+  /// **'Try again'**
   String get tugasRetry;
 
   /// No description provided for @tugasJumlahAlat.
@@ -4918,7 +4918,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashStartPhCalibration.
   ///
   /// In en, this message translates to:
-  /// **'PH METER CALIBRATION'**
+  /// **'pH meter calibration'**
   String get dashStartPhCalibration;
 
   /// No description provided for @lkTitle.
@@ -4948,7 +4948,7 @@ abstract class AppLocalizations {
   /// No description provided for @lkRetry.
   ///
   /// In en, this message translates to:
-  /// **'RETRY'**
+  /// **'Retry'**
   String get lkRetry;
 
   /// No description provided for @lkPilihAlat.
@@ -4969,10 +4969,10 @@ abstract class AppLocalizations {
   /// **'Couldn\'t load the room list.'**
   String get lkRuanganGagal;
 
-  /// Contoh isian di bawah kotak nama tempat sesi Insitu. Yang dipakai nama pelanggan yang didatangi — itu yang kecetak di sertifikat sebagai Calibration Location : Insitu (PT. LDC).
+  /// Contoh isian di bawah kotak nama tempat sesi Insitu. Yang dipakai nama pelanggan yang didatangi — itu yang kecetak di sertifikat sebagai Calibration Location : Insitu (PT. Niaga Contoh).
   ///
   /// In en, this message translates to:
-  /// **'Example: PT. LDC'**
+  /// **'Example: PT. Niaga Contoh'**
   String get lkContohNamaTempat;
 
   /// No description provided for @lkBelumPilihAlat.
@@ -5074,7 +5074,7 @@ abstract class AppLocalizations {
   /// No description provided for @lkFotoTabel.
   ///
   /// In en, this message translates to:
-  /// **'PHOTOGRAPH THIS TABLE'**
+  /// **'Photograph this table'**
   String get lkFotoTabel;
 
   /// No description provided for @lkFotoTabelGagal.
@@ -5326,7 +5326,7 @@ abstract class AppLocalizations {
   /// No description provided for @waKirim.
   ///
   /// In en, this message translates to:
-  /// **'OPEN WHATSAPP'**
+  /// **'Open WhatsApp'**
   String get waKirim;
 
   /// No description provided for @waTercatat.
@@ -5446,7 +5446,7 @@ abstract class AppLocalizations {
   /// No description provided for @tolakKirim.
   ///
   /// In en, this message translates to:
-  /// **'SEND BACK TO TECHNICIAN'**
+  /// **'Send back to technician'**
   String get tolakKirim;
 
   /// No description provided for @lkPerluDibetulin.
@@ -5506,13 +5506,13 @@ abstract class AppLocalizations {
   /// No description provided for @lkHalamanLanjut.
   ///
   /// In en, this message translates to:
-  /// **'NEXT PAGE'**
+  /// **'Next page'**
   String get lkHalamanLanjut;
 
   /// No description provided for @lkHalamanKembali.
   ///
   /// In en, this message translates to:
-  /// **'BACK'**
+  /// **'Back'**
   String get lkHalamanKembali;
 
   /// No description provided for @lkPilih.
@@ -5524,13 +5524,13 @@ abstract class AppLocalizations {
   /// No description provided for @lkKirim.
   ///
   /// In en, this message translates to:
-  /// **'SUBMIT TO ADMIN'**
+  /// **'Submit to admin'**
   String get lkKirim;
 
   /// No description provided for @lkSimpanDraft.
   ///
   /// In en, this message translates to:
-  /// **'SAVE AS DRAFT'**
+  /// **'Save as draft'**
   String get lkSimpanDraft;
 
   /// No description provided for @lkBerhasilKirim.
@@ -5584,7 +5584,7 @@ abstract class AppLocalizations {
   /// No description provided for @pindaiPakaiAngka.
   ///
   /// In en, this message translates to:
-  /// **'USE THESE NUMBERS'**
+  /// **'Use these numbers'**
   String get pindaiPakaiAngka;
 
   /// No description provided for @pindaiDitahanServer.
@@ -5746,7 +5746,7 @@ abstract class AppLocalizations {
   /// No description provided for @lkPindaiLembar.
   ///
   /// In en, this message translates to:
-  /// **'SCAN WORKSHEET'**
+  /// **'Scan worksheet'**
   String get lkPindaiLembar;
 
   /// No description provided for @lkPindaiBelumSiap.
@@ -5818,13 +5818,13 @@ abstract class AppLocalizations {
   /// No description provided for @lkKeluarBatal.
   ///
   /// In en, this message translates to:
-  /// **'KEEP EDITING'**
+  /// **'Keep editing'**
   String get lkKeluarBatal;
 
   /// No description provided for @lkKeluarLanjut.
   ///
   /// In en, this message translates to:
-  /// **'LEAVE'**
+  /// **'Leave'**
   String get lkKeluarLanjut;
 
   /// No description provided for @lkSuhuDiLuarRentang.
@@ -5866,7 +5866,7 @@ abstract class AppLocalizations {
   /// No description provided for @folderRetry.
   ///
   /// In en, this message translates to:
-  /// **'RETRY'**
+  /// **'Retry'**
   String get folderRetry;
 
   /// No description provided for @folderIsiKosong.
@@ -6034,19 +6034,19 @@ abstract class AppLocalizations {
   /// No description provided for @folderBatal.
   ///
   /// In en, this message translates to:
-  /// **'CANCEL'**
+  /// **'Cancel'**
   String get folderBatal;
 
   /// No description provided for @folderSimpan.
   ///
   /// In en, this message translates to:
-  /// **'SAVE'**
+  /// **'Save'**
   String get folderSimpan;
 
   /// No description provided for @folderHapusLanjut.
   ///
   /// In en, this message translates to:
-  /// **'DELETE'**
+  /// **'Delete'**
   String get folderHapusLanjut;
 
   /// No description provided for @folderSistemDikunci.
@@ -6406,19 +6406,19 @@ abstract class AppLocalizations {
   /// No description provided for @perhitPeriksa.
   ///
   /// In en, this message translates to:
-  /// **'CHECK'**
+  /// **'Check'**
   String get perhitPeriksa;
 
   /// No description provided for @perhitSetujui.
   ///
   /// In en, this message translates to:
-  /// **'APPROVE'**
+  /// **'Approve'**
   String get perhitSetujui;
 
   /// No description provided for @perhitTolak.
   ///
   /// In en, this message translates to:
-  /// **'REJECT'**
+  /// **'Reject'**
   String get perhitTolak;
 
   /// No description provided for @perhitMemeriksa.
@@ -6478,13 +6478,13 @@ abstract class AppLocalizations {
   /// No description provided for @perhitKonfirmasiBatal.
   ///
   /// In en, this message translates to:
-  /// **'CHECK AGAIN'**
+  /// **'Check again'**
   String get perhitKonfirmasiBatal;
 
   /// No description provided for @perhitKonfirmasiLanjut.
   ///
   /// In en, this message translates to:
-  /// **'APPROVE ANYWAY'**
+  /// **'Approve anyway'**
   String get perhitKonfirmasiLanjut;
 
   /// No description provided for @perhitTolakJudul.
@@ -6508,7 +6508,7 @@ abstract class AppLocalizations {
   /// No description provided for @perhitTolakKirim.
   ///
   /// In en, this message translates to:
-  /// **'SEND BACK'**
+  /// **'Send back'**
   String get perhitTolakKirim;
 
   /// No description provided for @perhitDisetujui.
@@ -6544,7 +6544,7 @@ abstract class AppLocalizations {
   /// No description provided for @perhitSimpanAdmin.
   ///
   /// In en, this message translates to:
-  /// **'SAVE'**
+  /// **'Save'**
   String get perhitSimpanAdmin;
 
   /// No description provided for @perhitAdminTersimpan.
@@ -6754,7 +6754,7 @@ abstract class AppLocalizations {
   /// No description provided for @importPilihFile.
   ///
   /// In en, this message translates to:
-  /// **'CHOOSE FILE'**
+  /// **'Choose file'**
   String get importPilihFile;
 
   /// No description provided for @importFileTerpilih.
@@ -6766,19 +6766,19 @@ abstract class AppLocalizations {
   /// No description provided for @importUjiCoba.
   ///
   /// In en, this message translates to:
-  /// **'DRY RUN'**
+  /// **'Dry run'**
   String get importUjiCoba;
 
   /// No description provided for @importTerapkan.
   ///
   /// In en, this message translates to:
-  /// **'APPLY NOW'**
+  /// **'Apply now'**
   String get importTerapkan;
 
   /// No description provided for @importUlangi.
   ///
   /// In en, this message translates to:
-  /// **'CHOOSE ANOTHER FILE'**
+  /// **'Choose another file'**
   String get importUlangi;
 
   /// No description provided for @importBelumAdaFile.
@@ -6868,7 +6868,7 @@ abstract class AppLocalizations {
   /// No description provided for @lkKirimAdmin.
   ///
   /// In en, this message translates to:
-  /// **'SUBMIT'**
+  /// **'Submit'**
   String get lkKirimAdmin;
 
   /// No description provided for @lkScanMemproses.
@@ -7000,19 +7000,19 @@ abstract class AppLocalizations {
   /// No description provided for @detailEditAdmin.
   ///
   /// In en, this message translates to:
-  /// **'EDIT SHEET'**
+  /// **'Edit sheet'**
   String get detailEditAdmin;
 
   /// No description provided for @detailPerbaikiRevisi.
   ///
   /// In en, this message translates to:
-  /// **'FIX WORKSHEET'**
+  /// **'Fix worksheet'**
   String get detailPerbaikiRevisi;
 
   /// No description provided for @detailLanjutkanDraft.
   ///
   /// In en, this message translates to:
-  /// **'CONTINUE DRAFT'**
+  /// **'Continue draft'**
   String get detailLanjutkanDraft;
 
   /// Short note under a locked row label. Kept short on purpose: the cell clips at 2 lines, and a longer sentence gets ellipsized exactly where the explanation begins.
@@ -7186,13 +7186,13 @@ abstract class AppLocalizations {
   /// No description provided for @onbNext.
   ///
   /// In en, this message translates to:
-  /// **'NEXT'**
+  /// **'Next'**
   String get onbNext;
 
   /// No description provided for @onbEnter.
   ///
   /// In en, this message translates to:
-  /// **'ENTER WORKSPACE'**
+  /// **'Enter workspace'**
   String get onbEnter;
 
   /// No description provided for @onbStep1Title.
@@ -7576,7 +7576,7 @@ abstract class AppLocalizations {
   /// No description provided for @fotoReviewMasukkan.
   ///
   /// In en, this message translates to:
-  /// **'INSERT INTO SHEET'**
+  /// **'Insert into sheet'**
   String get fotoReviewMasukkan;
 
   /// No description provided for @fotoReviewKetikSendiri.
@@ -7630,7 +7630,7 @@ abstract class AppLocalizations {
   /// No description provided for @skemaDinamisSimpan.
   ///
   /// In en, this message translates to:
-  /// **'SAVE WHAT WAS READ'**
+  /// **'Save what was read'**
   String get skemaDinamisSimpan;
 
   /// No description provided for @skemaDinamisMasihKosong.
@@ -7738,13 +7738,13 @@ abstract class AppLocalizations {
   /// No description provided for @petaKolomTerapkan.
   ///
   /// In en, this message translates to:
-  /// **'FILL MEASUREMENT POINTS'**
+  /// **'Fill measurement points'**
   String get petaKolomTerapkan;
 
   /// No description provided for @calibBacaFoto.
   ///
   /// In en, this message translates to:
-  /// **'READ FROM SHEET PHOTO'**
+  /// **'Read from sheet photo'**
   String get calibBacaFoto;
 
   /// No description provided for @calibBacaFotoGagal.
@@ -7786,7 +7786,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipPelangganDaftarBaru.
   ///
   /// In en, this message translates to:
-  /// **'REGISTER A NEW COMPANY'**
+  /// **'Register a new company'**
   String get equipPelangganDaftarBaru;
 
   /// No description provided for @pelangganBaruJudul.
@@ -7822,7 +7822,7 @@ abstract class AppLocalizations {
   /// No description provided for @pelangganBaruCariDirektori.
   ///
   /// In en, this message translates to:
-  /// **'SEARCH THE DIRECTORY'**
+  /// **'Search the directory'**
   String get pelangganBaruCariDirektori;
 
   /// No description provided for @pelangganBaruDirektoriJudul.
@@ -7846,7 +7846,7 @@ abstract class AppLocalizations {
   /// No description provided for @pelangganBaruDaftarkan.
   ///
   /// In en, this message translates to:
-  /// **'REGISTER'**
+  /// **'Register'**
   String get pelangganBaruDaftarkan;
 
   /// No description provided for @pelangganBaruNamaWajib.
@@ -7870,7 +7870,7 @@ abstract class AppLocalizations {
   /// No description provided for @pelangganBaruTetapBuat.
   ///
   /// In en, this message translates to:
-  /// **'DIFFERENT COMPANY — REGISTER ANYWAY'**
+  /// **'Different company — register anyway'**
   String get pelangganBaruTetapBuat;
 
   /// No description provided for @pelangganBaruGagal.

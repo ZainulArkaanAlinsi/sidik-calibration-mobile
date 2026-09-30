@@ -110,7 +110,7 @@ Future<void> _pilihRuangan(WidgetTester tester) async {
 }
 
 Future<void> _simpanDraft(WidgetTester tester) async {
-  await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
+  await tester.tap(find.text('Simpan sebagai draft'));
   await tester.pumpAndSettle();
 }
 
@@ -136,7 +136,7 @@ void main() {
       // Contohnya, bukan istilah sistem: "Nama Tempat" doang kebaca macam-macam
       // di lapangan, dan yang keketik mendarat di sertifikat sebagai
       // `Calibration Location : Insitu (…)`.
-      expect(find.text('Contoh: PT. LDC'), findsOneWidget);
+      expect(find.text('Contoh: PT. Niaga Contoh'), findsOneWidget);
     });
 
     /// INTI bug-nya. Yang diperiksa payload, bukan tampilan: kotak yang ilang
@@ -154,18 +154,18 @@ void main() {
 
       await tester.enterText(
         find.widgetWithText(TextField, _labelNamaTempat),
-        'PT. LDC',
+        'PT. Niaga Contoh',
       );
       await tester.pumpAndSettle();
       await _simpanDraft(tester);
 
       expect(service.payloadTerakhir!['lokasi'], 'onsite');
-      expect(service.payloadTerakhir!['lokasi_nama'], 'PT. LDC');
+      expect(service.payloadTerakhir!['lokasi_nama'], 'PT. Niaga Contoh');
       expect(service.payloadTerakhir!['room_id'], isNull);
     });
 
     /// Arah sebaliknya, dan sama seriusnya: `lokasi_nama` yang nyangkut bikin
-    /// `CertificateSnapshotBuilder` nulis `Insitu (PT. LDC)` buat sesi yang
+    /// `CertificateSnapshotBuilder` nulis `Insitu (PT. Niaga Contoh)` buat sesi yang
     /// lokasinya `lab`.
     testWidgets('nama tempat udah diketik lalu balik Inlab → `lokasi_nama` null',
         (tester) async {
@@ -175,7 +175,7 @@ void main() {
       await _pilihLokasi(tester, 'Insitu');
       await tester.enterText(
         find.widgetWithText(TextField, _labelNamaTempat),
-        'PT. LDC',
+        'PT. Niaga Contoh',
       );
       await tester.pumpAndSettle();
 
@@ -200,7 +200,7 @@ void main() {
       await _pilihLokasi(tester, 'Insitu');
       await tester.enterText(
         find.widgetWithText(TextField, _labelNamaTempat),
-        'PT. LDC',
+        'PT. Niaga Contoh',
       );
       await tester.pumpAndSettle();
 

@@ -82,7 +82,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final lanjut = find.text('LANJUT KE HALAMAN BERIKUTNYA');
+    final lanjut = find.text('Lanjut ke halaman berikutnya');
     while (lanjut.evaluate().isNotEmpty) {
       await tester.tap(lanjut);
       await tester.pumpAndSettle();
@@ -139,7 +139,7 @@ void main() {
     await tester.enterText(kotak.at(21), '24.6');
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('KIRIM KE ADMIN'));
+    await tester.tap(find.text('Kirim ke admin'));
     await tester.pumpAndSettle();
 
     expect(find.text('Angkanya kelihatan nggak wajar'), findsOneWidget);
@@ -175,7 +175,7 @@ void main() {
     await siapkanLembar(tester);
     await isiPembacaanMelesetSeorde(tester);
 
-    await tester.tap(find.text('KIRIM KE ADMIN'));
+    await tester.tap(find.text('Kirim ke admin'));
     await tester.pumpAndSettle();
 
     expect(find.text('Angkanya kelihatan nggak wajar'), findsOneWidget);
@@ -191,13 +191,13 @@ void main() {
     await siapkanLembar(tester);
     await isiPembacaanMelesetSeorde(tester);
 
-    await tester.tap(find.text('KIRIM KE ADMIN'));
+    await tester.tap(find.text('Kirim ke admin'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Periksa lagi'));
     await tester.pumpAndSettle();
 
     expect(service.jumlahKirim, 0);
-    expect(find.text('KIRIM KE ADMIN'), findsOneWidget);
+    expect(find.text('Kirim ke admin'), findsOneWidget);
   });
 
   testWidgets('"emang segitu" nembus sampai terkirim, angkanya utuh', (
@@ -209,7 +209,7 @@ void main() {
     await siapkanLembar(tester);
     await isiPembacaanMelesetSeorde(tester);
 
-    await tester.tap(find.text('KIRIM KE ADMIN'));
+    await tester.tap(find.text('Kirim ke admin'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Angkanya emang segitu — kirim'));
     await tester.pumpAndSettle();

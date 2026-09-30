@@ -91,7 +91,7 @@ void main() {
     ) async {
       await _buka(tester);
 
-      final tombol = find.widgetWithText(FilledButton, 'PAKAI ANGKA INI');
+      final tombol = find.widgetWithText(FilledButton, 'Pakai angka ini');
 
       expect(tester.widget<FilledButton>(tombol).onPressed, isNull);
       expect(
@@ -110,7 +110,7 @@ void main() {
       await tester.enterText(find.byType(TextField).at(1), '280,5');
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('PAKAI ANGKA INI'));
+      await tester.tap(find.text('Pakai angka ini'));
       await tester.pumpAndSettle();
 
       final koreksi = service.koreksiTerkirim.single;
@@ -153,7 +153,7 @@ void main() {
       await tester.enterText(find.byType(TextField).at(1), '280,5');
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('PAKAI ANGKA INI'));
+      await tester.tap(find.text('Pakai angka ini'));
       await tester.pumpAndSettle();
 
       // Sel yang kotaknya dikosongin (Repeat 3, memang kosong di kertasnya)

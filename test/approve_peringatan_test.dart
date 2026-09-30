@@ -144,7 +144,7 @@ void main() {
     await tester.pumpWidget(_app(approval));
     await tester.pumpAndSettle(const Duration(seconds: 2));
 
-    await tester.tap(find.text('SETUJUI'));
+    await tester.tap(find.text('Setujui'));
     await tester.pumpAndSettle(const Duration(seconds: 2));
 
     // Pesan temuannya kebaca utuh — ini yang dulu nggak pernah sampai ke mata
@@ -165,10 +165,10 @@ void main() {
     await tester.pumpWidget(_app(approval));
     await tester.pumpAndSettle(const Duration(seconds: 2));
 
-    await tester.tap(find.text('SETUJUI'));
+    await tester.tap(find.text('Setujui'));
     await tester.pumpAndSettle(const Duration(seconds: 2));
 
-    await tester.tap(find.text('SETUJUI TETAP'));
+    await tester.tap(find.text('Setujui tetap'));
     // `pump` berjangka: sesudah disetujui, antrean di belakang ditarik ulang
     // dan loader-nya berputar terus, jadi `pumpAndSettle` menunggu selamanya.
     await tester.pump();
@@ -185,14 +185,14 @@ void main() {
     await tester.pumpWidget(_app(approval));
     await tester.pumpAndSettle(const Duration(seconds: 2));
 
-    await tester.tap(find.text('SETUJUI'));
+    await tester.tap(find.text('Setujui'));
     await tester.pumpAndSettle(const Duration(seconds: 2));
 
-    await tester.tap(find.text('PERIKSA LAGI'));
+    await tester.tap(find.text('Periksa lagi'));
     await tester.pumpAndSettle(const Duration(seconds: 2));
 
     // Cuma panggilan pertama. Nggak ada yang nyelonong lewat.
     expect(approval.panggilan, [false]);
-    expect(find.text('SETUJUI'), findsOneWidget);
+    expect(find.text('Setujui'), findsOneWidget);
   });
 }

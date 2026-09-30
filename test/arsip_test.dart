@@ -56,7 +56,7 @@ void main() {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
-    expect(find.text('PT Tirta Gracia'), findsOneWidget);
+    expect(find.text('PT Tirta Contoh'), findsOneWidget);
     expect(find.text('PT Contoh Sejahtera'), findsOneWidget);
     expect(find.text('2 alat · 1 sertifikat'), findsOneWidget);
   });
@@ -69,7 +69,7 @@ void main() {
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
 
-    expect(find.text('PT Tirta Gracia'), findsOneWidget);
+    expect(find.text('PT Tirta Contoh'), findsOneWidget);
     expect(find.text('PT Contoh Sejahtera'), findsNothing);
   });
 
@@ -79,7 +79,7 @@ void main() {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('PT Tirta Gracia'));
+    await tester.tap(find.text('PT Tirta Contoh'));
     await tester.pumpAndSettle();
 
     // Subfolder + berkas, dua-duanya di satu daftar.
@@ -92,7 +92,7 @@ void main() {
   ) async {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('PT Tirta Gracia'));
+    await tester.tap(find.text('PT Tirta Contoh'));
     await tester.pumpAndSettle();
 
     // Yang kelihatan cuma subfolder "2026" yang bukan akar → satu menu titik
@@ -103,14 +103,14 @@ void main() {
   testWidgets('bikin folder baru → nongol di daftar', (tester) async {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('PT Tirta Gracia'));
+    await tester.tap(find.text('PT Tirta Contoh'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Folder baru'));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField).last, 'Semester 1');
-    await tester.tap(find.text('BUAT'));
+    await tester.tap(find.text('Buat'));
     await tester.pumpAndSettle();
 
     expect(find.text('Folder dibuat.'), findsOneWidget);
@@ -122,14 +122,14 @@ void main() {
   ) async {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('PT Tirta Gracia'));
+    await tester.tap(find.text('PT Tirta Contoh'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Folder baru'));
     await tester.pumpAndSettle();
     // "2026" udah ada di folder ini.
     await tester.enterText(find.byType(TextField).last, '2026');
-    await tester.tap(find.text('BUAT'));
+    await tester.tap(find.text('Buat'));
     await tester.pumpAndSettle();
 
     // Pesannya sengaja diambil apa adanya dari server, bukan ditulis ulang
@@ -143,7 +143,7 @@ void main() {
   testWidgets('folder berisi: opsi hapus dimatiin', (tester) async {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('PT Tirta Gracia'));
+    await tester.tap(find.text('PT Tirta Contoh'));
     await tester.pumpAndSettle();
 
     // Bikin dulu subfolder di dalam "2026" biar dia nggak kosong.
@@ -152,7 +152,7 @@ void main() {
     await tester.tap(find.text('Folder baru'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'Semester 1');
-    await tester.tap(find.text('BUAT'));
+    await tester.tap(find.text('Buat'));
     await tester.pumpAndSettle();
 
     // Balik ke folder akar, buka menu "2026" — sekarang dia ada isinya.
@@ -171,7 +171,7 @@ void main() {
   testWidgets('hapus folder kosong lewat konfirmasi', (tester) async {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('PT Tirta Gracia'));
+    await tester.tap(find.text('PT Tirta Contoh'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byIcon(Icons.more_vert));
@@ -192,14 +192,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Gagal memuat arsip.'), findsOneWidget);
-    expect(find.text('COBA LAGI'), findsOneWidget);
+    expect(find.text('Coba lagi'), findsOneWidget);
   });
 
   testWidgets('folder sistem: ditandain nggak bisa dipindah & nggak bisa '
       'direname', (tester) async {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('PT Tirta Gracia'));
+    await tester.tap(find.text('PT Tirta Contoh'));
     await tester.pumpAndSettle();
 
     // "2026" kebentuk otomatis dari tanggal sertifikat.
@@ -217,7 +217,7 @@ void main() {
   testWidgets('tarik berkas ke folder → berkasnya pindah', (tester) async {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('PT Tirta Gracia'));
+    await tester.tap(find.text('PT Tirta Contoh'));
     await tester.pumpAndSettle();
 
     await _tarik(
@@ -234,7 +234,7 @@ void main() {
   testWidgets('tarik folder ke breadcrumb → naik satu tingkat', (tester) async {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('PT Tirta Gracia'));
+    await tester.tap(find.text('PT Tirta Contoh'));
     await tester.pumpAndSettle();
 
     // Bikin folder manual di dalam "2026" — folder sistem sendiri nggak bisa
@@ -244,17 +244,17 @@ void main() {
     await tester.tap(find.text('Folder baru'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'Semester 1');
-    await tester.tap(find.text('BUAT'));
+    await tester.tap(find.text('Buat'));
     await tester.pumpAndSettle();
 
-    // Breadcrumb "PT Tirta Gracia" = induknya folder yang lagi dibuka.
+    // Breadcrumb "PT Tirta Contoh" = induknya folder yang lagi dibuka.
     await _tarik(
       tester,
       dari: tester.getCenter(find.text('Semester 1')),
-      ke: tester.getCenter(find.text('PT Tirta Gracia')),
+      ke: tester.getCenter(find.text('PT Tirta Contoh')),
     );
 
-    expect(find.text('Folder dipindah ke "PT Tirta Gracia".'), findsOneWidget);
+    expect(find.text('Folder dipindah ke "PT Tirta Contoh".'), findsOneWidget);
     // Keluar dari "2026" yang lagi kebuka.
     expect(find.text('Semester 1'), findsNothing);
   });
@@ -264,7 +264,7 @@ void main() {
   ) async {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('PT Tirta Gracia'));
+    await tester.tap(find.text('PT Tirta Contoh'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('2026'));
@@ -272,7 +272,7 @@ void main() {
     await tester.tap(find.text('Folder baru'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'Semester 1');
-    await tester.tap(find.text('BUAT'));
+    await tester.tap(find.text('Buat'));
     await tester.pumpAndSettle();
 
     final titik = tester.getCenter(find.text('Semester 1'));

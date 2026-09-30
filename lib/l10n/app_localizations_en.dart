@@ -24,7 +24,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forgotPasswordLink => 'Forgot Password?';
 
   @override
-  String get loginSubmit => 'SIGN IN';
+  String get loginSubmit => 'Sign in';
 
   @override
   String get loginNoAccount => 'Don\'t have an account?';
@@ -72,7 +72,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwordHelper => 'At least 8 characters';
 
   @override
-  String get registerSubmit => 'REGISTER';
+  String get registerSubmit => 'Register';
 
   @override
   String get registerHaveAccount => 'Already have an account?';
@@ -106,7 +106,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your account is still awaiting admin approval. You can\'t sign in until an admin approves it and assigns your role.\n\nContact an admin if you don\'t hear back for a while.';
 
   @override
-  String get registerSuccessDismiss => 'GOT IT';
+  String get registerSuccessDismiss => 'Got it';
 
   @override
   String get forgotTitle => 'Forgot Password';
@@ -119,7 +119,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enter the email you used to register. If it matches, you can create a new password right here.';
 
   @override
-  String get forgotSubmit => 'CONTINUE';
+  String get forgotSubmit => 'Continue';
 
   @override
   String get backToLogin => 'Back to Login';
@@ -142,7 +142,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwordMismatch => 'Passwords don\'t match.';
 
   @override
-  String get resetSubmit => 'SAVE NEW PASSWORD';
+  String get resetSubmit => 'Save new password';
 
   @override
   String get resetDoneTitle => 'Password changed';
@@ -152,7 +152,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your password has been updated. Sign in with your new password now.';
 
   @override
-  String get backToLoginCaps => 'BACK TO LOGIN';
+  String get backToLoginCaps => 'Back to login';
 
   @override
   String get languageLabel => 'Language';
@@ -224,13 +224,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashQuickActions => 'Quick actions';
 
   @override
-  String get dashStartCalibration => 'START CALIBRATION';
+  String get dashStartCalibration => 'Start calibration';
 
   @override
-  String get dashAddDevice => 'ADD DEVICE';
+  String get dashAddDevice => 'Add device';
 
   @override
-  String get dashRetry => 'TRY AGAIN';
+  String get dashRetry => 'Try again';
 
   @override
   String get dashSessionExpired =>
@@ -399,7 +399,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rumusTerbitkanVersi => 'Publish new version';
 
   @override
-  String get rumusTerbitkan => 'PUBLISH';
+  String get rumusTerbitkan => 'Publish';
 
   @override
   String get rumusBatal => 'Cancel';
@@ -506,7 +506,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ruanganBatal => 'Cancel';
 
   @override
-  String get ruanganSimpan => 'SAVE';
+  String get ruanganSimpan => 'Save';
 
   @override
   String get metodeTitle => 'Calibration Methods';
@@ -653,16 +653,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipEmptyBody => 'Add your first device using the button below.';
 
   @override
-  String get equipRetry => 'RETRY';
+  String get equipRetry => 'Retry';
 
   @override
-  String get equipAdd => 'ADD DEVICE';
+  String get equipAdd => 'Add device';
 
   @override
   String get equipEdit => 'Edit device';
 
   @override
-  String get equipMuatLebihBanyak => 'LOAD MORE';
+  String get equipMuatLebihBanyak => 'Load more';
 
   @override
   String get equipDeleteConfirmTitle => 'Delete device?';
@@ -789,7 +789,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipResolusiMaksKosong => 'empty = last band';
 
   @override
-  String get equipResolusiTambahBaris => 'ADD RESOLUTION ROW';
+  String get equipResolusiTambahBaris => 'Add resolution row';
 
   @override
   String get equipResolusiHapusBaris => 'Delete row';
@@ -825,7 +825,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipStatus => 'Status';
 
   @override
-  String get equipSave => 'SAVE';
+  String get equipSave => 'Save';
 
   @override
   String equipSaveFailed(String pesan) {
@@ -854,7 +854,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your session expired. Please sign in again.';
 
   @override
-  String get historyRetry => 'RETRY';
+  String get historyRetry => 'Retry';
 
   @override
   String get historySegarkan => 'Refresh list';
@@ -867,10 +867,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The system re-checked this session and found things worth a second look. You can still approve — but the certificate will be issued on this data.';
 
   @override
-  String get historyPeringatanBatal => 'CHECK AGAIN';
+  String get historyPeringatanBatal => 'Check again';
 
   @override
-  String get historyPeringatanLanjut => 'APPROVE ANYWAY';
+  String get historyPeringatanLanjut => 'Approve anyway';
 
   @override
   String historyCertNumber(String nomor) {
@@ -917,10 +917,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statusDibatalkan => 'Cancelled';
 
   @override
-  String get historyApprove => 'APPROVE';
+  String get historyApprove => 'Approve';
 
   @override
-  String get historyReject => 'REJECT';
+  String get historyReject => 'Reject';
 
   @override
   String historyApproveFailed(String pesan) {
@@ -935,7 +935,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Rejection reason (required, the technician will see this)';
 
   @override
-  String get historyRejectDialogSubmit => 'REJECT SESSION';
+  String get historyRejectDialogSubmit => 'Reject session';
 
   @override
   String get historyRejectDialogCancel => 'Cancel';
@@ -969,10 +969,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certStatusGagal => 'Generation failed';
 
   @override
-  String get certRetry => 'RETRY GENERATE';
+  String get certRetry => 'Retry generate';
 
   @override
-  String get certOpenPdf => 'VIEW PDF';
+  String get certOpenPdf => 'View PDF';
 
   @override
   String get certQrJudul => 'Verification QR';
@@ -1043,7 +1043,7 @@ class AppLocalizationsEn extends AppLocalizations {
       '— Calibration results are not to be announced and only apply to related tools —';
 
   @override
-  String get certLihatDetail => 'VIEW CALCULATION DETAIL';
+  String get certLihatDetail => 'View calculation detail';
 
   @override
   String get detailTitle => 'Calibration Result Detail';
@@ -1092,7 +1092,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'This session hasn\'t been calculated by the server yet — results will show up once it\'s processed.';
 
   @override
-  String get detailLihatSertifikat => 'VIEW CERTIFICATE';
+  String get detailLihatSertifikat => 'View certificate';
 
   @override
   String detailTitikLabel(int index, String nilai) {
@@ -1266,7 +1266,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get arsipLoadGagal => 'Couldn\'t load the archive.';
 
   @override
-  String get arsipRetry => 'RETRY';
+  String get arsipRetry => 'Retry';
 
   @override
   String arsipRingkasPerusahaan(int alat, int sertifikat) {
@@ -1288,13 +1288,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get arsipNamaFolderHint => 'e.g. 2026';
 
   @override
-  String get arsipBuat => 'CREATE';
+  String get arsipBuat => 'Create';
 
   @override
-  String get arsipBatal => 'CANCEL';
+  String get arsipBatal => 'Cancel';
 
   @override
-  String get arsipSimpan => 'SAVE';
+  String get arsipSimpan => 'Save';
 
   @override
   String get arsipGantiNama => 'Rename';
@@ -1579,7 +1579,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get orgPilihTanggal => 'Choose a date';
 
   @override
-  String get orgSave => 'SAVE';
+  String get orgSave => 'Save';
 
   @override
   String get orgSaved => 'Organization data saved.';
@@ -1593,7 +1593,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get orgLoadFailed => 'Couldn\'t load organization data.';
 
   @override
-  String get orgRetry => 'RETRY';
+  String get orgRetry => 'Retry';
 
   @override
   String get standarTitle => 'Reference Standards';
@@ -1602,7 +1602,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get standarLoadFailed => 'Couldn\'t load reference standards.';
 
   @override
-  String get standarAdd => 'ADD STANDARD';
+  String get standarAdd => 'Add standard';
 
   @override
   String get standarEdit => 'Edit standard';
@@ -1615,7 +1615,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Add your first standard using the button below.';
 
   @override
-  String get standarRetry => 'RETRY';
+  String get standarRetry => 'Retry';
 
   @override
   String get standarBerlaku => 'Valid';
@@ -1686,7 +1686,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get standarDrift => 'Annual drift';
 
   @override
-  String get standarSave => 'SAVE';
+  String get standarSave => 'Save';
 
   @override
   String get custTitle => 'Customers';
@@ -1704,10 +1704,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get custLoadFailed => 'Couldn\'t load customers.';
 
   @override
-  String get custRetry => 'RETRY';
+  String get custRetry => 'Retry';
 
   @override
-  String get custAdd => 'ADD CUSTOMER';
+  String get custAdd => 'Add customer';
 
   @override
   String get custEdit => 'Edit customer';
@@ -1728,7 +1728,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get custEmail => 'Email';
 
   @override
-  String get custSave => 'SAVE';
+  String get custSave => 'Save';
 
   @override
   String get custCancel => 'Cancel';
@@ -1833,7 +1833,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get calibTambahTitik => 'ADD MEASUREMENT POINT';
+  String get calibTambahTitik => 'Add measurement point';
 
   @override
   String get calibHapusTitik => 'Remove measurement point';
@@ -1858,10 +1858,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Each measurement point needs at least 2 numeric readings.';
 
   @override
-  String get calibSimpanDraft => 'SAVE DRAFT';
+  String get calibSimpanDraft => 'Save draft';
 
   @override
-  String get calibKirimApproval => 'SUBMIT FOR APPROVAL';
+  String get calibKirimApproval => 'Submit for approval';
 
   @override
   String calibDraftTitikDilewat(int jumlah) {
@@ -1889,7 +1889,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t load category/standard options.';
 
   @override
-  String get calibRetry => 'RETRY';
+  String get calibRetry => 'Retry';
 
   @override
   String get calibPilihKategoriTitle => 'Choose Equipment Category';
@@ -1958,10 +1958,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'An instrument you add yourself has no accredited limit from the lab scope yet. The session still runs and the certificate still prints — but the ± figure comes from the generic route, and it can come out SMALLER than what we normally print for registered instruments. Nothing errors out; the number just looks too good. You may still continue, but tell an admin so this instrument gets registered properly.';
 
   @override
-  String get calibTambahAlatSimpan => 'SAVE & USE';
+  String get calibTambahAlatSimpan => 'Save & use';
 
   @override
-  String get calibTambahAlatBatal => 'CANCEL';
+  String get calibTambahAlatBatal => 'Cancel';
 
   @override
   String calibTambahAlatBerhasil(String nama) {
@@ -2166,7 +2166,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Point the camera at the worksheet table. Numbers that are recognised will float on screen.';
 
   @override
-  String get phCalibLivePakai => 'USE THESE NUMBERS';
+  String get phCalibLivePakai => 'Use these numbers';
 
   @override
   String get phCalibLiveTanpaKamera =>
@@ -2205,7 +2205,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get phCalibOcrBelumDikonfirmasi => 'From camera — please check';
 
   @override
-  String get phCalibOcrKonfirmasi => 'CONFIRM';
+  String get phCalibOcrKonfirmasi => 'Confirm';
 
   @override
   String phCalibPembacaanKe(int index) {
@@ -2266,10 +2266,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'From the thermohygrometer certificate — the server derives the environmental U95% from these.';
 
   @override
-  String get phCalibLanjutkan => 'CONTINUE';
+  String get phCalibLanjutkan => 'Continue';
 
   @override
-  String get phCalibKembali => 'BACK';
+  String get phCalibKembali => 'Back';
 
   @override
   String get phCalibDisertifikasi => 'Certified';
@@ -2299,7 +2299,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your session expired. Please sign in again.';
 
   @override
-  String get notifRetry => 'RETRY';
+  String get notifRetry => 'Retry';
 
   @override
   String get notifMarkedRead => 'Marked as read.';
@@ -2344,7 +2344,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teknisiTolak => 'Deactivate';
 
   @override
-  String get certKirimEmail => 'SEND TO CUSTOMER';
+  String get certKirimEmail => 'Send to customer';
 
   @override
   String get emailTitle => 'Send Certificate';
@@ -2367,7 +2367,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get emailKirim => 'SEND NOW';
+  String get emailKirim => 'Send now';
 
   @override
   String get emailMengirim =>
@@ -2410,7 +2410,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emailGagalMuat => 'Couldn\'t load the send history.';
 
   @override
-  String get emailRetry => 'TRY AGAIN';
+  String get emailRetry => 'Try again';
 
   @override
   String get emailFormatJudul => 'What to send';
@@ -2451,7 +2451,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Certificates will print without a signature until one is uploaded.';
 
   @override
-  String get ttdUnggah => 'UPLOAD SIGNATURE';
+  String get ttdUnggah => 'Upload signature';
 
   @override
   String get ttdGanti => 'Replace';
@@ -2499,7 +2499,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ttdArahY => 'positive = up';
 
   @override
-  String get ttdSimpanPosisi => 'SAVE POSITION';
+  String get ttdSimpanPosisi => 'Save position';
 
   @override
   String get ttdPosisiTersimpan => 'Print position saved.';
@@ -2514,7 +2514,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ttdGagalMuat => 'Couldn\'t load the signature settings.';
 
   @override
-  String get ttdRetry => 'TRY AGAIN';
+  String get ttdRetry => 'Try again';
 
   @override
   String get teknisiResetPassword => 'Reset password';
@@ -2623,10 +2623,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuPengaturan => 'Settings';
 
   @override
-  String get sheetTutup => 'CLOSE';
+  String get sheetTutup => 'Close';
 
   @override
-  String get sheetCobaLagi => 'TRY AGAIN';
+  String get sheetCobaLagi => 'Try again';
 
   @override
   String get sheetKirimBerhasil => 'Sent!';
@@ -2664,7 +2664,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tugasLoadGagal => 'Could not load your task queue.';
 
   @override
-  String get tugasRetry => 'TRY AGAIN';
+  String get tugasRetry => 'Try again';
 
   @override
   String tugasJumlahAlat(int jumlah) {
@@ -2693,7 +2693,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get snackAddDeviceSoon => 'Adding devices is planned for week 3.';
 
   @override
-  String get dashStartPhCalibration => 'PH METER CALIBRATION';
+  String get dashStartPhCalibration => 'pH meter calibration';
 
   @override
   String get lkTitle => 'Calibration Worksheet';
@@ -2708,7 +2708,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkLoadGagal => 'Couldn\'t load the worksheet form.';
 
   @override
-  String get lkRetry => 'RETRY';
+  String get lkRetry => 'Retry';
 
   @override
   String get lkPilihAlat => 'Choose equipment';
@@ -2720,7 +2720,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkRuanganGagal => 'Couldn\'t load the room list.';
 
   @override
-  String get lkContohNamaTempat => 'Example: PT. LDC';
+  String get lkContohNamaTempat => 'Example: PT. Niaga Contoh';
 
   @override
   String get lkBelumPilihAlat =>
@@ -2776,7 +2776,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'The photo is too skewed. Shoot it more square-on above the sheet.';
 
   @override
-  String get lkFotoTabel => 'PHOTOGRAPH THIS TABLE';
+  String get lkFotoTabel => 'Photograph this table';
 
   @override
   String get lkFotoTabelGagal => 'The photo couldn\'t be read. Take it again.';
@@ -2939,7 +2939,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get waNomorSalah => 'One of the numbers isn\'t in a readable format.';
 
   @override
-  String get waKirim => 'OPEN WHATSAPP';
+  String get waKirim => 'Open WhatsApp';
 
   @override
   String get waTercatat => 'Send recorded in the history.';
@@ -3002,7 +3002,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tolakPratinjau => 'What the technician will see';
 
   @override
-  String get tolakKirim => 'SEND BACK TO TECHNICIAN';
+  String get tolakKirim => 'Send back to technician';
 
   @override
   String get lkPerluDibetulin => 'Admin asked you to fix this';
@@ -3047,19 +3047,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get lkHalamanLanjut => 'NEXT PAGE';
+  String get lkHalamanLanjut => 'Next page';
 
   @override
-  String get lkHalamanKembali => 'BACK';
+  String get lkHalamanKembali => 'Back';
 
   @override
   String get lkPilih => 'Choose';
 
   @override
-  String get lkKirim => 'SUBMIT TO ADMIN';
+  String get lkKirim => 'Submit to admin';
 
   @override
-  String get lkSimpanDraft => 'SAVE AS DRAFT';
+  String get lkSimpanDraft => 'Save as draft';
 
   @override
   String get lkBerhasilKirim => 'Worksheet submitted to admin.';
@@ -3092,7 +3092,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Handwriting is never marked safe automatically — so it\'s normal for almost every cell to need checking. Compare each number with the cropped photo beside it.';
 
   @override
-  String get pindaiPakaiAngka => 'USE THESE NUMBERS';
+  String get pindaiPakaiAngka => 'Use these numbers';
 
   @override
   String get pindaiDitahanServer =>
@@ -3203,7 +3203,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get lkPindaiLembar => 'SCAN WORKSHEET';
+  String get lkPindaiLembar => 'Scan worksheet';
 
   @override
   String lkPindaiBelumSiap(String alasan) {
@@ -3244,10 +3244,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkKeluarTanpaSimpanBody => 'What you\'ve typed will be lost.';
 
   @override
-  String get lkKeluarBatal => 'KEEP EDITING';
+  String get lkKeluarBatal => 'Keep editing';
 
   @override
-  String get lkKeluarLanjut => 'LEAVE';
+  String get lkKeluarLanjut => 'Leave';
 
   @override
   String lkSuhuDiLuarRentang(String min, String max) {
@@ -3271,7 +3271,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get folderLoadFailed => 'Couldn\'t load folders.';
 
   @override
-  String get folderRetry => 'RETRY';
+  String get folderRetry => 'Retry';
 
   @override
   String get folderIsiKosong => 'This folder is empty.';
@@ -3377,13 +3377,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get folderBatal => 'CANCEL';
+  String get folderBatal => 'Cancel';
 
   @override
-  String get folderSimpan => 'SAVE';
+  String get folderSimpan => 'Save';
 
   @override
-  String get folderHapusLanjut => 'DELETE';
+  String get folderHapusLanjut => 'Delete';
 
   @override
   String get folderSistemDikunci =>
@@ -3581,13 +3581,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get perhitGagal => 'Couldn\'t load the calculation sheet.';
 
   @override
-  String get perhitPeriksa => 'CHECK';
+  String get perhitPeriksa => 'Check';
 
   @override
-  String get perhitSetujui => 'APPROVE';
+  String get perhitSetujui => 'Approve';
 
   @override
-  String get perhitTolak => 'REJECT';
+  String get perhitTolak => 'Reject';
 
   @override
   String get perhitMemeriksa => 'Recalculating from the raw readings…';
@@ -3619,10 +3619,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Approving anyway issues the certificate with the saved numbers.';
 
   @override
-  String get perhitKonfirmasiBatal => 'CHECK AGAIN';
+  String get perhitKonfirmasiBatal => 'Check again';
 
   @override
-  String get perhitKonfirmasiLanjut => 'APPROVE ANYWAY';
+  String get perhitKonfirmasiLanjut => 'Approve anyway';
 
   @override
   String get perhitTolakJudul => 'Send back for revision';
@@ -3634,7 +3634,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get perhitTolakKosong => 'Write what the technician has to fix.';
 
   @override
-  String get perhitTolakKirim => 'SEND BACK';
+  String get perhitTolakKirim => 'Send back';
 
   @override
   String get perhitDisetujui => 'Approved. The certificate is being generated.';
@@ -3652,7 +3652,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get perhitPilihThermohygro => 'Thermohygro used';
 
   @override
-  String get perhitSimpanAdmin => 'SAVE';
+  String get perhitSimpanAdmin => 'Save';
 
   @override
   String get perhitAdminTersimpan => 'Administrative fields saved.';
@@ -3764,7 +3764,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Import order: clients → standards → equipment. Equipment needs its company to exist first.';
 
   @override
-  String get importPilihFile => 'CHOOSE FILE';
+  String get importPilihFile => 'Choose file';
 
   @override
   String importFileTerpilih(String nama) {
@@ -3772,13 +3772,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get importUjiCoba => 'DRY RUN';
+  String get importUjiCoba => 'Dry run';
 
   @override
-  String get importTerapkan => 'APPLY NOW';
+  String get importTerapkan => 'Apply now';
 
   @override
-  String get importUlangi => 'CHOOSE ANOTHER FILE';
+  String get importUlangi => 'Choose another file';
 
   @override
   String get importBelumAdaFile => 'Choose an .xlsx file first.';
@@ -3828,7 +3828,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get lkKirimAdmin => 'SUBMIT';
+  String get lkKirimAdmin => 'Submit';
 
   @override
   String get lkScanMemproses => 'AI is reading the table…';
@@ -3914,13 +3914,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statusTanpaKeputusan => 'No pass/fail';
 
   @override
-  String get detailEditAdmin => 'EDIT SHEET';
+  String get detailEditAdmin => 'Edit sheet';
 
   @override
-  String get detailPerbaikiRevisi => 'FIX WORKSHEET';
+  String get detailPerbaikiRevisi => 'Fix worksheet';
 
   @override
-  String get detailLanjutkanDraft => 'CONTINUE DRAFT';
+  String get detailLanjutkanDraft => 'Continue draft';
 
   @override
   String get lkTitikAlternatifSatuan => 'Locked: alternate unit';
@@ -4034,10 +4034,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onbSkip => 'Skip';
 
   @override
-  String get onbNext => 'NEXT';
+  String get onbNext => 'Next';
 
   @override
-  String get onbEnter => 'ENTER WORKSPACE';
+  String get onbEnter => 'Enter workspace';
 
   @override
   String get onbStep1Title => 'Every instrument, one place.';
@@ -4265,7 +4265,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'The readings below were taken from the photo and are not in the sheet yet. Compare each one against its image crop, fix what is wrong, then tap Insert. Handwriting is never treated as certain — however high the percentage.';
 
   @override
-  String get fotoReviewMasukkan => 'INSERT INTO SHEET';
+  String get fotoReviewMasukkan => 'Insert into sheet';
 
   @override
   String get fotoReviewKetikSendiri =>
@@ -4306,7 +4306,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get skemaDinamisSimpan => 'SAVE WHAT WAS READ';
+  String get skemaDinamisSimpan => 'Save what was read';
 
   @override
   String skemaDinamisMasihKosong(int jumlah) {
@@ -4395,10 +4395,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get petaKolomTerapkan => 'FILL MEASUREMENT POINTS';
+  String get petaKolomTerapkan => 'Fill measurement points';
 
   @override
-  String get calibBacaFoto => 'READ FROM SHEET PHOTO';
+  String get calibBacaFoto => 'Read from sheet photo';
 
   @override
   String get calibBacaFotoGagal =>
@@ -4430,7 +4430,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipPelangganTidakKetemu => 'Not in the lab\'s customer list?';
 
   @override
-  String get equipPelangganDaftarBaru => 'REGISTER A NEW COMPANY';
+  String get equipPelangganDaftarBaru => 'Register a new company';
 
   @override
   String get pelangganBaruJudul => 'New customer';
@@ -4450,7 +4450,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Printed in the OWNER block of the certificate.';
 
   @override
-  String get pelangganBaruCariDirektori => 'SEARCH THE DIRECTORY';
+  String get pelangganBaruCariDirektori => 'Search the directory';
 
   @override
   String get pelangganBaruDirektoriJudul => 'Directory results';
@@ -4464,7 +4464,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'The directory lists businesses as they appear on the map, not as they appear on the deed. Check it against the customer\'s order form before saving.';
 
   @override
-  String get pelangganBaruDaftarkan => 'REGISTER';
+  String get pelangganBaruDaftarkan => 'Register';
 
   @override
   String get pelangganBaruNamaWajib => 'Company name is required.';
@@ -4477,7 +4477,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pelangganBaruMiripPilih => 'Tap one to use it instead.';
 
   @override
-  String get pelangganBaruTetapBuat => 'DIFFERENT COMPANY — REGISTER ANYWAY';
+  String get pelangganBaruTetapBuat => 'Different company — register anyway';
 
   @override
   String get pelangganBaruGagal => 'Couldn\'t register the customer.';

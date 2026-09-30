@@ -165,7 +165,7 @@ void main() {
 
       await pilihIdentitas(tester);
       await kosongkanLingkungan(tester);
-      await tekan(tester, 'SIMPAN DRAFT');
+      await tekan(tester, 'Simpan draft');
 
       expect(
         perekam.panggilan,
@@ -208,7 +208,7 @@ void main() {
       await tester.enterText(find.byType(TextField).at(2), '50.0');
       await tester.enterText(find.byType(TextField).at(3), 'mm');
       await tester.enterText(find.byType(TextField).at(4), '50.02');
-      await tekan(tester, 'SIMPAN DRAFT');
+      await tekan(tester, 'Simpan draft');
 
       expect(perekam.panggilan, 1);
 
@@ -241,7 +241,7 @@ void main() {
       await tester.enterText(find.byType(TextField).at(3), 'mm');
       await tester.enterText(find.byType(TextField).at(4), '50.02');
       await tester.enterText(find.byType(TextField).at(5), '50.01');
-      await tekan(tester, 'SIMPAN DRAFT');
+      await tekan(tester, 'Simpan draft');
 
       expect(perekam.panggilan, 1);
       expect(perekam.terakhir!.measurements, isEmpty);
@@ -289,7 +289,7 @@ void main() {
         // Cuma nilai acuannya yang disentuh. Satuan & pembacaan sengaja
         // dibiarkan kosong — itu keadaan yang dulu lolos tanpa dilaporkan.
         await tester.enterText(find.byType(TextField).at(2), setengah);
-        await tekan(tester, 'SIMPAN DRAFT');
+        await tekan(tester, 'Simpan draft');
 
         expect(perekam.panggilan, 1);
         expect(
@@ -321,7 +321,7 @@ void main() {
       await bukaLayar(tester);
 
       await pilihIdentitas(tester);
-      await tekan(tester, 'SIMPAN DRAFT');
+      await tekan(tester, 'Simpan draft');
 
       expect(find.text('Draft kalibrasi disimpan.'), findsOneWidget);
       expect(find.textContaining('baris'), findsNothing);
@@ -335,7 +335,7 @@ void main() {
       await tester.pumpAndSettle();
       await bukaLayar(tester);
 
-      await tekan(tester, 'SIMPAN DRAFT');
+      await tekan(tester, 'Simpan draft');
 
       expect(find.text('Pilih kategori dulu.'), findsOneWidget);
       expect(perekam.panggilan, 0);
@@ -360,7 +360,7 @@ void main() {
       await tester.enterText(find.byType(TextField).at(3), 'mm');
       await tester.enterText(find.byType(TextField).at(4), '50.02');
       await tester.enterText(find.byType(TextField).at(5), '50.01');
-      await tekan(tester, 'KIRIM UNTUK APPROVAL');
+      await tekan(tester, 'Kirim untuk approval');
 
       expect(find.text('Isi angka yang valid.'), findsOneWidget);
       expect(perekam.panggilan, 0);
@@ -377,7 +377,7 @@ void main() {
       await tester.enterText(find.byType(TextField).at(2), '50.0');
       await tester.enterText(find.byType(TextField).at(3), 'mm');
       await tester.enterText(find.byType(TextField).at(4), '50.02');
-      await tekan(tester, 'KIRIM UNTUK APPROVAL');
+      await tekan(tester, 'Kirim untuk approval');
 
       expect(
         find.text('Tiap titik ukur minimal 2 pembacaan angka.'),
@@ -397,7 +397,7 @@ void main() {
       await tester.enterText(find.byType(TextField).at(3), 'mm');
       await tester.enterText(find.byType(TextField).at(4), '50.02');
       await tester.enterText(find.byType(TextField).at(5), '50.01');
-      await tekan(tester, 'KIRIM UNTUK APPROVAL');
+      await tekan(tester, 'Kirim untuk approval');
 
       expect(find.text('Isi angka yang valid.'), findsOneWidget);
       expect(

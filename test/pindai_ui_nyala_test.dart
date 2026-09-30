@@ -124,7 +124,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 700));
     await tester.pumpAndSettle();
 
-    final lanjut = find.text('LANJUT KE HALAMAN BERIKUTNYA');
+    final lanjut = find.text('Lanjut ke halaman berikutnya');
     while (lanjut.evaluate().isNotEmpty) {
       await tester.tap(lanjut);
       await tester.pumpAndSettle();
@@ -156,7 +156,7 @@ void main() {
     );
 
     // Satu per TABEL, bukan satu per lembar — pH punya Before & After.
-    expect(find.text('FOTO TABEL INI'), findsNWidgets(2));
+    expect(find.text('Foto tabel ini'), findsNWidgets(2));
   });
 
   testWidgets('saklarnya masih SAKLAR — dimatiin, FOTO TABEL INI hilang', (
@@ -171,7 +171,7 @@ void main() {
     expect(find.text('After adjustment Reading'), findsOneWidget);
 
     expect(find.text('PINDAI LEMBAR KERJA'), findsNothing);
-    expect(find.text('FOTO TABEL INI'), findsNothing);
+    expect(find.text('Foto tabel ini'), findsNothing);
   });
 
   testWidgets(
@@ -187,7 +187,7 @@ void main() {
       expect(find.text('Before adjustment Reading'), findsOneWidget);
 
       expect(
-        find.text('FOTO TABEL INI'),
+        find.text('Foto tabel ini'),
         findsNothing,
         reason:
             'Kertas Autoklaf nggak muat di bentuk "titik x Repeat". Jalur AI '
@@ -233,7 +233,7 @@ void main() {
       expect(find.text('Before adjustment Reading'), findsOneWidget);
 
       expect(
-        find.text('FOTO TABEL INI'),
+        find.text('Foto tabel ini'),
         findsNWidgets(2),
         reason:
             'Itu kombinasi TIDS. Layar yang masih baca `didukung` bikin '
@@ -253,7 +253,7 @@ void main() {
       expect(find.text('Before adjustment Reading'), findsOneWidget);
 
       expect(
-        find.text('FOTO TABEL INI'),
+        find.text('Foto tabel ini'),
         findsNothing,
         reason:
             'Arah sebaliknya, dan ini yang bikin `lokal` beneran gerbang: '
@@ -270,7 +270,7 @@ void main() {
       perbesarViewport(tester);
       await bukaSampaiTabel(tester, app(pindaiAktif: true, didukung: true));
 
-      expect(find.text('FOTO TABEL INI'), findsNWidgets(2));
+      expect(find.text('Foto tabel ini'), findsNWidgets(2));
     });
   });
 

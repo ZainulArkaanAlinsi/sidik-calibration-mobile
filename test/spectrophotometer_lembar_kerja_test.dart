@@ -213,7 +213,7 @@ void main() {
       await tester.enterText(kotakNm.at(1), '0,01');
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
+      await tester.tap(find.text('Simpan sebagai draft'));
       await tester.pumpAndSettle();
 
       expect(service.payloadTerakhir!['spesifikasi_alat'], {
@@ -231,7 +231,7 @@ void main() {
     /// tempatnya.
     ///
     /// Dua-duanya kecetak di sertifikat: `Technician ID : JO` dan
-    /// `Calibration Location : Insitu (PT. LDC)`. Tanpa nama tempat, dokumen
+    /// `Calibration Location : Insitu (PT. Niaga Contoh)`. Tanpa nama tempat, dokumen
     /// nggak bisa ditelusuri balik ke kunjungan mana.
     testWidgets('technician id otomatis, nama lokasi muncul waktu Insitu', (
       tester,
@@ -263,15 +263,15 @@ void main() {
 
       await tester.enterText(
         find.widgetWithText(TextField, 'Nama Tempat (Insitu)'),
-        'PT. LDC',
+        'PT. Niaga Contoh',
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
+      await tester.tap(find.text('Simpan sebagai draft'));
       await tester.pumpAndSettle();
 
       expect(service.payloadTerakhir!['lokasi'], 'onsite');
-      expect(service.payloadTerakhir!['lokasi_nama'], 'PT. LDC');
+      expect(service.payloadTerakhir!['lokasi_nama'], 'PT. Niaga Contoh');
     });
   });
 
@@ -367,7 +367,7 @@ void main() {
       }
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.tap(find.text('Kirim ke admin'));
       await tester.pumpAndSettle();
 
       // Dialog konfirmasi angka muncul dulu — kiriman yang nggak disetujui

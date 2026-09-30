@@ -175,11 +175,11 @@ void main() {
       // Tombolnya di bawah tiga slider — di layar tes yang pendek dia keluar
       // viewport, jadi harus digulirin dulu.
       await tester.scrollUntilVisible(
-        find.text('SIMPAN POSISI'),
+        find.text('Simpan posisi'),
         200,
         scrollable: find.byType(Scrollable).first,
       );
-      await tester.tap(find.text('SIMPAN POSISI'));
+      await tester.tap(find.text('Simpan posisi'));
       await tester.pumpAndSettle();
 
       expect(
@@ -212,7 +212,7 @@ void main() {
     testWidgets('hapus minta konfirmasi + jelasin dampaknya', (tester) async {
       await _pasang(tester, _app(MockTandaTanganService(adaTtd: true)));
 
-      await tester.tap(find.text('HAPUS'));
+      await tester.tap(find.text('Hapus'));
       await tester.pumpAndSettle();
 
       expect(find.byType(AlertDialog), findsOneWidget);

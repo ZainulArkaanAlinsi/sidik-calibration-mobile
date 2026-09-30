@@ -142,7 +142,7 @@ void main() {
     await tester.enterText(find.widgetWithText(TextField, 'Tohnichi'), 'Kanon');
     await tester.pump();
 
-    await tester.tap(find.text('SIMPAN HASIL BACAAN'));
+    await tester.tap(find.text('Simpan hasil bacaan'));
     await tester.pumpAndSettle();
 
     final k = hasil!.kolom.firstWhere((x) => x.label == 'Nama Alat');

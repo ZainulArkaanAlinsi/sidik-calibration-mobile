@@ -209,11 +209,11 @@ void main() {
 
       expect(find.text('Nggak ketemu jenis alat yang cocok.'), findsOneWidget);
       expect(
-        find.text('TAMBAH "ANEMOMETER" SEBAGAI ALAT BARU'),
+        find.text('Tambah "Anemometer" sebagai alat baru'),
         findsOneWidget,
       );
 
-      await tester.tap(find.text('TAMBAH "ANEMOMETER" SEBAGAI ALAT BARU'));
+      await tester.tap(find.text('Tambah "Anemometer" sebagai alat baru'));
       await tester.pumpAndSettle();
 
       // Nama yang diketik kebawa masuk — nggak ada yang perlu diketik ulang.
@@ -235,7 +235,7 @@ void main() {
 
       await tester.enterText(find.byType(TextField).first, 'Anemometer');
       await tester.pumpAndSettle();
-      await tester.tap(find.text('TAMBAH "ANEMOMETER" SEBAGAI ALAT BARU'));
+      await tester.tap(find.text('Tambah "Anemometer" sebagai alat baru'));
       await tester.pumpAndSettle();
 
       expect(find.text('Baca dulu sebelum disimpan'), findsOneWidget);
@@ -255,7 +255,7 @@ void main() {
 
       // Bukan penghalang: tombol simpannya tetap hidup.
       final simpan = tester.widget<FilledButton>(
-        find.widgetWithText(FilledButton, 'SIMPAN & PAKAI'),
+        find.widgetWithText(FilledButton, 'Simpan & pakai'),
       );
       expect(simpan.onPressed, isNotNull);
     });
@@ -269,10 +269,10 @@ void main() {
 
       await tester.enterText(find.byType(TextField).first, 'Anemometer');
       await tester.pumpAndSettle();
-      await tester.tap(find.text('TAMBAH "ANEMOMETER" SEBAGAI ALAT BARU'));
+      await tester.tap(find.text('Tambah "Anemometer" sebagai alat baru'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('SIMPAN & PAKAI'));
+      await tester.tap(find.text('Simpan & pakai'));
       await tester.pumpAndSettle();
 
       // Kotaknya nutup sendiri, saringan carinya dikosongin, dan kartunya ada
@@ -300,7 +300,7 @@ void main() {
 
       await tester.enterText(find.byType(TextField).first, 'Zzz');
       await tester.pumpAndSettle();
-      await tester.tap(find.text('TAMBAH "ZZZ" SEBAGAI ALAT BARU'));
+      await tester.tap(find.text('Tambah "Zzz" sebagai alat baru'));
       await tester.pumpAndSettle();
 
       await tester.enterText(
@@ -310,7 +310,7 @@ void main() {
         ),
         'ph meter',
       );
-      await tester.tap(find.text('SIMPAN & PAKAI'));
+      await tester.tap(find.text('Simpan & pakai'));
       await tester.pumpAndSettle();
 
       expect(
@@ -344,7 +344,7 @@ void main() {
 
       expect(find.byType(TextField), findsNothing);
       expect(
-        find.text('ALATNYA NGGAK ADA DI DAFTAR? TAMBAH SENDIRI.'),
+        find.text('Alatnya nggak ada di daftar? Tambah sendiri.'),
         findsOneWidget,
       );
     });
@@ -365,7 +365,7 @@ void main() {
       );
 
       await tester.tap(
-        find.text('ALATNYA NGGAK ADA DI DAFTAR? TAMBAH SENDIRI.'),
+        find.text('Alatnya nggak ada di daftar? Tambah sendiri.'),
       );
       await tester.pumpAndSettle();
 
@@ -376,7 +376,7 @@ void main() {
         ),
         'Timbangan Digital',
       );
-      await tester.tap(find.text('SIMPAN & PAKAI'));
+      await tester.tap(find.text('Simpan & pakai'));
       await tester.pumpAndSettle();
 
       expect(find.text('Timbangan Digital'), findsOneWidget);
@@ -392,11 +392,11 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.tap(
-        find.text('ALATNYA NGGAK ADA DI DAFTAR? TAMBAH SENDIRI.'),
+        find.text('Alatnya nggak ada di daftar? Tambah sendiri.'),
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('SIMPAN & PAKAI'));
+      await tester.tap(find.text('Simpan & pakai'));
       await tester.pumpAndSettle();
 
       expect(find.text('Nama alatnya diisi dulu.'), findsOneWidget);

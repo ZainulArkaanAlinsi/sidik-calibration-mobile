@@ -142,7 +142,7 @@ void main() {
   Future<void> simpan(WidgetTester tester) async {
     // Viewport test-nya sengaja 6000px — form ini panjang, dan `ListView`
     // cuma nge-build item yang deket viewport.
-    await tester.tap(find.text('SIMPAN'));
+    await tester.tap(find.text('Simpan'));
     await tester.pumpAndSettle();
   }
 

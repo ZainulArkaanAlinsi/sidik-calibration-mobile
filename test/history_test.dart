@@ -109,7 +109,7 @@ void main() {
       await _bukaTabRiwayat(tester);
 
       expect(find.text('Gagal memuat riwayat.'), findsOneWidget);
-      expect(find.text('COBA LAGI'), findsOneWidget);
+      expect(find.text('Coba lagi'), findsOneWidget);
     });
   });
 
@@ -123,8 +123,8 @@ void main() {
       await _bukaTabRiwayat(tester);
 
       expect(find.text('Menunggu approval'), findsWidgets);
-      expect(find.text('SETUJUI'), findsNothing);
-      expect(find.text('TOLAK'), findsNothing);
+      expect(find.text('Setujui'), findsNothing);
+      expect(find.text('Tolak'), findsNothing);
     });
 
     testWidgets('teknisi juga tidak', (tester) async {
@@ -132,8 +132,8 @@ void main() {
       await tester.pumpAndSettle();
       await _bukaTabRiwayat(tester);
 
-      expect(find.text('SETUJUI'), findsNothing);
-      expect(find.text('TOLAK'), findsNothing);
+      expect(find.text('Setujui'), findsNothing);
+      expect(find.text('Tolak'), findsNothing);
     });
   });
 }
