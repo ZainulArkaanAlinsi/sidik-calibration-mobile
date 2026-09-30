@@ -4961,4 +4961,259 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get berandaSaGagalBagian => 'Bagian ini gagal dimuat.';
+
+  @override
+  String get permintaanJudul => 'Permintaan pelanggan';
+
+  @override
+  String get permintaanCari => 'Cari nomor atau nama perusahaan';
+
+  @override
+  String get permintaanStatusBaru => 'Baru';
+
+  @override
+  String get permintaanStatusDiterima => 'Diterima';
+
+  @override
+  String get permintaanStatusDitolak => 'Ditolak';
+
+  @override
+  String get permintaanStatusDibatalkan => 'Dibatalkan';
+
+  @override
+  String get permintaanTabSemua => 'Semua';
+
+  @override
+  String get permintaanKosongBaru =>
+      'Tidak ada permintaan baru. Permintaan dari aplikasi pelanggan akan muncul di sini.';
+
+  @override
+  String get permintaanKosong => 'Belum ada permintaan di tab ini.';
+
+  @override
+  String get permintaanKosongCari =>
+      'Tidak ada permintaan yang cocok dengan pencarian.';
+
+  @override
+  String get permintaanGagalMuat => 'Permintaan pelanggan gagal dimuat.';
+
+  @override
+  String permintaanRingkas(int jumlah) {
+    return '$jumlah permintaan';
+  }
+
+  @override
+  String permintaanJumlahAlat(int jumlah) {
+    return '$jumlah alat';
+  }
+
+  @override
+  String permintaanMenungguHari(int hari) {
+    return 'Menunggu $hari hari';
+  }
+
+  @override
+  String get permintaanMasukHariIni => 'Masuk hari ini';
+
+  @override
+  String permintaanBadge(int jumlah) {
+    return '$jumlah permintaan baru';
+  }
+
+  @override
+  String get permintaanBacaSaja =>
+      'Super admin hanya dapat melihat. Yang menerima, menolak, dan membalas adalah admin.';
+
+  @override
+  String get permintaanTabRincian => 'Rincian';
+
+  @override
+  String get permintaanTabPesan => 'Pesan';
+
+  @override
+  String permintaanTabPesanJumlah(int jumlah) {
+    return 'Pesan ($jumlah)';
+  }
+
+  @override
+  String get permintaanGagalDetail =>
+      'Permintaan ini tidak ditemukan atau gagal dimuat.';
+
+  @override
+  String get permintaanPemohon => 'Pemohon';
+
+  @override
+  String get permintaanPengantaran => 'Pengantaran alat';
+
+  @override
+  String get permintaanDiantarSendiri => 'Diantar sendiri oleh pelanggan';
+
+  @override
+  String get permintaanDiambilLab => 'Diambil oleh lab';
+
+  @override
+  String get permintaanTanggalDiinginkan => 'Tanggal diinginkan';
+
+  @override
+  String get permintaanTanggalHanyaKeinginan =>
+      'Keinginan pelanggan, bukan janji. Lab yang memutuskan tanggal pastinya.';
+
+  @override
+  String permintaanTanggalRentang(String dari, String sampai) {
+    return '$dari – $sampai';
+  }
+
+  @override
+  String permintaanTanggalSejak(String dari) {
+    return 'Mulai $dari';
+  }
+
+  @override
+  String permintaanTanggalSampaiSaja(String sampai) {
+    return 'Paling lambat $sampai';
+  }
+
+  @override
+  String get permintaanCatatanPelanggan => 'Catatan pelanggan';
+
+  @override
+  String get permintaanAlasanPenolakan => 'Alasan penolakan';
+
+  @override
+  String get permintaanOrderLahir => 'Order';
+
+  @override
+  String permintaanDiputuskanOleh(String nama) {
+    return 'Diputuskan oleh $nama';
+  }
+
+  @override
+  String permintaanAlatDaftar(int jumlah) {
+    return 'Alat ($jumlah)';
+  }
+
+  @override
+  String get permintaanAlatTerdaftar => 'Terdaftar';
+
+  @override
+  String get permintaanAlatBaru => 'Alat baru';
+
+  @override
+  String get permintaanSerial => 'Nomor seri';
+
+  @override
+  String get permintaanSerialKosong => 'Nomor seri belum diisi pelanggan';
+
+  @override
+  String get permintaanNoIdentifikasi => 'No. identifikasi';
+
+  @override
+  String get permintaanRentang => 'Rentang ukur';
+
+  @override
+  String get permintaanResolusi => 'Resolusi';
+
+  @override
+  String get permintaanLokasi => 'Lokasi';
+
+  @override
+  String get permintaanCatatan => 'Catatan';
+
+  @override
+  String get permintaanPerluDilengkapi => 'Lengkapi saat menerima';
+
+  @override
+  String get permintaanTerima => 'Terima';
+
+  @override
+  String get permintaanTolak => 'Tolak';
+
+  @override
+  String get permintaanTerimaJudul => 'Terima permintaan';
+
+  @override
+  String get permintaanTerimaInfo =>
+      'Order dibuat dari permintaan ini, dan alat baru didaftarkan atas perusahaan pelanggan.';
+
+  @override
+  String get permintaanLengkapiAlatBaru => 'Lengkapi alat baru';
+
+  @override
+  String get permintaanKategori => 'Kategori';
+
+  @override
+  String get permintaanKategoriWajib => 'Pilih kategori';
+
+  @override
+  String get permintaanKategoriGagal => 'Daftar kategori gagal dimuat.';
+
+  @override
+  String get permintaanKategoriIdKosong =>
+      'Kategori belum bisa dipilih: server belum mengirim id kategori.';
+
+  @override
+  String get permintaanSerialWajib => 'Isi nomor seri';
+
+  @override
+  String get permintaanSerialBentrokSaran =>
+      'Ubah nomor serinya, atau tolak permintaan ini dan minta pelanggan memilih alat dari daftarnya.';
+
+  @override
+  String get permintaanTanggalMasuk => 'Tanggal masuk';
+
+  @override
+  String get permintaanJanjiSelesai => 'Janji selesai (opsional)';
+
+  @override
+  String get permintaanCatatanOrder => 'Catatan untuk order (opsional)';
+
+  @override
+  String get permintaanTerimaKirim => 'Terima dan buat order';
+
+  @override
+  String get permintaanGalatLain =>
+      'Permintaan belum bisa diterima. Periksa isiannya.';
+
+  @override
+  String permintaanDiterimaToast(String nomor) {
+    return 'Permintaan diterima. Order $nomor dibuat.';
+  }
+
+  @override
+  String get permintaanDitolakToast =>
+      'Permintaan ditolak. Alasannya dikirim ke pelanggan.';
+
+  @override
+  String get permintaanTolakJudul => 'Tolak permintaan';
+
+  @override
+  String get permintaanTolakPetunjuk =>
+      'Tulis untuk pelanggan, bukan catatan internal';
+
+  @override
+  String permintaanTolakHelper(int minimal) {
+    return 'Dibaca pelanggan apa adanya. Minimal $minimal karakter.';
+  }
+
+  @override
+  String get permintaanTolakKirim => 'Tolak permintaan';
+
+  @override
+  String get permintaanPesanKosong => 'Belum ada pesan.';
+
+  @override
+  String get permintaanPesanTulis => 'Tulis pesan ke pelanggan';
+
+  @override
+  String get permintaanPesanKirim => 'Kirim';
+
+  @override
+  String get permintaanPesanDitutup =>
+      'Percakapan ditutup karena permintaan ini sudah ditolak atau dibatalkan.';
+
+  @override
+  String get permintaanPesanGagal => 'Pesan gagal dimuat.';
+
+  @override
+  String get permintaanPesanKamu => 'Anda';
 }

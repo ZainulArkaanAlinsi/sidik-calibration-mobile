@@ -3,10 +3,12 @@
 /// buat dropdown — jangan dipakai buat validasi (satu kategori bisa punya
 /// banyak satuan sekaligus, lihat `GET /api/categories/{kode}`).
 library;
+
 import '../core/utils/parse_list.dart';
 
 class Category {
   const Category({
+    this.id,
     required this.kode,
     required this.nama,
     this.rentangUkur,
@@ -14,6 +16,10 @@ class Category {
     this.satuan,
   });
 
+  /// Id numerik kategori. Dibutuhkan `equipment_category_id` di Terima
+  /// permintaan pelanggan. `null` selama server belum mengirimnya —
+  /// `CategoryResource` sampai 1 Okt 2026 hanya memuat `kode`.
+  final int? id;
   final String kode;
   final String nama;
   final String? rentangUkur;
@@ -22,6 +28,7 @@ class Category {
 
   factory Category.fromJson(Map<String, dynamic> json) {
     return Category(
+      id: (json['id'] as num?)?.toInt(),
       kode: json['kode'] as String,
       nama: json['nama'] as String,
       rentangUkur: json['rentang_ukur'] as String?,

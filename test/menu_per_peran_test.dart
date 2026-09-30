@@ -8,11 +8,13 @@ import 'package:sidik_calibration/providers/equipment_provider.dart';
 import 'package:sidik_calibration/providers/izin_provider.dart';
 import 'package:sidik_calibration/providers/notification_provider.dart';
 import 'package:sidik_calibration/providers/pengendalian_provider.dart';
+import 'package:sidik_calibration/providers/permintaan_provider.dart';
 import 'package:sidik_calibration/providers/platform_provider.dart';
 import 'package:sidik_calibration/screens/jatuh_tempo/layar_jatuh_tempo.dart';
 import 'package:sidik_calibration/screens/pelanggan/pusat_pelanggan_screen.dart';
 import 'package:sidik_calibration/screens/pengesahan/antrean_pengesahan_screen.dart';
 import 'package:sidik_calibration/screens/penugasan/penugasan_screen.dart';
+import 'package:sidik_calibration/screens/permintaan/antrean_permintaan_screen.dart';
 import 'package:sidik_calibration/screens/shell/main_shell.dart';
 import 'package:sidik_calibration/services/dashboard_service.dart';
 import 'package:sidik_calibration/services/equipment_service.dart';
@@ -22,6 +24,7 @@ import 'package:sidik_calibration/services/notification_service.dart';
 import 'package:sidik_calibration/services/pelacakan_service.dart';
 import 'package:sidik_calibration/services/pengesahan_service.dart';
 import 'package:sidik_calibration/services/penugasan_service.dart';
+import 'package:sidik_calibration/services/permintaan_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 
 import 'support/lewati_onboarding.dart';
@@ -57,6 +60,7 @@ Widget _app(String token) {
       pengesahanServiceProvider.overrideWithValue(MockPengesahanService()),
       pelacakanServiceProvider.overrideWithValue(MockPelacakanService()),
       penugasanServiceProvider.overrideWithValue(MockPenugasanService()),
+      permintaanServiceProvider.overrideWithValue(MockPermintaanService()),
     ],
     child: const SidikApp(),
   );
@@ -101,6 +105,7 @@ void main() {
   const jadwal = 'Jadwal kalibrasi ulang';
   const antreanApproval = 'Antrean Approval';
   const draf = 'Draf';
+  const permintaan = 'Permintaan pelanggan';
 
   testWidgets('super admin: dibuka dari pengesahan, sisanya cuma pantau', (
     tester,
@@ -114,6 +119,7 @@ void main() {
       pelacakan,
       pusat,
       jadwal,
+      permintaan,
       'PANTAU (BACA SAJA)',
     ]);
     // Kalimat yang menjelaskan kenapa tombol isi-data tidak ada untuknya.
@@ -168,6 +174,7 @@ void main() {
       kelolaLab,
       pusat,
       jadwal,
+      permintaan,
     ]);
     _tiada([tugasSaya]);
     expect(
@@ -189,6 +196,7 @@ void main() {
         penugasan,
         pusat,
         jadwal,
+        permintaan,
       ]);
     },
   );
@@ -224,6 +232,50 @@ void main() {
       antreanApproval,
       pusat,
       jadwal,
+      permintaan,
     ]);
+  });
+
+  testWidgets('admin: permintaan pelanggan berlencana jumlah yang menunggu', (
+    tester,
+  ) async {
+    await _bukaMenu(tester, 'mock-token-1');
+
+    // Dua permintaan `baru` di data tiruan; angkanya dari `meta.jumlah_baru`.
+    final lencana = find.descendant(
+      of: find.byType(Drawer),
+      matching: find.byKey(const ValueKey('lencana-permintaan')),
+    );
+    expect(lencana, findsOneWidget);
+    expect(
+      find.descendant(of: lencana, matching: find.text('2')),
+      findsOneWidget,
+    );
+
+    await tester.tap(_diMenu(permintaan));
+    await tester.pumpAndSettle();
+    expect(find.byType(AntreanPermintaanScreen), findsOneWidget);
+  });
+
+  testWidgets('super admin: permintaan pelanggan bisa dibuka (baca saja)', (
+    tester,
+  ) async {
+    await _bukaMenu(tester, 'mock-token-5');
+
+    await tester.tap(_diMenu(permintaan));
+    await tester.pumpAndSettle();
+    expect(find.byType(AntreanPermintaanScreen), findsOneWidget);
+
+    // Kartu dibuka → tombol keputusan tidak ada, kalimatnya ada.
+    await tester.tap(find.text('PMT/2026/09/0012'));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('tombol-terima-permintaan')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('catatan-baca-saja-permintaan')),
+      findsOneWidget,
+    );
   });
 }

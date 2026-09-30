@@ -9,6 +9,7 @@ import '../../models/notification_item.dart';
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../providers/notification_provider.dart';
 import '../history/calibration_detail_screen.dart';
+import '../permintaan/detail_permintaan_screen.dart';
 import '../../widgets/tampil_masuk.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
@@ -132,6 +133,11 @@ void bukaTautanNotifikasi(BuildContext context, NotifTautan? tautan) {
   final route = switch (tautan.tipe) {
     'calibration' => MaterialPageRoute<void>(
       builder: (_) => CalibrationDetailScreen(calibrationId: tautan.id),
+    ),
+    // Permintaan kalibrasi pelanggan baru / pesan baru di utasnya (hanya
+    // admin yang menerima notifikasinya).
+    'permintaan_pelanggan' => MaterialPageRoute<void>(
+      builder: (_) => DetailPermintaanScreen(permintaanId: tautan.id),
     ),
     _ => null,
   };

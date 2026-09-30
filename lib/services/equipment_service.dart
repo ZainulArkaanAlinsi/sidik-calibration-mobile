@@ -8,11 +8,21 @@ import 'api_client.dart';
 /// doang — viewer dapat `403` dari backend, ditampilin apa adanya lewat
 /// [AuthException] dari [ApiClient].
 abstract class EquipmentService {
+  /// Penyaring sisi server (API §4 `perintah-frontend-permintaan.md`), semuanya
+  /// opsional — tanpa satu pun jawabannya sama persis dengan sebelumnya:
+  /// - [pelangganId] → `customer_id`: alat satu pelanggan.
+  /// - [jatuhTempoDalam] → `jatuh_tempo_dalam=N`: alat yang jatuh tempo dalam
+  ///   N hari ke depan; [termasukLewat] ikut menyertakan yang sudah lewat.
+  /// - [urut] → `urut=jatuh_tempo` (paling lama lewat di atas) atau `terbaru`.
   Future<EquipmentPage> daftar(
     String token, {
     String? search,
     String? kategori,
     String? status,
+    int? pelangganId,
+    int? jatuhTempoDalam,
+    bool termasukLewat = false,
+    String? urut,
     int page = 1,
   });
 
@@ -34,6 +44,10 @@ class ApiEquipmentService implements EquipmentService {
     String? search,
     String? kategori,
     String? status,
+    int? pelangganId,
+    int? jatuhTempoDalam,
+    bool termasukLewat = false,
+    String? urut,
     int page = 1,
   }) async {
     final params = <String>[
@@ -43,6 +57,12 @@ class ApiEquipmentService implements EquipmentService {
         'category=${Uri.encodeQueryComponent(kategori)}',
       if (status != null && status.isNotEmpty)
         'status=${Uri.encodeQueryComponent(status)}',
+      if (pelangganId != null) 'customer_id=$pelangganId',
+      if (jatuhTempoDalam != null) 'jatuh_tempo_dalam=$jatuhTempoDalam',
+      // Hanya bermakna bersama `jatuh_tempo_dalam`; tanpa itu tidak dikirim.
+      if (jatuhTempoDalam != null && termasukLewat) 'termasuk_lewat=1',
+      if (urut != null && urut.isNotEmpty)
+        'urut=${Uri.encodeQueryComponent(urut)}',
       'page=$page',
     ];
     final json = await _api.get(
@@ -147,12 +167,21 @@ class MockEquipmentService implements EquipmentService {
       ? 1
       : _data.map((e) => e.id).reduce((a, b) => a > b ? a : b) + 1;
 
+  /// Penyaring baru ditiru sejauh yang tidak butuh "hari ini": pelanggan,
+  /// status aktif-saja untuk [jatuhTempoDalam], dan urutan. JENDELA N hari
+  /// sendiri TIDAK ditiru — mock tidak tahu jam milik `jamProvider`, dan
+  /// `DateTime.now()` membuat test berdata 2026 bergeser tiap hari. Yang
+  /// memotong jendela tetap `susunJatuhTempo` di sisi aplikasi.
   @override
   Future<EquipmentPage> daftar(
     String token, {
     String? search,
     String? kategori,
     String? status,
+    int? pelangganId,
+    int? jatuhTempoDalam,
+    bool termasukLewat = false,
+    String? urut,
     int page = 1,
   }) async {
     if (gagal) throw Exception('server nggak nyaut');
@@ -166,8 +195,29 @@ class MockEquipmentService implements EquipmentService {
           kategori == null || kategori.isEmpty || e.kategori == kategori;
       final cocokStatus =
           status == null || status.isEmpty || e.status.rawValue == status;
-      return cocokSearch && cocokKategori && cocokStatus;
+      final cocokPelanggan =
+          pelangganId == null || e.pelangganId == pelangganId;
+      final cocokTempo =
+          jatuhTempoDalam == null ||
+          (e.status != EquipmentStatus.nonaktif && e.tanggalJatuhTempo != null);
+      return cocokSearch &&
+          cocokKategori &&
+          cocokStatus &&
+          cocokPelanggan &&
+          cocokTempo;
     }).toList();
+
+    if (urut == 'jatuh_tempo') {
+      // Paling lama lewat di atas; tanpa jadwal di dasar (seperti server).
+      hasil.sort((a, b) {
+        final x = a.tanggalJatuhTempo;
+        final y = b.tanggalJatuhTempo;
+        if (x == null && y == null) return 0;
+        if (x == null) return 1;
+        if (y == null) return -1;
+        return x.compareTo(y);
+      });
+    }
 
     return EquipmentPage(items: hasil, currentPage: 1, lastPage: 1);
   }

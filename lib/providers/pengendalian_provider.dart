@@ -33,8 +33,11 @@ Future<String> _token(Ref ref) async {
 /// perubahan dari perangkat lain. Kalau saringannya field, admin yang sedang
 /// menyaring "terlambat" mendadak melihat daftar penuh begitu HP lain menandai
 /// satu serah terima. Ikut `authProvider`: ganti akun → saringan kembali kosong.
-class _Saringan<T> extends Notifier<T> {
-  _Saringan(this._awal);
+///
+/// Publik supaya antrean permintaan pelanggan (`permintaan_provider.dart`)
+/// memakai penjaga yang sama, bukan salinannya.
+class Saringan<T> extends Notifier<T> {
+  Saringan(this._awal);
 
   final T _awal;
 
@@ -47,16 +50,16 @@ class _Saringan<T> extends Notifier<T> {
   void setel(T nilai) => state = nilai;
 }
 
-final _cariPengesahanProvider = NotifierProvider<_Saringan<String>, String>(
-  () => _Saringan(''),
+final _cariPengesahanProvider = NotifierProvider<Saringan<String>, String>(
+  () => Saringan(''),
 );
 
-final _cariPaketProvider = NotifierProvider<_Saringan<String>, String>(
-  () => _Saringan(''),
+final _cariPaketProvider = NotifierProvider<Saringan<String>, String>(
+  () => Saringan(''),
 );
 
-final _paketTerlambatProvider = NotifierProvider<_Saringan<bool>, bool>(
-  () => _Saringan(false),
+final _paketTerlambatProvider = NotifierProvider<Saringan<bool>, bool>(
+  () => Saringan(false),
 );
 
 // ── Pengesahan ──────────────────────────────────────────────────────────────

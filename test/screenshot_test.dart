@@ -46,12 +46,18 @@ import 'package:sidik_calibration/services/standard_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/providers/master_data_provider.dart';
 import 'package:sidik_calibration/providers/pengendalian_provider.dart';
+import 'package:sidik_calibration/providers/permintaan_provider.dart';
+import 'package:sidik_calibration/providers/izin_provider.dart';
 import 'package:sidik_calibration/screens/pelacakan/pelacakan_screen.dart';
+import 'package:sidik_calibration/screens/permintaan/antrean_permintaan_screen.dart';
+import 'package:sidik_calibration/screens/permintaan/detail_permintaan_screen.dart';
 import 'package:sidik_calibration/screens/pengesahan/antrean_pengesahan_screen.dart';
 import 'package:sidik_calibration/screens/penugasan/penugasan_buat_screen.dart';
 import 'package:sidik_calibration/screens/penugasan/penugasan_screen.dart';
 import 'package:sidik_calibration/screens/settings/kelola_lab_screen.dart';
 import 'package:sidik_calibration/services/pelacakan_service.dart';
+import 'package:sidik_calibration/services/permintaan_service.dart';
+import 'package:sidik_calibration/services/izin_service.dart';
 import 'package:sidik_calibration/services/pengesahan_service.dart';
 import 'package:sidik_calibration/services/penugasan_service.dart';
 import 'package:sidik_calibration/services/user_service.dart';
@@ -195,6 +201,10 @@ Widget _bungkus(
       pelacakanServiceProvider.overrideWithValue(MockPelacakanService()),
       penugasanServiceProvider.overrideWithValue(MockPenugasanService()),
       userServiceProvider.overrideWithValue(MockUserService()),
+      // Permintaan pelanggan (1 Okt): antrean & detail. Izin tiruan supaya
+      // layar detail tidak menembak `/me/permissions` asli di golden.
+      permintaanServiceProvider.overrideWithValue(MockPermintaanService()),
+      izinServiceProvider.overrideWithValue(MockIzinService()),
     ],
     child: MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -689,6 +699,46 @@ void main() {
       tester,
       token: 'mock-token-2',
       berkas: 'screenshots/menu-teknisi.png',
+    );
+  });
+
+  /// Antrean permintaan pelanggan — tab Baru: lencana status, lama menunggu
+  /// (dipatok ke 1 Okt 2026 supaya "Menunggu 3 hari" tidak bergeser), dan
+  /// deretan chip status.
+  testWidgets('permintaan pelanggan antrean', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayarBerakun(
+      tester,
+      _bungkus(
+        const AntreanPermintaanScreen(),
+        mode: Brightness.light,
+        jam: DateTime(2026, 10, 1, 10),
+      ),
+    );
+    await expectLater(
+      find.byType(AntreanPermintaanScreen),
+      matchesGoldenFile('screenshots/permintaan-antrean.png'),
+    );
+  });
+
+  /// Detail permintaan: satu alat terdaftar + satu alat baru yang harus
+  /// dilengkapi admin (kategori & nomor seri), dengan bilah Tolak/Terima.
+  testWidgets('permintaan pelanggan detail', (tester) async {
+    tester.view.physicalSize = const Size(1200, 3000);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await _pumpLayarBerakun(
+      tester,
+      _bungkus(
+        const DetailPermintaanScreen(permintaanId: 12),
+        mode: Brightness.light,
+        jam: DateTime(2026, 10, 1, 10),
+      ),
+    );
+    await expectLater(
+      find.byType(DetailPermintaanScreen),
+      matchesGoldenFile('screenshots/permintaan-detail.png'),
     );
   });
 

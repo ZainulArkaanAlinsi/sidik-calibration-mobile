@@ -131,11 +131,21 @@ class MockCategoryService implements CategoryService {
     if (gagal) throw Exception('server nggak nyaut');
 
     return const [
-      Category(kode: 'panjang', nama: 'Panjang', satuan: 'mm'),
-      Category(kode: 'massa', nama: 'Massa', satuan: 'g'),
-      Category(kode: 'suhu-dan-kelembapan', nama: 'Suhu & Kelembapan', satuan: '°C'),
-      Category(kode: 'tekanan', nama: 'Tekanan', satuan: 'bar'),
-      Category(kode: 'instrumen-analitik', nama: 'Instrumen Analitik', satuan: 'pH'),
+      Category(id: 1, kode: 'panjang', nama: 'Panjang', satuan: 'mm'),
+      Category(id: 2, kode: 'massa', nama: 'Massa', satuan: 'g'),
+      Category(
+        id: 3,
+        kode: 'suhu-dan-kelembapan',
+        nama: 'Suhu & Kelembapan',
+        satuan: '°C',
+      ),
+      Category(id: 4, kode: 'tekanan', nama: 'Tekanan', satuan: 'bar'),
+      Category(
+        id: 5,
+        kode: 'instrumen-analitik',
+        nama: 'Instrumen Analitik',
+        satuan: 'pH',
+      ),
     ];
   }
 

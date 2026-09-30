@@ -328,6 +328,10 @@ class _LayananBertahap implements EquipmentService {
     String? search,
     String? kategori,
     String? status,
+    int? pelangganId,
+    int? jatuhTempoDalam,
+    bool termasukLewat = false,
+    String? urut,
     int page = 1,
   }) {
     final penunggu = Completer<EquipmentPage>();

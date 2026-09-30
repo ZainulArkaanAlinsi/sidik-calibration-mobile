@@ -12,6 +12,7 @@ import 'jatuh_tempo_provider.dart';
 import 'notifikasi_perangkat_provider.dart';
 import 'notification_provider.dart';
 import 'pengendalian_provider.dart';
+import 'permintaan_provider.dart';
 import 'pusat_pelanggan_provider.dart';
 
 /// Sambungan realtime. **Mock (no-op)** kalau realtime nonaktif (kunci Reverb
@@ -106,7 +107,7 @@ void _tangani(Ref ref, PeristiwaRealtime p) {
       // Pengesahan, pelacakan, penugasan: super admin yang mengesahkan dari
       // satu HP, meja depan yang menandai serah terima dari laptop, teknisi
       // yang melapor progres — perangkat lain di lab yang sama ikut menyusul.
-      // Saringan layarnya tidak hilang (lihat `_Saringan`).
+      // Saringan layarnya tidak hilang (lihat `Saringan`).
       ref.invalidate(antreanPengesahanProvider);
       ref.invalidate(daftarPaketProvider);
       ref.invalidate(detailPaketProvider);
@@ -116,10 +117,19 @@ void _tangani(Ref ref, PeristiwaRealtime p) {
       // tempo), Pusat pelanggan, dan paket berjalan di beranda. Kata cari
       // Pusat pelanggan hidup di provider terpisah, jadi tidak ikut hilang.
       ref.invalidate(jatuhTempoProvider);
+      ref.invalidate(jatuhTempoPelangganProvider);
       ref.invalidate(pusatPelangganProvider);
       ref.invalidate(detailPelangganProvider);
       ref.invalidate(paketBerjalanProvider);
       ref.invalidate(antreanBerandaProvider);
+      // Permintaan pelanggan (jenis 'permintaan': dibuat/diterima/ditolak/
+      // dibatalkan/pesan): admin lain menerimanya, atau pelanggan menulis di
+      // utas — antrean, badge menu, detail, dan utas yang terbuka menyusul.
+      // Tab & kata cari tersimpan di provider terpisah, jadi tidak hilang.
+      ref.invalidate(antreanPermintaanProvider);
+      ref.invalidate(jumlahPermintaanBaruProvider);
+      ref.invalidate(detailPermintaanProvider);
+      ref.invalidate(pesanPermintaanProvider);
     case NotifikasiMasuk():
       // Badge lonceng selalu di-refresh (nyala barengan HP↔desktop); daftar
       // notifikasi refetch lazy saat layarnya dibuka.
