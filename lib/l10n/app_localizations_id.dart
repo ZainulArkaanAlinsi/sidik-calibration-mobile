@@ -2701,7 +2701,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkRuanganGagal => 'Gagal memuat daftar ruangan.';
 
   @override
-  String get lkContohNamaTempat => 'Contoh: PT. LDC';
+  String get lkContohNamaTempat => 'Contoh: PT. Niaga Contoh';
 
   @override
   String get lkBelumPilihAlat =>

@@ -477,7 +477,7 @@ void main() {
 
       final chip = find.widgetWithText(ActionChip, 'pic@tirta.co.id');
       expect(chip, findsOneWidget, reason: 'kontak pelanggan mestinya ditawarin');
-      expect(find.textContaining('TIRTA GRACIA'), findsWidgets);
+      expect(find.textContaining('TIRTA CONTOH'), findsWidgets);
 
       await tester.tap(chip);
       await tester.pumpAndSettle();

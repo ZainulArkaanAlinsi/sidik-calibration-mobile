@@ -72,7 +72,7 @@ void main() {
         _app(MockFolderService(), token: 'mock-token-1'),
       );
 
-      // Folder pertama = PT TIRTA GRACIA, tipe `sistem`.
+      // Folder pertama = PT TIRTA CONTOH, tipe `sistem`.
       await tester.tap(find.byIcon(Icons.more_vert).first);
       await tester.pumpAndSettle();
 

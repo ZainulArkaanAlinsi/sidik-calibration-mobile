@@ -148,11 +148,11 @@ void main() {
           kata(':', 160, 100),
           kata('PT', 190, 100),
           kata('Tirta', 220, 100),
-          kata('Gracia', 290, 100),
+          kata('Contoh', 290, 100),
         ]),
       );
 
-      expect(p.single.nilai, 'PT Tirta Gracia');
+      expect(p.single.nilai, 'PT Tirta Contoh');
     });
 
     test('label tanpa nilai tetap pulang — kolom kosong itu keterangan', () {
@@ -208,7 +208,7 @@ void main() {
           kata('Nama', 100, 100),
           kata(':', 160, 100),
           kata('PT', 190, 100, keyakinan: 0.90),
-          kata('Gracia', 230, 100, keyakinan: 0.55),
+          kata('Contoh', 230, 100, keyakinan: 0.55),
         ]),
       );
 
@@ -221,7 +221,7 @@ void main() {
           kata('Nama', 100, 100),
           kata(':', 160, 100),
           kata('PT', 190, 100, keyakinan: 0.95),
-          kata('Gracia', 230, 100),
+          kata('Contoh', 230, 100),
         ]),
       );
 
@@ -309,12 +309,12 @@ void main() {
           kata('Nama', 100, 100),
           kata('Nilai', 400, 100),
           kata('PT', 100, 140),
-          kata('Gracia', 140, 140),
+          kata('Contoh', 140, 140),
           kata('7,00', 400, 140),
         ]),
       );
 
-      expect(t.single.baris.single.first, 'PT Gracia');
+      expect(t.single.baris.single.first, 'PT Contoh');
     });
 
     test('teks biasa yang bukan tabel nggak dianggap tabel', () {

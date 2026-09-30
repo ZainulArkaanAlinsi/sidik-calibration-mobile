@@ -1437,9 +1437,9 @@
   "lkPilihAlat": "Choose equipment",
   "lkAlatKosong": "No equipment available yet.",
   "lkRuanganGagal": "Couldn't load the room list.",
-  "lkContohNamaTempat": "Example: PT. LDC",
+  "lkContohNamaTempat": "Example: PT. Niaga Contoh",
   "@lkContohNamaTempat": {
-    "description": "Contoh isian di bawah kotak nama tempat sesi Insitu. Yang dipakai nama pelanggan yang didatangi — itu yang kecetak di sertifikat sebagai Calibration Location : Insitu (PT. LDC)."
+    "description": "Contoh isian di bawah kotak nama tempat sesi Insitu. Yang dipakai nama pelanggan yang didatangi — itu yang kecetak di sertifikat sebagai Calibration Location : Insitu (PT. Niaga Contoh)."
   },
   "lkBelumPilihAlat": "Choose the equipment first — the identity and owner fields fill in automatically.",
   "lkOtomatis": "Filled automatically",

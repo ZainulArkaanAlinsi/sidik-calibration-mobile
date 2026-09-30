@@ -143,7 +143,7 @@ class PembuatSkema {
 
   /// Pisahkan satuan dari ekor nilai.
   ///
-  /// Yang dipisah cuma kalau sisanya benar-benar angka: `PT Gracia m` tidak
+  /// Yang dipisah cuma kalau sisanya benar-benar angka: `PT Contoh m` tidak
   /// boleh kehilangan `m`-nya cuma karena `m` kebetulan satuan panjang.
   ///
   /// ## Kenapa huruf besar-kecilnya dijaga
