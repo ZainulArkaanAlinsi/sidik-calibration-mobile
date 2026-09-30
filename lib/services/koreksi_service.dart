@@ -285,6 +285,12 @@ class MockKoreksiService implements KoreksiService {
     'iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAEUlEQVR4nGOYtmA9VsQwtCQAWkl5QR9f8d0AAAAASUVORK5CYII=',
   );
 
+  /// Byte gambar yang dijawab [foto] — dibuka supaya golden bisa
+  /// men-precache-nya (decode gambar jalan di antrean async yang di-pause di
+  /// widget test; tanpa precache thumbnail kosong di golden pertama yang
+  /// memakainya dan terisi di golden berikutnya, tergantung urutan).
+  static Uint8List get pngContoh => _png;
+
   void _cekGagal() {
     if (gagal) throw Exception('server nggak nyaut');
   }

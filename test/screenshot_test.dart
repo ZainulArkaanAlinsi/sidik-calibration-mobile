@@ -150,6 +150,22 @@ Future<void> _pumpLayarBerakun(WidgetTester tester, Widget layar) async {
   await tester.pumpAndSettle();
 }
 
+/// Precache PNG contoh foto pelanggan sebelum dipotret.
+///
+/// `Image.memory` memakai antrean decode async yang di-pause di widget test,
+/// jadi thumbnail foto kosong di golden PERTAMA yang memakainya dan baru terisi
+/// di golden berikutnya (cache gambar dibagi satu berkas test). Tanpa ini hasil
+/// golden bergantung pada urutan test.
+Future<void> _siapkanFotoContoh(WidgetTester tester) async {
+  await tester.runAsync(() async {
+    await precacheImage(
+      MemoryImage(MockKoreksiService.pngContoh),
+      tester.element(find.byType(MaterialApp)),
+    );
+  });
+  await tester.pumpAndSettle();
+}
+
 /// Tanggal yang kecetak di golden lembar kerja. Angkanya sendiri nggak penting
 /// — yang penting dia TETAP. Kalau diubah, dua golden lembar kerja mesti
 /// digenerate ulang.
@@ -1184,6 +1200,7 @@ void main() {
         mode: Brightness.light,
       ),
     );
+    await _siapkanFotoContoh(tester);
     await expectLater(
       find.byType(DetailKoreksiScreen),
       matchesGoldenFile('screenshots/koreksi-detail.png'),
@@ -1208,6 +1225,7 @@ void main() {
         ),
       ),
     );
+    await _siapkanFotoContoh(tester);
     await expectLater(
       find.byType(DetailPermintaanScreen),
       matchesGoldenFile('screenshots/permintaan-detail-perjalanan.png'),
