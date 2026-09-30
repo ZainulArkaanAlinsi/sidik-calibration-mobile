@@ -107,6 +107,17 @@ Future<void> _pumpLayar(WidgetTester tester, Widget layar) async {
   await tester.pumpAndSettle();
 }
 
+/// Layar yang langsung me-`watch(authProvider)` (pengesahan, pelacakan,
+/// penugasan) memicu `MockAuthService` dengan jedanya 600 ms. `pumpAndSettle`
+/// tidak memajukan timer, jadi tanpa ini golden-nya kebikin tapi test-nya
+/// gagal di akhir dengan `!timersPending` — persis yang terjadi di run golden
+/// pertama ketujuh layar ini.
+Future<void> _pumpLayarBerakun(WidgetTester tester, Widget layar) async {
+  await _pumpLayar(tester, layar);
+  await tester.pump(const Duration(seconds: 1));
+  await tester.pumpAndSettle();
+}
+
 /// Tanggal yang kecetak di golden lembar kerja. Angkanya sendiri nggak penting
 /// — yang penting dia TETAP. Kalau diubah, dua golden lembar kerja mesti
 /// digenerate ulang.
@@ -652,7 +663,7 @@ void main() {
 
   testWidgets('pengesahan super admin', (tester) async {
     pasangUkuranHp(tester);
-    await _pumpLayar(
+    await _pumpLayarBerakun(
       tester,
       _bungkus(
         const AntreanPengesahanScreen(),
@@ -668,7 +679,7 @@ void main() {
 
   testWidgets('pelacakan paket', (tester) async {
     pasangUkuranHp(tester);
-    await _pumpLayar(
+    await _pumpLayarBerakun(
       tester,
       _bungkus(const PelacakanScreen(), mode: Brightness.light),
     );
@@ -680,7 +691,7 @@ void main() {
 
   testWidgets('penugasan admin', (tester) async {
     pasangUkuranHp(tester);
-    await _pumpLayar(
+    await _pumpLayarBerakun(
       tester,
       _bungkus(const PenugasanScreen(), mode: Brightness.light),
     );
@@ -711,7 +722,7 @@ void main() {
 
   testWidgets('penugasan buat', (tester) async {
     pasangUkuranHp(tester);
-    await _pumpLayar(
+    await _pumpLayarBerakun(
       tester,
       _bungkus(const PenugasanBuatScreen(), mode: Brightness.light),
     );
