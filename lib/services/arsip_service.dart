@@ -103,7 +103,7 @@ class MockArsipService implements ArsipService {
   final Map<int, ArsipFolder> _folder = {
     1: const ArsipFolder(
       id: 1,
-      nama: 'PT Tirta Gracia',
+      nama: 'PT Tirta Contoh',
       isRoot: true,
       jumlahSubfolder: 1,
       jumlahBerkas: 1,
@@ -145,7 +145,7 @@ class MockArsipService implements ArsipService {
       ArsipPerusahaan(
         id: 1,
         pelangganId: 2,
-        nama: 'PT Tirta Gracia',
+        nama: 'PT Tirta Contoh',
         alamat: 'Cicalengka, Kab. Bandung',
         jumlahAlat: 2,
         jumlahSertifikat: 1,
@@ -211,7 +211,7 @@ class MockArsipService implements ArsipService {
       folderId: folder.id,
       namaFolder: folder.nama,
       isRoot: folder.isRoot,
-      namaPerusahaan: 'PT Tirta Gracia',
+      namaPerusahaan: 'PT Tirta Contoh',
       breadcrumb: crumbs,
       subfolder: anak,
       berkas: _berkasDiFolder[3] == folder.id

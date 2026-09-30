@@ -2720,7 +2720,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkRuanganGagal => 'Couldn\'t load the room list.';
 
   @override
-  String get lkContohNamaTempat => 'Example: PT. LDC';
+  String get lkContohNamaTempat => 'Example: PT. Niaga Contoh';
 
   @override
   String get lkBelumPilihAlat =>

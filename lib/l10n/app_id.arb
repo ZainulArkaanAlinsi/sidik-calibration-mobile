@@ -985,9 +985,9 @@
   "lkPilihAlat": "Pilih alat",
   "lkAlatKosong": "Belum ada alat.",
   "lkRuanganGagal": "Gagal memuat daftar ruangan.",
-  "lkContohNamaTempat": "Contoh: PT. LDC",
+  "lkContohNamaTempat": "Contoh: PT. Niaga Contoh",
   "@lkContohNamaTempat": {
-    "description": "Contoh isian di bawah kotak nama tempat sesi Insitu. Yang dipakai nama pelanggan yang didatangi — itu yang kecetak di sertifikat sebagai Calibration Location : Insitu (PT. LDC)."
+    "description": "Contoh isian di bawah kotak nama tempat sesi Insitu. Yang dipakai nama pelanggan yang didatangi — itu yang kecetak di sertifikat sebagai Calibration Location : Insitu (PT. Niaga Contoh)."
   },
   "lkBelumPilihAlat": "Pilih alatnya dulu — kolom identitas & pemilik keisi otomatis.",
   "lkOtomatis": "Keisi otomatis",

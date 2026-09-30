@@ -86,7 +86,7 @@ class MockCertificateService implements CertificateService {
       diterbitkanPada: '2024-05-30',
       // Kontak pelanggan — backend emang ngirim ini (`CertificateResource`),
       // dipakai tombol "tinggal pilih" di layar kirim.
-      pelangganNama: 'PT TIRTA GRACIA SEMESTA MANDIRI',
+      pelangganNama: 'PT TIRTA CONTOH MANDIRI',
       pelangganEmail: 'pic@tirta.co.id',
       pelangganTelepon: '081234567890',
       snapshot: CertificateSnapshot.fromJson(const {
@@ -96,9 +96,9 @@ class MockCertificateService implements CertificateService {
         'header': {
           'certificate_number': '012-CAL-524',
           'page': '1 of 1',
-          'owner': 'PT TIRTA GRACIA SEMESTA MANDIRI',
+          'owner': 'PT TIRTA CONTOH MANDIRI',
           'order_number': '2405.13.A',
-          'address': 'Jl. Arteri Primer A-10 RT. 01 RW.12 Nyalindung '
+          'address': 'Jl. Contoh Primer A-10, '
               'Kec. Cicalengka, Kab. Bandung, Jawa Barat',
           'received_date': '2024-05-26',
           'equipment_name': 'pH Meter',

@@ -88,9 +88,9 @@ const daftarAlatMock = <EquipmentLookup>[
     rangeMin: 0,
     rangeMax: 14,
     resolusi: 0.01,
-    pelangganNama: 'PT TIRTA GRACIA SEMESTA MANDIRI',
+    pelangganNama: 'PT TIRTA CONTOH MANDIRI',
     pelangganAlamat:
-        'Jl. Arteri Primer A-10 RT. 01 RW.12 Nyalindung Kec. Cicalengka, '
+        'Jl. Contoh Primer A-10, Kec. Cicalengka, '
         'Kab. Bandung, Jawa Barat',
   ),
   // Tanpa baris ini, worksheet Turbidimeter di USE_MOCK nggak punya alat yang
@@ -108,9 +108,9 @@ const daftarAlatMock = <EquipmentLookup>[
     rangeMin: 0,
     rangeMax: 1000,
     resolusi: 0.01,
-    pelangganNama: 'PT TIRTA GRACIA SEMESTA MANDIRI',
+    pelangganNama: 'PT TIRTA CONTOH MANDIRI',
     pelangganAlamat:
-        'Jl. Arteri Primer A-10 RT. 01 RW.12 Nyalindung Kec. Cicalengka, '
+        'Jl. Contoh Primer A-10, Kec. Cicalengka, '
         'Kab. Bandung, Jawa Barat',
   ),
   // Alat & rentangnya dari sesi asli 0189-CAL-624 (`Chlorine_Meter_CSV/
@@ -130,9 +130,9 @@ const daftarAlatMock = <EquipmentLookup>[
     rangeMin: 0,
     rangeMax: 4,
     resolusi: 0.01,
-    pelangganNama: 'PT TIRTA GRACIA SEMESTA MANDIRI',
+    pelangganNama: 'PT TIRTA CONTOH MANDIRI',
     pelangganAlamat:
-        'Jl. Arteri Primer A-10 RT. 01 RW.12 Nyalindung Kec. Cicalengka, '
+        'Jl. Contoh Primer A-10, Kec. Cicalengka, '
         'Kab. Bandung, Jawa Barat',
   ),
   // Alat & rentangnya dari sesi master 2211.11.R (`Refractometer_CSV/INPUT
@@ -154,9 +154,9 @@ const daftarAlatMock = <EquipmentLookup>[
     rangeMin: 0,
     rangeMax: 1.7,
     resolusi: 0.0001,
-    pelangganNama: 'PT TIRTA GRACIA SEMESTA MANDIRI',
+    pelangganNama: 'PT TIRTA CONTOH MANDIRI',
     pelangganAlamat:
-        'Jl. Arteri Primer A-10 RT. 01 RW.12 Nyalindung Kec. Cicalengka, '
+        'Jl. Contoh Primer A-10, Kec. Cicalengka, '
         'Kab. Bandung, Jawa Barat',
   ),
   // Refractometer kedua, kecatat di skala **°Brix** — bukan duplikat malas.
@@ -178,9 +178,9 @@ const daftarAlatMock = <EquipmentLookup>[
     rangeMin: 0,
     rangeMax: 53,
     resolusi: 0.1,
-    pelangganNama: 'PT TIRTA GRACIA SEMESTA MANDIRI',
+    pelangganNama: 'PT TIRTA CONTOH MANDIRI',
     pelangganAlamat:
-        'Jl. Arteri Primer A-10 RT. 01 RW.12 Nyalindung Kec. Cicalengka, '
+        'Jl. Contoh Primer A-10, Kec. Cicalengka, '
         'Kab. Bandung, Jawa Barat',
   ),
 ];

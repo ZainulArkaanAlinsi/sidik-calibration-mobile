@@ -4969,10 +4969,10 @@ abstract class AppLocalizations {
   /// **'Couldn\'t load the room list.'**
   String get lkRuanganGagal;
 
-  /// Contoh isian di bawah kotak nama tempat sesi Insitu. Yang dipakai nama pelanggan yang didatangi — itu yang kecetak di sertifikat sebagai Calibration Location : Insitu (PT. LDC).
+  /// Contoh isian di bawah kotak nama tempat sesi Insitu. Yang dipakai nama pelanggan yang didatangi — itu yang kecetak di sertifikat sebagai Calibration Location : Insitu (PT. Niaga Contoh).
   ///
   /// In en, this message translates to:
-  /// **'Example: PT. LDC'**
+  /// **'Example: PT. Niaga Contoh'**
   String get lkContohNamaTempat;
 
   /// No description provided for @lkBelumPilihAlat.

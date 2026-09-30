@@ -20,8 +20,8 @@ import 'support/halaman_lembar.dart';
 
 /// Pratinjau hitung (`POST /api/calibrations/preview`) buat Spectrophotometer.
 ///
-/// Angka acuan di file ini BUKAN karangan: diambil dari sesi `DEMO-SPECTRO-LDC`
-/// (PT LDC Indonesia, Perkin Elmer Lambda 25 s/n `501S13102801`, 21 Juli 2023)
+/// Angka acuan di file ini BUKAN karangan: diambil dari sesi `DEMO-SPECTRO-NIAGA`
+/// (PT Niaga Contoh, Perkin Elmer Lambda 25 s/n `501S13102801`, 21 Juli 2023)
 /// lewat backend lokal, dan cocok sama tabel acuan handoff:
 ///
 /// | Kelompok   | U95        | k          |
@@ -194,7 +194,7 @@ Future<void> _pilihAlat(WidgetTester tester) async {
 
 
 /// Potongan respons ASLI `POST /api/calibrations/preview` buat sesi
-/// `DEMO-SPECTRO-LDC` — satu titik per kelompok, plus satu titik yang backend
+/// `DEMO-SPECTRO-NIAGA` — satu titik per kelompok, plus satu titik yang backend
 /// tolak hitung. Angkanya nggak diubah sama sekali.
 const _previewDemo = <String, dynamic>{
   'data': {
