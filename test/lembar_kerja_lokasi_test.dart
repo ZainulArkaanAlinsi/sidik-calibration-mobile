@@ -110,7 +110,7 @@ Future<void> _pilihRuangan(WidgetTester tester) async {
 }
 
 Future<void> _simpanDraft(WidgetTester tester) async {
-  await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
+  await tester.tap(find.text('Simpan sebagai draft'));
   await tester.pumpAndSettle();
 }
 

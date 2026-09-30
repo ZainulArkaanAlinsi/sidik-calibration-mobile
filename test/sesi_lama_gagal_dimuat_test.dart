@@ -97,7 +97,7 @@ void main() {
     final riwayat = _GagalSekali();
     final lembar = await buka(tester, riwayat);
 
-    await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
+    await tester.tap(find.text('Simpan sebagai draft'));
     await tester.pumpAndSettle();
 
     expect(dialog, findsOneWidget);
@@ -114,7 +114,7 @@ void main() {
   testWidgets('simpan tetap: jalan kerja tidak ditutup', (tester) async {
     await buka(tester, _SelaluGagal());
 
-    await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
+    await tester.tap(find.text('Simpan sebagai draft'));
     await tester.pumpAndSettle();
     await tester.tap(diDialog('Simpan tetap'));
     await tester.pumpAndSettle();
@@ -133,7 +133,7 @@ void main() {
 
     expect(banner, findsNothing);
 
-    await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
+    await tester.tap(find.text('Simpan sebagai draft'));
     await tester.pumpAndSettle();
 
     expect(dialog, findsNothing);

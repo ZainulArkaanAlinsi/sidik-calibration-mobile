@@ -173,7 +173,7 @@ void main() {
       tester.widget<TextField>(f).controller!.text;
 
   Future<void> simpan(WidgetTester tester) async {
-    await tester.tap(find.text('SIMPAN'));
+    await tester.tap(find.text('Simpan'));
     await tester.pumpAndSettle();
   }
 
@@ -288,7 +288,7 @@ void main() {
   ) async {
     final perekam = await buka(tester, _conductivity);
 
-    await tester.tap(find.text('TAMBAH BARIS RESOLUSI'));
+    await tester.tap(find.text('Tambah baris resolusi'));
     await tester.pumpAndSettle();
     await tester.enterText(kolom(3, 1), '0.05');
 

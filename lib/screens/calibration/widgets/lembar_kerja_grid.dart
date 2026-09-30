@@ -699,7 +699,7 @@ class _TombolFotoGridState extends ConsumerState<_TombolFotoGrid> {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           : const Icon(Icons.photo_camera_outlined, size: 18),
-      label: Text(l10n.lkFotoTabel.toUpperCase()),
+      label: Text(l10n.lkFotoTabel),
     );
   }
 }

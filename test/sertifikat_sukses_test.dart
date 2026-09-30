@@ -54,7 +54,7 @@ void main() {
 
     await _sampaiAntrean(tester);
 
-    await tester.tap(find.text('SETUJUI').first);
+    await tester.tap(find.text('Setujui').first);
     // `pump` berjangka, BUKAN `pumpAndSettle`: sesudah disetujui, antreannya
     // ditarik ulang dan loader-nya berputar terus — `pumpAndSettle` menunggu
     // animasi yang memang tidak pernah berhenti.
@@ -72,7 +72,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await _sampaiAntrean(tester);
-    await tester.tap(find.text('SETUJUI').first);
+    await tester.tap(find.text('Setujui').first);
     // `pump` berjangka, BUKAN `pumpAndSettle`: sesudah disetujui, antreannya
     // ditarik ulang dan loader-nya berputar terus — `pumpAndSettle` menunggu
     // animasi yang memang tidak pernah berhenti.
@@ -99,7 +99,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await _sampaiAntrean(tester);
-    await tester.tap(find.text('SETUJUI').first);
+    await tester.tap(find.text('Setujui').first);
     // `pump` berjangka, BUKAN `pumpAndSettle`: sesudah disetujui, antreannya
     // ditarik ulang dan loader-nya berputar terus — `pumpAndSettle` menunggu
     // animasi yang memang tidak pernah berhenti.
@@ -118,7 +118,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await _sampaiAntrean(tester);
-    await tester.tap(find.text('SETUJUI').first);
+    await tester.tap(find.text('Setujui').first);
     // `pump` berjangka, BUKAN `pumpAndSettle`: sesudah disetujui, antreannya
     // ditarik ulang dan loader-nya berputar terus — `pumpAndSettle` menunggu
     // animasi yang memang tidak pernah berhenti.

@@ -226,7 +226,7 @@ void main() {
       await tester.tap(find.text('Profil'));
       await tester.pumpAndSettle();
 
-      await _tapDiProfil(tester, find.text('KELUAR'));
+      await _tapDiProfil(tester, find.text('Keluar'));
 
       expect(find.text('MASUK'), findsOneWidget);
       expect(await storage.read(), isNull);
@@ -288,7 +288,7 @@ void main() {
       await tester.tap(find.text('Profil'));
       await tester.pumpAndSettle();
 
-      await _tapDiProfil(tester, find.text('KELUAR'));
+      await _tapDiProfil(tester, find.text('Keluar'));
 
       await _isiLogin(tester, identifier: 'SDK-0002', password: 'rahasia123');
       await tester.pumpAndSettle();

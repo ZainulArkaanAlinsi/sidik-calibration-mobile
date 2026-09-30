@@ -213,7 +213,7 @@ void main() {
       await tester.enterText(kotakNm.at(1), '0,01');
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
+      await tester.tap(find.text('Simpan sebagai draft'));
       await tester.pumpAndSettle();
 
       expect(service.payloadTerakhir!['spesifikasi_alat'], {
@@ -267,7 +267,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('SIMPAN SEBAGAI DRAFT'));
+      await tester.tap(find.text('Simpan sebagai draft'));
       await tester.pumpAndSettle();
 
       expect(service.payloadTerakhir!['lokasi'], 'onsite');
@@ -367,7 +367,7 @@ void main() {
       }
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('KIRIM KE ADMIN'));
+      await tester.tap(find.text('Kirim ke admin'));
       await tester.pumpAndSettle();
 
       // Dialog konfirmasi angka muncul dulu — kiriman yang nggak disetujui

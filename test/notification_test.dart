@@ -92,7 +92,7 @@ void main() {
       await _bukaHalamanNotifikasi(tester);
 
       expect(find.text('Gagal memuat notifikasi.'), findsOneWidget);
-      expect(find.text('COBA LAGI'), findsOneWidget);
+      expect(find.text('Coba lagi'), findsOneWidget);
     });
   });
 

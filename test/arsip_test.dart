@@ -110,7 +110,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField).last, 'Semester 1');
-    await tester.tap(find.text('BUAT'));
+    await tester.tap(find.text('Buat'));
     await tester.pumpAndSettle();
 
     expect(find.text('Folder dibuat.'), findsOneWidget);
@@ -129,7 +129,7 @@ void main() {
     await tester.pumpAndSettle();
     // "2026" udah ada di folder ini.
     await tester.enterText(find.byType(TextField).last, '2026');
-    await tester.tap(find.text('BUAT'));
+    await tester.tap(find.text('Buat'));
     await tester.pumpAndSettle();
 
     // Pesannya sengaja diambil apa adanya dari server, bukan ditulis ulang
@@ -152,7 +152,7 @@ void main() {
     await tester.tap(find.text('Folder baru'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'Semester 1');
-    await tester.tap(find.text('BUAT'));
+    await tester.tap(find.text('Buat'));
     await tester.pumpAndSettle();
 
     // Balik ke folder akar, buka menu "2026" — sekarang dia ada isinya.
@@ -192,7 +192,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Gagal memuat arsip.'), findsOneWidget);
-    expect(find.text('COBA LAGI'), findsOneWidget);
+    expect(find.text('Coba lagi'), findsOneWidget);
   });
 
   testWidgets('folder sistem: ditandain nggak bisa dipindah & nggak bisa '
@@ -244,7 +244,7 @@ void main() {
     await tester.tap(find.text('Folder baru'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'Semester 1');
-    await tester.tap(find.text('BUAT'));
+    await tester.tap(find.text('Buat'));
     await tester.pumpAndSettle();
 
     // Breadcrumb "PT Tirta Gracia" = induknya folder yang lagi dibuka.
@@ -272,7 +272,7 @@ void main() {
     await tester.tap(find.text('Folder baru'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'Semester 1');
-    await tester.tap(find.text('BUAT'));
+    await tester.tap(find.text('Buat'));
     await tester.pumpAndSettle();
 
     final titik = tester.getCenter(find.text('Semester 1'));

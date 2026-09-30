@@ -80,7 +80,7 @@ void main() {
   }
 
   Finder tombolDaftarkan() =>
-      find.widgetWithText(FilledButton, 'DAFTARKAN');
+      find.widgetWithText(FilledButton, 'Daftarkan');
 
   testWidgets('kata kunci dari sheet ikut kebawa, nggak diketik dua kali', (
     tester,
@@ -104,7 +104,7 @@ void main() {
     layarPanjang(tester);
     await buka(tester, MockCustomerLookupService(), kataKunci: 'Sinar');
 
-    await tester.tap(find.text('CARI DI DIREKTORI'));
+    await tester.tap(find.text('Cari di direktori'));
     await tester.pumpAndSettle();
 
     expect(find.text('PT Sinar Rejeki Manufaktur'), findsOneWidget);
@@ -122,7 +122,7 @@ void main() {
     layarPanjang(tester);
     await buka(tester, MockCustomerLookupService(), kataKunci: 'Sinar');
 
-    await tester.tap(find.text('CARI DI DIREKTORI'));
+    await tester.tap(find.text('Cari di direktori'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('PT Sinar Rejeki Manufaktur'));
     await tester.pumpAndSettle();
@@ -150,11 +150,11 @@ void main() {
       kataKunci: 'Sinar',
     );
 
-    await tester.tap(find.text('CARI DI DIREKTORI'));
+    await tester.tap(find.text('Cari di direktori'));
     await tester.pumpAndSettle();
 
     expect(
-      find.text('CARI DI DIREKTORI'),
+      find.text('Cari di direktori'),
       findsNothing,
       reason: 'Tombol yang tiap ditekan memulangkan hal yang sama itu bukan '
           'pilihan — dia jebakan yang bikin teknisi mengira ada yang rusak.',
@@ -192,10 +192,10 @@ void main() {
       kataKunci: 'Sinar',
     );
 
-    await tester.tap(find.text('CARI DI DIREKTORI'));
+    await tester.tap(find.text('Cari di direktori'));
     await tester.pumpAndSettle();
 
-    expect(find.text('CARI DI DIREKTORI'), findsOneWidget);
+    expect(find.text('Cari di direktori'), findsOneWidget);
     expect(find.textContaining('coba lagi nanti'), findsOneWidget);
   });
 
@@ -209,7 +209,7 @@ void main() {
       kataKunci: 'Perusahaan Yang Tidak Ada',
     );
 
-    await tester.tap(find.text('CARI DI DIREKTORI'));
+    await tester.tap(find.text('Cari di direktori'));
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Nggak ada perusahaan yang cocok'), findsOneWidget);
@@ -253,7 +253,7 @@ void main() {
     expect(find.textContaining('maksudmu yang ini'), findsOneWidget);
     expect(find.text('PT Maju Jaya'), findsOneWidget);
     expect(
-      find.text('PERUSAHAAN LAIN — TETAP DAFTARKAN'),
+      find.text('Perusahaan lain — tetap daftarkan'),
       findsOneWidget,
       reason: 'Dua PT yang beneran beda boleh punya nama mirip, dan teknisi di '
           'lapangan nggak boleh mentok tanpa jalan keluar — itu justru keadaan '
@@ -292,7 +292,7 @@ void main() {
 
     expect(find.textContaining('maksudmu yang ini'), findsOneWidget);
     expect(
-      find.text('PERUSAHAAN LAIN — TETAP DAFTARKAN'),
+      find.text('Perusahaan lain — tetap daftarkan'),
       findsNothing,
       reason: 'Yang menahan di sini unique index di database. Tombolnya cuma '
           'bikin teknisi menabrak penolakan yang sama berkali-kali.',
@@ -305,7 +305,7 @@ void main() {
 
     await tester.tap(tombolDaftarkan());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('PERUSAHAAN LAIN — TETAP DAFTARKAN'));
+    await tester.tap(find.text('Perusahaan lain — tetap daftarkan'));
     await tester.pumpAndSettle();
 
     expect(find.byType(PelangganBaruScreen), findsNothing);
@@ -338,7 +338,7 @@ void main() {
           'yang salah, tanpa satu pun error.',
     );
     expect(
-      find.text('PERUSAHAAN LAIN — TETAP DAFTARKAN'),
+      find.text('Perusahaan lain — tetap daftarkan'),
       findsNothing,
       reason: 'Tombol tembus yang tertinggal mengirim `tetap_buat: true` buat '
           'nama yang belum pernah diperiksa — kembar lahir tanpa kandidatnya '
@@ -353,7 +353,7 @@ void main() {
     final mata = _MataMata();
     await buka(tester, mata, kataKunci: 'Sinar');
 
-    await tester.tap(find.text('CARI DI DIREKTORI'));
+    await tester.tap(find.text('Cari di direktori'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('PT Sinar Rejeki Manufaktur'));
     await tester.pumpAndSettle();
@@ -378,7 +378,7 @@ void main() {
     final mata = _MataMata(namaBerspasi: true);
     await buka(tester, mata, kataKunci: 'Sinar');
 
-    await tester.tap(find.text('CARI DI DIREKTORI'));
+    await tester.tap(find.text('Cari di direktori'));
     await tester.pumpAndSettle();
     await tester.tap(find.textContaining('PT Sinar Rejeki Manufaktur'));
     await tester.pumpAndSettle();
@@ -402,7 +402,7 @@ void main() {
     final mata = _MataMata();
     await buka(tester, mata, kataKunci: 'Sinar');
 
-    await tester.tap(find.text('CARI DI DIREKTORI'));
+    await tester.tap(find.text('Cari di direktori'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('PT Sinar Rejeki Manufaktur'));
     await tester.pumpAndSettle();

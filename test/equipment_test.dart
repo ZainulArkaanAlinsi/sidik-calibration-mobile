@@ -127,20 +127,20 @@ void main() {
     await _tapTabAlat(tester);
 
     expect(find.text('Gagal memuat daftar alat.'), findsOneWidget);
-    expect(find.text('COBA LAGI'), findsOneWidget);
+    expect(find.text('Coba lagi'), findsOneWidget);
   });
 
   testWidgets('admin bisa lihat tombol tambah & hapus, viewer nggak', (
     tester,
   ) async {
     await _bukaTabAlat(tester);
-    expect(find.text('TAMBAH ALAT'), findsOneWidget);
+    expect(find.text('Tambah alat'), findsOneWidget);
     expect(find.byIcon(Icons.delete_outline), findsWidgets);
 
     // token-3 = viewer (lihat MockAuthService) — instance app baru dari nol,
     // bukan nyambung dari state token admin di atas.
     await _bukaTabAlat(tester, token: 'mock-token-3');
-    expect(find.text('TAMBAH ALAT'), findsNothing);
+    expect(find.text('Tambah alat'), findsNothing);
     expect(find.byIcon(Icons.delete_outline), findsNothing);
   });
 
@@ -148,7 +148,7 @@ void main() {
     _perbesarViewport(tester);
     await _bukaTabAlat(tester);
 
-    await tester.tap(find.text('TAMBAH ALAT'));
+    await tester.tap(find.text('Tambah alat'));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -168,7 +168,7 @@ void main() {
     // sekali, jadi form-nya nahan di sini daripada ditolak server belakangan.
     await tester.enterText(_kolom(tester, 'TOLERANSI'), '0.2');
 
-    await tester.tap(find.text('SIMPAN'));
+    await tester.tap(find.text('Simpan'));
     await tester.pumpAndSettle();
 
     expect(find.text('Termometer Digital Baru'), findsOneWidget);
@@ -180,7 +180,7 @@ void main() {
     _perbesarViewport(tester);
     await _bukaTabAlat(tester);
 
-    await tester.tap(find.text('TAMBAH ALAT'));
+    await tester.tap(find.text('Tambah alat'));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -197,12 +197,12 @@ void main() {
     await _pilihPelanggan(tester, 'PT Maju Jaya');
 
     // Toleransi sengaja dikosongin.
-    await tester.tap(find.text('SIMPAN'));
+    await tester.tap(find.text('Simpan'));
     await tester.pumpAndSettle();
 
     expect(find.text('Toleransi wajib diisi.'), findsOneWidget);
     expect(
-      find.text('SIMPAN'),
+      find.text('Simpan'),
       findsOneWidget,
       reason: 'masih nyangkut di form, bukan udah balik ke list',
     );
@@ -214,7 +214,7 @@ void main() {
       _perbesarViewport(tester);
       await _bukaTabAlat(tester);
 
-      await tester.tap(find.text('TAMBAH ALAT'));
+      await tester.tap(find.text('Tambah alat'));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Pilih kategori alat'), warnIfMissed: false);

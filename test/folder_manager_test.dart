@@ -112,7 +112,7 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextField), 'Arsip 2025');
-      await tester.tap(find.text('SIMPAN'));
+      await tester.tap(find.text('Simpan'));
       await tester.pumpAndSettle();
 
       expect(service.aksi, contains(('buat', 'Arsip 2025')));
@@ -124,7 +124,7 @@ void main() {
 
       await tester.tap(find.text('Folder baru'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('SIMPAN'));
+      await tester.tap(find.text('Simpan'));
       await tester.pumpAndSettle();
 
       expect(service.aksi, isEmpty);
@@ -143,7 +143,7 @@ void main() {
       expect(find.text('Hapus folder ini?'), findsOneWidget);
 
       // Batal = nggak ada yang kehapus.
-      await tester.tap(find.text('BATAL'));
+      await tester.tap(find.text('Batal'));
       await tester.pumpAndSettle();
       expect(service.aksi, isEmpty);
 
@@ -151,7 +151,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Hapus'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('HAPUS'));
+      await tester.tap(find.text('Hapus'));
       await tester.pumpAndSettle();
 
       expect(service.aksi, contains(('hapus', 3)));
@@ -165,7 +165,7 @@ void main() {
 
       // Daftar foldernya sendiri ikut gagal, jadi yang diperiksa layar error.
       expect(find.text('Gagal memuat folder.'), findsOneWidget);
-      expect(find.text('COBA LAGI'), findsOneWidget);
+      expect(find.text('Coba lagi'), findsOneWidget);
     });
   });
 }

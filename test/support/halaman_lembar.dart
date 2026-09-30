@@ -11,7 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// Aman dipanggil di lembar satu halaman: tombolnya tidak ada, jadi tidak ada
 /// yang ditekan.
 Future<void> keHalamanAkhir(WidgetTester tester) async {
-  final lanjut = find.text('LANJUT KE HALAMAN BERIKUTNYA');
+  final lanjut = find.text('Lanjut ke halaman berikutnya');
   while (lanjut.evaluate().isNotEmpty) {
     await tester.tap(lanjut);
     await tester.pumpAndSettle();

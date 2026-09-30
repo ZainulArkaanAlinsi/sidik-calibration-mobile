@@ -49,18 +49,18 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Gagal memuat pelanggan.'), findsOneWidget);
-    expect(find.text('COBA LAGI'), findsOneWidget);
+    expect(find.text('Coba lagi'), findsOneWidget);
   });
 
   testWidgets('tambah pelanggan baru → muncul di list', (tester) async {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('TAMBAH PELANGGAN'));
+    await tester.tap(find.text('Tambah pelanggan'));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField).first, 'PT Baru Sekali');
-    await tester.tap(find.text('SIMPAN'));
+    await tester.tap(find.text('Simpan'));
     await tester.pumpAndSettle();
 
     expect(find.text('PT Baru Sekali'), findsOneWidget);

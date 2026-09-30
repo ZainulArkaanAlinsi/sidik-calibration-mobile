@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import '../motion/transisi_halaman.dart';
 import 'sidik_material.dart';
-import 'tombol_lingkar.dart';
 
 /// Tema **"Meja Kerja Lab"** — pengganti `AppTheme`.
 ///
@@ -202,7 +201,7 @@ class SidikTheme {
           textStyle: teksSkala.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),
-        ).copyWith(foregroundBuilder: _labelTombol),
+        ),
       ),
 
       // ── Tombol sekunder: logam polos ─────────────────────────────────
@@ -219,7 +218,7 @@ class SidikTheme {
           textStyle: teksSkala.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),
-        ).copyWith(foregroundBuilder: _labelTombol),
+        ),
       ),
 
       textButtonTheme: TextButtonThemeData(
@@ -425,21 +424,6 @@ class SidikTheme {
       ),
     );
   }
-
-  /// Label tombol tetap HURUF BESAR untuk sementara.
-  ///
-  /// Keputusan 26 Sep: tombol jadi sentence case. Tapi 333 `find.text` di
-  /// test/ mencocokkan label kapital, dan test itu tidak bisa dijalankan di
-  /// tempat tema ini ditulis. Jadi pergantian tampilan (warna, material,
-  /// bentuk) dipisah dari pergantian huruf: yang ini netral terhadap test, dan
-  /// sentence case menyusul sebagai commit sendiri bersama pembaruan test-nya
-  /// (`alat/ke_sentence_case.py`). Memakai `TombolLingkar.hurufBesar` yang sama
-  /// supaya pembaca layar tetap dapat teks aslinya.
-  static Widget _labelTombol(
-    BuildContext context,
-    Set<WidgetState> states,
-    Widget? child,
-  ) => TombolLingkar.hurufBesar(child);
 
   static InputBorder _garisIsian(Color bawah) => UnderlineInputBorder(
     borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),

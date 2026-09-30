@@ -125,7 +125,7 @@ void main() {
     await tester.pumpAndSettle();
     await _bukaLayar(tester);
 
-    final tombol = find.text('KIRIM UNTUK APPROVAL');
+    final tombol = find.text('Kirim untuk approval');
     await _scrollKe(tester, tombol);
     await tester.tap(tombol);
     await tester.pumpAndSettle();
@@ -161,7 +161,7 @@ void main() {
     await _bukaLayar(tester);
 
     await _isiFormLengkap(tester);
-    final tombol = find.text('KIRIM UNTUK APPROVAL');
+    final tombol = find.text('Kirim untuk approval');
     await _scrollKe(tester, tombol);
     await tester.tap(tombol);
     await tester.pumpAndSettle();
@@ -179,7 +179,7 @@ void main() {
     await _bukaLayar(tester);
 
     await _isiFormLengkap(tester);
-    final tombol = find.text('SIMPAN DRAFT');
+    final tombol = find.text('Simpan draft');
     await _scrollKe(tester, tombol);
     await tester.tap(tombol);
     await tester.pumpAndSettle();
