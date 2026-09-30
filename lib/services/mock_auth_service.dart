@@ -75,6 +75,20 @@ class MockAuthService implements AuthService {
       'department': 'Kalibrasi',
       'organization_id': 1,
     },
+    // Super admin — pengesah sertifikat (gerbang pengesahan, keputusan 26 Sep
+    // 2026). Ada di sini supaya menu & layar khusus perannya bisa dipotret dan
+    // diuji; tanpa akun ini seluruh jalur super admin tidak pernah dirender.
+    {
+      'id': 5,
+      'nama': 'Eko Wibowo',
+      'kode_teknisi': 'EW',
+      'email': 'superadmin@pt-sidik.com',
+      'employee_id': 'SDK-0005',
+      'role': 'super_admin',
+      'status': 'aktif',
+      'department': 'Manajemen Mutu',
+      'organization_id': 1,
+    },
   ];
 
   static const _password = 'rahasia123';
@@ -166,10 +180,8 @@ class MockAuthService implements AuthService {
       // server" dari "server nggak kejangkau": cuma yang pertama yang boleh
       // ngehapus token. Mock yang ngelempar AuthException polos bikin token
       // basi kebaca sebagai gangguan jaringan, lalu ditinggal di HP.
-      orElse: () => throw const ApiException(
-        'Sesi kamu sudah berakhir.',
-        status: 401,
-      ),
+      orElse: () =>
+          throw const ApiException('Sesi kamu sudah berakhir.', status: 401),
     );
 
     return User.fromJson(json);

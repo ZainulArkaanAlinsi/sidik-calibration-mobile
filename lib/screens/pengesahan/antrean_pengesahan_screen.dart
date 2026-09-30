@@ -175,7 +175,10 @@ class _KartuPengajuan extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                [item.alatNama, if (item.alatMerk != null) item.alatMerk!].join(' · '),
+                [
+                  item.alatNama,
+                  if (item.alatMerk != null) item.alatMerk!,
+                ].join(' · '),
                 style: theme.textTheme.titleSmall,
               ),
               if (item.pelanggan != null)
@@ -204,7 +207,9 @@ class _KartuPengajuan extends ConsumerWidget {
                           ? l10n.pengesahanHariIni
                           : l10n.pengesahanMenungguHari(hari),
                       // Lebih dari dua hari menunggu = perlu dilihat.
-                      warna: hari >= 2 ? AppColors.statusPeringatan(context) : null,
+                      warna: hari >= 2
+                          ? AppColors.statusPeringatan(context)
+                          : null,
                     ),
                 ],
               ),
@@ -310,7 +315,9 @@ class _KartuPengajuan extends ConsumerWidget {
           .read(antreanPengesahanProvider.notifier)
           .sahkan(item.id, abaikanPeringatan: abaikan);
       messenger.showSnackBar(
-        SnackBar(content: Text(pesan.isEmpty ? l10n.pengesahanBerhasil : pesan)),
+        SnackBar(
+          content: Text(pesan.isEmpty ? l10n.pengesahanBerhasil : pesan),
+        ),
       );
     } on PengesahanButuhKonfirmasi catch (e) {
       if (!context.mounted) return;
@@ -465,12 +472,22 @@ class _Meta extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final c = warna ?? theme.colorScheme.onSurfaceVariant;
+    // `Flexible` + elipsis: di dalam `Wrap`, satu keterangan yang lebih panjang
+    // dari lebar kartu ("Diajukan oleh <nama panjang>") dulu meluap 46 px di
+    // HP 400 px — garis kuning-hitam, bukan teks terpotong.
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(ikon, size: 16, color: c),
         const SizedBox(width: 4),
-        Text(teks, style: theme.textTheme.bodySmall?.copyWith(color: c)),
+        Flexible(
+          child: Text(
+            teks,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(color: c),
+          ),
+        ),
       ],
     );
   }

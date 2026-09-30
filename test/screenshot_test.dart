@@ -36,6 +36,17 @@ import 'package:sidik_calibration/services/perhitungan_service.dart';
 import 'package:sidik_calibration/services/room_service.dart';
 import 'package:sidik_calibration/services/standard_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
+import 'package:sidik_calibration/providers/master_data_provider.dart';
+import 'package:sidik_calibration/providers/pengendalian_provider.dart';
+import 'package:sidik_calibration/screens/pelacakan/pelacakan_screen.dart';
+import 'package:sidik_calibration/screens/pengesahan/antrean_pengesahan_screen.dart';
+import 'package:sidik_calibration/screens/penugasan/penugasan_buat_screen.dart';
+import 'package:sidik_calibration/screens/penugasan/penugasan_screen.dart';
+import 'package:sidik_calibration/screens/settings/kelola_lab_screen.dart';
+import 'package:sidik_calibration/services/pelacakan_service.dart';
+import 'package:sidik_calibration/services/pengesahan_service.dart';
+import 'package:sidik_calibration/services/penugasan_service.dart';
+import 'package:sidik_calibration/services/user_service.dart';
 
 import 'support/halaman_lembar.dart';
 
@@ -104,7 +115,8 @@ final _tanggalGolden = DateTime(2026, 8, 9, 10, 30);
 Widget _bungkus(
   Widget layar, {
   required Brightness mode,
-  // `mock-token-1` = admin, `mock-token-2` = teknisi (lihat MockAuthService).
+  // `mock-token-1` = admin, `mock-token-2` = teknisi, `mock-token-5` = super
+  // admin (lihat MockAuthService).
   // Dua-duanya dipotret: layar teknisi dan layar admin sekarang beda isi,
   // jadi satu golden aja nutupin separuh app yang berubah.
   String token = 'mock-token-1',
@@ -135,6 +147,12 @@ Widget _bungkus(
       // nggak nyambung sama perubahan kode itu lama-lama diabaikan orang,
       // termasuk waktu dia beneran nangkep bug. Kejadian 10 Agt 2026.
       jamProvider.overrideWithValue(() => _tanggalGolden),
+      // Layar paket 29 Sep (pengesahan, pelacakan, penugasan). Tanpa mock-nya
+      // ketiganya menembak API asli di golden dan cuma memotret pesan galat.
+      pengesahanServiceProvider.overrideWithValue(MockPengesahanService()),
+      pelacakanServiceProvider.overrideWithValue(MockPelacakanService()),
+      penugasanServiceProvider.overrideWithValue(MockPenugasanService()),
+      userServiceProvider.overrideWithValue(MockUserService()),
     ],
     child: MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -580,6 +598,138 @@ void main() {
     await expectLater(
       find.byType(LembarKerjaScreen),
       matchesGoldenFile('screenshots/lembar-chlorine-alat-kepilih.png'),
+    );
+  });
+
+  // ── Paket 29 Sep 2026: menu per peran & layar pengendalian ──────────────
+  //
+  // Tujuh layar ini lahir tanpa satu golden pun, jadi tampilannya belum pernah
+  // dilihat siapa pun sebelum dirilis. Yang pertama kali memotretnya justru
+  // menemukan baris meta di antrean pengesahan meluap 46 px di lebar HP.
+
+  Future<void> potretMenu(
+    WidgetTester tester, {
+    required String token,
+    required String berkas,
+    Brightness mode = Brightness.light,
+  }) async {
+    pasangUkuranHp(tester);
+    await _pumpLayar(
+      tester,
+      _bungkus(const MainShell(), mode: mode, token: token),
+    );
+    bukaMenuUtama();
+    await tester.pumpAndSettle();
+    await expectLater(find.byType(MainShell), matchesGoldenFile(berkas));
+  }
+
+  testWidgets('menu super admin', (tester) async {
+    await potretMenu(
+      tester,
+      token: 'mock-token-5',
+      berkas: 'screenshots/menu-super-admin.png',
+    );
+  });
+
+  /// Tema gelap: baris menu aktif pernah 1,9:1 di sini (biru di atas
+  /// biru-tipis). Dipotret supaya perbaikannya kelihatan dan terjaga.
+  testWidgets('menu super admin — gelap', (tester) async {
+    await potretMenu(
+      tester,
+      token: 'mock-token-5',
+      berkas: 'screenshots/menu-super-admin-gelap.png',
+      mode: Brightness.dark,
+    );
+  });
+
+  testWidgets('menu teknisi', (tester) async {
+    await potretMenu(
+      tester,
+      token: 'mock-token-2',
+      berkas: 'screenshots/menu-teknisi.png',
+    );
+  });
+
+  testWidgets('pengesahan super admin', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayar(
+      tester,
+      _bungkus(
+        const AntreanPengesahanScreen(),
+        mode: Brightness.light,
+        token: 'mock-token-5',
+      ),
+    );
+    await expectLater(
+      find.byType(AntreanPengesahanScreen),
+      matchesGoldenFile('screenshots/pengesahan-super-admin.png'),
+    );
+  });
+
+  testWidgets('pelacakan paket', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayar(
+      tester,
+      _bungkus(const PelacakanScreen(), mode: Brightness.light),
+    );
+    await expectLater(
+      find.byType(PelacakanScreen),
+      matchesGoldenFile('screenshots/pelacakan-paket.png'),
+    );
+  });
+
+  testWidgets('penugasan admin', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayar(
+      tester,
+      _bungkus(const PenugasanScreen(), mode: Brightness.light),
+    );
+    await expectLater(
+      find.byType(PenugasanScreen),
+      matchesGoldenFile('screenshots/penugasan-admin.png'),
+    );
+  });
+
+  /// Detail tugas dari sisi teknisi — tempat tombol −/+ lapor progres.
+  testWidgets('penugasan detail teknisi', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayar(
+      tester,
+      _bungkus(
+        const PenugasanScreen(),
+        mode: Brightness.light,
+        token: 'mock-token-2',
+      ),
+    );
+    await tester.tap(find.byType(InkWell).first);
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(DetailPenugasanScreen),
+      matchesGoldenFile('screenshots/penugasan-detail-teknisi.png'),
+    );
+  });
+
+  testWidgets('penugasan buat', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayar(
+      tester,
+      _bungkus(const PenugasanBuatScreen(), mode: Brightness.light),
+    );
+    await expectLater(
+      find.byType(PenugasanBuatScreen),
+      matchesGoldenFile('screenshots/penugasan-buat.png'),
+    );
+  });
+
+  testWidgets('kelola lab', (tester) async {
+    pasangUkuranHp(tester);
+    await _pumpLayar(
+      tester,
+      _bungkus(const KelolaLabScreen(), mode: Brightness.light),
+    );
+    await expectLater(
+      find.byType(KelolaLabScreen),
+      matchesGoldenFile('screenshots/kelola-lab.png'),
     );
   });
 }
