@@ -11,10 +11,11 @@
 /// snapshot-nya di backend, bukan tempelan di layar.
 library;
 
-/// Header — 16 field, urutannya ngikutin yang tercetak di sertifikat.
 import '../core/utils/parse_list.dart';
 import 'autoclave_hasil.dart';
+import 'revisi_sertifikat.dart';
 
+/// Header — 16 field, urutannya ngikutin yang tercetak di sertifikat.
 class HeaderSertifikat {
   const HeaderSertifikat(this._raw);
 
@@ -341,12 +342,25 @@ class CertificateDetail {
     this.pelangganNama,
     this.pelangganEmail,
     this.pelangganTelepon,
+    this.statusDokumenKode,
+    this.revisiKe = 0,
+    this.revisiDari,
+    this.digantikanOleh,
+    this.alasanRevisi,
+    this.dibatalkanPada,
+    this.dibatalkanOleh,
+    this.alasanPembatalan,
+    this.catatanPelanggan,
+    this.bisaDirevisi = false,
+    this.bisaDibatalkan = false,
+    this.dataCetak,
+    this.dampakPembatalan,
   });
 
   final int id;
   final String nomor;
 
-  /// `terbit` / `menunggu_generate` / `gagal`.
+  /// `terbit` / `menunggu_generate` / `gagal` / `dibatalkan`.
   final String status;
 
   /// `null` kalau PDF-nya belum jadi — snapshot dibekukan waktu terbit, jadi
@@ -368,10 +382,104 @@ class CertificateDetail {
   final String? pelangganEmail;
   final String? pelangganTelepon;
 
+  // ── Revisi & pembatalan (kontrak A1). Server lama tidak mengirim satu pun. ──
+
+  /// Kode mentah `status_dokumen`; `null` = server lama.
+  final String? statusDokumenKode;
+
+  /// 0 = asli; 1 = `-R1`, dst.
+  final int revisiKe;
+
+  /// Pendahulu langsung.
+  final RujukanSertifikat? revisiDari;
+
+  /// Revisi terbaru atas sertifikat ini, status apa pun.
+  final RujukanSertifikat? digantikanOleh;
+
+  /// Internal — hanya di aplikasi lab.
+  final String? alasanRevisi;
+
+  final DateTime? dibatalkanPada;
+  final String? dibatalkanOleh;
+
+  /// Internal.
+  final String? alasanPembatalan;
+
+  /// Teks yang dibaca pelanggan.
+  final String? catatanPelanggan;
+
+  final bool bisaDirevisi;
+  final bool bisaDibatalkan;
+
+  /// Nilai tercetak, isian awal formulir revisi. `null` = snapshot kosong.
+  final DataCetak? dataCetak;
+
+  /// Hanya di detail, hanya kalau [bisaDibatalkan].
+  final DampakPembatalan? dampakPembatalan;
+
   bool get siap => status == 'terbit';
+
+  /// PDF arsip lab tetap bisa diunduh walau sertifikatnya sudah dibatalkan.
+  bool get bisaUnduh => siap || status == 'dibatalkan';
+
+  /// Label dokumen. Server lama (tanpa `status_dokumen`) diturunkan dari
+  /// [status] teknis supaya layar tetap punya jawaban.
+  StatusDokumen get statusDokumen =>
+      StatusDokumen.dariApi(statusDokumenKode) ??
+      switch (status) {
+        'dibatalkan' => StatusDokumen.dibatalkan,
+        'terbit' => StatusDokumen.berlaku,
+        _ => StatusDokumen.belumTerbit,
+      };
+
+  bool get adalahRevisi => revisiKe > 0 || revisiDari != null;
+
+  CertificateDetail salin({
+    String? status,
+    String? statusDokumenKode,
+    RujukanSertifikat? digantikanOleh,
+    bool? bisaDirevisi,
+    bool? bisaDibatalkan,
+    DampakPembatalan? dampakPembatalan,
+    DateTime? dibatalkanPada,
+    String? dibatalkanOleh,
+    String? alasanPembatalan,
+    String? catatanPelanggan,
+    DataCetak? dataCetak,
+    int? revisiKe,
+    RujukanSertifikat? revisiDari,
+    String? alasanRevisi,
+    String? nomor,
+    int? id,
+  }) => CertificateDetail(
+    id: id ?? this.id,
+    nomor: nomor ?? this.nomor,
+    status: status ?? this.status,
+    snapshot: snapshot,
+    pdfUrl: pdfUrl,
+    qrToken: qrToken,
+    diterbitkanPada: diterbitkanPada,
+    pelangganNama: pelangganNama,
+    pelangganEmail: pelangganEmail,
+    pelangganTelepon: pelangganTelepon,
+    statusDokumenKode: statusDokumenKode ?? this.statusDokumenKode,
+    revisiKe: revisiKe ?? this.revisiKe,
+    revisiDari: revisiDari ?? this.revisiDari,
+    digantikanOleh: digantikanOleh ?? this.digantikanOleh,
+    alasanRevisi: alasanRevisi ?? this.alasanRevisi,
+    dibatalkanPada: dibatalkanPada ?? this.dibatalkanPada,
+    dibatalkanOleh: dibatalkanOleh ?? this.dibatalkanOleh,
+    alasanPembatalan: alasanPembatalan ?? this.alasanPembatalan,
+    catatanPelanggan: catatanPelanggan ?? this.catatanPelanggan,
+    bisaDirevisi: bisaDirevisi ?? this.bisaDirevisi,
+    bisaDibatalkan: bisaDibatalkan ?? this.bisaDibatalkan,
+    dataCetak: dataCetak ?? this.dataCetak,
+    dampakPembatalan: dampakPembatalan ?? this.dampakPembatalan,
+  );
 
   factory CertificateDetail.fromJson(Map<String, dynamic> json) {
     final pelanggan = json['pelanggan'] as Map<String, dynamic>?;
+    final oleh = json['dibatalkan_oleh'];
 
     return CertificateDetail(
         id: (json['id'] as num).toInt(),
@@ -388,6 +496,25 @@ class CertificateDetail {
         pelangganNama: pelanggan?['nama'] as String?,
         pelangganEmail: pelanggan?['email'] as String?,
         pelangganTelepon: pelanggan?['telepon'] as String?,
+        statusDokumenKode: json['status_dokumen'] as String?,
+        revisiKe: (json['revisi_ke'] as num?)?.toInt() ?? 0,
+        revisiDari: RujukanSertifikat.dariJson(json['revisi_dari']),
+        digantikanOleh: RujukanSertifikat.dariJson(json['digantikan_oleh']),
+        alasanRevisi: json['alasan_revisi'] as String?,
+        dibatalkanPada: DateTime.tryParse(
+          json['dibatalkan_pada'] as String? ?? '',
+        ),
+        dibatalkanOleh: switch (oleh) {
+          final Map m => m['nama'] as String?,
+          final String s => s,
+          _ => null,
+        },
+        alasanPembatalan: json['alasan_pembatalan'] as String?,
+        catatanPelanggan: json['catatan_pelanggan'] as String?,
+        bisaDirevisi: json['bisa_direvisi'] == true,
+        bisaDibatalkan: json['bisa_dibatalkan'] == true,
+        dataCetak: DataCetak.dariJson(json['data_cetak']),
+        dampakPembatalan: DampakPembatalan.dariJson(json['dampak_pembatalan']),
       );
   }
 }

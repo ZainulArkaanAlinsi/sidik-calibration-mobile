@@ -1,3 +1,4 @@
+import '../models/koreksi_pelanggan.dart' show FotoPelanggan;
 import '../models/permintaan_pelanggan.dart';
 import 'api_client.dart';
 import 'auth_service.dart';
@@ -38,6 +39,30 @@ abstract class PermintaanService {
   Future<UtasPermintaan> pesan(String token, int id);
 
   Future<PesanPermintaan> kirimPesan(String token, int id, String isi);
+
+  /// Jadwalkan teknisi untuk permintaan `diterima` + `diambil_lab`
+  /// (`POST /permintaan-pelanggan/{id}/jadwal`, kontrak A5). [jadwalPada]
+  /// dikirim sebagai cap waktu ISO-8601 Zulu. 422 → [GalatPermintaan].
+  Future<PermintaanPelanggan> jadwalkan(
+    String token,
+    int id, {
+    required DateTime jadwalPada,
+    String? lokasi,
+    String? catatan,
+  });
+
+  /// Tandai alat sudah tiba di lab (`POST …/alat-tiba`, tanpa badan). 422
+  /// → [GalatPermintaan] kalau sudah ditandai / bukan `diterima`.
+  Future<PermintaanPelanggan> alatTiba(String token, int id);
+}
+
+/// Cap waktu ISO-8601 Zulu tanpa pecahan detik (`2026-10-01T02:15:00Z`),
+/// bentuk yang dipakai kontrak di semua cap waktu.
+String capWaktuZulu(DateTime t) {
+  final u = t.toUtc();
+  String d2(int n) => n.toString().padLeft(2, '0');
+  return '${u.year.toString().padLeft(4, '0')}-${d2(u.month)}-${d2(u.day)}'
+      'T${d2(u.hour)}:${d2(u.minute)}:${d2(u.second)}Z';
 }
 
 class ApiPermintaanService implements PermintaanService {
@@ -171,6 +196,42 @@ class ApiPermintaanService implements PermintaanService {
       ),
     );
     return PesanPermintaan.fromJson(
+      (json['data'] ?? json) as Map<String, dynamic>,
+    );
+  }
+
+  @override
+  Future<PermintaanPelanggan> jadwalkan(
+    String token,
+    int id, {
+    required DateTime jadwalPada,
+    String? lokasi,
+    String? catatan,
+  }) async {
+    final json = await _tulis(
+      () => _api.post(
+        '/permintaan-pelanggan/$id/jadwal',
+        token: token,
+        body: {
+          'jadwal_pada': capWaktuZulu(jadwalPada),
+          if (lokasi != null && lokasi.trim().isNotEmpty)
+            'lokasi': lokasi.trim(),
+          if (catatan != null && catatan.trim().isNotEmpty)
+            'catatan': catatan.trim(),
+        },
+      ),
+    );
+    return PermintaanPelanggan.fromJson(
+      (json['data'] ?? json) as Map<String, dynamic>,
+    );
+  }
+
+  @override
+  Future<PermintaanPelanggan> alatTiba(String token, int id) async {
+    final json = await _tulis(
+      () => _api.post('/permintaan-pelanggan/$id/alat-tiba', token: token),
+    );
+    return PermintaanPelanggan.fromJson(
       (json['data'] ?? json) as Map<String, dynamic>,
     );
   }
@@ -333,6 +394,176 @@ class MockPermintaanService implements PermintaanService {
       ),
     ],
   };
+
+  /// Permintaan yang sudah diterima dengan perjalanan alatnya (kontrak A5).
+  /// Tidak ikut [contoh] supaya hitungan tab & golden lama tidak bergeser;
+  /// dipakai lewat `MockPermintaanService(awal: contohPerjalanan)`.
+  ///
+  /// #14 diantar sendiri (resi + foto pelat nama), #15 diambil lab (belum
+  /// dijadwalkan), #16 diambil lab yang sudah dijadwalkan.
+  static final contohPerjalanan = <PermintaanPelanggan>[
+    PermintaanPelanggan(
+      id: 14,
+      nomor: 'PMT/2026/09/0014',
+      status: StatusPermintaan.diterima,
+      pelangganId: 3,
+      pelangganNama: 'PT Contoh Jaya',
+      pemohonNama: 'Budi',
+      metode: MetodePengantaran.diantarSendiri,
+      orderId: 56,
+      orderNomor: 'ORD/2026/09/0056',
+      diputuskanOleh: 'Hendra Wijaya',
+      diputuskanPada: DateTime.utc(2026, 9, 29, 3),
+      jumlahAlat: 2,
+      dibuatPada: DateTime.utc(2026, 9, 28, 2),
+      tahap: TahapPermintaan.dalamPengiriman,
+      tahapLabel: 'Alat dalam pengiriman',
+      resi: ResiPermintaan(
+        kurir: 'JNE',
+        nomor: 'JNE0012345678',
+        diisiPada: DateTime.utc(2026, 9, 30, 5),
+      ),
+      progres: const ProgresPermintaan(selesai: 0, total: 2),
+      alat: const [
+        AlatPermintaan(
+          id: 61,
+          equipmentId: 88,
+          baru: false,
+          namaAlat: 'Timbangan Ohaus PX224',
+          merk: 'Ohaus',
+          serialNumber: 'C3349',
+        ),
+        AlatPermintaan(
+          id: 62,
+          baru: true,
+          namaAlat: 'pH Meter',
+          merk: 'Hanna',
+          model: 'HI2211',
+          serialNumber: 'HI2211-0419',
+          foto: [FotoPelanggan(id: 5), FotoPelanggan(id: 6)],
+        ),
+      ],
+    ),
+    PermintaanPelanggan(
+      id: 15,
+      nomor: 'PMT/2026/09/0015',
+      status: StatusPermintaan.diterima,
+      pelangganId: 3,
+      pelangganNama: 'PT Contoh Jaya',
+      pemohonNama: 'Sari',
+      metode: MetodePengantaran.diambilLab,
+      orderId: 57,
+      orderNomor: 'ORD/2026/09/0057',
+      jumlahAlat: 1,
+      dibuatPada: DateTime.utc(2026, 9, 29, 2),
+      tahap: TahapPermintaan.menungguJadwal,
+      tahapLabel: 'Menunggu jadwal teknisi',
+      progres: const ProgresPermintaan(selesai: 0, total: 1),
+      alat: const [
+        AlatPermintaan(
+          id: 71,
+          equipmentId: 91,
+          baru: false,
+          namaAlat: 'Jangka Sorong Mitutoyo',
+          serialNumber: 'MT-500-196-30',
+        ),
+      ],
+    ),
+    PermintaanPelanggan(
+      id: 16,
+      nomor: 'PMT/2026/09/0016',
+      status: StatusPermintaan.diterima,
+      pelangganId: 3,
+      pelangganNama: 'PT Contoh Jaya',
+      pemohonNama: 'Sari',
+      metode: MetodePengantaran.diambilLab,
+      orderId: 58,
+      orderNomor: 'ORD/2026/09/0058',
+      jumlahAlat: 3,
+      dibuatPada: DateTime.utc(2026, 9, 27, 2),
+      tahap: TahapPermintaan.teknisiDijadwalkan,
+      tahapLabel: 'Teknisi dijadwalkan',
+      jadwal: JadwalPermintaan(
+        pada: DateTime.utc(2026, 10, 5, 2),
+        lokasi: 'Gudang QC, Jl. Contoh Raya 10, Bandung',
+        catatan: 'Bawa dokumen serah terima.',
+      ),
+      progres: const ProgresPermintaan(selesai: 1, total: 3),
+      alat: const [
+        AlatPermintaan(
+          id: 81,
+          equipmentId: 92,
+          baru: false,
+          namaAlat: 'Termometer Digital',
+          serialNumber: 'TD-77',
+        ),
+      ],
+    ),
+  ];
+
+  /// Isi terakhir yang dikirim ke `jadwalkan`, untuk diperiksa test.
+  final List<({int id, DateTime jadwalPada, String? lokasi, String? catatan})>
+  dijadwalkanDengan = [];
+  final List<int> alatTibaDitandai = [];
+
+  @override
+  Future<PermintaanPelanggan> jadwalkan(
+    String token,
+    int id, {
+    required DateTime jadwalPada,
+    String? lokasi,
+    String? catatan,
+  }) async {
+    _cekGagal();
+    final p = _data[_indeks(id)];
+    if (!p.bisaDijadwalkan) {
+      throw const GalatPermintaan(
+        'Permintaan ini tidak bisa dijadwalkan.',
+        errors: {
+          'status': ['Hanya permintaan diterima yang diambil lab.'],
+        },
+      );
+    }
+    dijadwalkanDengan.add((
+      id: id,
+      jadwalPada: jadwalPada,
+      lokasi: lokasi,
+      catatan: catatan,
+    ));
+    final baru = p.salin(
+      jadwal: JadwalPermintaan(
+        pada: jadwalPada.toUtc(),
+        lokasi: lokasi,
+        catatan: catatan,
+      ),
+      tahap: TahapPermintaan.teknisiDijadwalkan,
+      tahapLabel: 'Teknisi dijadwalkan',
+    );
+    _data[_data.indexOf(p)] = baru;
+    return baru;
+  }
+
+  @override
+  Future<PermintaanPelanggan> alatTiba(String token, int id) async {
+    _cekGagal();
+    final p = _data[_indeks(id)];
+    if (!p.bisaDitandaiTiba) {
+      throw const GalatPermintaan(
+        'Alat sudah ditandai tiba.',
+        errors: {
+          'status': ['Alat sudah ditandai tiba.'],
+        },
+      );
+    }
+    alatTibaDitandai.add(id);
+    final baru = p.salin(
+      alatTibaPada: DateTime.utc(2026, 10, 1, 3),
+      tahap: TahapPermintaan.alatDiLab,
+      tahapLabel: 'Alat di lab',
+    );
+    _data[_data.indexOf(p)] = baru;
+    return baru;
+  }
 
   void _cekGagal() {
     if (gagal) throw Exception('server nggak nyaut');

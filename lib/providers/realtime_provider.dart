@@ -12,6 +12,8 @@ import 'jatuh_tempo_provider.dart';
 import 'notifikasi_perangkat_provider.dart';
 import 'notification_provider.dart';
 import 'pengendalian_provider.dart';
+import 'certificate_provider.dart';
+import 'koreksi_provider.dart';
 import 'permintaan_provider.dart';
 import 'pusat_pelanggan_provider.dart';
 
@@ -130,6 +132,18 @@ void _tangani(Ref ref, PeristiwaRealtime p) {
       ref.invalidate(jumlahPermintaanBaruProvider);
       ref.invalidate(detailPermintaanProvider);
       ref.invalidate(pesanPermintaanProvider);
+      // Jadwal, resi, dan alat tiba (jenis 'permintaan', aksi resi/jadwal/
+      // alat_tiba) menarik detail yang sama — sudah tercakup di atas.
+      //
+      // Koreksi pelanggan (jenis 'koreksi_pelanggan': dibuat/diterima/
+      // ditolak): antrean, badge menu, dan detail yang terbuka menyusul.
+      ref.invalidate(antreanKoreksiProvider);
+      ref.invalidate(jumlahKoreksiMenungguProvider);
+      ref.invalidate(detailKoreksiProvider);
+      // Sertifikat (jenis 'sertifikat': direvisi/dibatalkan/terbit): status
+      // dokumen, revisi yang selesai dirender, dan tombol admin ikut segar.
+      // Family-nya lazy: hanya yang sedang ditonton yang menarik ulang.
+      ref.invalidate(certificateDetailProvider);
     case NotifikasiMasuk():
       // Badge lonceng selalu di-refresh (nyala barengan HP↔desktop); daftar
       // notifikasi refetch lazy saat layarnya dibuka.

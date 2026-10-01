@@ -1,6 +1,8 @@
 import '../core/config/app_config.dart';
 import '../models/certificate_snapshot.dart';
+import '../models/revisi_sertifikat.dart';
 import 'api_client.dart';
+import 'auth_service.dart' show ApiException;
 
 /// Sertifikat terbit (spesifikasi poin 9, 10 & 13).
 ///
@@ -21,6 +23,28 @@ abstract class CertificateService {
 
   /// Rekap banyak sertifikat sekaligus, mis. `bulan: '2026-07'`.
   String urlRekapExcel({String? bulan, int? customerId});
+
+  /// Terbitkan REVISI (`POST /certificates/{id}/revisi`, admin). Jawabannya
+  /// 202 berisi baris revisi BARU (`menunggu_generate`) — PDF-nya dirender di
+  /// antrean. [perubahan] hanya memuat kunci yang berubah.
+  ///
+  /// Melempar [GalatAksi] untuk 422: `errors["perubahan.<kunci>"]` untuk
+  /// isian, `{message}` saja untuk galat keadaan (sudah digantikan, dst.).
+  Future<CertificateDetail> revisi(
+    String token,
+    int certificateId, {
+    required Map<String, String> perubahan,
+    required String alasan,
+    String? catatanPelanggan,
+  });
+
+  /// Batalkan (`POST /certificates/{id}/batalkan`, admin). Final.
+  Future<CertificateDetail> batalkan(
+    String token,
+    int certificateId, {
+    required String alasan,
+    String? catatanPelanggan,
+  });
 }
 
 class ApiCertificateService implements CertificateService {
@@ -33,6 +57,67 @@ class ApiCertificateService implements CertificateService {
   @override
   Future<CertificateDetail> detail(String token, int certificateId) async {
     final json = await _api.get('/certificates/$certificateId', token: token);
+    return CertificateDetail.fromJson(
+      (json['data'] ?? json) as Map<String, dynamic>,
+    );
+  }
+
+  /// 422 jadi [GalatAksi] supaya layar bisa membaca `errors` per kunci;
+  /// status lain (403/404/429) dilempar apa adanya dengan pesan server.
+  Future<Map<String, dynamic>> _tulis(
+    Future<Map<String, dynamic>> Function() kirim,
+  ) async {
+    try {
+      return await kirim();
+    } on ApiException catch (e) {
+      if (e.status == 422) throw GalatAksi.dariBody(e.message, e.body);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<CertificateDetail> revisi(
+    String token,
+    int certificateId, {
+    required Map<String, String> perubahan,
+    required String alasan,
+    String? catatanPelanggan,
+  }) async {
+    final json = await _tulis(
+      () => _api.post(
+        '/certificates/$certificateId/revisi',
+        token: token,
+        body: {
+          'perubahan': perubahan,
+          'alasan': alasan.trim(),
+          if (catatanPelanggan != null && catatanPelanggan.trim().isNotEmpty)
+            'catatan_pelanggan': catatanPelanggan.trim(),
+        },
+      ),
+    );
+    return CertificateDetail.fromJson(
+      (json['data'] ?? json) as Map<String, dynamic>,
+    );
+  }
+
+  @override
+  Future<CertificateDetail> batalkan(
+    String token,
+    int certificateId, {
+    required String alasan,
+    String? catatanPelanggan,
+  }) async {
+    final json = await _tulis(
+      () => _api.post(
+        '/certificates/$certificateId/batalkan',
+        token: token,
+        body: {
+          'alasan': alasan.trim(),
+          if (catatanPelanggan != null && catatanPelanggan.trim().isNotEmpty)
+            'catatan_pelanggan': catatanPelanggan.trim(),
+        },
+      ),
+    );
     return CertificateDetail.fromJson(
       (json['data'] ?? json) as Map<String, dynamic>,
     );
@@ -59,14 +144,100 @@ class ApiCertificateService implements CertificateService {
 }
 
 class MockCertificateService implements CertificateService {
-  MockCertificateService({this.gagal = false, this.belumTerbit = false});
+  /// [khusus] menimpa jawaban `detail` per id (mis. sertifikat digantikan atau
+  /// dibatalkan untuk golden); id lain memakai isi bawaan di bawah.
+  /// [bolehAksi] menyalakan `bisa_direvisi` & `bisa_dibatalkan` pada bawaan.
+  MockCertificateService({
+    this.gagal = false,
+    this.belumTerbit = false,
+    this.bolehAksi = false,
+    this.dampak,
+    Map<int, CertificateDetail>? khusus,
+  }) : _khusus = {...?khusus};
 
   final bool gagal;
   final bool belumTerbit;
+  final bool bolehAksi;
+  final DampakPembatalan? dampak;
+  final Map<int, CertificateDetail> _khusus;
+
+  /// Isi terakhir yang dikirim ke `revisi` / `batalkan`, untuk diperiksa test.
+  final List<({Map<String, String> perubahan, String alasan, String? catatan})>
+  direvisiDengan = [];
+  final List<({String alasan, String? catatan})> dibatalkanDengan = [];
+
+  /// Nomor seri yang dianggap bentrok (meniru 422 validasi per kunci).
+  static const serialDitolak = 'SERI-DITOLAK';
+
+  @override
+  Future<CertificateDetail> revisi(
+    String token,
+    int certificateId, {
+    required Map<String, String> perubahan,
+    required String alasan,
+    String? catatanPelanggan,
+  }) async {
+    if (gagal) throw Exception('server nggak nyaut');
+    final asal = await detail(token, certificateId);
+    if (!asal.bisaDirevisi) {
+      throw const GalatAksi('Sertifikat ini tidak bisa direvisi lagi.');
+    }
+    if (perubahan[KunciDataCetak.nomorSeri] == serialDitolak) {
+      throw const GalatAksi(
+        'Data yang dikirim nggak valid.',
+        errors: {
+          'perubahan.nomor_seri': ['Nomor seri ini tidak boleh dipakai.'],
+        },
+      );
+    }
+    direvisiDengan.add((
+      perubahan: perubahan,
+      alasan: alasan,
+      catatan: catatanPelanggan,
+    ));
+    return CertificateDetail(
+      id: certificateId + 1000,
+      nomor: '${asal.nomor}-R${asal.revisiKe + 1}',
+      status: 'menunggu_generate',
+      statusDokumenKode: 'belum_terbit',
+      revisiKe: asal.revisiKe + 1,
+      revisiDari: RujukanSertifikat(id: asal.id, nomor: asal.nomor),
+    );
+  }
+
+  @override
+  Future<CertificateDetail> batalkan(
+    String token,
+    int certificateId, {
+    required String alasan,
+    String? catatanPelanggan,
+  }) async {
+    if (gagal) throw Exception('server nggak nyaut');
+    final asal = await detail(token, certificateId);
+    if (!asal.bisaDibatalkan) {
+      throw const GalatAksi('Sertifikat ini tidak bisa dibatalkan.');
+    }
+    dibatalkanDengan.add((alasan: alasan, catatan: catatanPelanggan));
+    final baru = asal.salin(
+      status: 'dibatalkan',
+      statusDokumenKode: 'dibatalkan',
+      bisaDirevisi: false,
+      bisaDibatalkan: false,
+      dibatalkanPada: DateTime.utc(2026, 10, 1, 3),
+      dibatalkanOleh: 'Hendra Wijaya',
+      alasanPembatalan: alasan,
+      catatanPelanggan: catatanPelanggan,
+    );
+    _khusus[certificateId] = baru;
+    return baru;
+  }
 
   @override
   Future<CertificateDetail> detail(String token, int certificateId) async {
     if (gagal) throw Exception('server nggak nyaut');
+
+    final k = _khusus[certificateId];
+    if (k != null) return k;
 
     if (belumTerbit) {
       return CertificateDetail(
@@ -84,6 +255,13 @@ class MockCertificateService implements CertificateService {
       pdfUrl: 'https://contoh/certificates/$certificateId/download',
       qrToken: 'abc123',
       diterbitkanPada: '2024-05-30',
+      // Bawaan: sah & tanpa tombol. Tombol admin cuma nyala bila diminta
+      // ([bolehAksi]) supaya layar & golden lama tidak bergeser.
+      statusDokumenKode: 'berlaku',
+      bisaDirevisi: bolehAksi,
+      bisaDibatalkan: bolehAksi,
+      dataCetak: bolehAksi ? _dataCetakContoh : null,
+      dampakPembatalan: bolehAksi ? dampak : null,
       // Kontak pelanggan — backend emang ngirim ini (`CertificateResource`),
       // dipakai tombol "tinggal pilih" di layar kirim.
       pelangganNama: 'PT TIRTA CONTOH MANDIRI',
@@ -176,6 +354,18 @@ class MockCertificateService implements CertificateService {
       }),
     );
   }
+
+  /// Nilai tercetak sertifikat contoh di atas (isian awal formulir revisi).
+  static const _dataCetakContoh = DataCetak({
+    KunciDataCetak.pemilik: 'PT TIRTA CONTOH MANDIRI',
+    KunciDataCetak.alamat: 'Jl. Contoh Primer A-10, Kec. Cicalengka',
+    KunciDataCetak.merk: 'Mettler Toledo',
+    KunciDataCetak.tipe: 'Five Easy',
+    KunciDataCetak.nomorSeri: 'B628755900',
+    KunciDataCetak.lokasiKalibrasi: 'Lab. Uji A',
+    KunciDataCetak.tanggalKalibrasi: '2024-05-26',
+    KunciDataCetak.berlakuSampai: '2025-05-26',
+  });
 
   @override
   String urlPdf(int id) => 'https://contoh/certificates/$id/download';

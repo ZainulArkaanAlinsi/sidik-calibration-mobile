@@ -5,6 +5,7 @@ import '../models/certificate_snapshot.dart';
 import '../services/certificate_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
+import 'history_provider.dart' show historyProvider;
 
 final certificateServiceProvider = Provider<CertificateService>((ref) {
   if (AppConfig.useMock) return MockCertificateService();
@@ -25,3 +26,64 @@ final certificateDetailProvider =
           .read(certificateServiceProvider)
           .detail(token, certificateId);
     }, retry: (retryCount, error) => null);
+
+/// Aksi tulis sertifikat (revisi & pembatalan, admin). Sesudah berhasil, detail
+/// sertifikat yang terbuka, riwayat, dan daftar yang menampilkan statusnya
+/// ditarik ulang — sertifikat lama berubah jadi `digantikan`/`dibatalkan`, dan
+/// (untuk revisi) baris baru lahir.
+final sertifikatAksiProvider = Provider<SertifikatAksi>(SertifikatAksi.new);
+
+class SertifikatAksi {
+  SertifikatAksi(this._ref);
+
+  final Ref _ref;
+
+  Future<String> _token() async {
+    final token = await _ref.read(tokenStorageProvider).read();
+    if (token == null) throw const TokenHilangException();
+    return token;
+  }
+
+  void _segarkan(int id) {
+    _ref
+      ..invalidate(certificateDetailProvider(id))
+      ..invalidate(historyProvider);
+  }
+
+  /// Mengembalikan baris REVISI baru (`menunggu_generate`).
+  Future<CertificateDetail> revisi(
+    int id, {
+    required Map<String, String> perubahan,
+    required String alasan,
+    String? catatanPelanggan,
+  }) async {
+    final hasil = await _ref
+        .read(certificateServiceProvider)
+        .revisi(
+          await _token(),
+          id,
+          perubahan: perubahan,
+          alasan: alasan,
+          catatanPelanggan: catatanPelanggan,
+        );
+    _segarkan(id);
+    return hasil;
+  }
+
+  Future<CertificateDetail> batalkan(
+    int id, {
+    required String alasan,
+    String? catatanPelanggan,
+  }) async {
+    final hasil = await _ref
+        .read(certificateServiceProvider)
+        .batalkan(
+          await _token(),
+          id,
+          alasan: alasan,
+          catatanPelanggan: catatanPelanggan,
+        );
+    _segarkan(id);
+    return hasil;
+  }
+}

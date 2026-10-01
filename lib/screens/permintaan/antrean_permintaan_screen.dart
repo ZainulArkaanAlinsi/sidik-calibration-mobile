@@ -328,6 +328,14 @@ class _KartuPermintaan extends ConsumerWidget {
                 ),
               if (p.pemohonNama != null)
                 _Meta(ikon: Icons.person_outline, teks: p.pemohonNama!),
+              // Tahap perjalanan alat (kontrak A5), label siap tampil dari
+              // server; kosong di server lama.
+              if (p.tahapLabel != null)
+                _Meta(
+                  key: ValueKey('tahap-permintaan-${p.id}'),
+                  ikon: Icons.timeline,
+                  teks: p.tahapLabel!,
+                ),
               if (hari != null)
                 _Meta(
                   ikon: Icons.schedule,
@@ -351,7 +359,7 @@ class _KartuPermintaan extends ConsumerWidget {
 }
 
 class _Meta extends StatelessWidget {
-  const _Meta({required this.ikon, required this.teks, this.warna});
+  const _Meta({super.key, required this.ikon, required this.teks, this.warna});
 
   final IconData ikon;
   final String teks;

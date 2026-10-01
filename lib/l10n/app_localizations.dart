@@ -9258,6 +9258,714 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You'**
   String get permintaanPesanKamu;
+
+  /// No description provided for @sertDokStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Document status'**
+  String get sertDokStatus;
+
+  /// No description provided for @sertDokBerlaku.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid'**
+  String get sertDokBerlaku;
+
+  /// No description provided for @sertDokDigantikan.
+  ///
+  /// In en, this message translates to:
+  /// **'Superseded'**
+  String get sertDokDigantikan;
+
+  /// No description provided for @sertDokDibatalkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get sertDokDibatalkan;
+
+  /// No description provided for @sertDokBelumTerbit.
+  ///
+  /// In en, this message translates to:
+  /// **'Not yet issued'**
+  String get sertDokBelumTerbit;
+
+  /// No description provided for @sertDokRevisiKe.
+  ///
+  /// In en, this message translates to:
+  /// **'Revision {n}'**
+  String sertDokRevisiKe(int n);
+
+  /// No description provided for @sertDokMenggantikan.
+  ///
+  /// In en, this message translates to:
+  /// **'replaces'**
+  String get sertDokMenggantikan;
+
+  /// No description provided for @sertDokAlasanRevisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Revision reason (internal)'**
+  String get sertDokAlasanRevisi;
+
+  /// No description provided for @sertDokDigantikanOleh.
+  ///
+  /// In en, this message translates to:
+  /// **'Superseded by'**
+  String get sertDokDigantikanOleh;
+
+  /// No description provided for @sertDokDibatalkanPada.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled on'**
+  String get sertDokDibatalkanPada;
+
+  /// No description provided for @sertDokDibatalkanOleh.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled by'**
+  String get sertDokDibatalkanOleh;
+
+  /// No description provided for @sertDokAlasanInternal.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (internal)'**
+  String get sertDokAlasanInternal;
+
+  /// No description provided for @sertDokCatatanPelanggan.
+  ///
+  /// In en, this message translates to:
+  /// **'Note for the customer'**
+  String get sertDokCatatanPelanggan;
+
+  /// No description provided for @sertRevisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Revise certificate'**
+  String get sertRevisi;
+
+  /// No description provided for @sertBatalkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel certificate'**
+  String get sertBatalkan;
+
+  /// No description provided for @sertRevisiTanpaData.
+  ///
+  /// In en, this message translates to:
+  /// **'This certificate was issued before its printed data was stored, so it cannot be revised from the app yet.'**
+  String get sertRevisiTanpaData;
+
+  /// No description provided for @revisiJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Revise certificate'**
+  String get revisiJudul;
+
+  /// No description provided for @revisiPetunjuk.
+  ///
+  /// In en, this message translates to:
+  /// **'The fields start with the values printed on this certificate. Change only what is wrong; the old certificate stays as it is and a new revision is issued.'**
+  String get revisiPetunjuk;
+
+  /// No description provided for @revisiFieldPemilik.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get revisiFieldPemilik;
+
+  /// No description provided for @revisiFieldAlamat.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get revisiFieldAlamat;
+
+  /// No description provided for @revisiFieldMerk.
+  ///
+  /// In en, this message translates to:
+  /// **'Manufacturer'**
+  String get revisiFieldMerk;
+
+  /// No description provided for @revisiFieldTipe.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get revisiFieldTipe;
+
+  /// No description provided for @revisiFieldNomorSeri.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number'**
+  String get revisiFieldNomorSeri;
+
+  /// No description provided for @revisiFieldLokasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration location'**
+  String get revisiFieldLokasi;
+
+  /// No description provided for @revisiFieldTanggalKalibrasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration date'**
+  String get revisiFieldTanggalKalibrasi;
+
+  /// No description provided for @revisiFieldBerlakuSampai.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid until'**
+  String get revisiFieldBerlakuSampai;
+
+  /// No description provided for @revisiAlasan.
+  ///
+  /// In en, this message translates to:
+  /// **'Revision reason'**
+  String get revisiAlasan;
+
+  /// No description provided for @revisiAlasanHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Internal, not shown to the customer.'**
+  String get revisiAlasanHelper;
+
+  /// No description provided for @revisiCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Note for the customer (optional)'**
+  String get revisiCatatan;
+
+  /// No description provided for @revisiCatatanHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown to the customer as written on the revised certificate.'**
+  String get revisiCatatanHelper;
+
+  /// No description provided for @revisiKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue revision'**
+  String get revisiKirim;
+
+  /// No description provided for @revisiAlasanWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'A revision reason is required.'**
+  String get revisiAlasanWajib;
+
+  /// No description provided for @revisiIsianWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'This field cannot be left empty.'**
+  String get revisiIsianWajib;
+
+  /// No description provided for @revisiTidakAdaPerubahan.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing has changed. Change at least one field.'**
+  String get revisiTidakAdaPerubahan;
+
+  /// No description provided for @revisiBerlakuSesudah.
+  ///
+  /// In en, this message translates to:
+  /// **'Must be after the calibration date.'**
+  String get revisiBerlakuSesudah;
+
+  /// No description provided for @revisiPeriksaIsian.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the highlighted fields.'**
+  String get revisiPeriksaIsian;
+
+  /// No description provided for @revisiTerkirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Revision {nomor} is being issued.'**
+  String revisiTerkirim(String nomor);
+
+  /// No description provided for @batalJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel {nomor}?'**
+  String batalJudul(String nomor);
+
+  /// No description provided for @batalPenjelasan.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancellation is final and cannot be undone. A previous certificate that was already superseded does not become valid again.'**
+  String get batalPenjelasan;
+
+  /// No description provided for @batalJadwalDikosongkan.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the only valid certificate for this instrument. Its recalibration schedule will be cleared.'**
+  String get batalJadwalDikosongkan;
+
+  /// No description provided for @batalJatuhKe.
+  ///
+  /// In en, this message translates to:
+  /// **'The instrument recalibration schedule will go back to {nomor} (valid until {tanggal}).'**
+  String batalJatuhKe(String nomor, String tanggal);
+
+  /// No description provided for @batalAlasan.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancellation reason'**
+  String get batalAlasan;
+
+  /// No description provided for @batalAlasanHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Internal, not shown to the customer.'**
+  String get batalAlasanHelper;
+
+  /// No description provided for @batalCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Note for the customer (optional)'**
+  String get batalCatatan;
+
+  /// No description provided for @batalCatatanHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown to the customer as written in their app.'**
+  String get batalCatatanHelper;
+
+  /// No description provided for @batalKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel certificate'**
+  String get batalKirim;
+
+  /// No description provided for @batalAlasanWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'A cancellation reason is required.'**
+  String get batalAlasanWajib;
+
+  /// No description provided for @batalBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate cancelled.'**
+  String get batalBerhasil;
+
+  /// No description provided for @fotoPelangganBuka.
+  ///
+  /// In en, this message translates to:
+  /// **'Open photo'**
+  String get fotoPelangganBuka;
+
+  /// No description provided for @koreksiJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer corrections'**
+  String get koreksiJudul;
+
+  /// No description provided for @koreksiBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} corrections pending'**
+  String koreksiBadge(int jumlah);
+
+  /// No description provided for @koreksiTabMenunggu.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get koreksiTabMenunggu;
+
+  /// No description provided for @koreksiTabDiterima.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get koreksiTabDiterima;
+
+  /// No description provided for @koreksiTabDitolak.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get koreksiTabDitolak;
+
+  /// No description provided for @koreksiTabSemua.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get koreksiTabSemua;
+
+  /// No description provided for @koreksiStatusMenunggu.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get koreksiStatusMenunggu;
+
+  /// No description provided for @koreksiStatusDiterima.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get koreksiStatusDiterima;
+
+  /// No description provided for @koreksiStatusDitolak.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get koreksiStatusDitolak;
+
+  /// No description provided for @koreksiKosongMenunggu.
+  ///
+  /// In en, this message translates to:
+  /// **'No corrections are waiting.'**
+  String get koreksiKosongMenunggu;
+
+  /// No description provided for @koreksiKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No corrections here yet.'**
+  String get koreksiKosong;
+
+  /// No description provided for @koreksiGagalMuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Corrections could not be loaded.'**
+  String get koreksiGagalMuat;
+
+  /// No description provided for @koreksiGagalDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'This correction was not found or could not be loaded.'**
+  String get koreksiGagalDetail;
+
+  /// No description provided for @koreksiJenisAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Instrument correction'**
+  String get koreksiJenisAlat;
+
+  /// No description provided for @koreksiJenisSertifikat.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate correction'**
+  String get koreksiJenisSertifikat;
+
+  /// No description provided for @koreksiJumlahPerubahan.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} changes'**
+  String koreksiJumlahPerubahan(int n);
+
+  /// No description provided for @koreksiJumlahFoto.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} photos'**
+  String koreksiJumlahFoto(int n);
+
+  /// No description provided for @koreksiDetailJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction #{id}'**
+  String koreksiDetailJudul(int id);
+
+  /// No description provided for @koreksiDiajukan.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted'**
+  String get koreksiDiajukan;
+
+  /// No description provided for @koreksiTargetAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Instrument'**
+  String get koreksiTargetAlat;
+
+  /// No description provided for @koreksiTargetSertifikat.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate'**
+  String get koreksiTargetSertifikat;
+
+  /// No description provided for @koreksiPerubahanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested changes ({n})'**
+  String koreksiPerubahanJudul(int n);
+
+  /// No description provided for @koreksiNilaiLama.
+  ///
+  /// In en, this message translates to:
+  /// **'Old value'**
+  String get koreksiNilaiLama;
+
+  /// No description provided for @koreksiNilaiBaru.
+  ///
+  /// In en, this message translates to:
+  /// **'New value'**
+  String get koreksiNilaiBaru;
+
+  /// No description provided for @koreksiCatatanPelanggan.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer note'**
+  String get koreksiCatatanPelanggan;
+
+  /// No description provided for @koreksiFoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos ({n})'**
+  String koreksiFoto(int n);
+
+  /// No description provided for @koreksiTanggapan.
+  ///
+  /// In en, this message translates to:
+  /// **'Response'**
+  String get koreksiTanggapan;
+
+  /// No description provided for @koreksiDitinjau.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewed'**
+  String get koreksiDitinjau;
+
+  /// No description provided for @koreksiRevisiLahir.
+  ///
+  /// In en, this message translates to:
+  /// **'Replacement certificate'**
+  String get koreksiRevisiLahir;
+
+  /// No description provided for @koreksiTerima.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get koreksiTerima;
+
+  /// No description provided for @koreksiTolak.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get koreksiTolak;
+
+  /// No description provided for @koreksiBacaSaja.
+  ///
+  /// In en, this message translates to:
+  /// **'Super admins can only view. Accepting and rejecting corrections is done by admins.'**
+  String get koreksiBacaSaja;
+
+  /// No description provided for @koreksiDiterimaToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction accepted and applied.'**
+  String get koreksiDiterimaToast;
+
+  /// No description provided for @koreksiDiterimaRevisiToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction accepted. Revision {nomor} is being issued.'**
+  String koreksiDiterimaRevisiToast(String nomor);
+
+  /// No description provided for @koreksiDitolakToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction rejected.'**
+  String get koreksiDitolakToast;
+
+  /// No description provided for @koreksiTerimaJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept correction'**
+  String get koreksiTerimaJudul;
+
+  /// No description provided for @koreksiTerimaPenjelasanAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'The instrument data will be changed right away and recorded in its history. Correct the values below if needed.'**
+  String get koreksiTerimaPenjelasanAlat;
+
+  /// No description provided for @koreksiTerimaPenjelasanSertifikat.
+  ///
+  /// In en, this message translates to:
+  /// **'A certificate revision will be issued with the values below. Correct them if needed.'**
+  String get koreksiTerimaPenjelasanSertifikat;
+
+  /// No description provided for @koreksiNilaiDiminta.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested by the customer: {nilai}'**
+  String koreksiNilaiDiminta(String nilai);
+
+  /// No description provided for @koreksiNilaiWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'The value cannot be empty.'**
+  String get koreksiNilaiWajib;
+
+  /// No description provided for @koreksiAlasanRevisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Revision reason (optional)'**
+  String get koreksiAlasanRevisi;
+
+  /// No description provided for @koreksiAlasanRevisiHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty = \"Correction from customer #{id}\".'**
+  String koreksiAlasanRevisiHelper(int id);
+
+  /// No description provided for @koreksiTanggapanOpsional.
+  ///
+  /// In en, this message translates to:
+  /// **'Response for the customer (optional)'**
+  String get koreksiTanggapanOpsional;
+
+  /// No description provided for @koreksiTanggapanHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown to the customer as written.'**
+  String get koreksiTanggapanHelper;
+
+  /// No description provided for @koreksiTerimaKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept correction'**
+  String get koreksiTerimaKirim;
+
+  /// No description provided for @koreksiTanggapanWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'A response is required.'**
+  String get koreksiTanggapanWajib;
+
+  /// No description provided for @koreksiTolakJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject correction'**
+  String get koreksiTolakJudul;
+
+  /// No description provided for @koreksiTolakPetunjuk.
+  ///
+  /// In en, this message translates to:
+  /// **'Write the reason for rejecting, for the customer'**
+  String get koreksiTolakPetunjuk;
+
+  /// No description provided for @koreksiTolakHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Required. Shown to the customer as written.'**
+  String get koreksiTolakHelper;
+
+  /// No description provided for @koreksiTolakKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get koreksiTolakKirim;
+
+  /// No description provided for @permintaanPerjalanan.
+  ///
+  /// In en, this message translates to:
+  /// **'Instrument journey'**
+  String get permintaanPerjalanan;
+
+  /// No description provided for @permintaanProgres.
+  ///
+  /// In en, this message translates to:
+  /// **'{selesai} of {total} instruments done'**
+  String permintaanProgres(int selesai, int total);
+
+  /// No description provided for @permintaanResi.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping receipt'**
+  String get permintaanResi;
+
+  /// No description provided for @permintaanResiDiisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled in {waktu}'**
+  String permintaanResiDiisi(String waktu);
+
+  /// No description provided for @permintaanJadwal.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician schedule'**
+  String get permintaanJadwal;
+
+  /// No description provided for @permintaanAlatTiba.
+  ///
+  /// In en, this message translates to:
+  /// **'Instrument arrived at the lab'**
+  String get permintaanAlatTiba;
+
+  /// No description provided for @permintaanFotoAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Nameplate photos ({n})'**
+  String permintaanFotoAlat(int n);
+
+  /// No description provided for @permintaanJadwalkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule technician'**
+  String get permintaanJadwalkan;
+
+  /// No description provided for @permintaanAlatTibaTombol.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark instrument arrived'**
+  String get permintaanAlatTibaTombol;
+
+  /// No description provided for @alatTibaToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Instrument marked as arrived.'**
+  String get alatTibaToast;
+
+  /// No description provided for @jadwalToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician schedule saved.'**
+  String get jadwalToast;
+
+  /// No description provided for @jadwalJudul2.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule technician'**
+  String get jadwalJudul2;
+
+  /// No description provided for @jadwalPenjelasan.
+  ///
+  /// In en, this message translates to:
+  /// **'A technician will collect the instrument at the customer location. The customer is notified in their app.'**
+  String get jadwalPenjelasan;
+
+  /// No description provided for @jadwalTanggal.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get jadwalTanggal;
+
+  /// No description provided for @jadwalJam.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get jadwalJam;
+
+  /// No description provided for @jadwalLokasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Location (optional)'**
+  String get jadwalLokasi;
+
+  /// No description provided for @jadwalCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get jadwalCatatan;
+
+  /// No description provided for @jadwalSimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'Save schedule'**
+  String get jadwalSimpan;
+
+  /// No description provided for @jadwalWaktuWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a date and time first.'**
+  String get jadwalWaktuWajib;
 }
 
 class _AppLocalizationsDelegate

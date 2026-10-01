@@ -8,6 +8,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/permintaan_pelanggan.dart';
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../providers/permintaan_provider.dart';
+import '../../widgets/foto_pelanggan.dart';
 import '../../widgets/readable_width.dart';
 import '../../widgets/sidik/sidik_permukaan.dart';
 import '../../widgets/sidik/sidik_status.dart';
@@ -136,6 +137,13 @@ class _TabRincian extends ConsumerWidget {
                 _Kepala(permintaan: p),
                 const SizedBox(height: AppSpacing.md),
                 _Keterangan(permintaan: p),
+                // Perjalanan alat (tahap, resi, jadwal, tiba, progres): hanya
+                // kalau server mengirimnya — server lama tidak menampilkan
+                // kartu kosong.
+                if (p.adaPerjalanan) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  _Perjalanan(permintaan: p),
+                ],
                 const SizedBox(height: AppSpacing.lg),
                 Text(
                   l10n.permintaanAlatDaftar(p.alat.length),
@@ -155,6 +163,14 @@ class _TabRincian extends ConsumerWidget {
             boleh: izin.putuskan,
             onTolak: () => _tolak(context, ref),
             onTerima: () => _terima(context, ref),
+          )
+        // Sesudah diterima: jadwalkan teknisi / tandai alat tiba. Hanya admin;
+        // super admin membaca saja dan tidak melihat bilahnya.
+        else if (izin.putuskan && (p.bisaDijadwalkan || p.bisaDitandaiTiba))
+          _BilahOperasional(
+            permintaan: p,
+            onJadwal: () => _jadwalkan(context),
+            onTiba: () => _tandaiTiba(context, ref),
           ),
       ],
     );
@@ -174,6 +190,37 @@ class _TabRincian extends ConsumerWidget {
         content: Text(l10n.permintaanDiterimaToast(hasil.orderNomor ?? '—')),
       ),
     );
+  }
+
+  Future<void> _jadwalkan(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final ok = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (_) => LembarJadwalPermintaan(permintaan: permintaan),
+    );
+    if (ok == true) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.jadwalToast)));
+    }
+  }
+
+  Future<void> _tandaiTiba(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(permintaanAksiProvider).alatTiba(permintaan.id);
+      messenger.showSnackBar(SnackBar(content: Text(l10n.alatTibaToast)));
+    } catch (e) {
+      // 422 ("sudah ditandai") membawa pesan server yang sudah layak dibaca;
+      // tampilkan lalu segarkan layar supaya tombolnya ikut hilang.
+      ref.invalidate(detailPermintaanProvider(permintaan.id));
+      messenger.showSnackBar(
+        SnackBar(content: Text('$e'.replaceFirst('Exception: ', ''))),
+      );
+    }
   }
 
   Future<void> _tolak(BuildContext context, WidgetRef ref) async {
@@ -489,6 +536,17 @@ class _KartuAlat extends StatelessWidget {
             _Baris(label: l10n.permintaanLokasi, isi: a.lokasi!),
           if (a.catatan != null)
             _Baris(label: l10n.permintaanCatatan, isi: a.catatan!),
+          // Foto pelat nama alat BARU, untuk mencocokkan merek/seri sebelum
+          // alatnya didaftarkan.
+          if (a.foto.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.permintaanFotoAlat(a.foto.length).toUpperCase(),
+              style: m.gayaEtsa(ukuran: 11),
+            ),
+            const SizedBox(height: 4),
+            DeretFotoPelanggan(foto: a.foto),
+          ],
           if (perluKeputusan && (a.perluKategori || a.perluNomorSeri))
             Padding(
               padding: const EdgeInsets.only(top: AppSpacing.sm),
@@ -570,6 +628,421 @@ class _DialogTolakState extends State<_DialogTolak> {
           child: Text(l10n.permintaanTolakKirim),
         ),
       ],
+    );
+  }
+}
+
+// ── Perjalanan alat (tahap, resi, jadwal) ───────────────────────────────────
+
+String _waktu(BuildContext context, DateTime t) {
+  final l = t.toLocal();
+  final jam = MaterialLocalizations.of(
+    context,
+  ).formatTimeOfDay(TimeOfDay.fromDateTime(l), alwaysUse24HourFormat: true);
+  return '${tanggalPendek(context, l)} · $jam';
+}
+
+class _Perjalanan extends StatelessWidget {
+  const _Perjalanan({required this.permintaan});
+
+  final PermintaanPelanggan permintaan;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final m = SidikMaterial.of(context);
+    final p = permintaan;
+    final progres = p.progres;
+
+    return Kertas(
+      key: const ValueKey('kartu-perjalanan-permintaan'),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.permintaanPerjalanan.toUpperCase(),
+            style: m.gayaEtsa(ukuran: 11),
+          ),
+          if (p.tahapLabel != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              p.tahapLabel!,
+              key: const ValueKey('tahap-permintaan'),
+              style: theme.textTheme.titleMedium,
+            ),
+          ],
+          if (progres != null && progres.total > 0) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.permintaanProgres(progres.selesai, progres.total),
+              key: const ValueKey('progres-permintaan'),
+              style: theme.textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: (progres.selesai / progres.total).clamp(0.0, 1.0),
+                minHeight: 6,
+              ),
+            ),
+          ],
+          if (p.resi != null) ...[
+            _Baris(
+              label: l10n.permintaanResi,
+              isi: [
+                if (p.resi!.kurir != null) p.resi!.kurir!,
+                if (p.resi!.nomor != null) p.resi!.nomor!,
+              ].join(' · '),
+              angka: true,
+            ),
+            if (p.resi!.diisiPada != null)
+              _Baris(
+                isi: l10n.permintaanResiDiisi(
+                  _waktu(context, p.resi!.diisiPada!),
+                ),
+              ),
+          ],
+          if (p.jadwal != null) ...[
+            _Baris(
+              label: l10n.permintaanJadwal,
+              isi: p.jadwal!.pada == null
+                  ? '—'
+                  : _waktu(context, p.jadwal!.pada!),
+            ),
+            if (p.jadwal!.lokasi != null && p.jadwal!.lokasi!.isNotEmpty)
+              _Baris(isi: p.jadwal!.lokasi!),
+            if (p.jadwal!.catatan != null && p.jadwal!.catatan!.isNotEmpty)
+              _Baris(isi: p.jadwal!.catatan!),
+          ],
+          if (p.alatTibaPada != null)
+            _Baris(
+              label: l10n.permintaanAlatTiba,
+              isi: _waktu(context, p.alatTibaPada!),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Bilah aksi sesudah diterima: Jadwalkan teknisi (diambil lab) dan Tandai alat
+/// tiba. Tiap tombol hanya muncul kalau syarat server (kontrak A5) terpenuhi.
+class _BilahOperasional extends StatelessWidget {
+  const _BilahOperasional({
+    required this.permintaan,
+    required this.onJadwal,
+    required this.onTiba,
+  });
+
+  final PermintaanPelanggan permintaan;
+  final VoidCallback onJadwal;
+  final VoidCallback onTiba;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final m = SidikMaterial.of(context);
+    final p = permintaan;
+
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: m.kertas,
+          border: Border(top: BorderSide(color: m.garis)),
+        ),
+        child: Row(
+          children: [
+            if (p.bisaDijadwalkan)
+              Expanded(
+                child: SidikTombol(
+                  key: const ValueKey('tombol-jadwalkan-teknisi'),
+                  label: l10n.permintaanJadwalkan,
+                  ikon: Icons.event_available_outlined,
+                  ragam: p.bisaDitandaiTiba
+                      ? RagamTombol.biasa
+                      : RagamTombol.utama,
+                  penuh: true,
+                  onPressed: onJadwal,
+                ),
+              ),
+            if (p.bisaDijadwalkan && p.bisaDitandaiTiba)
+              const SizedBox(width: AppSpacing.sm),
+            if (p.bisaDitandaiTiba)
+              Expanded(
+                child: SidikTombol(
+                  key: const ValueKey('tombol-alat-tiba'),
+                  label: l10n.permintaanAlatTibaTombol,
+                  ikon: Icons.move_to_inbox_outlined,
+                  ragam: RagamTombol.utama,
+                  penuh: true,
+                  onPressed: onTiba,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Lembar "Jadwalkan teknisi": tanggal + jam (wajib), lokasi & catatan
+/// (opsional). Dikirim sebagai cap waktu Zulu. Menutup dengan `true` =
+/// tersimpan.
+class LembarJadwalPermintaan extends ConsumerStatefulWidget {
+  const LembarJadwalPermintaan({super.key, required this.permintaan});
+
+  final PermintaanPelanggan permintaan;
+
+  @override
+  ConsumerState<LembarJadwalPermintaan> createState() =>
+      _LembarJadwalPermintaanState();
+}
+
+class _LembarJadwalPermintaanState
+    extends ConsumerState<LembarJadwalPermintaan> {
+  DateTime? _tanggal;
+  TimeOfDay? _jam;
+  late final TextEditingController _lokasi;
+  late final TextEditingController _catatan;
+  bool _sibuk = false;
+  String? _galatWaktu;
+  String? _banner;
+
+  @override
+  void initState() {
+    super.initState();
+    final j = widget.permintaan.jadwal;
+    final lokal = j?.pada?.toLocal();
+    if (lokal != null) {
+      _tanggal = DateTime(lokal.year, lokal.month, lokal.day);
+      _jam = TimeOfDay.fromDateTime(lokal);
+    }
+    _lokasi = TextEditingController(text: j?.lokasi ?? '');
+    _catatan = TextEditingController(text: j?.catatan ?? '');
+  }
+
+  @override
+  void dispose() {
+    _lokasi.dispose();
+    _catatan.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pilihTanggal() async {
+    final sekarang = DateTime.now();
+    final pilih = await showDatePicker(
+      context: context,
+      initialDate: _tanggal ?? sekarang,
+      firstDate: DateTime(sekarang.year - 1),
+      lastDate: DateTime(sekarang.year + 2),
+    );
+    if (pilih != null) {
+      setState(() {
+        _tanggal = pilih;
+        _galatWaktu = null;
+      });
+    }
+  }
+
+  Future<void> _pilihJam() async {
+    final pilih = await showTimePicker(
+      context: context,
+      initialTime: _jam ?? const TimeOfDay(hour: 9, minute: 0),
+    );
+    if (pilih != null) {
+      setState(() {
+        _jam = pilih;
+        _galatWaktu = null;
+      });
+    }
+  }
+
+  Future<void> _kirim() async {
+    if (_sibuk) return;
+    final l10n = AppLocalizations.of(context);
+    final navigator = Navigator.of(context);
+    if (_tanggal == null || _jam == null) {
+      setState(() => _galatWaktu = l10n.jadwalWaktuWajib);
+      return;
+    }
+    final pada = DateTime(
+      _tanggal!.year,
+      _tanggal!.month,
+      _tanggal!.day,
+      _jam!.hour,
+      _jam!.minute,
+    );
+    setState(() {
+      _sibuk = true;
+      _galatWaktu = null;
+      _banner = null;
+    });
+    try {
+      await ref
+          .read(permintaanAksiProvider)
+          .jadwalkan(
+            widget.permintaan.id,
+            jadwalPada: pada,
+            lokasi: _lokasi.text,
+            catatan: _catatan.text,
+          );
+      navigator.pop(true);
+    } on GalatPermintaan catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _sibuk = false;
+        _galatWaktu = e.untuk('jadwal_pada');
+        // Galat keadaan (`{message}` tanpa kunci isian) tampil di atas.
+        _banner = _galatWaktu == null ? e.pesan : null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _sibuk = false;
+        _banner = '$e'.replaceFirst('Exception: ', '');
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final m = SidikMaterial.of(context);
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          0,
+          AppSpacing.md,
+          AppSpacing.md,
+        ),
+        child: Column(
+          key: const ValueKey('lembar-jadwal-permintaan'),
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.jadwalJudul2, style: theme.textTheme.titleLarge),
+            const SizedBox(height: AppSpacing.xs),
+            Text(l10n.jadwalPenjelasan, style: theme.textTheme.bodySmall),
+            if (_banner != null) ...[
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                _banner!,
+                key: const ValueKey('banner-jadwal'),
+                style: theme.textTheme.bodySmall?.copyWith(color: m.gagal),
+              ),
+            ],
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    key: const ValueKey('isian-jadwal-tanggal'),
+                    onTap: _sibuk ? null : _pilihTanggal,
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: l10n.jadwalTanggal,
+                        suffixIcon: const Icon(
+                          Icons.calendar_today_outlined,
+                          size: 18,
+                        ),
+                      ),
+                      child: Text(
+                        _tanggal == null
+                            ? '—'
+                            : tanggalPendek(context, _tanggal),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: InkWell(
+                    key: const ValueKey('isian-jadwal-jam'),
+                    onTap: _sibuk ? null : _pilihJam,
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: l10n.jadwalJam,
+                        suffixIcon: const Icon(Icons.schedule, size: 18),
+                      ),
+                      child: Text(
+                        _jam == null
+                            ? '—'
+                            : MaterialLocalizations.of(context).formatTimeOfDay(
+                                _jam!,
+                                alwaysUse24HourFormat: true,
+                              ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (_galatWaktu != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 6, left: 12),
+                child: Text(
+                  _galatWaktu!,
+                  key: const ValueKey('galat-jadwal-waktu'),
+                  style: theme.textTheme.bodySmall?.copyWith(color: m.gagal),
+                ),
+              ),
+            const SizedBox(height: AppSpacing.md),
+            TextField(
+              key: const ValueKey('isian-jadwal-lokasi'),
+              controller: _lokasi,
+              enabled: !_sibuk,
+              maxLength: 255,
+              decoration: InputDecoration(labelText: l10n.jadwalLokasi),
+            ),
+            TextField(
+              key: const ValueKey('isian-jadwal-catatan'),
+              controller: _catatan,
+              enabled: !_sibuk,
+              minLines: 2,
+              maxLines: 4,
+              maxLength: 1000,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: InputDecoration(labelText: l10n.jadwalCatatan),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              children: [
+                Expanded(
+                  child: SidikTombol(
+                    label: l10n.custCancel,
+                    ragam: RagamTombol.teks,
+                    penuh: true,
+                    onPressed: _sibuk
+                        ? null
+                        : () => Navigator.of(context).pop(),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: SidikTombol(
+                    key: const ValueKey('kirim-jadwal-permintaan'),
+                    label: l10n.jadwalSimpan,
+                    ikon: Icons.check,
+                    ragam: RagamTombol.utama,
+                    penuh: true,
+                    sibuk: _sibuk,
+                    onPressed: _sibuk ? null : _kirim,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
