@@ -936,6 +936,19 @@ class LembarKerjaState {
   /// milik bentuk.
   final List<double> titikKustom = [];
 
+  /// Baris tambahan di tabel yang nominalnya DIKETIK teknisi (`titik_ukur`
+  /// null di bentuk — Anak Timbangan, TIDS).
+  ///
+  /// Kertasnya punya sepuluh baris, tapi satu set anak timbangan di lapangan
+  /// bisa lima belas keping (laporan 5 Okt 2026). Barisnya ditambah di HP, bukan
+  /// di bentuk server: server menomori keping berurutan dari `measurements[]`
+  /// dan menerima sampai [batasBaris] entri, jadi sisi sana tidak perlu tahu
+  /// berapa baris kertasnya.
+  int barisTambahan = 0;
+
+  /// Batas `measurements` di `CalibrationRequest` (`max:60`).
+  static const batasBaris = 60;
+
   /// [TitikState] milik baris ke-[index] di [baris].
   ///
   /// Kuncinya WAJIB dihitung lewat [kunciBaris] — bukan dari `titikUkur`
@@ -961,6 +974,10 @@ class LembarKerjaState {
   /// memunculkan error di mana pun.
   List<BarisTabelHasil> barisTabel(TabelHasil tabel, [String? satuanCalon]) {
     final bawaan = tabel.barisUntuk(satuanCalon ?? satuan);
+
+    if (barisTambahan > 0 && _barisDiketik(tabel, bawaan)) {
+      return [...bawaan, ..._barisLanjutan(bawaan, barisTambahan)];
+    }
 
     if (!tabel.titikBisaDiubah || titikKustom.isEmpty) return bawaan;
 
@@ -1005,6 +1022,69 @@ class LembarKerjaState {
       ..addAll(bersih);
 
     _bangunTitik(pertahankanIsian: true);
+  }
+
+  /// Tabel yang barisnya boleh DITAMBAH: titiknya diatur teknisi dan
+  /// nominalnya diketik per baris (bukan daftar titik cetak seperti TITS).
+  static bool _barisDiketik(TabelHasil tabel, List<BarisTabelHasil> bawaan) =>
+      tabel.titikBisaDiubah &&
+      bawaan.isNotEmpty &&
+      !bawaan.every((b) => b.titikDitentukan);
+
+  /// [jumlah] baris lanjutan, mewarisi bentuk baris terakhir. Labelnya
+  /// meneruskan nomor baris terakhir (`Keping 10` → `Keping 11`).
+  static List<BarisTabelHasil> _barisLanjutan(
+    List<BarisTabelHasil> bawaan,
+    int jumlah,
+  ) {
+    final contoh = bawaan.last;
+    final cocok = RegExp(r'^(.*?)(\d+)$').firstMatch(contoh.label.trim());
+    final awalan = cocok?.group(1) ?? '';
+    final nomorTerakhir = int.tryParse(cocok?.group(2) ?? '') ?? bawaan.length;
+
+    return [
+      for (var k = 1; k <= jumlah; k++)
+        BarisTabelHasil(
+          titikUkur: contoh.titikUkur,
+          titikDitentukan: false,
+          label: '$awalan${nomorTerakhir + k}',
+          desimal: contoh.desimal,
+          resolusi: contoh.resolusi,
+          standardId: contoh.standardId,
+          standardNama: contoh.standardNama,
+          satuan: contoh.satuan,
+          tipe: contoh.tipe,
+        ),
+    ];
+  }
+
+  /// [tabel] ini boleh ditambah barisnya, dan belum menyentuh [batasBaris]?
+  bool bisaTambahBaris(TabelHasil tabel) {
+    final bawaan = tabel.barisUntuk(satuan);
+
+    return _barisDiketik(tabel, bawaan) &&
+        bawaan.length + barisTambahan < batasBaris;
+  }
+
+  /// Tambah [jumlah] baris ke SEMUA tabel bernominal-ketik sekaligus.
+  ///
+  /// Sekaligus, bukan per tabel: keempat tabel ABBA Anak Timbangan berbagi
+  /// nomor baris — baris ke-i keempatnya mendarat di SATU `measurements[i]`.
+  /// Satu tabel yang barisnya lebih panjang meninggalkan kepingnya tanpa tiga
+  /// peran yang lain, dan titik itu ditolak server.
+  void tambahBaris([int jumlah = 1]) {
+    barisTambahan += jumlah;
+    _bangunTitik(pertahankanIsian: true);
+  }
+
+  /// Pastikan tabel bernominal-ketik punya minimal [jumlah] baris — dipakai
+  /// waktu draft dengan lebih dari sepuluh keping dibuka ulang.
+  void _pastikanJumlahBaris(TabelHasil tabel, int jumlah) {
+    final bawaan = tabel.barisUntuk(satuan);
+    if (!_barisDiketik(tabel, bawaan)) return;
+
+    final kurang = jumlah - (bawaan.length + barisTambahan);
+    if (kurang > 0) tambahBaris(kurang);
   }
 
   /// Titik yang berlaku sekarang, urut — buat layar pengatur titik.
@@ -2515,6 +2595,18 @@ class LembarKerjaState {
     }
     for (final daftar in urutan.values) {
       daftar.sort();
+    }
+
+    // Draft yang kepingnya lebih banyak dari baris kertas: barisnya ditambah
+    // dulu, sebelum angkanya ditaruh. Tanpa ini keping ke-11 dan seterusnya
+    // dihitung kebuang — angkanya masih di server, tapi lembar yang dibuka
+    // ulang tidak menampilkannya, dan simpan berikutnya mengirim tanpa mereka.
+    final perluBaris = urutan.values.fold<int>(
+      0,
+      (maks, d) => d.length > maks ? d.length : maks,
+    );
+    for (final t in kunciBernama.values) {
+      _pastikanJumlahBaris(t, perluBaris);
     }
 
     for (final m in mentah) {

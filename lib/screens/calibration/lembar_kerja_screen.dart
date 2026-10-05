@@ -2023,6 +2023,30 @@ class _Bagian extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.lg),
 
+                // Baris kertas tidak selalu cukup (set anak timbangan 15
+                // keping, kertas 10 baris). Satu tombol menambah SEMUA tabel
+                // sekaligus — lihat `LembarKerjaState.tambahBaris`.
+                if (i == bagian.tabel.length - 1 &&
+                    isian.bisaTambahBaris(bagian.tabel[i])) ...[
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: OutlinedButton.icon(
+                      key: const ValueKey('tambah-baris'),
+                      onPressed: () {
+                        isian.tambahBaris();
+                        onBerubah();
+                      },
+                      icon: const Icon(Icons.add),
+                      label: Text(
+                        bagian.tabel.length > 1
+                            ? 'Tambah baris (semua tabel di atas)'
+                            : 'Tambah baris',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                ],
+
                 // No. Termokopel per set point — cuma tabel yang backend-nya
                 // bilang punya kolom itu (tabel STANDAR Thermocouple). Tabel UUT
                 // nggak punya: sisi UUT memakai probe bawaan alat pelanggan,
