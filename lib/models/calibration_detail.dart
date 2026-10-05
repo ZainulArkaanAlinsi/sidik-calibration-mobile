@@ -569,6 +569,50 @@ class CertificateRef {
   }
 }
 
+/// `spesifikasi_alat` dari server → peta DATAR berkunci bertitik, persis kode
+/// kotak di lembar kerja (`spesifikasi_alat.<kunci>`).
+///
+/// Server menyimpan blok alat sebagai objek BERSARANG
+/// (`{anak_timbangan: {suhu_awal: 22.1, kelas_uut: M2}}`) — bentuk yang
+/// dikirim `LembarKerjaState.spesifikasiAlat` dari kode kotak bertitik. Sampai
+/// 5 Okt 2026 sisi baca menjadikan tiap nilai teks lewat `'${e.value}'`, jadi
+/// blok bersarang berubah jadi SATU teks `"{suhu_awal: 22.1, …}"` yang tidak
+/// cocok ke kotak mana pun. Draft Anak Timbangan dibuka ulang dengan kelas,
+/// neraca, dan keenam ujung kondisi ruangan kosong — dan kalau disimpan lagi,
+/// kekosongan itulah yang terkirim.
+///
+/// Diratakan rekursif, termasuk daftar (indeksnya jadi segmen `"0"`, `"1"` —
+/// pasangan `_tanamSpesifikasi` di sisi kirim). Nilai null dilewat.
+Map<String, String> ratakanSpesifikasi(Map<String, dynamic> spesifikasi) {
+  final hasil = <String, String>{};
+
+  void tanam(String jalur, Object? nilai) {
+    if (nilai == null) return;
+
+    if (nilai is Map) {
+      for (final e in nilai.entries) {
+        tanam(jalur.isEmpty ? '${e.key}' : '$jalur.${e.key}', e.value);
+      }
+
+      return;
+    }
+
+    if (nilai is List) {
+      for (var i = 0; i < nilai.length; i++) {
+        tanam(jalur.isEmpty ? '$i' : '$jalur.$i', nilai[i]);
+      }
+
+      return;
+    }
+
+    hasil[jalur] = '$nilai';
+  }
+
+  tanam('', spesifikasi);
+
+  return hasil;
+}
+
 /// Respons penuh `GET /api/calibrations/{id}` (`docs/kontrak-api.md` §4) —
 /// termasuk field bonus (`nomor_sesi`, `standar_acuan`, `suhu_ruang`,
 /// `kelembaban`, `lokasi`, `sertifikat`, `titik`) yang dibutuhin buat
@@ -741,13 +785,10 @@ class IsianTeknisi {
       lokasi: json['lokasi'] as String?,
       lokasiNama: json['lokasi_nama'] as String?,
       catatanTeknisi: json['catatan_teknisi'] as String?,
-      spesifikasiAlat: {
-        for (final e
-            in (json['spesifikasi_alat'] as Map<String, dynamic>? ??
-                    const <String, dynamic>{})
-                .entries)
-          if (e.value != null) e.key: '${e.value}',
-      },
+      spesifikasiAlat: ratakanSpesifikasi(
+        json['spesifikasi_alat'] as Map<String, dynamic>? ??
+            const <String, dynamic>{},
+      ),
       alatModel: json['alat_model'] as String?,
       alatSerialNumber: json['alat_serial_number'] as String?,
       alatMerk: json['alat_merk'] as String?,

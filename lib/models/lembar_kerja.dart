@@ -1183,10 +1183,21 @@ class BagianLembarKerja {
     this.sumber,
     this.status,
     this.catatan,
+    this.tampilan,
   });
 
   final String kode;
   final String judul;
+
+  /// Cara menggambar tabel bagian ini, kalau BUKAN tabel per tabel biasa.
+  ///
+  /// `kartu_per_baris` (Anak Timbangan): satu kartu per baris berisi nominal,
+  /// kotak per baris, lalu satu baris tiap tabel × pengulangan — susunan kertas
+  /// SIDIK-FM-CAL-0541. Cuma tampilan: kotak dan payload-nya tetap milik
+  /// [tabel]. Null = tabel per tabel seperti lembar lain.
+  final String? tampilan;
+
+  bool get kartuPerBaris => tampilan == 'kartu_per_baris';
 
   /// Halaman lembar kerja tempat bagian ini dicetak: 1 atau 2.
   ///
@@ -1241,6 +1252,7 @@ class BagianLembarKerja {
         judul: json['judul'] as String? ?? '',
         status: json['status'] as String?,
         catatan: json['catatan'] as String?,
+        tampilan: json['tampilan'] as String?,
         // Default 1: lembar kerja versi backend lama nggak ngirim `halaman`,
         // dan satu halaman penuh lebih baik daripada layar kosong.
         halaman: (json['halaman'] as num?)?.toInt() ?? 1,

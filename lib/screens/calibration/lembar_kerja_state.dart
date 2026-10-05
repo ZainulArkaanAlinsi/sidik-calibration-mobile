@@ -936,6 +936,19 @@ class LembarKerjaState {
   /// milik bentuk.
   final List<double> titikKustom = [];
 
+  /// Baris tambahan di tabel yang nominalnya DIKETIK teknisi (`titik_ukur`
+  /// null di bentuk — Anak Timbangan, TIDS).
+  ///
+  /// Kertasnya punya sepuluh baris, tapi satu set anak timbangan di lapangan
+  /// bisa lima belas keping (laporan 5 Okt 2026). Barisnya ditambah di HP, bukan
+  /// di bentuk server: server menomori keping berurutan dari `measurements[]`
+  /// dan menerima sampai [batasBaris] entri, jadi sisi sana tidak perlu tahu
+  /// berapa baris kertasnya.
+  int barisTambahan = 0;
+
+  /// Batas `measurements` di `CalibrationRequest` (`max:60`).
+  static const batasBaris = 60;
+
   /// [TitikState] milik baris ke-[index] di [baris].
   ///
   /// Kuncinya WAJIB dihitung lewat [kunciBaris] — bukan dari `titikUkur`
@@ -961,6 +974,10 @@ class LembarKerjaState {
   /// memunculkan error di mana pun.
   List<BarisTabelHasil> barisTabel(TabelHasil tabel, [String? satuanCalon]) {
     final bawaan = tabel.barisUntuk(satuanCalon ?? satuan);
+
+    if (barisTambahan > 0 && _barisDiketik(tabel, bawaan)) {
+      return [...bawaan, ..._barisLanjutan(bawaan, barisTambahan)];
+    }
 
     if (!tabel.titikBisaDiubah || titikKustom.isEmpty) return bawaan;
 
@@ -1005,6 +1022,69 @@ class LembarKerjaState {
       ..addAll(bersih);
 
     _bangunTitik(pertahankanIsian: true);
+  }
+
+  /// Tabel yang barisnya boleh DITAMBAH: titiknya diatur teknisi dan
+  /// nominalnya diketik per baris (bukan daftar titik cetak seperti TITS).
+  static bool _barisDiketik(TabelHasil tabel, List<BarisTabelHasil> bawaan) =>
+      tabel.titikBisaDiubah &&
+      bawaan.isNotEmpty &&
+      !bawaan.every((b) => b.titikDitentukan);
+
+  /// [jumlah] baris lanjutan, mewarisi bentuk baris terakhir. Labelnya
+  /// meneruskan nomor baris terakhir (`Keping 10` → `Keping 11`).
+  static List<BarisTabelHasil> _barisLanjutan(
+    List<BarisTabelHasil> bawaan,
+    int jumlah,
+  ) {
+    final contoh = bawaan.last;
+    final cocok = RegExp(r'^(.*?)(\d+)$').firstMatch(contoh.label.trim());
+    final awalan = cocok?.group(1) ?? '';
+    final nomorTerakhir = int.tryParse(cocok?.group(2) ?? '') ?? bawaan.length;
+
+    return [
+      for (var k = 1; k <= jumlah; k++)
+        BarisTabelHasil(
+          titikUkur: contoh.titikUkur,
+          titikDitentukan: false,
+          label: '$awalan${nomorTerakhir + k}',
+          desimal: contoh.desimal,
+          resolusi: contoh.resolusi,
+          standardId: contoh.standardId,
+          standardNama: contoh.standardNama,
+          satuan: contoh.satuan,
+          tipe: contoh.tipe,
+        ),
+    ];
+  }
+
+  /// [tabel] ini boleh ditambah barisnya, dan belum menyentuh [batasBaris]?
+  bool bisaTambahBaris(TabelHasil tabel) {
+    final bawaan = tabel.barisUntuk(satuan);
+
+    return _barisDiketik(tabel, bawaan) &&
+        bawaan.length + barisTambahan < batasBaris;
+  }
+
+  /// Tambah [jumlah] baris ke SEMUA tabel bernominal-ketik sekaligus.
+  ///
+  /// Sekaligus, bukan per tabel: keempat tabel ABBA Anak Timbangan berbagi
+  /// nomor baris — baris ke-i keempatnya mendarat di SATU `measurements[i]`.
+  /// Satu tabel yang barisnya lebih panjang meninggalkan kepingnya tanpa tiga
+  /// peran yang lain, dan titik itu ditolak server.
+  void tambahBaris([int jumlah = 1]) {
+    barisTambahan += jumlah;
+    _bangunTitik(pertahankanIsian: true);
+  }
+
+  /// Pastikan tabel bernominal-ketik punya minimal [jumlah] baris — dipakai
+  /// waktu draft dengan lebih dari sepuluh keping dibuka ulang.
+  void _pastikanJumlahBaris(TabelHasil tabel, int jumlah) {
+    final bawaan = tabel.barisUntuk(satuan);
+    if (!_barisDiketik(tabel, bawaan)) return;
+
+    final kurang = jumlah - (bawaan.length + barisTambahan);
+    if (kurang > 0) tambahBaris(kurang);
   }
 
   /// Titik yang berlaku sekarang, urut — buat layar pengatur titik.
@@ -1613,6 +1693,29 @@ class LembarKerjaState {
 
       if (acuan == null || isi.isEmpty) continue;
 
+      // Kotak per baris milik tabel ACUAN (No. Identitas keping Anak
+      // Timbangan) ikut terkirim — cuma di baris yang punya angka, persis
+      // saringan server. Kotak teks dikirim walau KOSONG: server membedakan
+      // "identitas dihapus" (kunci ada, kosong) dari klien lama yang tidak
+      // tahu kotak ini (kunci tidak ada sama sekali).
+      final tabelAcuan = tabel.first;
+      final barisAcuan = barisTabel(tabelAcuan);
+      final tsAcuan = i < barisAcuan.length
+          ? titikUntukBaris(barisAcuan, i, tabelAcuan)
+          : null;
+      for (final f in tabelAcuan.kolomBaris) {
+        if (f.kode == 'no_probe' || tsAcuan == null) continue;
+
+        final teksKotak =
+            tsAcuan.kotakBarisCtl(tabelAcuan.kunciTabel, f.kode).text.trim();
+
+        if (f.tipe == TipeField.daftarAngka) {
+          if (teksKotak.isNotEmpty) isi[f.kode] = pecahDaftarAngka(teksKotak);
+        } else {
+          isi[f.kode] = teksKotak;
+        }
+      }
+
       // TIDAK disaring `siapKirim` di sini, dan itu keputusan — bukan
       // kelalaian.
       //
@@ -2072,6 +2175,9 @@ class LembarKerjaState {
       isiTeks('spesifikasi_alat.${e.key}', e.value);
     }
 
+    _spesifikasiDimuat = Map.of(isi.spesifikasiAlat);
+    _pulihkanKotakBarisBernama();
+
     isiAngka('suhu_awal', isi.suhuAwal);
     isiAngka('suhu_akhir', isi.suhuAkhir);
     isiAngka('kelembaban_awal', isi.kelembabanAwal);
@@ -2517,6 +2623,22 @@ class LembarKerjaState {
       daftar.sort();
     }
 
+    // Draft yang kepingnya lebih banyak dari baris kertas: barisnya ditambah
+    // dulu, sebelum angkanya ditaruh. Tanpa ini keping ke-11 dan seterusnya
+    // dihitung kebuang — angkanya masih di server, tapi lembar yang dibuka
+    // ulang tidak menampilkannya, dan simpan berikutnya mengirim tanpa mereka.
+    final perluBaris = urutan.values.fold<int>(
+      0,
+      (maks, d) => d.length > maks ? d.length : maks,
+    );
+    for (final t in kunciBernama.values) {
+      _pastikanJumlahBaris(t, perluBaris);
+    }
+
+    _urutanTitikBernama = {
+      for (final d in urutan.values) ...d,
+    }.toList()..sort();
+
     for (final m in mentah) {
       final t = kunciBernama[m.peranSensor]!;
       final baris = barisTabel(t);
@@ -2551,7 +2673,61 @@ class LembarKerjaState {
       if (kotak.text.trim().isEmpty) kotak.text = formatAngka(m.pembacaan);
     }
 
+    _pulihkanKotakBarisBernama();
+
     return kebuang;
+  }
+
+  /// `spesifikasi_alat` (datar, kunci bertitik) dari sesi yang terakhir dimuat.
+  Map<String, String> _spesifikasiDimuat = const {};
+
+  /// `titik_ke` deret bernama yang terakhir dipulihkan, urut — posisi di daftar
+  /// ini = posisi baris di tabel.
+  List<int> _urutanTitikBernama = const [];
+
+  /// Pulihkan kotak per baris tabel ACUAN deret bernama (No. Identitas keping
+  /// Anak Timbangan) dari `spesifikasi_alat`.
+  ///
+  /// Server menyimpannya per `titik_ke` (`anak_timbangan.identitas.<n>`),
+  /// bukan di baris mentah. Jalan dari DUA pintu — [muatDariSesi] dan
+  /// [terapkanPembacaan] — karena butuh keduanya (spesifikasi DAN urutan
+  /// titik), dan urutan pemanggilannya bukan janji siapa pun.
+  ///
+  /// Kode kotak `no_identitas` dicocokkan ke kunci simpan `identitas`
+  /// (awalan `no_` dibuang); kotak yang sudah berisi tidak ditimpa.
+  void _pulihkanKotakBarisBernama() {
+    if (_spesifikasiDimuat.isEmpty || _urutanTitikBernama.isEmpty) return;
+
+    final daftarTabel = tabelDeretBernama;
+    if (daftarTabel.isEmpty) return;
+
+    final t0 = daftarTabel.first;
+    final baris = barisTabel(t0);
+
+    for (final f in t0.kolomBaris) {
+      if (f.kode == 'no_probe') continue;
+
+      final nama = f.kode.startsWith('no_') ? f.kode.substring(3) : f.kode;
+
+      for (var pos = 0; pos < _urutanTitikBernama.length && pos < baris.length; pos++) {
+        final titikKe = _urutanTitikBernama[pos];
+        String? nilai;
+
+        for (final e in _spesifikasiDimuat.entries) {
+          if (e.key.endsWith('.$nama.$titikKe') ||
+              e.key.endsWith('.${f.kode}.$titikKe')) {
+            nilai = e.value;
+            break;
+          }
+        }
+
+        if (nilai == null) continue;
+
+        final ctl = titikUntukBaris(baris, pos, t0)
+            ?.kotakBarisCtl(t0.kunciTabel, f.kode);
+        if (ctl != null && ctl.text.trim().isEmpty) ctl.text = nilai;
+      }
+    }
   }
 
   int _terapkanGrid(List<RawMeasurement> mentah) {
