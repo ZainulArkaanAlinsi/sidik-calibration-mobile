@@ -174,8 +174,16 @@ class TitikState {
   /// keduanya sama; buat TIDS, [titikUkur] cuma nomor barisnya, dan
   /// mengirimnya apa adanya menerbitkan set point "1 °C … 7 °C" — angka yang
   /// nggak pernah diketik siapa pun dan nggak ditolak apa pun.
-  double? get titikUkurEfektif =>
-      titikDitentukan ? titikUkur : parseAngka(titikCtl.text);
+  double? get titikUkurEfektif => titikDitentukan
+      ? titikUkur
+      : parseAngka(titikCtl.text.trim().replaceFirst(RegExp(r'\*+$'), ''));
+
+  /// Nominal yang diketik berakhiran BINTANG (`20*`) — keping KEDUA dari
+  /// pasangan bernominal sama, cara kertas Anak Timbangan membedakannya.
+  /// Bintangnya bukan bagian angka: [titikUkurEfektif] membuangnya, dan dia
+  /// dikirim terpisah sebagai `measurements[].bintang`.
+  bool get berbintang =>
+      !titikDitentukan && titikCtl.text.trim().endsWith('*');
 
   /// Baris ini boleh ikut dikirim.
   ///
@@ -1716,6 +1724,14 @@ class LembarKerjaState {
         }
       }
 
+      // Bintang nominal (`20*`, keping kedua bernominal sama) — dikirim di tiap
+      // baris bernominal-ketik, true ATAU false, supaya server bisa membedakan
+      // "bintangnya dicabut" dari klien lama yang tidak mengenalnya. Server
+      // cuma memprosesnya di lembar Anak Timbangan.
+      if (tsAcuan != null && !tsAcuan.titikDitentukan) {
+        isi['bintang'] = tsAcuan.berbintang;
+      }
+
       // TIDAK disaring `siapKirim` di sini, dan itu keputusan — bukan
       // kelalaian.
       //
@@ -2703,6 +2719,24 @@ class LembarKerjaState {
 
     final t0 = daftarTabel.first;
     final baris = barisTabel(t0);
+
+    // Bintang nominal (`anak_timbangan.bintang.<titik_ke>`) kembali menempel di
+    // kotak Nominal keping itu — persis seperti waktu diketik (`20*`).
+    for (var pos = 0; pos < _urutanTitikBernama.length && pos < baris.length; pos++) {
+      final titikKe = _urutanTitikBernama[pos];
+      final berbintang = _spesifikasiDimuat.entries.any(
+        (e) =>
+            e.key.endsWith('.bintang.$titikKe') &&
+            const {'true', '1'}.contains(e.value.trim().toLowerCase()),
+      );
+      if (!berbintang) continue;
+
+      final ctl = titikUntukBaris(baris, pos, t0)?.titikCtl;
+      final teksNominal = ctl?.text.trim() ?? '';
+      if (ctl != null && teksNominal.isNotEmpty && !teksNominal.endsWith('*')) {
+        ctl.text = '$teksNominal*';
+      }
+    }
 
     for (final f in t0.kolomBaris) {
       if (f.kode == 'no_probe') continue;

@@ -50,11 +50,11 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
     'satuan': 'g',
     'satuan_suhu': '°C',
     'semua_kolom_opsional': true,
-    'catatan_pengisian': 'Urutan penimbangan ABBA WAJIB diisi sesuai perannya: Standard, UUT, UUT, Standard. Keempatnya punya TANDA yang berbeda di rumus `de = (T1 − S1 − S2 + T2)/2`, jadi baris yang tertukar membalik arah koreksi kepingnya tanpa satu pun error. TEKANAN UDARA wajib diisi walau kertas Rev.0 belum punya kolomnya — tanpa tekanan, densitas udara tidak bisa dihitung dan koreksi apung seluruh keping hilang. Keping yang nominalnya KEMBAR (dua 200 g, dua 20 g, dua 2 g, dua 0,2 g, dua 0,02 g) wajib diberi No. Identitas — tanpa itu pelanggan tidak bisa memetakan sertifikat ke keping fisiknya, dan titiknya tidak akan diterbitkan.',
+    'catatan_pengisian': 'Urutan penimbangan ABBA WAJIB diisi sesuai perannya: Standard, UUT, UUT, Standard. Keempatnya punya TANDA yang berbeda di rumus `de = (T1 − S1 − S2 + T2)/2`, jadi baris yang tertukar membalik arah koreksi kepingnya tanpa satu pun error. TEKANAN UDARA wajib diisi walau kertas Rev.0 belum punya kolomnya — tanpa tekanan, densitas udara tidak bisa dihitung dan koreksi apung seluruh keping hilang. Keping yang nominalnya KEMBAR (dua 200 g, dua 20 g, dua 2 g, dua 0,2 g, dua 0,02 g) dibedakan seperti di kertas: keping kedua diberi BINTANG di nominalnya (20*), atau isi No. Seri keping yang berbeda — dua keping yang tidak bisa dibedakan tidak diterbitkan. Neraca dipilih lewat centang di Standard yang Digunakan, SATU neraca per sesi.',
     'budget_ketidakpastian': {
       'tersedia': true,
       'sumber': '1.1 Anak Timbangan F1 1mg-500 g 202501022 imp.xlsx',
-      'catatan': 'Enam komponen per keping dalam miligram, mengikuti OIML R111. TANPA lantai CMC — kalibrasi anak timbangan di luar lampiran LK-285-IDN, dan sel lantai masternya memang kosong di kedua puluh blok. Titik yang densitasnya tidak ada di tabel, yang |de|-nya melebihi 10x MPE, atau yang keping kembarnya belum diberi No. Identitas TIDAK diterbitkan.',
+      'catatan': 'Enam komponen per keping dalam miligram, mengikuti OIML R111. TANPA lantai CMC — kalibrasi anak timbangan di luar lampiran LK-285-IDN, dan sel lantai masternya memang kosong di kedua puluh blok. Titik yang densitasnya tidak ada di tabel, yang |de|-nya melebihi 10x MPE, atau keping kembar yang tidak bisa dibedakan (tanpa bintang maupun No. Seri keping yang berbeda) TIDAK diterbitkan.',
     },
     'bagian': [
       {
@@ -187,8 +187,19 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
             'tampil_kalau': null,
           },
           {
+            'kode': 'spesifikasi_alat.anak_timbangan.kapasitas_min_g',
+            'label': 'Kapasitas Alat — dari',
+            'tipe': 'angka',
+            'wajib': false,
+            'sumber': null,
+            'satuan': 'g',
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
             'kode': 'spesifikasi_alat.anak_timbangan.kapasitas_g',
-            'label': 'Kapasitas Alat',
+            'label': 'Kapasitas Alat — sampai',
             'tipe': 'angka',
             'wajib': false,
             'sumber': null,
@@ -216,38 +227,6 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
             'sumber': null,
             'satuan': null,
             'pilihan': <dynamic>[],
-            'hanya_admin': false,
-            'tampil_kalau': null,
-          },
-          {
-            'kode': 'spesifikasi_alat.anak_timbangan.timbangan',
-            'label': 'Timbangan yang Dipakai',
-            'tipe': 'pilihan',
-            'wajib': false,
-            'sumber': null,
-            'satuan': null,
-            'pilihan': [
-              {
-                'nilai': 'Semi Micro Balance',
-                'label': 'Semi Micro Balance — OHAUS PIONEER/PX85 (maks 80 g, res 0,00001 g)',
-              },
-              {
-                'nilai': 'Analytical Balance',
-                'label': 'Analytical Balance — Mettler Toledo/XS204 (maks 220 g, res 0,0001 g)',
-              },
-              {
-                'nilai': 'Electronic Balance Fujitsu',
-                'label': 'Electronic Balance Fujitsu — Fujitsu/FSR-A (maks 1.200 g, res 0,001 g)',
-              },
-              {
-                'nilai': 'Electronic Balance Excellent',
-                'label': 'Electronic Balance Excellent — Excellent/DJ (maks 3.100 g, res 0,01 g)',
-              },
-              {
-                'nilai': 'Electronic Balance  Mettler',
-                'label': 'Electronic Balance  Mettler — Mettler Toledo/IND690 (maks 30.000 g, res 0,01 g)',
-              },
-            ],
             'hanya_admin': false,
             'tampil_kalau': null,
           },
@@ -508,7 +487,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
         'judul': 'Standard Used',
         'baris': [
           {
-            'label': 'Semi Micro Balance — OHAUS PIONEER/PX85',
+            'label': 'Semi Micro Balance — OHAUS PIONEER/PX85 (maks 80 g, res 0,00001 g)',
             'standard_id': 75,
             'serial_number': 'C543502629',
             'no_sertifikat': 'C543502629',
@@ -516,7 +495,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
             'terdaftar': true,
           },
           {
-            'label': 'Analytical Balance — Mettler Toledo/XS204',
+            'label': 'Analytical Balance — Mettler Toledo/XS204 (maks 220 g, res 0,0001 g)',
             'standard_id': 76,
             'serial_number': '1129063525',
             'no_sertifikat': '1129063525',
@@ -524,7 +503,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
             'terdaftar': true,
           },
           {
-            'label': 'Electronic Balance Fujitsu — Fujitsu/FSR-A',
+            'label': 'Electronic Balance Fujitsu — Fujitsu/FSR-A (maks 1.200 g, res 0,001 g)',
             'standard_id': 77,
             'serial_number': 'SIDIK/134/2024',
             'no_sertifikat': 'SIDIK/134/2024',
@@ -532,7 +511,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
             'terdaftar': true,
           },
           {
-            'label': 'Electronic Balance Excellent — Excellent/DJ',
+            'label': 'Electronic Balance Excellent — Excellent/DJ (maks 3.100 g, res 0,01 g)',
             'standard_id': 78,
             'serial_number': 'HSEX1403752',
             'no_sertifikat': 'HSEX1403752',
@@ -540,7 +519,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
             'terdaftar': true,
           },
           {
-            'label': 'Electronic Balance Mettler — Mettler Toledo/IND690',
+            'label': 'Electronic Balance Mettler — Mettler Toledo/IND690 (maks 30.000 g, res 0,01 g)',
             'standard_id': 79,
             'serial_number': '3127471',
             'no_sertifikat': '3127471',
@@ -724,7 +703,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
             'kolom_baris': [
               {
                 'kode': 'no_identitas',
-                'label': 'No. Identitas / Seri keping',
+                'label': 'No. Seri keping',
                 'tipe': 'teks',
                 'wajib': false,
                 'sumber': null,

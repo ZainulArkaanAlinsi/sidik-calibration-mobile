@@ -30,10 +30,23 @@ class LembarKerjaKartuBaris extends StatelessWidget {
   final LembarKerjaState isian;
   final VoidCallback onBerubah;
 
-  /// `Standard (S1) — penimbangan standar, pertama` → `Standard (S1)`.
+  /// `Standard (S1) — penimbangan standar, pertama` → `Standard` — persis
+  /// tulisan kertas (Standard / UUT / UUT / Standard). Urutan barisnya yang
+  /// membedakan S1 dari S2, sama seperti di kertas.
   static String labelPendek(String judul) {
     final i = judul.indexOf(' —');
-    return (i < 0 ? judul : judul.substring(0, i)).trim();
+    final awal = (i < 0 ? judul : judul.substring(0, i)).trim();
+
+    return awal.replaceFirst(RegExp(r'\s*\([^)]*\)$'), '').trim();
+  }
+
+  /// Tambah atau cabut bintang di akhir nominal (`20` ↔ `20*`).
+  ///
+  /// Tombol, bukan ketikan: keyboard angka di banyak HP tidak punya `*`, dan
+  /// laporan lapangan 5 Okt 2026 memintanya bisa dari HP mana pun.
+  static String alihBintang(String nominal) {
+    final t = nominal.trim();
+    return t.endsWith('*') ? t.replaceFirst(RegExp(r'\*+$'), '') : '$t*';
   }
 
   @override
@@ -140,7 +153,23 @@ class _Kartu extends StatelessWidget {
                   decoration: InputDecoration(
                     isDense: true,
                     border: const OutlineInputBorder(),
-                    labelText: satuan.isEmpty ? 'Nominal' : 'Nominal ($satuan)',
+                    labelText: () {
+                      final judul = acuan.judulNilai ?? 'Nominal';
+                      return satuan.isEmpty ? judul : '$judul ($satuan)';
+                    }(),
+                    // Bintang keping kedua (`20*`) — seperti di kertas.
+                    suffixIcon: IconButton(
+                      key: ValueKey('kartu-bintang-$nomor'),
+                      tooltip: 'Bintang: keping kedua bernominal sama',
+                      icon: Icon(
+                        tsAcuan.berbintang ? Icons.star : Icons.star_border,
+                      ),
+                      onPressed: () {
+                        tsAcuan.titikCtl.text =
+                            LembarKerjaKartuBaris.alihBintang(tsAcuan.titikCtl.text);
+                        onBerubah();
+                      },
+                    ),
                   ),
                   onChanged: (_) => onBerubah(),
                 ),

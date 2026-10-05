@@ -39,11 +39,20 @@ void main() {
     expect(bagianHasil(isianBaru()).kartuPerBaris, isTrue);
   });
 
-  test('label peran dipendekkan seperti kertas', () {
+  test('label peran ditulis persis seperti kertas', () {
     expect(
       LembarKerjaKartuBaris.labelPendek('Standard (S1) — penimbangan standar, pertama'),
-      'Standard (S1)',
+      'Standard',
     );
+    expect(
+      LembarKerjaKartuBaris.labelPendek('UUT (T2) — penimbangan alat, kedua'),
+      'UUT',
+    );
+  });
+
+  test('tombol bintang menambah dan mencabut bintang nominal', () {
+    expect(LembarKerjaKartuBaris.alihBintang('20'), '20*');
+    expect(LembarKerjaKartuBaris.alihBintang(' 20* '), '20');
   });
 
   testWidgets('isian lewat kartu = isian lewat tabel biasa', (tester) async {
