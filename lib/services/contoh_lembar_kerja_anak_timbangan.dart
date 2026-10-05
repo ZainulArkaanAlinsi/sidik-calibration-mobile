@@ -633,6 +633,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
         'kode': 'hasil',
         'halaman': 2,
         'judul': 'Data Hasil Kalibrasi',
+        'tampilan': 'kartu_per_baris',
         'field': <dynamic>[],
         'tabel': [
           {
@@ -720,6 +721,19 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
               2,
               3,
             ],
+            'kolom_baris': [
+              {
+                'kode': 'no_identitas',
+                'label': 'No. Identitas / Seri keping',
+                'tipe': 'teks',
+                'wajib': false,
+                'sumber': null,
+                'satuan': null,
+                'pilihan': <dynamic>[],
+                'hanya_admin': false,
+                'tampil_kalau': null,
+              },
+            ],
           },
           {
             'tahap': 'sesudah_adjustment',
@@ -806,6 +820,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
               2,
               3,
             ],
+            'kolom_baris': <dynamic>[],
           },
           {
             'tahap': 'sesudah_adjustment',
@@ -892,6 +907,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
               2,
               3,
             ],
+            'kolom_baris': <dynamic>[],
           },
           {
             'tahap': 'sesudah_adjustment',
@@ -978,6 +994,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
               2,
               3,
             ],
+            'kolom_baris': <dynamic>[],
           },
         ],
       },
