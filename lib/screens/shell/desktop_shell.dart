@@ -30,6 +30,15 @@ import '../settings/organization_screen.dart';
 import '../settings/standard_list_screen.dart';
 import '../settings/tanda_tangan_screen.dart';
 import '../settings/technician_list_screen.dart';
+import '../../models/user.dart';
+import '../draf/draf_screen.dart';
+import '../jatuh_tempo/layar_jatuh_tempo.dart';
+import '../koreksi/antrean_koreksi_screen.dart';
+import '../pelacakan/pelacakan_screen.dart';
+import '../pelanggan/pusat_pelanggan_screen.dart';
+import '../pengesahan/antrean_pengesahan_screen.dart';
+import '../penugasan/penugasan_screen.dart';
+import '../permintaan/antrean_permintaan_screen.dart';
 
 /// Panel admin desktop — sidebar tetap + bilah atas + area kerja.
 ///
@@ -62,7 +71,8 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
     // tengah jalan (mis. token di-refresh dan rolenya turun). Jatuh balik ke
     // Ringkasan daripada nampilin area kerja kosong.
     final semua = [for (final s in menu) ...s.menu];
-    final aktif = semua.where((m) => m.id == _dipilih).firstOrNull ?? semua.first;
+    final aktif =
+        semua.where((m) => m.id == _dipilih).firstOrNull ?? semua.first;
 
     return Scaffold(
       // Pemantau dibungkus di LUAR isi, bukan di dalam satu layar: kiriman
@@ -70,28 +80,28 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
       // waktu itu terjadi.
       body: PemantauAntrean(
         child: Row(
-        children: [
-          SizedBox(
-            width: _lebarSidebar,
-            child: _Sidebar(
-              seksi: _saring(menu),
-              dipilih: aktif.id,
-              cari: _cari,
-              onCari: (v) => setState(() => _cari = v),
-              onPilih: (id) => setState(() => _dipilih = id),
+          children: [
+            SizedBox(
+              width: _lebarSidebar,
+              child: _Sidebar(
+                seksi: _saring(menu),
+                dipilih: aktif.id,
+                cari: _cari,
+                onCari: (v) => setState(() => _cari = v),
+                onPilih: (id) => setState(() => _dipilih = id),
+              ),
             ),
-          ),
-          const VerticalDivider(width: 1, thickness: 1),
-          Expanded(
-            child: Column(
-              children: [
-                const _BilahAtas(),
-                const Divider(height: 1, thickness: 1),
-                Expanded(child: aktif.bangun()),
-              ],
+            const VerticalDivider(width: 1, thickness: 1),
+            Expanded(
+              child: Column(
+                children: [
+                  const _BilahAtas(),
+                  const Divider(height: 1, thickness: 1),
+                  Expanded(child: aktif.bangun()),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
         ),
       ),
     );
@@ -137,15 +147,125 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
     // nggak pernah dijawab server dia selalu jatuh ke `adminSaja` dan keempatnya
     // kebetulan bener — tapi begitu namanya jadi izin NYATA, satu rute pindah
     // blok bikin tiga menu admin-only nyala buat orang yang bakal kena 403.
-    final bolehStandar = ref.bolehkah(NamaIzin.standarKelola, cadangan: peran.adminSaja);
-    final bolehPelanggan = ref.bolehkah(NamaIzin.pelangganKelola, cadangan: peran.adminSaja);
-    final bolehRuangan = ref.bolehkah(NamaIzin.ruanganKelola, cadangan: peran.adminSaja);
-    final bolehMetode = ref.bolehkah(NamaIzin.metodeKelola, cadangan: peran.adminSaja);
-    final bolehTeknisi = ref.bolehkah(NamaIzin.teknisiKelola, cadangan: peran.adminSaja);
-    final bolehImpor = ref.bolehkah(NamaIzin.imporExcel, cadangan: peran.adminSaja);
-    final bolehOrganisasi = ref.bolehkah(NamaIzin.organisasiUbah, cadangan: peran.adminSaja);
-    final bolehAkun = ref.bolehkah(NamaIzin.penggunaKelola, cadangan: peran.adminSaja);
-    final bolehTtd = ref.bolehkah(NamaIzin.tandaTanganKelola, cadangan: peran.adminSaja);
+    final bolehStandar = ref.bolehkah(
+      NamaIzin.standarKelola,
+      cadangan: peran.adminSaja,
+    );
+    final bolehPelanggan = ref.bolehkah(
+      NamaIzin.pelangganKelola,
+      cadangan: peran.adminSaja,
+    );
+    final bolehRuangan = ref.bolehkah(
+      NamaIzin.ruanganKelola,
+      cadangan: peran.adminSaja,
+    );
+    final bolehMetode = ref.bolehkah(
+      NamaIzin.metodeKelola,
+      cadangan: peran.adminSaja,
+    );
+    final bolehTeknisi = ref.bolehkah(
+      NamaIzin.teknisiKelola,
+      cadangan: peran.adminSaja,
+    );
+    final bolehImpor = ref.bolehkah(
+      NamaIzin.imporExcel,
+      cadangan: peran.adminSaja,
+    );
+    final bolehOrganisasi = ref.bolehkah(
+      NamaIzin.organisasiUbah,
+      cadangan: peran.adminSaja,
+    );
+    final bolehAkun = ref.bolehkah(
+      NamaIzin.penggunaKelola,
+      cadangan: peran.adminSaja,
+    );
+    final bolehTtd = ref.bolehkah(
+      NamaIzin.tandaTanganKelola,
+      cadangan: peran.adminSaja,
+    );
+
+    // Menu kerja harian SAMA PERSIS dengan menu HP (`main_shell.dart`,
+    // `_MenuUtama`) per peran. Sebelum ini desktop sama sekali tidak memuat
+    // Pengesahan, Penugasan, Pelacakan, Permintaan, Koreksi, Jadwal, Pusat
+    // Pelanggan, dan Draf — super admin di Windows cuma melihat delapan menu
+    // sementara di HP empat belas (uji 5 Okt 2026).
+    final pengesahan = _Menu(
+      id: 'pengesahan',
+      ikon: Icons.verified_outlined,
+      label: l10n.pengesahanJudul,
+      bangun: AntreanPengesahanScreen.new,
+    );
+    final penugasan = _Menu(
+      id: 'penugasan',
+      ikon: Icons.assignment_ind_outlined,
+      label: l10n.penugasanJudul,
+      bangun: PenugasanScreen.new,
+    );
+    final tugasSaya = _Menu(
+      id: 'penugasan',
+      ikon: Icons.assignment_ind_outlined,
+      label: l10n.penugasanTugasSaya,
+      bangun: PenugasanScreen.new,
+    );
+    final pelacakan = _Menu(
+      id: 'pelacakan',
+      ikon: Icons.local_shipping_outlined,
+      label: l10n.pelacakanJudul,
+      bangun: PelacakanScreen.new,
+    );
+    final permintaan = _Menu(
+      id: 'permintaan',
+      ikon: Icons.move_to_inbox_outlined,
+      label: l10n.permintaanJudul,
+      bangun: AntreanPermintaanScreen.new,
+    );
+    final koreksi = _Menu(
+      id: 'koreksi',
+      ikon: Icons.rule_folder_outlined,
+      label: l10n.koreksiJudul,
+      bangun: AntreanKoreksiScreen.new,
+    );
+    final jadwal = _Menu(
+      id: 'jadwal',
+      ikon: Icons.event_repeat_outlined,
+      label: l10n.jadwalJudul,
+      bangun: JadwalKalibrasiScreen.new,
+    );
+    final pusat = _Menu(
+      id: 'pusat',
+      ikon: Icons.apartment_outlined,
+      label: l10n.pusatJudul,
+      bangun: PusatPelangganScreen.new,
+    );
+    final draf = _Menu(
+      id: 'draf',
+      ikon: Icons.edit_note,
+      label: l10n.drafTitle,
+      bangun: DrafScreen.new,
+    );
+    final kerjaHarian = switch (peran) {
+      UserRole.superAdmin => [
+        pengesahan,
+        penugasan,
+        pelacakan,
+        permintaan,
+        koreksi,
+        jadwal,
+        pusat,
+      ],
+      UserRole.admin => [
+        permintaan,
+        koreksi,
+        pengesahan,
+        penugasan,
+        pelacakan,
+        draf,
+        jadwal,
+        pusat,
+      ],
+      UserRole.teknisi => [tugasSaya, draf, pelacakan],
+      _ => [pelacakan],
+    };
 
     return [
       _Seksi(
@@ -180,6 +300,7 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
           ),
         ],
       ),
+      _Seksi(judul: l10n.menuKerjaHarian, menu: kerjaHarian),
       _Seksi(
         judul: l10n.panelSeksiDokumen,
         menu: [
@@ -684,9 +805,9 @@ class _Avatar extends StatelessWidget {
       message: nama,
       child: InkWell(
         borderRadius: BorderRadius.circular(999),
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute<void>(builder: (_) => const ProfileScreen()),
-        ),
+        onTap: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute<void>(builder: (_) => const ProfileScreen())),
         child: CircleAvatar(
           radius: 18,
           backgroundColor: theme.colorScheme.primaryContainer,
