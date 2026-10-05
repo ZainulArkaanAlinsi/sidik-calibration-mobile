@@ -1693,6 +1693,29 @@ class LembarKerjaState {
 
       if (acuan == null || isi.isEmpty) continue;
 
+      // Kotak per baris milik tabel ACUAN (No. Identitas keping Anak
+      // Timbangan) ikut terkirim — cuma di baris yang punya angka, persis
+      // saringan server. Kotak teks dikirim walau KOSONG: server membedakan
+      // "identitas dihapus" (kunci ada, kosong) dari klien lama yang tidak
+      // tahu kotak ini (kunci tidak ada sama sekali).
+      final tabelAcuan = tabel.first;
+      final barisAcuan = barisTabel(tabelAcuan);
+      final tsAcuan = i < barisAcuan.length
+          ? titikUntukBaris(barisAcuan, i, tabelAcuan)
+          : null;
+      for (final f in tabelAcuan.kolomBaris) {
+        if (f.kode == 'no_probe' || tsAcuan == null) continue;
+
+        final teksKotak =
+            tsAcuan.kotakBarisCtl(tabelAcuan.kunciTabel, f.kode).text.trim();
+
+        if (f.tipe == TipeField.daftarAngka) {
+          if (teksKotak.isNotEmpty) isi[f.kode] = pecahDaftarAngka(teksKotak);
+        } else {
+          isi[f.kode] = teksKotak;
+        }
+      }
+
       // TIDAK disaring `siapKirim` di sini, dan itu keputusan — bukan
       // kelalaian.
       //
@@ -2152,6 +2175,9 @@ class LembarKerjaState {
       isiTeks('spesifikasi_alat.${e.key}', e.value);
     }
 
+    _spesifikasiDimuat = Map.of(isi.spesifikasiAlat);
+    _pulihkanKotakBarisBernama();
+
     isiAngka('suhu_awal', isi.suhuAwal);
     isiAngka('suhu_akhir', isi.suhuAkhir);
     isiAngka('kelembaban_awal', isi.kelembabanAwal);
@@ -2609,6 +2635,10 @@ class LembarKerjaState {
       _pastikanJumlahBaris(t, perluBaris);
     }
 
+    _urutanTitikBernama = {
+      for (final d in urutan.values) ...d,
+    }.toList()..sort();
+
     for (final m in mentah) {
       final t = kunciBernama[m.peranSensor]!;
       final baris = barisTabel(t);
@@ -2643,7 +2673,61 @@ class LembarKerjaState {
       if (kotak.text.trim().isEmpty) kotak.text = formatAngka(m.pembacaan);
     }
 
+    _pulihkanKotakBarisBernama();
+
     return kebuang;
+  }
+
+  /// `spesifikasi_alat` (datar, kunci bertitik) dari sesi yang terakhir dimuat.
+  Map<String, String> _spesifikasiDimuat = const {};
+
+  /// `titik_ke` deret bernama yang terakhir dipulihkan, urut — posisi di daftar
+  /// ini = posisi baris di tabel.
+  List<int> _urutanTitikBernama = const [];
+
+  /// Pulihkan kotak per baris tabel ACUAN deret bernama (No. Identitas keping
+  /// Anak Timbangan) dari `spesifikasi_alat`.
+  ///
+  /// Server menyimpannya per `titik_ke` (`anak_timbangan.identitas.<n>`),
+  /// bukan di baris mentah. Jalan dari DUA pintu — [muatDariSesi] dan
+  /// [terapkanPembacaan] — karena butuh keduanya (spesifikasi DAN urutan
+  /// titik), dan urutan pemanggilannya bukan janji siapa pun.
+  ///
+  /// Kode kotak `no_identitas` dicocokkan ke kunci simpan `identitas`
+  /// (awalan `no_` dibuang); kotak yang sudah berisi tidak ditimpa.
+  void _pulihkanKotakBarisBernama() {
+    if (_spesifikasiDimuat.isEmpty || _urutanTitikBernama.isEmpty) return;
+
+    final daftarTabel = tabelDeretBernama;
+    if (daftarTabel.isEmpty) return;
+
+    final t0 = daftarTabel.first;
+    final baris = barisTabel(t0);
+
+    for (final f in t0.kolomBaris) {
+      if (f.kode == 'no_probe') continue;
+
+      final nama = f.kode.startsWith('no_') ? f.kode.substring(3) : f.kode;
+
+      for (var pos = 0; pos < _urutanTitikBernama.length && pos < baris.length; pos++) {
+        final titikKe = _urutanTitikBernama[pos];
+        String? nilai;
+
+        for (final e in _spesifikasiDimuat.entries) {
+          if (e.key.endsWith('.$nama.$titikKe') ||
+              e.key.endsWith('.${f.kode}.$titikKe')) {
+            nilai = e.value;
+            break;
+          }
+        }
+
+        if (nilai == null) continue;
+
+        final ctl = titikUntukBaris(baris, pos, t0)
+            ?.kotakBarisCtl(t0.kunciTabel, f.kode);
+        if (ctl != null && ctl.text.trim().isEmpty) ctl.text = nilai;
+      }
+    }
   }
 
   int _terapkanGrid(List<RawMeasurement> mentah) {

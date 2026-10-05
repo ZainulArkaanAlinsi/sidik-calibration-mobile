@@ -35,6 +35,7 @@ import 'lembar_kerja_state.dart';
 import 'widgets/dropdown_gagal.dart';
 import '../equipment/equipment_form_screen.dart';
 import 'widgets/lembar_kerja_grid.dart';
+import 'widgets/lembar_kerja_kartu_baris.dart';
 import 'widgets/lembar_kerja_matriks.dart';
 import 'widgets/lembar_kerja_tabel.dart';
 import 'widgets/pengatur_titik.dart';
@@ -1972,6 +1973,15 @@ class _Bagian extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.lg),
               ],
+            ] else if (bagian.kartuPerBaris) ...[
+              // Susunan kertas: satu kartu per baris, bukan satu tabel per
+              // peran. Cuma tampilan — lihat `LembarKerjaKartuBaris`.
+              LembarKerjaKartuBaris(
+                tabel: bagian.tabel,
+                isian: isian,
+                onBerubah: onBerubah,
+              ),
+              const SizedBox(height: AppSpacing.lg),
             ] else
               for (var i = 0; i < bagian.tabel.length; i++) ...[
                 // Daftar titik diatur SEKALI di atas tabel pertama, bukan per
@@ -2880,17 +2890,23 @@ class _BarisKotakTambahan extends StatelessWidget {
                   // memunculkan error di mana pun.
                   controller: isian.titik[isian.kunciBaris(baris, i, tabel)]
                       ?.kotakBarisCtl(tabel.kunciTabel, field.kode),
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
+                  // Kotak TEKS (No. Identitas keping Anak Timbangan) memakai
+                  // keyboard biasa: tanda bintang keping kedua (`20*`) dan
+                  // nomor seri berhuruf tidak ada di keyboard angka HP mana
+                  // pun.
+                  keyboardType: field.tipe == TipeField.teks
+                      ? TextInputType.text
+                      : const TextInputType.numberWithOptions(decimal: true),
                   style: theme.textTheme.bodyMedium,
-                  // Petunjuk netral satuan: kotak ini dipakai keping anak
+                  // Petunjuk netral satuan: kotak angka dipakai keping anak
                   // timbangan (gram) DAN tumpukan balok ukur Dial Indicator
                   // (mm) — contoh `20+20+10` menyesatkan di yang kedua.
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     isDense: true,
-                    border: OutlineInputBorder(),
-                    hintText: 'Pisahkan tiap keping dengan +',
+                    border: const OutlineInputBorder(),
+                    hintText: field.tipe == TipeField.teks
+                        ? 'mis. 20* atau nomor seri'
+                        : 'Pisahkan tiap keping dengan +',
                   ),
                   onChanged: (_) => onBerubah(),
                 ),
