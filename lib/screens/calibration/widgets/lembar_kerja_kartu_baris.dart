@@ -27,6 +27,7 @@ class LembarKerjaKartuBaris extends StatelessWidget {
     required this.onBerubah,
     this.sejajar = false,
     this.berbintang = true,
+    this.vertikal = false,
   });
 
   /// Tabel sebaris, urut seperti di kertas. Yang PERTAMA jadi acuan: nominal
@@ -41,6 +42,10 @@ class LembarKerjaKartuBaris extends StatelessWidget {
 
   /// Tombol ★ di kotak nominal. Lihat [BagianLembarKerja.nominalBerbintang].
   final bool berbintang;
+
+  /// Bacaan menurun, satu baris per pengulangan berlabel (`z`, `m`, `m'`,
+  /// `z'`). Lihat [BagianLembarKerja.kartuVertikal].
+  final bool vertikal;
 
   /// Lebar layar minimum untuk menggambar tabel berdampingan.
   static const lebarSejajar = 700.0;
@@ -87,6 +92,7 @@ class LembarKerjaKartuBaris extends StatelessWidget {
                 onBerubah: onBerubah,
                 berdampingan: berdampingan,
                 berbintang: berbintang,
+                vertikal: vertikal,
               ),
               const SizedBox(height: AppSpacing.lg),
             ],
@@ -119,6 +125,7 @@ class _Kartu extends StatelessWidget {
     required this.onBerubah,
     required this.berdampingan,
     required this.berbintang,
+    required this.vertikal,
   });
 
   final int nomor;
@@ -128,6 +135,7 @@ class _Kartu extends StatelessWidget {
   final VoidCallback onBerubah;
   final bool berdampingan;
   final bool berbintang;
+  final bool vertikal;
 
   @override
   Widget build(BuildContext context) {
@@ -278,7 +286,42 @@ class _Kartu extends StatelessWidget {
         ],
       );
 
-      if (berdampingan) {
+      if (vertikal && t.kolom.length == 1) {
+        // Susunan kertas Timbangan: bacaan menurun, label dari
+        // `pengulangan_arah` (`z`, `m`, `m'`, `z'`).
+        barisTabel.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                label,
+                for (var r = 0; r < t.pengulangan.length; r++)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 104,
+                          child: Text(
+                            t.pengulanganArah[r + 1] ?? 'X${r + 1}',
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                        ),
+                        Expanded(
+                          child: kotakAngka(
+                            ts.kotak(t.kunciTabel, t.kolom.first.kode, r),
+                            key: ValueKey('kartu-t$k-$nomor-$r'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      } else if (berdampingan) {
         blokSejajar.add(
           Expanded(
             child: Padding(
@@ -367,15 +410,23 @@ class _Kartu extends StatelessWidget {
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: TextField(
-                      key: ValueKey('kartu-${f.kode}-$nomor'),
+                      // `kb` = kotak per baris. Tanpa awalan ini kolom `nominal`
+                      // Timbangan bertabrakan dengan kunci kepala nominal.
+                      key: ValueKey('kartu-kb-${f.kode}-$nomor'),
                       controller: tsAcuan.kotakBarisCtl(acuan.kunciTabel, f.kode),
-                      keyboardType: f.tipe == TipeField.teks
+                      // `daftar_angka` (susunan keping `20+20+10`) butuh
+                      // tombol `+`, yang tidak ada di keyboard angka.
+                      keyboardType: f.tipe == TipeField.teks || f.tipe == TipeField.daftarAngka
                           ? TextInputType.text
                           : const TextInputType.numberWithOptions(decimal: true),
                       decoration: InputDecoration(
                         isDense: true,
                         border: const OutlineInputBorder(),
-                        labelText: f.label,
+                        // Label + satuan dan petunjuk sama dengan kotak di tabel
+                        // biasa — kotak komposisi keping Timbangan menentukan
+                        // `titik_ukur`, jadi petunjuk `+`-nya wajib terbaca.
+                        labelText: (f.satuan ?? '').isEmpty ? f.label : '${f.label} — ${f.satuan}',
+                        hintText: f.tipe == TipeField.daftarAngka ? 'Pisahkan tiap keping dengan +' : null,
                       ),
                       onChanged: (_) => onBerubah(),
                     ),
@@ -387,8 +438,9 @@ class _Kartu extends StatelessWidget {
           if (berdampingan)
             Row(crossAxisAlignment: CrossAxisAlignment.start, children: blokSejajar)
           else ...[
-            // Kepala kolom X1..Xn.
-            Row(
+            // Kepala kolom X1..Xn — tidak dipakai di mode vertikal (label
+            // bacaannya ada di tiap baris).
+            if (!vertikal) Row(
               children: [
                 const SizedBox(width: 104),
                 Expanded(child: kepalaUlang(jumlahUlang)),

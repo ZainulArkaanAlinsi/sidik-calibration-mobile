@@ -81,7 +81,7 @@ void main() {
     expect(find.byKey(const ValueKey('kartu-baris-10')), findsOneWidget);
 
     await tester.enterText(find.byKey(const ValueKey('kartu-nominal-1')), '20');
-    await tester.enterText(find.byKey(const ValueKey('kartu-no_identitas-1')), '20*');
+    await tester.enterText(find.byKey(const ValueKey('kartu-kb-no_identitas-1')), '20*');
     for (var k = 0; k < tabel.length; k++) {
       for (var r = 0; r < 3; r++) {
         await tester.enterText(

@@ -684,6 +684,10 @@ Map<String, dynamic> contohBentukLembarKerjaTimbangan({
         'kode': 'akurasi',
         'halaman': 2,
         'judul': '3. ACCURACY',
+        'tampilan': 'kartu_per_set_point',
+        'kartu_sejajar': false,
+        'kartu_vertikal': true,
+        'nominal_berbintang': false,
         'tabel': [
           {
             'kolom_baris': [

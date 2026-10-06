@@ -109,9 +109,12 @@ void main() {
     perbesarViewport(tester);
     await bukaSemuaHalaman(tester);
 
+    // Sejak 6 Okt 2026 Accuracy digambar KARTU per titik beban (susunan
+    // kertas & master `INPUT DATA!S37`): judul kotaknya ada di tiap kartu,
+    // bukan sekali di kepala tabel.
     expect(
       find.text('Nominal keping (pisahkan dengan +) — kg'),
-      findsOneWidget,
+      findsNWidgets(10),
       reason:
           'Judul kotak tambahan per baris nggak kegambar. Tanpa kotaknya, '
           '`titik_ukur` tiap titik jadi nol di server — dia jumlah nominal.',
