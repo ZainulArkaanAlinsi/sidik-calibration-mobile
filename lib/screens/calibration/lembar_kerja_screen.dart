@@ -2045,6 +2045,7 @@ class _Bagian extends ConsumerWidget {
                 onBerubah: onBerubah,
                 sejajar: bagian.kartuSejajar,
                 berbintang: bagian.nominalBerbintang,
+                vertikal: bagian.kartuVertikal,
               ),
               const SizedBox(height: AppSpacing.lg),
             ] else ...[

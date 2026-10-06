@@ -1207,6 +1207,7 @@ class BagianLembarKerja {
     this.tampilan,
     this.kartuSejajar = false,
     this.nominalBerbintang = false,
+    this.kartuVertikal = false,
   });
 
   final String kode;
@@ -1220,6 +1221,11 @@ class BagianLembarKerja {
   /// Nominal boleh diberi bintang (`20*`) — cara kertas Anak Timbangan
   /// membedakan keping kedua bernominal sama. Lembar lain tidak punya bintang.
   final bool nominalBerbintang;
+
+  /// Pengulangan di kartu digambar MENURUN — satu baris per bacaan berlabel
+  /// (`z`, `m`, `m'`, `z'`) — bukan sebaris. Kertas Timbangan menulis blok
+  /// Accuracy begitu: tiap titik beban satu blok, bacaannya bertumpuk ke bawah.
+  final bool kartuVertikal;
 
   /// Cara menggambar tabel bagian ini, kalau BUKAN tabel per tabel biasa.
   ///
@@ -1293,6 +1299,7 @@ class BagianLembarKerja {
         catatan: json['catatan'] as String?,
         tampilan: json['tampilan'] as String?,
         kartuSejajar: json['kartu_sejajar'] == true,
+        kartuVertikal: json['kartu_vertikal'] == true,
         // Server yang belum mengirim penanda ini (sebelum 6 Okt 2026) cuma
         // memakai kartu di lembar Anak Timbangan — dan di sana bintang memang
         // berlaku. Jadi ketiadaan penanda di bagian berkartu dibaca "ya".
