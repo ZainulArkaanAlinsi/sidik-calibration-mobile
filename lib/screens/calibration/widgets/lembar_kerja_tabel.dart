@@ -534,14 +534,19 @@ class LembarKerjaTabel extends StatelessWidget {
             )
           else
             for (final baris in _baris)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: _PilihStandarTitik(
-                  label: baris.label,
-                  state: isian.titik[baris.titikUkur]!,
-                  onBerubah: onBerubah,
+              // Baris tanpa titik (Preload Test UTM/Load Cell/Proving Ring —
+              // isinya disimpan ke `spesifikasi_alat`, bukan per titik) tidak
+              // punya standar per titik. Dulu `!` di sini melempar error dan
+              // seluruh tabelnya diganti kotak abu-abu (audit 6 Okt 2026).
+              if (isian.titik[baris.titikUkur] case final state?)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: _PilihStandarTitik(
+                    label: baris.label,
+                    state: state,
+                    onBerubah: onBerubah,
+                  ),
                 ),
-              ),
         ],
       ],
     );

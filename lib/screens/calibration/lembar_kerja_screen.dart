@@ -1809,9 +1809,30 @@ class _Bagian extends ConsumerWidget {
 
             if (bagian.belumBisaDiisi)
               _BagianTanpaInput(catatan: bagian.catatan)
-            else if (bagian.kode == 'usage_check')
-              _UsageCheck(bagian: bagian, isian: isian, onBerubah: onBerubah)
-            else ...[
+            else if (bagian.kode == 'usage_check') ...[
+              _UsageCheck(bagian: bagian, isian: isian, onBerubah: onBerubah),
+              // Kolom lain di kotak Standard Used ikut digambar di bawah
+              // daftar centang. Dulu cuma daftar centangnya yang digambar, jadi
+              // `gaya.standar` (UTM/Load Cell/Proving Ring), `tekanan.varian`,
+              // `tipe_sensor` TIDS, `piston.timbangan`, dan
+              // `sieve.standar_dipakai` tidak pernah bisa diisi — dan tanpa
+              // itu server menahan seluruh titiknya (audit 6 Okt 2026).
+              // `standar_dicek.*` itu kotak centang di atas, bukan kolom.
+              for (final grup in grupField)
+                if (!grup.first.kode.startsWith('standar_dicek.') &&
+                    isian.fieldTampil(grup.first)) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  if (grup.first.spesifikasiAlat)
+                    _BarisSpesifikasi(
+                      field: grup,
+                      isian: isian,
+                      onBerubah: onBerubah,
+                    )
+                  else
+                    _Field(field: grup.first, isian: isian, onBerubah: onBerubah),
+                ],
+              const SizedBox(height: AppSpacing.md),
+            ] else ...[
               // Kondisi lingkungan di kertas itu TABEL, bukan empat kotak
               // bertumpuk: baris `First`/`End`, kolom `Temperature`/`Humidity`.
               // Digambar sekali di sini, lalu keempat kolomnya dilewati di
