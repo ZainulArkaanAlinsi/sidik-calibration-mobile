@@ -6904,7 +6904,7 @@ abstract class AppLocalizations {
   /// No description provided for @lkUbahPengulanganPesan.
   ///
   /// In en, this message translates to:
-  /// **'The results table is rebuilt with {n} columns, and numbers already typed into it will be lost. Identity and room-condition fields stay.'**
+  /// **'The results table will have {n} columns. Numbers already typed are KEPT. If you reduce the count, hidden repetition columns are not sent (they come back if you increase it again).'**
   String lkUbahPengulanganPesan(int n);
 
   /// No description provided for @lkUbahPengulanganLanjut.

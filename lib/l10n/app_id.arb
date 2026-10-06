@@ -1555,7 +1555,7 @@
     }
   },
   "lkUbahPengulanganJudul": "Ubah jumlah pengulangan?",
-  "lkUbahPengulanganPesan": "Tabel hasil dibangun ulang jadi {n} kolom, dan angka yang udah diketik di tabel akan hilang. Kolom identitas & kondisi ruangan tetap aman.",
+  "lkUbahPengulanganPesan": "Tabel hasil jadi {n} kolom. Angka yang sudah diketik TETAP ADA. Kalau jumlahnya dikurangi, kolom ulangan yang disembunyikan tidak ikut dikirim (angkanya muncul lagi kalau ditambah kembali).",
   "@lkUbahPengulanganPesan": {
     "placeholders": {
       "n": {

@@ -241,18 +241,17 @@ class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen> {
       // sekali; gagal narik bentuk alat nggak boleh ngebuang lembar yang lagi
       // diisi.
       body: switch ((bentuk, bentukAsync)) {
-        // `ValueKey` WAJIB: `_FormState` bikin `LembarKerjaState`-nya sekali
-        // (`late final`) dari `widget.bentuk`. Tanpa key, Flutter mendaur ulang
-        // State yang lama waktu jumlah kotaknya ganti — tabelnya bakal tetap
-        // 5 kolom padahal backend udah ngirim 3, dan nggak ada yang error.
+        // TANPA `key`, dan itu disengaja. State formulir dipakai ulang dan bentuk
+        // barunya — ganti alat MAUPUN ganti jumlah pengulangan — dipasang lewat
+        // `gantiBentuk` di `didUpdateWidget`, yang membangun ulang tabel dengan
+        // jumlah kolom baru SAMBIL memindahkan isian yang sudah diketik.
         //
-        // `key` SENGAJA nggak bawa `equipmentId`: ganti alat mesti mempertahankan
-        // isian yang udah diketik, jadi State-nya dipakai ulang dan bentuk
-        // barunya dipasang lewat `gantiBentuk` di `didUpdateWidget`. Kalau
-        // equipmentId ikut key, tiap ganti alat bikin State baru dan seluruh
-        // tabel yang udah diisi ilang — termasuk alat yang barusan dipilih.
+        // Sampai 6 Okt 2026 di sini ada `key: ValueKey(b.jumlahPengulangan)`.
+        // Ganti 5x → 6x berarti key baru, State baru, dan SELURUH formulir —
+        // alat, kondisi ruangan, semua angka — kembali kosong (laporan
+        // lapangan). Kekhawatiran lama "tabelnya tetap 5 kolom" sudah ditangani
+        // `gantiBentuk`, jalur yang sama yang dipakai tiap kali alat diganti.
         (final LembarKerja b, _) => _Form(
-          key: ValueKey(b.jumlahPengulangan),
           bentuk: b,
           sesiId: widget.sesiId,
           profil: widget.profil,
@@ -326,7 +325,6 @@ class _Gagal extends StatelessWidget {
 
 class _Form extends ConsumerStatefulWidget {
   const _Form({
-    super.key,
     required this.bentuk,
     required this.onAlatBerubah,
     required this.profil,
@@ -1811,9 +1809,30 @@ class _Bagian extends ConsumerWidget {
 
             if (bagian.belumBisaDiisi)
               _BagianTanpaInput(catatan: bagian.catatan)
-            else if (bagian.kode == 'usage_check')
-              _UsageCheck(bagian: bagian, isian: isian, onBerubah: onBerubah)
-            else ...[
+            else if (bagian.kode == 'usage_check') ...[
+              _UsageCheck(bagian: bagian, isian: isian, onBerubah: onBerubah),
+              // Kolom lain di kotak Standard Used ikut digambar di bawah
+              // daftar centang. Dulu cuma daftar centangnya yang digambar, jadi
+              // `gaya.standar` (UTM/Load Cell/Proving Ring), `tekanan.varian`,
+              // `tipe_sensor` TIDS, `piston.timbangan`, dan
+              // `sieve.standar_dipakai` tidak pernah bisa diisi — dan tanpa
+              // itu server menahan seluruh titiknya (audit 6 Okt 2026).
+              // `standar_dicek.*` itu kotak centang di atas, bukan kolom.
+              for (final grup in grupField)
+                if (!grup.first.kode.startsWith('standar_dicek.') &&
+                    isian.fieldTampil(grup.first)) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  if (grup.first.spesifikasiAlat)
+                    _BarisSpesifikasi(
+                      field: grup,
+                      isian: isian,
+                      onBerubah: onBerubah,
+                    )
+                  else
+                    _Field(field: grup.first, isian: isian, onBerubah: onBerubah),
+                ],
+              const SizedBox(height: AppSpacing.md),
+            ] else ...[
               // Kondisi lingkungan di kertas itu TABEL, bukan empat kotak
               // bertumpuk: baris `First`/`End`, kolom `Temperature`/`Humidity`.
               // Digambar sekali di sini, lalu keempat kolomnya dilewati di
