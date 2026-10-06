@@ -516,6 +516,7 @@ class TabelHasil {
     this.kolomBaris = const [],
     this.offsetKunci,
     this.tampilKalau,
+    this.terlipat = false,
     this.pindaiFoto,
     this.kumulatif = false,
   });
@@ -528,6 +529,14 @@ class TabelHasil {
   /// bersamaan dan teknisi tidak tahu yang mana yang diisi (audit 6 Okt 2026).
   /// Null = selalu tampil.
   final SyaratTampil? tampilKalau;
+
+  /// Tabel ini digambar TERLIPAT (bisa dibuka) secara bawaan.
+  ///
+  /// TITS: kertas 0505 cuma punya satu tabel, sementara lembar app membawa
+  /// tabel "Before Adjustment" yang tidak dihitung maupun dicetak. Keputusan
+  /// pemilik 6 Okt 2026: dilipat, JANGAN dihapus — isiannya tetap tersimpan dan
+  /// tetap bisa dibuka saat pemeriksaan.
+  final bool terlipat;
 
   /// `sebelum_adjustment` / `sesudah_adjustment`.
   final String tahap;
@@ -883,6 +892,7 @@ class TabelHasil {
     kolomBaris: parseListAman(json['kolom_baris'], FieldLembarKerja.fromJson),
     offsetKunci: (json['offset_kunci'] as num?)?.toInt(),
     tampilKalau: SyaratTampil.fromJson(json['tampil_kalau']),
+    terlipat: json['terlipat'] == true,
     pindaiFoto: json['pindai_foto'] is bool ? json['pindai_foto'] as bool : null,
     kumulatif: json['kumulatif'] == true,
   );

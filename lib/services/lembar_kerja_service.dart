@@ -2703,7 +2703,9 @@ Map<String, dynamic> contohBentukLembarKerjaTits({bool untukAdmin = false}) {
             ]),
       ],
       'tabel': [
-        tabel('sebelum_adjustment', 'Before Adjustment Reading'),
+        // Kertas 0505 cuma satu tabel; Before tidak dihitung maupun dicetak.
+        // Server menandainya `terlipat` (keputusan pemilik 6 Okt 2026).
+        {...tabel('sebelum_adjustment', 'Before Adjustment Reading'), 'terlipat': true},
         tabel('sesudah_adjustment', 'After Adjustment Reading'),
       ],
     },

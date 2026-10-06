@@ -37,11 +37,18 @@ class LembarKerjaTabel extends StatelessWidget {
     required this.isian,
     required this.onBerubah,
     this.pindaiAktif = AppConfig.pindaiLembarAktif,
+    this.tampilkanPemilihStandar,
   });
 
   final TabelHasil tabel;
   final LembarKerjaState isian;
   final VoidCallback onBerubah;
+
+  /// Gambar pemilih standar per titik di bawah tabel ini? Null = bawaan
+  /// (tabel `sebelum_adjustment`). Dipaksa saat tabel Before TITS dilipat
+  /// (`TabelHasil.terlipat`): pemilihnya pindah ke tabel After supaya tidak
+  /// ikut tersembunyi — standarnya dipakai hitungan.
+  final bool? tampilkanPemilihStandar;
 
   /// Saklar tombol `FOTO TABEL INI`. Default ngikut
   /// [AppConfig.pindaiLembarAktif] — sekarang NYALA.
@@ -502,7 +509,7 @@ class LembarKerjaTabel extends StatelessWidget {
         // Standar buffer per titik cuma dipilih SEKALI (di tabel pertama) —
         // buffer yang dipakai sama untuk before & after adjustment, cuma
         // suhunya yang beda. Nanyain dua kali cuma bikin peluang salah pilih.
-        if (tabel.sebelumAdjustment) ...[
+        if (tampilkanPemilihStandar ?? tabel.sebelumAdjustment) ...[
           const SizedBox(height: AppSpacing.md),
           // Satu standar buat SEMUA titik cuma ditanya sekali.
           //

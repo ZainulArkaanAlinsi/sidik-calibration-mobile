@@ -1791,6 +1791,14 @@ class _Bagian extends ConsumerWidget {
         if (isian.tabelTampil(t)) t,
     ];
 
+    // Tabel Before yang dilipat (TITS) membawa pemilih standar per titik.
+    // Pemilih itu dipindah ke tabel pertama yang tidak dilipat — standarnya
+    // dipakai hitungan, jadi tidak boleh ikut tersembunyi.
+    final iPemilihPindah =
+        tabelTampil.any((t) => t.terlipat && t.sebelumAdjustment)
+        ? tabelTampil.indexWhere((t) => !t.terlipat)
+        : -1;
+
     final grupTitik = <int, List<List<FieldLembarKerja>>>{};
     if (bagian.tabel.isNotEmpty) {
       for (final grup in grupField) {
@@ -1837,7 +1845,11 @@ class _Bagian extends ConsumerWidget {
                       onBerubah: onBerubah,
                     )
                   else
-                    _Field(field: grup.first, isian: isian, onBerubah: onBerubah),
+                    _Field(
+                      field: grup.first,
+                      isian: isian,
+                      onBerubah: onBerubah,
+                    ),
                 ],
               const SizedBox(height: AppSpacing.md),
             ] else ...[
@@ -2018,7 +2030,11 @@ class _Bagian extends ConsumerWidget {
               if (tabelTampil.isNotEmpty &&
                   tabelTampil.first.titikBisaDiubah &&
                   tabelTampil.first.baris.every((b) => b.titikDitentukan)) ...[
-                PengaturTitik(isian: isian, onBerubah: onBerubah, bagian: bagian),
+                PengaturTitik(
+                  isian: isian,
+                  onBerubah: onBerubah,
+                  bagian: bagian,
+                ),
                 const SizedBox(height: AppSpacing.lg),
               ],
               // Susunan kertas: satu kartu per baris, bukan satu tabel per
@@ -2055,38 +2071,49 @@ class _Bagian extends ConsumerWidget {
                 if (i == 0 &&
                     tabelTampil[i].titikBisaDiubah &&
                     tabelTampil[i].baris.every((b) => b.titikDitentukan)) ...[
-                  PengaturTitik(isian: isian, onBerubah: onBerubah, bagian: bagian),
+                  PengaturTitik(
+                    isian: isian,
+                    onBerubah: onBerubah,
+                    bagian: bagian,
+                  ),
                   const SizedBox(height: AppSpacing.lg),
                 ],
-                LembarKerjaTabel(
-                  tabel: tabelTampil[i],
-                  isian: isian,
-                  onBerubah: onBerubah,
-                  // Saklar DAN bentuk kertasnya. Saklar bilang "fitur ini
-                  // nyala"; `fotoTabelDidukung` bilang "pemeta di HP bisa
-                  // menjangkar baris & kolom kertas INI". Dua-duanya harus
-                  // benar — saklar nyala doang bikin tombolnya muncul di lembar
-                  // yang jangkarnya nggak ada, dan tiap jepretan pulang nol sel.
-                  //
-                  // Isinya dibaca dari `pindai_foto.lokal`, BUKAN `didukung`.
-                  // Yang kedua menggerbangi jalur CLOUD, yang mengirim foto
-                  // lembar kerja pelanggan ke layanan pihak ketiga. Waktu
-                  // keduanya masih satu penanda, menyalakan tombol buat satu
-                  // lembar ikut melebarkan batas data itu tanpa ada yang
-                  // berniat begitu. Lihat `_fotoTabelDidukung`.
-                  //
-                  // Faktor KETIGA `tabel.pindaiFoto` cuma bisa menyempitkan:
-                  // null (dua puluh lembar yang lain) nggak mengubah apa pun,
-                  // dan `true` nggak bisa menghidupkan tombol di lembar yang
-                  // gerbang lembarnya mati. Lembar TIMBANGAN memakainya buat
-                  // mematikan blok Accuracy sendirian — di kertas blok itu
-                  // daftar menurun, bukan grid yang bisa dijangkar pemeta,
-                  // sementara blok Repeatability di lembar yang SAMA justru
-                  // grid sempurna. Lihat `TabelHasil.pindaiFoto`.
-                  pindaiAktif:
-                      pindaiAktif &&
-                      isian.bentuk.fotoTabelDidukung &&
-                      (tabelTampil[i].pindaiFoto ?? true),
+                _BisaDilipat(
+                  terlipat: tabelTampil[i].terlipat,
+                  judul: tabelTampil[i].judul,
+                  child: LembarKerjaTabel(
+                    tabel: tabelTampil[i],
+                    isian: isian,
+                    onBerubah: onBerubah,
+                    tampilkanPemilihStandar: tabelTampil[i].terlipat
+                        ? false
+                        : (i == iPemilihPindah ? true : null),
+                    // Saklar DAN bentuk kertasnya. Saklar bilang "fitur ini
+                    // nyala"; `fotoTabelDidukung` bilang "pemeta di HP bisa
+                    // menjangkar baris & kolom kertas INI". Dua-duanya harus
+                    // benar — saklar nyala doang bikin tombolnya muncul di lembar
+                    // yang jangkarnya nggak ada, dan tiap jepretan pulang nol sel.
+                    //
+                    // Isinya dibaca dari `pindai_foto.lokal`, BUKAN `didukung`.
+                    // Yang kedua menggerbangi jalur CLOUD, yang mengirim foto
+                    // lembar kerja pelanggan ke layanan pihak ketiga. Waktu
+                    // keduanya masih satu penanda, menyalakan tombol buat satu
+                    // lembar ikut melebarkan batas data itu tanpa ada yang
+                    // berniat begitu. Lihat `_fotoTabelDidukung`.
+                    //
+                    // Faktor KETIGA `tabel.pindaiFoto` cuma bisa menyempitkan:
+                    // null (dua puluh lembar yang lain) nggak mengubah apa pun,
+                    // dan `true` nggak bisa menghidupkan tombol di lembar yang
+                    // gerbang lembarnya mati. Lembar TIMBANGAN memakainya buat
+                    // mematikan blok Accuracy sendirian — di kertas blok itu
+                    // daftar menurun, bukan grid yang bisa dijangkar pemeta,
+                    // sementara blok Repeatability di lembar yang SAMA justru
+                    // grid sempurna. Lihat `TabelHasil.pindaiFoto`.
+                    pindaiAktif:
+                        pindaiAktif &&
+                        isian.bentuk.fotoTabelDidukung &&
+                        (tabelTampil[i].pindaiFoto ?? true),
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
 
@@ -2221,6 +2248,43 @@ class _Bagian extends ConsumerWidget {
 /// ditandai merah dan nggak ada yang ngunci tombol kirim. Lembar setengah jadi
 /// tetap boleh dikirim dari lapangan — itu aturan lembar kerja yang nggak
 /// berubah sejak awal, dan penjagaannya ada di pemeriksaan admin.
+/// Tabel yang dilipat secara bawaan (`TabelHasil.terlipat`, tabel Before
+/// TITS). Isinya tetap tersimpan dan ikut terkirim; teknisi maupun pemeriksa
+/// tinggal membukanya. Tabel lain digambar apa adanya.
+class _BisaDilipat extends StatelessWidget {
+  const _BisaDilipat({
+    required this.terlipat,
+    required this.judul,
+    required this.child,
+  });
+
+  final bool terlipat;
+  final String judul;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!terlipat) return child;
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: ExpansionTile(
+        key: ValueKey('lipat-$judul'),
+        title: Text(judul),
+        subtitle: const Text(
+          'Dilipat — tidak dihitung; buka kalau alat disetel ulang',
+        ),
+        childrenPadding: const EdgeInsets.all(AppSpacing.sm),
+        // Penyimpan halaman sendiri: ExpansionTile menyimpan status buka/tutup
+        // (bool) di PageStorage, dan tabel di dalamnya menyimpan posisi gulir
+        // (double) di identitas yang sama — tanpa ini tabelnya crash waktu
+        // dibuka (`bool is not a subtype of double?`).
+        children: [PageStorage(bucket: PageStorageBucket(), child: child)],
+      ),
+    );
+  }
+}
+
 /// Tombol pindah tampilan bagian ber-kartu: kartu (susunan kertas) ↔ tabel
 /// (punya FOTO TABEL INI dan keterangan per tabel). Isiannya kotak yang sama.
 class _PindahTampilan extends StatelessWidget {
@@ -2236,8 +2300,14 @@ class _PindahTampilan extends StatelessWidget {
     child: TextButton.icon(
       key: ValueKey(keTabel ? 'tampilan-ke-tabel' : 'tampilan-ke-kartu'),
       onPressed: onTekan,
-      icon: Icon(keTabel ? Icons.table_chart_outlined : Icons.view_agenda_outlined),
-      label: Text(keTabel ? 'Tampilan tabel (foto tabel)' : 'Tampilan kartu (seperti kertas)'),
+      icon: Icon(
+        keTabel ? Icons.table_chart_outlined : Icons.view_agenda_outlined,
+      ),
+      label: Text(
+        keTabel
+            ? 'Tampilan tabel (foto tabel)'
+            : 'Tampilan kartu (seperti kertas)',
+      ),
     ),
   );
 }
