@@ -9966,6 +9966,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pick a date and time first.'**
   String get jadwalWaktuWajib;
+
+  /// No description provided for @riwayatPersetujuanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Approval history'**
+  String get riwayatPersetujuanJudul;
+
+  /// No description provided for @riwayatPersetujuanRingkas.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected {jumlah} times'**
+  String riwayatPersetujuanRingkas(int jumlah);
+
+  /// No description provided for @riwayatPersetujuanKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No approval history yet.'**
+  String get riwayatPersetujuanKosong;
+
+  /// No description provided for @riwayatPersetujuanGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Approval history could not be loaded.'**
+  String get riwayatPersetujuanGagal;
+
+  /// No description provided for @riwayatPersetujuanCobaLagi.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get riwayatPersetujuanCobaLagi;
+
+  /// No description provided for @riwayatJenisDitolak.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected — needs revision'**
+  String get riwayatJenisDitolak;
+
+  /// No description provided for @riwayatJenisDiajukan.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted'**
+  String get riwayatJenisDiajukan;
+
+  /// No description provided for @riwayatJenisDiajukanUlang.
+  ///
+  /// In en, this message translates to:
+  /// **'Resubmitted after revision'**
+  String get riwayatJenisDiajukanUlang;
+
+  /// No description provided for @riwayatJenisDisetujui.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get riwayatJenisDisetujui;
+
+  /// No description provided for @riwayatJenisMenungguPengesahan.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting endorsement'**
+  String get riwayatJenisMenungguPengesahan;
+
+  /// No description provided for @riwayatJenisKembaliDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to draft'**
+  String get riwayatJenisKembaliDraft;
+
+  /// No description provided for @riwayatOlehSistem.
+  ///
+  /// In en, this message translates to:
+  /// **'system'**
+  String get riwayatOlehSistem;
+
+  /// No description provided for @riwayatKolomDitandai.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked fields/cells: {daftar}'**
+  String riwayatKolomDitandai(String daftar);
+
+  /// No description provided for @riwayatPersetujuanKetuk.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to see every rejection and its reason'**
+  String get riwayatPersetujuanKetuk;
 }
 
 class _AppLocalizationsDelegate

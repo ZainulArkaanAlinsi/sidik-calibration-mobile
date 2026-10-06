@@ -3039,5 +3039,33 @@
   "jadwalLokasi": "Location (optional)",
   "jadwalCatatan": "Note (optional)",
   "jadwalSimpan": "Save schedule",
-  "jadwalWaktuWajib": "Pick a date and time first."
+  "jadwalWaktuWajib": "Pick a date and time first.",
+  "riwayatPersetujuanJudul": "Approval history",
+  "riwayatPersetujuanRingkas": "Rejected {jumlah} times",
+  "@riwayatPersetujuanRingkas": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "riwayatPersetujuanKosong": "No approval history yet.",
+  "riwayatPersetujuanGagal": "Approval history could not be loaded.",
+  "riwayatPersetujuanCobaLagi": "Try again",
+  "riwayatJenisDitolak": "Rejected — needs revision",
+  "riwayatJenisDiajukan": "Submitted",
+  "riwayatJenisDiajukanUlang": "Resubmitted after revision",
+  "riwayatJenisDisetujui": "Approved",
+  "riwayatJenisMenungguPengesahan": "Awaiting endorsement",
+  "riwayatJenisKembaliDraft": "Back to draft",
+  "riwayatOlehSistem": "system",
+  "riwayatKolomDitandai": "Marked fields/cells: {daftar}",
+  "@riwayatKolomDitandai": {
+    "placeholders": {
+      "daftar": {
+        "type": "String"
+      }
+    }
+  },
+  "riwayatPersetujuanKetuk": "Tap to see every rejection and its reason"
 }
