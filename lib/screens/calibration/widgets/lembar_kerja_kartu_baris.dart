@@ -250,9 +250,32 @@ class _Kartu extends StatelessWidget {
       final ts = indeks < baris.length ? isian.titikUntukBaris(baris, indeks, t) : null;
       if (ts == null || t.kolom.isEmpty) continue;
 
-      final label = Text(
-        LembarKerjaKartuBaris.labelPendek(t.judul),
-        style: theme.textTheme.bodySmall,
+      // Apa yang diketik dan satuannya — "Pembacaan Dial (Div)", "°C". Tanpa
+      // ini teknisi Proving Ring pernah mengetik kgf ke kotak divisi
+      // (tinjauan 6 Okt 2026). Tabel berkolom ganda menulis kolomnya di
+      // sub-grid, jadi di sini cukup satuannya.
+      final kolom = t.kolom.first;
+      final satuanKotak = kolom.satuan ?? isian.bentuk.satuanUntuk(baris[indeks]);
+      final keterangan = [
+        if (t.kolom.length == 1 && kolom.label.isNotEmpty) kolom.label,
+        if (satuanKotak.isNotEmpty) '($satuanKotak)',
+      ].join(' ');
+      final label = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            LembarKerjaKartuBaris.labelPendek(t.judul),
+            style: theme.textTheme.bodySmall,
+          ),
+          if (keterangan.isNotEmpty)
+            Text(
+              keterangan,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+        ],
       );
 
       if (berdampingan) {

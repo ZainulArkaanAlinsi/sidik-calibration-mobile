@@ -48,4 +48,45 @@ void main() {
     expect(isian.titikBerlakuUntuk('hasil_kelembaban'), [40, 60, 80]);
     expect(isian.titikBerlakuUntuk('hasil_suhu'), suhuAwal);
   });
+
+  // Tinjauan 6 Okt 2026: baris pasangan dikunci ke POSISI, jadi menghapus satu
+  // titik dulu menggeser bacaan titik sesudahnya ke set point yang salah.
+  test('hapus satu titik: bacaan titik lain tetap di set point-nya', () {
+    final isian = isianBaru();
+    final bagian = isian.bentuk.bagian.firstWhere((b) => b.kode == 'hasil_suhu');
+    final standar = bagian.tabel.first;
+    final uut = bagian.tabel[1];
+
+    String? bacaan(TabelHasil t, double titik) {
+      final baris = isian.barisTabel(t);
+      final i = baris.indexWhere((b) => b.titikUkur == titik);
+      if (i < 0) return null;
+      return isian
+          .titikUntukBaris(baris, i, t)!
+          .kotak(t.kunciTabel, t.kolom.first.kode, 0)
+          .text;
+    }
+
+    void isi(TabelHasil t, double titik, String nilai) {
+      final baris = isian.barisTabel(t);
+      final i = baris.indexWhere((b) => b.titikUkur == titik);
+      isian.titikUntukBaris(baris, i, t)!.kotak(t.kunciTabel, t.kolom.first.kode, 0).text = nilai;
+    }
+
+    final titik = titikBagian(isian, 'hasil_suhu');
+    expect(titik.length, greaterThanOrEqualTo(3));
+    for (final v in titik) {
+      isi(standar, v, 'S$v');
+      isi(uut, v, 'U$v');
+    }
+
+    final dihapus = titik[1];
+    isian.aturTitik([for (final v in titik) if (v != dihapus) v], bagian: 'hasil_suhu');
+
+    for (final v in titik.where((v) => v != dihapus)) {
+      expect(bacaan(standar, v), 'S$v', reason: 'bacaan standar $v pindah ke set point lain');
+      expect(bacaan(uut, v), 'U$v', reason: 'bacaan UUT $v pindah ke set point lain');
+    }
+    expect(bacaan(standar, dihapus), isNull);
+  });
 }

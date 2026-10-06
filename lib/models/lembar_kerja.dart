@@ -1217,9 +1217,16 @@ class BagianLembarKerja {
   /// kotak per baris, lalu satu baris tiap tabel × pengulangan — susunan kertas
   /// SIDIK-FM-CAL-0541. Cuma tampilan: kotak dan payload-nya tetap milik
   /// [tabel]. Null = tabel per tabel seperti lembar lain.
+  ///
+  /// `kartu_per_set_point` (Tekanan, Gaya, Thermohygro, Flowmeter — 6 Okt
+  /// 2026) digambar dengan widget yang sama. Nilainya SENGAJA berbeda: APK
+  /// lama mengenal `kartu_per_baris` dengan kartu khusus Anak Timbangan
+  /// (bintang, satu kolom), jadi lembar-lembar baru ini harus jatuh ke tabel
+  /// biasa di sana, bukan ke kartu yang kehilangan kolom durasi Flowmeter.
   final String? tampilan;
 
-  bool get kartuPerBaris => tampilan == 'kartu_per_baris';
+  bool get kartuPerBaris =>
+      tampilan == 'kartu_per_baris' || tampilan == 'kartu_per_set_point';
 
   /// Halaman lembar kerja tempat bagian ini dicetak: 1 atau 2.
   ///

@@ -1856,7 +1856,7 @@ Map<String, dynamic> contohBentukLembarKerjaThermohygro({bool untukAdmin = false
         'kode': 'hasil_suhu',
         'halaman': 2,
         'judul': '1. KALIBRASI SUHU (TEMPERATURE)',
-        'tampilan': 'kartu_per_baris',
+        'tampilan': 'kartu_per_set_point',
         'kartu_sejajar': true,
         'nominal_berbintang': false,
         'field': [
@@ -2129,7 +2129,7 @@ Map<String, dynamic> contohBentukLembarKerjaThermohygro({bool untukAdmin = false
         'kode': 'hasil_kelembaban',
         'halaman': 2,
         'judul': '2. KALIBRASI KELEMBAPAN (HUMIDITY)',
-        'tampilan': 'kartu_per_baris',
+        'tampilan': 'kartu_per_set_point',
         'kartu_sejajar': true,
         'nominal_berbintang': false,
         'field': const [],

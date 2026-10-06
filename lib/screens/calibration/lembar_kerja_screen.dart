@@ -2000,7 +2000,19 @@ class _Bagian extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.lg),
               ],
-            ] else if (bagian.kartuPerBaris) ...[
+            ] else if (bagian.kartuPerBaris &&
+                !isian.bagianSebagaiTabel.contains(bagian.kode)) ...[
+              // Kartu = susunan kertas. Tabel tetap bisa dipanggil: di sana
+              // ada FOTO TABEL INI dan keterangan per tabel yang tidak dibawa
+              // kartu (tinjauan 6 Okt 2026). Isiannya kotak yang sama, jadi
+              // berpindah tampilan tidak menyentuh angka.
+              _PindahTampilan(
+                keTabel: true,
+                onTekan: () {
+                  isian.bagianSebagaiTabel.add(bagian.kode);
+                  onBerubah();
+                },
+              ),
               // Titik bisa diatur (Thermohygro): pengatur titiknya tetap ada
               // di mode kartu, satu per bagian.
               if (tabelTampil.isNotEmpty &&
@@ -2019,7 +2031,15 @@ class _Bagian extends ConsumerWidget {
                 berbintang: bagian.nominalBerbintang,
               ),
               const SizedBox(height: AppSpacing.lg),
-            ] else
+            ] else ...[
+              if (bagian.kartuPerBaris)
+                _PindahTampilan(
+                  keTabel: false,
+                  onTekan: () {
+                    isian.bagianSebagaiTabel.remove(bagian.kode);
+                    onBerubah();
+                  },
+                ),
               for (var i = 0; i < tabelTampil.length; i++) ...[
                 // Daftar titik diatur SEKALI di atas tabel pertama, bukan per
                 // tabel: satu daftar berlaku buat Before & After sekaligus.
@@ -2144,6 +2164,7 @@ class _Bagian extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.sm),
                 ],
               ],
+            ],
 
             // Catatan pengisian diulang di bawah tabel, bukan cuma di kop
             // dokumen. Kopnya ada di paling atas; waktu teknisi lagi ngisi
@@ -2200,6 +2221,27 @@ class _Bagian extends ConsumerWidget {
 /// ditandai merah dan nggak ada yang ngunci tombol kirim. Lembar setengah jadi
 /// tetap boleh dikirim dari lapangan — itu aturan lembar kerja yang nggak
 /// berubah sejak awal, dan penjagaannya ada di pemeriksaan admin.
+/// Tombol pindah tampilan bagian ber-kartu: kartu (susunan kertas) ↔ tabel
+/// (punya FOTO TABEL INI dan keterangan per tabel). Isiannya kotak yang sama.
+class _PindahTampilan extends StatelessWidget {
+  const _PindahTampilan({required this.keTabel, required this.onTekan});
+
+  /// `true` = sekarang kartu, tombol pindah ke tabel.
+  final bool keTabel;
+  final VoidCallback onTekan;
+
+  @override
+  Widget build(BuildContext context) => Align(
+    alignment: Alignment.centerRight,
+    child: TextButton.icon(
+      key: ValueKey(keTabel ? 'tampilan-ke-tabel' : 'tampilan-ke-kartu'),
+      onPressed: onTekan,
+      icon: Icon(keTabel ? Icons.table_chart_outlined : Icons.view_agenda_outlined),
+      label: Text(keTabel ? 'Tampilan tabel (foto tabel)' : 'Tampilan kartu (seperti kertas)'),
+    ),
+  );
+}
+
 class _CatatanIsi extends StatelessWidget {
   const _CatatanIsi({required this.catatan});
 
