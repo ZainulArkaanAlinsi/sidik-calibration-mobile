@@ -942,7 +942,29 @@ class LembarKerjaState {
   /// Disimpan sebagai daftar angka, bukan daftar [BarisTabelHasil]: yang boleh
   /// diubah teknisi cuma nilainya — satuan, resolusi, dan standar acuannya tetap
   /// milik bentuk.
-  final List<double> titikKustom = [];
+  ///
+  /// Satu daftar per BAGIAN (kunci = `bagian.kode`), bukan satu untuk seluruh
+  /// lembar. Thermohygro punya dua bagian bertitik-bisa-diubah — Suhu (°C) dan
+  /// Kelembaban (%RH); dengan satu daftar, mengubah titik suhu ikut menimpa
+  /// titik %RH tanpa error apa pun (audit 6 Okt 2026).
+  final Map<String, List<double>> _titikKustom = {};
+
+  /// Kode bagian pemilik [tabel], dicocokkan lewat identitas objek.
+  String? _kodeBagianTabel(TabelHasil tabel) {
+    for (final bagian in bentuk.bagian) {
+      if (bagian.tabel.any((t) => identical(t, tabel))) return bagian.kode;
+    }
+    return null;
+  }
+
+  /// Bagian PERTAMA yang titiknya boleh diatur — bawaan [aturTitik] kalau
+  /// pemanggil tidak menyebut bagian (lembar bertitik-ubah satu bagian, TITS).
+  String? get _bagianTitikPertama {
+    for (final bagian in bentuk.bagian) {
+      if (bagian.tabel.any((t) => t.titikBisaDiubah)) return bagian.kode;
+    }
+    return null;
+  }
 
   /// Baris tambahan di tabel yang nominalnya DIKETIK teknisi (`titik_ukur`
   /// null di bentuk — Anak Timbangan, TIDS).
@@ -954,8 +976,13 @@ class LembarKerjaState {
   /// berapa baris kertasnya.
   int barisTambahan = 0;
 
-  /// Batas `measurements` di `CalibrationRequest` (`max:60`).
-  static const batasBaris = 60;
+  /// Baris terbanyak yang sertifikatnya masih pas SATU halaman.
+  ///
+  /// Server menerima sampai 60 `measurements`, tapi sertifikat Anak Timbangan
+  /// diukur dompdf: 40 keping muat, 45 meluap ke halaman dua
+  /// (`AnakTimbanganSertifikatSatuHalamanTest`, 6 Okt 2026). Pemilik proyek
+  /// mewajibkan sertifikat pas satu halaman, jadi HP berhenti di 40.
+  static const batasBaris = 40;
 
   /// [TitikState] milik baris ke-[index] di [baris].
   ///
@@ -987,6 +1014,7 @@ class LembarKerjaState {
       return [...bawaan, ..._barisLanjutan(bawaan, barisTambahan)];
     }
 
+    final titikKustom = _titikKustom[_kodeBagianTabel(tabel)] ?? const [];
     if (!tabel.titikBisaDiubah || titikKustom.isEmpty) return bawaan;
 
     // Contoh dipakai buat mewarisi satuan/desimal/tipe/standar — yang berubah
@@ -1022,12 +1050,14 @@ class LembarKerjaState {
   /// Duplikat dibuang dan urutannya dinaikkan: dua baris bertitik sama bikin
   /// [kunciBaris] jatuh ke mode indeks, dan dari situ dua baris yang keliatan
   /// sama di layar nunjuk ke kotak yang beda-beda.
-  void aturTitik(Iterable<double> nilai) {
-    final bersih = nilai.toSet().toList()..sort();
+  ///
+  /// [bagian] = kode bagian yang titiknya diatur. Null = bagian pertama yang
+  /// bertitik-ubah (lembar satu bagian seperti TITS).
+  void aturTitik(Iterable<double> nilai, {String? bagian}) {
+    final kode = bagian ?? _bagianTitikPertama;
+    if (kode == null) return;
 
-    titikKustom
-      ..clear()
-      ..addAll(bersih);
+    _titikKustom[kode] = nilai.toSet().toList()..sort();
 
     _bangunTitik(pertahankanIsian: true);
   }
@@ -1095,11 +1125,20 @@ class LembarKerjaState {
     if (kurang > 0) tambahBaris(kurang);
   }
 
-  /// Titik yang berlaku sekarang, urut — buat layar pengatur titik.
+  /// Titik yang berlaku sekarang di bagian bertitik-ubah PERTAMA, urut.
   List<double> get titikBerlaku {
-    if (titikKustom.isNotEmpty) return List.unmodifiable(titikKustom);
+    final kode = _bagianTitikPertama;
+    return kode == null ? const [] : titikBerlakuUntuk(kode);
+  }
+
+  /// Titik yang berlaku sekarang di bagian [kode], urut — buat pengatur titik
+  /// bagian itu.
+  List<double> titikBerlakuUntuk(String kode) {
+    final kustom = _titikKustom[kode];
+    if (kustom != null && kustom.isNotEmpty) return List.unmodifiable(kustom);
 
     for (final bagian in bentuk.bagian) {
+      if (bagian.kode != kode) continue;
       for (final t in bagian.tabel) {
         if (t.titikBisaDiubah) {
           return [for (final b in t.barisUntuk(satuan)) b.titikUkur];

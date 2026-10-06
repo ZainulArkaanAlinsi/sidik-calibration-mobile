@@ -1184,10 +1184,21 @@ class BagianLembarKerja {
     this.status,
     this.catatan,
     this.tampilan,
+    this.kartuSejajar = false,
+    this.nominalBerbintang = false,
   });
 
   final String kode;
   final String judul;
+
+  /// Di layar lebar (tablet/Windows), tabel-tabel di kartu digambar
+  /// BERDAMPINGAN — `UP 1-3 | DOWN 1-3` seperti satu baris kertas Tekanan —
+  /// bukan bertumpuk. Di HP tetap bertumpuk supaya kotaknya tidak menyempit.
+  final bool kartuSejajar;
+
+  /// Nominal boleh diberi bintang (`20*`) — cara kertas Anak Timbangan
+  /// membedakan keping kedua bernominal sama. Lembar lain tidak punya bintang.
+  final bool nominalBerbintang;
 
   /// Cara menggambar tabel bagian ini, kalau BUKAN tabel per tabel biasa.
   ///
@@ -1253,6 +1264,12 @@ class BagianLembarKerja {
         status: json['status'] as String?,
         catatan: json['catatan'] as String?,
         tampilan: json['tampilan'] as String?,
+        kartuSejajar: json['kartu_sejajar'] == true,
+        // Server yang belum mengirim penanda ini (sebelum 6 Okt 2026) cuma
+        // memakai kartu di lembar Anak Timbangan — dan di sana bintang memang
+        // berlaku. Jadi ketiadaan penanda di bagian berkartu dibaca "ya".
+        nominalBerbintang: json['nominal_berbintang'] as bool? ??
+            (json['tampilan'] == 'kartu_per_baris' && !json.containsKey('kartu_sejajar')),
         // Default 1: lembar kerja versi backend lama nggak ngirim `halaman`,
         // dan satu halaman penuh lebih baik daripada layar kosong.
         halaman: (json['halaman'] as num?)?.toInt() ?? 1,

@@ -478,6 +478,9 @@ Map<String, dynamic> contohBentukLembarKerjaUtm({
         'kode': 'hasil',
         'halaman': 2,
         'judul': 'Accuracy Test',
+        'tampilan': 'kartu_per_baris',
+        'kartu_sejajar': true,
+        'nominal_berbintang': false,
         'field': <dynamic>[],
         'tabel': [
           {
@@ -1360,6 +1363,9 @@ Map<String, dynamic> contohBentukLembarKerjaLoadCell({
         'kode': 'hasil',
         'halaman': 2,
         'judul': 'Accuracy Test',
+        'tampilan': 'kartu_per_baris',
+        'kartu_sejajar': true,
+        'nominal_berbintang': false,
         'field': <dynamic>[],
         'tabel': [
           {
@@ -2253,6 +2259,9 @@ Map<String, dynamic> contohBentukLembarKerjaProvingRing({
         'kode': 'hasil',
         'halaman': 2,
         'judul': 'Accuracy Test',
+        'tampilan': 'kartu_per_baris',
+        'kartu_sejajar': true,
+        'nominal_berbintang': false,
         'field': <dynamic>[],
         'tabel': [
           {

@@ -188,7 +188,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
           },
           {
             'kode': 'spesifikasi_alat.anak_timbangan.kapasitas_min_g',
-            'label': 'Kapasitas Alat — dari',
+            'label': 'Kapasitas Alat (dari – sampai)',
             'tipe': 'angka',
             'wajib': false,
             'sumber': null,
@@ -199,7 +199,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
           },
           {
             'kode': 'spesifikasi_alat.anak_timbangan.kapasitas_g',
-            'label': 'Kapasitas Alat — sampai',
+            'label': 'Kapasitas Alat (dari – sampai)',
             'tipe': 'angka',
             'wajib': false,
             'sumber': null,
@@ -613,6 +613,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
         'halaman': 2,
         'judul': 'Data Hasil Kalibrasi',
         'tampilan': 'kartu_per_baris',
+        'nominal_berbintang': true,
         'field': <dynamic>[],
         'tabel': [
           {

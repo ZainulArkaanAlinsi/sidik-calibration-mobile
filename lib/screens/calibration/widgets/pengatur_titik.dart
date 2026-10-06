@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../core/theme/app_spacing.dart';
+import '../../../models/lembar_kerja.dart';
 import '../lembar_kerja_state.dart';
 
 /// Pengatur daftar titik ukur, buat lembar yang `titik_bisa_diubah`.
@@ -29,9 +30,32 @@ class PengaturTitik extends StatelessWidget {
     super.key,
     required this.isian,
     required this.onBerubah,
+    this.bagian,
   });
 
   final LembarKerjaState isian;
+
+  /// Bagian yang titiknya diatur panel ini. Null = bagian bertitik-ubah
+  /// pertama. Thermohygro punya dua (Suhu & Kelembaban), dan masing-masing
+  /// wajib punya daftar titiknya sendiri — lihat `LembarKerjaState.aturTitik`.
+  final BagianLembarKerja? bagian;
+
+  List<double> get _titik =>
+      bagian == null ? isian.titikBerlaku : isian.titikBerlakuUntuk(bagian!.kode);
+
+  void _atur(List<double> nilai) => isian.aturTitik(nilai, bagian: bagian?.kode);
+
+  /// Satuan titik bagian ini — °C di blok Suhu, %RH di blok Kelembaban — bukan
+  /// satuan lembar.
+  String get _satuan {
+    for (final t in bagian?.tabel ?? const <TabelHasil>[]) {
+      final baris = t.barisUntuk(isian.satuan);
+      if (t.titikBisaDiubah && baris.isNotEmpty) {
+        return isian.bentuk.satuanUntuk(baris.first);
+      }
+    }
+    return isian.bentuk.satuan;
+  }
 
   /// Dipanggil sesudah daftar titik berubah. Tabelnya dibangun ulang di
   /// [LembarKerjaState.aturTitik]; ini yang bikin layarnya ikut gambar ulang.
@@ -40,8 +64,8 @@ class PengaturTitik extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final titik = isian.titikBerlaku;
-    final satuan = isian.bentuk.satuan;
+    final titik = _titik;
+    final satuan = _satuan;
 
     return Card(
       margin: EdgeInsets.zero,
@@ -115,7 +139,7 @@ class PengaturTitik extends StatelessWidget {
     final nilai = await _tanyaAngka(context, judul: 'Tambah titik');
     if (nilai == null) return;
 
-    isian.aturTitik([...isian.titikBerlaku, nilai]);
+    _atur([..._titik, nilai]);
     onBerubah();
   }
 
@@ -127,16 +151,16 @@ class PengaturTitik extends StatelessWidget {
     );
     if (nilai == null) return;
 
-    isian.aturTitik([
-      for (final t in isian.titikBerlaku)
+    _atur([
+      for (final t in _titik)
         if (t == lama) nilai else t,
     ]);
     onBerubah();
   }
 
   void _hapus(double nilai) {
-    isian.aturTitik([
-      for (final t in isian.titikBerlaku)
+    _atur([
+      for (final t in _titik)
         if (t != nilai) t,
     ]);
     onBerubah();

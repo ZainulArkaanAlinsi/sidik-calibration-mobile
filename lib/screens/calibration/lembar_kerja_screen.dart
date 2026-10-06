@@ -1993,12 +1993,22 @@ class _Bagian extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.lg),
               ],
             ] else if (bagian.kartuPerBaris) ...[
+              // Titik bisa diatur (Thermohygro): pengatur titiknya tetap ada
+              // di mode kartu, satu per bagian.
+              if (bagian.tabel.isNotEmpty &&
+                  bagian.tabel.first.titikBisaDiubah &&
+                  bagian.tabel.first.baris.every((b) => b.titikDitentukan)) ...[
+                PengaturTitik(isian: isian, onBerubah: onBerubah, bagian: bagian),
+                const SizedBox(height: AppSpacing.lg),
+              ],
               // Susunan kertas: satu kartu per baris, bukan satu tabel per
               // peran. Cuma tampilan — lihat `LembarKerjaKartuBaris`.
               LembarKerjaKartuBaris(
                 tabel: bagian.tabel,
                 isian: isian,
                 onBerubah: onBerubah,
+                sejajar: bagian.kartuSejajar,
+                berbintang: bagian.nominalBerbintang,
               ),
               const SizedBox(height: AppSpacing.lg),
             ] else
@@ -2017,7 +2027,7 @@ class _Bagian extends ConsumerWidget {
                 if (i == 0 &&
                     bagian.tabel[i].titikBisaDiubah &&
                     bagian.tabel[i].baris.every((b) => b.titikDitentukan)) ...[
-                  PengaturTitik(isian: isian, onBerubah: onBerubah),
+                  PengaturTitik(isian: isian, onBerubah: onBerubah, bagian: bagian),
                   const SizedBox(height: AppSpacing.lg),
                 ],
                 LembarKerjaTabel(
