@@ -942,7 +942,33 @@ class LembarKerjaState {
   /// Disimpan sebagai daftar angka, bukan daftar [BarisTabelHasil]: yang boleh
   /// diubah teknisi cuma nilainya — satuan, resolusi, dan standar acuannya tetap
   /// milik bentuk.
-  final List<double> titikKustom = [];
+  ///
+  /// Satu daftar per BAGIAN (kunci = `bagian.kode`), bukan satu untuk seluruh
+  /// lembar. Thermohygro punya dua bagian bertitik-bisa-diubah — Suhu (°C) dan
+  /// Kelembaban (%RH); dengan satu daftar, mengubah titik suhu ikut menimpa
+  /// titik %RH tanpa error apa pun (audit 6 Okt 2026).
+  final Map<String, List<double>> _titikKustom = {};
+
+  /// Bagian ber-kartu yang sedang ditampilkan sebagai TABEL atas permintaan
+  /// teknisi (kode bagian). Murni tampilan — tidak ikut payload maupun draft.
+  final Set<String> bagianSebagaiTabel = {};
+
+  /// Kode bagian pemilik [tabel], dicocokkan lewat identitas objek.
+  String? _kodeBagianTabel(TabelHasil tabel) {
+    for (final bagian in bentuk.bagian) {
+      if (bagian.tabel.any((t) => identical(t, tabel))) return bagian.kode;
+    }
+    return null;
+  }
+
+  /// Bagian PERTAMA yang titiknya boleh diatur — bawaan [aturTitik] kalau
+  /// pemanggil tidak menyebut bagian (lembar bertitik-ubah satu bagian, TITS).
+  String? get _bagianTitikPertama {
+    for (final bagian in bentuk.bagian) {
+      if (bagian.tabel.any((t) => t.titikBisaDiubah)) return bagian.kode;
+    }
+    return null;
+  }
 
   /// Baris tambahan di tabel yang nominalnya DIKETIK teknisi (`titik_ukur`
   /// null di bentuk — Anak Timbangan, TIDS).
@@ -954,8 +980,13 @@ class LembarKerjaState {
   /// berapa baris kertasnya.
   int barisTambahan = 0;
 
-  /// Batas `measurements` di `CalibrationRequest` (`max:60`).
-  static const batasBaris = 60;
+  /// Baris terbanyak yang sertifikatnya masih pas SATU halaman.
+  ///
+  /// Server menerima sampai 60 `measurements`, tapi sertifikat Anak Timbangan
+  /// diukur dompdf: 40 keping muat, 45 meluap ke halaman dua
+  /// (`AnakTimbanganSertifikatSatuHalamanTest`, 6 Okt 2026). Pemilik proyek
+  /// mewajibkan sertifikat pas satu halaman, jadi HP berhenti di 40.
+  static const batasBaris = 40;
 
   /// [TitikState] milik baris ke-[index] di [baris].
   ///
@@ -987,6 +1018,7 @@ class LembarKerjaState {
       return [...bawaan, ..._barisLanjutan(bawaan, barisTambahan)];
     }
 
+    final titikKustom = _titikKustom[_kodeBagianTabel(tabel)] ?? const [];
     if (!tabel.titikBisaDiubah || titikKustom.isEmpty) return bawaan;
 
     // Contoh dipakai buat mewarisi satuan/desimal/tipe/standar — yang berubah
@@ -1022,14 +1054,36 @@ class LembarKerjaState {
   /// Duplikat dibuang dan urutannya dinaikkan: dua baris bertitik sama bikin
   /// [kunciBaris] jatuh ke mode indeks, dan dari situ dua baris yang keliatan
   /// sama di layar nunjuk ke kotak yang beda-beda.
-  void aturTitik(Iterable<double> nilai) {
-    final bersih = nilai.toSet().toList()..sort();
+  ///
+  /// [bagian] = kode bagian yang titiknya diatur. Null = bagian pertama yang
+  /// bertitik-ubah (lembar satu bagian seperti TITS).
+  void aturTitik(Iterable<double> nilai, {String? bagian}) {
+    final kode = bagian ?? _bagianTitikPertama;
+    if (kode == null) return;
 
-    titikKustom
-      ..clear()
-      ..addAll(bersih);
+    final baru = nilai.toSet().toList()..sort();
 
-    _bangunTitik(pertahankanIsian: true);
+    // Tabel BERPASANGAN (Thermohygro) dikunci ke POSISI baris — lihat
+    // [kunciBaris]. Tanpa peta ini, menghapus 25 °C dari 15/25/35 menggeser
+    // bacaan 35 °C ke baris kedua, yang kini 35… lalu bacaan 25 °C mendarat di
+    // set point 35 — tanpa error (tinjauan 6 Okt 2026). Isian dipindah menurut
+    // NILAI titiknya; titik yang dihapus ikut kehilangan isiannya, seperti yang
+    // dijanjikan pengatur titik.
+    final petaKunci = <double, double?>{};
+    for (final b in bentuk.bagian.where((b) => b.kode == kode)) {
+      for (final t in b.tabel.where((t) => t.berpasangan && t.titikBisaDiubah)) {
+        final barisLama = barisTabel(t);
+        for (var i = 0; i < barisLama.length; i++) {
+          final j = baru.indexOf(barisLama[i].titikUkur);
+          petaKunci[kunciBaris(barisLama, i, t)] =
+              j < 0 ? null : (_offsetParameter(t.parameter) + j).toDouble();
+        }
+      }
+    }
+
+    _titikKustom[kode] = baru;
+
+    _bangunTitik(pertahankanIsian: true, petaKunci: petaKunci);
   }
 
   /// Tabel yang barisnya boleh DITAMBAH: titiknya diatur teknisi dan
@@ -1095,11 +1149,20 @@ class LembarKerjaState {
     if (kurang > 0) tambahBaris(kurang);
   }
 
-  /// Titik yang berlaku sekarang, urut — buat layar pengatur titik.
+  /// Titik yang berlaku sekarang di bagian bertitik-ubah PERTAMA, urut.
   List<double> get titikBerlaku {
-    if (titikKustom.isNotEmpty) return List.unmodifiable(titikKustom);
+    final kode = _bagianTitikPertama;
+    return kode == null ? const [] : titikBerlakuUntuk(kode);
+  }
+
+  /// Titik yang berlaku sekarang di bagian [kode], urut — buat pengatur titik
+  /// bagian itu.
+  List<double> titikBerlakuUntuk(String kode) {
+    final kustom = _titikKustom[kode];
+    if (kustom != null && kustom.isNotEmpty) return List.unmodifiable(kustom);
 
     for (final bagian in bentuk.bagian) {
+      if (bagian.kode != kode) continue;
       for (final t in bagian.tabel) {
         if (t.titikBisaDiubah) {
           return [for (final b in t.barisUntuk(satuan)) b.titikUkur];
@@ -1114,17 +1177,27 @@ class LembarKerjaState {
   bool get titikBisaDiubah =>
       bentuk.bagian.any((bagian) => bagian.tabel.any((t) => t.titikBisaDiubah));
 
-  int _bangunTitik({bool pertahankanIsian = false}) {
+  /// [petaKunci]: kunci lama → kunci baru untuk isian yang barisnya pindah
+  /// posisi (`null` = titiknya dihapus, isiannya dibuang). Kunci yang tidak
+  /// disebut tetap di kunci yang sama.
+  int _bangunTitik({bool pertahankanIsian = false, Map<double, double?> petaKunci = const {}}) {
     // Isian sel disalin DULU, sebelum yang lama dibuang. Yang disalin cuma
     // angkanya — `TitikState`-nya sendiri dibikin ulang dari bentuk yang baru,
     // karena satuan/desimal/eksklusif-nya bisa berubah dan objek lama bakal
     // bawa metadata basi.
-    final lama = pertahankanIsian
-        ? {
-            for (final e in titik.entries)
-              if (e.value.salinKotak().isNotEmpty) e.key: e.value.salinKotak(),
-          }
-        : const <double, Map<String, String>>{};
+    final lama = <double, Map<String, String>>{};
+    if (pertahankanIsian) {
+      for (final e in titik.entries) {
+        final salinan = e.value.salinKotak();
+        if (salinan.isEmpty) continue;
+
+        if (!petaKunci.containsKey(e.key)) {
+          lama[e.key] = salinan;
+        } else if (petaKunci[e.key] case final tujuan?) {
+          lama[tujuan] = salinan;
+        }
+      }
+    }
 
     for (final t in titik.values) {
       t.dispose();
@@ -2255,6 +2328,16 @@ class LembarKerjaState {
   bool fieldTampil(FieldLembarKerja f) =>
       f.tampilKalau == null ||
       f.tampilKalau!.dipenuhi(nilaiSyarat(f.tampilKalau!.kode));
+
+  /// Tabel [t] digambar sekarang? Aturannya sama dengan [fieldTampil].
+  ///
+  /// Beda dengan field, isi tabel yang disembunyikan TIDAK dikosongkan: yang
+  /// menyembunyikannya ganti metode (UFM ↔ Gravimetri), dan teknisi yang
+  /// kembali ke metode semula berhak menemukan angkanya utuh — pemilik proyek
+  /// 6 Okt 2026: data yang sedang dikerjakan tidak boleh ter-reset.
+  bool tabelTampil(TabelHasil t) =>
+      t.tampilKalau == null ||
+      t.tampilKalau!.dipenuhi(nilaiSyarat(t.tampilKalau!.kode));
 
   /// Kosongin kolom yang lagi NGGAK tampil.
   ///

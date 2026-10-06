@@ -7,6 +7,7 @@ import 'package:sidik_calibration/providers/calibration_input_provider.dart';
 import 'package:sidik_calibration/providers/lembar_kerja_provider.dart';
 import 'package:sidik_calibration/providers/worksheet_scan_provider.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_screen.dart';
+import 'package:sidik_calibration/screens/calibration/widgets/lembar_kerja_kartu_baris.dart';
 import 'package:sidik_calibration/screens/calibration/widgets/lembar_kerja_tabel.dart';
 import 'package:sidik_calibration/services/equipment_lookup_service.dart';
 import 'package:sidik_calibration/services/lembar_kerja_service.dart';
@@ -133,24 +134,30 @@ void main() {
       expect(find.text('Ice Point X3'), findsOneWidget);
     });
 
-    testWidgets('Thermohygro: EMPAT tabel — dua besaran, masing-masing sepasang', (
+    // Sejak 6 Okt 2026 Thermohygro digambar KARTU PER SET POINT (Standard &
+    // UUT sepasang per nomor, permintaan pemilik), bukan empat tabel. Yang
+    // dijaga tetap sama: dua besaran, masing-masing sepasang deret, dengan
+    // kotak yang terpisah — kartu memakai controller tabel yang sama.
+    testWidgets('Thermohygro: dua besaran, masing-masing kartu Standard + UUT', (
       tester,
     ) async {
       await buka(tester, 'thermohygro');
       await keHalamanAkhir(tester);
 
       expect(
-        find.byType(LembarKerjaTabel),
-        findsNWidgets(4),
-        reason: 'Blok suhu (standar + UUT) dan blok kelembapan (standar + UUT).',
+        find.byType(LembarKerjaKartuBaris),
+        findsNWidgets(2),
+        reason: 'Blok suhu dan blok kelembapan, masing-masing kartu per set point.',
       );
+      expect(find.byType(LembarKerjaTabel), findsNothing);
 
       expect(find.text('1. KALIBRASI SUHU (TEMPERATURE)'), findsOneWidget);
       expect(find.text('2. KALIBRASI KELEMBAPAN (HUMIDITY)'), findsOneWidget);
       expect(
         find.text('Pembacaan Standard [CHAMBER BIOBASE]'),
-        findsOneWidget,
+        findsWidgets,
       );
+      expect(find.text('Pembacaan UUT'), findsWidgets);
     });
   });
 

@@ -475,6 +475,9 @@ Map<String, dynamic> contohBentukLembarKerjaPressureGauge({
         'kode': 'hasil',
         'halaman': 2,
         'judul': 'Pressure Calibration',
+        'tampilan': 'kartu_per_set_point',
+        'kartu_sejajar': true,
+        'nominal_berbintang': false,
         'field': <dynamic>[],
         'tabel': [
           {
@@ -1105,6 +1108,9 @@ Map<String, dynamic> contohBentukLembarKerjaVacuumGauge({
         'kode': 'hasil',
         'halaman': 2,
         'judul': 'Pressure Calibration',
+        'tampilan': 'kartu_per_set_point',
+        'kartu_sejajar': true,
+        'nominal_berbintang': false,
         'field': <dynamic>[],
         'tabel': [
           {
@@ -1729,6 +1735,9 @@ Map<String, dynamic> contohBentukLembarKerjaDifferentialPressure({
         'kode': 'hasil',
         'halaman': 2,
         'judul': 'Pressure Calibration',
+        'tampilan': 'kartu_per_set_point',
+        'kartu_sejajar': true,
+        'nominal_berbintang': false,
         'field': <dynamic>[],
         'tabel': [
           {

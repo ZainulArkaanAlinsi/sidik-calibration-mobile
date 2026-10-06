@@ -688,6 +688,9 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterTotalizer({
         'kode': 'hasil',
         'halaman': 2,
         'judul': 'Measurement',
+        'tampilan': 'kartu_per_set_point',
+        'kartu_sejajar': false,
+        'nominal_berbintang': false,
         'field': <dynamic>[],
         'tabel': [
           {
@@ -1733,6 +1736,9 @@ Map<String, dynamic> contohBentukLembarKerjaFlowmeterFlowrate({
         'kode': 'hasil',
         'halaman': 2,
         'judul': 'Measurement',
+        'tampilan': 'kartu_per_set_point',
+        'kartu_sejajar': false,
+        'nominal_berbintang': false,
         'field': <dynamic>[],
         'tabel': [
           {

@@ -1856,6 +1856,9 @@ Map<String, dynamic> contohBentukLembarKerjaThermohygro({bool untukAdmin = false
         'kode': 'hasil_suhu',
         'halaman': 2,
         'judul': '1. KALIBRASI SUHU (TEMPERATURE)',
+        'tampilan': 'kartu_per_set_point',
+        'kartu_sejajar': true,
+        'nominal_berbintang': false,
         'field': [
           {
             'kode': 'suhu_awal',
@@ -2126,6 +2129,9 @@ Map<String, dynamic> contohBentukLembarKerjaThermohygro({bool untukAdmin = false
         'kode': 'hasil_kelembaban',
         'halaman': 2,
         'judul': '2. KALIBRASI KELEMBAPAN (HUMIDITY)',
+        'tampilan': 'kartu_per_set_point',
+        'kartu_sejajar': true,
+        'nominal_berbintang': false,
         'field': const [],
         'tabel': [
           {
@@ -2875,30 +2881,6 @@ Map<String, dynamic> contohBentukLembarKerjaTids({bool untukAdmin = false}) {
               },
               {
                 'nilai': 'RTD',
-                'label': 'Sensor RTD/PT 100',
-              },
-            ],
-            'hanya_admin': false,
-            'tampil_kalau': null,
-          },
-          {
-            'kode': 'spesifikasi_alat.sensor_standar',
-            'label': 'Sensor Standard (lama)',
-            'tipe': 'pilihan',
-            'wajib': false,
-            'sumber': null,
-            'satuan': null,
-            'pilihan': [
-              {
-                'nilai': 'Thermocouple Type-K',
-                'label': 'Thermocouple Type-K',
-              },
-              {
-                'nilai': 'Thermocouple Type-N',
-                'label': 'Thermocouple Type-N',
-              },
-              {
-                'nilai': 'Sensor RTD/PT 100',
                 'label': 'Sensor RTD/PT 100',
               },
             ],

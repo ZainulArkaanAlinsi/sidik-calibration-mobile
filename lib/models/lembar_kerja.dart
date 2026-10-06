@@ -515,9 +515,28 @@ class TabelHasil {
     this.chamberPerBaris = const {},
     this.kolomBaris = const [],
     this.offsetKunci,
+    this.tampilKalau,
+    this.terlipat = false,
     this.pindaiFoto,
     this.kumulatif = false,
   });
+
+  /// Syarat tampil TABEL ini — kosakata yang sama dengan field.
+  ///
+  /// Flowmeter memakai satu lembar untuk dua metode (UFM & Gravimetri, kertas
+  /// 0538); tabel khusus metode ditandai server dengan `tampil_kalau`. Dulu
+  /// penanda ini hanya dibaca di field, jadi kedua set tabel tergambar
+  /// bersamaan dan teknisi tidak tahu yang mana yang diisi (audit 6 Okt 2026).
+  /// Null = selalu tampil.
+  final SyaratTampil? tampilKalau;
+
+  /// Tabel ini digambar TERLIPAT (bisa dibuka) secara bawaan.
+  ///
+  /// TITS: kertas 0505 cuma punya satu tabel, sementara lembar app membawa
+  /// tabel "Before Adjustment" yang tidak dihitung maupun dicetak. Keputusan
+  /// pemilik 6 Okt 2026: dilipat, JANGAN dihapus — isiannya tetap tersimpan dan
+  /// tetap bisa dibuka saat pemeriksaan.
+  final bool terlipat;
 
   /// `sebelum_adjustment` / `sesudah_adjustment`.
   final String tahap;
@@ -872,6 +891,8 @@ class TabelHasil {
     chamberPerBaris: _chamberPerBaris(json['chamber_per_baris']),
     kolomBaris: parseListAman(json['kolom_baris'], FieldLembarKerja.fromJson),
     offsetKunci: (json['offset_kunci'] as num?)?.toInt(),
+    tampilKalau: SyaratTampil.fromJson(json['tampil_kalau']),
+    terlipat: json['terlipat'] == true,
     pindaiFoto: json['pindai_foto'] is bool ? json['pindai_foto'] as bool : null,
     kumulatif: json['kumulatif'] == true,
   );
@@ -1184,10 +1205,21 @@ class BagianLembarKerja {
     this.status,
     this.catatan,
     this.tampilan,
+    this.kartuSejajar = false,
+    this.nominalBerbintang = false,
   });
 
   final String kode;
   final String judul;
+
+  /// Di layar lebar (tablet/Windows), tabel-tabel di kartu digambar
+  /// BERDAMPINGAN — `UP 1-3 | DOWN 1-3` seperti satu baris kertas Tekanan —
+  /// bukan bertumpuk. Di HP tetap bertumpuk supaya kotaknya tidak menyempit.
+  final bool kartuSejajar;
+
+  /// Nominal boleh diberi bintang (`20*`) — cara kertas Anak Timbangan
+  /// membedakan keping kedua bernominal sama. Lembar lain tidak punya bintang.
+  final bool nominalBerbintang;
 
   /// Cara menggambar tabel bagian ini, kalau BUKAN tabel per tabel biasa.
   ///
@@ -1195,9 +1227,16 @@ class BagianLembarKerja {
   /// kotak per baris, lalu satu baris tiap tabel × pengulangan — susunan kertas
   /// SIDIK-FM-CAL-0541. Cuma tampilan: kotak dan payload-nya tetap milik
   /// [tabel]. Null = tabel per tabel seperti lembar lain.
+  ///
+  /// `kartu_per_set_point` (Tekanan, Gaya, Thermohygro, Flowmeter — 6 Okt
+  /// 2026) digambar dengan widget yang sama. Nilainya SENGAJA berbeda: APK
+  /// lama mengenal `kartu_per_baris` dengan kartu khusus Anak Timbangan
+  /// (bintang, satu kolom), jadi lembar-lembar baru ini harus jatuh ke tabel
+  /// biasa di sana, bukan ke kartu yang kehilangan kolom durasi Flowmeter.
   final String? tampilan;
 
-  bool get kartuPerBaris => tampilan == 'kartu_per_baris';
+  bool get kartuPerBaris =>
+      tampilan == 'kartu_per_baris' || tampilan == 'kartu_per_set_point';
 
   /// Halaman lembar kerja tempat bagian ini dicetak: 1 atau 2.
   ///
@@ -1253,6 +1292,12 @@ class BagianLembarKerja {
         status: json['status'] as String?,
         catatan: json['catatan'] as String?,
         tampilan: json['tampilan'] as String?,
+        kartuSejajar: json['kartu_sejajar'] == true,
+        // Server yang belum mengirim penanda ini (sebelum 6 Okt 2026) cuma
+        // memakai kartu di lembar Anak Timbangan — dan di sana bintang memang
+        // berlaku. Jadi ketiadaan penanda di bagian berkartu dibaca "ya".
+        nominalBerbintang: json['nominal_berbintang'] as bool? ??
+            (json['tampilan'] == 'kartu_per_baris' && !json.containsKey('kartu_sejajar')),
         // Default 1: lembar kerja versi backend lama nggak ngirim `halaman`,
         // dan satu halaman penuh lebih baik daripada layar kosong.
         halaman: (json['halaman'] as num?)?.toInt() ?? 1,
