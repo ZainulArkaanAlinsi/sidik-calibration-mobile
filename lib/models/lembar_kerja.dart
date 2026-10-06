@@ -515,9 +515,19 @@ class TabelHasil {
     this.chamberPerBaris = const {},
     this.kolomBaris = const [],
     this.offsetKunci,
+    this.tampilKalau,
     this.pindaiFoto,
     this.kumulatif = false,
   });
+
+  /// Syarat tampil TABEL ini — kosakata yang sama dengan field.
+  ///
+  /// Flowmeter memakai satu lembar untuk dua metode (UFM & Gravimetri, kertas
+  /// 0538); tabel khusus metode ditandai server dengan `tampil_kalau`. Dulu
+  /// penanda ini hanya dibaca di field, jadi kedua set tabel tergambar
+  /// bersamaan dan teknisi tidak tahu yang mana yang diisi (audit 6 Okt 2026).
+  /// Null = selalu tampil.
+  final SyaratTampil? tampilKalau;
 
   /// `sebelum_adjustment` / `sesudah_adjustment`.
   final String tahap;
@@ -872,6 +882,7 @@ class TabelHasil {
     chamberPerBaris: _chamberPerBaris(json['chamber_per_baris']),
     kolomBaris: parseListAman(json['kolom_baris'], FieldLembarKerja.fromJson),
     offsetKunci: (json['offset_kunci'] as num?)?.toInt(),
+    tampilKalau: SyaratTampil.fromJson(json['tampil_kalau']),
     pindaiFoto: json['pindai_foto'] is bool ? json['pindai_foto'] as bool : null,
     kumulatif: json['kumulatif'] == true,
   );
@@ -1206,9 +1217,16 @@ class BagianLembarKerja {
   /// kotak per baris, lalu satu baris tiap tabel × pengulangan — susunan kertas
   /// SIDIK-FM-CAL-0541. Cuma tampilan: kotak dan payload-nya tetap milik
   /// [tabel]. Null = tabel per tabel seperti lembar lain.
+  ///
+  /// `kartu_per_set_point` (Tekanan, Gaya, Thermohygro, Flowmeter — 6 Okt
+  /// 2026) digambar dengan widget yang sama. Nilainya SENGAJA berbeda: APK
+  /// lama mengenal `kartu_per_baris` dengan kartu khusus Anak Timbangan
+  /// (bintang, satu kolom), jadi lembar-lembar baru ini harus jatuh ke tabel
+  /// biasa di sana, bukan ke kartu yang kehilangan kolom durasi Flowmeter.
   final String? tampilan;
 
-  bool get kartuPerBaris => tampilan == 'kartu_per_baris';
+  bool get kartuPerBaris =>
+      tampilan == 'kartu_per_baris' || tampilan == 'kartu_per_set_point';
 
   /// Halaman lembar kerja tempat bagian ini dicetak: 1 atau 2.
   ///

@@ -949,6 +949,10 @@ class LembarKerjaState {
   /// titik %RH tanpa error apa pun (audit 6 Okt 2026).
   final Map<String, List<double>> _titikKustom = {};
 
+  /// Bagian ber-kartu yang sedang ditampilkan sebagai TABEL atas permintaan
+  /// teknisi (kode bagian). Murni tampilan — tidak ikut payload maupun draft.
+  final Set<String> bagianSebagaiTabel = {};
+
   /// Kode bagian pemilik [tabel], dicocokkan lewat identitas objek.
   String? _kodeBagianTabel(TabelHasil tabel) {
     for (final bagian in bentuk.bagian) {
@@ -1057,9 +1061,29 @@ class LembarKerjaState {
     final kode = bagian ?? _bagianTitikPertama;
     if (kode == null) return;
 
-    _titikKustom[kode] = nilai.toSet().toList()..sort();
+    final baru = nilai.toSet().toList()..sort();
 
-    _bangunTitik(pertahankanIsian: true);
+    // Tabel BERPASANGAN (Thermohygro) dikunci ke POSISI baris — lihat
+    // [kunciBaris]. Tanpa peta ini, menghapus 25 °C dari 15/25/35 menggeser
+    // bacaan 35 °C ke baris kedua, yang kini 35… lalu bacaan 25 °C mendarat di
+    // set point 35 — tanpa error (tinjauan 6 Okt 2026). Isian dipindah menurut
+    // NILAI titiknya; titik yang dihapus ikut kehilangan isiannya, seperti yang
+    // dijanjikan pengatur titik.
+    final petaKunci = <double, double?>{};
+    for (final b in bentuk.bagian.where((b) => b.kode == kode)) {
+      for (final t in b.tabel.where((t) => t.berpasangan && t.titikBisaDiubah)) {
+        final barisLama = barisTabel(t);
+        for (var i = 0; i < barisLama.length; i++) {
+          final j = baru.indexOf(barisLama[i].titikUkur);
+          petaKunci[kunciBaris(barisLama, i, t)] =
+              j < 0 ? null : (_offsetParameter(t.parameter) + j).toDouble();
+        }
+      }
+    }
+
+    _titikKustom[kode] = baru;
+
+    _bangunTitik(pertahankanIsian: true, petaKunci: petaKunci);
   }
 
   /// Tabel yang barisnya boleh DITAMBAH: titiknya diatur teknisi dan
@@ -1153,17 +1177,27 @@ class LembarKerjaState {
   bool get titikBisaDiubah =>
       bentuk.bagian.any((bagian) => bagian.tabel.any((t) => t.titikBisaDiubah));
 
-  int _bangunTitik({bool pertahankanIsian = false}) {
+  /// [petaKunci]: kunci lama → kunci baru untuk isian yang barisnya pindah
+  /// posisi (`null` = titiknya dihapus, isiannya dibuang). Kunci yang tidak
+  /// disebut tetap di kunci yang sama.
+  int _bangunTitik({bool pertahankanIsian = false, Map<double, double?> petaKunci = const {}}) {
     // Isian sel disalin DULU, sebelum yang lama dibuang. Yang disalin cuma
     // angkanya — `TitikState`-nya sendiri dibikin ulang dari bentuk yang baru,
     // karena satuan/desimal/eksklusif-nya bisa berubah dan objek lama bakal
     // bawa metadata basi.
-    final lama = pertahankanIsian
-        ? {
-            for (final e in titik.entries)
-              if (e.value.salinKotak().isNotEmpty) e.key: e.value.salinKotak(),
-          }
-        : const <double, Map<String, String>>{};
+    final lama = <double, Map<String, String>>{};
+    if (pertahankanIsian) {
+      for (final e in titik.entries) {
+        final salinan = e.value.salinKotak();
+        if (salinan.isEmpty) continue;
+
+        if (!petaKunci.containsKey(e.key)) {
+          lama[e.key] = salinan;
+        } else if (petaKunci[e.key] case final tujuan?) {
+          lama[tujuan] = salinan;
+        }
+      }
+    }
 
     for (final t in titik.values) {
       t.dispose();
@@ -2294,6 +2328,16 @@ class LembarKerjaState {
   bool fieldTampil(FieldLembarKerja f) =>
       f.tampilKalau == null ||
       f.tampilKalau!.dipenuhi(nilaiSyarat(f.tampilKalau!.kode));
+
+  /// Tabel [t] digambar sekarang? Aturannya sama dengan [fieldTampil].
+  ///
+  /// Beda dengan field, isi tabel yang disembunyikan TIDAK dikosongkan: yang
+  /// menyembunyikannya ganti metode (UFM ↔ Gravimetri), dan teknisi yang
+  /// kembali ke metode semula berhak menemukan angkanya utuh — pemilik proyek
+  /// 6 Okt 2026: data yang sedang dikerjakan tidak boleh ter-reset.
+  bool tabelTampil(TabelHasil t) =>
+      t.tampilKalau == null ||
+      t.tampilKalau!.dipenuhi(nilaiSyarat(t.tampilKalau!.kode));
 
   /// Kosongin kolom yang lagi NGGAK tampil.
   ///
