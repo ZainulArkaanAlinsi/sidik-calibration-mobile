@@ -422,7 +422,11 @@ class _Kartu extends StatelessWidget {
                       decoration: InputDecoration(
                         isDense: true,
                         border: const OutlineInputBorder(),
-                        labelText: f.label,
+                        // Label + satuan dan petunjuk sama dengan kotak di tabel
+                        // biasa — kotak komposisi keping Timbangan menentukan
+                        // `titik_ukur`, jadi petunjuk `+`-nya wajib terbaca.
+                        labelText: (f.satuan ?? '').isEmpty ? f.label : '${f.label} — ${f.satuan}',
+                        hintText: f.tipe == TipeField.daftarAngka ? 'Pisahkan tiap keping dengan +' : null,
                       ),
                       onChanged: (_) => onBerubah(),
                     ),
