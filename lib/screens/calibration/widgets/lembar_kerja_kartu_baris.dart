@@ -166,20 +166,68 @@ class _Kartu extends StatelessWidget {
     // Kotak X1..Xn satu tabel. Indeks tabel dipakai di kunci, bukan
     // `kunciTabel`: keempat tabel ABBA berbagi kunci tabel yang sama
     // (dibedakan offset barisnya).
-    Widget kotakTabel(int k, TabelHasil t, TitikState ts) => Row(
-      children: [
-        for (var r = 0; r < t.pengulangan.length; r++)
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2),
-              child: kotakAngka(
-                ts.kotak(t.kunciTabel, t.kolom.first.kode, r),
-                key: ValueKey('kartu-t$k-$nomor-$r'),
+    Widget kotakTabel(int k, TabelHasil t, TitikState ts) {
+      if (t.kolom.length == 1) {
+        return Row(
+          children: [
+            for (var r = 0; r < t.pengulangan.length; r++)
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  child: kotakAngka(
+                    ts.kotak(t.kunciTabel, t.kolom.first.kode, r),
+                    key: ValueKey('kartu-t$k-$nomor-$r'),
+                  ),
+                ),
+              ),
+          ],
+        );
+      }
+
+      // Tabel berkolom ganda (Flowrate: tiap ulangan dibaca di tiga durasi)
+      // digambar sub-grid ulangan × kolom — susunan kertas 0538.A, satu set
+      // point per kartu. Kuncinya ikut indeks kolom.
+      final judulUlang = t.judulPengulangan ?? 'Ulangan';
+      return Column(
+        children: [
+          Row(
+            children: [
+              const SizedBox(width: 72),
+              for (final c in t.kolom)
+                Expanded(
+                  child: Text(
+                    c.label,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.labelMedium,
+                  ),
+                ),
+            ],
+          ),
+          for (var r = 0; r < t.pengulangan.length; r++)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 72,
+                    child: Text('$judulUlang ${r + 1}', style: theme.textTheme.bodySmall),
+                  ),
+                  for (var c = 0; c < t.kolom.length; c++)
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: kotakAngka(
+                          ts.kotak(t.kunciTabel, t.kolom[c].kode, r),
+                          key: ValueKey('kartu-t$k-$nomor-$r-$c'),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
-          ),
-      ],
-    );
+        ],
+      );
+    }
 
     Widget kepalaUlang(int jumlah) => Row(
       children: [

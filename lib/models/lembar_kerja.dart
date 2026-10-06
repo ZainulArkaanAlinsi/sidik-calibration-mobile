@@ -515,9 +515,19 @@ class TabelHasil {
     this.chamberPerBaris = const {},
     this.kolomBaris = const [],
     this.offsetKunci,
+    this.tampilKalau,
     this.pindaiFoto,
     this.kumulatif = false,
   });
+
+  /// Syarat tampil TABEL ini — kosakata yang sama dengan field.
+  ///
+  /// Flowmeter memakai satu lembar untuk dua metode (UFM & Gravimetri, kertas
+  /// 0538); tabel khusus metode ditandai server dengan `tampil_kalau`. Dulu
+  /// penanda ini hanya dibaca di field, jadi kedua set tabel tergambar
+  /// bersamaan dan teknisi tidak tahu yang mana yang diisi (audit 6 Okt 2026).
+  /// Null = selalu tampil.
+  final SyaratTampil? tampilKalau;
 
   /// `sebelum_adjustment` / `sesudah_adjustment`.
   final String tahap;
@@ -872,6 +882,7 @@ class TabelHasil {
     chamberPerBaris: _chamberPerBaris(json['chamber_per_baris']),
     kolomBaris: parseListAman(json['kolom_baris'], FieldLembarKerja.fromJson),
     offsetKunci: (json['offset_kunci'] as num?)?.toInt(),
+    tampilKalau: SyaratTampil.fromJson(json['tampil_kalau']),
     pindaiFoto: json['pindai_foto'] is bool ? json['pindai_foto'] as bool : null,
     kumulatif: json['kumulatif'] == true,
   );

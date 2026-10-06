@@ -2295,6 +2295,16 @@ class LembarKerjaState {
       f.tampilKalau == null ||
       f.tampilKalau!.dipenuhi(nilaiSyarat(f.tampilKalau!.kode));
 
+  /// Tabel [t] digambar sekarang? Aturannya sama dengan [fieldTampil].
+  ///
+  /// Beda dengan field, isi tabel yang disembunyikan TIDAK dikosongkan: yang
+  /// menyembunyikannya ganti metode (UFM ↔ Gravimetri), dan teknisi yang
+  /// kembali ke metode semula berhak menemukan angkanya utuh — pemilik proyek
+  /// 6 Okt 2026: data yang sedang dikerjakan tidak boleh ter-reset.
+  bool tabelTampil(TabelHasil t) =>
+      t.tampilKalau == null ||
+      t.tampilKalau!.dipenuhi(nilaiSyarat(t.tampilKalau!.kode));
+
   /// Kosongin kolom yang lagi NGGAK tampil.
   ///
   /// Disembunyiin doang nggak cukup, dan itu bukan teori: dropdown `Ruangan`

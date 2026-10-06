@@ -1783,6 +1783,14 @@ class _Bagian extends ConsumerWidget {
     // ditempelin — kalau nggak ada tabel sama sekali, dibiarin lewat jalur
     // lama (render di daftar field) daripada ilang diam-diam.
     final grupField = _kelompokkanField(bagian.field);
+    // Tabel yang syarat tampilnya tidak dipenuhi (Flowmeter: tabel metode
+    // UFM saat Gravimetri dipilih, dan sebaliknya) tidak digambar. Isinya
+    // tetap — lihat `LembarKerjaState.tabelTampil`.
+    final tabelTampil = [
+      for (final t in bagian.tabel)
+        if (isian.tabelTampil(t)) t,
+    ];
+
     final grupTitik = <int, List<List<FieldLembarKerja>>>{};
     if (bagian.tabel.isNotEmpty) {
       for (final grup in grupField) {
@@ -1995,16 +2003,16 @@ class _Bagian extends ConsumerWidget {
             ] else if (bagian.kartuPerBaris) ...[
               // Titik bisa diatur (Thermohygro): pengatur titiknya tetap ada
               // di mode kartu, satu per bagian.
-              if (bagian.tabel.isNotEmpty &&
-                  bagian.tabel.first.titikBisaDiubah &&
-                  bagian.tabel.first.baris.every((b) => b.titikDitentukan)) ...[
+              if (tabelTampil.isNotEmpty &&
+                  tabelTampil.first.titikBisaDiubah &&
+                  tabelTampil.first.baris.every((b) => b.titikDitentukan)) ...[
                 PengaturTitik(isian: isian, onBerubah: onBerubah, bagian: bagian),
                 const SizedBox(height: AppSpacing.lg),
               ],
               // Susunan kertas: satu kartu per baris, bukan satu tabel per
               // peran. Cuma tampilan — lihat `LembarKerjaKartuBaris`.
               LembarKerjaKartuBaris(
-                tabel: bagian.tabel,
+                tabel: tabelTampil,
                 isian: isian,
                 onBerubah: onBerubah,
                 sejajar: bagian.kartuSejajar,
@@ -2012,7 +2020,7 @@ class _Bagian extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.lg),
             ] else
-              for (var i = 0; i < bagian.tabel.length; i++) ...[
+              for (var i = 0; i < tabelTampil.length; i++) ...[
                 // Daftar titik diatur SEKALI di atas tabel pertama, bukan per
                 // tabel: satu daftar berlaku buat Before & After sekaligus.
                 // Cuma muncul di lembar yang backend-nya bilang titiknya boleh
@@ -2025,13 +2033,13 @@ class _Bagian extends ConsumerWidget {
                 // begitu teknisi menyusun titik sendiri, barisnya jadi
                 // `titikDitentukan` semua dan syaratnya bakal berbalik.
                 if (i == 0 &&
-                    bagian.tabel[i].titikBisaDiubah &&
-                    bagian.tabel[i].baris.every((b) => b.titikDitentukan)) ...[
+                    tabelTampil[i].titikBisaDiubah &&
+                    tabelTampil[i].baris.every((b) => b.titikDitentukan)) ...[
                   PengaturTitik(isian: isian, onBerubah: onBerubah, bagian: bagian),
                   const SizedBox(height: AppSpacing.lg),
                 ],
                 LembarKerjaTabel(
-                  tabel: bagian.tabel[i],
+                  tabel: tabelTampil[i],
                   isian: isian,
                   onBerubah: onBerubah,
                   // Saklar DAN bentuk kertasnya. Saklar bilang "fitur ini
@@ -2058,15 +2066,15 @@ class _Bagian extends ConsumerWidget {
                   pindaiAktif:
                       pindaiAktif &&
                       isian.bentuk.fotoTabelDidukung &&
-                      (bagian.tabel[i].pindaiFoto ?? true),
+                      (tabelTampil[i].pindaiFoto ?? true),
                 ),
                 const SizedBox(height: AppSpacing.lg),
 
                 // Baris kertas tidak selalu cukup (set anak timbangan 15
                 // keping, kertas 10 baris). Satu tombol menambah SEMUA tabel
                 // sekaligus — lihat `LembarKerjaState.tambahBaris`.
-                if (i == bagian.tabel.length - 1 &&
-                    isian.bisaTambahBaris(bagian.tabel[i])) ...[
+                if (i == tabelTampil.length - 1 &&
+                    isian.bisaTambahBaris(tabelTampil[i])) ...[
                   Align(
                     alignment: Alignment.centerLeft,
                     child: OutlinedButton.icon(
@@ -2077,7 +2085,7 @@ class _Bagian extends ConsumerWidget {
                       },
                       icon: const Icon(Icons.add),
                       label: Text(
-                        bagian.tabel.length > 1
+                        tabelTampil.length > 1
                             ? 'Tambah baris (semua tabel di atas)'
                             : 'Tambah baris',
                       ),
@@ -2090,10 +2098,10 @@ class _Bagian extends ConsumerWidget {
                 // bilang punya kolom itu (tabel STANDAR Thermocouple). Tabel UUT
                 // nggak punya: sisi UUT memakai probe bawaan alat pelanggan,
                 // yang justru sedang diukur penyimpangannya.
-                if (bagian.tabel[i].kolomNoProbe != null) ...[
+                if (tabelTampil[i].kolomNoProbe != null) ...[
                   _BarisNoProbe(
-                    field: bagian.tabel[i].kolomNoProbe!,
-                    tabel: bagian.tabel[i],
+                    field: tabelTampil[i].kolomNoProbe!,
+                    tabel: tabelTampil[i],
                     isian: isian,
                     onBerubah: onBerubah,
                   ),
@@ -2104,11 +2112,11 @@ class _Bagian extends ConsumerWidget {
                 // `nominal` lembar Timbangan. Digambar TEPAT di bawah tabelnya,
                 // bukan dikumpulin di bagian lain: isinya milik baris, dan
                 // teknisi mengisinya sambil membaca baris yang sama.
-                for (final f in bagian.tabel[i].kolomBaris)
+                for (final f in tabelTampil[i].kolomBaris)
                   if (f.kode != 'no_probe') ...[
                     _BarisKotakTambahan(
                       field: f,
-                      tabel: bagian.tabel[i],
+                      tabel: tabelTampil[i],
                       isian: isian,
                       onBerubah: onBerubah,
                     ),
