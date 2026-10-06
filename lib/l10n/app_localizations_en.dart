@@ -3851,7 +3851,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String lkUbahPengulanganPesan(int n) {
-    return 'The results table is rebuilt with $n columns, and numbers already typed into it will be lost. Identity and room-condition fields stay.';
+    return 'The results table will have $n columns. Numbers already typed are KEPT. If you reduce the count, hidden repetition columns are not sent (they come back if you increase it again).';
   }
 
   @override

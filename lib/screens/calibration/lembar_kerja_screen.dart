@@ -241,18 +241,17 @@ class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen> {
       // sekali; gagal narik bentuk alat nggak boleh ngebuang lembar yang lagi
       // diisi.
       body: switch ((bentuk, bentukAsync)) {
-        // `ValueKey` WAJIB: `_FormState` bikin `LembarKerjaState`-nya sekali
-        // (`late final`) dari `widget.bentuk`. Tanpa key, Flutter mendaur ulang
-        // State yang lama waktu jumlah kotaknya ganti — tabelnya bakal tetap
-        // 5 kolom padahal backend udah ngirim 3, dan nggak ada yang error.
+        // TANPA `key`, dan itu disengaja. State formulir dipakai ulang dan bentuk
+        // barunya — ganti alat MAUPUN ganti jumlah pengulangan — dipasang lewat
+        // `gantiBentuk` di `didUpdateWidget`, yang membangun ulang tabel dengan
+        // jumlah kolom baru SAMBIL memindahkan isian yang sudah diketik.
         //
-        // `key` SENGAJA nggak bawa `equipmentId`: ganti alat mesti mempertahankan
-        // isian yang udah diketik, jadi State-nya dipakai ulang dan bentuk
-        // barunya dipasang lewat `gantiBentuk` di `didUpdateWidget`. Kalau
-        // equipmentId ikut key, tiap ganti alat bikin State baru dan seluruh
-        // tabel yang udah diisi ilang — termasuk alat yang barusan dipilih.
+        // Sampai 6 Okt 2026 di sini ada `key: ValueKey(b.jumlahPengulangan)`.
+        // Ganti 5x → 6x berarti key baru, State baru, dan SELURUH formulir —
+        // alat, kondisi ruangan, semua angka — kembali kosong (laporan
+        // lapangan). Kekhawatiran lama "tabelnya tetap 5 kolom" sudah ditangani
+        // `gantiBentuk`, jalur yang sama yang dipakai tiap kali alat diganti.
         (final LembarKerja b, _) => _Form(
-          key: ValueKey(b.jumlahPengulangan),
           bentuk: b,
           sesiId: widget.sesiId,
           profil: widget.profil,
@@ -326,7 +325,6 @@ class _Gagal extends StatelessWidget {
 
 class _Form extends ConsumerStatefulWidget {
   const _Form({
-    super.key,
     required this.bentuk,
     required this.onAlatBerubah,
     required this.profil,

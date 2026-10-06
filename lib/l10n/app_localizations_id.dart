@@ -3816,7 +3816,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String lkUbahPengulanganPesan(int n) {
-    return 'Tabel hasil dibangun ulang jadi $n kolom, dan angka yang udah diketik di tabel akan hilang. Kolom identitas & kondisi ruangan tetap aman.';
+    return 'Tabel hasil jadi $n kolom. Angka yang sudah diketik TETAP ADA. Kalau jumlahnya dikurangi, kolom ulangan yang disembunyikan tidak ikut dikirim (angkanya muncul lagi kalau ditambah kembali).';
   }
 
   @override
