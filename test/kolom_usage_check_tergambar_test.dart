@@ -46,13 +46,38 @@ void main() {
 
   // Label persis dari bentuk lembar server (fixture hasil generator).
   const kasus = <String, String>{
-    'utm': 'Load Cell Standar',
-    'load_cell': 'Load Cell Standar',
+    'utm': 'Kapasitas Standar (kN)',
+    'load_cell': 'Kapasitas Standar (kN)',
+    'proving_ring': 'Kapasitas Standar (kN)',
     'pressure_gauge': 'Kalibrator (master olah data)',
     'vacuum_gauge': 'Kalibrator (master olah data)',
     'tids': 'Sensor Standard',
-    'piston_pipette': 'Timbangan',
   };
+
+  // Dropdown yang menanyakan ulang baris yang sudah dicentang di Standard
+  // Used — dicabut server 6 Okt 2026, standarnya lahir dari centang. Kalau
+  // muncul lagi, teknisi mengisi hal yang sama dua kali.
+  const dobel = <String, String>{
+    'utm': 'Load Cell Standar',
+    'load_cell': 'Load Cell Standar',
+    'piston_pipette': 'Timbangan',
+    'tids': 'Sensor Standard (lama)',
+  };
+
+  for (final e in dobel.entries) {
+    testWidgets('${e.key}: dropdown dobel "${e.value}" tidak ada', (tester) async {
+      tester.view.physicalSize = const Size(1000, 30000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(app(e.key));
+      await tester.pump(const Duration(milliseconds: 700));
+      await tester.pumpAndSettle();
+
+      expect(find.text(e.value), findsNothing);
+    });
+  }
 
   for (final e in kasus.entries) {
     testWidgets('${e.key}: kolom "${e.value}" di Standard Used tergambar', (tester) async {

@@ -484,30 +484,6 @@
           ],
           "hanya_admin": false,
           "tampil_kalau": null
-        },
-        {
-          "kode": "spesifikasi_alat.sensor_standar",
-          "label": "Sensor Standard (lama)",
-          "tipe": "pilihan",
-          "wajib": false,
-          "sumber": null,
-          "satuan": null,
-          "pilihan": [
-            {
-              "nilai": "Thermocouple Type-K",
-              "label": "Thermocouple Type-K"
-            },
-            {
-              "nilai": "Thermocouple Type-N",
-              "label": "Thermocouple Type-N"
-            },
-            {
-              "nilai": "Sensor RTD/PT 100",
-              "label": "Sensor RTD/PT 100"
-            }
-          ],
-          "hanya_admin": false,
-          "tampil_kalau": null
         }
       ]
     },

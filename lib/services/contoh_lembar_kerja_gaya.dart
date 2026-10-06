@@ -351,21 +351,6 @@ Map<String, dynamic> contohBentukLembarKerjaUtm({
         ],
         'field': [
           {
-            'kode': 'spesifikasi_alat.gaya.standar',
-            'label': 'Load Cell Standar',
-            'tipe': 'pilihan',
-            'wajib': false,
-            'sumber': null,
-            'satuan': null,
-            'pilihan': [
-              '5kN',
-              '100kN',
-              '3000kN',
-            ],
-            'hanya_admin': false,
-            'tampil_kalau': null,
-          },
-          {
             'kode': 'spesifikasi_alat.gaya.kapasitas_standar',
             'label': 'Kapasitas Standar (kN)',
             'tipe': 'angka',
@@ -1247,21 +1232,6 @@ Map<String, dynamic> contohBentukLembarKerjaLoadCell({
           },
         ],
         'field': [
-          {
-            'kode': 'spesifikasi_alat.gaya.standar',
-            'label': 'Load Cell Standar',
-            'tipe': 'pilihan',
-            'wajib': false,
-            'sumber': null,
-            'satuan': null,
-            'pilihan': [
-              '5kN',
-              '100kN',
-              '3000kN',
-            ],
-            'hanya_admin': false,
-            'tampil_kalau': null,
-          },
           {
             'kode': 'spesifikasi_alat.gaya.kapasitas_standar',
             'label': 'Kapasitas Standar (kN)',
@@ -2155,21 +2125,6 @@ Map<String, dynamic> contohBentukLembarKerjaProvingRing({
           },
         ],
         'field': [
-          {
-            'kode': 'spesifikasi_alat.gaya.standar',
-            'label': 'Load Cell Standar',
-            'tipe': 'pilihan',
-            'wajib': false,
-            'sumber': null,
-            'satuan': null,
-            'pilihan': [
-              '5kN',
-              '100kN',
-              '3000kN',
-            ],
-            'hanya_admin': false,
-            'tampil_kalau': null,
-          },
           {
             'kode': 'spesifikasi_alat.gaya.kapasitas_standar',
             'label': 'Kapasitas Standar (kN)',

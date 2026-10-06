@@ -386,24 +386,7 @@ Map<String, dynamic> contohBentukLembarKerjaPistonPipette({
             'terdaftar': true,
           },
         ],
-        'field': [
-          {
-            'kode': 'spesifikasi_alat.piston.timbangan',
-            'label': 'Timbangan',
-            'tipe': 'pilihan',
-            'wajib': false,
-            'sumber': null,
-            'satuan': null,
-            'pilihan': [
-              'Analytical Balance',
-              'Electronic Balance Excellent',
-              'Electronic Balance Fujitsu',
-            ],
-            'hanya_admin': false,
-            'tampil_kalau': null,
-            'mempengaruhi_ketidakpastian': true,
-          },
-        ],
+        'field': <dynamic>[],
       },
       {
         'kode': 'hasil',
@@ -988,24 +971,7 @@ Map<String, dynamic> contohBentukLembarKerjaDispensett({
             'terdaftar': true,
           },
         ],
-        'field': [
-          {
-            'kode': 'spesifikasi_alat.piston.timbangan',
-            'label': 'Timbangan',
-            'tipe': 'pilihan',
-            'wajib': false,
-            'sumber': null,
-            'satuan': null,
-            'pilihan': [
-              'Analytical Balance',
-              'Electronic Balance Excellent',
-              'Electronic Balance Fujitsu',
-            ],
-            'hanya_admin': false,
-            'tampil_kalau': null,
-            'mempengaruhi_ketidakpastian': true,
-          },
-        ],
+        'field': <dynamic>[],
       },
       {
         'kode': 'hasil',
@@ -1590,24 +1556,7 @@ Map<String, dynamic> contohBentukLembarKerjaBuretDigital({
             'terdaftar': true,
           },
         ],
-        'field': [
-          {
-            'kode': 'spesifikasi_alat.piston.timbangan',
-            'label': 'Timbangan',
-            'tipe': 'pilihan',
-            'wajib': false,
-            'sumber': null,
-            'satuan': null,
-            'pilihan': [
-              'Analytical Balance',
-              'Electronic Balance Excellent',
-              'Electronic Balance Fujitsu',
-            ],
-            'hanya_admin': false,
-            'tampil_kalau': null,
-            'mempengaruhi_ketidakpastian': true,
-          },
-        ],
+        'field': <dynamic>[],
       },
       {
         'kode': 'hasil',
