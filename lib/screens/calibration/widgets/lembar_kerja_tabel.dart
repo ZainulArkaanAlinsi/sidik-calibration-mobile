@@ -178,7 +178,7 @@ class LembarKerjaTabel extends StatelessWidget {
   /// & kepala kolom, persis kayak lembar cetaknya, jadi nempelin lagi bikin
   /// `0,0 %T` yang nggak ada di kertas mana pun.
   String _labelBaris(BarisTabelHasil baris) {
-    final satuan = isian.bentuk.satuanUntuk(baris);
+    final satuan = isian.satuanTampilUntuk(baris);
     if (tabel.judulNilaiUntuk(isian.modeKalibrasi) != null || satuan.isEmpty) {
       return baris.label;
     }
@@ -322,7 +322,7 @@ class LembarKerjaTabel extends StatelessWidget {
                         lebar: ukuran.lebar,
                         tinggi: ukuran.tinggi * potongan.length,
                         state: isian.titikUntukBaris(barisTabel, iBaris, tabel),
-                        satuan: isian.bentuk.satuanUntuk(barisTabel[iBaris]),
+                        satuan: isian.satuanTampilUntuk(barisTabel[iBaris]),
                         onBerubah: onBerubah,
                         // Tabel kedua dst. di lembar ber-deret-bernama (posisi
                         // Gaya, UP/DOWN Proving Ring, Hydrometer, Volumetric):

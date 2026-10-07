@@ -2947,7 +2947,7 @@ class _BarisSpesifikasi extends StatelessWidget {
                         decoration: InputDecoration(
                           // Labelnya udah ditulis sekali di atas — yang di
                           // dalam kotak tinggal satuannya, persis kertasnya.
-                          labelText: f.satuan,
+                          labelText: isian.satuanField(f),
                           border: const OutlineInputBorder(),
                         ),
                       ),
@@ -3579,8 +3579,8 @@ class _Isian extends StatelessWidget {
           : (panjang ? TextInputType.multiline : TextInputType.text),
       decoration: InputDecoration(
         labelText: field.label,
-        suffixText: field.satuan,
-        helperText: _helperSatuan(field.satuan, contoh),
+        suffixText: isian.satuanField(field),
+        helperText: _helperSatuan(isian.satuanField(field), contoh),
         border: const OutlineInputBorder(),
       ),
     );

@@ -46,11 +46,12 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
     'kode_dokumen': 'SIDIK-FM-CAL-0541_Rev.0',
     'kode_metode': 'SIDIK-IK-CAL-0535_Rev.0',
     'judul': 'Calibration Work Sheet - Anak Timbangan',
-    'jumlah_pengulangan': 3,
+    'jumlah_pengulangan': 1,
     'satuan': 'g',
+    'satuan_dari': 'spesifikasi_alat.anak_timbangan.satuan',
     'satuan_suhu': '°C',
     'semua_kolom_opsional': true,
-    'catatan_pengisian': 'Urutan penimbangan ABBA WAJIB diisi sesuai perannya: Standard, UUT, UUT, Standard. Keempatnya punya TANDA yang berbeda di rumus `de = (T1 − S1 − S2 + T2)/2`, jadi baris yang tertukar membalik arah koreksi kepingnya tanpa satu pun error. TEKANAN UDARA wajib diisi walau kertas Rev.0 belum punya kolomnya — tanpa tekanan, densitas udara tidak bisa dihitung dan koreksi apung seluruh keping hilang. Keping yang nominalnya KEMBAR (dua 200 g, dua 20 g, dua 2 g, dua 0,2 g, dua 0,02 g) dibedakan seperti di kertas: keping kedua diberi BINTANG di nominalnya (20*), atau isi No. Seri keping yang berbeda — dua keping yang tidak bisa dibedakan tidak diterbitkan. Neraca dipilih lewat centang di Standard yang Digunakan, SATU neraca per sesi.',
+    'catatan_pengisian': 'Urutan penimbangan ABBA WAJIB diisi sesuai perannya: Standard, UUT, UUT, Standard. Keempatnya punya TANDA yang berbeda di rumus `de = (T1 − S1 − S2 + T2)/2`, jadi baris yang tertukar membalik arah koreksi kepingnya tanpa satu pun error. TEKANAN UDARA wajib diisi walau kertas Rev.0 belum punya kolomnya — tanpa tekanan, densitas udara tidak bisa dihitung dan koreksi apung seluruh keping hilang. Keping yang nominalnya KEMBAR (dua 200 g, dua 20 g, dua 2 g, dua 0,2 g, dua 0,02 g) dibedakan seperti di kertas: keping kedua diberi BINTANG di nominalnya (20*), atau isi No. Seri keping yang berbeda — dua keping yang tidak bisa dibedakan tidak diterbitkan. Centang SEMUA neraca yang dipakai di Standard yang Digunakan; tiap keping otomatis memakai neraca tercentang terkecil yang sanggup memikulnya. Pilih Satuan (g atau kg) sesuai tampilan neraca — nominal dan bacaan ditulis dalam satuan itu.',
     'budget_ketidakpastian': {
       'tersedia': true,
       'sumber': '1.1 Anak Timbangan F1 1mg-500 g 202501022 imp.xlsx',
@@ -187,6 +188,26 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
             'tampil_kalau': null,
           },
           {
+            'kode': 'spesifikasi_alat.anak_timbangan.satuan',
+            'label': 'Satuan (nominal & bacaan)',
+            'tipe': 'pilihan',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': [
+              {
+                'nilai': 'g',
+                'label': 'g',
+              },
+              {
+                'nilai': 'kg',
+                'label': 'kg',
+              },
+            ],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+          },
+          {
             'kode': 'spesifikasi_alat.anak_timbangan.kapasitas_min_g',
             'label': 'Kapasitas Alat (dari – sampai)',
             'tipe': 'angka',
@@ -196,6 +217,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
             'pilihan': <dynamic>[],
             'hanya_admin': false,
             'tampil_kalau': null,
+            'satuan_dari': 'spesifikasi_alat.anak_timbangan.satuan',
           },
           {
             'kode': 'spesifikasi_alat.anak_timbangan.kapasitas_g',
@@ -207,6 +229,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
             'pilihan': <dynamic>[],
             'hanya_admin': false,
             'tampil_kalau': null,
+            'satuan_dari': 'spesifikasi_alat.anak_timbangan.satuan',
           },
           {
             'kode': 'tanggal_terima',
@@ -698,8 +721,6 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
             ],
             'pengulangan': [
               1,
-              2,
-              3,
             ],
             'kolom_baris': [
               {
@@ -797,8 +818,6 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
             ],
             'pengulangan': [
               1,
-              2,
-              3,
             ],
             'kolom_baris': <dynamic>[],
           },
@@ -884,8 +903,6 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
             ],
             'pengulangan': [
               1,
-              2,
-              3,
             ],
             'kolom_baris': <dynamic>[],
           },
@@ -971,8 +988,6 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
             ],
             'pengulangan': [
               1,
-              2,
-              3,
             ],
             'kolom_baris': <dynamic>[],
           },

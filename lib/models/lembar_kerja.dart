@@ -209,6 +209,7 @@ class FieldLembarKerja {
     required this.sumber,
     required this.wajib,
     this.satuan,
+    this.satuanDari,
     this.pilihan = const [],
     this.catatan,
     this.tampilKalau,
@@ -222,6 +223,11 @@ class FieldLembarKerja {
   final TipeField tipe;
   final SumberField sumber;
   final String? satuan;
+
+  /// Kode field PILIHAN di lembar yang sama yang menentukan satuan kolom ini
+  /// (Anak Timbangan: `spesifikasi_alat.anak_timbangan.satuan`, g/kg). Kalau
+  /// field itu sudah dipilih, labelnya ikut; kalau belum, jatuh ke [satuan].
+  final String? satuanDari;
   final List<PilihanField> pilihan;
 
   /// Kalimat penjelas dari backend, ditampilin apa adanya di bawah kolomnya.
@@ -263,6 +269,7 @@ class FieldLembarKerja {
       sumber: SumberField.fromApi(json['sumber'] as String?),
       wajib: json['wajib'] as bool? ?? false,
       satuan: json['satuan'] as String?,
+      satuanDari: json['satuan_dari'] as String?,
       pilihan: parseListAman(json['pilihan'], PilihanField.fromJson),
       catatan: json['catatan'] as String?,
       tampilKalau: SyaratTampil.fromJson(json['tampil_kalau']),
@@ -1455,6 +1462,7 @@ class LembarKerja {
     required this.jumlahPengulangan,
     required this.larutanStandar,
     required this.satuan,
+    this.satuanDari,
     this.satuanCampuran = false,
     this.suhuWajib = false,
     required this.satuanSuhu,
@@ -1484,6 +1492,11 @@ class LembarKerja {
   final int jumlahPengulangan;
   final List<double> larutanStandar;
   final String satuan;
+
+  /// Kode field PILIHAN yang menentukan satuan seluruh lembar — mis. Anak
+  /// Timbangan (g/kg). Label tabel & kartu ikut pilihan itu begitu dipilih;
+  /// sebelum dipilih, [satuan] yang tampil. Lihat `LembarKerjaState.satuanTampil`.
+  final String? satuanDari;
 
   /// Lembar ini memakai **lebih dari satu satuan**, jadi [satuan] di level
   /// lembar nggak mewakili dan yang berlaku ada di tiap baris.
@@ -1620,6 +1633,7 @@ class LembarKerja {
         .map((e) => e.toDouble())
         .toList(),
     satuan: json['satuan'] as String? ?? '',
+    satuanDari: json['satuan_dari'] as String?,
     satuanCampuran: _campuran(json['satuan_campuran']),
     suhuWajib: json['suhu_wajib'] as bool? ?? false,
     satuanSuhu: json['satuan_suhu'] as String? ?? '°C',

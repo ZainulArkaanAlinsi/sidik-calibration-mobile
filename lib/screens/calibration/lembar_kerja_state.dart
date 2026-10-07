@@ -2305,6 +2305,33 @@ class LembarKerjaState {
     return (t == null || t.isEmpty) ? null : t;
   }
 
+  /// Satuan yang DIPILIH teknisi di field [LembarKerja.satuanDari] (Anak
+  /// Timbangan: g/kg), atau `null` kalau lembarnya nggak punya pilihan itu
+  /// atau belum dipilih.
+  ///
+  /// Server menghitung dalam satuan pilihan itu (dikonversi di sana), jadi
+  /// label di layar WAJIB ikut — kotak berlabel `(g)` yang diisi angka kg
+  /// persis bentuk salah ketik yang menahan sesi produksi 5 Okt 2026.
+  String? get satuanDipilih {
+    final dari = bentuk.satuanDari;
+    return dari == null ? null : kalimat(dari);
+  }
+
+  /// Satuan label tingkat lembar: pilihan teknisi kalau ada, selain itu
+  /// `bentuk.satuan`.
+  String get satuanTampil => satuanDipilih ?? bentuk.satuan;
+
+  /// Satuan label satu baris tabel — pilihan teknisi kalau ada, selain itu
+  /// aturan per baris yang lama (`satuanUntuk`).
+  String satuanTampilUntuk(BarisTabelHasil baris) =>
+      satuanDipilih ?? bentuk.satuanUntuk(baris);
+
+  /// Satuan label satu field — ikut [FieldLembarKerja.satuanDari] kalau ada.
+  String? satuanField(FieldLembarKerja f) {
+    final dari = f.satuanDari;
+    return (dari == null ? null : kalimat(dari)) ?? f.satuan;
+  }
+
   /// Nilai kolom [kode] dalam bentuk API-nya — buat NGEJAWAB syarat tampil
   /// ([SyaratTampil]), bukan buat nyusun payload.
   ///
@@ -2520,6 +2547,10 @@ class LembarKerjaState {
     'spesifikasi_alat.anak_timbangan.kelas_uut',
     'spesifikasi_alat.anak_timbangan.kelas_standar',
     'spesifikasi_alat.anak_timbangan.timbangan',
+    // Satuan g/kg (7 Okt 2026). Kosong dibaca GRAM oleh server — jadi lembar
+    // keping kilogram yang satuannya kelupaan dipilih terhitung sebagai keping
+    // GRAM. Ditanya sebelum kirim, sama seperti kelas.
+    'spesifikasi_alat.anak_timbangan.satuan',
   };
 
   /// Field penentu angka yang ada di lembar ini tapi belum dipilih.
