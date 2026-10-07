@@ -2347,5 +2347,19 @@
   "jadwalLokasi": "Lokasi (opsional)",
   "jadwalCatatan": "Catatan (opsional)",
   "jadwalSimpan": "Simpan jadwal",
-  "jadwalWaktuWajib": "Pilih tanggal dan jam dulu."
+  "jadwalWaktuWajib": "Pilih tanggal dan jam dulu.",
+  "riwayatPersetujuanJudul": "Riwayat persetujuan",
+  "riwayatPersetujuanRingkas": "Ditolak {jumlah} kali",
+  "riwayatPersetujuanKosong": "Belum ada riwayat persetujuan.",
+  "riwayatPersetujuanGagal": "Riwayat persetujuan tidak bisa dimuat.",
+  "riwayatPersetujuanCobaLagi": "Coba lagi",
+  "riwayatJenisDitolak": "Ditolak — perlu revisi",
+  "riwayatJenisDiajukan": "Diajukan",
+  "riwayatJenisDiajukanUlang": "Diajukan ulang sesudah revisi",
+  "riwayatJenisDisetujui": "Disetujui",
+  "riwayatJenisMenungguPengesahan": "Menunggu pengesahan",
+  "riwayatJenisKembaliDraft": "Kembali ke draft",
+  "riwayatOlehSistem": "sistem",
+  "riwayatKolomDitandai": "Kolom/sel ditandai: {daftar}",
+  "riwayatPersetujuanKetuk": "Ketuk untuk melihat semua penolakan beserta alasannya"
 }

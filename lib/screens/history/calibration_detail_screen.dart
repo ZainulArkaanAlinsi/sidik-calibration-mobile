@@ -19,6 +19,7 @@ import '../../widgets/status_badge.dart';
 import '../calibration/lembar_kerja_screen.dart';
 import '../calibration/instrument_picker_screen.dart';
 import '../certificate/sertifikat_screen.dart';
+import 'widgets/riwayat_persetujuan_card.dart';
 
 String _fmt(double? v, {int decimals = 4}) =>
     v == null ? '—' : v.toStringAsFixed(decimals);
@@ -198,6 +199,10 @@ class _Isi extends StatelessWidget {
             child: Text(l10n.historyCatatanRevisi(detail.catatanRevisi!)),
           ),
         ],
+
+        // Riwayat semua penolakan (alasan lama tidak hilang walau catatan sesi
+        // ditimpa). Khusus admin & super admin — widget menyaring sendiri.
+        RiwayatPersetujuanBagian(sesiId: detail.id),
 
         if (detail.perluVerifikasi) ...[
           const SizedBox(height: AppSpacing.md),

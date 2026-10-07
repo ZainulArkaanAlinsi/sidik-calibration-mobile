@@ -5689,4 +5689,51 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get jadwalWaktuWajib => 'Pick a date and time first.';
+
+  @override
+  String get riwayatPersetujuanJudul => 'Approval history';
+
+  @override
+  String riwayatPersetujuanRingkas(int jumlah) {
+    return 'Rejected $jumlah times';
+  }
+
+  @override
+  String get riwayatPersetujuanKosong => 'No approval history yet.';
+
+  @override
+  String get riwayatPersetujuanGagal => 'Approval history could not be loaded.';
+
+  @override
+  String get riwayatPersetujuanCobaLagi => 'Try again';
+
+  @override
+  String get riwayatJenisDitolak => 'Rejected — needs revision';
+
+  @override
+  String get riwayatJenisDiajukan => 'Submitted';
+
+  @override
+  String get riwayatJenisDiajukanUlang => 'Resubmitted after revision';
+
+  @override
+  String get riwayatJenisDisetujui => 'Approved';
+
+  @override
+  String get riwayatJenisMenungguPengesahan => 'Awaiting endorsement';
+
+  @override
+  String get riwayatJenisKembaliDraft => 'Back to draft';
+
+  @override
+  String get riwayatOlehSistem => 'system';
+
+  @override
+  String riwayatKolomDitandai(String daftar) {
+    return 'Marked fields/cells: $daftar';
+  }
+
+  @override
+  String get riwayatPersetujuanKetuk =>
+      'Tap to see every rejection and its reason';
 }

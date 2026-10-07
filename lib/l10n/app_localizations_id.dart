@@ -5614,4 +5614,52 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get jadwalWaktuWajib => 'Pilih tanggal dan jam dulu.';
+
+  @override
+  String get riwayatPersetujuanJudul => 'Riwayat persetujuan';
+
+  @override
+  String riwayatPersetujuanRingkas(int jumlah) {
+    return 'Ditolak $jumlah kali';
+  }
+
+  @override
+  String get riwayatPersetujuanKosong => 'Belum ada riwayat persetujuan.';
+
+  @override
+  String get riwayatPersetujuanGagal =>
+      'Riwayat persetujuan tidak bisa dimuat.';
+
+  @override
+  String get riwayatPersetujuanCobaLagi => 'Coba lagi';
+
+  @override
+  String get riwayatJenisDitolak => 'Ditolak — perlu revisi';
+
+  @override
+  String get riwayatJenisDiajukan => 'Diajukan';
+
+  @override
+  String get riwayatJenisDiajukanUlang => 'Diajukan ulang sesudah revisi';
+
+  @override
+  String get riwayatJenisDisetujui => 'Disetujui';
+
+  @override
+  String get riwayatJenisMenungguPengesahan => 'Menunggu pengesahan';
+
+  @override
+  String get riwayatJenisKembaliDraft => 'Kembali ke draft';
+
+  @override
+  String get riwayatOlehSistem => 'sistem';
+
+  @override
+  String riwayatKolomDitandai(String daftar) {
+    return 'Kolom/sel ditandai: $daftar';
+  }
+
+  @override
+  String get riwayatPersetujuanKetuk =>
+      'Ketuk untuk melihat semua penolakan beserta alasannya';
 }

@@ -6,6 +6,7 @@ import '../models/validasi.dart';
 import '../services/perhitungan_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
+import 'riwayat_persetujuan_provider.dart';
 
 final perhitunganServiceProvider = Provider<PerhitunganService>((ref) {
   if (AppConfig.useMock) return MockPerhitunganService();
@@ -97,5 +98,7 @@ class AksiAdmin {
 
   void _segarkan() {
     _ref.invalidate(perhitunganProvider(calibrationId));
+    // Setuju/tolak menambah satu peristiwa di riwayat persetujuan sesi ini.
+    _ref.invalidate(riwayatPersetujuanProvider(calibrationId));
   }
 }
