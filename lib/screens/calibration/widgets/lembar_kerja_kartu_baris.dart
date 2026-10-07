@@ -143,7 +143,7 @@ class _Kartu extends StatelessWidget {
     final acuan = tabel.first;
     final barisAcuan = isian.barisTabel(acuan);
     final tsAcuan = isian.titikUntukBaris(barisAcuan, indeks, acuan);
-    final satuan = isian.bentuk.satuan;
+    final satuan = isian.satuanTampil;
     final jumlahUlang = acuan.pengulangan.length;
 
     if (tsAcuan == null) return const SizedBox.shrink();
@@ -263,7 +263,9 @@ class _Kartu extends StatelessWidget {
       // (tinjauan 6 Okt 2026). Tabel berkolom ganda menulis kolomnya di
       // sub-grid, jadi di sini cukup satuannya.
       final kolom = t.kolom.first;
-      final satuanKotak = kolom.satuan ?? isian.bentuk.satuanUntuk(baris[indeks]);
+      final satuanKotak = isian.satuanDipilih ??
+          kolom.satuan ??
+          isian.bentuk.satuanUntuk(baris[indeks]);
       final keterangan = [
         if (t.kolom.length == 1 && kolom.label.isNotEmpty) kolom.label,
         if (satuanKotak.isNotEmpty) '($satuanKotak)',
@@ -425,7 +427,9 @@ class _Kartu extends StatelessWidget {
                         // Label + satuan dan petunjuk sama dengan kotak di tabel
                         // biasa — kotak komposisi keping Timbangan menentukan
                         // `titik_ukur`, jadi petunjuk `+`-nya wajib terbaca.
-                        labelText: (f.satuan ?? '').isEmpty ? f.label : '${f.label} — ${f.satuan}',
+                        labelText: (isian.satuanField(f) ?? '').isEmpty
+                            ? f.label
+                            : '${f.label} — ${isian.satuanField(f)}',
                         hintText: f.tipe == TipeField.daftarAngka ? 'Pisahkan tiap keping dengan +' : null,
                       ),
                       onChanged: (_) => onBerubah(),
