@@ -8,6 +8,7 @@ import '../services/history_service.dart';
 import '../services/pdf_downloader.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
+import 'riwayat_persetujuan_provider.dart';
 
 /// `GET /api/calibrations` live sejak 14 Jul (`docs/kontrak-api.md` §4) —
 /// beda sama Notifikasi, ini nembak API asli.
@@ -71,6 +72,9 @@ class HistoryController extends AsyncNotifier<List<CalibrationHistoryItem>> {
       final certificateId = await ref
           .read(approvalServiceProvider)
           .approve(token, id, abaikanPeringatan: abaikanPeringatan);
+      // Riwayat persetujuan sesi ini bertambah satu peristiwa — buang yang
+      // tersimpan supaya dibuka berikutnya tidak basi (tinjauan 6 Okt 2026).
+      ref.invalidate(riwayatPersetujuanProvider(id));
       final terkini = state.value;
       if (terkini == null) return;
       state = AsyncValue.data([
@@ -96,6 +100,7 @@ class HistoryController extends AsyncNotifier<List<CalibrationHistoryItem>> {
     await ref
         .read(approvalServiceProvider)
         .reject(token, id, catatanRevisi);
+    ref.invalidate(riwayatPersetujuanProvider(id));
 
     final sebelum = state.value;
     if (sebelum == null) return;

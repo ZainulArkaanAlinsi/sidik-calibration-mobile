@@ -6,9 +6,14 @@ import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/models/peristiwa_persetujuan.dart';
 import 'package:sidik_calibration/models/user.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
+import 'package:sidik_calibration/providers/history_provider.dart';
+import 'package:sidik_calibration/providers/perhitungan_provider.dart';
 import 'package:sidik_calibration/providers/riwayat_persetujuan_provider.dart';
 import 'package:sidik_calibration/screens/history/widgets/riwayat_persetujuan_card.dart';
+import 'package:sidik_calibration/services/approval_service.dart';
+import 'package:sidik_calibration/services/history_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
+import 'package:sidik_calibration/services/perhitungan_service.dart';
 import 'package:sidik_calibration/services/riwayat_persetujuan_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 
@@ -133,6 +138,36 @@ void main() {
 
     expect(find.byKey(const ValueKey('riwayat-persetujuan')), findsNothing);
     expect(servis.panggilan, 0);
+  });
+
+  // Tinjauan 6 Okt 2026: admin yang baru menolak lalu membuka riwayat lagi
+  // tidak boleh melihat daftar basi tanpa penolakan terbarunya. Dua jalur
+  // tolak di aplikasi: daftar riwayat (`HistoryController`) dan layar
+  // perhitungan (`AksiAdmin`).
+  test('tolak dari aplikasi (dua jalur) mengambil ulang riwayat sesinya', () async {
+    final servis = _HitungPanggilan();
+    final container = ProviderContainer(overrides: [
+      tokenStorageProvider.overrideWithValue(InMemoryTokenStorage('mock-token-1')),
+      authServiceProvider.overrideWithValue(MockAuthService()),
+      historyServiceProvider.overrideWithValue(MockHistoryService()),
+      approvalServiceProvider.overrideWithValue(MockApprovalService()),
+      perhitunganServiceProvider.overrideWithValue(MockPerhitunganService()),
+      riwayatPersetujuanServiceProvider.overrideWithValue(servis),
+    ]);
+    addTearDown(container.dispose);
+
+    // Bagian riwayat yang sedang terbuka di layar.
+    container.listen(riwayatPersetujuanProvider(7), (_, _) {});
+    await container.read(riwayatPersetujuanProvider(7).future);
+    expect(servis.panggilan, 1);
+
+    await container.read(historyProvider.notifier).reject(7, 'Alasan dari daftar riwayat');
+    await container.read(riwayatPersetujuanProvider(7).future);
+    expect(servis.panggilan, 2, reason: 'HistoryController.reject wajib meng-invalidate riwayat');
+
+    await container.read(aksiAdminProvider(7)).tolak('Alasan dari layar perhitungan');
+    await container.read(riwayatPersetujuanProvider(7).future);
+    expect(servis.panggilan, 3, reason: 'AksiAdmin.tolak wajib meng-invalidate riwayat');
   });
 
   testWidgets('belum pernah ditolak: ringkasan nol dan pesan kosong', (tester) async {

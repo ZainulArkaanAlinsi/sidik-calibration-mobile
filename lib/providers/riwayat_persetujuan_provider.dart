@@ -12,9 +12,14 @@ final riwayatPersetujuanServiceProvider = Provider<RiwayatPersetujuanService>((r
 });
 
 /// Riwayat persetujuan satu sesi (khusus admin & super admin). Diambil hanya
-/// waktu bagiannya digambar — teknisi & viewer tidak pernah memanggilnya.
+/// waktu bagiannya dibuka — teknisi & viewer tidak pernah memanggilnya.
+///
+/// `autoDispose`: dibuang begitu layarnya ditutup, jadi dibuka lagi = diambil
+/// ulang. Setuju/tolak dari aplikasi juga meng-invalidate-nya
+/// (`HistoryController`). Tanpa keduanya admin yang baru menolak melihat
+/// riwayat basi tanpa penolakan terbarunya (tinjauan 6 Okt 2026).
 final riwayatPersetujuanProvider =
-    FutureProvider.family<List<PeristiwaPersetujuan>, int>((ref, sesiId) async {
+    FutureProvider.autoDispose.family<List<PeristiwaPersetujuan>, int>((ref, sesiId) async {
       final token = await ref.read(tokenStorageProvider).read();
       if (token == null) throw const TokenHilangException();
 
