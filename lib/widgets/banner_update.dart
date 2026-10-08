@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_spacing.dart';
 import '../models/versi_aplikasi.dart';
 import '../providers/versi_provider.dart';
+import '../services/pasang_pembaruan.dart';
 import '../services/pengunduh_apk.dart';
 
 /// Pemberitahuan "ada versi baru" + tombol yang benar-benar memasangnya.
@@ -63,39 +64,24 @@ class _BannerUpdateState extends ConsumerState<BannerUpdate> {
       _galat = null;
     });
 
-    final pengunduh = widget.pengunduh ?? PengunduhApkAsli();
-
-    // Kalau penyiap latar sudah menyelesaikan unduhannya, langsung ke pemasang
-    // — tidak ada 68 MB yang perlu ditunggu lagi. Inilah gunanya seluruh
-    // mekanisme latar itu: dari ketukan ke layar pemasang, tanpa jeda.
-    final siap = await ref.read(penyiapUpdateProvider).apkSiap(rilis.versi);
-
-    final hasil = siap != null
-        ? await pengunduh.pasang(siap)
-        : await pengunduh.unduhDanPasang(
-            rilis.urlUnduh,
-            namaBerkas: 'sidik-kalibrasi-${rilis.versi}.apk',
-            onProgres: (p) {
-              if (mounted) setState(() => _progres = p);
-            },
-          );
+    // Jalurnya dipakai bersama `DialogUpdate` — siap = langsung ke pemasang,
+    // belum = unduh dengan progres. Rinciannya di `pasangPembaruan`, yang
+    // tidak pernah melempar: lemparan `pasang` pulang sebagai `ditolakSistem`,
+    // jadi `_sedangUnduh` di bawah selalu turun lagi dan galatnya tampil.
+    final hasil = await pasangPembaruan(
+      rilis,
+      penyiap: ref.read(penyiapUpdateProvider),
+      pengunduh: widget.pengunduh ?? PengunduhApkAsli(),
+      onProgres: (p) {
+        if (mounted) setState(() => _progres = p);
+      },
+    );
 
     if (!mounted) return;
 
     setState(() {
       _sedangUnduh = false;
-      _galat = switch (hasil) {
-        HasilPasang.pemasangDibuka => null,
-        // Pesannya menyebut LAYAR yang harus dituju, bukan "coba lagi":
-        // mencoba ulang tanpa memberi izin selalu berujung sama, dan teknisi
-        // yang menekan tombol itu tiga kali akan menyimpulkan aplikasinya
-        // rusak.
-        HasilPasang.ditolakSistem =>
-          'Android menolak membuka pemasang. Izinkan "Install unknown apps" '
-              'buat aplikasi ini di Pengaturan, lalu tekan Pasang lagi.',
-        HasilPasang.gagalUnduh =>
-          'Unduhan gagal. Cek sinyal atau ruang penyimpanan, lalu coba lagi.',
-      };
+      _galat = pesanHasilPasang(hasil);
     });
   }
 
@@ -173,11 +159,7 @@ class _BannerUpdateState extends ConsumerState<BannerUpdate> {
                   tooltip: 'Nanti saja',
                   visualDensity: VisualDensity.compact,
                   onPressed: () => setState(() => _ditutup = true),
-                  icon: Icon(
-                    Icons.close,
-                    size: 18,
-                    color: warnaIsi,
-                  ),
+                  icon: Icon(Icons.close, size: 18, color: warnaIsi),
                 ),
             ],
           ),
@@ -193,9 +175,7 @@ class _BannerUpdateState extends ConsumerState<BannerUpdate> {
               _progres == null
                   ? 'Mengunduh…'
                   : 'Mengunduh… ${(_progres! * 100).round()}%',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: warnaIsi,
-              ),
+              style: theme.textTheme.bodySmall?.copyWith(color: warnaIsi),
             ),
           ] else ...[
             if (_galat != null) ...[

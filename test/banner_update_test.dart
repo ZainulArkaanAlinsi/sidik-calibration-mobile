@@ -72,6 +72,32 @@ class _PengunduhPalsu implements PengunduhApk {
   }
 }
 
+/// `pasang` yang MELEMPAR — meniru `OpenFilex.open` yang gagal di platform
+/// channel. Satu-satunya cara jalur pasang bisa melempar.
+class _PengunduhMeledak implements PengunduhApk {
+  int panggilanPasang = 0;
+
+  @override
+  Future<File?> unduh(
+    String url, {
+    required String namaBerkas,
+    void Function(double? progres)? onProgres,
+  }) async => File('/palsu/$namaBerkas');
+
+  @override
+  Future<HasilPasang> pasang(File berkas) async {
+    panggilanPasang++;
+    throw Exception('pemasang meledak di platform channel');
+  }
+
+  @override
+  Future<HasilPasang> unduhDanPasang(
+    String url, {
+    required String namaBerkas,
+    void Function(double? progres)? onProgres,
+  }) async => pasang(File('/palsu/$namaBerkas'));
+}
+
 /// Penyiap latar yang dipatok: [siap] menentukan apakah APK-nya sudah ada
 /// sebelum teknisi menekan apa pun.
 class _PenyiapPalsu implements PenyiapUpdate {
@@ -314,27 +340,27 @@ void main() {
       expect(find.byKey(const Key('banner_update_galat')), findsNothing);
     });
 
-    testWidgets('ditolak sistem: pesannya menyebut layar izin, bukan "coba lagi"', (
+    testWidgets(
+      'ditolak sistem: pesannya menyebut layar izin, bukan "coba lagi"',
+      (tester) async {
+        await pasang(
+          tester,
+          layanan: MockVersiService(terpasang: '1.0.58', terbaru: rilis()),
+          pengunduh: _PengunduhPalsu(HasilPasang.ditolakSistem),
+        );
+
+        await tester.tap(find.byKey(const Key('banner_update_pasang')));
+        await tester.pumpAndSettle();
+
+        // Menekan tombolnya lagi tanpa memberi izin selalu berujung sama, jadi
+        // pesannya harus mengarahkan ke Pengaturan.
+        expect(find.textContaining('Install unknown apps'), findsOneWidget);
+      },
+    );
+
+    testWidgets('gagal unduh: pesannya soal sinyal/penyimpanan', (
       tester,
     ) async {
-      await pasang(
-        tester,
-        layanan: MockVersiService(terpasang: '1.0.58', terbaru: rilis()),
-        pengunduh: _PengunduhPalsu(HasilPasang.ditolakSistem),
-      );
-
-      await tester.tap(find.byKey(const Key('banner_update_pasang')));
-      await tester.pumpAndSettle();
-
-      // Menekan tombolnya lagi tanpa memberi izin selalu berujung sama, jadi
-      // pesannya harus mengarahkan ke Pengaturan.
-      expect(
-        find.textContaining('Install unknown apps'),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('gagal unduh: pesannya soal sinyal/penyimpanan', (tester) async {
       await pasang(
         tester,
         layanan: MockVersiService(terpasang: '1.0.58', terbaru: rilis()),
@@ -364,6 +390,34 @@ void main() {
       expect(find.byKey(const Key('banner_update_pasang')), findsOneWidget);
       await tester.tap(find.byKey(const Key('banner_update_pasang')));
       await tester.pumpAndSettle();
+    });
+
+    testWidgets('pemasang melempar: banner pulih, galat tampil, Pasang bisa '
+        'ditekan lagi', (tester) async {
+      // Dulu lemparannya lolos dari `_pasang`, `_sedangUnduh` tidak pernah
+      // turun, dan banner tertahan di "Mengunduh…" tanpa tombol apa pun
+      // sampai aplikasinya ditutup.
+      final pengunduh = _PengunduhMeledak();
+
+      await pasang(
+        tester,
+        layanan: MockVersiService(terpasang: '1.0.58', terbaru: rilis()),
+        pengunduh: pengunduh,
+        penyiap: _PenyiapPalsu(siap: true),
+      );
+
+      await tester.tap(find.byKey(const Key('banner_update_pasang')));
+      await tester.pumpAndSettle();
+
+      expect(pengunduh.panggilanPasang, 1);
+      expect(tester.takeException(), isNull);
+      expect(find.textContaining('Mengunduh'), findsNothing);
+      expect(find.byKey(const Key('banner_update_galat')), findsOneWidget);
+      expect(find.textContaining('Install unknown apps'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('banner_update_pasang')));
+      await tester.pumpAndSettle();
+      expect(pengunduh.panggilanPasang, 2);
     });
 
     testWidgets('tombol tutup hilang selama mengunduh', (tester) async {

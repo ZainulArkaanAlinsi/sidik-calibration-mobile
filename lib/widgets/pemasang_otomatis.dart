@@ -6,9 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/versi_provider.dart';
 import '../services/pemasang_sesi.dart';
 import '../services/pengunduh_apk.dart';
+import 'dialog_update.dart';
 
-/// Membuka layar pemasang Android SENDIRI waktu aplikasi dibuka, kalau APK-nya
-/// memang sudah terunduh diam-diam sebelumnya.
+/// Menampilkan pop-up pembaruan ([DialogUpdate]) SENDIRI waktu aplikasi
+/// dibuka di dashboard dan ada versi baru, lalu memasangnya diam-diam waktu
+/// aplikasi ditinggalkan kalau Android mengizinkan.
 ///
 /// Membungkus isi layar dan memulangkannya apa adanya — nol pengaruh ke tata
 /// letak. Bentuk pembungkus dipilih supaya dia terpasang di keempat keadaan
@@ -16,40 +18,39 @@ import '../services/pengunduh_apk.dart';
 /// sudah termuat: yang dashboard-nya gagal memuat justru yang paling mungkin
 /// memegang versi lama.
 ///
-/// ## Kenapa ada
+/// ## Kenapa dialog, bukan langsung membuka pemasang (8 Okt 2026)
 ///
-/// Sebelum ini pemutakhiran butuh DUA ketukan: satu di banner "Pasang
-/// sekarang", satu lagi di layar konfirmasi Android. Ketukan pertama tidak
-/// memutuskan apa pun yang belum diputuskan — berkasnya sudah ada, orangnya
-/// sudah mau, dan layar konfirmasi Android tetap datang sesudahnya menanyakan
-/// hal yang sama. Jadi dia cuma pintu yang harus dibuka buat sampai ke pintu
-/// yang sebenarnya.
+/// Sampai 8 Okt 2026 berkas ini membuka layar pemasang Android tanpa dialog,
+/// tapi cuma kalau APK-nya SUDAH terunduh di latar — dan unduhan latar
+/// sengaja tidak jalan di data seluler. Jadi teknisi yang selalu di seluler
+/// tidak pernah disapa apa pun selain banner yang gampang terlewat. Permintaan
+/// pemilik proyek: "kalau ada versi baru, muncul pop-up; tinggal pencet
+/// Update". Dialognya muncul baik berkasnya sudah terunduh maupun belum; yang
+/// belum diunduh SESUDAH tombolnya ditekan, dengan ukuran tertulis di tombol
+/// dan progres di dialog yang sama.
 ///
-/// Sekarang tinggal ketukan Android-nya — dan sejak 15 Sep 2026 itu pun bisa
-/// hilang. Komentar lama di sini menulis batas ini "tidak bisa dikurangi lagi"
-/// karena `INSTALL_PACKAGES` cuma untuk aplikasi sistem; itu benar untuk
-/// memasang aplikasi LAIN, tapi Android 12+ punya jalur terpisah untuk
+/// Ketukan "Update" lalu layar konfirmasi Android masih dua langkah. Sejak
+/// 15 Sep 2026 langkah Android itu bisa hilang: Android 12+ punya jalur untuk
 /// memperbarui DIRI SENDIRI (`USER_ACTION_NOT_REQUIRED`) asal aplikasi ini yang
-/// tercatat sebagai pemasangnya. Ketukan di sini lewat `PemasangSesi` yang
-/// membuat catatan itu; sesudahnya [_mungkinPasangDiam] memasang rilis
-/// berikutnya tanpa layar, waktu aplikasi ditinggalkan dari dashboard.
-/// Android 11 ke bawah tetap butuh ketukan.
+/// tercatat sebagai pemasangnya. Pemasangan lewat `PemasangSesi` yang membuat
+/// catatan itu; sesudahnya [_mungkinPasangDiam] memasang rilis berikutnya
+/// tanpa layar, waktu aplikasi ditinggalkan dari dashboard. Android 11 ke
+/// bawah tetap butuh ketukan.
 ///
-/// ## Empat syarat, dan kenapa tidak satu pun boleh dilepas
+/// ## Tiga syarat dialognya muncul, dan kenapa tidak satu pun boleh dilepas
 ///
-/// 1. **APK-nya harus SUDAH terunduh.** Membuka pemasang buat berkas yang
-///    belum ada berarti melempar orang ke layar yang menggantung menunggu
-///    68 MB. Itu bukan satu ketukan, itu jebakan. Yang belum terunduh
-///    diurus banner seperti biasa, lengkap dengan ukurannya.
-/// 2. **Sekali seumur proses** ([GiliranPemasangOtomatis]). Menekan "Batal"
+/// 1. **Sekali seumur proses** ([GiliranPemasangOtomatis]). Menekan "Nanti"
 ///    harus berarti sesuatu; tanpa ini penolakan cuma menunda satu layar.
-/// 3. **Dashboard harus jadi layar yang sedang dilihat.** Teknisi yang sudah
-///    masuk ke lembar kerja tidak boleh ditarik keluar — itu persis gangguan
-///    yang seluruh mekanisme unduh-di-latar dibangun buat menghindarinya.
-/// 4. **Gagalnya diam.** Ini jalan tanpa diminta, jadi kegagalannya bukan
-///    kabar yang orangnya butuh saat membuka aplikasi. Bannernya masih di
-///    layar dengan tombol Pasang yang pesan galatnya lengkap — termasuk yang
-///    menyuruh menyalakan "Install unknown apps".
+/// 2. **Dashboard harus jadi layar yang sedang dilihat.** Teknisi yang sudah
+///    masuk ke lembar kerja tidak boleh disela — itu persis gangguan yang
+///    seluruh mekanisme unduh-di-latar dibangun buat menghindarinya.
+/// 3. **Pemeriksaan versinya tidak gagal.** Pemeriksaan yang gagal (tanpa
+///    sinyal) tidak menampilkan apa pun dan tidak menghabiskan giliran.
+///
+/// Kegagalan unduh/pasang tampil di dialog — itu jawaban atas ketukan
+/// orangnya sendiri, jadi dia memang perlu tahu, lengkap dengan petunjuk
+/// "Install unknown apps". Rilis wajib tetap punya "Nanti" — lihat
+/// [DialogUpdate].
 class PemasangOtomatis extends ConsumerStatefulWidget {
   const PemasangOtomatis({super.key, required this.child, this.pengunduh});
 
@@ -75,7 +76,7 @@ class _PemasangOtomatisState extends ConsumerState<PemasangOtomatis>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // Di `initState`, bukan `build`. Membuka pemasang itu efek samping, dan
+    // Di `initState`, bukan `build`. Membuka dialog itu efek samping, dan
     // `build` dipanggil tiap kali angka dashboard berubah — puluhan kali per
     // sesi. Penjaga giliran memang menahannya, tapi menaruh efek samping di
     // `build` berarti benar-tidaknya bergantung pada penjaga itu saja.
@@ -124,7 +125,7 @@ class _PemasangOtomatisState extends ConsumerState<PemasangOtomatis>
     try {
       await sesi.pasang(berkas.path, diam: true);
     } catch (_) {
-      // Diam: pembukaan berikutnya tetap membuka pemasang biasa.
+      // Diam: dialog pembaruan dan bannernya tetap jadi jalan memasang.
     }
   }
 
@@ -140,19 +141,17 @@ class _PemasangOtomatisState extends ConsumerState<PemasangOtomatis>
     // asinkron yang tidak tertangkap siapa pun.
     if (!mounted) return;
 
-    // Sengaja `apkSiap`, BUKAN `updateSiapProvider`.
+    // Sengaja `apkSiap`, BUKAN `updateSiapProvider` — dan hasilnya cuma
+    // menentukan LABEL tombol ("Update sekarang" lawan "Update (68 MB)"),
+    // bukan apakah dialognya muncul.
     //
     // `updateSiapProvider` menunggu unduhan latar selesai kalau belum — dan
     // menunggunya bisa bermenit-menit di WiFi lambat. Kalau jalur ini ikut
-    // menunggu, pemasangnya terbuka entah kapan sesudah aplikasi dibuka,
-    // waktu orangnya sudah pindah perhatian. Yang dipakai di sini cuma
-    // pertanyaan yang jawabannya seketika: berkasnya SUDAH ada atau belum.
-    //
-    // Yang belum ada tetap terunduh — bannernya yang membaca
-    // `updateSiapProvider` dan memulai unduhan latar, persis seperti sebelum
-    // ada berkas ini. Hasilnya kepakai di pembukaan aplikasi BERIKUTNYA.
+    // menunggu, dialognya muncul entah kapan sesudah aplikasi dibuka, waktu
+    // orangnya sudah pindah perhatian. Yang dipakai di sini cuma pertanyaan
+    // yang jawabannya seketika: berkasnya SUDAH ada atau belum. Waktu tombolnya
+    // ditekan, `pasangPembaruan` memeriksanya ulang.
     final berkas = await ref.read(penyiapUpdateProvider).apkSiap(rilis.versi);
-    if (berkas == null) return;
 
     if (!mounted) return;
 
@@ -162,20 +161,15 @@ class _PemasangOtomatisState extends ConsumerState<PemasangOtomatis>
     // Giliran diambil PALING AKHIR, sesudah semua syarat lain lolos. Kalau
     // diambil di awal, pembukaan aplikasi yang kebetulan tanpa sinyal
     // menghabiskan giliran buat pemutakhiran yang bahkan tidak ketahuan ada —
-    // dan sesudahnya tidak ada lagi yang membuka pemasang sampai aplikasinya
-    // ditutup.
+    // dan sesudahnya tidak ada lagi dialog sampai aplikasinya ditutup.
     if (!ref.read(giliranPemasangOtomatisProvider).ambil()) return;
 
-    // Dibungkus karena `pasang` menembus platform channel dan bisa melempar,
-    // sementara jalur ini jalan `unawaited`. Janji "gagalnya diam" di atas cuma
-    // benar kalau memang ada yang menelannya; tanpa ini, kegagalan pemasang
-    // mendarat sebagai galat asinkron yang justru muncul ke layar.
-    try {
-      await (widget.pengunduh ?? PengunduhApkAsli()).pasang(berkas);
-    } catch (_) {
-      // Bannernya masih di layar dan tombol Pasang-nya punya pesan galat yang
-      // lengkap — termasuk yang menyuruh menyalakan "Install unknown apps".
-    }
+    await tampilkanDialogUpdate(
+      context,
+      rilis: rilis,
+      siap: berkas != null,
+      pengunduh: widget.pengunduh,
+    );
   }
 
   @override
