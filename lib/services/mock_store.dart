@@ -77,6 +77,26 @@ class MockStore {
 
   List<CalibrationHistoryItem> get sesi => List.unmodifiable(_sesi);
 
+  /// Sesi yang disembunyikan dari Riwayat lewat build mock — peran
+  /// `tersembunyi` per akun di server. Dibaca `MockHistoryService` supaya
+  /// baris yang barusan disembunyikan nggak nongol lagi tiap daftar ditarik
+  /// ulang.
+  ///
+  /// Sengaja cuma di memori, nggak ikut [PenyimpanMockStore]: ini penanda
+  /// tampilan, bukan data sesi, dan build mock cukup konsisten selama app-nya
+  /// hidup.
+  final Set<int> _tersembunyi = {};
+
+  bool tersembunyi(int sesiId) => _tersembunyi.contains(sesiId);
+
+  void aturTersembunyi(int sesiId, {required bool tersembunyi}) {
+    if (tersembunyi) {
+      _tersembunyi.add(sesiId);
+    } else {
+      _tersembunyi.remove(sesiId);
+    }
+  }
+
   /// Pasang penyimpan & muat isi yang tersimpan. Dipanggil SEKALI waktu app
   /// mulai, sebelum layar pertama digambar.
   ///
@@ -192,6 +212,7 @@ class MockStore {
   /// disk gara-gara test lain sebelumnya manggil [pulihkan].
   void reset({bool lupakanPenyimpan = true}) {
     _sesi.clear();
+    _tersembunyi.clear();
     _idBerikutnya = 500;
     _idSertifikatBerikutnya = 950;
     _tulisanBerjalan = null;

@@ -10050,6 +10050,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap to see every rejection and its reason'**
   String get riwayatPersetujuanKetuk;
+
+  /// No description provided for @riwayatCariHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search session no., device, customer, certificate/serial no.'**
+  String get riwayatCariHint;
+
+  /// No description provided for @riwayatCariHapus.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get riwayatCariHapus;
+
+  /// No description provided for @riwayatCariKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No history matches \"{kata}\".'**
+  String riwayatCariKosong(String kata);
+
+  /// No description provided for @riwayatCariKosongSaran.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the spelling, or search by session or certificate number.'**
+  String get riwayatCariKosongSaran;
+
+  /// No description provided for @riwayatSemuaTersembunyi.
+  ///
+  /// In en, this message translates to:
+  /// **'All of your history is hidden. The data is still stored.'**
+  String get riwayatSemuaTersembunyi;
+
+  /// No description provided for @riwayatAdaCocokTersembunyi.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} match(es) are in your hidden history.'**
+  String riwayatAdaCocokTersembunyi(int jumlah);
+
+  /// No description provided for @riwayatTampilkanTersembunyi.
+  ///
+  /// In en, this message translates to:
+  /// **'Show hidden ({jumlah})'**
+  String riwayatTampilkanTersembunyi(int jumlah);
+
+  /// No description provided for @riwayatMenuOpsi.
+  ///
+  /// In en, this message translates to:
+  /// **'More options'**
+  String get riwayatMenuOpsi;
+
+  /// No description provided for @riwayatSembunyikan.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide from my History'**
+  String get riwayatSembunyikan;
+
+  /// No description provided for @riwayatSembunyikanKeterangan.
+  ///
+  /// In en, this message translates to:
+  /// **'Data & certificate stay stored'**
+  String get riwayatSembunyikanKeterangan;
+
+  /// No description provided for @riwayatTampilkanLagi.
+  ///
+  /// In en, this message translates to:
+  /// **'Show in History again'**
+  String get riwayatTampilkanLagi;
+
+  /// No description provided for @riwayatDisembunyikanSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden from your History. Data & certificate stay stored.'**
+  String get riwayatDisembunyikanSnack;
+
+  /// No description provided for @riwayatDitampilkanLagiSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown in History again.'**
+  String get riwayatDitampilkanLagiSnack;
+
+  /// No description provided for @riwayatUrungkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get riwayatUrungkan;
+
+  /// No description provided for @riwayatSembunyikanGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t hide: {pesan}'**
+  String riwayatSembunyikanGagal(String pesan);
+
+  /// No description provided for @riwayatTampilkanLagiGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t show again: {pesan}'**
+  String riwayatTampilkanLagiGagal(String pesan);
+
+  /// No description provided for @riwayatSembunyikanDitolak.
+  ///
+  /// In en, this message translates to:
+  /// **'This account can\'t hide history.'**
+  String get riwayatSembunyikanDitolak;
+
+  /// No description provided for @riwayatLencanaTersembunyi.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden'**
+  String get riwayatLencanaTersembunyi;
+
+  /// No description provided for @riwayatSertifikatTerbit.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued'**
+  String get riwayatSertifikatTerbit;
+
+  /// No description provided for @riwayatSertifikatDibatalkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get riwayatSertifikatDibatalkan;
+
+  /// No description provided for @riwayatSertifikatDiproses.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing'**
+  String get riwayatSertifikatDiproses;
+
+  /// No description provided for @riwayatSertifikatGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Generation failed'**
+  String get riwayatSertifikatGagal;
 }
 
 class _AppLocalizationsDelegate

@@ -5662,4 +5662,86 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get riwayatPersetujuanKetuk =>
       'Ketuk untuk melihat semua penolakan beserta alasannya';
+
+  @override
+  String get riwayatCariHint =>
+      'Cari no. sesi, alat, pelanggan, no. sertifikat/seri';
+
+  @override
+  String get riwayatCariHapus => 'Hapus pencarian';
+
+  @override
+  String riwayatCariKosong(String kata) {
+    return 'Tidak ada riwayat yang cocok dengan \"$kata\".';
+  }
+
+  @override
+  String get riwayatCariKosongSaran =>
+      'Periksa ejaannya, atau cari pakai nomor sesi / nomor sertifikat.';
+
+  @override
+  String get riwayatSemuaTersembunyi =>
+      'Semua riwayat kamu sedang disembunyikan. Datanya tetap tersimpan.';
+
+  @override
+  String riwayatAdaCocokTersembunyi(int jumlah) {
+    return '$jumlah yang cocok ada di riwayat yang disembunyikan.';
+  }
+
+  @override
+  String riwayatTampilkanTersembunyi(int jumlah) {
+    return 'Tampilkan yang disembunyikan ($jumlah)';
+  }
+
+  @override
+  String get riwayatMenuOpsi => 'Opsi lain';
+
+  @override
+  String get riwayatSembunyikan => 'Sembunyikan dari Riwayat saya';
+
+  @override
+  String get riwayatSembunyikanKeterangan =>
+      'Data & sertifikat tetap tersimpan';
+
+  @override
+  String get riwayatTampilkanLagi => 'Tampilkan lagi di Riwayat';
+
+  @override
+  String get riwayatDisembunyikanSnack =>
+      'Disembunyikan dari Riwayat kamu. Data & sertifikat tetap tersimpan.';
+
+  @override
+  String get riwayatDitampilkanLagiSnack => 'Ditampilkan lagi di Riwayat.';
+
+  @override
+  String get riwayatUrungkan => 'Urungkan';
+
+  @override
+  String riwayatSembunyikanGagal(String pesan) {
+    return 'Gagal menyembunyikan: $pesan';
+  }
+
+  @override
+  String riwayatTampilkanLagiGagal(String pesan) {
+    return 'Gagal menampilkan lagi: $pesan';
+  }
+
+  @override
+  String get riwayatSembunyikanDitolak =>
+      'Akun ini tidak bisa menyembunyikan riwayat.';
+
+  @override
+  String get riwayatLencanaTersembunyi => 'Disembunyikan';
+
+  @override
+  String get riwayatSertifikatTerbit => 'Terbit';
+
+  @override
+  String get riwayatSertifikatDibatalkan => 'Dibatalkan';
+
+  @override
+  String get riwayatSertifikatDiproses => 'Diproses';
+
+  @override
+  String get riwayatSertifikatGagal => 'Gagal dibuat';
 }

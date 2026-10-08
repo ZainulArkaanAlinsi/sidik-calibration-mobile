@@ -9,6 +9,7 @@ import '../services/pdf_downloader.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
 import 'riwayat_persetujuan_provider.dart';
+import 'riwayat_tersembunyi_provider.dart';
 
 /// `GET /api/calibrations` live sejak 14 Jul (`docs/kontrak-api.md` §4) —
 /// beda sama Notifikasi, ini nembak API asli.
@@ -88,6 +89,56 @@ class HistoryController extends AsyncNotifier<List<CalibrationHistoryItem>> {
       state = AsyncValue.data(sebelum);
       rethrow;
     }
+  }
+
+  /// Sembunyikan satu sesi dari Riwayat akun ini. Datanya TIDAK dihapus —
+  /// lihat `RiwayatTersembunyiService`.
+  ///
+  /// Optimistic kayak [approve]: barisnya ilang duluan dari layar, baru nembak
+  /// server. Gagal → penandanya dibalikin dan galatnya dilempar ke layar.
+  Future<void> sembunyikan(int id) => _aturTersembunyi(id, tersembunyi: true);
+
+  /// Kebalikan [sembunyikan] — dipakai tombol "Urungkan" dan "Tampilkan lagi".
+  Future<void> tampilkanLagi(int id) =>
+      _aturTersembunyi(id, tersembunyi: false);
+
+  Future<void> _aturTersembunyi(int id, {required bool tersembunyi}) async {
+    final baris = state.value?.where((e) => e.id == id).firstOrNull;
+    if (baris == null) return;
+    final sebelumnya = baris.tersembunyi;
+
+    // Token dibaca SEBELUM layarnya diubah. Kebalikannya ninggalin baris yang
+    // kelihatan sudah disembunyikan padahal server nggak pernah dihubungi.
+    final token = await ref.read(tokenStorageProvider).read();
+    if (token == null) throw const TokenHilangException();
+
+    _tandai(id, tersembunyi);
+
+    try {
+      final service = ref.read(riwayatTersembunyiServiceProvider);
+      final kataServer = tersembunyi
+          ? await service.sembunyikan(token, id)
+          : await service.tampilkanLagi(token, id);
+      // Jawaban server yang menang — ditulis ulang walau sama dengan yang
+      // diminta: daftar bisa saja ditarik ulang (realtime/resume) selagi
+      // permintaan ini jalan, dan tarikan itu membawa penanda yang basi.
+      _tandai(id, kataServer);
+    } catch (_) {
+      // Yang dibalikin cuma penanda baris INI, bukan seluruh daftar dari
+      // salinan lama: kalau dua baris disembunyikan beruntun dan yang pertama
+      // gagal, yang kedua nggak boleh ikut nongol lagi.
+      _tandai(id, sebelumnya);
+      rethrow;
+    }
+  }
+
+  void _tandai(int id, bool tersembunyi) {
+    final terkini = state.value;
+    if (terkini == null) return;
+    state = AsyncValue.data([
+      for (final item in terkini)
+        if (item.id == id) item.copyWith(tersembunyi: tersembunyi) else item,
+    ]);
   }
 
   /// Reject satu sesi dengan catatan revisi. Nunggu server (bukan

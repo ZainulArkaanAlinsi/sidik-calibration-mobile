@@ -12,6 +12,7 @@ import '../../models/calibration_history_item.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../providers/history_provider.dart';
+import '../../services/auth_service.dart' show ApiException;
 import '../../widgets/app_button.dart';
 import '../../widgets/master_detail_pane.dart';
 import '../../widgets/readable_width.dart';
@@ -47,6 +48,18 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
   /// di-push, bukan disimpen di sini.
   int? _terpilih;
 
+  /// Kolom cari di atas daftar. Disaring di HP, bukan dikirim ke server:
+  /// `ambilRiwayat` udah narik SEMUA halaman, jadi yang dicari pasti ada di
+  /// [historyProvider]. Tanpa debounce kayak layar Draf — di sini nggak ada
+  /// pengelompokan ulang, cuma `contains` per baris, dan daftarnya dibangun
+  /// malas (`ListView.separated`).
+  final _cariController = TextEditingController();
+  String _cari = '';
+
+  /// Default MATI: baris yang disembunyikan akun ini nggak ikut tampil. Nyala
+  /// = semua tampil, yang tersembunyi diberi penanda + aksi "Tampilkan lagi".
+  bool _tampilkanTersembunyi = false;
+
   @override
   void initState() {
     super.initState();
@@ -56,7 +69,81 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _cariController.dispose();
     super.dispose();
+  }
+
+  void _gantiCari(String kata) => setState(() => _cari = kata);
+
+  void _hapusCari() {
+    _cariController.clear();
+    setState(() => _cari = '');
+  }
+
+  /// Sembunyikan satu baris — optimistic di [HistoryController.sembunyikan],
+  /// SnackBar "Urungkan" baru muncul sesudah server mengiyakan. Muncul
+  /// duluan berarti ngaku berhasil padahal belum tentu.
+  Future<void> _sembunyikan(CalibrationHistoryItem item) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    try {
+      await ref.read(historyProvider.notifier).sembunyikan(item.id);
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(_pesanGagal(l10n, e, sembunyikan: true))),
+      );
+      return;
+    }
+
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(l10n.riwayatDisembunyikanSnack),
+          action: SnackBarAction(
+            label: l10n.riwayatUrungkan,
+            onPressed: () {
+              if (mounted) unawaited(_tampilkanLagi(item));
+            },
+          ),
+        ),
+      );
+  }
+
+  Future<void> _tampilkanLagi(CalibrationHistoryItem item) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    try {
+      await ref.read(historyProvider.notifier).tampilkanLagi(item.id);
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(_pesanGagal(l10n, e, sembunyikan: false))),
+      );
+      return;
+    }
+
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(l10n.riwayatDitampilkanLagiSnack)));
+  }
+
+  /// 403 = akun yang memang tidak boleh (super admin menurut kontrak 8 Okt
+  /// 2026) — dikasih kalimat sendiri, bukan "gagal" yang ngajak nyoba lagi.
+  String _pesanGagal(
+    AppLocalizations l10n,
+    Object galat, {
+    required bool sembunyikan,
+  }) {
+    if (galat is ApiException && galat.status == 403) {
+      return l10n.riwayatSembunyikanDitolak;
+    }
+    if (galat is TokenHilangException) return l10n.historySessionExpired;
+    final pesan = galat.toString();
+    return sembunyikan
+        ? l10n.riwayatSembunyikanGagal(pesan)
+        : l10n.riwayatTampilkanLagiGagal(pesan);
   }
 
   /// Balik ke jendela/app ini → tarik ulang daftarnya.
@@ -109,16 +196,41 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
     // apa — dan itu baru ketauan di dalam [MasterDetailPane].
     Widget isi(bool panelGanda) {
       if (data != null) {
-        return data.isEmpty
-            ? const _Kosong()
-            : _Isi(
-                items: data,
-                isAdmin: isAdmin,
-                // Sorotan cuma masuk akal kalau detailnya emang lagi kebuka di
-                // sebelahnya. Di satu panel, kartu "terpilih" nggak ada artinya.
-                terpilih: panelGanda ? _terpilih : null,
-                onPilih: (item) => _pilih(item, panelGanda: panelGanda),
-              );
+        if (data.isEmpty) return const _Kosong();
+
+        final tampil = [
+          for (final s in data)
+            if ((_tampilkanTersembunyi || !s.tersembunyi) &&
+                s.cocokDengan(_cari))
+              s,
+        ];
+
+        // Daftarnya ADA tapi nggak ada yang lolos saringan — beda keadaan
+        // dari [_Kosong] ("belum pernah ada riwayat"), dan jalan keluarnya
+        // juga beda. Layar kosong di sini bakal kebaca "datanya ilang".
+        if (tampil.isEmpty) {
+          return _TidakCocok(
+            kata: _cari.trim(),
+            cocokTersembunyi: _tampilkanTersembunyi
+                ? 0
+                : data
+                      .where((s) => s.tersembunyi && s.cocokDengan(_cari))
+                      .length,
+            onTampilkanTersembunyi: () =>
+                setState(() => _tampilkanTersembunyi = true),
+          );
+        }
+
+        return _Isi(
+          items: tampil,
+          isAdmin: isAdmin,
+          // Sorotan cuma masuk akal kalau detailnya emang lagi kebuka di
+          // sebelahnya. Di satu panel, kartu "terpilih" nggak ada artinya.
+          terpilih: panelGanda ? _terpilih : null,
+          onPilih: (item) => _pilih(item, panelGanda: panelGanda),
+          onSembunyikan: _sembunyikan,
+          onTampilkanLagi: _tampilkanLagi,
+        );
       }
       if (riwayat.hasError) {
         return _Gagal(
@@ -154,9 +266,34 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
       body: Container(
         decoration: BoxDecoration(color: AppColors.warnaLatar(context)),
         child: MasterDetailPane(
-          master: (context, panelGanda) => RefreshIndicator(
-            onRefresh: () => ref.read(historyProvider.notifier).muatUlang(),
-            child: ReadableWidth(child: isi(panelGanda)),
+          // Kolom cari DI LUAR daftar yang digulir — ikut pola layar Draf,
+          // jadi tetap kelihatan waktu daftarnya udah digulir jauh. Disembunyikan
+          // cuma kalau riwayatnya memang nol: nyari di daftar kosong nggak ada
+          // gunanya, dan [_Kosong] udah menjelaskan keadaannya.
+          master: (context, panelGanda) => ReadableWidth(
+            child: Column(
+              children: [
+                if (data == null || data.isNotEmpty)
+                  _KepalaCari(
+                    controller: _cariController,
+                    kata: _cari,
+                    onGanti: _gantiCari,
+                    onHapus: _hapusCari,
+                    jumlahTersembunyi:
+                        data?.where((s) => s.tersembunyi).length ?? 0,
+                    tampilkanTersembunyi: _tampilkanTersembunyi,
+                    onGantiTampilkanTersembunyi: (nyala) =>
+                        setState(() => _tampilkanTersembunyi = nyala),
+                  ),
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: () =>
+                        ref.read(historyProvider.notifier).muatUlang(),
+                    child: isi(panelGanda),
+                  ),
+                ),
+              ],
+            ),
           ),
           detail: _terpilih == null
               ? null
@@ -178,6 +315,8 @@ class _Isi extends StatefulWidget {
     required this.isAdmin,
     required this.terpilih,
     required this.onPilih,
+    required this.onSembunyikan,
+    required this.onTampilkanLagi,
   });
 
   final List<CalibrationHistoryItem> items;
@@ -187,6 +326,9 @@ class _Isi extends StatefulWidget {
   final int? terpilih;
 
   final void Function(CalibrationHistoryItem item) onPilih;
+
+  final void Function(CalibrationHistoryItem item) onSembunyikan;
+  final void Function(CalibrationHistoryItem item) onTampilkanLagi;
 
   @override
   State<_Isi> createState() => _IsiState();
@@ -214,6 +356,8 @@ class _IsiState extends State<_Isi> {
             isAdmin: widget.isAdmin,
             disorot: item.id == widget.terpilih,
             onTap: () => widget.onPilih(item),
+            onSembunyikan: () => widget.onSembunyikan(item),
+            onTampilkanLagi: () => widget.onTampilkanLagi(item),
           ),
         );
       },
@@ -227,6 +371,8 @@ class _HistoryCard extends StatelessWidget {
     required this.isAdmin,
     required this.disorot,
     required this.onTap,
+    required this.onSembunyikan,
+    required this.onTampilkanLagi,
   });
 
   final CalibrationHistoryItem item;
@@ -236,6 +382,48 @@ class _HistoryCard extends StatelessWidget {
   final bool disorot;
 
   final VoidCallback onTap;
+  final VoidCallback onSembunyikan;
+  final VoidCallback onTampilkanLagi;
+
+  /// Lencana status SERTIFIKAT — beda sumbu dari [_badge] (status SESI /
+  /// PASS-FAIL). Sesi bisa "PASS" sementara sertifikatnya sudah dibatalkan,
+  /// dan justru itu yang nggak boleh ketutupan di daftar.
+  ///
+  /// Nada & ikon ngikutin `StatusSidik` (`terbit` lulus, `menunggu_generate`
+  /// tunggu, `gagal` gagal). Dibatalkan pakai ikon `block`, bukan
+  /// `cancel_outlined`-nya FAIL: alat yang nggak lolos dan dokumen yang
+  /// ditarik itu dua hal yang nggak boleh kebaca sama sekilas.
+  StatusBadge? _lencanaSertifikat(AppLocalizations l10n) =>
+      switch (item.statusSertifikat) {
+        null => null,
+        'terbit' => StatusBadge(
+          label: l10n.riwayatSertifikatTerbit,
+          tone: BadgeTone.success,
+          icon: Icons.workspace_premium_outlined,
+        ),
+        'dibatalkan' => StatusBadge(
+          label: l10n.riwayatSertifikatDibatalkan,
+          tone: BadgeTone.danger,
+          icon: Icons.block,
+        ),
+        'menunggu_generate' => StatusBadge(
+          label: l10n.riwayatSertifikatDiproses,
+          tone: BadgeTone.info,
+          icon: Icons.hourglass_empty,
+        ),
+        'gagal' => StatusBadge(
+          label: l10n.riwayatSertifikatGagal,
+          tone: BadgeTone.danger,
+          icon: Icons.error_outline,
+        ),
+        // Status yang belum dikenal APK ini tetap tampil apa adanya — lebih
+        // jujur daripada dijatuhin ke salah satu label yang dikenal.
+        final lain => StatusBadge(
+          label: lain,
+          tone: BadgeTone.neutral,
+          icon: Icons.help_outline,
+        ),
+      };
 
   StatusBadge _badge(AppLocalizations l10n) {
     if (item.status == CalibrationStatus.disetujui) {
@@ -299,6 +487,8 @@ class _HistoryCard extends StatelessWidget {
     final tanggal = tglKalibrasi == null
         ? l10n.tanggalKosong
         : DateFormat('d MMM yyyy', locale).format(tglKalibrasi);
+    final lencanaSertifikat = _lencanaSertifikat(l10n);
+    final batal = item.statusSertifikat == 'dibatalkan';
 
     return Card(
       // Kartu yang lagi kebuka di panel kanan dikasih garis tepi aksen, bukan
@@ -360,22 +550,84 @@ class _HistoryCard extends StatelessWidget {
                             ),
                           ),
                         ],
-                        if (item.nomorSertifikat != null) ...[
-                          const SizedBox(height: AppSpacing.xs),
-                          Text(
-                            l10n.historyCertNumber(item.nomorSertifikat!),
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
                       ],
                     ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
-                  _badge(l10n),
+                  // Menu ditumpuk DI BAWAH lencana status, bukan di
+                  // sebelahnya: di HP 360 px kolom nama alat udah sempit, dan
+                  // satu tombol lagi sebaris bikin namanya patah per kata.
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      _badge(l10n),
+                      _MenuBaris(
+                        tersembunyi: item.tersembunyi,
+                        onSembunyikan: onSembunyikan,
+                        onTampilkanLagi: onTampilkanLagi,
+                      ),
+                    ],
+                  ),
                 ],
               ),
+              // Nomor + lencana sertifikat di baris sendiri, selebar kartu. Di
+              // HP 360 px kolom teks di atas cuma ~120 px — lencana
+              // "Dibatalkan" nggak muat di situ dan meluap.
+              if (item.nomorSertifikat != null ||
+                  lencanaSertifikat != null) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Padding(
+                  // Sejajar kolom teks di atas: ikon alat 42 + jarak md.
+                  padding: const EdgeInsets.only(left: 42 + AppSpacing.md),
+                  child: Wrap(
+                    spacing: AppSpacing.sm,
+                    runSpacing: AppSpacing.xs,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      if (item.nomorSertifikat != null)
+                        Text(
+                          l10n.historyCertNumber(item.nomorSertifikat!),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            // Nomor sertifikat yang dibatalkan dicoret:
+                            // nomornya tetap kebaca (buat dicocokkan ke
+                            // arsip), tapi nggak kebaca sebagai yang berlaku.
+                            decoration: batal
+                                ? TextDecoration.lineThrough
+                                : null,
+                          ),
+                        ),
+                      ?lencanaSertifikat,
+                    ],
+                  ),
+                ),
+              ],
+              // Penanda baris yang disembunyikan — cuma kelihatan waktu
+              // "Tampilkan yang disembunyikan" nyala. Aksinya ditaruh di sini
+              // juga, bukan cuma di menu: orang yang nyalain sakelar itu
+              // biasanya memang lagi mau mengembalikan sesuatu.
+              if (item.tersembunyi) ...[
+                const SizedBox(height: AppSpacing.sm),
+                // `Wrap`, bukan `Row` + `Spacer`: di HP sempit lencana dan
+                // tombolnya nggak muat sebaris, jadi tombolnya turun.
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: AppSpacing.sm,
+                  children: [
+                    StatusBadge(
+                      label: l10n.riwayatLencanaTersembunyi,
+                      tone: BadgeTone.neutral,
+                      icon: Icons.visibility_off_outlined,
+                    ),
+                    TextButton.icon(
+                      onPressed: onTampilkanLagi,
+                      icon: const Icon(Icons.visibility_outlined, size: 18),
+                      label: Text(l10n.riwayatTampilkanLagi),
+                    ),
+                  ],
+                ),
+              ],
               if (item.status == CalibrationStatus.perluRevisi &&
                   item.catatanRevisi != null) ...[
                 const SizedBox(height: AppSpacing.sm),
@@ -396,6 +648,188 @@ class _HistoryCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Menu tiga titik per baris. Teksnya sengaja panjang: "sembunyikan" gampang
+/// kebaca "hapus", dan teknisi yang ngira datanya kehapus bakal ngelapor
+/// kehilangan sertifikat. Keterangan "tetap tersimpan" ikut di menunya, bukan
+/// cuma di SnackBar sesudahnya.
+class _MenuBaris extends StatelessWidget {
+  const _MenuBaris({
+    required this.tersembunyi,
+    required this.onSembunyikan,
+    required this.onTampilkanLagi,
+  });
+
+  final bool tersembunyi;
+  final VoidCallback onSembunyikan;
+  final VoidCallback onTampilkanLagi;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    return PopupMenuButton<bool>(
+      tooltip: l10n.riwayatMenuOpsi,
+      icon: const Icon(Icons.more_vert),
+      // `true` = sembunyikan, `false` = tampilkan lagi.
+      onSelected: (sembunyikan) =>
+          sembunyikan ? onSembunyikan() : onTampilkanLagi(),
+      itemBuilder: (context) => [
+        if (tersembunyi)
+          PopupMenuItem<bool>(
+            value: false,
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.visibility_outlined),
+              title: Text(l10n.riwayatTampilkanLagi),
+            ),
+          )
+        else
+          PopupMenuItem<bool>(
+            value: true,
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.visibility_off_outlined),
+              title: Text(l10n.riwayatSembunyikan),
+              subtitle: Text(l10n.riwayatSembunyikanKeterangan),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// Kolom cari + sakelar "Tampilkan yang disembunyikan".
+///
+/// Sakelarnya cuma muncul kalau memang ADA yang disembunyikan (atau lagi
+/// nyala) — chip yang selalu bilang "(0)" cuma makan tempat.
+class _KepalaCari extends StatelessWidget {
+  const _KepalaCari({
+    required this.controller,
+    required this.kata,
+    required this.onGanti,
+    required this.onHapus,
+    required this.jumlahTersembunyi,
+    required this.tampilkanTersembunyi,
+    required this.onGantiTampilkanTersembunyi,
+  });
+
+  final TextEditingController controller;
+  final String kata;
+  final ValueChanged<String> onGanti;
+  final VoidCallback onHapus;
+  final int jumlahTersembunyi;
+  final bool tampilkanTersembunyi;
+  final ValueChanged<bool> onGantiTampilkanTersembunyi;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
+        0,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: controller,
+            onChanged: onGanti,
+            textInputAction: TextInputAction.search,
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search),
+              hintText: l10n.riwayatCariHint,
+              suffixIcon: kata.isEmpty
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.clear),
+                      tooltip: l10n.riwayatCariHapus,
+                      onPressed: onHapus,
+                    ),
+            ),
+          ),
+          if (jumlahTersembunyi > 0 || tampilkanTersembunyi) ...[
+            const SizedBox(height: AppSpacing.sm),
+            FilterChip(
+              avatar: const Icon(Icons.visibility_off_outlined, size: 18),
+              label: Text(l10n.riwayatTampilkanTersembunyi(jumlahTersembunyi)),
+              selected: tampilkanTersembunyi,
+              onSelected: onGantiTampilkanTersembunyi,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Riwayat ADA, tapi nggak ada yang lolos saringan (kata cari dan/atau
+/// sakelar tersembunyi). Kalau yang cocok ternyata ada di baris yang
+/// disembunyikan, itu disebut terang-terangan + tombol buat nampilinnya —
+/// tanpa itu orang yang lupa pernah nyembunyiin bakal ngira datanya ilang.
+class _TidakCocok extends StatelessWidget {
+  const _TidakCocok({
+    required this.kata,
+    required this.cocokTersembunyi,
+    required this.onTampilkanTersembunyi,
+  });
+
+  /// Sudah di-`trim`. Kosong = yang nyaring cuma sakelar tersembunyi.
+  final String kata;
+  final int cocokTersembunyi;
+  final VoidCallback onTampilkanTersembunyi;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    return ListView(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      children: [
+        const SizedBox(height: AppSpacing.lg),
+        Icon(Icons.search_off, size: 48, color: theme.colorScheme.outline),
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          kata.isEmpty
+              ? l10n.riwayatSemuaTersembunyi
+              : l10n.riwayatCariKosong(kata),
+          textAlign: TextAlign.center,
+          style: theme.textTheme.titleMedium,
+        ),
+        if (kata.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            l10n.riwayatCariKosongSaran,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodySmall,
+          ),
+        ],
+        if (cocokTersembunyi > 0) ...[
+          const SizedBox(height: AppSpacing.lg),
+          if (kata.isNotEmpty) ...[
+            Text(
+              l10n.riwayatAdaCocokTersembunyi(cocokTersembunyi),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+          ],
+          AppButton(
+            label: l10n.riwayatTampilkanTersembunyi(cocokTersembunyi),
+            icon: Icons.visibility_outlined,
+            variant: AppButtonVariant.secondary,
+            onPressed: onTampilkanTersembunyi,
+          ),
+        ],
+      ],
     );
   }
 }

@@ -43,6 +43,10 @@ class CalibrationHistoryItem {
     this.dikirimPada,
     this.diperiksaPada,
     this.diubahPada,
+    this.nomorSesi,
+    this.nomorSeri,
+    this.statusSertifikat,
+    this.tersembunyi = false,
   });
 
   final int id;
@@ -115,6 +119,50 @@ class CalibrationHistoryItem {
 
   final DateTime? diubahPada;
 
+  /// Nomor sesi (`KAL/2026/09/0012`) — yang disebut orang lab waktu nanya
+  /// "sesi yang mana". Null buat respons backend lama.
+  final String? nomorSesi;
+
+  /// No. Seri alat: versi lembar kerja (`alat_serial_number`) duluan, jatuh ke
+  /// yang terdaftar di data alat (`equipment.serial_number`). Dua-duanya bisa
+  /// kosong — alat pelanggan nggak selalu punya nomor seri.
+  final String? nomorSeri;
+
+  /// Status sertifikat sesi ini, kode mentah dari server: `terbit`,
+  /// `dibatalkan`, `menunggu_generate`, `gagal` — dan mungkin nilai baru yang
+  /// belum dikenal APK ini. Null = belum ada sertifikat sama sekali.
+  ///
+  /// Sengaja `String`, bukan enum: status yang belum dikenal tetap harus bisa
+  /// ditampilkan apa adanya, bukan dijatuhin diam-diam ke salah satu nilai
+  /// yang dikenal (sertifikat batal kebaca "Terbit" itu jauh lebih mahal
+  /// daripada lencana bertulisan kode mentah).
+  final String? statusSertifikat;
+
+  /// Disembunyikan dari Riwayat AKUN YANG LOGIN (keputusan pemilik 8 Okt 2026).
+  ///
+  /// Cuma soal tampilan per akun — sesi & sertifikatnya tetap utuh di server,
+  /// dan akun lain tetap melihatnya. Server lama yang belum ngirim kuncinya =
+  /// `false`, jadi nggak ada baris yang mendadak ilang waktu APK baru ketemu
+  /// server lama.
+  final bool tersembunyi;
+
+  /// Cocok sama kata yang diketik di kolom cari Riwayat?
+  ///
+  /// Dicocokkan ke yang biasa disebut orang waktu nyari satu sesi: nomor sesi,
+  /// nama alat, nama pelanggan, nomor sertifikat, dan No. Seri. Tanpa beda
+  /// huruf besar/kecil, spasi di ujung dipotong. Kata kosong = semua cocok.
+  bool cocokDengan(String kata) {
+    final kunci = kata.trim().toLowerCase();
+    if (kunci.isEmpty) return true;
+    bool ada(String? teks) =>
+        teks != null && teks.toLowerCase().contains(kunci);
+    return ada(nomorSesi) ||
+        ada(namaAlat) ||
+        ada(namaPelanggan) ||
+        ada(nomorSertifikat) ||
+        ada(nomorSeri);
+  }
+
   /// Kapan baris ini TERAKHIR bergerak, menurut statusnya sekarang.
   ///
   /// Satu getter, bukan tiga tanggal berjejer di layar: yang dicari orang itu
@@ -132,6 +180,7 @@ class CalibrationHistoryItem {
     Keputusan? keputusan,
     String? catatanRevisi,
     int? certificateId,
+    bool? tersembunyi,
   }) => CalibrationHistoryItem(
     id: id,
     namaAlat: namaAlat,
@@ -148,6 +197,10 @@ class CalibrationHistoryItem {
     dikirimPada: dikirimPada,
     diperiksaPada: diperiksaPada,
     diubahPada: diubahPada,
+    nomorSesi: nomorSesi,
+    nomorSeri: nomorSeri,
+    statusSertifikat: statusSertifikat,
+    tersembunyi: tersembunyi ?? this.tersembunyi,
   );
 
   factory CalibrationHistoryItem.fromJson(Map<String, dynamic> json) {
@@ -182,6 +235,11 @@ class CalibrationHistoryItem {
     // zona waktu bikin tanggalnya kecetak mundur sehari di Jakarta.
     final tanggal = json['tanggal_kalibrasi'];
 
+    // String kosong dianggap nggak ada — kolom seri di lembar kerja sering
+    // dikirim `""`, dan itu nggak boleh menutupi seri yang terdaftar di alat.
+    String? isi(Object? raw) =>
+        raw is String && raw.trim().isNotEmpty ? raw : null;
+
     return CalibrationHistoryItem(
       id: (json['id'] as num).toInt(),
       namaAlat: equipment?['nama_alat'] as String? ?? '—',
@@ -209,6 +267,14 @@ class CalibrationHistoryItem {
       dikirimPada: _waktu(json['submitted_at']),
       diperiksaPada: _waktu(json['reviewed_at']),
       diubahPada: _waktu(json['updated_at']),
+      nomorSesi: isi(json['nomor_sesi']),
+      nomorSeri:
+          isi(json['alat_serial_number']) ?? isi(equipment?['serial_number']),
+      statusSertifikat: isi(sertifikat?['status']),
+      // `== true`, bukan cast: server lama nggak ngirim kuncinya (= false), dan
+      // nilai aneh apa pun juga dibaca "tidak tersembunyi" — lebih aman baris
+      // kelihatan daripada ilang tanpa jejak.
+      tersembunyi: json['tersembunyi'] == true,
     );
   }
 }

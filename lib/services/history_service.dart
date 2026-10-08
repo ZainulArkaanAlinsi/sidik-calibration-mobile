@@ -203,7 +203,13 @@ class MockHistoryService implements HistoryService {
     if (gagal) throw Exception('server nggak nyaut');
     if (kosong) return const [];
 
-    return sesiMock();
+    // Penanda "disembunyikan" ditempel di sini, bukan di [sesiMock]: yang
+    // per akun cuma jawaban daftar, angka dashboard tetap menghitung semuanya.
+    final store = MockStore.instance;
+    return [
+      for (final s in sesiMock())
+        store.tersembunyi(s.id) ? s.copyWith(tersembunyi: true) : s,
+    ];
   }
 
   /// Semua sesi yang kelihatan di build mock: yang dikirim lewat app
@@ -230,6 +236,7 @@ class MockHistoryService implements HistoryService {
         keputusan: Keputusan.pass,
         nomorSertifikat: 'CAL/2026/07/0001',
         certificateId: 901,
+        statusSertifikat: 'terbit',
       ),
       CalibrationHistoryItem(
         id: 2,
@@ -240,6 +247,7 @@ class MockHistoryService implements HistoryService {
         keputusan: Keputusan.fail,
         nomorSertifikat: 'CAL/2026/07/0004',
         certificateId: 902,
+        statusSertifikat: 'terbit',
       ),
       CalibrationHistoryItem(
         id: 3,
@@ -295,6 +303,7 @@ class MockHistoryService implements HistoryService {
           keputusan: i % 7 == 0 ? Keputusan.fail : Keputusan.pass,
           nomorSertifikat: 'CAL/2026/0${(i % 7) + 1}/${(i + 10).toString().padLeft(4, '0')}',
           certificateId: 910 + i,
+          statusSertifikat: 'terbit',
         ),
     ];
   }

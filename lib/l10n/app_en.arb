@@ -3067,5 +3067,62 @@
       }
     }
   },
-  "riwayatPersetujuanKetuk": "Tap to see every rejection and its reason"
+  "riwayatPersetujuanKetuk": "Tap to see every rejection and its reason",
+  "riwayatCariHint": "Search session no., device, customer, certificate/serial no.",
+  "riwayatCariHapus": "Clear search",
+  "riwayatCariKosong": "No history matches \"{kata}\".",
+  "@riwayatCariKosong": {
+    "placeholders": {
+      "kata": {
+        "type": "String"
+      }
+    }
+  },
+  "riwayatCariKosongSaran": "Check the spelling, or search by session or certificate number.",
+  "riwayatSemuaTersembunyi": "All of your history is hidden. The data is still stored.",
+  "riwayatAdaCocokTersembunyi": "{jumlah} match(es) are in your hidden history.",
+  "@riwayatAdaCocokTersembunyi": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "riwayatTampilkanTersembunyi": "Show hidden ({jumlah})",
+  "@riwayatTampilkanTersembunyi": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "riwayatMenuOpsi": "More options",
+  "riwayatSembunyikan": "Hide from my History",
+  "riwayatSembunyikanKeterangan": "Data & certificate stay stored",
+  "riwayatTampilkanLagi": "Show in History again",
+  "riwayatDisembunyikanSnack": "Hidden from your History. Data & certificate stay stored.",
+  "riwayatDitampilkanLagiSnack": "Shown in History again.",
+  "riwayatUrungkan": "Undo",
+  "riwayatSembunyikanGagal": "Couldn't hide: {pesan}",
+  "@riwayatSembunyikanGagal": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
+  "riwayatTampilkanLagiGagal": "Couldn't show again: {pesan}",
+  "@riwayatTampilkanLagiGagal": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
+  "riwayatSembunyikanDitolak": "This account can't hide history.",
+  "riwayatLencanaTersembunyi": "Hidden",
+  "riwayatSertifikatTerbit": "Issued",
+  "riwayatSertifikatDibatalkan": "Cancelled",
+  "riwayatSertifikatDiproses": "Processing",
+  "riwayatSertifikatGagal": "Generation failed"
 }

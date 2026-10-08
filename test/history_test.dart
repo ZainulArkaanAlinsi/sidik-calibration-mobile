@@ -79,17 +79,27 @@ void main() {
       // yang kedua ikut terbangun di viewport tes. Yang dijaga tetap sama —
       // statusnya kerender sebagai lencana.
       expect(find.text('Menunggu approval'), findsWidgets);
-      expect(find.text('Perlu revisi'), findsOneWidget);
+
+      // Sejak 8 Okt 2026 ada kolom cari di atas daftar, dan kartunya lebih
+      // tinggi (menu tiga titik + baris status sertifikat) — "Perlu revisi"
+      // nggak lagi kebagian viewport tes tanpa digulir. Kolom cari juga punya
+      // `Scrollable` sendiri (TextField) yang duduk DULUAN di pohon, jadi yang
+      // digulir dicari lewat `ListView`-nya, bukan `Scrollable.first`.
+      final daftar = find
+          .descendant(
+            of: find.byType(ListView),
+            matching: find.byType(Scrollable),
+          )
+          .first;
+      final revisi = find.text('Perlu revisi');
+      await tester.scrollUntilVisible(revisi, 200, scrollable: daftar);
+      expect(revisi, findsOneWidget);
 
       // Kartu admin punya tombol setujui/tolak tambahan (menunggu_approval),
       // jadi list-nya lebih tinggi dari viewport — item terakhir perlu
       // di-scroll dulu biar ke-build.
       final draft = find.text('Draft');
-      await tester.scrollUntilVisible(
-        draft,
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
+      await tester.scrollUntilVisible(draft, 200, scrollable: daftar);
       expect(draft, findsOneWidget);
     });
 
