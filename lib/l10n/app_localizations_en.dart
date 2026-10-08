@@ -5736,4 +5736,84 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get riwayatPersetujuanKetuk =>
       'Tap to see every rejection and its reason';
+
+  @override
+  String get riwayatCariHint =>
+      'Search session no., device, customer, certificate/serial no.';
+
+  @override
+  String get riwayatCariHapus => 'Clear search';
+
+  @override
+  String riwayatCariKosong(String kata) {
+    return 'No history matches \"$kata\".';
+  }
+
+  @override
+  String get riwayatCariKosongSaran =>
+      'Check the spelling, or search by session or certificate number.';
+
+  @override
+  String get riwayatSemuaTersembunyi =>
+      'All of your history is hidden. The data is still stored.';
+
+  @override
+  String riwayatAdaCocokTersembunyi(int jumlah) {
+    return '$jumlah match(es) are in your hidden history.';
+  }
+
+  @override
+  String riwayatTampilkanTersembunyi(int jumlah) {
+    return 'Show hidden ($jumlah)';
+  }
+
+  @override
+  String get riwayatMenuOpsi => 'More options';
+
+  @override
+  String get riwayatSembunyikan => 'Hide from my History';
+
+  @override
+  String get riwayatSembunyikanKeterangan => 'Data & certificate stay stored';
+
+  @override
+  String get riwayatTampilkanLagi => 'Show in History again';
+
+  @override
+  String get riwayatDisembunyikanSnack =>
+      'Hidden from your History. Data & certificate stay stored.';
+
+  @override
+  String get riwayatDitampilkanLagiSnack => 'Shown in History again.';
+
+  @override
+  String get riwayatUrungkan => 'Undo';
+
+  @override
+  String riwayatSembunyikanGagal(String pesan) {
+    return 'Couldn\'t hide: $pesan';
+  }
+
+  @override
+  String riwayatTampilkanLagiGagal(String pesan) {
+    return 'Couldn\'t show again: $pesan';
+  }
+
+  @override
+  String get riwayatSembunyikanDitolak => 'This account can\'t hide history.';
+
+  @override
+  String get riwayatLencanaTersembunyi => 'Hidden';
+
+  @override
+  String get riwayatSertifikatTerbit => 'Issued';
+
+  @override
+  String get riwayatSertifikatDibatalkan => 'Cancelled';
+
+  @override
+  String get riwayatSertifikatDiproses => 'Processing';
+
+  @override
+  String get riwayatSertifikatGagal => 'Generation failed';
 }
