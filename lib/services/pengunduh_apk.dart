@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
@@ -81,12 +82,43 @@ abstract class PengunduhApk {
 }
 
 class PengunduhApkAsli implements PengunduhApk {
-  PengunduhApkAsli({http.Client? client, PemasangSesi? sesi})
-    : _client = client ?? http.Client(),
-      _sesi = sesi ?? PemasangSesiAndroid();
+  PengunduhApkAsli({
+    http.Client? client,
+    PemasangSesi? sesi,
+    Future<Directory> Function()? direktori,
+    Duration batasSambung = batasSambungBawaan,
+    Duration batasDiam = batasDiamBawaan,
+  }) : _client = client ?? http.Client(),
+       _sesi = sesi ?? PemasangSesiAndroid(),
+       _direktori = direktori ?? getTemporaryDirectory,
+       _batasSambung = batasSambung,
+       _batasDiam = batasDiam;
+
+  /// Paling lama menunggu server MENJAWAB (kepala respons), sebelum satu
+  /// byte pun berkasnya datang.
+  static const batasSambungBawaan = Duration(seconds: 30);
+
+  /// Paling lama menunggu byte BERIKUTNYA di tengah unduhan.
+  ///
+  /// Bukan batas total: 68 MB di seluler yang lambat memang bisa makan
+  /// belasan menit, dan itu unduhan yang sehat. Yang dipotong cuma unduhan
+  /// yang DIAM — sinyal hilang di tengah jalan, dan koneksinya menggantung
+  /// tanpa pernah putus. Tanpa batas ini `http` menunggu selamanya, dan dialog
+  /// pembaruan yang tidak bisa ditutup selama mengunduh ikut menggantung:
+  /// aplikasinya terkunci sampai OS kebetulan memutus soketnya.
+  static const batasDiamBawaan = Duration(seconds: 30);
+
+  /// Pembeda nama `.part` di dalam satu proses. Lihat [_unduh].
+  static int _urut = 0;
 
   final http.Client _client;
   final PemasangSesi _sesi;
+
+  /// Direktori tempat APK ditulis. Disuntikkan di test; bawaannya direktori
+  /// sementara aplikasi — direktori yang sama yang dibaca `PenyiapUpdateAsli`.
+  final Future<Directory> Function() _direktori;
+  final Duration _batasSambung;
+  final Duration _batasDiam;
 
   @override
   Future<File?> unduh(
@@ -138,35 +170,89 @@ class PengunduhApkAsli implements PengunduhApk {
     return pasang(berkas);
   }
 
+  /// Unduh ke `<namaBerkas>.<unik>.part`, lalu rename ke [namaBerkas] HANYA
+  /// kalau utuh.
+  ///
+  /// ## Kenapa lewat `.part`
+  ///
+  /// Dulu unduhan ditulis langsung ke nama akhirnya, sementara
+  /// `PenyiapUpdateAsli.apkSiap` menganggap berkas apa pun yang ada dan tidak
+  /// kosong sebagai "siap". Dua keadaan biasa menjadikannya jebakan: unduhan
+  /// latar yang masih berjalan, dan unduhan yang prosesnya dimatikan Android
+  /// di tengah jalan. Keduanya meninggalkan APK setengah jadi di nama yang
+  /// benar, tombol "Update sekarang" menyerahkannya ke pemasang, dan Android
+  /// menjawab "There was a problem parsing the package" — pesan yang membuat
+  /// teknisi mengira rilisnya yang rusak. Sekarang nama akhir cuma lahir dari
+  /// rename, dan rename di direktori yang sama itu atomik: berkas di nama itu
+  /// selalu utuh atau tidak ada sama sekali.
+  ///
+  /// ## Kenapa `.part`-nya unik per unduhan
+  ///
+  /// Unduhan latar (`PenyiapUpdateAsli.siapkan`) dan unduhan dari tombol
+  /// (`pasangPembaruan`) memakai nama akhir yang SAMA,
+  /// `PenyiapUpdateAsli.namaBerkas(versi)`, di direktori yang sama — dan
+  /// keduanya bisa jalan berbarengan: penjaga `_sedangJalan` di penyiap cuma
+  /// menjaga panggilan ke penyiap itu sendiri, sedangkan tombol membuat
+  /// pengunduh baru. Satu `.part` bersama berarti dua penulis di satu berkas.
+  /// Dengan nama unik, masing-masing menulis berkasnya sendiri, dan yang
+  /// selesai belakangan cuma mengganti berkas utuh dengan berkas utuh.
   Future<File> _unduh(
     String url,
     String namaBerkas,
     void Function(double? progres)? onProgres,
   ) async {
-    final dir = await getTemporaryDirectory();
+    final dir = await _direktori();
     final berkas = File('${dir.path}/$namaBerkas');
 
-    // Sisa unduhan sebelumnya yang gagal di tengah TIDAK boleh dipakai ulang:
-    // APK setengah jadi tetap punya nama yang benar, dan pemasang Android
-    // menolaknya dengan pesan "There was a problem parsing the package" —
-    // pesan yang membuat teknisi mengira rilisnya yang rusak.
-    if (berkas.existsSync()) {
-      await berkas.delete();
+    // Nama akhir yang sudah ada TIDAK dihapus di sini: sejak lewat `.part`,
+    // berkas di nama itu pasti utuh, dan rename di ujung menggantinya secara
+    // atomik. Menghapusnya duluan cuma membuka jeda tempat APK utuh milik
+    // unduhan lain hilang dari bawah pemasang.
+    _bersihkanParsialBasi(dir, namaBerkas);
+
+    final parsial = File(
+      '${dir.path}/$namaBerkas.$pid-'
+      '${DateTime.now().microsecondsSinceEpoch}-${_urut++}.part',
+    );
+
+    // Memutus koneksi yang ditinggalkan — tanpa ini soket yang menggantung
+    // tetap terbuka sesudah unduhannya dinyatakan gagal.
+    final batal = Completer<void>();
+    void hentikan() {
+      if (!batal.isCompleted) batal.complete();
     }
 
-    final permintaan = http.Request('GET', Uri.parse(url));
-    final respons = await _client.send(permintaan);
+    final http.StreamedResponse respons;
+    try {
+      respons = await _client
+          .send(
+            http.AbortableRequest(
+              'GET',
+              Uri.parse(url),
+              abortTrigger: batal.future,
+            ),
+          )
+          .timeout(_batasSambung);
+    } on TimeoutException {
+      hentikan();
+      throw UnduhGagal(
+        'Server tidak menjawab dalam ${_batasSambung.inSeconds} detik.',
+      );
+    }
 
     if (respons.statusCode != 200) {
+      hentikan();
       throw UnduhGagal('Server menjawab ${respons.statusCode}.');
     }
 
     final total = respons.contentLength;
     var terunduh = 0;
-    final tulis = berkas.openWrite();
+    final tulis = parsial.openWrite();
 
     try {
-      await for (final potongan in respons.stream) {
+      // `Stream.timeout` mengukur jeda ANTAR potongan (termasuk sebelum
+      // potongan pertama), bukan lama unduhan seluruhnya — lihat [_batasDiam].
+      await for (final potongan in respons.stream.timeout(_batasDiam)) {
         tulis.add(potongan);
         terunduh += potongan.length;
 
@@ -175,23 +261,71 @@ class PengunduhApkAsli implements PengunduhApk {
         // bilah tak tentu, sedangkan 0 terus-menerus terbaca sebagai macet.
         onProgres?.call(total == null || total <= 0 ? null : terunduh / total);
       }
-    } catch (e) {
       await tulis.close();
-      if (berkas.existsSync()) await berkas.delete();
-      throw UnduhGagal('Unduhan terputus: $e');
+    } catch (e) {
+      hentikan();
+      await _tutupDiam(tulis);
+      await _hapusDiam(parsial);
+      throw UnduhGagal(
+        e is TimeoutException
+            ? 'Unduhan macet: tidak ada data selama '
+                  '${_batasDiam.inSeconds} detik.'
+            : 'Unduhan terputus: $e',
+      );
     }
-
-    await tulis.close();
 
     // Server yang memutus di tengah tetap menutup stream tanpa melempar, jadi
     // panjang berkas harus diadu sendiri ke Content-Length. Tanpa ini, APK
     // yang kurang beberapa MB diserahkan ke pemasang dan gagalnya muncul
-    // sebagai "paket rusak".
-    if (total != null && total > 0 && terunduh != total) {
-      if (berkas.existsSync()) await berkas.delete();
-      throw UnduhGagal('Unduhan tidak utuh ($terunduh dari $total byte).');
+    // sebagai "paket rusak". Nol byte ditolak juga: berkas kosong di nama
+    // akhir sama saja dengan APK rusak.
+    if (terunduh == 0 || (total != null && total > 0 && terunduh != total)) {
+      await _hapusDiam(parsial);
+      throw UnduhGagal(
+        'Unduhan tidak utuh ($terunduh dari ${total ?? '?'} byte).',
+      );
     }
 
-    return berkas;
+    try {
+      return await parsial.rename(berkas.path);
+    } catch (e) {
+      await _hapusDiam(parsial);
+      throw UnduhGagal('Berkas unduhan gagal dipindahkan: $e');
+    }
+  }
+
+  /// Buang `.part` milik [namaBerkas] yang ditinggal proses yang sudah mati.
+  ///
+  /// "Basi" = tidak tersentuh lebih dari dua kali [_batasDiam]. Unduhan yang
+  /// masih hidup menulis paling lambat tiap [_batasDiam] atau membatalkan
+  /// dirinya sendiri (dan menghapus `.part`-nya), jadi `.part` yang lebih lama
+  /// dari itu pasti tidak punya penulis lagi. `.part` yang masih segar
+  /// dibiarkan — bisa jadi milik unduhan lain yang sedang berjalan.
+  void _bersihkanParsialBasi(Directory dir, String namaBerkas) {
+    try {
+      final batas = DateTime.now().subtract(_batasDiam * 2);
+      for (final e in dir.listSync()) {
+        if (e is! File) continue;
+        final nama = e.uri.pathSegments.last;
+        if (!nama.startsWith('$namaBerkas.') || !nama.endsWith('.part')) {
+          continue;
+        }
+        if (e.lastModifiedSync().isBefore(batas)) e.deleteSync();
+      }
+    } catch (_) {
+      // Gagal bersih-bersih tidak boleh menghalangi unduhannya.
+    }
+  }
+
+  static Future<void> _tutupDiam(IOSink tulis) async {
+    try {
+      await tulis.close();
+    } catch (_) {}
+  }
+
+  static Future<void> _hapusDiam(File berkas) async {
+    try {
+      if (berkas.existsSync()) await berkas.delete();
+    } catch (_) {}
   }
 }

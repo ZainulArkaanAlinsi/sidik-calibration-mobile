@@ -65,7 +65,9 @@ class _BannerUpdateState extends ConsumerState<BannerUpdate> {
     });
 
     // Jalurnya dipakai bersama `DialogUpdate` — siap = langsung ke pemasang,
-    // belum = unduh dengan progres. Rinciannya di `pasangPembaruan`.
+    // belum = unduh dengan progres. Rinciannya di `pasangPembaruan`, yang
+    // tidak pernah melempar: lemparan `pasang` pulang sebagai `ditolakSistem`,
+    // jadi `_sedangUnduh` di bawah selalu turun lagi dan galatnya tampil.
     final hasil = await pasangPembaruan(
       rilis,
       penyiap: ref.read(penyiapUpdateProvider),

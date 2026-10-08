@@ -89,25 +89,20 @@ class _DialogUpdateState extends ConsumerState<DialogUpdate> {
       _galat = null;
     });
 
-    HasilPasang hasil;
-    try {
-      hasil = await pasangPembaruan(
-        widget.rilis,
-        penyiap: ref.read(penyiapUpdateProvider),
-        pengunduh: widget.pengunduh ?? PengunduhApkAsli(),
-        onMulaiUnduh: () {
-          if (mounted) setState(() => _mengunduh = true);
-        },
-        onProgres: (p) {
-          if (mounted) setState(() => _progres = p);
-        },
-      );
-    } catch (_) {
-      // `pasang` menembus platform channel dan bisa melempar. Tanpa penangkap
-      // ini `_sibuk` tidak pernah turun, dan dialog yang tidak bisa ditutup
-      // itu persis aplikasi yang terkunci.
-      hasil = HasilPasang.ditolakSistem;
-    }
+    // Tidak pernah melempar — lemparan `pasang` dipulangkan sebagai
+    // `ditolakSistem`. Itu yang menjamin `_sibuk` selalu turun lagi: dialog
+    // yang tidak bisa ditutup selama memproses itu aplikasi yang terkunci.
+    final hasil = await pasangPembaruan(
+      widget.rilis,
+      penyiap: ref.read(penyiapUpdateProvider),
+      pengunduh: widget.pengunduh ?? PengunduhApkAsli(),
+      onMulaiUnduh: () {
+        if (mounted) setState(() => _mengunduh = true);
+      },
+      onProgres: (p) {
+        if (mounted) setState(() => _progres = p);
+      },
+    );
 
     if (!mounted) return;
 

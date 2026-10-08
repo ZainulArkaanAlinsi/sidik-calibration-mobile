@@ -19,8 +19,13 @@ import 'penyiap_update.dart';
 /// kalau berkasnya sudah siap — buat layar yang cuma mau menggambar bilah
 /// progres waktu memang ada yang diunduh.
 ///
-/// **Tidak menelan lemparan.** `pasang` menembus platform channel; pemanggilnya
-/// yang tahu bagaimana kegagalan itu harus tampil.
+/// **Tidak pernah melempar.** `pasang` menembus platform channel dan bisa
+/// melempar (mis. `OpenFilex.open`); lemparan apa pun dipulangkan sebagai
+/// [HasilPasang.ditolakSistem]. Tanpa ini layar pemanggilnya macet di keadaan
+/// "sedang memproses" — banner tertahan di "Mengunduh…" tanpa tombol, dan
+/// dialog yang tidak bisa ditutup selama memproses jadi aplikasi yang
+/// terkunci. Penangkapnya di sini, bukan di tiap pemanggil, supaya dua tombol
+/// itu tidak bisa berbeda perilaku.
 Future<HasilPasang> pasangPembaruan(
   VersiAplikasi rilis, {
   required PenyiapUpdate penyiap,
@@ -28,19 +33,23 @@ Future<HasilPasang> pasangPembaruan(
   void Function()? onMulaiUnduh,
   void Function(double? progres)? onProgres,
 }) async {
-  final siap = await penyiap.apkSiap(rilis.versi);
-  if (siap != null) return pengunduh.pasang(siap);
+  try {
+    final siap = await penyiap.apkSiap(rilis.versi);
+    if (siap != null) return await pengunduh.pasang(siap);
 
-  onMulaiUnduh?.call();
+    onMulaiUnduh?.call();
 
-  return pengunduh.unduhDanPasang(
-    rilis.urlUnduh,
-    // Nama yang SAMA dengan unduhan latar — `apkSiap` mencari berkas dengan
-    // nama ini, jadi unduhan dari tombol pun kepakai ulang kalau pemasangnya
-    // dibatalkan lalu dibuka lagi.
-    namaBerkas: PenyiapUpdateAsli.namaBerkas(rilis.versi),
-    onProgres: onProgres,
-  );
+    return await pengunduh.unduhDanPasang(
+      rilis.urlUnduh,
+      // Nama yang SAMA dengan unduhan latar — `apkSiap` mencari berkas dengan
+      // nama ini, jadi unduhan dari tombol pun kepakai ulang kalau pemasangnya
+      // dibatalkan lalu dibuka lagi.
+      namaBerkas: PenyiapUpdateAsli.namaBerkas(rilis.versi),
+      onProgres: onProgres,
+    );
+  } catch (_) {
+    return HasilPasang.ditolakSistem;
+  }
 }
 
 /// Pesan buat [hasil], atau `null` kalau pemasangnya terbuka.
