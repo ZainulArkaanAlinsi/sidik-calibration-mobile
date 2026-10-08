@@ -56,13 +56,12 @@ abstract class PengunduhApk {
   /// yang tiba-tiba dilempar ke layar pemasang di tengah mengisi lembar kerja
   /// akan kehilangan konteks, dan itu persis gangguan yang mau dihindari.
   ///
-  /// **Sejak 4 Sep 2026 pemasangnya memang bisa terbuka sendiri — dan aturan
-  /// di atas tetap berlaku utuh.** Yang membukanya `PemasangOtomatis`, di
-  /// waktu yang sama sekali lain: waktu aplikasi baru dibuka dan dashboard
-  /// jadi layar yang sedang dilihat, buat berkas yang unduhannya SUDAH
-  /// selesai entah kapan sebelumnya. Bukan di sini, dan bukan waktu
-  /// unduhannya kelar. Selesainya unduhan tidak pernah jadi alasan
-  /// memindahkan layar siapa pun.
+  /// **Aturan di atas tetap berlaku utuh.** Yang menyapa teknisi soal
+  /// pembaruan cuma `PemasangOtomatis` (sejak 8 Okt 2026 lewat pop-up, bukan
+  /// lagi membuka pemasang sendiri), di waktu yang sama sekali lain: waktu
+  /// aplikasi baru dibuka dan dashboard jadi layar yang sedang dilihat. Bukan
+  /// di sini, dan bukan waktu unduhannya kelar. Selesainya unduhan tidak pernah
+  /// jadi alasan memindahkan layar siapa pun.
   Future<File?> unduh(
     String url, {
     required String namaBerkas,
@@ -129,7 +128,11 @@ class PengunduhApkAsli implements PengunduhApk {
     required String namaBerkas,
     void Function(double? progres)? onProgres,
   }) async {
-    final berkas = await unduh(url, namaBerkas: namaBerkas, onProgres: onProgres);
+    final berkas = await unduh(
+      url,
+      namaBerkas: namaBerkas,
+      onProgres: onProgres,
+    );
     if (berkas == null) return HasilPasang.gagalUnduh;
 
     return pasang(berkas);

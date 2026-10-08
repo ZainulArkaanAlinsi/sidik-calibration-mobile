@@ -109,9 +109,10 @@ class DashboardScreen extends ConsumerWidget {
           //
           // `PemasangOtomatis` memulangkan anaknya apa adanya; dia nggak
           // menggambar apa-apa dan nggak mengubah tata letak. Yang
-          // dikerjakannya cuma satu: membuka layar pemasang Android sendiri
-          // waktu aplikasi dibuka, kalau APK pemutakhirannya memang sudah
-          // terunduh di latar. Syarat lengkapnya ada di kelasnya.
+          // dikerjakannya: memunculkan pop-up pembaruan sekali waktu aplikasi
+          // dibuka di sini kalau ada versi baru, dan memasangnya diam-diam
+          // waktu aplikasi ditinggal (Android 12+). Syarat lengkapnya ada di
+          // kelasnya.
           child: PemasangOtomatis(child: ReadableWidth(child: isi)),
         ),
       ),

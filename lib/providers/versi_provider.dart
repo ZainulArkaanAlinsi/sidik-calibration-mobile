@@ -137,15 +137,17 @@ final kirimTertahanRilisWajibProvider = Provider<bool>((ref) {
   return ref.watch(updateTersediaProvider).value?.wajib ?? false;
 });
 
-/// Penjaga supaya pemasang cuma dibuka SENDIRI sekali seumur proses aplikasi.
+/// Penjaga supaya pop-up pembaruan (`DialogUpdate`) cuma muncul SENDIRI sekali
+/// seumur proses aplikasi. Namanya peninggalan masa sebelum 8 Okt 2026, waktu
+/// yang dibuka sendiri masih layar pemasang Android.
 ///
 /// ## Kenapa bukan `bool` di dalam state widget
 ///
 /// Dashboard dibongkar-pasang terus: pindah tab, balik dari layar lain, tarik
 /// buat muat ulang, ganti akun. Kalau penjaganya ikut umur widget, tiap
-/// pemasangan ulang membuka pemasang lagi — dan teknisi yang menekan "Batal"
-/// di layar pemasang akan disambut layar yang sama begitu dia balik ke
-/// dashboard, berulang, tanpa cara keluar selain menerima pemasangannya.
+/// pemasangan ulang memunculkan dialognya lagi — dan teknisi yang menekan
+/// "Nanti" akan disambut dialog yang sama begitu dia balik ke dashboard,
+/// berulang, tanpa cara keluar selain menerima pemasangannya.
 ///
 /// Menolak pemutakhiran harus tetap mungkin. Penjaga setingkat proses bikin
 /// jawaban "tidak sekarang" bertahan sampai aplikasinya benar-benar ditutup.
