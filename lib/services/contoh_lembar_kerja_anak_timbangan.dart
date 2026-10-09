@@ -233,7 +233,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
           },
           {
             'kode': 'tanggal_terima',
-            'label': 'Tgl. Diterima',
+            'label': 'Tanggal Terima',
             'tipe': 'tanggal',
             'wajib': false,
             'sumber': null,
@@ -244,7 +244,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
           },
           {
             'kode': 'tanggal_kalibrasi',
-            'label': 'Tgl. Kalibrasi',
+            'label': 'Tanggal Kalibrasi',
             'tipe': 'tanggal',
             'wajib': false,
             'sumber': null,
@@ -299,6 +299,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
             ],
             'hanya_admin': false,
             'tampil_kalau': null,
+            'di_luar_kertas': true,
           },
           {
             'kode': 'spesifikasi_alat.anak_timbangan.meter_lingkungan',
@@ -368,7 +369,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
           },
           {
             'kode': 'spesifikasi_alat.anak_timbangan.kelembaban_awal',
-            'label': 'Kelembapan — awal',
+            'label': 'Kelembaban — awal',
             'tipe': 'angka',
             'wajib': false,
             'sumber': null,
@@ -379,7 +380,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
           },
           {
             'kode': 'spesifikasi_alat.anak_timbangan.kelembaban_akhir',
-            'label': 'Kelembapan — akhir',
+            'label': 'Kelembaban — akhir',
             'tipe': 'angka',
             'wajib': false,
             'sumber': null,
@@ -398,6 +399,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
             'pilihan': <dynamic>[],
             'hanya_admin': false,
             'tampil_kalau': null,
+            'di_luar_kertas': true,
           },
           {
             'kode': 'spesifikasi_alat.anak_timbangan.tekanan_akhir',
@@ -409,6 +411,7 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
             'pilihan': <dynamic>[],
             'hanya_admin': false,
             'tampil_kalau': null,
+            'di_luar_kertas': true,
           },
           {
             'kode': 'lokasi',
@@ -501,13 +504,14 @@ Map<String, dynamic> contohBentukLembarKerjaAnakTimbangan({
             'pilihan': <dynamic>[],
             'hanya_admin': false,
             'tampil_kalau': null,
+            'di_luar_kertas': true,
           },
         ],
       },
       {
         'kode': 'usage_check',
         'halaman': 1,
-        'judul': 'Standard Used',
+        'judul': 'Standard yang Digunakan',
         'baris': [
           {
             'label': 'Semi Micro Balance — OHAUS PIONEER/PX85 (maks 80 g, res 0,00001 g)',
