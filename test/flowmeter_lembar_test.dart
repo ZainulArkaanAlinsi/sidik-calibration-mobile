@@ -92,6 +92,8 @@ void main() {
           'usage_check',
           'pipa',
           'hasil',
+          // Isian yang tidak tercetak di kertas dikumpulkan sebelum penutup.
+          'di_luar_kertas',
           'penutup',
         ]);
 
