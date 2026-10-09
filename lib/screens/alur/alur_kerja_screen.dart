@@ -312,7 +312,7 @@ _Tahap _tahapDari(CalibrationHistoryItem s) => switch (s.status) {
       CalibrationStatus.perluRevisi => _Tahap.lembarKerja,
       CalibrationStatus.menungguApproval => _Tahap.perhitungan,
       CalibrationStatus.disetujui =>
-        s.certificateId == null ? _Tahap.sertifikat : _Tahap.kirim,
+        s.sertifikatBelumJadi ? _Tahap.sertifikat : _Tahap.kirim,
     };
 
 class _LencanaTahap extends StatelessWidget {
@@ -672,10 +672,14 @@ class _TombolLangkah extends ConsumerWidget {
         // Sesi udah disetujui tapi sertifikatnya belum jadi: bukan error, cuma
         // job antrean backend yang belum kelar. Dibilangin apa adanya biar
         // nggak dikira nyangkut.
+        // Yang GAGAL beda cerita: job-nya sudah berhenti, jadi pesan "sedang
+        // digenerate" bakal bohong. Tombol coba lagi ada di layar sertifikat.
         if (tahap == _Tahap.sertifikat) ...[
           const SizedBox(height: AppSpacing.sm),
           Text(
-            l10n.alurSertifikatDigenerate,
+            sesi.statusSertifikat == 'gagal'
+                ? l10n.certStatusGagal
+                : l10n.alurSertifikatDigenerate,
             style: theme.textTheme.labelSmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
