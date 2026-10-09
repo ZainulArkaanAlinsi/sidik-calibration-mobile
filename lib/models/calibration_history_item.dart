@@ -138,6 +138,20 @@ class CalibrationHistoryItem {
   /// daripada lencana bertulisan kode mentah).
   final String? statusSertifikat;
 
+  /// Sesi sudah disetujui tapi sertifikatnya belum bisa dikirim: barisnya
+  /// belum ada, masih di antrean, atau GAGAL digenerate.
+  ///
+  /// `certificateId` saja tidak cukup. Baris sertifikat lahir saat disetujui,
+  /// jadi sertifikat yang gagal tetap punya id — dan alur kerja dulu
+  /// menganggapnya siap kirim, sehingga tombol "Coba generate lagi" di layar
+  /// sertifikat tidak pernah terjangkau dari aplikasi (CAL/2026/10/0015,
+  /// 9 Okt 2026). Status yang belum dikenal APK ini TIDAK dihitung "belum
+  /// jadi", supaya perilaku lama tetap untuk nilai baru dari server.
+  bool get sertifikatBelumJadi =>
+      certificateId == null ||
+      statusSertifikat == 'gagal' ||
+      statusSertifikat == 'menunggu_generate';
+
   /// Disembunyikan dari Riwayat AKUN YANG LOGIN (keputusan pemilik 8 Okt 2026).
   ///
   /// Cuma soal tampilan per akun — sesi & sertifikatnya tetap utuh di server,
