@@ -71,7 +71,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
       {
         'kode': 'identitas_alat',
         'halaman': 1,
-        'judul': 'Equipment Identity',
+        'judul': 'Equipment Identity and Customer Data',
         'field': [
           {
             'kode': 'equipment_id',
@@ -86,7 +86,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
           },
           {
             'kode': 'equipment.nama_alat',
-            'label': 'Name',
+            'label': '1. Name',
             'tipe': 'teks',
             'wajib': false,
             'sumber': 'otomatis',
@@ -97,7 +97,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
           },
           {
             'kode': 'spesifikasi_alat.rentang_ukur',
-            'label': 'Range',
+            'label': '2. Range/Resolution — Range',
             'tipe': 'teks',
             'wajib': false,
             'sumber': null,
@@ -108,7 +108,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
           },
           {
             'kode': 'spesifikasi_alat.hydrometer.satuan_densitas',
-            'label': 'Satuan Densitas',
+            'label': '2. Range/Resolution — satuan ( )',
             'tipe': 'pilihan',
             'wajib': false,
             'sumber': null,
@@ -128,7 +128,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
           },
           {
             'kode': 'spesifikasi_alat.hydrometer.resolusi',
-            'label': 'Resolution',
+            'label': '2. Range/Resolution — Resolution',
             'tipe': 'angka',
             'wajib': false,
             'sumber': null,
@@ -139,7 +139,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
           },
           {
             'kode': 'spesifikasi_alat.hydrometer.suhu_acuan_faktor',
-            'label': 'Temperature',
+            'label': '3. Temperature',
             'tipe': 'angka',
             'wajib': false,
             'sumber': null,
@@ -150,7 +150,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
           },
           {
             'kode': 'tanggal_terima',
-            'label': 'Received Date',
+            'label': '4. Received Date',
             'tipe': 'tanggal',
             'wajib': false,
             'sumber': null,
@@ -161,7 +161,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
           },
           {
             'kode': 'tanggal_kalibrasi',
-            'label': 'Calibration Date',
+            'label': '5. Calibration Date',
             'tipe': 'tanggal',
             'wajib': false,
             'sumber': null,
@@ -172,7 +172,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
           },
           {
             'kode': 'alat_model',
-            'label': 'Type/Model',
+            'label': '6. Type/Model',
             'tipe': 'teks',
             'wajib': false,
             'sumber': null,
@@ -183,7 +183,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
           },
           {
             'kode': 'alat_serial_number',
-            'label': 'Serial Number/LPI',
+            'label': '7. Serial Number/LPI',
             'tipe': 'teks',
             'wajib': false,
             'sumber': null,
@@ -194,7 +194,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
           },
           {
             'kode': 'alat_merk',
-            'label': 'Merk/Manufacture',
+            'label': '8. Merk/Manufacture',
             'tipe': 'teks',
             'wajib': false,
             'sumber': null,
@@ -257,6 +257,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
             'pilihan': <dynamic>[],
             'hanya_admin': false,
             'tampil_kalau': null,
+            'di_luar_kertas': true,
           },
           {
             'kode': 'tekanan_akhir',
@@ -268,6 +269,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
             'pilihan': <dynamic>[],
             'hanya_admin': false,
             'tampil_kalau': null,
+            'di_luar_kertas': true,
           },
           {
             'kode': 'lokasi',
@@ -377,7 +379,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
         'field': [
           {
             'kode': 'pemilik_nama',
-            'label': 'Name',
+            'label': '1. Name',
             'tipe': 'teks',
             'wajib': false,
             'sumber': null,
@@ -388,19 +390,8 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
           },
           {
             'kode': 'pemilik_alamat',
-            'label': 'Address',
+            'label': '2. Address',
             'tipe': 'teks_panjang',
-            'wajib': false,
-            'sumber': null,
-            'satuan': null,
-            'pilihan': <dynamic>[],
-            'hanya_admin': false,
-            'tampil_kalau': null,
-          },
-          {
-            'kode': 'nomor_order',
-            'label': 'Order Number',
-            'tipe': 'teks',
             'wajib': false,
             'sumber': null,
             'satuan': null,
@@ -497,6 +488,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
             ],
             'hanya_admin': false,
             'tampil_kalau': null,
+            'di_luar_kertas': true,
           },
           {
             'kode': 'spesifikasi_alat.hydrometer.beban_tambahan',
@@ -589,7 +581,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
           {
             'tahap': 'sesudah_adjustment',
             'grup': 'hydro_diameter',
-            'judul': 'D Stem (cm) — tiga kali ukur',
+            'judul': 'D (Diameter Stem)',
             'satuan': 'cm',
             'judul_nilai': 'D Stem',
             'judul_pengulangan': 'Ukur ke',
@@ -625,13 +617,16 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
         'kode': 'hasil',
         'halaman': 2,
         'judul': '2. Measurement',
+        'tampilan': 'kartu_per_set_point',
+        'kartu_sejajar': true,
+        'nominal_berbintang': false,
         'field': <dynamic>[],
         'tabel': [
           {
             'tahap': 'sesudah_adjustment',
             'grup': 'hydro_massa',
             'offset_kunci': 1000,
-            'judul': 'a. Weight — Weight of Hydrometer (gram)',
+            'judul': 'a. Weight',
             'satuan': 'g',
             'judul_nilai': 'Point of Calibration',
             'judul_pengulangan': 'Timbang ke',
@@ -677,7 +672,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
             'kolom': [
               {
                 'kode': 'pembacaan',
-                'label': 'Massa',
+                'label': 'Weight of Hydrometer',
                 'tipe': 'angka',
                 'satuan': 'g',
               },
@@ -692,7 +687,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
             'tahap': 'sesudah_adjustment',
             'grup': 'hydro_suhu',
             'offset_kunci': 3000,
-            'judul': 'b. Temperature — Temperature (°C)',
+            'judul': 'b. Temperature',
             'satuan': '°C',
             'judul_nilai': 'Point of Calibration',
             'judul_pengulangan': 'Baca ke',
@@ -738,7 +733,7 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
             'kolom': [
               {
                 'kode': 'pembacaan',
-                'label': 'Suhu',
+                'label': 'Temperature',
                 'tipe': 'angka',
                 'satuan': '°C',
               },
@@ -748,6 +743,27 @@ Map<String, dynamic> contohBentukLembarKerjaHydrometer({
               2,
               3,
             ],
+          },
+        ],
+      },
+      {
+        'kode': 'di_luar_kertas',
+        'halaman': 2,
+        'judul': 'Di luar kertas — dipakai hitung',
+        'di_luar_kertas': true,
+        'catatan': 'Tidak ada di formulir kertas SIDIK-FM-CAL-0533, tapi dipakai olah data. Tetap diisi.',
+        'field': [
+          {
+            'kode': 'nomor_order',
+            'label': 'Order Number',
+            'tipe': 'teks',
+            'wajib': false,
+            'sumber': null,
+            'satuan': null,
+            'pilihan': <dynamic>[],
+            'hanya_admin': false,
+            'tampil_kalau': null,
+            'di_luar_kertas': true,
           },
         ],
       },

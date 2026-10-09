@@ -91,6 +91,19 @@ abstract class WorksheetScanService {
     int? jumlahPengulangan,
   });
 
+  /// Geometri FORMULIR ASLI lab — `GET /worksheet-templates/{kode}?kertas=asli`.
+  ///
+  /// `null` = alat ini belum punya formulir asli yang dipetakan (server 404).
+  /// Itu keadaan NORMAL untuk hampir semua alat sekarang, bukan error: tombol
+  /// "Pindai formulir kertas" cukup tidak digambar. Error lain (jaringan, 500,
+  /// 403) tetap dilempar — menyamarkannya jadi "belum dipetakan" bikin tombol
+  /// lenyap tanpa alasan yang kebaca.
+  Future<WorksheetTemplate?> templateAsli(
+    String token,
+    String kode, {
+    int? equipmentId,
+  });
+
   /// Kirim hasil baca satu lembar — `POST /api/worksheet-scans`.
   ///
   /// [body] disusun `PayloadPindai.susun()`, dan dikirim APA ADANYA. Jangan
@@ -175,6 +188,41 @@ class ApiWorksheetScanService implements WorksheetScanService {
   }
 
   @override
+  Future<WorksheetTemplate?> templateAsli(
+    String token,
+    String kode, {
+    int? equipmentId,
+  }) async {
+    final q = <String>[
+      'kertas=asli',
+      if (equipmentId != null) 'equipment_id=$equipmentId',
+    ];
+
+    try {
+      final json = await _api.get(
+        '/worksheet-templates/$kode?${q.join('&')}',
+        token: token,
+      );
+
+      return WorksheetTemplate.fromJson(json);
+    } on ApiException catch (e) {
+      if (e.status == 404) return null;
+
+      rethrow;
+    }
+  }
+
+  /// Nama berkas citra dari ISINYA, bukan dipatok: formulir asli melampirkan
+  /// JPEG (halaman utuh 2376×1836 sebagai PNG bisa mendekati batas 8 MB
+  /// server), lembar cetak tetap PNG. Nama `.png` di atas byte JPEG lolos
+  /// validasi server (yang dibaca isinya), tapi menyesatkan siapa pun yang
+  /// membuka arsipnya.
+  static String _namaCitraWarp(Uint8List isi) =>
+      isi.length > 2 && isi[0] == 0xFF && isi[1] == 0xD8
+      ? 'warp.jpg'
+      : 'warp.png';
+
+  @override
   Future<HasilPindai> kirim(
     String token,
     Map<String, dynamic> body, {
@@ -189,7 +237,10 @@ class ApiWorksheetScanService implements WorksheetScanService {
         body: body,
         berkas: {
           if (citraWarp != null)
-            'citra_warp': (namaBerkas: 'warp.png', isi: citraWarp),
+            'citra_warp': (
+              namaBerkas: _namaCitraWarp(citraWarp),
+              isi: citraWarp,
+            ),
         },
         token: token,
       );
@@ -244,7 +295,13 @@ class MockWorksheetScanService implements WorksheetScanService {
     this.hasil,
     this.crop,
     this.templateLengkap,
+    this.formulirAsli,
   });
+
+  /// Jawaban [templateAsli]. Bawaannya `null` — sama dengan server sekarang
+  /// untuk hampir semua alat (404, belum dipetakan), jadi tombol pindai
+  /// formulir kertas TIDAK muncul di test & mode mock yang tidak memintanya.
+  final WorksheetTemplate? formulirAsli;
 
   /// Template berikut geometrinya. Dititipin test yang mau menjalankan JALUR
   /// PINDAI PENUH — tanpa geometri, `JalankanPindai` berhenti di
@@ -290,6 +347,23 @@ class MockWorksheetScanService implements WorksheetScanService {
 
     return templateLengkap ?? WorksheetTemplate.fromJson(_template(kode));
   }
+
+  @override
+  Future<WorksheetTemplate?> templateAsli(
+    String token,
+    String kode, {
+    int? equipmentId,
+  }) async {
+    kodeAsliDiminta.add((kode: kode, equipmentId: equipmentId));
+
+    return formulirAsli;
+  }
+
+  /// Panggilan [templateAsli] — kode alat + alatnya. Kode yang salah (nomor
+  /// formulir, bukan kode alat) bikin tombolnya lenyap tanpa error; alat yang
+  /// tidak ikut bikin bukti `standard_id`/`titik_ukur` sel beda konteks dengan
+  /// kiriman pindainya.
+  final List<({String kode, int? equipmentId})> kodeAsliDiminta = [];
 
   /// Bodi yang dikirim [kirim] — dipegang biar test bisa memeriksanya tanpa
   /// jaringan.

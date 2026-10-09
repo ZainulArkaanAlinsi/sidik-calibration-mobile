@@ -39,6 +39,7 @@ import 'widgets/lembar_kerja_kartu_baris.dart';
 import 'widgets/lembar_kerja_matriks.dart';
 import 'widgets/lembar_kerja_tabel.dart';
 import 'widgets/pengatur_titik.dart';
+import 'widgets/tombol_pindai_formulir_asli.dart';
 
 /// Lembar Kerja (SIDIK-FM-CAL-0509_Rev.4) — layar input teknisi, dipakai buat
 /// alat yang punya bentuk lembar sendiri (pH Meter, Turbidimeter, ...). Bentuk
@@ -1194,6 +1195,18 @@ class _FormState extends ConsumerState<_Form> {
                     },
                   ),
                 ),
+              // Pindai FORMULIR ASLI — satu foto mengisi tabel, Env., dan
+              // centang yang ada di halaman mana pun, jadi tempatnya di atas
+              // lembar (sekali, di dua tata letak), bukan di dalam satu bagian.
+              // Tidak menggambar apa pun kalau alat ini belum punya formulir
+              // asli terpetakan di server — keadaan hampir semua alat.
+              TombolPindaiFormulirAsli(
+                profil: widget.profil,
+                equipmentId: _isian.alat?.id,
+                sesiId: widget.sesiId,
+                isian: _isian,
+                onBerubah: _isianBerubah,
+              ),
               Expanded(
                 child: duaKolom
                     ? _LembarDuaKolom(

@@ -10182,6 +10182,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Generation failed'**
   String get riwayatSertifikatGagal;
+
+  /// No description provided for @lkPindaiFormulirAsli.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan paper form'**
+  String get lkPindaiFormulirAsli;
+
+  /// No description provided for @lkPindaiFormulirAsliModeUji.
+  ///
+  /// In en, this message translates to:
+  /// **'Test mode — every scanned value must be checked.'**
+  String get lkPindaiFormulirAsliModeUji;
+
+  /// No description provided for @lkPindaiAsliBelumSiap.
+  ///
+  /// In en, this message translates to:
+  /// **'This paper form can\'t be scanned yet. Fill it in manually.'**
+  String get lkPindaiAsliBelumSiap;
+
+  /// No description provided for @lkPindaiAsliGeometriKurang.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} boxes on this form have no coordinates yet, so scanning is on hold. Fill it in manually.'**
+  String lkPindaiAsliGeometriKurang(int jumlah);
+
+  /// No description provided for @lkPindaiAsliKodeTidakTerbaca.
+  ///
+  /// In en, this message translates to:
+  /// **'Form code {kode} wasn\'t readable in the photo. Make sure the whole sheet — including its footer — is in frame, then retake.'**
+  String lkPindaiAsliKodeTidakTerbaca(String kode);
+
+  /// No description provided for @lkPindaiAsliFormulirLain.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo shows form {terbaca}, not {kode} for this instrument. Photograph the right form, or fill it in manually.'**
+  String lkPindaiAsliFormulirLain(String terbaca, String kode);
+
+  /// No description provided for @lkPindaiAsliRevisiBeda.
+  ///
+  /// In en, this message translates to:
+  /// **'The form revision in the photo ({terbaca}) differs from the system\'s (Rev.{revisi}). Use the latest form revision, or fill it in manually.'**
+  String lkPindaiAsliRevisiBeda(String terbaca, String revisi);
+
+  /// No description provided for @lkPindaiAsliJangkarKurang.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {jumlah} printed words could be used to align the sheet (minimum 8). Retake the photo with the whole sheet in frame and nothing covering it.'**
+  String lkPindaiAsliJangkarKurang(int jumlah);
+
+  /// No description provided for @lkPindaiAsliJangkarTidakMenyebar.
+  ///
+  /// In en, this message translates to:
+  /// **'Printed words were only found on part of the sheet. Retake the photo with all four edges of the sheet in frame.'**
+  String get lkPindaiAsliJangkarTidakMenyebar;
+
+  /// No description provided for @lkPindaiAsliTerpakai.
+  ///
+  /// In en, this message translates to:
+  /// **'{terisi} entries filled from the paper form. {dilewati} skipped because they were already filled or don\'t exist on this sheet — check them manually.'**
+  String lkPindaiAsliTerpakai(int terisi, int dilewati);
+
+  /// No description provided for @pindaiBannerModeUji.
+  ///
+  /// In en, this message translates to:
+  /// **'TEST MODE — this form hasn\'t passed photo verification yet. Every number and checkbox must be checked one by one against its photo crop.'**
+  String get pindaiBannerModeUji;
+
+  /// No description provided for @pindaiIsianJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Fields outside the table'**
+  String get pindaiIsianJudul;
+
+  /// No description provided for @pindaiCentangJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Checkboxes'**
+  String get pindaiCentangJudul;
+
+  /// No description provided for @pindaiCentangTerbacaYa.
+  ///
+  /// In en, this message translates to:
+  /// **'Machine read: ticked'**
+  String get pindaiCentangTerbacaYa;
+
+  /// No description provided for @pindaiCentangTerbacaTidak.
+  ///
+  /// In en, this message translates to:
+  /// **'Machine read: empty'**
+  String get pindaiCentangTerbacaTidak;
+
+  /// No description provided for @pindaiCentangTerbacaRagu.
+  ///
+  /// In en, this message translates to:
+  /// **'Machine read: unsure'**
+  String get pindaiCentangTerbacaRagu;
+
+  /// No description provided for @pindaiAlasanModeUji.
+  ///
+  /// In en, this message translates to:
+  /// **'test mode — this form isn\'t verified yet'**
+  String get pindaiAlasanModeUji;
+
+  /// No description provided for @pindaiAlasanCentangRagu.
+  ///
+  /// In en, this message translates to:
+  /// **'the mark is faint or unclear — check the box in the photo'**
+  String get pindaiAlasanCentangRagu;
+
+  /// No description provided for @pindaiAlasanPilihanGanda.
+  ///
+  /// In en, this message translates to:
+  /// **'more than one option ticked — choose one manually'**
+  String get pindaiAlasanPilihanGanda;
+
+  /// No description provided for @pindaiAlasanCentangTakTerukur.
+  ///
+  /// In en, this message translates to:
+  /// **'the box couldn\'t be measured'**
+  String get pindaiAlasanCentangTakTerukur;
 }
 
 class _AppLocalizationsDelegate

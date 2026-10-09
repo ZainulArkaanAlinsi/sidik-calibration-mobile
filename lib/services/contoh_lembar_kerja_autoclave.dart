@@ -307,7 +307,7 @@ Map<String, dynamic> contohBentukLembarKerjaAutoklaf({
           },
           {
             'kode': 'pemilik_alamat',
-            'label': 'Addresss',
+            'label': 'Address',
             'tipe': 'teks_panjang',
             'wajib': false,
             'sumber': null,

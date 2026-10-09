@@ -20,6 +20,7 @@ import '../../models/lembar_kerja_submission.dart';
 import '../../models/worksheet_scan.dart';
 import '../../services/gabung_tabel.dart';
 import '../../services/peta_tabel_foto.dart';
+import '../../services/registrasi_jangkar_teks.dart' show normalisasiJangkar;
 
 /// Angka di lembar kerja diketik teknisi lapangan, yang kadang pakai koma
 /// (`22,2`) karena itu yang dipakai di formulir kertasnya. Dua-duanya
@@ -3800,6 +3801,128 @@ class LembarKerjaState {
     if (terisi > 0) adaIsianDariFoto = true;
 
     return terisi;
+  }
+
+  /// Tuang hasil pindai FORMULIR ASLI yang sudah teknisi konfirmasi: sel tabel,
+  /// isian di luar tabel (Env. Condition), dan kotak centang.
+  ///
+  /// Yang masuk ke sini cuma yang lewat layar review — tidak ada satu nilai
+  /// pun dari foto yang mendarat di lembar tanpa tombol konfirmasi ditekan.
+  ///
+  /// **Tidak ada yang ditimpa.** Aturannya sama dengan sel tabel
+  /// ([terapkanHasilPindai]): kolom yang sudah berisi dilewati, dicatat di
+  /// `dilewati`, dan teknisi diberi tahu jumlahnya. Centang cuma bisa
+  /// MENYALAKAN — "kosong" di kertas tidak pernah mematikan centang yang sudah
+  /// dipasang teknisi.
+  ///
+  /// Butir dipetakan lewat IDENTITAS dari server, bukan urutan:
+  ///  - isian: `kode` = kode kolom lembar kerja (`suhu_awal`, …);
+  ///  - centang ber-`pilihan` (TH-n): label pilihan kolom yang kodenya sama;
+  ///  - centang `standar_dicek.*.dipakai`: TULISAN baris tercetak ([label])
+  ///    dicocokkan ke baris Standard lembar ini — `baris_ke` sendirian tidak
+  ///    dipakai, karena itu berarti percaya urutan dua daftar yang dirawat di
+  ///    tempat berbeda.
+  /// Yang tidak ketemu pasangannya dilewati, bukan dipaksa ke yang terdekat.
+  ({int terisi, int dilewati}) terapkanKonfirmasiPindai(KonfirmasiPindai k) {
+    var terisi = terapkanHasilPindai(k.sel);
+    var dilewati = 0;
+
+    for (final i in k.isian) {
+      final kotak = teks[i.kode];
+
+      if (kotak == null || kotak.text.trim().isNotEmpty) {
+        dilewati++;
+        continue;
+      }
+
+      kotak.text = formatAngka(i.nilai);
+      terisi++;
+    }
+
+    String norm(String? s) => s == null ? '' : normalisasiJangkar(s);
+
+    final semuaField = [
+      for (final b in bentuk.bagian) ...[...b.field, ...b.fieldDiLuarKertas],
+    ];
+
+    for (final c in k.centang) {
+      // Kosong di kertas = tidak ada yang dinyalakan. Bukan "matikan".
+      if (!c.dicentang) continue;
+
+      final pilihan = c.pilihan;
+
+      if (pilihan != null) {
+        final field = semuaField.where((f) => f.kode == c.kode).toList();
+        final cocok = [
+          for (final f in field)
+            for (final p in f.pilihan)
+              if (norm(p.label) == norm(pilihan)) (field: f, pilihan: p),
+        ];
+
+        if (cocok.length != 1) {
+          dilewati++;
+          continue;
+        }
+
+        final f = cocok.single.field;
+        final nilai = cocok.single.pilihan.nilai;
+
+        if (f.kode == 'thermohygro_standard_id' ||
+            f.sumber == SumberField.masterThermohygro) {
+          final id = int.tryParse(nilai);
+          if (id == null || thermohygroStandardId != null) {
+            dilewati++;
+            continue;
+          }
+          thermohygroStandardId = id;
+          terisi++;
+        } else {
+          final kotak = teks[f.kode];
+          if (kotak == null || kotak.text.trim().isNotEmpty) {
+            dilewati++;
+            continue;
+          }
+          kotak.text = nilai;
+          terisi++;
+        }
+        continue;
+      }
+
+      if (c.kode.startsWith('standar_dicek.') && c.kode.endsWith('.dipakai')) {
+        final label = norm(c.label);
+        final baris = [
+          for (final b in bentuk.bagian)
+            for (final s in b.baris)
+              if (label.isNotEmpty &&
+                  (norm(s.labelCetak) == label || norm(s.label) == label))
+                s,
+        ];
+
+        final id = baris.length == 1 ? baris.single.standardId : null;
+        if (id == null) {
+          dilewati++;
+          continue;
+        }
+
+        final state = usage(id);
+        if (state.adaIsian) {
+          dilewati++;
+          continue;
+        }
+
+        state.dipakai = true;
+        terisi++;
+        continue;
+      }
+
+      // Kode centang yang belum dikenal lembar ini — formulir berikutnya
+      // boleh membawa jenis centang baru tanpa HP menebak tempatnya.
+      dilewati++;
+    }
+
+    if (terisi > 0) adaIsianDariFoto = true;
+
+    return (terisi: terisi, dilewati: dilewati);
   }
 
   /// Tabel lembar yang identitas servernya [tabelId] (`grup ?? tahap` — lihat

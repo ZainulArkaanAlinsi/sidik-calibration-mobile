@@ -123,7 +123,7 @@ Map<String, dynamic> contohBentukLembarKerjaConductivity({
           },
           {
             'kode': 'alat_serial_number',
-            'label': '4. Serial Number/LPI',
+            'label': '4. Serial Number',
             'tipe': 'teks',
             'wajib': false,
             'sumber': null,
@@ -453,7 +453,7 @@ Map<String, dynamic> contohBentukLembarKerjaConductivity({
         'tabel': [
           {
             'tahap': 'sebelum_adjustment',
-            'judul': 'Before adjustment Reading',
+            'judul': 'Before Adjustment Reading',
             'baris': [
               {
                 'titik_ukur': 25.0,
@@ -562,7 +562,7 @@ Map<String, dynamic> contohBentukLembarKerjaConductivity({
           },
           {
             'tahap': 'sesudah_adjustment',
-            'judul': 'After adjustment Reading',
+            'judul': 'After Adjustment Reading',
             'baris': [
               {
                 'titik_ukur': 25.0,

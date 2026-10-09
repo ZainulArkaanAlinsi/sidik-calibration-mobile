@@ -5744,4 +5744,83 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get riwayatSertifikatGagal => 'Gagal dibuat';
+
+  @override
+  String get lkPindaiFormulirAsli => 'Pindai formulir kertas';
+
+  @override
+  String get lkPindaiFormulirAsliModeUji =>
+      'Mode uji — semua hasil pindai wajib dicek.';
+
+  @override
+  String get lkPindaiAsliBelumSiap =>
+      'Formulir kertas ini belum boleh dipindai. Isi manual dulu.';
+
+  @override
+  String lkPindaiAsliGeometriKurang(int jumlah) {
+    return '$jumlah kotak di formulir ini belum punya koordinat, jadi pindainya ditahan. Isi manual dulu.';
+  }
+
+  @override
+  String lkPindaiAsliKodeTidakTerbaca(String kode) {
+    return 'Kode formulir $kode nggak kebaca di foto. Pastikan seluruh lembar — termasuk kaki halamannya — masuk frame, lalu foto ulang.';
+  }
+
+  @override
+  String lkPindaiAsliFormulirLain(String terbaca, String kode) {
+    return 'Yang difoto formulir $terbaca, bukan $kode untuk alat ini. Foto formulir yang benar, atau isi manual.';
+  }
+
+  @override
+  String lkPindaiAsliRevisiBeda(String terbaca, String revisi) {
+    return 'Revisi formulir di foto ($terbaca) beda dengan yang dipegang sistem (Rev.$revisi). Pakai formulir revisi terbaru, atau isi manual.';
+  }
+
+  @override
+  String lkPindaiAsliJangkarKurang(int jumlah) {
+    return 'Tulisan cetak yang bisa dipakai patokan cuma $jumlah (minimal 8). Foto ulang — pastikan seluruh lembar masuk frame dan nggak ketutupan.';
+  }
+
+  @override
+  String get lkPindaiAsliJangkarTidakMenyebar =>
+      'Patokan tulisan cetak cuma ketemu di sebagian lembar. Foto ulang — pastikan keempat sisi lembar masuk frame.';
+
+  @override
+  String lkPindaiAsliTerpakai(int terisi, int dilewati) {
+    return '$terisi isian keisi dari formulir kertas. $dilewati dilewati karena sudah terisi atau tidak ada di lembar ini — cek manual.';
+  }
+
+  @override
+  String get pindaiBannerModeUji =>
+      'MODE UJI — formulir ini belum lulus verifikasi foto. Semua angka & centang wajib dicek satu per satu dengan potongan fotonya.';
+
+  @override
+  String get pindaiIsianJudul => 'Isian di luar tabel';
+
+  @override
+  String get pindaiCentangJudul => 'Kotak centang';
+
+  @override
+  String get pindaiCentangTerbacaYa => 'Terbaca mesin: dicentang';
+
+  @override
+  String get pindaiCentangTerbacaTidak => 'Terbaca mesin: kosong';
+
+  @override
+  String get pindaiCentangTerbacaRagu => 'Terbaca mesin: ragu';
+
+  @override
+  String get pindaiAlasanModeUji =>
+      'mode uji — formulir ini belum terverifikasi';
+
+  @override
+  String get pindaiAlasanCentangRagu =>
+      'tandanya tipis/ragu — cek kotaknya di foto';
+
+  @override
+  String get pindaiAlasanPilihanGanda =>
+      'lebih dari satu pilihan tercentang — pilih satu secara manual';
+
+  @override
+  String get pindaiAlasanCentangTakTerukur => 'kotaknya nggak bisa diukur';
 }
