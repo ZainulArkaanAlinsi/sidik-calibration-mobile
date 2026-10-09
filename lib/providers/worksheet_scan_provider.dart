@@ -85,3 +85,30 @@ final worksheetTemplateProvider =
           .read(worksheetScanServiceProvider)
           .template(token, kunci.kode, equipmentId: kunci.equipmentId);
     }, retry: (retryCount, error) => null);
+
+/// Geometri FORMULIR ASLI lab buat alat ini, atau `null` kalau belum ada
+/// (server 404 — keadaan normal hampir semua alat sekarang).
+///
+/// Dikunci alat juga, bukan cuma kode: bukti per sel (`titik_ukur`,
+/// `standard_id`) yang dikirim balik waktu pindai harus lahir dari konteks
+/// alat yang SAMA dengan kiriman `POST /worksheet-scans`, dan Conductivity
+/// misalnya memilih titiknya dari resolusi alat.
+///
+/// Tanpa retry otomatis: provider ini cuma menentukan tombolnya digambar atau
+/// tidak, dan mengulang diam-diam di latar cuma menambah beban server tiap
+/// lembar kerja dibuka.
+final worksheetTemplateAsliProvider =
+    FutureProvider.family<WorksheetTemplate?, KunciTemplatePindai>((
+      ref,
+      kunci,
+    ) async {
+      // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
+      ref.watch(authProvider);
+
+      final token = await ref.read(tokenStorageProvider).read();
+      if (token == null) throw const TokenHilangException();
+
+      return ref
+          .read(worksheetScanServiceProvider)
+          .templateAsli(token, kunci.kode, equipmentId: kunci.equipmentId);
+    }, retry: (retryCount, error) => null);

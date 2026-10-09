@@ -5816,4 +5816,82 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get riwayatSertifikatGagal => 'Generation failed';
+
+  @override
+  String get lkPindaiFormulirAsli => 'Scan paper form';
+
+  @override
+  String get lkPindaiFormulirAsliModeUji =>
+      'Test mode — every scanned value must be checked.';
+
+  @override
+  String get lkPindaiAsliBelumSiap =>
+      'This paper form can\'t be scanned yet. Fill it in manually.';
+
+  @override
+  String lkPindaiAsliGeometriKurang(int jumlah) {
+    return '$jumlah boxes on this form have no coordinates yet, so scanning is on hold. Fill it in manually.';
+  }
+
+  @override
+  String lkPindaiAsliKodeTidakTerbaca(String kode) {
+    return 'Form code $kode wasn\'t readable in the photo. Make sure the whole sheet — including its footer — is in frame, then retake.';
+  }
+
+  @override
+  String lkPindaiAsliFormulirLain(String terbaca, String kode) {
+    return 'The photo shows form $terbaca, not $kode for this instrument. Photograph the right form, or fill it in manually.';
+  }
+
+  @override
+  String lkPindaiAsliRevisiBeda(String terbaca, String revisi) {
+    return 'The form revision in the photo ($terbaca) differs from the system\'s (Rev.$revisi). Use the latest form revision, or fill it in manually.';
+  }
+
+  @override
+  String lkPindaiAsliJangkarKurang(int jumlah) {
+    return 'Only $jumlah printed words could be used to align the sheet (minimum 8). Retake the photo with the whole sheet in frame and nothing covering it.';
+  }
+
+  @override
+  String get lkPindaiAsliJangkarTidakMenyebar =>
+      'Printed words were only found on part of the sheet. Retake the photo with all four edges of the sheet in frame.';
+
+  @override
+  String lkPindaiAsliTerpakai(int terisi, int dilewati) {
+    return '$terisi entries filled from the paper form. $dilewati skipped because they were already filled or don\'t exist on this sheet — check them manually.';
+  }
+
+  @override
+  String get pindaiBannerModeUji =>
+      'TEST MODE — this form hasn\'t passed photo verification yet. Every number and checkbox must be checked one by one against its photo crop.';
+
+  @override
+  String get pindaiIsianJudul => 'Fields outside the table';
+
+  @override
+  String get pindaiCentangJudul => 'Checkboxes';
+
+  @override
+  String get pindaiCentangTerbacaYa => 'Machine read: ticked';
+
+  @override
+  String get pindaiCentangTerbacaTidak => 'Machine read: empty';
+
+  @override
+  String get pindaiCentangTerbacaRagu => 'Machine read: unsure';
+
+  @override
+  String get pindaiAlasanModeUji => 'test mode — this form isn\'t verified yet';
+
+  @override
+  String get pindaiAlasanCentangRagu =>
+      'the mark is faint or unclear — check the box in the photo';
+
+  @override
+  String get pindaiAlasanPilihanGanda =>
+      'more than one option ticked — choose one manually';
+
+  @override
+  String get pindaiAlasanCentangTakTerukur => 'the box couldn\'t be measured';
 }

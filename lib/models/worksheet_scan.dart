@@ -36,12 +36,32 @@ class HasilPindai {
     required this.tabel,
     required this.bolehAutoIsi,
     required this.wajibDicek,
+    this.kertas = 'cetak',
+    this.modeUji = false,
+    this.isian = const [],
+    this.centang = const [],
   });
 
   final int scanId;
   final String status;
   final RingkasanPindai ringkasan;
   final List<TabelPindai> tabel;
+
+  /// `asli` = pindai formulir SIDIK-FM-CAL asli lab. Respons lama (lembar
+  /// cetak) tidak membawa kunci ini.
+  final String kertas;
+
+  bool get kertasAsli => kertas == 'asli';
+
+  /// Formulir belum terverifikasi tapi sakelar mode uji server nyala: tidak
+  /// ada satu butir pun yang hijau, dan [wajibDicek] dipaksa `true`.
+  final bool modeUji;
+
+  /// Isian di luar tabel (Env. Condition) — cuma formulir asli.
+  final List<IsianPindai> isian;
+
+  /// Kotak centang — cuma formulir asli.
+  final List<CentangPindai> centang;
 
   /// **Dipakai apa adanya**, jangan dihitung ulang dari jumlah sel merah di
   /// HP: aturannya milik server supaya sama di semua versi APK.
@@ -68,8 +88,147 @@ class HasilPindai {
       tabel: parseListAman(data['tabel'], TabelPindai.fromJson),
       bolehAutoIsi: data['boleh_auto_isi'] as bool? ?? false,
       wajibDicek: data['wajib_dicek'] as bool? ?? true,
+      kertas: data['kertas'] as String? ?? 'cetak',
+      modeUji: data['mode_uji'] as bool? ?? false,
+      isian: parseListAman(data['isian'], IsianPindai.fromJson),
+      centang: parseListAman(data['centang'], CentangPindai.fromJson),
     );
   }
+}
+
+/// Satu isian di luar tabel hasil pindai formulir asli (`suhu_awal`, …).
+///
+/// Vonisnya dari `ValidasiSel` yang sama dengan sel tabel — tulisan tangan
+/// mentok kuning, angka di luar rentang ruang kerja ditandai.
+class IsianPindai {
+  const IsianPindai({
+    required this.kunci,
+    required this.kode,
+    required this.vonis,
+    this.satuan,
+    this.teksMentah,
+    this.nilai,
+    this.alasan = const [],
+    this.normalisasi = const [],
+  });
+
+  /// `isian|{kode}` — dipakai apa adanya buat koreksi & potongan citra.
+  final String kunci;
+  final String kode;
+  final VonisSel vonis;
+  final String? satuan;
+  final String? teksMentah;
+  final double? nilai;
+  final List<String> alasan;
+  final List<String> normalisasi;
+
+  /// Bentuk sel, supaya layar review memakai baris tampilan yang sama dengan
+  /// sel tabel — satu cara menampilkan vonis, bukan dua yang bisa berselisih.
+  SelPindai get sebagaiSel => SelPindai(
+    kunci: kunci,
+    repeatNo: 0,
+    fieldId: kode,
+    vonis: vonis,
+    teksMentah: teksMentah,
+    nilai: nilai,
+    alasan: alasan,
+    normalisasi: normalisasi,
+  );
+
+  factory IsianPindai.fromJson(Map<String, dynamic> json) {
+    final kode = json['kode'] as String? ?? json['field_id'] as String? ?? '';
+
+    return IsianPindai(
+      kunci: json['kunci'] as String? ?? 'isian|$kode',
+      kode: kode,
+      vonis: VonisSel.fromApi(json['status'] as String?),
+      satuan: json['satuan'] as String?,
+      teksMentah: json['teks_mentah'] as String?,
+      nilai: (json['nilai'] as num?)?.toDouble(),
+      alasan: (json['alasan'] as List<dynamic>? ?? const [])
+          .map((e) => '$e')
+          .toList(),
+      normalisasi: (json['normalisasi'] as List<dynamic>? ?? const [])
+          .map((e) => '$e')
+          .toList(),
+    );
+  }
+}
+
+/// Satu kotak centang hasil pindai formulir asli.
+///
+/// Dibaca dari RASIO PIKSEL GELAP di dalam kotak, bukan OCR (PANDUAN §4).
+/// [dicentang] `null` = ragu atau tidak terukur — BUKAN "kosong".
+class CentangPindai {
+  const CentangPindai({
+    required this.kunci,
+    required this.kode,
+    required this.vonis,
+    this.pilihan,
+    this.barisKe,
+    this.label,
+    this.rasioGelap,
+    this.dicentang,
+    this.alasan = const [],
+    this.pesan,
+  });
+
+  final String kunci;
+  final String kode;
+  final String? pilihan;
+  final int? barisKe;
+  final String? label;
+  final double? rasioGelap;
+  final bool? dicentang;
+  final VonisSel vonis;
+  final List<String> alasan;
+
+  /// Kalimat server buat kasus khusus (`pilihan_ganda`), ditampilkan apa adanya.
+  final String? pesan;
+
+  factory CentangPindai.fromJson(Map<String, dynamic> json) => CentangPindai(
+    kunci: json['kunci'] as String? ?? '',
+    kode: json['kode'] as String? ?? '',
+    pilihan: json['pilihan'] as String?,
+    barisKe: (json['baris_ke'] as num?)?.toInt(),
+    label: json['label'] as String?,
+    rasioGelap: (json['rasio_gelap'] as num?)?.toDouble(),
+    dicentang: json['dicentang'] as bool?,
+    vonis: VonisSel.fromApi(json['status'] as String?),
+    alasan: (json['alasan'] as List<dynamic>? ?? const [])
+        .map((e) => '$e')
+        .toList(),
+    pesan: json['pesan'] as String?,
+  );
+}
+
+/// Isian di luar tabel yang teknisi SETUJUI di layar review.
+typedef IsianDipakaiPindai = ({String kode, double nilai, bool perluDicek});
+
+/// Keputusan teknisi atas satu kotak centang di layar review.
+///
+/// Dibawa dengan IDENTITAS dari server ([kode] + [pilihan] / [barisKe] +
+/// [label]), bukan posisi tampilan — yang menerjemahkan ke kolom lembar kerja
+/// `LembarKerjaState.terapkanKonfirmasiPindai`.
+typedef CentangDipakaiPindai = ({
+  String kode,
+  String? pilihan,
+  int? barisKe,
+  String? label,
+  bool dicentang,
+});
+
+/// Semua yang teknisi setujui dari satu pindai formulir asli.
+class KonfirmasiPindai {
+  const KonfirmasiPindai({
+    required this.sel,
+    this.isian = const [],
+    this.centang = const [],
+  });
+
+  final List<SelDipakaiPindai> sel;
+  final List<IsianDipakaiPindai> isian;
+  final List<CentangDipakaiPindai> centang;
 }
 
 class RingkasanPindai {

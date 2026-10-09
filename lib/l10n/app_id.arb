@@ -2383,5 +2383,76 @@
   "riwayatSertifikatTerbit": "Terbit",
   "riwayatSertifikatDibatalkan": "Dibatalkan",
   "riwayatSertifikatDiproses": "Diproses",
-  "riwayatSertifikatGagal": "Gagal dibuat"
+  "riwayatSertifikatGagal": "Gagal dibuat",
+  "lkPindaiFormulirAsli": "Pindai formulir kertas",
+  "lkPindaiFormulirAsliModeUji": "Mode uji — semua hasil pindai wajib dicek.",
+  "lkPindaiAsliBelumSiap": "Formulir kertas ini belum boleh dipindai. Isi manual dulu.",
+  "lkPindaiAsliGeometriKurang": "{jumlah} kotak di formulir ini belum punya koordinat, jadi pindainya ditahan. Isi manual dulu.",
+  "@lkPindaiAsliGeometriKurang": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "lkPindaiAsliKodeTidakTerbaca": "Kode formulir {kode} nggak kebaca di foto. Pastikan seluruh lembar — termasuk kaki halamannya — masuk frame, lalu foto ulang.",
+  "@lkPindaiAsliKodeTidakTerbaca": {
+    "placeholders": {
+      "kode": {
+        "type": "String"
+      }
+    }
+  },
+  "lkPindaiAsliFormulirLain": "Yang difoto formulir {terbaca}, bukan {kode} untuk alat ini. Foto formulir yang benar, atau isi manual.",
+  "@lkPindaiAsliFormulirLain": {
+    "placeholders": {
+      "terbaca": {
+        "type": "String"
+      },
+      "kode": {
+        "type": "String"
+      }
+    }
+  },
+  "lkPindaiAsliRevisiBeda": "Revisi formulir di foto ({terbaca}) beda dengan yang dipegang sistem (Rev.{revisi}). Pakai formulir revisi terbaru, atau isi manual.",
+  "@lkPindaiAsliRevisiBeda": {
+    "placeholders": {
+      "terbaca": {
+        "type": "String"
+      },
+      "revisi": {
+        "type": "String"
+      }
+    }
+  },
+  "lkPindaiAsliJangkarKurang": "Tulisan cetak yang bisa dipakai patokan cuma {jumlah} (minimal 8). Foto ulang — pastikan seluruh lembar masuk frame dan nggak ketutupan.",
+  "@lkPindaiAsliJangkarKurang": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "lkPindaiAsliJangkarTidakMenyebar": "Patokan tulisan cetak cuma ketemu di sebagian lembar. Foto ulang — pastikan keempat sisi lembar masuk frame.",
+  "lkPindaiAsliTerpakai": "{terisi} isian keisi dari formulir kertas. {dilewati} dilewati karena sudah terisi atau tidak ada di lembar ini — cek manual.",
+  "@lkPindaiAsliTerpakai": {
+    "placeholders": {
+      "terisi": {
+        "type": "int"
+      },
+      "dilewati": {
+        "type": "int"
+      }
+    }
+  },
+  "pindaiBannerModeUji": "MODE UJI — formulir ini belum lulus verifikasi foto. Semua angka & centang wajib dicek satu per satu dengan potongan fotonya.",
+  "pindaiIsianJudul": "Isian di luar tabel",
+  "pindaiCentangJudul": "Kotak centang",
+  "pindaiCentangTerbacaYa": "Terbaca mesin: dicentang",
+  "pindaiCentangTerbacaTidak": "Terbaca mesin: kosong",
+  "pindaiCentangTerbacaRagu": "Terbaca mesin: ragu",
+  "pindaiAlasanModeUji": "mode uji — formulir ini belum terverifikasi",
+  "pindaiAlasanCentangRagu": "tandanya tipis/ragu — cek kotaknya di foto",
+  "pindaiAlasanPilihanGanda": "lebih dari satu pilihan tercentang — pilih satu secara manual",
+  "pindaiAlasanCentangTakTerukur": "kotaknya nggak bisa diukur"
 }
