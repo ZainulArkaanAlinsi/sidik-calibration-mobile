@@ -277,7 +277,93 @@ class ApiClient {
   /// meledak, dan ngulang cuma ngulang ledakan yang sama.
   static const _kodeServerBelumSiap = {502, 503, 504};
 
+  /// `GET` BERSYARAT: kirim `If-None-Match` kalau [etag] ada, dan terima
+  /// `304 Not Modified` sebagai jawaban SAH — bukan galat.
+  ///
+  /// Dipakai lembar kerja (kontrak §4, FR-21): server mengirim `ETag` =
+  /// sha256 badan final + `Cache-Control: private, no-cache`, dan menjawab
+  /// `304` tanpa badan bila tidak ada yang berubah. [get] biasa melempar
+  /// [ApiException] untuk apa pun di luar 2xx — termasuk 304 — makanya jalur
+  /// ini terpisah, dan [get] sendiri tidak disentuh.
+  ///
+  /// Penanganan koneksi, pengulangan (`GET` aman diulang), dan pesan galat
+  /// sama persis dengan [get]: lewat [_kirimMentah] yang sama.
+  Future<ResponsBersyarat> getBersyarat(
+    String path, {
+    String? token,
+    String? etag,
+  }) async {
+    final res = await _kirimMentah(
+      () => _client.get(
+        _uri(path),
+        headers: {
+          ..._headers(token),
+          if (etag != null && etag.isNotEmpty) 'If-None-Match': etag,
+        },
+      ),
+      bolehUlang: true,
+    );
+
+    // `package:http` menyimpan nama header dalam huruf kecil.
+    final etagBaru = res.headers['etag'];
+
+    if (res.statusCode == 304) {
+      return ResponsBersyarat(
+        status: 304,
+        json: const {},
+        badan: '',
+        // 304 boleh mengulang ETag-nya; kalau tidak, yang lama tetap berlaku.
+        etag: etagBaru ?? etag,
+      );
+    }
+
+    final json = _decode(res);
+
+    if (res.statusCode >= 200 && res.statusCode < 300) {
+      return ResponsBersyarat(
+        status: res.statusCode,
+        json: json,
+        badan: res.body,
+        etag: etagBaru,
+      );
+    }
+
+    throw ApiException(
+      _pesanError(res.statusCode, json),
+      status: res.statusCode,
+      body: json,
+    );
+  }
+
   Future<Map<String, dynamic>> _kirim(
+    Future<http.Response> Function() request, {
+    Duration? timeout,
+    bool bolehUlang = false,
+  }) async {
+    final res = await _kirimMentah(
+      request,
+      timeout: timeout,
+      bolehUlang: bolehUlang,
+    );
+
+    final json = _decode(res);
+
+    if (res.statusCode >= 200 && res.statusCode < 300) return json;
+
+    // Body-nya ikut dilempar, bukan cuma pesannya: sebagian jawaban gagal
+    // isinya data yang harus ditampilin (mis. `validasi` + `butuh_konfirmasi`
+    // di approve). Lihat ApiException.
+    throw ApiException(
+      _pesanError(res.statusCode, json),
+      status: res.statusCode,
+      body: json,
+    );
+  }
+
+  /// Kirim + terjemahkan galat KONEKSI jadi pesan manusia; status HTTP apa pun
+  /// dipulangkan apa adanya. Dipisah dari [_kirim] supaya [getBersyarat] bisa
+  /// membaca header & status 304 lewat jalur koneksi yang sama persis.
+  Future<http.Response> _kirimMentah(
     Future<http.Response> Function() request, {
     Duration? timeout,
     bool bolehUlang = false,
@@ -318,18 +404,7 @@ class ApiClient {
       );
     }
 
-    final json = _decode(res);
-
-    if (res.statusCode >= 200 && res.statusCode < 300) return json;
-
-    // Body-nya ikut dilempar, bukan cuma pesannya: sebagian jawaban gagal
-    // isinya data yang harus ditampilin (mis. `validasi` + `butuh_konfirmasi`
-    // di approve). Lihat ApiException.
-    throw ApiException(
-      _pesanError(res.statusCode, json),
-      status: res.statusCode,
-      body: json,
-    );
+    return res;
   }
 
   /// Coba lagi waktu yang gagal SERVERNYA, bukan permintaannya.
@@ -510,4 +585,32 @@ class ApiClient {
       _ => 'Ada yang salah. Coba lagi.',
     };
   }
+}
+
+/// Jawaban [ApiClient.getBersyarat].
+class ResponsBersyarat {
+  const ResponsBersyarat({
+    required this.status,
+    required this.json,
+    required this.badan,
+    this.etag,
+  });
+
+  /// 2xx, atau `304`.
+  final int status;
+
+  /// Badan terurai. Kosong (`{}`) untuk 304 — server tidak mengirim badan.
+  final Map<String, dynamic> json;
+
+  /// Badan mentah apa adanya (`''` untuk 304). Dipakai pembanding "isinya
+  /// sama persis" untuk server lama yang belum mengirim ETag.
+  final String badan;
+
+  /// Header `ETag` apa adanya (termasuk tanda kutip / awalan `W/`) — dikirim
+  /// balik tanpa diubah di `If-None-Match`. `null` = server tidak mengirimnya
+  /// (server lama, atau header tidak diekspos CORS di build web).
+  final String? etag;
+
+  /// Server bilang salinan yang dipegang klien masih berlaku.
+  bool get tidakBerubah => status == 304;
 }

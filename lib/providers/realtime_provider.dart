@@ -13,7 +13,9 @@ import 'notifikasi_perangkat_provider.dart';
 import 'notification_provider.dart';
 import 'pengendalian_provider.dart';
 import 'certificate_provider.dart';
+import 'data_acuan_provider.dart';
 import 'koreksi_provider.dart';
+import 'lembar_kerja_provider.dart';
 import 'permintaan_provider.dart';
 import 'pusat_pelanggan_provider.dart';
 
@@ -34,6 +36,12 @@ final realtimeServiceProvider = Provider<RealtimeService>((ref) {
 /// yang terbuka — dan tombol kirim ikut antre sampai "Server nggak nyaut".
 /// Membangunkan server sudah diurus cron-job.org, bukan tugas tarikan ini.
 const jedaTarikTanpaRealtime = Duration(minutes: 3);
+
+/// `jenis` sinyal buatan tarikan berkala di atas (bukan dari server).
+const jenisTarikBerkala = 'berkala';
+
+/// `jenis` sinyal perubahan data acuan dari server (CR-48 FR-22).
+const jenisDataAcuan = 'data_acuan';
 
 /// Nyambungin realtime ke daur hidup auth: begitu user login (+ token) → konek
 /// & subscribe channel org/user; tiap peristiwa → refresh provider terkait;
@@ -57,7 +65,7 @@ final realtimeSyncProvider = Provider<void>((ref) {
       // HP di saku / jendela diminimalkan tidak ikut membebani server.
       if (!aplikasiDiLayarDepan()) return;
 
-      _tangani(ref, const DataBerubah(jenis: 'berkala', aksi: 'tarik'));
+      _tangani(ref, const DataBerubah(jenis: jenisTarikBerkala, aksi: 'tarik'));
       _tangani(ref, const NotifikasiMasuk());
     });
     ref.onDispose(timer.cancel);
@@ -101,7 +109,7 @@ final realtimeSyncProvider = Provider<void>((ref) {
 /// cuma nandain "ada perubahan", isinya tetap via REST ber-otorisasi).
 void _tangani(Ref ref, PeristiwaRealtime p) {
   switch (p) {
-    case DataBerubah():
+    case DataBerubah(:final jenis):
       // Invalidate = lazy: yang lagi ditonton refetch, yang nggak nunggu dibuka.
       ref.invalidate(dashboardProvider);
       ref.invalidate(historyProvider);
@@ -144,6 +152,22 @@ void _tangani(Ref ref, PeristiwaRealtime p) {
       // dokumen, revisi yang selesai dirender, dan tombol admin ikut segar.
       // Family-nya lazy: hanya yang sedang ditonton yang menarik ulang.
       ref.invalidate(certificateDetailProvider);
+      // Data acuan (CR-48 FR-22: `jenis: 'data_acuan'`, aksi aktif/terjadwal/
+      // ditarik) dan tarikan berkala: Studio dan LEMBAR KERJA yang sedang
+      // terbuka ikut menyusul — versi yang berlaku bisa berganti hari ini, dan
+      // nominal titik pra-cetak lembar dibangun di dalam versi itu.
+      //
+      // Server P1 BELUM memancarkan `data_acuan`; penerimanya disiapkan di sini
+      // supaya begitu P2 menyiarkannya tidak ada yang perlu disambung lagi.
+      //
+      // Sengaja TIDAK di semua jenis: walau lembar yang tidak berubah dijawab
+      // 304 (ETag), server tetap membangun badannya penuh untuk menghitung
+      // ETag itu — dan tiap kalibrasi/sertifikat yang bergerak di lab tidak
+      // mengubah bentuk lembar.
+      if (jenis == jenisDataAcuan || jenis == jenisTarikBerkala) {
+        segarkanDataAcuan(ref);
+        ref.invalidate(lembarKerjaProvider);
+      }
     case NotifikasiMasuk():
       // Badge lonceng selalu di-refresh (nyala barengan HP↔desktop); daftar
       // notifikasi refetch lazy saat layarnya dibuka.

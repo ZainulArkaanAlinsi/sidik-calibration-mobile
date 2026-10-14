@@ -50,6 +50,12 @@ typedef KunciLembarKerja = ({String profil, int? pengulangan, int? equipmentId})
 ///
 /// Di-`watch` ke [authProvider] supaya ganti akun (teknisi → admin) ngambil
 /// bentuk yang beda — bukan nyisain formulir punya role sebelumnya.
+///
+/// Ditarik ulang (invalidate) saat lembar dibuka lagi, saat aplikasi kembali
+/// ke depan, dan oleh tarikan berkala / sinyal `data_acuan` di
+/// `realtime_provider.dart`. Tarikannya bersyarat: `ApiLembarKerjaService`
+/// menyimpan salinan + `ETag` (dan `versi_acuan` di dalamnya) per kunci, jadi
+/// lembar yang tidak berubah dijawab 304 dan objek bentuknya tetap yang sama.
 final lembarKerjaProvider =
     FutureProvider.family<LembarKerja, KunciLembarKerja>((ref, kunci) async {
       ref.watch(authProvider);

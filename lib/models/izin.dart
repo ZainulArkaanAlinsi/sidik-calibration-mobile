@@ -190,4 +190,15 @@ abstract final class NamaIzin {
   static const permintaanLihat = 'permintaan.lihat';
   static const permintaanPutuskan = 'permintaan.putuskan';
   static const permintaanBalas = 'permintaan.balas';
+
+  // Studio Data Acuan (CR-48) — BACA saja di P1; izin tulis belum lahir di
+  // server. Semua role lab memilikinya, tapi isi yang dilihat teknisi lebih
+  // sempit (versi `aktif` saja) dan itu ditegakkan server, bukan layar.
+  static const dataAcuanLihat = 'data-acuan.lihat';
+
+  // Sidik Studio, Workbook Alat (S1b baca; Tahap C simulasi hitung ulang
+  // yang TIDAK menulis data lab). Server: admin, teknisi, super admin untuk
+  // `hitung`; viewer cuma `lihat`.
+  static const workbookLihat = 'workbook.lihat';
+  static const workbookHitung = 'workbook.hitung';
 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/sidik_theme.dart';
 import '../../core/utils/angka.dart';
 import '../../core/utils/uuid.dart';
 import '../../l10n/app_localizations.dart';
@@ -84,7 +85,55 @@ class LembarKerjaScreen extends ConsumerStatefulWidget {
   ConsumerState<LembarKerjaScreen> createState() => _LembarKerjaScreenState();
 }
 
-class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen> {
+class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen>
+    with WidgetsBindingObserver {
+  /// Kunci lembar yang sedang dipakai layar ini. Lihat docblock di [build].
+  KunciLembarKerja get _kunci => (
+    profil: widget.profil,
+    pengulangan: _pengulangan,
+    equipmentId: _equipmentId,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    // Tarik ulang SAAT LEMBAR DIBUKA. `lembarKerjaProvider` bukan autoDispose,
+    // jadi lembar yang pernah dibuka (pagi tadi, versi acuan lama) dipakai
+    // lagi apa adanya tanpa bertanya ke server. Cuma kalau memang sudah ada
+    // isinya: kunci yang belum pernah dimuat sedang ditarik oleh build
+    // pertama, dan menginvalidate-nya cuma melahirkan tarikan kedua.
+    //
+    // Sesudah frame pertama, bukan di sini langsung: mengubah provider di
+    // tengah pembangunan pohon widget ditolak Riverpod.
+    final kunci = _kunci;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !ref.exists(lembarKerjaProvider(kunci))) return;
+      final kini = ref.read(lembarKerjaProvider(kunci));
+      if (kini.hasValue && !kini.isLoading) {
+        ref.invalidate(lembarKerjaProvider(kunci));
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Kembali dari latar belakang = versi data acuan bisa sudah berganti
+  /// (pola `PemantauAntrean`). Tarikannya bersyarat (`If-None-Match`): lembar
+  /// yang tidak berubah dijawab 304 dan formulirnya tidak tersentuh sama
+  /// sekali — objek bentuknya identik, jadi `gantiBentuk` tidak terpanggil.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && mounted) {
+      ref.invalidate(lembarKerjaProvider(_kunci));
+    }
+  }
+
   /// Berapa kotak pengulangan yang digambar. `null` = bawaan profilnya (5,
   /// ngikut form kertas) — teknisi yang nggak peduli nggak perlu milih apa-apa.
   int? _pengulangan;
@@ -140,17 +189,21 @@ class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen> {
     // kolom `1412 µS/cm`. Backend ngitung Error = 1413 − 1,412 = 1411,588 dan
     // lembarnya nyampe admin. Anggaran ketidakpastiannya sendiri udah bener
     // (U95 8,10901195 sama persis kayak Excel) — yang salah cuma barisnya.
-    final kunci = (
-      profil: widget.profil,
-      pengulangan: _pengulangan,
-      equipmentId: _equipmentId,
-    );
+    final kunci = _kunci;
     // Ganti alat = kunci baru = provider baru = mulai dari `loading`. Tanpa
     // nyimpen bentuk terakhir, badan layar balik jadi spinner sekejap dan
     // `_Form` ke-unmount — seluruh isian yang udah diketik ilang, termasuk alat
     // yang barusan dipilih. Formulirnya HARUS tetap terpasang; bentuk barunya
     // dipasang belakangan lewat `gantiBentuk`.
     ref.listen(lembarKerjaProvider(kunci), (_, next) {
+      // Tarikan ULANG kunci yang sama (dibuka lagi, kembali ke depan, tarikan
+      // berkala) yang gagal: diam. Galatnya membawa bentuk sebelumnya
+      // (`hasValue`), formulir tetap jalan dengan bentuk itu, dan kirimannya
+      // nanti yang melaporkan kalau server memang tak terjangkau. Tanpa ini,
+      // teknisi yang mengisi di tempat tanpa sinyal kena snackbar galat tiap
+      // tiga menit untuk tarikan yang tidak dia minta.
+      if (next is AsyncError && next.hasValue) return;
+
       // Gagal narik bentuk alat SESUDAH lembar kepegang nggak boleh diam.
       //
       // Backend nolak (422) kalau master alatnya belum nyebut varian satuan
@@ -434,6 +487,7 @@ class _FormState extends ConsumerState<_Form> {
     try {
       final detail = await ref.read(calibrationDetailProvider(id).future);
       final isi = detail.isianTeknisi;
+      final alatSesi = await _alatSesiLama(isi?.equipmentId);
       if (!mounted) return;
 
       // Tabel pengukurannya dipulihkan walau `isian_teknisi` nggak ikut di
@@ -448,6 +502,11 @@ class _FormState extends ConsumerState<_Form> {
         // teknisi: sertifikat standar yang lewat bikin sesinya ditolak nanti,
         // dan itu sudah bisa diketahui sekarang, sebelum lembarnya diisi.
         _isian.statusStandar = detail.statusStandar;
+        // Alat sesi DULUAN, persis urutan teknisi mengisi lembar baru. Tanpa
+        // `isiDariAlat()`: identitas & pemilik yang tersimpan di sesi (mungkin
+        // sudah dibetulkan teknisi) tidak boleh ditimpa data master.
+        // `??=`: alat yang keburu dipilih teknisi selama memuat tidak diganti.
+        if (alatSesi != null) _isian.alat ??= alatSesi;
         if (isi != null) _isian.muatDariSesi(isi);
         kebuang = _isian.terapkanPembacaan(detail.pembacaanMentah);
         // Alat sesi lama ikut ngabarin ke atas, jadi lembar yang ditarik ulang
@@ -476,6 +535,30 @@ class _FormState extends ConsumerState<_Form> {
       // Lihat docblock: formulirnya tetap bisa diisi, tapi keadaannya
       // KELIHATAN.
       if (mounted) setState(() => _sesiLamaGagalDimuat = true);
+    }
+  }
+
+  /// Alat sesi yang dibuka lagi, diambil dari daftar alat lembar INI — objek
+  /// yang sama dengan butir dropdown "Pilih alat".
+  ///
+  /// Sampai 13 Okt 2026 alat sesi lama tidak pernah dipulihkan (ketahuan uji
+  /// E2E app lapangan): draft dibuka lagi dengan "Pilih alat" kosong dan
+  /// identitas "Keisi otomatis" berisi `—`, lalu simpan/kirim ditahan "Pilih
+  /// alatnya dulu". Teknisi terpaksa memilih ulang — dan pilihan ulang itu
+  /// menimpa identitas yang sudah dibetulkan dengan data master
+  /// (`isiDariAlat`), atau malah memasang alat lain ke sesi yang sama.
+  ///
+  /// Alat yang tidak ada lagi di daftar (dihapus, pindah jenis) atau daftar
+  /// yang gagal dimuat = `null`: perilaku lama, teknisi memilih sendiri.
+  Future<EquipmentLookup?> _alatSesiLama(int? equipmentId) async {
+    if (equipmentId == null) return null;
+    try {
+      final daftar = await ref.read(
+        equipmentLookupProfilProvider(_isian.profil).future,
+      );
+      return daftar.where((e) => e.id == equipmentId).firstOrNull;
+    } catch (_) {
+      return null;
     }
   }
 
@@ -1226,6 +1309,18 @@ class _FormState extends ConsumerState<_Form> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        // Kaki lembar: versi data acuan yang MEMBANGUN lembar
+                        // ini (FR-21). Tidak digambar kalau server tidak
+                        // menyebut versi — profil yang belum berversi, server
+                        // yang masih membaca berkas JSON, atau server lama.
+                        // `· bentuk v<n>` belum: versi bentuk lahir di P6.
+                        if (bentuk.versiAcuan case VersiAcuanLembar(
+                          :final paket,
+                          data: NomorVersiAcuan(:final nomor),
+                        )) ...[
+                          _KakiVersiAcuan(paket: paket, nomor: nomor),
+                          const SizedBox(height: AppSpacing.sm),
+                        ],
                         // Tombol kirim CUMA di halaman terakhir. Di halaman 1 dia
                         // ada tapi belum kelihatan semua isinya — teknisi gampang
                         // ngirim lembar yang tabel hasilnya masih kosong. Di mode
@@ -1287,6 +1382,31 @@ class _FormState extends ConsumerState<_Form> {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// `data acuan <paket> v<n>` di kaki lembar, huruf angka (IBM Plex Mono).
+///
+/// Cuma penanda: dari versi mana nominal pra-cetak & data standar lembar ini
+/// berasal. Angkanya sendiri tidak dihitung di HP.
+class _KakiVersiAcuan extends StatelessWidget {
+  const _KakiVersiAcuan({required this.paket, required this.nomor});
+
+  final String paket;
+  final int nomor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      AppLocalizations.of(context).lkKakiVersiAcuan(paket, nomor),
+      key: const ValueKey('kaki-versi-acuan'),
+      textAlign: TextAlign.center,
+      style: SidikTheme.gayaAngka(
+        ukuran: 11,
+        berat: FontWeight.w400,
+        warna: Theme.of(context).colorScheme.onSurfaceVariant,
       ),
     );
   }

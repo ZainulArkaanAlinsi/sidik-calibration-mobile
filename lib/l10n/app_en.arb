@@ -2142,6 +2142,18 @@
       }
     }
   },
+  "lkKakiVersiAcuan": "reference data {paket} v{nomor}",
+  "@lkKakiVersiAcuan": {
+    "description": "Kaki lembar kerja: versi data acuan yang membangun lembar ini (CR-48 FR-21). paket = kode paket dari server, mis. micrometer; ditampilkan dengan huruf angka.",
+    "placeholders": {
+      "paket": {
+        "type": "String"
+      },
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
   "lkPengulanganTooltip": "Number of repeat columns",
   "lkPengulanganPilihan": "{n} repetitions",
   "@lkPengulanganPilihan": {
@@ -3124,5 +3136,218 @@
   "riwayatSertifikatTerbit": "Issued",
   "riwayatSertifikatDibatalkan": "Cancelled",
   "riwayatSertifikatDiproses": "Processing",
-  "riwayatSertifikatGagal": "Generation failed"
+  "riwayatSertifikatGagal": "Generation failed",
+  "acuanJudul": "Reference data",
+  "@acuanJudul": {
+    "description": "Studio Data Acuan (CR-48): judul menu & seksi. Istilah layar: 'data acuan', bukan 'database'/'rumus'."
+  },
+  "acuanPaketJudul": "Reference data packages",
+  "acuanPaketKeterangan": "Standard values, corrections, CMC bands and method constants per instrument, versioned on the server. This screen is read-only.",
+  "acuanPaketKosong": "No reference data packages yet.",
+  "acuanPaketKosongPetunjuk": "Version 1 comes from the initial import on the server: php artisan acuan:impor-awal",
+  "@acuanPaketKosongPetunjuk": {
+    "description": "Hanya ditampilkan ke super admin (04-UI-UX-Flow §5 S1 kosong)."
+  },
+  "acuanBelumDiimpor": "Not imported yet",
+  "acuanBelumDiimporKet": "The server has a schema for this instrument, but this lab has not imported version 1.",
+  "acuanVersiNomor": "v{nomor}",
+  "@acuanVersiNomor": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
+  "acuanVersiBerlakuSejak": "v{nomor} · in force since {tanggal}",
+  "@acuanVersiBerlakuSejak": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      },
+      "tanggal": {
+        "type": "String"
+      }
+    }
+  },
+  "acuanTanpaVersiAktif": "No active version",
+  "acuanTanpaVersiAktifKet": "No version of this package is in force today.",
+  "acuanJumlahLembar": "{n, plural, =1{1 sheet} other{{n} sheets}}",
+  "@acuanJumlahLembar": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "acuanJumlahDraf": "{n, plural, =1{1 draft} other{{n} drafts}}",
+  "@acuanJumlahDraf": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "acuanTerjadwal": "Scheduled: v{nomor} from {tanggal}",
+  "@acuanTerjadwal": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      },
+      "tanggal": {
+        "type": "String"
+      }
+    }
+  },
+  "acuanGagalMuat": "Reference data could not be loaded.",
+  "acuanCobaLagi": "Try again",
+  "acuanButuhIzinJudul": "Requires data-acuan.lihat permission",
+  "acuanButuhIzinKet": "This account has no access to reference data. Ask the lab admin to grant it. The server rejects direct calls as well.",
+  "acuanStatusDraf": "Draft",
+  "acuanStatusDiajukan": "Submitted",
+  "acuanStatusTerjadwal": "Scheduled",
+  "acuanStatusAktif": "Active",
+  "acuanStatusPensiun": "Retired",
+  "acuanStatusDitolak": "Rejected",
+  "acuanStatusDitarik": "Withdrawn",
+  "acuanStatusDibuang": "Discarded",
+  "acuanBukanVersiAktif": "This version is {status}: it is not the one used for today's sessions.",
+  "@acuanBukanVersiAktif": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "acuanInfoVersi": "Version info",
+  "acuanGarisWaktu": "Version timeline",
+  "acuanGarisWaktuKosong": "This package has no versions yet.",
+  "acuanSkemaKosong": "This package has no sheet schema on the server.",
+  "acuanLembarKosong": "This sheet has no data yet.",
+  "acuanKakiLembar": "{n, plural, =1{1 row} other{{n} rows}} · values shown exactly as stored, not rounded",
+  "@acuanKakiLembar": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "acuanPerluKonfirmasi": "Needs lab confirmation",
+  "acuanKolomKunci": "Key",
+  "acuanNilaiKosong": "empty",
+  "@acuanNilaiKosong": {
+    "description": "Sel yang ADA di isi tapi bernilai null. Beda dari sel yang tidak ada (ditampilkan —)."
+  },
+  "acuanJenisData": "Data",
+  "acuanJenisBentuk": "Sheet layout",
+  "acuanInfoStatus": "Status",
+  "acuanInfoJenis": "Kind",
+  "acuanInfoBerlaku": "In force",
+  "acuanBerlakuRentang": "{mulai} to {sampai}",
+  "@acuanBerlakuRentang": {
+    "placeholders": {
+      "mulai": {
+        "type": "String"
+      },
+      "sampai": {
+        "type": "String"
+      }
+    }
+  },
+  "acuanBerlakuTerbuka": "since {mulai}, open-ended",
+  "@acuanBerlakuTerbuka": {
+    "placeholders": {
+      "mulai": {
+        "type": "String"
+      }
+    }
+  },
+  "acuanBerlakuBelum": "Not set",
+  "acuanInfoSha": "Content SHA-256",
+  "acuanInfoShaBelum": "Not locked yet (draft)",
+  "acuanInfoSkema": "Schema",
+  "acuanInfoDibuat": "Created",
+  "acuanInfoDisahkan": "Approved",
+  "acuanInfoBelumDisahkan": "No approval recorded",
+  "@acuanInfoBelumDisahkan": {
+    "description": "disahkan_oleh null (mis. versi 1 hasil impor). Jangan mengarang pengesah."
+  },
+  "acuanInfoOlehPada": "user #{id} · {waktu}",
+  "@acuanInfoOlehPada": {
+    "description": "Kontrak §15: *_oleh masih id user, bukan nama.",
+    "placeholders": {
+      "id": {
+        "type": "int"
+      },
+      "waktu": {
+        "type": "String"
+      }
+    }
+  },
+  "acuanInfoAlasan": "Reason",
+  "acuanInfoRujukan": "References",
+  "acuanSelJudul": "Cell details",
+  "acuanSelLembar": "Sheet",
+  "acuanSelKunci": "Row key",
+  "acuanSelNilai": "Stored value",
+  "acuanSelTidakAda": "Not present in this version",
+  "acuanSelTipe": "Type",
+  "acuanSelAsal": "Master workbook cell",
+  "acuanSelAsalKosong": "Not mapped to a master cell",
+  "acuanSelPerluKonfirmasiKet": "The origin of this value has not been confirmed by the lab yet.",
+  "acuanSelRiwayat": "Cell history",
+  "acuanRiwayatPerVersi": "Value in each version",
+  "acuanRiwayatSuntingan": "Edits",
+  "acuanRiwayatSuntinganKosong": "No edits recorded for this cell.",
+  "acuanSumberKetik": "typed",
+  "acuanSumberTempel": "pasted",
+  "acuanSumberImpor": "imported",
+  "acuanSumberAmbilAlih": "taken over",
+  "acuanPenggunaTerhapus": "account no longer exists",
+  "acuanBandingkan": "Compare versions",
+  "acuanBandingLama": "Older version",
+  "acuanBandingBaru": "Newer version",
+  "acuanBandingTidakAdaBeda": "No differences",
+  "acuanBandingTidakAdaBedaKet": "v{lama} and v{baru} have identical content in every sheet.",
+  "@acuanBandingTidakAdaBedaKet": {
+    "placeholders": {
+      "lama": {
+        "type": "int"
+      },
+      "baru": {
+        "type": "int"
+      }
+    }
+  },
+  "acuanBandingRingkasan": "{lembar} sheets changed · {sel} cells · {tambah} rows added · {hapus} rows removed",
+  "@acuanBandingRingkasan": {
+    "placeholders": {
+      "lembar": {
+        "type": "int"
+      },
+      "sel": {
+        "type": "int"
+      },
+      "tambah": {
+        "type": "int"
+      },
+      "hapus": {
+        "type": "int"
+      }
+    }
+  },
+  "acuanBandingTanpaVersiData": "There is no data version to compare yet.",
+  "acuanBandingBarisTambah": "Rows added",
+  "acuanBandingBarisHapus": "Rows removed",
+  "acuanLama": "old",
+  "acuanBaru": "new",
+  "acuanSelisih": "difference",
+  "acuanSelisihRelatif": "relative",
+  "acuanBandingTidakTersedia": "Version comparison is not available to the technician role.",
+  "@acuanBandingTidakTersedia": {
+    "description": "Cermin DataAcuanController::banding (404 untuk teknisi)."
+  },
+  "acuanRiwayatTidakTersedia": "Cell history is not available to the technician role.",
+  "@acuanRiwayatTidakTersedia": {
+    "description": "Cermin DataAcuanController::riwayatSel (404 untuk teknisi)."
+  }
 }

@@ -23,6 +23,11 @@ analyzer:
     - web/**
     - windows/**
     - macos/**
+    # Sidik Studio: proyek sendiri dengan pubspec & package_config sendiri.
+    # Dianalisis dari dalam `studio/` (`cd studio && flutter analyze`), bukan
+    # dari akar — tanpa `pub get` di studio, analyzer akar tidak bisa
+    # menyelesaikan `package:sidik_studio/…` dan melapor galat palsu.
+    - studio/**
 
 linter:
   # The lint rules applied to this project can be customized in the

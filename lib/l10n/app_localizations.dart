@@ -6883,6 +6883,12 @@ abstract class AppLocalizations {
   /// **'{n}x'**
   String lkPengulanganRingkas(int n);
 
+  /// Kaki lembar kerja: versi data acuan yang membangun lembar ini (CR-48 FR-21). paket = kode paket dari server, mis. micrometer; ditampilkan dengan huruf angka.
+  ///
+  /// In en, this message translates to:
+  /// **'reference data {paket} v{nomor}'**
+  String lkKakiVersiAcuan(String paket, int nomor);
+
   /// No description provided for @lkPengulanganTooltip.
   ///
   /// In en, this message translates to:
@@ -10182,6 +10188,522 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Generation failed'**
   String get riwayatSertifikatGagal;
+
+  /// Studio Data Acuan (CR-48): judul menu & seksi. Istilah layar: 'data acuan', bukan 'database'/'rumus'.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference data'**
+  String get acuanJudul;
+
+  /// No description provided for @acuanPaketJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference data packages'**
+  String get acuanPaketJudul;
+
+  /// No description provided for @acuanPaketKeterangan.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard values, corrections, CMC bands and method constants per instrument, versioned on the server. This screen is read-only.'**
+  String get acuanPaketKeterangan;
+
+  /// No description provided for @acuanPaketKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No reference data packages yet.'**
+  String get acuanPaketKosong;
+
+  /// Hanya ditampilkan ke super admin (04-UI-UX-Flow §5 S1 kosong).
+  ///
+  /// In en, this message translates to:
+  /// **'Version 1 comes from the initial import on the server: php artisan acuan:impor-awal'**
+  String get acuanPaketKosongPetunjuk;
+
+  /// No description provided for @acuanBelumDiimpor.
+  ///
+  /// In en, this message translates to:
+  /// **'Not imported yet'**
+  String get acuanBelumDiimpor;
+
+  /// No description provided for @acuanBelumDiimporKet.
+  ///
+  /// In en, this message translates to:
+  /// **'The server has a schema for this instrument, but this lab has not imported version 1.'**
+  String get acuanBelumDiimporKet;
+
+  /// No description provided for @acuanVersiNomor.
+  ///
+  /// In en, this message translates to:
+  /// **'v{nomor}'**
+  String acuanVersiNomor(int nomor);
+
+  /// No description provided for @acuanVersiBerlakuSejak.
+  ///
+  /// In en, this message translates to:
+  /// **'v{nomor} · in force since {tanggal}'**
+  String acuanVersiBerlakuSejak(int nomor, String tanggal);
+
+  /// No description provided for @acuanTanpaVersiAktif.
+  ///
+  /// In en, this message translates to:
+  /// **'No active version'**
+  String get acuanTanpaVersiAktif;
+
+  /// No description provided for @acuanTanpaVersiAktifKet.
+  ///
+  /// In en, this message translates to:
+  /// **'No version of this package is in force today.'**
+  String get acuanTanpaVersiAktifKet;
+
+  /// No description provided for @acuanJumlahLembar.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 sheet} other{{n} sheets}}'**
+  String acuanJumlahLembar(int n);
+
+  /// No description provided for @acuanJumlahDraf.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 draft} other{{n} drafts}}'**
+  String acuanJumlahDraf(int n);
+
+  /// No description provided for @acuanTerjadwal.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled: v{nomor} from {tanggal}'**
+  String acuanTerjadwal(int nomor, String tanggal);
+
+  /// No description provided for @acuanGagalMuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference data could not be loaded.'**
+  String get acuanGagalMuat;
+
+  /// No description provided for @acuanCobaLagi.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get acuanCobaLagi;
+
+  /// No description provided for @acuanButuhIzinJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Requires data-acuan.lihat permission'**
+  String get acuanButuhIzinJudul;
+
+  /// No description provided for @acuanButuhIzinKet.
+  ///
+  /// In en, this message translates to:
+  /// **'This account has no access to reference data. Ask the lab admin to grant it. The server rejects direct calls as well.'**
+  String get acuanButuhIzinKet;
+
+  /// No description provided for @acuanStatusDraf.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get acuanStatusDraf;
+
+  /// No description provided for @acuanStatusDiajukan.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted'**
+  String get acuanStatusDiajukan;
+
+  /// No description provided for @acuanStatusTerjadwal.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled'**
+  String get acuanStatusTerjadwal;
+
+  /// No description provided for @acuanStatusAktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get acuanStatusAktif;
+
+  /// No description provided for @acuanStatusPensiun.
+  ///
+  /// In en, this message translates to:
+  /// **'Retired'**
+  String get acuanStatusPensiun;
+
+  /// No description provided for @acuanStatusDitolak.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get acuanStatusDitolak;
+
+  /// No description provided for @acuanStatusDitarik.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawn'**
+  String get acuanStatusDitarik;
+
+  /// No description provided for @acuanStatusDibuang.
+  ///
+  /// In en, this message translates to:
+  /// **'Discarded'**
+  String get acuanStatusDibuang;
+
+  /// No description provided for @acuanBukanVersiAktif.
+  ///
+  /// In en, this message translates to:
+  /// **'This version is {status}: it is not the one used for today\'s sessions.'**
+  String acuanBukanVersiAktif(String status);
+
+  /// No description provided for @acuanInfoVersi.
+  ///
+  /// In en, this message translates to:
+  /// **'Version info'**
+  String get acuanInfoVersi;
+
+  /// No description provided for @acuanGarisWaktu.
+  ///
+  /// In en, this message translates to:
+  /// **'Version timeline'**
+  String get acuanGarisWaktu;
+
+  /// No description provided for @acuanGarisWaktuKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'This package has no versions yet.'**
+  String get acuanGarisWaktuKosong;
+
+  /// No description provided for @acuanSkemaKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'This package has no sheet schema on the server.'**
+  String get acuanSkemaKosong;
+
+  /// No description provided for @acuanLembarKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'This sheet has no data yet.'**
+  String get acuanLembarKosong;
+
+  /// No description provided for @acuanKakiLembar.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 row} other{{n} rows}} · values shown exactly as stored, not rounded'**
+  String acuanKakiLembar(int n);
+
+  /// No description provided for @acuanPerluKonfirmasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs lab confirmation'**
+  String get acuanPerluKonfirmasi;
+
+  /// No description provided for @acuanKolomKunci.
+  ///
+  /// In en, this message translates to:
+  /// **'Key'**
+  String get acuanKolomKunci;
+
+  /// Sel yang ADA di isi tapi bernilai null. Beda dari sel yang tidak ada (ditampilkan —).
+  ///
+  /// In en, this message translates to:
+  /// **'empty'**
+  String get acuanNilaiKosong;
+
+  /// No description provided for @acuanJenisData.
+  ///
+  /// In en, this message translates to:
+  /// **'Data'**
+  String get acuanJenisData;
+
+  /// No description provided for @acuanJenisBentuk.
+  ///
+  /// In en, this message translates to:
+  /// **'Sheet layout'**
+  String get acuanJenisBentuk;
+
+  /// No description provided for @acuanInfoStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get acuanInfoStatus;
+
+  /// No description provided for @acuanInfoJenis.
+  ///
+  /// In en, this message translates to:
+  /// **'Kind'**
+  String get acuanInfoJenis;
+
+  /// No description provided for @acuanInfoBerlaku.
+  ///
+  /// In en, this message translates to:
+  /// **'In force'**
+  String get acuanInfoBerlaku;
+
+  /// No description provided for @acuanBerlakuRentang.
+  ///
+  /// In en, this message translates to:
+  /// **'{mulai} to {sampai}'**
+  String acuanBerlakuRentang(String mulai, String sampai);
+
+  /// No description provided for @acuanBerlakuTerbuka.
+  ///
+  /// In en, this message translates to:
+  /// **'since {mulai}, open-ended'**
+  String acuanBerlakuTerbuka(String mulai);
+
+  /// No description provided for @acuanBerlakuBelum.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get acuanBerlakuBelum;
+
+  /// No description provided for @acuanInfoSha.
+  ///
+  /// In en, this message translates to:
+  /// **'Content SHA-256'**
+  String get acuanInfoSha;
+
+  /// No description provided for @acuanInfoShaBelum.
+  ///
+  /// In en, this message translates to:
+  /// **'Not locked yet (draft)'**
+  String get acuanInfoShaBelum;
+
+  /// No description provided for @acuanInfoSkema.
+  ///
+  /// In en, this message translates to:
+  /// **'Schema'**
+  String get acuanInfoSkema;
+
+  /// No description provided for @acuanInfoDibuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get acuanInfoDibuat;
+
+  /// No description provided for @acuanInfoDisahkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get acuanInfoDisahkan;
+
+  /// disahkan_oleh null (mis. versi 1 hasil impor). Jangan mengarang pengesah.
+  ///
+  /// In en, this message translates to:
+  /// **'No approval recorded'**
+  String get acuanInfoBelumDisahkan;
+
+  /// Kontrak §15: *_oleh masih id user, bukan nama.
+  ///
+  /// In en, this message translates to:
+  /// **'user #{id} · {waktu}'**
+  String acuanInfoOlehPada(int id, String waktu);
+
+  /// No description provided for @acuanInfoAlasan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get acuanInfoAlasan;
+
+  /// No description provided for @acuanInfoRujukan.
+  ///
+  /// In en, this message translates to:
+  /// **'References'**
+  String get acuanInfoRujukan;
+
+  /// No description provided for @acuanSelJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell details'**
+  String get acuanSelJudul;
+
+  /// No description provided for @acuanSelLembar.
+  ///
+  /// In en, this message translates to:
+  /// **'Sheet'**
+  String get acuanSelLembar;
+
+  /// No description provided for @acuanSelKunci.
+  ///
+  /// In en, this message translates to:
+  /// **'Row key'**
+  String get acuanSelKunci;
+
+  /// No description provided for @acuanSelNilai.
+  ///
+  /// In en, this message translates to:
+  /// **'Stored value'**
+  String get acuanSelNilai;
+
+  /// No description provided for @acuanSelTidakAda.
+  ///
+  /// In en, this message translates to:
+  /// **'Not present in this version'**
+  String get acuanSelTidakAda;
+
+  /// No description provided for @acuanSelTipe.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get acuanSelTipe;
+
+  /// No description provided for @acuanSelAsal.
+  ///
+  /// In en, this message translates to:
+  /// **'Master workbook cell'**
+  String get acuanSelAsal;
+
+  /// No description provided for @acuanSelAsalKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Not mapped to a master cell'**
+  String get acuanSelAsalKosong;
+
+  /// No description provided for @acuanSelPerluKonfirmasiKet.
+  ///
+  /// In en, this message translates to:
+  /// **'The origin of this value has not been confirmed by the lab yet.'**
+  String get acuanSelPerluKonfirmasiKet;
+
+  /// No description provided for @acuanSelRiwayat.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell history'**
+  String get acuanSelRiwayat;
+
+  /// No description provided for @acuanRiwayatPerVersi.
+  ///
+  /// In en, this message translates to:
+  /// **'Value in each version'**
+  String get acuanRiwayatPerVersi;
+
+  /// No description provided for @acuanRiwayatSuntingan.
+  ///
+  /// In en, this message translates to:
+  /// **'Edits'**
+  String get acuanRiwayatSuntingan;
+
+  /// No description provided for @acuanRiwayatSuntinganKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No edits recorded for this cell.'**
+  String get acuanRiwayatSuntinganKosong;
+
+  /// No description provided for @acuanSumberKetik.
+  ///
+  /// In en, this message translates to:
+  /// **'typed'**
+  String get acuanSumberKetik;
+
+  /// No description provided for @acuanSumberTempel.
+  ///
+  /// In en, this message translates to:
+  /// **'pasted'**
+  String get acuanSumberTempel;
+
+  /// No description provided for @acuanSumberImpor.
+  ///
+  /// In en, this message translates to:
+  /// **'imported'**
+  String get acuanSumberImpor;
+
+  /// No description provided for @acuanSumberAmbilAlih.
+  ///
+  /// In en, this message translates to:
+  /// **'taken over'**
+  String get acuanSumberAmbilAlih;
+
+  /// No description provided for @acuanPenggunaTerhapus.
+  ///
+  /// In en, this message translates to:
+  /// **'account no longer exists'**
+  String get acuanPenggunaTerhapus;
+
+  /// No description provided for @acuanBandingkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare versions'**
+  String get acuanBandingkan;
+
+  /// No description provided for @acuanBandingLama.
+  ///
+  /// In en, this message translates to:
+  /// **'Older version'**
+  String get acuanBandingLama;
+
+  /// No description provided for @acuanBandingBaru.
+  ///
+  /// In en, this message translates to:
+  /// **'Newer version'**
+  String get acuanBandingBaru;
+
+  /// No description provided for @acuanBandingTidakAdaBeda.
+  ///
+  /// In en, this message translates to:
+  /// **'No differences'**
+  String get acuanBandingTidakAdaBeda;
+
+  /// No description provided for @acuanBandingTidakAdaBedaKet.
+  ///
+  /// In en, this message translates to:
+  /// **'v{lama} and v{baru} have identical content in every sheet.'**
+  String acuanBandingTidakAdaBedaKet(int lama, int baru);
+
+  /// No description provided for @acuanBandingRingkasan.
+  ///
+  /// In en, this message translates to:
+  /// **'{lembar} sheets changed · {sel} cells · {tambah} rows added · {hapus} rows removed'**
+  String acuanBandingRingkasan(int lembar, int sel, int tambah, int hapus);
+
+  /// No description provided for @acuanBandingTanpaVersiData.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no data version to compare yet.'**
+  String get acuanBandingTanpaVersiData;
+
+  /// No description provided for @acuanBandingBarisTambah.
+  ///
+  /// In en, this message translates to:
+  /// **'Rows added'**
+  String get acuanBandingBarisTambah;
+
+  /// No description provided for @acuanBandingBarisHapus.
+  ///
+  /// In en, this message translates to:
+  /// **'Rows removed'**
+  String get acuanBandingBarisHapus;
+
+  /// No description provided for @acuanLama.
+  ///
+  /// In en, this message translates to:
+  /// **'old'**
+  String get acuanLama;
+
+  /// No description provided for @acuanBaru.
+  ///
+  /// In en, this message translates to:
+  /// **'new'**
+  String get acuanBaru;
+
+  /// No description provided for @acuanSelisih.
+  ///
+  /// In en, this message translates to:
+  /// **'difference'**
+  String get acuanSelisih;
+
+  /// No description provided for @acuanSelisihRelatif.
+  ///
+  /// In en, this message translates to:
+  /// **'relative'**
+  String get acuanSelisihRelatif;
+
+  /// Cermin DataAcuanController::banding (404 untuk teknisi).
+  ///
+  /// In en, this message translates to:
+  /// **'Version comparison is not available to the technician role.'**
+  String get acuanBandingTidakTersedia;
+
+  /// Cermin DataAcuanController::riwayatSel (404 untuk teknisi).
+  ///
+  /// In en, this message translates to:
+  /// **'Cell history is not available to the technician role.'**
+  String get acuanRiwayatTidakTersedia;
 }
 
 class _AppLocalizationsDelegate

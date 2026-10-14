@@ -3804,6 +3804,11 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String lkKakiVersiAcuan(String paket, int nomor) {
+    return 'data acuan $paket v$nomor';
+  }
+
+  @override
   String get lkPengulanganTooltip => 'Jumlah kolom pengulangan';
 
   @override
@@ -5744,4 +5749,312 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get riwayatSertifikatGagal => 'Gagal dibuat';
+
+  @override
+  String get acuanJudul => 'Data acuan';
+
+  @override
+  String get acuanPaketJudul => 'Paket data acuan';
+
+  @override
+  String get acuanPaketKeterangan =>
+      'Nilai standar, koreksi, pita CMC, dan konstanta metode tiap alat, berversi di server. Layar ini baca saja.';
+
+  @override
+  String get acuanPaketKosong => 'Belum ada paket data acuan.';
+
+  @override
+  String get acuanPaketKosongPetunjuk =>
+      'Versi 1 lahir dari impor awal di server: php artisan acuan:impor-awal';
+
+  @override
+  String get acuanBelumDiimpor => 'Belum diimpor';
+
+  @override
+  String get acuanBelumDiimporKet =>
+      'Server sudah punya skemanya, tapi lab ini belum mengimpor versi 1.';
+
+  @override
+  String acuanVersiNomor(int nomor) {
+    return 'v$nomor';
+  }
+
+  @override
+  String acuanVersiBerlakuSejak(int nomor, String tanggal) {
+    return 'v$nomor · berlaku sejak $tanggal';
+  }
+
+  @override
+  String get acuanTanpaVersiAktif => 'Belum ada versi aktif';
+
+  @override
+  String get acuanTanpaVersiAktifKet =>
+      'Belum ada versi paket ini yang berlaku hari ini.';
+
+  @override
+  String acuanJumlahLembar(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n lembar',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String acuanJumlahDraf(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n draf',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String acuanTerjadwal(int nomor, String tanggal) {
+    return 'Terjadwal: v$nomor mulai $tanggal';
+  }
+
+  @override
+  String get acuanGagalMuat => 'Data acuan gagal dimuat.';
+
+  @override
+  String get acuanCobaLagi => 'Coba lagi';
+
+  @override
+  String get acuanButuhIzinJudul => 'Butuh izin data-acuan.lihat';
+
+  @override
+  String get acuanButuhIzinKet =>
+      'Akun ini tidak punya akses ke data acuan. Minta admin lab menambahkan izinnya. Server tetap menolak bila dipanggil langsung.';
+
+  @override
+  String get acuanStatusDraf => 'Draf';
+
+  @override
+  String get acuanStatusDiajukan => 'Diajukan';
+
+  @override
+  String get acuanStatusTerjadwal => 'Terjadwal';
+
+  @override
+  String get acuanStatusAktif => 'Aktif';
+
+  @override
+  String get acuanStatusPensiun => 'Pensiun';
+
+  @override
+  String get acuanStatusDitolak => 'Ditolak';
+
+  @override
+  String get acuanStatusDitarik => 'Ditarik';
+
+  @override
+  String get acuanStatusDibuang => 'Dibuang';
+
+  @override
+  String acuanBukanVersiAktif(String status) {
+    return 'Versi ini berstatus $status: bukan versi yang dipakai menghitung sesi hari ini.';
+  }
+
+  @override
+  String get acuanInfoVersi => 'Info versi';
+
+  @override
+  String get acuanGarisWaktu => 'Garis waktu versi';
+
+  @override
+  String get acuanGarisWaktuKosong => 'Belum ada versi untuk paket ini.';
+
+  @override
+  String get acuanSkemaKosong =>
+      'Paket ini belum punya skema lembar di server.';
+
+  @override
+  String get acuanLembarKosong => 'Lembar ini belum berisi data.';
+
+  @override
+  String acuanKakiLembar(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n baris',
+    );
+    return '$_temp0 · nilai tampil persis seperti tersimpan, tidak dibulatkan';
+  }
+
+  @override
+  String get acuanPerluKonfirmasi => 'Perlu konfirmasi lab';
+
+  @override
+  String get acuanKolomKunci => 'Kunci';
+
+  @override
+  String get acuanNilaiKosong => 'kosong';
+
+  @override
+  String get acuanJenisData => 'Data';
+
+  @override
+  String get acuanJenisBentuk => 'Bentuk lembar';
+
+  @override
+  String get acuanInfoStatus => 'Status';
+
+  @override
+  String get acuanInfoJenis => 'Jenis';
+
+  @override
+  String get acuanInfoBerlaku => 'Berlaku';
+
+  @override
+  String acuanBerlakuRentang(String mulai, String sampai) {
+    return '$mulai s.d. $sampai';
+  }
+
+  @override
+  String acuanBerlakuTerbuka(String mulai) {
+    return 'sejak $mulai, tanpa batas akhir';
+  }
+
+  @override
+  String get acuanBerlakuBelum => 'Belum ditetapkan';
+
+  @override
+  String get acuanInfoSha => 'SHA-256 isi';
+
+  @override
+  String get acuanInfoShaBelum => 'Belum dikunci (draf)';
+
+  @override
+  String get acuanInfoSkema => 'Skema';
+
+  @override
+  String get acuanInfoDibuat => 'Dibuat';
+
+  @override
+  String get acuanInfoDisahkan => 'Disahkan';
+
+  @override
+  String get acuanInfoBelumDisahkan => 'Belum ada pengesahan tercatat';
+
+  @override
+  String acuanInfoOlehPada(int id, String waktu) {
+    return 'pengguna #$id · $waktu';
+  }
+
+  @override
+  String get acuanInfoAlasan => 'Alasan';
+
+  @override
+  String get acuanInfoRujukan => 'Rujukan';
+
+  @override
+  String get acuanSelJudul => 'Rincian sel';
+
+  @override
+  String get acuanSelLembar => 'Lembar';
+
+  @override
+  String get acuanSelKunci => 'Kunci baris';
+
+  @override
+  String get acuanSelNilai => 'Nilai tersimpan';
+
+  @override
+  String get acuanSelTidakAda => 'Tidak ada di versi ini';
+
+  @override
+  String get acuanSelTipe => 'Tipe';
+
+  @override
+  String get acuanSelAsal => 'Asal sel master';
+
+  @override
+  String get acuanSelAsalKosong => 'Tidak dipetakan ke sel master';
+
+  @override
+  String get acuanSelPerluKonfirmasiKet =>
+      'Asal-usul nilai ini belum dikonfirmasi lab.';
+
+  @override
+  String get acuanSelRiwayat => 'Riwayat sel';
+
+  @override
+  String get acuanRiwayatPerVersi => 'Nilai di tiap versi';
+
+  @override
+  String get acuanRiwayatSuntingan => 'Suntingan';
+
+  @override
+  String get acuanRiwayatSuntinganKosong =>
+      'Belum ada suntingan tercatat untuk sel ini.';
+
+  @override
+  String get acuanSumberKetik => 'diketik';
+
+  @override
+  String get acuanSumberTempel => 'ditempel';
+
+  @override
+  String get acuanSumberImpor => 'diimpor';
+
+  @override
+  String get acuanSumberAmbilAlih => 'diambil alih';
+
+  @override
+  String get acuanPenggunaTerhapus => 'akun sudah tidak ada';
+
+  @override
+  String get acuanBandingkan => 'Bandingkan versi';
+
+  @override
+  String get acuanBandingLama => 'Versi lama';
+
+  @override
+  String get acuanBandingBaru => 'Versi baru';
+
+  @override
+  String get acuanBandingTidakAdaBeda => 'Tidak ada perbedaan';
+
+  @override
+  String acuanBandingTidakAdaBedaKet(int lama, int baru) {
+    return 'Isi v$lama dan v$baru sama persis di semua lembar.';
+  }
+
+  @override
+  String acuanBandingRingkasan(int lembar, int sel, int tambah, int hapus) {
+    return '$lembar lembar berubah · $sel sel · $tambah baris ditambah · $hapus baris dihapus';
+  }
+
+  @override
+  String get acuanBandingTanpaVersiData =>
+      'Belum ada versi data untuk dibandingkan.';
+
+  @override
+  String get acuanBandingBarisTambah => 'Baris ditambah';
+
+  @override
+  String get acuanBandingBarisHapus => 'Baris dihapus';
+
+  @override
+  String get acuanLama => 'lama';
+
+  @override
+  String get acuanBaru => 'baru';
+
+  @override
+  String get acuanSelisih => 'selisih';
+
+  @override
+  String get acuanSelisihRelatif => 'relatif';
+
+  @override
+  String get acuanBandingTidakTersedia =>
+      'Banding versi tidak tersedia untuk peran teknisi.';
+
+  @override
+  String get acuanRiwayatTidakTersedia =>
+      'Riwayat sel tidak tersedia untuk peran teknisi.';
 }
