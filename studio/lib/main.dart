@@ -1,0 +1,35 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'app.dart';
+import 'inti/lingkungan_studio.dart';
+import 'inti/penimpaan.dart';
+import 'tema/font_studio.dart';
+
+/// Titik masuk Sidik Studio.
+///
+/// Yang SENGAJA tidak ada di sini, beda dari `main.dart` app lapangan:
+///  - `Firebase.initializeApp` / ketukan push — Studio tanpa push;
+///  - pembaru Windows/APK — pembaru itu milik app lapangan (URL manifesnya
+///    menunjuk rilis app lapangan) dan tidak boleh menimpa Studio;
+///  - `MockStore` — riwayat sesi mock milik alur lapangan.
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Sebelum frame pertama: layar bersama menulis nama font polos.
+  await daftarkanAliasFont();
+
+  // Build dev: alamat server yang disimpan di layar masuk (tablet lewat
+  // Wi-Fi tanpa adb). Build rilis: selalu `null`, tidak dibaca.
+  final alamatDev = await bacaAlamatServerDevAwal();
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        ...penimpaanStudio,
+        alamatServerDevAwalProvider.overrideWithValue(alamatDev),
+      ],
+      child: const SidikStudioApp(),
+    ),
+  );
+}

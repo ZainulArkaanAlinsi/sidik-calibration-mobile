@@ -1,0 +1,485 @@
+{
+  "@@locale": "en",
+  "namaAplikasi": "Sidik Studio",
+  "@namaAplikasi": {
+    "description": "Product name. Not translated."
+  },
+  "slogan": "Data & calculation control center",
+  "masukJudul": "Sign in to Studio",
+  "masukKet": "Use your PT Sidik lab account.",
+  "isianIdentitas": "Employee ID or email",
+  "isianSandi": "Password",
+  "isianIdentitasWajib": "Employee ID or email is required.",
+  "isianSandiWajib": "Password is required.",
+  "tombolMasuk": "Sign in",
+  "tampilkanSandi": "Show password",
+  "sembunyikanSandi": "Hide password",
+  "gagalJaringan": "Can't reach the server. Try again.",
+  "gagalDiPerangkat": "Sign-in failed on this device: {detail}",
+  "@gagalDiPerangkat": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "devJudul": "DEV BUILD — test accounts",
+  "devServer": "Server: {alamat}",
+  "@devServer": {
+    "placeholders": {
+      "alamat": {
+        "type": "String"
+      }
+    }
+  },
+  "seksiDataAcuan": "Reference data",
+  "seksiKelolaData": "Manage data",
+  "seksiLembarHitung": "Calculation sheets",
+  "tahapKode": "Stage {kode}",
+  "@tahapKode": {
+    "placeholders": {
+      "kode": {
+        "type": "String"
+      }
+    }
+  },
+  "tahapBelumTersedia": "Not available yet — built in stage {kode}.",
+  "@tahapBelumTersedia": {
+    "placeholders": {
+      "kode": {
+        "type": "String"
+      }
+    }
+  },
+  "keluar": "Sign out",
+  "temaGelap": "Dark theme",
+  "temaTerang": "Light theme",
+  "bukaMenu": "Open menu",
+  "izinGagalJudul": "Account permissions couldn't be loaded.",
+  "cobaLagi": "Try again",
+  "memuat": "Loading…",
+  "seksiBeranda": "Home",
+  "seksiPengesahan": "Approval",
+  "seksiImpor": "Import",
+  "seksiPengaturan": "Settings",
+  "peranAdmin": "Master Data",
+  "peranTeknisi": "Technician",
+  "peranViewer": "Viewer",
+  "peranSuperAdmin": "Super Admin",
+  "menuAkun": "Account & server status",
+  "bilahStatus": "Status bar",
+  "statusServer": "Server {alamat}",
+  "@statusServer": {
+    "placeholders": {
+      "alamat": {
+        "type": "String"
+      }
+    }
+  },
+  "statusMemeriksa": "Checking server…",
+  "statusTersambung": "Connected",
+  "statusTerputus": "Not connected",
+  "statusRealtimeNyala": "Realtime on",
+  "statusRealtimeMati": "Realtime off",
+  "statusRealtimeTakDiketahui": "Realtime unknown",
+  "statusVersiApi": "API {versi}",
+  "@statusVersiApi": {
+    "placeholders": {
+      "versi": {
+        "type": "String"
+      }
+    }
+  },
+  "berandaMasukSebagai": "Signed in as {nama} · {peran}",
+  "@berandaMasukSebagai": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      },
+      "peran": {
+        "type": "String"
+      }
+    }
+  },
+  "berandaKosong": "No summary for this account yet.",
+  "berandaKosongKet": "Home cards follow the account's permissions and the modules already available.",
+  "kartuBuka": "Open",
+  "kartuDataAcuanKosong": "No reference data packages yet.",
+  "kolomPaket": "Package",
+  "kolomVersiAktif": "Active version",
+  "kolomDraf": "Drafts",
+  "tanpaVersiAktif": "No active version",
+  "belumDiimpor": "Not imported",
+  "sesiBerakhirJudul": "Session ended — sign in again",
+  "sesiBerakhirKet": "The server no longer accepts this session. Enter your password to continue as {nama} ({identitas}). Your screen and inputs stay where they are.",
+  "@sesiBerakhirKet": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      },
+      "identitas": {
+        "type": "String"
+      }
+    }
+  },
+  "sesiBerakhirKeluar": "Sign out & switch account",
+  "sesiAkunBerbeda": "The server returned a different account. Sign out, then sign in with the right account.",
+  "kedaluwarsaJudul": "This Studio version is too old for the server.",
+  "kedaluwarsaKet": "Install the latest Sidik Studio, then open it again.",
+  "kedaluwarsaVersi": "Studio {versi} · server {alamat}",
+  "@kedaluwarsaVersi": {
+    "placeholders": {
+      "versi": {
+        "type": "String"
+      },
+      "alamat": {
+        "type": "String"
+      }
+    }
+  },
+  "bukanAkunLab": "This isn't a lab account. Studio is for lab staff only.",
+  "masukServerVersi": "Server {alamat} · Studio {versi}",
+  "@masukServerVersi": {
+    "placeholders": {
+      "alamat": {
+        "type": "String"
+      },
+      "versi": {
+        "type": "String"
+      }
+    }
+  },
+  "seksiWorkbookAlat": "Instrument workbooks",
+  "kartuWorkbookRingkas": "{jumlah, plural, =1{1 workbook} other{{jumlah} workbooks}} · {belum} not mapped yet",
+  "@kartuWorkbookRingkas": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      },
+      "belum": {
+        "type": "int"
+      }
+    }
+  },
+  "kartuWorkbookSumber": "{csv} from CSV · {xlsm} from .xlsm",
+  "@kartuWorkbookSumber": {
+    "placeholders": {
+      "csv": {
+        "type": "int"
+      },
+      "xlsm": {
+        "type": "int"
+      }
+    }
+  },
+  "workbookKet": "Original Excel mode — read-only. Cells exactly as stored in the master workbook.",
+  "workbookCari": "Search workbook name or profile code",
+  "workbookBelumDipetakan": "Not mapped yet",
+  "workbookBelumDipetakanKet": "No calibration profile assigned yet — waiting for the workbook map decision.",
+  "workbookJumlahLembar": "{jumlah, plural, =1{1 sheet} other{{jumlah} sheets}}",
+  "@workbookJumlahLembar": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "workbookKosong": "No workbooks imported yet.",
+  "workbookKosongKet": "Workbooks are imported on the server with the studio:impor-workbook command.",
+  "workbookTidakCocok": "No workbook matches “{cari}”.",
+  "@workbookTidakCocok": {
+    "placeholders": {
+      "cari": {
+        "type": "String"
+      }
+    }
+  },
+  "workbookGagalMuat": "Couldn't load workbooks.",
+  "workbookTidakDitemukan": "Workbook not found, or not from this lab.",
+  "workbookDiimpor": "Imported {tanggal}",
+  "@workbookDiimpor": {
+    "placeholders": {
+      "tanggal": {
+        "type": "String"
+      }
+    }
+  },
+  "workbookSumberCsv": "From the CSV export: stored values only — no formulas, no layout.",
+  "workbookSumberXlsm": "From the master .xlsm: values, formulas, and layout.",
+  "workbookBerkasAsli": "Original file stored on the server",
+  "kembali": "Back",
+  "workbookBacaSaja": "Read-only",
+  "workbookTampilkanRumus": "Show formulas (Ctrl+`)",
+  "workbookTampilkanNilai": "Show values (Ctrl+`)",
+  "workbookInspektur": "Cell inspector",
+  "workbookMuatUlang": "Reload",
+  "lembarTersembunyi": "Hidden sheet in Excel",
+  "lembarSangatTersembunyi": "Very hidden sheet (veryHidden) in Excel",
+  "lembarDikecualikanTab": "Excluded from import — customer/certificate data",
+  "lembarDikecualikanJudul": "This sheet holds customer/certificate data — managed in the {tabel} table",
+  "@lembarDikecualikanJudul": {
+    "placeholders": {
+      "tabel": {
+        "type": "String"
+      }
+    }
+  },
+  "lembarDikecualikanTanpaTautan": "This sheet holds customer/certificate data — not imported into Studio",
+  "lembarDikecualikanKet": "Its contents are never sent to Studio. Change that data in its table, not in the workbook.",
+  "lembarKosong": "This sheet is empty.",
+  "lembarTidakAda": "This workbook has no sheets.",
+  "lembarGagalMuat": "Couldn't load the sheet's cells.",
+  "kakiSel": "{sel} cells · {rumus} formulas",
+  "@kakiSel": {
+    "placeholders": {
+      "sel": {
+        "type": "int"
+      },
+      "rumus": {
+        "type": "int"
+      }
+    }
+  },
+  "kakiSumber": "Source {sumber}",
+  "@kakiSumber": {
+    "placeholders": {
+      "sumber": {
+        "type": "String"
+      }
+    }
+  },
+  "kakiPilihan": "Selection {rentang} ({jumlah} cells)",
+  "@kakiPilihan": {
+    "placeholders": {
+      "rentang": {
+        "type": "String"
+      },
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "kakiSelCacat": "{jumlah} cells couldn't be read by this Studio version",
+  "@kakiSelCacat": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "inspekturAlamat": "Address",
+  "inspekturGabungan": "Merged",
+  "inspekturTipe": "Type",
+  "inspekturNilai": "Exact value (n)",
+  "inspekturTeks": "Displayed text (s)",
+  "inspekturRumus": "Formula (r)",
+  "inspekturFormat": "Number format (f)",
+  "inspekturGaya": "Style",
+  "inspekturKet": "Exact value = the number stored in the workbook, unrounded. Displayed text follows the cell's number format.",
+  "inspekturKosong": "Empty cell",
+  "tipeAngka": "Number",
+  "tipeTeks": "Text",
+  "tipeLogika": "Boolean",
+  "tipeGalat": "Error",
+  "tipeRumus": "Formula",
+  "tipeKosong": "Empty",
+  "gayaTebal": "bold",
+  "gayaMiring": "italic",
+  "gayaIsi": "fill {warna}",
+  "@gayaIsi": {
+    "placeholders": {
+      "warna": {
+        "type": "String"
+      }
+    }
+  },
+  "gayaWarnaTeks": "text {warna}",
+  "@gayaWarnaTeks": {
+    "placeholders": {
+      "warna": {
+        "type": "String"
+      }
+    }
+  },
+  "gayaRata": "align {rata}",
+  "@gayaRata": {
+    "placeholders": {
+      "rata": {
+        "type": "String"
+      }
+    }
+  },
+  "gayaGaris": "bordered",
+  "gridDisalin": "Copied {baris} × {kolom} cells",
+  "@gridDisalin": {
+    "placeholders": {
+      "baris": {
+        "type": "int"
+      },
+      "kolom": {
+        "type": "int"
+      }
+    }
+  },
+  "gridSalinTerlaluBesar": "{jumlah} cells is too many to copy (max {batas}).",
+  "@gridSalinTerlaluBesar": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      },
+      "batas": {
+        "type": "int"
+      }
+    }
+  },
+  "gridSalinGagalMuat": "Some cells aren't loaded — copy cancelled. Try again.",
+  "devAlamatServer": "Server address (dev)",
+  "devAlamatServerContoh": "e.g. http://192.168.1.10:8000/api",
+  "devAlamatServerSimpan": "Save",
+  "devAlamatServerBawaan": "Use default",
+  "devAlamatServerTidakSah": "Use http:// or https:// with a host.",
+  "devAlamatServerTersimpan": "Saved — used now and next time Studio opens.",
+  "devAlamatServerGagalSimpan": "Couldn't save on this device: {detail}",
+  "@devAlamatServerGagalSimpan": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "devAlamatServerKet": "Build default: {bawaan}",
+  "@devAlamatServerKet": {
+    "placeholders": {
+      "bawaan": {
+        "type": "String"
+      }
+    }
+  },
+  "workbookTutupInspektur": "Close inspector",
+  "workbookLencanaExcelAsli": "Original Excel",
+  "workbookSumberLain": "Other sources ({jumlah})",
+  "@workbookSumberLain": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "workbookSumberLainKet": "Exports of the same instrument workbook. The original Excel is shown above.",
+  "lembarJugaDiTabel": "Also in the {tabel} table",
+  "@lembarJugaDiTabel": {
+    "placeholders": {
+      "tabel": {
+        "type": "String"
+      }
+    }
+  },
+  "lembarJugaDiTabelKet": "This sheet is shown as-is from the workbook; the same data is managed in the {tabel} table.",
+  "@lembarJugaDiTabelKet": {
+    "placeholders": {
+      "tabel": {
+        "type": "String"
+      }
+    }
+  },
+  "kakiLebarPerkiraan": "Estimated widths",
+  "kakiLebarPerkiraanKet": "A CSV export carries no column widths; the server estimated them from the contents.",
+  "zoomPerkecil": "Zoom out (Ctrl+−)",
+  "zoomPerbesar": "Zoom in (Ctrl+=)",
+  "zoomPilih": "Zoom",
+  "zoomPasLebar": "Fit width",
+  "gayaBungkus": "wrapped",
+  "gayaVertikal": "vertical {posisi}",
+  "@gayaVertikal": {
+    "placeholders": {
+      "posisi": {
+        "type": "String"
+      }
+    }
+  },
+  "gayaFont": "font {nama}",
+  "@gayaFont": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "gayaUkuran": "{ukuran} pt",
+  "@gayaUkuran": {
+    "placeholders": {
+      "ukuran": {
+        "type": "String"
+      }
+    }
+  },
+  "workbookSimulasi": "Simulation",
+  "workbookSimulasiKet": "Edit cells to recalculate the workbook on the server. Nothing is saved.",
+  "simulasiSpanduk": "Simulation — not saved",
+  "simulasiJumlahEdit": "{jumlah} cells changed",
+  "@simulasiJumlahEdit": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "simulasiReset": "Reset",
+  "simulasiResetKet": "Discard all edits — back to the workbook contents",
+  "simulasiMenghitung": "Calculating…",
+  "simulasiBatalkanTerakhir": "Undo last edit",
+  "simulasiGalatBerkasAsli": "This workbook has no original Excel file on the server — the simulation can't be calculated.",
+  "simulasiGalatPerluSandi": "This password-protected workbook's calculation model hasn't been prepared on the server — the simulation can't be calculated yet. Ask an admin to run php artisan studio:siapkan-hitung {id} (asks for the password) or re-import the .xlsm file with its password.",
+  "@simulasiGalatPerluSandi": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "simulasiGalatDitolak": "Edit rejected by the server: {pesan}",
+  "@simulasiGalatDitolak": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
+  "simulasiGalatLama": "Calculation took too long (server limit 20 s) and was cancelled.",
+  "simulasiGalatSering": "Too many calculations — the server quota is used up for now. New edits are kept but not sent automatically; wait a moment, then try again.",
+  "simulasiGalatDilarang": "Your role may not run simulations.",
+  "simulasiGalatLain": "Simulation failed: {pesan}",
+  "@simulasiGalatLain": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
+  "simulasiGalatHitung": "{jumlah} calculation engine errors",
+  "@simulasiGalatHitung": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "simulasiBatasEdit": "At most {batas} cells can be changed in one simulation.",
+  "@simulasiBatasEdit": {
+    "placeholders": {
+      "batas": {
+        "type": "int"
+      }
+    }
+  },
+  "simulasiUrungkan": "Undo (Ctrl+Z)",
+  "simulasiUlangi": "Redo (Ctrl+Y)",
+  "bilahSimpanEdit": "Enter",
+  "bilahBatalEdit": "Cancel (Esc)",
+  "lembarTampilkanTersembunyi": "Unhide…",
+  "lembarTampilkanJudul": "Unhide sheet",
+  "lembarTampilkanKet": "Display only — not saved to the workbook.",
+  "gambarGagalMuat": "Image failed to load",
+  "inspekturSimulasi": "Simulated input",
+  "inspekturGalatHitung": "Calculation engine error"
+}
