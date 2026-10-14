@@ -241,11 +241,11 @@ class ApiClient {
           })
           .timeout(const Duration(seconds: 20));
     } on SocketException {
-      throw const AuthException(
+      throw const KoneksiException(
         'Nggak bisa nyambung ke server. Cek koneksi kamu.',
       );
     } catch (_) {
-      throw const AuthException('Server nggak nyaut. Coba lagi sebentar.');
+      throw const KoneksiException('Server nggak nyaut. Coba lagi sebentar.');
     }
 
     if (res.statusCode == 404) return null;
@@ -291,11 +291,14 @@ class ApiClient {
     } on SocketException {
       // Paling sering kejadian: teknisi di lapangan sinyalnya ilang, atau
       // `php artisan serve` di laptop belum dinyalain.
-      throw const AuthException(
+      //
+      // `KoneksiException` (turunan AuthException, pesan sama): antrean draf
+      // offline perlu membedakan "server nggak terjangkau" dari "ditolak".
+      throw const KoneksiException(
         'Nggak bisa nyambung ke server. Cek koneksi kamu.',
       );
     } on TimeoutException {
-      throw const AuthException('Server nggak nyaut. Coba lagi sebentar.');
+      throw const KoneksiException('Server nggak nyaut. Coba lagi sebentar.');
     } on HandshakeException catch (e) {
       debugPrint('ApiClient: TLS gagal: $e');
       throw const AuthException(
@@ -303,7 +306,7 @@ class ApiClient {
       );
     } on http.ClientException catch (e) {
       debugPrint('ApiClient: koneksi terputus: $e');
-      throw AuthException('Koneksi ke server terputus: ${e.message}');
+      throw KoneksiException('Koneksi ke server terputus: ${e.message}');
     } catch (e, st) {
       // DULU semua jatuh ke "Server nggak nyaut" — termasuk galat yang
       // lahir di APLIKASI sendiri sebelum satu byte pun terkirim (mis. isian

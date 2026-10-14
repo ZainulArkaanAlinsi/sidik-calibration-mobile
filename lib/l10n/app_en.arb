@@ -3124,5 +3124,48 @@
   "riwayatSertifikatTerbit": "Issued",
   "riwayatSertifikatDibatalkan": "Cancelled",
   "riwayatSertifikatDiproses": "Processing",
-  "riwayatSertifikatGagal": "Generation failed"
+  "riwayatSertifikatGagal": "Generation failed",
+  "lkDisimpanDiHp": "Saved on this device, will be sent automatically when online",
+  "lkDipulihkanDariHp": "Restored from this device — last saved {waktu}",
+  "@lkDipulihkanDariHp": {
+    "placeholders": {
+      "waktu": {
+        "type": "String"
+      }
+    }
+  },
+  "lkBuangSalinanHp": "Discard",
+  "lkBuangSalinanHpJudul": "Discard the copy on this device?",
+  "lkBuangSalinanHpIsi": "Entries that haven't reached the server will be lost, and the worksheet reloads from the server version.",
+  "lkBuangSalinanHpBatal": "Cancel",
+  "lkSalinanHpLebihLama": "The copy on this device is older than the server version, so the server version is used.",
+  "drafLokalJudul": "Not yet synced (on this device)",
+  "drafServerJudul": "Drafts on the server",
+  "drafLokalMenunggu": "Waiting for signal — sent automatically",
+  "drafLokalPerluDiperbaiki": "Needs fixing: {pesan}",
+  "@drafLokalPerluDiperbaiki": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
+  "drafLokalHanyaDiHp": "Only on this device — not saved to the server yet",
+  "drafLokalTanpaAlat": "Worksheet without equipment",
+  "lkVersiBentrokJudul": "The server version is newer",
+  "lkVersiBentrokIsi": "This worksheet was changed on the server after the unsent draft on this device was saved. Choose which version to keep — the other one is discarded.",
+  "lkPakaiVersiHp": "Use this device's version",
+  "lkPakaiVersiServer": "Use the server version",
+  "drafTertundaMengirim": "Sending drafts that haven't reached the server…",
+  "drafTertundaLogoutJudul": "Unsent drafts",
+  "drafTertundaLogoutIsi": "{jumlah} drafts not sent yet. They stay saved on this tablet and are sent when you log in again.",
+  "@drafTertundaLogoutIsi": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "drafTertundaLogoutBatal": "Cancel",
+  "drafTertundaLogoutLanjut": "Log out"
 }

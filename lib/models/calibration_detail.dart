@@ -924,7 +924,10 @@ class CalibrationDetail {
     this.perluVerifikasi = false,
     this.isianTeknisi,
     this.autoclave,
+    this.lembarAutoclave,
+    this.ocrAutoclave,
     this.statusStandar,
+    this.diubahPada,
   });
 
   final int id;
@@ -1005,6 +1008,22 @@ class CalibrationDetail {
   /// lain — mereka pakai [titik]. Autoklaf `titik`-nya kosong; layar detail
   /// mbranch ke sini biar sesi tersimpan bisa direview sebelum approve.
   final AutoclaveHasil? autoclave;
+
+  /// Lembar MENTAH Autoklaf yang ditulis teknisi (`hasil_autoclave.lembar`) —
+  /// bahan buat mengisi ulang matriks waktu draft Autoklaf dibuka lagi. Bentuk
+  /// datanya persis payload `POST /calibrations/autoclave` (`suhu.disk`,
+  /// `tekanan.indikator_pressure`, `waktu`, …). Null di alat lain.
+  final Map<String, dynamic>? lembarAutoclave;
+
+  /// Tebakan mesin per sel matriks Autoklaf (`hasil_autoclave.ocr`) — blok
+  /// `ocr` yang dulu dikirim HP, disimpan server di SEBELAH `lembar`. Ikut
+  /// dipulihkan supaya simpan ulang (`PUT`) nggak membuang bahan pengukur
+  /// akurasi kamera.
+  final Map<String, dynamic>? ocrAutoclave;
+
+  /// `updated_at` sesi ini — dipakai memutuskan salinan lokal di HP lebih baru
+  /// dari yang di server atau nggak. Null = server lama yang belum ngirim.
+  final DateTime? diubahPada;
 
   /// Status sertifikat semua standar yang kepakai sesi ini — banner kepala
   /// lembar kerja & badge per baris.
@@ -1088,11 +1107,23 @@ class CalibrationDetail {
               json['hasil_autoclave'] as Map<String, dynamic>,
             )
           : null,
+      lembarAutoclave: switch (json['hasil_autoclave']) {
+        {'lembar': final Map<String, dynamic> lembar} => lembar,
+        _ => null,
+      },
+      ocrAutoclave: switch (json['hasil_autoclave']) {
+        {'ocr': final Map<String, dynamic> ocr} => ocr,
+        _ => null,
+      },
       statusStandar: json['status_standar'] is Map<String, dynamic>
           ? StatusStandar.fromJson(
               json['status_standar'] as Map<String, dynamic>,
             )
           : null,
+      diubahPada: switch (json['updated_at']) {
+        final String t => DateTime.tryParse(t),
+        _ => null,
+      },
     );
   }
 }
