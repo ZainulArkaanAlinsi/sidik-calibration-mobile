@@ -241,6 +241,62 @@ void main() {
     s.dispose();
   });
 
+  // Saran B review draf-offline ronde 2 (15 Okt 2026): token baru yang tiba
+  // TANPA provider dibangun ulang harus membuka jeda 401 lewat jadwal biasa —
+  // bukan menunggu aplikasi di-resume atau dialog logout memanggil jalankan.
+  group('jadwalkan sesudah 401', () {
+    test('token berganti tanpa provider dibangun ulang: jadwalkan mengirim '
+        'lagi', () async {
+      server.tolak401 = true;
+      await simpanan.simpan(antre());
+      var token = 'tok-lama';
+      final s = sinkron(tokenDari: () => token);
+
+      await s.jalankan();
+      expect(s.dijeda, isTrue);
+
+      server
+        ..tolak401 = false
+        ..log.clear();
+      token = 'tok-baru';
+      s.jadwalkan(jeda: Duration.zero);
+
+      expect(s.adaJadwal, isTrue, reason: 'Jeda 401 menelan jadwalnya.');
+      await _tungguSampai(() async => (await simpanan.daftar(userId)).isEmpty);
+
+      expect(server.log.map((p) => p.metode), ['POST', 'PUT']);
+      for (final p in server.log) {
+        expect(p.body['status'], 'draft');
+      }
+      expect(s.dijeda, isFalse);
+      s.dispose();
+    });
+
+    test('token masih yang ditolak: jadwalnya jalan tapi nggak mengirim dan '
+        'nggak berputar', () async {
+      server.tolak401 = true;
+      await simpanan.simpan(antre());
+      final s = sinkron(token: 'tok-lama');
+
+      await s.jalankan();
+      server.log.clear();
+
+      s.jadwalkan(jeda: Duration.zero);
+      await _tungguSampai(() async => !s.adaJadwal);
+      // Putaran yang dipicu timer (atau putaran kosong kalau sudah selesai).
+      await s.jalankan();
+
+      expect(server.log, isEmpty);
+      expect(s.dijeda, isTrue);
+      expect(s.adaJadwal, isFalse, reason: 'Timer berputar terus selama 401.');
+      expect(
+        (await simpanan.daftar(userId)).single.status,
+        StatusDrafLokal.belumTersinkron,
+      );
+      s.dispose();
+    });
+  });
+
   // Keputusan review 14 Okt 2026 (K-30-09): draf antre akun lain tetap di HP,
   // tapi NGGAK dikirim pakai token akun yang sedang login.
   test('draf antre akun lain nggak dikirim atas nama akun yang login; '
@@ -332,6 +388,100 @@ void main() {
     });
   });
 
+  // Saran A review draf-offline ronde 2 (15 Okt 2026): dulu pengirim antrean
+  // MEMERIKSA salinannya (`baca`) lalu MENULIS (`hapus` / `simpan`) dalam dua
+  // langkah, dan simpan otomatis layar bisa mendarat di antaranya.
+  //
+  // [_SimpananBerCelah] menyelipkan tulisan layar PERSIS sesudah akses
+  // simpanan berikutnya dari pengirim antrean selesai. Dengan periksa & tulis
+  // terpisah, itu celahnya; dengan `gantiJikaSama` yang satu operasi, tulisan
+  // itu cuma bisa mendarat sesudahnya — dan harus selamat.
+  group('tulisan layar yang mendarat di antara periksa dan tulis', () {
+    late _SimpananBerCelah berCelah;
+
+    setUp(() => berCelah = _SimpananBerCelah(simpanan));
+
+    SinkronDrafLokal sinkronBerCelah() => SinkronDrafLokal(
+      simpanan: berCelah,
+      pengirim: server,
+      userId: userId,
+      bacaToken: () async => 'tok',
+      setelahBerubah: () => berubah++,
+      dengarSiklusAplikasi: false,
+    );
+
+    DrafLokal ketikanBaru({int? sesiId}) => antre(sesiId: sesiId).copyWith(
+      disimpanPada: DateTime.utc(2026, 10, 14, 6, 42),
+      kiriman: {
+        'client_request_id': cid,
+        'equipment_id': 12,
+        'status': 'draft',
+        'catatan_teknisi': 'diketik di celah',
+      },
+    );
+
+    test('terkirim: salinan nggak ikut dibuang, tetap antre', () async {
+      await simpanan.simpan(antre(sesiId: 72));
+      server.sesi[72] = {'status': 'draft'};
+      server.selamaPut = () async =>
+          berCelah.selipkan = () => simpanan.simpan(ketikanBaru(sesiId: 72));
+      final s = sinkronBerCelah();
+
+      await s.jalankan();
+
+      final sisa = (await simpanan.daftar(userId)).single;
+      expect(sisa.kiriman!['catatan_teknisi'], 'diketik di celah');
+      expect(sisa.status, StatusDrafLokal.belumTersinkron);
+      expect(s.adaJadwal, isTrue);
+
+      server.selamaPut = null;
+      await s.jalankan();
+      expect(server.sesi[72]!['catatan_teknisi'], 'diketik di celah');
+      expect(await simpanan.daftar(userId), isEmpty);
+      s.dispose();
+    });
+
+    test('ditolak 422: ketikan baru nggak ditimpa isi lama bertanda '
+        'perlu_diperbaiki', () async {
+      server.tolak422 = true;
+      await simpanan.simpan(antre(sesiId: 72));
+      server.sebelumPeriksa = () async =>
+          berCelah.selipkan = () => simpanan.simpan(ketikanBaru(sesiId: 72));
+      final s = sinkronBerCelah();
+
+      await s.jalankan();
+
+      // Versi yang DIKIRIM memang ditolak; ketikan sesudahnya belum, jadi
+      // dia yang tersisa — tetap antre, isinya utuh.
+      final sisa = (await simpanan.daftar(userId)).single;
+      expect(sisa.kiriman!['catatan_teknisi'], 'diketik di celah');
+      expect(sisa.status, StatusDrafLokal.belumTersinkron);
+      s.dispose();
+    });
+
+    test('POST masuk tapi PUT putus: pindah ke sesi-<id> nggak membuang '
+        'ketikan baru di baru-<cid>, dan tetap satu sesi', () async {
+      server.putusPadaPutKe = 1;
+      await simpanan.simpan(antre());
+      server.sebelumPeriksa = () async {
+        server.sebelumPeriksa = null;
+        berCelah.selipkan = () => simpanan.simpan(ketikanBaru());
+      };
+      final s = sinkronBerCelah();
+
+      await s.jalankan();
+
+      final baru = await simpanan.baca(userId, 'baru-$cid');
+      expect(baru?.kiriman?['catatan_teknisi'], 'diketik di celah');
+
+      await s.jalankan();
+      expect(server.sesi, hasLength(1), reason: 'Sesi kembar lahir.');
+      expect(server.sesi.values.single['catatan_teknisi'], 'diketik di celah');
+      expect(await simpanan.daftar(userId), isEmpty);
+      s.dispose();
+    });
+  });
+
   test('gagal jaringan: tetap antre dan dijadwalkan ulang', () async {
     server.offline = true;
     await simpanan.simpan(antre());
@@ -384,6 +534,65 @@ void main() {
     expect(server.log.where((p) => p.metode == 'POST'), hasLength(1));
     s.dispose();
   });
+}
+
+Future<void> _tungguSampai(Future<bool> Function() syarat) async {
+  final batas = DateTime.now().add(const Duration(seconds: 5));
+  while (!await syarat()) {
+    if (DateTime.now().isAfter(batas)) fail('Waktu habis menunggu.');
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+  }
+}
+
+/// Simpanan yang menyelipkan satu tulisan ([selipkan]) PERSIS sesudah akses
+/// berikutnya (selain [daftar]) selesai — meniru simpan otomatis layar yang
+/// mendarat di tengah langkah pengirim antrean.
+class _SimpananBerCelah implements SimpananDrafLokal {
+  _SimpananBerCelah(this.dalam);
+
+  final SimpananDrafLokal dalam;
+  Future<void> Function()? selipkan;
+
+  Future<T> _lalu<T>(Future<T> Function() kerja) async {
+    final hasil = await kerja();
+    final tulisan = selipkan;
+    selipkan = null;
+    await tulisan?.call();
+    return hasil;
+  }
+
+  @override
+  Future<DrafLokal?> baca(int userId, String kunci) =>
+      _lalu(() => dalam.baca(userId, kunci));
+
+  @override
+  Future<List<DrafLokal>> daftar(int userId) => dalam.daftar(userId);
+
+  @override
+  Future<void> simpan(DrafLokal draf) => _lalu(() => dalam.simpan(draf));
+
+  @override
+  Future<void> hapus(int userId, String kunci) =>
+      _lalu(() => dalam.hapus(userId, kunci));
+
+  @override
+  Future<bool> gantiJikaSama(
+    int userId,
+    String kunci,
+    DateTime disimpanPada, {
+    DrafLokal? pengganti,
+  }) => _lalu(
+    () =>
+        dalam.gantiJikaSama(userId, kunci, disimpanPada, pengganti: pengganti),
+  );
+
+  @override
+  Future<void> buangKedaluwarsa(int userId, {DateTime? sekarang}) =>
+      dalam.buangKedaluwarsa(userId, sekarang: sekarang);
+
+  @override
+  Future<void> buangAkunLain(int userId, {DateTime? sekarang}) =>
+      dalam.buangAkunLain(userId, sekarang: sekarang);
 }
 
 /// Server tiruan: dedup `client_request_id` dan `PUT` yang mengganti isi.

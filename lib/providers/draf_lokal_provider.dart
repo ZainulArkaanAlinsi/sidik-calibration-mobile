@@ -113,8 +113,9 @@ class HasilSinkronDraf {
 ///  - **Satu putaran dalam satu waktu** ([jalankan] memulangkan putaran yang
 ///    lagi jalan).
 ///  - **422 / penolakan lain → `perlu_diperbaiki`, nggak diulang.**
-///  - **401 → berhenti sampai login berikutnya** (provider-nya dibangun ulang
-///    waktu login).
+///  - **401 → berhenti selama token itu yang dipakai.** Token lain (login
+///    ulang, sesi yang dipulihkan) membuka jedanya di [jalankan] /
+///    [jadwalkan] berikutnya, walau provider-nya nggak dibangun ulang.
 ///  - **Gagal jaringan → berhenti, coba lagi dengan jeda mundur.**
 ///
 /// ## Kenapa `POST` disusul `PUT`
@@ -186,8 +187,13 @@ class SinkronDrafLokal {
       _berjalan ??= _jalankan().whenComplete(() => _berjalan = null);
 
   /// Pasang percobaan berikutnya. Dipanggil layar sesudah menitipkan draf.
+  ///
+  /// SENGAJA tetap dipasang walau [dijeda]: token baru bisa tiba tanpa
+  /// provider ini dibangun ulang, dan cuma [_jalankan] yang bisa membaca
+  /// token terkini (async) lalu membandingkannya dengan yang ditolak. Token
+  /// yang masih sama berhenti di sana tanpa mengirim dan tanpa menjadwal ulang.
   void jadwalkan({Duration? jeda}) {
-    if (dibuang || dijeda) return;
+    if (dibuang) return;
     _timer?.cancel();
     _timer = Timer(
       jeda ?? jedaMundur[math.min(_gagalBeruntun, jedaMundur.length - 1)],
@@ -270,53 +276,55 @@ class SinkronDrafLokal {
         // baru: membuangnya berarti kehilangan ketikan teknisi. Salinan yang
         // berubah tetap antre — putaran berikutnya mengirim versi terbarunya
         // (`POST` replay + `PUT`, jadi tetap nggak ada sesi kembar).
-        if (await _masihSama(d)) await simpanan.hapus(userId, d.kunci);
+        await _gantiJikaSama(d);
         terkirim++;
       } catch (e) {
+        final tidakSah = e is ApiException && e.status == 401;
+        final sementara =
+            !tidakSah &&
+            (gagalJaringan(e) ||
+                e is! ApiException ||
+                e.status >= 500 ||
+                e.status == 408 ||
+                e.status == 429);
+
+        // Bukan 401 dan bukan sementara = penolakan server (422 / 403 / 404 /
+        // 409): mengirim isi yang sama cuma dapat penolakan yang sama.
+        final penolakan = !tidakSah && !sementara;
+
         var sisa = d;
-        final utuh = await _masihSama(d);
 
         // Sesinya SUDAH lahir di server, yang gagal cuma PUT penyusulnya:
         // salinannya pindah kunci ke id itu, supaya percobaan berikutnya
-        // `PUT` ke sana — bukan `POST` lagi. Kalau salinannya sudah berubah,
-        // dibiarkan: `POST` replay berikutnya memulangkan id yang sama.
-        if (idBaru != null && utuh) {
-          sisa = d.copyWith(sesiId: idBaru);
-          await simpanan.simpan(sisa);
-          await simpanan.hapus(userId, d.kunci);
+        // `PUT` ke sana — bukan `POST` lagi.
+        if (idBaru != null) sisa = sisa.copyWith(sesiId: idBaru);
+
+        if (penolakan) {
+          sisa = sisa.copyWith(
+            status: StatusDrafLokal.perluDiperbaiki,
+            pesan: e.message,
+          );
         }
 
-        if (e is ApiException && e.status == 401) {
+        // Pindah kunci & tanda `perlu_diperbaiki` cuma buat salinan yang
+        // MASIH persis yang barusan dikirim. Yang sudah berubah dibiarkan:
+        // isinya yang baru belum pernah ditolak siapa pun, dan `POST` replay
+        // berikutnya memulangkan id yang sama.
+        final diganti =
+            !identical(sisa, d) && await _gantiJikaSama(d, pengganti: sisa);
+
+        if (tidakSah) {
           _tokenDitolak = token;
           gagal = true;
           break;
         }
-
-        final sementara =
-            gagalJaringan(e) ||
-            e is! ApiException ||
-            e.status >= 500 ||
-            e.status == 408 ||
-            e.status == 429;
 
         if (sementara) {
           gagal = true;
           break;
         }
 
-        // Bukan sementara = penolakan server (422 / 403 / 404 / 409):
-        // mengirim isi yang sama cuma dapat penolakan yang sama. Salinan yang
-        // sudah berubah sejak dikirim nggak ditimpa — isinya yang baru belum
-        // pernah ditolak siapa pun.
-        if (utuh) {
-          await simpanan.simpan(
-            sisa.copyWith(
-              status: StatusDrafLokal.perluDiperbaiki,
-              pesan: e.message,
-            ),
-          );
-          ditolak++;
-        }
+        if (diganti) ditolak++;
       }
     }
 
@@ -345,12 +353,21 @@ class SinkronDrafLokal {
     );
   }
 
-  /// Salinan [d] masih persis yang barusan dikirim, dan nggak sedang dibuka
-  /// di layar lembar kerja?
-  Future<bool> _masihSama(DrafLokal d) async {
+  /// Buang salinan [d] — atau ganti dengan [pengganti] — HANYA kalau masih
+  /// persis yang barusan dikirim dan nggak sedang dibuka di layar lembar
+  /// kerja.
+  ///
+  /// Periksa-dan-tulisnya satu operasi di simpanan
+  /// ([SimpananDrafLokal.gantiJikaSama]), bukan `baca` lalu `hapus`: simpan
+  /// otomatis yang mendarat di antara keduanya dulu bisa ikut terbuang.
+  Future<bool> _gantiJikaSama(DrafLokal d, {DrafLokal? pengganti}) async {
     if (terbuka.contains(d.kunci)) return false;
-    final sekarang = await simpanan.baca(userId, d.kunci);
-    return sekarang != null && sekarang.disimpanPada == d.disimpanPada;
+    return simpanan.gantiJikaSama(
+      userId,
+      d.kunci,
+      d.disimpanPada,
+      pengganti: pengganti,
+    );
   }
 
   void dispose() {

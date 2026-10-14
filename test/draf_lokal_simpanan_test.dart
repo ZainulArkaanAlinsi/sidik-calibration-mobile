@@ -234,10 +234,118 @@ void main() {
       expect(await mati.baca(7, draf().kunci), isNull);
       expect(await mati.daftar(7), isEmpty);
       await mati.hapus(7, draf().kunci);
+      expect(
+        await mati.gantiJikaSama(7, draf().kunci, draf().disimpanPada),
+        isFalse,
+      );
       await mati.buangKedaluwarsa(7);
       await mati.buangAkunLain(7);
     },
   );
+
+  // Saran A review draf-offline ronde 2 (15 Okt 2026): periksa-dan-tulis
+  // pengirim antrean satu operasi, berurutan dengan simpan otomatis layar.
+  group('ganti bersyarat (gantiJikaSama)', () {
+    final awal = DateTime.utc(2026, 10, 14, 6, 41);
+    final sesudah = DateTime.utc(2026, 10, 14, 6, 42);
+
+    test('salinan yang masih sama dibuang', () async {
+      await simpanan.simpan(draf(sesiId: 72, disimpan: awal));
+
+      expect(await simpanan.gantiJikaSama(7, 'sesi-72', awal), isTrue);
+      expect(await simpanan.baca(7, 'sesi-72'), isNull);
+      expect(berkasDi(7), isEmpty);
+    });
+
+    test('simpan yang dipanggil lebih dulu mendarat dulu: salinan barunya '
+        'nggak ikut dibuang', () async {
+      await simpanan.simpan(draf(sesiId: 72, disimpan: awal));
+
+      // Dua-duanya dipanggil tanpa ditunggu, persis seperti layar & pengirim
+      // antrean yang jalan bersamaan.
+      final tulis = simpanan.simpan(
+        draf(
+          sesiId: 72,
+          disimpan: sesudah,
+          isian: {
+            'teks': {'catatan_teknisi': 'ketikan terakhir'},
+          },
+        ),
+      );
+      final ganti = simpanan.gantiJikaSama(7, 'sesi-72', awal);
+      await tulis;
+
+      expect(await ganti, isFalse);
+      final sisa = await simpanan.baca(7, 'sesi-72');
+      expect(
+        (sisa!.isian['teks'] as Map)['catatan_teknisi'],
+        'ketikan terakhir',
+      );
+    });
+
+    test(
+      'simpan yang dipanggil sesudahnya mendarat di atas hasilnya',
+      () async {
+        await simpanan.simpan(draf(sesiId: 72, disimpan: awal));
+
+        final ganti = simpanan.gantiJikaSama(7, 'sesi-72', awal);
+        final tulis = simpanan.simpan(draf(sesiId: 72, disimpan: sesudah));
+        await tulis;
+
+        expect(await ganti, isTrue);
+        expect((await simpanan.baca(7, 'sesi-72'))!.disimpanPada, sesudah);
+      },
+    );
+
+    test('pindah kunci: pengganti ditulis, kunci lama dibuang', () async {
+      final asli = draf(
+        disimpan: awal,
+        status: StatusDrafLokal.belumTersinkron,
+      );
+      await simpanan.simpan(asli);
+
+      final pindah = await simpanan.gantiJikaSama(
+        7,
+        asli.kunci,
+        awal,
+        pengganti: asli.copyWith(sesiId: 501),
+      );
+
+      expect(pindah, isTrue);
+      final nama = berkasDi(7).map((f) => f.uri.pathSegments.last).toList();
+      expect(nama, ['sesi-501.json']);
+      expect(
+        (await simpanan.baca(7, 'sesi-501'))!.status,
+        StatusDrafLokal.belumTersinkron,
+      );
+    });
+
+    test('pengganti milik akun lain ditolak, salinan asli utuh', () async {
+      final asli = draf(sesiId: 72, disimpan: awal);
+      await simpanan.simpan(asli);
+
+      final hasil = await simpanan.gantiJikaSama(
+        7,
+        'sesi-72',
+        awal,
+        pengganti: draf(userId: 9, sesiId: 72, disimpan: awal),
+      );
+
+      expect(hasil, isFalse);
+      expect(await simpanan.baca(7, 'sesi-72'), isNotNull);
+      expect(berkasDi(9), isEmpty);
+    });
+
+    test('simpanan memori mengikuti aturan yang sama', () async {
+      final memori = SimpananDrafLokalMemori();
+      await memori.simpan(draf(sesiId: 72, disimpan: sesudah));
+
+      expect(await memori.gantiJikaSama(7, 'sesi-72', awal), isFalse);
+      expect(await memori.baca(7, 'sesi-72'), isNotNull);
+      expect(await memori.gantiJikaSama(7, 'sesi-72', sesudah), isTrue);
+      expect(await memori.baca(7, 'sesi-72'), isNull);
+    });
+  });
 
   group('lebih baru dari server', () {
     final server = DateTime.utc(2026, 10, 14, 6, 0);
