@@ -4612,6 +4612,455 @@ class LembarKerjaState {
     };
   }
 
+  /// Isi ulang kotak matriks dari lembar mentah yang tersimpan di server
+  /// (`hasil_autoclave.lembar`) — kebalikan [payloadMatriks].
+  ///
+  /// ## Kenapa ini ada
+  ///
+  /// Draft Autoklaf yang dibuka ulang dulu nampilin matriks KOSONG: Autoklaf
+  /// nggak nulis `raw_measurements`, jadi [terapkanPembacaan] nggak punya apa
+  /// pun buat dipulihkan. Selama simpan ulangnya `POST`, akibatnya "cuma" sesi
+  /// kembar. Begitu simpan ulangnya `PUT` ke sesi yang sama, matriks kosong
+  /// itu MENIMPA lembar yang tersimpan — draft yang dibuka lalu disimpan tanpa
+  /// diketik ulang kehilangan seluruh angkanya.
+  ///
+  /// Jalurnya dibaca dari `kode_data` bentuk yang sama dengan yang dipakai
+  /// [payloadMatriks], jadi dua arah ini nggak bisa beda pendapat soal sel
+  /// mana nyimpen apa. Kotak yang sudah diketik nggak ditimpa — aturan yang
+  /// sama dengan [muatDariSesi].
+  ///
+  /// Balikin jumlah sel yang terisi.
+  int terapkanLembarMatriks(Map<String, dynamic> lembar) {
+    final bagian = bagianMatriks;
+    final m = bagian?.matriks;
+    if (bagian == null || m == null) return 0;
+
+    var terisi = 0;
+
+    void isiDeret(String kodeData, List<int> titik, {required bool jam}) {
+      final deret = _ambilJalur(lembar, kodeData);
+      if (deret is! List) return;
+
+      for (var i = 0; i < titik.length && i < deret.length; i++) {
+        final nilai = deret[i];
+        final teksSel = switch (nilai) {
+          final num n when !jam => formatAngka(n.toDouble()),
+          final String s when s.trim().isNotEmpty => s.trim(),
+          _ => null,
+        };
+        if (teksSel == null) continue;
+
+        final kotak = kotakMatriks(kodeData, titik[i]);
+        if (kotak.text.trim().isNotEmpty) continue;
+        kotak.text = teksSel;
+        terisi++;
+      }
+    }
+
+    for (final b in m.semuaBaris) {
+      if (b.kodeData.isEmpty) continue;
+      isiDeret(b.kodeData, m.titikWaktu, jam: b.jam);
+    }
+
+    final tambahan = bagian.tabelTambahan;
+    if (tambahan != null && tambahan.kodeData.isNotEmpty) {
+      isiDeret(tambahan.kodeData, tambahan.pengulangan, jam: false);
+    }
+
+    void isiTeks(String kode, Object? nilai) {
+      final kotak = teks[kode];
+      if (kotak == null || kotak.text.trim().isNotEmpty) return;
+      final isi = switch (nilai) {
+        final num n => formatAngka(n.toDouble()),
+        final String s => s.trim(),
+        _ => '',
+      };
+      if (isi.isNotEmpty) kotak.text = isi;
+    }
+
+    // Kembaran `jalurField` di [payloadMatriks] + set point.
+    isiTeks('satuan_tekanan', _ambilJalur(lembar, 'tekanan.satuan'));
+    isiTeks('display_tekanan', _ambilJalur(lembar, 'tekanan.display'));
+    isiTeks('set_point', lembar['set_point']);
+
+    return terisi;
+  }
+
+  /// Ambil nilai di jalur bertitik (`suhu.disk.0`) — segmen angka jadi index
+  /// List, karena wadah bernomor diratakan jadi List waktu dikirim
+  /// ([_ratakanWadahBernomor]).
+  static Object? _ambilJalur(Map<String, dynamic> akar, String jalur) {
+    Object? isi = akar;
+
+    for (final segmen in jalur.split('.')) {
+      final index = int.tryParse(segmen);
+      if (isi is Map) {
+        isi = isi[segmen];
+      } else if (isi is List && index != null) {
+        isi = index >= 0 && index < isi.length ? isi[index] : null;
+      } else {
+        return null;
+      }
+    }
+
+    return isi;
+  }
+
+  // ------------------------------------------------------- salinan di HP
+
+  /// Seluruh isian MENTAH formulir, siap ditulis ke HP (draf offline, F3).
+  ///
+  /// ## Kenapa bukan payload server
+  ///
+  /// Payload server ([toSubmission] / [payloadSimpanMatriks]) itu hasil olah:
+  /// sel kosong dibuang, angka yang nggak kebaca dibuang, centang standar yang
+  /// DILEPAS teknisi nggak kelihatan bedanya dengan yang belum pernah
+  /// dicentang, dan penanda kamera (`selRendahKeyakinan`) nggak ikut sama
+  /// sekali. Lembar yang dipulihkan dari situ kelihatan mirip, tapi bukan yang
+  /// diketik teknisi.
+  ///
+  /// Yang disimpan di sini isi tiap KOTAK apa adanya — teks, bukan angka —
+  /// dengan kunci yang sama yang dipakai layar ([TitikState.salinKotak],
+  /// [kunciMatriks], kode field). Nggak satu pun aturan payload dilewati:
+  /// waktu dikirim, kiriman tetap dirakit dari state yang dipulihkan ini.
+  Map<String, dynamic> salinanLokal() {
+    Map<String, dynamic> bacaan(BacaanMesin b) => {
+      't': b.teksMentah,
+      if (b.keyakinan != null) 'k': b.keyakinan,
+    };
+
+    Map<String, dynamic> deret(
+      List<TextEditingController> ctl,
+      Set<int> dariFoto,
+      Map<int, BacaanMesin> mesin,
+    ) => {
+      'nilai': [for (final c in ctl) c.text],
+      'dari_foto': [...dariFoto],
+      'mesin': {for (final e in mesin.entries) '${e.key}': bacaan(e.value)},
+    };
+
+    final g = grid;
+
+    return {
+      'alat': alat?.toJson(),
+      'terisi_dari_alat': Map.of(_terisiDariAlat),
+      'satuan_pilihan': _satuanPilihan,
+      'satuan_dari_alat': _satuanDariAlat,
+      'lokasi': lokasi.toApi(),
+      'room_id': roomId,
+      'standard_id': standardId,
+      'calibration_method_id': calibrationMethodId,
+      'thermohygro_standard_id': thermohygroStandardId,
+      'ada_isian_dari_foto': adaIsianDariFoto,
+      'titik_kustom': {
+        for (final e in _titikKustom.entries) e.key: [...e.value],
+      },
+      'baris_tambahan': barisTambahan,
+      'bagian_sebagai_tabel': [...bagianSebagaiTabel],
+      'pilihan_slot': Map.of(pilihanSlot),
+      // SEMUA titik, termasuk yang kosong: `standardId` bawaannya pasangan
+      // tercetak, jadi centang yang dilepas teknisi (null) cuma bisa kembali
+      // kalau nilainya ikut tertulis.
+      'titik': {
+        for (final e in titik.entries)
+          '${e.key}': {
+            'kotak': e.value.salinKotak(),
+            'standard_id': e.value.standardId,
+            'no_probe': e.value.noProbeCtl.text,
+          },
+      },
+      'teks': {for (final e in teks.entries) e.key: e.value.text},
+      'tanggal': {
+        for (final e in tanggal.entries)
+          e.key: e.value?.toIso8601String(),
+      },
+      'matriks': {
+        for (final e in matriks.entries)
+          if (e.value.text.isNotEmpty) e.key: e.value.text,
+      },
+      'matriks_dari_foto': [...matriksDariFoto],
+      'bacaan_mesin_matriks': {
+        for (final e in bacaanMesinMatriks.entries) e.key: bacaan(e.value),
+      },
+      'sel_rendah_keyakinan': [...selRendahKeyakinan],
+      'bacaan_mesin_sel': {
+        for (final e in bacaanMesinSel.entries) e.key: bacaan(e.value),
+      },
+      // Cuma yang berisi: entri kosong dibikin malas oleh layar waktu baris
+      // centangnya digambar ([usage]), jadi ikut menulisnya bikin salinan
+      // "berubah" tanpa teknisi menyentuh apa pun. Pemulihan mengosongkan
+      // semua centang dulu, jadi yang nggak tertulis memang kosong.
+      'usage': {
+        for (final e in usageCheck.entries)
+          if (e.value.adaIsian)
+          '${e.key}': {
+            'dipakai': e.value.dipakai,
+            'keterangan': e.value.keterangan.text,
+          },
+      },
+      'grid': g == null
+          ? null
+          : [
+              for (final sp in g.setPoint)
+                {
+                  'titik': sp.titikCtl.text,
+                  'sensor': [
+                    for (final s in sp.sensor)
+                      {
+                        'no': s.noCtl.text,
+                        'channel': s.channelCtl.text,
+                        'no_dari_foto': s.noDariFoto,
+                        ...deret(s.pembacaanCtl, s.dariFoto, s.bacaanMesin),
+                      },
+                  ],
+                  'indikator': deret(
+                    sp.indikator.ctl,
+                    sp.indikator.dariFoto,
+                    sp.indikator.bacaanMesin,
+                  ),
+                  'suhu_ruang': deret(
+                    sp.suhuRuang.ctl,
+                    sp.suhuRuang.dariFoto,
+                    sp.suhuRuang.bacaanMesin,
+                  ),
+                },
+            ],
+    };
+  }
+
+  /// Pulihkan isian dari [salinanLokal] — MENGGANTI isi formulir, bukan
+  /// mengisi yang kosong saja.
+  ///
+  /// Beda sengaja dengan [muatDariSesi]: di sana data server cuma mengisi
+  /// kotak kosong karena teknisi mungkin sudah mengetik duluan. Salinan di HP
+  /// justru YANG TERAKHIR diketik teknisi, jadi dia yang menang — termasuk
+  /// kotak yang sengaja dikosongkan.
+  ///
+  /// Balikin jumlah baris yang isinya nggak ketemu tempatnya di bentuk yang
+  /// lagi kepasang (layar wajib bilang ke teknisi kalau ada).
+  int pulihkanSalinanLokal(Map<String, dynamic> s) {
+    BacaanMesin? bacaan(Object? j) => j is Map && j['t'] is String
+        ? BacaanMesin(
+            teksMentah: j['t'] as String,
+            keyakinan: (j['k'] as num?)?.toDouble(),
+          )
+        : null;
+
+    int? angkaBulat(Object? n) => n is num ? n.toInt() : null;
+
+    // 1. Identitas & pilihan yang menentukan BENTUK tabel — duluan, karena
+    //    baris tabel dibangun dari sini.
+    alat = switch (s['alat']) {
+      final Map<String, dynamic> a => EquipmentLookup.fromJson(a),
+      _ => null,
+    };
+    _terisiDariAlat
+      ..clear()
+      ..addAll({
+        for (final e in (s['terisi_dari_alat'] as Map? ?? const {}).entries)
+          '${e.key}': '${e.value}',
+      });
+    _satuanPilihan = s['satuan_pilihan'] as String?;
+    _satuanDariAlat = s['satuan_dari_alat'] as String?;
+    lokasi = s['lokasi'] == 'onsite'
+        ? LokasiKalibrasi.onsite
+        : LokasiKalibrasi.lab;
+    roomId = angkaBulat(s['room_id']);
+    standardId = angkaBulat(s['standard_id']);
+    calibrationMethodId = angkaBulat(s['calibration_method_id']);
+    thermohygroStandardId = angkaBulat(s['thermohygro_standard_id']);
+    adaIsianDariFoto = s['ada_isian_dari_foto'] == true;
+
+    _titikKustom
+      ..clear()
+      ..addAll({
+        for (final e in (s['titik_kustom'] as Map? ?? const {}).entries)
+          '${e.key}': [
+            for (final n in (e.value as List? ?? const []))
+              if (n is num) n.toDouble(),
+          ],
+      });
+    barisTambahan = angkaBulat(s['baris_tambahan']) ?? 0;
+    bagianSebagaiTabel
+      ..clear()
+      ..addAll([for (final k in (s['bagian_sebagai_tabel'] as List? ?? [])) '$k']);
+    pilihanSlot
+      ..clear()
+      ..addAll({
+        for (final e in (s['pilihan_slot'] as Map? ?? const {}).entries)
+          if (e.value is num) '${e.key}': (e.value as num).toInt(),
+      });
+
+    // 2. Tabel dibangun ulang dari pilihan di atas, lalu selnya ditempel.
+    _bangunTitik();
+
+    var kebuang = 0;
+    for (final e in (s['titik'] as Map? ?? const {}).entries) {
+      final kunci = double.tryParse('${e.key}');
+      final isi = e.value;
+      if (kunci == null || isi is! Map) continue;
+
+      final tujuan = titik[kunci];
+      final kotak = {
+        for (final k in (isi['kotak'] as Map? ?? const {}).entries)
+          '${k.key}': '${k.value}',
+      };
+
+      if (tujuan == null) {
+        if (kotak.isNotEmpty) kebuang++;
+        continue;
+      }
+
+      tujuan.tempelKotak(kotak);
+      if (isi.containsKey('standard_id')) {
+        tujuan.standardId = angkaBulat(isi['standard_id']);
+      }
+      tujuan.noProbeCtl.text = isi['no_probe'] as String? ?? '';
+    }
+
+    // 3. Kotak teks & tanggal — yang nggak ada di bentuk sekarang dilewat.
+    for (final e in (s['teks'] as Map? ?? const {}).entries) {
+      final kotak = teks['${e.key}'];
+      if (kotak != null) kotak.text = '${e.value ?? ''}';
+    }
+    for (final e in (s['tanggal'] as Map? ?? const {}).entries) {
+      tanggal['${e.key}'] = switch (e.value) {
+        final String t => DateTime.tryParse(t),
+        _ => null,
+      };
+    }
+
+    // 4. Matriks (Autoklaf).
+    for (final c in matriks.values) {
+      c.text = '';
+    }
+    for (final e in (s['matriks'] as Map? ?? const {}).entries) {
+      final kunci = '${e.key}';
+      final pisah = kunci.lastIndexOf('#');
+      final titikWaktu = int.tryParse(kunci.substring(pisah + 1));
+      if (pisah <= 0 || titikWaktu == null) continue;
+      kotakMatriks(kunci.substring(0, pisah), titikWaktu).text = '${e.value}';
+    }
+    matriksDariFoto
+      ..clear()
+      ..addAll([for (final k in (s['matriks_dari_foto'] as List? ?? [])) '$k']);
+    bacaanMesinMatriks
+      ..clear()
+      ..addAll({
+        for (final e in (s['bacaan_mesin_matriks'] as Map? ?? const {}).entries)
+          '${e.key}': ?bacaan(e.value),
+      });
+
+    // 5. Penanda kamera di tabel biasa.
+    selRendahKeyakinan
+      ..clear()
+      ..addAll([
+        for (final k in (s['sel_rendah_keyakinan'] as List? ?? [])) '$k',
+      ]);
+    bacaanMesinSel
+      ..clear()
+      ..addAll({
+        for (final e in (s['bacaan_mesin_sel'] as Map? ?? const {}).entries)
+          '${e.key}': ?bacaan(e.value),
+      });
+
+    // 6. Usage check.
+    for (final u in usageCheck.values) {
+      u.dipakai = false;
+      u.keterangan.text = '';
+    }
+    for (final e in (s['usage'] as Map? ?? const {}).entries) {
+      final id = int.tryParse('${e.key}');
+      final isi = e.value;
+      if (id == null || isi is! Map) continue;
+      final u = usage(id);
+      u.dipakai = isi['dipakai'] == true;
+      u.keterangan.text = isi['keterangan'] as String? ?? '';
+    }
+
+    // 7. Grid sensor (Enclosure).
+    final g = grid;
+    final gridLokal = s['grid'];
+    if (g != null && gridLokal is List) {
+      for (final sp in g.setPoint) {
+        sp.dispose();
+      }
+      g.setPoint.clear();
+
+      void isiDeret(
+        Object? j,
+        List<TextEditingController> ctl,
+        Set<int> dariFoto,
+        Map<int, BacaanMesin> mesin,
+      ) {
+        if (j is! Map) return;
+        final nilai = j['nilai'] as List? ?? const [];
+        for (var i = 0; i < ctl.length && i < nilai.length; i++) {
+          ctl[i].text = '${nilai[i] ?? ''}';
+        }
+        for (final n in (j['dari_foto'] as List? ?? const [])) {
+          if (n is num && n.toInt() < ctl.length) dariFoto.add(n.toInt());
+        }
+        for (final e in (j['mesin'] as Map? ?? const {}).entries) {
+          final i = int.tryParse('${e.key}');
+          final b = bacaan(e.value);
+          if (i != null && b != null) mesin[i] = b;
+        }
+      }
+
+      for (final j in gridLokal) {
+        if (j is! Map) continue;
+        final sensor = j['sensor'] as List? ?? const [];
+        final sp = SetPointGridState(
+          bentuk: g.bentuk,
+          jumlahSensorAwal: sensor.length,
+        );
+        sp.titikCtl.text = '${j['titik'] ?? ''}';
+
+        for (var i = 0; i < sensor.length; i++) {
+          final js = sensor[i];
+          if (js is! Map) continue;
+          final baris = sp.sensor[i];
+          baris.noCtl.text = '${js['no'] ?? ''}';
+          baris.channelCtl.text = '${js['channel'] ?? ''}';
+          baris.noDariFoto = js['no_dari_foto'] == true;
+          isiDeret(js, baris.pembacaanCtl, baris.dariFoto, baris.bacaanMesin);
+        }
+
+        isiDeret(
+          j['indikator'],
+          sp.indikator.ctl,
+          sp.indikator.dariFoto,
+          sp.indikator.bacaanMesin,
+        );
+        isiDeret(
+          j['suhu_ruang'],
+          sp.suhuRuang.ctl,
+          sp.suhuRuang.dariFoto,
+          sp.suhuRuang.bacaanMesin,
+        );
+
+        g.setPoint.add(sp);
+      }
+
+      if (g.setPoint.isEmpty) g.tambahSetPoint();
+
+      // Teks kotaknya keisi, tapi nilai terurai di baliknya belum — aturan
+      // pemulihan F3: grid WAJIB dibaca ulang, bukan cuma ditulisi teksnya.
+      g.bacaUlang();
+    }
+
+    return kebuang;
+  }
+
+  /// Ada isian APA PUN — termasuk matriks & grid, yang nggak dihitung
+  /// [adaIsian]. Dipakai supaya lembar baru yang belum disentuh sama sekali
+  /// nggak menitipkan salinan kosong di HP.
+  bool get adaIsianApaPun =>
+      adaIsian ||
+      adaIsianMatriks ||
+      (grid?.setPoint.any((sp) => !sp.kosongSemua) ?? false);
+
   void dispose() {
     for (final c in teks.values) {
       c.dispose();

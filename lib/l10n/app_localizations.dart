@@ -10182,6 +10182,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Generation failed'**
   String get riwayatSertifikatGagal;
+
+  /// No description provided for @lkDisimpanDiHp.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved on this device, will be sent automatically when online'**
+  String get lkDisimpanDiHp;
+
+  /// No description provided for @lkDipulihkanDariHp.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored from this device — last saved {waktu}'**
+  String lkDipulihkanDariHp(String waktu);
+
+  /// No description provided for @lkBuangSalinanHp.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get lkBuangSalinanHp;
+
+  /// No description provided for @lkBuangSalinanHpJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard the copy on this device?'**
+  String get lkBuangSalinanHpJudul;
+
+  /// No description provided for @lkBuangSalinanHpIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'Entries that haven\'t reached the server will be lost, and the worksheet reloads from the server version.'**
+  String get lkBuangSalinanHpIsi;
+
+  /// No description provided for @lkBuangSalinanHpBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get lkBuangSalinanHpBatal;
+
+  /// No description provided for @lkSalinanHpLebihLama.
+  ///
+  /// In en, this message translates to:
+  /// **'The copy on this device is older than the server version, so the server version is used.'**
+  String get lkSalinanHpLebihLama;
+
+  /// No description provided for @drafLokalJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Not yet synced (on this device)'**
+  String get drafLokalJudul;
+
+  /// No description provided for @drafServerJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Drafts on the server'**
+  String get drafServerJudul;
+
+  /// No description provided for @drafLokalMenunggu.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for signal — sent automatically'**
+  String get drafLokalMenunggu;
+
+  /// No description provided for @drafLokalPerluDiperbaiki.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs fixing: {pesan}'**
+  String drafLokalPerluDiperbaiki(String pesan);
+
+  /// No description provided for @drafLokalHanyaDiHp.
+  ///
+  /// In en, this message translates to:
+  /// **'Only on this device — not saved to the server yet'**
+  String get drafLokalHanyaDiHp;
+
+  /// No description provided for @drafLokalTanpaAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Worksheet without equipment'**
+  String get drafLokalTanpaAlat;
 }
 
 class _AppLocalizationsDelegate

@@ -5816,4 +5816,51 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get riwayatSertifikatGagal => 'Generation failed';
+
+  @override
+  String get lkDisimpanDiHp =>
+      'Saved on this device, will be sent automatically when online';
+
+  @override
+  String lkDipulihkanDariHp(String waktu) {
+    return 'Restored from this device — last saved $waktu';
+  }
+
+  @override
+  String get lkBuangSalinanHp => 'Discard';
+
+  @override
+  String get lkBuangSalinanHpJudul => 'Discard the copy on this device?';
+
+  @override
+  String get lkBuangSalinanHpIsi =>
+      'Entries that haven\'t reached the server will be lost, and the worksheet reloads from the server version.';
+
+  @override
+  String get lkBuangSalinanHpBatal => 'Cancel';
+
+  @override
+  String get lkSalinanHpLebihLama =>
+      'The copy on this device is older than the server version, so the server version is used.';
+
+  @override
+  String get drafLokalJudul => 'Not yet synced (on this device)';
+
+  @override
+  String get drafServerJudul => 'Drafts on the server';
+
+  @override
+  String get drafLokalMenunggu => 'Waiting for signal — sent automatically';
+
+  @override
+  String drafLokalPerluDiperbaiki(String pesan) {
+    return 'Needs fixing: $pesan';
+  }
+
+  @override
+  String get drafLokalHanyaDiHp =>
+      'Only on this device — not saved to the server yet';
+
+  @override
+  String get drafLokalTanpaAlat => 'Worksheet without equipment';
 }

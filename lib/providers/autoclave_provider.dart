@@ -1,10 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/config/app_config.dart';
 import '../models/autoclave_hasil.dart';
 import '../services/autoclave_service.dart';
 import 'auth_provider.dart';
 
 final autoclaveServiceProvider = Provider<AutoclaveService>((ref) {
+  // Build mock nol panggilan jaringan — tanpa cabang ini Autoklaf satu-satunya
+  // lembar yang tetap nembak server di `USE_MOCK=true`.
+  if (AppConfig.useMock) return MockAutoclaveService();
   return ApiAutoclaveService(ref.watch(apiClientProvider));
 });
 

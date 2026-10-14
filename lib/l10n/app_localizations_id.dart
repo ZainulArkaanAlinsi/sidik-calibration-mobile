@@ -5744,4 +5744,49 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get riwayatSertifikatGagal => 'Gagal dibuat';
+
+  @override
+  String get lkDisimpanDiHp => 'Disimpan di HP, dikirim otomatis saat online';
+
+  @override
+  String lkDipulihkanDariHp(String waktu) {
+    return 'Dipulihkan dari HP ini — terakhir $waktu';
+  }
+
+  @override
+  String get lkBuangSalinanHp => 'Buang';
+
+  @override
+  String get lkBuangSalinanHpJudul => 'Buang isian di HP ini?';
+
+  @override
+  String get lkBuangSalinanHpIsi =>
+      'Isian yang belum sampai ke server akan hilang, dan lembar dimuat ulang dari versi server.';
+
+  @override
+  String get lkBuangSalinanHpBatal => 'Batal';
+
+  @override
+  String get lkSalinanHpLebihLama =>
+      'Salinan di HP ini lebih lama dari versi server, jadi yang dipakai versi server.';
+
+  @override
+  String get drafLokalJudul => 'Belum tersinkron di HP ini';
+
+  @override
+  String get drafServerJudul => 'Draf di server';
+
+  @override
+  String get drafLokalMenunggu => 'Menunggu sinyal — dikirim otomatis';
+
+  @override
+  String drafLokalPerluDiperbaiki(String pesan) {
+    return 'Perlu diperbaiki: $pesan';
+  }
+
+  @override
+  String get drafLokalHanyaDiHp => 'Hanya di HP ini — belum disimpan ke server';
+
+  @override
+  String get drafLokalTanpaAlat => 'Lembar kerja tanpa alat';
 }

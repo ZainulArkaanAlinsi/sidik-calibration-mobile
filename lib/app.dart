@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/navigasi_global.dart';
 import 'core/theme/app_theme.dart';
 import 'l10n/app_localizations.dart';
+import 'providers/draf_lokal_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/pendaftaran_push_provider.dart';
 import 'providers/theme_mode_provider.dart';
@@ -37,6 +38,12 @@ class SidikApp extends ConsumerWidget {
     // dan rotasi token justru paling sering kejadian pas aplikasi lagi lama
     // nggak dibuka.
     ref.watch(pendaftaranPushSyncProvider);
+
+    // Pengirim antrean draf offline — alasannya sama: umurnya harus seumur
+    // aplikasi supaya draf yang tertahan di HP terkirim waktu aplikasi dibuka,
+    // dilanjutkan dari latar, atau sesudah login, bukan cuma waktu layar
+    // lembar kerja kebetulan terbuka.
+    ref.watch(sinkronDrafLokalProvider);
 
     return MaterialApp(
       // Dipakai buat mbuka layar tujuan waktu notifikasi sistem diketuk —

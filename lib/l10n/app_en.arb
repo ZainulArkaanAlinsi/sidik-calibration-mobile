@@ -3124,5 +3124,32 @@
   "riwayatSertifikatTerbit": "Issued",
   "riwayatSertifikatDibatalkan": "Cancelled",
   "riwayatSertifikatDiproses": "Processing",
-  "riwayatSertifikatGagal": "Generation failed"
+  "riwayatSertifikatGagal": "Generation failed",
+  "lkDisimpanDiHp": "Saved on this device, will be sent automatically when online",
+  "lkDipulihkanDariHp": "Restored from this device — last saved {waktu}",
+  "@lkDipulihkanDariHp": {
+    "placeholders": {
+      "waktu": {
+        "type": "String"
+      }
+    }
+  },
+  "lkBuangSalinanHp": "Discard",
+  "lkBuangSalinanHpJudul": "Discard the copy on this device?",
+  "lkBuangSalinanHpIsi": "Entries that haven't reached the server will be lost, and the worksheet reloads from the server version.",
+  "lkBuangSalinanHpBatal": "Cancel",
+  "lkSalinanHpLebihLama": "The copy on this device is older than the server version, so the server version is used.",
+  "drafLokalJudul": "Not yet synced (on this device)",
+  "drafServerJudul": "Drafts on the server",
+  "drafLokalMenunggu": "Waiting for signal — sent automatically",
+  "drafLokalPerluDiperbaiki": "Needs fixing: {pesan}",
+  "@drafLokalPerluDiperbaiki": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
+  "drafLokalHanyaDiHp": "Only on this device — not saved to the server yet",
+  "drafLokalTanpaAlat": "Worksheet without equipment"
 }
