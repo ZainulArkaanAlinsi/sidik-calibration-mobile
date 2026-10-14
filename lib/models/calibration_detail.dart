@@ -925,6 +925,7 @@ class CalibrationDetail {
     this.isianTeknisi,
     this.autoclave,
     this.lembarAutoclave,
+    this.ocrAutoclave,
     this.statusStandar,
     this.diubahPada,
   });
@@ -1014,6 +1015,12 @@ class CalibrationDetail {
   /// `tekanan.indikator_pressure`, `waktu`, …). Null di alat lain.
   final Map<String, dynamic>? lembarAutoclave;
 
+  /// Tebakan mesin per sel matriks Autoklaf (`hasil_autoclave.ocr`) — blok
+  /// `ocr` yang dulu dikirim HP, disimpan server di SEBELAH `lembar`. Ikut
+  /// dipulihkan supaya simpan ulang (`PUT`) nggak membuang bahan pengukur
+  /// akurasi kamera.
+  final Map<String, dynamic>? ocrAutoclave;
+
   /// `updated_at` sesi ini — dipakai memutuskan salinan lokal di HP lebih baru
   /// dari yang di server atau nggak. Null = server lama yang belum ngirim.
   final DateTime? diubahPada;
@@ -1102,6 +1109,10 @@ class CalibrationDetail {
           : null,
       lembarAutoclave: switch (json['hasil_autoclave']) {
         {'lembar': final Map<String, dynamic> lembar} => lembar,
+        _ => null,
+      },
+      ocrAutoclave: switch (json['hasil_autoclave']) {
+        {'ocr': final Map<String, dynamic> ocr} => ocr,
         _ => null,
       },
       statusStandar: json['status_standar'] is Map<String, dynamic>

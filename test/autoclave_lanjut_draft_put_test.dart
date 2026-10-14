@@ -167,6 +167,65 @@ void main() {
   // Kontrak API 14 Okt 2026 (`docs/kontrak-api.md`, PUT
   // /calibrations/autoclave/{id}): draf Autoklaf boleh disimpan TANPA set
   // point, jadi `hasil_autoclave.set_point` dan `lembar.set_point` bisa null.
+  // Review 14 Okt 2026: tebakan mesin (`hasil_autoclave.ocr`) ikut pulih,
+  // supaya PUT ulang nggak menghapus bahan pengukur akurasi kamera. Bentuk
+  // `ocr` di sini = yang dikirim `payloadMatriks` (deret per `kode_data`,
+  // wadah bernomor diratakan, sejajar indeks dengan deret nilainya).
+  testWidgets('draf Autoklaf dari foto dibuka ulang: PUT mengirim blok ocr '
+      'yang sama', (tester) async {
+    const lembarFoto = <String, dynamic>{
+      'suhu': {
+        'disk': [
+          [121.3, 121.4, 121.2, 121.3, 121.5],
+          [121.1, 121.2, 121.2, 121.4, 121.3],
+          [121.6, 121.5, 121.4, 121.5, 121.6],
+        ],
+      },
+    };
+    const ocr = <String, dynamic>{
+      'suhu': {
+        'disk': [
+          [
+            {'raw_text': '121.3', 'confidence': 0.91},
+            {'raw_text': '121,4', 'confidence': 0.42},
+            null,
+            null,
+            null,
+          ],
+          [null, null, null, null, null],
+          [
+            null,
+            null,
+            null,
+            null,
+            {'raw_text': '121.6'},
+          ],
+        ],
+      },
+    };
+
+    final autoclave = await buka(
+      tester,
+      sesiId: 88,
+      hasilAutoclave: const {'lembar': lembarFoto, 'ocr': ocr},
+    );
+
+    // Sel bertebakan ditandai "dari foto" lagi (penanda & tebakan selalu
+    // lahir bersamaan di jalur foto).
+    final sel = tester.widget(find.byKey(const Key('matriks_suhu.disk.0_1')));
+    expect((sel as dynamic).dariFoto, isTrue);
+    final selKetik = tester.widget(
+      find.byKey(const Key('matriks_suhu.disk.1_1')),
+    );
+    expect((selKetik as dynamic).dariFoto, isFalse);
+
+    await pilihAlatLaluSimpanDraft(tester);
+
+    final p = autoclave.panggilan.single;
+    expect(p.metode, 'PUT');
+    expect(p.payload['ocr'], ocr);
+  });
+
   group('draf tanpa set point', () {
     const lembarTanpaSetPoint = <String, dynamic>{
       'waktu': ['10:00:00', '10:01:00', '10:02:00', '10:03:00', '10:04:00'],

@@ -480,11 +480,11 @@ void main() {
         await bukaSesi(tester, hp);
 
         // Membuka draf tanpa mengubah apa pun nggak meninggalkan salinan.
-        await tester.pump(const Duration(seconds: 3));
+        await tester.pump(const Duration(seconds: 5));
         expect(hp.jumlahTulis, 0);
 
         await tester.enterText(catatan(), 'diubah teknisi');
-        await tester.pump(const Duration(seconds: 3));
+        await tester.pump(const Duration(seconds: 5));
 
         final d = (await hp.daftar(userId)).single;
         expect(d.kunci, 'sesi-72');
@@ -492,6 +492,70 @@ void main() {
         expect((d.isian['teks'] as Map)['catatan_teknisi'], 'diubah teknisi');
       },
     );
+
+    // Review 14 Okt 2026: draf yang SENGAJA disimpan (antre / ditolak) nggak
+    // dibuang diam-diam walau server lebih baru — teknisi yang memilih.
+    group('server lebih baru dari draf yang antre di HP', () {
+      DrafLokal antreLama() =>
+          salinanSesi(
+            disimpan: diubahServer.subtract(const Duration(hours: 1)),
+            basis: diubahServer.subtract(const Duration(hours: 2)),
+          ).copyWith(
+            status: StatusDrafLokal.belumTersinkron,
+            kiriman: const {'status': 'draft'},
+          );
+
+      testWidgets('ditanya dulu; "Pakai versi HP" memakai salinan HP dan '
+          'pilihannya diingat', (tester) async {
+        final hp = SimpananDrafLokalMemori();
+        await hp.simpan(antreLama());
+
+        await bukaSesi(tester, hp);
+
+        expect(find.text('Versi di server lebih baru'), findsOneWidget);
+        await tester.tap(find.text('Pakai versi HP'));
+        await tester.pumpAndSettle();
+
+        expect(teksKotak(tester, catatan()), 'diketik di HP');
+        expect(find.textContaining('Dipulihkan dari HP ini'), findsOneWidget);
+
+        final d = (await hp.daftar(userId)).single;
+        expect(d.status, StatusDrafLokal.belumTersinkron);
+        expect(d.basisServer, diubahServer, reason: 'Ditanya ulang tiap buka.');
+        expect(d.lebihBaruDari(diubahServer), isTrue);
+      });
+
+      testWidgets('"Pakai versi server": salinan HP dibuang', (tester) async {
+        final hp = SimpananDrafLokalMemori();
+        await hp.simpan(antreLama());
+
+        await bukaSesi(tester, hp);
+
+        await tester.tap(find.text('Pakai versi server'));
+        await tester.pumpAndSettle();
+
+        expect(teksKotak(tester, catatan()), 'catatan di server');
+        expect(find.textContaining('Dipulihkan dari HP ini'), findsNothing);
+        expect(await hp.daftar(userId), isEmpty);
+      });
+
+      testWidgets('simpanan otomatis biasa tetap dibuang tanpa ditanya', (
+        tester,
+      ) async {
+        final hp = SimpananDrafLokalMemori();
+        await hp.simpan(
+          salinanSesi(
+            disimpan: diubahServer.subtract(const Duration(hours: 1)),
+            basis: diubahServer.subtract(const Duration(hours: 2)),
+          ),
+        );
+
+        await bukaSesi(tester, hp);
+
+        expect(find.text('Versi di server lebih baru'), findsNothing);
+        expect(await hp.daftar(userId), isEmpty);
+      });
+    });
 
     testWidgets('sesi yang sudah disetujui nggak pernah disimpan otomatis', (
       tester,
@@ -504,7 +568,7 @@ void main() {
       );
 
       await tester.enterText(catatan(), 'nggak boleh kesimpan');
-      await tester.pump(const Duration(seconds: 3));
+      await tester.pump(const Duration(seconds: 5));
       await tester.pumpWidget(const SizedBox());
 
       expect(hp.jumlahTulis, 0);
@@ -519,7 +583,7 @@ void main() {
       expect(find.textContaining('belum berhasil dimuat'), findsOneWidget);
 
       await tester.enterText(catatan(), 'formulir kosong');
-      await tester.pump(const Duration(seconds: 3));
+      await tester.pump(const Duration(seconds: 5));
       await tester.pumpWidget(const SizedBox());
 
       expect(hp.jumlahTulis, 0);

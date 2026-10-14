@@ -31,16 +31,20 @@ void main() {
     berubah = 0;
   });
 
-  SinkronDrafLokal sinkron({String? token = 'tok', Set<String>? terbuka}) =>
-      SinkronDrafLokal(
-        simpanan: simpanan,
-        pengirim: server,
-        userId: userId,
-        bacaToken: () async => token,
-        setelahBerubah: () => berubah++,
-        terbuka: terbuka,
-        dengarSiklusAplikasi: false,
-      );
+  SinkronDrafLokal sinkron({
+    String? token = 'tok',
+    String? Function()? tokenDari,
+    Set<String>? terbuka,
+    int akun = userId,
+  }) => SinkronDrafLokal(
+    simpanan: simpanan,
+    pengirim: server,
+    userId: akun,
+    bacaToken: () async => tokenDari != null ? tokenDari() : token,
+    setelahBerubah: () => berubah++,
+    terbuka: terbuka,
+    dengarSiklusAplikasi: false,
+  );
 
   DrafLokal antre({
     int? sesiId,
@@ -215,6 +219,119 @@ void main() {
     s.dispose();
   });
 
+  test('401 berlaku buat token itu saja: token lain (login ulang / resume) '
+      'membuka jedanya', () async {
+    server.tolak401 = true;
+    await simpanan.simpan(antre());
+    var token = 'tok-lama';
+    final s = sinkron(tokenDari: () => token);
+
+    await s.jalankan();
+    expect(s.dijeda, isTrue);
+
+    server
+      ..tolak401 = false
+      ..log.clear();
+    token = 'tok-baru';
+    final hasil = await s.jalankan();
+
+    expect(s.dijeda, isFalse);
+    expect(hasil.terkirim, 1);
+    expect(server.log, isNotEmpty);
+    s.dispose();
+  });
+
+  // Keputusan review 14 Okt 2026 (K-30-09): draf antre akun lain tetap di HP,
+  // tapi NGGAK dikirim pakai token akun yang sedang login.
+  test('draf antre akun lain nggak dikirim atas nama akun yang login; '
+      'terkirim waktu pemiliknya login lagi', () async {
+    await simpanan.simpan(antre());
+
+    final akunLain = sinkron(akun: 9, token: 'tok-akun-9');
+    await akunLain.mulai();
+    akunLain.dispose();
+
+    expect(server.log, isEmpty, reason: 'Draf akun 7 dikirim pakai token 9.');
+    expect(await simpanan.daftar(userId), hasLength(1));
+
+    final pemilik = sinkron(token: 'tok-akun-7');
+    await pemilik.mulai();
+
+    expect(server.log.map((p) => p.metode), ['POST', 'PUT']);
+    expect(await simpanan.daftar(userId), isEmpty);
+    pemilik.dispose();
+  });
+
+  group('balapan dengan layar yang menulis ulang salinannya', () {
+    test('salinan ditulis ulang SELAMA dikirim: yang baru tetap antre dan '
+        'dijadwalkan, bukan dibuang', () async {
+      await simpanan.simpan(antre(sesiId: 72));
+      server.sesi[72] = {'status': 'draft'};
+      server.selamaPut = () => simpanan.simpan(
+        antre(sesiId: 72).copyWith(
+          disimpanPada: DateTime.utc(2026, 10, 14, 6, 42),
+          kiriman: {
+            'equipment_id': 12,
+            'status': 'draft',
+            'catatan_teknisi': 'diketik sambil dikirim',
+          },
+        ),
+      );
+      final s = sinkron();
+
+      await s.jalankan();
+
+      final sisa = (await simpanan.daftar(userId)).single;
+      expect(sisa.kiriman!['catatan_teknisi'], 'diketik sambil dikirim');
+      expect(sisa.status, StatusDrafLokal.belumTersinkron);
+      expect(s.adaJadwal, isTrue);
+
+      // Putaran berikutnya mengirim versi terbarunya, lalu baru dibuang.
+      server.selamaPut = null;
+      await s.jalankan();
+      expect(server.sesi[72]!['catatan_teknisi'], 'diketik sambil dikirim');
+      expect(await simpanan.daftar(userId), isEmpty);
+      s.dispose();
+    });
+
+    test(
+      'lembarnya DIBUKA di layar selama dikirim: salinannya nggak dibuang',
+      () async {
+        await simpanan.simpan(antre(sesiId: 72));
+        server.sesi[72] = {'status': 'draft'};
+        final terbuka = <String>{};
+        server.selamaPut = () async => terbuka.add('sesi-72');
+        final s = sinkron(terbuka: terbuka);
+
+        await s.jalankan();
+
+        expect(await simpanan.daftar(userId), hasLength(1));
+        expect(s.adaJadwal, isTrue);
+        s.dispose();
+      },
+    );
+
+    test('ditolak 422 tapi salinannya sudah berubah: isi baru nggak ditandai '
+        'perlu diperbaiki', () async {
+      server.tolak422 = true;
+      await simpanan.simpan(antre(sesiId: 72));
+      server.sebelumPeriksa = () => simpanan.simpan(
+        antre(
+          sesiId: 72,
+        ).copyWith(disimpanPada: DateTime.utc(2026, 10, 14, 6, 42)),
+      );
+      final s = sinkron();
+
+      await s.jalankan();
+
+      expect(
+        (await simpanan.daftar(userId)).single.status,
+        StatusDrafLokal.belumTersinkron,
+      );
+      s.dispose();
+    });
+  });
+
   test('gagal jaringan: tetap antre dan dijadwalkan ulang', () async {
     server.offline = true;
     await simpanan.simpan(antre());
@@ -283,6 +400,13 @@ class _ServerPalsu implements PengirimDrafService {
   bool putusSesudahSimpanSekali = false;
   int? putusPadaPutKe;
 
+  /// Dijalankan di tengah `PUT` yang berhasil — meniru layar yang menulis
+  /// salinannya selagi pengirim antrean jalan.
+  Future<void> Function()? selamaPut;
+
+  /// Dijalankan sebelum penolakan dilempar.
+  Future<void> Function()? sebelumPeriksa;
+
   void _periksa() {
     if (offline) {
       throw const KoneksiException(
@@ -336,6 +460,7 @@ class _ServerPalsu implements PengirimDrafService {
     required Map<String, dynamic> body,
   }) async {
     log.add((metode: 'PUT', id: id, body: body));
+    await sebelumPeriksa?.call();
     _periksa();
 
     _put++;
@@ -344,6 +469,7 @@ class _ServerPalsu implements PengirimDrafService {
     }
 
     sesi[id] = {...body};
+    await selamaPut?.call();
     return id;
   }
 }

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ (API 31): aturan cadangan cloud & pindah perangkat.
+
+  Cuma `draf_lokal/` yang dikecualikan — salinan lembar kerja di HP ini (draf
+  offline). Isinya nama pelanggan & angka kalibrasi milik satu akun di satu
+  tablet (keputusan K-30-09), jadi nggak boleh ikut ke cadangan Google atau
+  pindah ke HP baru. Folder ini `getApplicationSupportDirectory()` =
+  `Context.getFilesDir()`, yaitu domain `file`.
+
+  Hanya `exclude`, tanpa `include`: semua berkas lain tetap dicadangkan persis
+  seperti sebelum berkas ini ada.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="file" path="draf_lokal/" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="file" path="draf_lokal/" />
+    </device-transfer>
+</data-extraction-rules>

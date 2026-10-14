@@ -3151,5 +3151,21 @@
     }
   },
   "drafLokalHanyaDiHp": "Only on this device — not saved to the server yet",
-  "drafLokalTanpaAlat": "Worksheet without equipment"
+  "drafLokalTanpaAlat": "Worksheet without equipment",
+  "lkVersiBentrokJudul": "The server version is newer",
+  "lkVersiBentrokIsi": "This worksheet was changed on the server after the unsent draft on this device was saved. Choose which version to keep — the other one is discarded.",
+  "lkPakaiVersiHp": "Use this device's version",
+  "lkPakaiVersiServer": "Use the server version",
+  "drafTertundaMengirim": "Sending drafts that haven't reached the server…",
+  "drafTertundaLogoutJudul": "Unsent drafts",
+  "drafTertundaLogoutIsi": "{jumlah} drafts not sent yet. They stay saved on this tablet and are sent when you log in again.",
+  "@drafTertundaLogoutIsi": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "drafTertundaLogoutBatal": "Cancel",
+  "drafTertundaLogoutLanjut": "Log out"
 }

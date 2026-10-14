@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 11 ke bawah: aturan Auto Backup. Kembaran
+  `data_extraction_rules.xml` — lihat alasannya di sana. Hanya `exclude`:
+  berkas lain tetap dicadangkan seperti sebelumnya.
+-->
+<full-backup-content>
+    <exclude domain="file" path="draf_lokal/" />
+</full-backup-content>

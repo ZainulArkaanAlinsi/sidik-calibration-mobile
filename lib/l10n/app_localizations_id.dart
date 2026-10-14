@@ -5789,4 +5789,34 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get drafLokalTanpaAlat => 'Lembar kerja tanpa alat';
+
+  @override
+  String get lkVersiBentrokJudul => 'Versi di server lebih baru';
+
+  @override
+  String get lkVersiBentrokIsi =>
+      'Lembar ini diubah di server sesudah draf yang belum terkirim di HP ini disimpan. Pilih versi yang dipakai — versi satunya dibuang.';
+
+  @override
+  String get lkPakaiVersiHp => 'Pakai versi HP';
+
+  @override
+  String get lkPakaiVersiServer => 'Pakai versi server';
+
+  @override
+  String get drafTertundaMengirim => 'Mengirim draf yang belum sampai server…';
+
+  @override
+  String get drafTertundaLogoutJudul => 'Draf belum terkirim';
+
+  @override
+  String drafTertundaLogoutIsi(int jumlah) {
+    return '$jumlah draf belum terkirim. Draf tetap disimpan di tablet ini dan dikirim saat kamu login lagi.';
+  }
+
+  @override
+  String get drafTertundaLogoutBatal => 'Batal';
+
+  @override
+  String get drafTertundaLogoutLanjut => 'Keluar';
 }

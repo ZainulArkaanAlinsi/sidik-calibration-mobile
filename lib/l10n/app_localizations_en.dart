@@ -5863,4 +5863,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get drafLokalTanpaAlat => 'Worksheet without equipment';
+
+  @override
+  String get lkVersiBentrokJudul => 'The server version is newer';
+
+  @override
+  String get lkVersiBentrokIsi =>
+      'This worksheet was changed on the server after the unsent draft on this device was saved. Choose which version to keep — the other one is discarded.';
+
+  @override
+  String get lkPakaiVersiHp => 'Use this device\'s version';
+
+  @override
+  String get lkPakaiVersiServer => 'Use the server version';
+
+  @override
+  String get drafTertundaMengirim =>
+      'Sending drafts that haven\'t reached the server…';
+
+  @override
+  String get drafTertundaLogoutJudul => 'Unsent drafts';
+
+  @override
+  String drafTertundaLogoutIsi(int jumlah) {
+    return '$jumlah drafts not sent yet. They stay saved on this tablet and are sent when you log in again.';
+  }
+
+  @override
+  String get drafTertundaLogoutBatal => 'Cancel';
+
+  @override
+  String get drafTertundaLogoutLanjut => 'Log out';
 }

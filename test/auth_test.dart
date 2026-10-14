@@ -7,7 +7,9 @@ import 'package:sidik_calibration/models/user.dart';
 import 'package:sidik_calibration/widgets/floating_nav_bar.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/dashboard_provider.dart';
+import 'package:sidik_calibration/providers/draf_lokal_provider.dart';
 import 'package:sidik_calibration/services/dashboard_service.dart';
+import 'package:sidik_calibration/services/draf_lokal.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/screens/profile/profile_screen.dart';
@@ -28,6 +30,11 @@ ProviderScope _app(TokenStorage storage, {MockAuthService? auth}) =>
         dashboardServiceProvider.overrideWithValue(
           MockDashboardService(jeda: Duration.zero),
         ),
+        // Tombol Keluar sekarang menghitung draf yang belum terkirim di HP
+        // dulu. Simpanan berkasnya lewat `path_provider`, yang di test nggak
+        // dijawab siapa pun dan MENGGANTUNG — jebakan yang sama dengan
+        // SharedPreferences di `simpanan_tiruan.dart`.
+        simpananDrafLokalProvider.overrideWithValue(SimpananDrafLokalMemori()),
       ],
       child: const SidikApp(),
     );

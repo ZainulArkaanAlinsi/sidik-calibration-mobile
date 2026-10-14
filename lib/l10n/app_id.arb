@@ -2396,5 +2396,14 @@
   "drafLokalMenunggu": "Menunggu sinyal — dikirim otomatis",
   "drafLokalPerluDiperbaiki": "Perlu diperbaiki: {pesan}",
   "drafLokalHanyaDiHp": "Hanya di HP ini — belum disimpan ke server",
-  "drafLokalTanpaAlat": "Lembar kerja tanpa alat"
+  "drafLokalTanpaAlat": "Lembar kerja tanpa alat",
+  "lkVersiBentrokJudul": "Versi di server lebih baru",
+  "lkVersiBentrokIsi": "Lembar ini diubah di server sesudah draf yang belum terkirim di HP ini disimpan. Pilih versi yang dipakai — versi satunya dibuang.",
+  "lkPakaiVersiHp": "Pakai versi HP",
+  "lkPakaiVersiServer": "Pakai versi server",
+  "drafTertundaMengirim": "Mengirim draf yang belum sampai server…",
+  "drafTertundaLogoutJudul": "Draf belum terkirim",
+  "drafTertundaLogoutIsi": "{jumlah} draf belum terkirim. Draf tetap disimpan di tablet ini dan dikirim saat kamu login lagi.",
+  "drafTertundaLogoutBatal": "Batal",
+  "drafTertundaLogoutLanjut": "Keluar"
 }

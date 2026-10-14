@@ -10260,6 +10260,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Worksheet without equipment'**
   String get drafLokalTanpaAlat;
+
+  /// No description provided for @lkVersiBentrokJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'The server version is newer'**
+  String get lkVersiBentrokJudul;
+
+  /// No description provided for @lkVersiBentrokIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'This worksheet was changed on the server after the unsent draft on this device was saved. Choose which version to keep — the other one is discarded.'**
+  String get lkVersiBentrokIsi;
+
+  /// No description provided for @lkPakaiVersiHp.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this device\'s version'**
+  String get lkPakaiVersiHp;
+
+  /// No description provided for @lkPakaiVersiServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the server version'**
+  String get lkPakaiVersiServer;
+
+  /// No description provided for @drafTertundaMengirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending drafts that haven\'t reached the server…'**
+  String get drafTertundaMengirim;
+
+  /// No description provided for @drafTertundaLogoutJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsent drafts'**
+  String get drafTertundaLogoutJudul;
+
+  /// No description provided for @drafTertundaLogoutIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} drafts not sent yet. They stay saved on this tablet and are sent when you log in again.'**
+  String drafTertundaLogoutIsi(int jumlah);
+
+  /// No description provided for @drafTertundaLogoutBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get drafTertundaLogoutBatal;
+
+  /// No description provided for @drafTertundaLogoutLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'Log out'**
+  String get drafTertundaLogoutLanjut;
 }
 
 class _AppLocalizationsDelegate

@@ -165,15 +165,18 @@ class SinkronDrafLokal {
   Future<HasilSinkronDraf>? _berjalan;
   Timer? _timer;
   int _gagalBeruntun = 0;
-  bool _dijeda401 = false;
+
+  /// Token yang terakhir dijawab 401. Antrean berhenti SELAMA token ini yang
+  /// dipakai; token lain (login ulang, sesi yang dipulihkan) membuka jedanya.
+  String? _tokenDitolak;
   bool dibuang = false;
 
-  bool get dijeda => _dijeda401;
+  bool get dijeda => _tokenDitolak != null;
   bool get adaJadwal => _timer?.isActive ?? false;
 
   /// Dipanggil sekali waktu akun ini login / aplikasi dibuka.
   Future<void> mulai() async {
-    await simpanan.buangAkunLain(userId);
+    await simpanan.buangAkunLain(userId, sekarang: _jam());
     await simpanan.buangKedaluwarsa(userId, sekarang: _jam());
     if (dibuang) return;
     await jalankan();
@@ -184,7 +187,7 @@ class SinkronDrafLokal {
 
   /// Pasang percobaan berikutnya. Dipanggil layar sesudah menitipkan draf.
   void jadwalkan({Duration? jeda}) {
-    if (dibuang || _dijeda401) return;
+    if (dibuang || dijeda) return;
     _timer?.cancel();
     _timer = Timer(
       jeda ?? jedaMundur[math.min(_gagalBeruntun, jedaMundur.length - 1)],
@@ -193,10 +196,19 @@ class SinkronDrafLokal {
   }
 
   Future<HasilSinkronDraf> _jalankan() async {
-    if (dibuang || _dijeda401) return const HasilSinkronDraf();
+    if (dibuang) return const HasilSinkronDraf();
 
     final token = await bacaToken();
     if (token == null || dibuang) return const HasilSinkronDraf();
+
+    // 401 cuma berlaku buat token yang ditolak itu. Begitu tokennya lain —
+    // teknisi login ulang, atau aplikasi dilanjutkan dengan sesi baru —
+    // antreannya jalan lagi tanpa menunggu provider ini dibangun ulang.
+    final ditolak401 = _tokenDitolak;
+    if (ditolak401 != null) {
+      if (ditolak401 == token) return const HasilSinkronDraf();
+      _tokenDitolak = null;
+    }
 
     final antrean =
         (await simpanan.daftar(userId))
@@ -253,22 +265,29 @@ class SinkronDrafLokal {
           }
         }
 
-        await simpanan.hapus(userId, d.kunci);
+        // Dibuang cuma kalau salinannya MASIH yang barusan dikirim. Layar
+        // yang dibuka di tengah putaran ini bisa sudah menulis isian lebih
+        // baru: membuangnya berarti kehilangan ketikan teknisi. Salinan yang
+        // berubah tetap antre — putaran berikutnya mengirim versi terbarunya
+        // (`POST` replay + `PUT`, jadi tetap nggak ada sesi kembar).
+        if (await _masihSama(d)) await simpanan.hapus(userId, d.kunci);
         terkirim++;
       } catch (e) {
         var sisa = d;
+        final utuh = await _masihSama(d);
 
         // Sesinya SUDAH lahir di server, yang gagal cuma PUT penyusulnya:
         // salinannya pindah kunci ke id itu, supaya percobaan berikutnya
-        // `PUT` ke sana — bukan `POST` lagi.
-        if (idBaru != null) {
+        // `PUT` ke sana — bukan `POST` lagi. Kalau salinannya sudah berubah,
+        // dibiarkan: `POST` replay berikutnya memulangkan id yang sama.
+        if (idBaru != null && utuh) {
           sisa = d.copyWith(sesiId: idBaru);
           await simpanan.simpan(sisa);
           await simpanan.hapus(userId, d.kunci);
         }
 
         if (e is ApiException && e.status == 401) {
-          _dijeda401 = true;
+          _tokenDitolak = token;
           gagal = true;
           break;
         }
@@ -286,14 +305,18 @@ class SinkronDrafLokal {
         }
 
         // Bukan sementara = penolakan server (422 / 403 / 404 / 409):
-        // mengirim isi yang sama cuma dapat penolakan yang sama.
-        await simpanan.simpan(
-          sisa.copyWith(
-            status: StatusDrafLokal.perluDiperbaiki,
-            pesan: e.message,
-          ),
-        );
-        ditolak++;
+        // mengirim isi yang sama cuma dapat penolakan yang sama. Salinan yang
+        // sudah berubah sejak dikirim nggak ditimpa — isinya yang baru belum
+        // pernah ditolak siapa pun.
+        if (utuh) {
+          await simpanan.simpan(
+            sisa.copyWith(
+              status: StatusDrafLokal.perluDiperbaiki,
+              pesan: e.message,
+            ),
+          );
+          ditolak++;
+        }
       }
     }
 
@@ -309,7 +332,7 @@ class SinkronDrafLokal {
       userId,
     )).any((d) => d.status == StatusDrafLokal.belumTersinkron);
 
-    if (masihAntre && !_dijeda401) {
+    if (masihAntre && !dijeda) {
       jadwalkan();
     } else {
       _timer?.cancel();
@@ -320,6 +343,14 @@ class SinkronDrafLokal {
       ditolak: ditolak,
       gagalJaringan: gagal,
     );
+  }
+
+  /// Salinan [d] masih persis yang barusan dikirim, dan nggak sedang dibuka
+  /// di layar lembar kerja?
+  Future<bool> _masihSama(DrafLokal d) async {
+    if (terbuka.contains(d.kunci)) return false;
+    final sekarang = await simpanan.baca(userId, d.kunci);
+    return sekarang != null && sekarang.disimpanPada == d.disimpanPada;
   }
 
   void dispose() {

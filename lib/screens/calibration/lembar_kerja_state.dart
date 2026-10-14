@@ -4630,7 +4630,10 @@ class LembarKerjaState {
   /// sama dengan [muatDariSesi].
   ///
   /// Balikin jumlah sel yang terisi.
-  int terapkanLembarMatriks(Map<String, dynamic> lembar) {
+  int terapkanLembarMatriks(
+    Map<String, dynamic> lembar, {
+    Map<String, dynamic>? ocr,
+  }) {
     final bagian = bagianMatriks;
     final m = bagian?.matriks;
     if (bagian == null || m == null) return 0;
@@ -4683,7 +4686,48 @@ class LembarKerjaState {
     isiTeks('display_tekanan', _ambilJalur(lembar, 'tekanan.display'));
     isiTeks('set_point', lembar['set_point']);
 
+    if (ocr != null) _terapkanOcrMatriks(m, ocr);
+
     return terisi;
+  }
+
+  /// Pulihkan tebakan mesin per sel matriks dari `hasil_autoclave.ocr` —
+  /// kebalikan deret `ocr.<kode_data>` di [payloadMatriks].
+  ///
+  /// Tanpa ini simpan ulang draf Autoklaf yang sel-selnya dari foto mengirim
+  /// `ocr` KOSONG, dan server menggantinya: pasangan (tebakan mesin, angka
+  /// final) yang jadi satu-satunya bahan mengukur akurasi kamera hilang.
+  ///
+  /// Penanda kuning ([matriksDariFoto]) ikut kembali, dan itu bukan tebakan:
+  /// jalur foto ([terapkanHasilFotoMatriks]) selalu mengisi penanda dan
+  /// tebakannya BERSAMAAN, dan dua-duanya nggak pernah dihapus sesudahnya —
+  /// jadi sel bertebakan = sel dari foto. ([selRendahKeyakinan] milik tabel
+  /// biasa, bukan matriks.)
+  void _terapkanOcrMatriks(MatriksHasil m, Map<String, dynamic> ocr) {
+    for (final b in m.semuaBaris) {
+      if (b.kodeData.isEmpty) continue;
+
+      final deret = _ambilJalur(ocr, b.kodeData);
+      if (deret is! List) continue;
+
+      for (var i = 0; i < m.titikWaktu.length && i < deret.length; i++) {
+        final j = deret[i];
+        if (j is! Map || j['raw_text'] is! String) continue;
+
+        final kunci = LembarKerjaState.kunciMatriks(
+          b.kodeData,
+          m.titikWaktu[i],
+        );
+        bacaanMesinMatriks.putIfAbsent(
+          kunci,
+          () => BacaanMesin(
+            teksMentah: j['raw_text'] as String,
+            keyakinan: (j['confidence'] as num?)?.toDouble(),
+          ),
+        );
+        matriksDariFoto.add(kunci);
+      }
+    }
   }
 
   /// Ambil nilai di jalur bertitik (`suhu.disk.0`) — segmen angka jadi index

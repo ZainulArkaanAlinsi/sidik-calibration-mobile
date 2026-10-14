@@ -119,19 +119,74 @@ void main() {
     expect(sisa.map((d) => d.sesiId), [2]);
   });
 
+  test('akun lain masuk: simpanan otomatis akun sebelumnya dibuang, miliknya '
+      'tetap', () async {
+    await simpanan.simpan(draf(userId: 7, sesiId: 1));
+    await simpanan.simpan(draf(userId: 9, sesiId: 2));
+
+    await simpanan.buangAkunLain(9, sekarang: DateTime.utc(2026, 10, 14, 8));
+
+    expect(await simpanan.daftar(7), isEmpty);
+    expect(await simpanan.baca(7, 'sesi-1'), isNull);
+    expect((await simpanan.daftar(9)).map((d) => d.sesiId), [2]);
+    expect(
+      Directory(
+        '${akar.path}${Platform.pathSeparator}draf_lokal'
+        '${Platform.pathSeparator}7',
+      ).existsSync(),
+      isFalse,
+      reason: 'Folder kosong akun lain tertinggal.',
+    );
+  });
+
+  // Keputusan review 14 Okt 2026: draf yang SUDAH antre / ditolak server itu
+  // data lapangan yang belum sampai server — nggak boleh hilang gara-gara
+  // tablet dipakai akun lain. Tetap disimpan buat pemiliknya, nggak kelihatan
+  // akun lain, dan tetap kedaluwarsa sesudah 14 hari.
   test(
-    'akun lain masuk: salinan akun sebelumnya dibuang, miliknya tetap',
+    'akun lain masuk: draf antre & yang ditolak milik akun sebelumnya TETAP, '
+    'tapi nggak kelihatan akun baru',
     () async {
-      await simpanan.simpan(draf(userId: 7, sesiId: 1));
-      await simpanan.simpan(draf(userId: 9, sesiId: 2));
+      final sekarang = DateTime.utc(2026, 10, 14, 8);
+      await simpanan.simpan(
+        draf(userId: 7, sesiId: 1, status: StatusDrafLokal.belumTersinkron),
+      );
+      await simpanan.simpan(
+        draf(userId: 7, sesiId: 2, status: StatusDrafLokal.perluDiperbaiki),
+      );
+      await simpanan.simpan(draf(userId: 7, sesiId: 3));
+      await simpanan.simpan(
+        draf(
+          userId: 7,
+          sesiId: 4,
+          status: StatusDrafLokal.belumTersinkron,
+          disimpan: sekarang.subtract(const Duration(days: 15)),
+        ),
+      );
 
-      await simpanan.buangAkunLain(9);
+      await simpanan.buangAkunLain(9, sekarang: sekarang);
 
-      expect(await simpanan.daftar(7), isEmpty);
-      expect(await simpanan.baca(7, 'sesi-1'), isNull);
-      expect((await simpanan.daftar(9)).map((d) => d.sesiId), [2]);
+      expect(await simpanan.daftar(9), isEmpty);
+      expect(await simpanan.baca(9, 'sesi-1'), isNull);
+      expect(
+        (await simpanan.daftar(7)).map((d) => d.sesiId).toSet(),
+        {1, 2},
+        reason: 'Yang antre/ditolak harus tetap; otomatis & >14 hari dibuang.',
+      );
     },
   );
+
+  test('simpanan memori mengikuti aturan yang sama', () async {
+    final memori = SimpananDrafLokalMemori();
+    await memori.simpan(
+      draf(userId: 7, sesiId: 1, status: StatusDrafLokal.belumTersinkron),
+    );
+    await memori.simpan(draf(userId: 7, sesiId: 3));
+
+    await memori.buangAkunLain(9, sekarang: DateTime.utc(2026, 10, 14, 8));
+
+    expect((await memori.daftar(7)).map((d) => d.sesiId), [1]);
+  });
 
   test(
     'akun lain nggak bisa membaca salinan akun ini lewat kuncinya',

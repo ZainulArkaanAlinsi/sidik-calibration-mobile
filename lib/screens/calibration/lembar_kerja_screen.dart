@@ -567,7 +567,10 @@ class _FormState extends ConsumerState<_Form> {
         // matriks kosong, dan simpan ulangnya (`PUT`) menimpa lembar di server.
         final lembarAutoclave = detail.lembarAutoclave;
         if (lembarAutoclave != null) {
-          _isian.terapkanLembarMatriks(lembarAutoclave);
+          _isian.terapkanLembarMatriks(
+            lembarAutoclave,
+            ocr: detail.ocrAutoclave,
+          );
         }
         // Alat sesi lama ikut ngabarin ke atas, jadi lembar yang ditarik ulang
         // udah bentuk yang disusutin ke alat itu — bukan generik.
@@ -602,7 +605,12 @@ class _FormState extends ConsumerState<_Form> {
         await _pulihkanSesiDariHp(id, detail.diubahPada);
       } catch (_) {
         // Simpanan lokal itu jaring pengaman; kegagalannya nggak menutup apa
-        // pun.
+        // pun — tapi simpan otomatisnya tetap dinyalakan, supaya ketikan
+        // sesudah ini nggak ikut tanpa jaring.
+        if (mounted && _salinanTertunda == null) {
+          _penjaga?.tetapkanAcuan();
+          _penjaga?.aktif = _bolehSimpanOtomatis;
+        }
       }
     } catch (_) {
       // Lihat docblock: formulirnya tetap bisa diisi, tapi keadaannya
@@ -651,7 +659,7 @@ class _FormState extends ConsumerState<_Form> {
     // Jaring pengaman buat kotak tanpa pendengar ketikan (kolom identitas,
     // keterangan usage check) — lihat [PenjagaDrafLokal.periksa].
     _periksaBerkala = Timer.periodic(
-      const Duration(seconds: 2),
+      const Duration(seconds: 3),
       (_) => penjaga.periksa(),
     );
 
@@ -730,8 +738,28 @@ class _FormState extends ConsumerState<_Form> {
 
     if (!lokal.lebihBaruDari(diubahServer)) {
       // Server diubah SESUDAH salinan ini ditulis (dari perangkat lain).
-      // Salinannya dibuang — kalau dibiarkan, simpan otomatis berikutnya atau
-      // antreannya menimpa versi server yang lebih baru.
+      //
+      // Draf yang SENGAJA disimpan teknisi (antre / ditolak server) nggak
+      // dibuang diam-diam — itu data lapangan yang belum pernah sampai server.
+      // Teknisi yang memilih versi mana yang dipakai.
+      if (lokal.status != StatusDrafLokal.lokal) {
+        final pakaiHp = await _pilihVersiHpAtauServer();
+        if (!mounted || _sesiLamaGagalDimuat) return;
+        if (pakaiHp) {
+          // Pilihannya diingat: dasar salinannya digeser ke versi server yang
+          // barusan dilihat, jadi dibuka lagi nanti nggak ditanya ulang. Isi
+          // salinannya sendiri nggak disentuh.
+          final dipilih = lokal.copyWith(basisServer: diubahServer);
+          unawaited(penjaga.simpanan.simpan(dipilih));
+          _entriAwal = dipilih;
+          setState(() => _terapkanSalinan(dipilih));
+          return;
+        }
+      }
+
+      // Simpanan otomatis (atau teknisi memilih versi server): salinannya
+      // dibuang — kalau dibiarkan, simpan otomatis berikutnya atau antreannya
+      // menimpa versi server yang lebih baru.
       unawaited(penjaga.simpanan.hapus(penjaga.userId, lokal.kunci));
       penjaga.tetapkanAcuan();
       penjaga.aktif = _bolehSimpanOtomatis;
@@ -746,6 +774,37 @@ class _FormState extends ConsumerState<_Form> {
 
     _entriAwal = lokal;
     setState(() => _terapkanSalinan(lokal));
+  }
+
+  /// Versi server lebih baru dari draf yang antre di HP — tanya, jangan
+  /// menebak. `true` = pakai versi HP.
+  ///
+  /// Nggak bisa ditutup dengan mengetuk di luar dialog: dua jawabannya sama-sama
+  /// membuang sesuatu, jadi harus dipilih sadar.
+  Future<bool> _pilihVersiHpAtauServer() async {
+    final l10n = AppLocalizations.of(context);
+
+    final pakaiHp = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        scrollable: true,
+        title: Text(l10n.lkVersiBentrokJudul),
+        content: Text(l10n.lkVersiBentrokIsi),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.lkPakaiVersiServer),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.lkPakaiVersiHp),
+          ),
+        ],
+      ),
+    );
+
+    return pakaiHp ?? false;
   }
 
   /// Tempel salinan HP ke formulir. Lihat

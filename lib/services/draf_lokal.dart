@@ -259,8 +259,17 @@ abstract class SimpananDrafLokal {
   /// Buang salinan [userId] yang lebih tua dari [umurMaksimal].
   Future<void> buangKedaluwarsa(int userId, {DateTime? sekarang});
 
-  /// Buang semua salinan milik akun SELAIN [userId].
-  Future<void> buangAkunLain(int userId);
+  /// Akun lain masuk di HP ini (K-30-09): buang SIMPANAN OTOMATIS milik akun
+  /// selain [userId], plus apa pun yang lebih tua dari [umurMaksimal].
+  ///
+  /// Draf akun lain yang sudah ANTRE (`belum_tersinkron`) atau DITOLAK server
+  /// (`perlu_diperbaiki`) TIDAK dibuang — itu draf yang teknisinya sengaja
+  /// simpan dan belum sampai server; membuangnya berarti kehilangan data
+  /// lapangan. Yang menjaga privasinya: [daftar] & [baca] cuma membuka folder
+  /// akun yang diminta, dan pengirim antrean cuma mengirim milik akun yang
+  /// login, pakai tokennya sendiri. Draf itu dikirim waktu pemiliknya login
+  /// lagi, atau kedaluwarsa sesudah 14 hari.
+  Future<void> buangAkunLain(int userId, {DateTime? sekarang});
 }
 
 /// Berkas JSON di `<dasar>/<userId>/<kunci>.json`. Bukan SQLite — keputusan
@@ -388,39 +397,40 @@ class SimpananDrafLokalBerkas implements SimpananDrafLokal {
         try {
           final akar = await _akar();
           if (akar == null) return;
-          final folder = Directory(
-            '${akar.path}${Platform.pathSeparator}$userId',
+          await _sapu(
+            Directory('${akar.path}${Platform.pathSeparator}$userId'),
+            batas: (sekarang ?? DateTime.now()).subtract(
+              SimpananDrafLokal.umurMaksimal,
+            ),
+            akunLain: false,
           );
-          if (!await folder.exists()) return;
+        } catch (_) {
+          // Lihat docblock kelas.
+        }
+      });
+
+  @override
+  Future<void> buangAkunLain(int userId, {DateTime? sekarang}) =>
+      _berurutan(() async {
+        try {
+          final akar = await _akar();
+          if (akar == null || !await akar.exists()) return;
 
           final batas = (sekarang ?? DateTime.now()).subtract(
             SimpananDrafLokal.umurMaksimal,
           );
 
-          await for (final e in folder.list()) {
-            if (e is! File) continue;
+          await for (final e in akar.list()) {
+            if (e is! Directory) continue;
+            final nama = e.uri.pathSegments.where((s) => s.isNotEmpty).last;
+            if (nama == '$userId') continue;
+
+            await _sapu(e, batas: batas, akunLain: true);
+
             try {
-              // Sisa tulisan yang terputus (HP mati di tengah menulis).
-              if (e.path.endsWith('.tmp')) {
-                if ((await e.lastModified()).isBefore(batas)) await e.delete();
-                continue;
-              }
-
-              DateTime waktu;
-              try {
-                final isi = jsonDecode(await e.readAsString());
-                waktu =
-                    (isi is Map<String, dynamic>
-                        ? DrafLokal.fromJson(isi)?.disimpanPada
-                        : null) ??
-                    await e.lastModified();
-              } catch (_) {
-                waktu = await e.lastModified();
-              }
-
-              if (waktu.isBefore(batas)) await e.delete();
+              if (await e.list().isEmpty) await e.delete();
             } catch (_) {
-              // Berkas yang nggak bisa dibuang dicoba lagi lain kali.
+              // Dicoba lagi waktu login berikutnya.
             }
           }
         } catch (_) {
@@ -428,26 +438,49 @@ class SimpananDrafLokalBerkas implements SimpananDrafLokal {
         }
       });
 
-  @override
-  Future<void> buangAkunLain(int userId) => _berurutan(() async {
-    try {
-      final akar = await _akar();
-      if (akar == null || !await akar.exists()) return;
+  /// Sapu satu folder akun.
+  ///
+  /// Yang lebih tua dari [batas] selalu dibuang. Kalau [akunLain], simpanan
+  /// otomatis (`lokal`) dan berkas yang nggak terbaca ikut dibuang — yang
+  /// SUDAH antre / ditolak server tetap disimpan buat pemiliknya.
+  Future<void> _sapu(
+    Directory folder, {
+    required DateTime batas,
+    required bool akunLain,
+  }) async {
+    if (!await folder.exists()) return;
 
-      await for (final e in akar.list()) {
-        if (e is! Directory) continue;
-        final nama = e.uri.pathSegments.where((s) => s.isNotEmpty).last;
-        if (nama == '$userId') continue;
-        try {
-          await e.delete(recursive: true);
-        } catch (_) {
-          // Dicoba lagi waktu login berikutnya.
+    await for (final e in folder.list()) {
+      if (e is! File) continue;
+      try {
+        // Sisa tulisan yang terputus (HP mati di tengah menulis).
+        if (e.path.endsWith('.tmp')) {
+          if (akunLain || (await e.lastModified()).isBefore(batas)) {
+            await e.delete();
+          }
+          continue;
         }
+
+        DrafLokal? draf;
+        try {
+          final isi = jsonDecode(await e.readAsString());
+          if (isi is Map<String, dynamic>) draf = DrafLokal.fromJson(isi);
+        } catch (_) {
+          draf = null;
+        }
+
+        final waktu = draf?.disimpanPada ?? await e.lastModified();
+        final buang =
+            waktu.isBefore(batas) ||
+            (akunLain &&
+                (draf == null || draf.status == StatusDrafLokal.lokal));
+
+        if (buang) await e.delete();
+      } catch (_) {
+        // Berkas yang nggak bisa dibuang dicoba lagi lain kali.
       }
-    } catch (_) {
-      // Lihat docblock kelas.
     }
-  });
+  }
 }
 
 /// Simpanan di memori — buat test, dan sebagai pengganti kalau folder
@@ -493,7 +526,17 @@ class SimpananDrafLokalMemori implements SimpananDrafLokal {
   }
 
   @override
-  Future<void> buangAkunLain(int userId) async {
-    _isi.removeWhere((id, _) => id != userId);
+  Future<void> buangAkunLain(int userId, {DateTime? sekarang}) async {
+    final batas = (sekarang ?? DateTime.now()).subtract(
+      SimpananDrafLokal.umurMaksimal,
+    );
+    for (final e in _isi.entries) {
+      if (e.key == userId) continue;
+      e.value.removeWhere(
+        (_, d) =>
+            d.disimpanPada.isBefore(batas) || d.status == StatusDrafLokal.lokal,
+      );
+    }
+    _isi.removeWhere((id, isi) => id != userId && isi.isEmpty);
   }
 }
