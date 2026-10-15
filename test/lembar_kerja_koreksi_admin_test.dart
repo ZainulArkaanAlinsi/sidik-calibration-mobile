@@ -99,6 +99,21 @@ class _Riwayat extends MockHistoryService {
       CalibrationDetail.fromJson(sesi);
 }
 
+/// Mengubah satu angka di tabel After adjustment (pembacaan BERUBAH dari yang
+/// dipulihkan) — syarat diminta alasan koreksi.
+Future<void> _ubahAngka(WidgetTester tester) async {
+  final tabel = find.ancestor(
+    of: find.text('After adjustment Reading').first,
+    matching: find.byType(Column),
+  );
+  final kotak = find.descendant(
+    of: tabel.first,
+    matching: find.byType(TextField),
+  );
+  await tester.enterText(kotak.at(0), '7.04');
+  await tester.pump();
+}
+
 Future<void> _simpanDraf(WidgetTester tester) async {
   await tester.tap(find.text('Simpan sebagai draft'));
   await tester.pumpAndSettle();
@@ -117,6 +132,7 @@ void main() {
           sesi: _sesi(status: 'menunggu_approval'),
         );
 
+        await _ubahAngka(tester);
         await _simpanDraf(tester);
 
         // Belum ada yang terkirim — alasannya diminta dulu.
@@ -147,6 +163,7 @@ void main() {
         sesi: _sesi(status: 'menunggu_approval'),
       );
 
+      await _ubahAngka(tester);
       await _simpanDraf(tester);
       await tester.enterText(
         find.byKey(const ValueKey('isian-alasan-koreksi')),
@@ -167,11 +184,28 @@ void main() {
         sesi: _sesi(status: 'menunggu_approval'),
       );
 
+      await _ubahAngka(tester);
       await _simpanDraf(tester);
       await tester.tap(find.text('Batal'));
       await tester.pumpAndSettle();
 
       expect(lembar.jumlahKirim, 0);
+    });
+
+    testWidgets('angka TIDAK diubah: tidak diminta alasan dan tidak dikirim', (
+      tester,
+    ) async {
+      final lembar = await _buka(
+        tester,
+        token: 'mock-token-1',
+        sesi: _sesi(status: 'menunggu_approval'),
+      );
+
+      await _simpanDraf(tester);
+
+      expect(find.byType(DialogAlasanKoreksi), findsNothing);
+      expect(lembar.jumlahKirim, 1);
+      expect(lembar.payloadTerakhir!.containsKey('alasan_koreksi'), isFalse);
     });
 
     testWidgets('draf / perlu revisi: TIDAK diminta alasan', (tester) async {

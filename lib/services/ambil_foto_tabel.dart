@@ -6,6 +6,7 @@ import 'package:image/image.dart' as img;
 import '../providers/sumber_foto_provider.dart';
 import '../providers/worksheet_scan_provider.dart';
 import 'pembaca_halaman.dart';
+import 'potong_sel_foto.dart' show decodeFotoDiIsolate;
 
 /// Hasil satu jepretan "foto tabel ini".
 ///
@@ -90,7 +91,9 @@ Future<HasilAmbilFoto> ambilDanBacaTabel(WidgetRef ref) async {
     // lebih mahal daripada sampahnya sendiri.
   }
 
-  final citra = img.decodeImage(bita);
+  // Decode foto 4200 px di isolate lain: di isolate UI ini menahan frame ratusan
+  // milidetik.
+  final citra = await decodeFotoDiIsolate(bita);
 
   if (citra == null) {
     return (terbaca: null, dibatalkan: false, ukuran: null, citra: null);

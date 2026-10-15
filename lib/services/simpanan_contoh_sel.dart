@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:image/image.dart' as img;
 
 import 'potong_sel_foto.dart';
 
@@ -182,9 +181,10 @@ class SimpananContohSel {
     final saat = waktu ?? DateTime.now();
     final nama = await _namaBerkasBaru(saat);
 
-    await File(
-      '${folder.path}/$nama',
-    ).writeAsBytes(img.encodePng(potongan.potongan));
+    // Encode PNG di isolate lain: kerja piksel, bukan kerja UI.
+    final citraPotongan = potongan.potongan;
+    final png = await encodePngDiIsolate(citraPotongan);
+    await File('${folder.path}/$nama').writeAsBytes(png);
 
     final contoh = (
       berkas: nama,

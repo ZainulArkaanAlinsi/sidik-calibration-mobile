@@ -163,7 +163,7 @@ class _Kartu extends StatelessWidget {
         border: OutlineInputBorder(),
         contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 10),
       ),
-      onChanged: (_) => onBerubah(),
+      onChanged: (_) => isian.onIsianDiketik?.call(),
     );
 
     final judulNominal = () {
@@ -404,7 +404,7 @@ class _Kartu extends StatelessWidget {
                                 )
                               : null,
                         ),
-                        onChanged: (_) => onBerubah(),
+                        onChanged: (_) => isian.onIsianDiketik?.call(),
                       ),
               ),
               for (final f in acuan.kolomBaris)
@@ -432,7 +432,7 @@ class _Kartu extends StatelessWidget {
                             : '${f.label} — ${isian.satuanField(f)}',
                         hintText: f.tipe == TipeField.daftarAngka ? 'Pisahkan tiap keping dengan +' : null,
                       ),
-                      onChanged: (_) => onBerubah(),
+                      onChanged: (_) => isian.onIsianDiketik?.call(),
                     ),
                   ),
                 ],

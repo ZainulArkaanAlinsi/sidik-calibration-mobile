@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,6 +35,7 @@ import '../../widgets/app_button.dart';
 import '../../widgets/label_standar.dart';
 import '../../widgets/sidik_loader.dart';
 import '../../widgets/tampil_masuk.dart';
+import 'kinerja_lembar.dart';
 import 'lembar_kerja_state.dart';
 import 'widgets/dropdown_gagal.dart';
 import '../equipment/equipment_form_screen.dart';
@@ -131,7 +133,10 @@ class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen>
   /// sekali — objek bentuknya identik, jadi `gantiBentuk` tidak terpanggil.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && mounted) {
+    // Lembar yang sedang diketik tidak ditarik ulang (lihat `lembarKotorProvider`).
+    if (state == AppLifecycleState.resumed &&
+        mounted &&
+        !ref.read(lembarKotorProvider.notifier).ada) {
       ref.invalidate(lembarKerjaProvider(_kunci));
     }
   }
@@ -467,7 +472,10 @@ class _FormState extends ConsumerState<_Form> {
     // Angka yang diketik di tabel hasil nggak lewat `_isianBerubah` — selnya
     // sengaja nggak nge-rebuild formulir tiap ketukan tombol. Pratinjaunya
     // dengerin dari sini.
-    _isian.onIsianDiketik = _jadwalkanPratinjau;
+    _isian.onIsianDiketik = _isianDiketik;
+    _kotorCtl = ref.read(lembarKotorProvider.notifier);
+    _pratinjauCtl = ref.read(pratinjauProvider.notifier);
+    _tandaTampilTerakhir = _hitungTandaTampil();
 
     final id = widget.sesiId;
     if (id != null) _muatSesiLama(id);
@@ -492,9 +500,13 @@ class _FormState extends ConsumerState<_Form> {
     if (_sesiLamaGagalDimuat) ref.invalidate(calibrationDetailProvider(id));
 
     try {
-      final detail = await ref.read(calibrationDetailProvider(id).future);
+      // Detail sesi dan daftar alat lembar INI saling tidak bergantung: ditarik
+      // BERSAMAAN, bukan berurutan (dulu dua perjalanan jaringan beruntun).
+      final detailF = ref.read(calibrationDetailProvider(id).future);
+      final daftarF = _daftarAlatLembar();
+      final detail = await detailF;
       final isi = detail.isianTeknisi;
-      final alatSesi = await _alatSesiLama(isi?.equipmentId);
+      final alatSesi = _alatSesiLama(await daftarF, isi?.equipmentId);
       if (!mounted) return;
 
       // Tabel pengukurannya dipulihkan walau `isian_teknisi` nggak ikut di
@@ -525,6 +537,11 @@ class _FormState extends ConsumerState<_Form> {
         // hasil hitung cuma cadangan buat sesi lama.
         _isian.terapkanStandarDariHasil(detail.titik);
       });
+
+      // Isian sesudah dipulihkan = pembanding: alasan koreksi hanya diminta kalau
+      // pembacaan BERUBAH dari sini (K-50-02; menyimpan angka yang sama tidak
+      // meminta alasan).
+      _asliPembacaan = _tangkapPembacaan();
 
       // Angka yang nggak ketemu barisnya HARUS diomongin. Draft yang balik
       // dengan tabel bolong tanpa ada yang bilang itu persis cara sesi kekirim
@@ -558,13 +575,20 @@ class _FormState extends ConsumerState<_Form> {
   ///
   /// Alat yang tidak ada lagi di daftar (dihapus, pindah jenis) atau daftar
   /// yang gagal dimuat = `null`: perilaku lama, teknisi memilih sendiri.
-  Future<EquipmentLookup?> _alatSesiLama(int? equipmentId) async {
-    if (equipmentId == null) return null;
+  EquipmentLookup? _alatSesiLama(
+    List<EquipmentLookup>? daftar,
+    int? equipmentId,
+  ) {
+    if (equipmentId == null || daftar == null) return null;
+    return daftar.where((e) => e.id == equipmentId).firstOrNull;
+  }
+
+  /// Daftar alat lembar ini; gagal = `null` (teknisi memilih sendiri).
+  Future<List<EquipmentLookup>?> _daftarAlatLembar() async {
     try {
-      final daftar = await ref.read(
+      return await ref.read(
         equipmentLookupProfilProvider(_isian.profil).future,
       );
-      return daftar.where((e) => e.id == equipmentId).firstOrNull;
     } catch (_) {
       return null;
     }
@@ -582,10 +606,56 @@ class _FormState extends ConsumerState<_Form> {
     // semua perubahan — biar nggak ada jalur yang lupa: yang nyalain bug lama
     // bukan dropdown ruangannya, tapi nilainya yang masih nyangkut sesudah
     // teknisi pindah ke Insitu.
+    _tandaiKotor();
     _isian.bersihkanFieldTersembunyi();
     setState(() {});
+    _tandaTampilTerakhir = _hitungTandaTampil();
     widget.onAlatBerubah(_isian.alat?.id);
     _jadwalkanPratinjau();
+  }
+
+  /// Angka diketik di kotak yang BUKAN penentu tampil-tidaknya kolom lain:
+  /// cukup jadwalkan pratinjau. Dulu tiap ketukan membangun ulang SELURUH
+  /// formulir (`setState` di [_isianBerubah]) — itu yang terasa lag di HP.
+  /// Kalau ketukannya mengubah nilai penentu (`tampil_kalau`), jalur penuh.
+  void _isianDiketik() {
+    _tandaiKotor();
+    if (_hitungTandaTampil() != _tandaTampilTerakhir) {
+      _isianBerubah();
+      return;
+    }
+    _jadwalkanPratinjau();
+  }
+
+  late final LembarKotorController _kotorCtl;
+  late final PratinjauController _pratinjauCtl;
+  String _tandaTampilTerakhir = '';
+  bool _kotor = false;
+
+  void _tandaiKotor() {
+    if (_kotor) return;
+    _kotor = true;
+    // Sesudah frame: dipanggil dari onChanged, tapi dijaga dari pembangunan.
+    Future.microtask(_kotorCtl.tambah);
+  }
+
+  /// Nilai semua kolom yang menentukan `tampil_kalau` — berubah = ada kolom
+  /// atau tabel yang harus muncul/hilang.
+  String _hitungTandaTampil() {
+    final kode = <String>{};
+    for (final b in _isian.bentuk.bagian) {
+      for (final f in [...b.field, ...b.fieldDiLuarKertas]) {
+        final k = f.tampilKalau?.kode;
+        if (k != null) kode.add(k);
+      }
+      for (final t in b.tabel) {
+        final k = t.tampilKalau?.kode;
+        if (k != null) kode.add(k);
+      }
+    }
+    if (kode.isEmpty) return '';
+    final urut = kode.toList()..sort();
+    return urut.map((k) => '$k=${_isian.nilaiSyarat(k)}').join('|');
   }
 
   /// Minta backend ngitung isian yang sekarang — DITUNDA, bukan tiap ketukan.
@@ -665,6 +735,17 @@ class _FormState extends ConsumerState<_Form> {
   @override
   void dispose() {
     _pratinjauTertunda?.cancel();
+    if (_kotor) {
+      final ctl = _kotorCtl;
+      Future.microtask(() {
+        try {
+          ctl.kurang();
+        } catch (_) {
+          // Container sudah dibuang (penutupan app/test).
+        }
+      });
+    }
+    _pratinjauCtl.batalkan();
 
     // Tampungan contoh latih milik sesi ini dibuang — teknisi yang memotret
     // lalu MENUTUP lembarnya tanpa menyimpan meninggalkan potongan di
@@ -883,7 +964,9 @@ class _FormState extends ConsumerState<_Form> {
     // Diminta di sini, sebelum tombol berputar — bukan sesudah ditolak 422.
     // Lembar bermatriks (Autoklaf) lewat endpoint lain yang belum memakainya.
     String? alasanKoreksi;
-    if (_perluAlasanKoreksi && _isian.bagianMatriks == null) {
+    if (_perluAlasanKoreksi &&
+        _isian.bagianMatriks == null &&
+        _pembacaanBerubah) {
       alasanKoreksi = await _mintaAlasanKoreksi();
       if (alasanKoreksi == null || !mounted) return;
     }
@@ -1153,6 +1236,23 @@ class _FormState extends ConsumerState<_Form> {
       _statusSesiLama == CalibrationStatus.menungguApproval &&
       (ref.read(authProvider).value?.role.hakAdmin ?? false);
 
+  /// Pembacaan sesudah sesi dipulihkan dari server — pembanding [_pembacaanBerubah].
+  String? _asliPembacaan;
+
+  String? _tangkapPembacaan() {
+    try {
+      final json = _isian.toSubmission(draft: true).toJson();
+      return jsonEncode(json['measurements']);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// `true` kalau pembacaan berbeda dari yang dipulihkan — atau pembandingnya
+  /// tidak ada (diperlakukan berubah: lebih baik bertanya daripada 422).
+  bool get _pembacaanBerubah =>
+      _asliPembacaan == null || _tangkapPembacaan() != _asliPembacaan;
+
   /// Dialog alasan koreksi. `null` = dibatalkan (tidak jadi menyimpan).
   Future<String?> _mintaAlasanKoreksi() => showDialog<String>(
     context: context,
@@ -1257,6 +1357,7 @@ class _FormState extends ConsumerState<_Form> {
 
   @override
   Widget build(BuildContext context) {
+    assert(KinerjaLembar.catat(() => KinerjaLembar.bangunForm++));
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final bentuk = widget.bentuk;
@@ -3218,7 +3319,7 @@ class _BarisKotakTambahan extends StatelessWidget {
                         ? 'mis. 20* atau nomor seri'
                         : 'Pisahkan tiap keping dengan +',
                   ),
-                  onChanged: (_) => onBerubah(),
+                  onChanged: (_) => isian.onIsianDiketik?.call(),
                 ),
               ),
             ],

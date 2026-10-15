@@ -118,7 +118,6 @@ void _tangani(Ref ref, PeristiwaRealtime p) {
       // satu HP, meja depan yang menandai serah terima dari laptop, teknisi
       // yang melapor progres — perangkat lain di lab yang sama ikut menyusul.
       // Saringan layarnya tidak hilang (lihat `Saringan`).
-      ref.invalidate(antreanPengesahanProvider);
       ref.invalidate(daftarPaketProvider);
       ref.invalidate(detailPaketProvider);
       ref.invalidate(daftarPenugasanProvider);
@@ -131,7 +130,6 @@ void _tangani(Ref ref, PeristiwaRealtime p) {
       ref.invalidate(pusatPelangganProvider);
       ref.invalidate(detailPelangganProvider);
       ref.invalidate(paketBerjalanProvider);
-      ref.invalidate(antreanBerandaProvider);
       // Permintaan pelanggan (jenis 'permintaan': dibuat/diterima/ditolak/
       // dibatalkan/pesan): admin lain menerimanya, atau pelanggan menulis di
       // utas — antrean, badge menu, detail, dan utas yang terbuka menyusul.
@@ -166,7 +164,11 @@ void _tangani(Ref ref, PeristiwaRealtime p) {
       // mengubah bentuk lembar.
       if (jenis == jenisDataAcuan || jenis == jenisTarikBerkala) {
         segarkanDataAcuan(ref);
-        ref.invalidate(lembarKerjaProvider);
+        // Lembar yang sedang diketik JANGAN ditarik ulang: bentuk baru di tengah
+        // pengetikan membangun ulang tabelnya. Dibuka berikutnya menarik sendiri.
+        if (!ref.read(lembarKotorProvider.notifier).ada) {
+          ref.invalidate(lembarKerjaProvider);
+        }
       }
     case NotifikasiMasuk():
       // Badge lonceng selalu di-refresh (nyala barengan HP↔desktop); daftar

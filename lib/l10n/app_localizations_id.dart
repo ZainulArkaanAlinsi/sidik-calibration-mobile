@@ -6209,4 +6209,155 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get adminThermohygro => 'Thermohygro';
+
+  @override
+  String get navKalibrasi => 'Kalibrasi';
+
+  @override
+  String get tekKalibrasiJudul => 'Kalibrasi';
+
+  @override
+  String get tekPerluRevisi => 'Perlu revisi';
+
+  @override
+  String get tekPerluRevisiKosong => 'Tidak ada lembar yang perlu diperbaiki.';
+
+  @override
+  String get tekDrafKosong => 'Belum ada draf.';
+
+  @override
+  String get tekTerkirim => 'Terkirim terakhir';
+
+  @override
+  String get tekTerkirimKosong => 'Belum ada lembar yang dikirim.';
+
+  @override
+  String get tekGagalMuat => 'Daftar ini gagal dimuat.';
+
+  @override
+  String get setujuiJudul => 'Setujui & terbitkan';
+
+  @override
+  String get setujuiPetunjuk =>
+      'Order Number dan No. Sertifikat diketik Master Data dan tercetak di sertifikat.';
+
+  @override
+  String get setujuiNomorSertifikatLabel => 'No. Sertifikat';
+
+  @override
+  String get setujuiNomorSertifikatPetunjuk =>
+      'Unik di lab ini. Hanya huruf, angka, dan . _ / - ; tidak boleh berakhiran -R1, -R2 (nomor revisi dibuat sistem).';
+
+  @override
+  String get setujuiNomorSertifikatKosong => 'No. Sertifikat wajib diisi.';
+
+  @override
+  String get setujuiNomorSertifikatFormat =>
+      'No. Sertifikat tidak valid: hanya huruf, angka, dan . _ / - , maksimal 100 karakter, tanpa akhiran -R<angka>.';
+
+  @override
+  String get setujuiNomorRevisiOtomatis =>
+      'Sertifikat sebelumnya ditarik: nomor revisinya (…-R1) dibuat sistem, tidak perlu diketik.';
+
+  @override
+  String get setujuiAksi => 'Setujui';
+
+  @override
+  String get galatNomorSertifikatWajib =>
+      'No. Sertifikat belum diisi. Ketik nomornya sebelum menyetujui.';
+
+  @override
+  String get galatNomorSertifikatTidakValid =>
+      'No. Sertifikat tidak valid: hanya huruf, angka, dan . _ / - , maksimal 100 karakter, dan tidak boleh berakhiran -R<angka>.';
+
+  @override
+  String galatNomorSertifikatDipakai(String nomor) {
+    return 'No. Sertifikat ini sudah dipakai sertifikat $nomor. Pakai nomor lain.';
+  }
+
+  @override
+  String get galatNomorSertifikatDipakaiLain =>
+      'No. Sertifikat ini sudah dipakai sertifikat lain di lab ini. Pakai nomor lain.';
+
+  @override
+  String get tarikAksi => 'Tarik ke lembar kerja';
+
+  @override
+  String get tarikJudul => 'Tarik sertifikat ke lembar kerja?';
+
+  @override
+  String get tarikPetunjuk =>
+      'Sertifikat ini ditandai ditarik dan sesinya kembali ke menunggu approval untuk dikoreksi. Setelah disetujui ulang terbit sertifikat baru berakhiran -R1. Isian asli teknisi tidak dihapus.';
+
+  @override
+  String get tarikAlasanLabel => 'Alasan (minimal 10 karakter)';
+
+  @override
+  String get tarikAlasanPendek => 'Alasan minimal 10 karakter.';
+
+  @override
+  String get tarikSandiLabel => 'Sandi akun Anda';
+
+  @override
+  String get tarikSandiKosong => 'Sandi wajib diisi.';
+
+  @override
+  String get tarikKirim => 'Tarik';
+
+  @override
+  String get tarikBerhasil =>
+      'Sertifikat ditarik. Sesi kembali ke menunggu approval.';
+
+  @override
+  String get galatKonfirmasiSandiSalah => 'Sandi salah. Coba lagi.';
+
+  @override
+  String get statusDitarik => 'Ditarik';
+
+  @override
+  String get bandingkanJudul => 'Bandingkan dengan isian asli';
+
+  @override
+  String get bandingkanTombol => 'Bandingkan dengan asli teknisi';
+
+  @override
+  String get bandingkanTanpaAsli =>
+      'Lembar ini belum pernah dikoreksi — belum ada yang berubah.';
+
+  @override
+  String bandingkanRingkas(int berubah, int total) {
+    return '$berubah dari $total isian berubah';
+  }
+
+  @override
+  String get bandingkanAsli => 'Asli teknisi';
+
+  @override
+  String get bandingkanSekarang => 'Sekarang';
+
+  @override
+  String bandingkanDiubahOleh(String nama) {
+    return 'Diubah oleh $nama';
+  }
+
+  @override
+  String bandingkanAlasan(String alasan) {
+    return 'Alasan: $alasan';
+  }
+
+  @override
+  String bandingkanDibekukan(String waktu) {
+    return 'Isian asli dibekukan $waktu';
+  }
+
+  @override
+  String get bandingkanGagal => 'Perbandingan gagal dimuat.';
+
+  @override
+  String get bandingkanTidakAdaBerubah => 'Tidak ada isian yang berubah.';
+
+  @override
+  String bandingkanTidakBerubahJudul(int jumlah) {
+    return '$jumlah isian tidak berubah';
+  }
 }

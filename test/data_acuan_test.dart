@@ -736,6 +736,52 @@ void main() {
       expect(acuan.panggilan, awalAcuan + 2);
       expect(lembar.panggilan, awalLembar + 2);
     });
+
+    test('lembar yang sedang diketik TIDAK ditarik ulang oleh sinyal acuan '
+        '(Studio tetap)', () async {
+      final acuan = _HitungAcuan();
+      final lembar = _HitungLembar();
+      final rt = MockRealtimeService();
+      final c = buat(acuan: acuan, lembar: lembar, rt: rt);
+
+      const kunci = (
+        profil: 'micrometer',
+        pengulangan: null,
+        equipmentId: null,
+      );
+      c.listen(realtimeSyncProvider, (_, _) {});
+      c.listen(daftarPaketAcuanProvider, (_, _) {});
+      c.listen(lembarKerjaProvider(kunci), (_, _) {});
+
+      await c.read(authProvider.future);
+      await Future<void>.delayed(Duration.zero);
+      await c.read(daftarPaketAcuanProvider.future);
+      await c.read(lembarKerjaProvider(kunci).future);
+      final awalAcuan = acuan.panggilan;
+      final awalLembar = lembar.panggilan;
+
+      Future<void> pancar(String jenis) async {
+        rt.pancarkan(DataBerubah(jenis: jenis, aksi: 'aktif', id: 2));
+        await Future<void>.delayed(Duration.zero);
+        await c.read(daftarPaketAcuanProvider.future);
+        await c.read(lembarKerjaProvider(kunci).future);
+      }
+
+      // Ada lembar terbuka yang isiannya sudah disentuh.
+      c.read(lembarKotorProvider.notifier).tambah();
+      await pancar(jenisDataAcuan);
+      expect(acuan.panggilan, awalAcuan + 1, reason: 'Studio tetap segar');
+      expect(
+        lembar.panggilan,
+        awalLembar,
+        reason: 'bentuk baru di tengah pengetikan membangun ulang tabelnya',
+      );
+
+      // Lembarnya ditutup → sinyal berikutnya menarik ulang seperti biasa.
+      c.read(lembarKotorProvider.notifier).kurang();
+      await pancar(jenisTarikBerkala);
+      expect(lembar.panggilan, awalLembar + 1);
+    });
   });
 }
 
