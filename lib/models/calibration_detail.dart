@@ -745,6 +745,9 @@ class IsianTeknisi {
   /// Kode kolom yang diminta admin dibetulin. Layar nyorot persis kolom ini
   /// waktu lembar kerja dibuka lagi — teknisi nggak perlu nyisir puluhan kolom
   /// nyari mana yang dimaksud catatan revisinya.
+  ///
+  /// Sengaja dibaca APA PUN statusnya: lembar `perlu_revisi` yang disimpan
+  /// sebagai draf tetap membawa kode ini dari server sampai dikirim ulang.
   final Set<String> revisiField;
 
   /// Alasan admin ngembaliin lembarnya, apa adanya (nggak dipotong).
@@ -959,6 +962,10 @@ class CalibrationDetail {
   final Keputusan? keputusan;
   final int? certificateId;
   final String? catatanRevisi;
+
+  /// Catatan revisi admin perlu ditampilkan — `perlu_revisi`, atau draf yang
+  /// lahir dari revisi. Lihat [catatanRevisiTampil].
+  bool get bawaCatatanRevisi => catatanRevisiTampil(status, catatanRevisi);
 
   /// Berapa desimal angka hasil dibulatkan.
   ///

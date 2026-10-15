@@ -388,8 +388,9 @@ class _PanelTahapan extends ConsumerWidget {
           ),
         ),
 
-        if (sesi.status == CalibrationStatus.perluRevisi &&
-            (sesi.catatanRevisi?.isNotEmpty ?? false)) ...[
+        // `draft` ikut: lembar revisi yang disimpan sebagai draf masih
+        // membawa catatan admin sampai dikirim ulang.
+        if (sesi.bawaCatatanRevisi) ...[
           const SizedBox(height: AppSpacing.md),
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),

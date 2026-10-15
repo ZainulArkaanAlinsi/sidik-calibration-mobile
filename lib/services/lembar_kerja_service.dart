@@ -589,8 +589,20 @@ class MockLembarKerjaService implements LembarKerjaService {
   }
 
   @override
-  Future<int> perbarui(String token, int id, LembarKerjaSubmission isian) async =>
-      _catat(isian, id);
+  Future<int> perbarui(
+    String token,
+    int id,
+    LembarKerjaSubmission isian,
+  ) async {
+    final hasil = _catat(isian, id);
+
+    // Status sesinya ikut aturan server — Simpan Draf di lembar revisi jadi
+    // `draft` dengan catatan admin tetap terbawa. Lihat `MockStore.perbarui`.
+    MockStore.instance.perbarui(id, draft: isian.simpanSebagaiDraft);
+    await MockStore.instance.tungguTersimpan();
+
+    return hasil;
+  }
 
   int _catat(LembarKerjaSubmission isian, int id) {
     // Dicatat DULUAN, baru dilempar errornya — payload percobaan yang gagal

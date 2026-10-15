@@ -146,6 +146,10 @@ class MockAutoclaveService implements AutoclaveService {
     panggilan.add((metode: 'PUT', id: id, payload: payload));
     if (gagal) throw Exception('server nggak nyaut');
 
+    // Status sesinya ikut aturan server — lihat `MockStore.perbarui`.
+    MockStore.instance.perbarui(id, draft: payload['status'] == 'draft');
+    await MockStore.instance.tungguTersimpan();
+
     return id;
   }
 }

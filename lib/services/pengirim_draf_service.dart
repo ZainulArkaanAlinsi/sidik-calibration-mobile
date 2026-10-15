@@ -111,6 +111,12 @@ class MockPengirimDrafService implements PengirimDrafService {
     required Map<String, dynamic> body,
   }) async {
     panggilan.add((metode: 'PUT', id: id, body: body));
+
+    // Sinkron draf offline selalu `status: draft` — sesi revisi jadi draf
+    // dengan catatan admin tetap terbawa, sama kayak server.
+    MockStore.instance.perbarui(id, draft: body['status'] == 'draft');
+    await MockStore.instance.tungguTersimpan();
+
     return id;
   }
 }
