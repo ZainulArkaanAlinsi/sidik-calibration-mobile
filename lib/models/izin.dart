@@ -116,6 +116,7 @@ abstract final class NamaIzin {
   static const alatTambah = 'alat.tambah';
   static const alatUbah = 'alat.ubah';
   static const alatHapus = 'alat.hapus';
+  static const alatUbahJatuhTempo = 'alat.ubah-jatuh-tempo';
 
   static const kalibrasiBuat = 'kalibrasi.buat';
   static const kalibrasiSetujui = 'kalibrasi.setujui';

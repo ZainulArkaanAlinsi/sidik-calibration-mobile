@@ -8560,7 +8560,7 @@ abstract class AppLocalizations {
   /// No description provided for @jadwalInfo.
   ///
   /// In en, this message translates to:
-  /// **'Change an item\'s due date in its equipment form. Tap the row.'**
+  /// **'Tap a row to open the instrument. Change the date with \"Change due date\" (reason required; an active certificate becomes a revision).'**
   String get jadwalInfo;
 
   /// No description provided for @pusatJudul.
@@ -11322,6 +11322,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'File name changed.'**
   String get arsipBerkasDiubah;
+
+  /// No description provided for @jtUbahAksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Change due date'**
+  String get jtUbahAksi;
+
+  /// No description provided for @jtUbahJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Change due date'**
+  String get jtUbahJudul;
+
+  /// No description provided for @jtUbahDampak.
+  ///
+  /// In en, this message translates to:
+  /// **'What happens'**
+  String get jtUbahDampak;
+
+  /// No description provided for @jtUbahDampakSertifikat.
+  ///
+  /// In en, this message translates to:
+  /// **'Instrument has an active certificate: the printed date changes, so a REVISION (-R1, -R2, ...) is created. The old certificate stays as history; the schedule follows once the revision PDF is issued.'**
+  String get jtUbahDampakSertifikat;
+
+  /// No description provided for @jtUbahDampakJadwal.
+  ///
+  /// In en, this message translates to:
+  /// **'No active dated certificate: only the instrument schedule changes, immediately, and it is audit-logged.'**
+  String get jtUbahDampakJadwal;
+
+  /// No description provided for @jtUbahTanggal.
+  ///
+  /// In en, this message translates to:
+  /// **'New due date'**
+  String get jtUbahTanggal;
+
+  /// No description provided for @jtUbahPilihTanggal.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a date'**
+  String get jtUbahPilihTanggal;
+
+  /// No description provided for @jtUbahAlasan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get jtUbahAlasan;
+
+  /// No description provided for @jtUbahAlasanMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason needs at least 5 characters.'**
+  String get jtUbahAlasanMin;
+
+  /// No description provided for @jtUbahTanggalKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a date first.'**
+  String get jtUbahTanggalKosong;
+
+  /// No description provided for @jtUbahSimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get jtUbahSimpan;
+
+  /// No description provided for @jtUbahBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get jtUbahBatal;
+
+  /// No description provided for @jtUbahBerhasilJadwal.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date schedule changed.'**
+  String get jtUbahBerhasilJadwal;
+
+  /// No description provided for @jtUbahBerhasilRevisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Revision {nomor} created: the printed certificate date changed.'**
+  String jtUbahBerhasilRevisi(String nomor);
 }
 
 class _AppLocalizationsDelegate

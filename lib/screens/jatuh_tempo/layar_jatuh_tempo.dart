@@ -7,7 +7,10 @@ import '../../core/theme/sidik_material.dart';
 import '../../core/theme/sidik_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/jatuh_tempo.dart';
+import '../../models/izin.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
+import '../../providers/izin_provider.dart';
 import '../../providers/jam_provider.dart';
 import '../../providers/jatuh_tempo_provider.dart';
 import '../../widgets/app_button.dart';
@@ -15,6 +18,7 @@ import '../../widgets/readable_width.dart';
 import '../../widgets/sidik/sidik_permukaan.dart';
 import '../../widgets/skeleton.dart';
 import '../equipment/equipment_form_screen.dart';
+import 'dialog_ubah_jatuh_tempo.dart';
 import '../../core/utils/tanggal_pendek.dart';
 
 /// Satu tab: label, isi, dan kalimat yang dipakai kalau kosong.
@@ -51,6 +55,7 @@ class LayarJatuhTempo extends ConsumerStatefulWidget {
     required this.ikonCatatan,
     required this.tab,
     this.penutup,
+    this.aksiUbah = false,
   });
 
   final String Function(AppLocalizations l10n) judul;
@@ -63,6 +68,9 @@ class LayarJatuhTempo extends ConsumerStatefulWidget {
   )
   tab;
   final String Function(AppLocalizations l10n)? penutup;
+
+  /// Tawarkan "Ubah jatuh tempo" di tiap baris (Jadwal Kalibrasi Ulang).
+  final bool aksiUbah;
 
   @override
   ConsumerState<LayarJatuhTempo> createState() => _LayarJatuhTempoState();
@@ -90,6 +98,7 @@ class _LayarJatuhTempoState extends ConsumerState<LayarJatuhTempo> {
         catatan: widget.catatan(l10n),
         ikonCatatan: widget.ikonCatatan,
         penutup: widget.penutup?.call(l10n),
+        aksiUbah: widget.aksiUbah,
         onRefresh: () async => ref.refresh(jatuhTempoProvider.future),
       );
     } else if (async.hasError) {
@@ -133,6 +142,7 @@ class _Isi extends StatelessWidget {
     required this.ikonCatatan,
     required this.onRefresh,
     this.penutup,
+    this.aksiUbah = false,
   });
 
   final AppLocalizations l10n;
@@ -143,6 +153,7 @@ class _Isi extends StatelessWidget {
   final String catatan;
   final IconData ikonCatatan;
   final String? penutup;
+  final bool aksiUbah;
   final Future<void> Function() onRefresh;
 
   @override
@@ -218,7 +229,7 @@ class _Isi extends StatelessWidget {
             )
           else
             for (final item in aktif.isi) ...[
-              BarisJatuhTempo(item: item),
+              BarisJatuhTempo(item: item, aksiUbah: aksiUbah),
               const SizedBox(height: AppSpacing.sm),
             ],
           if (penutup != null && aktif.isi.isNotEmpty) ...[
@@ -238,9 +249,13 @@ class _Isi extends StatelessWidget {
 /// Satu baris alat: nama + serial + pelanggan di kiri, jarak ke jatuh tempo
 /// & tanggalnya di kanan. Dipakai juga oleh Detail pelanggan.
 class BarisJatuhTempo extends ConsumerWidget {
-  const BarisJatuhTempo({super.key, required this.item});
+  const BarisJatuhTempo({super.key, required this.item, this.aksiUbah = false});
 
   final AlatJatuhTempo item;
+
+  /// Tombol "Ubah jatuh tempo" — hanya bila layar menawarkannya DAN izin
+  /// `alat.ubah-jatuh-tempo` ada (server tetap menegakkan).
+  final bool aksiUbah;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -249,6 +264,12 @@ class BarisJatuhTempo extends ConsumerWidget {
     final m = SidikMaterial.of(context);
     final alat = item.alat;
     final hari = item.hari;
+    final bolehUbah =
+        aksiUbah &&
+        ref.bolehkah(
+          NamaIzin.alatUbahJatuhTempo,
+          cadangan: ref.watch(authProvider).value?.role.hakAdmin ?? false,
+        );
 
     // Ikon + teks, bukan warna saja: lewat jadwal harus terbaca juga oleh yang
     // tidak membedakan merah dan hijau.
@@ -324,6 +345,16 @@ class BarisJatuhTempo extends ConsumerWidget {
                     : tanggalPendek(context, alat.tanggalJatuhTempo),
                 style: theme.textTheme.bodySmall,
               ),
+              if (bolehUbah)
+                TextButton.icon(
+                  onPressed: () => tampilkanUbahJatuhTempo(context, ref, alat),
+                  icon: const Icon(Icons.edit_calendar_outlined, size: 16),
+                  label: Text(l10n.jtUbahAksi),
+                  style: TextButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
             ],
           ),
         ],
@@ -373,6 +404,7 @@ class JadwalKalibrasiScreen extends StatelessWidget {
     subjudul: (l10n, r) => l10n.jadwalSub,
     catatan: (l10n) => l10n.jadwalInfo,
     ikonCatatan: Icons.info_outline,
+    aksiUbah: true,
     tab: (l10n, r) => [
       TabJatuhTempo(
         label: l10n.jadwalTabLewat,

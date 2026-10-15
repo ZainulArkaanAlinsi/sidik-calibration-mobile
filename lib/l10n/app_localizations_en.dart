@@ -4880,7 +4880,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get jadwalInfo =>
-      'Change an item\'s due date in its equipment form. Tap the row.';
+      'Tap a row to open the instrument. Change the date with \"Change due date\" (reason required; an active certificate becomes a revision).';
 
   @override
   String get pusatJudul => 'Customer hub';
@@ -6500,4 +6500,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get arsipBerkasDiubah => 'File name changed.';
+
+  @override
+  String get jtUbahAksi => 'Change due date';
+
+  @override
+  String get jtUbahJudul => 'Change due date';
+
+  @override
+  String get jtUbahDampak => 'What happens';
+
+  @override
+  String get jtUbahDampakSertifikat =>
+      'Instrument has an active certificate: the printed date changes, so a REVISION (-R1, -R2, ...) is created. The old certificate stays as history; the schedule follows once the revision PDF is issued.';
+
+  @override
+  String get jtUbahDampakJadwal =>
+      'No active dated certificate: only the instrument schedule changes, immediately, and it is audit-logged.';
+
+  @override
+  String get jtUbahTanggal => 'New due date';
+
+  @override
+  String get jtUbahPilihTanggal => 'Pick a date';
+
+  @override
+  String get jtUbahAlasan => 'Reason';
+
+  @override
+  String get jtUbahAlasanMin => 'Reason needs at least 5 characters.';
+
+  @override
+  String get jtUbahTanggalKosong => 'Pick a date first.';
+
+  @override
+  String get jtUbahSimpan => 'Save';
+
+  @override
+  String get jtUbahBatal => 'Cancel';
+
+  @override
+  String get jtUbahBerhasilJadwal => 'Due date schedule changed.';
+
+  @override
+  String jtUbahBerhasilRevisi(String nomor) {
+    return 'Revision $nomor created: the printed certificate date changed.';
+  }
 }

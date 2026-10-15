@@ -4807,7 +4807,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get jadwalInfo =>
-      'Tanggal jatuh tempo tiap alat diubah lewat form alat. Ketuk barisnya.';
+      'Ketuk baris untuk membuka alat. Ubah tanggal lewat \"Ubah jatuh tempo\" (alasan wajib; sertifikat aktif jadi revisi).';
 
   @override
   String get pusatJudul => 'Pusat pelanggan';
@@ -6426,4 +6426,50 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get arsipBerkasDiubah => 'Nama berkas diubah.';
+
+  @override
+  String get jtUbahAksi => 'Ubah jatuh tempo';
+
+  @override
+  String get jtUbahJudul => 'Ubah jatuh tempo';
+
+  @override
+  String get jtUbahDampak => 'Dampaknya';
+
+  @override
+  String get jtUbahDampakSertifikat =>
+      'Alat punya sertifikat aktif: tanggal yang tercetak di sertifikat berubah, jadi dibuat REVISI (-R1, -R2, ...). Sertifikat lama tetap tersimpan sebagai riwayat; jadwal alat ikut berubah setelah PDF revisi terbit.';
+
+  @override
+  String get jtUbahDampakJadwal =>
+      'Alat tanpa sertifikat aktif bertanggal: hanya jadwal alat yang berubah, langsung, dan tercatat di jejak audit.';
+
+  @override
+  String get jtUbahTanggal => 'Tanggal jatuh tempo baru';
+
+  @override
+  String get jtUbahPilihTanggal => 'Pilih tanggal';
+
+  @override
+  String get jtUbahAlasan => 'Alasan';
+
+  @override
+  String get jtUbahAlasanMin => 'Alasan minimal 5 huruf.';
+
+  @override
+  String get jtUbahTanggalKosong => 'Pilih tanggal dulu.';
+
+  @override
+  String get jtUbahSimpan => 'Simpan';
+
+  @override
+  String get jtUbahBatal => 'Batal';
+
+  @override
+  String get jtUbahBerhasilJadwal => 'Jadwal jatuh tempo diubah.';
+
+  @override
+  String jtUbahBerhasilRevisi(String nomor) {
+    return 'Dibuat revisi $nomor: tanggal tercetak di sertifikat berubah.';
+  }
 }
