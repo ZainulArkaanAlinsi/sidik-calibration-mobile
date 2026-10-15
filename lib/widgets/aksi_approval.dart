@@ -6,6 +6,7 @@ import '../l10n/app_localizations.dart';
 import '../models/calibration_detail.dart' show CalibrationDetail;
 import '../models/calibration_history_item.dart';
 import '../models/validasi.dart';
+import '../providers/certificate_provider.dart';
 import '../providers/history_provider.dart';
 import '../providers/perhitungan_provider.dart';
 import '../screens/admin/widgets/dialog_setujui.dart';
@@ -153,12 +154,30 @@ class _AksiApprovalState extends ConsumerState<AksiApproval> {
       // pernah muncul sama sekali. Sheet-nya yang narik nomor + token sendiri.
       final certId = terbaru?.certificateId;
 
+      // `certificate_id` kini TIDAK berarti terbit: server membuat baris
+      // placeholder (`gagal`) sebelum job PDF jalan. Sheet hanya dibuka bila
+      // status sertifikatnya `terbit`; kalau belum, Alur Kerja yang menunjukkan.
       if (certId != null) {
-        await tampilkanSertifikatSukses(
-          context,
-          certificateId: certId,
-          nomor: terbaru?.nomorSertifikat,
-        );
+        final siap = await ref
+            .read(certificateDetailProvider(certId).future)
+            .then((d) => d.siap, onError: (_) => false);
+        if (!mounted) return;
+
+        if (siap) {
+          await tampilkanSertifikatSukses(
+            context,
+            certificateId: certId,
+            nomor: terbaru?.nomorSertifikat,
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context).alurSertifikatDigenerate,
+              ),
+            ),
+          );
+        }
       }
     } on ApiException catch (e) {
       if (!mounted) return;

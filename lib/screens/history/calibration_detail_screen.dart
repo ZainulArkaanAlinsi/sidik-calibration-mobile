@@ -465,7 +465,7 @@ class _Isi extends StatelessWidget {
           _MaxStdev(sesudah: detail.maxStdev!, sebelum: detail.maxStdevSebelum),
         ],
 
-        if (detail.certificateId != null) ...[
+        if (detail.certificateId != null && detail.sertifikatBisaDibuka) ...[
           const SizedBox(height: AppSpacing.lg),
           AppButton(
             label: l10n.detailLihatSertifikat,

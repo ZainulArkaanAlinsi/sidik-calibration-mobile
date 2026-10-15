@@ -312,7 +312,7 @@ _Tahap _tahapDari(CalibrationHistoryItem s) => switch (s.status) {
       CalibrationStatus.perluRevisi => _Tahap.lembarKerja,
       CalibrationStatus.menungguApproval => _Tahap.perhitungan,
       CalibrationStatus.disetujui =>
-        s.certificateId == null ? _Tahap.sertifikat : _Tahap.kirim,
+        s.sertifikatTerbit ? _Tahap.kirim : _Tahap.sertifikat,
     };
 
 class _LencanaTahap extends StatelessWidget {
@@ -640,7 +640,7 @@ class _TombolLangkah extends ConsumerWidget {
       _Tahap.kirim => (
           l10n.alurKirimPelanggan,
           Icons.mail_outline,
-          bolehKirim && sesi.certificateId != null
+          bolehKirim && sesi.sertifikatTerbit && sesi.certificateId != null
               ? () => buka(
                     KirimEmailScreen(
                       certificateId: sesi.certificateId!,

@@ -103,8 +103,10 @@ class CalibrationHistoryItem {
   /// Catatan dari admin waktu nolak sesi (`status == perluRevisi`).
   final String? catatanRevisi;
 
-  /// `null` sesaat setelah `approve` — sertifikatnya lagi digenerate di
-  /// queue backend (`docs/kontrak-api.md` §5).
+  /// Id baris sertifikat. SEJAK 16 Okt 2026 terisi begitu `approve` balik:
+  /// server membuat baris placeholder (status `gagal`) sebelum job PDF jalan.
+  /// JANGAN dipakai sebagai tanda "sudah terbit" — pakai [sertifikatTerbit]
+  /// (dari status sertifikat) atau `pdf_url`.
   final int? certificateId;
 
   /// Titik waktu — **punya jam**, beda dari [tanggalKalibrasi] yang cuma
@@ -139,6 +141,9 @@ class CalibrationHistoryItem {
   /// yang dikenal (sertifikat batal kebaca "Terbit" itu jauh lebih mahal
   /// daripada lencana bertulisan kode mentah).
   final String? statusSertifikat;
+
+  /// Sertifikat benar-benar sudah terbit (PDF jadi). Bukan `certificateId != null`.
+  bool get sertifikatTerbit => statusSertifikat == 'terbit';
 
   /// Disembunyikan dari Riwayat AKUN YANG LOGIN (keputusan pemilik 8 Okt 2026).
   ///

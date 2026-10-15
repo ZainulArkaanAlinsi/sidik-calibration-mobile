@@ -545,6 +545,11 @@ class CertificateRef {
   final String status;
   final String? pdfUrl;
 
+  /// Dokumennya ada (terbit / dibatalkan / ditarik). Baris placeholder
+  /// `gagal` / `menunggu_generate` sudah punya [id] tetapi belum punya dokumen.
+  bool get bisaDibuka =>
+      status == 'terbit' || status == 'dibatalkan' || status == 'ditarik';
+
   /// Token halaman verifikasi publik (`GET /verify/{qr_token}`).
   ///
   /// **Backend belum ngirim ini** per 27 Jul — lihat
@@ -1051,6 +1056,11 @@ class CalibrationDetail {
   /// Sertifikat terakhir sesi ini DITARIK ke lembar kerja (K-50-03): dialog
   /// Setujui tidak meminta No. Sertifikat — nomor `<nomor>-R<n>` dibuat server.
   bool get sertifikatDitarik => sertifikat?.status == 'ditarik';
+
+  /// Sertifikat sudah punya dokumen yang bisa dibuka (terbit / dibatalkan /
+  /// ditarik). `certificateId` saja tidak cukup: baris placeholder `gagal`
+  /// sudah punya id sebelum job PDF jalan.
+  bool get sertifikatBisaDibuka => sertifikat?.bisaDibuka ?? false;
 
   /// Rincian awal/akhir + U95% lingkungan. Null buat sesi yang cuma ngirim
   /// satu angka suhu/kelembaban — pakai [suhuRuang]/[kelembaban] buat itu.
