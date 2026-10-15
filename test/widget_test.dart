@@ -43,7 +43,7 @@ void main() {
         'Dashboard',
         'Alat',
         'Riwayat',
-        'Folder',
+        'Arsip',
         'Profil',
       ]) {
         expect(find.text(label), findsWidgets, reason: 'tab $label harus ada');

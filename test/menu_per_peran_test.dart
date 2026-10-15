@@ -168,7 +168,7 @@ void main() {
       // Pusat pelanggan, dst. bukan urusan teknisi (K-50-14).
       expect(find.byType(Drawer), findsNothing);
       expect(find.byType(KalibrasiTeknisiScreen), findsOneWidget);
-      for (final label in ['Dashboard', 'Alat', 'Riwayat', 'Folder']) {
+      for (final label in ['Dashboard', 'Alat', 'Riwayat', 'Arsip']) {
         expect(find.text(label), findsNothing, reason: 'tab "$label" teknisi');
       }
       expect(find.text('Kalibrasi'), findsWidgets);
