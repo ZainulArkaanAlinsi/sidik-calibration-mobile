@@ -25,7 +25,7 @@ import '../../../widgets/skeleton.dart';
 
 /// Cadangan izin `data-acuan.lihat` selama server belum menyebutnya: TIDAK.
 ///
-/// Menu lain memakai aturan peran LAMA sebagai cadangan (`adminSaja`), karena
+/// Menu lain memakai aturan peran LAMA sebagai cadangan (`hakAdmin`), karena
 /// sebelum matriks izin ada, aturan itu yang berlaku. Data acuan tidak punya
 /// aturan lama — fiturnya lahir bersama izinnya. Dan `MatriksIzin::bolehUntuk`
 /// (repo API) sengaja TIDAK memasukkan izin yang rutenya tidak terdaftar,

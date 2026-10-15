@@ -22,7 +22,7 @@ class RuanganListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final daftar = ref.watch(daftarRuanganProvider);
-    final admin = ref.watch(authProvider).value?.role.isAdmin ?? false;
+    final admin = ref.watch(authProvider).value?.role.hakAdmin ?? false;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.ruanganTitle)),

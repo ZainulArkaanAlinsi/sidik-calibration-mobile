@@ -365,8 +365,23 @@ void main() {
       expect(find.byKey(const ValueKey('tombol-jadwalkan-teknisi')), findsNothing);
     });
 
+    // K-49-14 (15 Okt 2026): super admin memegang semua aksi admin & teknisi.
+    testWidgets('super admin melihat tombol operasional seperti admin', (
+      tester,
+    ) async {
+      await _pasang(
+        tester,
+        _app(
+          const DetailPermintaanScreen(permintaanId: _belumJadwal),
+          service: _layanan(),
+          token: _superAdmin,
+        ),
+      );
+      expect(find.byKey(const ValueKey('tombol-jadwalkan-teknisi')), findsOne);
+      expect(find.byKey(const ValueKey('tombol-alat-tiba')), findsOneWidget);
+    });
+
     for (final (nama, token) in [
-      ('super admin', _superAdmin),
       ('teknisi', _teknisi),
     ]) {
       testWidgets('$nama tidak melihat tombol operasional', (tester) async {

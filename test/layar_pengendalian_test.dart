@@ -772,10 +772,14 @@ void main() {
       expect(find.byTooltip('Tambah'), findsNWidgets(2));
     });
 
-    testWidgets('detail: super admin & viewer TIDAK bisa melapor', (
-      tester,
-    ) async {
-      for (final token in [_superAdmin, _viewer]) {
+    // K-49-14 (15 Okt 2026): super admin memegang semua aksi admin & teknisi.
+    testWidgets('detail: super admin boleh melapor', (tester) async {
+      await bukaDetail(tester, _superAdmin);
+      expect(find.byTooltip('Tambah'), findsNWidgets(2));
+    });
+
+    testWidgets('detail: viewer TIDAK bisa melapor', (tester) async {
+      for (final token in [_viewer]) {
         await bukaDetail(tester, token);
 
         expect(find.text('Rincian pekerjaan'), findsOneWidget);

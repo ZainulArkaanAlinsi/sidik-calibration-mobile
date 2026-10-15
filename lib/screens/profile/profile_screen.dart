@@ -103,7 +103,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 //
                 // Di HP nggak ada sidebar, jadi di situ blok ini SATU-SATUNYA jalan
                 // ke master data dan tetap dipertahankan.
-                if (user != null && user.role.isAdmin && !panelDesktop) ...[
+                if (user != null && user.role.hakAdmin && !panelDesktop) ...[
                   _JudulSeksi(l10n.profAdminMenu),
                   _KartuMenu(
                     children: [
@@ -482,7 +482,7 @@ class _MobileProfileCarouselState extends State<_MobileProfileCarousel> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final admin = widget.user.role.isAdmin;
+    final admin = widget.user.role.hakAdmin;
 
     final bagian = <_Bagian>[
       _Bagian(

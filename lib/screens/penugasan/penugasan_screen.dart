@@ -211,7 +211,8 @@ class _DetailPenugasanScreenState extends ConsumerState<DetailPenugasanScreen> {
     final daftar = ref.watch(daftarPenugasanProvider).value ?? const [];
     final p = daftar.where((x) => x.id == widget.penugasanId).firstOrNull;
     final peran = ref.watch(authProvider).value?.role;
-    final bolehLapor = peran == UserRole.teknisi || peran == UserRole.admin;
+    // Super admin ikut (K-49-14): semua aksi teknisi & admin juga miliknya.
+    final bolehLapor = peran == UserRole.teknisi || (peran?.hakAdmin ?? false);
 
     if (p == null) {
       return Scaffold(

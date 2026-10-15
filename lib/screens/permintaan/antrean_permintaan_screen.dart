@@ -457,8 +457,8 @@ class _Kerangka extends StatelessWidget {
   return (
     putuskan: ref.bolehkah(
       NamaIzin.permintaanPutuskan,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     ),
-    balas: ref.bolehkah(NamaIzin.permintaanBalas, cadangan: peran.adminSaja),
+    balas: ref.bolehkah(NamaIzin.permintaanBalas, cadangan: peran.hakAdmin),
   );
 }

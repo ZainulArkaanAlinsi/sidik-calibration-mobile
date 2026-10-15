@@ -408,9 +408,9 @@ void main() {
       expect(find.byType(InteractiveViewer), findsNothing);
     });
 
-    testWidgets('super admin: tidak ada tombol, ada kalimat penjelas', (
-      tester,
-    ) async {
+    // K-49-14 (15 Okt 2026): super admin memegang semua aksi admin & teknisi.
+    testWidgets('super admin: tombol terima & tolak ada, tanpa kalimat '
+        'baca-saja', (tester) async {
       await _pasang(
         tester,
         _app(
@@ -420,11 +420,11 @@ void main() {
         ),
       );
 
-      expect(find.byKey(const ValueKey('tombol-terima-koreksi')), findsNothing);
-      expect(find.byKey(const ValueKey('tombol-tolak-koreksi')), findsNothing);
+      expect(find.byKey(const ValueKey('tombol-terima-koreksi')), findsOne);
+      expect(find.byKey(const ValueKey('tombol-tolak-koreksi')), findsOne);
       expect(
         find.byKey(const ValueKey('catatan-baca-saja-koreksi')),
-        findsOneWidget,
+        findsNothing,
       );
     });
 

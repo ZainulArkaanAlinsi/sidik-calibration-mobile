@@ -123,12 +123,16 @@ void main() {
   });
 
   group('peran super admin', () {
-    test('dikenali, berlabel benar, dan tetap baca-saja', () {
+    // Sejak K-49-14 (15 Okt 2026) super admin memegang semua aksi admin &
+    // teknisi — `bisaInput` & `hakAdmin` true — tapi PERANNYA tetap bukan
+    // admin (`isAdmin` false): label & nilai API tidak berubah.
+    test('dikenali, berlabel benar, dan memegang hak admin + input', () {
       final r = UserRole.fromApi('super_admin');
 
       expect(r, UserRole.superAdmin);
       expect(r.label, 'Super Admin');
-      expect(r.bisaInput, isFalse);
+      expect(r.bisaInput, isTrue);
+      expect(r.hakAdmin, isTrue);
       expect(r.isAdmin, isFalse);
       expect(r.api, 'super_admin');
     });

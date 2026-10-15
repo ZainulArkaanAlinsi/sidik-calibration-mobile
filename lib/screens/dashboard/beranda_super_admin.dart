@@ -18,6 +18,8 @@ import '../../widgets/app_button.dart';
 import '../../widgets/sidik/sidik_lembar.dart';
 import '../../widgets/sidik/sidik_permukaan.dart';
 import '../../widgets/skeleton.dart';
+import '../admin/antrean_approval_screen.dart';
+import '../calibration/category_picker_screen.dart';
 import '../jatuh_tempo/layar_jatuh_tempo.dart';
 import '../pelacakan/pelacakan_screen.dart';
 import '../pelanggan/pusat_pelanggan_screen.dart';
@@ -45,9 +47,10 @@ Future<void> segarkanBerandaSuperAdmin(WidgetRef ref) async {
 ///
 /// Susunannya mengikuti urutan pekerjaannya: yang MENUNGGU DIA dulu
 /// (pengesahan; nomor sertifikat baru lahir dari tombolnya), lalu paket yang
-/// sedang berjalan, lalu apa yang perlu dilihat. Super admin tidak mengisi
-/// lembar kerja, jadi tidak ada angka draf & tombol "mulai kalibrasi" seperti
-/// di dashboard umum.
+/// sedang berjalan, lalu apa yang perlu dilihat. Sejak K-49-14 (15 Okt 2026)
+/// super admin juga memegang semua aksi admin & teknisi, jadi panel aksinya
+/// memuat Antrean Approval dan "Mulai kalibrasi" — sesi yang dia isi sendiri
+/// tetap disetujui orang lain (server menahan `pemisahan_wewenang`).
 ///
 /// Semua angka dari data yang sama dengan layar tujuannya (antrean, paket,
 /// jatuh tempo), jadi "3 menunggu" di sini tidak pernah beda dari panjang
@@ -478,6 +481,20 @@ class _PanelAksi extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _Judul(l10n.berandaSaAksi),
+        const SizedBox(height: AppSpacing.sm),
+        AppButton(
+          label: l10n.antreanTitle,
+          icon: Icons.inbox_outlined,
+          variant: AppButtonVariant.secondary,
+          onPressed: () => buka(const AntreanApprovalScreen()),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        AppButton(
+          label: l10n.dashStartCalibration,
+          icon: Icons.add_task,
+          variant: AppButtonVariant.secondary,
+          onPressed: () => buka(const CategoryPickerScreen()),
+        ),
         const SizedBox(height: AppSpacing.sm),
         AppButton(
           label: l10n.berandaSaTugaskan,

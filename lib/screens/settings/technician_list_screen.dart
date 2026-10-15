@@ -40,7 +40,7 @@ class TechnicianListScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final admin = ref.bolehkah(
       NamaIzin.penggunaKelola,
-      cadangan: ref.watch(authProvider).value?.role.adminSaja ?? false,
+      cadangan: ref.watch(authProvider).value?.role.hakAdmin ?? false,
     );
 
     return Scaffold(

@@ -8410,7 +8410,7 @@ abstract class AppLocalizations {
   /// No description provided for @menuCatatanSuperAdmin.
   ///
   /// In en, this message translates to:
-  /// **'Signs off certificates before they are issued. Does not approve sessions or edit worksheets.'**
+  /// **'All Master Data and technician actions, plus certificate sign-off. Sessions you filled in or corrected yourself still need someone else to approve/sign off.'**
   String get menuCatatanSuperAdmin;
 
   /// No description provided for @menuCatatanViewer.
@@ -10704,6 +10704,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cell history is not available to the technician role.'**
   String get acuanRiwayatTidakTersedia;
+
+  /// No description provided for @galatPemisahanWewenang.
+  ///
+  /// In en, this message translates to:
+  /// **'You filled in or corrected this session yourself — someone else has to approve/sign it off.'**
+  String get galatPemisahanWewenang;
+
+  /// No description provided for @galatNomorOrderWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'The Order Number is still empty. Fill it in before approving.'**
+  String get galatNomorOrderWajib;
+
+  /// No description provided for @adminDataJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Administrative data'**
+  String get adminDataJudul;
+
+  /// No description provided for @adminBelumDiisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Not filled in'**
+  String get adminBelumDiisi;
+
+  /// No description provided for @adminUbah.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get adminUbah;
+
+  /// No description provided for @adminMetode.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration method'**
+  String get adminMetode;
+
+  /// No description provided for @adminRuangan.
+  ///
+  /// In en, this message translates to:
+  /// **'Room'**
+  String get adminRuangan;
+
+  /// No description provided for @adminTanggalTerima.
+  ///
+  /// In en, this message translates to:
+  /// **'Received date'**
+  String get adminTanggalTerima;
+
+  /// No description provided for @adminNomorOrderJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in the Order Number'**
+  String get adminNomorOrderJudul;
+
+  /// No description provided for @adminNomorOrderPetunjuk.
+  ///
+  /// In en, this message translates to:
+  /// **'Printed on the certificate. Filled in by Master Data or super admin, never by the technician.'**
+  String get adminNomorOrderPetunjuk;
+
+  /// No description provided for @adminNomorOrderKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'The Order Number is required.'**
+  String get adminNomorOrderKosong;
+
+  /// No description provided for @adminNomorOrderWajibSetujui.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Number is empty — Approve will ask for it first.'**
+  String get adminNomorOrderWajibSetujui;
+
+  /// No description provided for @adminBukaLembar.
+  ///
+  /// In en, this message translates to:
+  /// **'Open technician worksheet'**
+  String get adminBukaLembar;
+
+  /// No description provided for @adminGagalMuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Administrative data could not be loaded.'**
+  String get adminGagalMuat;
+
+  /// No description provided for @adminPilihKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to choose from yet.'**
+  String get adminPilihKosong;
+
+  /// No description provided for @lkNomorOrderBacaSaja.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled in by Master Data during review — not by the technician.'**
+  String get lkNomorOrderBacaSaja;
+
+  /// No description provided for @lkAlasanKoreksiJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason for correction'**
+  String get lkAlasanKoreksiJudul;
+
+  /// No description provided for @lkAlasanKoreksiPetunjuk.
+  ///
+  /// In en, this message translates to:
+  /// **'The technician already submitted this session. Changed readings are kept together with their old values — write what was wrong and where the correct value comes from (min. 10 characters).'**
+  String get lkAlasanKoreksiPetunjuk;
+
+  /// No description provided for @lkAlasanKoreksiLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get lkAlasanKoreksiLabel;
+
+  /// No description provided for @lkAlasanKoreksiPendek.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 10 characters.'**
+  String get lkAlasanKoreksiPendek;
+
+  /// No description provided for @lkAlasanKoreksiSimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'Save correction'**
+  String get lkAlasanKoreksiSimpan;
+
+  /// No description provided for @sertEncJudulA.
+  ///
+  /// In en, this message translates to:
+  /// **'A) SEBARAN SUHU'**
+  String get sertEncJudulA;
+
+  /// No description provided for @sertEncJudulB.
+  ///
+  /// In en, this message translates to:
+  /// **'B) KINERJA ENKLOSUR'**
+  String get sertEncJudulB;
+
+  /// No description provided for @sertEncIndikator.
+  ///
+  /// In en, this message translates to:
+  /// **'Pembacaan Indikator Enklosur ({satuan})'**
+  String sertEncIndikator(String satuan);
+
+  /// No description provided for @sertEncStandarKoreksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Standar dan Koreksi Indikator ({satuan})'**
+  String sertEncStandarKoreksi(String satuan);
+
+  /// No description provided for @sertEncSensorNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensor No. ({acuan})'**
+  String sertEncSensorNo(String acuan);
+
+  /// No description provided for @sertEncAcuanSatu.
+  ///
+  /// In en, this message translates to:
+  /// **'No. {no} Sensor Acuan'**
+  String sertEncAcuanSatu(String no);
+
+  /// No description provided for @sertEncAcuanPerSetPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensor Acuan per set point: No. {daftar}'**
+  String sertEncAcuanPerSetPoint(String daftar);
+
+  /// No description provided for @sertEncTerukur.
+  ///
+  /// In en, this message translates to:
+  /// **'Terukur ({satuan})'**
+  String sertEncTerukur(String satuan);
+
+  /// No description provided for @sertEncKoreksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Koreksi ({satuan})'**
+  String sertEncKoreksi(String satuan);
+
+  /// No description provided for @sertEncU95.
+  ///
+  /// In en, this message translates to:
+  /// **'U95% ± ({satuan})'**
+  String sertEncU95(String satuan);
+
+  /// No description provided for @sertEncSuhuSetting.
+  ///
+  /// In en, this message translates to:
+  /// **'Suhu Setting ({satuan})'**
+  String sertEncSuhuSetting(String satuan);
+
+  /// No description provided for @sertEncSuhuIndikator.
+  ///
+  /// In en, this message translates to:
+  /// **'Suhu yang diukur Indikator Enklosur ({satuan})'**
+  String sertEncSuhuIndikator(String satuan);
+
+  /// No description provided for @sertEncKeseragaman.
+  ///
+  /// In en, this message translates to:
+  /// **'Keseragaman ({satuan})'**
+  String sertEncKeseragaman(String satuan);
+
+  /// No description provided for @sertEncKestabilan.
+  ///
+  /// In en, this message translates to:
+  /// **'Kestabilan ({satuan})'**
+  String sertEncKestabilan(String satuan);
+
+  /// No description provided for @sertEncVariasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Variasi Keseluruhan ({satuan})'**
+  String sertEncVariasi(String satuan);
+
+  /// No description provided for @sertEncKalimatK.
+  ///
+  /// In en, this message translates to:
+  /// **'The uncertainty is taken at a confidence level 95 % and coverage factor ( k ) {tanda} {k}'**
+  String sertEncKalimatK(String tanda, String k);
+
+  /// No description provided for @adminThermohygroDiBlokKondisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Chosen in the Environmental Condition block above.'**
+  String get adminThermohygroDiBlokKondisi;
+
+  /// No description provided for @adminThermohygro.
+  ///
+  /// In en, this message translates to:
+  /// **'Thermohygro'**
+  String get adminThermohygro;
 }
 
 class _AppLocalizationsDelegate

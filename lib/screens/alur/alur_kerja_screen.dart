@@ -571,11 +571,11 @@ class _TombolLangkah extends ConsumerWidget {
 
     final bolehSetujui = ref.bolehkah(
       NamaIzin.kalibrasiSetujui,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
     final bolehKirim = ref.bolehkah(
       NamaIzin.sertifikatKirim,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
     final bolehInput = ref.bolehkah(
       NamaIzin.kalibrasiBuat,

@@ -2099,7 +2099,7 @@
   "menuArsip": "Arsip & data",
   "kelolaSemua": "Semua pengaturan lab",
   "kelolaSemuaSub": "Pelanggan, standar, teknisi, metode, rumus, ruangan, tanda tangan, organisasi, impor Excel",
-  "menuCatatanSuperAdmin": "Mengesahkan sertifikat sebelum terbit. Tidak menyetujui sesi dan tidak mengedit lembar kerja.",
+  "menuCatatanSuperAdmin": "Semua aksi Master Data & teknisi, plus pengesahan sertifikat. Sesi yang Anda isi atau koreksi sendiri tetap harus disetujui/disahkan orang lain.",
   "menuCatatanViewer": "Akun ini cuma bisa melihat. Perlu mengisi atau memeriksa? Minta admin mengganti peranmu.",
   "jatuhTempoJudul": "Jatuh tempo",
   "jatuhTempoRingkas": "{lewat} alat lewat · {dekat} dalam 30 hari",
@@ -2608,5 +2608,145 @@
   "acuanRiwayatTidakTersedia": "Riwayat sel tidak tersedia untuk peran teknisi.",
   "@acuanRiwayatTidakTersedia": {
     "description": "Cermin DataAcuanController::riwayatSel (404 untuk teknisi)."
-  }
+  },
+  "galatPemisahanWewenang": "Sesi ini Anda isi atau koreksi sendiri — harus disetujui/disahkan orang lain.",
+  "galatNomorOrderWajib": "Order Number belum diisi. Isi dulu sebelum menyetujui.",
+  "adminDataJudul": "Data administrasi",
+  "adminBelumDiisi": "Belum diisi",
+  "adminUbah": "Ubah",
+  "adminMetode": "Metode kalibrasi",
+  "adminRuangan": "Ruangan",
+  "adminTanggalTerima": "Tanggal terima",
+  "adminNomorOrderJudul": "Isi Order Number",
+  "adminNomorOrderPetunjuk": "Tercetak di sertifikat. Diisi Master Data atau super admin, bukan teknisi.",
+  "adminNomorOrderKosong": "Order Number wajib diisi.",
+  "adminNomorOrderWajibSetujui": "Order Number belum diisi — Setujui akan memintanya dulu.",
+  "adminBukaLembar": "Buka lembar kerja teknisi",
+  "adminGagalMuat": "Data administrasi gagal dimuat.",
+  "adminPilihKosong": "Belum ada pilihan.",
+  "lkNomorOrderBacaSaja": "Diisi Master Data waktu memeriksa sesi — bukan oleh teknisi.",
+  "lkAlasanKoreksiJudul": "Alasan koreksi",
+  "lkAlasanKoreksiPetunjuk": "Sesi ini sudah dikirim teknisi. Angka yang diubah disimpan bersama nilai lamanya — tulis apa yang salah dan dari mana angka benarnya (min. 10 karakter).",
+  "lkAlasanKoreksiLabel": "Alasan",
+  "lkAlasanKoreksiPendek": "Minimal 10 karakter.",
+  "lkAlasanKoreksiSimpan": "Simpan koreksi",
+  "sertEncJudulA": "A) SEBARAN SUHU",
+  "sertEncJudulB": "B) KINERJA ENKLOSUR",
+  "sertEncIndikator": "Pembacaan Indikator Enklosur ({satuan})",
+  "@sertEncIndikator": {
+    "placeholders": {
+      "satuan": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncStandarKoreksi": "Standar dan Koreksi Indikator ({satuan})",
+  "@sertEncStandarKoreksi": {
+    "placeholders": {
+      "satuan": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncSensorNo": "Sensor No. ({acuan})",
+  "@sertEncSensorNo": {
+    "placeholders": {
+      "acuan": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncAcuanSatu": "No. {no} Sensor Acuan",
+  "@sertEncAcuanSatu": {
+    "placeholders": {
+      "no": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncAcuanPerSetPoint": "Sensor Acuan per set point: No. {daftar}",
+  "@sertEncAcuanPerSetPoint": {
+    "placeholders": {
+      "daftar": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncTerukur": "Terukur ({satuan})",
+  "@sertEncTerukur": {
+    "placeholders": {
+      "satuan": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncKoreksi": "Koreksi ({satuan})",
+  "@sertEncKoreksi": {
+    "placeholders": {
+      "satuan": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncU95": "U95% ± ({satuan})",
+  "@sertEncU95": {
+    "placeholders": {
+      "satuan": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncSuhuSetting": "Suhu Setting ({satuan})",
+  "@sertEncSuhuSetting": {
+    "placeholders": {
+      "satuan": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncSuhuIndikator": "Suhu yang diukur Indikator Enklosur ({satuan})",
+  "@sertEncSuhuIndikator": {
+    "placeholders": {
+      "satuan": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncKeseragaman": "Keseragaman ({satuan})",
+  "@sertEncKeseragaman": {
+    "placeholders": {
+      "satuan": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncKestabilan": "Kestabilan ({satuan})",
+  "@sertEncKestabilan": {
+    "placeholders": {
+      "satuan": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncVariasi": "Variasi Keseluruhan ({satuan})",
+  "@sertEncVariasi": {
+    "placeholders": {
+      "satuan": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncKalimatK": "The uncertainty is taken at a confidence level 95 % and coverage factor ( k ) {tanda} {k}",
+  "@sertEncKalimatK": {
+    "placeholders": {
+      "tanda": {
+        "type": "String"
+      },
+      "k": {
+        "type": "String"
+      }
+    }
+  },
+  "adminThermohygroDiBlokKondisi": "Dipilih di blok Kondisi Lingkungan di atas.",
+  "adminThermohygro": "Thermohygro"
 }

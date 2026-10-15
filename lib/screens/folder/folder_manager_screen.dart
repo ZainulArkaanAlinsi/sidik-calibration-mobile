@@ -51,7 +51,7 @@ class FolderManagerScreen extends ConsumerWidget {
     // beneran njagain tetap backend, bukan `if` ini.
     final admin = ref.bolehkah(
       NamaIzin.arsipFolderKelola,
-      cadangan: ref.watch(authProvider).value?.role.adminSaja ?? false,
+      cadangan: ref.watch(authProvider).value?.role.hakAdmin ?? false,
     );
 
     return Scaffold(
@@ -271,7 +271,7 @@ class _KartuFolder extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final admin = ref.watch(authProvider).value?.role.isAdmin ?? false;
+    final admin = ref.watch(authProvider).value?.role.hakAdmin ?? false;
 
     final rincian = [
       if (folder.jumlahFolder != null && folder.jumlahFolder! > 0)

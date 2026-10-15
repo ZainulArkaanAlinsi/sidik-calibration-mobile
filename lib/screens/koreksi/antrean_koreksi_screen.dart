@@ -6,7 +6,6 @@ import '../../core/theme/sidik_material.dart';
 import '../../core/theme/sidik_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/koreksi_pelanggan.dart';
-import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../providers/koreksi_provider.dart';
@@ -187,10 +186,10 @@ StatusSidik statusKoreksi(AppLocalizations l10n, StatusKoreksi s) =>
       ),
     };
 
-/// Hanya admin yang boleh memutuskan koreksi. Super admin membaca saja (server
-/// menjawab 403), teknisi & viewer tidak punya pintunya.
+/// Admin & super admin (K-49-14) yang boleh memutuskan koreksi; teknisi &
+/// viewer tidak punya pintunya. Server tetap penjaganya.
 bool bolehMemutuskanKoreksi(WidgetRef ref) =>
-    ref.watch(authProvider).value?.role == UserRole.admin;
+    ref.watch(authProvider).value?.role.hakAdmin ?? false;
 
 class _KartuKoreksi extends StatelessWidget {
   const _KartuKoreksi({required this.koreksi});

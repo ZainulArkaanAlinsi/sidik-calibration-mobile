@@ -112,29 +112,33 @@ void main() {
   const permintaan = 'Permintaan pelanggan';
   const koreksi = 'Koreksi pelanggan';
 
-  testWidgets('super admin: dibuka dari pengesahan, sisanya cuma pantau', (
+  // K-49-14 (15 Okt 2026): super admin = SEMUA menu admin & teknisi, plus
+  // Pengesahan — dari satu tempat. Yang tetap ditahan server: menyetujui/
+  // mengesahkan sesi yang dia isi atau koreksi sendiri (K-30-03).
+  testWidgets('super admin: semua menu admin & teknisi plus pengesahan', (
     tester,
   ) async {
     await _bukaMenu(tester, 'mock-token-5');
 
-    // Judul seksi dicetak gaya etsa (huruf besar).
     _ada([
       pengesahan,
+      antreanApproval,
+      'Alur Kerja',
       penugasan,
       pelacakan,
+      draf,
+      kelolaLab,
       pusat,
       jadwal,
       permintaan,
       koreksi,
-      'PANTAU (BACA SAJA)',
     ]);
-    // Kalimat yang menjelaskan kenapa tombol isi-data tidak ada untuknya.
+    // Kalimat yang mengingatkan K-30-03, bukan "baca saja" lagi.
     expect(
-      find.textContaining('Mengesahkan sertifikat sebelum terbit'),
+      find.textContaining('Semua aksi Master Data & teknisi'),
       findsOneWidget,
     );
-    // Super admin tidak menyetujui sesi dan tidak mengisi lembar kerja.
-    _tiada([antreanApproval, draf, kelolaLab, tugasSaya]);
+    _tiada(['PANTAU (BACA SAJA)', tugasSaya]);
   });
 
   testWidgets('super admin: menu pengesahan membuka antreannya', (
@@ -266,7 +270,7 @@ void main() {
     expect(find.byType(AntreanPermintaanScreen), findsOneWidget);
   });
 
-  testWidgets('super admin: permintaan pelanggan bisa dibuka (baca saja)', (
+  testWidgets('super admin: permintaan pelanggan bisa diputuskan (K-49-14)', (
     tester,
   ) async {
     await _bukaMenu(tester, 'mock-token-5');
@@ -275,16 +279,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(AntreanPermintaanScreen), findsOneWidget);
 
-    // Kartu dibuka → tombol keputusan tidak ada, kalimatnya ada.
+    // Kartu dibuka → tombol keputusan ADA, kalimat baca-saja tidak.
     await tester.tap(find.text('PMT/2026/09/0012'));
     await tester.pumpAndSettle();
     expect(
       find.byKey(const ValueKey('tombol-terima-permintaan')),
-      findsNothing,
+      findsOneWidget,
     );
     expect(
       find.byKey(const ValueKey('catatan-baca-saja-permintaan')),
-      findsOneWidget,
+      findsNothing,
     );
   });
 
@@ -310,7 +314,7 @@ void main() {
     expect(find.byType(AntreanKoreksiScreen), findsOneWidget);
   });
 
-  testWidgets('super admin: koreksi pelanggan bisa dibuka (baca saja)', (
+  testWidgets('super admin: koreksi pelanggan bisa diputuskan (K-49-14)', (
     tester,
   ) async {
     await _bukaMenu(tester, 'mock-token-5');
@@ -319,13 +323,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(AntreanKoreksiScreen), findsOneWidget);
 
-    // Kartu dibuka → tombol keputusan tidak ada, kalimatnya ada.
+    // Kartu dibuka → tombol keputusan ADA, kalimat baca-saja tidak.
     await tester.tap(find.byKey(const ValueKey('kartu-koreksi-7')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('tombol-terima-koreksi')), findsNothing);
+    expect(find.byKey(const ValueKey('tombol-terima-koreksi')), findsOneWidget);
     expect(
       find.byKey(const ValueKey('catatan-baca-saja-koreksi')),
-      findsOneWidget,
+      findsNothing,
     );
   });
 }

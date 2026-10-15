@@ -4789,7 +4789,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get menuCatatanSuperAdmin =>
-      'Signs off certificates before they are issued. Does not approve sessions or edit worksheets.';
+      'All Master Data and technician actions, plus certificate sign-off. Sessions you filled in or corrected yourself still need someone else to approve/sign off.';
 
   @override
   String get menuCatatanViewer =>
@@ -6131,4 +6131,156 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get acuanRiwayatTidakTersedia =>
       'Cell history is not available to the technician role.';
+
+  @override
+  String get galatPemisahanWewenang =>
+      'You filled in or corrected this session yourself — someone else has to approve/sign it off.';
+
+  @override
+  String get galatNomorOrderWajib =>
+      'The Order Number is still empty. Fill it in before approving.';
+
+  @override
+  String get adminDataJudul => 'Administrative data';
+
+  @override
+  String get adminBelumDiisi => 'Not filled in';
+
+  @override
+  String get adminUbah => 'Edit';
+
+  @override
+  String get adminMetode => 'Calibration method';
+
+  @override
+  String get adminRuangan => 'Room';
+
+  @override
+  String get adminTanggalTerima => 'Received date';
+
+  @override
+  String get adminNomorOrderJudul => 'Fill in the Order Number';
+
+  @override
+  String get adminNomorOrderPetunjuk =>
+      'Printed on the certificate. Filled in by Master Data or super admin, never by the technician.';
+
+  @override
+  String get adminNomorOrderKosong => 'The Order Number is required.';
+
+  @override
+  String get adminNomorOrderWajibSetujui =>
+      'Order Number is empty — Approve will ask for it first.';
+
+  @override
+  String get adminBukaLembar => 'Open technician worksheet';
+
+  @override
+  String get adminGagalMuat => 'Administrative data could not be loaded.';
+
+  @override
+  String get adminPilihKosong => 'Nothing to choose from yet.';
+
+  @override
+  String get lkNomorOrderBacaSaja =>
+      'Filled in by Master Data during review — not by the technician.';
+
+  @override
+  String get lkAlasanKoreksiJudul => 'Reason for correction';
+
+  @override
+  String get lkAlasanKoreksiPetunjuk =>
+      'The technician already submitted this session. Changed readings are kept together with their old values — write what was wrong and where the correct value comes from (min. 10 characters).';
+
+  @override
+  String get lkAlasanKoreksiLabel => 'Reason';
+
+  @override
+  String get lkAlasanKoreksiPendek => 'At least 10 characters.';
+
+  @override
+  String get lkAlasanKoreksiSimpan => 'Save correction';
+
+  @override
+  String get sertEncJudulA => 'A) SEBARAN SUHU';
+
+  @override
+  String get sertEncJudulB => 'B) KINERJA ENKLOSUR';
+
+  @override
+  String sertEncIndikator(String satuan) {
+    return 'Pembacaan Indikator Enklosur ($satuan)';
+  }
+
+  @override
+  String sertEncStandarKoreksi(String satuan) {
+    return 'Standar dan Koreksi Indikator ($satuan)';
+  }
+
+  @override
+  String sertEncSensorNo(String acuan) {
+    return 'Sensor No. ($acuan)';
+  }
+
+  @override
+  String sertEncAcuanSatu(String no) {
+    return 'No. $no Sensor Acuan';
+  }
+
+  @override
+  String sertEncAcuanPerSetPoint(String daftar) {
+    return 'Sensor Acuan per set point: No. $daftar';
+  }
+
+  @override
+  String sertEncTerukur(String satuan) {
+    return 'Terukur ($satuan)';
+  }
+
+  @override
+  String sertEncKoreksi(String satuan) {
+    return 'Koreksi ($satuan)';
+  }
+
+  @override
+  String sertEncU95(String satuan) {
+    return 'U95% ± ($satuan)';
+  }
+
+  @override
+  String sertEncSuhuSetting(String satuan) {
+    return 'Suhu Setting ($satuan)';
+  }
+
+  @override
+  String sertEncSuhuIndikator(String satuan) {
+    return 'Suhu yang diukur Indikator Enklosur ($satuan)';
+  }
+
+  @override
+  String sertEncKeseragaman(String satuan) {
+    return 'Keseragaman ($satuan)';
+  }
+
+  @override
+  String sertEncKestabilan(String satuan) {
+    return 'Kestabilan ($satuan)';
+  }
+
+  @override
+  String sertEncVariasi(String satuan) {
+    return 'Variasi Keseluruhan ($satuan)';
+  }
+
+  @override
+  String sertEncKalimatK(String tanda, String k) {
+    return 'The uncertainty is taken at a confidence level 95 % and coverage factor ( k ) $tanda $k';
+  }
+
+  @override
+  String get adminThermohygroDiBlokKondisi =>
+      'Chosen in the Environmental Condition block above.';
+
+  @override
+  String get adminThermohygro => 'Thermohygro';
 }

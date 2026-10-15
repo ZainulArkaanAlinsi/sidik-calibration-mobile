@@ -308,9 +308,10 @@ class _LencanaAngka extends StatelessWidget {
 /// dan teknisi tidak punya jalan ke "Tugas saya" sama sekali. Sekarang tiap
 /// peran dapat urutan yang dimulai dari pekerjaan UTAMANYA:
 ///
-/// - **Super admin** — Pengesahan sertifikat di paling atas; sisanya seksi
-///   "Pantau (baca saja)" supaya dia tidak mencari tombol yang memang tidak
-///   ada untuknya.
+/// - **Super admin** — SEMUA menu admin & teknisi plus Pengesahan (keputusan
+///   K-49-14, 15 Okt 2026: satu tempat untuk semua aksi). Sesi yang dia isi
+///   atau koreksi sendiri tetap disetujui/disahkan orang lain — server yang
+///   menahan (`pemisahan_wewenang`).
 /// - **Admin** — Antrean approval, Pengesahan (status & tarik), Alur kerja,
 ///   Pelacakan, Penugasan; semua pengaturan di SATU pintu "Kelola lab".
 /// - **Teknisi** — Tugas saya & Draf dulu, baru arsip.
@@ -358,17 +359,33 @@ class _MenuUtama extends ConsumerWidget {
     final draf = _Tujuan(Icons.edit_note, l10n.drafTitle,
         layar: () => const DrafScreen());
 
+    final antreanApproval = _Tujuan(Icons.inbox_outlined, l10n.antreanTitle,
+        layar: () => const AntreanApprovalScreen());
+    final kelolaLab = _Tujuan(Icons.tune, l10n.kelolaJudul,
+        layar: () => const KelolaLabScreen());
+
     final List<(String?, List<_Tujuan>)> seksi = switch (peran) {
+      // Gabungan menu admin + teknisi, Pengesahan dulu karena itu pekerjaan
+      // yang hanya dia yang bisa (K-49-14).
       UserRole.superAdmin => [
-        (l10n.menuKerjaHarian, [beranda, pengesahan, penugasan, pelacakan]),
-        (l10n.menuPantau, [permintaan, koreksi, jadwal, pusat, alur, riwayat, alat, folder]),
-        (null, [notifikasi, profil]),
+        (l10n.menuKerjaHarian, [
+          beranda,
+          pengesahan,
+          antreanApproval,
+          permintaan,
+          koreksi,
+          alur,
+          penugasan,
+          pelacakan,
+          draf,
+        ]),
+        (l10n.menuArsip, [riwayat, alat, pusat, jadwal, folder, notifikasi]),
+        (l10n.menuPengaturan, [kelolaLab, profil]),
       ],
       UserRole.admin => [
         (l10n.menuKerjaHarian, [
           beranda,
-          _Tujuan(Icons.inbox_outlined, l10n.antreanTitle,
-              layar: () => const AntreanApprovalScreen()),
+          antreanApproval,
           permintaan,
           koreksi,
           pengesahan,
@@ -378,11 +395,7 @@ class _MenuUtama extends ConsumerWidget {
           draf,
         ]),
         (l10n.menuArsip, [riwayat, alat, pusat, jadwal, folder, notifikasi]),
-        (l10n.menuPengaturan, [
-          _Tujuan(Icons.tune, l10n.kelolaJudul,
-              layar: () => const KelolaLabScreen()),
-          profil,
-        ]),
+        (l10n.menuPengaturan, [kelolaLab, profil]),
       ],
       UserRole.teknisi => [
         (l10n.menuKerjaHarian, [
@@ -458,9 +471,10 @@ class _MenuUtama extends ConsumerWidget {
                 ],
               ),
             ),
-            // Dua peran yang TIDAK bisa mengisi data dapat satu kalimat yang
-            // bilang apa yang bisa & tidak — supaya mereka tidak mencari
-            // tombol yang memang tidak ada untuknya (artboard Menu_*).
+            // Super admin & viewer dapat satu kalimat yang bilang apa yang
+            // bisa & tidak: viewer supaya tidak mencari tombol yang memang
+            // tidak ada, super admin supaya tahu sesi isiannya sendiri tetap
+            // butuh penyetuju lain (K-30-03).
             if (peran == UserRole.superAdmin || peran == UserRole.viewer)
               Padding(
                 padding: const EdgeInsets.fromLTRB(

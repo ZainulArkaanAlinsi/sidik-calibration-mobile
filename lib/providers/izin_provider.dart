@@ -54,6 +54,10 @@ extension IzinRef on WidgetRef {
 /// aturannya kebaca di tempat panggil, bukan `?? false` yang nggak jelas
 /// asalnya.
 extension CadanganPeran on UserRole? {
-  bool get adminSaja => this?.isAdmin ?? false;
+  /// Aturan lama "admin boleh" — sekarang admin ATAU super admin (K-49-14,
+  /// 15 Okt 2026). Dulu bernama `hakAdmin` dan cuma admin; nama itu sengaja
+  /// dibuang supaya tidak ada pemanggil yang masih mengira super admin baca
+  /// saja.
+  bool get hakAdmin => this?.hakAdmin ?? false;
   bool get bisaMenulis => this?.bisaInput ?? false;
 }

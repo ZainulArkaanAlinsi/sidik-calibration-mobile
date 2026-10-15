@@ -139,49 +139,49 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
 
     final bolehSetujui = ref.bolehkah(
       NamaIzin.kalibrasiSetujui,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
     // SATU izin per menu. Sebelumnya `bolehMasterData` (dulu payung
     // `master-data.ubah`, lalu `standar.kelola`) menggerbangi EMPAT menu
     // sekaligus: Pelanggan, Standar, Impor Excel, Organisasi. Selama payungnya
-    // nggak pernah dijawab server dia selalu jatuh ke `adminSaja` dan keempatnya
+    // nggak pernah dijawab server dia selalu jatuh ke `hakAdmin` dan keempatnya
     // kebetulan bener — tapi begitu namanya jadi izin NYATA, satu rute pindah
     // blok bikin tiga menu admin-only nyala buat orang yang bakal kena 403.
     final bolehStandar = ref.bolehkah(
       NamaIzin.standarKelola,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
     final bolehPelanggan = ref.bolehkah(
       NamaIzin.pelangganKelola,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
     final bolehRuangan = ref.bolehkah(
       NamaIzin.ruanganKelola,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
     final bolehMetode = ref.bolehkah(
       NamaIzin.metodeKelola,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
     final bolehTeknisi = ref.bolehkah(
       NamaIzin.teknisiKelola,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
     final bolehImpor = ref.bolehkah(
       NamaIzin.imporExcel,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
     final bolehOrganisasi = ref.bolehkah(
       NamaIzin.organisasiUbah,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
     final bolehAkun = ref.bolehkah(
       NamaIzin.penggunaKelola,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
     final bolehTtd = ref.bolehkah(
       NamaIzin.tandaTanganKelola,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
 
     // Menu kerja harian SAMA PERSIS dengan menu HP (`main_shell.dart`,
@@ -244,12 +244,14 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
       bangun: DrafScreen.new,
     );
     final kerjaHarian = switch (peran) {
+      // Semua menu admin + teknisi (Draf), Pengesahan dulu — K-49-14.
       UserRole.superAdmin => [
         pengesahan,
-        penugasan,
-        pelacakan,
         permintaan,
         koreksi,
+        penugasan,
+        pelacakan,
+        draf,
         jadwal,
         pusat,
       ],

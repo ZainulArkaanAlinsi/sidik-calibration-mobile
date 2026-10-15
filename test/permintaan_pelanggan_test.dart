@@ -379,9 +379,9 @@ void main() {
       expect(find.text('Lengkapi saat menerima'), findsOneWidget);
     });
 
-    testWidgets('super admin: tombol tidak ada, ada kalimat yang menjelaskan', (
-      tester,
-    ) async {
+    // K-49-14 (15 Okt 2026): super admin memegang semua aksi admin & teknisi.
+    testWidgets('super admin: tombol terima & tolak ada, tanpa kalimat '
+        'baca-saja', (tester) async {
       await _pasang(
         tester,
         _app(
@@ -393,15 +393,15 @@ void main() {
 
       expect(
         find.byKey(const ValueKey('tombol-terima-permintaan')),
-        findsNothing,
+        findsOneWidget,
       );
       expect(
         find.byKey(const ValueKey('tombol-tolak-permintaan')),
-        findsNothing,
+        findsOneWidget,
       );
       expect(
         find.byKey(const ValueKey('catatan-baca-saja-permintaan')),
-        findsOneWidget,
+        findsNothing,
       );
     });
 
@@ -724,9 +724,8 @@ void main() {
       },
     );
 
-    testWidgets('super admin membaca utas tapi tidak bisa membalas', (
-      tester,
-    ) async {
+    // K-49-14 (15 Okt 2026): super admin memegang semua aksi admin & teknisi.
+    testWidgets('super admin membaca utas DAN bisa membalas', (tester) async {
       await _pasang(
         tester,
         _app(
@@ -743,7 +742,7 @@ void main() {
       );
       expect(
         find.byKey(const ValueKey('isian-pesan-permintaan')),
-        findsNothing,
+        findsOneWidget,
       );
     });
 
