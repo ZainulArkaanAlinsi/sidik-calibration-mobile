@@ -3581,5 +3581,18 @@
   "sertRingAlat": "Instrument",
   "sertRingBerlaku": "Valid until",
   "sertPdfGagal": "Couldn't load the certificate PDF.",
-  "sertPdfLuring": "Showing the saved copy (offline)."
+  "sertPdfLuring": "Showing the saved copy (offline).",
+  "kabarBaruJumlah": "{n} new updates",
+  "@kabarBaruJumlah": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "kabarBaruKetuk": "Tap to see them",
+  "izinNotifJudul": "Turn on notifications?",
+  "izinNotifIsi": "So you hear right away when a worksheet comes in, a session is approved or needs revision, or a certificate is issued. Android will ask for your permission next.",
+  "izinNotifLanjut": "Continue",
+  "izinNotifNanti": "Not now"
 }

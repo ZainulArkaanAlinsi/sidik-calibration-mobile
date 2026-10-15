@@ -4,10 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/navigasi_global.dart';
 import 'core/theme/app_theme.dart';
 import 'l10n/app_localizations.dart';
+import 'providers/kabar_masuk_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/pendaftaran_push_provider.dart';
 import 'providers/theme_mode_provider.dart';
 import 'screens/auth/auth_gate.dart';
+import 'widgets/lapisan_kabar_masuk.dart';
 
 class SidikApp extends ConsumerWidget {
   const SidikApp({super.key});
@@ -38,6 +40,11 @@ class SidikApp extends ConsumerWidget {
     // nggak dibuka.
     ref.watch(pendaftaranPushSyncProvider);
 
+    // Push saat aplikasi terbuka (`FirebaseMessaging.onMessage`) → toast.
+    // Tanpa Firebase (belum ada google-services.json, desktop, mock) sumbernya
+    // kosong dan provider ini tidak berbuat apa-apa.
+    ref.watch(kabarPushSyncProvider);
+
     return MaterialApp(
       // Dipakai buat mbuka layar tujuan waktu notifikasi sistem diketuk —
       // di situ nggak ada `BuildContext` sama sekali.
@@ -54,6 +61,9 @@ class SidikApp extends ConsumerWidget {
       locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      // Toast kabar masuk di atas semua layar (ikut Navigator, di bawah dialog).
+      builder: (context, child) =>
+          LapisanKabarMasuk(child: child ?? const SizedBox.shrink()),
       home: const AuthGate(),
     );
   }

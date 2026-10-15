@@ -2832,5 +2832,11 @@
   "sertRingAlat": "Alat",
   "sertRingBerlaku": "Berlaku sampai",
   "sertPdfGagal": "PDF sertifikat gagal dimuat.",
-  "sertPdfLuring": "Menampilkan salinan tersimpan (tanpa koneksi)."
+  "sertPdfLuring": "Menampilkan salinan tersimpan (tanpa koneksi).",
+  "kabarBaruJumlah": "{n} kabar baru",
+  "kabarBaruKetuk": "Ketuk untuk melihat",
+  "izinNotifJudul": "Nyalakan notifikasi?",
+  "izinNotifIsi": "Supaya kamu langsung tahu saat lembar kerja masuk, sesi disetujui atau perlu revisi, dan sertifikat terbit. Android akan meminta izinmu setelah ini.",
+  "izinNotifLanjut": "Lanjut",
+  "izinNotifNanti": "Nanti saja"
 }

@@ -6564,4 +6564,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sertPdfLuring => 'Showing the saved copy (offline).';
+
+  @override
+  String kabarBaruJumlah(int n) {
+    return '$n new updates';
+  }
+
+  @override
+  String get kabarBaruKetuk => 'Tap to see them';
+
+  @override
+  String get izinNotifJudul => 'Turn on notifications?';
+
+  @override
+  String get izinNotifIsi =>
+      'So you hear right away when a worksheet comes in, a session is approved or needs revision, or a certificate is issued. Android will ask for your permission next.';
+
+  @override
+  String get izinNotifLanjut => 'Continue';
+
+  @override
+  String get izinNotifNanti => 'Not now';
 }

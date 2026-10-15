@@ -6490,4 +6490,25 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get sertPdfLuring => 'Menampilkan salinan tersimpan (tanpa koneksi).';
+
+  @override
+  String kabarBaruJumlah(int n) {
+    return '$n kabar baru';
+  }
+
+  @override
+  String get kabarBaruKetuk => 'Ketuk untuk melihat';
+
+  @override
+  String get izinNotifJudul => 'Nyalakan notifikasi?';
+
+  @override
+  String get izinNotifIsi =>
+      'Supaya kamu langsung tahu saat lembar kerja masuk, sesi disetujui atau perlu revisi, dan sertifikat terbit. Android akan meminta izinmu setelah ini.';
+
+  @override
+  String get izinNotifLanjut => 'Lanjut';
+
+  @override
+  String get izinNotifNanti => 'Nanti saja';
 }

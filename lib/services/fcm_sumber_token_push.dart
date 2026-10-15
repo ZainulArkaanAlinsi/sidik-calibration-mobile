@@ -23,8 +23,7 @@ class FcmSumberTokenPush implements SumberTokenPush {
 
   /// Platform yang punya layanan push-nya. Web sengaja nggak masuk: dia butuh
   /// VAPID key sendiri, dan aplikasi ini nggak dipakai lewat browser.
-  static bool get didukung =>
-      !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+  static bool get didukung => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
   @override
   Future<String?> token() async {
@@ -34,13 +33,18 @@ class FcmSumberTokenPush implements SumberTokenPush {
       // Izin diminta di sini, bukan waktu aplikasi pertama kebuka: orang yang
       // ditanya sebelum tahu aplikasinya buat apa nolaknya sambil lalu.
       // Android 12 ke bawah nggak punya dialog ini dan langsung `authorized`.
-      final izin = await _fcm.requestPermission();
-
-      if (izin.authorizationStatus == AuthorizationStatus.denied) {
-        // Menolak izin BUKAN error. Aplikasi tetap jalan; notifikasinya tetap
-        // masuk daftar & lonceng, dan selama aplikasi kebuka Reverb tetap
-        // ngabarin. Yang hilang cuma kabar waktu aplikasi ketutup total.
-        return null;
+      //
+      // KECUALI Android: di sana izinnya (Android 13+) diminta
+      // `LocalNotifikasiPerangkat` lewat penjelasan singkat dulu. Token FCM
+      // tetap valid tanpa izin tampil, jadi pendaftarannya tidak menunggu.
+      if (!Platform.isAndroid) {
+        final izin = await _fcm.requestPermission();
+        if (izin.authorizationStatus == AuthorizationStatus.denied) {
+          // Menolak izin BUKAN error. Aplikasi tetap jalan; notifikasinya
+          // tetap masuk daftar & lonceng, dan selama aplikasi kebuka Reverb
+          // tetap ngabarin. Yang hilang cuma kabar waktu aplikasi ketutup.
+          return null;
+        }
       }
 
       return await _fcm.getToken();

@@ -53,3 +53,12 @@ NotifTautan? bacaTautan(String? sandi) {
 
   return NotifTautan(tipe: potong[0], id: id);
 }
+
+/// Tujuan deep-link dari server (`data.tujuan` pada push FCM): `tipe:id`,
+/// `tipe/id`, atau `/tipe/id`. `null` kalau bentuknya tidak dikenal — diam,
+/// bukan menebak layar.
+NotifTautan? bacaTujuan(String? tujuan) {
+  if (tujuan == null) return null;
+  final bersih = tujuan.trim().replaceFirst(RegExp(r'^/+'), '');
+  return bacaTautan(bersih.replaceFirst('/', ':'));
+}

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Warna aksen notifikasi (lingkaran di belakang ikon kecil `ic_stat_sidik`).
+         Sama dengan AppColors.cobalt di lib/core/theme/app_colors.dart. -->
+    <color name="notif_aksen">#1D4292</color>
+</resources>

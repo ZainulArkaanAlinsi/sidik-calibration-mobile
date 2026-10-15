@@ -11442,6 +11442,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Showing the saved copy (offline).'**
   String get sertPdfLuring;
+
+  /// No description provided for @kabarBaruJumlah.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} new updates'**
+  String kabarBaruJumlah(int n);
+
+  /// No description provided for @kabarBaruKetuk.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to see them'**
+  String get kabarBaruKetuk;
+
+  /// No description provided for @izinNotifJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on notifications?'**
+  String get izinNotifJudul;
+
+  /// No description provided for @izinNotifIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'So you hear right away when a worksheet comes in, a session is approved or needs revision, or a certificate is issued. Android will ask for your permission next.'**
+  String get izinNotifIsi;
+
+  /// No description provided for @izinNotifLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get izinNotifLanjut;
+
+  /// No description provided for @izinNotifNanti.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get izinNotifNanti;
 }
 
 class _AppLocalizationsDelegate

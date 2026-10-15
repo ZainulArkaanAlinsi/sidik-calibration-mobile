@@ -1,15 +1,19 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/config/app_config.dart';
+import '../core/latar_depan.dart';
 import '../models/notification_item.dart';
+import '../models/kabar_toast.dart';
 import '../services/notifikasi_perangkat.dart';
+import 'kabar_masuk_provider.dart';
+import '../widgets/dialog_izin_notifikasi.dart';
 
 /// Notifikasi sistem operasi. **Mock (no-op)** di mode mock — dev & test nggak
 /// boleh nembak plugin native, dan nggak ada yang mau bilah notifikasinya
 /// kebanjiran data contoh waktu lagi ngoding.
 final notifikasiPerangkatProvider = Provider<NotifikasiPerangkat>((ref) {
   if (AppConfig.useMock) return MockNotifikasiPerangkat();
-  return LocalNotifikasiPerangkat();
+  return LocalNotifikasiPerangkat(mintaIzin: tanyaIzinNotifikasi);
 });
 
 /// Yang mutusin notifikasi mana yang layak nongol di bilah sistem.
@@ -18,13 +22,32 @@ final notifikasiPerangkatProvider = Provider<NotifikasiPerangkat>((ref) {
 /// tetap ditarik lewat REST. Jadi yang dilakuin di sini: bandingin daftar yang
 /// baru ditarik sama yang UDAH pernah diumumkan, lalu umumin selisihnya.
 final pengabarNotifikasiProvider = Provider<PengabarNotifikasi>(
-  (ref) => PengabarNotifikasi(ref.watch(notifikasiPerangkatProvider)),
+  (ref) => PengabarNotifikasi(
+    ref.watch(notifikasiPerangkatProvider),
+    // Aplikasi sedang dilihat → toast di dalam aplikasi, BUKAN notifikasi
+    // sistem juga (dua penanda untuk satu kejadian itu mengganggu).
+    kabarBaru: (daftar) => ref.read(kabarMasukProvider.notifier).tambahkan([
+      for (final n in daftar)
+        KabarToast(
+          judul: n.judul,
+          isi: n.isi,
+          kategori: n.kategori,
+          tautan: n.tautan,
+          kunci: n.id,
+        ),
+    ]),
+    diLayarDepan: aplikasiDiLayarDepan,
+  ),
 );
 
 class PengabarNotifikasi {
-  PengabarNotifikasi(this._perangkat);
+  PengabarNotifikasi(this._perangkat, {this.kabarBaru, this.diLayarDepan});
 
   final NotifikasiPerangkat _perangkat;
+
+  /// Penerima toast dalam aplikasi. `null` = semuanya ke bilah sistem.
+  final void Function(List<NotificationItem> baru)? kabarBaru;
+  final bool Function()? diLayarDepan;
 
   /// Id yang udah pernah kelihatan — dibaca maupun belum.
   ///
@@ -55,6 +78,13 @@ class PengabarNotifikasi {
     ];
 
     _sudah.addAll(daftar.map((n) => n.id));
+
+    if (baru.isNotEmpty &&
+        kabarBaru != null &&
+        (diLayarDepan?.call() ?? true)) {
+      kabarBaru!(baru);
+      return;
+    }
 
     // Dibalik: daftar dari API urutannya terbaru-duluan, sementara bilah
     // notifikasi numpuk dari bawah — jadi yang dikirim duluan mesti yang
