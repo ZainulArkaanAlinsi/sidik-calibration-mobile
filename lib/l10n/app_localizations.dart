@@ -11316,6 +11316,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Handed over'**
   String get tahapDiserahkan;
+
+  /// No description provided for @arsipBerkasDiubah.
+  ///
+  /// In en, this message translates to:
+  /// **'File name changed.'**
+  String get arsipBerkasDiubah;
 }
 
 class _AppLocalizationsDelegate

@@ -22,7 +22,6 @@ import '../arsip/arsip_screen.dart';
 import '../dashboard/ringkasan_screen.dart';
 import '../../widgets/pemantau_antrean.dart';
 import '../equipment/equipment_list_screen.dart';
-import '../folder/folder_manager_screen.dart';
 import '../history/history_screen.dart';
 import '../profile/profile_screen.dart';
 import '../settings/customer_list_screen.dart';
@@ -303,12 +302,6 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
             label: l10n.navHistory,
             angka: ringkas?.totalSertifikat,
             bangun: HistoryScreen.new,
-          ),
-          _Menu(
-            id: 'folder',
-            ikon: Icons.folder_outlined,
-            label: l10n.navFolderManager,
-            bangun: FolderManagerScreen.new,
           ),
           _Menu(
             id: 'arsip',

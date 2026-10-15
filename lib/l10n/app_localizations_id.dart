@@ -6423,4 +6423,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get tahapDiserahkan => 'Diserahkan';
+
+  @override
+  String get arsipBerkasDiubah => 'Nama berkas diubah.';
 }

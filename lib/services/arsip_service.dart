@@ -22,6 +22,9 @@ abstract class ArsipService {
   Future<void> hapusFolder(String token, int folderId);
 
   Future<void> pindahBerkas(String token, {required int sesiId, required int folderId});
+
+  /// Ganti nama berkas (admin) — `PUT /arsip/berkas/{fileId}`.
+  Future<void> ubahNamaBerkas(String token, {required int fileId, required String nama});
 }
 
 class ApiArsipService implements ArsipService {
@@ -90,6 +93,11 @@ class ApiArsipService implements ArsipService {
       token: token,
       body: {'folder_id': folderId},
     );
+  }
+
+  @override
+  Future<void> ubahNamaBerkas(String token, {required int fileId, required String nama}) {
+    return _api.put('/arsip/berkas/$fileId', token: token, body: {'nama': nama});
   }
 }
 
@@ -226,6 +234,10 @@ class MockArsipService implements ArsipService {
                 keputusan: Keputusan.pass,
                 nomorSertifikat: '012-CAL-524',
                 pdfUrl: 'https://contoh/sertifikat.pdf',
+                fileId: 30,
+                namaFile: '012-CAL-524.pdf',
+                sertifikatId: 7,
+                sertifikatSiap: true,
               ),
             ]
           : const [],
@@ -322,5 +334,13 @@ class MockArsipService implements ArsipService {
   Future<void> pindahBerkas(String token, {required int sesiId, required int folderId}) async {
     _cek();
     _berkasDiFolder[sesiId] = folderId;
+  }
+
+  final namaBerkasBaru = <int, String>{};
+
+  @override
+  Future<void> ubahNamaBerkas(String token, {required int fileId, required String nama}) async {
+    _cek();
+    namaBerkasBaru[fileId] = nama;
   }
 }

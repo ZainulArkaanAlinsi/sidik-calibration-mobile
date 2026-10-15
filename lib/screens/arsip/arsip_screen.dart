@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/config/app_config.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/waktu_tampil.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/arsip.dart';
+import '../../models/izin.dart';
 import '../../providers/arsip_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/history_provider.dart' show pdfDownloaderProvider;
+import '../../providers/izin_provider.dart';
+import '../../services/buka_berkas.dart';
+import '../../services/pdf_downloader.dart';
 import '../../widgets/folder_kertas.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/skeleton.dart';
 import '../history/calibration_detail_screen.dart';
+import '../history/kirim_email_screen.dart';
 
 /// Arsip — daftar folder perusahaan, pintu masuk ke file manager.
 ///
@@ -787,10 +795,87 @@ class _MenuFolder extends ConsumerWidget {
   }
 }
 
-class _KartuBerkas extends StatelessWidget {
+class _KartuBerkas extends ConsumerStatefulWidget {
   const _KartuBerkas({required this.berkas});
 
   final ArsipBerkas berkas;
+
+  @override
+  ConsumerState<_KartuBerkas> createState() => _KartuBerkasState();
+}
+
+class _KartuBerkasState extends ConsumerState<_KartuBerkas> {
+  bool _sibuk = false;
+
+  ArsipBerkas get berkas => widget.berkas;
+
+  /// Unduh lewat pintu arsip (`/arsip/berkas/{fileId}/unduh`), lalu serahkan
+  /// ke aplikasi bawaan sistem — butuh header `Authorization`, jadi tidak
+  /// bisa dilempar mentah ke browser.
+  Future<void> _unduh() async {
+    final fileId = berkas.fileId;
+    if (_sibuk || !berkas.bisaDiunduh || fileId == null) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    final token = await ref.read(tokenStorageProvider).read();
+    if (token == null || !mounted) return;
+
+    setState(() => _sibuk = true);
+    try {
+      final path = await ref
+          .read(pdfDownloaderProvider)
+          .unduh(
+            token,
+            '${AppConfig.apiBaseUrl}/arsip/berkas/$fileId/unduh',
+            namaFile: berkas.namaFile ?? '${berkas.nomorSertifikat}.pdf',
+          );
+      final gagal = await bukaBerkas(path);
+      if (gagal != null && mounted) {
+        messenger.showSnackBar(SnackBar(content: Text(gagal)));
+      }
+    } on PdfDownloadException catch (e) {
+      if (mounted) messenger.showSnackBar(SnackBar(content: Text('$e')));
+    } finally {
+      if (mounted) setState(() => _sibuk = false);
+    }
+  }
+
+  void _kirim() {
+    final id = berkas.sertifikatId;
+    final nomor = berkas.nomorSertifikat;
+    if (id == null || nomor == null) return;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            KirimEmailScreen(certificateId: id, nomorSertifikat: nomor),
+      ),
+    );
+  }
+
+  Future<void> _gantiNama() async {
+    final fileId = berkas.fileId;
+    if (fileId == null) return;
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    final nama = await showDialog<String>(
+      context: context,
+      builder: (_) => _DialogNama(
+        judul: l10n.arsipGantiNama,
+        aksiLabel: l10n.arsipSimpan,
+        nilaiAwal: berkas.namaFile,
+      ),
+    );
+    if (nama == null || nama.isEmpty) return;
+
+    final error = await ref
+        .read(arsipAksiProvider)
+        .ubahNamaBerkas(fileId: fileId, nama: nama);
+    messenger.showSnackBar(
+      SnackBar(content: Text(error ?? l10n.arsipBerkasDiubah)),
+    );
+    if (error == null) ref.invalidate(arsipIsiFolderProvider);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -815,6 +900,15 @@ class _KartuBerkas extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 
+    // Aksi hanya ditawarkan kalau bisa dilakukan; izin di sini cuma soal
+    // tampilan — server yang menegakkan.
+    final bisaUnduh = berkas.bisaDiunduh;
+    final bisaKirim =
+        bisaUnduh && ref.bolehkah(NamaIzin.sertifikatKirim, cadangan: false);
+    final bisaGantiNama =
+        berkas.fileId != null &&
+        ref.bolehkah(NamaIzin.arsipFolderKelola, cadangan: false);
+
     return SoftRaised(
       radius: AppSpacing.radiusLg,
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -825,13 +919,22 @@ class _KartuBerkas extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(
-            terbit
-                ? Icons.workspace_premium_outlined
-                : Icons.description_outlined,
-            color: terbit
-                ? AppColors.statusSukses(context)
-                : theme.colorScheme.onSurfaceVariant,
+          SizedBox(
+            width: 24,
+            height: 24,
+            child: _sibuk
+                ? const Padding(
+                    padding: EdgeInsets.all(2),
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Icon(
+                    terbit
+                        ? Icons.workspace_premium_outlined
+                        : Icons.description_outlined,
+                    color: terbit
+                        ? AppColors.statusSukses(context)
+                        : theme.colorScheme.onSurfaceVariant,
+                  ),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -858,7 +961,38 @@ class _KartuBerkas extends StatelessWidget {
               ],
             ),
           ),
-          Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
+          if (bisaUnduh || bisaKirim || bisaGantiNama)
+            PopupMenuButton<String>(
+              enabled: !_sibuk,
+              icon: const Icon(Icons.more_horiz, size: 20),
+              onSelected: (v) => switch (v) {
+                'unduh' => _unduh(),
+                'kirim' => _kirim(),
+                _ => _gantiNama(),
+              },
+              itemBuilder: (_) => [
+                if (bisaUnduh)
+                  PopupMenuItem(
+                    value: 'unduh',
+                    child: Text(l10n.folderBukaBerkas),
+                  ),
+                if (bisaKirim)
+                  PopupMenuItem(
+                    value: 'kirim',
+                    child: Text(l10n.folderBagikanBerkas),
+                  ),
+                if (bisaGantiNama)
+                  PopupMenuItem(
+                    value: 'nama',
+                    child: Text(l10n.arsipGantiNama),
+                  ),
+              ],
+            )
+          else
+            Icon(
+              Icons.chevron_right,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
         ],
       ),
     );

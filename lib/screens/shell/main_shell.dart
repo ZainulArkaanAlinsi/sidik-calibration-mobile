@@ -15,7 +15,7 @@ import '../../widgets/floating_nav_bar.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../draf/draf_screen.dart';
 import '../equipment/equipment_list_screen.dart';
-import '../folder/folder_manager_screen.dart';
+import '../arsip/arsip_screen.dart';
 import '../history/history_screen.dart';
 import '../admin/antrean_approval_screen.dart';
 import '../alur/alur_kerja_screen.dart';
@@ -58,7 +58,7 @@ class MainShell extends ConsumerWidget {
     DashboardScreen(),
     EquipmentListScreen(),
     HistoryScreen(),
-    FolderManagerScreen(),
+    ArsipScreen(),
     ProfileScreen(),
   ];
 
@@ -131,7 +131,7 @@ class MainShell extends ConsumerWidget {
       FloatingNavItem(
         icon: Icons.folder_outlined,
         activeIcon: Icons.folder,
-        label: l10n.navFolderManager,
+        label: l10n.profArsip,
       ),
       FloatingNavItem(
         icon: Icons.person_outline,
@@ -368,7 +368,7 @@ class _MenuUtama extends ConsumerWidget {
     final beranda = _Tujuan(Icons.space_dashboard_outlined, l10n.navDashboard, tab: 0);
     final alat = _Tujuan(Icons.straighten_outlined, l10n.navEquipment, tab: 1);
     final riwayat = _Tujuan(Icons.history_outlined, l10n.navHistory, tab: 2);
-    final folder = _Tujuan(Icons.folder_outlined, l10n.navFolderManager, tab: 3);
+    final folder = _Tujuan(Icons.folder_outlined, l10n.profArsip, tab: 3);
     final profil = _Tujuan(Icons.person_outline, l10n.navProfile, tab: 4);
     final notifikasi = _Tujuan(Icons.notifications_none, l10n.navNotifications,
         layar: () => const NotificationScreen());

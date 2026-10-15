@@ -6497,4 +6497,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tahapDiserahkan => 'Handed over';
+
+  @override
+  String get arsipBerkasDiubah => 'File name changed.';
 }

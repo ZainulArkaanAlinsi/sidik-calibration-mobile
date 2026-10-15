@@ -3559,5 +3559,6 @@
   "tahapMenungguPengesahan": "Awaiting approval",
   "tahapSertifikatTerbit": "Certificate issued",
   "tahapSiapDiambil": "Ready for pickup",
-  "tahapDiserahkan": "Handed over"
+  "tahapDiserahkan": "Handed over",
+  "arsipBerkasDiubah": "File name changed."
 }

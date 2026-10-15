@@ -174,6 +174,10 @@ class ArsipBerkas {
     this.keputusan,
     this.nomorSertifikat,
     this.pdfUrl,
+    this.fileId,
+    this.namaFile,
+    this.sertifikatId,
+    this.sertifikatSiap = false,
   });
 
   final int id;
@@ -187,6 +191,21 @@ class ArsipBerkas {
 
   /// Cuma keisi kalau sertifikatnya udah `terbit`.
   final String? pdfUrl;
+
+  /// Id baris berkas (`folder_files.id`) — BUKAN [id] (sesi). Dipakai
+  /// `GET /arsip/berkas/{id}/unduh` dan `PUT /arsip/berkas/{id}` (ganti nama).
+  final int? fileId;
+  final String? namaFile;
+
+  /// Id sertifikat (buat kirim email) dan apakah PDF-nya sudah jadi. Siap
+  /// dibaca dari `sertifikat.siap_diunduh` (status `terbit`), BUKAN dari
+  /// ada-tidaknya sertifikat: baris placeholder `gagal` sudah punya id.
+  final int? sertifikatId;
+  final bool sertifikatSiap;
+
+  /// Berkas ini punya PDF yang bisa diunduh dari arsip.
+  bool get bisaDiunduh =>
+      fileId != null && sertifikatId != null && sertifikatSiap;
 
   /// Bentuknya satu baris `file[]` dari `GET /arsip/folders/{id}`.
   ///
@@ -236,6 +255,10 @@ class ArsipBerkas {
       },
       nomorSertifikat: sertifikat?['nomor'] as String?,
       pdfUrl: sertifikat?['pdf_url'] as String?,
+      fileId: (json['id'] as num?)?.toInt(),
+      namaFile: json['nama'] as String?,
+      sertifikatId: (sertifikat?['id'] as num?)?.toInt(),
+      sertifikatSiap: sertifikat?['siap_diunduh'] == true,
     );
   }
 }
