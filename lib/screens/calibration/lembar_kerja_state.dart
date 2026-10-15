@@ -3811,6 +3811,26 @@ class LembarKerjaState {
     return terisi;
   }
 
+  /// Tabel lembar yang identitas servernya [tabelId] — versi publik
+  /// [_tabelPindai] buat alur foto lembar kerja.
+  TabelHasil? tabelUntukId(String tabelId) => _tabelPindai(tabelId);
+
+  /// Tuang hasil foto SATU LEMBAR (banyak tabel) yang sudah lewat review.
+  /// Tiap tabel lewat [terapkanHasilFotoTabel] — penempatan sel dan tanda
+  /// "bacaan mesin" persis sama dengan tombol foto per tabel.
+  int terapkanHasilFotoBanyakTabel(Map<String, List<SelTabelFoto>> perTabel) {
+    var terisi = 0;
+
+    for (final e in perTabel.entries) {
+      final tabel = _tabelPindai(e.key);
+      if (tabel == null) continue;
+
+      terisi += terapkanHasilFotoTabel(e.value, tabel: tabel);
+    }
+
+    return terisi;
+  }
+
   /// Tabel lembar yang identitas servernya [tabelId] (`grup ?? tahap` — lihat
   /// `TemplateLembarKerja::tabel`). `null` = nggak ada yang cocok.
   ///

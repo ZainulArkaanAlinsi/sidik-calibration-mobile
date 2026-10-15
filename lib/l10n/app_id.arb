@@ -2838,5 +2838,20 @@
   "izinNotifJudul": "Nyalakan notifikasi?",
   "izinNotifIsi": "Supaya kamu langsung tahu saat lembar kerja masuk, sesi disetujui atau perlu revisi, dan sertifikat terbit. Android akan meminta izinmu setelah ini.",
   "izinNotifLanjut": "Lanjut",
-  "izinNotifNanti": "Nanti saja"
+  "izinNotifNanti": "Nanti saja",
+  "fotoReviewBelumDicek": "{jumlah} angka kuning belum dicek. Adu dengan potongan fotonya, lalu ketuk tanda cek.",
+  "fotoReviewTandaiDicek": "Tandai sudah dicek",
+  "fotoReviewSudahDicek": "Sudah dicek",
+  "lkAsliMemproses": "Membaca foto di HP… foto tidak dikirim ke mana pun.",
+  "lkAsliBelumSiap": "Formulir ini belum bisa dipindai. Isi manual dulu.",
+  "lkAsliGeometriBelumLengkap": "Peta kotak formulir ini belum lengkap. Isi manual dulu.",
+  "lkAsliKodeTidakTerbaca": "Kode formulir (SIDIK-FM-CAL-xxxx) di pojok kanan bawah tidak terbaca. Foto seluruh lembar, tegak, cukup terang.",
+  "lkAsliFormulirLain": "Ini formulir lain ({kode}), bukan formulir untuk alat ini. Pakai lembar yang benar atau isi manual.",
+  "lkAsliRevisiBeda": "Revisi formulir di foto ({terbaca}) beda dengan yang dipegang sistem. Pakai formulir revisi terbaru atau isi manual.",
+  "lkAsliJangkarKurang": "Tulisan cetak formulir yang terbaca terlalu sedikit ({jumlah}) untuk meluruskan foto. Foto ulang seluruh lembar.",
+  "lkAsliJangkarTidakMenyebar": "Bagian formulir yang terbaca menumpuk di satu sisi. Pastikan seluruh lembar masuk frame, lalu foto ulang.",
+  "lkAsliTerisi": "{terisi} sel terisi dari foto. Periksa lagi sebelum dikirim.",
+  "lkAsliTakAdaSel": "Tidak ada angka yang bisa dimasukkan dari foto ini.",
+  "lkAsliGagalUmum": "Foto gagal diproses. Isi manual atau coba foto ulang.",
+  "lkAsliPilihAlatDulu": "Pilih alatnya dulu, lalu ketuk tombol kamera \"Foto worksheet\" di atas lembar."
 }

@@ -6585,4 +6585,66 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get izinNotifNanti => 'Not now';
+
+  @override
+  String fotoReviewBelumDicek(int jumlah) {
+    return '$jumlah yellow numbers not checked yet. Compare each with its photo crop, then tap the check.';
+  }
+
+  @override
+  String get fotoReviewTandaiDicek => 'Mark as checked';
+
+  @override
+  String get fotoReviewSudahDicek => 'Checked';
+
+  @override
+  String get lkAsliMemproses =>
+      'Reading the photo on this phone... it is not sent anywhere.';
+
+  @override
+  String get lkAsliBelumSiap =>
+      'This form cannot be scanned yet. Fill it in manually.';
+
+  @override
+  String get lkAsliGeometriBelumLengkap =>
+      'The cell map for this form is incomplete. Fill it in manually.';
+
+  @override
+  String get lkAsliKodeTidakTerbaca =>
+      'The form code (SIDIK-FM-CAL-xxxx) at the bottom right was not readable. Photograph the whole sheet, upright and well lit.';
+
+  @override
+  String lkAsliFormulirLain(String kode) {
+    return 'This is a different form ($kode), not the one for this instrument. Use the right sheet or fill in manually.';
+  }
+
+  @override
+  String lkAsliRevisiBeda(String terbaca) {
+    return 'The form revision in the photo ($terbaca) differs from the one in the system. Use the latest revision or fill in manually.';
+  }
+
+  @override
+  String lkAsliJangkarKurang(int jumlah) {
+    return 'Too little printed text ($jumlah) was read to straighten the photo. Retake it with the whole sheet in frame.';
+  }
+
+  @override
+  String get lkAsliJangkarTidakMenyebar =>
+      'The readable parts of the form are bunched on one side. Keep the whole sheet in frame and retake.';
+
+  @override
+  String lkAsliTerisi(int terisi) {
+    return '$terisi cells filled from the photo. Check them again before sending.';
+  }
+
+  @override
+  String get lkAsliTakAdaSel => 'No numbers could be taken from this photo.';
+
+  @override
+  String get lkAsliGagalUmum =>
+      'The photo could not be processed. Fill in manually or retake it.';
+
+  @override
+  String get lkAsliPilihAlatDulu =>
+      'Pick the instrument first, then tap the \"Photo worksheet\" camera button above the sheet.';
 }

@@ -276,6 +276,9 @@ void main() {
     // Sel pertama dikosongkan teknisi — dia memang nggak mau angka itu masuk.
     await tester.enterText(find.byType(TextField).first, '');
     await tester.pump();
+    // Sel kuning kedua dicek satu per satu (tulisan tangan tidak pernah hijau).
+    await tester.tap(find.byKey(const ValueKey('cek-60.0|2|pembacaan')));
+    await tester.pump();
 
     expect(
       tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
@@ -295,6 +298,33 @@ void main() {
     );
     expect(hasil!.firstWhere((s) => s.repeatNo == 1).teks, isEmpty);
     expect(hasil!.firstWhere((s) => s.repeatNo == 2).teks, '7,05');
+  });
+
+  testWidgets('sel KUNING wajib dicek satu per satu sebelum Masukkan', (
+    tester,
+  ) async {
+    await buka(tester, [
+      baris('7,02', keyakinan: 0.82),
+      baris('7,05', keyakinan: 0.97, repeatNo: 2), // tinggi, tapi tangan
+    ]);
+
+    FilledButton tombol() =>
+        tester.widget<FilledButton>(find.byType(FilledButton));
+
+    expect(tombol().onPressed, isNull);
+
+    await tester.tap(find.byKey(const ValueKey('cek-60.0|1|pembacaan')));
+    await tester.pump();
+    expect(tombol().onPressed, isNull, reason: 'baru satu dari dua');
+
+    await tester.tap(find.byKey(const ValueKey('cek-60.0|2|pembacaan')));
+    await tester.pump();
+    expect(tombol().onPressed, isNotNull);
+
+    // Batal cek → terkunci lagi.
+    await tester.tap(find.byKey(const ValueKey('cek-60.0|2|pembacaan')));
+    await tester.pump();
+    expect(tombol().onPressed, isNull);
   });
 
   testWidgets('yang paling butuh diperiksa ditaruh DULUAN', (tester) async {

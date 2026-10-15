@@ -11478,6 +11478,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not now'**
   String get izinNotifNanti;
+
+  /// No description provided for @fotoReviewBelumDicek.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} yellow numbers not checked yet. Compare each with its photo crop, then tap the check.'**
+  String fotoReviewBelumDicek(int jumlah);
+
+  /// No description provided for @fotoReviewTandaiDicek.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as checked'**
+  String get fotoReviewTandaiDicek;
+
+  /// No description provided for @fotoReviewSudahDicek.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked'**
+  String get fotoReviewSudahDicek;
+
+  /// No description provided for @lkAsliMemproses.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading the photo on this phone... it is not sent anywhere.'**
+  String get lkAsliMemproses;
+
+  /// No description provided for @lkAsliBelumSiap.
+  ///
+  /// In en, this message translates to:
+  /// **'This form cannot be scanned yet. Fill it in manually.'**
+  String get lkAsliBelumSiap;
+
+  /// No description provided for @lkAsliGeometriBelumLengkap.
+  ///
+  /// In en, this message translates to:
+  /// **'The cell map for this form is incomplete. Fill it in manually.'**
+  String get lkAsliGeometriBelumLengkap;
+
+  /// No description provided for @lkAsliKodeTidakTerbaca.
+  ///
+  /// In en, this message translates to:
+  /// **'The form code (SIDIK-FM-CAL-xxxx) at the bottom right was not readable. Photograph the whole sheet, upright and well lit.'**
+  String get lkAsliKodeTidakTerbaca;
+
+  /// No description provided for @lkAsliFormulirLain.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a different form ({kode}), not the one for this instrument. Use the right sheet or fill in manually.'**
+  String lkAsliFormulirLain(String kode);
+
+  /// No description provided for @lkAsliRevisiBeda.
+  ///
+  /// In en, this message translates to:
+  /// **'The form revision in the photo ({terbaca}) differs from the one in the system. Use the latest revision or fill in manually.'**
+  String lkAsliRevisiBeda(String terbaca);
+
+  /// No description provided for @lkAsliJangkarKurang.
+  ///
+  /// In en, this message translates to:
+  /// **'Too little printed text ({jumlah}) was read to straighten the photo. Retake it with the whole sheet in frame.'**
+  String lkAsliJangkarKurang(int jumlah);
+
+  /// No description provided for @lkAsliJangkarTidakMenyebar.
+  ///
+  /// In en, this message translates to:
+  /// **'The readable parts of the form are bunched on one side. Keep the whole sheet in frame and retake.'**
+  String get lkAsliJangkarTidakMenyebar;
+
+  /// No description provided for @lkAsliTerisi.
+  ///
+  /// In en, this message translates to:
+  /// **'{terisi} cells filled from the photo. Check them again before sending.'**
+  String lkAsliTerisi(int terisi);
+
+  /// No description provided for @lkAsliTakAdaSel.
+  ///
+  /// In en, this message translates to:
+  /// **'No numbers could be taken from this photo.'**
+  String get lkAsliTakAdaSel;
+
+  /// No description provided for @lkAsliGagalUmum.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo could not be processed. Fill in manually or retake it.'**
+  String get lkAsliGagalUmum;
+
+  /// No description provided for @lkAsliPilihAlatDulu.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the instrument first, then tap the \"Photo worksheet\" camera button above the sheet.'**
+  String get lkAsliPilihAlatDulu;
 }
 
 class _AppLocalizationsDelegate

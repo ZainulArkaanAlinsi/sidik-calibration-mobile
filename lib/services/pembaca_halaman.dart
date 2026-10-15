@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui' show Rect;
 
+import 'package:flutter/foundation.dart' show compute;
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
@@ -51,7 +53,10 @@ class MlKitPembacaHalaman implements PembacaHalaman {
     );
 
     try {
-      await berkas.writeAsBytes(img.encodePng(citra));
+      // PNG foto 12 MP butuh beberapa detik → isolate latar, bukan isolate UI.
+      // Bitanya sama persis; PNG tetap (lossless), jadi yang dibaca ML Kit
+      // tidak berubah.
+      await berkas.writeAsBytes(await compute(_png, citra));
 
       final hasil = await _pengenal.processImage(InputImage.fromFile(berkas));
       final keluar = <TeksTerbaca>[];
@@ -94,6 +99,9 @@ class MlKitPembacaHalaman implements PembacaHalaman {
   @override
   Future<void> tutup() => _pengenal.close();
 }
+
+/// Fungsi puncak buat [compute] — yang dikirim ke isolate cuma citranya.
+Uint8List _png(img.Image citra) => img.encodePng(citra);
 
 /// Tiruan buat test — teks & kotaknya dititipin, jadi pemetaannya bisa diuji
 /// tanpa ML Kit maupun kamera.

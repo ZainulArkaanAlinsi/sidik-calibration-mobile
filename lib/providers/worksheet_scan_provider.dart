@@ -85,3 +85,22 @@ final worksheetTemplateProvider =
           .read(worksheetScanServiceProvider)
           .template(token, kunci.kode, equipmentId: kunci.equipmentId);
     }, retry: (retryCount, error) => null);
+
+/// Formulir ASLI lab (geometri untuk pindai di HP) — `GET
+/// /worksheet-templates/{kode}?kertas=asli`. `null` = alat ini belum punya
+/// peta formulir asli, atau server belum menyalakannya: pintu "Foto lembar
+/// kerja" tidak digambar. Hanya geometri yang diunduh; foto tidak pernah naik.
+final formulirAsliProvider =
+    FutureProvider.family<WorksheetTemplate?, KunciTemplatePindai>((
+      ref,
+      kunci,
+    ) async {
+      ref.watch(authProvider);
+
+      final token = await ref.read(tokenStorageProvider).read();
+      if (token == null) throw const TokenHilangException();
+
+      return ref
+          .read(worksheetScanServiceProvider)
+          .templateAsli(token, kunci.kode, equipmentId: kunci.equipmentId);
+    }, retry: (retryCount, error) => null);

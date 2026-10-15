@@ -6511,4 +6511,67 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get izinNotifNanti => 'Nanti saja';
+
+  @override
+  String fotoReviewBelumDicek(int jumlah) {
+    return '$jumlah angka kuning belum dicek. Adu dengan potongan fotonya, lalu ketuk tanda cek.';
+  }
+
+  @override
+  String get fotoReviewTandaiDicek => 'Tandai sudah dicek';
+
+  @override
+  String get fotoReviewSudahDicek => 'Sudah dicek';
+
+  @override
+  String get lkAsliMemproses =>
+      'Membaca foto di HP… foto tidak dikirim ke mana pun.';
+
+  @override
+  String get lkAsliBelumSiap =>
+      'Formulir ini belum bisa dipindai. Isi manual dulu.';
+
+  @override
+  String get lkAsliGeometriBelumLengkap =>
+      'Peta kotak formulir ini belum lengkap. Isi manual dulu.';
+
+  @override
+  String get lkAsliKodeTidakTerbaca =>
+      'Kode formulir (SIDIK-FM-CAL-xxxx) di pojok kanan bawah tidak terbaca. Foto seluruh lembar, tegak, cukup terang.';
+
+  @override
+  String lkAsliFormulirLain(String kode) {
+    return 'Ini formulir lain ($kode), bukan formulir untuk alat ini. Pakai lembar yang benar atau isi manual.';
+  }
+
+  @override
+  String lkAsliRevisiBeda(String terbaca) {
+    return 'Revisi formulir di foto ($terbaca) beda dengan yang dipegang sistem. Pakai formulir revisi terbaru atau isi manual.';
+  }
+
+  @override
+  String lkAsliJangkarKurang(int jumlah) {
+    return 'Tulisan cetak formulir yang terbaca terlalu sedikit ($jumlah) untuk meluruskan foto. Foto ulang seluruh lembar.';
+  }
+
+  @override
+  String get lkAsliJangkarTidakMenyebar =>
+      'Bagian formulir yang terbaca menumpuk di satu sisi. Pastikan seluruh lembar masuk frame, lalu foto ulang.';
+
+  @override
+  String lkAsliTerisi(int terisi) {
+    return '$terisi sel terisi dari foto. Periksa lagi sebelum dikirim.';
+  }
+
+  @override
+  String get lkAsliTakAdaSel =>
+      'Tidak ada angka yang bisa dimasukkan dari foto ini.';
+
+  @override
+  String get lkAsliGagalUmum =>
+      'Foto gagal diproses. Isi manual atau coba foto ulang.';
+
+  @override
+  String get lkAsliPilihAlatDulu =>
+      'Pilih alatnya dulu, lalu ketuk tombol kamera \"Foto worksheet\" di atas lembar.';
 }

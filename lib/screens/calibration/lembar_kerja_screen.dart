@@ -26,7 +26,9 @@ import '../../providers/history_provider.dart';
 import '../../providers/jam_provider.dart';
 import '../../providers/lembar_kerja_provider.dart';
 import '../../providers/versi_provider.dart';
+import '../../models/worksheet_template.dart';
 import '../../providers/worksheet_scan_provider.dart';
+import 'pindai_formulir_asli_flow.dart';
 import '../../services/auth_service.dart' show AuthException;
 import '../../services/penampung_contoh_sel.dart';
 import '../../widgets/autoclave_hasil_panel.dart';
@@ -478,7 +480,121 @@ class _FormState extends ConsumerState<_Form> {
     _tandaTampilTerakhir = _hitungTandaTampil();
 
     final id = widget.sesiId;
-    if (id != null) _muatSesiLama(id);
+    if (id != null) {
+      _muatSesiLama(id);
+    } else {
+      // Lembar BARU: tawarkan "Isi manual | Foto lembar kerja" (hanya kalau
+      // formulirnya siap pindai).
+      WidgetsBinding.instance.addPostFrameCallback((_) => _tanyaCara());
+    }
+  }
+
+  KunciTemplatePindai get _kunciAsli =>
+      (kode: widget.profil, equipmentId: _isian.alat?.id);
+
+  bool _sedangMemindai = false;
+
+  /// Pintu masuk lembar baru. Foto butuh alatnya dulu (titik ukur lahir dari
+  /// alat), jadi pilihan "Foto" tanpa alat hanya mengarahkan ke tombol kamera.
+  Future<void> _tanyaCara() async {
+    if (!mounted) return;
+
+    final WorksheetTemplate? asli;
+    try {
+      asli = await ref.read(
+        formulirAsliProvider((kode: widget.profil, equipmentId: null)).future,
+      );
+    } catch (_) {
+      return; // Tanpa peta formulir: langsung isi manual, tanpa pintu.
+    }
+    if (asli == null || !asli.bolehDipindaiAsli || !mounted) return;
+
+    final l10n = AppLocalizations.of(context);
+    final foto = await showModalBottomSheet<bool>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Text(
+                l10n.phCalibCaraJudul,
+                style: Theme.of(ctx).textTheme.titleMedium,
+              ),
+            ),
+            ListTile(
+              key: const ValueKey('cara-manual'),
+              leading: const Icon(Icons.edit_outlined),
+              title: Text(l10n.phCalibCaraManual),
+              subtitle: Text(l10n.phCalibCaraManualKeterangan),
+              onTap: () => Navigator.pop(ctx, false),
+            ),
+            ListTile(
+              key: const ValueKey('cara-foto'),
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: Text(l10n.phCalibCaraFoto),
+              subtitle: Text(l10n.phCalibCaraFotoKeterangan),
+              onTap: () => Navigator.pop(ctx, true),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Text(
+                l10n.phCalibCaraCatatan,
+                style: Theme.of(ctx).textTheme.bodySmall,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (foto != true || !mounted) return;
+
+    if (_isian.alat == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.lkAsliPilihAlatDulu)));
+      return;
+    }
+
+    await _fotoLembar();
+  }
+
+  Future<void> _fotoLembar() async {
+    if (_sedangMemindai || !mounted) return;
+    setState(() => _sedangMemindai = true);
+
+    try {
+      final l10n = AppLocalizations.of(context);
+      final alat = _isian.alat;
+      if (alat == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.lkAsliPilihAlatDulu)));
+        return;
+      }
+
+      final asli = await ref.read(formulirAsliProvider(_kunciAsli).future);
+      if (!mounted) return;
+      if (asli == null || !asli.bolehDipindaiAsli) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.lkAsliBelumSiap)));
+        return;
+      }
+
+      final terisi = await pindaiFormulirAsli(
+        context: context,
+        ref: ref,
+        isian: _isian,
+        template: asli,
+      );
+      if (terisi > 0 && mounted) _isianBerubah();
+    } finally {
+      if (mounted) setState(() => _sedangMemindai = false);
+    }
   }
 
   /// Isi ulang formulir dari sesi yang dibuka lagi (lanjut draft / perbaiki
@@ -1416,6 +1532,28 @@ class _FormState extends ConsumerState<_Form> {
                       final id = widget.sesiId;
                       if (id != null) _muatSesiLama(id);
                     },
+                  ),
+                ),
+              if (ref
+                      .watch(formulirAsliProvider(_kunciAsli))
+                      .value
+                      ?.bolehDipindaiAsli ==
+                  true)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.sm,
+                    AppSpacing.md,
+                    0,
+                  ),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: OutlinedButton.icon(
+                      key: const ValueKey('tombol-foto-lembar'),
+                      onPressed: _sedangMemindai ? null : _fotoLembar,
+                      icon: const Icon(Icons.photo_camera_outlined, size: 18),
+                      label: Text(AppLocalizations.of(context).phCalibCaraFoto),
+                    ),
                   ),
                 ),
               Expanded(

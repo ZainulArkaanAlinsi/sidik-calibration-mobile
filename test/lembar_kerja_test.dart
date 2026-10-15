@@ -1178,6 +1178,18 @@ void main() {
     // lembar) cuma jalan di zona async yang sama. Di-tap di luar, layarnya
     // memang tertutup tapi angkanya nggak pernah mendarat — dan test-nya
     // menuduh kodenya yang salah.
+    // Sel kuning wajib dicek satu per satu (tulisan tangan tidak pernah
+    // hijau): ketuk semua tanda cek dulu.
+    final tandaCek = find.byWidgetPredicate(
+      (w) =>
+          w.key is ValueKey &&
+          '${(w.key as ValueKey).value}'.startsWith('cek-'),
+    );
+    for (var i = tandaCek.evaluate().length; i > 0; i--) {
+      await tester.tap(tandaCek.at(i - 1));
+      await tester.pump();
+    }
+
     await tester.runAsync(() async {
       await tester.tap(find.text('Masukkan ke lembar'));
       await Future<void>.delayed(const Duration(milliseconds: 400));

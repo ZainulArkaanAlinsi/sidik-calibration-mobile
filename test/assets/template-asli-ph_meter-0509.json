@@ -1,0 +1,2155 @@
+{
+ "data": {
+  "template_id": "ph_meter",
+  "kertas": "asli",
+  "kode_dokumen": "SIDIK-FM-CAL-0509",
+  "revisi": "4",
+  "sumber_sha256": "468b6e15f56f5bfb05a35134e9c6b4fd72a07cde13b82a12dd59823ff893c85a",
+  "judul": "Calibration Worksheet - pH Meter",
+  "satuan": "pH",
+  "jumlah_pengulangan": 5,
+  "tabel": [
+   {
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "judul": "Before adjustment Reading",
+    "baris": [
+     {
+      "baris_ke": 1,
+      "titik_ukur": 4.0,
+      "label": "4,00",
+      "tipe": "angka",
+      "standard_id": 2,
+      "satuan": "pH",
+      "resolusi": null,
+      "desimal": null
+     },
+     {
+      "baris_ke": 2,
+      "titik_ukur": 7.0,
+      "label": "7,00",
+      "tipe": "angka",
+      "standard_id": 3,
+      "satuan": "pH",
+      "resolusi": null,
+      "desimal": null
+     },
+     {
+      "baris_ke": 3,
+      "titik_ukur": 10.01,
+      "label": "10,01",
+      "tipe": "angka",
+      "standard_id": 4,
+      "satuan": "pH",
+      "resolusi": null,
+      "desimal": null
+     }
+    ],
+    "kolom": [
+     {
+      "field_id": "pembacaan",
+      "label": "pH",
+      "satuan": "pH"
+     },
+     {
+      "field_id": "suhu",
+      "label": "°C",
+      "satuan": "°C"
+     }
+    ],
+    "pengulangan": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ]
+   },
+   {
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "judul": "After adjustment Reading",
+    "baris": [
+     {
+      "baris_ke": 1,
+      "titik_ukur": 4.0,
+      "label": "4,00",
+      "tipe": "angka",
+      "standard_id": 2,
+      "satuan": "pH",
+      "resolusi": null,
+      "desimal": null
+     },
+     {
+      "baris_ke": 2,
+      "titik_ukur": 7.0,
+      "label": "7,00",
+      "tipe": "angka",
+      "standard_id": 3,
+      "satuan": "pH",
+      "resolusi": null,
+      "desimal": null
+     },
+     {
+      "baris_ke": 3,
+      "titik_ukur": 10.01,
+      "label": "10,01",
+      "tipe": "angka",
+      "standard_id": 4,
+      "satuan": "pH",
+      "resolusi": null,
+      "desimal": null
+     }
+    ],
+    "kolom": [
+     {
+      "field_id": "pembacaan",
+      "label": "pH",
+      "satuan": "pH"
+     },
+     {
+      "field_id": "suhu",
+      "label": "°C",
+      "satuan": "°C"
+     }
+    ],
+    "pengulangan": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ]
+   }
+  ],
+  "geometri": {
+   "koordinat": "ternormal_0_1",
+   "ukuran_referensi": {
+    "w": 792.0,
+    "h": 612.0,
+    "satuan": "pt",
+    "orientasi": "lanskap"
+   },
+   "jangkar_teks": [
+    {
+     "teks": "PT.",
+     "kotak": {
+      "x": 0.05533,
+      "y": 0.15671,
+      "w": 0.02364,
+      "h": 0.01961
+     }
+    },
+    {
+     "teks": "SIDIK",
+     "kotak": {
+      "x": 0.0833,
+      "y": 0.15671,
+      "w": 0.04045,
+      "h": 0.01961
+     }
+    },
+    {
+     "teks": "Calibration",
+     "kotak": {
+      "x": 0.37939,
+      "y": 0.15671,
+      "w": 0.07914,
+      "h": 0.01961
+     }
+    },
+    {
+     "teks": "Worksheet",
+     "kotak": {
+      "x": 0.46288,
+      "y": 0.15671,
+      "w": 0.07723,
+      "h": 0.01961
+     }
+    },
+    {
+     "teks": "Meter",
+     "kotak": {
+      "x": 0.5782,
+      "y": 0.15671,
+      "w": 0.04047,
+      "h": 0.01961
+     }
+    },
+    {
+     "teks": "LK-285-IDN",
+     "kotak": {
+      "x": 0.86967,
+      "y": 0.15671,
+      "w": 0.08138,
+      "h": 0.01961
+     }
+    },
+    {
+     "teks": "Received",
+     "kotak": {
+      "x": 0.32939,
+      "y": 0.20436,
+      "w": 0.03798,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Date",
+     "kotak": {
+      "x": 0.36979,
+      "y": 0.20436,
+      "w": 0.01905,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Calibration",
+     "kotak": {
+      "x": 0.32232,
+      "y": 0.22336,
+      "w": 0.04528,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Date",
+     "kotak": {
+      "x": 0.36977,
+      "y": 0.22336,
+      "w": 0.01905,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "EQUIPMENT",
+     "kotak": {
+      "x": 0.08741,
+      "y": 0.25593,
+      "w": 0.06491,
+      "h": 0.01405
+     }
+    },
+    {
+     "teks": "IDENTITY",
+     "kotak": {
+      "x": 0.1555,
+      "y": 0.25593,
+      "w": 0.0499,
+      "h": 0.01405
+     }
+    },
+    {
+     "teks": "AND",
+     "kotak": {
+      "x": 0.20824,
+      "y": 0.25593,
+      "w": 0.02352,
+      "h": 0.01405
+     }
+    },
+    {
+     "teks": "CUSTOMER",
+     "kotak": {
+      "x": 0.23478,
+      "y": 0.25593,
+      "w": 0.06257,
+      "h": 0.01405
+     }
+    },
+    {
+     "teks": "DATA",
+     "kotak": {
+      "x": 0.30036,
+      "y": 0.25593,
+      "w": 0.03031,
+      "h": 0.01405
+     }
+    },
+    {
+     "teks": "CALIBRATION",
+     "kotak": {
+      "x": 0.62667,
+      "y": 0.2556,
+      "w": 0.07476,
+      "h": 0.01405
+     }
+    },
+    {
+     "teks": "RESULT",
+     "kotak": {
+      "x": 0.70445,
+      "y": 0.2556,
+      "w": 0.04348,
+      "h": 0.01405
+     }
+    },
+    {
+     "teks": "First",
+     "kotak": {
+      "x": 0.52311,
+      "y": 0.28415,
+      "w": 0.01708,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "(oC)",
+     "kotak": {
+      "x": 0.67314,
+      "y": 0.2817,
+      "w": 0.01557,
+      "h": 0.01388
+     }
+    },
+    {
+     "teks": "First",
+     "kotak": {
+      "x": 0.78176,
+      "y": 0.28415,
+      "w": 0.01708,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "(%RH)",
+     "kotak": {
+      "x": 0.87295,
+      "y": 0.28415,
+      "w": 0.02642,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Env.",
+     "kotak": {
+      "x": 0.40288,
+      "y": 0.29134,
+      "w": 0.01736,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Condition",
+     "kotak": {
+      "x": 0.42282,
+      "y": 0.29134,
+      "w": 0.03596,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Name",
+     "kotak": {
+      "x": 0.04776,
+      "y": 0.30114,
+      "w": 0.02385,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "End",
+     "kotak": {
+      "x": 0.52311,
+      "y": 0.30114,
+      "w": 0.01552,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "(oC)",
+     "kotak": {
+      "x": 0.67314,
+      "y": 0.2987,
+      "w": 0.01582,
+      "h": 0.01388
+     }
+    },
+    {
+     "teks": "End",
+     "kotak": {
+      "x": 0.78176,
+      "y": 0.30114,
+      "w": 0.01552,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "(%RH)",
+     "kotak": {
+      "x": 0.87295,
+      "y": 0.30114,
+      "w": 0.02642,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Range/Resolution",
+     "kotak": {
+      "x": 0.04776,
+      "y": 0.32238,
+      "w": 0.07331,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Before",
+     "kotak": {
+      "x": 0.65673,
+      "y": 0.32238,
+      "w": 0.02763,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "adjustment",
+     "kotak": {
+      "x": 0.68676,
+      "y": 0.32238,
+      "w": 0.04611,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Reading",
+     "kotak": {
+      "x": 0.73547,
+      "y": 0.32238,
+      "w": 0.03393,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Solution",
+     "kotak": {
+      "x": 0.41802,
+      "y": 0.32961,
+      "w": 0.03443,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Standard",
+     "kotak": {
+      "x": 0.45461,
+      "y": 0.32961,
+      "w": 0.0377,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "4.00",
+     "kotak": {
+      "x": 0.56582,
+      "y": 0.33843,
+      "w": 0.01703,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "7.00",
+     "kotak": {
+      "x": 0.7017,
+      "y": 0.33843,
+      "w": 0.01703,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "10.01",
+     "kotak": {
+      "x": 0.8376,
+      "y": 0.33843,
+      "w": 0.02183,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Type/Model",
+     "kotak": {
+      "x": 0.04776,
+      "y": 0.3574,
+      "w": 0.04815,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Repeat",
+     "kotak": {
+      "x": 0.44154,
+      "y": 0.3574,
+      "w": 0.0272,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Serial",
+     "kotak": {
+      "x": 0.04776,
+      "y": 0.37536,
+      "w": 0.02366,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Number/LPI",
+     "kotak": {
+      "x": 0.07375,
+      "y": 0.37536,
+      "w": 0.0489,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Merk/Manufacture",
+     "kotak": {
+      "x": 0.04776,
+      "y": 0.39335,
+      "w": 0.07432,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Thermohygro",
+     "kotak": {
+      "x": 0.04776,
+      "y": 0.41131,
+      "w": 0.05612,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "used",
+     "kotak": {
+      "x": 0.1063,
+      "y": 0.41131,
+      "w": 0.02005,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": ":Insitu:",
+     "kotak": {
+      "x": 0.14573,
+      "y": 0.41033,
+      "w": 0.02971,
+      "h": 0.01242
+     }
+    },
+    {
+     "teks": "TH-2",
+     "kotak": {
+      "x": 0.19467,
+      "y": 0.41041,
+      "w": 0.01882,
+      "h": 0.01123
+     }
+    },
+    {
+     "teks": "TH-6",
+     "kotak": {
+      "x": 0.23725,
+      "y": 0.41041,
+      "w": 0.01879,
+      "h": 0.01123
+     }
+    },
+    {
+     "teks": "TH-7",
+     "kotak": {
+      "x": 0.27889,
+      "y": 0.4093,
+      "w": 0.01878,
+      "h": 0.01123
+     }
+    },
+    {
+     "teks": "Inlab:",
+     "kotak": {
+      "x": 0.15205,
+      "y": 0.42928,
+      "w": 0.02114,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "TH-4",
+     "kotak": {
+      "x": 0.19467,
+      "y": 0.42835,
+      "w": 0.01884,
+      "h": 0.01127
+     }
+    },
+    {
+     "teks": "OWNER",
+     "kotak": {
+      "x": 0.02955,
+      "y": 0.4473,
+      "w": 0.0334,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Name",
+     "kotak": {
+      "x": 0.04776,
+      "y": 0.46528,
+      "w": 0.02385,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Address",
+     "kotak": {
+      "x": 0.04776,
+      "y": 0.48325,
+      "w": 0.03445,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "STANDARD",
+     "kotak": {
+      "x": 0.02955,
+      "y": 0.51822,
+      "w": 0.04804,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Standard",
+     "kotak": {
+      "x": 0.05407,
+      "y": 0.53717,
+      "w": 0.0377,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Name",
+     "kotak": {
+      "x": 0.0942,
+      "y": 0.53717,
+      "w": 0.02385,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Usage",
+     "kotak": {
+      "x": 0.1609,
+      "y": 0.53488,
+      "w": 0.02613,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Check",
+     "kotak": {
+      "x": 0.18943,
+      "y": 0.53488,
+      "w": 0.02587,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Buffer",
+     "kotak": {
+      "x": 0.05861,
+      "y": 0.5542,
+      "w": 0.02313,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Solutions",
+     "kotak": {
+      "x": 0.08434,
+      "y": 0.5542,
+      "w": 0.03496,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Buffer",
+     "kotak": {
+      "x": 0.05861,
+      "y": 0.57119,
+      "w": 0.02313,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Solutions",
+     "kotak": {
+      "x": 0.08434,
+      "y": 0.57119,
+      "w": 0.03496,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "After",
+     "kotak": {
+      "x": 0.66052,
+      "y": 0.57119,
+      "w": 0.02009,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "adjustment",
+     "kotak": {
+      "x": 0.68321,
+      "y": 0.57119,
+      "w": 0.04611,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Reading",
+     "kotak": {
+      "x": 0.73192,
+      "y": 0.57119,
+      "w": 0.03393,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Solution",
+     "kotak": {
+      "x": 0.41802,
+      "y": 0.5784,
+      "w": 0.03443,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Standard",
+     "kotak": {
+      "x": 0.45461,
+      "y": 0.5784,
+      "w": 0.0377,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Buffer",
+     "kotak": {
+      "x": 0.05634,
+      "y": 0.58818,
+      "w": 0.02313,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Solutions",
+     "kotak": {
+      "x": 0.08207,
+      "y": 0.58818,
+      "w": 0.03496,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "4.00",
+     "kotak": {
+      "x": 0.56582,
+      "y": 0.5872,
+      "w": 0.01703,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "7.00",
+     "kotak": {
+      "x": 0.7017,
+      "y": 0.5872,
+      "w": 0.01703,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "10.01",
+     "kotak": {
+      "x": 0.8376,
+      "y": 0.5872,
+      "w": 0.02183,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "RTD",
+     "kotak": {
+      "x": 0.04624,
+      "y": 0.60714,
+      "w": 0.01799,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Sensor/SH1/20",
+     "kotak": {
+      "x": 0.06669,
+      "y": 0.60714,
+      "w": 0.05892,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Repeat",
+     "kotak": {
+      "x": 0.44154,
+      "y": 0.60714,
+      "w": 0.0272,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Victor",
+     "kotak": {
+      "x": 0.04347,
+      "y": 0.62609,
+      "w": 0.02211,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "14+/992613877",
+     "kotak": {
+      "x": 0.06818,
+      "y": 0.62609,
+      "w": 0.06047,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "CALIBRATION",
+     "kotak": {
+      "x": 0.02955,
+      "y": 0.683,
+      "w": 0.0584,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "DATA",
+     "kotak": {
+      "x": 0.09039,
+      "y": 0.683,
+      "w": 0.0238,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Location",
+     "kotak": {
+      "x": 0.04776,
+      "y": 0.70196,
+      "w": 0.0362,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Calibration",
+     "kotak": {
+      "x": 0.04776,
+      "y": 0.72091,
+      "w": 0.04528,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Methode",
+     "kotak": {
+      "x": 0.0952,
+      "y": 0.72091,
+      "w": 0.03572,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": ":SIDIK-IK-CAL-0506",
+     "kotak": {
+      "x": 0.14573,
+      "y": 0.71928,
+      "w": 0.08216,
+      "h": 0.01307
+     }
+    },
+    {
+     "teks": "Calibrated",
+     "kotak": {
+      "x": 0.10003,
+      "y": 0.75653,
+      "w": 0.0425,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Checked",
+     "kotak": {
+      "x": 0.28466,
+      "y": 0.75653,
+      "w": 0.03595,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Catatan:",
+     "kotak": {
+      "x": 0.40288,
+      "y": 0.83272,
+      "w": 0.03474,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Sign",
+     "kotak": {
+      "x": 0.02955,
+      "y": 0.86671,
+      "w": 0.01729,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Sign",
+     "kotak": {
+      "x": 0.23365,
+      "y": 0.86671,
+      "w": 0.01729,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Name",
+     "kotak": {
+      "x": 0.02955,
+      "y": 0.8837,
+      "w": 0.02309,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Name",
+     "kotak": {
+      "x": 0.23365,
+      "y": 0.8837,
+      "w": 0.02309,
+      "h": 0.01144
+     }
+    },
+    {
+     "teks": "Page",
+     "kotak": {
+      "x": 0.01187,
+      "y": 0.96887,
+      "w": 0.02162,
+      "h": 0.01405
+     }
+    },
+    {
+     "teks": "Revise",
+     "kotak": {
+      "x": 0.47816,
+      "y": 0.96887,
+      "w": 0.02918,
+      "h": 0.01405
+     }
+    },
+    {
+     "teks": "SIDIK-FM-CAL-0509",
+     "kotak": {
+      "x": 0.90124,
+      "y": 0.96887,
+      "w": 0.087,
+      "h": 0.01405
+     }
+    }
+   ]
+  },
+  "sel": {
+   "sebelum_adjustment|1|1|pembacaan": {
+    "kunci": "sebelum_adjustment|1|1|pembacaan",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 1,
+    "repeat_no": 1,
+    "field_id": "pembacaan",
+    "titik_ukur": 4.0,
+    "standard_id": 2,
+    "kotak": {
+     "x": 0.50801,
+     "y": 0.37047,
+     "w": 0.06513,
+     "h": 0.03595
+    }
+   },
+   "sebelum_adjustment|1|2|pembacaan": {
+    "kunci": "sebelum_adjustment|1|2|pembacaan",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 1,
+    "repeat_no": 2,
+    "field_id": "pembacaan",
+    "titik_ukur": 4.0,
+    "standard_id": 2,
+    "kotak": {
+     "x": 0.50801,
+     "y": 0.40641,
+     "w": 0.06513,
+     "h": 0.03595
+    }
+   },
+   "sebelum_adjustment|1|3|pembacaan": {
+    "kunci": "sebelum_adjustment|1|3|pembacaan",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 1,
+    "repeat_no": 3,
+    "field_id": "pembacaan",
+    "titik_ukur": 4.0,
+    "standard_id": 2,
+    "kotak": {
+     "x": 0.50801,
+     "y": 0.44236,
+     "w": 0.06513,
+     "h": 0.03599
+    }
+   },
+   "sebelum_adjustment|1|4|pembacaan": {
+    "kunci": "sebelum_adjustment|1|4|pembacaan",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 1,
+    "repeat_no": 4,
+    "field_id": "pembacaan",
+    "titik_ukur": 4.0,
+    "standard_id": 2,
+    "kotak": {
+     "x": 0.50801,
+     "y": 0.47835,
+     "w": 0.06513,
+     "h": 0.03595
+    }
+   },
+   "sebelum_adjustment|1|5|pembacaan": {
+    "kunci": "sebelum_adjustment|1|5|pembacaan",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 1,
+    "repeat_no": 5,
+    "field_id": "pembacaan",
+    "titik_ukur": 4.0,
+    "standard_id": 2,
+    "kotak": {
+     "x": 0.50801,
+     "y": 0.5143,
+     "w": 0.06513,
+     "h": 0.03593
+    }
+   },
+   "sebelum_adjustment|1|1|suhu": {
+    "kunci": "sebelum_adjustment|1|1|suhu",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 1,
+    "repeat_no": 1,
+    "field_id": "suhu",
+    "titik_ukur": 4.0,
+    "standard_id": 2,
+    "kotak": {
+     "x": 0.57313,
+     "y": 0.37047,
+     "w": 0.06692,
+     "h": 0.03595
+    }
+   },
+   "sebelum_adjustment|1|2|suhu": {
+    "kunci": "sebelum_adjustment|1|2|suhu",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 1,
+    "repeat_no": 2,
+    "field_id": "suhu",
+    "titik_ukur": 4.0,
+    "standard_id": 2,
+    "kotak": {
+     "x": 0.57313,
+     "y": 0.40641,
+     "w": 0.06692,
+     "h": 0.03595
+    }
+   },
+   "sebelum_adjustment|1|3|suhu": {
+    "kunci": "sebelum_adjustment|1|3|suhu",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 1,
+    "repeat_no": 3,
+    "field_id": "suhu",
+    "titik_ukur": 4.0,
+    "standard_id": 2,
+    "kotak": {
+     "x": 0.57313,
+     "y": 0.44236,
+     "w": 0.06692,
+     "h": 0.03599
+    }
+   },
+   "sebelum_adjustment|1|4|suhu": {
+    "kunci": "sebelum_adjustment|1|4|suhu",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 1,
+    "repeat_no": 4,
+    "field_id": "suhu",
+    "titik_ukur": 4.0,
+    "standard_id": 2,
+    "kotak": {
+     "x": 0.57313,
+     "y": 0.47835,
+     "w": 0.06692,
+     "h": 0.03595
+    }
+   },
+   "sebelum_adjustment|1|5|suhu": {
+    "kunci": "sebelum_adjustment|1|5|suhu",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 1,
+    "repeat_no": 5,
+    "field_id": "suhu",
+    "titik_ukur": 4.0,
+    "standard_id": 2,
+    "kotak": {
+     "x": 0.57313,
+     "y": 0.5143,
+     "w": 0.06692,
+     "h": 0.03593
+    }
+   },
+   "sebelum_adjustment|2|1|pembacaan": {
+    "kunci": "sebelum_adjustment|2|1|pembacaan",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 2,
+    "repeat_no": 1,
+    "field_id": "pembacaan",
+    "titik_ukur": 7.0,
+    "standard_id": 3,
+    "kotak": {
+     "x": 0.64005,
+     "y": 0.37047,
+     "w": 0.06418,
+     "h": 0.03595
+    }
+   },
+   "sebelum_adjustment|2|2|pembacaan": {
+    "kunci": "sebelum_adjustment|2|2|pembacaan",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 2,
+    "repeat_no": 2,
+    "field_id": "pembacaan",
+    "titik_ukur": 7.0,
+    "standard_id": 3,
+    "kotak": {
+     "x": 0.64005,
+     "y": 0.40641,
+     "w": 0.06418,
+     "h": 0.03595
+    }
+   },
+   "sebelum_adjustment|2|3|pembacaan": {
+    "kunci": "sebelum_adjustment|2|3|pembacaan",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 2,
+    "repeat_no": 3,
+    "field_id": "pembacaan",
+    "titik_ukur": 7.0,
+    "standard_id": 3,
+    "kotak": {
+     "x": 0.64005,
+     "y": 0.44236,
+     "w": 0.06418,
+     "h": 0.03599
+    }
+   },
+   "sebelum_adjustment|2|4|pembacaan": {
+    "kunci": "sebelum_adjustment|2|4|pembacaan",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 2,
+    "repeat_no": 4,
+    "field_id": "pembacaan",
+    "titik_ukur": 7.0,
+    "standard_id": 3,
+    "kotak": {
+     "x": 0.64005,
+     "y": 0.47835,
+     "w": 0.06418,
+     "h": 0.03595
+    }
+   },
+   "sebelum_adjustment|2|5|pembacaan": {
+    "kunci": "sebelum_adjustment|2|5|pembacaan",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 2,
+    "repeat_no": 5,
+    "field_id": "pembacaan",
+    "titik_ukur": 7.0,
+    "standard_id": 3,
+    "kotak": {
+     "x": 0.64005,
+     "y": 0.5143,
+     "w": 0.06418,
+     "h": 0.03593
+    }
+   },
+   "sebelum_adjustment|2|1|suhu": {
+    "kunci": "sebelum_adjustment|2|1|suhu",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 2,
+    "repeat_no": 1,
+    "field_id": "suhu",
+    "titik_ukur": 7.0,
+    "standard_id": 3,
+    "kotak": {
+     "x": 0.70423,
+     "y": 0.37047,
+     "w": 0.07551,
+     "h": 0.03595
+    }
+   },
+   "sebelum_adjustment|2|2|suhu": {
+    "kunci": "sebelum_adjustment|2|2|suhu",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 2,
+    "repeat_no": 2,
+    "field_id": "suhu",
+    "titik_ukur": 7.0,
+    "standard_id": 3,
+    "kotak": {
+     "x": 0.70423,
+     "y": 0.40641,
+     "w": 0.07551,
+     "h": 0.03595
+    }
+   },
+   "sebelum_adjustment|2|3|suhu": {
+    "kunci": "sebelum_adjustment|2|3|suhu",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 2,
+    "repeat_no": 3,
+    "field_id": "suhu",
+    "titik_ukur": 7.0,
+    "standard_id": 3,
+    "kotak": {
+     "x": 0.70423,
+     "y": 0.44236,
+     "w": 0.07551,
+     "h": 0.03599
+    }
+   },
+   "sebelum_adjustment|2|4|suhu": {
+    "kunci": "sebelum_adjustment|2|4|suhu",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 2,
+    "repeat_no": 4,
+    "field_id": "suhu",
+    "titik_ukur": 7.0,
+    "standard_id": 3,
+    "kotak": {
+     "x": 0.70423,
+     "y": 0.47835,
+     "w": 0.07551,
+     "h": 0.03595
+    }
+   },
+   "sebelum_adjustment|2|5|suhu": {
+    "kunci": "sebelum_adjustment|2|5|suhu",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 2,
+    "repeat_no": 5,
+    "field_id": "suhu",
+    "titik_ukur": 7.0,
+    "standard_id": 3,
+    "kotak": {
+     "x": 0.70423,
+     "y": 0.5143,
+     "w": 0.07551,
+     "h": 0.03593
+    }
+   },
+   "sebelum_adjustment|3|1|pembacaan": {
+    "kunci": "sebelum_adjustment|3|1|pembacaan",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 3,
+    "repeat_no": 1,
+    "field_id": "pembacaan",
+    "titik_ukur": 10.01,
+    "standard_id": 4,
+    "kotak": {
+     "x": 0.77973,
+     "y": 0.37047,
+     "w": 0.06694,
+     "h": 0.03595
+    }
+   },
+   "sebelum_adjustment|3|2|pembacaan": {
+    "kunci": "sebelum_adjustment|3|2|pembacaan",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 3,
+    "repeat_no": 2,
+    "field_id": "pembacaan",
+    "titik_ukur": 10.01,
+    "standard_id": 4,
+    "kotak": {
+     "x": 0.77973,
+     "y": 0.40641,
+     "w": 0.06694,
+     "h": 0.03595
+    }
+   },
+   "sebelum_adjustment|3|3|pembacaan": {
+    "kunci": "sebelum_adjustment|3|3|pembacaan",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 3,
+    "repeat_no": 3,
+    "field_id": "pembacaan",
+    "titik_ukur": 10.01,
+    "standard_id": 4,
+    "kotak": {
+     "x": 0.77973,
+     "y": 0.44236,
+     "w": 0.06694,
+     "h": 0.03599
+    }
+   },
+   "sebelum_adjustment|3|4|pembacaan": {
+    "kunci": "sebelum_adjustment|3|4|pembacaan",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 3,
+    "repeat_no": 4,
+    "field_id": "pembacaan",
+    "titik_ukur": 10.01,
+    "standard_id": 4,
+    "kotak": {
+     "x": 0.77973,
+     "y": 0.47835,
+     "w": 0.06694,
+     "h": 0.03595
+    }
+   },
+   "sebelum_adjustment|3|5|pembacaan": {
+    "kunci": "sebelum_adjustment|3|5|pembacaan",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 3,
+    "repeat_no": 5,
+    "field_id": "pembacaan",
+    "titik_ukur": 10.01,
+    "standard_id": 4,
+    "kotak": {
+     "x": 0.77973,
+     "y": 0.5143,
+     "w": 0.06694,
+     "h": 0.03593
+    }
+   },
+   "sebelum_adjustment|3|1|suhu": {
+    "kunci": "sebelum_adjustment|3|1|suhu",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 3,
+    "repeat_no": 1,
+    "field_id": "suhu",
+    "titik_ukur": 10.01,
+    "standard_id": 4,
+    "kotak": {
+     "x": 0.84668,
+     "y": 0.37047,
+     "w": 0.0702,
+     "h": 0.03595
+    }
+   },
+   "sebelum_adjustment|3|2|suhu": {
+    "kunci": "sebelum_adjustment|3|2|suhu",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 3,
+    "repeat_no": 2,
+    "field_id": "suhu",
+    "titik_ukur": 10.01,
+    "standard_id": 4,
+    "kotak": {
+     "x": 0.84668,
+     "y": 0.40641,
+     "w": 0.0702,
+     "h": 0.03595
+    }
+   },
+   "sebelum_adjustment|3|3|suhu": {
+    "kunci": "sebelum_adjustment|3|3|suhu",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 3,
+    "repeat_no": 3,
+    "field_id": "suhu",
+    "titik_ukur": 10.01,
+    "standard_id": 4,
+    "kotak": {
+     "x": 0.84668,
+     "y": 0.44236,
+     "w": 0.0702,
+     "h": 0.03599
+    }
+   },
+   "sebelum_adjustment|3|4|suhu": {
+    "kunci": "sebelum_adjustment|3|4|suhu",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 3,
+    "repeat_no": 4,
+    "field_id": "suhu",
+    "titik_ukur": 10.01,
+    "standard_id": 4,
+    "kotak": {
+     "x": 0.84668,
+     "y": 0.47835,
+     "w": 0.0702,
+     "h": 0.03595
+    }
+   },
+   "sebelum_adjustment|3|5|suhu": {
+    "kunci": "sebelum_adjustment|3|5|suhu",
+    "tabel_id": "sebelum_adjustment",
+    "tahap": "sebelum_adjustment",
+    "grup": null,
+    "baris_ke": 3,
+    "repeat_no": 5,
+    "field_id": "suhu",
+    "titik_ukur": 10.01,
+    "standard_id": 4,
+    "kotak": {
+     "x": 0.84668,
+     "y": 0.5143,
+     "w": 0.0702,
+     "h": 0.03593
+    }
+   },
+   "sesudah_adjustment|1|1|pembacaan": {
+    "kunci": "sesudah_adjustment|1|1|pembacaan",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 1,
+    "repeat_no": 1,
+    "field_id": "pembacaan",
+    "titik_ukur": 4.0,
+    "standard_id": 2,
+    "kotak": {
+     "x": 0.50801,
+     "y": 0.6202,
+     "w": 0.06513,
+     "h": 0.03793
+    }
+   },
+   "sesudah_adjustment|1|2|pembacaan": {
+    "kunci": "sesudah_adjustment|1|2|pembacaan",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 1,
+    "repeat_no": 2,
+    "field_id": "pembacaan",
+    "titik_ukur": 4.0,
+    "standard_id": 2,
+    "kotak": {
+     "x": 0.50801,
+     "y": 0.65813,
+     "w": 0.06513,
+     "h": 0.03795
+    }
+   },
+   "sesudah_adjustment|1|3|pembacaan": {
+    "kunci": "sesudah_adjustment|1|3|pembacaan",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 1,
+    "repeat_no": 3,
+    "field_id": "pembacaan",
+    "titik_ukur": 4.0,
+    "standard_id": 2,
+    "kotak": {
+     "x": 0.50801,
+     "y": 0.69608,
+     "w": 0.06513,
+     "h": 0.03788
+    }
+   },
+   "sesudah_adjustment|1|4|pembacaan": {
+    "kunci": "sesudah_adjustment|1|4|pembacaan",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 1,
+    "repeat_no": 4,
+    "field_id": "pembacaan",
+    "titik_ukur": 4.0,
+    "standard_id": 2,
+    "kotak": {
+     "x": 0.50801,
+     "y": 0.73396,
+     "w": 0.06513,
+     "h": 0.03791
+    }
+   },
+   "sesudah_adjustment|1|5|pembacaan": {
+    "kunci": "sesudah_adjustment|1|5|pembacaan",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 1,
+    "repeat_no": 5,
+    "field_id": "pembacaan",
+    "titik_ukur": 4.0,
+    "standard_id": 2,
+    "kotak": {
+     "x": 0.50801,
+     "y": 0.77187,
+     "w": 0.06513,
+     "h": 0.03899
+    }
+   },
+   "sesudah_adjustment|1|1|suhu": {
+    "kunci": "sesudah_adjustment|1|1|suhu",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 1,
+    "repeat_no": 1,
+    "field_id": "suhu",
+    "titik_ukur": 4.0,
+    "standard_id": 2,
+    "kotak": {
+     "x": 0.57313,
+     "y": 0.6202,
+     "w": 0.06692,
+     "h": 0.03793
+    }
+   },
+   "sesudah_adjustment|1|2|suhu": {
+    "kunci": "sesudah_adjustment|1|2|suhu",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 1,
+    "repeat_no": 2,
+    "field_id": "suhu",
+    "titik_ukur": 4.0,
+    "standard_id": 2,
+    "kotak": {
+     "x": 0.57313,
+     "y": 0.65813,
+     "w": 0.06692,
+     "h": 0.03795
+    }
+   },
+   "sesudah_adjustment|1|3|suhu": {
+    "kunci": "sesudah_adjustment|1|3|suhu",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 1,
+    "repeat_no": 3,
+    "field_id": "suhu",
+    "titik_ukur": 4.0,
+    "standard_id": 2,
+    "kotak": {
+     "x": 0.57313,
+     "y": 0.69608,
+     "w": 0.06692,
+     "h": 0.03788
+    }
+   },
+   "sesudah_adjustment|1|4|suhu": {
+    "kunci": "sesudah_adjustment|1|4|suhu",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 1,
+    "repeat_no": 4,
+    "field_id": "suhu",
+    "titik_ukur": 4.0,
+    "standard_id": 2,
+    "kotak": {
+     "x": 0.57313,
+     "y": 0.73396,
+     "w": 0.06692,
+     "h": 0.03791
+    }
+   },
+   "sesudah_adjustment|1|5|suhu": {
+    "kunci": "sesudah_adjustment|1|5|suhu",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 1,
+    "repeat_no": 5,
+    "field_id": "suhu",
+    "titik_ukur": 4.0,
+    "standard_id": 2,
+    "kotak": {
+     "x": 0.57313,
+     "y": 0.77187,
+     "w": 0.06692,
+     "h": 0.03899
+    }
+   },
+   "sesudah_adjustment|2|1|pembacaan": {
+    "kunci": "sesudah_adjustment|2|1|pembacaan",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 2,
+    "repeat_no": 1,
+    "field_id": "pembacaan",
+    "titik_ukur": 7.0,
+    "standard_id": 3,
+    "kotak": {
+     "x": 0.64005,
+     "y": 0.6202,
+     "w": 0.06418,
+     "h": 0.03793
+    }
+   },
+   "sesudah_adjustment|2|2|pembacaan": {
+    "kunci": "sesudah_adjustment|2|2|pembacaan",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 2,
+    "repeat_no": 2,
+    "field_id": "pembacaan",
+    "titik_ukur": 7.0,
+    "standard_id": 3,
+    "kotak": {
+     "x": 0.64005,
+     "y": 0.65813,
+     "w": 0.06418,
+     "h": 0.03795
+    }
+   },
+   "sesudah_adjustment|2|3|pembacaan": {
+    "kunci": "sesudah_adjustment|2|3|pembacaan",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 2,
+    "repeat_no": 3,
+    "field_id": "pembacaan",
+    "titik_ukur": 7.0,
+    "standard_id": 3,
+    "kotak": {
+     "x": 0.64005,
+     "y": 0.69608,
+     "w": 0.06418,
+     "h": 0.03788
+    }
+   },
+   "sesudah_adjustment|2|4|pembacaan": {
+    "kunci": "sesudah_adjustment|2|4|pembacaan",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 2,
+    "repeat_no": 4,
+    "field_id": "pembacaan",
+    "titik_ukur": 7.0,
+    "standard_id": 3,
+    "kotak": {
+     "x": 0.64005,
+     "y": 0.73396,
+     "w": 0.06418,
+     "h": 0.03791
+    }
+   },
+   "sesudah_adjustment|2|5|pembacaan": {
+    "kunci": "sesudah_adjustment|2|5|pembacaan",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 2,
+    "repeat_no": 5,
+    "field_id": "pembacaan",
+    "titik_ukur": 7.0,
+    "standard_id": 3,
+    "kotak": {
+     "x": 0.64005,
+     "y": 0.77187,
+     "w": 0.06418,
+     "h": 0.03899
+    }
+   },
+   "sesudah_adjustment|2|1|suhu": {
+    "kunci": "sesudah_adjustment|2|1|suhu",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 2,
+    "repeat_no": 1,
+    "field_id": "suhu",
+    "titik_ukur": 7.0,
+    "standard_id": 3,
+    "kotak": {
+     "x": 0.70423,
+     "y": 0.6202,
+     "w": 0.07551,
+     "h": 0.03793
+    }
+   },
+   "sesudah_adjustment|2|2|suhu": {
+    "kunci": "sesudah_adjustment|2|2|suhu",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 2,
+    "repeat_no": 2,
+    "field_id": "suhu",
+    "titik_ukur": 7.0,
+    "standard_id": 3,
+    "kotak": {
+     "x": 0.70423,
+     "y": 0.65813,
+     "w": 0.07551,
+     "h": 0.03795
+    }
+   },
+   "sesudah_adjustment|2|3|suhu": {
+    "kunci": "sesudah_adjustment|2|3|suhu",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 2,
+    "repeat_no": 3,
+    "field_id": "suhu",
+    "titik_ukur": 7.0,
+    "standard_id": 3,
+    "kotak": {
+     "x": 0.70423,
+     "y": 0.69608,
+     "w": 0.07551,
+     "h": 0.03788
+    }
+   },
+   "sesudah_adjustment|2|4|suhu": {
+    "kunci": "sesudah_adjustment|2|4|suhu",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 2,
+    "repeat_no": 4,
+    "field_id": "suhu",
+    "titik_ukur": 7.0,
+    "standard_id": 3,
+    "kotak": {
+     "x": 0.70423,
+     "y": 0.73396,
+     "w": 0.07551,
+     "h": 0.03791
+    }
+   },
+   "sesudah_adjustment|2|5|suhu": {
+    "kunci": "sesudah_adjustment|2|5|suhu",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 2,
+    "repeat_no": 5,
+    "field_id": "suhu",
+    "titik_ukur": 7.0,
+    "standard_id": 3,
+    "kotak": {
+     "x": 0.70423,
+     "y": 0.77187,
+     "w": 0.07551,
+     "h": 0.03899
+    }
+   },
+   "sesudah_adjustment|3|1|pembacaan": {
+    "kunci": "sesudah_adjustment|3|1|pembacaan",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 3,
+    "repeat_no": 1,
+    "field_id": "pembacaan",
+    "titik_ukur": 10.01,
+    "standard_id": 4,
+    "kotak": {
+     "x": 0.77973,
+     "y": 0.6202,
+     "w": 0.06694,
+     "h": 0.03793
+    }
+   },
+   "sesudah_adjustment|3|2|pembacaan": {
+    "kunci": "sesudah_adjustment|3|2|pembacaan",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 3,
+    "repeat_no": 2,
+    "field_id": "pembacaan",
+    "titik_ukur": 10.01,
+    "standard_id": 4,
+    "kotak": {
+     "x": 0.77973,
+     "y": 0.65813,
+     "w": 0.06694,
+     "h": 0.03795
+    }
+   },
+   "sesudah_adjustment|3|3|pembacaan": {
+    "kunci": "sesudah_adjustment|3|3|pembacaan",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 3,
+    "repeat_no": 3,
+    "field_id": "pembacaan",
+    "titik_ukur": 10.01,
+    "standard_id": 4,
+    "kotak": {
+     "x": 0.77973,
+     "y": 0.69608,
+     "w": 0.06694,
+     "h": 0.03788
+    }
+   },
+   "sesudah_adjustment|3|4|pembacaan": {
+    "kunci": "sesudah_adjustment|3|4|pembacaan",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 3,
+    "repeat_no": 4,
+    "field_id": "pembacaan",
+    "titik_ukur": 10.01,
+    "standard_id": 4,
+    "kotak": {
+     "x": 0.77973,
+     "y": 0.73396,
+     "w": 0.06694,
+     "h": 0.03791
+    }
+   },
+   "sesudah_adjustment|3|5|pembacaan": {
+    "kunci": "sesudah_adjustment|3|5|pembacaan",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 3,
+    "repeat_no": 5,
+    "field_id": "pembacaan",
+    "titik_ukur": 10.01,
+    "standard_id": 4,
+    "kotak": {
+     "x": 0.77973,
+     "y": 0.77187,
+     "w": 0.06694,
+     "h": 0.03899
+    }
+   },
+   "sesudah_adjustment|3|1|suhu": {
+    "kunci": "sesudah_adjustment|3|1|suhu",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 3,
+    "repeat_no": 1,
+    "field_id": "suhu",
+    "titik_ukur": 10.01,
+    "standard_id": 4,
+    "kotak": {
+     "x": 0.84668,
+     "y": 0.6202,
+     "w": 0.0702,
+     "h": 0.03793
+    }
+   },
+   "sesudah_adjustment|3|2|suhu": {
+    "kunci": "sesudah_adjustment|3|2|suhu",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 3,
+    "repeat_no": 2,
+    "field_id": "suhu",
+    "titik_ukur": 10.01,
+    "standard_id": 4,
+    "kotak": {
+     "x": 0.84668,
+     "y": 0.65813,
+     "w": 0.0702,
+     "h": 0.03795
+    }
+   },
+   "sesudah_adjustment|3|3|suhu": {
+    "kunci": "sesudah_adjustment|3|3|suhu",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 3,
+    "repeat_no": 3,
+    "field_id": "suhu",
+    "titik_ukur": 10.01,
+    "standard_id": 4,
+    "kotak": {
+     "x": 0.84668,
+     "y": 0.69608,
+     "w": 0.0702,
+     "h": 0.03788
+    }
+   },
+   "sesudah_adjustment|3|4|suhu": {
+    "kunci": "sesudah_adjustment|3|4|suhu",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 3,
+    "repeat_no": 4,
+    "field_id": "suhu",
+    "titik_ukur": 10.01,
+    "standard_id": 4,
+    "kotak": {
+     "x": 0.84668,
+     "y": 0.73396,
+     "w": 0.0702,
+     "h": 0.03791
+    }
+   },
+   "sesudah_adjustment|3|5|suhu": {
+    "kunci": "sesudah_adjustment|3|5|suhu",
+    "tabel_id": "sesudah_adjustment",
+    "tahap": "sesudah_adjustment",
+    "grup": null,
+    "baris_ke": 3,
+    "repeat_no": 5,
+    "field_id": "suhu",
+    "titik_ukur": 10.01,
+    "standard_id": 4,
+    "kotak": {
+     "x": 0.84668,
+     "y": 0.77187,
+     "w": 0.0702,
+     "h": 0.03899
+    }
+   }
+  },
+  "isian": [
+   {
+    "kode": "suhu_awal",
+    "cara": "angka",
+    "kotak": {
+     "x": 0.54272,
+     "y": 0.28162,
+     "w": 0.1279,
+     "h": 0.01552
+    }
+   },
+   {
+    "kode": "kelembaban_awal",
+    "cara": "angka",
+    "kotak": {
+     "x": 0.80136,
+     "y": 0.28162,
+     "w": 0.06906,
+     "h": 0.01675
+    }
+   },
+   {
+    "kode": "suhu_akhir",
+    "cara": "angka",
+    "kotak": {
+     "x": 0.54115,
+     "y": 0.29714,
+     "w": 0.12947,
+     "h": 0.01552
+    }
+   },
+   {
+    "kode": "kelembaban_akhir",
+    "cara": "angka",
+    "kotak": {
+     "x": 0.7998,
+     "y": 0.29836,
+     "w": 0.07063,
+     "h": 0.0143
+    }
+   }
+  ],
+  "centang": [
+   {
+    "kode": "standar_dicek.*.dipakai",
+    "pilihan": null,
+    "baris_ke": 1,
+    "label": "pH Buffer Solutions 4",
+    "kotak": {
+     "x": 0.17834,
+     "y": 0.55184,
+     "w": 0.01051,
+     "h": 0.01299
+    }
+   },
+   {
+    "kode": "standar_dicek.*.dipakai",
+    "pilihan": null,
+    "baris_ke": 2,
+    "label": "pH Buffer Solutions 7",
+    "kotak": {
+     "x": 0.17834,
+     "y": 0.56922,
+     "w": 0.01051,
+     "h": 0.01311
+    }
+   },
+   {
+    "kode": "standar_dicek.*.dipakai",
+    "pilihan": null,
+    "baris_ke": 3,
+    "label": "pH Buffer Solutions 10",
+    "kotak": {
+     "x": 0.17834,
+     "y": 0.58621,
+     "w": 0.01051,
+     "h": 0.01311
+    }
+   },
+   {
+    "kode": "standar_dicek.*.dipakai",
+    "pilihan": null,
+    "baris_ke": 4,
+    "label": "RTD Sensor/SH1/20",
+    "kotak": {
+     "x": 0.17834,
+     "y": 0.60424,
+     "w": 0.01051,
+     "h": 0.01299
+    }
+   },
+   {
+    "kode": "standar_dicek.*.dipakai",
+    "pilihan": null,
+    "baris_ke": 5,
+    "label": "Victor 14+/992613877",
+    "kotak": {
+     "x": 0.17834,
+     "y": 0.62185,
+     "w": 0.01051,
+     "h": 0.01312
+    }
+   },
+   {
+    "kode": "thermohygro_standard_id",
+    "pilihan": "TH-2",
+    "baris_ke": null,
+    "label": null,
+    "kotak": {
+     "x": 0.18314,
+     "y": 0.40849,
+     "w": 0.01006,
+     "h": 0.01299
+    }
+   },
+   {
+    "kode": "thermohygro_standard_id",
+    "pilihan": "TH-6",
+    "baris_ke": null,
+    "label": null,
+    "kotak": {
+     "x": 0.2257,
+     "y": 0.40849,
+     "w": 0.01004,
+     "h": 0.01299
+    }
+   },
+   {
+    "kode": "thermohygro_standard_id",
+    "pilihan": "TH-7",
+    "baris_ke": null,
+    "label": null,
+    "kotak": {
+     "x": 0.26732,
+     "y": 0.40677,
+     "w": 0.01005,
+     "h": 0.01299
+    }
+   },
+   {
+    "kode": "thermohygro_standard_id",
+    "pilihan": "TH-4",
+    "baris_ke": null,
+    "label": null,
+    "kotak": {
+     "x": 0.18314,
+     "y": 0.42647,
+     "w": 0.01006,
+     "h": 0.01299
+    }
+   }
+  ],
+  "siap_pindai": false,
+  "alasan_belum_siap": "geometri_belum_diverifikasi",
+  "mode_uji": true,
+  "pipeline_versi": "ocr-1.0.0",
+  "aturan_versi": "val-1.0.0+asli-1"
+ }
+}
