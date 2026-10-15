@@ -34,7 +34,7 @@ import '../../models/user.dart';
 import '../draf/draf_screen.dart';
 import '../jatuh_tempo/layar_jatuh_tempo.dart';
 import '../koreksi/antrean_koreksi_screen.dart';
-import '../pelacakan/pelacakan_screen.dart';
+import '../pelacakan/telusuri_sertifikat_screen.dart';
 import '../pelanggan/pusat_pelanggan_screen.dart';
 import '../penugasan/penugasan_screen.dart';
 import '../permintaan/antrean_permintaan_screen.dart';
@@ -203,8 +203,8 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
     final pelacakan = _Menu(
       id: 'pelacakan',
       ikon: Icons.local_shipping_outlined,
-      label: l10n.pelacakanJudul,
-      bangun: PelacakanScreen.new,
+      label: l10n.telusuriJudul,
+      bangun: TelusuriSertifikatScreen.new,
     );
     final permintaan = _Menu(
       id: 'permintaan',

@@ -22,7 +22,7 @@ import '../alur/alur_kerja_screen.dart';
 import '../../widgets/pemantau_antrean.dart';
 import '../notification/notification_screen.dart';
 import '../jatuh_tempo/layar_jatuh_tempo.dart';
-import '../pelacakan/pelacakan_screen.dart';
+import '../pelacakan/telusuri_sertifikat_screen.dart';
 import '../pelanggan/pusat_pelanggan_screen.dart';
 import '../koreksi/antrean_koreksi_screen.dart';
 import '../permintaan/antrean_permintaan_screen.dart';
@@ -378,8 +378,8 @@ class _MenuUtama extends ConsumerWidget {
     final koreksi = _Tujuan(Icons.rule_folder_outlined, l10n.koreksiJudul,
         layar: () => const AntreanKoreksiScreen(),
         lencana: const _LencanaKoreksi());
-    final pelacakan = _Tujuan(Icons.local_shipping_outlined, l10n.pelacakanJudul,
-        layar: () => const PelacakanScreen());
+    final pelacakan = _Tujuan(Icons.local_shipping_outlined, l10n.telusuriJudul,
+        layar: () => const TelusuriSertifikatScreen());
     final penugasan = _Tujuan(Icons.assignment_ind_outlined, l10n.penugasanJudul,
         layar: () => const PenugasanScreen());
     final pusat = _Tujuan(Icons.apartment_outlined, l10n.pusatJudul,

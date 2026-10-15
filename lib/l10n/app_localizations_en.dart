@@ -6434,4 +6434,67 @@ class AppLocalizationsEn extends AppLocalizations {
   String bandingkanTidakBerubahJudul(int jumlah) {
     return '$jumlah entries unchanged';
   }
+
+  @override
+  String get telusuriJudul => 'Look up certificate no.';
+
+  @override
+  String get telusuriCari => 'Type a certificate no. (min. 2 characters)';
+
+  @override
+  String get telusuriPetunjuk =>
+      'Type at least 2 characters of the certificate number, including revisions such as -R1.';
+
+  @override
+  String get telusuriKosong => 'No certificate matches that number.';
+
+  @override
+  String get telusuriGagal => 'Search failed. Try again.';
+
+  @override
+  String get telusuriStatusBerlaku => 'Issued';
+
+  @override
+  String get telusuriStatusDitarik => 'Withdrawn';
+
+  @override
+  String get telusuriStatusDigantikan => 'Superseded';
+
+  @override
+  String get telusuriStatusDibatalkan => 'Cancelled';
+
+  @override
+  String get telusuriStatusBelumTerbit => 'Not issued yet';
+
+  @override
+  String telusuriTahap(String tahap) {
+    return 'Order stage: $tahap';
+  }
+
+  @override
+  String get telusuriLihatPaket => 'View order';
+
+  @override
+  String get telusuriBukaPdf => 'Open PDF';
+
+  @override
+  String get tahapDiterima => 'Received';
+
+  @override
+  String get tahapDikalibrasi => 'Being calibrated';
+
+  @override
+  String get tahapMenungguPemeriksaan => 'Awaiting admin check';
+
+  @override
+  String get tahapMenungguPengesahan => 'Awaiting approval';
+
+  @override
+  String get tahapSertifikatTerbit => 'Certificate issued';
+
+  @override
+  String get tahapSiapDiambil => 'Ready for pickup';
+
+  @override
+  String get tahapDiserahkan => 'Handed over';
 }

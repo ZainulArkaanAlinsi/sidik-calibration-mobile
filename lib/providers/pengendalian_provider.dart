@@ -4,6 +4,7 @@ import '../core/config/app_config.dart';
 import '../models/pelacakan.dart';
 import '../models/penugasan.dart';
 import '../services/pelacakan_service.dart';
+import '../services/telusuri_service.dart';
 import '../services/penugasan_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
@@ -61,6 +62,11 @@ final _paketTerlambatProvider = NotifierProvider<Saringan<bool>, bool>(
 final pelacakanServiceProvider = Provider<PelacakanService>((ref) {
   if (AppConfig.useMock) return MockPelacakanService();
   return ApiPelacakanService(ref.watch(apiClientProvider));
+});
+
+final telusuriServiceProvider = Provider<TelusuriService>((ref) {
+  if (AppConfig.useMock) return MockTelusuriService();
+  return ApiTelusuriService(ref.watch(apiClientProvider));
 });
 
 final daftarPaketProvider =

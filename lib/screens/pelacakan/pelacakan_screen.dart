@@ -27,7 +27,10 @@ import '../../core/utils/tanggal_pendek.dart';
 /// menampilkan "2/3 selesai" di samping tahapnya — angka itu menjawab lebih
 /// banyak daripada nama tahapnya sendiri.
 class PelacakanScreen extends ConsumerStatefulWidget {
-  const PelacakanScreen({super.key});
+  const PelacakanScreen({super.key, this.cariAwal});
+
+  /// Mengisi kotak cari saat dibuka dari hasil Telusuri No. Sertifikat.
+  final String? cariAwal;
 
   @override
   ConsumerState<PelacakanScreen> createState() => _PelacakanScreenState();
@@ -36,6 +39,18 @@ class PelacakanScreen extends ConsumerStatefulWidget {
 class _PelacakanScreenState extends ConsumerState<PelacakanScreen> {
   final _cari = TextEditingController();
   Timer? _jeda;
+
+  @override
+  void initState() {
+    super.initState();
+    final awal = widget.cariAwal;
+    if (awal != null && awal.isNotEmpty) {
+      _cari.text = awal;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ref.read(daftarPaketProvider.notifier).cari(awal);
+      });
+    }
+  }
 
   @override
   void dispose() {

@@ -6360,4 +6360,67 @@ class AppLocalizationsId extends AppLocalizations {
   String bandingkanTidakBerubahJudul(int jumlah) {
     return '$jumlah isian tidak berubah';
   }
+
+  @override
+  String get telusuriJudul => 'Telusuri No. Sertifikat';
+
+  @override
+  String get telusuriCari => 'Ketik No. Sertifikat (min. 2 huruf)';
+
+  @override
+  String get telusuriPetunjuk =>
+      'Ketik minimal 2 huruf nomor sertifikat, termasuk revisi seperti -R1.';
+
+  @override
+  String get telusuriKosong => 'Tidak ada sertifikat dengan nomor itu.';
+
+  @override
+  String get telusuriGagal => 'Pencarian gagal. Coba lagi.';
+
+  @override
+  String get telusuriStatusBerlaku => 'Terbit';
+
+  @override
+  String get telusuriStatusDitarik => 'Ditarik';
+
+  @override
+  String get telusuriStatusDigantikan => 'Digantikan';
+
+  @override
+  String get telusuriStatusDibatalkan => 'Dibatalkan';
+
+  @override
+  String get telusuriStatusBelumTerbit => 'Belum terbit';
+
+  @override
+  String telusuriTahap(String tahap) {
+    return 'Tahap paket: $tahap';
+  }
+
+  @override
+  String get telusuriLihatPaket => 'Lihat paket';
+
+  @override
+  String get telusuriBukaPdf => 'Buka PDF';
+
+  @override
+  String get tahapDiterima => 'Diterima';
+
+  @override
+  String get tahapDikalibrasi => 'Dikalibrasi';
+
+  @override
+  String get tahapMenungguPemeriksaan => 'Menunggu pemeriksaan admin';
+
+  @override
+  String get tahapMenungguPengesahan => 'Menunggu pengesahan';
+
+  @override
+  String get tahapSertifikatTerbit => 'Sertifikat terbit';
+
+  @override
+  String get tahapSiapDiambil => 'Siap diambil';
+
+  @override
+  String get tahapDiserahkan => 'Diserahkan';
 }

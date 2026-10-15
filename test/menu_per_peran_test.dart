@@ -102,7 +102,7 @@ void main() {
   const pengesahan = 'Pengesahan sertifikat';
   const penugasan = 'Penugasan';
   const tugasSaya = 'Tugas saya';
-  const pelacakan = 'Pelacakan paket';
+  const pelacakan = 'Telusuri No. Sertifikat';
   const kelolaLab = 'Kelola lab';
   const pusat = 'Pusat pelanggan';
   const jadwal = 'Jadwal kalibrasi ulang';

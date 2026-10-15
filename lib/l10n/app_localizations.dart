@@ -11196,6 +11196,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{jumlah} entries unchanged'**
   String bandingkanTidakBerubahJudul(int jumlah);
+
+  /// No description provided for @telusuriJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Look up certificate no.'**
+  String get telusuriJudul;
+
+  /// No description provided for @telusuriCari.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a certificate no. (min. 2 characters)'**
+  String get telusuriCari;
+
+  /// No description provided for @telusuriPetunjuk.
+  ///
+  /// In en, this message translates to:
+  /// **'Type at least 2 characters of the certificate number, including revisions such as -R1.'**
+  String get telusuriPetunjuk;
+
+  /// No description provided for @telusuriKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No certificate matches that number.'**
+  String get telusuriKosong;
+
+  /// No description provided for @telusuriGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Search failed. Try again.'**
+  String get telusuriGagal;
+
+  /// No description provided for @telusuriStatusBerlaku.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued'**
+  String get telusuriStatusBerlaku;
+
+  /// No description provided for @telusuriStatusDitarik.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawn'**
+  String get telusuriStatusDitarik;
+
+  /// No description provided for @telusuriStatusDigantikan.
+  ///
+  /// In en, this message translates to:
+  /// **'Superseded'**
+  String get telusuriStatusDigantikan;
+
+  /// No description provided for @telusuriStatusDibatalkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get telusuriStatusDibatalkan;
+
+  /// No description provided for @telusuriStatusBelumTerbit.
+  ///
+  /// In en, this message translates to:
+  /// **'Not issued yet'**
+  String get telusuriStatusBelumTerbit;
+
+  /// No description provided for @telusuriTahap.
+  ///
+  /// In en, this message translates to:
+  /// **'Order stage: {tahap}'**
+  String telusuriTahap(String tahap);
+
+  /// No description provided for @telusuriLihatPaket.
+  ///
+  /// In en, this message translates to:
+  /// **'View order'**
+  String get telusuriLihatPaket;
+
+  /// No description provided for @telusuriBukaPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Open PDF'**
+  String get telusuriBukaPdf;
+
+  /// No description provided for @tahapDiterima.
+  ///
+  /// In en, this message translates to:
+  /// **'Received'**
+  String get tahapDiterima;
+
+  /// No description provided for @tahapDikalibrasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Being calibrated'**
+  String get tahapDikalibrasi;
+
+  /// No description provided for @tahapMenungguPemeriksaan.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting admin check'**
+  String get tahapMenungguPemeriksaan;
+
+  /// No description provided for @tahapMenungguPengesahan.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting approval'**
+  String get tahapMenungguPengesahan;
+
+  /// No description provided for @tahapSertifikatTerbit.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate issued'**
+  String get tahapSertifikatTerbit;
+
+  /// No description provided for @tahapSiapDiambil.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for pickup'**
+  String get tahapSiapDiambil;
+
+  /// No description provided for @tahapDiserahkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Handed over'**
+  String get tahapDiserahkan;
 }
 
 class _AppLocalizationsDelegate
