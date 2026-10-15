@@ -13,6 +13,7 @@ library;
 
 import '../core/utils/parse_list.dart';
 import 'autoclave_hasil.dart';
+import 'enclosure_sertifikat.dart';
 import 'revisi_sertifikat.dart';
 
 /// Header — 16 field, urutannya ngikutin yang tercetak di sertifikat.
@@ -118,7 +119,11 @@ class BarisHasilSertifikat {
 
   /// **Di sertifikat Correction = Standard − Average** — kebalikan dari lembar
   /// PERHITUNGAN. Dua-duanya bener, jangan dipakai silang.
-  final double correction;
+  ///
+  /// `null` = server tidak mengirim koreksi untuk baris ini, dan layar menulis
+  /// `—`. Dulu dibaca `?? 0`, jadi koreksi yang TIDAK ADA tercetak `0,00` —
+  /// pernyataan "alatnya tepat" yang tidak pernah diukur.
+  final double? correction;
 
   /// Koreksi negatif yang MEMBULAT KE NOL dicetak `-0,0` atau `0,0`.
   ///
@@ -181,7 +186,7 @@ class BarisHasilSertifikat {
         titikKe: (json['titik_ke'] as num?)?.toInt() ?? 0,
         standardValue: (json['standard_value'] as num?)?.toDouble() ?? 0,
         unitUnderTest: (json['unit_under_test'] as num?)?.toDouble() ?? 0,
-        correction: (json['correction'] as num?)?.toDouble() ?? 0,
+        correction: (json['correction'] as num?)?.toDouble(),
         u95: (json['u95'] as num?)?.toDouble() ?? 0,
         desimal: (json['desimal'] as num?)?.toInt(),
         remark: switch (json['remark']) {
@@ -248,6 +253,7 @@ class CertificateSnapshot {
     this.keputusan,
     this.u95PerTitik = false,
     this.autoclave,
+    this.enclosure,
   });
 
   final HeaderSertifikat header;
@@ -258,6 +264,11 @@ class CertificateSnapshot {
   /// keluaran kalkulator; layar sertifikat mbranch ke sini biar sesi Autoklaf
   /// nggak tampil sebagai tabel kosong (`hasil`-nya memang kosong).
   final AutoclaveHasil? autoclave;
+
+  /// Hasil Enclosure (Sebaran Suhu + Kinerja Enklosur), kalau sertifikat ini
+  /// Oven/Furnace/Bath/Inkubator/Refrigerator. `null` di alat lain. [hasil]
+  /// alat ini `[]` — tabel Standard/UUT/Correction TIDAK berlaku buatnya.
+  final EnclosureSertifikat? enclosure;
 
   /// Dua catatan baku di bawah tabel. **Datang dari backend**, bukan ditulis
   /// ulang di mobile — kalau lab merevisi kalimatnya, yang berubah satu tempat.
@@ -324,6 +335,7 @@ class CertificateSnapshot {
               (json['autoclave'] as Map).isNotEmpty
           ? AutoclaveHasil.fromJson(json['autoclave'] as Map<String, dynamic>)
           : null,
+      enclosure: EnclosureSertifikat.dariJson(json['enclosure']),
     );
   }
 }

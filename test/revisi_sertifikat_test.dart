@@ -27,8 +27,9 @@ import 'package:sidik_calibration/services/token_storage.dart';
 ///
 /// - **Field baru boleh hilang** (server lama): model tidak melempar, lencana
 ///   diturunkan dari `status`, dan tak ada tombol apa pun.
-/// - **Siapa melihat tombol apa.** Hanya admin, dan hanya kalau server bilang
-///   `bisa_direvisi` / `bisa_dibatalkan`. Super admin, teknisi, dan viewer tidak.
+/// - **Siapa melihat tombol apa.** Admin dan super admin (K-49-14), dan hanya
+///   kalau server bilang `bisa_direvisi` / `bisa_dibatalkan`. Teknisi dan
+///   viewer tidak.
 /// - **Revisi mengirim HANYA kunci yang berubah**, menolak "tidak ada yang
 ///   berubah" dan `berlaku_sampai` sebelum `tanggal_kalibrasi` sebelum sampai
 ///   server, dan menampilkan 422 per kolom.
@@ -466,7 +467,10 @@ void main() {
       expect(find.byKey(const ValueKey('tindakan-admin-sertifikat')), findsNothing);
     });
 
-    testWidgets('super admin membaca saja: tidak ada tombol', (tester) async {
+    // K-49-14 (15 Okt 2026): super admin memegang semua aksi admin & teknisi.
+    testWidgets('super admin: tombol revisi & batal ada seperti admin', (
+      tester,
+    ) async {
       await _pasang(
         tester,
         _app(
@@ -475,7 +479,7 @@ void main() {
           token: _superAdmin,
         ),
       );
-      expect(find.byKey(const ValueKey('tindakan-admin-sertifikat')), findsNothing);
+      expect(find.byKey(const ValueKey('tindakan-admin-sertifikat')), findsOne);
       // Kartu status tetap terbaca.
       expect(find.byKey(const ValueKey('info-dokumen-sertifikat')), findsOne);
     });

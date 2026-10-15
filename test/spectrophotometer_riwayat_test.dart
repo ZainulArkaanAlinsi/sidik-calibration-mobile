@@ -72,12 +72,12 @@ void main() {
 
       expect(formatNilaiStandar(holmium.standardValue, holmium.desimalEfektif(d)), '279,6');
       expect(formatSertifikat(holmium.unitUnderTest, holmium.desimalEfektif(d)), '280,00');
-      expect(formatSertifikat(holmium.correction, holmium.desimalEfektif(d)), '-0,40');
+      expect(formatSertifikat(holmium.correction!, holmium.desimalEfektif(d)), '-0,40');
 
       // Nol belakang %T DIPERTAHANKAN — `9,665` bukan `9,67`, dan itu yang
       // bikin `desimal` per titik harus dipakai, bukan angka level snapshot.
       expect(formatSertifikat(transmitan.unitUnderTest, transmitan.desimalEfektif(d)), '9,665');
-      expect(formatSertifikat(transmitan.correction, transmitan.desimalEfektif(d)), '0,235');
+      expect(formatSertifikat(transmitan.correction!, transmitan.desimalEfektif(d)), '0,235');
     });
 
     test('baris U95 %T dicetak dua desimal, kolom lain tetap tiga', () {

@@ -9,9 +9,9 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/certificate_snapshot.dart';
-import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/autoclave_hasil_panel.dart';
+import '../../widgets/enclosure_sertifikat_panel.dart';
 import '../../providers/certificate_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../services/pdf_downloader.dart';
@@ -83,9 +83,9 @@ class _Isi extends ConsumerWidget {
     final atas = <Widget>[
       InfoDokumenSertifikat(sertifikat: sertifikat, onBuka: onBuka),
       const SizedBox(height: AppSpacing.md),
-      // Hanya admin yang boleh menulis. Super admin membaca saja (server
-      // menjawab 403), teknisi & viewer tidak punya pintunya sama sekali.
-      if (peran == UserRole.admin &&
+      // Admin & super admin (K-49-14) yang boleh menulis; teknisi & viewer
+      // tidak punya pintunya sama sekali. Server tetap penjaganya.
+      if ((peran?.hakAdmin ?? false) &&
           (sertifikat.bisaDirevisi || sertifikat.bisaDibatalkan)) ...[
         _TindakanAdmin(sertifikat: sertifikat),
         const SizedBox(height: AppSpacing.md),
@@ -137,8 +137,12 @@ class _Isi extends ConsumerWidget {
         // Autoklaf: hasilnya Section A/B/C, bukan tabel empat kolom. `hasil`-nya
         // memang kosong buat Autoklaf, jadi tanpa cabang ini sesi Autoklaf
         // tampil sebagai tabel kosong di HP padahal PDF-nya penuh.
+        // Enclosure: tabel A Sebaran Suhu + tabel B Kinerja, bukan tabel
+        // empat kolom — `hasil`-nya `[]` dan kolom Correction tidak berlaku.
         if (snap.autoclave != null)
           AutoclaveHasilPanel(hasil: snap.autoclave!)
+        else if (snap.enclosure != null)
+          EnclosureSertifikatPanel(enclosure: snap.enclosure!)
         else
           _TabelHasil(snapshot: snap),
         const SizedBox(height: AppSpacing.md),
@@ -197,12 +201,15 @@ class _Isi extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.md),
 
-        Text(
-          l10n.sertCorrectionCatatan,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+        // Catatan arah Correction cuma buat tabel yang memang punya kolom
+        // Correction — Enclosure tidak.
+        if (snap.enclosure == null)
+          Text(
+            l10n.sertCorrectionCatatan,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
-        ),
         const SizedBox(height: AppSpacing.xl),
       ],
     );
@@ -481,13 +488,17 @@ class _TabelHasil extends StatelessWidget {
                             tandaNol: b.tandaNol,
                           ),
                         ),
+                        // Koreksi yang tidak dikirim server = `—`, bukan
+                        // `0,00`: nol itu hasil ukur, kosong itu bukan.
                         _sel(
                           context,
-                          formatSertifikat(
-                            b.correction,
-                            b.desimalEfektif(d),
-                            tandaNol: b.tandaNol,
-                          ),
+                          b.correction == null
+                              ? '—'
+                              : formatSertifikat(
+                                  b.correction!,
+                                  b.desimalEfektif(d),
+                                  tandaNol: b.tandaNol,
+                                ),
                         ),
                         // Desimal U95 lewat jalurnya sendiri (`desimalU95`),
                         // bukan desimal baris — master nyetak `0,50 %T`
