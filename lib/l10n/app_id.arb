@@ -2124,7 +2124,7 @@
   "jadwalTabLewat": "Lewat jadwal",
   "jadwalTab30": "30 hari",
   "jadwalTab90": "90 hari",
-  "jadwalInfo": "Ketuk baris untuk membuka alat. Ubah tanggal lewat \"Ubah jatuh tempo\" (alasan wajib; sertifikat aktif jadi revisi).",
+  "jadwalInfo": "Tanggal jatuh tempo diubah lewat tombol di baris. Ketuk barisnya.",
   "pusatJudul": "Pusat pelanggan",
   "pusatSub": "Semua yang lab tahu tentang satu pelanggan",
   "pusatCari": "Cari pelanggan",

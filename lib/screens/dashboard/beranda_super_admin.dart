@@ -11,7 +11,7 @@ import '../../models/pelacakan.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/jam_provider.dart';
 import '../../providers/jatuh_tempo_provider.dart';
-import '../../providers/pusat_pelanggan_provider.dart';
+import '../../providers/pengendalian_provider.dart' show paketBerjalanProvider;
 import '../../widgets/app_button.dart';
 import '../../widgets/sidik/sidik_lembar.dart';
 import '../../widgets/sidik/sidik_permukaan.dart';
@@ -20,7 +20,6 @@ import '../admin/antrean_approval_screen.dart';
 import '../calibration/category_picker_screen.dart';
 import '../jatuh_tempo/layar_jatuh_tempo.dart';
 import '../pelacakan/pelacakan_screen.dart';
-import '../pelanggan/pusat_pelanggan_screen.dart';
 import '../penugasan/penugasan_buat_screen.dart';
 
 /// Muat ulang semua sumber Beranda super admin (tarik-untuk-segarkan).
@@ -404,13 +403,6 @@ class _PanelAksi extends StatelessWidget {
           icon: Icons.assignment_ind_outlined,
           variant: AppButtonVariant.secondary,
           onPressed: () => buka(const PenugasanBuatScreen()),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        AppButton(
-          label: l10n.pusatJudul,
-          icon: Icons.apartment_outlined,
-          variant: AppButtonVariant.secondary,
-          onPressed: () => buka(const PusatPelangganScreen()),
         ),
         const SizedBox(height: AppSpacing.sm),
         AppButton(

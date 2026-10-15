@@ -18,10 +18,8 @@ import 'package:sidik_calibration/providers/dashboard_provider.dart';
 import 'package:sidik_calibration/providers/data_acuan_provider.dart';
 import 'package:sidik_calibration/providers/equipment_provider.dart';
 import 'package:sidik_calibration/providers/izin_provider.dart';
-import 'package:sidik_calibration/providers/koreksi_provider.dart';
 import 'package:sidik_calibration/providers/notification_provider.dart';
 import 'package:sidik_calibration/providers/pengendalian_provider.dart';
-import 'package:sidik_calibration/providers/permintaan_provider.dart';
 import 'package:sidik_calibration/providers/platform_provider.dart';
 import 'package:sidik_calibration/screens/data_acuan/banding_acuan_screen.dart';
 import 'package:sidik_calibration/screens/data_acuan/daftar_paket_acuan_screen.dart';
@@ -36,12 +34,10 @@ import 'package:sidik_calibration/services/data_acuan_contoh_micrometer.dart';
 import 'package:sidik_calibration/services/data_acuan_service.dart';
 import 'package:sidik_calibration/services/equipment_service.dart';
 import 'package:sidik_calibration/services/izin_service.dart';
-import 'package:sidik_calibration/services/koreksi_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/notification_service.dart';
 import 'package:sidik_calibration/services/pelacakan_service.dart';
 import 'package:sidik_calibration/services/penugasan_service.dart';
-import 'package:sidik_calibration/services/permintaan_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 
 import 'support/lewati_onboarding.dart';
@@ -752,8 +748,6 @@ Widget _shell({
     ),
     pelacakanServiceProvider.overrideWithValue(MockPelacakanService()),
     penugasanServiceProvider.overrideWithValue(MockPenugasanService()),
-    permintaanServiceProvider.overrideWithValue(MockPermintaanService()),
-    koreksiServiceProvider.overrideWithValue(MockKoreksiService()),
     dataAcuanServiceProvider.overrideWithValue(
       _Layanan(sebagaiTeknisi: token == 'mock-token-2'),
     ),

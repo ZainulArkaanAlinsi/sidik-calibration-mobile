@@ -6,27 +6,20 @@ import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/dashboard_provider.dart';
 import 'package:sidik_calibration/providers/equipment_provider.dart';
 import 'package:sidik_calibration/providers/izin_provider.dart';
-import 'package:sidik_calibration/providers/koreksi_provider.dart';
 import 'package:sidik_calibration/providers/notification_provider.dart';
 import 'package:sidik_calibration/providers/pengendalian_provider.dart';
-import 'package:sidik_calibration/providers/permintaan_provider.dart';
 import 'package:sidik_calibration/providers/platform_provider.dart';
 import 'package:sidik_calibration/screens/jatuh_tempo/layar_jatuh_tempo.dart';
-import 'package:sidik_calibration/screens/koreksi/antrean_koreksi_screen.dart';
-import 'package:sidik_calibration/screens/pelanggan/pusat_pelanggan_screen.dart';
 import 'package:sidik_calibration/screens/penugasan/penugasan_screen.dart';
 import 'package:sidik_calibration/screens/teknisi/kalibrasi_teknisi_screen.dart';
-import 'package:sidik_calibration/screens/permintaan/antrean_permintaan_screen.dart';
 import 'package:sidik_calibration/screens/shell/main_shell.dart';
 import 'package:sidik_calibration/services/dashboard_service.dart';
 import 'package:sidik_calibration/services/equipment_service.dart';
 import 'package:sidik_calibration/services/izin_service.dart';
-import 'package:sidik_calibration/services/koreksi_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/notification_service.dart';
 import 'package:sidik_calibration/services/pelacakan_service.dart';
 import 'package:sidik_calibration/services/penugasan_service.dart';
-import 'package:sidik_calibration/services/permintaan_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 
 import 'support/lewati_onboarding.dart';
@@ -61,8 +54,6 @@ Widget _app(String token) {
       izinServiceProvider.overrideWithValue(MockIzinService()),
       pelacakanServiceProvider.overrideWithValue(MockPelacakanService()),
       penugasanServiceProvider.overrideWithValue(MockPenugasanService()),
-      permintaanServiceProvider.overrideWithValue(MockPermintaanService()),
-      koreksiServiceProvider.overrideWithValue(MockKoreksiService()),
     ],
     child: const SidikApp(),
   );
@@ -126,11 +117,9 @@ void main() {
       pelacakan,
       draf,
       kelolaLab,
-      pusat,
       jadwal,
-      permintaan,
-      koreksi,
     ]);
+    _tiada([pusat, permintaan, koreksi]);
     // Kalimat yang mengingatkan K-30-03, bukan "baca saja" lagi.
     expect(
       find.textContaining('Semua aksi Master Data & teknisi'),
@@ -139,18 +128,10 @@ void main() {
     _tiada(['PANTAU (BACA SAJA)', tugasSaya, pengesahan]);
   });
 
-  testWidgets('super admin: menu pusat pelanggan & jadwal membuka layarnya', (
+  testWidgets('super admin: menu jadwal membuka layarnya', (
     tester,
   ) async {
     await _bukaMenu(tester, 'mock-token-5');
-    await tester.tap(_diMenu(pusat));
-    await tester.pumpAndSettle();
-    expect(find.byType(PusatPelangganScreen), findsOneWidget);
-
-    await tester.tap(find.byType(BackButton));
-    await tester.pumpAndSettle();
-    bukaMenuUtama();
-    await tester.pumpAndSettle();
     await tester.tap(_diMenu(jadwal));
     await tester.pumpAndSettle();
     expect(find.byType(JadwalKalibrasiScreen), findsOneWidget);
@@ -168,11 +149,9 @@ void main() {
       pelacakan,
       draf,
       kelolaLab,
-      pusat,
       jadwal,
-      permintaan,
-      koreksi,
     ]);
+    _tiada([pusat, permintaan, koreksi]);
     _tiada([tugasSaya, pengesahan]);
   });
 
@@ -231,89 +210,5 @@ void main() {
       permintaan,
       koreksi,
     ]);
-  });
-
-  testWidgets('admin: permintaan pelanggan berlencana jumlah yang menunggu', (
-    tester,
-  ) async {
-    await _bukaMenu(tester, 'mock-token-1');
-
-    // Dua permintaan `baru` di data tiruan; angkanya dari `meta.jumlah_baru`.
-    final lencana = find.descendant(
-      of: find.byType(Drawer),
-      matching: find.byKey(const ValueKey('lencana-permintaan')),
-    );
-    expect(lencana, findsOneWidget);
-    expect(
-      find.descendant(of: lencana, matching: find.text('2')),
-      findsOneWidget,
-    );
-
-    await tester.tap(_diMenu(permintaan));
-    await tester.pumpAndSettle();
-    expect(find.byType(AntreanPermintaanScreen), findsOneWidget);
-  });
-
-  testWidgets('super admin: permintaan pelanggan bisa diputuskan (K-49-14)', (
-    tester,
-  ) async {
-    await _bukaMenu(tester, 'mock-token-5');
-
-    await tester.tap(_diMenu(permintaan));
-    await tester.pumpAndSettle();
-    expect(find.byType(AntreanPermintaanScreen), findsOneWidget);
-
-    // Kartu dibuka → tombol keputusan ADA, kalimat baca-saja tidak.
-    await tester.tap(find.text('PMT/2026/09/0012'));
-    await tester.pumpAndSettle();
-    expect(
-      find.byKey(const ValueKey('tombol-terima-permintaan')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey('catatan-baca-saja-permintaan')),
-      findsNothing,
-    );
-  });
-
-  testWidgets('admin: koreksi pelanggan berlencana jumlah yang menunggu', (
-    tester,
-  ) async {
-    await _bukaMenu(tester, 'mock-token-1');
-
-    // Dua koreksi `menunggu` di data tiruan; angkanya dari
-    // `meta.jumlah.menunggu`.
-    final lencana = find.descendant(
-      of: find.byType(Drawer),
-      matching: find.byKey(const ValueKey('lencana-koreksi')),
-    );
-    expect(lencana, findsOneWidget);
-    expect(
-      find.descendant(of: lencana, matching: find.text('2')),
-      findsOneWidget,
-    );
-
-    await tester.tap(_diMenu(koreksi));
-    await tester.pumpAndSettle();
-    expect(find.byType(AntreanKoreksiScreen), findsOneWidget);
-  });
-
-  testWidgets('super admin: koreksi pelanggan bisa diputuskan (K-49-14)', (
-    tester,
-  ) async {
-    await _bukaMenu(tester, 'mock-token-5');
-
-    await tester.tap(_diMenu(koreksi));
-    await tester.pumpAndSettle();
-    expect(find.byType(AntreanKoreksiScreen), findsOneWidget);
-
-    // Kartu dibuka → tombol keputusan ADA, kalimat baca-saja tidak.
-    await tester.tap(find.byKey(const ValueKey('kartu-koreksi-7')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('tombol-terima-koreksi')), findsOneWidget);
-    expect(
-      find.byKey(const ValueKey('catatan-baca-saja-koreksi')),
-      findsNothing,
-    );
   });
 }

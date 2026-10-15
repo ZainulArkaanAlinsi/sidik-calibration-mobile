@@ -183,12 +183,6 @@ abstract final class NamaIzin {
   static const penugasanBuat = 'penugasan.buat';
   static const penugasanLaporProgres = 'penugasan.lapor-progres';
 
-  // Permintaan kalibrasi pelanggan, sisi lab (30 Sep 2026). `putuskan` =
-  // terima/tolak, `balas` = kirim pesan. Super admin hanya mendapat `lihat`.
-  static const permintaanLihat = 'permintaan.lihat';
-  static const permintaanPutuskan = 'permintaan.putuskan';
-  static const permintaanBalas = 'permintaan.balas';
-
   // Studio Data Acuan (CR-48) — BACA saja di P1; izin tulis belum lahir di
   // server. Semua role lab memilikinya, tapi isi yang dilihat teknisi lebih
   // sempit (versi `aktif` saja) dan itu ditegakkan server, bukan layar.

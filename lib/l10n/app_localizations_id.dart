@@ -4807,7 +4807,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get jadwalInfo =>
-      'Ketuk baris untuk membuka alat. Ubah tanggal lewat \"Ubah jatuh tempo\" (alasan wajib; sertifikat aktif jadi revisi).';
+      'Tanggal jatuh tempo diubah lewat tombol di baris. Ketuk barisnya.';
 
   @override
   String get pusatJudul => 'Pusat pelanggan';

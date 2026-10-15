@@ -32,11 +32,8 @@ import '../settings/technician_list_screen.dart';
 import '../../models/user.dart';
 import '../draf/draf_screen.dart';
 import '../jatuh_tempo/layar_jatuh_tempo.dart';
-import '../koreksi/antrean_koreksi_screen.dart';
 import '../pelacakan/telusuri_sertifikat_screen.dart';
-import '../pelanggan/pusat_pelanggan_screen.dart';
 import '../penugasan/penugasan_screen.dart';
-import '../permintaan/antrean_permintaan_screen.dart';
 
 /// Panel admin desktop — sidebar tetap + bilah atas + area kerja.
 ///
@@ -184,8 +181,7 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
 
     // Menu kerja harian SAMA PERSIS dengan menu HP (`main_shell.dart`,
     // `_MenuUtama`) per peran. Sebelum ini desktop sama sekali tidak memuat
-    // Penugasan, Pelacakan, Permintaan, Koreksi, Jadwal, Pusat
-    // Pelanggan, dan Draf — super admin di Windows cuma melihat delapan menu
+    // Penugasan, Pelacakan, Jadwal, dan Draf — super admin di Windows cuma melihat delapan menu
     // sementara di HP empat belas (uji 5 Okt 2026).
     final penugasan = _Menu(
       id: 'penugasan',
@@ -205,29 +201,11 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
       label: l10n.telusuriJudul,
       bangun: TelusuriSertifikatScreen.new,
     );
-    final permintaan = _Menu(
-      id: 'permintaan',
-      ikon: Icons.move_to_inbox_outlined,
-      label: l10n.permintaanJudul,
-      bangun: AntreanPermintaanScreen.new,
-    );
-    final koreksi = _Menu(
-      id: 'koreksi',
-      ikon: Icons.rule_folder_outlined,
-      label: l10n.koreksiJudul,
-      bangun: AntreanKoreksiScreen.new,
-    );
     final jadwal = _Menu(
       id: 'jadwal',
       ikon: Icons.event_repeat_outlined,
       label: l10n.jadwalJudul,
       bangun: JadwalKalibrasiScreen.new,
-    );
-    final pusat = _Menu(
-      id: 'pusat',
-      ikon: Icons.apartment_outlined,
-      label: l10n.pusatJudul,
-      bangun: PusatPelangganScreen.new,
     );
     final draf = _Menu(
       id: 'draf',
@@ -237,24 +215,8 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
     );
     final kerjaHarian = switch (peran) {
       // Semua menu admin + teknisi (Draf) — K-49-14.
-      UserRole.superAdmin => [
-        permintaan,
-        koreksi,
-        penugasan,
-        pelacakan,
-        draf,
-        jadwal,
-        pusat,
-      ],
-      UserRole.admin => [
-        permintaan,
-        koreksi,
-        penugasan,
-        pelacakan,
-        draf,
-        jadwal,
-        pusat,
-      ],
+      UserRole.superAdmin => [penugasan, pelacakan, draf, jadwal],
+      UserRole.admin => [penugasan, pelacakan, draf, jadwal],
       UserRole.teknisi => [tugasSaya, draf, pelacakan],
       _ => [pelacakan],
     };

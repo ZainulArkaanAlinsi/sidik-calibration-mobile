@@ -8560,7 +8560,7 @@ abstract class AppLocalizations {
   /// No description provided for @jadwalInfo.
   ///
   /// In en, this message translates to:
-  /// **'Tap a row to open the instrument. Change the date with \"Change due date\" (reason required; an active certificate becomes a revision).'**
+  /// **'Change an item\'s due date with the button on its row. Tap the row.'**
   String get jadwalInfo;
 
   /// No description provided for @pusatJudul.

@@ -4880,7 +4880,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get jadwalInfo =>
-      'Tap a row to open the instrument. Change the date with \"Change due date\" (reason required; an active certificate becomes a revision).';
+      'Change an item\'s due date with the button on its row. Tap the row.';
 
   @override
   String get pusatJudul => 'Customer hub';

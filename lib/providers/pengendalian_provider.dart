@@ -33,8 +33,6 @@ Future<String> _token(Ref ref) async {
 /// menyaring "terlambat" mendadak melihat daftar penuh begitu HP lain menandai
 /// satu serah terima. Ikut `authProvider`: ganti akun → saringan kembali kosong.
 ///
-/// Publik supaya antrean permintaan pelanggan (`permintaan_provider.dart`)
-/// memakai penjaga yang sama, bukan salinannya.
 class Saringan<T> extends Notifier<T> {
   Saringan(this._awal);
 
@@ -68,6 +66,22 @@ final telusuriServiceProvider = Provider<TelusuriService>((ref) {
   if (AppConfig.useMock) return MockTelusuriService();
   return ApiTelusuriService(ref.watch(apiClientProvider));
 });
+
+/// Paket yang SEDANG BERJALAN (belum diserahkan) — bahan Beranda super admin.
+///
+/// Sengaja bukan `daftarPaketProvider`: itu milik layar Pelacakan dan membawa
+/// kata cari & saringan "terlambat"-nya; dipakai bareng, saringan di layar itu
+/// ikut mengubah angka di beranda.
+final paketBerjalanProvider = FutureProvider<List<PaketLacak>>((ref) async {
+  ref.watch(authProvider);
+  final semua = await ref
+      .read(pelacakanServiceProvider)
+      .daftar(await _token(ref));
+  return [
+    for (final p in semua)
+      if (p.tahap != 'diserahkan') p,
+  ];
+}, retry: (retryCount, error) => null);
 
 final daftarPaketProvider =
     AsyncNotifierProvider<DaftarPaketController, List<PaketLacak>>(

@@ -14,10 +14,7 @@ import 'notification_provider.dart';
 import 'pengendalian_provider.dart';
 import 'certificate_provider.dart';
 import 'data_acuan_provider.dart';
-import 'koreksi_provider.dart';
 import 'lembar_kerja_provider.dart';
-import 'permintaan_provider.dart';
-import 'pusat_pelanggan_provider.dart';
 
 /// Sambungan realtime. **Mock (no-op)** kalau realtime nonaktif (kunci Reverb
 /// kosong) atau mode mock — jadi dev & test nggak pernah nyoba buka websocket.
@@ -123,29 +120,10 @@ void _tangani(Ref ref, PeristiwaRealtime p) {
       ref.invalidate(daftarPenugasanProvider);
       // Layar super admin/admin turunan dari data yang sama: jatuh tempo &
       // jadwal (alat baru, tanggal diubah, sesi disahkan memajukan jatuh
-      // tempo), Pusat pelanggan, dan paket berjalan di beranda. Kata cari
-      // Pusat pelanggan hidup di provider terpisah, jadi tidak ikut hilang.
+      // tempo) dan paket berjalan di beranda.
       ref.invalidate(jatuhTempoProvider);
       ref.invalidate(jatuhTempoPelangganProvider);
-      ref.invalidate(pusatPelangganProvider);
-      ref.invalidate(detailPelangganProvider);
       ref.invalidate(paketBerjalanProvider);
-      // Permintaan pelanggan (jenis 'permintaan': dibuat/diterima/ditolak/
-      // dibatalkan/pesan): admin lain menerimanya, atau pelanggan menulis di
-      // utas — antrean, badge menu, detail, dan utas yang terbuka menyusul.
-      // Tab & kata cari tersimpan di provider terpisah, jadi tidak hilang.
-      ref.invalidate(antreanPermintaanProvider);
-      ref.invalidate(jumlahPermintaanBaruProvider);
-      ref.invalidate(detailPermintaanProvider);
-      ref.invalidate(pesanPermintaanProvider);
-      // Jadwal, resi, dan alat tiba (jenis 'permintaan', aksi resi/jadwal/
-      // alat_tiba) menarik detail yang sama — sudah tercakup di atas.
-      //
-      // Koreksi pelanggan (jenis 'koreksi_pelanggan': dibuat/diterima/
-      // ditolak): antrean, badge menu, dan detail yang terbuka menyusul.
-      ref.invalidate(antreanKoreksiProvider);
-      ref.invalidate(jumlahKoreksiMenungguProvider);
-      ref.invalidate(detailKoreksiProvider);
       // Sertifikat (jenis 'sertifikat': direvisi/dibatalkan/terbit): status
       // dokumen, revisi yang selesai dirender, dan tombol admin ikut segar.
       // Family-nya lazy: hanya yang sedang ditonton yang menarik ulang.

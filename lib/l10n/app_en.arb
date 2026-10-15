@@ -2776,7 +2776,7 @@
   "jadwalTabLewat": "Overdue",
   "jadwalTab30": "30 days",
   "jadwalTab90": "90 days",
-  "jadwalInfo": "Tap a row to open the instrument. Change the date with \"Change due date\" (reason required; an active certificate becomes a revision).",
+  "jadwalInfo": "Change an item's due date with the button on its row. Tap the row.",
   "pusatJudul": "Customer hub",
   "pusatSub": "Everything the lab knows about one customer",
   "pusatCari": "Search customers",
