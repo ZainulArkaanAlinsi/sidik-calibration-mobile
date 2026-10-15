@@ -9,7 +9,10 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/certificate_snapshot.dart';
+import '../../models/izin.dart';
+import '../../models/revisi_sertifikat.dart' show StatusDokumen;
 import '../../providers/auth_provider.dart';
+import '../../providers/izin_provider.dart';
 import '../../widgets/autoclave_hasil_panel.dart';
 import '../../widgets/enclosure_sertifikat_panel.dart';
 import '../../providers/certificate_provider.dart';
@@ -22,6 +25,7 @@ import '../../widgets/sidik_loader.dart';
 import 'batal_sertifikat_dialog.dart';
 import 'info_dokumen_sertifikat.dart';
 import 'revisi_sertifikat_screen.dart';
+import 'tarik_sertifikat_dialog.dart';
 
 /// Pratinjau sertifikat (spesifikasi poin 9), plus unduh PDF/Excel & QR
 /// (poin 10 & 13).
@@ -86,7 +90,9 @@ class _Isi extends ConsumerWidget {
       // Admin & super admin (K-49-14) yang boleh menulis; teknisi & viewer
       // tidak punya pintunya sama sekali. Server tetap penjaganya.
       if ((peran?.hakAdmin ?? false) &&
-          (sertifikat.bisaDirevisi || sertifikat.bisaDibatalkan)) ...[
+          (sertifikat.bisaDirevisi ||
+              sertifikat.bisaDibatalkan ||
+              _bisaTarik(ref, sertifikat))) ...[
         _TindakanAdmin(sertifikat: sertifikat),
         const SizedBox(height: AppSpacing.md),
       ],
@@ -254,6 +260,17 @@ class _TindakanAdmin extends ConsumerWidget {
             )
           else if (s.bisaDirevisi)
             Text(l10n.sertRevisiTanpaData, style: theme.textTheme.bodySmall),
+          if (_bisaTarik(ref, s)) ...[
+            if (bisaRevisi || s.bisaDirevisi) const SizedBox(height: AppSpacing.sm),
+            SidikTombol(
+              key: const ValueKey('tombol-tarik-sertifikat'),
+              label: l10n.tarikAksi,
+              ikon: Icons.undo,
+              ragam: RagamTombol.biasa,
+              penuh: true,
+              onPressed: () => _tarik(context),
+            ),
+          ],
           if (s.bisaDibatalkan) ...[
             if (s.bisaDirevisi) const SizedBox(height: AppSpacing.sm),
             SidikTombol(
@@ -268,6 +285,18 @@ class _TindakanAdmin extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _tarik(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => TarikSertifikatDialog(sertifikat: sertifikat),
+    );
+    if (ok == true) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.tarikBerhasil)));
+    }
   }
 
   Future<void> _batalkan(BuildContext context, WidgetRef ref) async {
@@ -815,3 +844,14 @@ class _Gagal extends StatelessWidget {
     );
   }
 }
+
+/// "Tarik ke lembar kerja" ditawarkan untuk sertifikat yang masih berlaku
+/// (`terbit`) kepada pemegang izin `sertifikat.tarik` (admin & super admin,
+/// dari `/me/permissions`).
+/// Server tetap penjaganya: sudah punya revisi / bukan `disetujui` → 422.
+bool _bisaTarik(WidgetRef ref, CertificateDetail s) =>
+    s.status == 'terbit' &&
+    s.statusDokumen == StatusDokumen.berlaku &&
+    // Tanpa cadangan peran: server yang belum mengenal rute tarik (404) juga
+    // belum mengirim izinnya — tombol tidak boleh muncul di situ.
+    ref.bolehkah(NamaIzin.sertifikatTarik, cadangan: false);

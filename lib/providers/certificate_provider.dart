@@ -5,7 +5,7 @@ import '../models/certificate_snapshot.dart';
 import '../services/certificate_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
-import 'history_provider.dart' show historyProvider;
+import 'history_provider.dart' show antreanApprovalProvider, historyProvider;
 
 final certificateServiceProvider = Provider<CertificateService>((ref) {
   if (AppConfig.useMock) return MockCertificateService();
@@ -84,6 +84,21 @@ class SertifikatAksi {
           catatanPelanggan: catatanPelanggan,
         );
     _segarkan(id);
+    return hasil;
+  }
+
+  /// Tarik sertifikat ke lembar kerja (admin & super admin). Sesinya kembali ke
+  /// `menunggu_approval`, jadi riwayat & antrean ikut ditarik ulang.
+  Future<CertificateDetail> tarik(
+    int id, {
+    required String alasan,
+    required String password,
+  }) async {
+    final hasil = await _ref
+        .read(certificateServiceProvider)
+        .tarik(await _token(), id, alasan: alasan, password: password);
+    _segarkan(id);
+    _ref.invalidate(antreanApprovalProvider);
     return hasil;
   }
 }

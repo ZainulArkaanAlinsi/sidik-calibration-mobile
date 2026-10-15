@@ -3,6 +3,7 @@ import '../models/certificate_snapshot.dart';
 import '../models/revisi_sertifikat.dart';
 import 'api_client.dart';
 import 'auth_service.dart' show ApiException;
+import 'kode_galat.dart' show KodeGalat;
 
 /// Sertifikat terbit (spesifikasi poin 9, 10 & 13).
 ///
@@ -44,6 +45,17 @@ abstract class CertificateService {
     int certificateId, {
     required String alasan,
     String? catatanPelanggan,
+  });
+
+  /// Tarik sertifikat terbit ke lembar kerja (`POST /certificates/{id}/tarik`,
+  /// admin & super admin, K-50-03). [password] = sandi akun yang menarik.
+  /// 422 -> [GalatAksi] (`kode` = `konfirmasi_sandi_salah`, atau
+  /// `errors.alasan` / `errors.sertifikat`).
+  Future<CertificateDetail> tarik(
+    String token,
+    int certificateId, {
+    required String alasan,
+    required String password,
   });
 }
 
@@ -116,6 +128,25 @@ class ApiCertificateService implements CertificateService {
           if (catatanPelanggan != null && catatanPelanggan.trim().isNotEmpty)
             'catatan_pelanggan': catatanPelanggan.trim(),
         },
+      ),
+    );
+    return CertificateDetail.fromJson(
+      (json['data'] ?? json) as Map<String, dynamic>,
+    );
+  }
+
+  @override
+  Future<CertificateDetail> tarik(
+    String token,
+    int certificateId, {
+    required String alasan,
+    required String password,
+  }) async {
+    final json = await _tulis(
+      () => _api.post(
+        '/certificates//tarik',
+        token: token,
+        body: {'alasan': alasan.trim(), 'password': password},
       ),
     );
     return CertificateDetail.fromJson(
@@ -227,6 +258,41 @@ class MockCertificateService implements CertificateService {
       dibatalkanOleh: 'Hendra Wijaya',
       alasanPembatalan: alasan,
       catatanPelanggan: catatanPelanggan,
+    );
+    _khusus[certificateId] = baru;
+    return baru;
+  }
+
+  /// Isi terakhir yang dikirim ke `tarik`, untuk diperiksa test.
+  final ditarikDengan = <({String alasan, String password})>[];
+
+  /// Sandi yang dianggap benar oleh tiruan ini.
+  String sandiBenar = 'rahasia123';
+
+  @override
+  Future<CertificateDetail> tarik(
+    String token,
+    int certificateId, {
+    required String alasan,
+    required String password,
+  }) async {
+    if (gagal) throw Exception('server nggak nyaut');
+    ditarikDengan.add((alasan: alasan, password: password));
+    if (password != sandiBenar) {
+      throw const GalatAksi(
+        'Konfirmasi sandi salah.',
+        errors: {
+          'password': ['Sandi salah.'],
+        },
+        kode: KodeGalat.konfirmasiSandiSalah,
+      );
+    }
+    final asal = await detail(token, certificateId);
+    final baru = asal.salin(
+      status: 'ditarik',
+      statusDokumenKode: 'ditarik',
+      bisaDirevisi: false,
+      bisaDibatalkan: false,
     );
     _khusus[certificateId] = baru;
     return baru;
