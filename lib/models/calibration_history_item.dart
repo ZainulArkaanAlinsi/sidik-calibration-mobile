@@ -14,6 +14,25 @@ extension CalibrationStatusJson on CalibrationStatus {
   };
 }
 
+/// Catatan revisi admin masih harus kelihatan buat sesi berstatus [status].
+///
+/// `perlu_revisi` jelas. `draft` juga — asal catatannya ada: server berhenti
+/// mengosongkan `catatan_revisi` & `revisi_field` waktu lembar `perlu_revisi`
+/// disimpan sebagai draf, dan baru mengosongkannya saat dikirim ulang,
+/// disetujui, atau oleh admin. Draf yang lahir dari revisi jadi tetap membawa
+/// alasan admin sampai dikirim ulang; kalau layar cuma melihat `perluRevisi`,
+/// teknisi yang menekan Simpan Draf kehilangan catatannya padahal belum
+/// dibetulkan. Draf biasa catatannya null → tetap tidak menampilkan apa pun.
+///
+/// Satu fungsi buat [CalibrationHistoryItem] dan `CalibrationDetail` supaya
+/// Riwayat, Draf, Alur Kerja, dan detail sesi nggak saling membantah.
+bool catatanRevisiTampil(CalibrationStatus status, String? catatan) {
+  if (catatan == null || catatan.trim().isEmpty) return false;
+
+  return status == CalibrationStatus.perluRevisi ||
+      status == CalibrationStatus.draft;
+}
+
 /// Keputusan hasil kalibrasi. `null` kalau sesi belum sampai titik penentu
 /// (masih draft / belum ada pengukuran).
 enum Keputusan { pass, fail }
@@ -98,8 +117,12 @@ class CalibrationHistoryItem {
   /// Cuma keisi kalau sertifikatnya udah terbit.
   final String? nomorSertifikat;
 
-  /// Catatan dari admin waktu nolak sesi (`status == perluRevisi`).
+  /// Catatan dari admin waktu nolak sesi. Ikut terbawa ke `draft` kalau lembar
+  /// revisinya disimpan sebagai draf — lihat [catatanRevisiTampil].
   final String? catatanRevisi;
+
+  /// Catatan revisi admin perlu ditampilkan di baris ini.
+  bool get bawaCatatanRevisi => catatanRevisiTampil(status, catatanRevisi);
 
   /// `null` sesaat setelah `approve` — sertifikatnya lagi digenerate di
   /// queue backend (`docs/kontrak-api.md` §5).
@@ -189,10 +212,13 @@ class CalibrationHistoryItem {
     _ => dikirimPada ?? diubahPada,
   };
 
+  /// [hapusCatatanRevisi] ada karena `catatanRevisi: null` nggak bisa dibedain
+  /// dari "nggak diubah" — dipakai tiruan kirim ulang di `MockStore`.
   CalibrationHistoryItem copyWith({
     CalibrationStatus? status,
     Keputusan? keputusan,
     String? catatanRevisi,
+    bool hapusCatatanRevisi = false,
     int? certificateId,
     bool? tersembunyi,
   }) => CalibrationHistoryItem(
@@ -205,7 +231,9 @@ class CalibrationHistoryItem {
     status: status ?? this.status,
     keputusan: keputusan ?? this.keputusan,
     nomorSertifikat: nomorSertifikat,
-    catatanRevisi: catatanRevisi ?? this.catatanRevisi,
+    catatanRevisi: hapusCatatanRevisi
+        ? null
+        : catatanRevisi ?? this.catatanRevisi,
     certificateId: certificateId ?? this.certificateId,
     namaPelanggan: namaPelanggan,
     dikirimPada: dikirimPada,

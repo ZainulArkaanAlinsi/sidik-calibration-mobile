@@ -256,6 +256,27 @@ abstract class SimpananDrafLokal {
 
   Future<void> hapus(int userId, String kunci);
 
+  /// Ganti salinan [kunci] milik [userId] dengan [pengganti] — atau buang,
+  /// kalau [pengganti] `null` — HANYA kalau salinan itu masih yang ditulis
+  /// pada [disimpanPada]. Balik `true` kalau dijalankan.
+  ///
+  /// Periksa dan tulisnya SATU operasi, berurutan dengan [simpan] / [hapus]
+  /// lain: ketikan yang disimpan layar sebelumnya kelihatan waktu diperiksa,
+  /// dan yang menyusul sesudahnya mendarat di atas hasilnya — nggak pernah
+  /// ikut terbuang. Ini yang dipakai pengirim antrean sesudah mengirim
+  /// (buang, pindah ke `sesi-<id>`, tandai `perlu_diperbaiki`); `baca` lalu
+  /// `hapus` terpisah meninggalkan celah di antaranya.
+  ///
+  /// Kalau kunci [pengganti] beda dari [kunci] (pindah kunci), [pengganti]
+  /// ditulis dulu baru [kunci] dibuang: HP yang mati di tengahnya
+  /// meninggalkan dua salinan, bukan nol.
+  Future<bool> gantiJikaSama(
+    int userId,
+    String kunci,
+    DateTime disimpanPada, {
+    DrafLokal? pengganti,
+  });
+
   /// Buang salinan [userId] yang lebih tua dari [umurMaksimal].
   Future<void> buangKedaluwarsa(int userId, {DateTime? sekarang});
 
@@ -338,6 +359,33 @@ class SimpananDrafLokalBerkas implements SimpananDrafLokal {
     }
   }
 
+  /// Tulis atomik (berkas sementara lalu `rename`). Dipanggil cuma dari
+  /// dalam [_berurutan]. `false` kalau gagal — lihat docblock kelas.
+  Future<bool> _tulis(DrafLokal draf) async {
+    try {
+      final berkas = await _berkas(draf.userId, draf.kunci);
+      if (berkas == null) return false;
+      await berkas.parent.create(recursive: true);
+
+      final sementara = File('${berkas.path}.${_nomorSementara++}.tmp');
+      await sementara.writeAsString(jsonEncode(draf.toJson()), flush: true);
+      await sementara.rename(berkas.path);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Dipanggil cuma dari dalam [_berurutan].
+  Future<void> _buang(int userId, String kunci) async {
+    try {
+      final berkas = await _berkas(userId, kunci);
+      if (berkas != null && await berkas.exists()) await berkas.delete();
+    } catch (_) {
+      // Lihat docblock kelas.
+    }
+  }
+
   @override
   Future<List<DrafLokal>> daftar(int userId) async {
     try {
@@ -367,27 +415,36 @@ class SimpananDrafLokalBerkas implements SimpananDrafLokal {
   }
 
   @override
-  Future<void> simpan(DrafLokal draf) => _berurutan(() async {
-    try {
-      final berkas = await _berkas(draf.userId, draf.kunci);
-      if (berkas == null) return;
-      await berkas.parent.create(recursive: true);
-
-      final sementara = File('${berkas.path}.${_nomorSementara++}.tmp');
-      await sementara.writeAsString(jsonEncode(draf.toJson()), flush: true);
-      await sementara.rename(berkas.path);
-    } catch (_) {
-      // Lihat docblock kelas.
-    }
-  });
+  Future<void> simpan(DrafLokal draf) => _berurutan(() => _tulis(draf));
 
   @override
-  Future<void> hapus(int userId, String kunci) => _berurutan(() async {
+  Future<void> hapus(int userId, String kunci) =>
+      _berurutan(() => _buang(userId, kunci));
+
+  @override
+  Future<bool> gantiJikaSama(
+    int userId,
+    String kunci,
+    DateTime disimpanPada, {
+    DrafLokal? pengganti,
+  }) => _berurutan(() async {
     try {
-      final berkas = await _berkas(userId, kunci);
-      if (berkas != null && await berkas.exists()) await berkas.delete();
+      if (pengganti != null && pengganti.userId != userId) return false;
+
+      // Dibaca DI DALAM antrean tulisan: semua `simpan` yang dipanggil
+      // sebelum ini sudah mendarat, dan nggak ada yang bisa menyelip sampai
+      // operasi ini selesai.
+      final sekarang = await baca(userId, kunci);
+      if (sekarang == null ||
+          !sekarang.disimpanPada.isAtSameMomentAs(disimpanPada)) {
+        return false;
+      }
+
+      if (pengganti != null && !await _tulis(pengganti)) return false;
+      if (pengganti?.kunci != kunci) await _buang(userId, kunci);
+      return true;
     } catch (_) {
-      // Lihat docblock kelas.
+      return false;
     }
   });
 
@@ -503,18 +560,49 @@ class SimpananDrafLokalMemori implements SimpananDrafLokal {
   @override
   Future<void> simpan(DrafLokal draf) async {
     jumlahTulis++;
+    _tulis(draf);
+  }
+
+  /// Sinkron — nggak ada `await` di dalamnya, jadi [gantiJikaSama] nggak
+  /// punya celah buat diselipi tulisan lain.
+  bool _tulis(DrafLokal draf) {
     // Lewat JSON bolak-balik, sama seperti berkas: yang bisa dipulihkan cuma
     // yang selamat diserialisasi.
     final salinan = DrafLokal.fromJson(
       jsonDecode(jsonEncode(draf.toJson())) as Map<String, dynamic>,
     );
-    if (salinan == null) return;
+    if (salinan == null) return false;
     (_isi[draf.userId] ??= {})[draf.kunci] = salinan;
+    return true;
   }
 
   @override
   Future<void> hapus(int userId, String kunci) async {
     _isi[userId]?.remove(kunci);
+  }
+
+  @override
+  Future<bool> gantiJikaSama(
+    int userId,
+    String kunci,
+    DateTime disimpanPada, {
+    DrafLokal? pengganti,
+  }) async {
+    if (pengganti != null && pengganti.userId != userId) return false;
+
+    final sekarang = _isi[userId]?[kunci];
+    if (sekarang == null ||
+        !sekarang.disimpanPada.isAtSameMomentAs(disimpanPada)) {
+      return false;
+    }
+
+    try {
+      if (pengganti != null && !_tulis(pengganti)) return false;
+    } catch (_) {
+      return false;
+    }
+    if (pengganti?.kunci != kunci) _isi[userId]?.remove(kunci);
+    return true;
   }
 
   @override

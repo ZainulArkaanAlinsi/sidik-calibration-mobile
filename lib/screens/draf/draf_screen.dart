@@ -447,6 +447,22 @@ class _KartuDraf extends StatelessWidget {
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
+                      // Draf yang lahir dari lembar `perlu_revisi`: catatan
+                      // admin masih terbawa sampai dikirim ulang, jadi rak ini
+                      // nggak boleh menyamakannya dengan draf biasa. Teks &
+                      // warnanya sama dengan baris Riwayat; isi lengkapnya ada
+                      // di banner lembar kerja.
+                      if (item.bawaCatatanRevisi) ...[
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          l10n.historyCatatanRevisi(item.catatanRevisi!),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: AppColors.statusPeringatan(context),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

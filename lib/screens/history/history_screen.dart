@@ -628,8 +628,9 @@ class _HistoryCard extends StatelessWidget {
                   ],
                 ),
               ],
-              if (item.status == CalibrationStatus.perluRevisi &&
-                  item.catatanRevisi != null) ...[
+              // `draft` ikut: lembar revisi yang disimpan sebagai draf masih
+              // membawa catatan admin sampai dikirim ulang.
+              if (item.bawaCatatanRevisi) ...[
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   l10n.historyCatatanRevisi(item.catatanRevisi!),
