@@ -136,14 +136,5 @@ void main() {
       expect(find.text('Setujui'), findsNothing);
       expect(find.text('Tolak'), findsNothing);
     });
-
-    testWidgets('teknisi juga tidak', (tester) async {
-      await tester.pumpWidget(_app(token: 'mock-token-2'));
-      await tester.pumpAndSettle();
-      await _bukaTabRiwayat(tester);
-
-      expect(find.text('Setujui'), findsNothing);
-      expect(find.text('Tolak'), findsNothing);
-    });
   });
 }

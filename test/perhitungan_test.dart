@@ -8,19 +8,11 @@ import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/calibration_input_provider.dart';
 import 'package:sidik_calibration/providers/perhitungan_provider.dart';
 import 'package:sidik_calibration/screens/admin/perhitungan_screen.dart';
-import 'package:sidik_calibration/screens/auth/widgets/neu.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/perhitungan_service.dart';
 import 'package:sidik_calibration/services/standard_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 
-/// Tombol kirim di lembar tolak. Sejak sentence case (30 Sep 2026) judul
-/// lembarnya dan label tombolnya sama-sama "Kembalikan ke teknisi" — dulu cuma
-/// dibedakan huruf besar. Jadi tombolnya dicari lewat `NeuButton`, bukan teks.
-Finder get _tombolKirimTolak => find.descendant(
-  of: find.byType(NeuButton),
-  matching: find.text('Kembalikan ke teknisi'),
-);
 
 HasilValidasi _validasi({
   int error = 0,
@@ -64,6 +56,23 @@ void _perbesarViewport(WidgetTester tester) {
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
+}
+
+/// Setujui membuka dialog Order Number + No. Sertifikat (K-50-04); diisi lalu
+/// disimpan supaya tes alur approve di bawah tetap fokus ke temuan.
+Future<void> _setujuiDenganDialog(WidgetTester tester) async {
+  await tester.tap(find.text('Setujui'));
+  await tester.pumpAndSettle();
+  await tester.enterText(
+    find.byKey(const ValueKey('isian-nomor-order')),
+    'ORD-1',
+  );
+  await tester.enterText(
+    find.byKey(const ValueKey('isian-nomor-sertifikat')),
+    'KAL/2026/1',
+  );
+  await tester.tap(find.byKey(const ValueKey('simpan-setujui')));
+  await tester.pumpAndSettle();
 }
 
 Future<void> _muat(WidgetTester tester, Widget app) async {
@@ -251,8 +260,7 @@ void main() {
       );
       await _muat(tester, _app(service));
 
-      await tester.tap(find.text('Setujui'));
-      await tester.pumpAndSettle();
+      await _setujuiDenganDialog(tester);
 
       // Percobaan pertama HARUS ditolak dengan dialog konfirmasi.
       expect(find.text('Ada peringatan. Lanjut?'), findsOneWidget);
@@ -291,8 +299,7 @@ void main() {
       );
       await _muat(tester, _app(service));
 
-      await tester.tap(find.text('Setujui'));
-      await tester.pumpAndSettle();
+      await _setujuiDenganDialog(tester);
       await tester.tap(find.text('Periksa lagi'));
       await tester.pumpAndSettle();
 
@@ -305,98 +312,10 @@ void main() {
       final service = MockPerhitunganService();
       await _muat(tester, _app(service));
 
-      await tester.tap(find.text('Setujui'));
-      await tester.pumpAndSettle();
+      await _setujuiDenganDialog(tester);
 
       expect(service.aksi, contains(('setujui', false)));
       expect(find.text('Ada peringatan. Lanjut?'), findsNothing);
-    });
-  });
-
-  group('tolak', () {
-    /// Tombol kirimnya MATI selama belum ada alasan — bukan nyala, ditekan,
-    /// lalu dimarahin snackbar kayak versi dialog yang lama.
-    testWidgets('tanpa alasan, tombol kirimnya mati', (tester) async {
-      _perbesarViewport(tester);
-      final service = MockPerhitunganService();
-      await _muat(tester, _app(service));
-
-      await tester.tap(find.text('Tolak'));
-      await tester.pumpAndSettle();
-
-      // `NeuButton` matiin tombolnya lewat `InkWell.onTap` null, bukan lewat
-      // widget tombol Material — jadi yang diperiksa InkWell-nya.
-      final tombol = tester.widget<InkWell>(
-        find
-            .ancestor(of: _tombolKirimTolak, matching: find.byType(InkWell))
-            .first,
-      );
-      expect(tombol.onTap, isNull);
-      expect(service.aksi.any((a) => a.$1 == 'tolak'), isFalse);
-    });
-
-    testWidgets('catatan bebas kekirim apa adanya', (tester) async {
-      _perbesarViewport(tester);
-      final service = MockPerhitunganService();
-      await _muat(tester, _app(service));
-
-      await tester.tap(find.text('Tolak'));
-      await tester.pumpAndSettle();
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Catatan tambahan (opsional)'),
-        'Buffer 7 cuma 2 bacaan.',
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(_tombolKirimTolak);
-      await tester.pumpAndSettle();
-
-      expect(service.aksi, contains(('tolak', 'Buffer 7 cuma 2 bacaan.')));
-    });
-
-    /// Ini inti perbaikannya: sekali tap alasan, kalimatnya kesusun sendiri
-    /// DAN kode kolomnya ikut kekirim — jadi lembar kerja teknisi bisa nyorot
-    /// persis yang salah, bukan cuma ngasih paragraf buat disisir sendiri.
-    testWidgets('alasan siap-pakai nyusun catatan + nandain kolomnya', (
-      tester,
-    ) async {
-      _perbesarViewport(tester);
-      final service = MockPerhitunganService();
-      await _muat(tester, _app(service));
-
-      await tester.tap(find.text('Tolak'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Serial number nggak cocok'));
-      await tester.pumpAndSettle();
-      await tester.tap(_tombolKirimTolak);
-      await tester.pumpAndSettle();
-
-      expect(service.aksi, contains(('tolak', '• Serial number nggak cocok')));
-      expect(service.fieldTerakhir, ['alat_serial_number']);
-    });
-
-    /// Kotak "Catatan tambahan" itu satu-satunya kolom ketik di lembar ini,
-    /// jadi keyboard PASTI kebuka di alur normal. Tanpa `viewInsets`, tombol
-    /// KEMBALIKAN KE TEKNISI mendarat di bawah papan ketik: admin ngetik
-    /// alasannya, terus kelihatan nggak ada tombol kirim sama sekali.
-    testWidgets('tombol kirim nggak ketutup keyboard', (tester) async {
-      _perbesarViewport(tester);
-      const tinggiKeyboard = 900.0;
-      tester.view.viewInsets = const FakeViewPadding(bottom: tinggiKeyboard);
-      addTearDown(tester.view.resetViewInsets);
-
-      await _muat(tester, _app(MockPerhitunganService()));
-
-      await tester.tap(find.text('Tolak'));
-      await tester.pumpAndSettle();
-
-      final tombol = find
-          .ancestor(of: _tombolKirimTolak, matching: find.byType(InkWell))
-          .first;
-      final batasKeyboard =
-          tester.view.physicalSize.height / tester.view.devicePixelRatio -
-          tinggiKeyboard;
-
-      expect(tester.getRect(tombol).bottom, lessThanOrEqualTo(batasKeyboard));
     });
   });
 

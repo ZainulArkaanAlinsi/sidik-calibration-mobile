@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/config/app_config.dart';
+import '../models/bandingkan.dart';
 import '../models/perhitungan.dart';
 import '../models/validasi.dart';
+import '../services/bandingkan_service.dart';
 import '../services/perhitungan_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
@@ -32,7 +34,7 @@ final perhitunganProvider = FutureProvider.family<Perhitungan, int>((
   return ref.read(perhitunganServiceProvider).ambil(token, calibrationId);
 }, retry: (retryCount, error) => null);
 
-/// Aksi admin di satu sesi: periksa, setujui, tolak, simpan kolom
+/// Aksi admin di satu sesi: periksa, setujui, simpan kolom
 /// administratif.
 ///
 /// Hasil "Periksa" **nggak ditaruh di provider**: cuma satu layar yang
@@ -53,24 +55,24 @@ class AksiAdmin {
     return _ref.read(perhitunganServiceProvider).periksa(token, calibrationId);
   }
 
-  /// Temuannya ikut di [HasilApprove] — baik waktu disetujui maupun ditolak —
+  /// Temuannya ikut di [HasilApprove] — baik waktu disetujui maupun ditahan —
   /// jadi layar nggak perlu nembak `/validasi` lagi sesudah ini.
-  Future<HasilApprove> setujui({bool abaikanPeringatan = false}) async {
+  Future<HasilApprove> setujui({
+    bool abaikanPeringatan = false,
+    String? nomorSertifikat,
+  }) async {
     final token = await _token(_ref);
     final hasil = await _ref
         .read(perhitunganServiceProvider)
-        .setujui(token, calibrationId, abaikanPeringatan: abaikanPeringatan);
+        .setujui(
+          token,
+          calibrationId,
+          abaikanPeringatan: abaikanPeringatan,
+          nomorSertifikat: nomorSertifikat,
+        );
 
     if (hasil.disetujui) _segarkan();
     return hasil;
-  }
-
-  Future<void> tolak(String catatanRevisi, {List<String> field = const []}) async {
-    final token = await _token(_ref);
-    await _ref
-        .read(perhitunganServiceProvider)
-        .tolak(token, calibrationId, catatanRevisi, field: field);
-    _segarkan();
   }
 
   /// Kolom administratif (`PATCH /calibrations/{id}/admin`). Yang `null`
@@ -109,7 +111,21 @@ class AksiAdmin {
 
   void _segarkan() {
     _ref.invalidate(perhitunganProvider(calibrationId));
-    // Setuju/tolak menambah satu peristiwa di riwayat persetujuan sesi ini.
+    // Setuju menambah satu peristiwa di riwayat persetujuan sesi ini.
     _ref.invalidate(riwayatPersetujuanProvider(calibrationId));
   }
 }
+
+final bandingkanServiceProvider = Provider<BandingkanService>((ref) {
+  if (AppConfig.useMock) return MockBandingkanService();
+  return ApiBandingkanService(ref.watch(apiClientProvider));
+});
+
+/// Isian asli teknisi lawan sekarang (layar Bandingkan). `autoDispose`: dibuka
+/// ulang selalu menarik yang terbaru, karena koreksi baru bisa saja terjadi.
+final bandingkanProvider = FutureProvider.autoDispose
+    .family<Bandingkan, int>((ref, calibrationId) async {
+      ref.watch(authProvider);
+      final token = await _token(ref);
+      return ref.read(bandingkanServiceProvider).ambil(token, calibrationId);
+    }, retry: (retryCount, error) => null);

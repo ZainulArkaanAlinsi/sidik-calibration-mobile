@@ -14,6 +14,7 @@ class HasilApprove {
     this.validasi,
     this.pesan,
     this.kode,
+    this.pemilikNomor,
   });
 
   final bool disetujui;
@@ -29,6 +30,10 @@ class HasilApprove {
   /// minta Order Number diisi lalu mengulang) atau `pemisahan_wewenang`
   /// (orang lain yang harus menyetujui). `null` = temuan validasi biasa.
   final String? kode;
+
+  /// Nomor sertifikat yang memegang nomor bentrok (`nomor_sertifikat_dipakai`,
+  /// `sertifikat.nomor` di badan 422) — untuk kalimat "dipakai sertifikat X".
+  final String? pemilikNomor;
 }
 
 /// Layar utama admin: lembar PERHITUNGAN + periksa/setujui (spesifikasi poin
@@ -39,21 +44,14 @@ abstract class PerhitunganService {
   /// Tombol "Periksa" — hitung ulang & periksa tanpa nyetujuin.
   Future<HasilValidasi> periksa(String token, int calibrationId);
 
+  /// [nomorSertifikat] diketik Master Data saat Setujui (K-50-04). `null`
+  /// hanya untuk sesi yang sertifikatnya DITARIK: nomor `<nomor>-R<n>` dibuat
+  /// server dan kiriman nomor diabaikan.
   Future<HasilApprove> setujui(
     String token,
     int calibrationId, {
     bool abaikanPeringatan = false,
-  });
-
-  /// [field] = kode kolom yang diminta dibetulin (`alat_serial_number`, ...).
-  /// Kosong tetap sah — nolak tanpa nunjuk kolom tertentu ("hasilnya nggak
-  /// masuk akal, ulangi seluruh titik 7"). Yang ditandai bakal kesorot di
-  /// lembar kerja teknisi, jadi dia nggak perlu nyari sendiri.
-  Future<void> tolak(
-    String token,
-    int calibrationId,
-    String catatanRevisi, {
-    List<String> field,
+    String? nomorSertifikat,
   });
 
   /// Kolom administratif (`PATCH /calibrations/{id}/admin`). Begitu
@@ -100,12 +98,16 @@ class ApiPerhitunganService implements PerhitunganService {
     String token,
     int calibrationId, {
     bool abaikanPeringatan = false,
+    String? nomorSertifikat,
   }) async {
     try {
       final json = await _api.post(
         '/calibrations/$calibrationId/approve',
         token: token,
-        body: {if (abaikanPeringatan) 'abaikan_peringatan': true},
+        body: {
+          'nomor_sertifikat': ?nomorSertifikat,
+          if (abaikanPeringatan) 'abaikan_peringatan': true,
+        },
       );
 
       return HasilApprove(
@@ -125,30 +127,20 @@ class ApiPerhitunganService implements PerhitunganService {
         validasi: _validasiDari(e.body),
         pesan: e.message,
         kode: kodeDariBadan(e.body),
+        pemilikNomor: _pemilikNomorDari(e.body),
       );
     }
+  }
+
+  static String? _pemilikNomorDari(Map<String, dynamic> body) {
+    final s = body['sertifikat'];
+    final nomor = s is Map<String, dynamic> ? s['nomor'] : null;
+    return nomor is String && nomor.isNotEmpty ? nomor : null;
   }
 
   HasilValidasi? _validasiDari(Map<String, dynamic> json) {
     final v = json['validasi'];
     return v is Map<String, dynamic> ? HasilValidasi.fromJson(v) : null;
-  }
-
-  @override
-  Future<void> tolak(
-    String token,
-    int calibrationId,
-    String catatanRevisi, {
-    List<String> field = const [],
-  }) async {
-    await _api.post(
-      '/calibrations/$calibrationId/reject',
-      token: token,
-      body: {
-        'catatan_revisi': catatanRevisi,
-        if (field.isNotEmpty) 'revisi_field': field,
-      },
-    );
   }
 
   @override
@@ -201,6 +193,15 @@ class MockPerhitunganService implements PerhitunganService {
 
   /// Order Number terakhir yang disimpan lewat [simpanKolomAdmin].
   String? nomorOrderTersimpan;
+
+  /// `sertifikat.nomor` yang ikut di 422 `nomor_sertifikat_dipakai`.
+  String? pemilikNomorTolak;
+
+  /// Nomor sertifikat di tiap panggilan `setujui` (null = tidak dikirim).
+  final nomorSertifikatDikirim = <String?>[];
+
+  /// Meniru server: nomor sertifikat wajib (`nomor_sertifikat_wajib`).
+  bool wajibNomorSertifikat = false;
 
   /// Semua isi `PATCH /admin` yang pernah dikirim, kunci = nama kolom API.
   final List<Map<String, Object?>> kolomAdminTerkirim = [];
@@ -360,16 +361,28 @@ class MockPerhitunganService implements PerhitunganService {
     String token,
     int calibrationId, {
     bool abaikanPeringatan = false,
+    String? nomorSertifikat,
   }) async {
     if (gagal) throw Exception('server nggak nyaut');
     aksi.add(('setujui', abaikanPeringatan));
+    nomorSertifikatDikirim.add(nomorSertifikat);
 
     if (kodeTolakApprove != null) {
       return HasilApprove(
         disetujui: false,
         butuhKonfirmasi: false,
         kode: kodeTolakApprove,
+        pemilikNomor: pemilikNomorTolak,
         pesan: 'Ditolak server ($kodeTolakApprove).',
+      );
+    }
+
+    if (wajibNomorSertifikat && (nomorSertifikat ?? '').trim().isEmpty) {
+      return const HasilApprove(
+        disetujui: false,
+        butuhKonfirmasi: false,
+        kode: KodeGalat.nomorSertifikatWajib,
+        pesan: 'Nomor sertifikat wajib diisi.',
       );
     }
 
@@ -405,21 +418,6 @@ class MockPerhitunganService implements PerhitunganService {
 
     return HasilApprove(disetujui: true, butuhKonfirmasi: false, validasi: v);
   }
-
-  @override
-  Future<void> tolak(
-    String token,
-    int calibrationId,
-    String catatanRevisi, {
-    List<String> field = const [],
-  }) async {
-    if (gagal) throw Exception('server nggak nyaut');
-    aksi.add(('tolak', catatanRevisi));
-    fieldTerakhir = field;
-  }
-
-  /// Kode kolom yang ditandai di penolakan terakhir — dipakai test.
-  List<String> fieldTerakhir = const [];
 
   @override
   Future<void> simpanKolomAdmin(

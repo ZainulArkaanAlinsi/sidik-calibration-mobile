@@ -97,6 +97,9 @@ class StatusBadge extends StatelessWidget {
           ikon: Icons.verified_user_outlined,
         ),
         'disetujui' => (nada: BadgeTone.success, ikon: Icons.verified_outlined),
+        // Sertifikat ditarik ke lembar kerja (K-50-03): bukan dibatalkan — sesinya
+        // dikoreksi lalu terbit ulang sebagai -R1.
+        'ditarik' => (nada: BadgeTone.warning, ikon: Icons.undo),
         'perlu_revisi' => (nada: BadgeTone.warning, ikon: Icons.edit_outlined),
         // Status Order (`Order::STATUS_*` di backend).
         'baru' => (nada: BadgeTone.info, ikon: Icons.fiber_new_outlined),
@@ -134,6 +137,7 @@ class StatusBadge extends StatelessWidget {
         'nonaktif' => l10n.statusNonaktif,
         'menunggu_pengesahan' => l10n.statusMenungguPengesahan,
         'disetujui' => l10n.statusDisetujui,
+        'ditarik' => l10n.statusDitarik,
         'baru' => l10n.statusBaru,
         'diproses' => l10n.statusDiproses,
         'selesai' => l10n.statusSelesai,

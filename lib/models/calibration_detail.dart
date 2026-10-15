@@ -1048,6 +1048,10 @@ class CalibrationDetail {
   final String? lokasi;
   final CertificateRef? sertifikat;
 
+  /// Sertifikat terakhir sesi ini DITARIK ke lembar kerja (K-50-03): dialog
+  /// Setujui tidak meminta No. Sertifikat — nomor `<nomor>-R<n>` dibuat server.
+  bool get sertifikatDitarik => sertifikat?.status == 'ditarik';
+
   /// Rincian awal/akhir + U95% lingkungan. Null buat sesi yang cuma ngirim
   /// satu angka suhu/kelembaban — pakai [suhuRuang]/[kelembaban] buat itu.
   final KondisiLingkungan? kondisiLingkungan;

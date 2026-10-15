@@ -171,14 +171,11 @@ abstract final class NamaIzin {
   static const imporExcel = 'impor.excel';
   static const organisasiUbah = 'organisasi.ubah';
 
-  // Gerbang pengesahan, pelacakan & penugasan (keputusan 26 Sep). Tiga izin
-  // pengesahan sengaja dipisah: di layar antrean yang sama, admin dapat
-  // "Tarik pengajuan" tapi TIDAK dapat "Sahkan".
-  static const kalibrasiSahkan = 'kalibrasi.sahkan';
-  static const kalibrasiKembalikanDariPengesahan =
-      'kalibrasi.kembalikan-dari-pengesahan';
-  static const kalibrasiTarikPengajuan = 'kalibrasi.tarik-pengajuan';
-  static const pengesahanAntrean = 'pengesahan.antrean';
+  // Pelacakan & penugasan (keputusan 26 Sep). Izin tolak/sahkan/kembalikan/
+  // tarik-pengajuan/pengesahan.antrean DICABUT 15 Okt 2026 (K-50-01/07);
+  // gantinya `bandingkan` (layar Bandingkan) dan `sertifikat.tarik`.
+  static const kalibrasiBandingkan = 'kalibrasi.bandingkan';
+  static const sertifikatTarik = 'sertifikat.tarik';
   static const pelacakanLihat = 'pelacakan.lihat';
   static const pelacakanSerahTerima = 'pelacakan.serah-terima';
   static const penugasanLihat = 'penugasan.lihat';

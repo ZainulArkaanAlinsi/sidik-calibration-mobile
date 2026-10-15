@@ -14,7 +14,7 @@ import '../../providers/permintaan_provider.dart';
 import '../../widgets/readable_width.dart';
 import '../../widgets/sidik/sidik_permukaan.dart';
 import '../../widgets/sidik/sidik_tombol.dart';
-import '../pengesahan/antrean_pengesahan_screen.dart' show tanggalPendek;
+import '../../core/utils/tanggal_pendek.dart';
 
 /// Kunci galat server untuk satu alat baru (kontrak §3.3).
 String _kunciKategori(int itemId) => 'alat_baru.$itemId.equipment_category_id';

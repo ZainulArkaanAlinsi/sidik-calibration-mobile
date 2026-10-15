@@ -15,7 +15,7 @@ import '../../widgets/sidik/sidik_status.dart';
 import '../../widgets/sidik/sidik_tombol.dart';
 import '../../widgets/skeleton.dart';
 import '../certificate/sertifikat_screen.dart';
-import '../pengesahan/antrean_pengesahan_screen.dart' show tanggalPendek;
+import '../../core/utils/tanggal_pendek.dart';
 import 'antrean_koreksi_screen.dart'
     show bolehMemutuskanKoreksi, statusKoreksi;
 

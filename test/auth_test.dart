@@ -293,7 +293,9 @@ void main() {
       await _isiLogin(tester, identifier: 'SDK-0002', password: 'rahasia123');
       await tester.pumpAndSettle();
 
-      expect(find.widgetWithText(AppBar, 'Dashboard'), findsOneWidget);
+      // SDK-0002 = teknisi: shell-nya dua tab, jadi "Dashboard" (tab 0 admin)
+      // digantikan "Kalibrasi" — yang dijaga: tab aktif kembali ke yang pertama.
+      expect(find.widgetWithText(AppBar, 'Kalibrasi'), findsOneWidget);
     });
 
     test('role asing dari backend → dianggap viewer (paling aman)', () {

@@ -12,6 +12,15 @@ abstract final class KodeGalat {
 
   /// Approve ditolak karena Order Number sesi masih kosong (K-49-14).
   static const nomorOrderWajib = 'nomor_order_wajib';
+
+  /// Approve ditolak: No. Sertifikat kosong / tidak valid / sudah dipakai
+  /// sertifikat lain di lab ini (K-50-04). Status sesi tidak berubah.
+  static const nomorSertifikatWajib = 'nomor_sertifikat_wajib';
+  static const nomorSertifikatTidakValid = 'nomor_sertifikat_tidak_valid';
+  static const nomorSertifikatDipakai = 'nomor_sertifikat_dipakai';
+
+  /// Tarik sertifikat: sandi akun yang menarik salah.
+  static const konfirmasiSandiSalah = 'konfirmasi_sandi_salah';
 }
 
 /// `kode` dari badan respons galat server; `null` kalau tidak ada.

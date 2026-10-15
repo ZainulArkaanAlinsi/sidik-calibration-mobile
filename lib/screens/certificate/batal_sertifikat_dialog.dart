@@ -7,7 +7,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/certificate_snapshot.dart';
 import '../../models/revisi_sertifikat.dart';
 import '../../providers/certificate_provider.dart';
-import '../pengesahan/antrean_pengesahan_screen.dart' show tanggalPendek;
+import '../../core/utils/tanggal_pendek.dart';
 
 /// Konfirmasi pembatalan sertifikat (admin; kontrak A3).
 ///

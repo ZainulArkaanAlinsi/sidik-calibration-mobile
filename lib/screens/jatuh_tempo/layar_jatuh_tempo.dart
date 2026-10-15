@@ -15,7 +15,7 @@ import '../../widgets/readable_width.dart';
 import '../../widgets/sidik/sidik_permukaan.dart';
 import '../../widgets/skeleton.dart';
 import '../equipment/equipment_form_screen.dart';
-import '../pengesahan/antrean_pengesahan_screen.dart' show tanggalPendek;
+import '../../core/utils/tanggal_pendek.dart';
 
 /// Satu tab: label, isi, dan kalimat yang dipakai kalau kosong.
 class TabJatuhTempo {

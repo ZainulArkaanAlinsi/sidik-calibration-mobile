@@ -13,7 +13,9 @@ import 'package:sidik_calibration/providers/izin_provider.dart';
 import 'package:sidik_calibration/providers/perhitungan_provider.dart';
 import 'package:sidik_calibration/screens/admin/antrean_approval_screen.dart';
 import 'package:sidik_calibration/screens/admin/perhitungan_screen.dart';
+import 'package:sidik_calibration/screens/admin/bandingkan_screen.dart';
 import 'package:sidik_calibration/screens/admin/widgets/data_administrasi.dart';
+import 'package:sidik_calibration/screens/admin/widgets/dialog_setujui.dart';
 import 'package:sidik_calibration/services/approval_service.dart';
 import 'package:sidik_calibration/services/auth_service.dart';
 import 'package:sidik_calibration/services/history_service.dart';
@@ -42,7 +44,14 @@ const _pesanWewenang =
 /// [MockPerhitunganService.nomorOrderTersimpan] supaya simpan → muat ulang
 /// benar-benar memperlihatkan nilai baru.
 class _Riwayat extends MockHistoryService {
-  _Riwayat(this.perhitungan, {this.kirimKunciNomorOrder = true});
+  _Riwayat(
+    this.perhitungan, {
+    this.kirimKunciNomorOrder = true,
+    this.sertifikatStatus,
+  });
+
+  /// Status sertifikat terakhir sesi (`ditarik` = sertifikat ditarik).
+  final String? sertifikatStatus;
 
   final MockPerhitunganService perhitungan;
 
@@ -61,6 +70,12 @@ class _Riwayat extends MockHistoryService {
       'teknisi': {'nama': 'Teknisi Sidik'},
       'nomor_sesi': 'KAL/2026/10/0042',
       if (kirimKunciNomorOrder) 'nomor_order': perhitungan.nomorOrderTersimpan,
+      if (sertifikatStatus != null)
+        'sertifikat': {
+          'id': 5,
+          'nomor': 'KAL/2026/0001',
+          'status': sertifikatStatus,
+        },
       'metode_kalibrasi': {
         'id': 3,
         'kode': 'SIDIK-IK-CAL-0506_Rev.4',
@@ -76,13 +91,18 @@ Widget _app(
   MockPerhitunganService perhitungan, {
   String token = _admin,
   bool kirimKunciNomorOrder = true,
+  String? sertifikatStatus,
 }) => ProviderScope(
   overrides: [
     tokenStorageProvider.overrideWithValue(InMemoryTokenStorage(token)),
     authServiceProvider.overrideWithValue(MockAuthService()),
     perhitunganServiceProvider.overrideWithValue(perhitungan),
     historyServiceProvider.overrideWithValue(
-      _Riwayat(perhitungan, kirimKunciNomorOrder: kirimKunciNomorOrder),
+      _Riwayat(
+        perhitungan,
+        kirimKunciNomorOrder: kirimKunciNomorOrder,
+        sertifikatStatus: sertifikatStatus,
+      ),
     ),
     standardServiceProvider.overrideWithValue(MockStandardService()),
   ],
@@ -108,6 +128,28 @@ Future<void> _muat(WidgetTester tester, Widget app) async {
 
 Future<void> _tekanSetujui(WidgetTester tester) async {
   await tester.tap(find.text('Setujui'));
+  await tester.pumpAndSettle();
+}
+
+/// Mengisi dialog Setujui lalu menekan Setujui di dalamnya.
+Future<void> _isiDanSimpan(
+  WidgetTester tester, {
+  String? order,
+  String? sertifikat,
+}) async {
+  if (order != null) {
+    await tester.enterText(
+      find.byKey(const ValueKey('isian-nomor-order')),
+      order,
+    );
+  }
+  if (sertifikat != null) {
+    await tester.enterText(
+      find.byKey(const ValueKey('isian-nomor-sertifikat')),
+      sertifikat,
+    );
+  }
+  await tester.tap(find.byKey(const ValueKey('simpan-setujui')));
   await tester.pumpAndSettle();
 }
 
@@ -211,36 +253,47 @@ void main() {
     });
   });
 
-  group('Setujui ditahan sampai Order Number terisi', () {
-    testWidgets('Order Number kosong: Setujui minta diisi dulu, baru approve', (
-      tester,
-    ) async {
+  group('Setujui = dialog Order Number + No. Sertifikat (K-50-04)', () {
+    testWidgets('Setujui membuka dialog SEBELUM approve apa pun dikirim; '
+        'order disimpan lewat PATCH, nomor ikut di approve', (tester) async {
       final svc = MockPerhitunganService(wajibNomorOrder: true);
       await _muat(tester, _app(svc));
       final setujuiSebelum = svc.aksi.where((a) => a.$1 == 'setujui').length;
 
       await _tekanSetujui(tester);
 
-      // Dialog muncul SEBELUM ada approve yang dikirim.
-      expect(find.byType(DialogNomorOrder), findsOneWidget);
+      expect(find.byType(DialogSetujui), findsOneWidget);
       expect(svc.aksi.where((a) => a.$1 == 'setujui').length, setujuiSebelum);
 
-      await tester.enterText(
-        find.byKey(const ValueKey('isian-nomor-order')),
-        'ORD-77',
-      );
-      await tester.tap(find.byKey(const ValueKey('simpan-nomor-order')));
-      await tester.pumpAndSettle();
+      await _isiDanSimpan(tester, order: 'ORD-77', sertifikat: 'KAL/2026/0123');
 
-      expect(svc.nomorOrderTersimpan, 'ORD-77');
+      expect(svc.kolomAdminTerkirim, [
+        {'nomor_order': 'ORD-77'},
+      ]);
+      expect(svc.nomorSertifikatDikirim, ['KAL/2026/0123']);
       expect(svc.aksi.where((a) => a.$1 == 'setujui'), hasLength(1));
       // Disetujui → layar ditutup.
       expect(find.byType(PerhitunganScreen), findsNothing);
     });
 
-    testWidgets('batal di dialog Order Number = tidak ada approve', (
-      tester,
-    ) async {
+    testWidgets('Order Number yang sudah terisi tampil di dialog dan tidak '
+        'di-PATCH ulang kalau tidak diubah', (tester) async {
+      final svc = MockPerhitunganService()..nomorOrderTersimpan = 'ORD-1';
+      await _muat(tester, _app(svc));
+
+      await _tekanSetujui(tester);
+      final kotak = tester.widget<TextField>(
+        find.byKey(const ValueKey('isian-nomor-order')),
+      );
+      expect(kotak.controller!.text, 'ORD-1');
+
+      await _isiDanSimpan(tester, sertifikat: 'KAL-2026-9');
+
+      expect(svc.kolomAdminTerkirim, isEmpty);
+      expect(svc.nomorSertifikatDikirim, ['KAL-2026-9']);
+    });
+
+    testWidgets('batal di dialog = tidak ada approve', (tester) async {
       final svc = MockPerhitunganService(wajibNomorOrder: true);
       await _muat(tester, _app(svc));
 
@@ -252,28 +305,122 @@ void main() {
       expect(svc.kolomAdminTerkirim, isEmpty);
     });
 
-    testWidgets('server lama tanpa kunci nomor_order: tidak ditahan di '
-        'layar; 422 nomor_order_wajib → diminta lalu diulang', (tester) async {
-      final svc = MockPerhitunganService(wajibNomorOrder: true);
-      await _muat(tester, _app(svc, kirimKunciNomorOrder: false));
-
-      expect(find.byKey(const ValueKey('petunjuk-nomor-order')), findsNothing);
+    testWidgets('No. Sertifikat kosong / berakhiran -R1 ditahan di dialog, '
+        'tanpa permintaan ke server', (tester) async {
+      final svc = MockPerhitunganService()..nomorOrderTersimpan = 'ORD-1';
+      await _muat(tester, _app(svc));
 
       await _tekanSetujui(tester);
-
-      // Approve pertama sudah terkirim & ditolak 422 → dialog muncul.
-      expect(svc.aksi.where((a) => a.$1 == 'setujui'), hasLength(1));
-      expect(find.byType(DialogNomorOrder), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('simpan-setujui')));
+      await tester.pumpAndSettle();
+      expect(find.text('No. Sertifikat wajib diisi.'), findsOneWidget);
 
       await tester.enterText(
-        find.byKey(const ValueKey('isian-nomor-order')),
-        'ORD-9',
+        find.byKey(const ValueKey('isian-nomor-sertifikat')),
+        'KAL/2026/0123-R1',
       );
-      await tester.tap(find.byKey(const ValueKey('simpan-nomor-order')));
+      await tester.tap(find.byKey(const ValueKey('simpan-setujui')));
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('No. Sertifikat tidak valid'),
+        findsOneWidget,
+      );
+      expect(find.byType(DialogSetujui), findsOneWidget);
+      expect(svc.aksi.where((a) => a.$1 == 'setujui'), isEmpty);
+    });
+
+    for (final (kode, pesan) in [
+      (
+        KodeGalat.nomorSertifikatWajib,
+        'No. Sertifikat belum diisi. Ketik nomornya sebelum menyetujui.',
+      ),
+      (
+        KodeGalat.nomorSertifikatTidakValid,
+        'No. Sertifikat tidak valid: hanya huruf, angka, dan . _ / - , '
+            'maksimal 100 karakter, dan tidak boleh berakhiran -R<angka>.',
+      ),
+      (
+        KodeGalat.nomorSertifikatDipakai,
+        'No. Sertifikat ini sudah dipakai sertifikat KAL/2026/0001. '
+            'Pakai nomor lain.',
+      ),
+    ]) {
+      testWidgets('422 $kode → dialog dibuka lagi, isian tetap, pesan jelas', (
+        tester,
+      ) async {
+        final svc = MockPerhitunganService(kodeTolakApprove: kode)
+          ..pemilikNomorTolak = 'KAL/2026/0001'
+          ..nomorOrderTersimpan = 'ORD-1';
+        await _muat(tester, _app(svc));
+
+        await _tekanSetujui(tester);
+        await _isiDanSimpan(tester, sertifikat: 'KAL/2026/0001');
+
+        expect(find.byType(DialogSetujui), findsOneWidget);
+        expect(find.text(pesan), findsOneWidget);
+        final kotak = tester.widget<TextField>(
+          find.byKey(const ValueKey('isian-nomor-sertifikat')),
+        );
+        expect(kotak.controller!.text, 'KAL/2026/0001');
+        // Status sesi tidak berubah: layar masih terbuka.
+        expect(find.byType(PerhitunganScreen), findsOneWidget);
+      });
+    }
+
+    testWidgets('422 nomor_order_wajib → pesan di kotak Order Number', (
+      tester,
+    ) async {
+      final svc = MockPerhitunganService(
+        kodeTolakApprove: KodeGalat.nomorOrderWajib,
+      )..nomorOrderTersimpan = 'ORD-1';
+      await _muat(tester, _app(svc));
+
+      await _tekanSetujui(tester);
+      await _isiDanSimpan(tester, sertifikat: 'KAL/2026/0123');
+
+      expect(find.byType(DialogSetujui), findsOneWidget);
+      expect(
+        find.text('Order Number belum diisi. Isi dulu sebelum menyetujui.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('sertifikat ditarik: tanpa kotak No. Sertifikat, nomor tidak '
+        'dikirim (nomor -R<n> dibuat server)', (tester) async {
+      final svc = MockPerhitunganService()..nomorOrderTersimpan = 'ORD-1';
+      await _muat(tester, _app(svc, sertifikatStatus: 'ditarik'));
+
+      await _tekanSetujui(tester);
+      expect(
+        find.byKey(const ValueKey('isian-nomor-sertifikat')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const ValueKey('petunjuk-nomor-revisi')),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const ValueKey('simpan-setujui')));
       await tester.pumpAndSettle();
 
-      expect(svc.aksi.where((a) => a.$1 == 'setujui'), hasLength(2));
+      expect(svc.nomorSertifikatDikirim, [null]);
       expect(find.byType(PerhitunganScreen), findsNothing);
+    });
+  });
+
+  group('Edit Admin & Bandingkan di layar periksa', () {
+    testWidgets('tombol Edit lembar & Bandingkan ada; Bandingkan membuka layarnya', (
+      tester,
+    ) async {
+      await _muat(tester, _app(MockPerhitunganService()));
+
+      expect(find.byKey(const ValueKey('buka-lembar-teknisi')), findsOneWidget);
+      final tombol = find.byKey(const ValueKey('tombol-bandingkan'));
+      expect(tombol, findsOneWidget);
+
+      await tester.ensureVisible(tombol);
+      await tester.tap(tombol);
+      await tester.pumpAndSettle();
+      expect(find.byType(BandingkanScreen), findsOneWidget);
     });
   });
 
@@ -291,15 +438,16 @@ void main() {
         await _muat(tester, _app(svc, token: token));
 
         await _tekanSetujui(tester);
+        await _isiDanSimpan(tester, sertifikat: 'KAL/2026/0123');
 
         expect(find.text(_pesanWewenang), findsOneWidget);
-        expect(find.byType(DialogNomorOrder), findsNothing);
+        expect(find.byType(DialogSetujui), findsNothing);
       });
     }
   });
 
   group('antrean approval (tombol di kartu)', () {
-    testWidgets('Order Number kosong → diminta, disimpan, lalu disetujui', (
+    testWidgets('dialog → order disimpan, lalu approve membawa nomor', (
       tester,
     ) async {
       final approval = _ApprovalRekam();
@@ -308,20 +456,16 @@ void main() {
 
       await tester.tap(find.text('Setujui'));
       await tester.pumpAndSettle();
-      expect(find.byType(DialogNomorOrder), findsOneWidget);
+      expect(find.byType(DialogSetujui), findsOneWidget);
       expect(approval.panggilan, isEmpty);
 
-      await tester.enterText(
-        find.byKey(const ValueKey('isian-nomor-order')),
-        'ORD-12',
-      );
-      await tester.tap(find.byKey(const ValueKey('simpan-nomor-order')));
-      await tester.pumpAndSettle();
+      await _isiDanSimpan(tester, order: 'ORD-12', sertifikat: 'KAL/9/1');
 
       expect(perhitungan.kolomAdminTerkirim, [
         {'nomor_order': 'ORD-12'},
       ]);
       expect(approval.panggilan, [42]);
+      expect(approval.nomorDikirim, ['KAL/9/1']);
     });
 
     testWidgets('422 pemisahan_wewenang → kalimat jelas di snackbar', (
@@ -337,37 +481,68 @@ void main() {
 
       await tester.tap(find.text('Setujui'));
       await tester.pumpAndSettle();
+      await _isiDanSimpan(tester, sertifikat: 'KAL/9/1');
 
       expect(find.textContaining(_pesanWewenang), findsOneWidget);
+    });
+
+    testWidgets('422 nomor_sertifikat_dipakai → dialog lagi, menyebut '
+        'sertifikat pemilik nomor', (tester) async {
+      final approval = _ApprovalRekam(
+        kode: KodeGalat.nomorSertifikatDipakai,
+        badanTambahan: const {
+          'sertifikat': {'id': 5, 'nomor': 'KAL/9/0001'},
+        },
+      );
+      await _muatAntrean(
+        tester,
+        approval,
+        MockPerhitunganService(),
+        nomorOrder: 'ORD-1',
+      );
+
+      await tester.tap(find.text('Setujui'));
+      await tester.pumpAndSettle();
+      await _isiDanSimpan(tester, sertifikat: 'KAL/9/0001');
+
+      expect(find.byType(DialogSetujui), findsOneWidget);
+      expect(
+        find.text(
+          'No. Sertifikat ini sudah dipakai sertifikat KAL/9/0001. '
+          'Pakai nomor lain.',
+        ),
+        findsOneWidget,
+      );
     });
   });
 }
 
 class _ApprovalRekam implements ApprovalService {
-  _ApprovalRekam({this.kode});
+  _ApprovalRekam({this.kode, this.badanTambahan = const {}});
 
   final String? kode;
+  final Map<String, dynamic> badanTambahan;
   final List<int> panggilan = [];
+  final List<String?> nomorDikirim = [];
 
   @override
   Future<int?> approve(
     String token,
     int calibrationId, {
     bool abaikanPeringatan = false,
+    String? nomorSertifikat,
   }) async {
     if (kode != null) {
       throw ApiException(
         'Kamu ikut mengisi atau mengoreksi data sesi ini.',
         status: 422,
-        body: {'kode': kode},
+        body: {'kode': kode, ...badanTambahan},
       );
     }
     panggilan.add(calibrationId);
+    nomorDikirim.add(nomorSertifikat);
     return null;
   }
-
-  @override
-  Future<void> reject(String token, int calibrationId, String catatan) async {}
 
   @override
   Future<void> retryGenerate(String token, int certificateId) async {}

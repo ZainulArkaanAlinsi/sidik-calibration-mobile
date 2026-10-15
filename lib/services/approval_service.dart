@@ -1,12 +1,6 @@
 import 'mock_store.dart';
 import 'api_client.dart';
 
-/// Dilempar `reject()` kalau catatan revisinya kosong — validasi lokal,
-/// server juga nolak tapi lebih murah dicegah di mobile duluan.
-class CatatanKosongException implements Exception {
-  const CatatanKosongException();
-}
-
 /// **Nggak ada `ambilSertifikat(id)` di sini** — sengaja. Backend nggak
 /// punya `GET /api/certificates/{id}` (cuma `GET /certificates` buat daftar
 /// + `GET /certificates/{id}/download` yang nge-stream file PDF-nya
@@ -21,13 +15,14 @@ abstract class ApprovalService {
   /// Tanpa ini backend nolak sekali dengan 422 + `butuh_konfirmasi` — dan itu
   /// disengaja: peringatan kayak "kelembaban 2 %RH" harus dilewati secara
   /// SADAR, bukan diam-diam.
+  /// [nomorSertifikat] wajib diketik Master Data (K-50-04), kecuali sesi yang
+  /// sertifikatnya ditarik (nomor `-R<n>` dibuat server).
   Future<int?> approve(
     String token,
     int calibrationId, {
     bool abaikanPeringatan = false,
+    String? nomorSertifikat,
   });
-
-  Future<void> reject(String token, int calibrationId, String catatanRevisi);
 
   Future<void> retryGenerate(String token, int certificateId);
 }
@@ -44,27 +39,18 @@ class ApiApprovalService implements ApprovalService {
     String token,
     int calibrationId, {
     bool abaikanPeringatan = false,
+    String? nomorSertifikat,
   }) async {
     final json = await _api.post(
       '/calibrations/$calibrationId/approve',
       token: token,
-      body: abaikanPeringatan ? const {'abaikan_peringatan': true} : null,
+      body: {
+        'nomor_sertifikat': ?nomorSertifikat,
+        if (abaikanPeringatan) 'abaikan_peringatan': true,
+      },
     );
     final data = (json['data'] ?? json) as Map<String, dynamic>;
     return (data['certificate_id'] as num?)?.toInt();
-  }
-
-  @override
-  Future<void> reject(
-    String token,
-    int calibrationId,
-    String catatanRevisi,
-  ) async {
-    await _api.post(
-      '/calibrations/$calibrationId/reject',
-      token: token,
-      body: {'catatan_revisi': catatanRevisi},
-    );
   }
 
   @override
@@ -90,6 +76,7 @@ class MockApprovalService implements ApprovalService {
     String token,
     int calibrationId, {
     bool abaikanPeringatan = false,
+    String? nomorSertifikat,
   }) async {
     await _tunda();
 
@@ -97,17 +84,6 @@ class MockApprovalService implements ApprovalService {
     // beneran pindah — kalau cuma balikin angka, sesinya balik lagi ke
     // "menunggu approval" begitu daftarnya dimuat ulang.
     return MockStore.instance.setujui(calibrationId) ?? 900 + calibrationId;
-  }
-
-  @override
-  Future<void> reject(
-    String token,
-    int calibrationId,
-    String catatanRevisi,
-  ) async {
-    if (catatanRevisi.trim().isEmpty) throw const CatatanKosongException();
-    await _tunda();
-    MockStore.instance.tolak(calibrationId, catatanRevisi);
   }
 
   @override

@@ -40,7 +40,6 @@ import 'package:sidik_calibration/services/koreksi_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/notification_service.dart';
 import 'package:sidik_calibration/services/pelacakan_service.dart';
-import 'package:sidik_calibration/services/pengesahan_service.dart';
 import 'package:sidik_calibration/services/penugasan_service.dart';
 import 'package:sidik_calibration/services/permintaan_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
@@ -521,16 +520,15 @@ void main() {
     testWidgets('app lapangan: drawer tanpa menu Data acuan walau izin ada', (
       tester,
     ) async {
-      for (final token in [
-        'mock-token-1',
-        'mock-token-2',
-        'mock-token-3',
-        'mock-token-5',
-      ]) {
+      for (final token in ['mock-token-1', 'mock-token-3', 'mock-token-5']) {
         await _bukaDrawer(tester, token: token, denganIzin: true);
         expect(find.byType(Drawer), findsOneWidget, reason: token);
         expect(_diDrawer('Data acuan'), findsNothing, reason: token);
       }
+      // Teknisi tidak punya menu samping sama sekali (K-50-14: dua tab saja).
+      await tester.pumpWidget(_shell(token: 'mock-token-2', denganIzin: true));
+      await _tenang(tester);
+      expect(find.byType(Drawer), findsNothing);
     });
 
     testWidgets('app lapangan: desktop tanpa seksi Data Acuan walau izin ada', (
@@ -752,7 +750,6 @@ Widget _shell({
             : Izin(role: _peranToken(token), boleh: const {'lain.lain'}),
       ),
     ),
-    pengesahanServiceProvider.overrideWithValue(MockPengesahanService()),
     pelacakanServiceProvider.overrideWithValue(MockPelacakanService()),
     penugasanServiceProvider.overrideWithValue(MockPenugasanService()),
     permintaanServiceProvider.overrideWithValue(MockPermintaanService()),

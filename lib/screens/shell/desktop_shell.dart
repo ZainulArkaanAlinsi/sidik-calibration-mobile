@@ -36,7 +36,6 @@ import '../jatuh_tempo/layar_jatuh_tempo.dart';
 import '../koreksi/antrean_koreksi_screen.dart';
 import '../pelacakan/pelacakan_screen.dart';
 import '../pelanggan/pusat_pelanggan_screen.dart';
-import '../pengesahan/antrean_pengesahan_screen.dart';
 import '../penugasan/penugasan_screen.dart';
 import '../permintaan/antrean_permintaan_screen.dart';
 
@@ -186,15 +185,9 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
 
     // Menu kerja harian SAMA PERSIS dengan menu HP (`main_shell.dart`,
     // `_MenuUtama`) per peran. Sebelum ini desktop sama sekali tidak memuat
-    // Pengesahan, Penugasan, Pelacakan, Permintaan, Koreksi, Jadwal, Pusat
+    // Penugasan, Pelacakan, Permintaan, Koreksi, Jadwal, Pusat
     // Pelanggan, dan Draf — super admin di Windows cuma melihat delapan menu
     // sementara di HP empat belas (uji 5 Okt 2026).
-    final pengesahan = _Menu(
-      id: 'pengesahan',
-      ikon: Icons.verified_outlined,
-      label: l10n.pengesahanJudul,
-      bangun: AntreanPengesahanScreen.new,
-    );
     final penugasan = _Menu(
       id: 'penugasan',
       ikon: Icons.assignment_ind_outlined,
@@ -244,9 +237,8 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
       bangun: DrafScreen.new,
     );
     final kerjaHarian = switch (peran) {
-      // Semua menu admin + teknisi (Draf), Pengesahan dulu — K-49-14.
+      // Semua menu admin + teknisi (Draf) — K-49-14.
       UserRole.superAdmin => [
-        pengesahan,
         permintaan,
         koreksi,
         penugasan,
@@ -258,7 +250,6 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
       UserRole.admin => [
         permintaan,
         koreksi,
-        pengesahan,
         penugasan,
         pelacakan,
         draf,

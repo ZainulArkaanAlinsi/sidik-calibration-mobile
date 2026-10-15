@@ -193,18 +193,6 @@ class MockStore {
     return certId;
   }
 
-  void tolak(int sesiId, String catatan) {
-    final i = _sesi.indexWhere((s) => s.id == sesiId);
-    if (i < 0) return;
-
-    _sesi[i] = _sesi[i].copyWith(
-      status: CalibrationStatus.perluRevisi,
-      catatanRevisi: catatan,
-    );
-
-    _simpan();
-  }
-
   /// Dipanggil test yang butuh mulai dari kosong. Tanpa ini, urutan test di
   /// satu berkas bisa saling ngintip sesi yang dibikin test sebelumnya.
   ///

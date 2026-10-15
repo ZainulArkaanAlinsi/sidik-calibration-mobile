@@ -16,7 +16,7 @@ import '../../widgets/app_button.dart';
 import '../../widgets/readable_width.dart';
 import '../../widgets/sidik/sidik_lembar.dart';
 import '../../widgets/skeleton.dart';
-import '../pengesahan/antrean_pengesahan_screen.dart' show tanggalPendek;
+import '../../core/utils/tanggal_pendek.dart';
 
 /// Pelacakan paket alat — "kayak lacak paket di online shop, tapi lebih
 /// detail" (poin 1 & 7).

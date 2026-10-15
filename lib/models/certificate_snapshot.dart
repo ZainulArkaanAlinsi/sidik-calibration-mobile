@@ -440,6 +440,7 @@ class CertificateDetail {
       StatusDokumen.dariApi(statusDokumenKode) ??
       switch (status) {
         'dibatalkan' => StatusDokumen.dibatalkan,
+        'ditarik' => StatusDokumen.ditarik,
         'terbit' => StatusDokumen.berlaku,
         _ => StatusDokumen.belumTerbit,
       };

@@ -3,15 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/config/app_config.dart';
 import '../models/pelacakan.dart';
 import '../models/penugasan.dart';
-import '../models/pengesahan.dart';
 import '../services/pelacakan_service.dart';
 import '../services/penugasan_service.dart';
-import '../services/pengesahan_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
 import 'penjaga_urutan_muat.dart';
 
-/// Tiga fitur "pengendalian" dari keputusan 26 Sep 2026 — gerbang pengesahan,
+/// Fitur "pengendalian" dari keputusan 26 Sep 2026 (gerbang pengesahan dicabut 15 Okt, K-50-07):
 /// pelacakan paket, penugasan teknisi. Satu berkas karena ketiganya lahir
 /// bersama dan dipakai layar super admin yang sama; kalau salah satunya tumbuh
 /// besar, pecah ke berkasnya sendiri.
@@ -50,10 +48,6 @@ class Saringan<T> extends Notifier<T> {
   void setel(T nilai) => state = nilai;
 }
 
-final _cariPengesahanProvider = NotifierProvider<Saringan<String>, String>(
-  () => Saringan(''),
-);
-
 final _cariPaketProvider = NotifierProvider<Saringan<String>, String>(
   () => Saringan(''),
 );
@@ -61,67 +55,6 @@ final _cariPaketProvider = NotifierProvider<Saringan<String>, String>(
 final _paketTerlambatProvider = NotifierProvider<Saringan<bool>, bool>(
   () => Saringan(false),
 );
-
-// ── Pengesahan ──────────────────────────────────────────────────────────────
-
-final pengesahanServiceProvider = Provider<PengesahanService>((ref) {
-  if (AppConfig.useMock) return MockPengesahanService();
-  return ApiPengesahanService(ref.watch(apiClientProvider));
-});
-
-final antreanPengesahanProvider =
-    AsyncNotifierProvider<AntreanPengesahanController, List<ItemPengesahan>>(
-      AntreanPengesahanController.new,
-      retry: (retryCount, error) => null,
-    );
-
-class AntreanPengesahanController extends AsyncNotifier<List<ItemPengesahan>>
-    with PenjagaUrutanMuat<List<ItemPengesahan>> {
-  @override
-  Future<List<ItemPengesahan>> build() async {
-    ref.watch(authProvider);
-    return ref
-        .read(pengesahanServiceProvider)
-        .antrean(await _token(ref), cari: ref.read(_cariPengesahanProvider));
-  }
-
-  Future<void> cari(String q) async {
-    ref.read(_cariPengesahanProvider.notifier).setel(q);
-    await muatDenganPenjaga(build);
-  }
-
-  Future<void> muatUlang() => muatDenganPenjaga(build);
-
-  /// Melempar [PengesahanButuhKonfirmasi] ke layar — layar yang menampilkan
-  /// temuan pemisahan wewenang, bukan controller ini.
-  Future<String> sahkan(int sesiId, {bool abaikanPeringatan = false}) async {
-    final pesan = await ref
-        .read(pengesahanServiceProvider)
-        .sahkan(
-          await _token(ref),
-          sesiId,
-          abaikanPeringatan: abaikanPeringatan,
-        );
-    await muatUlang();
-    return pesan;
-  }
-
-  Future<String> kembalikan(int sesiId, String alasan) async {
-    final pesan = await ref
-        .read(pengesahanServiceProvider)
-        .kembalikan(await _token(ref), sesiId, alasan);
-    await muatUlang();
-    return pesan;
-  }
-
-  Future<String> tarik(int sesiId, String alasan) async {
-    final pesan = await ref
-        .read(pengesahanServiceProvider)
-        .tarik(await _token(ref), sesiId, alasan);
-    await muatUlang();
-    return pesan;
-  }
-}
 
 // ── Pelacakan ───────────────────────────────────────────────────────────────
 

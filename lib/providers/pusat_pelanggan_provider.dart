@@ -2,12 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/customer.dart';
 import '../models/pelacakan.dart';
-import '../models/pengesahan.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
 import 'master_data_provider.dart' show customerServiceProvider;
 import 'pengendalian_provider.dart'
-    show pelacakanServiceProvider, pengesahanServiceProvider;
+    show pelacakanServiceProvider;
 
 /// Kata cari Pusat pelanggan.
 ///
@@ -85,16 +84,3 @@ final paketPelangganProvider = FutureProvider.autoDispose
           if (p.pelanggan == nama) p,
       ];
     });
-
-/// Antrean pengesahan yang BELUM disaring, khusus angka di Beranda super
-/// admin.
-///
-/// Bukan `antreanPengesahanProvider`: kata cari layar antreannya tersimpan di
-/// sana, jadi super admin yang habis mencari "tirta" di gerbang sertifikat akan
-/// melihat berandanya menulis "1 lembar kerja menunggu" padahal ada tiga.
-final antreanBerandaProvider = FutureProvider<List<ItemPengesahan>>((
-  ref,
-) async {
-  ref.watch(authProvider);
-  return ref.read(pengesahanServiceProvider).antrean(await _token(ref));
-}, retry: (retryCount, error) => null);

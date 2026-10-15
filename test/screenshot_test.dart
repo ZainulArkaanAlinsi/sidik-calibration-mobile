@@ -60,14 +60,12 @@ import 'package:sidik_calibration/providers/izin_provider.dart';
 import 'package:sidik_calibration/screens/pelacakan/pelacakan_screen.dart';
 import 'package:sidik_calibration/screens/permintaan/antrean_permintaan_screen.dart';
 import 'package:sidik_calibration/screens/permintaan/detail_permintaan_screen.dart';
-import 'package:sidik_calibration/screens/pengesahan/antrean_pengesahan_screen.dart';
 import 'package:sidik_calibration/screens/penugasan/penugasan_buat_screen.dart';
 import 'package:sidik_calibration/screens/penugasan/penugasan_screen.dart';
 import 'package:sidik_calibration/screens/settings/kelola_lab_screen.dart';
 import 'package:sidik_calibration/services/pelacakan_service.dart';
 import 'package:sidik_calibration/services/permintaan_service.dart';
 import 'package:sidik_calibration/services/izin_service.dart';
-import 'package:sidik_calibration/services/pengesahan_service.dart';
 import 'package:sidik_calibration/services/penugasan_service.dart';
 import 'package:sidik_calibration/services/user_service.dart';
 
@@ -224,9 +222,8 @@ Widget _bungkus(
         customerServiceProvider.overrideWithValue(
           MockCustomerService(awal: pelanggan),
         ),
-      // Layar paket 29 Sep (pengesahan, pelacakan, penugasan). Tanpa mock-nya
-      // ketiganya menembak API asli di golden dan cuma memotret pesan galat.
-      pengesahanServiceProvider.overrideWithValue(MockPengesahanService()),
+      // Layar paket 29 Sep (pelacakan, penugasan). Tanpa mock-nya keduanya
+      // menembak API asli di golden dan cuma memotret pesan galat.
       pelacakanServiceProvider.overrideWithValue(MockPelacakanService()),
       penugasanServiceProvider.overrideWithValue(MockPenugasanService()),
       userServiceProvider.overrideWithValue(MockUserService()),
@@ -308,7 +305,8 @@ void main() {
   /// Dashboard TEKNISI — beda isi dari dashboard admin: panel 3D di atas,
   /// tanpa grafik tren. Golden-nya kepisah karena kalau cuma admin yang
   /// dipotret, seluruh layar yang dilihat teknisi tiap hari nggak kejaga.
-  testWidgets('dashboard teknisi', (tester) async {
+  /// Teknisi: DUA tab (Kalibrasi, Profil), tanpa dashboard (K-50-14).
+  testWidgets('kalibrasi teknisi', (tester) async {
     pasangUkuranHp(tester);
     await _pumpLayar(
       tester,
@@ -321,7 +319,7 @@ void main() {
 
     await expectLater(
       find.byType(MainShell),
-      matchesGoldenFile('screenshots/dashboard-teknisi.png'),
+      matchesGoldenFile('screenshots/kalibrasi-teknisi.png'),
     );
   });
 
@@ -729,14 +727,6 @@ void main() {
     );
   });
 
-  testWidgets('menu teknisi', (tester) async {
-    await potretMenu(
-      tester,
-      token: 'mock-token-2',
-      berkas: 'screenshots/menu-teknisi.png',
-    );
-  });
-
   /// Antrean permintaan pelanggan — tab Baru: lencana status, lama menunggu
   /// (dipatok ke 1 Okt 2026 supaya "Menunggu 3 hari" tidak bergeser), dan
   /// deretan chip status.
@@ -774,22 +764,6 @@ void main() {
     await expectLater(
       find.byType(DetailPermintaanScreen),
       matchesGoldenFile('screenshots/permintaan-detail.png'),
-    );
-  });
-
-  testWidgets('pengesahan super admin', (tester) async {
-    pasangUkuranHp(tester);
-    await _pumpLayarBerakun(
-      tester,
-      _bungkus(
-        const AntreanPengesahanScreen(),
-        mode: Brightness.light,
-        token: 'mock-token-5',
-      ),
-    );
-    await expectLater(
-      find.byType(AntreanPengesahanScreen),
-      matchesGoldenFile('screenshots/pengesahan-super-admin.png'),
     );
   });
 

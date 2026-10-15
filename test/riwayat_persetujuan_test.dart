@@ -140,11 +140,11 @@ void main() {
     expect(servis.panggilan, 0);
   });
 
-  // Tinjauan 6 Okt 2026: admin yang baru menolak lalu membuka riwayat lagi
-  // tidak boleh melihat daftar basi tanpa penolakan terbarunya. Dua jalur
-  // tolak di aplikasi: daftar riwayat (`HistoryController`) dan layar
-  // perhitungan (`AksiAdmin`).
-  test('tolak dari aplikasi (dua jalur) mengambil ulang riwayat sesinya', () async {
+  // Tinjauan 6 Okt 2026: admin yang baru memutuskan lalu membuka riwayat lagi
+  // tidak boleh melihat daftar basi tanpa keputusan terbarunya. Dua jalur
+  // setujui di aplikasi: daftar riwayat (`HistoryController`) dan layar
+  // perhitungan (`AksiAdmin`). (Tolak dicabut 15 Okt 2026, K-50-01.)
+  test('setujui dari aplikasi (dua jalur) mengambil ulang riwayat sesinya', () async {
     final servis = _HitungPanggilan();
     final container = ProviderContainer(overrides: [
       tokenStorageProvider.overrideWithValue(InMemoryTokenStorage('mock-token-1')),
@@ -161,13 +161,19 @@ void main() {
     await container.read(riwayatPersetujuanProvider(7).future);
     expect(servis.panggilan, 1);
 
-    await container.read(historyProvider.notifier).reject(7, 'Alasan dari daftar riwayat');
+    // `approve` berhenti diam-diam kalau daftar belum termuat.
+    await container.read(historyProvider.future);
+    await container
+        .read(historyProvider.notifier)
+        .approve(7, nomorSertifikat: 'KAL/1');
     await container.read(riwayatPersetujuanProvider(7).future);
-    expect(servis.panggilan, 2, reason: 'HistoryController.reject wajib meng-invalidate riwayat');
+    expect(servis.panggilan, 2, reason: 'HistoryController.approve wajib meng-invalidate riwayat');
 
-    await container.read(aksiAdminProvider(7)).tolak('Alasan dari layar perhitungan');
+    await container
+        .read(aksiAdminProvider(7))
+        .setujui(nomorSertifikat: 'KAL/2');
     await container.read(riwayatPersetujuanProvider(7).future);
-    expect(servis.panggilan, 3, reason: 'AksiAdmin.tolak wajib meng-invalidate riwayat');
+    expect(servis.panggilan, 3, reason: 'AksiAdmin.setujui wajib meng-invalidate riwayat');
   });
 
   testWidgets('belum pernah ditolak: ringkasan nol dan pesan kosong', (tester) async {
