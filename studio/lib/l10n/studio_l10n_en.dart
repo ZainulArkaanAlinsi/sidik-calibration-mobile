@@ -650,4 +650,62 @@ class StudioL10nEn extends StudioL10n {
 
   @override
   String get inspekturGalatHitung => 'Calculation engine error';
+
+  @override
+  String workbookImpor(int versi) {
+    return 'Import #$versi';
+  }
+
+  @override
+  String workbookImporKet(int versi) {
+    return 'Import number $versi within this master type — import order, not an indicator of the newest version.';
+  }
+
+  @override
+  String workbookRiwayat(int jumlah) {
+    return 'History ($jumlah)';
+  }
+
+  @override
+  String get workbookRiwayatKet =>
+      'Older versions of this master — hidden from the list, still viewable (read-only).';
+
+  @override
+  String riwayatJudul(String nama) {
+    return 'History — $nama';
+  }
+
+  @override
+  String get riwayatKet =>
+      'Studio keeps one active master per type. Importing a new master replaces the active one; the old one is kept here, never deleted. Old versions open read-only.';
+
+  @override
+  String get riwayatKosong => 'This master has no history yet.';
+
+  @override
+  String get riwayatGagalMuat => 'History failed to load.';
+
+  @override
+  String get workbookStatusAktif => 'Active master';
+
+  @override
+  String get workbookStatusRiwayat => 'History';
+
+  @override
+  String get workbookRiwayatSpanduk => 'History — not the active master';
+
+  @override
+  String get workbookRiwayatSpandukKet =>
+      'An older version that has been replaced. Read-only — it cannot be edited or recalculated.';
+
+  @override
+  String workbookDigantikanOleh(int id) {
+    return 'replaced by #$id';
+  }
+
+  @override
+  String get workbookDiarsipkan => 'This master has been archived/replaced.';
+
+  @override
+  String get workbookKembaliKeDaftar => 'Back to list';
 }

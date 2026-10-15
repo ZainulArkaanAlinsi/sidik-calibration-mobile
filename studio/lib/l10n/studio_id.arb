@@ -175,5 +175,20 @@
   "lembarTampilkanKet": "Tampilan saja — tidak disimpan ke workbook.",
   "gambarGagalMuat": "Gambar gagal dimuat",
   "inspekturSimulasi": "Isi simulasi",
-  "inspekturGalatHitung": "Galat mesin hitung"
+  "inspekturGalatHitung": "Galat mesin hitung",
+  "workbookImpor": "Impor #{versi}",
+  "workbookImporKet": "Impor ke-{versi} di jenis master ini — urutan impor, bukan penanda versi terbaru.",
+  "workbookRiwayat": "Riwayat ({jumlah})",
+  "workbookRiwayatKet": "Versi lama master ini — tersembunyi dari daftar, tetap bisa dibuka (baca saja).",
+  "riwayatJudul": "Riwayat — {nama}",
+  "riwayatKet": "Studio memegang satu master aktif per jenis. Impor master baru menggantikan yang aktif; yang lama disimpan di sini, tidak dihapus. Versi lama dibuka baca saja.",
+  "riwayatKosong": "Belum ada riwayat untuk master ini.",
+  "riwayatGagalMuat": "Riwayat gagal dimuat.",
+  "workbookStatusAktif": "Master aktif",
+  "workbookStatusRiwayat": "Riwayat",
+  "workbookRiwayatSpanduk": "Riwayat — bukan master aktif",
+  "workbookRiwayatSpandukKet": "Versi lama yang sudah digantikan. Tampil baca saja — tidak bisa diedit atau dihitung ulang.",
+  "workbookDigantikanOleh": "digantikan #{id}",
+  "workbookDiarsipkan": "Master ini sudah diarsipkan/diganti.",
+  "workbookKembaliKeDaftar": "Kembali ke daftar"
 }

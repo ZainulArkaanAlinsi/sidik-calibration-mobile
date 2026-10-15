@@ -639,4 +639,62 @@ class StudioL10nId extends StudioL10n {
 
   @override
   String get inspekturGalatHitung => 'Galat mesin hitung';
+
+  @override
+  String workbookImpor(int versi) {
+    return 'Impor #$versi';
+  }
+
+  @override
+  String workbookImporKet(int versi) {
+    return 'Impor ke-$versi di jenis master ini — urutan impor, bukan penanda versi terbaru.';
+  }
+
+  @override
+  String workbookRiwayat(int jumlah) {
+    return 'Riwayat ($jumlah)';
+  }
+
+  @override
+  String get workbookRiwayatKet =>
+      'Versi lama master ini — tersembunyi dari daftar, tetap bisa dibuka (baca saja).';
+
+  @override
+  String riwayatJudul(String nama) {
+    return 'Riwayat — $nama';
+  }
+
+  @override
+  String get riwayatKet =>
+      'Studio memegang satu master aktif per jenis. Impor master baru menggantikan yang aktif; yang lama disimpan di sini, tidak dihapus. Versi lama dibuka baca saja.';
+
+  @override
+  String get riwayatKosong => 'Belum ada riwayat untuk master ini.';
+
+  @override
+  String get riwayatGagalMuat => 'Riwayat gagal dimuat.';
+
+  @override
+  String get workbookStatusAktif => 'Master aktif';
+
+  @override
+  String get workbookStatusRiwayat => 'Riwayat';
+
+  @override
+  String get workbookRiwayatSpanduk => 'Riwayat — bukan master aktif';
+
+  @override
+  String get workbookRiwayatSpandukKet =>
+      'Versi lama yang sudah digantikan. Tampil baca saja — tidak bisa diedit atau dihitung ulang.';
+
+  @override
+  String workbookDigantikanOleh(int id) {
+    return 'digantikan #$id';
+  }
+
+  @override
+  String get workbookDiarsipkan => 'Master ini sudah diarsipkan/diganti.';
+
+  @override
+  String get workbookKembaliKeDaftar => 'Kembali ke daftar';
 }

@@ -129,6 +129,7 @@ final List<ProviderOrFamily> providerSesiStudio = [
   // sapuan eksplisit, isinya bertahan sampai jedanya habis.
   daftarWorkbookProvider,
   detailWorkbookProvider,
+  riwayatWorkbookProvider,
   halamanSelWorkbookProvider,
   gambarWorkbookProvider,
   // Simulasi Tahap C: edit belum disimpan + hasil hitung server (data lab).

@@ -1153,6 +1153,96 @@ abstract class StudioL10n {
   /// In en, this message translates to:
   /// **'Calculation engine error'**
   String get inspekturGalatHitung;
+
+  /// No description provided for @workbookImpor.
+  ///
+  /// In en, this message translates to:
+  /// **'Import #{versi}'**
+  String workbookImpor(int versi);
+
+  /// No description provided for @workbookImporKet.
+  ///
+  /// In en, this message translates to:
+  /// **'Import number {versi} within this master type — import order, not an indicator of the newest version.'**
+  String workbookImporKet(int versi);
+
+  /// No description provided for @workbookRiwayat.
+  ///
+  /// In en, this message translates to:
+  /// **'History ({jumlah})'**
+  String workbookRiwayat(int jumlah);
+
+  /// No description provided for @workbookRiwayatKet.
+  ///
+  /// In en, this message translates to:
+  /// **'Older versions of this master — hidden from the list, still viewable (read-only).'**
+  String get workbookRiwayatKet;
+
+  /// No description provided for @riwayatJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'History — {nama}'**
+  String riwayatJudul(String nama);
+
+  /// No description provided for @riwayatKet.
+  ///
+  /// In en, this message translates to:
+  /// **'Studio keeps one active master per type. Importing a new master replaces the active one; the old one is kept here, never deleted. Old versions open read-only.'**
+  String get riwayatKet;
+
+  /// No description provided for @riwayatKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'This master has no history yet.'**
+  String get riwayatKosong;
+
+  /// No description provided for @riwayatGagalMuat.
+  ///
+  /// In en, this message translates to:
+  /// **'History failed to load.'**
+  String get riwayatGagalMuat;
+
+  /// No description provided for @workbookStatusAktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Active master'**
+  String get workbookStatusAktif;
+
+  /// No description provided for @workbookStatusRiwayat.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get workbookStatusRiwayat;
+
+  /// No description provided for @workbookRiwayatSpanduk.
+  ///
+  /// In en, this message translates to:
+  /// **'History — not the active master'**
+  String get workbookRiwayatSpanduk;
+
+  /// No description provided for @workbookRiwayatSpandukKet.
+  ///
+  /// In en, this message translates to:
+  /// **'An older version that has been replaced. Read-only — it cannot be edited or recalculated.'**
+  String get workbookRiwayatSpandukKet;
+
+  /// No description provided for @workbookDigantikanOleh.
+  ///
+  /// In en, this message translates to:
+  /// **'replaced by #{id}'**
+  String workbookDigantikanOleh(int id);
+
+  /// No description provided for @workbookDiarsipkan.
+  ///
+  /// In en, this message translates to:
+  /// **'This master has been archived/replaced.'**
+  String get workbookDiarsipkan;
+
+  /// No description provided for @workbookKembaliKeDaftar.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to list'**
+  String get workbookKembaliKeDaftar;
 }
 
 class _StudioL10nDelegate extends LocalizationsDelegate<StudioL10n> {
