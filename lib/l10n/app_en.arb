@@ -3575,5 +3575,11 @@
   "jtUbahBatal": "Cancel",
   "jtUbahBerhasilJadwal": "Due date schedule changed.",
   "jtUbahBerhasilRevisi": "Revision {nomor} created: the printed certificate date changed.",
-  "@jtUbahBerhasilRevisi": {"placeholders": {"nomor": {"type": "String"}}}
+  "@jtUbahBerhasilRevisi": {"placeholders": {"nomor": {"type": "String"}}},
+  "sertRingNomor": "Number",
+  "sertRingPelanggan": "Customer",
+  "sertRingAlat": "Instrument",
+  "sertRingBerlaku": "Valid until",
+  "sertPdfGagal": "Couldn't load the certificate PDF.",
+  "sertPdfLuring": "Showing the saved copy (offline)."
 }

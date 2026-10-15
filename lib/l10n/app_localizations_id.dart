@@ -6472,4 +6472,22 @@ class AppLocalizationsId extends AppLocalizations {
   String jtUbahBerhasilRevisi(String nomor) {
     return 'Dibuat revisi $nomor: tanggal tercetak di sertifikat berubah.';
   }
+
+  @override
+  String get sertRingNomor => 'Nomor';
+
+  @override
+  String get sertRingPelanggan => 'Pelanggan';
+
+  @override
+  String get sertRingAlat => 'Alat';
+
+  @override
+  String get sertRingBerlaku => 'Berlaku sampai';
+
+  @override
+  String get sertPdfGagal => 'PDF sertifikat gagal dimuat.';
+
+  @override
+  String get sertPdfLuring => 'Menampilkan salinan tersimpan (tanpa koneksi).';
 }

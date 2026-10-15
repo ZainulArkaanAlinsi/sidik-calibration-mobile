@@ -11406,6 +11406,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Revision {nomor} created: the printed certificate date changed.'**
   String jtUbahBerhasilRevisi(String nomor);
+
+  /// No description provided for @sertRingNomor.
+  ///
+  /// In en, this message translates to:
+  /// **'Number'**
+  String get sertRingNomor;
+
+  /// No description provided for @sertRingPelanggan.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get sertRingPelanggan;
+
+  /// No description provided for @sertRingAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Instrument'**
+  String get sertRingAlat;
+
+  /// No description provided for @sertRingBerlaku.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid until'**
+  String get sertRingBerlaku;
+
+  /// No description provided for @sertPdfGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the certificate PDF.'**
+  String get sertPdfGagal;
+
+  /// No description provided for @sertPdfLuring.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing the saved copy (offline).'**
+  String get sertPdfLuring;
 }
 
 class _AppLocalizationsDelegate

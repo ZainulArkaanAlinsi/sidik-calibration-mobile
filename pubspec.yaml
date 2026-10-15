@@ -38,6 +38,11 @@ dependencies:
   flutter_secure_storage: ^10.3.1
   http: ^1.6.0
 
+  # Penampil PDF sertifikat (G4): sertifikat di app = PDF server yang sama persis.
+  # 2.4.8 = rilis terakhir yang cocok Flutter 3.44 (2.5+ minta Flutter >=3.47).
+  # Android + Windows + iOS/macOS + web lewat PDFium.
+  pdfrx: ^2.4.8
+
   # Realtime sync (spec poin 12D): websocket protokol Pus./Reverb, pure-Dart
   # biar lintas platform (mobile + desktop) & bisa di-widget-test tanpa native.
   web_socket_channel: ^3.0.1

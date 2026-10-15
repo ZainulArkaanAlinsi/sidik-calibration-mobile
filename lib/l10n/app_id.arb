@@ -2826,5 +2826,11 @@
   "jtUbahSimpan": "Simpan",
   "jtUbahBatal": "Batal",
   "jtUbahBerhasilJadwal": "Jadwal jatuh tempo diubah.",
-  "jtUbahBerhasilRevisi": "Dibuat revisi {nomor}: tanggal tercetak di sertifikat berubah."
+  "jtUbahBerhasilRevisi": "Dibuat revisi {nomor}: tanggal tercetak di sertifikat berubah.",
+  "sertRingNomor": "Nomor",
+  "sertRingPelanggan": "Pelanggan",
+  "sertRingAlat": "Alat",
+  "sertRingBerlaku": "Berlaku sampai",
+  "sertPdfGagal": "PDF sertifikat gagal dimuat.",
+  "sertPdfLuring": "Menampilkan salinan tersimpan (tanpa koneksi)."
 }

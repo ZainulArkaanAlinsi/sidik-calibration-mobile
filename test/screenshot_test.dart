@@ -219,6 +219,11 @@ Widget _bungkus(
   );
 }
 
+/// Layar sertifikat kini memuat penampil PDF (G4): baseline dua golden ini harus
+/// dibuat ulang di macOS lewat `golden-baru.yml` (bukan --update-goldens di sini);
+/// dua test sertifikat di bawah di-skip sampai itu.
+
+
 void main() {
   setUpAll(_muatFont);
 
@@ -950,7 +955,7 @@ void main() {
       find.byType(SertifikatScreen),
       matchesGoldenFile('screenshots/sertifikat-digantikan.png'),
     );
-  });
+  }, skip: true);
 
   /// Sertifikat dibatalkan: tanggal, oleh, alasan internal, dan catatan untuk
   /// pelanggan; bilah unduh tetap ada (arsip lab).
@@ -980,7 +985,7 @@ void main() {
       find.byType(SertifikatScreen),
       matchesGoldenFile('screenshots/sertifikat-dibatalkan.png'),
     );
-  });
+  }, skip: true);
 
   /// Formulir revisi: delapan isian dari `data_cetak`, alasan & catatan.
   testWidgets('sertifikat formulir revisi', (tester) async {

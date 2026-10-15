@@ -6546,4 +6546,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String jtUbahBerhasilRevisi(String nomor) {
     return 'Revision $nomor created: the printed certificate date changed.';
   }
+
+  @override
+  String get sertRingNomor => 'Number';
+
+  @override
+  String get sertRingPelanggan => 'Customer';
+
+  @override
+  String get sertRingAlat => 'Instrument';
+
+  @override
+  String get sertRingBerlaku => 'Valid until';
+
+  @override
+  String get sertPdfGagal => 'Couldn\'t load the certificate PDF.';
+
+  @override
+  String get sertPdfLuring => 'Showing the saved copy (offline).';
 }

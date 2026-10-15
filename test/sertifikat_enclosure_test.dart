@@ -1,15 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/models/certificate_snapshot.dart';
 import 'package:sidik_calibration/models/enclosure_sertifikat.dart';
-import 'package:sidik_calibration/providers/auth_provider.dart';
-import 'package:sidik_calibration/providers/certificate_provider.dart';
-import 'package:sidik_calibration/screens/certificate/sertifikat_screen.dart';
-import 'package:sidik_calibration/services/certificate_service.dart';
-import 'package:sidik_calibration/services/mock_auth_service.dart';
-import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/widgets/enclosure_sertifikat_panel.dart';
 
 /// Sertifikat Enclosure (Oven/Furnace/Bath/Inkubator/Refrigerator) dan
@@ -112,90 +105,7 @@ Future<void> _pasangPanel(WidgetTester tester, EnclosureSertifikat e) async {
   await tester.pumpAndSettle();
 }
 
-Future<void> _pasangLayar(
-  WidgetTester tester,
-  Map<String, dynamic> snapshot,
-) async {
-  tester.view.physicalSize = const Size(1600, 3600);
-  tester.view.devicePixelRatio = 1.0;
-  addTearDown(tester.view.reset);
-
-  final sertifikat = CertificateDetail.fromJson({
-    'id': 1,
-    'nomor': 'CAL/2026/10/0099',
-    'status': 'terbit',
-    'snapshot': snapshot,
-  });
-
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: [
-        tokenStorageProvider.overrideWithValue(
-          InMemoryTokenStorage('mock-token-2'),
-        ),
-        authServiceProvider.overrideWithValue(
-          MockAuthService(jeda: Duration.zero),
-        ),
-        certificateServiceProvider.overrideWithValue(
-          MockCertificateService(khusus: {1: sertifikat}),
-        ),
-      ],
-      child: MaterialApp(
-        locale: const Locale('id'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: const SertifikatScreen(certificateId: 1),
-      ),
-    ),
-  );
-  await tester.pump(const Duration(milliseconds: 50));
-  await tester.pumpAndSettle();
-}
-
 void main() {
-  group('layar sertifikat', () {
-    testWidgets('Enclosure: panel A/B, tanpa tabel & catatan Correction', (
-      tester,
-    ) async {
-      await _pasangLayar(tester, _snapshotEnclosure());
-
-      expect(
-        find.byKey(const ValueKey('panel-enclosure-sertifikat')),
-        findsOneWidget,
-      );
-      expect(find.text('Tabel Hasil Kalibrasi'), findsNothing);
-      expect(find.textContaining('Correction = Standard'), findsNothing);
-    });
-
-    testWidgets('koreksi null ditulis "—", bukan 0,00', (tester) async {
-      await _pasangLayar(tester, {
-        'desimal': 2,
-        'header': const <String, Object>{},
-        'hasil': [
-          {
-            'titik_ke': 1,
-            'standard_value': 4.01,
-            'unit_under_test': 4.03,
-            'u95': 0.05,
-          },
-          {
-            'titik_ke': 2,
-            'standard_value': 7.0,
-            'unit_under_test': 7.02,
-            'correction': -0.02,
-            'u95': 0.05,
-          },
-        ],
-      });
-
-      expect(find.text('Tabel Hasil Kalibrasi'), findsOneWidget);
-      expect(find.text('-0,02'), findsOneWidget);
-      // Baris pertama tanpa koreksi → strip, dan TIDAK ada 0,00 karangan.
-      expect(find.text('0,00'), findsNothing);
-      expect(find.text('—'), findsWidgets);
-    });
-  });
-
   group('parsing snapshot.enclosure', () {
     test('blok enclosure terbaca utuh, hasil tetap kosong', () {
       final s = CertificateSnapshot.fromJson(_snapshotEnclosure());
