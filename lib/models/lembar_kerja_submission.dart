@@ -234,6 +234,7 @@ class LembarKerjaSubmission {
     this.measurementsGrid,
     this.sertakanMeasurements = true,
     this.inputMethod = MetodeInput.manual,
+    this.alasanKoreksi,
   });
 
   final int equipmentId;
@@ -393,9 +394,16 @@ class LembarKerjaSubmission {
       '${d.month.toString().padLeft(2, '0')}-'
       '${d.day.toString().padLeft(2, '0')}';
 
+  /// Alasan admin/super admin mengoreksi angka sesi yang SUDAH dikirim
+  /// teknisi (`menunggu_approval`). Server mewajibkannya (min. 10 karakter)
+  /// begitu pembacaannya berubah, lalu menyimpan nilai lama + baru + alasan
+  /// (ISO/IEC 17025 7.5.2). Kuncinya cuma dikirim kalau diisi.
+  final String? alasanKoreksi;
+
   Map<String, dynamic> toJson() => {
     'equipment_id': equipmentId,
     'client_request_id': clientRequestId,
+    if (alasanKoreksi != null) 'alasan_koreksi': alasanKoreksi,
     'input_method': inputMethod.api,
     'lokasi': lokasi.toApi(),
     // Nama tempat buat sesi Insitu — yang tercetak `Insitu (PT. Niaga Contoh)` di

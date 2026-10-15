@@ -657,6 +657,7 @@ class IsianTeknisi {
     this.revisiField = const {},
     this.catatanRevisi,
     this.spesifikasiAlat = const {},
+    this.nomorOrder,
   });
 
   final int? equipmentId;
@@ -669,6 +670,10 @@ class IsianTeknisi {
   /// Nama tempat buat sesi `onsite` — `PT. Niaga Contoh` di `Insitu (PT. Niaga Contoh)`.
   final String? lokasiNama;
   final String? catatanTeknisi;
+
+  /// Order Number yang sudah diisi Master Data. Di lembar kerja cuma
+  /// DITAMPILKAN (baca saja) — teknisi tidak pernah mengisinya (K-49-14).
+  final String? nomorOrder;
 
   final String? alatModel;
   final String? alatSerialNumber;
@@ -818,6 +823,71 @@ class IsianTeknisi {
           '$k',
       },
       catatanRevisi: json['catatan_revisi'] as String?,
+      nomorOrder: json['nomor_order'] as String?,
+    );
+  }
+}
+
+/// Kolom administratif satu sesi — diisi Master Data (admin) atau super
+/// admin lewat `PATCH /calibrations/{id}/admin`, bukan teknisi (K-49-14).
+///
+/// Dibaca dari respons yang sama dengan detail sesi (`CalibrationResource`):
+/// `nomor_order`, `metode_kalibrasi`, `ruangan`, `tanggal_terima`.
+class AdministrasiSesi {
+  const AdministrasiSesi({
+    this.nomorOrder,
+    this.nomorOrderDiketahui = false,
+    this.metodeId,
+    this.metodeLabel,
+    this.ruanganId,
+    this.ruanganLabel,
+    this.tanggalTerima,
+  });
+
+  final String? nomorOrder;
+
+  /// Server memang mengirim kunci `nomor_order`. Server lama yang tidak
+  /// mengirimnya TIDAK dibaca "kosong" — kalau dibaca kosong, Setujui
+  /// menahan sesi yang servernya sendiri tidak syaratkan apa-apa.
+  final bool nomorOrderDiketahui;
+
+  final int? metodeId;
+
+  /// Kode lengkap metode seperti yang tercetak (`SIDIK-IK-CAL-0506_Rev.4`).
+  final String? metodeLabel;
+  final int? ruanganId;
+  final String? ruanganLabel;
+
+  /// Tanggal polos `YYYY-MM-DD` apa adanya dari server.
+  final String? tanggalTerima;
+
+  /// Order Number pasti kosong menurut server.
+  bool get perluNomorOrder =>
+      nomorOrderDiketahui && (nomorOrder == null || nomorOrder!.trim().isEmpty);
+
+  factory AdministrasiSesi.fromJson(Map<String, dynamic> json) {
+    final metode = json['metode_kalibrasi'];
+    final ruangan = json['ruangan'];
+    String? teks(Object? v) =>
+        v is String && v.trim().isNotEmpty ? v.trim() : null;
+
+    return AdministrasiSesi(
+      nomorOrder: teks(json['nomor_order']),
+      nomorOrderDiketahui: json.containsKey('nomor_order'),
+      metodeId: metode is Map ? (metode['id'] as num?)?.toInt() : null,
+      metodeLabel: metode is Map
+          ? teks(metode['kode']) ?? teks(metode['nama'])
+          : null,
+      ruanganId: ruangan is Map ? (ruangan['id'] as num?)?.toInt() : null,
+      ruanganLabel: ruangan is Map
+          ? switch ((teks(ruangan['kode']), teks(ruangan['nama']))) {
+              (final String k, final String n) => '$k — $n',
+              (final String k, null) => k,
+              (null, final String n) => n,
+              _ => null,
+            }
+          : null,
+      tanggalTerima: teks(json['tanggal_terima']),
     );
   }
 }
@@ -925,6 +995,7 @@ class CalibrationDetail {
     this.isianTeknisi,
     this.autoclave,
     this.statusStandar,
+    this.administrasi = const AdministrasiSesi(),
   });
 
   final int id;
@@ -1014,6 +1085,10 @@ class CalibrationDetail {
   /// penting: "nggak tau statusnya" beda dari "sudah dicek, semuanya aman".
   final StatusStandar? statusStandar;
 
+  /// Order Number, metode, ruangan, tanggal terima — kartu "Data
+  /// administrasi" di layar periksa admin.
+  final AdministrasiSesi administrasi;
+
   /// STDEV terbesar antar titik — kolom **MAX STDEV** di worksheet asli
   /// (`DATA HASIL KALIBRASI`), dihitung di sini karena backend nggak
   /// ngirimnya: dia cuma turunan `max()` dari `standar_deviasi` tiap titik,
@@ -1093,6 +1168,7 @@ class CalibrationDetail {
               json['status_standar'] as Map<String, dynamic>,
             )
           : null,
+      administrasi: AdministrasiSesi.fromJson(json),
     );
   }
 }

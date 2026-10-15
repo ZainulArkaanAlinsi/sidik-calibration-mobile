@@ -6,10 +6,14 @@ import '../l10n/app_localizations.dart';
 import '../models/calibration_history_item.dart';
 import '../models/validasi.dart';
 import '../providers/history_provider.dart';
+import '../providers/perhitungan_provider.dart';
+import '../screens/admin/widgets/data_administrasi.dart';
 import '../screens/admin/widgets/panel_temuan.dart';
 import '../screens/certificate/sertifikat_sukses_sheet.dart';
 import '../services/auth_service.dart' show ApiException;
+import '../services/kode_galat.dart';
 import 'app_button.dart';
+import 'galat_peran.dart';
 
 /// Tombol SETUJUI / TOLAK satu sesi.
 ///
@@ -56,6 +60,34 @@ class _AksiApprovalState extends ConsumerState<AksiApproval> {
     super.dispose();
   }
 
+  /// Order Number sudah disimpan dari kartu ini — item daftarnya masih
+  /// memegang nilai lama (kosong) sampai antreannya dimuat ulang.
+  bool _nomorOrderDisimpan = false;
+
+  /// Minta Order Number lalu simpan (`PATCH /admin`). `true` = tersimpan.
+  ///
+  /// Order Number diisi Master Data atau super admin, bukan teknisi, dan
+  /// server menolak approve tanpanya (K-49-14).
+  Future<bool> _isiNomorOrder() async {
+    final nomor = await mintaNomorOrder(context, awal: widget.item.nomorOrder);
+    if (nomor == null || !mounted) return false;
+
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _busy = true);
+    try {
+      await ref
+          .read(aksiAdminProvider(widget.item.id))
+          .simpanKolomAdmin(nomorOrder: nomor);
+      _nomorOrderDisimpan = true;
+      return true;
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      return false;
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   /// Setujui sesi ini.
   ///
   /// [abaikanPeringatan] cuma `true` kalau admin barusan lihat daftar
@@ -63,6 +95,13 @@ class _AksiApprovalState extends ConsumerState<AksiApproval> {
   Future<void> _setujui({bool abaikanPeringatan = false}) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
+
+    // Order Number kosong menurut server → dimintakan DULU, bukan menunggu
+    // approve ditolak 422.
+    if (widget.item.perluNomorOrder && !_nomorOrderDisimpan) {
+      if (!await _isiNomorOrder() || !mounted) return;
+    }
+
     setState(() => _busy = true);
 
     try {
@@ -130,8 +169,23 @@ class _AksiApprovalState extends ConsumerState<AksiApproval> {
         return;
       }
 
+      final kode = kodeDariBadan(e.body);
+
+      // Server menolak karena Order Number kosong: minta, lalu ulangi.
+      if (kode == KodeGalat.nomorOrderWajib) {
+        setState(() => _busy = false);
+        if (await _isiNomorOrder() && mounted) {
+          await _setujui(abaikanPeringatan: abaikanPeringatan);
+        }
+        return;
+      }
+
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.historyApproveFailed(e.message))),
+        SnackBar(
+          content: Text(
+            pesanGalatPeran(l10n, kode) ?? l10n.historyApproveFailed(e.message),
+          ),
+        ),
       );
     } catch (e) {
       if (!mounted) return;

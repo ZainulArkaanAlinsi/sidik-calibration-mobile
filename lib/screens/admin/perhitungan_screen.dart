@@ -3,14 +3,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/calibration_detail.dart' show CalibrationDetail;
 import '../../models/calibration_history_item.dart';
 import '../../models/perhitungan.dart';
 import '../../models/validasi.dart';
 import '../../providers/history_provider.dart';
 import '../../providers/perhitungan_provider.dart';
+import '../../services/kode_galat.dart';
 import '../../services/perhitungan_service.dart' show HasilApprove;
 import '../../widgets/app_button.dart';
+import '../../widgets/galat_peran.dart';
 import '../auth/widgets/neu.dart';
+import '../calibration/instrument_picker_screen.dart'
+    show profilLembarKerjaUntuk;
+import '../calibration/lembar_kerja_screen.dart';
+import 'widgets/data_administrasi.dart';
 import 'widgets/lembar_tolak.dart';
 import 'widgets/blok_kondisi.dart';
 import 'widgets/panel_temuan.dart';
@@ -104,8 +111,73 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
     if (mounted) setState(() => _validasi = hasil);
   });
 
+  /// Order Number diminta lewat dialog lalu disimpan (`PATCH /admin`).
+  /// `true` = tersimpan, approve boleh dilanjutkan.
+  Future<bool> _isiNomorOrder() async {
+    final detail = ref.read(calibrationDetailProvider(widget.calibrationId));
+    final nomor = await mintaNomorOrder(
+      context,
+      awal: detail.value?.administrasi.nomorOrder,
+    );
+    if (nomor == null || !mounted) return false;
+
+    var tersimpan = false;
+    await _jalankan(() async {
+      await _aksi.simpanKolomAdmin(nomorOrder: nomor);
+      tersimpan = true;
+    });
+    if (tersimpan && mounted) setState(() => _nomorOrderTersimpan = nomor);
+    return tersimpan;
+  }
+
+  /// Order Number baru disimpan dari layar ini. Detail sesinya sedang dimuat
+  /// ulang, dan selama itu Riverpod masih memegang nilai LAMA (kosong) —
+  /// tanpa penanda ini Setujui meminta nomor yang barusan diketik.
+  String? _nomorOrderTersimpan;
+
+  bool _perluNomorOrder(CalibrationDetail? detail) =>
+      _nomorOrderTersimpan == null && perluNomorOrder(detail);
+
+  /// Buka lembar kerja teknisi di layar yang SAMA dengan teknisi — admin &
+  /// super admin mengoreksinya di sana (dengan alasan koreksi kalau sesinya
+  /// sudah dikirim). Sesudahnya angka & temuan dimuat ulang: yang tampil di
+  /// sini harus angka sesudah koreksi, bukan sebelum.
+  Future<void> _bukaLembar() async {
+    final detail = await ref.read(
+      calibrationDetailProvider(widget.calibrationId).future,
+    );
+    if (!mounted) return;
+
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => LembarKerjaScreen(
+          sesiId: widget.calibrationId,
+          // Sama dengan tombol Edit lembar di detail sesi: profil dari
+          // backend dulu, tebakan dari nama cuma cadangan server lama.
+          profil:
+              detail.profil ??
+              profilLembarKerjaUntuk(detail.namaAlat) ??
+              'ph_meter',
+        ),
+      ),
+    );
+    if (!mounted) return;
+
+    ref
+      ..invalidate(perhitunganProvider(widget.calibrationId))
+      ..invalidate(calibrationDetailProvider(widget.calibrationId));
+    await _periksa();
+  }
+
   Future<void> _setujui({bool abaikanPeringatan = false}) async {
     HasilApprove? hasil;
+
+    // Order Number WAJIB sebelum approve (K-49-14). Kalau detail sesi sudah
+    // bilang kosong, dimintakan DULU — bukan menunggu ditolak server.
+    final detail = ref.read(calibrationDetailProvider(widget.calibrationId));
+    if (_perluNomorOrder(detail.value)) {
+      if (!await _isiNomorOrder() || !mounted) return;
+    }
 
     // Kirimnya di dalam `_jalankan` (tombol nyala loading), tapi dialog
     // konfirmasinya DI LUAR — kalau dialog dibuka selagi tombolnya masih
@@ -185,9 +257,25 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
       return;
     }
 
+    // Server menolak karena Order Number kosong (detail sesi yang dibaca di
+    // atas basi, atau gagal dimuat): minta nomornya, lalu ulangi.
+    if (hasil!.kode == KodeGalat.nomorOrderWajib) {
+      if (await _isiNomorOrder() && mounted) {
+        await _setujui(abaikanPeringatan: abaikanPeringatan);
+      }
+      return;
+    }
+
     // Temuan fatal: approve diblokir, nggak bisa dilewati sama sekali.
+    // Pemisahan wewenang dapat kalimat yang menyebut jalan keluarnya.
     messenger.showSnackBar(
-      SnackBar(content: Text(hasil!.pesan ?? l10n.perhitApproveDiblokir)),
+      SnackBar(
+        content: Text(
+          pesanGalatPeran(l10n, hasil!.kode) ??
+              hasil!.pesan ??
+              l10n.perhitApproveDiblokir,
+        ),
+      ),
     );
   }
 
@@ -220,6 +308,12 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final async = ref.watch(perhitunganProvider(widget.calibrationId));
+    final detail = ref.watch(calibrationDetailProvider(widget.calibrationId));
+    // Lembar yang sudah disetujui tidak bisa diubah siapa pun (sertifikatnya
+    // sudah terbit) — tombolnya tidak ditawarkan.
+    final bisaDisunting =
+        widget.statusSesi != CalibrationStatus.disetujui &&
+        detail.value?.status != CalibrationStatus.disetujui;
 
     final c = NeuColors.of(context);
 
@@ -246,6 +340,7 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
           perhitungan: value,
           validasi: _validasi,
           calibrationId: widget.calibrationId,
+          onBukaLembar: bisaDisunting ? _bukaLembar : null,
         ),
         AsyncError() => _Gagal(
           onCobaLagi: () =>
@@ -258,6 +353,7 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
               sibuk: _sibuk,
               validasi: _validasi,
               statusSesi: widget.statusSesi,
+              perluNomorOrder: _perluNomorOrder(detail.value),
               onPeriksa: _periksa,
               onSetujui: _setujui,
               onTolak: _tolak,
@@ -272,11 +368,13 @@ class _Isi extends StatelessWidget {
     required this.perhitungan,
     required this.validasi,
     required this.calibrationId,
+    this.onBukaLembar,
   });
 
   final Perhitungan perhitungan;
   final HasilValidasi? validasi;
   final int calibrationId;
+  final VoidCallback? onBukaLembar;
 
   @override
   Widget build(BuildContext context) {
@@ -380,6 +478,17 @@ class _Isi extends StatelessWidget {
         _Catatan(teks: l10n.perhitStandardCatatan),
         const SizedBox(height: AppSpacing.xs),
         _Catatan(teks: l10n.perhitCorrectionCatatan),
+        const SizedBox(height: AppSpacing.lg),
+
+        // Kolom Master Data (K-49-14) — paling bawah, persis di atas bilah
+        // Setujui: Order Number yang wajib sebelum approve duduk di sebelah
+        // tombol yang memintanya.
+        KartuDataAdministrasi(
+          calibrationId: calibrationId,
+          kondisi: perhitungan.kondisiLingkungan,
+          tanggalKalibrasi: cust.tanggalKalibrasi,
+          onBukaLembar: onBukaLembar,
+        ),
         const SizedBox(height: AppSpacing.xl),
       ],
     );
@@ -498,11 +607,15 @@ class _BilahAksi extends StatelessWidget {
     required this.onPeriksa,
     required this.onSetujui,
     required this.onTolak,
+    this.perluNomorOrder = false,
   });
 
   final bool sibuk;
   final HasilValidasi? validasi;
   final CalibrationStatus? statusSesi;
+
+  /// Order Number kosong menurut detail sesi — Setujui akan memintanya dulu.
+  final bool perluNomorOrder;
   final VoidCallback onPeriksa;
   final VoidCallback onSetujui;
   final VoidCallback onTolak;
@@ -589,6 +702,19 @@ class _BilahAksi extends StatelessWidget {
                   onPressed: onPeriksa,
                 ),
               ] else ...[
+                if (perluNomorOrder && !diblokir) ...[
+                  Text(
+                    l10n.adminNomorOrderWajibSetujui,
+                    key: const ValueKey('petunjuk-nomor-order'),
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: c.textMuted,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
                 Row(
                   children: [
                     Expanded(

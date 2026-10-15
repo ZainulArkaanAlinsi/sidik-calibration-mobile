@@ -2,6 +2,7 @@ import '../models/perhitungan.dart';
 import '../models/validasi.dart';
 import 'api_client.dart';
 import 'auth_service.dart';
+import 'kode_galat.dart';
 
 /// Hasil approve. [validasi] selalu ikut — backend ngirimnya baik waktu
 /// sukses maupun waktu nolak, jadi layar bisa nampilin temuannya tanpa nembak
@@ -12,6 +13,7 @@ class HasilApprove {
     required this.butuhKonfirmasi,
     this.validasi,
     this.pesan,
+    this.kode,
   });
 
   final bool disetujui;
@@ -22,6 +24,11 @@ class HasilApprove {
 
   final HasilValidasi? validasi;
   final String? pesan;
+
+  /// Kode 422 dari server ([KodeGalat]) — mis. `nomor_order_wajib` (layar
+  /// minta Order Number diisi lalu mengulang) atau `pemisahan_wewenang`
+  /// (orang lain yang harus menyetujui). `null` = temuan validasi biasa.
+  final String? kode;
 }
 
 /// Layar utama admin: lembar PERHITUNGAN + periksa/setujui (spesifikasi poin
@@ -117,6 +124,7 @@ class ApiPerhitunganService implements PerhitunganService {
         butuhKonfirmasi: e.butuhKonfirmasi,
         validasi: _validasiDari(e.body),
         pesan: e.message,
+        kode: kodeDariBadan(e.body),
       );
     }
   }
@@ -177,10 +185,25 @@ class MockPerhitunganService implements PerhitunganService {
     this.gagal = false,
     this.validasi,
     this.thermohygroBelumDipilih = false,
+    this.wajibNomorOrder = false,
+    this.kodeTolakApprove,
   });
 
   final bool gagal;
   final bool thermohygroBelumDipilih;
+
+  /// Niru server sesudah K-49-14: approve ditolak 422 `nomor_order_wajib`
+  /// selama Order Number belum pernah disimpan lewat [simpanKolomAdmin].
+  final bool wajibNomorOrder;
+
+  /// Kode 422 yang SELALU dipulangkan approve (mis. `pemisahan_wewenang`).
+  final String? kodeTolakApprove;
+
+  /// Order Number terakhir yang disimpan lewat [simpanKolomAdmin].
+  String? nomorOrderTersimpan;
+
+  /// Semua isi `PATCH /admin` yang pernah dikirim, kunci = nama kolom API.
+  final List<Map<String, Object?>> kolomAdminTerkirim = [];
 
   /// Hasil yang dibalikin `periksa()` & dipakai `setujui()` buat mutusin.
   final HasilValidasi? validasi;
@@ -341,6 +364,24 @@ class MockPerhitunganService implements PerhitunganService {
     if (gagal) throw Exception('server nggak nyaut');
     aksi.add(('setujui', abaikanPeringatan));
 
+    if (kodeTolakApprove != null) {
+      return HasilApprove(
+        disetujui: false,
+        butuhKonfirmasi: false,
+        kode: kodeTolakApprove,
+        pesan: 'Ditolak server ($kodeTolakApprove).',
+      );
+    }
+
+    if (wajibNomorOrder && (nomorOrderTersimpan ?? '').trim().isEmpty) {
+      return const HasilApprove(
+        disetujui: false,
+        butuhKonfirmasi: false,
+        kode: KodeGalat.nomorOrderWajib,
+        pesan: 'Order Number wajib diisi sebelum disetujui.',
+      );
+    }
+
     final v = _validasi;
 
     if (!v.bolehTerbit) {
@@ -392,6 +433,14 @@ class MockPerhitunganService implements PerhitunganService {
   }) async {
     if (gagal) throw Exception('server nggak nyaut');
     aksi.add(('kolomAdmin', thermohygroStandardId ?? nomorOrder));
+    kolomAdminTerkirim.add({
+      'nomor_order': ?nomorOrder,
+      'calibration_method_id': ?calibrationMethodId,
+      'thermohygro_standard_id': ?thermohygroStandardId,
+      'room_id': ?roomId,
+      'tanggal_terima': ?tanggalTerima,
+    });
+    if (nomorOrder != null) nomorOrderTersimpan = nomorOrder;
   }
 }
 

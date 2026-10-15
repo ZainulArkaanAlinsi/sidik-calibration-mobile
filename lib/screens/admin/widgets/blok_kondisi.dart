@@ -18,7 +18,9 @@ import '../../auth/widgets/neu.dart';
 /// Teknisi cuma nyatet DUA angka per parameter (awal & akhir kerja); sisanya
 /// dihitung backend. Yang bikin kolom Correction & U95% kosong itu cuma satu
 /// hal: **thermohygro-nya belum dipilih admin** — makanya pickernya ditaruh
-/// langsung di blok ini, bukan di layar pengaturan terpisah.
+/// langsung di blok ini, bukan di layar pengaturan terpisah. Kartu "Data
+/// administrasi" (K-49-14) cuma menyebut nilainya dan menunjuk ke sini, bukan
+/// memasang pemilih kedua untuk kolom yang sama.
 class BlokKondisi extends ConsumerWidget {
   const BlokKondisi({
     super.key,

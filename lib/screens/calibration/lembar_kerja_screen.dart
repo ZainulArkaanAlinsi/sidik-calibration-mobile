@@ -9,10 +9,12 @@ import '../../core/utils/angka.dart';
 import '../../core/utils/uuid.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_detail.dart' show MeasurementResult;
+import '../../models/calibration_history_item.dart' show CalibrationStatus;
 import '../../models/calibration_draft.dart' show LokasiKalibrasi;
 import '../../models/equipment.dart';
 import '../../models/equipment_lookup.dart';
 import '../../models/lembar_kerja.dart';
+import '../../models/lembar_kerja_submission.dart' show LembarKerjaSubmission;
 import '../../models/room.dart';
 import '../../models/standard.dart';
 import '../../providers/autoclave_provider.dart';
@@ -435,6 +437,11 @@ class _FormState extends ConsumerState<_Form> {
   /// isian yang tersimpan. Lihat docblock [_muatSesiLama].
   bool _sesiLamaGagalDimuat = false;
 
+  /// Status sesi lama yang dibuka ulang. `menunggu_approval` = lembarnya
+  /// SUDAH dikirim teknisi dan yang membukanya admin/super admin: simpanannya
+  /// koreksi, jadi alasan koreksi diminta dulu (lihat [_mintaAlasanKoreksi]).
+  CalibrationStatus? _statusSesiLama;
+
   /// Index ke [LembarKerja.halaman], bukan nomor halamannya sendiri — lembar
   /// kerja alat lain bisa punya penomoran yang beda.
   int _halaman = 0;
@@ -497,6 +504,7 @@ class _FormState extends ConsumerState<_Form> {
 
       setState(() {
         _sesiLamaGagalDimuat = false;
+        _statusSesiLama = detail.status;
         // Status sertifikat standar sesi ini — dibawa dari respons yang SAMA,
         // jadi banner-nya nggak nambah satu pun permintaan. Yang dijaga waktu
         // teknisi: sertifikat standar yang lewat bikin sesinya ditolak nanti,
@@ -870,6 +878,16 @@ class _FormState extends ConsumerState<_Form> {
     if (!draft && !await _konfirmasiAngka()) return;
     if (!mounted) return;
 
+    // Koreksi atas lembar yang SUDAH dikirim teknisi wajib beralasan (server:
+    // `alasan_koreksi` min. 10 karakter; nilai lama + baru + alasan dicatat).
+    // Diminta di sini, sebelum tombol berputar — bukan sesudah ditolak 422.
+    // Lembar bermatriks (Autoklaf) lewat endpoint lain yang belum memakainya.
+    String? alasanKoreksi;
+    if (_perluAlasanKoreksi && _isian.bagianMatriks == null) {
+      alasanKoreksi = await _mintaAlasanKoreksi();
+      if (alasanKoreksi == null || !mounted) return;
+    }
+
     setState(() => _mengirim = true);
 
     // Lembar bermatriks punya endpoint simpan sendiri (`POST
@@ -883,9 +901,17 @@ class _FormState extends ConsumerState<_Form> {
       return;
     }
 
+    _isian.alasanKoreksi = alasanKoreksi;
+    final LembarKerjaSubmission kiriman;
+    try {
+      kiriman = _isian.toSubmission(draft: draft);
+    } finally {
+      _isian.alasanKoreksi = null;
+    }
+
     final hasil = await ref
         .read(kirimLembarKerjaProvider.notifier)
-        .kirim(_isian.toSubmission(draft: draft), sesiId: widget.sesiId);
+        .kirim(kiriman, sesiId: widget.sesiId);
 
     if (!mounted) return;
     setState(() => _mengirim = false);
@@ -1118,6 +1144,20 @@ class _FormState extends ConsumerState<_Form> {
 
     return false;
   }
+
+  /// Sesi yang dibuka ulang sudah dikirim teknisi, dan yang membukanya
+  /// pemegang hak admin (admin/super admin, K-49-14). Teknisi sendiri tidak
+  /// pernah sampai ke sini: server menolak dia menyunting `menunggu_approval`.
+  bool get _perluAlasanKoreksi =>
+      widget.sesiId != null &&
+      _statusSesiLama == CalibrationStatus.menungguApproval &&
+      (ref.read(authProvider).value?.role.hakAdmin ?? false);
+
+  /// Dialog alasan koreksi. `null` = dibatalkan (tidak jadi menyimpan).
+  Future<String?> _mintaAlasanKoreksi() => showDialog<String>(
+    context: context,
+    builder: (_) => const DialogAlasanKoreksi(),
+  );
 
   Future<bool> _konfirmasiAngka() async {
     final l10n = AppLocalizations.of(context);
@@ -3675,6 +3715,93 @@ String? _helperSatuan(String? satuan, [String? tambahan]) {
 String? _contohIsian(AppLocalizations l10n, FieldLembarKerja field) =>
     field.kode == 'lokasi_nama' ? l10n.lkContohNamaTempat : null;
 
+/// Kode kolom Order Number di bentuk lembar kerja.
+const kodeNomorOrder = 'nomor_order';
+
+/// Dialog alasan koreksi untuk admin/super admin yang menyimpan lembar sesi
+/// `menunggu_approval`. Memulangkan teks (≥ 10 karakter, sama dengan aturan
+/// server) atau `null` kalau dibatalkan.
+class DialogAlasanKoreksi extends StatefulWidget {
+  const DialogAlasanKoreksi({super.key});
+
+  /// `min:10` di `CalibrationController::alasanKoreksiWajib`.
+  static const minimal = 10;
+
+  /// `max:500` di aturan yang sama.
+  static const maksimal = 500;
+
+  @override
+  State<DialogAlasanKoreksi> createState() => _DialogAlasanKoreksiState();
+}
+
+class _DialogAlasanKoreksiState extends State<DialogAlasanKoreksi> {
+  final _isian = TextEditingController();
+  bool _terlaluPendek = false;
+
+  @override
+  void dispose() {
+    _isian.dispose();
+    super.dispose();
+  }
+
+  void _simpan() {
+    final teks = _isian.text.trim();
+    if (teks.length < DialogAlasanKoreksi.minimal) {
+      setState(() => _terlaluPendek = true);
+      return;
+    }
+    Navigator.of(context).pop(teks);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    return AlertDialog(
+      scrollable: true,
+      title: Text(l10n.lkAlasanKoreksiJudul),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.lkAlasanKoreksiPetunjuk,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          TextField(
+            key: const ValueKey('isian-alasan-koreksi'),
+            controller: _isian,
+            autofocus: true,
+            minLines: 2,
+            maxLines: 4,
+            maxLength: DialogAlasanKoreksi.maksimal,
+            onChanged: (_) {
+              if (_terlaluPendek) setState(() => _terlaluPendek = false);
+            },
+            decoration: InputDecoration(
+              labelText: l10n.lkAlasanKoreksiLabel,
+              errorText: _terlaluPendek ? l10n.lkAlasanKoreksiPendek : null,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.custCancel),
+        ),
+        FilledButton(
+          key: const ValueKey('simpan-alasan-koreksi'),
+          onPressed: _simpan,
+          child: Text(l10n.lkAlasanKoreksiSimpan),
+        ),
+      ],
+    );
+  }
+}
+
 class _Isian extends StatelessWidget {
   const _Isian({required this.field, required this.isian});
 
@@ -3690,6 +3817,29 @@ class _Isian extends StatelessWidget {
     final panjang = field.tipe == TipeField.teksPanjang;
     final angka = field.tipe == TipeField.angka;
     final contoh = _contohIsian(l10n, field);
+
+    // Order Number BACA SAJA di lembar kerja, untuk semua peran (K-49-14).
+    // Teknisi tidak pernah mengisinya; Master Data/super admin mengisinya di
+    // kartu "Data administrasi" layar periksa. Beberapa bentuk lembar (mis.
+    // Micrometer, blok `pemilik`) memang mengirim kolom ini ke teknisi, dan
+    // ketikan di sini dulu hilang diam-diam: nilainya tidak pernah ikut
+    // terkirim dari lembar ini.
+    if (field.kode == kodeNomorOrder) {
+      return TextField(
+        key: const ValueKey('kotak-nomor-order-baca-saja'),
+        controller: controller,
+        readOnly: true,
+        enableInteractiveSelection: false,
+        decoration: InputDecoration(
+          labelText: field.label,
+          hintText: '—',
+          helperText: l10n.lkNomorOrderBacaSaja,
+          helperMaxLines: 2,
+          border: const OutlineInputBorder(),
+          suffixIcon: const Icon(Icons.lock_outline, size: 18),
+        ),
+      );
+    }
 
     return TextField(
       controller: controller,

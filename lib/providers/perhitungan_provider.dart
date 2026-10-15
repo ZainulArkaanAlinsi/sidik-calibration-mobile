@@ -6,6 +6,7 @@ import '../models/validasi.dart';
 import '../services/perhitungan_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
+import 'history_provider.dart' show calibrationDetailProvider;
 import 'riwayat_persetujuan_provider.dart';
 
 final perhitunganServiceProvider = Provider<PerhitunganService>((ref) {
@@ -72,8 +73,14 @@ class AksiAdmin {
     _segarkan();
   }
 
+  /// Kolom administratif (`PATCH /calibrations/{id}/admin`). Yang `null`
+  /// TIDAK dikirim — kirim null mengosongkan kolomnya di server.
+  ///
+  /// Order Number diisi di sini oleh Master Data atau super admin, tidak
+  /// pernah oleh teknisi (K-49-14).
   Future<void> simpanKolomAdmin({
     String? nomorOrder,
+    int? calibrationMethodId,
     int? thermohygroStandardId,
     int? roomId,
     String? tanggalTerima,
@@ -85,6 +92,7 @@ class AksiAdmin {
           token,
           calibrationId,
           nomorOrder: nomorOrder,
+          calibrationMethodId: calibrationMethodId,
           thermohygroStandardId: thermohygroStandardId,
           roomId: roomId,
           tanggalTerima: tanggalTerima,
@@ -94,6 +102,9 @@ class AksiAdmin {
     // lingkungan langsung ikut terhitung di server. Tanpa ini admin lihat
     // kolom yang masih kosong padahal barusan keisi.
     _ref.invalidate(perhitunganProvider(calibrationId));
+    // Kartu "Data administrasi" membaca detail sesi — Order Number yang
+    // barusan disimpan harus kelihatan, dan Setujui berhenti memintanya.
+    _ref.invalidate(calibrationDetailProvider(calibrationId));
   }
 
   void _segarkan() {

@@ -13,6 +13,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../providers/pengendalian_provider.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/galat_peran.dart';
 import '../../widgets/readable_width.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/status_badge.dart';
@@ -362,8 +363,19 @@ class _KartuPengajuan extends ConsumerWidget {
         await _sahkan(context, ref, abaikan: true);
       }
     } catch (e) {
+      // `pemisahan_wewenang` (K-30-03): yang mengisi/mengoreksi sesi ini —
+      // termasuk super admin sendiri sejak K-49-14 — tidak bisa
+      // mengesahkannya. Kalimatnya menyebut jalan keluarnya.
       messenger.showSnackBar(
-        SnackBar(content: Text('$e'.replaceFirst('Exception: ', ''))),
+        SnackBar(
+          content: Text(
+            pesanGalatAksi(
+              l10n,
+              e,
+              cadangan: '$e'.replaceFirst('Exception: ', ''),
+            ),
+          ),
+        ),
       );
     }
   }

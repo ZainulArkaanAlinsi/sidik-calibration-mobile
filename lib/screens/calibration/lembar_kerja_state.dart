@@ -2257,6 +2257,9 @@ class LembarKerjaState {
     isiTeks('pemilik_alamat', isi.pemilikAlamat);
     isiTeks('catatan_teknisi', isi.catatanTeknisi);
     isiTeks('lokasi_nama', isi.lokasiNama);
+    // Cuma DITAMPILKAN (kotaknya baca saja) — tidak pernah ikut terkirim dari
+    // lembar ini. Order Number diisi Master Data di layar periksa (K-49-14).
+    isiTeks('nomor_order', isi.nomorOrder);
 
     // Kuncinya dari bentuk lembar kerja, jadi kolom yang udah nggak ada di
     // bentuk baru dilewat begitu aja — bukan bikin controller yatim.
@@ -3498,6 +3501,11 @@ class LembarKerjaState {
   /// Susun payload. **Nggak ada validasi di sini** — apa pun kondisinya, isian
   /// yang ada dikirim apa adanya. Yang nahan sertifikat terbit itu pemeriksaan
   /// admin, bukan formulirnya.
+  /// Alasan koreksi yang ikut terkirim di [toSubmission] — diisi layar tepat
+  /// sebelum menyimpan sesi `menunggu_approval` yang dibuka admin/super admin,
+  /// lalu dikosongkan lagi supaya tidak ikut ke pratinjau berikutnya.
+  String? alasanKoreksi;
+
   LembarKerjaSubmission toSubmission({required bool draft}) {
     // Kolom yang syarat tampilnya nggak kepenuhan dikosongin DI SINI juga,
     // bukan cuma waktu dropdown-nya diubah: draft yang dipulihkan bisa bawa
@@ -3667,6 +3675,7 @@ class LembarKerjaState {
       measurements: measurements,
       measurementsGrid: measurementsGrid ?? measurementsPasangan,
       inputMethod: adaIsianDariFoto ? MetodeInput.ocr : MetodeInput.manual,
+      alasanKoreksi: alasanKoreksi,
     );
   }
 
