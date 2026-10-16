@@ -159,6 +159,25 @@ class EquipmentLookup {
     lokasi: e.lokasi,
   );
 
+  /// Kebalikan [EquipmentLookup.fromJson] — bentuknya sama persis dengan
+  /// respons `GET /api/equipments`, jadi dibaca balik lewat jalur yang sama.
+  /// Dipakai salinan lembar kerja di HP (draf offline).
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'nama_alat': namaAlat,
+    'serial_number': serialNumber,
+    'kategori': kategori,
+    'status': status,
+    'merk': merk,
+    'model': model,
+    'satuan': satuan,
+    'range_min': rangeMin,
+    'range_max': rangeMax,
+    'resolusi': resolusi,
+    'pelanggan': {'nama': pelangganNama, 'alamat': pelangganAlamat},
+    'lokasi': lokasi,
+  };
+
   factory EquipmentLookup.fromJson(Map<String, dynamic> json) {
     final pelanggan = json['pelanggan'] as Map<String, dynamic>? ?? const {};
 

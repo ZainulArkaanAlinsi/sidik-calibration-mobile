@@ -8,6 +8,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/sidik_theme.dart';
 import '../../core/utils/angka.dart';
 import '../../core/utils/uuid.dart';
+import '../../core/utils/waktu_tampil.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_detail.dart' show MeasurementResult;
 import '../../models/calibration_history_item.dart' show CalibrationStatus;
@@ -20,6 +21,7 @@ import '../../models/room.dart';
 import '../../models/standard.dart';
 import '../../providers/autoclave_provider.dart';
 import '../../providers/contoh_sel_provider.dart';
+import '../../providers/draf_lokal_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/calibration_input_provider.dart';
 import '../../providers/history_provider.dart';
@@ -29,7 +31,8 @@ import '../../providers/versi_provider.dart';
 import '../../models/worksheet_template.dart';
 import '../../providers/worksheet_scan_provider.dart';
 import 'pindai_formulir_asli_flow.dart';
-import '../../services/auth_service.dart' show AuthException;
+import '../../services/auth_service.dart' show AuthException, gagalJaringan;
+import '../../services/draf_lokal.dart';
 import '../../services/penampung_contoh_sel.dart';
 import '../../widgets/autoclave_hasil_panel.dart';
 import '../../widgets/banner_status_standar.dart';
@@ -39,6 +42,7 @@ import '../../widgets/sidik_loader.dart';
 import '../../widgets/tampil_masuk.dart';
 import 'kinerja_lembar.dart';
 import 'lembar_kerja_state.dart';
+import 'penjaga_draf_lokal.dart';
 import 'widgets/dropdown_gagal.dart';
 import '../equipment/equipment_form_screen.dart';
 import 'widgets/lembar_kerja_grid.dart';
@@ -74,11 +78,20 @@ class LembarKerjaScreen extends ConsumerStatefulWidget {
     this.sesiId,
     this.judulTambahan,
     this.profil = 'ph_meter',
+    this.drafLokal,
   });
 
   /// Keisi = lanjut draft / perbaiki sesi yang dikembalikan admin (`PUT`).
   /// Null = sesi baru (`POST`).
   final int? sesiId;
+
+  /// Salinan di HP yang dibuka dari layar Draf ("Belum tersinkron di HP ini").
+  ///
+  /// Kunci bentuknya (alat & jumlah kotak) dipakai SEJAK permintaan pertama,
+  /// jadi lembarnya langsung ditarik dalam bentuk yang disusutkan ke alat itu
+  /// — isian yang dipulihkan mendarat di baris yang sama dengan waktu
+  /// diketik, bukan di lembar generik yang barisnya bisa beda.
+  final DrafLokal? drafLokal;
 
   final String? judulTambahan;
 
@@ -104,6 +117,8 @@ class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _equipmentId = widget.drafLokal?.equipmentId;
+    _pengulangan = widget.drafLokal?.pengulangan;
 
     // Tarik ulang SAAT LEMBAR DIBUKA. `lembarKerjaProvider` bukan autoDispose,
     // jadi lembar yang pernah dibuka (pagi tadi, versi acuan lama) dipakai
@@ -317,9 +332,24 @@ class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen>
           bentuk: b,
           sesiId: widget.sesiId,
           profil: widget.profil,
+          judulTambahan: widget.judulTambahan,
+          drafLokal: widget.drafLokal,
+          equipmentIdKunci: _equipmentId,
+          pengulanganKunci: _pengulangan,
           onAlatBerubah: (id) {
             if (id == _equipmentId) return;
             setState(() => _equipmentId = id);
+          },
+          // Salinan di HP dipulihkan di atas bentuk yang kuncinya beda: tarik
+          // bentuk alat & jumlah kotak yang dipakai waktu salinannya ditulis.
+          onPulihkanKunci: (equipmentId, pengulangan) {
+            if (equipmentId == _equipmentId && pengulangan == _pengulangan) {
+              return;
+            }
+            setState(() {
+              _equipmentId = equipmentId;
+              _pengulangan = pengulangan;
+            });
           },
         ),
         (_, AsyncError(:final error)) => _Gagal(
@@ -389,8 +419,13 @@ class _Form extends ConsumerStatefulWidget {
   const _Form({
     required this.bentuk,
     required this.onAlatBerubah,
+    required this.onPulihkanKunci,
     required this.profil,
     this.sesiId,
+    this.judulTambahan,
+    this.drafLokal,
+    this.equipmentIdKunci,
+    this.pengulanganKunci,
   });
 
   final LembarKerja bentuk;
@@ -411,6 +446,18 @@ class _Form extends ConsumerStatefulWidget {
 
   final int? sesiId;
 
+  final String? judulTambahan;
+
+  /// Lihat [LembarKerjaScreen.drafLokal].
+  final DrafLokal? drafLokal;
+
+  /// Kunci bentuk yang DIMINTA layar di atas (alat & jumlah kotak) — dipakai
+  /// buat tahu salinan di HP perlu menunggu bentuk lain dulu atau nggak.
+  final int? equipmentIdKunci;
+  final int? pengulanganKunci;
+
+  final void Function(int? equipmentId, int? pengulangan) onPulihkanKunci;
+
   @override
   ConsumerState<_Form> createState() => _FormState();
 }
@@ -422,7 +469,11 @@ class _FormState extends ConsumerState<_Form> {
     // putus pas nunggu respons dan teknisi nekan kirim lagi, backend ngenalin
     // ini submission yang sama dan balikin sesi yang udah ada — bukan bikin
     // sesi dobel buat satu kejadian kalibrasi.
-    clientRequestId: generateUuidV4(),
+    //
+    // Salinan dari HP membawa `client_request_id`-nya sendiri: kalau kiriman
+    // sebelumnya ternyata SUDAH sampai server, kunci yang sama yang bikin
+    // server mengenalinya — bukan melahirkan sesi kembar.
+    clientRequestId: widget.drafLokal?.clientRequestId ?? generateUuidV4(),
     // Kode lembar ikut masuk state supaya picker "Pilih alat" bisa menyaring
     // ke alat lembar INI. Lihat `LembarKerjaState.profil`.
     profil: widget.profil,
@@ -461,6 +512,51 @@ class _FormState extends ConsumerState<_Form> {
   /// yang perlu dibuang.
   PenampungContohSel? _penampung;
 
+  // ------------------------------------------------ salinan di HP (F3)
+
+  /// Simpanan otomatis layar ini. `null` kalau belum ada akun yang login —
+  /// salinan selalu ditulis atas nama satu akun.
+  PenjagaDrafLokal? _penjaga;
+
+  /// Daftar kunci yang lagi dibuka (dibaca pengirim antrean), dipegang di
+  /// field supaya [dispose] nggak perlu menyentuh `ref`.
+  Set<String>? _terbuka;
+
+  AppLifecycleListener? _siklus;
+  Timer? _periksaBerkala;
+
+  /// Id sesi yang dipakai simpan berikutnya. Mulai dari [_Form.sesiId], dan
+  /// terisi sendiri begitu `POST` pertama di layar ini dapat id — supaya
+  /// simpan berikutnya `PUT` ke sana, bukan `POST` lagi.
+  int? _sesiIdTerkini;
+
+  /// Sesi lama yang dibuka sudah lewat tahap yang boleh diubah teknisi
+  /// (`menunggu_approval` / `disetujui`) — nggak pernah disimpan otomatis.
+  bool _hanyaBaca = false;
+
+  /// Isian sedang dipulihkan — pendengar ketikan yang ikut menyala waktu
+  /// teksnya ditulis bukan ketikan teknisi.
+  bool _sedangMemulihkan = false;
+
+  /// Salinan yang dipulihkan di atas bentuk yang kuncinya beda — ditempel
+  /// ulang begitu bentuk yang benar tiba (lihat [didUpdateWidget]).
+  DrafLokal? _salinanTertunda;
+
+  /// Salinan di HP waktu layar ini dibuka — dikembalikan apa adanya kalau
+  /// teknisi keluar tanpa menyimpan dari draf yang sudah antre.
+  DrafLokal? _entriAwal;
+
+  /// Isiannya datang dari salinan di HP — banner "Dipulihkan dari HP ini".
+  DateTime? _dipulihkanPada;
+
+  Set<String> get _kunciLayar => {
+    DrafLokal.kunciUntuk(clientRequestId: _isian.clientRequestId),
+    if (_sesiIdTerkini case final id?)
+      DrafLokal.kunciUntuk(sesiId: id, clientRequestId: _isian.clientRequestId),
+  };
+
+  bool get _bolehSimpanOtomatis => !_hanyaBaca && !_sesiLamaGagalDimuat;
+
   @override
   void initState() {
     super.initState();
@@ -478,6 +574,9 @@ class _FormState extends ConsumerState<_Form> {
     _kotorCtl = ref.read(lembarKotorProvider.notifier);
     _pratinjauCtl = ref.read(pratinjauProvider.notifier);
     _tandaTampilTerakhir = _hitungTandaTampil();
+
+    _sesiIdTerkini = widget.sesiId;
+    _pasangSalinanHp();
 
     final id = widget.sesiId;
     if (id != null) {
@@ -618,6 +717,10 @@ class _FormState extends ConsumerState<_Form> {
   /// seri, dan pemilik ikut kosong. Sekarang ada banner dengan tombol muat
   /// ulang, dan simpan minta konfirmasi sadar ([_konfirmasiTimpaSesiLama]).
   Future<void> _muatSesiLama(int id) async {
+    // Selama sesinya dimuat (termasuk "muat ulang"), simpanan otomatis DIAM —
+    // yang ada di formulir belum isian sesi itu.
+    _penjaga?.aktif = false;
+
     // Providernya bukan autoDispose: galat percobaan sebelumnya masih
     // tersimpan, dan tanpa ini "muat ulang" cuma memulangkan galat yang sama.
     if (_sesiLamaGagalDimuat) ref.invalidate(calibrationDetailProvider(id));
@@ -652,6 +755,16 @@ class _FormState extends ConsumerState<_Form> {
         if (alatSesi != null) _isian.alat ??= alatSesi;
         if (isi != null) _isian.muatDariSesi(isi);
         kebuang = _isian.terapkanPembacaan(detail.pembacaanMentah);
+        // Autoklaf nggak punya `pembacaan_mentah` — matriksnya tersimpan utuh
+        // di `hasil_autoclave.lembar`. Tanpa ini draft Autoklaf kebuka dengan
+        // matriks kosong, dan simpan ulangnya (`PUT`) menimpa lembar di server.
+        final lembarAutoclave = detail.lembarAutoclave;
+        if (lembarAutoclave != null) {
+          _isian.terapkanLembarMatriks(
+            lembarAutoclave,
+            ocr: detail.ocrAutoclave,
+          );
+        }
         // Alat sesi lama ikut ngabarin ke atas, jadi lembar yang ditarik ulang
         // udah bentuk yang disusutin ke alat itu — bukan generik.
         widget.onAlatBerubah(_isian.alat?.id);
@@ -678,6 +791,25 @@ class _FormState extends ConsumerState<_Form> {
             duration: const Duration(seconds: 8),
           ),
         );
+      }
+
+      _hanyaBaca =
+          !(detail.status == CalibrationStatus.draft ||
+              detail.status == CalibrationStatus.perluRevisi);
+      _penjaga?.basisServer = detail.diubahPada;
+
+      // Dipisah try-nya: salinan HP yang gagal dibaca bukan "sesi gagal
+      // dimuat" — sesinya sudah termuat utuh dari server.
+      try {
+        await _pulihkanSesiDariHp(id, detail.diubahPada);
+      } catch (_) {
+        // Simpanan lokal itu jaring pengaman; kegagalannya nggak menutup apa
+        // pun — tapi simpan otomatisnya tetap dinyalakan, supaya ketikan
+        // sesudah ini nggak ikut tanpa jaring.
+        if (mounted && _salinanTertunda == null) {
+          _penjaga?.tetapkanAcuan();
+          _penjaga?.aktif = _bolehSimpanOtomatis;
+        }
       }
     } catch (_) {
       // Lihat docblock: formulirnya tetap bisa diisi, tapi keadaannya
@@ -717,6 +849,347 @@ class _FormState extends ConsumerState<_Form> {
     }
   }
 
+  /// Pasang simpanan otomatis layar ini (F3-01).
+  void _pasangSalinanHp() {
+    final userId = ref.read(authProvider).value?.id;
+    if (userId == null) return;
+
+    final penjaga = PenjagaDrafLokal(
+      simpanan: ref.read(simpananDrafLokalProvider),
+      userId: userId,
+      profil: widget.profil,
+      judulTambahan: widget.judulTambahan,
+      jam: ref.read(jamProvider),
+      keadaan: _keadaanSalinan,
+      buatKiriman: _kirimanDraf,
+    );
+    _penjaga = penjaga;
+    final terbuka = ref.read(drafLokalTerbukaProvider)..addAll(_kunciLayar);
+    _terbuka = terbuka;
+
+    ref
+        .read(versiServiceProvider)
+        .versiTerpasang()
+        .then((v) => penjaga.versiAplikasi = v)
+        .ignore();
+
+    // Seketika waktu aplikasi ke latar: sesudah itu sistem boleh membunuh
+    // prosesnya kapan saja tanpa kabar.
+    _siklus = AppLifecycleListener(
+      onStateChange: (keadaan) {
+        if (keadaan == AppLifecycleState.paused ||
+            keadaan == AppLifecycleState.inactive ||
+            keadaan == AppLifecycleState.hidden ||
+            keadaan == AppLifecycleState.detached) {
+          unawaited(penjaga.simpanSekarang());
+        }
+      },
+    );
+
+    // Jaring pengaman buat kotak tanpa pendengar ketikan (kolom identitas,
+    // keterangan usage check) — lihat [PenjagaDrafLokal.periksa].
+    _periksaBerkala = Timer.periodic(
+      const Duration(seconds: 3),
+      (_) => penjaga.periksa(),
+    );
+
+    // Sesi lama baru boleh disimpan otomatis SESUDAH termuat — lihat
+    // [_muatSesiLama].
+    if (widget.sesiId != null) return;
+
+    final awal = widget.drafLokal;
+    if (awal != null) {
+      _entriAwal = awal;
+      _terapkanSalinan(awal, dariInit: true);
+    } else {
+      penjaga.tetapkanAcuan();
+      penjaga.aktif = true;
+    }
+  }
+
+  KeadaanDrafLokal _keadaanSalinan() {
+    final alat = _isian.alat;
+
+    return (
+      isian: _isian.salinanLokal(),
+      adaIsian: _isian.adaIsianApaPun,
+      sesiId: _sesiIdTerkini,
+      clientRequestId: _isian.clientRequestId,
+      equipmentId: alat?.id,
+      pengulangan: widget.pengulanganKunci,
+      judul: alat == null ? null : '${alat.namaAlat} · ${alat.serialNumber}',
+      matriks: _isian.bagianMatriks != null,
+    );
+  }
+
+  /// Body draf yang dikirim pengirim antrean — dirakit lewat jalur yang SAMA
+  /// dengan tombol Simpan Draf.
+  Map<String, dynamic>? _kirimanDraf() {
+    final bagian = _isian.bagianMatriks;
+    if (bagian != null) return _isian.payloadSimpanMatriks(bagian, draft: true);
+    if (_isian.alat == null) return null;
+    return _isian.toSubmission(draft: true).toJson();
+  }
+
+  void _tandaiBerubah() {
+    if (_sedangMemulihkan) return;
+
+    // Teknisi mulai mengetik sebelum bentuk yang ditunggu salinannya tiba
+    // (mis. sinyal putus): yang disimpan sejak sekarang yang dia lihat.
+    if (_salinanTertunda != null) {
+      _salinanTertunda = null;
+      _penjaga?.aktif = _bolehSimpanOtomatis;
+    }
+
+    _penjaga?.berubah();
+  }
+
+  /// Sesi lama sudah termuat dari server — pakai salinan HP kalau lebih baru.
+  Future<void> _pulihkanSesiDariHp(int id, DateTime? diubahServer) async {
+    final penjaga = _penjaga;
+    if (penjaga == null || _hanyaBaca) return;
+
+    final kunci = DrafLokal.kunciUntuk(
+      sesiId: id,
+      clientRequestId: _isian.clientRequestId,
+    );
+    final dibawa = widget.drafLokal;
+    final lokal =
+        await penjaga.simpanan.baca(penjaga.userId, kunci) ??
+        (dibawa?.sesiId == id ? dibawa : null);
+
+    if (!mounted || _sesiLamaGagalDimuat) return;
+
+    if (lokal == null) {
+      penjaga.tetapkanAcuan();
+      penjaga.aktif = _bolehSimpanOtomatis;
+      return;
+    }
+
+    if (!lokal.lebihBaruDari(diubahServer)) {
+      // Server diubah SESUDAH salinan ini ditulis (dari perangkat lain).
+      //
+      // Draf yang SENGAJA disimpan teknisi (antre / ditolak server) nggak
+      // dibuang diam-diam — itu data lapangan yang belum pernah sampai server.
+      // Teknisi yang memilih versi mana yang dipakai.
+      if (lokal.status != StatusDrafLokal.lokal) {
+        final pakaiHp = await _pilihVersiHpAtauServer();
+        if (!mounted || _sesiLamaGagalDimuat) return;
+        if (pakaiHp) {
+          // Pilihannya diingat: dasar salinannya digeser ke versi server yang
+          // barusan dilihat, jadi dibuka lagi nanti nggak ditanya ulang. Isi
+          // salinannya sendiri nggak disentuh.
+          final dipilih = lokal.copyWith(basisServer: diubahServer);
+          unawaited(penjaga.simpanan.simpan(dipilih));
+          _entriAwal = dipilih;
+          setState(() => _terapkanSalinan(dipilih));
+          return;
+        }
+      }
+
+      // Simpanan otomatis (atau teknisi memilih versi server): salinannya
+      // dibuang — kalau dibiarkan, simpan otomatis berikutnya atau antreannya
+      // menimpa versi server yang lebih baru.
+      unawaited(penjaga.simpanan.hapus(penjaga.userId, lokal.kunci));
+      penjaga.tetapkanAcuan();
+      penjaga.aktif = _bolehSimpanOtomatis;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context).lkSalinanHpLebihLama),
+          duration: const Duration(seconds: 8),
+        ),
+      );
+      return;
+    }
+
+    _entriAwal = lokal;
+    setState(() => _terapkanSalinan(lokal));
+  }
+
+  /// Versi server lebih baru dari draf yang antre di HP — tanya, jangan
+  /// menebak. `true` = pakai versi HP.
+  ///
+  /// Nggak bisa ditutup dengan mengetuk di luar dialog: dua jawabannya sama-sama
+  /// membuang sesuatu, jadi harus dipilih sadar.
+  Future<bool> _pilihVersiHpAtauServer() async {
+    final l10n = AppLocalizations.of(context);
+
+    final pakaiHp = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        scrollable: true,
+        title: Text(l10n.lkVersiBentrokJudul),
+        content: Text(l10n.lkVersiBentrokIsi),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.lkPakaiVersiServer),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.lkPakaiVersiHp),
+          ),
+        ],
+      ),
+    );
+
+    return pakaiHp ?? false;
+  }
+
+  /// Tempel salinan HP ke formulir. Lihat
+  /// [LembarKerjaState.pulihkanSalinanLokal].
+  void _terapkanSalinan(DrafLokal d, {bool dariInit = false}) {
+    final penjaga = _penjaga;
+
+    final kebuang = _tempelIsianSalinan(d.isian);
+    penjaga?.pakaiEntri(d);
+    penjaga?.tetapkanAcuan();
+    _dipulihkanPada = d.disimpanPada;
+
+    final cocok =
+        d.equipmentId == widget.equipmentIdKunci &&
+        d.pengulangan == widget.pengulanganKunci;
+
+    if (cocok) {
+      penjaga?.aktif = _bolehSimpanOtomatis;
+      if (kebuang > 0 && !dariInit) _kabariTitikKebuang(kebuang);
+    } else {
+      // Bentuk yang kepasang bukan bentuk waktu salinannya ditulis: tarik
+      // yang benar, tempel ulang begitu tiba. Simpan otomatis menunggu —
+      // menulis sekarang menyimpan versi yang barisnya belum lengkap.
+      _salinanTertunda = d;
+      penjaga?.aktif = false;
+      if (dariInit) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) widget.onPulihkanKunci(d.equipmentId, d.pengulangan);
+        });
+      } else {
+        widget.onPulihkanKunci(d.equipmentId, d.pengulangan);
+      }
+    }
+
+    if (!dariInit) _jadwalkanPratinjau();
+  }
+
+  int _tempelIsianSalinan(Map<String, dynamic> isian) {
+    _sedangMemulihkan = true;
+    try {
+      return _isian.pulihkanSalinanLokal(isian);
+    } finally {
+      _sedangMemulihkan = false;
+    }
+  }
+
+  void _kabariTitikKebuang(int kebuang) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          AppLocalizations.of(context).lkIsianTitikKebuang(kebuang),
+        ),
+        duration: const Duration(seconds: 8),
+      ),
+    );
+  }
+
+  /// "Buang" di banner pemulihan: salinan HP dihapus, lembar dibuka ulang
+  /// dari versi server (atau kosong, buat lembar yang belum pernah tersimpan).
+  Future<void> _buangSalinanHp() async {
+    final l10n = AppLocalizations.of(context);
+    final navigator = Navigator.of(context);
+
+    final buang = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        scrollable: true,
+        title: Text(l10n.lkBuangSalinanHpJudul),
+        content: Text(l10n.lkBuangSalinanHpIsi),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.lkBuangSalinanHpBatal),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.lkBuangSalinanHp),
+          ),
+        ],
+      ),
+    );
+
+    if (buang != true || !mounted) return;
+
+    _periksaBerkala?.cancel();
+    await _penjaga?.hapus();
+    if (!mounted) return;
+    ref.invalidate(drafLokalProvider);
+
+    navigator.pushReplacement(
+      MaterialPageRoute<void>(
+        builder: (_) => LembarKerjaScreen(
+          sesiId: widget.sesiId,
+          profil: widget.profil,
+          judulTambahan: widget.judulTambahan,
+        ),
+      ),
+    );
+  }
+
+  /// Tersimpan di server: salinan HP-nya nggak dibutuhkan lagi.
+  ///
+  /// Nggak di-`await`: penghapusannya nggak boleh menahan layar, dan daftar
+  /// Draf disegarkan lewat container begitu selesai (layarnya sudah ditutup).
+  void _selesaiTersimpanDiServer() {
+    final penjaga = _penjaga;
+    if (penjaga == null) return;
+
+    final wadah = ProviderScope.containerOf(context, listen: false);
+    penjaga.hapus().then((_) {
+      try {
+        wadah.invalidate(drafLokalProvider);
+      } catch (_) {
+        // Container sudah dibuang (aplikasi ditutup) — nggak ada yang
+        // perlu disegarkan.
+      }
+    }).ignore();
+  }
+
+  /// Simpan Draf gagal karena server nggak terjangkau: simpan di HP, antre,
+  /// dan biarkan teknisi keluar dari layar tanpa kehilangan apa pun.
+  ///
+  /// Balik `false` kalau nggak bisa diantrekan (belum ada akun) — layar
+  /// menampilkan galat seperti biasa.
+  bool _antrekanOffline(Map<String, dynamic> kiriman) {
+    final penjaga = _penjaga;
+    if (penjaga == null) return false;
+
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final wadah = ProviderScope.containerOf(context, listen: false);
+
+    penjaga.antrekan(kiriman, mungkinSudahSampai: _sesiIdTerkini == null).then((
+      _,
+    ) {
+      try {
+        wadah.invalidate(drafLokalProvider);
+        wadah.read(sinkronDrafLokalProvider)?.jadwalkan();
+      } catch (_) {
+        // Lihat [_selesaiTersimpanDiServer].
+      }
+    }).ignore();
+
+    setState(() => _mengirim = false);
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(l10n.lkDisimpanDiHp),
+        duration: const Duration(seconds: 8),
+      ),
+    );
+    navigator.pop();
+    return true;
+  }
+
   /// Satu pintu buat tiap perubahan isian.
   ///
   /// Selain nge-rebuild, dia ngabarin alat yang lagi kepilih ke layar di atas.
@@ -735,6 +1208,7 @@ class _FormState extends ConsumerState<_Form> {
     _tandaTampilTerakhir = _hitungTandaTampil();
     widget.onAlatBerubah(_isian.alat?.id);
     _jadwalkanPratinjau();
+    _tandaiBerubah();
   }
 
   /// Angka diketik di kotak yang BUKAN penentu tampil-tidaknya kolom lain:
@@ -748,6 +1222,8 @@ class _FormState extends ConsumerState<_Form> {
       return;
     }
     _jadwalkanPratinjau();
+    // Simpan otomatis: cuma menggeser Timer jeda — tanpa setState.
+    _tandaiBerubah();
   }
 
   late final LembarKotorController _kotorCtl;
@@ -840,7 +1316,24 @@ class _FormState extends ConsumerState<_Form> {
 
     if (identical(widget.bentuk, lama.bentuk)) return;
 
-    final kebuang = _isian.gantiBentuk(widget.bentuk);
+    var kebuang = _isian.gantiBentuk(widget.bentuk);
+
+    // Bentuk yang ditunggu salinan HP sudah tiba: tempel ulang salinannya
+    // utuh. Yang "kebuang" waktu bentuknya berganti di sini cuma baris lembar
+    // generik — isian aslinya ada di salinan, bukan hilang.
+    final tertunda = _salinanTertunda;
+    if (tertunda != null &&
+        widget.equipmentIdKunci == tertunda.equipmentId &&
+        widget.pengulanganKunci == tertunda.pengulangan) {
+      _salinanTertunda = null;
+      kebuang = _tempelIsianSalinan(tertunda.isian);
+      _penjaga?.tetapkanAcuan();
+      _penjaga?.aktif = _bolehSimpanOtomatis;
+      _jadwalkanPratinjau();
+    } else if (tertunda != null) {
+      kebuang = 0;
+    }
+
     setState(() {});
 
     if (kebuang > 0 && mounted) {
@@ -884,6 +1377,19 @@ class _FormState extends ConsumerState<_Form> {
     // Cuma milik sesi ini — layar lain yang masih hidup nggak boleh kehilangan
     // tampungannya gara-gara layar ini ditutup.
     _penampung?.buang(_isian.clientRequestId);
+
+    // Ditulis SEBELUM controller-nya dibuang: snapshot diambil sinkron, baru
+    // tulisan ke disk yang jalan belakangan. Layar yang ditutup tanpa
+    // menyimpan (atau dibunuh sistem sesudah ke latar) tetap meninggalkan
+    // isiannya di HP.
+    _periksaBerkala?.cancel();
+    _siklus?.dispose();
+    final penjaga = _penjaga;
+    if (penjaga != null) {
+      unawaited(penjaga.simpanSekarang());
+      penjaga.dispose();
+    }
+    _terbuka?.removeAll(_kunciLayar);
 
     _isian.dispose();
     super.dispose();
@@ -1107,6 +1613,7 @@ class _FormState extends ConsumerState<_Form> {
       return;
     }
 
+    final pengirim = ref.read(kirimLembarKerjaProvider.notifier);
     _isian.alasanKoreksi = alasanKoreksi;
     final LembarKerjaSubmission kiriman;
     try {
@@ -1114,21 +1621,53 @@ class _FormState extends ConsumerState<_Form> {
     } finally {
       _isian.alasanKoreksi = null;
     }
+    final sesiAwal = _sesiIdTerkini;
+    HasilKirimLembarKerja? hasil;
 
-    final hasil = await ref
-        .read(kirimLembarKerjaProvider.notifier)
-        .kirim(kiriman, sesiId: widget.sesiId);
+    if (sesiAwal == null && (_penjaga?.dicobaKirim ?? false)) {
+      // Kiriman sebelumnya dengan `client_request_id` ini gagal karena
+      // jaringan — servernya mungkin SUDAH menyimpannya. `POST` ulang
+      // memulangkan sesi lama apa adanya tanpa membaca isi baru, jadi isinya
+      // dipastikan lewat `PUT` ke id yang dipulangkan. Langkah pertamanya
+      // selalu draft: sesi yang sudah ada boleh di-`PUT` dari draft.
+      final awal = await pengirim.kirim(
+        _isian.toSubmission(draft: true),
+        sesiId: null,
+      );
+      if (awal != null) {
+        _sesiIdTerkini = awal.id;
+        hasil = await pengirim.kirim(kiriman, sesiId: awal.id);
+      }
+    } else {
+      hasil = await pengirim.kirim(kiriman, sesiId: sesiAwal);
+    }
 
     if (!mounted) return;
     setState(() => _mengirim = false);
 
     if (hasil == null) {
       final error = ref.read(kirimLembarKerjaProvider).error;
+
+      // Server nggak terjangkau: draf disimpan di HP dan dikirim otomatis
+      // nanti. Kirim ke admin SENGAJA nggak diantrekan — itu keputusan sadar
+      // teknisi, bukan efek samping sinyal yang balik — tapi isiannya tetap
+      // ditahan di HP.
+      if (gagalJaringan(error)) {
+        if (draft && _antrekanOffline(kiriman.toJson())) return;
+        if (!draft) {
+          _penjaga
+              ?.catatGagalJaringan(mungkinSudahSampai: _sesiIdTerkini == null)
+              .ignore();
+        }
+      }
+
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.lkGagalKirim('$error'))),
       );
       return;
     }
+
+    _selesaiTersimpanDiServer();
 
     // Potongan sel yang ditahan sejak difoto diserahkan SEKARANG — labelnya
     // angka yang barusan teknisi kirimkan, bukan yang dibaca OCR waktu
@@ -1217,9 +1756,31 @@ class _FormState extends ConsumerState<_Form> {
         return;
       }
 
-      final id = await ref
-          .read(autoclaveServiceProvider)
-          .simpan(token, _isian.payloadSimpanMatriks(bagian, draft: draft));
+      // Sesi yang dibuka ulang (lanjut draft / perbaiki revisi) WAJIB `PUT` ke
+      // id-nya sendiri. Lewat `POST`, lembar yang dibuka ulang membawa
+      // `client_request_id` baru — server nggak punya cara mengenalinya, dan
+      // tiap "Simpan draft" melahirkan sesi Autoklaf kembar.
+      final layanan = ref.read(autoclaveServiceProvider);
+      final payload = _isian.payloadSimpanMatriks(bagian, draft: draft);
+      final sesiId = _sesiIdTerkini;
+      final int id;
+
+      if (sesiId != null) {
+        id = await layanan.perbarui(token, sesiId, payload);
+      } else if (_penjaga?.dicobaKirim ?? false) {
+        // Kembarannya di `_submit`: `POST` ulang memulangkan sesi lama tanpa
+        // membaca isi baru, jadi isinya dipastikan lewat `PUT`.
+        final awal = await layanan.simpan(
+          token,
+          _isian.payloadSimpanMatriks(bagian, draft: true),
+        );
+        _sesiIdTerkini = awal;
+        id = await layanan.perbarui(token, awal, payload);
+      } else {
+        id = await layanan.simpan(token, payload);
+      }
+
+      _selesaiTersimpanDiServer();
 
       // Lembar bermatriks lewat endpoint alatnya sendiri, jadi dia NGGAK
       // kelewatan `KirimLembarKerjaController.kirim()` yang megang invalidasi
@@ -1256,6 +1817,22 @@ class _FormState extends ConsumerState<_Form> {
       navigator.pop(id);
     } catch (e) {
       if (!mounted) return;
+
+      // Lihat kembarannya di `_submit`.
+      if (gagalJaringan(e)) {
+        if (draft &&
+            _antrekanOffline(
+              _isian.payloadSimpanMatriks(bagian, draft: true),
+            )) {
+          return;
+        }
+        if (!draft) {
+          _penjaga
+              ?.catatGagalJaringan(mungkinSudahSampai: _sesiIdTerkini == null)
+              .ignore();
+        }
+      }
+
       setState(() => _mengirim = false);
       messenger.showSnackBar(SnackBar(content: Text(l10n.lkGagalKirim('$e'))));
     }
@@ -1475,6 +2052,23 @@ class _FormState extends ConsumerState<_Form> {
       ),
     );
 
+    // Teknisi SENGAJA keluar tanpa menyimpan — dialognya bilang ketikannya
+    // hilang, dan itu yang dijalankan: salinan simpan-otomatis sesi layar ini
+    // ikut dibuang. Draf yang SUDAH antre (sengaja disimpan sebelumnya)
+    // dikembalikan ke isi waktu layar ini dibuka, bukan ikut dibuang.
+    if (lanjut == true) {
+      final penjaga = _penjaga;
+      final awal = _entriAwal;
+      if (penjaga != null) {
+        _periksaBerkala?.cancel();
+        if (awal != null && awal.status != StatusDrafLokal.lokal) {
+          penjaga.kembalikan(awal).ignore();
+        } else {
+          penjaga.hapus().ignore();
+        }
+      }
+    }
+
     return lanjut ?? false;
   }
 
@@ -1559,6 +2153,21 @@ class _FormState extends ConsumerState<_Form> {
                       icon: const Icon(Icons.photo_camera_outlined, size: 18),
                       label: Text(AppLocalizations.of(context).phCalibCaraFoto),
                     ),
+                  ),
+                ),
+              // Isian yang tampil datang dari HP ini, bukan dari server —
+              // harus kelihatan, dan harus bisa dibuang (F3-02).
+              if (_dipulihkanPada case final waktu?)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    0,
+                  ),
+                  child: _BannerDipulihkan(
+                    waktu: waktu,
+                    onBuang: _buangSalinanHp,
                   ),
                 ),
               Expanded(
@@ -1743,6 +2352,46 @@ class _BannerSesiLamaGagal extends StatelessWidget {
             onPressed: onMuatUlang,
             child: Text(l10n.lkMuatUlangSesiLama),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// "Dipulihkan dari HP ini" — isian yang tampil diambil dari salinan di HP,
+/// bukan dari server. Tombol "Buang" mengembalikan lembar ke versi server.
+class _BannerDipulihkan extends StatelessWidget {
+  const _BannerDipulihkan({required this.waktu, required this.onBuang});
+
+  final DateTime waktu;
+  final VoidCallback onBuang;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context).languageCode;
+    final fg = theme.colorScheme.onPrimaryContainer;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.phone_android_outlined, color: fg),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              l10n.lkDipulihkanDariHp(waktuLengkap(waktu.toLocal(), locale)),
+              style: theme.textTheme.bodySmall?.copyWith(color: fg),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          TextButton(onPressed: onBuang, child: Text(l10n.lkBuangSalinanHp)),
         ],
       ),
     );

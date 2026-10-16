@@ -43,6 +43,27 @@ class ApiException extends AuthException {
   bool get butuhKonfirmasi => body['butuh_konfirmasi'] == true;
 }
 
+/// [AuthException] buat permintaan yang GAGAL SAMPAI ke server (sinyal hilang,
+/// timeout, koneksi terputus) — bukan yang ditolak server.
+///
+/// Turunan [AuthException] dengan sengaja, sama alasannya dengan
+/// [ApiException]: semua `catch (AuthException)` yang sudah ada tetap jalan,
+/// pesannya sama persis. Bedanya cuma bisa DIKENALI — dan itu yang dibutuhkan
+/// antrean draf offline: "server nggak terjangkau" boleh disimpan di HP dan
+/// dikirim nanti, "server menolak isinya" nggak.
+class KoneksiException extends AuthException {
+  const KoneksiException(super.message);
+}
+
+/// Galat ini artinya server NGGAK TERJANGKAU (bukan menolak)?
+///
+/// Diputuskan dari hasil permintaannya, bukan dari `connectivity_plus`: wifi
+/// tersambung belum tentu servernya bisa dicapai, dan server Render yang lagi
+/// tidur menjawab 502/503/504 walau sinyalnya penuh.
+bool gagalJaringan(Object? galat) =>
+    galat is KoneksiException ||
+    (galat is ApiException && const {502, 503, 504}.contains(galat.status));
+
 /// Kontrak auth. UI & provider ngomongnya ke sini, bukan ke implementasi —
 /// jadi ganti dari mock ke API asli cukup ganti satu baris di
 /// `authServiceProvider`.

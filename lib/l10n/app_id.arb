@@ -1545,18 +1545,6 @@
       }
     }
   },
-  "lkKakiVersiAcuan": "data acuan {paket} v{nomor}",
-  "@lkKakiVersiAcuan": {
-    "description": "Kaki lembar kerja: versi data acuan yang membangun lembar ini (CR-48 FR-21). paket = kode paket dari server, mis. micrometer; ditampilkan dengan huruf angka.",
-    "placeholders": {
-      "paket": {
-        "type": "String"
-      },
-      "nomor": {
-        "type": "int"
-      }
-    }
-  },
   "lkPengulanganTooltip": "Jumlah kolom pengulangan",
   "lkPengulanganPilihan": "{n} kali pengulangan",
   "@lkPengulanganPilihan": {
@@ -2396,6 +2384,40 @@
   "riwayatSertifikatDibatalkan": "Dibatalkan",
   "riwayatSertifikatDiproses": "Diproses",
   "riwayatSertifikatGagal": "Gagal dibuat",
+  "lkDisimpanDiHp": "Disimpan di HP, dikirim otomatis saat online",
+  "lkDipulihkanDariHp": "Dipulihkan dari HP ini — terakhir {waktu}",
+  "lkBuangSalinanHp": "Buang",
+  "lkBuangSalinanHpJudul": "Buang isian di HP ini?",
+  "lkBuangSalinanHpIsi": "Isian yang belum sampai ke server akan hilang, dan lembar dimuat ulang dari versi server.",
+  "lkBuangSalinanHpBatal": "Batal",
+  "lkSalinanHpLebihLama": "Salinan di HP ini lebih lama dari versi server, jadi yang dipakai versi server.",
+  "drafLokalJudul": "Belum tersinkron di HP ini",
+  "drafServerJudul": "Draf di server",
+  "drafLokalMenunggu": "Menunggu sinyal — dikirim otomatis",
+  "drafLokalPerluDiperbaiki": "Perlu diperbaiki: {pesan}",
+  "drafLokalHanyaDiHp": "Hanya di HP ini — belum disimpan ke server",
+  "drafLokalTanpaAlat": "Lembar kerja tanpa alat",
+  "lkVersiBentrokJudul": "Versi di server lebih baru",
+  "lkVersiBentrokIsi": "Lembar ini diubah di server sesudah draf yang belum terkirim di HP ini disimpan. Pilih versi yang dipakai — versi satunya dibuang.",
+  "lkPakaiVersiHp": "Pakai versi HP",
+  "lkPakaiVersiServer": "Pakai versi server",
+  "drafTertundaMengirim": "Mengirim draf yang belum sampai server…",
+  "drafTertundaLogoutJudul": "Draf belum terkirim",
+  "drafTertundaLogoutIsi": "{jumlah} draf belum terkirim. Draf tetap disimpan di tablet ini dan dikirim saat kamu login lagi.",
+  "drafTertundaLogoutBatal": "Batal",
+  "drafTertundaLogoutLanjut": "Keluar",
+  "lkKakiVersiAcuan": "data acuan {paket} v{nomor}",
+  "@lkKakiVersiAcuan": {
+    "description": "Kaki lembar kerja: versi data acuan yang membangun lembar ini (CR-48 FR-21). paket = kode paket dari server, mis. micrometer; ditampilkan dengan huruf angka.",
+    "placeholders": {
+      "paket": {
+        "type": "String"
+      },
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
   "acuanJudul": "Data acuan",
   "@acuanJudul": {
     "description": "Studio Data Acuan (CR-48): judul menu & seksi. Istilah layar: 'data acuan', bukan 'database'/'rumus'."

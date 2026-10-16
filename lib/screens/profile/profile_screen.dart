@@ -23,6 +23,7 @@ import '../../services/auth_service.dart';
 import '../../widgets/liquid_glass.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/glass_surface.dart';
+import '../../widgets/konfirmasi_draf_tertunda.dart';
 import '../../widgets/readable_width.dart';
 import '../../widgets/sakelar_tema.dart';
 import '../../widgets/status_badge.dart';
@@ -78,7 +79,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               sedangCabutSemua: _sedangCabutSemua,
               onEditFoto: _pilihFoto,
               onCabutSemua: _cabutSemuaSesi,
-              onLogout: () => ref.read(authProvider.notifier).logout(),
+              onLogout: _keluar,
             );
           }
 
@@ -287,7 +288,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     icon: Icons.logout,
                     variant: AppButtonVariant.secondary,
                     isLoading: sedangLogout,
-                    onPressed: () => ref.read(authProvider.notifier).logout(),
+                    onPressed: _keluar,
                   ),
                 ),
               ],
@@ -374,6 +375,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     messenger.showSnackBar(SnackBar(content: Text(l10n.profPhotoRemoved)));
   }
 
+  /// Keluar — tapi draf yang belum sampai server ditanyakan dulu. Lihat
+  /// [konfirmasiKeluarDenganDrafTertunda].
+  Future<void> _keluar() async {
+    if (!await konfirmasiKeluarDenganDrafTertunda(context, ref)) return;
+    if (!mounted) return;
+    await ref.read(authProvider.notifier).logout();
+  }
+
   Future<void> _cabutSemuaSesi() async {
     final l10n = AppLocalizations.of(context);
 
@@ -396,6 +405,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
 
     if (yakin != true || !mounted) return;
+
+    // Ikut keluar dari HP ini juga — draf yang belum terkirim ditanyakan
+    // dulu, sama seperti tombol Keluar biasa.
+    if (!await konfirmasiKeluarDenganDrafTertunda(context, ref)) return;
+    if (!mounted) return;
 
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _sedangCabutSemua = true);

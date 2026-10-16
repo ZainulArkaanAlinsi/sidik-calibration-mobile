@@ -2142,18 +2142,6 @@
       }
     }
   },
-  "lkKakiVersiAcuan": "reference data {paket} v{nomor}",
-  "@lkKakiVersiAcuan": {
-    "description": "Kaki lembar kerja: versi data acuan yang membangun lembar ini (CR-48 FR-21). paket = kode paket dari server, mis. micrometer; ditampilkan dengan huruf angka.",
-    "placeholders": {
-      "paket": {
-        "type": "String"
-      },
-      "nomor": {
-        "type": "int"
-      }
-    }
-  },
   "lkPengulanganTooltip": "Number of repeat columns",
   "lkPengulanganPilihan": "{n} repetitions",
   "@lkPengulanganPilihan": {
@@ -3137,6 +3125,61 @@
   "riwayatSertifikatDibatalkan": "Cancelled",
   "riwayatSertifikatDiproses": "Processing",
   "riwayatSertifikatGagal": "Generation failed",
+  "lkDisimpanDiHp": "Saved on this device, will be sent automatically when online",
+  "lkDipulihkanDariHp": "Restored from this device — last saved {waktu}",
+  "@lkDipulihkanDariHp": {
+    "placeholders": {
+      "waktu": {
+        "type": "String"
+      }
+    }
+  },
+  "lkBuangSalinanHp": "Discard",
+  "lkBuangSalinanHpJudul": "Discard the copy on this device?",
+  "lkBuangSalinanHpIsi": "Entries that haven't reached the server will be lost, and the worksheet reloads from the server version.",
+  "lkBuangSalinanHpBatal": "Cancel",
+  "lkSalinanHpLebihLama": "The copy on this device is older than the server version, so the server version is used.",
+  "drafLokalJudul": "Not yet synced (on this device)",
+  "drafServerJudul": "Drafts on the server",
+  "drafLokalMenunggu": "Waiting for signal — sent automatically",
+  "drafLokalPerluDiperbaiki": "Needs fixing: {pesan}",
+  "@drafLokalPerluDiperbaiki": {
+    "placeholders": {
+      "pesan": {
+        "type": "String"
+      }
+    }
+  },
+  "drafLokalHanyaDiHp": "Only on this device — not saved to the server yet",
+  "drafLokalTanpaAlat": "Worksheet without equipment",
+  "lkVersiBentrokJudul": "The server version is newer",
+  "lkVersiBentrokIsi": "This worksheet was changed on the server after the unsent draft on this device was saved. Choose which version to keep — the other one is discarded.",
+  "lkPakaiVersiHp": "Use this device's version",
+  "lkPakaiVersiServer": "Use the server version",
+  "drafTertundaMengirim": "Sending drafts that haven't reached the server…",
+  "drafTertundaLogoutJudul": "Unsent drafts",
+  "drafTertundaLogoutIsi": "{jumlah} drafts not sent yet. They stay saved on this tablet and are sent when you log in again.",
+  "@drafTertundaLogoutIsi": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "drafTertundaLogoutBatal": "Cancel",
+  "drafTertundaLogoutLanjut": "Log out",
+  "lkKakiVersiAcuan": "reference data {paket} v{nomor}",
+  "@lkKakiVersiAcuan": {
+    "description": "Kaki lembar kerja: versi data acuan yang membangun lembar ini (CR-48 FR-21). paket = kode paket dari server, mis. micrometer; ditampilkan dengan huruf angka.",
+    "placeholders": {
+      "paket": {
+        "type": "String"
+      },
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
   "acuanJudul": "Reference data",
   "@acuanJudul": {
     "description": "Studio Data Acuan (CR-48): judul menu & seksi. Istilah layar: 'data acuan', bukan 'database'/'rumus'."
@@ -3509,7 +3552,13 @@
   "galatNomorSertifikatWajib": "The Certificate No. is empty. Type it before approving.",
   "galatNomorSertifikatTidakValid": "Invalid Certificate No.: letters, digits and . _ / - only, up to 100 characters, and no -R<number> suffix.",
   "galatNomorSertifikatDipakai": "This Certificate No. is already used by certificate {nomor}. Use another one.",
-  "@galatNomorSertifikatDipakai": {"placeholders": {"nomor": {"type": "String"}}},
+  "@galatNomorSertifikatDipakai": {
+    "placeholders": {
+      "nomor": {
+        "type": "String"
+      }
+    }
+  },
   "galatNomorSertifikatDipakaiLain": "This Certificate No. is already used by another certificate in this lab. Use another one.",
   "tarikAksi": "Withdraw to worksheet",
   "tarikJudul": "Withdraw this certificate to the worksheet?",
@@ -3526,19 +3575,52 @@
   "bandingkanTombol": "Compare with technician's original",
   "bandingkanTanpaAsli": "This worksheet has never been corrected — nothing has changed.",
   "bandingkanRingkas": "{berubah} of {total} entries changed",
-  "@bandingkanRingkas": {"placeholders": {"berubah": {"type": "int"}, "total": {"type": "int"}}},
+  "@bandingkanRingkas": {
+    "placeholders": {
+      "berubah": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "bandingkanAsli": "Technician's original",
   "bandingkanSekarang": "Now",
   "bandingkanDiubahOleh": "Changed by {nama}",
-  "@bandingkanDiubahOleh": {"placeholders": {"nama": {"type": "String"}}},
+  "@bandingkanDiubahOleh": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
   "bandingkanAlasan": "Reason: {alasan}",
-  "@bandingkanAlasan": {"placeholders": {"alasan": {"type": "String"}}},
+  "@bandingkanAlasan": {
+    "placeholders": {
+      "alasan": {
+        "type": "String"
+      }
+    }
+  },
   "bandingkanDibekukan": "Original entries frozen {waktu}",
-  "@bandingkanDibekukan": {"placeholders": {"waktu": {"type": "String"}}},
+  "@bandingkanDibekukan": {
+    "placeholders": {
+      "waktu": {
+        "type": "String"
+      }
+    }
+  },
   "bandingkanGagal": "The comparison could not be loaded.",
   "bandingkanTidakAdaBerubah": "No entries changed.",
   "bandingkanTidakBerubahJudul": "{jumlah} entries unchanged",
-  "@bandingkanTidakBerubahJudul": {"placeholders": {"jumlah": {"type": "int"}}},
+  "@bandingkanTidakBerubahJudul": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "telusuriJudul": "Look up certificate no.",
   "telusuriCari": "Type a certificate no. (min. 2 characters)",
   "telusuriPetunjuk": "Type at least 2 characters of the certificate number, including revisions such as -R1.",
@@ -3550,7 +3632,13 @@
   "telusuriStatusDibatalkan": "Cancelled",
   "telusuriStatusBelumTerbit": "Not issued yet",
   "telusuriTahap": "Order stage: {tahap}",
-  "@telusuriTahap": {"placeholders": {"tahap": {"type": "String"}}},
+  "@telusuriTahap": {
+    "placeholders": {
+      "tahap": {
+        "type": "String"
+      }
+    }
+  },
   "telusuriLihatPaket": "View order",
   "telusuriBukaPdf": "Open PDF",
   "tahapDiterima": "Received",
@@ -3575,7 +3663,13 @@
   "jtUbahBatal": "Cancel",
   "jtUbahBerhasilJadwal": "Due date schedule changed.",
   "jtUbahBerhasilRevisi": "Revision {nomor} created: the printed certificate date changed.",
-  "@jtUbahBerhasilRevisi": {"placeholders": {"nomor": {"type": "String"}}},
+  "@jtUbahBerhasilRevisi": {
+    "placeholders": {
+      "nomor": {
+        "type": "String"
+      }
+    }
+  },
   "sertRingNomor": "Number",
   "sertRingPelanggan": "Customer",
   "sertRingAlat": "Instrument",
@@ -3596,7 +3690,13 @@
   "izinNotifLanjut": "Continue",
   "izinNotifNanti": "Not now",
   "fotoReviewBelumDicek": "{jumlah} yellow numbers not checked yet. Compare each with its photo crop, then tap the check.",
-  "@fotoReviewBelumDicek": {"placeholders": {"jumlah": {"type": "int"}}},
+  "@fotoReviewBelumDicek": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "fotoReviewTandaiDicek": "Mark as checked",
   "fotoReviewSudahDicek": "Checked",
   "lkAsliMemproses": "Reading the photo on this phone... it is not sent anywhere.",
@@ -3604,18 +3704,48 @@
   "lkAsliGeometriBelumLengkap": "The cell map for this form is incomplete. Fill it in manually.",
   "lkAsliKodeTidakTerbaca": "The form code (SIDIK-FM-CAL-xxxx) at the bottom right was not readable. Photograph the whole sheet, upright and well lit.",
   "lkAsliFormulirLain": "This is a different form ({kode}), not the one for this instrument. Use the right sheet or fill in manually.",
-  "@lkAsliFormulirLain": {"placeholders": {"kode": {"type": "String"}}},
+  "@lkAsliFormulirLain": {
+    "placeholders": {
+      "kode": {
+        "type": "String"
+      }
+    }
+  },
   "lkAsliRevisiTidakTerbaca": "Form revision not readable — retake the photo",
   "lkAsliRevisiBeda": "The form revision in the photo ({terbaca}) differs from the one in the system. Use the latest revision or fill in manually.",
-  "@lkAsliRevisiBeda": {"placeholders": {"terbaca": {"type": "String"}}},
+  "@lkAsliRevisiBeda": {
+    "placeholders": {
+      "terbaca": {
+        "type": "String"
+      }
+    }
+  },
   "lkAsliJangkarKurang": "Too little printed text ({jumlah}) was read to straighten the photo. Retake it with the whole sheet in frame.",
-  "@lkAsliJangkarKurang": {"placeholders": {"jumlah": {"type": "int"}}},
+  "@lkAsliJangkarKurang": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "lkAsliJangkarTidakMenyebar": "The readable parts of the form are bunched on one side. Keep the whole sheet in frame and retake.",
   "lkAsliTerisi": "{terisi} cells filled from the photo. Check them again before sending.",
-  "@lkAsliTerisi": {"placeholders": {"terisi": {"type": "int"}}},
+  "@lkAsliTerisi": {
+    "placeholders": {
+      "terisi": {
+        "type": "int"
+      }
+    }
+  },
   "lkAsliKondisiLingkungan": "Environmental conditions",
   "lkAsliTerisiCentangManual": "{terisi} fields filled from the photo. Checkboxes (thermohygro, standards used) stay manual. Check again before sending.",
-  "@lkAsliTerisiCentangManual": {"placeholders": {"terisi": {"type": "int"}}},
+  "@lkAsliTerisiCentangManual": {
+    "placeholders": {
+      "terisi": {
+        "type": "int"
+      }
+    }
+  },
   "lkAsliTakAdaSel": "No numbers could be taken from this photo.",
   "lkAsliGagalUmum": "The photo could not be processed. Fill in manually or retake it.",
   "lkAsliPilihAlatDulu": "Pick the instrument first, then tap the \"Photo worksheet\" camera button above the sheet."

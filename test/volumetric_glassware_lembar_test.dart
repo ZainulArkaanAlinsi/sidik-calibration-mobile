@@ -1,9 +1,13 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/models/calibration_detail.dart';
 import 'package:sidik_calibration/models/equipment_lookup.dart';
 import 'package:sidik_calibration/models/lembar_kerja.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_state.dart';
+import 'package:sidik_calibration/screens/calibration/widgets/lembar_kerja_tabel.dart';
 import 'package:sidik_calibration/services/contoh_lembar_kerja_volumetric_glassware.dart';
 import 'package:sidik_calibration/services/lembar_kerja_service.dart';
 
@@ -53,7 +57,9 @@ void main() {
       final t = tabel[k];
       final ts = isian.titikUntukBaris(isian.barisTabel(t), i, t)!;
       if (k == 0 || nominalDiSemua) ts.titikCtl.text = nominal;
-      for (var r = 0; r < 3; r++) {
+      // Sepanjang deret yang diberikan: tabel suhu Labu Ukur & Pipet Volume
+      // punya enam kotak, sisanya tiga.
+      for (var r = 0; r < deret[k].length; r++) {
         ts.kotak(t.kunciTabel, 'pembacaan', r).text = deret[k][r];
       }
     }
@@ -301,5 +307,215 @@ void main() {
     expect(neraca(fixed), isNot(contains('Electronic Balance Precisa')));
     expect(neraca(graduated), contains('Electronic Balance Precisa'));
     expect(neraca(graduated), isNot(contains('Electronic Balance Fujitsu')));
+  });
+
+  /// Labu Ukur & Pipet Volume ikut workbook lab Rev.7: tabel suhu air punya
+  /// ENAM kotak — awal & akhir tiap ulangan (X1 Awal, X1 Akhir, … X3 Akhir).
+  ///
+  /// Server menafsirnya per POSISI: enam terisi = enam bacaan; kotak Awal saja
+  /// (1, 3, 5) dengan Akhir null = satu bacaan per ulangan. Deret yang
+  /// dirapatkan di HP (null dibuang) membuat X1/X2/X3 Awal mendarat di kotak
+  /// X1 Awal, X1 Akhir, X2 Awal — ulangan yang salah tempat, angkanya wajar,
+  /// tanpa error. Karena itu deretnya diadu UTUH di sini, bukan lewat
+  /// `whereType<double>()`.
+  group('Labu Ukur & Pipet Volume — enam kotak suhu air (Rev.7)', () {
+    const labelSuhu = [
+      'X1 Awal',
+      'X1 Akhir',
+      'X2 Awal',
+      'X2 Akhir',
+      'X3 Awal',
+      'X3 Akhir',
+    ];
+
+    const enamKotak = <String, Map<String, dynamic> Function()>{
+      'Labu Ukur': contohBentukLembarKerjaLabuUkur,
+      'Pipet Volume': contohBentukLembarKerjaPipetVolume,
+    };
+
+    TabelHasil tabelSuhu(LembarKerjaState isian) => tabelHasil(
+      isian,
+    ).firstWhere((t) => t.simpanKe == 'measurements[].vol_suhu');
+
+    /// Isi keenam kotak suhu baris pertama, apa adanya — '' = kotak kosong.
+    List<String> isiKotakSuhu(LembarKerjaState isian) {
+      final suhu = tabelSuhu(isian);
+      final ts = isian.titikUntukBaris(isian.barisTabel(suhu), 0, suhu)!;
+
+      return [
+        for (var r = 0; r < suhu.pengulangan.length; r++)
+          ts.kotak(suhu.kunciTabel, 'pembacaan', r).text,
+      ];
+    }
+
+    // Angka berat dari master Fixed (wadah ditara, titik 1 mL). Yang diuji di
+    // grup ini POSISI deret suhu, jadi beratnya sama untuk kedua alat.
+    const beratKosong = ['0', '0', '0'];
+    const beratIsi = ['0,9998', '0,9997', '0,9996'];
+
+    for (final e in enamKotak.entries) {
+      final alat = e.key;
+      final bentuk = e.value;
+
+      test('$alat: tabel suhu enam kotak berlabel X1 Awal … X3 Akhir', () {
+        final isian = isianDari(bentuk());
+        final suhu = tabelSuhu(isian);
+
+        expect(suhu.pengulangan, [1, 2, 3, 4, 5, 6]);
+        expect(
+          [for (final r in suhu.pengulangan) suhu.pengulanganArah[r]],
+          labelSuhu,
+          reason: 'label kepala kolom tidak diambil dari pengulangan_arah',
+        );
+
+        // Berat kosong & berat isi tetap tiga timbangan.
+        for (final t in tabelHasil(isian).where((t) => t != suhu)) {
+          expect(t.pengulangan, [1, 2, 3], reason: '${t.simpanKe} ikut jadi enam kotak');
+        }
+      });
+
+      testWidgets('$alat: kepala kolom tabel suhu tergambar X1 Awal … X3 Akhir, urut', (
+        tester,
+      ) async {
+        final isian = isianDari(bentuk());
+
+        await tester.pumpWidget(
+          ProviderScope(
+            child: MaterialApp(
+              locale: const Locale('id'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: SingleChildScrollView(
+                  child: LembarKerjaTabel(
+                    tabel: tabelSuhu(isian),
+                    isian: isian,
+                    onBerubah: () {},
+                    pindaiAktif: false,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final posisiX = <double>[];
+        for (final label in labelSuhu) {
+          expect(find.text(label), findsOneWidget, reason: 'kepala "$label" tidak tergambar');
+          posisiX.add(tester.getTopLeft(find.text(label)).dx);
+        }
+
+        expect(
+          posisiX,
+          [...posisiX]..sort(),
+          reason: 'urutan kepala kolom di layar tidak sama dengan kertas',
+        );
+        expect(find.text('Repeat 1'), findsNothing,
+            reason: 'kepala bawaan Repeat n masih tergambar di samping label kertas');
+      });
+
+      test('$alat: enam kotak terisi → vol_suhu enam angka, urut kotak', () {
+        final isian = isianDari(bentuk());
+
+        // Tiap kotak angka yang berbeda — tertukar satu pun ketahuan.
+        isiBaris(isian, 0, '1', [
+          beratKosong,
+          beratIsi,
+          ['25,1', '25,3', '25,2', '25,4', '25,0', '25,5'],
+        ]);
+
+        final titik = kiriman(isian).single;
+
+        expect(titik['vol_suhu'], [25.1, 25.3, 25.2, 25.4, 25.0, 25.5]);
+        expect(titik['vol_kosong'], [0.0, 0.0, 0.0]);
+        expect(titik['vol_isi'], [0.9998, 0.9997, 0.9996]);
+      });
+
+      test('$alat: kotak Awal saja → vol_suhu tetap enam, null di Akhir', () {
+        final isian = isianDari(bentuk());
+
+        isiBaris(isian, 0, '1', [
+          beratKosong,
+          beratIsi,
+          ['25,4', '', '25,3', '', '25,5', ''],
+        ]);
+
+        final suhu = kiriman(isian).single['vol_suhu'] as List;
+
+        expect(suhu, hasLength(6), reason: 'deret dirapatkan — server membaca posisi');
+        expect(suhu, [25.4, null, 25.3, null, 25.5, null]);
+      });
+
+      /// `GET /calibrations/{id}` menyajikan titik yang tersimpan dengan TIGA
+      /// suhu (sesi lama, atau kiriman Awal saja) di kotak 1, 3, 5
+      /// (`CalibrationResource::kotakSajianSuhu`); `sensor_ke` tetap nomor
+      /// simpannya. Tanpa itu, `pembacaan_ke − 1` menaruhnya di X1 Awal,
+      /// X1 Akhir, X2 Awal.
+      test('$alat: draft sesi lama tiga suhu (pembacaan_ke 1, 3, 5) pulih ke kotak Awal', () {
+        Map<String, dynamic> baris(int id, String peran, int ke, int sensorKe, num nilai) => {
+          'id': id,
+          'titik_ke': 1,
+          // decimal(20,8) dari MySQL datang sebagai teks.
+          'titik_ukur': '1.00000000',
+          'standard_id': null,
+          'pembacaan_ke': ke,
+          'sensor_ke': sensorKe,
+          'tahap': 'sesudah_adjustment',
+          'pembacaan': nilai,
+          'peran_sensor': peran,
+          'satuan': peran == 'vol_suhu' ? '°C' : 'g',
+          'input_source': 'manual',
+          'is_verified': true,
+        };
+
+        const isi = [0.9998, 0.9997, 0.9996];
+        const suhu = [25.4, 25.3, 25.5];
+
+        final mentah = [
+          for (var r = 0; r < 3; r++) ...[
+            RawMeasurement.fromJson(baris(1 + r, 'vol_kosong', r + 1, r + 1, 0)),
+            RawMeasurement.fromJson(baris(4 + r, 'vol_isi', r + 1, r + 1, isi[r])),
+            RawMeasurement.fromJson(baris(7 + r, 'vol_suhu', 2 * r + 1, r + 1, suhu[r])),
+          ],
+        ];
+
+        final pulih = isianDari(bentuk());
+
+        expect(pulih.terapkanPembacaan(mentah), 0,
+            reason: 'ada pembacaan sesi lama yang nggak ketemu kotaknya');
+        expect(isiKotakSuhu(pulih), ['25.4', '', '25.3', '', '25.5', ''],
+            reason: 'suhu sesi lama mendarat di kotak Akhir');
+
+        // Dikirim balik tanpa disentuh = pola Awal saja, yang server simpan
+        // sebagai tiga bacaan yang sama.
+        final titik = kiriman(pulih).single;
+        expect(titik['vol_suhu'], [25.4, null, 25.3, null, 25.5, null]);
+        expect(titik['vol_isi'], isi);
+      });
+    }
+
+    test('Gelas Ukur & Picnometer tetap tiga kotak suhu tanpa label Awal/Akhir', () {
+      final lain = <String, Map<String, dynamic> Function()>{
+        'Gelas Ukur': contohBentukLembarKerjaGelasUkur,
+        'Picnometer': contohBentukLembarKerjaPicnometer,
+      };
+
+      for (final e in lain.entries) {
+        final isian = isianDari(e.value());
+        final suhu = tabelSuhu(isian);
+
+        expect(suhu.pengulangan, [1, 2, 3], reason: '${e.key} ikut jadi enam kotak');
+        expect(suhu.pengulanganArah, isEmpty, reason: '${e.key} ikut berlabel Awal/Akhir');
+
+        isiBaris(isian, 0, '10', [
+          ['60,234', '60,24', '60,243'],
+          ['70,7791', '70,7965', '70,8854'],
+          ['25,4', '25,3', '25,5'],
+        ]);
+
+        expect(kiriman(isian).single['vol_suhu'], [25.4, 25.3, 25.5], reason: e.key);
+      }
+    });
   });
 }

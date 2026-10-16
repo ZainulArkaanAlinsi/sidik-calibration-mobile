@@ -9,7 +9,9 @@ import '../../core/utils/waktu_tampil.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/calibration_history_item.dart';
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
+import '../../providers/draf_lokal_provider.dart';
 import '../../providers/history_provider.dart';
+import '../../services/draf_lokal.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/notification_bell.dart';
@@ -74,6 +76,15 @@ class _DrafScreenState extends ConsumerState<DrafScreen> {
     final l10n = AppLocalizations.of(context);
     final draf = ref.watch(drafProvider);
 
+    // Salinan di HP ditampilkan APA PUN keadaan daftar server — justru waktu
+    // server nggak terjangkau bagian ini yang paling dicari (F3-07).
+    final kunciCari = _cari.trim().toLowerCase();
+    final lokal = [
+      for (final d in ref.watch(drafLokalProvider).value ?? const <DrafLokal>[])
+        if (_cocokLokal(d, kunciCari)) d,
+    ];
+    final kepala = lokal.isEmpty ? null : _BagianLokal(daftar: lokal);
+
     // Urutan cek sama kayak Dashboard & Riwayat: data dulu, baru error, baru
     // loading — biar retry Riverpod yang jalan di belakang layar nggak
     // nyangkut di skeleton selamanya.
@@ -81,16 +92,19 @@ class _DrafScreenState extends ConsumerState<DrafScreen> {
 
     final Widget isi;
     if (data != null) {
-      isi = data.isEmpty ? const _Kosong() : _Isi(semua: data, cari: _cari);
+      isi = data.isEmpty
+          ? _Kosong(kepala: kepala)
+          : _Isi(semua: data, cari: _cari, kepala: kepala);
     } else if (draf.hasError) {
       isi = _Gagal(
         pesan: draf.error is TokenHilangException
             ? l10n.historySessionExpired
             : l10n.drafGagal,
         onCobaLagi: () => ref.read(drafProvider.notifier).muatUlang(),
+        kepala: kepala,
       );
     } else {
-      isi = const _Skeleton();
+      isi = _Skeleton(kepala: kepala);
     }
 
     return Scaffold(
@@ -121,7 +135,10 @@ class _DrafScreenState extends ConsumerState<DrafScreen> {
               ),
               Expanded(
                 child: RefreshIndicator(
-                  onRefresh: () => ref.read(drafProvider.notifier).muatUlang(),
+                  onRefresh: () async {
+                    ref.invalidate(drafLokalProvider);
+                    await ref.read(drafProvider.notifier).muatUlang();
+                  },
                   child: isi,
                 ),
               ),
@@ -234,10 +251,13 @@ bool _cocokDraf(CalibrationHistoryItem d, String kunci) {
 // -------------------------------------------------------------------- daftar
 
 class _Isi extends StatelessWidget {
-  const _Isi({required this.semua, required this.cari});
+  const _Isi({required this.semua, required this.cari, this.kepala});
 
   final List<CalibrationHistoryItem> semua;
   final String cari;
+
+  /// Bagian "Belum tersinkron di HP ini" — di atas daftar server.
+  final Widget? kepala;
 
   @override
   Widget build(BuildContext context) {
@@ -252,6 +272,7 @@ class _Isi extends StatelessWidget {
       return ListView(
         padding: const EdgeInsets.all(AppSpacing.xl),
         children: [
+          ?kepala,
           const SizedBox(height: AppSpacing.xl),
           Text(
             l10n.drafCariKosong,
@@ -271,8 +292,13 @@ class _Isi extends StatelessWidget {
         AppSpacing.md,
         AppSpacing.xl,
       ),
-      itemCount: kelompok.length,
-      itemBuilder: (context, i) => _Rak(kelompok: kelompok[i]),
+      itemCount: kelompok.length + (kepala == null ? 0 : 1),
+      itemBuilder: (context, i) {
+        final k = kepala;
+        if (k == null) return _Rak(kelompok: kelompok[i]);
+        if (i == 0) return k;
+        return _Rak(kelompok: kelompok[i - 1]);
+      },
     );
   }
 }
@@ -421,6 +447,194 @@ class _KartuDraf extends StatelessWidget {
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
+                      // Draf yang lahir dari lembar `perlu_revisi`: catatan
+                      // admin masih terbawa sampai dikirim ulang, jadi rak ini
+                      // nggak boleh menyamakannya dengan draf biasa. Teks &
+                      // warnanya sama dengan baris Riwayat; isi lengkapnya ada
+                      // di banner lembar kerja.
+                      if (item.bawaCatatanRevisi) ...[
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          l10n.historyCatatanRevisi(item.catatanRevisi!),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: AppColors.statusPeringatan(context),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Icon(
+                  Icons.chevron_right,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ------------------------------------------------------------ salinan di HP
+
+bool _cocokLokal(DrafLokal d, String kunci) {
+  if (kunci.isEmpty) return true;
+  bool ada(String? teks) => teks != null && teks.toLowerCase().contains(kunci);
+  return ada(d.judul) || ada(d.judulTambahan) || ada(d.profil);
+}
+
+/// "Belum tersinkron di HP ini" (F3-07) — salinan lembar kerja yang belum
+/// sampai server: yang menunggu sinyal, yang ditolak server, dan lembar baru
+/// yang cuma tersimpan otomatis.
+///
+/// Dipisah dari "Draf di server" dengan judul sendiri: yang di sini belum
+/// dilihat siapa pun selain HP ini, dan teknisi perlu tahu bedanya sebelum
+/// pulang dari lokasi pelanggan.
+class _BagianLokal extends StatelessWidget {
+  const _BagianLokal({required this.daftar});
+
+  final List<DrafLokal> daftar;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    Widget judul(String teks) => Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xs,
+        AppSpacing.md,
+        AppSpacing.xs,
+        AppSpacing.sm,
+      ),
+      child: Text(
+        teks,
+        style: theme.textTheme.titleSmall?.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        judul(l10n.drafLokalJudul),
+        for (final d in daftar)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: _KartuLokal(draf: d),
+          ),
+        judul(l10n.drafServerJudul),
+      ],
+    );
+  }
+}
+
+class _KartuLokal extends ConsumerWidget {
+  const _KartuLokal({required this.draf});
+
+  final DrafLokal draf;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context).languageCode;
+
+    final (ikon, warnaIkon, keadaan) = switch (draf.status) {
+      StatusDrafLokal.belumTersinkron => (
+        Icons.cloud_upload_outlined,
+        theme.colorScheme.onSurfaceVariant,
+        l10n.drafLokalMenunggu,
+      ),
+      // Crimson cuma buat gagal — dan ini memang ditolak server.
+      StatusDrafLokal.perluDiperbaiki => (
+        Icons.error_outline,
+        theme.colorScheme.error,
+        l10n.drafLokalPerluDiperbaiki(draf.pesan ?? '—'),
+      ),
+      StatusDrafLokal.lokal => (
+        Icons.phone_android_outlined,
+        theme.colorScheme.onSurfaceVariant,
+        l10n.drafLokalHanyaDiHp,
+      ),
+    };
+
+    return GlassSurface.rata(
+      radius: 22,
+      padding: EdgeInsets.zero,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(22),
+          onTap: () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => LembarKerjaScreen(
+                  sesiId: draf.sesiId,
+                  profil: draf.profil,
+                  judulTambahan: draf.judulTambahan,
+                  drafLokal: draf,
+                ),
+              ),
+            );
+            ref.invalidate(drafLokalProvider);
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Row(
+              children: [
+                Icon(ikon, size: 22, color: warnaIkon),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        draf.judul ??
+                            draf.judulTambahan ??
+                            l10n.drafLokalTanpaAlat,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        keadaan,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: draf.status == StatusDrafLokal.perluDiperbaiki
+                              ? theme.colorScheme.error
+                              : theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        l10n.drafDisimpan(
+                          waktuLalu(
+                            draf.disimpanPada.toLocal(),
+                            locale,
+                            baruSaja: l10n.waktuBaruSaja,
+                            menitLalu: l10n.waktuMenitLalu,
+                            jamLalu: l10n.waktuJamLalu,
+                            kemarin: l10n.waktuKemarin,
+                            hariLalu: l10n.waktuHariLalu,
+                          ),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -441,7 +655,9 @@ class _KartuDraf extends StatelessWidget {
 // -------------------------------------------------------------- keadaan lain
 
 class _Kosong extends StatelessWidget {
-  const _Kosong();
+  const _Kosong({this.kepala});
+
+  final Widget? kepala;
 
   @override
   Widget build(BuildContext context) {
@@ -454,6 +670,7 @@ class _Kosong extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.xl),
       children: [
+        ?kepala,
         const SizedBox(height: AppSpacing.xl),
         Icon(Icons.edit_note, size: 56, color: theme.colorScheme.outline),
         const SizedBox(height: AppSpacing.md),
@@ -474,10 +691,11 @@ class _Kosong extends StatelessWidget {
 }
 
 class _Gagal extends StatelessWidget {
-  const _Gagal({required this.pesan, required this.onCobaLagi});
+  const _Gagal({required this.pesan, required this.onCobaLagi, this.kepala});
 
   final String pesan;
   final VoidCallback onCobaLagi;
+  final Widget? kepala;
 
   @override
   Widget build(BuildContext context) {
@@ -486,6 +704,7 @@ class _Gagal extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.xl),
       children: [
+        ?kepala,
         const SizedBox(height: AppSpacing.xl),
         Icon(
           Icons.cloud_off_outlined,
@@ -511,15 +730,21 @@ class _Gagal extends StatelessWidget {
 }
 
 class _Skeleton extends StatelessWidget {
-  const _Skeleton();
+  const _Skeleton({this.kepala});
+
+  final Widget? kepala;
 
   @override
   Widget build(BuildContext context) {
+    final k = kepala;
+
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      itemCount: 4,
+      itemCount: 4 + (k == null ? 0 : 1),
       separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-      itemBuilder: (context, index) => const Card(
+      itemBuilder: (context, index) => index == 0 && k != null
+          ? k
+          : const Card(
         child: Padding(
           padding: EdgeInsets.all(AppSpacing.md),
           child: Column(

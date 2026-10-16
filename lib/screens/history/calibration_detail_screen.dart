@@ -186,8 +186,9 @@ class _Isi extends StatelessWidget {
         // layar bergeser 16 px, dan golden `detail-sesi.png` merah 10,63%.
         BannerStatusStandar(status: detail.statusStandar),
 
-        if (detail.status == CalibrationStatus.perluRevisi &&
-            detail.catatanRevisi != null) ...[
+        // `draft` ikut: lembar revisi yang disimpan sebagai draf masih
+        // membawa catatan admin sampai dikirim ulang.
+        if (detail.bawaCatatanRevisi) ...[
           const SizedBox(height: AppSpacing.md),
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),

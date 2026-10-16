@@ -6883,12 +6883,6 @@ abstract class AppLocalizations {
   /// **'{n}x'**
   String lkPengulanganRingkas(int n);
 
-  /// Kaki lembar kerja: versi data acuan yang membangun lembar ini (CR-48 FR-21). paket = kode paket dari server, mis. micrometer; ditampilkan dengan huruf angka.
-  ///
-  /// In en, this message translates to:
-  /// **'reference data {paket} v{nomor}'**
-  String lkKakiVersiAcuan(String paket, int nomor);
-
   /// No description provided for @lkPengulanganTooltip.
   ///
   /// In en, this message translates to:
@@ -10188,6 +10182,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Generation failed'**
   String get riwayatSertifikatGagal;
+
+  /// No description provided for @lkDisimpanDiHp.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved on this device, will be sent automatically when online'**
+  String get lkDisimpanDiHp;
+
+  /// No description provided for @lkDipulihkanDariHp.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored from this device — last saved {waktu}'**
+  String lkDipulihkanDariHp(String waktu);
+
+  /// No description provided for @lkBuangSalinanHp.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get lkBuangSalinanHp;
+
+  /// No description provided for @lkBuangSalinanHpJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard the copy on this device?'**
+  String get lkBuangSalinanHpJudul;
+
+  /// No description provided for @lkBuangSalinanHpIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'Entries that haven\'t reached the server will be lost, and the worksheet reloads from the server version.'**
+  String get lkBuangSalinanHpIsi;
+
+  /// No description provided for @lkBuangSalinanHpBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get lkBuangSalinanHpBatal;
+
+  /// No description provided for @lkSalinanHpLebihLama.
+  ///
+  /// In en, this message translates to:
+  /// **'The copy on this device is older than the server version, so the server version is used.'**
+  String get lkSalinanHpLebihLama;
+
+  /// No description provided for @drafLokalJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Not yet synced (on this device)'**
+  String get drafLokalJudul;
+
+  /// No description provided for @drafServerJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Drafts on the server'**
+  String get drafServerJudul;
+
+  /// No description provided for @drafLokalMenunggu.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for signal — sent automatically'**
+  String get drafLokalMenunggu;
+
+  /// No description provided for @drafLokalPerluDiperbaiki.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs fixing: {pesan}'**
+  String drafLokalPerluDiperbaiki(String pesan);
+
+  /// No description provided for @drafLokalHanyaDiHp.
+  ///
+  /// In en, this message translates to:
+  /// **'Only on this device — not saved to the server yet'**
+  String get drafLokalHanyaDiHp;
+
+  /// No description provided for @drafLokalTanpaAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Worksheet without equipment'**
+  String get drafLokalTanpaAlat;
+
+  /// No description provided for @lkVersiBentrokJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'The server version is newer'**
+  String get lkVersiBentrokJudul;
+
+  /// No description provided for @lkVersiBentrokIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'This worksheet was changed on the server after the unsent draft on this device was saved. Choose which version to keep — the other one is discarded.'**
+  String get lkVersiBentrokIsi;
+
+  /// No description provided for @lkPakaiVersiHp.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this device\'s version'**
+  String get lkPakaiVersiHp;
+
+  /// No description provided for @lkPakaiVersiServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the server version'**
+  String get lkPakaiVersiServer;
+
+  /// No description provided for @drafTertundaMengirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending drafts that haven\'t reached the server…'**
+  String get drafTertundaMengirim;
+
+  /// No description provided for @drafTertundaLogoutJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsent drafts'**
+  String get drafTertundaLogoutJudul;
+
+  /// No description provided for @drafTertundaLogoutIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} drafts not sent yet. They stay saved on this tablet and are sent when you log in again.'**
+  String drafTertundaLogoutIsi(int jumlah);
+
+  /// No description provided for @drafTertundaLogoutBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get drafTertundaLogoutBatal;
+
+  /// No description provided for @drafTertundaLogoutLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'Log out'**
+  String get drafTertundaLogoutLanjut;
+
+  /// Kaki lembar kerja: versi data acuan yang membangun lembar ini (CR-48 FR-21). paket = kode paket dari server, mis. micrometer; ditampilkan dengan huruf angka.
+  ///
+  /// In en, this message translates to:
+  /// **'reference data {paket} v{nomor}'**
+  String lkKakiVersiAcuan(String paket, int nomor);
 
   /// Studio Data Acuan (CR-48): judul menu & seksi. Istilah layar: 'data acuan', bukan 'database'/'rumus'.
   ///

@@ -193,6 +193,46 @@ class MockStore {
     return certId;
   }
 
+  /// Meniru data LAMA: sesi berstatus `perlu_revisi` + catatan admin. Aksi Tolak
+  /// sudah tidak ada di aplikasi (K-50), tapi sesi lama di server masih bisa
+  /// berstatus ini dan draf yang lahir darinya harus tetap membawa catatannya.
+  void tolak(int sesiId, String catatan) {
+    final i = _sesi.indexWhere((s) => s.id == sesiId);
+    if (i < 0) return;
+
+    _sesi[i] = _sesi[i].copyWith(
+      status: CalibrationStatus.perluRevisi,
+      catatanRevisi: catatan,
+    );
+
+    _simpan();
+  }
+
+  /// Lembar sesi yang sudah ada disimpan ulang (`PUT`) — tiru aturan server.
+  ///
+  /// [draft] `true` (Simpan Draf, termasuk sinkron draf offline yang selalu
+  /// mengirim `status: draft`) → status `draft`, catatan revisi DIBIARKAN:
+  /// server tidak lagi mengosongkan `catatan_revisi`/`revisi_field` di simpan
+  /// draf, jadi draf yang lahir dari `perlu_revisi` tetap membawa alasan admin.
+  /// [draft] `false` (kirim ulang) → `menunggu_approval`, catatan dikosongkan —
+  /// di situ server mengosongkannya.
+  ///
+  /// Sesi yang sudah disetujui tidak disentuh: server menolak `PUT`-nya.
+  void perbarui(int sesiId, {required bool draft}) {
+    final i = _sesi.indexWhere((s) => s.id == sesiId);
+    if (i < 0) return;
+    if (_sesi[i].status == CalibrationStatus.disetujui) return;
+
+    _sesi[i] = draft
+        ? _sesi[i].copyWith(status: CalibrationStatus.draft)
+        : _sesi[i].copyWith(
+            status: CalibrationStatus.menungguApproval,
+            hapusCatatanRevisi: true,
+          );
+
+    _simpan();
+  }
+
   /// Dipanggil test yang butuh mulai dari kosong. Tanpa ini, urutan test di
   /// satu berkas bisa saling ngintip sesi yang dibikin test sebelumnya.
   ///
