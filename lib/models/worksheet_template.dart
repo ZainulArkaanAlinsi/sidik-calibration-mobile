@@ -29,6 +29,7 @@ class WorksheetTemplate {
     this.isian = const [],
     this.centang = const [],
     this.perluKonfirmasiLab = false,
+    this.revisiTercetak = true,
   });
 
   /// `cetak` = lembar bermarker + QR buatan sistem (kontrak lama, semua field
@@ -86,6 +87,10 @@ class WorksheetTemplate {
   /// Server menandai peta formulir ini masih menunggu konfirmasi lab
   /// (`perlu_konfirmasi_lab`). Pintu "Foto lembar kerja" disembunyikan.
   final bool perluKonfirmasiLab;
+
+  /// `false` HANYA bila server menyatakan formulir ini tidak mencetak teks
+  /// revisi (0538). Selain itu revisi wajib terbaca di foto.
+  final bool revisiTercetak;
 
   /// Jumlah butir (sel + isian + centang) yang kotaknya `null` — titik peta
   /// yang tidak jatuh di tepat satu kotak draf. Butir begitu TIDAK dibaca, dan
@@ -216,6 +221,7 @@ class WorksheetTemplate {
       revisi: data['revisi'] == null ? null : '${data['revisi']}',
       modeUji: data['mode_uji'] as bool? ?? false,
       perluKonfirmasiLab: data['perlu_konfirmasi_lab'] as bool? ?? false,
+      revisiTercetak: data['revisi_tercetak'] as bool? ?? true,
       halamanPt: w == null || h == null || w <= 0 || h <= 0
           ? null
           : (w: w, h: h),

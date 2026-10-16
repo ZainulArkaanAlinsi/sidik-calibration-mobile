@@ -298,6 +298,41 @@ void main() {
       );
     });
 
+    test(
+      'formulir yang menyatakan tanpa revisi tercetak tidak ditahan',
+      () async {
+        // Lolos syarat revisi → berhenti di tahap sesudahnya (jangkar), bukan di revisi.
+        final t = templateDengan({'revisi_tercetak': false});
+        expect(t.revisiTercetak, isFalse);
+        await expectLater(
+          JalankanPindaiAsli(
+            halaman: MockPembacaHalaman(kataCetak(denganRevisi: false)),
+            pembaca: MockPembacaSel(),
+          ).baca(kecil, template: t),
+          throwsA(
+            isA<PindaiAsliGagal>().having(
+              (e) => e.sebab,
+              'sebab',
+              isNot(
+                anyOf(
+                  GagalPindaiAsli.revisiTidakTerbaca,
+                  GagalPindaiAsli.revisiBeda,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    test('tanpa deklarasi, revisi tak terbaca tetap menahan', () async {
+      expect(template.revisiTercetak, isTrue);
+      await gagal(
+        GagalPindaiAsli.revisiTidakTerbaca,
+        kata: kataCetak(denganRevisi: false),
+      );
+    });
+
     test('jangkar terlalu sedikit', () async {
       final kode = template.jangkarTeks.firstWhere(
         (j) => j.teks == 'SIDIK-FM-CAL-0509',

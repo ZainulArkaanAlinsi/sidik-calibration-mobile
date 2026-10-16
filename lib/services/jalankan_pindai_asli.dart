@@ -207,15 +207,24 @@ class JalankanPindaiAsli {
 
     // Revisi yang tidak terbaca BERHENTI di sini. Dulu null = lanjut, sehingga
     // formulir revisi lama (kotak bergeser) bisa dibaca seolah revisi ini.
-    if (revisiTerbaca == null || angkaRevisi == null) {
-      throw PindaiAsliGagal(
-        GagalPindaiAsli.revisiTidakTerbaca,
-        terbaca: revisiTerbaca,
-      );
-    }
+    // Pengecualian cuma untuk formulir yang menyatakan tak mencetak revisi.
+    final tanpaRevisiTercetak =
+        revisiTerbaca == null && !template.revisiTercetak;
 
-    if (int.tryParse(angkaRevisi) != int.tryParse(template.revisi ?? '')) {
-      throw PindaiAsliGagal(GagalPindaiAsli.revisiBeda, terbaca: revisiTerbaca);
+    if (!tanpaRevisiTercetak) {
+      if (revisiTerbaca == null || angkaRevisi == null) {
+        throw PindaiAsliGagal(
+          GagalPindaiAsli.revisiTidakTerbaca,
+          terbaca: revisiTerbaca,
+        );
+      }
+
+      if (int.tryParse(angkaRevisi) != int.tryParse(template.revisi ?? '')) {
+        throw PindaiAsliGagal(
+          GagalPindaiAsli.revisiBeda,
+          terbaca: revisiTerbaca,
+        );
+      }
     }
 
     // Perataan kanvas 4,4 MP + ukuran mutunya = kerja per piksel terberat di
