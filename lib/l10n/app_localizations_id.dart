@@ -6545,6 +6545,10 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String get lkAsliRevisiTidakTerbaca =>
+      'Revisi formulir tidak terbaca — foto ulang';
+
+  @override
   String lkAsliRevisiBeda(String terbaca) {
     return 'Revisi formulir di foto ($terbaca) beda dengan yang dipegang sistem. Pakai formulir revisi terbaru atau isi manual.';
   }

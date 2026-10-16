@@ -11527,6 +11527,12 @@ abstract class AppLocalizations {
   /// **'This is a different form ({kode}), not the one for this instrument. Use the right sheet or fill in manually.'**
   String lkAsliFormulirLain(String kode);
 
+  /// No description provided for @lkAsliRevisiTidakTerbaca.
+  ///
+  /// In en, this message translates to:
+  /// **'Form revision not readable — retake the photo'**
+  String get lkAsliRevisiTidakTerbaca;
+
   /// No description provided for @lkAsliRevisiBeda.
   ///
   /// In en, this message translates to:

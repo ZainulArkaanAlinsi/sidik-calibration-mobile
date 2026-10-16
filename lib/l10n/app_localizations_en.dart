@@ -6619,6 +6619,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get lkAsliRevisiTidakTerbaca =>
+      'Form revision not readable — retake the photo';
+
+  @override
   String lkAsliRevisiBeda(String terbaca) {
     return 'The form revision in the photo ($terbaca) differs from the one in the system. Use the latest revision or fill in manually.';
   }

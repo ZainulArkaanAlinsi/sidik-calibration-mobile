@@ -141,11 +141,24 @@ Future<int> pindaiFormulirAsli({
     // Baris kertas yang tidak punya padanan di lembar (kertas mencetak lebih
     // banyak baris/Repeat daripada yang diatur untuk alat ini) tidak ikut
     // review: tidak ada kotak tempat mendaratnya.
-    if (!isian.alamatFotoAsliAda(s.tabelId, s.barisKe, s.repeatNo)) continue;
+    if (!isian.alamatFotoAsliAda(
+      s.tabelId,
+      s.barisKe,
+      s.repeatNo,
+      tahap: s.tahap,
+    )) {
+      continue;
+    }
 
     // Teks bukan angka, atau tulisan keluar kotak → MERAH (nilainya tidak
     // ditampilkan, teknisi mengetik sendiri).
-    final bisaDibaca = b.bacaan.didalamKotak && parseAngka(teks) != null;
+    final nilaiTabel = parseAngka(teks);
+    // Batas `aturan` sel dari server dicek DI HP juga: angka di luar pita
+    // (atau rasio ke nominal meleset) = MERAH dan dikosongkan, bukan usulan.
+    final bisaDibaca =
+        b.bacaan.didalamKotak &&
+        nilaiTabel != null &&
+        (s.aturan?.lolos(nilaiTabel) ?? true);
     final urut = (urutTabel.indexOf(s.tabelId) + 1) * 1000.0 + s.barisKe;
     final fieldId = '${s.tabelId}$_pisah${s.barisKe}$_pisah${s.fieldId}';
 
@@ -208,7 +221,11 @@ Future<int> pindaiFormulirAsli({
     }
 
     final barisKe = int.tryParse(bagian[1]) ?? 0;
-    final tabel = isian.tabelUntukId(bagian.first);
+    final tahapTabel = template.tabel
+        .where((t) => t.tabelId == bagian.first)
+        .map((t) => t.tahap)
+        .firstOrNull;
+    final tabel = isian.tabelUntukId(bagian.first, tahap: tahapTabel);
     final judulTabel =
         template.tabel
             .where((t) => t.tabelId == bagian.first)
@@ -224,7 +241,8 @@ Future<int> pindaiFormulirAsli({
 
     return [
       judulTabel,
-      isian.labelBarisFotoAsli(bagian.first, barisKe) ?? 'Baris $barisKe',
+      isian.labelBarisFotoAsli(bagian.first, barisKe, tahap: tahapTabel) ??
+          'Baris $barisKe',
       'Repeat ${s.repeatNo}',
       kolom ?? fieldId,
     ].join(' · ');
@@ -241,6 +259,7 @@ Future<int> pindaiFormulirAsli({
       <
         ({
           String tabelId,
+          String? tahap,
           int barisKe,
           int repeatNo,
           String fieldId,
@@ -260,6 +279,10 @@ Future<int> pindaiFormulirAsli({
 
     tabelDisetujui.add((
       tabelId: bagian.first,
+      tahap: template.tabel
+          .where((t) => t.tabelId == bagian.first)
+          .map((t) => t.tahap)
+          .firstOrNull,
       barisKe: int.tryParse(bagian[1]) ?? 0,
       repeatNo: s.repeatNo,
       fieldId: bagian.last,
@@ -311,6 +334,7 @@ String pesanGagalAsli(AppLocalizations l10n, PindaiAsliGagal e) =>
       GagalPindaiAsli.kodeTidakTerbaca => l10n.lkAsliKodeTidakTerbaca,
       GagalPindaiAsli.formulirLain => l10n.lkAsliFormulirLain(e.terbaca ?? '?'),
       GagalPindaiAsli.revisiBeda => l10n.lkAsliRevisiBeda(e.terbaca ?? '?'),
+      GagalPindaiAsli.revisiTidakTerbaca => l10n.lkAsliRevisiTidakTerbaca,
       GagalPindaiAsli.jangkarKurang => l10n.lkAsliJangkarKurang(e.jumlah ?? 0),
       GagalPindaiAsli.jangkarTidakMenyebar => l10n.lkAsliJangkarTidakMenyebar,
       GagalPindaiAsli.mutu => switch (e.mutu) {

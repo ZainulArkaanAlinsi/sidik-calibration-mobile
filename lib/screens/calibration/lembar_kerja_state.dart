@@ -3774,7 +3774,13 @@ class LembarKerjaState {
       // sejalan: cara nyari barisnya dan alamat kotaknya. Dihitung
       // sendiri-sendiri, yang satu bisa bilang "baris ke-3 blok kelembapan"
       // sementara yang lain nulis ke kunci blok suhu.
-      final tabel = _tabelPindai(s.tabelId);
+      final tabel = _tabelPindai(s.tabelId, tahap: s.tahap);
+
+      // Server menyebut tabel (`tabel_id` terisi) tapi lembar ini tidak punya
+      // tabel itu: buang selnya. Jatuh ke `_titikTerdekat` di sini sama dengan
+      // menebak tabel dari `tahap`, dan itulah jalan angka tabel After masuk
+      // ke Before. Fallback hanya untuk server lama yang tak mengirim id.
+      if (s.tabelId.isNotEmpty && tabel == null) continue;
 
       final state = tabel != null
           ? titikBarisTabel(tabel, s.titikUkur)
@@ -3814,7 +3820,8 @@ class LembarKerjaState {
 
   /// Tabel lembar yang identitas servernya [tabelId] — versi publik
   /// [_tabelPindai] buat alur foto lembar kerja.
-  TabelHasil? tabelUntukId(String tabelId) => _tabelPindai(tabelId);
+  TabelHasil? tabelUntukId(String tabelId, {String? tahap}) =>
+      _tabelPindai(tabelId, tahap: tahap);
 
   /// Tuang hasil foto SATU LEMBAR (banyak tabel) yang sudah lewat review.
   /// Tiap tabel lewat [terapkanHasilFotoTabel] — penempatan sel dan tanda
@@ -3834,8 +3841,8 @@ class LembarKerjaState {
 
   /// Label baris ke-[barisKe] (1-based, urutan kertas = urutan server) di
   /// tabel [tabelId], buat judul baris review. `null` = tabel/baris tak ada.
-  String? labelBarisFotoAsli(String tabelId, int barisKe) {
-    final tabel = _tabelPindai(tabelId);
+  String? labelBarisFotoAsli(String tabelId, int barisKe, {String? tahap}) {
+    final tabel = _tabelPindai(tabelId, tahap: tahap);
     if (tabel == null) return null;
 
     final baris = barisTabel(tabel);
@@ -3872,6 +3879,7 @@ class LembarKerjaState {
     List<
       ({
         String tabelId,
+        String? tahap,
         int barisKe,
         int repeatNo,
         String fieldId,
@@ -3884,7 +3892,12 @@ class LembarKerjaState {
     var terisi = 0;
 
     for (final s in sel) {
-      final tujuan = _tujuanFotoAsli(s.tabelId, s.barisKe, s.repeatNo);
+      final tujuan = _tujuanFotoAsli(
+        s.tabelId,
+        s.barisKe,
+        s.repeatNo,
+        tahap: s.tahap,
+      );
       if (tujuan == null) continue;
 
       final nilai = parseAngka(s.teks);
@@ -3912,9 +3925,10 @@ class LembarKerjaState {
   ({TabelHasil tabel, TitikState state, int index})? _tujuanFotoAsli(
     String tabelId,
     int barisKe,
-    int repeatNo,
-  ) {
-    final tabel = _tabelPindai(tabelId);
+    int repeatNo, {
+    String? tahap,
+  }) {
+    final tabel = _tabelPindai(tabelId, tahap: tahap);
     if (tabel == null) return null;
 
     final baris = barisTabel(tabel);
@@ -3932,14 +3946,19 @@ class LembarKerjaState {
 
   /// Alamat ini punya kotak di lembar? Dipakai alur foto supaya baris yang
   /// tak punya tempat (Baris kertas melebihi baris lembar) tidak masuk review.
-  bool alamatFotoAsliAda(String tabelId, int barisKe, int repeatNo) =>
-      _tujuanFotoAsli(tabelId, barisKe, repeatNo) != null;
+  bool alamatFotoAsliAda(
+    String tabelId,
+    int barisKe,
+    int repeatNo, {
+    String? tahap,
+  }) => _tujuanFotoAsli(tabelId, barisKe, repeatNo, tahap: tahap) != null;
 
   /// Lembar ini bisa menerima SETIDAKNYA satu sel dari [template]? `false` =
   /// pintu "Foto lembar kerja" tidak digambar (Enclosure: gridnya bukan tabel
   /// lembar) — daripada teknisi memotret lalu mendapat nol sel.
   bool bisaMenerimaFotoAsli(WorksheetTemplate template) => template.selAsli.any(
-    (s) => alamatFotoAsliAda(s.tabelId, s.barisKe, s.repeatNo),
+    (s) =>
+        alamatFotoAsliAda(s.tabelId, s.barisKe, s.repeatNo, tahap: s.tahap),
   );
 
   /// Tuang isian Env./header hasil foto (kode → teks yang sudah direview).
@@ -3998,16 +4017,35 @@ class LembarKerjaState {
   /// Nggak ketemu = pemanggilnya balik ke perilaku lama (`tahap` +
   /// [_titikTerdekat]) — respons server lama yang belum ngirim `tabel_id`, dan
   /// di lembar satu-tahap dua-duanya memang sama.
-  TabelHasil? _tabelPindai(String tabelId) {
+  ///
+  /// **Dicocokkan lewat `tabel_id` DAN `tahap`.** Before/After 0515 satu grup
+  /// (`pembacaan_standar`): server memberi tiap tabel id unik
+  /// (`pembacaan_standar_{tahap}`), dan HP menurunkan id yang sama dengan aturan
+  /// yang sama ([_idTabelServer]). Tidak pernah "ambil yang pertama": id yang
+  /// tidak cocok persis (server lama yang masih mengirim id kembar) = null,
+  /// supaya angka tidak mendarat di tabel sebelah.
+  TabelHasil? _tabelPindai(String tabelId, {String? tahap}) {
     if (tabelId.isEmpty) return null;
 
-    for (final bagian in bentuk.bagian) {
-      for (final t in bagian.tabel) {
-        if ((t.grup ?? t.tahap) == tabelId) return t;
-      }
+    final semua = [for (final bagian in bentuk.bagian) ...bagian.tabel];
+
+    for (final t in semua) {
+      if (_idTabelServer(t, semua) != tabelId) continue;
+      if (tahap != null && tahap.isNotEmpty && t.tahap != tahap) continue;
+
+      return t;
     }
 
     return null;
+  }
+
+  /// Cermin `TemplateLembarKerja::idTabelUnik()` di API: `grup ?? tahap`,
+  /// ditambah `_{tahap}` kalau lebih dari satu tabel lembar berdasar sama.
+  static String _idTabelServer(TabelHasil t, List<TabelHasil> semua) {
+    final dasar = t.grup ?? t.tahap;
+    final kembar = semua.where((o) => (o.grup ?? o.tahap) == dasar).length > 1;
+
+    return kembar ? '${dasar}_${t.tahap}' : dasar;
   }
 
   /// Baris matriks yang penanda fotonya [penanda]. `null` = bukan penanda baris

@@ -28,6 +28,7 @@ class WorksheetTemplate {
     this.selAsli = const [],
     this.isian = const [],
     this.centang = const [],
+    this.perluKonfirmasiLab = false,
   });
 
   /// `cetak` = lembar bermarker + QR buatan sistem (kontrak lama, semua field
@@ -75,7 +76,16 @@ class WorksheetTemplate {
   /// Formulir asli yang belum terverifikasi tetap boleh dicoba selama server
   /// menyalakan mode uji — keputusan pemilik (K1, 9 Okt 2026). Di produksi
   /// sakelarnya mati, jadi tombolnya memang tersembunyi.
-  bool get bolehDipindaiAsli => kertasAsli && (siapPindai || modeUji);
+  ///
+  /// Formulir yang pemetaannya masih ASUMSI POSISIONAL ([perluKonfirmasiLab])
+  /// tidak pernah boleh, apa pun mode ujinya: angka bisa mendarat di titik yang
+  /// salah, dan itu bukan soal vonis kuning/hijau.
+  bool get bolehDipindaiAsli =>
+      kertasAsli && !perluKonfirmasiLab && (siapPindai || modeUji);
+
+  /// Server menandai peta formulir ini masih menunggu konfirmasi lab
+  /// (`perlu_konfirmasi_lab`). Pintu "Foto lembar kerja" disembunyikan.
+  final bool perluKonfirmasiLab;
 
   /// Jumlah butir (sel + isian + centang) yang kotaknya `null` — titik peta
   /// yang tidak jatuh di tepat satu kotak draf. Butir begitu TIDAK dibaca, dan
@@ -150,9 +160,10 @@ class WorksheetTemplate {
       judul: data['judul'] as String? ?? '',
       tabel: parseListAman(data['tabel'], TabelTemplate.fromJson),
       sel: {
-        for (final e in (data['sel'] as Map<String, dynamic>? ??
-                const <String, dynamic>{})
-            .entries)
+        for (final e
+            in (data['sel'] as Map<String, dynamic>? ??
+                    const <String, dynamic>{})
+                .entries)
           if (e.value is Map<String, dynamic>)
             e.key: KotakSel.fromJson(e.value as Map<String, dynamic>),
       },
@@ -204,10 +215,14 @@ class WorksheetTemplate {
       kertas: 'asli',
       revisi: data['revisi'] == null ? null : '${data['revisi']}',
       modeUji: data['mode_uji'] as bool? ?? false,
+      perluKonfirmasiLab: data['perlu_konfirmasi_lab'] as bool? ?? false,
       halamanPt: w == null || h == null || w <= 0 || h <= 0
           ? null
           : (w: w, h: h),
-      jangkarTeks: parseListAman(geometri['jangkar_teks'], JangkarTeks.fromJson),
+      jangkarTeks: parseListAman(
+        geometri['jangkar_teks'],
+        JangkarTeks.fromJson,
+      ),
       selAsli: [
         if (selMentah is Map<String, dynamic>)
           for (final e in selMentah.entries)
@@ -252,6 +267,8 @@ class SelTemplateAsli {
     required this.barisKe,
     required this.repeatNo,
     required this.fieldId,
+    this.tahap,
+    this.aturan,
     this.titikUkur,
     this.standardId,
     this.kotak,
@@ -259,6 +276,14 @@ class SelTemplateAsli {
 
   final String kunci;
   final String tabelId;
+
+  /// `tahap` tabelnya (`sebelum_adjustment`/`sesudah_adjustment`). Bersama
+  /// [tabelId] dipakai mencocokkan tabel lembar: dua tabel tidak boleh
+  /// tertukar hanya karena grupnya sama.
+  final String? tahap;
+
+  /// Batas angka sel ini dari server (`aturan`), dipakai memeriksa di HP.
+  final AturanSelAsli? aturan;
   final int barisKe;
   final int repeatNo;
   final String fieldId;
@@ -277,10 +302,63 @@ class SelTemplateAsli {
         barisKe: (json['baris_ke'] as num?)?.toInt() ?? 0,
         repeatNo: (json['repeat_no'] as num?)?.toInt() ?? 0,
         fieldId: json['field_id'] as String? ?? '',
+        tahap: json['tahap'] as String?,
+        aturan: AturanSelAsli.dari(json['aturan']),
         titikUkur: (json['titik_ukur'] as num?)?.toDouble(),
         standardId: (json['standard_id'] as num?)?.toInt(),
         kotak: _kotakTernormal(json['kotak']),
       );
+}
+
+/// Batas angka satu sel — salinan `aturan` server (`ValidasiSel::periksaKeras`).
+/// Di luar batas = MERAH dan dikosongkan di HP; server tetap memutuskan ulang.
+class AturanSelAsli {
+  const AturanSelAsli({
+    this.min,
+    this.maks,
+    this.nominal,
+    this.rasioMin,
+    this.rasioMaks,
+  });
+
+  final double? min;
+  final double? maks;
+  final double? nominal;
+  final double? rasioMin;
+  final double? rasioMaks;
+
+  static AturanSelAsli? dari(Object? json) {
+    if (json is! Map<String, dynamic> || json['tipe'] != 'desimal') return null;
+
+    double? d(String k) => (json[k] as num?)?.toDouble();
+
+    return AturanSelAsli(
+      min: d('min'),
+      maks: d('maks'),
+      nominal: d('nominal'),
+      rasioMin: d('rasio_min'),
+      rasioMaks: d('rasio_maks'),
+    );
+  }
+
+  /// Sama dengan server: rentang min/maks, lalu rasio ke nominal (penangkap
+  /// koma geser) — nol tidak dirasiokan.
+  bool lolos(double nilai) {
+    if ((min != null && nilai < min!) || (maks != null && nilai > maks!)) {
+      return false;
+    }
+
+    final nom = nominal;
+    if (nom != null && nom.abs() > 0 && nilai != 0) {
+      final rasio = (nilai / nom).abs();
+      if ((rasioMin != null && rasio < rasioMin!) ||
+          (rasioMaks != null && rasio > rasioMaks!)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 }
 
 /// Isian di luar tabel (mis. `suhu_awal`). [cara] mengikuti PANDUAN §4.
@@ -377,9 +455,17 @@ class TabelTemplate {
     required this.baris,
     required this.kolom,
     required this.pengulangan,
+    this.tahap,
   });
 
-  /// **Identitas tabel — `grup ?? tahap`, BUKAN `tahap` doang.**
+  /// Tahap tabel; bersama [tabelId] menentukan tabel lembar yang dituju.
+  final String? tahap;
+
+  /// **Identitas tabel dari server — unik per tabel lembar.** Pakai apa adanya
+  /// bersama [tahap]. Dasarnya `grup ?? tahap`; kalau dua tabel sama dasarnya
+  /// (Before/After 0515) server menambah `_{tahap}`.
+  ///
+  /// Catatan lama: **`grup ?? tahap`, BUKAN `tahap` doang.**
   ///
   /// Spectrophotometer punya tiga tabel ber-`tahap` sama
   /// (`sesudah_adjustment`) yang cuma dibedain `grup`. Pakai `tahap` doang
@@ -394,6 +480,7 @@ class TabelTemplate {
 
   factory TabelTemplate.fromJson(Map<String, dynamic> json) => TabelTemplate(
     tabelId: json['tabel_id'] as String? ?? '',
+    tahap: json['tahap'] as String?,
     judul: json['judul'] as String? ?? '',
     baris: parseListAman(json['baris'], BarisTemplate.fromJson),
     kolom: parseListAman(json['kolom'], KolomTemplate.fromJson),
@@ -445,7 +532,11 @@ class BarisTemplate {
 
 /// Satu kolom di dalam sel — `field_id` yang jadi bagian kunci sel.
 class KolomTemplate {
-  const KolomTemplate({required this.fieldId, required this.label, this.satuan});
+  const KolomTemplate({
+    required this.fieldId,
+    required this.label,
+    this.satuan,
+  });
 
   final String fieldId;
   final String label;

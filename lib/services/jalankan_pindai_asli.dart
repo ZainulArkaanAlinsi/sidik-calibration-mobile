@@ -32,6 +32,9 @@ enum GagalPindaiAsli {
   /// Revisi tercetak beda dengan yang dipegang sistem.
   revisiBeda,
 
+  /// Teks revisi tidak terbaca di foto — tidak boleh dilewati diam-diam.
+  revisiTidakTerbaca,
+
   /// Tulisan cetak yang cocok kurang dari [JalankanPindaiAsli.jangkarMin].
   jangkarKurang,
 
@@ -202,8 +205,16 @@ class JalankanPindaiAsli {
         ? null
         : RegExp(r'\d+').firstMatch(revisiTerbaca)?.group(0);
 
-    if (angkaRevisi != null &&
-        int.tryParse(angkaRevisi) != int.tryParse(template.revisi ?? '')) {
+    // Revisi yang tidak terbaca BERHENTI di sini. Dulu null = lanjut, sehingga
+    // formulir revisi lama (kotak bergeser) bisa dibaca seolah revisi ini.
+    if (revisiTerbaca == null || angkaRevisi == null) {
+      throw PindaiAsliGagal(
+        GagalPindaiAsli.revisiTidakTerbaca,
+        terbaca: revisiTerbaca,
+      );
+    }
+
+    if (int.tryParse(angkaRevisi) != int.tryParse(template.revisi ?? '')) {
       throw PindaiAsliGagal(GagalPindaiAsli.revisiBeda, terbaca: revisiTerbaca);
     }
 

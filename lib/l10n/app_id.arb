@@ -2847,6 +2847,7 @@
   "lkAsliGeometriBelumLengkap": "Peta kotak formulir ini belum lengkap. Isi manual dulu.",
   "lkAsliKodeTidakTerbaca": "Kode formulir (SIDIK-FM-CAL-xxxx) di pojok kanan bawah tidak terbaca. Foto seluruh lembar, tegak, cukup terang.",
   "lkAsliFormulirLain": "Ini formulir lain ({kode}), bukan formulir untuk alat ini. Pakai lembar yang benar atau isi manual.",
+  "lkAsliRevisiTidakTerbaca": "Revisi formulir tidak terbaca — foto ulang",
   "lkAsliRevisiBeda": "Revisi formulir di foto ({terbaca}) beda dengan yang dipegang sistem. Pakai formulir revisi terbaru atau isi manual.",
   "lkAsliJangkarKurang": "Tulisan cetak formulir yang terbaca terlalu sedikit ({jumlah}) untuk meluruskan foto. Foto ulang seluruh lembar.",
   "lkAsliJangkarTidakMenyebar": "Bagian formulir yang terbaca menumpuk di satu sisi. Pastikan seluruh lembar masuk frame, lalu foto ulang.",

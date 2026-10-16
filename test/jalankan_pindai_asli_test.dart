@@ -61,7 +61,11 @@ void main() {
 
   /// Kata-kata cetak formulir di posisi fotonya, plus `: 4` di kanan
   /// "Revise" (revisi tercetak).
-  List<TeksTerbaca> kataCetak({String revisi = '4', bool denganKode = true}) {
+  List<TeksTerbaca> kataCetak({
+    String revisi = '4',
+    bool denganKode = true,
+    bool denganRevisi = true,
+  }) {
     final hasil = <TeksTerbaca>[
       for (final j in template.jangkarTeks)
         if (denganKode || !j.teks.startsWith('SIDIK-FM-CAL'))
@@ -74,6 +78,7 @@ void main() {
     final y = (rev.y + rev.h / 2) * halaman.h;
     final x = (rev.x + rev.w) * halaman.w;
     for (final (dx, t) in [(4.0, ':'), (12.0, revisi)]) {
+      if (!denganRevisi) break;
       final p = proyeksi(x + dx, y);
       hasil.add((
         teks: t,
@@ -284,6 +289,13 @@ void main() {
 
     test('revisi tercetak beda dari yang dipegang sistem', () async {
       await gagal(GagalPindaiAsli.revisiBeda, kata: kataCetak(revisi: '5'));
+    });
+
+    test('revisi tidak terbaca → berhenti, tidak lanjut diam-diam', () async {
+      await gagal(
+        GagalPindaiAsli.revisiTidakTerbaca,
+        kata: kataCetak(denganRevisi: false),
+      );
     });
 
     test('jangkar terlalu sedikit', () async {

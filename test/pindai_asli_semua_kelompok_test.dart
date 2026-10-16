@@ -260,7 +260,12 @@ void _uji(_Kasus k) {
   /// Isian dibaca sebagai angka wajar menurut keluarganya.
   List<String> bacaan() => [
     for (var i = 0; i < template.selAsli.length; i++)
-      '${10 + i ~/ 10},${i % 10}',
+      // Sel yang punya `aturan` dari server dibaca di dalam pitanya (pagar
+      // band di HP merahkan yang di luar); bacaan tiap sel tetap beda.
+      switch (template.selAsli[i].aturan?.nominal) {
+        final n? when n != 0 => (n * (1 + i * 0.001)).toStringAsFixed(3),
+        _ => '${10 + i ~/ 10},${i % 10}',
+      }.replaceAll('.', ','),
     for (final i in template.isian)
       switch (i.kode.split('.').last) {
         final c when c.startsWith('kelembaban_') => '55,5',
