@@ -21,6 +21,9 @@ import 'lembar_kerja_state.dart';
 /// untuk semua tabel; pH punya dua tabel dengan titik yang sama).
 const _pisah = '@@';
 
+/// Penanda baris review isian Env./header (bukan nama tabel mana pun).
+const _kodeIsian = '@isian';
+
 /// "Foto lembar kerja" — SEMUA diproses di HP (K-50-11): foto seluruh lembar →
 /// kenali formulir (kode tercetak) → luruskan → ML Kit per sel → layar review
 /// → angka masuk lembar. Foto, potongan, dan citra lurus hanya di memori;
@@ -118,37 +121,74 @@ Future<int> pindaiFormulirAsli({
   if (!context.mounted) return 0;
 
   // ---- Susun baris review ---------------------------------------------------
+  //
+  // Alamat sel = (tabel_id, baris_ke, repeat_no, field_id) dari server, dibawa
+  // di `fieldId` baris review sebagai `tabel@@baris@@field`. Titik ukur TIDAK
+  // dipakai sebagai alamat: di lembar bertitik ketik-sendiri semua barisnya
+  // bertitik 0. `titikUkur` baris review diisi nomor urut kertas (tabel × 1000
+  // + baris) — cuma untuk mengurut dan sebagai kunci unik potongan.
   final sel = <SelTabelFoto>[];
   final potongan = <String, Uint8List>{};
+  final urutTabel = [for (final t in template.tabel) t.tabelId];
 
   for (final b in hasil.sel) {
     final s = b.sel;
-    final titik = s.titikUkur;
     final teks = b.bacaan.teks?.trim();
 
-    // Sel kosong di kertas = tetap kosong di lembar. Tanpa titik ukur, sel
-    // tidak punya alamat yang pasti: dibuang, bukan ditebak.
-    if (titik == null || teks == null || teks.isEmpty) continue;
+    // Sel kosong di kertas = tetap kosong di lembar.
+    if (teks == null || teks.isEmpty) continue;
+
+    // Baris kertas yang tidak punya padanan di lembar (kertas mencetak lebih
+    // banyak baris/Repeat daripada yang diatur untuk alat ini) tidak ikut
+    // review: tidak ada kotak tempat mendaratnya.
+    if (!isian.alamatFotoAsliAda(s.tabelId, s.barisKe, s.repeatNo)) continue;
 
     // Teks bukan angka, atau tulisan keluar kotak → MERAH (nilainya tidak
     // ditampilkan, teknisi mengetik sendiri).
     final bisaDibaca = b.bacaan.didalamKotak && parseAngka(teks) != null;
+    final urut = (urutTabel.indexOf(s.tabelId) + 1) * 1000.0 + s.barisKe;
+    final fieldId = '${s.tabelId}$_pisah${s.barisKe}$_pisah${s.fieldId}';
 
     sel.add((
-      titikUkur: titik,
+      titikUkur: urut,
       repeatNo: s.repeatNo,
-      fieldId: '${s.tabelId}$_pisah${s.fieldId}',
+      fieldId: fieldId,
       teks: bisaDibaca ? teks : '',
       keyakinan: bisaDibaca ? b.bacaan.keyakinan : 0.0,
     ));
     final crop = hasil.potongan[s.kunci];
     if (crop != null) {
-      potongan[kunciSelFoto(
-            titik,
-            s.repeatNo,
-            '${s.tabelId}$_pisah${s.fieldId}',
-          )] =
-          crop;
+      potongan[kunciSelFoto(urut, s.repeatNo, fieldId)] = crop;
+    }
+  }
+
+  // Isian Env./header: baris review juga, ditaruh paling atas dalam golongan
+  // vonisnya (urut negatif). Di luar rentang wajar = MERAH.
+  var noIsian = 0;
+  for (final b in hasil.isian) {
+    final kode = b.isian.kode;
+    final teks = b.bacaan.teks?.trim();
+    noIsian++;
+    if (teks == null || teks.isEmpty) continue;
+
+    final nilai = parseAngka(teks);
+    final bisaDibaca =
+        b.bacaan.didalamKotak &&
+        nilai != null &&
+        wajarIsianLingkungan(kode, nilai);
+    final urut = -1000.0 + noIsian;
+    final fieldId = '$_kodeIsian$_pisah$noIsian$_pisah$kode';
+
+    sel.add((
+      titikUkur: urut,
+      repeatNo: 1,
+      fieldId: fieldId,
+      teks: bisaDibaca ? teks : '',
+      keyakinan: bisaDibaca ? b.bacaan.keyakinan : 0.0,
+    ));
+    final crop = hasil.potongan[kunciPotonganIsian(kode)];
+    if (crop != null) {
+      potongan[kunciSelFoto(urut, 1, fieldId)] = crop;
     }
   }
 
@@ -159,7 +199,23 @@ Future<int> pindaiFormulirAsli({
 
   String judul(SelTabelFoto s) {
     final bagian = s.fieldId.split(_pisah);
+
+    if (bagian.first == _kodeIsian) {
+      return [
+        l10n.lkAsliKondisiLingkungan,
+        isian.labelFieldIsian(bagian.last) ?? bagian.last,
+      ].join(' · ');
+    }
+
+    final barisKe = int.tryParse(bagian[1]) ?? 0;
     final tabel = isian.tabelUntukId(bagian.first);
+    final judulTabel =
+        template.tabel
+            .where((t) => t.tabelId == bagian.first)
+            .map((t) => t.judul)
+            .firstOrNull ??
+        tabel?.judul ??
+        bagian.first;
     final fieldId = bagian.last;
     final kolom = tabel?.kolom
         .where((k) => k.kode == fieldId)
@@ -167,8 +223,8 @@ Future<int> pindaiFormulirAsli({
         .firstOrNull;
 
     return [
-      tabel?.judul ?? bagian.first,
-      '${s.titikUkur}',
+      judulTabel,
+      isian.labelBarisFotoAsli(bagian.first, barisKe) ?? 'Baris $barisKe',
       'Repeat ${s.repeatNo}',
       kolom ?? fieldId,
     ].join(' · ');
@@ -181,11 +237,30 @@ Future<int> pindaiFormulirAsli({
   );
   if (disetujui == null) return 0;
 
-  final perTabel = <String, List<SelTabelFoto>>{};
+  final tabelDisetujui =
+      <
+        ({
+          String tabelId,
+          int barisKe,
+          int repeatNo,
+          String fieldId,
+          String teks,
+          double? keyakinan,
+        })
+      >[];
+  final isianDisetujui = <String, String>{};
+
   for (final s in disetujui) {
     final bagian = s.fieldId.split(_pisah);
-    (perTabel[bagian.first] ??= []).add((
-      titikUkur: s.titikUkur,
+
+    if (bagian.first == _kodeIsian) {
+      isianDisetujui[bagian.last] = s.teks;
+      continue;
+    }
+
+    tabelDisetujui.add((
+      tabelId: bagian.first,
+      barisKe: int.tryParse(bagian[1]) ?? 0,
       repeatNo: s.repeatNo,
       fieldId: bagian.last,
       teks: s.teks,
@@ -193,10 +268,38 @@ Future<int> pindaiFormulirAsli({
     ));
   }
 
-  final terisi = isian.terapkanHasilFotoBanyakTabel(perTabel);
-  kabar(terisi == 0 ? l10n.lkAsliTakAdaSel : l10n.lkAsliTerisi(terisi));
+  final terisi =
+      isian.terapkanHasilFotoAsli(tabelDisetujui) +
+      isian.terapkanIsianFotoAsli(isianDisetujui);
+  kabar(
+    terisi == 0
+        ? l10n.lkAsliTakAdaSel
+        : template.centang.isEmpty
+        ? l10n.lkAsliTerisi(terisi)
+        : l10n.lkAsliTerisiCentangManual(terisi),
+  );
 
   return terisi;
+}
+
+/// Pita wajar isian kondisi lingkungan — angka di luarnya MERAH, bukan usulan.
+///
+/// Angkanya salinan yang sudah dipegang server (jangan diubah di sini saja):
+/// suhu = `ocr.suhu.min/maks` 5–45 °C, kelembaban =
+/// `CalibrationValidator::KELEMBABAN_MIN/MAKS` 20–90 %RH, tekanan udara =
+/// `CalibrationRequest::TEKANAN_MIN_HPA/MAKS_HPA` 300–1100 hPa (penangkap salah
+/// satuan kPa/Pa). Kode di luar ketiga keluarga itu tidak punya pita → tidak
+/// pernah dibuka server untuk pindai, jadi di sini juga ditolak.
+bool wajarIsianLingkungan(String kode, double nilai) {
+  final ujung = kode.contains('.') ? kode.split('.').last : kode;
+  final (min, maks) = switch (ujung) {
+    final k when k.startsWith('suhu_') => (5.0, 45.0),
+    final k when k.startsWith('kelembaban_') => (20.0, 90.0),
+    final k when k.startsWith('tekanan_') => (300.0, 1100.0),
+    _ => (double.nan, double.nan),
+  };
+
+  return nilai >= min && nilai <= maks;
 }
 
 /// Alasan berhenti → kalimat untuk teknisi. Formulir salah = berhenti dengan

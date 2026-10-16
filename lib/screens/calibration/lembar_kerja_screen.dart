@@ -494,6 +494,13 @@ class _FormState extends ConsumerState<_Form> {
 
   bool _sedangMemindai = false;
 
+  /// Pintu "Foto lembar kerja" hanya untuk formulir yang boleh dipindai DAN
+  /// yang tabelnya bisa diterima lembar ini (Enclosure: grid, belum).
+  bool _bolehFotoLembar(WorksheetTemplate? asli) =>
+      asli != null &&
+      asli.bolehDipindaiAsli &&
+      _isian.bisaMenerimaFotoAsli(asli);
+
   /// Pintu masuk lembar baru. Foto butuh alatnya dulu (titik ukur lahir dari
   /// alat), jadi pilihan "Foto" tanpa alat hanya mengarahkan ke tombol kamera.
   Future<void> _tanyaCara() async {
@@ -507,7 +514,7 @@ class _FormState extends ConsumerState<_Form> {
     } catch (_) {
       return; // Tanpa peta formulir: langsung isi manual, tanpa pintu.
     }
-    if (asli == null || !asli.bolehDipindaiAsli || !mounted) return;
+    if (asli == null || !_bolehFotoLembar(asli) || !mounted) return;
 
     final l10n = AppLocalizations.of(context);
     final foto = await showModalBottomSheet<bool>(
@@ -578,7 +585,7 @@ class _FormState extends ConsumerState<_Form> {
 
       final asli = await ref.read(formulirAsliProvider(_kunciAsli).future);
       if (!mounted) return;
-      if (asli == null || !asli.bolehDipindaiAsli) {
+      if (asli == null || !_bolehFotoLembar(asli)) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(l10n.lkAsliBelumSiap)));
@@ -1534,11 +1541,9 @@ class _FormState extends ConsumerState<_Form> {
                     },
                   ),
                 ),
-              if (ref
-                      .watch(formulirAsliProvider(_kunciAsli))
-                      .value
-                      ?.bolehDipindaiAsli ==
-                  true)
+              if (_bolehFotoLembar(
+                ref.watch(formulirAsliProvider(_kunciAsli)).value,
+              ))
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
                     AppSpacing.md,

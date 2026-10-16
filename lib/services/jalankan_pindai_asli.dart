@@ -64,6 +64,14 @@ class PindaiAsliGagal implements Exception {
 /// Satu sel hasil baca — teks mentah ML Kit + keyakinannya. Hanya USULAN.
 typedef SelAsliTerbaca = ({SelTemplateAsli sel, BacaanSel bacaan});
 
+/// Satu isian di luar tabel (Env. Condition) hasil baca — juga hanya USULAN.
+typedef IsianAsliTerbaca = ({IsianTemplate isian, BacaanSel bacaan});
+
+/// Kunci potongan isian di [HasilBacaAsli.potongan] — sama dengan bentuk kunci
+/// isian di rute crop server (`isian|{kode}`), supaya tidak bertabrakan dengan
+/// kunci sel tabel.
+String kunciPotonganIsian(String kode) => 'isian|$kode';
+
 /// Hasil baca satu foto formulir asli. Tidak memuat citra: foto tidak pernah
 /// keluar dari HP dan tidak disimpan di sini (K-50-11).
 class HasilBacaAsli {
@@ -71,10 +79,15 @@ class HasilBacaAsli {
     required this.sel,
     required this.kodeTerbaca,
     this.revisiTerbaca,
+    this.isian = const [],
     this.potongan = const {},
   });
 
   final List<SelAsliTerbaca> sel;
+
+  /// Isian Env./header yang dibuka server (`tahap: 1`) dan ada kotaknya di
+  /// peta. Kotak centang TIDAK dibaca: dibiarkan untuk diisi manual.
+  final List<IsianAsliTerbaca> isian;
   final String kodeTerbaca;
   final String? revisiTerbaca;
 
@@ -233,8 +246,9 @@ class JalankanPindaiAsli {
       h: k.h * warp.height,
     );
 
-    // Hanya SEL tabel: usulan angka ukur. Isian header & centang belum
-    // dipakai di jalur lokal (butuh pemetaan ke field lembar + foto nyata).
+    // SEL tabel (usulan angka ukur) lalu ISIAN Env./header yang dibuka server.
+    // Kotak centang sengaja TIDAK dibaca: pilihan Thermohygro/Usage Check
+    // menentukan standar yang tercatat, jadi teknisi memilihnya sendiri.
     final hasil = <SelAsliTerbaca>[];
     final gambar = <String, img.Image>{};
 
@@ -244,6 +258,16 @@ class JalankanPindaiAsli {
 
       gambar[s.kunci] = potong;
       hasil.add((sel: s, bacaan: await pembaca.baca(potong)));
+    }
+
+    final hasilIsian = <IsianAsliTerbaca>[];
+
+    for (final i in template.isian) {
+      final p = piksel(i.kotak!);
+      final potong = mesin.potongSel(warp, x: p.x, y: p.y, w: p.w, h: p.h);
+
+      gambar[kunciPotonganIsian(i.kode)] = potong;
+      hasilIsian.add((isian: i, bacaan: await pembaca.baca(potong)));
     }
 
     // Encode PNG puluhan potongan di isolate latar, bukan isolate UI.
@@ -258,6 +282,7 @@ class JalankanPindaiAsli {
       sel: hasil,
       kodeTerbaca: dikenali.kode,
       revisiTerbaca: revisiTerbaca,
+      isian: hasilIsian,
       potongan: potongan,
     );
   }

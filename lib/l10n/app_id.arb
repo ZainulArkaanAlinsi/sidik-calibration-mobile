@@ -2851,6 +2851,8 @@
   "lkAsliJangkarKurang": "Tulisan cetak formulir yang terbaca terlalu sedikit ({jumlah}) untuk meluruskan foto. Foto ulang seluruh lembar.",
   "lkAsliJangkarTidakMenyebar": "Bagian formulir yang terbaca menumpuk di satu sisi. Pastikan seluruh lembar masuk frame, lalu foto ulang.",
   "lkAsliTerisi": "{terisi} sel terisi dari foto. Periksa lagi sebelum dikirim.",
+  "lkAsliKondisiLingkungan": "Kondisi lingkungan",
+  "lkAsliTerisiCentangManual": "{terisi} isian terisi dari foto. Kotak centang (Thermohygro, standar dipakai) tetap diisi manual. Periksa lagi sebelum dikirim.",
   "lkAsliTakAdaSel": "Tidak ada angka yang bisa dimasukkan dari foto ini.",
   "lkAsliGagalUmum": "Foto gagal diproses. Isi manual atau coba foto ulang.",
   "lkAsliPilihAlatDulu": "Pilih alatnya dulu, lalu ketuk tombol kamera \"Foto worksheet\" di atas lembar."

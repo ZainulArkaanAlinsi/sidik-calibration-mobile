@@ -177,17 +177,35 @@ void main() {
       expect(hasil.revisiTerbaca, ': 4');
     });
 
-    test('hanya sel tabel dibaca, per potongan, berkunci template', () {
-      expect(pembaca.jumlahDibaca, 60);
-      expect(hasil.sel, hasLength(60));
-      expect(hasil.sel.first.sel.kunci, template.selAsli.first.kunci);
-      expect(hasil.sel.first.bacaan.teks, '4,00');
-      expect(hasil.sel[9].bacaan.teks, '4,09');
-    });
+    test(
+      'sel tabel + isian Env. dibaca per potongan; centang TIDAK dibaca',
+      () {
+        // 60 sel + 4 isian Env.; 9 kotak centang tidak disentuh pembaca.
+        expect(template.centang, hasLength(9));
+        expect(pembaca.jumlahDibaca, 64);
+        expect(hasil.sel, hasLength(60));
+        expect(hasil.sel.first.sel.kunci, template.selAsli.first.kunci);
+        expect(hasil.sel.first.bacaan.teks, '4,00');
+        expect(hasil.sel[9].bacaan.teks, '4,09');
+        expect(hasil.isian.map((e) => e.isian.kode), [
+          for (final i in template.isian) i.kode,
+        ]);
+        expect(hasil.isian.map((e) => e.bacaan.teks), [
+          '25,0',
+          '60',
+          '25,4',
+          '61',
+        ]);
+      },
+    );
 
-    test('potongan sel PNG ada di memori, satu per sel', () {
-      expect(hasil.potongan, hasLength(60));
+    test('potongan PNG ada di memori: satu per sel dan satu per isian', () {
+      expect(hasil.potongan, hasLength(64));
       expect(hasil.potongan[template.selAsli.first.kunci], isNotEmpty);
+      expect(
+        hasil.potongan[kunciPotonganIsian(template.isian.first.kode)],
+        isNotEmpty,
+      );
     });
   });
 

@@ -17,6 +17,7 @@ import '../../core/utils/jam_lembar.dart';
 import '../../models/lembar_kerja.dart';
 import 'grid_sensor_state.dart';
 import '../../models/lembar_kerja_submission.dart';
+import '../../models/worksheet_template.dart' show WorksheetTemplate;
 import '../../models/worksheet_scan.dart';
 import '../../services/gabung_tabel.dart';
 import '../../services/peta_tabel_foto.dart';
@@ -3827,6 +3828,139 @@ class LembarKerjaState {
 
       terisi += terapkanHasilFotoTabel(e.value, tabel: tabel);
     }
+
+    return terisi;
+  }
+
+  /// Label baris ke-[barisKe] (1-based, urutan kertas = urutan server) di
+  /// tabel [tabelId], buat judul baris review. `null` = tabel/baris tak ada.
+  String? labelBarisFotoAsli(String tabelId, int barisKe) {
+    final tabel = _tabelPindai(tabelId);
+    if (tabel == null) return null;
+
+    final baris = barisTabel(tabel);
+    if (barisKe < 1 || barisKe > baris.length) return null;
+
+    return baris[barisKe - 1].label;
+  }
+
+  /// Label field isian [kode] di bentuk lembar (mis. `suhu_awal`), atau `null`.
+  String? labelFieldIsian(String kode) {
+    for (final bagian in bentuk.bagian) {
+      for (final f in bagian.field) {
+        if (f.kode == kode) return f.label;
+      }
+    }
+
+    return null;
+  }
+
+  /// Tuang hasil foto FORMULIR ASLI yang sudah lewat review.
+  ///
+  /// Beda dari [terapkanHasilFotoTabel]: baris dialamatkan lewat POSISI
+  /// (`baris_ke` dari server, urutan kertas), BUKAN lewat titik ukur. Titik
+  /// ukur cuma pembeda yang aman di lembar bertitik tetap (pH, Conductivity);
+  /// di lembar bertitik ketik-sendiri (Pressure, Micrometer, TIDS, Enclosure)
+  /// server mengirim `titik_ukur` 0 untuk SEMUA baris, dan pencarian lewat
+  /// titik mendaratkan sebelas baris di satu kotak. Kunci kotaknya tetap
+  /// [kunciBaris] — satu-satunya cara lembar ini menamai baris.
+  ///
+  /// Aturan lain sama dengan jalur foto per tabel: sel yang sudah terisi tidak
+  /// pernah ditimpa, SEMUA yang masuk ditandai perlu dicek, dan bacaan mesin
+  /// disimpan terpisah dari kotaknya.
+  int terapkanHasilFotoAsli(
+    List<
+      ({
+        String tabelId,
+        int barisKe,
+        int repeatNo,
+        String fieldId,
+        String teks,
+        double? keyakinan,
+      })
+    >
+    sel,
+  ) {
+    var terisi = 0;
+
+    for (final s in sel) {
+      final tujuan = _tujuanFotoAsli(s.tabelId, s.barisKe, s.repeatNo);
+      if (tujuan == null) continue;
+
+      final nilai = parseAngka(s.teks);
+      if (nilai == null) continue;
+
+      terisi += _isiSel(
+        tujuan.state,
+        tujuan.tabel.kunciTabel,
+        s.fieldId,
+        tujuan.index,
+        nilai,
+        true,
+        bacaanMesin: BacaanMesin(teksMentah: s.teks, keyakinan: s.keyakinan),
+      );
+    }
+
+    if (terisi > 0) adaIsianDariFoto = true;
+
+    return terisi;
+  }
+
+  /// Tempat mendarat satu alamat sel formulir asli, atau `null` kalau lembar
+  /// ini tidak punya (tabelnya bukan tabel lembar — mis. grid Enclosure —,
+  /// barisnya melewati jumlah baris lembar, atau Repeat-nya tidak ada).
+  ({TabelHasil tabel, TitikState state, int index})? _tujuanFotoAsli(
+    String tabelId,
+    int barisKe,
+    int repeatNo,
+  ) {
+    final tabel = _tabelPindai(tabelId);
+    if (tabel == null) return null;
+
+    final baris = barisTabel(tabel);
+    final i = barisKe - 1;
+    if (i < 0 || i >= baris.length) return null;
+
+    final state = titikUntukBaris(baris, i, tabel);
+    if (state == null) return null;
+
+    final index = tabel.pengulangan.indexOf(repeatNo);
+    if (index < 0 || index >= state.jumlahPengulangan) return null;
+
+    return (tabel: tabel, state: state, index: index);
+  }
+
+  /// Alamat ini punya kotak di lembar? Dipakai alur foto supaya baris yang
+  /// tak punya tempat (Baris kertas melebihi baris lembar) tidak masuk review.
+  bool alamatFotoAsliAda(String tabelId, int barisKe, int repeatNo) =>
+      _tujuanFotoAsli(tabelId, barisKe, repeatNo) != null;
+
+  /// Lembar ini bisa menerima SETIDAKNYA satu sel dari [template]? `false` =
+  /// pintu "Foto lembar kerja" tidak digambar (Enclosure: gridnya bukan tabel
+  /// lembar) — daripada teknisi memotret lalu mendapat nol sel.
+  bool bisaMenerimaFotoAsli(WorksheetTemplate template) => template.selAsli.any(
+    (s) => alamatFotoAsliAda(s.tabelId, s.barisKe, s.repeatNo),
+  );
+
+  /// Tuang isian Env./header hasil foto (kode → teks yang sudah direview).
+  ///
+  /// Kotak yang sudah ada isinya tidak ditimpa; kode yang tidak punya kotak di
+  /// lembar ini dilewati (bukan dibuatkan kotak baru). Yang dikembalikan =
+  /// jumlah kotak yang benar-benar terisi.
+  int terapkanIsianFotoAsli(Map<String, String> perKode) {
+    var terisi = 0;
+
+    for (final e in perKode.entries) {
+      final kotak = teks[e.key];
+      final nilai = parseAngka(e.value);
+      if (kotak == null || nilai == null) continue;
+      if (kotak.text.trim().isNotEmpty) continue;
+
+      kotak.text = formatAngka(nilai);
+      terisi++;
+    }
+
+    if (terisi > 0) adaIsianDariFoto = true;
 
     return terisi;
   }

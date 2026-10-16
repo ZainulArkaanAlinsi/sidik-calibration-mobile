@@ -3612,6 +3612,9 @@
   "lkAsliJangkarTidakMenyebar": "The readable parts of the form are bunched on one side. Keep the whole sheet in frame and retake.",
   "lkAsliTerisi": "{terisi} cells filled from the photo. Check them again before sending.",
   "@lkAsliTerisi": {"placeholders": {"terisi": {"type": "int"}}},
+  "lkAsliKondisiLingkungan": "Environmental conditions",
+  "lkAsliTerisiCentangManual": "{terisi} fields filled from the photo. Checkboxes (thermohygro, standards used) stay manual. Check again before sending.",
+  "@lkAsliTerisiCentangManual": {"placeholders": {"terisi": {"type": "int"}}},
   "lkAsliTakAdaSel": "No numbers could be taken from this photo.",
   "lkAsliGagalUmum": "The photo could not be processed. Fill in manually or retake it.",
   "lkAsliPilihAlatDulu": "Pick the instrument first, then tap the \"Photo worksheet\" camera button above the sheet."

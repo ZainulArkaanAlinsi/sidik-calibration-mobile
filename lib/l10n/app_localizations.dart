@@ -11551,6 +11551,18 @@ abstract class AppLocalizations {
   /// **'{terisi} cells filled from the photo. Check them again before sending.'**
   String lkAsliTerisi(int terisi);
 
+  /// No description provided for @lkAsliKondisiLingkungan.
+  ///
+  /// In en, this message translates to:
+  /// **'Environmental conditions'**
+  String get lkAsliKondisiLingkungan;
+
+  /// No description provided for @lkAsliTerisiCentangManual.
+  ///
+  /// In en, this message translates to:
+  /// **'{terisi} fields filled from the photo. Checkboxes (thermohygro, standards used) stay manual. Check again before sending.'**
+  String lkAsliTerisiCentangManual(int terisi);
+
   /// No description provided for @lkAsliTakAdaSel.
   ///
   /// In en, this message translates to:

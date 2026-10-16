@@ -6564,6 +6564,14 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String get lkAsliKondisiLingkungan => 'Kondisi lingkungan';
+
+  @override
+  String lkAsliTerisiCentangManual(int terisi) {
+    return '$terisi isian terisi dari foto. Kotak centang (Thermohygro, standar dipakai) tetap diisi manual. Periksa lagi sebelum dikirim.';
+  }
+
+  @override
   String get lkAsliTakAdaSel =>
       'Tidak ada angka yang bisa dimasukkan dari foto ini.';
 

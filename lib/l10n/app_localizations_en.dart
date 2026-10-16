@@ -6638,6 +6638,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get lkAsliKondisiLingkungan => 'Environmental conditions';
+
+  @override
+  String lkAsliTerisiCentangManual(int terisi) {
+    return '$terisi fields filled from the photo. Checkboxes (thermohygro, standards used) stay manual. Check again before sending.';
+  }
+
+  @override
   String get lkAsliTakAdaSel => 'No numbers could be taken from this photo.';
 
   @override
