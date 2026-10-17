@@ -708,4 +708,73 @@ class StudioL10nEn extends StudioL10n {
 
   @override
   String get workbookKembaliKeDaftar => 'Back to list';
+
+  @override
+  String get unggahMasterTombol => 'Upload master';
+
+  @override
+  String get unggahMasterJudul => 'Upload master';
+
+  @override
+  String get unggahMasterKet =>
+      'Import a master workbook (.xlsm, .xlsx or .csv). The server extracts it and records who did it and why.';
+
+  @override
+  String get unggahMasterPilihBerkas => 'Choose file';
+
+  @override
+  String get unggahMasterBelumDipilih => 'No file chosen';
+
+  @override
+  String get unggahMasterSandi => 'File password (if protected)';
+
+  @override
+  String get unggahMasterSandiKet => 'Sent once with the upload. Never stored.';
+
+  @override
+  String get unggahMasterAlasan => 'Reason';
+
+  @override
+  String get unggahMasterAlasanKet =>
+      'Why this master is being imported or replaced (recorded in the audit trail).';
+
+  @override
+  String get unggahMasterAlasanWajib => 'Reason is required.';
+
+  @override
+  String get unggahMasterGantikan => 'Replace master (optional)';
+
+  @override
+  String get unggahMasterGantikanTidak => 'New master (replaces nothing)';
+
+  @override
+  String get unggahMasterKirim => 'Upload';
+
+  @override
+  String get unggahMasterMengirim => 'Uploading…';
+
+  @override
+  String get unggahMasterBerhasil =>
+      'Master uploaded. The list has been refreshed.';
+
+  @override
+  String get unggahMasterBerkasWajib => 'Choose a file first.';
+
+  @override
+  String get unggahMasterFormatBerkas =>
+      'Only .xlsm, .xlsx or .csv files are accepted.';
+
+  @override
+  String get unggahMasterSandiSalah => 'The file password is wrong.';
+
+  @override
+  String get unggahMasterSandiDiperlukan =>
+      'This file is password protected — enter its password.';
+
+  @override
+  String get unggahMasterFormatTidakDikenal =>
+      'The server does not recognise this file format.';
+
+  @override
+  String get unggahMasterGagal => 'Upload failed.';
 }

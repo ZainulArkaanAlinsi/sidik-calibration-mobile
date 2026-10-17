@@ -531,5 +531,26 @@
     }
   },
   "workbookDiarsipkan": "This master has been archived/replaced.",
-  "workbookKembaliKeDaftar": "Back to list"
+  "workbookKembaliKeDaftar": "Back to list",
+  "unggahMasterTombol": "Upload master",
+  "unggahMasterJudul": "Upload master",
+  "unggahMasterKet": "Import a master workbook (.xlsm, .xlsx or .csv). The server extracts it and records who did it and why.",
+  "unggahMasterPilihBerkas": "Choose file",
+  "unggahMasterBelumDipilih": "No file chosen",
+  "unggahMasterSandi": "File password (if protected)",
+  "unggahMasterSandiKet": "Sent once with the upload. Never stored.",
+  "unggahMasterAlasan": "Reason",
+  "unggahMasterAlasanKet": "Why this master is being imported or replaced (recorded in the audit trail).",
+  "unggahMasterAlasanWajib": "Reason is required.",
+  "unggahMasterGantikan": "Replace master (optional)",
+  "unggahMasterGantikanTidak": "New master (replaces nothing)",
+  "unggahMasterKirim": "Upload",
+  "unggahMasterMengirim": "Uploading…",
+  "unggahMasterBerhasil": "Master uploaded. The list has been refreshed.",
+  "unggahMasterBerkasWajib": "Choose a file first.",
+  "unggahMasterFormatBerkas": "Only .xlsm, .xlsx or .csv files are accepted.",
+  "unggahMasterSandiSalah": "The file password is wrong.",
+  "unggahMasterSandiDiperlukan": "This file is password protected — enter its password.",
+  "unggahMasterFormatTidakDikenal": "The server does not recognise this file format.",
+  "unggahMasterGagal": "Upload failed."
 }

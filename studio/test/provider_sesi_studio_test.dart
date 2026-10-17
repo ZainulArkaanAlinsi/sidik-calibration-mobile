@@ -21,6 +21,9 @@ void main() {
     // `GET /health` publik: status server, sama untuk siapa pun.
     'statusServerProvider':
         'status server publik, tanpa token, bukan milik akun',
+    // Pembungkus aksi (fungsi unggah), tidak menyimpan data apa pun; sandi
+    // berkas lewat parameter dan tidak ditahan.
+    'unggahMasterProvider': 'aksi tanpa keadaan, tidak memegang data akun',
   };
 
   bool layanan(String nama) =>

@@ -150,6 +150,42 @@ final gambarWorkbookProvider = FutureProvider.autoDispose
           );
     }, retry: (_, _) => null);
 
+/// Pengunggah master (K-50-12): kirim lalu tarik ulang daftar/detail/riwayat.
+/// Sandi berkas hanya lewat parameter ke kawat — tidak disimpan provider mana
+/// pun.
+typedef UnggahMaster =
+    Future<HasilUnggahMaster> Function({
+      required String jalurBerkas,
+      required String alasan,
+      String? sandi,
+      int? gantikanId,
+    });
+
+final unggahMasterProvider = Provider<UnggahMaster>(
+  (ref) =>
+      ({
+        required String jalurBerkas,
+        required String alasan,
+        String? sandi,
+        int? gantikanId,
+      }) async {
+        final token = await _token(ref);
+        final hasil = await ref
+            .read(workbookServiceProvider)
+            .unggahMaster(
+              token,
+              jalurBerkas: jalurBerkas,
+              alasan: alasan,
+              sandi: sandi,
+              gantikanId: gantikanId,
+            );
+        ref.invalidate(daftarWorkbookProvider);
+        ref.invalidate(detailWorkbookProvider);
+        ref.invalidate(riwayatWorkbookProvider);
+        return hasil;
+      },
+);
+
 /// Tarik ulang semua data workbook (lazy). Simulasi TIDAK ikut dibuang:
 /// edit yang berlaku dihitung lagi di atas snapshot yang baru.
 void segarkanWorkbook(WidgetRef ref) {

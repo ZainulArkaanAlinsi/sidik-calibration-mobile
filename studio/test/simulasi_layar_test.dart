@@ -365,8 +365,9 @@ void main() {
   });
 
   group('peran & sumber', () {
-    testWidgets('peran viewer: BACA-SAJA — ketik/F2/dobel ketuk/Delete tidak '
-        'membuka edit, tanpa ✓/✕ & urung, tidak ada kiriman', (tester) async {
+    testWidgets('K-50-12: satu akun Studio, tanpa penyaring peran di klien — '
+        'peran apa pun yang tercatat, edit/hitung tetap terbuka (server yang '
+        'menolak)', (tester) async {
       final mock = MockWorkbookService();
       await _bukaWorkbook(
         tester,
@@ -377,23 +378,8 @@ void main() {
           boleh: {NamaIzin.dataAcuanLihat, izinWorkbookLihat},
         ),
       );
-      expect(find.byKey(const ValueKey('penanda-baca')), findsOneWidget);
-      expect(find.byKey(const ValueKey('tombol-simpan-edit')), findsNothing);
-      expect(find.byKey(const ValueKey('tombol-urungkan')), findsNothing);
-      expect(find.byKey(const ValueKey('ketuk-bilah-rumus')), findsNothing);
-
-      final k6 = find.byKey(kunciSelGrid(AlamatSel.urai('K6')!));
-      await tester.tap(k6);
-      await tester.pump(const Duration(milliseconds: 60));
-      await tester.tap(k6);
-      await tester.pump();
-      await _ketikHuruf(tester, LogicalKeyboardKey.digit1, '1');
-      await tester.sendKeyEvent(LogicalKeyboardKey.f2);
-      await tester.sendKeyEvent(LogicalKeyboardKey.delete);
-      await _hitung(tester);
-      expect(find.byKey(kunciEditorSel), findsNothing);
-      expect(mock.panggilanHitung, isEmpty);
-      expect(_teksDiSel(tester, 'K6').data, '0.127');
+      expect(find.byKey(const ValueKey('penanda-simulasi')), findsOneWidget);
+      expect(find.byKey(const ValueKey('penanda-baca')), findsNothing);
     });
 
     testWidgets('workbook CSV: baca-saja walau admin (server pasti 409)', (

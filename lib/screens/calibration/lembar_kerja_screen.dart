@@ -1591,11 +1591,10 @@ class _FormState extends ConsumerState<_Form> {
     // Koreksi atas lembar yang SUDAH dikirim teknisi wajib beralasan (server:
     // `alasan_koreksi` min. 10 karakter; nilai lama + baru + alasan dicatat).
     // Diminta di sini, sebelum tombol berputar — bukan sesudah ditolak 422.
-    // Lembar bermatriks (Autoklaf) lewat endpoint lain yang belum memakainya.
+    // Lembar bermatriks (Autoklaf): `PUT /calibrations/autoclave/{id}` juga
+    // menuntutnya (kontrak: "Edit Admin" pada `menunggu_approval`).
     String? alasanKoreksi;
-    if (_perluAlasanKoreksi &&
-        _isian.bagianMatriks == null &&
-        _pembacaanBerubah) {
+    if (_perluAlasanKoreksi && _pembacaanBerubah) {
       alasanKoreksi = await _mintaAlasanKoreksi();
       if (alasanKoreksi == null || !mounted) return;
     }
@@ -1609,7 +1608,11 @@ class _FormState extends ConsumerState<_Form> {
     final bagianMatriks = _isian.bagianMatriks;
 
     if (bagianMatriks != null) {
-      await _kirimMatriks(bagianMatriks, draft: draft);
+      await _kirimMatriks(
+        bagianMatriks,
+        draft: draft,
+        alasanKoreksi: alasanKoreksi,
+      );
       return;
     }
 
@@ -1739,6 +1742,7 @@ class _FormState extends ConsumerState<_Form> {
   Future<void> _kirimMatriks(
     BagianLembarKerja bagian, {
     required bool draft,
+    String? alasanKoreksi,
   }) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -1761,7 +1765,11 @@ class _FormState extends ConsumerState<_Form> {
       // `client_request_id` baru — server nggak punya cara mengenalinya, dan
       // tiap "Simpan draft" melahirkan sesi Autoklaf kembar.
       final layanan = ref.read(autoclaveServiceProvider);
-      final payload = _isian.payloadSimpanMatriks(bagian, draft: draft);
+      final payload = _isian.payloadSimpanMatriks(
+        bagian,
+        draft: draft,
+        alasanKoreksi: alasanKoreksi,
+      );
       final sesiId = _sesiIdTerkini;
       final int id;
 
@@ -1941,6 +1949,14 @@ class _FormState extends ConsumerState<_Form> {
 
   String? _tangkapPembacaan() {
     try {
+      // Lembar bermatriks (Autoklaf) tidak punya `measurements`: pembandingnya
+      // data ukur mentah yang akan dikirim.
+      final bagian = _isian.bagianMatriks;
+      if (bagian?.matriks != null) {
+        return jsonEncode(
+          _isian.payloadMatriks(bagian!.matriks!, bagian.tabelTambahan),
+        );
+      }
       final json = _isian.toSubmission(draft: true).toJson();
       return jsonEncode(json['measurements']);
     } catch (_) {

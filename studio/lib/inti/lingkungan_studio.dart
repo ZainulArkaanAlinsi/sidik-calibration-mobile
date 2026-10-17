@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sidik_calibration/core/config/app_config.dart';
@@ -25,15 +26,37 @@ const Map<String, String> headerKlienStudio = {
   'X-Versi-Klien': versiStudio,
 };
 
+/// Alamat API produksi — bawaan build rilis Studio bila `API_BASE_URL` tidak
+/// diberikan (K-50-12). Build dev tetap memakai bawaan `AppConfig` dan isian
+/// "Alamat server".
+const String alamatApiProduksiStudio =
+    'https://sidik-calibration-api.onrender.com/api';
+
+const String _apiBaseUrlDefine = String.fromEnvironment('API_BASE_URL');
+
+/// Alamat bawaan build: `--dart-define=API_BASE_URL` bila ada; selain itu
+/// produksi untuk build rilis non-dev, dan bawaan `AppConfig` (emulator
+/// lokal) untuk debug/dev. Fungsi (bukan konstanta) supaya test bisa
+/// menguji tiap cabang.
+String alamatBawaanStudio({
+  String define = _apiBaseUrlDefine,
+  bool rilis = kReleaseMode,
+  String env = appEnvStudio,
+}) {
+  if (define.isNotEmpty) return define;
+  if (rilis && env != 'dev') return alamatApiProduksiStudio;
+  return AppConfig.apiBaseUrl;
+}
+
 /// Alamat API yang dituju (`--dart-define=API_BASE_URL`, lewat `AppConfig`
-/// paket bersama) — atau, HANYA di build `APP_ENV=dev`, alamat yang disimpan
+/// paket bersama; tanpa define: produksi di build rilis) — atau, HANYA di build `APP_ENV=dev`, alamat yang disimpan
 /// lewat isian "Alamat server" di layar masuk ([alamatServerDevProvider]).
 /// Provider supaya bilah status & layar masuk menyebut server yang SAMA
 /// dengan yang ditembak `ApiClient`, dan test bisa mengarahkannya ke server
 /// lokal.
 final alamatServerStudioProvider = Provider<String>((ref) {
-  if (!ref.watch(isianServerDevStudioProvider)) return AppConfig.apiBaseUrl;
-  return ref.watch(alamatServerDevProvider) ?? AppConfig.apiBaseUrl;
+  if (!ref.watch(isianServerDevStudioProvider)) return alamatBawaanStudio();
+  return ref.watch(alamatServerDevProvider) ?? alamatBawaanStudio();
 });
 
 // ─────────────────────────────────────────── alamat server (build dev saja)

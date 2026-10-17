@@ -16,7 +16,6 @@ import '../../inti/sesi_studio.dart';
 import '../../l10n/studio_l10n.dart';
 import '../../tema/tema_studio.dart';
 import '../../tema/warna_studio.dart';
-import '../../widget/bilah_status.dart' show peranAkunStudio;
 import '../../widget/grid/grid_sel.dart';
 import 'daftar_workbook_screen.dart'
     show LencanaImporWorkbook, LencanaSumberWorkbook;
@@ -384,7 +383,9 @@ class _IsiWorkbookState extends ConsumerState<_IsiWorkbook> {
         meta.berkasAsliTersimpan &&
         ref.bolehkah(
           NamaIzin.workbookHitung,
-          cadangan: peranBolehSimulasi(peranAkunStudio(ref)),
+          // K-50-12: satu akun Studio (ability `studio`), tanpa penyaring
+          // peran di klien — server yang memutuskan.
+          cadangan: true,
         );
 
     final Widget badan;

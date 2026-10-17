@@ -11,6 +11,7 @@ import '../../l10n/studio_l10n.dart';
 import '../../tema/tema_studio.dart';
 import '../../tema/warna_studio.dart';
 import 'riwayat_workbook_screen.dart';
+import 'unggah_master_screen.dart';
 import 'workbook_screen.dart';
 
 /// Satu kelompok daftar workbook. [judul] `null` = "Belum dipetakan".
@@ -145,6 +146,12 @@ class _DaftarWorkbookScreenState extends ConsumerState<DaftarWorkbookScreen> {
               l10n.workbookKet,
               style: teks.bodyMedium?.copyWith(color: w.teks2),
             ),
+          ),
+          FilledButton.icon(
+            key: const ValueKey('tombol-unggah-master'),
+            onPressed: () => bukaUnggahMaster(context),
+            icon: const Icon(Icons.upload_file, size: 18),
+            label: Text(l10n.unggahMasterTombol),
           ),
           SizedBox(
             width: 320,

@@ -335,14 +335,10 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
     final detail = ref.watch(calibrationDetailProvider(widget.calibrationId));
     // Lembar yang sudah disetujui tidak bisa diubah siapa pun (sertifikatnya
     // sudah terbit) — tombolnya tidak ditawarkan.
-    // Lembar bermatriks (Autoklaf) disimpan lewat endpoint alatnya sendiri yang
-    // belum punya jalur sunting (`PUT /calibrations/autoclave/{id}`) di app ini:
-    // menyimpan dari sini akan MEMBUAT sesi baru. Tombol Edit tidak ditawarkan.
-    final autoklaf = (detail.value?.profil ??
-            profilLembarKerjaUntuk(detail.value?.namaAlat ?? '')) ==
-        'autoclave';
+    // Autoklaf ikut disunting: `PUT /calibrations/autoclave/{id}` (main
+    // `56668b1`) memperbarui sesi yang SAMA, dan koreksi admin atas lembar
+    // `menunggu_approval` wajib `alasan_koreksi` (diminta di lembar kerja).
     final bisaDisunting =
-        !autoklaf &&
         widget.statusSesi != CalibrationStatus.disetujui &&
         detail.value?.status != CalibrationStatus.disetujui;
 

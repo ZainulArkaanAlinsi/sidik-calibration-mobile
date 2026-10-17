@@ -1243,6 +1243,132 @@ abstract class StudioL10n {
   /// In en, this message translates to:
   /// **'Back to list'**
   String get workbookKembaliKeDaftar;
+
+  /// No description provided for @unggahMasterTombol.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload master'**
+  String get unggahMasterTombol;
+
+  /// No description provided for @unggahMasterJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload master'**
+  String get unggahMasterJudul;
+
+  /// No description provided for @unggahMasterKet.
+  ///
+  /// In en, this message translates to:
+  /// **'Import a master workbook (.xlsm, .xlsx or .csv). The server extracts it and records who did it and why.'**
+  String get unggahMasterKet;
+
+  /// No description provided for @unggahMasterPilihBerkas.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose file'**
+  String get unggahMasterPilihBerkas;
+
+  /// No description provided for @unggahMasterBelumDipilih.
+  ///
+  /// In en, this message translates to:
+  /// **'No file chosen'**
+  String get unggahMasterBelumDipilih;
+
+  /// No description provided for @unggahMasterSandi.
+  ///
+  /// In en, this message translates to:
+  /// **'File password (if protected)'**
+  String get unggahMasterSandi;
+
+  /// No description provided for @unggahMasterSandiKet.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent once with the upload. Never stored.'**
+  String get unggahMasterSandiKet;
+
+  /// No description provided for @unggahMasterAlasan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get unggahMasterAlasan;
+
+  /// No description provided for @unggahMasterAlasanKet.
+  ///
+  /// In en, this message translates to:
+  /// **'Why this master is being imported or replaced (recorded in the audit trail).'**
+  String get unggahMasterAlasanKet;
+
+  /// No description provided for @unggahMasterAlasanWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason is required.'**
+  String get unggahMasterAlasanWajib;
+
+  /// No description provided for @unggahMasterGantikan.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace master (optional)'**
+  String get unggahMasterGantikan;
+
+  /// No description provided for @unggahMasterGantikanTidak.
+  ///
+  /// In en, this message translates to:
+  /// **'New master (replaces nothing)'**
+  String get unggahMasterGantikanTidak;
+
+  /// No description provided for @unggahMasterKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload'**
+  String get unggahMasterKirim;
+
+  /// No description provided for @unggahMasterMengirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading…'**
+  String get unggahMasterMengirim;
+
+  /// No description provided for @unggahMasterBerhasil.
+  ///
+  /// In en, this message translates to:
+  /// **'Master uploaded. The list has been refreshed.'**
+  String get unggahMasterBerhasil;
+
+  /// No description provided for @unggahMasterBerkasWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a file first.'**
+  String get unggahMasterBerkasWajib;
+
+  /// No description provided for @unggahMasterFormatBerkas.
+  ///
+  /// In en, this message translates to:
+  /// **'Only .xlsm, .xlsx or .csv files are accepted.'**
+  String get unggahMasterFormatBerkas;
+
+  /// No description provided for @unggahMasterSandiSalah.
+  ///
+  /// In en, this message translates to:
+  /// **'The file password is wrong.'**
+  String get unggahMasterSandiSalah;
+
+  /// No description provided for @unggahMasterSandiDiperlukan.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is password protected — enter its password.'**
+  String get unggahMasterSandiDiperlukan;
+
+  /// No description provided for @unggahMasterFormatTidakDikenal.
+  ///
+  /// In en, this message translates to:
+  /// **'The server does not recognise this file format.'**
+  String get unggahMasterFormatTidakDikenal;
+
+  /// No description provided for @unggahMasterGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload failed.'**
+  String get unggahMasterGagal;
 }
 
 class _StudioL10nDelegate extends LocalizationsDelegate<StudioL10n> {

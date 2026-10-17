@@ -3842,6 +3842,18 @@ class LembarKerjaState {
   /// Label baris ke-[barisKe] (1-based, urutan kertas = urutan server) di
   /// tabel [tabelId], buat judul baris review. `null` = tabel/baris tak ada.
   String? labelBarisFotoAsli(String tabelId, int barisKe, {String? tahap}) {
+    final g = grid;
+    if (g != null && tabelId == idTabelGridServer) {
+      final posisi = barisKertasGrid(g.bentuk, barisKe);
+      if (posisi == null) return null;
+
+      return switch (posisi.jenis) {
+        JenisBarisKertas.termokopel => 'Termokopel ${posisi.urutan}',
+        JenisBarisKertas.indikator => SetPointGridState.labelIndikator,
+        JenisBarisKertas.suhuRuang => SetPointGridState.labelSuhuRuang,
+      };
+    }
+
     final tabel = _tabelPindai(tabelId, tahap: tahap);
     if (tabel == null) return null;
 
@@ -3891,7 +3903,33 @@ class LembarKerjaState {
   ) {
     var terisi = 0;
 
+    // Grid Enclosure: SATU lembar kertas = SATU set point. Semua sel hasil
+    // satu foto mendarat di set point yang sama (yang pertama belum berisi,
+    // atau yang baru). Set point yang dibuat tapi tidak menerima apa pun
+    // dibuang lagi.
+    final g = grid;
+    if (g != null) {
+      final selGrid = [
+        for (final s in sel)
+          if (s.tabelId == idTabelGridServer)
+            (
+              barisKe: s.barisKe,
+              repeatNo: s.repeatNo,
+              teks: s.teks,
+              keyakinan: s.keyakinan,
+            ),
+      ];
+      if (selGrid.isNotEmpty) {
+        final tujuan = g.setPointUntukFoto();
+        final masuk = tujuan.sp.terapkanHasilFotoPosisi(selGrid);
+        if (masuk == 0 && tujuan.baru) g.hapusSetPoint(g.setPoint.length - 1);
+        terisi += masuk;
+      }
+    }
+
     for (final s in sel) {
+      if (g != null && s.tabelId == idTabelGridServer) continue;
+
       final tujuan = _tujuanFotoAsli(
         s.tabelId,
         s.barisKe,
@@ -3951,11 +3989,20 @@ class LembarKerjaState {
     int barisKe,
     int repeatNo, {
     String? tahap,
-  }) => _tujuanFotoAsli(tabelId, barisKe, repeatNo, tahap: tahap) != null;
+  }) {
+    // Grid Enclosure (0504): alamatnya posisi kertas, bukan tabel lembar.
+    final g = grid;
+    if (g != null && tabelId == idTabelGridServer) {
+      return barisKertasGrid(g.bentuk, barisKe) != null &&
+          g.bentuk.pengulangan.contains(repeatNo);
+    }
+
+    return _tujuanFotoAsli(tabelId, barisKe, repeatNo, tahap: tahap) != null;
+  }
 
   /// Lembar ini bisa menerima SETIDAKNYA satu sel dari [template]? `false` =
-  /// pintu "Foto lembar kerja" tidak digambar (Enclosure: gridnya bukan tabel
-  /// lembar) — daripada teknisi memotret lalu mendapat nol sel.
+  /// pintu "Foto lembar kerja" tidak digambar — daripada teknisi memotret lalu
+  /// mendapat nol sel. Grid Enclosure (0504) menerima lewat posisi kertas.
   bool bisaMenerimaFotoAsli(WorksheetTemplate template) => template.selAsli.any(
     (s) =>
         alamatFotoAsliAda(s.tabelId, s.barisKe, s.repeatNo, tahap: s.tahap),
@@ -4772,6 +4819,7 @@ class LembarKerjaState {
   Map<String, dynamic> payloadSimpanMatriks(
     BagianLembarKerja bagian, {
     required bool draft,
+    String? alasanKoreksi,
   }) {
     final tanggalKalibrasi = tanggal['tanggal_kalibrasi'];
     final tanggalTerima = tanggal['tanggal_terima'];
@@ -4780,6 +4828,8 @@ class LembarKerjaState {
       ...payloadMatriks(bagian.matriks!, bagian.tabelTambahan),
       'equipment_id': alat?.id,
       'client_request_id': clientRequestId,
+      // Koreksi admin atas lembar `menunggu_approval` (min. 10 karakter).
+      'alasan_koreksi': ?alasanKoreksi,
       // Draft ditandai lewat `status`, dan itu yang melonggarkan kolom wajib
       // di server. Tanpa kunci ini, draft setengah jadi ditolak 422 karena
       // `set_point` & tanggal kalibrasi belum keisi.

@@ -697,4 +697,75 @@ class StudioL10nId extends StudioL10n {
 
   @override
   String get workbookKembaliKeDaftar => 'Kembali ke daftar';
+
+  @override
+  String get unggahMasterTombol => 'Unggah master';
+
+  @override
+  String get unggahMasterJudul => 'Unggah master';
+
+  @override
+  String get unggahMasterKet =>
+      'Impor workbook master (.xlsm, .xlsx, atau .csv). Server mengekstraknya dan mencatat siapa yang melakukan serta alasannya.';
+
+  @override
+  String get unggahMasterPilihBerkas => 'Pilih berkas';
+
+  @override
+  String get unggahMasterBelumDipilih => 'Belum ada berkas';
+
+  @override
+  String get unggahMasterSandi => 'Sandi berkas (bila bersandi)';
+
+  @override
+  String get unggahMasterSandiKet =>
+      'Dikirim sekali bersama unggahan. Tidak pernah disimpan.';
+
+  @override
+  String get unggahMasterAlasan => 'Alasan';
+
+  @override
+  String get unggahMasterAlasanKet =>
+      'Mengapa master ini diimpor atau diganti (masuk jejak audit).';
+
+  @override
+  String get unggahMasterAlasanWajib => 'Alasan wajib diisi.';
+
+  @override
+  String get unggahMasterGantikan => 'Gantikan master (opsional)';
+
+  @override
+  String get unggahMasterGantikanTidak =>
+      'Master baru (tidak menggantikan apa pun)';
+
+  @override
+  String get unggahMasterKirim => 'Unggah';
+
+  @override
+  String get unggahMasterMengirim => 'Mengunggah…';
+
+  @override
+  String get unggahMasterBerhasil =>
+      'Master terunggah. Daftar sudah disegarkan.';
+
+  @override
+  String get unggahMasterBerkasWajib => 'Pilih berkas dulu.';
+
+  @override
+  String get unggahMasterFormatBerkas =>
+      'Hanya berkas .xlsm, .xlsx, atau .csv yang diterima.';
+
+  @override
+  String get unggahMasterSandiSalah => 'Sandi berkas salah.';
+
+  @override
+  String get unggahMasterSandiDiperlukan =>
+      'Berkas ini bersandi — isi sandinya.';
+
+  @override
+  String get unggahMasterFormatTidakDikenal =>
+      'Server tidak mengenali format berkas ini.';
+
+  @override
+  String get unggahMasterGagal => 'Unggahan gagal.';
 }

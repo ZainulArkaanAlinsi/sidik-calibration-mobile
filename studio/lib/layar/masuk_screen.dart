@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sidik_calibration/core/config/app_config.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/services/auth_service.dart';
 
@@ -494,7 +493,7 @@ class _IsianServerDevState extends ConsumerState<_IsianServerDev> {
               children: [
                 Expanded(
                   child: Text(
-                    l10n.devAlamatServerKet(AppConfig.apiBaseUrl),
+                    l10n.devAlamatServerKet(alamatBawaanStudio()),
                     style: teks.bodySmall?.copyWith(color: w.teksRedup),
                   ),
                 ),

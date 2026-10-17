@@ -37,6 +37,10 @@ dependencies:
   # 13 Okt 2026 (rencana S1b). Hanya di Studio — app lapangan tidak memakainya.
   two_dimensional_scrollables: ^0.5.5
 
+  # Pemilih berkas master (.xlsm/.xlsx/.csv) di layar "Unggah master". Sudah
+  # terpasang transitif lewat sidik_calibration (versi & lock sama).
+  file_picker: ^8.1.7
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

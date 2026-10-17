@@ -56,6 +56,18 @@ abstract class WorkbookService {
     required int workbookId,
     required String gambarId,
   });
+
+  /// `POST /studio/workbook/impor` (K-50-12, multipart) — unggah master
+  /// `.xlsm/.xlsx/.csv`. [sandi] hanya dikirim, TIDAK disimpan di mana pun.
+  /// [gantikanId] = id workbook yang digantikan master baru ini. `422`
+  /// (sandi salah / format tidak dikenal) dilempar sebagai `ApiException`.
+  Future<HasilUnggahMaster> unggahMaster(
+    String token, {
+    required String jalurBerkas,
+    required String alasan,
+    String? sandi,
+    int? gantikanId,
+  });
 }
 
 /// Batas server per permintaan sel (kontrak: maks 500 baris).
@@ -150,6 +162,29 @@ class ApiWorkbookService implements WorkbookService {
     );
 
     return HasilHitung.fromJson(_data(json));
+  }
+
+  @override
+  Future<HasilUnggahMaster> unggahMaster(
+    String token, {
+    required String jalurBerkas,
+    required String alasan,
+    String? sandi,
+    int? gantikanId,
+  }) async {
+    final json = await _api.unggahFile(
+      '/studio/workbook/impor',
+      field: 'berkas',
+      filePath: jalurBerkas,
+      token: token,
+      fields: {
+        'alasan': alasan,
+        if (sandi != null && sandi.isNotEmpty) 'sandi': sandi,
+        if (gantikanId != null) 'gantikan': '$gantikanId',
+      },
+      timeout: const Duration(minutes: 3),
+    );
+    return HasilUnggahMaster.fromJson(json);
   }
 
   @override
@@ -527,6 +562,34 @@ class MockWorkbookService implements WorkbookService {
       );
     }
     return Uint8List.fromList(_pngContoh);
+  }
+
+  /// Isi setiap unggah master (urut) — sandi ikut dicatat HANYA supaya test
+  /// bisa memastikan ia dikirim; tidak ada penyimpanan.
+  final panggilanUnggah =
+      <({String jalur, String alasan, String? sandi, int? gantikanId})>[];
+
+  /// Galat yang dilempar unggah berikutnya (test); `null` = berhasil.
+  Object? galatUnggah;
+
+  @override
+  Future<HasilUnggahMaster> unggahMaster(
+    String token, {
+    required String jalurBerkas,
+    required String alasan,
+    String? sandi,
+    int? gantikanId,
+  }) async {
+    panggilanUnggah.add((
+      jalur: jalurBerkas,
+      alasan: alasan,
+      sandi: sandi,
+      gantikanId: gantikanId,
+    ));
+    await _mulai();
+    final g = galatUnggah;
+    if (g != null) throw g;
+    return const HasilUnggahMaster(id: 99, nama: 'Master unggahan', versi: 2);
   }
 
   /// PNG 1 × 1 piksel (abu) — peraga, bukan gambar dari workbook mana pun.

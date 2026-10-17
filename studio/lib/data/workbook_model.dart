@@ -957,3 +957,58 @@ class HasilHitung {
     );
   }
 }
+
+/// Jawaban `POST /studio/workbook/impor` (K-50-12). Diurai TOLERAN: kontrak
+/// final belum membekukan bentuknya, jadi yang dibaca hanya yang berguna
+/// untuk satu baris konfirmasi, dan semuanya boleh tidak ada.
+class HasilUnggahMaster {
+  const HasilUnggahMaster({this.id, this.nama, this.versi, this.pesan});
+
+  final int? id;
+  final String? nama;
+  final int? versi;
+  final String? pesan;
+
+  factory HasilUnggahMaster.fromJson(Map<String, dynamic> j) {
+    final d = j['data'] is Map
+        ? Map<String, dynamic>.from(j['data'] as Map)
+        : j;
+    // Beberapa bentuk yang masuk akal: data langsung, atau data.workbook.
+    final w = d['workbook'] is Map
+        ? Map<String, dynamic>.from(d['workbook'] as Map)
+        : d;
+    return HasilUnggahMaster(
+      id: _intPositif(w['id']),
+      nama: _teks(w['nama']),
+      versi: _intPositif(w['versi']),
+      pesan: _teks(j['message']) ?? _teks(d['message']),
+    );
+  }
+}
+
+/// Sebab `422` unggah master yang dikenali klien. Dipilih dari `kode` dulu,
+/// lalu dari teks pesan; selain itu [lain] (pesan server ditampilkan apa
+/// adanya).
+enum GalatUnggahMaster {
+  sandiSalah,
+  sandiDiperlukan,
+  formatTidakDikenal,
+  lain;
+
+  static GalatUnggahMaster dari(Map<String, dynamic> body, String pesan) {
+    final kode = '${body['kode'] ?? ''}'.toLowerCase();
+    final teks = '$kode ${pesan.toLowerCase()}';
+    bool ada(String s) => teks.contains(s);
+    final sandi = ada('sandi') || ada('password');
+    if (sandi && (ada('salah') || ada('wrong') || ada('invalid'))) {
+      return sandiSalah;
+    }
+    if (sandi && (ada('perlu') || ada('wajib') || ada('required'))) {
+      return sandiDiperlukan;
+    }
+    if (ada('format') || ada('ekstensi') || ada('tidak_didukung')) {
+      return formatTidakDikenal;
+    }
+    return lain;
+  }
+}
