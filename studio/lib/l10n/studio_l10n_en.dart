@@ -221,6 +221,9 @@ class StudioL10nEn extends StudioL10n {
       'This isn\'t a lab account. Studio is for lab staff only.';
 
   @override
+  String get bukanAkunStudio => 'This account is not a Studio account.';
+
+  @override
   String masukServerVersi(String alamat, String versi) {
     return 'Server $alamat · Studio $versi';
   }

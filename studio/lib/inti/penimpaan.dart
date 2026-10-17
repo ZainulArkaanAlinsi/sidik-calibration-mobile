@@ -1,10 +1,15 @@
 import 'package:flutter_riverpod/misc.dart' show Override;
+import 'package:sidik_calibration/core/config/app_config.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
+import 'package:sidik_calibration/providers/izin_provider.dart';
 import 'package:sidik_calibration/providers/pendaftaran_push_provider.dart';
 import 'package:sidik_calibration/services/api_client.dart';
+import 'package:sidik_calibration/services/izin_service.dart';
+import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/klien_http_beridentitas.dart';
 import 'package:sidik_calibration/services/sumber_token_push.dart';
 
+import '../data/sesi_api_studio.dart';
 import 'lingkungan_studio.dart';
 import 'sesi_studio.dart';
 
@@ -56,5 +61,24 @@ final List<Override> penimpaanStudio = [
       bangunkanDulu: true,
       client: klien,
     );
+  }),
+];
+
+/// Sesi Studio: `/studio/me` & `/studio/logout`.
+///
+/// Token Studio (ability `studio`) ditolak rute lab `/me`, `/me/permissions`,
+/// `/logout`. [authServiceProvider] dan [izinServiceProvider] ditimpa ke
+/// layanan Studio (`data/sesi_api_studio.dart`); izin Studio datang dari
+/// `GET /studio/me`. Dipasang `main.dart` SAJA, terpisah dari
+/// [penimpaanStudio] supaya widget test yang menimpa layanan auth-nya sendiri
+/// tidak menimpa provider yang sama dua kali.
+final List<Override> penimpaanSesiStudio = [
+  authServiceProvider.overrideWith((ref) {
+    if (AppConfig.useMock) return MockAuthService();
+    return ApiAuthServiceStudio(ref.watch(apiClientProvider));
+  }),
+  izinServiceProvider.overrideWith((ref) {
+    if (AppConfig.useMock) return MockIzinService();
+    return ApiIzinServiceStudio(ref.watch(apiClientProvider));
   }),
 ];

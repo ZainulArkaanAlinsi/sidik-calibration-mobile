@@ -476,6 +476,12 @@ abstract class StudioL10n {
   /// **'This isn\'t a lab account. Studio is for lab staff only.'**
   String get bukanAkunLab;
 
+  /// No description provided for @bukanAkunStudio.
+  ///
+  /// In en, this message translates to:
+  /// **'This account is not a Studio account.'**
+  String get bukanAkunStudio;
+
   /// No description provided for @masukServerVersi.
   ///
   /// In en, this message translates to:

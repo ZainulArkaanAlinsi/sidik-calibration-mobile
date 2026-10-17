@@ -63,6 +63,7 @@
   "kedaluwarsaKet": "Pasang versi terbaru Sidik Studio, lalu buka lagi.",
   "kedaluwarsaVersi": "Studio {versi} · server {alamat}",
   "bukanAkunLab": "Akun ini bukan akun lab. Studio hanya untuk orang lab.",
+  "bukanAkunStudio": "Akun ini bukan akun Studio.",
   "masukServerVersi": "Server {alamat} · Studio {versi}",
   "seksiWorkbookAlat": "Workbook Alat",
   "kartuWorkbookRingkas": "{jumlah} workbook · {belum} belum dipetakan",

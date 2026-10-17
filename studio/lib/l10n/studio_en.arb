@@ -138,6 +138,7 @@
     }
   },
   "bukanAkunLab": "This isn't a lab account. Studio is for lab staff only.",
+  "bukanAkunStudio": "This account is not a Studio account.",
   "masukServerVersi": "Server {alamat} · Studio {versi}",
   "@masukServerVersi": {
     "placeholders": {

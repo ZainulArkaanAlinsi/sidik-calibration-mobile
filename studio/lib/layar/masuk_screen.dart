@@ -69,6 +69,10 @@ class _MasukStudioScreenState extends ConsumerState<MasukStudioScreen> {
       AsyncError(:final ApiException error)
           when error.body['kode'] == 'bukan_akun_internal' =>
         l10n.bukanAkunLab,
+      // Satu akun Studio (K-50-12): akun lab lain ditolak `403 bukan_akun_studio`.
+      AsyncError(:final ApiException error)
+          when error.body['kode'] == 'bukan_akun_studio' =>
+        l10n.bukanAkunStudio,
       AsyncError(:final AuthException error) => error.message,
       AsyncError(:final error) => _pesanGagal(error, l10n),
       _ => null,

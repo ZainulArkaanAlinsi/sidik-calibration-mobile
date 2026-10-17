@@ -27,6 +27,7 @@ Future<void> main() async {
     ProviderScope(
       overrides: [
         ...penimpaanStudio,
+        ...penimpaanSesiStudio,
         alamatServerDevAwalProvider.overrideWithValue(alamatDev),
       ],
       child: const SidikStudioApp(),

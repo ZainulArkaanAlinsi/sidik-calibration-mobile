@@ -106,6 +106,19 @@ void main() {
       );
       expect(find.textContaining('SIDIK Pelanggan'), findsNothing);
     });
+
+    testWidgets('akun lab lain → 403 bukan_akun_studio → "bukan akun Studio"', (
+      tester,
+    ) async {
+      await pasangUkuran(tester, const Size(1440, 900));
+      await tester.pumpWidget(studioUji(meja: true, auth: _AuthBukanStudio()));
+      await tenang(tester);
+
+      await masukLewatLayar(tester, 'teknisi@contoh.id', 'rahasia123');
+
+      expect(find.byType(MasukStudioScreen), findsOneWidget);
+      expect(find.text('Akun ini bukan akun Studio.'), findsOneWidget);
+    });
   });
 
   group('cangkang', () {
@@ -499,5 +512,18 @@ class _AuthPelanggan extends AuthHitung {
     'aplikasi SIDIK Pelanggan.',
     status: 403,
     body: {'kode': 'bukan_akun_internal'},
+  );
+}
+
+/// `POST /login` dengan header Studio, akun lab lain: `403 bukan_akun_studio`.
+class _AuthBukanStudio extends AuthHitung {
+  @override
+  Future<AuthSession> login({
+    required String identifier,
+    required String password,
+  }) async => throw const ApiException(
+    'Akun ini tidak punya akses ke Sidik Studio.',
+    status: 403,
+    body: {'kode': 'bukan_akun_studio'},
   );
 }

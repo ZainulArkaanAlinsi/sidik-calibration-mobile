@@ -220,6 +220,9 @@ class StudioL10nId extends StudioL10n {
       'Akun ini bukan akun lab. Studio hanya untuk orang lab.';
 
   @override
+  String get bukanAkunStudio => 'Akun ini bukan akun Studio.';
+
+  @override
   String masukServerVersi(String alamat, String versi) {
     return 'Server $alamat · Studio $versi';
   }
