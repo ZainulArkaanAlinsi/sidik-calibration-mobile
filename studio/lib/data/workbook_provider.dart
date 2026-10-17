@@ -68,6 +68,15 @@ final detailWorkbookProvider = FutureProvider.autoDispose
       return ref.read(workbookServiceProvider).detail(token, id);
     }, retry: (_, _) => null);
 
+/// Semua versi jenis satu workbook (K-49-13, `GET …/{id}/riwayat`).
+///
+/// `autoDispose`: cuma layar riwayat yang menontonnya.
+final riwayatWorkbookProvider = FutureProvider.autoDispose
+    .family<RiwayatWorkbook, int>((ref, id) async {
+      final token = await _token(ref);
+      return ref.read(workbookServiceProvider).riwayat(token, id);
+    }, retry: (_, _) => null);
+
 /// Baris per halaman sel. Server membolehkan 500; 200 cukup untuk satu
 /// layar penuh di monitor tinggi sekalipun, dan jawabannya tetap kecil.
 const int ukuranHalamanSel = 200;
@@ -146,6 +155,7 @@ final gambarWorkbookProvider = FutureProvider.autoDispose
 void segarkanWorkbook(WidgetRef ref) {
   ref.invalidate(daftarWorkbookProvider);
   ref.invalidate(detailWorkbookProvider);
+  ref.invalidate(riwayatWorkbookProvider);
   ref.invalidate(halamanSelWorkbookProvider);
   ref.invalidate(gambarWorkbookProvider);
 }

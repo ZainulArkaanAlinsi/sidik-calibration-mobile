@@ -488,13 +488,22 @@ void main() {
         'CSV, CSV tanpa tata letak, halaman kedua kosong', () async {
       final mock = MockWorkbookService();
       final daftar = await mock.daftar('t');
+      // K-49-13: daftar = master AKTIF saja; kembaran CSV Micrometer jadi
+      // riwayat `.xlsm`-nya (dibuka lewat `…/riwayat`).
       expect(daftar.map((w) => w.sumber), [
+        SumberWorkbook.xlsm,
+        SumberWorkbook.csv,
+      ]);
+      expect(await mock.daftar('t', cari: 'height'), hasLength(1));
+      expect(await mock.daftar('t', kodeProfil: 'micrometer'), hasLength(1));
+      // Server sebelum K-49-13: semua workbook, kembaran CSV ikut.
+      final lama = MockWorkbookService(serverLama: true);
+      expect((await lama.daftar('t')).map((w) => w.sumber), [
         SumberWorkbook.xlsm,
         SumberWorkbook.csv,
         SumberWorkbook.csv,
       ]);
-      expect(await mock.daftar('t', cari: 'height'), hasLength(1));
-      expect(await mock.daftar('t', kodeProfil: 'micrometer'), hasLength(2));
+      expect(await lama.daftar('t', kodeProfil: 'micrometer'), hasLength(2));
 
       final d = await mock.detail('t', MockWorkbookService.idMicrometer);
       expect(d.lembar.map((l) => l.nama), [

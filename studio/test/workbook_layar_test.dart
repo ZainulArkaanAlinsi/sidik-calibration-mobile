@@ -26,9 +26,13 @@ void main() {
   group('daftar', () {
     testWidgets('kelompok per keluarga, "Belum dipetakan" paling bawah; '
         '.xlsm berlencana "Excel asli", ekspor CSV alat yang sama di bawah '
-        '"Sumber lain"; cari menyaring di server', (tester) async {
-      final mock = MockWorkbookService();
+        '"Sumber lain"; cari menyaring di server (server sebelum K-49-13: '
+        'daftar memuat kembaran CSV, tanpa kunci jenis)', (tester) async {
+      final mock = MockWorkbookService(serverLama: true);
       await _bukaDaftar(tester, mock);
+      // Tanpa kunci jenis: tidak ada "Impor #n" maupun "Riwayat (n)".
+      expect(find.textContaining('Impor #'), findsNothing);
+      expect(find.textContaining('Riwayat ('), findsNothing);
 
       final dimensi = find.byKey(const ValueKey('kelompok-Dimensi'));
       final belum = find.byKey(const ValueKey('kelompok--'));
@@ -413,7 +417,9 @@ void main() {
 
     testWidgets('CSV dengan lebar kolom perkiraan server: chip "Lebar '
         'perkiraan" di bilah status', (tester) async {
-      final mock = MockWorkbookService();
+      // Server lama: CSV kembaran dibuka dari "Sumber lain" (server K-49-13:
+      // dari Riwayat — `workbook_riwayat_test.dart`).
+      final mock = MockWorkbookService(serverLama: true);
       await _bukaDaftar(tester, mock);
       await tester.tap(
         find.byKey(
@@ -637,14 +643,15 @@ void main() {
 
       final kartu = find.byKey(const ValueKey('kartu-workbook'));
       expect(kartu, findsOneWidget);
+      // K-49-13: master aktif saja (CSV kembaran Micrometer = riwayat).
       expect(
         find.descendant(
           of: kartu,
-          matching: find.text('3 workbook · 1 belum dipetakan'),
+          matching: find.text('2 workbook · 1 belum dipetakan'),
         ),
         findsOneWidget,
       );
-      expect(find.text('2 dari CSV · 1 dari .xlsm'), findsOneWidget);
+      expect(find.text('1 dari CSV · 1 dari .xlsm'), findsOneWidget);
 
       await tester.tap(
         find.descendant(
@@ -673,7 +680,7 @@ void main() {
       await masukLewatLayar(tester, 'SDK-0002', 'rahasia123');
 
       expect(mock.panggilanDaftar, 2);
-      expect(find.text('3 workbook · 1 belum dipetakan'), findsOneWidget);
+      expect(find.text('2 workbook · 1 belum dipetakan'), findsOneWidget);
     });
   });
 }

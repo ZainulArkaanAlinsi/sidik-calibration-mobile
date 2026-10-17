@@ -18,7 +18,9 @@ import '../../tema/tema_studio.dart';
 import '../../tema/warna_studio.dart';
 import '../../widget/bilah_status.dart' show peranAkunStudio;
 import '../../widget/grid/grid_sel.dart';
-import 'daftar_workbook_screen.dart' show LencanaSumberWorkbook;
+import 'daftar_workbook_screen.dart'
+    show LencanaImporWorkbook, LencanaSumberWorkbook;
+import 'riwayat_workbook_screen.dart' show bukaRiwayatWorkbook;
 
 /// Lebar area lembar mulai inspektur DIDORONG di samping grid; di bawahnya
 /// (tablet potret) inspektur MENUTUPI grid dari kanan dan bisa ditutup.
@@ -60,6 +62,12 @@ Future<void> bukaWorkbook(BuildContext context, WorkbookRingkas wb) =>
 /// dirinya sendiri bila akun berganti/keluar, versi Studio ditolak server,
 /// atau izin `workbook.lihat` dicabut (cangkang di bawahnya sudah pindah ke
 /// layar lain, tapi rute akar tidak ikut tergulung).
+///
+/// K-49-13: workbook berstatus RIWAYAT (versi lama) tampil baca saja dengan
+/// spanduk "Riwayat — bukan master aktif". Master yang DIKELUARKAN dari
+/// Studio saat layar ini terbuka (diarsipkan → 404; atau id lama sesudah
+/// ekstrak ulang di server) → pesan "sudah diarsipkan/diganti" dan layar
+/// kembali ke daftar.
 class WorkbookScreen extends ConsumerStatefulWidget {
   const WorkbookScreen({super.key, required this.workbookId, this.judul});
 
@@ -98,11 +106,56 @@ class _WorkbookScreenState extends ConsumerState<WorkbookScreen> {
     }
   }
 
+  /// Detail sudah pernah termuat di layar ini: 404 SESUDAHNYA berarti master
+  /// dikeluarkan dari Studio selagi dibuka, bukan id yang memang tidak ada
+  /// (itu tetap pesan "tidak ditemukan" di tempat).
+  bool _pernahDimuat = false;
+
+  /// 404 di detail (muat ulang) atau `/hitung` sesudah detail termuat:
+  /// master diarsipkan/diganti selagi dibuka. Pesan jelas, daftar (dan
+  /// riwayat) ditarik ulang, layar kembali ke daftar — edit simulasi ikut
+  /// hilang (memang tidak pernah disimpan).
+  void _masterHilang() {
+    if (_ditutup || !mounted) return;
+    ref.invalidate(daftarWorkbookProvider);
+    ref.invalidate(riwayatWorkbookProvider);
+    // Pembawa pesan akar: SnackBar-nya pindah ke layar di bawah sesudah rute
+    // ini dilepas.
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(
+        key: const ValueKey('pesan-master-diarsipkan'),
+        content: Text(StudioL10n.of(context).workbookDiarsipkan),
+      ),
+    );
+    _tutup();
+  }
+
+  static bool _tidakAda(Object? e) => e is ApiException && e.status == 404;
+
   @override
   Widget build(BuildContext context) {
     ref.listen(authProvider.select((a) => a.value?.id), (_, id) {
       if (id != _akun) _tutup();
     });
+    ref.listen(detailWorkbookProvider(widget.workbookId), (lama, baru) {
+      if (baru is! AsyncError || !_tidakAda(baru.error)) return;
+      if (_pernahDimuat || (lama?.hasValue ?? false)) {
+        _masterHilang();
+      } else {
+        // 404 saat PERTAMA dibuka: pesan "tidak ditemukan" tetap di tempat,
+        // tapi baris daftar di bawahnya basi (diarsipkan, atau id berganti
+        // sesudah ekstrak ulang di server) — daftar ditarik ulang.
+        ref.invalidate(daftarWorkbookProvider);
+      }
+    });
+    ref.listen(
+      simulasiWorkbookProvider(
+        widget.workbookId,
+      ).select((s) => s.galat?.status),
+      (_, status) {
+        if (status == 404) _masterHilang();
+      },
+    );
     ref.listen(klienKedaluwarsaProvider, (_, usang) {
       if (usang) _tutup();
     });
@@ -117,6 +170,7 @@ class _WorkbookScreenState extends ConsumerState<WorkbookScreen> {
     final l10n = StudioL10n.of(context);
     final w = WarnaStudio.of(context);
     final detail = ref.watch(detailWorkbookProvider(widget.workbookId));
+    if (detail is AsyncData) _pernahDimuat = true;
     final judul = widget.judul ?? '';
 
     final Widget badan = switch (detail) {
@@ -264,6 +318,14 @@ class _IsiWorkbookState extends ConsumerState<_IsiWorkbook> {
       _tataLetak.clear();
       if (_indeks >= widget.detail.lembar.length) _indeks = _lembarAwal();
     }
+    // Digantikan master baru selagi dibuka (muat ulang → `status: riwayat`):
+    // edit simulasi yang ada dibuang — riwayat baca saja, tidak dihitung.
+    if (!lama.detail.meta.riwayat && widget.detail.meta.riwayat) {
+      final id = widget.detail.meta.id;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ref.read(simulasiWorkbookProvider(id).notifier).reset();
+      });
+    }
   }
 
   @override
@@ -313,7 +375,11 @@ class _IsiWorkbookState extends ConsumerState<_IsiWorkbook> {
     // cadangan aturan peran kontrak). Server tetap menolak sendiri
     // (403/409, termasuk `perlu_sandi` yang tidak terlihat dari meta) — ini
     // bukan kontrol akses.
+    //
+    // RIWAYAT (K-49-13, versi lama) selalu baca saja: server masih mau
+    // menghitungnya, tapi Studio hanya menyimulasikan master aktif.
     final bolehEdit =
+        !meta.riwayat &&
         meta.sumber == SumberWorkbook.xlsm &&
         meta.berkasAsliTersimpan &&
         ref.bolehkah(
@@ -365,6 +431,7 @@ class _IsiWorkbookState extends ConsumerState<_IsiWorkbook> {
             kendali: kendali!,
             bolehEdit: bolehEdit,
           ),
+        if (meta.riwayat) _SpandukRiwayat(workbook: meta),
         _SpandukSimulasi(workbookId: meta.id),
         Expanded(
           child: _AreaLembar(
@@ -468,6 +535,10 @@ class _BilahWorkbook extends StatelessWidget {
                   if (wb != null) ...[
                     const SizedBox(width: UkuranStudio.j3),
                     LencanaSumberWorkbook(workbook: wb),
+                    if (lebar >= 760 && wb.versi != null) ...[
+                      const SizedBox(width: UkuranStudio.j2),
+                      LencanaImporWorkbook(workbook: wb),
+                    ],
                     if (lebar >= 760) ...[
                       const SizedBox(width: UkuranStudio.j2),
                       Flexible(
@@ -488,6 +559,8 @@ class _BilahWorkbook extends StatelessWidget {
                 ],
               ),
             ),
+            if (wb != null && !wb.riwayat && wb.jumlahRiwayat > 0)
+              _TombolRiwayat(workbook: wb, berlabel: lebar >= 1000),
             Tooltip(
               key: ValueKey(bolehEdit ? 'penanda-simulasi' : 'penanda-baca'),
               message: bolehEdit
@@ -549,6 +622,94 @@ class _BilahWorkbook extends StatelessWidget {
                 icon: const Icon(Icons.refresh),
                 onPressed: onMuatUlang,
               ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// "Riwayat (n)" di bilah atas master aktif (K-49-13): versi lama jenis ini.
+/// Layar lebar = tombol berlabel; sempit = ikon berlencana jumlah.
+class _TombolRiwayat extends StatelessWidget {
+  const _TombolRiwayat({required this.workbook, required this.berlabel});
+
+  final WorkbookRingkas workbook;
+  final bool berlabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = StudioL10n.of(context);
+    final w = WarnaStudio.of(context);
+    final n = workbook.jumlahRiwayat;
+    void buka() => bukaRiwayatWorkbook(context, workbook);
+    if (!berlabel) {
+      return IconButton(
+        key: const ValueKey('tombol-riwayat'),
+        tooltip: l10n.workbookRiwayat(n),
+        icon: Badge.count(count: n, child: const Icon(Icons.history)),
+        onPressed: buka,
+      );
+    }
+    return Tooltip(
+      message: l10n.workbookRiwayatKet,
+      child: TextButton.icon(
+        key: const ValueKey('tombol-riwayat'),
+        style: TextButton.styleFrom(
+          foregroundColor: w.teks2,
+          visualDensity: VisualDensity.compact,
+        ),
+        onPressed: buka,
+        icon: const Icon(Icons.history, size: 18),
+        label: Text(l10n.workbookRiwayat(n)),
+      ),
+    );
+  }
+}
+
+/// Spanduk di atas grid untuk versi RIWAYAT (K-49-13): bukan master aktif,
+/// baca saja; menyebut pengganti bila server mengirimnya.
+class _SpandukRiwayat extends StatelessWidget {
+  const _SpandukRiwayat({required this.workbook});
+
+  final WorkbookRingkas workbook;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = StudioL10n.of(context);
+    final w = WarnaStudio.of(context);
+    final gaya = Theme.of(
+      context,
+    ).textTheme.labelMedium?.copyWith(color: w.teks);
+    final pengganti = workbook.digantikanOlehId;
+    final versi = workbook.versi;
+    return Tooltip(
+      message: l10n.workbookRiwayatSpandukKet,
+      child: Container(
+        key: const ValueKey('spanduk-riwayat'),
+        height: 30,
+        padding: const EdgeInsets.symmetric(horizontal: UkuranStudio.j3),
+        decoration: BoxDecoration(
+          color: w.awasTipis,
+          border: Border(bottom: BorderSide(color: w.garis)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.history, size: 16, color: w.awas),
+            const SizedBox(width: UkuranStudio.j2),
+            Flexible(
+              child: Text(
+                [
+                  l10n.workbookRiwayatSpanduk,
+                  if (versi != null) l10n.workbookImpor(versi),
+                  if (pengganti != null) l10n.workbookDigantikanOleh(pengganti),
+                ].join(' · '),
+                key: const ValueKey('teks-spanduk-riwayat'),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: gaya?.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ),
           ],
         ),
       ),

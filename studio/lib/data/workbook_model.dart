@@ -30,6 +30,38 @@ bool _bool(Object? v) => v == true || v == 1 || v == '1' || v == 'true';
 
 DateTime? _waktu(Object? v) => v is String ? DateTime.tryParse(v) : null;
 
+/// Bilangan ≥ 1, selain itu `null` (tidak dikirim / bertipe salah).
+int? _intPositif(Object? v) {
+  final n = _int(v);
+  return n >= 1 ? n : null;
+}
+
+/// `bool` yang TIDAK dikirim tetap `null` — beda dari `false`.
+bool? _boolAtauNull(Object? v) => switch (v) {
+  true || 1 || '1' || 'true' => true,
+  false || 0 || '0' || 'false' => false,
+  _ => null,
+};
+
+/// Status master di jenisnya (K-49-13, `status`).
+enum StatusWorkbook {
+  /// Master aktif jenisnya — yang tampil di daftar.
+  aktif,
+
+  /// Versi lama yang sudah digantikan: tersembunyi dari daftar, tetap bisa
+  /// dibuka lewat riwayat.
+  riwayat,
+
+  /// Tidak dikirim (server sebelum K-49-13) atau nilai yang belum dikenal.
+  tidakDiketahui;
+
+  static StatusWorkbook dari(Object? v) => switch (v) {
+    'aktif' => aktif,
+    'riwayat' => riwayat,
+    _ => tidakDiketahui,
+  };
+}
+
 /// Sumber impor workbook.
 enum SumberWorkbook {
   /// Ekspor CSV di repo (`Project-PT-Sidik/alat-alat-Pt-Sidik/`): NILAI
@@ -63,6 +95,12 @@ class WorkbookRingkas {
     this.kodeProfil,
     this.keluarga,
     this.diimporPada,
+    this.kunciJenis,
+    this.aktif,
+    this.status = StatusWorkbook.tidakDiketahui,
+    this.versi,
+    this.digantikanOlehId,
+    this.jumlahRiwayat = 0,
   });
 
   final int id;
@@ -84,7 +122,41 @@ class WorkbookRingkas {
   final bool berkasAsliTersimpan;
   final DateTime? diimporPada;
 
+  // ── Jenis master (K-49-13). Server lama tidak mengirim satu pun kunci ini:
+  // semuanya `null`/bawaan dan baris dianggap master biasa (perilaku lama).
+
+  /// `kunci_jenis` — kelompok "satu master aktif" (`{keluarga|profil}:{varian}`).
+  /// Tidak diurai klien.
+  final String? kunciJenis;
+
+  /// `aktif` apa adanya; `null` = tidak dikirim.
+  final bool? aktif;
+  final StatusWorkbook status;
+
+  /// `versi` = URUTAN IMPOR di dalam jenis (1 = paling awal) — BUKAN tanda
+  /// lebih baru: admin bisa mengaktifkan versi lama, jadi riwayat bisa
+  /// bernomor lebih besar dari master aktifnya. Ditampilkan sebagai
+  /// "Impor #n"; aktif/lama hanya dari [status]/[digantikanOlehId].
+  final int? versi;
+
+  /// Riwayat → id workbook yang menggantikannya.
+  final int? digantikanOlehId;
+
+  /// Jumlah versi lama (riwayat, tanpa arsip) di jenis yang sama.
+  final int jumlahRiwayat;
+
   bool get dipetakan => kodeProfil != null;
+
+  /// Versi lama, BUKAN master aktif: baca saja (tanpa edit/simulasi).
+  ///
+  /// Ditentukan dari `status`; bila status tidak dikirim/tak dikenal, dari
+  /// `digantikan_oleh_id` atau `aktif: false`. Tidak pernah dari [versi].
+  /// Server lama (tanpa semua kunci itu) = master biasa.
+  bool get riwayat => switch (status) {
+    StatusWorkbook.riwayat => true,
+    StatusWorkbook.aktif => false,
+    StatusWorkbook.tidakDiketahui => digantikanOlehId != null || aktif == false,
+  };
 
   factory WorkbookRingkas.fromJson(Map<String, dynamic> j) => WorkbookRingkas(
     id: _int(j['id']),
@@ -98,6 +170,49 @@ class WorkbookRingkas {
     jumlahLembar: _int(j['jumlah_lembar']),
     berkasAsliTersimpan: _bool(j['berkas_asli_tersimpan']),
     diimporPada: _waktu(j['diimpor_pada']),
+    kunciJenis: _teks(j['kunci_jenis']),
+    aktif: _boolAtauNull(j['aktif']),
+    status: StatusWorkbook.dari(j['status']),
+    versi: _intPositif(j['versi']),
+    digantikanOlehId: _intPositif(j['digantikan_oleh_id']),
+    jumlahRiwayat: switch (_int(j['jumlah_riwayat'])) {
+      final n when n > 0 => n,
+      _ => 0,
+    },
+  );
+}
+
+/// `GET /studio/workbook/{id}/riwayat` (K-49-13): semua versi jenis yang sama
+/// (master aktif + riwayat, tanpa arsip). Urutan = urutan server apa adanya
+/// (master aktif dulu, lalu riwayat) — TIDAK diurut ulang klien menurut
+/// `versi` (urutan impor, bukan kebaruan).
+class RiwayatWorkbook {
+  const RiwayatWorkbook({required this.versi, this.kunciJenis});
+
+  final List<WorkbookRingkas> versi;
+  final String? kunciJenis;
+
+  /// Master aktif jenis ini (biasanya satu; bisa kosong bila diarsipkan).
+  List<WorkbookRingkas> get aktif => [
+    for (final v in versi)
+      if (!v.riwayat) v,
+  ];
+
+  /// Versi lama — yang dibuka baca-saja dari layar riwayat.
+  List<WorkbookRingkas> get riwayat => [
+    for (final v in versi)
+      if (v.riwayat) v,
+  ];
+
+  /// Baris yang bukan objek dibuang (tidak bisa diletakkan), sisanya dibaca
+  /// toleran seperti baris daftar.
+  factory RiwayatWorkbook.fromJson(Map<String, dynamic> j) => RiwayatWorkbook(
+    versi: [
+      if (j['data'] case final List daftar)
+        for (final v in daftar)
+          if (v is Map) WorkbookRingkas.fromJson(Map<String, dynamic>.from(v)),
+    ],
+    kunciJenis: _teks(j['kunci_jenis']),
   );
 }
 

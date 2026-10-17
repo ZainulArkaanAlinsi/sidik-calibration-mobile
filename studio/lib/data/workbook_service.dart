@@ -22,6 +22,12 @@ abstract class WorkbookService {
   /// `GET /studio/workbook/{id}` — meta + lembar (+ tata letak).
   Future<WorkbookDetail> detail(String token, int workbookId);
 
+  /// `GET /studio/workbook/{id}/riwayat` (K-49-13) — semua versi jenis yang
+  /// sama dengan [workbookId]. Diarsipkan / lab lain → `ApiException` 404.
+  /// Server sebelum K-49-13 tidak punya rute ini (404) — hanya dipanggil bila
+  /// `jumlah_riwayat` > 0, yang tidak pernah dikirim server lama.
+  Future<RiwayatWorkbook> riwayat(String token, int workbookId);
+
   /// `GET /studio/workbook/{id}/lembar/{lembarId}?baris_dari=&baris_sampai=`
   /// — server membatasi satu halaman maksimal [batasBarisPerPermintaan].
   Future<HalamanSelWorkbook> sel(
@@ -98,6 +104,17 @@ class ApiWorkbookService implements WorkbookService {
   }
 
   @override
+  Future<RiwayatWorkbook> riwayat(String token, int workbookId) async {
+    // `data` di sini LARIK + `kunci_jenis` di sampingnya — tidak di-unwrap.
+    final json = await _api.get(
+      '/studio/workbook/$workbookId/riwayat',
+      token: token,
+    );
+
+    return RiwayatWorkbook.fromJson(json);
+  }
+
+  @override
   Future<HalamanSelWorkbook> sel(
     String token, {
     required int workbookId,
@@ -171,12 +188,25 @@ class ApiWorkbookService implements WorkbookService {
 ///    - `SERTIFIKAT` — DIKECUALIKAN (jalur impor lama sebelum K-49-12):
 ///      tanpa sel, panel penanda tabel `certificates`.
 /// 2. **Master_Olah_Data_Micrometer_0-25mm** (`csv`, alat yang SAMA dengan
-///    no. 1) — `sumber lain` di daftar; lebar kolom perkiraan server.
+///    no. 1) — RIWAYAT no. 1 (K-49-13, lihat di bawah); lebar kolom
+///    perkiraan server.
 /// 3. **Master_olda_Height_Gauge_600_mm_2026** (`csv`, BELUM dipetakan —
 ///    pertanyaan peta workbook no. 5), satu lembar `INPUT DATA` 300 × 26
 ///    (ukuran CSV-nya; dua halaman sel — halaman kedua kosong), nilai bagian
 ///    judul & identitas ALAT dari CSV-nya, tata letak kosong (server lama).
 ///    Bagian identitas pelanggan sengaja tidak disalin.
+///
+/// ## Jenis master (K-49-13)
+///
+/// Kunci jenis dibentuk seperti `KunciJenisWorkbook` server: no. 1 & 2 sama
+/// (`dimensi:micrometer-0-25mm`) — CSV diimpor lebih dulu (impor #1), lalu
+/// `.xlsm` menggantikannya (impor #2, aktif) → CSV jadi riwayat, tidak ikut
+/// daftar, dibuka lewat `GET …/riwayat`. No. 3 sendirian
+/// (`tanpa-profil:height-gauge-600-mm`). [serverLama] = server sebelum
+/// K-49-13: tanpa kunci jenis sama sekali, daftar memuat SEMUA workbook (CSV
+/// kembaran tampil di bawah "Sumber lain"), rute riwayat 404. [diarsipkan]
+/// meniru `studio:rapikan-workbook --arsipkan`: 404 di semua rute, hilang
+/// dari daftar & riwayat.
 ///
 /// Gambar (Tahap C): `PERHITUNGAN U95%` membawa dua gambar PERAGA — png 1×1
 /// di K18 (geser 3/2 px, 96 × 48 px) dan EMF di A1 (panel beku; jenis yang
@@ -189,9 +219,20 @@ class ApiWorkbookService implements WorkbookService {
 /// Workbook CSV → 409 seperti server. Test yang butuh jawaban lain memasang
 /// [jawabanHitung].
 class MockWorkbookService implements WorkbookService {
-  MockWorkbookService({this.gagal = false, this.jawabanHitung});
+  MockWorkbookService({
+    this.gagal = false,
+    this.jawabanHitung,
+    this.serverLama = false,
+  });
 
   final bool gagal;
+
+  /// Meniru server sebelum K-49-13 (lihat docblock kelas).
+  final bool serverLama;
+
+  /// Id yang "diarsipkan" (test): 404 di semua rute, hilang dari daftar &
+  /// riwayat. Boleh diisi sesudah layar terbuka (arsip saat dibuka).
+  final diarsipkan = <int>{};
 
   /// Pengganti jawaban `/hitung` (test): kembalikan JSON jawaban server
   /// (`{"data": {...}}`), atau lempar untuk meniru galat. Boleh menunggu
@@ -203,6 +244,7 @@ class MockWorkbookService implements WorkbookService {
   final panggilanSel = <String>[];
   int panggilanDaftar = 0;
   int panggilanDetail = 0;
+  int panggilanRiwayat = 0;
 
   /// Isi setiap kiriman `/hitung` (urut).
   final panggilanHitung = <List<EditSel>>[];
@@ -230,6 +272,24 @@ class MockWorkbookService implements WorkbookService {
 
   static Map<String, dynamic> _tidakAda() => {'message': 'Tidak ditemukan.'};
 
+  static ApiException _tidakDitemukan() =>
+      ApiException('Tidak ditemukan.', status: 404, body: _tidakAda());
+
+  /// Workbook yang masih ada di Studio (bukan arsip); `null` = 404.
+  Map<String, Object?>? _cari(int id) => diarsipkan.contains(id)
+      ? null
+      : _workbook.where((w) => w['id'] == id).firstOrNull;
+
+  /// Kunci jenis master (K-49-13) — tidak dikirim server lama.
+  static const _kunciJenis = {
+    'kunci_jenis',
+    'aktif',
+    'status',
+    'versi',
+    'digantikan_oleh_id',
+    'jumlah_riwayat',
+  };
+
   @override
   Future<List<WorkbookRingkas>> daftar(
     String token, {
@@ -241,7 +301,10 @@ class MockWorkbookService implements WorkbookService {
     final q = cari?.trim().toLowerCase() ?? '';
     final hasil = [
       for (final w in _workbook)
-        if ((kodeProfil == null || w['kode_profil'] == kodeProfil) &&
+        // K-49-13: hanya master AKTIF (server lama: semua).
+        if ((serverLama || w['aktif'] == true) &&
+            !diarsipkan.contains(w['id']) &&
+            (kodeProfil == null || w['kode_profil'] == kodeProfil) &&
             (q.isEmpty ||
                 '${w['nama']}'.toLowerCase().contains(q) ||
                 '${w['kode_profil'] ?? ''}'.toLowerCase().contains(q)))
@@ -253,13 +316,40 @@ class MockWorkbookService implements WorkbookService {
   }
 
   @override
+  Future<RiwayatWorkbook> riwayat(String token, int workbookId) async {
+    panggilanRiwayat++;
+    await _mulai();
+    // Server lama: rutenya tidak ada.
+    final w = serverLama ? null : _cari(workbookId);
+    if (w == null) throw _tidakDitemukan();
+    final versi =
+        [
+          for (final v in _workbook)
+            if (v['kunci_jenis'] == w['kunci_jenis'] &&
+                !diarsipkan.contains(v['id']))
+              v,
+        ]..sort((a, b) {
+          // Seperti server: master aktif dulu, lalu riwayat impor terbaru
+          // dulu (urutan impor, bukan kebaruan isi).
+          final aktif = (b['aktif'] == true ? 1 : 0).compareTo(
+            a['aktif'] == true ? 1 : 0,
+          );
+          if (aktif != 0) return aktif;
+          final v = (b['versi'] as int).compareTo(a['versi'] as int);
+          return v != 0 ? v : (b['id'] as int).compareTo(a['id'] as int);
+        });
+    return _lewatJson({
+      'data': [for (final v in versi) _meta(v)],
+      'kunci_jenis': w['kunci_jenis'],
+    }, (j) => RiwayatWorkbook.fromJson(Map<String, dynamic>.from(j as Map)));
+  }
+
+  @override
   Future<WorkbookDetail> detail(String token, int workbookId) async {
     panggilanDetail++;
     await _mulai();
-    final w = _workbook.where((w) => w['id'] == workbookId).firstOrNull;
-    if (w == null) {
-      throw ApiException('Tidak ditemukan.', status: 404, body: _tidakAda());
-    }
+    final w = _cari(workbookId);
+    if (w == null) throw _tidakDitemukan();
     return _lewatJson(
       {
         'data': {..._meta(w), 'lembar': w['lembar']},
@@ -280,7 +370,7 @@ class MockWorkbookService implements WorkbookService {
   }) async {
     panggilanSel.add('$workbookId/$lembarId/$barisDari-$barisSampai');
     await _mulai();
-    final w = _workbook.where((w) => w['id'] == workbookId).firstOrNull;
+    final w = _cari(workbookId);
     final lembar = (w?['lembar'] as List?)
         ?.cast<Map<String, Object?>>()
         .where((l) => l['id'] == lembarId)
@@ -317,6 +407,8 @@ class MockWorkbookService implements WorkbookService {
   }) async {
     panggilanHitung.add(List.unmodifiable(edit));
     await _mulai();
+    // Arsip = 404 di `/hitung` juga (riwayat tetap boleh dihitung server).
+    if (diarsipkan.contains(workbookId)) throw _tidakDitemukan();
     final kait = jawabanHitung;
     final Map<String, Object?> jawaban;
     if (kait != null) {
@@ -334,7 +426,7 @@ class MockWorkbookService implements WorkbookService {
 
   /// Jawaban tiruan: sel yang diedit saja, diketik seperti kontrak.
   Map<String, Object?> _gema(int workbookId, List<EditSel> edit) {
-    final w = _workbook.where((w) => w['id'] == workbookId).firstOrNull;
+    final w = _cari(workbookId);
     if (w == null) {
       throw ApiException('Tidak ditemukan.', status: 404, body: _tidakAda());
     }
@@ -420,7 +512,7 @@ class MockWorkbookService implements WorkbookService {
   }) async {
     panggilanGambar.add(gambarId);
     await _mulai();
-    final w = _workbook.where((w) => w['id'] == workbookId).firstOrNull;
+    final w = _cari(workbookId);
     final g = [
       for (final l in (w?['lembar'] as List? ?? const []))
         ...((l as Map)['gambar'] as List? ?? const []),
@@ -443,9 +535,10 @@ class MockWorkbookService implements WorkbookService {
     'tgAAAABJRU5ErkJggg==',
   );
 
-  static Map<String, Object?> _meta(Map<String, Object?> w) => {
+  Map<String, Object?> _meta(Map<String, Object?> w) => {
     for (final e in w.entries)
-      if (e.key != 'lembar') e.key: e.value,
+      if (e.key != 'lembar' && !(serverLama && _kunciJenis.contains(e.key)))
+        e.key: e.value,
   };
 
   // ─────────────────────────────────────────────────────────── data contoh
@@ -494,6 +587,13 @@ class MockWorkbookService implements WorkbookService {
       // Impor .xlsm menyimpan berkas aslinya (syarat `/hitung` di server).
       'berkas_asli_tersimpan': true,
       'diimpor_pada': '2026-10-13T09:15:00+07:00',
+      // K-49-13: menggantikan ekspor CSV-nya (no. 2).
+      'kunci_jenis': 'dimensi:micrometer-0-25mm',
+      'aktif': true,
+      'status': 'aktif',
+      'versi': 2,
+      'digantikan_oleh_id': null,
+      'jumlah_riwayat': 1,
       'lembar': [
         _lembar(
           id: idLembarU95,
@@ -601,6 +701,13 @@ class MockWorkbookService implements WorkbookService {
       'jumlah_lembar': 1,
       'berkas_asli_tersimpan': false,
       'diimpor_pada': '2026-10-13T09:10:00+07:00',
+      // K-49-13: riwayat — digantikan `.xlsm` no. 1.
+      'kunci_jenis': 'dimensi:micrometer-0-25mm',
+      'aktif': false,
+      'status': 'riwayat',
+      'versi': 1,
+      'digantikan_oleh_id': idMicrometer,
+      'jumlah_riwayat': 1,
       'lembar': [
         _lembar(
           id: idLembarU95Csv,
@@ -633,6 +740,12 @@ class MockWorkbookService implements WorkbookService {
       'jumlah_lembar': 1,
       'berkas_asli_tersimpan': false,
       'diimpor_pada': '2026-10-13T09:12:00+07:00',
+      'kunci_jenis': 'tanpa-profil:height-gauge-600-mm',
+      'aktif': true,
+      'status': 'aktif',
+      'versi': 1,
+      'digantikan_oleh_id': null,
+      'jumlah_riwayat': 0,
       'lembar': [
         // CSV dari server lama: tata letak kosong sama sekali.
         _lembar(

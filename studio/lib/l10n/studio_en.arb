@@ -481,5 +481,55 @@
   "lembarTampilkanKet": "Display only — not saved to the workbook.",
   "gambarGagalMuat": "Image failed to load",
   "inspekturSimulasi": "Simulated input",
-  "inspekturGalatHitung": "Calculation engine error"
+  "inspekturGalatHitung": "Calculation engine error",
+  "workbookImpor": "Import #{versi}",
+  "@workbookImpor": {
+    "placeholders": {
+      "versi": {
+        "type": "int"
+      }
+    }
+  },
+  "workbookImporKet": "Import number {versi} within this master type — import order, not an indicator of the newest version.",
+  "@workbookImporKet": {
+    "placeholders": {
+      "versi": {
+        "type": "int"
+      }
+    }
+  },
+  "workbookRiwayat": "History ({jumlah})",
+  "@workbookRiwayat": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "workbookRiwayatKet": "Older versions of this master — hidden from the list, still viewable (read-only).",
+  "riwayatJudul": "History — {nama}",
+  "@riwayatJudul": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "riwayatKet": "Studio keeps one active master per type. Importing a new master replaces the active one; the old one is kept here, never deleted. Old versions open read-only.",
+  "riwayatKosong": "This master has no history yet.",
+  "riwayatGagalMuat": "History failed to load.",
+  "workbookStatusAktif": "Active master",
+  "workbookStatusRiwayat": "History",
+  "workbookRiwayatSpanduk": "History — not the active master",
+  "workbookRiwayatSpandukKet": "An older version that has been replaced. Read-only — it cannot be edited or recalculated.",
+  "workbookDigantikanOleh": "replaced by #{id}",
+  "@workbookDigantikanOleh": {
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
+  "workbookDiarsipkan": "This master has been archived/replaced.",
+  "workbookKembaliKeDaftar": "Back to list"
 }

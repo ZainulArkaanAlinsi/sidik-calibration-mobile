@@ -10,6 +10,7 @@ import '../../data/workbook_provider.dart';
 import '../../l10n/studio_l10n.dart';
 import '../../tema/tema_studio.dart';
 import '../../tema/warna_studio.dart';
+import 'riwayat_workbook_screen.dart';
 import 'workbook_screen.dart';
 
 /// Satu kelompok daftar workbook. [judul] `null` = "Belum dipetakan".
@@ -287,8 +288,9 @@ class _DaftarKelompok extends StatelessWidget {
   }
 }
 
-/// Baris workbook utama + (bila ada) tombol "Sumber lain (n)" yang membuka
-/// baris ekspor CSV alat yang sama di bawahnya.
+/// Baris workbook utama + (bila ada) tombol "Riwayat (n)" (K-49-13: versi
+/// lama master ini, layar sendiri) dan "Sumber lain (n)" (server lama: ekspor
+/// CSV alat yang sama, dibuka di bawahnya).
 class _BarisDenganSumberLain extends StatefulWidget {
   const _BarisDenganSumberLain({required this.baris});
 
@@ -306,7 +308,14 @@ class _BarisDenganSumberLainState extends State<_BarisDenganSumberLain> {
     final l10n = StudioL10n.of(context);
     final w = WarnaStudio.of(context);
     final b = widget.baris;
-    if (b.lain.isEmpty) return _BarisWorkbook(workbook: b.utama);
+    final jumlahRiwayat = b.utama.riwayat ? 0 : b.utama.jumlahRiwayat;
+    if (b.lain.isEmpty && jumlahRiwayat == 0) {
+      return _BarisWorkbook(workbook: b.utama);
+    }
+    final gayaTombol = TextButton.styleFrom(
+      foregroundColor: w.teks2,
+      visualDensity: VisualDensity.compact,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -318,18 +327,32 @@ class _BarisDenganSumberLainState extends State<_BarisDenganSumberLain> {
           ),
           child: Align(
             alignment: Alignment.centerLeft,
-            child: Tooltip(
-              message: l10n.workbookSumberLainKet,
-              child: TextButton.icon(
-                key: ValueKey('sumber-lain-${b.utama.id}'),
-                style: TextButton.styleFrom(
-                  foregroundColor: w.teks2,
-                  visualDensity: VisualDensity.compact,
-                ),
-                onPressed: () => setState(() => _buka = !_buka),
-                icon: Icon(_buka ? Icons.expand_less : Icons.expand_more),
-                label: Text(l10n.workbookSumberLain(b.lain.length)),
-              ),
+            child: Wrap(
+              spacing: UkuranStudio.j2,
+              children: [
+                if (jumlahRiwayat > 0)
+                  Tooltip(
+                    message: l10n.workbookRiwayatKet,
+                    child: TextButton.icon(
+                      key: ValueKey('riwayat-${b.utama.id}'),
+                      style: gayaTombol,
+                      onPressed: () => bukaRiwayatWorkbook(context, b.utama),
+                      icon: const Icon(Icons.history),
+                      label: Text(l10n.workbookRiwayat(jumlahRiwayat)),
+                    ),
+                  ),
+                if (b.lain.isNotEmpty)
+                  Tooltip(
+                    message: l10n.workbookSumberLainKet,
+                    child: TextButton.icon(
+                      key: ValueKey('sumber-lain-${b.utama.id}'),
+                      style: gayaTombol,
+                      onPressed: () => setState(() => _buka = !_buka),
+                      icon: Icon(_buka ? Icons.expand_less : Icons.expand_more),
+                      label: Text(l10n.workbookSumberLain(b.lain.length)),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),
@@ -398,6 +421,10 @@ class _BarisWorkbook extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: UkuranStudio.j3),
+                if (wb.versi != null) ...[
+                  LencanaImporWorkbook(workbook: wb),
+                  const SizedBox(width: UkuranStudio.j2),
+                ],
                 LencanaSumberWorkbook(workbook: wb),
                 const SizedBox(width: UkuranStudio.j3),
                 SizedBox(
@@ -481,6 +508,63 @@ class LencanaSumberWorkbook extends StatelessWidget {
             fontWeight: FontWeight.w600,
             color: tinta,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// "Impor #n" — `versi` (K-49-13) = urutan impor master di jenisnya, BUKAN
+/// penanda kebaruan (riwayat bisa bernomor lebih besar dari master aktif).
+/// Tidak tampil bila server tidak mengirimnya.
+class LencanaImporWorkbook extends StatelessWidget {
+  const LencanaImporWorkbook({super.key, required this.workbook});
+
+  final WorkbookRingkas workbook;
+
+  @override
+  Widget build(BuildContext context) {
+    final versi = workbook.versi;
+    if (versi == null) return const SizedBox.shrink();
+    final l10n = StudioL10n.of(context);
+    final w = WarnaStudio.of(context);
+    return Tooltip(
+      message: l10n.workbookImporKet(versi),
+      child: Text(
+        l10n.workbookImpor(versi),
+        key: ValueKey('impor-${workbook.id}'),
+        maxLines: 1,
+        style: TipografiStudio.angka(ukuran: 11, warna: w.teks2),
+      ),
+    );
+  }
+}
+
+/// "Master aktif" / "Riwayat" — status jenis (K-49-13), diambil dari
+/// `status`/`digantikan_oleh_id`, tidak pernah dari nomor impor.
+class LencanaStatusWorkbook extends StatelessWidget {
+  const LencanaStatusWorkbook({super.key, required this.workbook});
+
+  final WorkbookRingkas workbook;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = StudioL10n.of(context);
+    final w = WarnaStudio.of(context);
+    final riwayat = workbook.riwayat;
+    return Container(
+      key: ValueKey('status-${workbook.id}'),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: riwayat ? w.awasTipis : w.lulusTipis,
+        borderRadius: BorderRadius.circular(UkuranStudio.sudut),
+      ),
+      child: Text(
+        riwayat ? l10n.workbookStatusRiwayat : l10n.workbookStatusAktif,
+        maxLines: 1,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: riwayat ? w.awas : w.lulus,
         ),
       ),
     );
