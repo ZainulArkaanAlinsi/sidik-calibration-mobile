@@ -2880,6 +2880,7 @@
   "lkAsliGagalUmum": "Foto gagal diproses. Isi manual atau coba foto ulang.",
   "lkAsliFotoTerbalik": "Lembar tampak terbalik di foto. Ulangi foto dengan lembar tegak.",
   "lkAsliPembacaMati": "Pembaca teks tidak jalan: tidak satu sel pun terbaca. Ulangi foto atau isi manual.",
+  "aturanAsliBukanAngka": "Bukan angka desimal biasa; ketik sendiri",
   "aturanAsliDesimal": "Jumlah desimal tidak cocok dengan resolusi neraca",
   "aturanAsliStandarNominal": "Standard jauh dari nominal keping",
   "aturanAsliMpeBelumAda": "MPE kelas belum tersedia, dipakai batas kasar 1%",

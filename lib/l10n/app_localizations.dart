@@ -11725,6 +11725,12 @@ abstract class AppLocalizations {
   /// **'The text reader is not working: no cell could be read. Retake the photo or fill in manually.'**
   String get lkAsliPembacaMati;
 
+  /// No description provided for @aturanAsliBukanAngka.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a plain decimal number; type it yourself'**
+  String get aturanAsliBukanAngka;
+
   /// No description provided for @aturanAsliDesimal.
   ///
   /// In en, this message translates to:

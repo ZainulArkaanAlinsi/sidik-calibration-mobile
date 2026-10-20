@@ -3750,6 +3750,7 @@
   "lkAsliGagalUmum": "The photo could not be processed. Fill in manually or retake it.",
   "lkAsliFotoTerbalik": "The sheet appears upside down in the photo. Retake it with the sheet upright.",
   "lkAsliPembacaMati": "The text reader is not working: no cell could be read. Retake the photo or fill in manually.",
+  "aturanAsliBukanAngka": "Not a plain decimal number; type it yourself",
   "aturanAsliDesimal": "Decimal places do not match the balance resolution",
   "aturanAsliStandarNominal": "Standard is far from the piece nominal",
   "aturanAsliMpeBelumAda": "class MPE not available yet, rough 1% limit used",

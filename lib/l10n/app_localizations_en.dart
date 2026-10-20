@@ -6743,6 +6743,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The text reader is not working: no cell could be read. Retake the photo or fill in manually.';
 
   @override
+  String get aturanAsliBukanAngka =>
+      'Not a plain decimal number; type it yourself';
+
+  @override
   String get aturanAsliDesimal =>
       'Decimal places do not match the balance resolution';
 

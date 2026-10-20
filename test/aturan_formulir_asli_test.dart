@@ -341,4 +341,46 @@ void main() {
       expect(teks.every((t) => t.trim().isNotEmpty), isTrue);
     }
   });
+
+  group('temuan peninjau aturan 0541', () {
+    test('NaN / Infinity / eksponen / minus / huruf → MERAH bukan angka', () {
+      for (final t in const [
+        'NaN',
+        'Infinity',
+        '5e1',
+        '-49.99992',
+        '5O.00012',
+        '1.000,5',
+        ' 50 . 1',
+      ]) {
+        final p = AturanFormulirAsli.periksa([sel('at_t1', t)]);
+        expect(p['at_t1|8|1|pembacaan']?.vonis, VonisAturan.merah, reason: t);
+        expect(
+          p['at_t1|8|1|pembacaan']!.alasan,
+          contains(AlasanAturan.bukanAngka),
+          reason: t,
+        );
+      }
+      expect(uraiNominal('Infinity').nilai, isNull);
+      expect(uraiNominal('5e1*').nilai, isNull);
+    });
+
+    test('Standard tepat di batas 1% nominal tidak jadi kuning (eps)', () {
+      // Nominal 2: batas 0,02. Di double, 2 - 1.98 = 0.020000000000000018 —
+      // tanpa eps sel yang tepat di batas ikut kuning.
+      expect(2 - 1.98 > 2 * 0.01, isTrue);
+      expect(
+        AturanFormulirAsli.periksa([
+          sel('at_s1', '1.98', blok: 2, nominal: '2', resolusi: null),
+        ]),
+        isEmpty,
+      );
+      expect(
+        AturanFormulirAsli.periksa([
+          sel('at_s1', '1.979', blok: 2, nominal: '2', resolusi: null),
+        ])['at_s1|2|1|pembacaan']!.vonis,
+        VonisAturan.kuning,
+      );
+    });
+  });
 }

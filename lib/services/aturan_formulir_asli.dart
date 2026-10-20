@@ -83,7 +83,13 @@ class AturanFormulirAsli {
       if (teks.isEmpty) continue;
 
       final nilai = _angka(teks);
-      if (nilai == null) continue; // bukan angka → alur sudah MERAH
+      if (nilai == null) {
+        // Bukan angka desimal biasa (huruf, `NaN`, `Infinity`, `1e3`, tanda
+        // minus...) → MERAH kosong. `double.tryParse` di hilir menerima
+        // `NaN`/`Infinity`/eksponen, jadi tidak boleh diandalkan.
+        turunkan(s.kunci, VonisAturan.merah, AlasanAturan.bukanAngka);
+        continue;
+      }
 
       final desimalHarus = s.desimal ?? desimalDariResolusi(s.resolusi);
       final tertulis = desimalTertulis(teks);
@@ -100,7 +106,7 @@ class AturanFormulirAsli {
         if (nominal != null && nominal > 0) {
           final batasMpe = mpe?.call(nominal);
           final batas = batasMpe ?? nominal * pagarKasarNominal;
-          if ((nilai - nominal).abs() > batas) {
+          if ((nilai - nominal).abs() > batas + _eps(batas)) {
             turunkan(
               s.kunci,
               VonisAturan.kuning,
@@ -226,6 +232,9 @@ enum AlasanAturan {
 
   /// Blok terisi sebagian; sel kosongnya wajib diketik.
   blokTidakLengkap,
+
+  /// Teks bukan angka desimal biasa (mis. `NaN`, `1e3`, huruf) → merah.
+  bukanAngka,
 }
 
 /// Titik sambung deteksi coretan — TODO(ATURAN-0541-1). Belum ada nilai
@@ -264,7 +273,17 @@ int? desimalDariResolusi(double? resolusi) {
   return math.min(math.max(0, d), 8);
 }
 
-double? _angka(String teks) => double.tryParse(teks.replaceAll(',', '.'));
+/// Angka desimal KETAT: digit, opsional satu pemisah `,`/`.` lalu digit.
+/// Menolak `NaN`, `Infinity`, eksponen, tanda, spasi, dan pemisah ganda —
+/// bentuk yang `double.tryParse` terima tetapi tidak pernah ditulis di kertas.
+double? _angka(String teks) {
+  final t = teks.trim();
+  if (!_polaAngka.hasMatch(t)) return null;
+
+  return double.parse(t.replaceAll(',', '.'));
+}
+
+final _polaAngka = RegExp(r'^\d+([.,]\d+)?$');
 
 /// Toleransi pembulatan biner untuk pembandingan kelipatan resolusi.
 double _eps(double res) => res * 1e-6;

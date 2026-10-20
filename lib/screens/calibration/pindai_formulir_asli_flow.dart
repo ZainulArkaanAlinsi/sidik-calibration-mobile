@@ -399,6 +399,7 @@ String teksAlasanAturan(AppLocalizations l10n, AlasanAturan a) => switch (a) {
   AlasanAturan.mpeBelumTersedia => l10n.aturanAsliMpeBelumAda,
   AlasanAturan.duaUutBerselisih => l10n.aturanAsliDuaUut,
   AlasanAturan.blokTidakLengkap => l10n.aturanAsliBlokTidakLengkap,
+  AlasanAturan.bukanAngka => l10n.aturanAsliBukanAngka,
 };
 
 String pesanGagalAsli(AppLocalizations l10n, PindaiAsliGagal e) =>

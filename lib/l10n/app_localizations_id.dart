@@ -6667,6 +6667,9 @@ class AppLocalizationsId extends AppLocalizations {
       'Pembaca teks tidak jalan: tidak satu sel pun terbaca. Ulangi foto atau isi manual.';
 
   @override
+  String get aturanAsliBukanAngka => 'Bukan angka desimal biasa; ketik sendiri';
+
+  @override
   String get aturanAsliDesimal =>
       'Jumlah desimal tidak cocok dengan resolusi neraca';
 
