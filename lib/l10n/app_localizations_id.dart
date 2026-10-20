@@ -6667,6 +6667,10 @@ class AppLocalizationsId extends AppLocalizations {
       'Pembaca teks tidak jalan: tidak satu sel pun terbaca. Ulangi foto atau isi manual.';
 
   @override
+  String get lkModulPembacaTeksDiunduh =>
+      'Modul pembaca teks sedang diunduh Google Play Services dan butuh internet sekali. Sambungkan internet lalu coba lagi, atau isi manual.';
+
+  @override
   String get aturanAsliBukanAngka => 'Bukan angka desimal biasa; ketik sendiri';
 
   @override

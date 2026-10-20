@@ -11725,6 +11725,12 @@ abstract class AppLocalizations {
   /// **'The text reader is not working: no cell could be read. Retake the photo or fill in manually.'**
   String get lkAsliPembacaMati;
 
+  /// No description provided for @lkModulPembacaTeksDiunduh.
+  ///
+  /// In en, this message translates to:
+  /// **'The text reader module is still being downloaded by Google Play Services and needs internet once. Connect to the internet and try again, or fill in manually.'**
+  String get lkModulPembacaTeksDiunduh;
+
   /// No description provided for @aturanAsliBukanAngka.
   ///
   /// In en, this message translates to:

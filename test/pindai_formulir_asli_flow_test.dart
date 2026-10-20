@@ -17,6 +17,7 @@ import 'package:sidik_calibration/screens/calibration/lembar_kerja_state.dart';
 import 'package:sidik_calibration/screens/calibration/pindai_formulir_asli_flow.dart';
 import 'package:sidik_calibration/services/jalankan_pindai_asli.dart';
 import 'package:sidik_calibration/services/lembar_kerja_service.dart';
+import 'package:sidik_calibration/services/modul_pembaca_teks.dart';
 import 'package:sidik_calibration/services/pembaca_halaman.dart';
 import 'package:sidik_calibration/services/pembaca_sel.dart';
 import 'package:sidik_calibration/services/penampung_contoh_sel.dart';
@@ -34,7 +35,7 @@ class _MesinPalsu extends JalankanPindaiAsli {
     this.potongan = const {},
   }) : super(halaman: MockPembacaHalaman(const []), pembaca: MockPembacaSel());
 
-  final PindaiAsliGagal? gagal;
+  final Object? gagal;
 
   /// kunci sel → (teks, keyakinan)
   final Map<String, (String, double)> bacaan;
@@ -338,4 +339,19 @@ void main() {
       expect(isi.single['berkas'], endsWith('.jpg'));
     });
   });
+
+  testWidgets(
+    'modul ML Kit belum terunduh: pesan jelas, lembar tidak berubah, tak crash',
+    (tester) async {
+      final isian = buatState();
+      await jalankan(
+        tester,
+        isian: isian,
+        mesin: _MesinPalsu(gagal: const ModulPembacaTeksBelumSiap()),
+      );
+
+      expect(find.textContaining('butuh internet sekali'), findsOneWidget);
+      expect(isian.adaIsianDariFoto, isFalse);
+    },
+  );
 }

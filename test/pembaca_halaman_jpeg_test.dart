@@ -3,10 +3,12 @@ import 'dart:math' show Point;
 import 'dart:typed_data';
 import 'dart:ui' show Rect;
 
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image/image.dart' as img;
 
+import 'package:sidik_calibration/services/modul_pembaca_teks.dart';
 import 'package:sidik_calibration/services/pembaca_halaman.dart';
 
 /// M01: ML Kit sehalaman membaca JPEG kamera APA ADANYA — tanpa encode ulang
@@ -271,6 +273,48 @@ void main() {
       'sel-3-2.png',
       'lain.jpg',
     });
+  });
+
+  test('ML Kit unbundled belum terunduh → ModulPembacaTeksBelumSiap', () async {
+    final pembaca = MlKitPembacaHalaman(
+      jpegLangsung: false,
+      folderSementara: () async => tmp,
+      proses: (_) async => throw PlatformException(
+        code: 'TextRecognizerError',
+        message:
+            'com.google.mlkit.common.MlKitException: Waiting for the '
+            'text optional module to be downloaded. Please wait.',
+      ),
+    );
+
+    await expectLater(
+      pembaca.baca(citraUji()),
+      throwsA(isA<ModulPembacaTeksBelumSiap>()),
+    );
+    expect(tmp.listSync(), isEmpty, reason: 'berkas sementara tetap dihapus');
+  });
+
+  test('galat ML Kit lain tetap dilempar apa adanya', () async {
+    final pembaca = MlKitPembacaHalaman(
+      jpegLangsung: false,
+      folderSementara: () async => tmp,
+      proses: (_) async =>
+          throw PlatformException(code: 'X', message: 'Internal error'),
+    );
+
+    await expectLater(
+      pembaca.baca(citraUji()),
+      throwsA(isA<PlatformException>()),
+    );
+    expect(
+      galatModulBelumTerunduh(
+        PlatformException(
+          code: 'X',
+          message: 'Waiting for the text recognition module to be downloaded.',
+        ),
+      ),
+      isTrue,
+    );
   });
 }
 

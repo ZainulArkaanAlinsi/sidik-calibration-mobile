@@ -3,8 +3,10 @@ import 'dart:ui' show Size;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image/image.dart' as img;
 
+import '../l10n/app_localizations.dart';
 import '../providers/sumber_foto_provider.dart';
 import '../providers/worksheet_scan_provider.dart';
+import 'modul_pembaca_teks.dart';
 import 'pembaca_halaman.dart';
 import 'potong_sel_foto.dart' show decodeFotoDiIsolate;
 
@@ -71,6 +73,13 @@ typedef HasilAmbilFoto = ({
 /// dibaca" di docblock ini nggak berlaku buat dia: berkasnya menumpuk satu per
 /// jepretan di cache pemilih, isinya lembar kerja pelanggan, dan nggak ada
 /// satu pun yang membersihkannya sepanjang sesi.
+/// Pesan untuk galat yang lolos dari [ambilDanBacaTabel]: modul ML Kit yang
+/// belum terunduh diberi pesannya sendiri; sisanya pesan galat umum foto tabel.
+String pesanGalatFotoTabel(AppLocalizations l10n, Object e) =>
+    e is ModulPembacaTeksBelumSiap
+    ? l10n.lkModulPembacaTeksDiunduh
+    : l10n.lkFotoTabelError('$e');
+
 Future<HasilAmbilFoto> ambilDanBacaTabel(WidgetRef ref) async {
   final foto = await ref
       .read(sumberFotoProvider)

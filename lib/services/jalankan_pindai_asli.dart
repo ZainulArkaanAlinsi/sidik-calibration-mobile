@@ -7,6 +7,7 @@ import 'package:image/image.dart' as img;
 import '../models/worksheet_template.dart';
 import 'jalankan_pindai.dart' show AmbangMutu, GagalPindai;
 import 'baca_paralel.dart';
+import 'modul_pembaca_teks.dart';
 import 'pembaca_halaman.dart';
 import 'pembaca_sel.dart' show BacaanSel, PembacaSel;
 import 'pindai_lembar.dart';
@@ -332,6 +333,10 @@ class JalankanPindaiAsli {
           (a) async {
             try {
               return await pembacaLokal.baca(a.potong);
+            } on ModulPembacaTeksBelumSiap {
+              // Bukan sel yang gagal: modul ML Kit belum ada. Seluruh pindai
+              // berhenti dengan pesannya sendiri.
+              rethrow;
             } catch (_) {
               // Satu sel gagal TIDAK menggugurkan sel lain. Sel ini jadi kosong
               // (tanpa teks karangan, tanpa nol) dan dicatat di [gagalDibaca]

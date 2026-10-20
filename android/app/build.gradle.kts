@@ -183,7 +183,31 @@ flutter {
     source = "../.."
 }
 
+// Hemat ukuran APK (syarat pemilik, 20 Okt 2026):
+//
+// 1. ML Kit text recognition & barcode UNBUNDLED. Plugin Flutter menarik
+//    artefak BUNDLED (`com.google.mlkit:text-recognition` 16.0.1 +
+//    `text-recognition-bundled-common`; `com.google.mlkit:barcode-scanning`
+//    17.3.0) yang membawa model + .so sendiri. Kelas API yang dipakai plugin
+//    (`TextRecognition`, `latin.TextRecognizerOptions`, `BarcodeScanning`, ...)
+//    ada di artefak `play-services-mlkit-*`, jadi plugin tidak perlu di-fork.
+//    Modelnya diunduh Google Play Services (meta-data `DEPENDENCIES` di
+//    manifest); sebelum terunduh, Dart menerima `ModulPembacaTeksBelumSiap`.
+//    Inferensi tetap di HP (K-50-11).
+// 2. LiteRT GPU delegate dibuang: `tflite_flutter` hanya membuka
+//    `libtensorflowlite_gpu_jni.so` bila GpuDelegate dipakai, dan kita tidak.
+configurations.all {
+    exclude(group = "com.google.mlkit", module = "text-recognition")
+    exclude(group = "com.google.mlkit", module = "text-recognition-bundled-common")
+    exclude(group = "com.google.mlkit", module = "barcode-scanning")
+    exclude(group = "com.google.ai.edge.litert", module = "litert-gpu")
+}
+
 dependencies {
     // Pustaka desugaring buat `isCoreLibraryDesugaringEnabled` di atas.
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+
+    // Pengganti unbundled (lihat catatan di atas `configurations.all`).
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.1")
+    implementation("com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.1")
 }

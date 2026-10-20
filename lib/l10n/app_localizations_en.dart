@@ -6743,6 +6743,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The text reader is not working: no cell could be read. Retake the photo or fill in manually.';
 
   @override
+  String get lkModulPembacaTeksDiunduh =>
+      'The text reader module is still being downloaded by Google Play Services and needs internet once. Connect to the internet and try again, or fill in manually.';
+
+  @override
   String get aturanAsliBukanAngka =>
       'Not a plain decimal number; type it yourself';
 

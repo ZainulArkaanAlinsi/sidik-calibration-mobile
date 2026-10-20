@@ -7,6 +7,8 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 
+import 'modul_pembaca_teks.dart';
+
 /// Satu potongan teks hasil OCR berikut kotaknya di citra.
 ///
 /// [keyakinan] `null` = **pengenalnya nggak memberi tahu**, bukan "yakin" dan
@@ -221,11 +223,14 @@ class MlKitPembacaHalaman implements PembacaHalaman {
 
       final input = InputImage.fromFilePath(berkas.path);
       final proses = _proses;
-      final hasil = proses != null
-          ? await proses(input)
-          : await (_pengenal ??= TextRecognizer(
-              script: TextRecognitionScript.latin,
-            )).processImage(input);
+      // Modul ML Kit unbundled yang belum terunduh → galat bernama sendiri.
+      final hasil = await denganModulPembacaTeks(
+        () => proses != null
+            ? proses(input)
+            : (_pengenal ??= TextRecognizer(
+                script: TextRecognitionScript.latin,
+              )).processImage(input),
+      );
       final keluar = <TeksTerbaca>[];
 
       // Diambil per ELEMENT, bukan per baris atau blok. Satu baris tabel

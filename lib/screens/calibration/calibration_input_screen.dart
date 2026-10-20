@@ -12,6 +12,7 @@ import '../../models/skema_dokumen.dart';
 import '../../providers/calibration_input_provider.dart';
 import '../../providers/versi_provider.dart';
 import '../../services/ambil_foto_tabel.dart';
+import '../../services/modul_pembaca_teks.dart' show ModulPembacaTeksBelumSiap;
 import '../../services/analisis_dokumen.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
@@ -275,6 +276,11 @@ class _FormState extends ConsumerState<_Form> {
 
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.calibBacaFotoSelesai(peta.titik.length))),
+      );
+    } on ModulPembacaTeksBelumSiap {
+      // ML Kit unbundled: modul belum terunduh. Isian manual tetap terbuka.
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.lkModulPembacaTeksDiunduh)),
       );
     } finally {
       if (mounted) setState(() => _membaca = false);

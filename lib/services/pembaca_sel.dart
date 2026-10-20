@@ -5,6 +5,8 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 
+import 'modul_pembaca_teks.dart';
+
 /// Hasil baca satu potongan sel.
 typedef BacaanSel = ({String? teks, double? keyakinan, bool didalamKotak});
 
@@ -98,7 +100,9 @@ class MlKitPembacaSel implements PembacaSel {
     try {
       await berkas.writeAsBytes(img.encodePng(potongan));
 
-      final hasil = await _pengenal.processImage(InputImage.fromFile(berkas));
+      final hasil = await denganModulPembacaTeks(
+        () => _pengenal.processImage(InputImage.fromFile(berkas)),
+      );
       final teks = hasil.text.trim();
 
       if (teks.isEmpty) {

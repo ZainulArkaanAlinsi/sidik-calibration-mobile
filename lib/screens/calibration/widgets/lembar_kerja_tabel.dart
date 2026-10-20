@@ -2244,7 +2244,7 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
     } catch (e) {
       if (mounted) {
         messenger.showSnackBar(
-          SnackBar(content: Text(l10n.lkFotoTabelError('$e'))),
+          SnackBar(content: Text(pesanGalatFotoTabel(l10n, e))),
         );
       }
     } finally {

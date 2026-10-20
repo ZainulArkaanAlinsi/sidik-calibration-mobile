@@ -15,6 +15,7 @@ import '../../providers/worksheet_scan_provider.dart';
 import '../../services/aturan_formulir_asli.dart';
 import '../../services/jalankan_pindai.dart' show GagalPindai;
 import '../../services/kumpulkan_contoh_sel.dart';
+import '../../services/modul_pembaca_teks.dart';
 import '../../services/jalankan_pindai_asli.dart';
 import '../../services/pembaca_halaman.dart'
     show PembacaHalaman, sapuBerkasPindaiLama;
@@ -120,6 +121,10 @@ Future<int> pindaiFormulirAsli({
     hasil = await pakai.baca(citra, template: template, jpegAsli: bita);
   } on PindaiAsliGagal catch (e) {
     galat = pesanGagalAsli(l10n, e);
+  } on ModulPembacaTeksBelumSiap {
+    // ML Kit unbundled: modul `ocr` belum terunduh. Lembar tidak berubah,
+    // isian manual tetap jalan.
+    galat = l10n.lkModulPembacaTeksDiunduh;
   } catch (_) {
     galat = l10n.lkAsliGagalUmum;
   } finally {
