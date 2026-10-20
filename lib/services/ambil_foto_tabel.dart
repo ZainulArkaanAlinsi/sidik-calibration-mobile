@@ -62,7 +62,8 @@ typedef HasilAmbilFoto = ({
 /// pelanggan. DUA berkas sementara lahir per jepretan, dan dua-duanya dihapus
 /// di sini:
 ///
-///  - PNG yang ditulis buat ML Kit — dibuang [MlKitPembacaHalaman];
+///  - JPEG (atau PNG cadangan) yang ditulis buat ML Kit — dibuang
+///    [MlKitPembacaHalaman];
 ///  - berkas yang dipulangkan pemilih foto — dibuang di bawah, begitu bitanya
 ///    masuk memori.
 ///
@@ -103,7 +104,10 @@ Future<HasilAmbilFoto> ambilDanBacaTabel(WidgetRef ref) async {
 
   try {
     return (
-      terbaca: await pembaca.baca(citra),
+      // JPEG asli langsung ke ML Kit (M01). Orientasi 1: [citra] hasil
+      // `decodeImage` mentah, EXIF-nya TIDAK dipanggang, jadi ML Kit juga
+      // harus melihat piksel tersimpan apa adanya.
+      terbaca: await pembaca.baca(citra, asli: (jpeg: bita, orientasi: 1)),
       dibatalkan: false,
       ukuran: Size(citra.width.toDouble(), citra.height.toDouble()),
       citra: citra,

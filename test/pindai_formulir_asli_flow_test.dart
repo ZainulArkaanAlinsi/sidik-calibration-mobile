@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,7 +22,7 @@ import 'package:sidik_calibration/services/photo_source.dart';
 /// palsu: yang diuji adalah penyambungan — formulir salah berhenti, review
 /// merah/kuning, angka mendarat di sel yang benar, foto tidak diunggah.
 class _MesinPalsu extends JalankanPindaiAsli {
-  _MesinPalsu({this.gagal, this.bacaan = const {}})
+  _MesinPalsu({this.gagal, this.bacaan = const {}, this.gagalDibaca = const {}})
     : super(halaman: MockPembacaHalaman(const []), pembaca: MockPembacaSel());
 
   final PindaiAsliGagal? gagal;
@@ -29,11 +30,19 @@ class _MesinPalsu extends JalankanPindaiAsli {
   /// kunci sel → (teks, keyakinan)
   final Map<String, (String, double)> bacaan;
 
+  /// kunci sel yang pembacaannya GAGAL (galat ML Kit), bukan kosong.
+  final Set<String> gagalDibaca;
+
+  /// JPEG yang diteruskan alur ke mesin (M01).
+  Uint8List? jpegDiterima;
+
   @override
   Future<HasilBacaAsli> baca(
     img.Image foto, {
     required WorksheetTemplate template,
+    Uint8List? jpegAsli,
   }) async {
+    jpegDiterima = jpegAsli;
     if (gagal != null) throw gagal!;
 
     return HasilBacaAsli(
@@ -41,8 +50,11 @@ class _MesinPalsu extends JalankanPindaiAsli {
       sel: [
         for (final s in template.selAsli)
           if (bacaan[s.kunci] case (final t, final k))
-            (sel: s, bacaan: (teks: t, keyakinan: k, didalamKotak: true)),
+            (sel: s, bacaan: (teks: t, keyakinan: k, didalamKotak: true))
+          else if (gagalDibaca.contains(s.kunci))
+            (sel: s, bacaan: (teks: null, keyakinan: null, didalamKotak: true)),
       ],
+      gagalDibaca: gagalDibaca,
     );
   }
 }
@@ -203,4 +215,39 @@ void main() {
       isEmpty,
     );
   });
+
+  testWidgets(
+    'sel GAGAL dibaca = merah kosong di review; sel kosong tetap tak tampil; '
+    'JPEG asli diteruskan ke mesin',
+    (tester) async {
+      final isian = buatState();
+      final mesin = _MesinPalsu(
+        gagalDibaca: {'sesudah_adjustment|1|1|pembacaan'},
+      );
+      await jalankan(tester, isian: isian, mesin: mesin);
+
+      // Bita foto yang diambil diteruskan apa adanya (M01: ML Kit membaca
+      // JPEG asli, bukan PNG hasil encode ulang).
+      expect(mesin.jpegDiterima, fotoSintetis.readAsBytesSync());
+
+      // Satu-satunya baris review = sel yang gagal; merah → kosong, wajib
+      // diketik. Tidak ada angka karangan, tidak ada nol.
+      final kotak = find.byType(TextField);
+      expect(kotak, findsOneWidget);
+      expect(tester.widget<TextField>(kotak).controller!.text, isEmpty);
+      final masukkan = find.byType(FilledButton);
+      expect(tester.widget<FilledButton>(masukkan).onPressed, isNull);
+
+      await tester.enterText(kotak, '4,05');
+      await tester.pump();
+      expect(tester.widget<FilledButton>(masukkan).onPressed, isNotNull);
+      await tester.tap(masukkan);
+      await tester.pumpAndSettle();
+
+      expect(
+        isian.titik[4.00]!.kotak('sesudah_adjustment', 'pembacaan', 0).text,
+        '4,05',
+      );
+    },
+  );
 }

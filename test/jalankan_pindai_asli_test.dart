@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'dart:ui' show Offset, Rect;
 
 import 'package:flutter_test/flutter_test.dart';
@@ -214,6 +215,50 @@ void main() {
     });
   });
 
+  group('baca sel paralel terbatas (M01)', () {
+    late HasilBacaAsli hasil;
+    late _PembacaLambat pembaca;
+
+    setUpAll(() async {
+      // Panggilan ke-5 melempar; makin belakang dimulai, makin cepat selesai
+      // — kalau hasil dipasangkan menurut urutan selesai, angka tertukar.
+      pembaca = _PembacaLambat(gagalDi: {5});
+      hasil = await JalankanPindaiAsli(
+        halaman: MockPembacaHalaman(kataCetak()),
+        pembaca: pembaca,
+      ).baca(foto(dicentang: {}), template: template);
+    });
+
+    test('semua sel & isian dibaca, paling banyak 3 sekaligus', () {
+      expect(pembaca.dimulai, 64);
+      expect(pembaca.puncak, 3);
+    });
+
+    test('bacaan ke-i milik sel ke-i walau selesainya terbalik', () {
+      for (var k = 0; k < 60; k++) {
+        if (k == 5) continue;
+        expect(hasil.sel[k].sel.kunci, template.selAsli[k].kunci);
+        expect(hasil.sel[k].bacaan.teks, 'v$k', reason: 'sel $k');
+      }
+      for (var j = 0; j < 4; j++) {
+        expect(hasil.isian[j].isian.kode, template.isian[j].kode);
+        expect(hasil.isian[j].bacaan.teks, 'v${60 + j}');
+      }
+    });
+
+    test(
+      'sel yang gagal dibaca: kosong (bukan nol), tercatat, sel lain utuh',
+      () {
+        expect(hasil.sel[5].bacaan.teks, isNull);
+        expect(hasil.sel[5].bacaan.keyakinan, isNull);
+        expect(hasil.gagalDibaca, {template.selAsli[5].kunci});
+        // Potongannya tetap ada untuk ditampilkan di review.
+        expect(hasil.potongan[template.selAsli[5].kunci], isNotEmpty);
+        expect(hasil.sel.where((s) => s.bacaan.teks != null), hasLength(59));
+      },
+    );
+  });
+
   group('berhenti sebelum membaca sel', () {
     final kecil = img.Image(width: 40, height: 30);
 
@@ -379,6 +424,7 @@ void main() {
       img.fill(lanskap, color: img.ColorRgb8(200, 200, 200));
       lanskap.setPixelRgb(5, 5, 255, 0, 0);
       final tegak = img.copyRotate(lanskap, angle: -90);
+      final jpegPalsu = Uint8List.fromList([0xff, 0xd8, 0xff, 0xd9]);
 
       final pembacaHalaman = _PembacaOrientasi(
         kata: kataCetak(revisi: '5'),
@@ -393,7 +439,7 @@ void main() {
         JalankanPindaiAsli(
           halaman: pembacaHalaman,
           pembaca: MockPembacaSel(),
-        ).baca(tegak, template: template),
+        ).baca(tegak, template: template, jpegAsli: jpegPalsu),
         throwsA(
           isA<PindaiAsliGagal>().having(
             (e) => e.sebab,
@@ -403,6 +449,12 @@ void main() {
         ),
       );
       expect(pembacaHalaman.dibaca, 1);
+      // M01: JPEG asli diteruskan apa adanya ke ML Kit sehalaman, dengan
+      // orientasi EXIF yang sama dengan putaran yang dipakai (90° searah
+      // jarum jam dari foto tanpa EXIF = orientasi 6).
+      expect(pembacaHalaman.asli, hasLength(1));
+      expect(identical(pembacaHalaman.asli.single!.jpeg, jpegPalsu), isTrue);
+      expect(pembacaHalaman.asli.single!.orientasi, 6);
     },
   );
 }
@@ -420,16 +472,47 @@ class _PembacaOrientasi implements PembacaHalaman {
   final int lebar;
   final int tinggi;
   int dibaca = 0;
+  final asli = <FotoAsli?>[];
 
   @override
-  Future<List<TeksTerbaca>> baca(img.Image citra) async {
+  Future<List<TeksTerbaca>> baca(img.Image citra, {FotoAsli? asli}) async {
     dibaca++;
+    this.asli.add(asli);
     final tegak =
         citra.width == lebar &&
         citra.height == tinggi &&
         citra.getPixel(5, 5).r == 255;
 
     return tegak ? kata : const [];
+  }
+
+  @override
+  Future<void> tutup() async {}
+}
+
+/// Pembaca sel tiruan yang LAMBAT: panggilan ke-i selesai sesudah
+/// (70 - i) ms, jadi yang dimulai belakangan selesai duluan. Mencatat puncak
+/// pembacaan yang berjalan bersamaan.
+class _PembacaLambat implements PembacaSel {
+  _PembacaLambat({this.gagalDi = const {}});
+
+  final Set<int> gagalDi;
+  int dimulai = 0;
+  int _jalan = 0;
+  int puncak = 0;
+
+  @override
+  Future<BacaanSel> baca(img.Image potongan) async {
+    final i = dimulai++;
+    _jalan++;
+    if (_jalan > puncak) puncak = _jalan;
+    try {
+      await Future<void>.delayed(Duration(milliseconds: 70 - i));
+      if (gagalDi.contains(i)) throw StateError('ML Kit gagal di $i');
+      return (teks: 'v$i', keyakinan: null, didalamKotak: true);
+    } finally {
+      _jalan--;
+    }
   }
 
   @override

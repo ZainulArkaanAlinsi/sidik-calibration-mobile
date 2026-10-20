@@ -1,3 +1,4 @@
+import 'dart:isolate';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -474,4 +475,77 @@ class PindaiLembar {
 
   /// Baca citra dari byte foto. `null` kalau formatnya nggak dikenal.
   img.Image? baca(Uint8List byte) => img.decodeImage(byte);
+
+  /// [baca] di isolate latar: decode JPEG 12 MP menahan isolate UI ratusan
+  /// milidetik.
+  Future<img.Image?> bacaDiIsolate(Uint8List byte) {
+    final mesin = this;
+    return Isolate.run(() => mesin.baca(byte));
+  }
+
+  /// [cariMarker] → [warp] → [mutu] dalam SATU perjalanan ke isolate latar
+  /// (M01) — tiga-tiganya kerja per piksel atas foto/kanvas penuh. Kodenya
+  /// sama persis; yang pindah cuma tempat jalannya, jadi hasilnya identik
+  /// dengan memanggil ketiganya langsung.
+  ///
+  /// Berhenti sedini versi langsungnya: tanpa marker → `warp` & `mutu` null;
+  /// [tujuan] bukan empat titik → `warp` null; residual tidak berhingga atau
+  /// di atas [residualMaks] → `mutu` null (foto itu toh ditolak). Pemanggil
+  /// tetap memeriksa dengan urutan yang sama seperti sebelumnya.
+  Future<HasilRatakanMarker> cariDanRatakanDiIsolate(
+    img.Image foto, {
+    required int lebar,
+    required int tinggi,
+    required List<Sudut> tujuan,
+    required double residualMaks,
+  }) {
+    final mesin = this;
+    return Isolate.run(
+      () => _cariDanRatakan(
+        mesin,
+        foto,
+        lebar: lebar,
+        tinggi: tinggi,
+        tujuan: tujuan,
+        residualMaks: residualMaks,
+      ),
+    );
+  }
+}
+
+/// Hasil [PindaiLembar.cariDanRatakanDiIsolate].
+typedef HasilRatakanMarker = ({
+  List<Sudut>? marker,
+  HasilWarp? warp,
+  ({double blur, double kecerahan, double glare})? mutu,
+});
+
+// Fungsi puncak: yang dikirim ke isolate cuma argumennya, bukan closure yang
+// bisa ikut membawa objek lain.
+HasilRatakanMarker _cariDanRatakan(
+  PindaiLembar mesin,
+  img.Image foto, {
+  required int lebar,
+  required int tinggi,
+  required List<Sudut> tujuan,
+  required double residualMaks,
+}) {
+  final marker = mesin.cariMarker(foto);
+  if (marker == null || tujuan.length != 4) {
+    return (marker: marker, warp: null, mutu: null);
+  }
+
+  final warp = mesin.warp(
+    foto,
+    marker,
+    lebar: lebar,
+    tinggi: tinggi,
+    tujuan: tujuan,
+  );
+
+  if (!warp.residualPx.isFinite || warp.residualPx > residualMaks) {
+    return (marker: marker, warp: warp, mutu: null);
+  }
+
+  return (marker: marker, warp: warp, mutu: mesin.mutu(warp.citra));
 }

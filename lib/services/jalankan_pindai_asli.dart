@@ -6,6 +6,7 @@ import 'package:image/image.dart' as img;
 
 import '../models/worksheet_template.dart';
 import 'jalankan_pindai.dart' show AmbangMutu, GagalPindai;
+import 'baca_paralel.dart';
 import 'pembaca_halaman.dart';
 import 'pembaca_sel.dart' show BacaanSel, PembacaSel;
 import 'pindai_lembar.dart';
@@ -84,6 +85,7 @@ class HasilBacaAsli {
     this.revisiTerbaca,
     this.isian = const [],
     this.potongan = const {},
+    this.gagalDibaca = const {},
   });
 
   final List<SelAsliTerbaca> sel;
@@ -97,6 +99,14 @@ class HasilBacaAsli {
   /// Potongan PNG per kunci sel (dari halaman yang sudah diratakan), buat
   /// layar review — hanya di memori.
   final Map<String, Uint8List> potongan;
+
+  /// Kunci sel (`SelTemplateAsli.kunci`) dan isian ([kunciPotonganIsian])
+  /// yang pembacaannya GAGAL (ML Kit melempar galat), bukan yang kosong di
+  /// kertas. Bacaannya `teks: null`; yang membedakannya dari sel kosong cuma
+  /// himpunan ini. Penampil review wajib menjadikannya MERAH dan kosong —
+  /// kalau diperlakukan seperti sel kosong, sel yang tak terbaca hilang
+  /// diam-diam dari review.
+  final Set<String> gagalDibaca;
 }
 
 /// Satu foto formulir SIDIK-FM-CAL ASLI → bacaan per sel, SELURUHNYA di HP
@@ -143,9 +153,14 @@ class JalankanPindaiAsli {
   /// angka yang sama dengan `ocr.geometri.jangkar_teks.jumlah_min` server.
   static const jangkarMin = 8;
 
+  /// [jpegAsli] = bita JPEG kamera yang di-decode jadi [foto] (sebelum EXIF
+  /// dipanggang). Kalau ada, ML Kit sehalaman membaca JPEG itu langsung —
+  /// tanpa encode ulang ke PNG dan tanpa menurunkan resolusi. `null` (test,
+  /// sumber non-JPEG) = jalur PNG lama.
   Future<HasilBacaAsli> baca(
     img.Image foto, {
     required WorksheetTemplate template,
+    Uint8List? jpegAsli,
   }) async {
     if (!template.bolehDipindaiAsli) {
       throw const PindaiAsliGagal(GagalPindaiAsli.belumSiap);
@@ -165,7 +180,7 @@ class JalankanPindaiAsli {
     }
 
     // ---- 1. KENALI --------------------------------------------------------
-    final dikenali = await _kenali(foto, template, halamanPt);
+    final dikenali = await _kenali(foto, template, halamanPt, jpegAsli);
     final citra = dikenali.citra;
     final terbaca = dikenali.terbaca;
 
@@ -269,26 +284,57 @@ class JalankanPindaiAsli {
     // SEL tabel (usulan angka ukur) lalu ISIAN Env./header yang dibuka server.
     // Kotak centang sengaja TIDAK dibaca: pilihan Thermohygro/Usage Check
     // menentukan standar yang tercatat, jadi teknisi memilihnya sendiri.
-    final hasil = <SelAsliTerbaca>[];
     final gambar = <String, img.Image>{};
+    final gagalDibaca = <String>{};
+
+    // Potong dulu semuanya (murah, `copyCrop` kotak kecil), baru dibaca
+    // [bacaSelSerentak] sekaligus. Hasil dipasangkan menurut INDEKS — urutan
+    // selesai ML Kit tidak pernah menentukan sel mana mendapat bacaan mana.
+    final antrean = <({String kunci, img.Image potong})>[];
 
     for (final s in template.selAsli) {
       final p = piksel(s.kotak!);
       final potong = mesin.potongSel(warp, x: p.x, y: p.y, w: p.w, h: p.h);
 
       gambar[s.kunci] = potong;
-      hasil.add((sel: s, bacaan: await pembaca.baca(potong)));
+      antrean.add((kunci: s.kunci, potong: potong));
     }
-
-    final hasilIsian = <IsianAsliTerbaca>[];
 
     for (final i in template.isian) {
       final p = piksel(i.kotak!);
       final potong = mesin.potongSel(warp, x: p.x, y: p.y, w: p.w, h: p.h);
+      final kunci = kunciPotonganIsian(i.kode);
 
-      gambar[kunciPotonganIsian(i.kode)] = potong;
-      hasilIsian.add((isian: i, bacaan: await pembaca.baca(potong)));
+      gambar[kunci] = potong;
+      antrean.add((kunci: kunci, potong: potong));
     }
+
+    final pembacaLokal = pembaca;
+    final bacaan =
+        await petaTerbatas<({String kunci, img.Image potong}), BacaanSel>(
+          antrean,
+          (a) async {
+            try {
+              return await pembacaLokal.baca(a.potong);
+            } catch (_) {
+              // Satu sel gagal TIDAK menggugurkan sel lain. Sel ini jadi kosong
+              // (tanpa teks karangan, tanpa nol) dan dicatat di [gagalDibaca]
+              // supaya review menandainya MERAH.
+              gagalDibaca.add(a.kunci);
+              return (teks: null, keyakinan: null, didalamKotak: true);
+            }
+          },
+        );
+
+    final jumlahSel = template.selAsli.length;
+    final hasil = <SelAsliTerbaca>[
+      for (var k = 0; k < jumlahSel; k++)
+        (sel: template.selAsli[k], bacaan: bacaan[k]),
+    ];
+    final hasilIsian = <IsianAsliTerbaca>[
+      for (var k = 0; k < template.isian.length; k++)
+        (isian: template.isian[k], bacaan: bacaan[jumlahSel + k]),
+    ];
 
     // Encode PNG puluhan potongan di isolate latar, bukan isolate UI.
     final potongan = await Isolate.run(
@@ -304,6 +350,7 @@ class JalankanPindaiAsli {
       revisiTerbaca: revisiTerbaca,
       isian: hasilIsian,
       potongan: potongan,
+      gagalDibaca: gagalDibaca,
     );
   }
 
@@ -318,12 +365,14 @@ class JalankanPindaiAsli {
     img.Image foto,
     WorksheetTemplate template,
     ({double w, double h}) halamanPt,
+    Uint8List? jpegAsli,
   ) async {
     // EXIF orientasi dipanggang dulu: `decodeImage` membiarkan piksel apa
     // adanya dan cuma mencatat orientasinya. Cuma kalau memang ada —
     // `bakeOrientation` selalu menyalin, dan salinan foto 12 MP itu ±36 MB.
     // Panggang & putar menyalin seluruh foto → isolate latar.
     final ifd = foto.exif.imageIfd;
+    final orientasiAsal = ifd.hasOrientation ? ifd.orientation ?? 1 : 1;
     final tegak = ifd.hasOrientation && ifd.orientation != 1
         ? await Isolate.run(() => img.bakeOrientation(foto))
         : foto;
@@ -340,7 +389,17 @@ class JalankanPindaiAsli {
       final citra = s == 0
           ? tegak
           : await Isolate.run(() => _putar((citra: tegak, sudut: s)));
-      final terbaca = await halaman.baca(citra);
+      // JPEG asli + orientasi EXIF yang membuat ML Kit melihat bingkai yang
+      // SAMA dengan [citra] (EXIF dipanggang lalu diputar [s]).
+      final terbaca = await halaman.baca(
+        citra,
+        asli: jpegAsli == null
+            ? null
+            : (
+                jpeg: jpegAsli,
+                orientasi: orientasiSetelahPutar(orientasiAsal, s),
+              ),
+      );
       final cari = cariKodeDokumen(terbaca, template.kodeDokumen);
 
       if (cari.cocok != null) {

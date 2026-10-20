@@ -102,7 +102,7 @@ Future<int> pindaiFormulirAsli({
         pembaca: pembaca = pabrik.sel(),
       );
     }
-    hasil = await pakai.baca(citra, template: template);
+    hasil = await pakai.baca(citra, template: template, jpegAsli: bita);
   } on PindaiAsliGagal catch (e) {
     galat = pesanGagalAsli(l10n, e);
   } catch (_) {
@@ -133,10 +133,12 @@ Future<int> pindaiFormulirAsli({
 
   for (final b in hasil.sel) {
     final s = b.sel;
-    final teks = b.bacaan.teks?.trim();
+    final teks = b.bacaan.teks?.trim() ?? '';
+    final gagalDibaca = hasil.gagalDibaca.contains(s.kunci);
 
-    // Sel kosong di kertas = tetap kosong di lembar.
-    if (teks == null || teks.isEmpty) continue;
+    // Sel kosong di kertas = tetap kosong di lembar. Sel yang GAGAL dibaca
+    // (galat ML Kit) bukan sel kosong: dia ikut review sebagai MERAH kosong.
+    if (teks.isEmpty && !gagalDibaca) continue;
 
     // Baris kertas yang tidak punya padanan di lembar (kertas mencetak lebih
     // banyak baris/Repeat daripada yang diatur untuk alat ini) tidak ikut
@@ -180,9 +182,11 @@ Future<int> pindaiFormulirAsli({
   var noIsian = 0;
   for (final b in hasil.isian) {
     final kode = b.isian.kode;
-    final teks = b.bacaan.teks?.trim();
+    final teks = b.bacaan.teks?.trim() ?? '';
     noIsian++;
-    if (teks == null || teks.isEmpty) continue;
+    if (teks.isEmpty && !hasil.gagalDibaca.contains(kunciPotonganIsian(kode))) {
+      continue;
+    }
 
     final nilai = parseAngka(teks);
     final bisaDibaca =

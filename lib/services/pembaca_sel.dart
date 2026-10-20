@@ -47,6 +47,9 @@ class MlKitPembacaSel implements PembacaSel {
 
   final _pengenal = TextRecognizer(script: TextRecognitionScript.latin);
 
+  /// Penomor berkas sementara (lihat [baca]).
+  static int _nomor = 0;
+
   /// Tinggi minimum potongan yang dikirim ke ML Kit, dalam piksel.
   ///
   /// ML Kit punya batas bawah tinggi teks yang dia mau lihat, dan potongan sel
@@ -84,8 +87,12 @@ class MlKitPembacaSel implements PembacaSel {
     // ditulis ke folder sementara app — BUKAN galeri atau folder bersama.
     // Isinya lembar kerja pelanggan.
     final dir = await getTemporaryDirectory();
+    // Penomor ikut di nama: sel dibaca PARALEL (`petaTerbatas`), dan dua
+    // pembacaan di mikrodetik yang sama tidak boleh menimpa berkas satu sama
+    // lain — itu berarti bacaan sel A mendarat di sel B.
     final berkas = File(
-      '${dir.path}/sel-${DateTime.now().microsecondsSinceEpoch}.png',
+      '${dir.path}/sel-${DateTime.now().microsecondsSinceEpoch}'
+      '-${_nomor++}.png',
     );
 
     try {

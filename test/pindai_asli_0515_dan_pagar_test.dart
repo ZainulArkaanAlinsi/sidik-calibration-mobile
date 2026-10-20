@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,6 +40,7 @@ class _MesinPalsu extends JalankanPindaiAsli {
   Future<HasilBacaAsli> baca(
     img.Image foto, {
     required WorksheetTemplate template,
+    Uint8List? jpegAsli,
   }) async => HasilBacaAsli(
     kodeTerbaca: 'SIDIK-FM-CAL-0515',
     sel: [
