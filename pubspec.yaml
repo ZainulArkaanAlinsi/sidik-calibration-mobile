@@ -106,6 +106,17 @@ dependencies:
   # pernah dilihat). Sama kayak text recognition: sepenuhnya on-device.
   google_mlkit_barcode_scanning: ^0.14.0
 
+  # Runtime TFLite on-device untuk pengenal KARAKTER sendiri (persetujuan
+  # pemilik, 20 Okt 2026). Tidak ada jaringan: model dibaca dari berkas lokal,
+  # inferensi di HP. Model v0 TIDAK dibundel di APK, sakelar `pakaiModelDigit`
+  # bawaan MATI, dan model `asal_data` publik/sintetis ditolak mengisi sel —
+  # lihat `lib/services/pembaca_digit_tflite.dart`.
+  tflite_flutter: ^0.12.1
+
+  # sha256 berkas model diadu ke meta.json sebelum dimuat. Sudah ada di lock
+  # sebagai dependensi transitif; dijadikan langsung karena dipakai langsung.
+  crypto: ^3.0.6
+
   # Baca & potong citra di Dart murni — warp perspektif dari 4 marker sudut,
   # lalu motong per sel dari koordinat template. Dipakai juga buat ambang gelap
   # waktu nyari markernya.
