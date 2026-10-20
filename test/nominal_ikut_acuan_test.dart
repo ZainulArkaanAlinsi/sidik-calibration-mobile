@@ -139,11 +139,8 @@ void main() {
 
     test('tidak pernah ditawarkan di pilihan peran', () {
       expect(UserRole.bisaDiberikan, isNot(contains(UserRole.superAdmin)));
-      expect(UserRole.bisaDiberikan, [
-        UserRole.admin,
-        UserRole.teknisi,
-        UserRole.viewer,
-      ]);
+      // Viewer tidak ditawarkan lagi (keputusan pemilik 20 Okt 2026).
+      expect(UserRole.bisaDiberikan, [UserRole.admin, UserRole.teknisi]);
     });
 
     test('nilai yang dikirim ke API tidak berubah untuk peran lama', () {

@@ -24,10 +24,12 @@ enum UserRole {
     _ => UserRole.viewer,
   };
 
-  /// Role yang boleh DIBERIKAN admin ke orang lain — sejajar `User::roles()`
-  /// di server. `superAdmin` sengaja tidak ada: satu-satunya pintunya
-  /// `php artisan akun:super-admin`, dan server menolak yang lewat sini.
-  static const bisaDiberikan = [admin, teknisi, viewer];
+  /// Role yang boleh DIBERIKAN admin ke orang lain. `superAdmin` sengaja
+  /// tidak ada: satu-satunya pintunya `php artisan akun:super-admin`, dan
+  /// server menolak yang lewat sini. `viewer` juga tidak ditawarkan lagi
+  /// (keputusan pemilik 20 Okt 2026); enum-nya tetap ada supaya akun viewer
+  /// lama masih tampil dan terbaca benar.
+  static const bisaDiberikan = [admin, teknisi];
 
   /// Nilai persis yang dikirim ke API. BUKAN `name`: `superAdmin.name` itu
   /// `superAdmin`, sedangkan server mengenal `super_admin`.

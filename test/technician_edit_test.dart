@@ -117,13 +117,13 @@ void main() {
       await _bukaEdit(tester, 'Eko Prasetyo');
       await tester.tap(find.byType(DropdownButtonFormField<UserRole>));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Viewer').last);
+      await tester.tap(find.text('Admin').last);
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(TextButton, 'Simpan'));
       await tester.pumpAndSettle();
 
       final eko = (await service.daftar('t')).firstWhere((u) => u.id == 2);
-      expect(eko.role, UserRole.viewer);
+      expect(eko.role, UserRole.admin);
     });
 
     testWidgets('ID pegawai kosong ditolak di layar, nggak dikirim ke server',
@@ -187,5 +187,97 @@ void main() {
         findsOneWidget,
       );
     });
+  });
+
+  // Keputusan pemilik 20 Okt 2026: role viewer tidak ditawarkan lagi waktu
+  // admin memberi/mengganti role, tapi akun viewer lama tetap tampil benar.
+  group('Viewer tidak ditawarkan di pilihan role', () {
+    testWidgets('dialog Setujui cuma menawarkan Admin & Teknisi', (
+      tester,
+    ) async {
+      final service = MockUserService();
+      await _pasang(tester, service);
+
+      final tombol = find.descendant(
+        of: find.ancestor(
+          of: find.text('Eko Prasetyo'),
+          matching: find.byType(Card),
+        ),
+        matching: find.text('Setujui'),
+      );
+      await tester.ensureVisible(tombol);
+      await tester.pumpAndSettle();
+      await tester.tap(tombol);
+      await tester.pumpAndSettle();
+
+      final dialog = find.byType(AlertDialog);
+      expect(dialog, findsOneWidget);
+      Finder diDialog(String t) =>
+          find.descendant(of: dialog, matching: find.text(t));
+      expect(diDialog('Admin'), findsOneWidget);
+      expect(diDialog('Teknisi'), findsOneWidget);
+      expect(diDialog('Viewer'), findsNothing);
+      expect(diDialog('Super Admin'), findsNothing);
+    });
+
+    testWidgets('dropdown edit akun teknisi tidak menawarkan Viewer', (
+      tester,
+    ) async {
+      final service = MockUserService();
+      await _pasang(tester, service);
+
+      await _bukaEdit(tester, 'Eko Prasetyo');
+      await tester.tap(find.byType(DropdownButtonFormField<UserRole>));
+      await tester.pumpAndSettle();
+
+      final pilihan = tester
+          .widgetList<DropdownMenuItem<UserRole>>(
+            find.byType(DropdownMenuItem<UserRole>),
+          )
+          .map((i) => i.value)
+          .toSet();
+      expect(pilihan, {UserRole.admin, UserRole.teknisi});
+    });
+
+    testWidgets(
+      'akun viewer lama tetap tampil & bisa diedit tanpa ganti role',
+      (tester) async {
+        final service = MockUserService();
+        // Eko dijadikan viewer lewat service (meniru akun viewer yang sudah ada
+        // di server sebelum keputusan ini).
+        await service.ubah('t', 2, role: UserRole.viewer);
+        await _pasang(tester, service);
+
+        final kartu = find.ancestor(
+          of: find.text('Eko Prasetyo'),
+          matching: find.byType(Card),
+        );
+        expect(
+          find.descendant(of: kartu, matching: find.text('Viewer')),
+          findsOneWidget,
+        );
+
+        await _bukaEdit(tester, 'Eko Prasetyo');
+        // Nilai sekarang tampil walaupun tidak ada di daftar yang ditawarkan.
+        expect(
+          find.descendant(
+            of: find.byType(DropdownButtonFormField<UserRole>),
+            matching: find.text('Viewer'),
+          ),
+          findsOneWidget,
+        );
+
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Email'),
+          'eko@gmail.com',
+        );
+        await tester.tap(find.widgetWithText(TextButton, 'Simpan'));
+        await tester.pumpAndSettle();
+
+        final eko = (await service.daftar('t')).firstWhere((u) => u.id == 2);
+        expect(eko.email, 'eko@gmail.com');
+        expect(eko.role, UserRole.viewer);
+      },
+    );
   });
 }
