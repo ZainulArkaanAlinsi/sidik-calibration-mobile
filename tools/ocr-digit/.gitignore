@@ -8,3 +8,4 @@ keluaran/
 
 venv/
 __pycache__/
+.venv/

@@ -144,3 +144,46 @@ berbahaya daripada sel kosong: yang kosong kelihatan.
 4. Naikkan jadi pembaca sungguhan hanya kalau angkanya sudah pantas — dan
    dengan ambang keyakinan yang **mengosongkan** sel waktu ragu, bukan
    menebak.
+
+---
+
+## Pengenal KARAKTER tunggal (v0, 20 Okt 2026)
+
+Folder ini dipindah dari `model/` ke `tools/ocr-digit/` (git mv, riwayat
+utuh). Selain pipeline CTC di atas, sekarang ada jalur kedua yang cocok dengan
+segmentasi di HP (`lib/services/segmentasi_karakter.dart`): CNN kecil yang
+membaca SATU karakter 28×28.
+
+```bash
+# venv di folder ini (di-gitignore), bukan instal global
+py -3.12 -I -m venv .venv
+.venv/Scripts/python -I -m pip install tensorflow-cpu pillow numpy
+.venv/Scripts/python -I latih_karakter.py --epoch 4
+# nanti, kalau contoh sel terkonfirmasi sudah ada (format SimpananContohSel):
+.venv/Scripts/python -I latih_karakter.py --dari /path/contoh_sel --epoch 10
+```
+
+| berkas | isi |
+|---|---|
+| `data_karakter.py` | kelas `0-9 , . - coretan`; MNIST dinormalkan ke bentuk Dart; tanda baca sintetis; loader `indeks.jsonl` SimpananContohSel + port segmentasi (sel yang jumlah karakternya ≠ label DIBUANG) |
+| `latih_karakter.py` | CNN 3 konvolusi, TFLite int8 (bobot+aktivasi, I/O float32), `meta.json` (versi, sha256, asal_data, akurasi) |
+
+Hasil latih v0 di laptop (TF 2.21, CPU, 4 epoch, ±1,5 menit): berkas
+**70,7 KB**, akurasi TFLite pada **MNIST uji 10.000 = 98,56%**, tanda baca
+sintetis uji 900 = 100% (mudah karena dibuat program yang sama — tidak
+berarti apa-apa untuk koma tulisan tangan). Kelas `coretan` belum punya data.
+
+**`asal_data` v0 = `publik` → aplikasi MENOLAK memakainya untuk mengisi sel**
+(`PembacaDigitTflite`, ditolak `asalDataBukanAsli`). Model ini tidak dibundel
+ke APK; keluaran `keluaran/` di-gitignore.
+
+### Lisensi data
+
+- MNIST (diunduh `keras.datasets.mnist`): halaman asli LeCun/Cortes/Burges
+  (arsip 2022) **tidak memuat teks lisensi**. Kartu dataset Hugging Face
+  `ylecun/mnist` menyatakan **MIT**. Klaim "CC BY-SA 3.0" yang sering dikutip
+  **belum ditemukan di sumber primer** saat diperiksa. Sebelum model berbasis
+  MNIST dipakai di luar uji internal, pemilik perlu memutuskan sumber lisensi
+  yang dipegang.
+- Tanda baca: digambar program ini sendiri, tanpa lisensi pihak ketiga.
+- EMNIST tidak dipakai (lisensi tidak diperiksa).
