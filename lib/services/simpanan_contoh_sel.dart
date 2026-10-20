@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-
+import 'dart:typed_data';
 
 import 'potong_sel_foto.dart';
 
@@ -169,6 +169,49 @@ class SimpananContohSel {
     );
   }
 
+  /// Simpan contoh yang citranya SUDAH berupa bita berkas (mis. JPEG abu-abu
+  /// dari potongan review foto formulir asli) — tanpa encode ulang di sini.
+  ///
+  /// Aturannya sama dengan [simpan]: label kosong ditolak, antrean sama,
+  /// indeks sama, batas [maksimum] sama. [ekstensi] tanpa titik (`jpg`).
+  Future<ContohSel?> simpanBita({
+    required Uint8List bita,
+    required String ekstensi,
+    required String label,
+    required String lembar,
+    required String fieldId,
+    String? bacaanOcr,
+    DateTime? waktu,
+  }) {
+    if (label.trim().isEmpty || bita.isEmpty) return Future.value(null);
+
+    return _berurutan(() async {
+      await folder.create(recursive: true);
+
+      final saat = waktu ?? DateTime.now();
+      final nama = await _namaBerkasBaru(saat, ekstensi: ekstensi);
+      await File('${folder.path}/$nama').writeAsBytes(bita);
+
+      final contoh = (
+        berkas: nama,
+        label: label.trim(),
+        bacaanOcr: bacaanOcr,
+        lembar: lembar,
+        fieldId: fieldId,
+        waktu: saat,
+      );
+
+      await _indeks.writeAsString(
+        '${jsonEncode(_keJson(contoh))}\n',
+        mode: FileMode.append,
+      );
+
+      await _pangkas();
+
+      return contoh;
+    });
+  }
+
   Future<ContohSel?> _simpanSatu({
     required PotonganSel potongan,
     required String label,
@@ -251,11 +294,16 @@ class SimpananContohSel {
   /// Stempel waktu saja nggak cukup: dua sel dari foto yang sama disimpan
   /// dalam milidetik yang sama, dan yang kedua bakal menimpa yang pertama —
   /// contoh latih hilang tanpa ada yang tahu.
-  Future<String> _namaBerkasBaru(DateTime saat) async {
+  Future<String> _namaBerkasBaru(
+    DateTime saat, {
+    String ekstensi = 'png',
+  }) async {
     final dasar = saat.microsecondsSinceEpoch;
 
     for (var i = 0; ; i++) {
-      final nama = i == 0 ? 'sel_$dasar.png' : 'sel_${dasar}_$i.png';
+      final nama = i == 0
+          ? 'sel_$dasar.$ekstensi'
+          : 'sel_${dasar}_$i.$ekstensi';
 
       if (!await File('${folder.path}/$nama').exists()) return nama;
     }

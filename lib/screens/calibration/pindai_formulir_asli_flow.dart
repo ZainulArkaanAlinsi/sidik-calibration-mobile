@@ -8,10 +8,13 @@ import 'package:path_provider/path_provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/review_foto.dart';
 import '../../models/worksheet_template.dart';
+import '../../providers/contoh_sel_provider.dart';
+import '../../providers/sakelar_ocr_provider.dart';
 import '../../providers/sumber_foto_provider.dart';
 import '../../providers/worksheet_scan_provider.dart';
 import '../../services/aturan_formulir_asli.dart';
 import '../../services/jalankan_pindai.dart' show GagalPindai;
+import '../../services/kumpulkan_contoh_sel.dart';
 import '../../services/jalankan_pindai_asli.dart';
 import '../../services/pembaca_halaman.dart'
     show PembacaHalaman, sapuBerkasPindaiLama;
@@ -142,6 +145,9 @@ Future<int> pindaiFormulirAsli({
   final sel = <SelTabelFoto>[];
   final potongan = <String, Uint8List>{};
   final catatan = <String, List<String>>{};
+  // Teks OCR ASLI per baris review (sebelum aturan/vonis) — ikut contoh latih
+  // sebagai `bacaan_ocr`, supaya beda OCR lawan nilai akhir terlihat.
+  final bacaanOcr = <String, String>{};
   final urutTabel = [for (final t in template.tabel) t.tabelId];
 
   // Aturan nalar formulir asli (Anak Timbangan 0541): hanya MENURUNKAN warna.
@@ -234,6 +240,9 @@ Future<int> pindaiFormulirAsli({
     if (crop != null) {
       potongan[kunciSelFoto(urut, s.repeatNo, fieldId)] = crop;
     }
+    if (teks.isNotEmpty) {
+      bacaanOcr[kunciSelFoto(urut, s.repeatNo, fieldId)] = teks;
+    }
   }
 
   // Isian Env./header: baris review juga, ditaruh paling atas dalam golongan
@@ -266,6 +275,7 @@ Future<int> pindaiFormulirAsli({
     if (crop != null) {
       potongan[kunciSelFoto(urut, 1, fieldId)] = crop;
     }
+    if (teks.isNotEmpty) bacaanOcr[kunciSelFoto(urut, 1, fieldId)] = teks;
   }
 
   if (sel.isEmpty) {
@@ -313,12 +323,47 @@ Future<int> pindaiFormulirAsli({
 
   final baris = susunReviewFoto(sel: sel, potongan: potongan, judul: judul);
 
+  // Dibaca SEBELUM layar review: sesudah navigasi `ref` bisa sudah dibuang.
+  final kumpulkan = ref.read(sakelarOcrProvider).kumpulkanContohSel;
+  final penampung = kumpulkan
+      ? ref.read(penampungContohSelProvider.future)
+      : null;
+
   final disetujui = await Navigator.of(context).push<List<SelTabelFoto>>(
     MaterialPageRoute(
       builder: (_) => FotoReviewScreen(baris: baris, catatan: catatan),
     ),
   );
   if (disetujui == null) return 0;
+
+  // Contoh latih: HANYA sel yang dikonfirmasi teknisi, label = nilai akhir.
+  // Lokal saja, sakelar bawaan MATI; foto penuh tidak pernah ikut. Gagal
+  // menyimpan tidak boleh mengganggu lembar.
+  if (penampung != null) {
+    final contoh = <SelTerkonfirmasi>[
+      for (final s in disetujui)
+        if (potongan[kunciSelFoto(s.titikUkur, s.repeatNo, s.fieldId)]
+            case final png?)
+          (
+            label: s.teks,
+            png: png,
+            fieldId: s.fieldId,
+            bacaanOcr:
+                bacaanOcr[kunciSelFoto(s.titikUkur, s.repeatNo, s.fieldId)],
+          ),
+    ];
+    unawaited(
+      penampung
+          .then(
+            (p) => simpanContohTerkonfirmasi(
+              simpanan: p.simpanan,
+              sel: contoh,
+              lembar: template.templateId,
+            ),
+          )
+          .then<void>((_) {}, onError: (Object _) {}),
+    );
+  }
 
   final tabelDisetujui =
       <

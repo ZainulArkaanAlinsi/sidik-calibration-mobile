@@ -4,11 +4,14 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/models/lembar_kerja.dart';
 import 'package:sidik_calibration/models/worksheet_template.dart';
+import 'package:sidik_calibration/providers/contoh_sel_provider.dart';
+import 'package:sidik_calibration/providers/sakelar_ocr_provider.dart';
 import 'package:sidik_calibration/providers/sumber_foto_provider.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_state.dart';
 import 'package:sidik_calibration/screens/calibration/pindai_formulir_asli_flow.dart';
@@ -16,14 +19,20 @@ import 'package:sidik_calibration/services/jalankan_pindai_asli.dart';
 import 'package:sidik_calibration/services/lembar_kerja_service.dart';
 import 'package:sidik_calibration/services/pembaca_halaman.dart';
 import 'package:sidik_calibration/services/pembaca_sel.dart';
+import 'package:sidik_calibration/services/penampung_contoh_sel.dart';
+import 'package:sidik_calibration/services/simpanan_contoh_sel.dart';
 import 'package:sidik_calibration/services/photo_source.dart';
 
 /// Alur "Foto lembar kerja" (K-50-11) dengan foto SINTETIS dan mesin baca
 /// palsu: yang diuji adalah penyambungan — formulir salah berhenti, review
 /// merah/kuning, angka mendarat di sel yang benar, foto tidak diunggah.
 class _MesinPalsu extends JalankanPindaiAsli {
-  _MesinPalsu({this.gagal, this.bacaan = const {}, this.gagalDibaca = const {}})
-    : super(halaman: MockPembacaHalaman(const []), pembaca: MockPembacaSel());
+  _MesinPalsu({
+    this.gagal,
+    this.bacaan = const {},
+    this.gagalDibaca = const {},
+    this.potongan = const {},
+  }) : super(halaman: MockPembacaHalaman(const []), pembaca: MockPembacaSel());
 
   final PindaiAsliGagal? gagal;
 
@@ -32,6 +41,9 @@ class _MesinPalsu extends JalankanPindaiAsli {
 
   /// kunci sel yang pembacaannya GAGAL (galat ML Kit), bukan kosong.
   final Set<String> gagalDibaca;
+
+  /// kunci sel → PNG potongan.
+  final Map<String, Uint8List> potongan;
 
   /// JPEG yang diteruskan alur ke mesin (M01).
   Uint8List? jpegDiterima;
@@ -55,6 +67,7 @@ class _MesinPalsu extends JalankanPindaiAsli {
             (sel: s, bacaan: (teks: null, keyakinan: null, didalamKotak: true)),
       ],
       gagalDibaca: gagalDibaca,
+      potongan: potongan,
     );
   }
 }
@@ -86,6 +99,7 @@ void main() {
     WidgetTester tester, {
     required LembarKerjaState isian,
     required JalankanPindaiAsli mesin,
+    List<Override> tambahan = const [],
   }) async {
     // Alur menghapus berkas foto setelah dibaca → salinan baru tiap jalan.
     final salinan = File(
@@ -95,7 +109,7 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [sumberFotoProvider.overrideWithValue(sumber)],
+        overrides: [sumberFotoProvider.overrideWithValue(sumber), ...tambahan],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
@@ -250,4 +264,78 @@ void main() {
       );
     },
   );
+
+  group('contoh sel terkonfirmasi (lokal, sakelar)', () {
+    Future<List<Map<String, dynamic>>> jalankanDanBaca(
+      WidgetTester tester, {
+      required bool nyala,
+    }) async {
+      final dir = Directory.systemTemp.createTempSync('contoh-alur');
+      addTearDown(() {
+        try {
+          dir.deleteSync(recursive: true);
+        } on FileSystemException {
+          // Windows: berkas masih dipegang antrean simpanan; folder temp OS.
+        }
+      });
+      final simpanan = SimpananContohSel(dir);
+      final png = img.encodePng(img.Image(width: 60, height: 20));
+
+      final isian = buatState();
+      await jalankan(
+        tester,
+        isian: isian,
+        mesin: _MesinPalsu(
+          gagalDibaca: {'sesudah_adjustment|1|1|pembacaan'},
+          potongan: {'sesudah_adjustment|1|1|pembacaan': png},
+        ),
+        tambahan: [
+          sakelarOcrProvider.overrideWithValue(
+            SakelarOcr(kumpulkanContohSel: nyala),
+          ),
+          penampungContohSelProvider.overrideWith(
+            (ref) async => PenampungContohSel(simpanan),
+          ),
+        ],
+      );
+
+      await tester.enterText(find.byType(TextField), '4,05');
+      await tester.pump();
+      await tester.tap(find.byType(FilledButton));
+      await tester.pumpAndSettle();
+
+      // Penyimpanan jalan tanpa ditunggu (unawaited) di zona test: IO nyata
+      // diberi waktu lewat runAsync, lanjutannya dijalankan lewat pump.
+      final indeks = File('${dir.path}/indeks.jsonl');
+      for (var i = 0; i < 40; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 50)),
+        );
+        await tester.pump();
+        if (indeks.existsSync() && indeks.readAsStringSync().isNotEmpty) break;
+      }
+      final isi = indeks.existsSync()
+          ? [
+              for (final b in indeks.readAsLinesSync())
+                if (b.trim().isNotEmpty) jsonDecode(b) as Map<String, dynamic>,
+            ]
+          : const <Map<String, dynamic>>[];
+      return isi;
+    }
+
+    testWidgets('sakelar MATI (bawaan): tidak ada yang disimpan', (
+      tester,
+    ) async {
+      expect(await jalankanDanBaca(tester, nyala: false), isEmpty);
+    });
+
+    testWidgets('sakelar NYALA: label = nilai yang dikonfirmasi teknisi', (
+      tester,
+    ) async {
+      final isi = await jalankanDanBaca(tester, nyala: true);
+      expect(isi, hasLength(1));
+      expect(isi.single['label'], '4,05');
+      expect(isi.single['berkas'], endsWith('.jpg'));
+    });
+  });
 }
