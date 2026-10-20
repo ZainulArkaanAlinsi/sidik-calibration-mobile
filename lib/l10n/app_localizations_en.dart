@@ -4703,7 +4703,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get menuCatatanSuperAdmin =>
-      'All Master Data and technician actions, plus certificate sign-off. Sessions you filled in or corrected yourself still need someone else to approve/sign off.';
+      'All Master Data and technician actions. Approving a session issues the certificate directly. Sessions you filled in yourself (or whose scan you confirmed) still need someone else to approve.';
 
   @override
   String get menuCatatanViewer =>

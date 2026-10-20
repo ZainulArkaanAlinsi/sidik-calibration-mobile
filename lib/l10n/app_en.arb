@@ -2706,7 +2706,7 @@
   "menuArsip": "Archive & data",
   "kelolaSemua": "All lab settings",
   "kelolaSemuaSub": "Customers, standards, technicians, methods, formulas, rooms, signatures, organization, Excel import",
-  "menuCatatanSuperAdmin": "All Master Data and technician actions, plus certificate sign-off. Sessions you filled in or corrected yourself still need someone else to approve/sign off.",
+  "menuCatatanSuperAdmin": "All Master Data and technician actions. Approving a session issues the certificate directly. Sessions you filled in yourself (or whose scan you confirmed) still need someone else to approve.",
   "menuCatatanViewer": "This account can only view. Need to fill in or review? Ask an admin to change your role.",
   "jatuhTempoJudul": "Due dates",
   "jatuhTempoRingkas": "{lewat} overdue · {dekat} due within 30 days",

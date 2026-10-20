@@ -4631,7 +4631,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get menuCatatanSuperAdmin =>
-      'Semua aksi Master Data & teknisi, plus pengesahan sertifikat. Sesi yang Anda isi atau koreksi sendiri tetap harus disetujui/disahkan orang lain.';
+      'Semua aksi Master Data & teknisi. Menyetujui sesi langsung menerbitkan sertifikat. Sesi yang Anda isi sendiri (atau hasil pindainya Anda konfirmasi) tetap harus disetujui orang lain.';
 
   @override
   String get menuCatatanViewer =>
@@ -4810,7 +4810,7 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get berandaSaPeran => 'Super admin · pengawas & pengesah';
+  String get berandaSaPeran => 'Super admin · pengawas & penyetuju';
 
   @override
   String berandaSaTertua(String alat) {
