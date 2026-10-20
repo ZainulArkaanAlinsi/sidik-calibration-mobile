@@ -325,6 +325,8 @@ class AturanSelAsli {
     this.nominal,
     this.rasioMin,
     this.rasioMaks,
+    this.resolusi,
+    this.desimal,
   });
 
   final double? min;
@@ -332,6 +334,12 @@ class AturanSelAsli {
   final double? nominal;
   final double? rasioMin;
   final double? rasioMaks;
+
+  /// Resolusi & jumlah desimal yang diharapkan server
+  /// (`TemplateLembarKerja::aturanPembacaan`). Dipakai aturan nalar
+  /// formulir asli (`AturanFormulirAsli`), tidak oleh [lolos].
+  final double? resolusi;
+  final int? desimal;
 
   static AturanSelAsli? dari(Object? json) {
     if (json is! Map<String, dynamic> || json['tipe'] != 'desimal') return null;
@@ -344,6 +352,8 @@ class AturanSelAsli {
       nominal: d('nominal'),
       rasioMin: d('rasio_min'),
       rasioMaks: d('rasio_maks'),
+      resolusi: d('resolusi'),
+      desimal: (json['desimal'] as num?)?.toInt(),
     );
   }
 

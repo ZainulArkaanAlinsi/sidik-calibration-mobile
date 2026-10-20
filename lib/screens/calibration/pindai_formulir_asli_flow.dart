@@ -10,6 +10,7 @@ import '../../models/review_foto.dart';
 import '../../models/worksheet_template.dart';
 import '../../providers/sumber_foto_provider.dart';
 import '../../providers/worksheet_scan_provider.dart';
+import '../../services/aturan_formulir_asli.dart';
 import '../../services/jalankan_pindai.dart' show GagalPindai;
 import '../../services/jalankan_pindai_asli.dart';
 import '../../services/pembaca_halaman.dart'
@@ -142,14 +143,48 @@ Future<int> pindaiFormulirAsli({
   final potongan = <String, Uint8List>{};
   final urutTabel = [for (final t in template.tabel) t.tabelId];
 
+  // Aturan nalar formulir asli (Anak Timbangan 0541): hanya MENURUNKAN warna.
+  // Cuma sel yang punya tempat mendarat di lembar yang ikut dinilai.
+  final putusan = AturanFormulirAsli.berlakuUntuk(template.templateId)
+      ? AturanFormulirAsli.periksa([
+          for (final b in hasil.sel)
+            if (isian.alamatFotoAsliAda(
+              b.sel.tabelId,
+              b.sel.barisKe,
+              b.sel.repeatNo,
+              tahap: b.sel.tahap,
+            ))
+              (
+                kunci: b.sel.kunci,
+                tabelId: b.sel.tabelId,
+                barisKe: b.sel.barisKe,
+                repeatNo: b.sel.repeatNo,
+                teks: b.bacaan.teks?.trim() ?? '',
+                gagalDibaca: hasil.gagalDibaca.contains(b.sel.kunci),
+                resolusi: b.sel.aturan?.resolusi,
+                desimal: b.sel.aturan?.desimal,
+                // Nominal blok diketik SEKALI per keping, di tabel Standard
+                // pertama — tabel lain punya baris sendiri yang kosong.
+                teksNominal: isian.teksNominalFotoAsli(
+                  AturanFormulirAsli.tabelNominal,
+                  b.sel.barisKe,
+                ),
+              ),
+        ])
+      : const <String, PutusanAturan>{};
+
   for (final b in hasil.sel) {
     final s = b.sel;
     final teks = b.bacaan.teks?.trim() ?? '';
     final gagalDibaca = hasil.gagalDibaca.contains(s.kunci);
+    final vonisAturan = putusan[s.kunci]?.vonis ?? VonisAturan.tetap;
 
     // Sel kosong di kertas = tetap kosong di lembar. Sel yang GAGAL dibaca
     // (galat ML Kit) bukan sel kosong: dia ikut review sebagai MERAH kosong.
-    if (teks.isEmpty && !gagalDibaca) continue;
+    // Begitu juga sel kosong di blok yang terisi sebagian (blok tidak lengkap).
+    if (teks.isEmpty && !gagalDibaca && vonisAturan != VonisAturan.merah) {
+      continue;
+    }
 
     // Baris kertas yang tidak punya padanan di lembar (kertas mencetak lebih
     // banyak baris/Repeat daripada yang diatur untuk alat ini) tidak ikut
@@ -175,12 +210,17 @@ Future<int> pindaiFormulirAsli({
     final urut = (urutTabel.indexOf(s.tabelId) + 1) * 1000.0 + s.barisKe;
     final fieldId = '${s.tabelId}$_pisah${s.barisKe}$_pisah${s.fieldId}';
 
+    final usulan = AturanFormulirAsli.terapkan(
+      vonisAturan,
+      teks: bisaDibaca ? teks : '',
+      keyakinan: bisaDibaca ? b.bacaan.keyakinan : 0.0,
+    );
     sel.add((
       titikUkur: urut,
       repeatNo: s.repeatNo,
       fieldId: fieldId,
-      teks: bisaDibaca ? teks : '',
-      keyakinan: bisaDibaca ? b.bacaan.keyakinan : 0.0,
+      teks: usulan.teks,
+      keyakinan: usulan.keyakinan,
     ));
     final crop = hasil.potongan[s.kunci];
     if (crop != null) {

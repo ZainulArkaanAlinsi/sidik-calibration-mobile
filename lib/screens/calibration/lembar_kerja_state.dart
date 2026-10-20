@@ -4000,6 +4000,28 @@ class LembarKerjaState {
     return _tujuanFotoAsli(tabelId, barisKe, repeatNo, tahap: tahap) != null;
   }
 
+  /// Teks nominal baris kertas [barisKe] tabel [tabelId] di lembar APA ADANYA
+  /// (boleh berbintang `20*`), atau `null` kalau belum diketik / tidak ada
+  /// barisnya. Untuk baris yang titiknya ditentukan backend, titik itu sendiri.
+  /// Dipakai aturan nalar formulir asli (Anak Timbangan 0541): nominal blok
+  /// tidak dibaca dari foto.
+  String? teksNominalFotoAsli(String tabelId, int barisKe, {String? tahap}) {
+    final tabel = _tabelPindai(tabelId, tahap: tahap);
+    if (tabel == null) return null;
+
+    final baris = barisTabel(tabel);
+    final i = barisKe - 1;
+    if (i < 0 || i >= baris.length) return null;
+
+    final st = titikUntukBaris(baris, i, tabel);
+    if (st == null) return null;
+    if (st.titikDitentukan) return '${st.titikUkur}';
+
+    final teks = st.titikCtl.text.trim();
+
+    return teks.isEmpty ? null : teks;
+  }
+
   /// Lembar ini bisa menerima SETIDAKNYA satu sel dari [template]? `false` =
   /// pintu "Foto lembar kerja" tidak digambar — daripada teknisi memotret lalu
   /// mendapat nol sel. Grid Enclosure (0504) menerima lewat posisi kertas.
