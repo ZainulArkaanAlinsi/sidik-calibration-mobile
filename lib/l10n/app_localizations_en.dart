@@ -6743,6 +6743,26 @@ class AppLocalizationsEn extends AppLocalizations {
       'The text reader is not working: no cell could be read. Retake the photo or fill in manually.';
 
   @override
+  String get aturanAsliDesimal =>
+      'Decimal places do not match the balance resolution';
+
+  @override
+  String get aturanAsliStandarNominal =>
+      'Standard is far from the piece nominal';
+
+  @override
+  String get aturanAsliMpeBelumAda =>
+      'class MPE not available yet, rough 1% limit used';
+
+  @override
+  String get aturanAsliDuaUut =>
+      'The two UUT readings in this column differ too much';
+
+  @override
+  String get aturanAsliBlokTidakLengkap =>
+      'Column incomplete: this cell is empty while others in the same column are filled';
+
+  @override
   String get lkAsliPilihAlatDulu =>
       'Pick the instrument first, then tap the \"Photo worksheet\" camera button above the sheet.';
 }

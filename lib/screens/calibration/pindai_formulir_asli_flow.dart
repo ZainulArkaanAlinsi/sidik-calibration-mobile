@@ -141,6 +141,7 @@ Future<int> pindaiFormulirAsli({
   // + baris) — cuma untuk mengurut dan sebagai kunci unik potongan.
   final sel = <SelTabelFoto>[];
   final potongan = <String, Uint8List>{};
+  final catatan = <String, List<String>>{};
   final urutTabel = [for (final t in template.tabel) t.tabelId];
 
   // Aturan nalar formulir asli (Anak Timbangan 0541): hanya MENURUNKAN warna.
@@ -222,6 +223,13 @@ Future<int> pindaiFormulirAsli({
       teks: usulan.teks,
       keyakinan: usulan.keyakinan,
     ));
+    final alasan = putusan[s.kunci]?.alasan;
+    if (alasan != null && alasan.isNotEmpty) {
+      catatan[kunciSelFoto(urut, s.repeatNo, fieldId)] = [
+        for (final a in AlasanAturan.values)
+          if (alasan.contains(a)) teksAlasanAturan(l10n, a),
+      ];
+    }
     final crop = hasil.potongan[s.kunci];
     if (crop != null) {
       potongan[kunciSelFoto(urut, s.repeatNo, fieldId)] = crop;
@@ -306,7 +314,9 @@ Future<int> pindaiFormulirAsli({
   final baris = susunReviewFoto(sel: sel, potongan: potongan, judul: judul);
 
   final disetujui = await Navigator.of(context).push<List<SelTabelFoto>>(
-    MaterialPageRoute(builder: (_) => FotoReviewScreen(baris: baris)),
+    MaterialPageRoute(
+      builder: (_) => FotoReviewScreen(baris: baris, catatan: catatan),
+    ),
   );
   if (disetujui == null) return 0;
 
@@ -382,6 +392,15 @@ bool wajarIsianLingkungan(String kode, double nilai) {
 
 /// Alasan berhenti → kalimat untuk teknisi. Formulir salah = berhenti dengan
 /// pesan jelas, tidak pernah menebak.
+/// Teks singkat satu alasan aturan nalar formulir asli, untuk layar review.
+String teksAlasanAturan(AppLocalizations l10n, AlasanAturan a) => switch (a) {
+  AlasanAturan.desimalTakCocok => l10n.aturanAsliDesimal,
+  AlasanAturan.standarJauhDariNominal => l10n.aturanAsliStandarNominal,
+  AlasanAturan.mpeBelumTersedia => l10n.aturanAsliMpeBelumAda,
+  AlasanAturan.duaUutBerselisih => l10n.aturanAsliDuaUut,
+  AlasanAturan.blokTidakLengkap => l10n.aturanAsliBlokTidakLengkap,
+};
+
 String pesanGagalAsli(AppLocalizations l10n, PindaiAsliGagal e) =>
     switch (e.sebab) {
       GagalPindaiAsli.belumSiap => l10n.lkAsliBelumSiap,

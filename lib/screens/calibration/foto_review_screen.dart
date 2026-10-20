@@ -34,9 +34,18 @@ import '../../services/vonis_sel_foto.dart';
 /// Yang dipulangkan: `null` kalau teknisi membatalkan, atau daftar sel yang
 /// dia setujui — teksnya sudah yang final, termasuk hasil koreksinya.
 class FotoReviewScreen extends StatefulWidget {
-  const FotoReviewScreen({super.key, required this.baris});
+  const FotoReviewScreen({
+    super.key,
+    required this.baris,
+    this.catatan = const {},
+  });
 
   final List<BarisReviewFoto> baris;
+
+  /// Alasan (sudah dilokalkan) kenapa sel diturunkan aturan nalar formulir,
+  /// berkunci `kunciSelFoto`. Hanya penjelasan: tidak mengubah vonis, tidak
+  /// mengubah kewajiban cek/ketik, dan tidak membuka "terima semua".
+  final Map<String, List<String>> catatan;
 
   @override
   State<FotoReviewScreen> createState() => _FotoReviewScreenState();
@@ -190,6 +199,15 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(b.judul, style: Theme.of(context).textTheme.labelLarge),
+        for (final c in widget.catatan[_kunci(b)] ?? const <String>[])
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(
+              c,
+              key: ValueKey('alasan-${_kunci(b)}'),
+              style: TextStyle(color: warna, fontSize: 12),
+            ),
+          ),
         const SizedBox(height: 6),
 
         // Aturan 2: potongan citranya diadu ke bacaannya, di layar yang sama.

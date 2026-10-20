@@ -2880,5 +2880,10 @@
   "lkAsliGagalUmum": "Foto gagal diproses. Isi manual atau coba foto ulang.",
   "lkAsliFotoTerbalik": "Lembar tampak terbalik di foto. Ulangi foto dengan lembar tegak.",
   "lkAsliPembacaMati": "Pembaca teks tidak jalan: tidak satu sel pun terbaca. Ulangi foto atau isi manual.",
+  "aturanAsliDesimal": "Jumlah desimal tidak cocok dengan resolusi neraca",
+  "aturanAsliStandarNominal": "Standard jauh dari nominal keping",
+  "aturanAsliMpeBelumAda": "MPE kelas belum tersedia, dipakai batas kasar 1%",
+  "aturanAsliDuaUut": "Dua pembacaan UUT di kolom ini berselisih terlalu jauh",
+  "aturanAsliBlokTidakLengkap": "Kolom tidak lengkap: sel ini kosong padahal sel lain di kolom yang sama terisi",
   "lkAsliPilihAlatDulu": "Pilih alatnya dulu, lalu ketuk tombol kamera \"Foto worksheet\" di atas lembar."
 }

@@ -30,9 +30,8 @@ import 'vonis_sel_foto.dart' show AmbangKeyakinan;
 ///   tabel MPE dari server (`tabel-standar-anak-timbangan.json` `mpe.baris`,
 ///   tanpa E2). Selama belum ada, dipakai pagar kasar [pagarKasarNominal] dan
 ///   alasannya ditandai [AlasanAturan.mpeBelumTersedia].
-/// - TODO(ATURAN-0541-3): alasan per sel belum tampil di layar review
-///   (`SelTabelFoto` belum punya kolom alasan). Sekarang alasan hanya
-///   menurunkan warna.
+/// - (ATURAN-0541-3, selesai 20 Okt): alasan tampil di layar review lewat
+///   `FotoReviewScreen.catatan` / `teksAlasanAturan`.
 class AturanFormulirAsli {
   const AturanFormulirAsli._();
 

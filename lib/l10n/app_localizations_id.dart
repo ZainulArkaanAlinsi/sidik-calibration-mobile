@@ -6667,6 +6667,25 @@ class AppLocalizationsId extends AppLocalizations {
       'Pembaca teks tidak jalan: tidak satu sel pun terbaca. Ulangi foto atau isi manual.';
 
   @override
+  String get aturanAsliDesimal =>
+      'Jumlah desimal tidak cocok dengan resolusi neraca';
+
+  @override
+  String get aturanAsliStandarNominal => 'Standard jauh dari nominal keping';
+
+  @override
+  String get aturanAsliMpeBelumAda =>
+      'MPE kelas belum tersedia, dipakai batas kasar 1%';
+
+  @override
+  String get aturanAsliDuaUut =>
+      'Dua pembacaan UUT di kolom ini berselisih terlalu jauh';
+
+  @override
+  String get aturanAsliBlokTidakLengkap =>
+      'Kolom tidak lengkap: sel ini kosong padahal sel lain di kolom yang sama terisi';
+
+  @override
   String get lkAsliPilihAlatDulu =>
       'Pilih alatnya dulu, lalu ketuk tombol kamera \"Foto worksheet\" di atas lembar.';
 }

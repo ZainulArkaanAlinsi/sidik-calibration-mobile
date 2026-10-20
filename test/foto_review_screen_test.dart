@@ -32,8 +32,9 @@ void main() {
 
   Future<List<SelTabelFoto>?> buka(
     WidgetTester tester,
-    List<BarisReviewFoto> isi,
-  ) async {
+    List<BarisReviewFoto> isi, {
+    Map<String, List<String>> catatan = const {},
+  }) async {
     List<SelTabelFoto>? hasil;
 
     await tester.pumpWidget(
@@ -46,7 +47,8 @@ void main() {
             onPressed: () async {
               hasil = await Navigator.of(context).push<List<SelTabelFoto>>(
                 MaterialPageRoute(
-                  builder: (_) => FotoReviewScreen(baris: isi),
+                  builder: (_) =>
+                      FotoReviewScreen(baris: isi, catatan: catatan),
                 ),
               );
             },
@@ -69,7 +71,8 @@ void main() {
       expect(
         find.text(kata),
         findsNothing,
-        reason: 'Aturan 1: satu tombol yang melewati pemeriksaan menghapus '
+        reason:
+            'Aturan 1: satu tombol yang melewati pemeriksaan menghapus '
             'seluruh guna layar ini. Tulisan tangan tetap dibaca pede sama '
             'pengenal teks waktu dia salah.',
       );
@@ -86,7 +89,8 @@ void main() {
     expect(
       kotak.controller!.text,
       isEmpty,
-      reason: 'Aturan 3: vonis merah artinya bacaannya nggak bisa dipercaya. '
+      reason:
+          'Aturan 3: vonis merah artinya bacaannya nggak bisa dipercaya. '
           'Nampilin "7,2" duluan bikin teknisi cuma menyetujui apa yang udah '
           'ada — dan itu persis salah baca yang mau ditangkap.',
     );
@@ -100,7 +104,8 @@ void main() {
     expect(
       tester.widget<TextField>(find.byType(TextField)).controller!.text,
       '7,02',
-      reason: 'Nuntut teknisi ngetik ulang 30 sel yang bacaannya udah bener '
+      reason:
+          'Nuntut teknisi ngetik ulang 30 sel yang bacaannya udah bener '
           'bikin dia berhenti memakai fiturnya.',
     );
   });
@@ -114,7 +119,8 @@ void main() {
     expect(
       find.textContaining('0%'),
       findsNothing,
-      reason: '0% berarti "yakin banget salah" — klaim yang nggak pernah '
+      reason:
+          '0% berarti "yakin banget salah" — klaim yang nggak pernah '
           'dibuat siapa pun.',
     );
   });
@@ -132,7 +138,8 @@ void main() {
     expect(
       tombol.onPressed,
       isNull,
-      reason: 'Sel merah dikosongkan; menyetujuinya tanpa mengetik berarti '
+      reason:
+          'Sel merah dikosongkan; menyetujuinya tanpa mengetik berarti '
           'memasukkan sel kosong ke lembar.',
     );
   });
@@ -152,9 +159,8 @@ void main() {
             onPressed: () async {
               hasil = await Navigator.of(context).push<List<SelTabelFoto>>(
                 MaterialPageRoute(
-                  builder: (_) => FotoReviewScreen(
-                    baris: [baris('7,2', keyakinan: 0.31)],
-                  ),
+                  builder: (_) =>
+                      FotoReviewScreen(baris: [baris('7,2', keyakinan: 0.31)]),
                 ),
               );
             },
@@ -181,7 +187,8 @@ void main() {
     expect(
       hasil!.single.keyakinan,
       0.31,
-      reason: 'Keyakinan OCR ASLINYA dibawa apa adanya. Dinaikin jadi 1.0 '
+      reason:
+          'Keyakinan OCR ASLINYA dibawa apa adanya. Dinaikin jadi 1.0 '
           'gara-gara diketik ulang, pengumpul data latih nggak bisa lagi '
           'membedakan mana yang dibaca mesin dan mana yang diketik orang.',
     );
@@ -201,9 +208,8 @@ void main() {
             onPressed: () async {
               hasil = await Navigator.of(context).push<List<SelTabelFoto>>(
                 MaterialPageRoute(
-                  builder: (_) => FotoReviewScreen(
-                    baris: [baris('7,02', keyakinan: 0.95)],
-                  ),
+                  builder: (_) =>
+                      FotoReviewScreen(baris: [baris('7,02', keyakinan: 0.95)]),
                 ),
               );
               selesai = true;
@@ -225,7 +231,8 @@ void main() {
     expect(
       hasil,
       isNull,
-      reason: 'Batal harus memulangkan null, bukan daftar kosong: pemanggil '
+      reason:
+          'Batal harus memulangkan null, bukan daftar kosong: pemanggil '
           'membedakan "teknisi menolak" dari "disetujui tapi nol sel", dan '
           'yang kedua nggak boleh menghapus apa pun di lembar.',
     );
@@ -283,7 +290,8 @@ void main() {
     expect(
       tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
       isNotNull,
-      reason: 'Mengosongkan sel KUNING bukan pelanggaran — yang wajib diisi '
+      reason:
+          'Mengosongkan sel KUNING bukan pelanggaran — yang wajib diisi '
           'cuma sel merah, yang kotaknya dikosongkan sistem.',
     );
 
@@ -293,7 +301,8 @@ void main() {
     expect(
       hasil,
       hasLength(2),
-      reason: 'Dua-duanya pulang. Sel yang dikosongkan nggak boleh lenyap '
+      reason:
+          'Dua-duanya pulang. Sel yang dikosongkan nggak boleh lenyap '
           'diam-diam dari daftar.',
     );
     expect(hasil!.firstWhere((s) => s.repeatNo == 1).teks, isEmpty);
@@ -358,9 +367,43 @@ void main() {
     expect(
       urut.map((b) => b.vonis).toList(),
       [VonisFoto.merah, VonisFoto.tidakDiketahui, VonisFoto.kuning],
-      reason: 'Layar yang ngurut menurut nomor baris bikin sel merah '
+      reason:
+          'Layar yang ngurut menurut nomor baris bikin sel merah '
           'tenggelam di tengah tiga puluh sel yang bacaannya wajar — dan yang '
           'paling mungkin salah justru yang paling gampang kelewat.',
     );
   });
+
+  testWidgets(
+    'alasan aturan formulir tampil per sel, tanpa melonggarkan konfirmasi',
+    (tester) async {
+      final merah = baris('', keyakinan: 0.0, titikUkur: 1);
+      final kuning = baris('50,00112', keyakinan: 0.70, titikUkur: 2);
+      final kMerah = kunciSelFoto(1, 1, 'pembacaan');
+      final kKuning = kunciSelFoto(2, 1, 'pembacaan');
+
+      await buka(
+        tester,
+        [merah, kuning],
+        catatan: {
+          kMerah: ['Kolom tidak lengkap'],
+          kKuning: ['Dua pembacaan UUT berselisih'],
+        },
+      );
+
+      expect(find.text('Kolom tidak lengkap'), findsOneWidget);
+      expect(find.text('Dua pembacaan UUT berselisih'), findsOneWidget);
+      expect(find.byKey(ValueKey('alasan-$kMerah')), findsOneWidget);
+
+      // Konfirmasi tetap: merah wajib diketik, kuning wajib dicek.
+      final masukkan = find.byType(FilledButton);
+      expect(tester.widget<FilledButton>(masukkan).onPressed, isNull);
+      await tester.enterText(find.byType(TextField).first, '50,00012');
+      await tester.pump();
+      expect(tester.widget<FilledButton>(masukkan).onPressed, isNull);
+      await tester.tap(find.byKey(ValueKey('cek-$kKuning')));
+      await tester.pump();
+      expect(tester.widget<FilledButton>(masukkan).onPressed, isNotNull);
+    },
+  );
 }

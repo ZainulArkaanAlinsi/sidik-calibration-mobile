@@ -1,4 +1,8 @@
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sidik_calibration/l10n/app_localizations.dart';
+import 'package:sidik_calibration/screens/calibration/pindai_formulir_asli_flow.dart'
+    show teksAlasanAturan;
 
 import 'package:sidik_calibration/models/lembar_kerja.dart';
 import 'package:sidik_calibration/models/worksheet_template.dart';
@@ -325,5 +329,16 @@ void main() {
     );
     expect(isian.teksNominalFotoAsli('at_s1', 1), isNull);
     expect(isian.teksNominalFotoAsli('at_s1', 99), isNull);
+  });
+
+  test('teksAlasanAturan: tiap alasan punya teks id & en', () async {
+    for (final loc in const [Locale('id'), Locale('en')]) {
+      final l10n = await AppLocalizations.delegate.load(loc);
+      final teks = {
+        for (final a in AlasanAturan.values) teksAlasanAturan(l10n, a),
+      };
+      expect(teks, hasLength(AlasanAturan.values.length));
+      expect(teks.every((t) => t.trim().isNotEmpty), isTrue);
+    }
   });
 }

@@ -11725,6 +11725,36 @@ abstract class AppLocalizations {
   /// **'The text reader is not working: no cell could be read. Retake the photo or fill in manually.'**
   String get lkAsliPembacaMati;
 
+  /// No description provided for @aturanAsliDesimal.
+  ///
+  /// In en, this message translates to:
+  /// **'Decimal places do not match the balance resolution'**
+  String get aturanAsliDesimal;
+
+  /// No description provided for @aturanAsliStandarNominal.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard is far from the piece nominal'**
+  String get aturanAsliStandarNominal;
+
+  /// No description provided for @aturanAsliMpeBelumAda.
+  ///
+  /// In en, this message translates to:
+  /// **'class MPE not available yet, rough 1% limit used'**
+  String get aturanAsliMpeBelumAda;
+
+  /// No description provided for @aturanAsliDuaUut.
+  ///
+  /// In en, this message translates to:
+  /// **'The two UUT readings in this column differ too much'**
+  String get aturanAsliDuaUut;
+
+  /// No description provided for @aturanAsliBlokTidakLengkap.
+  ///
+  /// In en, this message translates to:
+  /// **'Column incomplete: this cell is empty while others in the same column are filled'**
+  String get aturanAsliBlokTidakLengkap;
+
   /// No description provided for @lkAsliPilihAlatDulu.
   ///
   /// In en, this message translates to:
