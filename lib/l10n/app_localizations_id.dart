@@ -6659,6 +6659,14 @@ class AppLocalizationsId extends AppLocalizations {
       'Foto gagal diproses. Isi manual atau coba foto ulang.';
 
   @override
+  String get lkAsliFotoTerbalik =>
+      'Lembar tampak terbalik di foto. Ulangi foto dengan lembar tegak.';
+
+  @override
+  String get lkAsliPembacaMati =>
+      'Pembaca teks tidak jalan: tidak satu sel pun terbaca. Ulangi foto atau isi manual.';
+
+  @override
   String get lkAsliPilihAlatDulu =>
       'Pilih alatnya dulu, lalu ketuk tombol kamera \"Foto worksheet\" di atas lembar.';
 }

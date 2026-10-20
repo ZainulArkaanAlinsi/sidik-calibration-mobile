@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' show Offset, Rect;
@@ -259,6 +260,94 @@ void main() {
     );
   });
 
+  group('temuan peninjau M01', () {
+    test(
+      'bingkai teks terbalik 180° ditolak (bukan dipotong simetris)',
+      () async {
+        // Kata cetak yang sama, tapi kotaknya diputar 180° terhadap bingkai foto
+        // 1900×1500 — persis yang terjadi bila EXIF dibaca beda oleh ML Kit.
+        const w = 1900.0, h = 1500.0;
+        final terbalik = [
+          for (final k in kataCetak())
+            (
+              teks: k.teks,
+              kotak: Rect.fromLTRB(
+                w - k.kotak.right,
+                h - k.kotak.bottom,
+                w - k.kotak.left,
+                h - k.kotak.top,
+              ),
+              keyakinan: k.keyakinan,
+            ),
+        ];
+
+        final pembaca = MockPembacaSel();
+        await expectLater(
+          JalankanPindaiAsli(
+            halaman: MockPembacaHalaman(terbalik),
+            pembaca: pembaca,
+          ).baca(img.Image(width: 1900, height: 1500), template: template),
+          throwsA(
+            isA<PindaiAsliGagal>().having(
+              (e) => e.sebab,
+              'sebab',
+              GagalPindaiAsli.fotoTerbalik,
+            ),
+          ),
+        );
+        expect(pembaca.jumlahDibaca, 0, reason: 'tidak satu sel pun dibaca');
+      },
+    );
+
+    test('sudut mentah: tegak ≈ 0, terbalik ≈ ±180', () {
+      expect(sudutMentahSisiAtasDeg(benar, halaman)!.abs(), lessThan(5));
+      // R(180°) di bingkai 1900×1500, dikalikan ke kiri `benar`.
+      const r = [-1.0, 0.0, 1900.0, 0.0, -1.0, 1500.0, 0.0, 0.0, 1.0];
+      final m = benar.m;
+      final balik = Homografi([
+        for (var i = 0; i < 3; i++)
+          for (var j = 0; j < 3; j++)
+            r[i * 3] * m[j] + r[i * 3 + 1] * m[3 + j] + r[i * 3 + 2] * m[6 + j],
+      ]);
+      expect(sudutMentahSisiAtasDeg(balik, halaman)!.abs(), greaterThan(170));
+    });
+
+    test(
+      'SEMUA sel gagal dibaca → pembacaMati, bukan layar penuh merah',
+      () async {
+        await expectLater(
+          JalankanPindaiAsli(
+            halaman: MockPembacaHalaman(kataCetak()),
+            pembaca: _PembacaLambat(gagalDi: {for (var i = 0; i < 64; i++) i}),
+          ).baca(foto(dicentang: {}), template: template),
+          throwsA(
+            isA<PindaiAsliGagal>().having(
+              (e) => e.sebab,
+              'sebab',
+              GagalPindaiAsli.pembacaMati,
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      'pembaca yang memegang ReceivePort tidak ikut terbawa ke isolate',
+      () async {
+        final pembaca = _PembacaBerPort(MockPembacaSel(bacaan: bacaanSel));
+        try {
+          final hasil = await JalankanPindaiAsli(
+            halaman: MockPembacaHalaman(kataCetak()),
+            pembaca: pembaca,
+          ).baca(foto(dicentang: {}), template: template);
+          expect(hasil.potongan, hasLength(64));
+        } finally {
+          pembaca.port.close();
+        }
+      },
+    );
+  });
+
   group('berhenti sebelum membaca sel', () {
     final kecil = img.Image(width: 40, height: 30);
 
@@ -514,6 +603,22 @@ class _PembacaLambat implements PembacaSel {
       _jalan--;
     }
   }
+
+  @override
+  Future<void> tutup() async {}
+}
+
+/// Pembaca yang memegang objek TIDAK bisa dikirim antar-isolate. Kalau ada
+/// closure `Isolate.run` yang ikut membawa konteks berisi pembaca, pindai
+/// gagal "unsendable".
+class _PembacaBerPort implements PembacaSel {
+  _PembacaBerPort(this.dalam);
+
+  final PembacaSel dalam;
+  final port = ReceivePort();
+
+  @override
+  Future<BacaanSel> baca(img.Image potongan) => dalam.baca(potongan);
 
   @override
   Future<void> tutup() async {}

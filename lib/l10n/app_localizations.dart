@@ -11713,6 +11713,18 @@ abstract class AppLocalizations {
   /// **'The photo could not be processed. Fill in manually or retake it.'**
   String get lkAsliGagalUmum;
 
+  /// No description provided for @lkAsliFotoTerbalik.
+  ///
+  /// In en, this message translates to:
+  /// **'The sheet appears upside down in the photo. Retake it with the sheet upright.'**
+  String get lkAsliFotoTerbalik;
+
+  /// No description provided for @lkAsliPembacaMati.
+  ///
+  /// In en, this message translates to:
+  /// **'The text reader is not working: no cell could be read. Retake the photo or fill in manually.'**
+  String get lkAsliPembacaMati;
+
   /// No description provided for @lkAsliPilihAlatDulu.
   ///
   /// In en, this message translates to:

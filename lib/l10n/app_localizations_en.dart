@@ -6735,6 +6735,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'The photo could not be processed. Fill in manually or retake it.';
 
   @override
+  String get lkAsliFotoTerbalik =>
+      'The sheet appears upside down in the photo. Retake it with the sheet upright.';
+
+  @override
+  String get lkAsliPembacaMati =>
+      'The text reader is not working: no cell could be read. Retake the photo or fill in manually.';
+
+  @override
   String get lkAsliPilihAlatDulu =>
       'Pick the instrument first, then tap the \"Photo worksheet\" camera button above the sheet.';
 }

@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../models/review_foto.dart';
@@ -10,7 +12,8 @@ import '../../providers/sumber_foto_provider.dart';
 import '../../providers/worksheet_scan_provider.dart';
 import '../../services/jalankan_pindai.dart' show GagalPindai;
 import '../../services/jalankan_pindai_asli.dart';
-import '../../services/pembaca_halaman.dart' show PembacaHalaman;
+import '../../services/pembaca_halaman.dart'
+    show PembacaHalaman, sapuBerkasPindaiLama;
 import '../../services/pembaca_sel.dart' show PembacaSel;
 import '../../services/peta_tabel_foto.dart' show SelTabelFoto;
 import '../../services/potong_sel_foto.dart' show decodeFotoDiIsolate;
@@ -45,6 +48,14 @@ Future<int> pindaiFormulirAsli({
 
   void kabar(String pesan) =>
       messenger.showSnackBar(SnackBar(content: Text(pesan)));
+
+  // Sisa berkas sementara pindai yang tertinggal (proses mati di tengah baca)
+  // disapu dulu. Tidak ditunggu dan tidak boleh menggagalkan pindai.
+  unawaited(
+    getTemporaryDirectory()
+        .then(sapuBerkasPindaiLama)
+        .then<void>((_) {}, onError: (Object _) {}),
+  );
 
   // Foto penuh: TANPA maxWidth/imageQuality — tiap piksel yang dibuang di sini
   // hilang dari angka yang terbaca.
@@ -341,6 +352,8 @@ String pesanGagalAsli(AppLocalizations l10n, PindaiAsliGagal e) =>
       GagalPindaiAsli.revisiTidakTerbaca => l10n.lkAsliRevisiTidakTerbaca,
       GagalPindaiAsli.jangkarKurang => l10n.lkAsliJangkarKurang(e.jumlah ?? 0),
       GagalPindaiAsli.jangkarTidakMenyebar => l10n.lkAsliJangkarTidakMenyebar,
+      GagalPindaiAsli.fotoTerbalik => l10n.lkAsliFotoTerbalik,
+      GagalPindaiAsli.pembacaMati => l10n.lkAsliPembacaMati,
       GagalPindaiAsli.mutu => switch (e.mutu) {
         GagalPindai.mutuBuram => l10n.lkPindaiBuram,
         GagalPindai.mutuGelap => l10n.lkPindaiGelap,

@@ -117,6 +117,42 @@ bool dalamBingkai(List<TeksTerbaca> terbaca, int lebar, int tinggi) {
 /// menebak** baris/kolom dari urutan — dia dipakai buat mengukur jarak ke
 /// jangkar yang TERCETAK di tabelnya sendiri (nilai standar di kolom kiri,
 /// nomor X1..Xn di kepala kolom). Aturannya ada di `PetaTabelFoto`.
+/// Hapus sisa berkas sementara pindai (`tabel-*` dari [MlKitPembacaHalaman],
+/// `sel-*` dari `MlKitPembacaSel`) di [dir] yang lebih tua dari [umur].
+///
+/// Berkas itu potongan/foto lembar kerja pelanggan (JPEG bisa membawa EXIF
+/// GPS). Normalnya dihapus di `finally`, tapi kalau proses dimatikan di
+/// tengah baca, dia tertinggal di cache app (temuan peninjau M01 #4).
+/// Yang masih muda dibiarkan: bisa jadi milik pembacaan yang sedang jalan.
+/// Mengembalikan jumlah yang dihapus; galat per berkas ditelan.
+Future<int> sapuBerkasPindaiLama(
+  Directory dir, {
+  Duration umur = const Duration(minutes: 10),
+  DateTime? sekarang,
+}) async {
+  final batas = (sekarang ?? DateTime.now()).subtract(umur);
+  var dihapus = 0;
+
+  if (!dir.existsSync()) return 0;
+
+  for (final f in dir.listSync().whereType<File>()) {
+    final nama = f.uri.pathSegments.last;
+    if (!(nama.startsWith('tabel-') || nama.startsWith('sel-'))) continue;
+    if (!(nama.endsWith('.jpg') || nama.endsWith('.png'))) continue;
+
+    try {
+      if (f.lastModifiedSync().isBefore(batas)) {
+        f.deleteSync();
+        dihapus++;
+      }
+    } catch (_) {
+      // Berkas yang sedang dipakai/terkunci: coba lagi di sapuan berikutnya.
+    }
+  }
+
+  return dihapus;
+}
+
 abstract class PembacaHalaman {
   /// Baca [citra]. [asli] (opsional) = JPEG kamera yang menghasilkan [citra];
   /// kalau ada, implementasi boleh membaca JPEG itu langsung asalkan kotak

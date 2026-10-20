@@ -251,6 +251,27 @@ void main() {
       isFalse,
     );
   });
+
+  test('sapuBerkasPindaiLama: hanya tabel-*/sel-* yang sudah tua', () async {
+    final sekarang = DateTime(2026, 10, 20, 12);
+    final tua = sekarang.subtract(const Duration(minutes: 30));
+    File berkas(String nama, DateTime waktu) => File('${tmp.path}/$nama')
+      ..writeAsBytesSync([1])
+      ..setLastModifiedSync(waktu);
+
+    berkas('tabel-1-0.jpg', tua);
+    berkas('sel-2-1.png', tua);
+    berkas('sel-3-2.png', sekarang); // mungkin sedang dibaca
+    berkas('lain.jpg', tua); // bukan milik pindai
+
+    final n = await sapuBerkasPindaiLama(tmp, sekarang: sekarang);
+
+    expect(n, 2);
+    expect(tmp.listSync().map((f) => f.uri.pathSegments.last).toSet(), {
+      'sel-3-2.png',
+      'lain.jpg',
+    });
+  });
 }
 
 /// Bita sejak penanda Start Of Scan (FF DA) sampai akhir berkas.

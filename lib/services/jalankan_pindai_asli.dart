@@ -44,6 +44,15 @@ enum GagalPindaiAsli {
 
   /// Mutu foto — rinciannya di [PindaiAsliGagal.mutu].
   mutu,
+
+  /// Sisi atas halaman di foto (sesudah [JalankanPindaiAsli] memutarnya tegak)
+  /// tidak mendatar: bingkai teks ML Kit dan citra Dart berbeda 180° (atau
+  /// lebih dari 45°). Dipotong terus, sel diambil dari posisi simetris yang
+  /// salah.
+  fotoTerbalik,
+
+  /// SEMUA potongan sel/isian gagal dibaca — pengenal teks tidak jalan.
+  pembacaMati,
 }
 
 class PindaiAsliGagal implements Exception {
@@ -207,6 +216,15 @@ class JalankanPindaiAsli {
       );
     }
 
+    // Penjaga salah-putar 180° (temuan peninjau M01 #1). Rotasi 180° tetap
+    // homografi yang sah — residualnya rendah dan `_sudutSisaDeg` menormalkan
+    // 180 jadi 0 — jadi dia lolos semua gerbang lain. Karena [_kenali] sudah
+    // memutar citra tegak, sudut MENTAH sisi atas halaman harus dekat 0.
+    final sudutMentah = sudutMentahSisiAtasDeg(reg.templateKeFoto, halamanPt);
+    if (sudutMentah == null || sudutMentah.abs() >= sudutMentahMaksDeg) {
+      throw const PindaiAsliGagal(GagalPindaiAsli.fotoTerbalik);
+    }
+
     // Revisi dibaca SESUDAH homography: tempatnya ditentukan relatif ke kata
     // "Revise" tercetak di ruang halaman, jadi kemiringan foto tidak
     // menggeser apa yang dibaca.
@@ -250,15 +268,13 @@ class JalankanPindaiAsli {
     final skala = skalaPxPerPt;
     final mesinLokal = mesin;
     final templateKeFoto = reg.templateKeFoto;
-    final (:warp, :mutu) = await Isolate.run(
-      () => _ratakanDanUkur((
-        foto: citra,
-        templateKeFoto: templateKeFoto,
-        halamanPt: halamanPt,
-        skala: skala,
-        mesin: mesinLokal,
-      )),
-    );
+    final (:warp, :mutu) = await _ratakanDanUkurDiIsolate((
+      foto: citra,
+      templateKeFoto: templateKeFoto,
+      halamanPt: halamanPt,
+      skala: skala,
+      mesin: mesinLokal,
+    ));
 
     // ---- Mutu: dihitung di HP, diputuskan server ---------------------------
     final sudut = _sudutSisaDeg(reg.templateKeFoto, halamanPt);
@@ -326,6 +342,13 @@ class JalankanPindaiAsli {
           },
         );
 
+    // Semua gagal = pengenalnya mati, bukan kertasnya. Satu layar penuh merah
+    // menyesatkan (seolah fotonya jelek) → pesan galat umum (keputusan
+    // orkestrator, 20 Okt).
+    if (antrean.isNotEmpty && gagalDibaca.length == antrean.length) {
+      throw const PindaiAsliGagal(GagalPindaiAsli.pembacaMati);
+    }
+
     final jumlahSel = template.selAsli.length;
     final hasil = <SelAsliTerbaca>[
       for (var k = 0; k < jumlahSel; k++)
@@ -337,12 +360,7 @@ class JalankanPindaiAsli {
     ];
 
     // Encode PNG puluhan potongan di isolate latar, bukan isolate UI.
-    final potongan = await Isolate.run(
-      () => {
-        for (final e in gambar.entries)
-          e.key: Uint8List.fromList(img.encodePng(e.value)),
-      },
-    );
+    final potongan = await encodePotonganDiIsolate(gambar);
 
     return HasilBacaAsli(
       sel: hasil,
@@ -374,7 +392,7 @@ class JalankanPindaiAsli {
     final ifd = foto.exif.imageIfd;
     final orientasiAsal = ifd.hasOrientation ? ifd.orientation ?? 1 : 1;
     final tegak = ifd.hasOrientation && ifd.orientation != 1
-        ? await Isolate.run(() => img.bakeOrientation(foto))
+        ? await _panggangDiIsolate(foto)
         : foto;
 
     final halamanLanskap = halamanPt.w >= halamanPt.h;
@@ -386,9 +404,7 @@ class JalankanPindaiAsli {
     String? kodeLain;
 
     for (final s in sudut) {
-      final citra = s == 0
-          ? tegak
-          : await Isolate.run(() => _putar((citra: tegak, sudut: s)));
+      final citra = s == 0 ? tegak : await _putarDiIsolate(tegak, s);
       // JPEG asli + orientasi EXIF yang membuat ML Kit melihat bingkai yang
       // SAMA dengan [citra] (EXIF dipanggang lalu diputar [s]).
       final terbaca = await halaman.baca(
@@ -565,6 +581,22 @@ String? bacaRevisi({
   return teks.isEmpty ? null : teks;
 }
 
+/// Batas sudut MENTAH sisi atas halaman di foto, dalam derajat.
+const sudutMentahMaksDeg = 45.0;
+
+/// Sudut sisi atas halaman (template (0,0)→(w,0)) di foto, derajat, TANPA
+/// dinormalkan ke kelipatan 90°. `null` = tidak terpetakan.
+double? sudutMentahSisiAtasDeg(
+  Homografi templateKeFoto,
+  ({double w, double h}) halamanPt,
+) {
+  final a = templateKeFoto.terapkan((x: 0, y: 0));
+  final b = templateKeFoto.terapkan((x: halamanPt.w, y: 0));
+  if (a == null || b == null) return null;
+
+  return math.atan2(b.y - a.y, b.x - a.x) * 180 / math.pi;
+}
+
 // ---- Isolate latar ---------------------------------------------------------
 //
 // Fungsi puncak (bukan closure di dalam metode) supaya yang dikirim ke isolate
@@ -573,6 +605,39 @@ String? bacaRevisi({
 
 img.Image _putar(({img.Image citra, int sudut}) a) =>
     img.copyRotate(a.citra, angle: a.sudut);
+
+// Pembungkus `Isolate.run` sebagai fungsi PUNCAK (temuan peninjau M01 #2):
+// closure yang dibuat di dalam `baca` ikut membawa konteks scope-nya —
+// termasuk pembaca ML Kit dan himpunan yang ditangkap lambda lain — dan bisa
+// ditolak "unsendable". Di sini scope-nya cuma argumennya sendiri.
+
+Future<img.Image> _panggangDiIsolate(img.Image foto) =>
+    Isolate.run(() => img.bakeOrientation(foto));
+
+Future<img.Image> _putarDiIsolate(img.Image citra, int sudut) =>
+    Isolate.run(() => _putar((citra: citra, sudut: sudut)));
+
+Future<({img.Image warp, ({double blur, double kecerahan, double glare}) mutu})>
+_ratakanDanUkurDiIsolate(
+  ({
+    img.Image foto,
+    Homografi templateKeFoto,
+    ({double w, double h}) halamanPt,
+    double skala,
+    PindaiLembar mesin,
+  })
+  a,
+) => Isolate.run(() => _ratakanDanUkur(a));
+
+/// Encode PNG tiap potongan di isolate latar. Yang dikirim cuma [gambar].
+Future<Map<String, Uint8List>> encodePotonganDiIsolate(
+  Map<String, img.Image> gambar,
+) => Isolate.run(() => _encodePotongan(gambar));
+
+Map<String, Uint8List> _encodePotongan(Map<String, img.Image> gambar) => {
+  for (final e in gambar.entries)
+    e.key: Uint8List.fromList(img.encodePng(e.value)),
+};
 
 ({img.Image warp, ({double blur, double kecerahan, double glare}) mutu})
 _ratakanDanUkur(
