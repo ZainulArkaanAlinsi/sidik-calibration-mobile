@@ -139,19 +139,25 @@ class AturanFormulirAsli {
       }
     }
 
-    // ---- kelengkapan blok ---------------------------------------------------
-    final perBlok = <int, List<SelAturanMasuk>>{};
+    // ---- kelengkapan blok, PER KOLOM PENGULANGAN ----------------------------
+    //
+    // Keputusan §23 (orkestrator, 20 Okt): OCR membaca kotak yang ada, server
+    // merata-ratakan pembacaan per peran. Jadi satu kolom X1/X2/X3 dinilai
+    // sendiri: kosong total di keempat baris = kolom itu tidak dipakai
+    // (diabaikan, bukan merah); terisi sebagian = satu urutan S-T-T-S putus
+    // → sel kosongnya MERAH. Blok yang tak satu kolom pun terisi tetap tidak
+    // membuat titik.
+    final perKolom = <(int, int), List<SelAturanMasuk>>{};
     for (final s in sel) {
-      (perBlok[s.barisKe] ??= []).add(s);
+      (perKolom[(s.barisKe, s.repeatNo)] ??= []).add(s);
     }
-    for (final blok in perBlok.values) {
+    for (final kolom in perKolom.values) {
       bool ada(SelAturanMasuk s) => s.gagalDibaca || s.teks.trim().isNotEmpty;
-      final terisi = blok.where(ada).length;
+      final terisi = kolom.where(ada).length;
 
-      // Kosong total = keping ini tidak ditimbang: TIDAK membuat titik.
-      if (terisi == 0 || terisi == blok.length) continue;
+      if (terisi == 0 || terisi == kolom.length) continue;
 
-      for (final s in blok.where((s) => !ada(s))) {
+      for (final s in kolom.where((s) => !ada(s))) {
         turunkan(s.kunci, VonisAturan.merah, AlasanAturan.blokTidakLengkap);
       }
     }

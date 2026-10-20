@@ -198,6 +198,36 @@ void main() {
       expect(p.containsKey('at_s1|8|1|pembacaan'), isFalse);
     });
 
+    test('per kolom pengulangan: X1 penuh, X2 sebagian, X3 kosong total', () {
+      List<SelAturanMasuk> kolom(int r, List<String> isi) => [
+        for (final (i, t) in const ['at_s1', 'at_t1', 'at_t2', 'at_s2'].indexed)
+          sel(t, isi[i], repeat: r),
+      ];
+      final p = AturanFormulirAsli.periksa([
+        ...kolom(1, ['49.99992', '50.00012', '50.00013', '49.99992']),
+        ...kolom(2, ['49.99993', '50.00011', '', '']),
+        ...kolom(3, ['', '', '', '']),
+      ]);
+
+      // X2: S1 & UUT1 ada, UUT2 & S2 kosong → dua-duanya merah.
+      expect(p['at_t2|8|2|pembacaan']!.vonis, VonisAturan.merah);
+      expect(p['at_s2|8|2|pembacaan']!.alasan, {AlasanAturan.blokTidakLengkap});
+      // X1 penuh dan X3 kosong total: tidak disentuh.
+      expect(p.keys.where((k) => k.endsWith('|1|pembacaan')), isEmpty);
+      expect(p.keys.where((k) => k.endsWith('|3|pembacaan')), isEmpty);
+      expect(p, hasLength(2));
+    });
+
+    test('dua UUT dibandingkan dalam kolom yang sama saja', () {
+      final p = AturanFormulirAsli.periksa([
+        sel('at_t1', '50.00012', repeat: 1),
+        sel('at_t2', '50.00013', repeat: 1),
+        sel('at_t1', '50.00912', repeat: 2),
+        sel('at_t2', '50.00012', repeat: 2),
+      ]);
+      expect(p.keys.toSet(), {'at_t1|8|2|pembacaan', 'at_t2|8|2|pembacaan'});
+    });
+
     test('sel gagal dibaca dihitung "ada", bukan kosong', () {
       final p = AturanFormulirAsli.periksa([
         sel('at_s1', '', gagal: true),
