@@ -34,6 +34,7 @@ import '../draf/draf_screen.dart';
 import '../jatuh_tempo/layar_jatuh_tempo.dart';
 import '../pelacakan/telusuri_sertifikat_screen.dart';
 import '../penugasan/penugasan_screen.dart';
+import '../teknisi/kalibrasi_teknisi_screen.dart';
 
 /// Panel admin desktop — sidebar tetap + bilah atas + area kerja.
 ///
@@ -130,6 +131,33 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
   List<_Seksi> _seksiTerpakai(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final peran = ref.watch(authProvider).value?.role;
+
+    // Teknisi: SAMA dengan HP — Kalibrasi + Profil saja (keputusan pemilik,
+    // 20 Okt 2026; K-50-14). Draf dibuka dari dalam Kalibrasi. Tugas saya,
+    // Pelacakan, Ringkasan, Alur, Alat, Riwayat, dan Arsip tidak ada di sini.
+    // Admin & super admin tidak berubah.
+    if (peran == UserRole.teknisi) {
+      return [
+        _Seksi(
+          judul: l10n.menuKerjaHarian,
+          menu: [
+            _Menu(
+              id: 'kalibrasi',
+              ikon: Icons.fact_check_outlined,
+              label: l10n.navKalibrasi,
+              bangun: KalibrasiTeknisiScreen.new,
+            ),
+            _Menu(
+              id: 'profil',
+              ikon: Icons.person_outline,
+              label: l10n.navProfile,
+              bangun: ProfileScreen.new,
+            ),
+          ],
+        ),
+      ];
+    }
+
     final ringkas = ref.watch(dashboardProvider).value;
 
     final bolehSetujui = ref.bolehkah(
@@ -189,12 +217,6 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
       label: l10n.penugasanJudul,
       bangun: PenugasanScreen.new,
     );
-    final tugasSaya = _Menu(
-      id: 'penugasan',
-      ikon: Icons.assignment_ind_outlined,
-      label: l10n.penugasanTugasSaya,
-      bangun: PenugasanScreen.new,
-    );
     final pelacakan = _Menu(
       id: 'pelacakan',
       ikon: Icons.local_shipping_outlined,
@@ -217,7 +239,6 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
       // Semua menu admin + teknisi (Draf) — K-49-14.
       UserRole.superAdmin => [penugasan, pelacakan, draf, jadwal],
       UserRole.admin => [penugasan, pelacakan, draf, jadwal],
-      UserRole.teknisi => [tugasSaya, draf, pelacakan],
       _ => [pelacakan],
     };
 
