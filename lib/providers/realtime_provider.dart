@@ -111,15 +111,14 @@ void _tangani(Ref ref, PeristiwaRealtime p) {
       ref.invalidate(dashboardProvider);
       ref.invalidate(historyProvider);
       ref.invalidate(antreanApprovalProvider);
-      // Pengesahan, pelacakan, penugasan: super admin yang mengesahkan dari
-      // satu HP, meja depan yang menandai serah terima dari laptop, teknisi
+      // Pelacakan, penugasan: super admin yang bekerja dari satu HP, meja depan yang menandai serah terima dari laptop, teknisi
       // yang melapor progres — perangkat lain di lab yang sama ikut menyusul.
       // Saringan layarnya tidak hilang (lihat `Saringan`).
       ref.invalidate(daftarPaketProvider);
       ref.invalidate(detailPaketProvider);
       ref.invalidate(daftarPenugasanProvider);
       // Layar super admin/admin turunan dari data yang sama: jatuh tempo &
-      // jadwal (alat baru, tanggal diubah, sesi disahkan memajukan jatuh
+      // jadwal (alat baru, tanggal diubah, sesi disetujui memajukan jatuh
       // tempo) dan paket berjalan di beranda.
       ref.invalidate(jatuhTempoProvider);
       ref.invalidate(jatuhTempoPelangganProvider);

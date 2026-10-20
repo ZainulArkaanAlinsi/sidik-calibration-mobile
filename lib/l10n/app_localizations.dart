@@ -3925,12 +3925,6 @@ abstract class AppLocalizations {
   /// **'Calibration method'**
   String get phCalibIdCalibrationMethod;
 
-  /// No description provided for @phCalibPengesahan.
-  ///
-  /// In en, this message translates to:
-  /// **'Authorisation'**
-  String get phCalibPengesahan;
-
   /// No description provided for @phCalibIssuanceDate.
   ///
   /// In en, this message translates to:
@@ -7933,138 +7927,6 @@ abstract class AppLocalizations {
   /// **'Signatory name & title are printed here'**
   String get ttdPratinjauGaris;
 
-  /// No description provided for @pengesahanJudul.
-  ///
-  /// In en, this message translates to:
-  /// **'Certificate sign-off'**
-  String get pengesahanJudul;
-
-  /// No description provided for @pengesahanCari.
-  ///
-  /// In en, this message translates to:
-  /// **'Search number, instrument, or customer'**
-  String get pengesahanCari;
-
-  /// No description provided for @pengesahanRingkas.
-  ///
-  /// In en, this message translates to:
-  /// **'{jumlah} waiting for sign-off'**
-  String pengesahanRingkas(int jumlah);
-
-  /// No description provided for @pengesahanHariIni.
-  ///
-  /// In en, this message translates to:
-  /// **'Submitted today'**
-  String get pengesahanHariIni;
-
-  /// No description provided for @pengesahanMenungguHari.
-  ///
-  /// In en, this message translates to:
-  /// **'Waiting {hari} d'**
-  String pengesahanMenungguHari(int hari);
-
-  /// No description provided for @pengesahanDiajukanOleh.
-  ///
-  /// In en, this message translates to:
-  /// **'Submitted by {nama}'**
-  String pengesahanDiajukanOleh(String nama);
-
-  /// No description provided for @pengesahanLihatDetail.
-  ///
-  /// In en, this message translates to:
-  /// **'View details'**
-  String get pengesahanLihatDetail;
-
-  /// No description provided for @pengesahanSahkan.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign off'**
-  String get pengesahanSahkan;
-
-  /// No description provided for @pengesahanKembalikan.
-  ///
-  /// In en, this message translates to:
-  /// **'Return'**
-  String get pengesahanKembalikan;
-
-  /// No description provided for @pengesahanTarik.
-  ///
-  /// In en, this message translates to:
-  /// **'Withdraw'**
-  String get pengesahanTarik;
-
-  /// No description provided for @pengesahanBerhasil.
-  ///
-  /// In en, this message translates to:
-  /// **'Signed off. The certificate is being issued.'**
-  String get pengesahanBerhasil;
-
-  /// No description provided for @pengesahanWewenangJudul.
-  ///
-  /// In en, this message translates to:
-  /// **'Separation of duties'**
-  String get pengesahanWewenangJudul;
-
-  /// No description provided for @pengesahanWewenangCatat.
-  ///
-  /// In en, this message translates to:
-  /// **'If you continue, this is recorded in the audit trail.'**
-  String get pengesahanWewenangCatat;
-
-  /// No description provided for @pengesahanTetapSahkan.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign off anyway'**
-  String get pengesahanTetapSahkan;
-
-  /// No description provided for @pengesahanAlasanKembalikan.
-  ///
-  /// In en, this message translates to:
-  /// **'Reason for returning'**
-  String get pengesahanAlasanKembalikan;
-
-  /// No description provided for @pengesahanAlasanTarik.
-  ///
-  /// In en, this message translates to:
-  /// **'Reason for withdrawing'**
-  String get pengesahanAlasanTarik;
-
-  /// No description provided for @pengesahanAlasanMinimal.
-  ///
-  /// In en, this message translates to:
-  /// **'At least {minimal} characters'**
-  String pengesahanAlasanMinimal(int minimal);
-
-  /// No description provided for @pengesahanKirim.
-  ///
-  /// In en, this message translates to:
-  /// **'Send'**
-  String get pengesahanKirim;
-
-  /// No description provided for @pengesahanKosong.
-  ///
-  /// In en, this message translates to:
-  /// **'The queue is empty'**
-  String get pengesahanKosong;
-
-  /// No description provided for @pengesahanKosongPengesah.
-  ///
-  /// In en, this message translates to:
-  /// **'Nothing is waiting for your sign-off.'**
-  String get pengesahanKosongPengesah;
-
-  /// No description provided for @pengesahanKosongAdmin.
-  ///
-  /// In en, this message translates to:
-  /// **'None of your approvals are waiting for sign-off.'**
-  String get pengesahanKosongAdmin;
-
-  /// No description provided for @pengesahanGagalMuat.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t load the sign-off queue.'**
-  String get pengesahanGagalMuat;
-
   /// No description provided for @pelacakanJudul.
   ///
   /// In en, this message translates to:
@@ -8707,18 +8569,6 @@ abstract class AppLocalizations {
   /// **'Super admin · overseer & approver'**
   String get berandaSaPeran;
 
-  /// No description provided for @berandaSaMenunggu.
-  ///
-  /// In en, this message translates to:
-  /// **'Waiting for your approval'**
-  String get berandaSaMenunggu;
-
-  /// No description provided for @berandaSaSiapDisahkan.
-  ///
-  /// In en, this message translates to:
-  /// **'worksheets ready to approve'**
-  String get berandaSaSiapDisahkan;
-
   /// No description provided for @berandaSaTertua.
   ///
   /// In en, this message translates to:
@@ -8731,23 +8581,11 @@ abstract class AppLocalizations {
   /// **'{hari} d ago'**
   String berandaSaHariLalu(int hari);
 
-  /// No description provided for @berandaSaKosong.
-  ///
-  /// In en, this message translates to:
-  /// **'Nothing is waiting for approval.'**
-  String get berandaSaKosong;
-
   /// No description provided for @berandaSaBukaGerbang.
   ///
   /// In en, this message translates to:
   /// **'Open the certificate gate'**
   String get berandaSaBukaGerbang;
-
-  /// No description provided for @berandaSaNomorCatatan.
-  ///
-  /// In en, this message translates to:
-  /// **'A certificate number is only allocated when you approve, so there are never gaps.'**
-  String get berandaSaNomorCatatan;
 
   /// No description provided for @berandaSaPaket.
   ///

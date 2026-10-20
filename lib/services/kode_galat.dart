@@ -2,12 +2,13 @@ import 'auth_service.dart' show ApiException;
 
 /// Kode galat 422 dari server yang punya penanganan khusus di app.
 ///
-/// Server menaruhnya di kunci `kode` (`CalibrationController::approve`,
-/// `PengesahanController::sahkan`). `code` ikut dibaca supaya kontrak yang
+/// Server menaruhnya di kunci `kode` (`CalibrationController::approve`).
+/// `code` ikut dibaca supaya kontrak yang
 /// ditulis dalam bahasa Inggris tidak diam-diam jatuh ke pesan generik.
 abstract final class KodeGalat {
-  /// Yang mengisi atau mengoreksi sesi tidak boleh menyetujui/mengesahkannya
-  /// sendiri (K-30-03). Berlaku juga untuk super admin — tanpa pengecualian.
+  /// Yang mengisi sesi (atau mengonfirmasi hasil pindainya) tidak boleh
+  /// menyetujuinya sendiri (K-30-03; pengoreksi boleh sejak K-50-02).
+  /// Berlaku juga untuk super admin — tanpa pengecualian.
   static const pemisahanWewenang = 'pemisahan_wewenang';
 
   /// Approve ditolak karena Order Number sesi masih kosong (K-49-14).

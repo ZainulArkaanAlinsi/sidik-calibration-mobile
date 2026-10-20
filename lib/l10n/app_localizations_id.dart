@@ -2125,9 +2125,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get phCalibIdCalibrationMethod => 'Calibration method';
 
   @override
-  String get phCalibPengesahan => 'Pengesahan';
-
-  @override
   String get phCalibIssuanceDate => 'Issuance date';
 
   @override
@@ -4446,83 +4443,6 @@ class AppLocalizationsId extends AppLocalizations {
       'Nama & jabatan penandatangan tercetak di sini';
 
   @override
-  String get pengesahanJudul => 'Pengesahan sertifikat';
-
-  @override
-  String get pengesahanCari => 'Cari nomor, alat, atau pelanggan';
-
-  @override
-  String pengesahanRingkas(int jumlah) {
-    return '$jumlah menunggu pengesahan';
-  }
-
-  @override
-  String get pengesahanHariIni => 'Diajukan hari ini';
-
-  @override
-  String pengesahanMenungguHari(int hari) {
-    return 'Menunggu $hari hari';
-  }
-
-  @override
-  String pengesahanDiajukanOleh(String nama) {
-    return 'Diajukan oleh $nama';
-  }
-
-  @override
-  String get pengesahanLihatDetail => 'Lihat detail';
-
-  @override
-  String get pengesahanSahkan => 'Sahkan';
-
-  @override
-  String get pengesahanKembalikan => 'Kembalikan';
-
-  @override
-  String get pengesahanTarik => 'Tarik pengajuan';
-
-  @override
-  String get pengesahanBerhasil => 'Disahkan. Sertifikat sedang diterbitkan.';
-
-  @override
-  String get pengesahanWewenangJudul => 'Pemisahan wewenang';
-
-  @override
-  String get pengesahanWewenangCatat =>
-      'Kalau dilanjutkan, ini tercatat di riwayat audit.';
-
-  @override
-  String get pengesahanTetapSahkan => 'Tetap sahkan';
-
-  @override
-  String get pengesahanAlasanKembalikan => 'Alasan dikembalikan';
-
-  @override
-  String get pengesahanAlasanTarik => 'Alasan menarik pengajuan';
-
-  @override
-  String pengesahanAlasanMinimal(int minimal) {
-    return 'Minimal $minimal karakter';
-  }
-
-  @override
-  String get pengesahanKirim => 'Kirim';
-
-  @override
-  String get pengesahanKosong => 'Antrean kosong';
-
-  @override
-  String get pengesahanKosongPengesah =>
-      'Tidak ada yang menunggu pengesahan Anda.';
-
-  @override
-  String get pengesahanKosongAdmin =>
-      'Tidak ada approval Anda yang sedang menunggu pengesahan.';
-
-  @override
-  String get pengesahanGagalMuat => 'Antrean pengesahan gagal dimuat.';
-
-  @override
   String get pelacakanJudul => 'Pelacakan paket';
 
   @override
@@ -4893,12 +4813,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get berandaSaPeran => 'Super admin · pengawas & pengesah';
 
   @override
-  String get berandaSaMenunggu => 'Menunggu pengesahan kamu';
-
-  @override
-  String get berandaSaSiapDisahkan => 'lembar kerja siap disahkan';
-
-  @override
   String berandaSaTertua(String alat) {
     return 'Tertua: $alat';
   }
@@ -4909,14 +4823,7 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get berandaSaKosong => 'Tidak ada yang menunggu pengesahan.';
-
-  @override
   String get berandaSaBukaGerbang => 'Buka gerbang sertifikat';
-
-  @override
-  String get berandaSaNomorCatatan =>
-      'Nomor sertifikat baru dialokasikan saat kamu mengesahkan, jadi tidak pernah ada nomor bolong.';
 
   @override
   String get berandaSaPaket => 'Paket pelanggan berjalan';

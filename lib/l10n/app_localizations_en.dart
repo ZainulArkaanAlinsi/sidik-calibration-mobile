@@ -2141,9 +2141,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get phCalibIdCalibrationMethod => 'Calibration method';
 
   @override
-  String get phCalibPengesahan => 'Authorisation';
-
-  @override
   String get phCalibIssuanceDate => 'Issuance date';
 
   @override
@@ -4517,84 +4514,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ttdPratinjauGaris => 'Signatory name & title are printed here';
 
   @override
-  String get pengesahanJudul => 'Certificate sign-off';
-
-  @override
-  String get pengesahanCari => 'Search number, instrument, or customer';
-
-  @override
-  String pengesahanRingkas(int jumlah) {
-    return '$jumlah waiting for sign-off';
-  }
-
-  @override
-  String get pengesahanHariIni => 'Submitted today';
-
-  @override
-  String pengesahanMenungguHari(int hari) {
-    return 'Waiting $hari d';
-  }
-
-  @override
-  String pengesahanDiajukanOleh(String nama) {
-    return 'Submitted by $nama';
-  }
-
-  @override
-  String get pengesahanLihatDetail => 'View details';
-
-  @override
-  String get pengesahanSahkan => 'Sign off';
-
-  @override
-  String get pengesahanKembalikan => 'Return';
-
-  @override
-  String get pengesahanTarik => 'Withdraw';
-
-  @override
-  String get pengesahanBerhasil =>
-      'Signed off. The certificate is being issued.';
-
-  @override
-  String get pengesahanWewenangJudul => 'Separation of duties';
-
-  @override
-  String get pengesahanWewenangCatat =>
-      'If you continue, this is recorded in the audit trail.';
-
-  @override
-  String get pengesahanTetapSahkan => 'Sign off anyway';
-
-  @override
-  String get pengesahanAlasanKembalikan => 'Reason for returning';
-
-  @override
-  String get pengesahanAlasanTarik => 'Reason for withdrawing';
-
-  @override
-  String pengesahanAlasanMinimal(int minimal) {
-    return 'At least $minimal characters';
-  }
-
-  @override
-  String get pengesahanKirim => 'Send';
-
-  @override
-  String get pengesahanKosong => 'The queue is empty';
-
-  @override
-  String get pengesahanKosongPengesah =>
-      'Nothing is waiting for your sign-off.';
-
-  @override
-  String get pengesahanKosongAdmin =>
-      'None of your approvals are waiting for sign-off.';
-
-  @override
-  String get pengesahanGagalMuat => 'Couldn\'t load the sign-off queue.';
-
-  @override
   String get pelacakanJudul => 'Order tracking';
 
   @override
@@ -4966,12 +4885,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get berandaSaPeran => 'Super admin · overseer & approver';
 
   @override
-  String get berandaSaMenunggu => 'Waiting for your approval';
-
-  @override
-  String get berandaSaSiapDisahkan => 'worksheets ready to approve';
-
-  @override
   String berandaSaTertua(String alat) {
     return 'Oldest: $alat';
   }
@@ -4982,14 +4895,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get berandaSaKosong => 'Nothing is waiting for approval.';
-
-  @override
   String get berandaSaBukaGerbang => 'Open the certificate gate';
-
-  @override
-  String get berandaSaNomorCatatan =>
-      'A certificate number is only allocated when you approve, so there are never gaps.';
 
   @override
   String get berandaSaPaket => 'Customer packages in progress';

@@ -6,10 +6,10 @@ enum UserRole {
   teknisi,
   viewer,
 
-  /// Semua aksi admin (Master Data) DAN teknisi, plus mengesahkan
-  /// (keputusan pemilik K-49-14, 15 Okt 2026). Satu yang TIDAK pernah dia
-  /// dapat: menyetujui/mengesahkan sesi yang dia isi atau koreksi sendiri —
-  /// server menolaknya 422 `pemisahan_wewenang` (K-30-03).
+  /// Semua aksi admin (Master Data) DAN teknisi (keputusan pemilik K-49-14,
+  /// 15 Okt 2026; pengesahan terpisah dicabut, K-50-07). Satu yang TIDAK
+  /// pernah dia dapat: menyetujui sesi yang dia isi sendiri atau yang hasil
+  /// pindainya dia konfirmasi — server menolaknya 422 `pemisahan_wewenang` (K-30-03).
   ///
   /// Dulu jatuh ke `viewer` dan berlabel "Viewer", jadi super admin yang
   /// login lewat HP melihat dirinya sebagai viewer.
