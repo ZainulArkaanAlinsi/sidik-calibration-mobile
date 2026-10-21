@@ -10,8 +10,6 @@ import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../shell/main_shell.dart' show bukaMenuUtama;
 import '../../providers/dashboard_provider.dart';
-import '../../widgets/banner_update.dart';
-import '../../widgets/pemasang_otomatis.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/readable_width.dart';
@@ -107,13 +105,10 @@ class DashboardScreen extends ConsumerWidget {
           // Di DALAM Container, biar gradasi latarnya tetap penuh selebar
           // jendela — yang dibatasi cuma isinya.
           //
-          // `PemasangOtomatis` memulangkan anaknya apa adanya; dia nggak
-          // menggambar apa-apa dan nggak mengubah tata letak. Yang
-          // dikerjakannya: memunculkan pop-up pembaruan sekali waktu aplikasi
-          // dibuka di sini kalau ada versi baru, dan memasangnya diam-diam
-          // waktu aplikasi ditinggal (Android 12+). Syarat lengkapnya ada di
-          // kelasnya.
-          child: PemasangOtomatis(child: ReadableWidth(child: isi)),
+          // Pop-up, banner, dan pasang-diam pembaruan pindah ke shell
+          // (`PemeriksaPembaruan`) 22 Okt 2026 supaya super admin dan teknisi
+          // — yang tidak melihat isi dashboard ini — ikut mendapatkannya.
+          child: ReadableWidth(child: isi),
         ),
       ),
     );
@@ -138,15 +133,6 @@ class _Isi extends ConsumerWidget {
       // sama sekali — `berurutan` cuma membungkus tiap anak di tempatnya, dan
       // widget jarak dilewati supaya iramanya rata.
       children: berurutan([
-        // Pemberitahuan versi baru ditaruh PALING ATAS, sebelum angka apa pun.
-        //
-        // Bukan di layar Pengaturan yang jarang dibuka: yang perlu memperbarui
-        // itu teknisi yang tiap hari membuka dashboard, dan sebelum ini
-        // caranya bolak-balik unduh manual dari GitHub atau email. Widget ini
-        // menggambar dirinya sebagai kotak kosong waktu tidak ada
-        // pemutakhiran — tidak memakan ruang dan tidak menggeser apa pun.
-        const BannerUpdate(),
-
         // Teknisi masuk lewat command deck yang fokus ke kerja pribadinya;
         // admin tetap melihat ringkasan se-lab. Sumber datanya sama.
         if (teknisi)

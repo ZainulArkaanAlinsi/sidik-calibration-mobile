@@ -6724,4 +6724,24 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get lkAsliPilihAlatDulu =>
       'Pick the instrument first, then tap the \"Photo worksheet\" camera button above the sheet.';
+
+  @override
+  String pembaruanWindowsSiap(String versi) {
+    return 'Version $versi is ready — restart to install';
+  }
+
+  @override
+  String get pembaruanWindowsKeterangan =>
+      'Save your work first. The app closes and reopens on the new version.';
+
+  @override
+  String get pembaruanWindowsMulaiUlang => 'Restart now';
+
+  @override
+  String get pembaruanWindowsNanti =>
+      'Later — installs the next time the app opens';
+
+  @override
+  String get pembaruanWindowsGagal =>
+      'The update could not be installed yet. Close and reopen the app to try again.';
 }

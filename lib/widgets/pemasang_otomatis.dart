@@ -9,7 +9,8 @@ import '../services/pengunduh_apk.dart';
 import 'dialog_update.dart';
 
 /// Menampilkan pop-up pembaruan ([DialogUpdate]) SENDIRI waktu aplikasi
-/// dibuka di dashboard dan ada versi baru, lalu memasangnya diam-diam waktu
+/// dibuka (sejak 22 Okt 2026 dipasang di shell lewat `PemeriksaPembaruan`,
+/// jadi berlaku untuk semua peran — dulu cuma di dashboard) dan ada versi baru, lalu memasangnya diam-diam waktu
 /// aplikasi ditinggalkan kalau Android mengizinkan.
 ///
 /// Membungkus isi layar dan memulangkannya apa adanya — nol pengaruh ke tata
@@ -129,7 +130,21 @@ class _PemasangOtomatisState extends ConsumerState<PemasangOtomatis>
     }
   }
 
+  /// Penjaga supaya pembukaan dari `initState` dan dari `ref.listen` (rilis
+  /// yang baru ketahuan di cek ulang) tidak berjalan bersamaan.
+  bool _sedangMembuka = false;
+
   Future<void> _mungkinBuka() async {
+    if (_sedangMembuka) return;
+    _sedangMembuka = true;
+    try {
+      await _buka();
+    } finally {
+      _sedangMembuka = false;
+    }
+  }
+
+  Future<void> _buka() async {
     final rilis = await ref.read(updateTersediaProvider.future);
     if (rilis == null) return;
 
@@ -173,5 +188,18 @@ class _PemasangOtomatisState extends ConsumerState<PemasangOtomatis>
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) {
+    // Rilis yang baru ketahuan SESUDAH aplikasi dibuka — lewat cek ulang
+    // berkala `PemeriksaPembaruan` — juga mendapat pop-up, asal giliran
+    // proses ini belum terpakai (pemeriksaan pertama yang gagal tanpa sinyal
+    // tidak menghabiskannya).
+    ref.listen(updateTersediaProvider, (sebelum, sesudah) {
+      final baru = sesudah.value;
+      if (baru != null && baru.versi != sebelum?.value?.versi) {
+        unawaited(_mungkinBuka());
+      }
+    });
+
+    return widget.child;
+  }
 }

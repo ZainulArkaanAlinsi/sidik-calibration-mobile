@@ -127,6 +127,17 @@ void main() {
       expect(v.ukuran, isNull);
       expect(v.ukuranMb, isNull);
     });
+
+    test('ukuran 0 atau di bawah setengah MB juga tanpa label MB', () {
+      for (final ukuran in [0, 1000]) {
+        final v = VersiAplikasi(
+          versi: '1.0.58',
+          urlUnduh: 'https://x/app.apk',
+          ukuran: ukuran,
+        );
+        expect(v.ukuranMb, isNull, reason: 'ukuran $ukuran');
+      }
+    });
   });
 
   group('updateTersediaProvider', () {

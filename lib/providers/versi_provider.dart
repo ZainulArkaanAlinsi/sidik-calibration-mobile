@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/config/app_config.dart';
 import '../models/versi_aplikasi.dart';
+import '../services/pembaru_windows.dart';
 import '../services/penyiap_update.dart';
 import '../services/versi_service.dart';
 import 'auth_provider.dart';
@@ -72,6 +73,15 @@ final updateTersediaProvider = FutureProvider<VersiAplikasi?>((ref) async {
   // terbalik kalau dibandingkan sebagai huruf, dan salahnya diam.
   return terbaru.lebihBaruDari(terpasang) ? terbaru : null;
 });
+
+/// Pembaru Windows aplikasi yang sedang jalan, atau `null` (bukan Windows,
+/// build mock, atau gagal disiapkan).
+///
+/// Dibuat di `main()` SEBELUM `runApp` — dia yang memasang pembaruan yang
+/// sudah siap sebelum jendela digambar — lalu dititipkan ke `ProviderScope`
+/// lewat override supaya `BannerPembaruanWindows` bisa membacanya. Sidik
+/// Studio menitipkan pembarunya sendiri ke provider yang sama.
+final pembaruWindowsProvider = Provider<PembaruWindows?>((ref) => null);
 
 final penyiapUpdateProvider = Provider<PenyiapUpdate>((ref) {
   return PenyiapUpdateAsli();

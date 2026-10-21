@@ -6647,4 +6647,24 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get lkAsliPilihAlatDulu =>
       'Pilih alatnya dulu, lalu ketuk tombol kamera \"Foto worksheet\" di atas lembar.';
+
+  @override
+  String pembaruanWindowsSiap(String versi) {
+    return 'Versi $versi siap — mulai ulang untuk memasang';
+  }
+
+  @override
+  String get pembaruanWindowsKeterangan =>
+      'Simpan pekerjaan dulu. Aplikasi akan tertutup lalu terbuka lagi dengan versi baru.';
+
+  @override
+  String get pembaruanWindowsMulaiUlang => 'Mulai ulang sekarang';
+
+  @override
+  String get pembaruanWindowsNanti =>
+      'Nanti — dipasang saat aplikasi dibuka lagi';
+
+  @override
+  String get pembaruanWindowsGagal =>
+      'Pembaruan belum bisa dipasang. Tutup lalu buka lagi aplikasinya untuk mencoba lagi.';
 }

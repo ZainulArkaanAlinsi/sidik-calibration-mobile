@@ -21,6 +21,7 @@ import '../alur/alur_kerja_screen.dart';
 import '../arsip/arsip_screen.dart';
 import '../dashboard/ringkasan_screen.dart';
 import '../../widgets/pemantau_antrean.dart';
+import '../../widgets/pemeriksa_pembaruan.dart';
 import '../equipment/equipment_list_screen.dart';
 import '../history/history_screen.dart';
 import '../profile/profile_screen.dart';
@@ -75,29 +76,32 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
       // teknisi bisa masuk kapan aja, dan admin jarang lagi buka dashboard
       // waktu itu terjadi.
       body: PemantauAntrean(
-        child: Row(
-          children: [
-            SizedBox(
-              width: _lebarSidebar,
-              child: _Sidebar(
-                seksi: _saring(menu),
-                dipilih: aktif.id,
-                cari: _cari,
-                onCari: (v) => setState(() => _cari = v),
-                onPilih: (id) => setState(() => _dipilih = id),
+        // Banner pembaruan Windows ("siap — mulai ulang") untuk semua peran.
+        child: PemeriksaPembaruan(
+          child: Row(
+            children: [
+              SizedBox(
+                width: _lebarSidebar,
+                child: _Sidebar(
+                  seksi: _saring(menu),
+                  dipilih: aktif.id,
+                  cari: _cari,
+                  onCari: (v) => setState(() => _cari = v),
+                  onPilih: (id) => setState(() => _dipilih = id),
+                ),
               ),
-            ),
-            const VerticalDivider(width: 1, thickness: 1),
-            Expanded(
-              child: Column(
-                children: [
-                  const _BilahAtas(),
-                  const Divider(height: 1, thickness: 1),
-                  Expanded(child: aktif.bangun()),
-                ],
+              const VerticalDivider(width: 1, thickness: 1),
+              Expanded(
+                child: Column(
+                  children: [
+                    const _BilahAtas(),
+                    const Divider(height: 1, thickness: 1),
+                    Expanded(child: aktif.bangun()),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

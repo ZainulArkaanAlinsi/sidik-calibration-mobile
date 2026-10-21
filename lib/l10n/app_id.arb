@@ -2872,5 +2872,10 @@
   "aturanAsliMpeBelumAda": "MPE kelas belum tersedia, dipakai batas kasar 1%",
   "aturanAsliDuaUut": "Dua pembacaan UUT di kolom ini berselisih terlalu jauh",
   "aturanAsliBlokTidakLengkap": "Kolom tidak lengkap: sel ini kosong padahal sel lain di kolom yang sama terisi",
-  "lkAsliPilihAlatDulu": "Pilih alatnya dulu, lalu ketuk tombol kamera \"Foto worksheet\" di atas lembar."
+  "lkAsliPilihAlatDulu": "Pilih alatnya dulu, lalu ketuk tombol kamera \"Foto worksheet\" di atas lembar.",
+  "pembaruanWindowsSiap": "Versi {versi} siap — mulai ulang untuk memasang",
+  "pembaruanWindowsKeterangan": "Simpan pekerjaan dulu. Aplikasi akan tertutup lalu terbuka lagi dengan versi baru.",
+  "pembaruanWindowsMulaiUlang": "Mulai ulang sekarang",
+  "pembaruanWindowsNanti": "Nanti — dipasang saat aplikasi dibuka lagi",
+  "pembaruanWindowsGagal": "Pembaruan belum bisa dipasang. Tutup lalu buka lagi aplikasinya untuk mencoba lagi."
 }

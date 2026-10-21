@@ -17,6 +17,7 @@ import '../history/history_screen.dart';
 import '../admin/antrean_approval_screen.dart';
 import '../alur/alur_kerja_screen.dart';
 import '../../widgets/pemantau_antrean.dart';
+import '../../widgets/pemeriksa_pembaruan.dart';
 import '../notification/notification_screen.dart';
 import '../jatuh_tempo/layar_jatuh_tempo.dart';
 import '../pelacakan/telusuri_sertifikat_screen.dart';
@@ -151,21 +152,26 @@ class MainShell extends ConsumerWidget {
           // Lihat catatan di DesktopShell: pemantau antrean dibungkus di luar
           // isi supaya tandanya muncul di layar mana pun.
           body: PemantauAntrean(
-            child: pakaiRail
-                ? Row(
-                    children: [
-                      _RailSamping(
-                        selectedIndex: selected,
-                        onSelected: pilihTab,
-                        items: items,
-                        tanpaMenu: teknisi,
-                        dibentangkan: constraints.maxWidth >= _lebarRailPanjang,
-                      ),
-                      const VerticalDivider(width: 1, thickness: 1),
-                      Expanded(child: isi),
-                    ],
-                  )
-                : isi,
+            // Banner + cek ulang pembaruan untuk SEMUA peran, di tab mana pun
+            // (lihat `PemeriksaPembaruan`).
+            child: PemeriksaPembaruan(
+              child: pakaiRail
+                  ? Row(
+                      children: [
+                        _RailSamping(
+                          selectedIndex: selected,
+                          onSelected: pilihTab,
+                          items: items,
+                          tanpaMenu: teknisi,
+                          dibentangkan:
+                              constraints.maxWidth >= _lebarRailPanjang,
+                        ),
+                        const VerticalDivider(width: 1, thickness: 1),
+                        Expanded(child: isi),
+                      ],
+                    )
+                  : isi,
+            ),
           ),
           // Navbar bawah cuma buat layar sempit. Di desktop dua-duanya nongol
           // bakal jadi dua kontrol yang isinya sama persis — bingungin, dan
