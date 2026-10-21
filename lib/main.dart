@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app.dart';
 import 'core/config/app_config.dart';
+import 'providers/versi_provider.dart';
 import 'services/ketukan_push.dart';
 import 'services/mock_store.dart';
 import 'services/pembaru_windows.dart';
@@ -44,7 +45,15 @@ Future<void> main() async {
   final pembaru = await _pembaruWindows();
   if (pembaru != null && await pembaru.terapkanKalauSiap()) exit(0);
 
-  runApp(const ProviderScope(child: SidikApp()));
+  runApp(
+    ProviderScope(
+      overrides: [
+        // Bannernya ("versi X siap — mulai ulang") membaca pembaru yang sama.
+        if (pembaru != null) pembaruWindowsProvider.overrideWithValue(pembaru),
+      ],
+      child: const SidikApp(),
+    ),
+  );
 
   pembaru?.mulaiCekBerkala();
 }

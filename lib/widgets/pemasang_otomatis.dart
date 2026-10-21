@@ -3,13 +3,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/pengamat_rute.dart';
+import '../providers/navigation_provider.dart';
 import '../providers/versi_provider.dart';
 import '../services/pemasang_sesi.dart';
 import '../services/pengunduh_apk.dart';
 import 'dialog_update.dart';
 
 /// Menampilkan pop-up pembaruan ([DialogUpdate]) SENDIRI waktu aplikasi
-/// dibuka di dashboard dan ada versi baru, lalu memasangnya diam-diam waktu
+/// dibuka (sejak 22 Okt 2026 dipasang di shell lewat `PemeriksaPembaruan`,
+/// jadi berlaku untuk semua peran — dulu cuma di dashboard) dan ada versi baru, lalu memasangnya diam-diam waktu
 /// aplikasi ditinggalkan kalau Android mengizinkan.
 ///
 /// Membungkus isi layar dan memulangkannya apa adanya — nol pengaruh ke tata
@@ -65,7 +68,10 @@ class PemasangOtomatis extends ConsumerStatefulWidget {
 }
 
 class _PemasangOtomatisState extends ConsumerState<PemasangOtomatis>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver
+    implements RouteAware {
+  ModalRoute<void>? _ruteTerdaftar;
+
   /// Pemasangan diam cukup dicoba sekali per proses: kalau berhasil, prosesnya
   /// memang dimatikan Android; kalau gagal, mengulang tiap kali aplikasi
   /// ditinggal cuma menulis 68 MB berulang ke sesi yang ditolak.
@@ -84,8 +90,20 @@ class _PemasangOtomatisState extends ConsumerState<PemasangOtomatis>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final rute = ModalRoute.of(context);
+    if (rute != _ruteTerdaftar) {
+      pengamatRute.unsubscribe(this);
+      _ruteTerdaftar = rute;
+      if (rute != null) pengamatRute.subscribe(this, rute);
+    }
+  }
+
+  @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    pengamatRute.unsubscribe(this);
     super.dispose();
   }
 
@@ -95,7 +113,33 @@ class _PemasangOtomatisState extends ConsumerState<PemasangOtomatis>
         keadaan == AppLifecycleState.hidden) {
       unawaited(_mungkinPasangDiam());
     }
+    // Pop-up yang terlewat (pemeriksaan selesai waktu layar lain di atas,
+    // atau waktu aplikasi di latar) dicoba lagi. Giliran sekali-per-proses
+    // tetap berlaku, dan syarat "shell teratas" tetap diperiksa di `_buka`.
+    if (keadaan == AppLifecycleState.resumed) unawaited(_mungkinBuka());
   }
+
+  /// Layar yang menumpuk di atas shell ditutup — shell teratas lagi.
+  @override
+  void didPopNext() => unawaited(_mungkinBuka());
+
+  @override
+  void didPush() {}
+
+  @override
+  void didPop() {}
+
+  @override
+  void didPushNext() {}
+
+  /// Pasang diam cuma boleh dari tab pertama (dashboard / Kalibrasi teknisi).
+  ///
+  /// Sejak lapisan ini pindah ke shell (22 Okt 2026), "rute teratas" berarti
+  /// shell di tab MANA PUN — termasuk Profil, yang membuka pemilih foto. Pemilih
+  /// itu membuat aplikasi masuk latar (`paused`), dan pasang diam di saat itu
+  /// mematikan proses di tengah suntingan profil. Tab pertama tidak membuka
+  /// pemilih atau formulir di tempat; formulir kalibrasi selalu di-push.
+  bool get _tabAmanPasangDiam => ref.read(selectedTabProvider) == 0;
 
   /// Pemutakhiran TANPA ketukan (Android 12+, sesudah aplikasi ini tercatat
   /// sebagai pemasangnya sendiri — lihat `PemasangSesi`).
@@ -107,11 +151,13 @@ class _PemasangOtomatisState extends ConsumerState<PemasangOtomatis>
   /// lembar kerja — termasuk saat dia pindah ke aplikasi kamera buat memotret
   /// lembar, yang juga membuat aplikasi ini "ditinggalkan" — isian yang belum
   /// dikirim ikut hilang. Jadi syaratnya: aplikasi masuk latar DAN yang terakhir
-  /// dilihat dashboard (tidak ada layar lain yang menumpuk di atasnya).
+  /// dilihat shell di tab pertama (tidak ada layar lain yang menumpuk di
+  /// atasnya; lihat [_tabAmanPasangDiam]).
   /// Dibuka lagi berikutnya, versinya sudah baru.
   Future<void> _mungkinPasangDiam() async {
     if (_diamSudahDicoba || !mounted) return;
     if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
+    if (!_tabAmanPasangDiam) return;
 
     final rilis = ref.read(updateTersediaProvider).value;
     if (rilis == null) return;
@@ -120,6 +166,9 @@ class _PemasangOtomatisState extends ConsumerState<PemasangOtomatis>
     final berkas = await ref.read(penyiapUpdateProvider).apkSiap(rilis.versi);
     if (berkas == null || !mounted) return;
     if (!await sesi.bisaTanpaKetukan()) return;
+    // Diperiksa ulang sesudah jeda di atas: tab atau rute bisa sudah berubah.
+    if (!mounted || !_tabAmanPasangDiam) return;
+    if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
 
     _diamSudahDicoba = true;
     try {
@@ -129,7 +178,21 @@ class _PemasangOtomatisState extends ConsumerState<PemasangOtomatis>
     }
   }
 
+  /// Penjaga supaya pembukaan dari `initState` dan dari `ref.listen` (rilis
+  /// yang baru ketahuan di cek ulang) tidak berjalan bersamaan.
+  bool _sedangMembuka = false;
+
   Future<void> _mungkinBuka() async {
+    if (_sedangMembuka) return;
+    _sedangMembuka = true;
+    try {
+      await _buka();
+    } finally {
+      _sedangMembuka = false;
+    }
+  }
+
+  Future<void> _buka() async {
     final rilis = await ref.read(updateTersediaProvider.future);
     if (rilis == null) return;
 
@@ -173,5 +236,18 @@ class _PemasangOtomatisState extends ConsumerState<PemasangOtomatis>
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) {
+    // Rilis yang baru ketahuan SESUDAH aplikasi dibuka — lewat cek ulang
+    // berkala `PemeriksaPembaruan` — juga mendapat pop-up, asal giliran
+    // proses ini belum terpakai (pemeriksaan pertama yang gagal tanpa sinyal
+    // tidak menghabiskannya).
+    ref.listen(updateTersediaProvider, (sebelum, sesudah) {
+      final baru = sesudah.value;
+      if (baru != null && baru.versi != sebelum?.value?.versi) {
+        unawaited(_mungkinBuka());
+      }
+    });
+
+    return widget.child;
+  }
 }

@@ -11682,6 +11682,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pick the instrument first, then tap the \"Photo worksheet\" camera button above the sheet.'**
   String get lkAsliPilihAlatDulu;
+
+  /// No description provided for @pembaruanWindowsSiap.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {versi} is ready — restart to install'**
+  String pembaruanWindowsSiap(String versi);
+
+  /// No description provided for @pembaruanWindowsKeterangan.
+  ///
+  /// In en, this message translates to:
+  /// **'Save your work first. The app closes and reopens on the new version.'**
+  String get pembaruanWindowsKeterangan;
+
+  /// No description provided for @pembaruanWindowsMulaiUlang.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart now'**
+  String get pembaruanWindowsMulaiUlang;
+
+  /// No description provided for @pembaruanWindowsNanti.
+  ///
+  /// In en, this message translates to:
+  /// **'Later — installs the next time the app opens'**
+  String get pembaruanWindowsNanti;
+
+  /// No description provided for @pembaruanWindowsGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The update could not be installed yet. Close and reopen the app to try again.'**
+  String get pembaruanWindowsGagal;
 }
 
 class _AppLocalizationsDelegate

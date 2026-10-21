@@ -69,7 +69,12 @@ class VersiAplikasi {
     final b = ukuran;
     if (b == null || b <= 0) return null;
 
-    return '${(b / 1024 / 1024).round()} MB';
+    // "0 MB" (ukuran cadangan yang tidak masuk akal) sama tidak bergunanya
+    // dengan tidak tahu — tombolnya jatuh ke label tanpa ukuran.
+    final mb = (b / 1024 / 1024).round();
+    if (mb <= 0) return null;
+
+    return '$mb MB';
   }
 
   /// Versi ini lebih baru daripada [terpasang]?

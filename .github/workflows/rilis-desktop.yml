@@ -34,14 +34,14 @@ on:
       - main
   workflow_dispatch:
 
-  # Jalur APK dipicu MANUAL — sejak 4 Sep 2026 itu SATU-SATUNYA pemicunya,
-  # karena tiap rilis memunculkan banner "ada versi baru" di HP teknisi
-  # (alasan lengkapnya di kepala `apk-rilis-cloud.yml`). Dulu kasusnya cuma
-  # sesekali, mis. ganti URL server tanpa ganti kode; sekarang selalu.
+  # Jalur APK punya DUA pemicu (kepala `apk-rilis-cloud.yml`): otomatis tiap
+  # push ke `main` yang menyentuh kode aplikasi (sejak 18 Sep 2026), plus
+  # dispatch MANUAL — dipakai waktu yang berubah di luar repo, mis. URL
+  # server diganti tanpa satu baris kode pun berubah.
   #
-  # Waktu itu terjadi nggak ada push ke `main`, jadi workflow ini nggak ikut
-  # jalan — dan zip Windows/macOS di halaman unduh tetap bawa API_BASE_URL
-  # yang LAMA.
+  # Dispatch manual itu nggak disertai push ke `main`, jadi workflow ini
+  # nggak ikut jalan — dan zip Windows/macOS di halaman unduh tetap bawa
+  # API_BASE_URL yang LAMA.
   #
   # Gagalnya diam-diam, dan itu yang bikin mahal: halaman unduhnya kelihatan
   # normal, tombolnya jalan, aplikasinya kebuka — cuma nembak alamat yang udah
@@ -299,6 +299,147 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  # Sidik Studio (`studio/`) untuk Windows — aplikasi terpisah dengan
+  # pembaruan otomatisnya sendiri (`PembaruWindows` paket bersama, manifest
+  # `versi-studio-windows.json`). Polanya sengaja PERSIS job `build` di atas:
+  # penjagaan URL server, nomor versi dari jumlah commit, zip seluruh folder
+  # Release, manifest `utf8NoBOM`. Bedanya cuma direktori kerja dan nama berkas.
+  #
+  # Gagalnya job ini TIDAK menahan halaman unduh app lapangan — lihat `if:` di
+  # job `terbitkan`. Studio yang tidak terbit cuma berarti manifest-nya tidak
+  # ada di deploy itu, dan Studio terpasang diam (pembaru membaca 404 = tidak
+  # ada pembaruan).
+  studio:
+    # Syarat yang sama persis dengan job `build` — alasannya ditulis di sana.
+    if: >-
+      github.event_name != 'workflow_run'
+      || (github.event.workflow_run.event == 'workflow_dispatch'
+          && github.event.workflow_run.conclusion == 'success'
+          && github.event.workflow_run.head_branch == 'main')
+    runs-on: windows-latest
+    name: studio windows
+
+    defaults:
+      run:
+        working-directory: studio
+
+    steps:
+      # `ref` + `fetch-depth: 0` — alasan yang sama dengan job `build`.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Pastiin URL server udah dipasang
+        shell: bash
+        env:
+          URL: ${{ vars.API_BASE_URL }}
+        run: |
+          if [ -z "$URL" ]; then
+            echo "::error::Repository variable API_BASE_URL belum diisi. Lihat komentar di atas berkas workflow ini."
+            exit 1
+          fi
+          case "$URL" in
+            *"<"*|*">"*)
+              echo "::error::API_BASE_URL masih berisi contoh dari dokumentasi ($URL). Ganti dengan URL backend yang asli."
+              exit 1 ;;
+            https://*) ;;
+            *)
+              echo "::error::API_BASE_URL harus mulai dengan https:// (sekarang: $URL)."
+              exit 1 ;;
+          esac
+          case "$URL" in
+            */api|*/api/)
+              echo "::error::API_BASE_URL jangan pakai /api di belakang — workflow ini yang nambahin sendiri."
+              exit 1 ;;
+          esac
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+      - run: flutter gen-l10n
+
+      # Test perilaku Studio. Berkas yang memuat golden (`matchesGoldenFile`)
+      # dilewati dengan
+      # alasan yang sama dengan `--exclude-tags screenshot` di job `build`:
+      # screenshot basi bukan alasan menahan paket — itu catatan buat yang
+      # mengubah tampilan, dan golden Studio dibuat di laptop Windows, bukan
+      # di runner.
+      - name: Test Studio (tanpa golden)
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter test $(grep -L matchesGoldenFile test/*_test.dart)
+
+      # Dasar `major.minor` dari `studio/pubspec.yaml`, nomor build = jumlah
+      # commit repo — sumber yang sama dengan job `build`, jadi Studio dan app
+      # lapangan dari commit yang sama ber-build sama.
+      - name: Susun nomor versi
+        id: versi
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          DASAR=$(grep -m1 '^version:' pubspec.yaml | sed 's/^version:[[:space:]]*//' | cut -d'+' -f1)
+          MAYOR_MINOR=$(cut -d'.' -f1,2 <<<"$DASAR")
+
+          if [ -z "$MAYOR_MINOR" ]; then
+            echo "::error::Gagal membaca 'version:' dari studio/pubspec.yaml."
+            exit 1
+          fi
+
+          NOMOR_BUILD=$(git rev-list --count HEAD)
+
+          if [ "$NOMOR_BUILD" -lt 100 ]; then
+            echo "::error::Jumlah commit kebaca $NOMOR_BUILD — kekecilan, hampir pasti checkout-nya dangkal. Pastikan fetch-depth: 0 masih terpasang di langkah checkout."
+            exit 1
+          fi
+
+          echo "nama=${MAYOR_MINOR}.${NOMOR_BUILD}" >> "$GITHUB_OUTPUT"
+          echo "build=$NOMOR_BUILD" >> "$GITHUB_OUTPUT"
+          echo "Versi Sidik Studio windows: ${MAYOR_MINOR}.${NOMOR_BUILD} (build ${NOMOR_BUILD})" >> "$GITHUB_STEP_SUMMARY"
+
+      # `VERSI_STUDIO` = header `X-Versi-Klien` (`lingkungan_studio.dart`),
+      # disamakan dengan versi exe yang dibandingkan pembaru.
+      - name: Build studio windows
+        run: >
+          flutter build windows --release
+          --build-name=${{ steps.versi.outputs.nama }}
+          --build-number=${{ steps.versi.outputs.build }}
+          --dart-define=APP_ENV=prod
+          --dart-define=API_BASE_URL=${{ vars.API_BASE_URL }}/api
+          --dart-define=VERSI_STUDIO=${{ steps.versi.outputs.nama }}+${{ steps.versi.outputs.build }}
+
+      # Sama dengan "Bungkus windows": SELURUH folder Release (DLL + data/),
+      # plus manifest yang dibaca `PembaruWindows` di Studio yang terpasang.
+      - name: Bungkus studio windows
+        shell: pwsh
+        run: |
+          Compress-Archive -Path build/windows/x64/runner/Release/* `
+                           -DestinationPath sidik-studio-windows.zip
+
+          [ordered]@{
+            versi     = '${{ steps.versi.outputs.nama }}'
+            build     = [int]'${{ steps.versi.outputs.build }}'
+            ukuran    = (Get-Item sidik-studio-windows.zip).Length
+            url_unduh = 'sidik-studio-windows.zip'
+          } | ConvertTo-Json | Set-Content -Encoding utf8NoBOM versi-studio-windows.json
+          Get-Content versi-studio-windows.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sidik-studio-windows
+          # Path artefak relatif ke akar workspace, bukan `working-directory`.
+          path: |
+            studio/sidik-studio-windows.zip
+            studio/versi-studio-windows.json
+          if-no-files-found: error
+          retention-days: 30
+
   # Bundel web, dilayani di SUBPATH `/app` situs yang sama.
   #
   # ## Kenapa numpang workflow ini, bukan workflow sendiri
@@ -379,9 +520,17 @@ jobs:
           retention-days: 30
 
   terbitkan:
-    # Nggak perlu `if:` sendiri: begitu `build` dan `web` dilewati, job ini ikut
-    # dilewati — itu perilaku bawaan `needs`.
-    needs: [build, web]
+    # `studio` ikut ditunggu supaya zip + manifest-nya masuk deploy yang SAMA
+    # (`firebase deploy` mengganti seluruh situs), tapi hasilnya TIDAK menahan
+    # halaman unduh app lapangan. Karena itu `always()`: tanpa itu `needs`
+    # melewati job ini begitu `studio` gagal. Syarat lama dipertahankan lewat
+    # cek `build` & `web` sukses — dilewati (`skipped`) tetap bukan `success`,
+    # jadi saat keduanya dilewati job ini ikut dilewati seperti sebelumnya.
+    needs: [build, web, studio]
+    if: >-
+      always()
+      && needs.build.result == 'success'
+      && needs.web.result == 'success'
     runs-on: ubuntu-latest
     name: terbitkan halaman unduh
 
@@ -446,6 +595,20 @@ jobs:
             echo "::error::versi-windows-v2.json nggak valid — aplikasi Windows yang terpasang nggak bakal bisa update."
             exit 1
           }
+
+          # Sidik Studio: terbit kalau job `studio` sukses. Kalau tidak,
+          # dilewati dengan peringatan — Studio terpasang membaca manifest 404
+          # sebagai "tidak ada pembaruan", bukan galat.
+          if [ -f unduhan/sidik-studio-windows/versi-studio-windows.json ]; then
+            cp unduhan/sidik-studio-windows/sidik-studio-windows.zip public/
+            cp unduhan/sidik-studio-windows/versi-studio-windows.json public/
+            python3 -c "import json; d=json.load(open('public/versi-studio-windows.json')); assert d['versi'] and d['ukuran']>0, d" || {
+              echo "::error::versi-studio-windows.json nggak valid — Sidik Studio yang terpasang nggak bakal bisa update."
+              exit 1
+            }
+          else
+            echo "::warning::Artefak Sidik Studio nggak ada (job studio gagal/dilewati) — Studio nggak ikut terbit di deploy ini."
+          fi
 
           # Web app duduk di SUBPATH `/app`, halaman unduh tetap di akar.
           # Dirakit di sini, bukan di-deploy sendiri, karena `firebase deploy`

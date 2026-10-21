@@ -118,12 +118,9 @@ class _BannerUpdateState extends ConsumerState<BannerUpdate> {
 
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.fromLTRB(
-        AppSpacing.md,
-        AppSpacing.md,
-        AppSpacing.md,
-        0,
-      ),
+      // Sejak 22 Okt 2026 duduk di dasar shell (`PemeriksaPembaruan`), bukan
+      // di puncak daftar dashboard — jadi jaraknya ke segala arah.
+      margin: const EdgeInsets.all(AppSpacing.md),
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: warnaLatar,
@@ -189,24 +186,27 @@ class _BannerUpdateState extends ConsumerState<BannerUpdate> {
               ),
             ],
             const SizedBox(height: AppSpacing.sm),
-            Row(
-              children: [
-                FilledButton.icon(
-                  key: const Key('banner_update_pasang'),
-                  onPressed: () => _pasang(rilis),
-                  icon: const Icon(Icons.download, size: 18),
-                  label: Text(
-                    // Ukuran cuma ditulis kalau memang akan diunduh sekarang.
-                    // Sudah siap = tidak ada yang diunduh, jadi menulis "68 MB"
-                    // justru bohong dan bikin ragu menekan.
-                    siap
-                        ? 'PASANG SEKARANG'
-                        : ukuran == null
-                        ? 'PASANG SEKARANG'
-                        : 'PASANG ($ukuran)',
-                  ),
+            // Tanpa `Row` pembungkus: tema aplikasi memberi FilledButton
+            // `minimumSize: Size.fromHeight(..)` (lebar tak hingga), dan di
+            // dalam `Row` itu memecah tata letak — banner ini tidak pernah
+            // tergambar benar di aplikasi sungguhan (ketahuan 22 Okt 2026).
+            Align(
+              alignment: Alignment.centerLeft,
+              child: FilledButton.icon(
+                key: const Key('banner_update_pasang'),
+                onPressed: () => _pasang(rilis),
+                icon: const Icon(Icons.download, size: 18),
+                label: Text(
+                  // Ukuran cuma ditulis kalau memang akan diunduh sekarang.
+                  // Sudah siap = tidak ada yang diunduh, jadi menulis "68 MB"
+                  // justru bohong dan bikin ragu menekan.
+                  siap
+                      ? 'PASANG SEKARANG'
+                      : ukuran == null
+                      ? 'PASANG SEKARANG'
+                      : 'PASANG ($ukuran)',
                 ),
-              ],
+              ),
             ),
             // Ukuran ditulis di tombol, bukan disembunyikan: teknisi di lokasi
             // pelanggan memakai data seluler, dan 68 MB itu keputusan yang

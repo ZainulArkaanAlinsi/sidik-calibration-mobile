@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/navigasi_global.dart';
+import 'core/pengamat_rute.dart';
 import 'core/theme/app_theme.dart';
 import 'l10n/app_localizations.dart';
 import 'providers/kabar_masuk_provider.dart';
@@ -55,6 +56,8 @@ class SidikApp extends ConsumerWidget {
       // Dipakai buat mbuka layar tujuan waktu notifikasi sistem diketuk —
       // di situ nggak ada `BuildContext` sama sekali.
       navigatorKey: navigatorKey,
+      // Pop-up pembaruan dicoba lagi waktu shell kembali teratas.
+      navigatorObservers: [pengamatRute],
       title: 'PT Sidik — Kalibrasi',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,

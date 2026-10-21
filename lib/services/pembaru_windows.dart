@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:io' as io show pid;
 
-import 'package:flutter/foundation.dart' show debugPrint, visibleForTesting;
+import 'package:flutter/foundation.dart'
+    show ValueNotifier, debugPrint, visibleForTesting;
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -64,12 +65,21 @@ class PembaruWindows {
        _pid = pid ?? io.pid;
 
   /// Pembaru untuk aplikasi yang sedang berjalan ini.
-  static Future<PembaruWindows> untukAplikasiIni() async {
+  ///
+  /// [urlManifest] diganti oleh Sidik Studio (`versi-studio-windows.json`):
+  /// mesinnya sama, rilisnya beda. Folder kerjanya tidak bertabrakan karena
+  /// `getApplicationSupportDirectory` di Windows mengikuti ProductName exe
+  /// ("PT Sidik - Kalibrasi" lawan "Sidik Studio").
+  static Future<PembaruWindows> untukAplikasiIni({
+    String urlManifest = urlManifestBawaan,
+  }) async {
     final dukungan = await getApplicationSupportDirectory();
 
     return PembaruWindows(
-      urlManifest: urlManifestBawaan,
-      folderKerja: Directory('${dukungan.path}${Platform.pathSeparator}pembaruan'),
+      urlManifest: urlManifest,
+      folderKerja: Directory(
+        '${dukungan.path}${Platform.pathSeparator}pembaruan',
+      ),
       fileExe: File(Platform.resolvedExecutable),
       versiTerpasang: () async => (await PackageInfo.fromPlatform()).version,
     );
@@ -98,6 +108,14 @@ class PembaruWindows {
 
   Timer? _timer;
   bool _sedangMenyiapkan = false;
+
+  /// Versi yang SUDAH terunduh dan menunggu dipasang, atau `null`.
+  ///
+  /// Diisi [siapkan]; dibaca `BannerPembaruanWindows` supaya orangnya tahu
+  /// ada versi baru yang tinggal dipasang dengan mulai ulang — sebelum ini
+  /// pemasangannya cuma terjadi diam-diam di pembukaan berikutnya, dan laptop
+  /// lab yang dibiarkan terbuka berhari-hari tidak pernah sampai ke sana.
+  final ValueNotifier<String?> versiSiap = ValueNotifier<String?>(null);
 
   File get _penanda => File(_jalur('siap.json'));
   File get _catatanGagal => File(_jalur('gagal.txt'));
@@ -134,6 +152,7 @@ class PembaruWindows {
       if (siap != null &&
           siap.versi == rilis.versi &&
           await File(siap.zip).exists()) {
+        versiSiap.value = rilis.versi;
         return true;
       }
 
@@ -146,6 +165,7 @@ class PembaruWindows {
         flush: true,
       );
 
+      versiSiap.value = rilis.versi;
       return true;
     } catch (e) {
       debugPrint('Pembaruan Windows belum bisa disiapkan: $e');
@@ -164,13 +184,16 @@ class PembaruWindows {
 
       final terpasang = await versiTerpasang();
       final zip = File(siap.zip);
-      final masihLebihBaru =
-          VersiAplikasi(versi: siap.versi, urlUnduh: '').lebihBaruDari(terpasang);
+      final masihLebihBaru = VersiAplikasi(
+        versi: siap.versi,
+        urlUnduh: '',
+      ).lebihBaruDari(terpasang);
 
       if (!masihLebihBaru || !await zip.exists()) {
         // Sudah terpasang (pembukaan pertama sesudah pembaruan berhasil) atau
         // zip-nya hilang: bersihkan supaya tidak dicoba lagi.
         await _bersihkan(siap);
+        versiSiap.value = null;
         return false;
       }
 
@@ -181,6 +204,7 @@ class PembaruWindows {
       if (siap.dicoba) {
         await _catatGagal(siap.versi);
         await _bersihkan(siap);
+        versiSiap.value = null;
         return false;
       }
 
@@ -349,7 +373,9 @@ class PembaruWindows {
     }
   }
 
-  Future<void> _bersihkan(({String versi, String zip, bool dicoba}) siap) async {
+  Future<void> _bersihkan(
+    ({String versi, String zip, bool dicoba}) siap,
+  ) async {
     if (await _penanda.exists()) await _penanda.delete();
     final zip = File(siap.zip);
     if (await zip.exists()) await zip.delete();
@@ -357,7 +383,11 @@ class PembaruWindows {
 
   Future<void> _catatGagal(String versi) async {
     await folderKerja.create(recursive: true);
-    await _catatanGagal.writeAsString('$versi\r\n', mode: FileMode.append, flush: true);
+    await _catatanGagal.writeAsString(
+      '$versi\r\n',
+      mode: FileMode.append,
+      flush: true,
+    );
   }
 
   Future<bool> _pernahGagal(String versi) async {
@@ -396,7 +426,8 @@ class PembaruWindows {
   /// terlepas dari aplikasi yang sebentar lagi keluar. Mode normal juga jalan
   /// dan dipakai cadangan kalau `conhost` tidak ada.
   static Future<void> _jalankanTerlepas(String skrip) async {
-    final sistem = '${Platform.environment['SystemRoot'] ?? r'C:\Windows'}\\System32';
+    final sistem =
+        '${Platform.environment['SystemRoot'] ?? r'C:\Windows'}\\System32';
     final powershell = [
       '$sistem\\WindowsPowerShell\\v1.0\\powershell.exe',
       '-NoProfile',
@@ -411,11 +442,10 @@ class PembaruWindows {
 
     final conhost = File('$sistem\\conhost.exe');
     if (await conhost.exists()) {
-      await Process.start(
-        conhost.path,
-        ['--headless', ...powershell],
-        mode: ProcessStartMode.detached,
-      );
+      await Process.start(conhost.path, [
+        '--headless',
+        ...powershell,
+      ], mode: ProcessStartMode.detached);
       return;
     }
 

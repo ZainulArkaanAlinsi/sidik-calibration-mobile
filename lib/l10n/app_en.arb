@@ -3738,5 +3738,17 @@
   "aturanAsliMpeBelumAda": "class MPE not available yet, rough 1% limit used",
   "aturanAsliDuaUut": "The two UUT readings in this column differ too much",
   "aturanAsliBlokTidakLengkap": "Column incomplete: this cell is empty while others in the same column are filled",
-  "lkAsliPilihAlatDulu": "Pick the instrument first, then tap the \"Photo worksheet\" camera button above the sheet."
+  "lkAsliPilihAlatDulu": "Pick the instrument first, then tap the \"Photo worksheet\" camera button above the sheet.",
+  "pembaruanWindowsSiap": "Version {versi} is ready — restart to install",
+  "@pembaruanWindowsSiap": {
+    "placeholders": {
+      "versi": {
+        "type": "String"
+      }
+    }
+  },
+  "pembaruanWindowsKeterangan": "Save your work first. The app closes and reopens on the new version.",
+  "pembaruanWindowsMulaiUlang": "Restart now",
+  "pembaruanWindowsNanti": "Later — installs the next time the app opens",
+  "pembaruanWindowsGagal": "The update could not be installed yet. Close and reopen the app to try again."
 }

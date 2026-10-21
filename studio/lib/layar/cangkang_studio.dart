@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sidik_calibration/widgets/banner_pembaruan_windows.dart';
 import 'package:sidik_calibration/models/user.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/izin_provider.dart';
@@ -198,6 +199,9 @@ class _CangkangStudioState extends ConsumerState<CangkangStudio> {
                   ],
                 ),
               ),
+              // "Versi X siap — mulai ulang untuk memasang" (pembaru Windows
+              // Studio, `main.dart`). Kotak kosong bila tidak ada pembaruan.
+              const BannerPembaruanWindows(),
               if (tata == TataLetakStudio.sidebar) const BilahStatus(),
             ],
           ),
