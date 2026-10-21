@@ -10,6 +10,7 @@ import 'package:sidik_calibration/providers/dashboard_provider.dart';
 import 'package:sidik_calibration/providers/equipment_provider.dart';
 import 'package:sidik_calibration/providers/master_data_provider.dart'
     show customerLookupServiceProvider;
+import 'package:sidik_calibration/screens/teknisi/kalibrasi_teknisi_screen.dart';
 import 'package:sidik_calibration/services/category_service.dart';
 import 'package:sidik_calibration/services/customer_lookup_service.dart';
 import 'package:sidik_calibration/services/dashboard_service.dart';
@@ -142,15 +143,16 @@ void main() {
       expect(find.text('DRAFT KALIBRASI'), findsOneWidget);
     });
 
-    testWidgets('teknisi → judul "KALIBRASI SAYA", dua kartu antrean ada', (
-      tester,
-    ) async {
+    // Teknisi tidak punya dashboard sama sekali (K-50-14): tab pertamanya
+    // "Kalibrasi", dan dashboard bahkan tidak dibangun (tidak menembak API).
+    testWidgets('teknisi → tab Kalibrasi, tanpa dashboard', (tester) async {
       await tester.pumpWidget(_app(token: 'mock-token-2'));
       await tester.pumpAndSettle();
 
-      expect(find.text('KALIBRASI SAYA'), findsOneWidget);
-      expect(find.text('DRAFT KALIBRASI'), findsOneWidget);
-      expect(find.text('MENUNGGU APPROVAL'), findsOneWidget);
+      expect(find.byType(KalibrasiTeknisiScreen), findsOneWidget);
+      expect(find.text('KALIBRASI SAYA'), findsNothing);
+      expect(find.text('MENUNGGU APPROVAL'), findsNothing);
+      expect(find.byType(StatCard), findsNothing);
     });
 
     testWidgets('viewer → tombol aksi NGGAK dirender sama sekali', (

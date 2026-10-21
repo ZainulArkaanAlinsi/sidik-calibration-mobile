@@ -14,6 +14,38 @@ import '../../models/lembar_kerja.dart';
 import '../../models/lembar_kerja_submission.dart';
 import '../../services/peta_tabel_foto.dart';
 
+/// Identitas tabel grid di respons peta formulir asli (`tabel_id` = `grup` grid
+/// Enclosure di server: `TemplateLembarKerja::gridJadiTabel`).
+const idTabelGridServer = 'grid';
+
+/// Jenis satu baris kertas formulir Enclosure (0504).
+enum JenisBarisKertas { termokopel, indikator, suhuRuang }
+
+/// Baris ke-[barisKe] (basis-1, urutan kertas = `baris_ke` server) -> jenis dan
+/// urutannya. Susunan server: termokopel 1..[GridSensorBentuk.jumlahSensorSaran],
+/// lalu Indikator (bila ada), lalu Suhu Ruang (bila ada). `null` = baris itu
+/// tidak ada di lembar ini.
+({JenisBarisKertas jenis, int urutan})? barisKertasGrid(
+  GridSensorBentuk bentuk,
+  int barisKe,
+) {
+  if (barisKe < 1) return null;
+  final n = bentuk.jumlahSensorSaran < 1 ? 1 : bentuk.jumlahSensorSaran;
+  if (barisKe <= n) {
+    return (jenis: JenisBarisKertas.termokopel, urutan: barisKe);
+  }
+
+  var sisa = barisKe - n;
+  if (bentuk.barisIndikator) {
+    if (sisa == 1) return (jenis: JenisBarisKertas.indikator, urutan: 1);
+    sisa--;
+  }
+  if (bentuk.barisSuhuRuang && sisa == 1) {
+    return (jenis: JenisBarisKertas.suhuRuang, urutan: 1);
+  }
+  return null;
+}
+
 /// Satu baris termokopel di dalam satu set point.
 class BarisSensorState {
   BarisSensorState({required this.jumlahPengulangan, int? no, int? channel})
@@ -180,6 +212,90 @@ class SetPointGridState {
     final teks = titikCtl.text.trim().replaceAll(',', '.');
     return teks.isEmpty ? null : double.tryParse(teks);
   }
+
+  /// Belum ada satu pembacaan pun (termokopel, Indikator, Suhu Ruang). Titik
+  /// ukur yang sudah diketik tidak dihitung: set point begini masih boleh
+  /// menampung hasil foto satu lembar.
+  bool get tanpaPembacaan =>
+      sensor.every((s) => s.pembacaanCtl.every(_kosong)) &&
+      indikator.ctl.every(_kosong) &&
+      suhuRuang.ctl.every(_kosong);
+
+  // Dibaca dari TEKS kotak, bukan nilai terurai: ketikan terakhir belum tentu
+  // sudah lewat `bacaUlang()`.
+  static bool _kosong(TextEditingController c) => c.text.trim().isEmpty;
+
+  /// Tuang hasil foto FORMULIR ASLI (0504) ke set point INI.
+  ///
+  /// Alamat sel = POSISI di kertas: barisKe (urutan kertas) x repeatNo (nomor
+  /// kolom tercetak, diterjemahkan lewat `bentuk.pengulangan`, bukan dikurangi
+  /// satu). Peta 0504 tidak membaca nomor termokopel yang ditulis tangan, jadi
+  /// baris yang terisi TIDAK diberi nomor: teknisi mengetik nomor dari
+  /// sertifikat sensor (nomor menentukan koreksi dan Sensor Acuan).
+  ///
+  /// Kotak yang sudah berisi tidak pernah ditimpa; angka yang masuk ditandai
+  /// "dari foto" beserta tebakan mesinnya. Balik jumlah sel yang terisi.
+  int terapkanHasilFotoPosisi(
+    List<({int barisKe, int repeatNo, String teks, double? keyakinan})> sel,
+  ) {
+    var terisi = 0;
+
+    for (final s in sel) {
+      final index = bentuk.pengulangan.indexOf(s.repeatNo);
+      if (index < 0) continue;
+
+      final nilai = double.tryParse(s.teks.trim().replaceAll(',', '.'));
+      if (nilai == null) continue;
+
+      final posisi = barisKertasGrid(bentuk, s.barisKe);
+      if (posisi == null) continue;
+
+      final TextEditingController ctl;
+      final Set<int> dariFoto;
+      final Map<int, BacaanMesin> mesin;
+
+      switch (posisi.jenis) {
+        case JenisBarisKertas.termokopel:
+          while (sensor.length < posisi.urutan) {
+            tambahSensorBaris();
+          }
+          final b = sensor[posisi.urutan - 1];
+          ctl = b.pembacaanCtl[index];
+          dariFoto = b.dariFoto;
+          mesin = b.bacaanMesin;
+        case JenisBarisKertas.indikator:
+          ctl = indikator.ctl[index];
+          dariFoto = indikator.dariFoto;
+          mesin = indikator.bacaanMesin;
+        case JenisBarisKertas.suhuRuang:
+          ctl = suhuRuang.ctl[index];
+          dariFoto = suhuRuang.dariFoto;
+          mesin = suhuRuang.bacaanMesin;
+      }
+
+      if (ctl.text.trim().isNotEmpty) continue;
+
+      ctl.text = s.teks.trim();
+      dariFoto.add(index);
+      mesin[index] = BacaanMesin(teksMentah: s.teks, keyakinan: s.keyakinan);
+      terisi++;
+    }
+
+    if (terisi > 0) {
+      for (final b in sensor) {
+        b.bacaUlang();
+      }
+      indikator.bacaUlang();
+      suhuRuang.bacaUlang();
+    }
+
+    return terisi;
+  }
+
+  /// Tambah satu baris termokopel kosong di akhir.
+  void tambahSensorBaris() => sensor.add(
+    BarisSensorState(jumlahPengulangan: bentuk.pengulangan.length),
+  );
 
   /// Baris termokopel yang benar-benar terisi — yang dikirim ke backend.
   List<BarisSensorState> get sensorTerisi =>
@@ -538,6 +654,17 @@ class GridSensorState {
   }
 
   void tambahSetPoint() => setPoint.add(SetPointGridState(bentuk: bentuk));
+
+  /// Set point tujuan satu lembar foto: yang pertama belum punya pembacaan,
+  /// kalau tidak ada dibuatkan baru (satu lembar kertas = satu set point).
+  /// `baru` = set point-nya baru dibuat di sini.
+  ({SetPointGridState sp, bool baru}) setPointUntukFoto() {
+    for (final sp in setPoint) {
+      if (sp.tanpaPembacaan) return (sp: sp, baru: false);
+    }
+    tambahSetPoint();
+    return (sp: setPoint.last, baru: true);
+  }
 
   void hapusSetPoint(int index) {
     if (index < 0 || index >= setPoint.length) return;

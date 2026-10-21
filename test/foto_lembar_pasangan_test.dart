@@ -211,7 +211,11 @@ void main() {
       final s = LembarKerjaState(bentuk: b, clientRequestId: 'uji');
       addTearDown(s.dispose);
 
-      final tabel = tabelDari(b).first;
+      // Centrifuge kini dua tabel (Before/After, satu grup): pakai After dan
+      // id server uniknya.
+      final tabel = tabelDari(b).firstWhere(
+        (t) => t.tahap == 'sesudah_adjustment',
+      );
       expect(tabel.pengulangan, [2, 4, 6]);
 
       final titik = titikBaris(s, tabel, 0);
@@ -221,7 +225,7 @@ void main() {
       // index 5 — di luar jangkauan, jadi selnya dibuang diam-diam.
       final terisi = s.terapkanHasilPindai([
         (
-          tabelId: tabel.grup ?? tabel.tahap,
+          tabelId: 'pembacaan_standar_sesudah_adjustment',
           tahap: tabel.tahap,
           titikUkur: titik,
           repeatNo: 6,

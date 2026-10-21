@@ -15,19 +15,15 @@ import 'package:sidik_calibration/providers/jam_provider.dart';
 import 'package:sidik_calibration/providers/master_data_provider.dart';
 import 'package:sidik_calibration/providers/pengendalian_provider.dart';
 import 'package:sidik_calibration/providers/platform_provider.dart';
-import 'package:sidik_calibration/providers/pusat_pelanggan_provider.dart';
 import 'package:sidik_calibration/screens/dashboard/beranda_super_admin.dart';
 import 'package:sidik_calibration/screens/equipment/equipment_form_screen.dart';
 import 'package:sidik_calibration/screens/jatuh_tempo/layar_jatuh_tempo.dart';
 import 'package:sidik_calibration/screens/pelacakan/pelacakan_screen.dart';
-import 'package:sidik_calibration/screens/pelanggan/pusat_pelanggan_screen.dart';
-import 'package:sidik_calibration/screens/pengesahan/antrean_pengesahan_screen.dart';
 import 'package:sidik_calibration/services/customer_service.dart';
 import 'package:sidik_calibration/services/dashboard_service.dart';
 import 'package:sidik_calibration/services/equipment_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/pelacakan_service.dart';
-import 'package:sidik_calibration/services/pengesahan_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 
 import 'support/lewati_onboarding.dart';
@@ -207,7 +203,6 @@ List<Override> _semua({
   bool alatGagal = false,
   MockPelacakanService? pelacakan,
   MockCustomerService? pelanggan,
-  MockPengesahanService? pengesahan,
   MockDashboardService? dashboard,
 }) => [
   lewatiOnboarding,
@@ -222,9 +217,6 @@ List<Override> _semua({
   ),
   pelacakanServiceProvider.overrideWithValue(
     pelacakan ?? _PelacakanPelanggan(),
-  ),
-  pengesahanServiceProvider.overrideWithValue(
-    pengesahan ?? MockPengesahanService(),
   ),
   customerServiceProvider.overrideWithValue(pelanggan ?? MockCustomerService()),
 ];
@@ -268,7 +260,6 @@ Widget _appPenuh(
   List<Equipment>? alat,
   bool alatGagal = false,
   MockPelacakanService? pelacakan,
-  MockPengesahanService? pengesahan,
   MockDashboardService? dashboard,
 }) => ProviderScope(
   overrides: [
@@ -277,7 +268,6 @@ Widget _appPenuh(
       alat: alat,
       alatGagal: alatGagal,
       pelacakan: pelacakan,
-      pengesahan: pengesahan,
       dashboard: dashboard,
     ),
     pakaiPanelDesktopProvider.overrideWithValue(false),
@@ -593,144 +583,16 @@ void main() {
     });
   });
 
-  group('Pusat pelanggan', () {
-    testWidgets('daftar dengan jumlah alat & lencana lewat jadwal', (
-      tester,
-    ) async {
-      await _pasang(tester, _layar(const PusatPelangganScreen()));
-
-      expect(find.text('Pusat pelanggan'), findsOneWidget);
-      expect(find.text('2 pelanggan cocok'), findsOneWidget);
-      expect(find.text('PT Maju Jaya'), findsOneWidget);
-      expect(find.text('CV Sentosa Abadi'), findsOneWidget);
-      expect(find.text('3 alat'), findsOneWidget);
-      // Satu alat lewat jadwal per pelanggan (Ohaus → Maju Jaya, Lutron → Sentosa).
-      expect(find.text('1 lewat jadwal'), findsNWidgets(2));
-      expect(find.text('PIC Budi Santoso'), findsOneWidget);
-    });
-
-    testWidgets('mencari mengecilkan daftar; kata cari hidup di provider', (
-      tester,
-    ) async {
-      await _pasang(tester, _layar(const PusatPelangganScreen()));
-
-      await tester.enterText(find.byType(TextField), 'sentosa');
-      await tester.pump(const Duration(milliseconds: 500));
-      await tester.pumpAndSettle();
-
-      expect(find.text('1 pelanggan cocok'), findsOneWidget);
-      expect(find.text('PT Maju Jaya'), findsNothing);
-
-      // Realtime meng-invalidate daftar; kata cari tidak boleh ikut hilang.
-      final wadah = ProviderScope.containerOf(
-        tester.element(find.byType(PusatPelangganScreen)),
-      );
-      expect(wadah.read(kataCariPelangganProvider), 'sentosa');
-      wadah.invalidate(pusatPelangganProvider);
-      await tester.pumpAndSettle();
-      expect(find.text('1 pelanggan cocok'), findsOneWidget);
-    });
-
-    testWidgets('tidak ada yang cocok', (tester) async {
-      await _pasang(tester, _layar(const PusatPelangganScreen()));
-
-      await tester.enterText(find.byType(TextField), 'zzz');
-      await tester.pump(const Duration(milliseconds: 500));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Tidak ada pelanggan yang cocok.'), findsOneWidget);
-    });
-
-    testWidgets('server gagal: pesan + coba lagi', (tester) async {
-      await _pasang(
-        tester,
-        _layar(
-          const PusatPelangganScreen(),
-          pelanggan: MockCustomerService(gagal: true),
-        ),
-      );
-
-      expect(find.text('Daftar pelanggan gagal dimuat.'), findsOneWidget);
-      expect(find.text('Coba lagi'), findsOneWidget);
-    });
-
-    testWidgets('detail: identitas, alat yang perlu kalibrasi, paket jalan', (
-      tester,
-    ) async {
-      await _pasang(tester, _layar(const PusatPelangganScreen()));
-
-      await tester.tap(find.text('PT Maju Jaya'));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(DetailPelangganScreen), findsOneWidget);
-      expect(find.text('Jl. Industri No. 5, Bekasi'), findsOneWidget);
-      expect(find.text('Budi Santoso'), findsOneWidget);
-      expect(find.text('021-9876543'), findsOneWidget);
-      expect(find.text('budi@majujaya.co.id'), findsOneWidget);
-
-      // Alat Maju Jaya: Ohaus (lewat) & Micrometer (9 hari); Oven di luar 90 hari.
-      expect(find.text('Timbangan Ohaus'), findsOneWidget);
-      expect(find.text('Micrometer Mitutoyo'), findsOneWidget);
-      expect(find.text('Oven Memmert'), findsNothing);
-      // Alat pelanggan lain tidak ikut.
-      expect(find.text('Thermohygrometer Lutron'), findsNothing);
-
-      // Paket berjalan: yang sudah diserahkan tidak dihitung.
-      expect(find.text('ORD/2026/09/0034'), findsOneWidget);
-      expect(find.text('ORD/2026/09/0020'), findsNothing);
-      expect(find.text('ORD/2026/09/0035'), findsNothing);
-    });
-
-    testWidgets('detail: mengetuk paket membuka detail paketnya', (
-      tester,
-    ) async {
-      await _pasang(tester, _layar(const PusatPelangganScreen()));
-      await tester.tap(find.text('PT Maju Jaya'));
-      await tester.pumpAndSettle();
-
-      await tester.scrollUntilVisible(
-        find.text('ORD/2026/09/0034'),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.tap(find.text('ORD/2026/09/0034'));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(DetailPaketScreen), findsOneWidget);
-    });
-
-    testWidgets('detail: pelanggan tanpa alat bermasalah & tanpa paket', (
-      tester,
-    ) async {
-      await _pasang(
-        tester,
-        _layar(const PusatPelangganScreen(), alat: const []),
-      );
-      await tester.tap(find.text('CV Sentosa Abadi'));
-      await tester.pumpAndSettle();
-
-      expect(
-        find.text('Tidak ada alat yang lewat atau mendekati jatuh tempo.'),
-        findsOneWidget,
-      );
-      // Satu paket CV Sentosa masih berjalan (terlambat), jadi bagian paket
-      // tidak kosong.
-      expect(find.text('ORD/2026/09/0035'), findsOneWidget);
-    });
-  });
-
   group('Beranda super admin', () {
-    testWidgets('super admin dapat beranda sendiri: pengesahan, paket, '
-        'perhatian, aksi', (tester) async {
+    testWidgets('super admin dapat beranda sendiri: paket, '
+        'perhatian, aksi (tanpa panel pengesahan, K-50-07)', (tester) async {
       await _pasangPenuh(tester, _appPenuh(_superAdmin));
 
       expect(find.byType(BerandaSuperAdmin), findsOneWidget);
       expect(find.text('Halo, Eko Wibowo'), findsOneWidget);
-      expect(find.text('MENUNGGU PENGESAHAN KAMU'), findsOneWidget);
-      // Dua sesi di antrean mock.
-      expect(find.text('2'), findsWidgets);
-      expect(find.text('lembar kerja siap disahkan'), findsOneWidget);
-      expect(find.textContaining('Tertua: Timbangan Analitik'), findsOneWidget);
+      // Gerbang pengesahan dicabut: tidak ada panel maupun tombolnya.
+      expect(find.text('MENUNGGU PENGESAHAN KAMU'), findsNothing);
+      expect(find.text('Buka gerbang sertifikat'), findsNothing);
       expect(find.text('Paket pelanggan berjalan'), findsOneWidget);
       // Dua paket berjalan (yang diserahkan disaring), satu terlambat.
       expect(find.text('PT Maju Jaya'), findsOneWidget);
@@ -751,17 +613,6 @@ void main() {
       expect(find.text('42'), findsOneWidget);
     });
 
-    testWidgets('tombol gerbang sertifikat membuka antrean pengesahan', (
-      tester,
-    ) async {
-      await _pasangPenuh(tester, _appPenuh(_superAdmin));
-
-      await tester.tap(find.text('Buka gerbang sertifikat'));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(AntreanPengesahanScreen), findsOneWidget);
-    });
-
     testWidgets('baris perhatian & aksi cepat membuka layar tujuannya', (
       tester,
     ) async {
@@ -778,15 +629,6 @@ void main() {
       expect(find.byType(PelacakanScreen), findsOneWidget);
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
-
-      await tester.scrollUntilVisible(
-        find.text('Pusat pelanggan'),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.tap(find.text('Pusat pelanggan'));
-      await tester.pumpAndSettle();
-      expect(find.byType(PusatPelangganScreen), findsOneWidget);
     });
 
     testWidgets('antrean kosong & semuanya aman: tidak ada alarm palsu', (
@@ -796,13 +638,11 @@ void main() {
         tester,
         _appPenuh(
           _superAdmin,
-          pengesahan: MockPengesahanService(awal: const []),
           alat: const [],
           pelacakan: _PelacakanKosong(),
         ),
       );
 
-      expect(find.text('Tidak ada yang menunggu pengesahan.'), findsOneWidget);
       expect(find.text('Belum ada paket yang berjalan.'), findsOneWidget);
       expect(
         find.text('Tidak ada yang perlu diperhatikan sekarang.'),
@@ -815,9 +655,8 @@ void main() {
     ) async {
       await _pasangPenuh(tester, _appPenuh(_superAdmin, alatGagal: true));
 
-      // Jatuh tempo gagal → satu kartu galat; pengesahan & paket tetap tampil.
+      // Jatuh tempo gagal → satu kartu galat; paket tetap tampil.
       expect(find.text('Bagian ini gagal dimuat.'), findsOneWidget);
-      expect(find.text('lembar kerja siap disahkan'), findsOneWidget);
       expect(find.text('PT Maju Jaya'), findsOneWidget);
     });
   });

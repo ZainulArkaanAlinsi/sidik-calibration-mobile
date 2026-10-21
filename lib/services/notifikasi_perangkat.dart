@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart' show Color;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../core/navigasi_global.dart';
@@ -37,22 +38,53 @@ abstract class NotifikasiPerangkat {
 /// sama sekali. Firebase baru perlu buat satu kasus yang websocket nggak bisa
 /// tutup — HP dengan app ketutup total.
 class LocalNotifikasiPerangkat implements NotifikasiPerangkat {
-  LocalNotifikasiPerangkat({FlutterLocalNotificationsPlugin? plugin})
-    : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
+  LocalNotifikasiPerangkat({
+    FlutterLocalNotificationsPlugin? plugin,
+    this.mintaIzin,
+  }) : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
 
   final FlutterLocalNotificationsPlugin _plugin;
   bool _siap = false;
 
-  /// Satu channel buat semua kabar kerja. Dipisah dari channel bawaan supaya
-  /// user bisa matiin notifikasi app ini sendiri lewat setelan Android tanpa
-  /// mesti matiin app-nya.
-  static const _channelId = 'sidik_kerja';
+  /// Penjelasan singkat SEBELUM dialog izin sistem Android 13+. Balikan
+  /// `false` = pengguna bilang "nanti": dialog sistem tidak dimunculkan.
+  /// `null` = langsung minta (perilaku lama; dipakai test).
+  final Future<bool> Function()? mintaIzin;
+
+  /// Kanal kabar kerja: lembar masuk, disetujui, revisi, sertifikat terbit.
+  /// Nilainya HARUS sama dengan `default_notification_channel_id` di
+  /// AndroidManifest (kanal bawaan push FCM waktu aplikasi di latar).
+  ///
+  /// Dipisah jadi dua kanal supaya pengguna bisa membisukan pengingat jatuh
+  /// tempo tanpa kehilangan kabar kerja lewat setelan Android.
+  static const kanalKerja = 'sidik_kerja';
+  static const kanalPengingat = 'sidik_pengingat';
+
+  /// Ikon kecil monokrom (siluet logo) & ikon besar berwarna (logo) — dibuat
+  /// `tool/buat_ikon_notifikasi.dart`, ada di `android/app/src/main/res`.
+  static const ikonKecil = 'ic_stat_sidik';
+  static const ikonBesar = 'ic_notif_besar';
+  static const _warnaAksen = Color(0xFF1D4292);
+
+  static const _kanalKerja = AndroidNotificationChannel(
+    kanalKerja,
+    'Kabar kerja',
+    description:
+        'Lembar kerja masuk, sesi disetujui atau perlu revisi, dan sertifikat terbit.',
+    importance: Importance.high,
+  );
+  static const _kanalPengingat = AndroidNotificationChannel(
+    kanalPengingat,
+    'Pengingat jatuh tempo',
+    description: 'Alat yang mendekati atau melewati jatuh tempo kalibrasi.',
+    importance: Importance.defaultImportance,
+  );
 
   @override
   Future<bool> siapkan() async {
     if (_siap) return true;
 
-    const android = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const android = AndroidInitializationSettings(ikonKecil);
     // Izin diminta belakangan lewat `requestNotificationsPermission`, bukan
     // pas init: kalau diminta pas app pertama kebuka, orang nolaknya sambil
     // lalu karena belum tahu app-nya buat apa.
@@ -86,7 +118,17 @@ class LocalNotifikasiPerangkat implements NotifikasiPerangkat {
     );
 
     _siap = ok ?? false;
-    if (_siap) await _mintaIzin();
+    if (_siap) {
+      // Kanal dibuat eksplisit (bukan lazy saat `show`) supaya kanal push FCM
+      // juga sudah ada dan muncul di setelan Android sebelum notifikasi pertama.
+      final android = _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      await android?.createNotificationChannel(_kanalKerja);
+      await android?.createNotificationChannel(_kanalPengingat);
+      await _mintaIzin();
+    }
     return _siap;
   }
 
@@ -94,11 +136,16 @@ class LocalNotifikasiPerangkat implements NotifikasiPerangkat {
     if (kIsWeb) return;
 
     if (Platform.isAndroid) {
-      await _plugin
+      final android = _plugin
           .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin
-          >()
-          ?.requestNotificationsPermission();
+          >();
+      if (android == null) return;
+      // Android 12 ke bawah & izin yang sudah diberikan: tidak ada yang perlu
+      // ditanyakan, dan tidak ada penjelasan yang perlu ditampilkan.
+      if (await android.areNotificationsEnabled() ?? false) return;
+      if (mintaIzin != null && !await mintaIzin!()) return;
+      await android.requestNotificationsPermission();
       return;
     }
 
@@ -124,23 +171,30 @@ class LocalNotifikasiPerangkat implements NotifikasiPerangkat {
   Future<void> tampilkan(NotificationItem item) async {
     if (!_siap && !await siapkan()) return;
 
+    final pengingat = item.kategori == NotifKategori.jatuhTempo;
+
     await _plugin.show(
       id: _idAngka(item.id),
       title: item.judul,
       body: item.isi,
-      notificationDetails: const NotificationDetails(
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
-          _channelId,
-          'Kabar kerja',
-          channelDescription:
-              'Lembar kerja masuk, sesi disetujui atau perlu revisi, '
-              'sertifikat terbit, dan alat jatuh tempo.',
-          importance: Importance.high,
-          priority: Priority.high,
+          pengingat ? kanalPengingat : kanalKerja,
+          pengingat ? _kanalPengingat.name : _kanalKerja.name,
+          channelDescription: pengingat
+              ? _kanalPengingat.description
+              : _kanalKerja.description,
+          importance: pengingat
+              ? Importance.defaultImportance
+              : Importance.high,
+          priority: pengingat ? Priority.defaultPriority : Priority.high,
+          icon: ikonKecil,
+          color: _warnaAksen,
+          largeIcon: const DrawableResourceAndroidBitmap(ikonBesar),
         ),
-        iOS: DarwinNotificationDetails(),
-        macOS: DarwinNotificationDetails(),
-        windows: WindowsNotificationDetails(),
+        iOS: const DarwinNotificationDetails(),
+        macOS: const DarwinNotificationDetails(),
+        windows: const WindowsNotificationDetails(),
       ),
       // Dibawa balik waktu notifikasinya diketuk — dipakai buat mbuka layar
       // yang bersangkutan, bukan cuma mbuka app di halaman depan.

@@ -7,6 +7,8 @@ import 'package:sidik_calibration/models/calibration_detail.dart';
 import 'package:sidik_calibration/models/calibration_history_item.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/history_provider.dart';
+import 'package:sidik_calibration/providers/perhitungan_provider.dart';
+import 'package:sidik_calibration/services/perhitungan_service.dart';
 import 'package:sidik_calibration/screens/admin/antrean_approval_screen.dart';
 import 'package:sidik_calibration/services/approval_service.dart';
 import 'package:sidik_calibration/services/auth_service.dart';
@@ -34,13 +36,18 @@ class _ApprovalPeringatan implements ApprovalService {
   /// Nilai `abaikan_peringatan` di tiap panggilan approve, urut.
   final List<bool> panggilan = [];
 
+  /// No. Sertifikat di tiap panggilan approve (K-50-04).
+  final List<String?> nomorDikirim = [];
+
   @override
   Future<int?> approve(
     String token,
     int calibrationId, {
     bool abaikanPeringatan = false,
+    String? nomorSertifikat,
   }) async {
     panggilan.add(abaikanPeringatan);
+    nomorDikirim.add(nomorSertifikat);
 
     if (!abaikanPeringatan) {
       // Bentuk pesan yang backend kirim SEKARANG: dua kode peringatan berbeda,
@@ -79,9 +86,6 @@ class _ApprovalPeringatan implements ApprovalService {
 
     return 900 + calibrationId;
   }
-
-  @override
-  Future<void> reject(String token, int calibrationId, String catatan) async {}
 
   @override
   Future<void> retryGenerate(String token, int certificateId) async {}
@@ -125,6 +129,7 @@ Widget _app(ApprovalService approval) {
       authServiceProvider.overrideWithValue(MockAuthService()),
       historyServiceProvider.overrideWithValue(_SatuSesiMenunggu()),
       approvalServiceProvider.overrideWithValue(approval),
+      perhitunganServiceProvider.overrideWithValue(MockPerhitunganService()),
     ],
     child: MaterialApp(
       locale: const Locale('id'),
@@ -133,6 +138,22 @@ Widget _app(ApprovalService approval) {
       home: const AntreanApprovalScreen(),
     ),
   );
+}
+
+/// Setujui sekarang membuka dialog Order Number + No. Sertifikat dulu.
+Future<void> _setujuiDenganNomor(WidgetTester tester) async {
+  await tester.tap(find.text('Setujui'));
+  await tester.pumpAndSettle(const Duration(seconds: 2));
+  await tester.enterText(
+    find.byKey(const ValueKey('isian-nomor-order')),
+    '2410.01.A',
+  );
+  await tester.enterText(
+    find.byKey(const ValueKey('isian-nomor-sertifikat')),
+    'KAL/2026/0123',
+  );
+  await tester.tap(find.byKey(const ValueKey('simpan-setujui')));
+  await tester.pumpAndSettle(const Duration(seconds: 2));
 }
 
 void main() {
@@ -144,8 +165,7 @@ void main() {
     await tester.pumpWidget(_app(approval));
     await tester.pumpAndSettle(const Duration(seconds: 2));
 
-    await tester.tap(find.text('Setujui'));
-    await tester.pumpAndSettle(const Duration(seconds: 2));
+    await _setujuiDenganNomor(tester);
 
     // Pesan temuannya kebaca utuh — ini yang dulu nggak pernah sampai ke mata
     // admin.
@@ -165,8 +185,7 @@ void main() {
     await tester.pumpWidget(_app(approval));
     await tester.pumpAndSettle(const Duration(seconds: 2));
 
-    await tester.tap(find.text('Setujui'));
-    await tester.pumpAndSettle(const Duration(seconds: 2));
+    await _setujuiDenganNomor(tester);
 
     await tester.tap(find.text('Setujui tetap'));
     // `pump` berjangka: sesudah disetujui, antrean di belakang ditarik ulang
@@ -177,6 +196,8 @@ void main() {
 
     // Dua panggilan: yang pertama ditolak backend, yang kedua sadar.
     expect(approval.panggilan, [false, true]);
+    // Nomor yang diketik ikut di kedua panggilan (dialog tidak ditanya ulang).
+    expect(approval.nomorDikirim, ['KAL/2026/0123', 'KAL/2026/0123']);
   });
 
   testWidgets('PERIKSA LAGI nggak nyetujuin apa-apa', (tester) async {
@@ -185,8 +206,7 @@ void main() {
     await tester.pumpWidget(_app(approval));
     await tester.pumpAndSettle(const Duration(seconds: 2));
 
-    await tester.tap(find.text('Setujui'));
-    await tester.pumpAndSettle(const Duration(seconds: 2));
+    await _setujuiDenganNomor(tester);
 
     await tester.tap(find.text('Periksa lagi'));
     await tester.pumpAndSettle(const Duration(seconds: 2));

@@ -10,7 +10,7 @@ import '../../providers/certificate_provider.dart';
 import '../../widgets/readable_width.dart';
 import '../../widgets/sidik/sidik_permukaan.dart';
 import '../../widgets/sidik/sidik_tombol.dart';
-import '../pengesahan/antrean_pengesahan_screen.dart' show tanggalPendek;
+import '../../core/utils/tanggal_pendek.dart';
 import 'sertifikat_screen.dart';
 
 /// Formulir revisi sertifikat (admin; kontrak A2).

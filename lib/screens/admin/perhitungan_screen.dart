@@ -3,15 +3,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/calibration_detail.dart' show CalibrationDetail;
+import '../../models/izin.dart';
 import '../../models/calibration_history_item.dart';
 import '../../models/perhitungan.dart';
 import '../../models/validasi.dart';
 import '../../providers/history_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/izin_provider.dart';
 import '../../providers/perhitungan_provider.dart';
+import '../../services/kode_galat.dart';
 import '../../services/perhitungan_service.dart' show HasilApprove;
 import '../../widgets/app_button.dart';
+import '../../widgets/galat_peran.dart';
 import '../auth/widgets/neu.dart';
-import 'widgets/lembar_tolak.dart';
+import '../calibration/instrument_picker_screen.dart'
+    show profilLembarKerjaUntuk;
+import '../calibration/lembar_kerja_screen.dart';
+import 'widgets/data_administrasi.dart';
+import 'widgets/dialog_setujui.dart';
+import 'bandingkan_screen.dart';
 import 'widgets/blok_kondisi.dart';
 import 'widgets/panel_temuan.dart';
 import 'widgets/tabel_perhitungan.dart';
@@ -29,7 +40,8 @@ import '../../widgets/sidik_loader.dart';
 /// dan bedanya nggak akan ketahuan sampai ada yang ngebandingin dua dokumen.
 ///
 /// Alur keputusannya: **Periksa** (hitung ulang tanpa nyetujuin) → lihat
-/// temuan → **Setujui** / **Tolak**.
+/// temuan → **Setujui**. Koreksi lewat **Edit lembar**; **Bandingkan** menunjukkan
+/// isian asli teknisi lawan sekarang.
 class PerhitunganScreen extends ConsumerStatefulWidget {
   const PerhitunganScreen({
     super.key,
@@ -104,15 +116,113 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
     if (mounted) setState(() => _validasi = hasil);
   });
 
-  Future<void> _setujui({bool abaikanPeringatan = false}) async {
+  /// Order Number baru disimpan dari layar ini. Detail sesinya sedang dimuat
+  /// ulang, dan selama itu Riverpod masih memegang nilai LAMA (kosong) —
+  /// tanpa penanda ini Setujui meminta nomor yang barusan diketik.
+  String? _nomorOrderTersimpan;
+
+  bool _perluNomorOrder(CalibrationDetail? detail) =>
+      _nomorOrderTersimpan == null && perluNomorOrder(detail);
+
+  /// Buka lembar kerja teknisi di layar yang SAMA dengan teknisi — admin &
+  /// super admin mengoreksinya di sana (dengan alasan koreksi kalau sesinya
+  /// sudah dikirim). Sesudahnya angka & temuan dimuat ulang: yang tampil di
+  /// sini harus angka sesudah koreksi, bukan sebelum.
+  void _bandingkan() => Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => BandingkanScreen(calibrationId: widget.calibrationId),
+    ),
+  );
+
+  Future<void> _bukaLembar() async {
+    final detail = await ref.read(
+      calibrationDetailProvider(widget.calibrationId).future,
+    );
+    if (!mounted) return;
+
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => LembarKerjaScreen(
+          sesiId: widget.calibrationId,
+          // Sama dengan tombol Edit lembar di detail sesi: profil dari
+          // backend dulu, tebakan dari nama cuma cadangan server lama.
+          profil:
+              detail.profil ??
+              profilLembarKerjaUntuk(detail.namaAlat) ??
+              'ph_meter',
+        ),
+      ),
+    );
+    if (!mounted) return;
+
+    ref
+      ..invalidate(perhitunganProvider(widget.calibrationId))
+      ..invalidate(calibrationDetailProvider(widget.calibrationId));
+    await _periksa();
+  }
+
+  /// Setujui = dialog Order Number + No. Sertifikat (K-49-14, K-50-04), lalu
+  /// kirim. [isian] terisi waktu mengulang sesudah konfirmasi peringatan
+  /// (dialog tidak ditanyakan lagi); [awal] + galat waktu server menolak nomor
+  /// (dialog dibuka lagi dengan isian yang sama dan pesan di kotaknya).
+  Future<void> _setujui({
+    bool abaikanPeringatan = false,
+    IsianSetujui? isian,
+    IsianSetujui? awal,
+    String? galatSertifikat,
+    String? galatOrder,
+  }) async {
     HasilApprove? hasil;
+
+    var data = isian;
+    if (data == null) {
+      CalibrationDetail? detail;
+      try {
+        detail = await ref.read(
+          calibrationDetailProvider(widget.calibrationId).future,
+        );
+      } catch (_) {
+        // Detail gagal dimuat: tetap minta nomornya, server yang memutuskan.
+      }
+      if (!mounted) return;
+
+      final tersimpan =
+          (_nomorOrderTersimpan ?? detail?.administrasi.nomorOrder ?? '')
+              .trim();
+      data = await mintaDataSetujui(
+        context,
+        nomorOrder: awal?.nomorOrder ?? tersimpan,
+        nomorSertifikat: awal?.nomorSertifikat,
+        tanpaNomorSertifikat: detail?.sertifikatDitarik ?? false,
+        galatSertifikat: galatSertifikat,
+        galatOrder: galatOrder,
+      );
+      if (data == null || !mounted) return;
+
+      // Order Number tidak ada di body approve: disimpan lewat PATCH /admin
+      // dulu bila beda dari yang sudah tersimpan.
+      if (data.nomorOrder != tersimpan) {
+        var ok = false;
+        final nomor = data.nomorOrder;
+        await _jalankan(() async {
+          await _aksi.simpanKolomAdmin(nomorOrder: nomor);
+          ok = true;
+        });
+        if (!ok || !mounted) return;
+        setState(() => _nomorOrderTersimpan = nomor);
+      }
+    }
+    final kiriman = data;
 
     // Kirimnya di dalam `_jalankan` (tombol nyala loading), tapi dialog
     // konfirmasinya DI LUAR — kalau dialog dibuka selagi tombolnya masih
     // muter, admin ditanya sambil layarnya kelihatan sibuk, dan spinner-nya
     // nggak pernah berhenti sampai dia jawab.
     await _jalankan(() async {
-      hasil = await _aksi.setujui(abaikanPeringatan: abaikanPeringatan);
+      hasil = await _aksi.setujui(
+        abaikanPeringatan: abaikanPeringatan,
+        nomorSertifikat: kiriman.nomorSertifikat,
+      );
       // Temuannya ikut di responsnya — nggak usah nembak /validasi lagi.
       if (mounted) setState(() => _validasi = hasil!.validasi ?? _validasi);
     });
@@ -180,46 +290,62 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
       );
 
       if (lanjut == true && mounted) {
-        await _setujui(abaikanPeringatan: true);
+        await _setujui(abaikanPeringatan: true, isian: kiriman);
       }
       return;
     }
 
+    // Server menolak nomor (Order Number kosong, No. Sertifikat kosong / tidak
+    // valid / sudah dipakai): dialog dibuka lagi dengan isian yang sama dan
+    // pesan yang jelas di kotaknya — status sesi tidak berubah.
+    if (kodeIsianSetujui(hasil!.kode)) {
+      final orderSalah = hasil!.kode == KodeGalat.nomorOrderWajib;
+      final pesan = pesanGalatPeran(
+        l10n,
+        hasil!.kode,
+        pemilikNomor: hasil!.pemilikNomor,
+      );
+      await _setujui(
+        abaikanPeringatan: abaikanPeringatan,
+        awal: kiriman,
+        galatOrder: orderSalah ? pesan : null,
+        galatSertifikat: orderSalah ? null : pesan,
+      );
+      return;
+    }
+
     // Temuan fatal: approve diblokir, nggak bisa dilewati sama sekali.
+    // Pemisahan wewenang dapat kalimat yang menyebut jalan keluarnya.
     messenger.showSnackBar(
-      SnackBar(content: Text(hasil!.pesan ?? l10n.perhitApproveDiblokir)),
+      SnackBar(
+        content: Text(
+          pesanGalatPeran(l10n, hasil!.kode) ??
+              hasil!.pesan ??
+              l10n.perhitApproveDiblokir,
+        ),
+      ),
     );
   }
 
-  Future<void> _tolak() async {
-    final l10n = AppLocalizations.of(context);
-
-    // Lembar, bukan dialog kotak-kosong. Temuan pemeriksaan yang lagi tampil
-    // di layar ikut dibawa masuk supaya admin bisa nap satu-satu daripada
-    // ngetik ulang apa yang mesin udah tahu. Lihat docblock `LembarTolak`.
-    final kiriman = await showModalBottomSheet<KirimanTolak>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (context) => LembarTolak(temuan: _validasi?.temuan ?? const []),
-    );
-    if (kiriman == null || !mounted) return;
-
-    await _jalankan(() async {
-      await _aksi.tolak(kiriman.catatan, field: kiriman.field);
-      if (!mounted) return;
-      ref.invalidate(antreanApprovalProvider);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.perhitDitolak)));
-      Navigator.of(context).pop();
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final async = ref.watch(perhitunganProvider(widget.calibrationId));
+    final detail = ref.watch(calibrationDetailProvider(widget.calibrationId));
+    // Lembar yang sudah disetujui tidak bisa diubah siapa pun (sertifikatnya
+    // sudah terbit) — tombolnya tidak ditawarkan.
+    // Autoklaf ikut disunting: `PUT /calibrations/autoclave/{id}` (main
+    // `56668b1`) memperbarui sesi yang SAMA, dan koreksi admin atas lembar
+    // `menunggu_approval` wajib `alasan_koreksi` (diminta di lembar kerja).
+    final bisaDisunting =
+        widget.statusSesi != CalibrationStatus.disetujui &&
+        detail.value?.status != CalibrationStatus.disetujui;
+
+    final bolehBandingkan = ref.bolehkah(
+      NamaIzin.kalibrasiBandingkan,
+      cadangan: ref.watch(authProvider).value?.role.hakAdmin ?? false,
+    );
 
     final c = NeuColors.of(context);
 
@@ -246,6 +372,8 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
           perhitungan: value,
           validasi: _validasi,
           calibrationId: widget.calibrationId,
+          onBukaLembar: bisaDisunting ? _bukaLembar : null,
+          onBandingkan: bolehBandingkan ? _bandingkan : null,
         ),
         AsyncError() => _Gagal(
           onCobaLagi: () =>
@@ -258,9 +386,9 @@ class _PerhitunganScreenState extends ConsumerState<PerhitunganScreen> {
               sibuk: _sibuk,
               validasi: _validasi,
               statusSesi: widget.statusSesi,
+              perluNomorOrder: _perluNomorOrder(detail.value),
               onPeriksa: _periksa,
               onSetujui: _setujui,
-              onTolak: _tolak,
             )
           : null,
     );
@@ -272,11 +400,15 @@ class _Isi extends StatelessWidget {
     required this.perhitungan,
     required this.validasi,
     required this.calibrationId,
+    this.onBukaLembar,
+    this.onBandingkan,
   });
 
   final Perhitungan perhitungan;
   final HasilValidasi? validasi;
   final int calibrationId;
+  final VoidCallback? onBukaLembar;
+  final VoidCallback? onBandingkan;
 
   @override
   Widget build(BuildContext context) {
@@ -380,6 +512,27 @@ class _Isi extends StatelessWidget {
         _Catatan(teks: l10n.perhitStandardCatatan),
         const SizedBox(height: AppSpacing.xs),
         _Catatan(teks: l10n.perhitCorrectionCatatan),
+        const SizedBox(height: AppSpacing.lg),
+
+        // Kolom Master Data (K-49-14) — paling bawah, persis di atas bilah
+        // Setujui: Order Number yang wajib sebelum approve duduk di sebelah
+        // tombol yang memintanya.
+        KartuDataAdministrasi(
+          calibrationId: calibrationId,
+          kondisi: perhitungan.kondisiLingkungan,
+          tanggalKalibrasi: cust.tanggalKalibrasi,
+          onBukaLembar: onBukaLembar,
+        ),
+        if (onBandingkan != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          AppButton(
+            key: const ValueKey('tombol-bandingkan'),
+            label: l10n.bandingkanTombol,
+            icon: Icons.compare_arrows,
+            variant: AppButtonVariant.secondary,
+            onPressed: onBandingkan,
+          ),
+        ],
         const SizedBox(height: AppSpacing.xl),
       ],
     );
@@ -497,15 +650,17 @@ class _BilahAksi extends StatelessWidget {
     required this.statusSesi,
     required this.onPeriksa,
     required this.onSetujui,
-    required this.onTolak,
+    this.perluNomorOrder = false,
   });
 
   final bool sibuk;
   final HasilValidasi? validasi;
   final CalibrationStatus? statusSesi;
+
+  /// Order Number kosong menurut detail sesi — Setujui akan memintanya dulu.
+  final bool perluNomorOrder;
   final VoidCallback onPeriksa;
   final VoidCallback onSetujui;
-  final VoidCallback onTolak;
 
   @override
   Widget build(BuildContext context) {
@@ -521,7 +676,7 @@ class _BilahAksi extends StatelessWidget {
         statusSesi == null || statusSesi == CalibrationStatus.menungguApproval;
     final keterangan = switch (statusSesi) {
       CalibrationStatus.disetujui => 'Sesi ini sudah disetujui.',
-      CalibrationStatus.perluRevisi => 'Sesi ini sudah ditolak dan menunggu revisi teknisi.',
+      CalibrationStatus.perluRevisi => 'Sesi lama ini menunggu perbaikan teknisi.',
       CalibrationStatus.draft => 'Masih draf teknisi — belum dikirim buat diperiksa.',
       _ => '',
     };
@@ -567,7 +722,7 @@ class _BilahAksi extends StatelessWidget {
                 const SizedBox(height: AppSpacing.sm),
               ],
               // Sesi yang statusnya bukan `menunggu_approval` tidak bisa
-              // disetujui/ditolak lagi — server menolaknya. Tombolnya dicabut,
+              // disetujui lagi — server menolaknya. Tombolnya dicabut,
               // bukan dibiarkan memajang janji yang pasti gagal; PERIKSA tetap
               // ada karena hitung ulang boleh dijalankan kapan saja.
               if (!bisaDiputuskan) ...[
@@ -589,6 +744,19 @@ class _BilahAksi extends StatelessWidget {
                   onPressed: onPeriksa,
                 ),
               ] else ...[
+                if (perluNomorOrder && !diblokir) ...[
+                  Text(
+                    l10n.adminNomorOrderWajibSetujui,
+                    key: const ValueKey('petunjuk-nomor-order'),
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: c.textMuted,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
                 Row(
                   children: [
                     Expanded(
@@ -598,15 +766,6 @@ class _BilahAksi extends StatelessWidget {
                         variant: AppButtonVariant.secondary,
                         isLoading: sibuk,
                         onPressed: onPeriksa,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: AppButton(
-                        label: l10n.perhitTolak,
-                        variant: AppButtonVariant.secondary,
-                        isLoading: sibuk,
-                        onPressed: onTolak,
                       ),
                     ),
                   ],

@@ -207,7 +207,7 @@ class _IsiState extends ConsumerState<_Isi> {
           // jangan dipajang ke teknisi biar nggak nyoba lalu ditolak.
           if (ref.bolehkah(
             NamaIzin.sertifikatKirim,
-            cadangan: ref.watch(authProvider).value?.role.adminSaja ?? false,
+            cadangan: ref.watch(authProvider).value?.role.hakAdmin ?? false,
           )) ...[
             const SizedBox(height: AppSpacing.sm),
             AppButton(

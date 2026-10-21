@@ -1,5 +1,9 @@
+import 'dart:isolate';
+import 'dart:typed_data';
+
 import 'package:image/image.dart' as img;
 
+import '../models/review_foto.dart' show kunciSelFoto;
 import 'peta_tabel_foto.dart';
 
 /// Satu sel yang sudah jadi citra sendiri, berikut asal-usulnya.
@@ -121,3 +125,30 @@ class PotongSelFoto {
     return (potongan: hasil, gagal: gagal);
   }
 }
+
+/// Potong [kotak] dari [citra] lalu encode tiap potongan ke PNG, berkunci
+/// `kunciSelFoto`. Fungsi tingkat atas murni supaya aman dijalankan lewat
+/// `Isolate.run` (tidak menangkap State/ref apa pun).
+Map<String, Uint8List> potongKePng(img.Image citra, List<KotakSelFoto> kotak) {
+  final hasil = <String, Uint8List>{};
+  for (final p in const PotongSelFoto().potong(citra: citra, kotak: kotak).potongan) {
+    hasil[kunciSelFoto(p.kotak.titikUkur, p.kotak.repeatNo, p.kotak.fieldId)] =
+        Uint8List.fromList(img.encodePng(p.potongan));
+  }
+  return hasil;
+}
+
+// Pembungkus `Isolate.run` sebagai fungsi tingkat atas: closure yang dibuat di
+// dalam method State/kelas bisa ikut membawa `this`-nya ke isolate lain dan
+// ditolak ("unsendable"). Di sini closure-nya cuma memegang argumennya.
+
+Future<Map<String, Uint8List>> potongKePngDiIsolate(
+  img.Image citra,
+  List<KotakSelFoto> kotak,
+) => Isolate.run(() => potongKePng(citra, kotak));
+
+Future<Uint8List> encodePngDiIsolate(img.Image citra) =>
+    Isolate.run(() => Uint8List.fromList(img.encodePng(citra)));
+
+Future<img.Image?> decodeFotoDiIsolate(Uint8List bita) =>
+    Isolate.run(() => img.decodeImage(bita));

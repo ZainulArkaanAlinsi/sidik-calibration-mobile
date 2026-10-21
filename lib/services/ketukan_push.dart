@@ -24,6 +24,11 @@ class KetukanPush {
   static NotifTautan? _tautan(RemoteMessage? pesan) {
     if (pesan == null) return null;
 
+    // `tujuan` (K-50-10) didahulukan; `tautan_tipe`/`tautan_id` tetap dibaca
+    // untuk server yang belum memancarkannya.
+    final dariTujuan = bacaTujuan('${pesan.data['tujuan'] ?? ''}');
+    if (dariTujuan != null) return dariTujuan;
+
     final tipe = pesan.data['tautan_tipe'];
     final id = int.tryParse('${pesan.data['tautan_id']}');
 

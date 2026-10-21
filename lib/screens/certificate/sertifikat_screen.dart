@@ -4,24 +4,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/buka_berkas.dart';
 
-import '../../core/utils/angka.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/certificate_snapshot.dart';
-import '../../models/user.dart';
+import '../../models/izin.dart';
+import '../../models/revisi_sertifikat.dart' show StatusDokumen;
 import '../../providers/auth_provider.dart';
-import '../../widgets/autoclave_hasil_panel.dart';
+import '../../providers/izin_provider.dart';
 import '../../providers/certificate_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../services/pdf_downloader.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/sidik/sidik_permukaan.dart';
 import '../../widgets/sidik/sidik_tombol.dart';
+import '../../widgets/sertifikat_pdf_view.dart';
 import '../../widgets/sidik_loader.dart';
 import 'batal_sertifikat_dialog.dart';
 import 'info_dokumen_sertifikat.dart';
 import 'revisi_sertifikat_screen.dart';
+import 'tarik_sertifikat_dialog.dart';
 
 /// Pratinjau sertifikat (spesifikasi poin 9), plus unduh PDF/Excel & QR
 /// (poin 10 & 13).
@@ -83,10 +85,12 @@ class _Isi extends ConsumerWidget {
     final atas = <Widget>[
       InfoDokumenSertifikat(sertifikat: sertifikat, onBuka: onBuka),
       const SizedBox(height: AppSpacing.md),
-      // Hanya admin yang boleh menulis. Super admin membaca saja (server
-      // menjawab 403), teknisi & viewer tidak punya pintunya sama sekali.
-      if (peran == UserRole.admin &&
-          (sertifikat.bisaDirevisi || sertifikat.bisaDibatalkan)) ...[
+      // Admin & super admin (K-49-14) yang boleh menulis; teknisi & viewer
+      // tidak punya pintunya sama sekali. Server tetap penjaganya.
+      if ((peran?.hakAdmin ?? false) &&
+          (sertifikat.bisaDirevisi ||
+              sertifikat.bisaDibatalkan ||
+              _bisaTarik(ref, sertifikat))) ...[
         _TindakanAdmin(sertifikat: sertifikat),
         const SizedBox(height: AppSpacing.md),
       ],
@@ -113,98 +117,88 @@ class _Isi extends ConsumerWidget {
       );
     }
 
-    return ListView(
-      padding: const EdgeInsets.all(AppSpacing.md),
+    // Ringkasan Flutter di atas; badan sertifikat = PDF server (G4).
+    return Column(
       children: [
-        ...atas,
-        if (snap.gagal) ...[_PitaFail(), const SizedBox(height: AppSpacing.md)],
-
-        // Header — 16 field, urutannya persis sertifikat cetak.
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        Flexible(
+          flex: 0,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.45,
+            ),
+            child: ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.md,
+                0,
+              ),
               children: [
-                for (final (label, nilai) in snap.header.baris())
-                  _BarisHeader(label: label, nilai: nilai),
+                ...atas,
+                if (snap.gagal) ...[
+                  _PitaFail(),
+                  const SizedBox(height: AppSpacing.md),
+                ],
+                _Ringkasan(sertifikat: sertifikat),
+                const SizedBox(height: AppSpacing.sm),
               ],
             ),
           ),
         ),
-        const SizedBox(height: AppSpacing.md),
+        Expanded(child: SertifikatPdfView(certificateId: sertifikat.id)),
+      ],
+    );
+  }
+}
 
-        // Autoklaf: hasilnya Section A/B/C, bukan tabel empat kolom. `hasil`-nya
-        // memang kosong buat Autoklaf, jadi tanpa cabang ini sesi Autoklaf
-        // tampil sebagai tabel kosong di HP padahal PDF-nya penuh.
-        if (snap.autoclave != null)
-          AutoclaveHasilPanel(hasil: snap.autoclave!)
-        else
-          _TabelHasil(snapshot: snap),
-        const SizedBox(height: AppSpacing.md),
+/// Nomor, pelanggan, alat, dan masa berlaku. Status (ditarik / R-n / batal)
+/// sudah di kartu `InfoDokumenSertifikat` di atasnya.
+class _Ringkasan extends StatelessWidget {
+  const _Ringkasan({required this.sertifikat});
 
-        // Dua catatan baku — datang dari backend, bukan ditulis ulang di sini.
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final c in snap.catatan)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                    child: Text(
-                      '• $c',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        fontStyle: FontStyle.italic,
+  final CertificateDetail sertifikat;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final h = sertifikat.snapshot?.header;
+    final baris = <(String, String?)>[
+      (l10n.sertRingNomor, sertifikat.nomor),
+      (l10n.sertRingPelanggan, h?.owner ?? sertifikat.pelangganNama),
+      (l10n.sertRingAlat, h?.equipmentName),
+      (l10n.sertRingBerlaku, sertifikat.berlakuSampai),
+    ];
+    return Card(
+      key: const ValueKey('ringkasan-sertifikat'),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final (label, nilai) in baris)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 112,
+                      child: Text(label, style: theme.textTheme.labelSmall),
+                    ),
+                    Expanded(
+                      child: Text(
+                        (nilai == null || nilai.isEmpty) ? '—' : nilai,
+                        style: theme.textTheme.bodySmall,
                       ),
                     ),
-                  ),
-              ],
-            ),
-          ),
+                  ],
+                ),
+              ),
+          ],
         ),
-        const SizedBox(height: AppSpacing.md),
-
-        _TabelStandar(standar: snap.standarDigunakan),
-        const SizedBox(height: AppSpacing.md),
-
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _BarisHeader(
-                  label: l10n.sertFooterTerbit,
-                  nilai: snap.footer.issuanceDate,
-                ),
-                _BarisHeader(
-                  label: l10n.sertFooterTtd,
-                  nilai: snap.footer.penandatangan,
-                ),
-                _BarisHeader(
-                  label: l10n.sertFooterJabatan,
-                  nilai: snap.footer.jabatan,
-                ),
-                _BarisHeader(
-                  label: l10n.sertFooterKode,
-                  nilai: snap.footer.kodeDokumen,
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-
-        Text(
-          l10n.sertCorrectionCatatan,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xl),
-      ],
+      ),
     );
   }
 }
@@ -247,6 +241,18 @@ class _TindakanAdmin extends ConsumerWidget {
             )
           else if (s.bisaDirevisi)
             Text(l10n.sertRevisiTanpaData, style: theme.textTheme.bodySmall),
+          if (_bisaTarik(ref, s)) ...[
+            if (bisaRevisi || s.bisaDirevisi)
+              const SizedBox(height: AppSpacing.sm),
+            SidikTombol(
+              key: const ValueKey('tombol-tarik-sertifikat'),
+              label: l10n.tarikAksi,
+              ikon: Icons.undo,
+              ragam: RagamTombol.biasa,
+              penuh: true,
+              onPressed: () => _tarik(context),
+            ),
+          ],
           if (s.bisaDibatalkan) ...[
             if (s.bisaDirevisi) const SizedBox(height: AppSpacing.sm),
             SidikTombol(
@@ -261,6 +267,18 @@ class _TindakanAdmin extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _tarik(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => TarikSertifikatDialog(sertifikat: sertifikat),
+    );
+    if (ok == true) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.tarikBerhasil)));
+    }
   }
 
   Future<void> _batalkan(BuildContext context, WidgetRef ref) async {
@@ -307,327 +325,6 @@ class _PitaFail extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _BarisHeader extends StatelessWidget {
-  const _BarisHeader({required this.label, required this.nilai});
-
-  final String label;
-  final String? nilai;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 132,
-            child: Text(label, style: theme.textTheme.labelSmall),
-          ),
-          Text(': ', style: theme.textTheme.labelSmall),
-          Expanded(
-            child: Text(
-              (nilai == null || nilai!.isEmpty) ? '—' : nilai!,
-              style: theme.textTheme.bodySmall,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Tabel hasil — **empat kolom, nggak lebih** (spesifikasi poin 9).
-class _TabelHasil extends StatelessWidget {
-  const _TabelHasil({required this.snapshot});
-
-  final CertificateSnapshot snapshot;
-
-  /// Baris hasil dikelompokkan pakai `remark`, urut ngikut urutan sertifikat.
-  /// Alat tanpa keterangan titik jadi SATU kelompok berkunci kosong.
-  Map<String, List<BarisHasilSertifikat>> get _kelompok {
-    final hasil = <String, List<BarisHasilSertifikat>>{};
-    for (final b in snapshot.hasil) {
-      hasil.putIfAbsent(b.remark ?? '', () => []).add(b);
-    }
-
-    return hasil;
-  }
-
-  /// Kepala kolom bawa satuan kelompoknya (`Standard (nm)`), persis lembar
-  /// master. Satu kelompok selalu satu satuan; alat bersatuan seragam ngirim
-  /// null dan kepalanya tetap kayak dulu.
-  static String _kepala(String label, List<BarisHasilSertifikat> baris) {
-    final satuan = baris.first.satuan;
-
-    return satuan == null ? label : '$label ($satuan)';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final d = snapshot.desimal;
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.sertHasilJudul,
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-
-            // Dikelompokkan pakai `remark`, persis PDF-nya: satu tabel per
-            // kelompok, dan `Uncertainty U95% = ±` di bawah tiap tabel.
-            //
-            // Buat alat yang U95-nya lahir per KELOMPOK (Spectrophotometer),
-            // sepuluh baris Holmium bawa angka yang sama persis — di tabel
-            // datar 24 baris itu kebaca kayak muncul acak, dan `0,4 nm` nggak
-            // punya cara dibedain punya Didynium apa Holmium.
-            //
-            // Alat tanpa keterangan titik lewat jalur yang SAMA sebagai satu
-            // kelompok tanpa judul: tampilannya nggak berubah sama sekali.
-            for (final e in _kelompok.entries) ...[
-              if (e.key.isNotEmpty) ...[
-                Text(
-                  e.key,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-              ],
-              Table(
-                columnWidths: snapshot.u95PerTitik
-                    ? const {
-                        0: FlexColumnWidth(1.1),
-                        1: FlexColumnWidth(1.1),
-                        2: FlexColumnWidth(1),
-                        3: FlexColumnWidth(1),
-                      }
-                    : const {
-                        0: FlexColumnWidth(1.1),
-                        1: FlexColumnWidth(1.1),
-                        2: FlexColumnWidth(1),
-                      },
-                children: [
-                  TableRow(
-                    children: [
-                      _sel(
-                        context,
-                        _kepala(l10n.sertKolStandard, e.value),
-                        tebal: true,
-                      ),
-                      _sel(
-                        context,
-                        _kepala(l10n.sertKolUut, e.value),
-                        tebal: true,
-                      ),
-                      _sel(
-                        context,
-                        _kepala(l10n.sertKolCorrection, e.value),
-                        tebal: true,
-                      ),
-                      // Judulnya nyebut `k=2` persis kayak master — angka
-                      // ketidakpastian tanpa faktor cakupannya nggak berarti
-                      // apa-apa.
-                      if (snapshot.u95PerTitik)
-                        _sel(
-                          context,
-                          _kepala(l10n.sertKolU95, e.value),
-                          tebal: true,
-                        ),
-                    ],
-                  ),
-                  // Desimal diambil PER BARIS (`b.desimal`) dulu, baru jatuh ke
-                  // `desimal` sertifikat. Alat yang resolusinya berubah menurut
-                  // rentang (Turbidimeter: 0,01 / 0,1 / 1 NTU) nggak bisa
-                  // diwakili satu angka — dipaksa satu, titik 100 NTU kecetak
-                  // `101,00`, dua digit yang alatnya nggak bisa tampilkan.
-                  //
-                  // Formatternya sama persis sama `pdf.blade.php`: layar ini
-                  // dipakai buat nyocokin sama PDF sebelum dikirim ke
-                  // pelanggan, jadi beda sedikit pun bikin orang ragu mana yang
-                  // resmi.
-                  for (final b in e.value)
-                    TableRow(
-                      children: [
-                        _sel(
-                          context,
-                          formatNilaiStandar(
-                            b.standardValue,
-                            b.desimalEfektif(d),
-                          ),
-                        ),
-                        _sel(
-                          context,
-                          formatSertifikat(
-                            b.unitUnderTest,
-                            b.desimalEfektif(d),
-                            tandaNol: b.tandaNol,
-                          ),
-                        ),
-                        _sel(
-                          context,
-                          formatSertifikat(
-                            b.correction,
-                            b.desimalEfektif(d),
-                            tandaNol: b.tandaNol,
-                          ),
-                        ),
-                        // Desimal U95 lewat jalurnya sendiri (`desimalU95`),
-                        // bukan desimal baris — master nyetak `0,50 %T`
-                        // sementara kolom lain di blok yang sama tiga desimal.
-                        if (snapshot.u95PerTitik)
-                          _sel(
-                            context,
-                            formatSertifikat(
-                              b.u95,
-                              b.desimalU95 ?? b.desimalEfektif(d),
-                            ),
-                          ),
-                      ],
-                    ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xs),
-
-              // U95 satu kelompok — diambil dari baris pertama, BUKAN dihitung
-              // ulang. Tiap titik sekelompok emang bawa angka yang sama; kalau
-              // suatu saat beda, yang salah datanya, dan ngerata-ratain di sini
-              // cuma nyembunyiin itu.
-              //
-              // Dilewat buat alat yang U95-nya udah jadi kolom per baris —
-              // kalau dua-duanya dirender, angka titik pertama muncul dobel dan
-              // yang kedua kebaca kayak U95 buat SELURUH tabel.
-              if (!snapshot.u95PerTitik)
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    '${l10n.sertU95Baris} '
-                    // Desimal U95 punya jalurnya sendiri — lihat
-                    // [BarisHasilSertifikat.desimalU95].
-                    '${formatSertifikat(e.value.first.u95, e.value.first.desimalU95 ?? e.value.first.desimalEfektif(d))}'
-                    '${e.value.first.satuan == null ? '' : ' ${e.value.first.satuan}'}',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              if (e.value.first.faktorCakupanK != null)
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    l10n.sertFaktorCakupan(
-                      formatNilai(
-                        e.value.first.faktorCakupanK!,
-                        // Dari SNAPSHOT, bukan angka yang dipatok di sini.
-                        // Master nyimpen nilai penuh tapi selnya diformat `0`:
-                        // DO Meter 1,9718… tercetak `2`, Spectrophotometer
-                        // 3,1824… tercetak `3`. Waktu layar ini mematok 2
-                        // desimal, admin mutusin nerbitin sambil natap `1,97`
-                        // padahal PDF yang dikirim ke pelanggan nulis `2`.
-                        //
-                        // `null` = perilaku lama, buat sertifikat yang terbit
-                        // sebelum backend ngirim field ini.
-                        desimalMaks: e.value.first.desimalK ?? 2,
-                      ),
-                    ),
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              const SizedBox(height: AppSpacing.sm),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  static Widget _sel(BuildContext context, String teks, {bool tebal = false}) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
-      child: Text(
-        teks,
-        textAlign: TextAlign.center,
-        style: theme.textTheme.labelSmall?.copyWith(
-          fontWeight: tebal ? FontWeight.w700 : FontWeight.w400,
-        ),
-      ),
-    );
-  }
-}
-
-class _TabelStandar extends StatelessWidget {
-  const _TabelStandar({required this.standar});
-
-  final List<StandarDigunakan> standar;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-
-    if (standar.isEmpty) return const SizedBox.shrink();
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.sertStandarJudul,
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            for (final s in standar)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      s.name ?? '—',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      [
-                        s.merkType,
-                        s.serialNumber,
-                        s.traceableTo,
-                      ].whereType<String>().join(' · '),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
       ),
     );
   }
@@ -804,3 +501,14 @@ class _Gagal extends StatelessWidget {
     );
   }
 }
+
+/// "Tarik ke lembar kerja" ditawarkan untuk sertifikat yang masih berlaku
+/// (`terbit`) kepada pemegang izin `sertifikat.tarik` (admin & super admin,
+/// dari `/me/permissions`).
+/// Server tetap penjaganya: sudah punya revisi / bukan `disetujui` → 422.
+bool _bisaTarik(WidgetRef ref, CertificateDetail s) =>
+    s.status == 'terbit' &&
+    s.statusDokumen == StatusDokumen.berlaku &&
+    // Tanpa cadangan peran: server yang belum mengenal rute tarik (404) juga
+    // belum mengirim izinnya — tombol tidak boleh muncul di situ.
+    ref.bolehkah(NamaIzin.sertifikatTarik, cadangan: false);

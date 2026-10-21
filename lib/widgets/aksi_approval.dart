@@ -3,15 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/theme/app_spacing.dart';
 import '../l10n/app_localizations.dart';
+import '../models/calibration_detail.dart' show CalibrationDetail;
 import '../models/calibration_history_item.dart';
 import '../models/validasi.dart';
+import '../providers/certificate_provider.dart';
 import '../providers/history_provider.dart';
+import '../providers/perhitungan_provider.dart';
+import '../screens/admin/widgets/dialog_setujui.dart';
 import '../screens/admin/widgets/panel_temuan.dart';
 import '../screens/certificate/sertifikat_sukses_sheet.dart';
 import '../services/auth_service.dart' show ApiException;
+import '../services/kode_galat.dart';
 import 'app_button.dart';
+import 'galat_peran.dart';
 
-/// Tombol SETUJUI / TOLAK satu sesi.
+/// Tombol SETUJUI satu sesi. (Tolak dicabut 15 Okt 2026, K-50-01: Master Data
+/// mengoreksi lembarnya sendiri lewat Edit lembar, jejaknya di Bandingkan.)
 ///
 /// ## Kenapa berkas sendiri, dan kenapa BUKAN di layar Riwayat
 ///
@@ -21,9 +28,9 @@ import 'app_button.dart';
 /// menyetujui dari daftar berarti memutuskan tanpa melihat angka
 /// perhitungannya. Yang memutuskan layar Antrean Approval.
 ///
-/// `_busy` lokal dipegang di sini, bukan di kartunya: dua tombol ini harus
-/// mati bareng begitu salah satu ditekan, daripada admin tidak sabar menekan
-/// dua kali dan approve-nya dobel diproses.
+/// `_busy` lokal dipegang di sini, bukan di kartunya: tombolnya harus mati
+/// begitu ditekan, daripada admin tidak sabar menekan dua kali dan approve-nya
+/// dobel diproses.
 class AksiApproval extends ConsumerStatefulWidget {
   const AksiApproval({super.key, required this.item});
 
@@ -36,33 +43,77 @@ class AksiApproval extends ConsumerStatefulWidget {
 class _AksiApprovalState extends ConsumerState<AksiApproval> {
   bool _busy = false;
 
-  /// Dipegang State, BUKAN dibikin ulang tiap `_tolak()`.
-  ///
-  /// Dulu dibikin lokal di dalam `_tolak()` dan nggak pernah di-dispose sama
-  /// sekali — tiap penolakan nyisain satu controller hidup selama app jalan,
-  /// dan admin nekan tombol ini puluhan kali sehari.
-  ///
-  /// Mem-dispose-nya di ujung `_tolak()` BUKAN jalan keluarnya: `showDialog`
-  /// kelar begitu route-nya di-pop, sementara `TextField`-nya masih kepasang
-  /// selama animasi nutup — controller yang udah dibuang kepakai lagi di situ
-  /// dan Flutter langsung ngelempar "A TextEditingController was used after
-  /// being disposed". Ditaruh di State: sekali bikin, dibuang waktu layarnya
-  /// ilang, dan isinya dikosongin tiap dialog dibuka.
-  final _catatanTolak = TextEditingController();
+  /// Order Number sudah disimpan dari kartu ini — item daftarnya masih
+  /// memegang nilai lama (kosong) sampai antreannya dimuat ulang.
+  String? _nomorOrderDisimpan;
 
-  @override
-  void dispose() {
-    _catatanTolak.dispose();
-    super.dispose();
-  }
-
-  /// Setujui sesi ini.
+  /// Setujui = dialog Order Number + No. Sertifikat (K-49-14, K-50-04), lalu
+  /// kirim. [isian] terisi waktu mengulang sesudah konfirmasi peringatan
+  /// (dialog tidak ditanyakan lagi); [awal] + galat waktu server menolak nomor
+  /// (dialog dibuka lagi dengan isian yang sama dan pesan di kotaknya).
   ///
   /// [abaikanPeringatan] cuma `true` kalau admin barusan lihat daftar
   /// temuannya di [_konfirmasiPeringatan] dan tetap mutusin lanjut.
-  Future<void> _setujui({bool abaikanPeringatan = false}) async {
+  Future<void> _setujui({
+    bool abaikanPeringatan = false,
+    IsianSetujui? isian,
+    IsianSetujui? awal,
+    String? galatSertifikat,
+    String? galatOrder,
+  }) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
+
+    var data = isian;
+    if (data == null) {
+      // Sertifikat yang ditarik tidak minta nomor baru; itu hanya ada di
+      // detail sesi, jadi dibaca dulu (sekali, lalu di-cache provider).
+      CalibrationDetail? detail;
+      try {
+        detail = await ref.read(
+          calibrationDetailProvider(widget.item.id).future,
+        );
+      } catch (_) {
+        // Gagal dimuat: tetap minta nomornya, server yang memutuskan.
+      }
+      if (!mounted) return;
+
+      final tersimpan =
+          (_nomorOrderDisimpan ??
+                  detail?.administrasi.nomorOrder ??
+                  widget.item.nomorOrder ??
+                  '')
+              .trim();
+      data = await mintaDataSetujui(
+        context,
+        nomorOrder: awal?.nomorOrder ?? tersimpan,
+        nomorSertifikat: awal?.nomorSertifikat,
+        tanpaNomorSertifikat: detail?.sertifikatDitarik ?? false,
+        galatSertifikat: galatSertifikat,
+        galatOrder: galatOrder,
+      );
+      if (data == null || !mounted) return;
+
+      // Order Number tidak ikut di body approve: disimpan lewat PATCH /admin
+      // dulu bila beda dari yang sudah tersimpan.
+      if (data.nomorOrder != tersimpan) {
+        setState(() => _busy = true);
+        try {
+          await ref
+              .read(aksiAdminProvider(widget.item.id))
+              .simpanKolomAdmin(nomorOrder: data.nomorOrder);
+          _nomorOrderDisimpan = data.nomorOrder;
+        } catch (e) {
+          messenger.showSnackBar(SnackBar(content: Text('$e')));
+          return;
+        } finally {
+          if (mounted) setState(() => _busy = false);
+        }
+        if (!mounted) return;
+      }
+    }
+    final kiriman = data;
+
     setState(() => _busy = true);
 
     try {
@@ -75,7 +126,11 @@ class _AksiApprovalState extends ConsumerState<AksiApproval> {
 
       await ref
           .read(historyProvider.notifier)
-          .approve(widget.item.id, abaikanPeringatan: abaikanPeringatan);
+          .approve(
+            widget.item.id,
+            abaikanPeringatan: abaikanPeringatan,
+            nomorSertifikat: kiriman.nomorSertifikat,
+          );
 
       // Antreannya ikut disegarkan: sesi yang barusan diputuskan tidak boleh
       // tetap duduk di daftar "menunggu saya periksa".
@@ -99,12 +154,30 @@ class _AksiApprovalState extends ConsumerState<AksiApproval> {
       // pernah muncul sama sekali. Sheet-nya yang narik nomor + token sendiri.
       final certId = terbaru?.certificateId;
 
+      // `certificate_id` kini TIDAK berarti terbit: server membuat baris
+      // placeholder (`gagal`) sebelum job PDF jalan. Sheet hanya dibuka bila
+      // status sertifikatnya `terbit`; kalau belum, Alur Kerja yang menunjukkan.
       if (certId != null) {
-        await tampilkanSertifikatSukses(
-          context,
-          certificateId: certId,
-          nomor: terbaru?.nomorSertifikat,
-        );
+        final siap = await ref
+            .read(certificateDetailProvider(certId).future)
+            .then((d) => d.siap, onError: (_) => false);
+        if (!mounted) return;
+
+        if (siap) {
+          await tampilkanSertifikatSukses(
+            context,
+            certificateId: certId,
+            nomor: terbaru?.nomorSertifikat,
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context).alurSertifikatDigenerate,
+              ),
+            ),
+          );
+        }
       }
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -124,14 +197,44 @@ class _AksiApprovalState extends ConsumerState<AksiApproval> {
         setState(() => _busy = false);
 
         if (await _konfirmasiPeringatan(validasi) && mounted) {
-          await _setujui(abaikanPeringatan: true);
+          await _setujui(abaikanPeringatan: true, isian: kiriman);
         }
 
         return;
       }
 
+      final kode = kodeDariBadan(e.body);
+
+      // Server menolak nomor (Order Number / No. Sertifikat kosong, tidak
+      // valid, atau sudah dipakai): dialog dibuka lagi dengan isian yang sama
+      // dan pesan yang jelas di kotaknya. Status sesi tidak berubah.
+      if (kodeIsianSetujui(kode)) {
+        setState(() => _busy = false);
+        final sert = e.body['sertifikat'];
+        final pemilik = sert is Map ? sert['nomor'] : null;
+        final pesan = pesanGalatPeran(
+          l10n,
+          kode,
+          pemilikNomor: pemilik is String && pemilik.isNotEmpty
+              ? pemilik
+              : null,
+        );
+        final orderSalah = kode == KodeGalat.nomorOrderWajib;
+        await _setujui(
+          abaikanPeringatan: abaikanPeringatan,
+          awal: kiriman,
+          galatOrder: orderSalah ? pesan : null,
+          galatSertifikat: orderSalah ? null : pesan,
+        );
+        return;
+      }
+
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.historyApproveFailed(e.message))),
+        SnackBar(
+          content: Text(
+            pesanGalatPeran(l10n, kode) ?? l10n.historyApproveFailed(e.message),
+          ),
+        ),
       );
     } catch (e) {
       if (!mounted) return;
@@ -193,88 +296,14 @@ class _AksiApprovalState extends ConsumerState<AksiApproval> {
     return lanjut ?? false;
   }
 
-  Future<void> _tolak() async {
-    final l10n = AppLocalizations.of(context);
-    final controller = _catatanTolak..clear();
-
-    final catatan = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.historyRejectDialogTitle),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLines: 3,
-          decoration: InputDecoration(hintText: l10n.historyRejectDialogHint),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(l10n.historyRejectDialogCancel),
-          ),
-          TextButton(
-            onPressed: () {
-              final teks = controller.text.trim();
-              if (teks.isEmpty) return;
-              Navigator.of(dialogContext).pop(teks);
-            },
-            child: Text(l10n.historyRejectDialogSubmit),
-          ),
-        ],
-      ),
-    );
-
-    if (!mounted) return;
-    if (catatan == null) return; // dibatalin
-    if (catatan.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.historyRejectDialogEmpty)));
-      return;
-    }
-
-    final messenger = ScaffoldMessenger.of(context);
-    setState(() => _busy = true);
-
-    try {
-      // Lihat alasannya di `_setujui`.
-      await ref.read(historyProvider.future);
-
-      await ref.read(historyProvider.notifier).reject(widget.item.id, catatan);
-      ref.invalidate(antreanApprovalProvider);
-    } catch (e) {
-      if (!mounted) return;
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.historyRejectFailed(e.toString()))),
-      );
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
-    return Row(
-      children: [
-        Expanded(
-          child: AppButton(
-            label: l10n.historyReject,
-            variant: AppButtonVariant.secondary,
-            isLoading: _busy,
-            onPressed: _busy ? null : _tolak,
-          ),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: AppButton(
-            label: l10n.historyApprove,
-            isLoading: _busy,
-            onPressed: _busy ? null : _setujui,
-          ),
-        ),
-      ],
+    return AppButton(
+      label: l10n.historyApprove,
+      isLoading: _busy,
+      onPressed: _busy ? null : _setujui,
     );
   }
 }

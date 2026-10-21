@@ -16,7 +16,7 @@ import '../../widgets/app_button.dart';
 import '../../widgets/readable_width.dart';
 import '../../widgets/sidik/sidik_lembar.dart';
 import '../../widgets/skeleton.dart';
-import '../pengesahan/antrean_pengesahan_screen.dart' show tanggalPendek;
+import '../../core/utils/tanggal_pendek.dart';
 
 /// Pelacakan paket alat — "kayak lacak paket di online shop, tapi lebih
 /// detail" (poin 1 & 7).
@@ -27,7 +27,10 @@ import '../pengesahan/antrean_pengesahan_screen.dart' show tanggalPendek;
 /// menampilkan "2/3 selesai" di samping tahapnya — angka itu menjawab lebih
 /// banyak daripada nama tahapnya sendiri.
 class PelacakanScreen extends ConsumerStatefulWidget {
-  const PelacakanScreen({super.key});
+  const PelacakanScreen({super.key, this.cariAwal});
+
+  /// Mengisi kotak cari saat dibuka dari hasil Telusuri No. Sertifikat.
+  final String? cariAwal;
 
   @override
   ConsumerState<PelacakanScreen> createState() => _PelacakanScreenState();
@@ -36,6 +39,18 @@ class PelacakanScreen extends ConsumerStatefulWidget {
 class _PelacakanScreenState extends ConsumerState<PelacakanScreen> {
   final _cari = TextEditingController();
   Timer? _jeda;
+
+  @override
+  void initState() {
+    super.initState();
+    final awal = widget.cariAwal;
+    if (awal != null && awal.isNotEmpty) {
+      _cari.text = awal;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ref.read(daftarPaketProvider.notifier).cari(awal);
+      });
+    }
+  }
 
   @override
   void dispose() {

@@ -75,8 +75,8 @@ class MockAuthService implements AuthService {
       'department': 'Kalibrasi',
       'organization_id': 1,
     },
-    // Super admin — pengesah sertifikat (gerbang pengesahan, keputusan 26 Sep
-    // 2026). Ada di sini supaya menu & layar khusus perannya bisa dipotret dan
+    // Super admin — semua aksi admin & teknisi (K-49-14; gerbang pengesahan
+    // 26 Sep dicabut 15 Okt, K-50-07). Ada di sini supaya menu & layar khusus perannya bisa dipotret dan
     // diuji; tanpa akun ini seluruh jalur super admin tidak pernah dirender.
     {
       'id': 5,

@@ -140,18 +140,27 @@ void main() {
     expect(find.text('MASTER DATA'), findsOneWidget);
   });
 
-  testWidgets('teknisi nggak dikasih seksi master data & sistem', (
+  testWidgets('teknisi di desktop = Kalibrasi + Profil saja, sama dengan HP', (
     tester,
   ) async {
     await _jendelaDesktop(tester);
     await _sampaiPanel(tester, token: 'mock-token-2');
 
-    // Operasional & dokumen tetap ada — teknisi tetap kerja di panel ini.
-    expect(find.text('OPERASIONAL'), findsOneWidget);
-    expect(find.text('DOKUMEN'), findsOneWidget);
+    // Keputusan pemilik 20 Okt 2026: desktop teknisi sama dengan HP (K-50-14).
+    expect(find.text('KERJA HARIAN'), findsOneWidget);
+    expect(find.text('Kalibrasi'), findsWidgets);
+    expect(find.text('Profil'), findsWidgets);
 
-    expect(find.text('MASTER DATA'), findsNothing);
-    expect(find.text('SISTEM'), findsNothing);
+    for (final hilang in [
+      'OPERASIONAL',
+      'DOKUMEN',
+      'MASTER DATA',
+      'SISTEM',
+      'Tugas saya',
+      'Telusuri No. Sertifikat',
+    ]) {
+      expect(find.text(hilang), findsNothing, reason: hilang);
+    }
   });
 
   testWidgets('"Tugas Saya" NGGAK ada di mana pun — belum diputusin', (

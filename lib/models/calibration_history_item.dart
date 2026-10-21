@@ -66,6 +66,8 @@ class CalibrationHistoryItem {
     this.nomorSeri,
     this.statusSertifikat,
     this.tersembunyi = false,
+    this.nomorOrder,
+    this.nomorOrderDiketahui = false,
   });
 
   final int id;
@@ -124,8 +126,10 @@ class CalibrationHistoryItem {
   /// Catatan revisi admin perlu ditampilkan di baris ini.
   bool get bawaCatatanRevisi => catatanRevisiTampil(status, catatanRevisi);
 
-  /// `null` sesaat setelah `approve` — sertifikatnya lagi digenerate di
-  /// queue backend (`docs/kontrak-api.md` §5).
+  /// Id baris sertifikat. SEJAK 16 Okt 2026 terisi begitu `approve` balik:
+  /// server membuat baris placeholder (status `gagal`) sebelum job PDF jalan.
+  /// JANGAN dipakai sebagai tanda "sudah terbit" — pakai [sertifikatTerbit]
+  /// (dari status sertifikat) atau `pdf_url`.
   final int? certificateId;
 
   /// Titik waktu — **punya jam**, beda dari [tanggalKalibrasi] yang cuma
@@ -161,6 +165,9 @@ class CalibrationHistoryItem {
   /// daripada lencana bertulisan kode mentah).
   final String? statusSertifikat;
 
+  /// Sertifikat benar-benar sudah terbit (PDF jadi). Bukan `certificateId != null`.
+  bool get sertifikatTerbit => statusSertifikat == 'terbit';
+
   /// Sesi sudah disetujui tapi sertifikatnya belum bisa dikirim: barisnya
   /// belum ada, masih di antrean, atau GAGAL digenerate.
   ///
@@ -182,6 +189,20 @@ class CalibrationHistoryItem {
   /// `false`, jadi nggak ada baris yang mendadak ilang waktu APK baru ketemu
   /// server lama.
   final bool tersembunyi;
+
+  /// Order Number sertifikat — diisi Master Data (admin) atau super admin,
+  /// BUKAN teknisi (K-49-14). Server menolak approve tanpa ini (422
+  /// `nomor_order_wajib`).
+  final String? nomorOrder;
+
+  /// Server memang mengirim kunci `nomor_order`. Server lama yang belum
+  /// mengirimnya TIDAK boleh dibaca "kosong": tombol Setujui jadi menahan
+  /// semua sesi padahal servernya tidak mensyaratkan apa-apa.
+  final bool nomorOrderDiketahui;
+
+  /// Order Number pasti kosong menurut server → Setujui minta diisi dulu.
+  bool get perluNomorOrder =>
+      nomorOrderDiketahui && (nomorOrder == null || nomorOrder!.trim().isEmpty);
 
   /// Cocok sama kata yang diketik di kolom cari Riwayat?
   ///
@@ -243,6 +264,8 @@ class CalibrationHistoryItem {
     nomorSeri: nomorSeri,
     statusSertifikat: statusSertifikat,
     tersembunyi: tersembunyi ?? this.tersembunyi,
+    nomorOrder: nomorOrder,
+    nomorOrderDiketahui: nomorOrderDiketahui,
   );
 
   factory CalibrationHistoryItem.fromJson(Map<String, dynamic> json) {
@@ -317,6 +340,8 @@ class CalibrationHistoryItem {
       // nilai aneh apa pun juga dibaca "tidak tersembunyi" — lebih aman baris
       // kelihatan daripada ilang tanpa jejak.
       tersembunyi: json['tersembunyi'] == true,
+      nomorOrder: isi(json['nomor_order']),
+      nomorOrderDiketahui: json.containsKey('nomor_order'),
     );
   }
 }

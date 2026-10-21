@@ -3,33 +3,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/sidik_material.dart';
-import '../../core/theme/sidik_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/navigation_provider.dart';
-import '../../providers/koreksi_provider.dart';
-import '../../providers/permintaan_provider.dart';
 import '../../providers/realtime_provider.dart';
 import '../../widgets/floating_nav_bar.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../draf/draf_screen.dart';
 import '../equipment/equipment_list_screen.dart';
-import '../folder/folder_manager_screen.dart';
+import '../arsip/arsip_screen.dart';
 import '../history/history_screen.dart';
 import '../admin/antrean_approval_screen.dart';
 import '../alur/alur_kerja_screen.dart';
 import '../../widgets/pemantau_antrean.dart';
 import '../notification/notification_screen.dart';
 import '../jatuh_tempo/layar_jatuh_tempo.dart';
-import '../pelacakan/pelacakan_screen.dart';
-import '../pelanggan/pusat_pelanggan_screen.dart';
-import '../koreksi/antrean_koreksi_screen.dart';
-import '../permintaan/antrean_permintaan_screen.dart';
-import '../pengesahan/antrean_pengesahan_screen.dart';
+import '../pelacakan/telusuri_sertifikat_screen.dart';
 import '../penugasan/penugasan_screen.dart';
 import '../profile/profile_screen.dart';
 import '../settings/kelola_lab_screen.dart';
+import '../teknisi/kalibrasi_teknisi_screen.dart';
 
 /// Dipegang di level library, bukan lewat `Scaffold.of()`, karena tiap tab
 /// punya `Scaffold` sendiri — `Scaffold.of()` dari dalam tab bakal nemu
@@ -58,7 +52,7 @@ class MainShell extends ConsumerWidget {
     DashboardScreen(),
     EquipmentListScreen(),
     HistoryScreen(),
-    FolderManagerScreen(),
+    ArsipScreen(),
     ProfileScreen(),
   ];
 
@@ -76,17 +70,43 @@ class MainShell extends ConsumerWidget {
   /// kebaca — bukan cuma ikon yang harus ditebak.
   static const _lebarRailPanjang = 1200.0;
 
+  /// Teknisi: DUA tab saja — Kalibrasi & Profil (K-50-14). Tab lain tidak
+  /// ikut dibangun sama sekali: `IndexedStack` membangun SEMUA anaknya, jadi
+  /// dashboard (panel 3D, grafik), daftar alat, dan riwayat 20 halaman dulu
+  /// ikut dimuat di HP teknisi walau tidak pernah dibuka.
+  static const _tabsTeknisi = <Widget>[
+    KalibrasiTeknisiScreen(),
+    ProfileScreen(),
+  ];
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selected = ref.watch(selectedTabProvider);
     final l10n = AppLocalizations.of(context);
+    final teknisi =
+        ref.watch(authProvider).value?.role == UserRole.teknisi;
+    final tabs = teknisi ? _tabsTeknisi : _tabs;
+    // Indeks tab disimpan bersama; teknisi cuma punya dua.
+    final selected = ref.watch(selectedTabProvider).clamp(0, tabs.length - 1);
 
     // Nyalain sinkron realtime selama shell (login) kebuka — lonceng & data
     // ke-update barengan sama panel desktop (spec poin 12D). No-op kalau
     // realtime nonaktif.
     ref.watch(realtimeSyncProvider);
 
-    final items = <FloatingNavItem>[
+    final items = teknisi
+        ? <FloatingNavItem>[
+            FloatingNavItem(
+              icon: Icons.assignment_outlined,
+              activeIcon: Icons.assignment,
+              label: l10n.navKalibrasi,
+            ),
+            FloatingNavItem(
+              icon: Icons.person_outline,
+              activeIcon: Icons.person,
+              label: l10n.navProfile,
+            ),
+          ]
+        : <FloatingNavItem>[
       FloatingNavItem(
         icon: Icons.space_dashboard_outlined,
         activeIcon: Icons.space_dashboard,
@@ -105,7 +125,7 @@ class MainShell extends ConsumerWidget {
       FloatingNavItem(
         icon: Icons.folder_outlined,
         activeIcon: Icons.folder,
-        label: l10n.navFolderManager,
+        label: l10n.profArsip,
       ),
       FloatingNavItem(
         icon: Icons.person_outline,
@@ -118,7 +138,7 @@ class MainShell extends ConsumerWidget {
 
     // IndexedStack, bukan ganti-ganti widget: state tiap tab (posisi scroll,
     // isian form) nggak ilang waktu pindah tab.
-    final isi = IndexedStack(index: selected, children: _tabs);
+    final isi = IndexedStack(index: selected, children: tabs);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -126,7 +146,8 @@ class MainShell extends ConsumerWidget {
 
         return Scaffold(
           key: mainShellKey,
-          drawer: const _MenuUtama(),
+          // Teknisi tidak punya menu samping: dua tab sudah semua tujuannya.
+          drawer: teknisi ? null : const _MenuUtama(),
           // Lihat catatan di DesktopShell: pemantau antrean dibungkus di luar
           // isi supaya tandanya muncul di layar mana pun.
           body: PemantauAntrean(
@@ -137,6 +158,7 @@ class MainShell extends ConsumerWidget {
                         selectedIndex: selected,
                         onSelected: pilihTab,
                         items: items,
+                        tanpaMenu: teknisi,
                         dibentangkan: constraints.maxWidth >= _lebarRailPanjang,
                       ),
                       const VerticalDivider(width: 1, thickness: 1),
@@ -174,7 +196,11 @@ class _RailSamping extends StatelessWidget {
     required this.onSelected,
     required this.items,
     required this.dibentangkan,
+    this.tanpaMenu = false,
   });
+
+  /// Tombol menu samping disembunyikan (teknisi tidak punya drawer).
+  final bool tanpaMenu;
 
   final int selectedIndex;
   final ValueChanged<int> onSelected;
@@ -192,17 +218,19 @@ class _RailSamping extends StatelessWidget {
       // `extended` sudah nampilin label di samping ikon; maksa `labelType`
       // selain `none` bareng `extended` itu assert-nya Flutter, bukan selera.
       labelType: dibentangkan ? null : NavigationRailLabelType.all,
-      leading: Padding(
-        padding: const EdgeInsets.only(
-          top: AppSpacing.sm,
-          bottom: AppSpacing.xs,
-        ),
-        child: IconButton(
-          icon: const Icon(Icons.menu),
-          tooltip: l10n.menuUtama,
-          onPressed: bukaMenuUtama,
-        ),
-      ),
+      leading: tanpaMenu
+          ? null
+          : Padding(
+              padding: const EdgeInsets.only(
+                top: AppSpacing.sm,
+                bottom: AppSpacing.xs,
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.menu),
+                tooltip: l10n.menuUtama,
+                onPressed: bukaMenuUtama,
+              ),
+            ),
       destinations: [
         for (final item in items)
           NavigationRailDestination(
@@ -218,87 +246,13 @@ class _RailSamping extends StatelessWidget {
 /// Satu baris menu samping. `tab` diisi kalau tujuannya tab navbar (supaya
 /// barisnya bisa ikut menyala saat tab itu aktif); selain itu `layar`.
 class _Tujuan {
-  const _Tujuan(this.ikon, this.judul, {this.tab, this.layar, this.lencana});
+  const _Tujuan(this.ikon, this.judul, {this.tab, this.layar});
 
   final IconData ikon;
   final String judul;
   final int? tab;
   final Widget Function()? layar;
 
-  /// Angka kecil di ujung baris (mis. permintaan baru). Widget sendiri supaya
-  /// yang menonton provider-nya cuma baris ini, bukan seluruh drawer.
-  final Widget? lencana;
-}
-
-/// Jumlah permintaan pelanggan yang menunggu keputusan. Kosong (tanpa angka)
-/// kalau nol atau belum termuat — angka dekorasi tidak boleh menahan menu.
-class _LencanaPermintaan extends ConsumerWidget {
-  const _LencanaPermintaan();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final n = ref.watch(jumlahPermintaanBaruProvider).value ?? 0;
-    return _LencanaAngka(
-      n: n,
-      kunci: const ValueKey('lencana-permintaan'),
-      label: AppLocalizations.of(context).permintaanBadge(n),
-    );
-  }
-}
-
-/// Jumlah koreksi pelanggan yang menunggu keputusan (`meta.jumlah.menunggu`).
-class _LencanaKoreksi extends ConsumerWidget {
-  const _LencanaKoreksi();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final n = ref.watch(jumlahKoreksiMenungguProvider).value ?? 0;
-    return _LencanaAngka(
-      n: n,
-      kunci: const ValueKey('lencana-koreksi'),
-      label: AppLocalizations.of(context).koreksiBadge(n),
-    );
-  }
-}
-
-class _LencanaAngka extends StatelessWidget {
-  const _LencanaAngka({
-    required this.n,
-    required this.kunci,
-    required this.label,
-  });
-
-  final int n;
-  final Key kunci;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    if (n <= 0) return const SizedBox.shrink();
-
-    final m = SidikMaterial.of(context);
-    return Semantics(
-      label: label,
-      excludeSemantics: true,
-      child: Container(
-        key: kunci,
-        constraints: const BoxConstraints(minWidth: 22),
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        decoration: BoxDecoration(
-          color: m.biru,
-          borderRadius: BorderRadius.circular(11),
-        ),
-        child: Text(
-          n > 99 ? '99+' : '$n',
-          textAlign: TextAlign.center,
-          style: SidikTheme.gayaAngka(
-            ukuran: 11,
-            warna: Theme.of(context).colorScheme.onPrimary,
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 /// Menu samping — **isinya beda per peran**, karena pekerjaan hariannya beda.
@@ -308,10 +262,11 @@ class _LencanaAngka extends StatelessWidget {
 /// dan teknisi tidak punya jalan ke "Tugas saya" sama sekali. Sekarang tiap
 /// peran dapat urutan yang dimulai dari pekerjaan UTAMANYA:
 ///
-/// - **Super admin** — Pengesahan sertifikat di paling atas; sisanya seksi
-///   "Pantau (baca saja)" supaya dia tidak mencari tombol yang memang tidak
-///   ada untuknya.
-/// - **Admin** — Antrean approval, Pengesahan (status & tarik), Alur kerja,
+/// - **Super admin** — SEMUA menu admin & teknisi (keputusan
+///   K-49-14, 15 Okt 2026: satu tempat untuk semua aksi). Sesi yang dia isi
+///   tetap disetujui orang lain — server yang
+///   menahan (`pemisahan_wewenang`).
+/// - **Admin** — Antrean approval, Alur kerja,
 ///   Pelacakan, Penugasan; semua pengaturan di SATU pintu "Kelola lab".
 /// - **Teknisi** — Tugas saya & Draf dulu, baru arsip.
 /// - **Viewer** — arsip & pelacakan saja.
@@ -333,24 +288,14 @@ class _MenuUtama extends ConsumerWidget {
     final beranda = _Tujuan(Icons.space_dashboard_outlined, l10n.navDashboard, tab: 0);
     final alat = _Tujuan(Icons.straighten_outlined, l10n.navEquipment, tab: 1);
     final riwayat = _Tujuan(Icons.history_outlined, l10n.navHistory, tab: 2);
-    final folder = _Tujuan(Icons.folder_outlined, l10n.navFolderManager, tab: 3);
+    final folder = _Tujuan(Icons.folder_outlined, l10n.profArsip, tab: 3);
     final profil = _Tujuan(Icons.person_outline, l10n.navProfile, tab: 4);
     final notifikasi = _Tujuan(Icons.notifications_none, l10n.navNotifications,
         layar: () => const NotificationScreen());
-    final permintaan = _Tujuan(Icons.move_to_inbox_outlined, l10n.permintaanJudul,
-        layar: () => const AntreanPermintaanScreen(),
-        lencana: const _LencanaPermintaan());
-    final koreksi = _Tujuan(Icons.rule_folder_outlined, l10n.koreksiJudul,
-        layar: () => const AntreanKoreksiScreen(),
-        lencana: const _LencanaKoreksi());
-    final pengesahan = _Tujuan(Icons.verified_outlined, l10n.pengesahanJudul,
-        layar: () => const AntreanPengesahanScreen());
-    final pelacakan = _Tujuan(Icons.local_shipping_outlined, l10n.pelacakanJudul,
-        layar: () => const PelacakanScreen());
+    final pelacakan = _Tujuan(Icons.local_shipping_outlined, l10n.telusuriJudul,
+        layar: () => const TelusuriSertifikatScreen());
     final penugasan = _Tujuan(Icons.assignment_ind_outlined, l10n.penugasanJudul,
         layar: () => const PenugasanScreen());
-    final pusat = _Tujuan(Icons.apartment_outlined, l10n.pusatJudul,
-        layar: () => const PusatPelangganScreen());
     final jadwal = _Tujuan(Icons.event_repeat_outlined, l10n.jadwalJudul,
         layar: () => const JadwalKalibrasiScreen());
     final alur = _Tujuan(Icons.account_tree_outlined, l10n.alurTitle,
@@ -358,31 +303,36 @@ class _MenuUtama extends ConsumerWidget {
     final draf = _Tujuan(Icons.edit_note, l10n.drafTitle,
         layar: () => const DrafScreen());
 
+    final antreanApproval = _Tujuan(Icons.inbox_outlined, l10n.antreanTitle,
+        layar: () => const AntreanApprovalScreen());
+    final kelolaLab = _Tujuan(Icons.tune, l10n.kelolaJudul,
+        layar: () => const KelolaLabScreen());
+
     final List<(String?, List<_Tujuan>)> seksi = switch (peran) {
+      // Gabungan menu admin + teknisi (Pengesahan dicabut 15 Okt, K-50-07).
       UserRole.superAdmin => [
-        (l10n.menuKerjaHarian, [beranda, pengesahan, penugasan, pelacakan]),
-        (l10n.menuPantau, [permintaan, koreksi, jadwal, pusat, alur, riwayat, alat, folder]),
-        (null, [notifikasi, profil]),
-      ],
-      UserRole.admin => [
         (l10n.menuKerjaHarian, [
           beranda,
-          _Tujuan(Icons.inbox_outlined, l10n.antreanTitle,
-              layar: () => const AntreanApprovalScreen()),
-          permintaan,
-          koreksi,
-          pengesahan,
+          antreanApproval,
           alur,
           penugasan,
           pelacakan,
           draf,
         ]),
-        (l10n.menuArsip, [riwayat, alat, pusat, jadwal, folder, notifikasi]),
-        (l10n.menuPengaturan, [
-          _Tujuan(Icons.tune, l10n.kelolaJudul,
-              layar: () => const KelolaLabScreen()),
-          profil,
+        (l10n.menuArsip, [riwayat, alat, jadwal, folder, notifikasi]),
+        (l10n.menuPengaturan, [kelolaLab, profil]),
+      ],
+      UserRole.admin => [
+        (l10n.menuKerjaHarian, [
+          beranda,
+          antreanApproval,
+          alur,
+          penugasan,
+          pelacakan,
+          draf,
         ]),
+        (l10n.menuArsip, [riwayat, alat, jadwal, folder, notifikasi]),
+        (l10n.menuPengaturan, [kelolaLab, profil]),
       ],
       UserRole.teknisi => [
         (l10n.menuKerjaHarian, [
@@ -458,9 +408,10 @@ class _MenuUtama extends ConsumerWidget {
                 ],
               ),
             ),
-            // Dua peran yang TIDAK bisa mengisi data dapat satu kalimat yang
-            // bilang apa yang bisa & tidak — supaya mereka tidak mencari
-            // tombol yang memang tidak ada untuknya (artboard Menu_*).
+            // Super admin & viewer dapat satu kalimat yang bilang apa yang
+            // bisa & tidak: viewer supaya tidak mencari tombol yang memang
+            // tidak ada, super admin supaya tahu sesi isiannya sendiri tetap
+            // butuh penyetuju lain (K-30-03).
             if (peran == UserRole.superAdmin || peran == UserRole.viewer)
               Padding(
                 padding: const EdgeInsets.fromLTRB(
@@ -482,7 +433,6 @@ class _MenuUtama extends ConsumerWidget {
                 ListTile(
                   leading: Icon(t.ikon),
                   title: Text(t.judul),
-                  trailing: t.lencana,
                   selected: t.tab != null && t.tab == tabAktif,
                   // Tinta, bukan `primary`: di tema gelap biru di atas
                   // biru-tipis cuma 1,9:1 — baris aktif malah jadi yang

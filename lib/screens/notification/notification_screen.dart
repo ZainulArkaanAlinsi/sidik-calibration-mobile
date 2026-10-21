@@ -9,8 +9,6 @@ import '../../models/notification_item.dart';
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../providers/notification_provider.dart';
 import '../history/calibration_detail_screen.dart';
-import '../koreksi/detail_koreksi_screen.dart';
-import '../permintaan/detail_permintaan_screen.dart';
 import '../../widgets/tampil_masuk.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
@@ -135,16 +133,8 @@ void bukaTautanNotifikasi(BuildContext context, NotifTautan? tautan) {
     'calibration' => MaterialPageRoute<void>(
       builder: (_) => CalibrationDetailScreen(calibrationId: tautan.id),
     ),
-    // Permintaan kalibrasi pelanggan baru / pesan baru di utasnya (hanya
-    // admin yang menerima notifikasinya).
-    'permintaan_pelanggan' => MaterialPageRoute<void>(
-      builder: (_) => DetailPermintaanScreen(permintaanId: tautan.id),
-    ),
-    // Koreksi data alat/sertifikat dari pelanggan (kategori
-    // `koreksi_pelanggan_baru`; hanya admin yang menerimanya).
-    'koreksi_pelanggan' => MaterialPageRoute<void>(
-      builder: (_) => DetailKoreksiScreen(koreksiId: tautan.id),
-    ),
+    // `permintaan_pelanggan` / `koreksi_pelanggan` (K-50-09): fitur dicabut;
+    // notifikasi lama cukup ditampilkan sebagai teks, tanpa lompat layar.
     _ => null,
   };
 

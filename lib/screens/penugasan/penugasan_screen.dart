@@ -15,7 +15,7 @@ import '../../widgets/readable_width.dart';
 import '../../widgets/sidik/sidik_lembar.dart';
 import '../../widgets/sidik/sidik_permukaan.dart';
 import '../../widgets/sidik/sidik_status.dart';
-import '../pengesahan/antrean_pengesahan_screen.dart' show tanggalPendek;
+import '../../core/utils/tanggal_pendek.dart';
 import 'penugasan_buat_screen.dart';
 
 /// Penugasan (poin 8). Satu layar untuk dua sudut pandang:
@@ -211,7 +211,8 @@ class _DetailPenugasanScreenState extends ConsumerState<DetailPenugasanScreen> {
     final daftar = ref.watch(daftarPenugasanProvider).value ?? const [];
     final p = daftar.where((x) => x.id == widget.penugasanId).firstOrNull;
     final peran = ref.watch(authProvider).value?.role;
-    final bolehLapor = peran == UserRole.teknisi || peran == UserRole.admin;
+    // Super admin ikut (K-49-14): semua aksi teknisi & admin juga miliknya.
+    final bolehLapor = peran == UserRole.teknisi || (peran?.hakAdmin ?? false);
 
     if (p == null) {
       return Scaffold(

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  HTTP polos untuk Sidik Studio diizinkan HANYA ke alamat server pengembangan.
+
+  Build release Android 9+ memblokir cleartext secara bawaan, dan Dart ikut
+  aturan itu: request ke http:// gagal dengan "Insecure HTTP is not allowed by
+  platform" sebelum sampai ke jaringan. Gejalanya di tablet 13 Okt 2026: Studio
+  "server nggak nyaut" padahal server sehat dan Chrome di tablet bisa membuka
+  alamat yang sama. Build debug tidak kena karena manifest debug menyalakan
+  usesCleartextTraffic.
+
+  Yang dilonggarkan:
+  - jaringan Tailscale pemilik (*.taile35db8.ts.net): lalu lintasnya sudah
+    terenkripsi WireGuard dan hanya perangkat di akun Tailscale itu yang bisa
+    masuk;
+  - alamat lokal untuk kabel (adb reverse) dan emulator.
+
+  `cleartextTrafficPermitted="true"` global SENGAJA tidak dipakai: server
+  produksi wajib HTTPS. Begitu Studio menembak server produksi saja, berkas ini
+  dihapus.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">taile35db8.ts.net</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>

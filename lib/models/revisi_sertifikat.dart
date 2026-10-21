@@ -14,6 +14,9 @@ enum StatusDokumen {
   berlaku('berlaku'),
   digantikan('digantikan'),
   dibatalkan('dibatalkan'),
+  /// Ditarik ke lembar kerja (K-50-03): bukan dibatalkan — sesinya dikoreksi
+  /// lalu terbit ulang sebagai `<nomor>-R<n>`.
+  ditarik('ditarik'),
   belumTerbit('belum_terbit');
 
   const StatusDokumen(this.kode);
@@ -135,9 +138,12 @@ class DampakPembatalan {
 /// Dua bentuk yang dibedakan kontrak: galat validasi (`errors` terisi, mis.
 /// `perubahan.nomor_seri`) dan galat keadaan (`{message}` saja).
 class GalatAksi implements Exception {
-  const GalatAksi(this.pesan, {this.errors = const {}});
+  const GalatAksi(this.pesan, {this.errors = const {}, this.kode});
 
   final String pesan;
+
+  /// `kode` dari badan 422 (mis. `konfirmasi_sandi_salah`); `null` = tidak ada.
+  final String? kode;
   final Map<String, List<String>> errors;
 
   /// Pesan pertama untuk [kunci], atau `null`.
@@ -157,7 +163,12 @@ class GalatAksi implements Exception {
         if (v is String) hasil['$k'] = [v];
       });
     }
-    return GalatAksi(pesan, errors: hasil);
+    final kode = body['kode'] ?? body['code'];
+    return GalatAksi(
+      pesan,
+      errors: hasil,
+      kode: kode is String && kode.isNotEmpty ? kode : null,
+    );
   }
 
   @override

@@ -8,7 +8,7 @@ import '../../models/certificate_snapshot.dart';
 import '../../models/revisi_sertifikat.dart';
 import '../../widgets/sidik/sidik_permukaan.dart';
 import '../../widgets/sidik/sidik_status.dart';
-import '../pengesahan/antrean_pengesahan_screen.dart' show tanggalPendek;
+import '../../core/utils/tanggal_pendek.dart';
 
 /// Lencana label dokumen. Ikon + teks, tidak pernah warna saja.
 StatusSidik statusDokumen(AppLocalizations l10n, StatusDokumen s) =>
@@ -27,6 +27,11 @@ StatusSidik statusDokumen(AppLocalizations l10n, StatusDokumen s) =>
         l10n.sertDokDibatalkan,
         NadaStatus.gagal,
         Icons.block,
+      ),
+      StatusDokumen.ditarik => StatusSidik(
+        l10n.statusDitarik,
+        NadaStatus.awas,
+        Icons.undo,
       ),
       StatusDokumen.belumTerbit => StatusSidik(
         l10n.sertDokBelumTerbit,

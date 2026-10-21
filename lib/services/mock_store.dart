@@ -193,6 +193,9 @@ class MockStore {
     return certId;
   }
 
+  /// Meniru data LAMA: sesi berstatus `perlu_revisi` + catatan admin. Aksi Tolak
+  /// sudah tidak ada di aplikasi (K-50), tapi sesi lama di server masih bisa
+  /// berstatus ini dan draf yang lahir darinya harus tetap membawa catatannya.
   void tolak(int sesiId, String catatan) {
     final i = _sesi.indexWhere((s) => s.id == sesiId);
     if (i < 0) return;

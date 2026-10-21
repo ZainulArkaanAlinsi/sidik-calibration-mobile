@@ -40,7 +40,7 @@ class TechnicianListScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final admin = ref.bolehkah(
       NamaIzin.penggunaKelola,
-      cadangan: ref.watch(authProvider).value?.role.adminSaja ?? false,
+      cadangan: ref.watch(authProvider).value?.role.hakAdmin ?? false,
     );
 
     return Scaffold(
@@ -540,7 +540,10 @@ class _DataAkun {
   /// String kosong = admin sengaja ngosongin departemennya.
   final String department;
 
-  final UserRole role;
+  /// `null` = role nggak diganti, jadi nggak ikut dikirim. Akun lama yang
+  /// role-nya sudah tidak ditawarkan (viewer) tetap bisa diedit kolom lainnya
+  /// tanpa role-nya dikirim ulang ke server.
+  final UserRole? role;
 }
 
 /// Dialog betulin data akun (`PUT /api/users/{id}`).
@@ -621,7 +624,7 @@ class _EditAkunDialogState extends State<_EditAkunDialog> {
         email: _email.text.trim(),
         employeeId: _employeeId.text.trim(),
         department: _department.text.trim(),
-        role: _role,
+        role: _role == widget.akun.role ? null : _role,
       ),
     );
   }
@@ -682,6 +685,14 @@ class _EditAkunDialogState extends State<_EditAkunDialog> {
               items: [
                 for (final r in UserRole.bisaDiberikan)
                   DropdownMenuItem(value: r, child: Text(r.label)),
+                // Role lama yang tidak ditawarkan lagi (viewer, super admin)
+                // tetap tampil sebagai nilai sekarang — tanpanya dropdown
+                // gagal render karena nilainya tidak ada di daftar.
+                if (!UserRole.bisaDiberikan.contains(widget.akun.role))
+                  DropdownMenuItem(
+                    value: widget.akun.role,
+                    child: Text(widget.akun.role.label),
+                  ),
               ],
               onChanged: (value) {
                 if (value != null) setState(() => _role = value);

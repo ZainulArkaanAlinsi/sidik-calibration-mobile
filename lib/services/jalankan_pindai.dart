@@ -132,6 +132,9 @@ class JalankanPindai {
 
   final PayloadPindai payload;
 
+  /// Residual warp terbesar yang masih dilanjutkan di HP (server: 2 px).
+  static const _residualMaksPx = 8.0;
+
   /// Baca satu foto jadi payload `POST /api/worksheet-scans`.
   ///
   /// Nggak mengirim sendiri — yang mengirim pemanggilnya, supaya kelas ini
@@ -154,35 +157,41 @@ class JalankanPindai {
       throw const PindaiGagal(GagalPindai.tanpaGeometri);
     }
 
-    final marker = mesin.cariMarker(foto);
+    // Tujuan warp diambil dari template, bukan dari sudut halaman: yang
+    // dipakai server buat memotong sel itu ruang template, dan markernya nggak
+    // duduk persis di pojok kertas.
+    final tujuan = <Sudut>[for (final m in template.marker) (x: m.x, y: m.y)];
+
+    // Cari marker, ratakan, dan ukur mutu = kerja per piksel atas foto penuh
+    // → satu perjalanan ke isolate latar (M01). Urutan pemeriksaan di bawah
+    // tetap sama dengan waktu ketiganya jalan di isolate UI.
+    final r = await mesin.cariDanRatakanDiIsolate(
+      foto,
+      lebar: ukuran.w,
+      tinggi: ukuran.h,
+      tujuan: tujuan,
+      residualMaks: _residualMaksPx,
+    );
+    final marker = r.marker;
 
     if (marker == null) {
       throw const PindaiGagal(GagalPindai.markerTidakKetemu);
     }
 
-    // Tujuan warp diambil dari template, bukan dari sudut halaman: yang
-    // dipakai server buat memotong sel itu ruang template, dan markernya nggak
-    // duduk persis di pojok kertas.
-    final tujuan = <Sudut>[
-      for (final m in template.marker) (x: m.x, y: m.y),
-    ];
+    final warp = r.warp;
 
-    if (tujuan.length != 4) {
+    if (tujuan.length != 4 || warp == null) {
       throw const PindaiGagal(GagalPindai.tanpaGeometri);
     }
-
-    final warp = mesin.warp(
-      foto,
-      marker,
-      lebar: ukuran.w,
-      tinggi: ukuran.h,
-      tujuan: tujuan,
-    );
 
     // Ambangnya milik server, tapi yang jelas-jelas rusak dihentikan di sini —
     // mengirim foto yang keempat sudutnya nggak membentuk persegi cuma
     // memindahkan penolakan ke belakang, sesudah teknisi menunggu unggahan.
-    if (!warp.residualPx.isFinite || warp.residualPx > 8) {
+    final mutu = r.mutu;
+
+    if (!warp.residualPx.isFinite ||
+        warp.residualPx > _residualMaksPx ||
+        mutu == null) {
       throw const PindaiGagal(GagalPindai.geometriMeleset);
     }
 
@@ -208,7 +217,6 @@ class JalankanPindai {
         180 /
         math.pi;
 
-    final mutu = mesin.mutu(warp.citra);
     final pxPerSel = _pxPerSelTinggi(template, marker, tujuan);
 
     _gerbangMutu(mutu, sudutMiringDeg: sudut, pxPerSelTinggi: pxPerSel);

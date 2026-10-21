@@ -158,7 +158,7 @@ class _StandardFormScreenState extends ConsumerState<StandardFormScreen> {
     final mengedit = widget.existing != null;
     final isAdmin = ref.bolehkah(
       NamaIzin.standarKelola,
-      cadangan: ref.watch(authProvider).value?.role.adminSaja ?? false,
+      cadangan: ref.watch(authProvider).value?.role.hakAdmin ?? false,
     );
 
     return Scaffold(

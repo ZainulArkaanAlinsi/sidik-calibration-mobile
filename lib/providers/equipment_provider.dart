@@ -3,9 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/config/app_config.dart';
 import '../models/equipment.dart';
 import '../services/equipment_service.dart';
+import '../services/ubah_jatuh_tempo_service.dart';
 import 'auth_provider.dart';
 import 'penjaga_urutan_muat.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
+
+final ubahJatuhTempoServiceProvider = Provider<UbahJatuhTempoService>((ref) {
+  if (AppConfig.useMock) return MockUbahJatuhTempoService();
+  return ApiUbahJatuhTempoService(ref.watch(apiClientProvider));
+});
 
 /// Live sejak 14 Jul (`docs/kontrak-api.md` §3) — sama endpoint yang dipakai
 /// [EquipmentLookupService], versi penuh buat layar CRUD Alat.

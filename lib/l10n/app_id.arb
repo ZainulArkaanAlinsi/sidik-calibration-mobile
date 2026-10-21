@@ -798,7 +798,6 @@
   "phCalibIdOrderNumber": "No. order",
   "phCalibIdTechnicianId": "Technician ID",
   "phCalibIdCalibrationMethod": "Calibration method",
-  "phCalibPengesahan": "Pengesahan",
   "phCalibIssuanceDate": "Issuance date",
   "phCalibCalculatedBy": "Calculated by (inisial)",
   "phCalibCalculatedByHint": "mis. NR",
@@ -2009,28 +2008,6 @@
   "standarHabisHari": "habis {hari} hari lagi",
   "ttdPratinjauCetak": "Pratinjau di sertifikat",
   "ttdPratinjauGaris": "Nama & jabatan penandatangan tercetak di sini",
-  "pengesahanJudul": "Pengesahan sertifikat",
-  "pengesahanCari": "Cari nomor, alat, atau pelanggan",
-  "pengesahanRingkas": "{jumlah} menunggu pengesahan",
-  "pengesahanHariIni": "Diajukan hari ini",
-  "pengesahanMenungguHari": "Menunggu {hari} hari",
-  "pengesahanDiajukanOleh": "Diajukan oleh {nama}",
-  "pengesahanLihatDetail": "Lihat detail",
-  "pengesahanSahkan": "Sahkan",
-  "pengesahanKembalikan": "Kembalikan",
-  "pengesahanTarik": "Tarik pengajuan",
-  "pengesahanBerhasil": "Disahkan. Sertifikat sedang diterbitkan.",
-  "pengesahanWewenangJudul": "Pemisahan wewenang",
-  "pengesahanWewenangCatat": "Kalau dilanjutkan, ini tercatat di riwayat audit.",
-  "pengesahanTetapSahkan": "Tetap sahkan",
-  "pengesahanAlasanKembalikan": "Alasan dikembalikan",
-  "pengesahanAlasanTarik": "Alasan menarik pengajuan",
-  "pengesahanAlasanMinimal": "Minimal {minimal} karakter",
-  "pengesahanKirim": "Kirim",
-  "pengesahanKosong": "Antrean kosong",
-  "pengesahanKosongPengesah": "Tidak ada yang menunggu pengesahan Anda.",
-  "pengesahanKosongAdmin": "Tidak ada approval Anda yang sedang menunggu pengesahan.",
-  "pengesahanGagalMuat": "Antrean pengesahan gagal dimuat.",
   "pelacakanJudul": "Pelacakan paket",
   "pelacakanCari": "Cari nomor order atau pelanggan",
   "pelacakanCumaTerlambat": "Hanya yang terlambat",
@@ -2087,7 +2064,7 @@
   "menuArsip": "Arsip & data",
   "kelolaSemua": "Semua pengaturan lab",
   "kelolaSemuaSub": "Pelanggan, standar, teknisi, metode, rumus, ruangan, tanda tangan, organisasi, impor Excel",
-  "menuCatatanSuperAdmin": "Mengesahkan sertifikat sebelum terbit. Tidak menyetujui sesi dan tidak mengedit lembar kerja.",
+  "menuCatatanSuperAdmin": "Semua aksi Master Data & teknisi. Menyetujui sesi langsung menerbitkan sertifikat. Sesi yang Anda isi sendiri (atau hasil pindainya Anda konfirmasi) tetap harus disetujui orang lain.",
   "menuCatatanViewer": "Akun ini cuma bisa melihat. Perlu mengisi atau memeriksa? Minta admin mengganti peranmu.",
   "jatuhTempoJudul": "Jatuh tempo",
   "jatuhTempoRingkas": "{lewat} alat lewat · {dekat} dalam 30 hari",
@@ -2112,7 +2089,7 @@
   "jadwalTabLewat": "Lewat jadwal",
   "jadwalTab30": "30 hari",
   "jadwalTab90": "90 hari",
-  "jadwalInfo": "Tanggal jatuh tempo tiap alat diubah lewat form alat. Ketuk barisnya.",
+  "jadwalInfo": "Tanggal jatuh tempo diubah lewat tombol di baris. Ketuk barisnya.",
   "pusatJudul": "Pusat pelanggan",
   "pusatSub": "Semua yang lab tahu tentang satu pelanggan",
   "pusatCari": "Cari pelanggan",
@@ -2137,14 +2114,10 @@
   "pelangganGagal": "Data pelanggan gagal dimuat.",
   "pelangganPaketJalan": "{jumlah} paket jalan",
   "berandaSaSapaan": "Halo, {nama}",
-  "berandaSaPeran": "Super admin · pengawas & pengesah",
-  "berandaSaMenunggu": "Menunggu pengesahan kamu",
-  "berandaSaSiapDisahkan": "lembar kerja siap disahkan",
+  "berandaSaPeran": "Super admin · pengawas & penyetuju",
   "berandaSaTertua": "Tertua: {alat}",
   "berandaSaHariLalu": "{hari} hari lalu",
-  "berandaSaKosong": "Tidak ada yang menunggu pengesahan.",
   "berandaSaBukaGerbang": "Buka gerbang sertifikat",
-  "berandaSaNomorCatatan": "Nomor sertifikat baru dialokasikan saat kamu mengesahkan, jadi tidak pernah ada nomor bolong.",
   "berandaSaPaket": "Paket pelanggan berjalan",
   "berandaSaSemuaPaket": "Semua paket",
   "berandaSaPaketKosong": "Belum ada paket yang berjalan.",
@@ -2405,5 +2378,487 @@
   "drafTertundaLogoutJudul": "Draf belum terkirim",
   "drafTertundaLogoutIsi": "{jumlah} draf belum terkirim. Draf tetap disimpan di tablet ini dan dikirim saat kamu login lagi.",
   "drafTertundaLogoutBatal": "Batal",
-  "drafTertundaLogoutLanjut": "Keluar"
+  "drafTertundaLogoutLanjut": "Keluar",
+  "lkKakiVersiAcuan": "data acuan {paket} v{nomor}",
+  "@lkKakiVersiAcuan": {
+    "description": "Kaki lembar kerja: versi data acuan yang membangun lembar ini (CR-48 FR-21). paket = kode paket dari server, mis. micrometer; ditampilkan dengan huruf angka.",
+    "placeholders": {
+      "paket": {
+        "type": "String"
+      },
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
+  "acuanJudul": "Data acuan",
+  "@acuanJudul": {
+    "description": "Studio Data Acuan (CR-48): judul menu & seksi. Istilah layar: 'data acuan', bukan 'database'/'rumus'."
+  },
+  "acuanPaketJudul": "Paket data acuan",
+  "acuanPaketKeterangan": "Nilai standar, koreksi, pita CMC, dan konstanta metode tiap alat, berversi di server. Layar ini baca saja.",
+  "acuanPaketKosong": "Belum ada paket data acuan.",
+  "acuanPaketKosongPetunjuk": "Versi 1 lahir dari impor awal di server: php artisan acuan:impor-awal",
+  "@acuanPaketKosongPetunjuk": {
+    "description": "Hanya ditampilkan ke super admin (04-UI-UX-Flow §5 S1 kosong)."
+  },
+  "acuanBelumDiimpor": "Belum diimpor",
+  "acuanBelumDiimporKet": "Server sudah punya skemanya, tapi lab ini belum mengimpor versi 1.",
+  "acuanVersiNomor": "v{nomor}",
+  "@acuanVersiNomor": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
+  "acuanVersiBerlakuSejak": "v{nomor} · berlaku sejak {tanggal}",
+  "@acuanVersiBerlakuSejak": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      },
+      "tanggal": {
+        "type": "String"
+      }
+    }
+  },
+  "acuanTanpaVersiAktif": "Belum ada versi aktif",
+  "acuanTanpaVersiAktifKet": "Belum ada versi paket ini yang berlaku hari ini.",
+  "acuanJumlahLembar": "{n, plural, other{{n} lembar}}",
+  "@acuanJumlahLembar": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "acuanJumlahDraf": "{n, plural, other{{n} draf}}",
+  "@acuanJumlahDraf": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "acuanTerjadwal": "Terjadwal: v{nomor} mulai {tanggal}",
+  "@acuanTerjadwal": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      },
+      "tanggal": {
+        "type": "String"
+      }
+    }
+  },
+  "acuanGagalMuat": "Data acuan gagal dimuat.",
+  "acuanCobaLagi": "Coba lagi",
+  "acuanButuhIzinJudul": "Butuh izin data-acuan.lihat",
+  "acuanButuhIzinKet": "Akun ini tidak punya akses ke data acuan. Minta admin lab menambahkan izinnya. Server tetap menolak bila dipanggil langsung.",
+  "acuanStatusDraf": "Draf",
+  "acuanStatusDiajukan": "Diajukan",
+  "acuanStatusTerjadwal": "Terjadwal",
+  "acuanStatusAktif": "Aktif",
+  "acuanStatusPensiun": "Pensiun",
+  "acuanStatusDitolak": "Ditolak",
+  "acuanStatusDitarik": "Ditarik",
+  "acuanStatusDibuang": "Dibuang",
+  "acuanBukanVersiAktif": "Versi ini berstatus {status}: bukan versi yang dipakai menghitung sesi hari ini.",
+  "@acuanBukanVersiAktif": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "acuanInfoVersi": "Info versi",
+  "acuanGarisWaktu": "Garis waktu versi",
+  "acuanGarisWaktuKosong": "Belum ada versi untuk paket ini.",
+  "acuanSkemaKosong": "Paket ini belum punya skema lembar di server.",
+  "acuanLembarKosong": "Lembar ini belum berisi data.",
+  "acuanKakiLembar": "{n, plural, other{{n} baris}} · nilai tampil persis seperti tersimpan, tidak dibulatkan",
+  "@acuanKakiLembar": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "acuanPerluKonfirmasi": "Perlu konfirmasi lab",
+  "acuanKolomKunci": "Kunci",
+  "acuanNilaiKosong": "kosong",
+  "@acuanNilaiKosong": {
+    "description": "Sel yang ADA di isi tapi bernilai null. Beda dari sel yang tidak ada (ditampilkan —)."
+  },
+  "acuanJenisData": "Data",
+  "acuanJenisBentuk": "Bentuk lembar",
+  "acuanInfoStatus": "Status",
+  "acuanInfoJenis": "Jenis",
+  "acuanInfoBerlaku": "Berlaku",
+  "acuanBerlakuRentang": "{mulai} s.d. {sampai}",
+  "@acuanBerlakuRentang": {
+    "placeholders": {
+      "mulai": {
+        "type": "String"
+      },
+      "sampai": {
+        "type": "String"
+      }
+    }
+  },
+  "acuanBerlakuTerbuka": "sejak {mulai}, tanpa batas akhir",
+  "@acuanBerlakuTerbuka": {
+    "placeholders": {
+      "mulai": {
+        "type": "String"
+      }
+    }
+  },
+  "acuanBerlakuBelum": "Belum ditetapkan",
+  "acuanInfoSha": "SHA-256 isi",
+  "acuanInfoShaBelum": "Belum dikunci (draf)",
+  "acuanInfoSkema": "Skema",
+  "acuanInfoDibuat": "Dibuat",
+  "acuanInfoDisahkan": "Disahkan",
+  "acuanInfoBelumDisahkan": "Belum ada pengesahan tercatat",
+  "@acuanInfoBelumDisahkan": {
+    "description": "disahkan_oleh null (mis. versi 1 hasil impor). Jangan mengarang pengesah."
+  },
+  "acuanInfoOlehPada": "pengguna #{id} · {waktu}",
+  "@acuanInfoOlehPada": {
+    "description": "Kontrak §15: *_oleh masih id user, bukan nama.",
+    "placeholders": {
+      "id": {
+        "type": "int"
+      },
+      "waktu": {
+        "type": "String"
+      }
+    }
+  },
+  "acuanInfoAlasan": "Alasan",
+  "acuanInfoRujukan": "Rujukan",
+  "acuanSelJudul": "Rincian sel",
+  "acuanSelLembar": "Lembar",
+  "acuanSelKunci": "Kunci baris",
+  "acuanSelNilai": "Nilai tersimpan",
+  "acuanSelTidakAda": "Tidak ada di versi ini",
+  "acuanSelTipe": "Tipe",
+  "acuanSelAsal": "Asal sel master",
+  "acuanSelAsalKosong": "Tidak dipetakan ke sel master",
+  "acuanSelPerluKonfirmasiKet": "Asal-usul nilai ini belum dikonfirmasi lab.",
+  "acuanSelRiwayat": "Riwayat sel",
+  "acuanRiwayatPerVersi": "Nilai di tiap versi",
+  "acuanRiwayatSuntingan": "Suntingan",
+  "acuanRiwayatSuntinganKosong": "Belum ada suntingan tercatat untuk sel ini.",
+  "acuanSumberKetik": "diketik",
+  "acuanSumberTempel": "ditempel",
+  "acuanSumberImpor": "diimpor",
+  "acuanSumberAmbilAlih": "diambil alih",
+  "acuanPenggunaTerhapus": "akun sudah tidak ada",
+  "acuanBandingkan": "Bandingkan versi",
+  "acuanBandingLama": "Versi lama",
+  "acuanBandingBaru": "Versi baru",
+  "acuanBandingTidakAdaBeda": "Tidak ada perbedaan",
+  "acuanBandingTidakAdaBedaKet": "Isi v{lama} dan v{baru} sama persis di semua lembar.",
+  "@acuanBandingTidakAdaBedaKet": {
+    "placeholders": {
+      "lama": {
+        "type": "int"
+      },
+      "baru": {
+        "type": "int"
+      }
+    }
+  },
+  "acuanBandingRingkasan": "{lembar} lembar berubah · {sel} sel · {tambah} baris ditambah · {hapus} baris dihapus",
+  "@acuanBandingRingkasan": {
+    "placeholders": {
+      "lembar": {
+        "type": "int"
+      },
+      "sel": {
+        "type": "int"
+      },
+      "tambah": {
+        "type": "int"
+      },
+      "hapus": {
+        "type": "int"
+      }
+    }
+  },
+  "acuanBandingTanpaVersiData": "Belum ada versi data untuk dibandingkan.",
+  "acuanBandingBarisTambah": "Baris ditambah",
+  "acuanBandingBarisHapus": "Baris dihapus",
+  "acuanLama": "lama",
+  "acuanBaru": "baru",
+  "acuanSelisih": "selisih",
+  "acuanSelisihRelatif": "relatif",
+  "acuanBandingTidakTersedia": "Banding versi tidak tersedia untuk peran teknisi.",
+  "@acuanBandingTidakTersedia": {
+    "description": "Cermin DataAcuanController::banding (404 untuk teknisi)."
+  },
+  "acuanRiwayatTidakTersedia": "Riwayat sel tidak tersedia untuk peran teknisi.",
+  "@acuanRiwayatTidakTersedia": {
+    "description": "Cermin DataAcuanController::riwayatSel (404 untuk teknisi)."
+  },
+  "galatPemisahanWewenang": "Sesi ini Anda isi atau koreksi sendiri — harus disetujui/disahkan orang lain.",
+  "galatNomorOrderWajib": "Order Number belum diisi. Isi dulu sebelum menyetujui.",
+  "adminDataJudul": "Data administrasi",
+  "adminBelumDiisi": "Belum diisi",
+  "adminUbah": "Ubah",
+  "adminMetode": "Metode kalibrasi",
+  "adminRuangan": "Ruangan",
+  "adminTanggalTerima": "Tanggal terima",
+  "adminNomorOrderJudul": "Isi Order Number",
+  "adminNomorOrderPetunjuk": "Tercetak di sertifikat. Diisi Master Data atau super admin, bukan teknisi.",
+  "adminNomorOrderKosong": "Order Number wajib diisi.",
+  "adminNomorOrderWajibSetujui": "Order Number belum diisi — Setujui akan memintanya dulu.",
+  "adminBukaLembar": "Buka lembar kerja teknisi",
+  "adminGagalMuat": "Data administrasi gagal dimuat.",
+  "adminPilihKosong": "Belum ada pilihan.",
+  "lkNomorOrderBacaSaja": "Diisi Master Data waktu memeriksa sesi — bukan oleh teknisi.",
+  "lkAlasanKoreksiJudul": "Alasan koreksi",
+  "lkAlasanKoreksiPetunjuk": "Sesi ini sudah dikirim teknisi. Angka yang diubah disimpan bersama nilai lamanya — tulis apa yang salah dan dari mana angka benarnya (min. 10 karakter).",
+  "lkAlasanKoreksiLabel": "Alasan",
+  "lkAlasanKoreksiPendek": "Minimal 10 karakter.",
+  "lkAlasanKoreksiSimpan": "Simpan koreksi",
+  "sertEncJudulA": "A) SEBARAN SUHU",
+  "sertEncJudulB": "B) KINERJA ENKLOSUR",
+  "sertEncIndikator": "Pembacaan Indikator Enklosur ({satuan})",
+  "@sertEncIndikator": {
+    "placeholders": {
+      "satuan": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncStandarKoreksi": "Standar dan Koreksi Indikator ({satuan})",
+  "@sertEncStandarKoreksi": {
+    "placeholders": {
+      "satuan": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncSensorNo": "Sensor No. ({acuan})",
+  "@sertEncSensorNo": {
+    "placeholders": {
+      "acuan": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncAcuanSatu": "No. {no} Sensor Acuan",
+  "@sertEncAcuanSatu": {
+    "placeholders": {
+      "no": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncAcuanPerSetPoint": "Sensor Acuan per set point: No. {daftar}",
+  "@sertEncAcuanPerSetPoint": {
+    "placeholders": {
+      "daftar": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncTerukur": "Terukur ({satuan})",
+  "@sertEncTerukur": {
+    "placeholders": {
+      "satuan": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncKoreksi": "Koreksi ({satuan})",
+  "@sertEncKoreksi": {
+    "placeholders": {
+      "satuan": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncU95": "U95% ± ({satuan})",
+  "@sertEncU95": {
+    "placeholders": {
+      "satuan": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncSuhuSetting": "Suhu Setting ({satuan})",
+  "@sertEncSuhuSetting": {
+    "placeholders": {
+      "satuan": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncSuhuIndikator": "Suhu yang diukur Indikator Enklosur ({satuan})",
+  "@sertEncSuhuIndikator": {
+    "placeholders": {
+      "satuan": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncKeseragaman": "Keseragaman ({satuan})",
+  "@sertEncKeseragaman": {
+    "placeholders": {
+      "satuan": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncKestabilan": "Kestabilan ({satuan})",
+  "@sertEncKestabilan": {
+    "placeholders": {
+      "satuan": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncVariasi": "Variasi Keseluruhan ({satuan})",
+  "@sertEncVariasi": {
+    "placeholders": {
+      "satuan": {
+        "type": "String"
+      }
+    }
+  },
+  "sertEncKalimatK": "The uncertainty is taken at a confidence level 95 % and coverage factor ( k ) {tanda} {k}",
+  "@sertEncKalimatK": {
+    "placeholders": {
+      "tanda": {
+        "type": "String"
+      },
+      "k": {
+        "type": "String"
+      }
+    }
+  },
+  "adminThermohygroDiBlokKondisi": "Dipilih di blok Kondisi Lingkungan di atas.",
+  "adminThermohygro": "Thermohygro",
+  "navKalibrasi": "Kalibrasi",
+  "tekKalibrasiJudul": "Kalibrasi",
+  "tekPerluRevisi": "Perlu revisi",
+  "tekPerluRevisiKosong": "Tidak ada lembar yang perlu diperbaiki.",
+  "tekDrafKosong": "Belum ada draf.",
+  "tekTerkirim": "Terkirim terakhir",
+  "tekTerkirimKosong": "Belum ada lembar yang dikirim.",
+  "tekGagalMuat": "Daftar ini gagal dimuat.",
+  "setujuiJudul": "Setujui & terbitkan",
+  "setujuiPetunjuk": "Order Number dan No. Sertifikat diketik Master Data dan tercetak di sertifikat.",
+  "setujuiNomorSertifikatLabel": "No. Sertifikat",
+  "setujuiNomorSertifikatPetunjuk": "Unik di lab ini. Hanya huruf, angka, dan . _ / - ; tidak boleh berakhiran -R1, -R2 (nomor revisi dibuat sistem).",
+  "setujuiNomorSertifikatKosong": "No. Sertifikat wajib diisi.",
+  "setujuiNomorSertifikatFormat": "No. Sertifikat tidak valid: hanya huruf, angka, dan . _ / - , maksimal 100 karakter, tanpa akhiran -R<angka>.",
+  "setujuiNomorRevisiOtomatis": "Sertifikat sebelumnya ditarik: nomor revisinya (…-R1) dibuat sistem, tidak perlu diketik.",
+  "setujuiAksi": "Setujui",
+  "galatNomorSertifikatWajib": "No. Sertifikat belum diisi. Ketik nomornya sebelum menyetujui.",
+  "galatNomorSertifikatTidakValid": "No. Sertifikat tidak valid: hanya huruf, angka, dan . _ / - , maksimal 100 karakter, dan tidak boleh berakhiran -R<angka>.",
+  "galatNomorSertifikatDipakai": "No. Sertifikat ini sudah dipakai sertifikat {nomor}. Pakai nomor lain.",
+  "galatNomorSertifikatDipakaiLain": "No. Sertifikat ini sudah dipakai sertifikat lain di lab ini. Pakai nomor lain.",
+  "tarikAksi": "Tarik ke lembar kerja",
+  "tarikJudul": "Tarik sertifikat ke lembar kerja?",
+  "tarikPetunjuk": "Sertifikat ini ditandai ditarik dan sesinya kembali ke menunggu approval untuk dikoreksi. Setelah disetujui ulang terbit sertifikat baru berakhiran -R1. Isian asli teknisi tidak dihapus.",
+  "tarikAlasanLabel": "Alasan (minimal 10 karakter)",
+  "tarikAlasanPendek": "Alasan minimal 10 karakter.",
+  "tarikSandiLabel": "Sandi akun Anda",
+  "tarikSandiKosong": "Sandi wajib diisi.",
+  "tarikKirim": "Tarik",
+  "tarikBerhasil": "Sertifikat ditarik. Sesi kembali ke menunggu approval.",
+  "galatKonfirmasiSandiSalah": "Sandi salah. Coba lagi.",
+  "statusDitarik": "Ditarik",
+  "bandingkanJudul": "Bandingkan dengan isian asli",
+  "bandingkanTombol": "Bandingkan dengan asli teknisi",
+  "bandingkanTanpaAsli": "Lembar ini belum pernah dikoreksi — belum ada yang berubah.",
+  "bandingkanRingkas": "{berubah} dari {total} isian berubah",
+  "bandingkanAsli": "Asli teknisi",
+  "bandingkanSekarang": "Sekarang",
+  "bandingkanDiubahOleh": "Diubah oleh {nama}",
+  "bandingkanAlasan": "Alasan: {alasan}",
+  "bandingkanDibekukan": "Isian asli dibekukan {waktu}",
+  "bandingkanGagal": "Perbandingan gagal dimuat.",
+  "bandingkanTidakAdaBerubah": "Tidak ada isian yang berubah.",
+  "bandingkanTidakBerubahJudul": "{jumlah} isian tidak berubah",
+  "telusuriJudul": "Telusuri No. Sertifikat",
+  "telusuriCari": "Ketik No. Sertifikat (min. 2 huruf)",
+  "telusuriPetunjuk": "Ketik minimal 2 huruf nomor sertifikat, termasuk revisi seperti -R1.",
+  "telusuriKosong": "Tidak ada sertifikat dengan nomor itu.",
+  "telusuriGagal": "Pencarian gagal. Coba lagi.",
+  "telusuriStatusBerlaku": "Terbit",
+  "telusuriStatusDitarik": "Ditarik",
+  "telusuriStatusDigantikan": "Digantikan",
+  "telusuriStatusDibatalkan": "Dibatalkan",
+  "telusuriStatusBelumTerbit": "Belum terbit",
+  "telusuriTahap": "Tahap paket: {tahap}",
+  "telusuriLihatPaket": "Lihat paket",
+  "telusuriBukaPdf": "Buka PDF",
+  "tahapDiterima": "Diterima",
+  "tahapDikalibrasi": "Dikalibrasi",
+  "tahapMenungguPemeriksaan": "Menunggu pemeriksaan admin",
+  "tahapMenungguPengesahan": "Menunggu pengesahan",
+  "tahapSertifikatTerbit": "Sertifikat terbit",
+  "tahapSiapDiambil": "Siap diambil",
+  "tahapDiserahkan": "Diserahkan",
+  "arsipBerkasDiubah": "Nama berkas diubah.",
+  "jtUbahAksi": "Ubah jatuh tempo",
+  "jtUbahJudul": "Ubah jatuh tempo",
+  "jtUbahDampak": "Dampaknya",
+  "jtUbahDampakSertifikat": "Alat punya sertifikat aktif: tanggal yang tercetak di sertifikat berubah, jadi dibuat REVISI (-R1, -R2, ...). Sertifikat lama tetap tersimpan sebagai riwayat; jadwal alat ikut berubah setelah PDF revisi terbit.",
+  "jtUbahDampakJadwal": "Alat tanpa sertifikat aktif bertanggal: hanya jadwal alat yang berubah, langsung, dan tercatat di jejak audit.",
+  "jtUbahTanggal": "Tanggal jatuh tempo baru",
+  "jtUbahPilihTanggal": "Pilih tanggal",
+  "jtUbahAlasan": "Alasan",
+  "jtUbahAlasanMin": "Alasan minimal 5 huruf.",
+  "jtUbahTanggalKosong": "Pilih tanggal dulu.",
+  "jtUbahSimpan": "Simpan",
+  "jtUbahBatal": "Batal",
+  "jtUbahBerhasilJadwal": "Jadwal jatuh tempo diubah.",
+  "jtUbahBerhasilRevisi": "Dibuat revisi {nomor}: tanggal tercetak di sertifikat berubah.",
+  "sertRingNomor": "Nomor",
+  "sertRingPelanggan": "Pelanggan",
+  "sertRingAlat": "Alat",
+  "sertRingBerlaku": "Berlaku sampai",
+  "sertPdfGagal": "PDF sertifikat gagal dimuat.",
+  "sertPdfLuring": "Menampilkan salinan tersimpan (tanpa koneksi).",
+  "kabarBaruJumlah": "{n} kabar baru",
+  "kabarBaruKetuk": "Ketuk untuk melihat",
+  "izinNotifJudul": "Nyalakan notifikasi?",
+  "izinNotifIsi": "Supaya kamu langsung tahu saat lembar kerja masuk, sesi disetujui atau perlu revisi, dan sertifikat terbit. Android akan meminta izinmu setelah ini.",
+  "izinNotifLanjut": "Lanjut",
+  "izinNotifNanti": "Nanti saja",
+  "fotoReviewBelumDicek": "{jumlah} angka kuning belum dicek. Adu dengan potongan fotonya, lalu ketuk tanda cek.",
+  "fotoReviewTandaiDicek": "Tandai sudah dicek",
+  "fotoReviewSudahDicek": "Sudah dicek",
+  "lkAsliMemproses": "Membaca foto di HP… foto tidak dikirim ke mana pun.",
+  "lkAsliBelumSiap": "Formulir ini belum bisa dipindai. Isi manual dulu.",
+  "lkAsliGeometriBelumLengkap": "Peta kotak formulir ini belum lengkap. Isi manual dulu.",
+  "lkAsliKodeTidakTerbaca": "Kode formulir (SIDIK-FM-CAL-xxxx) di pojok kanan bawah tidak terbaca. Foto seluruh lembar, tegak, cukup terang.",
+  "lkAsliFormulirLain": "Ini formulir lain ({kode}), bukan formulir untuk alat ini. Pakai lembar yang benar atau isi manual.",
+  "lkAsliRevisiTidakTerbaca": "Revisi formulir tidak terbaca — foto ulang",
+  "lkAsliRevisiBeda": "Revisi formulir di foto ({terbaca}) beda dengan yang dipegang sistem. Pakai formulir revisi terbaru atau isi manual.",
+  "lkAsliJangkarKurang": "Tulisan cetak formulir yang terbaca terlalu sedikit ({jumlah}) untuk meluruskan foto. Foto ulang seluruh lembar.",
+  "lkAsliJangkarTidakMenyebar": "Bagian formulir yang terbaca menumpuk di satu sisi. Pastikan seluruh lembar masuk frame, lalu foto ulang.",
+  "lkAsliTerisi": "{terisi} sel terisi dari foto. Periksa lagi sebelum dikirim.",
+  "lkAsliKondisiLingkungan": "Kondisi lingkungan",
+  "lkAsliTerisiCentangManual": "{terisi} isian terisi dari foto. Kotak centang (Thermohygro, standar dipakai) tetap diisi manual. Periksa lagi sebelum dikirim.",
+  "lkAsliTakAdaSel": "Tidak ada angka yang bisa dimasukkan dari foto ini.",
+  "lkAsliGagalUmum": "Foto gagal diproses. Isi manual atau coba foto ulang.",
+  "lkAsliFotoTerbalik": "Lembar tampak terbalik di foto. Ulangi foto dengan lembar tegak.",
+  "lkAsliPembacaMati": "Pembaca teks tidak jalan: tidak satu sel pun terbaca. Ulangi foto atau isi manual.",
+  "lkModulPembacaTeksDiunduh": "Modul pembaca teks sedang diunduh Google Play Services dan butuh internet sekali. Sambungkan internet lalu coba lagi, atau isi manual.",
+  "aturanAsliBukanAngka": "Bukan angka desimal biasa; ketik sendiri",
+  "aturanAsliDesimal": "Jumlah desimal tidak cocok dengan resolusi neraca",
+  "aturanAsliStandarNominal": "Standard jauh dari nominal keping",
+  "aturanAsliMpeBelumAda": "MPE kelas belum tersedia, dipakai batas kasar 1%",
+  "aturanAsliDuaUut": "Dua pembacaan UUT di kolom ini berselisih terlalu jauh",
+  "aturanAsliBlokTidakLengkap": "Kolom tidak lengkap: sel ini kosong padahal sel lain di kolom yang sama terisi",
+  "lkAsliPilihAlatDulu": "Pilih alatnya dulu, lalu ketuk tombol kamera \"Foto worksheet\" di atas lembar."
 }

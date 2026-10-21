@@ -100,6 +100,11 @@ class ArsipAksi {
   Future<String?> hapus(int folderId) =>
       _jalankan((t) => _ref.read(arsipServiceProvider).hapusFolder(t, folderId));
 
+  Future<String?> ubahNamaBerkas({required int fileId, required String nama}) =>
+      _jalankan((t) => _ref
+          .read(arsipServiceProvider)
+          .ubahNamaBerkas(t, fileId: fileId, nama: nama));
+
   Future<String?> pindahBerkas({required int sesiId, required int folderId}) =>
       _jalankan((t) => _ref
           .read(arsipServiceProvider)

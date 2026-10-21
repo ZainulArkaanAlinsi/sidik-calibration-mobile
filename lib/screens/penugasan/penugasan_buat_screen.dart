@@ -9,7 +9,7 @@ import '../../providers/master_data_provider.dart';
 import '../../providers/pengendalian_provider.dart';
 import '../../widgets/readable_width.dart';
 import '../../widgets/sidik/sidik_tombol.dart';
-import '../pengesahan/antrean_pengesahan_screen.dart' show tanggalPendek;
+import '../../core/utils/tanggal_pendek.dart';
 
 /// Tugaskan teknisi — personal atau grup, dengan baris "+" jenis alat &
 /// jumlahnya (artboard `SA_Penugasan_Buat`).

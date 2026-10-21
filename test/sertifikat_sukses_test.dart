@@ -8,6 +8,8 @@ import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/certificate_provider.dart';
 import 'package:sidik_calibration/providers/dashboard_provider.dart';
 import 'package:sidik_calibration/providers/history_provider.dart';
+import 'package:sidik_calibration/providers/perhitungan_provider.dart';
+import 'package:sidik_calibration/services/perhitungan_service.dart';
 import 'package:sidik_calibration/services/approval_service.dart';
 import 'package:sidik_calibration/services/certificate_service.dart';
 import 'package:sidik_calibration/services/dashboard_service.dart';
@@ -29,6 +31,7 @@ Widget _app() {
       ),
       historyServiceProvider.overrideWithValue(MockHistoryService()),
       approvalServiceProvider.overrideWithValue(MockApprovalService()),
+      perhitunganServiceProvider.overrideWithValue(MockPerhitunganService()),
       certificateServiceProvider.overrideWithValue(MockCertificateService()),
     ],
     child: MaterialApp(
@@ -47,6 +50,21 @@ Future<void> _sampaiAntrean(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
+/// Setujui membuka dialog Order Number + No. Sertifikat dulu (K-50-04).
+Future<void> _setujuiDenganDialog(WidgetTester tester) async {
+  await tester.tap(find.text('Setujui').first);
+  await tester.pumpAndSettle();
+  await tester.enterText(
+    find.byKey(const ValueKey('isian-nomor-order')),
+    '2410.01.A',
+  );
+  await tester.enterText(
+    find.byKey(const ValueKey('isian-nomor-sertifikat')),
+    'KAL/2026/0123',
+  );
+  await tester.tap(find.byKey(const ValueKey('simpan-setujui')));
+}
+
 void main() {
   testWidgets('setujui → lembar sertifikat langsung kebuka', (tester) async {
     await tester.binding.setSurfaceSize(const Size(500, 1000));
@@ -54,7 +72,7 @@ void main() {
 
     await _sampaiAntrean(tester);
 
-    await tester.tap(find.text('Setujui').first);
+    await _setujuiDenganDialog(tester);
     // `pump` berjangka, BUKAN `pumpAndSettle`: sesudah disetujui, antreannya
     // ditarik ulang dan loader-nya berputar terus — `pumpAndSettle` menunggu
     // animasi yang memang tidak pernah berhenti.
@@ -72,7 +90,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await _sampaiAntrean(tester);
-    await tester.tap(find.text('Setujui').first);
+    await _setujuiDenganDialog(tester);
     // `pump` berjangka, BUKAN `pumpAndSettle`: sesudah disetujui, antreannya
     // ditarik ulang dan loader-nya berputar terus — `pumpAndSettle` menunggu
     // animasi yang memang tidak pernah berhenti.
@@ -99,7 +117,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await _sampaiAntrean(tester);
-    await tester.tap(find.text('Setujui').first);
+    await _setujuiDenganDialog(tester);
     // `pump` berjangka, BUKAN `pumpAndSettle`: sesudah disetujui, antreannya
     // ditarik ulang dan loader-nya berputar terus — `pumpAndSettle` menunggu
     // animasi yang memang tidak pernah berhenti.
@@ -118,7 +136,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await _sampaiAntrean(tester);
-    await tester.tap(find.text('Setujui').first);
+    await _setujuiDenganDialog(tester);
     // `pump` berjangka, BUKAN `pumpAndSettle`: sesudah disetujui, antreannya
     // ditarik ulang dan loader-nya berputar terus — `pumpAndSettle` menunggu
     // animasi yang memang tidak pernah berhenti.

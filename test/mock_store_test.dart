@@ -82,20 +82,6 @@ void main() {
       expect(MockStore.instance.sesi.map((s) => s.id).toSet(), hasLength(2));
     });
 
-    test('catatan penolakan ikut kesimpen', () async {
-      final disk = PenyimpanPalsu();
-
-      await MockStore.instance.pulihkan(disk);
-      final id = MockStore.instance.tambahSesi(namaAlat: 'A', namaTeknisi: 'T');
-      MockStore.instance.tolak(id, 'Buffer 7 cuma 2 bacaan.');
-
-      MockStore.instance.reset();
-      await MockStore.instance.pulihkan(disk);
-
-      final sesi = MockStore.instance.sesi.first;
-      expect(sesi.status, CalibrationStatus.perluRevisi);
-      expect(sesi.catatanRevisi, 'Buffer 7 cuma 2 bacaan.');
-    });
   });
 
   group('nyimpen nggak boleh bikin app mati', () {

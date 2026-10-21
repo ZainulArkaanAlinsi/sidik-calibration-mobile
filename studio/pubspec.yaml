@@ -1,0 +1,73 @@
+name: sidik_studio
+description: "Sidik Studio — pusat kendali data & olah data PT Sidik (Windows & tablet Android)."
+# Aplikasi internal, bukan paket untuk pub.dev.
+publish_to: 'none'
+
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.11.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  # Versinya di-pin flutter_localizations — `any` supaya pub yang mencocokkan
+  # (pola yang sama dengan pubspec app lapangan).
+  intl: any
+  flutter_riverpod: ^3.3.2
+
+  # Lapisan data BERSAMA dengan app lapangan: ApiClient, token, auth, izin,
+  # model & layanan data acuan, plus layar M2 `lib/screens/data_acuan/*`.
+  #
+  # Lewat path, bukan salinan: satu kode yang sama dipakai dua aplikasi, jadi
+  # kontrak API tidak bisa menyimpang diam-diam di salah satunya.
+  #
+  # Konsekuensinya ditanggung sadar: plugin native milik app lapangan (Firebase,
+  # ML Kit, image_picker, notifikasi lokal, ...) ikut terdaftar di build Studio
+  # walau tidak pernah dipanggil di sini. Studio TIDAK menyalakan Firebase dan
+  # TIDAK memakai push — lihat `lib/inti/penimpaan.dart`.
+  sidik_calibration:
+    path: ../
+
+  # Grid sel "Asli Excel" (ST-T-015, `lib/widget/grid/grid_sel.dart`):
+  # TableView dua arah tervirtualisasi + baris/kolom terkunci + merge.
+  # Paket resmi flutter/packages; izin dependensi dari pemilik proyek
+  # 13 Okt 2026 (rencana S1b). Hanya di Studio — app lapangan tidak memakainya.
+  two_dimensional_scrollables: ^0.5.5
+
+  # Pemilih berkas master (.xlsm/.xlsx/.csv) di layar "Unggah master". Sudah
+  # terpasang transitif lewat sidik_calibration (versi & lock sama).
+  file_picker: ^8.1.7
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  # Uji E2E di perangkat/desktop sungguhan melawan server API lokal
+  # (`integration_test/alur_studio_test.dart`). Paket SDK Flutter, bukan
+  # dependensi pihak ketiga; tidak ikut ke build aplikasi.
+  integration_test:
+    sdk: flutter
+  # `SharedPreferences.setMockInitialValues` di test: jalur logout paket
+  # bersama menyapu simpanan lokal, dan tanpa tiruan channel-nya tidak dijawab.
+  shared_preferences: ^2.3.2
+
+flutter:
+  # Generator l10n Studio sendiri (`l10n.yaml` → `lib/l10n/studio_l10n.dart`).
+  # Teks layar M2 tetap dari `AppLocalizations` paket sidik_calibration.
+  generate: true
+
+  uses-material-design: true
+
+  # SENGAJA tidak ada blok `fonts:`. Inter & IBM Plex Mono dideklarasikan di
+  # pubspec paket sidik_calibration, dan Flutter membundel font paket
+  # dependensi sebagai keluarga `packages/sidik_calibration/<Keluarga>`
+  # (flutter_tools `asset.dart` `_parsePackageFonts`). Berkasnya tidak disalin.
+  # Lihat `lib/tema/font_studio.dart`.
+
+  assets:
+    # Tanda merek di sidebar & layar masuk — diperkecil dari ikon peluncur
+    # Studio (sumber yang sama dengan mipmap Android & app_icon.ico Windows).
+    - assets/merek/ikon-studio.png

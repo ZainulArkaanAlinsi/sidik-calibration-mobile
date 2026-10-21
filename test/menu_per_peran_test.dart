@@ -6,28 +6,20 @@ import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/dashboard_provider.dart';
 import 'package:sidik_calibration/providers/equipment_provider.dart';
 import 'package:sidik_calibration/providers/izin_provider.dart';
-import 'package:sidik_calibration/providers/koreksi_provider.dart';
 import 'package:sidik_calibration/providers/notification_provider.dart';
 import 'package:sidik_calibration/providers/pengendalian_provider.dart';
-import 'package:sidik_calibration/providers/permintaan_provider.dart';
 import 'package:sidik_calibration/providers/platform_provider.dart';
 import 'package:sidik_calibration/screens/jatuh_tempo/layar_jatuh_tempo.dart';
-import 'package:sidik_calibration/screens/koreksi/antrean_koreksi_screen.dart';
-import 'package:sidik_calibration/screens/pelanggan/pusat_pelanggan_screen.dart';
-import 'package:sidik_calibration/screens/pengesahan/antrean_pengesahan_screen.dart';
 import 'package:sidik_calibration/screens/penugasan/penugasan_screen.dart';
-import 'package:sidik_calibration/screens/permintaan/antrean_permintaan_screen.dart';
+import 'package:sidik_calibration/screens/teknisi/kalibrasi_teknisi_screen.dart';
 import 'package:sidik_calibration/screens/shell/main_shell.dart';
 import 'package:sidik_calibration/services/dashboard_service.dart';
 import 'package:sidik_calibration/services/equipment_service.dart';
 import 'package:sidik_calibration/services/izin_service.dart';
-import 'package:sidik_calibration/services/koreksi_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/notification_service.dart';
 import 'package:sidik_calibration/services/pelacakan_service.dart';
-import 'package:sidik_calibration/services/pengesahan_service.dart';
 import 'package:sidik_calibration/services/penugasan_service.dart';
-import 'package:sidik_calibration/services/permintaan_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 
 import 'support/lewati_onboarding.dart';
@@ -60,11 +52,8 @@ Widget _app(String token) {
       ),
       equipmentServiceProvider.overrideWithValue(MockEquipmentService()),
       izinServiceProvider.overrideWithValue(MockIzinService()),
-      pengesahanServiceProvider.overrideWithValue(MockPengesahanService()),
       pelacakanServiceProvider.overrideWithValue(MockPelacakanService()),
       penugasanServiceProvider.overrideWithValue(MockPenugasanService()),
-      permintaanServiceProvider.overrideWithValue(MockPermintaanService()),
-      koreksiServiceProvider.overrideWithValue(MockKoreksiService()),
     ],
     child: const SidikApp(),
   );
@@ -100,10 +89,11 @@ void _tiada(List<String> daftar) {
 }
 
 void main() {
+  // Pengesahan DICABUT 15 Okt 2026 (K-50-07): tidak boleh ada di menu siapa pun.
   const pengesahan = 'Pengesahan sertifikat';
   const penugasan = 'Penugasan';
   const tugasSaya = 'Tugas saya';
-  const pelacakan = 'Pelacakan paket';
+  const pelacakan = 'Telusuri No. Sertifikat';
   const kelolaLab = 'Kelola lab';
   const pusat = 'Pusat pelanggan';
   const jadwal = 'Jadwal kalibrasi ulang';
@@ -112,54 +102,36 @@ void main() {
   const permintaan = 'Permintaan pelanggan';
   const koreksi = 'Koreksi pelanggan';
 
-  testWidgets('super admin: dibuka dari pengesahan, sisanya cuma pantau', (
+  // K-49-14 (15 Okt 2026): super admin = SEMUA menu admin & teknisi dari satu
+  // tempat. Yang tetap ditahan server: menyetujui sesi yang dia isi sendiri
+  // (K-30-03). Pengesahan dicabut (K-50-07).
+  testWidgets('super admin: semua menu admin & teknisi, tanpa pengesahan', (
     tester,
   ) async {
     await _bukaMenu(tester, 'mock-token-5');
 
-    // Judul seksi dicetak gaya etsa (huruf besar).
     _ada([
-      pengesahan,
+      antreanApproval,
+      'Alur Kerja',
       penugasan,
       pelacakan,
-      pusat,
+      draf,
+      kelolaLab,
       jadwal,
-      permintaan,
-      koreksi,
-      'PANTAU (BACA SAJA)',
     ]);
-    // Kalimat yang menjelaskan kenapa tombol isi-data tidak ada untuknya.
+    _tiada([pusat, permintaan, koreksi]);
+    // Kalimat yang mengingatkan K-30-03, bukan "baca saja" lagi.
     expect(
-      find.textContaining('Mengesahkan sertifikat sebelum terbit'),
+      find.textContaining('Semua aksi Master Data & teknisi'),
       findsOneWidget,
     );
-    // Super admin tidak menyetujui sesi dan tidak mengisi lembar kerja.
-    _tiada([antreanApproval, draf, kelolaLab, tugasSaya]);
+    _tiada(['PANTAU (BACA SAJA)', tugasSaya, pengesahan]);
   });
 
-  testWidgets('super admin: menu pengesahan membuka antreannya', (
+  testWidgets('super admin: menu jadwal membuka layarnya', (
     tester,
   ) async {
     await _bukaMenu(tester, 'mock-token-5');
-
-    await tester.tap(_diMenu(pengesahan));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(AntreanPengesahanScreen), findsOneWidget);
-  });
-
-  testWidgets('super admin: menu pusat pelanggan & jadwal membuka layarnya', (
-    tester,
-  ) async {
-    await _bukaMenu(tester, 'mock-token-5');
-    await tester.tap(_diMenu(pusat));
-    await tester.pumpAndSettle();
-    expect(find.byType(PusatPelangganScreen), findsOneWidget);
-
-    await tester.tap(find.byType(BackButton));
-    await tester.pumpAndSettle();
-    bukaMenuUtama();
-    await tester.pumpAndSettle();
     await tester.tap(_diMenu(jadwal));
     await tester.pumpAndSettle();
     expect(find.byType(JadwalKalibrasiScreen), findsOneWidget);
@@ -172,49 +144,44 @@ void main() {
 
     _ada([
       antreanApproval,
-      pengesahan,
       'Alur Kerja',
       penugasan,
       pelacakan,
       draf,
       kelolaLab,
-      pusat,
       jadwal,
-      permintaan,
-      koreksi,
     ]);
-    _tiada([tugasSaya]);
-    expect(
-      find.textContaining('Mengesahkan sertifikat sebelum terbit'),
-      findsNothing,
-    );
+    _tiada([pusat, permintaan, koreksi]);
+    _tiada([tugasSaya, pengesahan]);
   });
 
   testWidgets(
-    'teknisi: dibuka dari "Tugas saya", tanpa pengesahan & Kelola lab',
+    'teknisi: HP cuma dua tab (Kalibrasi, Profil) dan TANPA menu samping',
     (tester) async {
-      await _bukaMenu(tester, 'mock-token-2');
+      await tester.binding.setSurfaceSize(const Size(400, 1000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(_app('mock-token-2'));
+      await tester.pump(const Duration(milliseconds: 700));
+      await tester.pumpAndSettle();
 
-      _ada([tugasSaya, draf, pelacakan]);
-      _tiada([
-        pengesahan,
-        kelolaLab,
-        antreanApproval,
-        penugasan,
-        pusat,
-        jadwal,
-        permintaan,
-        koreksi,
-      ]);
+      // Tidak ada drawer sama sekali: Pengesahan, Kelola lab, Penugasan,
+      // Pusat pelanggan, dst. bukan urusan teknisi (K-50-14).
+      expect(find.byType(Drawer), findsNothing);
+      expect(find.byType(KalibrasiTeknisiScreen), findsOneWidget);
+      for (final label in ['Dashboard', 'Alat', 'Riwayat', 'Arsip']) {
+        expect(find.text(label), findsNothing, reason: 'tab "$label" teknisi');
+      }
+      expect(find.text('Kalibrasi'), findsWidgets);
+      expect(find.text('Profil'), findsOneWidget);
     },
   );
 
-  testWidgets('teknisi: "Tugas saya" membuka penugasan miliknya', (
+  testWidgets('admin: layar Penugasan — tanggal ikut bahasa app', (
     tester,
   ) async {
-    await _bukaMenu(tester, 'mock-token-2');
+    await _bukaMenu(tester, 'mock-token-1');
 
-    await tester.tap(_diMenu(tugasSaya));
+    await tester.tap(_diMenu(penugasan));
     await tester.pumpAndSettle();
 
     expect(find.byType(PenugasanScreen), findsOneWidget);
@@ -243,89 +210,5 @@ void main() {
       permintaan,
       koreksi,
     ]);
-  });
-
-  testWidgets('admin: permintaan pelanggan berlencana jumlah yang menunggu', (
-    tester,
-  ) async {
-    await _bukaMenu(tester, 'mock-token-1');
-
-    // Dua permintaan `baru` di data tiruan; angkanya dari `meta.jumlah_baru`.
-    final lencana = find.descendant(
-      of: find.byType(Drawer),
-      matching: find.byKey(const ValueKey('lencana-permintaan')),
-    );
-    expect(lencana, findsOneWidget);
-    expect(
-      find.descendant(of: lencana, matching: find.text('2')),
-      findsOneWidget,
-    );
-
-    await tester.tap(_diMenu(permintaan));
-    await tester.pumpAndSettle();
-    expect(find.byType(AntreanPermintaanScreen), findsOneWidget);
-  });
-
-  testWidgets('super admin: permintaan pelanggan bisa dibuka (baca saja)', (
-    tester,
-  ) async {
-    await _bukaMenu(tester, 'mock-token-5');
-
-    await tester.tap(_diMenu(permintaan));
-    await tester.pumpAndSettle();
-    expect(find.byType(AntreanPermintaanScreen), findsOneWidget);
-
-    // Kartu dibuka → tombol keputusan tidak ada, kalimatnya ada.
-    await tester.tap(find.text('PMT/2026/09/0012'));
-    await tester.pumpAndSettle();
-    expect(
-      find.byKey(const ValueKey('tombol-terima-permintaan')),
-      findsNothing,
-    );
-    expect(
-      find.byKey(const ValueKey('catatan-baca-saja-permintaan')),
-      findsOneWidget,
-    );
-  });
-
-  testWidgets('admin: koreksi pelanggan berlencana jumlah yang menunggu', (
-    tester,
-  ) async {
-    await _bukaMenu(tester, 'mock-token-1');
-
-    // Dua koreksi `menunggu` di data tiruan; angkanya dari
-    // `meta.jumlah.menunggu`.
-    final lencana = find.descendant(
-      of: find.byType(Drawer),
-      matching: find.byKey(const ValueKey('lencana-koreksi')),
-    );
-    expect(lencana, findsOneWidget);
-    expect(
-      find.descendant(of: lencana, matching: find.text('2')),
-      findsOneWidget,
-    );
-
-    await tester.tap(_diMenu(koreksi));
-    await tester.pumpAndSettle();
-    expect(find.byType(AntreanKoreksiScreen), findsOneWidget);
-  });
-
-  testWidgets('super admin: koreksi pelanggan bisa dibuka (baca saja)', (
-    tester,
-  ) async {
-    await _bukaMenu(tester, 'mock-token-5');
-
-    await tester.tap(_diMenu(koreksi));
-    await tester.pumpAndSettle();
-    expect(find.byType(AntreanKoreksiScreen), findsOneWidget);
-
-    // Kartu dibuka → tombol keputusan tidak ada, kalimatnya ada.
-    await tester.tap(find.byKey(const ValueKey('kartu-koreksi-7')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('tombol-terima-koreksi')), findsNothing);
-    expect(
-      find.byKey(const ValueKey('catatan-baca-saja-koreksi')),
-      findsOneWidget,
-    );
   });
 }

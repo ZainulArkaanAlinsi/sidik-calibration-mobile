@@ -38,7 +38,7 @@ void main() {
       expect(b.desimalEfektif(2), 0);
       expect(b.standardValue.toStringAsFixed(b.desimalEfektif(2)), '100');
       expect(b.unitUnderTest.toStringAsFixed(b.desimalEfektif(2)), '101');
-      expect(b.correction.toStringAsFixed(b.desimalEfektif(2)), '-1');
+      expect(b.correction!.toStringAsFixed(b.desimalEfektif(2)), '-1');
     });
 
     test('titik resolusi halus tetap 2 desimal', () {
@@ -53,7 +53,7 @@ void main() {
 
       expect(b.standardValue.toStringAsFixed(b.desimalEfektif(2)), '1.00');
       expect(b.unitUnderTest.toStringAsFixed(b.desimalEfektif(2)), '1.05');
-      expect(b.correction.toStringAsFixed(b.desimalEfektif(2)), '-0.05');
+      expect(b.correction!.toStringAsFixed(b.desimalEfektif(2)), '-0.05');
     });
 
     /// Sertifikat pH yang udah terbit TIDAK BOLEH berubah gara-gara perbaikan
@@ -73,7 +73,7 @@ void main() {
       expect(b.desimalEfektif(2), 2);
       expect(b.standardValue.toStringAsFixed(b.desimalEfektif(2)), '9.98');
       expect(b.unitUnderTest.toStringAsFixed(b.desimalEfektif(2)), '10.11');
-      expect(b.correction.toStringAsFixed(b.desimalEfektif(2)), '-0.13');
+      expect(b.correction!.toStringAsFixed(b.desimalEfektif(2)), '-0.13');
     });
   });
 

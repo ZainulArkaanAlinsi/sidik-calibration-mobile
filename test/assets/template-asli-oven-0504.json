@@ -1,0 +1,3002 @@
+{
+    "template_id": "oven",
+    "kertas": "asli",
+    "kode_dokumen": "SIDIK-FM-CAL-0504",
+    "revisi": "3",
+    "sumber_sha256": "006a198e207a69934d70341e3446466cc903956425a991c4648e6df70d2db17b",
+    "judul": "Calibration Worksheet - Enclosure (Oven)",
+    "satuan": "°C",
+    "jumlah_pengulangan": 5,
+    "tabel": [
+        {
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "judul": "Data Kalibrasi (satu lembar = satu set point)",
+            "sumbu_pengulangan": "kolom",
+            "slot_cetak": [],
+            "pita_cetak": 0,
+            "baris": [
+                {
+                    "baris_ke": 1,
+                    "titik_ukur": 0,
+                    "label": "Termokopel 1",
+                    "tipe": "angka",
+                    "standard_id": null,
+                    "satuan": "°C",
+                    "resolusi": null,
+                    "desimal": null
+                },
+                {
+                    "baris_ke": 2,
+                    "titik_ukur": 0,
+                    "label": "Termokopel 2",
+                    "tipe": "angka",
+                    "standard_id": null,
+                    "satuan": "°C",
+                    "resolusi": null,
+                    "desimal": null
+                },
+                {
+                    "baris_ke": 3,
+                    "titik_ukur": 0,
+                    "label": "Termokopel 3",
+                    "tipe": "angka",
+                    "standard_id": null,
+                    "satuan": "°C",
+                    "resolusi": null,
+                    "desimal": null
+                },
+                {
+                    "baris_ke": 4,
+                    "titik_ukur": 0,
+                    "label": "Termokopel 4",
+                    "tipe": "angka",
+                    "standard_id": null,
+                    "satuan": "°C",
+                    "resolusi": null,
+                    "desimal": null
+                },
+                {
+                    "baris_ke": 5,
+                    "titik_ukur": 0,
+                    "label": "Termokopel 5",
+                    "tipe": "angka",
+                    "standard_id": null,
+                    "satuan": "°C",
+                    "resolusi": null,
+                    "desimal": null
+                },
+                {
+                    "baris_ke": 6,
+                    "titik_ukur": 0,
+                    "label": "Termokopel 6",
+                    "tipe": "angka",
+                    "standard_id": null,
+                    "satuan": "°C",
+                    "resolusi": null,
+                    "desimal": null
+                },
+                {
+                    "baris_ke": 7,
+                    "titik_ukur": 0,
+                    "label": "Termokopel 7",
+                    "tipe": "angka",
+                    "standard_id": null,
+                    "satuan": "°C",
+                    "resolusi": null,
+                    "desimal": null
+                },
+                {
+                    "baris_ke": 8,
+                    "titik_ukur": 0,
+                    "label": "Termokopel 8",
+                    "tipe": "angka",
+                    "standard_id": null,
+                    "satuan": "°C",
+                    "resolusi": null,
+                    "desimal": null
+                },
+                {
+                    "baris_ke": 9,
+                    "titik_ukur": 0,
+                    "label": "Termokopel 9",
+                    "tipe": "angka",
+                    "standard_id": null,
+                    "satuan": "°C",
+                    "resolusi": null,
+                    "desimal": null
+                },
+                {
+                    "baris_ke": 10,
+                    "titik_ukur": 0,
+                    "label": "Indikator",
+                    "tipe": "angka",
+                    "standard_id": null,
+                    "satuan": "°C",
+                    "resolusi": null,
+                    "desimal": null
+                },
+                {
+                    "baris_ke": 11,
+                    "titik_ukur": 0,
+                    "label": "Suhu Ruang",
+                    "tipe": "angka",
+                    "standard_id": null,
+                    "satuan": "°C",
+                    "resolusi": null,
+                    "desimal": null
+                }
+            ],
+            "kolom": [
+                {
+                    "field_id": "pembacaan",
+                    "label": "Pembacaan",
+                    "satuan": null
+                }
+            ],
+            "pengulangan": [
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "label_pengulangan": []
+        }
+    ],
+    "geometri": {
+        "koordinat": "ternormal_0_1",
+        "ukuran_referensi": {
+            "w": 612,
+            "h": 792,
+            "satuan": "pt",
+            "orientasi": "potret"
+        },
+        "jangkar_teks": [
+            {
+                "teks": "PT.",
+                "kotak": {
+                    "x": 0.12945,
+                    "y": 0.0542,
+                    "w": 0.02605,
+                    "h": 0.01364
+                }
+            },
+            {
+                "teks": "SIDIK",
+                "kotak": {
+                    "x": 0.16109,
+                    "y": 0.0542,
+                    "w": 0.04398,
+                    "h": 0.01364
+                }
+            },
+            {
+                "teks": "Calibration",
+                "kotak": {
+                    "x": 0.33047,
+                    "y": 0.05477,
+                    "w": 0.06655,
+                    "h": 0.01111
+                }
+            },
+            {
+                "teks": "Work",
+                "kotak": {
+                    "x": 0.40161,
+                    "y": 0.05477,
+                    "w": 0.03182,
+                    "h": 0.01111
+                }
+            },
+            {
+                "teks": "Sheet",
+                "kotak": {
+                    "x": 0.43786,
+                    "y": 0.05477,
+                    "w": 0.03523,
+                    "h": 0.01111
+                }
+            },
+            {
+                "teks": "Oven/Furnace/Chiller/Water",
+                "kotak": {
+                    "x": 0.49105,
+                    "y": 0.05477,
+                    "w": 0.1694,
+                    "h": 0.01111
+                }
+            },
+            {
+                "teks": "Bath",
+                "kotak": {
+                    "x": 0.66508,
+                    "y": 0.05477,
+                    "w": 0.02772,
+                    "h": 0.01111
+                }
+            },
+            {
+                "teks": "LK-285-IDN",
+                "kotak": {
+                    "x": 0.79408,
+                    "y": 0.0542,
+                    "w": 0.09748,
+                    "h": 0.01364
+                }
+            },
+            {
+                "teks": "Identitas",
+                "kotak": {
+                    "x": 0.40469,
+                    "y": 0.091,
+                    "w": 0.04761,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "Alat",
+                "kotak": {
+                    "x": 0.45655,
+                    "y": 0.091,
+                    "w": 0.02182,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "dan",
+                "kotak": {
+                    "x": 0.48264,
+                    "y": 0.091,
+                    "w": 0.02051,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "Data",
+                "kotak": {
+                    "x": 0.50742,
+                    "y": 0.091,
+                    "w": 0.026,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "Customer",
+                "kotak": {
+                    "x": 0.53775,
+                    "y": 0.091,
+                    "w": 0.05331,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "Nama",
+                "kotak": {
+                    "x": 0.09118,
+                    "y": 0.10763,
+                    "w": 0.02977,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Alat",
+                "kotak": {
+                    "x": 0.12482,
+                    "y": 0.10763,
+                    "w": 0.01995,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Rentang",
+                "kotak": {
+                    "x": 0.41614,
+                    "y": 0.10763,
+                    "w": 0.04257,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Ukur",
+                "kotak": {
+                    "x": 0.46255,
+                    "y": 0.10763,
+                    "w": 0.0243,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Tgl.",
+                "kotak": {
+                    "x": 0.65444,
+                    "y": 0.10763,
+                    "w": 0.01936,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Diterima",
+                "kotak": {
+                    "x": 0.67765,
+                    "y": 0.10763,
+                    "w": 0.04284,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Merk",
+                "kotak": {
+                    "x": 0.09118,
+                    "y": 0.12152,
+                    "w": 0.02516,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Kapasitas",
+                "kotak": {
+                    "x": 0.41614,
+                    "y": 0.12152,
+                    "w": 0.05051,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Alat",
+                "kotak": {
+                    "x": 0.47069,
+                    "y": 0.12152,
+                    "w": 0.01995,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Tgl.",
+                "kotak": {
+                    "x": 0.65444,
+                    "y": 0.12152,
+                    "w": 0.01936,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Kalibrasi",
+                "kotak": {
+                    "x": 0.67765,
+                    "y": 0.12152,
+                    "w": 0.04511,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Type",
+                "kotak": {
+                    "x": 0.09118,
+                    "y": 0.13541,
+                    "w": 0.02525,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Resolusi",
+                "kotak": {
+                    "x": 0.41614,
+                    "y": 0.13541,
+                    "w": 0.04445,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Alat",
+                "kotak": {
+                    "x": 0.46447,
+                    "y": 0.13541,
+                    "w": 0.01995,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Thermohygro",
+                "kotak": {
+                    "x": 0.65444,
+                    "y": 0.13541,
+                    "w": 0.06708,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "used",
+                "kotak": {
+                    "x": 0.72535,
+                    "y": 0.13541,
+                    "w": 0.02458,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "TH-2",
+                "kotak": {
+                    "x": 0.84735,
+                    "y": 0.13541,
+                    "w": 0.02831,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "No.",
+                "kotak": {
+                    "x": 0.09118,
+                    "y": 0.1493,
+                    "w": 0.01768,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Seri",
+                "kotak": {
+                    "x": 0.11274,
+                    "y": 0.1493,
+                    "w": 0.02062,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Lokasi",
+                "kotak": {
+                    "x": 0.41614,
+                    "y": 0.1493,
+                    "w": 0.03367,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Kalibrasi",
+                "kotak": {
+                    "x": 0.4537,
+                    "y": 0.1493,
+                    "w": 0.04511,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "TH-6",
+                "kotak": {
+                    "x": 0.84735,
+                    "y": 0.1493,
+                    "w": 0.02831,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Suhu",
+                "kotak": {
+                    "x": 0.09118,
+                    "y": 0.16321,
+                    "w": 0.02624,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Ruangan",
+                "kotak": {
+                    "x": 0.12124,
+                    "y": 0.16321,
+                    "w": 0.04554,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "awal",
+                "kotak": {
+                    "x": 0.25989,
+                    "y": 0.16321,
+                    "w": 0.02208,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "akhir",
+                "kotak": {
+                    "x": 0.3766,
+                    "y": 0.16321,
+                    "w": 0.02351,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "TH-7",
+                "kotak": {
+                    "x": 0.84735,
+                    "y": 0.16321,
+                    "w": 0.02831,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Kelembapan",
+                "kotak": {
+                    "x": 0.09118,
+                    "y": 0.1771,
+                    "w": 0.0635,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "awal",
+                "kotak": {
+                    "x": 0.25989,
+                    "y": 0.1771,
+                    "w": 0.02208,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "akhir",
+                "kotak": {
+                    "x": 0.3766,
+                    "y": 0.1771,
+                    "w": 0.02351,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "%RH",
+                "kotak": {
+                    "x": 0.47598,
+                    "y": 0.1771,
+                    "w": 0.02417,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Nama",
+                "kotak": {
+                    "x": 0.09118,
+                    "y": 0.19099,
+                    "w": 0.02977,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Customer",
+                "kotak": {
+                    "x": 0.12482,
+                    "y": 0.19099,
+                    "w": 0.04913,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Alamat",
+                "kotak": {
+                    "x": 0.09118,
+                    "y": 0.20488,
+                    "w": 0.03531,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Customer",
+                "kotak": {
+                    "x": 0.13039,
+                    "y": 0.20488,
+                    "w": 0.04913,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Standar",
+                "kotak": {
+                    "x": 0.09118,
+                    "y": 0.22432,
+                    "w": 0.03968,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "used",
+                "kotak": {
+                    "x": 0.13463,
+                    "y": 0.22432,
+                    "w": 0.02458,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Temperature",
+                "kotak": {
+                    "x": 0.0915,
+                    "y": 0.23897,
+                    "w": 0.06127,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Calibrator/Constant/40T/99875850",
+                "kotak": {
+                    "x": 0.15978,
+                    "y": 0.23897,
+                    "w": 0.18625,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Thermocouple",
+                "kotak": {
+                    "x": 0.53742,
+                    "y": 0.23897,
+                    "w": 0.06872,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Type-K",
+                "kotak": {
+                    "x": 0.61316,
+                    "y": 0.23897,
+                    "w": 0.03827,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Temperature",
+                "kotak": {
+                    "x": 0.0915,
+                    "y": 0.25361,
+                    "w": 0.06127,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Calibrator/Victor/Victor",
+                "kotak": {
+                    "x": 0.15978,
+                    "y": 0.25361,
+                    "w": 0.11655,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "14+/992613877",
+                "kotak": {
+                    "x": 0.2835,
+                    "y": 0.25361,
+                    "w": 0.08575,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Thermocouple",
+                "kotak": {
+                    "x": 0.53742,
+                    "y": 0.25361,
+                    "w": 0.06872,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Type-N",
+                "kotak": {
+                    "x": 0.61316,
+                    "y": 0.25361,
+                    "w": 0.03886,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Temperature",
+                "kotak": {
+                    "x": 0.0915,
+                    "y": 0.26826,
+                    "w": 0.06127,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Recorder/Graptech/GL840-SDWV/C305B1470",
+                "kotak": {
+                    "x": 0.15978,
+                    "y": 0.26826,
+                    "w": 0.24541,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Dimensi",
+                "kotak": {
+                    "x": 0.46258,
+                    "y": 0.29838,
+                    "w": 0.04499,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "Alat",
+                "kotak": {
+                    "x": 0.51186,
+                    "y": 0.29838,
+                    "w": 0.02182,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "Enclosure",
+                "kotak": {
+                    "x": 0.16574,
+                    "y": 0.31424,
+                    "w": 0.05104,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Rectangular",
+                "kotak": {
+                    "x": 0.22059,
+                    "y": 0.31424,
+                    "w": 0.06157,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Enclosure",
+                "kotak": {
+                    "x": 0.43639,
+                    "y": 0.31424,
+                    "w": 0.05104,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Silindris",
+                "kotak": {
+                    "x": 0.49125,
+                    "y": 0.31424,
+                    "w": 0.04139,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Volume",
+                "kotak": {
+                    "x": 0.7375,
+                    "y": 0.31424,
+                    "w": 0.03864,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Panjang",
+                "kotak": {
+                    "x": 0.09118,
+                    "y": 0.3294,
+                    "w": 0.04159,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "(P)",
+                "kotak": {
+                    "x": 0.1366,
+                    "y": 0.3294,
+                    "w": 0.01474,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Jari-Jari",
+                "kotak": {
+                    "x": 0.36418,
+                    "y": 0.3294,
+                    "w": 0.04544,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Rectangular",
+                "kotak": {
+                    "x": 0.60838,
+                    "y": 0.3294,
+                    "w": 0.06157,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Lebar",
+                "kotak": {
+                    "x": 0.09118,
+                    "y": 0.34505,
+                    "w": 0.02923,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "(L)",
+                "kotak": {
+                    "x": 0.12417,
+                    "y": 0.34505,
+                    "w": 0.01375,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Tinggi",
+                "kotak": {
+                    "x": 0.36418,
+                    "y": 0.34505,
+                    "w": 0.03143,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "(T)",
+                "kotak": {
+                    "x": 0.39949,
+                    "y": 0.34505,
+                    "w": 0.01409,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Volume",
+                "kotak": {
+                    "x": 0.60838,
+                    "y": 0.34505,
+                    "w": 0.03864,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Tinggi",
+                "kotak": {
+                    "x": 0.09118,
+                    "y": 0.36071,
+                    "w": 0.03143,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "(T)",
+                "kotak": {
+                    "x": 0.12648,
+                    "y": 0.36071,
+                    "w": 0.01409,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "3.14",
+                "kotak": {
+                    "x": 0.4884,
+                    "y": 0.36047,
+                    "w": 0.02272,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Silindris",
+                "kotak": {
+                    "x": 0.60838,
+                    "y": 0.36147,
+                    "w": 0.04139,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "π.r2",
+                "kotak": {
+                    "x": 0.661,
+                    "y": 0.3588,
+                    "w": 0.01818,
+                    "h": 0.01201
+                }
+            },
+            {
+                "teks": "Persyaratan",
+                "kotak": {
+                    "x": 0.09118,
+                    "y": 0.37662,
+                    "w": 0.0615,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Alat",
+                "kotak": {
+                    "x": 0.15649,
+                    "y": 0.37662,
+                    "w": 0.01995,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "(ΔT)",
+                "kotak": {
+                    "x": 0.18035,
+                    "y": 0.3754,
+                    "w": 0.02102,
+                    "h": 0.01056
+                }
+            },
+            {
+                "teks": "Volume",
+                "kotak": {
+                    "x": 0.60838,
+                    "y": 0.37662,
+                    "w": 0.03864,
+                    "h": 0.00934
+                }
+            },
+            {
+                "teks": "Data",
+                "kotak": {
+                    "x": 0.45833,
+                    "y": 0.41125,
+                    "w": 0.026,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "Kalibrasi",
+                "kotak": {
+                    "x": 0.48866,
+                    "y": 0.41125,
+                    "w": 0.0492,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "Data",
+                "kotak": {
+                    "x": 0.45735,
+                    "y": 0.43528,
+                    "w": 0.026,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "Kalibrasi/Ulangan",
+                "kotak": {
+                    "x": 0.48768,
+                    "y": 0.43528,
+                    "w": 0.09881,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "No.",
+                "kotak": {
+                    "x": 0.14677,
+                    "y": 0.45295,
+                    "w": 0.01924,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "Indikator",
+                "kotak": {
+                    "x": 0.14252,
+                    "y": 0.70529,
+                    "w": 0.04843,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "Suhu",
+                "kotak": {
+                    "x": 0.13435,
+                    "y": 0.72625,
+                    "w": 0.02867,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "ruang",
+                "kotak": {
+                    "x": 0.1673,
+                    "y": 0.72625,
+                    "w": 0.03159,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "Dikalibrasi",
+                "kotak": {
+                    "x": 0.18239,
+                    "y": 0.78332,
+                    "w": 0.05429,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "Oleh",
+                "kotak": {
+                    "x": 0.24445,
+                    "y": 0.78332,
+                    "w": 0.02485,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "Diperiksa",
+                "kotak": {
+                    "x": 0.44359,
+                    "y": 0.78332,
+                    "w": 0.04899,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "Oleh",
+                "kotak": {
+                    "x": 0.50044,
+                    "y": 0.78332,
+                    "w": 0.02484,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "Catatan",
+                "kotak": {
+                    "x": 0.73619,
+                    "y": 0.78332,
+                    "w": 0.04115,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "TTD",
+                "kotak": {
+                    "x": 0.0915,
+                    "y": 0.82932,
+                    "w": 0.02285,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "TTD",
+                "kotak": {
+                    "x": 0.36451,
+                    "y": 0.82932,
+                    "w": 0.02285,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "Nama",
+                "kotak": {
+                    "x": 0.0915,
+                    "y": 0.84699,
+                    "w": 0.03136,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "Nama",
+                "kotak": {
+                    "x": 0.36451,
+                    "y": 0.84699,
+                    "w": 0.03136,
+                    "h": 0.0101
+                }
+            },
+            {
+                "teks": "Page",
+                "kotak": {
+                    "x": 0.08954,
+                    "y": 0.96534,
+                    "w": 0.03507,
+                    "h": 0.01389
+                }
+            },
+            {
+                "teks": "Revise",
+                "kotak": {
+                    "x": 0.48873,
+                    "y": 0.96534,
+                    "w": 0.04853,
+                    "h": 0.01389
+                }
+            },
+            {
+                "teks": "SIDIK-FM-CAL-0504",
+                "kotak": {
+                    "x": 0.81531,
+                    "y": 0.96534,
+                    "w": 0.14424,
+                    "h": 0.01389
+                }
+            }
+        ]
+    },
+    "sel": {
+        "grid|1|1|pembacaan": {
+            "kunci": "grid|1|1|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 1,
+            "repeat_no": 1,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.24436,
+                "y": 0.46364,
+                "w": 0.11737,
+                "h": 0.01566
+            }
+        },
+        "grid|1|2|pembacaan": {
+            "kunci": "grid|1|2|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 1,
+            "repeat_no": 2,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.36173,
+                "y": 0.46364,
+                "w": 0.11147,
+                "h": 0.01566
+            }
+        },
+        "grid|1|3|pembacaan": {
+            "kunci": "grid|1|3|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 1,
+            "repeat_no": 3,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.4732,
+                "y": 0.46364,
+                "w": 0.13271,
+                "h": 0.01566
+            }
+        },
+        "grid|1|4|pembacaan": {
+            "kunci": "grid|1|4|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 1,
+            "repeat_no": 4,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.60592,
+                "y": 0.46364,
+                "w": 0.11639,
+                "h": 0.01566
+            }
+        },
+        "grid|1|5|pembacaan": {
+            "kunci": "grid|1|5|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 1,
+            "repeat_no": 5,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.7223,
+                "y": 0.46364,
+                "w": 0.12237,
+                "h": 0.01566
+            }
+        },
+        "grid|2|1|pembacaan": {
+            "kunci": "grid|2|1|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 2,
+            "repeat_no": 1,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.24436,
+                "y": 0.47929,
+                "w": 0.11737,
+                "h": 0.01566
+            }
+        },
+        "grid|2|2|pembacaan": {
+            "kunci": "grid|2|2|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 2,
+            "repeat_no": 2,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.36173,
+                "y": 0.47929,
+                "w": 0.11147,
+                "h": 0.01566
+            }
+        },
+        "grid|2|3|pembacaan": {
+            "kunci": "grid|2|3|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 2,
+            "repeat_no": 3,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.4732,
+                "y": 0.47929,
+                "w": 0.13271,
+                "h": 0.01566
+            }
+        },
+        "grid|2|4|pembacaan": {
+            "kunci": "grid|2|4|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 2,
+            "repeat_no": 4,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.60592,
+                "y": 0.47929,
+                "w": 0.11639,
+                "h": 0.01566
+            }
+        },
+        "grid|2|5|pembacaan": {
+            "kunci": "grid|2|5|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 2,
+            "repeat_no": 5,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.7223,
+                "y": 0.47929,
+                "w": 0.12237,
+                "h": 0.01566
+            }
+        },
+        "grid|3|1|pembacaan": {
+            "kunci": "grid|3|1|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 3,
+            "repeat_no": 1,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.24436,
+                "y": 0.49495,
+                "w": 0.11737,
+                "h": 0.01566
+            }
+        },
+        "grid|3|2|pembacaan": {
+            "kunci": "grid|3|2|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 3,
+            "repeat_no": 2,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.36173,
+                "y": 0.49495,
+                "w": 0.11147,
+                "h": 0.01566
+            }
+        },
+        "grid|3|3|pembacaan": {
+            "kunci": "grid|3|3|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 3,
+            "repeat_no": 3,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.4732,
+                "y": 0.49495,
+                "w": 0.13271,
+                "h": 0.01566
+            }
+        },
+        "grid|3|4|pembacaan": {
+            "kunci": "grid|3|4|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 3,
+            "repeat_no": 4,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.60592,
+                "y": 0.49495,
+                "w": 0.11639,
+                "h": 0.01566
+            }
+        },
+        "grid|3|5|pembacaan": {
+            "kunci": "grid|3|5|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 3,
+            "repeat_no": 5,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.7223,
+                "y": 0.49495,
+                "w": 0.12237,
+                "h": 0.01566
+            }
+        },
+        "grid|4|1|pembacaan": {
+            "kunci": "grid|4|1|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 4,
+            "repeat_no": 1,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.24436,
+                "y": 0.51061,
+                "w": 0.11737,
+                "h": 0.01566
+            }
+        },
+        "grid|4|2|pembacaan": {
+            "kunci": "grid|4|2|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 4,
+            "repeat_no": 2,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.36173,
+                "y": 0.51061,
+                "w": 0.11147,
+                "h": 0.01566
+            }
+        },
+        "grid|4|3|pembacaan": {
+            "kunci": "grid|4|3|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 4,
+            "repeat_no": 3,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.4732,
+                "y": 0.51061,
+                "w": 0.13271,
+                "h": 0.01566
+            }
+        },
+        "grid|4|4|pembacaan": {
+            "kunci": "grid|4|4|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 4,
+            "repeat_no": 4,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.60592,
+                "y": 0.51061,
+                "w": 0.11639,
+                "h": 0.01566
+            }
+        },
+        "grid|4|5|pembacaan": {
+            "kunci": "grid|4|5|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 4,
+            "repeat_no": 5,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.7223,
+                "y": 0.51061,
+                "w": 0.12237,
+                "h": 0.01566
+            }
+        },
+        "grid|5|1|pembacaan": {
+            "kunci": "grid|5|1|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 5,
+            "repeat_no": 1,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.24436,
+                "y": 0.52626,
+                "w": 0.11737,
+                "h": 0.01566
+            }
+        },
+        "grid|5|2|pembacaan": {
+            "kunci": "grid|5|2|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 5,
+            "repeat_no": 2,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.36173,
+                "y": 0.52626,
+                "w": 0.11147,
+                "h": 0.01566
+            }
+        },
+        "grid|5|3|pembacaan": {
+            "kunci": "grid|5|3|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 5,
+            "repeat_no": 3,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.4732,
+                "y": 0.52626,
+                "w": 0.13271,
+                "h": 0.01566
+            }
+        },
+        "grid|5|4|pembacaan": {
+            "kunci": "grid|5|4|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 5,
+            "repeat_no": 4,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.60592,
+                "y": 0.52626,
+                "w": 0.11639,
+                "h": 0.01566
+            }
+        },
+        "grid|5|5|pembacaan": {
+            "kunci": "grid|5|5|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 5,
+            "repeat_no": 5,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.7223,
+                "y": 0.52626,
+                "w": 0.12237,
+                "h": 0.01566
+            }
+        },
+        "grid|6|1|pembacaan": {
+            "kunci": "grid|6|1|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 6,
+            "repeat_no": 1,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.24436,
+                "y": 0.54192,
+                "w": 0.11737,
+                "h": 0.01566
+            }
+        },
+        "grid|6|2|pembacaan": {
+            "kunci": "grid|6|2|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 6,
+            "repeat_no": 2,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.36173,
+                "y": 0.54192,
+                "w": 0.11147,
+                "h": 0.01566
+            }
+        },
+        "grid|6|3|pembacaan": {
+            "kunci": "grid|6|3|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 6,
+            "repeat_no": 3,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.4732,
+                "y": 0.54192,
+                "w": 0.13271,
+                "h": 0.01566
+            }
+        },
+        "grid|6|4|pembacaan": {
+            "kunci": "grid|6|4|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 6,
+            "repeat_no": 4,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.60592,
+                "y": 0.54192,
+                "w": 0.11639,
+                "h": 0.01566
+            }
+        },
+        "grid|6|5|pembacaan": {
+            "kunci": "grid|6|5|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 6,
+            "repeat_no": 5,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.7223,
+                "y": 0.54192,
+                "w": 0.12237,
+                "h": 0.01566
+            }
+        },
+        "grid|7|1|pembacaan": {
+            "kunci": "grid|7|1|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 7,
+            "repeat_no": 1,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.24436,
+                "y": 0.55758,
+                "w": 0.11737,
+                "h": 0.01569
+            }
+        },
+        "grid|7|2|pembacaan": {
+            "kunci": "grid|7|2|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 7,
+            "repeat_no": 2,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.36173,
+                "y": 0.55758,
+                "w": 0.11147,
+                "h": 0.01569
+            }
+        },
+        "grid|7|3|pembacaan": {
+            "kunci": "grid|7|3|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 7,
+            "repeat_no": 3,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.4732,
+                "y": 0.55758,
+                "w": 0.13271,
+                "h": 0.01569
+            }
+        },
+        "grid|7|4|pembacaan": {
+            "kunci": "grid|7|4|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 7,
+            "repeat_no": 4,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.60592,
+                "y": 0.55758,
+                "w": 0.11639,
+                "h": 0.01569
+            }
+        },
+        "grid|7|5|pembacaan": {
+            "kunci": "grid|7|5|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 7,
+            "repeat_no": 5,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.7223,
+                "y": 0.55758,
+                "w": 0.12237,
+                "h": 0.01569
+            }
+        },
+        "grid|8|1|pembacaan": {
+            "kunci": "grid|8|1|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 8,
+            "repeat_no": 1,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.24436,
+                "y": 0.57327,
+                "w": 0.11737,
+                "h": 0.01566
+            }
+        },
+        "grid|8|2|pembacaan": {
+            "kunci": "grid|8|2|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 8,
+            "repeat_no": 2,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.36173,
+                "y": 0.57327,
+                "w": 0.11147,
+                "h": 0.01566
+            }
+        },
+        "grid|8|3|pembacaan": {
+            "kunci": "grid|8|3|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 8,
+            "repeat_no": 3,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.4732,
+                "y": 0.57327,
+                "w": 0.13271,
+                "h": 0.01566
+            }
+        },
+        "grid|8|4|pembacaan": {
+            "kunci": "grid|8|4|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 8,
+            "repeat_no": 4,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.60592,
+                "y": 0.57327,
+                "w": 0.11639,
+                "h": 0.01566
+            }
+        },
+        "grid|8|5|pembacaan": {
+            "kunci": "grid|8|5|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 8,
+            "repeat_no": 5,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.7223,
+                "y": 0.57327,
+                "w": 0.12237,
+                "h": 0.01566
+            }
+        },
+        "grid|9|1|pembacaan": {
+            "kunci": "grid|9|1|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 9,
+            "repeat_no": 1,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.24436,
+                "y": 0.58893,
+                "w": 0.11737,
+                "h": 0.01564
+            }
+        },
+        "grid|9|2|pembacaan": {
+            "kunci": "grid|9|2|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 9,
+            "repeat_no": 2,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.36173,
+                "y": 0.58893,
+                "w": 0.11147,
+                "h": 0.01564
+            }
+        },
+        "grid|9|3|pembacaan": {
+            "kunci": "grid|9|3|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 9,
+            "repeat_no": 3,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.4732,
+                "y": 0.58893,
+                "w": 0.13271,
+                "h": 0.01564
+            }
+        },
+        "grid|9|4|pembacaan": {
+            "kunci": "grid|9|4|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 9,
+            "repeat_no": 4,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.60592,
+                "y": 0.58893,
+                "w": 0.11639,
+                "h": 0.01564
+            }
+        },
+        "grid|9|5|pembacaan": {
+            "kunci": "grid|9|5|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 9,
+            "repeat_no": 5,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.7223,
+                "y": 0.58893,
+                "w": 0.12237,
+                "h": 0.01564
+            }
+        },
+        "grid|10|1|pembacaan": {
+            "kunci": "grid|10|1|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 10,
+            "repeat_no": 1,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.24436,
+                "y": 0.69842,
+                "w": 0.11737,
+                "h": 0.02109
+            }
+        },
+        "grid|10|2|pembacaan": {
+            "kunci": "grid|10|2|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 10,
+            "repeat_no": 2,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.36173,
+                "y": 0.69842,
+                "w": 0.11147,
+                "h": 0.02109
+            }
+        },
+        "grid|10|3|pembacaan": {
+            "kunci": "grid|10|3|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 10,
+            "repeat_no": 3,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.4732,
+                "y": 0.69842,
+                "w": 0.13271,
+                "h": 0.02109
+            }
+        },
+        "grid|10|4|pembacaan": {
+            "kunci": "grid|10|4|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 10,
+            "repeat_no": 4,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.60592,
+                "y": 0.69842,
+                "w": 0.11639,
+                "h": 0.02109
+            }
+        },
+        "grid|10|5|pembacaan": {
+            "kunci": "grid|10|5|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 10,
+            "repeat_no": 5,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.7223,
+                "y": 0.69842,
+                "w": 0.12237,
+                "h": 0.02109
+            }
+        },
+        "grid|11|1|pembacaan": {
+            "kunci": "grid|11|1|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 11,
+            "repeat_no": 1,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.24436,
+                "y": 0.71951,
+                "w": 0.11737,
+                "h": 0.02096
+            }
+        },
+        "grid|11|2|pembacaan": {
+            "kunci": "grid|11|2|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 11,
+            "repeat_no": 2,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.36173,
+                "y": 0.71951,
+                "w": 0.11147,
+                "h": 0.02096
+            }
+        },
+        "grid|11|3|pembacaan": {
+            "kunci": "grid|11|3|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 11,
+            "repeat_no": 3,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.4732,
+                "y": 0.71951,
+                "w": 0.13271,
+                "h": 0.02096
+            }
+        },
+        "grid|11|4|pembacaan": {
+            "kunci": "grid|11|4|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 11,
+            "repeat_no": 4,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.60592,
+                "y": 0.71951,
+                "w": 0.11639,
+                "h": 0.02096
+            }
+        },
+        "grid|11|5|pembacaan": {
+            "kunci": "grid|11|5|pembacaan",
+            "tabel_id": "grid",
+            "tahap": "sesudah_adjustment",
+            "grup": "grid",
+            "baris_ke": 11,
+            "repeat_no": 5,
+            "field_id": "pembacaan",
+            "titik_ukur": 0,
+            "standard_id": null,
+            "aturan": {
+                "tipe": "desimal",
+                "satuan": "°C",
+                "nominal": 0,
+                "resolusi": null,
+                "desimal": null,
+                "min": null,
+                "maks": null,
+                "rasio_min": 0.5,
+                "rasio_maks": 2,
+                "maks_digit": 9,
+                "izinkan_minus": false,
+                "boleh_kosong": true,
+                "tulisan_tangan": true
+            },
+            "kotak": {
+                "x": 0.7223,
+                "y": 0.71951,
+                "w": 0.12237,
+                "h": 0.02096
+            }
+        }
+    },
+    "isian": [
+        {
+            "kode": "suhu_akhir",
+            "cara": "angka",
+            "kotak": {
+                "x": 0.40338,
+                "y": 0.16089,
+                "w": 0.06934,
+                "h": 0.01127
+            }
+        },
+        {
+            "kode": "kelembaban_akhir",
+            "cara": "angka",
+            "kotak": {
+                "x": 0.40338,
+                "y": 0.17418,
+                "w": 0.06934,
+                "h": 0.01187
+            }
+        }
+    ],
+    "centang": [
+        {
+            "kode": "thermohygro_standard_id",
+            "pilihan": "TH-2",
+            "baris_ke": null,
+            "label": null,
+            "kotak": {
+                "x": 0.81621,
+                "y": 0.13193,
+                "w": 0.01471,
+                "h": 0.01015
+            }
+        },
+        {
+            "kode": "thermohygro_standard_id",
+            "pilihan": "TH-6",
+            "baris_ke": null,
+            "label": null,
+            "kotak": {
+                "x": 0.81621,
+                "y": 0.14703,
+                "w": 0.01471,
+                "h": 0.00998
+            }
+        },
+        {
+            "kode": "thermohygro_standard_id",
+            "pilihan": "TH-7",
+            "baris_ke": null,
+            "label": null,
+            "kotak": {
+                "x": 0.81621,
+                "y": 0.1602,
+                "w": 0.01471,
+                "h": 0.01015
+            }
+        },
+        {
+            "kode": "standar_dicek.*.dipakai",
+            "pilihan": null,
+            "baris_ke": 1,
+            "label": "Temperature Calibrator / Constant / 40T / 99875850",
+            "kotak": {
+                "x": 0.43577,
+                "y": 0.23578,
+                "w": 0.01493,
+                "h": 0.01015
+            }
+        },
+        {
+            "kode": "standar_dicek.*.dipakai",
+            "pilihan": null,
+            "baris_ke": 3,
+            "label": "Temperature Calibrator / Victor / Victor 14+ / 992613877",
+            "kotak": {
+                "x": 0.43577,
+                "y": 0.25091,
+                "w": 0.01493,
+                "h": 0.01015
+            }
+        },
+        {
+            "kode": "standar_dicek.*.dipakai",
+            "pilihan": null,
+            "baris_ke": 4,
+            "label": "Temperature Recorder / Graptech / GL840-SDWV / C305B1470",
+            "kotak": {
+                "x": 0.43577,
+                "y": 0.26612,
+                "w": 0.01493,
+                "h": 0.01015
+            }
+        },
+        {
+            "kode": "tipe_sensor",
+            "pilihan": "Type K",
+            "baris_ke": null,
+            "label": null,
+            "kotak": {
+                "x": 0.66518,
+                "y": 0.23626,
+                "w": 0.01471,
+                "h": 0.01015
+            }
+        },
+        {
+            "kode": "tipe_sensor",
+            "pilihan": "Type N",
+            "baris_ke": null,
+            "label": null,
+            "kotak": {
+                "x": 0.66518,
+                "y": 0.25043,
+                "w": 0.01471,
+                "h": 0.01015
+            }
+        }
+    ],
+    "siap_pindai": false,
+    "alasan_belum_siap": "geometri_belum_diverifikasi",
+    "revisi_tercetak": true,
+    "perlu_konfirmasi_lab": false,
+    "mode_uji": true,
+    "pipeline_versi": "ocr-1.0.0",
+    "aturan_versi": "val-1.0.0+asli-1"
+}

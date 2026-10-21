@@ -2244,7 +2244,7 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
     } catch (e) {
       if (mounted) {
         messenger.showSnackBar(
-          SnackBar(content: Text(l10n.lkFotoTabelError('$e'))),
+          SnackBar(content: Text(pesanGalatFotoTabel(l10n, e))),
         );
       }
     } finally {
@@ -2265,20 +2265,12 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
     HasilPetaTabel hasil,
     img.Image? citra,
   ) async {
-    final potongan = <String, Uint8List>{};
-
-    if (citra != null && hasil.kotakSel.isNotEmpty) {
-      for (final p in const PotongSelFoto()
-          .potong(citra: citra, kotak: hasil.kotakSel)
-          .potongan) {
-        potongan[kunciSelFoto(
-              p.kotak.titikUkur,
-              p.kotak.repeatNo,
-              p.kotak.fieldId,
-            )] =
-            Uint8List.fromList(img.encodePng(p.potongan));
-      }
-    }
+    // Potong + encode PNG puluhan sel di isolate lain — dulu semuanya di isolate
+    // UI dan layar membeku selama beberapa detik sebelum review muncul.
+    final kotakSel = hasil.kotakSel;
+    final potongan = (citra != null && kotakSel.isNotEmpty)
+        ? await potongKePngDiIsolate(citra, kotakSel)
+        : <String, Uint8List>{};
 
     final labelKolom = {for (final k in widget.tabel.kolom) k.kode: k.label};
     final labelBaris = {

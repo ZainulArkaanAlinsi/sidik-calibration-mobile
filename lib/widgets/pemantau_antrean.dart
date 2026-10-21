@@ -79,7 +79,7 @@ class _PemantauAntreanState extends ConsumerState<PemantauAntrean>
   Widget build(BuildContext context) {
     final bolehSetujui = ref.bolehkah(
       NamaIzin.kalibrasiSetujui,
-      cadangan: ref.watch(authProvider).value?.role.adminSaja ?? false,
+      cadangan: ref.watch(authProvider).value?.role.hakAdmin ?? false,
     );
 
     ref.listen<AsyncValue<DashboardSummary>>(dashboardProvider, (lama, baru) {

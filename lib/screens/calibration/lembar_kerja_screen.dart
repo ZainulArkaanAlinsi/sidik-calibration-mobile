@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/sidik_theme.dart';
 import '../../core/utils/angka.dart';
 import '../../core/utils/uuid.dart';
 import '../../core/utils/waktu_tampil.dart';
@@ -14,6 +16,7 @@ import '../../models/calibration_draft.dart' show LokasiKalibrasi;
 import '../../models/equipment.dart';
 import '../../models/equipment_lookup.dart';
 import '../../models/lembar_kerja.dart';
+import '../../models/lembar_kerja_submission.dart' show LembarKerjaSubmission;
 import '../../models/room.dart';
 import '../../models/standard.dart';
 import '../../providers/autoclave_provider.dart';
@@ -25,7 +28,9 @@ import '../../providers/history_provider.dart';
 import '../../providers/jam_provider.dart';
 import '../../providers/lembar_kerja_provider.dart';
 import '../../providers/versi_provider.dart';
+import '../../models/worksheet_template.dart';
 import '../../providers/worksheet_scan_provider.dart';
+import 'pindai_formulir_asli_flow.dart';
 import '../../services/auth_service.dart' show AuthException, gagalJaringan;
 import '../../services/draf_lokal.dart';
 import '../../services/penampung_contoh_sel.dart';
@@ -35,6 +40,7 @@ import '../../widgets/app_button.dart';
 import '../../widgets/label_standar.dart';
 import '../../widgets/sidik_loader.dart';
 import '../../widgets/tampil_masuk.dart';
+import 'kinerja_lembar.dart';
 import 'lembar_kerja_state.dart';
 import 'penjaga_draf_lokal.dart';
 import 'widgets/dropdown_gagal.dart';
@@ -98,7 +104,60 @@ class LembarKerjaScreen extends ConsumerStatefulWidget {
   ConsumerState<LembarKerjaScreen> createState() => _LembarKerjaScreenState();
 }
 
-class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen> {
+class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen>
+    with WidgetsBindingObserver {
+  /// Kunci lembar yang sedang dipakai layar ini. Lihat docblock di [build].
+  KunciLembarKerja get _kunci => (
+    profil: widget.profil,
+    pengulangan: _pengulangan,
+    equipmentId: _equipmentId,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _equipmentId = widget.drafLokal?.equipmentId;
+    _pengulangan = widget.drafLokal?.pengulangan;
+
+    // Tarik ulang SAAT LEMBAR DIBUKA. `lembarKerjaProvider` bukan autoDispose,
+    // jadi lembar yang pernah dibuka (pagi tadi, versi acuan lama) dipakai
+    // lagi apa adanya tanpa bertanya ke server. Cuma kalau memang sudah ada
+    // isinya: kunci yang belum pernah dimuat sedang ditarik oleh build
+    // pertama, dan menginvalidate-nya cuma melahirkan tarikan kedua.
+    //
+    // Sesudah frame pertama, bukan di sini langsung: mengubah provider di
+    // tengah pembangunan pohon widget ditolak Riverpod.
+    final kunci = _kunci;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !ref.exists(lembarKerjaProvider(kunci))) return;
+      final kini = ref.read(lembarKerjaProvider(kunci));
+      if (kini.hasValue && !kini.isLoading) {
+        ref.invalidate(lembarKerjaProvider(kunci));
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Kembali dari latar belakang = versi data acuan bisa sudah berganti
+  /// (pola `PemantauAntrean`). Tarikannya bersyarat (`If-None-Match`): lembar
+  /// yang tidak berubah dijawab 304 dan formulirnya tidak tersentuh sama
+  /// sekali — objek bentuknya identik, jadi `gantiBentuk` tidak terpanggil.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Lembar yang sedang diketik tidak ditarik ulang (lihat `lembarKotorProvider`).
+    if (state == AppLifecycleState.resumed &&
+        mounted &&
+        !ref.read(lembarKotorProvider.notifier).ada) {
+      ref.invalidate(lembarKerjaProvider(_kunci));
+    }
+  }
+
   /// Berapa kotak pengulangan yang digambar. `null` = bawaan profilnya (5,
   /// ngikut form kertas) — teknisi yang nggak peduli nggak perlu milih apa-apa.
   int? _pengulangan;
@@ -110,13 +169,6 @@ class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen> {
   /// Bentuk terakhir yang berhasil dimuat — dipegang biar layar nggak balik
   /// kosong waktu ganti alat bikin provider-nya mulai dari `loading`.
   LembarKerja? _bentukTerakhir;
-
-  @override
-  void initState() {
-    super.initState();
-    _equipmentId = widget.drafLokal?.equipmentId;
-    _pengulangan = widget.drafLokal?.pengulangan;
-  }
 
   /// Ganti jumlah kotak = bentuk formulirnya beda = tabelnya dibangun ulang,
   /// dan isian yang udah diketik ilang.
@@ -161,17 +213,21 @@ class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen> {
     // kolom `1412 µS/cm`. Backend ngitung Error = 1413 − 1,412 = 1411,588 dan
     // lembarnya nyampe admin. Anggaran ketidakpastiannya sendiri udah bener
     // (U95 8,10901195 sama persis kayak Excel) — yang salah cuma barisnya.
-    final kunci = (
-      profil: widget.profil,
-      pengulangan: _pengulangan,
-      equipmentId: _equipmentId,
-    );
+    final kunci = _kunci;
     // Ganti alat = kunci baru = provider baru = mulai dari `loading`. Tanpa
     // nyimpen bentuk terakhir, badan layar balik jadi spinner sekejap dan
     // `_Form` ke-unmount — seluruh isian yang udah diketik ilang, termasuk alat
     // yang barusan dipilih. Formulirnya HARUS tetap terpasang; bentuk barunya
     // dipasang belakangan lewat `gantiBentuk`.
     ref.listen(lembarKerjaProvider(kunci), (_, next) {
+      // Tarikan ULANG kunci yang sama (dibuka lagi, kembali ke depan, tarikan
+      // berkala) yang gagal: diam. Galatnya membawa bentuk sebelumnya
+      // (`hasValue`), formulir tetap jalan dengan bentuk itu, dan kirimannya
+      // nanti yang melaporkan kalau server memang tak terjangkau. Tanpa ini,
+      // teknisi yang mengisi di tempat tanpa sinyal kena snackbar galat tiap
+      // tiga menit untuk tarikan yang tidak dia minta.
+      if (next is AsyncError && next.hasValue) return;
+
       // Gagal narik bentuk alat SESUDAH lembar kepegang nggak boleh diam.
       //
       // Backend nolak (422) kalau master alatnya belum nyebut varian satuan
@@ -439,6 +495,11 @@ class _FormState extends ConsumerState<_Form> {
   /// isian yang tersimpan. Lihat docblock [_muatSesiLama].
   bool _sesiLamaGagalDimuat = false;
 
+  /// Status sesi lama yang dibuka ulang. `menunggu_approval` = lembarnya
+  /// SUDAH dikirim teknisi dan yang membukanya admin/super admin: simpanannya
+  /// koreksi, jadi alasan koreksi diminta dulu (lihat [_mintaAlasanKoreksi]).
+  CalibrationStatus? _statusSesiLama;
+
   /// Index ke [LembarKerja.halaman], bukan nomor halamannya sendiri — lembar
   /// kerja alat lain bisa punya penomoran yang beda.
   int _halaman = 0;
@@ -509,16 +570,137 @@ class _FormState extends ConsumerState<_Form> {
     // Angka yang diketik di tabel hasil nggak lewat `_isianBerubah` — selnya
     // sengaja nggak nge-rebuild formulir tiap ketukan tombol. Pratinjaunya
     // dengerin dari sini.
-    _isian.onIsianDiketik = () {
-      _jadwalkanPratinjau();
-      _tandaiBerubah();
-    };
+    _isian.onIsianDiketik = _isianDiketik;
+    _kotorCtl = ref.read(lembarKotorProvider.notifier);
+    _pratinjauCtl = ref.read(pratinjauProvider.notifier);
+    _tandaTampilTerakhir = _hitungTandaTampil();
 
     _sesiIdTerkini = widget.sesiId;
     _pasangSalinanHp();
 
     final id = widget.sesiId;
-    if (id != null) _muatSesiLama(id);
+    if (id != null) {
+      _muatSesiLama(id);
+    } else {
+      // Lembar BARU: tawarkan "Isi manual | Foto lembar kerja" (hanya kalau
+      // formulirnya siap pindai).
+      WidgetsBinding.instance.addPostFrameCallback((_) => _tanyaCara());
+    }
+  }
+
+  KunciTemplatePindai get _kunciAsli =>
+      (kode: widget.profil, equipmentId: _isian.alat?.id);
+
+  bool _sedangMemindai = false;
+
+  /// Pintu "Foto lembar kerja" hanya untuk formulir yang boleh dipindai DAN
+  /// yang tabelnya bisa diterima lembar ini (Enclosure: grid, belum).
+  bool _bolehFotoLembar(WorksheetTemplate? asli) =>
+      asli != null &&
+      asli.bolehDipindaiAsli &&
+      _isian.bisaMenerimaFotoAsli(asli);
+
+  /// Pintu masuk lembar baru. Foto butuh alatnya dulu (titik ukur lahir dari
+  /// alat), jadi pilihan "Foto" tanpa alat hanya mengarahkan ke tombol kamera.
+  Future<void> _tanyaCara() async {
+    if (!mounted) return;
+
+    final WorksheetTemplate? asli;
+    try {
+      asli = await ref.read(
+        formulirAsliProvider((kode: widget.profil, equipmentId: null)).future,
+      );
+    } catch (_) {
+      return; // Tanpa peta formulir: langsung isi manual, tanpa pintu.
+    }
+    if (asli == null || !_bolehFotoLembar(asli) || !mounted) return;
+
+    final l10n = AppLocalizations.of(context);
+    final foto = await showModalBottomSheet<bool>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Text(
+                l10n.phCalibCaraJudul,
+                style: Theme.of(ctx).textTheme.titleMedium,
+              ),
+            ),
+            ListTile(
+              key: const ValueKey('cara-manual'),
+              leading: const Icon(Icons.edit_outlined),
+              title: Text(l10n.phCalibCaraManual),
+              subtitle: Text(l10n.phCalibCaraManualKeterangan),
+              onTap: () => Navigator.pop(ctx, false),
+            ),
+            ListTile(
+              key: const ValueKey('cara-foto'),
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: Text(l10n.phCalibCaraFoto),
+              subtitle: Text(l10n.phCalibCaraFotoKeterangan),
+              onTap: () => Navigator.pop(ctx, true),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Text(
+                l10n.phCalibCaraCatatan,
+                style: Theme.of(ctx).textTheme.bodySmall,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (foto != true || !mounted) return;
+
+    if (_isian.alat == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.lkAsliPilihAlatDulu)));
+      return;
+    }
+
+    await _fotoLembar();
+  }
+
+  Future<void> _fotoLembar() async {
+    if (_sedangMemindai || !mounted) return;
+    setState(() => _sedangMemindai = true);
+
+    try {
+      final l10n = AppLocalizations.of(context);
+      final alat = _isian.alat;
+      if (alat == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.lkAsliPilihAlatDulu)));
+        return;
+      }
+
+      final asli = await ref.read(formulirAsliProvider(_kunciAsli).future);
+      if (!mounted) return;
+      if (asli == null || !_bolehFotoLembar(asli)) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.lkAsliBelumSiap)));
+        return;
+      }
+
+      final terisi = await pindaiFormulirAsli(
+        context: context,
+        ref: ref,
+        isian: _isian,
+        template: asli,
+      );
+      if (terisi > 0 && mounted) _isianBerubah();
+    } finally {
+      if (mounted) setState(() => _sedangMemindai = false);
+    }
   }
 
   /// Isi ulang formulir dari sesi yang dibuka lagi (lanjut draft / perbaiki
@@ -544,8 +726,13 @@ class _FormState extends ConsumerState<_Form> {
     if (_sesiLamaGagalDimuat) ref.invalidate(calibrationDetailProvider(id));
 
     try {
-      final detail = await ref.read(calibrationDetailProvider(id).future);
+      // Detail sesi dan daftar alat lembar INI saling tidak bergantung: ditarik
+      // BERSAMAAN, bukan berurutan (dulu dua perjalanan jaringan beruntun).
+      final detailF = ref.read(calibrationDetailProvider(id).future);
+      final daftarF = _daftarAlatLembar();
+      final detail = await detailF;
       final isi = detail.isianTeknisi;
+      final alatSesi = _alatSesiLama(await daftarF, isi?.equipmentId);
       if (!mounted) return;
 
       // Tabel pengukurannya dipulihkan walau `isian_teknisi` nggak ikut di
@@ -555,11 +742,17 @@ class _FormState extends ConsumerState<_Form> {
 
       setState(() {
         _sesiLamaGagalDimuat = false;
+        _statusSesiLama = detail.status;
         // Status sertifikat standar sesi ini — dibawa dari respons yang SAMA,
         // jadi banner-nya nggak nambah satu pun permintaan. Yang dijaga waktu
         // teknisi: sertifikat standar yang lewat bikin sesinya ditolak nanti,
         // dan itu sudah bisa diketahui sekarang, sebelum lembarnya diisi.
         _isian.statusStandar = detail.statusStandar;
+        // Alat sesi DULUAN, persis urutan teknisi mengisi lembar baru. Tanpa
+        // `isiDariAlat()`: identitas & pemilik yang tersimpan di sesi (mungkin
+        // sudah dibetulkan teknisi) tidak boleh ditimpa data master.
+        // `??=`: alat yang keburu dipilih teknisi selama memuat tidak diganti.
+        if (alatSesi != null) _isian.alat ??= alatSesi;
         if (isi != null) _isian.muatDariSesi(isi);
         kebuang = _isian.terapkanPembacaan(detail.pembacaanMentah);
         // Autoklaf nggak punya `pembacaan_mentah` — matriksnya tersimpan utuh
@@ -581,6 +774,11 @@ class _FormState extends ConsumerState<_Form> {
         _isian.terapkanStandarDariHasil(detail.titik);
       });
 
+      // Isian sesudah dipulihkan = pembanding: alasan koreksi hanya diminta kalau
+      // pembacaan BERUBAH dari sini (K-50-02; menyimpan angka yang sama tidak
+      // meminta alasan).
+      _asliPembacaan = _tangkapPembacaan();
+
       // Angka yang nggak ketemu barisnya HARUS diomongin. Draft yang balik
       // dengan tabel bolong tanpa ada yang bilang itu persis cara sesi kekirim
       // ke admin dengan titik yang ilang diam-diam.
@@ -595,8 +793,9 @@ class _FormState extends ConsumerState<_Form> {
         );
       }
 
-      _hanyaBaca = !(detail.status == CalibrationStatus.draft ||
-          detail.status == CalibrationStatus.perluRevisi);
+      _hanyaBaca =
+          !(detail.status == CalibrationStatus.draft ||
+              detail.status == CalibrationStatus.perluRevisi);
       _penjaga?.basisServer = detail.diubahPada;
 
       // Dipisah try-nya: salinan HP yang gagal dibaca bukan "sesi gagal
@@ -616,6 +815,37 @@ class _FormState extends ConsumerState<_Form> {
       // Lihat docblock: formulirnya tetap bisa diisi, tapi keadaannya
       // KELIHATAN.
       if (mounted) setState(() => _sesiLamaGagalDimuat = true);
+    }
+  }
+
+  /// Alat sesi yang dibuka lagi, diambil dari daftar alat lembar INI — objek
+  /// yang sama dengan butir dropdown "Pilih alat".
+  ///
+  /// Sampai 13 Okt 2026 alat sesi lama tidak pernah dipulihkan (ketahuan uji
+  /// E2E app lapangan): draft dibuka lagi dengan "Pilih alat" kosong dan
+  /// identitas "Keisi otomatis" berisi `—`, lalu simpan/kirim ditahan "Pilih
+  /// alatnya dulu". Teknisi terpaksa memilih ulang — dan pilihan ulang itu
+  /// menimpa identitas yang sudah dibetulkan dengan data master
+  /// (`isiDariAlat`), atau malah memasang alat lain ke sesi yang sama.
+  ///
+  /// Alat yang tidak ada lagi di daftar (dihapus, pindah jenis) atau daftar
+  /// yang gagal dimuat = `null`: perilaku lama, teknisi memilih sendiri.
+  EquipmentLookup? _alatSesiLama(
+    List<EquipmentLookup>? daftar,
+    int? equipmentId,
+  ) {
+    if (equipmentId == null || daftar == null) return null;
+    return daftar.where((e) => e.id == equipmentId).firstOrNull;
+  }
+
+  /// Daftar alat lembar ini; gagal = `null` (teknisi memilih sendiri).
+  Future<List<EquipmentLookup>?> _daftarAlatLembar() async {
+    try {
+      return await ref.read(
+        equipmentLookupProfilProvider(_isian.profil).future,
+      );
+    } catch (_) {
+      return null;
     }
   }
 
@@ -914,17 +1144,14 @@ class _FormState extends ConsumerState<_Form> {
     if (penjaga == null) return;
 
     final wadah = ProviderScope.containerOf(context, listen: false);
-    penjaga
-        .hapus()
-        .then((_) {
-          try {
-            wadah.invalidate(drafLokalProvider);
-          } catch (_) {
-            // Container sudah dibuang (aplikasi ditutup) — nggak ada yang
-            // perlu disegarkan.
-          }
-        })
-        .ignore();
+    penjaga.hapus().then((_) {
+      try {
+        wadah.invalidate(drafLokalProvider);
+      } catch (_) {
+        // Container sudah dibuang (aplikasi ditutup) — nggak ada yang
+        // perlu disegarkan.
+      }
+    }).ignore();
   }
 
   /// Simpan Draf gagal karena server nggak terjangkau: simpan di HP, antre,
@@ -941,17 +1168,16 @@ class _FormState extends ConsumerState<_Form> {
     final navigator = Navigator.of(context);
     final wadah = ProviderScope.containerOf(context, listen: false);
 
-    penjaga
-        .antrekan(kiriman, mungkinSudahSampai: _sesiIdTerkini == null)
-        .then((_) {
-          try {
-            wadah.invalidate(drafLokalProvider);
-            wadah.read(sinkronDrafLokalProvider)?.jadwalkan();
-          } catch (_) {
-            // Lihat [_selesaiTersimpanDiServer].
-          }
-        })
-        .ignore();
+    penjaga.antrekan(kiriman, mungkinSudahSampai: _sesiIdTerkini == null).then((
+      _,
+    ) {
+      try {
+        wadah.invalidate(drafLokalProvider);
+        wadah.read(sinkronDrafLokalProvider)?.jadwalkan();
+      } catch (_) {
+        // Lihat [_selesaiTersimpanDiServer].
+      }
+    }).ignore();
 
     setState(() => _mengirim = false);
     messenger.showSnackBar(
@@ -976,11 +1202,59 @@ class _FormState extends ConsumerState<_Form> {
     // semua perubahan — biar nggak ada jalur yang lupa: yang nyalain bug lama
     // bukan dropdown ruangannya, tapi nilainya yang masih nyangkut sesudah
     // teknisi pindah ke Insitu.
+    _tandaiKotor();
     _isian.bersihkanFieldTersembunyi();
     setState(() {});
+    _tandaTampilTerakhir = _hitungTandaTampil();
     widget.onAlatBerubah(_isian.alat?.id);
     _jadwalkanPratinjau();
     _tandaiBerubah();
+  }
+
+  /// Angka diketik di kotak yang BUKAN penentu tampil-tidaknya kolom lain:
+  /// cukup jadwalkan pratinjau. Dulu tiap ketukan membangun ulang SELURUH
+  /// formulir (`setState` di [_isianBerubah]) — itu yang terasa lag di HP.
+  /// Kalau ketukannya mengubah nilai penentu (`tampil_kalau`), jalur penuh.
+  void _isianDiketik() {
+    _tandaiKotor();
+    if (_hitungTandaTampil() != _tandaTampilTerakhir) {
+      _isianBerubah();
+      return;
+    }
+    _jadwalkanPratinjau();
+    // Simpan otomatis: cuma menggeser Timer jeda — tanpa setState.
+    _tandaiBerubah();
+  }
+
+  late final LembarKotorController _kotorCtl;
+  late final PratinjauController _pratinjauCtl;
+  String _tandaTampilTerakhir = '';
+  bool _kotor = false;
+
+  void _tandaiKotor() {
+    if (_kotor) return;
+    _kotor = true;
+    // Sesudah frame: dipanggil dari onChanged, tapi dijaga dari pembangunan.
+    Future.microtask(_kotorCtl.tambah);
+  }
+
+  /// Nilai semua kolom yang menentukan `tampil_kalau` — berubah = ada kolom
+  /// atau tabel yang harus muncul/hilang.
+  String _hitungTandaTampil() {
+    final kode = <String>{};
+    for (final b in _isian.bentuk.bagian) {
+      for (final f in [...b.field, ...b.fieldDiLuarKertas]) {
+        final k = f.tampilKalau?.kode;
+        if (k != null) kode.add(k);
+      }
+      for (final t in b.tabel) {
+        final k = t.tampilKalau?.kode;
+        if (k != null) kode.add(k);
+      }
+    }
+    if (kode.isEmpty) return '';
+    final urut = kode.toList()..sort();
+    return urut.map((k) => '$k=${_isian.nilaiSyarat(k)}').join('|');
   }
 
   /// Minta backend ngitung isian yang sekarang — DITUNDA, bukan tiap ketukan.
@@ -1077,6 +1351,17 @@ class _FormState extends ConsumerState<_Form> {
   @override
   void dispose() {
     _pratinjauTertunda?.cancel();
+    if (_kotor) {
+      final ctl = _kotorCtl;
+      Future.microtask(() {
+        try {
+          ctl.kurang();
+        } catch (_) {
+          // Container sudah dibuang (penutupan app/test).
+        }
+      });
+    }
+    _pratinjauCtl.batalkan();
 
     // Tampungan contoh latih milik sesi ini dibuang — teknisi yang memotret
     // lalu MENUTUP lembarnya tanpa menyimpan meninggalkan potongan di
@@ -1303,6 +1588,17 @@ class _FormState extends ConsumerState<_Form> {
     if (!draft && !await _konfirmasiAngka()) return;
     if (!mounted) return;
 
+    // Koreksi atas lembar yang SUDAH dikirim teknisi wajib beralasan (server:
+    // `alasan_koreksi` min. 10 karakter; nilai lama + baru + alasan dicatat).
+    // Diminta di sini, sebelum tombol berputar — bukan sesudah ditolak 422.
+    // Lembar bermatriks (Autoklaf): `PUT /calibrations/autoclave/{id}` juga
+    // menuntutnya (kontrak: "Edit Admin" pada `menunggu_approval`).
+    String? alasanKoreksi;
+    if (_perluAlasanKoreksi && _pembacaanBerubah) {
+      alasanKoreksi = await _mintaAlasanKoreksi();
+      if (alasanKoreksi == null || !mounted) return;
+    }
+
     setState(() => _mengirim = true);
 
     // Lembar bermatriks punya endpoint simpan sendiri (`POST
@@ -1312,12 +1608,22 @@ class _FormState extends ConsumerState<_Form> {
     final bagianMatriks = _isian.bagianMatriks;
 
     if (bagianMatriks != null) {
-      await _kirimMatriks(bagianMatriks, draft: draft);
+      await _kirimMatriks(
+        bagianMatriks,
+        draft: draft,
+        alasanKoreksi: alasanKoreksi,
+      );
       return;
     }
 
     final pengirim = ref.read(kirimLembarKerjaProvider.notifier);
-    final kiriman = _isian.toSubmission(draft: draft);
+    _isian.alasanKoreksi = alasanKoreksi;
+    final LembarKerjaSubmission kiriman;
+    try {
+      kiriman = _isian.toSubmission(draft: draft);
+    } finally {
+      _isian.alasanKoreksi = null;
+    }
     final sesiAwal = _sesiIdTerkini;
     HasilKirimLembarKerja? hasil;
 
@@ -1436,6 +1742,7 @@ class _FormState extends ConsumerState<_Form> {
   Future<void> _kirimMatriks(
     BagianLembarKerja bagian, {
     required bool draft,
+    String? alasanKoreksi,
   }) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -1458,7 +1765,11 @@ class _FormState extends ConsumerState<_Form> {
       // `client_request_id` baru — server nggak punya cara mengenalinya, dan
       // tiap "Simpan draft" melahirkan sesi Autoklaf kembar.
       final layanan = ref.read(autoclaveServiceProvider);
-      final payload = _isian.payloadSimpanMatriks(bagian, draft: draft);
+      final payload = _isian.payloadSimpanMatriks(
+        bagian,
+        draft: draft,
+        alasanKoreksi: alasanKoreksi,
+      );
       final sesiId = _sesiIdTerkini;
       final int id;
 
@@ -1625,6 +1936,45 @@ class _FormState extends ConsumerState<_Form> {
     return false;
   }
 
+  /// Sesi yang dibuka ulang sudah dikirim teknisi, dan yang membukanya
+  /// pemegang hak admin (admin/super admin, K-49-14). Teknisi sendiri tidak
+  /// pernah sampai ke sini: server menolak dia menyunting `menunggu_approval`.
+  bool get _perluAlasanKoreksi =>
+      widget.sesiId != null &&
+      _statusSesiLama == CalibrationStatus.menungguApproval &&
+      (ref.read(authProvider).value?.role.hakAdmin ?? false);
+
+  /// Pembacaan sesudah sesi dipulihkan dari server — pembanding [_pembacaanBerubah].
+  String? _asliPembacaan;
+
+  String? _tangkapPembacaan() {
+    try {
+      // Lembar bermatriks (Autoklaf) tidak punya `measurements`: pembandingnya
+      // data ukur mentah yang akan dikirim.
+      final bagian = _isian.bagianMatriks;
+      if (bagian?.matriks != null) {
+        return jsonEncode(
+          _isian.payloadMatriks(bagian!.matriks!, bagian.tabelTambahan),
+        );
+      }
+      final json = _isian.toSubmission(draft: true).toJson();
+      return jsonEncode(json['measurements']);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// `true` kalau pembacaan berbeda dari yang dipulihkan — atau pembandingnya
+  /// tidak ada (diperlakukan berubah: lebih baik bertanya daripada 422).
+  bool get _pembacaanBerubah =>
+      _asliPembacaan == null || _tangkapPembacaan() != _asliPembacaan;
+
+  /// Dialog alasan koreksi. `null` = dibatalkan (tidak jadi menyimpan).
+  Future<String?> _mintaAlasanKoreksi() => showDialog<String>(
+    context: context,
+    builder: (_) => const DialogAlasanKoreksi(),
+  );
+
   Future<bool> _konfirmasiAngka() async {
     final l10n = AppLocalizations.of(context);
     final ringkasan = _isian.ringkasanKirim();
@@ -1740,6 +2090,7 @@ class _FormState extends ConsumerState<_Form> {
 
   @override
   Widget build(BuildContext context) {
+    assert(KinerjaLembar.catat(() => KinerjaLembar.bangunForm++));
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final bentuk = widget.bentuk;
@@ -1800,6 +2151,26 @@ class _FormState extends ConsumerState<_Form> {
                     },
                   ),
                 ),
+              if (_bolehFotoLembar(
+                ref.watch(formulirAsliProvider(_kunciAsli)).value,
+              ))
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.sm,
+                    AppSpacing.md,
+                    0,
+                  ),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: OutlinedButton.icon(
+                      key: const ValueKey('tombol-foto-lembar'),
+                      onPressed: _sedangMemindai ? null : _fotoLembar,
+                      icon: const Icon(Icons.photo_camera_outlined, size: 18),
+                      label: Text(AppLocalizations.of(context).phCalibCaraFoto),
+                    ),
+                  ),
+                ),
               // Isian yang tampil datang dari HP ini, bukan dari server —
               // harus kelihatan, dan harus bisa dibuang (F3-02).
               if (_dipulihkanPada case final waktu?)
@@ -1847,6 +2218,18 @@ class _FormState extends ConsumerState<_Form> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        // Kaki lembar: versi data acuan yang MEMBANGUN lembar
+                        // ini (FR-21). Tidak digambar kalau server tidak
+                        // menyebut versi — profil yang belum berversi, server
+                        // yang masih membaca berkas JSON, atau server lama.
+                        // `· bentuk v<n>` belum: versi bentuk lahir di P6.
+                        if (bentuk.versiAcuan case VersiAcuanLembar(
+                          :final paket,
+                          data: NomorVersiAcuan(:final nomor),
+                        )) ...[
+                          _KakiVersiAcuan(paket: paket, nomor: nomor),
+                          const SizedBox(height: AppSpacing.sm),
+                        ],
                         // Tombol kirim CUMA di halaman terakhir. Di halaman 1 dia
                         // ada tapi belum kelihatan semua isinya — teknisi gampang
                         // ngirim lembar yang tabel hasilnya masih kosong. Di mode
@@ -1908,6 +2291,31 @@ class _FormState extends ConsumerState<_Form> {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// `data acuan <paket> v<n>` di kaki lembar, huruf angka (IBM Plex Mono).
+///
+/// Cuma penanda: dari versi mana nominal pra-cetak & data standar lembar ini
+/// berasal. Angkanya sendiri tidak dihitung di HP.
+class _KakiVersiAcuan extends StatelessWidget {
+  const _KakiVersiAcuan({required this.paket, required this.nomor});
+
+  final String paket;
+  final int nomor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      AppLocalizations.of(context).lkKakiVersiAcuan(paket, nomor),
+      key: const ValueKey('kaki-versi-acuan'),
+      textAlign: TextAlign.center,
+      style: SidikTheme.gayaAngka(
+        ukuran: 11,
+        berat: FontWeight.w400,
+        warna: Theme.of(context).colorScheme.onSurfaceVariant,
       ),
     );
   }
@@ -3719,7 +4127,7 @@ class _BarisKotakTambahan extends StatelessWidget {
                         ? 'mis. 20* atau nomor seri'
                         : 'Pisahkan tiap keping dengan +',
                   ),
-                  onChanged: (_) => onBerubah(),
+                  onChanged: (_) => isian.onIsianDiketik?.call(),
                 ),
               ),
             ],
@@ -4216,6 +4624,93 @@ String? _helperSatuan(String? satuan, [String? tambahan]) {
 String? _contohIsian(AppLocalizations l10n, FieldLembarKerja field) =>
     field.kode == 'lokasi_nama' ? l10n.lkContohNamaTempat : null;
 
+/// Kode kolom Order Number di bentuk lembar kerja.
+const kodeNomorOrder = 'nomor_order';
+
+/// Dialog alasan koreksi untuk admin/super admin yang menyimpan lembar sesi
+/// `menunggu_approval`. Memulangkan teks (≥ 10 karakter, sama dengan aturan
+/// server) atau `null` kalau dibatalkan.
+class DialogAlasanKoreksi extends StatefulWidget {
+  const DialogAlasanKoreksi({super.key});
+
+  /// `min:10` di `CalibrationController::alasanKoreksiWajib`.
+  static const minimal = 10;
+
+  /// `max:500` di aturan yang sama.
+  static const maksimal = 500;
+
+  @override
+  State<DialogAlasanKoreksi> createState() => _DialogAlasanKoreksiState();
+}
+
+class _DialogAlasanKoreksiState extends State<DialogAlasanKoreksi> {
+  final _isian = TextEditingController();
+  bool _terlaluPendek = false;
+
+  @override
+  void dispose() {
+    _isian.dispose();
+    super.dispose();
+  }
+
+  void _simpan() {
+    final teks = _isian.text.trim();
+    if (teks.length < DialogAlasanKoreksi.minimal) {
+      setState(() => _terlaluPendek = true);
+      return;
+    }
+    Navigator.of(context).pop(teks);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    return AlertDialog(
+      scrollable: true,
+      title: Text(l10n.lkAlasanKoreksiJudul),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.lkAlasanKoreksiPetunjuk,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          TextField(
+            key: const ValueKey('isian-alasan-koreksi'),
+            controller: _isian,
+            autofocus: true,
+            minLines: 2,
+            maxLines: 4,
+            maxLength: DialogAlasanKoreksi.maksimal,
+            onChanged: (_) {
+              if (_terlaluPendek) setState(() => _terlaluPendek = false);
+            },
+            decoration: InputDecoration(
+              labelText: l10n.lkAlasanKoreksiLabel,
+              errorText: _terlaluPendek ? l10n.lkAlasanKoreksiPendek : null,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.custCancel),
+        ),
+        FilledButton(
+          key: const ValueKey('simpan-alasan-koreksi'),
+          onPressed: _simpan,
+          child: Text(l10n.lkAlasanKoreksiSimpan),
+        ),
+      ],
+    );
+  }
+}
+
 class _Isian extends StatelessWidget {
   const _Isian({required this.field, required this.isian});
 
@@ -4231,6 +4726,29 @@ class _Isian extends StatelessWidget {
     final panjang = field.tipe == TipeField.teksPanjang;
     final angka = field.tipe == TipeField.angka;
     final contoh = _contohIsian(l10n, field);
+
+    // Order Number BACA SAJA di lembar kerja, untuk semua peran (K-49-14).
+    // Teknisi tidak pernah mengisinya; Master Data/super admin mengisinya di
+    // kartu "Data administrasi" layar periksa. Beberapa bentuk lembar (mis.
+    // Micrometer, blok `pemilik`) memang mengirim kolom ini ke teknisi, dan
+    // ketikan di sini dulu hilang diam-diam: nilainya tidak pernah ikut
+    // terkirim dari lembar ini.
+    if (field.kode == kodeNomorOrder) {
+      return TextField(
+        key: const ValueKey('kotak-nomor-order-baca-saja'),
+        controller: controller,
+        readOnly: true,
+        enableInteractiveSelection: false,
+        decoration: InputDecoration(
+          labelText: field.label,
+          hintText: '—',
+          helperText: l10n.lkNomorOrderBacaSaja,
+          helperMaxLines: 2,
+          border: const OutlineInputBorder(),
+          suffixIcon: const Icon(Icons.lock_outline, size: 18),
+        ),
+      );
+    }
 
     return TextField(
       controller: controller,

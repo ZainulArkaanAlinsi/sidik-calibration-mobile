@@ -3,9 +3,12 @@ import 'dart:ui' show Size;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image/image.dart' as img;
 
+import '../l10n/app_localizations.dart';
 import '../providers/sumber_foto_provider.dart';
 import '../providers/worksheet_scan_provider.dart';
+import 'modul_pembaca_teks.dart';
 import 'pembaca_halaman.dart';
+import 'potong_sel_foto.dart' show decodeFotoDiIsolate;
 
 /// Hasil satu jepretan "foto tabel ini".
 ///
@@ -61,7 +64,8 @@ typedef HasilAmbilFoto = ({
 /// pelanggan. DUA berkas sementara lahir per jepretan, dan dua-duanya dihapus
 /// di sini:
 ///
-///  - PNG yang ditulis buat ML Kit — dibuang [MlKitPembacaHalaman];
+///  - JPEG (atau PNG cadangan) yang ditulis buat ML Kit — dibuang
+///    [MlKitPembacaHalaman];
 ///  - berkas yang dipulangkan pemilih foto — dibuang di bawah, begitu bitanya
 ///    masuk memori.
 ///
@@ -69,6 +73,13 @@ typedef HasilAmbilFoto = ({
 /// dibaca" di docblock ini nggak berlaku buat dia: berkasnya menumpuk satu per
 /// jepretan di cache pemilih, isinya lembar kerja pelanggan, dan nggak ada
 /// satu pun yang membersihkannya sepanjang sesi.
+/// Pesan untuk galat yang lolos dari [ambilDanBacaTabel]: modul ML Kit yang
+/// belum terunduh diberi pesannya sendiri; sisanya pesan galat umum foto tabel.
+String pesanGalatFotoTabel(AppLocalizations l10n, Object e) =>
+    e is ModulPembacaTeksBelumSiap
+    ? l10n.lkModulPembacaTeksDiunduh
+    : l10n.lkFotoTabelError('$e');
+
 Future<HasilAmbilFoto> ambilDanBacaTabel(WidgetRef ref) async {
   final foto = await ref
       .read(sumberFotoProvider)
@@ -90,7 +101,9 @@ Future<HasilAmbilFoto> ambilDanBacaTabel(WidgetRef ref) async {
     // lebih mahal daripada sampahnya sendiri.
   }
 
-  final citra = img.decodeImage(bita);
+  // Decode foto 4200 px di isolate lain: di isolate UI ini menahan frame ratusan
+  // milidetik.
+  final citra = await decodeFotoDiIsolate(bita);
 
   if (citra == null) {
     return (terbaca: null, dibatalkan: false, ukuran: null, citra: null);
@@ -100,7 +113,10 @@ Future<HasilAmbilFoto> ambilDanBacaTabel(WidgetRef ref) async {
 
   try {
     return (
-      terbaca: await pembaca.baca(citra),
+      // JPEG asli langsung ke ML Kit (M01). Orientasi 1: [citra] hasil
+      // `decodeImage` mentah, EXIF-nya TIDAK dipanggang, jadi ML Kit juga
+      // harus melihat piksel tersimpan apa adanya.
+      terbaca: await pembaca.baca(citra, asli: (jpeg: bita, orientasi: 1)),
       dibatalkan: false,
       ukuran: Size(citra.width.toDouble(), citra.height.toDouble()),
       citra: citra,

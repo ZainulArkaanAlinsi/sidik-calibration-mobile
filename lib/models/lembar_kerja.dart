@@ -1472,6 +1472,7 @@ class LembarKerja {
     this.gridSensor,
     this.fotoTabelDidukung = true,
     this.alatBaru,
+    this.versiAcuan,
   });
 
   final String kodeDokumen;
@@ -1622,6 +1623,14 @@ class LembarKerja {
   /// menu Master Alat.
   final BekalAlatBaru? alatBaru;
 
+  /// Versi data acuan yang dipakai MEMBANGUN lembar ini (kontrak §4, FR-21) —
+  /// kaki lembar menampilkannya.
+  ///
+  /// `null` dua arti yang sama-sama bukan galat: profil yang data acuannya
+  /// belum berversi (server mengirim `versi_acuan: null`), atau server lama
+  /// yang belum mengenal kuncinya sama sekali.
+  final VersiAcuanLembar? versiAcuan;
+
   factory LembarKerja.fromJson(Map<String, dynamic> json) => LembarKerja(
     kodeDokumen: json['kode_dokumen'] as String? ?? '',
     kodeMetode: json['kode_metode'] as String?,
@@ -1647,7 +1656,55 @@ class LembarKerja {
         ? GridSensorBentuk.fromJson(json['grid_sensor'] as Map<String, dynamic>)
         : null,
     fotoTabelDidukung: _fotoTabelDidukung(json['pindai_foto']),
+    versiAcuan: VersiAcuanLembar.dariJson(json['versi_acuan']),
   );
+}
+
+/// `versi_acuan` di `GET /calibrations/lembar-kerja`:
+/// `{paket, data: {nomor, sha256} | null, bentuk: null}` (kontrak §4/§15).
+class VersiAcuanLembar {
+  const VersiAcuanLembar({required this.paket, this.data, this.bentuk});
+
+  /// Kode paket = kode profil (`micrometer`).
+  final String paket;
+
+  /// Versi data yang berlaku HARI INI di lab pemanggil. `null` kalau server
+  /// masih membaca berkas JSON (`DATA_ACUAN_SUMBER=json`) atau belum ada versi
+  /// berlaku — lembarnya tetap sah, cuma tidak berversi.
+  final NomorVersiAcuan? data;
+
+  /// Versi bentuk lembar (lapis 3). Masih selalu `null` dari server; lahir di
+  /// P6. Dibaca kalau ada supaya server baru tidak bikin parsing meledak.
+  final NomorVersiAcuan? bentuk;
+
+  static VersiAcuanLembar? dariJson(Object? json) {
+    if (json is! Map) return null;
+    final paket = json['paket'];
+    if (paket is! String || paket.isEmpty) return null;
+
+    return VersiAcuanLembar(
+      paket: paket,
+      data: NomorVersiAcuan.dariJson(json['data']),
+      bentuk: NomorVersiAcuan.dariJson(json['bentuk']),
+    );
+  }
+}
+
+/// `{nomor, sha256}` satu versi acuan.
+class NomorVersiAcuan {
+  const NomorVersiAcuan({required this.nomor, this.sha256});
+
+  final int nomor;
+  final String? sha256;
+
+  static NomorVersiAcuan? dariJson(Object? json) {
+    if (json is! Map) return null;
+    final nomor = json['nomor'];
+    if (nomor is! num) return null;
+    final sha = json['sha256'];
+
+    return NomorVersiAcuan(nomor: nomor.toInt(), sha256: sha is String ? sha : null);
+  }
 }
 
 /// Tombol `FOTO TABEL INI` boleh digambar buat lembar ini?

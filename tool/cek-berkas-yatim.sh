@@ -24,6 +24,19 @@
 # gerbang ini sengaja tidak menilai apakah fiturnya masih diinginkan, karena
 # itu keputusan produk, bukan sesuatu yang bisa dibuktikan mesin.
 #
+# ## Sidik Studio (`studio/`, sejak 9 Okt 2026)
+#
+# Studio adalah aplikasi kedua yang memakai paket ini lewat path
+# (`sidik_calibration: path: ../`). Sebagian berkas `lib/` — layar data acuan
+# M2 `lib/screens/data_acuan/*` — SENGAJA cuma dipakai Studio, tidak lagi oleh
+# app lapangan. Karena itu `studio/lib` & `studio/test` ikut dihitung sebagai
+# perujuk. Tanpanya berkas yang hidup di produksi Studio terbaca "yatim", dan
+# satu-satunya yang menahannya tinggal test-nya — yang bisa dihapus kapan saja.
+#
+# Gerbang yang sama sekalian dipasang ke `studio/lib` sendiri
+# (`package:sidik_studio/…`), dengan titik masuk & hasil gen-l10n-nya
+# dikecualikan seperti punya paket ini.
+#
 # ## Kalau merah
 #
 # Hapus berkasnya. Kalau berkas itu memang titik masuk yang sah (mis. `main_*`
@@ -38,11 +51,27 @@ export LC_ALL=C
 cd "$(dirname "$0")/.."
 
 PAKET="sidik_calibration"
+PAKET_STUDIO="sidik_studio"
 
 PENGECUALIAN=(
   # Titik masuk aplikasi — tidak di-import siapa pun menurut definisinya.
   "lib/main.dart"
+  "studio/lib/main.dart"
+  # Adapter tflite_flutter untuk PembacaDigitTflite. Sengaja belum dipasang ke
+  # alur mana pun: model digit tetap mati sampai Gerbang 0 (data asli + angka
+  # akurasi). Hapus baris ini begitu `buatInterpreter: InterpreterTflite.new`
+  # dipasang.
+  "lib/services/interpreter_tflite.dart"
 )
+
+# Direktori yang belum ada (checkout lama tanpa `studio/`) dilewati, bukan
+# menggagalkan pipeline lewat `pipefail`.
+perujuk=()
+for d in lib test integration_test tool studio/lib studio/test; do
+  [ -d "$d" ] && perujuk+=("$d")
+done
+kandidat=(lib)
+[ -d studio/lib ] && kandidat+=(studio/lib)
 
 dirujuk="$(mktemp)"
 trap 'rm -f "$dirujuk"' EXIT
@@ -52,9 +81,9 @@ trap 'rm -f "$dirujuk"' EXIT
 # Windows, dan pemeriksaan yang lambat berhenti dijalankan orang di laptopnya.
 #
 # Barisnya: import/export/part, plus baris lanjutan cabang import bersyarat.
-find lib test integration_test tool -name '*.dart' -print0 2>/dev/null \
+find "${perujuk[@]}" -name '*.dart' -print0 2>/dev/null \
   | xargs -0 grep -HE "^[[:space:]]*(import|export|part)[[:space:]]+['\"]|^[[:space:]]*if[[:space:]]*\(" \
-  | awk -v paket="package:$PAKET/" '
+  | awk -v paket="package:$PAKET/" -v studio="package:$PAKET_STUDIO/" '
       {
         titik = index($0, ":")
         berkas = substr($0, 1, titik - 1)
@@ -68,6 +97,7 @@ find lib test integration_test tool -name '*.dart' -print0 2>/dev/null \
 
           if (uri ~ /^dart:/) continue
           if (index(uri, paket) == 1) { print "lib/" substr(uri, length(paket) + 1); continue }
+          if (index(uri, studio) == 1) { print "studio/lib/" substr(uri, length(studio) + 1); continue }
           if (uri ~ /^package:/) continue
 
           n = split(dir "/" uri, bagian, "/")
@@ -88,9 +118,10 @@ printf '%s\n' "${PENGECUALIAN[@]}" >> "$dirujuk"
 sort -u -o "$dirujuk" "$dirujuk"
 
 mapfile -t yatim < <(
-  find lib -name '*.dart' \
+  find "${kandidat[@]}" -name '*.dart' \
     ! -name '*.g.dart' ! -name '*.freezed.dart' \
     ! -path 'lib/l10n/app_localizations*.dart' \
+    ! -path 'studio/lib/l10n/studio_l10n*.dart' \
     | sort | comm -23 - "$dirujuk"
 )
 
@@ -98,8 +129,8 @@ if [ "${#yatim[@]}" -gt 0 ]; then
   for berkas in "${yatim[@]}"; do
     echo "::error file=$berkas::Tidak di-import berkas Dart mana pun — hapus, atau daftarkan di PENGECUALIAN tool/cek-berkas-yatim.sh kalau memang titik masuk."
   done
-  echo "${#yatim[@]} berkas yatim di lib/."
+  echo "${#yatim[@]} berkas yatim di ${kandidat[*]}."
   exit 1
 fi
 
-echo "Nol berkas yatim di lib/."
+echo "Nol berkas yatim di ${kandidat[*]}."

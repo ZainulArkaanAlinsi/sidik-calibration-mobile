@@ -20,7 +20,85 @@ class WorksheetTemplate {
     this.marker = const [],
     this.jangkar = const [],
     this.qrIsi,
+    this.kertas = 'cetak',
+    this.revisi,
+    this.modeUji = false,
+    this.halamanPt,
+    this.jangkarTeks = const [],
+    this.selAsli = const [],
+    this.isian = const [],
+    this.centang = const [],
+    this.perluKonfirmasiLab = false,
+    this.revisiTercetak = true,
   });
+
+  /// `cetak` = lembar bermarker + QR buatan sistem (kontrak lama, semua field
+  /// di atas). `asli` = formulir SIDIK-FM-CAL asli lab tanpa marker & QR —
+  /// `GET /worksheet-templates/{kode}?kertas=asli`, `FormulirAsli` di API.
+  ///
+  /// Dua bentuk ini BEDA ruang koordinatnya, dan itu alasan field asli
+  /// dipisah, bukan menumpang [sel]/[ukuranReferensi]: kotak cetak dalam
+  /// piksel citra warp, kotak asli TERNORMAL 0..1 terhadap halaman PDF.
+  final String kertas;
+
+  bool get kertasAsli => kertas == 'asli';
+
+  /// Revisi TERCETAK formulir asli (`"4"`). Dikirim balik sebagai
+  /// `template_versi` — ini revisi yang DIPEGANG aplikasi, bukan yang dibaca
+  /// dari foto (itu `revisi_terbaca`).
+  final String? revisi;
+
+  /// Sakelar server `OCR_FORMULIR_ASLI_UJI`: formulir yang belum lulus ≥20 foto
+  /// boleh dicoba, dengan tidak satu butir pun hijau. Tidak pernah menyalakan
+  /// [siapPindai].
+  final bool modeUji;
+
+  /// Ukuran halaman formulir asli dalam POINT (pH: 792×612 lanskap). Pecahan
+  /// sah — A4 itu 595,28×841,89 pt — jadi bukan `int` seperti [ukuranReferensi].
+  final ({double w, double h})? halamanPt;
+
+  /// Tulisan cetak formulir (kata per kata dari PDF) berikut kotaknya — bahan
+  /// homography. Urutannya PENTING: `indeks` yang dikirim balik menunjuk ke
+  /// posisi di daftar ini.
+  final List<JangkarTeks> jangkarTeks;
+
+  /// Sel tabel formulir asli, urut seperti dikirim server. Kuncinya dipakai
+  /// APA ADANYA — sama aturannya dengan [sel].
+  final List<SelTemplateAsli> selAsli;
+
+  /// Isian di luar tabel yang DIBUKA buat pindai (tahap 1: Env. Condition).
+  final List<IsianTemplate> isian;
+
+  /// Kotak centang (Usage Check per baris, TH-n per pilihan).
+  final List<CentangTemplate> centang;
+
+  /// Tombol "Pindai formulir kertas" boleh tampil?
+  ///
+  /// Formulir asli yang belum terverifikasi tetap boleh dicoba selama server
+  /// menyalakan mode uji — keputusan pemilik (K1, 9 Okt 2026). Di produksi
+  /// sakelarnya mati, jadi tombolnya memang tersembunyi.
+  ///
+  /// Formulir yang pemetaannya masih ASUMSI POSISIONAL ([perluKonfirmasiLab])
+  /// tidak pernah boleh, apa pun mode ujinya: angka bisa mendarat di titik yang
+  /// salah, dan itu bukan soal vonis kuning/hijau.
+  bool get bolehDipindaiAsli =>
+      kertasAsli && !perluKonfirmasiLab && (siapPindai || modeUji);
+
+  /// Server menandai peta formulir ini masih menunggu konfirmasi lab
+  /// (`perlu_konfirmasi_lab`). Pintu "Foto lembar kerja" disembunyikan.
+  final bool perluKonfirmasiLab;
+
+  /// `false` HANYA bila server menyatakan formulir ini tidak mencetak teks
+  /// revisi (0538). Selain itu revisi wajib terbaca di foto.
+  final bool revisiTercetak;
+
+  /// Jumlah butir (sel + isian + centang) yang kotaknya `null` — titik peta
+  /// yang tidak jatuh di tepat satu kotak draf. Butir begitu TIDAK dibaca, dan
+  /// server menolak lembarnya; jadi HP berhenti sebelum kamera dibuka.
+  int get kotakAsliHilang =>
+      selAsli.where((s) => s.kotak == null).length +
+      isian.where((i) => i.kotak == null).length +
+      centang.where((c) => c.kotak == null).length;
 
   final String templateId;
   final int versi;
@@ -78,6 +156,8 @@ class WorksheetTemplate {
     final geometri = data['geometri'] as Map<String, dynamic>?;
     final ukuran = geometri?['ukuran_referensi'] as Map<String, dynamic>?;
 
+    if (data['kertas'] == 'asli') return WorksheetTemplate._asli(data);
+
     return WorksheetTemplate(
       templateId: data['template_id'] as String? ?? '',
       versi: (data['versi'] as num?)?.toInt() ?? 0,
@@ -85,9 +165,10 @@ class WorksheetTemplate {
       judul: data['judul'] as String? ?? '',
       tabel: parseListAman(data['tabel'], TabelTemplate.fromJson),
       sel: {
-        for (final e in (data['sel'] as Map<String, dynamic>? ??
-                const <String, dynamic>{})
-            .entries)
+        for (final e
+            in (data['sel'] as Map<String, dynamic>? ??
+                    const <String, dynamic>{})
+                .entries)
           if (e.value is Map<String, dynamic>)
             e.key: KotakSel.fromJson(e.value as Map<String, dynamic>),
       },
@@ -112,6 +193,238 @@ class WorksheetTemplate {
       qrIsi: (geometri?['qr'] as Map<String, dynamic>?)?['isi'] as String?,
     );
   }
+
+  /// Formulir asli (`kertas: "asli"`) — bentuknya `FormulirAsli::untukKode()`
+  /// di repo API.
+  ///
+  /// [sel] sengaja DIBIARKAN KOSONG: entri sel asli tidak punya `x/y/w/h` di
+  /// tingkat atas (kotaknya bersarang di `kotak`, ternormal), dan membacanya
+  /// lewat [KotakSel.fromJson] menghasilkan kotak 0×0 yang kelihatan sah.
+  factory WorksheetTemplate._asli(Map<String, dynamic> data) {
+    final geometri = data['geometri'] as Map<String, dynamic>? ?? const {};
+    final ukuran = geometri['ukuran_referensi'] as Map<String, dynamic>?;
+    final w = (ukuran?['w'] as num?)?.toDouble();
+    final h = (ukuran?['h'] as num?)?.toDouble();
+
+    final selMentah = data['sel'];
+
+    return WorksheetTemplate(
+      templateId: data['template_id'] as String? ?? '',
+      versi: (data['versi'] as num?)?.toInt() ?? 0,
+      kodeDokumen: data['kode_dokumen'] as String? ?? '',
+      judul: data['judul'] as String? ?? '',
+      tabel: parseListAman(data['tabel'], TabelTemplate.fromJson),
+      sel: const {},
+      siapPindai: data['siap_pindai'] as bool? ?? false,
+      alasanBelumSiap: data['alasan_belum_siap'] as String?,
+      kertas: 'asli',
+      revisi: data['revisi'] == null ? null : '${data['revisi']}',
+      modeUji: data['mode_uji'] as bool? ?? false,
+      perluKonfirmasiLab: data['perlu_konfirmasi_lab'] as bool? ?? false,
+      revisiTercetak: data['revisi_tercetak'] as bool? ?? true,
+      halamanPt: w == null || h == null || w <= 0 || h <= 0
+          ? null
+          : (w: w, h: h),
+      jangkarTeks: parseListAman(
+        geometri['jangkar_teks'],
+        JangkarTeks.fromJson,
+      ),
+      selAsli: [
+        if (selMentah is Map<String, dynamic>)
+          for (final e in selMentah.entries)
+            if (e.value is Map<String, dynamic>)
+              SelTemplateAsli.fromJson(e.key, e.value as Map<String, dynamic>),
+      ],
+      isian: parseListAman(data['isian'], IsianTemplate.fromJson),
+      centang: parseListAman(data['centang'], CentangTemplate.fromJson),
+    );
+  }
+}
+
+/// Kotak TERNORMAL 0..1 terhadap halaman, atau `null` — butir yang letaknya
+/// tidak diketahui server. `null` = jangan dibaca, bukan "kotak 0×0".
+KotakSel? _kotakTernormal(Object? json) =>
+    json is Map<String, dynamic> ? KotakSel.fromJson(json) : null;
+
+/// Satu kata cetak formulir asli berikut kotaknya (ternormal).
+class JangkarTeks {
+  const JangkarTeks({required this.teks, required this.kotak});
+
+  final String teks;
+  final KotakSel kotak;
+
+  factory JangkarTeks.fromJson(Map<String, dynamic> json) => JangkarTeks(
+    teks: '${json['teks'] ?? ''}',
+    kotak: KotakSel.fromJson(
+      json['kotak'] as Map<String, dynamic>? ?? const {},
+    ),
+  );
+}
+
+/// Satu sel tabel formulir asli.
+///
+/// Bagian kuncinya (`tabel_id`, `baris_ke`, `repeat_no`, `field_id`) dibaca
+/// dari entri server, BUKAN dipecah dari string kunci — kunci itu bahasa
+/// server dan bentuknya boleh berubah tanpa HP ikut tahu.
+class SelTemplateAsli {
+  const SelTemplateAsli({
+    required this.kunci,
+    required this.tabelId,
+    required this.barisKe,
+    required this.repeatNo,
+    required this.fieldId,
+    this.tahap,
+    this.aturan,
+    this.titikUkur,
+    this.standardId,
+    this.kotak,
+  });
+
+  final String kunci;
+  final String tabelId;
+
+  /// `tahap` tabelnya (`sebelum_adjustment`/`sesudah_adjustment`). Bersama
+  /// [tabelId] dipakai mencocokkan tabel lembar: dua tabel tidak boleh
+  /// tertukar hanya karena grupnya sama.
+  final String? tahap;
+
+  /// Batas angka sel ini dari server (`aturan`), dipakai memeriksa di HP.
+  final AturanSelAsli? aturan;
+  final int barisKe;
+  final int repeatNo;
+  final String fieldId;
+
+  /// Bukti pembanding, bukan bagian kunci — sama dengan jalur cetak.
+  final double? titikUkur;
+  final int? standardId;
+
+  /// Ternormal 0..1; `null` = jangan dibaca.
+  final KotakSel? kotak;
+
+  factory SelTemplateAsli.fromJson(String kunci, Map<String, dynamic> json) =>
+      SelTemplateAsli(
+        kunci: json['kunci'] as String? ?? kunci,
+        tabelId: json['tabel_id'] as String? ?? '',
+        barisKe: (json['baris_ke'] as num?)?.toInt() ?? 0,
+        repeatNo: (json['repeat_no'] as num?)?.toInt() ?? 0,
+        fieldId: json['field_id'] as String? ?? '',
+        tahap: json['tahap'] as String?,
+        aturan: AturanSelAsli.dari(json['aturan']),
+        titikUkur: (json['titik_ukur'] as num?)?.toDouble(),
+        standardId: (json['standard_id'] as num?)?.toInt(),
+        kotak: _kotakTernormal(json['kotak']),
+      );
+}
+
+/// Batas angka satu sel — salinan `aturan` server (`ValidasiSel::periksaKeras`).
+/// Di luar batas = MERAH dan dikosongkan di HP; server tetap memutuskan ulang.
+class AturanSelAsli {
+  const AturanSelAsli({
+    this.min,
+    this.maks,
+    this.nominal,
+    this.rasioMin,
+    this.rasioMaks,
+    this.resolusi,
+    this.desimal,
+  });
+
+  final double? min;
+  final double? maks;
+  final double? nominal;
+  final double? rasioMin;
+  final double? rasioMaks;
+
+  /// Resolusi & jumlah desimal yang diharapkan server
+  /// (`TemplateLembarKerja::aturanPembacaan`). Dipakai aturan nalar
+  /// formulir asli (`AturanFormulirAsli`), tidak oleh [lolos].
+  final double? resolusi;
+  final int? desimal;
+
+  static AturanSelAsli? dari(Object? json) {
+    if (json is! Map<String, dynamic> || json['tipe'] != 'desimal') return null;
+
+    double? d(String k) => (json[k] as num?)?.toDouble();
+
+    return AturanSelAsli(
+      min: d('min'),
+      maks: d('maks'),
+      nominal: d('nominal'),
+      rasioMin: d('rasio_min'),
+      rasioMaks: d('rasio_maks'),
+      resolusi: d('resolusi'),
+      desimal: (json['desimal'] as num?)?.toInt(),
+    );
+  }
+
+  /// Sama dengan server: rentang min/maks, lalu rasio ke nominal (penangkap
+  /// koma geser) — nol tidak dirasiokan.
+  bool lolos(double nilai) {
+    if ((min != null && nilai < min!) || (maks != null && nilai > maks!)) {
+      return false;
+    }
+
+    final nom = nominal;
+    if (nom != null && nom.abs() > 0 && nilai != 0) {
+      final rasio = (nilai / nom).abs();
+      if ((rasioMin != null && rasio < rasioMin!) ||
+          (rasioMaks != null && rasio > rasioMaks!)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+}
+
+/// Isian di luar tabel (mis. `suhu_awal`). [cara] mengikuti PANDUAN §4.
+class IsianTemplate {
+  const IsianTemplate({required this.kode, this.cara, this.kotak});
+
+  final String kode;
+  final String? cara;
+  final KotakSel? kotak;
+
+  factory IsianTemplate.fromJson(Map<String, dynamic> json) => IsianTemplate(
+    kode: json['kode'] as String? ?? '',
+    cara: json['cara'] as String?,
+    kotak: _kotakTernormal(json['kotak']),
+  );
+}
+
+/// Kotak centang formulir asli.
+///
+/// Identitasnya `kode` + [pilihan] (TH-n: satu nilai yang dipilih) ATAU `kode`
+/// + [barisKe] (Usage Check per baris tercetak). HP tidak pernah menebak baris
+/// dari urutan (PANDUAN §6 butir 5) — keduanya dikirim balik apa adanya.
+class CentangTemplate {
+  const CentangTemplate({
+    required this.kode,
+    this.pilihan,
+    this.barisKe,
+    this.label,
+    this.kotak,
+  });
+
+  final String kode;
+  final String? pilihan;
+  final int? barisKe;
+
+  /// Tulisan baris tercetak (Usage Check), mis. `pH Buffer Solutions 4`.
+  final String? label;
+  final KotakSel? kotak;
+
+  /// Identitas yang sama dengan `idCentang()` di server.
+  String get id => '$kode|${pilihan ?? ''}|${barisKe ?? ''}';
+
+  factory CentangTemplate.fromJson(Map<String, dynamic> json) =>
+      CentangTemplate(
+        kode: json['kode'] as String? ?? '',
+        pilihan: json['pilihan'] as String?,
+        barisKe: (json['baris_ke'] as num?)?.toInt(),
+        label: json['label'] as String?,
+        kotak: _kotakTernormal(json['kotak']),
+      );
 }
 
 /// Satu label tercetak yang ikut dibaca sebagai bukti barisnya nggak geser.
@@ -158,9 +471,17 @@ class TabelTemplate {
     required this.baris,
     required this.kolom,
     required this.pengulangan,
+    this.tahap,
   });
 
-  /// **Identitas tabel — `grup ?? tahap`, BUKAN `tahap` doang.**
+  /// Tahap tabel; bersama [tabelId] menentukan tabel lembar yang dituju.
+  final String? tahap;
+
+  /// **Identitas tabel dari server — unik per tabel lembar.** Pakai apa adanya
+  /// bersama [tahap]. Dasarnya `grup ?? tahap`; kalau dua tabel sama dasarnya
+  /// (Before/After 0515) server menambah `_{tahap}`.
+  ///
+  /// Catatan lama: **`grup ?? tahap`, BUKAN `tahap` doang.**
   ///
   /// Spectrophotometer punya tiga tabel ber-`tahap` sama
   /// (`sesudah_adjustment`) yang cuma dibedain `grup`. Pakai `tahap` doang
@@ -175,6 +496,7 @@ class TabelTemplate {
 
   factory TabelTemplate.fromJson(Map<String, dynamic> json) => TabelTemplate(
     tabelId: json['tabel_id'] as String? ?? '',
+    tahap: json['tahap'] as String?,
     judul: json['judul'] as String? ?? '',
     baris: parseListAman(json['baris'], BarisTemplate.fromJson),
     kolom: parseListAman(json['kolom'], KolomTemplate.fromJson),
@@ -226,7 +548,11 @@ class BarisTemplate {
 
 /// Satu kolom di dalam sel — `field_id` yang jadi bagian kunci sel.
 class KolomTemplate {
-  const KolomTemplate({required this.fieldId, required this.label, this.satuan});
+  const KolomTemplate({
+    required this.fieldId,
+    required this.label,
+    this.satuan,
+  });
 
   final String fieldId;
   final String label;

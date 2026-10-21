@@ -33,6 +33,11 @@
          tiap request gagal tanpa penjelasan. -->
     <uses-permission android:name="android.permission.INTERNET"/>
 
+    <!-- Android 13+: tanpa izin ini notifikasi diam-diam tidak muncul. Diminta
+         dari kode, BUKAN saat aplikasi pertama dibuka: ada penjelasan singkat
+         dulu (`MintaIzinNotifikasi`), lalu dialog sistem. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
     <!-- Memasang APK pemutakhiran dari dalam aplikasi.
 
          Aplikasi ini TIDAK diedarkan lewat Play Store — teknisi memasangnya
@@ -91,9 +96,31 @@
             android:exported="false"/>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
+        <!-- Notifikasi push (FCM) yang tiba waktu aplikasi di latar/mati digambar
+             sistem langsung dari tiga nilai ini — kode Dart tidak jalan. Tanpa
+             ikon monokrom Android menampilkan kotak putih; `ic_stat_sidik`
+             dibuat `tool/buat_ikon_notifikasi.dart` dari logo. Nama kanal harus
+             sama dengan `LocalNotifikasiPerangkat.kanalKerja`. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_sidik"/>
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notif_aksen"/>
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="sidik_kerja"/>
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- ML Kit UNBUNDLED: minta Google Play Services mengunduh modul OCR &
+             barcode (on-device). APK sideload tidak dapat unduhan saat-pasang
+             dari Play Store; modulnya turun saat pertama dipakai (butuh
+             internet sekali), dan sebelum itu Dart menerima
+             `ModulPembacaTeksBelumSiap`. -->
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="ocr,barcode" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

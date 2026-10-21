@@ -466,7 +466,7 @@ class _Isi extends StatelessWidget {
           _MaxStdev(sesudah: detail.maxStdev!, sebelum: detail.maxStdevSebelum),
         ],
 
-        if (detail.certificateId != null) ...[
+        if (detail.certificateId != null && detail.sertifikatBisaDibuka) ...[
           const SizedBox(height: AppSpacing.lg),
           AppButton(
             label: l10n.detailLihatSertifikat,
@@ -1479,7 +1479,9 @@ class _TombolLanjutkanLembar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final isAdmin = ref.watch(authProvider).value?.role.isAdmin ?? false;
+    // Admin ATAU super admin (K-49-14) — dua-duanya boleh mengoreksi lembar
+    // yang menunggu approval, dengan alasan koreksi.
+    final isAdmin = ref.watch(authProvider).value?.role.hakAdmin ?? false;
     final perluRevisi = detail.status == CalibrationStatus.perluRevisi;
     final draft = detail.status == CalibrationStatus.draft;
 

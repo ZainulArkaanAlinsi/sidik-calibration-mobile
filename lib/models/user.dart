@@ -6,10 +6,13 @@ enum UserRole {
   teknisi,
   viewer,
 
-  /// Baca semua, tulis nol — sama persis dengan izinnya di server
-  /// (`EnsureUserHasRole::lolosBacaSuperAdmin`). Dulu jatuh ke `viewer` dan
-  /// berlabel "Viewer", jadi super admin yang login lewat HP melihat dirinya
-  /// sebagai viewer.
+  /// Semua aksi admin (Master Data) DAN teknisi (keputusan pemilik K-49-14,
+  /// 15 Okt 2026; pengesahan terpisah dicabut, K-50-07). Satu yang TIDAK
+  /// pernah dia dapat: menyetujui sesi yang dia isi sendiri atau yang hasil
+  /// pindainya dia konfirmasi — server menolaknya 422 `pemisahan_wewenang` (K-30-03).
+  ///
+  /// Dulu jatuh ke `viewer` dan berlabel "Viewer", jadi super admin yang
+  /// login lewat HP melihat dirinya sebagai viewer.
   superAdmin;
 
   /// Role asing dari backend nggak bikin app crash — dianggap `viewer`
@@ -21,10 +24,12 @@ enum UserRole {
     _ => UserRole.viewer,
   };
 
-  /// Role yang boleh DIBERIKAN admin ke orang lain — sejajar `User::roles()`
-  /// di server. `superAdmin` sengaja tidak ada: satu-satunya pintunya
-  /// `php artisan akun:super-admin`, dan server menolak yang lewat sini.
-  static const bisaDiberikan = [admin, teknisi, viewer];
+  /// Role yang boleh DIBERIKAN admin ke orang lain. `superAdmin` sengaja
+  /// tidak ada: satu-satunya pintunya `php artisan akun:super-admin`, dan
+  /// server menolak yang lewat sini. `viewer` juga tidak ditawarkan lagi
+  /// (keputusan pemilik 20 Okt 2026); enum-nya tetap ada supaya akun viewer
+  /// lama masih tampil dan terbaca benar.
+  static const bisaDiberikan = [admin, teknisi];
 
   /// Nilai persis yang dikirim ke API. BUKAN `name`: `superAdmin.name` itu
   /// `superAdmin`, sedangkan server mengenal `super_admin`.
@@ -33,14 +38,28 @@ enum UserRole {
     _ => name,
   };
 
+  /// Peran admin PERSIS. Buat "boleh melakukan aksi admin" pakai [hakAdmin]
+  /// — super admin juga memegangnya sejak K-49-14.
   bool get isAdmin => this == UserRole.admin;
 
-  /// Pengesah sertifikat (keputusan 26 Sep §1). Baca semua; tulisnya cuma
-  /// pengesahan, pengembalian dari pengesahan, dan penugasan.
+  /// Pengesah sertifikat (keputusan 26 Sep §1), dan sejak K-49-14 juga
+  /// pemegang semua aksi admin & teknisi.
   bool get isSuperAdmin => this == UserRole.superAdmin;
 
-  /// Boleh input alat & kalibrasi. Viewer & super admin read-only.
-  bool get bisaInput => this == UserRole.admin || this == UserRole.teknisi;
+  /// Boleh melakukan aksi Master Data (admin): setujui/tolak sesi, isi Order
+  /// Number, koreksi lembar, revisi/batal sertifikat, kelola master, dst.
+  ///
+  /// Satu tempat yang menjawab "admin boleh", supaya cabang `== admin` yang
+  /// tercecer tidak diam-diam menutup pintu buat super admin (K-49-14).
+  /// Server tetap penjaganya.
+  bool get hakAdmin => this == UserRole.admin || this == UserRole.superAdmin;
+
+  /// Boleh input alat & kalibrasi. Viewer read-only; super admin boleh
+  /// (K-49-14) — tapi sesi yang dia isi harus disetujui orang lain.
+  bool get bisaInput =>
+      this == UserRole.admin ||
+      this == UserRole.teknisi ||
+      this == UserRole.superAdmin;
 
   String get label => switch (this) {
     UserRole.admin => 'Admin',

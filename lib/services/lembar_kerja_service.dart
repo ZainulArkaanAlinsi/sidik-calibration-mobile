@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'mock_store.dart';
 import '../models/lembar_kerja.dart';
 import '../models/lembar_kerja_submission.dart';
 import '../models/pratinjau_hitung.dart';
 import 'api_client.dart';
+import 'auth_service.dart' show ApiException;
 import 'equipment_lookup_service.dart';
 import 'contoh_lembar_kerja_anak_timbangan.dart';
 import 'contoh_lembar_kerja_aliran.dart';
@@ -61,11 +64,63 @@ abstract class LembarKerjaService {
   Future<int> perbarui(String token, int id, LembarKerjaSubmission isian);
 }
 
+/// Kunci salinan lembar — tiga sumbu yang sama dengan `KunciLembarKerja` di
+/// `lembar_kerja_provider.dart` (jenis alat, jumlah kotak, alat), satu-ke-satu
+/// dengan query `GET /calibrations/lembar-kerja`.
+typedef KunciSalinanLembar = ({
+  String? profil,
+  int? pengulangan,
+  int? equipmentId,
+});
+
+/// Salinan terakhir satu lembar + `ETag`-nya (`versi_acuan` ikut di dalam
+/// [lembar]).
+class SalinanLembarKerja {
+  const SalinanLembarKerja({
+    required this.lembar,
+    required this.badan,
+    this.etag,
+  });
+
+  final LembarKerja lembar;
+
+  /// Badan mentah respons yang melahirkan [lembar].
+  final String badan;
+
+  /// `null` = server lama tanpa ETag.
+  final String? etag;
+}
+
 class ApiLembarKerjaService implements LembarKerjaService {
   ApiLembarKerjaService(this._api);
 
   final ApiClient _api;
 
+  /// Salinan per kunci lembar, DI MEMORI saja (repo belum punya cache
+  /// persisten untuk lembar). Hilang waktu aplikasi ditutup — tarikan pertama
+  /// sesudahnya badan penuh, persis seperti sebelum ETag ada.
+  ///
+  /// Tidak dibedakan per akun, dan itu aman: `304` cuma datang kalau badan
+  /// yang AKAN dikirim server untuk pemanggil ini sha256-nya sama dengan
+  /// salinan — badan per peran yang beda melahirkan ETag yang beda.
+  final Map<KunciSalinanLembar, SalinanLembarKerja> _salinan = {};
+
+  /// Salinan yang sedang dipegang untuk satu kunci (buat test).
+  SalinanLembarKerja? salinanUntuk(KunciSalinanLembar kunci) => _salinan[kunci];
+
+  /// Ambil bentuk lembar, BERSYARAT (FR-21).
+  ///
+  ///  - Ada salinan ber-ETag → kirim `If-None-Match`; `304` → salinan yang
+  ///    SAMA dipulangkan (objek yang identik, bukan salinan baru).
+  ///  - Badan `200` yang persis sama dengan salinan (server lama tanpa ETag)
+  ///    → juga objek yang sama.
+  ///
+  /// Kenapa objeknya harus identik, bukan sekadar isinya sama: layar lembar
+  /// kerja membangun ulang tabelnya (`gantiBentuk`) begitu menerima objek
+  /// bentuk yang LAIN. Lembar sekarang ditarik ulang tiap aplikasi kembali ke
+  /// depan dan tiap tarikan berkala; tanpa penjaga ini, tiap tarikan itu
+  /// mengocok formulir yang sedang diketik teknisi padahal tidak ada yang
+  /// berubah.
   @override
   Future<LembarKerja> ambilBentuk(
     String token, {
@@ -79,9 +134,51 @@ class ApiLembarKerjaService implements LembarKerjaService {
       if (equipmentId != null) 'equipment_id=$equipmentId',
     ];
     final path = '/calibrations/lembar-kerja${q.isEmpty ? '' : '?${q.join('&')}'}';
-    final json = await _api.get(path, token: token);
-    final data = (json['data'] ?? json) as Map<String, dynamic>;
-    return LembarKerja.fromJson(data);
+    final kunci = (
+      profil: profil,
+      pengulangan: pengulangan,
+      equipmentId: equipmentId,
+    );
+    final salinan = _salinan[kunci];
+
+    final res = await _api.getBersyarat(
+      path,
+      token: token,
+      etag: salinan?.etag,
+    );
+
+    if (res.tidakBerubah) {
+      if (salinan != null) return salinan.lembar;
+
+      // 304 untuk permintaan yang tidak bersyarat — tidak pernah dikirim
+      // server ini; kalau terjadi, ada perantara yang salah. Jangan dibaca
+      // jadi lembar kosong.
+      throw const ApiException(
+        'Server menjawab "tidak berubah" untuk lembar yang belum pernah dimuat. '
+        'Coba lagi.',
+        status: 304,
+      );
+    }
+
+    if (salinan != null && salinan.badan == res.badan) {
+      _salinan[kunci] = SalinanLembarKerja(
+        lembar: salinan.lembar,
+        badan: salinan.badan,
+        etag: res.etag,
+      );
+      return salinan.lembar;
+    }
+
+    final data = (res.json['data'] ?? res.json) as Map<String, dynamic>;
+    final lembar = LembarKerja.fromJson(data);
+
+    _salinan[kunci] = SalinanLembarKerja(
+      lembar: lembar,
+      badan: res.badan,
+      etag: res.etag,
+    );
+
+    return lembar;
   }
 
   @override
@@ -137,10 +234,23 @@ class MockLembarKerjaService implements LembarKerjaService {
     this.tanpaThermohygro = false,
     this.fotoTabelDidukung = true,
     this.fotoTabelLokal,
+    this.versiAcuan,
   });
 
   final bool gagal;
   final bool untukAdmin;
+
+  /// Niru server yang sudah mengirim `versi_acuan` (FR-21), mis.
+  /// `{'paket': 'micrometer', 'data': {'nomor': 1, 'sha256': '…'}, 'bentuk':
+  /// null}`. `null` = kuncinya TIDAK dikirim — bentuk contoh hasil generator
+  /// memang belum memuatnya, dan lembar tanpa kunci ini wajib tetap jalan.
+  final Map<String, dynamic>? versiAcuan;
+
+  /// Lembar terakhir per kunci beserta badannya — niru `304`: bentuk yang
+  /// sama persis dipulangkan sebagai objek yang SAMA, seperti
+  /// [ApiLembarKerjaService].
+  final Map<KunciSalinanLembar, ({String badan, LembarKerja lembar})>
+  _salinanMock = {};
 
   /// Buang `standard_id` dari baris tabel hasil — niru standar yang belum
   /// didaftarin di master lab, atau backend versi lama yang belum ngirim
@@ -457,7 +567,7 @@ class MockLembarKerjaService implements LembarKerjaService {
 
     final akhir = tanpaTampilKalau ? _tanpaTampilKalau(tanpaTh) : tanpaTh;
 
-    return LembarKerja.fromJson({
+    final lengkap = <String, dynamic>{
       ...akhir,
       // Bentuk yang sudah membawa `pindai_foto`-nya SENDIRI dibiarkan —
       // penanda itu properti lembarnya, dan menimpanya di sini bikin mock
@@ -478,7 +588,22 @@ class MockLembarKerjaService implements LembarKerjaService {
           'didukung': fotoTabelDidukung,
           if (fotoTabelLokal != null) 'lokal': fotoTabelLokal,
         },
-    });
+      if (versiAcuan != null) 'versi_acuan': versiAcuan,
+    };
+
+    final kunci = (
+      profil: profil,
+      pengulangan: pengulangan,
+      equipmentId: equipmentId,
+    );
+    final badan = jsonEncode(lengkap);
+    final salinan = _salinanMock[kunci];
+    if (salinan != null && salinan.badan == badan) return salinan.lembar;
+
+    final lembar = LembarKerja.fromJson(lengkap);
+    _salinanMock[kunci] = (badan: badan, lembar: lembar);
+
+    return lembar;
   }
 
   /// Salinan bentuk tanpa `standard_id`/`standard_nama` di baris tabel hasil.

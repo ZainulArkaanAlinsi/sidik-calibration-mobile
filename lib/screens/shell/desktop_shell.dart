@@ -22,7 +22,6 @@ import '../arsip/arsip_screen.dart';
 import '../dashboard/ringkasan_screen.dart';
 import '../../widgets/pemantau_antrean.dart';
 import '../equipment/equipment_list_screen.dart';
-import '../folder/folder_manager_screen.dart';
 import '../history/history_screen.dart';
 import '../profile/profile_screen.dart';
 import '../settings/customer_list_screen.dart';
@@ -33,12 +32,9 @@ import '../settings/technician_list_screen.dart';
 import '../../models/user.dart';
 import '../draf/draf_screen.dart';
 import '../jatuh_tempo/layar_jatuh_tempo.dart';
-import '../koreksi/antrean_koreksi_screen.dart';
-import '../pelacakan/pelacakan_screen.dart';
-import '../pelanggan/pusat_pelanggan_screen.dart';
-import '../pengesahan/antrean_pengesahan_screen.dart';
+import '../pelacakan/telusuri_sertifikat_screen.dart';
 import '../penugasan/penugasan_screen.dart';
-import '../permintaan/antrean_permintaan_screen.dart';
+import '../teknisi/kalibrasi_teknisi_screen.dart';
 
 /// Panel admin desktop — sidebar tetap + bilah atas + area kerja.
 ///
@@ -135,107 +131,103 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
   List<_Seksi> _seksiTerpakai(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final peran = ref.watch(authProvider).value?.role;
+
+    // Teknisi: SAMA dengan HP — Kalibrasi + Profil saja (keputusan pemilik,
+    // 20 Okt 2026; K-50-14). Draf dibuka dari dalam Kalibrasi. Tugas saya,
+    // Pelacakan, Ringkasan, Alur, Alat, Riwayat, dan Arsip tidak ada di sini.
+    // Admin & super admin tidak berubah.
+    if (peran == UserRole.teknisi) {
+      return [
+        _Seksi(
+          judul: l10n.menuKerjaHarian,
+          menu: [
+            _Menu(
+              id: 'kalibrasi',
+              ikon: Icons.fact_check_outlined,
+              label: l10n.navKalibrasi,
+              bangun: KalibrasiTeknisiScreen.new,
+            ),
+            _Menu(
+              id: 'profil',
+              ikon: Icons.person_outline,
+              label: l10n.navProfile,
+              bangun: ProfileScreen.new,
+            ),
+          ],
+        ),
+      ];
+    }
+
     final ringkas = ref.watch(dashboardProvider).value;
 
     final bolehSetujui = ref.bolehkah(
       NamaIzin.kalibrasiSetujui,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
     // SATU izin per menu. Sebelumnya `bolehMasterData` (dulu payung
     // `master-data.ubah`, lalu `standar.kelola`) menggerbangi EMPAT menu
     // sekaligus: Pelanggan, Standar, Impor Excel, Organisasi. Selama payungnya
-    // nggak pernah dijawab server dia selalu jatuh ke `adminSaja` dan keempatnya
+    // nggak pernah dijawab server dia selalu jatuh ke `hakAdmin` dan keempatnya
     // kebetulan bener — tapi begitu namanya jadi izin NYATA, satu rute pindah
     // blok bikin tiga menu admin-only nyala buat orang yang bakal kena 403.
     final bolehStandar = ref.bolehkah(
       NamaIzin.standarKelola,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
     final bolehPelanggan = ref.bolehkah(
       NamaIzin.pelangganKelola,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
     final bolehRuangan = ref.bolehkah(
       NamaIzin.ruanganKelola,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
     final bolehMetode = ref.bolehkah(
       NamaIzin.metodeKelola,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
     final bolehTeknisi = ref.bolehkah(
       NamaIzin.teknisiKelola,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
     final bolehImpor = ref.bolehkah(
       NamaIzin.imporExcel,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
     final bolehOrganisasi = ref.bolehkah(
       NamaIzin.organisasiUbah,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
     final bolehAkun = ref.bolehkah(
       NamaIzin.penggunaKelola,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
     final bolehTtd = ref.bolehkah(
       NamaIzin.tandaTanganKelola,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
 
     // Menu kerja harian SAMA PERSIS dengan menu HP (`main_shell.dart`,
     // `_MenuUtama`) per peran. Sebelum ini desktop sama sekali tidak memuat
-    // Pengesahan, Penugasan, Pelacakan, Permintaan, Koreksi, Jadwal, Pusat
-    // Pelanggan, dan Draf — super admin di Windows cuma melihat delapan menu
+    // Penugasan, Pelacakan, Jadwal, dan Draf — super admin di Windows cuma melihat delapan menu
     // sementara di HP empat belas (uji 5 Okt 2026).
-    final pengesahan = _Menu(
-      id: 'pengesahan',
-      ikon: Icons.verified_outlined,
-      label: l10n.pengesahanJudul,
-      bangun: AntreanPengesahanScreen.new,
-    );
     final penugasan = _Menu(
       id: 'penugasan',
       ikon: Icons.assignment_ind_outlined,
       label: l10n.penugasanJudul,
       bangun: PenugasanScreen.new,
     );
-    final tugasSaya = _Menu(
-      id: 'penugasan',
-      ikon: Icons.assignment_ind_outlined,
-      label: l10n.penugasanTugasSaya,
-      bangun: PenugasanScreen.new,
-    );
     final pelacakan = _Menu(
       id: 'pelacakan',
       ikon: Icons.local_shipping_outlined,
-      label: l10n.pelacakanJudul,
-      bangun: PelacakanScreen.new,
-    );
-    final permintaan = _Menu(
-      id: 'permintaan',
-      ikon: Icons.move_to_inbox_outlined,
-      label: l10n.permintaanJudul,
-      bangun: AntreanPermintaanScreen.new,
-    );
-    final koreksi = _Menu(
-      id: 'koreksi',
-      ikon: Icons.rule_folder_outlined,
-      label: l10n.koreksiJudul,
-      bangun: AntreanKoreksiScreen.new,
+      label: l10n.telusuriJudul,
+      bangun: TelusuriSertifikatScreen.new,
     );
     final jadwal = _Menu(
       id: 'jadwal',
       ikon: Icons.event_repeat_outlined,
       label: l10n.jadwalJudul,
       bangun: JadwalKalibrasiScreen.new,
-    );
-    final pusat = _Menu(
-      id: 'pusat',
-      ikon: Icons.apartment_outlined,
-      label: l10n.pusatJudul,
-      bangun: PusatPelangganScreen.new,
     );
     final draf = _Menu(
       id: 'draf',
@@ -244,26 +236,9 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
       bangun: DrafScreen.new,
     );
     final kerjaHarian = switch (peran) {
-      UserRole.superAdmin => [
-        pengesahan,
-        penugasan,
-        pelacakan,
-        permintaan,
-        koreksi,
-        jadwal,
-        pusat,
-      ],
-      UserRole.admin => [
-        permintaan,
-        koreksi,
-        pengesahan,
-        penugasan,
-        pelacakan,
-        draf,
-        jadwal,
-        pusat,
-      ],
-      UserRole.teknisi => [tugasSaya, draf, pelacakan],
+      // Semua menu admin + teknisi (Draf) — K-49-14.
+      UserRole.superAdmin => [penugasan, pelacakan, draf, jadwal],
+      UserRole.admin => [penugasan, pelacakan, draf, jadwal],
       _ => [pelacakan],
     };
 
@@ -310,12 +285,6 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
             label: l10n.navHistory,
             angka: ringkas?.totalSertifikat,
             bangun: HistoryScreen.new,
-          ),
-          _Menu(
-            id: 'folder',
-            ikon: Icons.folder_outlined,
-            label: l10n.navFolderManager,
-            bangun: FolderManagerScreen.new,
           ),
           _Menu(
             id: 'arsip',

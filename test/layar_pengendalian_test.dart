@@ -7,7 +7,6 @@ import 'package:sidik_calibration/core/theme/app_theme.dart';
 import 'package:sidik_calibration/l10n/app_localizations.dart';
 import 'package:sidik_calibration/models/pelacakan.dart';
 import 'package:sidik_calibration/models/penugasan.dart';
-import 'package:sidik_calibration/models/pengesahan.dart';
 import 'package:sidik_calibration/models/user.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/master_data_provider.dart';
@@ -16,13 +15,11 @@ import 'package:sidik_calibration/providers/tanda_tangan_provider.dart';
 import 'package:sidik_calibration/screens/pelacakan/pelacakan_screen.dart';
 import 'package:sidik_calibration/screens/penugasan/penugasan_buat_screen.dart';
 import 'package:sidik_calibration/screens/penugasan/penugasan_screen.dart';
-import 'package:sidik_calibration/screens/pengesahan/antrean_pengesahan_screen.dart';
 import 'package:sidik_calibration/screens/settings/kelola_lab_screen.dart';
 import 'package:sidik_calibration/screens/settings/tanda_tangan_screen.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
 import 'package:sidik_calibration/services/pelacakan_service.dart';
 import 'package:sidik_calibration/services/penugasan_service.dart';
-import 'package:sidik_calibration/services/pengesahan_service.dart';
 import 'package:sidik_calibration/services/tanda_tangan_service.dart';
 import 'package:sidik_calibration/services/token_storage.dart';
 import 'package:sidik_calibration/services/user_service.dart';
@@ -35,52 +32,6 @@ const _superAdmin = 'mock-token-5';
 
 // ── Pengganti service (merekam panggilan) ───────────────────────────────────
 
-class _PengesahanSpy extends MockPengesahanService {
-  _PengesahanSpy({super.awal, this.tahanWewenang = false});
-
-  /// Meniru server yang menahan sekali dengan 422 `butuh_konfirmasi`.
-  final bool tahanWewenang;
-
-  final sahkanPanggilan = <({int id, bool abaikan})>[];
-  final kembalikanPanggilan = <({int id, String alasan})>[];
-  final tarikPanggilan = <({int id, String alasan})>[];
-
-  @override
-  Future<String> sahkan(
-    String token,
-    int sesiId, {
-    bool abaikanPeringatan = false,
-    String? berlakuSampai,
-  }) async {
-    sahkanPanggilan.add((id: sesiId, abaikan: abaikanPeringatan));
-    if (tahanWewenang && !abaikanPeringatan) {
-      throw const PengesahanButuhKonfirmasi('Ditahan', [
-        TemuanWewenang(
-          kode: 'pengirim_sama',
-          pesan: 'Anda juga pengirim lembar kerja ini.',
-        ),
-      ]);
-    }
-    return super.sahkan(
-      token,
-      sesiId,
-      abaikanPeringatan: abaikanPeringatan,
-      berlakuSampai: berlakuSampai,
-    );
-  }
-
-  @override
-  Future<String> kembalikan(String token, int sesiId, String alasan) {
-    kembalikanPanggilan.add((id: sesiId, alasan: alasan));
-    return super.kembalikan(token, sesiId, alasan);
-  }
-
-  @override
-  Future<String> tarik(String token, int sesiId, String alasan) {
-    tarikPanggilan.add((id: sesiId, alasan: alasan));
-    return super.tarik(token, sesiId, alasan);
-  }
-}
 
 class _PelacakanSpy extends MockPelacakanService {
   static const paketTerlambat = PaketLacak(
@@ -310,222 +261,6 @@ Future<void> _pasang(WidgetTester tester, Widget app) async {
 }
 
 void main() {
-  group('Antrean pengesahan', () {
-    Future<_PengesahanSpy> buka(
-      WidgetTester tester,
-      String token, {
-      bool tahanWewenang = false,
-      List<ItemPengesahan>? awal,
-    }) async {
-      final spy = _PengesahanSpy(awal: awal, tahanWewenang: tahanWewenang);
-      await _pasang(
-        tester,
-        _app(
-          const AntreanPengesahanScreen(),
-          token: token,
-          overrides: [pengesahanServiceProvider.overrideWithValue(spy)],
-        ),
-      );
-      return spy;
-    }
-
-    testWidgets('item antrean dari mock tampil beserta ringkasannya', (
-      tester,
-    ) async {
-      await buka(tester, _superAdmin);
-
-      expect(find.text('Pengesahan sertifikat'), findsOneWidget);
-      expect(find.text('KAL/2026/09/0412'), findsOneWidget);
-      expect(find.text('KAL/2026/09/0415'), findsOneWidget);
-      expect(find.text('Timbangan Analitik · Ohaus PX224'), findsOneWidget);
-      expect(find.text('2 menunggu pengesahan'), findsOneWidget);
-      expect(find.text('Diajukan oleh Hendra Wijaya'), findsNWidgets(2));
-    });
-
-    testWidgets('antrean kosong menampilkan pesan khusus pengesah', (
-      tester,
-    ) async {
-      await buka(tester, _superAdmin, awal: const []);
-
-      expect(find.text('Antrean kosong'), findsOneWidget);
-      expect(
-        find.text('Tidak ada yang menunggu pengesahan Anda.'),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('super admin melihat Sahkan & Kembalikan, bukan Tarik', (
-      tester,
-    ) async {
-      await buka(tester, _superAdmin);
-      await tester.tap(find.text('KAL/2026/09/0412'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Sahkan'), findsOneWidget);
-      expect(find.text('Kembalikan'), findsOneWidget);
-      expect(find.text('Tarik pengajuan'), findsNothing);
-      expect(find.text('Lihat detail'), findsOneWidget);
-    });
-
-    testWidgets('admin TIDAK melihat Sahkan, tapi bisa Tarik pengajuan', (
-      tester,
-    ) async {
-      await buka(tester, _admin);
-      await tester.tap(find.text('KAL/2026/09/0412'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Sahkan'), findsNothing);
-      expect(find.text('Kembalikan'), findsNothing);
-      expect(find.text('Tarik pengajuan'), findsOneWidget);
-    });
-
-    testWidgets('mengembalikan wajib beralasan (minimal 10 karakter)', (
-      tester,
-    ) async {
-      final spy = await buka(tester, _superAdmin);
-      await tester.tap(find.text('KAL/2026/09/0412'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Kembalikan'));
-      await tester.pumpAndSettle();
-
-      VoidCallback? kirim() => tester
-          .widget<TextButton>(find.widgetWithText(TextButton, 'Kirim'))
-          .onPressed;
-
-      // Kosong → terkunci.
-      expect(kirim(), isNull);
-      expect(find.text('Minimal 10 karakter'), findsOneWidget);
-
-      // Kurang dari 10 → tetap terkunci; spasi tidak dihitung.
-      await tester.enterText(find.byType(TextField).last, '   pendek   ');
-      await tester.pump();
-      expect(kirim(), isNull);
-      expect(spy.kembalikanPanggilan, isEmpty);
-
-      await tester.enterText(
-        find.byType(TextField).last,
-        'Serial number salah ketik',
-      );
-      await tester.pump();
-      expect(kirim(), isNotNull);
-
-      await tester.tap(find.text('Kirim'));
-      await tester.pumpAndSettle();
-
-      expect(spy.kembalikanPanggilan, hasLength(1));
-      expect(spy.kembalikanPanggilan.single.id, 412);
-      expect(
-        spy.kembalikanPanggilan.single.alasan,
-        'Serial number salah ketik',
-      );
-      expect(find.text('Pengajuan dikembalikan ke admin.'), findsOneWidget);
-      // Antrean dimuat ulang: kartu yang dikembalikan hilang.
-      expect(find.text('KAL/2026/09/0412'), findsNothing);
-      expect(find.text('KAL/2026/09/0415'), findsOneWidget);
-    });
-
-    testWidgets('admin menarik pengajuan: alasan minimal 5 karakter', (
-      tester,
-    ) async {
-      final spy = await buka(tester, _admin);
-      await tester.tap(find.text('KAL/2026/09/0415'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Tarik pengajuan'));
-      await tester.pumpAndSettle();
-
-      VoidCallback? kirim() => tester
-          .widget<TextButton>(find.widgetWithText(TextButton, 'Kirim'))
-          .onPressed;
-
-      expect(kirim(), isNull);
-      await tester.enterText(find.byType(TextField).last, 'abcd');
-      await tester.pump();
-      expect(kirim(), isNull);
-
-      await tester.enterText(find.byType(TextField).last, 'salah data');
-      await tester.pump();
-      await tester.tap(find.text('Kirim'));
-      await tester.pumpAndSettle();
-
-      expect(spy.tarikPanggilan.single.id, 415);
-      expect(find.text('Pengajuan ditarik.'), findsOneWidget);
-      expect(find.text('KAL/2026/09/0415'), findsNothing);
-    });
-
-    testWidgets('batal di dialog alasan tidak mengirim apa pun', (
-      tester,
-    ) async {
-      final spy = await buka(tester, _superAdmin);
-      await tester.tap(find.text('KAL/2026/09/0412'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Kembalikan'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Batal'));
-      await tester.pumpAndSettle();
-
-      expect(spy.kembalikanPanggilan, isEmpty);
-      expect(find.text('KAL/2026/09/0412'), findsOneWidget);
-    });
-
-    testWidgets('sahkan biasa (tanpa temuan) langsung jalan', (tester) async {
-      final spy = await buka(tester, _superAdmin);
-      await tester.tap(find.text('KAL/2026/09/0412'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Sahkan'));
-      await tester.pumpAndSettle();
-
-      expect(spy.sahkanPanggilan, [(id: 412, abaikan: false)]);
-      expect(find.text('Pemisahan wewenang'), findsNothing);
-      expect(
-        find.text('Disahkan. Sertifikatnya sedang dicetak.'),
-        findsOneWidget,
-      );
-      expect(find.text('KAL/2026/09/0412'), findsNothing);
-    });
-
-    testWidgets('peringatan wewenang: dibatalkan → tidak disahkan', (
-      tester,
-    ) async {
-      final spy = await buka(tester, _superAdmin, tahanWewenang: true);
-      await tester.tap(find.text('KAL/2026/09/0412'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Sahkan'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Pemisahan wewenang'), findsOneWidget);
-      expect(
-        find.text('• Anda juga pengirim lembar kerja ini.'),
-        findsOneWidget,
-      );
-      expect(spy.sahkanPanggilan, [(id: 412, abaikan: false)]);
-
-      await tester.tap(find.text('Batal'));
-      await tester.pumpAndSettle();
-
-      // Tidak ada percobaan kedua; sesinya tetap mengantre.
-      expect(spy.sahkanPanggilan, hasLength(1));
-      expect(find.text('KAL/2026/09/0412'), findsOneWidget);
-    });
-
-    testWidgets('peringatan wewenang: "Tetap sahkan" baru mengirim ulang', (
-      tester,
-    ) async {
-      final spy = await buka(tester, _superAdmin, tahanWewenang: true);
-      await tester.tap(find.text('KAL/2026/09/0412'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Sahkan'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Tetap sahkan'));
-      await tester.pumpAndSettle();
-
-      expect(spy.sahkanPanggilan, [
-        (id: 412, abaikan: false),
-        (id: 412, abaikan: true),
-      ]);
-      expect(find.text('KAL/2026/09/0412'), findsNothing);
-    });
-  });
-
   group('Pelacakan paket', () {
     Future<_PelacakanSpy> buka(WidgetTester tester, String token) async {
       final spy = _PelacakanSpy();
@@ -772,10 +507,14 @@ void main() {
       expect(find.byTooltip('Tambah'), findsNWidgets(2));
     });
 
-    testWidgets('detail: super admin & viewer TIDAK bisa melapor', (
-      tester,
-    ) async {
-      for (final token in [_superAdmin, _viewer]) {
+    // K-49-14 (15 Okt 2026): super admin memegang semua aksi admin & teknisi.
+    testWidgets('detail: super admin boleh melapor', (tester) async {
+      await bukaDetail(tester, _superAdmin);
+      expect(find.byTooltip('Tambah'), findsNWidgets(2));
+    });
+
+    testWidgets('detail: viewer TIDAK bisa melapor', (tester) async {
+      for (final token in [_viewer]) {
         await bukaDetail(tester, token);
 
         expect(find.text('Rincian pekerjaan'), findsOneWidget);

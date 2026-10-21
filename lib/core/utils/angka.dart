@@ -204,3 +204,58 @@ String formatKetidakpastian(double nilai, int desimalAlat) {
 
   return nilai.toStringAsFixed(desimal);
 }
+
+/// Angka **apa adanya** — tanpa pembulatan, tanpa membuang nol, tanpa notasi
+/// eksponen. Dipakai Studio Data Acuan (CR-48), yang menampilkan nilai lapis 1
+/// persis seperti dikirim server (`JSON_PRESERVE_ZERO_FRACTION`).
+///
+/// - `int` → digitnya: `200` → `200`.
+/// - `double` → representasi terpendek yang terbaca balik ke nilai yang SAMA
+///   (aturan `double.toString`): `1.00011` tetap `1.00011`, `20.0` tetap
+///   `20.0`, `0.0019999999999988916` tetap utuh.
+/// - Notasi eksponen bawaan Dart (`1e-7`, `1.5e+21`) diurai jadi desimal biasa
+///   dengan DIGIT YANG SAMA — cuma letak titiknya yang dipindah, nilainya tidak.
+///
+/// ```
+/// teksAngkaPersis(20.0)     ->  "20.0"
+/// teksAngkaPersis(200)      ->  "200"
+/// teksAngkaPersis(1.0e-5)   ->  "0.00001"
+/// teksAngkaPersis(1e-7)     ->  "0.0000001"
+/// ```
+///
+/// **Beda dari [formatNilai]**, dan jangan ditukar: itu memotong ke 8 desimal
+/// dan membuang nol belakang (`20.0` → `20`, `0.0019999999999988916` →
+/// `0.002`) — benar untuk lembar perhitungan, salah untuk data acuan, yang
+/// tipe angkanya (int lawan float) ikut ke isi kanonik dan sha256-nya.
+String teksAngkaPersis(num nilai) {
+  if (nilai is int) return '$nilai';
+
+  final teks = nilai.toString();
+  if (!nilai.isFinite) return teks;
+
+  final e = teks.indexOf('e');
+  if (e < 0) return teks;
+
+  return _uraiEksponen(teks.substring(0, e), int.parse(teks.substring(e + 1)));
+}
+
+/// `1.5` × 10^[pangkat] → desimal biasa, digitnya tidak disentuh.
+String _uraiEksponen(String mantisa, int pangkat) {
+  final negatif = mantisa.startsWith('-');
+  final m = negatif ? mantisa.substring(1) : mantisa;
+  final titik = m.indexOf('.');
+  final bulat = titik < 0 ? m : m.substring(0, titik);
+  final digit = bulat + (titik < 0 ? '' : m.substring(titik + 1));
+
+  // Letak titik desimal dihitung dari kiri deret digit.
+  final letak = bulat.length + pangkat;
+
+  final hasil = letak <= 0
+      ? '0.${'0' * -letak}$digit'
+      : letak >= digit.length
+      // `.0` dipertahankan: nilainya float, dan `20.0` di atas juga begitu.
+      ? '$digit${'0' * (letak - digit.length)}.0'
+      : '${digit.substring(0, letak)}.${digit.substring(letak)}';
+
+  return negatif ? '-$hasil' : hasil;
+}

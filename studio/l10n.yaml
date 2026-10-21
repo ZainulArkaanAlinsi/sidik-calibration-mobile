@@ -1,0 +1,8 @@
+# Generator l10n Sidik Studio (teks Studio sendiri, ID + EN).
+# Teks layar bersama (data acuan M2) tetap dari AppLocalizations paket
+# sidik_calibration — dua delegasi dipasang berdampingan di `lib/app.dart`.
+arb-dir: lib/l10n
+template-arb-file: studio_en.arb
+output-localization-file: studio_l10n.dart
+output-class: StudioL10n
+nullable-getter: false

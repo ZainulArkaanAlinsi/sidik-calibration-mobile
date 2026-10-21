@@ -50,6 +50,12 @@ typedef KunciLembarKerja = ({String profil, int? pengulangan, int? equipmentId})
 ///
 /// Di-`watch` ke [authProvider] supaya ganti akun (teknisi → admin) ngambil
 /// bentuk yang beda — bukan nyisain formulir punya role sebelumnya.
+///
+/// Ditarik ulang (invalidate) saat lembar dibuka lagi, saat aplikasi kembali
+/// ke depan, dan oleh tarikan berkala / sinyal `data_acuan` di
+/// `realtime_provider.dart`. Tarikannya bersyarat: `ApiLembarKerjaService`
+/// menyimpan salinan + `ETag` (dan `versi_acuan` di dalamnya) per kunci, jadi
+/// lembar yang tidak berubah dijawab 304 dan objek bentuknya tetap yang sama.
 final lembarKerjaProvider =
     FutureProvider.family<LembarKerja, KunciLembarKerja>((ref, kunci) async {
       ref.watch(authProvider);
@@ -162,10 +168,37 @@ class PratinjauController extends Notifier<StatusPratinjau> {
   /// nggak ada. Debounce ngurangin peluangnya, nggak ngilangin.
   int _terakhir = 0;
 
+  /// Satu permintaan terbang pada satu waktu. Isian yang berubah selagi
+  /// permintaan jalan TIDAK memulai permintaan paralel (yang jawabannya toh
+  /// dibuang): hanya yang terbaru disimpan di [_menunggu] dan dikirim begitu
+  /// yang berjalan selesai. Isi payload tetap persis sama.
+  bool _berjalan = false;
+  LembarKerjaSubmission? _menunggu;
+
+  /// Batalkan: balasan yang masih di jalan dibuang, antrean dikosongkan.
+  /// Dipanggil waktu lembar ditutup.
+  void batalkan() {
+    _terakhir++;
+    _menunggu = null;
+    Future.microtask(() {
+      try {
+        if (state.menghitung) state = StatusPratinjau(hasil: state.hasil);
+      } catch (_) {
+        // Notifier sudah dibuang.
+      }
+    });
+  }
+
   Future<void> hitung(LembarKerjaSubmission isian) async {
+    if (_berjalan) {
+      _menunggu = isian;
+      return;
+    }
+
     final token = await ref.read(tokenStorageProvider).read();
     if (token == null) return;
 
+    _berjalan = true;
     final nomor = ++_terakhir;
     state = StatusPratinjau(hasil: state.hasil, menghitung: true);
 
@@ -173,12 +206,18 @@ class PratinjauController extends Notifier<StatusPratinjau> {
       final hasil = await ref
           .read(lembarKerjaServiceProvider)
           .pratinjau(token, isian);
-      if (nomor != _terakhir) return;
-      state = StatusPratinjau(hasil: hasil);
+      if (nomor == _terakhir) state = StatusPratinjau(hasil: hasil);
     } catch (e) {
-      if (nomor != _terakhir) return;
-      state = StatusPratinjau(hasil: state.hasil, gagal: e);
+      if (nomor == _terakhir) {
+        state = StatusPratinjau(hasil: state.hasil, gagal: e);
+      }
+    } finally {
+      _berjalan = false;
     }
+
+    final lanjut = _menunggu;
+    _menunggu = null;
+    if (lanjut != null) await hitung(lanjut);
   }
 }
 
@@ -192,3 +231,28 @@ final kirimLembarKerjaProvider =
       KirimLembarKerjaController,
       AsyncValue<HasilKirimLembarKerja?>
     >(KirimLembarKerjaController.new);
+
+/// Berapa lembar kerja terbuka yang isiannya SUDAH disentuh pengguna.
+///
+/// Sinyal realtime (data acuan, tarikan berkala) dan kembali dari latar
+/// belakang dulu menarik ulang bentuk lembar tanpa melihat apakah ada orang
+/// yang sedang mengetik di dalamnya. Bentuk baru yang datang di tengah
+/// pengetikan membangun ulang tabel (`gantiBentuk`) — itu yang terasa seperti
+/// lembar kerja "tersentak". Selama hitungan ini > 0 tarikan ulang ditunda;
+/// lembar yang dibuka berikutnya tetap menarik ulang sendiri di `initState`.
+class LembarKotorController extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void tambah() => state = state + 1;
+
+  void kurang() {
+    if (state > 0) state = state - 1;
+  }
+
+  bool get ada => state > 0;
+}
+
+final lembarKotorProvider = NotifierProvider<LembarKotorController, int>(
+  LembarKotorController.new,
+);

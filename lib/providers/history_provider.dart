@@ -54,7 +54,11 @@ class HistoryController extends AsyncNotifier<List<CalibrationHistoryItem>> {
 
   /// Approve satu sesi. Optimistic: status berubah duluan di UI, baru
   /// nembak server — kalau gagal dibalikin ke semula.
-  Future<void> approve(int id, {bool abaikanPeringatan = false}) async {
+  Future<void> approve(
+    int id, {
+    bool abaikanPeringatan = false,
+    String? nomorSertifikat,
+  }) async {
     final sebelum = state.value;
     if (sebelum == null) return;
 
@@ -72,7 +76,12 @@ class HistoryController extends AsyncNotifier<List<CalibrationHistoryItem>> {
     try {
       final certificateId = await ref
           .read(approvalServiceProvider)
-          .approve(token, id, abaikanPeringatan: abaikanPeringatan);
+          .approve(
+            token,
+            id,
+            abaikanPeringatan: abaikanPeringatan,
+            nomorSertifikat: nomorSertifikat,
+          );
       // Riwayat persetujuan sesi ini bertambah satu peristiwa — buang yang
       // tersimpan supaya dibuka berikutnya tidak basi (tinjauan 6 Okt 2026).
       ref.invalidate(riwayatPersetujuanProvider(id));
@@ -141,32 +150,6 @@ class HistoryController extends AsyncNotifier<List<CalibrationHistoryItem>> {
     ]);
   }
 
-  /// Reject satu sesi dengan catatan revisi. Nunggu server (bukan
-  /// optimistic) — beda sama approve, penolakan butuh alasan yang harus
-  /// tervalidasi (nggak boleh kosong) sebelum status berubah di UI.
-  Future<void> reject(int id, String catatanRevisi) async {
-    final token = await ref.read(tokenStorageProvider).read();
-    if (token == null) return;
-
-    await ref
-        .read(approvalServiceProvider)
-        .reject(token, id, catatanRevisi);
-    ref.invalidate(riwayatPersetujuanProvider(id));
-
-    final sebelum = state.value;
-    if (sebelum == null) return;
-
-    state = AsyncValue.data([
-      for (final item in sebelum)
-        if (item.id == id)
-          item.copyWith(
-            status: CalibrationStatus.perluRevisi,
-            catatanRevisi: catatanRevisi,
-          )
-        else
-          item,
-    ]);
-  }
 }
 
 /// Detail satu sesi kalibrasi — dibuka dari kartu Riwayat (mana pun

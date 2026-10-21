@@ -13,6 +13,7 @@ library;
 
 import '../core/utils/parse_list.dart';
 import 'autoclave_hasil.dart';
+import 'enclosure_sertifikat.dart';
 import 'revisi_sertifikat.dart';
 
 /// Header — 16 field, urutannya ngikutin yang tercetak di sertifikat.
@@ -118,7 +119,11 @@ class BarisHasilSertifikat {
 
   /// **Di sertifikat Correction = Standard − Average** — kebalikan dari lembar
   /// PERHITUNGAN. Dua-duanya bener, jangan dipakai silang.
-  final double correction;
+  ///
+  /// `null` = server tidak mengirim koreksi untuk baris ini, dan layar menulis
+  /// `—`. Dulu dibaca `?? 0`, jadi koreksi yang TIDAK ADA tercetak `0,00` —
+  /// pernyataan "alatnya tepat" yang tidak pernah diukur.
+  final double? correction;
 
   /// Koreksi negatif yang MEMBULAT KE NOL dicetak `-0,0` atau `0,0`.
   ///
@@ -181,7 +186,7 @@ class BarisHasilSertifikat {
         titikKe: (json['titik_ke'] as num?)?.toInt() ?? 0,
         standardValue: (json['standard_value'] as num?)?.toDouble() ?? 0,
         unitUnderTest: (json['unit_under_test'] as num?)?.toDouble() ?? 0,
-        correction: (json['correction'] as num?)?.toDouble() ?? 0,
+        correction: (json['correction'] as num?)?.toDouble(),
         u95: (json['u95'] as num?)?.toDouble() ?? 0,
         desimal: (json['desimal'] as num?)?.toInt(),
         remark: switch (json['remark']) {
@@ -198,7 +203,12 @@ class BarisHasilSertifikat {
 
 /// Satu baris tabel "Standard Used".
 class StandarDigunakan {
-  const StandarDigunakan({this.name, this.merkType, this.serialNumber, this.traceableTo});
+  const StandarDigunakan({
+    this.name,
+    this.merkType,
+    this.serialNumber,
+    this.traceableTo,
+  });
 
   final String? name;
   final String? merkType;
@@ -248,6 +258,7 @@ class CertificateSnapshot {
     this.keputusan,
     this.u95PerTitik = false,
     this.autoclave,
+    this.enclosure,
   });
 
   final HeaderSertifikat header;
@@ -258,6 +269,11 @@ class CertificateSnapshot {
   /// keluaran kalkulator; layar sertifikat mbranch ke sini biar sesi Autoklaf
   /// nggak tampil sebagai tabel kosong (`hasil`-nya memang kosong).
   final AutoclaveHasil? autoclave;
+
+  /// Hasil Enclosure (Sebaran Suhu + Kinerja Enklosur), kalau sertifikat ini
+  /// Oven/Furnace/Bath/Inkubator/Refrigerator. `null` di alat lain. [hasil]
+  /// alat ini `[]` — tabel Standard/UUT/Correction TIDAK berlaku buatnya.
+  final EnclosureSertifikat? enclosure;
 
   /// Dua catatan baku di bawah tabel. **Datang dari backend**, bukan ditulis
   /// ulang di mobile — kalau lab merevisi kalimatnya, yang berubah satu tempat.
@@ -312,18 +328,26 @@ class CertificateSnapshot {
       header: HeaderSertifikat(
         json['header'] as Map<String, dynamic>? ?? const {},
       ),
-      hasil: parseListAman((json['hasil'] as List<dynamic>? ?? const []), BarisHasilSertifikat.fromJson),
+      hasil: parseListAman(
+        (json['hasil'] as List<dynamic>? ?? const []),
+        BarisHasilSertifikat.fromJson,
+      ),
       catatan: (json['catatan'] as List<dynamic>? ?? const [])
           .map((e) => '$e')
           .toList(),
-      standarDigunakan: parseListAman((json['standar_digunakan'] as List<dynamic>? ?? const []), StandarDigunakan.fromJson),
+      standarDigunakan: parseListAman(
+        (json['standar_digunakan'] as List<dynamic>? ?? const []),
+        StandarDigunakan.fromJson,
+      ),
       footer: FooterSertifikat.fromJson(
         json['footer'] as Map<String, dynamic>? ?? const {},
       ),
-      autoclave: json['autoclave'] is Map<String, dynamic> &&
+      autoclave:
+          json['autoclave'] is Map<String, dynamic> &&
               (json['autoclave'] as Map).isNotEmpty
           ? AutoclaveHasil.fromJson(json['autoclave'] as Map<String, dynamic>)
           : null,
+      enclosure: EnclosureSertifikat.dariJson(json['enclosure']),
     );
   }
 }
@@ -339,6 +363,7 @@ class CertificateDetail {
     this.pdfUrl,
     this.qrToken,
     this.diterbitkanPada,
+    this.berlakuSampai,
     this.pelangganNama,
     this.pelangganEmail,
     this.pelangganTelepon,
@@ -370,6 +395,9 @@ class CertificateDetail {
   final String? pdfUrl;
   final String? qrToken;
   final String? diterbitkanPada;
+
+  /// `YYYY-MM-DD`, jatuh tempo kalibrasi ulang (kolom `date`, tanpa jam).
+  final String? berlakuSampai;
 
   /// Kontak pelanggan buat tombol kirim — **backend udah ngirim ini dari dulu**
   /// (`CertificateResource`), cuma nggak pernah dibaca di sini. Akibatnya kolom
@@ -428,6 +456,7 @@ class CertificateDetail {
       StatusDokumen.dariApi(statusDokumenKode) ??
       switch (status) {
         'dibatalkan' => StatusDokumen.dibatalkan,
+        'ditarik' => StatusDokumen.ditarik,
         'terbit' => StatusDokumen.berlaku,
         _ => StatusDokumen.belumTerbit,
       };
@@ -459,6 +488,7 @@ class CertificateDetail {
     pdfUrl: pdfUrl,
     qrToken: qrToken,
     diterbitkanPada: diterbitkanPada,
+    berlakuSampai: berlakuSampai,
     pelangganNama: pelangganNama,
     pelangganEmail: pelangganEmail,
     pelangganTelepon: pelangganTelepon,
@@ -482,39 +512,40 @@ class CertificateDetail {
     final oleh = json['dibatalkan_oleh'];
 
     return CertificateDetail(
-        id: (json['id'] as num).toInt(),
-        nomor: json['nomor'] as String? ?? '',
-        status: json['status'] as String? ?? 'menunggu_generate',
-        pdfUrl: json['pdf_url'] as String?,
-        qrToken: json['qr_token'] as String?,
-        diterbitkanPada: json['diterbitkan_pada'] as String?,
-        snapshot: json['snapshot'] is Map<String, dynamic>
-            ? CertificateSnapshot.fromJson(
-                json['snapshot'] as Map<String, dynamic>,
-              )
-            : null,
-        pelangganNama: pelanggan?['nama'] as String?,
-        pelangganEmail: pelanggan?['email'] as String?,
-        pelangganTelepon: pelanggan?['telepon'] as String?,
-        statusDokumenKode: json['status_dokumen'] as String?,
-        revisiKe: (json['revisi_ke'] as num?)?.toInt() ?? 0,
-        revisiDari: RujukanSertifikat.dariJson(json['revisi_dari']),
-        digantikanOleh: RujukanSertifikat.dariJson(json['digantikan_oleh']),
-        alasanRevisi: json['alasan_revisi'] as String?,
-        dibatalkanPada: DateTime.tryParse(
-          json['dibatalkan_pada'] as String? ?? '',
-        ),
-        dibatalkanOleh: switch (oleh) {
-          final Map m => m['nama'] as String?,
-          final String s => s,
-          _ => null,
-        },
-        alasanPembatalan: json['alasan_pembatalan'] as String?,
-        catatanPelanggan: json['catatan_pelanggan'] as String?,
-        bisaDirevisi: json['bisa_direvisi'] == true,
-        bisaDibatalkan: json['bisa_dibatalkan'] == true,
-        dataCetak: DataCetak.dariJson(json['data_cetak']),
-        dampakPembatalan: DampakPembatalan.dariJson(json['dampak_pembatalan']),
-      );
+      id: (json['id'] as num).toInt(),
+      nomor: json['nomor'] as String? ?? '',
+      status: json['status'] as String? ?? 'menunggu_generate',
+      pdfUrl: json['pdf_url'] as String?,
+      qrToken: json['qr_token'] as String?,
+      diterbitkanPada: json['diterbitkan_pada'] as String?,
+      berlakuSampai: json['berlaku_sampai'] as String?,
+      snapshot: json['snapshot'] is Map<String, dynamic>
+          ? CertificateSnapshot.fromJson(
+              json['snapshot'] as Map<String, dynamic>,
+            )
+          : null,
+      pelangganNama: pelanggan?['nama'] as String?,
+      pelangganEmail: pelanggan?['email'] as String?,
+      pelangganTelepon: pelanggan?['telepon'] as String?,
+      statusDokumenKode: json['status_dokumen'] as String?,
+      revisiKe: (json['revisi_ke'] as num?)?.toInt() ?? 0,
+      revisiDari: RujukanSertifikat.dariJson(json['revisi_dari']),
+      digantikanOleh: RujukanSertifikat.dariJson(json['digantikan_oleh']),
+      alasanRevisi: json['alasan_revisi'] as String?,
+      dibatalkanPada: DateTime.tryParse(
+        json['dibatalkan_pada'] as String? ?? '',
+      ),
+      dibatalkanOleh: switch (oleh) {
+        final Map m => m['nama'] as String?,
+        final String s => s,
+        _ => null,
+      },
+      alasanPembatalan: json['alasan_pembatalan'] as String?,
+      catatanPelanggan: json['catatan_pelanggan'] as String?,
+      bisaDirevisi: json['bisa_direvisi'] == true,
+      bisaDibatalkan: json['bisa_dibatalkan'] == true,
+      dataCetak: DataCetak.dariJson(json['data_cetak']),
+      dampakPembatalan: DampakPembatalan.dariJson(json['dampak_pembatalan']),
+    );
   }
 }

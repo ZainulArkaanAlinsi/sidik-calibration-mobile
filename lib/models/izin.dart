@@ -116,6 +116,7 @@ abstract final class NamaIzin {
   static const alatTambah = 'alat.tambah';
   static const alatUbah = 'alat.ubah';
   static const alatHapus = 'alat.hapus';
+  static const alatUbahJatuhTempo = 'alat.ubah-jatuh-tempo';
 
   static const kalibrasiBuat = 'kalibrasi.buat';
   static const kalibrasiSetujui = 'kalibrasi.setujui';
@@ -171,23 +172,25 @@ abstract final class NamaIzin {
   static const imporExcel = 'impor.excel';
   static const organisasiUbah = 'organisasi.ubah';
 
-  // Gerbang pengesahan, pelacakan & penugasan (keputusan 26 Sep). Tiga izin
-  // pengesahan sengaja dipisah: di layar antrean yang sama, admin dapat
-  // "Tarik pengajuan" tapi TIDAK dapat "Sahkan".
-  static const kalibrasiSahkan = 'kalibrasi.sahkan';
-  static const kalibrasiKembalikanDariPengesahan =
-      'kalibrasi.kembalikan-dari-pengesahan';
-  static const kalibrasiTarikPengajuan = 'kalibrasi.tarik-pengajuan';
-  static const pengesahanAntrean = 'pengesahan.antrean';
+  // Pelacakan & penugasan (keputusan 26 Sep). Izin tolak/sahkan/kembalikan/
+  // tarik-pengajuan/pengesahan.antrean DICABUT 15 Okt 2026 (K-50-01/07);
+  // gantinya `bandingkan` (layar Bandingkan) dan `sertifikat.tarik`.
+  static const kalibrasiBandingkan = 'kalibrasi.bandingkan';
+  static const sertifikatTarik = 'sertifikat.tarik';
   static const pelacakanLihat = 'pelacakan.lihat';
   static const pelacakanSerahTerima = 'pelacakan.serah-terima';
   static const penugasanLihat = 'penugasan.lihat';
   static const penugasanBuat = 'penugasan.buat';
   static const penugasanLaporProgres = 'penugasan.lapor-progres';
 
-  // Permintaan kalibrasi pelanggan, sisi lab (30 Sep 2026). `putuskan` =
-  // terima/tolak, `balas` = kirim pesan. Super admin hanya mendapat `lihat`.
-  static const permintaanLihat = 'permintaan.lihat';
-  static const permintaanPutuskan = 'permintaan.putuskan';
-  static const permintaanBalas = 'permintaan.balas';
+  // Studio Data Acuan (CR-48) — BACA saja di P1; izin tulis belum lahir di
+  // server. Semua role lab memilikinya, tapi isi yang dilihat teknisi lebih
+  // sempit (versi `aktif` saja) dan itu ditegakkan server, bukan layar.
+  static const dataAcuanLihat = 'data-acuan.lihat';
+
+  // Sidik Studio, Workbook Alat (S1b baca; Tahap C simulasi hitung ulang
+  // yang TIDAK menulis data lab). Server: admin, teknisi, super admin untuk
+  // `hitung`; viewer cuma `lihat`.
+  static const workbookLihat = 'workbook.lihat';
+  static const workbookHitung = 'workbook.hitung';
 }

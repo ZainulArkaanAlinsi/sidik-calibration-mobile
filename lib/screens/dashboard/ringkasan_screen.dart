@@ -50,7 +50,7 @@ class _Isi extends ConsumerWidget {
 
     final bolehSetujui = ref.bolehkah(
       NamaIzin.kalibrasiSetujui,
-      cadangan: peran.adminSaja,
+      cadangan: peran.hakAdmin,
     );
 
     final totalSesi =

@@ -299,7 +299,8 @@ class SelPindai {
 /// miliknya sebagai alamat kotak. [tahap] yang dipakai kalau tabelnya nggak
 /// ketemu — respons server lama yang belum ngirim `tabel_id`.
 typedef SelDipakaiPindai = ({
-  /// `grup ?? tahap` di sisi server — identitas tabel, bukan alamat kotak.
+  /// `tabel_id` server (unik per tabel; `grup ?? tahap`, plus `_tahap` bila
+  /// grupnya dipakai dua tabel) — identitas tabel, bukan alamat kotak.
   String tabelId,
   String tahap,
   double titikUkur,

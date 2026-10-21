@@ -34,9 +34,18 @@ import '../../services/vonis_sel_foto.dart';
 /// Yang dipulangkan: `null` kalau teknisi membatalkan, atau daftar sel yang
 /// dia setujui — teksnya sudah yang final, termasuk hasil koreksinya.
 class FotoReviewScreen extends StatefulWidget {
-  const FotoReviewScreen({super.key, required this.baris});
+  const FotoReviewScreen({
+    super.key,
+    required this.baris,
+    this.catatan = const {},
+  });
 
   final List<BarisReviewFoto> baris;
+
+  /// Alasan (sudah dilokalkan) kenapa sel diturunkan aturan nalar formulir,
+  /// berkunci `kunciSelFoto`. Hanya penjelasan: tidak mengubah vonis, tidak
+  /// mengubah kewajiban cek/ketik, dan tidak membuka "terima semua".
+  final Map<String, List<String>> catatan;
 
   @override
   State<FotoReviewScreen> createState() => _FotoReviewScreenState();
@@ -51,6 +60,19 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
       ),
   };
 
+  /// Sel kuning/tidak-diketahui yang sudah disentuh teknisi (ketuk tanda cek
+  /// atau mengubah angkanya). Tulisan tangan tidak pernah hijau: tiap sel
+  /// kuning WAJIB dicek satu per satu sebelum masuk lembar.
+  final Set<String> _dicek = {};
+
+  bool _wajibCek(BarisReviewFoto b) =>
+      b.vonis == VonisFoto.kuning || b.vonis == VonisFoto.tidakDiketahui;
+
+  List<BarisReviewFoto> get _belumDicek => [
+    for (final b in widget.baris)
+      if (_wajibCek(b) && !_dicek.contains(_kunci(b))) b,
+  ];
+
   @override
   void dispose() {
     for (final c in _isian.values) {
@@ -64,9 +86,9 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
 
   /// Sel merah yang kotaknya masih kosong — penghalang tombol Masukkan.
   List<BarisReviewFoto> get _belumDiisi => [
-        for (final b in widget.baris)
-          if (wajibDiisi(b) && _isian[_kunci(b)]!.text.trim().isEmpty) b,
-      ];
+    for (final b in widget.baris)
+      if (wajibDiisi(b) && _isian[_kunci(b)]!.text.trim().isEmpty) b,
+  ];
 
   void _selesai() {
     // SEMUA sel dipulangkan, termasuk yang teknisi kosongkan — bukan cuma yang
@@ -102,6 +124,7 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final belum = _belumDiisi;
+    final belumDicek = _belumDicek;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.fotoReviewJudul(widget.baris.length))),
@@ -138,10 +161,22 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
                         ),
                       ),
                     ),
+                  if (belumDicek.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        l10n.fotoReviewBelumDicek(belumDicek.length),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    ),
                   FilledButton(
                     // Sengaja TIDAK ada tombol "terima semua" di sebelahnya —
                     // lihat aturan 1 di docblock kelas ini.
-                    onPressed: belum.isEmpty ? _selesai : null,
+                    onPressed: belum.isEmpty && belumDicek.isEmpty
+                        ? _selesai
+                        : null,
                     child: Text(l10n.fotoReviewMasukkan),
                   ),
                 ],
@@ -164,6 +199,15 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(b.judul, style: Theme.of(context).textTheme.labelLarge),
+        for (final c in widget.catatan[_kunci(b)] ?? const <String>[])
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(
+              c,
+              key: ValueKey('alasan-${_kunci(b)}'),
+              style: TextStyle(color: warna, fontSize: 12),
+            ),
+          ),
         const SizedBox(height: 6),
 
         // Aturan 2: potongan citranya diadu ke bacaannya, di layar yang sama.
@@ -194,7 +238,7 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9.,\-]')),
                 ],
-                onChanged: (_) => setState(() {}),
+                onChanged: (_) => setState(() => _dicek.add(_kunci(b))),
                 decoration: InputDecoration(
                   isDense: true,
                   border: const OutlineInputBorder(),
@@ -204,6 +248,25 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
                 ),
               ),
             ),
+            if (_wajibCek(b))
+              IconButton(
+                key: ValueKey('cek-${_kunci(b)}'),
+                tooltip: _dicek.contains(_kunci(b))
+                    ? l10n.fotoReviewSudahDicek
+                    : l10n.fotoReviewTandaiDicek,
+                icon: Icon(
+                  _dicek.contains(_kunci(b))
+                      ? Icons.check_circle
+                      : Icons.check_circle_outline,
+                  color: _dicek.contains(_kunci(b))
+                      ? Colors.green.shade700
+                      : Colors.orange.shade800,
+                ),
+                onPressed: () => setState(() {
+                  final k = _kunci(b);
+                  if (!_dicek.remove(k)) _dicek.add(k);
+                }),
+              ),
             const SizedBox(width: 12),
             SizedBox(
               width: 108,

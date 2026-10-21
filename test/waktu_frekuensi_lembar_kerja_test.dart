@@ -71,15 +71,22 @@ void main() {
       }
     });
 
-    test('dua alat rpm tabel datar biasa, satu kolom lima ulangan', () {
+    test('dua alat rpm: Before + After datar biasa, satu kolom lima ulangan', () {
       for (final kode in ['centrifuge', 'tachometer']) {
         final b = bentuk(kode);
         final tabel = tabelDari(b);
 
         expect(b.berpasangan, isFalse, reason: '$kode bukan lembar pasangan');
-        expect(tabel, hasLength(1), reason: kode);
-        expect([for (final k in tabel.first.kolom) k.kode], ['pembacaan']);
-        expect(tabel.first.pengulangan, [1, 2, 3, 4, 5], reason: kode);
+        expect(tabel, hasLength(2), reason: kode);
+        expect(
+          [for (final t in tabel) t.tahap],
+          ['sebelum_adjustment', 'sesudah_adjustment'],
+          reason: kode,
+        );
+        for (final t in tabel) {
+          expect([for (final k in t.kolom) k.kode], ['pembacaan']);
+          expect(t.pengulangan, [1, 2, 3, 4, 5], reason: kode);
+        }
       }
     });
 
@@ -270,7 +277,9 @@ void main() {
       for (final kode in ['centrifuge', 'tachometer']) {
         final b = bentuk(kode);
         final state = LembarKerjaState(bentuk: b, clientRequestId: 'uji');
-        final tabel = tabelDari(b).first;
+        // Payload dihitung dari tahap `sesudah_adjustment` (tabel kedua).
+        final tabel = tabelDari(b).last;
+        expect(tabel.tahap, 'sesudah_adjustment');
         final baris = state.barisTabel(tabel);
         final titik = state.titik[state.kunciBaris(baris, 0, tabel)]!;
 

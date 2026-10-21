@@ -7,11 +7,13 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/equipment.dart';
+import '../../models/izin.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/calibration_input_provider.dart'
     show categoryListProvider;
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../providers/equipment_provider.dart';
+import '../../providers/izin_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/glass_surface.dart';
 import '../../widgets/readable_width.dart';
@@ -21,8 +23,9 @@ import '../../widgets/notification_bell.dart';
 import 'equipment_form_screen.dart';
 
 /// Layar Daftar Alat — CRUD penuh (`GET/POST/PUT/DELETE /api/equipments`,
-/// `docs/kontrak-api.md` §3). Baca boleh semua role; tombol tambah & aksi
-/// hapus cuma muncul buat admin/teknisi (`UserRole.bisaInput`) — viewer
+/// `docs/kontrak-api.md` §3). Baca boleh semua role; tombol tambah cuma
+/// muncul buat admin/teknisi (`UserRole.bisaInput`), aksi hapus cuma buat
+/// yang memegang `alat.hapus` (admin & super admin) — viewer
 /// tetap bisa buka tiap kartu buat lihat detail, form-nya cuma jadi
 /// read-only.
 class EquipmentListScreen extends ConsumerStatefulWidget {
@@ -337,7 +340,13 @@ class _EquipmentCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final bisaInput = ref.watch(authProvider).value?.role.bisaInput ?? false;
+    // `DELETE /equipments/{e}` cuma admin & super admin di server; teknisi
+    // dapat 403. Ikut matriks peran (`alat.hapus`), cadangannya `hakAdmin` —
+    // BUKAN `bisaInput`, yang ikut ngebuka tombol ini buat teknisi.
+    final bolehHapus = ref.bolehkah(
+      NamaIzin.alatHapus,
+      cadangan: ref.watch(authProvider).value?.role.hakAdmin ?? false,
+    );
 
     return GlassSurface.rata(
       radius: 22,
@@ -386,7 +395,7 @@ class _EquipmentCard extends ConsumerWidget {
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 StatusBadge.fromApi(item.status.rawValue),
-                if (bisaInput)
+                if (bolehHapus)
                   IconButton(
                     icon: Icon(
                       Icons.delete_outline,

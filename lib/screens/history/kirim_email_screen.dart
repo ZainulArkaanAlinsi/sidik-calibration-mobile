@@ -46,7 +46,7 @@ class KirimEmailScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final admin = ref.bolehkah(
       NamaIzin.sertifikatKirim,
-      cadangan: ref.watch(authProvider).value?.role.adminSaja ?? false,
+      cadangan: ref.watch(authProvider).value?.role.hakAdmin ?? false,
     );
 
     return Scaffold(

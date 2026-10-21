@@ -679,7 +679,7 @@ class _TombolFotoGridState extends ConsumerState<_TombolFotoGrid> {
         detik: 6,
       );
     } catch (e) {
-      if (mounted) pesan(l10n.lkFotoTabelError('$e'), detik: 6);
+      if (mounted) pesan(pesanGalatFotoTabel(l10n, e), detik: 6);
     } finally {
       if (mounted) setState(() => _sibuk = false);
     }
