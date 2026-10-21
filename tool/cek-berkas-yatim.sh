@@ -57,6 +57,11 @@ PENGECUALIAN=(
   # Titik masuk aplikasi — tidak di-import siapa pun menurut definisinya.
   "lib/main.dart"
   "studio/lib/main.dart"
+  # Adapter tflite_flutter untuk PembacaDigitTflite. Sengaja belum dipasang ke
+  # alur mana pun: model digit tetap mati sampai Gerbang 0 (data asli + angka
+  # akurasi). Hapus baris ini begitu `buatInterpreter: InterpreterTflite.new`
+  # dipasang.
+  "lib/services/interpreter_tflite.dart"
 )
 
 # Direktori yang belum ada (checkout lama tanpa `studio/`) dilewati, bukan
