@@ -9,7 +9,8 @@ Rencana: `_agents_workspace/studio-data-acuan/06-rencana-rescope.md` (repo API).
 | Android applicationId | `com.ptsidik.studio` | `com.ptsidik.kalibrasi` |
 | Windows exe / ProductName | `sidik_studio.exe` / "Sidik Studio" | `sidik_calibration.exe` / "PT Sidik - Kalibrasi" |
 | Push (Firebase) | tidak | ya |
-| Pembaru APK/Windows | tidak | ya |
+| Pembaru Windows | ya — manifest sendiri `versi-studio-windows.json` (rilis-desktop.yml, job `studio`) | ya (`versi-windows-v2.json`) |
+| Pembaru APK | tidak | ya |
 | OCR / kamera / onboarding | tidak | ya |
 
 Lapisan data (ApiClient, token, auth, izin, data acuan) dan layar data acuan M2
@@ -40,7 +41,7 @@ salin `../pubspec.lock` ke sini, lalu `flutter pub get`.
 
 ## Struktur
 
-- `lib/main.dart`, `lib/app.dart` — titik masuk & akar (tanpa Firebase/pembaru).
+- `lib/main.dart`, `lib/app.dart` — titik masuk & akar (tanpa Firebase; pembaru Windows hanya di build rilis).
 - `lib/inti/` — penimpaan provider paket bersama (push → `TanpaTokenPush`),
   lingkungan (`APP_ENV`), mode tema.
 - `lib/tema/` — desain sistem Studio: `WarnaStudio` (ThemeExtension),

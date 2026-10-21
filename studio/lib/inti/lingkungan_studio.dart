@@ -4,15 +4,33 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sidik_calibration/core/config/app_config.dart';
 import 'package:sidik_calibration/services/simpanan_alamat_server.dart';
 
-/// Versi Studio = `version:` di `studio/pubspec.yaml`, APA ADANYA.
+/// Versi Studio. Build rilis CI (`rilis-desktop.yml`, job `studio`) mengisi
+/// `--dart-define=VERSI_STUDIO=<nama>+<build>` dengan nomor yang SAMA dengan
+/// `--build-name/--build-number` exe-nya (dasar `version:` pubspec + jumlah
+/// commit), jadi header `X-Versi-Klien` = versi yang dibandingkan pembaru.
 ///
-/// Ditulis tangan karena membaca versi saat jalan butuh `package_info_plus`
-/// sebagai dependensi langsung Studio (dependensi baru = izin pemilik).
-/// Supaya tidak basi diam-diam, test "versiStudio = version di pubspec.yaml
-/// Studio" (`test/klien_studio_test.dart`) membaca pubspec dan gagal bila
-/// keduanya beda — naikkan keduanya bersamaan. Test itu membaca
-/// `pubspec.yaml` relatif ke direktori kerja, jadi jalankan dari `studio/`.
-const String versiStudio = '0.1.0+1';
+/// Tanpa define (build lokal & test) nilainya `version:` di
+/// `studio/pubspec.yaml` APA ADANYA. Ditulis tangan karena membaca versi saat
+/// jalan butuh `package_info_plus` sebagai dependensi langsung Studio
+/// (dependensi baru = izin pemilik). Supaya tidak basi diam-diam, test
+/// "versiStudio = version di pubspec.yaml Studio" (`test/klien_studio_test.dart`)
+/// membaca pubspec dan gagal bila keduanya beda — naikkan keduanya bersamaan.
+/// Test itu membaca `pubspec.yaml` relatif ke direktori kerja, jadi jalankan
+/// dari `studio/`.
+const String versiStudio = String.fromEnvironment(
+  'VERSI_STUDIO',
+  defaultValue: '0.1.0+1',
+);
+
+/// Manifest rilis Windows Studio — diterbitkan `rilis-desktop.yml` di situs
+/// Firebase Hosting yang sama dengan app lapangan, di sebelah
+/// `sidik-studio-windows.zip`. Mesin pembarunya `PembaruWindows` paket
+/// bersama; manifest-nya terpisah supaya Studio tidak pernah memasang zip app
+/// lapangan (atau sebaliknya).
+const String urlManifestStudio = String.fromEnvironment(
+  'URL_MANIFEST_STUDIO',
+  defaultValue: 'https://sidik-kalibrasi.web.app/versi-studio-windows.json',
+);
 
 /// Nilai header `X-Klien` (FR-STU-003). Server memakainya untuk log dan
 /// penolakan versi usang (`426 klien_kedaluwarsa`), BUKAN untuk izin.
