@@ -289,6 +289,11 @@ jobs:
         run: |
           printf '%s' "$ISI" > android/app/google-services.json
 
+          # Secret yang dipasang lewat PowerShell (`Get-Content | gh secret set`)
+          # bisa diawali BOM UTF-8; Python & Gradle menolaknya. Buang BOM saja —
+          # isinya tetap divalidasi sebagai JSON di bawah. (Gagal 21 Okt 2026.)
+          sed -i '1s/^\xEF\xBB\xBF//' android/app/google-services.json
+
           # Gagal di sini kalau isinya kepotong atau kesalin setengah. Tanpa
           # penjagaan ini Gradle-nya yang gagal, dengan pesan soal plugin Google
           # Services yang nggak nyebut sebab sebenarnya — dan orang bakal nyari
