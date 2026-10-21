@@ -337,6 +337,9 @@ class JalankanPindaiAsli {
               // Bukan sel yang gagal: modul ML Kit belum ada. Seluruh pindai
               // berhenti dengan pesannya sendiri.
               rethrow;
+            } on LayananGooglePlayTidakSiap {
+              // Sama: tanpa Play Services tidak ada sel yang bisa dibaca.
+              rethrow;
             } catch (_) {
               // Satu sel gagal TIDAK menggugurkan sel lain. Sel ini jadi kosong
               // (tanpa teks karangan, tanpa nol) dan dicatat di [gagalDibaca]

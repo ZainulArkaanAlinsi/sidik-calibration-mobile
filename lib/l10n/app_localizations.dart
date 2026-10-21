@@ -11569,6 +11569,78 @@ abstract class AppLocalizations {
   /// **'The text reader module is still being downloaded by Google Play Services and needs internet once. Connect to the internet and try again, or fill in manually.'**
   String get lkModulPembacaTeksDiunduh;
 
+  /// No description provided for @lkModulPembacaQrDiunduh.
+  ///
+  /// In en, this message translates to:
+  /// **'The QR reader module is still being downloaded by Google Play Services and needs internet once. Connect to the internet and try again, or fill in manually.'**
+  String get lkModulPembacaQrDiunduh;
+
+  /// No description provided for @lkGalatIzinKamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera permission was denied. Tap the photo button again and choose Allow. If the permission dialog no longer appears, enable Camera in phone Settings → Apps → PT Sidik Calibration → Permissions.'**
+  String get lkGalatIzinKamera;
+
+  /// No description provided for @lkGalatKameraTidakAda.
+  ///
+  /// In en, this message translates to:
+  /// **'No camera was found on this phone. Fill in the numbers manually.'**
+  String get lkGalatKameraTidakAda;
+
+  /// No description provided for @lkGalatKameraSibuk.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera is still open from a previous attempt. Wait a moment and try again.'**
+  String get lkGalatKameraSibuk;
+
+  /// No description provided for @lkGalatTanpaPlayServices.
+  ///
+  /// In en, this message translates to:
+  /// **'The on-phone text reader needs Google Play Services enabled and up to date. Update Google Play Services from the Play Store, or fill in the numbers manually.'**
+  String get lkGalatTanpaPlayServices;
+
+  /// No description provided for @lkGalatServerBelumTersambung.
+  ///
+  /// In en, this message translates to:
+  /// **'The server cannot be reached yet — it may be starting up (up to 1–2 minutes) or the signal is weak. Wait a moment and try again.'**
+  String get lkGalatServerBelumTersambung;
+
+  /// No description provided for @lkFotoTabelGagalUmum.
+  ///
+  /// In en, this message translates to:
+  /// **'The table photo could not be processed. Retake it or fill in manually.'**
+  String get lkFotoTabelGagalUmum;
+
+  /// No description provided for @lkServerSedangDinyalakan.
+  ///
+  /// In en, this message translates to:
+  /// **'The server is starting up, please wait…'**
+  String get lkServerSedangDinyalakan;
+
+  /// No description provided for @lkFotoTertinggalJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous photo found'**
+  String get lkFotoTertinggalJudul;
+
+  /// No description provided for @lkFotoTertinggalIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'The phone closed the app while the camera was open, but the photo was kept. Use it only if it is a photo of this sheet; if unsure, take a new photo.'**
+  String get lkFotoTertinggalIsi;
+
+  /// No description provided for @lkFotoTertinggalPakai.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this photo'**
+  String get lkFotoTertinggalPakai;
+
+  /// No description provided for @lkFotoTertinggalBaru.
+  ///
+  /// In en, this message translates to:
+  /// **'New photo'**
+  String get lkFotoTertinggalBaru;
+
   /// No description provided for @aturanAsliBukanAngka.
   ///
   /// In en, this message translates to:

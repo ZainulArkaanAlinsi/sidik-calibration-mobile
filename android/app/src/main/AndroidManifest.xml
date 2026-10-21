@@ -145,5 +145,13 @@
             <action android:name="android.intent.action.VIEW"/>
             <data android:scheme="mailto"/>
         </intent>
+
+        <!-- Android 11+: `image_picker` memanggil app kamera bawaan lewat
+             IMAGE_CAPTURE. Tanpa deklarasi ini `resolveActivity` bisa tidak
+             melihat app kameranya di sebagian HP, dan foto lembar kerja
+             gagal dengan `no_available_camera` walau kameranya ada. -->
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE"/>
+        </intent>
     </queries>
 </manifest>

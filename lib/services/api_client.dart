@@ -483,6 +483,17 @@ class ApiClient {
     }
   }
 
+  /// Pemanasan saat layar yang SEGERA butuh server dibuka (lembar kerja &
+  /// pindai). Tidak ditunggu pemanggil, tidak pernah melempar, dan dilewati
+  /// kalau server baru saja menjawab ([_pastikanBangun]).
+  ///
+  /// Hanya jalan bila [_bangunkanDulu] nyala (produksi): client yang disuntik
+  /// test menghitung panggilan, dan `/health` tambahan merusak hitungannya.
+  Future<void> panaskan() async {
+    if (!_bangunkanDulu) return;
+    await _pastikanBangun();
+  }
+
   /// Pastikan server bangun SEBELUM kiriman yang tidak boleh diulang.
   ///
   /// ## Kenapa ini ada

@@ -230,6 +230,10 @@ class ApiWorksheetScanService implements WorksheetScanService {
             'citra_warp': (namaBerkas: 'warp.png', isi: citraWarp),
         },
         token: token,
+        // 120 s: kiriman ini TIDAK diulang otomatis (tanpa kunci dedup), dan
+        // server Render gratis yang baru bangun butuh 30–90 s sebelum mulai
+        // menilai. Menyerah duluan = teknisi kirim ulang = pindai kembar.
+        timeout: const Duration(seconds: 120),
       );
 
       return HasilPindai.fromJson(json);

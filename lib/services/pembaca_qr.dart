@@ -4,6 +4,8 @@ import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 
+import 'modul_pembaca_teks.dart';
+
 /// Baca QR versi lembar dari fotonya sendiri — **ML Kit on-device**.
 ///
 /// ## Kenapa ini nggak boleh dilewat
@@ -42,7 +44,11 @@ class MlKitPembacaQr implements PembacaQr {
     try {
       await berkas.writeAsBytes(img.encodePng(citra));
 
-      final hasil = await _pemindai.processImage(InputImage.fromFile(berkas));
+      // Modul `barcode` unbundled turun TERPISAH dari `ocr`: yang belum
+      // terunduh → [ModulPembacaQrBelumSiap], bukan "foto gagal diproses".
+      final hasil = await denganModulPembacaQr(
+        () => _pemindai.processImage(InputImage.fromFile(berkas)),
+      );
 
       for (final b in hasil) {
         final isi = b.rawValue?.trim();

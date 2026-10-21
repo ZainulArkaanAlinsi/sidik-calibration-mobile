@@ -282,6 +282,11 @@ class _FormState extends ConsumerState<_Form> {
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.lkModulPembacaTeksDiunduh)),
       );
+    } catch (e) {
+      // Izin kamera ditolak, Play Services, dst. Dulu lolos tanpa pesan.
+      messenger.showSnackBar(
+        SnackBar(content: Text(pesanGalatFotoTabel(l10n, e))),
+      );
     } finally {
       if (mounted) setState(() => _membaca = false);
     }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show File;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -13,6 +14,7 @@ import '../../providers/sakelar_ocr_provider.dart';
 import '../../providers/sumber_foto_provider.dart';
 import '../../providers/worksheet_scan_provider.dart';
 import '../../services/aturan_formulir_asli.dart';
+import '../../services/foto_tertinggal.dart';
 import '../../services/jalankan_pindai.dart' show GagalPindai;
 import '../../services/kumpulkan_contoh_sel.dart';
 import '../../services/modul_pembaca_teks.dart';
@@ -20,10 +22,15 @@ import '../../services/jalankan_pindai_asli.dart';
 import '../../services/pembaca_halaman.dart'
     show PembacaHalaman, sapuBerkasPindaiLama;
 import '../../services/pembaca_sel.dart' show PembacaSel;
+import '../../services/pesan_galat_pindai.dart';
 import '../../services/peta_tabel_foto.dart' show SelTabelFoto;
 import '../../services/potong_sel_foto.dart' show decodeFotoDiIsolate;
+import '../../widgets/konfirmasi_foto_tertinggal.dart';
 import 'foto_review_screen.dart';
 import 'lembar_kerja_state.dart';
+
+/// Batas sisi foto lembar asli (px) — lihat komentar di [pindaiFormulirAsli].
+const batasSisiFotoAsli = 4200;
 
 /// Pemisah `tabelId` dan `fieldId` di kunci baris review (satu layar review
 /// untuk semua tabel; pH punya dua tabel dengan titik yang sama).
@@ -62,9 +69,29 @@ Future<int> pindaiFormulirAsli({
         .then<void>((_) {}, onError: (Object _) {}),
   );
 
-  // Foto penuh: TANPA maxWidth/imageQuality — tiap piksel yang dibuang di sini
-  // hilang dari angka yang terbaca.
-  final berkas = await ref.read(sumberFotoProvider).ambil();
+  // Batas 4200 px per sisi, mutu JPEG 100 — sama dengan jalur foto tabel.
+  // Dulu foto PENUH (alasannya: tiap piksel yang dibuang hilang dari angka).
+  // Tapi yang dibaca per sel di sini citra HASIL PERATAAN di kanvas tetap
+  // 3 px/pt (A4 ≈ 1785×2526 px, `JalankanPindaiAsli.skalaPxPerPt`), jadi
+  // piksel di atas ~4200 tidak pernah sampai ke ML Kit sel — yang tersisa
+  // cuma decode + salinan citra 50–200 MP yang membuat HP murah kehabisan
+  // memori (OOM) lalu aplikasinya ditutup sistem. Mutunya TIDAK diturunkan:
+  // artefak JPEG di garis tipis yang bikin `4,04` kebaca `404`.
+  final File? berkas;
+  try {
+    berkas = await ambilFotoAtauPulihkan(
+      ref.read(sumberFotoProvider),
+      pakaiTertinggal: (f) => konfirmasiFotoTertinggal(context, f),
+      maxWidth: batasSisiFotoAsli,
+      maxHeight: batasSisiFotoAsli,
+      imageQuality: 100,
+    );
+  } catch (e, st) {
+    // Izin kamera ditolak, kamera tidak ada, dsb. Dulu lolos tanpa pesan.
+    catatGalatPindai('asli-kamera', e, st);
+    kabar(pesanGalatPindai(l10n, e, umum: l10n.lkAsliGagalUmum));
+    return 0;
+  }
   if (berkas == null) return 0;
 
   final bita = await berkas.readAsBytes();
@@ -125,8 +152,11 @@ Future<int> pindaiFormulirAsli({
     // ML Kit unbundled: modul `ocr` belum terunduh. Lembar tidak berubah,
     // isian manual tetap jalan.
     galat = l10n.lkModulPembacaTeksDiunduh;
-  } catch (_) {
-    galat = l10n.lkAsliGagalUmum;
+  } catch (e, st) {
+    // Dulu ditelan tanpa jejak: "Foto gagal diproses" di HP teknisi tidak
+    // bisa dilacak sebabnya. Mentahnya ke log, kalimatnya tetap manusiawi.
+    catatGalatPindai('asli-baca', e, st);
+    galat = pesanGalatPindai(l10n, e, umum: l10n.lkAsliGagalUmum);
   } finally {
     await halaman?.tutup();
     await pembaca?.tutup();

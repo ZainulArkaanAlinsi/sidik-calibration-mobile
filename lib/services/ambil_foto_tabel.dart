@@ -6,8 +6,10 @@ import 'package:image/image.dart' as img;
 import '../l10n/app_localizations.dart';
 import '../providers/sumber_foto_provider.dart';
 import '../providers/worksheet_scan_provider.dart';
-import 'modul_pembaca_teks.dart';
+import '../widgets/konfirmasi_foto_tertinggal.dart';
+import 'foto_tertinggal.dart';
 import 'pembaca_halaman.dart';
+import 'pesan_galat_pindai.dart';
 import 'potong_sel_foto.dart' show decodeFotoDiIsolate;
 
 /// Hasil satu jepretan "foto tabel ini".
@@ -73,17 +75,27 @@ typedef HasilAmbilFoto = ({
 /// dibaca" di docblock ini nggak berlaku buat dia: berkasnya menumpuk satu per
 /// jepretan di cache pemilih, isinya lembar kerja pelanggan, dan nggak ada
 /// satu pun yang membersihkannya sepanjang sesi.
-/// Pesan untuk galat yang lolos dari [ambilDanBacaTabel]: modul ML Kit yang
-/// belum terunduh diberi pesannya sendiri; sisanya pesan galat umum foto tabel.
-String pesanGalatFotoTabel(AppLocalizations l10n, Object e) =>
-    e is ModulPembacaTeksBelumSiap
-    ? l10n.lkModulPembacaTeksDiunduh
-    : l10n.lkFotoTabelError('$e');
+/// Pesan untuk galat yang lolos dari [ambilDanBacaTabel]: izin kamera, modul
+/// ML Kit yang belum terunduh, Play Services, dst. diberi kalimatnya sendiri;
+/// sisanya pesan umum foto tabel. Galat MENTAH tidak pernah ke layar — dulu
+/// `$e` ikut tampil ("PlatformException(camera_access_denied, …)") — dan
+/// dicatat ke log di sini.
+String pesanGalatFotoTabel(AppLocalizations l10n, Object e) {
+  catatGalatPindai('foto-tabel', e);
+
+  return pesanGalatPindai(l10n, e, umum: l10n.lkFotoTabelGagalUmum);
+}
 
 Future<HasilAmbilFoto> ambilDanBacaTabel(WidgetRef ref) async {
-  final foto = await ref
-      .read(sumberFotoProvider)
-      .ambil(maxWidth: 4200, imageQuality: 100);
+  // Foto yang tertinggal karena Android mematikan aplikasi saat kamera
+  // terbuka ditawarkan dulu — lihat [ambilFotoAtauPulihkan].
+  final context = ref.context;
+  final foto = await ambilFotoAtauPulihkan(
+    ref.read(sumberFotoProvider),
+    pakaiTertinggal: (f) => konfirmasiFotoTertinggal(context, f),
+    maxWidth: 4200,
+    imageQuality: 100,
+  );
 
   if (foto == null) {
     return (terbaca: null, dibatalkan: true, ukuran: null, citra: null);
