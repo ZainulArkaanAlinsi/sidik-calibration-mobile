@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -57,7 +58,13 @@ class PenyiapUpdateAsli implements PenyiapUpdate {
   /// Menjaga dua pemanggilan berbarengan tidak mengunduh dua kali. Provider
   /// bisa dibaca ulang tiap layar dibuka, dan tanpa penjaga ini dua unduhan
   /// 68 MB jalan bersamaan ke berkas yang sama.
-  bool _sedangJalan = false;
+  ///
+  /// Pemanggil kedua untuk versi yang SAMA ikut menunggu unduhan yang sedang
+  /// jalan, bukan langsung dapat `false` (22 Okt 2026): cek ulang berkala
+  /// membaca ulang `updateSiapProvider` di tengah unduhan, dan jawaban `false`
+  /// membuat banner kembali ke "PASANG (68 MB)" padahal berkasnya hampir siap.
+  Future<bool>? _berjalan;
+  String? _versiBerjalan;
 
   static String namaBerkas(String versi) => 'sidik-kalibrasi-$versi.apk';
 
@@ -78,15 +85,35 @@ class PenyiapUpdateAsli implements PenyiapUpdate {
   }
 
   @override
-  Future<bool> siapkan(VersiAplikasi rilis) async {
-    if (_sedangJalan) return false;
+  Future<bool> siapkan(VersiAplikasi rilis) {
+    final jalan = _berjalan;
+    if (jalan != null) {
+      // Versi lain sedang diunduh: jangan menumpuk unduhan kedua.
+      return _versiBerjalan == rilis.versi ? jalan : Future.value(false);
+    }
 
+    final baru = _siapkan(rilis);
+    _berjalan = baru;
+    _versiBerjalan = rilis.versi;
+    // `_siapkan` tidak pernah melempar, jadi `whenComplete` aman diabaikan.
+    unawaited(
+      baru.whenComplete(() {
+        if (identical(_berjalan, baru)) {
+          _berjalan = null;
+          _versiBerjalan = null;
+        }
+      }),
+    );
+
+    return baru;
+  }
+
+  Future<bool> _siapkan(VersiAplikasi rilis) async {
     try {
       if (await apkSiap(rilis.versi) != null) return true;
 
       if (!await _tanpaKuota()) return false;
 
-      _sedangJalan = true;
       await _bersihkanVersiLain(rilis.versi);
 
       final hasil = await _pengunduh.unduh(
@@ -100,8 +127,6 @@ class PenyiapUpdateAsli implements PenyiapUpdate {
       // penyimpanan penuh, server ngadat. Teknisi tidak perlu tahu — tombol
       // Pasang manual tetap ada kalau dia memang mau sekarang.
       return false;
-    } finally {
-      _sedangJalan = false;
     }
   }
 

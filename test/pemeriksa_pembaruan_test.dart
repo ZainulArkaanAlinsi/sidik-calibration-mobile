@@ -236,6 +236,40 @@ void main() {
     });
   });
 
+  for (final (jalurApk, harapan) in [(false, 1), (true, 2)]) {
+    testWidgets(
+      'timer: provider APK ${jalurApk ? 'DIHITUNG ulang' : 'TIDAK disentuh'} '
+      'waktu jalurApk=$jalurApk',
+      (tester) async {
+        var dibangun = 0;
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              jalurApkProvider.overrideWithValue(jalurApk),
+              updateTersediaProvider.overrideWith((ref) async {
+                dibangun++;
+                return null;
+              }),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: const Scaffold(
+                body: PemeriksaPembaruan(child: SizedBox.expand()),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(dibangun, 1);
+
+        await tester.pump(const Duration(hours: 1));
+        await tester.pumpAndSettle();
+        expect(dibangun, harapan);
+      },
+    );
+  }
+
   group('banner Windows "siap — mulai ulang"', () {
     Future<void> pasang(
       WidgetTester tester,

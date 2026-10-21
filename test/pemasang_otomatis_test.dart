@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sidik_calibration/models/versi_aplikasi.dart';
+import 'package:sidik_calibration/core/pengamat_rute.dart';
+import 'package:sidik_calibration/providers/navigation_provider.dart';
 import 'package:sidik_calibration/providers/versi_provider.dart';
 import 'package:sidik_calibration/services/pemasang_sesi.dart';
 import 'package:sidik_calibration/services/pengunduh_apk.dart';
@@ -183,6 +185,7 @@ void main() {
         container: container,
         child: MaterialApp(
           navigatorKey: navigator,
+          navigatorObservers: [pengamatRute],
           home: Scaffold(
             body: PemasangOtomatis(
               key: key,
@@ -783,6 +786,68 @@ void main() {
     });
   });
 
+  /// Pemeriksaan yang selesai waktu ada layar lain di atas shell tidak boleh
+  /// membuang pop-up untuk selamanya — shell tidak pernah dipasang ulang.
+  group('pop-up yang terlewat dicoba lagi', () {
+    Future<(GlobalKey<NavigatorState>, Completer<void>)> mulaiTertahan(
+      WidgetTester tester,
+    ) async {
+      final tahan = Completer<void>();
+      final navigator = GlobalKey<NavigatorState>();
+      await pasang(
+        tester,
+        container: wadah(layanan: _LayananTertahan(tahan, terbaru: rilis())),
+        pengunduh: _PengunduhPalsu(),
+        navigator: navigator,
+      );
+      await tester.pump();
+
+      unawaited(
+        navigator.currentState!.push(
+          MaterialPageRoute<void>(builder: (_) => const Text('lembar kerja')),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      tahan.complete();
+      await tester.pumpAndSettle();
+      expect(_dialog, findsNothing, reason: 'tidak boleh di atas layar lain');
+
+      return (navigator, tahan);
+    }
+
+    testWidgets('layar di atas ditutup: pop-up muncul', (tester) async {
+      final (navigator, _) = await mulaiTertahan(tester);
+
+      navigator.currentState!.pop();
+      await tester.pumpAndSettle();
+
+      expect(_dialog, findsOneWidget);
+    });
+
+    testWidgets('kembali dari latar: dicoba lagi, tapi tetap tidak di atas '
+        'layar lain', (tester) async {
+      final (navigator, _) = await mulaiTertahan(tester);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(_dialog, findsNothing);
+
+      navigator.currentState!.pop();
+      await tester.pumpAndSettle();
+      expect(_dialog, findsOneWidget);
+
+      // Sekali per proses: ditolak, lalu kembali dari latar — tidak muncul lagi.
+      await tester.tap(_nanti);
+      await tester.pumpAndSettle();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(_dialog, findsNothing);
+    });
+  });
+
   /// Android 12+: sesudah aplikasi ini tercatat sebagai pemasangnya sendiri,
   /// rilis berikutnya dipasang TANPA ketukan — tapi memasang mematikan proses
   /// aplikasi, jadi waktunya harus benar.
@@ -832,6 +897,24 @@ void main() {
       await tinggalkanAplikasi(tester);
 
       expect(sesi.dipasang, ['/palsu/sidik-kalibrasi-1.0.60.apk']);
+      expect(sesi.diam, [true]);
+    });
+
+    testWidgets('tab selain tab pertama (mis. Profil dengan pemilih foto): '
+        'TIDAK dipasang diam-diam', (tester) async {
+      final sesi = _SesiPalsu(bisa: true);
+      final c = wadahDiam(sesi);
+
+      await pasang(tester, container: c, pengunduh: _PengunduhPalsu());
+      await tutupDialog(tester);
+      c.read(selectedTabProvider.notifier).select(1);
+      await tinggalkanAplikasi(tester);
+
+      expect(sesi.dipasang, isEmpty);
+
+      // Kembali ke tab pertama: boleh lagi.
+      c.read(selectedTabProvider.notifier).select(0);
+      await tinggalkanAplikasi(tester);
       expect(sesi.diam, [true]);
     });
 

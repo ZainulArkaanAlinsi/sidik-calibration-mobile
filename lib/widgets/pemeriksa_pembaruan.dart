@@ -110,7 +110,9 @@ class _PemeriksaPembaruanState extends ConsumerState<PemeriksaPembaruan>
     // Nilai lama tetap terpegang selama pemeriksaan ulang berjalan (Riverpod
     // menyimpan data sebelumnya), jadi banner yang sedang tampil tidak
     // berkedip hilang.
-    ref.invalidate(updateTersediaProvider);
+    // Desktop/web tidak memakai jalur APK — provider-nya selalu null, jadi
+    // menghitungnya ulang cuma membangunkan rantai provider tanpa guna.
+    if (ref.read(jalurApkProvider)) ref.invalidate(updateTersediaProvider);
 
     // Windows punya timer jam-an sendiri di `PembaruWindows`; di sini cuma
     // disusulkan waktu kembali ke depan.
