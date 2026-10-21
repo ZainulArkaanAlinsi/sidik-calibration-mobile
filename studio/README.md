@@ -13,6 +13,8 @@ Rencana: `_agents_workspace/studio-data-acuan/06-rencana-rescope.md` (repo API).
 | Pembaru APK | tidak | ya |
 | OCR / kamera / onboarding | tidak | ya |
 
+> **Instalasi Studio yang sudah ada** (versi `0.1.0`, sebelum pembaru Windows) wajib dipasang ulang SEKALI secara manual dari `sidik-studio-windows.zip`; baru sesudah itu pembaruan berikutnya masuk sendiri.
+
 Lapisan data (ApiClient, token, auth, izin, data acuan) dan layar data acuan M2
 dipakai ulang dari paket akar lewat `sidik_calibration: path: ../`. Server tetap
 satu-satunya tempat hitung — Studio tidak menghitung sendiri.
