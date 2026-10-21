@@ -6578,6 +6578,51 @@ class AppLocalizationsId extends AppLocalizations {
       'Modul pembaca teks sedang diunduh Google Play Services dan butuh internet sekali. Sambungkan internet lalu coba lagi, atau isi manual.';
 
   @override
+  String get lkModulPembacaQrDiunduh =>
+      'Modul pembaca QR sedang diunduh Google Play Services dan butuh internet sekali. Sambungkan internet lalu coba lagi, atau isi manual.';
+
+  @override
+  String get lkGalatIzinKamera =>
+      'Izin kamera ditolak. Ketuk tombol foto lagi lalu pilih Izinkan. Kalau dialog izin tidak muncul lagi, aktifkan Kamera di Pengaturan HP → Aplikasi → PT Sidik Calibration → Izin.';
+
+  @override
+  String get lkGalatKameraTidakAda =>
+      'Kamera tidak ditemukan di HP ini. Isi angka secara manual.';
+
+  @override
+  String get lkGalatKameraSibuk =>
+      'Kamera masih terbuka dari percobaan sebelumnya. Tunggu sebentar lalu coba lagi.';
+
+  @override
+  String get lkGalatTanpaPlayServices =>
+      'Pembaca teks di HP butuh Google Play Services yang aktif dan terbaru. Perbarui Google Play Services lewat Play Store, atau isi angka secara manual.';
+
+  @override
+  String get lkGalatServerBelumTersambung =>
+      'Server belum bisa dihubungi — mungkin sedang dinyalakan (bisa sampai 1–2 menit) atau sinyal lemah. Tunggu sebentar lalu coba lagi.';
+
+  @override
+  String get lkFotoTabelGagalUmum =>
+      'Foto tabel gagal diproses. Coba foto ulang atau isi manual.';
+
+  @override
+  String get lkServerSedangDinyalakan =>
+      'Server sedang dinyalakan, mohon tunggu…';
+
+  @override
+  String get lkFotoTertinggalJudul => 'Foto sebelumnya ditemukan';
+
+  @override
+  String get lkFotoTertinggalIsi =>
+      'HP sempat menutup aplikasi saat kamera terbuka, tapi fotonya tersimpan. Pakai foto ini hanya kalau memang foto lembar ini; kalau ragu, ambil foto baru.';
+
+  @override
+  String get lkFotoTertinggalPakai => 'Pakai foto ini';
+
+  @override
+  String get lkFotoTertinggalBaru => 'Foto baru';
+
+  @override
   String get aturanAsliBukanAngka => 'Bukan angka desimal biasa; ketik sendiri';
 
   @override

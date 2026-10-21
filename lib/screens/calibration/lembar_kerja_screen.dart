@@ -33,10 +33,12 @@ import '../../providers/worksheet_scan_provider.dart';
 import 'pindai_formulir_asli_flow.dart';
 import '../../services/auth_service.dart' show AuthException, gagalJaringan;
 import '../../services/draf_lokal.dart';
+import '../../services/kabar_server_lambat.dart';
 import '../../services/penampung_contoh_sel.dart';
 import '../../widgets/autoclave_hasil_panel.dart';
 import '../../widgets/banner_status_standar.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/kabar_server_lambat.dart';
 import '../../widgets/label_standar.dart';
 import '../../widgets/sidik_loader.dart';
 import '../../widgets/tampil_masuk.dart';
@@ -578,6 +580,11 @@ class _FormState extends ConsumerState<_Form> {
     _sesiIdTerkini = widget.sesiId;
     _pasangSalinanHp();
 
+    // Server Render gratis tidur sesudah ~15 menit nganggur dan butuh 30–90 s
+    // untuk bangun. Dipanaskan SEKARANG — sebelum teknisi menekan foto atau
+    // kirim — bukan pada permintaan yang ditunggunya. Tidak ditunggu.
+    unawaited(ref.read(apiClientProvider).panaskan());
+
     final id = widget.sesiId;
     if (id != null) {
       _muatSesiLama(id);
@@ -682,7 +689,28 @@ class _FormState extends ConsumerState<_Form> {
         return;
       }
 
-      final asli = await ref.read(formulirAsliProvider(_kunciAsli).future);
+      // Server yang baru bangun bisa diam 30–90 s: setelah ~9 s teknisi diberi
+      // tahu, bukan dibiarkan menatap tombol mati.
+      final messenger = ScaffoldMessenger.of(context);
+      ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? kabarLambat;
+      final WorksheetTemplate? asli;
+      try {
+        asli = await kabariBilaLambat(
+          ref.read(formulirAsliProvider(_kunciAsli).future),
+          lambat: () {
+            if (!mounted) return;
+            kabarLambat = messenger.showSnackBar(
+              SnackBar(
+                key: const ValueKey('kabar-server-lambat'),
+                duration: const Duration(minutes: 2),
+                content: Text(l10n.lkServerSedangDinyalakan),
+              ),
+            );
+          },
+        );
+      } finally {
+        kabarLambat?.close();
+      }
       if (!mounted) return;
       if (asli == null || !_bolehFotoLembar(asli)) {
         ScaffoldMessenger.of(
@@ -2151,6 +2179,10 @@ class _FormState extends ConsumerState<_Form> {
                     },
                   ),
                 ),
+              // Peta formulir masih ditarik: kalau lama (server bangun dari
+              // tidur), tombol foto yang belum muncul diberi penjelasan.
+              if (ref.watch(formulirAsliProvider(_kunciAsli)).isLoading)
+                const KabarServerLambat(),
               if (_bolehFotoLembar(
                 ref.watch(formulirAsliProvider(_kunciAsli)).value,
               ))

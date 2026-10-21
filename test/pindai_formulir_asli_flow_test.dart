@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -101,12 +102,13 @@ void main() {
     required LembarKerjaState isian,
     required JalankanPindaiAsli mesin,
     List<Override> tambahan = const [],
+    Object? galatKamera,
   }) async {
     // Alur menghapus berkas foto setelah dibaca → salinan baru tiap jalan.
     final salinan = File(
       '${fotoSintetis.path}.${DateTime.now().microsecondsSinceEpoch}',
     )..writeAsBytesSync(fotoSintetis.readAsBytesSync());
-    final sumber = MockSumberFoto(file: salinan);
+    final sumber = MockSumberFoto(file: salinan, galat: galatKamera);
 
     await tester.pumpWidget(
       ProviderScope(
@@ -167,9 +169,12 @@ void main() {
       expect(find.textContaining('SIDIK-FM-CAL-0510'), findsOneWidget);
       expect(find.textContaining('formulir lain'), findsOneWidget);
       expect(isian.adaIsianDariFoto, isFalse);
-      // Foto penuh: tanpa batas lebar & tanpa kompresi tambahan.
-      expect(sumber.maxWidthTerakhir, isNull);
-      expect(sumber.kualitasTerakhir, isNull);
+      // Dibatasi 4200 px per sisi (anti-OOM di HP murah; kanvas perataan
+      // cuma ~2526 px) tapi mutu JPEG TETAP 100 — sama dengan foto tabel.
+      expect(sumber.maxWidthTerakhir, batasSisiFotoAsli);
+      expect(sumber.maxHeightTerakhir, batasSisiFotoAsli);
+      expect(batasSisiFotoAsli, 4200);
+      expect(sumber.kualitasTerakhir, 100);
     },
   );
 
@@ -354,4 +359,39 @@ void main() {
       expect(isian.adaIsianDariFoto, isFalse);
     },
   );
+
+  testWidgets(
+    'izin kamera ditolak: kalimat manusia + petunjuk Pengaturan, tak crash',
+    (tester) async {
+      final isian = buatState();
+      await jalankan(
+        tester,
+        isian: isian,
+        mesin: _MesinPalsu(),
+        galatKamera: PlatformException(
+          code: 'camera_access_denied',
+          message: 'The user did not allow camera access.',
+        ),
+      );
+
+      expect(find.textContaining('Izin kamera ditolak'), findsOneWidget);
+      expect(find.textContaining('Pengaturan'), findsOneWidget);
+      expect(find.textContaining('camera_access_denied'), findsNothing);
+      expect(isian.adaIsianDariFoto, isFalse);
+    },
+  );
+
+  testWidgets('galat tak terduga saat baca: pesan umum, galat mentah tidak '
+      'tampil', (tester) async {
+    final isian = buatState();
+    await jalankan(
+      tester,
+      isian: isian,
+      mesin: _MesinPalsu(gagal: StateError('/data/rahasia.jpg')),
+    );
+
+    expect(find.textContaining('Foto gagal diproses'), findsOneWidget);
+    expect(find.textContaining('/data/'), findsNothing);
+    expect(isian.adaIsianDariFoto, isFalse);
+  });
 }

@@ -6653,6 +6653,51 @@ class AppLocalizationsEn extends AppLocalizations {
       'The text reader module is still being downloaded by Google Play Services and needs internet once. Connect to the internet and try again, or fill in manually.';
 
   @override
+  String get lkModulPembacaQrDiunduh =>
+      'The QR reader module is still being downloaded by Google Play Services and needs internet once. Connect to the internet and try again, or fill in manually.';
+
+  @override
+  String get lkGalatIzinKamera =>
+      'Camera permission was denied. Tap the photo button again and choose Allow. If the permission dialog no longer appears, enable Camera in phone Settings → Apps → PT Sidik Calibration → Permissions.';
+
+  @override
+  String get lkGalatKameraTidakAda =>
+      'No camera was found on this phone. Fill in the numbers manually.';
+
+  @override
+  String get lkGalatKameraSibuk =>
+      'The camera is still open from a previous attempt. Wait a moment and try again.';
+
+  @override
+  String get lkGalatTanpaPlayServices =>
+      'The on-phone text reader needs Google Play Services enabled and up to date. Update Google Play Services from the Play Store, or fill in the numbers manually.';
+
+  @override
+  String get lkGalatServerBelumTersambung =>
+      'The server cannot be reached yet — it may be starting up (up to 1–2 minutes) or the signal is weak. Wait a moment and try again.';
+
+  @override
+  String get lkFotoTabelGagalUmum =>
+      'The table photo could not be processed. Retake it or fill in manually.';
+
+  @override
+  String get lkServerSedangDinyalakan =>
+      'The server is starting up, please wait…';
+
+  @override
+  String get lkFotoTertinggalJudul => 'Previous photo found';
+
+  @override
+  String get lkFotoTertinggalIsi =>
+      'The phone closed the app while the camera was open, but the photo was kept. Use it only if it is a photo of this sheet; if unsure, take a new photo.';
+
+  @override
+  String get lkFotoTertinggalPakai => 'Use this photo';
+
+  @override
+  String get lkFotoTertinggalBaru => 'New photo';
+
+  @override
   String get aturanAsliBukanAngka =>
       'Not a plain decimal number; type it yourself';
 
