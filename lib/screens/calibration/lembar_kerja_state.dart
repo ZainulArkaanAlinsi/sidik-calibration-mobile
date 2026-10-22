@@ -1276,6 +1276,55 @@ class LembarKerjaState {
   bool titikSesiNonaktif(double nominal) =>
       titikSesiAktif && titikSesi.nonaktif(nominal);
 
+  /// Nominal titik yang dimiliki baris [s]: set point tercetak, set point
+  /// yang diketik, atau — tabel kedua dst. lembar ber-deret-bernama (DOWN
+  /// Tekanan) yang tidak punya set point sendiri — set point baris acuannya.
+  double? _nominalTitikState(TitikState s) {
+    if (s.titikDitentukan) return s.titikUkur;
+    final diketik = s.titikUkurEfektif;
+    if (diketik != null) return diketik;
+
+    for (final t in tabelDeretBernama) {
+      final baris = barisTabel(t);
+      for (var i = 0; i < baris.length; i++) {
+        if (identical(titikUntukBaris(baris, i, t), s)) {
+          return acuanNominal(t, i)?.titikUkurEfektif;
+        }
+      }
+    }
+    return null;
+  }
+
+  /// Alasan nonaktif titik sesi milik baris [s] (`'-'` kalau kosong), atau
+  /// `null` kalau barisnya aktif / lembar tanpa titik sesi. SATU aturan untuk
+  /// semua tampilan — tabel, kartu, kotak set point — sama dengan
+  /// [titikBisaDiisi].
+  String? alasanNonaktifUntuk(TitikState? s) {
+    if (s == null || !titikSesiAktif) return null;
+    final n = _nominalTitikState(s);
+    if (n == null) return null;
+    final t = titikSesi.titikDenganNominal(n);
+    if (t == null || t.aktif) return null;
+    final alasan = t.alasan?.trim() ?? '';
+    return alasan.isEmpty ? '-' : alasan;
+  }
+
+  /// Baris [s] milik titik sesi NONAKTIF — semua kotaknya baca-saja.
+  bool titikStateNonaktif(TitikState? s) => alasanNonaktifUntuk(s) != null;
+
+  /// Pengulangan tersimpan terjauh milik TITIK UKUR (bukan baris balok ukur
+  /// Micrometer / keping nominal Timbangan) — batas bawah jumlah kotak, sama
+  /// dengan hitungan server (`TitikUkurSesi::pengulangan`).
+  int pengulanganTersimpanTerjauh(Iterable<RawMeasurement> mentah) {
+    var maks = 0;
+    for (final m in mentah) {
+      if (peranBukanPengulangan.contains(m.peranSensor)) continue;
+      if (titikSesi.titikDenganNominal(m.titikUkur) == null) continue;
+      if (m.pembacaanKe > maks) maks = m.pembacaanKe;
+    }
+    return maks;
+  }
+
   /// Titik ini punya pembacaan — tersimpan di server ATAU sudah diketik di
   /// layar. Nominalnya tidak boleh diubah (nonaktifkan + tambah titik baru).
   bool titikSesiPunyaPembacaan(double nominal) {
@@ -1870,9 +1919,7 @@ class LembarKerjaState {
 
     // Titik sesi NONAKTIF: pembacaannya dibekukan server — dikirim balik apa
     // adanya, tidak boleh diubah. Aktifkan titiknya dulu kalau mau mengoreksi.
-    if (titikSesiNonaktif(state.titikUkurEfektif ?? state.titikUkur)) {
-      return false;
-    }
+    if (titikStateNonaktif(state)) return false;
 
     // Cuma dipakai kalau lembarnya emang nyodorin pilihan standar per titik.
     if (state.standardIdTercetak != null && state.standardId == null) {

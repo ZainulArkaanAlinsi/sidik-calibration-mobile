@@ -846,10 +846,7 @@ class _FormState extends ConsumerState<_Form> {
           );
       if (pengulanganBebas) {
         widget.onPengulanganMinimal?.call(
-          detail.pembacaanMentah.fold<int>(
-            0,
-            (m, b) => b.pembacaanKe > m ? b.pembacaanKe : m,
-          ),
+          _isian.pengulanganTersimpanTerjauh(detail.pembacaanMentah),
         );
       }
 
@@ -4293,6 +4290,11 @@ class _BarisKotakTambahan extends StatelessWidget {
                   // memunculkan error di mana pun.
                   controller: isian.titik[isian.kunciBaris(baris, i, tabel)]
                       ?.kotakBarisCtl(tabel.kunciTabel, field.kode),
+                  // Baris titik sesi NONAKTIF dibekukan — aturan yang sama
+                  // dengan sel pembacaannya (`titikBisaDiisi`).
+                  enabled: !isian.titikStateNonaktif(
+                    isian.titik[isian.kunciBaris(baris, i, tabel)],
+                  ),
                   // Kotak TEKS (No. Identitas keping Anak Timbangan) memakai
                   // keyboard biasa: tanda bintang keping kedua (`20*`) dan
                   // nomor seri berhuruf tidak ada di keyboard angka HP mana

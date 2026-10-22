@@ -67,6 +67,12 @@ enum ModeBarisTitikSesi {
   tetap,
 }
 
+/// Peran baris mentah yang BUKAN pembacaan berulang — balok ukur Micrometer
+/// dan keping nominal Timbangan. Sama dengan
+/// `TitikUkurSesi::PERAN_BUKAN_PENGULANGAN` (`MicrometerMentah::PERAN_BALOK`,
+/// `TimbanganMentah::PERAN_NOMINAL`).
+const peranBukanPengulangan = {'mikro_balok', 'nominal'};
+
 /// Minimal panjang alasan — sama dengan `TitikUkurSesi::ALASAN_MIN`.
 const alasanTitikMinimal = 5;
 

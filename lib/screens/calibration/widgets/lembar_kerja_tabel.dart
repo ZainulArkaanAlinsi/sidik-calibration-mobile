@@ -328,6 +328,10 @@ class LembarKerjaTabel extends StatelessWidget {
                         // Gaya, UP/DOWN Proving Ring, Hydrometer, Volumetric):
                         // nominalnya ikut tabel pertama.
                         acuan: isian.acuanNominal(tabel, iBaris),
+                        // Titik sesi NONAKTIF: set point-nya ikut dibekukan.
+                        alasanNonaktif: isian.alasanNonaktifUntuk(
+                          isian.titikUntukBaris(barisTabel, iBaris, tabel),
+                        ),
                       )
                     else
                       _SelKepala(
@@ -346,7 +350,16 @@ class LembarKerjaTabel extends StatelessWidget {
                             ? AppLocalizations.of(
                                 context,
                               ).lkTitikAlternatifSatuan
-                            : null,
+                            : _labelNonaktif(
+                                context,
+                                isian.alasanNonaktifUntuk(
+                                  isian.titikUntukBaris(
+                                    barisTabel,
+                                    iBaris,
+                                    tabel,
+                                  ),
+                                ),
+                              ),
                         // Diketuk = keluar penjelasan penuhnya, termasuk CARA
                         // mbukanya. Catatan sebarisnya nggak muat nampung itu.
                         onKetuk:
@@ -361,7 +374,16 @@ class LembarKerjaTabel extends StatelessWidget {
                                   duration: const Duration(seconds: 8),
                                 ),
                               )
-                            : null,
+                            : _ketukNonaktif(
+                                context,
+                                isian.alasanNonaktifUntuk(
+                                  isian.titikUntukBaris(
+                                    barisTabel,
+                                    iBaris,
+                                    tabel,
+                                  ),
+                                ),
+                              ),
                         // Setinggi SELURUH potongan barisnya: satu nilai standar
                         // %T menaungi dua baris X1..X3 di kertas.
                         tinggi: ukuran.tinggi * potongan.length,
@@ -1873,6 +1895,24 @@ class _CatatanTabel extends StatelessWidget {
 ///
 /// **Baris yang kotaknya dibiarkan kosong nggak ikut dikirim.** Baris tanpa set
 /// point nggak punya identitas buat dihitung — lihat `TitikState.siapKirim`.
+/// Keterangan sebaris baris titik sesi nonaktif, atau `null`.
+String? _labelNonaktif(BuildContext context, String? alasan) => alasan == null
+    ? null
+    : AppLocalizations.of(context).titikSesiNonaktifLabel(alasan);
+
+/// Ketuk label baris nonaktif = alasan lengkapnya (sel sebaris memangkasnya).
+VoidCallback? _ketukNonaktif(BuildContext context, String? alasan) =>
+    alasan == null
+    ? null
+    : () => ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context).titikSesiNonaktifLabel(alasan),
+          ),
+          duration: const Duration(seconds: 8),
+        ),
+      );
+
 class _SelSetpoint extends StatelessWidget {
   const _SelSetpoint({
     required this.lebar,
@@ -1881,11 +1921,15 @@ class _SelSetpoint extends StatelessWidget {
     required this.satuan,
     required this.onBerubah,
     this.acuan,
+    this.alasanNonaktif,
   });
 
   final double lebar;
   final double tinggi;
   final TitikState? state;
+
+  /// Alasan titik sesi baris ini dinonaktifkan — kotaknya baca-saja.
+  final String? alasanNonaktif;
   final String satuan;
   final VoidCallback onBerubah;
 
@@ -1927,6 +1971,7 @@ class _SelSetpoint extends StatelessWidget {
           ? const SizedBox.shrink()
           : TextField(
               controller: state!.titikCtl,
+              enabled: alasanNonaktif == null,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 13),
               keyboardType: const TextInputType.numberWithOptions(
@@ -1949,6 +1994,7 @@ class _SelSetpoint extends StatelessWidget {
                 isDense: true,
                 hintText: satuan,
                 hintStyle: const TextStyle(fontSize: 11),
+                filled: alasanNonaktif != null,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 4,
                   vertical: 8,
