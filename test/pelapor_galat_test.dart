@@ -48,6 +48,23 @@ void main() {
     expect(t.toString(), isNot(contains('12,5')));
   });
 
+  test('pelapor diam (debug/desktop) mencetak pesan + tumpukan LENGKAP', () {
+    final cetak = <String>[];
+    final asal = debugPrint;
+    debugPrint = (String? m, {int? wrapWidth}) => cetak.add(m ?? '');
+    try {
+      const PelaporGalatDiam().catat(
+        StateError('rinci'),
+        StackTrace.fromString('#0 fungsiUji'),
+        konteks: 'async',
+      );
+    } finally {
+      debugPrint = asal;
+    }
+    expect(cetak.join(' '), contains('rinci'));
+    expect(cetak.join(' '), contains('fungsiUji'));
+  });
+
   test('galat framework & async diteruskan ke pelapor sebagai non-fatal', () {
     final rekam = _PelaporRekam();
     // Penangan sebelumnya ditiru supaya test tidak memicu kegagalan test.

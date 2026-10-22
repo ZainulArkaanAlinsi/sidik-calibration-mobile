@@ -39,7 +39,12 @@ class PelaporGalatDiam extends PelaporGalat {
     String? konteks,
     bool fatal = false,
   }) {
-    debugPrint('Galat[${konteks ?? '-'}]: ${galat.runtimeType}');
+    // LOKAL saja (logcat/konsol pengembang), jadi pesan + tumpukan lengkap
+    // boleh dicetak: `PlatformDispatcher.onError` mengembalikan `true`, dan
+    // tanpa ini galat async di debug/profile/mock/desktop hilang tanpa jejak.
+    // Jalur yang keluar dari HP ([PelaporGalatCrashlytics]) tetap tersaring.
+    debugPrint('Galat[${konteks ?? '-'}]: ${galat.runtimeType}: $galat');
+    if (tumpukan != null) debugPrint('$tumpukan');
   }
 }
 

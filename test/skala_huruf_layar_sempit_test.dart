@@ -107,6 +107,93 @@ void main() {
     );
   });
 
+  group('SidikTombol di dalam Row: ukuran tidak berubah dari tinggi tetap', () {
+    Future<Size> ukur(WidgetTester tester, Widget baris) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: Center(child: baris)),
+        ),
+      );
+      // AnimatedContainer di dalam tombol: biarkan transisi ukuran selesai.
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      return tester.getSize(find.byType(SidikTombol).last);
+    }
+
+    testWidgets('tanpa Expanded: selebar isinya, tinggi 48 / 42', (
+      tester,
+    ) async {
+      final biasa = await ukur(
+        tester,
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [SidikTombol(label: 'Simpan', onPressed: () {})],
+        ),
+      );
+      expect(biasa.height, 48);
+      expect(biasa.width, lessThan(200), reason: 'tidak melar selebar Row');
+
+      final kecil = await ukur(
+        tester,
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SidikTombol(label: 'Simpan', kecil: true, onPressed: () {}),
+          ],
+        ),
+      );
+      expect(kecil.height, 42);
+    });
+
+    testWidgets('dengan Expanded: mengisi lebar, tinggi tetap 48', (
+      tester,
+    ) async {
+      final ukuran = await ukur(
+        tester,
+        Row(
+          children: [
+            Expanded(
+              child: SidikTombol(label: 'Batal', onPressed: () {}),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: SidikTombol(
+                label: 'Simpan',
+                penuh: true,
+                onPressed: () {},
+              ),
+            ),
+          ],
+        ),
+      );
+      expect(ukuran.height, 48);
+      expect(ukuran.width, closeTo((400 - 8) / 2, 0.01));
+    });
+
+    testWidgets('di induk bertinggi longgar (Row 80 dp) tidak ikut melar', (
+      tester,
+    ) async {
+      final ukuran = await ukur(
+        tester,
+        SizedBox(
+          height: 80,
+          child: Row(
+            children: [
+              Expanded(
+                child: SidikTombol(label: 'Simpan', onPressed: () {}),
+              ),
+            ],
+          ),
+        ),
+      );
+      expect(ukuran.height, 48);
+    });
+  });
+
   testWidgets('lembar kerja pH di 320 dp + 1,3× tanpa overflow', (
     tester,
   ) async {

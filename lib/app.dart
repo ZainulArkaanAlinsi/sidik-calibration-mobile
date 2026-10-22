@@ -14,7 +14,7 @@ import 'screens/auth/auth_gate.dart';
 import 'widgets/lapisan_kabar_masuk.dart';
 
 /// Rentang skala huruf yang dihormati aplikasi (lihat `builder` di bawah).
-const batasSkalaHuruf = (min: 1.0, max: 1.3);
+const batasSkalaHuruf = (min: 0.8, max: 1.3);
 
 class SidikApp extends ConsumerWidget {
   const SidikApp({super.key});
