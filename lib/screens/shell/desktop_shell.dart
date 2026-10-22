@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data_acuan/paket_alur_acuan_screen.dart';
+import '../data_acuan/widgets/hak_alur_acuan.dart';
 import '../../core/config/app_config.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/inisial_nama.dart';
@@ -210,6 +212,9 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
       NamaIzin.tandaTanganKelola,
       cadangan: peran.hakAdmin,
     );
+    // Alur versi data acuan: izin TULIS dari server saja (cadangan false).
+    // Menu jelajah Data Acuan tetap tidak ada di sini (Sidik Studio).
+    final bolehAlurAcuan = bolehBukaAlurAcuan(ref);
 
     // Menu kerja harian SAMA PERSIS dengan menu HP (`main_shell.dart`,
     // `_MenuUtama`) per peran. Sebelum ini desktop sama sekali tidak memuat
@@ -366,7 +371,7 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
               ),
           ],
         ),
-      if (bolehImpor || bolehOrganisasi || bolehTtd)
+      if (bolehImpor || bolehOrganisasi || bolehTtd || bolehAlurAcuan)
         _Seksi(
           judul: l10n.panelSeksiSistem,
           menu: [
@@ -390,6 +395,13 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
                 ikon: Icons.draw_outlined,
                 label: l10n.profTandaTangan,
                 bangun: TandaTanganScreen.new,
+              ),
+            if (bolehAlurAcuan)
+              _Menu(
+                id: 'alur-acuan',
+                ikon: Icons.dataset_outlined,
+                label: l10n.alurAcuanJudul,
+                bangun: PaketAlurAcuanScreen.new,
               ),
           ],
         ),

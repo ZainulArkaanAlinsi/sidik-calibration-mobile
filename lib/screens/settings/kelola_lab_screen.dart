@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/sidik_material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/readable_width.dart';
 import '../admin/import_excel_screen.dart';
+import '../data_acuan/paket_alur_acuan_screen.dart';
+import '../data_acuan/widgets/hak_alur_acuan.dart';
 import 'customer_list_screen.dart';
 import 'metode_list_screen.dart';
 import 'organization_screen.dart';
@@ -25,12 +28,18 @@ import 'technician_list_screen.dart';
 ///
 /// Di sini semuanya satu daftar bergrup, judul utuh, keterangan boleh dua
 /// baris. Layar tujuannya tidak disentuh — halaman ini cuma pintu.
-class KelolaLabScreen extends StatelessWidget {
+///
+/// "Versi data acuan" hanya muncul bila server memberi izin TULIS alur
+/// (`data-acuan.ajukan`/`.simulasi`/`.aktifkan`) — membaca data acuan tetap
+/// di Sidik Studio, tapi mengaktifkan versi butuh orang kedua dari aplikasi
+/// lab (token Studio ditolak di rute tulis).
+class KelolaLabScreen extends ConsumerWidget {
   const KelolaLabScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final bolehAlurAcuan = bolehBukaAlurAcuan(ref);
 
     final grup = <(String, List<_Pintu>)>[
       (
@@ -64,6 +73,9 @@ class KelolaLabScreen extends StatelessWidget {
               () => const OrganizationScreen()),
           _Pintu(Icons.upload_file_outlined, l10n.importTitle, l10n.kelolaImportSub,
               () => const ImportExcelScreen()),
+          if (bolehAlurAcuan)
+            _Pintu(Icons.dataset_outlined, l10n.alurAcuanJudul,
+                l10n.alurAcuanKelolaSub, () => const PaketAlurAcuanScreen()),
         ],
       ),
     ];

@@ -3750,5 +3750,211 @@
   "pembaruanWindowsKeterangan": "Save your work first. The app closes and reopens on the new version.",
   "pembaruanWindowsMulaiUlang": "Restart now",
   "pembaruanWindowsNanti": "Later — installs the next time the app opens",
-  "pembaruanWindowsGagal": "The update could not be installed yet. Close and reopen the app to try again."
+  "pembaruanWindowsGagal": "The update could not be installed yet. Close and reopen the app to try again.",
+  "alurAcuanJudul": "Data reference versions",
+  "alurAcuanKelolaSub": "Submit, simulate and activate reference data versions",
+  "alurAcuanBuka": "Version workflow",
+  "alurAcuanKosong": "No data versions yet.",
+  "alurAcuanBacaSajaJudul": "Read-only in Sidik Studio",
+  "alurAcuanBacaSajaKet": "Submit, simulate, reject and activate are done from the lab app by an admin or super admin. Activation must be done by a second person — not whoever imported the master, edited or submitted the draft.",
+  "alurAcuanSimulasiJudul": "Simulation",
+  "alurAcuanSimBelumAda": "Not run yet",
+  "alurAcuanSimTerbaru": "Up to date",
+  "alurAcuanSimKedaluwarsa": "Outdated — run it again",
+  "alurAcuanSimGagal": "Failed",
+  "alurAcuanRingkasan": "{total} sessions · {berubah} changed · {cetak} printed changes · {terbit} already issued · {vonis} verdict changes · {gagal} failed",
+  "@alurAcuanRingkasan": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "berubah": {
+        "type": "int"
+      },
+      "cetak": {
+        "type": "int"
+      },
+      "terbit": {
+        "type": "int"
+      },
+      "vonis": {
+        "type": "int"
+      },
+      "gagal": {
+        "type": "int"
+      }
+    }
+  },
+  "alurAcuanBersama": "{n} shared values across master variants changed",
+  "@alurAcuanBersama": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "alurAcuanWajibDiakui": "Must be acknowledged on activation",
+  "alurAcuanButirTerbit": "Printed numbers of ISSUED certificates change",
+  "alurAcuanButirBersama": "Shared data across master variants changes",
+  "alurAcuanButirSesiGagal": "Some sessions failed to simulate",
+  "alurAcuanLihatLaporan": "View simulation report",
+  "alurAcuanLog": "Log ({n})",
+  "@alurAcuanLog": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "alurAcuanAksiDibuat": "Created",
+  "alurAcuanAksiAjukan": "Submitted",
+  "alurAcuanAksiSimulasi": "Simulated",
+  "alurAcuanAksiSahkan": "Activated",
+  "alurAcuanAksiTolak": "Rejected",
+  "alurAcuanAksiBuang": "Discarded",
+  "alurAcuanAksiPensiun": "Retired",
+  "alurAcuanOleh": "user #{id}",
+  "@alurAcuanOleh": {
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
+  "alurAcuanAjukan": "Submit",
+  "alurAcuanJalankanSimulasi": "Run simulation",
+  "alurAcuanTolak": "Reject",
+  "alurAcuanAktifkan": "Activate",
+  "alurAcuanAlasan": "Reason",
+  "alurAcuanAlasanMin": "At least 10 characters.",
+  "alurAcuanRujukan": "References (optional)",
+  "alurAcuanTambahRujukan": "Add reference",
+  "alurAcuanHapusRujukan": "Remove reference",
+  "alurAcuanRujukanJenis": "Type",
+  "alurAcuanRujukanNilai": "Value",
+  "alurAcuanRujukanNilaiWajib": "Fill in the value or remove the row.",
+  "alurAcuanJenisSertifikatStandar": "Standard certificate",
+  "alurAcuanJenisIk": "Work instruction",
+  "alurAcuanJenisLampiran": "Attachment",
+  "alurAcuanJenisSelMaster": "Master cell",
+  "alurAcuanJenisLain": "Other",
+  "alurAcuanKirim": "Send",
+  "alurAcuanBatal": "Cancel",
+  "alurAcuanSimulasiKonfirmasi": "Recalculate every stored session of this profile with this version? Nothing is written to lab data.",
+  "alurAcuanTolakKet": "A draft is discarded; a submitted version is rejected. Recorded in the log.",
+  "alurAcuanBerlakuMulai": "Effective from",
+  "alurAcuanUbahTanggal": "Change date",
+  "alurAcuanSandi": "Your password (confirmation)",
+  "alurAcuanSandiWajib": "Password is required.",
+  "alurAcuanCatatan": "Note (optional)",
+  "alurAcuanPengakuanJudul": "Acknowledgements (reason per item, min. 10 characters)",
+  "alurAcuanAktifkanKet": "The previous active version retires the day before this date. Sessions already stamped keep their version.",
+  "alurAcuanSimulasiHarusTerbaru": "The last simulation is not up to date. Run the simulation again before activating.",
+  "alurAcuanSuksesAjukan": "v{nomor} submitted.",
+  "@alurAcuanSuksesAjukan": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
+  "alurAcuanSuksesSimulasi": "Simulation finished.",
+  "alurAcuanSuksesTolak": "v{nomor} rejected.",
+  "@alurAcuanSuksesTolak": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
+  "alurAcuanSuksesAktifkan": "v{nomor} activated.",
+  "@alurAcuanSuksesAktifkan": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
+  "alurAcuanGalatStatus": "This version's status has changed. Reload and try again.",
+  "alurAcuanGalatJenis": "This workflow only supports data versions (layer 1).",
+  "alurAcuanGalatHanyaSuperAdmin": "Only a super admin can reject a submitted version.",
+  "alurAcuanGalatPengesahIkut": "You took part in this version (imported the master, edited or submitted it). Activation must be done by someone else.",
+  "alurAcuanGalatBerlakuLampau": "The effective date cannot be before today.",
+  "alurAcuanGalatSimulasiBelumAda": "Run the simulation first; a version may not become active before its impact is reviewed.",
+  "alurAcuanGalatSimulasiKedaluwarsa": "The version, or this profile's sessions/issued certificates, changed after the last simulation. Run the simulation again.",
+  "alurAcuanGalatSimulasiGagal": "The last simulation failed. Run it again.",
+  "alurAcuanGalatPengakuan": "An acknowledgement (min. 10 characters) is required for: {butir}",
+  "@alurAcuanGalatPengakuan": {
+    "placeholders": {
+      "butir": {
+        "type": "String"
+      }
+    }
+  },
+  "alurAcuanGalatRentang": "Another active version starts on or after this date. Pick a later date.",
+  "alurAcuanGalatSandi": "The confirmation password is wrong.",
+  "alurAcuanGalatBukanAplikasi": "This app cannot change data reference versions. Use the lab app.",
+  "alurAcuanGalatTidakBerwenang": "You are not allowed to do this.",
+  "alurAcuanGalatTidakDitemukan": "Version not found or not available to you.",
+  "alurAcuanGalatTerlaluSering": "Too many requests. Wait a moment and try again.",
+  "alurAcuanGalatIsian": "The server rejected the input. Check it and try again.",
+  "alurAcuanGalatKoneksi": "Cannot reach the server. Check the connection and try again.",
+  "alurAcuanGalatUmum": "The action failed. Try again.",
+  "simAcuanJudul": "Simulation report v{nomor}",
+  "@simAcuanJudul": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
+  "simAcuanBelumAda": "This version has not been simulated yet.",
+  "simAcuanHanyaBerubah": "Changed only",
+  "simAcuanTidakAdaBerubah": "No session changes.",
+  "simAcuanBerubah": "Changed",
+  "simAcuanCetakBerubah": "Printed numbers change",
+  "simAcuanVonisBerubah": "Verdict changes",
+  "simAcuanGagal": "Failed",
+  "simAcuanTidakBerubah": "Unchanged",
+  "simAcuanSertifikatTerbit": "Issued certificate: {nomor}",
+  "@simAcuanSertifikatTerbit": {
+    "placeholders": {
+      "nomor": {
+        "type": "String"
+      }
+    }
+  },
+  "simAcuanTabelCetak": "Printed on the certificate",
+  "simAcuanTabelSelisih": "Calculated values",
+  "simAcuanKolomTitik": "Point",
+  "simAcuanKolomKolom": "Column",
+  "simAcuanKolomLama": "Old",
+  "simAcuanKolomBaru": "New",
+  "simAcuanKolomSelisih": "Difference",
+  "simAcuanTitikTidakTerhitung": "Point {titik} is calculated on one side only",
+  "@simAcuanTitikTidakTerhitung": {
+    "placeholders": {
+      "titik": {
+        "type": "String"
+      }
+    }
+  },
+  "simAcuanPembanding": "Compared with {versi}",
+  "@simAcuanPembanding": {
+    "placeholders": {
+      "versi": {
+        "type": "String"
+      }
+    }
+  },
+  "simAcuanBersamaJudul": "Shared data across variants",
+  "simAcuanMasterLain": "Other variant master: {nama}",
+  "@simAcuanMasterLain": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "simAcuanSesiJudul": "Sessions"
 }

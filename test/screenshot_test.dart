@@ -762,7 +762,8 @@ void main() {
 
   testWidgets('kelola lab', (tester) async {
     pasangUkuranHp(tester);
-    await _pumpLayar(
+    // Berakun: pintu "Versi data acuan" menunggu izin server (auth + izin).
+    await _pumpLayarBerakun(
       tester,
       _bungkus(const KelolaLabScreen(), mode: Brightness.light),
     );

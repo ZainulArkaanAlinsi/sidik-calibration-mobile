@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/config/app_config.dart';
+import '../models/alur_acuan.dart';
 import '../models/data_acuan.dart';
 import '../services/data_acuan_service.dart';
 import 'auth_provider.dart';
@@ -119,6 +120,40 @@ final riwayatSelAcuanProvider =
           );
     }, retry: (retryCount, error) => null);
 
+/// Alur versi satu paket (T2.2/T2.3): versi data + status + simulasi + log.
+/// Teknisi → 404 dari server.
+final alurAcuanProvider = FutureProvider.family<List<VersiAlurAcuan>, String>((
+  ref,
+  kode,
+) async {
+  final token = await _token(ref);
+  return ref.read(dataAcuanServiceProvider).alur(token, kode);
+}, retry: (retryCount, error) => null);
+
+/// Laporan simulasi terakhir satu versi, utuh.
+final laporanSimulasiAcuanProvider =
+    FutureProvider.family<LaporanSimulasiAcuan, int>((ref, versiId) async {
+      final token = await _token(ref);
+      return ref.read(dataAcuanServiceProvider).laporanSimulasi(token, versiId);
+    }, retry: (retryCount, error) => null);
+
+/// `true` = layar alur versi BACA SAJA apa pun izin yang dibawa akun.
+///
+/// Sidik Studio menimpanya `true` (`studio/lib/inti/penimpaan.dart`): rute
+/// tulis alur di server memakai `aplikasi:internal`, dan token Studio
+/// (ability `studio`) dijawab `403 bukan_aplikasi_ini` di sana — satu akun
+/// Studio tidak bisa menjadi orang kedua (BR-08). Menawarkan tombol yang
+/// pasti ditolak itu bohong; layar menunjukkan arahan ke aplikasi lab.
+final alurAcuanBacaSajaProvider = Provider<bool>((ref) => false);
+
+/// Token untuk aksi tulis alur (dari layar). `TokenHilangException` bila
+/// sesi sudah tidak ada.
+Future<String> tokenAksiAcuan(WidgetRef ref) async {
+  final token = await ref.read(tokenStorageProvider).read();
+  if (token == null) throw const TokenHilangException();
+  return token;
+}
+
 /// Tarik ulang SEMUA provider data acuan (lazy). Satu pintu supaya sinyal
 /// realtime dan layar yang ingin menyegarkan tidak lupa salah satunya.
 void segarkanDataAcuan(Ref ref) {
@@ -129,4 +164,6 @@ void segarkanDataAcuan(Ref ref) {
   ref.invalidate(berlakuAcuanProvider);
   ref.invalidate(bandingAcuanProvider);
   ref.invalidate(riwayatSelAcuanProvider);
+  ref.invalidate(alurAcuanProvider);
+  ref.invalidate(laporanSimulasiAcuanProvider);
 }

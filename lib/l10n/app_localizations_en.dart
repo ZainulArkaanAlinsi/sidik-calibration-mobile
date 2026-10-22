@@ -6744,4 +6744,361 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get pembaruanWindowsGagal =>
       'The update could not be installed yet. Close and reopen the app to try again.';
+
+  @override
+  String get alurAcuanJudul => 'Data reference versions';
+
+  @override
+  String get alurAcuanKelolaSub =>
+      'Submit, simulate and activate reference data versions';
+
+  @override
+  String get alurAcuanBuka => 'Version workflow';
+
+  @override
+  String get alurAcuanKosong => 'No data versions yet.';
+
+  @override
+  String get alurAcuanBacaSajaJudul => 'Read-only in Sidik Studio';
+
+  @override
+  String get alurAcuanBacaSajaKet =>
+      'Submit, simulate, reject and activate are done from the lab app by an admin or super admin. Activation must be done by a second person — not whoever imported the master, edited or submitted the draft.';
+
+  @override
+  String get alurAcuanSimulasiJudul => 'Simulation';
+
+  @override
+  String get alurAcuanSimBelumAda => 'Not run yet';
+
+  @override
+  String get alurAcuanSimTerbaru => 'Up to date';
+
+  @override
+  String get alurAcuanSimKedaluwarsa => 'Outdated — run it again';
+
+  @override
+  String get alurAcuanSimGagal => 'Failed';
+
+  @override
+  String alurAcuanRingkasan(
+    int total,
+    int berubah,
+    int cetak,
+    int terbit,
+    int vonis,
+    int gagal,
+  ) {
+    return '$total sessions · $berubah changed · $cetak printed changes · $terbit already issued · $vonis verdict changes · $gagal failed';
+  }
+
+  @override
+  String alurAcuanBersama(int n) {
+    return '$n shared values across master variants changed';
+  }
+
+  @override
+  String get alurAcuanWajibDiakui => 'Must be acknowledged on activation';
+
+  @override
+  String get alurAcuanButirTerbit =>
+      'Printed numbers of ISSUED certificates change';
+
+  @override
+  String get alurAcuanButirBersama =>
+      'Shared data across master variants changes';
+
+  @override
+  String get alurAcuanButirSesiGagal => 'Some sessions failed to simulate';
+
+  @override
+  String get alurAcuanLihatLaporan => 'View simulation report';
+
+  @override
+  String alurAcuanLog(int n) {
+    return 'Log ($n)';
+  }
+
+  @override
+  String get alurAcuanAksiDibuat => 'Created';
+
+  @override
+  String get alurAcuanAksiAjukan => 'Submitted';
+
+  @override
+  String get alurAcuanAksiSimulasi => 'Simulated';
+
+  @override
+  String get alurAcuanAksiSahkan => 'Activated';
+
+  @override
+  String get alurAcuanAksiTolak => 'Rejected';
+
+  @override
+  String get alurAcuanAksiBuang => 'Discarded';
+
+  @override
+  String get alurAcuanAksiPensiun => 'Retired';
+
+  @override
+  String alurAcuanOleh(int id) {
+    return 'user #$id';
+  }
+
+  @override
+  String get alurAcuanAjukan => 'Submit';
+
+  @override
+  String get alurAcuanJalankanSimulasi => 'Run simulation';
+
+  @override
+  String get alurAcuanTolak => 'Reject';
+
+  @override
+  String get alurAcuanAktifkan => 'Activate';
+
+  @override
+  String get alurAcuanAlasan => 'Reason';
+
+  @override
+  String get alurAcuanAlasanMin => 'At least 10 characters.';
+
+  @override
+  String get alurAcuanRujukan => 'References (optional)';
+
+  @override
+  String get alurAcuanTambahRujukan => 'Add reference';
+
+  @override
+  String get alurAcuanHapusRujukan => 'Remove reference';
+
+  @override
+  String get alurAcuanRujukanJenis => 'Type';
+
+  @override
+  String get alurAcuanRujukanNilai => 'Value';
+
+  @override
+  String get alurAcuanRujukanNilaiWajib =>
+      'Fill in the value or remove the row.';
+
+  @override
+  String get alurAcuanJenisSertifikatStandar => 'Standard certificate';
+
+  @override
+  String get alurAcuanJenisIk => 'Work instruction';
+
+  @override
+  String get alurAcuanJenisLampiran => 'Attachment';
+
+  @override
+  String get alurAcuanJenisSelMaster => 'Master cell';
+
+  @override
+  String get alurAcuanJenisLain => 'Other';
+
+  @override
+  String get alurAcuanKirim => 'Send';
+
+  @override
+  String get alurAcuanBatal => 'Cancel';
+
+  @override
+  String get alurAcuanSimulasiKonfirmasi =>
+      'Recalculate every stored session of this profile with this version? Nothing is written to lab data.';
+
+  @override
+  String get alurAcuanTolakKet =>
+      'A draft is discarded; a submitted version is rejected. Recorded in the log.';
+
+  @override
+  String get alurAcuanBerlakuMulai => 'Effective from';
+
+  @override
+  String get alurAcuanUbahTanggal => 'Change date';
+
+  @override
+  String get alurAcuanSandi => 'Your password (confirmation)';
+
+  @override
+  String get alurAcuanSandiWajib => 'Password is required.';
+
+  @override
+  String get alurAcuanCatatan => 'Note (optional)';
+
+  @override
+  String get alurAcuanPengakuanJudul =>
+      'Acknowledgements (reason per item, min. 10 characters)';
+
+  @override
+  String get alurAcuanAktifkanKet =>
+      'The previous active version retires the day before this date. Sessions already stamped keep their version.';
+
+  @override
+  String get alurAcuanSimulasiHarusTerbaru =>
+      'The last simulation is not up to date. Run the simulation again before activating.';
+
+  @override
+  String alurAcuanSuksesAjukan(int nomor) {
+    return 'v$nomor submitted.';
+  }
+
+  @override
+  String get alurAcuanSuksesSimulasi => 'Simulation finished.';
+
+  @override
+  String alurAcuanSuksesTolak(int nomor) {
+    return 'v$nomor rejected.';
+  }
+
+  @override
+  String alurAcuanSuksesAktifkan(int nomor) {
+    return 'v$nomor activated.';
+  }
+
+  @override
+  String get alurAcuanGalatStatus =>
+      'This version\'s status has changed. Reload and try again.';
+
+  @override
+  String get alurAcuanGalatJenis =>
+      'This workflow only supports data versions (layer 1).';
+
+  @override
+  String get alurAcuanGalatHanyaSuperAdmin =>
+      'Only a super admin can reject a submitted version.';
+
+  @override
+  String get alurAcuanGalatPengesahIkut =>
+      'You took part in this version (imported the master, edited or submitted it). Activation must be done by someone else.';
+
+  @override
+  String get alurAcuanGalatBerlakuLampau =>
+      'The effective date cannot be before today.';
+
+  @override
+  String get alurAcuanGalatSimulasiBelumAda =>
+      'Run the simulation first; a version may not become active before its impact is reviewed.';
+
+  @override
+  String get alurAcuanGalatSimulasiKedaluwarsa =>
+      'The version, or this profile\'s sessions/issued certificates, changed after the last simulation. Run the simulation again.';
+
+  @override
+  String get alurAcuanGalatSimulasiGagal =>
+      'The last simulation failed. Run it again.';
+
+  @override
+  String alurAcuanGalatPengakuan(String butir) {
+    return 'An acknowledgement (min. 10 characters) is required for: $butir';
+  }
+
+  @override
+  String get alurAcuanGalatRentang =>
+      'Another active version starts on or after this date. Pick a later date.';
+
+  @override
+  String get alurAcuanGalatSandi => 'The confirmation password is wrong.';
+
+  @override
+  String get alurAcuanGalatBukanAplikasi =>
+      'This app cannot change data reference versions. Use the lab app.';
+
+  @override
+  String get alurAcuanGalatTidakBerwenang => 'You are not allowed to do this.';
+
+  @override
+  String get alurAcuanGalatTidakDitemukan =>
+      'Version not found or not available to you.';
+
+  @override
+  String get alurAcuanGalatTerlaluSering =>
+      'Too many requests. Wait a moment and try again.';
+
+  @override
+  String get alurAcuanGalatIsian =>
+      'The server rejected the input. Check it and try again.';
+
+  @override
+  String get alurAcuanGalatKoneksi =>
+      'Cannot reach the server. Check the connection and try again.';
+
+  @override
+  String get alurAcuanGalatUmum => 'The action failed. Try again.';
+
+  @override
+  String simAcuanJudul(int nomor) {
+    return 'Simulation report v$nomor';
+  }
+
+  @override
+  String get simAcuanBelumAda => 'This version has not been simulated yet.';
+
+  @override
+  String get simAcuanHanyaBerubah => 'Changed only';
+
+  @override
+  String get simAcuanTidakAdaBerubah => 'No session changes.';
+
+  @override
+  String get simAcuanBerubah => 'Changed';
+
+  @override
+  String get simAcuanCetakBerubah => 'Printed numbers change';
+
+  @override
+  String get simAcuanVonisBerubah => 'Verdict changes';
+
+  @override
+  String get simAcuanGagal => 'Failed';
+
+  @override
+  String get simAcuanTidakBerubah => 'Unchanged';
+
+  @override
+  String simAcuanSertifikatTerbit(String nomor) {
+    return 'Issued certificate: $nomor';
+  }
+
+  @override
+  String get simAcuanTabelCetak => 'Printed on the certificate';
+
+  @override
+  String get simAcuanTabelSelisih => 'Calculated values';
+
+  @override
+  String get simAcuanKolomTitik => 'Point';
+
+  @override
+  String get simAcuanKolomKolom => 'Column';
+
+  @override
+  String get simAcuanKolomLama => 'Old';
+
+  @override
+  String get simAcuanKolomBaru => 'New';
+
+  @override
+  String get simAcuanKolomSelisih => 'Difference';
+
+  @override
+  String simAcuanTitikTidakTerhitung(String titik) {
+    return 'Point $titik is calculated on one side only';
+  }
+
+  @override
+  String simAcuanPembanding(String versi) {
+    return 'Compared with $versi';
+  }
+
+  @override
+  String get simAcuanBersamaJudul => 'Shared data across variants';
+
+  @override
+  String simAcuanMasterLain(String nama) {
+    return 'Other variant master: $nama';
+  }
+
+  @override
+  String get simAcuanSesiJudul => 'Sessions';
 }
