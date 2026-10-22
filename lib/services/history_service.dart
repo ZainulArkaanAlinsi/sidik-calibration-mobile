@@ -150,7 +150,7 @@ class ApiHistoryService implements HistoryService {
   Future<CalibrationDetail> ambilDetail(String token, int id) async {
     final json = await _api.get('/calibrations/$id', token: token);
     final data = (json['data'] ?? json) as Map<String, dynamic>;
-    return CalibrationDetail.fromJson(data);
+    return CalibrationDetail.fromJson(data, meta: json['meta']);
   }
 
   @override

@@ -7101,4 +7101,234 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get simAcuanSesiJudul => 'Sessions';
+
+  @override
+  String get titikSesiJudul => 'Measurement points';
+
+  @override
+  String titikSesiJudulSatuan(String satuan) {
+    return 'Measurement points ($satuan)';
+  }
+
+  @override
+  String get titikSesiKeterangan =>
+      'Saved on the server — every device sees the same points. Points are never deleted: deactivate with a reason; their readings stay stored.';
+
+  @override
+  String titikSesiAktifRingkas(int aktif, int maks) {
+    return '$aktif active (max. $maks)';
+  }
+
+  @override
+  String titikSesiPengulangan(int n, int min, int maks) {
+    return 'Repetitions: $n× (allowed $min–$maks; change it from the box-count menu above)';
+  }
+
+  @override
+  String titikSesiPengulanganDipatok(int n) {
+    return 'Repetitions fixed by the sheet: $n×';
+  }
+
+  @override
+  String get titikSesiKosong => 'No points yet. Tap Add to start.';
+
+  @override
+  String get titikSesiTambah => 'Add';
+
+  @override
+  String get titikSesiTambahJudul => 'Add point';
+
+  @override
+  String get titikSesiNominal => 'Nominal';
+
+  @override
+  String titikSesiNominalSatuan(String satuan) {
+    return 'Nominal ($satuan)';
+  }
+
+  @override
+  String get titikSesiAsalProfil => 'Sheet default';
+
+  @override
+  String get titikSesiAsalTeknisi => 'Technician';
+
+  @override
+  String get titikSesiAsalPelanggan => 'Customer request';
+
+  @override
+  String get titikSesiAlasanPelanggan =>
+      'Basis of the request (e.g. PO number, min. 5 letters)';
+
+  @override
+  String get titikSesiAlasanOpsional => 'Note (optional)';
+
+  @override
+  String get titikSesiDenganSebelum => 'Also read before adjustment (as-found)';
+
+  @override
+  String get titikSesiFaseSebelumRingkas => 'with as-found';
+
+  @override
+  String get titikSesiTerkunciPertama => 'first point, must stay active';
+
+  @override
+  String titikSesiNonaktifLabel(String alasan) {
+    return 'inactive — $alasan';
+  }
+
+  @override
+  String get titikSesiAksi => 'Point actions';
+
+  @override
+  String get titikSesiUbah => 'Change nominal';
+
+  @override
+  String titikSesiUbahJudul(String nominal) {
+    return 'Change nominal $nominal';
+  }
+
+  @override
+  String get titikSesiNonaktifkan => 'Deactivate';
+
+  @override
+  String titikSesiNonaktifkanJudul(String nominal) {
+    return 'Deactivate point $nominal';
+  }
+
+  @override
+  String get titikSesiNonaktifkanPesan =>
+      'Its readings are NOT deleted — they stay stored and visible in the audit trail, but are not calculated or printed on the certificate.';
+
+  @override
+  String get titikSesiAlasan => 'Reason (min. 5 letters)';
+
+  @override
+  String get titikSesiAktifkan => 'Activate again';
+
+  @override
+  String get titikSesiDiLuarCmc =>
+      'Outside the accredited CMC scope — the certificate is blocked until this point is justified or deactivated.';
+
+  @override
+  String get titikSesiDiLuarCmcBerjustifikasi =>
+      'Outside the CMC scope, justified — the admin will see a warning.';
+
+  @override
+  String get titikSesiJustifikasi => 'CMC justification';
+
+  @override
+  String titikSesiJustifikasiJudul(String nominal) {
+    return 'CMC justification for $nominal';
+  }
+
+  @override
+  String titikSesiJustifikasiTerisi(String teks) {
+    return 'justification: $teks';
+  }
+
+  @override
+  String get titikSesiBatal => 'Cancel';
+
+  @override
+  String get titikSesiSimpan => 'Save';
+
+  @override
+  String titikSesiTakDidukung(String alasan) {
+    return 'Session measurement points are not available for this sheet yet: $alasan';
+  }
+
+  @override
+  String get titikSesiKonflik =>
+      'The measurement points of this session were changed on another device. The latest points are loaded and your readings are still on screen. Check the points, redo your change, then save again.';
+
+  @override
+  String get titikSesiDiperbaruiPerangkatLain =>
+      'Measurement points were updated from another device.';
+
+  @override
+  String titikSesiDitolak(String pesan) {
+    return 'Measurement points rejected: $pesan';
+  }
+
+  @override
+  String titikSesiPengulanganKurang(int n) {
+    return 'Repetitions cannot go below $n: readings up to repetition $n are already stored and are never deleted.';
+  }
+
+  @override
+  String get titikSesiGalatTabel => 'This point table is not on the sheet.';
+
+  @override
+  String get titikSesiGalatTidakBolehTambah =>
+      'This sheet does not accept points outside its printed nominals.';
+
+  @override
+  String get titikSesiGalatKembar =>
+      'That nominal is already used by another point (active or inactive).';
+
+  @override
+  String get titikSesiGalatAktifPenuh =>
+      'The maximum number of active points is reached. Deactivate another point first.';
+
+  @override
+  String get titikSesiGalatAktifMinimum =>
+      'This sheet already has the minimum number of active points.';
+
+  @override
+  String get titikSesiGalatTotalPenuh =>
+      'At most 60 points per session, including inactive ones.';
+
+  @override
+  String get titikSesiGalatAlasanPendek =>
+      'A reason is required, at least 5 letters.';
+
+  @override
+  String get titikSesiGalatAlasanPelanggan =>
+      'A customer-requested point must state its basis (min. 5 letters), e.g. a PO number.';
+
+  @override
+  String get titikSesiGalatTidakBolehNonaktif =>
+      'Points on this sheet cannot be deactivated.';
+
+  @override
+  String get titikSesiGalatPertama =>
+      'The first point cannot be deactivated — session values are read from the first point.';
+
+  @override
+  String get titikSesiGalatPunyaPembacaan =>
+      'This point already has readings, so its nominal cannot change. Deactivate it, then add a new point.';
+
+  @override
+  String get titikSesiGalatDipatok =>
+      'This nominal is fixed by the printed sheet.';
+
+  @override
+  String get titikSesiGalatFase =>
+      'The before-adjustment phase is not available on this sheet.';
+
+  @override
+  String get titikSesiGalatTidakAda => 'Point not found.';
+
+  @override
+  String get titikSesiGalatBarisPenuh =>
+      'All set-point rows are already filled.';
+
+  @override
+  String get titikSesiGalatAngka => 'The nominal is not a number yet.';
+
+  @override
+  String titikSesiBentrokJudul(String nominal) {
+    return 'Point $nominal was deactivated on another device';
+  }
+
+  @override
+  String titikSesiBentrokPesan(String alasan) {
+    return 'Reason: $alasan. This point has numbers on this phone that are not saved yet, and an inactive point cannot take new readings. Choose what to do with them.';
+  }
+
+  @override
+  String get titikSesiBentrokAktifkan => 'Reactivate this point';
+
+  @override
+  String get titikSesiBentrokBuang => 'Discard unsaved numbers on this point';
 }

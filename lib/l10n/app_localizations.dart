@@ -12319,6 +12319,366 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sessions'**
   String get simAcuanSesiJudul;
+
+  /// No description provided for @titikSesiJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement points'**
+  String get titikSesiJudul;
+
+  /// No description provided for @titikSesiJudulSatuan.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement points ({satuan})'**
+  String titikSesiJudulSatuan(String satuan);
+
+  /// No description provided for @titikSesiKeterangan.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved on the server — every device sees the same points. Points are never deleted: deactivate with a reason; their readings stay stored.'**
+  String get titikSesiKeterangan;
+
+  /// No description provided for @titikSesiAktifRingkas.
+  ///
+  /// In en, this message translates to:
+  /// **'{aktif} active (max. {maks})'**
+  String titikSesiAktifRingkas(int aktif, int maks);
+
+  /// No description provided for @titikSesiPengulangan.
+  ///
+  /// In en, this message translates to:
+  /// **'Repetitions: {n}× (allowed {min}–{maks}; change it from the box-count menu above)'**
+  String titikSesiPengulangan(int n, int min, int maks);
+
+  /// No description provided for @titikSesiPengulanganDipatok.
+  ///
+  /// In en, this message translates to:
+  /// **'Repetitions fixed by the sheet: {n}×'**
+  String titikSesiPengulanganDipatok(int n);
+
+  /// No description provided for @titikSesiKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No points yet. Tap Add to start.'**
+  String get titikSesiKosong;
+
+  /// No description provided for @titikSesiTambah.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get titikSesiTambah;
+
+  /// No description provided for @titikSesiTambahJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Add point'**
+  String get titikSesiTambahJudul;
+
+  /// No description provided for @titikSesiNominal.
+  ///
+  /// In en, this message translates to:
+  /// **'Nominal'**
+  String get titikSesiNominal;
+
+  /// No description provided for @titikSesiNominalSatuan.
+  ///
+  /// In en, this message translates to:
+  /// **'Nominal ({satuan})'**
+  String titikSesiNominalSatuan(String satuan);
+
+  /// No description provided for @titikSesiAsalProfil.
+  ///
+  /// In en, this message translates to:
+  /// **'Sheet default'**
+  String get titikSesiAsalProfil;
+
+  /// No description provided for @titikSesiAsalTeknisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician'**
+  String get titikSesiAsalTeknisi;
+
+  /// No description provided for @titikSesiAsalPelanggan.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer request'**
+  String get titikSesiAsalPelanggan;
+
+  /// No description provided for @titikSesiAlasanPelanggan.
+  ///
+  /// In en, this message translates to:
+  /// **'Basis of the request (e.g. PO number, min. 5 letters)'**
+  String get titikSesiAlasanPelanggan;
+
+  /// No description provided for @titikSesiAlasanOpsional.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get titikSesiAlasanOpsional;
+
+  /// No description provided for @titikSesiDenganSebelum.
+  ///
+  /// In en, this message translates to:
+  /// **'Also read before adjustment (as-found)'**
+  String get titikSesiDenganSebelum;
+
+  /// No description provided for @titikSesiFaseSebelumRingkas.
+  ///
+  /// In en, this message translates to:
+  /// **'with as-found'**
+  String get titikSesiFaseSebelumRingkas;
+
+  /// No description provided for @titikSesiTerkunciPertama.
+  ///
+  /// In en, this message translates to:
+  /// **'first point, must stay active'**
+  String get titikSesiTerkunciPertama;
+
+  /// No description provided for @titikSesiNonaktifLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'inactive — {alasan}'**
+  String titikSesiNonaktifLabel(String alasan);
+
+  /// No description provided for @titikSesiAksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Point actions'**
+  String get titikSesiAksi;
+
+  /// No description provided for @titikSesiUbah.
+  ///
+  /// In en, this message translates to:
+  /// **'Change nominal'**
+  String get titikSesiUbah;
+
+  /// No description provided for @titikSesiUbahJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Change nominal {nominal}'**
+  String titikSesiUbahJudul(String nominal);
+
+  /// No description provided for @titikSesiNonaktifkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get titikSesiNonaktifkan;
+
+  /// No description provided for @titikSesiNonaktifkanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate point {nominal}'**
+  String titikSesiNonaktifkanJudul(String nominal);
+
+  /// No description provided for @titikSesiNonaktifkanPesan.
+  ///
+  /// In en, this message translates to:
+  /// **'Its readings are NOT deleted — they stay stored and visible in the audit trail, but are not calculated or printed on the certificate.'**
+  String get titikSesiNonaktifkanPesan;
+
+  /// No description provided for @titikSesiAlasan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (min. 5 letters)'**
+  String get titikSesiAlasan;
+
+  /// No description provided for @titikSesiAktifkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate again'**
+  String get titikSesiAktifkan;
+
+  /// No description provided for @titikSesiDiLuarCmc.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside the accredited CMC scope — the certificate is blocked until this point is justified or deactivated.'**
+  String get titikSesiDiLuarCmc;
+
+  /// No description provided for @titikSesiDiLuarCmcBerjustifikasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside the CMC scope, justified — the admin will see a warning.'**
+  String get titikSesiDiLuarCmcBerjustifikasi;
+
+  /// No description provided for @titikSesiJustifikasi.
+  ///
+  /// In en, this message translates to:
+  /// **'CMC justification'**
+  String get titikSesiJustifikasi;
+
+  /// No description provided for @titikSesiJustifikasiJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'CMC justification for {nominal}'**
+  String titikSesiJustifikasiJudul(String nominal);
+
+  /// No description provided for @titikSesiJustifikasiTerisi.
+  ///
+  /// In en, this message translates to:
+  /// **'justification: {teks}'**
+  String titikSesiJustifikasiTerisi(String teks);
+
+  /// No description provided for @titikSesiBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get titikSesiBatal;
+
+  /// No description provided for @titikSesiSimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get titikSesiSimpan;
+
+  /// No description provided for @titikSesiTakDidukung.
+  ///
+  /// In en, this message translates to:
+  /// **'Session measurement points are not available for this sheet yet: {alasan}'**
+  String titikSesiTakDidukung(String alasan);
+
+  /// No description provided for @titikSesiKonflik.
+  ///
+  /// In en, this message translates to:
+  /// **'The measurement points of this session were changed on another device. The latest points are loaded and your readings are still on screen. Check the points, redo your change, then save again.'**
+  String get titikSesiKonflik;
+
+  /// No description provided for @titikSesiDiperbaruiPerangkatLain.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement points were updated from another device.'**
+  String get titikSesiDiperbaruiPerangkatLain;
+
+  /// No description provided for @titikSesiDitolak.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement points rejected: {pesan}'**
+  String titikSesiDitolak(String pesan);
+
+  /// No description provided for @titikSesiPengulanganKurang.
+  ///
+  /// In en, this message translates to:
+  /// **'Repetitions cannot go below {n}: readings up to repetition {n} are already stored and are never deleted.'**
+  String titikSesiPengulanganKurang(int n);
+
+  /// No description provided for @titikSesiGalatTabel.
+  ///
+  /// In en, this message translates to:
+  /// **'This point table is not on the sheet.'**
+  String get titikSesiGalatTabel;
+
+  /// No description provided for @titikSesiGalatTidakBolehTambah.
+  ///
+  /// In en, this message translates to:
+  /// **'This sheet does not accept points outside its printed nominals.'**
+  String get titikSesiGalatTidakBolehTambah;
+
+  /// No description provided for @titikSesiGalatKembar.
+  ///
+  /// In en, this message translates to:
+  /// **'That nominal is already used by another point (active or inactive).'**
+  String get titikSesiGalatKembar;
+
+  /// No description provided for @titikSesiGalatAktifPenuh.
+  ///
+  /// In en, this message translates to:
+  /// **'The maximum number of active points is reached. Deactivate another point first.'**
+  String get titikSesiGalatAktifPenuh;
+
+  /// No description provided for @titikSesiGalatAktifMinimum.
+  ///
+  /// In en, this message translates to:
+  /// **'This sheet already has the minimum number of active points.'**
+  String get titikSesiGalatAktifMinimum;
+
+  /// No description provided for @titikSesiGalatTotalPenuh.
+  ///
+  /// In en, this message translates to:
+  /// **'At most 60 points per session, including inactive ones.'**
+  String get titikSesiGalatTotalPenuh;
+
+  /// No description provided for @titikSesiGalatAlasanPendek.
+  ///
+  /// In en, this message translates to:
+  /// **'A reason is required, at least 5 letters.'**
+  String get titikSesiGalatAlasanPendek;
+
+  /// No description provided for @titikSesiGalatAlasanPelanggan.
+  ///
+  /// In en, this message translates to:
+  /// **'A customer-requested point must state its basis (min. 5 letters), e.g. a PO number.'**
+  String get titikSesiGalatAlasanPelanggan;
+
+  /// No description provided for @titikSesiGalatTidakBolehNonaktif.
+  ///
+  /// In en, this message translates to:
+  /// **'Points on this sheet cannot be deactivated.'**
+  String get titikSesiGalatTidakBolehNonaktif;
+
+  /// No description provided for @titikSesiGalatPertama.
+  ///
+  /// In en, this message translates to:
+  /// **'The first point cannot be deactivated — session values are read from the first point.'**
+  String get titikSesiGalatPertama;
+
+  /// No description provided for @titikSesiGalatPunyaPembacaan.
+  ///
+  /// In en, this message translates to:
+  /// **'This point already has readings, so its nominal cannot change. Deactivate it, then add a new point.'**
+  String get titikSesiGalatPunyaPembacaan;
+
+  /// No description provided for @titikSesiGalatDipatok.
+  ///
+  /// In en, this message translates to:
+  /// **'This nominal is fixed by the printed sheet.'**
+  String get titikSesiGalatDipatok;
+
+  /// No description provided for @titikSesiGalatFase.
+  ///
+  /// In en, this message translates to:
+  /// **'The before-adjustment phase is not available on this sheet.'**
+  String get titikSesiGalatFase;
+
+  /// No description provided for @titikSesiGalatTidakAda.
+  ///
+  /// In en, this message translates to:
+  /// **'Point not found.'**
+  String get titikSesiGalatTidakAda;
+
+  /// No description provided for @titikSesiGalatBarisPenuh.
+  ///
+  /// In en, this message translates to:
+  /// **'All set-point rows are already filled.'**
+  String get titikSesiGalatBarisPenuh;
+
+  /// No description provided for @titikSesiGalatAngka.
+  ///
+  /// In en, this message translates to:
+  /// **'The nominal is not a number yet.'**
+  String get titikSesiGalatAngka;
+
+  /// No description provided for @titikSesiBentrokJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Point {nominal} was deactivated on another device'**
+  String titikSesiBentrokJudul(String nominal);
+
+  /// No description provided for @titikSesiBentrokPesan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason: {alasan}. This point has numbers on this phone that are not saved yet, and an inactive point cannot take new readings. Choose what to do with them.'**
+  String titikSesiBentrokPesan(String alasan);
+
+  /// No description provided for @titikSesiBentrokAktifkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate this point'**
+  String get titikSesiBentrokAktifkan;
+
+  /// No description provided for @titikSesiBentrokBuang.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard unsaved numbers on this point'**
+  String get titikSesiBentrokBuang;
 }
 
 class _AppLocalizationsDelegate

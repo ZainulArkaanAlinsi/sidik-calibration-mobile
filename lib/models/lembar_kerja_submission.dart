@@ -235,7 +235,15 @@ class LembarKerjaSubmission {
     this.sertakanMeasurements = true,
     this.inputMethod = MetodeInput.manual,
     this.alasanKoreksi,
+    this.titikSesi,
   });
+
+  /// Badan `titik_sesi` (`{revisi, titik[], pengulangan}`) — seluruh set titik
+  /// ukur sesi, termasuk titik nonaktif. `null` = kuncinya tidak dikirim
+  /// (lembar yang belum mendukung titik sesi; set tersimpan tidak diubah).
+  /// Selalu berangkat BERSAMA `measurements` — server menolak perubahan set
+  /// tanpa tabel pembacaannya.
+  final Map<String, dynamic>? titikSesi;
 
   final int equipmentId;
 
@@ -467,5 +475,6 @@ class LembarKerjaSubmission {
     if (sertakanMeasurements)
       'measurements':
           measurementsGrid ?? measurements.map((m) => m.toJson()).toList(),
+    if (sertakanMeasurements && titikSesi != null) 'titik_sesi': titikSesi,
   };
 }

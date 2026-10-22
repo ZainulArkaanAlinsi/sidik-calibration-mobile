@@ -7022,4 +7022,235 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get simAcuanSesiJudul => 'Sesi';
+
+  @override
+  String get titikSesiJudul => 'Titik ukur';
+
+  @override
+  String titikSesiJudulSatuan(String satuan) {
+    return 'Titik ukur ($satuan)';
+  }
+
+  @override
+  String get titikSesiKeterangan =>
+      'Disimpan di server — semua perangkat melihat titik yang sama. Titik tidak dihapus: nonaktifkan dengan alasan; pembacaannya tetap tersimpan.';
+
+  @override
+  String titikSesiAktifRingkas(int aktif, int maks) {
+    return '$aktif aktif (maks. $maks)';
+  }
+
+  @override
+  String titikSesiPengulangan(int n, int min, int maks) {
+    return 'Pengulangan: $n× (boleh $min–$maks; ubah dari menu jumlah kotak di atas)';
+  }
+
+  @override
+  String titikSesiPengulanganDipatok(int n) {
+    return 'Pengulangan dipatok lembar: $n×';
+  }
+
+  @override
+  String get titikSesiKosong => 'Belum ada titik. Tekan Tambah buat mulai.';
+
+  @override
+  String get titikSesiTambah => 'Tambah';
+
+  @override
+  String get titikSesiTambahJudul => 'Tambah titik';
+
+  @override
+  String get titikSesiNominal => 'Nominal';
+
+  @override
+  String titikSesiNominalSatuan(String satuan) {
+    return 'Nominal ($satuan)';
+  }
+
+  @override
+  String get titikSesiAsalProfil => 'Bawaan lembar';
+
+  @override
+  String get titikSesiAsalTeknisi => 'Teknisi';
+
+  @override
+  String get titikSesiAsalPelanggan => 'Permintaan pelanggan';
+
+  @override
+  String get titikSesiAlasanPelanggan =>
+      'Dasar permintaan (mis. nomor PO, min. 5 huruf)';
+
+  @override
+  String get titikSesiAlasanOpsional => 'Catatan (opsional)';
+
+  @override
+  String get titikSesiDenganSebelum =>
+      'Juga dibaca sebelum adjustment (as-found)';
+
+  @override
+  String get titikSesiFaseSebelumRingkas => 'dengan as-found';
+
+  @override
+  String get titikSesiTerkunciPertama => 'titik pertama, wajib aktif';
+
+  @override
+  String titikSesiNonaktifLabel(String alasan) {
+    return 'nonaktif — $alasan';
+  }
+
+  @override
+  String get titikSesiAksi => 'Aksi titik';
+
+  @override
+  String get titikSesiUbah => 'Ubah nominal';
+
+  @override
+  String titikSesiUbahJudul(String nominal) {
+    return 'Ubah nominal $nominal';
+  }
+
+  @override
+  String get titikSesiNonaktifkan => 'Nonaktifkan';
+
+  @override
+  String titikSesiNonaktifkanJudul(String nominal) {
+    return 'Nonaktifkan titik $nominal';
+  }
+
+  @override
+  String get titikSesiNonaktifkanPesan =>
+      'Pembacaannya TIDAK dihapus — tetap tersimpan dan terlihat di jejak, tapi tidak dihitung dan tidak tercetak di sertifikat.';
+
+  @override
+  String get titikSesiAlasan => 'Alasan (min. 5 huruf)';
+
+  @override
+  String get titikSesiAktifkan => 'Aktifkan lagi';
+
+  @override
+  String get titikSesiDiLuarCmc =>
+      'Di luar cakupan CMC akreditasi — sertifikat tertahan sampai titik ini diberi justifikasi atau dinonaktifkan.';
+
+  @override
+  String get titikSesiDiLuarCmcBerjustifikasi =>
+      'Di luar cakupan CMC, sudah dijustifikasi — admin melihat peringatan.';
+
+  @override
+  String get titikSesiJustifikasi => 'Justifikasi CMC';
+
+  @override
+  String titikSesiJustifikasiJudul(String nominal) {
+    return 'Justifikasi CMC titik $nominal';
+  }
+
+  @override
+  String titikSesiJustifikasiTerisi(String teks) {
+    return 'justifikasi: $teks';
+  }
+
+  @override
+  String get titikSesiBatal => 'Batal';
+
+  @override
+  String get titikSesiSimpan => 'Simpan';
+
+  @override
+  String titikSesiTakDidukung(String alasan) {
+    return 'Pengaturan titik ukur sesi belum tersedia untuk lembar ini: $alasan';
+  }
+
+  @override
+  String get titikSesiKonflik =>
+      'Titik ukur sesi ini sudah diubah dari perangkat lain. Titik terbaru sudah dimuat dan pembacaanmu tetap di layar. Periksa titiknya, ulangi perubahanmu, lalu simpan lagi.';
+
+  @override
+  String get titikSesiDiperbaruiPerangkatLain =>
+      'Titik ukur diperbarui dari perangkat lain.';
+
+  @override
+  String titikSesiDitolak(String pesan) {
+    return 'Titik ukur ditolak: $pesan';
+  }
+
+  @override
+  String titikSesiPengulanganKurang(int n) {
+    return 'Pengulangan tidak bisa di bawah $n: pembacaan sampai pengulangan ke-$n sudah tersimpan dan tidak pernah dihapus.';
+  }
+
+  @override
+  String get titikSesiGalatTabel => 'Tabel titik ini tidak ada di lembar.';
+
+  @override
+  String get titikSesiGalatTidakBolehTambah =>
+      'Lembar ini tidak menerima titik di luar nominal kertasnya.';
+
+  @override
+  String get titikSesiGalatKembar =>
+      'Nominal itu sudah dipakai titik lain (aktif maupun nonaktif).';
+
+  @override
+  String get titikSesiGalatAktifPenuh =>
+      'Titik aktif sudah maksimal. Nonaktifkan titik lain dulu.';
+
+  @override
+  String get titikSesiGalatAktifMinimum =>
+      'Titik aktif sudah paling sedikit untuk lembar ini.';
+
+  @override
+  String get titikSesiGalatTotalPenuh =>
+      'Paling banyak 60 titik per sesi, termasuk yang nonaktif.';
+
+  @override
+  String get titikSesiGalatAlasanPendek =>
+      'Alasan wajib diisi, minimal 5 huruf.';
+
+  @override
+  String get titikSesiGalatAlasanPelanggan =>
+      'Titik permintaan pelanggan wajib menyebut dasarnya (min. 5 huruf), mis. nomor PO.';
+
+  @override
+  String get titikSesiGalatTidakBolehNonaktif =>
+      'Titik di lembar ini tidak bisa dinonaktifkan.';
+
+  @override
+  String get titikSesiGalatPertama =>
+      'Titik pertama tidak bisa dinonaktifkan — besaran sesi dibaca dari titik pertama.';
+
+  @override
+  String get titikSesiGalatPunyaPembacaan =>
+      'Titik ini sudah punya pembacaan, nominalnya tidak bisa diubah. Nonaktifkan titiknya, lalu tambah titik baru.';
+
+  @override
+  String get titikSesiGalatDipatok =>
+      'Nominal titik ini dipatok kertas lembar.';
+
+  @override
+  String get titikSesiGalatFase =>
+      'Fase sebelum adjustment tidak tersedia di lembar ini.';
+
+  @override
+  String get titikSesiGalatTidakAda => 'Titik tidak ditemukan.';
+
+  @override
+  String get titikSesiGalatBarisPenuh => 'Semua baris set point sudah terisi.';
+
+  @override
+  String get titikSesiGalatAngka => 'Nominal belum terbaca sebagai angka.';
+
+  @override
+  String titikSesiBentrokJudul(String nominal) {
+    return 'Titik $nominal dinonaktifkan dari perangkat lain';
+  }
+
+  @override
+  String titikSesiBentrokPesan(String alasan) {
+    return 'Alasan: $alasan. Titik ini punya angka di HP ini yang belum tersimpan, dan titik nonaktif tidak boleh menerima pembacaan baru. Pilih yang mau dilakukan.';
+  }
+
+  @override
+  String get titikSesiBentrokAktifkan => 'Aktifkan lagi titik ini';
+
+  @override
+  String get titikSesiBentrokBuang =>
+      'Buang angka yang belum tersimpan di titik ini';
 }

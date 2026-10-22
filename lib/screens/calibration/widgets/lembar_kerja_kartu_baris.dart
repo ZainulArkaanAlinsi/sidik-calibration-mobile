@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_spacing.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/lembar_kerja.dart';
 import '../lembar_kerja_state.dart';
 
@@ -152,9 +153,16 @@ class _Kartu extends StatelessWidget {
     // sama seperti kolom kiri tabel biasa.
     final ditentukan = barisAcuan[indeks].titikDitentukan;
 
+    // Titik sesi NONAKTIF: seluruh kotak kartu ini baca-saja — aturan yang
+    // sama dengan sel tabel (`LembarKerjaState.titikBisaDiisi`). Pembacaannya
+    // tetap kelihatan dan tetap dikirim apa adanya.
+    final alasanNonaktif = isian.alasanNonaktifUntuk(tsAcuan);
+    final bolehIsi = alasanNonaktif == null;
+
     Widget kotakAngka(TextEditingController ctl, {Key? key}) => TextField(
       key: key,
       controller: ctl,
+      enabled: bolehIsi,
       keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
       textAlign: TextAlign.center,
       style: theme.textTheme.bodyMedium,
@@ -383,6 +391,7 @@ class _Kartu extends StatelessWidget {
                     : TextField(
                         key: ValueKey('kartu-nominal-$nomor'),
                         controller: tsAcuan.titikCtl,
+                        enabled: bolehIsi,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
                         decoration: InputDecoration(
                           isDense: true,
@@ -396,7 +405,9 @@ class _Kartu extends StatelessWidget {
                                   icon: Icon(
                                     tsAcuan.berbintang ? Icons.star : Icons.star_border,
                                   ),
-                                  onPressed: () {
+                                  onPressed: !bolehIsi
+                                      ? null
+                                      : () {
                                     tsAcuan.titikCtl.text =
                                         LembarKerjaKartuBaris.alihBintang(tsAcuan.titikCtl.text);
                                     onBerubah();
@@ -416,6 +427,7 @@ class _Kartu extends StatelessWidget {
                       // Timbangan bertabrakan dengan kunci kepala nominal.
                       key: ValueKey('kartu-kb-${f.kode}-$nomor'),
                       controller: tsAcuan.kotakBarisCtl(acuan.kunciTabel, f.kode),
+                      enabled: bolehIsi,
                       // `daftar_angka` (susunan keping `20+20+10`) butuh
                       // tombol `+`, yang tidak ada di keyboard angka.
                       keyboardType: f.tipe == TipeField.teks || f.tipe == TipeField.daftarAngka
@@ -438,6 +450,17 @@ class _Kartu extends StatelessWidget {
                 ],
             ],
           ),
+          if (alasanNonaktif != null)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.xs),
+              child: Text(
+                AppLocalizations.of(context).titikSesiNonaktifLabel(alasanNonaktif),
+                key: ValueKey('kartu-nonaktif-$nomor'),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
           const SizedBox(height: AppSpacing.sm),
           if (berdampingan)
             Row(crossAxisAlignment: CrossAxisAlignment.start, children: blokSejajar)

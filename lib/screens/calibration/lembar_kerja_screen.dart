@@ -31,7 +31,8 @@ import '../../providers/versi_provider.dart';
 import '../../models/worksheet_template.dart';
 import '../../providers/worksheet_scan_provider.dart';
 import 'pindai_formulir_asli_flow.dart';
-import '../../services/auth_service.dart' show AuthException, gagalJaringan;
+import '../../services/auth_service.dart'
+    show ApiException, AuthException, gagalJaringan;
 import '../../services/draf_lokal.dart';
 import '../../services/kabar_server_lambat.dart';
 import '../../services/penampung_contoh_sel.dart';
@@ -52,6 +53,7 @@ import 'widgets/lembar_kerja_kartu_baris.dart';
 import 'widgets/lembar_kerja_matriks.dart';
 import 'widgets/lembar_kerja_tabel.dart';
 import 'widgets/pengatur_titik.dart';
+import 'widgets/pengatur_titik_sesi.dart';
 
 /// Lembar Kerja (SIDIK-FM-CAL-0509_Rev.4) — layar input teknisi, dipakai buat
 /// alat yang punya bentuk lembar sendiri (pH Meter, Turbidimeter, ...). Bentuk
@@ -164,6 +166,10 @@ class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen>
   /// ngikut form kertas) — teknisi yang nggak peduli nggak perlu milih apa-apa.
   int? _pengulangan;
 
+  /// Pengulangan terkecil yang boleh dipilih — pembacaan tersimpan terjauh
+  /// sesi bertitik-sesi yang dibuka ulang. 0 = tanpa batas.
+  int _pengulanganMinimal = 0;
+
   /// Alat yang lagi dipilih, diangkat ke sini karena bentuk lembar ditarik di
   /// level ini sementara dropdown alatnya ada di dalam [_Form].
   int? _equipmentId;
@@ -181,6 +187,18 @@ class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen>
   Future<void> _ubahPengulangan(int pilihan) async {
     final l10n = AppLocalizations.of(context);
     if (pilihan == (_pengulangan ?? 5)) return;
+
+    // Sesi bertitik-sesi: pembacaan tersimpan tidak pernah dibuang, jadi
+    // jumlah kotak tidak boleh lebih kecil dari pembacaan tersimpan terjauh
+    // (server menolak hal yang sama).
+    if (pilihan < _pengulanganMinimal) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.titikSesiPengulanganKurang(_pengulanganMinimal)),
+        ),
+      );
+      return;
+    }
 
     final lanjut = await showDialog<bool>(
       context: context,
@@ -342,6 +360,7 @@ class _LembarKerjaScreenState extends ConsumerState<LembarKerjaScreen>
             if (id == _equipmentId) return;
             setState(() => _equipmentId = id);
           },
+          onPengulanganMinimal: (n) => _pengulanganMinimal = n,
           // Salinan di HP dipulihkan di atas bentuk yang kuncinya beda: tarik
           // bentuk alat & jumlah kotak yang dipakai waktu salinannya ditulis.
           onPulihkanKunci: (equipmentId, pengulangan) {
@@ -423,6 +442,7 @@ class _Form extends ConsumerStatefulWidget {
     required this.onAlatBerubah,
     required this.onPulihkanKunci,
     required this.profil,
+    this.onPengulanganMinimal,
     this.sesiId,
     this.judulTambahan,
     this.drafLokal,
@@ -460,6 +480,9 @@ class _Form extends ConsumerStatefulWidget {
 
   final void Function(int? equipmentId, int? pengulangan) onPulihkanKunci;
 
+  /// Lihat `_LembarKerjaScreenState._pengulanganMinimal`.
+  final ValueChanged<int>? onPengulanganMinimal;
+
   @override
   ConsumerState<_Form> createState() => _FormState();
 }
@@ -492,6 +515,10 @@ class _FormState extends ConsumerState<_Form> {
   static const _lebarDuaKolom = 1100.0;
 
   bool _mengirim = false;
+
+  /// Sesi lama sudah dimuat utuh — sejak itu perubahan set titik sesi dari
+  /// perangkat lain boleh diterapkan (lihat `ref.listen` di [build]).
+  bool _titikSesiTermuat = false;
 
   /// Sesi lama yang dibuka ulang GAGAL dimuat — formulirnya kosong, bukan
   /// isian yang tersimpan. Lihat docblock [_muatSesiLama].
@@ -781,6 +808,9 @@ class _FormState extends ConsumerState<_Form> {
         // sudah dibetulkan teknisi) tidak boleh ditimpa data master.
         // `??=`: alat yang keburu dipilih teknisi selama memuat tidak diganti.
         if (alatSesi != null) _isian.alat ??= alatSesi;
+        // Set titik sesi DULUAN: titik tambahan butuh barisnya sebelum
+        // pembacaan dipulihkan.
+        _isian.muatTitikSesi(detail.titikSesi);
         if (isi != null) _isian.muatDariSesi(isi);
         kebuang = _isian.terapkanPembacaan(detail.pembacaanMentah);
         // Autoklaf nggak punya `pembacaan_mentah` — matriksnya tersimpan utuh
@@ -805,7 +835,23 @@ class _FormState extends ConsumerState<_Form> {
       // Isian sesudah dipulihkan = pembanding: alasan koreksi hanya diminta kalau
       // pembacaan BERUBAH dari sini (K-50-02; menyimpan angka yang sama tidak
       // meminta alasan).
+      // Isian sekarang = yang TERSIMPAN di server — pembanding waktu 409
+      // menonaktifkan titik yang sedang diisi di sini.
+      _isian.tandaiIsianTersimpan();
       _asliPembacaan = _tangkapPembacaan();
+      _titikSesiTermuat = true;
+      // Cuma lembar yang pengulangannya memang bisa dipilih (Timer, pH, …);
+      // Timbangan & Tekanan dipatok lembarnya.
+      final pengulanganBebas =
+          _isian.titikSesiAktif &&
+          _isian.titikSesi.batas!.tabel.any(
+            (t) => t.pengulangan != null && !t.pengulangan!.dipatok,
+          );
+      if (pengulanganBebas) {
+        widget.onPengulanganMinimal?.call(
+          _isian.pengulanganTersimpanTerjauh(detail.pembacaanMentah),
+        );
+      }
 
       // Angka yang nggak ketemu barisnya HARUS diomongin. Draft yang balik
       // dengan tabel bolong tanpa ada yang bilang itu persis cara sesi kekirim
@@ -1667,7 +1713,20 @@ class _FormState extends ConsumerState<_Form> {
       );
       if (awal != null) {
         _sesiIdTerkini = awal.id;
-        hasil = await pengirim.kirim(kiriman, sesiId: awal.id);
+        // `POST` barusan bisa melahirkan set titik sesi (revisi 1). Kiriman
+        // `PUT`-nya wajib berdasar revisi itu — kiriman yang disusun sebelum
+        // `POST` membawa revisi 0 dan pasti ditolak 409.
+        var ulang = kiriman;
+        if (awal.titikSesi?.set != null) {
+          _isian.terapkanHasilSimpanTitikSesi(awal.titikSesi);
+          _isian.alasanKoreksi = alasanKoreksi;
+          try {
+            ulang = _isian.toSubmission(draft: draft);
+          } finally {
+            _isian.alasanKoreksi = null;
+          }
+        }
+        hasil = await pengirim.kirim(ulang, sesiId: awal.id);
       }
     } else {
       hasil = await pengirim.kirim(kiriman, sesiId: sesiAwal);
@@ -1678,6 +1737,21 @@ class _FormState extends ConsumerState<_Form> {
 
     if (hasil == null) {
       final error = ref.read(kirimLembarKerjaProvider).error;
+
+      // Titik ukur sesi ditolak server (409 konflik / 422 aturan titik):
+      // pesannya khusus, bukan "gagal menyimpan" mentah.
+      final pesanTitik = _pesanGalatTitikSesi(error);
+      if (pesanTitik != null) {
+        setState(() {});
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(pesanTitik),
+            duration: const Duration(seconds: 12),
+          ),
+        );
+        await _selesaikanTitikNonaktifBerisi();
+        return;
+      }
 
       // Server nggak terjangkau: draf disimpan di HP dan dikirim otomatis
       // nanti. Kirim ke admin SENGAJA nggak diantrekan — itu keputusan sadar
@@ -1698,6 +1772,9 @@ class _FormState extends ConsumerState<_Form> {
       return;
     }
 
+    // Revisi set titik terbaru — kalau layar ini tetap terbuka, kiriman
+    // berikutnya berdasar revisi ini, bukan revisi sebelum simpan.
+    _isian.terapkanHasilSimpanTitikSesi(hasil.titikSesi);
     _selesaiTersimpanDiServer();
 
     // Potongan sel yang ditahan sejak difoto diserahkan SEKARANG — labelnya
@@ -1759,6 +1836,91 @@ class _FormState extends ConsumerState<_Form> {
       ),
     );
     navigator.pop(hasil.id);
+  }
+
+  /// Sesudah 409: titik yang dinonaktifkan perangkat lain tapi barisnya di
+  /// sini berisi angka yang BELUM tersimpan. Barisnya terkunci, dan mengirim
+  /// angka itu pasti ditolak 422 — jadi teknisi WAJIB memilih, per titik:
+  /// aktifkan lagi titiknya, atau buang angka yang belum tersimpan (isian
+  /// server dikembalikan). Dialognya tidak bisa ditutup tanpa memilih; tidak
+  /// ada angka yang dibuang diam-diam.
+  Future<void> _selesaikanTitikNonaktifBerisi() async {
+    final l10n = AppLocalizations.of(context);
+
+    for (final t in _isian.titikNonaktifBerisiBelumTersimpan()) {
+      while (mounted) {
+        final aktifkan = await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            key: ValueKey('dialog-titik-bentrok-${t.id}'),
+            scrollable: true,
+            title: Text(l10n.titikSesiBentrokJudul(teksNominal(t.nominal))),
+            content: Text(l10n.titikSesiBentrokPesan(t.alasan ?? '-')),
+            actions: [
+              TextButton(
+                key: const ValueKey('titik-bentrok-buang'),
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l10n.titikSesiBentrokBuang),
+              ),
+              FilledButton(
+                key: const ValueKey('titik-bentrok-aktifkan'),
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(l10n.titikSesiBentrokAktifkan),
+              ),
+            ],
+          ),
+        );
+        if (!mounted) return;
+
+        if (aktifkan == true) {
+          final galat = _isian.aktifkanTitikSesi(t.id);
+          if (galat != null) {
+            // Mis. titik aktif sudah penuh — pilihannya ditanyakan lagi.
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(pesanGalatTitikSesi(l10n, galat))),
+            );
+            continue;
+          }
+        } else {
+          _isian.pulihkanIsianTersimpan(t.nominal);
+        }
+        setState(() {});
+        break;
+      }
+    }
+  }
+
+  /// Pesan untuk penolakan titik ukur sesi, atau `null` kalau [error] bukan
+  /// soal titik sesi.
+  ///
+  /// 409 `titik_sesi_konflik`: set lokal DIGANTI set terbaru dari respons
+  /// (pembacaan yang sudah diketik tetap di layar) dan TIDAK dikirim ulang
+  /// otomatis — mengirim ulang dengan revisi baru menimpa keputusan perangkat
+  /// lain. Teknisi memeriksa titiknya lalu menyimpan lagi sendiri.
+  String? _pesanGalatTitikSesi(Object? error) {
+    if (error is! ApiException) return null;
+    final l10n = AppLocalizations.of(context);
+
+    if (error.status == 409 && error.body['kode'] == 'titik_sesi_konflik') {
+      _isian.terapkanSetServer(error.body['titik_sesi']);
+      return l10n.titikSesiKonflik;
+    }
+
+    if (error.status == 422 && _isian.titikSesiAktif) {
+      final errors = error.body['errors'];
+      if (errors is Map) {
+        for (final kunci in const ['titik_sesi', 'measurements']) {
+          final isi = errors[kunci];
+          final pesan = isi is List && isi.isNotEmpty ? isi.first : isi;
+          if (pesan is String && pesan.isNotEmpty) {
+            return l10n.titikSesiDitolak(pesan);
+          }
+        }
+      }
+    }
+
+    return null;
   }
 
   /// Kirim lembar bermatriks lewat endpoint alatnya sendiri.
@@ -2126,6 +2288,25 @@ class _FormState extends ConsumerState<_Form> {
     // Diambil sebelum `await` — sesudahnya `context` punya build ini udah
     // nggak dijamin kepasang lagi.
     final navigator = Navigator.of(context);
+
+    // Set titik ukur sesi diubah dari perangkat lain (sinyal realtime
+    // `kalibrasi` → detail sesi ini ditarik ulang). Diterapkan cuma kalau
+    // teknisi di sini BELUM mengubah titik — perubahan lokal tidak pernah
+    // ditimpa diam-diam; bentroknya diputuskan server lewat 409 waktu simpan.
+    if (_sesiIdTerkini case final id? when _titikSesiTermuat) {
+      ref.listen(calibrationDetailProvider(id), (_, next) {
+        final meta = next.value?.titikSesi;
+        final set = meta?.set;
+        if (meta == null || set == null || !mounted || _mengirim) return;
+        if (_isian.titikSesi.diubahLokal) return;
+        if (set.revisi == _isian.titikSesi.revisi) return;
+
+        setState(() => _isian.muatTitikSesi(meta));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.titikSesiDiperbaruiPerangkatLain)),
+        );
+      });
+    }
 
     // Di-`watch`, bukan cuma di-`read` waktu tombol ditekan.
     // `updateTersediaProvider` itu FutureProvider yang auto-dispose (bawaan
@@ -3083,6 +3264,29 @@ class _Bagian extends ConsumerWidget {
                 _CatatanIsi(catatan: isian.bentuk.catatanPengisian),
             ],
 
+            // Titik ukur SESI (disimpan server, PRD §55): satu pengatur per
+            // tabel titik, di atas tabelnya. Menggantikan pengatur titik lama
+            // di bagian ini — yang lama MENGHAPUS titik beserta isiannya,
+            // aturan yang tidak boleh berlaku lagi untuk set tersimpan.
+            if (isian.tabelTitikSesiDi(bagian) case final tabelSesi?) ...[
+              PengaturTitikSesi(
+                isian: isian,
+                tabel: tabelSesi,
+                onBerubah: onBerubah,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+            ],
+            if (isian.alasanTitikSesiDi(bagian) case final alasan?) ...[
+              Text(
+                AppLocalizations.of(context).titikSesiTakDidukung(alasan),
+                key: const ValueKey('titik-sesi-tak-didukung'),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+            ],
+
             // Bagian bermatriks menggambar matriksnya, BUKAN `bagian.tabel`.
             //
             // Autoklaf mengirim dua-duanya buat dua pembaca yang beda:
@@ -3129,6 +3333,7 @@ class _Bagian extends ConsumerWidget {
               // Titik bisa diatur (Thermohygro): pengatur titiknya tetap ada
               // di mode kartu, satu per bagian.
               if (tabelTampil.isNotEmpty &&
+                  !isian.titikSesiAktif &&
                   tabelTampil.first.titikBisaDiubah &&
                   tabelTampil.first.baris.every((b) => b.titikDitentukan)) ...[
                 PengaturTitik(
@@ -3171,6 +3376,7 @@ class _Bagian extends ConsumerWidget {
                 // begitu teknisi menyusun titik sendiri, barisnya jadi
                 // `titikDitentukan` semua dan syaratnya bakal berbalik.
                 if (i == 0 &&
+                    !isian.titikSesiAktif &&
                     tabelTampil[i].titikBisaDiubah &&
                     tabelTampil[i].baris.every((b) => b.titikDitentukan)) ...[
                   PengaturTitik(
@@ -4141,6 +4347,11 @@ class _BarisKotakTambahan extends StatelessWidget {
                   // memunculkan error di mana pun.
                   controller: isian.titik[isian.kunciBaris(baris, i, tabel)]
                       ?.kotakBarisCtl(tabel.kunciTabel, field.kode),
+                  // Baris titik sesi NONAKTIF dibekukan — aturan yang sama
+                  // dengan sel pembacaannya (`titikBisaDiisi`).
+                  enabled: !isian.titikStateNonaktif(
+                    isian.titik[isian.kunciBaris(baris, i, tabel)],
+                  ),
                   // Kotak TEKS (No. Identitas keping Anak Timbangan) memakai
                   // keyboard biasa: tanda bintang keping kedua (`20*`) dan
                   // nomor seri berhuruf tidak ada di keyboard angka HP mana

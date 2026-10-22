@@ -106,8 +106,13 @@ final realtimeSyncProvider = Provider<void>((ref) {
 /// cuma nandain "ada perubahan", isinya tetap via REST ber-otorisasi).
 void _tangani(Ref ref, PeristiwaRealtime p) {
   switch (p) {
-    case DataBerubah(:final jenis):
+    case DataBerubah(:final jenis, :final id):
       // Invalidate = lazy: yang lagi ditonton refetch, yang nggak nunggu dibuka.
+      // Detail SATU sesi: lembar kerja sesi itu yang sedang terbuka di
+      // perangkat lain menyusul set titik ukurnya (PRD §55).
+      if (jenis == 'kalibrasi' && id != null) {
+        ref.invalidate(calibrationDetailProvider(id));
+      }
       ref.invalidate(dashboardProvider);
       ref.invalidate(historyProvider);
       ref.invalidate(antreanApprovalProvider);
