@@ -9,6 +9,7 @@ import '../../models/data_acuan.dart';
 import '../../providers/data_acuan_provider.dart';
 import '../../widgets/readable_width.dart';
 import '../../widgets/sidik/sidik_permukaan.dart';
+import 'alur_versi_acuan_screen.dart';
 import 'banding_acuan_screen.dart';
 import 'studio_acuan_screen.dart';
 import 'widgets/keadaan_acuan.dart';
@@ -75,6 +76,18 @@ class _GarisWaktu extends ConsumerWidget {
           ],
         ),
         actions: [
+          // Alur versi: teknisi → 404 di server (`tolakTeknisi`).
+          if (bolehLihatSemuaVersiAcuan(peranDataAcuan(ref)))
+            IconButton(
+              key: const ValueKey('garis-waktu-alur'),
+              tooltip: l10n.alurAcuanBuka,
+              icon: const Icon(Icons.account_tree_outlined),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => AlurVersiAcuanScreen(kode: kode, nama: nama),
+                ),
+              ),
+            ),
           if (bolehBanding)
             IconButton(
               tooltip: l10n.acuanBandingkan,

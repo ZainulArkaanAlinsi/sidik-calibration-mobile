@@ -553,5 +553,31 @@
   "unggahMasterSandiSalah": "The file password is wrong.",
   "unggahMasterSandiDiperlukan": "This file is password protected — enter its password.",
   "unggahMasterFormatTidakDikenal": "The server does not recognise this file format.",
-  "unggahMasterGagal": "Upload failed."
+  "unggahMasterGagal": "Upload failed.",
+  "unggahMasterStrukturJudul": "The master's structure no longer matches its cell map — nothing was imported:",
+  "unggahMasterPetaTervalidasi": "Structure validated against the cell map.",
+  "unggahMasterBelumTerpetakan": "Not mapped yet: this master's structure is not validated, and its contents are NOT used for calculations, certificates or CMC.",
+  "unggahMasterSudahAda": "This exact file was already imported; nothing changed.",
+  "unggahMasterDrafDibuat": "Draft data reference v{nomor} created ({sel} cells changed). It affects no calculation until it is submitted, simulated and activated from the lab app.",
+  "@unggahMasterDrafDibuat": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      },
+      "sel": {
+        "type": "int"
+      }
+    }
+  },
+  "unggahMasterDrafSudahAda": "A draft with the same contents already exists ({versi}).",
+  "@unggahMasterDrafSudahAda": {
+    "placeholders": {
+      "versi": {
+        "type": "String"
+      }
+    }
+  },
+  "unggahMasterSamaDasar": "Contents equal the current base version; no new draft.",
+  "unggahMasterPaketBelumAda": "The data reference package does not exist on the server yet (initial import first); no draft was created.",
+  "unggahMasterBukaAlur": "Open version workflow"
 }

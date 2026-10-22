@@ -24,6 +24,9 @@ void main() {
     // Pembungkus aksi (fungsi unggah), tidak menyimpan data apa pun; sandi
     // berkas lewat parameter dan tidak ditahan.
     'unggahMasterProvider': 'aksi tanpa keadaan, tidak memegang data akun',
+    // Paket bersama: mode aplikasi (Studio menimpanya `true`), bukan data.
+    'alurAcuanBacaSajaProvider':
+        'mode baca saja alur versi (penimpaan Studio), bukan data akun',
   };
 
   bool layanan(String nama) =>
@@ -87,7 +90,10 @@ void main() {
     final daftar = terdaftar();
     final hilang = [
       for (final nama in deklarasi(berkas))
-        if (!layanan(nama) && !daftar.contains(nama)) nama,
+        if (!layanan(nama) &&
+            !bukanDataAkun.containsKey(nama) &&
+            !daftar.contains(nama))
+          nama,
     ];
     expect(hilang, isEmpty);
   });

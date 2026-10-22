@@ -188,6 +188,14 @@ abstract final class NamaIzin {
   // sempit (versi `aktif` saja) dan itu ditegakkan server, bukan layar.
   static const dataAcuanLihat = 'data-acuan.lihat';
 
+  // Alur versi data acuan lapis 1 (T2.3, §54 repo API): ajukan & simulasi =
+  // Master Data (admin) + super admin; aktifkan = super admin saja. Tolak
+  // tidak punya nama izin sendiri — rutenya satu grup dengan ajukan. Token
+  // Sidik Studio TIDAK pernah membawanya (`MatriksIzin::PETA_STUDIO`).
+  static const dataAcuanAjukan = 'data-acuan.ajukan';
+  static const dataAcuanSimulasi = 'data-acuan.simulasi';
+  static const dataAcuanAktifkan = 'data-acuan.aktifkan';
+
   // Sidik Studio, Workbook Alat (S1b baca; Tahap C simulasi hitung ulang
   // yang TIDAK menulis data lab). Server: admin, teknisi, super admin untuk
   // `hitung`; viewer cuma `lihat`.

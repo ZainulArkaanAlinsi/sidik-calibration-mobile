@@ -7,6 +7,7 @@ import 'package:sidik_calibration/models/izin.dart' show NamaIzin;
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/dashboard_provider.dart'
     show TokenHilangException;
+import 'package:sidik_calibration/providers/data_acuan_provider.dart';
 import 'package:sidik_calibration/providers/izin_provider.dart';
 
 import 'workbook_model.dart';
@@ -182,6 +183,8 @@ final unggahMasterProvider = Provider<UnggahMaster>(
         ref.invalidate(daftarWorkbookProvider);
         ref.invalidate(detailWorkbookProvider);
         ref.invalidate(riwayatWorkbookProvider);
+        // Impor berpeta bisa melahirkan draf data acuan baru.
+        segarkanDataAcuan(ref);
         return hasil;
       },
 );

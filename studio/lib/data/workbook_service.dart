@@ -572,6 +572,13 @@ class MockWorkbookService implements WorkbookService {
   /// Galat yang dilempar unggah berikutnya (test); `null` = berhasil.
   Object? galatUnggah;
 
+  /// Hasil unggah berikutnya (test). Bawaan: master tanpa peta sel.
+  HasilUnggahMaster hasilUnggah = const HasilUnggahMaster(
+    id: 99,
+    nama: 'Master unggahan',
+    versi: 2,
+  );
+
   @override
   Future<HasilUnggahMaster> unggahMaster(
     String token, {
@@ -589,7 +596,7 @@ class MockWorkbookService implements WorkbookService {
     await _mulai();
     final g = galatUnggah;
     if (g != null) throw g;
-    return const HasilUnggahMaster(id: 99, nama: 'Master unggahan', versi: 2);
+    return hasilUnggah;
   }
 
   /// PNG 1 × 1 piksel (abu) — peraga, bukan gambar dari workbook mana pun.

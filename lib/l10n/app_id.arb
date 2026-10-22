@@ -2877,5 +2877,211 @@
   "pembaruanWindowsKeterangan": "Simpan pekerjaan dulu. Aplikasi akan tertutup lalu terbuka lagi dengan versi baru.",
   "pembaruanWindowsMulaiUlang": "Mulai ulang sekarang",
   "pembaruanWindowsNanti": "Nanti — dipasang saat aplikasi dibuka lagi",
-  "pembaruanWindowsGagal": "Pembaruan belum bisa dipasang. Tutup lalu buka lagi aplikasinya untuk mencoba lagi."
+  "pembaruanWindowsGagal": "Pembaruan belum bisa dipasang. Tutup lalu buka lagi aplikasinya untuk mencoba lagi.",
+  "alurAcuanJudul": "Versi data acuan",
+  "alurAcuanKelolaSub": "Ajukan, simulasikan, dan aktifkan versi data acuan",
+  "alurAcuanBuka": "Alur versi",
+  "alurAcuanKosong": "Belum ada versi data.",
+  "alurAcuanBacaSajaJudul": "Baca saja di Sidik Studio",
+  "alurAcuanBacaSajaKet": "Ajukan, simulasi, tolak, dan aktifkan dilakukan dari aplikasi lab oleh admin atau super admin. Pengaktifan wajib oleh orang kedua — bukan yang mengimpor master, menyunting, atau mengajukan draf.",
+  "alurAcuanSimulasiJudul": "Simulasi",
+  "alurAcuanSimBelumAda": "Belum dijalankan",
+  "alurAcuanSimTerbaru": "Terbaru",
+  "alurAcuanSimKedaluwarsa": "Kedaluwarsa — jalankan ulang",
+  "alurAcuanSimGagal": "Gagal",
+  "alurAcuanRingkasan": "{total} sesi · {berubah} berubah · {cetak} cetak berubah · {terbit} sudah terbit · {vonis} vonis berubah · {gagal} gagal",
+  "@alurAcuanRingkasan": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "berubah": {
+        "type": "int"
+      },
+      "cetak": {
+        "type": "int"
+      },
+      "terbit": {
+        "type": "int"
+      },
+      "vonis": {
+        "type": "int"
+      },
+      "gagal": {
+        "type": "int"
+      }
+    }
+  },
+  "alurAcuanBersama": "{n} data bersama antar varian master berubah",
+  "@alurAcuanBersama": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "alurAcuanWajibDiakui": "Wajib diakui saat aktifkan",
+  "alurAcuanButirTerbit": "Angka cetak sertifikat TERBIT berubah",
+  "alurAcuanButirBersama": "Data bersama antar varian master berubah",
+  "alurAcuanButirSesiGagal": "Ada sesi yang gagal disimulasikan",
+  "alurAcuanLihatLaporan": "Lihat laporan simulasi",
+  "alurAcuanLog": "Log ({n})",
+  "@alurAcuanLog": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "alurAcuanAksiDibuat": "Dibuat",
+  "alurAcuanAksiAjukan": "Diajukan",
+  "alurAcuanAksiSimulasi": "Disimulasikan",
+  "alurAcuanAksiSahkan": "Diaktifkan",
+  "alurAcuanAksiTolak": "Ditolak",
+  "alurAcuanAksiBuang": "Dibuang",
+  "alurAcuanAksiPensiun": "Dipensiunkan",
+  "alurAcuanOleh": "pengguna #{id}",
+  "@alurAcuanOleh": {
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
+  "alurAcuanAjukan": "Ajukan",
+  "alurAcuanJalankanSimulasi": "Jalankan simulasi",
+  "alurAcuanTolak": "Tolak",
+  "alurAcuanAktifkan": "Aktifkan",
+  "alurAcuanAlasan": "Alasan",
+  "alurAcuanAlasanMin": "Minimal 10 karakter.",
+  "alurAcuanRujukan": "Rujukan (opsional)",
+  "alurAcuanTambahRujukan": "Tambah rujukan",
+  "alurAcuanHapusRujukan": "Hapus rujukan",
+  "alurAcuanRujukanJenis": "Jenis",
+  "alurAcuanRujukanNilai": "Nilai",
+  "alurAcuanRujukanNilaiWajib": "Isi nilainya atau hapus barisnya.",
+  "alurAcuanJenisSertifikatStandar": "Sertifikat standar",
+  "alurAcuanJenisIk": "Instruksi kerja",
+  "alurAcuanJenisLampiran": "Lampiran",
+  "alurAcuanJenisSelMaster": "Sel master",
+  "alurAcuanJenisLain": "Lainnya",
+  "alurAcuanKirim": "Kirim",
+  "alurAcuanBatal": "Batal",
+  "alurAcuanSimulasiKonfirmasi": "Hitung ulang semua sesi tersimpan profil ini dengan versi ini? Tidak ada data lab yang ditulis.",
+  "alurAcuanTolakKet": "Draf dibuang; versi yang sudah diajukan ditolak. Tercatat di log.",
+  "alurAcuanBerlakuMulai": "Berlaku mulai",
+  "alurAcuanUbahTanggal": "Ubah tanggal",
+  "alurAcuanSandi": "Sandi Anda (konfirmasi)",
+  "alurAcuanSandiWajib": "Sandi wajib diisi.",
+  "alurAcuanCatatan": "Catatan (opsional)",
+  "alurAcuanPengakuanJudul": "Pengakuan (alasan per butir, min. 10 karakter)",
+  "alurAcuanAktifkanKet": "Versi aktif sebelumnya pensiun sehari sebelum tanggal ini. Sesi yang sudah berstempel tetap memakai versinya.",
+  "alurAcuanSimulasiHarusTerbaru": "Simulasi terakhir belum terbaru. Jalankan simulasi ulang sebelum mengaktifkan.",
+  "alurAcuanSuksesAjukan": "v{nomor} diajukan.",
+  "@alurAcuanSuksesAjukan": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
+  "alurAcuanSuksesSimulasi": "Simulasi selesai.",
+  "alurAcuanSuksesTolak": "v{nomor} ditolak.",
+  "@alurAcuanSuksesTolak": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
+  "alurAcuanSuksesAktifkan": "v{nomor} diaktifkan.",
+  "@alurAcuanSuksesAktifkan": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
+  "alurAcuanGalatStatus": "Status versi ini sudah berubah. Muat ulang lalu coba lagi.",
+  "alurAcuanGalatJenis": "Alur ini baru untuk versi data (lapis 1).",
+  "alurAcuanGalatHanyaSuperAdmin": "Versi yang sudah diajukan hanya bisa ditolak super admin.",
+  "alurAcuanGalatPengesahIkut": "Anda ikut membuat versi ini (mengimpor master, menyunting, atau mengajukan). Pengaktifan harus oleh orang lain.",
+  "alurAcuanGalatBerlakuLampau": "Tanggal berlaku tidak boleh sebelum hari ini.",
+  "alurAcuanGalatSimulasiBelumAda": "Jalankan simulasi dulu; versi tidak boleh aktif sebelum dampaknya ditinjau.",
+  "alurAcuanGalatSimulasiKedaluwarsa": "Isi versi, atau sesi/sertifikat terbit profil ini, berubah sesudah simulasi terakhir. Jalankan simulasi ulang.",
+  "alurAcuanGalatSimulasiGagal": "Simulasi terakhir gagal. Jalankan ulang.",
+  "alurAcuanGalatPengakuan": "Pengakuan wajib (min. 10 karakter) untuk: {butir}",
+  "@alurAcuanGalatPengakuan": {
+    "placeholders": {
+      "butir": {
+        "type": "String"
+      }
+    }
+  },
+  "alurAcuanGalatRentang": "Ada versi aktif lain yang berlaku mulai tanggal ini atau sesudahnya. Pilih tanggal lebih akhir.",
+  "alurAcuanGalatSandi": "Sandi konfirmasi salah.",
+  "alurAcuanGalatBukanAplikasi": "Aplikasi ini tidak boleh mengubah versi data acuan. Gunakan aplikasi lab.",
+  "alurAcuanGalatTidakBerwenang": "Anda tidak berwenang melakukan ini.",
+  "alurAcuanGalatTidakDitemukan": "Versi tidak ditemukan atau tidak tersedia untuk Anda.",
+  "alurAcuanGalatTerlaluSering": "Terlalu sering. Tunggu sebentar lalu coba lagi.",
+  "alurAcuanGalatIsian": "Isian ditolak server. Periksa lagi lalu coba lagi.",
+  "alurAcuanGalatKoneksi": "Server tidak terjangkau. Periksa koneksi lalu coba lagi.",
+  "alurAcuanGalatUmum": "Aksi gagal. Coba lagi.",
+  "simAcuanJudul": "Laporan simulasi v{nomor}",
+  "@simAcuanJudul": {
+    "placeholders": {
+      "nomor": {
+        "type": "int"
+      }
+    }
+  },
+  "simAcuanBelumAda": "Versi ini belum disimulasikan.",
+  "simAcuanHanyaBerubah": "Hanya yang berubah",
+  "simAcuanTidakAdaBerubah": "Tidak ada sesi yang berubah.",
+  "simAcuanBerubah": "Berubah",
+  "simAcuanCetakBerubah": "Angka cetak berubah",
+  "simAcuanVonisBerubah": "Vonis berubah",
+  "simAcuanGagal": "Gagal",
+  "simAcuanTidakBerubah": "Tidak berubah",
+  "simAcuanSertifikatTerbit": "Sertifikat terbit: {nomor}",
+  "@simAcuanSertifikatTerbit": {
+    "placeholders": {
+      "nomor": {
+        "type": "String"
+      }
+    }
+  },
+  "simAcuanTabelCetak": "Tercetak di sertifikat",
+  "simAcuanTabelSelisih": "Nilai hitung",
+  "simAcuanKolomTitik": "Titik",
+  "simAcuanKolomKolom": "Kolom",
+  "simAcuanKolomLama": "Lama",
+  "simAcuanKolomBaru": "Baru",
+  "simAcuanKolomSelisih": "Selisih",
+  "simAcuanTitikTidakTerhitung": "Titik {titik} hanya terhitung di satu sisi",
+  "@simAcuanTitikTidakTerhitung": {
+    "placeholders": {
+      "titik": {
+        "type": "String"
+      }
+    }
+  },
+  "simAcuanPembanding": "Dibandingkan dengan {versi}",
+  "@simAcuanPembanding": {
+    "placeholders": {
+      "versi": {
+        "type": "String"
+      }
+    }
+  },
+  "simAcuanBersamaJudul": "Data bersama antar varian",
+  "simAcuanMasterLain": "Master varian lain: {nama}",
+  "@simAcuanMasterLain": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "simAcuanSesiJudul": "Sesi"
 }

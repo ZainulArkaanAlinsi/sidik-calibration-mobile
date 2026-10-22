@@ -1375,6 +1375,60 @@ abstract class StudioL10n {
   /// In en, this message translates to:
   /// **'Upload failed.'**
   String get unggahMasterGagal;
+
+  /// No description provided for @unggahMasterStrukturJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'The master\'s structure no longer matches its cell map — nothing was imported:'**
+  String get unggahMasterStrukturJudul;
+
+  /// No description provided for @unggahMasterPetaTervalidasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Structure validated against the cell map.'**
+  String get unggahMasterPetaTervalidasi;
+
+  /// No description provided for @unggahMasterBelumTerpetakan.
+  ///
+  /// In en, this message translates to:
+  /// **'Not mapped yet: this master\'s structure is not validated, and its contents are NOT used for calculations, certificates or CMC.'**
+  String get unggahMasterBelumTerpetakan;
+
+  /// No description provided for @unggahMasterSudahAda.
+  ///
+  /// In en, this message translates to:
+  /// **'This exact file was already imported; nothing changed.'**
+  String get unggahMasterSudahAda;
+
+  /// No description provided for @unggahMasterDrafDibuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft data reference v{nomor} created ({sel} cells changed). It affects no calculation until it is submitted, simulated and activated from the lab app.'**
+  String unggahMasterDrafDibuat(int nomor, int sel);
+
+  /// No description provided for @unggahMasterDrafSudahAda.
+  ///
+  /// In en, this message translates to:
+  /// **'A draft with the same contents already exists ({versi}).'**
+  String unggahMasterDrafSudahAda(String versi);
+
+  /// No description provided for @unggahMasterSamaDasar.
+  ///
+  /// In en, this message translates to:
+  /// **'Contents equal the current base version; no new draft.'**
+  String get unggahMasterSamaDasar;
+
+  /// No description provided for @unggahMasterPaketBelumAda.
+  ///
+  /// In en, this message translates to:
+  /// **'The data reference package does not exist on the server yet (initial import first); no draft was created.'**
+  String get unggahMasterPaketBelumAda;
+
+  /// No description provided for @unggahMasterBukaAlur.
+  ///
+  /// In en, this message translates to:
+  /// **'Open version workflow'**
+  String get unggahMasterBukaAlur;
 }
 
 class _StudioL10nDelegate extends LocalizationsDelegate<StudioL10n> {

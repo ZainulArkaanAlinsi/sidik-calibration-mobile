@@ -125,6 +125,8 @@ final List<ProviderOrFamily> providerSesiStudio = [
   berlakuAcuanProvider,
   bandingAcuanProvider,
   riwayatSelAcuanProvider,
+  alurAcuanProvider,
+  laporanSimulasiAcuanProvider,
   // Workbook Alat (S1b). Halaman sel memakai keepAlive berjangka — tanpa
   // sapuan eksplisit, isinya bertahan sampai jedanya habis.
   daftarWorkbookProvider,

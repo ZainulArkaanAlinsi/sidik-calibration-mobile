@@ -11712,6 +11712,613 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The update could not be installed yet. Close and reopen the app to try again.'**
   String get pembaruanWindowsGagal;
+
+  /// No description provided for @alurAcuanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Data reference versions'**
+  String get alurAcuanJudul;
+
+  /// No description provided for @alurAcuanKelolaSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit, simulate and activate reference data versions'**
+  String get alurAcuanKelolaSub;
+
+  /// No description provided for @alurAcuanBuka.
+  ///
+  /// In en, this message translates to:
+  /// **'Version workflow'**
+  String get alurAcuanBuka;
+
+  /// No description provided for @alurAcuanKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'No data versions yet.'**
+  String get alurAcuanKosong;
+
+  /// No description provided for @alurAcuanBacaSajaJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Read-only in Sidik Studio'**
+  String get alurAcuanBacaSajaJudul;
+
+  /// No description provided for @alurAcuanBacaSajaKet.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit, simulate, reject and activate are done from the lab app by an admin or super admin. Activation must be done by a second person — not whoever imported the master, edited or submitted the draft.'**
+  String get alurAcuanBacaSajaKet;
+
+  /// No description provided for @alurAcuanSimulasiJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Simulation'**
+  String get alurAcuanSimulasiJudul;
+
+  /// No description provided for @alurAcuanSimBelumAda.
+  ///
+  /// In en, this message translates to:
+  /// **'Not run yet'**
+  String get alurAcuanSimBelumAda;
+
+  /// No description provided for @alurAcuanSimTerbaru.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date'**
+  String get alurAcuanSimTerbaru;
+
+  /// No description provided for @alurAcuanSimKedaluwarsa.
+  ///
+  /// In en, this message translates to:
+  /// **'Outdated — run it again'**
+  String get alurAcuanSimKedaluwarsa;
+
+  /// No description provided for @alurAcuanSimGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get alurAcuanSimGagal;
+
+  /// No description provided for @alurAcuanRingkasan.
+  ///
+  /// In en, this message translates to:
+  /// **'{total} sessions · {berubah} changed · {cetak} printed changes · {terbit} already issued · {vonis} verdict changes · {gagal} failed'**
+  String alurAcuanRingkasan(
+    int total,
+    int berubah,
+    int cetak,
+    int terbit,
+    int vonis,
+    int gagal,
+  );
+
+  /// No description provided for @alurAcuanBersama.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} shared values across master variants changed'**
+  String alurAcuanBersama(int n);
+
+  /// No description provided for @alurAcuanWajibDiakui.
+  ///
+  /// In en, this message translates to:
+  /// **'Must be acknowledged on activation'**
+  String get alurAcuanWajibDiakui;
+
+  /// No description provided for @alurAcuanButirTerbit.
+  ///
+  /// In en, this message translates to:
+  /// **'Printed numbers of ISSUED certificates change'**
+  String get alurAcuanButirTerbit;
+
+  /// No description provided for @alurAcuanButirBersama.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared data across master variants changes'**
+  String get alurAcuanButirBersama;
+
+  /// No description provided for @alurAcuanButirSesiGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Some sessions failed to simulate'**
+  String get alurAcuanButirSesiGagal;
+
+  /// No description provided for @alurAcuanLihatLaporan.
+  ///
+  /// In en, this message translates to:
+  /// **'View simulation report'**
+  String get alurAcuanLihatLaporan;
+
+  /// No description provided for @alurAcuanLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Log ({n})'**
+  String alurAcuanLog(int n);
+
+  /// No description provided for @alurAcuanAksiDibuat.
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get alurAcuanAksiDibuat;
+
+  /// No description provided for @alurAcuanAksiAjukan.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted'**
+  String get alurAcuanAksiAjukan;
+
+  /// No description provided for @alurAcuanAksiSimulasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Simulated'**
+  String get alurAcuanAksiSimulasi;
+
+  /// No description provided for @alurAcuanAksiSahkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Activated'**
+  String get alurAcuanAksiSahkan;
+
+  /// No description provided for @alurAcuanAksiTolak.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get alurAcuanAksiTolak;
+
+  /// No description provided for @alurAcuanAksiBuang.
+  ///
+  /// In en, this message translates to:
+  /// **'Discarded'**
+  String get alurAcuanAksiBuang;
+
+  /// No description provided for @alurAcuanAksiPensiun.
+  ///
+  /// In en, this message translates to:
+  /// **'Retired'**
+  String get alurAcuanAksiPensiun;
+
+  /// No description provided for @alurAcuanOleh.
+  ///
+  /// In en, this message translates to:
+  /// **'user #{id}'**
+  String alurAcuanOleh(int id);
+
+  /// No description provided for @alurAcuanAjukan.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get alurAcuanAjukan;
+
+  /// No description provided for @alurAcuanJalankanSimulasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Run simulation'**
+  String get alurAcuanJalankanSimulasi;
+
+  /// No description provided for @alurAcuanTolak.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get alurAcuanTolak;
+
+  /// No description provided for @alurAcuanAktifkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate'**
+  String get alurAcuanAktifkan;
+
+  /// No description provided for @alurAcuanAlasan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get alurAcuanAlasan;
+
+  /// No description provided for @alurAcuanAlasanMin.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 10 characters.'**
+  String get alurAcuanAlasanMin;
+
+  /// No description provided for @alurAcuanRujukan.
+  ///
+  /// In en, this message translates to:
+  /// **'References (optional)'**
+  String get alurAcuanRujukan;
+
+  /// No description provided for @alurAcuanTambahRujukan.
+  ///
+  /// In en, this message translates to:
+  /// **'Add reference'**
+  String get alurAcuanTambahRujukan;
+
+  /// No description provided for @alurAcuanHapusRujukan.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove reference'**
+  String get alurAcuanHapusRujukan;
+
+  /// No description provided for @alurAcuanRujukanJenis.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get alurAcuanRujukanJenis;
+
+  /// No description provided for @alurAcuanRujukanNilai.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get alurAcuanRujukanNilai;
+
+  /// No description provided for @alurAcuanRujukanNilaiWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in the value or remove the row.'**
+  String get alurAcuanRujukanNilaiWajib;
+
+  /// No description provided for @alurAcuanJenisSertifikatStandar.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard certificate'**
+  String get alurAcuanJenisSertifikatStandar;
+
+  /// No description provided for @alurAcuanJenisIk.
+  ///
+  /// In en, this message translates to:
+  /// **'Work instruction'**
+  String get alurAcuanJenisIk;
+
+  /// No description provided for @alurAcuanJenisLampiran.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment'**
+  String get alurAcuanJenisLampiran;
+
+  /// No description provided for @alurAcuanJenisSelMaster.
+  ///
+  /// In en, this message translates to:
+  /// **'Master cell'**
+  String get alurAcuanJenisSelMaster;
+
+  /// No description provided for @alurAcuanJenisLain.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get alurAcuanJenisLain;
+
+  /// No description provided for @alurAcuanKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get alurAcuanKirim;
+
+  /// No description provided for @alurAcuanBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get alurAcuanBatal;
+
+  /// No description provided for @alurAcuanSimulasiKonfirmasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Recalculate every stored session of this profile with this version? Nothing is written to lab data.'**
+  String get alurAcuanSimulasiKonfirmasi;
+
+  /// No description provided for @alurAcuanTolakKet.
+  ///
+  /// In en, this message translates to:
+  /// **'A draft is discarded; a submitted version is rejected. Recorded in the log.'**
+  String get alurAcuanTolakKet;
+
+  /// No description provided for @alurAcuanBerlakuMulai.
+  ///
+  /// In en, this message translates to:
+  /// **'Effective from'**
+  String get alurAcuanBerlakuMulai;
+
+  /// No description provided for @alurAcuanUbahTanggal.
+  ///
+  /// In en, this message translates to:
+  /// **'Change date'**
+  String get alurAcuanUbahTanggal;
+
+  /// No description provided for @alurAcuanSandi.
+  ///
+  /// In en, this message translates to:
+  /// **'Your password (confirmation)'**
+  String get alurAcuanSandi;
+
+  /// No description provided for @alurAcuanSandiWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required.'**
+  String get alurAcuanSandiWajib;
+
+  /// No description provided for @alurAcuanCatatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get alurAcuanCatatan;
+
+  /// No description provided for @alurAcuanPengakuanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Acknowledgements (reason per item, min. 10 characters)'**
+  String get alurAcuanPengakuanJudul;
+
+  /// No description provided for @alurAcuanAktifkanKet.
+  ///
+  /// In en, this message translates to:
+  /// **'The previous active version retires the day before this date. Sessions already stamped keep their version.'**
+  String get alurAcuanAktifkanKet;
+
+  /// No description provided for @alurAcuanSimulasiHarusTerbaru.
+  ///
+  /// In en, this message translates to:
+  /// **'The last simulation is not up to date. Run the simulation again before activating.'**
+  String get alurAcuanSimulasiHarusTerbaru;
+
+  /// No description provided for @alurAcuanSuksesAjukan.
+  ///
+  /// In en, this message translates to:
+  /// **'v{nomor} submitted.'**
+  String alurAcuanSuksesAjukan(int nomor);
+
+  /// No description provided for @alurAcuanSuksesSimulasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Simulation finished.'**
+  String get alurAcuanSuksesSimulasi;
+
+  /// No description provided for @alurAcuanSuksesTolak.
+  ///
+  /// In en, this message translates to:
+  /// **'v{nomor} rejected.'**
+  String alurAcuanSuksesTolak(int nomor);
+
+  /// No description provided for @alurAcuanSuksesAktifkan.
+  ///
+  /// In en, this message translates to:
+  /// **'v{nomor} activated.'**
+  String alurAcuanSuksesAktifkan(int nomor);
+
+  /// No description provided for @alurAcuanGalatStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'This version\'s status has changed. Reload and try again.'**
+  String get alurAcuanGalatStatus;
+
+  /// No description provided for @alurAcuanGalatJenis.
+  ///
+  /// In en, this message translates to:
+  /// **'This workflow only supports data versions (layer 1).'**
+  String get alurAcuanGalatJenis;
+
+  /// No description provided for @alurAcuanGalatHanyaSuperAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Only a super admin can reject a submitted version.'**
+  String get alurAcuanGalatHanyaSuperAdmin;
+
+  /// No description provided for @alurAcuanGalatPengesahIkut.
+  ///
+  /// In en, this message translates to:
+  /// **'You took part in this version (imported the master, edited or submitted it). Activation must be done by someone else.'**
+  String get alurAcuanGalatPengesahIkut;
+
+  /// No description provided for @alurAcuanGalatBerlakuLampau.
+  ///
+  /// In en, this message translates to:
+  /// **'The effective date cannot be before today.'**
+  String get alurAcuanGalatBerlakuLampau;
+
+  /// No description provided for @alurAcuanGalatSimulasiBelumAda.
+  ///
+  /// In en, this message translates to:
+  /// **'Run the simulation first; a version may not become active before its impact is reviewed.'**
+  String get alurAcuanGalatSimulasiBelumAda;
+
+  /// No description provided for @alurAcuanGalatSimulasiKedaluwarsa.
+  ///
+  /// In en, this message translates to:
+  /// **'The version, or this profile\'s sessions/issued certificates, changed after the last simulation. Run the simulation again.'**
+  String get alurAcuanGalatSimulasiKedaluwarsa;
+
+  /// No description provided for @alurAcuanGalatSimulasiGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'The last simulation failed. Run it again.'**
+  String get alurAcuanGalatSimulasiGagal;
+
+  /// No description provided for @alurAcuanGalatPengakuan.
+  ///
+  /// In en, this message translates to:
+  /// **'An acknowledgement (min. 10 characters) is required for: {butir}'**
+  String alurAcuanGalatPengakuan(String butir);
+
+  /// No description provided for @alurAcuanGalatRentang.
+  ///
+  /// In en, this message translates to:
+  /// **'Another active version starts on or after this date. Pick a later date.'**
+  String get alurAcuanGalatRentang;
+
+  /// No description provided for @alurAcuanGalatSandi.
+  ///
+  /// In en, this message translates to:
+  /// **'The confirmation password is wrong.'**
+  String get alurAcuanGalatSandi;
+
+  /// No description provided for @alurAcuanGalatBukanAplikasi.
+  ///
+  /// In en, this message translates to:
+  /// **'This app cannot change data reference versions. Use the lab app.'**
+  String get alurAcuanGalatBukanAplikasi;
+
+  /// No description provided for @alurAcuanGalatTidakBerwenang.
+  ///
+  /// In en, this message translates to:
+  /// **'You are not allowed to do this.'**
+  String get alurAcuanGalatTidakBerwenang;
+
+  /// No description provided for @alurAcuanGalatTidakDitemukan.
+  ///
+  /// In en, this message translates to:
+  /// **'Version not found or not available to you.'**
+  String get alurAcuanGalatTidakDitemukan;
+
+  /// No description provided for @alurAcuanGalatTerlaluSering.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many requests. Wait a moment and try again.'**
+  String get alurAcuanGalatTerlaluSering;
+
+  /// No description provided for @alurAcuanGalatIsian.
+  ///
+  /// In en, this message translates to:
+  /// **'The server rejected the input. Check it and try again.'**
+  String get alurAcuanGalatIsian;
+
+  /// No description provided for @alurAcuanGalatKoneksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot reach the server. Check the connection and try again.'**
+  String get alurAcuanGalatKoneksi;
+
+  /// No description provided for @alurAcuanGalatUmum.
+  ///
+  /// In en, this message translates to:
+  /// **'The action failed. Try again.'**
+  String get alurAcuanGalatUmum;
+
+  /// No description provided for @simAcuanJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Simulation report v{nomor}'**
+  String simAcuanJudul(int nomor);
+
+  /// No description provided for @simAcuanBelumAda.
+  ///
+  /// In en, this message translates to:
+  /// **'This version has not been simulated yet.'**
+  String get simAcuanBelumAda;
+
+  /// No description provided for @simAcuanHanyaBerubah.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed only'**
+  String get simAcuanHanyaBerubah;
+
+  /// No description provided for @simAcuanTidakAdaBerubah.
+  ///
+  /// In en, this message translates to:
+  /// **'No session changes.'**
+  String get simAcuanTidakAdaBerubah;
+
+  /// No description provided for @simAcuanBerubah.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed'**
+  String get simAcuanBerubah;
+
+  /// No description provided for @simAcuanCetakBerubah.
+  ///
+  /// In en, this message translates to:
+  /// **'Printed numbers change'**
+  String get simAcuanCetakBerubah;
+
+  /// No description provided for @simAcuanVonisBerubah.
+  ///
+  /// In en, this message translates to:
+  /// **'Verdict changes'**
+  String get simAcuanVonisBerubah;
+
+  /// No description provided for @simAcuanGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get simAcuanGagal;
+
+  /// No description provided for @simAcuanTidakBerubah.
+  ///
+  /// In en, this message translates to:
+  /// **'Unchanged'**
+  String get simAcuanTidakBerubah;
+
+  /// No description provided for @simAcuanSertifikatTerbit.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued certificate: {nomor}'**
+  String simAcuanSertifikatTerbit(String nomor);
+
+  /// No description provided for @simAcuanTabelCetak.
+  ///
+  /// In en, this message translates to:
+  /// **'Printed on the certificate'**
+  String get simAcuanTabelCetak;
+
+  /// No description provided for @simAcuanTabelSelisih.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculated values'**
+  String get simAcuanTabelSelisih;
+
+  /// No description provided for @simAcuanKolomTitik.
+  ///
+  /// In en, this message translates to:
+  /// **'Point'**
+  String get simAcuanKolomTitik;
+
+  /// No description provided for @simAcuanKolomKolom.
+  ///
+  /// In en, this message translates to:
+  /// **'Column'**
+  String get simAcuanKolomKolom;
+
+  /// No description provided for @simAcuanKolomLama.
+  ///
+  /// In en, this message translates to:
+  /// **'Old'**
+  String get simAcuanKolomLama;
+
+  /// No description provided for @simAcuanKolomBaru.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get simAcuanKolomBaru;
+
+  /// No description provided for @simAcuanKolomSelisih.
+  ///
+  /// In en, this message translates to:
+  /// **'Difference'**
+  String get simAcuanKolomSelisih;
+
+  /// No description provided for @simAcuanTitikTidakTerhitung.
+  ///
+  /// In en, this message translates to:
+  /// **'Point {titik} is calculated on one side only'**
+  String simAcuanTitikTidakTerhitung(String titik);
+
+  /// No description provided for @simAcuanPembanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Compared with {versi}'**
+  String simAcuanPembanding(String versi);
+
+  /// No description provided for @simAcuanBersamaJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared data across variants'**
+  String get simAcuanBersamaJudul;
+
+  /// No description provided for @simAcuanMasterLain.
+  ///
+  /// In en, this message translates to:
+  /// **'Other variant master: {nama}'**
+  String simAcuanMasterLain(String nama);
+
+  /// No description provided for @simAcuanSesiJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Sessions'**
+  String get simAcuanSesiJudul;
 }
 
 class _AppLocalizationsDelegate

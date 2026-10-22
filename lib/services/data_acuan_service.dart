@@ -1,14 +1,19 @@
 import 'dart:convert';
 
 import '../core/utils/parse_list.dart';
+import '../models/alur_acuan.dart';
 import '../models/data_acuan.dart';
 import 'api_client.dart';
 import 'auth_service.dart' show ApiException;
 import 'data_acuan_contoh_micrometer.dart';
 
-/// Studio Data Acuan (CR-48) — BACA saja (P1, kontrak API §15). Izin tulis
-/// (`sunting`/`impor`/`ajukan`/`sahkan`) belum lahir di server, jadi belum ada
-/// satu pun method tulis di sini.
+/// Studio Data Acuan (CR-48) — baca (P1, kontrak API §15) + alur versi
+/// lapis 1 (T2.2/T2.3, §54 repo API): ajukan, simulasi, tolak, aktifkan.
+///
+/// Rute TULIS alur ada di grup `aplikasi:internal` server: token Sidik Studio
+/// (satu akun) DITOLAK `403 bukan_aplikasi_ini` — pengaktif harus orang kedua,
+/// dan satu akun Studio tidak bisa menjadi orang kedua. Jadi method tulis di
+/// bawah hanya berguna dari aplikasi lab; Studio memakai yang baca saja.
 ///
 /// Siapa melihat apa ditegakkan SERVER: teknisi cuma versi `aktif`; versi
 /// lain, banding, dan riwayat sel dijawab `404` (bukan 403 — 403 mengakui
@@ -51,6 +56,41 @@ abstract class DataAcuanService {
     required String lembar,
     required String kunci,
     required String kolom,
+  });
+
+  /// `GET /data-acuan/paket/{kode}/alur` — versi data + status + ringkasan
+  /// simulasi + `wajib_diakui` + log. Teknisi → 404.
+  Future<List<VersiAlurAcuan>> alur(String token, String kode);
+
+  /// `GET /data-acuan/versi/{versi}/simulasi` — laporan simulasi terakhir.
+  Future<LaporanSimulasiAcuan> laporanSimulasi(String token, int versiId);
+
+  /// `POST /data-acuan/versi/{versi}/ajukan` `{alasan, rujukan[]}` (admin,
+  /// super admin). Draf → diajukan, sha256 dikunci.
+  Future<void> ajukan(
+    String token,
+    int versiId, {
+    required String alasan,
+    List<RujukanAjuanAcuan> rujukan = const [],
+  });
+
+  /// `POST /data-acuan/versi/{versi}/simulasi` (201) — semua sesi profil,
+  /// tanpa menulis data lab.
+  Future<void> jalankanSimulasi(String token, int versiId);
+
+  /// `POST /data-acuan/versi/{versi}/tolak` `{alasan}` — draf → dibuang,
+  /// diajukan → ditolak (super admin).
+  Future<void> tolak(String token, int versiId, {required String alasan});
+
+  /// `POST /data-acuan/versi/{versi}/aktifkan` (super admin saja, orang
+  /// kedua). [pengakuan] = butir → alasan (≥ 10 karakter).
+  Future<void> aktifkan(
+    String token,
+    int versiId, {
+    required DateTime berlakuMulai,
+    required String password,
+    String? catatan,
+    Map<String, String> pengakuan = const {},
   });
 }
 
@@ -150,6 +190,92 @@ class ApiDataAcuanService implements DataAcuanService {
     );
 
     return RiwayatSelAcuan.fromJson(_data(json));
+  }
+
+  @override
+  Future<List<VersiAlurAcuan>> alur(String token, String kode) async {
+    final json = await _api.get(
+      '/data-acuan/paket/${_seg(kode)}/alur',
+      token: token,
+    );
+
+    return parseListAman(json['data'], VersiAlurAcuan.fromJson);
+  }
+
+  @override
+  Future<LaporanSimulasiAcuan> laporanSimulasi(
+    String token,
+    int versiId,
+  ) async {
+    final json = await _api.get(
+      '/data-acuan/versi/$versiId/simulasi',
+      token: token,
+    );
+
+    return LaporanSimulasiAcuan.fromJson(_data(json));
+  }
+
+  @override
+  Future<void> ajukan(
+    String token,
+    int versiId, {
+    required String alasan,
+    List<RujukanAjuanAcuan> rujukan = const [],
+  }) async {
+    await _api.post(
+      '/data-acuan/versi/$versiId/ajukan',
+      token: token,
+      body: {
+        'alasan': alasan,
+        if (rujukan.isNotEmpty)
+          'rujukan': [for (final r in rujukan) r.toJson()],
+      },
+    );
+  }
+
+  @override
+  Future<void> jalankanSimulasi(String token, int versiId) async {
+    await _api.post(
+      '/data-acuan/versi/$versiId/simulasi',
+      token: token,
+      // Simulasi menghitung ulang semua sesi profil — bisa lama.
+      timeout: const Duration(minutes: 3),
+    );
+  }
+
+  @override
+  Future<void> tolak(
+    String token,
+    int versiId, {
+    required String alasan,
+  }) async {
+    await _api.post(
+      '/data-acuan/versi/$versiId/tolak',
+      token: token,
+      body: {'alasan': alasan},
+    );
+  }
+
+  @override
+  Future<void> aktifkan(
+    String token,
+    int versiId, {
+    required DateTime berlakuMulai,
+    required String password,
+    String? catatan,
+    Map<String, String> pengakuan = const {},
+  }) async {
+    await _api.post(
+      '/data-acuan/versi/$versiId/aktifkan',
+      token: token,
+      body: {
+        'berlaku_mulai': tanggalIsoAcuan(berlakuMulai),
+        'password': password,
+        if (catatan != null && catatan.trim().isNotEmpty)
+          'catatan': catatan.trim(),
+        if (pengakuan.isNotEmpty) 'pengakuan': pengakuan,
+      },
+    );
   }
 }
 
@@ -444,5 +570,384 @@ class MockDataAcuanService implements DataAcuanService {
     });
 
     return RiwayatSelAcuan.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
+  // ─── Alur versi (T2.2/T2.3) ────────────────────────────────────────────
+  //
+  // Keadaan peraga: versi 2 Micrometer = DRAF hasil impor master Studio
+  // (bentuk `DrafAcuanMaster::buat`), versi 1 tetap aktif. Transisi meniru
+  // `AlurVersiAcuan` (status yang boleh, kode galat, pengakuan wajib), tanpa
+  // menghitung angka apa pun. Laporan simulasinya FIXTURE STRUKTUR sintetis
+  // (nomor sesi & sertifikat `PERAGA`, angka 0.5 → 0.75), bukan angka lab.
+
+  static const idVersi2 = 2;
+
+  /// Sandi konfirmasi peraga = sandi akun mock (`MockAuthService`).
+  static const sandiPeraga = 'rahasia123';
+
+  String _statusV2 = 'draf';
+  bool _adaSimulasiV2 = false;
+  bool _simulasiKedaluwarsa = false;
+  String? _berlakuMulaiV2;
+  final List<Map<String, dynamic>> _logV2 = [
+    {
+      'aksi': 'dibuat',
+      'status_dari': null,
+      'status_ke': 'draf',
+      'isi_sha256': null,
+      'user_id': 1,
+      'alasan': 'Diekstrak dari master Studio #7.',
+      'sumber': {
+        'workbook_master_id': 7,
+        'workbook_nama': 'Master Olah Data Micrometer 0-25mm',
+        'peta_sel': kodeMicrometer,
+        'varian': '0-25',
+      },
+      'rincian': {'sel_berubah': 1},
+      'pada': '2026-10-22T09:00:00+07:00',
+    },
+  ];
+
+  /// Aksi tulis yang diterima (`ajukan:2`, `simulasi:2`, …) — bukti test bahwa
+  /// tombol menembak aksi yang benar.
+  final List<String> panggilanTulis = [];
+
+  /// Isi terakhir tiap aksi tulis (test).
+  final Map<String, Object?> isianTulis = {};
+
+  /// Galat yang dilempar aksi tulis berikutnya (test); `null` = jalan.
+  Object? galatTulis;
+
+  /// Keadaan awal versi 2 (test): `draf` (bawaan) atau `diajukan`.
+  set statusAwalV2(String status) => _statusV2 = status;
+
+  /// Anggap simulasi sudah dijalankan (test).
+  void sudahDisimulasikan({bool kedaluwarsa = false}) {
+    _adaSimulasiV2 = true;
+    _simulasiKedaluwarsa = kedaluwarsa;
+  }
+
+  static const _shaPeragaV2 =
+      '0000000000000000000000000000000000000000000000000000000000000002';
+
+  static Map<String, dynamic> _tanpaSimulasi() => {
+    'status': 'belum_ada',
+    'id': null,
+    'isi_sha256': null,
+    'dijalankan_oleh': null,
+    'selesai': null,
+    'ringkasan': null,
+    'wajib_diakui': <Object?>[],
+  };
+
+  Map<String, dynamic> _simulasiV2() => !_adaSimulasiV2
+      ? _tanpaSimulasi()
+      : {
+          'status': _simulasiKedaluwarsa ? 'kedaluwarsa' : 'terbaru',
+          'id': 11,
+          'isi_sha256': _shaPeragaV2,
+          'dijalankan_oleh': 1,
+          'selesai': '2026-10-22T09:30:00+07:00',
+          'ringkasan': {
+            'sesi_total': 3,
+            'sesi_berubah': 1,
+            'cetak_berubah': 1,
+            'terbit_cetak_berubah': 1,
+            'vonis_berubah': 0,
+            'sesi_gagal': 0,
+            'sumber_acuan_aktif': 'db',
+            'catatan_sumber': null,
+            'jejak_data': {
+              'sesi_jumlah': 3,
+              'sesi_terakhir_diubah': '2026-10-21 10:00:00',
+              'sertifikat_terbit_jumlah': 1,
+            },
+            'bersama_antar_varian': 0,
+            'master_varian_lain_tidak_sepakat': 0,
+          },
+          'wajib_diakui': [ButirPengakuanAcuan.terbitCetakBerubah],
+        };
+
+  Map<String, dynamic> _versiV2() => {
+    'id': idVersi2,
+    'paket': kodeMicrometer,
+    'jenis': 'data',
+    'nomor': 2,
+    'status': _statusV2,
+    'skema_versi': 1,
+    'dasar_versi_id': idVersi1,
+    'berlaku_mulai': _berlakuMulaiV2,
+    'berlaku_sampai': null,
+    'isi_sha256': _statusV2 == 'draf' ? null : _shaPeragaV2,
+    'alasan':
+        'Diekstrak dari master Studio #7 (Master Olah Data Micrometer '
+        '0-25mm) lewat peta sel micrometer.',
+    'rujukan': [
+      {
+        'jenis': 'workbook_master',
+        'nilai': '#7 Master Olah Data Micrometer 0-25mm',
+        'catatan': 'peraga',
+      },
+    ],
+    'catatan_keputusan': null,
+    'dibuat_oleh': 1,
+    'diajukan_oleh': _statusV2 == 'draf' ? null : 1,
+    'diajukan_pada': null,
+    'disahkan_oleh': null,
+    'disahkan_pada': null,
+    'ditolak_oleh': null,
+    'ditolak_pada': null,
+    'lock_versi': 0,
+    'created_at': '2026-10-22T09:00:00+07:00',
+    'updated_at': '2026-10-22T09:00:00+07:00',
+  };
+
+  static Never _tolakAlur(
+    String kode,
+    String pesan, {
+    Map<String, dynamic>? rincian,
+  }) => throw ApiException(
+    pesan,
+    status: 422,
+    body: {'message': pesan, 'kode': kode, 'rincian': ?rincian},
+  );
+
+  Future<void> _mulaiTulis(String aksi, int versiId, Object? isian) async {
+    await _mulai();
+    if (sebagaiTeknisi) _tidakAda('Data nggak ketemu.');
+    panggilanTulis.add('$aksi:$versiId');
+    isianTulis[aksi] = isian;
+    final g = galatTulis;
+    if (g != null) {
+      galatTulis = null;
+      throw g;
+    }
+    if (versiId != idVersi2 && versiId != idVersi1) {
+      _tidakAda('Data nggak ketemu.');
+    }
+  }
+
+  void _catatLog(String aksi, String dari, String ke, String? alasan) =>
+      _logV2.add({
+        'aksi': aksi,
+        'status_dari': dari,
+        'status_ke': ke,
+        'isi_sha256': ke == 'draf' ? null : _shaPeragaV2,
+        'user_id': 1,
+        'alasan': alasan,
+        'sumber': null,
+        'rincian': null,
+        'pada': '2026-10-22T10:00:00+07:00',
+      });
+
+  @override
+  Future<List<VersiAlurAcuan>> alur(String token, String kode) async {
+    await _mulai();
+    if (sebagaiTeknisi || kode != kodeMicrometer) {
+      _tidakAda('Paket data acuan tidak ditemukan.');
+    }
+
+    final json = _json({
+      'data': [
+        {..._versiV2(), 'simulasi': _simulasiV2(), 'log': _logV2},
+        {..._versiV1(), 'simulasi': _tanpaSimulasi(), 'log': <Object?>[]},
+      ],
+    });
+
+    return parseListAman(json['data'], VersiAlurAcuan.fromJson);
+  }
+
+  static Map<String, dynamic> _sesiTidakBerubah(int id, String nomor) => {
+    'sesi_id': id,
+    'nomor_sesi': nomor,
+    'status_sesi': 'draft',
+    'tanggal_kalibrasi': '2026-10-15',
+    'sudah_terbit': false,
+    'nomor_sertifikat_terbit': <Object?>[],
+    'versi_pembanding': 'v1 (#1)',
+    'berubah': false,
+    'cetak_berubah': false,
+    'vonis_berubah': false,
+    'selisih': <Object?>[],
+    'cetak': <Object?>[],
+    'titik_tidak_terhitung': <Object?>[],
+    'galat': null,
+  };
+
+  @override
+  Future<LaporanSimulasiAcuan> laporanSimulasi(
+    String token,
+    int versiId,
+  ) async {
+    await _mulai();
+    if (sebagaiTeknisi || (versiId != idVersi2 && versiId != idVersi1)) {
+      _tidakAda('Data nggak ketemu.');
+    }
+
+    final ada = versiId == idVersi2 && _adaSimulasiV2;
+    final json = _json({
+      'data': {
+        ...(versiId == idVersi2 ? _simulasiV2() : _tanpaSimulasi()),
+        'laporan': !ada
+            ? null
+            : {
+                'sesi': [
+                  {
+                    'sesi_id': 101,
+                    'nomor_sesi': 'SES-PERAGA-001',
+                    'status_sesi': 'approved',
+                    'tanggal_kalibrasi': '2026-10-01',
+                    'sudah_terbit': true,
+                    'nomor_sertifikat_terbit': ['PERAGA/CERT/001'],
+                    'versi_pembanding': 'v1 (#1)',
+                    'berubah': true,
+                    'cetak_berubah': true,
+                    'vonis_berubah': false,
+                    'selisih': [
+                      {
+                        'titik': 1,
+                        'kolom': 'koreksi',
+                        'lama': 0.5,
+                        'baru': 0.75,
+                        'selisih': 0.25,
+                      },
+                    ],
+                    'cetak': [
+                      {
+                        'titik': 1,
+                        'kolom': 'koreksi',
+                        'lama': '0.5',
+                        'baru': '0.8',
+                      },
+                    ],
+                    'titik_tidak_terhitung': <Object?>[],
+                    'galat': null,
+                  },
+                  _sesiTidakBerubah(102, 'SES-PERAGA-002'),
+                  _sesiTidakBerubah(103, 'SES-PERAGA-003'),
+                ],
+                'bersama_antar_varian': {
+                  'berlaku': true,
+                  'varian_draf': '0-25',
+                  'berubah': <Object?>[],
+                  'master_lain': <Object?>[],
+                },
+              },
+      },
+    });
+
+    return LaporanSimulasiAcuan.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
+  @override
+  Future<void> ajukan(
+    String token,
+    int versiId, {
+    required String alasan,
+    List<RujukanAjuanAcuan> rujukan = const [],
+  }) async {
+    await _mulaiTulis('ajukan', versiId, {
+      'alasan': alasan,
+      'rujukan': [for (final r in rujukan) r.toJson()],
+    });
+    if (versiId != idVersi2 || _statusV2 != 'draf') {
+      _tolakAlur(
+        'status_tidak_sesuai',
+        'Hanya draf yang bisa diajukan. Status sekarang: $_statusV2.',
+      );
+    }
+    _statusV2 = 'diajukan';
+    _catatLog('ajukan', 'draf', 'diajukan', alasan);
+  }
+
+  @override
+  Future<void> jalankanSimulasi(String token, int versiId) async {
+    await _mulaiTulis('simulasi', versiId, null);
+    if (versiId != idVersi2 ||
+        (_statusV2 != 'draf' && _statusV2 != 'diajukan')) {
+      _tolakAlur(
+        'status_tidak_sesuai',
+        'Hanya draf atau versi diajukan yang bisa disimulasikan.',
+      );
+    }
+    _adaSimulasiV2 = true;
+    _simulasiKedaluwarsa = false;
+    _catatLog('simulasi', _statusV2, _statusV2, null);
+  }
+
+  @override
+  Future<void> tolak(
+    String token,
+    int versiId, {
+    required String alasan,
+  }) async {
+    await _mulaiTulis('tolak', versiId, {'alasan': alasan});
+    if (versiId != idVersi2 ||
+        (_statusV2 != 'draf' && _statusV2 != 'diajukan')) {
+      _tolakAlur(
+        'status_tidak_sesuai',
+        'Hanya draf atau versi diajukan yang bisa ditolak.',
+      );
+    }
+    final dari = _statusV2;
+    _statusV2 = dari == 'draf' ? 'dibuang' : 'ditolak';
+    _catatLog(dari == 'draf' ? 'buang' : 'tolak', dari, _statusV2, alasan);
+  }
+
+  @override
+  Future<void> aktifkan(
+    String token,
+    int versiId, {
+    required DateTime berlakuMulai,
+    required String password,
+    String? catatan,
+    Map<String, String> pengakuan = const {},
+  }) async {
+    final iso = tanggalIsoAcuan(berlakuMulai);
+    // Sandi TIDAK dicatat — cuma ada/tidaknya.
+    await _mulaiTulis('aktifkan', versiId, {
+      'berlaku_mulai': iso,
+      'ada_sandi': password.isNotEmpty,
+      'catatan': catatan,
+      'pengakuan': pengakuan,
+    });
+    if (password != sandiPeraga) {
+      _tolakAlur('konfirmasi_sandi_salah', 'Sandi konfirmasi salah.');
+    }
+    if (versiId != idVersi2 || _statusV2 != 'diajukan') {
+      _tolakAlur(
+        'status_tidak_sesuai',
+        'Hanya versi yang sudah diajukan yang bisa disahkan.',
+      );
+    }
+    if (iso.compareTo(tanggalIsoAcuan(DateTime.now())) < 0) {
+      _tolakAlur(
+        'berlaku_mulai_lampau',
+        'Tanggal berlaku tidak boleh sebelum hari ini.',
+      );
+    }
+    if (!_adaSimulasiV2) {
+      _tolakAlur('simulasi_belum_ada', 'Jalankan simulasi dulu.');
+    }
+    if (_simulasiKedaluwarsa) {
+      _tolakAlur('simulasi_kedaluwarsa', 'Jalankan simulasi ulang.');
+    }
+    final kurang = [ButirPengakuanAcuan.terbitCetakBerubah]
+        .where(
+          (b) =>
+              (pengakuan[b] ?? '').trim().length <
+              ButirPengakuanAcuan.panjangMinimum,
+        )
+        .toList();
+    if (kurang.isNotEmpty) {
+      _tolakAlur(
+        'pengakuan_wajib',
+        'Simulasi menunjukkan hal yang wajib diakui.',
+        rincian: {'butir': kurang},
+      );
+    }
+    _statusV2 = 'aktif';
+    _berlakuMulaiV2 = iso;
+    _catatLog('sahkan', 'diajukan', 'aktif', catatan);
   }
 }

@@ -771,4 +771,41 @@ class StudioL10nId extends StudioL10n {
 
   @override
   String get unggahMasterGagal => 'Unggahan gagal.';
+
+  @override
+  String get unggahMasterStrukturJudul =>
+      'Struktur master tidak cocok lagi dengan peta selnya — tidak ada yang diimpor:';
+
+  @override
+  String get unggahMasterPetaTervalidasi =>
+      'Struktur tervalidasi terhadap peta sel.';
+
+  @override
+  String get unggahMasterBelumTerpetakan =>
+      'Belum terpetakan: struktur master ini belum divalidasi, dan isinya TIDAK dipakai jalur hitung, sertifikat, maupun CMC.';
+
+  @override
+  String get unggahMasterSudahAda =>
+      'Berkas yang sama persis sudah pernah diimpor; tidak ada yang berubah.';
+
+  @override
+  String unggahMasterDrafDibuat(int nomor, int sel) {
+    return 'Draf data acuan v$nomor dibuat ($sel sel berubah). Draf tidak memengaruhi hitungan apa pun sampai diajukan, disimulasikan, dan diaktifkan dari aplikasi lab.';
+  }
+
+  @override
+  String unggahMasterDrafSudahAda(String versi) {
+    return 'Draf dengan isi yang sama sudah ada ($versi).';
+  }
+
+  @override
+  String get unggahMasterSamaDasar =>
+      'Isinya sama dengan versi dasar; tidak ada draf baru.';
+
+  @override
+  String get unggahMasterPaketBelumAda =>
+      'Paket data acuan belum ada di server (impor awal dulu); draf tidak dibuat.';
+
+  @override
+  String get unggahMasterBukaAlur => 'Buka alur versi';
 }
