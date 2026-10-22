@@ -134,7 +134,13 @@ void main() {
       // Byte-nya ditarik duluan lalu dipasang lewat memory.
       final gambar = tester.widgetList<Image>(find.byType(Image));
       expect(gambar, isNotEmpty);
-      expect(gambar.first.image, isA<MemoryImage>());
+      // Dibungkus `ResizeImage` (`cacheWidth`, hemat memori di HP RAM kecil)
+      // — sumbernya tetap byte di memori, bukan network.
+      final sumber = gambar.first.image;
+      expect(
+        sumber is ResizeImage ? sumber.imageProvider : sumber,
+        isA<MemoryImage>(),
+      );
     });
 
     testWidgets('udah ada → slider posisi muncul, lengkap 3 sumbu',

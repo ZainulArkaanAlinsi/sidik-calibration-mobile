@@ -5041,6 +5041,12 @@ abstract class AppLocalizations {
   /// **'End'**
   String get lkAkhir;
 
+  /// Out-of-memory while decoding/processing a scan photo on a low-RAM phone.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo is too large for this phone. Please take it again.'**
+  String get lkGalatFotoTerlaluBesar;
+
   /// Pesan waktu foto gagal didekode atau pindai gagal karena sebab tak terduga.
   ///
   /// In en, this message translates to:

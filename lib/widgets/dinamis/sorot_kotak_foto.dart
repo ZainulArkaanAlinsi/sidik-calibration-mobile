@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../../models/skema_dinamis.dart';
+import '../lebar_dekode.dart';
 
 /// Kotak dari koordinat CITRA -> koordinat KOTAK TAMPIL, buat `BoxFit.contain`.
 ///
@@ -145,7 +146,15 @@ class _SorotKotakFotoState extends State<SorotKotakFoto> {
         return Stack(
           fit: StackFit.expand,
           children: [
-            Image.file(widget.foto, fit: BoxFit.contain),
+            // Didekode seukuran tampilnya, bukan 4200 px penuh (±70 MB RGBA
+            // di memori GPU/heap — HP 2 GB bisa ditutup sistem). Kotak sorot
+            // tetap dihitung dari ukuran ASLI ([_ukuranCitra]); `contain`
+            // menjaga rasio, jadi posisinya tidak bergeser.
+            Image.file(
+              widget.foto,
+              fit: BoxFit.contain,
+              cacheWidth: lebarDekode(context, batas.maxWidth),
+            ),
             if (sorot != null)
               Positioned.fromRect(
                 rect: sorot,

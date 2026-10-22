@@ -273,9 +273,54 @@ class _IsiFolder extends ConsumerWidget {
     final adaYangBisaDitarik =
         isi.berkas.isNotEmpty || isi.subfolder.any((f) => f.bisaDipindah);
 
+    // Satu folder bisa berisi ratusan berkas (folder per pelanggan/tahun).
+    // `ListView(children:)` membangun SEMUA kartu sekaligus — di HP RAM kecil
+    // itu jank dan memori yang tidak perlu. Kepala (breadcrumb, petunjuk,
+    // kosong) tetap dibangun langsung; kartu folder/berkas dibangun malas.
+    final kepala = <Widget>[
+      if (isi.breadcrumb.length > 1) ...[
+        _Breadcrumb(
+          jejak: isi.breadcrumb,
+          sekarang: isi.folderId,
+          alamat: alamat,
+        ),
+        const SizedBox(height: AppSpacing.md),
+      ],
+
+      if (adaYangBisaDitarik) ...[
+        Row(
+          children: [
+            Icon(
+              Icons.drag_indicator,
+              size: 14,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Expanded(
+              child: Text(
+                l10n.arsipPetunjukPindah,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+      ],
+
+      if (isi.kosong)
+        Padding(
+          padding: const EdgeInsets.only(top: AppSpacing.xl),
+          child: _Kosong(pesan: l10n.arsipFolderKosong),
+        ),
+    ];
+    final nFolder = isi.subfolder.length;
+    final nBerkas = isi.berkas.length;
+
     return RefreshIndicator(
       onRefresh: () async => ref.invalidate(arsipIsiFolderProvider(alamat)),
-      child: ListView(
+      child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.md,
           AppSpacing.sm,
@@ -283,54 +328,18 @@ class _IsiFolder extends ConsumerWidget {
           // Ruang buat FAB biar item terakhir nggak ketutupan.
           96,
         ),
-        children: [
-          if (isi.breadcrumb.length > 1) ...[
-            _Breadcrumb(
-              jejak: isi.breadcrumb,
-              sekarang: isi.folderId,
-              alamat: alamat,
-            ),
-            const SizedBox(height: AppSpacing.md),
-          ],
+        itemCount: kepala.length + nFolder + nBerkas,
+        itemBuilder: (context, i) {
+          if (i < kepala.length) return kepala[i];
+          final j = i - kepala.length;
 
-          if (adaYangBisaDitarik) ...[
-            Row(
-              children: [
-                Icon(
-                  Icons.drag_indicator,
-                  size: 14,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                Expanded(
-                  child: Text(
-                    l10n.arsipPetunjukPindah,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-          ],
-
-          if (isi.kosong)
-            Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.xl),
-              child: _Kosong(pesan: l10n.arsipFolderKosong),
-            ),
-
-          for (final folder in isi.subfolder) ...[
-            _KartuFolder(folder: folder, alamat: alamat),
-            const SizedBox(height: AppSpacing.sm),
-          ],
-
-          for (final berkas in isi.berkas) ...[
-            _KartuBerkas(berkas: berkas),
-            const SizedBox(height: AppSpacing.sm),
-          ],
-        ],
+          return Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: j < nFolder
+                ? _KartuFolder(folder: isi.subfolder[j], alamat: alamat)
+                : _KartuBerkas(berkas: isi.berkas[j - nFolder]),
+          );
+        },
       ),
     );
   }

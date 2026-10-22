@@ -10,6 +10,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/izin_provider.dart';
 import '../../providers/tanda_tangan_provider.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/lebar_dekode.dart';
 import '../../widgets/sidik_loader.dart';
 
 /// Pengaturan tanda tangan yang dicetak di sertifikat — **admin doang**.
@@ -370,6 +371,7 @@ class _PratinjauCetak extends StatelessWidget {
                             height: tinggiKotak,
                             child: Image.memory(
                               gambar,
+                              cacheWidth: lebarDekode(context, lebarGambar),
                               fit: BoxFit.contain,
                               alignment: Alignment.bottomCenter,
                             ),
@@ -444,7 +446,13 @@ class _Pratinjau extends StatelessWidget {
           // hasilnya `401` dan gambarnya nggak pernah muncul.
           : Padding(
               padding: const EdgeInsets.all(AppSpacing.md),
-              child: Image.memory(gambar, fit: BoxFit.contain),
+              child: LayoutBuilder(
+                builder: (context, batas) => Image.memory(
+                  gambar,
+                  fit: BoxFit.contain,
+                  cacheWidth: lebarDekode(context, batas.maxWidth),
+                ),
+              ),
             ),
     );
   }

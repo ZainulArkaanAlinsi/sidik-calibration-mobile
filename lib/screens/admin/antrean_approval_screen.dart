@@ -130,29 +130,33 @@ class _DaftarState extends State<_Daftar> {
         if (urutPt.length > 1)
           SizedBox(
             height: 64,
-            child: ListView(
+            // Builder: jumlah pelanggan di antrean tidak dibatasi — chip
+            // dibangun hanya yang kelihatan.
+            child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.md,
                 vertical: AppSpacing.sm,
               ),
-              children: [
-                _Chip(
-                  label: l10n.antreanSemuaPt(widget.items.length),
-                  aktif: dipilih == null,
-                  onTap: () => setState(() => _pt = null),
-                ),
-                for (final pt in urutPt)
-                  _Chip(
-                    label: pt,
-                    jumlah: jumlah[pt],
-                    aktif: dipilih == pt,
-                    // Ditekan lagi = balik ke semua. Tanpa itu, sekali
-                    // nyaring admin kepaksa cari chip "Semua" buat keluar.
-                    onTap: () =>
-                        setState(() => _pt = dipilih == pt ? null : pt),
-                  ),
-              ],
+              itemCount: urutPt.length + 1,
+              itemBuilder: (context, i) {
+                if (i == 0) {
+                  return _Chip(
+                    label: l10n.antreanSemuaPt(widget.items.length),
+                    aktif: dipilih == null,
+                    onTap: () => setState(() => _pt = null),
+                  );
+                }
+                final pt = urutPt[i - 1];
+                return _Chip(
+                  label: pt,
+                  jumlah: jumlah[pt],
+                  aktif: dipilih == pt,
+                  // Ditekan lagi = balik ke semua. Tanpa itu, sekali
+                  // nyaring admin kepaksa cari chip "Semua" buat keluar.
+                  onTap: () => setState(() => _pt = dipilih == pt ? null : pt),
+                );
+              },
             ),
           ),
         Expanded(

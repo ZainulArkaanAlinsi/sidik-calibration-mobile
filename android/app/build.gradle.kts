@@ -32,6 +32,11 @@ val berkasGoogleServices = file("google-services.json")
 
 if (berkasGoogleServices.exists()) {
     apply(plugin = "com.google.gms.google-services")
+    // Crashlytics ikut syarat yang sama: tanpa google-services.json dia tidak
+    // punya app id, dan Firebase memang mati di build itu (laporan crash
+    // dimatikan juga di sisi Dart — `PelaporGalat` cuma hidup kalau Firebase
+    // hidup).
+    apply(plugin = "com.google.firebase.crashlytics")
 } else {
     logger.lifecycle(
         "[sidik] google-services.json nggak ada — build jalan terus, " +

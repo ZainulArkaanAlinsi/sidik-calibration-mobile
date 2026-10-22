@@ -2,6 +2,7 @@ import 'dart:isolate';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:image/image.dart' as img;
 
 import '../models/worksheet_template.dart';
@@ -393,26 +394,50 @@ class JalankanPindaiAsli {
     ({double w, double h}) halamanPt,
     Uint8List? jpegAsli,
   ) async {
-    // EXIF orientasi dipanggang dulu: `decodeImage` membiarkan piksel apa
-    // adanya dan cuma mencatat orientasinya. Cuma kalau memang ada —
-    // `bakeOrientation` selalu menyalin, dan salinan foto 12 MP itu ±36 MB.
-    // Panggang & putar menyalin seluruh foto → isolate latar.
+    // EXIF orientasi harus dipanggang: `decodeImage` membiarkan piksel apa
+    // adanya dan cuma mencatat orientasinya. Panggang & putar menyalin seluruh
+    // foto → isolate latar.
+    //
+    // Memori (HP RAM kecil): foto 4200 px ≈ 40 MB RGB per salinan. Dulu
+    // `bakeOrientation` (yang sendiri menyalin DUA kali) lalu `copyRotate`
+    // terpisah, dan hasil panggangan (`tegak`) ikut ditahan di isolate UI
+    // selama semua percobaan sudut — puncaknya 4 salinan penuh. Untuk
+    // orientasi kamera biasa (1/3/6/8, tanpa cermin) panggang + putar kini
+    // digabung jadi SATU putaran kelipatan 90° dari foto mentah
+    // ([tegakkanDanPutar]): pikselnya identik (putaran 90° = permutasi piksel
+    // persis), salinan antaranya tidak pernah lahir, dan kandidat sudut yang
+    // gagal langsung lepas sebelum kandidat berikutnya dibuat. Resolusi tidak
+    // diubah. Orientasi bercermin (2/4/5/7, jarang dari kamera) tetap jalur
+    // lama.
     final ifd = foto.exif.imageIfd;
     final orientasiAsal = ifd.hasOrientation ? ifd.orientation ?? 1 : 1;
-    final tegak = ifd.hasOrientation && ifd.orientation != 1
+    final sudutExif = sudutExifTanpaCermin(orientasiAsal);
+    final tegakCermin = sudutExif == null
         ? await _panggangDiIsolate(foto)
-        : foto;
+        : null;
+
+    final tegakLanskap = switch (sudutExif) {
+      null => tegakCermin!.width >= tegakCermin.height,
+      90 || 270 => foto.height >= foto.width,
+      _ => foto.width >= foto.height,
+    };
 
     final halamanLanskap = halamanPt.w >= halamanPt.h;
-    final fotoLanskap = tegak.width >= tegak.height;
-    final sudut = halamanLanskap == fotoLanskap
+    final sudut = halamanLanskap == tegakLanskap
         ? const [0, 180]
         : const [90, 270];
 
     String? kodeLain;
 
     for (final s in sudut) {
-      final citra = s == 0 ? tegak : await _putarDiIsolate(tegak, s);
+      final img.Image citra;
+      if (tegakCermin != null) {
+        citra = s == 0 ? tegakCermin : await _putarDiIsolate(tegakCermin, s);
+      } else if (orientasiAsal == 1 && s == 0) {
+        citra = foto;
+      } else {
+        citra = await _tegakkanDanPutarDiIsolate(foto, s);
+      }
       // JPEG asli + orientasi EXIF yang membuat ML Kit melihat bingkai yang
       // SAMA dengan [citra] (EXIF dipanggang lalu diputar [s]).
       final terbaca = await halaman.baca(
@@ -624,6 +649,40 @@ Future<img.Image> _panggangDiIsolate(img.Image foto) =>
 
 Future<img.Image> _putarDiIsolate(img.Image citra, int sudut) =>
     Isolate.run(() => _putar((citra: citra, sudut: sudut)));
+
+Future<img.Image> _tegakkanDanPutarDiIsolate(img.Image foto, int sudut) =>
+    Isolate.run(() => tegakkanDanPutar(foto, sudut));
+
+/// Sudut putar (searah jarum jam) yang setara `img.bakeOrientation` untuk
+/// orientasi EXIF TANPA cermin. `null` = orientasi bercermin (2/4/5/7) atau
+/// tak dikenal — pakai `bakeOrientation` apa adanya.
+int? sudutExifTanpaCermin(int orientasi) => switch (orientasi) {
+  1 => 0,
+  3 => 180,
+  6 => 90,
+  8 => 270,
+  _ => null,
+};
+
+/// `copyRotate(bakeOrientation(foto), angle: sudut)` dalam SATU salinan,
+/// untuk orientasi EXIF tanpa cermin. Pikselnya identik dengan jalur dua
+/// langkah (dijaga test `pindai_asli_orientasi_test.dart`): putaran kelipatan
+/// 90° di paket `image` adalah permutasi piksel persis, jadi dua putaran sama
+/// dengan satu putaran jumlahnya. Orientasi di EXIF hasil dihapus, sama seperti
+/// `bakeOrientation`.
+@visibleForTesting
+img.Image tegakkanDanPutar(img.Image foto, int sudut) {
+  final ifd = foto.exif.imageIfd;
+  final orientasi = ifd.hasOrientation ? ifd.orientation ?? 1 : 1;
+  final sudutExif = sudutExifTanpaCermin(orientasi);
+  if (sudutExif == null) {
+    return img.copyRotate(img.bakeOrientation(foto), angle: sudut);
+  }
+
+  final hasil = img.copyRotate(foto, angle: (sudutExif + sudut) % 360);
+  if (orientasi != 1) hasil.exif.imageIfd.orientation = null;
+  return hasil;
+}
 
 Future<({img.Image warp, ({double blur, double kecerahan, double glare}) mutu})>
 _ratakanDanUkurDiIsolate(

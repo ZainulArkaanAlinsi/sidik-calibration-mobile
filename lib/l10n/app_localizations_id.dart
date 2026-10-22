@@ -2738,6 +2738,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkAkhir => 'End';
 
   @override
+  String get lkGalatFotoTerlaluBesar =>
+      'Foto terlalu besar untuk HP ini, coba foto ulang.';
+
+  @override
   String get lkPindaiGagalFoto => 'Foto tidak bisa dibaca. Coba jepret ulang.';
 
   @override

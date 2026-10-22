@@ -70,10 +70,18 @@ class PembacaDigitTflite {
       );
     }
 
-    return (
-      pembaca: PembacaDigitTflite._(meta, buatInterpreter(model)),
-      ditolak: null,
-    );
+    // Runtime LiteRT bisa gagal dimuat di HP tertentu (pustaka native tidak
+    // terbaca, RAM habis waktu memetakan model). Itu bukan alasan aplikasinya
+    // tumbang: pembaca model cuma pelengkap, jadi jatuh ke "tanpa model" dan
+    // sel tetap diisi manusia/ML Kit.
+    final InterpreterDigit interpreter;
+    try {
+      interpreter = buatInterpreter(model);
+    } catch (_) {
+      return const (pembaca: null, ditolak: PenolakanModel.runtimeGagalDimuat);
+    }
+
+    return (pembaca: PembacaDigitTflite._(meta, interpreter), ditolak: null);
   }
 
   /// Muat `meta.json` + berkas model dari [folder] (mis. folder dukungan app;
@@ -160,6 +168,10 @@ enum PenolakanModel {
   /// `asal_data` = `publik`/`sintetis` — model latihan data orang lain.
   asalDataBukanAsli,
   asalDataTakDikenal,
+
+  /// Runtime LiteRT/interpreter gagal dibuat di HP ini (pustaka native tak
+  /// termuat, memori kurang). Model dilewati, aplikasi jalan terus.
+  runtimeGagalDimuat,
 }
 
 /// Seam interpreter: satu masukan 28×28 float (0..1) → peluang per kelas.

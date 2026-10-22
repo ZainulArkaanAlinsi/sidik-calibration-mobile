@@ -103,45 +103,54 @@ class _Isi extends StatelessWidget {
     final berubah = data.sel.where((s) => s.berubah).toList();
     final sama = data.sel.where((s) => !s.berubah).toList();
 
-    return ReadableWidth(
-      child: ListView(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        children: [
-          Text(
-            l10n.bandingkanRingkas(data.jumlahBerubah, data.totalSel),
-            key: const ValueKey('bandingkan-ringkas'),
-            style: theme.textTheme.titleMedium,
+    // Lembar besar bisa ratusan sel berubah — kartunya dibangun malas.
+    final kepala = <Widget>[
+      Text(
+        l10n.bandingkanRingkas(data.jumlahBerubah, data.totalSel),
+        key: const ValueKey('bandingkan-ringkas'),
+        style: theme.textTheme.titleMedium,
+      ),
+      if (data.asliDibekukanPada != null)
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Text(
+            l10n.bandingkanDibekukan(
+              tanggalPendek(context, data.asliDibekukanPada!.toLocal()),
+            ),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
-          if (data.asliDibekukanPada != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Text(
-                l10n.bandingkanDibekukan(
-                  tanggalPendek(context, data.asliDibekukanPada!.toLocal()),
-                ),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-          const SizedBox(height: AppSpacing.md),
-          if (berubah.isEmpty)
-            Text(l10n.bandingkanTidakAdaBerubah)
-          else
-            for (final s in berubah) _KartuSel(sel: s, sorot: true),
-          if (sama.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.md),
-            ExpansionTile(
-              key: const ValueKey('bandingkan-tidak-berubah'),
-              tilePadding: EdgeInsets.zero,
-              title: Text(
-                l10n.bandingkanTidakBerubahJudul(sama.length),
-                style: theme.textTheme.titleSmall,
-              ),
-              children: [for (final s in sama) _KartuSel(sel: s)],
-            ),
-          ],
-        ],
+        ),
+      const SizedBox(height: AppSpacing.md),
+      if (berubah.isEmpty) Text(l10n.bandingkanTidakAdaBerubah),
+    ];
+    final ekor = <Widget>[
+      if (sama.isNotEmpty) ...[
+        const SizedBox(height: AppSpacing.md),
+        ExpansionTile(
+          key: const ValueKey('bandingkan-tidak-berubah'),
+          tilePadding: EdgeInsets.zero,
+          title: Text(
+            l10n.bandingkanTidakBerubahJudul(sama.length),
+            style: theme.textTheme.titleSmall,
+          ),
+          children: [for (final s in sama) _KartuSel(sel: s)],
+        ),
+      ],
+    ];
+    final n = berubah.length;
+
+    return ReadableWidth(
+      child: ListView.builder(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        itemCount: kepala.length + n + ekor.length,
+        itemBuilder: (context, i) {
+          if (i < kepala.length) return kepala[i];
+          final j = i - kepala.length;
+          if (j >= n) return ekor[j - n];
+          return _KartuSel(sel: berubah[j], sorot: true);
+        },
       ),
     );
   }

@@ -341,23 +341,41 @@ jobs:
       # selalu berangka lebih kecil daripada build CI, jadi APK hasil coba-coba
       # di laptop nggak bisa nimpa rilis yang dipegang teknisi — kebalikannya
       # yang bahaya, dan diam-diam.
-      # `--target-platform android-arm64` motong APK dari ~115 MB jadi ~50 MB.
+      # `--target-platform android-arm,android-arm64` (22 Okt 2026).
       #
-      # Bawaannya "fat APK": mesin Flutter + SELURUH pustaka native dikemas tiga
-      # kali — arm64-v8a, armeabi-v7a, dan x86_64. HP yang masang cuma pakai
-      # satu dari tiga; dua sisanya ikut terunduh lalu nganggur di
-      # penyimpanan. Buat aplikasi ini beratnya kerasa karena dua model ML Kit
-      # (pengenal teks & barcode) ditanam di dalam APK — itu keputusan sadar
-      # supaya pindai lembar kerja jalan on-device dan foto pelanggan nggak
-      # pernah keluar dari HP, tapi harganya kelipatan tiga kalau ABI-nya nggak
-      # dibatasi.
+      # Bawaan Flutter itu "fat APK" tiga ABI: arm64-v8a, armeabi-v7a, DAN
+      # x86_64. x86_64 cuma kepakai emulator/Chromebook — dibuang. Yang
+      # dipertahanin dua-duanya ARM, karena:
       #
-      # arm64-v8a nutup semua HP Android keluaran 2015 ke atas. Yang dikorbanin:
-      #   - HP 32-bit yang sangat lama nggak bisa masang. Kalau suatu hari ada
-      #     teknisi yang bawa satu, tambahin `,android-arm` di sini — bukan
-      #     balikin ke fat APK.
-      #   - Emulator x86_64 NGGAK kena: `flutter run` di emulator bangun debug,
-      #     dan baris ini cuma nyentuh jalur release.
+      # Sampai 21 Okt baris ini cuma `android-arm64`. Akibatnya HP 32-bit
+      # NGGAK BISA MASANG sama sekali ("Aplikasi tidak terpasang"). Itu bukan
+      # cuma HP "sangat lama": banyak HP murah 2019–2023 (Android Go, chipset
+      # Helio A/P, Unisoc SC9863A, Snapdragon 4xx) prosesornya 64-bit tapi
+      # Android-nya dipasang 32-bit demi hemat RAM — mereka cuma terima
+      # armeabi-v7a. Syarat pemilik: aplikasi lab harus jalan di HP murah/lama
+      # yang kami dukung. Jadi armeabi-v7a masuk lagi.
+      #
+      # Pustaka native yang ikut dikemas, dan semuanya punya armeabi-v7a
+      # (diperiksa 22 Okt 2026):
+      #   - Mesin Flutter — ya.
+      #   - LiteRT (`tflite_flutter` 0.12.1 → `com.google.ai.edge.litert:litert`
+      #     1.4.0): AAR-nya membawa jni/armeabi-v7a/libtensorflowlite_jni.so.
+      #   - PDFium (`pdfrx` → `pdfium_dart` hook/build.dart memetakan
+      #     Architecture.arm → `pdfium-android-arm.tgz` dari bblanchon/
+      #     pdfium-binaries rilis chromium/7811 — berkasnya ada).
+      #   - ML Kit TIDAK membawa .so di APK: sudah UNBUNDLED lewat Play
+      #     Services (lihat android/app/build.gradle.kts), jadi ABI-nya ikut HP.
+      #
+      # Ongkosnya ukuran: tiap ABI tambahan nambah mesin Flutter + .so di atas
+      # (kira-kira +15–20 MB). Angka nyatanya dicetak ke ringkasan run di
+      # bawah. Nggak ada batas ukuran yang dipaksa di workflow ini maupun di
+      # pengunduh pembaruan di aplikasi (`pengunduh_apk.dart` nggak mematok
+      # ukuran), jadi kenaikannya nggak mematahkan apa pun — cuma kuota.
+      # Jalan keluarnya kalau ukuran jadi masalah: APK per-ABI
+      # (`--split-per-abi`) + pengunduh memilih ABI HP — BUKAN membuang arm.
+      #
+      # Emulator x86_64 NGGAK kena: `flutter run` di emulator bangun debug,
+      # dan baris ini cuma nyentuh jalur release.
       # NAMA versi ikut naik, bukan cuma nomor build.
       #
       # Sampai sebelum ini `--build-number` saja yang naik, jadi tiap rilis
@@ -465,7 +483,7 @@ jobs:
           NAMA_VERSI: ${{ steps.versi.outputs.nama }}
         run: |
           flutter build apk --release \
-            --target-platform android-arm64 \
+            --target-platform android-arm,android-arm64 \
             --build-name="$NAMA_VERSI" \
             --build-number="$NOMOR_BUILD" \
             --dart-define=APP_ENV=prod \
@@ -475,7 +493,7 @@ jobs:
           # nambah dependensi berat, kenaikannya kelihatan di sini — bukan baru
           # kerasa sama teknisi yang unduhnya lewat data lapangan.
           UKURAN=$(du -m build/app/outputs/flutter-apk/app-release.apk | cut -f1)
-          echo "APK arm64: ${UKURAN} MB (build $NOMOR_BUILD)" >> "$GITHUB_STEP_SUMMARY"
+          echo "APK arm+arm64: ${UKURAN} MB (build $NOMOR_BUILD)" >> "$GITHUB_STEP_SUMMARY"
 
       # Penjagaan di atas memastikan kuncinya ADA. Langkah ini memastikan
       # kunci itu yang BENERAN DIPAKAI — dua hal berbeda, dan yang kedua yang
