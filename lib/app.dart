@@ -13,6 +13,9 @@ import 'providers/theme_mode_provider.dart';
 import 'screens/auth/auth_gate.dart';
 import 'widgets/lapisan_kabar_masuk.dart';
 
+/// Rentang skala huruf yang dihormati aplikasi (lihat `builder` di bawah).
+const batasSkalaHuruf = (min: 0.8, max: 1.3);
+
 class SidikApp extends ConsumerWidget {
   const SidikApp({super.key});
 
@@ -71,8 +74,17 @@ class SidikApp extends ConsumerWidget {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       // Toast kabar masuk di atas semua layar (ikut Navigator, di bawah dialog).
-      builder: (context, child) =>
-          LapisanKabarMasuk(child: child ?? const SizedBox.shrink()),
+      //
+      // Skala huruf HP dijepit ke [batasSkalaHuruf]. HP murah sering dipasang
+      // "huruf sangat besar" (1,5–2,0×) oleh pemiliknya; tata letak lembar
+      // kerja (kolom angka, dialog titik ukur) di layar 320 dp lalu meluap
+      // dan tombol simpan terdorong keluar layar. Sampai 1,3× tetap dihormati
+      // — itu yang diuji `skala_huruf_layar_sempit_test.dart`.
+      builder: (context, child) => MediaQuery.withClampedTextScaling(
+        minScaleFactor: batasSkalaHuruf.min,
+        maxScaleFactor: batasSkalaHuruf.max,
+        child: LapisanKabarMasuk(child: child ?? const SizedBox.shrink()),
+      ),
       home: const AuthGate(),
     );
   }

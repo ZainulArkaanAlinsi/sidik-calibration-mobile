@@ -81,6 +81,20 @@ void main() {
     );
   });
 
+  test('runtime LiteRT gagal dimuat (mis. HP 32-bit/RAM kecil) → ditolak, '
+      'tidak melempar', () {
+    final h = PembacaDigitTflite.siapkan(
+      sakelar: nyala,
+      model: model,
+      metaJson: meta(),
+      buatInterpreter: (_) => throw ArgumentError(
+        'Failed to load dynamic library libtensorflowlite_jni.so',
+      ),
+    );
+    expect(h.pembaca, isNull);
+    expect(h.ditolak, PenolakanModel.runtimeGagalDimuat);
+  });
+
   test('model asli + sha cocok: klasifikasi memakai interpreter', () {
     final h = siap();
     expect(h.ditolak, isNull);

@@ -189,12 +189,15 @@ class _SidikTombolState extends State<SidikTombol> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 70),
             curve: Curves.easeOut,
-            height: tinggi,
+            // TINGGI MINIMUM, bukan tinggi tetap: dengan huruf besar
+            // (aksesibilitas HP, skala s.d. 1,3) label yang dipatok 48 px
+            // terpotong. `heightFactor: 1` menjaga tombol tetap setinggi
+            // isinya (min [tinggi]) walau induknya memberi ruang lebih.
+            constraints: BoxConstraints(minHeight: tinggi),
             width: widget.penuh ? double.infinity : null,
             padding: EdgeInsets.symmetric(horizontal: widget.kecil ? 14 : 18),
-            alignment: Alignment.center,
             decoration: hiasan,
-            child: isiTombol,
+            child: Align(heightFactor: 1, child: isiTombol),
           ),
         ),
       ),

@@ -162,85 +162,94 @@ class _Isi extends StatelessWidget {
     final m = SidikMaterial.of(context);
     final aktif = tab[pilih.clamp(0, tab.length - 1)];
 
+    // Daftar alat jatuh tempo bisa ratusan baris (semua pelanggan). Kepala &
+    // ekor dibangun langsung; baris alat dibangun malas (`ListView.builder`)
+    // supaya HP RAM kecil tidak membangun ratusan kartu sekaligus.
+    final kepala = <Widget>[
+      Kertas(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(ikonCatatan, size: 20, color: m.tinta2),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(child: Text(catatan, style: theme.textTheme.bodySmall)),
+          ],
+        ),
+      ),
+      const SizedBox(height: AppSpacing.md),
+      Wrap(
+        spacing: AppSpacing.sm,
+        runSpacing: AppSpacing.sm,
+        children: [
+          for (var i = 0; i < tab.length; i++)
+            ChoiceChip(
+              label: Text('${tab[i].label} ${tab[i].isi.length}'),
+              selected: i == pilih,
+              onSelected: (_) => onPilih(i),
+            ),
+        ],
+      ),
+      const SizedBox(height: AppSpacing.md),
+      Row(
+        children: [
+          Expanded(
+            child: Text(
+              aktif.urutan.toUpperCase(),
+              style: m.gayaEtsa(ukuran: 11),
+            ),
+          ),
+          Text(
+            l10n.jatuhTempoPer(tanggalPendek(context, hariIni)).toUpperCase(),
+            style: m.gayaEtsa(ukuran: 11),
+          ),
+        ],
+      ),
+      const SizedBox(height: AppSpacing.sm),
+      if (aktif.isi.isEmpty)
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+          child: Column(
+            children: [
+              Icon(Icons.task_alt, size: 48, color: m.tinta2),
+              const SizedBox(height: AppSpacing.md),
+              Text(aktif.kosong, textAlign: TextAlign.center),
+            ],
+          ),
+        ),
+    ];
+    final ekor = <Widget>[
+      if (penutup != null && aktif.isi.isNotEmpty) ...[
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          penutup!,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodySmall,
+        ),
+      ],
+    ];
+    final n = aktif.isi.length;
+
     return RefreshIndicator(
       onRefresh: onRefresh,
-      child: ListView(
+      child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.md,
           AppSpacing.md,
           AppSpacing.md,
           AppSpacing.xl,
         ),
-        children: [
-          Kertas(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(ikonCatatan, size: 20, color: m.tinta2),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(catatan, style: theme.textTheme.bodySmall),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
-            children: [
-              for (var i = 0; i < tab.length; i++)
-                ChoiceChip(
-                  label: Text('${tab[i].label} ${tab[i].isi.length}'),
-                  selected: i == pilih,
-                  onSelected: (_) => onPilih(i),
-                ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  aktif.urutan.toUpperCase(),
-                  style: m.gayaEtsa(ukuran: 11),
-                ),
-              ),
-              Text(
-                l10n
-                    .jatuhTempoPer(tanggalPendek(context, hariIni))
-                    .toUpperCase(),
-                style: m.gayaEtsa(ukuran: 11),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          if (aktif.isi.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
-              child: Column(
-                children: [
-                  Icon(Icons.task_alt, size: 48, color: m.tinta2),
-                  const SizedBox(height: AppSpacing.md),
-                  Text(aktif.kosong, textAlign: TextAlign.center),
-                ],
-              ),
-            )
-          else
-            for (final item in aktif.isi) ...[
-              BarisJatuhTempo(item: item, aksiUbah: aksiUbah),
-              const SizedBox(height: AppSpacing.sm),
-            ],
-          if (penutup != null && aktif.isi.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              penutup!,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall,
-            ),
-          ],
-        ],
+        itemCount: kepala.length + n + ekor.length,
+        itemBuilder: (context, i) {
+          if (i < kepala.length) return kepala[i];
+          final j = i - kepala.length;
+          if (j >= n) return ekor[j - n];
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: BarisJatuhTempo(item: aktif.isi[j], aksiUbah: aksiUbah),
+          );
+        },
       ),
     );
   }

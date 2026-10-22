@@ -25,6 +25,10 @@ plugins {
     // menanamkan identitas proyek Firebase ke APK. Tanpa ini, `firebase_core`
     // terpasang tapi `Firebase.initializeApp()` gagal waktu aplikasi jalan.
     id("com.google.gms.google-services") version "4.4.3" apply false
+    // Crashlytics — mengunggah berkas mapping R8 supaya jejak crash rilis
+    // terbaca. v3 butuh Gradle 8 + AGP 8.1 + google-services 4.4.1 (terpenuhi).
+    // Diterapkan bersyarat di app/build.gradle.kts, sama seperti google-services.
+    id("com.google.firebase.crashlytics") version "3.0.8" apply false
 }
 
 include(":app")

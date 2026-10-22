@@ -2757,6 +2757,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkAkhir => 'End';
 
   @override
+  String get lkGalatFotoTerlaluBesar =>
+      'The photo is too large for this phone. Please take it again.';
+
+  @override
   String get lkPindaiGagalFoto =>
       'The photo could not be read. Try taking it again.';
 

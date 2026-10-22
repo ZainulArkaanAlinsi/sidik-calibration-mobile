@@ -19,6 +19,7 @@ import '../../widgets/app_button.dart';
 import '../../widgets/sidik/sidik_permukaan.dart';
 import '../../widgets/sidik/sidik_tombol.dart';
 import '../../widgets/sertifikat_pdf_view.dart';
+import '../../widgets/lebar_dekode.dart';
 import '../../widgets/sidik_loader.dart';
 import 'batal_sertifikat_dialog.dart';
 import 'info_dokumen_sertifikat.dart';
@@ -393,7 +394,12 @@ class _BilahUnduhState extends ConsumerState<_BilahUnduh> {
           children: [
             // QR-nya digambar BACKEND — mobile cuma nampilin PNG-nya, jadi
             // isi yang di-encode nggak mungkin beda dari halaman verifikasi.
-            Image.file(File(path), width: 200, height: 200),
+            Image.file(
+              File(path),
+              width: 200,
+              height: 200,
+              cacheWidth: lebarDekode(context, 200),
+            ),
             const SizedBox(height: AppSpacing.sm),
             Text(
               l10n.sertQrBody,

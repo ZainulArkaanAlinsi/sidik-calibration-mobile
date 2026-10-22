@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image/image.dart' as img show Image;
 import 'package:path_provider/path_provider.dart';
 
 import '../../l10n/app_localizations.dart';
@@ -101,7 +102,18 @@ Future<int> pindaiFormulirAsli({
     // Sampah yang tak terhapus bukan alasan menolak foto.
   }
 
-  final citra = await decodeFotoDiIsolate(bita);
+  // Decode 4200 px = puluhan MB RGB. Di HP RAM kecil bisa kehabisan memori
+  // (OutOfMemoryError dari isolate): dulu galat ini lolos tanpa pesan dan
+  // alurnya berhenti diam-diam. Sekarang teknisi diberi tahu dan diminta
+  // foto ulang; galatnya dicatat non-fatal.
+  final img.Image? citra;
+  try {
+    citra = await decodeFotoDiIsolate(bita);
+  } catch (e, st) {
+    catatGalatPindai('asli-decode', e, st);
+    kabar(pesanGalatPindai(l10n, e, umum: l10n.lkPindaiGagalFoto));
+    return 0;
+  }
   if (citra == null) {
     kabar(l10n.lkPindaiGagalFoto);
     return 0;

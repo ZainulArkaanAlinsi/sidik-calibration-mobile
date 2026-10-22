@@ -1473,6 +1473,10 @@
   "@lkAkhir": {
     "description": "Baris pengukuran akhir di tabel kondisi lingkungan."
   },
+  "lkGalatFotoTerlaluBesar": "The photo is too large for this phone. Please take it again.",
+  "@lkGalatFotoTerlaluBesar": {
+    "description": "Out-of-memory while decoding/processing a scan photo on a low-RAM phone."
+  },
   "lkPindaiGagalFoto": "The photo could not be read. Try taking it again.",
   "@lkPindaiGagalFoto": {
     "description": "Pesan waktu foto gagal didekode atau pindai gagal karena sebab tak terduga."

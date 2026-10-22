@@ -249,7 +249,13 @@ class _FormRuanganState extends State<_FormRuangan> {
         left: AppSpacing.md,
         right: AppSpacing.md,
         top: AppSpacing.md,
-        bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.md,
+        // + padding sistem bawah: Android 15 (targetSdk 35+) memaksa
+        // edge-to-edge, jadi bilah navigasi menutupi tombol Simpan kalau
+        // cuma `viewInsets` (keyboard) yang dihitung.
+        bottom:
+            MediaQuery.viewInsetsOf(context).bottom +
+            MediaQuery.paddingOf(context).bottom +
+            AppSpacing.md,
       ),
       child: SingleChildScrollView(
         child: Column(

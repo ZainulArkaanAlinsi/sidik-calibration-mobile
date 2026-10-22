@@ -113,6 +113,14 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- Crashlytics MATI sampai Dart menyalakannya: `main.dart`
+             (`_pelaporGalat`) memanggil setCrashlyticsCollectionEnabled(true)
+             hanya di build release dengan Firebase hidup. Tanpa ini crash
+             native awal di build debug/profile ikut terkirim sebelum Dart
+             sempat mematikannya. -->
+        <meta-data
+            android:name="firebase_crashlytics_collection_enabled"
+            android:value="false" />
         <!-- ML Kit UNBUNDLED: minta Google Play Services mengunduh modul OCR &
              barcode (on-device). APK sideload tidak dapat unduhan saat-pasang
              dari Play Store; modulnya turun saat pertama dipakai (butuh

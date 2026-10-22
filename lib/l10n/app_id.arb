@@ -1021,6 +1021,7 @@
   "@lkAkhir": {
     "description": "Baris pengukuran akhir di tabel kondisi lingkungan."
   },
+  "lkGalatFotoTerlaluBesar": "Foto terlalu besar untuk HP ini, coba foto ulang.",
   "lkPindaiGagalFoto": "Foto tidak bisa dibaca. Coba jepret ulang.",
   "@lkPindaiGagalFoto": {
     "description": "Pesan waktu foto gagal didekode atau pindai gagal karena sebab tak terduga."
