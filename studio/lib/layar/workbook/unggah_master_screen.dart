@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
+import 'package:sidik_calibration/screens/data_acuan/alur_versi_acuan_screen.dart';
 import 'package:sidik_calibration/services/auth_service.dart';
 
 import '../../data/pemilih_berkas.dart';
@@ -43,6 +44,8 @@ class _UnggahMasterScreenState extends ConsumerState<UnggahMasterScreen> {
   String? _galatSandi;
   String? _galatUmum;
   String? _sukses;
+  HasilUnggahMaster? _hasil;
+  ({String kepala, List<String> butir})? _galatStruktur;
   late final int? _akun;
 
   @override
@@ -64,7 +67,9 @@ class _UnggahMasterScreenState extends ConsumerState<UnggahMasterScreen> {
     if (b == null || !mounted) return;
     setState(() {
       _sukses = null;
+      _hasil = null;
       _galatUmum = null;
+      _galatStruktur = null;
       if (ekstensiMasterSah(b.nama)) {
         _berkas = b;
         _galatBerkas = null;
@@ -83,7 +88,9 @@ class _UnggahMasterScreenState extends ConsumerState<UnggahMasterScreen> {
     final alasan = _alasan.text.trim();
     setState(() {
       _sukses = null;
+      _hasil = null;
       _galatUmum = null;
+      _galatStruktur = null;
       _galatSandi = null;
       _galatBerkas = _berkas == null ? l10n.unggahMasterBerkasWajib : null;
       _galatAlasan = alasan.isEmpty ? l10n.unggahMasterAlasanWajib : null;
@@ -103,6 +110,7 @@ class _UnggahMasterScreenState extends ConsumerState<UnggahMasterScreen> {
       if (!mounted) return;
       setState(() {
         _sukses = hasil.pesan ?? l10n.unggahMasterBerhasil;
+        _hasil = hasil;
         _berkas = null;
         _gantikan = null;
         _alasan.clear();
@@ -112,6 +120,8 @@ class _UnggahMasterScreenState extends ConsumerState<UnggahMasterScreen> {
       setState(() {
         if (e.status == 422) {
           switch (GalatUnggahMaster.dari(e.body, e.message)) {
+            case GalatUnggahMaster.strukturBerubah:
+              _galatStruktur = uraiStrukturBerubah(e.message);
             case GalatUnggahMaster.sandiSalah:
               _galatSandi = l10n.unggahMasterSandiSalah;
             case GalatUnggahMaster.sandiDiperlukan:
@@ -265,6 +275,7 @@ class _UnggahMasterScreenState extends ConsumerState<UnggahMasterScreen> {
               ),
               if (_galatUmum != null)
                 _Galat(kunci: 'unggah-galat-umum', teks: _galatUmum!),
+              if (_galatStruktur != null) _GalatStruktur(_galatStruktur!),
               if (_sukses != null)
                 Padding(
                   padding: const EdgeInsets.only(top: UkuranStudio.j4),
@@ -274,6 +285,7 @@ class _UnggahMasterScreenState extends ConsumerState<UnggahMasterScreen> {
                     style: teks.bodyMedium,
                   ),
                 ),
+              if (_hasil != null) _HasilPetaSel(hasil: _hasil!),
             ],
           ),
         ),
@@ -297,4 +309,151 @@ class _Galat extends StatelessWidget {
       style: TextStyle(color: Theme.of(context).colorScheme.error),
     ),
   );
+}
+
+/// 422 `struktur_master_berubah`: kepala + daftar persis apa yang
+/// hilang/bergeser (teks server, dipecah per butir bernomor).
+class _GalatStruktur extends StatelessWidget {
+  const _GalatStruktur(this.galat);
+
+  final ({String kepala, List<String> butir}) galat;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = StudioL10n.of(context);
+    final merah = Theme.of(context).colorScheme.error;
+    final teks = Theme.of(context).textTheme;
+
+    return Container(
+      key: const ValueKey('unggah-galat-struktur'),
+      margin: const EdgeInsets.only(top: UkuranStudio.j4),
+      padding: const EdgeInsets.all(UkuranStudio.j3),
+      decoration: BoxDecoration(
+        border: Border.all(color: merah),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.unggahMasterStrukturJudul,
+            style: teks.titleSmall?.copyWith(color: merah),
+          ),
+          if (galat.kepala.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: UkuranStudio.j2),
+              child: SelectableText(galat.kepala, style: teks.bodySmall),
+            ),
+          for (var i = 0; i < galat.butir.length; i++)
+            Padding(
+              key: ValueKey('unggah-struktur-butir-$i'),
+              padding: const EdgeInsets.only(top: UkuranStudio.j2),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(width: 24, child: Text('${i + 1}.')),
+                  Expanded(
+                    child: SelectableText(
+                      galat.butir[i],
+                      style: teks.bodyMedium,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Hasil peta sel & draf data acuan dari impor yang berhasil, plus pintu ke
+/// layar alur versi profilnya (baca saja di Studio).
+class _HasilPetaSel extends StatelessWidget {
+  const _HasilPetaSel({required this.hasil});
+
+  final HasilUnggahMaster hasil;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = StudioL10n.of(context);
+    final w = WarnaStudio.of(context);
+    final teks = Theme.of(context).textTheme;
+    final acuan = hasil.acuan;
+    final kode = hasil.kodeProfil;
+
+    final baris = <Widget>[
+      if (hasil.sudahAda)
+        Text(
+          l10n.unggahMasterSudahAda,
+          key: const ValueKey('unggah-sudah-ada'),
+        ),
+      if (hasil.petaSel == 'tervalidasi')
+        Text(
+          l10n.unggahMasterPetaTervalidasi,
+          key: const ValueKey('unggah-peta-tervalidasi'),
+        ),
+      if (hasil.belumTerpetakan)
+        Text(
+          l10n.unggahMasterBelumTerpetakan,
+          key: const ValueKey('unggah-belum-terpetakan'),
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
+      if (acuan != null)
+        Text(switch (acuan.status) {
+          'draf_dibuat' => l10n.unggahMasterDrafDibuat(
+            acuan.nomorVersi ?? 0,
+            acuan.selBerubah ?? 0,
+          ),
+          'draf_sudah_ada' => l10n.unggahMasterDrafSudahAda(
+            acuan.nomorVersi != null
+                ? 'v${acuan.nomorVersi}'
+                : '#${acuan.versiId ?? '?'}',
+          ),
+          'sama_dengan_dasar' => l10n.unggahMasterSamaDasar,
+          'paket_belum_ada' => l10n.unggahMasterPaketBelumAda,
+          _ => acuan.status,
+        }, key: const ValueKey('unggah-acuan')),
+    ];
+    if (baris.isEmpty) return const SizedBox.shrink();
+
+    final bisaBuka =
+        kode != null &&
+        acuan != null &&
+        (acuan.status == 'draf_dibuat' || acuan.status == 'draf_sudah_ada');
+
+    return Container(
+      key: const ValueKey('unggah-hasil-peta'),
+      margin: const EdgeInsets.only(top: UkuranStudio.j4),
+      padding: const EdgeInsets.all(UkuranStudio.j3),
+      decoration: BoxDecoration(
+        border: Border.all(color: w.garis),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: DefaultTextStyle.merge(
+        style: teks.bodyMedium,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final b in baris)
+              Padding(
+                padding: const EdgeInsets.only(bottom: UkuranStudio.j2),
+                child: b,
+              ),
+            if (bisaBuka)
+              OutlinedButton.icon(
+                key: const ValueKey('unggah-buka-alur'),
+                icon: const Icon(Icons.account_tree_outlined, size: 18),
+                label: Text(l10n.unggahMasterBukaAlur),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => AlurVersiAcuanScreen(kode: kode),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 }

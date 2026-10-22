@@ -961,13 +961,35 @@ class HasilHitung {
 /// Jawaban `POST /studio/workbook/impor` (K-50-12). Diurai TOLERAN: kontrak
 /// final belum membekukan bentuknya, jadi yang dibaca hanya yang berguna
 /// untuk satu baris konfirmasi, dan semuanya boleh tidak ada.
+/// Hasil `POST /studio/workbook/impor` — ringkasan `ImporWorkbook::ringkasan`
+/// (repo API): `status` (`baru`/`diganti`/`sudah_ada`/…), `kode_profil`,
+/// `peta_sel` (`tervalidasi` | `belum_terpetakan` | `null` bila `sudah_ada`),
+/// dan `acuan` (draf data acuan dari master ini; `null` bila tak berpeta).
 class HasilUnggahMaster {
-  const HasilUnggahMaster({this.id, this.nama, this.versi, this.pesan});
+  const HasilUnggahMaster({
+    this.id,
+    this.nama,
+    this.versi,
+    this.pesan,
+    this.status,
+    this.kodeProfil,
+    this.petaSel,
+    this.acuan,
+  });
 
   final int? id;
   final String? nama;
   final int? versi;
   final String? pesan;
+  final String? status;
+  final String? kodeProfil;
+
+  /// `tervalidasi` | `belum_terpetakan` | `null` (tidak diperiksa ulang).
+  final String? petaSel;
+  final DrafAcuanImpor? acuan;
+
+  bool get sudahAda => status == 'sudah_ada';
+  bool get belumTerpetakan => petaSel == 'belum_terpetakan';
 
   factory HasilUnggahMaster.fromJson(Map<String, dynamic> j) {
     final d = j['data'] is Map
@@ -982,14 +1004,75 @@ class HasilUnggahMaster {
       nama: _teks(w['nama']),
       versi: _intPositif(w['versi']),
       pesan: _teks(j['message']) ?? _teks(d['message']),
+      status: _teks(d['status']),
+      kodeProfil: _teks(d['kode_profil']) ?? _teks(w['kode_profil']),
+      petaSel: _teks(d['peta_sel']),
+      acuan: d['acuan'] is Map
+          ? DrafAcuanImpor.fromJson(
+              Map<String, dynamic>.from(d['acuan'] as Map),
+            )
+          : null,
     );
   }
+}
+
+/// `acuan` di hasil impor (`DrafAcuanMaster::buat`): status draf data acuan
+/// yang lahir dari master ini.
+class DrafAcuanImpor {
+  const DrafAcuanImpor({
+    required this.status,
+    this.versiId,
+    this.nomorVersi,
+    this.selBerubah,
+    this.varian,
+    this.dasar,
+  });
+
+  /// `draf_dibuat` | `draf_sudah_ada` | `sama_dengan_dasar` |
+  /// `paket_belum_ada` (atau kode baru — ditampilkan mentah).
+  final String status;
+  final int? versiId;
+  final int? nomorVersi;
+  final int? selBerubah;
+  final String? varian;
+  final String? dasar;
+
+  factory DrafAcuanImpor.fromJson(Map<String, dynamic> j) => DrafAcuanImpor(
+    status: _teks(j['status']) ?? '',
+    versiId: _intPositif(j['versi_id']),
+    nomorVersi: _intPositif(j['nomor_versi']),
+    selBerubah: j['sel_berubah'] == null ? null : _int(j['sel_berubah']),
+    varian: _teks(j['varian']),
+    dasar: _teks(j['dasar']),
+  );
+}
+
+/// Butir `struktur_master_berubah`: server menulis satu pesan
+/// "Master ditolak: … 1) A. 2) B." — dipecah jadi kepala + daftar butir
+/// (`PemeriksaMaster::periksa`). Pesan tanpa penomoran → satu kepala saja.
+({String kepala, List<String> butir}) uraiStrukturBerubah(String pesan) {
+  final pola = RegExp(r'(?:^|\s)(\d+)\)\s');
+  final cocok = pola.allMatches(pesan).toList();
+  if (cocok.isEmpty) return (kepala: pesan.trim(), butir: const []);
+  final kepala = pesan.substring(0, cocok.first.start).trim();
+  final butir = <String>[
+    for (var i = 0; i < cocok.length; i++)
+      pesan
+          .substring(
+            cocok[i].end,
+            i + 1 < cocok.length ? cocok[i + 1].start : pesan.length,
+          )
+          .trim(),
+  ]..removeWhere((b) => b.isEmpty);
+  return (kepala: kepala, butir: butir);
 }
 
 /// Sebab `422` unggah master yang dikenali klien. Dipilih dari `kode` dulu,
 /// lalu dari teks pesan; selain itu [lain] (pesan server ditampilkan apa
 /// adanya).
 enum GalatUnggahMaster {
+  /// `struktur_master_berubah` — lembar/jangkar/tipe sel tidak cocok peta sel.
+  strukturBerubah,
   sandiSalah,
   sandiDiperlukan,
   formatTidakDikenal,
@@ -997,6 +1080,7 @@ enum GalatUnggahMaster {
 
   static GalatUnggahMaster dari(Map<String, dynamic> body, String pesan) {
     final kode = '${body['kode'] ?? ''}'.toLowerCase();
+    if (kode == 'struktur_master_berubah') return strukturBerubah;
     final teks = '$kode ${pesan.toLowerCase()}';
     bool ada(String s) => teks.contains(s);
     final sandi = ada('sandi') || ada('password');

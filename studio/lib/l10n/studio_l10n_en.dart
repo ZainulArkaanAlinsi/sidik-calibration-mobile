@@ -780,4 +780,41 @@ class StudioL10nEn extends StudioL10n {
 
   @override
   String get unggahMasterGagal => 'Upload failed.';
+
+  @override
+  String get unggahMasterStrukturJudul =>
+      'The master\'s structure no longer matches its cell map — nothing was imported:';
+
+  @override
+  String get unggahMasterPetaTervalidasi =>
+      'Structure validated against the cell map.';
+
+  @override
+  String get unggahMasterBelumTerpetakan =>
+      'Not mapped yet: this master\'s structure is not validated, and its contents are NOT used for calculations, certificates or CMC.';
+
+  @override
+  String get unggahMasterSudahAda =>
+      'This exact file was already imported; nothing changed.';
+
+  @override
+  String unggahMasterDrafDibuat(int nomor, int sel) {
+    return 'Draft data reference v$nomor created ($sel cells changed). It affects no calculation until it is submitted, simulated and activated from the lab app.';
+  }
+
+  @override
+  String unggahMasterDrafSudahAda(String versi) {
+    return 'A draft with the same contents already exists ($versi).';
+  }
+
+  @override
+  String get unggahMasterSamaDasar =>
+      'Contents equal the current base version; no new draft.';
+
+  @override
+  String get unggahMasterPaketBelumAda =>
+      'The data reference package does not exist on the server yet (initial import first); no draft was created.';
+
+  @override
+  String get unggahMasterBukaAlur => 'Open version workflow';
 }

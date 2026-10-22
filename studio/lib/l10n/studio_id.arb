@@ -212,5 +212,14 @@
   "unggahMasterSandiSalah": "Sandi berkas salah.",
   "unggahMasterSandiDiperlukan": "Berkas ini bersandi — isi sandinya.",
   "unggahMasterFormatTidakDikenal": "Server tidak mengenali format berkas ini.",
-  "unggahMasterGagal": "Unggahan gagal."
+  "unggahMasterGagal": "Unggahan gagal.",
+  "unggahMasterStrukturJudul": "Struktur master tidak cocok lagi dengan peta selnya — tidak ada yang diimpor:",
+  "unggahMasterPetaTervalidasi": "Struktur tervalidasi terhadap peta sel.",
+  "unggahMasterBelumTerpetakan": "Belum terpetakan: struktur master ini belum divalidasi, dan isinya TIDAK dipakai jalur hitung, sertifikat, maupun CMC.",
+  "unggahMasterSudahAda": "Berkas yang sama persis sudah pernah diimpor; tidak ada yang berubah.",
+  "unggahMasterDrafDibuat": "Draf data acuan v{nomor} dibuat ({sel} sel berubah). Draf tidak memengaruhi hitungan apa pun sampai diajukan, disimulasikan, dan diaktifkan dari aplikasi lab.",
+  "unggahMasterDrafSudahAda": "Draf dengan isi yang sama sudah ada ({versi}).",
+  "unggahMasterSamaDasar": "Isinya sama dengan versi dasar; tidak ada draf baru.",
+  "unggahMasterPaketBelumAda": "Paket data acuan belum ada di server (impor awal dulu); draf tidak dibuat.",
+  "unggahMasterBukaAlur": "Buka alur versi"
 }
