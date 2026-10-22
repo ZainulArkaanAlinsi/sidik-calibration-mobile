@@ -7236,4 +7236,21 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get titikSesiGalatAngka => 'Nominal belum terbaca sebagai angka.';
+
+  @override
+  String titikSesiBentrokJudul(String nominal) {
+    return 'Titik $nominal dinonaktifkan dari perangkat lain';
+  }
+
+  @override
+  String titikSesiBentrokPesan(String alasan) {
+    return 'Alasan: $alasan. Titik ini punya angka di HP ini yang belum tersimpan, dan titik nonaktif tidak boleh menerima pembacaan baru. Pilih yang mau dilakukan.';
+  }
+
+  @override
+  String get titikSesiBentrokAktifkan => 'Aktifkan lagi titik ini';
+
+  @override
+  String get titikSesiBentrokBuang =>
+      'Buang angka yang belum tersimpan di titik ini';
 }

@@ -223,7 +223,13 @@ class TitikSesiState {
     diubahLokal = true;
   }
 
+  SetTitikSesi? _setServer;
+
+  /// Set server terakhir yang dimuat ke sini (bukan salinan HP).
+  SetTitikSesi? get setServer => _setServer;
+
   void _gantiSet(SetTitikSesi set) {
+    _setServer = set;
     _titik = List.of(set.titik);
     revisi = set.revisi;
     pengulanganTersimpan = Map.of(set.pengulangan);

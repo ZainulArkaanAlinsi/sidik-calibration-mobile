@@ -3139,5 +3139,9 @@
   "titikSesiGalatFase": "Fase sebelum adjustment tidak tersedia di lembar ini.",
   "titikSesiGalatTidakAda": "Titik tidak ditemukan.",
   "titikSesiGalatBarisPenuh": "Semua baris set point sudah terisi.",
-  "titikSesiGalatAngka": "Nominal belum terbaca sebagai angka."
+  "titikSesiGalatAngka": "Nominal belum terbaca sebagai angka.",
+  "titikSesiBentrokJudul": "Titik {nominal} dinonaktifkan dari perangkat lain",
+  "titikSesiBentrokPesan": "Alasan: {alasan}. Titik ini punya angka di HP ini yang belum tersimpan, dan titik nonaktif tidak boleh menerima pembacaan baru. Pilih yang mau dilakukan.",
+  "titikSesiBentrokAktifkan": "Aktifkan lagi titik ini",
+  "titikSesiBentrokBuang": "Buang angka yang belum tersimpan di titik ini"
 }

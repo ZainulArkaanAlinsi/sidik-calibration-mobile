@@ -7315,4 +7315,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get titikSesiGalatAngka => 'The nominal is not a number yet.';
+
+  @override
+  String titikSesiBentrokJudul(String nominal) {
+    return 'Point $nominal was deactivated on another device';
+  }
+
+  @override
+  String titikSesiBentrokPesan(String alasan) {
+    return 'Reason: $alasan. This point has numbers on this phone that are not saved yet, and an inactive point cannot take new readings. Choose what to do with them.';
+  }
+
+  @override
+  String get titikSesiBentrokAktifkan => 'Reactivate this point';
+
+  @override
+  String get titikSesiBentrokBuang => 'Discard unsaved numbers on this point';
 }

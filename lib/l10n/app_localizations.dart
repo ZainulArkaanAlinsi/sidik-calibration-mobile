@@ -12655,6 +12655,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The nominal is not a number yet.'**
   String get titikSesiGalatAngka;
+
+  /// No description provided for @titikSesiBentrokJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Point {nominal} was deactivated on another device'**
+  String titikSesiBentrokJudul(String nominal);
+
+  /// No description provided for @titikSesiBentrokPesan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason: {alasan}. This point has numbers on this phone that are not saved yet, and an inactive point cannot take new readings. Choose what to do with them.'**
+  String titikSesiBentrokPesan(String alasan);
+
+  /// No description provided for @titikSesiBentrokAktifkan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate this point'**
+  String get titikSesiBentrokAktifkan;
+
+  /// No description provided for @titikSesiBentrokBuang.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard unsaved numbers on this point'**
+  String get titikSesiBentrokBuang;
 }
 
 class _AppLocalizationsDelegate

@@ -4025,5 +4025,11 @@
   "titikSesiGalatFase": "The before-adjustment phase is not available on this sheet.",
   "titikSesiGalatTidakAda": "Point not found.",
   "titikSesiGalatBarisPenuh": "All set-point rows are already filled.",
-  "titikSesiGalatAngka": "The nominal is not a number yet."
+  "titikSesiGalatAngka": "The nominal is not a number yet.",
+  "titikSesiBentrokJudul": "Point {nominal} was deactivated on another device",
+  "@titikSesiBentrokJudul": {"placeholders": {"nominal": {"type": "String"}}},
+  "titikSesiBentrokPesan": "Reason: {alasan}. This point has numbers on this phone that are not saved yet, and an inactive point cannot take new readings. Choose what to do with them.",
+  "@titikSesiBentrokPesan": {"placeholders": {"alasan": {"type": "String"}}},
+  "titikSesiBentrokAktifkan": "Reactivate this point",
+  "titikSesiBentrokBuang": "Discard unsaved numbers on this point"
 }

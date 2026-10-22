@@ -651,4 +651,185 @@ void main() {
       expect(t.alasan, 'PO-123');
     });
   });
+
+  group('temuan peninjau PR #213', () {
+    Map<String, dynamic> setServer(int revisi, {double? nonaktif}) => {
+      'revisi': revisi,
+      'titik': [
+        for (final p in bawaanTimer())
+          {
+            ...p,
+            if (p['nominal'] == nonaktif) 'aktif': false,
+            if (p['nominal'] == nonaktif) 'alasan': 'dari HP lain',
+          },
+      ],
+    };
+
+    MetaTitikSesi meta(int revisi, {double? nonaktif}) =>
+        MetaTitikSesi.dariJson({
+          'batas': batasTimer(),
+          'set': setServer(revisi, nonaktif: nonaktif),
+          'di_luar_cmc': <String>[],
+        })!;
+
+    test('foto/OCR tidak mengisi kotak kosong titik nonaktif', () {
+      final isian = isianTimer();
+      final t = tabelStandar(isian);
+      isian.nonaktifkanTitikSesi(
+        isian.titikSesi.titikDenganNominal(300)!.id,
+        'alat macet',
+      );
+
+      final terisi = isian.terapkanHasilFotoTabel([
+        (
+          titikUkur: 300,
+          repeatNo: t.pengulangan.first,
+          fieldId: 'menit',
+          teks: '5',
+          keyakinan: 0.99,
+        ),
+        (
+          titikUkur: 60,
+          repeatNo: t.pengulangan.first,
+          fieldId: 'menit',
+          teks: '1',
+          keyakinan: 0.99,
+        ),
+      ], tabel: t);
+
+      expect(terisi, 1);
+      expect(baris(isian, 300).kotak(t.kunciTabel, 'menit', 0).text, isEmpty);
+      expect(baris(isian, 60).kotak(t.kunciTabel, 'menit', 0).text, '1');
+    });
+
+    test('409 menonaktifkan titik berisi angka belum tersimpan → wajib '
+        'dipilih; "buang" mengembalikan isian server', () {
+      final isian = isianTimer();
+      final t = tabelStandar(isian);
+      isian.muatTitikSesi(meta(2));
+      baris(isian, 600).kotak(t.kunciTabel, 'menit', 0).text = '10';
+      isian.tandaiIsianTersimpan(); // 10 = tersimpan di server
+
+      baris(isian, 600).kotak(t.kunciTabel, 'menit', 1).text = '11'; // baru
+      baris(isian, 900).kotak(t.kunciTabel, 'menit', 0).text = '15'; // baru
+
+      expect(isian.terapkanSetServer(setServer(3, nonaktif: 600)), isTrue);
+
+      final bentrok = isian.titikNonaktifBerisiBelumTersimpan();
+      expect(bentrok.map((x) => x.nominal), [600]);
+      // Tidak ada yang dibuang diam-diam.
+      expect(baris(isian, 600).kotak(t.kunciTabel, 'menit', 1).text, '11');
+
+      isian.pulihkanIsianTersimpan(600);
+      expect(baris(isian, 600).kotak(t.kunciTabel, 'menit', 0).text, '10');
+      expect(baris(isian, 600).kotak(t.kunciTabel, 'menit', 1).text, isEmpty);
+      expect(baris(isian, 900).kotak(t.kunciTabel, 'menit', 0).text, '15');
+      expect(isian.titikNonaktifBerisiBelumTersimpan(), isEmpty);
+    });
+
+    test('409 → "aktifkan lagi" menyimpan angkanya dan membuka barisnya', () {
+      final isian = isianTimer();
+      final t = tabelStandar(isian);
+      isian.muatTitikSesi(meta(2));
+      isian.tandaiIsianTersimpan();
+      baris(isian, 600).kotak(t.kunciTabel, 'menit', 0).text = '10';
+
+      isian.terapkanSetServer(setServer(3, nonaktif: 600));
+      final id = isian.titikNonaktifBerisiBelumTersimpan().single.id;
+
+      expect(isian.aktifkanTitikSesi(id), isNull);
+      expect(isian.titikNonaktifBerisiBelumTersimpan(), isEmpty);
+      expect(baris(isian, 600).kotak(t.kunciTabel, 'menit', 0).text, '10');
+      expect(isian.titikSesi.diubahLokal, isTrue);
+      expect(
+        ((kirim(isian)['titik_sesi'] as Map)['titik'] as List)
+            .cast<Map>()
+            .firstWhere((x) => x['nominal'] == 600)['aktif'],
+        isTrue,
+      );
+    });
+
+    test('salinan HP lebih lama dari set server: set server menang, '
+        'angka salinan tetap', () {
+      final lama = isianTimer();
+      final t = tabelStandar(lama);
+      lama.muatTitikSesi(meta(2));
+      lama.nonaktifkanTitikSesi(
+        lama.titikSesi.titikDenganNominal(240)!.id,
+        'lokal saja',
+      );
+      baris(lama, 60).kotak(t.kunciTabel, 'menit', 0).text = '1';
+      final salinan =
+          jsonDecode(jsonEncode(lama.salinanLokal())) as Map<String, dynamic>;
+
+      final baru = isianTimer();
+      baru.muatTitikSesi(meta(5, nonaktif: 600));
+      baru.pulihkanSalinanLokal(salinan);
+
+      expect(baru.titikSesi.revisi, 5);
+      expect(baru.titikSesi.titikDenganNominal(600)!.aktif, isFalse);
+      expect(baru.titikSesi.titikDenganNominal(240)!.aktif, isTrue);
+      expect(baris(baru, 60).kotak(t.kunciTabel, 'menit', 0).text, '1');
+
+      // Salinan yang SAMA baru dengan server: salinan (perubahan lokal) menang.
+      final sama = isianTimer();
+      sama.muatTitikSesi(meta(2));
+      sama.pulihkanSalinanLokal(salinan);
+      expect(sama.titikSesi.titikDenganNominal(240)!.aktif, isFalse);
+    });
+
+    test('set server tetap mengunci baris walau tabelnya tak terpetakan '
+        '(TIDS)', () {
+      final m =
+          jsonDecode(
+                File('test/fixtures/lembar-kerja-tids.json').readAsStringSync(),
+              )
+              as Map<String, dynamic>;
+      final isian = LembarKerjaState(
+        bentuk: LembarKerja.fromJson((m['data'] ?? m) as Map<String, dynamic>),
+        clientRequestId: 'uji-tids',
+      )..alat = alat;
+      isian.muatTitikSesi(
+        MetaTitikSesi.dariJson({
+          'batas': {
+            'didukung': true,
+            'tabel': [
+              {
+                'kode': 'utama',
+                'min': 1,
+                'maks': 7,
+                'nominal': 'bebas',
+                'boleh_tambah': true,
+              },
+            ],
+          },
+          'set': {
+            'revisi': 1,
+            'titik': [
+              {'id': 'a', 'nominal': 50, 'aktif': false, 'alasan': 'rusak'},
+              {'id': 'b', 'nominal': 100},
+            ],
+          },
+        }),
+      );
+      expect(isian.titikSesiAktif, isFalse, reason: 'tabel tak terpetakan');
+
+      final tabel = isian.bentuk.bagian
+          .expand((b) => b.tabel)
+          .firstWhere((t) => t.berpasangan);
+      final b = isian.barisTabel(tabel);
+      final r0 = isian.titikUntukBaris(b, 0, tabel)!;
+      final r1 = isian.titikUntukBaris(b, 1, tabel)!;
+      r0.titikCtl.text = '50';
+      r1.titikCtl.text = '100';
+
+      expect(isian.alasanNonaktifUntuk(r0), 'rusak');
+      expect(isian.titikBisaDiisi(isian.kunciBaris(b, 0, tabel)), isFalse);
+      expect(isian.alasanNonaktifUntuk(r1), isNull);
+      expect(
+        isian.toSubmission(draft: true).toJson().containsKey('titik_sesi'),
+        isFalse,
+      );
+    });
+  });
 }

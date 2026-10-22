@@ -835,6 +835,9 @@ class _FormState extends ConsumerState<_Form> {
       // Isian sesudah dipulihkan = pembanding: alasan koreksi hanya diminta kalau
       // pembacaan BERUBAH dari sini (K-50-02; menyimpan angka yang sama tidak
       // meminta alasan).
+      // Isian sekarang = yang TERSIMPAN di server — pembanding waktu 409
+      // menonaktifkan titik yang sedang diisi di sini.
+      _isian.tandaiIsianTersimpan();
       _asliPembacaan = _tangkapPembacaan();
       _titikSesiTermuat = true;
       // Cuma lembar yang pengulangannya memang bisa dipilih (Timer, pH, …);
@@ -1746,6 +1749,7 @@ class _FormState extends ConsumerState<_Form> {
             duration: const Duration(seconds: 12),
           ),
         );
+        await _selesaikanTitikNonaktifBerisi();
         return;
       }
 
@@ -1832,6 +1836,59 @@ class _FormState extends ConsumerState<_Form> {
       ),
     );
     navigator.pop(hasil.id);
+  }
+
+  /// Sesudah 409: titik yang dinonaktifkan perangkat lain tapi barisnya di
+  /// sini berisi angka yang BELUM tersimpan. Barisnya terkunci, dan mengirim
+  /// angka itu pasti ditolak 422 — jadi teknisi WAJIB memilih, per titik:
+  /// aktifkan lagi titiknya, atau buang angka yang belum tersimpan (isian
+  /// server dikembalikan). Dialognya tidak bisa ditutup tanpa memilih; tidak
+  /// ada angka yang dibuang diam-diam.
+  Future<void> _selesaikanTitikNonaktifBerisi() async {
+    final l10n = AppLocalizations.of(context);
+
+    for (final t in _isian.titikNonaktifBerisiBelumTersimpan()) {
+      while (mounted) {
+        final aktifkan = await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            key: ValueKey('dialog-titik-bentrok-${t.id}'),
+            scrollable: true,
+            title: Text(l10n.titikSesiBentrokJudul(teksNominal(t.nominal))),
+            content: Text(l10n.titikSesiBentrokPesan(t.alasan ?? '-')),
+            actions: [
+              TextButton(
+                key: const ValueKey('titik-bentrok-buang'),
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l10n.titikSesiBentrokBuang),
+              ),
+              FilledButton(
+                key: const ValueKey('titik-bentrok-aktifkan'),
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(l10n.titikSesiBentrokAktifkan),
+              ),
+            ],
+          ),
+        );
+        if (!mounted) return;
+
+        if (aktifkan == true) {
+          final galat = _isian.aktifkanTitikSesi(t.id);
+          if (galat != null) {
+            // Mis. titik aktif sudah penuh — pilihannya ditanyakan lagi.
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(pesanGalatTitikSesi(l10n, galat))),
+            );
+            continue;
+          }
+        } else {
+          _isian.pulihkanIsianTersimpan(t.nominal);
+        }
+        setState(() {});
+        break;
+      }
+    }
   }
 
   /// Pesan untuk penolakan titik ukur sesi, atau `null` kalau [error] bukan

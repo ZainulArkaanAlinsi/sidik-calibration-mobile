@@ -1300,13 +1300,91 @@ class LembarKerjaState {
   /// semua tampilan — tabel, kartu, kotak set point — sama dengan
   /// [titikBisaDiisi].
   String? alasanNonaktifUntuk(TitikState? s) {
-    if (s == null || !titikSesiAktif) return null;
+    // Set dari SERVER tetap mengunci baris walau HP belum bisa memetakan
+    // tabelnya (pengatur titik tidak tampil): titik nonaktifnya tetap beku.
+    if (s == null || (!titikSesiAktif && !titikSesi.dariServer)) return null;
     final n = _nominalTitikState(s);
     if (n == null) return null;
     final t = titikSesi.titikDenganNominal(n);
     if (t == null || t.aktif) return null;
     final alasan = t.alasan?.trim() ?? '';
     return alasan.isEmpty ? '-' : alasan;
+  }
+
+  /// Isian yang TERSIMPAN di server per baris, ditangkap sesudah sesi dimuat
+  /// ([tandaiIsianTersimpan]). Kunci `nominal|urutan` — beberapa baris bisa
+  /// bernominal sama (UP & DOWN Tekanan), dan objek [TitikState] dibangun
+  /// ulang tiap tabel berubah, jadi identitasnya tidak bisa dipakai.
+  final Map<String, Map<String, String>> _isianTersimpan = {};
+
+  /// Baris per nominal, urut map [titik] — pasangan kunci [_isianTersimpan].
+  Map<String, TitikState> _barisPerNominal() {
+    final hitung = <double, int>{};
+    final hasil = <String, TitikState>{};
+    for (final t in titik.values) {
+      final n = _nominalTitikState(t);
+      if (n == null) continue;
+      final ke = hitung[n] = (hitung[n] ?? -1) + 1;
+      hasil['$n|$ke'] = t;
+    }
+    return hasil;
+  }
+
+  static Map<String, String> _tanpaSetpoint(Map<String, String> isi) => {
+    for (final e in isi.entries)
+      if (e.key != TitikState.kunciSetpoint) e.key: e.value,
+  };
+
+  /// Tangkap isian sekarang sebagai "yang tersimpan di server". Dipanggil
+  /// layar tepat sesudah sesi lama dimuat (sebelum salinan HP dipulihkan).
+  void tandaiIsianTersimpan() {
+    _isianTersimpan
+      ..clear()
+      ..addAll({
+        for (final e in _barisPerNominal().entries)
+          e.key: _tanpaSetpoint(e.value.salinKotak()),
+      });
+  }
+
+  static bool _samaIsi(Map<String, String> a, Map<String, String> b) =>
+      a.length == b.length &&
+      a.entries.every((e) => b[e.key]?.trim() == e.value.trim());
+
+  /// Titik yang di set SEKARANG nonaktif tapi barisnya memuat angka yang
+  /// BELUM tersimpan (beda dari isian server). Terjadi sesudah 409: perangkat
+  /// lain menonaktifkan titik yang sedang diisi di sini. Barisnya terkunci,
+  /// jadi teknisi wajib memilih — aktifkan lagi, atau buang angka itu — dan
+  /// tidak ada yang dibuang diam-diam.
+  List<TitikSesi> titikNonaktifBerisiBelumTersimpan() {
+    final baris = _barisPerNominal();
+    final hasil = <TitikSesi>[];
+    for (final t in titikSesi.titik) {
+      if (t.aktif) continue;
+      final beda = baris.entries.any((e) {
+        final n = _nominalTitikState(e.value);
+        if (n == null || !nominalCocok(n, t.nominal)) return false;
+        return !_samaIsi(
+          _tanpaSetpoint(e.value.salinKotak()),
+          _isianTersimpan[e.key] ?? const {},
+        );
+      });
+      if (beda) hasil.add(t);
+    }
+    return hasil;
+  }
+
+  /// Kembalikan baris titik [nominal] ke isian yang tersimpan di server —
+  /// angka yang belum tersimpan di baris itu DIBUANG atas pilihan teknisi.
+  void pulihkanIsianTersimpan(double nominal) {
+    for (final e in _barisPerNominal().entries) {
+      final n = _nominalTitikState(e.value);
+      if (n == null || !nominalCocok(n, nominal)) continue;
+      final simpan = _isianTersimpan[e.key] ?? const <String, String>{};
+      e.value.tempelKotak({
+        for (final k in _tanpaSetpoint(e.value.salinKotak()).keys) k: '',
+        ...simpan,
+      });
+    }
   }
 
   /// Baris [s] milik titik sesi NONAKTIF — semua kotaknya baca-saja.
@@ -4775,6 +4853,10 @@ class LembarKerjaState {
     bool perluDicek, {
     BacaanMesin? bacaanMesin,
   }) {
+    // Titik sesi NONAKTIF: pembacaannya dibekukan server. Foto/OCR tidak
+    // boleh mengisi kotak kosongnya — satu-satunya pintu semua jalur foto.
+    if (titikStateNonaktif(state)) return 0;
+
     final kotak = state.kotak(tahap, kolom, index);
     // Pembacaan dipad ke resolusi titiknya (4,60), suhu nggak.
     //
@@ -5656,15 +5738,48 @@ class LembarKerjaState {
       });
     barisTambahan = angkaBulat(s['baris_tambahan']) ?? 0;
     // Set titik sesi duluan — barisnya ikut menentukan tabel di bawah.
+    // Kunci isian baris berpasangan (posisi) di salinan → kunci di set yang
+    // berlaku sekarang, kalau set server menggantikan set salinan.
+    final petaKunciDraf = <double, double?>{};
     if (s.containsKey('titik_sesi')) {
+      final kustomDraf = {
+        for (final e in _titikKustom.entries) e.key: List.of(e.value),
+      };
+      // Set server yang LEBIH BARU dari salinan HP menang — salinan bisa
+      // ditulis sebelum perangkat lain mengubah titiknya. Titik yang cuma
+      // lahir di salinan (belum pernah tersimpan) tetap dibawa supaya
+      // pembacaannya punya baris.
+      final server = titikSesi.dariServer ? titikSesi.setServer : null;
       titikSesi.pulihkanSalinan(s['titik_sesi']);
-      _nominalTersimpan
-        ..clear()
-        ..addAll([
-          for (final n in (s['nominal_tersimpan'] as List? ?? const []))
-            if (n is num) n.toDouble(),
-        ]);
+      if (server != null && server.revisi > titikSesi.revisi) {
+        final lokalBaru = [
+          for (final t in titikSesi.titik)
+            if (!titikSesi.idTersimpan(t.id)) t,
+        ];
+        titikSesi.gantiDariServer(server);
+        titikSesi.pertahankanTitikLokal(lokalBaru);
+      }
+      // Gabungan, bukan ganti: yang dicatat dari server barusan tetap berlaku.
+      _nominalTersimpan.addAll([
+        for (final n in (s['nominal_tersimpan'] as List? ?? const []))
+          if (n is num) n.toDouble(),
+      ]);
       _terapkanSetKeDaftar();
+
+      for (final bagian in bentuk.bagian) {
+        final lama = kustomDraf[bagian.kode];
+        final baru = _titikKustom[bagian.kode];
+        if (lama == null || baru == null) continue;
+        for (final t in bagian.tabel) {
+          if (!t.berpasangan || !t.titikBisaDiubah) continue;
+          final offset = _offsetParameter(t.parameter);
+          for (var i = 0; i < lama.length; i++) {
+            final j = baru.indexWhere((n) => nominalCocok(n, lama[i]));
+            petaKunciDraf[(offset + i).toDouble()] =
+                j < 0 ? null : (offset + j).toDouble();
+          }
+        }
+      }
     }
     bagianSebagaiTabel
       ..clear()
@@ -5681,11 +5796,14 @@ class LembarKerjaState {
 
     var kebuang = 0;
     for (final e in (s['titik'] as Map? ?? const {}).entries) {
-      final kunci = double.tryParse('${e.key}');
+      final kunciDraf = double.tryParse('${e.key}');
       final isi = e.value;
-      if (kunci == null || isi is! Map) continue;
+      if (kunciDraf == null || isi is! Map) continue;
 
-      final tujuan = titik[kunci];
+      final kunci = petaKunciDraf.containsKey(kunciDraf)
+          ? petaKunciDraf[kunciDraf]
+          : kunciDraf;
+      final tujuan = kunci == null ? null : titik[kunci];
       final kotak = {
         for (final k in (isi['kotak'] as Map? ?? const {}).entries)
           '${k.key}': '${k.value}',
