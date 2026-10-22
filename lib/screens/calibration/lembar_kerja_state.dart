@@ -17,6 +17,8 @@ import '../../core/utils/jam_lembar.dart';
 import '../../models/lembar_kerja.dart';
 import 'grid_sensor_state.dart';
 import '../../models/lembar_kerja_submission.dart';
+import '../../models/titik_sesi.dart';
+import 'titik_sesi_state.dart';
 import '../../models/worksheet_template.dart' show WorksheetTemplate;
 import '../../models/worksheet_scan.dart';
 import '../../services/gabung_tabel.dart';
@@ -707,6 +709,8 @@ class LembarKerjaState {
     tanggal['tanggal_kalibrasi'] = tanggalKalibrasiAwal ?? DateTime.now();
 
     _selaraskanKotakTeks();
+    titikSesi.pasangBatasLembar(bentuk.batasTitik, bentuk.titikSesiBawaan);
+    _terapkanSetKeDaftar();
     _bangunTitik();
     _selaraskanGrid();
   }
@@ -1178,6 +1182,398 @@ class LembarKerjaState {
   bool get titikBisaDiubah =>
       bentuk.bagian.any((bagian) => bagian.tabel.any((t) => t.titikBisaDiubah));
 
+  // ------------------------------------------------- titik ukur SESI (§55)
+
+  /// Set titik ukur sesi yang disimpan SERVER — sama di semua perangkat yang
+  /// membuka sesi ini. Lihat [TitikSesiState] dan
+  /// `docs/perintah-frontend-titik-ukur-sesi.md` di repo API.
+  ///
+  /// Cuma berlaku kalau [titikSesiAktif]; lembar lain jalan persis seperti
+  /// sebelum fitur ini ada ([_titikKustom] + pengatur titik lama).
+  final TitikSesiState titikSesi = TitikSesiState();
+
+  /// Nominal yang punya pembacaan TERSIMPAN di server (`pembacaan_mentah`).
+  final Set<double> _nominalTersimpan = {};
+
+  /// Tabel bentuk yang barisnya titik ukur (bukan tabel `spesifikasi_alat.*`
+  /// atau tabel tanpa tempat simpan).
+  bool _tabelTitik(TabelHasil t) =>
+      !t.tanpaTempatSimpan &&
+      !(t.simpanKe?.startsWith('spesifikasi_alat') ?? false) &&
+      t.barisUntuk(satuan).isNotEmpty;
+
+  /// Bagian lembar tempat titik tabel batas [kode] digambar: bagian yang
+  /// kodenya sama (Timbangan `akurasi`), lalu bagian bertitik-ubah pertama,
+  /// lalu bagian pertama yang punya tabel titik.
+  BagianLembarKerja? bagianTitikSesi(String kode) {
+    for (final b in bentuk.bagian) {
+      if (b.kode == kode && b.matriks == null && b.tabel.any(_tabelTitik)) {
+        return b;
+      }
+    }
+    for (final b in bentuk.bagian) {
+      if (b.matriks == null && b.tabel.any((t) => t.titikBisaDiubah)) return b;
+    }
+    for (final b in bentuk.bagian) {
+      if (b.matriks == null && b.tabel.any(_tabelTitik)) return b;
+    }
+    return null;
+  }
+
+  /// Cara baris tabel [kode] berhubungan dengan set titik. `null` = HP belum
+  /// bisa memetakan bentuk ini (lembar pasangan bersetpoint-ketik seperti
+  /// TIDS) — perilaku lama dipakai.
+  ModeBarisTitikSesi? modeTitikSesi(String kode) {
+    final bagian = bagianTitikSesi(kode);
+    if (bagian == null) return null;
+
+    final tabel = [
+      for (final t in bagian.tabel)
+        if (_tabelTitik(t)) t,
+    ];
+    if (tabel.isEmpty) return null;
+
+    final baris = tabel.first.barisUntuk(satuan);
+    if (baris.any((b) => !b.titikDitentukan)) {
+      return tabel.any((t) => t.berpasangan) ? null : ModeBarisTitikSesi.ketik;
+    }
+    if (tabel.any((t) => t.titikBisaDiubah)) return ModeBarisTitikSesi.daftar;
+    return ModeBarisTitikSesi.tetap;
+  }
+
+  /// Titik ukur sesi dipakai lembar ini: server bilang didukung DAN tiap
+  /// tabelnya bisa dipetakan HP ke baris lembar.
+  bool get titikSesiAktif {
+    final b = titikSesi.batas;
+    if (b == null || !b.didukung) return false;
+    return b.tabel.every((t) => modeTitikSesi(t.kode) != null);
+  }
+
+  /// Tabel batas yang dikelola di [bagian], atau `null`.
+  TabelBatasTitik? tabelTitikSesiDi(BagianLembarKerja bagian) {
+    if (!titikSesiAktif) return null;
+    for (final t in titikSesi.batas!.tabel) {
+      if (bagianTitikSesi(t.kode)?.kode == bagian.kode) return t;
+    }
+    return null;
+  }
+
+  /// Alasan server lembar ini BELUM mendukung titik sesi — ditampilkan sekali
+  /// di bagian tabel titik pertama, tanpa pengatur titik baru.
+  String? alasanTitikSesiDi(BagianLembarKerja bagian) {
+    final b = titikSesi.batas;
+    if (b == null || b.didukung || b.alasan == null) return null;
+    for (final x in bentuk.bagian) {
+      if (x.matriks == null && x.tabel.any(_tabelTitik)) {
+        return x.kode == bagian.kode ? b.alasan : null;
+      }
+    }
+    return null;
+  }
+
+  /// Titik bernominal [nominal] dinonaktifkan di set sesi — barisnya dikunci
+  /// (pembacaannya wajib dikirim balik apa adanya).
+  bool titikSesiNonaktif(double nominal) =>
+      titikSesiAktif && titikSesi.nonaktif(nominal);
+
+  /// Titik ini punya pembacaan — tersimpan di server ATAU sudah diketik di
+  /// layar. Nominalnya tidak boleh diubah (nonaktifkan + tambah titik baru).
+  bool titikSesiPunyaPembacaan(double nominal) {
+    if (_nominalTersimpan.any((n) => nominalCocok(n, nominal))) return true;
+
+    for (final t in titik.values) {
+      final v = t.titikUkurEfektif;
+      if (v == null || !nominalCocok(v, nominal)) continue;
+      final adaIsi = t.salinKotak().keys.any(
+        (k) => k != TitikState.kunciSetpoint,
+      );
+      if (adaIsi) return true;
+    }
+
+    return false;
+  }
+
+  /// Pasang batas & titik bawaan dari bentuk lembar yang sedang terpasang.
+  void _pasangTitikSesiLembar() {
+    titikSesi.pasangBatasLembar(bentuk.batasTitik, bentuk.titikSesiBawaan);
+    _terapkanSetKeDaftar();
+  }
+
+  /// Tabel bermode [ModeBarisTitikSesi.daftar]: baris = SELURUH titik set
+  /// (termasuk nonaktif — pembacaannya tetap kelihatan & terkirim), urut set.
+  /// Tidak membangun ulang tabel; pemanggil yang memutuskan.
+  bool _terapkanSetKeDaftar() {
+    if (!titikSesiAktif) return false;
+    var berubah = false;
+
+    for (final t in titikSesi.batas!.tabel) {
+      if (modeTitikSesi(t.kode) != ModeBarisTitikSesi.daftar) continue;
+      final bagian = bagianTitikSesi(t.kode)!;
+      final daftar = [for (final p in titikSesi.titikTabel(t.kode)) p.nominal];
+      if (daftar.isEmpty) continue;
+
+      final lama = _titikKustom[bagian.kode];
+      final sama =
+          lama != null &&
+          lama.length == daftar.length &&
+          [for (var i = 0; i < daftar.length; i++) lama[i] == daftar[i]]
+              .every((x) => x);
+      if (sama) continue;
+
+      _titikKustom[bagian.kode] = daftar;
+      berubah = true;
+    }
+
+    return berubah;
+  }
+
+  /// Bangun ulang tabel sesudah set berubah — isian yang sudah diketik
+  /// DIPERTAHANKAN (kunci baris = nominal).
+  ///
+  /// Tabel BERPASANGAN (Timer: deret standar & UUT) dikunci ke POSISI baris
+  /// (lihat [kunciBaris]); isiannya dipindah menurut NOMINAL lewat peta kunci,
+  /// sama seperti [aturTitik] — tanpa itu menyisipkan titik di tengah
+  /// menggeser bacaan ke set point tetangganya.
+  void _segarkanBarisTitikSesi() {
+    final lama = <TabelHasil, List<(double, double)>>{};
+    for (final bagian in bentuk.bagian) {
+      for (final t in bagian.tabel) {
+        if (!t.berpasangan || !t.titikBisaDiubah) continue;
+        final baris = barisTabel(t);
+        lama[t] = [
+          for (var i = 0; i < baris.length; i++)
+            (kunciBaris(baris, i, t), baris[i].titikUkur),
+        ];
+      }
+    }
+
+    if (!_terapkanSetKeDaftar()) return;
+
+    final petaKunci = <double, double?>{};
+    for (final e in lama.entries) {
+      final baru = barisTabel(e.key);
+      for (final (kunci, nominal) in e.value) {
+        final j = baru.indexWhere((b) => nominalCocok(b.titikUkur, nominal));
+        petaKunci[kunci] = j < 0
+            ? null
+            : (_offsetParameter(e.key.parameter) + j).toDouble();
+      }
+    }
+
+    _bangunTitik(pertahankanIsian: true, petaKunci: petaKunci);
+  }
+
+  /// Baris ber-set-point-ketik (Tekanan) milik tabel [kode], urut lembar.
+  List<TitikState> _barisKetik(String kode) {
+    final bagian = bagianTitikSesi(kode);
+    if (bagian == null) return const [];
+    for (final t in bagian.tabel) {
+      if (!_tabelTitik(t)) continue;
+      final baris = barisTabel(t);
+      return [
+        for (var i = 0; i < baris.length; i++) ?titikUntukBaris(baris, i, t),
+      ];
+    }
+    return const [];
+  }
+
+  /// Samakan set dengan isi lembar sebelum dikirim: set point yang diketik
+  /// (mode ketik) dan fase `sebelum` untuk titik yang punya pembacaan as-found.
+  void _selaraskanTitikSesiDariLembar() {
+    if (!titikSesiAktif) return;
+
+    for (final t in titikSesi.batas!.tabel) {
+      if (modeTitikSesi(t.kode) != ModeBarisTitikSesi.ketik) continue;
+      titikSesi.selaraskanDariBaris(
+        t.kode,
+        [for (final b in _barisKetik(t.kode)) ?b.titikUkurEfektif],
+        punyaPembacaan: titikSesiPunyaPembacaan,
+      );
+    }
+
+    titikSesi.pastikanFaseSebelum([
+      for (final t in titik.values)
+        if (t.titikUkurEfektif != null &&
+            t.salinKotak().keys.any(
+              (k) => k.startsWith('sebelum_adjustment|pembacaan|'),
+            ))
+          t.titikUkurEfektif!,
+    ]);
+  }
+
+  /// Badan `titik_sesi` untuk simpan/preview, atau `null` (lembar tanpa
+  /// titik sesi — kuncinya tidak dikirim, set tersimpan tidak berubah).
+  Map<String, dynamic>? _payloadTitikSesi() {
+    if (!titikSesiAktif) return null;
+    _selaraskanTitikSesiDariLembar();
+
+    // Jumlah pengulangan = jumlah kolom yang digambar lembar ini. Cuma
+    // dikirim kalau tabelnya memang boleh dipilih dan angkanya di dalam batas;
+    // selain itu kuncinya tidak dikirim dan server memakai yang tersimpan.
+    final pengulangan = <String, int?>{
+      for (final t in titikSesi.batas!.tabel)
+        if (t.pengulangan case final p?
+            when !p.dipatok &&
+                bentuk.jumlahPengulangan >= p.min &&
+                bentuk.jumlahPengulangan <= p.maks)
+          t.kode: bentuk.jumlahPengulangan,
+    };
+
+    return titikSesi.payload(pengulangan: pengulangan);
+  }
+
+  /// Pulihkan set dari sesi yang dibuka ulang (`meta.titik_sesi`).
+  ///
+  /// Dipanggil SEBELUM [terapkanPembacaan]: titik tambahan (mis. 75 s
+  /// permintaan pelanggan) harus sudah punya baris, atau pembacaannya
+  /// terhitung "tidak ketemu barisnya".
+  void muatTitikSesi(MetaTitikSesi? meta) {
+    if (meta == null) return;
+    titikSesi.muatMeta(meta);
+    _segarkanBarisTitikSesi();
+  }
+
+  /// Ganti set lokal dengan set terbaru server (409 `titik_sesi_konflik`,
+  /// atau realtime). Pembacaan yang sudah diketik teknisi TIDAK dibuang —
+  /// barisnya mengikuti nominal, dan baris titik yang tidak ada lagi di set
+  /// server tetap ditahan di layar sampai teknisi memutuskan.
+  ///
+  /// `false` kalau [json] bukan set yang terbaca.
+  bool terapkanSetServer(Object? json, {List<String>? diLuarCmc}) {
+    final batas = titikSesi.batas;
+    final tunggal = batas != null && batas.tabel.length == 1
+        ? batas.tabel.first.kode
+        : null;
+    final set = SetTitikSesi.dariJson(json, tabelBawaan: tunggal);
+    if (set == null) {
+      // Server belum punya set sama sekali (revisi dasar 0). Titik lokal
+      // dipertahankan; kiriman berikutnya berdasar revisi 0.
+      if (json == null) titikSesi.revisi = 0;
+      return false;
+    }
+
+    // Titik yang cuma ada di HP ini tapi SUDAH diisi pembacaannya tidak ikut
+    // dibuang bersama set lama — angka lapangan tidak pernah hilang diam-diam.
+    // Titiknya tetap tercatat sebagai perubahan lokal yang harus disimpan
+    // ulang oleh teknisi (bukan kiriman ulang otomatis).
+    final dipertahankan = [
+      for (final t in titikSesi.titik)
+        if (!set.titik.any((s) => s.id == t.id) &&
+            !set.titik.any((s) => nominalCocok(s.nominal, t.nominal)) &&
+            titikSesiPunyaPembacaan(t.nominal))
+          t,
+    ];
+
+    titikSesi.gantiDariServer(set, diLuarCmc: diLuarCmc);
+    titikSesi.pertahankanTitikLokal(dipertahankan);
+    _segarkanBarisTitikSesi();
+    return true;
+  }
+
+  /// Sesudah simpan sukses: revisi & set terbaru dari respons jadi dasar
+  /// kiriman berikutnya.
+  void terapkanHasilSimpanTitikSesi(MetaTitikSesi? meta) {
+    final set = meta?.set;
+    if (meta == null || set == null) return;
+    titikSesi.gantiDariServer(set, diLuarCmc: meta.diLuarCmc);
+    _segarkanBarisTitikSesi();
+  }
+
+  /// Tambah titik dari pengatur titik. Mode ketik: nominalnya ikut ditulis
+  /// ke baris set point kosong pertama.
+  GalatTitikSesi? tambahTitikSesi({
+    required String tabel,
+    required double nominal,
+    AsalTitik asal = AsalTitik.teknisi,
+    String? alasan,
+    bool denganSebelum = false,
+  }) {
+    final mode = modeTitikSesi(tabel);
+    if (mode == ModeBarisTitikSesi.tetap) return GalatTitikSesi.tidakBolehTambah;
+    // Set point yang sudah diketik di baris masuk set dulu — tanpa ini nominal
+    // kembar dengan baris yang sudah ada lolos pemeriksaan.
+    if (mode == ModeBarisTitikSesi.ketik) titikSesiTabel(tabel);
+
+    TitikState? barisKosong;
+    if (mode == ModeBarisTitikSesi.ketik) {
+      for (final b in _barisKetik(tabel)) {
+        if (b.titikUkurEfektif == null && b.salinKotak().isEmpty) {
+          barisKosong = b;
+          break;
+        }
+      }
+      if (barisKosong == null) return GalatTitikSesi.barisPenuh;
+    }
+
+    final galat = titikSesi.tambah(
+      tabel: tabel,
+      nominal: nominal,
+      asal: asal,
+      alasan: alasan,
+      denganSebelum: denganSebelum,
+    );
+    if (galat != null) return galat;
+
+    barisKosong?.titikCtl.text = formatAngka(nominal);
+    _segarkanBarisTitikSesi();
+    return null;
+  }
+
+  /// Ubah nominal titik yang belum punya pembacaan.
+  GalatTitikSesi? ubahNominalTitikSesi(String id, double nominal) {
+    final awal = titikSesi.titikDenganId(id);
+    if (awal == null) return GalatTitikSesi.titikTidakAda;
+    if (modeTitikSesi(awal.tabel) == ModeBarisTitikSesi.ketik) {
+      titikSesiTabel(awal.tabel);
+    }
+    final lama = titikSesi.titikDenganId(id);
+    if (lama == null) return GalatTitikSesi.titikTidakAda;
+
+    final galat = titikSesi.ubahNominal(
+      id,
+      nominal,
+      punyaPembacaan: titikSesiPunyaPembacaan(lama.nominal),
+    );
+    if (galat != null) return galat;
+
+    if (modeTitikSesi(lama.tabel) == ModeBarisTitikSesi.ketik) {
+      for (final b in _barisKetik(lama.tabel)) {
+        final v = b.titikUkurEfektif;
+        if (v != null && nominalCocok(v, lama.nominal)) {
+          b.titikCtl.text = formatAngka(nominal);
+          break;
+        }
+      }
+    }
+
+    _segarkanBarisTitikSesi();
+    return null;
+  }
+
+  /// Nonaktifkan dengan alasan. Pembacaan titik itu TIDAK dikosongkan —
+  /// barisnya dikunci dan tetap dikirim apa adanya.
+  GalatTitikSesi? nonaktifkanTitikSesi(String id, String alasan) =>
+      titikSesi.nonaktifkan(id, alasan);
+
+  GalatTitikSesi? aktifkanTitikSesi(String id) => titikSesi.aktifkan(id);
+
+  GalatTitikSesi? aturJustifikasiCmc(String id, String? teks) =>
+      titikSesi.aturJustifikasiCmc(id, teks);
+
+  /// Titik tabel [kode] untuk pengatur titik. Mode ketik diselaraskan dulu
+  /// dengan set point yang sudah diketik di baris — yang dilihat teknisi di
+  /// panel harus sama dengan yang nanti dikirim.
+  List<TitikSesi> titikSesiTabel(String kode) {
+    if (modeTitikSesi(kode) == ModeBarisTitikSesi.ketik) {
+      titikSesi.selaraskanDariBaris(
+        kode,
+        [for (final b in _barisKetik(kode)) ?b.titikUkurEfektif],
+        punyaPembacaan: titikSesiPunyaPembacaan,
+      );
+    }
+    return titikSesi.titikTabel(kode);
+  }
+
   /// [petaKunci]: kunci lama → kunci baru untuk isian yang barisnya pindah
   /// posisi (`null` = titiknya dihapus, isiannya dibuang). Kunci yang tidak
   /// disebut tetap di kunci yang sama.
@@ -1291,6 +1687,7 @@ class LembarKerjaState {
     bentuk = baru;
     _selaraskanKotakTeks();
     _selaraskanGrid();
+    _pasangTitikSesiLembar();
 
     return _bangunTitik(pertahankanIsian: true);
   }
@@ -1470,6 +1867,12 @@ class LembarKerjaState {
     if (state == null) return false;
 
     if (titikTerkunci(titikUkur)) return false;
+
+    // Titik sesi NONAKTIF: pembacaannya dibekukan server — dikirim balik apa
+    // adanya, tidak boleh diubah. Aktifkan titiknya dulu kalau mau mengoreksi.
+    if (titikSesiNonaktif(state.titikUkurEfektif ?? state.titikUkur)) {
+      return false;
+    }
 
     // Cuma dipakai kalau lembarnya emang nyodorin pilihan standar per titik.
     if (state.standardIdTercetak != null && state.standardId == null) {
@@ -2629,6 +3032,10 @@ class LembarKerjaState {
     };
 
     for (final m in mentah) {
+      // Dicatat buat aturan titik sesi: nominal titik yang SUDAH punya
+      // pembacaan tersimpan tidak boleh diubah (server menolak juga).
+      _nominalTersimpan.add(m.titikUkur);
+
       if (m.peranSensor != null && kunciBernama.containsKey(m.peranSensor)) {
         bernama.add(m);
       } else {
@@ -3677,6 +4084,7 @@ class LembarKerjaState {
       measurementsGrid: measurementsGrid ?? measurementsPasangan,
       inputMethod: adaIsianDariFoto ? MetodeInput.ocr : MetodeInput.manual,
       alasanKoreksi: alasanKoreksi,
+      titikSesi: _payloadTitikSesi(),
     );
   }
 
@@ -5073,6 +5481,8 @@ class LembarKerjaState {
         for (final e in _titikKustom.entries) e.key: [...e.value],
       },
       'baris_tambahan': barisTambahan,
+      'titik_sesi': titikSesi.salinanLokal(),
+      'nominal_tersimpan': [..._nominalTersimpan],
       'bagian_sebagai_tabel': [...bagianSebagaiTabel],
       'pilihan_slot': Map.of(pilihanSlot),
       // SEMUA titik, termasuk yang kosong: `standardId` bawaannya pasangan
@@ -5198,6 +5608,17 @@ class LembarKerjaState {
           ],
       });
     barisTambahan = angkaBulat(s['baris_tambahan']) ?? 0;
+    // Set titik sesi duluan — barisnya ikut menentukan tabel di bawah.
+    if (s.containsKey('titik_sesi')) {
+      titikSesi.pulihkanSalinan(s['titik_sesi']);
+      _nominalTersimpan
+        ..clear()
+        ..addAll([
+          for (final n in (s['nominal_tersimpan'] as List? ?? const []))
+            if (n is num) n.toDouble(),
+        ]);
+      _terapkanSetKeDaftar();
+    }
     bagianSebagaiTabel
       ..clear()
       ..addAll([for (final k in (s['bagian_sebagai_tabel'] as List? ?? [])) '$k']);

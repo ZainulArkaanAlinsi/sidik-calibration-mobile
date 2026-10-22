@@ -4,6 +4,7 @@ import 'mock_store.dart';
 import '../models/lembar_kerja.dart';
 import '../models/lembar_kerja_submission.dart';
 import '../models/pratinjau_hitung.dart';
+import '../models/titik_sesi.dart';
 import 'api_client.dart';
 import 'auth_service.dart' show ApiException;
 import 'equipment_lookup_service.dart';
@@ -64,6 +65,18 @@ abstract class LembarKerjaService {
   Future<int> perbarui(String token, int id, LembarKerjaSubmission isian);
 }
 
+/// Layanan yang mengingat `meta.titik_sesi` respons simpan TERAKHIR yang
+/// sukses — revisi set titik terbaru yang wajib jadi dasar kiriman
+/// berikutnya. `null` = respons tanpa set (lembar tanpa titik sesi / server
+/// lama).
+///
+/// Antarmuka terpisah, bukan anggota [LembarKerjaService]: nilai balik
+/// [LembarKerjaService.kirim] tidak diubah supaya pemanggil & tiruan lama
+/// (antrean draf offline, test) tidak perlu disentuh.
+abstract interface class PunyaTitikSesiTerakhir {
+  MetaTitikSesi? get titikSesiTerakhir;
+}
+
 /// Kunci salinan lembar — tiga sumbu yang sama dengan `KunciLembarKerja` di
 /// `lembar_kerja_provider.dart` (jenis alat, jumlah kotak, alat), satu-ke-satu
 /// dengan query `GET /calibrations/lembar-kerja`.
@@ -91,10 +104,14 @@ class SalinanLembarKerja {
   final String? etag;
 }
 
-class ApiLembarKerjaService implements LembarKerjaService {
+class ApiLembarKerjaService
+    implements LembarKerjaService, PunyaTitikSesiTerakhir {
   ApiLembarKerjaService(this._api);
 
   final ApiClient _api;
+
+  @override
+  MetaTitikSesi? titikSesiTerakhir;
 
   /// Salinan per kunci lembar, DI MEMORI saja (repo belum punya cache
   /// persisten untuk lembar). Hilang waktu aplikasi ditutup — tarikan pertama
@@ -216,6 +233,10 @@ class ApiLembarKerjaService implements LembarKerjaService {
 
   int _idDari(Map<String, dynamic> json) {
     final data = (json['data'] ?? json) as Map<String, dynamic>;
+    final meta = json['meta'];
+    titikSesiTerakhir = meta is Map
+        ? MetaTitikSesi.dariJson(meta['titik_sesi'])
+        : null;
     return (data['id'] as num).toInt();
   }
 }
@@ -224,7 +245,12 @@ class ApiLembarKerjaService implements LembarKerjaService {
 /// server — itu yang diperiksa test, bukan tampilannya, karena aturan yang
 /// paling gampang rusak diam-diam ada di bentuk payload-nya (sel kosong wajib
 /// jadi `null`, bukan dibuang).
-class MockLembarKerjaService implements LembarKerjaService {
+class MockLembarKerjaService
+    implements LembarKerjaService, PunyaTitikSesiTerakhir {
+  /// Diisi test yang meniru respons simpan bermuatan `meta.titik_sesi`.
+  @override
+  MetaTitikSesi? titikSesiTerakhir;
+
   MockLembarKerjaService({
     this.gagal = false,
     this.untukAdmin = false,

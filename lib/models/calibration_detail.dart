@@ -1,6 +1,7 @@
 import 'autoclave_hasil.dart';
 import 'calibration_history_item.dart';
 import '../core/utils/parse_list.dart';
+import 'titik_sesi.dart';
 
 /// Standar acuan ringkas — dipakai di level sesi dan bisa di-override per
 /// titik ukur (mis. pH: buffer 4/7/10 masing-masing sertifikatnya sendiri).
@@ -1007,7 +1008,12 @@ class CalibrationDetail {
     this.statusStandar,
     this.administrasi = const AdministrasiSesi(),
     this.diubahPada,
+    this.titikSesi,
   });
+
+  /// `meta.titik_sesi` respons `GET /calibrations/{id}` — set titik ukur sesi
+  /// yang disimpan server. `null` = server lama / sesi tanpa kontrak titik.
+  final MetaTitikSesi? titikSesi;
 
   final int id;
   final String namaAlat;
@@ -1149,7 +1155,12 @@ class CalibrationDetail {
   static double? _maks(Iterable<double> nilai) =>
       nilai.isEmpty ? null : nilai.reduce((a, b) => a > b ? a : b);
 
-  factory CalibrationDetail.fromJson(Map<String, dynamic> json) {
+  /// [meta] = `meta` di tingkat ATAS respons (di luar `data`) — tempat
+  /// `titik_sesi` dikirim server.
+  factory CalibrationDetail.fromJson(
+    Map<String, dynamic> json, {
+    Object? meta,
+  }) {
     final hasil = json['hasil'] as Map<String, dynamic>?;
     final equipment = json['equipment'] as Map<String, dynamic>?;
     final teknisi = json['teknisi'] as Map<String, dynamic>?;
@@ -1221,6 +1232,7 @@ class CalibrationDetail {
         final String t => DateTime.tryParse(t),
         _ => null,
       },
+      titikSesi: meta is Map ? MetaTitikSesi.dariJson(meta['titik_sesi']) : null,
     );
   }
 }

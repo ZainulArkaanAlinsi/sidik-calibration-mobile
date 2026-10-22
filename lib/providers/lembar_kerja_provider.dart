@@ -5,6 +5,7 @@ import '../models/lembar_kerja.dart';
 import '../models/lembar_kerja_submission.dart';
 import '../models/pratinjau_hitung.dart';
 import '../models/room.dart';
+import '../models/titik_sesi.dart';
 import '../services/lembar_kerja_service.dart';
 import '../services/room_service.dart';
 import 'auth_provider.dart';
@@ -76,10 +77,17 @@ final roomListProvider = FutureProvider<List<Room>>((ref) async {
 /// Hasil submit lembar kerja — dibedain dari sekadar id supaya layar bisa
 /// bilang "tersimpan sebagai draft" vs "terkirim ke admin" tanpa nebak.
 class HasilKirimLembarKerja {
-  const HasilKirimLembarKerja({required this.id, required this.draft});
+  const HasilKirimLembarKerja({
+    required this.id,
+    required this.draft,
+    this.titikSesi,
+  });
 
   final int id;
   final bool draft;
+
+  /// `meta.titik_sesi` respons simpan — revisi set titik terbaru.
+  final MetaTitikSesi? titikSesi;
 }
 
 /// Nembak `POST`/`PUT /api/calibrations` sekali, nggak nyimpen daftar.
@@ -113,6 +121,9 @@ class KirimLembarKerjaController
       final hasil = HasilKirimLembarKerja(
         id: id,
         draft: isian.simpanSebagaiDraft,
+        titikSesi: service is PunyaTitikSesiTerakhir
+            ? (service as PunyaTitikSesiTerakhir).titikSesiTerakhir
+            : null,
       );
 
       // Daftar draf berubah di DUA arah, makanya nggak dijaga

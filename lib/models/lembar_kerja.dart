@@ -10,6 +10,7 @@
 library;
 
 import '../core/utils/parse_list.dart';
+import 'titik_sesi.dart';
 
 /// Tipe kolom yang dikenali layar input. Tipe asing dari backend dianggap
 /// [teks] — kolom baru tetap kelihatan & bisa diisi, nggak bikin layar kosong.
@@ -1473,9 +1474,19 @@ class LembarKerja {
     this.fotoTabelDidukung = true,
     this.alatBaru,
     this.versiAcuan,
+    this.batasTitik,
+    this.titikSesiBawaan = const [],
   });
 
   final String kodeDokumen;
+
+  /// `batas_titik` — aturan titik ukur SESI lembar ini (tambah/nonaktifkan/
+  /// pengulangan). `null` = server lama tanpa kunci ini; `didukung: false` =
+  /// lembar ini memakai perilaku lama. Lihat `models/titik_sesi.dart`.
+  final BatasTitik? batasTitik;
+
+  /// `titik_sesi_bawaan` — set titik pertama sebelum teknisi menyesuaikannya.
+  final List<TitikSesi> titikSesiBawaan;
 
   /// Nomor instruksi kerja yang TERCETAK di lembar ("2. Calibration Methode :
   /// SIDIK-IK-CAL-0507"), buat ditampilkan apa adanya.
@@ -1657,7 +1668,19 @@ class LembarKerja {
         : null,
     fotoTabelDidukung: _fotoTabelDidukung(json['pindai_foto']),
     versiAcuan: VersiAcuanLembar.dariJson(json['versi_acuan']),
+    batasTitik: BatasTitik.dariJson(json['batas_titik']),
+    titikSesiBawaan: parseTitikSesi(
+      json['titik_sesi_bawaan'],
+      tabelBawaan: _tabelTunggal(json['batas_titik']),
+    ),
   );
+
+  /// Kode tabel titik kalau batasnya cuma punya satu tabel — titik bawaan
+  /// tanpa `tabel` jatuh ke situ.
+  static String? _tabelTunggal(Object? batas) {
+    final b = BatasTitik.dariJson(batas);
+    return b != null && b.tabel.length == 1 ? b.tabel.first.kode : null;
+  }
 }
 
 /// `versi_acuan` di `GET /calibrations/lembar-kerja`:
