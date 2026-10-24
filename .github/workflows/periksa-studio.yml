@@ -1,0 +1,112 @@
+# Gate Studio sebelum merge. Job rilis hanya berjalan setelah merge dan belum
+# menjalankan analyzer; resolusi lock harus bisa ditinjau tanpa mesin pemilik.
+name: Periksa Studio
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: periksa-studio-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Sama dengan periksa-pr.yml dan rilis-desktop.yml.
+  FLUTTER_VERSION: 3.44.6
+
+jobs:
+  root-lock:
+    name: Lock app lab (exact)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - name: Verifikasi lock app lab
+        id: root_lock
+        run: flutter pub get --enforce-lockfile
+
+      # Enforce tetap gagal dan job tetap merah. Resolusi ini hanya membuat
+      # kandidat lock dengan SDK CI agar bisa diunduh dan ditinjau pemilik.
+      - name: Hasilkan kandidat lock app lab jika enforcement gagal
+        if: failure() && steps.root_lock.outcome == 'failure'
+        run: flutter pub get
+
+      - name: Simpan lock app lab untuk ditinjau
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lab-pubspec-lock-${{ github.sha }}
+          path: pubspec.lock
+          if-no-files-found: error
+          retention-days: 14
+
+  studio:
+    name: Studio analyze & test
+    # Independen dari root-lock agar lock Studio tetap tersedia sebagai bukti
+    # jika lock app lab tidak cocok SDK. Kegagalan salah satu job tetap merah.
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: studio
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      # Pub yang menghasilkan lock, bukan penyuntingan versi/hash dengan tangan.
+      # Guard di bawah tetap menggagalkan CI sampai hasilnya ditinjau & dilacak.
+      - name: Resolusi dependency Studio
+        run: flutter pub get
+
+      - name: Simpan lock Studio untuk ditinjau
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: studio-pubspec-lock-${{ github.sha }}
+          path: studio/pubspec.lock
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Pastikan lock Studio sudah dilacak
+        run: git diff --exit-code -- pubspec.lock
+
+      - name: Generate localization Studio
+        run: flutter gen-l10n
+
+      - name: Analyze Studio
+        run: flutter analyze --no-pub
+
+      # Sama dengan seleksi test perilaku di job rilis Studio. Tiga berkas
+      # golden memakai baseline Windows; Linux bukan bukti paritas pikselnya.
+      - name: Test perilaku Studio (tanpa golden Windows)
+        run: |
+          set -euo pipefail
+          mapfile -t test_files < <(grep -L matchesGoldenFile test/*_test.dart)
+          if [ "${#test_files[@]}" -eq 0 ]; then
+            echo "::error::Tidak ada test perilaku Studio yang ditemukan."
+            exit 1
+          fi
+          {
+            echo '### Cakupan test Studio'
+            echo 'Unit/widget test perilaku berjalan di Linux. Golden Windows belum diverifikasi oleh job ini.'
+            echo 'Berkas yang memuat matchesGoldenFile dan dilewati (pola yang sama dengan rilis Studio):'
+            for test_file in test/*_test.dart; do
+              if grep -q matchesGoldenFile "$test_file"; then
+                echo "$test_file"
+              fi
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+          flutter test --no-pub --concurrency=1 "${test_files[@]}"
