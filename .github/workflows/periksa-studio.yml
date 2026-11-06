@@ -110,3 +110,26 @@ jobs:
             done
           } >> "$GITHUB_STEP_SUMMARY"
           flutter test --no-pub --concurrency=1 "${test_files[@]}"
+
+  studio-windows:
+    name: Studio build Windows
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: studio
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - name: Verifikasi lock Studio
+        run: flutter pub get --enforce-lockfile
+      - name: Generate localization Studio
+        run: flutter gen-l10n
+      # Analyzer Linux tidak memeriksa CMake/FFI/DLL. Build sebelum merge
+      # memverifikasi paket native yang sama dengan rilis, tanpa menerbitkan.
+      - name: Build native Studio Windows
+        run: flutter build windows --release --no-pub
