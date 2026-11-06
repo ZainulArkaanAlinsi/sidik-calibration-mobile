@@ -20,11 +20,16 @@ final izinServiceProvider = Provider<IzinService>((ref) {
 /// langsung, dan itu memang cara yang aman.
 final izinProvider = FutureProvider<Izin>((ref) async {
   // Ikut user yang lagi login: ganti akun → izinnya ditarik ulang.
-  final user = ref.watch(authProvider).value;
-  if (user == null) return Izin.kosong;
+  // Loading may retain the previous user while logout is revoking its token.
+  final user = await ref.watch(authProvider.future);
+  if (user == null || !ref.mounted) return Izin.kosong;
 
   final token = await ref.read(tokenStorageProvider).read();
-  if (token == null) return Izin.kosong;
+  if (!ref.mounted) return Izin.kosong;
+  final auth = ref.read(authProvider);
+  if (token == null || auth.isLoading || auth.value?.id != user.id) {
+    return Izin.kosong;
+  }
 
   return ref.read(izinServiceProvider).ambil(token);
 });
