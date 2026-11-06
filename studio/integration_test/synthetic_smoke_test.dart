@@ -233,6 +233,34 @@ void main() {
               }
             }
 
+            // Workbook is a full-screen root route; its back action must return
+            // to the shell before the account/logout controls are visible.
+            final back = find
+                .descendant(
+                  of: find.byType(WorkbookScreen),
+                  matching: find.byTooltip(l10n.kembali),
+                )
+                .hitTestable();
+            expect(back, findsOneWidget);
+            await tester.tap(back);
+            await _until(
+              tester,
+              audit,
+              () =>
+                  find.byType(WorkbookScreen).evaluate().isEmpty &&
+                  find.byType(CangkangStudio).evaluate().isNotEmpty &&
+                  (find
+                          .byTooltip(l10n.keluar)
+                          .hitTestable()
+                          .evaluate()
+                          .isNotEmpty ||
+                      find
+                          .byTooltip(l10n.menuAkun)
+                          .hitTestable()
+                          .evaluate()
+                          .isNotEmpty),
+            );
+
             // Exact production logout action, not a direct call to authController.
             final exit = find.byTooltip(l10n.keluar).hitTestable();
             if (exit.evaluate().isEmpty) {
