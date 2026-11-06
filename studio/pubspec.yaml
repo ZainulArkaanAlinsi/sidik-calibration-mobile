@@ -53,6 +53,10 @@ dev_dependencies:
   # `SharedPreferences.setMockInitialValues` di test: jalur logout paket
   # bersama menyapu simpanan lokal, dan tanpa tiruan channel-nya tidak dijawab.
   shared_preferences: ^2.3.2
+  # Existing locked packages used directly by the isolated HTTP/manifest tests.
+  crypto: 3.0.7
+  http: 1.6.0
+  path: 1.9.1
 
 flutter:
   # Generator l10n Studio sendiri (`l10n.yaml` → `lib/l10n/studio_l10n.dart`).

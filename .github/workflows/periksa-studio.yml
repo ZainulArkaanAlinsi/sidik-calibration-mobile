@@ -131,5 +131,7 @@ jobs:
         run: flutter gen-l10n
       # Analyzer Linux tidak memeriksa CMake/FFI/DLL. Build sebelum merge
       # memverifikasi paket native yang sama dengan rilis, tanpa menerbitkan.
+      - name: Test isolated runner guards
+        run: .\tool\test_synthetic_e2e_guards.ps1
       - name: Build native Studio Windows
         run: flutter build windows --release --no-pub
