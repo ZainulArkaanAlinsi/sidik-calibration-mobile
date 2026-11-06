@@ -117,6 +117,8 @@ class _LaporanState extends ConsumerState<_Laporan> {
                     ),
                   for (final s in sesi) _KartuSesi(sesi: s),
                   if (adaBersama) _KartuBersama(bersama: bersama),
+                  if (lap.bersamaAntarPaket.isNotEmpty)
+                    _KartuBersamaPaket(beda: lap.bersamaAntarPaket),
                 ],
               ),
             );
@@ -167,6 +169,11 @@ class _KepalaLaporan extends StatelessWidget {
           if ((r?.bersamaAntarVarian ?? 0) > 0)
             Text(
               l10n.alurAcuanBersama(r!.bersamaAntarVarian!),
+              style: theme.textTheme.bodySmall?.copyWith(color: m.awas),
+            ),
+          if ((r?.bersamaAntarPaket ?? 0) > 0)
+            Text(
+              l10n.alurAcuanBersamaPaket(r!.bersamaAntarPaket!),
               style: theme.textTheme.bodySmall?.copyWith(color: m.awas),
             ),
           if (r?.catatanSumber != null)
@@ -413,6 +420,68 @@ class _KartuBersama extends StatelessWidget {
                   baris: baris(mm.beda),
                 ),
             ],
+        ],
+      ),
+    );
+  }
+}
+
+class _KartuBersamaPaket extends StatelessWidget {
+  const _KartuBersamaPaket({required this.beda});
+
+  final List<BedaPaketAcuan> beda;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+
+    return Kertas(
+      key: const ValueKey('sim-bersama-paket'),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.simAcuanBersamaPaketJudul, style: theme.textTheme.titleSmall),
+          for (var i = 0; i < beda.length; i++) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(l10n.simAcuanPaket(beda[i].paket ?? '—')),
+            Text(
+              l10n.simAcuanDasar(beda[i].dasar ?? '—'),
+              style: theme.textTheme.bodySmall,
+            ),
+            if (beda[i].galat != null) ...[
+              Text(
+                l10n.simAcuanSumberGagal,
+                key: ValueKey('sim-bersama-paket-galat-$i'),
+                style: TextStyle(color: theme.colorScheme.error),
+              ),
+              SelectableText(
+                beda[i].galat!,
+                style: TextStyle(color: theme.colorScheme.error),
+              ),
+            ],
+            if (beda[i].galat == null ||
+                beda[i].acuan != null ||
+                beda[i].master != null)
+              _Tabel(
+                kunci: 'sim-bersama-paket-beda-$i',
+                judul: null,
+                kepala: [
+                  l10n.simAcuanKolomKolom,
+                  l10n.simAcuanKolomAcuan,
+                  l10n.simAcuanKolomMaster,
+                ],
+                baris: [
+                  [
+                    beda[i].jalur ?? '—',
+                    beda[i].acuan ?? '—',
+                    beda[i].master ?? '—',
+                  ],
+                ],
+              ),
+          ],
         ],
       ),
     );

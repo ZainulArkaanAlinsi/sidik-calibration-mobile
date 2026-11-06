@@ -4035,5 +4035,35 @@
   "titikSesiBentrokPesan": "Reason: {alasan}. This point has numbers on this phone that are not saved yet, and an inactive point cannot take new readings. Choose what to do with them.",
   "@titikSesiBentrokPesan": {"placeholders": {"alasan": {"type": "String"}}},
   "titikSesiBentrokAktifkan": "Reactivate this point",
-  "titikSesiBentrokBuang": "Discard unsaved numbers on this point"
+  "titikSesiBentrokBuang": "Discard unsaved numbers on this point",
+  "alurAcuanButirBersamaPaket": "Reference data differences across packages",
+  "alurAcuanBersamaPaket": "{jumlah} reference data differences across packages",
+  "@alurAcuanBersamaPaket": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
+  "simAcuanBersamaPaketJudul": "Reference data across packages",
+  "simAcuanPaket": "Package: {paket}",
+  "@simAcuanPaket": {
+    "placeholders": {
+      "paket": {
+        "type": "String"
+      }
+    }
+  },
+  "simAcuanDasar": "Comparison reference: {dasar}",
+  "@simAcuanDasar": {
+    "placeholders": {
+      "dasar": {
+        "type": "String"
+      }
+    }
+  },
+  "simAcuanKolomAcuan": "Effective reference",
+  "simAcuanKolomMaster": "Uploaded master",
+  "simAcuanSumberGagal": "Master source could not be checked",
+  "fotoReviewBelumDapatDisimpan": "The app cannot yet store this value unchanged (storage supports up to 8 decimal places and 12 integer digits). The original value is retained for review."
 }

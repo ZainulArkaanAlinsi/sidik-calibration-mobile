@@ -131,7 +131,8 @@ class PotongSelFoto {
 /// `Isolate.run` (tidak menangkap State/ref apa pun).
 Map<String, Uint8List> potongKePng(img.Image citra, List<KotakSelFoto> kotak) {
   final hasil = <String, Uint8List>{};
-  for (final p in const PotongSelFoto().potong(citra: citra, kotak: kotak).potongan) {
+  for (final p
+      in const PotongSelFoto().potong(citra: citra, kotak: kotak).potongan) {
     hasil[kunciSelFoto(p.kotak.titikUkur, p.kotak.repeatNo, p.kotak.fieldId)] =
         Uint8List.fromList(img.encodePng(p.potongan));
   }
@@ -150,5 +151,19 @@ Future<Map<String, Uint8List>> potongKePngDiIsolate(
 Future<Uint8List> encodePngDiIsolate(img.Image citra) =>
     Isolate.run(() => Uint8List.fromList(img.encodePng(citra)));
 
+class FotoMelebihiBatas implements Exception {
+  const FotoMelebihiBatas();
+}
+
 Future<img.Image?> decodeFotoDiIsolate(Uint8List bita) =>
-    Isolate.run(() => img.decodeImage(bita));
+    Isolate.run(() => decodeFotoTerbatas(bita));
+
+img.Image? decodeFotoTerbatas(Uint8List bita) {
+  final decoder = img.findDecoderForData(bita);
+  final info = decoder?.startDecode(bita);
+  if (info == null) return null;
+  if (info.width > 4200 || info.height > 4200) {
+    throw const FotoMelebihiBatas();
+  }
+  return img.decodeImage(bita);
+}

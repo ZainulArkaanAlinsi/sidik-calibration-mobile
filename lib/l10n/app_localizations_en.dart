@@ -7335,4 +7335,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get titikSesiBentrokBuang => 'Discard unsaved numbers on this point';
+
+  @override
+  String get alurAcuanButirBersamaPaket =>
+      'Reference data differences across packages';
+
+  @override
+  String alurAcuanBersamaPaket(int jumlah) {
+    return '$jumlah reference data differences across packages';
+  }
+
+  @override
+  String get simAcuanBersamaPaketJudul => 'Reference data across packages';
+
+  @override
+  String simAcuanPaket(String paket) {
+    return 'Package: $paket';
+  }
+
+  @override
+  String simAcuanDasar(String dasar) {
+    return 'Comparison reference: $dasar';
+  }
+
+  @override
+  String get simAcuanKolomAcuan => 'Effective reference';
+
+  @override
+  String get simAcuanKolomMaster => 'Uploaded master';
+
+  @override
+  String get simAcuanSumberGagal => 'Master source could not be checked';
+
+  @override
+  String get fotoReviewBelumDapatDisimpan =>
+      'The app cannot yet store this value unchanged (storage supports up to 8 decimal places and 12 integer digits). The original value is retained for review.';
 }

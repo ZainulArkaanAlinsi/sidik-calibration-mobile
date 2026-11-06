@@ -6,8 +6,8 @@
 ///  - `GET /data-acuan/paket/{kode}/alur` → `data[]` = `PaketAcuanVersiResource`
 ///    + `simulasi` (`ringkasSimulasi`) + `log[]`;
 ///  - `GET /data-acuan/versi/{versi}/simulasi` → `data` = `ringkasSimulasi` +
-///    `laporan` (`{sesi[], bersama_antar_varian}` dari `SimulasiVersiAcuan` &
-///    `DataBersamaVarian`).
+///    `laporan` (`{sesi[], bersama_antar_varian, bersama_antar_paket[]}` dari
+///    `SimulasiVersiAcuan`, `DataBersamaVarian` & `DataBersamaPaket`).
 ///
 /// Semua parsing toleran: kunci yang hilang → `null`/kosong, tipe yang salah
 /// → diabaikan, kunci yang belum dikenal → diabaikan. Nilai `lama`/`baru`
@@ -73,6 +73,7 @@ enum StatusSimulasiAcuan {
 abstract final class ButirPengakuanAcuan {
   static const terbitCetakBerubah = 'terbit_cetak_berubah';
   static const bersamaAntarVarian = 'bersama_antar_varian';
+  static const bersamaAntarPaket = 'bersama_antar_paket';
   static const sesiGagal = 'sesi_gagal';
 
   /// Panjang minimum alasan per butir (server: `mb_strlen(trim()) < 10`).
@@ -89,6 +90,7 @@ class RingkasanAngkaSimulasi {
     this.vonisBerubah,
     this.sesiGagal,
     this.bersamaAntarVarian,
+    this.bersamaAntarPaket,
     this.masterVarianLainTidakSepakat,
     this.sumberAcuanAktif,
     this.catatanSumber,
@@ -101,6 +103,7 @@ class RingkasanAngkaSimulasi {
   final int? vonisBerubah;
   final int? sesiGagal;
   final int? bersamaAntarVarian;
+  final int? bersamaAntarPaket;
   final int? masterVarianLainTidakSepakat;
 
   /// `DATA_ACUAN_SUMBER` server saat simulasi (`db`/`json`).
@@ -120,6 +123,7 @@ class RingkasanAngkaSimulasi {
       vonisBerubah: _bulat(j['vonis_berubah']),
       sesiGagal: _bulat(j['sesi_gagal']),
       bersamaAntarVarian: _bulat(j['bersama_antar_varian']),
+      bersamaAntarPaket: _bulat(j['bersama_antar_paket']),
       masterVarianLainTidakSepakat: _bulat(
         j['master_varian_lain_tidak_sepakat'],
       ),
@@ -435,6 +439,38 @@ class BersamaAntarVarianAcuan {
   }
 }
 
+/// Satu perbedaan `laporan.bersama_antar_paket` (`DataBersamaPaket`).
+///
+/// `acuan`/`master` adalah STRING JSON kanonik dari server. Jangan diurai atau
+/// dibulatkan: ejaan angka dan kutip teksnya merupakan bagian bukti perubahan.
+/// Sumber yang tidak dapat dibaca tetap dilaporkan lewat [galat].
+class BedaPaketAcuan {
+  const BedaPaketAcuan({
+    this.paket,
+    this.dasar,
+    this.jalur,
+    this.acuan,
+    this.master,
+    this.galat,
+  });
+
+  final String? paket;
+  final String? dasar;
+  final String? jalur;
+  final String? acuan;
+  final String? master;
+  final String? galat;
+
+  factory BedaPaketAcuan.fromJson(Map<String, dynamic> j) => BedaPaketAcuan(
+    paket: _teks(j['paket']),
+    dasar: _teks(j['dasar']),
+    jalur: _teks(j['jalur']),
+    acuan: j['acuan'] is String ? j['acuan'] as String : null,
+    master: j['master'] is String ? j['master'] as String : null,
+    galat: _teks(j['galat']),
+  );
+}
+
 /// `GET /versi/{versi}/simulasi` — ringkasan + laporan utuh (yang dilihat
 /// pengaktif). `laporan == null` = belum ada simulasi.
 class LaporanSimulasiAcuan {
@@ -442,12 +478,14 @@ class LaporanSimulasiAcuan {
     required this.simulasi,
     this.sesi = const [],
     this.bersama,
+    this.bersamaAntarPaket = const [],
     this.adaLaporan = false,
   });
 
   final SimulasiVersiAcuan simulasi;
   final List<SesiSimulasiAcuan> sesi;
   final BersamaAntarVarianAcuan? bersama;
+  final List<BedaPaketAcuan> bersamaAntarPaket;
   final bool adaLaporan;
 
   factory LaporanSimulasiAcuan.fromJson(Map<String, dynamic> j) {
@@ -458,6 +496,10 @@ class LaporanSimulasiAcuan {
       sesi: parseListAman(laporan?['sesi'], SesiSimulasiAcuan.fromJson),
       bersama: BersamaAntarVarianAcuan.dariJson(
         laporan?['bersama_antar_varian'],
+      ),
+      bersamaAntarPaket: parseListAman(
+        laporan?['bersama_antar_paket'],
+        BedaPaketAcuan.fromJson,
       ),
     );
   }

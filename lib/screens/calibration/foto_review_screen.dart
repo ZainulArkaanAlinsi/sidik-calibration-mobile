@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image/image.dart' as img;
 
 import '../../l10n/app_localizations.dart';
 import '../../models/review_foto.dart';
 import '../../services/peta_tabel_foto.dart';
+import '../../services/potong_sel_foto.dart';
 import '../../services/vonis_sel_foto.dart';
 
 /// Layar review hasil **FOTO TABEL INI**, sebelum angkanya mendarat di form.
@@ -90,7 +92,17 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
       if (wajibDiisi(b) && _isian[_kunci(b)]!.text.trim().isEmpty) b,
   ];
 
+  bool _angkaRusak(BarisReviewFoto b) {
+    final teks = _isian[_kunci(b)]!.text.trim();
+    return teks.isNotEmpty && !angkaFotoSah(teks);
+  }
+
   void _selesai() {
+    if (_belumDiisi.isNotEmpty ||
+        _belumDicek.isNotEmpty ||
+        widget.baris.any(_angkaRusak)) {
+      return;
+    }
     // SEMUA sel dipulangkan, termasuk yang teknisi kosongkan — bukan cuma yang
     // ada isinya.
     //
@@ -174,7 +186,10 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
                   FilledButton(
                     // Sengaja TIDAK ada tombol "terima semua" di sebelahnya —
                     // lihat aturan 1 di docblock kelas ini.
-                    onPressed: belum.isEmpty && belumDicek.isEmpty
+                    onPressed:
+                        belum.isEmpty &&
+                            belumDicek.isEmpty &&
+                            !widget.baris.any(_angkaRusak)
                         ? _selesai
                         : null,
                     child: Text(l10n.fotoReviewMasukkan),
@@ -240,6 +255,11 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
                 ],
                 onChanged: (_) => setState(() => _dicek.add(_kunci(b))),
                 decoration: InputDecoration(
+                  errorText: !_angkaRusak(b)
+                      ? null
+                      : angkaFotoFinite(_isian[_kunci(b)]!.text)
+                      ? l10n.fotoReviewBelumDapatDisimpan
+                      : l10n.calibValidasiAngka,
                   isDense: true,
                   border: const OutlineInputBorder(),
                   hintText: b.vonis == VonisFoto.merah
@@ -285,4 +305,30 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
       ],
     );
   }
+}
+
+/// The same per-cell review gate for table, sensor grid and autoclave photos.
+Future<List<SelTabelFoto>?> reviewHasilFoto({
+  required BuildContext context,
+  required HasilPetaTabel hasil,
+  required img.Image? citra,
+  required String Function(SelTabelFoto) judul,
+}) async {
+  final potongan = citra != null && hasil.kotakSel.isNotEmpty
+      ? await potongKePngDiIsolate(citra, hasil.kotakSel)
+      : <String, Uint8List>{};
+  if (!context.mounted) return null;
+  // Worksheet notifications must not follow the route and cover its actions.
+  ScaffoldMessenger.of(context).clearSnackBars();
+  return Navigator.of(context).push<List<SelTabelFoto>>(
+    MaterialPageRoute(
+      builder: (_) => FotoReviewScreen(
+        baris: susunReviewFoto(
+          sel: hasil.sel,
+          potongan: potongan,
+          judul: judul,
+        ),
+      ),
+    ),
+  );
 }

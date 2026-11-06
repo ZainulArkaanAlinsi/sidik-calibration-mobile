@@ -12685,6 +12685,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Discard unsaved numbers on this point'**
   String get titikSesiBentrokBuang;
+
+  /// No description provided for @alurAcuanButirBersamaPaket.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference data differences across packages'**
+  String get alurAcuanButirBersamaPaket;
+
+  /// No description provided for @alurAcuanBersamaPaket.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} reference data differences across packages'**
+  String alurAcuanBersamaPaket(int jumlah);
+
+  /// No description provided for @simAcuanBersamaPaketJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference data across packages'**
+  String get simAcuanBersamaPaketJudul;
+
+  /// No description provided for @simAcuanPaket.
+  ///
+  /// In en, this message translates to:
+  /// **'Package: {paket}'**
+  String simAcuanPaket(String paket);
+
+  /// No description provided for @simAcuanDasar.
+  ///
+  /// In en, this message translates to:
+  /// **'Comparison reference: {dasar}'**
+  String simAcuanDasar(String dasar);
+
+  /// No description provided for @simAcuanKolomAcuan.
+  ///
+  /// In en, this message translates to:
+  /// **'Effective reference'**
+  String get simAcuanKolomAcuan;
+
+  /// No description provided for @simAcuanKolomMaster.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploaded master'**
+  String get simAcuanKolomMaster;
+
+  /// No description provided for @simAcuanSumberGagal.
+  ///
+  /// In en, this message translates to:
+  /// **'Master source could not be checked'**
+  String get simAcuanSumberGagal;
+
+  /// No description provided for @fotoReviewBelumDapatDisimpan.
+  ///
+  /// In en, this message translates to:
+  /// **'The app cannot yet store this value unchanged (storage supports up to 8 decimal places and 12 integer digits). The original value is retained for review.'**
+  String get fotoReviewBelumDapatDisimpan;
 }
 
 class _AppLocalizationsDelegate

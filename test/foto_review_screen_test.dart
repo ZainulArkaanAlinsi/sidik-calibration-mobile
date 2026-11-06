@@ -406,4 +406,107 @@ void main() {
       expect(tester.widget<FilledButton>(masukkan).onPressed, isNotNull);
     },
   );
+  testWidgets('angka rusak ditahan, koma negatif sah, kosong tidak jadi nol', (
+    tester,
+  ) async {
+    await buka(tester, [baris('7,02', keyakinan: 0.95)]);
+    final kotak = find.byType(TextField).first;
+    for (final teks in ['-', '.', '1..2', '1,2,3']) {
+      await tester.enterText(kotak, teks);
+      await tester.pump();
+      expect(
+        tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+        isNull,
+      );
+      expect(find.text('Isi angka yang valid.'), findsOneWidget);
+    }
+    await tester.enterText(kotak, '-7,03');
+    await tester.pump();
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNotNull,
+    );
+    expect(angkaFotoSah('1e309'), isFalse);
+    expect(angkaFotoSah('NaN'), isFalse);
+    expect(angkaFotoSah('Infinity'), isFalse);
+    expect(angkaFotoSah(''), isFalse);
+    expect(angkaFotoSah('0'), isTrue);
+  });
+  for (final mentah in [
+    '0,000000001',
+    '100000000000.00001526',
+    '999999999999.99987793',
+  ]) {
+    testWidgets('nilai $mentah tetap ditampilkan dan harus dikoreksi', (
+      tester,
+    ) async {
+      final asli = <SelTabelFoto>[
+        (
+          titikUkur: 60.0,
+          repeatNo: 1,
+          fieldId: 'pembacaan',
+          teks: mentah,
+          keyakinan: 0.97,
+        ),
+      ];
+      final mesin = bacaanMesinFoto(asli);
+      List<SelTabelFoto>? hasil;
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('id'),
+          home: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () async {
+                hasil = await Navigator.of(context).push<List<SelTabelFoto>>(
+                  MaterialPageRoute(
+                    builder: (_) => FotoReviewScreen(
+                      baris: susunReviewFoto(
+                        sel: asli,
+                        judul: (_) => 'Pembacaan',
+                      ),
+                    ),
+                  ),
+                );
+              },
+              child: const Text('buka'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('buka'));
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        mentah,
+      );
+      expect(find.textContaining('8 desimal'), findsOneWidget);
+      await tester.tap(
+        find.byWidgetPredicate(
+          (w) =>
+              w is IconButton &&
+              w.key is ValueKey &&
+              '${(w.key as ValueKey).value}'.startsWith('cek-'),
+        ),
+      );
+      await tester.pump();
+      expect(
+        tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+        isNull,
+      );
+      expect(hasil, isNull);
+      await tester.enterText(find.byType(TextField), '0,00000001');
+      await tester.pump();
+      expect(
+        tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+        isNotNull,
+      );
+      await tester.tap(find.byType(FilledButton));
+      await tester.pumpAndSettle();
+      expect(hasil!.single.teks, '0,00000001');
+      expect(mesin.values.single.teksMentah, mentah);
+      expect(asli.single.teks, mentah);
+    });
+  }
 }

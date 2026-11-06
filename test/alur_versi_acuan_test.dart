@@ -147,8 +147,55 @@ void main() {
         expect(lap.bersama!.berubah.single.baru, '1.1');
         expect(lap.bersama!.masterLain.single.beda.single.lama, 1);
         expect(lap.bersama!.masterLain.single.beda.single.baru, 2);
+        expect(lap.bersamaAntarPaket, isEmpty);
       },
     );
+
+    test('antar-paket: presisi/string JSON, nullable dan sumber gagal', () {
+      final lap = LaporanSimulasiAcuan.fromJson({
+        ..._simulasiPaket,
+        'laporan': {
+          'bersama_antar_paket': [
+            ..._bedaPaket,
+            {'acuan': 1.25, 'master': false, 'galat': []},
+            'bukan objek',
+            {'acuan': '', 'master': '"STD-01"'},
+          ],
+        },
+      });
+
+      expect(lap.simulasi.ringkasan!.bersamaAntarPaket, 2);
+      expect(lap.bersamaAntarPaket, hasLength(4));
+      final beda = lap.bersamaAntarPaket.first;
+      expect(beda.paket, 'height_gauge');
+      expect(beda.dasar, 'versi berlaku v1 (#1)');
+      expect(beda.jalur, 'outside[0].nilai_terkoreksi_mm');
+      expect(beda.acuan, '25.000800000000001');
+      expect(beda.master, '25.001800000000001');
+      expect(lap.bersamaAntarPaket[1].acuan, isNull);
+      expect(lap.bersamaAntarPaket[1].master, isNull);
+      expect(lap.bersamaAntarPaket[1].galat, 'Master sumber tidak ditemukan.');
+      expect(lap.bersamaAntarPaket[2].acuan, isNull);
+      expect(lap.bersamaAntarPaket[2].master, isNull);
+      expect(lap.bersamaAntarPaket[2].galat, isNull);
+      expect(lap.bersamaAntarPaket.last.acuan, '');
+      expect(lap.bersamaAntarPaket.last.master, '"STD-01"');
+      expect(
+        labelButirPengakuan(ButirPengakuanAcuan.bersamaAntarPaket, l10n),
+        l10n.alurAcuanButirBersamaPaket,
+      );
+    });
+
+    test('antar-paket hilang/null/tipe salah tetap kompatibel server lama', () {
+      for (final isi in [null, 'bukan daftar', <String, dynamic>{}]) {
+        final lap = LaporanSimulasiAcuan.fromJson({
+          'ringkasan': {'bersama_antar_paket': []},
+          'laporan': {'bersama_antar_paket': isi},
+        });
+        expect(lap.bersamaAntarPaket, isEmpty);
+        expect(lap.simulasi.ringkasan!.bersamaAntarPaket, isNull);
+      }
+    });
 
     test('laporan null → adaLaporan false', () {
       final lap = LaporanSimulasiAcuan.fromJson({
@@ -157,6 +204,7 @@ void main() {
       });
       expect(lap.adaLaporan, isFalse);
       expect(lap.sesi, isEmpty);
+      expect(lap.bersamaAntarPaket, isEmpty);
     });
   });
 
@@ -538,6 +586,78 @@ void main() {
       expect(find.text(l10n.alurAcuanSuksesAktifkan(2)), findsOneWidget);
     });
 
+    testWidgets('antar-paket: rincian terlihat sebelum pengakuan aktifkan', (
+      tester,
+    ) async {
+      final layanan = _LayananBersamaPaket()
+        ..statusAwalV2 = 'diajukan'
+        ..sudahDisimulasikan();
+      await _pasang(tester, token: 'mock-token-5', layanan: layanan);
+      expect(find.text(l10n.alurAcuanBersamaPaket(2)), findsOneWidget);
+      expect(find.text(l10n.alurAcuanButirBersamaPaket), findsOneWidget);
+
+      await tester.ensureVisible(find.byKey(const ValueKey('alur-laporan-2')));
+      await tester.tap(find.byKey(const ValueKey('alur-laporan-2')));
+      await _tenang(tester);
+      expect(find.byKey(const ValueKey('sim-bersama-paket')), findsOneWidget);
+      expect(find.text(l10n.simAcuanBersamaPaketJudul), findsOneWidget);
+      expect(find.text(l10n.simAcuanPaket('height_gauge')), findsOneWidget);
+      expect(
+        find.text(l10n.simAcuanDasar('versi berlaku v1 (#1)')),
+        findsOneWidget,
+      );
+      expect(find.text('outside[0].nilai_terkoreksi_mm'), findsOneWidget);
+      expect(find.text('25.000800000000001'), findsOneWidget);
+      expect(find.text('25.001800000000001'), findsOneWidget);
+      expect(find.text(l10n.simAcuanKolomAcuan), findsOneWidget);
+      expect(find.text(l10n.simAcuanKolomMaster), findsOneWidget);
+      expect(find.text(l10n.simAcuanSumberGagal), findsOneWidget);
+      expect(find.text('Master sumber tidak ditemukan.'), findsOneWidget);
+      expect(layanan.panggilanTulis, isEmpty);
+
+      // AppBar memakai BackButton Material dengan tooltip sesuai locale app.
+      // pageBack() mencari tooltip literal 'Back', sedangkan fixture ini ID.
+      final kembali = find.descendant(
+        of: find.byType(SimulasiVersiAcuanScreen),
+        matching: find.byType(BackButton),
+      );
+      expect(kembali, findsOneWidget);
+      await tester.tap(kembali);
+      await _tenang(tester);
+      await tester.ensureVisible(find.byKey(const ValueKey('alur-aktifkan-2')));
+      await tester.tap(find.byKey(const ValueKey('alur-aktifkan-2')));
+      await _tenang(tester);
+      final pengakuanPaket = find.byKey(
+        const ValueKey('aktifkan-pengakuan-bersama_antar_paket'),
+      );
+      expect(pengakuanPaket, findsOneWidget);
+      expect(find.text('bersama_antar_paket'), findsNothing);
+      await tester.enterText(
+        find.byKey(const ValueKey('aktifkan-pengakuan-terbit_cetak_berubah')),
+        'Dampak sertifikat sudah diperiksa',
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('aktifkan-sandi')),
+        MockDataAcuanService.sandiPeraga,
+      );
+      await tester.tap(find.byKey(const ValueKey('alur-dialog-kirim')));
+      await _tenang(tester);
+      expect(layanan.panggilanTulis, isEmpty);
+      expect(find.text(l10n.alurAcuanAlasanMin), findsOneWidget);
+
+      await tester.enterText(
+        pengakuanPaket,
+        'Beda paket sumber sudah ditinjau',
+      );
+      await tester.tap(find.byKey(const ValueKey('alur-dialog-kirim')));
+      await _tenang(tester);
+      expect(layanan.panggilanTulis, ['aktifkan:2']);
+      expect((layanan.isianTulis['aktifkan']! as Map)['pengakuan'], {
+        'terbit_cetak_berubah': 'Dampak sertifikat sudah diperiksa',
+        'bersama_antar_paket': 'Beda paket sumber sudah ditinjau',
+      });
+    });
+
     testWidgets('Aktifkan: simulasi kedaluwarsa → kirim dinonaktifkan', (
       tester,
     ) async {
@@ -657,6 +777,56 @@ Izin _izinLab(String token) {
 
 class _Layanan extends MockDataAcuanService {
   _Layanan({super.sebagaiTeknisi});
+}
+
+// Kontrak sintetis DataBersamaPaket server, tanpa nilai atau identitas lab.
+const _simulasiPaket = <String, dynamic>{
+  'status': 'terbaru',
+  'id': 4,
+  'ringkasan': {'sesi_total': 0, 'bersama_antar_paket': '2'},
+  'wajib_diakui': ['terbit_cetak_berubah', 'bersama_antar_paket'],
+};
+
+const _bedaPaket = <Map<String, dynamic>>[
+  {
+    'paket': 'height_gauge',
+    'dasar': 'versi berlaku v1 (#1)',
+    'jalur': 'outside[0].nilai_terkoreksi_mm',
+    'acuan': '25.000800000000001',
+    'master': '25.001800000000001',
+  },
+  {
+    'paket': '*',
+    'dasar': '-',
+    'jalur': '-',
+    'acuan': null,
+    'master': null,
+    'galat': 'Master sumber tidak ditemukan.',
+  },
+];
+
+class _LayananBersamaPaket extends _Layanan {
+  @override
+  Future<List<VersiAlurAcuan>> alur(String token, String kode) async => [
+    for (final v in await super.alur(token, kode))
+      if (v.id == 2)
+        VersiAlurAcuan(
+          versi: v.versi,
+          simulasi: SimulasiVersiAcuan.fromJson(_simulasiPaket),
+          log: v.log,
+        )
+      else
+        v,
+  ];
+
+  @override
+  Future<LaporanSimulasiAcuan> laporanSimulasi(
+    String token,
+    int versiId,
+  ) async => LaporanSimulasiAcuan.fromJson({
+    ..._simulasiPaket,
+    'laporan': {'sesi': <Object?>[], 'bersama_antar_paket': _bedaPaket},
+  });
 }
 
 Future<void> _tenang(WidgetTester tester) async {

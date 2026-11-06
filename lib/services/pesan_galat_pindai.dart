@@ -9,6 +9,7 @@ import '../core/pelapor_galat.dart';
 import '../l10n/app_localizations.dart';
 import 'auth_service.dart' show KoneksiException;
 import 'modul_pembaca_teks.dart';
+import 'potong_sel_foto.dart' show FotoMelebihiBatas;
 
 /// Golongan galat jalur foto/pindai — yang menentukan KALIMAT untuk teknisi.
 ///
@@ -42,6 +43,7 @@ const _kodeIzinDitolak = {'camera_access_denied', 'photo_access_denied'};
 
 GolonganGalatPindai golongkanGalatPindai(Object e) {
   if (galatMemoriHabis(e)) return GolonganGalatPindai.memoriHabis;
+  if (e is FotoMelebihiBatas) return GolonganGalatPindai.memoriHabis;
   if (e is ModulPembacaTeksBelumSiap) {
     return GolonganGalatPindai.modulTeksDiunduh;
   }
