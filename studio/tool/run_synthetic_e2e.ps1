@@ -130,16 +130,35 @@ try {
     if (-not $markerReady) { throw 'The synthetic marker was not verified.' }
 
     $previousParallelism = [Environment]::GetEnvironmentVariable('CMAKE_BUILD_PARALLEL_LEVEL', 'Process')
+    $previousNativeErrorPreference = $ErrorActionPreference
+    $nativeLog = Join-Path $runRoot 'flutter-e2e.log'
     try {
         [Environment]::SetEnvironmentVariable('CMAKE_BUILD_PARALLEL_LEVEL', '1', 'Process')
-        & $flutter test --no-pub integration_test/synthetic_smoke_test.dart -d windows `
+        # Windows PowerShell 5 treats even successful native stderr as an error record.
+        # Preserve diagnostics, then require the real exit code AND completion artifacts.
+        $ErrorActionPreference = 'Continue'
+        & $flutter test --no-pub --reporter expanded integration_test/synthetic_smoke_test.dart -d windows `
             "--dart-define-from-file=$definesPath" 2>&1 |
-            Tee-Object -FilePath (Join-Path $runRoot 'flutter-e2e.log')
+            ForEach-Object { $_.ToString() } |
+            Tee-Object -FilePath $nativeLog -ErrorAction Stop
         $testExit = $LASTEXITCODE
     } finally {
+        $ErrorActionPreference = $previousNativeErrorPreference
         [Environment]::SetEnvironmentVariable('CMAKE_BUILD_PARALLEL_LEVEL', $previousParallelism, 'Process')
     }
     if ($testExit -ne 0) { throw 'Native Studio synthetic smoke failed; see the retained run log.' }
+    if (-not (Select-String -LiteralPath $nativeLog -SimpleMatch 'All tests passed!' -Quiet)) {
+        throw 'The native test completion marker is missing.'
+    }
+    $pngSignature = @(137,80,78,71,13,10,26,10)
+    foreach ($screenshot in @('00-login.png','10-INPUT_SYNTHETIC.png','11-DISPLAY_SYNTHETIC.png','20-logout.png')) {
+        $png = Assert-SidikChildPath (Join-Path $runRoot "screenshots\$screenshot") $runRoot
+        $bytes = [IO.File]::ReadAllBytes($png)
+        if ($bytes.Length -le 8) { throw 'A required native screenshot is empty.' }
+        for ($offset = 0; $offset -lt 8; $offset++) {
+            if ($bytes[$offset] -ne $pngSignature[$offset]) { throw 'A required screenshot is not PNG.' }
+        }
+    }
     & $php (Join-Path $apiDirectory 'tests\Support\StudioE2E\verify.php') "--run-root=$runRoot"
     if ($LASTEXITCODE -ne 0) { throw 'Post-run synthetic data or token verification failed.' }
     Write-Output "Synthetic Studio HTTP/storage smoke passed. Artifacts: $runRoot"
