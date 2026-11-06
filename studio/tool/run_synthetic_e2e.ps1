@@ -68,8 +68,9 @@ try {
     }
     New-Item -ItemType Directory -Path $runRoot -ErrorAction Stop | Out-Null
     $seed = Join-Path $apiDirectory 'tests\Support\StudioE2E\seed.php'
-    & $php $seed "--run-root=$runRoot" "--port=$Port" "--mobile-sha=$mobileSha"
-    if ($LASTEXITCODE -ne 0) { throw 'Synthetic seeding failed; artifacts retained for inspection.' }
+    $seedResult = Invoke-SidikPhpTask -Php $php -RunRoot $runRoot -Name seed `
+        -Arguments @($seed, "--run-root=$runRoot", "--port=$Port", "--mobile-sha=$mobileSha")
+    Write-Output 'Synthetic PHP seed completed; identity will be verified before login.'
     $manifestPath = Assert-SidikChildPath (Join-Path $runRoot 'manifest.json') $runRoot
     $definesPath = Assert-SidikChildPath (Join-Path $runRoot 'defines.json') $runRoot
     $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
@@ -159,8 +160,8 @@ try {
             if ($bytes[$offset] -ne $pngSignature[$offset]) { throw 'A required screenshot is not PNG.' }
         }
     }
-    & $php (Join-Path $apiDirectory 'tests\Support\StudioE2E\verify.php') "--run-root=$runRoot"
-    if ($LASTEXITCODE -ne 0) { throw 'Post-run synthetic data or token verification failed.' }
+    $verifyResult = Invoke-SidikPhpTask -Php $php -RunRoot $runRoot -Name verify `
+        -Arguments @((Join-Path $apiDirectory 'tests\Support\StudioE2E\verify.php'), "--run-root=$runRoot")
     Write-Output "Synthetic Studio HTTP/storage smoke passed. Artifacts: $runRoot"
 } finally {
     if ($server) {

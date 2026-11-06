@@ -56,6 +56,35 @@ $target = Join-Path $fixtureRoot 'target'
 $junction = Join-Path $fixtureRoot 'junction'
 try {
     [IO.Directory]::CreateDirectory($target) | Out-Null
+    $taskStub = Join-Path $fixtureRoot 'native-task.ps1'
+    $powershell = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+    $successTask = @'
+[Console]::Out.WriteLine('{"status":"seeded"}')
+[Console]::Error.WriteLine('synthetic diagnostic')
+exit 0
+'@
+    Set-Content -LiteralPath $taskStub -Encoding UTF8 -Value $successTask
+    $result = Invoke-SidikPhpTask -Php $powershell -Arguments @('-NoProfile','-NonInteractive','-File',$taskStub) -RunRoot $fixtureRoot -Name seed
+    if ($result.status -cne 'seeded') { throw 'Successful native stderr was misclassified.' }
+    $passed++
+    $failedTask = @'
+[Console]::Error.WriteLine('{"status":"error","code":"E2E_fixture_failure","private":"must-not-be-displayed"}')
+exit 7
+'@
+    Set-Content -LiteralPath $taskStub -Encoding UTF8 -Value $failedTask
+    $caught = $false
+    try {
+        Invoke-SidikPhpTask -Php $powershell -Arguments @('-NoProfile','-NonInteractive','-File',$taskStub) -RunRoot $fixtureRoot -Name verify | Out-Null
+    } catch {
+        if ($_.Exception.Message -notlike '*E2E_fixture_failure*' -or $_.Exception.Message -like '*must-not-be-displayed*') { throw }
+        $caught = $true
+    }
+    if (-not $caught) { throw 'A failed native task was accepted.' }
+    $passed++
+    Set-Content -LiteralPath $taskStub -Encoding UTF8 -Value 'exit 0'
+    Expect-Rejected 'missing native completion JSON' {
+        Invoke-SidikPhpTask -Php $powershell -Arguments @('-NoProfile','-NonInteractive','-File',$taskStub) -RunRoot $fixtureRoot -Name seed
+    }
     Set-Content -LiteralPath (Join-Path $target 'owned-marker.txt') -Value 'synthetic guard fixture'
     New-Item -ItemType Junction -Path $junction -Target $target -ErrorAction Stop | Out-Null
     Expect-Rejected 'existing junction ancestor' { Assert-SidikNoReparseAncestor (Join-Path $junction 'new.sqlite') }

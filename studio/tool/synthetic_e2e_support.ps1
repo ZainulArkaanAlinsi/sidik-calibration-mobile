@@ -93,3 +93,45 @@ function ConvertTo-SidikProcessArgument {
     # Owned paths have no trailing separator; no credential is passed as an argument.
     return '"' + $Value + '"'
 }
+
+function Invoke-SidikPhpTask {
+    param(
+        [Parameter(Mandatory = $true)][string]$Php,
+        [Parameter(Mandatory = $true)][string[]]$Arguments,
+        [Parameter(Mandatory = $true)][string]$RunRoot,
+        [Parameter(Mandatory = $true)][ValidateSet('seed','verify')][string]$Name
+    )
+    $stdout = Assert-SidikChildPath (Join-Path $RunRoot "$Name-stdout.json") $RunRoot
+    $stderr = Assert-SidikChildPath (Join-Path $RunRoot "$Name-stderr.json") $RunRoot
+    $quoted = @($Arguments | ForEach-Object { ConvertTo-SidikProcessArgument $_ })
+    $child = $null
+    try {
+        # Capture both streams without PowerShell converting stderr into a truncated error record.
+        $child = Start-Process -FilePath $Php -ArgumentList ($quoted -join ' ') -WindowStyle Hidden `
+            -RedirectStandardOutput $stdout -RedirectStandardError $stderr -PassThru
+        # Retain the native handle before a short task exits (Windows PowerShell 5).
+        $null = $child.Handle
+        $child.WaitForExit()
+        $child.Refresh()
+        if ($child.ExitCode -ne 0) {
+            $safeCode = 'see_private_stderr'
+            try {
+                $failure = Get-Content -LiteralPath $stderr -Raw | ConvertFrom-Json
+                if ([string]$failure.code -match '^[A-Za-z0-9_]{1,100}$') { $safeCode = [string]$failure.code }
+            } catch { }
+            throw "Synthetic PHP $Name failed: $safeCode. Private diagnostic files are retained."
+        }
+        $result = Get-Content -LiteralPath $stdout -Raw | ConvertFrom-Json
+        $expectedStatus = if ($Name -eq 'seed') { 'seeded' } else { 'verified' }
+        if ($null -eq $result -or $result.status -cne $expectedStatus) {
+            throw 'The PHP task did not return its required completion status.'
+        }
+        return $result
+    } finally {
+        if ($child) {
+            $child.Refresh()
+            if (-not $child.HasExited) { $child.Kill(); $child.WaitForExit(5000) | Out-Null }
+            $child.Dispose()
+        }
+    }
+}
