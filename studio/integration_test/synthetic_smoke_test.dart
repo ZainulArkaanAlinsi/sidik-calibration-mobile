@@ -57,6 +57,7 @@ void main() {
           }
           final audit = SyntheticTransportAudit(manifest.endpoint);
           activeAudit = audit;
+          addTearDown(audit.sealAndClose);
           await http.runWithClient(() async {
             final preflight = audit.createClient();
             try {
@@ -305,10 +306,15 @@ void main() {
             ]) {
               expect(audit.requests, contains(request));
             }
-            expect(audit.failures, isEmpty);
             scope.checkUnchanged();
+            await audit.drain();
             await tester.pumpWidget(const SizedBox.shrink());
             await tester.pump();
+            await audit.drain();
+            audit.sealAndClose();
+            await tester.pump();
+            expect(audit.pendingCount, 0);
+            expect(audit.failures, isEmpty);
           }, audit.createClient);
         },
         timeout: const Timeout(Duration(minutes: 8)),

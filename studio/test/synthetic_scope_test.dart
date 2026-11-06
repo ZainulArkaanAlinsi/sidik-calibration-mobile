@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -5,6 +6,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 
 import '../integration_test/synthetic_scope.dart';
+
+class _DeferredResponse extends http.BaseClient {
+  _DeferredResponse({this.failOnClose = false});
+  final bool failOnClose;
+  final response = Completer<http.StreamedResponse>();
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) =>
+      response.future;
+  @override
+  void close() {
+    if (failOnClose && !response.isCompleted) {
+      response.completeError(StateError('closed before headers'));
+    }
+  }
+}
 
 Map<String, dynamic> _manifest() => {
   'schema_version': 1,
@@ -61,6 +77,140 @@ class _Spy extends http.BaseClient {
 }
 
 void main() {
+  group('response completion audit', () {
+    final endpoint = SyntheticEndpoint('http://127.0.0.1:18761/api');
+
+    test('drain waits for headers and the entire response body', () async {
+      final inner = _DeferredResponse();
+      final audit = SyntheticTransportAudit(endpoint);
+      final client = SyntheticLoopbackClient(endpoint, inner, audit: audit);
+      addTearDown(client.close);
+      final response = client.get(endpoint.marker);
+      expect(audit.pendingCount, 1);
+      var drained = false;
+      final drain = audit.drain().then((_) => drained = true);
+      await Future<void>.delayed(Duration.zero);
+      expect(drained, isFalse);
+      final body = StreamController<List<int>>();
+      inner.response.complete(http.StreamedResponse(body.stream, 200));
+      await Future<void>.delayed(Duration.zero);
+      expect(drained, isFalse);
+      expect(audit.pendingCount, 1);
+      body.add(utf8.encode('complete'));
+      await body.close();
+      expect((await response).body, 'complete');
+      await drain;
+      expect(audit.pendingCount, 0);
+      expect(audit.failures, isEmpty);
+    });
+
+    test('body error after headers remains an audit failure', () async {
+      final inner = _DeferredResponse();
+      final audit = SyntheticTransportAudit(endpoint);
+      final client = SyntheticLoopbackClient(endpoint, inner, audit: audit);
+      addTearDown(client.close);
+      final response = client.get(endpoint.marker);
+      final rejected = expectLater(response, throwsA(isA<StateError>()));
+      final body = StreamController<List<int>>();
+      inner.response.complete(http.StreamedResponse(body.stream, 200));
+      body.addError(StateError('late body failure'));
+      await body.close();
+      await rejected;
+      await audit.drain();
+      expect(audit.failures, contains('Synthetic response body failed.'));
+    });
+
+    test('cancelling an unfinished body fails the audit', () async {
+      final inner = _DeferredResponse();
+      final audit = SyntheticTransportAudit(endpoint);
+      final client = SyntheticLoopbackClient(endpoint, inner, audit: audit);
+      addTearDown(client.close);
+      final sent = client.send(http.Request('GET', endpoint.marker));
+      final body = StreamController<List<int>>();
+      inner.response.complete(http.StreamedResponse(body.stream, 200));
+      final response = await sent;
+      final subscription = response.stream.listen((_) {});
+      await subscription.cancel();
+      await audit.drain();
+      expect(
+        audit.failures,
+        contains('Synthetic response body was cancelled.'),
+      );
+      await body.close();
+    });
+
+    test(
+      'unfinished headers hit the drain deadline and remain tracked',
+      () async {
+        final inner = _DeferredResponse();
+        final audit = SyntheticTransportAudit(endpoint);
+        final client = SyntheticLoopbackClient(endpoint, inner, audit: audit);
+        addTearDown(client.close);
+        final response = client.get(endpoint.marker);
+        await expectLater(
+          audit.drain(timeout: const Duration(milliseconds: 10)),
+          throwsA(isA<TimeoutException>()),
+        );
+        expect(audit.pendingCount, 1);
+        expect(audit.failures, isNotEmpty);
+        inner.response.complete(
+          http.StreamedResponse(const Stream.empty(), 200),
+        );
+        await response;
+        await audit.drain();
+      },
+    );
+
+    test('failed cancellation still finishes tracked response', () async {
+      final inner = _DeferredResponse();
+      final audit = SyntheticTransportAudit(endpoint);
+      final client = SyntheticLoopbackClient(endpoint, inner, audit: audit);
+      addTearDown(client.close);
+      final sent = client.send(http.Request('GET', endpoint.marker));
+      final body = StreamController<List<int>>(
+        onCancel: () => Future<void>.error(StateError('cancel failed')),
+      );
+      inner.response.complete(http.StreamedResponse(body.stream, 200));
+      final response = await sent;
+      final subscription = response.stream.listen((_) {});
+      await expectLater(subscription.cancel(), throwsStateError);
+      await audit.drain();
+      expect(audit.pendingCount, 0);
+      expect(
+        audit.failures,
+        contains('Synthetic response cancellation failed.'),
+      );
+      await body.close();
+    });
+
+    test('failure during client disposal is caught by final audit', () async {
+      final inner = _DeferredResponse(failOnClose: true);
+      final audit = SyntheticTransportAudit(endpoint);
+      final client = SyntheticLoopbackClient(endpoint, inner, audit: audit);
+      final response = client.get(endpoint.marker);
+      final rejected = expectLater(response, throwsStateError);
+      // The old assertion here would pass before teardown failed the request.
+      expect(audit.failures, isEmpty);
+      client.close();
+      await rejected;
+      await audit.drain();
+      audit.sealAndClose();
+      expect(audit.pendingCount, 0);
+      expect(audit.failures, contains('Synthetic transport/request failed.'));
+    });
+
+    test('seal rejects new requests before the delegate is used', () async {
+      final spy = _Spy();
+      final audit = SyntheticTransportAudit(endpoint);
+      final client = SyntheticLoopbackClient(endpoint, spy, audit: audit);
+      addTearDown(client.close);
+      audit.sealAndClose();
+      await expectLater(client.get(endpoint.marker), throwsStateError);
+      expect(spy.calls, 0);
+      expect(audit.failures, isNotEmpty);
+      expect(audit.createClient, throwsStateError);
+    });
+  });
   final endpoint = SyntheticEndpoint('http://127.0.0.1:18761/api');
 
   for (final (index, bad) in [

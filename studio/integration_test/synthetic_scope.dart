@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -152,12 +153,65 @@ class SyntheticTransportAudit {
   final SyntheticEndpoint endpoint;
   final List<String> requests = [];
   final List<String> failures = [];
+  final Set<Completer<void>> _pending = {};
+  final Set<http.Client> _clients = {};
+  bool _sealed = false;
+
+  int get pendingCount => _pending.length;
+
+  Completer<void> begin() {
+    if (_sealed) {
+      failures.add('Synthetic request started after transport was sealed.');
+      throw StateError('Synthetic transport is sealed.');
+    }
+    final pending = Completer<void>();
+    _pending.add(pending);
+    return pending;
+  }
+
+  void finish(Completer<void> pending) {
+    if (_pending.remove(pending)) pending.complete();
+  }
+
+  Future<void> drain({Duration timeout = const Duration(seconds: 10)}) async {
+    try {
+      await (() async {
+        while (_pending.isNotEmpty) {
+          await Future.wait(_pending.map((item) => item.future).toList());
+        }
+      })().timeout(timeout);
+    } on TimeoutException {
+      failures.add('Synthetic response bodies did not finish before deadline.');
+      rethrow;
+    }
+  }
+
+  void sealAndClose() {
+    _sealed = true;
+    if (_pending.isNotEmpty) {
+      failures.add('Synthetic transport closed with unfinished responses.');
+    }
+    for (final client in _clients) {
+      client.close();
+    }
+    _clients.clear();
+  }
 
   http.Client createClient() {
+    if (_sealed) {
+      failures.add('Synthetic client created after transport was sealed.');
+      throw StateError('Synthetic transport is sealed.');
+    }
     final native = HttpClient()
       ..connectionTimeout = const Duration(seconds: 8)
       ..findProxy = (_) => 'DIRECT';
-    return SyntheticLoopbackClient(endpoint, IOClient(native), audit: this);
+    final client = SyntheticLoopbackClient(
+      endpoint,
+      IOClient(native),
+      audit: this,
+    );
+    _clients.add(client);
+    return client;
   }
 }
 
@@ -169,21 +223,72 @@ class SyntheticLoopbackClient extends http.BaseClient {
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    final pending = audit?.begin();
+    void finish() {
+      if (pending != null) audit!.finish(pending);
+    }
+
     try {
       endpoint.check(request.url);
       request.followRedirects = false;
       request.maxRedirects = 0;
-      final response = await inner.send(request);
       audit?.requests.add('${request.method} ${request.url.path}');
+      final response = await inner.send(request);
       if (response.statusCode >= 300) {
         await response.stream.drain<void>();
         throw HttpException(
           'Synthetic HTTP rejected status ${response.statusCode}.',
         );
       }
-      return response;
+      // Headers are not completion: errors may arrive while reading the body.
+      late StreamSubscription<List<int>> subscription;
+      var completed = false;
+      late StreamController<List<int>> controller;
+      controller = StreamController<List<int>>(
+        sync: true,
+        onListen: () {
+          subscription = response.stream.listen(
+            controller.add,
+            onError: (Object error, StackTrace stack) {
+              audit?.failures.add('Synthetic response body failed.');
+              controller.addError(error, stack);
+            },
+            onDone: () {
+              completed = true;
+              finish();
+              controller.close();
+            },
+          );
+        },
+        onPause: () => subscription.pause(),
+        onResume: () => subscription.resume(),
+        onCancel: () async {
+          if (!completed) {
+            audit?.failures.add('Synthetic response body was cancelled.');
+          }
+          try {
+            await subscription.cancel();
+          } catch (_) {
+            audit?.failures.add('Synthetic response cancellation failed.');
+            rethrow;
+          } finally {
+            finish();
+          }
+        },
+      );
+      return http.StreamedResponse(
+        controller.stream,
+        response.statusCode,
+        contentLength: response.contentLength,
+        request: response.request,
+        headers: response.headers,
+        isRedirect: response.isRedirect,
+        persistentConnection: response.persistentConnection,
+        reasonPhrase: response.reasonPhrase,
+      );
     } catch (_) {
       audit?.failures.add('Synthetic transport/request failed.');
+      finish();
       rethrow;
     }
   }
