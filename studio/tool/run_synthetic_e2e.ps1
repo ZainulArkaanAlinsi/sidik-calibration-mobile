@@ -110,10 +110,20 @@ try {
             $request = [Net.HttpWebRequest]::Create("http://127.0.0.1:$Port/__sidik_e2e")
             $request.Proxy = $null
             $request.AllowAutoRedirect = $false
-            $request.Timeout = 2000
+            # Six native path checks alone measured 2.52s; the marker also boots Laravel.
+            $request.Timeout = 15000
+            $request.ReadWriteTimeout = 15000
             $response = $request.GetResponse()
         } catch {
-            if ($attempt -eq 19) { throw 'The synthetic marker did not become reachable.' }
+            $networkError = $_.Exception
+            while ($networkError -and -not ($networkError -is [Net.WebException])) {
+                $networkError = $networkError.InnerException
+            }
+            # Retry only a listener still starting, not guard failures, HTTP errors or timeouts.
+            if ($attempt -eq 19 -or $null -eq $networkError -or
+                $networkError.Status -ne [Net.WebExceptionStatus]::ConnectFailure) {
+                throw 'The synthetic marker request failed; inspect the retained server logs.'
+            }
             Start-Sleep -Milliseconds 250
             continue
         }
