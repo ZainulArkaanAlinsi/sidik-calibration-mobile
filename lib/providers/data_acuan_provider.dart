@@ -26,10 +26,16 @@ final dataAcuanServiceProvider = Provider<DataAcuanService>((ref) {
 
 Future<String> _token(Ref ref) async {
   // Ikut akun yang login: ganti akun → data lab sebelumnya nggak ikut.
-  ref.watch(authProvider);
+  // Wait for auth instead of reusing its retained user/token during logout.
+  final user = await ref.watch(authProvider.future);
+  if (user == null || !ref.mounted) throw const TokenHilangException();
 
   final token = await ref.read(tokenStorageProvider).read();
-  if (token == null) throw const TokenHilangException();
+  if (!ref.mounted) throw const TokenHilangException();
+  final auth = ref.read(authProvider);
+  if (token == null || auth.isLoading || auth.value?.id != user.id) {
+    throw const TokenHilangException();
+  }
   return token;
 }
 
