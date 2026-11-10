@@ -36,6 +36,9 @@ sengaja tidak disentuh — keputusan mematikannya ada di lab.
 | `lib/services/worksheet_scan_service.dart` | `POST /worksheet-scans` (multipart + `citra_warp`), crop sel, koreksi. 422 dilempar sebagai `PindaiDitolak` |
 | `lib/screens/calibration/pindai_review_screen.dart` | tabel bervonis warna, crop sel di sebelah kotak isian, "Pakai Angka Ini" → `POST .../koreksi` |
 | `lib/screens/calibration/lembar_kerja_state.dart` | `terapkanHasilPindai()` — menuang angka yang disetujui teknisi ke kotak isian |
+| `lib/services/layout/*` | **Deteksi tata letak** (tabel/judul/kaki) PP-DocLayout-L lewat `flutter_ocr_kit` — Android saja, on-device. `model_layout.dart` mengunduh model sekali (sha256 DIKUNCI di kode, lanjut-unduh, coba ulang), `detektor_layout_ocrkit.dart` menjalankan di isolate dengan `releaseLayout()` di `finally`. Hasilnya cuma PETUNJUK di layar review (`peringatanDariLayout`): tidak mengisi sel, tidak mengubah vonis. Platform lain: `DetektorLayoutTakTersedia`, alur ML Kit di atas tidak berubah |
+| `lib/services/jenis_lembar.dart` | `detectWorksheetType(teks, dikenal:)` — kode `SIDIK-FM-CAL-xxxx[.X]` dicocokkan ke template yang dikenal SERVER (satu kode bisa dipakai beberapa profil: 0504, 0507, 0513, 0514, 0515, 0529 -> ambigu, tidak dipilihkan). Judul hanya petunjuk. Dipakai di pesan "formulir lain" |
+| `lib/services/foto_kompres.dart` | `FotoKompres` — target 500 KB, 1920x1080, WebP bila ada mesin (Android: `flutter_image_compress`), JPEG Dart murni di Windows. Dipasang di `ApiWorksheetScanService.kirim` untuk `citra_warp` (piksel hanya disusutkan untuk `kertas: asli`) |
 
 ## Diuji di mana
 
@@ -79,3 +82,15 @@ memindahkan penolakan ke belakang, yang lebih ketat menolak foto yang sah.
   Template OCR cuma memetakan sel tabel, jadi kolom itu kembali diketik manual.
   Ini penyempitan yang disengaja: template OCR menaruh angka lewat kunci sel
   yang eksplisit, dan kolom non-tabel tidak punya kunci semacam itu.
+- **Akurasi deteksi tata letak pada foto lapangan BELUM terukur** (belum ada
+  foto nyata). Karena itu `Table` yang tak terdeteksi / menyentuh tepi hanya
+  menampilkan petunjuk. Model diunduh sekali (~123 MB); `flutter_ocr_kit`
+  mengunduh `.so` prasusunnya dari rilis GitHub saat build tanpa pemeriksaan
+  hash — catatan rantai pasok.
+- **Metadata kompresi (ukuran asli/akhir) belum punya tempat di server.**
+  `worksheet_scans` tidak punya kolomnya dan `perangkat` menyaring kunci
+  tak dikenal; metriknya berhenti di `padaKompresi`. Dan sampai hari ini tidak
+  ada pemanggil aktif `WorksheetScanService.kirim` (jalur cetak dicabut, jalur
+  formulir asli tidak mengunggah), jadi kompresi baru bekerja begitu salah
+  satunya dinyalakan. WebP di server memerlukan GD dengan dukungan WebP
+  (`gd_info()['WebP Support']`) — belum diperiksa di produksi.

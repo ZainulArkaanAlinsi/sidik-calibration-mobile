@@ -11,6 +11,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/review_foto.dart';
 import '../../models/worksheet_template.dart';
 import '../../providers/contoh_sel_provider.dart';
+import '../../providers/layout_provider.dart';
 import '../../providers/sakelar_ocr_provider.dart';
 import '../../providers/sumber_foto_provider.dart';
 import '../../providers/worksheet_scan_provider.dart';
@@ -20,6 +21,8 @@ import '../../services/jalankan_pindai.dart' show GagalPindai;
 import '../../services/kumpulkan_contoh_sel.dart';
 import '../../services/modul_pembaca_teks.dart';
 import '../../services/jalankan_pindai_asli.dart';
+import '../../services/jenis_lembar.dart';
+import '../../services/layout/detektor_layout.dart';
 import '../../services/pembaca_halaman.dart'
     show PembacaHalaman, sapuBerkasPindaiLama;
 import '../../services/pembaca_sel.dart' show PembacaSel;
@@ -29,6 +32,7 @@ import '../../services/potong_sel_foto.dart' show decodeFotoDiIsolate;
 import '../../widgets/konfirmasi_foto_tertinggal.dart';
 import 'foto_review_screen.dart';
 import 'lembar_kerja_state.dart';
+import 'proses_layout_pindai.dart';
 
 /// Batas sisi foto lembar asli (px) — lihat komentar di [pindaiFormulirAsli].
 const batasSisiFotoAsli = 4200;
@@ -54,6 +58,7 @@ Future<int> pindaiFormulirAsli({
   required LembarKerjaState isian,
   required WorksheetTemplate template,
   JalankanPindaiAsli? mesin,
+  DetektorLayout? detektorLayout,
 }) async {
   final l10n = AppLocalizations.of(context);
   final messenger = ScaffoldMessenger.of(context);
@@ -121,6 +126,16 @@ Future<int> pindaiFormulirAsli({
 
   if (!context.mounted) return 0;
 
+  // Deteksi tata letak (Android saja). Di platform lain `tersedia` false dan
+  // seluruh tahap ini dilewati: dialog, urutan, dan teksnya sama dengan
+  // sebelum fitur ini ada.
+  final DetektorLayout detektor =
+      detektorLayout ?? ref.read(detektorLayoutProvider);
+  final jaringanTakBerbayar = ref.read(jaringanTakBerbayarProvider);
+  final proses = ValueNotifier<KemajuanProses>(
+    const KemajuanProses(tahap: TahapLayout.menyiapkanModel),
+  );
+
   // Dialog progres: pekerjaan berat jalan di Isolate, layar tetap hidup.
   showDialog<void>(
     context: context,
@@ -128,12 +143,9 @@ Future<int> pindaiFormulirAsli({
     builder: (_) => PopScope(
       canPop: false,
       child: AlertDialog(
-        content: Row(
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(width: 16),
-            Expanded(child: Text(l10n.lkAsliMemproses)),
-          ],
+        content: IsiDialogProses(
+          kemajuan: proses,
+          denganLayout: detektor.tersedia,
         ),
       ),
     ),
@@ -144,9 +156,22 @@ Future<int> pindaiFormulirAsli({
   PembacaHalaman? halaman;
   PembacaSel? pembaca;
   HasilBacaAsli? hasil;
+  HasilLayout? hasilLayout;
   String? galat;
 
   try {
+    // Layout dulu, selesai dan DILEPAS (releaseLayout di finally native)
+    // sebelum ML Kit dibuka: dua mesin native besar tidak hidup bersamaan.
+    // Gagal/ditolak -> null, pembacaan sel jalan seperti biasa.
+    hasilLayout = await jalankanLayoutDenganPilihan(
+      konteks: () => context,
+      detektor: detektor,
+      jpeg: bita,
+      proses: proses,
+      jaringanTakBerbayar: jaringanTakBerbayar,
+    );
+    proses.value = const KemajuanProses();
+
     JalankanPindaiAsli pakai;
     if (mesin != null) {
       pakai = mesin;
@@ -159,7 +184,7 @@ Future<int> pindaiFormulirAsli({
     }
     hasil = await pakai.baca(citra, template: template, jpegAsli: bita);
   } on PindaiAsliGagal catch (e) {
-    galat = pesanGagalAsli(l10n, e);
+    galat = _pesanGagalBernama(l10n, ref, e);
   } on ModulPembacaTeksBelumSiap {
     // ML Kit unbundled: modul `ocr` belum terunduh. Lembar tidak berubah,
     // isian manual tetap jalan.
@@ -173,6 +198,7 @@ Future<int> pindaiFormulirAsli({
     await halaman?.tutup();
     await pembaca?.tutup();
     if (navigator.mounted) navigator.pop(); // tutup dialog progres
+    proses.dispose();
   }
 
   if (galat != null || hasil == null) {
@@ -378,7 +404,14 @@ Future<int> pindaiFormulirAsli({
 
   final disetujui = await Navigator.of(context).push<List<SelTabelFoto>>(
     MaterialPageRoute(
-      builder: (_) => FotoReviewScreen(baris: baris, catatan: catatan),
+      builder: (_) => FotoReviewScreen(
+        baris: baris,
+        catatan: catatan,
+        peringatan: teksPeringatanLayout(
+          l10n,
+          peringatanDariLayout(hasilLayout),
+        ),
+      ),
     ),
   );
   if (disetujui == null) return 0;
@@ -460,6 +493,33 @@ Future<int> pindaiFormulirAsli({
   );
 
   return terisi;
+}
+
+/// Pesan "formulir lain" yang menyebut JENIS lembar yang terbaca, bila server
+/// mengenal kode itu. Selain formulir-lain, atau bila daftar server belum
+/// termuat (offline, belum login), kalimat lama yang dipakai. Tidak pernah
+/// memilihkan lembar: hanya memberi tahu.
+///
+/// Daftar dibaca SINKRON dari [formulirDikenalProvider] (dihangatkan layar
+/// lembar kerja sebelum kamera dibuka): jalur galat tidak boleh menunggu
+/// jaringan.
+String _pesanGagalBernama(
+  AppLocalizations l10n,
+  WidgetRef ref,
+  PindaiAsliGagal e,
+) {
+  final dasar = pesanGagalAsli(l10n, e);
+  final terbaca = e.terbaca;
+  if (e.sebab != GagalPindaiAsli.formulirLain || terbaca == null) return dasar;
+
+  final dikenal = ref.read(formulirDikenalProvider).value;
+  if (dikenal == null) return dasar;
+
+  final jenis = detectWorksheetType(terbaca, dikenal: dikenal);
+  final nama = jenis == null ? null : namaJenisLembar(jenis);
+  if (jenis == null || nama == null) return dasar;
+
+  return l10n.lkAsliFormulirLainJenis(jenis.kodeFormulir ?? terbaca, nama);
 }
 
 /// Pita wajar isian kondisi lingkungan — angka di luarnya MERAH, bukan usulan.

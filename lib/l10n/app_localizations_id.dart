@@ -6573,6 +6573,70 @@ class AppLocalizationsId extends AppLocalizations {
       'Membaca foto di HP… foto tidak dikirim ke mana pun.';
 
   @override
+  String get lkLayoutMendeteksi => 'Mendeteksi Tabel & Membaca Formulir…';
+
+  @override
+  String get lkLayoutMenyiapkanModel => 'Menyiapkan model tata letak…';
+
+  @override
+  String lkLayoutMengunduhModel(int persen) {
+    return 'Mengunduh model tata letak (sekali saja) $persen%';
+  }
+
+  @override
+  String get lkLayoutMemeriksaModel => 'Memeriksa keutuhan model tata letak…';
+
+  @override
+  String get lkLayoutDeteksiJalan => 'Mendeteksi tabel di foto…';
+
+  @override
+  String get lkLayoutGagalJudul => 'Deteksi tabel belum bisa jalan';
+
+  @override
+  String lkLayoutGagalIsi(String sebab) {
+    return 'Model tata letak gagal disiapkan ($sebab). Muat ulang, atau lanjut membaca tanpa deteksi tabel — angka tetap dibaca dan tetap kamu cek per sel.';
+  }
+
+  @override
+  String get lkLayoutSebabUnduh => 'unduhan gagal';
+
+  @override
+  String get lkLayoutSebabRusak =>
+      'berkas model tidak lolos pemeriksaan sha256';
+
+  @override
+  String get lkLayoutSebabDeteksi => 'deteksi gagal';
+
+  @override
+  String get lkLayoutMuatUlang => 'Muat ulang';
+
+  @override
+  String get lkLayoutLanjutTanpa => 'Lanjut tanpa deteksi tabel';
+
+  @override
+  String get lkLayoutUnduhSelulerJudul => 'Unduh model lewat data seluler?';
+
+  @override
+  String get lkLayoutUnduhSelulerIsi =>
+      'Model tata letak ±123 MB diunduh sekali saja, lalu disimpan di HP. Kamu sedang tidak memakai WiFi.';
+
+  @override
+  String get lkLayoutUnduh => 'Unduh';
+
+  @override
+  String get lkLayoutTabelTakTerdeteksi =>
+      'Tabel tidak terdeteksi di foto. Pastikan seluruh lembar masuk bingkai dan cukup terang. Pembacaan tetap dilanjutkan — periksa tiap sel.';
+
+  @override
+  String get lkLayoutTabelTerpotong =>
+      'Ada tabel yang menyentuh tepi foto, mungkin terpotong. Periksa sel di tepi, atau foto ulang.';
+
+  @override
+  String lkAsliFormulirLainJenis(String kode, String jenis) {
+    return 'Foto ini terbaca sebagai formulir $kode ($jenis), bukan formulir untuk alat ini. Pakai lembar yang benar atau isi manual.';
+  }
+
+  @override
   String get lkAsliBelumSiap =>
       'Formulir ini belum bisa dipindai. Isi manual dulu.';
 

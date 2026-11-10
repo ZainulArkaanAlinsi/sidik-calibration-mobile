@@ -11581,6 +11581,114 @@ abstract class AppLocalizations {
   /// **'Reading the photo on this phone... it is not sent anywhere.'**
   String get lkAsliMemproses;
 
+  /// No description provided for @lkLayoutMendeteksi.
+  ///
+  /// In en, this message translates to:
+  /// **'Detecting Tables & Reading the Form...'**
+  String get lkLayoutMendeteksi;
+
+  /// No description provided for @lkLayoutMenyiapkanModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing the layout model...'**
+  String get lkLayoutMenyiapkanModel;
+
+  /// No description provided for @lkLayoutMengunduhModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading the layout model (one time) {persen}%'**
+  String lkLayoutMengunduhModel(int persen);
+
+  /// No description provided for @lkLayoutMemeriksaModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking layout model integrity...'**
+  String get lkLayoutMemeriksaModel;
+
+  /// No description provided for @lkLayoutDeteksiJalan.
+  ///
+  /// In en, this message translates to:
+  /// **'Detecting tables in the photo...'**
+  String get lkLayoutDeteksiJalan;
+
+  /// No description provided for @lkLayoutGagalJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Table detection cannot run yet'**
+  String get lkLayoutGagalJudul;
+
+  /// No description provided for @lkLayoutGagalIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'The layout model could not be prepared ({sebab}). Retry, or continue reading without table detection - numbers are still read and still checked cell by cell.'**
+  String lkLayoutGagalIsi(String sebab);
+
+  /// No description provided for @lkLayoutSebabUnduh.
+  ///
+  /// In en, this message translates to:
+  /// **'download failed'**
+  String get lkLayoutSebabUnduh;
+
+  /// No description provided for @lkLayoutSebabRusak.
+  ///
+  /// In en, this message translates to:
+  /// **'model file failed the sha256 check'**
+  String get lkLayoutSebabRusak;
+
+  /// No description provided for @lkLayoutSebabDeteksi.
+  ///
+  /// In en, this message translates to:
+  /// **'detection failed'**
+  String get lkLayoutSebabDeteksi;
+
+  /// No description provided for @lkLayoutMuatUlang.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get lkLayoutMuatUlang;
+
+  /// No description provided for @lkLayoutLanjutTanpa.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue without table detection'**
+  String get lkLayoutLanjutTanpa;
+
+  /// No description provided for @lkLayoutUnduhSelulerJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Download the model over mobile data?'**
+  String get lkLayoutUnduhSelulerJudul;
+
+  /// No description provided for @lkLayoutUnduhSelulerIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'The ~123 MB layout model is downloaded once and then kept on this phone. You are not on WiFi.'**
+  String get lkLayoutUnduhSelulerIsi;
+
+  /// No description provided for @lkLayoutUnduh.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get lkLayoutUnduh;
+
+  /// No description provided for @lkLayoutTabelTakTerdeteksi.
+  ///
+  /// In en, this message translates to:
+  /// **'No table was detected in the photo. Make sure the whole sheet is in frame and well lit. Reading continues - check every cell.'**
+  String get lkLayoutTabelTakTerdeteksi;
+
+  /// No description provided for @lkLayoutTabelTerpotong.
+  ///
+  /// In en, this message translates to:
+  /// **'A table touches the photo edge and may be cut off. Check the cells at the edge, or retake the photo.'**
+  String get lkLayoutTabelTerpotong;
+
+  /// No description provided for @lkAsliFormulirLainJenis.
+  ///
+  /// In en, this message translates to:
+  /// **'This photo reads as form {kode} ({jenis}), not the form for this instrument. Use the right sheet or fill in manually.'**
+  String lkAsliFormulirLainJenis(String kode, String jenis);
+
   /// No description provided for @lkAsliBelumSiap.
   ///
   /// In en, this message translates to:

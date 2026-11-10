@@ -8,10 +8,14 @@ import '../services/pembaca_sel.dart';
 import '../services/worksheet_scan_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
+import 'foto_kompres_provider.dart';
 
 final worksheetScanServiceProvider = Provider<WorksheetScanService>((ref) {
   if (AppConfig.useMock) return MockWorksheetScanService();
-  return ApiWorksheetScanService(ref.watch(apiClientProvider));
+  return ApiWorksheetScanService(
+    ref.watch(apiClientProvider),
+    kompres: ref.watch(fotoKompresProvider),
+  );
 });
 
 /// [AppConfig.pindaiLembarAktif], tapi lewat provider — supaya test alur

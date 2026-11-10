@@ -26,6 +26,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/calibration_input_provider.dart';
 import '../../providers/history_provider.dart';
 import '../../providers/jam_provider.dart';
+import '../../providers/layout_provider.dart' show formulirDikenalProvider;
 import '../../providers/lembar_kerja_provider.dart';
 import '../../providers/versi_provider.dart';
 import '../../models/worksheet_template.dart';
@@ -747,6 +748,14 @@ class _FormState extends ConsumerState<_Form> {
         ).showSnackBar(SnackBar(content: Text(l10n.lkAsliBelumSiap)));
         return;
       }
+
+      // Dihangatkan SEBELUM kamera: kalau yang terfoto ternyata formulir lain,
+      // pesannya bisa menyebut jenisnya tanpa menunggu jaringan. Gagal diam.
+      unawaited(
+        ref
+            .read(formulirDikenalProvider.future)
+            .then<void>((_) {}, onError: (Object _) {}),
+      );
 
       final terisi = await pindaiFormulirAsli(
         context: context,

@@ -6650,6 +6650,70 @@ class AppLocalizationsEn extends AppLocalizations {
       'Reading the photo on this phone... it is not sent anywhere.';
 
   @override
+  String get lkLayoutMendeteksi => 'Detecting Tables & Reading the Form...';
+
+  @override
+  String get lkLayoutMenyiapkanModel => 'Preparing the layout model...';
+
+  @override
+  String lkLayoutMengunduhModel(int persen) {
+    return 'Downloading the layout model (one time) $persen%';
+  }
+
+  @override
+  String get lkLayoutMemeriksaModel => 'Checking layout model integrity...';
+
+  @override
+  String get lkLayoutDeteksiJalan => 'Detecting tables in the photo...';
+
+  @override
+  String get lkLayoutGagalJudul => 'Table detection cannot run yet';
+
+  @override
+  String lkLayoutGagalIsi(String sebab) {
+    return 'The layout model could not be prepared ($sebab). Retry, or continue reading without table detection - numbers are still read and still checked cell by cell.';
+  }
+
+  @override
+  String get lkLayoutSebabUnduh => 'download failed';
+
+  @override
+  String get lkLayoutSebabRusak => 'model file failed the sha256 check';
+
+  @override
+  String get lkLayoutSebabDeteksi => 'detection failed';
+
+  @override
+  String get lkLayoutMuatUlang => 'Retry';
+
+  @override
+  String get lkLayoutLanjutTanpa => 'Continue without table detection';
+
+  @override
+  String get lkLayoutUnduhSelulerJudul =>
+      'Download the model over mobile data?';
+
+  @override
+  String get lkLayoutUnduhSelulerIsi =>
+      'The ~123 MB layout model is downloaded once and then kept on this phone. You are not on WiFi.';
+
+  @override
+  String get lkLayoutUnduh => 'Download';
+
+  @override
+  String get lkLayoutTabelTakTerdeteksi =>
+      'No table was detected in the photo. Make sure the whole sheet is in frame and well lit. Reading continues - check every cell.';
+
+  @override
+  String get lkLayoutTabelTerpotong =>
+      'A table touches the photo edge and may be cut off. Check the cells at the edge, or retake the photo.';
+
+  @override
+  String lkAsliFormulirLainJenis(String kode, String jenis) {
+    return 'This photo reads as form $kode ($jenis), not the form for this instrument. Use the right sheet or fill in manually.';
+  }
+
+  @override
   String get lkAsliBelumSiap =>
       'This form cannot be scanned yet. Fill it in manually.';
 

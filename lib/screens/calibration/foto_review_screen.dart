@@ -38,9 +38,15 @@ class FotoReviewScreen extends StatefulWidget {
     super.key,
     required this.baris,
     this.catatan = const {},
+    this.peringatan = const [],
   });
 
   final List<BarisReviewFoto> baris;
+
+  /// Petunjuk (sudah dilokalkan) dari deteksi tata letak, mis. "tabel
+  /// tidak terdeteksi". Hanya ditampilkan di atas daftar: tidak mengubah
+  /// vonis sel, tidak mengisi apa pun, tidak melonggarkan kewajiban cek.
+  final List<String> peringatan;
 
   /// Alasan (sudah dilokalkan) kenapa sel diturunkan aturan nalar formulir,
   /// berkunci `kunciSelFoto`. Hanya penjelasan: tidak mengubah vonis, tidak
@@ -130,6 +136,28 @@ class _FotoReviewScreenState extends State<FotoReviewScreen> {
       appBar: AppBar(title: Text(l10n.fotoReviewJudul(widget.baris.length))),
       body: Column(
         children: [
+          for (final p in widget.peringatan)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 18,
+                    color: Colors.orange.shade800,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      p,
+                      key: const ValueKey('peringatan-layout'),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Text(

@@ -126,6 +126,29 @@ dependencies:
   # berat gumpalan. Nyeret OpenCV ke APK buat itu doang nambah puluhan MB.
   image: ^4.3.0
 
+  # Deteksi tata letak halaman (tabel/judul/kaki) PP-DocLayout-L via ONNX
+  # Runtime — SEPENUHNYA on-device, Android saja (paketnya tidak punya
+  # Windows/web; di sana alur pindai memakai jalur ML Kit yang sudah ada).
+  # Aman privasi: kode sumbernya (C++ & Kotlin) tidak memuat URL, soket, atau
+  # izin INTERNET, dan citra hanya dibaca dari berkas lokal sementara.
+  # Satu-satunya akses jaringan terkait adalah unduhan MODEL oleh aplikasi
+  # (`lib/services/layout/model_layout.dart`, sha256 dikunci) — tanpa foto.
+  #
+  # DIPIN ke commit penuh, BUKAN branch `main`: paket ini 1 rilis, 0 bintang,
+  # satu pengelola. Naik versi = ganti hash di sini + baca ulang diff-nya.
+  # Catatan rantai pasok: Gradle-nya mengunduh `jniLibs.zip` (.so prasusun)
+  # dari rilis v1.0.0 saat build, tanpa pemeriksaan hash dari pihak paket.
+  flutter_ocr_kit:
+    git:
+      url: https://github.com/robert008/flutter_ocr_kit.git
+      ref: 99fe32a32f46f9bf743603c1f1edee3f465a433d
+
+  # Kompresi foto (target <= 500 KB, <= 1920x1080) sebelum diunggah — mesin
+  # native Android untuk WebP/JPEG. TIDAK ada implementasi Windows di paket
+  # ini; di Windows `FotoKompres` memakai mesin Dart murni (paket `image` di
+  # atas). Semuanya on-device, tanpa jaringan.
+  flutter_image_compress: ^2.5.1
+
   # Buka WhatsApp (wa.me) & Gmail (mailto:) buat bagiin sertifikat. Dipilih
   # daripada share_plus: yang dibutuhin nembak SATU aplikasi tertentu dengan
   # pesan yang udah disiapin, bukan buka lembar "bagikan ke..." bawaan OS.

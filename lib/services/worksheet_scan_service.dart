@@ -4,6 +4,7 @@ import '../models/worksheet_scan.dart';
 import '../models/worksheet_template.dart';
 import 'api_client.dart';
 import 'auth_service.dart' show ApiException;
+import 'foto_kompres.dart';
 
 /// Lembar yang DITOLAK server (422).
 ///
@@ -153,9 +154,24 @@ abstract class WorksheetScanService {
 }
 
 class ApiWorksheetScanService implements WorksheetScanService {
-  ApiWorksheetScanService(this._api);
+  ApiWorksheetScanService(
+    this._api, {
+    FotoKompres? kompres,
+    void Function(MetrikKompres metrik)? padaKompresi,
+  }) : _kompres = kompres,
+       _padaKompresi = padaKompresi;
 
   final ApiClient _api;
+
+  /// Pemampat lampiran `citra_warp` (target <= 500 KB). `null` = kirim apa
+  /// adanya (perilaku lama).
+  final FotoKompres? _kompres;
+
+  /// Menerima ukuran asli/akhir tiap lampiran yang dikompresi. Server belum
+  /// punya kolom untuk metadata ini (`worksheet_scans` hanya `citra_warp_path`
+  /// dan JSON `perangkat` yang menyaring kuncinya), jadi metrik berhenti di
+  /// sini sampai sisi API menerimanya.
+  final void Function(MetrikKompres metrik)? _padaKompresi;
 
   @override
   Future<List<WorksheetTemplate>> daftarTemplate(String token) async {
@@ -218,6 +234,8 @@ class ApiWorksheetScanService implements WorksheetScanService {
     Map<String, dynamic> body, {
     Uint8List? citraWarp,
   }) async {
+    final lampiran = await _siapkanCitraWarp(citraWarp, body);
+
     try {
       // Batas waktunya dilonggarkan: bodinya membawa 80+ sel berikut kotak &
       // buktinya, plus citra hasil warp, dan server masih menilai mutu foto
@@ -225,10 +243,7 @@ class ApiWorksheetScanService implements WorksheetScanService {
       final json = await _api.unggahBanyak(
         '/worksheet-scans',
         body: body,
-        berkas: {
-          if (citraWarp != null)
-            'citra_warp': (namaBerkas: 'warp.png', isi: citraWarp),
-        },
+        berkas: {'citra_warp': ?lampiran},
         token: token,
         // 120 s: kiriman ini TIDAK diulang otomatis (tanpa kunci dedup), dan
         // server Render gratis yang baru bangun butuh 30–90 s sebelum mulai
@@ -243,6 +258,49 @@ class ApiWorksheetScanService implements WorksheetScanService {
 
       rethrow;
     }
+  }
+
+  /// Mengecilkan `citra_warp` sebelum naik. Lampiran ini hanya bukti audit
+  /// dan bahan potongan sel di layar review, jadi GAGAL mengompres tidak
+  /// boleh membatalkan kiriman: yang naik berkas aslinya.
+  ///
+  /// Ukuran piksel hanya boleh berubah untuk `kertas: asli` — server memotong
+  /// formulir asli dengan kotak TERNORMAL x ukuran citra. Lembar cetak
+  /// bermarker dipotong dengan koordinat PIKSEL di `ukuran_referensi`;
+  /// memperkecilnya menggeser semua kotak, jadi di sana hanya mutu yang turun
+  /// (piksel dipertahankan).
+  Future<({String namaBerkas, Uint8List isi})?> _siapkanCitraWarp(
+    Uint8List? citraWarp,
+    Map<String, dynamic> body,
+  ) async {
+    if (citraWarp == null) return null;
+
+    final kompres = _kompres;
+    if (kompres != null) {
+      try {
+        final asli = body['kertas'] == 'asli';
+        final hasil = await kompres.kompres(
+          citraWarp,
+          opsi: asli
+              ? const OpsiKompres()
+              : const OpsiKompres(
+                  sisiPanjangMaks: null,
+                  sisiPendekMaks: null,
+                  // Menyusutkan piksel = menggeser semua kotak sel.
+                  maksPenyusutan: 0,
+                ),
+        );
+        _padaKompresi?.call(hasil.metrik);
+
+        if (hasil.byte.length < citraWarp.length) {
+          return (namaBerkas: 'warp.${hasil.ekstensi}', isi: hasil.byte);
+        }
+      } catch (_) {
+        // Jatuh ke berkas asli di bawah.
+      }
+    }
+
+    return (namaBerkas: 'warp.png', isi: citraWarp);
   }
 
   @override
