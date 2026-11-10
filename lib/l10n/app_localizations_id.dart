@@ -7268,4 +7268,73 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get titikSesiBentrokBuang =>
       'Buang angka yang belum tersimpan di titik ini';
+
+  @override
+  String get undangAnggota => 'Undang anggota';
+
+  @override
+  String undangJudul(String perusahaan) {
+    return 'Undang anggota ke $perusahaan';
+  }
+
+  @override
+  String get undangEmail => 'Email anggota';
+
+  @override
+  String get undangEmailKosong => 'Isi alamat email.';
+
+  @override
+  String get undangEmailTidakValid => 'Alamat email tidak valid.';
+
+  @override
+  String get undangPeran => 'Peran';
+
+  @override
+  String get undangPeranPic => 'PIC utama';
+
+  @override
+  String get undangPeranStaf => 'Staf';
+
+  @override
+  String get undangKirim => 'Kirim undangan';
+
+  @override
+  String get undangBatal => 'Batal';
+
+  @override
+  String get undangGagalUmum => 'Undangan gagal dikirim. Coba lagi.';
+
+  @override
+  String get undangKodeJudul => 'Kode undangan';
+
+  @override
+  String undangKodeUntuk(String email) {
+    return 'Untuk $email';
+  }
+
+  @override
+  String get undangSalin => 'Salin';
+
+  @override
+  String get undangDisalin => 'Kode disalin';
+
+  @override
+  String undangBerlaku(String tanggal) {
+    return 'Berlaku sampai $tanggal';
+  }
+
+  @override
+  String get undangPeringatan =>
+      'Salin sekarang — kode tidak bisa dilihat lagi. Berlaku 7 hari. Undangan baru ke email yang sama membatalkan kode lama.';
+
+  @override
+  String get undangPetunjukPelanggan =>
+      'Di app SIDIK Pelanggan: Masuk → Pakai kode undangan';
+
+  @override
+  String get undangTanpaKode =>
+      'Undangan dibuat, tetapi kode belum tersedia di versi server ini — gunakan panel.';
+
+  @override
+  String get undangTutup => 'Selesai';
 }
