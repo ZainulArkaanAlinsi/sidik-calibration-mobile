@@ -19,6 +19,19 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+// tflite_flutter 0.12.1 mengunci Java ke 11 tapi tidak menyetel target JVM
+// Kotlin-nya (ikut JDK build 17) -> "Inconsistent JVM Target Compatibility".
+// Sama dengan app lab (android/build.gradle.kts): hanya plugin itu yang disamakan.
+subprojects {
+    if (name == "tflite_flutter") {
+        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+            compilerOptions {
+                jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+            }
+        }
+    }
+}
+
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
