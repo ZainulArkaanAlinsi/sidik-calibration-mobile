@@ -91,7 +91,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text(e.value),
+        find.textContaining(e.value),
         findsWidgets,
         reason: 'kolom ${e.value} di bagian Standard Used tidak muncul',
       );

@@ -3085,6 +3085,16 @@ class LembarKerjaState {
     'spesifikasi_alat.anak_timbangan.satuan',
   };
 
+  /// Kolom ini WAJIB di layar? Dipakai cuma buat WARNA isian — gerbang kirim
+  /// tetap milik `LembarKerjaScreen._submit`.
+  ///
+  /// Dua sumber, dan cuma dua: `wajib: true` dari server (hari ini selalu
+  /// `false`, tapi dibaca supaya kolom wajib pertama langsung berwarna tanpa
+  /// rilis APK), dan field penentu angka yang ditanyakan sebelum kirim.
+  /// Kolom lain TIDAK ditebak wajib.
+  bool fieldWajib(FieldLembarKerja f) =>
+      f.wajib || _kodePenentuAngka.contains(f.kode);
+
   /// Field penentu angka yang ada di lembar ini tapi belum dipilih.
   ///
   /// Kosong = aman, atau lembarnya emang nggak nanya. Dipakai buat NANYA

@@ -14,6 +14,7 @@ import '../../../providers/contoh_sel_provider.dart';
 import '../../../services/potong_sel_foto.dart';
 import '../../../services/ambil_foto_tabel.dart';
 import '../../../services/peta_tabel_foto.dart';
+import '../../../widgets/dekorasi_isian_wajib.dart';
 import '../../../widgets/label_standar.dart';
 import '../foto_review_screen.dart';
 import '../lembar_kerja_state.dart';
@@ -505,6 +506,9 @@ class LembarKerjaTabel extends StatelessWidget {
                                       kolom.kode,
                                       r,
                                     ),
+                                    wajib:
+                                        kolom.kode == 'suhu' &&
+                                        isian.bentuk.suhuWajib,
                                   ),
                             ],
                           ),
@@ -1034,6 +1038,7 @@ class _TabelKeBawahState extends State<_TabelKeBawah> {
         kolom.kode,
         urutan,
       ),
+      wajib: kolom.kode == 'suhu' && widget.isian.bentuk.suhuWajib,
     );
   }
 }
@@ -1461,6 +1466,7 @@ class _SelAngka extends StatelessWidget {
     this.terkunci = false,
     this.kumulatif = false,
     this.sebelumnya,
+    this.wajib = false,
   });
 
   final double lebar;
@@ -1495,6 +1501,12 @@ class _SelAngka extends StatelessWidget {
   /// digambar kosong supaya semua kotak sebaris tetap sama tinggi.
   final TextEditingController? sebelumnya;
 
+  /// Kolom ini WAJIB di lembar yang sedang dibuka (kolom suhu kalau
+  /// `bentuk.suhuWajib`). Cuma mewarnai — gerbang kirimnya di `_submit`.
+  /// Sel `terkunci` atau yang sudah punya [tanda] (pindai/revisi) tidak
+  /// diwarnai: dua penanda itu lebih mendesak dan tidak boleh tertimpa.
+  final bool wajib;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -1513,7 +1525,23 @@ class _SelAngka extends StatelessWidget {
         ? null
         : OutlineInputBorder(borderSide: BorderSide(color: warna, width: 1.5));
 
-    final kotak = TextField(
+    final wajibAktif = wajib && !terkunci && warna == null;
+
+    final dasar = InputDecoration(
+      isDense: true,
+      filled: warna != null || terkunci,
+      fillColor: warna != null
+          ? warna.withValues(alpha: 0.12)
+          : (terkunci
+                ? theme.colorScheme.onSurface.withValues(alpha: 0.05)
+                : null),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+      border: const OutlineInputBorder(),
+      enabledBorder: borderTanda,
+      focusedBorder: borderTanda,
+    );
+
+    Widget kotakDengan(bool terisi) => TextField(
       controller: controller,
       enabled: !terkunci,
       textAlign: TextAlign.center,
@@ -1527,19 +1555,20 @@ class _SelAngka extends StatelessWidget {
         // teknisi ngetik sesuai yang dia lihat. Dikonversi waktu parsing.
         FilteringTextInputFormatter.allow(RegExp(r'^-?\d*[.,]?\d*')),
       ],
-      decoration: InputDecoration(
-        isDense: true,
-        filled: warna != null || terkunci,
-        fillColor: warna != null
-            ? warna.withValues(alpha: 0.12)
-            : (terkunci
-                  ? theme.colorScheme.onSurface.withValues(alpha: 0.05)
-                  : null),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-        border: const OutlineInputBorder(),
-        enabledBorder: borderTanda,
-        focusedBorder: borderTanda,
+      // Sel tabel nggak punya label, jadi tanda `*` wajib ditaruh di hint.
+      decoration: dekorasiIsian(
+        context,
+        wajib: wajibAktif,
+        terisi: terisi,
+        tandaDiHint: true,
+        base: dasar,
       ),
+    );
+
+    final kotak = PemantauTerisi(
+      controller: controller,
+      wajib: wajibAktif,
+      builder: (_, terisi) => kotakDengan(terisi),
     );
 
     return SizedBox(
@@ -1731,15 +1760,25 @@ class _Centang extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return CheckboxListTile(
-      value: nilai,
-      onChanged: (v) => onUbah(v ?? false),
-      controlAffinity: ListTileControlAffinity.leading,
-      dense: true,
-      contentPadding: EdgeInsets.zero,
-      title: Text(judul, style: theme.textTheme.bodyMedium),
-      subtitle: Text(subjudul, style: theme.textTheme.bodySmall),
-      secondary: TextButton(onPressed: onGanti, child: Text(labelGanti)),
+    // Centang standar tercetak = isian WAJIB: titik yang pembacaannya keisi
+    // tapi standarnya nggak dicentang ditahan `_submit` (isian yatim).
+    return bungkusKotakIsian(
+      context,
+      wajib: true,
+      terisi: nilai,
+      anak: CheckboxListTile(
+        value: nilai,
+        onChanged: (v) => onUbah(v ?? false),
+        controlAffinity: ListTileControlAffinity.leading,
+        dense: true,
+        contentPadding: EdgeInsets.zero,
+        title: Text(
+          WarnaIsianScope.aktif(context) ? '$judul *' : judul,
+          style: theme.textTheme.bodyMedium,
+        ),
+        subtitle: Text(subjudul, style: theme.textTheme.bodySmall),
+        secondary: TextButton(onPressed: onGanti, child: Text(labelGanti)),
+      ),
     );
   }
 }
@@ -1793,10 +1832,17 @@ class _Dropdown extends ConsumerWidget {
           // Tinggi baris menu ngikutin isinya: nama dua baris plus
           // baris peringatan lewat dari jatah tetap 48 dp.
           itemHeight: null,
-          decoration: InputDecoration(
-            isDense: true,
-            labelText: '${l10n.lkStandarPerTitik} $label',
-            border: const OutlineInputBorder(),
+          // Wajib kalau titik ini punya standar tercetak: isian yatim
+          // (pembacaan keisi, standar kosong) ditahan `_submit`.
+          decoration: dekorasiIsian(
+            context,
+            wajib: state.standardIdTercetak != null,
+            terisi: state.standardId != null,
+            base: InputDecoration(
+              isDense: true,
+              labelText: '${l10n.lkStandarPerTitik} $label',
+              border: const OutlineInputBorder(),
+            ),
           ),
           hint: Text(l10n.lkPilih),
           selectedItemBuilder: (_) => [
@@ -1969,39 +2015,52 @@ class _SelSetpoint extends StatelessWidget {
             )
           : state == null
           ? const SizedBox.shrink()
-          : TextField(
+          : PemantauTerisi(
               controller: state!.titikCtl,
-              enabled: alasanNonaktif == null,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-                signed: true,
-              ),
-              inputFormatters: [
-                // Batasan yang SAMA dengan sel pembacaan — bukan sekadar
-                // "karakternya boleh ini".
-                //
-                // Daftar karakter meloloskan `12..5`, `1-2`, `--3`. Bentuk
-                // begitu bikin `parseAngka` pulang null, `siapKirim` jadi
-                // false, dan SELURUH barisnya — lima kotak pembacaan yang
-                // sudah diisi sekalian — hilang dari yang dikirim tanpa satu
-                // pun tanda. Pola berjangkar begini cuma menerima awalan yang
-                // masih bisa jadi angka.
-                FilteringTextInputFormatter.allow(RegExp(r'^-?\d*[.,]?\d*')),
-              ],
-              decoration: InputDecoration(
-                isDense: true,
-                hintText: satuan,
-                hintStyle: const TextStyle(fontSize: 11),
-                filled: alasanNonaktif != null,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 4,
-                  vertical: 8,
+              wajib: alasanNonaktif == null,
+              builder: (context, terisi) => TextField(
+                controller: state!.titikCtl,
+                enabled: alasanNonaktif == null,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 13),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                  signed: true,
                 ),
-                border: const OutlineInputBorder(),
+                inputFormatters: [
+                  // Batasan yang SAMA dengan sel pembacaan — bukan sekadar
+                  // "karakternya boleh ini".
+                  //
+                  // Daftar karakter meloloskan `12..5`, `1-2`, `--3`. Bentuk
+                  // begitu bikin `parseAngka` pulang null, `siapKirim` jadi
+                  // false, dan SELURUH barisnya — lima kotak pembacaan yang
+                  // sudah diisi sekalian — hilang dari yang dikirim tanpa satu
+                  // pun tanda. Pola berjangkar begini cuma menerima awalan yang
+                  // masih bisa jadi angka.
+                  FilteringTextInputFormatter.allow(RegExp(r'^-?\d*[.,]?\d*')),
+                ],
+                // Set point TIDS ditulis teknisi di lapangan: tanpa itu barisnya
+                // nggak punya identitas dan `_submit` menahannya
+                // (`titikTanpaSetPoint`).
+                decoration: dekorasiIsian(
+                  context,
+                  wajib: alasanNonaktif == null,
+                  terisi: terisi,
+                  tandaDiHint: true,
+                  base: InputDecoration(
+                    isDense: true,
+                    hintText: satuan,
+                    hintStyle: const TextStyle(fontSize: 11),
+                    filled: alasanNonaktif != null,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 8,
+                    ),
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+                onChanged: (_) => onBerubah(),
               ),
-              onChanged: (_) => onBerubah(),
             ),
     );
   }

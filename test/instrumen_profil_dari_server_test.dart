@@ -111,8 +111,8 @@ void main() {
 
       // Dua dropdown yang cuma TITS punya — bukti lembarnya beneran kebuka,
       // bukan cuma kode profil yang kebetulan lewat.
-      expect(find.text('1. Mode'), findsOneWidget);
-      expect(find.text('2. Temperature Type'), findsOneWidget);
+      expect(find.textContaining('1. Mode'), findsOneWidget);
+      expect(find.textContaining('2. Temperature Type'), findsOneWidget);
     });
 
     testWidgets('server MENANG atas tebakan nama yang meleset', (tester) async {

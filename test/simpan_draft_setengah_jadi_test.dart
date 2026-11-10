@@ -135,7 +135,7 @@ void main() {
     await tester.tap(find.text('Panjang').last);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Pilih alat'), warnIfMissed: false);
+    await tester.tap(find.textContaining('Pilih alat'), warnIfMissed: false);
     await tester.pumpAndSettle();
     await tester.tap(find.textContaining('Jangka Sorong Mitutoyo').last);
     await tester.pumpAndSettle();
