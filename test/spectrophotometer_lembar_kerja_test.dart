@@ -246,7 +246,7 @@ void main() {
 
       // Sesi in-lab NGGAK nanyain nama tempat: sertifikatnya bakal nulis
       // `Insitu (…)` buat kerjaan yang nggak pernah keluar gedung.
-      expect(find.text('Nama Tempat (Insitu)'), findsNothing);
+      expect(find.text('Nama Tempat (Insitu) *'), findsNothing);
 
       // `.last` di KEDUA baris, dan itu bukan kebiasaan: dropdown thermohygro
       // mengelompokkan unitnya `Inlab`/`Insitu` juga, jadi kedua kata itu
@@ -259,10 +259,10 @@ void main() {
       await tester.tap(find.text('Insitu').last);
       await tester.pumpAndSettle();
 
-      expect(find.text('Nama Tempat (Insitu)'), findsOneWidget);
+      expect(find.text('Nama Tempat (Insitu) *'), findsOneWidget);
 
       await tester.enterText(
-        find.widgetWithText(TextField, 'Nama Tempat (Insitu)'),
+        find.widgetWithText(TextField, 'Nama Tempat (Insitu) *'),
         'PT. Niaga Contoh',
       );
       await tester.pumpAndSettle();

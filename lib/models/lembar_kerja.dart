@@ -214,6 +214,7 @@ class FieldLembarKerja {
     this.pilihan = const [],
     this.catatan,
     this.tampilKalau,
+    this.diLuarKertas = false,
   });
 
   /// Kode yang dipakai di payload, mis. `suhu_awal` atau `equipment.merk`.
@@ -262,6 +263,12 @@ class FieldLembarKerja {
   /// Syarat tampilnya, atau `null` = selalu tampil. Lihat [SyaratTampil].
   final SyaratTampil? tampilKalau;
 
+  /// Kolom ini TIDAK tercetak di kertas lembar kerjanya — dipakai olah data
+  /// saja (`di_luar_kertas: true` dari server, mis. Rentang Ukur Timbangan).
+  /// Dipakai warna identitas: kolom di luar kertas bukan identitas tercetak,
+  /// jadi tidak ikut diwarnai.
+  final bool diLuarKertas;
+
   factory FieldLembarKerja.fromJson(Map<String, dynamic> json) {
     return FieldLembarKerja(
       kode: json['kode'] as String,
@@ -274,6 +281,7 @@ class FieldLembarKerja {
       pilihan: parseListAman(json['pilihan'], PilihanField.fromJson),
       catatan: json['catatan'] as String?,
       tampilKalau: SyaratTampil.fromJson(json['tampil_kalau']),
+      diLuarKertas: json['di_luar_kertas'] as bool? ?? false,
     );
   }
 }

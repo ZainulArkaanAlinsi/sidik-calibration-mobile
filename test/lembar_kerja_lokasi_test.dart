@@ -28,7 +28,8 @@ import 'package:sidik_calibration/services/worksheet_scan_service.dart';
 /// Makanya yang diuji di sini PAYLOAD-nya, bukan cuma kotaknya kelihatan apa
 /// nggak: layar yang bener sambil payload yang kotor persis keadaan waktu itu.
 const _labelRuangan = 'Ruangan (Inlab)';
-const _labelNamaTempat = 'Nama Tempat (Insitu)';
+// Identitas alat (lokasi) diwarnai menurut isi, jadi labelnya bertanda `*`.
+const _labelNamaTempat = 'Nama Tempat (Insitu) *';
 const _ruanganPertama = 'LAB-A — Lab. Uji A';
 
 Widget _app(MockLembarKerjaService service) => ProviderScope(
@@ -88,7 +89,7 @@ Future<void> _pilihAlat(WidgetTester tester) async {
 Future<void> _pilihLokasi(WidgetTester tester, String label) async {
   await tester.tap(
     find.ancestor(
-      of: find.text('1. Location'),
+      of: find.text('1. Location *'),
       matching: find.byType(DropdownButtonFormField<LokasiKalibrasi>),
     ),
   );

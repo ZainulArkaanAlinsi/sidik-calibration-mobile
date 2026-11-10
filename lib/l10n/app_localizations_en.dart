@@ -2747,7 +2747,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lkLegendaWajibKosongIsi =>
-      'Fill this in before sending. A required column left empty on a row you used blocks the send.';
+      'Fill this in before sending. A figure-deciding column left empty on a row you used blocks the send. An empty equipment identity (serial number, brand, type, …) does not block the send, but it is printed on the certificate — complete it.';
 
   @override
   String get lkLegendaWajibTerisiJudul => 'Required, filled (soft green)';
@@ -2768,11 +2768,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lkLegendaOtomatisIsi =>
-      'Filled from the equipment or calculated by the server. You cannot edit it.';
+      'Calculated by the server or read-only (e.g. Order Number). You cannot edit it here.';
+
+  @override
+  String get lkLegendaIdentitas =>
+      'Equipment identity printed on the certificate (serial number, brand, type, capacity, resolution, location, calibration date, customer) is colored by its content: green when filled, orange while empty. A lock icon = filled automatically from the equipment record; if empty, complete it in the equipment record.';
+
+  @override
+  String get lkLengkapiDiDataAlat => 'Complete it in the equipment record';
 
   @override
   String get lkLegendaTanda =>
-      'A * after a label also marks a required field, so the meaning does not depend on color alone. Only fields the app actually checks before sending are marked required.';
+      'A * after a label also marks a required field or an equipment identity, so the meaning does not depend on color alone. Only fields the app checks before sending and equipment identities printed on the certificate are marked.';
 
   @override
   String get lkKosong => '—';
