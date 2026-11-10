@@ -11,6 +11,7 @@ import '../services/customer_lookup_service.dart';
 import '../services/customer_service.dart';
 import '../services/order_service.dart';
 import '../services/organization_service.dart';
+import '../services/undangan_pelanggan_service.dart';
 import '../services/user_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
@@ -26,6 +27,13 @@ final organizationServiceProvider = Provider<OrganizationService>((ref) {
 final customerServiceProvider = Provider<CustomerService>((ref) {
   if (AppConfig.useMock) return MockCustomerService();
   return ApiCustomerService(ref.watch(apiClientProvider));
+});
+
+final undanganPelangganServiceProvider = Provider<UndanganPelangganService>((
+  ref,
+) {
+  if (AppConfig.useMock) return MockUndanganPelangganService();
+  return ApiUndanganPelangganService(ref.watch(apiClientProvider));
 });
 
 final customerLookupServiceProvider = Provider<CustomerLookupService>((ref) {

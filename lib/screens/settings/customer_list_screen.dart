@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/customer.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart' show TokenHilangException;
 import '../../providers/master_data_provider.dart';
 import '../../widgets/daftar_kartu_adaptif.dart';
@@ -13,6 +14,7 @@ import '../../widgets/readable_width.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/skeleton.dart';
 import 'customer_form_screen.dart';
+import 'undang_anggota_dialog.dart';
 
 class CustomerListScreen extends ConsumerStatefulWidget {
   const CustomerListScreen({super.key});
@@ -172,6 +174,7 @@ class _CustomerCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
+    final bolehUndang = ref.watch(authProvider).value?.role.hakAdmin ?? false;
 
     return Card(
       child: InkWell(
@@ -211,6 +214,17 @@ class _CustomerCard extends ConsumerWidget {
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
+                    // Hanya admin & super admin. Ini cuma menyembunyikan
+                    // tombol; yang menolak non-admin adalah server (403).
+                    if (bolehUndang) ...[
+                      const SizedBox(height: AppSpacing.xs),
+                      TextButton.icon(
+                        key: Key('undang-${item.id}'),
+                        onPressed: () => bukaUndangAnggota(context, item),
+                        icon: const Icon(Icons.person_add_alt_1_outlined),
+                        label: Text(l10n.undangAnggota),
+                      ),
+                    ],
                   ],
                 ),
               ),

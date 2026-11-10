@@ -7347,4 +7347,73 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get titikSesiBentrokBuang => 'Discard unsaved numbers on this point';
+
+  @override
+  String get undangAnggota => 'Invite member';
+
+  @override
+  String undangJudul(String perusahaan) {
+    return 'Invite a member to $perusahaan';
+  }
+
+  @override
+  String get undangEmail => 'Member\'s email';
+
+  @override
+  String get undangEmailKosong => 'Enter an email address.';
+
+  @override
+  String get undangEmailTidakValid => 'That email address is not valid.';
+
+  @override
+  String get undangPeran => 'Role';
+
+  @override
+  String get undangPeranPic => 'Main PIC';
+
+  @override
+  String get undangPeranStaf => 'Staff';
+
+  @override
+  String get undangKirim => 'Send invitation';
+
+  @override
+  String get undangBatal => 'Cancel';
+
+  @override
+  String get undangGagalUmum => 'The invitation could not be sent. Try again.';
+
+  @override
+  String get undangKodeJudul => 'Invitation code';
+
+  @override
+  String undangKodeUntuk(String email) {
+    return 'For $email';
+  }
+
+  @override
+  String get undangSalin => 'Copy';
+
+  @override
+  String get undangDisalin => 'Code copied';
+
+  @override
+  String undangBerlaku(String tanggal) {
+    return 'Valid until $tanggal';
+  }
+
+  @override
+  String get undangPeringatan =>
+      'Copy now — the code cannot be viewed again. Valid for 7 days. A new invitation to the same email cancels the old code.';
+
+  @override
+  String get undangPetunjukPelanggan =>
+      'In the SIDIK Pelanggan app: Sign in → Use invitation code';
+
+  @override
+  String get undangTanpaKode =>
+      'Invitation created, but the code is not available on this server version — use the panel.';
+
+  @override
+  String get undangTutup => 'Done';
 }

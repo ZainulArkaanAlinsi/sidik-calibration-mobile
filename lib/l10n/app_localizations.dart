@@ -12703,6 +12703,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Discard unsaved numbers on this point'**
   String get titikSesiBentrokBuang;
+
+  /// No description provided for @undangAnggota.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite member'**
+  String get undangAnggota;
+
+  /// No description provided for @undangJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite a member to {perusahaan}'**
+  String undangJudul(String perusahaan);
+
+  /// No description provided for @undangEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Member\'s email'**
+  String get undangEmail;
+
+  /// No description provided for @undangEmailKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an email address.'**
+  String get undangEmailKosong;
+
+  /// No description provided for @undangEmailTidakValid.
+  ///
+  /// In en, this message translates to:
+  /// **'That email address is not valid.'**
+  String get undangEmailTidakValid;
+
+  /// No description provided for @undangPeran.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get undangPeran;
+
+  /// No description provided for @undangPeranPic.
+  ///
+  /// In en, this message translates to:
+  /// **'Main PIC'**
+  String get undangPeranPic;
+
+  /// No description provided for @undangPeranStaf.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff'**
+  String get undangPeranStaf;
+
+  /// No description provided for @undangKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Send invitation'**
+  String get undangKirim;
+
+  /// No description provided for @undangBatal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get undangBatal;
+
+  /// No description provided for @undangGagalUmum.
+  ///
+  /// In en, this message translates to:
+  /// **'The invitation could not be sent. Try again.'**
+  String get undangGagalUmum;
+
+  /// No description provided for @undangKodeJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation code'**
+  String get undangKodeJudul;
+
+  /// No description provided for @undangKodeUntuk.
+  ///
+  /// In en, this message translates to:
+  /// **'For {email}'**
+  String undangKodeUntuk(String email);
+
+  /// No description provided for @undangSalin.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get undangSalin;
+
+  /// No description provided for @undangDisalin.
+  ///
+  /// In en, this message translates to:
+  /// **'Code copied'**
+  String get undangDisalin;
+
+  /// No description provided for @undangBerlaku.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid until {tanggal}'**
+  String undangBerlaku(String tanggal);
+
+  /// No description provided for @undangPeringatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy now — the code cannot be viewed again. Valid for 7 days. A new invitation to the same email cancels the old code.'**
+  String get undangPeringatan;
+
+  /// No description provided for @undangPetunjukPelanggan.
+  ///
+  /// In en, this message translates to:
+  /// **'In the SIDIK Pelanggan app: Sign in → Use invitation code'**
+  String get undangPetunjukPelanggan;
+
+  /// No description provided for @undangTanpaKode.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation created, but the code is not available on this server version — use the panel.'**
+  String get undangTanpaKode;
+
+  /// No description provided for @undangTutup.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get undangTutup;
 }
 
 class _AppLocalizationsDelegate
