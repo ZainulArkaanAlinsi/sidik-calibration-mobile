@@ -4318,20 +4318,53 @@ class _BarisSpesifikasi extends StatelessWidget {
                         controller: isian.teks[f.kode]!,
                         onBerubah: onBerubah,
                       )
-                    : TextField(
-                        controller: isian.teks[f.kode],
-                        decoration: InputDecoration(
-                          // Labelnya udah ditulis sekali di atas — yang di
-                          // dalam kotak tinggal satuannya, persis kertasnya.
-                          labelText: isian.satuanField(f),
-                          border: const OutlineInputBorder(),
-                        ),
-                      ),
+                    : _KotakSpesifikasi(field: f, isian: isian),
               ),
             ],
           ],
         ),
       ],
+    );
+  }
+}
+
+/// Satu kotak teks di baris spesifikasi (Capacity, Resolution, Rentang Ukur, …).
+///
+/// Diwarnai menurut isi kalau kodenya identitas alat (`fieldIdentitas`); kotak
+/// spesifikasi lain tampil biasa. Tanpa label (kolom tak bersatuan), tanda `*`
+/// ditaruh di hint.
+class _KotakSpesifikasi extends StatelessWidget {
+  const _KotakSpesifikasi({required this.field, required this.isian});
+
+  final FieldLembarKerja field;
+  final LembarKerjaState isian;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = isian.teks[field.kode];
+    // Labelnya udah ditulis sekali di atas — yang di dalam kotak tinggal
+    // satuannya, persis kertasnya.
+    final satuan = isian.satuanField(field);
+    final wajib = isian.fieldWajib(field);
+
+    if (controller == null) return const SizedBox.shrink();
+
+    return PemantauTerisi(
+      controller: controller,
+      wajib: wajib,
+      builder: (context, terisi) => TextField(
+        controller: controller,
+        decoration: dekorasiIsian(
+          context,
+          wajib: wajib,
+          terisi: terisi,
+          tandaDiHint: satuan == null,
+          base: InputDecoration(
+            labelText: satuan,
+            border: const OutlineInputBorder(),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -4663,6 +4696,9 @@ class _Field extends ConsumerWidget {
           kodeTeknisi: user?.kodeTeknisi,
         ),
         satuan: field.satuan,
+        // Identitas alat (nama, merek, tipe, seri, pelanggan, …) diwarnai
+        // menurut ISI, bukan abu-abu: kosong/terisinya harus kelihatan.
+        identitas: isian.fieldIdentitas(field),
       );
 
       // Volume enclosure beda dari kolom otomatis lain: sumbernya BUKAN data
@@ -5114,10 +5150,16 @@ class _PilihTanggal extends StatelessWidget {
     final nilai = isian.tanggal[field.kode];
 
     return InputDecorator(
-      decoration: InputDecoration(
-        labelText: field.label,
-        border: const OutlineInputBorder(),
-        prefixIcon: const Icon(Icons.calendar_today_outlined, size: 20),
+      decoration: dekorasiIsian(
+        context,
+        // Tanggal kalibrasi = identitas tercetak; tanggal lain netral.
+        wajib: isian.fieldWajib(field),
+        terisi: nilai != null,
+        base: InputDecoration(
+          labelText: field.label,
+          border: const OutlineInputBorder(),
+          prefixIcon: const Icon(Icons.calendar_today_outlined, size: 20),
+        ),
       ),
       child: Row(
         children: [
@@ -5251,9 +5293,15 @@ class _PilihanTetap extends StatelessWidget {
     return DropdownButtonFormField<LokasiKalibrasi>(
       initialValue: isian.lokasi,
       isExpanded: true,
-      decoration: InputDecoration(
-        labelText: field.label,
-        border: const OutlineInputBorder(),
+      // `isian.lokasi` tidak pernah null (bawaan Inlab), jadi terisi selalu.
+      decoration: dekorasiIsian(
+        context,
+        wajib: isian.fieldWajib(field),
+        terisi: true,
+        base: InputDecoration(
+          labelText: field.label,
+          border: const OutlineInputBorder(),
+        ),
       ),
       items: [
         for (final p in field.pilihan)
@@ -5733,11 +5781,21 @@ class _PilihMetode extends StatelessWidget {
 }
 
 class _Readonly extends StatelessWidget {
-  const _Readonly({required this.label, required this.nilai, this.satuan});
+  const _Readonly({
+    required this.label,
+    required this.nilai,
+    this.satuan,
+    this.identitas = false,
+  });
 
   final String label;
   final String nilai;
   final String? satuan;
+
+  /// Identitas alat yang tercetak di sertifikat: warna menurut ISI (hijau +
+  /// kunci kalau terisi, oranye + petunjuk kalau kosong). `false` = hasil
+  /// hitung/baca-saja biasa, tetap abu kebiruan.
+  final bool identitas;
 
   @override
   Widget build(BuildContext context) {
@@ -5760,10 +5818,15 @@ class _Readonly extends StatelessWidget {
       // Otomatis = abu kebiruan di layar input; di luar scope tetap abu lama.
       decoration: dekorasiIsian(
         context,
-        wajib: false,
-        terisi: false,
+        wajib: identitas,
+        terisi: nilai.trim().isNotEmpty,
         otomatis: true,
         base: dasar,
+        // Kosongnya datang dari data alat, bukan dari ketikan di sini.
+        // Sengaja teks saja: layar ubah alat butuh data alat LENGKAP (pelanggan,
+        // no. identifikasi, toleransi, …) sedangkan lembar ini hanya memegang
+        // ringkasannya — menyimpan dari situ bisa menimpa kolom lain.
+        petunjukKosong: identitas ? l10n.lkLengkapiDiDataAlat : null,
       ),
       child: Text(
         tampil,

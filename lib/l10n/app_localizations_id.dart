@@ -2728,7 +2728,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get lkLegendaWajibKosongIsi =>
-      'Isi sebelum dikirim. Kolom wajib yang kosong di baris yang kamu pakai akan menahan pengiriman.';
+      'Isi sebelum dikirim. Kolom penentu angka yang kosong di baris yang kamu pakai akan menahan pengiriman. Identitas alat yang kosong (nomor seri, merek, tipe, …) tidak menahan pengiriman, tetapi tercetak di sertifikat — lengkapi.';
 
   @override
   String get lkLegendaWajibTerisiJudul => 'Wajib, sudah terisi (hijau lembut)';
@@ -2749,11 +2749,18 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get lkLegendaOtomatisIsi =>
-      'Terisi dari data alat atau dihitung server. Tidak bisa diubah di sini.';
+      'Dihitung server atau baca-saja (mis. Order Number). Tidak bisa diubah di sini.';
+
+  @override
+  String get lkLegendaIdentitas =>
+      'Identitas alat yang tercetak di sertifikat (nomor seri, merek, tipe, kapasitas, resolusi, lokasi, tanggal kalibrasi, pelanggan) diwarnai menurut isinya: hijau kalau sudah terisi, oranye kalau masih kosong. Ikon kunci = diisi otomatis dari data alat; kalau kosong, lengkapi di data alat.';
+
+  @override
+  String get lkLengkapiDiDataAlat => 'Lengkapi di data alat';
 
   @override
   String get lkLegendaTanda =>
-      'Tanda * di belakang label juga menandai isian wajib, jadi artinya tidak bergantung pada warna saja. Yang ditandai wajib hanya isian yang memang diperiksa aplikasi sebelum kirim.';
+      'Tanda * di belakang label juga menandai isian wajib atau identitas alat, jadi artinya tidak bergantung pada warna saja. Yang ditandai hanya isian yang diperiksa aplikasi sebelum kirim dan identitas alat yang tercetak di sertifikat.';
 
   @override
   String get lkKosong => '—';

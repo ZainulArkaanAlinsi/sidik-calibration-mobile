@@ -5020,7 +5020,7 @@ abstract class AppLocalizations {
   /// No description provided for @lkLegendaWajibKosongIsi.
   ///
   /// In en, this message translates to:
-  /// **'Fill this in before sending. A required column left empty on a row you used blocks the send.'**
+  /// **'Fill this in before sending. A figure-deciding column left empty on a row you used blocks the send. An empty equipment identity (serial number, brand, type, …) does not block the send, but it is printed on the certificate — complete it.'**
   String get lkLegendaWajibKosongIsi;
 
   /// No description provided for @lkLegendaWajibTerisiJudul.
@@ -5056,13 +5056,25 @@ abstract class AppLocalizations {
   /// No description provided for @lkLegendaOtomatisIsi.
   ///
   /// In en, this message translates to:
-  /// **'Filled from the equipment or calculated by the server. You cannot edit it.'**
+  /// **'Calculated by the server or read-only (e.g. Order Number). You cannot edit it here.'**
   String get lkLegendaOtomatisIsi;
+
+  /// No description provided for @lkLegendaIdentitas.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment identity printed on the certificate (serial number, brand, type, capacity, resolution, location, calibration date, customer) is colored by its content: green when filled, orange while empty. A lock icon = filled automatically from the equipment record; if empty, complete it in the equipment record.'**
+  String get lkLegendaIdentitas;
+
+  /// No description provided for @lkLengkapiDiDataAlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete it in the equipment record'**
+  String get lkLengkapiDiDataAlat;
 
   /// No description provided for @lkLegendaTanda.
   ///
   /// In en, this message translates to:
-  /// **'A * after a label also marks a required field, so the meaning does not depend on color alone. Only fields the app actually checks before sending are marked required.'**
+  /// **'A * after a label also marks a required field or an equipment identity, so the meaning does not depend on color alone. Only fields the app checks before sending and equipment identities printed on the certificate are marked.'**
   String get lkLegendaTanda;
 
   /// No description provided for @lkKosong.

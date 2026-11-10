@@ -17,6 +17,7 @@ import '../../core/utils/jam_lembar.dart';
 import '../../models/lembar_kerja.dart';
 import 'grid_sensor_state.dart';
 import '../../models/lembar_kerja_submission.dart';
+import '../../models/peran_isian_identitas.dart';
 import '../../models/titik_sesi.dart';
 import 'titik_sesi_state.dart';
 import '../../models/worksheet_template.dart' show WorksheetTemplate;
@@ -3088,12 +3089,24 @@ class LembarKerjaState {
   /// Kolom ini WAJIB di layar? Dipakai cuma buat WARNA isian — gerbang kirim
   /// tetap milik `LembarKerjaScreen._submit`.
   ///
-  /// Dua sumber, dan cuma dua: `wajib: true` dari server (hari ini selalu
+  /// Tiga sumber, dan cuma tiga: `wajib: true` dari server (hari ini selalu
   /// `false`, tapi dibaca supaya kolom wajib pertama langsung berwarna tanpa
-  /// rilis APK), dan field penentu angka yang ditanyakan sebelum kirim.
-  /// Kolom lain TIDAK ditebak wajib.
+  /// rilis APK), field penentu angka yang ditanyakan sebelum kirim, dan
+  /// identitas alat yang tercetak di sertifikat ([fieldIdentitas]). Kolom lain
+  /// TIDAK ditebak wajib.
   bool fieldWajib(FieldLembarKerja f) =>
-      f.wajib || _kodePenentuAngka.contains(f.kode);
+      f.wajib || _kodePenentuAngka.contains(f.kode) || fieldIdentitas(f);
+
+  /// Kolom ini identitas alat yang tercetak di sertifikat (nomor seri, merek,
+  /// tipe, kapasitas, resolusi, lokasi, tanggal kalibrasi, pelanggan, …)?
+  ///
+  /// Daftarnya `peranIsianIdentitas` (SATU tempat). Kolom yang server tandai
+  /// `di_luar_kertas` dikecualikan: ia dipakai olah data, bukan identitas
+  /// tercetak (mis. Rentang Ukur Timbangan).
+  ///
+  /// Hanya PENANDA WARNA — bukan gerbang kirim.
+  bool fieldIdentitas(FieldLembarKerja f) =>
+      adalahIdentitasWajib(f.kode) && !f.diLuarKertas;
 
   /// Field penentu angka yang ada di lembar ini tapi belum dipilih.
   ///

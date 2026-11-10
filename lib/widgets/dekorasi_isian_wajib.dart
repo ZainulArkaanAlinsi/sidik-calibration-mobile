@@ -12,7 +12,22 @@ import '../l10n/app_localizations.dart';
 ///  - [StatusIsian.wajibKosong]: latar oranye lembut + tepi tegas.
 ///  - [StatusIsian.wajibTerisi]: latar hijau sangat lembut.
 ///  - [StatusIsian.opsional]: tampilan biasa, tanpa warna.
-///  - [StatusIsian.otomatis]: abu kebiruan lembut — diisi/dihitung sistem.
+///  - [StatusIsian.otomatis]: abu kebiruan lembut — dihitung/diisi sistem dan
+///    tidak ada yang perlu dilengkapi teknisi (hasil hitung server, Order
+///    Number baca-saja).
+///
+/// ## Identitas alat: warna menurut ISI
+///
+/// Kolom identitas yang tercetak di sertifikat (nomor seri, merek, tipe,
+/// kapasitas, resolusi, lokasi, tanggal kalibrasi, pelanggan — daftar di
+/// `peran_isian_identitas.dart`) memakai status menurut ISI-nya, baik yang
+/// diketik teknisi maupun yang otomatis dari data alat: terisi = hijau,
+/// kosong = oranye + `*`. Untuk yang otomatis, hijau membawa ikon kunci kecil
+/// (baca-saja) dan oranye membawa petunjuk "Lengkapi di data alat" —
+/// kosongnya datang dari data alat, bukan dari ketikan di sini.
+///
+/// Caranya: [dekorasiIsian] dipanggil dengan `wajib: true` DAN
+/// `otomatis: true`. `otomatis` tanpa `wajib` tetap abu kebiruan.
 ///
 /// ## Hanya di layar INPUT
 ///
@@ -22,10 +37,11 @@ import '../l10n/app_localizations.dart';
 ///
 /// ## Apa arti "wajib"
 ///
-/// Hanya isian yang MEMANG punya gerbang di kode (`LembarKerjaScreen._submit`)
-/// atau yang ditandai `wajib: true` oleh server. Server hari ini selalu
-/// mengirim `wajib: false` untuk semua kolom, jadi tanpa penanda dari kode,
-/// sebuah isian tampil opsional — bukan ditebak wajib.
+/// Isian yang MEMANG punya gerbang di kode (`LembarKerjaScreen._submit`),
+/// yang ditandai `wajib: true` oleh server, atau identitas alat di atas
+/// (hanya penanda; kolom kosongnya TIDAK menahan kirim). Server hari ini
+/// selalu mengirim `wajib: false` untuk semua kolom, jadi tanpa penanda dari
+/// kode, sebuah isian tampil opsional — bukan ditebak wajib.
 enum StatusIsian { wajibKosong, wajibTerisi, opsional, otomatis }
 
 StatusIsian statusIsian({
@@ -33,8 +49,8 @@ StatusIsian statusIsian({
   required bool terisi,
   bool otomatis = false,
 }) {
-  if (otomatis) return StatusIsian.otomatis;
-  if (!wajib) return StatusIsian.opsional;
+  // `otomatis` + `wajib` = identitas dari data alat: menurut isi, bukan abu.
+  if (!wajib) return otomatis ? StatusIsian.otomatis : StatusIsian.opsional;
 
   return terisi ? StatusIsian.wajibTerisi : StatusIsian.wajibKosong;
 }
@@ -107,6 +123,15 @@ class WarnaIsianScope extends InheritedWidget {
 ///
 /// [tandaDiHint]: untuk sel tanpa label (tabel) — tanda `*` ditaruh di hint
 /// selama kosong, karena label-nya tidak ada tempat menempelkan bintang.
+///
+/// [petunjukKosong]: kalimat pendek yang menggantikan helper selama isian
+/// wajib masih KOSONG (mis. "Lengkapi di data alat" untuk identitas otomatis).
+/// Satuan tetap ikut kalau [base] punya `suffixText`. Sudah dilokalkan oleh
+/// pemanggil — helper ini tidak mengenal bahasa.
+///
+/// Identitas otomatis (`wajib: true` + `otomatis: true`) yang TERISI membawa
+/// ikon kunci kecil ([kunciIkonIdentitas]) kalau [base] belum punya
+/// `suffixIcon`.
 InputDecoration dekorasiIsian(
   BuildContext context, {
   required bool wajib,
@@ -114,6 +139,7 @@ InputDecoration dekorasiIsian(
   bool otomatis = false,
   InputDecoration base = const InputDecoration(),
   bool tandaDiHint = false,
+  String? petunjukKosong,
 }) {
   if (!WarnaIsianScope.aktif(context)) return base;
 
@@ -130,6 +156,11 @@ InputDecoration dekorasiIsian(
   final label = base.labelText;
   final hint = base.hintText;
 
+  // Identitas otomatis: kunci kalau terisi (baca-saja), petunjuk kalau kosong.
+  final identitasOtomatis = wajib && otomatis;
+  final kunci = identitasOtomatis && terisi && base.suffixIcon == null;
+  final petunjuk = (status == StatusIsian.wajibKosong) ? petunjukKosong : null;
+
   return base.copyWith(
     filled: true,
     fillColor: warna.latar,
@@ -141,8 +172,20 @@ InputDecoration dekorasiIsian(
     hintText: (tandaWajib != null && tandaDiHint)
         ? '${hint ?? ''}$tandaWajib'.trim()
         : hint,
+    helperText: petunjuk == null
+        ? base.helperText
+        : _gabungHelper(petunjuk, base.suffixText),
+    suffixIcon: kunci
+        ? const Icon(Icons.lock_outline, key: kunciIkonIdentitas, size: 18)
+        : base.suffixIcon,
   );
 }
+
+/// Kunci ikon kunci pada identitas otomatis yang sudah terisi (untuk test).
+const kunciIkonIdentitas = ValueKey('ikon-kunci-identitas');
+
+String _gabungHelper(String petunjuk, String? satuan) =>
+    (satuan == null || satuan.isEmpty) ? petunjuk : '$petunjuk · $satuan';
 
 /// Versi untuk widget yang bukan `TextField` (mis. baris centang): [anak]
 /// dibungkus kotak berlatar + bertepi menurut konvensi yang sama. Tanpa warna
@@ -365,6 +408,28 @@ class _LembarLegenda extends StatelessWidget {
               StatusIsian.otomatis,
               l10n.lkLegendaOtomatisJudul,
               l10n.lkLegendaOtomatisIsi,
+            ),
+            // Identitas alat: warnanya menurut isi, dan kunci = otomatis dari
+            // data alat. Satu baris sendiri supaya tidak tenggelam di empat
+            // keadaan di atas.
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+              child: Row(
+                key: const ValueKey('legenda-identitas-alat'),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(top: 1, right: AppSpacing.xs),
+                    child: Icon(Icons.lock_outline, size: 14),
+                  ),
+                  Expanded(
+                    child: Text(
+                      l10n.lkLegendaIdentitas,
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(l10n.lkLegendaTanda, style: theme.textTheme.bodySmall),
