@@ -2727,6 +2727,54 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lkOtomatis => 'Filled automatically';
 
   @override
+  String get lkLegendaJudul => 'What the field colors mean';
+
+  @override
+  String get lkLegendaRingkasWajib => 'Required';
+
+  @override
+  String get lkLegendaRingkasTerisi => 'Filled';
+
+  @override
+  String get lkLegendaRingkasOpsional => 'Optional';
+
+  @override
+  String get lkLegendaRingkasOtomatis => 'Automatic';
+
+  @override
+  String get lkLegendaWajibKosongJudul =>
+      'Required, still empty (orange, * mark)';
+
+  @override
+  String get lkLegendaWajibKosongIsi =>
+      'Fill this in before sending. A required column left empty on a row you used blocks the send.';
+
+  @override
+  String get lkLegendaWajibTerisiJudul => 'Required, filled (soft green)';
+
+  @override
+  String get lkLegendaWajibTerisiIsi =>
+      'Already filled in. Nothing more to do here.';
+
+  @override
+  String get lkLegendaOpsionalJudul => 'Optional (no color)';
+
+  @override
+  String get lkLegendaOpsionalIsi =>
+      'Can stay empty. A draft can always be saved half-finished.';
+
+  @override
+  String get lkLegendaOtomatisJudul => 'Automatic (blue-grey)';
+
+  @override
+  String get lkLegendaOtomatisIsi =>
+      'Filled from the equipment or calculated by the server. You cannot edit it.';
+
+  @override
+  String get lkLegendaTanda =>
+      'A * after a label also marks a required field, so the meaning does not depend on color alone. Only fields the app actually checks before sending are marked required.';
+
+  @override
   String get lkKosong => '—';
 
   @override

@@ -4981,6 +4981,90 @@ abstract class AppLocalizations {
   /// **'Filled automatically'**
   String get lkOtomatis;
 
+  /// No description provided for @lkLegendaJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'What the field colors mean'**
+  String get lkLegendaJudul;
+
+  /// No description provided for @lkLegendaRingkasWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get lkLegendaRingkasWajib;
+
+  /// No description provided for @lkLegendaRingkasTerisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled'**
+  String get lkLegendaRingkasTerisi;
+
+  /// No description provided for @lkLegendaRingkasOpsional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get lkLegendaRingkasOpsional;
+
+  /// No description provided for @lkLegendaRingkasOtomatis.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get lkLegendaRingkasOtomatis;
+
+  /// No description provided for @lkLegendaWajibKosongJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Required, still empty (orange, * mark)'**
+  String get lkLegendaWajibKosongJudul;
+
+  /// No description provided for @lkLegendaWajibKosongIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill this in before sending. A required column left empty on a row you used blocks the send.'**
+  String get lkLegendaWajibKosongIsi;
+
+  /// No description provided for @lkLegendaWajibTerisiJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Required, filled (soft green)'**
+  String get lkLegendaWajibTerisiJudul;
+
+  /// No description provided for @lkLegendaWajibTerisiIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'Already filled in. Nothing more to do here.'**
+  String get lkLegendaWajibTerisiIsi;
+
+  /// No description provided for @lkLegendaOpsionalJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional (no color)'**
+  String get lkLegendaOpsionalJudul;
+
+  /// No description provided for @lkLegendaOpsionalIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'Can stay empty. A draft can always be saved half-finished.'**
+  String get lkLegendaOpsionalIsi;
+
+  /// No description provided for @lkLegendaOtomatisJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic (blue-grey)'**
+  String get lkLegendaOtomatisJudul;
+
+  /// No description provided for @lkLegendaOtomatisIsi.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled from the equipment or calculated by the server. You cannot edit it.'**
+  String get lkLegendaOtomatisIsi;
+
+  /// No description provided for @lkLegendaTanda.
+  ///
+  /// In en, this message translates to:
+  /// **'A * after a label also marks a required field, so the meaning does not depend on color alone. Only fields the app actually checks before sending are marked required.'**
+  String get lkLegendaTanda;
+
   /// No description provided for @lkKosong.
   ///
   /// In en, this message translates to:

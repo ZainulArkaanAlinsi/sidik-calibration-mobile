@@ -2708,6 +2708,54 @@ class AppLocalizationsId extends AppLocalizations {
   String get lkOtomatis => 'Keisi otomatis';
 
   @override
+  String get lkLegendaJudul => 'Arti warna isian';
+
+  @override
+  String get lkLegendaRingkasWajib => 'Wajib';
+
+  @override
+  String get lkLegendaRingkasTerisi => 'Terisi';
+
+  @override
+  String get lkLegendaRingkasOpsional => 'Opsional';
+
+  @override
+  String get lkLegendaRingkasOtomatis => 'Otomatis';
+
+  @override
+  String get lkLegendaWajibKosongJudul =>
+      'Wajib, masih kosong (oranye, tanda *)';
+
+  @override
+  String get lkLegendaWajibKosongIsi =>
+      'Isi sebelum dikirim. Kolom wajib yang kosong di baris yang kamu pakai akan menahan pengiriman.';
+
+  @override
+  String get lkLegendaWajibTerisiJudul => 'Wajib, sudah terisi (hijau lembut)';
+
+  @override
+  String get lkLegendaWajibTerisiIsi =>
+      'Sudah terisi. Tidak ada yang perlu dilakukan lagi.';
+
+  @override
+  String get lkLegendaOpsionalJudul => 'Opsional (tanpa warna)';
+
+  @override
+  String get lkLegendaOpsionalIsi =>
+      'Boleh kosong. Draf selalu bisa disimpan setengah jadi.';
+
+  @override
+  String get lkLegendaOtomatisJudul => 'Otomatis (abu kebiruan)';
+
+  @override
+  String get lkLegendaOtomatisIsi =>
+      'Terisi dari data alat atau dihitung server. Tidak bisa diubah di sini.';
+
+  @override
+  String get lkLegendaTanda =>
+      'Tanda * di belakang label juga menandai isian wajib, jadi artinya tidak bergantung pada warna saja. Yang ditandai wajib hanya isian yang memang diperiksa aplikasi sebelum kirim.';
+
+  @override
   String get lkKosong => '—';
 
   @override
