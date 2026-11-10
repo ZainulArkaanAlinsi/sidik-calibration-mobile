@@ -127,7 +127,7 @@ Future<void> _pilihAlat(
   WidgetTester tester, {
   String alat = 'pH Meter Mettler Toledo · B628755900',
 }) async {
-  await tester.tap(find.text('Pilih alat'));
+  await tester.tap(find.textContaining('Pilih alat'));
   await tester.pumpAndSettle();
   await tester.tap(find.text(alat).last);
   await tester.pumpAndSettle();

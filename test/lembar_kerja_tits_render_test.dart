@@ -146,8 +146,8 @@ void main() {
         find.textContaining('Temperature Indicator Tanpa Sensor'),
         findsWidgets,
       );
-      expect(find.text('1. Mode'), findsOneWidget);
-      expect(find.text('2. Temperature Type'), findsOneWidget);
+      expect(find.textContaining('1. Mode'), findsOneWidget);
+      expect(find.textContaining('2. Temperature Type'), findsOneWidget);
     });
 
     testWidgets('kepala kolom bawa arah UP/DOWN, bukan Repeat', (tester) async {
@@ -165,7 +165,7 @@ void main() {
       expect(find.text('Standard Indication'), findsWidgets);
       expect(find.text('UUT Indication'), findsNothing);
 
-      await tester.tap(find.text('1. Mode').first);
+      await tester.tap(find.textContaining('1. Mode').first);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Source (UUT men-source)').last);
       await tester.pumpAndSettle();

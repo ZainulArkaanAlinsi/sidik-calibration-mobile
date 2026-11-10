@@ -197,8 +197,8 @@ void main() {
 
       // Dua dropdown yang cuma TITS punya — bukti lembarnya bener, bukan cuma
       // kode profil yang kebetulan lewat.
-      expect(find.text('1. Mode'), findsOneWidget);
-      expect(find.text('2. Temperature Type'), findsOneWidget);
+      expect(find.textContaining('1. Mode'), findsOneWidget);
+      expect(find.textContaining('2. Temperature Type'), findsOneWidget);
     });
   });
 

@@ -648,7 +648,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 700));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Pilih alat'));
+    await tester.tap(find.textContaining('Pilih alat'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Chlorine Meter Hanna · 905320134111').last);
     await tester.pumpAndSettle();

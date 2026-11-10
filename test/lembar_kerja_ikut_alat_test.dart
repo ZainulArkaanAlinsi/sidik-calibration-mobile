@@ -61,7 +61,7 @@ void main() {
   }
 
   Future<void> pilihAlat(WidgetTester tester) async {
-    await tester.tap(find.text('Pilih alat'));
+    await tester.tap(find.textContaining('Pilih alat'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('pH Meter Mettler Toledo · B628755900').last);
     await tester.pumpAndSettle();

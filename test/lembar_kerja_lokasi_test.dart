@@ -76,7 +76,7 @@ Future<MockLembarKerjaService> _buka(
 
 /// `equipment_id` wajib di payload, jadi tiap test yang ngirim mesti lewat sini.
 Future<void> _pilihAlat(WidgetTester tester) async {
-  await tester.tap(find.text('Pilih alat'));
+  await tester.tap(find.textContaining('Pilih alat'));
   await tester.pumpAndSettle();
   await tester.tap(find.text('pH Meter Mettler Toledo · B628755900').last);
   await tester.pumpAndSettle();
