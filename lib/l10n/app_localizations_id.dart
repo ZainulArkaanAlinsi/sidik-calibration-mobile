@@ -3054,6 +3054,9 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String get sesiBerakhirMasukLagi => 'Sesi berakhir, silakan masuk lagi.';
+
+  @override
   String get lkSemuaOpsional =>
       'Kolom yang belum bisa diisi di lapangan boleh dikosongin — lembar kerjanya tetap bisa dikirim.';
 
@@ -3194,6 +3197,10 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get lkPratinjauCatatan =>
       'Dihitung server dari isian yang sekarang, bukan di HP. Angkanya bisa berubah kalau baris lain ikut diisi.';
+
+  @override
+  String get lkPratinjauGagalBasi =>
+      'Pratinjau terakhir gagal — angka di bawah belum menyertakan perubahan terbaru.';
 
   @override
   String get lkPratinjauKolomTitik => 'Titik';
@@ -6046,7 +6053,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get galatPemisahanWewenang =>
-      'Sesi ini Anda isi atau koreksi sendiri — harus disetujui/disahkan orang lain.';
+      'Anda ikut mengisi sesi ini atau mengonfirmasi hasil pindainya, jadi tidak boleh menyetujuinya sendiri. Minta admin lain yang menyetujui.';
 
   @override
   String get galatNomorOrderWajib =>
@@ -6219,6 +6226,10 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get tekGagalMuat => 'Daftar ini gagal dimuat.';
+
+  @override
+  String get tekProfilTakDikenal =>
+      'Jenis alat ini belum didukung di lembar kerja.';
 
   @override
   String get setujuiJudul => 'Setujui & terbitkan';

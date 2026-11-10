@@ -1,4 +1,5 @@
 import '../l10n/app_localizations.dart';
+import '../services/auth_service.dart' show ApiException;
 import '../services/kode_galat.dart';
 
 /// Kalimat jelas untuk kode galat peran yang dikenali; `null` untuk kode lain
@@ -42,3 +43,8 @@ String pesanGalatAksi(
   Object galat, {
   required String cadangan,
 }) => pesanGalatPeran(l10n, kodeGalatApi(galat)) ?? cadangan;
+
+/// Server menolak TOKEN-nya (HTTP 401): sesi dicabut / kedaluwarsa, bukan
+/// salah isi. Pesan servernya (`Unauthenticated.`) tidak boleh sampai ke layar.
+bool galatSesiBerakhir(Object? galat) =>
+    galat is ApiException && galat.status == 401;

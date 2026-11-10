@@ -218,18 +218,31 @@ class _KartuSesi extends ConsumerWidget {
         key: ValueKey('kartu-sesi-teknisi-${sesi.id}'),
         onTap: !bisaDibuka
             ? null
-            : () => KalibrasiTeknisiScreen.buka(
-                context,
-                ref,
-                LembarKerjaScreen(
-                  sesiId: sesi.id,
-                  // Profil dari server dulu; tebakan nama cuma cadangan.
-                  profil:
-                      sesi.profil ??
-                      profilLembarKerjaUntuk(sesi.namaAlat) ??
-                      'ph_meter',
-                ),
-              ),
+            : () {
+                // Profil dari server dulu; tebakan nama cuma cadangan. Kalau
+                // dua-duanya tak dikenal, JANGAN jatuh ke lembar pH: angka
+                // yang sudah diketik akan mendarat di baris pH yang salah.
+                final profil =
+                    sesi.profil ?? profilLembarKerjaUntuk(sesi.namaAlat);
+                if (profil == null) {
+                  ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(
+                      SnackBar(
+                        key: const ValueKey('snackbar-profil-tak-dikenal'),
+                        content: Text(
+                          AppLocalizations.of(context).tekProfilTakDikenal,
+                        ),
+                      ),
+                    );
+                  return;
+                }
+                KalibrasiTeknisiScreen.buka(
+                  context,
+                  ref,
+                  LembarKerjaScreen(sesiId: sesi.id, profil: profil),
+                );
+              },
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Column(

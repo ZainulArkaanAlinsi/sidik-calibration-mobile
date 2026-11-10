@@ -3074,6 +3074,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get sesiBerakhirMasukLagi =>
+      'Your session has ended, please sign in again.';
+
+  @override
   String get lkSemuaOpsional =>
       'Any field you can\'t fill in the field may be left blank — the worksheet can still be submitted.';
 
@@ -3217,6 +3221,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get lkPratinjauCatatan =>
       'Computed by the server from what\'s filled in right now, not on the phone. These numbers can change as other rows are filled.';
+
+  @override
+  String get lkPratinjauGagalBasi =>
+      'Last preview failed — the numbers below do not include your latest changes.';
 
   @override
   String get lkPratinjauKolomTitik => 'Point';
@@ -6122,7 +6130,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get galatPemisahanWewenang =>
-      'You filled in or corrected this session yourself — someone else has to approve/sign it off.';
+      'You helped fill in this session or confirmed its scanned result, so you cannot approve it yourself. Ask another admin to approve it.';
 
   @override
   String get galatNomorOrderWajib =>
@@ -6295,6 +6303,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tekGagalMuat => 'Could not load this list.';
+
+  @override
+  String get tekProfilTakDikenal =>
+      'This instrument type is not supported on the worksheet yet.';
 
   @override
   String get setujuiJudul => 'Approve & issue';

@@ -211,7 +211,13 @@ class PratinjauController extends Notifier<StatusPratinjau> {
 
     _berjalan = true;
     final nomor = ++_terakhir;
-    state = StatusPratinjau(hasil: state.hasil, menghitung: true);
+    // `gagal` ikut ditahan sampai ada balasan sukses: banner "pratinjau
+    // terakhir gagal" tidak boleh berkedip hilang selama percobaan ulang.
+    state = StatusPratinjau(
+      hasil: state.hasil,
+      menghitung: true,
+      gagal: state.gagal,
+    );
 
     try {
       final hasil = await ref

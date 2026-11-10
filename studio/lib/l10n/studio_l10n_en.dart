@@ -277,7 +277,7 @@ class StudioL10nEn extends StudioL10n {
 
   @override
   String get workbookKosongKet =>
-      'Workbooks are imported on the server with the studio:impor-workbook command.';
+      'Upload a master with the Upload master button above.';
 
   @override
   String workbookTidakCocok(String cari) {
