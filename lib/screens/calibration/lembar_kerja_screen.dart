@@ -39,6 +39,7 @@ import '../../services/penampung_contoh_sel.dart';
 import '../../widgets/autoclave_hasil_panel.dart';
 import '../../widgets/banner_status_standar.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/galat_peran.dart' show galatSesiBerakhir;
 import '../../widgets/kabar_server_lambat.dart';
 import '../../widgets/label_standar.dart';
 import '../../widgets/sidik_loader.dart';
@@ -1766,6 +1767,13 @@ class _FormState extends ConsumerState<_Form> {
         }
       }
 
+      // Token dicabut / kedaluwarsa: pesan servernya (`Unauthenticated.`)
+      // tidak boleh tampil mentah; keluar ke layar masuk.
+      if (galatSesiBerakhir(error)) {
+        await _sesiBerakhir();
+        return;
+      }
+
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.lkGagalKirim('$error'))),
       );
@@ -2032,8 +2040,32 @@ class _FormState extends ConsumerState<_Form> {
       }
 
       setState(() => _mengirim = false);
+      if (galatSesiBerakhir(e)) {
+        await _sesiBerakhir();
+        return;
+      }
       messenger.showSnackBar(SnackBar(content: Text(l10n.lkGagalKirim('$e'))));
     }
+  }
+
+  /// Server menolak token (401): kabari dengan bahasa jelas lalu keluar lewat
+  /// [AuthController.logout] â jalur yang sama dengan tombol Keluar, jadi token,
+  /// tab, dan simpanan akun dibersihkan seperti biasa. Isian disimpan di HP
+  /// dulu supaya masuk ulang tidak menghapus ketikan teknisi.
+  Future<void> _sesiBerakhir() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final pesan = AppLocalizations.of(context).sesiBerakhirMasukLagi;
+    final auth = ref.read(authProvider.notifier);
+
+    messenger.showSnackBar(SnackBar(content: Text(pesan)));
+
+    try {
+      await _penjaga?.catatGagalJaringan(mungkinSudahSampai: false);
+    } catch (_) {
+      // Gagal menyimpan salinan tidak boleh menahan keluar dari sesi.
+    }
+
+    await auth.logout();
   }
 
   /// Peringatan kewajaran angka yang BISA dilewati teknisi.
@@ -3813,6 +3845,33 @@ class _PanelPratinjau extends ConsumerWidget {
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
+
+          // Permintaan terakhir gagal tapi angka lama masih ditahan: tanpa
+          // tanda ini angka basi terbaca seolah sudah mengikuti isian
+          // terbaru. Angka lama TIDAK dihapus.
+          if (status.gagal != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              key: const ValueKey('pratinjau-gagal-basi'),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  size: 16,
+                  color: theme.colorScheme.error,
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Expanded(
+                  child: Text(
+                    l10n.lkPratinjauGagalBasi,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.error,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
 
           for (final e in kelompok.entries) ...[
             const SizedBox(height: AppSpacing.sm),

@@ -264,7 +264,7 @@ class StudioL10nId extends StudioL10n {
 
   @override
   String get workbookKosongKet =>
-      'Workbook diimpor di server lewat perintah studio:impor-workbook.';
+      'Unggah master lewat tombol Unggah master di atas.';
 
   @override
   String workbookTidakCocok(String cari) {

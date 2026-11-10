@@ -1230,6 +1230,7 @@
   "lkBerhasilKirim": "Lembar kerja terkirim ke admin.",
   "lkBerhasilDraft": "Tersimpan sebagai draft.",
   "lkGagalKirim": "Gagal menyimpan: {pesan}",
+  "sesiBerakhirMasukLagi": "Sesi berakhir, silakan masuk lagi.",
   "lkSemuaOpsional": "Kolom yang belum bisa diisi di lapangan boleh dikosongin — lembar kerjanya tetap bisa dikirim.",
   "lkBagianBelumBisaDiisi": "BELUM BISA DIISI",
   "pindaiReviewJudul": "Cek Hasil Pindai",
@@ -1338,6 +1339,7 @@
   },
   "lkPratinjauJudul": "HASIL HITUNG SEMENTARA",
   "lkPratinjauCatatan": "Dihitung server dari isian yang sekarang, bukan di HP. Angkanya bisa berubah kalau baris lain ikut diisi.",
+  "lkPratinjauGagalBasi": "Pratinjau terakhir gagal — angka di bawah belum menyertakan perubahan terbaru.",
   "lkPratinjauKolomTitik": "Titik",
   "lkPratinjauKolomRata": "Rata-rata",
   "lkPratinjauKolomKoreksi": "Koreksi",
@@ -2605,7 +2607,7 @@
   "@acuanRiwayatTidakTersedia": {
     "description": "Cermin DataAcuanController::riwayatSel (404 untuk teknisi)."
   },
-  "galatPemisahanWewenang": "Sesi ini Anda isi atau koreksi sendiri — harus disetujui/disahkan orang lain.",
+  "galatPemisahanWewenang": "Anda ikut mengisi sesi ini atau mengonfirmasi hasil pindainya, jadi tidak boleh menyetujuinya sendiri. Minta admin lain yang menyetujui.",
   "galatNomorOrderWajib": "Order Number belum diisi. Isi dulu sebelum menyetujui.",
   "adminDataJudul": "Data administrasi",
   "adminBelumDiisi": "Belum diisi",
@@ -2753,6 +2755,7 @@
   "tekTerkirim": "Terkirim terakhir",
   "tekTerkirimKosong": "Belum ada lembar yang dikirim.",
   "tekGagalMuat": "Daftar ini gagal dimuat.",
+  "tekProfilTakDikenal": "Jenis alat ini belum didukung di lembar kerja.",
   "setujuiJudul": "Setujui & terbitkan",
   "setujuiPetunjuk": "Order Number dan No. Sertifikat diketik Master Data dan tercetak di sertifikat.",
   "setujuiNomorSertifikatLabel": "No. Sertifikat",

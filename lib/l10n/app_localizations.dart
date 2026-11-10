@@ -5551,6 +5551,12 @@ abstract class AppLocalizations {
   /// **'Couldn\'t save: {pesan}'**
   String lkGagalKirim(String pesan);
 
+  /// No description provided for @sesiBerakhirMasukLagi.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has ended, please sign in again.'**
+  String get sesiBerakhirMasukLagi;
+
   /// No description provided for @lkSemuaOpsional.
   ///
   /// In en, this message translates to:
@@ -5766,6 +5772,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Computed by the server from what\'s filled in right now, not on the phone. These numbers can change as other rows are filled.'**
   String get lkPratinjauCatatan;
+
+  /// No description provided for @lkPratinjauGagalBasi.
+  ///
+  /// In en, this message translates to:
+  /// **'Last preview failed — the numbers below do not include your latest changes.'**
+  String get lkPratinjauGagalBasi;
 
   /// No description provided for @lkPratinjauKolomTitik.
   ///
@@ -10684,7 +10696,7 @@ abstract class AppLocalizations {
   /// No description provided for @galatPemisahanWewenang.
   ///
   /// In en, this message translates to:
-  /// **'You filled in or corrected this session yourself — someone else has to approve/sign it off.'**
+  /// **'You helped fill in this session or confirmed its scanned result, so you cannot approve it yourself. Ask another admin to approve it.'**
   String get galatPemisahanWewenang;
 
   /// No description provided for @galatNomorOrderWajib.
@@ -10962,6 +10974,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load this list.'**
   String get tekGagalMuat;
+
+  /// No description provided for @tekProfilTakDikenal.
+  ///
+  /// In en, this message translates to:
+  /// **'This instrument type is not supported on the worksheet yet.'**
+  String get tekProfilTakDikenal;
 
   /// No description provided for @setujuiJudul.
   ///

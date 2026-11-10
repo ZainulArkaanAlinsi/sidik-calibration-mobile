@@ -186,7 +186,7 @@
     }
   },
   "workbookKosong": "No workbooks imported yet.",
-  "workbookKosongKet": "Workbooks are imported on the server with the studio:impor-workbook command.",
+  "workbookKosongKet": "Upload a master with the Upload master button above.",
   "workbookTidakCocok": "No workbook matches “{cari}”.",
   "@workbookTidakCocok": {
     "placeholders": {

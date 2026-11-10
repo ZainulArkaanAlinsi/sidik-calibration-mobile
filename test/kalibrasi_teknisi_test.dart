@@ -7,6 +7,7 @@ import 'package:sidik_calibration/models/calibration_history_item.dart';
 import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/history_provider.dart';
 import 'package:sidik_calibration/providers/kalibrasi_teknisi_provider.dart';
+import 'package:sidik_calibration/screens/calibration/lembar_kerja_screen.dart';
 import 'package:sidik_calibration/screens/teknisi/kalibrasi_teknisi_screen.dart';
 import 'package:sidik_calibration/services/history_service.dart';
 import 'package:sidik_calibration/services/kalibrasi_teknisi_service.dart';
@@ -20,6 +21,7 @@ CalibrationHistoryItem _sesi(
   String alat,
   CalibrationStatus status, {
   String? catatan,
+  String? profil,
 }) => CalibrationHistoryItem(
   id: id,
   namaAlat: alat,
@@ -27,6 +29,7 @@ CalibrationHistoryItem _sesi(
   tanggalKalibrasi: DateTime(2026, 10, 14),
   status: status,
   catatanRevisi: catatan,
+  profil: profil,
 );
 
 class _Draf extends MockHistoryService {
@@ -121,5 +124,46 @@ void main() {
 
     expect(find.text('Daftar ini gagal dimuat.'), findsWidgets);
     expect(find.byKey(const ValueKey('tombol-mulai-kalibrasi')), findsOneWidget);
+  });
+
+  testWidgets('draf dengan jenis alat tak dikenal TIDAK membuka lembar pH: '
+      'tampil pesan jelas', (tester) async {
+    await _buka(
+      tester,
+      _app(const [], draf: [_sesi(11, 'Alat Aneh XYZ', CalibrationStatus.draft)]),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('kartu-sesi-teknisi-11')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LembarKerjaScreen), findsNothing);
+    expect(
+      find.text('Jenis alat ini belum didukung di lembar kerja.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('profil dari server dipakai apa adanya saat membuka lembar', (
+    tester,
+  ) async {
+    await _buka(
+      tester,
+      _app(
+        const [],
+        draf: [
+          _sesi(12, 'Alat Aneh XYZ', CalibrationStatus.draft, profil: 'tits'),
+        ],
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('kartu-sesi-teknisi-12')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final lembar = tester.widget<LembarKerjaScreen>(
+      find.byType(LembarKerjaScreen),
+    );
+    expect(lembar.profil, 'tits');
+    expect(lembar.sesiId, 12);
   });
 }

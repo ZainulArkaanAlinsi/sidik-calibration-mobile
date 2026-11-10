@@ -74,7 +74,7 @@
   "workbookBelumDipetakanKet": "Belum punya profil kalibrasi — menunggu keputusan peta workbook.",
   "workbookJumlahLembar": "{jumlah} lembar",
   "workbookKosong": "Belum ada workbook yang diimpor.",
-  "workbookKosongKet": "Workbook diimpor di server lewat perintah studio:impor-workbook.",
+  "workbookKosongKet": "Unggah master lewat tombol Unggah master di atas.",
   "workbookTidakCocok": "Tidak ada workbook yang cocok dengan “{cari}”.",
   "workbookGagalMuat": "Workbook gagal dimuat.",
   "workbookTidakDitemukan": "Workbook tidak ditemukan, atau bukan milik lab ini.",

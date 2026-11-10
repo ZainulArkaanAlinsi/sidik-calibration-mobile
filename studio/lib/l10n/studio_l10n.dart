@@ -545,7 +545,7 @@ abstract class StudioL10n {
   /// No description provided for @workbookKosongKet.
   ///
   /// In en, this message translates to:
-  /// **'Workbooks are imported on the server with the studio:impor-workbook command.'**
+  /// **'Upload a master with the Upload master button above.'**
   String get workbookKosongKet;
 
   /// No description provided for @workbookTidakCocok.

@@ -56,7 +56,7 @@ void main() {
     sesiId: sesiId,
     clientRequestId: clientRequestId,
     profil: 'ph_meter',
-    disimpanPada: DateTime.utc(2026, 10, 14, 6, 41),
+    disimpanPada: DateTime.now().toUtc().subtract(const Duration(minutes: 2)),
     status: status,
     dicobaKirim: sesiId == null,
     kiriman:
@@ -325,7 +325,7 @@ void main() {
       server.sesi[72] = {'status': 'draft'};
       server.selamaPut = () => simpanan.simpan(
         antre(sesiId: 72).copyWith(
-          disimpanPada: DateTime.utc(2026, 10, 14, 6, 42),
+          disimpanPada: DateTime.now().toUtc().subtract(const Duration(minutes: 1)),
           kiriman: {
             'equipment_id': 12,
             'status': 'draft',
@@ -374,7 +374,7 @@ void main() {
       server.sebelumPeriksa = () => simpanan.simpan(
         antre(
           sesiId: 72,
-        ).copyWith(disimpanPada: DateTime.utc(2026, 10, 14, 6, 42)),
+        ).copyWith(disimpanPada: DateTime.now().toUtc().subtract(const Duration(minutes: 1))),
       );
       final s = sinkron();
 
@@ -411,7 +411,7 @@ void main() {
     );
 
     DrafLokal ketikanBaru({int? sesiId}) => antre(sesiId: sesiId).copyWith(
-      disimpanPada: DateTime.utc(2026, 10, 14, 6, 42),
+      disimpanPada: DateTime.now().toUtc().subtract(const Duration(minutes: 1)),
       kiriman: {
         'client_request_id': cid,
         'equipment_id': 12,

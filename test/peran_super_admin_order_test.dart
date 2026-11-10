@@ -37,8 +37,8 @@ const _admin = 'mock-token-1';
 const _superAdmin = 'mock-token-5';
 
 const _pesanWewenang =
-    'Sesi ini Anda isi atau koreksi sendiri — harus disetujui/disahkan '
-    'orang lain.';
+    'Anda ikut mengisi sesi ini atau mengonfirmasi hasil pindainya, jadi '
+    'tidak boleh menyetujuinya sendiri. Minta admin lain yang menyetujui.';
 
 /// Detail sesi `GET /calibrations/{id}` — Order Number ikut dari
 /// [MockPerhitunganService.nomorOrderTersimpan] supaya simpan → muat ulang

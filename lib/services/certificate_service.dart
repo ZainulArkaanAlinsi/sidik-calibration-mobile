@@ -144,7 +144,7 @@ class ApiCertificateService implements CertificateService {
   }) async {
     final json = await _tulis(
       () => _api.post(
-        '/certificates//tarik',
+        '/certificates/$certificateId/tarik',
         token: token,
         body: {'alasan': alasan.trim(), 'password': password},
       ),
