@@ -12919,6 +12919,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Done'**
   String get undangTutup;
+
+  /// No description provided for @rskJudul.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary before sending'**
+  String get rskJudul;
+
+  /// No description provided for @rskTahanPesan.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t send yet: {jumlah, plural, =1{1 required item} other{{jumlah} required items}} to fix first. Tap an item to jump to it.'**
+  String rskTahanPesan(int jumlah);
+
+  /// No description provided for @rskPeringatanPesan.
+  ///
+  /// In en, this message translates to:
+  /// **'Please look at these before sending. You can still send as it is.'**
+  String get rskPeringatanPesan;
+
+  /// No description provided for @rskBagianWajib.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get rskBagianWajib;
+
+  /// No description provided for @rskBagianPeringatan.
+  ///
+  /// In en, this message translates to:
+  /// **'Worth checking'**
+  String get rskBagianPeringatan;
+
+  /// No description provided for @rskIdentitasKosong.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} is empty. It is printed on the certificate.'**
+  String rskIdentitasKosong(String label);
+
+  /// No description provided for @rskOcrPerluDicek.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah} cells read from a photo are marked yellow/red (point {titik}). Check them against the instrument.'**
+  String rskOcrPerluDicek(int jumlah, String titik);
+
+  /// No description provided for @rskTitikTerisi.
+  ///
+  /// In en, this message translates to:
+  /// **'Points filled: {terisi} of {total}'**
+  String rskTitikTerisi(int terisi, int total);
+
+  /// No description provided for @rskKembali.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get rskKembali;
+
+  /// No description provided for @rskKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get rskKirim;
+
+  /// No description provided for @rskTetapKirim.
+  ///
+  /// In en, this message translates to:
+  /// **'Send anyway'**
+  String get rskTetapKirim;
+
+  /// No description provided for @rskLompatKet.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to go to this field'**
+  String get rskLompatKet;
+
+  /// No description provided for @rskTidakBisaLompat.
+  ///
+  /// In en, this message translates to:
+  /// **'That field could not be found on screen. Scroll to it by hand.'**
+  String get rskTidakBisaLompat;
 }
 
 class _AppLocalizationsDelegate

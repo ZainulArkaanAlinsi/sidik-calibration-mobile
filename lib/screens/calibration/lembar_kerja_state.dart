@@ -402,6 +402,11 @@ class TitikState {
         return controller;
       });
 
+  /// Isi satu kotak TANPA membuatnya kalau belum ada — beda dari [kotak].
+  /// Dipakai ringkasan sebelum kirim, yang cuma membaca.
+  String? teksKotakJikaAda(String tahap, String kolom, int index) =>
+      _kotak['$tahap|$kolom|$index']?.text;
+
   /// Sudah ada isian apa pun di baris ini?
   ///
   /// [titikCtl] ikut dihitung: di lembar TIDS kotak `Setpoint` itu isian

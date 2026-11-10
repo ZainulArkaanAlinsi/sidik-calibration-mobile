@@ -3183,5 +3183,18 @@
   "undangPeringatan": "Salin sekarang — kode tidak bisa dilihat lagi. Berlaku 7 hari. Undangan baru ke email yang sama membatalkan kode lama.",
   "undangPetunjukPelanggan": "Di app SIDIK Pelanggan: Masuk → Pakai kode undangan",
   "undangTanpaKode": "Undangan dibuat, tetapi kode belum tersedia di versi server ini — gunakan panel.",
-  "undangTutup": "Selesai"
+  "undangTutup": "Selesai",
+  "rskJudul": "Ringkasan sebelum kirim",
+  "rskTahanPesan": "Belum bisa dikirim: ada {jumlah} hal wajib yang harus dibereskan dulu. Ketuk salah satunya untuk melompat ke sana.",
+  "rskPeringatanPesan": "Lihat dulu hal-hal ini sebelum kirim. Kamu tetap boleh mengirim apa adanya.",
+  "rskBagianWajib": "Wajib dibereskan",
+  "rskBagianPeringatan": "Sebaiknya dicek",
+  "rskIdentitasKosong": "{label} masih kosong. Isian ini tercetak di sertifikat.",
+  "rskOcrPerluDicek": "{jumlah} sel hasil foto bertanda kuning/merah (titik {titik}). Cocokkan dulu dengan alatnya.",
+  "rskTitikTerisi": "Titik terisi: {terisi} dari {total}",
+  "rskKembali": "Kembali",
+  "rskKirim": "Kirim",
+  "rskTetapKirim": "Tetap kirim",
+  "rskLompatKet": "Ketuk untuk menuju kolom ini",
+  "rskTidakBisaLompat": "Kolom itu belum ketemu di layar. Gulir sendiri ke sana."
 }
