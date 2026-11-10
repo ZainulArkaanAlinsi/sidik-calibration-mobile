@@ -10,7 +10,10 @@ import '../services/jenis_lembar.dart';
 import '../services/layout/detektor_layout.dart';
 import '../services/layout/detektor_layout_ocrkit.dart';
 import '../services/layout/model_layout.dart';
-import '../services/layout/permukaan_ocr_kit.dart';
+// `flutter_ocr_kit` mengimpor dart:ffi: tanpa impor bersyarat `flutter build web`
+// gagal. Di web dipakai pengganti yang tidak pernah dipanggil.
+import '../services/layout/permukaan_ocr_kit_web.dart'
+    if (dart.library.ffi) '../services/layout/permukaan_ocr_kit.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
 import 'worksheet_scan_provider.dart';
