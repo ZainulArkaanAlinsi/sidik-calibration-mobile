@@ -76,7 +76,11 @@ class Izin {
 
     return Izin(
       role: switch (data['role']) {
-        final String s => UserRole.fromApi(s),
+        // Token Studio: server menjawab role 'studio' (satu pemilik, K-50-12). Dulu
+        // jatuh ke viewer sehingga Studio berlabel "Viewer" dan simulasi/alur
+        // data acuan tertutup. Pemilik Studio berhak penuh; yang menegakkan
+        // batas tetap SERVER (token studio hanya diterima rute studio).
+        final String s => s == 'studio' ? UserRole.superAdmin : UserRole.fromApi(s),
         _ => null,
       },
       boleh: _bacaBoleh(data['boleh']),
