@@ -14,6 +14,29 @@ rilis lewat update otomatis di aplikasi. Bahasa ke pemilik: Indonesia santai, si
 
 ## 1. Peta sistem
 
+### Checkpoint 6 November 2026 — dibaca sebelum snapshot lama di bawah
+
+- API produksi sehat pada `c617ad44695cacf4fbf15c418c656ac959da849a`, PHP 8.4.27,
+  `append_only_db=true`, dan `data_acuan.sumber=json`. Gelombang 2 serta gate SQLite/MySQL
+  sudah dirilis; status branch belum dipush pada snapshot 22 Oktober adalah riwayat.
+- Windows lab 1.0.765 dan Studio 0.1.765 sudah tersedia lewat feed pembaruan Firebase;
+  pelanggan terbaru v0.2.1+3. Kendala Firebase pada §5.4 poin 1 sudah ditutup. Uji update pada
+  instalasi pemilik serta kamera HP nyata masih memerlukan bukti perangkat.
+- Titik ukur per sesi di mobile sudah dikirim lewat PR #213; §5.3 adalah rencana lama.
+- PR #215 berisi review foto Grid/Matriks, raw OCR terpisah dari koreksi, penjagaan
+  representasi/dimensi/file, crop hanya sesudah apply, serta rincian/pengakuan antar-paket.
+  Patch belum dirilis. Tes lokal OCR/acuan/Studio dan analyzer lulus; status CI terbaru
+  harus diperiksa pada head PR, bukan check hijau commit lock `ac6a45b`.
+- CI Studio kini memeriksa exact lock, analyzer/perilaku dan build Windows native.
+  Suite penuh juga menemukan fixture sinkronisasi draf bertanggal tetap yang kedaluwarsa
+  setelah 14 hari; koreksi memakai seam jam tes, tanpa mengganti kebijakan retensi.
+- Impor master dan alur versi parameter sudah persisten, tetapi edit workbook masih
+  simulasi. Evaluator rumus produksi dan versi bentuk lembar belum tersedia. Rollout DB,
+  backup/paritas, pilot dan izin operasi produksi tetap tahap terpisah; jangan mengganti
+  sumber global hanya karena simulasi versi lulus.
+- Recorder −20 °C dan master kanonik Rev7 tetap menunggu keputusan lab. Klarifikasi
+  nama formula Recorder ada pada §6; jangan memakai klaim #REF lama sebagai alasan mengubah angka.
+
 | Bagian | Repo / lokasi | Teknologi | Jalan di |
 |---|---|---|---|
 | Server API + panel admin | `github.com/ZainulArkaanAlinsi/sidik-calibration-api` (lokal: `C:\Users\USER\sidik-calibration-api` + banyak worktree `sidik-api-*`) | Laravel 13, Filament 5, PHP 8.4, MySQL (Aiven) | Render free, Singapore, Docker FrankenPHP. URL `https://sidik-calibration-api.onrender.com` |
@@ -136,7 +159,9 @@ Rilis via PR → update otomatis.
 5. Laragon: PATH Machine + pilih versi PHP baru di menu Laragon (perintah ada di chat 22 Okt).
 
 ## 6. Pertanyaan lab terbuka (jangan dikarang)
-- Enclosure Recorder: titik −20 °C (JSON tidak memuat, master memuat). `koreksi_sensornew` #REF! (42 rumus).
+- Enclosure Recorder: 60 nilai pada −20 °C belum ada di JSON; keputusan lab masih diperlukan.
+  Audit scope nama membuktikan 42 formula PERHITUNGAN FC memakai `koreksi_sensornew` global
+  yang valid. Nama lokal #REF berscope Drift dan tidak dipakai pada formula tersebut.
 - DRUCK07G jatuh tempo: `STANDAR_DRUCK!K3` 2027-04-29 vs `DATABASE!X13` 2028-04-29.
 - Pressure Differential S/N: `211H18280008` vs `21H18280008`.
 - TITS ketertelusuran: sertifikat LK-241-IDN vs tabel STANDAR LK-202-IDN; master Measure menulis "Std Mode: Source".

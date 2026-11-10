@@ -94,6 +94,7 @@ Future<HasilAmbilFoto> ambilDanBacaTabel(WidgetRef ref) async {
     ref.read(sumberFotoProvider),
     pakaiTertinggal: (f) => konfirmasiFotoTertinggal(context, f),
     maxWidth: 4200,
+    maxHeight: 4200,
     imageQuality: 100,
   );
 
@@ -101,17 +102,7 @@ Future<HasilAmbilFoto> ambilDanBacaTabel(WidgetRef ref) async {
     return (terbaca: null, dibatalkan: true, ukuran: null, citra: null);
   }
 
-  final bita = await foto.readAsBytes();
-
-  // Bitanya sudah di memori — berkasnya nggak dibutuhkan lagi, termasuk kalau
-  // pembacaan di bawah gagal.
-  try {
-    await foto.delete();
-  } catch (_) {
-    // Gagal hapus bukan alasan membatalkan pembacaan: angkanya sudah di tangan
-    // teknisi, dan menolak memprosesnya karena sampah yang nggak kebuang jauh
-    // lebih mahal daripada sampahnya sendiri.
-  }
+  final bita = await bacaDanHapusFoto(foto);
 
   // Decode foto 4200 px di isolate lain: di isolate UI ini menahan frame ratusan
   // milidetik.

@@ -9,6 +9,8 @@ import '../../../providers/contoh_sel_provider.dart';
 import '../../../services/potong_sel_foto.dart';
 import '../../../services/ambil_foto_tabel.dart';
 import '../../../services/peta_tabel_foto.dart';
+import '../../../models/review_foto.dart';
+import '../foto_review_screen.dart';
 import '../grid_sensor_state.dart';
 import '../lembar_kerja_state.dart' show kuningPerluDicek;
 
@@ -638,7 +640,32 @@ class _TombolFotoGridState extends ConsumerState<_TombolFotoGrid> {
         return;
       }
 
-      // Potongan selnya DITAHAN sampai teknisi menekan Simpan — labelnya angka
+      final bacaanMesin = bacaanMesinFoto(hasil.sel);
+      final disetujui = await reviewHasilFoto(
+        context: context,
+        hasil: hasil,
+        citra: foto.citra,
+        judul: (s) =>
+            '${penanda.label[s.titikUkur] ?? s.titikUkur} · Repeat ${s.repeatNo}',
+      );
+      if (disetujui == null || !mounted) return;
+
+      // Capture only cells this accepted photo can fill. Existing manual values
+      // and their earlier crops remain paired when another photo is rejected.
+      final selBaru = <String>{
+        for (final s in disetujui)
+          if (angkaFotoSah(s.teks) &&
+              (widget.sp.labelSelFoto(s.titikUkur, s.repeatNo) ?? '')
+                  .trim()
+                  .isEmpty)
+            kunciSelFoto(s.titikUkur, s.repeatNo, s.fieldId),
+      };
+      final terisi = widget.sp.terapkanHasilFoto(
+        disetujui,
+        bacaanMesin: bacaanMesin,
+      );
+
+      // Potongan sel yang DISETUJUI ditahan sampai teknisi menekan Simpan — labelnya angka
       // final, bukan yang dibaca OCR sekarang. Lihat [PenampungContohSel].
       //
       // Penandanya memuat nomor sensor: satu lembar Enclosure punya beberapa
@@ -649,15 +676,31 @@ class _TombolFotoGridState extends ConsumerState<_TombolFotoGrid> {
       // kalibrasinya.
       final citra = foto.citra;
 
-      if (citra != null && hasil.kotakSel.isNotEmpty) {
+      if (citra != null && terisi > 0 && selBaru.isNotEmpty) {
         // Disalin ke lokal — closure-nya hidup sampai Simpan, dan `widget`
         // ditukar tiap rebuild.
         final sp = widget.sp;
 
         try {
-          (await ref.read(penampungContohSelProvider.future)).tampung(
+          final penampung = await ref.read(penampungContohSelProvider.future);
+          if (!mounted) return;
+          penampung.tampung(
             potongan: const PotongSelFoto()
-                .potong(citra: citra, kotak: hasil.kotakSel)
+                .potong(
+                  citra: citra,
+                  kotak: hasil.kotakSel
+                      .where(
+                        (k) =>
+                            selBaru.contains(
+                              kunciSelFoto(k.titikUkur, k.repeatNo, k.fieldId),
+                            ) &&
+                            (widget.sp.labelSelFoto(k.titikUkur, k.repeatNo) ??
+                                    '')
+                                .trim()
+                                .isNotEmpty,
+                      )
+                      .toList(),
+                )
                 .potongan,
             penanda: (k) => 'grid|$nomor|${k.titikUkur}|${k.repeatNo}',
             pemilik: widget.pemilik,
@@ -667,8 +710,6 @@ class _TombolFotoGridState extends ConsumerState<_TombolFotoGrid> {
           // Sengaja ditelan — lihat di atas.
         }
       }
-
-      final terisi = widget.sp.terapkanHasilFoto(hasil.sel);
 
       widget.onBerubah();
 

@@ -418,6 +418,11 @@ class _RingkasSimulasi extends StatelessWidget {
             l10n.alurAcuanBersama(r!.bersamaAntarVarian!),
             style: theme.textTheme.bodySmall?.copyWith(color: m.awas),
           ),
+        if ((r?.bersamaAntarPaket ?? 0) > 0)
+          Text(
+            l10n.alurAcuanBersamaPaket(r!.bersamaAntarPaket!),
+            style: theme.textTheme.bodySmall?.copyWith(color: m.awas),
+          ),
         if (r?.catatanSumber != null)
           Padding(
             padding: const EdgeInsets.only(top: AppSpacing.xs),

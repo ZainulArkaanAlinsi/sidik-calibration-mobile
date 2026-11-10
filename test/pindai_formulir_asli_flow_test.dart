@@ -9,12 +9,14 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:sidik_calibration/l10n/app_localizations.dart';
+import 'package:sidik_calibration/models/equipment_lookup.dart';
 import 'package:sidik_calibration/models/lembar_kerja.dart';
 import 'package:sidik_calibration/models/worksheet_template.dart';
 import 'package:sidik_calibration/providers/contoh_sel_provider.dart';
 import 'package:sidik_calibration/providers/sakelar_ocr_provider.dart';
 import 'package:sidik_calibration/providers/sumber_foto_provider.dart';
 import 'package:sidik_calibration/screens/calibration/lembar_kerja_state.dart';
+import 'package:sidik_calibration/screens/calibration/foto_review_screen.dart';
 import 'package:sidik_calibration/screens/calibration/pindai_formulir_asli_flow.dart';
 import 'package:sidik_calibration/services/jalankan_pindai_asli.dart';
 import 'package:sidik_calibration/services/lembar_kerja_service.dart';
@@ -103,11 +105,13 @@ void main() {
     required JalankanPindaiAsli mesin,
     List<Override> tambahan = const [],
     Object? galatKamera,
+    bool fotoHilang = false,
   }) async {
     // Alur menghapus berkas foto setelah dibaca → salinan baru tiap jalan.
     final salinan = File(
       '${fotoSintetis.path}.${DateTime.now().microsecondsSinceEpoch}',
     )..writeAsBytesSync(fotoSintetis.readAsBytesSync());
+    if (fotoHilang) salinan.deleteSync();
     final sumber = MockSumberFoto(file: salinan, galat: galatKamera);
 
     await tester.pumpWidget(
@@ -229,6 +233,22 @@ void main() {
     expect(t4.kotak('sesudah_adjustment', 'pembacaan', 0).text, '4,01');
     expect(t7.kotak('sesudah_adjustment', 'pembacaan', 0).text, '7,03');
     expect(isian.adaIsianDariFoto, isTrue);
+    isian.alat = const EquipmentLookup(
+      id: 11,
+      namaAlat: 'pH Meter',
+      serialNumber: 'TEST',
+      kategori: 'ph',
+      status: 'aktif',
+      satuan: 'pH',
+    );
+    final payload = isian.toSubmission(draft: true).toJson();
+    final baris = (payload['measurements'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((m) => m['titik_ukur'] == 7.0);
+    expect((baris['pembacaan'] as List).first, 7.03);
+    expect(((baris['ocr'] as List).first as Map)['raw_text'], '7,02');
+    expect(((baris['ocr'] as List).first as Map)['confidence'], 0.40);
+
     // Tabel "sebelum" tidak ikut terisi: kuncinya membawa tabel_id.
     expect(
       isian.titik[4.00]!.kotak('sebelum_adjustment', 'pembacaan', 0).text,
@@ -393,5 +413,22 @@ void main() {
     expect(find.textContaining('Foto gagal diproses'), findsOneWidget);
     expect(find.textContaining('/data/'), findsNothing);
     expect(isian.adaIsianDariFoto, isFalse);
+  });
+  testWidgets('file kamera lenyap: pesan, state utuh, tanpa exception', (
+    tester,
+  ) async {
+    final isian = buatState();
+    addTearDown(isian.dispose);
+    final sebelum = isian.salinanLokal();
+    await jalankan(
+      tester,
+      isian: isian,
+      mesin: _MesinPalsu(),
+      fotoHilang: true,
+    );
+    expect(tester.takeException(), isNull);
+    expect(find.byType(SnackBar), findsOneWidget);
+    expect(find.byType(FotoReviewScreen), findsNothing);
+    expect(isian.salinanLokal(), sebelum);
   });
 }

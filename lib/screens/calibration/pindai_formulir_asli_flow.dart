@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../models/review_foto.dart';
+import '../../models/lembar_kerja_submission.dart' show BacaanMesin;
 import '../../models/worksheet_template.dart';
 import '../../providers/contoh_sel_provider.dart';
 import '../../providers/sakelar_ocr_provider.dart';
@@ -95,11 +96,13 @@ Future<int> pindaiFormulirAsli({
   }
   if (berkas == null) return 0;
 
-  final bita = await berkas.readAsBytes();
+  final Uint8List bita;
   try {
-    await berkas.delete();
-  } catch (_) {
-    // Sampah yang tak terhapus bukan alasan menolak foto.
+    bita = await bacaDanHapusFoto(berkas);
+  } catch (e, st) {
+    catatGalatPindai('asli-berkas', e, st);
+    if (context.mounted) kabar(l10n.lkPindaiGagalFoto);
+    return 0;
   }
 
   // Decode 4200 px = puluhan MB RGB. Di HP RAM kecil bisa kehabisan memori
@@ -376,6 +379,8 @@ Future<int> pindaiFormulirAsli({
       ? ref.read(penampungContohSelProvider.future)
       : null;
 
+  // Worksheet notifications must not follow the route and cover its actions.
+  messenger.clearSnackBars();
   final disetujui = await Navigator.of(context).push<List<SelTabelFoto>>(
     MaterialPageRoute(
       builder: (_) => FotoReviewScreen(baris: baris, catatan: catatan),
@@ -449,7 +454,17 @@ Future<int> pindaiFormulirAsli({
   }
 
   final terisi =
-      isian.terapkanHasilFotoAsli(tabelDisetujui) +
+      isian.terapkanHasilFotoAsli(
+        tabelDisetujui,
+        bacaanMesin: {
+          for (final b in hasil.sel)
+            '${b.sel.tabelId}@@${b.sel.barisKe}@@${b.sel.fieldId}|${b.sel.repeatNo}':
+                BacaanMesin(
+                  teksMentah: b.bacaan.teks ?? '',
+                  keyakinan: b.bacaan.keyakinan,
+                ),
+        },
+      ) +
       isian.terapkanIsianFotoAsli(isianDisetujui);
   kabar(
     terisi == 0

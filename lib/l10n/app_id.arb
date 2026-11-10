@@ -3147,5 +3147,14 @@
   "titikSesiBentrokJudul": "Titik {nominal} dinonaktifkan dari perangkat lain",
   "titikSesiBentrokPesan": "Alasan: {alasan}. Titik ini punya angka di HP ini yang belum tersimpan, dan titik nonaktif tidak boleh menerima pembacaan baru. Pilih yang mau dilakukan.",
   "titikSesiBentrokAktifkan": "Aktifkan lagi titik ini",
-  "titikSesiBentrokBuang": "Buang angka yang belum tersimpan di titik ini"
+  "titikSesiBentrokBuang": "Buang angka yang belum tersimpan di titik ini",
+  "alurAcuanButirBersamaPaket": "Perbedaan data acuan antar-paket",
+  "alurAcuanBersamaPaket": "{jumlah} perbedaan data acuan antar-paket",
+  "simAcuanBersamaPaketJudul": "Data acuan antar-paket",
+  "simAcuanPaket": "Paket: {paket}",
+  "simAcuanDasar": "Acuan pembanding: {dasar}",
+  "simAcuanKolomAcuan": "Acuan berlaku",
+  "simAcuanKolomMaster": "Master unggahan",
+  "simAcuanSumberGagal": "Sumber master tidak dapat diperiksa",
+  "fotoReviewBelumDapatDisimpan": "Aplikasi belum dapat menyimpan nilai ini tanpa mengubahnya (dukungan penyimpanan: hingga 8 desimal dan 12 digit sebelum koma). Nilai asli tetap ditampilkan untuk diperiksa."
 }

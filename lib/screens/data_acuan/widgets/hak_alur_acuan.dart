@@ -108,6 +108,7 @@ String labelButirPengakuan(String kode, AppLocalizations l10n) =>
     switch (kode) {
       ButirPengakuanAcuan.terbitCetakBerubah => l10n.alurAcuanButirTerbit,
       ButirPengakuanAcuan.bersamaAntarVarian => l10n.alurAcuanButirBersama,
+      ButirPengakuanAcuan.bersamaAntarPaket => l10n.alurAcuanButirBersamaPaket,
       ButirPengakuanAcuan.sesiGagal => l10n.alurAcuanButirSesiGagal,
       _ => kode,
     };

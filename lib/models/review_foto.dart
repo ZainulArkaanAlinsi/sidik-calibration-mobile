@@ -1,6 +1,9 @@
 import 'dart:typed_data';
 
+import '../core/utils/angka.dart' show parseAngkaInput;
+
 import '../services/peta_tabel_foto.dart';
+import 'lembar_kerja_submission.dart' show BacaanMesin;
 import '../services/vonis_sel_foto.dart';
 
 /// Satu baris di layar review hasil foto — satu sel tabel yang mau dimasukkan.
@@ -24,6 +27,53 @@ typedef BarisReviewFoto = ({
 /// potongan citranya, dan buat mengembalikan nilai yang disetujui.
 String kunciSelFoto(double titikUkur, int repeatNo, String fieldId) =>
     '$titikUkur|$repeatNo|$fieldId';
+
+/// Capture the recognizer output before the technician edits the review.
+Map<String, BacaanMesin> bacaanMesinFoto(List<SelTabelFoto> sel) =>
+    Map.unmodifiable({
+      for (final s in sel)
+        kunciSelFoto(s.titikUkur, s.repeatNo, s.fieldId): BacaanMesin(
+          teksMentah: s.teks,
+          keyakinan: s.keyakinan,
+        ),
+    });
+
+/// Empty and non-finite values are not readings.
+bool angkaFotoFinite(String teks) => parseAngkaInput(teks)?.isFinite ?? false;
+
+/// Storage representation guard, not a metrological limit.
+/// API raw_measurements.pembacaan uses decimal(20,8): 12 integer digits and
+/// 8 decimal places (2026_07_14_120700_create_raw_measurements_table.php).
+/// Compare exact decimal values, including exponent notation, so trailing
+/// zeros are harmless but parsing/formatting cannot silently change a digit.
+bool angkaFotoSah(String teks) {
+  final nilai = parseAngkaInput(teks);
+  if (nilai == null || !nilai.isFinite || nilai.abs() >= 1e12) return false;
+  final asli = _desimalKanonik(teks.trim().replaceAll(',', '.'));
+  // Payload readings are doubles: JSON uses their shortest decimal form.
+  // Fixed-8 equality alone can hide the different value actually sent.
+  return asli != null &&
+      asli == _desimalKanonik(nilai.toString()) &&
+      asli == _desimalKanonik(nilai.toStringAsFixed(8));
+}
+
+String? _desimalKanonik(String teks) {
+  final m = RegExp(
+    r'^([+-]?)(?:(\d+)(?:\.(\d*))?|\.(\d+))(?:[eE]([+-]?\d+))?$',
+  ).firstMatch(teks);
+  if (m == null) return null;
+  final pecahan = m[3] ?? m[4] ?? '';
+  var digit = '${m[2] ?? ''}$pecahan'.replaceFirst(RegExp(r'^0+'), '');
+  if (digit.isEmpty) return '0';
+  final eksponen = int.tryParse(m[5] ?? '0');
+  if (eksponen == null) return null;
+  var pangkat = eksponen - pecahan.length;
+  while (digit.endsWith('0')) {
+    digit = digit.substring(0, digit.length - 1);
+    pangkat++;
+  }
+  return '${m[1] == '-' ? '-' : ''}$digit@$pangkat';
+}
 
 /// Susun bahan layar review dari hasil pemetaan foto.
 ///

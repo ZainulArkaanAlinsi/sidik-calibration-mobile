@@ -1,5 +1,9 @@
 import 'dart:math' as math;
 
+/// Input parser shared with OCR review: comma and dot denote a decimal point.
+double? parseAngkaInput(String teks) =>
+    double.tryParse(teks.trim().replaceAll(',', '.'));
+
 /// Format angka hasil/pembacaan buat DITAMPILKAN, dengan dua aturan lab yang
 /// gampang ketuker:
 ///

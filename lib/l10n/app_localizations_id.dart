@@ -7268,4 +7268,38 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get titikSesiBentrokBuang =>
       'Buang angka yang belum tersimpan di titik ini';
+
+  @override
+  String get alurAcuanButirBersamaPaket => 'Perbedaan data acuan antar-paket';
+
+  @override
+  String alurAcuanBersamaPaket(int jumlah) {
+    return '$jumlah perbedaan data acuan antar-paket';
+  }
+
+  @override
+  String get simAcuanBersamaPaketJudul => 'Data acuan antar-paket';
+
+  @override
+  String simAcuanPaket(String paket) {
+    return 'Paket: $paket';
+  }
+
+  @override
+  String simAcuanDasar(String dasar) {
+    return 'Acuan pembanding: $dasar';
+  }
+
+  @override
+  String get simAcuanKolomAcuan => 'Acuan berlaku';
+
+  @override
+  String get simAcuanKolomMaster => 'Master unggahan';
+
+  @override
+  String get simAcuanSumberGagal => 'Sumber master tidak dapat diperiksa';
+
+  @override
+  String get fotoReviewBelumDapatDisimpan =>
+      'Aplikasi belum dapat menyimpan nilai ini tanpa mengubahnya (dukungan penyimpanan: hingga 8 desimal dan 12 digit sebelum koma). Nilai asli tetap ditampilkan untuk diperiksa.';
 }

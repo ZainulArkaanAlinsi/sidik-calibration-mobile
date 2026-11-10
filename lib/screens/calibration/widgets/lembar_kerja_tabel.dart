@@ -2221,7 +2221,42 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
         return;
       }
 
-      // Potongan selnya DITAHAN, bukan langsung disimpan: labelnya angka yang
+      // Hasil OCR itu USULAN, bukan data. Sebelum 28 Agt 2026 dia ditulis
+      // LANGSUNG ke form di baris ini — tanpa review, tanpa satu pun angka
+      // keyakinan — dan sel yang salah baca cuma ketahuan kalau teknisi
+      // kebetulan memeriksanya sendiri, di lembar yang baru saja kelihatan
+      // "otomatis terisi", yaitu saat dia paling nggak curiga.
+      final bacaanMesin = bacaanMesinFoto(hasil.sel);
+      final disetujui = await _reviewDulu(hasil, foto.citra);
+
+      // Dibatalkan di layar review = nggak ada yang masuk. Lembarnya
+      // ditinggalkan persis seperti sebelum tombol foto ditekan.
+      if (disetujui == null || !mounted) return;
+
+      // Capture only cells this accepted photo can fill. Existing manual values
+      // and their earlier crops remain paired when another photo is rejected.
+      final selBaru = <String>{
+        for (final s in disetujui)
+          if (angkaFotoSah(s.teks) &&
+              (widget.isian.labelSelFoto(
+                        tabel: widget.tabel,
+                        titikUkur: s.titikUkur,
+                        repeatNo: s.repeatNo,
+                        fieldId: s.fieldId,
+                      ) ??
+                      '')
+                  .trim()
+                  .isEmpty)
+            kunciSelFoto(s.titikUkur, s.repeatNo, s.fieldId),
+      };
+
+      final terisi = widget.isian.terapkanHasilFotoTabel(
+        disetujui,
+        tabel: widget.tabel,
+        bacaanMesin: bacaanMesin,
+      );
+
+      // Potongan sel yang DISETUJUI ditahan, bukan langsung disimpan: labelnya angka yang
       // akhirnya diketik teknisi waktu menekan Simpan, bukan yang dibaca OCR
       // sekarang. Teknisi memotret lalu mengoreksi, dan koreksinya justru
       // contoh paling berharga. Lihat [PenampungContohSel].
@@ -2232,7 +2267,7 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
       // gagal.
       final citra = foto.citra;
 
-      if (citra != null && hasil.kotakSel.isNotEmpty) {
+      if (citra != null && terisi > 0 && selBaru.isNotEmpty) {
         // Disalin ke lokal, bukan dibaca lewat `widget.` di dalam closure:
         // closure-nya hidup sampai teknisi menekan Simpan, dan `widget`
         // ditukar tiap rebuild.
@@ -2240,9 +2275,30 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
         final isian = widget.isian;
 
         try {
-          (await ref.read(penampungContohSelProvider.future)).tampung(
+          final penampung = await ref.read(penampungContohSelProvider.future);
+          if (!mounted) return;
+          penampung.tampung(
             potongan: const PotongSelFoto()
-                .potong(citra: citra, kotak: hasil.kotakSel)
+                .potong(
+                  citra: citra,
+                  kotak: hasil.kotakSel
+                      .where(
+                        (k) =>
+                            selBaru.contains(
+                              kunciSelFoto(k.titikUkur, k.repeatNo, k.fieldId),
+                            ) &&
+                            (widget.isian.labelSelFoto(
+                                      tabel: widget.tabel,
+                                      titikUkur: k.titikUkur,
+                                      repeatNo: k.repeatNo,
+                                      fieldId: k.fieldId,
+                                    ) ??
+                                    '')
+                                .trim()
+                                .isNotEmpty,
+                      )
+                      .toList(),
+                )
                 .potongan,
             penanda: (k) =>
                 '${tabel.kunciTabel}|${k.titikUkur}|${k.repeatNo}|${k.fieldId}',
@@ -2258,22 +2314,6 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
           // Sengaja ditelan — lihat di atas.
         }
       }
-
-      // Hasil OCR itu USULAN, bukan data. Sebelum 28 Agt 2026 dia ditulis
-      // LANGSUNG ke form di baris ini — tanpa review, tanpa satu pun angka
-      // keyakinan — dan sel yang salah baca cuma ketahuan kalau teknisi
-      // kebetulan memeriksanya sendiri, di lembar yang baru saja kelihatan
-      // "otomatis terisi", yaitu saat dia paling nggak curiga.
-      final disetujui = await _reviewDulu(hasil, foto.citra);
-
-      // Dibatalkan di layar review = nggak ada yang masuk. Lembarnya
-      // ditinggalkan persis seperti sebelum tombol foto ditekan.
-      if (disetujui == null || !mounted) return;
-
-      final terisi = widget.isian.terapkanHasilFotoTabel(
-        disetujui,
-        tabel: widget.tabel,
-      );
 
       widget.onBerubah();
 
@@ -2336,6 +2376,8 @@ class _TombolFotoTabelState extends ConsumerState<_TombolFotoTabel> {
 
     if (!mounted) return null;
 
+    // Worksheet notifications must not follow the route and cover its actions.
+    ScaffoldMessenger.of(context).clearSnackBars();
     return Navigator.of(context).push<List<SelTabelFoto>>(
       MaterialPageRoute(builder: (_) => FotoReviewScreen(baris: baris)),
     );

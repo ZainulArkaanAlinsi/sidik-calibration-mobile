@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'photo_source.dart';
 
@@ -44,4 +45,17 @@ Future<File?> ambilFotoAtauPulihkan(
     maxHeight: maxHeight,
     imageQuality: imageQuality,
   );
+}
+
+/// Always release the picker cache, including when reading fails.
+Future<Uint8List> bacaDanHapusFoto(File foto) async {
+  try {
+    return await foto.readAsBytes();
+  } finally {
+    try {
+      await foto.delete();
+    } catch (_) {
+      /* Best effort cache cleanup. */
+    }
+  }
 }

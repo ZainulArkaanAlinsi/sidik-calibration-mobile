@@ -17,6 +17,7 @@ import '../../core/utils/jam_lembar.dart';
 import '../../models/lembar_kerja.dart';
 import 'grid_sensor_state.dart';
 import '../../models/lembar_kerja_submission.dart';
+import '../../models/review_foto.dart' show angkaFotoSah, kunciSelFoto;
 import '../../models/titik_sesi.dart';
 import 'titik_sesi_state.dart';
 import '../../models/worksheet_template.dart' show WorksheetTemplate;
@@ -27,8 +28,7 @@ import '../../services/peta_tabel_foto.dart';
 /// Angka di lembar kerja diketik teknisi lapangan, yang kadang pakai koma
 /// (`22,2`) karena itu yang dipakai di formulir kertasnya. Dua-duanya
 /// diterima; yang dikirim ke backend selalu titik.
-double? parseAngka(String teks) =>
-    double.tryParse(teks.trim().replaceAll(',', '.'));
+double? parseAngka(String teks) => parseAngkaInput(teks);
 
 /// Pecah isi kotak [TipeField.daftarAngka] jadi daftar angka.
 ///
@@ -4432,8 +4432,9 @@ class LembarKerjaState {
         double? keyakinan,
       })
     >
-    sel,
-  ) {
+    sel, {
+    Map<String, BacaanMesin> bacaanMesin = const {},
+  }) {
     var terisi = 0;
 
     // Grid Enclosure: SATU lembar kertas = SATU set point. Semua sel hasil
@@ -4454,7 +4455,15 @@ class LembarKerjaState {
       ];
       if (selGrid.isNotEmpty) {
         final tujuan = g.setPointUntukFoto();
-        final masuk = tujuan.sp.terapkanHasilFotoPosisi(selGrid);
+        final masuk = tujuan.sp.terapkanHasilFotoPosisi(
+          selGrid,
+          bacaanMesin: {
+            for (final s in sel.where((s) => s.tabelId == idTabelGridServer))
+              '${s.barisKe}|${s.repeatNo}':
+                  bacaanMesin['${s.tabelId}@@${s.barisKe}@@${s.fieldId}|${s.repeatNo}'] ??
+                  BacaanMesin(teksMentah: s.teks, keyakinan: s.keyakinan),
+          },
+        );
         if (masuk == 0 && tujuan.baru) g.hapusSetPoint(g.setPoint.length - 1);
         terisi += masuk;
       }
@@ -4471,6 +4480,7 @@ class LembarKerjaState {
       );
       if (tujuan == null) continue;
 
+      if (!angkaFotoSah(s.teks)) continue;
       final nilai = parseAngka(s.teks);
       if (nilai == null) continue;
 
@@ -4481,7 +4491,9 @@ class LembarKerjaState {
         tujuan.index,
         nilai,
         true,
-        bacaanMesin: BacaanMesin(teksMentah: s.teks, keyakinan: s.keyakinan),
+        bacaanMesin:
+            bacaanMesin['${s.tabelId}@@${s.barisKe}@@${s.fieldId}|${s.repeatNo}'] ??
+            BacaanMesin(teksMentah: s.teks, keyakinan: s.keyakinan),
       );
     }
 
@@ -4573,6 +4585,7 @@ class LembarKerjaState {
 
     for (final e in perKode.entries) {
       final kotak = teks[e.key];
+      if (!angkaFotoSah(e.value)) continue;
       final nilai = parseAngka(e.value);
       if (kotak == null || nilai == null) continue;
       if (kotak.text.trim().isNotEmpty) continue;
@@ -4690,6 +4703,7 @@ class LembarKerjaState {
   int terapkanHasilFotoTabel(
     List<SelTabelFoto> sel, {
     required TabelHasil tabel,
+    Map<String, BacaanMesin> bacaanMesin = const {},
   }) {
     var terisi = 0;
 
@@ -4715,6 +4729,7 @@ class LembarKerjaState {
       // (lihat `GabungTabel.nilaiBaru` di `_isiSel`), jadi mengosongkan di
       // layar review nggak bisa dan nggak boleh menghapus angka yang sudah
       // diketik teknisi sebelumnya.
+      if (!angkaFotoSah(s.teks)) continue;
       final nilai = parseAngka(s.teks);
       if (nilai == null) continue;
 
@@ -4727,7 +4742,9 @@ class LembarKerjaState {
         true,
         // Teks APA ADANYA, bukan `nilai` yang sudah jadi angka: yang mau diukur
         // nanti persis apa yang dilihat pengenalnya, termasuk waktu dia salah.
-        bacaanMesin: BacaanMesin(teksMentah: s.teks, keyakinan: s.keyakinan),
+        bacaanMesin:
+            bacaanMesin[kunciSelFoto(s.titikUkur, s.repeatNo, s.fieldId)] ??
+            BacaanMesin(teksMentah: s.teks, keyakinan: s.keyakinan),
       );
     }
 
@@ -5127,7 +5144,11 @@ class LembarKerjaState {
   ///    diklaim lalu dibuang di sini — bukan melayang ke baris tetangganya.
   ///  - **Kotak yang sudah ada isinya.** Angka yang sudah diketik orang
   ///    keputusan orang; foto cuma jalan pintas.
-  int terapkanHasilFotoMatriks(MatriksHasil m, List<SelTabelFoto> sel) {
+  int terapkanHasilFotoMatriks(
+    MatriksHasil m,
+    List<SelTabelFoto> sel, {
+    Map<String, BacaanMesin> bacaanMesin = const {},
+  }) {
     final baris = m.semuaBaris;
     var terisi = 0;
 
@@ -5137,7 +5158,8 @@ class LembarKerjaState {
       final b = _barisMatriks(baris, s.titikUkur);
       if (b == null || b.tipe == 'jam') continue;
 
-      final nilai = double.tryParse(s.teks.trim().replaceAll(',', '.'));
+      if (!angkaFotoSah(s.teks)) continue;
+      final nilai = parseAngka(s.teks);
       if (nilai == null) continue;
 
       final kotak = kotakMatriks(b.kodeData, s.repeatNo);
@@ -5148,10 +5170,9 @@ class LembarKerjaState {
       final kunci = kunciMatriks(b.kodeData, s.repeatNo);
       matriksDariFoto.add(kunci);
       // Teks APA ADANYA, bukan `nilai` yang sudah jadi angka.
-      bacaanMesinMatriks[kunci] = BacaanMesin(
-        teksMentah: s.teks,
-        keyakinan: s.keyakinan,
-      );
+      bacaanMesinMatriks[kunci] =
+          bacaanMesin[kunciSelFoto(s.titikUkur, s.repeatNo, s.fieldId)] ??
+          BacaanMesin(teksMentah: s.teks, keyakinan: s.keyakinan);
       terisi++;
     }
 

@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/lembar_kerja.dart';
 import '../../models/lembar_kerja_submission.dart';
+import '../../models/review_foto.dart' show angkaFotoSah, kunciSelFoto;
 import '../../services/peta_tabel_foto.dart';
 
 /// Identitas tabel grid di respons peta formulir asli (`tabel_id` = `grup` grid
@@ -236,14 +237,16 @@ class SetPointGridState {
   /// Kotak yang sudah berisi tidak pernah ditimpa; angka yang masuk ditandai
   /// "dari foto" beserta tebakan mesinnya. Balik jumlah sel yang terisi.
   int terapkanHasilFotoPosisi(
-    List<({int barisKe, int repeatNo, String teks, double? keyakinan})> sel,
-  ) {
+    List<({int barisKe, int repeatNo, String teks, double? keyakinan})> sel, {
+    Map<String, BacaanMesin> bacaanMesin = const {},
+  }) {
     var terisi = 0;
 
     for (final s in sel) {
       final index = bentuk.pengulangan.indexOf(s.repeatNo);
       if (index < 0) continue;
 
+      if (!angkaFotoSah(s.teks)) continue;
       final nilai = double.tryParse(s.teks.trim().replaceAll(',', '.'));
       if (nilai == null) continue;
 
@@ -277,7 +280,9 @@ class SetPointGridState {
 
       ctl.text = s.teks.trim();
       dariFoto.add(index);
-      mesin[index] = BacaanMesin(teksMentah: s.teks, keyakinan: s.keyakinan);
+      mesin[index] =
+          bacaanMesin['${s.barisKe}|${s.repeatNo}'] ??
+          BacaanMesin(teksMentah: s.teks, keyakinan: s.keyakinan);
       terisi++;
     }
 
@@ -463,7 +468,10 @@ class SetPointGridState {
   /// angka yang sudah diketik orang adalah keputusan orang, dan menimpanya
   /// diam-diam menghapus koreksi yang baru saja dia betulkan tanpa satu pun
   /// tanda.
-  int terapkanHasilFoto(List<SelTabelFoto> sel) {
+  int terapkanHasilFoto(
+    List<SelTabelFoto> sel, {
+    Map<String, BacaanMesin> bacaanMesin = const {},
+  }) {
     var terisi = 0;
 
     for (final s in sel) {
@@ -482,6 +490,7 @@ class SetPointGridState {
       // Teksnya diurai di sini, bukan di pemetanya: yang di sana cuma menjawab
       // "tempatnya di mana". Yang nggak jadi angka dilewat — bukan ditulis
       // mentah ke kotak yang cuma nerima angka.
+      if (!angkaFotoSah(s.teks)) continue;
       final nilai = double.tryParse(s.teks.trim().replaceAll(',', '.'));
       if (nilai == null) continue;
 
@@ -494,7 +503,8 @@ class SetPointGridState {
       _tandaiFoto(
         s.titikUkur,
         index,
-        BacaanMesin(teksMentah: s.teks, keyakinan: s.keyakinan),
+        bacaanMesin[kunciSelFoto(s.titikUkur, s.repeatNo, s.fieldId)] ??
+            BacaanMesin(teksMentah: s.teks, keyakinan: s.keyakinan),
       );
       terisi++;
     }
@@ -517,7 +527,16 @@ class SetPointGridState {
     final index = bentuk.pengulangan.indexOf(repeatNo);
     if (index < 0) return null;
 
-    return _kotakFoto(penanda, index)?.text;
+    if (penanda == kunciIndikator) {
+      return bentuk.barisIndikator ? indikator.ctl[index].text : null;
+    }
+    if (penanda == kunciSuhuRuang) {
+      return bentuk.barisSuhuRuang ? suhuRuang.ctl[index].text : null;
+    }
+    for (final baris in sensor) {
+      if (baris.no == penanda.round()) return baris.pembacaanCtl[index].text;
+    }
+    return null;
   }
 
   /// Kotak isian buat satu (penanda baris, index pengulangan).

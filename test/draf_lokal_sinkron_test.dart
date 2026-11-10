@@ -43,6 +43,8 @@ void main() {
     bacaToken: () async => tokenDari != null ? tokenDari() : token,
     setelahBerubah: () => berubah++,
     terbuka: terbuka,
+    // Keep the fixed draft fixtures within their retention window.
+    jam: () => DateTime.utc(2026, 10, 14, 8),
     dengarSiklusAplikasi: false,
   );
 
