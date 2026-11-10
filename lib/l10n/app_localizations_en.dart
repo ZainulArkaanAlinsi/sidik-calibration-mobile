@@ -7471,4 +7471,59 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get undangTutup => 'Done';
+
+  @override
+  String get rskJudul => 'Summary before sending';
+
+  @override
+  String rskTahanPesan(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah required items',
+      one: '1 required item',
+    );
+    return 'Can\'t send yet: $_temp0 to fix first. Tap an item to jump to it.';
+  }
+
+  @override
+  String get rskPeringatanPesan =>
+      'Please look at these before sending. You can still send as it is.';
+
+  @override
+  String get rskBagianWajib => 'Required';
+
+  @override
+  String get rskBagianPeringatan => 'Worth checking';
+
+  @override
+  String rskIdentitasKosong(String label) {
+    return '$label is empty. It is printed on the certificate.';
+  }
+
+  @override
+  String rskOcrPerluDicek(int jumlah, String titik) {
+    return '$jumlah cells read from a photo are marked yellow/red (point $titik). Check them against the instrument.';
+  }
+
+  @override
+  String rskTitikTerisi(int terisi, int total) {
+    return 'Points filled: $terisi of $total';
+  }
+
+  @override
+  String get rskKembali => 'Back';
+
+  @override
+  String get rskKirim => 'Send';
+
+  @override
+  String get rskTetapKirim => 'Send anyway';
+
+  @override
+  String get rskLompatKet => 'Tap to go to this field';
+
+  @override
+  String get rskTidakBisaLompat =>
+      'That field could not be found on screen. Scroll to it by hand.';
 }

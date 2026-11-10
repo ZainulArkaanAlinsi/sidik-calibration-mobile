@@ -7392,4 +7392,53 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get undangTutup => 'Selesai';
+
+  @override
+  String get rskJudul => 'Ringkasan sebelum kirim';
+
+  @override
+  String rskTahanPesan(int jumlah) {
+    return 'Belum bisa dikirim: ada $jumlah hal wajib yang harus dibereskan dulu. Ketuk salah satunya untuk melompat ke sana.';
+  }
+
+  @override
+  String get rskPeringatanPesan =>
+      'Lihat dulu hal-hal ini sebelum kirim. Kamu tetap boleh mengirim apa adanya.';
+
+  @override
+  String get rskBagianWajib => 'Wajib dibereskan';
+
+  @override
+  String get rskBagianPeringatan => 'Sebaiknya dicek';
+
+  @override
+  String rskIdentitasKosong(String label) {
+    return '$label masih kosong. Isian ini tercetak di sertifikat.';
+  }
+
+  @override
+  String rskOcrPerluDicek(int jumlah, String titik) {
+    return '$jumlah sel hasil foto bertanda kuning/merah (titik $titik). Cocokkan dulu dengan alatnya.';
+  }
+
+  @override
+  String rskTitikTerisi(int terisi, int total) {
+    return 'Titik terisi: $terisi dari $total';
+  }
+
+  @override
+  String get rskKembali => 'Kembali';
+
+  @override
+  String get rskKirim => 'Kirim';
+
+  @override
+  String get rskTetapKirim => 'Tetap kirim';
+
+  @override
+  String get rskLompatKet => 'Ketuk untuk menuju kolom ini';
+
+  @override
+  String get rskTidakBisaLompat =>
+      'Kolom itu belum ketemu di layar. Gulir sendiri ke sana.';
 }

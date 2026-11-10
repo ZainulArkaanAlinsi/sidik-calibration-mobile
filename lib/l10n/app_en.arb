@@ -4077,5 +4077,22 @@
   "undangPeringatan": "Copy now — the code cannot be viewed again. Valid for 7 days. A new invitation to the same email cancels the old code.",
   "undangPetunjukPelanggan": "In the SIDIK Pelanggan app: Sign in → Use invitation code",
   "undangTanpaKode": "Invitation created, but the code is not available on this server version — use the panel.",
-  "undangTutup": "Done"
+  "undangTutup": "Done",
+  "rskJudul": "Summary before sending",
+  "rskTahanPesan": "Can't send yet: {jumlah, plural, =1{1 required item} other{{jumlah} required items}} to fix first. Tap an item to jump to it.",
+  "@rskTahanPesan": {"placeholders": {"jumlah": {"type": "int"}}},
+  "rskPeringatanPesan": "Please look at these before sending. You can still send as it is.",
+  "rskBagianWajib": "Required",
+  "rskBagianPeringatan": "Worth checking",
+  "rskIdentitasKosong": "{label} is empty. It is printed on the certificate.",
+  "@rskIdentitasKosong": {"placeholders": {"label": {"type": "String"}}},
+  "rskOcrPerluDicek": "{jumlah} cells read from a photo are marked yellow/red (point {titik}). Check them against the instrument.",
+  "@rskOcrPerluDicek": {"placeholders": {"jumlah": {"type": "int"}, "titik": {"type": "String"}}},
+  "rskTitikTerisi": "Points filled: {terisi} of {total}",
+  "@rskTitikTerisi": {"placeholders": {"terisi": {"type": "int"}, "total": {"type": "int"}}},
+  "rskKembali": "Back",
+  "rskKirim": "Send",
+  "rskTetapKirim": "Send anyway",
+  "rskLompatKet": "Tap to go to this field",
+  "rskTidakBisaLompat": "That field could not be found on screen. Scroll to it by hand."
 }

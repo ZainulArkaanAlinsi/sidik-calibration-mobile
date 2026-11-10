@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,6 +49,7 @@ import '../../widgets/tampil_masuk.dart';
 import 'kinerja_lembar.dart';
 import 'lembar_kerja_state.dart';
 import 'penjaga_draf_lokal.dart';
+import 'ringkasan_sebelum_kirim.dart';
 import 'widgets/dropdown_gagal.dart';
 import '../equipment/equipment_form_screen.dart';
 import 'widgets/lembar_kerja_grid.dart';
@@ -56,6 +58,8 @@ import 'widgets/lembar_kerja_matriks.dart';
 import 'widgets/lembar_kerja_tabel.dart';
 import 'widgets/pengatur_titik.dart';
 import 'widgets/pengatur_titik_sesi.dart';
+import 'widgets/ringkasan_sebelum_kirim_dialog.dart';
+import 'widgets/tanda_lompat.dart';
 
 /// Lembar Kerja (SIDIK-FM-CAL-0509_Rev.4) — layar input teknisi, dipakai buat
 /// alat yang punya bentuk lembar sendiri (pH Meter, Turbidimeter, ...). Bentuk
@@ -74,6 +78,14 @@ import 'widgets/pengatur_titik_sesi.dart';
 /// kolom nggak bisa diisi, dan nahan tombol di situ bikin data hilang
 /// seluruhnya. Penjagaannya ada di pemeriksaan admin sebelum sertifikat
 /// terbit, bukan di formulir ini.
+///
+/// **Ringkasan sebelum kirim.** Tombol Kirim di layar tetap hidup — yang
+/// menjelaskan kekurangannya dialog `DialogRingkasanSebelumKirim`, hanya untuk
+/// Kirim (bukan Simpan draf) dan hanya kalau ada yang perlu ditunjukkan.
+/// Gerbang yang menahan (alat, suhu, standar, setpoint, jam) tampil di sana
+/// dengan tombol kirim MATI + alasan + lompat ke kolomnya; identitas kosong dan
+/// sel pindai kuning/merah cuma peringatan ("Tetap kirim"). Gerbang di
+/// [_submit] tetap jaring terakhir. Lihat `ringkasan_sebelum_kirim.dart`.
 ///
 /// **Nggak ada satu pun rumus di sini.** Average, Correction, STDEV, U95% —
 /// semua dihitung backend. Ikut ngitung di layar cepat atau lambat bikin
@@ -534,6 +546,23 @@ class _FormState extends ConsumerState<_Form> {
   /// Index ke [LembarKerja.halaman], bukan nomor halamannya sendiri — lembar
   /// kerja alat lain bisa punya penomoran yang beda.
   int _halaman = 0;
+
+  /// Dialog "Ringkasan sebelum kirim" lagi terbuka (atau sedang dibuka).
+  /// Ketukan Kirim kedua yang menyusul tidak boleh membuka dialog kedua.
+  bool _ringkasanTerbuka = false;
+
+  /// Bidang yang sedang digambar, buat melompat dari dialog ringkasan.
+  final PetaLompat _petaLompat = PetaLompat();
+
+  /// Tata letak terakhir yang digambar — dibaca [_lompatKe] (HP satu kolom
+  /// berhalaman, atau layar lebar dua kolom).
+  bool _duaKolomSekarang = false;
+
+  /// Pengendali gulir tiap tata letak, supaya [_lompatKe] bisa mencari bidang
+  /// yang belum digambar (ListView hanya membangun yang kelihatan).
+  final ScrollController _gulirSatuKolom = ScrollController();
+  final ScrollController _gulirKolomKiri = ScrollController();
+  final ScrollController _gulirKolomKanan = ScrollController();
 
   /// Penampung contoh latih, diambil duluan supaya [dispose] bisa membuang
   /// tampungan sesi ini tanpa menyentuh `ref`.
@@ -1467,8 +1496,118 @@ class _FormState extends ConsumerState<_Form> {
     }
     _terbuka?.removeAll(_kunciLayar);
 
+    _gulirSatuKolom.dispose();
+    _gulirKolomKiri.dispose();
+    _gulirKolomKanan.dispose();
+
     _isian.dispose();
     super.dispose();
+  }
+
+  /// Ringkasan sebelum kirim: tahan di sini kalau ada gerbang yang menahan,
+  /// atau tunjukkan peringatan. `true` = lanjut ke pengiriman seperti biasa.
+  ///
+  /// Tidak ada kekurangan = tidak ada dialog sama sekali (jalur cepat tetap
+  /// secepat dulu). Lihat [susunRingkasanSebelumKirim].
+  Future<bool> _tinjauRingkasanSebelumKirim() async {
+    final ringkasan = susunRingkasanSebelumKirim(_isian);
+    if (!ringkasan.adaKekurangan) return true;
+
+    _ringkasanTerbuka = true;
+    HasilRingkasanKirim? hasil;
+    try {
+      hasil = await tampilkanRingkasanSebelumKirim(context, ringkasan);
+    } finally {
+      _ringkasanTerbuka = false;
+    }
+    if (!mounted || hasil == null) return false;
+
+    if (hasil.lompat case final sasaran?) {
+      unawaited(_lompatKe(sasaran));
+      return false;
+    }
+
+    // Tombol kirim di dialog sudah mati kalau ada gerbang; dicek lagi di sini
+    // supaya jawaban "kirim" tidak pernah menembus gerbang.
+    return hasil.kirim && !ringkasan.menahan;
+  }
+
+  /// Lompat ke bidang [sasaran] dari dialog ringkasan: pindah halaman kalau
+  /// perlu, lalu gulir sampai bidangnya kelihatan.
+  Future<void> _lompatKe(String sasaran) async {
+    final bentuk = widget.bentuk;
+    final nomor = halamanSasaranLompat(bentuk, sasaran);
+
+    if (nomor == null) {
+      _kabarTidakBisaLompat();
+      return;
+    }
+
+    if (!_duaKolomSekarang) {
+      final indeks = bentuk.halaman.indexOf(nomor);
+      if (indeks >= 0 && indeks != _halaman) setState(() => _halaman = indeks);
+    }
+
+    final kontrol = !_duaKolomSekarang
+        ? _gulirSatuKolom
+        : (nomor == bentuk.halaman.first ? _gulirKolomKiri : _gulirKolomKanan);
+
+    if (!await _gulirKeBidang(sasaran, kontrol)) _kabarTidakBisaLompat();
+  }
+
+  void _kabarTidakBisaLompat() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppLocalizations.of(context).rskTidakBisaLompat)),
+    );
+  }
+
+  /// Gulir [kontrol] sampai [sasaran] kelihatan. ListView hanya membangun
+  /// anak yang kelihatan, jadi bidang yang jauh dicari dengan menggulir dari
+  /// atas selangkah demi selangkah; kalau tidak ketemu, posisi semula
+  /// dikembalikan.
+  Future<bool> _gulirKeBidang(String sasaran, ScrollController kontrol) async {
+    bool tampilkan() {
+      final konteks = _petaLompat.konteks(sasaran);
+      if (konteks == null) return false;
+
+      Scrollable.ensureVisible(
+        konteks,
+        alignment: 0.1,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+
+      return true;
+    }
+
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return false;
+    if (tampilkan()) return true;
+    if (!kontrol.hasClients) return false;
+
+    final awal = kontrol.position.pixels;
+    kontrol.jumpTo(0);
+
+    for (var i = 0; i < 80 && mounted; i++) {
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted) return false;
+      if (tampilkan()) return true;
+
+      final posisi = kontrol.position;
+      if (posisi.pixels >= posisi.maxScrollExtent - 1) break;
+
+      kontrol.jumpTo(
+        math.min(
+          posisi.maxScrollExtent,
+          posisi.pixels + posisi.viewportDimension * 0.8,
+        ),
+      );
+    }
+
+    if (mounted && kontrol.hasClients) kontrol.jumpTo(awal);
+
+    return false;
   }
 
   Future<void> _submit({required bool draft}) async {
@@ -1476,11 +1615,24 @@ class _FormState extends ConsumerState<_Form> {
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
 
+    // Ketukan Kirim kedua selagi ringkasan terbuka dibuang.
+    if (!draft && _ringkasanTerbuka) return;
+
     // Duluan dari "alat belum dipilih": waktu sesi lama gagal dimuat, alatnya
     // juga belum kepulihkan, dan pesan itu nyuruh teknisi milih alat — lalu
     // menimpa isian yang tersimpan tanpa pernah tahu formulirnya kosong.
     if (_sesiLamaGagalDimuat && !await _konfirmasiTimpaSesiLama()) return;
     if (!mounted) return;
+
+    // Ringkasan sebelum kirim — HANYA untuk Kirim, tidak pernah untuk Simpan
+    // draf. Gerbang-gerbang di bawah tetap berdiri sebagai jaring terakhir:
+    // dialog ini menampilkannya lebih awal dan lengkap, bukan menggantikannya.
+    // Rilis wajib dibiarkan ke gerbangnya sendiri (itu soal aplikasi, bukan
+    // isi lembar).
+    if (!draft && !ref.read(kirimTertahanRilisWajibProvider)) {
+      if (!await _tinjauRingkasanSebelumKirim()) return;
+      if (!mounted) return;
+    }
 
     // Satu-satunya yang ditahan: alat belum dipilih. Tanpa itu nggak ada yang
     // bisa dikirim sama sekali — bukan "kolom wajib", tapi identitas barangnya.
@@ -2368,183 +2520,195 @@ class _FormState extends ConsumerState<_Form> {
       // ini selalu mode input; layar periksa/detail/baca-saja nggak pasang
       // scope ini, jadi isiannya tetap tampil biasa.
       child: WarnaIsianScope(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            // Di layar lebar, kertasnya digambar apa adanya: identitas & standar
-            // di kiri, hasil kalibrasi di kanan, satu layar. Di HP itu mustahil
-            // kebaca, jadi kolomnya jadi halaman.
-            final duaKolom =
-                constraints.maxWidth >= _lebarDuaKolom &&
-                bentuk.halaman.length == 2;
+        child: ScopeLompat(
+          peta: _petaLompat,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // Di layar lebar, kertasnya digambar apa adanya: identitas & standar
+              // di kiri, hasil kalibrasi di kanan, satu layar. Di HP itu mustahil
+              // kebaca, jadi kolomnya jadi halaman.
+              final duaKolom =
+                  constraints.maxWidth >= _lebarDuaKolom &&
+                  bentuk.halaman.length == 2;
+              _duaKolomSekarang = duaKolom;
 
-            return Column(
-              children: [
-                // Legenda warna isian: tetap kelihatan di halaman mana pun.
-                const LegendaWarnaIsian(),
-                // Di atas lembar, bukan di dalamnya: tetap kelihatan di halaman
-                // mana pun dan di dua tata letak — formulir kosong yang kelihatan
-                // persis seperti draft kosong itu yang mau dicegah.
-                if (_sesiLamaGagalDimuat)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.md,
-                      AppSpacing.md,
-                      AppSpacing.md,
-                      0,
+              return Column(
+                children: [
+                  // Legenda warna isian: tetap kelihatan di halaman mana pun.
+                  const LegendaWarnaIsian(),
+                  // Di atas lembar, bukan di dalamnya: tetap kelihatan di halaman
+                  // mana pun dan di dua tata letak — formulir kosong yang kelihatan
+                  // persis seperti draft kosong itu yang mau dicegah.
+                  if (_sesiLamaGagalDimuat)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.md,
+                        AppSpacing.md,
+                        AppSpacing.md,
+                        0,
+                      ),
+                      child: _BannerSesiLamaGagal(
+                        onMuatUlang: () {
+                          final id = widget.sesiId;
+                          if (id != null) _muatSesiLama(id);
+                        },
+                      ),
                     ),
-                    child: _BannerSesiLamaGagal(
-                      onMuatUlang: () {
-                        final id = widget.sesiId;
-                        if (id != null) _muatSesiLama(id);
-                      },
-                    ),
-                  ),
-                // Peta formulir masih ditarik: kalau lama (server bangun dari
-                // tidur), tombol foto yang belum muncul diberi penjelasan.
-                if (ref.watch(formulirAsliProvider(_kunciAsli)).isLoading)
-                  const KabarServerLambat(),
-                if (_bolehFotoLembar(
-                  ref.watch(formulirAsliProvider(_kunciAsli)).value,
-                ))
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.md,
-                      AppSpacing.sm,
-                      AppSpacing.md,
-                      0,
-                    ),
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: OutlinedButton.icon(
-                        key: const ValueKey('tombol-foto-lembar'),
-                        onPressed: _sedangMemindai ? null : _fotoLembar,
-                        icon: const Icon(Icons.photo_camera_outlined, size: 18),
-                        label: Text(
-                          AppLocalizations.of(context).phCalibCaraFoto,
+                  // Peta formulir masih ditarik: kalau lama (server bangun dari
+                  // tidur), tombol foto yang belum muncul diberi penjelasan.
+                  if (ref.watch(formulirAsliProvider(_kunciAsli)).isLoading)
+                    const KabarServerLambat(),
+                  if (_bolehFotoLembar(
+                    ref.watch(formulirAsliProvider(_kunciAsli)).value,
+                  ))
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.md,
+                        AppSpacing.sm,
+                        AppSpacing.md,
+                        0,
+                      ),
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: OutlinedButton.icon(
+                          key: const ValueKey('tombol-foto-lembar'),
+                          onPressed: _sedangMemindai ? null : _fotoLembar,
+                          icon: const Icon(
+                            Icons.photo_camera_outlined,
+                            size: 18,
+                          ),
+                          label: Text(
+                            AppLocalizations.of(context).phCalibCaraFoto,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                // Isian yang tampil datang dari HP ini, bukan dari server —
-                // harus kelihatan, dan harus bisa dibuang (F3-02).
-                if (_dipulihkanPada case final waktu?)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.md,
-                      AppSpacing.md,
-                      AppSpacing.md,
-                      0,
+                  // Isian yang tampil datang dari HP ini, bukan dari server —
+                  // harus kelihatan, dan harus bisa dibuang (F3-02).
+                  if (_dipulihkanPada case final waktu?)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.md,
+                        AppSpacing.md,
+                        AppSpacing.md,
+                        0,
+                      ),
+                      child: _BannerDipulihkan(
+                        waktu: waktu,
+                        onBuang: _buangSalinanHp,
+                      ),
                     ),
-                    child: _BannerDipulihkan(
-                      waktu: waktu,
-                      onBuang: _buangSalinanHp,
-                    ),
+                  Expanded(
+                    child: duaKolom
+                        ? _LembarDuaKolom(
+                            bentuk: bentuk,
+                            isian: _isian,
+                            onBerubah: _isianBerubah,
+                            sesiId: widget.sesiId,
+                            profil: widget.profil,
+                            gulirKiri: _gulirKolomKiri,
+                            gulirKanan: _gulirKolomKanan,
+                          )
+                        : _LembarSatuKolom(
+                            bentuk: bentuk,
+                            isian: _isian,
+                            halaman: _halaman,
+                            onBerubah: _isianBerubah,
+                            sesiId: widget.sesiId,
+                            profil: widget.profil,
+                            gulir: _gulirSatuKolom,
+                          ),
                   ),
-                Expanded(
-                  child: duaKolom
-                      ? _LembarDuaKolom(
-                          bentuk: bentuk,
-                          isian: _isian,
-                          onBerubah: _isianBerubah,
-                          sesiId: widget.sesiId,
-                          profil: widget.profil,
-                        )
-                      : _LembarSatuKolom(
-                          bentuk: bentuk,
-                          isian: _isian,
-                          halaman: _halaman,
-                          onBerubah: _isianBerubah,
-                          sesiId: widget.sesiId,
-                          profil: widget.profil,
-                        ),
-                ),
 
-                // Tombolnya nempel di bawah, bukan ikut ke-scroll: lembar kerjanya
-                // panjang, dan teknisi nggak boleh perlu scroll sampai ujung cuma
-                // buat nyimpen draft di tengah kerjaan.
-                Material(
-                  elevation: 8,
-                  color: theme.colorScheme.surface,
-                  child: SafeArea(
-                    top: false,
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Kaki lembar: versi data acuan yang MEMBANGUN lembar
-                          // ini (FR-21). Tidak digambar kalau server tidak
-                          // menyebut versi — profil yang belum berversi, server
-                          // yang masih membaca berkas JSON, atau server lama.
-                          // `· bentuk v<n>` belum: versi bentuk lahir di P6.
-                          if (bentuk.versiAcuan case VersiAcuanLembar(
-                            :final paket,
-                            data: NomorVersiAcuan(:final nomor),
-                          )) ...[
-                            _KakiVersiAcuan(paket: paket, nomor: nomor),
+                  // Tombolnya nempel di bawah, bukan ikut ke-scroll: lembar kerjanya
+                  // panjang, dan teknisi nggak boleh perlu scroll sampai ujung cuma
+                  // buat nyimpen draft di tengah kerjaan.
+                  Material(
+                    elevation: 8,
+                    color: theme.colorScheme.surface,
+                    child: SafeArea(
+                      top: false,
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Kaki lembar: versi data acuan yang MEMBANGUN lembar
+                            // ini (FR-21). Tidak digambar kalau server tidak
+                            // menyebut versi — profil yang belum berversi, server
+                            // yang masih membaca berkas JSON, atau server lama.
+                            // `· bentuk v<n>` belum: versi bentuk lahir di P6.
+                            if (bentuk.versiAcuan case VersiAcuanLembar(
+                              :final paket,
+                              data: NomorVersiAcuan(:final nomor),
+                            )) ...[
+                              _KakiVersiAcuan(paket: paket, nomor: nomor),
+                              const SizedBox(height: AppSpacing.sm),
+                            ],
+                            // Tombol kirim CUMA di halaman terakhir. Di halaman 1 dia
+                            // ada tapi belum kelihatan semua isinya — teknisi gampang
+                            // ngirim lembar yang tabel hasilnya masih kosong. Di mode
+                            // dua kolom seluruh lembar kelihatan sekaligus, jadi nggak
+                            // ada yang perlu ditahan.
+                            if (duaKolom ||
+                                _halaman == bentuk.halaman.length - 1)
+                              AppButton(
+                                // Admin ngisi lembarnya buat dirinya sendiri — nggak ada
+                                // "ke admin"-nya. Yang nentuin bentuk formulir juga
+                                // backend (`untuk: admin`), jadi label ini ikut sumber
+                                // yang sama, bukan ngecek role sendiri.
+                                label: bentuk.untukAdmin
+                                    ? l10n.lkKirimAdmin
+                                    : l10n.lkKirim,
+                                isLoading: _mengirim,
+                                // SELALU aktif. Lihat docblock LembarKerjaScreen.
+                                onPressed: () => _submit(draft: false),
+                              )
+                            else
+                              AppButton(
+                                label: l10n.lkHalamanLanjut,
+                                icon: Icons.arrow_forward,
+                                onPressed: () => setState(() => _halaman++),
+                              ),
                             const SizedBox(height: AppSpacing.sm),
-                          ],
-                          // Tombol kirim CUMA di halaman terakhir. Di halaman 1 dia
-                          // ada tapi belum kelihatan semua isinya — teknisi gampang
-                          // ngirim lembar yang tabel hasilnya masih kosong. Di mode
-                          // dua kolom seluruh lembar kelihatan sekaligus, jadi nggak
-                          // ada yang perlu ditahan.
-                          if (duaKolom || _halaman == bentuk.halaman.length - 1)
-                            AppButton(
-                              // Admin ngisi lembarnya buat dirinya sendiri — nggak ada
-                              // "ke admin"-nya. Yang nentuin bentuk formulir juga
-                              // backend (`untuk: admin`), jadi label ini ikut sumber
-                              // yang sama, bukan ngecek role sendiri.
-                              label: bentuk.untukAdmin
-                                  ? l10n.lkKirimAdmin
-                                  : l10n.lkKirim,
-                              isLoading: _mengirim,
-                              // SELALU aktif. Lihat docblock LembarKerjaScreen.
-                              onPressed: () => _submit(draft: false),
-                            )
-                          else
-                            AppButton(
-                              label: l10n.lkHalamanLanjut,
-                              icon: Icons.arrow_forward,
-                              onPressed: () => setState(() => _halaman++),
-                            ),
-                          const SizedBox(height: AppSpacing.sm),
-                          Row(
-                            children: [
-                              if (!duaKolom && _halaman > 0) ...[
+                            Row(
+                              children: [
+                                if (!duaKolom && _halaman > 0) ...[
+                                  Expanded(
+                                    child: AppButton(
+                                      label: l10n.lkHalamanKembali,
+                                      icon: Icons.arrow_back,
+                                      variant: AppButtonVariant.secondary,
+                                      onPressed: () =>
+                                          setState(() => _halaman--),
+                                    ),
+                                  ),
+                                  const SizedBox(width: AppSpacing.sm),
+                                ],
                                 Expanded(
+                                  // Simpan draft ada di SETIAP halaman, bukan cuma yang
+                                  // terakhir: teknisi sering kepotong di tengah kerjaan
+                                  // (alat dipakai orang, dipanggil, baterai HP habis),
+                                  // dan kehilangan separuh lembar kerja jauh lebih mahal
+                                  // daripada tombol yang kesebar.
                                   child: AppButton(
-                                    label: l10n.lkHalamanKembali,
-                                    icon: Icons.arrow_back,
+                                    label: l10n.lkSimpanDraft,
                                     variant: AppButtonVariant.secondary,
-                                    onPressed: () => setState(() => _halaman--),
+                                    isLoading: _mengirim,
+                                    onPressed: () => _submit(draft: true),
                                   ),
                                 ),
-                                const SizedBox(width: AppSpacing.sm),
                               ],
-                              Expanded(
-                                // Simpan draft ada di SETIAP halaman, bukan cuma yang
-                                // terakhir: teknisi sering kepotong di tengah kerjaan
-                                // (alat dipakai orang, dipanggil, baterai HP habis),
-                                // dan kehilangan separuh lembar kerja jauh lebih mahal
-                                // daripada tombol yang kesebar.
-                                child: AppButton(
-                                  label: l10n.lkSimpanDraft,
-                                  variant: AppButtonVariant.secondary,
-                                  isLoading: _mengirim,
-                                  onPressed: () => _submit(draft: true),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            );
-          },
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -2747,6 +2911,7 @@ class _LembarSatuKolom extends StatelessWidget {
     required this.onBerubah,
     required this.profil,
     this.sesiId,
+    this.gulir,
   });
 
   /// Sesi yang lagi dikerjakan — dioper turun ke tombol pindai.
@@ -2754,6 +2919,9 @@ class _LembarSatuKolom extends StatelessWidget {
 
   /// Kode ALAT, dioper turun ke tombol pindai.
   final String profil;
+
+  /// Pengendali gulir milik layar, buat lompat dari ringkasan sebelum kirim.
+  final ScrollController? gulir;
 
   final LembarKerja bentuk;
   final LembarKerjaState isian;
@@ -2763,6 +2931,7 @@ class _LembarSatuKolom extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
+      controller: gulir,
       // Scroll balik ke atas tiap ganti halaman — tanpa key, posisi scroll
       // halaman 1 kebawa ke halaman 2 dan teknisi mendarat di tengah tabel
       // tanpa lihat judulnya.
@@ -2828,6 +2997,8 @@ class _LembarDuaKolom extends StatelessWidget {
     required this.onBerubah,
     required this.profil,
     this.sesiId,
+    this.gulirKiri,
+    this.gulirKanan,
   });
 
   /// Sesi yang lagi dikerjakan — dioper turun ke tombol pindai.
@@ -2835,6 +3006,10 @@ class _LembarDuaKolom extends StatelessWidget {
 
   /// Kode ALAT, dioper turun ke tombol pindai.
   final String profil;
+
+  /// Pengendali gulir tiap kolom, buat lompat dari ringkasan sebelum kirim.
+  final ScrollController? gulirKiri;
+  final ScrollController? gulirKanan;
 
   final LembarKerja bentuk;
   final LembarKerjaState isian;
@@ -2908,6 +3083,7 @@ class _LembarDuaKolom extends StatelessWidget {
             children: [
               Expanded(
                 child: ListView(
+                  controller: gulirKiri,
                   key: const PageStorageKey('lk-kolom-kiri'),
                   padding: const EdgeInsets.all(AppSpacing.md),
                   children: _isiKolom(bentuk.halaman.first),
@@ -2916,6 +3092,7 @@ class _LembarDuaKolom extends StatelessWidget {
               const VerticalDivider(width: 1, thickness: 1),
               Expanded(
                 child: ListView(
+                  controller: gulirKanan,
                   key: const PageStorageKey('lk-kolom-kanan'),
                   padding: const EdgeInsets.all(AppSpacing.md),
                   children: _isiKolom(bentuk.halaman.last),
@@ -3092,7 +3269,10 @@ class _Bagian extends ConsumerWidget {
   final bool gambarGrid;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context, WidgetRef ref) =>
+      TandaLompat(kode: kodeLompatBagian(bagian), child: _kartu(context, ref));
+
+  Widget _kartu(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     // Satu saklar buat DUA tombol pindai di bagian ini — yang lembar penuh di
@@ -4349,19 +4529,22 @@ class _KotakSpesifikasi extends StatelessWidget {
 
     if (controller == null) return const SizedBox.shrink();
 
-    return PemantauTerisi(
-      controller: controller,
-      wajib: wajib,
-      builder: (context, terisi) => TextField(
+    return TandaLompat(
+      kode: field.kode,
+      child: PemantauTerisi(
         controller: controller,
-        decoration: dekorasiIsian(
-          context,
-          wajib: wajib,
-          terisi: terisi,
-          tandaDiHint: satuan == null,
-          base: InputDecoration(
-            labelText: satuan,
-            border: const OutlineInputBorder(),
+        wajib: wajib,
+        builder: (context, terisi) => TextField(
+          controller: controller,
+          decoration: dekorasiIsian(
+            context,
+            wajib: wajib,
+            terisi: terisi,
+            tandaDiHint: satuan == null,
+            base: InputDecoration(
+              labelText: satuan,
+              border: const OutlineInputBorder(),
+            ),
           ),
         ),
       ),
@@ -4648,7 +4831,10 @@ class _Field extends ConsumerWidget {
   final VoidCallback onBerubah;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context, WidgetRef ref) =>
+      TandaLompat(kode: field.kode, child: _bungkus(context, ref));
+
+  Widget _bungkus(BuildContext context, WidgetRef ref) {
     // Kolom yang diminta admin dibetulin dikasih pita di kiri + label kecil.
     // Sengaja penanda, bukan penghalang: teknisi tetap boleh ngirim tanpa
     // nyentuh semuanya — kadang yang diminta admin ternyata udah bener dan
