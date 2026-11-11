@@ -18,6 +18,17 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:node="remove"/>
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove"/>
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" tools:node="remove"/>
+    <!-- Memasang APK pemutakhiran Studio dari dalam aplikasi (banner
+         `PembaruApkStudio`). Studio tidak lewat Play Store. `open_filex`
+         (dipakai pemasang bersama) sengaja mencabut izin ini dari manifest-nya,
+         jadi aplikasi yang butuh harus mendeklarasikannya sendiri; tanpa baris
+         ini menu "Install unknown apps" tidak muncul untuk Studio dan tombol
+         PASANG selalu ditolak sistem. Izin ini TIDAK memberi hak memasang
+         diam-diam: pengguna tetap mengizinkan sekali dan mengetuk "Install".
+         Jalur PackageInstaller (`PemasangSesi`) milik app lapangan sengaja
+         tidak dibawa; pemasangan lewat `open_filex`. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
+
     <application
         android:label="Sidik Studio"
         android:name="${applicationName}"

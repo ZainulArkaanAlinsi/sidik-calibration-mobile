@@ -14,6 +14,7 @@ import '../tema/warna_studio.dart';
 import '../widget/bilah_status.dart';
 import '../widget/dialog_sesi_berakhir.dart';
 import '../widget/merek_studio.dart';
+import '../widget/pembaru_apk_studio.dart';
 import 'seksi_studio.dart';
 
 /// Tata letak navigasi Studio (FR-STU-011, `04-UI-UX-Flow.md` §2.1).
@@ -199,6 +200,9 @@ class _CangkangStudioState extends ConsumerState<CangkangStudio> {
                   ],
                 ),
               ),
+              // "Versi X sudah tersedia" + PASANG (pembaru APK, Android saja).
+              // Kotak kosong di Windows/desktop atau bila tidak ada pembaruan.
+              const PembaruApkStudio(),
               // "Versi X siap — mulai ulang untuk memasang" (pembaru Windows
               // Studio, `main.dart`). Kotak kosong bila tidak ada pembaruan.
               const BannerPembaruanWindows(),
