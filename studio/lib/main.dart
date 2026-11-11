@@ -15,12 +15,15 @@ import 'tema/font_studio.dart';
 ///
 /// Yang SENGAJA tidak ada di sini, beda dari `main.dart` app lapangan:
 ///  - `Firebase.initializeApp` / ketukan push — Studio tanpa push;
-///  - pembaru APK — Studio di Android belum punya jalur rilis.
+///  - `MockStore` — riwayat sesi mock milik alur lapangan.
+///
+/// Pembaru APK (Android) ADA: banner `PembaruApkStudio` di cangkang, sumber
+/// versinya `penimpaanVersiStudio` (`?aplikasi=studio`). Yang sengaja tidak
+/// dibawa dari app lapangan: pop-up otomatis dan pemasangan diam.
 ///
 /// Pembaru WINDOWS ada (22 Okt 2026): mesinnya `PembaruWindows` paket
 /// bersama, tapi membaca manifest Studio sendiri ([urlManifestStudio]) —
 /// tidak pernah manifest app lapangan.
-///  - `MockStore` — riwayat sesi mock milik alur lapangan.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -41,6 +44,7 @@ Future<void> main() async {
       overrides: [
         ...penimpaanStudio,
         ...penimpaanSesiStudio,
+        ...penimpaanVersiStudio,
         alamatServerDevAwalProvider.overrideWithValue(alamatDev),
         if (pembaru != null) pembaruWindowsProvider.overrideWithValue(pembaru),
       ],

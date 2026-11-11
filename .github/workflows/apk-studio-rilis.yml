@@ -1,0 +1,331 @@
+# APK Sidik Studio (Android) — diterbitkan ke GitHub Release yang SAMA dengan
+# APK app lapangan, supaya Studio di tablet bisa menampilkan "ada versi baru".
+#
+# ## Kenapa workflow TERPISAH, bukan job di `apk-rilis-cloud.yml`
+#
+# `rilis-desktop.yml` dipicu `workflow_run` selesainya "APK rilis (nyambung
+# server)". Job tambahan di workflow itu menunda rilis desktop & web sampai
+# build Studio selesai (belasan menit), dan bisa mengubah hasil akhir workflow
+# yang jadi syarat rilis lain. Di sini Studio menumpang SESUDAH rilis lab
+# terbit, lewat jalur yang sama dengan `rilis-desktop.yml`, tanpa bisa
+# menghalangi atau menggagalkan apa pun di hulu.
+#
+# ## Yang dilakukan
+#
+# 1. Menunggu workflow APK lab sukses di `main` (atau dijalankan manual).
+# 2. Membangun `studio/` sebagai APK release, ditandatangani keystore rilis.
+# 3. Mengunggah `sidik-studio-<versi>.apk` + `sidik-studio.apk` ke release
+#    `v<versi-lab>+<build>` yang SUDAH ada. Tidak membuat release dan tidak
+#    menyentuh status `--latest`.
+#
+# `GET /api/app/versi-terbaru?aplikasi=studio` membaca aset itu dari
+# `releases/latest`. Versi Studio diambil API dari NAMA ASET
+# (`sidik-studio-0.1.NNN.apk`), jadi `--build-name` di bawah WAJIB sama dengan
+# nama versi di nama berkas.
+#
+# ## Dimatikan sampai dinyalakan pemilik
+#
+# Seluruh job menunggu variabel repo `STUDIO_APK_AKTIF=true`:
+#
+#   gh variable set STUDIO_APK_AKTIF --body true
+#
+# Alasannya ada dua keputusan yang bukan milik workflow ini:
+#   - Studio memakai keystore YANG SAMA dengan app lapangan (secret
+#     `ANDROID_KEYSTORE_*`). Secara teknis aman (applicationId berbeda,
+#     `com.ptsidik.studio`), tapi `studio/android/app/build.gradle.kts`
+#     semula menulis "kunci BERBEDA" dan "tidak dipublikasikan" (keputusan
+#     13 Okt 2026). Repo ini publik: APK Studio di Release terlihat siapa saja.
+#   - Pemasangan pertama dari APK ber-kunci rilis tetap harus uninstall APK
+#     debug yang sekarang ada di tablet (tanda tangan beda).
+#
+# Pembatas keras (job gagal sebelum mengunggah apa pun): URL server valid,
+# keempat secret keystore ada, `APK_SHA256` terisi dan COCOK dengan sertifikat
+# APK Studio, nama paket APK = `com.ptsidik.studio`, dan release lab untuk
+# commit itu sudah ada.
+#
+# ## Keterbatasan yang diketahui
+#
+# Workflow ini mengikuti rilis lab. Perubahan yang HANYA menyentuh `studio/**`
+# tidak memicu `apk-rilis-cloud.yml` (filter `paths`-nya), jadi APK Studio baru
+# terbit pada rilis lab berikutnya atau lewat "Run workflow" manual di sini
+# (butuh release lab untuk commit yang sama — jalankan lab dulu).
+
+name: APK Studio rilis (Android)
+
+on:
+  workflow_run:
+    workflows: ["APK rilis (nyambung server)"]
+    types: [completed]
+
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: 3.44.6
+
+# Dua rilis berdekatan: yang lama dibatalkan. Aman karena workflow ini hanya
+# MENGUNGGAH aset ke tag-nya sendiri, tidak mengubah `latest`.
+concurrency:
+  group: apk-studio-rilis-${{ github.event.workflow_run.head_sha || github.sha }}
+  # false: run yang di-skip `if:` tetap masuk grup ini dan tidak boleh
+  # membatalkan build Studio yang sedang jalan di sha yang sama.
+  cancel-in-progress: false
+
+jobs:
+  apk-studio:
+    # Saklar (lihat komentar atas) + syarat yang sama dengan `rilis-desktop.yml`:
+    # hanya dari rilis lab yang sukses di `main`. `vars` boleh dibaca di `if:`
+    # tingkat job.
+    if: >-
+      vars.STUDIO_APK_AKTIF == 'true'
+      && ((github.event_name == 'workflow_dispatch'
+           && github.ref == 'refs/heads/main')
+          || (github.event.workflow_run.conclusion == 'success'
+              && github.event.workflow_run.head_branch == 'main'))
+    runs-on: ubuntu-latest
+    name: build apk studio
+
+    # Perlu mengunggah aset ke GitHub Release.
+    permissions:
+      contents: write
+
+    env:
+      # `secrets` tak bisa dibaca dari `if:` sebuah step; turunkan jadi
+      # 'true'/'false' di sini. Yang terbuka cuma ada/tidaknya, bukan isinya.
+      PUNYA_KUNCI_TANDA_TANGAN: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+
+    steps:
+      # `ref` WAJIB: pada `workflow_run`, GITHUB_SHA menunjuk commit terakhir
+      # branch bawaan, bukan commit yang dibangun rilis lab — nomor build
+      # (jumlah commit) dan tag-nya akan salah. `fetch-depth: 0` untuk
+      # menghitung commit. Alasan lengkap: `rilis-desktop.yml`.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Pastiin URL server udah dipasang
+        env:
+          URL: ${{ vars.API_BASE_URL }}
+        run: |
+          if [ -z "$URL" ]; then
+            echo "::error::Repository variable API_BASE_URL belum diisi."
+            exit 1
+          fi
+          case "$URL" in
+            *"<"*|*">"*)
+              echo "::error::API_BASE_URL masih berisi contoh dari dokumentasi ($URL)."
+              exit 1 ;;
+            https://*) ;;
+            *)
+              echo "::error::API_BASE_URL harus mulai dengan https:// (sekarang: $URL)."
+              exit 1 ;;
+          esac
+          case "$URL" in
+            */api|*/api/)
+              echo "::error::API_BASE_URL jangan pakai /api di belakang — workflow ini yang nambahin sendiri."
+              exit 1 ;;
+          esac
+
+      # Tanpa keystore, Gradle Studio jatuh ke kunci DEBUG yang beda tiap
+      # runner — pembaruan berikutnya ditolak Android. Lebih baik tidak terbit.
+      - name: Pastiin kunci penanda tangan dan sidik jarinya udah dipasang
+        env:
+          SHA_HARAPAN: ${{ vars.APK_SHA256 }}
+        run: |
+          if [ "$PUNYA_KUNCI_TANDA_TANGAN" != "true" ]; then
+            echo "::error::Secret ANDROID_KEYSTORE_BASE64 belum dipasang (lihat docs/rilis-tanda-tangan-apk.md)."
+            exit 1
+          fi
+          if [ -z "${SHA_HARAPAN:-}" ]; then
+            echo "::error::Repository variable APK_SHA256 belum diisi (lihat docs/rilis-tanda-tangan-apk.md)."
+            exit 1
+          fi
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Pasang dependensi Studio
+        working-directory: studio
+        run: |
+          flutter pub get
+          flutter gen-l10n
+
+      # Memakai secret yang SAMA dengan `apk-rilis-cloud.yml`. Isinya tidak
+      # pernah dicetak; `key.properties` ada di .gitignore dan runner dibuang
+      # utuh sesudah run. Gradle Studio membacanya dari `studio/android/`.
+      - name: Pasang kunci penanda tangan
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          BERKAS_KUNCI: ${{ runner.temp }}/sidik-rilis.jks
+        run: |
+          set -euo pipefail
+
+          for nama in STORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!nama}" ]; then
+              echo "::error::Secret ANDROID_${nama} belum dipasang. Keempatnya wajib."
+              exit 1
+            fi
+          done
+
+          printf '%s' "$KEYSTORE_B64" | base64 -d > "$BERKAS_KUNCI"
+
+          keytool -list -keystore "$BERKAS_KUNCI" -storepass "$STORE_PASSWORD" >/dev/null \
+            || { echo "::error::ANDROID_KEYSTORE_BASE64 bukan keystore yang sah, atau ANDROID_KEYSTORE_PASSWORD salah."; exit 1; }
+
+          {
+            printf '%s=%s\n' storeFile "$BERKAS_KUNCI"
+            printf '%s=%s\n' storePassword "$STORE_PASSWORD"
+            printf '%s=%s\n' keyAlias "$KEY_ALIAS"
+            printf '%s=%s\n' keyPassword "$KEY_PASSWORD"
+          } > studio/android/key.properties
+
+      # Dua nomor dari commit yang sama:
+      #  - versi STUDIO  = major.minor `studio/pubspec.yaml` + jumlah commit
+      #    (persis job `studio` di `rilis-desktop.yml`) → nama aset + build-name;
+      #  - tag release LAB = major.minor `pubspec.yaml` akar + jumlah commit
+      #    (persis `apk-rilis-cloud.yml`) → release tempat aset diunggah.
+      - name: Susun nomor versi
+        id: versi
+        run: |
+          set -euo pipefail
+
+          mayor_minor() {
+            grep -m1 '^version:' "$1" | sed 's/^version:[[:space:]]*//' | cut -d'+' -f1 | cut -d'.' -f1,2
+          }
+
+          MM_STUDIO=$(mayor_minor studio/pubspec.yaml)
+          MM_LAB=$(mayor_minor pubspec.yaml)
+
+          if [ -z "$MM_STUDIO" ] || [ -z "$MM_LAB" ]; then
+            echo "::error::Gagal membaca 'version:' dari pubspec.yaml (studio atau akar)."
+            exit 1
+          fi
+
+          NOMOR_BUILD=$(git rev-list --count HEAD)
+
+          if [ "$NOMOR_BUILD" -lt 100 ]; then
+            echo "::error::Jumlah commit kebaca $NOMOR_BUILD — kekecilan, hampir pasti checkout-nya dangkal."
+            exit 1
+          fi
+
+          echo "nama=${MM_STUDIO}.${NOMOR_BUILD}" >> "$GITHUB_OUTPUT"
+          echo "build=${NOMOR_BUILD}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${MM_LAB}.${NOMOR_BUILD}+${NOMOR_BUILD}" >> "$GITHUB_OUTPUT"
+          echo "APK Studio: ${MM_STUDIO}.${NOMOR_BUILD} (build ${NOMOR_BUILD}) → release v${MM_LAB}.${NOMOR_BUILD}+${NOMOR_BUILD}" >> "$GITHUB_STEP_SUMMARY"
+
+      # Gagal SEBELUM build 10 menit kalau release lab-nya belum ada (mis.
+      # dijalankan manual di commit yang belum dirilis lab).
+      - name: Pastiin release lab-nya sudah terbit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.versi.outputs.tag }}
+        run: |
+          gh release view "$TAG" >/dev/null 2>&1 \
+            || { echo "::error::Release $TAG belum ada. APK Studio menumpang release lab di commit yang sama — jalankan 'APK rilis (nyambung server)' dulu."; exit 1; }
+
+      - name: Build APK Studio
+        working-directory: studio
+        env:
+          NAMA_VERSI: ${{ steps.versi.outputs.nama }}
+          NOMOR_BUILD: ${{ steps.versi.outputs.build }}
+        run: |
+          flutter build apk --release \
+            --target-platform android-arm,android-arm64 \
+            --build-name="$NAMA_VERSI" \
+            --build-number="$NOMOR_BUILD" \
+            --dart-define=APP_ENV=prod \
+            --dart-define=API_BASE_URL="${{ vars.API_BASE_URL }}/api" \
+            --dart-define=VERSI_STUDIO="${NAMA_VERSI}+${NOMOR_BUILD}"
+
+          UKURAN=$(du -m build/app/outputs/flutter-apk/app-release.apk | cut -f1)
+          echo "APK Studio arm+arm64: ${UKURAN} MB (build $NOMOR_BUILD)" >> "$GITHUB_STEP_SUMMARY"
+
+      # Tiga pemeriksaan sebelum satu byte pun diunggah: bukan kunci debug,
+      # sidik jari = `APK_SHA256` (kunci rilis yang dipatok), dan paketnya
+      # memang Studio — bukan app lapangan yang salah build.
+      - name: Pastiin APK-nya Studio dan ditandatangani kunci rilis yang benar
+        env:
+          SHA_HARAPAN: ${{ vars.APK_SHA256 }}
+          APK: studio/build/app/outputs/flutter-apk/app-release.apk
+        run: |
+          set -euo pipefail
+
+          ALAT=$(ls -d "${ANDROID_HOME:-}"/build-tools/*/ 2>/dev/null | sort -V | tail -1 || true)
+          if [ -z "$ALAT" ] || [ ! -x "${ALAT}apksigner" ] || [ ! -x "${ALAT}aapt2" ]; then
+            echo "::error::apksigner/aapt2 nggak ketemu di \$ANDROID_HOME/build-tools. Runner-nya berubah — betulkan pencariannya, jangan dilewati."
+            exit 1
+          fi
+
+          PAKET=$("${ALAT}aapt2" dump packagename "$APK")
+          if [ "$PAKET" != "com.ptsidik.studio" ]; then
+            echo "::error::Nama paket APK = '$PAKET', bukan com.ptsidik.studio. Jangan diunggah."
+            exit 1
+          fi
+
+          CETAK=$("${ALAT}apksigner" verify --print-certs "$APK")
+          DN=$(printf '%s\n' "$CETAK" | grep -m1 'certificate DN:' | sed 's/.*certificate DN: //' || true)
+          SHA=$(printf '%s\n' "$CETAK" | grep -m1 'certificate SHA-256 digest:' | awk '{print $NF}' || true)
+
+          case "$DN" in
+            *"Android Debug"*)
+              echo "::error::APK Studio ditandatangani kunci DEBUG ($DN). studio/android/key.properties nggak kebaca Gradle."
+              exit 1 ;;
+          esac
+
+          if [ -z "$SHA" ]; then
+            echo "::error::apksigner nggak memulangkan sidik jari SHA-256."
+            exit 1
+          fi
+
+          rapikan() { printf '%s' "$1" | tr 'A-Z' 'a-z' | tr -d ' :'; }
+
+          if [ "$(rapikan "$SHA")" != "$(rapikan "${SHA_HARAPAN:-}")" ]; then
+            echo "::error::Sidik jari penanda tangan BEDA dari APK_SHA256 (dipatok: $SHA_HARAPAN — terpakai: $SHA). Jangan diunggah; lihat docs/rilis-tanda-tangan-apk.md."
+            exit 1
+          fi
+
+          {
+            echo "Paket: \`$PAKET\` · penanda tangan: $DN"
+            echo ""
+            echo "SHA-256: \`$SHA\` — cocok dengan \`APK_SHA256\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # `--clobber` agar re-run di commit yang sama menimpa, bukan gagal.
+      # Tidak ada `gh release create`/`--latest`: yang menentukan "terbaru"
+      # tetap rilis lab.
+      - name: Unggah ke GitHub Release lab
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.versi.outputs.tag }}
+          NAMA_VERSI: ${{ steps.versi.outputs.nama }}
+        run: |
+          set -euo pipefail
+
+          BERKAS="sidik-studio-${NAMA_VERSI}.apk"
+          BERKAS_TETAP="sidik-studio.apk"
+          cp studio/build/app/outputs/flutter-apk/app-release.apk "$BERKAS"
+          cp studio/build/app/outputs/flutter-apk/app-release.apk "$BERKAS_TETAP"
+
+          gh release upload "$TAG" "$BERKAS" "$BERKAS_TETAP" --clobber
+
+          {
+            echo ""
+            echo "APK Studio terunggah ke $TAG sebagai \`$BERKAS\`."
+            echo ""
+            echo "**Tautan tetap (versi terbaru):**"
+            echo ""
+            echo "\`\`\`"
+            echo "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/latest/download/${BERKAS_TETAP}"
+            echo "\`\`\`"
+          } >> "$GITHUB_STEP_SUMMARY"

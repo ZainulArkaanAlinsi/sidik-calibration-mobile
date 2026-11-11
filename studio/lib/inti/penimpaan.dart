@@ -4,13 +4,16 @@ import 'package:sidik_calibration/providers/auth_provider.dart';
 import 'package:sidik_calibration/providers/data_acuan_provider.dart';
 import 'package:sidik_calibration/providers/izin_provider.dart';
 import 'package:sidik_calibration/providers/pendaftaran_push_provider.dart';
+import 'package:sidik_calibration/providers/versi_provider.dart';
 import 'package:sidik_calibration/services/api_client.dart';
 import 'package:sidik_calibration/services/izin_service.dart';
 import 'package:sidik_calibration/services/mock_auth_service.dart';
+import 'package:sidik_calibration/services/versi_service.dart';
 import 'package:sidik_calibration/services/klien_http_beridentitas.dart';
 import 'package:sidik_calibration/services/sumber_token_push.dart';
 
 import '../data/sesi_api_studio.dart';
+import '../data/versi_api_studio.dart';
 import 'lingkungan_studio.dart';
 import 'sesi_studio.dart';
 
@@ -92,5 +95,25 @@ final List<Override> penimpaanSesiStudio = [
   izinServiceProvider.overrideWith((ref) {
     if (AppConfig.useMock) return MockIzinService();
     return ApiIzinServiceStudio(ref.watch(apiClientProvider));
+  }),
+];
+
+/// Sumber versi untuk pembaru APK Studio di Android (`PembaruApkStudio`).
+///
+/// [versiServiceProvider] paket bersama bertanya `/app/versi-terbaru` TANPA
+/// parameter, yang dijawab server dengan APK app lapangan (`1.0.NNN`).
+/// [ApiVersiServiceStudio] bertanya `?aplikasi=studio` dan mendapat APK Studio
+/// berversi `0.1.NNN` — skema yang sama dengan versi terpasang, sehingga
+/// perbandingannya benar. Provider lain rantai pembaruan (`updateTersediaProvider`,
+/// `updateSiapProvider`, unduhan) dipakai apa adanya; perilaku app lapangan
+/// tidak berubah karena penimpaan ini hanya hidup di `ProviderScope` Studio.
+///
+/// Dipasang `main.dart` SAJA, terpisah dari [penimpaanStudio], dengan alasan
+/// yang sama dengan [penimpaanSesiStudio]: widget test yang menimpa
+/// [versiServiceProvider] sendiri tidak menimpa provider yang sama dua kali.
+final List<Override> penimpaanVersiStudio = [
+  versiServiceProvider.overrideWith((ref) {
+    if (AppConfig.useMock) return MockVersiService();
+    return ApiVersiServiceStudio(ref.watch(apiClientProvider));
   }),
 ];
