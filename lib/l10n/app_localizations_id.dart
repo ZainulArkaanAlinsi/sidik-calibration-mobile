@@ -7441,4 +7441,50 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get rskTidakBisaLompat =>
       'Kolom itu belum ketemu di layar. Gulir sendiri ke sana.';
+
+  @override
+  String get jlJudul => 'Jenis lembar';
+
+  @override
+  String jlKodeTerbaca(String kode) {
+    return 'Kode formulir terbaca: $kode';
+  }
+
+  @override
+  String get jlKodeTidakTerbaca =>
+      'Kode formulir tidak terbaca. Pilih jenis lembar sendiri.';
+
+  @override
+  String jlKodeTakDikenal(String kode) {
+    return 'Kode formulir ini ($kode) tidak ada di daftar lembar. Pilih jenis lembar sendiri.';
+  }
+
+  @override
+  String jlBeberapaKode(String kode) {
+    return 'Terbaca beberapa kode formulir ($kode). Pilih jenis lembar sendiri.';
+  }
+
+  @override
+  String get jlBeberapaJenis =>
+      'Kode ini dipakai beberapa jenis lembar. Pilih yang sesuai dengan alat Anda.';
+
+  @override
+  String get jlSatuJenis => 'Usulan jenis lembar. Ganti kalau tidak sesuai.';
+
+  @override
+  String get jlDariJudul =>
+      'Usulan dari judul tercetak saja (kode tidak terbaca). Periksa lagi.';
+
+  @override
+  String get jlPilihManual => 'Pilih jenis lembar manual';
+
+  @override
+  String get jlPakai => 'Pakai jenis lembar ini';
+
+  @override
+  String get jlCatatan =>
+      'Ini hanya petunjuk. Anda yang menentukan jenis lembar; tidak ada yang terisi sebelum Anda konfirmasi.';
+
+  @override
+  String get jlDaftarManual => 'Semua jenis lembar';
 }
