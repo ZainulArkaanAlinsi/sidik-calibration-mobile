@@ -32,7 +32,6 @@ const _superAdmin = 'mock-token-5';
 
 // ── Pengganti service (merekam panggilan) ───────────────────────────────────
 
-
 class _PelacakanSpy extends MockPelacakanService {
   static const paketTerlambat = PaketLacak(
     id: 35,
@@ -655,15 +654,19 @@ void main() {
       'Pelanggan',
       'Standar Acuan',
       'Data Teknisi',
+      // Tiga pintu layar lab baru (12 Nov 2026) — admin memegang ketiganya.
+      'Buat akun teknisi',
       'Metode Kalibrasi',
       'Rumus Kalibrasi',
       'Ruangan Lab',
       'Tanda Tangan Sertifikat',
       'Data Organisasi',
+      'Logo kop sertifikat',
       'Import Excel',
+      'Riwayat perubahan',
     ];
 
-    testWidgets('sembilan pintu dalam tiga grup', (tester) async {
+    testWidgets('dua belas pintu dalam empat grup', (tester) async {
       await _pasang(tester, _app(const KelolaLabScreen()));
 
       expect(find.text('Kelola lab'), findsOneWidget);
@@ -671,13 +674,14 @@ void main() {
         'DATA MASTER',
         'METODE & RUANGAN',
         'DOKUMEN & SISTEM',
+        'PENGAWASAN',
       ]) {
         expect(find.text(grup), findsOneWidget);
       }
       for (final judul in judulPintu) {
         expect(find.text(judul), findsOneWidget, reason: judul);
       }
-      expect(find.byIcon(Icons.chevron_right), findsNWidgets(9));
+      expect(find.byIcon(Icons.chevron_right), findsNWidgets(12));
     });
 
     testWidgets('mengetuk pintu mendorong layar tujuan', (tester) async {

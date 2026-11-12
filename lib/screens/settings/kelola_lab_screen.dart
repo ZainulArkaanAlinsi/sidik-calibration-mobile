@@ -4,11 +4,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/sidik_material.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/izin.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/izin_provider.dart';
 import '../../widgets/readable_width.dart';
 import '../admin/import_excel_screen.dart';
+import '../audit/audit_log_screen.dart';
 import '../data_acuan/paket_alur_acuan_screen.dart';
 import '../data_acuan/widgets/hak_alur_acuan.dart';
+import 'buat_teknisi_screen.dart';
 import 'customer_list_screen.dart';
+import 'logo_organisasi_screen.dart';
 import 'metode_list_screen.dart';
 import 'organization_screen.dart';
 import 'ruangan_list_screen.dart';
@@ -40,6 +46,20 @@ class KelolaLabScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final bolehAlurAcuan = bolehBukaAlurAcuan(ref);
+    final hakAdmin = ref.watch(authProvider).value?.role.hakAdmin ?? false;
+    // Tiga pintu baru ikut izin SERVER (`/me/permissions`), cadangannya aturan
+    // admin lama — pola yang sama dengan `desktop_shell.dart`.
+    final bolehBuatTeknisi = ref.bolehkah(
+      NamaIzin.teknisiKelola,
+      cadangan: hakAdmin,
+    );
+    final bolehLogo = ref.bolehkah(NamaIzin.organisasiLogo, cadangan: hakAdmin);
+    // Server belum punya izin `audit.*`; `/audit-logs` satu grup `role:admin`
+    // dengan `/users`, jadi nebeng `pengguna.kelola` (lihat `AuditLogScreen`).
+    final bolehAudit = ref.bolehkah(
+      NamaIzin.penggunaKelola,
+      cadangan: hakAdmin,
+    );
 
     final grup = <(String, List<_Pintu>)>[
       (
@@ -51,6 +71,13 @@ class KelolaLabScreen extends ConsumerWidget {
               () => const StandardListScreen()),
           _Pintu(Icons.badge_outlined, l10n.teknisiTitle, l10n.kelolaPenggunaSub,
               () => const TechnicianListScreen()),
+          if (bolehBuatTeknisi)
+            _Pintu(
+              Icons.person_add_alt_1_outlined,
+              l10n.buatTekJudul,
+              l10n.buatTekSub,
+              () => const BuatTeknisiScreen(),
+            ),
         ],
       ),
       (
@@ -71,6 +98,13 @@ class KelolaLabScreen extends ConsumerWidget {
               () => const TandaTanganScreen()),
           _Pintu(Icons.apartment_outlined, l10n.profOrgData, l10n.profOrgDataSub,
               () => const OrganizationScreen()),
+          if (bolehLogo)
+            _Pintu(
+              Icons.image_outlined,
+              l10n.logoOrgJudul,
+              l10n.logoOrgSub,
+              () => const LogoOrganisasiScreen(),
+            ),
           _Pintu(Icons.upload_file_outlined, l10n.importTitle, l10n.kelolaImportSub,
               () => const ImportExcelScreen()),
           if (bolehAlurAcuan)
@@ -78,6 +112,18 @@ class KelolaLabScreen extends ConsumerWidget {
                 l10n.alurAcuanKelolaSub, () => const PaketAlurAcuanScreen()),
         ],
       ),
+      if (bolehAudit)
+        (
+          l10n.kelolaGrupPengawasan,
+          [
+            _Pintu(
+              Icons.manage_search_outlined,
+              l10n.auditJudul,
+              l10n.auditSub,
+              () => const AuditLogScreen(),
+            ),
+          ],
+        ),
     ];
 
     return Scaffold(

@@ -7441,4 +7441,241 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get rskTidakBisaLompat =>
       'Kolom itu belum ketemu di layar. Gulir sendiri ke sana.';
+
+  @override
+  String get kelolaGrupPengawasan => 'Pengawasan';
+
+  @override
+  String get buatTekJudul => 'Buat akun teknisi';
+
+  @override
+  String get buatTekSub => 'Akun login baru untuk teknisi, langsung aktif';
+
+  @override
+  String get buatTekHanyaAdmin => 'Cuma admin yang bisa bikin akun teknisi.';
+
+  @override
+  String get buatTekIntro =>
+      'Akun langsung aktif dengan peran Teknisi. Orangnya login pakai ID pegawai atau email. Sandi awal disampaikan langsung ke orangnya.';
+
+  @override
+  String get buatTekNama => 'Nama lengkap';
+
+  @override
+  String get buatTekEmployeeId => 'ID pegawai';
+
+  @override
+  String get buatTekEmail => 'Email';
+
+  @override
+  String get buatTekDepartment => 'Departemen (opsional)';
+
+  @override
+  String get buatTekPassword => 'Sandi awal';
+
+  @override
+  String get buatTekPasswordHelper =>
+      'Minimal 8 karakter. Tidak ditampilkan lagi setelah akun dibuat.';
+
+  @override
+  String get buatTekPasswordUlang => 'Ulangi sandi awal';
+
+  @override
+  String get buatTekSimpan => 'Buat akun';
+
+  @override
+  String get buatTekNamaKosong => 'Nama wajib diisi.';
+
+  @override
+  String get buatTekEmployeeIdKosong => 'ID pegawai wajib diisi.';
+
+  @override
+  String get buatTekEmployeeIdAt =>
+      'ID pegawai tidak boleh memuat @. Saat login, tanda @ dibaca sebagai email.';
+
+  @override
+  String get buatTekEmailKosong => 'Email wajib diisi.';
+
+  @override
+  String get buatTekEmailSalah => 'Format email belum benar.';
+
+  @override
+  String get buatTekPasswordPendek => 'Sandi minimal 8 karakter.';
+
+  @override
+  String get buatTekPasswordBeda => 'Kedua sandi belum sama.';
+
+  @override
+  String get buatTekGagal => 'Akun belum dibuat. Coba lagi.';
+
+  @override
+  String buatTekBerhasil(String nama, String employeeId) {
+    return 'Akun teknisi $nama dibuat (ID pegawai $employeeId). Sampaikan sandi awalnya langsung ke orangnya, sandi tidak ditampilkan lagi.';
+  }
+
+  @override
+  String get auditJudul => 'Riwayat perubahan';
+
+  @override
+  String get auditSub => 'Siapa mengubah apa, kapan, dari berapa ke berapa';
+
+  @override
+  String get auditHanyaAdmin => 'Cuma admin yang bisa lihat riwayat perubahan.';
+
+  @override
+  String get auditBacaSaja =>
+      'Hanya baca. Riwayat tidak bisa diubah dari sini.';
+
+  @override
+  String get auditFilter => 'Filter';
+
+  @override
+  String get auditFilterJudul => 'Saring riwayat';
+
+  @override
+  String get auditFilterAksi => 'Aksi';
+
+  @override
+  String get auditSemua => 'Semua';
+
+  @override
+  String get auditAksiDibikin => 'Dibuat';
+
+  @override
+  String get auditAksiDiubah => 'Diubah';
+
+  @override
+  String get auditAksiDihapus => 'Dihapus';
+
+  @override
+  String get auditAksiDipulihkan => 'Dipulihkan';
+
+  @override
+  String get auditFilterTipe => 'Jenis data (nama tabel)';
+
+  @override
+  String get auditFilterTipeHint => 'mis. standards';
+
+  @override
+  String get auditFilterId => 'ID data';
+
+  @override
+  String get auditFilterDari => 'Dari tanggal';
+
+  @override
+  String get auditFilterSampai => 'Sampai tanggal';
+
+  @override
+  String get auditPilihTanggal => 'Pilih tanggal';
+
+  @override
+  String get auditTerapkan => 'Terapkan';
+
+  @override
+  String get auditReset => 'Reset';
+
+  @override
+  String get auditKosong => 'Tidak ada riwayat untuk penyaring ini.';
+
+  @override
+  String get auditGagalMuat => 'Riwayat belum bisa dimuat.';
+
+  @override
+  String get auditCobaLagi => 'Coba lagi';
+
+  @override
+  String get auditMuatLagi => 'Muat lebih banyak';
+
+  @override
+  String get auditMuatGagal => 'Halaman berikutnya gagal dimuat. Coba lagi.';
+
+  @override
+  String auditOleh(String nama) {
+    return 'oleh $nama';
+  }
+
+  @override
+  String get auditOlehSistem => 'oleh sistem (otomatis)';
+
+  @override
+  String auditEntitas(String tipe, String id) {
+    return '$tipe #$id';
+  }
+
+  @override
+  String get auditTanpaRincian => 'Tidak ada rincian kolom untuk aksi ini.';
+
+  @override
+  String get auditNilaiKosong => '(kosong)';
+
+  @override
+  String get auditNilaiDisembunyikan => '(disembunyikan)';
+
+  @override
+  String get auditSebelum => 'Sebelum';
+
+  @override
+  String get auditSesudah => 'Sesudah';
+
+  @override
+  String get auditCatatan => 'Catatan';
+
+  @override
+  String get auditTutup => 'Tutup';
+
+  @override
+  String get logoOrgJudul => 'Logo kop sertifikat';
+
+  @override
+  String get logoOrgSub =>
+      'Logo lab yang dicetak di kop sertifikat (PNG atau JPG)';
+
+  @override
+  String get logoOrgHanyaAdmin => 'Cuma admin yang bisa atur logo.';
+
+  @override
+  String get logoOrgInfo =>
+      'Logo ini dicetak di kop sertifikat. Format PNG atau JPG, maksimal 2 MB. WEBP dan GIF tidak bisa dicetak di PDF.';
+
+  @override
+  String get logoOrgBelum =>
+      'Belum ada logo khusus. Kop sertifikat memakai logo bawaan.';
+
+  @override
+  String get logoOrgUnggah => 'Unggah logo';
+
+  @override
+  String get logoOrgGanti => 'Ganti logo';
+
+  @override
+  String get logoOrgHapus => 'Hapus logo';
+
+  @override
+  String get logoOrgTerunggah => 'Logo diunggah.';
+
+  @override
+  String get logoOrgTerhapus => 'Logo dihapus. Kop memakai logo bawaan.';
+
+  @override
+  String get logoOrgHapusJudul => 'Hapus logo?';
+
+  @override
+  String get logoOrgHapusIsi =>
+      'Kop sertifikat berikutnya memakai logo bawaan. Kamu bisa unggah logo lagi kapan saja.';
+
+  @override
+  String get logoOrgTerlaluBesar =>
+      'Berkas lebih dari 2 MB. Pilih logo yang lebih kecil.';
+
+  @override
+  String get logoOrgGagalMuat => 'Logo belum bisa dimuat.';
+
+  @override
+  String get logoOrgRetry => 'Coba lagi';
+
+  @override
+  String get logoOrgGagal => 'Aksi logo gagal. Coba lagi.';
+
+  @override
+  String get logoOrgPratinjauGagal => 'Gambar logo tidak bisa ditampilkan.';
 }

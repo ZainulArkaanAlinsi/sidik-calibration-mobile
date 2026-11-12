@@ -4094,5 +4094,106 @@
   "rskKirim": "Send",
   "rskTetapKirim": "Send anyway",
   "rskLompatKet": "Tap to go to this field",
-  "rskTidakBisaLompat": "That field could not be found on screen. Scroll to it by hand."
+  "rskTidakBisaLompat": "That field could not be found on screen. Scroll to it by hand.",
+  "kelolaGrupPengawasan": "Oversight",
+  "buatTekJudul": "Create technician account",
+  "buatTekSub": "A new login for a technician, active right away",
+  "buatTekHanyaAdmin": "Only admins can create technician accounts.",
+  "buatTekIntro": "The account is active right away with the Technician role. They log in with their employee ID or email. Hand the initial password to them in person.",
+  "buatTekNama": "Full name",
+  "buatTekEmployeeId": "Employee ID",
+  "buatTekEmail": "Email",
+  "buatTekDepartment": "Department (optional)",
+  "buatTekPassword": "Initial password",
+  "buatTekPasswordHelper": "At least 8 characters. It is not shown again once the account is created.",
+  "buatTekPasswordUlang": "Repeat initial password",
+  "buatTekSimpan": "Create account",
+  "buatTekNamaKosong": "Name is required.",
+  "buatTekEmployeeIdKosong": "Employee ID is required.",
+  "buatTekEmployeeIdAt": "The employee ID cannot contain @. At login, an @ is read as an email.",
+  "buatTekEmailKosong": "Email is required.",
+  "buatTekEmailSalah": "That email format does not look right.",
+  "buatTekPasswordPendek": "Password must be at least 8 characters.",
+  "buatTekPasswordBeda": "The two passwords do not match.",
+  "buatTekGagal": "The account was not created. Try again.",
+  "buatTekBerhasil": "Technician account {nama} created (employee ID {employeeId}). Hand the initial password to them in person; it is not shown again.",
+  "@buatTekBerhasil": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      },
+      "employeeId": {
+        "type": "String"
+      }
+    }
+  },
+  "auditJudul": "Change history",
+  "auditSub": "Who changed what, when, and from what to what",
+  "auditHanyaAdmin": "Only admins can view the change history.",
+  "auditBacaSaja": "Read only. History cannot be edited from here.",
+  "auditFilter": "Filter",
+  "auditFilterJudul": "Filter history",
+  "auditFilterAksi": "Action",
+  "auditSemua": "All",
+  "auditAksiDibikin": "Created",
+  "auditAksiDiubah": "Changed",
+  "auditAksiDihapus": "Deleted",
+  "auditAksiDipulihkan": "Restored",
+  "auditFilterTipe": "Data type (table name)",
+  "auditFilterTipeHint": "e.g. standards",
+  "auditFilterId": "Data ID",
+  "auditFilterDari": "From date",
+  "auditFilterSampai": "To date",
+  "auditPilihTanggal": "Pick a date",
+  "auditTerapkan": "Apply",
+  "auditReset": "Reset",
+  "auditKosong": "No history for these filters.",
+  "auditGagalMuat": "Could not load the history.",
+  "auditCobaLagi": "Try again",
+  "auditMuatLagi": "Load more",
+  "auditMuatGagal": "The next page failed to load. Try again.",
+  "auditOleh": "by {nama}",
+  "@auditOleh": {
+    "placeholders": {
+      "nama": {
+        "type": "String"
+      }
+    }
+  },
+  "auditOlehSistem": "by the system (automatic)",
+  "auditEntitas": "{tipe} #{id}",
+  "@auditEntitas": {
+    "placeholders": {
+      "tipe": {
+        "type": "String"
+      },
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "auditTanpaRincian": "No column details for this action.",
+  "auditNilaiKosong": "(empty)",
+  "auditNilaiDisembunyikan": "(hidden)",
+  "auditSebelum": "Before",
+  "auditSesudah": "After",
+  "auditCatatan": "Note",
+  "auditTutup": "Close",
+  "logoOrgJudul": "Certificate letterhead logo",
+  "logoOrgSub": "The lab logo printed on the certificate letterhead (PNG or JPG)",
+  "logoOrgHanyaAdmin": "Only admins can manage the logo.",
+  "logoOrgInfo": "This logo is printed on the certificate letterhead. PNG or JPG, 2 MB at most. WEBP and GIF cannot be printed in the PDF.",
+  "logoOrgBelum": "No custom logo yet. The certificate letterhead uses the default logo.",
+  "logoOrgUnggah": "Upload logo",
+  "logoOrgGanti": "Replace logo",
+  "logoOrgHapus": "Delete logo",
+  "logoOrgTerunggah": "Logo uploaded.",
+  "logoOrgTerhapus": "Logo deleted. The letterhead uses the default logo.",
+  "logoOrgHapusJudul": "Delete the logo?",
+  "logoOrgHapusIsi": "The next certificate letterheads will use the default logo. You can upload a logo again at any time.",
+  "logoOrgTerlaluBesar": "That file is over 2 MB. Pick a smaller logo.",
+  "logoOrgGagalMuat": "Could not load the logo.",
+  "logoOrgRetry": "Try again",
+  "logoOrgGagal": "The logo action failed. Try again.",
+  "logoOrgPratinjauGagal": "The logo image could not be shown."
 }
