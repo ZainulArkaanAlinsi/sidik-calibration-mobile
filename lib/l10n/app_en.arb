@@ -4094,5 +4094,20 @@
   "rskKirim": "Send",
   "rskTetapKirim": "Send anyway",
   "rskLompatKet": "Tap to go to this field",
-  "rskTidakBisaLompat": "That field could not be found on screen. Scroll to it by hand."
+  "rskTidakBisaLompat": "That field could not be found on screen. Scroll to it by hand.",
+  "jlJudul": "Sheet type",
+  "jlKodeTerbaca": "Form code read: {kode}",
+  "@jlKodeTerbaca": {"placeholders": {"kode": {"type": "String"}}},
+  "jlKodeTidakTerbaca": "The form code was not readable. Choose the sheet type yourself.",
+  "jlKodeTakDikenal": "This form code ({kode}) is not in the sheet list. Choose the sheet type yourself.",
+  "@jlKodeTakDikenal": {"placeholders": {"kode": {"type": "String"}}},
+  "jlBeberapaKode": "Several form codes were read ({kode}). Choose the sheet type yourself.",
+  "@jlBeberapaKode": {"placeholders": {"kode": {"type": "String"}}},
+  "jlBeberapaJenis": "This code is used by several sheet types. Pick the one that matches your instrument.",
+  "jlSatuJenis": "Suggested sheet type. Change it if it is not right.",
+  "jlDariJudul": "Suggested from the printed title only (the code was not read). Check it.",
+  "jlPilihManual": "Choose sheet type manually",
+  "jlPakai": "Use this sheet type",
+  "jlCatatan": "This is only a hint. You decide the sheet type; nothing is filled in until you confirm.",
+  "jlDaftarManual": "All sheet types"
 }
