@@ -463,6 +463,13 @@ void main() {
         'baca_paralel',
         'jenis_lembar',
         'pindai_formulir_asli_flow',
+        // Page registration (Fase 2): meluruskan foto KAMERA ASLI untuk OCR,
+        // jadi berada di sisi OCR. Boleh mengimpor penjaga (`foto_untuk_ocr`),
+        // tidak boleh mengimpor modul kompresi.
+        'registrasi_halaman',
+        'deteksi_sudut_halaman',
+        'geometri_halaman',
+        'hasil_deteksi_halaman',
       ];
       final salah = <String>[];
 
