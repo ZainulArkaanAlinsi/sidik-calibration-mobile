@@ -16,6 +16,7 @@ import '../../providers/sumber_foto_provider.dart';
 import '../../providers/worksheet_scan_provider.dart';
 import '../../services/aturan_formulir_asli.dart';
 import '../../services/foto_tertinggal.dart';
+import '../../services/foto_untuk_ocr.dart';
 import '../../services/jalankan_pindai.dart' show GagalPindai;
 import '../../services/kumpulkan_contoh_sel.dart';
 import '../../services/modul_pembaca_teks.dart';
@@ -157,7 +158,11 @@ Future<int> pindaiFormulirAsli({
         pembaca: pembaca = pabrik.sel(),
       );
     }
-    hasil = await pakai.baca(citra, template: template, jpegAsli: bita);
+    // Foto kamera apa adanya (bukan salinan terkompresi): pintu bertipe.
+    hasil = await pakai.bacaFoto(
+      FotoAsliKamera(citra, jpegAsli: bita),
+      template: template,
+    );
   } on PindaiAsliGagal catch (e) {
     galat = pesanGagalAsli(l10n, e);
   } on ModulPembacaTeksBelumSiap {

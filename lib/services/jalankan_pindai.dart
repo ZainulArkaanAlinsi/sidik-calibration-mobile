@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:image/image.dart' as img;
 
 import '../models/worksheet_template.dart';
+import 'foto_untuk_ocr.dart';
 import 'pembaca_qr.dart';
 import 'pembaca_sel.dart';
 import 'pindai_lembar.dart';
@@ -147,6 +148,9 @@ class JalankanPindai {
     int? equipmentId,
     Map<String, String>? perangkat,
   }) async {
+    // Kunci: hasil kompresi (salinan arsip) tidak boleh dibaca OCR.
+    pastikanBukanSalinanArsip(citra: foto);
+
     if (!template.siapPindai) {
       throw const PindaiGagal(GagalPindai.belumSiap);
     }
