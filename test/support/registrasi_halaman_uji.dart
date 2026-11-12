@@ -48,7 +48,7 @@ List<Map<String, dynamic>> muatPrototipe() {
 /// dan kotak sel dari kunci jawaban, sisanya (meja, cahaya, bayangan) diundi
 /// dari parameter degradasi prototipe.
 FotoSintetis fotoPrototipe(Map<String, dynamic> g, int n, double sk) {
-  // Warna meja prototipe (sintesis.py: latar()).
+  // Warna meja prototipe (skrip sintesis prototipe Python, di luar repo).
   const meja = [(70, 90, 110), (110, 95, 80), (95, 100, 105), (60, 70, 65)];
   const px2pt = 72 / 250;
   final rng = math.Random(n);

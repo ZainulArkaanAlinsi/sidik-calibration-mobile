@@ -6,6 +6,9 @@ import 'geometri_halaman.dart';
 ///
 /// Kegagalan SELALU berarti "jangan menebak": pemanggil jatuh ke foto asli +
 /// input manual (atau meminta foto ulang), tidak pernah ke sudut perkiraan.
+/// Kebalikannya TIDAK berlaku: sukses bukan bukti sudutnya benar (lihat
+/// "Batas yang diketahui" di `deteksiSudutHalaman`: bantalan lebih besar
+/// berrasio sama lolos), jadi pemeriksa kedua tetap wajib.
 /// Teks untuk teknisi diambil dari l10n saat UI menyambung; [petunjuk] hanya
 /// arah isi pesannya.
 enum AlasanGagalRegistrasi {
@@ -66,10 +69,10 @@ class OpsiRegistrasiHalaman {
     this.toleransiRasio = 0.12,
   });
 
-  /// Lebar citra kerja. 640 adalah patokan prototipe Python, yang melaporkan
-  /// 1280 menurunkan deteksi (garis tabel/bingkai memecah komponen) dan dua
-  /// foto salah sudut ~9,5% diagonal. Di port Dart, penutupan garis
-  /// ([penutupRadius]) dan pemeriksaan kontras luar-jauh menghilangkan
+  /// Lebar citra kerja. 640 adalah patokan prototipe Python (di luar repo),
+  /// yang melaporkan 1280 menurunkan deteksi (garis tabel/bingkai memecah
+  /// komponen) dan dua foto salah sudut ~9,5% diagonal. Di port Dart, penutupan
+  /// garis ([penutupRadius]) dan pemeriksaan kontras luar-jauh menghilangkan
   /// masalah itu (1280: 26/26, galat maks 0,06%), tetapi 1280 ≈ 3,5× lebih
   /// lambat (JIT, laptop): 640 tetap bawaan.
   final int lebarKerja;

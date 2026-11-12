@@ -1,6 +1,7 @@
 // Geometri 26 foto prototipe 12 Nov 2026 (`geometri_prototipe.json`: homografi
 // sebenarnya + kotak sel 12 formulir FM-CAL), difoto ulang dengan pembangkit
-// Dart. Pembanding langsung ke hasil prototipe Python.
+// Dart. Pembanding ke hasil prototipe Python (di luar repo; angkanya dikutip
+// di komentar uji).
 //
 // Batas jujur: foto sintetis, bukan foto nyata.
 import 'package:flutter_test/flutter_test.dart';
@@ -24,16 +25,18 @@ void main() {
     final ringkasan = RingkasanUkur('prototipe26', ukuran);
     laporUkur(ringkasan);
 
-    // Prototipe Python (garis kuadrat-terkecil, lebar 640): 26/26, galat
-    // maks 0,36%, 99,5% sel IoU ≥ 0,7. Port Dart harus setidaknya setara.
+    // Prototipe Python (garis kuadrat-terkecil, lebar 640; di luar repo):
+    // 26/26, galat maks 0,36%, 99,5% sel IoU ≥ 0,7. Port Dart terukur 0,16%
+    // (12 Nov 2026); ambang 0,25% menyisakan ruang untuk beda platform tetapi
+    // cukup rapat untuk menangkap regresi kecil.
     expect(ringkasan.ok.length, 26, reason: '${ringkasan.alasanGagal}');
-    expect(ringkasan.galatMaksPctFoto, lessThanOrEqualTo(0.36));
+    expect(ringkasan.galatMaksPctFoto, lessThanOrEqualTo(0.25));
     expect(ringkasan.fraksiSelIou07, greaterThanOrEqualTo(0.995));
     expect(ringkasan.fraksiSelGeser025, 0);
   });
 
   test('lebar kerja 1280: penutupan garis mencegah kunci ke bingkai dalam', () {
-    // Prototipe Python melaporkan 1280 px menurunkan deteksi (garis tabel dan
+    // Prototipe Python (di luar repo) melaporkan 1280 px menurunkan deteksi (garis tabel dan
     // bingkai memecah mask halaman) dan dua foto salah sudut ~9,5% diagonal.
     // Di sini tiga foto yang pada 1280 px tanpa penutupan ditolak.
     final foto = muatPrototipe();
@@ -56,7 +59,7 @@ void main() {
           f,
           (dengan as DeteksiHalamanBerhasil).sudut,
         ).galatSudutPctFoto,
-        lessThanOrEqualTo(0.3),
+        lessThanOrEqualTo(0.25),
         reason: nama,
       );
 
@@ -66,7 +69,7 @@ void main() {
       if (tanpa is DeteksiHalamanBerhasil) {
         expect(
           ukurSudut(nama, f, tanpa.sudut).galatSudutPctFoto,
-          lessThanOrEqualTo(0.3),
+          lessThanOrEqualTo(0.25),
           reason: '$nama tanpa penutupan: salah diam-diam',
         );
       }

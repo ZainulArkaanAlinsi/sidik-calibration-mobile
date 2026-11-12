@@ -29,6 +29,53 @@ Data uji (bukan kode aplikasi): `test/fixtures/registrasi_halaman/geometri_proto
 (41 KB) memuat homografi dan kotak sel (angka saja) dari 26 foto sintetis prototipe 12 Nov
 2026 untuk 12 formulir FM-CAL kosong. Tidak ada nilai tulisan, nama pelanggan, atau foto.
 
+## Batas yang diketahui registrasi halaman (12 Nov 2026)
+
+Modul `lib/services/registrasi_halaman/` hanya menghasilkan USULAN sudut halaman; semua
+foto ujinya sintetis (belum ada foto nyata). Belum disambung ke alur pindai.
+
+- **Dijamin:** kegagalan yang TERDETEKSI (alas terang, tepi terpotong/melengkung, bentuk tak
+  wajar, rasio tak cocok, berkas kosong/terpotong/rusak, masukan `luruskanHalaman` yang tak
+  masuk akal) menjadi `RegistrasiHalamanGagal`, tidak pernah sudut tebakan, dan fungsi modul
+  tidak melempar pada foto buruk. Salinan arsip terkompresi ditolak (`FotoTerkompresiDitolak`;
+  penjaga Fase 1 dipanggil di dalam modul untuk bita sebelum decode dan citra sesudahnya).
+- **TIDAK dijamin: "tidak pernah salah".** Satu kelas salah-diam-diam sudah terukur dan
+  lolos semua pemeriksaan: halaman di atas lembar/tumpukan kertas LEBIH BESAR dengan rasio
+  sama (bantalan, map). Bantalan 6% sisi: galat 3,5–4,3% diagonal foto; 12%: 6,8–7,9%
+  (terhadap bantalan hanya 0,03–0,09%). Dikunci sebagai uji "BATAS DIKETAHUI" di
+  `test/registrasi_halaman_test.dart`; bila kelas ini kelak ditutup, uji itu dibalik jadi
+  "ditolak".
+- **Cue "tepi kedua sejajar di dalam 2–15% sisi" dicoba dan TIDAK dipakai.** Garis bingkai
+  cetak dan garis tabel formulir menghasilkan cue yang sama: kedalaman garis gelap median per
+  sisi di pita itu 32–195 pada 26 foto prototipe, 26–123 pada halaman sintetis tanpa
+  bantalan, dan −8–134 pada bantalan 3–12% (pengukuran ad hoc, skrip tidak dikomit).
+  Rentangnya tumpang tindih, jadi ambang apa pun menolak halaman sah atau meloloskan
+  bantalan. Dibuka lagi hanya bila ada foto nyata.
+- **Wajib di sisi pemanggil:** registrasi jangkar teks / kode formulir menjadi pemeriksa
+  kedua pada citra hasil SEBELUM sel dibaca; jangkar meleset = jalur lama / input manual.
+- **Arah 90°/180° tidak bisa ditentukan dari bentuk.** Adaptor memverifikasi orientasi lewat
+  kode formulir / teks cetak (mencoba `putaranKuadran` 0–3 dari sudut yang sama lewat
+  `luruskanHalaman`), jatuh ke jalur lama bila tak ada yang cocok. Koordinat sudut memakai
+  citra SESUDAH EXIF dipanggang. Adaptor memakai `registrasiHalamanDariBitaDiIsolate`
+  (decode dan registrasi di isolate latar).
+
+Ringkasan algoritma dan ambang (diturunkan dari prototipe Python 12 Nov 2026 yang tidak ada
+di repo ini; alasan tiap ambang ada di KDoc `OpsiRegistrasiHalaman`): perkecil ke lebar
+640 → penutupan abu-abu 7×7 (hapus garis tabel/teks) → ambang Otsu (pemisahan kelas ≥ 50
+tingkat abu; kroma ≥ 30) → komponen terang terbesar (25–97% foto) → siluet → lambung
+cembung → sudut kasar pada sumbu halaman → garis Huber per sisi → perhalusan puncak gradien
+→ kewajaran (tepi tak menempel bingkai foto, sudut dalam 60°–120°, luas ≥ 25%, RMS sisi
+≤ 1,2 px, kontras tepi ≥ 20, rasio dalam 12% dari formulir).
+
+Terukur pada foto sintetis (`flutter test`, JIT, laptop): 26 geometri prototipe 26/26, galat
+sudut maks 0,16% diagonal foto, 100% sel IoU ≥ 0,7; matriks variasi (alas gelap/sedang/kayu
+terang, lanskap-di-potret) 18/18, maks 0,10%; alas krem 6/8 diterima (2 ditolak), alas putih
+0/4 (semua ditolak). Deteksi median ±0,3 detik pada lebar kerja 640.
+
+**Belum terbukti:** foto kamera nyata (bantalan, meja berkilap, kertas melengkung, tangan,
+pantulan lampu), waktu AOT di ponsel (`tool/ukur_registrasi_halaman.dart` mengukur AOT di
+laptop), dan selisih ukuran APK (hanya kode Dart; CI yang melaporkan).
+
 ## Dirujuk untuk Fase 2 (belum ada di kode)
 
 | Apa | URL | Versi | Lisensi | Catatan |

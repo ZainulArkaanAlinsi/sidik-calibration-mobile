@@ -62,6 +62,8 @@ class SpesifikasiFoto {
     this.bersih = false,
     this.lengkung = 0,
     this.tanganTepi = false,
+    this.bantalan = 0,
+    this.nadaBantalan = 0.97,
     this.homografi,
     this.sel,
     this.warnaAlas,
@@ -112,6 +114,18 @@ class SpesifikasiFoto {
   /// tepi: separuh di atas kertas, separuh di alas.
   final bool tanganTepi;
 
+  /// Halaman diletakkan di atas lembar/tumpukan kertas LEBIH BESAR dengan rasio
+  /// yang sama (kertas yang sama, hanya sedikit lebih gelap): pecahan sisi
+  /// halaman yang menonjol di tiap sisi (0,06 = 6%). 0 = tidak ada. Tepi
+  /// halaman di atasnya hanya tampak sebagai garis bayangan tipis dan selisih
+  /// nada [nadaBantalan] — itulah satu-satunya petunjuk bahwa "halaman" yang
+  /// terang sebenarnya bukan yang terluar.
+  final double bantalan;
+
+  /// Kecerahan kertas bantalan relatif terhadap kertas halaman (0,97 = 3%
+  /// lebih gelap).
+  final double nadaBantalan;
+
   /// Ganti kamera fisik dengan homografi point-halaman → piksel-foto (9
   /// angka baris-mayor), mis. dari kunci jawaban prototipe.
   final List<double>? homografi;
@@ -130,6 +144,7 @@ class FotoSintetis {
     required this.rasterW,
     required this.rasterH,
     required this.pxPerPt,
+    this.sudutBantalan,
   });
 
   final img.Image foto;
@@ -140,6 +155,10 @@ class FotoSintetis {
   /// Sudut halaman di foto, urutan kiri-atas, kanan-atas, kanan-bawah,
   /// kiri-bawah.
   final List<TitikHalaman> sudutBenar;
+
+  /// Sudut bantalan (lembar yang lebih besar di bawah halaman) di foto, urutan
+  /// sama; `null` bila [SpesifikasiFoto.bantalan] 0.
+  final List<TitikHalaman>? sudutBantalan;
   final List<KotakPt> sel;
   final ({double w, double h}) halamanPt;
 
@@ -543,6 +562,12 @@ FotoSintetis hasilkanFotoSintetis(SpesifikasiFoto s) {
     tanganY = my + (my - cy) / jr * 0.3 * tanganR;
   }
 
+  // Batas luar kertas: halaman, atau bantalan bila ada (koordinat halaman).
+  final bx0 = -s.bantalan * w;
+  final bx1 = w + s.bantalan * w;
+  final by0 = -s.bantalan * h;
+  final by1 = h + s.bantalan * h;
+
   final rCh = Float32List(fw * fh);
   final gCh = Float32List(fw * fh);
   final bCh = Float32List(fw * fh);
@@ -585,15 +610,40 @@ FotoSintetis hasilkanFotoSintetis(SpesifikasiFoto s) {
         ab *= k;
       }
 
-      // Bayangan tepi kertas di alas.
-      final dxl = math.max(0.0, math.max(-X, X - w));
-      final dyl = math.max(0.0, math.max(-Y, Y - h));
+      // Bayangan tepi kertas di alas (tepi bantalan bila ada).
+      final dxl = math.max(0.0, math.max(bx0 - X, X - bx1));
+      final dyl = math.max(0.0, math.max(by0 - Y, Y - by1));
       final jarakLuar = math.sqrt(dxl * dxl + dyl * dyl) * spp;
       if (!s.bersih && jarakLuar > 0) {
         final sombra = 1 - 0.32 * math.exp(-jarakLuar / skalaSombra);
         ar *= sombra;
         ag *= sombra;
         ab *= sombra;
+      }
+
+      // Bantalan: kertas yang sama, lebih besar, di bawah halaman. Tepi
+      // halaman di atasnya hanya selisih nada dan garis bayangan tipis.
+      if (s.bantalan > 0) {
+        final dalamBantalan = math.min(
+          math.min(X - bx0, bx1 - X),
+          math.min(Y - by0, by1 - Y),
+        );
+        final alfaBantalan = ((0.5 + dalamBantalan * spp).clamp(
+          0.0,
+          1.0,
+        )).toDouble();
+        if (alfaBantalan > 0) {
+          final dxh = math.max(0.0, math.max(-X, X - w));
+          final dyh = math.max(0.0, math.max(-Y, Y - h));
+          final jarakHalaman = math.sqrt(dxh * dxh + dyh * dyh) * spp;
+          var nada = s.nadaBantalan;
+          if (!s.bersih && jarakHalaman > 0) {
+            nada *= 1 - 0.14 * math.exp(-jarakHalaman / skalaSombra);
+          }
+          ar += (kertas.r * nada - ar) * alfaBantalan;
+          ag += (kertas.g * nada - ag) * alfaBantalan;
+          ab += (kertas.b * nada - ab) * alfaBantalan;
+        }
       }
 
       // Halaman.
@@ -706,6 +756,14 @@ FotoSintetis hasilkanFotoSintetis(SpesifikasiFoto s) {
     rasterW: raster.w,
     rasterH: raster.h,
     pxPerPt: raster.ppp,
+    sudutBantalan: s.bantalan > 0
+        ? [
+            proyeksi(hm, bx0, by0),
+            proyeksi(hm, bx1, by0),
+            proyeksi(hm, bx1, by1),
+            proyeksi(hm, bx0, by1),
+          ]
+        : null,
   );
 }
 

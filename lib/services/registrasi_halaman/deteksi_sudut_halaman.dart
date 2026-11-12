@@ -6,9 +6,10 @@ import 'package:image/image.dart' as img;
 import 'geometri_halaman.dart';
 import 'hasil_deteksi_halaman.dart';
 
-/// Deteksi empat sudut halaman: tahap (a) sudut kasar dan (b) sudut halus
-/// dari spesifikasi page registration (`02-spesifikasi-page-registration-dan-
-/// ambang.md` §3.2), plus pemeriksaan kewajaran. Dart murni (paket `image`
+/// Deteksi empat sudut halaman: tahap (a) sudut kasar dan (b) sudut halus,
+/// plus pemeriksaan kewajaran. Diturunkan dari prototipe Python 12 Nov 2026
+/// (di luar repo ini); ambang dan alasannya ada di KDoc `OpsiRegistrasiHalaman`
+/// dan ringkasannya di `docs/pihak-ketiga-ocr.md`. Dart murni (paket `image`
 /// yang sudah ada) — tanpa OpenCV, tanpa plugin native.
 ///
 /// ## Alur
@@ -45,6 +46,33 @@ import 'hasil_deteksi_halaman.dart';
 ///     3% diagonal untuk ujung kertas yang terpotong), cembung, sudut dalam
 ///     60°–120°, luas ≥ 25%, sisi lurus, dan ada kontras di kedua sisi garis
 ///     tepi (mengenali "tepi" palsu berupa gradasi cahaya di alas terang).
+///
+/// ## Batas yang diketahui (BUKAN jaminan "tidak pernah salah")
+///
+/// Langkah 1–6 menolak yang TERLIHAT salah. Pada foto sintetis (Dart, 12 Nov
+/// 2026) tidak ada sudut salah yang lolos DI DALAM matriks uji, tetapi satu
+/// kelas salah-diam-diam sudah terukur dan lolos semua pemeriksaan:
+///
+///  - **Bantalan / tumpukan lebih besar dengan rasio sama.** Halaman di atas
+///    lembar, map, atau tumpukan kertas yang menonjol 3–20% sisi di tiap sisi:
+///    tepi LUAR bantalan segi empat yang sah, lurus, kontras, dan berrasio sama
+///    dengan halaman, jadi terkunci sebagai halaman. Terukur: bantalan 6% →
+///    galat 3,5–4,3% diagonal foto, 12% → 6,8–7,9% (terhadap halaman
+///    sebenarnya; terhadap bantalan hanya 0,03–0,09%). Penutupan abu-abu
+///    (langkah 2) justru menghapus garis tipis tepi halaman di dalamnya.
+///  - Cue "tepi kedua sejajar di dalam 2–15% sisi" TIDAK dipakai: garis
+///    bingkai cetak dan garis tabel formulir menghasilkan cue yang sama.
+///    Diukur ad hoc 12 Nov 2026 (skrip tidak dikomit): kedalaman garis gelap
+///    median per sisi di pita itu 32–195 pada 26 foto prototipe dan 26–123
+///    pada halaman sintetis tanpa bantalan, sedangkan dengan bantalan 3–12%
+///    −8–134. Rentangnya tumpang tindih, jadi ambang apa pun menolak halaman
+///    sah atau meloloskan bantalan.
+///
+/// Karena itu keluaran modul ini adalah USULAN sudut. Registrasi jangkar teks
+/// dan kode formulir (dari teks cetak di citra hasil warp) WAJIB menjadi
+/// pemeriksa kedua SEBELUM sel dibaca; jangkar yang meleset dari posisi
+/// templatenya = jatuh ke jalur lama. Foto nyata (bantalan, meja berkilap,
+/// tangan, pantulan) belum diuji.
 ///
 /// Fungsi ini sinkron dan murni; jalankan di isolate (lihat
 /// `registrasi_halaman.dart`).

@@ -3,6 +3,8 @@ import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
 
+import '../foto_untuk_ocr.dart'
+    show FotoTerkompresiDitolak, pastikanBukanSalinanArsip;
 import '../registrasi_jangkar_teks.dart' show Homografi, ratakanHalaman;
 import 'deteksi_sudut_halaman.dart';
 import 'geometri_halaman.dart';
@@ -17,22 +19,67 @@ export 'hasil_deteksi_halaman.dart';
 ///
 /// Modul ini BERDIRI SENDIRI: belum disambung ke alur pindai, tombol pindai,
 /// atau `JalankanPindaiAsli`. Tidak ada UI, state, atau jaringan di sini, dan
-/// foto tidak meninggalkan perangkat.
+/// foto tidak meninggalkan perangkat. Keluarannya hanya USULAN geometri: yang
+/// dibaca dan dikonfirmasi teknisi tetap angka di sel, bukan modul ini.
+///
+/// ## Yang dijamin, dan batasnya
+///
+///  - Setiap kegagalan yang TERDETEKSI (alas terang, tepi terpotong, tepi
+///    melengkung, bentuk tak wajar, rasio tak cocok, berkas rusak/terpotong)
+///    menjadi [RegistrasiHalamanGagal], tidak pernah sudut tebakan. Fungsi di
+///    sini tidak melempar galat pada foto buruk; satu-satunya pengecualian
+///    adalah [FotoTerkompresiDitolak] (kesalahan PEMANGGIL: salinan arsip
+///    terkompresi tidak boleh masuk jalur OCR).
+///  - Itu BUKAN jaminan "tidak pernah salah". Bentuk segi empat saja tidak
+///    membedakan halaman dari lembar atau tumpukan kertas LEBIH BESAR dengan
+///    rasio yang sama di bawahnya (bantalan, map, tumpukan formulir): tepi luar
+///    bantalan lolos semua pemeriksaan di sini, dan sel akan dibaca dari bagian
+///    yang salah. Pada foto sintetis, bantalan 6% dan 12% sisi terkunci sebagai
+///    halaman (galat 3,5–8% diagonal) tanpa penolakan; lihat uji "batas
+///    diketahui". Tidak ada pemeriksaan murah yang andal: garis bingkai cetak
+///    formulir tak bisa dibedakan dari garis tepi halaman di atas bantalan.
+///  - Maka registrasi jangkar teks / kode formulir (`RegistrasiJangkarTeks` dan
+///    pembacaan kode formulir) WAJIB menjadi pemeriksa kedua pada citra hasil
+///    modul ini SEBELUM sel dibaca. Jangkar yang tidak ditemukan di tempat
+///    yang diharapkan = jatuh ke jalur lama / input manual, bukan membaca sel.
 ///
 /// ## Titik sambung (setelah Fase 1 / `FotoUntukOcr` masuk ke `main`)
 ///
+/// Adaptor memanggil varian bita supaya decode foto 12 MP dan pemanggangan EXIF
+/// terjadi di isolate latar. Penjaga salinan arsip Fase 1
+/// (`pastikanBukanSalinanArsip`) sudah dipanggil di dalam modul ini, untuk
+/// bita sebelum decode dan untuk citra sesudahnya; adaptor tidak perlu
+/// mengulanginya.
+///
 /// ```dart
 /// // adaptor tipis — belum ditulis:
-/// pastikanBukanSalinanArsip(citra: foto.citra, jpeg: foto.jpegAsli);
-/// final hasil = await registrasiHalamanDiIsolate(
-///   foto.citra, halamanPt: template.halamanPt!);
+/// final hasil = await registrasiHalamanDariBitaDiIsolate(
+///   jpegAsli, halamanPt: template.halamanPt!); // atau registrasiHalamanDiIsolate(citra)
 /// switch (hasil) {
 ///   case RegistrasiHalamanBerhasil():
-///     return FotoHasilWarp(hasil.citra); // → _kenali / RegistrasiJangkarTeks
+///     // 1) verifikasi ORIENTASI (lihat di bawah), 2) pemeriksa kedua jangkar
+///     //    teks / kode formulir, baru 3) FotoHasilWarp → _kenali.
+///     return FotoHasilWarp(hasil.citra);
 ///   case RegistrasiHalamanGagal():
 ///     return null; // → foto asli + jalur lama / input manual
 /// }
 /// ```
+///
+/// ## Arah 90° / 180° TIDAK bisa ditentukan dari bentuk
+///
+/// Segi empat tidak membedakan halaman tegak dari terbalik 180° (dan, untuk
+/// rasio yang cocok dua arah, dari terputar 90°). Mode otomatis hanya memilih
+/// putaran 0 atau 1 dari rasio. Adaptor WAJIB memverifikasi arah lewat kode
+/// formulir / teks cetak pada citra hasil dan, bila tidak ditemukan, mencoba
+/// putaran lain dari sudut YANG SAMA ([luruskanHalaman] dengan
+/// `putaranKuadran` 0–3, tanpa deteksi ulang). Tidak ada putaran yang cocok =
+/// jatuh ke jalur lama.
+///
+/// Semua koordinat sudut ([RegistrasiHalamanBerhasil.sudutFoto]) adalah piksel
+/// foto SESUDAH orientasi EXIF dipanggang. [luruskanHalaman] TIDAK memanggang
+/// EXIF: memberinya foto mentah yang masih membawa orientasi ≠ 1 meluruskan
+/// bagian yang salah. Adaptor harus memberi foto yang sudah tegak (mis.
+/// `img.bakeOrientation`), bukan foto mentah.
 ///
 /// Keluarannya [RegistrasiHalamanBerhasil.citra] adalah citra BARU hasil
 /// `ratakanHalaman` dari foto ASLI resolusi penuh (tidak pernah dikompresi,
@@ -78,10 +125,10 @@ final class RegistrasiHalamanBerhasil extends HasilRegistrasiHalaman {
   /// 2 = atas halaman = bawah foto, 3 = atas halaman = sisi KANAN foto.
   ///
   /// Mode otomatis hanya memilih 0 atau 1 (dari rasio halaman); arah 90° dan
-  /// 180° yang benar TIDAK bisa ditentukan dari bentuk, jadi pemanggil yang
-  /// tidak menemukan teks cetak di citra ini boleh mencoba putaran lain lewat
-  /// parameter `putaranKuadran` (sudut sudah terdeteksi: gunakan
-  /// [luruskanHalaman], tidak perlu deteksi ulang).
+  /// 180° yang benar TIDAK bisa ditentukan dari bentuk. Pemanggil WAJIB
+  /// memverifikasi arah lewat kode formulir / teks cetak di citra ini, dan
+  /// mencoba putaran lain bila tidak ketemu (sudut sudah terdeteksi: gunakan
+  /// [luruskanHalaman], tidak perlu deteksi ulang). Lihat KDoc kepala berkas.
   final int putaranKuadran;
 
   /// Rasio lebar/tinggi halaman dari sudut terdeteksi (sesudah putaran): yang
@@ -111,6 +158,11 @@ final class RegistrasiHalamanGagal extends HasilRegistrasiHalaman {
 /// [halamanPt] = ukuran halaman formulir (dari template atau pilihan jenis
 /// lembar). [putaranKuadran] `null` = otomatis (lihat
 /// [RegistrasiHalamanBerhasil.putaranKuadran]).
+///
+/// Tidak melempar pada foto buruk: galat apa pun di dalam (mis. `RangeError`
+/// dari data piksel rusak) menjadi [RegistrasiHalamanGagal] dengan alasan
+/// `fotoTidakTerbaca`. Pengecualian tunggal: [FotoTerkompresiDitolak] bila
+/// [foto] berasal dari salinan arsip terkompresi.
 HasilRegistrasiHalaman registrasiHalaman(
   img.Image foto, {
   required ({double w, double h}) halamanPt,
@@ -118,31 +170,48 @@ HasilRegistrasiHalaman registrasiHalaman(
   int? putaranKuadran,
   OpsiRegistrasiHalaman opsi = const OpsiRegistrasiHalaman(),
 }) {
-  final tegak = _tegakkan(foto);
-  final deteksi = deteksiSudutHalaman(tegak, opsi: opsi);
+  // Pintu belakang penjaga kompresi: SEBELUM menyentuh piksel, dan di luar
+  // try di bawah supaya tidak ikut tertelan sebagai "gagal".
+  pastikanBukanSalinanArsip(citra: foto);
 
-  return switch (deteksi) {
-    DeteksiHalamanGagal() => RegistrasiHalamanGagal(
-      deteksi.alasan,
-      deteksi.detail,
-      deteksi.diagnostik,
-    ),
-    DeteksiHalamanBerhasil() => luruskanHalaman(
-      tegak,
-      deteksi.sudut,
-      halamanPt: halamanPt,
-      skala: skala,
-      putaranKuadran: putaranKuadran,
-      opsi: opsi,
-      diagnostik: deteksi.diagnostik,
-    ),
-  };
+  try {
+    final tegak = _tegakkan(foto);
+    final deteksi = deteksiSudutHalaman(tegak, opsi: opsi);
+
+    return switch (deteksi) {
+      DeteksiHalamanGagal() => RegistrasiHalamanGagal(
+        deteksi.alasan,
+        deteksi.detail,
+        deteksi.diagnostik,
+      ),
+      DeteksiHalamanBerhasil() => luruskanHalaman(
+        tegak,
+        deteksi.sudut,
+        halamanPt: halamanPt,
+        skala: skala,
+        putaranKuadran: putaranKuadran,
+        opsi: opsi,
+        diagnostik: deteksi.diagnostik,
+      ),
+    };
+  } on FotoTerkompresiDitolak {
+    rethrow;
+  } on Object catch (e) {
+    return _gagalTakTerduga(e);
+  }
 }
 
 /// Luruskan [foto] dari [sudutFoto] yang sudah dideteksi (urutan kiri-atas,
-/// kanan-atas, kanan-bawah, kiri-bawah, piksel foto). Memeriksa rasio sudut
-/// terhadap [halamanPt] — sudut yang rasionya jauh dari halaman formulir
-/// ditolak, bukan diregangkan.
+/// kanan-atas, kanan-bawah, kiri-bawah, piksel foto SESUDAH EXIF dipanggang;
+/// [foto] sendiri harus sudah tegak, fungsi ini tidak memanggangnya).
+/// Memeriksa rasio sudut terhadap [halamanPt] — sudut yang rasionya jauh dari
+/// halaman formulir ditolak, bukan diregangkan.
+///
+/// Masukan yang tidak masuk akal ditolak sebagai [RegistrasiHalamanGagal]
+/// (`bentukTidakWajar`), bukan `assert` yang hilang di rilis: bukan empat
+/// sudut, koordinat bukan bilangan terhingga, urutan sudut berlawanan arah
+/// (luas bertanda ≤ 0: hasil warp akan TERCERMIN), segi empat tidak cembung,
+/// [skala] atau [halamanPt] ≤ 0, [putaranKuadran] di luar 0–3.
 HasilRegistrasiHalaman luruskanHalaman(
   img.Image foto,
   List<TitikHalaman> sudutFoto, {
@@ -152,9 +221,104 @@ HasilRegistrasiHalaman luruskanHalaman(
   OpsiRegistrasiHalaman opsi = const OpsiRegistrasiHalaman(),
   DiagnostikRegistrasi? diagnostik,
 }) {
-  assert(sudutFoto.length == 4);
-  assert(putaranKuadran == null || (putaranKuadran >= 0 && putaranKuadran < 4));
+  pastikanBukanSalinanArsip(citra: foto);
 
+  final ditolak = _periksaMasukan(
+    sudutFoto,
+    halamanPt: halamanPt,
+    skala: skala,
+    putaranKuadran: putaranKuadran,
+    diagnostik: diagnostik,
+  );
+  if (ditolak != null) return ditolak;
+
+  try {
+    return _luruskan(
+      foto,
+      sudutFoto,
+      halamanPt: halamanPt,
+      skala: skala,
+      putaranKuadran: putaranKuadran,
+      opsi: opsi,
+      diagnostik: diagnostik,
+    );
+  } on Object catch (e) {
+    return _gagalTakTerduga(e, diagnostik);
+  }
+}
+
+RegistrasiHalamanGagal? _periksaMasukan(
+  List<TitikHalaman> sudutFoto, {
+  required ({double w, double h}) halamanPt,
+  required double skala,
+  required int? putaranKuadran,
+  required DiagnostikRegistrasi? diagnostik,
+}) {
+  RegistrasiHalamanGagal tolak(String detail) => RegistrasiHalamanGagal(
+    AlasanGagalRegistrasi.bentukTidakWajar,
+    'masukan ditolak: $detail',
+    diagnostik,
+  );
+
+  if (sudutFoto.length != 4) {
+    return tolak('butuh 4 sudut, diberi ${sudutFoto.length}');
+  }
+  if (putaranKuadran != null && (putaranKuadran < 0 || putaranKuadran > 3)) {
+    return tolak('putaranKuadran $putaranKuadran di luar 0–3');
+  }
+  if (!skala.isFinite || skala <= 0) {
+    return tolak('skala $skala harus bilangan terhingga > 0');
+  }
+  if (!halamanPt.w.isFinite ||
+      !halamanPt.h.isFinite ||
+      halamanPt.w <= 0 ||
+      halamanPt.h <= 0) {
+    return tolak('ukuran halaman ${halamanPt.w}×${halamanPt.h} tidak sah');
+  }
+  for (final s in sudutFoto) {
+    if (!s.x.isFinite || !s.y.isFinite) {
+      return tolak('koordinat sudut bukan bilangan terhingga');
+    }
+  }
+
+  // Tali sepatu bertanda: urutan kiri-atas → kanan-atas → kanan-bawah →
+  // kiri-bawah searah jarum jam di koordinat foto (y ke bawah) = luas positif.
+  // Negatif = urutan terbalik; homografinya sah secara matematis tetapi
+  // menghasilkan halaman TERCERMIN, yang akan dibaca diam-diam.
+  final luas = _luasBertanda(sudutFoto);
+  if (!(luas > 0)) {
+    return tolak(
+      'urutan sudut berlawanan arah / merosot (luas bertanda '
+      '${luas.toStringAsFixed(1)})',
+    );
+  }
+  if (!segiEmpatCembung(sudutFoto)) {
+    return tolak('segi empat sudut tidak cembung');
+  }
+
+  return null;
+}
+
+double _luasBertanda(List<TitikHalaman> p) {
+  var jumlah = 0.0;
+  for (var i = 0; i < p.length; i++) {
+    final a = p[i];
+    final b = p[(i + 1) % p.length];
+    jumlah += a.x * b.y - b.x * a.y;
+  }
+
+  return jumlah / 2;
+}
+
+HasilRegistrasiHalaman _luruskan(
+  img.Image foto,
+  List<TitikHalaman> sudutFoto, {
+  required ({double w, double h}) halamanPt,
+  required double skala,
+  required int? putaranKuadran,
+  required OpsiRegistrasiHalaman opsi,
+  required DiagnostikRegistrasi? diagnostik,
+}) {
   final rasioHalaman = halamanPt.w / halamanPt.h;
 
   // Dua penaksir rasio, dan sudut diterima bila SALAH SATUNYA cocok:
@@ -251,41 +415,91 @@ HasilRegistrasiHalaman luruskanHalaman(
 /// komponen terhubung, warp 4,4 MP) tidak boleh membekukan layar.
 ///
 /// Fungsi tingkat atas; closure-nya hanya memegang argumen, tidak membawa
-/// State/ref ke isolate lain.
+/// State/ref ke isolate lain. Future TIDAK PERNAH gagal karena foto buruk
+/// (hasilnya [RegistrasiHalamanGagal]); satu-satunya Future-error yang
+/// disengaja adalah [FotoTerkompresiDitolak], dilempar SEBELUM isolate dibuat.
 Future<HasilRegistrasiHalaman> registrasiHalamanDiIsolate(
   img.Image foto, {
   required ({double w, double h}) halamanPt,
   double skala = 3.0,
   int? putaranKuadran,
   OpsiRegistrasiHalaman opsi = const OpsiRegistrasiHalaman(),
-}) => Isolate.run(
-  () => registrasiHalaman(
-    foto,
-    halamanPt: halamanPt,
-    skala: skala,
-    putaranKuadran: putaranKuadran,
-    opsi: opsi,
-  ),
-);
+}) async {
+  // Di isolate pemanggil: penanda identitas objek (Expando) tidak ikut
+  // tersalin ke isolate lain, penanda di dalam EXIF ikut.
+  pastikanBukanSalinanArsip(citra: foto);
+
+  try {
+    return await Isolate.run(
+      () => registrasiHalaman(
+        foto,
+        halamanPt: halamanPt,
+        skala: skala,
+        putaranKuadran: putaranKuadran,
+        opsi: opsi,
+      ),
+    );
+  } on FotoTerkompresiDitolak {
+    rethrow;
+  } on Object catch (e) {
+    return _gagalTakTerduga(e);
+  }
+}
 
 /// Seperti [registrasiHalamanDiIsolate], tetapi dari bita foto (JPEG kamera
 /// atau format lain yang dikenal paket `image`): decode, panggang EXIF, dan
 /// registrasi semuanya di isolate latar — foto 12 MP tidak pernah menjadi
-/// objek di isolate UI.
+/// objek di isolate UI. Ini varian yang dipakai adaptor.
+///
+/// Bita yang memuat penanda salinan arsip ditolak SEBELUM decode
+/// ([FotoTerkompresiDitolak]). Bita kosong, terpotong, atau rusak (decoder
+/// `image` melempar `RangeError`/`FormatException`) menjadi
+/// [RegistrasiHalamanGagal] `fotoTidakTerbaca`, bukan Future-error.
 Future<HasilRegistrasiHalaman> registrasiHalamanDariBitaDiIsolate(
   Uint8List bita, {
   required ({double w, double h}) halamanPt,
   double skala = 3.0,
   int? putaranKuadran,
   OpsiRegistrasiHalaman opsi = const OpsiRegistrasiHalaman(),
-}) => Isolate.run(() {
+}) async {
+  pastikanBukanSalinanArsip(jpeg: bita);
+
+  try {
+    return await Isolate.run(
+      () => _registrasiDariBita(
+        bita,
+        halamanPt: halamanPt,
+        skala: skala,
+        putaranKuadran: putaranKuadran,
+        opsi: opsi,
+      ),
+    );
+  } on FotoTerkompresiDitolak {
+    rethrow;
+  } on Object catch (e) {
+    return _gagalTakTerduga(e);
+  }
+}
+
+/// Isi isolate [registrasiHalamanDariBitaDiIsolate]: decode lalu registrasi.
+/// Sampai di sini bita sudah lolos penjaga salinan arsip; citra hasil decode
+/// diperiksa lagi (penanda di EXIF) oleh [registrasiHalaman].
+HasilRegistrasiHalaman _registrasiDariBita(
+  Uint8List bita, {
+  required ({double w, double h}) halamanPt,
+  required double skala,
+  required int? putaranKuadran,
+  required OpsiRegistrasiHalaman opsi,
+}) {
   img.Image? foto;
   try {
     foto = img.decodeImage(bita);
-  } on Exception catch (e) {
+  } on Object catch (e) {
+    // JPEG kosong/terpotong/rusak: decoder melempar RangeError (sebuah Error,
+    // bukan Exception), jadi `on Exception` saja meloloskannya.
     return RegistrasiHalamanGagal(
       AlasanGagalRegistrasi.fotoTidakTerbaca,
-      'decode gagal: $e',
+      'decode gagal: ${_ringkas(e)}',
     );
   }
   if (foto == null) {
@@ -302,7 +516,23 @@ Future<HasilRegistrasiHalaman> registrasiHalamanDariBitaDiIsolate(
     putaranKuadran: putaranKuadran,
     opsi: opsi,
   );
-});
+}
+
+RegistrasiHalamanGagal _gagalTakTerduga(
+  Object e, [
+  DiagnostikRegistrasi? diagnostik,
+]) => RegistrasiHalamanGagal(
+  AlasanGagalRegistrasi.fotoTidakTerbaca,
+  'galat tak terduga: ${_ringkas(e)}',
+  diagnostik,
+);
+
+String _ringkas(Object e) {
+  final pesan = '$e';
+
+  return '${e.runtimeType}: '
+      '${pesan.length > 160 ? pesan.substring(0, 160) : pesan}';
+}
 
 img.Image _tegakkan(img.Image foto) {
   final ifd = foto.exif.imageIfd;

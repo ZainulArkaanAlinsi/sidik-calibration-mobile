@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
+import 'package:sidik_calibration/services/foto_untuk_ocr.dart';
 import 'package:sidik_calibration/services/registrasi_halaman/geometri_halaman.dart';
 import 'package:sidik_calibration/services/registrasi_halaman/registrasi_halaman.dart';
 
@@ -634,14 +635,17 @@ void main() {
           rollDeg: 6,
         ),
       );
-      f.foto.exif.imageIfd.imageDescription = 'SIDIK-ARSIP-SALINAN-v1';
+      // EXIF foto kamera (bukan penanda salinan arsip: foto bertanda itu
+      // ditolak pintu masuk, lihat grup "penjaga kompresi").
+      f.foto.exif.imageIfd.imageDescription = 'IMG_20261112_kamera';
 
       final hasil = _daftar(f) as RegistrasiHalamanBerhasil;
 
       expect(identical(hasil.citra, f.foto), isFalse);
-      // Penanda salinan arsip (Fase 1) tidak boleh terbawa ke citra warp:
-      // piksel baru dibuat dari nol.
+      // EXIF masukan tidak boleh terbawa ke citra warp: piksel baru dibuat
+      // dari nol, jadi citra warp tidak pernah membawa penanda apa pun.
       expect(hasil.citra.exif.imageIfd.imageDescription, isNull);
+      expect(apakahDariSalinanArsip(hasil.citra), isFalse);
       expect(hasil.citra.numChannels, 3);
       expect(hasil.citra.format, img.Format.uint8);
       expect(hasil.citra.width, (612 * 0.5).round());
@@ -842,5 +846,483 @@ void main() {
         reason: 'benar $benar vs terbalik 180° $terbalik',
       );
     });
+  });
+
+  group('asap foto resolusi kamera (12 MP)', () {
+    test(
+      'JPEG 3024×4032 dari bita: decode, deteksi, dan warp selesai di isolate',
+      () async {
+        // Foto dasar kecil dibesarkan 6× (linear): murah dibuat, tetapi jalur
+        // produksi yang sama dengan foto kamera 12 MP, termasuk decode JPEG
+        // dan perkecil ke lebar kerja. Terukur lokal (JIT, laptop) ±8 detik
+        // total, ±3 detik di antaranya registrasi; CI boleh lebih lambat,
+        // jadi yang dijaga hanya "tidak menggantung" (timeout), bukan waktu.
+        // Waktu AOT yang lebih dekat ke ponsel: `tool/ukur_registrasi_halaman.dart`.
+        final dasar = hasilkanFotoSintetis(
+          const SpesifikasiFoto(
+            seed: 12,
+            lebarFoto: 504,
+            tinggiFoto: 672,
+            rollDeg: 7,
+            pitchDeg: 9,
+            yawDeg: -4,
+            isi: 0.86,
+          ),
+        );
+        final besar = img.copyResize(
+          dasar.foto,
+          width: 3024,
+          height: 4032,
+          interpolation: img.Interpolation.linear,
+        );
+        expect(besar.width * besar.height, greaterThanOrEqualTo(12000000));
+        final jpeg = Uint8List.fromList(img.encodeJpg(besar, quality: 85));
+
+        final hasil = await registrasiHalamanDariBitaDiIsolate(
+          jpeg,
+          halamanPt: _letter,
+          skala: 1,
+        );
+
+        expect(hasil, isA<RegistrasiHalamanBerhasil>(), reason: '$hasil');
+        final b = hasil as RegistrasiHalamanBerhasil;
+        expect(b.citra.width, 612);
+        expect(b.citra.height, 792);
+
+        // Kunci jawaban dikali 6 (skala pembesaran).
+        var galat = 0.0;
+        for (final e in b.sudutFoto) {
+          var terdekat = double.infinity;
+          for (final a in dasar.sudutBenar) {
+            terdekat = math.min(
+              terdekat,
+              jarakTitik(e, (x: a.x * 6, y: a.y * 6)),
+            );
+          }
+          galat = math.max(galat, terdekat);
+        }
+        final diagonal = math.sqrt(3024 * 3024 + 4032 * 4032);
+        expect(galat / diagonal * 100, lessThan(0.3));
+      },
+      timeout: const Timeout(Duration(seconds: 90)),
+    );
+  });
+
+  group('berkas rusak: selalu Gagal, tidak pernah Future-error', () {
+    late Uint8List jpeg;
+
+    setUpAll(() {
+      final f = hasilkanFotoSintetis(
+        const SpesifikasiFoto(
+          seed: 71,
+          lebarFoto: 480,
+          tinggiFoto: 640,
+          rollDeg: 3,
+        ),
+      );
+      jpeg = Uint8List.fromList(img.encodeJpg(f.foto, quality: 85));
+    });
+
+    // Decoder `image` melempar RangeError (sebuah Error, bukan Exception) pada
+    // JPEG terpotong atau kosong; `on Exception` saja meloloskannya jadi
+    // Future-error di isolate latar.
+    Future<void> harusTidakTerbaca(String nama, Uint8List bita) async {
+      final hasil = await registrasiHalamanDariBitaDiIsolate(
+        bita,
+        halamanPt: _letter,
+        skala: 0.5,
+      );
+
+      expect(hasil, isA<RegistrasiHalamanGagal>(), reason: nama);
+      expect(
+        (hasil as RegistrasiHalamanGagal).alasan,
+        AlasanGagalRegistrasi.fotoTidakTerbaca,
+        reason: '$nama: $hasil',
+      );
+    }
+
+    test('JPEG terpotong 10%, 50%, dan 90%', () async {
+      for (final pecahan in [0.1, 0.5, 0.9]) {
+        final potong = (jpeg.length * pecahan).round();
+        await harusTidakTerbaca(
+          'terpotong ${(pecahan * 100).round()}%',
+          Uint8List.sublistView(jpeg, 0, potong),
+        );
+      }
+    });
+
+    test('0 byte, SOI+EOI saja, SOI+sampah, dan sampah acak', () async {
+      final acak = math.Random(3);
+      await harusTidakTerbaca('0 byte', Uint8List(0));
+      await harusTidakTerbaca(
+        'SOI+EOI saja',
+        Uint8List.fromList([0xff, 0xd8, 0xff, 0xd9]),
+      );
+      await harusTidakTerbaca(
+        'SOI+sampah',
+        Uint8List.fromList([
+          0xff,
+          0xd8,
+          for (var i = 0; i < 4000; i++) acak.nextInt(256),
+        ]),
+      );
+      await harusTidakTerbaca(
+        'sampah acak',
+        Uint8List.fromList([for (var i = 0; i < 4000; i++) acak.nextInt(256)]),
+      );
+    });
+
+    test('JPEG rusak di tengah: Gagal, bukan Future-error', () async {
+      final acak = math.Random(1);
+      for (final pecahan in [0.3, 0.5, 0.7]) {
+        final rusak = Uint8List.fromList(jpeg);
+        final awal = (rusak.length * pecahan).round();
+        for (var i = 0; i < 200; i++) {
+          rusak[awal + i] = acak.nextInt(256);
+        }
+
+        // Decoder boleh menyerah (fotoTidakTerbaca) atau menghasilkan citra
+        // rusak yang ditolak tahap deteksi; yang tidak boleh: melempar, atau
+        // meluruskan citra rusak.
+        final hasil = await registrasiHalamanDariBitaDiIsolate(
+          rusak,
+          halamanPt: _letter,
+          skala: 0.5,
+        );
+        expect(
+          hasil,
+          isA<RegistrasiHalamanGagal>(),
+          reason: 'rusak di ${(pecahan * 100).round()}%: $hasil',
+        );
+      }
+    });
+
+    test('PNG terpotong 50% juga Gagal', () async {
+      final f = hasilkanFotoSintetis(
+        const SpesifikasiFoto(seed: 72, lebarFoto: 480, tinggiFoto: 640),
+      );
+      final png = Uint8List.fromList(img.encodePng(f.foto));
+
+      await harusTidakTerbaca(
+        'PNG terpotong',
+        Uint8List.sublistView(png, 0, png.length ~/ 2),
+      );
+    });
+
+    test(
+      'galat tak terduga di dalam pipeline → Gagal (sinkron dan isolate)',
+      () async {
+        final f = hasilkanFotoSintetis(
+          const SpesifikasiFoto(
+            seed: 73,
+            lebarFoto: 480,
+            tinggiFoto: 640,
+            rollDeg: 2,
+          ),
+        );
+        // Lebar kerja negatif membuat alokasi di tahap perkecil melempar
+        // RangeError: contoh galat Error di tengah pipeline.
+        const opsiRusak = OpsiRegistrasiHalaman(lebarKerja: -1);
+
+        final sinkron = registrasiHalaman(
+          f.foto,
+          halamanPt: _letter,
+          skala: 0.5,
+          opsi: opsiRusak,
+        );
+        expect(sinkron, isA<RegistrasiHalamanGagal>(), reason: '$sinkron');
+        expect(
+          (sinkron as RegistrasiHalamanGagal).alasan,
+          AlasanGagalRegistrasi.fotoTidakTerbaca,
+        );
+        expect(sinkron.detail, contains('galat tak terduga'));
+
+        final isolat = await registrasiHalamanDiIsolate(
+          f.foto,
+          halamanPt: _letter,
+          skala: 0.5,
+          opsi: opsiRusak,
+        );
+        expect(isolat, isA<RegistrasiHalamanGagal>(), reason: '$isolat');
+      },
+    );
+  });
+
+  group('penjaga kompresi: salinan arsip tidak boleh diluruskan untuk OCR', () {
+    late FotoSintetis f;
+    late Uint8List jpeg;
+    late SalinanArsip salinan;
+
+    setUpAll(() {
+      f = hasilkanFotoSintetis(
+        const SpesifikasiFoto(
+          seed: 74,
+          lebarFoto: 480,
+          tinggiFoto: 640,
+          rollDeg: 4,
+        ),
+      );
+      jpeg = Uint8List.fromList(img.encodeJpg(f.foto, quality: 85));
+      salinan = SalinanArsip.dari(jpeg, mime: 'image/jpeg', ekstensi: 'jpg');
+    });
+
+    test('bita salinan arsip ditolak SEBELUM decode', () async {
+      await expectLater(
+        registrasiHalamanDariBitaDiIsolate(
+          salinan.byte,
+          halamanPt: _letter,
+          skala: 0.5,
+        ),
+        throwsA(isA<FotoTerkompresiDitolak>()),
+      );
+      // Tanda ada di isi byte: salinan yang di-copy tetap tertolak.
+      await expectLater(
+        registrasiHalamanDariBitaDiIsolate(
+          Uint8List.fromList(salinan.byte),
+          halamanPt: _letter,
+          skala: 0.5,
+        ),
+        throwsA(isA<FotoTerkompresiDitolak>()),
+      );
+    });
+
+    test('citra salinan arsip ditolak di tiga pintu', () async {
+      final citra = salinan.dekode()!;
+
+      expect(
+        () => registrasiHalaman(citra, halamanPt: _letter, skala: 0.5),
+        throwsA(isA<FotoTerkompresiDitolak>()),
+      );
+      await expectLater(
+        registrasiHalamanDiIsolate(citra, halamanPt: _letter, skala: 0.5),
+        throwsA(isA<FotoTerkompresiDitolak>()),
+      );
+      expect(
+        () => luruskanHalaman(
+          citra,
+          f.sudutBenar,
+          halamanPt: _letter,
+          skala: 0.5,
+        ),
+        throwsA(isA<FotoTerkompresiDitolak>()),
+      );
+    });
+
+    test('citra didekode ulang dari byte bertanda tetap ditolak', () {
+      final ulang = img.decodeJpg(salinan.byte)!;
+
+      expect(
+        () => registrasiHalaman(ulang, halamanPt: _letter, skala: 0.5),
+        throwsA(isA<FotoTerkompresiDitolak>()),
+      );
+    });
+
+    test('penanda diperiksa SEBELUM EXIF dipanggang', () {
+      final citra = salinan.dekode()!..exif.imageIfd.orientation = 6;
+
+      expect(
+        () => registrasiHalaman(citra, halamanPt: _letter, skala: 0.5),
+        throwsA(isA<FotoTerkompresiDitolak>()),
+      );
+    });
+
+    test('foto kamera yang sama TANPA penanda lolos (kontrol)', () async {
+      expect(apakahDariSalinanArsip(jpeg), isFalse);
+
+      final hasil = await registrasiHalamanDariBitaDiIsolate(
+        jpeg,
+        halamanPt: _letter,
+        skala: 0.5,
+      );
+      expect(hasil, isA<RegistrasiHalamanBerhasil>(), reason: '$hasil');
+      expect(
+        apakahDariSalinanArsip((hasil as RegistrasiHalamanBerhasil).citra),
+        isFalse,
+      );
+    });
+  });
+
+  group('luruskanHalaman: masukan tak masuk akal → Gagal, bukan assert', () {
+    late FotoSintetis f;
+    late List<TitikHalaman> sudut;
+
+    setUpAll(() {
+      f = hasilkanFotoSintetis(
+        const SpesifikasiFoto(
+          seed: 75,
+          lebarFoto: 480,
+          tinggiFoto: 640,
+          rollDeg: 5,
+          pitchDeg: 6,
+        ),
+      );
+      sudut = (_daftar(f) as RegistrasiHalamanBerhasil).sudutFoto;
+    });
+
+    HasilRegistrasiHalaman lurus(
+      List<TitikHalaman> s, {
+      double skala = 0.5,
+      int? putaran,
+      ({double w, double h}) halamanPt = _letter,
+    }) => luruskanHalaman(
+      f.foto,
+      s,
+      halamanPt: halamanPt,
+      skala: skala,
+      putaranKuadran: putaran,
+    );
+
+    void harusDitolak(String nama, HasilRegistrasiHalaman hasil) {
+      expect(hasil, isA<RegistrasiHalamanGagal>(), reason: nama);
+      final gagal = hasil as RegistrasiHalamanGagal;
+      expect(gagal.alasan, AlasanGagalRegistrasi.bentukTidakWajar);
+      expect(gagal.detail, startsWith('masukan ditolak'), reason: nama);
+    }
+
+    test('kontrol: sudut yang sah diterima', () {
+      expect(lurus(sudut), isA<RegistrasiHalamanBerhasil>());
+    });
+
+    test('bukan empat sudut', () {
+      harusDitolak('3 sudut', lurus(sudut.sublist(0, 3)));
+      harusDitolak('5 sudut', lurus([...sudut, sudut.first]));
+      harusDitolak('kosong', lurus(const []));
+    });
+
+    test('urutan berlawanan arah / tercermin (luas bertanda ≤ 0)', () {
+      // Homografinya ada, tetapi halaman hasil warp TERCERMIN dan akan dibaca
+      // diam-diam: harus ditolak.
+      harusDitolak('dibalik', lurus(sudut.reversed.toList()));
+      harusDitolak(
+        'cermin kiri-kanan',
+        lurus([sudut[1], sudut[0], sudut[3], sudut[2]]),
+      );
+      harusDitolak('merosot', lurus([sudut[0], sudut[0], sudut[0], sudut[0]]));
+    });
+
+    test('segi empat tidak cembung (simpul bersilang)', () {
+      harusDitolak('bow-tie', lurus([sudut[0], sudut[2], sudut[1], sudut[3]]));
+    });
+
+    test('koordinat bukan bilangan terhingga', () {
+      harusDitolak(
+        'NaN',
+        lurus([(x: double.nan, y: 1.0), sudut[1], sudut[2], sudut[3]]),
+      );
+      harusDitolak(
+        'tak hingga',
+        lurus([sudut[0], (x: double.infinity, y: 1.0), sudut[2], sudut[3]]),
+      );
+    });
+
+    test('skala ≤ 0 atau bukan bilangan terhingga', () {
+      for (final skala in [0.0, -1.0, double.nan, double.infinity]) {
+        harusDitolak('skala $skala', lurus(sudut, skala: skala));
+      }
+    });
+
+    test('ukuran halaman ≤ 0', () {
+      harusDitolak('lebar 0', lurus(sudut, halamanPt: (w: 0.0, h: 792.0)));
+      harusDitolak('tinggi < 0', lurus(sudut, halamanPt: (w: 612.0, h: -1.0)));
+    });
+
+    test('putaranKuadran di luar 0–3', () {
+      harusDitolak('putaran 4', lurus(sudut, putaran: 4));
+      harusDitolak('putaran -1', lurus(sudut, putaran: -1));
+    });
+  });
+
+  group('BATAS DIKETAHUI: bantalan lebih besar berrasio sama', () {
+    // Halaman di atas lembar/tumpukan kertas yang menonjol m × sisi di tiap
+    // sisi. Tepi LUAR bantalan adalah segi empat sah dengan rasio yang sama,
+    // jadi lolos SEMUA pemeriksaan dan terkunci sebagai halaman. Ini salah
+    // diam-diam yang diketahui, BUKAN perilaku yang diinginkan: uji ini
+    // mengunci perilaku SEKARANG supaya tidak ada yang mengira kelasnya sudah
+    // tertutup. Satu-satunya penangkal adalah pemeriksa kedua (registrasi
+    // jangkar teks / kode formulir) pada citra hasil, sebelum sel dibaca.
+    //
+    // Bila kelas ini kelak ditutup di modul ini, uji ini harus DIBALIK
+    // menjadi "ditolak" (jangan dilonggarkan).
+    double galatPct(
+      List<TitikHalaman> est,
+      List<TitikHalaman> acuan,
+      double diagonalFoto,
+    ) {
+      var terburuk = 0.0;
+      for (final e in est) {
+        var terdekat = double.infinity;
+        for (final a in acuan) {
+          terdekat = math.min(terdekat, jarakTitik(e, a));
+        }
+        terburuk = math.max(terburuk, terdekat);
+      }
+
+      return terburuk / diagonalFoto * 100;
+    }
+
+    FotoSintetis foto(double bantalan, int seed) => hasilkanFotoSintetis(
+      SpesifikasiFoto(
+        seed: seed,
+        lebarFoto: 480,
+        tinggiFoto: 640,
+        rollDeg: 8,
+        pitchDeg: 8,
+        yawDeg: -5,
+        isi: 0.70,
+        bantalan: bantalan,
+        blurPx: 0.5,
+        noise: 4,
+        jpegQ: 80,
+      ),
+    );
+
+    test('kontrol: tanpa bantalan, spesifikasi yang sama → halaman benar', () {
+      for (final seed in [901, 902]) {
+        final f = foto(0, seed);
+        final hasil = _daftar(f);
+
+        expect(hasil, isA<RegistrasiHalamanBerhasil>(), reason: '$hasil');
+        expect(
+          galatPct(
+            (hasil as RegistrasiHalamanBerhasil).sudutFoto,
+            f.sudutBenar,
+            f.diagonalFoto,
+          ),
+          lessThan(0.3),
+        );
+      }
+    });
+
+    for (final bantalan in [0.06, 0.12]) {
+      test('bantalan ${(bantalan * 100).round()}%: DITERIMA dan terkunci ke '
+          'bantalan (salah diam-diam yang diketahui)', () {
+        for (final seed in [901, 902]) {
+          final f = foto(bantalan, seed);
+          final hasil = _daftar(f);
+
+          // Perilaku sekarang: tidak ditolak.
+          expect(
+            hasil,
+            isA<RegistrasiHalamanBerhasil>(),
+            reason: 'seed $seed: $hasil',
+          );
+          final sudutHasil = (hasil as RegistrasiHalamanBerhasil).sudutFoto;
+
+          // Sudutnya akurat... terhadap bantalan.
+          expect(
+            galatPct(sudutHasil, f.sudutBantalan!, f.diagonalFoto),
+            lessThan(0.3),
+            reason: 'seed $seed: terkunci ke bantalan',
+          );
+          // ...dan salah terhadap halaman sebenarnya, jauh di atas batas
+          // 0,5% diagonal yang dipakai matriks akurasi.
+          expect(
+            galatPct(sudutHasil, f.sudutBenar, f.diagonalFoto),
+            greaterThan(bantalan * 40),
+            reason: 'seed $seed: salah terhadap halaman sebenarnya',
+          );
+        }
+      });
+    }
   });
 }

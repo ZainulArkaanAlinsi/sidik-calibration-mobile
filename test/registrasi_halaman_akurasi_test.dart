@@ -5,8 +5,12 @@
 // terang (krem, putih). Geometri 26 foto prototipe ada di
 // `registrasi_halaman_prototipe_test.dart`.
 //
-// Target dari spesifikasi: galat sudut maks ≤ 0,5% diagonal foto, ≥ 99% sel
-// IoU ≥ 0,7 sesudah warp, dan KEGAGALAN selalu gagal-aman.
+// Target awal: galat sudut maks ≤ 0,5% diagonal foto, ≥ 99% sel IoU ≥ 0,7
+// sesudah warp. Terukur 12 Nov 2026: galat maks 0,10%, jadi ambang uji
+// dirapatkan ke 0,2% supaya regresi kecil terlihat. Kegagalan yang terdeteksi
+// harus gagal-aman; kelas salah-diam-diam yang DIKETAHUI (bantalan lebih
+// besar berrasio sama) ada di `registrasi_halaman_test.dart`, grup "BATAS
+// DIKETAHUI" — matriks di sini tidak memuatnya.
 //
 // Batas jujur: ini foto sintetis. Foto nyata (meja berkilap, kertas
 // melengkung, tangan, pantulan lampu) belum diuji.
@@ -112,12 +116,12 @@ void main() {
       laporUkur(ringkasan);
 
       // Deteksi: sebagian kecil boleh ditolak (halaman terlalu kecil di foto
-      // yang diputar), tetapi TIDAK ADA yang salah.
+      // yang diputar), tetapi di matriks ini tidak ada yang salah.
       expect(ringkasan.fraksiTerdeteksi, greaterThanOrEqualTo(0.9));
       for (final alasan in ringkasan.alasanGagal.keys) {
         expect(alasan, 'halamanTerlaluKecil');
       }
-      expect(ringkasan.galatMaksPctFoto, lessThanOrEqualTo(0.5));
+      expect(ringkasan.galatMaksPctFoto, lessThanOrEqualTo(0.2));
       expect(ringkasan.fraksiSelIou07, greaterThanOrEqualTo(0.99));
       expect(ringkasan.fraksiSelGeser025, 0);
     },
@@ -171,11 +175,11 @@ void main() {
 
       // Krem: sebagian diterima, yang diterima benar, sisanya ditolak.
       expect(rKrem.ok.length, greaterThanOrEqualTo(4));
-      expect(rKrem.galatMaksPctFoto, lessThanOrEqualTo(0.3));
+      expect(rKrem.galatMaksPctFoto, lessThanOrEqualTo(0.2));
       expect(rKrem.fraksiSelIou07, greaterThanOrEqualTo(0.99));
       // Putih: yang diterima (kalau ada) tetap benar.
       for (final u in rPutih.ok) {
-        expect(u.galatSudutPctFoto, lessThanOrEqualTo(0.5), reason: u.nama);
+        expect(u.galatSudutPctFoto, lessThanOrEqualTo(0.2), reason: u.nama);
       }
     },
   );
