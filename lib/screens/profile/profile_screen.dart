@@ -18,6 +18,7 @@ import '../../providers/versi_provider.dart';
 import '../../providers/avatar_provider.dart';
 import '../../providers/locale_provider.dart';
 import '../../providers/platform_provider.dart';
+import '../../providers/sakelar_ocr_provider.dart' show tampilkanUkurOcrAktif;
 import '../../providers/theme_mode_provider.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/liquid_glass.dart';
@@ -33,6 +34,7 @@ import '../settings/customer_list_screen.dart';
 import '../settings/organization_screen.dart';
 import '../settings/kelola_lab_screen.dart';
 import '../settings/tanda_tangan_screen.dart';
+import '../settings/ukur_ocr_screen.dart';
 import '../settings/metode_list_screen.dart';
 import '../settings/ruangan_list_screen.dart';
 import '../settings/rumus_list_screen.dart';
@@ -1109,6 +1111,20 @@ class _AdeganSistem extends StatelessWidget {
                       : null,
                   onTap: sedangCabutSemua ? null : onCabutSemua,
                 ),
+                // Alat pengembang: tidak ada di rilis (const, dibuang kompilator).
+                if (tampilkanUkurOcrAktif) ...[
+                  const _GarisPemisah(),
+                  _BarisMenu(
+                    icon: Icons.speed_outlined,
+                    title: 'Ukur OCR (pengembang)',
+                    subtitle: 'Uji pembaca angka pada crop di penyimpanan',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const UkurOcrScreen(),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

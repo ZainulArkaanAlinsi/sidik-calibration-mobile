@@ -2857,6 +2857,20 @@
   "fotoReviewBelumDicek": "{jumlah} angka kuning belum dicek. Adu dengan potongan fotonya, lalu ketuk tanda cek.",
   "fotoReviewTandaiDicek": "Tandai sudah dicek",
   "fotoReviewSudahDicek": "Sudah dicek",
+  "fotoReviewIsiCepat": "Isi cepat, satu per satu",
+  "fotoReviewKonfirmasiLanjut": "Konfirmasi dan lanjut",
+  "fotoReviewTutupKeypad": "Tutup keypad",
+  "fotoReviewKeypadHapus": "Hapus satu karakter",
+  "fotoReviewKeypadMinus": "Tanda minus",
+  "fotoReviewUsulanMesin": "Usulan mesin: skor mentah, bukan persen",
+  "fotoReviewSisaSel": "{jumlah, plural, =0{Semua sel sudah beres} =1{Sisa 1 sel} other{Sisa {jumlah} sel}}",
+  "@fotoReviewSisaSel": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "lkAsliMemproses": "Membaca foto di HP… foto tidak dikirim ke mana pun.",
   "lkAsliBelumSiap": "Formulir ini belum bisa dipindai. Isi manual dulu.",
   "lkAsliGeometriBelumLengkap": "Peta kotak formulir ini belum lengkap. Isi manual dulu.",

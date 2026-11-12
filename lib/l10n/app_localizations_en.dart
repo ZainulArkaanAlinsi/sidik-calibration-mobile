@@ -6653,6 +6653,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fotoReviewSudahDicek => 'Checked';
 
   @override
+  String get fotoReviewIsiCepat => 'Quick fill, one by one';
+
+  @override
+  String get fotoReviewKonfirmasiLanjut => 'Confirm and next';
+
+  @override
+  String get fotoReviewTutupKeypad => 'Close keypad';
+
+  @override
+  String get fotoReviewKeypadHapus => 'Delete one character';
+
+  @override
+  String get fotoReviewKeypadMinus => 'Minus sign';
+
+  @override
+  String get fotoReviewUsulanMesin =>
+      'Machine suggestion: raw score, not a percentage';
+
+  @override
+  String fotoReviewSisaSel(int jumlah) {
+    String _temp0 = intl.Intl.pluralLogic(
+      jumlah,
+      locale: localeName,
+      other: '$jumlah cells left',
+      one: '1 cell left',
+      zero: 'All cells are done',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get lkAsliMemproses =>
       'Reading the photo on this phone... it is not sent anywhere.';
 

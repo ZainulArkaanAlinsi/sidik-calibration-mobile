@@ -3691,6 +3691,20 @@
   },
   "fotoReviewTandaiDicek": "Mark as checked",
   "fotoReviewSudahDicek": "Checked",
+  "fotoReviewIsiCepat": "Quick fill, one by one",
+  "fotoReviewKonfirmasiLanjut": "Confirm and next",
+  "fotoReviewTutupKeypad": "Close keypad",
+  "fotoReviewKeypadHapus": "Delete one character",
+  "fotoReviewKeypadMinus": "Minus sign",
+  "fotoReviewUsulanMesin": "Machine suggestion: raw score, not a percentage",
+  "fotoReviewSisaSel": "{jumlah, plural, =0{All cells are done} =1{1 cell left} other{{jumlah} cells left}}",
+  "@fotoReviewSisaSel": {
+    "placeholders": {
+      "jumlah": {
+        "type": "int"
+      }
+    }
+  },
   "lkAsliMemproses": "Reading the photo on this phone... it is not sent anywhere.",
   "lkAsliBelumSiap": "This form cannot be scanned yet. Fill it in manually.",
   "lkAsliGeometriBelumLengkap": "The cell map for this form is incomplete. Fill it in manually.",

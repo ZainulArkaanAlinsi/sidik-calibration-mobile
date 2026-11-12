@@ -4,10 +4,13 @@ import '../core/config/app_config.dart';
 import '../models/worksheet_template.dart';
 import '../services/pembaca_halaman.dart';
 import '../services/pembaca_qr.dart';
+import '../services/ocr_angka/muat_mesin_bawaan.dart';
 import '../services/pembaca_sel.dart';
+import '../services/pembaca_sel_onnx.dart';
 import '../services/worksheet_scan_service.dart';
 import 'auth_provider.dart';
 import 'dashboard_provider.dart' show TokenHilangException;
+import 'sakelar_ocr_provider.dart';
 
 final worksheetScanServiceProvider = Provider<WorksheetScanService>((ref) {
   if (AppConfig.useMock) return MockWorksheetScanService();
@@ -49,13 +52,26 @@ typedef PabrikPembacaPindai = ({
 /// bukan penjaga harian. Yang paling mahal justru sambungannya — angka yang
 /// nyampe formulir tapi sesinya nggak ditandai butuh verifikasi, misalnya,
 /// nggak ngasih gejala apa pun sampai admin keblokir.
-final pabrikPembacaPindaiProvider = Provider<PabrikPembacaPindai>(
-  (ref) => (
-    sel: MlKitPembacaSel.new,
+final pabrikPembacaPindaiProvider = Provider<PabrikPembacaPindai>((ref) {
+  final sakelar = ref.watch(sakelarOcrProvider);
+  final buatSesi = ref.watch(buatSesiOcrAngkaProvider);
+
+  return (
+    // ML Kit tetap pembaca bawaan. Mesin angka hanya bila sakelar developer
+    // menyala; gagal muat = ML Kit (lihat `PembacaSelOnnx`).
+    sel: sakelar.pakaiMesinAngkaOnnx
+        ? () => PembacaSelOnnx(
+            cadangan: MlKitPembacaSel(),
+            muatMesin: () => muatMesinAngkaBawaan(
+              buatSesi,
+              izinkanSintetis: sakelar.pakaiMesinAngkaOnnx,
+            ),
+          )
+        : MlKitPembacaSel.new,
     qr: MlKitPembacaQr.new,
     halaman: MlKitPembacaHalaman.new,
-  ),
-);
+  );
+});
 
 /// Kunci [worksheetTemplateProvider]: kode lembar + alat yang lagi dipilih.
 ///

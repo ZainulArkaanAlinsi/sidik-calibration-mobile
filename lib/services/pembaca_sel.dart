@@ -6,6 +6,7 @@ import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 
 import 'modul_pembaca_teks.dart';
+import 'ocr_angka/aturan_format_sel.dart' show AturanFormatSel;
 
 /// Hasil baca satu potongan sel.
 typedef BacaanSel = ({String? teks, double? keyakinan, bool didalamKotak});
@@ -42,6 +43,16 @@ abstract class PembacaSel {
   Future<BacaanSel> baca(img.Image potongan);
 
   Future<void> tutup();
+}
+
+/// Pembaca yang memakai aturan format sel (jumlah desimal, boleh negatif) dari
+/// templat server — mesin angka `PembacaSelOnnx`.
+///
+/// Dipisah dari [PembacaSel] supaya pembaca lain (ML Kit, tiruan test) tidak
+/// berubah. Pemanggil memakai [bacaBerformat] bila pembacanya jenis ini dan
+/// [baca] untuk yang lain; [aturan] `null` = templat tidak menyebut format sel.
+abstract interface class PembacaSelBerformat implements PembacaSel {
+  Future<BacaanSel> bacaBerformat(img.Image potongan, AturanFormatSel? aturan);
 }
 
 class MlKitPembacaSel implements PembacaSel {
@@ -217,7 +228,10 @@ class PayloadPindai {
       if (equipmentId case final int id) 'equipment_id': id,
       if (jumlahPengulangan case final int n) 'jumlah_pengulangan': n,
 
-      'qr': {'terbaca': qrIsi != null, if (qrIsi case final String isi) 'isi': isi},
+      'qr': {
+        'terbaca': qrIsi != null,
+        if (qrIsi case final String isi) 'isi': isi,
+      },
 
       'geometri': {
         'marker': [
@@ -226,10 +240,7 @@ class PayloadPindai {
         ],
         'residual_reproyeksi_px': residualPx,
         'grid_tersnap': true,
-        'ukuran_referensi': {
-          'w': ukuranReferensi.w,
-          'h': ukuranReferensi.h,
-        },
+        'ukuran_referensi': {'w': ukuranReferensi.w, 'h': ukuranReferensi.h},
       },
 
       // Angkanya dikirim APA ADANYA, nggak dibulatkan: ambangnya milik server

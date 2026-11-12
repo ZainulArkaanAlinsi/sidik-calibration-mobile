@@ -11587,6 +11587,48 @@ abstract class AppLocalizations {
   /// **'Checked'**
   String get fotoReviewSudahDicek;
 
+  /// No description provided for @fotoReviewIsiCepat.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick fill, one by one'**
+  String get fotoReviewIsiCepat;
+
+  /// No description provided for @fotoReviewKonfirmasiLanjut.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm and next'**
+  String get fotoReviewKonfirmasiLanjut;
+
+  /// No description provided for @fotoReviewTutupKeypad.
+  ///
+  /// In en, this message translates to:
+  /// **'Close keypad'**
+  String get fotoReviewTutupKeypad;
+
+  /// No description provided for @fotoReviewKeypadHapus.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete one character'**
+  String get fotoReviewKeypadHapus;
+
+  /// No description provided for @fotoReviewKeypadMinus.
+  ///
+  /// In en, this message translates to:
+  /// **'Minus sign'**
+  String get fotoReviewKeypadMinus;
+
+  /// No description provided for @fotoReviewUsulanMesin.
+  ///
+  /// In en, this message translates to:
+  /// **'Machine suggestion: raw score, not a percentage'**
+  String get fotoReviewUsulanMesin;
+
+  /// No description provided for @fotoReviewSisaSel.
+  ///
+  /// In en, this message translates to:
+  /// **'{jumlah, plural, =0{All cells are done} =1{1 cell left} other{{jumlah} cells left}}'**
+  String fotoReviewSisaSel(int jumlah);
+
   /// No description provided for @lkAsliMemproses.
   ///
   /// In en, this message translates to:

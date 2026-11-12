@@ -1,0 +1,18 @@
+{
+  "versi": "en_PP-OCRv5_mobile_rec_onnx@3fafbc3b",
+  "berkas": "ocr_angka_en.onnx",
+  "sha256": "b5f833dfc5d0eb71da397b4efa06ebeee9b431b690a47d6af40d77d8eabc557f",
+  "ukuran_byte": 7848423,
+  "sumber": "https://huggingface.co/PaddlePaddle/en_PP-OCRv5_mobile_rec_onnx (revisi 3fafbc3b5dcf93dd72add9f48368be8a3a2cd33b, berkas inference.onnx)",
+  "lisensi": "Apache-2.0",
+  "asal_data": "publik",
+  "bukti_akurasi": "SINTETIS",
+  "foto_nyata_terukur": false,
+  "alfabet": "0123456789.,-",
+  "kolom": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 76, 74, 75],
+  "kelas_model": 438,
+  "ambang_jalur": 0.99,
+  "masukan": "x float32 [1,3,48,W], BGR, (x/255-0,5)/0,5, W = max(320, ceil(48*lebar/tinggi)), padding nol di kanan",
+  "keluaran": "softmax [1,W/8,438]; kolom = blank, 0-9, '.', ',', '-'; dekode CTC greedy",
+  "catatan": "Ambang 0,990 dan seluruh angka akurasi berasal dari rig SINTETIS (12 Nov 2026). Belum ada foto nyata. Hitung ulang ambang di runtime final."
+}

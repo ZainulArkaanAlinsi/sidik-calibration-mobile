@@ -354,9 +354,16 @@ void main() {
         expect(tester.widget<FilledButton>(masukkan).onPressed, isNull);
 
         // Baris merah mulai KOSONG dan wajib diketik; sisanya wajib dicek.
+        // Urutan layar = urutan kertas (12 Nov 2026), bukan merah dulu: baris
+        // merah dicari lewat kotaknya yang kosong, dan hanya ada satu.
         final kotak = find.byType(TextField);
-        expect(tester.widget<TextField>(kotak.first).controller!.text, isEmpty);
-        await tester.enterText(kotak.first, '123,9');
+        final isi = tester.widgetList<TextField>(kotak).toList();
+        final kosong = [
+          for (var i = 0; i < isi.length; i++)
+            if (isi[i].controller!.text.isEmpty) i,
+        ];
+        expect(kosong, hasLength(1));
+        await tester.enterText(kotak.at(kosong.single), '123,9');
         await tester.pump();
         await tester.runAsync(
           () => Future<void>.delayed(const Duration(milliseconds: 10)),

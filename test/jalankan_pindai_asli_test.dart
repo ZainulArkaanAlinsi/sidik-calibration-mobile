@@ -10,6 +10,7 @@ import 'package:image/image.dart' as img;
 
 import 'package:sidik_calibration/models/worksheet_template.dart';
 import 'package:sidik_calibration/services/jalankan_pindai_asli.dart';
+import 'package:sidik_calibration/services/ocr_angka/aturan_format_sel.dart';
 import 'package:sidik_calibration/services/pembaca_halaman.dart';
 import 'package:sidik_calibration/services/pembaca_sel.dart';
 import 'package:sidik_calibration/services/registrasi_jangkar_teks.dart';
@@ -546,6 +547,101 @@ void main() {
       expect(pembacaHalaman.asli.single!.orientasi, 6);
     },
   );
+
+  group('format sel diteruskan ke pembaca berformat (mesin angka)', () {
+    final aturanServer = {
+      'tipe': 'desimal',
+      'desimal': 2,
+      'min': 0,
+      'maks': 14,
+      'izinkan_minus': false,
+    };
+    final selDenganAturan = {
+      for (final e in (dataTemplate['sel'] as Map<String, dynamic>).entries)
+        e.key: {...(e.value as Map<String, dynamic>), 'aturan': aturanServer},
+    };
+
+    test('sel tabel membawa aturan templat; isian Env. tanpa aturan', () async {
+      final pembaca = _PembacaBerformatPalsu();
+      await JalankanPindaiAsli(
+        halaman: MockPembacaHalaman(kataCetak()),
+        pembaca: pembaca,
+      ).baca(
+        foto(dicentang: {}),
+        template: templateDengan({'sel': selDenganAturan}),
+      );
+
+      expect(pembaca.denganFormat, 60);
+      expect(pembaca.tanpaFormat, 4, reason: 'empat isian Env.');
+      expect(pembaca.formatDiterima.every((a) => a.desimal == 2), isTrue);
+      expect(
+        pembaca.formatDiterima.every((a) => !a.bolehNegatif),
+        isTrue,
+        reason: 'izinkan_minus false dan min 0',
+      );
+      expect(pembaca.biasaDipanggil, 0, reason: 'jalur berformat dipakai');
+    });
+
+    test(
+      'templat tanpa desimal -> aturan null (mesin angka tidak dipakai)',
+      () async {
+        final pembaca = _PembacaBerformatPalsu();
+        await JalankanPindaiAsli(
+          halaman: MockPembacaHalaman(kataCetak()),
+          pembaca: pembaca,
+        ).baca(foto(dicentang: {}), template: template);
+
+        expect(pembaca.denganFormat, 0);
+        expect(pembaca.tanpaFormat, 64);
+      },
+    );
+
+    test('pembaca biasa tetap dipanggil lewat baca()', () async {
+      final biasa = MockPembacaSel(bacaan: bacaanSel);
+      await JalankanPindaiAsli(
+        halaman: MockPembacaHalaman(kataCetak()),
+        pembaca: biasa,
+      ).baca(
+        foto(dicentang: {}),
+        template: templateDengan({'sel': selDenganAturan}),
+      );
+
+      expect(biasa.jumlahDibaca, 64);
+    });
+  });
+}
+
+/// Pembaca berformat tiruan: mencatat aturan format yang diterima per sel.
+class _PembacaBerformatPalsu implements PembacaSelBerformat {
+  int denganFormat = 0;
+  int tanpaFormat = 0;
+  int biasaDipanggil = 0;
+  final formatDiterima = <AturanFormatSel>[];
+
+  @override
+  Future<BacaanSel> bacaBerformat(
+    img.Image potongan,
+    AturanFormatSel? aturan,
+  ) async {
+    if (aturan == null) {
+      tanpaFormat++;
+    } else {
+      denganFormat++;
+      formatDiterima.add(aturan);
+    }
+
+    return (teks: null, keyakinan: null, didalamKotak: true);
+  }
+
+  @override
+  Future<BacaanSel> baca(img.Image potongan) async {
+    biasaDipanggil++;
+
+    return (teks: null, keyakinan: null, didalamKotak: true);
+  }
+
+  @override
+  Future<void> tutup() async {}
 }
 
 /// ML Kit tiruan yang cuma "bisa membaca" foto di orientasi aslinya —
